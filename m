@@ -1,85 +1,56 @@
 From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH v3] i2c: omap: improve duty cycle on SCL
-Date: Thu, 9 Jul 2015 21:42:41 +0200
-Message-ID: <20150709194241.GF4744@katana>
-References: <1434569475-17378-1-git-send-email-balbi@ti.com>
- <55827CD7.7030207@nokia.com>
- <20150618172558.GC27790@saruman.tx.rr.com>
+Subject: Re: [PATCH 1/3] i2c: omap: switch to dev_get_drvdata()
+Date: Thu, 9 Jul 2015 21:46:17 +0200
+Message-ID: <20150709194616.GG4744@katana>
+References: <1435260890-32335-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GLp9dJVi+aaipsRk"
+	protocol="application/pgp-signature"; boundary="GUPx2O/K0ibUojHx"
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150618172558.GC27790-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <1435260890-32335-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---GLp9dJVi+aaipsRk
+--GUPx2O/K0ibUojHx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 18, 2015 at 12:25:58PM -0500, Felipe Balbi wrote:
-> On Thu, Jun 18, 2015 at 10:09:59AM +0200, Alexander Sverdlin wrote:
-> > Hello Felipe,
-> >=20
-> > On 17/06/15 21:31, ext Felipe Balbi wrote:
-> > > With this patch we try to be as close to 50%
-> > > duty cycle as possible. The reason for this
-> > > is that some devices present an erratic behavior
-> > > with certain duty cycles.
-> > >=20
-> > > One such example is TPS65218 PMIC which fails
-> > > to change voltages when running @ 400kHz and
-> > > duty cycle is lower than 34%.
-> > >=20
-> > > The idea of the patch is simple:
-> > >=20
-> > > calculate desired scl_period from requested scl
-> > > and use 50% for tLow and 50% for tHigh.
-> > >=20
-> > > tLow is calculated with a DIV_ROUND_UP() to make
-> > > sure it's slightly higher than tHigh and to make
-> > > sure that we end up within I2C specifications.
-> >=20
-> > if you refuse to change the calculations to achieve maximum possible
-> > bus rate (as I've shown you with SCLL=3D9 and SCLH=3D9), maybe you want=
- to
-> > change the description? Because you are doing something else than is
-> > written here. You are only in spec because you are not doing 50% duty
-> > cycle. And you didn't mention here that you lower the bus speed below
-> > 400kHz to achieve this.
+On Thu, Jun 25, 2015 at 02:34:48PM -0500, Felipe Balbi wrote:
+> there's no need to fetch the platform_device
+> in order to dereference it back to the dev
+> pointer to access drvdata, we can use
+> dev_get_drvdata() instead.
 >=20
-> and there's a comment where the calculation goes which states "as close
-> to 50% as possible but we make sure tLow is higher than tHigh so we're
-> still within spec".
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-So, is that ready to go in for-next?
+Applied to for-next, thanks!
 
 
---GLp9dJVi+aaipsRk
+--GUPx2O/K0ibUojHx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVns6xAAoJEBQN5MwUoCm2l/UP/1v5ddhiQ7s7KPEm1Q7EGQ6m
-ewwB5uXVH+Pb51zKMesTxrj63jb+BNuSrQQGgXHMIn1qT6YUSeMclcZdxfPlyu2O
-hbTwoaK42K83M0ibi17DEMy6na/PCLpjdyTOHE0Lne4mhL5ObqUQxPHtZMbXJPX0
-YXc5L7MTLwoQ96Acr3lGfhbu5niELyz28Zjuo1Bg4/rPxRWYDxsBaRF1fBI0k0xd
-p+uGLFHAZINUdXzhkKNheOv+8u71eGt2Wy3XQ8on6Yz+zBuAyCHv8RGeId2mys3c
-a7dFe6KFkRyvL0i16AiYDB9eNF5DLzuretCtG9AeVQh1itZej4jYjVo8maeIoi2q
-Sa65rdnEQ18vq2x1ZVNMGJwKrMxkZXCHGWQcEyy3zZlM5YsHO29enOHkUu6Qxax+
-qq0oPZtrvLUSjeq2Y+bUBb9WZJNYk2Y72RE4w+KMNoe/NBMNubQClLxKkQTmp7lX
-uALMq+hw1S+Zh6zN+UkyUDoquQP1+RgmggYtZJzTwd8u4jt4OAewru1a6zm53I66
-7fEYORxZsxZJdWrIdB5o+ac9CNKhTcayeP6okQUL/Z640zKjAwmGGHCN5ANZvgok
-WFg0f0tE/O3V5etRtOEyicuTyBDbfRf6dfOuoK9P6KQpQj/vdO3wdUXMTvzrAA5P
-EaEiEchBKEKNMD8vKVOy
-=eXDP
+iQIcBAEBAgAGBQJVns+IAAoJEBQN5MwUoCm2nhkP/2sGj6JkWCzorUKT9H6R2p9F
+WkkVrvYfEq1IHUN8bhddX243Ra1ZX0ZO7FRUIJMvYrK7u3egzHTwvie46DZ5TAjH
+7sAoHD0/91cKDrq1TkV76WNwqUyMz3fko3JqSFkvVi73xg27qlmh2NGp2jZGzKiT
+afjCVxkYSF6takItIyFqrCwxzMGISkbAOrZmR//IVe1HTrP7Jj3MMqVVJ2zFzdQW
+s0gyd5IoC423GxpS5vG1UpxQX8HJGEMNSkVwtaijHZoIXixaIYDwdoZ6aYLagvyx
+blUl7X9ziVeewrR3PWfpEFM7BXh/0Dk63UfUY6Kk1zclNdutfz0yg3HfKMmhkT7w
+b2+uHPeDERD9aIqHU4iveCrj/Ze/aVEckNPWmpc5UnQVWulg3hbi5rDFI6AEmqx3
+LdBBKJMauahk7V5kD0tN3+Bp3tg6AsPYMmmTIIPWEmL4OivVa2GjDMs7zxhCdkNo
+wRPiV3mMQbKMxj3u1uDjmqa+DvJZLkSY6YmdroQhNp5LIL49BbZk1q0QViu9+eGN
+vgV5m5iuQ5z5zmCC3vQ7NPE+zns5gLqR67uxT2ijO+hOWU8el3DPsDLQPQ1HFB9Y
+K2uVrp3aPqzis7APwonKziQEeOLnaGP0Z1hdMC/8oh9KEo4iHFLIWFTyvuUNMxCq
+zk7j2vSlc+uT5947xhCW
+=/wf2
 -----END PGP SIGNATURE-----
 
---GLp9dJVi+aaipsRk--
+--GUPx2O/K0ibUojHx--
