@@ -1,41 +1,116 @@
 From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/7] tty: 8250: omap: introduce function to update mdr1
-Date: Thu, 9 Jul 2015 16:50:55 +0530
-Message-ID: <559E5917.7090707@ti.com>
-References: <cover.1436174801.git.nsekhar@ti.com> <597e0f4bf4455cb7755851f5c34a02fbdd0d4aeb.1436174801.git.nsekhar@ti.com> <559DC05F.9070707@hurleysoftware.com>
+Subject: Re: [PATCH 5/7] tty: 8250: workaround errata on disabling UART after
+ using DMA
+Date: Thu, 9 Jul 2015 19:45:37 +0530
+Message-ID: <559E8209.9080005@ti.com>
+References: <cover.1436174801.git.nsekhar@ti.com> <9f70a47010d019f76b822b60e7d4f512aa4e46d7.1436174801.git.nsekhar@ti.com> <559DCF83.8010703@hurleysoftware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <559DC05F.9070707-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <559DCF83.8010703-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 09 July 2015 05:59 AM, Peter Hurley wrote:
+Hi Peter,
+
+On Thursday 09 July 2015 07:03 AM, Peter Hurley wrote:
 > Hi Sekhar,
 > 
-> On 07/06/2015 05:47 AM, Sekhar Nori wrote:
->> updating mdr1 register on OMAP needs to take care of
->> errata i202. Introduce a function to update mdr1.
->>
->> This will be useful later on when mdr1 needs to be
->> written to from other places. No functional change.
-> 
-> This changelog is not clear. May I suggest:
-> 
-> serial: 8250_omap: Refactor MDR1 update
-> 
-> The errata [1] workaround implemented in follow-on patch,
-> "serial: 8250_omap: workaround errata on disabling UART after using DMA",
-> requires MDR1 register programming.
-> 
-> Extract MDR1 register update into helper function, omap8250_update_mdr1().
-> 
-> [1] Advisory 21 in http://www.ti.com/lit/er/sprz408b/sprz408b.pdf
+> Patch title should start "serial: 8250_omap: .." since the patch
+> is specific to the 8250_omap serial driver.
 
-Alright, will use this description instead.
+Yes, missed that.
+
+> 
+> On 07/06/2015 05:47 AM, Sekhar Nori wrote:
+>> AM335x, AM437x and DRA7x SoCs have an errata due to which UART
+>> cannot be disabled after it has been used with DMA.
+>              ^^^^^^
+>              idled
+
+alright.
+
+> 
+>> OMAP3 has a similar sounding errata which has been worked around
+>> in a2fc36613ac1af2e9 ("ARM: OMAP3: Use manual idle for UARTs
+>> because of DMA errata"). But the workaround used there does not
+>> apply to AM335x, AM437x SoCs.
+> 
+>> These SoCs need a softreset of UART before disabling them.
+> 
+> "The UART module on these SoCs must be soft reset to go idle."
+>  
+>> This patch implements that errata workaround. It is expected that
+>> UART will be used with DMA so no explicit check for DMA usage
+>> has been added for errata applicability.
+> 
+> This changelog should also:
+> 
+> 1. Reference the errata document.
+
+Sure. I added that as comments in code. I can do that in the patch
+description too.
+
+> 2. Explain why SCR register has to be the context loss canary
+>    rather than MDR1.
+
+Okay, will explain that too.
+
+>> @@ -1307,6 +1320,36 @@ static int omap8250_runtime_suspend(struct device *dev)
+>>  			return -EBUSY;
+>>  	}
+>>  
+>> +	if (priv->habit & UART_ERRATA_CLOCK_DISABLE) {
+>> +		int sysc;
+>> +		int syss;
+>> +		int timeout = 100;
+>> +
+>> +		sysc = serial_in(up, UART_OMAP_SYSC);
+>> +
+>> +		/* softreset the UART */
+>> +		sysc |= OMAP_UART_SYSC_SOFTRESET;
+>> +		serial_out(up, UART_OMAP_SYSC, sysc);
+>> +
+>> +		/* By experiments, 1us enough for reset complete on AM335x */
+>> +		do {
+>> +			udelay(1);
+>> +			syss = serial_in(up, UART_OMAP_SYSS);
+>> +		} while (--timeout && !(syss & OMAP_UART_SYSS_RESETDONE));
+> 
+> 
+> If there is not a omap helper function to reset modules, there should be.
+> Open-coding the module reset is not appropriate.
+
+There is work planned to have something implemented for OMAP as part of
+drivers/reset/ API. AFAIK, this depends on some PRCM code clean-up
+affecting multiple OMAP platforms and is couple of merge windows away
+from taking shape.
+
+Meanwhile, I think this is the best we can do. Other drivers like
+i2c-omap have done something similar (see omap_i2c_reset()).
+
+> 
+>> +		if (!timeout) {
+>> +			dev_err(dev, "timed out waiting for reset done\n");
+>> +			return -ETIMEDOUT;
+>> +		}
+>> +
+>> +		/*
+>> +		 * For UART module wake-up to work, MDR1.MODESELECT should
+>> +		 * not be set to "Disable", so update it.
+>> +		 */
+>> +		if (device_may_wakeup(dev))
+>> +			omap8250_update_mdr1(up, priv);
+> 
+> Should this be unconditional?
+
+I do not see it doing any harm if done unconditionally. But it will be
+unnecessary. Unless the UART is being used for wakeup, we don't need
+MDR1 restored at this stage. And omap8250_restore_regs() will eventually
+restore the register anyway.
 
 Thanks,
 Sekhar
