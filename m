@@ -1,47 +1,76 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/7] tty: 8250: omap eliminate use of of_machine_is_compatible()
-Date: Thu, 9 Jul 2015 16:48:12 +0530
-Message-ID: <559E5874.3040307@ti.com>
-References: <cover.1436174801.git.nsekhar@ti.com> <bf1f3478de98a74a3c92246d6a5d86bc71aa0cf8.1436174801.git.nsekhar@ti.com> <559DB989.1040501@hurleysoftware.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2 1/2] net: can: c_can: Fix default pinmux glitch at
+ init
+Date: Thu, 9 Jul 2015 14:19:49 +0300
+Message-ID: <559E58D5.6090007@ti.com>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com> <1436279277-3386-2-git-send-email-rogerq@ti.com> <559D0BA4.9000000@ti.com> <559E53CD.5080302@ti.com> <559E5412.5090604@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <559DB989.1040501-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <559E5412.5090604@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Peter,
-
-On Thursday 09 July 2015 05:30 AM, Peter Hurley wrote:
-> Hi Sekhar,
-> 
-> On 07/06/2015 05:47 AM, Sekhar Nori wrote:
->> Use of of_machine_is_compatible() for AM335x specific DMA
->> quirk in 8250_omap driver makes it ugly to extend the
->> quirk for other platforms. Instead use a new compatible.
+On 07/09/2015 01:59 PM, Marc Kleine-Budde wrote:
+> On 07/09/2015 12:58 PM, Grygorii Strashko wrote:
+>> On 07/08/2015 02:38 PM, Roger Quadros wrote:
+>>> From: "J.D. Schroeder" <jay.schroeder@garmin.com>
+>>>
+>>> The previous change 3973c526ae9c (net: can: c_can: Disable pins when CAN interface
+>>> is down) causes a slight glitch on the pinctrl settings when used. Since
+>>> commit ab78029 (drivers/pinctrl: grab default handles from device core),
+>>> the device core will automatically set the default pins. This causes
+>>> the pins to be momentarily set to the default and then to the sleep
+>>> state in register_c_can_dev(). By adding an optional "enable" state,
+>>> boards can set the default pin state to be disabled and avoid the
+>>> glitch when the switch from default to sleep first occurs. If the
+>>> "enable" state is not available c_can_pinctrl_select_state() falls
+>>> back to using the "default" pinctrl state.
+>>>
+>>> [Roger Q] - Forward port to v4.2 and use pinctrl_get_select().
+>>>
+>>> Signed-off-by: J.D. Schroeder <jay.schroeder@garmin.com>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>    drivers/net/can/c_can/c_can.c | 10 ++++++++--
+>>>    1 file changed, 8 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+>>> index 041525d..5d214d1 100644
+>>> --- a/drivers/net/can/c_can/c_can.c
+>>> +++ b/drivers/net/can/c_can/c_can.c
+>>> @@ -592,6 +592,7 @@ static int c_can_start(struct net_device *dev)
+>>>    {
+>>>    	struct c_can_priv *priv = netdev_priv(dev);
+>>>    	int err;
+>>> +	struct pinctrl *p;
+>>>
+>>>    	/* basic c_can configuration */
+>>>    	err = c_can_chip_config(dev);
+>>> @@ -604,8 +605,13 @@ static int c_can_start(struct net_device *dev)
+>>>
+>>>    	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>>>
+>>> -	/* activate pins */
+>>> -	pinctrl_pm_select_default_state(dev->dev.parent);
+>>> +	/* Attempt to use "active" if available else use "default" */
+>>> +	p = pinctrl_get_select(priv->device, "active");
+>>> +	if (!IS_ERR(p))
+>>> +		pinctrl_put(p);
+>>> +	else
+>>> +		pinctrl_pm_select_default_state(priv->device);
+>>> +
 >>
->> The new compatible will also make it easier to care of other
->> quirks specific to AM335x and like SoCs.
->>
->> This patch does break backward DTB compatibility for users of
->> 8250_omap driver on AM335x boards.
-> 
-> Not ok.
-> 
-> 8250_omap was released with 3.19 and has been the default driver for
-> BeagleBone since 4.0.
+>> Thanks. This part looks good to me now.
+>
+> Is this an Acked-by?
 
-Alright, I guess I was really stretching my luck here. Will keep the
-of_machine_is_compatible() around so there should be no backward
-compatibility issue.
+Not sure I can ack overall patch - is up to can driver maintainer
+for this part Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Thanks,
-Sekhar
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+regards,
+-grygorii
