@@ -1,104 +1,98 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: musb-hdrc: "Vbus off, timeout 1100 msec" message does not belong in sysfs
-Date: Thu, 9 Jul 2015 23:54:36 +0200
-Message-ID: <201507092354.36649@pali>
-References: <20150709213922.GA32698@amd> <20150709214610.GA20890@amd>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart31235275.TegAg5q0Su";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150709214610.GA20890@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Greg KH <greg@kroah.com>, balbi@ti.com, bigeasy@linutronix.de, george.cherian@ti.com, tony@atomide.com, varkabhadram@gmail.com, linux-kernel@vger.kernel.org, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+From: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] ARM: dts: configure regulators for Gumstix Pepper
+Date: Thu,  9 Jul 2015 15:37:57 -0700
+Message-ID: <1436481477-18002-1-git-send-email-adam.yh.lee@gmail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ashcharles-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org, arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart31235275.TegAg5q0Su
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Boot process is halting in midway because some of the necessary voltage
+regulators are deemed unused and subsequently powered off, leading to
+a completely unresponsive system.
 
-On Thursday 09 July 2015 23:46:10 Pavel Machek wrote:
-> On Thu 2015-07-09 23:39:22, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > sysfs should contain one value per file. This one has at least two,
-> > with nice english sentence as a bonus.
-> >=20
-> > root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/mu
-> > sb-hdrc.0.auto# cat vbus
-> > Vbus off, timeout 1100 msec
-> >=20
-> > :-(.
->=20
-> Plus, documentation for this is nowhere to be seen:
->=20
-> pavel@amd:/data/l/linux-n900$ grep -ri musb Documentation/ABI/
-> pavel@amd:/data/l/linux-n900$
->=20
-> ..which is a shame, because it is not really clear how to use this
-> one:
->=20
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto# cat mode
-> b_idle
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto# echo a_suspend > mode
-> -bash: echo: write error: Invalid argument
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto# echo a > mode
-> -bash: echo: write error: Invalid argument
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto# echo a_host > mode
-> -bash: echo: write error: Invalid argument
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto# echo b_host > mode
-> -bash: echo: write error: Invalid argument
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto# echo a_idle > mode
-> -bash: echo: write error: Invalid argument
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto# echo b_wait_acon > mode
-> -bash: echo: write error: Invalid argument
-> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb
-> -hdrc.0.auto#
->=20
->=20
-> 									Pavel
+Most of the device nodes had correct voltage regulator attachments.
+Yet these nodes had to set stricter enforcement on them through
+'regulator-boot-on' and 'regulator-always-on' to function correctly.
 
-Hi!
+The consumers of the regulators this commit affect are the followings:
 
-I remember that this file is used for switching between usb peripheral=20
-and host mode. But because n900 HW somehow broken, for usb host mode are=20
-needed couple of "hack" patches which workaround HW bugs... This is=20
-still not enough and "support" from userspace is needed for it too.
+	DCDC1: vdd_1v8 system supply, USB-PHY, and ADC
+	DCDC2: Core domain
+	DCDC3: MPU core domain
+	 LDO1: RTC
+	 LDO2: 3v3 IO domain
+	 LDO3: USB-PHY; not a boot-time requirement
+	 LDO4: LCD [16:23]
 
-Kernel patches are part of Maemo kernel-power 2.6.28 version and with=20
-package usbmode http://maemo.org/packages/view/usbmode/ is it possible=20
-to enter usb host mode on n900 (and then connect e.g. usb stick).
+All but LDO3 need to be always-on for the system to be functional.
 
-And IIRC correct command is:
+Additionally regulator-name properties have been added for the kernel to
+display the name from the schematic. This will improve diagnostics.
 
-# echo host > mode
-# echo peripheral > mode
+Signed-off-by: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-pepper.dts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
+index 0d35ab6..661f835 100644
+--- a/arch/arm/boot/dts/am335x-pepper.dts
++++ b/arch/arm/boot/dts/am335x-pepper.dts
+@@ -438,6 +438,7 @@
+ 	regulators {
+ 		dcdc1_reg: regulator@0 {
+ 			/* VDD_1V8 system supply */
++			regulator-always-on;
+ 		};
+ 
+ 		dcdc2_reg: regulator@1 {
+@@ -446,6 +447,7 @@
+ 			regulator-min-microvolt = <925000>;
+ 			regulator-max-microvolt = <1325000>;
+ 			regulator-boot-on;
++			regulator-always-on;
+ 		};
+ 
+ 		dcdc3_reg: regulator@2 {
+@@ -454,25 +456,32 @@
+ 			regulator-min-microvolt = <925000>;
+ 			regulator-max-microvolt = <1150000>;
+ 			regulator-boot-on;
++			regulator-always-on;
+ 		};
+ 
+ 		ldo1_reg: regulator@3 {
+ 			/* VRTC 1.8V always-on supply */
++			regulator-name = "vrtc,vdds";
+ 			regulator-always-on;
+ 		};
+ 
+ 		ldo2_reg: regulator@4 {
+ 			/* 3.3V rail */
++			regulator-name = "vdd_3v3aux";
++			regulator-always-on;
+ 		};
+ 
+ 		ldo3_reg: regulator@5 {
+ 			/* VDD_3V3A 3.3V rail */
++			regulator-name = "vdd_3v3a";
+ 			regulator-min-microvolt = <3300000>;
+ 			regulator-max-microvolt = <3300000>;
+ 		};
+ 
+ 		ldo4_reg: regulator@6 {
+ 			/* VDD_3V3B 3.3V rail */
++			regulator-name = "vdd_3v3b";
++			regulator-always-on;
+ 		};
+ 	};
+ };
+-- 
+2.1.4
 
---nextPart31235275.TegAg5q0Su
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlWe7ZwACgkQi/DJPQPkQ1K74wCeJUmg2JgXPaA2dE4TyVLIlV8n
-qj4AoMQm3fdkgjK5bM7TubMm/YWm553T
-=sWOg
------END PGP SIGNATURE-----
-
---nextPart31235275.TegAg5q0Su--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
