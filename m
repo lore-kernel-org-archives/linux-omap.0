@@ -1,121 +1,61 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/7] tty: 8250: workaround errata on disabling UART after
- using DMA
-Date: Thu, 9 Jul 2015 19:45:37 +0530
-Message-ID: <559E8209.9080005@ti.com>
-References: <cover.1436174801.git.nsekhar@ti.com> <9f70a47010d019f76b822b60e7d4f512aa4e46d7.1436174801.git.nsekhar@ti.com> <559DCF83.8010703@hurleysoftware.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7x-evm: Prevent glitch on DCAN1 pinmux
+Date: Thu, 9 Jul 2015 20:34:48 +0200
+Message-ID: <559EBEC8.1070609@pengutronix.de>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com>
+ <1436279277-3386-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <559DCF83.8010703-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="uTvXSlAplnmhQprIE60xQgdIlvEB4DW69"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1436279277-3386-3-git-send-email-rogerq@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Peter,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--uTvXSlAplnmhQprIE60xQgdIlvEB4DW69
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 09 July 2015 07:03 AM, Peter Hurley wrote:
-> Hi Sekhar,
-> 
-> Patch title should start "serial: 8250_omap: .." since the patch
-> is specific to the 8250_omap serial driver.
+On 07/07/2015 04:27 PM, Roger Quadros wrote:
+> Driver core sets "default" pinmux on on probe and CAN driver
+> sets "sleep" pinmux during register. This causes a small window
+> where the CAN pins are in "default" state with the DCAN module
+> being disabled.
+>=20
+> Change the "default" state to be like sleep so this glitch is
+> avoided. Add a new "active" state that is used by the driver
+> when CAN is actually active.
 
-Yes, missed that.
+Who is taking care of this patch? I'm applying 1/2 (v2) to linux-can,
+should I take this patch, too?
 
-> 
-> On 07/06/2015 05:47 AM, Sekhar Nori wrote:
->> AM335x, AM437x and DRA7x SoCs have an errata due to which UART
->> cannot be disabled after it has been used with DMA.
->              ^^^^^^
->              idled
+Marc
 
-alright.
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
-> 
->> OMAP3 has a similar sounding errata which has been worked around
->> in a2fc36613ac1af2e9 ("ARM: OMAP3: Use manual idle for UARTs
->> because of DMA errata"). But the workaround used there does not
->> apply to AM335x, AM437x SoCs.
-> 
->> These SoCs need a softreset of UART before disabling them.
-> 
-> "The UART module on these SoCs must be soft reset to go idle."
->  
->> This patch implements that errata workaround. It is expected that
->> UART will be used with DMA so no explicit check for DMA usage
->> has been added for errata applicability.
-> 
-> This changelog should also:
-> 
-> 1. Reference the errata document.
 
-Sure. I added that as comments in code. I can do that in the patch
-description too.
+--uTvXSlAplnmhQprIE60xQgdIlvEB4DW69
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> 2. Explain why SCR register has to be the context loss canary
->    rather than MDR1.
+-----BEGIN PGP SIGNATURE-----
 
-Okay, will explain that too.
+iQEcBAEBCgAGBQJVnr7IAAoJEP5prqPJtc/HXggH/1F7Wfy5XNlKc0VAtqbT4K7Q
+hc6chc/IpjdkTkdfdrSteeiJZyNX4HGrupwkuOtCwle1P6EJfSqCa5r7eEKennCl
+s4cPq4rcLuQk/DpiGOL5Moa+Nh/4Io1OZsDe0L6cdsfyiYhcjD4KEJug5Ys6q+lY
+BJUmrk5YoNYlh7wR7U5e2kG4yRqm6yx89tb2YPH2PQaupfVXJ2BOLGdSGUYMS7yf
+G+Sn+rExGnuuzFL76luus74L9pTGeGvnLiIiRstzObYTbD+d8w85IriCa3FTw2be
+2NfAXIKr2dEB+9xbI93XQrAFr5v7SbUgyodfKJTFo97Jwi+YGt2Oq+S8VF3Sxp4=
+=lWS4
+-----END PGP SIGNATURE-----
 
->> @@ -1307,6 +1320,36 @@ static int omap8250_runtime_suspend(struct device *dev)
->>  			return -EBUSY;
->>  	}
->>  
->> +	if (priv->habit & UART_ERRATA_CLOCK_DISABLE) {
->> +		int sysc;
->> +		int syss;
->> +		int timeout = 100;
->> +
->> +		sysc = serial_in(up, UART_OMAP_SYSC);
->> +
->> +		/* softreset the UART */
->> +		sysc |= OMAP_UART_SYSC_SOFTRESET;
->> +		serial_out(up, UART_OMAP_SYSC, sysc);
->> +
->> +		/* By experiments, 1us enough for reset complete on AM335x */
->> +		do {
->> +			udelay(1);
->> +			syss = serial_in(up, UART_OMAP_SYSS);
->> +		} while (--timeout && !(syss & OMAP_UART_SYSS_RESETDONE));
-> 
-> 
-> If there is not a omap helper function to reset modules, there should be.
-> Open-coding the module reset is not appropriate.
-
-There is work planned to have something implemented for OMAP as part of
-drivers/reset/ API. AFAIK, this depends on some PRCM code clean-up
-affecting multiple OMAP platforms and is couple of merge windows away
-from taking shape.
-
-Meanwhile, I think this is the best we can do. Other drivers like
-i2c-omap have done something similar (see omap_i2c_reset()).
-
-> 
->> +		if (!timeout) {
->> +			dev_err(dev, "timed out waiting for reset done\n");
->> +			return -ETIMEDOUT;
->> +		}
->> +
->> +		/*
->> +		 * For UART module wake-up to work, MDR1.MODESELECT should
->> +		 * not be set to "Disable", so update it.
->> +		 */
->> +		if (device_may_wakeup(dev))
->> +			omap8250_update_mdr1(up, priv);
-> 
-> Should this be unconditional?
-
-I do not see it doing any harm if done unconditionally. But it will be
-unnecessary. Unless the UART is being used for wakeup, we don't need
-MDR1 restored at this stage. And omap8250_restore_regs() will eventually
-restore the register anyway.
-
-Thanks,
-Sekhar
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--uTvXSlAplnmhQprIE60xQgdIlvEB4DW69--
