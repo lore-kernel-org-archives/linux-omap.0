@@ -1,33 +1,38 @@
-From: Pratyush Anand <pratyush.anand@gmail.com>
-Subject: Re: [PATCH 2/3] PCI: host: pcie-designware: add support for suspend
- and resume
-Date: Fri, 10 Jul 2015 18:52:11 +0530
-Message-ID: <CAHM4w1m5gfFbKF6Up8YNQA8rK+avXuz8HZgtbj6pQAndSa_zBQ@mail.gmail.com>
-References: <1435921425-15121-1-git-send-email-kishon@ti.com>
-	<1435921425-15121-3-git-send-email-kishon@ti.com>
+From: Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH] i2c: busses: i2c-omap: Increase timeout for i2c
+ interrupt
+Date: Fri, 10 Jul 2015 15:26:01 +0200
+Message-ID: <559FC7E9.1060003@nokia.com>
+References: <1436504994-31137-1-git-send-email-vigneshr@ti.com>
+ <559F8670.2060305@nokia.com> <20150710090909.GF1528@katana>
+ <559FC5D7.3000108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1435921425-15121-3-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <559FC5D7.3000108-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
+Hi!
 
-On Fri, Jul 3, 2015 at 4:33 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> Certain platforms require MSE bit to be cleared to set the master
-> in standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
-> Controller Master Standby Behavior advises to use the clearing
-> of the local MSE bit to set the master in standby. Without this
-> some of the clocks do not idle).
->
-> Cleared the MSE bit on suspend and enabled it back on resume.
-> This is required to get suspend/resume working.
+On 10/07/15 15:17, ext Vignesh R wrote:
+>>> I would propose you to throw away spinlocks. Convert threaded IRQ to
+>>> >> just one hardirq handler. And continue debugging. You will reduce the
+>>> >> load of the system with the above measures, maybe it will not happen
+>>> >> any more, maybe you'll figure out that problem is somewhere else.
+>> > 
+>> > Or this.
+> I am not convinced with moving entire code at hardirq context. I believe
+> its better to keep hardirq as small as possible.
 
-Have you tested with a card having IO space memory as well.
-I think you might need to require clear and enable PCI_COMMAND_IO
-in suspend and resume respectively.
+How deep is the controller's FIFO? 1 byte? 2 bytes? Other drivers can perfectly fill
+next byte in hardirq handler. If you need to do 10 opcodes more in hardirq handler,
+it's much better for the whole system than to trigger scheduler and thread and and and
+just because of these 10 opcodes.
 
-~Pratyush
+-- 
+Best regards,
+Alexander Sverdlin.
