@@ -1,149 +1,69 @@
-From: Chanwoo Choi <cwchoi00@gmail.com>
-Subject: Re: [PATCH v2 1/2] extcon: fix hang and extcon_get/set_cable_state().
-Date: Fri, 10 Jul 2015 17:54:47 +0200
-Message-ID: <CAGTfZH3qM6_R8F8bE7oEUYhS0hW0hv7fKzYJ6K6z+dZmExCExA@mail.gmail.com>
-References: <1436194018-18696-2-git-send-email-rogerq@ti.com>
-	<1436274375-10308-1-git-send-email-rogerq@ti.com>
-Reply-To: cw00.choi@samsung.com
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/3] i2c: omap: abolish variable name confusion
+Date: Fri, 10 Jul 2015 12:27:01 -0500
+Message-ID: <20150710172701.GB20408@saruman.tx.rr.com>
+References: <1435260890-32335-1-git-send-email-balbi@ti.com>
+ <1435260890-32335-2-git-send-email-balbi@ti.com>
+ <20150709194941.GH4744@katana>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436274375-10308-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: ivan.ivanov@linaro.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150709194941.GH4744@katana>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+--R+My9LyyhiUvIEro
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for your working.
+Hi,
 
-I'll review, test and apply it on next week because I'm on vacation now.
+On Thu, Jul 09, 2015 at 09:49:41PM +0200, Wolfram Sang wrote:
+> On Thu, Jun 25, 2015 at 02:34:49PM -0500, Felipe Balbi wrote:
+> > struct device pointers are usually called
+> > dev. Calling our struct omap_i2c_dev pointers
+> > also dev has caused enough confusion.
+> >=20
+> > This is the result of a few simple sed rules
+> > to convert all struct omap_i2c_dev pointers
+> > to be called omap instead.
+> >=20
+> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>=20
+> I couldn't apply this one. On what was it based?
 
-Thanks,
-Chanwoo Choi
+it was v4.1 at the time, IIRC. I'll rebase again once I'm back in the
+office.
 
-On Tue, Jul 7, 2015 at 3:06 PM, Roger Quadros <rogerq@ti.com> wrote:
-> Users of find_cable_index_by_name() will cause a kernel hang
-> as the while loop counter is never incremented and end condition
-> is never reached.
->
-> extcon_get_cable_state() and extcon_set_cable_state() are broken
-> because they use cable index instead of cable id. This causes
-> the first cable state (cable.0) to be always invalid in sysfs
-> or extcon_get_cable_state() users.
->
-> Introduce a new function find_cable_id_by_name() that fixes
-> both of the above issues.
->
-> Fixes: commit 73b6ecdb93e8 ("extcon: Redefine the unique id of supported external connectors without 'enum extcon' type")
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/extcon/extcon.c | 38 +++++++++++++++++++++++++++++---------
->  1 file changed, 29 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-> index 76157ab..987dd3c 100644
-> --- a/drivers/extcon/extcon.c
-> +++ b/drivers/extcon/extcon.c
-> @@ -124,22 +124,34 @@ static int find_cable_index_by_id(struct extcon_dev *edev, const unsigned int id
->         return -EINVAL;
->  }
->
-> -static int find_cable_index_by_name(struct extcon_dev *edev, const char *name)
-> +static int find_cable_id_by_name(struct extcon_dev *edev, const char *name)
->  {
-> -       unsigned int id = EXTCON_NONE;
-> +       unsigned int id = -EINVAL;
->         int i = 0;
->
-> -       if (edev->max_supported == 0)
-> -               return -EINVAL;
-> -
-> -       /* Find the the number of extcon cable */
-> +       /* Find the id of extcon cable */
->         while (extcon_name[i]) {
->                 if (!strncmp(extcon_name[i], name, CABLE_NAME_MAX)) {
->                         id = i;
->                         break;
->                 }
-> +
-> +               i++;
->         }
->
-> +       return id;
-> +};
-> +
-> +static int find_cable_index_by_name(struct extcon_dev *edev, const char *name)
-> +{
-> +       unsigned int id = EXTCON_NONE;
-> +
-> +       if (edev->max_supported == 0)
-> +               return -EINVAL;
-> +
-> +       /* Find the the number of extcon cable */
-> +       id = find_cable_id_by_name(edev, name);
-> +
->         if (id == EXTCON_NONE)
->                 return -EINVAL;
->
-> @@ -228,9 +240,11 @@ static ssize_t cable_state_show(struct device *dev,
->         struct extcon_cable *cable = container_of(attr, struct extcon_cable,
->                                                   attr_state);
->
-> +       int i = cable->cable_index;
-> +
->         return sprintf(buf, "%d\n",
->                        extcon_get_cable_state_(cable->edev,
-> -                                              cable->cable_index));
-> +                                              cable->edev->supported_cable[i]));
->  }
->
->  /**
-> @@ -341,6 +355,9 @@ int extcon_get_cable_state_(struct extcon_dev *edev, const unsigned int id)
->  {
->         int index;
->
-> +       if (id == EXTCON_NONE)
-> +               return -EINVAL;
-> +
->         index = find_cable_index_by_id(edev, id);
->         if (index < 0)
->                 return index;
-> @@ -361,7 +378,7 @@ EXPORT_SYMBOL_GPL(extcon_get_cable_state_);
->   */
->  int extcon_get_cable_state(struct extcon_dev *edev, const char *cable_name)
->  {
-> -       return extcon_get_cable_state_(edev, find_cable_index_by_name
-> +       return extcon_get_cable_state_(edev, find_cable_id_by_name
->                                                 (edev, cable_name));
->  }
->  EXPORT_SYMBOL_GPL(extcon_get_cable_state);
-> @@ -380,6 +397,9 @@ int extcon_set_cable_state_(struct extcon_dev *edev, unsigned int id,
->         u32 state;
->         int index;
->
-> +       if (id == EXTCON_NONE)
-> +               return -EINVAL;
-> +
->         index = find_cable_index_by_id(edev, id);
->         if (index < 0)
->                 return index;
-> @@ -404,7 +424,7 @@ EXPORT_SYMBOL_GPL(extcon_set_cable_state_);
->  int extcon_set_cable_state(struct extcon_dev *edev,
->                         const char *cable_name, bool cable_state)
->  {
-> -       return extcon_set_cable_state_(edev, find_cable_index_by_name
-> +       return extcon_set_cable_state_(edev, find_cable_id_by_name
->                                         (edev, cable_name), cable_state);
->  }
->  EXPORT_SYMBOL_GPL(extcon_set_cable_state);
-> --
-> 2.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+--=20
+balbi
+
+--R+My9LyyhiUvIEro
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVoABlAAoJEIaOsuA1yqREQi0P/jnmWcalXi6TRoiEn8egg4g3
+kcTMQlvDqKU/p3TjmXzoQx6y18WEGPu99uuHIlWPoW4dnze113yANq2+PSD8VMHK
+61xtlT45zvblTkxnvh6AgO4v2YxsRVBaAugontfSeNPg0bJPxE1vwqPFncD+Z4Wa
+IRVkJA8WecU5sx6isYsZ2QA7AP+iqtU2EBhz5dIbtN8oECII+j/jeSr1l0skvFin
+MZeplWn5Jq+iXECUC0iNF5oEuBwQs61nbPdFhdYrG+eXh2MNOFK1eV7zVSSnCcxI
+7y+MwUoIZa+BGj1PRBmbDMtxZ/NVIkzc0j/4P2xDJRiUs+K5frchVPqFZ3m0AYrR
+fUJw7eDcSKrwMj4Ebx0CNZgQXtQp7DeZdJSi+elHUBZErq3C9FAjOHJfb3vZ1WRp
+QAkaNurPo+MlWrB0FInebN7Mhtw+KdTwGfp44nC9oGYSKY9geVT6NJDyY6ZKQztz
+YEaSqGfoaNXrnStnPt+qhepeVGpRj3U64jZa8tsTaX4tcpQXrx6yYzTjuu3C5qAm
+QaYXNmJOOaO1lCOCbIJhf4gLc+1wOLnkiPrwA2u5YGWq2PMS7g/W9DFHo1lvbGCM
+2C3j4AHySWwcXqWX9h5OLItxNbMXkTm6iYSZYFr+whz9iEqAm7uNcDzRR2bBZye5
+4HvjojWWtE83qfUC0IiC
+=+GZ8
+-----END PGP SIGNATURE-----
+
+--R+My9LyyhiUvIEro--
