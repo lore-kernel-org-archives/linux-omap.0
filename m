@@ -1,39 +1,46 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/2] Add missing #iommu-cells on IOMMU nodes
-Date: Fri, 10 Jul 2015 12:28:54 -0500
-Message-ID: <1436549336-33456-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH 2/2] ARM: dts: OMAP5: Add #iommu-cells property to IOMMUs
+Date: Fri, 10 Jul 2015 12:28:56 -0500
+Message-ID: <1436549336-33456-3-git-send-email-s-anna@ti.com>
+References: <1436549336-33456-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1436549336-33456-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Add missing #iommu-cells property to the DSP and IPU IOMMU nodes
+for OMAP5 platforms. This property is required as per the generic
+iommu binding.
 
-This series adds the #iommu-cells property to the existing
-IOMMU nodes on OMAP4 & OMAP5. It was already fixed for OMAP3
-in commit 2055088b5e17 ("ARM: dts: omap3: Add #iommu-cells to
-isp and iva iommu").
-
-OMAP4 and OMAP5 do not yet have users for these IOMMUs (remoteproc
-nodes), so the warning as seen with the fix added for OMAP3 is not
-seen yet, but will as soon as a user is added.
-
-Patches based on 4.2-rc1.
-
-regards
-Suman
-
-Suman Anna (2):
-  ARM: dts: OMAP4: Add #iommu-cells property to IOMMUs
-  ARM: dts: OMAP5: Add #iommu-cells property to IOMMUs
-
- arch/arm/boot/dts/omap4.dtsi | 2 ++
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
  arch/arm/boot/dts/omap5.dtsi | 2 ++
- 2 files changed, 4 insertions(+)
+ 1 file changed, 2 insertions(+)
 
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 7d24ae0306b5..c8fd648a7108 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -612,6 +612,7 @@
+ 			reg = <0x4a066000 0x100>;
+ 			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "mmu_dsp";
++			#iommu-cells = <0>;
+ 		};
+ 
+ 		mmu_ipu: mmu@55082000 {
+@@ -619,6 +620,7 @@
+ 			reg = <0x55082000 0x100>;
+ 			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "mmu_ipu";
++			#iommu-cells = <0>;
+ 			ti,iommu-bus-err-back;
+ 		};
+ 
 -- 
 2.4.4
 
