@@ -1,364 +1,186 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 04/12] mtd: nand: omap: Move gpmc_update_nand_reg to nand driver
-Date: Fri, 10 Jul 2015 15:23:31 +0300
-Message-ID: <1436531019-18088-5-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 05/12] mtd: nand: omap: Move NAND write protect code from GPMC to NAND driver
+Date: Fri, 10 Jul 2015 15:23:32 +0300
+Message-ID: <1436531019-18088-6-git-send-email-rogerq@ti.com>
 References: <1436531019-18088-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436531019-18088-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com, bcousson@baylibre.com
-Cc: ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1436531019-18088-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-GPMC and NAND drivers share the same register space but never use the
-same registers. As there is no clear address seperation between the
-registers for GPMC and NAND, we can't easily split it up into 2 regions
-i.e. one for GPMC and other for NAND. Instead, we simply remap the entire
-register space in both the drivers. The NAND driver doesn't re-request
-the region as it is already requested by the GPMC driver (parent).
+The write protect (WP) pin is only used for NAND devices. So move
+the code into the NAND driver.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Get rid of gpmc_configure() as it is no longer used.
+
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/gpmc-nand.c              |   8 +-
- drivers/memory/omap-gpmc.c                   |  54 +----------
- drivers/mtd/nand/omap2.c                     | 132 ++++++++++++++++++++++++---
- include/linux/omap-gpmc.h                    |   3 +-
- include/linux/platform_data/mtd-nand-omap2.h |   3 +-
- 5 files changed, 129 insertions(+), 71 deletions(-)
+ arch/arm/mach-omap2/gpmc-nand.c              |  4 ----
+ drivers/memory/omap-gpmc.c                   | 30 ----------------------------
+ drivers/mtd/nand/omap2.c                     | 23 +++++++++++++++++++++
+ include/linux/omap-gpmc.h                    |  3 ---
+ include/linux/platform_data/mtd-nand-omap2.h |  1 +
+ 5 files changed, 24 insertions(+), 37 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index b960876..ff578d4 100644
+index ff578d4..9cb8ce6 100644
 --- a/arch/arm/mach-omap2/gpmc-nand.c
 +++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -78,7 +78,8 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	struct gpmc_settings s;
- 	struct platform_device *pdev;
- 	struct resource gpmc_nand_res[] = {
--		{ .flags = IORESOURCE_MEM, },
-+		{ .flags = IORESOURCE_MEM, },	/* GPMC I/O space */
-+		{ .flags = IORESOURCE_MEM, },	/* GPMC register space */
- 		{ .flags = IORESOURCE_IRQ, },
- 	};
- 
-@@ -92,7 +93,8 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 		return err;
- 	}
- 	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
--	gpmc_nand_res[1].start = gpmc_get_irq();
-+	gpmc_get_mem_resource(&gpmc_nand_res[1]);
-+	gpmc_nand_res[2].start = gpmc_get_irq();
- 
- 	memset(&s, 0, sizeof(struct gpmc_settings));
- 	if (gpmc_nand_data->of_node)
-@@ -119,8 +121,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+@@ -117,10 +117,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
  	if (err < 0)
  		goto out_free_cs;
  
--	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+-	err = gpmc_configure(GPMC_CONFIG_WP, 0);
+-	if (err < 0)
+-		goto out_free_cs;
 -
  	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
  		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
  		err = -EINVAL;
 diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 50806e7..dd55a51 100644
+index dd55a51..650f9b8 100644
 --- a/drivers/memory/omap-gpmc.c
 +++ b/drivers/memory/omap-gpmc.c
-@@ -54,17 +54,6 @@
- #define GPMC_PREFETCH_CONFIG2	0x1e4
- #define GPMC_PREFETCH_CONTROL	0x1ec
- #define GPMC_PREFETCH_STATUS	0x1f0
--#define GPMC_ECC_CONFIG		0x1f4
--#define GPMC_ECC_CONTROL	0x1f8
--#define GPMC_ECC_SIZE_CONFIG	0x1fc
--#define GPMC_ECC1_RESULT        0x200
--#define GPMC_ECC_BCH_RESULT_0   0x240   /* not available on OMAP2 */
--#define	GPMC_ECC_BCH_RESULT_1	0x244	/* not available on OMAP2 */
--#define	GPMC_ECC_BCH_RESULT_2	0x248	/* not available on OMAP2 */
--#define	GPMC_ECC_BCH_RESULT_3	0x24c	/* not available on OMAP2 */
--#define	GPMC_ECC_BCH_RESULT_4	0x300	/* not available on OMAP2 */
--#define	GPMC_ECC_BCH_RESULT_5	0x304	/* not available on OMAP2 */
--#define	GPMC_ECC_BCH_RESULT_6	0x308	/* not available on OMAP2 */
+@@ -151,7 +151,6 @@
  
- /* GPMC ECC control settings */
- #define GPMC_ECC_CTRL_ECCCLEAR		0x100
-@@ -117,9 +106,6 @@
- #define GPMC_CS_CONFIG5		0x10
- #define GPMC_CS_CONFIG6		0x14
- #define GPMC_CS_CONFIG7		0x18
--#define GPMC_CS_NAND_COMMAND	0x1c
--#define GPMC_CS_NAND_ADDRESS	0x20
--#define GPMC_CS_NAND_DATA	0x24
+ #define GPMC_DEVICETYPE_NOR		0
+ #define GPMC_DEVICETYPE_NAND		2
+-#define GPMC_CONFIG_WRITEPROTECT	0x00000010
+ #define WR_RD_PIN_MONITORING		0x00600000
  
- #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
- #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
-@@ -1030,44 +1016,10 @@ int gpmc_configure(int cmd, int wval)
+ /* ECC commands */
+@@ -987,35 +986,6 @@ void gpmc_cs_free(int cs)
  }
- EXPORT_SYMBOL(gpmc_configure);
+ EXPORT_SYMBOL(gpmc_cs_free);
  
--void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
-+void gpmc_get_mem_resource(struct resource *res)
- {
--	int i;
+-/**
+- * gpmc_configure - write request to configure gpmc
+- * @cmd: command type
+- * @wval: value to write
+- * @return status of the operation
+- */
+-int gpmc_configure(int cmd, int wval)
+-{
+-	u32 regval;
 -
--	reg->gpmc_status = gpmc_base + GPMC_STATUS;
--	reg->gpmc_irqstatus = gpmc_base + GPMC_IRQSTATUS;
--	reg->gpmc_irqenable = gpmc_base + GPMC_IRQENABLE;
--	reg->gpmc_nand_command = gpmc_base + GPMC_CS0_OFFSET +
--				GPMC_CS_NAND_COMMAND + GPMC_CS_SIZE * cs;
--	reg->gpmc_nand_address = gpmc_base + GPMC_CS0_OFFSET +
--				GPMC_CS_NAND_ADDRESS + GPMC_CS_SIZE * cs;
--	reg->gpmc_nand_data = gpmc_base + GPMC_CS0_OFFSET +
--				GPMC_CS_NAND_DATA + GPMC_CS_SIZE * cs;
--	reg->gpmc_prefetch_config1 = gpmc_base + GPMC_PREFETCH_CONFIG1;
--	reg->gpmc_prefetch_config2 = gpmc_base + GPMC_PREFETCH_CONFIG2;
--	reg->gpmc_prefetch_control = gpmc_base + GPMC_PREFETCH_CONTROL;
--	reg->gpmc_prefetch_status = gpmc_base + GPMC_PREFETCH_STATUS;
--	reg->gpmc_ecc_config = gpmc_base + GPMC_ECC_CONFIG;
--	reg->gpmc_ecc_control = gpmc_base + GPMC_ECC_CONTROL;
--	reg->gpmc_ecc_size_config = gpmc_base + GPMC_ECC_SIZE_CONFIG;
--	reg->gpmc_ecc1_result = gpmc_base + GPMC_ECC1_RESULT;
+-	switch (cmd) {
+-	case GPMC_CONFIG_WP:
+-		regval = gpmc_read_reg(GPMC_CONFIG);
+-		if (wval)
+-			regval &= ~GPMC_CONFIG_WRITEPROTECT; /* WP is ON */
+-		else
+-			regval |= GPMC_CONFIG_WRITEPROTECT;  /* WP is OFF */
+-		gpmc_write_reg(GPMC_CONFIG, regval);
+-		break;
 -
--	for (i = 0; i < GPMC_BCH_NUM_REMAINDER; i++) {
--		reg->gpmc_bch_result0[i] = gpmc_base + GPMC_ECC_BCH_RESULT_0 +
--					   GPMC_BCH_SIZE * i;
--		reg->gpmc_bch_result1[i] = gpmc_base + GPMC_ECC_BCH_RESULT_1 +
--					   GPMC_BCH_SIZE * i;
--		reg->gpmc_bch_result2[i] = gpmc_base + GPMC_ECC_BCH_RESULT_2 +
--					   GPMC_BCH_SIZE * i;
--		reg->gpmc_bch_result3[i] = gpmc_base + GPMC_ECC_BCH_RESULT_3 +
--					   GPMC_BCH_SIZE * i;
--		reg->gpmc_bch_result4[i] = gpmc_base + GPMC_ECC_BCH_RESULT_4 +
--					   i * GPMC_BCH_SIZE;
--		reg->gpmc_bch_result5[i] = gpmc_base + GPMC_ECC_BCH_RESULT_5 +
--					   i * GPMC_BCH_SIZE;
--		reg->gpmc_bch_result6[i] = gpmc_base + GPMC_ECC_BCH_RESULT_6 +
--					   i * GPMC_BCH_SIZE;
+-	default:
+-		pr_err("%s: command not supported\n", __func__);
+-		return -EINVAL;
 -	}
-+	res->start =  phys_base;
-+	res->end = res->start + mem_size - 1;
- }
- 
- int gpmc_get_irq(void)
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(gpmc_configure);
+-
+ void gpmc_get_mem_resource(struct resource *res)
+ {
+ 	res->start =  phys_base;
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 9dbb2be..3d0f73c 100644
+index 3d0f73c..25a3d05 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -140,6 +140,39 @@
+@@ -140,6 +140,9 @@
  #define GPMC_IRQ_FIFOEVENT	BIT(0)
  #define GPMC_IRQ_TERMCOUNT	BIT(1)
  
-+/* GPMC register offsets */
-+#define GPMC_REVISION		0x00
-+#define GPMC_SYSCONFIG		0x10
-+#define GPMC_SYSSTATUS		0x14
-+#define GPMC_IRQSTATUS		0x18
-+#define GPMC_IRQENABLE		0x1c
-+#define GPMC_TIMEOUT_CONTROL	0x40
-+#define GPMC_ERR_ADDRESS	0x44
-+#define GPMC_ERR_TYPE		0x48
-+#define GPMC_CONFIG		0x50
-+#define GPMC_STATUS		0x54
-+#define GPMC_CS_NAND_COMMAND	0x7c
-+#define GPMC_CS_NAND_ADDRESS	0x80
-+#define GPMC_CS_NAND_DATA	0x84
-+#define GPMC_PREFETCH_CONFIG1	0x1e0
-+#define GPMC_PREFETCH_CONFIG2	0x1e4
-+#define GPMC_PREFETCH_CONTROL	0x1ec
-+#define GPMC_PREFETCH_STATUS	0x1f0
-+#define GPMC_ECC_CONFIG		0x1f4
-+#define GPMC_ECC_CONTROL	0x1f8
-+#define GPMC_ECC_SIZE_CONFIG	0x1fc
-+#define GPMC_ECC1_RESULT        0x200
-+#define GPMC_ECC_BCH_RESULT_0   0x240   /* not available on OMAP2 */
-+#define	GPMC_ECC_BCH_RESULT_1	0x244	/* not available on OMAP2 */
-+#define	GPMC_ECC_BCH_RESULT_2	0x248	/* not available on OMAP2 */
-+#define	GPMC_ECC_BCH_RESULT_3	0x24c	/* not available on OMAP2 */
-+#define GPMC_ECC_BCH_RESULT_4	0x300	/* not available on OMAP2 */
-+#define GPMC_ECC_BCH_RESULT_5	0x304	/* not available on OMAP2 */
-+#define GPMC_ECC_BCH_RESULT_6	0x308	/* not available on OMAP2 */
++/* GPMC_CONFIG register bits */
++#define GPMC_CONFIG_WRITEPROTECT	BIT(4)
 +
-+#define GPMC_CS_SIZE		0x30
-+#define	GPMC_BCH_SIZE		0x10
-+
- static u_char bch16_vector[] = {0xf5, 0x24, 0x1c, 0xd0, 0x61, 0xb3, 0xf1, 0x55,
- 				0x2e, 0x2c, 0x86, 0xa3, 0xed, 0x36, 0x1b, 0x78,
- 				0x48, 0x76, 0xa9, 0x3b, 0x97, 0xd1, 0x7a, 0x93,
-@@ -162,6 +195,7 @@ struct omap_nand_info {
+ /* GPMC register offsets */
+ #define GPMC_REVISION		0x00
+ #define GPMC_SYSCONFIG		0x10
+@@ -215,6 +218,22 @@ struct omap_nand_info {
+ };
  
- 	int				gpmc_cs;
- 	unsigned long			phys_base;
-+	void __iomem			*gpmc_base;
- 	enum omap_ecc			ecc_opt;
- 	struct completion		comp;
- 	struct dma_chan			*dma;
-@@ -1672,20 +1706,64 @@ static bool omap2_nand_ecc_check(struct omap_nand_info *info,
- 	return true;
- }
- 
-+static void gpmc_update_nand_reg(struct omap_nand_info *info)
+ /**
++ * omap_nand_writeprotect - Control the WP line to the NAND chip
++ */
++static void omap_nand_writeprotect(struct omap_nand_info *info, bool on)
 +{
-+	int i;
-+	struct gpmc_nand_regs *reg = &info->reg;
-+	int cs = info->gpmc_cs;
-+	void __iomem *gpmc_base = info->gpmc_base;
++	u32 val;
 +
-+	reg->gpmc_status = gpmc_base + GPMC_STATUS;
-+	reg->gpmc_irqstatus = gpmc_base + GPMC_IRQSTATUS;
-+	reg->gpmc_irqenable = gpmc_base + GPMC_IRQENABLE;
-+	reg->gpmc_nand_command = gpmc_base + GPMC_CS_NAND_COMMAND +
-+				 GPMC_CS_SIZE * cs;
-+	reg->gpmc_nand_address = gpmc_base + GPMC_CS_NAND_ADDRESS +
-+				 GPMC_CS_SIZE * cs;
-+	reg->gpmc_nand_data = gpmc_base + GPMC_CS_NAND_DATA +
-+				 GPMC_CS_SIZE * cs;
-+	reg->gpmc_prefetch_config1 = gpmc_base + GPMC_PREFETCH_CONFIG1;
-+	reg->gpmc_prefetch_config2 = gpmc_base + GPMC_PREFETCH_CONFIG2;
-+	reg->gpmc_prefetch_control = gpmc_base + GPMC_PREFETCH_CONTROL;
-+	reg->gpmc_prefetch_status = gpmc_base + GPMC_PREFETCH_STATUS;
-+	reg->gpmc_ecc_config = gpmc_base + GPMC_ECC_CONFIG;
-+	reg->gpmc_ecc_control = gpmc_base + GPMC_ECC_CONTROL;
-+	reg->gpmc_ecc_size_config = gpmc_base + GPMC_ECC_SIZE_CONFIG;
-+	reg->gpmc_ecc1_result = gpmc_base + GPMC_ECC1_RESULT;
++	val = readl(info->reg.gpmc_config);
++	if (on)
++		val &= GPMC_CONFIG_WRITEPROTECT; /* WP pin is active low */
++	else
++		val |= GPMC_CONFIG_WRITEPROTECT;
 +
-+	for (i = 0; i < GPMC_BCH_NUM_REMAINDER; i++) {
-+		reg->gpmc_bch_result0[i] = gpmc_base + GPMC_ECC_BCH_RESULT_0 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result1[i] = gpmc_base + GPMC_ECC_BCH_RESULT_1 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result2[i] = gpmc_base + GPMC_ECC_BCH_RESULT_2 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result3[i] = gpmc_base + GPMC_ECC_BCH_RESULT_3 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result4[i] = gpmc_base + GPMC_ECC_BCH_RESULT_4 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result5[i] = gpmc_base + GPMC_ECC_BCH_RESULT_5 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result6[i] = gpmc_base + GPMC_ECC_BCH_RESULT_6 +
-+					   GPMC_BCH_SIZE * i;
-+	}
++	writel(val, info->reg.gpmc_config);
 +}
 +
- static int omap_nand_probe(struct platform_device *pdev)
- {
--	struct omap_nand_info		*info;
--	struct omap_nand_platform_data	*pdata;
--	struct mtd_info			*mtd;
--	struct nand_chip		*nand_chip;
--	struct nand_ecclayout		*ecclayout;
--	int				err;
--	int				i;
--	dma_cap_mask_t			mask;
--	unsigned			sig;
--	unsigned			oob_index;
--	struct resource			*res;
--	struct mtd_part_parser_data	ppdata = {};
-+	struct omap_nand_info *info;
-+	struct omap_nand_platform_data *pdata;
-+	struct mtd_info	*mtd;
-+	struct nand_chip *nand_chip;
-+	struct nand_ecclayout *ecclayout;
-+	int err;
-+	int i;
-+	dma_cap_mask_t mask;
-+	unsigned sig;
-+	unsigned oob_index;
-+	struct resource	*res;
-+	struct mtd_part_parser_data ppdata = {};
-+	struct device *dev = &pdev->dev;
++/**
+  * omap_prefetch_enable - configures and starts prefetch transfer
+  * @cs: cs (chip select) number
+  * @fifo_th: fifo threshold to be used for read/ write
+@@ -1713,6 +1732,7 @@ static void gpmc_update_nand_reg(struct omap_nand_info *info)
+ 	int cs = info->gpmc_cs;
+ 	void __iomem *gpmc_base = info->gpmc_base;
  
- 	pdata = dev_get_platdata(&pdev->dev);
- 	if (pdata == NULL) {
-@@ -1702,7 +1780,6 @@ static int omap_nand_probe(struct platform_device *pdev)
++	reg->gpmc_config = gpmc_base + GPMC_CONFIG;
+ 	reg->gpmc_status = gpmc_base + GPMC_STATUS;
+ 	reg->gpmc_irqstatus = gpmc_base + GPMC_IRQSTATUS;
+ 	reg->gpmc_irqenable = gpmc_base + GPMC_IRQENABLE;
+@@ -2141,6 +2161,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	nand_chip->ecc.layout = ecclayout;
  
- 	info->pdev		= pdev;
- 	info->gpmc_cs		= pdata->cs;
--	info->reg		= pdata->reg;
- 	info->of_node		= pdata->of_node;
- 	info->ecc_opt		= pdata->ecc_opt;
- 	mtd			= &info->mtd;
-@@ -1712,8 +1789,14 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	nand_chip		= &info->nand;
- 	nand_chip->ecc.priv	= NULL;
- 
-+	/* GPMC external I/O space */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	nand_chip->IO_ADDR_R = devm_ioremap_resource(&pdev->dev, res);
-+	if (!res) {
-+		dev_err(dev, "Can't get memory resource 0\n");
-+		return -EINVAL;
-+	}
+ scan_tail:
++	/* turn off write protect */
++	omap_nand_writeprotect(info, false);
 +
-+	nand_chip->IO_ADDR_R = devm_ioremap_resource(dev, res);
- 	if (IS_ERR(nand_chip->IO_ADDR_R))
- 		return PTR_ERR(nand_chip->IO_ADDR_R);
- 
-@@ -1724,6 +1807,27 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	nand_chip->IO_ADDR_W = nand_chip->IO_ADDR_R;
- 	nand_chip->cmd_ctrl  = omap_hwcontrol;
- 
-+	/* GPMC internal registers */
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (!res) {
-+		dev_err(dev, "Can't get memory resource 1\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * This resource is already requested by the GPMC driver
-+	 * so we can't request it again. Instead, we just ioremap it.
-+	 * This driver doesn't access the same registers as the GPMC
-+	 * driver so it is safe.
-+	 */
-+	info->gpmc_base = devm_ioremap(dev, res->start, resource_size(res));
-+	if (!info->gpmc_base) {
-+		dev_err(dev, "Can't ioremap resource 1\n");
-+		return -EADDRNOTAVAIL;
-+	}
-+
-+	gpmc_update_nand_reg(info);
-+
- 	/*
- 	 * If RDY/BSY line is connected to OMAP then use the omap ready
- 	 * function and the generic nand_wait function which reads the status
+ 	/* second phase scan */
+ 	if (nand_scan_tail(mtd)) {
+ 		err = -ENXIO;
 diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index c7d291c..36f33ba 100644
+index 36f33ba..d13e172 100644
 --- a/include/linux/omap-gpmc.h
 +++ b/include/linux/omap-gpmc.h
-@@ -8,6 +8,7 @@
-  */
- 
+@@ -10,8 +10,6 @@
  #include <linux/platform_data/gpmc-omap.h>
-+#include <linux/ioport.h>
+ #include <linux/ioport.h>
  
- #define GPMC_CONFIG_WP		0x00000005
+-#define GPMC_CONFIG_WP		0x00000005
+-
+ extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+ 			     struct gpmc_settings *gpmc_s,
+ 			     struct gpmc_device_timings *dev_t);
+@@ -31,7 +29,6 @@ extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t,
+ extern int gpmc_cs_program_settings(int cs, struct gpmc_settings *p);
+ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+-extern int gpmc_configure(int cmd, int wval);
+ extern void gpmc_read_settings_dt(struct device_node *np,
+ 				  struct gpmc_settings *p);
  
-@@ -18,7 +19,7 @@ extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- struct gpmc_nand_regs;
- struct device_node;
- 
--extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
-+extern void gpmc_get_mem_resource(struct resource *res);
- extern int gpmc_get_irq(void);
- 
- extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
 diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index 5a48a43..4427f92 100644
+index 4427f92..e9b16b5 100644
 --- a/include/linux/platform_data/mtd-nand-omap2.h
 +++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -77,10 +77,11 @@ struct omap_nand_platform_data {
- 	enum nand_io		xfer_type;
- 	int			devsize;
- 	enum omap_ecc           ecc_opt;
--	struct gpmc_nand_regs	reg;
- 
- 	/* for passing the partitions */
- 	struct device_node	*of_node;
- 	struct device_node	*elm_of_node;
-+
-+	struct gpmc_nand_regs	reg;		/* deprecated */
+@@ -45,6 +45,7 @@ enum omap_ecc {
  };
- #endif
+ 
+ struct gpmc_nand_regs {
++	void __iomem	*gpmc_config;
+ 	void __iomem	*gpmc_status;
+ 	void __iomem	*gpmc_irqstatus;
+ 	void __iomem	*gpmc_irqenable;
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
