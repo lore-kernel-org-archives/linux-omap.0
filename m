@@ -1,65 +1,83 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [GIT PULL] omap fixes against v4.2-rc1
-Date: Thu, 09 Jul 2015 15:39:27 -0700
-Message-ID: <7hio9tarc0.fsf@deeprootsystems.com>
-References: <20150709094130.GK10644@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150709094130.GK10644@atomide.com> (Tony Lindgren's message of
- "Thu, 9 Jul 2015 02:41:30 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH] Drop owner assignment from i2c_driver (and platform left-overs)
+Date: Fri, 10 Jul 2015 14:05:39 +0900
+Message-ID: <1436504740-9439-1-git-send-email-k.kozlowski@samsung.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Michael Hennerich <michael.hennerich@analog.com>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Chanwoo Choi <cw00.choi@samsung.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Tony Lindgren <tony@atomide.com>, Sangbeom Kim <sbkim73@samsung.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Hi,
 
-> The following changes since commit d770e558e21961ad6cfdf0ff7df0eb5d7d4f0754:
->
->   Linux 4.2-rc1 (2015-07-05 11:01:52 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/fixes-rc1
->
-> for you to fetch changes up to ae745302c0a3e2b5b768690f631fc14db44467e7:
->
->   Merge branch 'fixes-rc1' into omap-for-v4.2/fixes (2015-07-06 05:33:17 -0700)
->
-> ----------------------------------------------------------------
-> Minor fixes for omaps against v4.2-rc1. Mostly just minor dts changes
-> except for a GPMC fix to not use names for probing devices. Also a
-> one liner clean-up to remove unecessary return from a void function.
->
-> The summary for the changes being:
->
-> - Fix probe for GPMC devices by reoving limitations based on device
->   name
->
-> - Remove unnecessary return from a void function
->
-> - Revert beaglebone RTC sleep fix, we now have a better fix merged
->
-> - Add am4372 EMIF node to fix a warning
->
-> - Add am57xx-beagle-x15 power supply to fix USB2 if USB1 is disabled
->
-> - Disable rfbi for am4372 as it does not have a driver
->
-> ----------------------------------------------------------------
 
-Pulled into fixes,
+The i2c drivers also do not have to set 'owner' field because
+i2c_register_driver() will do it instead.
 
-Thanks,
+'owner' is removed from i2c drivers, which I was able to compile
+with allyesconfig (arm, arm64, i386, x86_64, ppc64).
+Only compile-tested.
 
-Kevin
+The coccinelle script which generated the patch was sent here:
+http://www.spinics.net/lists/kernel/msg2029903.html
+
+
+Best regards,
+Krzysztof
+
+
+Krzysztof Kozlowski (1):
+  mfd: Drop owner assignment from i2c_drivers
+
+ drivers/mfd/88pm800.c             | 1 -
+ drivers/mfd/88pm805.c             | 1 -
+ drivers/mfd/88pm860x-core.c       | 1 -
+ drivers/mfd/aat2870-core.c        | 1 -
+ drivers/mfd/ab3100-core.c         | 1 -
+ drivers/mfd/adp5520.c             | 1 -
+ drivers/mfd/arizona-i2c.c         | 1 -
+ drivers/mfd/as3711.c              | 1 -
+ drivers/mfd/as3722.c              | 1 -
+ drivers/mfd/axp20x.c              | 1 -
+ drivers/mfd/bcm590xx.c            | 1 -
+ drivers/mfd/cros_ec_i2c.c         | 1 -
+ drivers/mfd/da903x.c              | 1 -
+ drivers/mfd/da9052-i2c.c          | 1 -
+ drivers/mfd/da9055-i2c.c          | 1 -
+ drivers/mfd/da9063-i2c.c          | 1 -
+ drivers/mfd/intel_soc_pmic_core.c | 1 -
+ drivers/mfd/lm3533-core.c         | 1 -
+ drivers/mfd/lp3943.c              | 1 -
+ drivers/mfd/lp8788.c              | 1 -
+ drivers/mfd/max14577.c            | 1 -
+ drivers/mfd/max77686.c            | 1 -
+ drivers/mfd/max77693.c            | 1 -
+ drivers/mfd/max8907.c             | 1 -
+ drivers/mfd/max8925-i2c.c         | 1 -
+ drivers/mfd/max8997.c             | 1 -
+ drivers/mfd/max8998.c             | 1 -
+ drivers/mfd/mc13xxx-i2c.c         | 1 -
+ drivers/mfd/palmas.c              | 1 -
+ drivers/mfd/rc5t583.c             | 1 -
+ drivers/mfd/retu-mfd.c            | 1 -
+ drivers/mfd/sec-core.c            | 1 -
+ drivers/mfd/si476x-i2c.c          | 1 -
+ drivers/mfd/smsc-ece1099.c        | 1 -
+ drivers/mfd/stmpe-i2c.c           | 1 -
+ drivers/mfd/tc3589x.c             | 1 -
+ drivers/mfd/tps6507x.c            | 1 -
+ drivers/mfd/tps65090.c            | 1 -
+ drivers/mfd/tps65217.c            | 1 -
+ drivers/mfd/tps65218.c            | 1 -
+ drivers/mfd/tps6586x.c            | 1 -
+ drivers/mfd/tps65910.c            | 1 -
+ drivers/mfd/tps65912-i2c.c        | 1 -
+ drivers/mfd/tps80031.c            | 1 -
+ drivers/mfd/twl6040.c             | 1 -
+ drivers/mfd/wm831x-i2c.c          | 1 -
+ drivers/mfd/wm8350-i2c.c          | 1 -
+ drivers/mfd/wm8400-core.c         | 1 -
+ drivers/mfd/wm8994-core.c         | 1 -
+ 49 files changed, 49 deletions(-)
+
+-- 
+1.9.1
