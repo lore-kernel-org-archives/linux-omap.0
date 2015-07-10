@@ -1,49 +1,65 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: musb-hdrc: "Vbus off, timeout 1100 msec" message does not belong
- in sysfs
-Date: Fri, 10 Jul 2015 09:17:39 +0200
-Message-ID: <559F7193.7090508@linutronix.de>
-References: <20150709213922.GA32698@amd> <20150709214610.GA20890@amd>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH] i2c: busses: i2c-omap: Increase timeout for i2c interrupt
+Date: Fri, 10 Jul 2015 11:09:35 +0300
+Message-ID: <559F7DBF.1010706@ti.com>
+References: <1436504994-31137-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150709214610.GA20890@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Greg KH <greg@kroah.com>, balbi@ti.com, george.cherian@ti.com, tony@atomide.com, varkabhadram@gmail.com, linux-kernel@vger.kernel.org
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1436504994-31137-1-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/09/2015 11:46 PM, Pavel Machek wrote:
-> On Thu 2015-07-09 23:39:22, Pavel Machek wrote:
->> Hi!
+Vignesh,
 
-Hi,
-
->>
->> sysfs should contain one value per file. This one has at least two,
->> with nice english sentence as a bonus.
->>
->> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-hdrc.0.auto#
->> cat vbus
->> Vbus off, timeout 1100 msec
->>
->> :-(.
+On 10/07/15 08:09, Vignesh R wrote:
+> When system is under load and there is an i2c transaction running
+> following warning appears on the console:
 > 
-> Plus, documentation for this is nowhere to be seen:
+> [  730.003617] omap_i2c 48070000.i2c: controller timed out
+> [  731.023643] omap_i2c 48070000.i2c: controller timed out
 > 
-> pavel@amd:/data/l/linux-n900$ grep -ri musb Documentation/ABI/
-> pavel@amd:/data/l/linux-n900$
-
-that is a shame indeed. It is part of the driver since TUSB support was
-merged via commit 550a7375f ("USB: Add MUSB and TUSB support") about 7
-years ago.
-The parameter expects the timeout values which is used to poll the port
-for mode changes (host/device mode) since it can not be detected on its
-own.
-Felipe knows best if it is better to document it or remove it. I can't
-remember that I needed it on am335x.
-
-> 									Pavel
+> This is because, the completion() call, which is done in bottom half of
+> the interrupt handler, happens after the timeout period(1s) has elapsed
+> for the wait_for_completion_timeout() in omap_i2c_xfer_msg(). The
+> interrupt is raised within a second but due to system load (or other
+> interrupts), the bottom half does not get scheduled within a second.
+> Hence even though the interrupt has happened within required time frame,
+> due to delayed scheduling of bottom half, spurious timeout errors are
+> reported on the console and i2c controller is reset.
 > 
-Sebastian
+> i2c timeout is a rare condition, hence increase timeout to 60s in order
+> to avoid reporting false timeout events under load.
+
+why not 5s instead of 60s?
+
+cheers,
+-roger
+
+> 
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> ---
+> 
+> I reproduced this while running i2cdump in a loop and reading from flash
+> using dd command.
+> 
+>  drivers/i2c/busses/i2c-omap.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index d1c22e3fdd14..fa7758f0302c 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -50,7 +50,7 @@
+>  #define OMAP_I2C_REV_ON_4430_PLUS	0x50400002
+>  
+>  /* timeout waiting for the controller to respond */
+> -#define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+> +#define OMAP_I2C_TIMEOUT (msecs_to_jiffies(60 * 1000))
+>  
+>  /* timeout for pm runtime autosuspend */
+>  #define OMAP_I2C_PM_TIMEOUT		1000	/* ms */
+> 
