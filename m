@@ -1,76 +1,42 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v2 6/7] crypto: omap-aes: Add support for GCM mode
-Date: Fri, 10 Jul 2015 19:39:35 +0530
-Message-ID: <559FD21F.2020903@ti.com>
-References: <1436283109-13318-1-git-send-email-lokeshvutla@ti.com> <1436283109-13318-7-git-send-email-lokeshvutla@ti.com> <20150708041838.GA12744@gondor.apana.org.au>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 2/3] PCI: host: pcie-designware: add support for suspend
+ and resume
+Date: Fri, 10 Jul 2015 20:19:59 +0530
+Message-ID: <559FDB97.1090803@ti.com>
+References: <1435921425-15121-1-git-send-email-kishon@ti.com>	<1435921425-15121-3-git-send-email-kishon@ti.com> <CAHM4w1m5gfFbKF6Up8YNQA8rK+avXuz8HZgtbj6pQAndSa_zBQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20150708041838.GA12744@gondor.apana.org.au>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: linux-crypto@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAHM4w1m5gfFbKF6Up8YNQA8rK+avXuz8HZgtbj6pQAndSa_zBQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Pratyush Anand <pratyush.anand@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Herbert,
-On Wednesday 08 July 2015 09:48 AM, Herbert Xu wrote:
-> On Tue, Jul 07, 2015 at 09:01:48PM +0530, Lokesh Vutla wrote:
+Hi Pratyush,
+
+On Friday 10 July 2015 06:52 PM, Pratyush Anand wrote:
+> Hi Kishon,
+> 
+> On Fri, Jul 3, 2015 at 4:33 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> Certain platforms require MSE bit to be cleared to set the master
+>> in standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
+>> Controller Master Standby Behavior advises to use the clearing
+>> of the local MSE bit to set the master in standby. Without this
+>> some of the clocks do not idle).
 >>
->> +static int omap_aes_gcm_copy_buffers(struct omap_aes_dev *dd,
->> +				     struct aead_request *req)
+>> Cleared the MSE bit on suspend and enabled it back on resume.
+>> This is required to get suspend/resume working.
+> 
+> Have you tested with a card having IO space memory as well.
 
-[..snip..]
+I don't have any cards with IO space memory. Do you have any suggestion for
+cards with IO space memory?
+> I think you might need to require clear and enable PCI_COMMAND_IO
+> in suspend and resume respectively.
 
->> +static int do_encrypt_iv(struct aead_request *req, u32 *tag)
->> +{
->> +	struct scatterlist iv_sg;
->> +	struct ablkcipher_request *ablk_req;
->> +	struct crypto_ablkcipher *tfm;
->> +	struct tcrypt_result result;
->> +	struct omap_aes_ctx *ctx = crypto_aead_ctx(crypto_aead_reqtfm(req));
->> +	int ret = 0;
->> +
->> +	tfm = crypto_alloc_ablkcipher("ctr(aes)", 0, 0);
-> 
-> Ugh, you cannot allocate crypto transforms in the data path.  You
-> should allocate it in init instead.  Also using ctr(aes) is overkill.
-> Just use aes and do the xor by hand.
-> 
->> +static int omap_aes_gcm_crypt(struct aead_request *req, unsigned long mode)
->> +{
->> +	struct omap_aes_ctx *ctx = crypto_aead_ctx(crypto_aead_reqtfm(req));
->> +	struct omap_aes_reqctx *rctx = aead_request_ctx(req);
->> +	struct crypto_aead *aead = crypto_aead_reqtfm(req);
->> +	unsigned int authlen = crypto_aead_authsize(aead);
->> +	struct omap_aes_dev *dd;
->> +	__be32 counter = cpu_to_be32(1);
->> +	int err;
->> +
->> +	memset(ctx->auth_tag, 0, sizeof(ctx->auth_tag));
-> 
-> The ctx is shared memory and you must not write to it as multiple
-> requests can be called on the same tfm.  Use rctx instead.
+okay.
 
-May be a dumb question. 
-If you don't mind can you elaborate more on the usage of rctx and ctx
-in the driver?
-
-Thanks and regards,
-Lokesh
-> 
->> +	memcpy(req->iv + 12, &counter, 4);
-> 
-> The IV is only 12 bytes long so you're corrupting memory here.
-> You should use rctx here too.
-> 
->> +	if (req->assoclen + req->cryptlen == 0) {
->> +		scatterwalk_map_and_copy(ctx->auth_tag, req->dst, 0, authlen,
->> +					 1);
->> +		return 0;
->> +	}
-> 
-> How can this be right? Did you enable the selftest?
-> 
-> Cheers,
-> 
+Thanks
+Kishon
