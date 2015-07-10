@@ -1,50 +1,81 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] ARM: dts: OMAP5: Add #iommu-cells property to IOMMUs
-Date: Fri, 10 Jul 2015 12:28:56 -0500
-Message-ID: <1436549336-33456-3-git-send-email-s-anna@ti.com>
-References: <1436549336-33456-1-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] ARM: OMAP2+: Remove module references from IOMMU machine layer
+Date: Fri, 10 Jul 2015 15:43:05 -0500
+Message-ID: <1436560985-5947-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436549336-33456-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add missing #iommu-cells property to the DSP and IPU IOMMU nodes
-for OMAP5 platforms. This property is required as per the generic
-iommu binding.
+The OMAP IOMMU driver has been adapted to the IOMMU framework
+for a while now, and it no longer supports being built as a
+module. Cleanup all the module related references both from
+the code and in the build.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+While at it, also relocate a comment around the initcall to
+avoid a checkpatch strict warning about using a blank line
+after function/struct/union/enum declarations.
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap2/Makefile     |  3 +--
+ arch/arm/mach-omap2/omap-iommu.c | 13 +------------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 7d24ae0306b5..c8fd648a7108 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -612,6 +612,7 @@
- 			reg = <0x4a066000 0x100>;
- 			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmu_dsp";
-+			#iommu-cells = <0>;
- 		};
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 903c85be2897..d4579f856b25 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -234,8 +234,7 @@ obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
+ # EMU peripherals
+ obj-$(CONFIG_HW_PERF_EVENTS)		+= pmu.o
  
- 		mmu_ipu: mmu@55082000 {
-@@ -619,6 +620,7 @@
- 			reg = <0x55082000 0x100>;
- 			interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mmu_ipu";
-+			#iommu-cells = <0>;
- 			ti,iommu-bus-err-back;
- 		};
+-iommu-$(CONFIG_OMAP_IOMMU)		:= omap-iommu.o
+-obj-y					+= $(iommu-m) $(iommu-y)
++obj-$(CONFIG_OMAP_IOMMU)		+= omap-iommu.o
  
+ # OMAP2420 MSDI controller integration support ("MMC")
+ obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index 4068350f9059..8867eb4025bf 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -11,7 +11,6 @@
+  */
+ 
+ #include <linux/of.h>
+-#include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+@@ -63,15 +62,5 @@ static int __init omap_iommu_init(void)
+ 
+ 	return omap_hwmod_for_each_by_class("mmu", omap_iommu_dev_init, NULL);
+ }
+-/* must be ready before omap3isp is probed */
+ omap_subsys_initcall(omap_iommu_init);
+-
+-static void __exit omap_iommu_exit(void)
+-{
+-	/* Do nothing */
+-}
+-module_exit(omap_iommu_exit);
+-
+-MODULE_AUTHOR("Hiroshi DOYU");
+-MODULE_DESCRIPTION("omap iommu: omap device registration");
+-MODULE_LICENSE("GPL v2");
++/* must be ready before omap3isp is probed */
 -- 
 2.4.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
