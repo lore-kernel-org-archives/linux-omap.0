@@ -1,37 +1,77 @@
-From: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [PATCH v3 00/11] USB: OTG/DRD Core functionality
-Date: Fri, 10 Jul 2015 15:58:56 +0800
-Message-ID: <20150710075854.GA14729@shlinux2>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [RFC PATCH] i2c: busses: i2c-omap: Increase timeout for i2c
+ interrupt
+Date: Fri, 10 Jul 2015 11:09:09 +0200
+Message-ID: <20150710090909.GF1528@katana>
+References: <1436504994-31137-1-git-send-email-vigneshr@ti.com>
+ <559F8670.2060305@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vKFfOv5t3oGVpiF+"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1436350777-28056-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <559F8670.2060305@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexander Sverdlin <alexander.sverdlin@nokia.com>, Felipe Balbi <balbi@ti.com>
+Cc: ext Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 08, 2015 at 01:19:26PM +0300, Roger Quadros wrote:
-> Hi,
-> 
-> This series centralizes OTG/Dual-role functionality in the kernel.
-> As of now I've got Dual-role functionality working pretty reliably on
-> dra7-evm and am437x-gp-evm. xhci side of things for OTG/DRD use are already
-> in v4.2
 
-Do you have any plan to implement OTG(HNP) on some of your platforms based on
-this OTG core?
+--vKFfOv5t3oGVpiF+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Li Jun
-> 
-> http://thread.gmane.org/gmane.linux.kernel/1923161
-> 
-> DWC3 controller and platform related patches are sent separately.
-> 
-> Changelog:
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> 60 s sounds way too much and actually I simply don't believe this is
+> the root cause. If I take a look into the driver, then I see, that
+
+I agree, this is just a workaround.
+
+> the design is not really the best. The whole IRQ handling could be
+> actually performed in hard IRQ handler, without threading overhead.
+> Putting even 2 bytes in the controller FIFO should not be too heavy
+> for the hard IRQ handler. Then these ridiculous spin_lock()s. What
+> is the reason behind? The IRQ is flagged with ONESHOT, so thread and
+> hardirq handler are anyway mutually excluded. But if this thread
+> ever runs longer than it's allowed in IRQ context, then it anyway
+> produces this IRQ latency because it locks spin_lock_irqsave() for
+> the whole time! So the whole point of threaded interrupt is missing.
+
+Furthermore, this combination of threaded_irq and struct completion seems
+bogus to me. If you just want to ensure the irq happened before timeout,
+you just complete when the irq happened and do the "bottom half" after the
+completion returned?
+
+> I would propose you to throw away spinlocks. Convert threaded IRQ to
+> just one hardirq handler. And continue debugging. You will reduce the
+> load of the system with the above measures, maybe it will not happen
+> any more, maybe you'll figure out that problem is somewhere else.
+
+Or this.
+
+Felipe converted it to threaded_irq, maybe he has something to add?
+
+
+--vKFfOv5t3oGVpiF+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVn4u1AAoJEBQN5MwUoCm29k8P/jyNuGRTgPpswgSZr5wa98LA
+H4zntBH4N/xbklds1TkozwW3BTPjYNIO+2ob1vncrvTcsgMnH1xOtfqsFjvAI220
+fMbFWrYXuqNUZPn7X+7JO/j2IoDFTsB6NbzkBNVUWJbRht6XYmIr1U++vNhEjILu
+YsVDjhauQoUtOuFbMjN8ty9RzKABLeza+fxY1aQgCROiiAwsBe3tx+IAzUC7nRfU
+RsdmV8xewiZo0m3WJQHy0rX2UB1TuaBxW5TnPoeugpDCo9rbqo3mWfETQbMdsptL
+FacUMzlNErj0fYA1njpRwcV0PFhyRCVPpphhdbb+2cPUyFMRMSbG3ONtbQUfYyZ5
+C46bznaCBgoP3AeC8CbNte/W5+raEd32BaLtLpfOeWss/ePxgNYzQTYNae0KYBqw
+EsK97sx/Fb+ofx1RGihcNmQWRSmd26zzb8Ht/TAKCaA8/wBSVFvYn89cGWhUJI9K
+n0zN22LpqQs4wWAnjAOc2JDQ1rbVjY+K+voBKLFmuSTtlp1Uxpi3MZm5tOGv3gyk
+xTz3OsTqdHLeEnE5AypuUHvMk0Acc1xP+JveDT4IYUutVyQMTEVnt+sfle2/KhM3
+oktiL4hkjanb42vqVNrk8GeULtTejGOi9+iZSSQSCpv6ltWFRdNtHldJ+Uzmjx+T
+4ATVoEaqD3DDmVQdpNq3
+=br0N
+-----END PGP SIGNATURE-----
+
+--vKFfOv5t3oGVpiF+--
