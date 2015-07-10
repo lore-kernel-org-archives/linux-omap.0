@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 06/12] mtd: nand: omap: Copy platform data parameters to omap_nand_info data
-Date: Fri, 10 Jul 2015 15:23:33 +0300
-Message-ID: <1436531019-18088-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH 08/12] mtd: nand: omap: Update DT binding documentation
+Date: Fri, 10 Jul 2015 15:23:35 +0300
+Message-ID: <1436531019-18088-9-git-send-email-rogerq@ti.com>
 References: <1436531019-18088-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,99 +12,64 @@ To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com, bcousson
 Cc: ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Copy all the platform data parameters to the driver's local data
-structure 'omap_nand_info' and use it in the entire driver. This will
-make it easer for device tree migration.
+Add compatible id, interrupts and update reg property description.
+As the NAND controller needs access to GPMC register space, we need
+to pass a second memory resource to the NAND controller node.
+
+Due to the weird way the reg property has been implemented (i.e.
+CS number required in 1st number of reg property) we will need to
+use a number outside the possible CS numbers for the GPMC register space.
+
+As a SoC can have fewer than 10 chip selects, 255 seems like a safe
+bet for the GPMC register space.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 25a3d05..407aecf9 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -191,15 +191,19 @@ static struct nand_hw_control omap_gpmc_controller = {
- };
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index fb733c4..3a8ebfa 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -13,7 +13,13 @@ Documentation/devicetree/bindings/mtd/nand.txt
  
- struct omap_nand_info {
--	struct omap_nand_platform_data	*pdata;
- 	struct mtd_info			mtd;
- 	struct nand_chip		nand;
- 	struct platform_device		*pdev;
+ Required properties:
  
- 	int				gpmc_cs;
-+	bool				dev_ready;
-+	enum nand_io			xfer_type;
-+	int				devsize;
-+	enum omap_ecc			ecc_opt;
-+	struct device_node		*elm_of_node;
-+
- 	unsigned long			phys_base;
- 	void __iomem			*gpmc_base;
--	enum omap_ecc			ecc_opt;
- 	struct completion		comp;
- 	struct dma_chan			*dma;
- 	int				gpmc_irq;
-@@ -1717,7 +1721,7 @@ static bool omap2_nand_ecc_check(struct omap_nand_info *info,
- 			"CONFIG_MTD_NAND_OMAP_BCH not enabled\n");
- 		return false;
- 	}
--	if (ecc_needs_elm && !is_elm_present(info, pdata->elm_of_node)) {
-+	if (ecc_needs_elm && !is_elm_present(info, info->elm_of_node)) {
- 		dev_err(&info->pdev->dev, "ELM not available\n");
- 		return false;
- 	}
-@@ -1802,6 +1806,11 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	info->gpmc_cs		= pdata->cs;
- 	info->of_node		= pdata->of_node;
- 	info->ecc_opt		= pdata->ecc_opt;
-+	info->dev_ready	= pdata->dev_ready;
-+	info->xfer_type = pdata->xfer_type;
-+	info->devsize = pdata->devsize;
-+	info->elm_of_node = pdata->elm_of_node;
-+
- 	mtd			= &info->mtd;
- 	mtd->priv		= &info->nand;
- 	mtd->name		= dev_name(&pdev->dev);
-@@ -1855,7 +1864,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	 * chip delay which is slightly more than tR (AC Timing) of the NAND
- 	 * device and read status register until you get a failure or success
- 	 */
--	if (pdata->dev_ready) {
-+	if (info->dev_ready) {
- 		nand_chip->dev_ready = omap_dev_ready;
- 		nand_chip->chip_delay = 0;
- 	} else {
-@@ -1869,15 +1878,16 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		nand_chip->options |= NAND_SKIP_BBTSCAN;
++ - compatible:	"ti,omap2-nand"
+  - reg:		The CS line the peripheral is connected to
++		Should contain 2 resource specifiers
++		- range id (CS number), base offset and length of the
++		  NAND I/O space
++		- range id,  base offset and length of the GPMC register space.
++ - interrupts:	Interrupt resource specifier for GPMC interrupt.
  
- 	/* scan NAND device connected to chip controller */
--	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
-+	nand_chip->options |= info->devsize & NAND_BUSWIDTH_16;
- 	if (nand_scan_ident(mtd, 1, NULL)) {
--		dev_err(&info->pdev->dev, "scan failed, may be bus-width mismatch\n");
-+		dev_err(&info->pdev->dev,
-+			"scan failed, may be bus-width mismatch\n");
- 		err = -ENXIO;
- 		goto return_error;
- 	}
+ Optional properties:
  
- 	/* re-populate low-level callbacks based on xfer modes */
--	switch (pdata->xfer_type) {
-+	switch (info->xfer_type) {
- 	case NAND_OMAP_PREFETCH_POLLED:
- 		nand_chip->read_buf   = omap_read_buf_pref;
- 		nand_chip->write_buf  = omap_write_buf_pref;
-@@ -1940,7 +1950,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+@@ -55,17 +61,21 @@ Example for an AM33xx board:
+ 	gpmc: gpmc@50000000 {
+ 		compatible = "ti,am3352-gpmc";
+ 		ti,hwmods = "gpmc";
+-		reg = <0x50000000 0x1000000>;
++		reg = <0x50000000 0x36c>;
+ 		interrupts = <100>;
+ 		gpmc,num-cs = <8>;
+ 		gpmc,num-waitpins = <2>;
+ 		#address-cells = <2>;
+ 		#size-cells = <1>;
+-		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
++		ranges = <0 0 0x08000000 0x1000000	/* CS0 space, 16MB */
++			  255 0 0x50000000 0x36c>;	/* GPMC reg space */
+ 		elm_id = <&elm>;
  
- 	default:
- 		dev_err(&pdev->dev,
--			"xfer_type(%d) not supported!\n", pdata->xfer_type);
-+			"xfer_type(%d) not supported!\n", info->xfer_type);
- 		err = -EINVAL;
- 		goto return_error;
- 	}
+ 		nand@0,0 {
+-			reg = <0 0 0>; /* CS0, offset 0 */
++			compatible = "ti,omap2-nand";
++			reg = <0 0 4		/* CS0, offset 0, NAND I/O window 4 */
++			       255 0 0x36c>;	/* GPMC reg space */
++			interrupts = <100>;
+ 			nand-bus-width = <16>;
+ 			ti,nand-ecc-opt = "bch8";
+ 			ti,nand-xfer-type = "polled";
 -- 
 2.1.4
