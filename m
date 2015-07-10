@@ -1,42 +1,56 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/3] PCI: host: pcie-designware: add support for suspend
- and resume
-Date: Fri, 10 Jul 2015 20:19:59 +0530
-Message-ID: <559FDB97.1090803@ti.com>
-References: <1435921425-15121-1-git-send-email-kishon@ti.com>	<1435921425-15121-3-git-send-email-kishon@ti.com> <CAHM4w1m5gfFbKF6Up8YNQA8rK+avXuz8HZgtbj6pQAndSa_zBQ@mail.gmail.com>
+Subject: Re: [PATCH 3/3] PCI: host: pci-dra7xx: add pm support to pci dra7xx
+Date: Fri, 10 Jul 2015 20:20:48 +0530
+Message-ID: <559FDBC8.1020403@ti.com>
+References: <1435921425-15121-1-git-send-email-kishon@ti.com> <1435921425-15121-4-git-send-email-kishon@ti.com> <55967A3A.7000907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAHM4w1m5gfFbKF6Up8YNQA8rK+avXuz8HZgtbj6pQAndSa_zBQ@mail.gmail.com>
+In-Reply-To: <55967A3A.7000907@ti.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Pratyush Anand <pratyush.anand@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-omap@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-kernel@vger.kernel.org, nsekhar@ti.com
+To: Grygorii Strashko <grygorii.strashko@ti.com>, bhelgaas@google.com, jingoohan1@gmail.com, pratyush.anand@gmail.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pratyush,
+Hi,
 
-On Friday 10 July 2015 06:52 PM, Pratyush Anand wrote:
+On Friday 03 July 2015 05:34 PM, Grygorii Strashko wrote:
 > Hi Kishon,
 > 
-> On Fri, Jul 3, 2015 at 4:33 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->> Certain platforms require MSE bit to be cleared to set the master
->> in standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
->> Controller Master Standby Behavior advises to use the clearing
->> of the local MSE bit to set the master in standby. Without this
->> some of the clocks do not idle).
+> On 07/03/2015 02:03 PM, Kishon Vijay Abraham I wrote:
+>> Add PM support to pci-dra7xx so that PCI clocks can be disabled
+>> during suspend and enabled back during resume without affecting
+>> PCI functionality.
 >>
->> Cleared the MSE bit on suspend and enabled it back on resume.
->> This is required to get suspend/resume working.
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>   drivers/pci/host/pci-dra7xx.c |   74 +++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 74 insertions(+)
+>>
+>> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+>> index d8b6d66..1f5c039 100644
+>> --- a/drivers/pci/host/pci-dra7xx.c
+>> +++ b/drivers/pci/host/pci-dra7xx.c
+>> @@ -433,6 +433,79 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
+>>   	return 0;
+>>   }
+>>
+>> +#ifdef CONFIG_PM_SLEEP
 > 
-> Have you tested with a card having IO space memory as well.
+> [...]
+> 
+>> +
+>> +static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+>> +	.suspend_noirq = dra7xx_pcie_suspend_noirq,
+>> +	.suspend = dra7xx_pcie_suspend,
+>> +	.resume_noirq = dra7xx_pcie_resume_noirq,
+>> +	.resume = dra7xx_pcie_resume,
+> 
+> Could you use here SET_SYSTEM_SLEEP_PM_OPS()
+> and SET_NOIRQ_SYSTEM_SLEEP_PM_OPS() macro, pls?
 
-I don't have any cards with IO space memory. Do you have any suggestion for
-cards with IO space memory?
-> I think you might need to require clear and enable PCI_COMMAND_IO
-> in suspend and resume respectively.
-
-okay.
+sure!
 
 Thanks
 Kishon
