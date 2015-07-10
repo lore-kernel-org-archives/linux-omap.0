@@ -1,339 +1,61 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 02/12] ARM: OMAP2+: gpmc: Add gpmc timings and settings to
- platform data
-Date: Fri, 10 Jul 2015 15:23:29 +0300
-Message-ID: <1436531019-18088-3-git-send-email-rogerq@ti.com>
-References: <1436531019-18088-1-git-send-email-rogerq@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH] i2c: busses: i2c-omap: Increase timeout for i2c interrupt
+Date: Fri, 10 Jul 2015 18:47:11 +0530
+Message-ID: <559FC5D7.3000108@ti.com>
+References: <1436504994-31137-1-git-send-email-vigneshr@ti.com> <559F8670.2060305@nokia.com> <20150710090909.GF1528@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1436531019-18088-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com, bcousson@baylibre.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150710090909.GF1528@katana>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add device_timings, gpmc_timings and gpmc_setting to
-gpmc platform data.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- include/linux/omap-gpmc.h               | 134 ------------------------------
- include/linux/platform_data/gpmc-omap.h | 139 ++++++++++++++++++++++++++++++++
- 2 files changed, 139 insertions(+), 134 deletions(-)
 
-diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index 5c79190..2dcef1c 100644
---- a/include/linux/omap-gpmc.h
-+++ b/include/linux/omap-gpmc.h
-@@ -14,140 +14,6 @@
- #define GPMC_IRQ_FIFOEVENTENABLE	0x01
- #define GPMC_IRQ_COUNT_EVENT		0x02
- 
--#define GPMC_BURST_4			4	/* 4 word burst */
--#define GPMC_BURST_8			8	/* 8 word burst */
--#define GPMC_BURST_16			16	/* 16 word burst */
--#define GPMC_DEVWIDTH_8BIT		1	/* 8-bit device width */
--#define GPMC_DEVWIDTH_16BIT		2	/* 16-bit device width */
--#define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
--#define GPMC_MUX_AD			2	/* Addr-Data multiplex */
--
--/* bool type time settings */
--struct gpmc_bool_timings {
--	bool cycle2cyclediffcsen;
--	bool cycle2cyclesamecsen;
--	bool we_extra_delay;
--	bool oe_extra_delay;
--	bool adv_extra_delay;
--	bool cs_extra_delay;
--	bool time_para_granularity;
--};
--
--/*
-- * Note that all values in this struct are in nanoseconds except sync_clk
-- * (which is in picoseconds), while the register values are in gpmc_fck cycles.
-- */
--struct gpmc_timings {
--	/* Minimum clock period for synchronous mode (in picoseconds) */
--	u32 sync_clk;
--
--	/* Chip-select signal timings corresponding to GPMC_CS_CONFIG2 */
--	u32 cs_on;		/* Assertion time */
--	u32 cs_rd_off;		/* Read deassertion time */
--	u32 cs_wr_off;		/* Write deassertion time */
--
--	/* ADV signal timings corresponding to GPMC_CONFIG3 */
--	u32 adv_on;		/* Assertion time */
--	u32 adv_rd_off;		/* Read deassertion time */
--	u32 adv_wr_off;		/* Write deassertion time */
--
--	/* WE signals timings corresponding to GPMC_CONFIG4 */
--	u32 we_on;		/* WE assertion time */
--	u32 we_off;		/* WE deassertion time */
--
--	/* OE signals timings corresponding to GPMC_CONFIG4 */
--	u32 oe_on;		/* OE assertion time */
--	u32 oe_off;		/* OE deassertion time */
--
--	/* Access time and cycle time timings corresponding to GPMC_CONFIG5 */
--	u32 page_burst_access;	/* Multiple access word delay */
--	u32 access;		/* Start-cycle to first data valid delay */
--	u32 rd_cycle;		/* Total read cycle time */
--	u32 wr_cycle;		/* Total write cycle time */
--
--	u32 bus_turnaround;
--	u32 cycle2cycle_delay;
--
--	u32 wait_monitoring;
--	u32 clk_activation;
--
--	/* The following are only on OMAP3430 */
--	u32 wr_access;		/* WRACCESSTIME */
--	u32 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
--
--	struct gpmc_bool_timings bool_timings;
--};
--
--/* Device timings in picoseconds */
--struct gpmc_device_timings {
--	u32 t_ceasu;	/* address setup to CS valid */
--	u32 t_avdasu;	/* address setup to ADV valid */
--	/* XXX: try to combine t_avdp_r & t_avdp_w. Issue is
--	 * of tusb using these timings even for sync whilst
--	 * ideally for adv_rd/(wr)_off it should have considered
--	 * t_avdh instead. This indirectly necessitates r/w
--	 * variations of t_avdp as it is possible to have one
--	 * sync & other async
--	 */
--	u32 t_avdp_r;	/* ADV low time (what about t_cer ?) */
--	u32 t_avdp_w;
--	u32 t_aavdh;	/* address hold time */
--	u32 t_oeasu;	/* address setup to OE valid */
--	u32 t_aa;	/* access time from ADV assertion */
--	u32 t_iaa;	/* initial access time */
--	u32 t_oe;	/* access time from OE assertion */
--	u32 t_ce;	/* access time from CS asertion */
--	u32 t_rd_cycle;	/* read cycle time */
--	u32 t_cez_r;	/* read CS deassertion to high Z */
--	u32 t_cez_w;	/* write CS deassertion to high Z */
--	u32 t_oez;	/* OE deassertion to high Z */
--	u32 t_weasu;	/* address setup to WE valid */
--	u32 t_wpl;	/* write assertion time */
--	u32 t_wph;	/* write deassertion time */
--	u32 t_wr_cycle;	/* write cycle time */
--
--	u32 clk;
--	u32 t_bacc;	/* burst access valid clock to output delay */
--	u32 t_ces;	/* CS setup time to clk */
--	u32 t_avds;	/* ADV setup time to clk */
--	u32 t_avdh;	/* ADV hold time from clk */
--	u32 t_ach;	/* address hold time from clk */
--	u32 t_rdyo;	/* clk to ready valid */
--
--	u32 t_ce_rdyz;	/* XXX: description ?, or use t_cez instead */
--	u32 t_ce_avd;	/* CS on to ADV on delay */
--
--	/* XXX: check the possibility of combining
--	 * cyc_aavhd_oe & cyc_aavdh_we
--	 */
--	u8 cyc_aavdh_oe;/* read address hold time in cycles */
--	u8 cyc_aavdh_we;/* write address hold time in cycles */
--	u8 cyc_oe;	/* access time from OE assertion in cycles */
--	u8 cyc_wpl;	/* write deassertion time in cycles */
--	u32 cyc_iaa;	/* initial access time in cycles */
--
--	/* extra delays */
--	bool ce_xdelay;
--	bool avd_xdelay;
--	bool oe_xdelay;
--	bool we_xdelay;
--};
--
--struct gpmc_settings {
--	bool burst_wrap;	/* enables wrap bursting */
--	bool burst_read;	/* enables read page/burst mode */
--	bool burst_write;	/* enables write page/burst mode */
--	bool device_nand;	/* device is NAND */
--	bool sync_read;		/* enables synchronous reads */
--	bool sync_write;	/* enables synchronous writes */
--	bool wait_on_read;	/* monitor wait on reads */
--	bool wait_on_write;	/* monitor wait on writes */
--	u32 burst_len;		/* page/burst length */
--	u32 device_width;	/* device bus width (8 or 16 bit) */
--	u32 mux_add_data;	/* multiplex address & data */
--	u32 wait_pin;		/* wait-pin to be used */
--};
--
- extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- 			     struct gpmc_settings *gpmc_s,
- 			     struct gpmc_device_timings *dev_t);
-diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
-index d32d9de..e861112 100644
---- a/include/linux/platform_data/gpmc-omap.h
-+++ b/include/linux/platform_data/gpmc-omap.h
-@@ -15,10 +15,149 @@
- /* Maximum Number of Chip Selects */
- #define GPMC_CS_NUM		8
- 
-+/* bool type time settings */
-+struct gpmc_bool_timings {
-+	bool cycle2cyclediffcsen;
-+	bool cycle2cyclesamecsen;
-+	bool we_extra_delay;
-+	bool oe_extra_delay;
-+	bool adv_extra_delay;
-+	bool cs_extra_delay;
-+	bool time_para_granularity;
-+};
-+
-+/*
-+ * Note that all values in this struct are in nanoseconds except sync_clk
-+ * (which is in picoseconds), while the register values are in gpmc_fck cycles.
-+ */
-+struct gpmc_timings {
-+	/* Minimum clock period for synchronous mode (in picoseconds) */
-+	u32 sync_clk;
-+
-+	/* Chip-select signal timings corresponding to GPMC_CS_CONFIG2 */
-+	u32 cs_on;		/* Assertion time */
-+	u32 cs_rd_off;		/* Read deassertion time */
-+	u32 cs_wr_off;		/* Write deassertion time */
-+
-+	/* ADV signal timings corresponding to GPMC_CONFIG3 */
-+	u32 adv_on;		/* Assertion time */
-+	u32 adv_rd_off;		/* Read deassertion time */
-+	u32 adv_wr_off;		/* Write deassertion time */
-+
-+	/* WE signals timings corresponding to GPMC_CONFIG4 */
-+	u32 we_on;		/* WE assertion time */
-+	u32 we_off;		/* WE deassertion time */
-+
-+	/* OE signals timings corresponding to GPMC_CONFIG4 */
-+	u32 oe_on;		/* OE assertion time */
-+	u32 oe_off;		/* OE deassertion time */
-+
-+	/* Access time and cycle time timings corresponding to GPMC_CONFIG5 */
-+	u32 page_burst_access;	/* Multiple access word delay */
-+	u32 access;		/* Start-cycle to first data valid delay */
-+	u32 rd_cycle;		/* Total read cycle time */
-+	u32 wr_cycle;		/* Total write cycle time */
-+
-+	u32 bus_turnaround;
-+	u32 cycle2cycle_delay;
-+
-+	u32 wait_monitoring;
-+	u32 clk_activation;
-+
-+	/* The following are only on OMAP3430 */
-+	u32 wr_access;		/* WRACCESSTIME */
-+	u32 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
-+
-+	struct gpmc_bool_timings bool_timings;
-+};
-+
-+
-+/* Device timings in picoseconds */
-+struct gpmc_device_timings {
-+	u32 t_ceasu;	/* address setup to CS valid */
-+	u32 t_avdasu;	/* address setup to ADV valid */
-+	/* XXX: try to combine t_avdp_r & t_avdp_w. Issue is
-+	 * of tusb using these timings even for sync whilst
-+	 * ideally for adv_rd/(wr)_off it should have considered
-+	 * t_avdh instead. This indirectly necessitates r/w
-+	 * variations of t_avdp as it is possible to have one
-+	 * sync & other async
-+	 */
-+	u32 t_avdp_r;	/* ADV low time (what about t_cer ?) */
-+	u32 t_avdp_w;
-+	u32 t_aavdh;	/* address hold time */
-+	u32 t_oeasu;	/* address setup to OE valid */
-+	u32 t_aa;	/* access time from ADV assertion */
-+	u32 t_iaa;	/* initial access time */
-+	u32 t_oe;	/* access time from OE assertion */
-+	u32 t_ce;	/* access time from CS asertion */
-+	u32 t_rd_cycle;	/* read cycle time */
-+	u32 t_cez_r;	/* read CS deassertion to high Z */
-+	u32 t_cez_w;	/* write CS deassertion to high Z */
-+	u32 t_oez;	/* OE deassertion to high Z */
-+	u32 t_weasu;	/* address setup to WE valid */
-+	u32 t_wpl;	/* write assertion time */
-+	u32 t_wph;	/* write deassertion time */
-+	u32 t_wr_cycle;	/* write cycle time */
-+
-+	u32 clk;
-+	u32 t_bacc;	/* burst access valid clock to output delay */
-+	u32 t_ces;	/* CS setup time to clk */
-+	u32 t_avds;	/* ADV setup time to clk */
-+	u32 t_avdh;	/* ADV hold time from clk */
-+	u32 t_ach;	/* address hold time from clk */
-+	u32 t_rdyo;	/* clk to ready valid */
-+
-+	u32 t_ce_rdyz;	/* XXX: description ?, or use t_cez instead */
-+	u32 t_ce_avd;	/* CS on to ADV on delay */
-+
-+	/* XXX: check the possibility of combining
-+	 * cyc_aavhd_oe & cyc_aavdh_we
-+	 */
-+	u8 cyc_aavdh_oe;/* read address hold time in cycles */
-+	u8 cyc_aavdh_we;/* write address hold time in cycles */
-+	u8 cyc_oe;	/* access time from OE assertion in cycles */
-+	u8 cyc_wpl;	/* write deassertion time in cycles */
-+	u32 cyc_iaa;	/* initial access time in cycles */
-+
-+	/* extra delays */
-+	bool ce_xdelay;
-+	bool avd_xdelay;
-+	bool oe_xdelay;
-+	bool we_xdelay;
-+};
-+
-+#define GPMC_BURST_4			4	/* 4 word burst */
-+#define GPMC_BURST_8			8	/* 8 word burst */
-+#define GPMC_BURST_16			16	/* 16 word burst */
-+#define GPMC_DEVWIDTH_8BIT		1	/* 8-bit device width */
-+#define GPMC_DEVWIDTH_16BIT		2	/* 16-bit device width */
-+#define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
-+#define GPMC_MUX_AD			2	/* Addr-Data multiplex */
-+
-+struct gpmc_settings {
-+	bool burst_wrap;	/* enables wrap bursting */
-+	bool burst_read;	/* enables read page/burst mode */
-+	bool burst_write;	/* enables write page/burst mode */
-+	bool device_nand;	/* device is NAND */
-+	bool sync_read;		/* enables synchronous reads */
-+	bool sync_write;	/* enables synchronous writes */
-+	bool wait_on_read;	/* monitor wait on reads */
-+	bool wait_on_write;	/* monitor wait on writes */
-+	u32 burst_len;		/* page/burst length */
-+	u32 device_width;	/* device bus width (8 or 16 bit) */
-+	u32 mux_add_data;	/* multiplex address & data */
-+	u32 wait_pin;		/* wait-pin to be used */
-+};
-+
-+
- /* Data for each chip select */
- struct gpmc_omap_cs_data {
- 	bool valid;			/* data is valid */
- 	bool is_nand;			/* device within this CS is NAND */
-+	struct gpmc_settings *settings;
-+	struct gpmc_device_timings *device_timings;
-+	struct gpmc_timings *gpmc_timings;
- 	struct platform_device *pdev;	/* device within this CS region */
- 	unsigned pdata_size;
- };
+On 07/10/2015 02:39 PM, Wolfram Sang wrote:
+> 
+>> 60 s sounds way too much and actually I simply don't believe this is
+>> the root cause. If I take a look into the driver, then I see, that
+> 
+> I agree, this is just a workaround.
+> 
+
+Yes, this is a workaround. I thought this is simpler change and can go
+into -rc while I work on the better fix. As you can see, the other
+suggestions need quite a significant change to the isr code.
+
+>> the design is not really the best. The whole IRQ handling could be
+>> actually performed in hard IRQ handler, without threading overhead.
+>> Putting even 2 bytes in the controller FIFO should not be too heavy
+>> for the hard IRQ handler. Then these ridiculous spin_lock()s. What
+>> is the reason behind? The IRQ is flagged with ONESHOT, so thread and
+>> hardirq handler are anyway mutually excluded. But if this thread
+>> ever runs longer than it's allowed in IRQ context, then it anyway
+>> produces this IRQ latency because it locks spin_lock_irqsave() for
+>> the whole time! So the whole point of threaded interrupt is missing.
+> 
+> Furthermore, this combination of threaded_irq and struct completion seems
+> bogus to me. If you just want to ensure the irq happened before timeout,
+> you just complete when the irq happened and do the "bottom half" after the
+> completion returned?
+
+This sounds good to me. I will try to implement this option.
+Thanks for the suggestion.
+
+> 
+>> I would propose you to throw away spinlocks. Convert threaded IRQ to
+>> just one hardirq handler. And continue debugging. You will reduce the
+>> load of the system with the above measures, maybe it will not happen
+>> any more, maybe you'll figure out that problem is somewhere else.
+> 
+> Or this.
+
+I am not convinced with moving entire code at hardirq context. I believe
+its better to keep hardirq as small as possible.
+
 -- 
-2.1.4
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Regards
+Vignesh
