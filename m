@@ -1,186 +1,110 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 05/12] mtd: nand: omap: Move NAND write protect code from GPMC to NAND driver
-Date: Fri, 10 Jul 2015 15:23:32 +0300
-Message-ID: <1436531019-18088-6-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 06/12] mtd: nand: omap: Copy platform data parameters to omap_nand_info data
+Date: Fri, 10 Jul 2015 15:23:33 +0300
+Message-ID: <1436531019-18088-7-git-send-email-rogerq@ti.com>
 References: <1436531019-18088-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436531019-18088-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436531019-18088-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com, bcousson@baylibre.com
+Cc: ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The write protect (WP) pin is only used for NAND devices. So move
-the code into the NAND driver.
+Copy all the platform data parameters to the driver's local data
+structure 'omap_nand_info' and use it in the entire driver. This will
+make it easer for device tree migration.
 
-Get rid of gpmc_configure() as it is no longer used.
-
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c              |  4 ----
- drivers/memory/omap-gpmc.c                   | 30 ----------------------------
- drivers/mtd/nand/omap2.c                     | 23 +++++++++++++++++++++
- include/linux/omap-gpmc.h                    |  3 ---
- include/linux/platform_data/mtd-nand-omap2.h |  1 +
- 5 files changed, 24 insertions(+), 37 deletions(-)
+ drivers/mtd/nand/omap2.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index ff578d4..9cb8ce6 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -117,10 +117,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	if (err < 0)
- 		goto out_free_cs;
- 
--	err = gpmc_configure(GPMC_CONFIG_WP, 0);
--	if (err < 0)
--		goto out_free_cs;
--
- 	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
- 		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
- 		err = -EINVAL;
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index dd55a51..650f9b8 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -151,7 +151,6 @@
- 
- #define GPMC_DEVICETYPE_NOR		0
- #define GPMC_DEVICETYPE_NAND		2
--#define GPMC_CONFIG_WRITEPROTECT	0x00000010
- #define WR_RD_PIN_MONITORING		0x00600000
- 
- /* ECC commands */
-@@ -987,35 +986,6 @@ void gpmc_cs_free(int cs)
- }
- EXPORT_SYMBOL(gpmc_cs_free);
- 
--/**
-- * gpmc_configure - write request to configure gpmc
-- * @cmd: command type
-- * @wval: value to write
-- * @return status of the operation
-- */
--int gpmc_configure(int cmd, int wval)
--{
--	u32 regval;
--
--	switch (cmd) {
--	case GPMC_CONFIG_WP:
--		regval = gpmc_read_reg(GPMC_CONFIG);
--		if (wval)
--			regval &= ~GPMC_CONFIG_WRITEPROTECT; /* WP is ON */
--		else
--			regval |= GPMC_CONFIG_WRITEPROTECT;  /* WP is OFF */
--		gpmc_write_reg(GPMC_CONFIG, regval);
--		break;
--
--	default:
--		pr_err("%s: command not supported\n", __func__);
--		return -EINVAL;
--	}
--
--	return 0;
--}
--EXPORT_SYMBOL(gpmc_configure);
--
- void gpmc_get_mem_resource(struct resource *res)
- {
- 	res->start =  phys_base;
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 3d0f73c..25a3d05 100644
+index 25a3d05..407aecf9 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -140,6 +140,9 @@
- #define GPMC_IRQ_FIFOEVENT	BIT(0)
- #define GPMC_IRQ_TERMCOUNT	BIT(1)
- 
-+/* GPMC_CONFIG register bits */
-+#define GPMC_CONFIG_WRITEPROTECT	BIT(4)
-+
- /* GPMC register offsets */
- #define GPMC_REVISION		0x00
- #define GPMC_SYSCONFIG		0x10
-@@ -215,6 +218,22 @@ struct omap_nand_info {
+@@ -191,15 +191,19 @@ static struct nand_hw_control omap_gpmc_controller = {
  };
  
- /**
-+ * omap_nand_writeprotect - Control the WP line to the NAND chip
-+ */
-+static void omap_nand_writeprotect(struct omap_nand_info *info, bool on)
-+{
-+	u32 val;
-+
-+	val = readl(info->reg.gpmc_config);
-+	if (on)
-+		val &= GPMC_CONFIG_WRITEPROTECT; /* WP pin is active low */
-+	else
-+		val |= GPMC_CONFIG_WRITEPROTECT;
-+
-+	writel(val, info->reg.gpmc_config);
-+}
-+
-+/**
-  * omap_prefetch_enable - configures and starts prefetch transfer
-  * @cs: cs (chip select) number
-  * @fifo_th: fifo threshold to be used for read/ write
-@@ -1713,6 +1732,7 @@ static void gpmc_update_nand_reg(struct omap_nand_info *info)
- 	int cs = info->gpmc_cs;
- 	void __iomem *gpmc_base = info->gpmc_base;
+ struct omap_nand_info {
+-	struct omap_nand_platform_data	*pdata;
+ 	struct mtd_info			mtd;
+ 	struct nand_chip		nand;
+ 	struct platform_device		*pdev;
  
-+	reg->gpmc_config = gpmc_base + GPMC_CONFIG;
- 	reg->gpmc_status = gpmc_base + GPMC_STATUS;
- 	reg->gpmc_irqstatus = gpmc_base + GPMC_IRQSTATUS;
- 	reg->gpmc_irqenable = gpmc_base + GPMC_IRQENABLE;
-@@ -2141,6 +2161,9 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	nand_chip->ecc.layout = ecclayout;
- 
- scan_tail:
-+	/* turn off write protect */
-+	omap_nand_writeprotect(info, false);
+ 	int				gpmc_cs;
++	bool				dev_ready;
++	enum nand_io			xfer_type;
++	int				devsize;
++	enum omap_ecc			ecc_opt;
++	struct device_node		*elm_of_node;
 +
- 	/* second phase scan */
- 	if (nand_scan_tail(mtd)) {
+ 	unsigned long			phys_base;
+ 	void __iomem			*gpmc_base;
+-	enum omap_ecc			ecc_opt;
+ 	struct completion		comp;
+ 	struct dma_chan			*dma;
+ 	int				gpmc_irq;
+@@ -1717,7 +1721,7 @@ static bool omap2_nand_ecc_check(struct omap_nand_info *info,
+ 			"CONFIG_MTD_NAND_OMAP_BCH not enabled\n");
+ 		return false;
+ 	}
+-	if (ecc_needs_elm && !is_elm_present(info, pdata->elm_of_node)) {
++	if (ecc_needs_elm && !is_elm_present(info, info->elm_of_node)) {
+ 		dev_err(&info->pdev->dev, "ELM not available\n");
+ 		return false;
+ 	}
+@@ -1802,6 +1806,11 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	info->gpmc_cs		= pdata->cs;
+ 	info->of_node		= pdata->of_node;
+ 	info->ecc_opt		= pdata->ecc_opt;
++	info->dev_ready	= pdata->dev_ready;
++	info->xfer_type = pdata->xfer_type;
++	info->devsize = pdata->devsize;
++	info->elm_of_node = pdata->elm_of_node;
++
+ 	mtd			= &info->mtd;
+ 	mtd->priv		= &info->nand;
+ 	mtd->name		= dev_name(&pdev->dev);
+@@ -1855,7 +1864,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	 * chip delay which is slightly more than tR (AC Timing) of the NAND
+ 	 * device and read status register until you get a failure or success
+ 	 */
+-	if (pdata->dev_ready) {
++	if (info->dev_ready) {
+ 		nand_chip->dev_ready = omap_dev_ready;
+ 		nand_chip->chip_delay = 0;
+ 	} else {
+@@ -1869,15 +1878,16 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		nand_chip->options |= NAND_SKIP_BBTSCAN;
+ 
+ 	/* scan NAND device connected to chip controller */
+-	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
++	nand_chip->options |= info->devsize & NAND_BUSWIDTH_16;
+ 	if (nand_scan_ident(mtd, 1, NULL)) {
+-		dev_err(&info->pdev->dev, "scan failed, may be bus-width mismatch\n");
++		dev_err(&info->pdev->dev,
++			"scan failed, may be bus-width mismatch\n");
  		err = -ENXIO;
-diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index 36f33ba..d13e172 100644
---- a/include/linux/omap-gpmc.h
-+++ b/include/linux/omap-gpmc.h
-@@ -10,8 +10,6 @@
- #include <linux/platform_data/gpmc-omap.h>
- #include <linux/ioport.h>
+ 		goto return_error;
+ 	}
  
--#define GPMC_CONFIG_WP		0x00000005
--
- extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- 			     struct gpmc_settings *gpmc_s,
- 			     struct gpmc_device_timings *dev_t);
-@@ -31,7 +29,6 @@ extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t,
- extern int gpmc_cs_program_settings(int cs, struct gpmc_settings *p);
- extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
- extern void gpmc_cs_free(int cs);
--extern int gpmc_configure(int cmd, int wval);
- extern void gpmc_read_settings_dt(struct device_node *np,
- 				  struct gpmc_settings *p);
+ 	/* re-populate low-level callbacks based on xfer modes */
+-	switch (pdata->xfer_type) {
++	switch (info->xfer_type) {
+ 	case NAND_OMAP_PREFETCH_POLLED:
+ 		nand_chip->read_buf   = omap_read_buf_pref;
+ 		nand_chip->write_buf  = omap_write_buf_pref;
+@@ -1940,7 +1950,7 @@ static int omap_nand_probe(struct platform_device *pdev)
  
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index 4427f92..e9b16b5 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -45,6 +45,7 @@ enum omap_ecc {
- };
- 
- struct gpmc_nand_regs {
-+	void __iomem	*gpmc_config;
- 	void __iomem	*gpmc_status;
- 	void __iomem	*gpmc_irqstatus;
- 	void __iomem	*gpmc_irqenable;
+ 	default:
+ 		dev_err(&pdev->dev,
+-			"xfer_type(%d) not supported!\n", pdata->xfer_type);
++			"xfer_type(%d) not supported!\n", info->xfer_type);
+ 		err = -EINVAL;
+ 		goto return_error;
+ 	}
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
