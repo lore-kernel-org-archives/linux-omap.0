@@ -1,34 +1,48 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v2 6/7] crypto: omap-aes: Add support for GCM mode
-Date: Sat, 11 Jul 2015 10:40:43 +0800
-Message-ID: <20150711024043.GC24197@gondor.apana.org.au>
-References: <1436283109-13318-1-git-send-email-lokeshvutla@ti.com>
- <1436283109-13318-7-git-send-email-lokeshvutla@ti.com>
- <20150708041838.GA12744@gondor.apana.org.au>
- <559FD21F.2020903@ti.com>
+From: "R, Vignesh" <vigneshr@ti.com>
+Subject: Re: [PATCH 0/3] omap_hsmmc: Fix card enumeration failure on
+Date: Sat, 11 Jul 2015 15:55:42 +0530
+Message-ID: <55A0EF26.7060501@ti.com>
+References: <1434451039-18195-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <559FD21F.2020903@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-crypto@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1434451039-18195-1-git-send-email-vigneshr@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, NeilBrown <neilb@suse.de>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 10, 2015 at 07:39:35PM +0530, Lokesh Vutla wrote:
->
-> If you don't mind can you elaborate more on the usage of rctx and ctx
-> in the driver?
 
-The ctx is a property of the tfm and it's shared by all users
-of that tfm.  So it must not be written to unless you use locking.
 
-The reqeust context on the other hand is specific to a request
-so it can be used to store information.
+On 6/16/2015 4:07 PM, Vignesh R wrote:
+> 
+> Hi,
+> 
+> When using omap_hsmmc driver, if sd-card repeatedly plug unplugged
+> multiple times quickly, card enumeration stops after few iterations.
+> This can be easily reproduced on DRA74X EVM which uses omap_hsmmc driver.
+> This patch series addresses the above problem. The first patch fixes irq
+> handler to report all DTOs to mmc-core. Second patch adds handling for
+> BADA, DEB and CEB interrupts. The last patch introduces driver specific
+> card detect irq handler to cleanup pending requests before card removal.
+> 
+> Tested on DRA74X amd DRA72X and AM437X-GP EVMs, by repeated intense
+> plug/unplug iterations.
+> 
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Gentle ping.. These patches fix bugs related to interrupt handling in
+omap_hsmmc. It also fixes bugs with unexpected card removal during data
+transfer. Can this go into 4.2-rc??
+
+> 
+> Kishon Vijay Abraham I (1):
+>   mmc: host: omap_hsmmc: Fix DTO and DCRC handling
+> 
+> Vignesh R (2):
+>   mmc: host: omap_hsmmc: Handle BADA, DEB and CEB interrupts
+>   mmc: host: omap_hsmmc: Add custom card detect irq handler
+> 
+>  drivers/mmc/host/omap_hsmmc.c | 84 ++++++++++++++++++++++++++++++++---
+>  1 file changed, 78 insertions(+), 6 deletions(-)
+> 
