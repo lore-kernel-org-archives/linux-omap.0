@@ -1,89 +1,184 @@
-From: "Jingoo Han" <jingoohan1@gmail.com>
-Subject: Re: [PATCH 2/3] PCI: host: pcie-designware: add support for suspend and resume
-Date: Sun, 12 Jul 2015 19:31:05 +0900
-Message-ID: <000301d0bc8d$e067e420$a137ac60$@com>
-References: <1435921425-15121-1-git-send-email-kishon@ti.com> <1435921425-15121-3-git-send-email-kishon@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: [PATCH v2 09/13] PCI: kill off set_irq_flags usage
+Date: Sun, 12 Jul 2015 09:26:47 -0500
+Message-ID: <1436711211-18223-10-git-send-email-robh@kernel.org>
+References: <1436711211-18223-1-git-send-email-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1435921425-15121-3-git-send-email-kishon@ti.com>
-Content-Language: ko
-Sender: linux-pci-owner@vger.kernel.org
-To: 'Kishon Vijay Abraham I' <kishon@ti.com>
-Cc: 'Bjorn Helgaas' <bhelgaas@google.com>, 'Pratyush Anand' <pratyush.anand@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, 'Jingoo Han' <jingoohan1@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436711211-18223-1-git-send-email-robh@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, arm@kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <gnurou@gmail.com>, Jingoo Han <jingoohan1@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Simon Horman <horms@verge.net.au>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-tegra@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday, July 03, 2015 8:04 PM, Kishon Vijay Abraham I wrote:
-> 
-> Certain platforms require MSE bit to be cleared to set the master
-> in standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
+set_irq_flags is ARM specific with custom flags which have genirq
+equivalents. Convert drivers to use the genirq interfaces directly, so =
+we
+can kill off set_irq_flags. The translation of flags is as follows:
 
-This patch is a work-around specific for DRA7xx chips?
-If so, please move this patch to 'pci-dra7xx.c'.
-I don't want to include chip-specific codes, because
-'pcie-designware.c' is designed for including common codes.
+IRQF_VALID -> !IRQ_NOREQUEST
+IRQF_PROBE -> !IRQ_NOPROBE
+IRQF_NOAUTOEN -> IRQ_NOAUTOEN
 
-Best regards,
-Jingoo Han
+=46or IRQs managed by an irqdomain, the irqdomain core code handles cle=
+aring
+and setting IRQ_NOREQUEST already, so there is no need to do this in
+=2Emap() functions and we can simply remove the set_irq_flags calls. So=
+me
+users also set IRQ_NOPROBE and this has been maintained although it is =
+not
+clear that is really needed. There appears to be a great deal of blind
+copy and paste of this code.
 
-> Controller Master Standby Behavior advises to use the clearing
-> of the local MSE bit to set the master in standby. Without this
-> some of the clocks do not idle).
-> 
-> Cleared the MSE bit on suspend and enabled it back on resume.
-> This is required to get suspend/resume working.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  drivers/pci/host/pcie-designware.c |   20 ++++++++++++++++++++
->  drivers/pci/host/pcie-designware.h |    2 ++
->  2 files changed, 22 insertions(+)
-> 
-> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
-> index 69486be..cfb2bd6 100644
-> --- a/drivers/pci/host/pcie-designware.c
-> +++ b/drivers/pci/host/pcie-designware.c
-> @@ -811,6 +811,26 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
->  	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
->  }
-> 
-> +void dw_pcie_suspend_rc(struct pcie_port *pp)
-> +{
-> +	u32 val;
-> +
-> +	/* clear MSE */
-> +	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
-> +	val &= ~PCI_COMMAND_MEMORY;
-> +	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
-> +}
-> +
-> +void dw_pcie_resume_rc(struct pcie_port *pp)
-> +{
-> +	u32 val;
-> +
-> +	/* set MSE */
-> +	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
-> +	val |= PCI_COMMAND_MEMORY;
-> +	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
-> +}
-> +
->  MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
->  MODULE_DESCRIPTION("Designware PCIe host controller driver");
->  MODULE_LICENSE("GPL v2");
-> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
-> index d0bbd27..0df2dfa 100644
-> --- a/drivers/pci/host/pcie-designware.h
-> +++ b/drivers/pci/host/pcie-designware.h
-> @@ -83,5 +83,7 @@ void dw_pcie_msi_init(struct pcie_port *pp);
->  int dw_pcie_link_up(struct pcie_port *pp);
->  void dw_pcie_setup_rc(struct pcie_port *pp);
->  int dw_pcie_host_init(struct pcie_port *pp);
-> +void dw_pcie_suspend_rc(struct pcie_port *pp);
-> +void dw_pcie_resume_rc(struct pcie_port *pp);
-> 
->  #endif /* _PCIE_DESIGNWARE_H */
-> --
-> 1.7.9.5
+Signed-off-by: Rob Herring <robh@kernel.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Murali Karicheri <m-karicheri2@ti.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>
+Cc: Jingoo Han <jingoohan1@gmail.com>
+Cc: Pratyush Anand <pratyush.anand@gmail.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Michal Simek <michal.simek@xilinx.com>
+Cc: "S=C3=B6ren Brinkmann" <soren.brinkmann@xilinx.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-tegra@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+---
+v2:
+- Add xgene which was added in v4.2
+
+ drivers/pci/host/pci-dra7xx.c      | 1 -
+ drivers/pci/host/pci-keystone-dw.c | 2 --
+ drivers/pci/host/pci-tegra.c       | 1 -
+ drivers/pci/host/pci-xgene-msi.c   | 1 -
+ drivers/pci/host/pcie-designware.c | 1 -
+ drivers/pci/host/pcie-rcar.c       | 1 -
+ drivers/pci/host/pcie-xilinx.c     | 2 --
+ 7 files changed, 9 deletions(-)
+
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7x=
+x.c
+index 80db09e..1a0d124 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -155,7 +155,6 @@ static int dra7xx_pcie_intx_map(struct irq_domain *=
+domain, unsigned int irq,
+ {
+ 	irq_set_chip_and_handler(irq, &dummy_irq_chip, handle_simple_irq);
+ 	irq_set_chip_data(irq, domain->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	return 0;
+ }
+diff --git a/drivers/pci/host/pci-keystone-dw.c b/drivers/pci/host/pci-=
+keystone-dw.c
+index f34892e..f1d0749 100644
+--- a/drivers/pci/host/pci-keystone-dw.c
++++ b/drivers/pci/host/pci-keystone-dw.c
+@@ -196,7 +196,6 @@ static int ks_dw_pcie_msi_map(struct irq_domain *do=
+main, unsigned int irq,
+ 	irq_set_chip_and_handler(irq, &ks_dw_pcie_msi_irq_chip,
+ 				 handle_level_irq);
+ 	irq_set_chip_data(irq, domain->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	return 0;
+ }
+@@ -277,7 +276,6 @@ static int ks_dw_pcie_init_legacy_irq_map(struct ir=
+q_domain *d,
+ 	irq_set_chip_and_handler(irq, &ks_dw_pcie_legacy_irq_chip,
+ 				 handle_level_irq);
+ 	irq_set_chip_data(irq, d->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	return 0;
+ }
+diff --git a/drivers/pci/host/pci-tegra.c b/drivers/pci/host/pci-tegra.=
+c
+index 10c0571..81df0c1 100644
+--- a/drivers/pci/host/pci-tegra.c
++++ b/drivers/pci/host/pci-tegra.c
+@@ -1248,7 +1248,6 @@ static int tegra_msi_map(struct irq_domain *domai=
+n, unsigned int irq,
+ {
+ 	irq_set_chip_and_handler(irq, &tegra_msi_irq_chip, handle_simple_irq)=
+;
+ 	irq_set_chip_data(irq, domain->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	tegra_cpuidle_pcie_irqs_in_use();
+
+diff --git a/drivers/pci/host/pci-xgene-msi.c b/drivers/pci/host/pci-xg=
+ene-msi.c
+index 2d31d4d..8e559d1 100644
+--- a/drivers/pci/host/pci-xgene-msi.c
++++ b/drivers/pci/host/pci-xgene-msi.c
+@@ -223,7 +223,6 @@ static int xgene_irq_domain_alloc(struct irq_domain=
+ *domain, unsigned int virq,
+ 	irq_domain_set_info(domain, virq, msi_irq,
+ 			    &xgene_msi_bottom_irq_chip, domain->host_data,
+ 			    handle_simple_irq, NULL, NULL);
+-	set_irq_flags(virq, IRQF_VALID);
+
+ 	return 0;
+ }
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie=
+-designware.c
+index 69486be..5c6b562 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -350,7 +350,6 @@ static int dw_pcie_msi_map(struct irq_domain *domai=
+n, unsigned int irq,
+ {
+ 	irq_set_chip_and_handler(irq, &dw_msi_irq_chip, handle_simple_irq);
+ 	irq_set_chip_data(irq, domain->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	return 0;
+ }
+diff --git a/drivers/pci/host/pcie-rcar.c b/drivers/pci/host/pcie-rcar.=
+c
+index c086210..7678fe0 100644
+--- a/drivers/pci/host/pcie-rcar.c
++++ b/drivers/pci/host/pcie-rcar.c
+@@ -664,7 +664,6 @@ static int rcar_msi_map(struct irq_domain *domain, =
+unsigned int irq,
+ {
+ 	irq_set_chip_and_handler(irq, &rcar_msi_irq_chip, handle_simple_irq);
+ 	irq_set_chip_data(irq, domain->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	return 0;
+ }
+diff --git a/drivers/pci/host/pcie-xilinx.c b/drivers/pci/host/pcie-xil=
+inx.c
+index f1a06a0..72015119 100644
+--- a/drivers/pci/host/pcie-xilinx.c
++++ b/drivers/pci/host/pcie-xilinx.c
+@@ -338,7 +338,6 @@ static int xilinx_pcie_msi_map(struct irq_domain *d=
+omain, unsigned int irq,
+ {
+ 	irq_set_chip_and_handler(irq, &xilinx_msi_irq_chip, handle_simple_irq=
+);
+ 	irq_set_chip_data(irq, domain->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	return 0;
+ }
+@@ -377,7 +376,6 @@ static int xilinx_pcie_intx_map(struct irq_domain *=
+domain, unsigned int irq,
+ {
+ 	irq_set_chip_and_handler(irq, &dummy_irq_chip, handle_simple_irq);
+ 	irq_set_chip_data(irq, domain->host_data);
+-	set_irq_flags(irq, IRQF_VALID);
+
+ 	return 0;
+ }
+--
+2.1.0
