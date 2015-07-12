@@ -1,68 +1,65 @@
-From: Alexander Sverdlin <alexander.sverdlin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix bus recovery setup
-Date: Sun, 12 Jul 2015 17:32:17 +0200
-Message-ID: <55A28881.60703@gmail.com>
-References: <1436366127-24756-1-git-send-email-jlu@pengutronix.de>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7x-evm: Prevent glitch on DCAN1 pinmux
+Date: Sun, 12 Jul 2015 21:18:47 +0200
+Message-ID: <55A2BD97.8080006@pengutronix.de>
+References: <1436279277-3386-1-git-send-email-rogerq@ti.com>
+ <1436279277-3386-3-git-send-email-rogerq@ti.com>
+ <559EBEC8.1070609@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436366127-24756-1-git-send-email-jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="Q8btbFFxjd27kUtdRAj6DPtoNqWAbxiDQ"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <559EBEC8.1070609@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com
+Cc: jay.schroeder@garmin.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/07/15 16:35, Jan Luebbe wrote:
-> At least on the AM335x, enabling OMAP_I2C_SYSTEST_ST_EN is not enough to
-> allow direct access to the SCL and SDA pins. In addition to ST_EN, we
-> need to set the TMODE to 0b11 (Loop back & SDA/SCL IO mode select).
-> Also, as the reset values of SCL_O and SDA_O are 0 (which means "drive
-> low level"), we need to set them to 1 (which means "high-impedance") to
-> avoid unwanted changes on the pins.
-> 
-> As a precaution, reset all these bits to their default values after
-> recovery is complete.
-> 
-> Signed-off-by: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Q8btbFFxjd27kUtdRAj6DPtoNqWAbxiDQ
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Tested with oscilloscope on Beagle Bone Black, without the patch nothing
-meningful appears on SCL during recovery, with the patch I'm able to see
-the recovery pulses.
+On 07/09/2015 08:34 PM, Marc Kleine-Budde wrote:
+> On 07/07/2015 04:27 PM, Roger Quadros wrote:
+>> Driver core sets "default" pinmux on on probe and CAN driver
+>> sets "sleep" pinmux during register. This causes a small window
+>> where the CAN pins are in "default" state with the DCAN module
+>> being disabled.
+>>
+>> Change the "default" state to be like sleep so this glitch is
+>> avoided. Add a new "active" state that is used by the driver
+>> when CAN is actually active.
+>=20
+> Who is taking care of this patch? I'm applying 1/2 (v2) to linux-can,
+> should I take this patch, too?
 
-Tested-by: Alexander Sverdlin <alexander.sverdlin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+I've included this patch in my pull request.
 
-> ---
->  drivers/i2c/busses/i2c-omap.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index d1c22e3fdd14..fc9bf7f30e35 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1247,7 +1247,14 @@ static void omap_i2c_prepare_recovery(struct i2c_adapter *adap)
->  	u32 reg;
->  
->  	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-> +	/* enable test mode */
->  	reg |= OMAP_I2C_SYSTEST_ST_EN;
-> +	/* select SDA/SCL IO mode */
-> +	reg |= 3 << OMAP_I2C_SYSTEST_TMODE_SHIFT;
-> +	/* set SCL to high-impedance state (reset value is 0) */
-> +	reg |= OMAP_I2C_SYSTEST_SCL_O;
-> +	/* set SDA to high-impedance state (reset value is 0) */
-> +	reg |= OMAP_I2C_SYSTEST_SDA_O;
->  	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
->  }
->  
-> @@ -1257,7 +1264,11 @@ static void omap_i2c_unprepare_recovery(struct i2c_adapter *adap)
->  	u32 reg;
->  
->  	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-> +	/* restore reset values */
->  	reg &= ~OMAP_I2C_SYSTEST_ST_EN;
-> +	reg &= ~OMAP_I2C_SYSTEST_TMODE_MASK;
-> +	reg &= ~OMAP_I2C_SYSTEST_SCL_O;
-> +	reg &= ~OMAP_I2C_SYSTEST_SDA_O;
->  	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
->  }
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--Q8btbFFxjd27kUtdRAj6DPtoNqWAbxiDQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAEBCgAGBQJVor2XAAoJEP5prqPJtc/HB5wIAKPXm976UHlLXkYnaMNQJThy
+ZZmpqTBQwYaoCIUkPVe96P963lGYbjfFrZkiaQpQvWrp7zKVWtQE0h401FqqQ95B
+FSAql+DAIlez8/i8gHK/00uuG3kD2Sgu/HTRfSeQyBLbyiUlcrFKzmlrMZpb/09m
+wb9c9WR3Z3o/MSXtFYmJ8kanBYKb7yb/X7+jU4xbO0JAgghq/VTJz5SAR19eCE/A
+nxFfPU8fhgBi8C8Nut1LvBoaDukr6zYCHJJJLgojgiy42MqRdbjXcLlIJvsaRuGX
+E6nk04ebq2+vB8or60KoJNl8hY22l6ACRbFH4YxvKOrUAibaIc56zUi5m15Hf90=
+=VGTK
+-----END PGP SIGNATURE-----
+
+--Q8btbFFxjd27kUtdRAj6DPtoNqWAbxiDQ--
