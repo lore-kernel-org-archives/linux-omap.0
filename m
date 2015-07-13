@@ -1,135 +1,101 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v5] clk: change clk_ops' ->determine_rate() prototype
-Date: Mon, 13 Jul 2015 12:01:05 +0300
-Message-ID: <55A37E51.7080803@ti.com>
-References: <1436294888-25752-1-git-send-email-boris.brezillon@free-electrons.com> <20150708005748.GG30412@codeaurora.org>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 5/7] tty: 8250: workaround errata on disabling UART after
+ using DMA
+Date: Mon, 13 Jul 2015 14:39:12 +0530
+Message-ID: <55A38038.8000801@ti.com>
+References: <cover.1436174801.git.nsekhar@ti.com> <9f70a47010d019f76b822b60e7d4f512aa4e46d7.1436174801.git.nsekhar@ti.com> <559DCF83.8010703@hurleysoftware.com> <559E8209.9080005@ti.com> <55A040A5.1080909@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-        format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <20150708005748.GG30412@codeaurora.org>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Stephen Boyd <sboyd@codeaurora.org>, Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Mike Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, =?windows-1252?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org, linux-tegra@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55A040A5.1080909-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/08/2015 03:57 AM, Stephen Boyd wrote:
-> On 07/07, Boris Brezillon wrote:
->> Clock rates are stored in an unsigned long field, but ->determine_ra=
-te()
->> (which returns a rounded rate from a requested one) returns a long
->> value (errors are reported using negative error codes), which can le=
-ad
->> to long overflow if the clock rate exceed 2Ghz.
->>
->> Change ->determine_rate() prototype to return 0 or an error code, an=
-d pass
->> a pointer to a clk_rate_request structure containing the expected ta=
-rget
->> rate and the rate constraints imposed by clk users.
->>
->> The clk_rate_request structure might be extended in the future to co=
-ntain
->> other kind of constraints like the rounding policy, the maximum cloc=
-k
->> inaccuracy or other things that are not yet supported by the CCF
->> (power consumption constraints ?).
->>
->> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
->>
->> CC: Jonathan Corbet <corbet@lwn.net>
->> CC: Tony Lindgren <tony@atomide.com>
->> CC: Ralf Baechle <ralf@linux-mips.org>
->> CC: "Emilio L=F3pez" <emilio@elopez.com.ar>
->> CC: Maxime Ripard <maxime.ripard@free-electrons.com>
->> CC: Tero Kristo <t-kristo@ti.com>
->> CC: Peter De Schrijver <pdeschrijver@nvidia.com>
->> CC: Prashant Gaikwad <pgaikwad@nvidia.com>
->> CC: Stephen Warren <swarren@wwwdotorg.org>
->> CC: Thierry Reding <thierry.reding@gmail.com>
->> CC: Alexandre Courbot <gnurou@gmail.com>
->> CC: linux-doc@vger.kernel.org
->> CC: linux-kernel@vger.kernel.org
->> CC: linux-arm-kernel@lists.infradead.org
->> CC: linux-omap@vger.kernel.org
->> CC: linux-mips@linux-mips.org
->> CC: linux-tegra@vger.kernel.org
->>
->> ---
->
-> I'll throw this patch into -next now to see if any other problems
-> shake out. I'm hoping we get some more acks though, so it'll be
-> on it's own branch and become immutable in a week or so. One
-> question below.
+Hi Peter,
 
-Gave this patch a quick test on the boards I have access to, and didn't=
-=20
-notice any obvious problems.
+On Saturday 11 July 2015 03:31 AM, Peter Hurley wrote:
+> On 07/09/2015 10:15 AM, Sekhar Nori wrote:
+>> On Thursday 09 July 2015 07:03 AM, Peter Hurley wrote:
+> 
+> [...]
+> 
+>>>> @@ -1307,6 +1320,36 @@ static int omap8250_runtime_suspend(struct device *dev)
+>>>>  			return -EBUSY;
+>>>>  	}
+>>>>  
+>>>> +	if (priv->habit & UART_ERRATA_CLOCK_DISABLE) {
+>>>> +		int sysc;
+>>>> +		int syss;
+>>>> +		int timeout = 100;
+>>>> +
+>>>> +		sysc = serial_in(up, UART_OMAP_SYSC);
+>>>> +
+>>>> +		/* softreset the UART */
+>>>> +		sysc |= OMAP_UART_SYSC_SOFTRESET;
+>>>> +		serial_out(up, UART_OMAP_SYSC, sysc);
+>>>> +
+>>>> +		/* By experiments, 1us enough for reset complete on AM335x */
+>>>> +		do {
+>>>> +			udelay(1);
+>>>> +			syss = serial_in(up, UART_OMAP_SYSS);
+>>>> +		} while (--timeout && !(syss & OMAP_UART_SYSS_RESETDONE));
+>>>
+>>>
+>>> If there is not a omap helper function to reset modules, there should be.
+>>> Open-coding the module reset is not appropriate.
+>>
+>> There is work planned to have something implemented for OMAP as part of
+>> drivers/reset/ API. AFAIK, this depends on some PRCM code clean-up
+>> affecting multiple OMAP platforms and is couple of merge windows away
+>> from taking shape.
+>>
+>> Meanwhile, I think this is the best we can do. Other drivers like
+>> i2c-omap have done something similar (see omap_i2c_reset()).
+> 
+> Ok, then please make the reset a separate local function
+> (returning success/failure?). omap_8250_reset()?
+> 
+> A TODO or FIXME above it explaining
+> the temporary nature of the function would be appreciated :)
 
-So, for the TI parts:
+Okay, will do.
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
+> 
+>>>
+>>>> +		if (!timeout) {
+>>>> +			dev_err(dev, "timed out waiting for reset done\n");
+>>>> +			return -ETIMEDOUT;
+>>>> +		}
+>>>> +
+>>>> +		/*
+>>>> +		 * For UART module wake-up to work, MDR1.MODESELECT should
+>>>> +		 * not be set to "Disable", so update it.
+>>>> +		 */
+>>>> +		if (device_may_wakeup(dev))
+>>>> +			omap8250_update_mdr1(up, priv);
+>>>
+>>> Should this be unconditional?
+>>
+>> I do not see it doing any harm if done unconditionally. But it will be
+>> unnecessary. Unless the UART is being used for wakeup, we don't need
+>> MDR1 restored at this stage. And omap8250_restore_regs() will eventually
+>> restore the register anyway.
+> 
+> Yeah, I understand that, but special-casing it isn't adding any value;
+> it's not as if you actually want the module to not be in UART mode.
+> 
+> And the comment could be single-line:
+> 
+> 		/* Restore to UART mode after reset (for wakeup) */
 
->
->> diff --git a/drivers/clk/clk-composite.c b/drivers/clk/clk-composite=
-=2Ec
->> index 616f5ae..9e69f34 100644
->> --- a/drivers/clk/clk-composite.c
->> +++ b/drivers/clk/clk-composite.c
->> @@ -99,33 +99,33 @@ static long clk_composite_determine_rate(struct =
-clk_hw *hw, unsigned long rate,
->>
->>   			parent_rate =3D __clk_get_rate(parent);
->>
->> -			tmp_rate =3D rate_ops->round_rate(rate_hw, rate,
->> +			tmp_rate =3D rate_ops->round_rate(rate_hw, req->rate,
->>   							&parent_rate);
->>   			if (tmp_rate < 0)
->>   				continue;
->>
->> -			rate_diff =3D abs(rate - tmp_rate);
->> +			rate_diff =3D abs(req->rate - tmp_rate);
->>
->> -			if (!rate_diff || !*best_parent_p
->> +			if (!rate_diff || !req->best_parent_hw
->>   				       || best_rate_diff > rate_diff) {
->> -				*best_parent_p =3D __clk_get_hw(parent);
->> -				*best_parent_rate =3D parent_rate;
->> +				req->best_parent_hw =3D __clk_get_hw(parent);
->> +				req->best_parent_rate =3D parent_rate;
->>   				best_rate_diff =3D rate_diff;
->>   				best_rate =3D tmp_rate;
->>   			}
->>
->>   			if (!rate_diff)
->> -				return rate;
->> +				return 0;
->>   		}
->>
->> -		return best_rate;
->> +		req->rate =3D best_rate;
->> +		return 0;
->>   	} else if (mux_hw && mux_ops && mux_ops->determine_rate) {
->>   		__clk_hw_set_clk(mux_hw, hw);
->> -		return mux_ops->determine_rate(mux_hw, rate, min_rate,
->> -					       max_rate, best_parent_rate,
->> -					       best_parent_p);
->> +		return mux_ops->determine_rate(mux_hw, req);
->>   	} else {
->>   		pr_err("clk: clk_composite_determine_rate function called, but n=
-o mux or rate callback set!\n");
->> +		req->rate =3D 0;
->>   		return 0;
->
-> Shouldn't this return an error now? And then assigning req->rate
-> wouldn't be necessary. Sorry I must have missed this last round.
->
+Alright, will change this as well.
+
+Thanks,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
