@@ -1,86 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: musb-hdrc: "Vbus off, timeout 1100 msec" message does not belong
- in sysfs
-Date: Mon, 13 Jul 2015 15:30:28 -0500
-Message-ID: <20150713203014.GB32682@saruman.tx.rr.com>
-References: <20150709213922.GA32698@amd>
- <20150709214610.GA20890@amd>
- <559F7193.7090508@linutronix.de>
-Reply-To: <balbi@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: linux 4.2-rc1 broken Nokia N900
+Date: Mon, 13 Jul 2015 22:34:21 +0200
+Message-ID: <201507132234.22082@pali>
+References: <201507111405.06048@pali> <201507131909.06521@pali> <20150713202835.GA9468@deathray>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hOcCNbCCxyk/YU74"
+Content-Type: multipart/signed;
+  boundary="nextPart1628391.VxBryyoJnE";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <559F7193.7090508@linutronix.de>
+In-Reply-To: <20150713202835.GA9468@deathray>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Pavel Machek <pavel@ucw.cz>, Greg KH <greg@kroah.com>, balbi@ti.com, tony@atomide.com, varkabhadram@gmail.com, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+To: Michael Welling <mwelling@ieee.org>
+Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---hOcCNbCCxyk/YU74
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--nextPart1628391.VxBryyoJnE
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 10, 2015 at 09:17:39AM +0200, Sebastian Andrzej Siewior wrote:
-> On 07/09/2015 11:46 PM, Pavel Machek wrote:
-> > On Thu 2015-07-09 23:39:22, Pavel Machek wrote:
-> >> Hi!
->=20
-> Hi,
->=20
-> >>
-> >> sysfs should contain one value per file. This one has at least two,
-> >> with nice english sentence as a bonus.
-> >>
-> >> root@n900:/sys/devices/platform/68000000.ocp/480ab000.usb_otg_hs/musb-=
-hdrc.0.auto#
-> >> cat vbus
-> >> Vbus off, timeout 1100 msec
-> >>
-> >> :-(.
+On Monday 13 July 2015 22:28:35 Michael Welling wrote:
+> On Mon, Jul 13, 2015 at 07:09:06PM +0200, Pali Roh=C3=A1r wrote:
+> > Hello, here is my objdump of 4.2-rc2 version:
 > >=20
-> > Plus, documentation for this is nowhere to be seen:
-> >=20
-> > pavel@amd:/data/l/linux-n900$ grep -ri musb Documentation/ABI/
-> > pavel@amd:/data/l/linux-n900$
+> > 00000064 <omap2_mcspi_set_cs>:
+> >       64:       e3003182        movw    r3, #386        ; 0x182
+> >       68:       e19030b3        ldrh    r3, [r0, r3]
+> >       6c:       e3130004        tst     r3, #4
+> >       70:       0a000001        beq     7c
+> >       <omap2_mcspi_set_cs+0x18> 74:       e2711001        rsbs  =20
+> >       r1, r1, #1
+> >       78:       33a01000        movcc   r1, #0
+> >       7c:       e5902188        ldr     r2, [r0, #392]  ; 0x188
+> >       80:       e3520000        cmp     r2, #0
+> >       84:       012fff1e        bxeq    lr
+> >       88:       e5923018        ldr     r3, [r2, #24]
+> >       8c:       e3510000        cmp     r1, #0
+> >       90:       13c33601        bicne   r3, r3, #1048576        ;
+> >       0x100000 94:       03833601        orreq   r3, r3, #1048576=20
+> >             ; 0x100000 98:       e5823018        str     r3, [r2,
+> >       #24]
+> >       9c:       e5902188        ldr     r2, [r0, #392]  ; 0x188
+> >       a0:       e5922000        ldr     r2, [r2]
+> >       a4:       e582302c        str     r3, [r2, #44]   ; 0x2c
+> >       a8:       e592302c        ldr     r3, [r2, #44]   ; 0x2c
+> >       ac:       e12fff1e        bx      lr
 >=20
-> that is a shame indeed. It is part of the driver since TUSB support was
-> merged via commit 550a7375f ("USB: Add MUSB and TUSB support") about 7
-> years ago.
-> The parameter expects the timeout values which is used to poll the port
-> for mode changes (host/device mode) since it can not be detected on its
-> own.
-> Felipe knows best if it is better to document it or remove it. I can't
-> remember that I needed it on am335x.
+> I have not been able to duplicate the failure on the hardware that I
+> have. I dug out my old Beagleboard and added an SPI registration to
+> the dts. This was the closest hardware that I had to the N900's
+> processor.
+>=20
+> What is the version of the gcc compiler you are using and where did
+> you get it from?
+>=20
 
-N900's usersland relies on it, IIRC. But it could be that it was used
-just for testing. I'm not entirely sure.
+I'm using gcc version 4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) from package=20
+gcc-4.6-arm-linux-gnueabi which is available on Ubuntu 12.04 LTS
+(version 4.6.3-1ubuntu5cross1.62).
 
---=20
-balbi
+> For instance, I am using a 4.9.1 compiler that I built using Yocto.
+>=20
+> Also are you using devicetree or the old board file board-rx51.c?
 
---hOcCNbCCxyk/YU74
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I'm using devicetree.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1628391.VxBryyoJnE
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJVpB/kAAoJEIaOsuA1yqREiuwP/jGeIFTUre3uZwHrEnsmpzkr
-aEIZU6pWRVe5k7Ca8xx1DEc6LRTcibiOeDRLD9EuluWrXb2Licq4RL8RiEnXuDDi
-vE1XLpxjr0/FdjzZGE+Is5upxCkDSd/RNJU57BFiA0O2ueNIMpzr4H7Yu38hn99c
-YRAP19L/MRaFJExXn7JkzFpFyusYGFM3VpDPIQweCoV40nkhGTQOz9ONQw6XUg5W
-+d5RHtswpT7kIzxUx8uivD0Tj0XX9FHACU81oyxDwc6jelFH1yVCtNZUpYidQ6dD
-rt5xE3/Miq1+01cAAln0yWrb5P1XfRmvZ9szgRI2dB2pEsv077W/I7EreGUAQEH7
-USSiJUx09ZankzlXz5JQEAsmE50e6aiGhinazG3KhB818Q2VXgYZmmW2KVGl+wcH
-MFpoAyB2sieFT7Yc+HqMNYA87G28M8gETUenVYXeG9MZ1QYW6c0DoeJBwYq3Qkxj
-gkFIdxCivyeW1Thxt9H4UpEc5z/Rcr1AQAfyzpx/O5VAaji7HtqbinJMhfmgCOqU
-+iTFAW3KC/4TaUq60o9BaVZlh6RtNYZyS6/wJJbPkGIU/q0BJ+L5PlZHPmeHZw05
-CPs0rtJphFBVuGXGjmd/A6pkLaLx6kfox0zdFz1nrP1dV1ao3/CCC/nGyfyaSc1J
-ASbj0A373us9L+WbsZ5a
-=9Kkp
+iEYEABECAAYFAlWkIM4ACgkQi/DJPQPkQ1L00wCfSiChIDKEGJQlAtVrUxmNyDlQ
+0KsAn2qeQwoe9quzp5yEQ6qnpa8NlUbF
+=gVz6
 -----END PGP SIGNATURE-----
 
---hOcCNbCCxyk/YU74--
+--nextPart1628391.VxBryyoJnE--
