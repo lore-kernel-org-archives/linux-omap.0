@@ -1,193 +1,131 @@
-From: Michael Welling <mwelling@ieee.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: linux 4.2-rc1 broken Nokia N900
-Date: Mon, 13 Jul 2015 12:03:44 -0500
-Message-ID: <20150713170344.GA5825@deathray>
-References: <201507111405.06048@pali>
- <20150713064425.GB26485@atomide.com>
- <20150713080920.GA25585@earth>
+Date: Mon, 13 Jul 2015 19:09:06 +0200
+Message-ID: <201507131909.06521@pali>
+References: <201507111405.06048@pali> <20150713080920.GA25585@earth> <20150713170344.GA5825@deathray>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed;
+  boundary="nextPart3545633.BcKEKAUvs9";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150713080920.GA25585@earth>
+In-Reply-To: <20150713170344.GA5825@deathray>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Michael Welling <mwelling@ieee.org>
+Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 13, 2015 at 10:09:21AM +0200, Sebastian Reichel wrote:
-> [+cc Michael Welling <mwelling@ieee.org>, author of all omap-spi patc=
-hes between 4.1 and 4.2-rc1]
->=20
-> Hi,
->=20
-> On Sun, Jul 12, 2015 at 11:44:25PM -0700, Tony Lindgren wrote:
-> > * Pali Roh=E1r <pali.rohar@gmail.com> [150711 05:07]:
-> > > Hello,
-> > >=20
-> > > now I tested 4.2-rc1 release on Nokia N900 and couple of drivers =
-are
-> > > broken and cause kernel oops...
-> > >=20
-> > > Basically wifi, touchscreen and rtc drivers not working...
-> > >=20
-> > > Here are some relevant snippets form dmesg:
-> > >=20
-> > > [   13.933959] Unhandled fault: external abort on non-linefetch (=
-0x1028) at 0xfa09802c
-> > > [   13.940490] pgd =3D cfb38000
-> > > [   13.946594] [fa09802c] *pgd=3D48011452(bad)
-> > > [   13.952758] Internal error: : 1028 [#1] PREEMPT ARM
-> > > [   13.958862] Modules linked in: tsc2005(+) omap_sham twl4030_wd=
-t omap_wdt
-> > > [   13.965332] CPU: 0 PID: 183 Comm: modprobe Not tainted 4.2.0-r=
-c1+ #363
-> > > [   13.971801] Hardware name: Nokia RX-51 board
-> > > [   13.978302] task: cf572300 ti: cb1f2000 task.ti: cb1f2000
-> > > [   13.984924] PC is at omap2_mcspi_set_cs+0x44/0x4c
+--nextPart3545633.BcKEKAUvs9
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Here is the disassembly of the omap2_mcspi_set_cs function from my comp=
-iler:
-00000040 <omap2_mcspi_set_cs>:
-      40:       e2803e25        add     r3, r0, #592    ; 0x250
-      44:       e5902258        ldr     r2, [r0, #600]  ; 0x258
-      48:       e1d330b2        ldrh    r3, [r3, #2]
-      4c:       e3130004        tst     r3, #4
-      50:       12211001        eorne   r1, r1, #1
-      54:       e3520000        cmp     r2, #0
-      58:       012fff1e        bxeq    lr
-      5c:       e5923018        ldr     r3, [r2, #24]
-      60:       e3510000        cmp     r1, #0
-      64:       13c33601        bicne   r3, r3, #1048576        ; 0x100=
-000
-      68:       03833601        orreq   r3, r3, #1048576        ; 0x100=
-000
-      6c:       e5823018        str     r3, [r2, #24]
-      70:       e5902258        ldr     r2, [r0, #600]  ; 0x258
-      74:       e5922000        ldr     r2, [r2]
-      78:       e582302c        str     r3, [r2, #44]   ; 0x2c
-      7c:       e5903258        ldr     r3, [r0, #600]  ; 0x258
-      80:       e5933000        ldr     r3, [r3]
-      84:       e593202c        ldr     r2, [r3, #44]   ; 0x2c
-      88:       e12fff1e        bx      lr
-
-The omap2_mcspi_set_cs function is being called before the controller_s=
-tate is
-initialized in omap2_mcspi_setup.
-
-That is why there is a conditional checking if controller_state is NULL=
-=2E
-
-Perhaps the controller_state is uninitialized but has garbage instead o=
-f NULL
-causing the data abort.
-
-Though that does not make much sense because a similar check in the set=
-up function
-did not cause a data abort in the past.
-
-Not sure what is going wrong here.
-
-Could you do a objdump with the compiler you are using?
-
-> > > [   13.991485] LR is at spi_set_cs+0x5c/0x60
-> > > [   13.997985] pc : [<c02bd3ac>]    lr : [<c02baecc>]    psr: 200=
-00013
-> > > [   13.997985] sp : cb1f3dd0  ip : 00000001  fp : 00000004
-> > > [   14.011260] r10: cfce5be8  r9 : 00000fff  r8 : c0654f98
-> > > [   14.017913] r7 : 00000000  r6 : 00000000  r5 : 00000000  r4 : =
-00000000
-> > > [   14.024505] r3 : 200103dc  r2 : fa098000  r1 : 00000001  r0 : =
-cf09bc00
-> > > [   14.031036] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA AR=
-M  Segment user
-> > > [   14.037689] Control: 10c5387d  Table: 8fb38019  DAC: 00000015
-> > > [   14.044403] Process modprobe (pid: 183, stack limit =3D 0xcb1f=
-2210)
-> > > [   14.051300] Stack: (0xcb1f3dd0 to 0xcb1f4000)
-> > > [   14.058105] 3dc0:                                     cf09bc00=
- c02bafa4 cf09bc00 cf09bc00
-> > > [   14.065277] 3de0: bf013444 bf01254c cf0e2230 cf0e2230 00000001=
- c0654f98 00000fff 00000fff
-> > > [   14.072570] 3e00: 00000008 00000002 00000118 00001f40 00000031=
- cf09bc00 ffffffed bf013444
-> > > [   14.080078] 3e20: 00000031 c0654f98 cb1f2000 00000000 00000000=
- c02bb5c0 cf09bc00 00000000
-> > > [   14.087738] 3e40: bf013454 c027a2f4 00000000 cf09bc00 bf013454=
- bf013454 00000000 c027a594
-> > > [   14.095367] 3e60: 00000000 cf09bc00 cf09bc34 c027a60c bf013454=
- cb1f3e80 c027a5ac c0278ec8
-> > > [   14.102935] 3e80: cf972c4c cf09d630 bf013454 bf013454 cbb55300=
- c06848d8 00000000 c0279c84
-> > > [   14.110473] 3ea0: bf01327c bf01327d 00000000 bf013454 cb889180=
- 00000000 c0654f98 c027b0c8
-> > > [   14.117980] 3ec0: 00000000 bf015000 cb889180 c00095b0 0040003e=
- cfe6a080 0040003f 00000000
-> > > [   14.125457] 3ee0: 00080000 cfcf9000 cb1f2000 60000013 0040003e=
- cbf1bbc0 00000000 00000001
-> > > [   14.132843] 3f00: bf0134cc cb1f2000 bf0134c0 cb1f3f58 00000000=
- c04352d0 cf801f00 000000d0
-> > > [   14.140136] 3f20: bf0134c0 bf0134c0 0000416c cb889040 00000080=
- c000ebe4 cb1f2000 c0089f68
-> > > [   14.147308] 3f40: bf0134c0 cbf1bc00 001a9193 0000416c 001f8d20=
- c008ab30 d0b10000 0000416c
-> > > [   14.154571] 3f60: d0b1267c d0b1252b d0b13514 000016c0 00001ad0=
- 00000000 00000000 00000000
-> > > [   14.161865] 3f80: 0000001f 00000020 00000017 00000014 00000012=
- 00000000 00201208 00000000
-> > > [   14.169097] 3fa0: 00000000 c000ea60 00201208 00000000 001f8d20=
- 0000416c 001a9193 00000000
-> > > [   14.176177] 3fc0: 00201208 00000000 00000000 00000080 00208c20=
- 001a9193 bee09e98 00000000
-> > > [   14.183197] 3fe0: b6f742b4 bee09ae4 000153f0 000093e4 60000010=
- 001f8d20 72757463 69665f65
-> > > [   14.190277] [<c02bd3ac>] (omap2_mcspi_set_cs) from [<c02baecc>=
-] (spi_set_cs+0x5c/0x60)
-> > > [   14.197479] [<c02baecc>] (spi_set_cs) from [<c02bafa4>] (spi_s=
-etup+0xd4/0x10c)
-> > > [   14.204833] [<c02bafa4>] (spi_setup) from [<bf01254c>] (tsc200=
-5_probe+0x104/0x484 [tsc2005])
-> > > [   14.212249] [<bf01254c>] (tsc2005_probe [tsc2005]) from [<c02b=
-b5c0>] (spi_drv_probe+0x50/0x6c)
-> > > [   14.219818] [<c02bb5c0>] (spi_drv_probe) from [<c027a2f4>] (re=
-ally_probe+0xd4/0x230)
-> > > [   14.227478] [<c027a2f4>] (really_probe) from [<c027a594>] (dri=
-ver_probe_device+0x30/0x48)
-> > > [   14.235290] [<c027a594>] (driver_probe_device) from [<c027a60c=
->] (__driver_attach+0x60/0x84)
-> > > [   14.243286] [<c027a60c>] (__driver_attach) from [<c0278ec8>] (=
-bus_for_each_dev+0x50/0x84)
-> > > [   14.251281] [<c0278ec8>] (bus_for_each_dev) from [<c0279c84>] =
-(bus_add_driver+0xcc/0x1e0)
-> > > [   14.259246] [<c0279c84>] (bus_add_driver) from [<c027b0c8>] (d=
-river_register+0x9c/0xe0)
-> > > [   14.267272] [<c027b0c8>] (driver_register) from [<c00095b0>] (=
-do_one_initcall+0x100/0x1b0)
-> > > [   14.275421] [<c00095b0>] (do_one_initcall) from [<c0089f68>] (=
-do_init_module+0x58/0x1bc)
-> > > [   14.283477] [<c0089f68>] (do_init_module) from [<c008ab30>] (S=
-yS_init_module+0x54/0x64)
-> > > [   14.291412] [<c008ab30>] (SyS_init_module) from [<c000ea60>] (=
-ret_fast_syscall+0x0/0x3c)
-> > > [   14.299407] Code: e5823018 e5902188 e5922000 e582302c (e592302=
-c)=20
-> > > [   14.307403] ---[ end trace d21553dcaefcb5ac ]---
+On Monday 13 July 2015 19:03:44 Michael Welling wrote:
+> On Mon, Jul 13, 2015 at 10:09:21AM +0200, Sebastian Reichel wrote:
+> > [+cc Michael Welling <mwelling@ieee.org>, author of all omap-spi
+> > patches between 4.1 and 4.2-rc1]
 > >=20
-> > That seems to be a regression with the SPI driver. Care to git bise=
-ct it?
-> > It's probably one of the following commits:
+> > Hi,
 > >=20
-> > $ git log --pretty=3Doneline v4.1..v4.2-rc2 drivers/spi/spi-omap2-m=
-cspi.c
-> >
-> > Looks like just modprobe tsc2005 is enough to reproduce it.
+> > On Sun, Jul 12, 2015 at 11:44:25PM -0700, Tony Lindgren wrote:
+> > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150711 05:07]:
+> > > > Hello,
+> > > >=20
+> > > > now I tested 4.2-rc1 release on Nokia N900 and couple of
+> > > > drivers are broken and cause kernel oops...
+> > > >=20
+> > > > Basically wifi, touchscreen and rtc drivers not working...
+> > > >=20
+> > > > Here are some relevant snippets form dmesg:
+> > > >=20
+> > > > [   13.933959] Unhandled fault: external abort on non-linefetch
+> > > > (0x1028) at 0xfa09802c [   13.940490] pgd =3D cfb38000
+> > > > [   13.946594] [fa09802c] *pgd=3D48011452(bad)
+> > > > [   13.952758] Internal error: : 1028 [#1] PREEMPT ARM
+> > > > [   13.958862] Modules linked in: tsc2005(+) omap_sham
+> > > > twl4030_wdt omap_wdt [   13.965332] CPU: 0 PID: 183 Comm:
+> > > > modprobe Not tainted 4.2.0-rc1+ #363 [   13.971801] Hardware
+> > > > name: Nokia RX-51 board
+> > > > [   13.978302] task: cf572300 ti: cb1f2000 task.ti: cb1f2000
+> > > > [   13.984924] PC is at omap2_mcspi_set_cs+0x44/0x4c
 >=20
-> mh omap2_mcspi_set_cs has been introduced in this range
-> (ddcad7e9068) and from the commit message it seems to be
-> a fix for the first commit (b28cb9414d) in this range.
+> Here is the disassembly of the omap2_mcspi_set_cs function from my
+> compiler: 00000040 <omap2_mcspi_set_cs>:
+>       40:       e2803e25        add     r3, r0, #592    ; 0x250
+>       44:       e5902258        ldr     r2, [r0, #600]  ; 0x258
+>       48:       e1d330b2        ldrh    r3, [r3, #2]
+>       4c:       e3130004        tst     r3, #4
+>       50:       12211001        eorne   r1, r1, #1
+>       54:       e3520000        cmp     r2, #0
+>       58:       012fff1e        bxeq    lr
+>       5c:       e5923018        ldr     r3, [r2, #24]
+>       60:       e3510000        cmp     r1, #0
+>       64:       13c33601        bicne   r3, r3, #1048576        ;
+> 0x100000 68:       03833601        orreq   r3, r3, #1048576        ;
+> 0x100000 6c:       e5823018        str     r3, [r2, #24]
+>       70:       e5902258        ldr     r2, [r0, #600]  ; 0x258
+>       74:       e5922000        ldr     r2, [r2]
+>       78:       e582302c        str     r3, [r2, #44]   ; 0x2c
+>       7c:       e5903258        ldr     r3, [r0, #600]  ; 0x258
+>       80:       e5933000        ldr     r3, [r3]
+>       84:       e593202c        ldr     r2, [r3, #44]   ; 0x2c
+>       88:       e12fff1e        bx      lr
 >=20
-> Just looking at the commit log, I sugest starting with testing if
-> ddcad7e9068 is affected and if b28cb9414d~1 is not affected.
+> The omap2_mcspi_set_cs function is being called before the
+> controller_state is initialized in omap2_mcspi_setup.
 >=20
-> -- Sebastian
+> That is why there is a conditional checking if controller_state is
+> NULL.
+>=20
+> Perhaps the controller_state is uninitialized but has garbage instead
+> of NULL causing the data abort.
+>=20
+> Though that does not make much sense because a similar check in the
+> setup function did not cause a data abort in the past.
+>=20
+> Not sure what is going wrong here.
+>=20
+> Could you do a objdump with the compiler you are using?
+>=20
+
+Hello, here is my objdump of 4.2-rc2 version:
+
+00000064 <omap2_mcspi_set_cs>:
+      64:       e3003182        movw    r3, #386        ; 0x182
+      68:       e19030b3        ldrh    r3, [r0, r3]
+      6c:       e3130004        tst     r3, #4
+      70:       0a000001        beq     7c <omap2_mcspi_set_cs+0x18>
+      74:       e2711001        rsbs    r1, r1, #1
+      78:       33a01000        movcc   r1, #0
+      7c:       e5902188        ldr     r2, [r0, #392]  ; 0x188
+      80:       e3520000        cmp     r2, #0
+      84:       012fff1e        bxeq    lr
+      88:       e5923018        ldr     r3, [r2, #24]
+      8c:       e3510000        cmp     r1, #0
+      90:       13c33601        bicne   r3, r3, #1048576        ; 0x100000
+      94:       03833601        orreq   r3, r3, #1048576        ; 0x100000
+      98:       e5823018        str     r3, [r2, #24]
+      9c:       e5902188        ldr     r2, [r0, #392]  ; 0x188
+      a0:       e5922000        ldr     r2, [r2]
+      a4:       e582302c        str     r3, [r2, #44]   ; 0x2c
+      a8:       e592302c        ldr     r3, [r2, #44]   ; 0x2c
+      ac:       e12fff1e        bx      lr
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart3545633.BcKEKAUvs9
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlWj8LIACgkQi/DJPQPkQ1JTYgCeMEoTJXUrRpPFQvss/lWdfDLE
+qo8AoJOtVB6irtgee72JllOqjIMpPKcY
+=6dhn
+-----END PGP SIGNATURE-----
+
+--nextPart3545633.BcKEKAUvs9--
