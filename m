@@ -1,73 +1,65 @@
-From: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [PATCH v3 05/11] usb: hcd.h: Add OTG to HCD interface
-Date: Mon, 13 Jul 2015 10:00:25 +0800
-Message-ID: <20150713020024.GD27710@shlinux2>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
- <1436350777-28056-6-git-send-email-rogerq@ti.com>
+From: Shawn Guo <shawnguo@kernel.org>
+Subject: Re: [PATCH v2 01/13] ARM: kill off set_irq_flags usage
+Date: Mon, 13 Jul 2015 11:19:01 +0800
+Message-ID: <20150713031901.GM23464@tiger>
+References: <1436711211-18223-1-git-send-email-robh@kernel.org>
+ <1436711211-18223-2-git-send-email-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1436350777-28056-6-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1436711211-18223-2-git-send-email-robh@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, Greg Ungerer <gerg@uclinux.org>, Robert Jarzmik <robert.jarzmik@free.fr>, Roland Stigge <stigge@antcom.de>, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, arm@kernel.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Haojian Zhuang <haojian.zhuang@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, Simtec Linux Team <linux@simtec.co.uk>, Shawn Guo <shawn.guo@linaro.org>, linux-kernel@vger.kernel.org, Kukjin Kim <kgene@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Daniel Mack <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 08, 2015 at 01:19:31PM +0300, Roger Quadros wrote:
-> The OTG core will use struct otg_hcd_ops to
-> add/remove the HCD controller.
+On Sun, Jul 12, 2015 at 09:26:39AM -0500, Rob Herring wrote:
+> set_irq_flags is ARM specific with custom flags which have genirq
+> equivalents. Convert drivers to use the genirq interfaces directly, so we
+> can kill off set_irq_flags. The translation of flags is as follows:
 > 
-> The main purpose of this interface is to avoid directly
-> calling usb_add/remove_hcd() from the OTG core as they
-> wouldn't be defined in the built-in symbol table if
-> CONFIG_USB is m.
+> IRQF_VALID -> !IRQ_NOREQUEST
+> IRQF_PROBE -> !IRQ_NOPROBE
+> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
 > 
-
-Like patch 4, Would you let the OTG depends on HCD?
-OTG needs dual-role, it is reasonable.
-
-Peter
-
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> For IRQs managed by an irqdomain, the irqdomain core code handles clearing
+> and setting IRQ_NOREQUEST already, so there is no need to do this in
+> .map() functions and we can simply remove the set_irq_flags calls. Some
+> users also set IRQ_NOPROBE and this has been maintained although it is not
+> clear that is really needed. There appears to be a great deal of blind
+> copy and paste of this code.
+> 
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Jason Cooper <jason@lakedaemon.net>
+> Cc: Andrew Lunn <andrew@lunn.ch>
+> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+> Cc: Gregory Clement <gregory.clement@free-electrons.com>
+> Acked-by: Hans Ulli Kroll <ulli.kroll@googlemail.com>
+> Cc: Shawn Guo <shawn.guo@linaro.org>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Imre Kaloz <kaloz@openwrt.org>
+> Acked-by: Krzysztof Halasa <khalasa@piap.pl>
+> Cc: Greg Ungerer <gerg@uclinux.org>
+> Cc: Roland Stigge <stigge@antcom.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Daniel Mack <daniel@zonque.org>
+> Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> Cc: Simtec Linux Team <linux@simtec.co.uk>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Acked-by: Wan ZongShun <mcuos.com@gmail.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Tested-by: Kevin Hilman <khilman@linaro.org>
 > ---
->  include/linux/usb/hcd.h | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
-> index c9aa779..4108288 100644
-> --- a/include/linux/usb/hcd.h
-> +++ b/include/linux/usb/hcd.h
-> @@ -386,6 +386,20 @@ struct hc_driver {
->  
->  };
->  
-> +/**
-> + * struct otg_hcd_ops - Interface between OTG core and HCD
-> + *
-> + * Provided by the HCD core to allow the OTG core to start/stop the HCD
-> + *
-> + * @add: function to add the HCD
-> + * @remove: function to remove the HCD
-> + */
-> +struct otg_hcd_ops {
-> +	int (*add)(struct usb_hcd *hcd,
-> +		   unsigned int irqnum, unsigned long irqflags);
-> +	void (*remove)(struct usb_hcd *hcd);
-> +};
-> +
->  static inline int hcd_giveback_urb_in_bh(struct usb_hcd *hcd)
->  {
->  	return hcd->driver->flags & HCD_BH;
-> -- 
-> 2.1.4
-> 
+...
+>  arch/arm/mach-imx/3ds_debugboard.c   |  2 +-
+>  arch/arm/mach-imx/mach-mx31ads.c     |  2 +-
 
--- 
-
-Best Regards,
-Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Shawn Guo <shawnguo@kernel.org>
