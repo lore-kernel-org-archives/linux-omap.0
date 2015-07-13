@@ -1,91 +1,42 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 03/12] mtd: nand: omap: Move IRQ handling from GPMC to
- NAND driver
-Date: Mon, 13 Jul 2015 16:21:17 +0300
-Message-ID: <55A3BB4D.3080003@ti.com>
-References: <1436531019-18088-1-git-send-email-rogerq@ti.com> <1436531019-18088-4-git-send-email-rogerq@ti.com> <20150713071008.GC26485@atomide.com> <55A38D2E.9010500@ti.com> <20150713124059.GF26485@atomide.com> <55A3B467.8030409@gmail.com> <20150713130109.GG26485@atomide.com> <55A3B73C.9040604@gmail.com> <55A3B931.1050706@ti.com> <55A3B9DD.60705@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux 4.2-rc1 broken Nokia N900
+Date: Mon, 13 Jul 2015 06:26:31 -0700
+Message-ID: <20150713132630.GI26485@atomide.com>
+References: <201507111405.06048@pali>
+ <20150713064425.GB26485@atomide.com>
+ <20150713111031.GC30452@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55A3B9DD.60705@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20150713111031.GC30452@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: nick <xerofoify@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, computersforpeace@gmail.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, bcousson@baylibre.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 13/07/15 16:15, nick wrote:
-> 
-> 
-> On 2015-07-13 09:12 AM, Roger Quadros wrote:
->> On 13/07/15 16:03, nick wrote:
->>>
->>>
->>> On 2015-07-13 09:01 AM, Tony Lindgren wrote:
->>>> * nick <xerofoify@gmail.com> [150713 05:54]:
->>>>> On 2015-07-13 08:40 AM, Tony Lindgren wrote:
->>>>>> * Roger Quadros <rogerq@ti.com> [150713 03:07]:
->>>>>>  
->>>>>>> What is the best map we should use for irqchip?
->>>>>>> Some Socs have 4 WAIT pins, some have 3 and some have 2.
->>>>>>>
->>>>>>> Should we start with 0,1,2, for the wait pins and use the next
->>>>>>> available free one for the NAND?
->>>>>>
->>>>>> Maybe we can just use the bits defined for each SoC in the
->>>>>> GPMC_IRQSTATUS register for the mapping?  
->>>>>> Regards,
->>>>>
->>>>> Is that a good idea as to my knowledge of OMAP platforms that register is hardware
->>>>> dependent and therefore that may be an issue unless your idea is to create device
->>>>> tables like the way they do in the nand subsystems to support various vendor's 
->>>>> nand flash expect here for the pins on OMAP SOCs.
->>>>
->>>> Do you mean mapping irqs based on the GPMC_IRQSTATUS register
->>>> bits? If so, that's pretty much how all the GPIO drivers
->>>> handle them. We can have a SoC specific irqmask of the valid
->>>> bits passed from the dts files, and if necessary we can also
->>>> add custom SoC specific IRQ handlers to the GPMC driver if
->>>> needed.
->>>>
->>>> The idea is that the NAND driver can just request the irq
->>>> from the GPMC driver and do whatever it wants with the
->>>> interrupt.
->>>>
->>>> Regards,
->>>>
->>>> Tony
->>>>
->>> Tony,
->>> That is what I was hoping the code was doing. So what appears to be the problem with the 
->>> patches related to irq requesting from the GPMC driver.
->>> Cheers,
->>> Nick 
->>>
->>
->> The problem with this patch is that it expects GPMC_IRQ registers
->> to be accessible by the NAND driver and looses the 2 to 4 pins
->> of WAIT pin edge detection interrupt capability if it is needed
->> for generic use. (not NAND/GPMC memory specific)
->>
->> cheers,
->> -roger
->>
-> I am not sure if this is possible with OMAP boards but can we split the pins
-> into 1 or 2 for NAND/GPMC memory specific and use the others for WAIT interrupt
-> capability.
-> Nick
-> 
-Yes if the wait pins are not used for NAND/GPMC memory then they can be used
-as generic edge detect interrupt or probably even a GPI.
-I don't see what would prevent it.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150713 04:13]:
+>=20
+> Ok, and any idea what is with rtc?
 
-I'm not sure if anyone will dare to use them though as they weren't originally meant
-for that use and none of the existing kernels support that. So it is really a
-chicken and egg situation here. :)
+Probably one of these:
 
-But I see value in doing it the way Tony says cause it is much cleaner to specify
-which interrupt (or wait pin) you want for NAND use.
+$ git log --pretty=3Doneline v4.1..v4.2-rc2 drivers/mfd/*twl* drivers/i=
+2c/busses/i2c-omap.c
+24867481b8c0a3bc3ab53b634e3cc03680ac3ac6 Merge branch 'i2c/for-4.2' of =
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux
+7d5b1ed89bbb3614830c96420050088f3e0fb886 mfd: twl4030-irq: Pass the IRQ=
+=46_ONESHOT flag
+5c188d748216f67c928d67a42f14b5569b6404a5 mfd: twl4030-power: Fix pmic f=
+or boards that need AC charger disabled
+7ce7b26f84cfcbcb04f526f56f685a56ccddf355 mfd: Constify regmap and irq c=
+onfiguration data
+9dcb0e7b999db6c420c70fd32497a979a044fcdf i2c: omap: implement bus recov=
+ery
+096ea30c91b521c77964ee8c214f7ce3b9d08e7b i2c: omap: Add calls for pinct=
+rl state select
 
-cheers,
--roger
+Regards,
+
+Ton
