@@ -1,96 +1,198 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 04/11] otg-fsm: move usb_bus_start_enum into otg-fsm->ops
-Date: Mon, 13 Jul 2015 13:13:54 +0300
-Message-ID: <55A38F62.8010509@ti.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <1436350777-28056-5-git-send-email-rogerq@ti.com> <20150713015759.GC27710@shlinux2>
+Subject: Re: [PATCH v3 07/11] usb: otg: add OTG core
+Date: Mon, 13 Jul 2015 13:20:43 +0300
+Message-ID: <55A390FB.5080406@ti.com>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <1436350777-28056-8-git-send-email-rogerq@ti.com> <20150713021456.GE27710@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150713015759.GC27710@shlinux2>
+In-Reply-To: <20150713021456.GE27710@shlinux2>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Chen <peter.chen@freescale.com>
 Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Peter,
-
-On 13/07/15 04:58, Peter Chen wrote:
-> On Wed, Jul 08, 2015 at 01:19:30PM +0300, Roger Quadros wrote:
->> This is to prevent missing symbol build error if OTG is
->> enabled (built-in) and HCD core (CONFIG_USB) is module.
+On 13/07/15 05:14, Peter Chen wrote:
+> On Wed, Jul 08, 2015 at 01:19:33PM +0300, Roger Quadros wrote:
+>> The OTG core instantiates the OTG Finite State Machine
+>> per OTG controller and manages starting/stopping the
+>> host and gadget controllers based on the bus state.
 >>
+>> It provides APIs for the following tasks
+>>
+>> - Registering an OTG capable controller
+>> - Registering Host and Gadget controllers to OTG core
+>> - Providing inputs to and kicking the OTG state machine
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  MAINTAINERS                  |   4 +-
+>>  drivers/usb/Kconfig          |   2 +-
+>>  drivers/usb/Makefile         |   1 +
+>>  drivers/usb/common/Makefile  |   3 +-
+>>  drivers/usb/common/usb-otg.c | 768 +++++++++++++++++++++++++++++++++++++++++++
+>>  drivers/usb/common/usb-otg.h |  71 ++++
+>>  drivers/usb/core/Kconfig     |  11 +-
+>>  include/linux/usb/otg.h      |  91 ++++-
+>>  8 files changed, 930 insertions(+), 21 deletions(-)
+>>  create mode 100644 drivers/usb/common/usb-otg.c
+>>  create mode 100644 drivers/usb/common/usb-otg.h
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index 8133cef..b21278e 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -10640,12 +10640,14 @@ S:	Maintained
+>>  F:	Documentation/usb/ohci.txt
+>>  F:	drivers/usb/host/ohci*
+>>  
+>> -USB OTG FSM (Finite State Machine)
+>> +USB OTG/DRD core and FSM (Finite State Machine)
+>>  M:	Peter Chen <Peter.Chen@freescale.com>
+>> +M:	Roger Quadros <rogerq@ti.com>
+>>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/peter.chen/usb.git
+>>  L:	linux-usb@vger.kernel.org
+>>  S:	Maintained
+>>  F:	drivers/usb/common/usb-otg-fsm.c
+>> +F:	drivers/usb/common/usb-otg.c
+>>  
+>>  USB OVER IP DRIVER
+>>  M:	Valentina Manea <valentina.manea.m@gmail.com>
+>> diff --git a/drivers/usb/Kconfig b/drivers/usb/Kconfig
+>> index 8ed451d..5b625e2 100644
+>> --- a/drivers/usb/Kconfig
+>> +++ b/drivers/usb/Kconfig
+>> @@ -32,7 +32,7 @@ if USB_SUPPORT
+>>  config USB_COMMON
+>>  	tristate
+>>  	default y
+>> -	depends on USB || USB_GADGET
+>> +	depends on USB || USB_GADGET || USB_OTG
+>>  
 > 
-> We may let the OTG-DRD/OTG-FSM depends on CONFIG_USB to fix it.
+> USB_OTG can depends on USB || UB_GADGET?
 
-CONFIG_OTG already depends on CONFIG_USB as it is a sub-option of
-CONFIG_USB. It doesn't depend on CONFIG_USB_GADGET and that can
-be fixed.
+I didn't understand. The above is for USB_COMMON.
 
-But dependency is not the problem here. Symbols not available to
-OTG driver when USB/GADGET is 'm' is the problem.
+> 
+>>  config USB_ARCH_HAS_HCD
+>>  	def_bool y
+>> diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
+>> index d8926c6..769d13b 100644
+>> --- a/drivers/usb/Makefile
+>> +++ b/drivers/usb/Makefile
+>> @@ -60,5 +60,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)	+= renesas_usbhs/
+>>  obj-$(CONFIG_USB_GADGET)	+= gadget/
+>>  
+>>  obj-$(CONFIG_USB_COMMON)	+= common/
+>> +obj-$(CONFIG_USB_OTG)		+= common/
+>>  
+> 
+> The comment like above.
 
-e.g.
-CONFIG_USB_OTG is always built-in.
-we need to work if CONFIG_USB is 'm'/'y'
-_and_ if CONFIG_USB_GADGET is 'm'/'y'
+What should it look like?
+
+> 
+>>  obj-$(CONFIG_USBIP_CORE)	+= usbip/
+>> diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
+>> index 6bbb3ec..730d928 100644
+>> --- a/drivers/usb/common/Makefile
+>> +++ b/drivers/usb/common/Makefile
+>> @@ -6,5 +6,6 @@ obj-$(CONFIG_USB_COMMON)	  += usb-common.o
+>>  usb-common-y			  += common.o
+>>  usb-common-$(CONFIG_USB_LED_TRIG) += led.o
+>>  
+>> -obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
+>>  obj-$(CONFIG_USB_ULPI_BUS)	+= ulpi.o
+>> +usbotg-y		:= usb-otg.o usb-otg-fsm.o
+>> +obj-$(CONFIG_USB_OTG)	+= usbotg.o
+>> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
+>> new file mode 100644
+>> index 0000000..0379034
+>> --- /dev/null
+>> +++ b/drivers/usb/common/usb-otg.c
+>> @@ -0,0 +1,768 @@
+>> +/**
+>> + * drivers/usb/common/usb-otg.c - USB OTG core
+>> + *
+>> + * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
+>> + * Author: Roger Quadros <rogerq@ti.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/ktime.h>
+>> +#include <linux/hrtimer.h>
+>> +#include <linux/list.h>
+>> +#include <linux/usb/otg.h>
+>> +#include <linux/usb/phy.h>	/* enum usb_otg_state */
+>> +#include <linux/usb/gadget.h>
+>> +#include <linux/workqueue.h>
+>> +
+>> +#include "usb-otg.h"
+>> +
+>> +/* to link timer with callback data */
+>> +struct otg_timer {
+>> +	struct hrtimer timer;
+>> +	ktime_t timeout;
+>> +	/* callback data */
+>> +	int *timeout_bit;
+>> +	struct otg_data *otgd;
+>> +};
+>> +
+>> +struct otg_hcd {
+>> +	struct usb_hcd *hcd;
+>> +	unsigned int irqnum;
+>> +	unsigned long irqflags;
+>> +	struct otg_hcd_ops *ops;
+>> +};
+>> +
+>> +struct otg_data {
+>> +	struct device *dev;	/* HCD & GCD's parent device */
+>> +
+>> +	struct otg_fsm fsm;
+>> +	/* HCD, GCD and usb_otg_state are present in otg_fsm->otg
+>> +	 * HCD is bus_to_hcd(fsm->otg->host)
+>> +	 * GCD is fsm->otg->gadget
+>> +	 */
+>> +	struct otg_fsm_ops fsm_ops;	/* private copy for override */
+>> +	struct usb_otg otg;		/* allocator for fsm->otg */
+>> +
+>> +	struct otg_hcd primary_hcd;
+>> +	struct otg_hcd shared_hcd;
+>> +
+>> +	struct otg_gadget_ops *gadget_ops; /* interface to gadget f/w */
+>> +
+>> +	/* saved hooks to OTG device */
+>> +	int (*start_host)(struct otg_fsm *fsm, int on);
+>> +	int (*start_gadget)(struct otg_fsm *fsm, int on);
+>> +
+>> +	struct list_head list;
+>> +
+>> +	struct work_struct work;	/* OTG FSM work */
+>> +	struct workqueue_struct *wq;
+>> +
+>> +	struct otg_timer timers[NUM_OTG_FSM_TIMERS];
+>> +
+>> +	bool fsm_running;
+>> +	/* use otg->fsm.lock for serializing access */
+>> +};
+>> +
+> 
+> Would you consider enhance struct usb_otg, and instead of this
+> structure, I am wonder similar structures may increase the confuse
+> in future.
+
+Yes, that should be possible.
 
 cheers,
 -roger
-
-> 
-> Peter
-> 
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/usb/common/usb-otg-fsm.c | 6 ++++--
->>  drivers/usb/phy/phy-fsl-usb.c    | 2 ++
->>  include/linux/usb/otg-fsm.h      | 1 +
->>  3 files changed, 7 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
->> index 1873eb3..156fd25 100644
->> --- a/drivers/usb/common/usb-otg-fsm.c
->> +++ b/drivers/usb/common/usb-otg-fsm.c
->> @@ -166,8 +166,10 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->>  		otg_loc_conn(fsm, 0);
->>  		otg_loc_sof(fsm, 1);
->>  		otg_set_protocol(fsm, PROTO_HOST);
->> -		usb_bus_start_enum(fsm->otg->host,
->> -				fsm->otg->host->otg_port);
->> +		if (fsm->ops->start_enum) {
->> +			fsm->ops->start_enum(fsm->otg->host,
->> +					     fsm->otg->host->otg_port);
->> +		}
->>  		break;
->>  	case OTG_STATE_A_IDLE:
->>  		otg_drv_vbus(fsm, 0);
->> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
->> index ee3f2c2..19541ed 100644
->> --- a/drivers/usb/phy/phy-fsl-usb.c
->> +++ b/drivers/usb/phy/phy-fsl-usb.c
->> @@ -783,6 +783,8 @@ static struct otg_fsm_ops fsl_otg_ops = {
->>  
->>  	.start_host = fsl_otg_start_host,
->>  	.start_gadget = fsl_otg_start_gadget,
->> +
->> +	.start_enum = usb_bus_start_enum,
->>  };
->>  
->>  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
->> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
->> index c631dde..22d8baa 100644
->> --- a/include/linux/usb/otg-fsm.h
->> +++ b/include/linux/usb/otg-fsm.h
->> @@ -198,6 +198,7 @@ struct otg_fsm_ops {
->>  	void	(*del_timer)(struct otg_fsm *fsm, enum otg_fsm_timer timer);
->>  	int	(*start_host)(struct otg_fsm *fsm, int on);
->>  	int	(*start_gadget)(struct otg_fsm *fsm, int on);
->> +	int	(*start_enum)(struct usb_bus *bus, unsigned port_num);
->>  };
->>  
->>  
->> -- 
->> 2.1.4
->>
-> 
