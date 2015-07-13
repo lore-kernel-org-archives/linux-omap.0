@@ -1,93 +1,136 @@
-From: nick <xerofoify@gmail.com>
-Subject: Re: [PATCH 03/12] mtd: nand: omap: Move IRQ handling from GPMC to
- NAND driver
-Date: Mon, 13 Jul 2015 09:15:09 -0400
-Message-ID: <55A3B9DD.60705@gmail.com>
-References: <1436531019-18088-1-git-send-email-rogerq@ti.com>
- <1436531019-18088-4-git-send-email-rogerq@ti.com>
- <20150713071008.GC26485@atomide.com> <55A38D2E.9010500@ti.com>
- <20150713124059.GF26485@atomide.com> <55A3B467.8030409@gmail.com>
- <20150713130109.GG26485@atomide.com> <55A3B73C.9040604@gmail.com>
- <55A3B931.1050706@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
+ "/chosen/linux,atags" entry
+Date: Mon, 13 Jul 2015 06:19:02 -0700
+Message-ID: <20150713131902.GH26485@atomide.com>
+References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
+ <1436214373-12969-6-git-send-email-pali.rohar@gmail.com>
+ <20150707113213.GC7576@n2100.arm.linux.org.uk>
+ <20150707115819.GF12087@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <55A3B931.1050706@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, bcousson@baylibre.com, computersforpeace@gmail.com, dwmw2@infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150707115819.GF12087@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150707 05:00]:
+> On Tuesday 07 July 2015 12:32:13 Russell King - ARM Linux wrote:
+> > On Mon, Jul 06, 2015 at 10:26:13PM +0200, Pali Roh=C3=A1r wrote:
+> > > Legacy bootloaders can pass additional information for kernel or =
+legacy
+> > > userspace applications. When booting DT kernel then ATAGs structu=
+re is not
+> > > more visible after running kernel uncompress code. This patch sto=
+res full
+> > > ATAGs structure into DT "/chosen/linux,atags" entry, so kernel ca=
+n later
+> > > reuse it and export via /proc/atags to userspace.
+> >=20
+> > I think you need to go through your commit messages and improve the=
+m,
+> > especially the ones with "TODO" in them.  As long as there's still =
+things
+> > to be done, they're obviously not ready for merging.
+> >=20
+>=20
+> I know, in cover letter email I wrote that documentation is not ready=
+=2E..
+> I send patches for review and comments (like yours). I think it is st=
+ill
+> better to send something and mark it as incomplete. It could prevent =
+to
+> work on something which will be again rewritten...
+>=20
+> > Moreover, exporting the ATAGS is questionable, even _if_ there are =
+non-
+> > kexec programs making use of this.  The ATAGs have _never_ been exp=
+orted
+> > to userspace when kexec disabled is the kernel - it was introduced =
+for
+> > kexec, and has always had this:
+> >=20
+> > config ATAGS_PROC
+> >         bool "Export atags in procfs"
+> >         depends on ATAGS && KEXEC
+> >         default y
+> >=20
+> > Now, the fact that someone decided to start using it is pretty sad,
+> > because it means that if you disable KEXEC, userspace breaks.  That=
+'s
+> > not a kernel regression in any shape or form, because /proc/atags h=
+as
+> > never been there without KEXEC enabled.  That's a userspace bug, pl=
+ain
+> > and simple.
+> >=20
+> > Given that, I'm in two minds about whether to accept the last two
+> > patches which make this more than just "for KEXEC use to enable a K=
+EXEC
+> > kernel to be booted."
+> >=20
+> > Had it been provided without the KEXEC conditional, then I don't ha=
+ve
+> > a problem with these two patches.
+> >=20
+>=20
+> I understand it. Nokia originally invented their own entries in /proc=
+/
+> which export needed ATAGs from kernel in human-readable form, but all
+> those entries were non-standard and specific for Nokia's kernels.
+>=20
+> Do you have some other idea how to provide ATAGs information created
+> dynamically by legacy closed proprietary bootloader to userspace from=
+ DT
+> booted kernel?
+>=20
+> Anyway, for supporting kexec (with passing ATAGs) it is needed to hav=
+e
+> working /proc/atags file, right?
 
+Yeah I think that since we already have it in /proc, we should just
+support it. And keep it behind CONFIG_KEXEC and CONFIG_ARM_APPENDED_DTB
+and hope we don't find other users for it.. Then reconsider the Kconfig
+dependencies if we do find other users.
+=20
+> > It also sets a precedent: by adding this into DT, it is creating a =
+new
+> > DT ABI as well, and we'll end up seeing dts files with an ATAG bloc=
+k
+> > patched into them.
+> >=20
+> > Are the ATAGs at a fixed address on the N900?
+>=20
+> Yes, in board-rx51.c is:
+>=20
+> .atag_offset	=3D 0x100
+>=20
+> and Nokia Bootloader (proprietary) store them to that address.
+>
+> > Can that be handled in
+> > some kind of legacy file for the N900 which calls save_atags() on i=
+t, so
+> > we don't end up introducing yet more stuff that we have to maintain=
+ into
+> > the distant future?  If not, what about copying a known working ata=
+g
+> > structure into a legacy file for the N900?
+>
+> I already asked question if it is possible to read ATAGs from DT boot=
+ed
+> kernel. And somebody (do not remember who) wrote to ML, that it is no=
+t
+> possible and it can be done in that uncompress code.
 
-On 2015-07-13 09:12 AM, Roger Quadros wrote:
-> On 13/07/15 16:03, nick wrote:
->>
->>
->> On 2015-07-13 09:01 AM, Tony Lindgren wrote:
->>> * nick <xerofoify@gmail.com> [150713 05:54]:
->>>> On 2015-07-13 08:40 AM, Tony Lindgren wrote:
->>>>> * Roger Quadros <rogerq@ti.com> [150713 03:07]:
->>>>>  
->>>>>> What is the best map we should use for irqchip?
->>>>>> Some Socs have 4 WAIT pins, some have 3 and some have 2.
->>>>>>
->>>>>> Should we start with 0,1,2, for the wait pins and use the next
->>>>>> available free one for the NAND?
->>>>>
->>>>> Maybe we can just use the bits defined for each SoC in the
->>>>> GPMC_IRQSTATUS register for the mapping?  
->>>>> Regards,
->>>>
->>>> Is that a good idea as to my knowledge of OMAP platforms that register is hardware
->>>> dependent and therefore that may be an issue unless your idea is to create device
->>>> tables like the way they do in the nand subsystems to support various vendor's 
->>>> nand flash expect here for the pins on OMAP SOCs.
->>>
->>> Do you mean mapping irqs based on the GPMC_IRQSTATUS register
->>> bits? If so, that's pretty much how all the GPIO drivers
->>> handle them. We can have a SoC specific irqmask of the valid
->>> bits passed from the dts files, and if necessary we can also
->>> add custom SoC specific IRQ handlers to the GPMC driver if
->>> needed.
->>>
->>> The idea is that the NAND driver can just request the irq
->>> from the GPMC driver and do whatever it wants with the
->>> interrupt.
->>>
->>> Regards,
->>>
->>> Tony
->>>
->> Tony,
->> That is what I was hoping the code was doing. So what appears to be the problem with the 
->> patches related to irq requesting from the GPMC driver.
->> Cheers,
->> Nick 
->>
-> 
-> The problem with this patch is that it expects GPMC_IRQ registers
-> to be accessible by the NAND driver and looses the 2 to 4 pins
-> of WAIT pin edge detection interrupt capability if it is needed
-> for generic use. (not NAND/GPMC memory specific)
-> 
-> cheers,
-> -roger
-> 
-I am not sure if this is possible with OMAP boards but can we split the pins
-into 1 or 2 for NAND/GPMC memory specific and use the others for WAIT interrupt
-capability.
-Nick
+I guess the other option would be to keep the raw ATAG area reserved,
+and only initialize /proc/atags from a board specific initcall.
+But I think that would complicate the already fragile uncompress
+relocation code even further?
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Regards,
+
+Tony
