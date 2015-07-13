@@ -1,39 +1,80 @@
-From: Michael Welling <mwelling@ieee.org>
-Subject: Re: linux 4.2-rc1 broken Nokia N900
-Date: Mon, 13 Jul 2015 17:36:07 -0500
-Message-ID: <20150713223607.GA23001@deathray>
-References: <201507111405.06048@pali>
- <201507132234.22082@pali>
- <20150713215232.GA22584@deathray>
- <201507140002.44119@pali>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v5] clk: change clk_ops' ->determine_rate() prototype
+Date: Mon, 13 Jul 2015 16:02:18 -0700
+Message-ID: <20150713230217.GI30412@codeaurora.org>
+References: <1436294888-25752-1-git-send-email-boris.brezillon@free-electrons.com>
+ <20150708005748.GG30412@codeaurora.org>
+ <20150708110005.704c49ff@bbrezillon>
+ <559D66EE.4060707@codeaurora.org>
+ <20150709223938.19450e75@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201507140002.44119@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20150709223938.19450e75@bbrezillon>
+Sender: linux-doc-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mike Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 12:02:44AM +0200, Pali Roh=E1r wrote:
-> I think nothing special. I just call:
->=20
-> export ARCH=3Darm
-> export CROSS_COMPILE=3Darm-linux-gnueabi-
-> make rx51_defconfig
-> rm -f arch/arm/boot/zImage
-> make -j12 zImage modules omap3-n900.dtb CONFIG_DEBUG_SECTION_MISMATCH=
-=3Dy
-> cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-n900.dtb > arch/arm/=
-boot/zImage.new
-> mv arch/arm/boot/zImage.new arch/arm/boot/zImage
->
+On 07/09, Boris Brezillon wrote:
+> Hi Stephen,
+> 
+> On Wed, 08 Jul 2015 11:07:42 -0700
+> Stephen Boyd <sboyd@codeaurora.org> wrote:
+> 
+> > On 07/08/2015 02:00 AM, Boris Brezillon wrote:
+> > > Hi Stephen,
+> > >
+> > > On Tue, 7 Jul 2015 17:57:48 -0700
+> > > Stephen Boyd <sboyd@codeaurora.org> wrote:
+> > >
+> > >> On 07/07, Boris Brezillon wrote:
+> > >>>
+> > >>>  	} else {
+> > >>>  		pr_err("clk: clk_composite_determine_rate function called, but no mux or rate callback set!\n");
+> > >>> +		req->rate = 0;
+> > >>>  		return 0;
+> > >> Shouldn't this return an error now? And then assigning req->rate
+> > >> wouldn't be necessary. Sorry I must have missed this last round.
+> > >>
+> > > Actually I wanted to keep the existing behavior: return a 0 rate (not
+> > > an error) when there is no mux or rate ops.
+> > >
+> > > That's something we can change afterwards, but it might reveals
+> > > new bugs if some users are checking for a 0 rate to detect errors.
+> > >
+> > 
+> > Ok. Care to send the patch now to do that while we're thinking about it?
+> > We can test it out for a month or two.
+> > 
+> 
+> Here is a patch modifying a few drivers to return errors instead of a 0
+> rate. Feel free to squash it in the previous one if you think this is
+> better.
+> 
+> Best Regards,
+> 
+> Boris
+> 
+> --- >8 ---
+> 
+> From dca9c28301042cf19dad4b1e4555cdb7c1063745 Mon Sep 17 00:00:00 2001
+> From: Boris Brezillon <boris.brezillon@free-electrons.com>
+> Date: Thu, 9 Jul 2015 12:20:21 +0200
+> Subject: [PATCH] clk: fix some determine_rate implementations
+> 
+> Some determine_rate implementations are not returning an error when then
+> failed to adapt the rate according to the rate request.
+> Fix them so that they return an error instead of silently returning 0.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 
-Where are you getting rx51_defconfig from?
+The linewrap is seriously messed up here. Please fix your mailer
+next time. I had to hand edit the patch to get it to apply. I've
+applied this in top of the original patch as a different commit,
+in case we need to revert it later.
 
-This does not appear to be in the kernel source any longer.
-
-Can you try the above with omap2plus_defconfig?
-=20
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
