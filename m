@@ -1,259 +1,193 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+From: Michael Welling <mwelling@ieee.org>
 Subject: Re: linux 4.2-rc1 broken Nokia N900
-Date: Mon, 13 Jul 2015 18:05:47 +0200
-Message-ID: <20150713160547.GA3270@pali>
+Date: Mon, 13 Jul 2015 12:03:44 -0500
+Message-ID: <20150713170344.GA5825@deathray>
 References: <201507111405.06048@pali>
- <20150713155139.GA17362@earth>
+ <20150713064425.GB26485@atomide.com>
+ <20150713080920.GA25585@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150713155139.GA17362@earth>
+In-Reply-To: <20150713080920.GA25585@earth>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 13 July 2015 17:51:39 Sebastian Reichel wrote:
+On Mon, Jul 13, 2015 at 10:09:21AM +0200, Sebastian Reichel wrote:
+> [+cc Michael Welling <mwelling@ieee.org>, author of all omap-spi patc=
+hes between 4.1 and 4.2-rc1]
+>=20
 > Hi,
 >=20
-> On Sat, Jul 11, 2015 at 02:05:05PM +0200, Pali Roh=C3=A1r wrote:
-> > now I tested 4.2-rc1 release on Nokia N900 and couple of drivers ar=
-e
-> > broken and cause kernel oops...
+> On Sun, Jul 12, 2015 at 11:44:25PM -0700, Tony Lindgren wrote:
+> > * Pali Roh=E1r <pali.rohar@gmail.com> [150711 05:07]:
+> > > Hello,
+> > >=20
+> > > now I tested 4.2-rc1 release on Nokia N900 and couple of drivers =
+are
+> > > broken and cause kernel oops...
+> > >=20
+> > > Basically wifi, touchscreen and rtc drivers not working...
+> > >=20
+> > > Here are some relevant snippets form dmesg:
+> > >=20
+> > > [   13.933959] Unhandled fault: external abort on non-linefetch (=
+0x1028) at 0xfa09802c
+> > > [   13.940490] pgd =3D cfb38000
+> > > [   13.946594] [fa09802c] *pgd=3D48011452(bad)
+> > > [   13.952758] Internal error: : 1028 [#1] PREEMPT ARM
+> > > [   13.958862] Modules linked in: tsc2005(+) omap_sham twl4030_wd=
+t omap_wdt
+> > > [   13.965332] CPU: 0 PID: 183 Comm: modprobe Not tainted 4.2.0-r=
+c1+ #363
+> > > [   13.971801] Hardware name: Nokia RX-51 board
+> > > [   13.978302] task: cf572300 ti: cb1f2000 task.ti: cb1f2000
+> > > [   13.984924] PC is at omap2_mcspi_set_cs+0x44/0x4c
+
+Here is the disassembly of the omap2_mcspi_set_cs function from my comp=
+iler:
+00000040 <omap2_mcspi_set_cs>:
+      40:       e2803e25        add     r3, r0, #592    ; 0x250
+      44:       e5902258        ldr     r2, [r0, #600]  ; 0x258
+      48:       e1d330b2        ldrh    r3, [r3, #2]
+      4c:       e3130004        tst     r3, #4
+      50:       12211001        eorne   r1, r1, #1
+      54:       e3520000        cmp     r2, #0
+      58:       012fff1e        bxeq    lr
+      5c:       e5923018        ldr     r3, [r2, #24]
+      60:       e3510000        cmp     r1, #0
+      64:       13c33601        bicne   r3, r3, #1048576        ; 0x100=
+000
+      68:       03833601        orreq   r3, r3, #1048576        ; 0x100=
+000
+      6c:       e5823018        str     r3, [r2, #24]
+      70:       e5902258        ldr     r2, [r0, #600]  ; 0x258
+      74:       e5922000        ldr     r2, [r2]
+      78:       e582302c        str     r3, [r2, #44]   ; 0x2c
+      7c:       e5903258        ldr     r3, [r0, #600]  ; 0x258
+      80:       e5933000        ldr     r3, [r3]
+      84:       e593202c        ldr     r2, [r3, #44]   ; 0x2c
+      88:       e12fff1e        bx      lr
+
+The omap2_mcspi_set_cs function is being called before the controller_s=
+tate is
+initialized in omap2_mcspi_setup.
+
+That is why there is a conditional checking if controller_state is NULL=
+=2E
+
+Perhaps the controller_state is uninitialized but has garbage instead o=
+f NULL
+causing the data abort.
+
+Though that does not make much sense because a similar check in the set=
+up function
+did not cause a data abort in the past.
+
+Not sure what is going wrong here.
+
+Could you do a objdump with the compiler you are using?
+
+> > > [   13.991485] LR is at spi_set_cs+0x5c/0x60
+> > > [   13.997985] pc : [<c02bd3ac>]    lr : [<c02baecc>]    psr: 200=
+00013
+> > > [   13.997985] sp : cb1f3dd0  ip : 00000001  fp : 00000004
+> > > [   14.011260] r10: cfce5be8  r9 : 00000fff  r8 : c0654f98
+> > > [   14.017913] r7 : 00000000  r6 : 00000000  r5 : 00000000  r4 : =
+00000000
+> > > [   14.024505] r3 : 200103dc  r2 : fa098000  r1 : 00000001  r0 : =
+cf09bc00
+> > > [   14.031036] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA AR=
+M  Segment user
+> > > [   14.037689] Control: 10c5387d  Table: 8fb38019  DAC: 00000015
+> > > [   14.044403] Process modprobe (pid: 183, stack limit =3D 0xcb1f=
+2210)
+> > > [   14.051300] Stack: (0xcb1f3dd0 to 0xcb1f4000)
+> > > [   14.058105] 3dc0:                                     cf09bc00=
+ c02bafa4 cf09bc00 cf09bc00
+> > > [   14.065277] 3de0: bf013444 bf01254c cf0e2230 cf0e2230 00000001=
+ c0654f98 00000fff 00000fff
+> > > [   14.072570] 3e00: 00000008 00000002 00000118 00001f40 00000031=
+ cf09bc00 ffffffed bf013444
+> > > [   14.080078] 3e20: 00000031 c0654f98 cb1f2000 00000000 00000000=
+ c02bb5c0 cf09bc00 00000000
+> > > [   14.087738] 3e40: bf013454 c027a2f4 00000000 cf09bc00 bf013454=
+ bf013454 00000000 c027a594
+> > > [   14.095367] 3e60: 00000000 cf09bc00 cf09bc34 c027a60c bf013454=
+ cb1f3e80 c027a5ac c0278ec8
+> > > [   14.102935] 3e80: cf972c4c cf09d630 bf013454 bf013454 cbb55300=
+ c06848d8 00000000 c0279c84
+> > > [   14.110473] 3ea0: bf01327c bf01327d 00000000 bf013454 cb889180=
+ 00000000 c0654f98 c027b0c8
+> > > [   14.117980] 3ec0: 00000000 bf015000 cb889180 c00095b0 0040003e=
+ cfe6a080 0040003f 00000000
+> > > [   14.125457] 3ee0: 00080000 cfcf9000 cb1f2000 60000013 0040003e=
+ cbf1bbc0 00000000 00000001
+> > > [   14.132843] 3f00: bf0134cc cb1f2000 bf0134c0 cb1f3f58 00000000=
+ c04352d0 cf801f00 000000d0
+> > > [   14.140136] 3f20: bf0134c0 bf0134c0 0000416c cb889040 00000080=
+ c000ebe4 cb1f2000 c0089f68
+> > > [   14.147308] 3f40: bf0134c0 cbf1bc00 001a9193 0000416c 001f8d20=
+ c008ab30 d0b10000 0000416c
+> > > [   14.154571] 3f60: d0b1267c d0b1252b d0b13514 000016c0 00001ad0=
+ 00000000 00000000 00000000
+> > > [   14.161865] 3f80: 0000001f 00000020 00000017 00000014 00000012=
+ 00000000 00201208 00000000
+> > > [   14.169097] 3fa0: 00000000 c000ea60 00201208 00000000 001f8d20=
+ 0000416c 001a9193 00000000
+> > > [   14.176177] 3fc0: 00201208 00000000 00000000 00000080 00208c20=
+ 001a9193 bee09e98 00000000
+> > > [   14.183197] 3fe0: b6f742b4 bee09ae4 000153f0 000093e4 60000010=
+ 001f8d20 72757463 69665f65
+> > > [   14.190277] [<c02bd3ac>] (omap2_mcspi_set_cs) from [<c02baecc>=
+] (spi_set_cs+0x5c/0x60)
+> > > [   14.197479] [<c02baecc>] (spi_set_cs) from [<c02bafa4>] (spi_s=
+etup+0xd4/0x10c)
+> > > [   14.204833] [<c02bafa4>] (spi_setup) from [<bf01254c>] (tsc200=
+5_probe+0x104/0x484 [tsc2005])
+> > > [   14.212249] [<bf01254c>] (tsc2005_probe [tsc2005]) from [<c02b=
+b5c0>] (spi_drv_probe+0x50/0x6c)
+> > > [   14.219818] [<c02bb5c0>] (spi_drv_probe) from [<c027a2f4>] (re=
+ally_probe+0xd4/0x230)
+> > > [   14.227478] [<c027a2f4>] (really_probe) from [<c027a594>] (dri=
+ver_probe_device+0x30/0x48)
+> > > [   14.235290] [<c027a594>] (driver_probe_device) from [<c027a60c=
+>] (__driver_attach+0x60/0x84)
+> > > [   14.243286] [<c027a60c>] (__driver_attach) from [<c0278ec8>] (=
+bus_for_each_dev+0x50/0x84)
+> > > [   14.251281] [<c0278ec8>] (bus_for_each_dev) from [<c0279c84>] =
+(bus_add_driver+0xcc/0x1e0)
+> > > [   14.259246] [<c0279c84>] (bus_add_driver) from [<c027b0c8>] (d=
+river_register+0x9c/0xe0)
+> > > [   14.267272] [<c027b0c8>] (driver_register) from [<c00095b0>] (=
+do_one_initcall+0x100/0x1b0)
+> > > [   14.275421] [<c00095b0>] (do_one_initcall) from [<c0089f68>] (=
+do_init_module+0x58/0x1bc)
+> > > [   14.283477] [<c0089f68>] (do_init_module) from [<c008ab30>] (S=
+yS_init_module+0x54/0x64)
+> > > [   14.291412] [<c008ab30>] (SyS_init_module) from [<c000ea60>] (=
+ret_fast_syscall+0x0/0x3c)
+> > > [   14.299407] Code: e5823018 e5902188 e5922000 e582302c (e592302=
+c)=20
+> > > [   14.307403] ---[ end trace d21553dcaefcb5ac ]---
 > >=20
-> > Basically wifi, touchscreen and rtc drivers not working...
+> > That seems to be a regression with the SPI driver. Care to git bise=
+ct it?
+> > It's probably one of the following commits:
+> >=20
+> > $ git log --pretty=3Doneline v4.1..v4.2-rc2 drivers/spi/spi-omap2-m=
+cspi.c
+> >
+> > Looks like just modprobe tsc2005 is enough to reproduce it.
 >=20
-> I just tried 4.2-rc2 and I can't see any of the problems you have:
+> mh omap2_mcspi_set_cs has been introduced in this range
+> (ddcad7e9068) and from the commit message it seems to be
+> a fix for the first commit (b28cb9414d) in this range.
 >=20
-> [    2.473968] twl_rtc 48070000.i2c:twl@48:rtc: Power up reset detect=
-ed.
-> [    2.481170] twl_rtc 48070000.i2c:twl@48:rtc: Enabling TWL-RTC
-> [    2.492095] twl_rtc 48070000.i2c:twl@48:rtc: rtc core: registered =
-48070000.i2c:twl@48 as rtc0
-> ...
-> [    3.017028] wl1251: loaded
-> [    3.022430] wl1251: initialized
-> ...
-> [    3.065490] input: TSC2005 touchscreen as /devices/platform/680000=
-00.ocp/48098000.spi/spi_master/spi1/spi1.0/input/input5
-> ...
->=20
-> The only thing I noticed is, that the display is not working.
-> For some reason it is not enabled:
->=20
-> root@n900:/sys/class/drm/card0-Unknown-2# cat status
-> connected
-> root@n900:/sys/class/drm/card0-Unknown-2# cat modes
-> 800x480
-> root@n900:/sys/class/drm/card0-Unknown-2# cat enabled
-> disabled
+> Just looking at the commit log, I sugest starting with testing if
+> ddcad7e9068 is affected and if b28cb9414d~1 is not affected.
 >=20
 > -- Sebastian
-
-Hi!
-
-now I'm testing 4.2-rc2 release and rtc is working:
-
-[   27.426055] omap_i2c 48072000.i2c: controller timed out
-[   28.723358] twl_rtc 48070000.i2c:twl@48:rtc: Power up reset detected=
-=2E
-[   30.127014] twl_rtc 48070000.i2c:twl@48:rtc: Enabling TWL-RTC
-[   31.373626] twl_rtc 48070000.i2c:twl@48:rtc: rtc core: registered 48=
-070000.i2c:twl@48 as rtc0
-
-There is still some i2c time out line and some reset detected, but
-driver loads fine.
-
-But problem with touchscreen tsc2005 and wifi wl1251 is still there :-(
-Drivers are compiled as external .ko modules.
-
-Plus I see new problem with bq2415_charger :-(
-
-[   54.214965] isp1704_charger isp1704: registered with product id isp1=
-707
-[   54.828674] bq2415x-charger 2-006b: automode enabled
-[   55.192596] ------------[ cut here ]------------
-[   55.200561] WARNING: CPU: 0 PID: 528 at kernel/workqueue.c:1443 __qu=
-eue_delayed_work+0x50/0x144()
-[   55.208648] Modules linked in: isp1704_charger rx51_battery nokia_h4=
-p lis3lv02d_i2c lis3lv02d input_polldev bluetooth ad5820 bq2415x_charge=
-r omap_ssi bq27x00_battery hsi si4713 v4l2_common rtc_twl tsl2563 leds_=
-lp5523 leds_lp55xx_common video_bus_switch videodev media twl4030_vibra=
- ff_memless tsc2005(+) omap_sham twl4030_wdt omap_wdt
-[   55.242828] CPU: 0 PID: 528 Comm: kworker/0:3 Tainted: G      D W   =
-    4.2.0-rc2+ #364
-[   55.251556] Hardware name: Nokia RX-51 board
-[   55.260070] Workqueue: events power_supply_changed_work
-[   55.268524] [<c0013650>] (unwind_backtrace) from [<c0011bf4>] (show_=
-stack+0x10/0x14)
-[   55.277099] [<c0011bf4>] (show_stack) from [<c003346c>] (warn_slowpa=
-th_common+0x84/0xac)
-[   55.285675] [<c003346c>] (warn_slowpath_common) from [<c00334ac>] (w=
-arn_slowpath_null+0x18/0x1c)
-[   55.294281] [<c00334ac>] (warn_slowpath_null) from [<c0047bb0>] (__q=
-ueue_delayed_work+0x50/0x144)
-[   55.302795] [<c0047bb0>] (__queue_delayed_work) from [<c0047cdc>] (q=
-ueue_delayed_work_on+0x38/0x44)
-[   55.319488] [<c0047cdc>] (queue_delayed_work_on) from [<bf0a59e4>] (=
-bq2415x_notifier_call+0x90/0x9c [bq2415x_charger])
-[   55.337249] [<bf0a59e4>] (bq2415x_notifier_call [bq2415x_charger]) f=
-rom [<c004de34>] (notifier_call_chain+0x38/0x68)
-[   55.355621] [<c004de34>] (notifier_call_chain) from [<c004dff4>] (__=
-atomic_notifier_call_chain+0x34/0x44)
-[   55.374664] [<c004dff4>] (__atomic_notifier_call_chain) from [<c004e=
-018>] (atomic_notifier_call_chain+0x14/0x18)
-[   55.394042] [<c004e018>] (atomic_notifier_call_chain) from [<c0305a9=
-c>] (power_supply_changed_work+0xac/0x130)
-[   55.414245] [<c0305a9c>] (power_supply_changed_work) from [<c00484d8=
->] (process_one_work+0x278/0x45c)
-[   55.435302] [<c00484d8>] (process_one_work) from [<c0048918>] (worke=
-r_thread+0x230/0x354)
-[   55.446228] [<c0048918>] (worker_thread) from [<c004d0e0>] (kthread+=
-0xcc/0xe0)
-[   55.457183] [<c004d0e0>] (kthread) from [<c000eb08>] (ret_from_fork+=
-0x14/0x2c)
-[   55.468170] ---[ end trace 53c71cbce36f62a7 ]---
-[   55.478912] ------------[ cut here ]------------
-[   55.489501] WARNING: CPU: 0 PID: 528 at kernel/workqueue.c:1445 __qu=
-eue_delayed_work+0xb4/0x144()
-[   55.500213] Modules linked in: isp1704_charger rx51_battery nokia_h4=
-p lis3lv02d_i2c lis3lv02d input_polldev bluetooth ad5820 bq2415x_charge=
-r omap_ssi bq27x00_battery hsi si4713 v4l2_common rtc_twl tsl2563 leds_=
-lp5523 leds_lp55xx_common video_bus_switch videodev media twl4030_vibra=
- ff_memless tsc2005(+) omap_sham twl4030_wdt omap_wdt
-[   55.543579] CPU: 0 PID: 528 Comm: kworker/0:3 Tainted: G      D W   =
-    4.2.0-rc2+ #364
-[   55.554565] Hardware name: Nokia RX-51 board
-[   55.565307] Workqueue: events power_supply_changed_work
-[   55.576049] [<c0013650>] (unwind_backtrace) from [<c0011bf4>] (show_=
-stack+0x10/0x14)
-[   55.586853] [<c0011bf4>] (show_stack) from [<c003346c>] (warn_slowpa=
-th_common+0x84/0xac)
-[   55.597778] [<c003346c>] (warn_slowpath_common) from [<c00334ac>] (w=
-arn_slowpath_null+0x18/0x1c)
-[   55.608764] [<c00334ac>] (warn_slowpath_null) from [<c0047c14>] (__q=
-ueue_delayed_work+0xb4/0x144)
-[   55.619628] [<c0047c14>] (__queue_delayed_work) from [<c0047cdc>] (q=
-ueue_delayed_work_on+0x38/0x44)
-[   55.640594] [<c0047cdc>] (queue_delayed_work_on) from [<bf0a59e4>] (=
-bq2415x_notifier_call+0x90/0x9c [bq2415x_charger])
-[   55.661651] [<bf0a59e4>] (bq2415x_notifier_call [bq2415x_charger]) f=
-rom [<c004de34>] (notifier_call_chain+0x38/0x68)
-[   55.682647] [<c004de34>] (notifier_call_chain) from [<c004dff4>] (__=
-atomic_notifier_call_chain+0x34/0x44)
-[   55.703613] [<c004dff4>] (__atomic_notifier_call_chain) from [<c004e=
-018>] (atomic_notifier_call_chain+0x14/0x18)
-[   55.724639] [<c004e018>] (atomic_notifier_call_chain) from [<c0305a9=
-c>] (power_supply_changed_work+0xac/0x130)
-[   55.745605] [<c0305a9c>] (power_supply_changed_work) from [<c00484d8=
->] (process_one_work+0x278/0x45c)
-[   55.766784] [<c00484d8>] (process_one_work) from [<c0048918>] (worke=
-r_thread+0x230/0x354)
-[   55.777740] [<c0048918>] (worker_thread) from [<c004d0e0>] (kthread+=
-0xcc/0xe0)
-[   55.788635] [<c004d0e0>] (kthread) from [<c000eb08>] (ret_from_fork+=
-0x14/0x2c)
-[   55.799591] ---[ end trace 53c71cbce36f62a8 ]---
-[   55.810363] ------------[ cut here ]------------
-[   55.820953] WARNING: CPU: 0 PID: 528 at kernel/workqueue.c:1376 __qu=
-eue_work+0x2c0/0x404()
-[   55.831604] Modules linked in: isp1704_charger rx51_battery nokia_h4=
-p lis3lv02d_i2c lis3lv02d input_polldev bluetooth ad5820 bq2415x_charge=
-r omap_ssi bq27x00_battery hsi si4713 v4l2_common rtc_twl tsl2563 leds_=
-lp5523 leds_lp55xx_common video_bus_switch videodev media twl4030_vibra=
- ff_memless tsc2005(+) omap_sham twl4030_wdt omap_wdt
-[   55.874847] CPU: 0 PID: 528 Comm: kworker/0:3 Tainted: G      D W   =
-    4.2.0-rc2+ #364
-[   55.885803] Hardware name: Nokia RX-51 board
-[   55.896545] Workqueue: events power_supply_changed_work
-[   55.907226] [<c0013650>] (unwind_backtrace) from [<c0011bf4>] (show_=
-stack+0x10/0x14)
-[   55.918029] [<c0011bf4>] (show_stack) from [<c003346c>] (warn_slowpa=
-th_common+0x84/0xac)
-[   55.928924] [<c003346c>] (warn_slowpath_common) from [<c00334ac>] (w=
-arn_slowpath_null+0x18/0x1c)
-[   55.939910] [<c00334ac>] (warn_slowpath_null) from [<c004722c>] (__q=
-ueue_work+0x2c0/0x404)
-[   55.950744] [<c004722c>] (__queue_work) from [<c0047cdc>] (queue_del=
-ayed_work_on+0x38/0x44)
-[   55.961456] [<c0047cdc>] (queue_delayed_work_on) from [<bf0a59e4>] (=
-bq2415x_notifier_call+0x90/0x9c [bq2415x_charger])
-[   55.982391] [<bf0a59e4>] (bq2415x_notifier_call [bq2415x_charger]) f=
-rom [<c004de34>] (notifier_call_chain+0x38/0x68)
-[   56.003295] [<c004de34>] (notifier_call_chain) from [<c004dff4>] (__=
-atomic_notifier_call_chain+0x34/0x44)
-[   56.024139] [<c004dff4>] (__atomic_notifier_call_chain) from [<c004e=
-018>] (atomic_notifier_call_chain+0x14/0x18)
-[   56.045013] [<c004e018>] (atomic_notifier_call_chain) from [<c0305a9=
-c>] (power_supply_changed_work+0xac/0x130)
-[   56.065887] [<c0305a9c>] (power_supply_changed_work) from [<c00484d8=
->] (process_one_work+0x278/0x45c)
-[   56.086761] [<c00484d8>] (process_one_work) from [<c0048918>] (worke=
-r_thread+0x230/0x354)
-[   56.097503] [<c0048918>] (worker_thread) from [<c004d0e0>] (kthread+=
-0xcc/0xe0)
-[   56.108245] [<c004d0e0>] (kthread) from [<c000eb08>] (ret_from_fork+=
-0x14/0x2c)
-[   56.118896] ---[ end trace 53c71cbce36f62a9 ]---
-[   56.145874] g_nokia gadget: high-speed config #1: Bus Powered
-[   56.243347] bq2415x-charger 2-006b: driver registered
-[   77.142181] INFO: rcu_preempt detected stalls on CPUs/tasks: { P528}=
- (detected by 0, t=3D2102 jiffies, g=3D1101, c=3D1100, q=3D3834)
-[   77.163391] kworker/0:3     R running      0   528      2 0x00000000
-[   77.173706] Workqueue: events power_supply_changed_work
-[   77.183898] [<c042883c>] (__schedule) from [<c0428c94>] (preempt_sch=
-edule_irq+0x54/0x84)
-[   77.194274] [<c0428c94>] (preempt_schedule_irq) from [<c042c23c>] (s=
-vc_preempt+0x8/0x18)
-[   77.204711] [<c042c23c>] (svc_preempt) from [<c0047ce4>] (queue_dela=
-yed_work_on+0x40/0x44)
-[   77.215179] [<c0047ce4>] (queue_delayed_work_on) from [<bf0a59e4>] (=
-bq2415x_notifier_call+0x90/0x9c [bq2415x_charger])
-[   77.235870] [<bf0a59e4>] (bq2415x_notifier_call [bq2415x_charger]) f=
-rom [<c004de34>] (notifier_call_chain+0x38/0x68)
-[   77.257019] [<c004de34>] (notifier_call_chain) from [<c004dff4>] (__=
-atomic_notifier_call_chain+0x34/0x44)
-[   77.278411] [<c004dff4>] (__atomic_notifier_call_chain) from [<c004e=
-018>] (atomic_notifier_call_chain+0x14/0x18)
-[   77.299804] [<c004e018>] (atomic_notifier_call_chain) from [<c0305a9=
-c>] (power_supply_changed_work+0xac/0x130)
-[   77.321197] [<c0305a9c>] (power_supply_changed_work) from [<c00484d8=
->] (process_one_work+0x278/0x45c)
-[   77.342529] [<c00484d8>] (process_one_work) from [<c0048918>] (worke=
-r_thread+0x230/0x354)
-[   77.353393] [<c0048918>] (worker_thread) from [<c004d0e0>] (kthread+=
-0xcc/0xe0)
-[   77.364074] [<c004d0e0>] (kthread) from [<c000eb08>] (ret_from_fork+=
-0x14/0x2c)
-[   77.374572] kworker/0:3     R running      0   528      2 0x00000000
-[   77.384948] Workqueue: events power_supply_changed_work
-[   77.395111] [<c042883c>] (__schedule) from [<c0428c94>] (preempt_sch=
-edule_irq+0x54/0x84)
-[   77.405456] [<c0428c94>] (preempt_schedule_irq) from [<c042c23c>] (s=
-vc_preempt+0x8/0x18)
-[   77.415863] [<c042c23c>] (svc_preempt) from [<c0047ce4>] (queue_dela=
-yed_work_on+0x40/0x44)
-[   77.426269] [<c0047ce4>] (queue_delayed_work_on) from [<bf0a59e4>] (=
-bq2415x_notifier_call+0x90/0x9c [bq2415x_charger])
-[   77.447174] [<bf0a59e4>] (bq2415x_notifier_call [bq2415x_charger]) f=
-rom [<c004de34>] (notifier_call_chain+0x38/0x68)
-[   77.468322] [<c004de34>] (notifier_call_chain) from [<c004dff4>] (__=
-atomic_notifier_call_chain+0x34/0x44)
-[   77.489990] [<c004dff4>] (__atomic_notifier_call_chain) from [<c004e=
-018>] (atomic_notifier_call_chain+0x14/0x18)
-[   77.512115] [<c004e018>] (atomic_notifier_call_chain) from [<c0305a9=
-c>] (power_supply_changed_work+0xac/0x130)
-[   77.534637] [<c0305a9c>] (power_supply_changed_work) from [<c00484d8=
->] (process_one_work+0x278/0x45c)
-[   77.557189] [<c00484d8>] (process_one_work) from [<c0048918>] (worke=
-r_thread+0x230/0x354)
-[   77.568634] [<c0048918>] (worker_thread) from [<c004d0e0>] (kthread+=
-0xcc/0xe0)
-[   77.579925] [<c004d0e0>] (kthread) from [<c000eb08>] (ret_from_fork+=
-0x14/0x2c)
-
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
