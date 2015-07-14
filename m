@@ -1,44 +1,55 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 0/6] ARM: AM437x: Add IO wake up support
-Date: Tue, 14 Jul 2015 15:38:12 +0530
-Message-ID: <1436868498-27019-1-git-send-email-j-keerthy@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
+Date: Tue, 14 Jul 2015 15:39:51 +0530
+Message-ID: <55A4DFEF.6040005@ti.com>
+References: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, t-kristo@ti.com
-Cc: j-keerthy@ti.com, linux-omap@vger.kernel.org, galak@codeaurora.org, bcousson@baylibre.com, pawel.moll@arm.com, linux-kernel@vger.kernel.org, paul@pwsan.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: paul@pwsan.com, tony@atomide.com
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The patch series adds IO wake up support for AM437x series
-making use of the existing OMAP4 support. Adds the AM437x
-specifics.
+Hi,
+On Wednesday 10 June 2015 02:56 PM, Lokesh Vutla wrote:
+> Some IP blocks like RTC, needs an additional unlocking mechanism for
+> writing to its registers. This patch adds optional lock and unlock
+> function pointers to the IP block's hwmod data which gets executed
+> before and after writing into IP sysconfig register.
+> And also hook lock and unlock functions to AMx3xx, DRA7 RTC hwmod data,
+> so that sysconfig registers are updated properly.
+ping on this series.
 
-The series is boot tested on OMAP4 panda, DAR7 evm and AM437x evms.
-
-Changes in v3:
-
-Fixed a bug. Assigned nr_regs = 1 for am437x
-
-Changes in v2:
-
-Removed inefficient way of using arrays for irq ack and masks. 
-
-Keerthy (6):
-  ARM: OMAP4: PRM: Remove hardcoding of PRM_IO_PMCTRL_OFFSET register
-  ARM: AM43xx: Add the PRM IRQ register offsets
-  ARM: dts: AM4372: Add PRCM IRQ entry
-  ARM: OMAP: PRM: Remove hardcoding of IRQENABLE_MPU_2 and
-    IRQSTATUS_MPU_2 register offsets
-  ARM: OMAP4+: PRM: Add AM437x specific data
-  ARM: PRM: AM437x: Enable IO wakeup feature
-
- arch/arm/boot/dts/am4372.dtsi     |  1 +
- arch/arm/mach-omap2/prcm-common.h |  1 +
- arch/arm/mach-omap2/prcm43xx.h    |  5 ++++
- arch/arm/mach-omap2/prm44xx.c     | 59 +++++++++++++++++++++++----------------
- arch/arm/mach-omap2/prm_common.c  |  1 +
- 5 files changed, 43 insertions(+), 24 deletions(-)
-
--- 
-1.9.1
+Thanks and regards,
+Lokesh
+> 
+> Tested on:
+> DRA7-evm: http://pastebin.ubuntu.com/11688889/
+> DRA72-evm: http://pastebin.ubuntu.com/11688901/
+> BeagleBoard-x15: http://pastebin.ubuntu.com/11688907/
+> BeagleBoneBlack: http://pastebin.ubuntu.com/11688923/ 
+> AM437x-gp-evm: http://pastebin.ubuntu.com/11689157/ (Used an out of tree patch to enable RTC)
+> 
+> Lokesh Vutla (3):
+>   ARM: OMAP2+: hwmod: add support for lock and unlock hooks
+>   ARM: DRA: hwmod: RTC: Add lock and unlock functions
+>   ARM: AMx3xx: RTC: Add lock and unlock functions
+> 
+>  arch/arm/mach-omap2/omap_hwmod.c                   | 13 ++++++
+>  arch/arm/mach-omap2/omap_hwmod.h                   |  6 +++
+>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 +
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +
+>  arch/arm/mach-omap2/omap_hwmod_reset.c             | 47 ++++++++++++++++++++++
+>  5 files changed, 70 insertions(+)
+> 
