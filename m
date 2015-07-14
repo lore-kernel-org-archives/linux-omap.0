@@ -1,55 +1,48 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
-Date: Tue, 14 Jul 2015 15:39:51 +0530
-Message-ID: <55A4DFEF.6040005@ti.com>
-References: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 8/8] ARM: DTS: dra7x: Integrate sDMA crossbar
+Date: Tue, 14 Jul 2015 03:28:56 -0700
+Message-ID: <20150714102855.GL17550@atomide.com>
+References: <1428572154-3548-1-git-send-email-peter.ujfalusi@ti.com>
+ <1428572154-3548-9-git-send-email-peter.ujfalusi@ti.com>
+ <20150409151846.GR18048@atomide.com>
+ <5526C9E5.4070601@ti.com>
+ <20150409190126.GT18048@atomide.com>
+ <5526CD6A.8010300@ti.com>
+ <20150409191206.GU18048@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: paul@pwsan.com, tony@atomide.com
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150409191206.GU18048@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, linux@arm.linux.org.uk, grant.likely@linaro.org, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org, nm@ti.com, arnd@arndb.de, maxime.ripard@free-electrons.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-On Wednesday 10 June 2015 02:56 PM, Lokesh Vutla wrote:
-> Some IP blocks like RTC, needs an additional unlocking mechanism for
-> writing to its registers. This patch adds optional lock and unlock
-> function pointers to the IP block's hwmod data which gets executed
-> before and after writing into IP sysconfig register.
-> And also hook lock and unlock functions to AMx3xx, DRA7 RTC hwmod data,
-> so that sysconfig registers are updated properly.
-ping on this series.
+* Tony Lindgren <tony@atomide.com> [150409 12:17]:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [150409 12:07]:
+> > On 04/09/2015 10:01 PM, Tony Lindgren wrote:
+> > > * Peter Ujfalusi <peter.ujfalusi@ti.com> [150409 11:55]:
+> > >> On 04/09/2015 06:18 PM, Tony Lindgren wrote:
+> > >>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [150409 02:37]:
+> > >>>> The sDMA requests are routed through the DMA crossbar and without the
+> > >>>> crossbar only peripherals using DMA request 0-127 can be used.
+> > >>>
+> > >>> I assume this can be merged separately from the driver
+> > >>> changes?
+> > >>
+> > >> Unfortunately not. We need to have the drivers in place for the DTS changes to
+> > >> work.
+> > > 
+> > > Right but just merging the driver changes presumably won't
+> > > break things?
+> > 
+> > No, they will not break anything. We just do not have control over the DMA
+> > crossbar (in a same way as we don't have control right now).
+> 
+> OK good to hear.
 
-Thanks and regards,
-Lokesh
-> 
-> Tested on:
-> DRA7-evm: http://pastebin.ubuntu.com/11688889/
-> DRA72-evm: http://pastebin.ubuntu.com/11688901/
-> BeagleBoard-x15: http://pastebin.ubuntu.com/11688907/
-> BeagleBoneBlack: http://pastebin.ubuntu.com/11688923/ 
-> AM437x-gp-evm: http://pastebin.ubuntu.com/11689157/ (Used an out of tree patch to enable RTC)
-> 
-> Lokesh Vutla (3):
->   ARM: OMAP2+: hwmod: add support for lock and unlock hooks
->   ARM: DRA: hwmod: RTC: Add lock and unlock functions
->   ARM: AMx3xx: RTC: Add lock and unlock functions
-> 
->  arch/arm/mach-omap2/omap_hwmod.c                   | 13 ++++++
->  arch/arm/mach-omap2/omap_hwmod.h                   |  6 +++
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 +
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +
->  arch/arm/mach-omap2/omap_hwmod_reset.c             | 47 ++++++++++++++++++++++
->  5 files changed, 70 insertions(+)
-> 
+Looks like the related DMA changes are now merged, so applying this
+into omap-for-v4.3/dt thanks.
+
+Tony
