@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 26/48] usb: gadget: pch_ud: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:39:14 +0200
-Message-ID: <1436866776-5004-27-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 28/48] usb: gadget: pxa27x_udc: add ep capabilities support
+Date: Tue, 14 Jul 2015 11:39:16 +0200
+Message-ID: <1436866776-5004-29-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,36 +25,56 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/pch_udc.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/usb/gadget/udc/pxa27x_udc.h | 33 ++++++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc/pch_udc.c b/drivers/usb/gadget/udc/pch_udc.c
-index 613547f..cc8fb3c 100644
---- a/drivers/usb/gadget/udc/pch_udc.c
-+++ b/drivers/usb/gadget/udc/pch_udc.c
-@@ -2895,11 +2895,21 @@ static void pch_udc_pcd_reinit(struct pch_udc_dev *dev)
- 		ep->in = ~i & 1;
- 		ep->ep.name = ep_string[i];
- 		ep->ep.ops = &pch_udc_ep_ops;
--		if (ep->in)
-+		if (ep->in) {
- 			ep->offset_addr = ep->num * UDC_EP_REG_SHIFT;
--		else
-+			ep->ep.caps.dir_in = true;
-+		} else {
- 			ep->offset_addr = (UDC_EPINT_OUT_SHIFT + ep->num) *
- 					  UDC_EP_REG_SHIFT;
-+			ep->ep.caps.dir_out = true;
-+		}
-+		if (i == UDC_EP0IN_IDX || i == UDC_EP0OUT_IDX) {
-+			ep->ep.caps.type_control = true;
-+		} else {
-+			ep->ep.caps.type_iso = true;
-+			ep->ep.caps.type_bulk = true;
-+			ep->ep.caps.type_int = true;
-+		}
- 		/* need to set ep->ep.maxpacket and set Default Configuration?*/
- 		usb_ep_set_maxpacket_limit(&ep->ep, UDC_BULK_MAX_PKT_SIZE);
- 		list_add_tail(&ep->ep.ep_list, &dev->gadget.ep_list);
+diff --git a/drivers/usb/gadget/udc/pxa27x_udc.h b/drivers/usb/gadget/udc/pxa27x_udc.h
+index 11e1423..ded058c 100644
+--- a/drivers/usb/gadget/udc/pxa27x_udc.h
++++ b/drivers/usb/gadget/udc/pxa27x_udc.h
+@@ -234,25 +234,28 @@
+ /*
+  * Endpoint definition helpers
+  */
+-#define USB_EP_DEF(addr, bname, dir, type, maxpkt) \
+-{ .usb_ep = { .name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, }, \
++#define USB_EP_DEF(addr, bname, dir, type, maxpkt, ctype, cdir) \
++{ .usb_ep = {	.name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, \
++		.caps = USB_EP_CAPS(USB_EP_CAPS_TYPE_ ## ctype, \
++				    USB_EP_CAPS_DIR_ ## cdir), }, \
+   .desc = {	.bEndpointAddress = addr | (dir ? USB_DIR_IN : 0), \
+-		.bmAttributes = type, \
++		.bmAttributes = USB_ENDPOINT_XFER_ ## type, \
+ 		.wMaxPacketSize = maxpkt, }, \
+   .dev = &memory \
+ }
+-#define USB_EP_BULK(addr, bname, dir) \
+-  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_BULK, BULK_FIFO_SIZE)
+-#define USB_EP_ISO(addr, bname, dir) \
+-  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_ISOC, ISO_FIFO_SIZE)
+-#define USB_EP_INT(addr, bname, dir) \
+-  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_INT, INT_FIFO_SIZE)
+-#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1)
+-#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0)
+-#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1)
+-#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0)
+-#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1)
+-#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, 0, EP0_FIFO_SIZE)
++#define USB_EP_BULK(addr, bname, dir, cdir) \
++	USB_EP_DEF(addr, bname, dir, BULK, BULK_FIFO_SIZE, BULK, cdir)
++#define USB_EP_ISO(addr, bname, dir, cdir) \
++	USB_EP_DEF(addr, bname, dir, ISOC, ISO_FIFO_SIZE, ISO, cdir)
++#define USB_EP_INT(addr, bname, dir, cdir) \
++	USB_EP_DEF(addr, bname, dir, INT, INT_FIFO_SIZE, INT, cdir)
++#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1, IN)
++#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0, OUT)
++#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1, IN)
++#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0, OUT)
++#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1, IN)
++#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, CONTROL, \
++					   EP0_FIFO_SIZE, CONTROL, ALL)
+ 
+ #define PXA_EP_DEF(_idx, _addr, dir, _type, maxpkt, _config, iface, altset) \
+ { \
 -- 
 1.9.1
