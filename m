@@ -1,55 +1,45 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 42/48] usb: gadget: epautoconf: use 'ep_match' gadget
- callback
-Date: Tue, 14 Jul 2015 14:04:32 +0300
-Message-ID: <55A4ECC0.4030205@cogentembedded.com>
-References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
- <1436866776-5004-43-git-send-email-r.baldyga@samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] CLK: TI: add dpll_clksel_mac_clk node
+Date: Tue, 14 Jul 2015 04:06:27 -0700
+Message-ID: <20150714110626.GQ17550@atomide.com>
+References: <1434614473-8500-1-git-send-email-j-keerthy@ti.com>
+ <55828A18.6030608@ti.com>
+ <558C0624.4060008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436866776-5004-43-git-send-email-r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
-Cc: Peter.Chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, johnyoun-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, dahlmann.thomas-KvP5wT2u2U0@public.gmane.org, nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, cernekee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org, daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org, haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robert.jarzmik-GANU6spQydw@public.gmane.org, michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <558C0624.4060008@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <a0393675@ti.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, galak@codeaurora.org, t-kristo@ti.com, pawel.moll@arm.com, linux-kernel@vger.kernel.org, bcousson@baylibre.com, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+* Keerthy <a0393675@ti.com> [150625 06:48]:
+> 
+> On Thursday 18 June 2015 02:36 PM, Mugunthan V N wrote:
+> >On Thursday 18 June 2015 01:31 PM, Keerthy wrote:
+> >>The series adds the missing clock node needed for cpsw.
+> >>
+> >>Keerthy (2):
+> >>   CLK: TI: add dpll_clksel_mac_clk node
+> >>   ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk
+> >>     clock
+> >>
+> >>  arch/arm/boot/dts/am4372.dtsi        | 7 +++++--
+> >>  arch/arm/boot/dts/am43xx-clocks.dtsi | 9 +++++++++
+> >>  drivers/clk/ti/clk-43xx.c            | 1 +
+> >>  3 files changed, 15 insertions(+), 2 deletions(-)
+> >>
+> >
+> >Tested-by: Mugunthan V N <mugunthanvnm@ti.com>
+> 
+> Thanks Mugunthan.
+> 
+> A gentle ping on this series.
 
-On 7/14/2015 12:39 PM, Robert Baldyga wrote:
+Tero, care to review this series?
 
-> If gadget has set 'ep_match' callback we prefer to call it first to allow
-> UDC driver to find the best matching endpoint basing on chip-specific "best
-> usage" knowledge.
+Regards,
 
-> Signed-off-by: Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> ---
->   drivers/usb/gadget/epautoconf.c | 6 ++++++
->   1 file changed, 6 insertions(+)
-
-> diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-> index ee0d4e6..92a1a4c 100644
-> --- a/drivers/usb/gadget/epautoconf.c
-> +++ b/drivers/usb/gadget/epautoconf.c
-> @@ -165,6 +165,12 @@ struct usb_ep *usb_ep_autoconfig_ss(
->
->   	type = desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
->
-> +	if (gadget->ops->match_ep) {
-> +		ep = gadget->ops->match_ep(gadget, desc, ep_comp);
-> +		if (ep)
-> +			goto found_ep;
-> +	}
-> +
-
-    I think this patch should be merged with the previous one.
-
-[...]
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
