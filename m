@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 02/48] usb: gadget: add endpoint capabilities flags
-Date: Tue, 14 Jul 2015 11:38:50 +0200
-Message-ID: <1436866776-5004-3-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 01/48] usb: gadget: encapsulate endpoint claiming mechanism
+Date: Tue, 14 Jul 2015 11:38:49 +0200
+Message-ID: <1436866776-5004-2-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,65 +21,93 @@ To: gregkh@linuxfoundation.org, balbi@ti.com
 Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Introduce struct usb_ep_caps which contains information about capabilities
-of usb endpoints - supported transfer types and directions. This structure
-should be filled by UDC driver for each of its endpoints, and will be
-used in epautoconf in new ep matching mechanism which will replace ugly
-guessing of endpoint capabilities basing on its name.
+So far it was necessary for usb functions to set ep->driver_data in
+endpoint obtained from autoconfig to non-null value, to indicate that
+endpoint is claimed by function (in autoconfig it was checked if endpoint
+has set this field to non-null value, and if it has, it was assumed that
+it is claimed). It could cause bugs becouse if some function doesn't
+set this field autoconfig could return the same endpoint more than one
+time.
+
+To help to avoid such bugs this patch adds claimed flag to struct usb_ep,
+and  encapsulates endpoint claiming mechanism inside usb_ep_autoconfig_ss()
+and usb_ep_autoconfig_reset(), so now usb functions doesn't need to perform
+any additional actions to mark endpoint obtained from autoconfig as claimed.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- include/linux/usb/gadget.h | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/usb/gadget/epautoconf.c | 11 ++++++-----
+ include/linux/usb/gadget.h      |  1 +
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
+index 919cdfd..8e00ca7 100644
+--- a/drivers/usb/gadget/epautoconf.c
++++ b/drivers/usb/gadget/epautoconf.c
+@@ -53,7 +53,7 @@ ep_matches (
+ 	int		num_req_streams = 0;
+ 
+ 	/* endpoint already claimed? */
+-	if (NULL != ep->driver_data)
++	if (ep->claimed)
+ 		return 0;
+ 
+ 	/* only support ep0 for portable CONTROL traffic */
+@@ -240,7 +240,7 @@ find_ep (struct usb_gadget *gadget, const char *name)
+  * updated with the assigned number of streams if it is
+  * different from the original value. To prevent the endpoint
+  * from being returned by a later autoconfig call, claim it by
+- * assigning ep->driver_data to some non-null value.
++ * assigning ep->claimed to true.
+  *
+  * On failure, this returns a null endpoint descriptor.
+  */
+@@ -323,6 +323,7 @@ struct usb_ep *usb_ep_autoconfig_ss(
+ found_ep:
+ 	ep->desc = NULL;
+ 	ep->comp_desc = NULL;
++	ep->claimed = true;
+ 	return ep;
+ }
+ EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
+@@ -354,7 +355,7 @@ EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
+  * descriptor bEndpointAddress.  For bulk endpoints, the wMaxPacket value
+  * is initialized as if the endpoint were used at full speed.  To prevent
+  * the endpoint from being returned by a later autoconfig call, claim it
+- * by assigning ep->driver_data to some non-null value.
++ * by assigning ep->claimed to true.
+  *
+  * On failure, this returns a null endpoint descriptor.
+  */
+@@ -373,7 +374,7 @@ EXPORT_SYMBOL_GPL(usb_ep_autoconfig);
+  *
+  * Use this for devices where one configuration may need to assign
+  * endpoint resources very differently from the next one.  It clears
+- * state such as ep->driver_data and the record of assigned endpoints
++ * state such as ep->claimed and the record of assigned endpoints
+  * used by usb_ep_autoconfig().
+  */
+ void usb_ep_autoconfig_reset (struct usb_gadget *gadget)
+@@ -381,7 +382,7 @@ void usb_ep_autoconfig_reset (struct usb_gadget *gadget)
+ 	struct usb_ep	*ep;
+ 
+ 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
+-		ep->driver_data = NULL;
++		ep->claimed = false;
+ 	}
+ 	gadget->in_epnum = 0;
+ 	gadget->out_epnum = 0;
 diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index fcb0a4e..6f3e0fb 100644
+index 4f3dfb7..fcb0a4e 100644
 --- a/include/linux/usb/gadget.h
 +++ b/include/linux/usb/gadget.h
-@@ -141,10 +141,29 @@ struct usb_ep_ops {
- };
- 
- /**
-+ * struct usb_ep_caps - endpoint capabilities description
-+ * @type_control:Endpoint supports control type (reserved for ep0).
-+ * @type_iso:Endpoint supports isochronous transfers.
-+ * @type_bulk:Endpoint supports bulk transfers.
-+ * @type_int:Endpoint supports interrupt transfers.
-+ * @dir_in:Endpoint supports IN direction.
-+ * @dir_out:Endpoint supports OUT direction.
-+ */
-+struct usb_ep_caps {
-+	unsigned type_control:1;
-+	unsigned type_iso:1;
-+	unsigned type_bulk:1;
-+	unsigned type_int:1;
-+	unsigned dir_in:1;
-+	unsigned dir_out:1;
-+};
-+
-+/**
-  * struct usb_ep - device side representation of USB endpoint
-  * @name:identifier for the endpoint, such as "ep-a" or "ep9in-bulk"
-  * @ops: Function pointers used to access hardware-specific operations.
-  * @ep_list:the gadget's ep_list holds all of its endpoints
-+ * @caps:The structure describing types and directions supported by endoint.
-  * @maxpacket:The maximum packet size used on this endpoint.  The initial
-  *	value can sometimes be reduced (hardware allowing), according to
-  *      the endpoint descriptor used to configure the endpoint.
-@@ -167,12 +186,14 @@ struct usb_ep_ops {
-  * gadget->ep_list.  the control endpoint (gadget->ep0) is not in that list,
-  * and is accessed only in response to a driver setup() callback.
-  */
-+
- struct usb_ep {
- 	void			*driver_data;
- 
+@@ -173,6 +173,7 @@ struct usb_ep {
  	const char		*name;
  	const struct usb_ep_ops	*ops;
  	struct list_head	ep_list;
-+	struct usb_ep_caps	caps;
- 	bool			claimed;
++	bool			claimed;
  	unsigned		maxpacket:16;
  	unsigned		maxpacket_limit:16;
+ 	unsigned		max_streams:16;
 -- 
 1.9.1
