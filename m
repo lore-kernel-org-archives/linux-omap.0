@@ -1,48 +1,89 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 3/3] ARM: dts: dra7: Add syscon-pllreset syscon to SATA
- PHY
-Date: Tue, 14 Jul 2015 13:39:37 +0300
-Message-ID: <55A4E6E9.90307@ti.com>
-References: <1431446828-5473-1-git-send-email-rogerq@ti.com> <1431446828-5473-4-git-send-email-rogerq@ti.com> <20150714103403.GN17550@atomide.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v5] clk: change clk_ops' ->determine_rate() prototype
+Date: Tue, 14 Jul 2015 12:47:48 +0200
+Message-ID: <20150714124748.55dd6213@bbrezillon>
+References: <1436294888-25752-1-git-send-email-boris.brezillon@free-electrons.com>
+	<20150708005748.GG30412@codeaurora.org>
+	<20150708110005.704c49ff@bbrezillon>
+	<559D66EE.4060707@codeaurora.org>
+	<20150709223938.19450e75@bbrezillon>
+	<20150713230217.GI30412@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150714103403.GN17550@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kishon@ti.com, nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20150713230217.GI30412@codeaurora.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Mike Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14/07/15 13:34, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [150512 09:08]:
->> This register is required to be passed to the SATA PHY driver
->> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> ---
->>  arch/arm/boot/dts/dra7.dtsi | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index f03a091..260f300 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -1135,6 +1135,7 @@
->>  				ctrl-module = <&omap_control_sata>;
->>  				clocks = <&sys_clkin1>, <&sata_ref_clk>;
->>  				clock-names = "sysclk", "refclk";
->> +				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
->>  				#phy-cells = <0>;
->>  			};
->>  
+On Mon, 13 Jul 2015 16:02:18 -0700
+Stephen Boyd <sboyd@codeaurora.org> wrote:
+
+> On 07/09, Boris Brezillon wrote:
+> > Hi Stephen,
+> > 
+> > On Wed, 08 Jul 2015 11:07:42 -0700
+> > Stephen Boyd <sboyd@codeaurora.org> wrote:
+> > 
+> > > On 07/08/2015 02:00 AM, Boris Brezillon wrote:
+> > > > Hi Stephen,
+> > > >
+> > > > On Tue, 7 Jul 2015 17:57:48 -0700
+> > > > Stephen Boyd <sboyd@codeaurora.org> wrote:
+> > > >
+> > > >> On 07/07, Boris Brezillon wrote:
+> > > >>>
+> > > >>>  	} else {
+> > > >>>  		pr_err("clk: clk_composite_determine_rate function called, but no mux or rate callback set!\n");
+> > > >>> +		req->rate = 0;
+> > > >>>  		return 0;
+> > > >> Shouldn't this return an error now? And then assigning req->rate
+> > > >> wouldn't be necessary. Sorry I must have missed this last round.
+> > > >>
+> > > > Actually I wanted to keep the existing behavior: return a 0 rate (not
+> > > > an error) when there is no mux or rate ops.
+> > > >
+> > > > That's something we can change afterwards, but it might reveals
+> > > > new bugs if some users are checking for a 0 rate to detect errors.
+> > > >
+> > > 
+> > > Ok. Care to send the patch now to do that while we're thinking about it?
+> > > We can test it out for a month or two.
+> > > 
+> > 
+> > Here is a patch modifying a few drivers to return errors instead of a 0
+> > rate. Feel free to squash it in the previous one if you think this is
+> > better.
+> > 
+> > Best Regards,
+> > 
+> > Boris
+> > 
+> > --- >8 ---
+> > 
+> > From dca9c28301042cf19dad4b1e4555cdb7c1063745 Mon Sep 17 00:00:00 2001
+> > From: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > Date: Thu, 9 Jul 2015 12:20:21 +0200
+> > Subject: [PATCH] clk: fix some determine_rate implementations
+> > 
+> > Some determine_rate implementations are not returning an error when then
+> > failed to adapt the rate according to the rate request.
+> > Fix them so that they return an error instead of silently returning 0.
+> > 
+> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 > 
-> Looks like this one is still pending driver changes, please
-> resend when those are resolved. I'll untag this one for now.
+> The linewrap is seriously messed up here. Please fix your mailer
+> next time. I had to hand edit the patch to get it to apply. I've
+> applied this in top of the original patch as a different commit,
+> in case we need to revert it later.
 
-I've sent a v2 of this series here
-http://thread.gmane.org/gmane.linux.kernel/1967419
+Sorry about that, I forgot to remove the line wrapper when copying the
+content of the patch into my mailer :-/.
 
-cheers,
--roger
+
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
