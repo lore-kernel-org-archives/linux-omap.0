@@ -1,119 +1,47 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 46/48] usb: gadget: goku_udc: add goku_match_ep() function
-Date: Tue, 14 Jul 2015 11:39:34 +0200
-Message-ID: <1436866776-5004-47-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 48/48] usb: gadget: epautoconf: cleanup dead code
+Date: Tue, 14 Jul 2015 11:39:36 +0200
+Message-ID: <1436866776-5004-49-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, balbi@ti.com
-Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
+Cc: Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com, Robert Baldyga <r.baldyga@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add 'match_ep' callback to utilize chip-specific knowledge in endpoint matching
-process. Functions does the same that was done by chip-specific code inside
-of epautoconf. Now this code can be removed from there to separate generic code
-from platform specific logic.
+Function find_ep() is no longer needed here, so we can remove it.
+We also don't use anything from gadget_chips.h header any longer.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/epautoconf.c   | 20 ++------------------
- drivers/usb/gadget/udc/goku_udc.c | 25 +++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 18 deletions(-)
+ drivers/usb/gadget/epautoconf.c | 14 --------------
+ 1 file changed, 14 deletions(-)
 
 diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index 3ac92b4..038b21d 100644
+index e9a8682..9a80925 100644
 --- a/drivers/usb/gadget/epautoconf.c
 +++ b/drivers/usb/gadget/epautoconf.c
-@@ -98,24 +98,8 @@ struct usb_ep *usb_ep_autoconfig_ss(
- 	/* First, apply chip-specific "best usage" knowledge.
- 	 * This might make a good usb_gadget_ops hook ...
- 	 */
--	if (gadget_is_goku (gadget)) {
--		if (USB_ENDPOINT_XFER_INT == type) {
--			/* single buffering is enough */
--			ep = find_ep(gadget, "ep3-bulk");
--			if (ep && usb_gadget_ep_match_desc(gadget,
--					ep, desc, ep_comp))
--				goto found_ep;
--		} else if (USB_ENDPOINT_XFER_BULK == type
--				&& (USB_DIR_IN & desc->bEndpointAddress)) {
--			/* DMA may be available */
--			ep = find_ep(gadget, "ep2-bulk");
--			if (ep && usb_gadget_ep_match_desc(gadget,
--					ep, desc, ep_comp))
--				goto found_ep;
--		}
+@@ -20,20 +20,6 @@
+ #include <linux/usb/ch9.h>
+ #include <linux/usb/gadget.h>
+ 
+-#include "gadget_chips.h"
 -
- #ifdef CONFIG_BLACKFIN
--	} else if (gadget_is_musbhdrc(gadget)) {
-+	if (gadget_is_musbhdrc(gadget)) {
- 		if ((USB_ENDPOINT_XFER_BULK == type) ||
- 		    (USB_ENDPOINT_XFER_ISOC == type)) {
- 			if (USB_DIR_IN & desc->bEndpointAddress)
-@@ -131,8 +115,8 @@ struct usb_ep *usb_ep_autoconfig_ss(
- 			ep = NULL;
- 		if (ep && usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
- 			goto found_ep;
--#endif
- 	}
-+#endif
- 
- 	/* Second, look at endpoints until an unclaimed one looks usable */
- 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
-diff --git a/drivers/usb/gadget/udc/goku_udc.c b/drivers/usb/gadget/udc/goku_udc.c
-index 46b8d14..d25b3a3 100644
---- a/drivers/usb/gadget/udc/goku_udc.c
-+++ b/drivers/usb/gadget/udc/goku_udc.c
-@@ -990,6 +990,30 @@ static int goku_get_frame(struct usb_gadget *_gadget)
- 	return -EOPNOTSUPP;
- }
- 
-+static struct usb_ep *goku_match_ep(struct usb_gadget *g,
-+		struct usb_endpoint_descriptor *desc,
-+		struct usb_ss_ep_comp_descriptor *ep_comp)
-+{
-+	struct goku_udc	*dev = to_goku_udc(g);
-+	struct usb_ep *ep;
-+	u8 type = usb_endpoint_type(desc);
-+
-+	if (USB_ENDPOINT_XFER_INT == type) {
-+		/* single buffering is enough */
-+		ep = &dev->ep[3].ep;
-+		if (ep && usb_gadget_ep_match_desc(g, ep, desc, ep_comp))
-+			return ep;
-+	} else if (USB_ENDPOINT_XFER_BULK == type
-+			&& usb_endpoint_dir_in(desc)) {
-+		/* DMA may be available */
-+		ep = &dev->ep[2].ep;
-+		if (ep && usb_gadget_ep_match_desc(g, ep, desc, ep_comp))
-+			return ep;
-+	}
-+
-+	return NULL;
-+}
-+
- static int goku_udc_start(struct usb_gadget *g,
- 		struct usb_gadget_driver *driver);
- static int goku_udc_stop(struct usb_gadget *g);
-@@ -998,6 +1022,7 @@ static const struct usb_gadget_ops goku_ops = {
- 	.get_frame	= goku_get_frame,
- 	.udc_start	= goku_udc_start,
- 	.udc_stop	= goku_udc_stop,
-+	.match_ep	= goku_match_ep,
- 	// no remote wakeup
- 	// not selfpowered
- };
+-static struct usb_ep *
+-find_ep (struct usb_gadget *gadget, const char *name)
+-{
+-	struct usb_ep	*ep;
+-
+-	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
+-		if (0 == strcmp (ep->name, name))
+-			return ep;
+-	}
+-	return NULL;
+-}
+-
+ /**
+  * usb_ep_autoconfig_ss() - choose an endpoint matching the ep
+  * descriptor and ep companion descriptor
 -- 
 1.9.1
