@@ -1,7 +1,7 @@
 From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 1/7] serial: 8250_omap: fix kernel crash in suspend-to-ram
-Date: Tue, 14 Jul 2015 13:32:03 +0530
-Message-ID: <144e3c053990dae825b7e06f5340e04bf7d81163.1436855646.git.nsekhar@ti.com>
+Subject: [PATCH v2 2/7] Documentation: DT: omap_serial: document missing compatible
+Date: Tue, 14 Jul 2015 13:32:04 +0530
+Message-ID: <2ef75c0ae100e070da96095b3d778bf2ab2f03d9.1436855646.git.nsekhar@ti.com>
 References: <cover.1436855646.git.nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,29 @@ To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 Cc: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-omap_device infrastructure has a suspend_noirq hook which
-runtime suspends all devices late in the suspend cycle (see
-_od_suspend_noirq() in arch/arm/mach-omap2/omap_device.c)
-
-This leads to a NULL pointer exception in 8250_omap driver
-since by the time omap8250_runtime_suspend() is called, 8250_dma
-driver has already set rxchan to NULL via serial8250_release_dma().
-
-Make an explicit check to see if rxchan is NULL in
-runtime_{suspend|resume} hooks to fix this.
+The compatible "ti,am4372-uart" is used in arch/arm/boot/dts/am4372.dtsi
+but not documented. Add necessary documentation.
 
 Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 ---
 v2:
-- updated subject line according to subsystem conventions
+- No changes.
 
- drivers/tty/serial/8250/8250_omap.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/serial/omap_serial.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index d75a66c72750..20c5b9c4c288 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -1285,7 +1285,7 @@ static int omap8250_runtime_suspend(struct device *dev)
- 			return -EBUSY;
- 	}
- 
--	if (up->dma)
-+	if (up->dma && up->dma->rxchan)
- 		omap_8250_rx_dma(up, UART_IIR_RX_TIMEOUT);
- 
- 	priv->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
-@@ -1310,7 +1310,7 @@ static int omap8250_runtime_resume(struct device *dev)
- 	if (loss_cntx)
- 		omap8250_restore_regs(up);
- 
--	if (up->dma)
-+	if (up->dma && up->dma->rxchan)
- 		omap_8250_rx_dma(up, 0);
- 
- 	priv->latency = priv->calc_latency;
+diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
+index 54c2a155c783..d3bd2b1ec401 100644
+--- a/Documentation/devicetree/bindings/serial/omap_serial.txt
++++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
+@@ -4,6 +4,7 @@ Required properties:
+ - compatible : should be "ti,omap2-uart" for OMAP2 controllers
+ - compatible : should be "ti,omap3-uart" for OMAP3 controllers
+ - compatible : should be "ti,omap4-uart" for OMAP4 controllers
++- compatible : should be "ti,am4372-uart" for AM437x controllers
+ - reg : address and length of the register space
+ - interrupts or interrupts-extended : Should contain the uart interrupt
+                                       specifier or both the interrupt
 -- 
 2.4.4.408.g16da57c
 
