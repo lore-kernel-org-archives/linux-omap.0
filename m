@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 1/6] ARM: OMAP4: PRM: Remove hardcoding of PRM_IO_PMCTRL_OFFSET register
-Date: Tue, 14 Jul 2015 15:38:13 +0530
-Message-ID: <1436868498-27019-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v3 4/6] ARM: OMAP: PRM: Remove hardcoding of IRQENABLE_MPU_2 and IRQSTATUS_MPU_2 register offsets
+Date: Tue, 14 Jul 2015 15:38:16 +0530
+Message-ID: <1436868498-27019-5-git-send-email-j-keerthy@ti.com>
 References: <1436868498-27019-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,72 +12,77 @@ To: tony@atomide.com, t-kristo@ti.com
 Cc: j-keerthy@ti.com, linux-omap@vger.kernel.org, galak@codeaurora.org, bcousson@baylibre.com, pawel.moll@arm.com, linux-kernel@vger.kernel.org, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-PRM_IO_PMCTRL_OFFSET need not be same for all SOCs hence
-remove hardcoding and use the value provided by the omap_prcm_irq_setup
-structure.
+The register offsets of IRQENABLE_MPU_2 and IRQSTATUS_MPU_2 are hardcoded.
+This makes it difficult to reuse the code for SoCs like AM437x that have
+a single instance of IRQENABLE_MPU and IRQSTATUS_MPU registers.
+Hence handling the case using offset of 4 to accommodate single set of IRQ*
+registers generically.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/prcm-common.h |  1 +
- arch/arm/mach-omap2/prm44xx.c     | 11 ++++++-----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/prm44xx.c | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 6ae0b3a..2e60406 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -494,6 +494,7 @@ struct omap_prcm_irq {
- struct omap_prcm_irq_setup {
- 	u16 ack;
- 	u16 mask;
-+	u16 pm_ctrl;
- 	u8 nr_regs;
- 	u8 nr_irqs;
- 	const struct omap_prcm_irq *irqs;
 diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 4541700..8149e5a 100644
+index 8149e5a..f82d89a 100644
 --- a/arch/arm/mach-omap2/prm44xx.c
 +++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -45,6 +45,7 @@ static const struct omap_prcm_irq omap4_prcm_irqs[] = {
- static struct omap_prcm_irq_setup omap4_prcm_irq_setup = {
- 	.ack			= OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.mask			= OMAP4_PRM_IRQENABLE_MPU_OFFSET,
-+	.pm_ctrl		= OMAP4_PRM_IO_PMCTRL_OFFSET,
- 	.nr_regs		= 2,
- 	.irqs			= omap4_prcm_irqs,
- 	.nr_irqs		= ARRAY_SIZE(omap4_prcm_irqs),
-@@ -306,10 +307,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
- 	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
- 				    OMAP4430_WUCLK_CTRL_MASK,
- 				    inst,
--				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-+				    omap4_prcm_irq_setup.pm_ctrl);
- 	omap_test_timeout(
- 		(((omap4_prm_read_inst_reg(inst,
--					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+					   omap4_prcm_irq_setup.pm_ctrl) &
- 		   OMAP4430_WUCLK_STATUS_MASK) >>
- 		  OMAP4430_WUCLK_STATUS_SHIFT) == 1),
- 		MAX_IOPAD_LATCH_TIME, i);
-@@ -319,10 +320,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
- 	/* Trigger WUCLKIN disable */
- 	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
- 				    inst,
--				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-+				    omap4_prcm_irq_setup.pm_ctrl);
- 	omap_test_timeout(
- 		(((omap4_prm_read_inst_reg(inst,
--					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+					   omap4_prcm_irq_setup.pm_ctrl) &
- 		   OMAP4430_WUCLK_STATUS_MASK) >>
- 		  OMAP4430_WUCLK_STATUS_SHIFT) == 0),
- 		MAX_IOPAD_LATCH_TIME, i);
-@@ -350,7 +351,7 @@ static void __init omap44xx_prm_enable_io_wakeup(void)
- 	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
- 				    OMAP4430_GLOBAL_WUEN_MASK,
- 				    inst,
--				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-+				    omap4_prcm_irq_setup.pm_ctrl);
+@@ -217,11 +217,11 @@ static inline u32 _read_pending_irq_reg(u16 irqen_offs, u16 irqst_offs)
+  */
+ static void omap44xx_prm_read_pending_irqs(unsigned long *events)
+ {
+-	events[0] = _read_pending_irq_reg(OMAP4_PRM_IRQENABLE_MPU_OFFSET,
+-					  OMAP4_PRM_IRQSTATUS_MPU_OFFSET);
++	int i;
+ 
+-	events[1] = _read_pending_irq_reg(OMAP4_PRM_IRQENABLE_MPU_2_OFFSET,
+-					  OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET);
++	for (i = 0; i < omap4_prcm_irq_setup.nr_regs; i++)
++		events[i] = _read_pending_irq_reg(omap4_prcm_irq_setup.mask +
++				i * 4, omap4_prcm_irq_setup.ack + i * 4);
+ }
+ 
+ /**
+@@ -251,17 +251,15 @@ static void omap44xx_prm_ocp_barrier(void)
+  */
+ static void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask)
+ {
+-	saved_mask[0] =
+-		omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+-					OMAP4_PRM_IRQENABLE_MPU_OFFSET);
+-	saved_mask[1] =
+-		omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+-					OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
++	int i;
+ 
+-	omap4_prm_write_inst_reg(0, OMAP4430_PRM_OCP_SOCKET_INST,
+-				 OMAP4_PRM_IRQENABLE_MPU_OFFSET);
+-	omap4_prm_write_inst_reg(0, OMAP4430_PRM_OCP_SOCKET_INST,
+-				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
++	for (i = 0; i < omap4_prcm_irq_setup.nr_regs; i++) {
++		saved_mask[i] =
++			omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
++					omap4_prcm_irq_setup.mask + i * 4);
++		omap4_prm_write_inst_reg(0, OMAP4430_PRM_OCP_SOCKET_INST,
++					 omap4_prcm_irq_setup.mask + i * 4);
++	}
+ 
+ 	/* OCP barrier */
+ 	omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+@@ -280,10 +278,12 @@ static void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask)
+  */
+ static void omap44xx_prm_restore_irqen(u32 *saved_mask)
+ {
+-	omap4_prm_write_inst_reg(saved_mask[0], OMAP4430_PRM_OCP_SOCKET_INST,
+-				 OMAP4_PRM_IRQENABLE_MPU_OFFSET);
+-	omap4_prm_write_inst_reg(saved_mask[1], OMAP4430_PRM_OCP_SOCKET_INST,
+-				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
++	int i;
++
++	for (i = 0; i < omap4_prcm_irq_setup.nr_regs; i++)
++		omap4_prm_write_inst_reg(saved_mask[i],
++				OMAP4430_PRM_OCP_SOCKET_INST,
++				omap4_prcm_irq_setup.mask + i * 4);
  }
  
  /**
