@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 17/48] usb: gadget: goku_udc: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:39:05 +0200
-Message-ID: <1436866776-5004-18-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 20/48] usb: gadget: m66592-udc: add ep capabilities support
+Date: Tue, 14 Jul 2015 11:39:08 +0200
+Message-ID: <1436866776-5004-21-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,27 +25,30 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/goku_udc.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/usb/gadget/udc/m66592-udc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/goku_udc.c b/drivers/usb/gadget/udc/goku_udc.c
-index 9e8d842..46b8d14 100644
---- a/drivers/usb/gadget/udc/goku_udc.c
-+++ b/drivers/usb/gadget/udc/goku_udc.c
-@@ -1257,6 +1257,14 @@ static void udc_reinit (struct goku_udc *dev)
- 		INIT_LIST_HEAD (&ep->queue);
- 
- 		ep_reset(NULL, ep);
+diff --git a/drivers/usb/gadget/udc/m66592-udc.c b/drivers/usb/gadget/udc/m66592-udc.c
+index 309706f..e404553 100644
+--- a/drivers/usb/gadget/udc/m66592-udc.c
++++ b/drivers/usb/gadget/udc/m66592-udc.c
+@@ -1644,6 +1644,17 @@ static int m66592_probe(struct platform_device *pdev)
+ 		ep->ep.name = m66592_ep_name[i];
+ 		ep->ep.ops = &m66592_ep_ops;
+ 		usb_ep_set_maxpacket_limit(&ep->ep, 512);
 +
-+		if (i == 0)
++		if (i == 0) {
 +			ep->ep.caps.type_control = true;
-+		else
++		} else {
++			ep->ep.caps.type_iso = true;
 +			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
++		}
 +
 +		ep->ep.caps.dir_in = true;
 +		ep->ep.caps.dir_out = true;
  	}
- 
- 	dev->ep[0].reg_mode = NULL;
+ 	usb_ep_set_maxpacket_limit(&m66592->ep[0].ep, 64);
+ 	m66592->ep[0].pipenum = 0;
 -- 
 1.9.1
