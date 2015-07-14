@@ -1,34 +1,53 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/2] Add missing #iommu-cells on IOMMU nodes
-Date: Tue, 14 Jul 2015 00:01:40 -0700
-Message-ID: <20150714070140.GF17550@atomide.com>
-References: <1436549336-33456-1-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Add HAVE_ARM_SCU for AM43XX
+Date: Tue, 14 Jul 2015 00:03:17 -0700
+Message-ID: <20150714070317.GG17550@atomide.com>
+References: <1436562348-53396-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1436549336-33456-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1436562348-53396-1-git-send-email-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [150710 10:31]:
-> Hi Tony,
+* Dave Gerlach <d-gerlach@ti.com> [150710 14:08]:
+> CONFIG_HAVE_ARM_SCU only gets selected if CONFIG_SMP is selected in an OMAP
+> system, however AM43XX needs this option regardless of CONFIG_SMP and also
+> for an AM43XX only build as it is important for controlling power in the SoC.
+> Without this we cannot suspend the CPU for SoC suspend or cpuidle. The
+> ARM Cortex A9 needs SCU CPU Power Status bits to be set to off mode in order
+> for the PRCM to transition the MPU to low power modes.
 > 
-> This series adds the #iommu-cells property to the existing
-> IOMMU nodes on OMAP4 & OMAP5. It was already fixed for OMAP3
-> in commit 2055088b5e17 ("ARM: dts: omap3: Add #iommu-cells to
-> isp and iva iommu").
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> OMAP4 and OMAP5 do not yet have users for these IOMMUs (remoteproc
-> nodes), so the warning as seen with the fix added for OMAP3 is not
-> seen yet, but will as soon as a user is added.
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index ecc04ff..4a023e8 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -60,6 +60,7 @@ config SOC_AM43XX
+>  	select ARM_GIC
+>  	select MACH_OMAP_GENERIC
+>  	select MIGHT_HAVE_CACHE_L2X0
+> +	select HAVE_ARM_SCU
+>  
+>  config SOC_DRA7XX
+>  	bool "TI DRA7XX"
 
-Applying both into omap-for-v4.2/fixes thanks.
+Applying into omap-for-v4.2/fixes thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
