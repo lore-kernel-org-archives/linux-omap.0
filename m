@@ -1,37 +1,55 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH - resend for 4.2-rc2] ARM: DTS: dra7x: Integrate sDMA
- crossbar
-Date: Tue, 14 Jul 2015 04:15:57 -0700
-Message-ID: <20150714111557.GT17550@atomide.com>
-References: <1435755149-10328-1-git-send-email-peter.ujfalusi@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v2 48/48] usb: gadget: epautoconf: cleanup dead code
+Date: Tue, 14 Jul 2015 14:16:27 +0300
+Message-ID: <55A4EF8B.7090806@cogentembedded.com>
+References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
+ <1436866776-5004-49-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1435755149-10328-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436866776-5004-49-git-send-email-r.baldyga@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert Baldyga <r.baldyga@samsung.com>, gregkh@linuxfoundation.org, balbi@ti.com
+Cc: Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [150701 05:54]:
-> The sDMA requests are routed through the DMA crossbar and without the
-> crossbar only peripherals using DMA request 0-127 can be used.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Hello.
+
+On 7/14/2015 12:39 PM, Robert Baldyga wrote:
+
+> Function find_ep() is no longer needed here, so we can remove it.
+> We also don't use anything from gadget_chips.h header any longer.
+
+> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 > ---
-> Hi Tony,
-> 
-> as you have suggested: http://permalink.gmane.org/gmane.linux.ports.arm.omap/125999
-> the DTS change has not been taken by Vinod.
-> Now that the dmaengine pull request is in for 4.2 it would be great if you could
-> pick up the DTS part of the series and send it for -rc2.
+>   drivers/usb/gadget/epautoconf.c | 14 --------------
+>   1 file changed, 14 deletions(-)
 
-Thanks, looks like I also had the original patch still tagged.
-Applying this one instead although they look the same.
+> diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
+> index e9a8682..9a80925 100644
+> --- a/drivers/usb/gadget/epautoconf.c
+> +++ b/drivers/usb/gadget/epautoconf.c
+> @@ -20,20 +20,6 @@
+>   #include <linux/usb/ch9.h>
+>   #include <linux/usb/gadget.h>
+>
+> -#include "gadget_chips.h"
+> -
+> -static struct usb_ep *
+> -find_ep (struct usb_gadget *gadget, const char *name)
+> -{
+> -	struct usb_ep	*ep;
+> -
+> -	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
+> -		if (0 == strcmp (ep->name, name))
+> -			return ep;
+> -	}
+> -	return NULL;
+> -}
+> -
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    I don't think duplicating the function in each driver that needs it is 
+better than turniong this function into public.
+
+WBR, Sergei
