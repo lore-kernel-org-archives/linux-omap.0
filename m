@@ -1,38 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/20] ARM: DTS: am335x/am43xx: Audio support and
- fixes for audio
-Date: Tue, 14 Jul 2015 04:29:33 -0700
-Message-ID: <20150714112933.GU17550@atomide.com>
-References: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: fix bus recovery setup
+Date: Tue, 14 Jul 2015 15:10:01 +0300
+Message-ID: <55A4FC19.4040709@ti.com>
+References: <1436366127-24756-1-git-send-email-jlu@pengutronix.de> <20150714111004.GB1517@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1435845995-19085-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150714111004.GB1517@katana>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [150702 07:08]:
-> Hi,
-> 
-> Changes since v1:
-> - Add patch for omap2plus_defconfig to enable needed audio drivers
-> - Included other board patches since they all need the change in
->   omap2plus_defconfig
-> 
-> Enable the simple card in omap2plus_defconfig as more boards are using that for
-> audio support.
-> 
-> am437x-sk-evm, am335x-evmsk and am335x-evm:
-> There is no reason to use the davinci-evm machine driver's compatible for audio
-> support since the setup is simple and the common simple-audio-card can handle it
-> just fine.
-> 
-> am43xx-epos-evm, am437x-gp-evm:
-> Add audio support via simple-card
+Hi Wolfram,
 
-Applying all into omap-for-v4.3/dt thanks.
+On 07/14/2015 02:10 PM, Wolfram Sang wrote:
+> On Wed, Jul 08, 2015 at 04:35:27PM +0200, Jan Luebbe wrote:
+>> At least on the AM335x, enabling OMAP_I2C_SYSTEST_ST_EN is not enough to
+> 
+> Felipe: it seems you did not need this; is this AM335x specific?
 
-Tony
+We need it (Felipe's reply can be delayed).
+
+It's not AM335x specific. TMODE has to be configured for all OMAP4+ SoCs too.
+
+> 
+>> allow direct access to the SCL and SDA pins. In addition to ST_EN, we
+>> need to set the TMODE to 0b11 (Loop back & SDA/SCL IO mode select).
+>> Also, as the reset values of SCL_O and SDA_O are 0 (which means "drive
+>> low level"), we need to set them to 1 (which means "high-impedance") to
+>> avoid unwanted changes on the pins.
+>>
+>> As a precaution, reset all these bits to their default values after
+>> recovery is complete.
+
+Reviewed-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> 
+
+>>
+>> Signed-off-by: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+>> ---
+>>   drivers/i2c/busses/i2c-omap.c | 11 +++++++++++
+>>   1 file changed, 11 insertions(+)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index d1c22e3fdd14..fc9bf7f30e35 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -1247,7 +1247,14 @@ static void omap_i2c_prepare_recovery(struct i2c_adapter *adap)
+>>   	u32 reg;
+>>   
+>>   	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
+>> +	/* enable test mode */
+>>   	reg |= OMAP_I2C_SYSTEST_ST_EN;
+>> +	/* select SDA/SCL IO mode */
+>> +	reg |= 3 << OMAP_I2C_SYSTEST_TMODE_SHIFT;
+>> +	/* set SCL to high-impedance state (reset value is 0) */
+>> +	reg |= OMAP_I2C_SYSTEST_SCL_O;
+>> +	/* set SDA to high-impedance state (reset value is 0) */
+>> +	reg |= OMAP_I2C_SYSTEST_SDA_O;
+>>   	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
+>>   }
+>>   
+>> @@ -1257,7 +1264,11 @@ static void omap_i2c_unprepare_recovery(struct i2c_adapter *adap)
+>>   	u32 reg;
+>>   
+>>   	reg = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
+>> +	/* restore reset values */
+>>   	reg &= ~OMAP_I2C_SYSTEST_ST_EN;
+>> +	reg &= ~OMAP_I2C_SYSTEST_TMODE_MASK;
+>> +	reg &= ~OMAP_I2C_SYSTEST_SCL_O;
+>> +	reg &= ~OMAP_I2C_SYSTEST_SDA_O;
+>>   	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
+>>   }
+>>   
+>> -- 
+>> 2.1.4
+>>
+
+
+-- 
+regards,
+-grygorii
