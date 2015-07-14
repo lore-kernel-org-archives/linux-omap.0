@@ -1,40 +1,45 @@
 From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/7] Documentation: DT: omap_serial: document missing compatible
-Date: Tue, 14 Jul 2015 13:32:04 +0530
-Message-ID: <2ef75c0ae100e070da96095b3d778bf2ab2f03d9.1436855646.git.nsekhar@ti.com>
-References: <cover.1436855646.git.nsekhar@ti.com>
+Subject: [PATCH v2 0/7] serial: 8250_omap: workaround for IP errata
+Date: Tue, 14 Jul 2015 13:32:02 +0530
+Message-ID: <cover.1436855646.git.nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1436855646.git.nsekhar-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The compatible "ti,am4372-uart" is used in arch/arm/boot/dts/am4372.dtsi
-but not documented. Add necessary documentation.
+This series works around "Advisory 21" as documented in
+AM437x SoC errata[1]. This errata prevents UART module
+from idling after DMA is used. AM335x and DRA7x also suffer
+from the same errata and chip design team is in the process
+of updating the errata documents of those devices as well.
 
-Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
----
+Patch 1/7 fixes a related bug but can be applied independently.
+
+[1] http://www.ti.com/lit/er/sprz408b/sprz408b.pdf
+
 v2:
-- No changes.
+- Updated according to comments from Peter Hurley.
+  See each patch for change details.
 
- Documentation/devicetree/bindings/serial/omap_serial.txt | 1 +
- 1 file changed, 1 insertion(+)
+Sekhar Nori (7):
+  serial: 8250_omap: fix kernel crash in suspend-to-ram
+  Documentation: DT: omap_serial: document missing compatible
+  serial: 8250_omap: refactor mdr1 update
+  serial: 8250_omap: introduce "ti,am3352-uart" compatible property
+  serial: 8250_omap: workaround errata around idling UART after using
+    DMA
+  serial: 8250_omap: workaround module disable errata on dra7x SoCs
+  ARM: dts: dra7: workaround UART module disable errata
 
-diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
-index 54c2a155c783..d3bd2b1ec401 100644
---- a/Documentation/devicetree/bindings/serial/omap_serial.txt
-+++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
-@@ -4,6 +4,7 @@ Required properties:
- - compatible : should be "ti,omap2-uart" for OMAP2 controllers
- - compatible : should be "ti,omap3-uart" for OMAP3 controllers
- - compatible : should be "ti,omap4-uart" for OMAP4 controllers
-+- compatible : should be "ti,am4372-uart" for AM437x controllers
- - reg : address and length of the register space
- - interrupts or interrupts-extended : Should contain the uart interrupt
-                                       specifier or both the interrupt
+ .../devicetree/bindings/serial/omap_serial.txt     |   3 +
+ arch/arm/boot/dts/am33xx.dtsi                      |  12 +--
+ arch/arm/boot/dts/dra7.dtsi                        |  20 ++--
+ drivers/tty/serial/8250/8250_omap.c                | 117 +++++++++++++++++----
+ 4 files changed, 113 insertions(+), 39 deletions(-)
+
 -- 
 2.4.4.408.g16da57c
 
