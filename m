@@ -1,7 +1,8 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 28/48] usb: gadget: pxa27x_udc: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:39:16 +0200
-Message-ID: <1436866776-5004-29-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 29/48] usb: gadget: r8a66597-udc: add ep capabilities
+ support
+Date: Tue, 14 Jul 2015 11:39:17 +0200
+Message-ID: <1436866776-5004-30-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,56 +26,29 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/pxa27x_udc.h | 33 ++++++++++++++++++---------------
- 1 file changed, 18 insertions(+), 15 deletions(-)
+ drivers/usb/gadget/udc/r8a66597-udc.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/pxa27x_udc.h b/drivers/usb/gadget/udc/pxa27x_udc.h
-index 11e1423..ded058c 100644
---- a/drivers/usb/gadget/udc/pxa27x_udc.h
-+++ b/drivers/usb/gadget/udc/pxa27x_udc.h
-@@ -234,25 +234,28 @@
- /*
-  * Endpoint definition helpers
-  */
--#define USB_EP_DEF(addr, bname, dir, type, maxpkt) \
--{ .usb_ep = { .name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, }, \
-+#define USB_EP_DEF(addr, bname, dir, type, maxpkt, ctype, cdir) \
-+{ .usb_ep = {	.name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, \
-+		.caps = USB_EP_CAPS(USB_EP_CAPS_TYPE_ ## ctype, \
-+				    USB_EP_CAPS_DIR_ ## cdir), }, \
-   .desc = {	.bEndpointAddress = addr | (dir ? USB_DIR_IN : 0), \
--		.bmAttributes = type, \
-+		.bmAttributes = USB_ENDPOINT_XFER_ ## type, \
- 		.wMaxPacketSize = maxpkt, }, \
-   .dev = &memory \
- }
--#define USB_EP_BULK(addr, bname, dir) \
--  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_BULK, BULK_FIFO_SIZE)
--#define USB_EP_ISO(addr, bname, dir) \
--  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_ISOC, ISO_FIFO_SIZE)
--#define USB_EP_INT(addr, bname, dir) \
--  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_INT, INT_FIFO_SIZE)
--#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1)
--#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0)
--#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1)
--#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0)
--#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1)
--#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, 0, EP0_FIFO_SIZE)
-+#define USB_EP_BULK(addr, bname, dir, cdir) \
-+	USB_EP_DEF(addr, bname, dir, BULK, BULK_FIFO_SIZE, BULK, cdir)
-+#define USB_EP_ISO(addr, bname, dir, cdir) \
-+	USB_EP_DEF(addr, bname, dir, ISOC, ISO_FIFO_SIZE, ISO, cdir)
-+#define USB_EP_INT(addr, bname, dir, cdir) \
-+	USB_EP_DEF(addr, bname, dir, INT, INT_FIFO_SIZE, INT, cdir)
-+#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1, IN)
-+#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0, OUT)
-+#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1, IN)
-+#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0, OUT)
-+#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1, IN)
-+#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, CONTROL, \
-+					   EP0_FIFO_SIZE, CONTROL, ALL)
- 
- #define PXA_EP_DEF(_idx, _addr, dir, _type, maxpkt, _config, iface, altset) \
- { \
+diff --git a/drivers/usb/gadget/udc/r8a66597-udc.c b/drivers/usb/gadget/udc/r8a66597-udc.c
+index 0293f71..baa0609 100644
+--- a/drivers/usb/gadget/udc/r8a66597-udc.c
++++ b/drivers/usb/gadget/udc/r8a66597-udc.c
+@@ -1935,6 +1935,16 @@ static int r8a66597_probe(struct platform_device *pdev)
+ 		ep->ep.name = r8a66597_ep_name[i];
+ 		ep->ep.ops = &r8a66597_ep_ops;
+ 		usb_ep_set_maxpacket_limit(&ep->ep, 512);
++
++		if (i == 0) {
++			ep->ep.caps.type_control = true;
++		} else {
++			ep->ep.caps.type_iso = true;
++			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
++		}
++		ep->ep.caps.dir_in = true;
++		ep->ep.caps.dir_out = true;
+ 	}
+ 	usb_ep_set_maxpacket_limit(&r8a66597->ep[0].ep, 64);
+ 	r8a66597->ep[0].pipenum = 0;
 -- 
 1.9.1
