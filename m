@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 16/48] usb: gadget: fusb300_udc: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:39:04 +0200
-Message-ID: <1436866776-5004-17-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 18/48] usb: gadget: gr_udc: add ep capabilities support
+Date: Tue, 14 Jul 2015 11:39:06 +0200
+Message-ID: <1436866776-5004-19-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,30 +25,36 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/fusb300_udc.c | 11 +++++++++++
+ drivers/usb/gadget/udc/gr_udc.c | 11 +++++++++++
  1 file changed, 11 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/fusb300_udc.c b/drivers/usb/gadget/udc/fusb300_udc.c
-index 3970f45..948845c 100644
---- a/drivers/usb/gadget/udc/fusb300_udc.c
-+++ b/drivers/usb/gadget/udc/fusb300_udc.c
-@@ -1450,6 +1450,17 @@ static int fusb300_probe(struct platform_device *pdev)
- 		ep->ep.name = fusb300_ep_name[i];
- 		ep->ep.ops = &fusb300_ep_ops;
- 		usb_ep_set_maxpacket_limit(&ep->ep, HS_BULK_MAX_PACKET_SIZE);
+diff --git a/drivers/usb/gadget/udc/gr_udc.c b/drivers/usb/gadget/udc/gr_udc.c
+index c886887..8aa2593 100644
+--- a/drivers/usb/gadget/udc/gr_udc.c
++++ b/drivers/usb/gadget/udc/gr_udc.c
+@@ -2018,12 +2018,23 @@ static int gr_ep_init(struct gr_udc *dev, int num, int is_in, u32 maxplimit)
+ 
+ 		usb_ep_set_maxpacket_limit(&ep->ep, MAX_CTRL_PL_SIZE);
+ 		ep->bytes_per_buffer = MAX_CTRL_PL_SIZE;
 +
-+		if (i == 0) {
-+			ep->ep.caps.type_control = true;
-+		} else {
-+			ep->ep.caps.type_iso = true;
-+			ep->ep.caps.type_bulk = true;
-+			ep->ep.caps.type_int = true;
-+		}
++		ep->ep.caps.type_control = true;
+ 	} else {
+ 		usb_ep_set_maxpacket_limit(&ep->ep, (u16)maxplimit);
+ 		list_add_tail(&ep->ep.ep_list, &dev->gadget.ep_list);
 +
-+		ep->ep.caps.dir_in = true;
-+		ep->ep.caps.dir_out = true;
++		ep->ep.caps.type_iso = true;
++		ep->ep.caps.type_bulk = true;
++		ep->ep.caps.type_int = true;
  	}
- 	usb_ep_set_maxpacket_limit(&fusb300->ep[0]->ep, HS_CTL_MAX_PACKET_SIZE);
- 	fusb300->ep[0]->epnum = 0;
+ 	list_add_tail(&ep->ep_list, &dev->ep_list);
+ 
++	if (is_in)
++		ep->ep.caps.dir_in = true;
++	else
++		ep->ep.caps.dir_out = true;
++
+ 	ep->tailbuf = dma_alloc_coherent(dev->dev, ep->ep.maxpacket_limit,
+ 					 &ep->tailbuf_paddr, GFP_ATOMIC);
+ 	if (!ep->tailbuf)
 -- 
 1.9.1
