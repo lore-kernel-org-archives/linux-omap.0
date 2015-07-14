@@ -1,80 +1,99 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH] mmc: omap_hsmmc: Update driver to support without regulators
-Date: Tue, 14 Jul 2015 14:29:46 -0500
-Message-ID: <1436902186-6542-1-git-send-email-fcooper@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: linux 4.2-rc1 broken Nokia N900
+Date: Tue, 14 Jul 2015 22:01:26 +0200
+Message-ID: <20150714200125.GA26147@amd>
+References: <201507111405.06048@pali>
+ <201507132234.22082@pali>
+ <20150713215232.GA22584@deathray>
+ <201507140002.44119@pali>
+ <20150713223607.GA23001@deathray>
+ <20150714071412.GA12844@pali>
+ <20150714163342.GA8512@deathray>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, rogerq@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150714163342.GA8512@deathray>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Welling <mwelling@ieee.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Roger Quadros <rogerq@ti.com>
+On Tue 2015-07-14 11:33:42, Michael Welling wrote:
+> On Tue, Jul 14, 2015 at 09:14:12AM +0200, Pali Roh=E1r wrote:
+> > On Monday 13 July 2015 17:36:07 Michael Welling wrote:
+> > > On Tue, Jul 14, 2015 at 12:02:44AM +0200, Pali Roh=E1r wrote:
+> > > > I think nothing special. I just call:
+> > > >=20
+> > > > export ARCH=3Darm
+> > > > export CROSS_COMPILE=3Darm-linux-gnueabi-
+> > > > make rx51_defconfig
+> > > > rm -f arch/arm/boot/zImage
+> > > > make -j12 zImage modules omap3-n900.dtb CONFIG_DEBUG_SECTION_MI=
+SMATCH=3Dy
+> > > > cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-n900.dtb > arc=
+h/arm/boot/zImage.new
+> > > > mv arch/arm/boot/zImage.new arch/arm/boot/zImage
+> > > >
+> > >=20
+> > > Where are you getting rx51_defconfig from?
+> > >=20
+> > > This does not appear to be in the kernel source any longer.
+> > >=20
+> > > Can you try the above with omap2plus_defconfig?
+> > > =20
+> >=20
+> > It is in my linux-n900 repository: https://github.com/pali/linux-n9=
+00
+> > Repository contains more n900 specific patches but SPI code is unpa=
+tched
+> >=20
+> > https://github.com/pali/linux-n900/blob/HEAD/arch/arm/configs/rx51_=
+defconfig
+> >=20
+> > Later in week I can try to compile also with omap2plus_defconfig...
+> > But in my opinion kernel should not crash with different configurat=
+ion.
+>=20
+> True.
+>=20
+> Could you try the following change to the set_cs function and see if
+>it helps.
 
-Update driver to support without regulators.
+Ok, so:
 
-Without this patch boards that do not enable regulator config options will
-fail to boot with a kernel panic.
+4.2-rc1 worked for me, IIRC.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
- Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt |  2 ++
- drivers/mmc/host/omap_hsmmc.c                           | 14 ++++++++++----
- 2 files changed, 12 insertions(+), 4 deletions(-)
+4.2-rc2 oopses a lot.
 
-diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-index 76bf087..2408e87 100644
---- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-+++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-@@ -22,6 +22,8 @@ ti,dual-volt: boolean, supports dual voltage cards
- ti,non-removable: non-removable slot (like eMMC)
- ti,needs-special-reset: Requires a special softreset sequence
- ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
-+voltage-ranges: Specify the voltage range supported if regulator framework
-+isn't enabled.
- dmas: List of DMA specifiers with the controller specific format
- as described in the generic DMA client binding. A tx and rx
- specifier is required.
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index b2b411d..16c870f 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1551,10 +1551,13 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	if (ios->power_mode != host->power_mode) {
- 		switch (ios->power_mode) {
- 		case MMC_POWER_OFF:
--			mmc_pdata(host)->set_power(host->dev, 0, 0);
-+			if (host->use_reg)
-+				mmc_pdata(host)->set_power(host->dev, 0, 0);
- 			break;
- 		case MMC_POWER_UP:
--			mmc_pdata(host)->set_power(host->dev, 1, ios->vdd);
-+			if (host->use_reg)
-+				mmc_pdata(host)->set_power(host->dev, 1,
-+							   ios->vdd);
- 			break;
- 		case MMC_POWER_ON:
- 			do_send_init_stream = 1;
-@@ -2082,10 +2085,13 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 		if (ret)
- 			goto err_irq;
- 		host->use_reg = 1;
-+		mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
-+	} else {
-+		ret = mmc_of_parse_voltage(pdev->dev.of_node, &mmc->ocr_avail);
-+		if (ret)
-+			goto err_irq;
- 	}
- 
--	mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
--
- 	omap_hsmmc_disable_irq(host);
- 
- 	/*
--- 
-1.9.1
+4.2-rc2+ this patch oopses, too. I don't have serial console, so it is
+hard to tell if it is the same oops.
 
+									Pavel
+
+> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mc=
+spi.c
+> index 5867384..666038b 100644
+> --- a/drivers/spi/spi-omap2-mcspi.c
+> +++ b/drivers/spi/spi-omap2-mcspi.c
+> @@ -245,16 +245,18 @@ static void omap2_mcspi_set_enable(const struct=
+ spi_device *spi, int enable)
+> =20
+>  static void omap2_mcspi_set_cs(struct spi_device *spi, bool enable)
+>  {
+> +	struct omap2_mcspi_cs *cs =3D spi->controller_state;
+>  	u32 l;
+> =20
+> -	/* The controller handles the inverted chip selects
+> -	 * using the OMAP2_MCSPI_CHCONF_EPOL bit so revert
+> -	 * the inversion from the core spi_set_cs function.
+> -	 */
+> -	if (spi->mode & SPI_CS_HIGH)
+> -		enable =3D !enable;
+> +	if (cs) {
+> +
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
