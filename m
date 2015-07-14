@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 25/48] usb: gadget: omap_udc: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:39:13 +0200
-Message-ID: <1436866776-5004-26-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 26/48] usb: gadget: pch_ud: add ep capabilities support
+Date: Tue, 14 Jul 2015 11:39:14 +0200
+Message-ID: <1436866776-5004-27-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,41 +25,36 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/omap_udc.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/usb/gadget/udc/pch_udc.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc/omap_udc.c b/drivers/usb/gadget/udc/omap_udc.c
-index e2fcdb8..9b7d394 100644
---- a/drivers/usb/gadget/udc/omap_udc.c
-+++ b/drivers/usb/gadget/udc/omap_udc.c
-@@ -2579,6 +2579,28 @@ omap_ep_setup(char *name, u8 addr, u8 type,
- 	ep->double_buf = dbuf;
- 	ep->udc = udc;
- 
-+	switch (type) {
-+	case USB_ENDPOINT_XFER_CONTROL:
-+		ep->ep.caps.type_control = true;
-+		ep->ep.caps.dir_in = true;
-+		ep->ep.caps.dir_out = true;
-+		break;
-+	case USB_ENDPOINT_XFER_ISOC:
-+		ep->ep.caps.type_iso = true;
-+		break;
-+	case USB_ENDPOINT_XFER_BULK:
-+		ep->ep.caps.type_bulk = true;
-+		break;
-+	case USB_ENDPOINT_XFER_INT:
-+		ep->ep.caps.type_int = true;
-+		break;
-+	};
-+
-+	if (addr & USB_DIR_IN)
-+		ep->ep.caps.dir_in = true;
-+	else
-+		ep->ep.caps.dir_out = true;
-+
- 	ep->ep.name = ep->name;
- 	ep->ep.ops = &omap_ep_ops;
- 	ep->maxpacket = maxp;
+diff --git a/drivers/usb/gadget/udc/pch_udc.c b/drivers/usb/gadget/udc/pch_udc.c
+index 613547f..cc8fb3c 100644
+--- a/drivers/usb/gadget/udc/pch_udc.c
++++ b/drivers/usb/gadget/udc/pch_udc.c
+@@ -2895,11 +2895,21 @@ static void pch_udc_pcd_reinit(struct pch_udc_dev *dev)
+ 		ep->in = ~i & 1;
+ 		ep->ep.name = ep_string[i];
+ 		ep->ep.ops = &pch_udc_ep_ops;
+-		if (ep->in)
++		if (ep->in) {
+ 			ep->offset_addr = ep->num * UDC_EP_REG_SHIFT;
+-		else
++			ep->ep.caps.dir_in = true;
++		} else {
+ 			ep->offset_addr = (UDC_EPINT_OUT_SHIFT + ep->num) *
+ 					  UDC_EP_REG_SHIFT;
++			ep->ep.caps.dir_out = true;
++		}
++		if (i == UDC_EP0IN_IDX || i == UDC_EP0OUT_IDX) {
++			ep->ep.caps.type_control = true;
++		} else {
++			ep->ep.caps.type_iso = true;
++			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
++		}
+ 		/* need to set ep->ep.maxpacket and set Default Configuration?*/
+ 		usb_ep_set_maxpacket_limit(&ep->ep, UDC_BULK_MAX_PKT_SIZE);
+ 		list_add_tail(&ep->ep.ep_list, &dev->gadget.ep_list);
 -- 
 1.9.1
