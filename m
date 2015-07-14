@@ -1,82 +1,38 @@
-From: Peter Chen <peter.chen@freescale.com>
-Subject: Re: [PATCH v3 00/11] USB: OTG/DRD Core functionality
-Date: Tue, 14 Jul 2015 08:59:44 +0800
-Message-ID: <20150714005942.GB31197@shlinux2>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
- <CAL1qeaEJ9uX1vgvwO4-ABdGi5C96HZ2jBYWeKiGHJ-uqv6ooGg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: dts: dra7: arch timer sits in always-on power domain
+Date: Mon, 13 Jul 2015 21:49:45 -0700
+Message-ID: <20150714044944.GA11198@atomide.com>
+References: <1436820101-2172-1-git-send-email-balbi@ti.com>
+ <CAGo_u6oM2rtdvLp3deDsxJJWpJ6YZJ5b02m1qDdxhEjUH_69dg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAL1qeaEJ9uX1vgvwO4-ABdGi5C96HZ2jBYWeKiGHJ-uqv6ooGg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Bresticker <abrestic@chromium.org>
-Cc: Roger Quadros <rogerq@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, jun.li@freescale.com, Mathias Nyman <mathias.nyman@linux.intel.com>, tony@atomide.com, Joao.Pinto@synopsys.com, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+In-Reply-To: <CAGo_u6oM2rtdvLp3deDsxJJWpJ6YZJ5b02m1qDdxhEjUH_69dg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 13, 2015 at 12:14:43PM -0700, Andrew Bresticker wrote:
-> Hi Roger,
-> 
-> On Wed, Jul 8, 2015 at 3:19 AM, Roger Quadros <rogerq@ti.com> wrote:
-> > Usage model:
-> > -----------
-> >
-> > - The OTG controller device is assumed to be the parent of
-> > the host and gadget controller. It must call usb_otg_register()
-> > before populating the host and gadget devices so that the OTG
-> > core is aware that it is an OTG device before the host & gadget
-> > register. The OTG controller must provide struct otg_fsm_ops *
-> > which will be called by the OTG core depending on OTG bus state.
-> 
-> I'm wondering if the requirement that the OTG controller be the parent
-> of the USB host/device-controllers makes sense.  For some context, I'm
-> working on adding dual-role support for Tegra210, specifically on a
-> system with USB Type-C.  On Tegra, the USB host-controller and USB
-> device-controller are two separate IP blocks (XUSB host and XUSB
-> device) with another, separate, IP block (XUSB padctl) for the USB PHY
-> and OTG support.  In the non-Type-C case, your OTG framework could
-> work well, though it's debatable as to whether or not the XUSB padctl
-> device should be a parent to the XUSB host/device-controller devices
-> (currently it isn't - it's just a PHY provider).  But in the Type-C
-> case, it's an off-chip embedded controller that determines the
-> dual-role status of the Type-C port, so the above requirement doesn't
-> make sense at all.
+* Nishanth Menon <nm@ti.com> [150713 13:56]:
+> On Mon, Jul 13, 2015 at 3:41 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > According to DRA7x TRM section 4.3.5 Realtime Counter (Master Counter),
+> > the realtime counter sits in the Wakeup Always-On Power domain.
+> > Furthermore, the counter will automatically switch the 32K clock source
+> > when MPU goes into standby and automatically switch back to SYS_CLK or
+> > ABE_LP when MPU goes out of standby.
 
-Hi Andrew,
+That's good to hear. Is that the case also for 5432?
 
-I think your problem is how to add your core driver to manage device and
-host functionality together, and once you find how (through padctl/type-c
-controller) to do it based on current code, it will be clear how to use roger
-proposal framework at that time.
+Regards,
 
-Most of current core drivers, we use extcon driver (through gpio) or USB
-vbus/id pin (through internal registers) to manager roles.
-
-> 
-> My idea was to have the OTG/DRD controller explicitly specify its host
-> and device controllers, so in DT, something like:
-> 
-> otg-controller {
->     ...
->     device-controller = <&usb_device>;
->     host-controller = <&usb_host>;
->     ...
-> };
-> 
-> usb_device: usb-device@.... {
->     ...
-> };
-> 
-> usb_host: usb-host@... {
->     ...
-> };
-> 
-> What do you think?
-> 
-> Thanks,
-> Andrew
-
--- 
-
-Best Regards,
-Peter Chen
+Tony
