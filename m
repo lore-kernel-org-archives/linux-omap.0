@@ -1,42 +1,56 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] serial: 8250_omap: workaround for IP errata
-Date: Tue, 14 Jul 2015 05:49:08 -0700
-Message-ID: <20150714124908.GE10928@atomide.com>
-References: <cover.1436855646.git.nsekhar@ti.com>
- <55A4FEEC.3080101@hurleysoftware.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/2] CLK: TI: add dpll_clksel_mac_clk node
+Date: Tue, 14 Jul 2015 16:28:39 +0300
+Message-ID: <55A50E87.4060400@ti.com>
+References: <1434614473-8500-1-git-send-email-j-keerthy@ti.com> <55828A18.6030608@ti.com> <558C0624.4060008@ti.com> <20150714110626.GQ17550@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55A4FEEC.3080101-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
-Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150714110626.GQ17550@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Keerthy <a0393675@ti.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, galak@codeaurora.org, pawel.moll@arm.com, linux-kernel@vger.kernel.org, bcousson@baylibre.com, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org> [150714 05:24]:
-> On 07/14/2015 04:02 AM, Sekhar Nori wrote:
-> > This series works around "Advisory 21" as documented in
-> > AM437x SoC errata[1]. This errata prevents UART module
-> > from idling after DMA is used. AM335x and DRA7x also suffer
-> > from the same errata and chip design team is in the process
-> > of updating the errata documents of those devices as well.
-> > 
-> > Patch 1/7 fixes a related bug but can be applied independently.
-> 
-> Looks good. Thanks Sekhar!
-> 
-> For series,
-> 
-> Reviewed-by: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
+On 07/14/2015 02:06 PM, Tony Lindgren wrote:
+> * Keerthy <a0393675@ti.com> [150625 06:48]:
+>>
+>> On Thursday 18 June 2015 02:36 PM, Mugunthan V N wrote:
+>>> On Thursday 18 June 2015 01:31 PM, Keerthy wrote:
+>>>> The series adds the missing clock node needed for cpsw.
+>>>>
+>>>> Keerthy (2):
+>>>>    CLK: TI: add dpll_clksel_mac_clk node
+>>>>    ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk
+>>>>      clock
+>>>>
+>>>>   arch/arm/boot/dts/am4372.dtsi        | 7 +++++--
+>>>>   arch/arm/boot/dts/am43xx-clocks.dtsi | 9 +++++++++
+>>>>   drivers/clk/ti/clk-43xx.c            | 1 +
+>>>>   3 files changed, 15 insertions(+), 2 deletions(-)
+>>>>
+>>>
+>>> Tested-by: Mugunthan V N <mugunthanvnm@ti.com>
+>>
+>> Thanks Mugunthan.
+>>
+>> A gentle ping on this series.
+>
+> Tero, care to review this series?
 
-Also things still work for me, and the dts changes should
-not cause merge conflicts during v4.3 merge window based on
-what I have queued. So please feel free to queue these
-all via the tty tree and add:
+Acked-by: Tero Kristo <t-kristo@ti.com>
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I guess this should go through your tree as this is mostly dts changes?
+
+-Tero
+
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-clk" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
