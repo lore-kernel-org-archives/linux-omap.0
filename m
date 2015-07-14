@@ -1,63 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux 4.2-rc1 broken Nokia N900
-Date: Tue, 14 Jul 2015 00:45:33 -0700
-Message-ID: <20150714074532.GI17550@atomide.com>
-References: <201507111405.06048@pali>
- <201507132234.22082@pali>
- <20150713215232.GA22584@deathray>
- <201507140002.44119@pali>
- <20150713223607.GA23001@deathray>
- <20150714071412.GA12844@pali>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 1/7] serial: 8250_omap: fix kernel crash in suspend-to-ram
+Date: Tue, 14 Jul 2015 13:32:03 +0530
+Message-ID: <144e3c053990dae825b7e06f5340e04bf7d81163.1436855646.git.nsekhar@ti.com>
+References: <cover.1436855646.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150714071412.GA12844@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Michael Welling <mwelling@ieee.org>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1436855646.git.nsekhar-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [150714 00:16]:
-> On Monday 13 July 2015 17:36:07 Michael Welling wrote:
-> > On Tue, Jul 14, 2015 at 12:02:44AM +0200, Pali Roh=C3=A1r wrote:
-> > > I think nothing special. I just call:
-> > >=20
-> > > export ARCH=3Darm
-> > > export CROSS_COMPILE=3Darm-linux-gnueabi-
-> > > make rx51_defconfig
-> > > rm -f arch/arm/boot/zImage
-> > > make -j12 zImage modules omap3-n900.dtb CONFIG_DEBUG_SECTION_MISM=
-ATCH=3Dy
-> > > cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-n900.dtb > arch/=
-arm/boot/zImage.new
-> > > mv arch/arm/boot/zImage.new arch/arm/boot/zImage
-> > >
-> >=20
-> > Where are you getting rx51_defconfig from?
-> >=20
-> > This does not appear to be in the kernel source any longer.
-> >=20
-> > Can you try the above with omap2plus_defconfig?
-> > =20
->=20
-> It is in my linux-n900 repository: https://github.com/pali/linux-n900
-> Repository contains more n900 specific patches but SPI code is unpatc=
-hed
->=20
-> https://github.com/pali/linux-n900/blob/HEAD/arch/arm/configs/rx51_de=
-fconfig
->=20
-> Later in week I can try to compile also with omap2plus_defconfig...
-> But in my opinion kernel should not crash with different configuratio=
-n.
+omap_device infrastructure has a suspend_noirq hook which
+runtime suspends all devices late in the suspend cycle (see
+_od_suspend_noirq() in arch/arm/mach-omap2/omap_device.c)
 
-After doing git bisect on it, looks like the breaking commit is
-ddcad7e9068e ("spi: omap2-mcspi: Fix native cs with new set_cs").
+This leads to a NULL pointer exception in 8250_omap driver
+since by the time omap8250_runtime_suspend() is called, 8250_dma
+driver has already set rxchan to NULL via serial8250_release_dma().
 
-That alone does not seem to revert, have not debugged further.
+Make an explicit check to see if rxchan is NULL in
+runtime_{suspend|resume} hooks to fix this.
 
-Regards,
+Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+---
+v2:
+- updated subject line according to subsystem conventions
 
-Tony
+ drivers/tty/serial/8250/8250_omap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index d75a66c72750..20c5b9c4c288 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1285,7 +1285,7 @@ static int omap8250_runtime_suspend(struct device *dev)
+ 			return -EBUSY;
+ 	}
+ 
+-	if (up->dma)
++	if (up->dma && up->dma->rxchan)
+ 		omap_8250_rx_dma(up, UART_IIR_RX_TIMEOUT);
+ 
+ 	priv->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+@@ -1310,7 +1310,7 @@ static int omap8250_runtime_resume(struct device *dev)
+ 	if (loss_cntx)
+ 		omap8250_restore_regs(up);
+ 
+-	if (up->dma)
++	if (up->dma && up->dma->rxchan)
+ 		omap_8250_rx_dma(up, 0);
+ 
+ 	priv->latency = priv->calc_latency;
+-- 
+2.4.4.408.g16da57c
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
