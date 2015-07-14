@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 06/48] usb: dwc2: gadget: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:38:54 +0200
-Message-ID: <1436866776-5004-7-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 07/48] usb: dwc3: gadget: add ep capabilities support
+Date: Tue, 14 Jul 2015 11:38:55 +0200
+Message-ID: <1436866776-5004-8-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,32 +25,32 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/dwc2/gadget.c | 13 +++++++++++++
+ drivers/usb/dwc3/gadget.c | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff --git a/drivers/usb/dwc2/gadget.c b/drivers/usb/dwc2/gadget.c
-index 4d47b7c..8771b66 100644
---- a/drivers/usb/dwc2/gadget.c
-+++ b/drivers/usb/dwc2/gadget.c
-@@ -3289,6 +3289,19 @@ static void s3c_hsotg_initep(struct dwc2_hsotg *hsotg,
- 	usb_ep_set_maxpacket_limit(&hs_ep->ep, epnum ? 1024 : EP0_MPS_LIMIT);
- 	hs_ep->ep.ops = &s3c_hsotg_ep_ops;
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 333a7c0..8d1f768 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1713,6 +1713,19 @@ static int dwc3_gadget_init_hw_endpoints(struct dwc3 *dwc,
+ 				return ret;
+ 		}
  
-+	if (epnum == 0) {
-+		hs_ep->ep.caps.type_control = true;
-+	} else {
-+		hs_ep->ep.caps.type_iso = true;
-+		hs_ep->ep.caps.type_bulk = true;
-+		hs_ep->ep.caps.type_int = true;
-+	}
++		if (epnum == 0) {
++			dep->endpoint.caps.type_control = true;
++		} else {
++			dep->endpoint.caps.type_iso = true;
++			dep->endpoint.caps.type_bulk = true;
++			dep->endpoint.caps.type_int = true;
++		}
 +
-+	if (dir_in)
-+		hs_ep->ep.caps.dir_in = true;
-+	else
-+		hs_ep->ep.caps.dir_out = true;
++		if (epnum & 1)
++			dep->endpoint.caps.dir_in = true;
++		else
++			dep->endpoint.caps.dir_out = true;
 +
- 	/*
- 	 * if we're using dma, we need to set the next-endpoint pointer
- 	 * to be something valid.
+ 		INIT_LIST_HEAD(&dep->request_list);
+ 		INIT_LIST_HEAD(&dep->req_queued);
+ 	}
 -- 
 1.9.1
