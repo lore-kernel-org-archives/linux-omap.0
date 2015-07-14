@@ -1,89 +1,34 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v5] clk: change clk_ops' ->determine_rate() prototype
-Date: Tue, 14 Jul 2015 12:47:48 +0200
-Message-ID: <20150714124748.55dd6213@bbrezillon>
-References: <1436294888-25752-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20150708005748.GG30412@codeaurora.org>
-	<20150708110005.704c49ff@bbrezillon>
-	<559D66EE.4060707@codeaurora.org>
-	<20150709223938.19450e75@bbrezillon>
-	<20150713230217.GI30412@codeaurora.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/5] omap3: dts: Add DTS for Gumstix TobiDuo expansion
+ board
+Date: Tue, 14 Jul 2015 04:01:46 -0700
+Message-ID: <20150714110146.GP17550@atomide.com>
+References: <1434141446-11568-1-git-send-email-ashcharles@gmail.com>
+ <1434141446-11568-3-git-send-email-ashcharles@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20150713230217.GI30412@codeaurora.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Mike Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Ralf Baechle <ralf@linux-mips.org>, Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>, Maxime Ripard <maxime.ripard@free-electrons.com>, Tero Kristo <t-kristo@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mips@linux-mips.org, linux-tegra@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1434141446-11568-3-git-send-email-ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 13 Jul 2015 16:02:18 -0700
-Stephen Boyd <sboyd@codeaurora.org> wrote:
-
-> On 07/09, Boris Brezillon wrote:
-> > Hi Stephen,
-> > 
-> > On Wed, 08 Jul 2015 11:07:42 -0700
-> > Stephen Boyd <sboyd@codeaurora.org> wrote:
-> > 
-> > > On 07/08/2015 02:00 AM, Boris Brezillon wrote:
-> > > > Hi Stephen,
-> > > >
-> > > > On Tue, 7 Jul 2015 17:57:48 -0700
-> > > > Stephen Boyd <sboyd@codeaurora.org> wrote:
-> > > >
-> > > >> On 07/07, Boris Brezillon wrote:
-> > > >>>
-> > > >>>  	} else {
-> > > >>>  		pr_err("clk: clk_composite_determine_rate function called, but no mux or rate callback set!\n");
-> > > >>> +		req->rate = 0;
-> > > >>>  		return 0;
-> > > >> Shouldn't this return an error now? And then assigning req->rate
-> > > >> wouldn't be necessary. Sorry I must have missed this last round.
-> > > >>
-> > > > Actually I wanted to keep the existing behavior: return a 0 rate (not
-> > > > an error) when there is no mux or rate ops.
-> > > >
-> > > > That's something we can change afterwards, but it might reveals
-> > > > new bugs if some users are checking for a 0 rate to detect errors.
-> > > >
-> > > 
-> > > Ok. Care to send the patch now to do that while we're thinking about it?
-> > > We can test it out for a month or two.
-> > > 
-> > 
-> > Here is a patch modifying a few drivers to return errors instead of a 0
-> > rate. Feel free to squash it in the previous one if you think this is
-> > better.
-> > 
-> > Best Regards,
-> > 
-> > Boris
-> > 
-> > --- >8 ---
-> > 
-> > From dca9c28301042cf19dad4b1e4555cdb7c1063745 Mon Sep 17 00:00:00 2001
-> > From: Boris Brezillon <boris.brezillon@free-electrons.com>
-> > Date: Thu, 9 Jul 2015 12:20:21 +0200
-> > Subject: [PATCH] clk: fix some determine_rate implementations
-> > 
-> > Some determine_rate implementations are not returning an error when then
-> > failed to adapt the rate according to the rate request.
-> > Fix them so that they return an error instead of silently returning 0.
-> > 
-> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+* Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150612 13:39]:
+> The Gumstix "Tobi-Duo" expansion board [1] can be used with either
+> OMAP3 Overo or Overo Storm COMs.  It provides two NICs using LAN9221
+> chips.
+> It is necessary to duplicate the interface information for the
+> second SMSC9221 chip as discussed [2].
 > 
-> The linewrap is seriously messed up here. Please fix your mailer
-> next time. I had to hand edit the patch to get it to apply. I've
-> applied this in top of the original patch as a different commit,
-> in case we need to revert it later.
+> [1] https://store.gumstix.com/index.php/products/241/
+> [2] http://www.spinics.net/lists/linux-omap/msg115282.html
 
-Sorry about that, I forgot to remove the line wrapper when copying the
-content of the patch into my mailer :-/.
+Applying patches 2 - 5 into omap-for-v4.3/dt thanks.
 
-
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
