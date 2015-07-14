@@ -1,57 +1,80 @@
-From: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] arm:DTS Correct audio input route & set mic bias
-Date: Tue, 14 Jul 2015 11:38:13 -0700
-Message-ID: <CAK8F28=0ttDiyzNKkYog7Pe_qWXGSRXkE_vOZ1QNpQiwbY0Vxw@mail.gmail.com>
-References: <1436897844-6908-1-git-send-email-adam.yh.lee@gmail.com>
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: Update driver to support without regulators
+Date: Tue, 14 Jul 2015 14:29:46 -0500
+Message-ID: <1436902186-6542-1-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1436897844-6908-1-git-send-email-adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, rogerq@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 11:17 AM, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Audio-in was incorrectly routed to Line In. It should be Mic3L as per
-> schematic.
->
-> Using mic-bias voltage at 2.0v (<0x1>) does not work for some reason. There
-> is no voltage seen on micbias (R127). Mic-bias voltage of 2.5v (<0x2>) works.
-> I see voltage of 2.475v across GND and micbias.
->
-> With these changes, I can record audio with a pair of proliferate TRRS earbuds.
->
-> Signed-off-by: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-pepper.dts | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-> index d627dc6..73b4cc3 100644
-> --- a/arch/arm/boot/dts/am335x-pepper.dts
-> +++ b/arch/arm/boot/dts/am335x-pepper.dts
-> @@ -74,6 +74,7 @@
->         audio_codec: tlv320aic3106@1b {
->                 compatible = "ti,tlv320aic3106";
->                 reg = <0x1b>;
-> +               ai3x-micbias-vg = <0x2>;
->         };
->
->         accel: lis331dlh@1d {
-> @@ -152,7 +153,7 @@
->         ti,audio-routing =
->                 "Headphone Jack",       "HPLOUT",
->                 "Headphone Jack",       "HPROUT",
-> -               "LINE1L",               "Line In";
-> +               "MIC3L",                "Mic3L Switch";
->  };
->
->  &mcasp0 {
-Note, this is getting resent to correct the sign-offs as requested
-https://lkml.org/lkml/2015/7/14/56
-Acked-by: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Roger Quadros <rogerq@ti.com>
+
+Update driver to support without regulators.
+
+Without this patch boards that do not enable regulator config options will
+fail to boot with a kernel panic.
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+---
+ Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt |  2 ++
+ drivers/mmc/host/omap_hsmmc.c                           | 14 ++++++++++----
+ 2 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+index 76bf087..2408e87 100644
+--- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
++++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+@@ -22,6 +22,8 @@ ti,dual-volt: boolean, supports dual voltage cards
+ ti,non-removable: non-removable slot (like eMMC)
+ ti,needs-special-reset: Requires a special softreset sequence
+ ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
++voltage-ranges: Specify the voltage range supported if regulator framework
++isn't enabled.
+ dmas: List of DMA specifiers with the controller specific format
+ as described in the generic DMA client binding. A tx and rx
+ specifier is required.
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index b2b411d..16c870f 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1551,10 +1551,13 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 	if (ios->power_mode != host->power_mode) {
+ 		switch (ios->power_mode) {
+ 		case MMC_POWER_OFF:
+-			mmc_pdata(host)->set_power(host->dev, 0, 0);
++			if (host->use_reg)
++				mmc_pdata(host)->set_power(host->dev, 0, 0);
+ 			break;
+ 		case MMC_POWER_UP:
+-			mmc_pdata(host)->set_power(host->dev, 1, ios->vdd);
++			if (host->use_reg)
++				mmc_pdata(host)->set_power(host->dev, 1,
++							   ios->vdd);
+ 			break;
+ 		case MMC_POWER_ON:
+ 			do_send_init_stream = 1;
+@@ -2082,10 +2085,13 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 		if (ret)
+ 			goto err_irq;
+ 		host->use_reg = 1;
++		mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
++	} else {
++		ret = mmc_of_parse_voltage(pdev->dev.of_node, &mmc->ocr_avail);
++		if (ret)
++			goto err_irq;
+ 	}
+ 
+-	mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
+-
+ 	omap_hsmmc_disable_irq(host);
+ 
+ 	/*
+-- 
+1.9.1
+
