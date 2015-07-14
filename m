@@ -1,13 +1,24 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 47/48] usb: musb: gadget: add musb_match_ep() function
-Date: Tue, 14 Jul 2015 11:39:35 +0200
-Message-ID: <1436866776-5004-48-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 45/48] usb: gadget: net2280: add net2280_match_ep() function
+Date: Tue, 14 Jul 2015 11:39:33 +0200
+Message-ID: <1436866776-5004-46-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 In-reply-to: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: gregkh@linuxfoundation.org, balbi@ti.com
-Cc: Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com, Robert Baldyga <r.baldyga@samsung.com>
+Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Add 'match_ep' callback to utilize chip-specific knowledge in endpoint matching
@@ -17,59 +28,58 @@ from platform specific logic.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/epautoconf.c | 23 ---------------------
- drivers/usb/musb/musb_gadget.c  | 44 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+), 23 deletions(-)
+ drivers/usb/gadget/epautoconf.c  | 23 +--------------------
+ drivers/usb/gadget/udc/net2280.c | 44 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index 038b21d..e9a8682 100644
+index 7c43b7c..3ac92b4 100644
 --- a/drivers/usb/gadget/epautoconf.c
 +++ b/drivers/usb/gadget/epautoconf.c
-@@ -95,29 +95,6 @@ struct usb_ep *usb_ep_autoconfig_ss(
- 			goto found_ep;
- 	}
- 
--	/* First, apply chip-specific "best usage" knowledge.
--	 * This might make a good usb_gadget_ops hook ...
--	 */
--#ifdef CONFIG_BLACKFIN
--	if (gadget_is_musbhdrc(gadget)) {
--		if ((USB_ENDPOINT_XFER_BULK == type) ||
--		    (USB_ENDPOINT_XFER_ISOC == type)) {
--			if (USB_DIR_IN & desc->bEndpointAddress)
--				ep = find_ep (gadget, "ep5in");
--			else
--				ep = find_ep (gadget, "ep6out");
--		} else if (USB_ENDPOINT_XFER_INT == type) {
--			if (USB_DIR_IN & desc->bEndpointAddress)
--				ep = find_ep(gadget, "ep1in");
--			else
--				ep = find_ep(gadget, "ep2out");
--		} else
--			ep = NULL;
+@@ -98,28 +98,7 @@ struct usb_ep *usb_ep_autoconfig_ss(
+ 	/* First, apply chip-specific "best usage" knowledge.
+ 	 * This might make a good usb_gadget_ops hook ...
+ 	 */
+-	if (gadget_is_net2280(gadget)) {
+-		char name[8];
+-
+-		if (type == USB_ENDPOINT_XFER_INT) {
+-			/* ep-e, ep-f are PIO with only 64 byte fifos */
+-			ep = find_ep(gadget, "ep-e");
+-			if (ep && usb_gadget_ep_match_desc(gadget,
+-					ep, desc, ep_comp))
+-				goto found_ep;
+-			ep = find_ep(gadget, "ep-f");
+-			if (ep && usb_gadget_ep_match_desc(gadget,
+-					ep, desc, ep_comp))
+-				goto found_ep;
+-		}
+-
+-		/* USB3380: use same address for usb and hardware endpoints */
+-		snprintf(name, sizeof(name), "ep%d%s", usb_endpoint_num(desc),
+-				usb_endpoint_dir_in(desc) ? "in" : "out");
+-		ep = find_ep(gadget, name);
 -		if (ep && usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
 -			goto found_ep;
--	}
--#endif
--
- 	/* Second, look at endpoints until an unclaimed one looks usable */
- 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
- 		if (usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 043248a..5f1eb35 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1684,6 +1684,49 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
+-	} else if (gadget_is_goku (gadget)) {
++	if (gadget_is_goku (gadget)) {
+ 		if (USB_ENDPOINT_XFER_INT == type) {
+ 			/* single buffering is enough */
+ 			ep = find_ep(gadget, "ep3-bulk");
+diff --git a/drivers/usb/gadget/udc/net2280.c b/drivers/usb/gadget/udc/net2280.c
+index 0295cf7..4933321 100644
+--- a/drivers/usb/gadget/udc/net2280.c
++++ b/drivers/usb/gadget/udc/net2280.c
+@@ -1533,6 +1533,49 @@ static int net2280_pullup(struct usb_gadget *_gadget, int is_on)
  	return 0;
  }
  
-+#ifdef CONFIG_BLACKFIN
-+static struct usb_ep *musb_find_ep(struct usb_gadget *g,
++static struct usb_ep *net2280_find_ep(struct usb_gadget *_gadget,
 +		const char *name)
 +{
 +	struct usb_ep *ep;
 +
-+	list_for_each_entry(ep, &g->ep_list, ep_list) {
++	list_for_each_entry(ep, &_gadget->ep_list, ep_list) {
 +		if (0 == strcmp(ep->name, name))
 +			return ep;
 +	}
@@ -77,45 +87,46 @@ index 043248a..5f1eb35 100644
 +	return NULL;
 +}
 +
-+static struct usb_ep *match_match_ep(struct usb_gadget *g,
++static struct usb_ep *net2280_match_ep(struct usb_gadget *_gadget,
 +		struct usb_endpoint_descriptor *desc,
 +		struct usb_ss_ep_comp_descriptor *ep_comp)
 +{
-+	struct usb_ep *ep = NULL;
-+	u8 type = usb_endpoint_type(desc);
++	char name[8];
++	struct usb_ep *ep;
++	u8 type;
 +
-+	if ((USB_ENDPOINT_XFER_BULK == type) ||
-+			(USB_ENDPOINT_XFER_ISOC == type)) {
-+		if (USB_DIR_IN & desc->bEndpointAddress)
-+			ep = musb_find_ep(g, "ep5in");
-+		else
-+			ep = musb_find_ep(g, "ep6out");
-+	} else if (USB_ENDPOINT_XFER_INT == type) {
-+		if (USB_DIR_IN & desc->bEndpointAddress)
-+			ep = musb_find_ep(g, "ep1in");
-+		else
-+			ep = musb_find_ep(g, "ep2out");
++	type = usb_endpoint_type(desc);
++
++	if (type == USB_ENDPOINT_XFER_INT) {
++		/* ep-e, ep-f are PIO with only 64 byte fifos */
++		ep = net2280_find_ep(_gadget, "ep-e");
++		if (ep && usb_gadget_ep_match_desc(_gadget, ep, desc, ep_comp))
++			return ep;
++		ep = net2280_find_ep(_gadget, "ep-f");
++		if (ep && usb_gadget_ep_match_desc(_gadget, ep, desc, ep_comp))
++			return ep;
 +	}
 +
-+	if (ep && usb_gadget_ep_match_desc(g, ep, desc, ep_comp))
++	/* USB3380: use same address for usb and hardware endpoints */
++	snprintf(name, sizeof(name), "ep%d%s", usb_endpoint_num(desc),
++			usb_endpoint_dir_in(desc) ? "in" : "out");
++	ep = net2280_find_ep(_gadget, name);
++	if (ep && usb_gadget_ep_match_desc(_gadget, ep, desc, ep_comp))
 +		return ep;
 +
 +	return NULL;
 +}
-+#else
-+#define musb_match_ep NULL
-+#endif
 +
- static int musb_gadget_start(struct usb_gadget *g,
+ static int net2280_start(struct usb_gadget *_gadget,
  		struct usb_gadget_driver *driver);
- static int musb_gadget_stop(struct usb_gadget *g);
-@@ -1697,6 +1740,7 @@ static const struct usb_gadget_ops musb_gadget_operations = {
- 	.pullup			= musb_gadget_pullup,
- 	.udc_start		= musb_gadget_start,
- 	.udc_stop		= musb_gadget_stop,
-+	.match_ep		= musb_match_ep,
+ static int net2280_stop(struct usb_gadget *_gadget);
+@@ -1544,6 +1587,7 @@ static const struct usb_gadget_ops net2280_ops = {
+ 	.pullup		= net2280_pullup,
+ 	.udc_start	= net2280_start,
+ 	.udc_stop	= net2280_stop,
++	.match_ep	= net2280_match_ep,
  };
  
- /* ----------------------------------------------------------------------- */
+ /*-------------------------------------------------------------------------*/
 -- 
 1.9.1
