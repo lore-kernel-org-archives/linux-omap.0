@@ -1,7 +1,8 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 40/48] usb: gadget: epautoconf: rework ep_matches() function
-Date: Tue, 14 Jul 2015 11:39:28 +0200
-Message-ID: <1436866776-5004-41-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 39/48] usb: gadget: epautoconf: remove ep and desc
+ configuration from ep_matches()
+Date: Tue, 14 Jul 2015 11:39:27 +0200
+Message-ID: <1436866776-5004-40-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,135 +22,107 @@ To: gregkh@linuxfoundation.org, balbi@ti.com
 Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Rework ep_matches() function to make it shorter and better readable.
+As function ep_matches() is used to match endpoint with usb descriptor it's
+highly unintuitive that it modifies endpoint and descriptor structures fields.
+This patch moves code configuring ep and desc from ep_matches() to
+usb_ep_autoconfig_ss(), so now function ep_matches() does nothing more than
+its name is suggesting.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/epautoconf.c | 87 +++++++++++++++++------------------------
- 1 file changed, 35 insertions(+), 52 deletions(-)
+ drivers/usb/gadget/epautoconf.c | 66 +++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index d00b443..ee0d4e6 100644
+index 4f66e9d73..d00b443 100644
 --- a/drivers/usb/gadget/epautoconf.c
 +++ b/drivers/usb/gadget/epautoconf.c
-@@ -30,16 +30,29 @@ ep_matches (
- 	struct usb_ss_ep_comp_descriptor *ep_comp
- )
- {
--	u8		type;
--	u16		max;
--
--	int		num_req_streams = 0;
-+	u8              type;
-+	u16             max;
-+	int             num_req_streams = 0;
+@@ -82,13 +82,6 @@ ep_matches (
  
- 	/* endpoint already claimed? */
- 	if (ep->claimed)
- 		return 0;
- 
- 	type = usb_endpoint_type(desc);
-+	max = 0x7ff & usb_endpoint_maxp(desc);
-+
-+	if (usb_endpoint_dir_in(desc) && !ep->caps.dir_in)
-+		return 0;
-+	else if (!ep->caps.dir_out)
-+		return 0;
-+
-+	if (max > ep->maxpacket_limit)
-+		return 0;
-+
-+	/* "high bandwidth" works only at high speed */
-+	if (!gadget_is_dualspeed(gadget) && usb_endpoint_maxp(desc) & (3<<11))
-+		return 0;
-+
- 	switch (type) {
- 	case USB_ENDPOINT_XFER_CONTROL:
- 		/* only support ep0 for portable CONTROL traffic */
-@@ -47,66 +60,36 @@ ep_matches (
- 	case USB_ENDPOINT_XFER_ISOC:
- 		if (!ep->caps.type_iso)
- 			return 0;
-+		/* ISO:  limit 1023 bytes full speed,
-+		 * 1024 high/super speed
-+		 */
-+		if (!gadget_is_dualspeed(gadget) && max > 1023)
-+			return 0;
- 		break;
- 	case USB_ENDPOINT_XFER_BULK:
- 		if (!ep->caps.type_bulk)
- 			return 0;
-+		if (ep_comp && gadget_is_superspeed(gadget)) {
-+			/* Get the number of required streams from the
-+			 * EP companion descriptor and see if the EP
-+			 * matches it
-+			 */
-+			num_req_streams = ep_comp->bmAttributes & 0x1f;
-+			if (num_req_streams > ep->max_streams)
-+				return 0;
-+		}
- 		break;
- 	case USB_ENDPOINT_XFER_INT:
--		/* bulk endpoints handle interrupt transfers,
-+		/* Bulk endpoints handle interrupt transfers,
- 		 * except the toggle-quirky iso-synch kind
- 		 */
- 		if (!ep->caps.type_int && !ep->caps.type_bulk)
- 			return 0;
--		break;
--	}
--
--	if (usb_endpoint_dir_in(desc)) {
--		if (!ep->caps.dir_in)
--			return 0;
--	} else {
--		if (!ep->caps.dir_out)
--			return 0;
--	}
--
--	/*
--	 * Get the number of required streams from the EP companion
--	 * descriptor and see if the EP matches it
--	 */
--	if (usb_endpoint_xfer_bulk(desc)) {
--		if (ep_comp && gadget->max_speed >= USB_SPEED_SUPER) {
--			num_req_streams = ep_comp->bmAttributes & 0x1f;
--			if (num_req_streams > ep->max_streams)
--				return 0;
--		}
--
--	}
--
--	/* endpoint maxpacket size is an input parameter, except for bulk
--	 * where it's an output parameter representing the full speed limit.
--	 * the usb spec fixes high speed bulk maxpacket at 512 bytes.
--	 */
--	max = 0x7ff & usb_endpoint_maxp(desc);
--	switch (type) {
--	case USB_ENDPOINT_XFER_INT:
--		/* INT:  limit 64 bytes full speed, 1024 high/super speed */
-+		/* INT:  limit 64 bytes full speed,
-+		 * 1024 high/super speed
-+		 */
- 		if (!gadget_is_dualspeed(gadget) && max > 64)
- 			return 0;
--		/* FALLTHROUGH */
--
--	case USB_ENDPOINT_XFER_ISOC:
--		/* ISO:  limit 1023 bytes full speed, 1024 high/super speed */
--		if (ep->maxpacket_limit < max)
--			return 0;
--		if (!gadget_is_dualspeed(gadget) && max > 1023)
--			return 0;
--
--		/* BOTH:  "high bandwidth" works only at high speed */
--		if ((desc->wMaxPacketSize & cpu_to_le16(3<<11))) {
--			if (!gadget_is_dualspeed(gadget))
--				return 0;
--			/* configure your hardware with enough buffering!! */
--		}
- 		break;
  	}
  
+-	/*
+-	 * If the protocol driver hasn't yet decided on wMaxPacketSize
+-	 * and wants to know the maximum possible, provide the info.
+-	 */
+-	if (desc->wMaxPacketSize == 0)
+-		desc->wMaxPacketSize = cpu_to_le16(ep->maxpacket_limit);
+-
+ 	/* endpoint maxpacket size is an input parameter, except for bulk
+ 	 * where it's an output parameter representing the full speed limit.
+ 	 * the usb spec fixes high speed bulk maxpacket at 512 bytes.
+@@ -119,31 +112,6 @@ ep_matches (
+ 
+ 	/* MATCH!! */
+ 
+-	/* report address */
+-	desc->bEndpointAddress &= USB_DIR_IN;
+-	if (isdigit (ep->name [2])) {
+-		u8	num = simple_strtoul (&ep->name [2], NULL, 10);
+-		desc->bEndpointAddress |= num;
+-	} else if (desc->bEndpointAddress & USB_DIR_IN) {
+-		if (++gadget->in_epnum > 15)
+-			return 0;
+-		desc->bEndpointAddress = USB_DIR_IN | gadget->in_epnum;
+-	} else {
+-		if (++gadget->out_epnum > 15)
+-			return 0;
+-		desc->bEndpointAddress |= gadget->out_epnum;
+-	}
+-
+-	/* report (variable) full speed bulk maxpacket */
+-	if ((USB_ENDPOINT_XFER_BULK == type) && !ep_comp) {
+-		int size = ep->maxpacket_limit;
+-
+-		/* min() doesn't work on bitfields with gcc-3.5 */
+-		if (size > 64)
+-			size = 64;
+-		desc->wMaxPacketSize = cpu_to_le16(size);
+-	}
+-	ep->address = desc->bEndpointAddress;
+ 	return 1;
+ }
+ 
+@@ -280,6 +248,40 @@ struct usb_ep *usb_ep_autoconfig_ss(
+ 	/* Fail */
+ 	return NULL;
+ found_ep:
++
++	/*
++	 * If the protocol driver hasn't yet decided on wMaxPacketSize
++	 * and wants to know the maximum possible, provide the info.
++	 */
++	if (desc->wMaxPacketSize == 0)
++		desc->wMaxPacketSize = cpu_to_le16(ep->maxpacket_limit);
++
++	/* report address */
++	desc->bEndpointAddress &= USB_DIR_IN;
++	if (isdigit(ep->name[2])) {
++		u8 num = simple_strtoul(&ep->name[2], NULL, 10);
++		desc->bEndpointAddress |= num;
++	} else if (desc->bEndpointAddress & USB_DIR_IN) {
++		if (++gadget->in_epnum > 15)
++			return 0;
++		desc->bEndpointAddress = USB_DIR_IN | gadget->in_epnum;
++	} else {
++		if (++gadget->out_epnum > 15)
++			return 0;
++		desc->bEndpointAddress |= gadget->out_epnum;
++	}
++
++	/* report (variable) full speed bulk maxpacket */
++	if ((USB_ENDPOINT_XFER_BULK == type) && !ep_comp) {
++		int size = ep->maxpacket_limit;
++
++		/* min() doesn't work on bitfields with gcc-3.5 */
++		if (size > 64)
++			size = 64;
++		desc->wMaxPacketSize = cpu_to_le16(size);
++	}
++
++	ep->address = desc->bEndpointAddress;
+ 	ep->desc = NULL;
+ 	ep->comp_desc = NULL;
+ 	ep->claimed = true;
 -- 
 1.9.1
