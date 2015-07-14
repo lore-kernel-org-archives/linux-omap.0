@@ -1,55 +1,44 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 35/48] usb: renesas: gadget: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:39:23 +0200
-Message-ID: <1436866776-5004-36-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 36/48] usb: gadget: atmel_usba_udc: add ep capabilities
+ support
+Date: Tue, 14 Jul 2015 11:39:24 +0200
+Message-ID: <1436866776-5004-37-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, balbi@ti.com
-Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
+Cc: Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com, Robert Baldyga <r.baldyga@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
 Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/renesas_usbhs/mod_gadget.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/usb/gadget/udc/atmel_usba_udc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas_usbhs/mod_gadget.c
-index dc2aa32..ed8d890 100644
---- a/drivers/usb/renesas_usbhs/mod_gadget.c
-+++ b/drivers/usb/renesas_usbhs/mod_gadget.c
-@@ -1041,12 +1041,18 @@ int usbhs_mod_gadget_probe(struct usbhs_priv *priv)
- 		if (usbhsg_is_dcp(uep)) {
- 			gpriv->gadget.ep0 = &uep->ep;
- 			usb_ep_set_maxpacket_limit(&uep->ep, 64);
-+			uep->ep.caps.type_control = true;
- 		}
- 		/* init normal pipe */
- 		else {
- 			usb_ep_set_maxpacket_limit(&uep->ep, 512);
-+			uep->ep.caps.type_iso = true;
-+			uep->ep.caps.type_bulk = true;
-+			uep->ep.caps.type_int = true;
- 			list_add_tail(&uep->ep.ep_list, &gpriv->gadget.ep_list);
- 		}
-+		uep->ep.caps.dir_in = true;
-+		uep->ep.caps.dir_out = true;
- 	}
+diff --git a/drivers/usb/gadget/udc/atmel_usba_udc.c b/drivers/usb/gadget/udc/atmel_usba_udc.c
+index 37d414e..267d84f 100644
+--- a/drivers/usb/gadget/udc/atmel_usba_udc.c
++++ b/drivers/usb/gadget/udc/atmel_usba_udc.c
+@@ -2067,6 +2067,17 @@ static struct usba_ep * usba_udc_pdata(struct platform_device *pdev,
+ 		ep->can_dma = pdata->ep[i].can_dma;
+ 		ep->can_isoc = pdata->ep[i].can_isoc;
  
- 	ret = usb_add_gadget_udc(dev, &gpriv->gadget);
++		if (i == 0) {
++			ep->ep.caps.type_control = true;
++		} else {
++			ep->ep.caps.type_iso = ep->can_isoc;
++			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
++		}
++
++		ep->ep.caps.dir_in = true;
++		ep->ep.caps.dir_out = true;
++
+ 		if (i)
+ 			list_add_tail(&ep->ep.ep_list, &udc->gadget.ep_list);
+ 	}
 -- 
 1.9.1
