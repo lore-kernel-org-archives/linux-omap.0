@@ -1,14 +1,15 @@
 From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2 47/48] usb: musb: gadget: add musb_match_ep() function
-Date: Tue, 14 Jul 2015 14:11:02 +0300
-Message-ID: <55A4EE46.6000402@cogentembedded.com>
+Subject: Re: [PATCH v2 45/48] usb: gadget: net2280: add net2280_match_ep()
+ function
+Date: Tue, 14 Jul 2015 14:14:54 +0300
+Message-ID: <55A4EF2E.9090306@cogentembedded.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
- <1436866776-5004-48-git-send-email-r.baldyga@samsung.com>
+ <1436866776-5004-46-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1436866776-5004-48-git-send-email-r.baldyga@samsung.com>
+In-Reply-To: <1436866776-5004-46-git-send-email-r.baldyga@samsung.com>
 List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
 List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
@@ -34,62 +35,32 @@ On 7/14/2015 12:39 PM, Robert Baldyga wrote:
 > Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 
 [...]
-> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-> index 043248a..5f1eb35 100644
-> --- a/drivers/usb/musb/musb_gadget.c
-> +++ b/drivers/usb/musb/musb_gadget.c
-> @@ -1684,6 +1684,49 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
+> diff --git a/drivers/usb/gadget/udc/net2280.c b/drivers/usb/gadget/udc/net2280.c
+> index 0295cf7..4933321 100644
+> --- a/drivers/usb/gadget/udc/net2280.c
+> +++ b/drivers/usb/gadget/udc/net2280.c
+> @@ -1533,6 +1533,49 @@ static int net2280_pullup(struct usb_gadget *_gadget, int is_on)
 >   	return 0;
 >   }
 >
-> +#ifdef CONFIG_BLACKFIN
-> +static struct usb_ep *musb_find_ep(struct usb_gadget *g,
+> +static struct usb_ep *net2280_find_ep(struct usb_gadget *_gadget,
 > +		const char *name)
+
+    Shouldn't this be a generic function as before?
+
 > +{
 > +	struct usb_ep *ep;
 > +
-> +	list_for_each_entry(ep, &g->ep_list, ep_list) {
+> +	list_for_each_entry(ep, &_gadget->ep_list, ep_list) {
 > +		if (0 == strcmp(ep->name, name))
 
-    Please make the immediate value the 2nd operand of ==.
+    Please make 0 the 2nd operand to ==.
 
 > +			return ep;
 > +	}
 > +
 > +	return NULL;
 > +}
-> +
-> +static struct usb_ep *match_match_ep(struct usb_gadget *g,
-> +		struct usb_endpoint_descriptor *desc,
-> +		struct usb_ss_ep_comp_descriptor *ep_comp)
-> +{
-> +	struct usb_ep *ep = NULL;
-> +	u8 type = usb_endpoint_type(desc);
-> +
-> +	if ((USB_ENDPOINT_XFER_BULK == type) ||
-> +			(USB_ENDPOINT_XFER_ISOC == type)) {
-
-    Likewise.
-
-> +		if (USB_DIR_IN & desc->bEndpointAddress)
-
-    The same about &.
-
-> +			ep = musb_find_ep(g, "ep5in");
-> +		else
-> +			ep = musb_find_ep(g, "ep6out");
-> +	} else if (USB_ENDPOINT_XFER_INT == type) {
-
-    Likewise.
-
-> +		if (USB_DIR_IN & desc->bEndpointAddress)
-> +			ep = musb_find_ep(g, "ep1in");
-> +		else
-> +			ep = musb_find_ep(g, "ep2out");
-> +	}
-
-    This string of *if* statements is asking to be *switch* instead.
-
 [...]
 
 WBR, Sergei
