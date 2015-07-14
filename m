@@ -1,27 +1,46 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 6/6] ARM: dts: am335x-boneblack: Use new binding for
- HDMI
-Date: Tue, 14 Jul 2015 03:31:06 -0700
-Message-ID: <20150714103105.GM17550@atomide.com>
-References: <cover.1431083641.git.jsarha@ti.com>
- <43a51f35d24ab668c7015f054bc8f227373e24b6.1431083641.git.jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: dts: dra7: Add syscon-pllreset syscon to SATA
+ PHY
+Date: Tue, 14 Jul 2015 03:34:03 -0700
+Message-ID: <20150714103403.GN17550@atomide.com>
+References: <1431446828-5473-1-git-send-email-rogerq@ti.com>
+ <1431446828-5473-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <43a51f35d24ab668c7015f054bc8f227373e24b6.1431083641.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org
+In-Reply-To: <1431446828-5473-4-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: kishon@ti.com, nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> [150508 04:29]:
-> Use new binding for the external tda19988 HDMI encoder.
+* Roger Quadros <rogerq@ti.com> [150512 09:08]:
+> This register is required to be passed to the SATA PHY driver
+> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  arch/arm/boot/dts/dra7.dtsi | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index f03a091..260f300 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -1135,6 +1135,7 @@
+>  				ctrl-module = <&omap_control_sata>;
+>  				clocks = <&sys_clkin1>, <&sata_ref_clk>;
+>  				clock-names = "sysclk", "refclk";
+> +				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
+>  				#phy-cells = <0>;
+>  			};
+>  
 
-Applying this into omap-for-v4.3/dt thanks.
+Looks like this one is still pending driver changes, please
+resend when those are resolved. I'll untag this one for now.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
