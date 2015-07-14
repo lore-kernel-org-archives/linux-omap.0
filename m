@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v2 10/48] usb: gadget: bcm63xx_udc: add ep capabilities support
-Date: Tue, 14 Jul 2015 11:38:58 +0200
-Message-ID: <1436866776-5004-11-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v2 14/48] usb: gadget: fsl_qe_udc: add ep capabilities support
+Date: Tue, 14 Jul 2015 11:39:02 +0200
+Message-ID: <1436866776-5004-15-git-send-email-r.baldyga@samsung.com>
 References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,51 +25,30 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/bcm63xx_udc.c | 25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ drivers/usb/gadget/udc/fsl_qe_udc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/bcm63xx_udc.c b/drivers/usb/gadget/udc/bcm63xx_udc.c
-index 9db968b..c5e0894 100644
---- a/drivers/usb/gadget/udc/bcm63xx_udc.c
-+++ b/drivers/usb/gadget/udc/bcm63xx_udc.c
-@@ -44,9 +44,25 @@
- #define DRV_MODULE_NAME		"bcm63xx_udc"
+diff --git a/drivers/usb/gadget/udc/fsl_qe_udc.c b/drivers/usb/gadget/udc/fsl_qe_udc.c
+index e0822f1..5fb6f8b 100644
+--- a/drivers/usb/gadget/udc/fsl_qe_udc.c
++++ b/drivers/usb/gadget/udc/fsl_qe_udc.c
+@@ -2417,6 +2417,17 @@ static int qe_ep_config(struct qe_udc *udc, unsigned char pipe_num)
+ 	strcpy(ep->name, ep_name[pipe_num]);
+ 	ep->ep.name = ep_name[pipe_num];
  
- static const char bcm63xx_ep0name[] = "ep0";
--static const char *const bcm63xx_ep_name[] = {
--	bcm63xx_ep0name,
--	"ep1in-bulk", "ep2out-bulk", "ep3in-int", "ep4out-int",
-+
-+static const struct {
-+	const char *name;
-+	const struct usb_ep_caps caps;
-+} bcm63xx_ep_info[] = {
-+#define EP_INFO(_name, _type, _dir) \
-+	{ \
-+		.name = _name, \
-+		.caps = USB_EP_CAPS(USB_EP_CAPS_TYPE_ ## _type, \
-+				USB_EP_CAPS_DIR_ ## _dir), \
++	if (pipe_num == 0) {
++		ep->ep.caps.type_control = true;
++	} else {
++		ep->ep.caps.type_iso = true;
++		ep->ep.caps.type_bulk = true;
++		ep->ep.caps.type_int = true;
 +	}
 +
-+	EP_INFO(bcm63xx_ep0name, CONTROL, ALL),
-+	EP_INFO("ep1in-bulk",	BULK,	IN),
-+	EP_INFO("ep2out-bulk",	BULK,	OUT),
-+	EP_INFO("ep3in-int",	INT,	IN),
-+	EP_INFO("ep4out-int",	INT,	OUT),
++	ep->ep.caps.dir_in = true;
++	ep->ep.caps.dir_out = true;
 +
-+#undef EP_INFO
- };
- 
- static bool use_fullspeed;
-@@ -943,7 +959,8 @@ static int bcm63xx_init_udc_hw(struct bcm63xx_udc *udc)
- 	for (i = 0; i < BCM63XX_NUM_EP; i++) {
- 		struct bcm63xx_ep *bep = &udc->bep[i];
- 
--		bep->ep.name = bcm63xx_ep_name[i];
-+		bep->ep.name = bcm63xx_ep_info[i].name;
-+		bep->ep.caps = bcm63xx_ep_info[i].caps;
- 		bep->ep_num = i;
- 		bep->ep.ops = &bcm63xx_udc_ep_ops;
- 		list_add_tail(&bep->ep.ep_list, &udc->gadget.ep_list);
+ 	ep->ep.ops = &qe_ep_ops;
+ 	ep->stopped = 1;
+ 	usb_ep_set_maxpacket_limit(&ep->ep, (unsigned short) ~0);
 -- 
 1.9.1
