@@ -1,101 +1,95 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix bus recovery setup
-Date: Tue, 14 Jul 2015 13:10:05 +0200
-Message-ID: <20150714111004.GB1517@katana>
-References: <1436366127-24756-1-git-send-email-jlu@pengutronix.de>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v2 47/48] usb: musb: gadget: add musb_match_ep() function
+Date: Tue, 14 Jul 2015 14:11:02 +0300
+Message-ID: <55A4EE46.6000402@cogentembedded.com>
+References: <1436866776-5004-1-git-send-email-r.baldyga@samsung.com>
+ <1436866776-5004-48-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A6N2fC+uXW/VQSAv"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1436366127-24756-1-git-send-email-jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1436866776-5004-48-git-send-email-r.baldyga@samsung.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Robert Baldyga <r.baldyga@samsung.com>, gregkh@linuxfoundation.org, balbi@ti.com
+Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello.
 
---A6N2fC+uXW/VQSAv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 7/14/2015 12:39 PM, Robert Baldyga wrote:
 
-On Wed, Jul 08, 2015 at 04:35:27PM +0200, Jan Luebbe wrote:
-> At least on the AM335x, enabling OMAP_I2C_SYSTEST_ST_EN is not enough to
+> Add 'match_ep' callback to utilize chip-specific knowledge in endpoint matching
+> process. Functions does the same that was done by chip-specific code inside
+> of epautoconf. Now this code can be removed from there to separate generic code
+> from platform specific logic.
 
-Felipe: it seems you did not need this; is this AM335x specific?
+> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 
-> allow direct access to the SCL and SDA pins. In addition to ST_EN, we
-> need to set the TMODE to 0b11 (Loop back & SDA/SCL IO mode select).
-> Also, as the reset values of SCL_O and SDA_O are 0 (which means "drive
-> low level"), we need to set them to 1 (which means "high-impedance") to
-> avoid unwanted changes on the pins.
->=20
-> As a precaution, reset all these bits to their default values after
-> recovery is complete.
->=20
-> Signed-off-by: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index d1c22e3fdd14..fc9bf7f30e35 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1247,7 +1247,14 @@ static void omap_i2c_prepare_recovery(struct i2c_a=
-dapter *adap)
->  	u32 reg;
-> =20
->  	reg =3D omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-> +	/* enable test mode */
->  	reg |=3D OMAP_I2C_SYSTEST_ST_EN;
-> +	/* select SDA/SCL IO mode */
-> +	reg |=3D 3 << OMAP_I2C_SYSTEST_TMODE_SHIFT;
-> +	/* set SCL to high-impedance state (reset value is 0) */
-> +	reg |=3D OMAP_I2C_SYSTEST_SCL_O;
-> +	/* set SDA to high-impedance state (reset value is 0) */
-> +	reg |=3D OMAP_I2C_SYSTEST_SDA_O;
->  	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
->  }
-> =20
-> @@ -1257,7 +1264,11 @@ static void omap_i2c_unprepare_recovery(struct i2c=
-_adapter *adap)
->  	u32 reg;
-> =20
->  	reg =3D omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
-> +	/* restore reset values */
->  	reg &=3D ~OMAP_I2C_SYSTEST_ST_EN;
-> +	reg &=3D ~OMAP_I2C_SYSTEST_TMODE_MASK;
-> +	reg &=3D ~OMAP_I2C_SYSTEST_SCL_O;
-> +	reg &=3D ~OMAP_I2C_SYSTEST_SDA_O;
->  	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, reg);
->  }
-> =20
-> --=20
-> 2.1.4
->=20
+[...]
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> index 043248a..5f1eb35 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -1684,6 +1684,49 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
+>   	return 0;
+>   }
+>
+> +#ifdef CONFIG_BLACKFIN
+> +static struct usb_ep *musb_find_ep(struct usb_gadget *g,
+> +		const char *name)
+> +{
+> +	struct usb_ep *ep;
+> +
+> +	list_for_each_entry(ep, &g->ep_list, ep_list) {
+> +		if (0 == strcmp(ep->name, name))
 
---A6N2fC+uXW/VQSAv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+    Please make the immediate value the 2nd operand of ==.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> +			return ep;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +static struct usb_ep *match_match_ep(struct usb_gadget *g,
+> +		struct usb_endpoint_descriptor *desc,
+> +		struct usb_ss_ep_comp_descriptor *ep_comp)
+> +{
+> +	struct usb_ep *ep = NULL;
+> +	u8 type = usb_endpoint_type(desc);
+> +
+> +	if ((USB_ENDPOINT_XFER_BULK == type) ||
+> +			(USB_ENDPOINT_XFER_ISOC == type)) {
 
-iQIcBAEBAgAGBQJVpO4MAAoJEBQN5MwUoCm2UioP+wR7mlSAYqA1KhLA0NvJCLl/
-lg0p8M3CahfjkI64nqzcZpLSYWOsZxtpoaJ1txRVHEjlFwvUh/uX3f1z5aEilLia
-Xx2j6jRo+BlKZ6QUYM1biA7f8GAIRF1sUm0UD5lCSIQjaF78uLrVSp/xLU8/8Cnd
-ocahJ/kNRetThRzx3N2Q7zFPtFw6gbu9etmFcwZtVd50mOeyHtG1PT8HP/baTc8/
-uopN6BlQmvMJUA06SfNXtS890r4Hcu8hVwPouZ1+6MbBYCc3Bqa0hlAwpsz2cH6w
-ebwa8In67f7bNhlxPtFAgv9B4oTBzbb88eSiw6wWxe53/qPLTRXaoO7CkJNwze1+
-krWIqMoqHU1VmxvohxrnSKOloFb7EzWmXexnrzWbh0FPqjThc41yHSsayEW9icBW
-2S5BaBSaZ1zcKieezlqJAtXczNdTXIUG/UC2jMq98ApsS/8vHTopSXdegO0pqnA4
-vij6LPSYDT2yFX6I3um+b38xU7DRCrCG6OtFRVE+nLG1IplUHuGMQ4R4vx6HRabj
-2i+xl+UhTsfc7Z9YcHafPLZqgAUq/6x0mGKZRykjygypJdHq4QkYzVd73uuYiax8
-/O8HTXZEmKp8Uj1xv4Yxa7BdDUQLSIBGwFhLHjYVsdEinMwK6erZGmLh/it8YeCB
-/2vQhkxnIHzbFhJ/wOsa
-=7oIj
------END PGP SIGNATURE-----
+    Likewise.
 
---A6N2fC+uXW/VQSAv--
+> +		if (USB_DIR_IN & desc->bEndpointAddress)
+
+    The same about &.
+
+> +			ep = musb_find_ep(g, "ep5in");
+> +		else
+> +			ep = musb_find_ep(g, "ep6out");
+> +	} else if (USB_ENDPOINT_XFER_INT == type) {
+
+    Likewise.
+
+> +		if (USB_DIR_IN & desc->bEndpointAddress)
+> +			ep = musb_find_ep(g, "ep1in");
+> +		else
+> +			ep = musb_find_ep(g, "ep2out");
+> +	}
+
+    This string of *if* statements is asking to be *switch* instead.
+
+[...]
+
+WBR, Sergei
