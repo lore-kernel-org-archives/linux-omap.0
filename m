@@ -1,52 +1,69 @@
-From: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2] arm:DTS Correct audio input route & set mic bias
-Date: Tue, 14 Jul 2015 11:17:24 -0700
-Message-ID: <1436897844-6908-1-git-send-email-adam.yh.lee@gmail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Andrew Bresticker <abrestic@chromium.org>
+Subject: Re: [PATCH v3 00/11] USB: OTG/DRD Core functionality
+Date: Tue, 14 Jul 2015 11:18:30 -0700
+Message-ID: <CAL1qeaHdFv2VQwJVkW-Dv5KxKiJOpfusYuuc50BOkAdp-yvzLw@mail.gmail.com>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+	<CAL1qeaEJ9uX1vgvwO4-ABdGi5C96HZ2jBYWeKiGHJ-uqv6ooGg@mail.gmail.com>
+	<20150714005942.GB31197@shlinux2>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150714005942.GB31197@shlinux2>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Chen <peter.chen@freescale.com>
+Cc: Roger Quadros <rogerq@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, jun.li@freescale.com, Mathias Nyman <mathias.nyman@linux.intel.com>, tony@atomide.com, Joao.Pinto@synopsys.com, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Audio-in was incorrectly routed to Line In. It should be Mic3L as per
-schematic.
+Hi Peter,
 
-Using mic-bias voltage at 2.0v (<0x1>) does not work for some reason. There
-is no voltage seen on micbias (R127). Mic-bias voltage of 2.5v (<0x2>) works.
-I see voltage of 2.475v across GND and micbias.
+On Mon, Jul 13, 2015 at 5:59 PM, Peter Chen <peter.chen@freescale.com> wrote:
+> On Mon, Jul 13, 2015 at 12:14:43PM -0700, Andrew Bresticker wrote:
+>> Hi Roger,
+>>
+>> On Wed, Jul 8, 2015 at 3:19 AM, Roger Quadros <rogerq@ti.com> wrote:
+>> > Usage model:
+>> > -----------
+>> >
+>> > - The OTG controller device is assumed to be the parent of
+>> > the host and gadget controller. It must call usb_otg_register()
+>> > before populating the host and gadget devices so that the OTG
+>> > core is aware that it is an OTG device before the host & gadget
+>> > register. The OTG controller must provide struct otg_fsm_ops *
+>> > which will be called by the OTG core depending on OTG bus state.
+>>
+>> I'm wondering if the requirement that the OTG controller be the parent
+>> of the USB host/device-controllers makes sense.  For some context, I'm
+>> working on adding dual-role support for Tegra210, specifically on a
+>> system with USB Type-C.  On Tegra, the USB host-controller and USB
+>> device-controller are two separate IP blocks (XUSB host and XUSB
+>> device) with another, separate, IP block (XUSB padctl) for the USB PHY
+>> and OTG support.  In the non-Type-C case, your OTG framework could
+>> work well, though it's debatable as to whether or not the XUSB padctl
+>> device should be a parent to the XUSB host/device-controller devices
+>> (currently it isn't - it's just a PHY provider).  But in the Type-C
+>> case, it's an off-chip embedded controller that determines the
+>> dual-role status of the Type-C port, so the above requirement doesn't
+>> make sense at all.
+>
+> Hi Andrew,
+>
+> I think your problem is how to add your core driver to manage device and
+> host functionality together, and once you find how (through padctl/type-c
+> controller) to do it based on current code, it will be clear how to use roger
+> proposal framework at that time.
+>
+> Most of current core drivers, we use extcon driver (through gpio) or USB
+> vbus/id pin (through internal registers) to manager roles.
 
-With these changes, I can record audio with a pair of proliferate TRRS earbuds.
+Right, currently I'm modeling the Type-C controller as an extcon
+device and handle the role-changes in the core drivers, but that
+doesn't really make sense for the non-Type-C case where we use the
+XUSB padctl controller and need a full OTG state-machine.  Roger's new
+OTG/DRD framework would fit my situation perfectly since it makes the
+host/device-controller drivers independent from all the
+OTG/role-changing logic.  The only issue is the requirement that the
+OTG/DRD controller be the parent device of the host/device
+controllers.
 
-Signed-off-by: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- arch/arm/boot/dts/am335x-pepper.dts | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index d627dc6..73b4cc3 100644
---- a/arch/arm/boot/dts/am335x-pepper.dts
-+++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -74,6 +74,7 @@
- 	audio_codec: tlv320aic3106@1b {
- 		compatible = "ti,tlv320aic3106";
- 		reg = <0x1b>;
-+		ai3x-micbias-vg = <0x2>;
- 	};
- 
- 	accel: lis331dlh@1d {
-@@ -152,7 +153,7 @@
- 	ti,audio-routing =
- 		"Headphone Jack",	"HPLOUT",
- 		"Headphone Jack",	"HPROUT",
--		"LINE1L",		"Line In";
-+		"MIC3L",		"Mic3L Switch";
- };
- 
- &mcasp0 {
--- 
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Andrew
