@@ -1,122 +1,44 @@
-From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v3 46/46] usb: musb: gadget: add musb_match_ep() function
-Date: Wed, 15 Jul 2015 08:32:33 +0200
-Message-ID: <1436941953-1327-47-git-send-email-r.baldyga@samsung.com>
-References: <1436941953-1327-1-git-send-email-r.baldyga@samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] ARM-OMAP2+: Deletion of unnecessary checks before
+ two function calls
+Date: Tue, 14 Jul 2015 23:41:33 -0700
+Message-ID: <20150715064132.GZ17550@atomide.com>
+References: <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
+ <558BE713.1020409@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-reply-to: <1436941953-1327-1-git-send-email-r.baldyga@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org, balbi@ti.com
-Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <558BE713.1020409@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-Add 'match_ep' callback to utilize chip-specific knowledge in endpoint matching
-process. Function does the same that was done by chip-specific code inside
-of epautoconf. Now this code can be removed from there to separate generic code
-from platform specific logic.
+* SF Markus Elfring <elfring@users.sourceforge.net> [150625 04:35]:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 25 Jun 2015 13:24:35 +0200
+> 
+> Some functions which release a system resource tolerate the passing
+> of a null pointer. I do not see a need because of this fact
+> that a function caller repeats a corresponding check.
+> 
+> Markus Elfring (2):
+>   Delete a check before the function call "omap_device_delete"
+>   Delete a check before the function call "of_node_put"
+> 
+>  arch/arm/mach-omap2/omap_device.c | 3 +--
+>  arch/arm/mach-omap2/timer.c       | 3 +--
+>  2 files changed, 2 insertions(+), 4 deletions(-)
 
-Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
----
- drivers/usb/gadget/epautoconf.c | 23 -----------------------
- drivers/usb/musb/musb_gadget.c  | 34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 23 deletions(-)
+Applying both into omap-for-v4.3/soc thanks.
 
-diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index da45371..254ece7 100644
---- a/drivers/usb/gadget/epautoconf.c
-+++ b/drivers/usb/gadget/epautoconf.c
-@@ -83,29 +83,6 @@ struct usb_ep *usb_ep_autoconfig_ss(
- 			goto found_ep;
- 	}
- 
--	/* First, apply chip-specific "best usage" knowledge.
--	 * This might make a good usb_gadget_ops hook ...
--	 */
--#ifdef CONFIG_BLACKFIN
--	if (gadget_is_musbhdrc(gadget)) {
--		if ((USB_ENDPOINT_XFER_BULK == type) ||
--		    (USB_ENDPOINT_XFER_ISOC == type)) {
--			if (USB_DIR_IN & desc->bEndpointAddress)
--				ep = gadget_find_ep_by_name(gadget, "ep5in");
--			else
--				ep = gadget_find_ep_by_name(gadget, "ep6out");
--		} else if (USB_ENDPOINT_XFER_INT == type) {
--			if (USB_DIR_IN & desc->bEndpointAddress)
--				ep = gadget_find_ep_by_name(gadget, "ep1in");
--			else
--				ep = gadget_find_ep_by_name(gadget, "ep2out");
--		} else
--			ep = NULL;
--		if (ep && usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
--			goto found_ep;
--	}
--#endif
--
- 	/* Second, look at endpoints until an unclaimed one looks usable */
- 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
- 		if (usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 043248a..3a64cf2 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1684,6 +1684,39 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
- 	return 0;
- }
- 
-+#ifdef CONFIG_BLACKFIN
-+static struct usb_ep *musb_match_ep(struct usb_gadget *g,
-+		struct usb_endpoint_descriptor *desc,
-+		struct usb_ss_ep_comp_descriptor *ep_comp)
-+{
-+	struct usb_ep *ep = NULL;
-+	u8 type = usb_endpoint_type(desc);
-+
-+	switch(type) {
-+	case USB_ENDPOINT_XFER_ISOC:
-+	case USB_ENDPOINT_XFER_BULK:
-+		if (usb_endpoint_dir_in(desc))
-+			ep = gadget_find_ep_by_name(g, "ep5in");
-+		else
-+			ep = gadget_find_ep_by_name(g, "ep6out");
-+		break;
-+	case USB_ENDPOINT_XFER_INT:
-+		if (usb_endpoint_dir_in(desc))
-+			ep = gadget_find_ep_by_name(g, "ep1in");
-+		else
-+			ep = gadget_find_ep_by_name(g, "ep2out");
-+	default:
-+	}
-+
-+	if (ep && usb_gadget_ep_match_desc(g, ep, desc, ep_comp))
-+		return ep;
-+
-+	return NULL;
-+}
-+#else
-+#define musb_match_ep NULL
-+#endif
-+
- static int musb_gadget_start(struct usb_gadget *g,
- 		struct usb_gadget_driver *driver);
- static int musb_gadget_stop(struct usb_gadget *g);
-@@ -1697,6 +1730,7 @@ static const struct usb_gadget_ops musb_gadget_operations = {
- 	.pullup			= musb_gadget_pullup,
- 	.udc_start		= musb_gadget_start,
- 	.udc_stop		= musb_gadget_stop,
-+	.match_ep		= musb_match_ep,
- };
- 
- /* ----------------------------------------------------------------------- */
--- 
-1.9.1
+Tony
