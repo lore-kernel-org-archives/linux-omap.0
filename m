@@ -1,55 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] CLK: TI: add dpll_clksel_mac_clk node
-Date: Tue, 14 Jul 2015 22:13:37 -0700
-Message-ID: <20150715051336.GW17550@atomide.com>
-References: <1434614473-8500-1-git-send-email-j-keerthy@ti.com>
- <55828A18.6030608@ti.com>
- <558C0624.4060008@ti.com>
- <20150714110626.GQ17550@atomide.com>
- <55A50E87.4060400@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V2] arm:DTS Correct audio input route & set mic bias
+Date: Tue, 14 Jul 2015 22:30:05 -0700
+Message-ID: <20150715053005.GX17550@atomide.com>
+References: <1436897844-6908-1-git-send-email-adam.yh.lee@gmail.com>
+ <CAK8F28=0ttDiyzNKkYog7Pe_qWXGSRXkE_vOZ1QNpQiwbY0Vxw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55A50E87.4060400@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Keerthy <a0393675@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, galak@codeaurora.org, pawel.moll@arm.com, linux-kernel@vger.kernel.org, bcousson@baylibre.com, linux-clk@vger.kernel.org
+In-Reply-To: <CAK8F28=0ttDiyzNKkYog7Pe_qWXGSRXkE_vOZ1QNpQiwbY0Vxw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Arun Bharadwaj <arun-EiDWdcs9+yZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [150714 06:30]:
-> On 07/14/2015 02:06 PM, Tony Lindgren wrote:
-> >* Keerthy <a0393675@ti.com> [150625 06:48]:
-> >>
-> >>On Thursday 18 June 2015 02:36 PM, Mugunthan V N wrote:
-> >>>On Thursday 18 June 2015 01:31 PM, Keerthy wrote:
-> >>>>The series adds the missing clock node needed for cpsw.
-> >>>>
-> >>>>Keerthy (2):
-> >>>>   CLK: TI: add dpll_clksel_mac_clk node
-> >>>>   ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk
-> >>>>     clock
-> >>>>
-> >>>>  arch/arm/boot/dts/am4372.dtsi        | 7 +++++--
-> >>>>  arch/arm/boot/dts/am43xx-clocks.dtsi | 9 +++++++++
-> >>>>  drivers/clk/ti/clk-43xx.c            | 1 +
-> >>>>  3 files changed, 15 insertions(+), 2 deletions(-)
-> >>>>
-> >>>
-> >>>Tested-by: Mugunthan V N <mugunthanvnm@ti.com>
-> >>
-> >>Thanks Mugunthan.
-> >>
-> >>A gentle ping on this series.
+* Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150714 11:41]:
+> On Tue, Jul 14, 2015 at 11:17 AM, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > Audio-in was incorrectly routed to Line In. It should be Mic3L as per
+> > schematic.
 > >
-> >Tero, care to review this series?
-> 
-> Acked-by: Tero Kristo <t-kristo@ti.com>
-> 
-> I guess this should go through your tree as this is mostly dts changes?
+> > Using mic-bias voltage at 2.0v (<0x1>) does not work for some reason. There
+> > is no voltage seen on micbias (R127). Mic-bias voltage of 2.5v (<0x2>) works.
+> > I see voltage of 2.475v across GND and micbias.
+> >
+> > With these changes, I can record audio with a pair of proliferate TRRS earbuds.
+> >
+> > Signed-off-by: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > ---
+> >  arch/arm/boot/dts/am335x-pepper.dts | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
+> > index d627dc6..73b4cc3 100644
+> > --- a/arch/arm/boot/dts/am335x-pepper.dts
+> > +++ b/arch/arm/boot/dts/am335x-pepper.dts
+> > @@ -74,6 +74,7 @@
+> >         audio_codec: tlv320aic3106@1b {
+> >                 compatible = "ti,tlv320aic3106";
+> >                 reg = <0x1b>;
+> > +               ai3x-micbias-vg = <0x2>;
+> >         };
+> >
+> >         accel: lis331dlh@1d {
+> > @@ -152,7 +153,7 @@
+> >         ti,audio-routing =
+> >                 "Headphone Jack",       "HPLOUT",
+> >                 "Headphone Jack",       "HPROUT",
+> > -               "LINE1L",               "Line In";
+> > +               "MIC3L",                "Mic3L Switch";
+> >  };
+> >
+> >  &mcasp0 {
+> Note, this is getting resent to correct the sign-offs as requested
+> https://lkml.org/lkml/2015/7/14/56
+> Acked-by: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Actually I don't have anything coming for the clock dtsi files for
-v4.3 merge window, so it's best that you queue these. For the dts
-changes, please feel free to add:
+Thanks applying into omap-for-v4.2/fixes.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
