@@ -1,67 +1,68 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 2/4] Input: tsc2005 - convert to regmap
-Date: Wed, 15 Jul 2015 23:54:20 +0200
-Message-ID: <20150715215420.GB2591@earth>
+Subject: Re: [PATCH 3/4] Input: tsc2005 - simplify drvdata acquisition
+Date: Thu, 16 Jul 2015 00:02:21 +0200
+Message-ID: <20150715220220.GC2591@earth>
 References: <1436962408-5206-1-git-send-email-sre@kernel.org>
- <1436962408-5206-3-git-send-email-sre@kernel.org>
- <20150715212955.GA24393@dtor-ws>
+ <1436962408-5206-4-git-send-email-sre@kernel.org>
+ <20150715213107.GB24393@dtor-ws>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ADZbWkCsHQ7r3kzd"
+	protocol="application/pgp-signature"; boundary="YD3LsXFS42OYHhNZ"
 Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150715212955.GA24393@dtor-ws>
+In-Reply-To: <20150715213107.GB24393@dtor-ws>
 Sender: linux-input-owner@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: linux-input@vger.kernel.org, Michael Welling <mwelling@emacinc.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---ADZbWkCsHQ7r3kzd
+--YD3LsXFS42OYHhNZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dmitry,
+Hi,
 
-On Wed, Jul 15, 2015 at 02:29:55PM -0700, Dmitry Torokhov wrote:
-> I also got:
+On Wed, Jul 15, 2015 at 02:31:07PM -0700, Dmitry Torokhov wrote:
+> On Wed, Jul 15, 2015 at 02:13:27PM +0200, Sebastian Reichel wrote:
+> > Do not convert device to spi_device just for getting
+> > the driver data, since spi_get_drvdata() just calls
+> > dev_get_drvdata().
 >=20
->   CC [M]  drivers/input/touchscreen/tsc2005.o
->   Building modules, stage 2.
-> Kernel: arch/x86/boot/bzImage is ready  (#1383)
->   MODPOST 1403 modules
-> ERROR: "devm_regmap_init_spi" [drivers/input/touchscreen/tsc2005.ko]
-> undefined!
-> make[1]: *** [__modpost] Error 1
-> make: *** [modules] Error 2
->=20
-> I guess we need "select REGMAP_SPI".
+> Even though at the moment they all share the same data I consider them
+> logically different and so would prefer not to substityte one for
+> another.
 
-Right. I will add this in PATCHv2.
+I guess your problem is with mixing spi_*_drvdata and dev_*_drvdata
+calls? In that case I will also change spi_set_drvdata to
+dev_set_drvdata, so that spi_*_drvdata is not used at all.
+
+This will still reduce lines of code and flatten the way for tsc2004
+support (which is i2c based).
 
 -- Sebastian
 
---ADZbWkCsHQ7r3kzd
+--YD3LsXFS42OYHhNZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJVptaJAAoJENju1/PIO/qaASgP/1/PjGRHmssNsXdcZiv5x2UH
-zTPvBqkG+FwqaLQpl/YtkiR3w4MnAUXYxIf6reeqcZ14qxE+JkBVFw8wKU7CiXEj
-g1aRWe9pmX+EQwnTBjdarf9hhz43iuB25jY+H0mCzv5oThot9+91FEIoD788HMf/
-dmG9lsEnkg8d1LO+QIwrPlufZ2zUEqlAQWAnzT5qqEXli5xY6Pkunx5Iaro1eQtA
-yaL4YkULQvpz1w7GQON1G8HA7Os9BOXGwJM71S6p7sRYIEKQBBZ3OY1CKprZNlYx
-dZqMK9gJMa7y8zL9fiz3PlEx1Zj/FbMJOidVd+V14w4F2hyzrc0pRQ+ZFZ6vXNcf
-okDbkFvMHzFu95SHEyA+nlONDEbFxtvZofBxUGY4o+z6HwV4BF50sAmhQP8xVJUR
-u6ZyjOMuVxUhZmRjGf9Z6rYkIWN7FwcuzabiD9gPfnaRWMs54b5wTAR6GCNJ7Ble
-5sR+maTXOMlGlKZ8C84wFi/iOH8oLjhow+z0z93k05QiyGKpCrxcvVdaxC0Om/xH
-VRKbww+CqsH9LP1qDoKGQ5uKksAtmfNsDe2nO+3X/AP0Bj3gPTKHLFPOBsdkdbrB
-c6TU/ZZoa2J5EjFrlNbSGjYfYqLBW1L86rq9ByX3TkEpgfE74x00h6rk8cUng28x
-vqnwCasnR2R8+SFjQa9d
-=o1GS
+iQIcBAEBCgAGBQJVpthsAAoJENju1/PIO/qa7LMP/3A1lkiqxG5wHy7t1DNnbb3v
+7mz2FRDEz+Pgl77ExvFU5hLGMXI9m01Hy1Hko73pJNQ3xIeSOYZb9ZtLlNrMLLeY
+eOKfTIhLFbDIGqhLHaPEvdsZW+/ONcVfWNSAqswrO/MsVJgR+wUH/8hpZKY6sk6v
+xybQ4MCLqkbp/KRovfblLg9i7F39MoH2rZlZa3kXzj4fIxiLuBgchjctS/uGEnWi
+80NU+1nWpYShFG29d3IgSTMmRb2/vZUDTXbQO/I09ppq4yBRot7FJswinRn6h1NQ
+5Gxu8LiP1/M/TXd8/sVKB8n5zeRtwxG8WXavWa3UAjIce0zpLJs0VCBlXxHLAlVL
+fxy5ArecpPeo/Ugsyf2c7OwILPhrFdUC+hsD5xG/eK2o/3NJlUkdBB+IlAr7NPMr
+vIe+eXZ+Drk7GLUtPUiJCYVxSxGzEkvn/RX0vQ+C8zzSBFUZeGd8NOfMD4HbdJkA
+O/1R6vjHs6eJEmTedqz5HXRxCrjo9ahRzpoi7NZb4K5o8YGvZ2c4xdEhGUnGeB+I
+6qFBnnPk0Dky4H3XOFWWSzr70xS3FVH+uUz5NkzP9y5z4HGFhFLqyY/dOoq413Bt
+2Bo27CCSFiQv4QCaLq81sYdbrrCNl8QtyQ9cyVRIkUpJcIFA765Zv/jsSYml4yjU
+UXevZ3Lz3BSVT6iEf5Y+
+=QmUx
 -----END PGP SIGNATURE-----
 
---ADZbWkCsHQ7r3kzd--
+--YD3LsXFS42OYHhNZ--
