@@ -1,69 +1,54 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 3/3] ARM: dts: dra7: Add syscon-pllreset syscon to
- SATA PHY
-Date: Wed, 15 Jul 2015 16:47:50 +0300
-Message-ID: <55A66486.9000609@ti.com>
-References: <1433236242-26172-1-git-send-email-rogerq@ti.com> <1433236242-26172-4-git-send-email-rogerq@ti.com> <55A64253.100@ti.com> <20150715120745.GE17550@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes against v4.2-rc2
+Date: Wed, 15 Jul 2015 10:01:05 -0400
+Message-ID: <20150715140105.GA6469@localhost>
+References: <20150715105053.GC17550@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150715120745.GE17550@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20150715105053.GC17550@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On 15/07/15 15:07, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [150715 04:24]:
->> Hi Roger,
->>
->> On Tuesday 02 June 2015 02:40 PM, Roger Quadros wrote:
->>> This register is required to be passed to the SATA PHY driver
->>> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->>> ---
->>>  arch/arm/boot/dts/dra7.dtsi | 1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>> index f03a091..260f300 100644
->>> --- a/arch/arm/boot/dts/dra7.dtsi
->>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>> @@ -1135,6 +1135,7 @@
->>>  				ctrl-module = <&omap_control_sata>;
->>>  				clocks = <&sys_clkin1>, <&sata_ref_clk>;
->>>  				clock-names = "sysclk", "refclk";
->>> +				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
->>
->> I think all users of syscon should be made child node of scm_conf. Tony and
->> Tero, is that right?
-
-It can't be child of scm_conf as the address is outside it's range.
-Looks like I have to add a new child to scm node that maps beyond
-the dra7_pmx_core padconf address range.
-
->>
->> If so, then we might have to modify the driver too.
+On Wed, Jul 15, 2015 at 03:50:53AM -0700, Tony Lindgren wrote:
+> The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
 > 
-> Yeah there should not be much need to use syscon outside scm_conf
-> area and for I2C devices. If there's some other misc register area
-> in dra7 in addition to scm_conf then it might make sense to use it.
+>   Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
 > 
-> But in general, for the SCM registers, just a normal loadable kernel
-> driver module doing of_ioremap on a dedicated range of registers is
-> always a better option :)
+> are available in the git repository at:
 > 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/fixes-rc2-v2
+> 
+> for you to fetch changes up to 9908ac3daa3da2d236b5406b95d0865ddb8b29c4:
+> 
+>   ARM: dts: Correct audio input route & set mic bias for am335x-pepper (2015-07-15 03:03:01 -0700)
+> 
+> ----------------------------------------------------------------
+> Fixes for omaps, all dts changes except for one:
+> 
+> - Fix up LCD panel name for overo boards
+> 
+> - Three fixes for pepper board for regulators, freqeuncy
+>   scaling and audio input. Note that there is still one
+>   issue being worked on for booting with multi_v7_defconfig
+> 
+> - Add missing #iommu-cells for omap4 and 5
+> 
+> - Add missing HAVE_ARM_SCU for am43xx
 
-Lets take for example this register CTRL_CORE_SMA_SW_0.
-It has the SATA PLL_SOFT_RESET bit, EMIF1/2 gating control bits
-and ISOLATE bit.
+Merged, thanks.
 
-I don't see this fitting in any driver except the syscon approach.
 
-cheers,
--roger
+-Olof
