@@ -1,69 +1,58 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v3 28/46] usb: gadget: pxa27x_udc: add ep capabilities support
-Date: Wed, 15 Jul 2015 08:32:15 +0200
-Message-ID: <1436941953-1327-29-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v3 30/46] usb: gadget: s3c-hsudc: add ep capabilities support
+Date: Wed, 15 Jul 2015 08:32:17 +0200
+Message-ID: <1436941953-1327-31-git-send-email-r.baldyga@samsung.com>
 References: <1436941953-1327-1-git-send-email-r.baldyga@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 In-reply-to: <1436941953-1327-1-git-send-email-r.baldyga@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: gregkh@linuxfoundation.org, balbi@ti.com
-Cc: Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com, Robert Baldyga <r.baldyga@samsung.com>
+Cc: devel@driverdev.osuosl.org, linux-usb@vger.kernel.org, m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org, johnyoun@synopsys.com, linuxppc-dev@lists.ozlabs.org, cernekee@gmail.com, nicolas.ferre@atmel.com, michal.simek@xilinx.com, haojian.zhuang@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, andrzej.p@samsung.com, leoli@freescale.com, robert.jarzmik@free.fr, daniel@zonque.org, linux-geode@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/pxa27x_udc.h | 33 ++++++++++++++++++---------------
- 1 file changed, 18 insertions(+), 15 deletions(-)
+ drivers/usb/gadget/udc/s3c-hsudc.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/pxa27x_udc.h b/drivers/usb/gadget/udc/pxa27x_udc.h
-index 11e1423..ded058c 100644
---- a/drivers/usb/gadget/udc/pxa27x_udc.h
-+++ b/drivers/usb/gadget/udc/pxa27x_udc.h
-@@ -234,25 +234,28 @@
- /*
-  * Endpoint definition helpers
-  */
--#define USB_EP_DEF(addr, bname, dir, type, maxpkt) \
--{ .usb_ep = { .name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, }, \
-+#define USB_EP_DEF(addr, bname, dir, type, maxpkt, ctype, cdir) \
-+{ .usb_ep = {	.name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, \
-+		.caps = USB_EP_CAPS(USB_EP_CAPS_TYPE_ ## ctype, \
-+				    USB_EP_CAPS_DIR_ ## cdir), }, \
-   .desc = {	.bEndpointAddress = addr | (dir ? USB_DIR_IN : 0), \
--		.bmAttributes = type, \
-+		.bmAttributes = USB_ENDPOINT_XFER_ ## type, \
- 		.wMaxPacketSize = maxpkt, }, \
-   .dev = &memory \
- }
--#define USB_EP_BULK(addr, bname, dir) \
--  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_BULK, BULK_FIFO_SIZE)
--#define USB_EP_ISO(addr, bname, dir) \
--  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_ISOC, ISO_FIFO_SIZE)
--#define USB_EP_INT(addr, bname, dir) \
--  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_INT, INT_FIFO_SIZE)
--#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1)
--#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0)
--#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1)
--#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0)
--#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1)
--#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, 0, EP0_FIFO_SIZE)
-+#define USB_EP_BULK(addr, bname, dir, cdir) \
-+	USB_EP_DEF(addr, bname, dir, BULK, BULK_FIFO_SIZE, BULK, cdir)
-+#define USB_EP_ISO(addr, bname, dir, cdir) \
-+	USB_EP_DEF(addr, bname, dir, ISOC, ISO_FIFO_SIZE, ISO, cdir)
-+#define USB_EP_INT(addr, bname, dir, cdir) \
-+	USB_EP_DEF(addr, bname, dir, INT, INT_FIFO_SIZE, INT, cdir)
-+#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1, IN)
-+#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0, OUT)
-+#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1, IN)
-+#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0, OUT)
-+#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1, IN)
-+#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, CONTROL, \
-+					   EP0_FIFO_SIZE, CONTROL, ALL)
+diff --git a/drivers/usb/gadget/udc/s3c-hsudc.c b/drivers/usb/gadget/udc/s3c-hsudc.c
+index 85a712a..e9def42 100644
+--- a/drivers/usb/gadget/udc/s3c-hsudc.c
++++ b/drivers/usb/gadget/udc/s3c-hsudc.c
+@@ -1005,6 +1005,21 @@ static void s3c_hsudc_initep(struct s3c_hsudc *hsudc,
+ 	hsep->stopped = 0;
+ 	hsep->wedge = 0;
  
- #define PXA_EP_DEF(_idx, _addr, dir, _type, maxpkt, _config, iface, altset) \
- { \
++	if (epnum == 0) {
++		hsep->ep.caps.type_control = true;
++		hsep->ep.caps.dir_in = true;
++		hsep->ep.caps.dir_out = true;
++	} else {
++		hsep->ep.caps.type_iso = true;
++		hsep->ep.caps.type_bulk = true;
++		hsep->ep.caps.type_int = true;
++	}
++
++	if (epnum & 1)
++		hsep->ep.caps.dir_in = true;
++	else
++		hsep->ep.caps.dir_out = true;
++
+ 	set_index(hsudc, epnum);
+ 	writel(hsep->ep.maxpacket, hsudc->regs + S3C_MPR);
+ }
 -- 
 1.9.1
