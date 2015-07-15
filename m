@@ -1,129 +1,39 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 04/11] otg-fsm: move usb_bus_start_enum into otg-fsm->ops
-Date: Wed, 15 Jul 2015 16:30:27 +0300
-Message-ID: <55A66073.5010800@ti.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <1436350777-28056-5-git-send-email-rogerq@ti.com> <20150713015759.GC27710@shlinux2> <55A38F62.8010509@ti.com> <20150714003427.GA31197@shlinux2>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: Provide proper IO map table
+Date: Wed, 15 Jul 2015 08:41:51 -0500
+Message-ID: <55A6631F.60608@ti.com>
+References: <1434985934-29132-1-git-send-email-nm@ti.com> <20150715062616.GY17550@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150714003427.GA31197@shlinux2>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150715062616.GY17550@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14/07/15 03:34, Peter Chen wrote:
-> On Mon, Jul 13, 2015 at 01:13:54PM +0300, Roger Quadros wrote:
->> Peter,
+On 07/15/2015 01:26 AM, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [150622 08:14]:
+>> DRA7 uses OMAP5 IO table at the moment. This is purely spurious since
+>> the OMAP5 and DRA7 register maps are different in many aspects.
 >>
->> On 13/07/15 04:58, Peter Chen wrote:
->>> On Wed, Jul 08, 2015 at 01:19:30PM +0300, Roger Quadros wrote:
->>>> This is to prevent missing symbol build error if OTG is
->>>> enabled (built-in) and HCD core (CONFIG_USB) is module.
->>>>
->>>
->>> We may let the OTG-DRD/OTG-FSM depends on CONFIG_USB to fix it.
+>> AM57xx/DRA7 TRM Reference: http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
 >>
->> CONFIG_OTG already depends on CONFIG_USB as it is a sub-option of
->> CONFIG_USB. It doesn't depend on CONFIG_USB_GADGET and that can
->> be fixed.
+>> NOTE: Most of the drivers are already doing ioremap, so, there should'nt
+>> be any functional improvement involved here, other than making the
+>> initial iotable more accurate.
 >>
->> But dependency is not the problem here. Symbols not available to
->> OTG driver when USB/GADGET is 'm' is the problem.
->>
->> e.g.
->> CONFIG_USB_OTG is always built-in.
->> we need to work if CONFIG_USB is 'm'/'y'
->> _and_ if CONFIG_USB_GADGET is 'm'/'y'
->>
+>> Fixes: a3a9384a1157 ("ARM: DRA7: Reuse io tables and add a new .init_early")
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
 > 
-> below should fix this issue, but we may need to make some
-> changes for code which are defined by CONFIG_USB_OTG.
-> 
-> diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
-> index a99c89e..5e374ad 100644
-> --- a/drivers/usb/core/Kconfig
-> +++ b/drivers/usb/core/Kconfig
-> @@ -42,8 +42,9 @@ config USB_DYNAMIC_MINORS
->           If you are unsure about this, say N here.
-> 
-> config USB_OTG
-> -       bool "OTG support"
-> +       tristate "OTG support"
-> 	depends on PM
-> +       depends on USB && USB_GADGET
-> 	default n
->    help
->      The most notable feature of
->      USB OTG is support for a
+> Is this needed for v4.2-rc or can this wait for v4.3 merge window?
 
-With this USB_OTG will become 'm' when either USB or USB_GADGET is m
-and will break if either USB or USB_GADGET is made y as all OTG core
-API symbols won't be available. :)
 
-cheers,
--roger
+It can wait till 4.3 for sure. there is no known functional issue traced
+to this.
 
->>
->>>
->>> Peter
->>>
->>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>  drivers/usb/common/usb-otg-fsm.c | 6 ++++--
->>>>  drivers/usb/phy/phy-fsl-usb.c    | 2 ++
->>>>  include/linux/usb/otg-fsm.h      | 1 +
->>>>  3 files changed, 7 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
->>>> index 1873eb3..156fd25 100644
->>>> --- a/drivers/usb/common/usb-otg-fsm.c
->>>> +++ b/drivers/usb/common/usb-otg-fsm.c
->>>> @@ -166,8 +166,10 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->>>>  		otg_loc_conn(fsm, 0);
->>>>  		otg_loc_sof(fsm, 1);
->>>>  		otg_set_protocol(fsm, PROTO_HOST);
->>>> -		usb_bus_start_enum(fsm->otg->host,
->>>> -				fsm->otg->host->otg_port);
->>>> +		if (fsm->ops->start_enum) {
->>>> +			fsm->ops->start_enum(fsm->otg->host,
->>>> +					     fsm->otg->host->otg_port);
->>>> +		}
->>>>  		break;
->>>>  	case OTG_STATE_A_IDLE:
->>>>  		otg_drv_vbus(fsm, 0);
->>>> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
->>>> index ee3f2c2..19541ed 100644
->>>> --- a/drivers/usb/phy/phy-fsl-usb.c
->>>> +++ b/drivers/usb/phy/phy-fsl-usb.c
->>>> @@ -783,6 +783,8 @@ static struct otg_fsm_ops fsl_otg_ops = {
->>>>  
->>>>  	.start_host = fsl_otg_start_host,
->>>>  	.start_gadget = fsl_otg_start_gadget,
->>>> +
->>>> +	.start_enum = usb_bus_start_enum,
->>>>  };
->>>>  
->>>>  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
->>>> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
->>>> index c631dde..22d8baa 100644
->>>> --- a/include/linux/usb/otg-fsm.h
->>>> +++ b/include/linux/usb/otg-fsm.h
->>>> @@ -198,6 +198,7 @@ struct otg_fsm_ops {
->>>>  	void	(*del_timer)(struct otg_fsm *fsm, enum otg_fsm_timer timer);
->>>>  	int	(*start_host)(struct otg_fsm *fsm, int on);
->>>>  	int	(*start_gadget)(struct otg_fsm *fsm, int on);
->>>> +	int	(*start_enum)(struct usb_bus *bus, unsigned port_num);
->>>>  };
->>>>  
->>>>  
->>>> -- 
->>>> 2.1.4
->>>>
->>>
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Regards,
+Nishanth Menon
