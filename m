@@ -1,86 +1,66 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 3/3] ARM: dts: dra7: Add syscon-pllreset syscon to
- SATA PHY
-Date: Wed, 15 Jul 2015 17:59:12 +0300
-Message-ID: <55A67540.8090102@ti.com>
-References: <1433236242-26172-1-git-send-email-rogerq@ti.com> <1433236242-26172-4-git-send-email-rogerq@ti.com> <55A64253.100@ti.com> <20150715120745.GE17550@atomide.com> <55A66486.9000609@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH 0/4] Fix OMAP4 barrier support
+Date: Wed, 15 Jul 2015 18:46:47 +0100
+Message-ID: <20150715174647.GA7557@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55A66486.9000609@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Barry Song <baohua@kernel.org>, Will Deacon <will.deacon@arm.com>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/15/2015 04:47 PM, Roger Quadros wrote:
-> Hi,
->
-> On 15/07/15 15:07, Tony Lindgren wrote:
->> * Kishon Vijay Abraham I <kishon@ti.com> [150715 04:24]:
->>> Hi Roger,
->>>
->>> On Tuesday 02 June 2015 02:40 PM, Roger Quadros wrote:
->>>> This register is required to be passed to the SATA PHY driver
->>>> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->>>> ---
->>>>   arch/arm/boot/dts/dra7.dtsi | 1 +
->>>>   1 file changed, 1 insertion(+)
->>>>
->>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>>> index f03a091..260f300 100644
->>>> --- a/arch/arm/boot/dts/dra7.dtsi
->>>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>>> @@ -1135,6 +1135,7 @@
->>>>   				ctrl-module = <&omap_control_sata>;
->>>>   				clocks = <&sys_clkin1>, <&sata_ref_clk>;
->>>>   				clock-names = "sysclk", "refclk";
->>>> +				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
->>>
->>> I think all users of syscon should be made child node of scm_conf. Tony and
->>> Tero, is that right?
->
-> It can't be child of scm_conf as the address is outside it's range.
-> Looks like I have to add a new child to scm node that maps beyond
-> the dra7_pmx_core padconf address range.
->
->>>
->>> If so, then we might have to modify the driver too.
->>
->> Yeah there should not be much need to use syscon outside scm_conf
->> area and for I2C devices. If there's some other misc register area
->> in dra7 in addition to scm_conf then it might make sense to use it.
->>
->> But in general, for the SCM registers, just a normal loadable kernel
->> driver module doing of_ioremap on a dedicated range of registers is
->> always a better option :)
->>
->
-> Lets take for example this register CTRL_CORE_SMA_SW_0.
-> It has the SATA PLL_SOFT_RESET bit, EMIF1/2 gating control bits
-> and ISOLATE bit.
->
-> I don't see this fitting in any driver except the syscon approach.
->
-> cheers,
-> -roger
->
+OMAP4 (and other TI CPUs) allow for weak ordering of writes through
+different buses in their interconnects.  In order to ensure that
+accesses are performed in the correct order, we need to extend some
+of the kernel barriers to ensure that the bus interconnects are
+correctly ordered.
 
-Yea I think scm_conf can generally contain lots of weird registers that 
-can have multiple users / use-cases. This is the junk-yard of SoC 
-features the designers had no idea where to put them; so they put it 
-under scm_conf.
+As an example, it is possible for the following code sequence:
 
-I'd say in some cases we are probably forced to map to it from other 
-drivers, this is one of the reasons it is a syscon map in the first 
-place, and generally speaking, they should not be children of scm_conf 
-in the DT layout.
+	cpu = dma_alloc_coherent(dev, ..., &dma);
 
-You could probably add a "dummy" node under scm_conf which maps to the 
-scm register, and which you would refer to from the sata driver.
+	*cpu = 1;
+	writel(dma, dev_addr);
 
--Tero
+Normal kernel semantics ensures that the write to "*cpu" will become
+visible at the ARM domain boundary before the write to dev_addr.
+
+However, because of the TI interconnects, it is possible for the
+write to dev_addr to hit the peripheral before the write to "*cpu"
+hits memory.  Thus, if the write to the device causes the device to
+attempt to read from "*cpu" (which could be via a different path)
+the device won't see that write.
+
+Hence, we need to extend the barriers to ensure proper ordering
+further down the bus chain than we do already to the L2 cache.
+
+ arch/arm/include/asm/barrier.h              |  13 ++-
+ arch/arm/include/asm/outercache.h           |  17 ----
+ arch/arm/kernel/irq.c                       |   1 +
+ arch/arm/mach-omap2/Kconfig                 |   7 ++
+ arch/arm/mach-omap2/common.c                |   1 +
+ arch/arm/mach-omap2/common.h                |   9 +++
+ arch/arm/mach-omap2/include/mach/barriers.h |  33 --------
+ arch/arm/mach-omap2/io.c                    |   2 +
+ arch/arm/mach-omap2/omap4-common.c          | 121 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/sleep44xx.S             |   8 +-
+ arch/arm/mach-prima2/pm.c                   |   1 +
+ arch/arm/mach-ux500/cache-l2x0.c            |   1 +
+ arch/arm/mm/Kconfig                         |   4 +
+ arch/arm/mm/flush.c                         |  15 ++++
+ 14 files changed, 175 insertions(+), 58 deletions(-)
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
