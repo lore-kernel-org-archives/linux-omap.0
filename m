@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v3 34/46] usb: musb: gadget: add ep capabilities support
-Date: Wed, 15 Jul 2015 08:32:21 +0200
-Message-ID: <1436941953-1327-35-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v3 35/46] usb: renesas: gadget: add ep capabilities support
+Date: Wed, 15 Jul 2015 08:32:22 +0200
+Message-ID: <1436941953-1327-36-git-send-email-r.baldyga@samsung.com>
 References: <1436941953-1327-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,41 +25,31 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/musb/musb_gadget.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/usb/renesas_usbhs/mod_gadget.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 625d482f..043248a 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1729,6 +1729,7 @@ init_peripheral_ep(struct musb *musb, struct musb_ep *ep, u8 epnum, int is_in)
- 	INIT_LIST_HEAD(&ep->end_point.ep_list);
- 	if (!epnum) {
- 		usb_ep_set_maxpacket_limit(&ep->end_point, 64);
-+		ep->end_point.caps.type_control = true;
- 		ep->end_point.ops = &musb_g_ep0_ops;
- 		musb->g.ep0 = &ep->end_point;
- 	} else {
-@@ -1736,9 +1737,20 @@ init_peripheral_ep(struct musb *musb, struct musb_ep *ep, u8 epnum, int is_in)
- 			usb_ep_set_maxpacket_limit(&ep->end_point, hw_ep->max_packet_sz_tx);
- 		else
- 			usb_ep_set_maxpacket_limit(&ep->end_point, hw_ep->max_packet_sz_rx);
-+		ep->end_point.caps.type_iso = true;
-+		ep->end_point.caps.type_bulk = true;
-+		ep->end_point.caps.type_int = true;
- 		ep->end_point.ops = &musb_ep_ops;
- 		list_add_tail(&ep->end_point.ep_list, &musb->g.ep_list);
+diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas_usbhs/mod_gadget.c
+index dc2aa32..ed8d890 100644
+--- a/drivers/usb/renesas_usbhs/mod_gadget.c
++++ b/drivers/usb/renesas_usbhs/mod_gadget.c
+@@ -1041,12 +1041,18 @@ int usbhs_mod_gadget_probe(struct usbhs_priv *priv)
+ 		if (usbhsg_is_dcp(uep)) {
+ 			gpriv->gadget.ep0 = &uep->ep;
+ 			usb_ep_set_maxpacket_limit(&uep->ep, 64);
++			uep->ep.caps.type_control = true;
+ 		}
+ 		/* init normal pipe */
+ 		else {
+ 			usb_ep_set_maxpacket_limit(&uep->ep, 512);
++			uep->ep.caps.type_iso = true;
++			uep->ep.caps.type_bulk = true;
++			uep->ep.caps.type_int = true;
+ 			list_add_tail(&uep->ep.ep_list, &gpriv->gadget.ep_list);
+ 		}
++		uep->ep.caps.dir_in = true;
++		uep->ep.caps.dir_out = true;
  	}
-+
-+	if (!epnum || hw_ep->is_shared_fifo) {
-+		ep->end_point.caps.dir_in = true;
-+		ep->end_point.caps.dir_out = true;
-+	} else if (is_in)
-+		ep->end_point.caps.dir_in = true;
-+	else
-+		ep->end_point.caps.dir_out = true;
- }
  
- /*
+ 	ret = usb_add_gadget_udc(dev, &gpriv->gadget);
 -- 
 1.9.1
