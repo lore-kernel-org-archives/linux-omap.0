@@ -1,39 +1,69 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: DRA7: Provide proper IO map table
-Date: Wed, 15 Jul 2015 08:41:51 -0500
-Message-ID: <55A6631F.60608@ti.com>
-References: <1434985934-29132-1-git-send-email-nm@ti.com> <20150715062616.GY17550@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 3/3] ARM: dts: dra7: Add syscon-pllreset syscon to
+ SATA PHY
+Date: Wed, 15 Jul 2015 16:47:50 +0300
+Message-ID: <55A66486.9000609@ti.com>
+References: <1433236242-26172-1-git-send-email-rogerq@ti.com> <1433236242-26172-4-git-send-email-rogerq@ti.com> <55A64253.100@ti.com> <20150715120745.GE17550@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150715062616.GY17550@atomide.com>
+In-Reply-To: <20150715120745.GE17550@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/15/2015 01:26 AM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [150622 08:14]:
->> DRA7 uses OMAP5 IO table at the moment. This is purely spurious since
->> the OMAP5 and DRA7 register maps are different in many aspects.
+Hi,
+
+On 15/07/15 15:07, Tony Lindgren wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [150715 04:24]:
+>> Hi Roger,
 >>
->> AM57xx/DRA7 TRM Reference: http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+>> On Tuesday 02 June 2015 02:40 PM, Roger Quadros wrote:
+>>> This register is required to be passed to the SATA PHY driver
+>>> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>>> ---
+>>>  arch/arm/boot/dts/dra7.dtsi | 1 +
+>>>  1 file changed, 1 insertion(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>>> index f03a091..260f300 100644
+>>> --- a/arch/arm/boot/dts/dra7.dtsi
+>>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>>> @@ -1135,6 +1135,7 @@
+>>>  				ctrl-module = <&omap_control_sata>;
+>>>  				clocks = <&sys_clkin1>, <&sata_ref_clk>;
+>>>  				clock-names = "sysclk", "refclk";
+>>> +				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
 >>
->> NOTE: Most of the drivers are already doing ioremap, so, there should'nt
->> be any functional improvement involved here, other than making the
->> initial iotable more accurate.
+>> I think all users of syscon should be made child node of scm_conf. Tony and
+>> Tero, is that right?
+
+It can't be child of scm_conf as the address is outside it's range.
+Looks like I have to add a new child to scm node that maps beyond
+the dra7_pmx_core padconf address range.
+
 >>
->> Fixes: a3a9384a1157 ("ARM: DRA7: Reuse io tables and add a new .init_early")
->> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> If so, then we might have to modify the driver too.
 > 
-> Is this needed for v4.2-rc or can this wait for v4.3 merge window?
+> Yeah there should not be much need to use syscon outside scm_conf
+> area and for I2C devices. If there's some other misc register area
+> in dra7 in addition to scm_conf then it might make sense to use it.
+> 
+> But in general, for the SCM registers, just a normal loadable kernel
+> driver module doing of_ioremap on a dedicated range of registers is
+> always a better option :)
+> 
 
+Lets take for example this register CTRL_CORE_SMA_SW_0.
+It has the SATA PLL_SOFT_RESET bit, EMIF1/2 gating control bits
+and ISOLATE bit.
 
-It can wait till 4.3 for sure. there is no known functional issue traced
-to this.
+I don't see this fitting in any driver except the syscon approach.
 
-
--- 
-Regards,
-Nishanth Menon
+cheers,
+-roger
