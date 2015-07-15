@@ -1,54 +1,91 @@
 From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v3 00/11] USB: OTG/DRD Core functionality
-Date: Wed, 15 Jul 2015 16:07:18 +0300
-Message-ID: <55A65B06.1010907@ti.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <20150710075854.GA14729@shlinux2> <55A391C5.4010701@ti.com> <20150713130446.GA20931@shlinux2>
+Date: Wed, 15 Jul 2015 16:26:48 +0300
+Message-ID: <55A65F98.203@ti.com>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <CAL1qeaEJ9uX1vgvwO4-ABdGi5C96HZ2jBYWeKiGHJ-uqv6ooGg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150713130446.GA20931@shlinux2>
+In-Reply-To: <CAL1qeaEJ9uX1vgvwO4-ABdGi5C96HZ2jBYWeKiGHJ-uqv6ooGg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Li Jun <b47624@freescale.com>
-Cc: Joao.Pinto@synopsys.com, stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Andrew Bresticker <abrestic@chromium.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, peter.chen@freescale.com, Dan Williams <dan.j.williams@intel.com>, jun.li@freescale.com, Mathias Nyman <mathias.nyman@linux.intel.com>, tony@atomide.com, Joao.Pinto@synopsys.com, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 13/07/15 16:04, Li Jun wrote:
-> On Mon, Jul 13, 2015 at 01:24:05PM +0300, Roger Quadros wrote:
->> Hi,
->>
->> On 10/07/15 10:58, Li Jun wrote:
->>> On Wed, Jul 08, 2015 at 01:19:26PM +0300, Roger Quadros wrote:
->>>> Hi,
->>>>
->>>> This series centralizes OTG/Dual-role functionality in the kernel.
->>>> As of now I've got Dual-role functionality working pretty reliably on
->>>> dra7-evm and am437x-gp-evm. xhci side of things for OTG/DRD use are already
->>>> in v4.2
->>>
->>> Do you have any plan to implement OTG(HNP) on some of your platforms based on
->>> this OTG core?
->>
->> Not yet but Joao Pinto was interested to implement full OTG for dwc3
->> controllers.
->>
->> Would you be interested to try out one of your platforms so that we can
->> address any issues early?
->>
->> cheers,
->> -roger
->>
-> 
-> Yes, I am considering to try out OTG on chipidea driver for FSL i.mx6x platform
-> , which will based on your OTG core and my previous gadget update patchset.
+Hi Andrew,
 
-Great :)
+On 13/07/15 22:14, Andrew Bresticker wrote:
+> Hi Roger,
 > 
-> I will comment your patchset if find any issues. Since there is still much work
-> to do to complete OTG HNP/SRP, so I assume this will not be done in a short time.
+> On Wed, Jul 8, 2015 at 3:19 AM, Roger Quadros <rogerq@ti.com> wrote:
+>> Usage model:
+>> -----------
+>>
+>> - The OTG controller device is assumed to be the parent of
+>> the host and gadget controller. It must call usb_otg_register()
+>> before populating the host and gadget devices so that the OTG
+>> core is aware that it is an OTG device before the host & gadget
+>> register. The OTG controller must provide struct otg_fsm_ops *
+>> which will be called by the OTG core depending on OTG bus state.
+> 
+> I'm wondering if the requirement that the OTG controller be the parent
+> of the USB host/device-controllers makes sense.  For some context, I'm
+> working on adding dual-role support for Tegra210, specifically on a
+> system with USB Type-C.  On Tegra, the USB host-controller and USB
+> device-controller are two separate IP blocks (XUSB host and XUSB
+> device) with another, separate, IP block (XUSB padctl) for the USB PHY
+> and OTG support.  In the non-Type-C case, your OTG framework could
+> work well, though it's debatable as to whether or not the XUSB padctl
+> device should be a parent to the XUSB host/device-controller devices
+> (currently it isn't - it's just a PHY provider).  But in the Type-C
+> case, it's an off-chip embedded controller that determines the
+> dual-role status of the Type-C port, so the above requirement doesn't
+> make sense at all.
+> 
+> My idea was to have the OTG/DRD controller explicitly specify its host
+> and device controllers, so in DT, something like:
+> 
+> otg-controller {
+>     ...
+>     device-controller = <&usb_device>;
+>     host-controller = <&usb_host>;
+>     ...
+> };
+> 
+> usb_device: usb-device@.... {
+>     ...
+> };
+> 
+> usb_host: usb-host@... {
+>     ...
+> };
+> 
+> What do you think?
 
-Yes. My plan was to first get DRD working reliably and then add missing HNP/SRP stuff.
-The first user of HNP/SRP will know what issues are and what needs to be added.
+I agree that we need to support your use case but how to do it
+is not yet clear to me.
+
+In your above example the otg controller knows what are the host
+and gadget controllers but the host/gadget devices don't
+know who is their otg controller.
+
+So the problem is that when usb_otg_register_hcd/gadget() is called
+we need to get a handle to the otg controller.
+
+One solution I see is to iterate over the registered otg_controller_list
+and check if we match the host/gadget controller in there.
+
+Then there is also a possibility that host/gadget controllers get
+registered before the OTG controller. Then we can't know for sure if
+the host/gadget controller was meant for dual-role operation or not
+and it will resort to single role operation.
+
+Any idea to prevent the above situation?
+
+Maybe we need to add some logic in host/gadget cores to check if the port
+is meant for dual-role use and defer probe if OTG controller is not yet
+registered?
 
 cheers,
 -roger
