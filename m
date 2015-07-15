@@ -1,59 +1,54 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] irqchip: omap-intc: improve IRQ handler
-Date: Wed, 15 Jul 2015 14:36:54 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1507151435480.18576@nanos>
-References: <1420224433-27001-1-git-send-email-balbi@ti.com>
- <20150119213458.GK18552@atomide.com> <20150715064923.GA17550@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 00/11] USB: OTG/DRD Core functionality
+Date: Wed, 15 Jul 2015 16:07:18 +0300
+Message-ID: <55A65B06.1010907@ti.com>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <20150710075854.GA14729@shlinux2> <55A391C5.4010701@ti.com> <20150713130446.GA20931@shlinux2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150715064923.GA17550@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Jason Cooper <jason@lakedaemon.net>, Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150713130446.GA20931@shlinux2>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Li Jun <b47624@freescale.com>
+Cc: Joao.Pinto@synopsys.com, stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 15 Jul 2015, Tony Lindgren wrote:
-> Felipe,
+On 13/07/15 16:04, Li Jun wrote:
+> On Mon, Jul 13, 2015 at 01:24:05PM +0300, Roger Quadros wrote:
+>> Hi,
+>>
+>> On 10/07/15 10:58, Li Jun wrote:
+>>> On Wed, Jul 08, 2015 at 01:19:26PM +0300, Roger Quadros wrote:
+>>>> Hi,
+>>>>
+>>>> This series centralizes OTG/Dual-role functionality in the kernel.
+>>>> As of now I've got Dual-role functionality working pretty reliably on
+>>>> dra7-evm and am437x-gp-evm. xhci side of things for OTG/DRD use are already
+>>>> in v4.2
+>>>
+>>> Do you have any plan to implement OTG(HNP) on some of your platforms based on
+>>> this OTG core?
+>>
+>> Not yet but Joao Pinto was interested to implement full OTG for dwc3
+>> controllers.
+>>
+>> Would you be interested to try out one of your platforms so that we can
+>> address any issues early?
+>>
+>> cheers,
+>> -roger
+>>
 > 
-> * Tony Lindgren <tony@atomide.com> [150119 13:41]:
-> > * Felipe Balbi <balbi@ti.com> [150102 10:50]:
-> > > as it turns out the current IRQ number will
-> > > *always* be available from SIR register which
-> > > renders the reads of PENDING registers as plain
-> > > unnecessary overhead.
-> > > 
-> > > In order to catch any situation where SIR reads
-> > > as zero, we're adding a WARN() to turn it into
-> > > a very verbose error and users actually report
-> > > it.
-> > > 
-> > > With this patch average running time of
-> > > omap_intc_handle_irq() reduced from about 28.5us
-> > > to 19.8us as measured by the kernel function
-> > > profiler.
-> > > 
-> > > Tested with BeagleBoneBlack Rev A5C.
-> > > 
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > 
-> > Jason, looks like this is not showing up in Linux next. The
-> > same for the changes I did for dm81xx.
+> Yes, I am considering to try out OTG on chipidea driver for FSL i.mx6x platform
+> , which will based on your OTG core and my previous gadget update patchset.
+
+Great :)
 > 
-> Can you please resend this to Jason? Looks like this
-> is still not merged.
+> I will comment your patchset if find any issues. Since there is still much work
+> to do to complete OTG HNP/SRP, so I assume this will not be done in a short time.
 
-Please send it to me asap and please cc lkml on irqchip patches.
+Yes. My plan was to first get DRD working reliably and then add missing HNP/SRP stuff.
+The first user of HNP/SRP will know what issues are and what needs to be added.
 
-Thanks,
-
-	tglx
+cheers,
+-roger
