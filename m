@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v3 14/46] usb: gadget: fsl_qe_udc: add ep capabilities support
-Date: Wed, 15 Jul 2015 08:32:01 +0200
-Message-ID: <1436941953-1327-15-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v3 17/46] usb: gadget: goku_udc: add ep capabilities support
+Date: Wed, 15 Jul 2015 08:32:04 +0200
+Message-ID: <1436941953-1327-18-git-send-email-r.baldyga@samsung.com>
 References: <1436941953-1327-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,30 +25,27 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/fsl_qe_udc.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/usb/gadget/udc/goku_udc.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/fsl_qe_udc.c b/drivers/usb/gadget/udc/fsl_qe_udc.c
-index e0822f1..5fb6f8b 100644
---- a/drivers/usb/gadget/udc/fsl_qe_udc.c
-+++ b/drivers/usb/gadget/udc/fsl_qe_udc.c
-@@ -2417,6 +2417,17 @@ static int qe_ep_config(struct qe_udc *udc, unsigned char pipe_num)
- 	strcpy(ep->name, ep_name[pipe_num]);
- 	ep->ep.name = ep_name[pipe_num];
+diff --git a/drivers/usb/gadget/udc/goku_udc.c b/drivers/usb/gadget/udc/goku_udc.c
+index 9e8d842..46b8d14 100644
+--- a/drivers/usb/gadget/udc/goku_udc.c
++++ b/drivers/usb/gadget/udc/goku_udc.c
+@@ -1257,6 +1257,14 @@ static void udc_reinit (struct goku_udc *dev)
+ 		INIT_LIST_HEAD (&ep->queue);
  
-+	if (pipe_num == 0) {
-+		ep->ep.caps.type_control = true;
-+	} else {
-+		ep->ep.caps.type_iso = true;
-+		ep->ep.caps.type_bulk = true;
-+		ep->ep.caps.type_int = true;
-+	}
+ 		ep_reset(NULL, ep);
 +
-+	ep->ep.caps.dir_in = true;
-+	ep->ep.caps.dir_out = true;
++		if (i == 0)
++			ep->ep.caps.type_control = true;
++		else
++			ep->ep.caps.type_bulk = true;
 +
- 	ep->ep.ops = &qe_ep_ops;
- 	ep->stopped = 1;
- 	usb_ep_set_maxpacket_limit(&ep->ep, (unsigned short) ~0);
++		ep->ep.caps.dir_in = true;
++		ep->ep.caps.dir_out = true;
+ 	}
+ 
+ 	dev->ep[0].reg_mode = NULL;
 -- 
 1.9.1
