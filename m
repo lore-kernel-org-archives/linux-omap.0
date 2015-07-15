@@ -1,57 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 3/3] ARM: dts: dra7: Add syscon-pllreset syscon to
- SATA PHY
-Date: Wed, 15 Jul 2015 05:07:46 -0700
-Message-ID: <20150715120745.GE17550@atomide.com>
-References: <1433236242-26172-1-git-send-email-rogerq@ti.com>
- <1433236242-26172-4-git-send-email-rogerq@ti.com>
- <55A64253.100@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55A64253.100@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 0/4] [input] tsc2005 cleanup
+Date: Wed, 15 Jul 2015 14:13:24 +0200
+Message-ID: <1436962408-5206-1-git-send-email-sre@kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org
+Cc: Michael Welling <mwelling@emacinc.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [150715 04:24]:
-> Hi Roger,
-> 
-> On Tuesday 02 June 2015 02:40 PM, Roger Quadros wrote:
-> > This register is required to be passed to the SATA PHY driver
-> > to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
-> > 
-> > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> > ---
-> >  arch/arm/boot/dts/dra7.dtsi | 1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> > index f03a091..260f300 100644
-> > --- a/arch/arm/boot/dts/dra7.dtsi
-> > +++ b/arch/arm/boot/dts/dra7.dtsi
-> > @@ -1135,6 +1135,7 @@
-> >  				ctrl-module = <&omap_control_sata>;
-> >  				clocks = <&sys_clkin1>, <&sata_ref_clk>;
-> >  				clock-names = "sysclk", "refclk";
-> > +				syscon-pllreset = <&dra7_ctrl_core 0x3fc>;
-> 
-> I think all users of syscon should be made child node of scm_conf. Tony and
-> Tero, is that right?
-> 
-> If so, then we might have to modify the driver too.
+Hi,
 
-Yeah there should not be much need to use syscon outside scm_conf
-area and for I2C devices. If there's some other misc register area
-in dra7 in addition to scm_conf then it might make sense to use it.
+The following patches simplify and cleanup the tsc2005 touchscreen driver.
+Apart from making the driver more readable, the direct usage of SPI has been
+reduced to one function, so that tsc2004 support may be addable now (see [0]).
 
-But in general, for the SCM registers, just a normal loadable kernel
-driver module doing of_ioremap on a dedicated range of registers is
-always a better option :)
+The driver could be further simplified by making the vio regulator also
+mandatory for boardcode and switching boardcode from set_reset callback
+to GPIOD API. Since that would result in a patch touching the ARM and
+the input subsystem, I suggest to wait until the Nokia N900 boardcode
+is gone.
 
-Regrds,
+[0] http://permalink.gmane.org/gmane.linux.kernel.input/37513
 
-Tony
+-- Sebastian
+
+Sebastian Reichel (4):
+  Input: tsc2005 - improve readability of register defines
+  Input: tsc2005 - convert to regmap
+  Input: tsc2005 - simplify drvdata acquisition
+  Input: tsc2005 - convert to gpiod
+
+ drivers/input/touchscreen/tsc2005.c | 235 ++++++++++++++----------------------
+ 1 file changed, 88 insertions(+), 147 deletions(-)
+
+-- 
+2.1.4
+
