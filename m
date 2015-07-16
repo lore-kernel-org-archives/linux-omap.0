@@ -1,104 +1,81 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 1/6] ARM: OMAP4: PRM: Remove hardcoding of
- PRM_IO_PMCTRL_OFFSET register
-Date: Thu, 16 Jul 2015 01:54:57 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1507160153240.32764@utopia.booyaka.com>
-References: <1436334148-9309-1-git-send-email-j-keerthy@ti.com> <1436334148-9309-2-git-send-email-j-keerthy@ti.com>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [PATCH v3 04/11] otg-fsm: move usb_bus_start_enum into
+ otg-fsm->ops
+Date: Thu, 16 Jul 2015 08:54:14 +0800
+Message-ID: <20150716005413.GA25628@shlinux2>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+ <1436350777-28056-5-git-send-email-rogerq@ti.com>
+ <20150713015759.GC27710@shlinux2>
+ <55A38F62.8010509@ti.com>
+ <20150714003427.GA31197@shlinux2>
+ <55A66073.5010800@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436334148-9309-2-git-send-email-j-keerthy@ti.com>
+Content-Disposition: inline
+In-Reply-To: <55A66073.5010800@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, galak@codeaurora.org, pawel.moll@arm.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
-
-a few minor comments
-
-On Wed, 8 Jul 2015, Keerthy wrote:
-
-> PRM_IO_PMCTRL_OFFSET need not be same for all SOCs hence
-> remove hardcoding and use the value provided by the omap_prcm_irq_setup
-> structure.
-
-Please mention here that the reason why you're making this change is to 
-support AM437x. 
-
+On Wed, Jul 15, 2015 at 04:30:27PM +0300, Roger Quadros wrote:
+> On 14/07/15 03:34, Peter Chen wrote:
+> > On Mon, Jul 13, 2015 at 01:13:54PM +0300, Roger Quadros wrote:
+> >> Peter,
+> >>
+> >> On 13/07/15 04:58, Peter Chen wrote:
+> >>> On Wed, Jul 08, 2015 at 01:19:30PM +0300, Roger Quadros wrote:
+> >>>> This is to prevent missing symbol build error if OTG is
+> >>>> enabled (built-in) and HCD core (CONFIG_USB) is module.
+> >>>>
+> >>>
+> >>> We may let the OTG-DRD/OTG-FSM depends on CONFIG_USB to fix it.
+> >>
+> >> CONFIG_OTG already depends on CONFIG_USB as it is a sub-option of
+> >> CONFIG_USB. It doesn't depend on CONFIG_USB_GADGET and that can
+> >> be fixed.
+> >>
+> >> But dependency is not the problem here. Symbols not available to
+> >> OTG driver when USB/GADGET is 'm' is the problem.
+> >>
+> >> e.g.
+> >> CONFIG_USB_OTG is always built-in.
+> >> we need to work if CONFIG_USB is 'm'/'y'
+> >> _and_ if CONFIG_USB_GADGET is 'm'/'y'
+> >>
+> > 
+> > below should fix this issue, but we may need to make some
+> > changes for code which are defined by CONFIG_USB_OTG.
+> > 
+> > diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+> > index a99c89e..5e374ad 100644
+> > --- a/drivers/usb/core/Kconfig
+> > +++ b/drivers/usb/core/Kconfig
+> > @@ -42,8 +42,9 @@ config USB_DYNAMIC_MINORS
+> >           If you are unsure about this, say N here.
+> > 
+> > config USB_OTG
+> > -       bool "OTG support"
+> > +       tristate "OTG support"
+> > 	depends on PM
+> > +       depends on USB && USB_GADGET
+> > 	default n
+> >    help
+> >      The most notable feature of
+> >      USB OTG is support for a
 > 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  arch/arm/mach-omap2/prcm-common.h |  1 +
->  arch/arm/mach-omap2/prm44xx.c     | 11 ++++++-----
->  2 files changed, 7 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-> index 6ae0b3a..2e60406 100644
-> --- a/arch/arm/mach-omap2/prcm-common.h
-> +++ b/arch/arm/mach-omap2/prcm-common.h
-> @@ -494,6 +494,7 @@ struct omap_prcm_irq {
->  struct omap_prcm_irq_setup {
->  	u16 ack;
->  	u16 mask;
-> +	u16 pm_ctrl;
-
-Please add a kerneldoc structure documentation line for this new field, to 
-match the existing documentation here.
-
->  	u8 nr_regs;
->  	u8 nr_irqs;
->  	const struct omap_prcm_irq *irqs;
-> diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-> index 4541700..8149e5a 100644
-> --- a/arch/arm/mach-omap2/prm44xx.c
-> +++ b/arch/arm/mach-omap2/prm44xx.c
-> @@ -45,6 +45,7 @@ static const struct omap_prcm_irq omap4_prcm_irqs[] = {
->  static struct omap_prcm_irq_setup omap4_prcm_irq_setup = {
->  	.ack			= OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
->  	.mask			= OMAP4_PRM_IRQENABLE_MPU_OFFSET,
-> +	.pm_ctrl		= OMAP4_PRM_IO_PMCTRL_OFFSET,
->  	.nr_regs		= 2,
->  	.irqs			= omap4_prcm_irqs,
->  	.nr_irqs		= ARRAY_SIZE(omap4_prcm_irqs),
-> @@ -306,10 +307,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
->  	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
->  				    OMAP4430_WUCLK_CTRL_MASK,
->  				    inst,
-> -				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-> +				    omap4_prcm_irq_setup.pm_ctrl);
->  	omap_test_timeout(
->  		(((omap4_prm_read_inst_reg(inst,
-> -					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
-> +					   omap4_prcm_irq_setup.pm_ctrl) &
->  		   OMAP4430_WUCLK_STATUS_MASK) >>
->  		  OMAP4430_WUCLK_STATUS_SHIFT) == 1),
->  		MAX_IOPAD_LATCH_TIME, i);
-> @@ -319,10 +320,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
->  	/* Trigger WUCLKIN disable */
->  	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
->  				    inst,
-> -				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-> +				    omap4_prcm_irq_setup.pm_ctrl);
->  	omap_test_timeout(
->  		(((omap4_prm_read_inst_reg(inst,
-> -					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
-> +					   omap4_prcm_irq_setup.pm_ctrl) &
->  		   OMAP4430_WUCLK_STATUS_MASK) >>
->  		  OMAP4430_WUCLK_STATUS_SHIFT) == 0),
->  		MAX_IOPAD_LATCH_TIME, i);
-> @@ -350,7 +351,7 @@ static void __init omap44xx_prm_enable_io_wakeup(void)
->  	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
->  				    OMAP4430_GLOBAL_WUEN_MASK,
->  				    inst,
-> -				    OMAP4_PRM_IO_PMCTRL_OFFSET);
-> +				    omap4_prcm_irq_setup.pm_ctrl);
->  }
->  
->  /**
-> -- 
-> 1.9.1
+> With this USB_OTG will become 'm' when either USB or USB_GADGET is m
+> and will break if either USB or USB_GADGET is made y as all OTG core
+> API symbols won't be available. :)
 > 
 
+Ok, after thinking more, seems we can't handle properly if USB_OTG as
+'m', your idea that using host/gadget/fsm->ops to call hcd/gadget API
+and the controller driver will defines these ops (due to it will use
+hcd/gadget function) is proper way currently.
 
-- Paul
+-- 
+
+Best Regards,
+Peter Chen
