@@ -1,37 +1,88 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [4.2-rc1][PATCH] gpio: omap: add missed spin_unlock_irqrestore in omap_gpio_irq_type
-Date: Thu, 16 Jul 2015 10:36:22 +0200
-Message-ID: <CACRpkdZeBYrff4ZwVyzSKk9Gcy_57WK-3FcfwbzbD8DY06Adng@mail.gmail.com>
-References: <1435157657-17843-1-git-send-email-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/12] ARM: OMAP2+: Fix scrm compatible for dm814x
+Date: Thu, 16 Jul 2015 02:11:09 -0700
+Message-ID: <20150716091109.GK17550@atomide.com>
+References: <1433348601-8966-1-git-send-email-tony@atomide.com>
+ <1433348601-8966-3-git-send-email-tony@atomide.com>
+ <556F50B8.6000903@cogentembedded.com>
+ <20150603193806.GW30984@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1435157657-17843-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20150603193806.GW30984@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 24, 2015 at 4:54 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
+* Tony Lindgren <tony@atomide.com> [150603 12:39]:
+> * Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [150603 12:10]:
+> > Hello.
+> > 
+> > On 06/03/2015 07:23 PM, Tony Lindgren wrote:
+> > 
+> > >Fix scrm compatible for dm814x.
+> > 
+> >    So, scrm...
+> > 
+> > >Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+> > >Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > >---
+> > >  arch/arm/mach-omap2/control.c | 1 +
+> > >  1 file changed, 1 insertion(+)
+> > >
+> > >diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> > >index af95a62..364925c 100644
+> > >--- a/arch/arm/mach-omap2/control.c
+> > >+++ b/arch/arm/mach-omap2/control.c
+> > >@@ -649,6 +649,7 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
+> > >  	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
+> > >  	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
+> > >  	{ .compatible = "ti,omap3-scm", .data = &omap2_ctrl_data },
+> > >+	{ .compatible = "ti,dm814-scm", .data = &ctrl_data },
+> > 
+> >    ... or scm? :-)
+> > 
+> > >  	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
+> > >  	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
+> > >  	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
+> 
+> Thanks, yeah we should standardize on scm.
 
-> From: Grygorii Strashko <grygorii.strashko@linaro.org>
->
-> Add missed spin_unlock_irqrestore in omap_gpio_irq_type when
-> omap_set_gpio_triggering() is failed.
->
-> It fixes static checker warning:
->
->         drivers/gpio/gpio-omap.c:523 omap_gpio_irq_type()
->         warn: inconsistent returns 'spin_lock:&bank->lock'.
->
-> This fixes commit:
-> 1562e4618ded ('gpio: omap: fix error handling in omap_gpio_irq_type')
->
-> Reported-by: Javier Martinez Canillas <javier@dowhile0.org>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+Below is this one updated to use scm instead of scrm in the
+description.
 
-Patch applied for fixes.
+Regards,
 
-Yours,
-Linus Walleij
+Tony
+
+8< -------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 16 Jul 2015 01:55:57 -0700
+Subject: [PATCH] ARM: OMAP2+: Fix scm compatible for dm814x
+
+Fix scm compatible for dm814x.
+
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -652,6 +652,7 @@ static const struct of_device_id omap_scrm_dt_match_table[] = {
+ 	{ .compatible = "ti,am4-scm", .data = &ctrl_data },
+ 	{ .compatible = "ti,omap2-scm", .data = &omap2_ctrl_data },
+ 	{ .compatible = "ti,omap3-scm", .data = &omap2_ctrl_data },
++	{ .compatible = "ti,dm814-scm", .data = &ctrl_data },
+ 	{ .compatible = "ti,dm816-scrm", .data = &ctrl_data },
+ 	{ .compatible = "ti,omap4-scm-core", .data = &ctrl_data },
+ 	{ .compatible = "ti,omap5-scm-core", .data = &ctrl_data },
