@@ -1,70 +1,51 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] V4 regmap: Use reg_sequence for
- multi_reg_write / register_patch
-Date: Thu, 16 Jul 2015 21:48:08 +0100
-Message-ID: <20150716204808.GB1602@sirena.org.uk>
-References: <1436885152-19850-1-git-send-email-nariman@opensource.wolfsonmicro.com>
- <20150716125254.GE4039@sirena.org.uk>
- <20150716154525.GB21939@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/2 V5] regmap: Apply optional delay in
+ multi_reg_write/register_patch
+Date: Thu, 16 Jul 2015 21:55:22 +0100
+Message-ID: <20150716205522.GC1602@sirena.org.uk>
+References: <1437060982-26519-1-git-send-email-nariman@opensource.wolfsonmicro.com>
+ <1437060982-26519-2-git-send-email-nariman@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5666094292535647320=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20150716154525.GB21939@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="OBd5C1Lgu00Gd/Tn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1437060982-26519-2-git-send-email-nariman@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Nariman Poushin <nariman@opensource.wolfsonmicro.com>
-Cc: oder_chiou@realtek.com, brian.austin@cirrus.com, laurent.pinchart+renesas@ideasonboard.com, sameo@linux.intel.com, support.opensource@diasemi.com, airlied@linux.ie, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, lgirdwood@gmail.com, peter.ujfalusi@ti.com, tony@atomide.com, lars@metafoo.de, Paul.Handrigan@cirrus.com, patches@opensource.wolfsonmicro.com, bardliao@realtek.com, linux-omap@vger.kernel.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, dmurphy@ti.com
+Cc: gregkh@linuxfoundation.org, airlied@linux.ie, dmitry.torokhov@gmail.com, sameo@linux.intel.com, lee.jones@linaro.org, tony@atomide.com, lgirdwood@gmail.com, brian.austin@cirrus.com, Paul.Handrigan@cirrus.com, support.opensource@diasemi.com, bardliao@realtek.com, oder_chiou@realtek.com, laurent.pinchart+renesas@ideasonboard.com, lars@metafoo.de, dmurphy@ti.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---===============5666094292535647320==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="2B/JsCI69OhZNC5r"
-Content-Disposition: inline
-
-
---2B/JsCI69OhZNC5r
+--OBd5C1Lgu00Gd/Tn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jul 16, 2015 at 04:45:25PM +0100, Nariman Poushin wrote:
+On Thu, Jul 16, 2015 at 04:36:22PM +0100, Nariman Poushin wrote:
 
-> I will resend with a cover letter explaining the change from the previous
-> patch set if that is the right thing to do.
+> +
+> +			if (regs[i].delay_us)
+> +				udelay(regs[i].delay_us);
 
-No, that's fine.  If you want to fix something like that just reply to
-the cover letter with the extra information.
+This is a bit funky.  While Takashi is correct that we could be running
+in a spinlock equally this will mean that we could end up with some
+really long busy waits.  It feels like we should at least make an effort
+to complain about that, print a warning or something.
 
---2B/JsCI69OhZNC5r
+--OBd5C1Lgu00Gd/Tn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJVqBiFAAoJECTWi3JdVIfQU0cH/2zBhOlDz6e+jY+7Y58/61Mz
-Mh23ZVckNJIFWn7xGyznVv0Slw4/iGUhL4FL8B/lOiv8pR3mUT3BNqhCpRk5DzDB
-VMQY3fvpHqg6uO1vHrQUeiKQxlZP8Psm455a2lHQ5Xzr/vsabpF/y45g29OsJ1AU
-yvjTPV2kcyw7YIuBN7mYE9hVa7LQAMyXCP+vGUJKhjehxDDEtihtVWvJz8Bxwpzy
-JneaBE3fkhbGPhvgy+oRKDUgp3J1y/kgKiJ21hizvS0W1UssbC/e7I3QAKMvrxPq
-ircmztggAw3hAO2HOMajK9aUDH+g36Hs66N3Z0rg74dfJtYLq07b5OoYIar/+0w=
-=OG+G
+iQEcBAEBCAAGBQJVqBo5AAoJECTWi3JdVIfQ0T8H/3Trgv/8UhuhU1HOESHpqCXX
+MuVbzMSojiAow5FIrxnRWkVDRHACysPGN2PLxttBerFRr+kYB/CViMvYb0mdZjti
+z+JEb0r63lY4v5a3y6p30UxOCvNnl48Vvw/mvc2rEfGBVrPdCOAt/Gcuu9WbjFOr
+H6pwxOttrGwwaR+7v4skFgJRfFAJCDNg0F6F7l6Z0JCeAZf/8rDO+qVFCVzydoMo
+uBQ+VRDBwIXul2+uPNjIKwKRVOH2kRpFiB8OUcwrvBIy/q6cPRuZ7V5+Y/eXkvNv
+gfzc7DDuGZUM9OMOovCFD7sr6nWnsO4MwiLL77/3uiXE1UY0dwMmJoM/RS+liJg=
+=ExP8
 -----END PGP SIGNATURE-----
 
---2B/JsCI69OhZNC5r--
-
---===============5666094292535647320==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============5666094292535647320==--
+--OBd5C1Lgu00Gd/Tn--
