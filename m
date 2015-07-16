@@ -1,71 +1,41 @@
-From: Nariman Poushin <nariman@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH 1/2] V4 regmap: Use reg_sequence for
-	multi_reg_write / register_patch
-Date: Thu, 16 Jul 2015 16:45:25 +0100
-Message-ID: <20150716154525.GB21939@opensource.wolfsonmicro.com>
-References: <1436885152-19850-1-git-send-email-nariman@opensource.wolfsonmicro.com> <20150716125254.GE4039@sirena.org.uk>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
+Date: Thu, 16 Jul 2015 18:45:22 +0300
+Message-ID: <55A7D192.7080301@iki.fi>
+References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com> <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150716125254.GE4039@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: oder_chiou@realtek.com, brian.austin@cirrus.com, laurent.pinchart+renesas@ideasonboard.com, sameo@linux.intel.com, alsa-devel@alsa-project.org, airlied@linux.ie, gregkh@linuxfoundation.org, dri-devel@lists.freedesktop.org, dmitry.torokhov@gmail.com, lgirdwood@gmail.com, Paul.Handrigan@cirrus.com, linux-kernel@vger.kernel.org, peter.ujfalusi@ti.com, tony@atomide.com, lars@metafoo.de, dmurphy@ti.com, patches@opensource.wolfsonmicro.com, bardliao@realtek.com, linux-omap@vger.kernel.org, lee.jones@linaro.org, support.opensource@diasemi.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, mike@compulab.co.il, grinberg@compulab.co.il
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 16, 2015 at 01:52:54PM +0100, Mark Brown wrote:
-> On Tue, Jul 14, 2015 at 03:45:51PM +0100, Nariman Poushin wrote:
-> 
-> Please submit patches in the format covered in SubmittingPatches,
-> version information goes inside the [].
-> 
-> > Add support for writing sequences of registers / patches with specified
-> > delays (in microseconds). Logically separates the functionality using
-> > sequences of register writes from the functions that take register
-> > defaults, as adding a delay field on the reg_defaults can increase
-> > memory usage substantially.
-> 
-> This change doesn't do what the above changelog says.  It introduces a
-> new struct reg_sequence and updates the multi write and patch APIs to
-> use that but it doesn't implement any delay functionality.  Please
-> resend with a clearer changelog that describes why the struct is being
-> split out from the reg_defaults struct and makes it clear that this is
-> just a rename.  It's probably best to also defer the addition of the
-> delay field until the second patch where this function is actually
-> implemented.
-> 
-> > +/**
-> > + * Register / Value pairs for sequences of writes, incorporating an optional
-> 
-> Register/value.
-> 
-> > + * delay in microseconds.
-> > + *
-> > + * @reg: Register address.
-> > + * @def: Register default value.
-> > + * @delay_us: Delay in microseconds
-> > + */
-> > +
-> > +struct reg_sequence {
-> 
-> No blank line between the kerneldoc and the struct (as is the style for
-> other kernel code).
+Hi Laurent,
 
-I realized that I resent my patches with out outlining the changes from
-the previous patch set (V5 vs V4), not sure if it is best to resend
-with a cover letter (which would increase noise)?
+Laurent Pinchart wrote:
+> The OMAP3 ISP is now fully supported in DT, remove its instantiation
+> from C code.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  arch/arm/mach-omap2/devices.c | 53 -------------------------------------------
+>  arch/arm/mach-omap2/devices.h | 19 ----------------
+>  2 files changed, 72 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/devices.h
 
-Anyway, I addressed your both your and Takashi's comments, thanks both
-for your feedback.
+If you remove the definitions, arch/arm/mach-omap2/board-cm-t35.c will
+no longer compile. Could you remove the camera support there as well?
 
-I will resend with a cover letter explaining the change from the previous
-patch set if that is the right thing to do.
+My understanding is the board might be supported in DT but I'm not sure
+about camera.
 
-Thanks
-Nariman
+Cc Mike and Igor.
 
-> _______________________________________________
-> Alsa-devel mailing list
-> Alsa-devel@alsa-project.org
-> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
