@@ -1,129 +1,177 @@
-From: Lokesh Vutla <a0131933@ti.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
-Date: Thu, 16 Jul 2015 17:56:39 +0530
-Message-ID: <55A7A2FF.2010307@ti.com>
-References: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
- <55A4DFEF.6040005@ti.com> <55A52208.5060302@ti.com>
- <alpine.DEB.2.02.1507160014371.32764@utopia.booyaka.com>
- <55A758A3.2070108@ti.com>
- <alpine.DEB.2.02.1507161012090.32764@utopia.booyaka.com>
- <55A79DA6.4070206@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] pinctrl: single: ensure pcs irq will not be forced threaded
+Date: Thu, 16 Jul 2015 14:29:09 +0200
+Message-ID: <CACRpkdaJrwvcxD+r8+og5U3kCNvrhv6U0sSNb8rm0R4_WqjyAw@mail.gmail.com>
+References: <1436195617-24003-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <55A79DA6.4070206@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436195617-24003-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tero,
-On Thursday 16 July 2015 05:33 PM, Tero Kristo wrote:
-> On 07/16/2015 01:13 PM, Paul Walmsley wrote:
->> On Thu, 16 Jul 2015, Tero Kristo wrote:
->>
->>> On 07/16/2015 03:15 AM, Paul Walmsley wrote:
->>>> On Tue, 14 Jul 2015, Tero Kristo wrote:
->>>>
->>>>> On 07/14/2015 01:09 PM, Lokesh Vutla wrote:
->>>>>> Hi,
->>>>>> On Wednesday 10 June 2015 02:56 PM, Lokesh Vutla wrote:
->>>>>>> Some IP blocks like RTC, needs an additional unlocking mechanism for
->>>>>>> writing to its registers. This patch adds optional lock and unlock
->>>>>>> function pointers to the IP block's hwmod data which gets executed
->>>>>>> before and after writing into IP sysconfig register.
->>>>>>> And also hook lock and unlock functions to AMx3xx, DRA7 RTC hwmod
->>>>>>> data,
->>>>>>> so that sysconfig registers are updated properly.
->>>>>> ping on this series.
->>>>>>
->>>>>> Thanks and regards,
->>>>>> Lokesh
->>>>>
->>>>
->>>> [...]
->>>>
->>>>> It is also racy, as there is no locking in place to avoid concurrent
->>>>> access to
->>>>> the lock/unlock registers across hwmod+driver.
->>>>
->>>> I don't see the race.  Where is it?
->>>
->>> See drivers/rtc/rtc-omap.c, am3352_rtc_unlock and am3352_rtc_lock.
->>>
->>> That code is accessing the exact same registers.
->>
->> I guess my question is, when is it possible that code could race with the
->> hwmod code for the same device?
->
-> Hmm yea I think you are right, this only gets potentially called within
-> pm_runtime_get/put_sync for RTC.
-Yes, sysc is written from hwmod_init code and pm_runtime_get/put_sysnc.
-And we write into rtc registers only after pm_runtime_get_sync and 
-rtc_unlock.
-There cannot be a race condition here.
->
-> The current sequence is highly inefficient though, as we are doing
-> multiple lock/unlock operations to the RTC from multiple sources. See
-> following rtcwake trace on am43xx-gp-evm as an example.
-Initially I had a patch which leaves rtc unlocked at hwmod_init instead 
-of doing
-unlock and lock for each set of register writes in the driver.
-But it was rejected stating that deviates the purpose of locking mechanism.
-So I updated the driver for adapting this locking and unlocking mechanism.
+On Mon, Jul 6, 2015 at 5:13 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
 
-Thanks and regards,
-Lokesh
+> The PSC IRQ is requested using request_irq() API and as result it can
+> be forced to be threaded IRQ in RT-Kernel if PCS_QUIRK_HAS_SHARED_IRQ
+> is enabled for pinctrl domain.
+>
+> As result, following 'possible irq lock inversion dependency' report
+> can be seen:
+> =========================================================
+> [ INFO: possible irq lock inversion dependency detected ]
+> 3.14.43-rt42-00360-g96ff499-dirty #24 Not tainted
+> ---------------------------------------------------------
+> irq/369-pinctrl/927 just changed the state of lock:
+>  (&pcs->lock){+.....}, at: [<c0375b54>] pcs_irq_handle+0x48/0x9c
+> but this lock was taken by another, HARDIRQ-safe lock in the past:
+>  (&irq_desc_lock_class){-.....}
+>
+> and interrupts could create inverse lock ordering between them.
+>
+> other info that might help us debug this:
+>  Possible interrupt unsafe locking scenario:
+>
+>        CPU0                    CPU1
+>        ----                    ----
+>   lock(&pcs->lock);
+>                                local_irq_disable();
+>                                lock(&irq_desc_lock_class);
+>                                lock(&pcs->lock);
+>   <Interrupt>
+>     lock(&irq_desc_lock_class);
+>
+>  *** DEADLOCK ***
+>
+> no locks held by irq/369-pinctrl/927.
+>
+> the shortest dependencies between 2nd lock and 1st lock:
+>   -> (&irq_desc_lock_class){-.....} ops: 58724 {
+>      IN-HARDIRQ-W at:
+>                        [<c0090040>] lock_acquire+0x9c/0x158
+>                        [<c07065c8>] _raw_spin_lock+0x48/0x58
+>                        [<c009edac>] handle_fasteoi_irq+0x24/0x15c
+>                        [<c009abb0>] generic_handle_irq+0x3c/0x4c
+>                        [<c000f83c>] handle_IRQ+0x50/0xa0
+>                        [<c0008674>] gic_handle_irq+0x3c/0x6c
+>                        [<c0707a04>] __irq_svc+0x44/0x8c
+>                        [<c000fc44>] arch_cpu_idle+0x40/0x4c
+>                        [<c009aadc>] cpu_startup_entry+0x270/0x2e0
+>                        [<c06fcbf8>] rest_init+0xd4/0xe4
+>                        [<c0a44bfc>] start_kernel+0x3d0/0x3dc
+>                        [<80008084>] 0x80008084
+>      INITIAL USE at:
+>                       [<c0090040>] lock_acquire+0x9c/0x158
+>                       [<c070674c>] _raw_spin_lock_irqsave+0x54/0x68
+>                       [<c009aff8>] __irq_get_desc_lock+0x64/0xa4
+>                       [<c009e38c>] irq_set_chip+0x30/0x78
+>                       [<c009ec30>] irq_set_chip_and_handler_name+0x24/0x3c
+>                       [<c036ca10>] gic_irq_domain_map+0x48/0xb4
+>                       [<c00a0a80>] irq_domain_associate+0x84/0x1d4
+>                       [<c00a1154>] irq_create_mapping+0x80/0x11c
+>                       [<c00a1270>] irq_create_of_mapping+0x80/0x120
+>                       [<c05cdaa8>] irq_of_parse_and_map+0x34/0x3c
+>                       [<c0a4ea24>] omap_dm_timer_init_one+0x90/0x30c
+>                       [<c0a4eef0>] omap5_realtime_timer_init+0x8c/0x48c
+>                       [<c0a486b0>] time_init+0x28/0x38
+>                       [<c0a44a6c>] start_kernel+0x240/0x3dc
+>                       [<80008084>] 0x80008084
+>    }
+>    ... key      at: [<c1049ce0>] irq_desc_lock_class+0x0/0x8
+>    ... acquired at:
+>    [<c07065c8>] _raw_spin_lock+0x48/0x58
+>    [<c0375a90>] pcs_irq_unmask+0x58/0xa0
+>    [<c009ea48>] irq_enable+0x38/0x48
+>    [<c009ead0>] irq_startup+0x78/0x7c
+>    [<c009d440>] __setup_irq+0x4a8/0x4f4
+>    [<c009d5dc>] request_threaded_irq+0xb8/0x138
+>    [<c0415a5c>] omap_8250_startup+0x4c/0x148
+>    [<c041276c>] serial8250_startup+0x24/0x30
+>    [<c040d0ec>] uart_startup.part.9+0x5c/0x1b4
+>    [<c040dbcc>] uart_open+0xf4/0x16c
+>    [<c03f0540>] tty_open+0x170/0x61c
+>    [<c0157028>] chrdev_open+0xbc/0x1b4
+>    [<c0150494>] do_dentry_open+0x1e8/0x2bc
+>    [<c0150a84>] finish_open+0x44/0x5c
+>    [<c0160d50>] do_last.isra.47+0x710/0xca0
+>    [<c01613a4>] path_openat+0xc4/0x640
+>    [<c0162904>] do_filp_open+0x3c/0x98
+>    [<c0151bdc>] do_sys_open+0x114/0x1d8
+>    [<c0151cc8>] SyS_open+0x28/0x2c
+>    [<c0a44d70>] kernel_init_freeable+0x168/0x1e4
+>    [<c06fcc24>] kernel_init+0x1c/0xf8
+>    [<c000eee8>] ret_from_fork+0x14/0x20
+>
+> -> (&pcs->lock){+.....} ops: 65 {
+>    HARDIRQ-ON-W at:
+>                     [<c0090040>] lock_acquire+0x9c/0x158
+>                     [<c07065c8>] _raw_spin_lock+0x48/0x58
+>                     [<c0375b54>] pcs_irq_handle+0x48/0x9c
+>                     [<c0375c5c>] pcs_irq_handler+0x1c/0x28
+>                     [<c009c458>] irq_forced_thread_fn+0x30/0x74
+>                     [<c009c784>] irq_thread+0x158/0x1c4
+>                     [<c0063fc4>] kthread+0xd4/0xe8
+>                     [<c000eee8>] ret_from_fork+0x14/0x20
+>    INITIAL USE at:
+>                    [<c0090040>] lock_acquire+0x9c/0x158
+>                    [<c070674c>] _raw_spin_lock_irqsave+0x54/0x68
+>                    [<c0375344>] pcs_enable+0x7c/0xe8
+>                    [<c0372a44>] pinmux_enable_setting+0x178/0x220
+>                    [<c036fecc>] pinctrl_select_state+0x110/0x194
+>                    [<c04732dc>] pinctrl_bind_pins+0x7c/0x108
+>                    [<c045853c>] driver_probe_device+0x70/0x254
+>                    [<c0458810>] __driver_attach+0x9c/0xa0
+>                    [<c045674c>] bus_for_each_dev+0x78/0xac
+>                    [<c0458030>] driver_attach+0x2c/0x30
+>                    [<c0457c78>] bus_add_driver+0x15c/0x204
+>                    [<c0458ee0>] driver_register+0x88/0x108
+>                    [<c045a168>] __platform_driver_register+0x64/0x6c
+>                    [<c0a8170c>] omap_hsmmc_driver_init+0x1c/0x20
+>                    [<c0008a94>] do_one_initcall+0x110/0x170
+>                    [<c0a44d48>] kernel_init_freeable+0x140/0x1e4
+>                    [<c06fcc24>] kernel_init+0x1c/0xf8
+>                    [<c000eee8>] ret_from_fork+0x14/0x20
+>  }
+>  ... key      at: [<c1088a8c>] __key.18572+0x0/0x8
+>  ... acquired at:
+>    [<c008cdd4>] mark_lock+0x388/0x76c
+>    [<c008df40>] __lock_acquire+0x6d0/0x1f98
+>    [<c0090040>] lock_acquire+0x9c/0x158
+>    [<c07065c8>] _raw_spin_lock+0x48/0x58
+>    [<c0375b54>] pcs_irq_handle+0x48/0x9c
+>    [<c0375c5c>] pcs_irq_handler+0x1c/0x28
+>    [<c009c458>] irq_forced_thread_fn+0x30/0x74
+>    [<c009c784>] irq_thread+0x158/0x1c4
+>    [<c0063fc4>] kthread+0xd4/0xe8
+>    [<c000eee8>] ret_from_fork+0x14/0x20
+>
+> stack backtrace:
+> CPU: 1 PID: 927 Comm: irq/369-pinctrl Not tainted 3.14.43-rt42-00360-g96ff499-dirty #24
+> [<c00177e0>] (unwind_backtrace) from [<c00130b0>] (show_stack+0x20/0x24)
+> [<c00130b0>] (show_stack) from [<c0702958>] (dump_stack+0x84/0xd0)
+> [<c0702958>] (dump_stack) from [<c008bcfc>] (print_irq_inversion_bug+0x1d0/0x21c)
+> [<c008bcfc>] (print_irq_inversion_bug) from [<c008bf18>] (check_usage_backwards+0xb4/0x11c)
+> [<c008bf18>] (check_usage_backwards) from [<c008cdd4>] (mark_lock+0x388/0x76c)
+> [<c008cdd4>] (mark_lock) from [<c008df40>] (__lock_acquire+0x6d0/0x1f98)
+> [<c008df40>] (__lock_acquire) from [<c0090040>] (lock_acquire+0x9c/0x158)
+> [<c0090040>] (lock_acquire) from [<c07065c8>] (_raw_spin_lock+0x48/0x58)
+> [<c07065c8>] (_raw_spin_lock) from [<c0375b54>] (pcs_irq_handle+0x48/0x9c)
+> [<c0375b54>] (pcs_irq_handle) from [<c0375c5c>] (pcs_irq_handler+0x1c/0x28)
+> [<c0375c5c>] (pcs_irq_handler) from [<c009c458>] (irq_forced_thread_fn+0x30/0x74)
+> [<c009c458>] (irq_forced_thread_fn) from [<c009c784>] (irq_thread+0x158/0x1c4)
+> [<c009c784>] (irq_thread) from [<c0063fc4>] (kthread+0xd4/0xe8)
+> [<c0063fc4>] (kthread) from [<c000eee8>] (ret_from_fork+0x14/0x20)
+>
+> To fix it use IRQF_NO_THREAD to ensure that pcs irq will not be forced threaded.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
->
->
-> / # rtcwake -s 4 -m mem
-> [    7.425322] am3352_rtc_unlock
-> [    7.428330] am3352_rtc_lock
-> [    7.431139] am3352_rtc_unlock
-> [    7.434116] am3352_rtc_lock
-> wakeup from "mem" at Sat Jan  1 00:00:11 2000
-> [    7.448549] PM: Syncing filesystems ... done.
-> [    7.455425] Freezing user space processes ... (elapsed 0.001 seconds)
-> done.
-> [    7.463738] Freezing remaining freezable tasks ... (elapsed 0.001
-> seconds) do
-> ne.
-> [    7.472532] Suspending console(s) (use no_console_suspend to debug)
-> [    7.481878] am3352_rtc_unlock
-> [    7.481889] am3352_rtc_lock
-> [    7.482307] PM: suspend of devices complete after 2.713 msecs
-> [    7.483479] PM: late suspend of devices complete after 1.153 msecs
-> [    7.484727] omap_hwmod_rtc_unlock
-> [    7.484733] omap_hwmod_rtc_lock
-> [    7.485182] PM: noirq suspend of devices complete after 1.685 msecs
-> [    7.485190] Disabling non-boot CPUs ...
-> [    7.485199] PM: Successfully put all powerdomains to target state
-> [    7.485199] PM: Wakeup source RTC Alarm
-> [    7.499853] PM: noirq resume of devices complete after 14.558 msecs
-> [    7.500047] am3352_rtc_unlock
-> [    7.500052] am3352_rtc_lock
-> [    7.500123] am3352_rtc_unlock
-> [    7.500128] am3352_rtc_lock
-> [    7.501019] PM: early resume of devices complete after 0.809 msecs
-> [    7.501464] am3352_rtc_unlock
-> [    7.501472] am3352_rtc_lock
-> [    7.558046] PM: resume of devices complete after 57.007 msecs
-> [    7.638807] Restarting tasks ... done.
-> [    7.643173] am3352_rtc_unlock
-> [    7.646162] am3352_rtc_lock
->
-> But, I guess this is for some interested party to optimize if needed,
-> and it is mostly an issue with the RTC driver itself.
->
-> -Tero
->
+OK queued for fixes with Tony's ACK.
+
+Yours,
+Linus Walleij
