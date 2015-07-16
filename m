@@ -1,46 +1,104 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 4/4] Input: tsc2005 - convert to gpiod
-Date: Wed, 15 Jul 2015 17:25:32 -0700
-Message-ID: <20150716002532.GF24393@dtor-ws>
-References: <1436962408-5206-1-git-send-email-sre@kernel.org>
- <1436962408-5206-5-git-send-email-sre@kernel.org>
- <20150715213404.GC24393@dtor-ws>
- <20150715220940.GD2591@earth>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 1/6] ARM: OMAP4: PRM: Remove hardcoding of
+ PRM_IO_PMCTRL_OFFSET register
+Date: Thu, 16 Jul 2015 01:54:57 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1507160153240.32764@utopia.booyaka.com>
+References: <1436334148-9309-1-git-send-email-j-keerthy@ti.com> <1436334148-9309-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150715220940.GD2591@earth>
-Sender: linux-input-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-input@vger.kernel.org, Michael Welling <mwelling@emacinc.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436334148-9309-2-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, galak@codeaurora.org, pawel.moll@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 16, 2015 at 12:09:41AM +0200, Sebastian Reichel wrote:
-> Hi,
+Hi
+
+a few minor comments
+
+On Wed, 8 Jul 2015, Keerthy wrote:
+
+> PRM_IO_PMCTRL_OFFSET need not be same for all SOCs hence
+> remove hardcoding and use the value provided by the omap_prcm_irq_setup
+> structure.
+
+Please mention here that the reason why you're making this change is to 
+support AM437x. 
+
 > 
-> On Wed, Jul 15, 2015 at 02:34:04PM -0700, Dmitry Torokhov wrote:
-> > [...]
-> > >  	if (np) {
-> > > -		ts->reset_gpio = of_get_named_gpio(np, "reset-gpios", 0);
-> > > -		if (ts->reset_gpio == -EPROBE_DEFER)
-> > > -			return ts->reset_gpio;
-> > > -		if (ts->reset_gpio < 0) {
-> > > +		ts->reset_gpio = devm_gpiod_get(&spi->dev, "reset",
-> > > +						GPIOD_OUT_HIGH);
-> > 
-> > I think we should treat the gpio as optional and try to get the
-> > descriptor event on non-OF boards.
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm/mach-omap2/prcm-common.h |  1 +
+>  arch/arm/mach-omap2/prm44xx.c     | 11 ++++++-----
+>  2 files changed, 7 insertions(+), 5 deletions(-)
 > 
-> As I wrote in the cover letter, I suggest to change this once the
-> Nokia N900 board code has been removed. At that point changing the
-> board code API is much easier, since it won't affect multiple trees.
+> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+> index 6ae0b3a..2e60406 100644
+> --- a/arch/arm/mach-omap2/prcm-common.h
+> +++ b/arch/arm/mach-omap2/prcm-common.h
+> @@ -494,6 +494,7 @@ struct omap_prcm_irq {
+>  struct omap_prcm_irq_setup {
+>  	u16 ack;
+>  	u16 mask;
+> +	u16 pm_ctrl;
 
-I do not see why it has be wait for Nokia board code. Just make it
-devm_gpiod_get_optional() and call it unconditionally and fall back onto
-custom reset function (if one is supplied).
+Please add a kerneldoc structure documentation line for this new field, to 
+match the existing documentation here.
 
-Thanks.
+>  	u8 nr_regs;
+>  	u8 nr_irqs;
+>  	const struct omap_prcm_irq *irqs;
+> diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+> index 4541700..8149e5a 100644
+> --- a/arch/arm/mach-omap2/prm44xx.c
+> +++ b/arch/arm/mach-omap2/prm44xx.c
+> @@ -45,6 +45,7 @@ static const struct omap_prcm_irq omap4_prcm_irqs[] = {
+>  static struct omap_prcm_irq_setup omap4_prcm_irq_setup = {
+>  	.ack			= OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
+>  	.mask			= OMAP4_PRM_IRQENABLE_MPU_OFFSET,
+> +	.pm_ctrl		= OMAP4_PRM_IO_PMCTRL_OFFSET,
+>  	.nr_regs		= 2,
+>  	.irqs			= omap4_prcm_irqs,
+>  	.nr_irqs		= ARRAY_SIZE(omap4_prcm_irqs),
+> @@ -306,10 +307,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
+>  	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
+>  				    OMAP4430_WUCLK_CTRL_MASK,
+>  				    inst,
+> -				    OMAP4_PRM_IO_PMCTRL_OFFSET);
+> +				    omap4_prcm_irq_setup.pm_ctrl);
+>  	omap_test_timeout(
+>  		(((omap4_prm_read_inst_reg(inst,
+> -					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
+> +					   omap4_prcm_irq_setup.pm_ctrl) &
+>  		   OMAP4430_WUCLK_STATUS_MASK) >>
+>  		  OMAP4430_WUCLK_STATUS_SHIFT) == 1),
+>  		MAX_IOPAD_LATCH_TIME, i);
+> @@ -319,10 +320,10 @@ static void omap44xx_prm_reconfigure_io_chain(void)
+>  	/* Trigger WUCLKIN disable */
+>  	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
+>  				    inst,
+> -				    OMAP4_PRM_IO_PMCTRL_OFFSET);
+> +				    omap4_prcm_irq_setup.pm_ctrl);
+>  	omap_test_timeout(
+>  		(((omap4_prm_read_inst_reg(inst,
+> -					   OMAP4_PRM_IO_PMCTRL_OFFSET) &
+> +					   omap4_prcm_irq_setup.pm_ctrl) &
+>  		   OMAP4430_WUCLK_STATUS_MASK) >>
+>  		  OMAP4430_WUCLK_STATUS_SHIFT) == 0),
+>  		MAX_IOPAD_LATCH_TIME, i);
+> @@ -350,7 +351,7 @@ static void __init omap44xx_prm_enable_io_wakeup(void)
+>  	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
+>  				    OMAP4430_GLOBAL_WUEN_MASK,
+>  				    inst,
+> -				    OMAP4_PRM_IO_PMCTRL_OFFSET);
+> +				    omap4_prcm_irq_setup.pm_ctrl);
+>  }
+>  
+>  /**
+> -- 
+> 1.9.1
+> 
 
--- 
-Dmitry
+
+- Paul
