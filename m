@@ -1,53 +1,67 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy booting support for Pandora
-Date: Thu, 16 Jul 2015 17:13:49 +0300
-Message-ID: <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
-References: <1437047951-22300-1-git-send-email-tony@atomide.com>
- <1437047951-22300-3-git-send-email-tony@atomide.com>
+From: "R, Vignesh" <vigneshr@ti.com>
+Subject: Re: [PATCH v2 1/5] ARM: OMAP2+: DRA7: clockdomain: change l4per2_7xx_clkdm
+ to SW_WKUP
+Date: Thu, 16 Jul 2015 20:56:54 +0530
+Message-ID: <55A7CD3E.3030803@ti.com>
+References: <1433332284-10766-1-git-send-email-vigneshr@ti.com> <1433332284-10766-2-git-send-email-vigneshr@ti.com> <alpine.DEB.2.02.1507151955330.32764@utopia.booyaka.com> <alpine.DEB.2.02.1507152020240.32764@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1437047951-22300-3-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1507152020240.32764@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpPbiBUaHUsIEp1bCAxNiwgMjAxNSBhdCAyOjU5IFBNLCBUb255IExpbmRncmVuIDx0b255
-QGF0b21pZGUuY29tPiB3cm90ZToKPiBXZSd2ZSBiZWVuIG1vdmluZyBhbGwgb21hcDIrIGJhc2Vk
-IHN5c3RlbXMgdG8gYm9vdCBpbiBkZXZpY2UgdHJlZSBvbmx5Cj4gbW9kZSBmb3IgYSBmZXcgeWVh
-cnMgbm93LiBPbmx5IG9tYXAzIGhhcyBsZWdhY3kgYm9vdGluZyBzdXBwb3J0Cj4gcmVtYWluaW5n
-LiBNb3N0IG9tYXAzIGJvYXJkcyBhbHJlYWR5IGhhdmUgcmVsYXRlZCBhcmNoL2FybS9ib290Lyou
-ZHRzKgo+IGZpbGVzIGZvciBib290aW5nIHdpdGggZGV2aWNlIHRyZWUuCj4KPiBUaGlzIGJvYXJk
-IGhhcyBzdXBwb3J0IGZvciBkZXZpY2UgdHJlZSBiYXNlZCBib290aW5nLCBhbmQgd2UndmUgYmVl
-bgo+IHByaW50aW5nIHdhcm5pbmdzIGFib3V0IHRoZSBsZWdhY3kgYm9vdGluZyBiZWluZyBkZXBy
-ZWNhdGVkIGZvciBhCj4gZmV3IG1lcmdlIGN5Y2xlcyBub3cuIExldCdzIGF0dGVtcHQgdG8gcmVt
-b3ZlIHRoZSBsZWdhY3kgYm9vdGluZwo+IGZvciBpdC4KPgo+IFRoZSByZWFzb24gZm9yIHJlbW92
-aW5nIHRoZSBsZWdhY3kgYm9vdGluZyBzdXBwb3J0IG5vdyByYXRoZXIgdGhhbgo+IGxhdGVyIGlz
-IHdlIGNhbiBzaW1wbHkgcmV2ZXJ0IHRoaXMgcGF0Y2ggaWYgbmVjZXNzYXJ5IGlmIHdlIHJ1bgo+
-IGludG8gc29tZSB1bmV4cGVjdGVkIGlzc3VlcyB0aGF0IGFyZSBub3QgdHJpdmlhbCB0byBmaXgg
-Zm9yIHRoZQo+IGRldmljZSB0cmVlIGJhc2VkIGJvb3RpbmcuCgpJdCBzZWVtcyB3ZSBsb3NlIHdp
-ZmksIGJhY2tsaWdodCwgYXVkaW8gYW5kIHVzYiBob3N0IG1haW5saW5lIHN1cHBvcnQKd2l0aCB0
-aGlzIGFzIHBhbmRvcmEncyAuZHRzIGN1cnJlbnRseSBsYWNrcyBhbGwgdGhhdCBzdHVmZi4KVGhh
-dCBzYWlkIEknbSBub3QgYXdhcmUgb2YgYW55IG1haW5saW5lIHVzZXJzIChldmVyeW9uZSBzZWVt
-cyB0byBiZSBvbgpvdXIgInZlbmRvciIga2VybmVsKSwgc28gbWF5YmUgd2UgY2FuIGFkZCB0aG9z
-ZSBsYXRlci4KCj4KPiBDYzogU2lnbmVkLW9mZi1ieTogR3JhenZ5ZGFzIElnbm90YXMgPG5vdGFz
-YXNAZ21haWwuY29tPgoKSSBoYXZlIG5vdCBzaWduZWQgdGhpcyBvZmYuLi4KCj4gU2lnbmVkLW9m
-Zi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0v
-bWFjaC1vbWFwMi9NYWtlZmlsZSAgICAgICAgICAgICB8ICAgMSAtCj4gIGFyY2gvYXJtL21hY2gt
-b21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMgfCA2MzMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLQo+ICAyIGZpbGVzIGNoYW5nZWQsIDYzNCBkZWxldGlvbnMoLSkKPiAgZGVsZXRlIG1v
-ZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMKPgoKCkdy
-YcW+dnlkYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LWFybS1rZXJuZWwK
+Hi,
+
+On 07/16/2015 01:57 AM, Paul Walmsley wrote:
+> On Wed, 15 Jul 2015, Paul Walmsley wrote:
+> 
+>> On Wed, 3 Jun 2015, Vignesh R wrote:
+>>
+>>> Legacy IPs like PWMSS, present under l4per2_7xx_clkdm, cannot support
+>>> smart-idle when its clock domain is in HW_AUTO on DRA7 SoCs. Hence,
+>>> program clock domain to SW_WKUP.
+>>>
+>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+>>> index 57d5df0c1fbd..7581e036bda6 100644
+>>> --- a/arch/arm/mach-omap2/clockdomains7xx_data.c
+>>> +++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+>>> @@ -331,7 +331,7 @@ static struct clockdomain l4per2_7xx_clkdm = {
+>>>  	.dep_bit	  = DRA7XX_L4PER2_STATDEP_SHIFT,
+>>>  	.wkdep_srcs	  = l4per2_wkup_sleep_deps,
+>>>  	.sleepdep_srcs	  = l4per2_wkup_sleep_deps,
+>>> -	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+>>> +	.flags		  = CLKDM_CAN_SWSUP,
+>>>  };
+>>>  
+>>>  static struct clockdomain mpu0_7xx_clkdm = {
+>>
+>> Thanks, queued for v4.2-rc fixes.  Note that I cannot test this, since I 
+>> don't have a DRA7xx board.
+> 
+> You know, upon further thought, this doesn't make sense.  If the bug
+> is with the PWMSS IP block specifically, why not just set 
+> HWMOD_SWSUP_SIDLE on all the IP blocks where the hardware folks didn't 
+> implement hardware smart-idle?  At least that way, if those legacy IP 
+> blocks aren't in use, the clockdomain can still enter hardware-supervised 
+> idle?
+
+According to hardware folks, HW_AUTO (for clockdomain) and
+HWMOD_SWSUP_SIDLE (PWMSS in NO-IDLE) for PWMSS *is not* a good
+combination. If clockdomain is in HW_AUTO and PWMSS is put in NO-IDLE,
+then IDLEST of PWMSSx_CLKCTRL reads "stuck in wakeup/ sleep transition"
+which is not a consistent state (this is because of problems with PWM
+IP). Hence, it is recommended to program the clock domain to SW_WKUP and
+leave the PWMSS idlemode as smart-idle.
+
+-- 
+Regards
+Vignesh
