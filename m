@@ -1,116 +1,76 @@
-From: Lokesh Vutla <a0131933@ti.com>
-Subject: Re: [PATCH 2/3] ARM: DRA: hwmod: RTC: Add lock and unlock functions
-Date: Thu, 16 Jul 2015 18:04:53 +0530
-Message-ID: <55A7A4ED.2080802@ti.com>
-References: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
- <1433928386-24891-3-git-send-email-lokeshvutla@ti.com>
- <alpine.DEB.2.02.1507160007550.32764@utopia.booyaka.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/2] V4 regmap: Use reg_sequence for multi_reg_write /
+ register_patch
+Date: Thu, 16 Jul 2015 13:52:54 +0100
+Message-ID: <20150716125254.GE4039@sirena.org.uk>
+References: <1436885152-19850-1-git-send-email-nariman@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1507160007550.32764@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>, Lokesh Vutla <lokeshvutla@ti.com>
-Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="WK3l2KTTmXPVedZ6"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1436885152-19850-1-git-send-email-nariman@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nariman Poushin <nariman@opensource.wolfsonmicro.com>
+Cc: gregkh@linuxfoundation.org, airlied@linux.ie, dmitry.torokhov@gmail.com, sameo@linux.intel.com, lee.jones@linaro.org, tony@atomide.com, lgirdwood@gmail.com, brian.austin@cirrus.com, Paul.Handrigan@cirrus.com, support.opensource@diasemi.com, bardliao@realtek.com, oder_chiou@realtek.com, laurent.pinchart+renesas@ideasonboard.com, lars@metafoo.de, dmurphy@ti.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-SGkgUGF1bCwKT24gVGh1cnNkYXkgMTYgSnVseSAyMDE1IDA1OjQzIEFNLCBQYXVsIFdhbG1zbGV5
-IHdyb3RlOgo+IEhpLAo+Cj4gc29tZSBjb21tZW50cy4KPgo+IE9uIFdlZCwgMTAgSnVuIDIwMTUs
-IExva2VzaCBWdXRsYSB3cm90ZToKPgo+PiBSVEMgSVAgaGF2ZSBraWNrZXIgZmVhdHVyZSB3aGlj
-aCBwcmV2ZW50cyBzcHVyaW91cyB3cml0ZXMgdG8gaXRzIHJlZ2lzdGVycy4KPj4gSW4gb3JkZXIg
-dG8gd3JpdGUgaW50byBhbnkgb2YgdGhlIFJUQyByZWdpc3RlcnMsIEtJQ0sgdmFsdWVzIGhhcyB0
-byBiZQo+PiB3cml0dGVuIHRvIEtJQ0sgcmVnaXN0ZXJzLgo+Pgo+PiBJbnRyb2R1Y2Ugb21hcF9o
-d21vZF9ydGNfdW5sb2NrL2xvY2sgZnVuY3Rpb25zLCB3aGljaCAgd3JpdGVzIGludG8gdGhlc2UK
-Pj4gS0lDSyByZWdpc3RlcnMgaW5vcmRlciB0byBsb2NrIGFuZCB1bmxvY2sgUlRDIHJlZ2lzdGVy
-cy4KPj4gQWxzbyBob29rIHRoZXNlIGZ1bmN0aW9ucyB0byBSVEMgaHdtb2QuCj4+Cj4+IFNpZ25l
-ZC1vZmYtYnk6IExva2VzaCBWdXRsYSA8bG9rZXNodnV0bGFAdGkuY29tPgo+PiAtLS0KPj4gICBh
-cmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuaCAgICAgICAgICB8ICAyICsrCj4+ICAgYXJj
-aC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzd4eF9kYXRhLmMgfCAgMiArKwo+PiAgIGFyY2gv
-YXJtL21hY2gtb21hcDIvb21hcF9od21vZF9yZXNldC5jICAgIHwgNDcgKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKwo+PiAgIDMgZmlsZXMgY2hhbmdlZCwgNTEgaW5zZXJ0aW9ucygrKQo+
-Pgo+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kLmggYi9hcmNo
-L2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuaAo+PiBpbmRleCA0NGM3ZGI5Li4wNDg1NWFiIDEw
-MDY0NAo+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuaAo+PiArKysgYi9h
-cmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2QuaAo+PiBAQCAtNzQyLDYgKzc0Miw4IEBAIGNv
-bnN0IGNoYXIgKm9tYXBfaHdtb2RfZ2V0X21haW5fY2xrKHN0cnVjdCBvbWFwX2h3bW9kICpvaCk7
-Cj4+ICAgICovCj4+Cj4+ICAgZXh0ZXJuIGludCBvbWFwX2h3bW9kX2Flc3NfcHJlcHJvZ3JhbShz
-dHJ1Y3Qgb21hcF9od21vZCAqb2gpOwo+PiArdm9pZCBvbWFwX2h3bW9kX3J0Y191bmxvY2soc3Ry
-dWN0IG9tYXBfaHdtb2QgKm9oKTsKPj4gK3ZvaWQgb21hcF9od21vZF9ydGNfbG9jayhzdHJ1Y3Qg
-b21hcF9od21vZCAqb2gpOwo+Pgo+PiAgIC8qCj4+ICAgICogQ2hpcCB2YXJpYW50LXNwZWNpZmlj
-IGh3bW9kIGluaXQgcm91dGluZXMgLSBYWFggc2hvdWxkIGJlIGNvbnZlcnRlZAo+PiBkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzd4eF9kYXRhLmMgYi9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfN3h4X2RhdGEuYwo+PiBpbmRleCAwZTY0YzJmLi45ODMw
-NDJmIDEwMDY0NAo+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfN3h4X2Rh
-dGEuYwo+PiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfN3h4X2RhdGEuYwo+
-PiBAQCAtMTU0OCw2ICsxNTQ4LDggQEAgc3RhdGljIHN0cnVjdCBvbWFwX2h3bW9kX2NsYXNzX3N5
-c2NvbmZpZyBkcmE3eHhfcnRjc3Nfc3lzYyA9IHsKPj4gICBzdGF0aWMgc3RydWN0IG9tYXBfaHdt
-b2RfY2xhc3MgZHJhN3h4X3J0Y3NzX2h3bW9kX2NsYXNzID0gewo+PiAgIAkubmFtZQk9ICJydGNz
-cyIsCj4+ICAgCS5zeXNjCT0gJmRyYTd4eF9ydGNzc19zeXNjLAo+PiArCS51bmxvY2sJPSAmb21h
-cF9od21vZF9ydGNfdW5sb2NrLAo+PiArCS5sb2NrCT0gJm9tYXBfaHdtb2RfcnRjX2xvY2ssCj4+
-ICAgfTsKPj4KPj4gICAvKiBydGNzcyAqLwo+Cj4gSXMgdGhlIERSQTd4eCB0aGUgb25seSBjaGlw
-IHRoYXQgaGFzIHRoaXMgbG9jay91bmxvY2sgZmVhdHVyZSwgb3IgZG8gb3RoZXIKPiBPTUFQIGNo
-aXBzIHVzZSB0aGUgc2FtZSBSVEMgSVAgYmxvY2s/Cj4KPj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJt
-L21hY2gtb21hcDIvb21hcF9od21vZF9yZXNldC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFw
-X2h3bW9kX3Jlc2V0LmMKPj4gaW5kZXggNjVlMTg2Yy4uMWZiMTA2ZCAxMDA2NDQKPj4gLS0tIGEv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kX3Jlc2V0LmMKPj4gKysrIGIvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9vbWFwX2h3bW9kX3Jlc2V0LmMKPj4gQEAgLTI1LDExICsyNSwyMCBAQAo+PiAg
-ICAqLwo+PiAgICNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KPj4gICAjaW5jbHVkZSA8bGludXgv
-ZXJybm8uaD4KPj4gKyNpbmNsdWRlIDxsaW51eC9kZWxheS5oPgo+Pgo+PiAgICNpbmNsdWRlIDxz
-b3VuZC9hZXNzLmg+Cj4+Cj4+ICAgI2luY2x1ZGUgIm9tYXBfaHdtb2QuaCIKPj4KPj4gKyNkZWZp
-bmUgT01BUF9SVENfU1RBVFVTX1JFRwkweDQ0Cj4+ICsjZGVmaW5lIE9NQVBfUlRDX0tJQ0swX1JF
-RwkweDZjCj4+ICsjZGVmaW5lIE9NQVBfUlRDX0tJQ0sxX1JFRwkweDcwCj4+ICsKPj4gKyNkZWZp
-bmUgT01BUF9SVENfS0lDSzBfVkFMVUUJMHg4M0U3MEIxMwo+PiArI2RlZmluZSBPTUFQX1JUQ19L
-SUNLMV9WQUxVRQkweDk1QTRGMUUwCj4+ICsjZGVmaW5lIE9NQVBfUlRDX1NUQVRVU19CVVNZCUJJ
-VCgwKQo+PiArCj4+ICAgLyoqCj4+ICAgICogb21hcF9od21vZF9hZXNzX3ByZXByb2dyYW0gLSBl
-bmFibGUgQUVTUyBpbnRlcm5hbCBhdXRvZ2F0aW5nCj4+ICAgICogQG9oOiBzdHJ1Y3Qgb21hcF9o
-d21vZCAqCj4+IEBAIC01MSwzICs2MCw0MSBAQCBpbnQgb21hcF9od21vZF9hZXNzX3ByZXByb2dy
-YW0oc3RydWN0IG9tYXBfaHdtb2QgKm9oKQo+Pgo+PiAgIAlyZXR1cm4gMDsKPj4gICB9Cj4+ICsK
-Pj4gK3N0YXRpYyB2b2lkIG9tYXBfcnRjX3dhaXRfbm90X2J1c3koc3RydWN0IG9tYXBfaHdtb2Qg
-Km9oKQo+Cj4gVGhpcyBmdW5jdGlvbiBpcyBtaXNzaW5nIGtlcm5lbGRvYyBhbmQgZGVzcGVyYXRl
-bHkgbmVlZHMgaXQuCkkgc2hvdWxkIGhhdmUgd3JpdHRlbiBpdCwgc29ycnkgYWJvdXQgdGhhdC4K
-Rm9yIHVwZGF0aW5nIGNlcnRhaW4gUlRDIHJlZ2lzdGVycywgdGhlIE1QVSBtdXN0IHdhaXQgZm9y
-IHRoZSBCVVNZIApzdGF0dXMgdG8gYmVjb21lIHplcm8uIE9uY2UgdGhlIEJVU1kgZmxhZyBpcyB6
-ZXJvLCB0aGVyZSBpcyBhIDE1Lc68cyAKYWNjZXNzIHBlcmlvZCBpbiB3aGljaCB0aGUgTVBVIGNh
-biBwcm9ncmFtLgoKPgo+PiArewo+PiArCWludCBjb3VudDsKPj4gKwl1OCBzdGF0dXM7Cj4+ICsK
-Pj4gKwkvKiBCVVNZIG1heSBzdGF5IGFjdGl2ZSBmb3IgMS8zMjc2OCBzZWNvbmQgKH4zMCB1c2Vj
-KSAqLwo+PiArCWZvciAoY291bnQgPSAwOyBjb3VudCA8IDUwOyBjb3VudCsrKSB7Cj4KPiBPSywg
-SSBnaXZlIHVwLiAgV2hlcmUgZG9lcyA1MCBjb21lIGZyb20/ICBUaGlzIHNob3VsZCBiZSBtb3Zl
-ZCBpbnRvIGEKPiBtYWNybyB3aXRoIGEgY29tbWVudCwgYXQgdGhlIHZlcnkgbGVhc3QuCj4KPj4g
-KwkJc3RhdHVzID0gb21hcF9od21vZF9yZWFkKG9oLCBPTUFQX1JUQ19TVEFUVVNfUkVHKTsKPj4g
-KwkJaWYgKCEoc3RhdHVzICYgT01BUF9SVENfU1RBVFVTX0JVU1kpKQo+PiArCQkJYnJlYWs7Cj4+
-ICsJCXVkZWxheSgxKTsKPj4gKwl9Cj4+ICsJLyogbm93IHdlIGhhdmUgfjE1IHVzZWMgdG8gcmVh
-ZC93cml0ZSB2YXJpb3VzIHJlZ2lzdGVycyAqLwo+PiArfQo+PiArCj4+ICsvKioKPj4gKyAqIG9t
-YXBfaHdtb2RfcnRjX3VubG9jayAtIFJlc2V0IGFuZCB1bmxvY2sgdGhlIEtpY2tlciBtZWNoYW5p
-c20uCj4+ICsgKiBAb2g6IHN0cnVjdCBvbWFwX2h3bW9kICoKPj4gKyAqCj4+ICsgKiBSVEMgSVAg
-aGF2ZSBraWNrZXIgZmVhdHVyZS4gIFRoaXMgcHJldmVudHMgc3B1cmlvdXMgd3JpdGVzIHRvIGl0
-cyByZWdpc3RlcnMuCj4+ICsgKiBJbiBvcmRlciB0byB3cml0ZSBpbnRvIGFueSBvZiB0aGUgUlRD
-IHJlZ2lzdGVycywgS0lDSyB2YWx1ZXMgaGFzIHRlIGJlCj4+ICsgKiB3cml0dGVuIGluIHJlc3Bl
-Y3RpdmUgS0lDSyByZWdpc3RlcnMuIFRoaXMgaXMgbmVlZGVkIGZvciBod21vZCB0byB3cml0ZSBp
-bnRvCj4+ICsgKiBzeXNjb25maWcgcmVnaXN0ZXIuCj4+ICsgKi8KPj4gK3ZvaWQgb21hcF9od21v
-ZF9ydGNfdW5sb2NrKHN0cnVjdCBvbWFwX2h3bW9kICpvaCkKPj4gK3sKPj4gKwlvbWFwX3J0Y193
-YWl0X25vdF9idXN5KG9oKTsKPgo+IFdoYXQgcHJldmVudHMgdGhlIENQVSBmcm9tIGNvbnRleHQt
-c3dpdGNoaW5nIGF3YXkgYWZ0ZXIgdGhlIEJVU1kgYml0IHRlc3QKPiBhbmQgbm90IHJldHVybmlu
-ZyBiYWNrIGhlcmUgYnkgdGhlIHRpbWUgdGhlIH4xNSDCtXMgaW50ZXJ2YWwgaGFzIGVuZGVkPwo+
-IExvb2tzIHRvIG1lIGxpa2UgdGhpcyB3aG9sZSB0aGluZyBuZWVkcyB0byBydW4gd2l0aCBpbnRl
-cnJ1cHRzIGRpc2FibGVkLgpZZXMsIHlvdSBhcmUgY29ycmVjdC4gSWxsIHVwZGF0ZSBpdCBhbmQg
-cmVwb3N0LgoKVGhhbmtzIGFuZCByZWdhcmRzLApMb2tlc2gKPgo+PiArCW9tYXBfaHdtb2Rfd3Jp
-dGUoT01BUF9SVENfS0lDSzBfVkFMVUUsIG9oLCBPTUFQX1JUQ19LSUNLMF9SRUcpOwo+PiArCW9t
-YXBfaHdtb2Rfd3JpdGUoT01BUF9SVENfS0lDSzFfVkFMVUUsIG9oLCBPTUFQX1JUQ19LSUNLMV9S
-RUcpOwo+PiArfQo+PiArCj4+ICt2b2lkIG9tYXBfaHdtb2RfcnRjX2xvY2soc3RydWN0IG9tYXBf
-aHdtb2QgKm9oKQo+PiArewo+PiArCW9tYXBfcnRjX3dhaXRfbm90X2J1c3kob2gpOwo+Cj4gU2Ft
-ZSBjb21tZW50IGFzIHRoZSBhYm92ZS4KPgo+PiArCW9tYXBfaHdtb2Rfd3JpdGUoMHgwLCBvaCwg
-T01BUF9SVENfS0lDSzBfUkVHKTsKPj4gKwlvbWFwX2h3bW9kX3dyaXRlKDB4MCwgb2gsIE9NQVBf
-UlRDX0tJQ0sxX1JFRyk7Cj4+ICt9Cj4+IC0tCj4+IDEuOS4xCj4+Cj4KPgo+IC0gUGF1bAo+Cgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0t
-a2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcK
-aHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2Vy
-bmVsCg==
+
+--WK3l2KTTmXPVedZ6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jul 14, 2015 at 03:45:51PM +0100, Nariman Poushin wrote:
+
+Please submit patches in the format covered in SubmittingPatches,
+version information goes inside the [].
+
+> Add support for writing sequences of registers / patches with specified
+> delays (in microseconds). Logically separates the functionality using
+> sequences of register writes from the functions that take register
+> defaults, as adding a delay field on the reg_defaults can increase
+> memory usage substantially.
+
+This change doesn't do what the above changelog says.  It introduces a
+new struct reg_sequence and updates the multi write and patch APIs to
+use that but it doesn't implement any delay functionality.  Please
+resend with a clearer changelog that describes why the struct is being
+split out from the reg_defaults struct and makes it clear that this is
+just a rename.  It's probably best to also defer the addition of the
+delay field until the second patch where this function is actually
+implemented.
+
+> +/**
+> + * Register / Value pairs for sequences of writes, incorporating an optional
+
+Register/value.
+
+> + * delay in microseconds.
+> + *
+> + * @reg: Register address.
+> + * @def: Register default value.
+> + * @delay_us: Delay in microseconds
+> + */
+> +
+> +struct reg_sequence {
+
+No blank line between the kerneldoc and the struct (as is the style for
+other kernel code).
+
+--WK3l2KTTmXPVedZ6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVp6klAAoJECTWi3JdVIfQdeIH/0xR3Zsana0o8euXAzPqm3ok
+r9IlQGzEyF7pZWEuAaLuEL89f9F/OWOXBU/BpmW+bSatlq726j5a4TiMqrODwoVn
+YwFLn8RqnmtBjM6fBpYKRf+xwNeKvcWPPDp5WkFueV4XQhkLD7HVLM9NEfRSjPyM
+GTQboL9PRQYD8PXA/ACHYVtSQu7kSUlLTEP2LAIkmlQ65Bp4lEHDHezwIA4aMwVM
+404hpcSnYhuHGg2K3UjoFJeRPJVxsJRQavm8BdKHA7rjGY2irwo2wUt3keQRAKpI
+0iGWhWR/Va/3sLty64k6gJuxe2Wm2lpNVlVf/dSKfEU2NTL3faayq6YGEEBtPHI=
+=UO9S
+-----END PGP SIGNATURE-----
+
+--WK3l2KTTmXPVedZ6--
