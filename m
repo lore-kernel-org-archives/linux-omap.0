@@ -1,14 +1,14 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/3] ARM: AMx3xx: hwmod: RTC: Add lock and unlock functions
-Date: Thu, 16 Jul 2015 00:14:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1507160013370.32764@utopia.booyaka.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
+Date: Thu, 16 Jul 2015 00:15:13 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1507160014371.32764@utopia.booyaka.com>
 References: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
- <1433928386-24891-4-git-send-email-lokeshvutla@ti.com>
+ <55A4DFEF.6040005@ti.com> <55A52208.5060302@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1433928386-24891-4-git-send-email-lokeshvutla@ti.com>
+In-Reply-To: <55A52208.5060302@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,45 +18,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+On Tue, 14 Jul 2015, Tero Kristo wrote:
 
-On Wed, 10 Jun 2015, Lokesh Vutla wrote:
+> On 07/14/2015 01:09 PM, Lokesh Vutla wrote:
+> > Hi,
+> > On Wednesday 10 June 2015 02:56 PM, Lokesh Vutla wrote:
+> > > Some IP blocks like RTC, needs an additional unlocking mechanism for
+> > > writing to its registers. This patch adds optional lock and unlock
+> > > function pointers to the IP block's hwmod data which gets executed
+> > > before and after writing into IP sysconfig register.
+> > > And also hook lock and unlock functions to AMx3xx, DRA7 RTC hwmod data,
+> > > so that sysconfig registers are updated properly.
+> > ping on this series.
+> > 
+> > Thanks and regards,
+> > Lokesh
+> 
 
-> RTC IP have kicker feature which prevents spurious writes to its registers.
-> In order to write into any of the RTC registers, KICK values has to be
-> written to KICK registers.
-> 
-> omap_hwmod_rtc_unlock/lock functions writes into these KICK registers
-> inorder to lock and unlock RTC registers.
-> This patch hooks omap_hwmod_rtc_unlock/lock functions into RTC hwmod,
-> so that SYSCONFIG register is updated properly.
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-> index cabc569..2d92958 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-> @@ -904,6 +904,8 @@ static struct omap_hwmod_class_sysconfig am33xx_rtc_sysc = {
->  static struct omap_hwmod_class am33xx_rtc_hwmod_class = {
->  	.name		= "rtc",
->  	.sysc		= &am33xx_rtc_sysc,
-> +	.unlock		= &omap_hwmod_rtc_unlock,
-> +	.lock		= &omap_hwmod_rtc_lock,
->  };
->  
->  struct omap_hwmod am33xx_rtc_hwmod = {
+[...]
 
-The DRA7xx integration from the previous patch should either be combined 
-with this patch, or moved into a separate patch like this one (your 
-preference).
+> It is also racy, as there is no locking in place to avoid concurrent access to
+> the lock/unlock registers across hwmod+driver.
+
+I don't see the race.  Where is it?
 
 
 - Paul
