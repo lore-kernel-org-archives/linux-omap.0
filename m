@@ -1,77 +1,166 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 4/4] Input: tsc2005 - convert to gpiod
-Date: Thu, 16 Jul 2015 11:14:58 +0200
-Message-ID: <20150716091458.GA28629@earth>
-References: <1436962408-5206-1-git-send-email-sre@kernel.org>
- <1436962408-5206-5-git-send-email-sre@kernel.org>
- <20150715213404.GC24393@dtor-ws>
- <20150715220940.GD2591@earth>
- <20150716002532.GF24393@dtor-ws>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/12] ARM: OMAP2+: Add support for initializing dm814x
+ clocks
+Date: Thu, 16 Jul 2015 02:37:46 -0700
+Message-ID: <20150716093746.GL17550@atomide.com>
+References: <1433348601-8966-1-git-send-email-tony@atomide.com>
+ <1433348601-8966-6-git-send-email-tony@atomide.com>
+ <20150604184254.GJ490@codeaurora.org>
+ <20150604222823.GC30984@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150716002532.GF24393@dtor-ws>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, Michael Welling <mwelling@emacinc.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20150604222823.GC30984@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, Matthijs van Duin <matthijsvanduin@gmail.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony@atomide.com> [150604 15:30]:
+> * Stephen Boyd <sboyd@codeaurora.org> [150604 11:44]:
+> > On 06/03, Tony Lindgren wrote:
+> > > +#include <linux/list.h>
+> > 
+> > Is list.h used?
+...
+> > > +static const char *enable_init_clks[] = {
+> > > +};
+> > 
+> > delete?
+> > 
+> > > +
+> > > +int __init dm814x_dt_clk_init(void)
+> > > +{
+> > > +	ti_dt_clocks_register(dm814_clks);
+> > > +	omap2_clk_disable_autoidle_all();
+> > > +	omap2_clk_enable_init_clocks(enable_init_clks,
+> > > +				     ARRAY_SIZE(enable_init_clks));
+> > 
+> > And pass NULL and 0 here?
+> 
+> Sure will remove, we can add those back once the PLL parts are
+> working and if/when some boot time clocks are needed.
 
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here's this patch updated with the above removed.
 
-On Wed, Jul 15, 2015 at 05:25:32PM -0700, Dmitry Torokhov wrote:
-> On Thu, Jul 16, 2015 at 12:09:41AM +0200, Sebastian Reichel wrote:
-> > On Wed, Jul 15, 2015 at 02:34:04PM -0700, Dmitry Torokhov wrote:
-> > > [...]
-> > > >  	if (np) {
-> > > > -		ts->reset_gpio =3D of_get_named_gpio(np, "reset-gpios", 0);
-> > > > -		if (ts->reset_gpio =3D=3D -EPROBE_DEFER)
-> > > > -			return ts->reset_gpio;
-> > > > -		if (ts->reset_gpio < 0) {
-> > > > +		ts->reset_gpio =3D devm_gpiod_get(&spi->dev, "reset",
-> > > > +						GPIOD_OUT_HIGH);
-> > >=20
-> > > I think we should treat the gpio as optional and try to get the
-> > > descriptor event on non-OF boards.
-> >=20
-> > As I wrote in the cover letter, I suggest to change this once the
-> > Nokia N900 board code has been removed. At that point changing the
-> > board code API is much easier, since it won't affect multiple trees.
->=20
-> I do not see why it has be wait for Nokia board code. Just make it
-> devm_gpiod_get_optional() and call it unconditionally and fall back onto
-> custom reset function (if one is supplied).
+Regards,
 
-Right. I guess the same could be done for vio regulator. I will
-add this change in the next version of the patchset.
+Tony
 
--- Sebastian
+8< -------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 16 Jul 2015 01:55:57 -0700
+Subject: [PATCH] ARM: OMAP2+: Add support for initializing dm814x clocks
 
---UlVJffcvxoiEqYs2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Let's add a minimal clocks for dm814x to get it booted. This is
+mostly a placeholder and relies on the PLLs being on from the
+bootloader.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Note that the divider clocks work the same way as on dm816x and
+am335x.
 
-iQIcBAEBCgAGBQJVp3YPAAoJENju1/PIO/qaSUIQAJ9Gz6W3mFw9Jzd64V86DqSG
-IWerOgqw1WhHTJE/TAPNqOW33ru5kMQeVh+jC1ONPjLOZVaX9WxjMVjPgz01+5bM
-0MWoRlyiY/ebd+cQPKMPDWUQVySYVC6TxZNOsVegSc4qZFh2kE/LExC6axcrhUNB
-ttsfKViTorDwRDIBCPO6El/HP9ALqeCCplicMDVy5b/rxSQHg785MncIlqmM6NLc
-RiBtl67ANmPeBbkpX/cDRegRN9nW5Y0PKFccpuv9VEy5tpVWwDIMjkgH4KlU1aMr
-L/vya49ahtGRnslwafRqq5D5h3hWUARch7LFL9wOUr66V6As9wVF4R6Civg2UkFX
-e59HRYS3jTvMOx9Sz/Bxr2UONv8nlAsb8JIKmgIpN/VmXGcfpuB5hD969JouiNtd
-MOT1v57e0zMXnRDl0Xylh+jl8M8tOllAwNiQO+5BkVqF5IrKc1R20PSqR4GfkdbK
-CtNIGS9ndY3A29AKukh0KlATMHRC002yH3xOb9F/Wza6j/dJ7uBjPNluZOGz1OAJ
-o12N36jbGAbAGAdCNdLgS38ulFbsP0e1q6x8t99LYSp20Gmb3gKRONS5Ig3EWGYm
-JF0+qf8833fqzCTbF7cp3lEIspwxdVenjQcsEohZZQvkRkl7vPmkaMNfsaFt6plW
-bUtsCZz1feSlXB/veo80
-=2D4i
------END PGP SIGNATURE-----
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
---UlVJffcvxoiEqYs2--
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -558,7 +558,7 @@ void __init ti814x_init_early(void)
+ 	ti81xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+ 	if (of_have_populated_dt())
+-		omap_clk_soc_init = ti81xx_dt_clk_init;
++		omap_clk_soc_init = dm814x_dt_clk_init;
+ }
+ 
+ void __init ti816x_init_early(void)
+@@ -575,7 +575,7 @@ void __init ti816x_init_early(void)
+ 	ti81xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+ 	if (of_have_populated_dt())
+-		omap_clk_soc_init = ti81xx_dt_clk_init;
++		omap_clk_soc_init = dm816x_dt_clk_init;
+ }
+ #endif
+ 
+--- a/drivers/clk/ti/Makefile
++++ b/drivers/clk/ti/Makefile
+@@ -2,7 +2,7 @@ obj-y					+= clk.o autoidle.o clockdomain.o
+ clk-common				= dpll.o composite.o divider.o gate.o \
+ 					  fixed-factor.o mux.o apll.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
+-obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-816x.o
++obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-814x.o clk-816x.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o \
+ 					   clk-3xxx.o
+--- /dev/null
++++ b/drivers/clk/ti/clk-814x.c
+@@ -0,0 +1,31 @@
++/*
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ */
++
++#include <linux/kernel.h>
++#include <linux/clk-provider.h>
++#include <linux/clk/ti.h>
++
++static struct ti_dt_clk dm814_clks[] = {
++	DT_CLK(NULL, "devosc_ck", "devosc_ck"),
++	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
++	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
++	DT_CLK(NULL, "sysclk6_ck", "sysclk6_ck"),
++	DT_CLK(NULL, "sysclk10_ck", "sysclk10_ck"),
++	DT_CLK(NULL, "sysclk18_ck", "sysclk18_ck"),
++	DT_CLK(NULL, "timer_sys_ck", "devosc_ck"),
++	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
++	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
++	{ .node_name = NULL },
++};
++
++int __init dm814x_dt_clk_init(void)
++{
++	ti_dt_clocks_register(dm814_clks);
++	omap2_clk_disable_autoidle_all();
++	omap2_clk_enable_init_clocks(NULL, 0);
++
++	return 0;
++}
+--- a/drivers/clk/ti/clk-816x.c
++++ b/drivers/clk/ti/clk-816x.c
+@@ -42,7 +42,7 @@ static const char *enable_init_clks[] = {
+ 	"ddr_pll_clk3",
+ };
+ 
+-int __init ti81xx_dt_clk_init(void)
++int __init dm816x_dt_clk_init(void)
+ {
+ 	ti_dt_clocks_register(dm816x_clks);
+ 	omap2_clk_disable_autoidle_all();
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -329,7 +329,8 @@ int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
+ int omap3430_dt_clk_init(void);
+ int omap3630_dt_clk_init(void);
+ int am35xx_dt_clk_init(void);
+-int ti81xx_dt_clk_init(void);
++int dm814x_dt_clk_init(void);
++int dm816x_dt_clk_init(void);
+ int omap4xxx_dt_clk_init(void);
+ int omap5xxx_dt_clk_init(void);
+ int dra7xx_dt_clk_init(void);
