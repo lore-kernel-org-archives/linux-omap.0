@@ -1,57 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy booting support for Pandora
-Date: Thu, 16 Jul 2015 09:26:16 -0700
-Message-ID: <20150716162616.GO17550@atomide.com>
-References: <1437047951-22300-1-git-send-email-tony@atomide.com>
- <1437047951-22300-3-git-send-email-tony@atomide.com>
- <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2: Delete unnecessary checks before three
+ function calls
+Date: Thu, 16 Jul 2015 09:28:10 -0700
+Message-ID: <20150716162809.GP17550@atomide.com>
+References: <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
+ <54705EC3.90708@users.sourceforge.net>
+ <55928739.5040809@users.sourceforge.net>
+ <alpine.DEB.2.02.1507160548040.32764@utopia.booyaka.com>
+ <20150716062305.GF17550@atomide.com>
+ <alpine.DEB.2.02.1507161406190.12339@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.02.1507161406190.12339@utopia.booyaka.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-* Grazvydas Ignotas <notasas@gmail.com> [150716 07:16]:
-> Hi,
+* Paul Walmsley <paul@pwsan.com> [150716 07:09]:
+> On Wed, 15 Jul 2015, Tony Lindgren wrote:
 > 
-> On Thu, Jul 16, 2015 at 2:59 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > We've been moving all omap2+ based systems to boot in device tree only
-> > mode for a few years now. Only omap3 has legacy booting support
-> > remaining. Most omap3 boards already have related arch/arm/boot/*.dts*
-> > files for booting with device tree.
-> >
-> > This board has support for device tree based booting, and we've been
-> > printing warnings about the legacy booting being deprecated for a
-> > few merge cycles now. Let's attempt to remove the legacy booting
-> > for it.
-> >
-> > The reason for removing the legacy booting support now rather than
-> > later is we can simply revert this patch if necessary if we run
-> > into some unexpected issues that are not trivial to fix for the
-> > device tree based booting.
+> > * Paul Walmsley <paul@pwsan.com> [150715 22:58]:
+> > > Hello Markus
+> > > 
+> > > On Tue, 30 Jun 2015, SF Markus Elfring wrote:
+> > > 
+> > > > From: Markus Elfring <elfring@users.sourceforge.net>
+> > > > Date: Tue, 30 Jun 2015 14:00:16 +0200
+> > > > 
+> > > > The functions clk_disable(), of_node_put() and omap_device_delete() test
+> > > > whether their argument is NULL and then return immediately.
+> > > > Thus the test around the call is not needed.
+> > > > 
+> > > > This issue was detected by using the Coccinelle software.
+> > > > 
+> > > > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> > > 
+> > > Thanks for the patch.  I have to say, I am a bit leery about applying the 
+> > > omap_device.c and omap_hwmod.c changes, since the called functions -- 
+> > > omap_device_delete() and clk_disable() -- don't explicitly document that 
+> > > NULLs are allowed to be passed in.  So there's no explicit contract that 
+> > > callers can rely upon, to (at least in theory) prevent those internal NULL 
+> > > pointer checks from being removed.
+> > > 
+> > > So I would suggest that those two functions' kerneldoc be patched first to 
+> > > explicitly state that passing in a NULL pointer is allowed.  Then I would 
+> > > feel a bit more comfortable applying the omap_device.c and omap_hwmod.c 
+> > > changes.
+> > > 
+> > > The kerneldoc for of_node_put() does explicitly allow NULLs to be passed 
+> > > in.  So I'll apply that change now for v4.3, touching up the commit 
+> > > message accordingly.
+> > 
+> > I have them applied from a later thread already, but will drop both in
+> > my branch as I have not pushed them out yet.
 > 
-> It seems we lose wifi, backlight, audio and usb host mainline support
-> with this as pandora's .dts currently lacks all that stuff.
-> That said I'm not aware of any mainline users (everyone seems to be on
-> our "vendor" kernel), so maybe we can add those later.
+> Oops sorry about stepping on your toes - I obviously missed that followup.
 
-Hmm wifi should be easy, isn't that just libertas_sdio?
+No problem :)
 
-> > Cc: Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> 
-> I have not signed this off...
-
-Oops sorry I copied your email address from git log.
+Tony
