@@ -1,102 +1,70 @@
-From: Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v3 00/11] USB: OTG/DRD Core functionality
-Date: Thu, 16 Jul 2015 11:29:58 -0700
-Message-ID: <CAL1qeaEkpUq3mzZXpr2gxceW3q_zHLspWUv9qxBP8q_1+_g-OA@mail.gmail.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
-	<CAL1qeaEJ9uX1vgvwO4-ABdGi5C96HZ2jBYWeKiGHJ-uqv6ooGg@mail.gmail.com>
-	<55A65F98.203@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/2] V4 regmap: Use reg_sequence for
+ multi_reg_write / register_patch
+Date: Thu, 16 Jul 2015 21:48:08 +0100
+Message-ID: <20150716204808.GB1602@sirena.org.uk>
+References: <1436885152-19850-1-git-send-email-nariman@opensource.wolfsonmicro.com>
+ <20150716125254.GE4039@sirena.org.uk>
+ <20150716154525.GB21939@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55A65F98.203-l0cyMroinI0@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Mathias Nyman <mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============5666094292535647320=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20150716154525.GB21939@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Nariman Poushin <nariman@opensource.wolfsonmicro.com>
+Cc: oder_chiou@realtek.com, brian.austin@cirrus.com, laurent.pinchart+renesas@ideasonboard.com, sameo@linux.intel.com, support.opensource@diasemi.com, airlied@linux.ie, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, lgirdwood@gmail.com, peter.ujfalusi@ti.com, tony@atomide.com, lars@metafoo.de, Paul.Handrigan@cirrus.com, patches@opensource.wolfsonmicro.com, bardliao@realtek.com, linux-omap@vger.kernel.org, lee.jones@linaro.org, linux-kernel@vger.kernel.org, dmurphy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
 
-On Wed, Jul 15, 2015 at 6:26 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> Hi Andrew,
->
-> On 13/07/15 22:14, Andrew Bresticker wrote:
->> Hi Roger,
->>
->> On Wed, Jul 8, 2015 at 3:19 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
->>> Usage model:
->>> -----------
->>>
->>> - The OTG controller device is assumed to be the parent of
->>> the host and gadget controller. It must call usb_otg_register()
->>> before populating the host and gadget devices so that the OTG
->>> core is aware that it is an OTG device before the host & gadget
->>> register. The OTG controller must provide struct otg_fsm_ops *
->>> which will be called by the OTG core depending on OTG bus state.
->>
->> I'm wondering if the requirement that the OTG controller be the parent
->> of the USB host/device-controllers makes sense.  For some context, I'm
->> working on adding dual-role support for Tegra210, specifically on a
->> system with USB Type-C.  On Tegra, the USB host-controller and USB
->> device-controller are two separate IP blocks (XUSB host and XUSB
->> device) with another, separate, IP block (XUSB padctl) for the USB PHY
->> and OTG support.  In the non-Type-C case, your OTG framework could
->> work well, though it's debatable as to whether or not the XUSB padctl
->> device should be a parent to the XUSB host/device-controller devices
->> (currently it isn't - it's just a PHY provider).  But in the Type-C
->> case, it's an off-chip embedded controller that determines the
->> dual-role status of the Type-C port, so the above requirement doesn't
->> make sense at all.
->>
->> My idea was to have the OTG/DRD controller explicitly specify its host
->> and device controllers, so in DT, something like:
->>
->> otg-controller {
->>     ...
->>     device-controller = <&usb_device>;
->>     host-controller = <&usb_host>;
->>     ...
->> };
->>
->> usb_device: usb-device@.... {
->>     ...
->> };
->>
->> usb_host: usb-host@... {
->>     ...
->> };
->>
->> What do you think?
->
-> I agree that we need to support your use case but how to do it
-> is not yet clear to me.
->
-> In your above example the otg controller knows what are the host
-> and gadget controllers but the host/gadget devices don't
-> know who is their otg controller.
->
-> So the problem is that when usb_otg_register_hcd/gadget() is called
-> we need to get a handle to the otg controller.
->
-> One solution I see is to iterate over the registered otg_controller_list
-> and check if we match the host/gadget controller in there.
->
-> Then there is also a possibility that host/gadget controllers get
-> registered before the OTG controller. Then we can't know for sure if
-> the host/gadget controller was meant for dual-role operation or not
-> and it will resort to single role operation.
->
-> Any idea to prevent the above situation?
->
-> Maybe we need to add some logic in host/gadget cores to check if the port
-> is meant for dual-role use and defer probe if OTG controller is not yet
-> registered?
+--===============5666094292535647320==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="2B/JsCI69OhZNC5r"
+Content-Disposition: inline
 
-In the DT case, I think we could add an "otg-controller" property to
-the host and gadget nodes, and in usb_otg_register_{hcd,gadget}()
-check for that property and defer probe if the referenced OTG
-controller has not yet been registered.  Not sure how to indicate that
-a host/gadget is meant for dual-role operation on non-DT platforms
-though.
 
-Thanks,
-Andrew
+--2B/JsCI69OhZNC5r
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Jul 16, 2015 at 04:45:25PM +0100, Nariman Poushin wrote:
+
+> I will resend with a cover letter explaining the change from the previous
+> patch set if that is the right thing to do.
+
+No, that's fine.  If you want to fix something like that just reply to
+the cover letter with the extra information.
+
+--2B/JsCI69OhZNC5r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVqBiFAAoJECTWi3JdVIfQU0cH/2zBhOlDz6e+jY+7Y58/61Mz
+Mh23ZVckNJIFWn7xGyznVv0Slw4/iGUhL4FL8B/lOiv8pR3mUT3BNqhCpRk5DzDB
+VMQY3fvpHqg6uO1vHrQUeiKQxlZP8Psm455a2lHQ5Xzr/vsabpF/y45g29OsJ1AU
+yvjTPV2kcyw7YIuBN7mYE9hVa7LQAMyXCP+vGUJKhjehxDDEtihtVWvJz8Bxwpzy
+JneaBE3fkhbGPhvgy+oRKDUgp3J1y/kgKiJ21hizvS0W1UssbC/e7I3QAKMvrxPq
+ircmztggAw3hAO2HOMajK9aUDH+g36Hs66N3Z0rg74dfJtYLq07b5OoYIar/+0w=
+=OG+G
+-----END PGP SIGNATURE-----
+
+--2B/JsCI69OhZNC5r--
+
+--===============5666094292535647320==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============5666094292535647320==--
