@@ -1,57 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2: Delete unnecessary checks before three
- function calls
-Date: Thu, 16 Jul 2015 14:06:44 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1507161406190.12339@utopia.booyaka.com>
-References: <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net> <54705EC3.90708@users.sourceforge.net> <55928739.5040809@users.sourceforge.net> <alpine.DEB.2.02.1507160548040.32764@utopia.booyaka.com>
- <20150716062305.GF17550@atomide.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy booting support for Pandora
+Date: Thu, 16 Jul 2015 17:13:49 +0300
+Message-ID: <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
+References: <1437047951-22300-1-git-send-email-tony@atomide.com>
+ <1437047951-22300-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150716062305.GF17550@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1437047951-22300-3-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 15 Jul 2015, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [150715 22:58]:
-> > Hello Markus
-> > 
-> > On Tue, 30 Jun 2015, SF Markus Elfring wrote:
-> > 
-> > > From: Markus Elfring <elfring@users.sourceforge.net>
-> > > Date: Tue, 30 Jun 2015 14:00:16 +0200
-> > > 
-> > > The functions clk_disable(), of_node_put() and omap_device_delete() test
-> > > whether their argument is NULL and then return immediately.
-> > > Thus the test around the call is not needed.
-> > > 
-> > > This issue was detected by using the Coccinelle software.
-> > > 
-> > > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> > 
-> > Thanks for the patch.  I have to say, I am a bit leery about applying the 
-> > omap_device.c and omap_hwmod.c changes, since the called functions -- 
-> > omap_device_delete() and clk_disable() -- don't explicitly document that 
-> > NULLs are allowed to be passed in.  So there's no explicit contract that 
-> > callers can rely upon, to (at least in theory) prevent those internal NULL 
-> > pointer checks from being removed.
-> > 
-> > So I would suggest that those two functions' kerneldoc be patched first to 
-> > explicitly state that passing in a NULL pointer is allowed.  Then I would 
-> > feel a bit more comfortable applying the omap_device.c and omap_hwmod.c 
-> > changes.
-> > 
-> > The kerneldoc for of_node_put() does explicitly allow NULLs to be passed 
-> > in.  So I'll apply that change now for v4.3, touching up the commit 
-> > message accordingly.
-> 
-> I have them applied from a later thread already, but will drop both in
-> my branch as I have not pushed them out yet.
-
-Oops sorry about stepping on your toes - I obviously missed that followup.
-
-- Paul
+SGksCgpPbiBUaHUsIEp1bCAxNiwgMjAxNSBhdCAyOjU5IFBNLCBUb255IExpbmRncmVuIDx0b255
+QGF0b21pZGUuY29tPiB3cm90ZToKPiBXZSd2ZSBiZWVuIG1vdmluZyBhbGwgb21hcDIrIGJhc2Vk
+IHN5c3RlbXMgdG8gYm9vdCBpbiBkZXZpY2UgdHJlZSBvbmx5Cj4gbW9kZSBmb3IgYSBmZXcgeWVh
+cnMgbm93LiBPbmx5IG9tYXAzIGhhcyBsZWdhY3kgYm9vdGluZyBzdXBwb3J0Cj4gcmVtYWluaW5n
+LiBNb3N0IG9tYXAzIGJvYXJkcyBhbHJlYWR5IGhhdmUgcmVsYXRlZCBhcmNoL2FybS9ib290Lyou
+ZHRzKgo+IGZpbGVzIGZvciBib290aW5nIHdpdGggZGV2aWNlIHRyZWUuCj4KPiBUaGlzIGJvYXJk
+IGhhcyBzdXBwb3J0IGZvciBkZXZpY2UgdHJlZSBiYXNlZCBib290aW5nLCBhbmQgd2UndmUgYmVl
+bgo+IHByaW50aW5nIHdhcm5pbmdzIGFib3V0IHRoZSBsZWdhY3kgYm9vdGluZyBiZWluZyBkZXBy
+ZWNhdGVkIGZvciBhCj4gZmV3IG1lcmdlIGN5Y2xlcyBub3cuIExldCdzIGF0dGVtcHQgdG8gcmVt
+b3ZlIHRoZSBsZWdhY3kgYm9vdGluZwo+IGZvciBpdC4KPgo+IFRoZSByZWFzb24gZm9yIHJlbW92
+aW5nIHRoZSBsZWdhY3kgYm9vdGluZyBzdXBwb3J0IG5vdyByYXRoZXIgdGhhbgo+IGxhdGVyIGlz
+IHdlIGNhbiBzaW1wbHkgcmV2ZXJ0IHRoaXMgcGF0Y2ggaWYgbmVjZXNzYXJ5IGlmIHdlIHJ1bgo+
+IGludG8gc29tZSB1bmV4cGVjdGVkIGlzc3VlcyB0aGF0IGFyZSBub3QgdHJpdmlhbCB0byBmaXgg
+Zm9yIHRoZQo+IGRldmljZSB0cmVlIGJhc2VkIGJvb3RpbmcuCgpJdCBzZWVtcyB3ZSBsb3NlIHdp
+ZmksIGJhY2tsaWdodCwgYXVkaW8gYW5kIHVzYiBob3N0IG1haW5saW5lIHN1cHBvcnQKd2l0aCB0
+aGlzIGFzIHBhbmRvcmEncyAuZHRzIGN1cnJlbnRseSBsYWNrcyBhbGwgdGhhdCBzdHVmZi4KVGhh
+dCBzYWlkIEknbSBub3QgYXdhcmUgb2YgYW55IG1haW5saW5lIHVzZXJzIChldmVyeW9uZSBzZWVt
+cyB0byBiZSBvbgpvdXIgInZlbmRvciIga2VybmVsKSwgc28gbWF5YmUgd2UgY2FuIGFkZCB0aG9z
+ZSBsYXRlci4KCj4KPiBDYzogU2lnbmVkLW9mZi1ieTogR3JhenZ5ZGFzIElnbm90YXMgPG5vdGFz
+YXNAZ21haWwuY29tPgoKSSBoYXZlIG5vdCBzaWduZWQgdGhpcyBvZmYuLi4KCj4gU2lnbmVkLW9m
+Zi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiAtLS0KPiAgYXJjaC9hcm0v
+bWFjaC1vbWFwMi9NYWtlZmlsZSAgICAgICAgICAgICB8ICAgMSAtCj4gIGFyY2gvYXJtL21hY2gt
+b21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMgfCA2MzMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLQo+ICAyIGZpbGVzIGNoYW5nZWQsIDYzNCBkZWxldGlvbnMoLSkKPiAgZGVsZXRlIG1v
+ZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMKPgoKCkdy
+YcW+dnlkYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
+cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
+bnV4LWFybS1rZXJuZWwK
