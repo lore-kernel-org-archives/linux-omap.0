@@ -1,50 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
-Date: Thu, 16 Jul 2015 00:15:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1507160014371.32764@utopia.booyaka.com>
-References: <1433928386-24891-1-git-send-email-lokeshvutla@ti.com>
- <55A4DFEF.6040005@ti.com> <55A52208.5060302@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 3/4] Input: tsc2005 - simplify drvdata acquisition
+Date: Wed, 15 Jul 2015 17:22:56 -0700
+Message-ID: <20150716002256.GE24393@dtor-ws>
+References: <1436962408-5206-1-git-send-email-sre@kernel.org>
+ <1436962408-5206-4-git-send-email-sre@kernel.org>
+ <20150715213107.GB24393@dtor-ws>
+ <20150715220220.GC2591@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <55A52208.5060302@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150715220220.GC2591@earth>
+Sender: linux-input-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-input@vger.kernel.org, Michael Welling <mwelling@emacinc.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 14 Jul 2015, Tero Kristo wrote:
-
-> On 07/14/2015 01:09 PM, Lokesh Vutla wrote:
-> > Hi,
-> > On Wednesday 10 June 2015 02:56 PM, Lokesh Vutla wrote:
-> > > Some IP blocks like RTC, needs an additional unlocking mechanism for
-> > > writing to its registers. This patch adds optional lock and unlock
-> > > function pointers to the IP block's hwmod data which gets executed
-> > > before and after writing into IP sysconfig register.
-> > > And also hook lock and unlock functions to AMx3xx, DRA7 RTC hwmod data,
-> > > so that sysconfig registers are updated properly.
-> > ping on this series.
-> > 
-> > Thanks and regards,
-> > Lokesh
+On Thu, Jul 16, 2015 at 12:02:21AM +0200, Sebastian Reichel wrote:
+> Hi,
 > 
+> On Wed, Jul 15, 2015 at 02:31:07PM -0700, Dmitry Torokhov wrote:
+> > On Wed, Jul 15, 2015 at 02:13:27PM +0200, Sebastian Reichel wrote:
+> > > Do not convert device to spi_device just for getting
+> > > the driver data, since spi_get_drvdata() just calls
+> > > dev_get_drvdata().
+> > 
+> > Even though at the moment they all share the same data I consider them
+> > logically different and so would prefer not to substityte one for
+> > another.
+> 
+> I guess your problem is with mixing spi_*_drvdata and dev_*_drvdata
+> calls? In that case I will also change spi_set_drvdata to
+> dev_set_drvdata, so that spi_*_drvdata is not used at all.
+> 
+> This will still reduce lines of code and flatten the way for tsc2004
+> support (which is i2c based).
 
-[...]
+OK, that will work.
 
-> It is also racy, as there is no locking in place to avoid concurrent access to
-> the lock/unlock registers across hwmod+driver.
+Thanks.
 
-I don't see the race.  Where is it?
-
-
-- Paul
+-- 
+Dmitry
