@@ -1,36 +1,48 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 2/3] ARM: dts: dra7: Add syscon-pllreset syscon to SATA PHY
-Date: Fri, 17 Jul 2015 16:47:23 +0300
-Message-ID: <1437140844-6032-3-git-send-email-rogerq@ti.com>
-References: <1437140844-6032-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] Drop two more omap3 legacy board files for v4.3
+ merge window
+Date: Fri, 17 Jul 2015 06:47:19 -0700
+Message-ID: <20150717134719.GT17550@atomide.com>
+References: <1437047951-22300-1-git-send-email-tony@atomide.com>
+ <20150717082645.GB9331@earth>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437140844-6032-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20150717082645.GB9331@earth>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This register is required to be passed to the SATA PHY driver
-to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
+* Sebastian Reichel <sre@kernel.org> [150717 01:29]:
+> Hi,
+> 
+> On Thu, Jul 16, 2015 at 04:59:09AM -0700, Tony Lindgren wrote:
+> > I think we can drop these now. This just leaves n900 and ldp with
+> > n900 pending patches for legacy proc support.
+> 
+> So I guess n900 board file removal depends on the atag procfs
+> support in DT. What's the problem with ldp? Its DT file seem
+> to cover everything in the board file. I guess both of them
+> will finally be removed in 4.4?
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+Yes the atags procfs and setting system_rev as being discussed
+with the patches posted by Pali.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 8f1e25b..4a0718c 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1140,6 +1140,7 @@
- 				ctrl-module = <&omap_control_sata>;
- 				clocks = <&sys_clkin1>, <&sata_ref_clk>;
- 				clock-names = "sysclk", "refclk";
-+				syscon-pllreset = <&scm_conf 0x3fc>;
- 				#phy-cells = <0>;
- 			};
- 
--- 
-2.1.4
+LDP actually works better with device tree, we just want to keep
+the legacy booting around until the n900 issues are sorted out
+as it's hooked to Russell's build and boot test rack.
+
+Regards,
+
+Tony
