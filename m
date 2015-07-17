@@ -1,17 +1,20 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy booting support for Pandora
-Date: Thu, 16 Jul 2015 21:54:05 -0700
-Message-ID: <20150717045405.GQ17550@atomide.com>
-References: <1437047951-22300-1-git-send-email-tony@atomide.com>
- <1437047951-22300-3-git-send-email-tony@atomide.com>
- <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
- <20150716162616.GO17550@atomide.com>
+Subject: Re: [PATCH 05/12] ARM: OMAP2+: Add support for initializing dm814x
+ clocks
+Date: Thu, 16 Jul 2015 22:06:26 -0700
+Message-ID: <20150717050626.GR17550@atomide.com>
+References: <1433348601-8966-1-git-send-email-tony@atomide.com>
+ <1433348601-8966-6-git-send-email-tony@atomide.com>
+ <20150604184254.GJ490@codeaurora.org>
+ <20150604222823.GC30984@atomide.com>
+ <20150716093746.GL17550@atomide.com>
+ <55A7F702.6040408@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150716162616.GO17550@atomide.com>
+In-Reply-To: <55A7F702.6040408@codeaurora.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,53 +24,135 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Mike Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150716 09:28]:
-> * Grazvydas Ignotas <notasas@gmail.com> [150716 07:16]:
-> > Hi,
-> > 
-> > On Thu, Jul 16, 2015 at 2:59 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > > We've been moving all omap2+ based systems to boot in device tree only
-> > > mode for a few years now. Only omap3 has legacy booting support
-> > > remaining. Most omap3 boards already have related arch/arm/boot/*.dts*
-> > > files for booting with device tree.
-> > >
-> > > This board has support for device tree based booting, and we've been
-> > > printing warnings about the legacy booting being deprecated for a
-> > > few merge cycles now. Let's attempt to remove the legacy booting
-> > > for it.
-> > >
-> > > The reason for removing the legacy booting support now rather than
-> > > later is we can simply revert this patch if necessary if we run
-> > > into some unexpected issues that are not trivial to fix for the
-> > > device tree based booting.
-> > 
-> > It seems we lose wifi, backlight, audio and usb host mainline support
-> > with this as pandora's .dts currently lacks all that stuff.
+* Stephen Boyd <sboyd@codeaurora.org> [150716 11:27]:
+> On 07/16/2015 02:37 AM, Tony Lindgren wrote:
+> >
+> >Here's this patch updated with the above removed.
+> >
+> 
+> Ok. I fixed up Mike's email in case he wants to look at it. Looks fine to me
+> though.
 
-More on that later on, but a question on the vendor kernel first..
-
-> > That said I'm not aware of any mainline users (everyone seems to be on
-> > our "vendor" kernel), so maybe we can add those later.
-
-What all is keeping people from using mainline kernel on pandora?
-Is it the sgx or are there other reasons too remaining?  
-
-> Hmm wifi should be easy, isn't that just libertas_sdio?
-
-Nope wl1251, we can initialize with pdata-quirks.c for now if it
-does not yet support device tree except for the SPI version.
-The same goes for the other devices too if needed, I'd assume
-the the EHCI is similar to beagle though.
-
-And of course we can still wait on removing the pandora board file
-if you want to. Sounds like that may not be needed though because of
-people using "vendor" kernel in this case even with the legacy
-booting?
+OK thanks for updating Mike's email. 
 
 Regards,
 
 Tony
+
+> >8< -------------
+> >From: Tony Lindgren <tony@atomide.com>
+> >Date: Thu, 16 Jul 2015 01:55:57 -0700
+> >Subject: [PATCH] ARM: OMAP2+: Add support for initializing dm814x clocks
+> >
+> >Let's add a minimal clocks for dm814x to get it booted. This is
+> >mostly a placeholder and relies on the PLLs being on from the
+> >bootloader.
+> >
+> >Note that the divider clocks work the same way as on dm816x and
+> >am335x.
+> >
+> >Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+> >Cc: Mike Turquette <mturquette@linaro.org>
+> >Cc: Paul Walmsley <paul@pwsan.com>
+> >Cc: Stephen Boyd <sboyd@codeaurora.org>
+> >Cc: Tero Kristo <t-kristo@ti.com>
+> >Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+> 
+> >
+> >--- a/arch/arm/mach-omap2/io.c
+> >+++ b/arch/arm/mach-omap2/io.c
+> >@@ -558,7 +558,7 @@ void __init ti814x_init_early(void)
+> >  	ti81xx_hwmod_init();
+> >  	omap_hwmod_init_postsetup();
+> >  	if (of_have_populated_dt())
+> >-		omap_clk_soc_init = ti81xx_dt_clk_init;
+> >+		omap_clk_soc_init = dm814x_dt_clk_init;
+> >  }
+> >  void __init ti816x_init_early(void)
+> >@@ -575,7 +575,7 @@ void __init ti816x_init_early(void)
+> >  	ti81xx_hwmod_init();
+> >  	omap_hwmod_init_postsetup();
+> >  	if (of_have_populated_dt())
+> >-		omap_clk_soc_init = ti81xx_dt_clk_init;
+> >+		omap_clk_soc_init = dm816x_dt_clk_init;
+> >  }
+> >  #endif
+> >--- a/drivers/clk/ti/Makefile
+> >+++ b/drivers/clk/ti/Makefile
+> >@@ -2,7 +2,7 @@ obj-y					+= clk.o autoidle.o clockdomain.o
+> >  clk-common				= dpll.o composite.o divider.o gate.o \
+> >  					  fixed-factor.o mux.o apll.o
+> >  obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
+> >-obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-816x.o
+> >+obj-$(CONFIG_SOC_TI81XX)		+= $(clk-common) fapll.o clk-814x.o clk-816x.o
+> >  obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
+> >  obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o \
+> >  					   clk-3xxx.o
+> >--- /dev/null
+> >+++ b/drivers/clk/ti/clk-814x.c
+> >@@ -0,0 +1,31 @@
+> >+/*
+> >+ * This program is free software; you can redistribute it and/or
+> >+ * modify it under the terms of the GNU General Public License as
+> >+ * published by the Free Software Foundation version 2.
+> >+ */
+> >+
+> >+#include <linux/kernel.h>
+> >+#include <linux/clk-provider.h>
+> >+#include <linux/clk/ti.h>
+> >+
+> >+static struct ti_dt_clk dm814_clks[] = {
+> >+	DT_CLK(NULL, "devosc_ck", "devosc_ck"),
+> >+	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
+> >+	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
+> >+	DT_CLK(NULL, "sysclk6_ck", "sysclk6_ck"),
+> >+	DT_CLK(NULL, "sysclk10_ck", "sysclk10_ck"),
+> >+	DT_CLK(NULL, "sysclk18_ck", "sysclk18_ck"),
+> >+	DT_CLK(NULL, "timer_sys_ck", "devosc_ck"),
+> >+	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
+> >+	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
+> >+	{ .node_name = NULL },
+> >+};
+> >+
+> >+int __init dm814x_dt_clk_init(void)
+> >+{
+> >+	ti_dt_clocks_register(dm814_clks);
+> >+	omap2_clk_disable_autoidle_all();
+> >+	omap2_clk_enable_init_clocks(NULL, 0);
+> >+
+> >+	return 0;
+> >+}
+> >--- a/drivers/clk/ti/clk-816x.c
+> >+++ b/drivers/clk/ti/clk-816x.c
+> >@@ -42,7 +42,7 @@ static const char *enable_init_clks[] = {
+> >  	"ddr_pll_clk3",
+> >  };
+> >-int __init ti81xx_dt_clk_init(void)
+> >+int __init dm816x_dt_clk_init(void)
+> >  {
+> >  	ti_dt_clocks_register(dm816x_clks);
+> >  	omap2_clk_disable_autoidle_all();
+> >--- a/include/linux/clk/ti.h
+> >+++ b/include/linux/clk/ti.h
+> >@@ -329,7 +329,8 @@ int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
+> >  int omap3430_dt_clk_init(void);
+> >  int omap3630_dt_clk_init(void);
+> >  int am35xx_dt_clk_init(void);
+> >-int ti81xx_dt_clk_init(void);
+> >+int dm814x_dt_clk_init(void);
+> >+int dm816x_dt_clk_init(void);
+> >  int omap4xxx_dt_clk_init(void);
+> >  int omap5xxx_dt_clk_init(void);
+> >  int dra7xx_dt_clk_init(void);
+> 
+> 
+> -- 
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+> a Linux Foundation Collaborative Project
+> 
