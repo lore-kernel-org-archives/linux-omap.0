@@ -1,34 +1,37 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/4] ARM: dts: AM33xx: Add ti,mbox-send-noirq to wkup_m3 mailbox
-Date: Fri, 17 Jul 2015 16:08:01 -0500
-Message-ID: <1437167284-25659-2-git-send-email-d-gerlach@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 2/4] ARM: dts: AM4372: Add ti,mbox-send-noirq to wkup_m3 mailbox
+Date: Fri, 17 Jul 2015 16:08:02 -0500
+Message-ID: <1437167284-25659-3-git-send-email-d-gerlach@ti.com>
 References: <1437167284-25659-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437167284-25659-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437167284-25659-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Suman Anna <s-anna@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
+
+From: Keerthy <j-keerthy@ti.com>
 
 Add ti,mbox-send-noirq to wkup_m3 mailbox so that messages using
 wkup_m3 mailbox are sent without triggering any further interrupts.
-This is needed to achieve lower power numbers during CPU idle on
-AM33xx.
+This is required to be able to send multiple messages to the WkupM3
+after the mailbox usage logic adjustment in the wkup_m3_ipc driver.
 
-Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-[s-anna-l0cyMroinI0@public.gmane.org: revise commit description]
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Dave Gerlach <d-gerlach@ti.com>
+[s-anna@ti.com: revise commit description]
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 1 +
+ arch/arm/boot/dts/am4372.dtsi | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 4c1b4a8..4f2c07a 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -391,6 +391,7 @@
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 6f6f393..5bccc48 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -214,6 +214,7 @@
  			ti,mbox-num-users = <4>;
  			ti,mbox-num-fifos = <8>;
  			mbox_wkupm3: wkup_m3 {
@@ -38,8 +41,3 @@ index 4c1b4a8..4f2c07a 100644
  			};
 -- 
 2.4.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
