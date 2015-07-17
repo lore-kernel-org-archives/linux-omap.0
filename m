@@ -1,180 +1,102 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2 1/3] mailbox/omap: Add ti,mbox-send-noirq quirk to fix AM33xx CPU Idle
-Date: Fri, 17 Jul 2015 15:56:30 -0500
-Message-ID: <1437166592-25378-2-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v2 2/3] Documentation: dt: add bindings for TI Wakeup M3 IPC
+ device
+Date: Fri, 17 Jul 2015 15:56:31 -0500
+Message-ID: <1437166592-25378-3-git-send-email-d-gerlach@ti.com>
 References: <1437166592-25378-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1437166592-25378-1-git-send-email-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Suman Anna <s-anna@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Jassi Brar <jassisinghbrar@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The mailbox framework controls the transmission queue and requires
-either its controller implementations or clients to run the state
-machine for the Tx queue. The OMAP mailbox controller uses a Tx-ready
-interrupt as the equivalent of a Tx-done interrupt to run this Tx
-queue state-machine.
-
-The WkupM3 processor on AM33xx and AM43xx SoCs is used to offload
-certain PM tasks, like doing the necessary operations for Device
-PM suspend/resume or for entering lower c-states during cpuidle.
-
-The CPUIdle on AM33xx requires the messages to be sent without
-having to trigger the Tx-ready interrupts, as the interrupt
-would immediately terminate the CPUIdle operation. Support for
-this has been added by introducing a DT quirk, "ti,mbox-send-noirq"
-and using it to modify the normal OMAP mailbox controller behavior
-on the sub-mailboxes used to communicate with the WkupM3 remote
-processor. This also requires the wkup_m3_ipc driver to adjust
-its mailbox usage logic to run the Tx state machine.
-
-NOTE:
-- AM43xx does not communicate with WkupM3 for CPU Idle, so is
-  not affected by this behavior. But, it uses the same IPC driver
-  for PM suspend/resume functionality, so requires the quirk as
-  well, because of changes to the common wkup_m3_ipc driver.
+Add the device tree bindings document for the TI Wakeup M3 IPC
+device on AM33xx and AM43xx SoCs. These devices are used by the
+TI wkup_m3_ipc driver, and contain the registers upon which the
+IPC protocol to communicate with the Wakeup M3 processor is
+implemented.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-[s-anna@ti.com: revise logic and update comments/patch description]
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- .../devicetree/bindings/mailbox/omap-mailbox.txt   |  8 ++++
- drivers/mailbox/omap-mailbox.c                     | 49 ++++++++++++++++++++--
- 2 files changed, 53 insertions(+), 4 deletions(-)
+ .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     | 57 ++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
 
-diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-index d1a0433..9b40c49 100644
---- a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-+++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-@@ -75,6 +75,14 @@ data that represent the following:
-     Cell #3 (usr_id)  - mailbox user id for identifying the interrupt line
-                         associated with generating a tx/rx fifo interrupt.
- 
-+Optional Properties:
+diff --git a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+new file mode 100644
+index 0000000..4015504
+--- /dev/null
++++ b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+@@ -0,0 +1,57 @@
++Wakeup M3 IPC Driver
++=====================
++
++The TI AM33xx and AM43xx family of devices use a small Cortex M3 co-processor
++(commonly referred to as Wakeup M3 or CM3) to help with various low power tasks
++that cannot be controlled from the MPU, like suspend/resume and certain deep
++C-states for CPU Idle. Once the wkup_m3_ipc driver uses the wkup_m3_rproc driver
++to boot the wkup_m3, it handles communication with the CM3 using IPC registers
++present in the SoC's control module and a mailbox. The wkup_m3_ipc exposes an
++API to allow the SoC PM code to execute specific PM tasks.
++
++Wkup M3 Device Node:
++====================
++A wkup_m3_ipc device node is used to represent the IPC registers within an
++SoC.
++
++Required properties:
 +--------------------
-+- ti,mbox-send-noirq:   Quirk flag to allow the client user of this sub-mailbox
-+                        to send messages without triggering a Tx ready interrupt,
-+                        and to control the Tx ticker. Should be used only on
-+                        sub-mailboxes used to communicate with WkupM3 remote
-+                        processor on AM33xx/AM43xx SoCs.
++- compatible:		Should be,
++				"ti,am3352-wkup-m3-ipc" for AM33xx SoCs
++				"ti,am4372-wkup-m3-ipc" for AM43xx SoCs
++- reg:			Contains the IPC register address space to communicate
++			with the Wakeup M3 processor
++- interrupts:		Contains the interrupt information for the wkup_m3
++			interrupt that signals the MPU.
++- ti,rproc:		phandle to the wkup_m3 rproc node so the IPC driver
++			can boot it.
++- mboxes:		phandles used by IPC framework to get correct mbox
++			channel for communication. Must point to appropriate
++			mbox_wkupm3 child node.
 +
- Mailbox Users:
- ==============
- A device needing to communicate with a target processor device should specify
-diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
-index a3dbfd9..b7f636f 100644
---- a/drivers/mailbox/omap-mailbox.c
-+++ b/drivers/mailbox/omap-mailbox.c
-@@ -38,6 +38,8 @@
- #include <linux/mailbox_controller.h>
- #include <linux/mailbox_client.h>
- 
-+#include "mailbox.h"
++Example:
++--------
++/* AM33xx */
++	l4_wkup: l4_wkup@44c00000 {
++		...
 +
- #define MAILBOX_REVISION		0x000
- #define MAILBOX_MESSAGE(m)		(0x040 + 4 * (m))
- #define MAILBOX_FIFOSTATUS(m)		(0x080 + 4 * (m))
-@@ -106,6 +108,7 @@ struct omap_mbox_fifo_info {
- 	int rx_irq;
- 
- 	const char *name;
-+	bool send_no_irq;
- };
- 
- struct omap_mbox {
-@@ -119,6 +122,7 @@ struct omap_mbox {
- 	u32			ctx[OMAP4_MBOX_NR_REGS];
- 	u32			intr_type;
- 	struct mbox_chan	*chan;
-+	bool			send_no_irq;
- };
- 
- /* global variables for the mailbox devices */
-@@ -418,6 +422,9 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 		goto fail_request_irq;
- 	}
- 
-+	if (mbox->send_no_irq)
-+		mbox->chan->txdone_method = TXDONE_BY_ACK;
++		scm: scm@210000 {
++			compatible = "ti,am3-scm", "simple-bus";
++			reg = <0x210000 0x2000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x210000 0x2000>;
 +
- 	_omap_mbox_enable_irq(mbox, IRQ_RX);
- 
- 	return 0;
-@@ -586,13 +593,27 @@ static void omap_mbox_chan_shutdown(struct mbox_chan *chan)
- 	mutex_unlock(&mdev->cfg_lock);
- }
- 
--static int omap_mbox_chan_send_data(struct mbox_chan *chan, void *data)
-+static int omap_mbox_chan_send_noirq(struct omap_mbox *mbox, void *data)
- {
--	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
- 	int ret = -EBUSY;
- 
--	if (!mbox)
--		return -EINVAL;
-+	if (!mbox_fifo_full(mbox)) {
-+		_omap_mbox_enable_irq(mbox, IRQ_RX);
-+		mbox_fifo_write(mbox, (mbox_msg_t)data);
-+		ret = 0;
-+		_omap_mbox_disable_irq(mbox, IRQ_RX);
++			...
 +
-+		/* we must read and ack the interrupt directly from here */
-+		mbox_fifo_read(mbox);
-+		ack_mbox_irq(mbox, IRQ_RX);
-+	}
++			wkup_m3_ipc: wkup_m3_ipc@1324 {
++				compatible = "ti,am3352-wkup-m3-ipc";
++				reg = <0x1324 0x24>;
++				interrupts = <78>;
++				ti,rproc = <&wkup_m3>;
++				mboxes = <&mailbox &mbox_wkupm3>;
++			};
 +
-+	return ret;
-+}
-+
-+static int omap_mbox_chan_send(struct omap_mbox *mbox, void *data)
-+{
-+	int ret = -EBUSY;
- 
- 	if (!mbox_fifo_full(mbox)) {
- 		mbox_fifo_write(mbox, (mbox_msg_t)data);
-@@ -604,6 +625,22 @@ static int omap_mbox_chan_send_data(struct mbox_chan *chan, void *data)
- 	return ret;
- }
- 
-+static int omap_mbox_chan_send_data(struct mbox_chan *chan, void *data)
-+{
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
-+	int ret;
-+
-+	if (!mbox)
-+		return -EINVAL;
-+
-+	if (mbox->send_no_irq)
-+		ret = omap_mbox_chan_send_noirq(mbox, data);
-+	else
-+		ret = omap_mbox_chan_send(mbox, data);
-+
-+	return ret;
-+}
-+
- static const struct mbox_chan_ops omap_mbox_chan_ops = {
- 	.startup        = omap_mbox_chan_startup,
- 	.send_data      = omap_mbox_chan_send_data,
-@@ -732,6 +769,9 @@ static int omap_mbox_probe(struct platform_device *pdev)
- 			finfo->rx_usr = tmp[2];
- 
- 			finfo->name = child->name;
-+
-+			if (of_find_property(child, "ti,mbox-send-noirq", NULL))
-+				finfo->send_no_irq = true;
- 		} else {
- 			finfo->tx_id = info->tx_id;
- 			finfo->rx_id = info->rx_id;
-@@ -791,6 +831,7 @@ static int omap_mbox_probe(struct platform_device *pdev)
- 		fifo->irqstatus = MAILBOX_IRQSTATUS(intr_type, finfo->rx_usr);
- 		fifo->irqdisable = MAILBOX_IRQDISABLE(intr_type, finfo->rx_usr);
- 
-+		mbox->send_no_irq = finfo->send_no_irq;
- 		mbox->intr_type = intr_type;
- 
- 		mbox->parent = mdev;
++			...
++		};
++	};
 -- 
 2.4.5
