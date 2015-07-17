@@ -1,107 +1,83 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 02/11] usb: otg-fsm: support multiple instances
-Date: Fri, 17 Jul 2015 14:17:18 +0300
-Message-ID: <55A8E43E.5090900@ti.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <1436350777-28056-3-git-send-email-rogerq@ti.com> <20150710080642.GB14729@shlinux2> <20150713013948.GA27710@shlinux2>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy booting support for Pandora
+Date: Fri, 17 Jul 2015 14:22:20 +0300
+Message-ID: <CANOLnOPxteeZ7dkd0wrZKCRzf=0qiW7-kcG-aup2S=XME8v0VQ@mail.gmail.com>
+References: <1437047951-22300-1-git-send-email-tony@atomide.com>
+ <1437047951-22300-3-git-send-email-tony@atomide.com>
+ <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
+ <20150716162616.GO17550@atomide.com>
+ <20150717045405.GQ17550@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150713013948.GA27710@shlinux2>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <peter.chen@freescale.com>, Li Jun <b47624@freescale.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150717045405.GQ17550@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 13/07/15 04:39, Peter Chen wrote:
-> On Fri, Jul 10, 2015 at 04:06:43PM +0800, Li Jun wrote:
->> On Wed, Jul 08, 2015 at 01:19:28PM +0300, Roger Quadros wrote:
->>> Move the state_changed variable into struct otg_fsm
->>> so that we can support multiple instances.
->>>
->> I am not sure if multiple instances may happen since OTG protocol requires
->> only one OTG port can be equipped on OTG device.
->>
-> 
-> It is ok the software can support more than spec requires, the user can
-> only use one and the spec may change in future :)
-> 
->> Li Jun
->>  
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  drivers/usb/common/usb-otg-fsm.c | 10 ++++------
->>>  include/linux/usb/otg-fsm.h      |  1 +
->>>  2 files changed, 5 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
->>> index 61d538a..42c6376 100644
->>> --- a/drivers/usb/common/usb-otg-fsm.c
->>> +++ b/drivers/usb/common/usb-otg-fsm.c
->>> @@ -61,8 +61,6 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
->>>  	return 0;
->>>  }
->>>  
->>> -static int state_changed;
->>> -
->>>  /* Called when leaving a state.  Do state clean up jobs here */
->>>  static void otg_leave_state(struct otg_fsm *fsm, enum usb_otg_state old_state)
->>>  {
->>> @@ -123,7 +121,7 @@ static void otg_leave_state(struct otg_fsm *fsm, enum usb_otg_state old_state)
->>>  /* Called when entering a state */
->>>  static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->>>  {
->>> -	state_changed = 1;
->>> +	fsm->state_changed = 1;
->>>  	if (fsm->otg->state == new_state)
->>>  		return 0;
->>
->> "fsm->state_changed = 1;" should be put here, I think.
->>
-> 
-> Yes, seems it is the problem at current code.
-
-Right. But I'll fix it as per Li's suggestion.
-
-cheers,
--roger
-
-> 
->> Li Jun
->>
->>>  	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
->>> @@ -248,7 +246,7 @@ int otg_statemachine(struct otg_fsm *fsm)
->>>  	mutex_lock(&fsm->lock);
->>>  
->>>  	state = fsm->otg->state;
->>> -	state_changed = 0;
->>> +	fsm->state_changed = 0;
->>>  	/* State machine state change judgement */
->>>  
->>>  	switch (state) {
->>> @@ -361,7 +359,7 @@ int otg_statemachine(struct otg_fsm *fsm)
->>>  	}
->>>  	mutex_unlock(&fsm->lock);
->>>  
->>> -	VDBG("quit statemachine, changed = %d\n", state_changed);
->>> -	return state_changed;
->>> +	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
->>> +	return fsm->state_changed;
->>>  }
->>>  EXPORT_SYMBOL_GPL(otg_statemachine);
->>> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
->>> index ca508c2..243274f 100644
->>> --- a/include/linux/usb/otg-fsm.h
->>> +++ b/include/linux/usb/otg-fsm.h
->>> @@ -194,6 +194,7 @@ struct otg_fsm {
->>>  	/* Current usb protocol used: 0:undefine; 1:host; 2:client */
->>>  	int protocol;
->>>  	struct mutex lock;
->>> +	bool state_changed;
->>>  };
->>>  
->>>  struct otg_fsm_ops {
->>> -- 
->>> 2.1.4
->>>
-> 
+T24gRnJpLCBKdWwgMTcsIDIwMTUgYXQgNzo1NCBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
+aWRlLmNvbT4gd3JvdGU6Cj4gKiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiBbMTUw
+NzE2IDA5OjI4XToKPj4gKiBHcmF6dnlkYXMgSWdub3RhcyA8bm90YXNhc0BnbWFpbC5jb20+IFsx
+NTA3MTYgMDc6MTZdOgo+PiA+IEhpLAo+PiA+Cj4+ID4gT24gVGh1LCBKdWwgMTYsIDIwMTUgYXQg
+Mjo1OSBQTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3JvdGU6Cj4+ID4gPiBX
+ZSd2ZSBiZWVuIG1vdmluZyBhbGwgb21hcDIrIGJhc2VkIHN5c3RlbXMgdG8gYm9vdCBpbiBkZXZp
+Y2UgdHJlZSBvbmx5Cj4+ID4gPiBtb2RlIGZvciBhIGZldyB5ZWFycyBub3cuIE9ubHkgb21hcDMg
+aGFzIGxlZ2FjeSBib290aW5nIHN1cHBvcnQKPj4gPiA+IHJlbWFpbmluZy4gTW9zdCBvbWFwMyBi
+b2FyZHMgYWxyZWFkeSBoYXZlIHJlbGF0ZWQgYXJjaC9hcm0vYm9vdC8qLmR0cyoKPj4gPiA+IGZp
+bGVzIGZvciBib290aW5nIHdpdGggZGV2aWNlIHRyZWUuCj4+ID4gPgo+PiA+ID4gVGhpcyBib2Fy
+ZCBoYXMgc3VwcG9ydCBmb3IgZGV2aWNlIHRyZWUgYmFzZWQgYm9vdGluZywgYW5kIHdlJ3ZlIGJl
+ZW4KPj4gPiA+IHByaW50aW5nIHdhcm5pbmdzIGFib3V0IHRoZSBsZWdhY3kgYm9vdGluZyBiZWlu
+ZyBkZXByZWNhdGVkIGZvciBhCj4+ID4gPiBmZXcgbWVyZ2UgY3ljbGVzIG5vdy4gTGV0J3MgYXR0
+ZW1wdCB0byByZW1vdmUgdGhlIGxlZ2FjeSBib290aW5nCj4+ID4gPiBmb3IgaXQuCj4+ID4gPgo+
+PiA+ID4gVGhlIHJlYXNvbiBmb3IgcmVtb3ZpbmcgdGhlIGxlZ2FjeSBib290aW5nIHN1cHBvcnQg
+bm93IHJhdGhlciB0aGFuCj4+ID4gPiBsYXRlciBpcyB3ZSBjYW4gc2ltcGx5IHJldmVydCB0aGlz
+IHBhdGNoIGlmIG5lY2Vzc2FyeSBpZiB3ZSBydW4KPj4gPiA+IGludG8gc29tZSB1bmV4cGVjdGVk
+IGlzc3VlcyB0aGF0IGFyZSBub3QgdHJpdmlhbCB0byBmaXggZm9yIHRoZQo+PiA+ID4gZGV2aWNl
+IHRyZWUgYmFzZWQgYm9vdGluZy4KPj4gPgo+PiA+IEl0IHNlZW1zIHdlIGxvc2Ugd2lmaSwgYmFj
+a2xpZ2h0LCBhdWRpbyBhbmQgdXNiIGhvc3QgbWFpbmxpbmUgc3VwcG9ydAo+PiA+IHdpdGggdGhp
+cyBhcyBwYW5kb3JhJ3MgLmR0cyBjdXJyZW50bHkgbGFja3MgYWxsIHRoYXQgc3R1ZmYuCj4KPiBN
+b3JlIG9uIHRoYXQgbGF0ZXIgb24sIGJ1dCBhIHF1ZXN0aW9uIG9uIHRoZSB2ZW5kb3Iga2VybmVs
+IGZpcnN0Li4KPgo+PiA+IFRoYXQgc2FpZCBJJ20gbm90IGF3YXJlIG9mIGFueSBtYWlubGluZSB1
+c2VycyAoZXZlcnlvbmUgc2VlbXMgdG8gYmUgb24KPj4gPiBvdXIgInZlbmRvciIga2VybmVsKSwg
+c28gbWF5YmUgd2UgY2FuIGFkZCB0aG9zZSBsYXRlci4KPgo+IFdoYXQgYWxsIGlzIGtlZXBpbmcg
+cGVvcGxlIGZyb20gdXNpbmcgbWFpbmxpbmUga2VybmVsIG9uIHBhbmRvcmE/Cj4gSXMgaXQgdGhl
+IHNneCBvciBhcmUgdGhlcmUgb3RoZXIgcmVhc29ucyB0b28gcmVtYWluaW5nPwoKVGhlcmUgYXJl
+IG11bHRpcGxlIHRoaW5ncywgYmVzaWRlcyBTR1g6Ci0gbGFjayBvZiAxR0h6IHN1cHBvcnQgZHVl
+IHRvIGxhY2sgb2YgQUJCL0FWUy4gTWVhbndoaWxlIHdlIGhhdmUgYmVlbgpydW5uaW5nIGFsbCBw
+YW5kb3JhcyBhdCAxR0h6IGZvciB5ZWFycyB3aXRob3V0IEFCQi9BVlMgb24gb3VyIGtlcm5lbAph
+bmQgbm8gcHJvYmxlbXMgaGF2ZSBiZWVuIHJlcG9ydGVkIGJ5IHVzZXJzLgotIG92ZXJjbG9ja2lu
+ZyBzdXBwb3J0LiBJdCBzZWVtcyBtb3N0IERNMzczMHMgY2FuIGRvIDEuMkdIeiBhbmQgYWxsCmNh
+biBkbyAxLjFHSHosIHJ1bm5pbmcgdGhlIGRldmljZSBhdCB0aGF0IGNsb2NrIG5vdGljZWFibHkg
+c3BlZWRzIHVwCnRoaW5ncywgc28gd2UgcHJvdmlkZSB0aGF0IGZ1bmN0aW9uYWxpdHkgb3V0IG9m
+IHRoZSBib3guIE5vIGluc3RhbmNlcwpvZiBTb0MgZGFtYWdlIHdlcmUgcmVwb3J0ZWQgb3ZlciB0
+aGUgeWVhcnMuCi0gdXNpbmcgYXVmcyBmb3Igc29mdHdhcmUgcGFja2FnZXMsIGF1ZnMgd2Fzbid0
+IG1lcmdlZCBhbmQgcHJvYmFibHkKd2lsbCBuZXZlciBiZQotIGtleXBhZCBGbiBrZXkgaGFuZGxp
+bmcgaW4gdGhlIGRyaXZlciB0byBzaW11bGF0ZSBoYXJkd2FyZSBGbiAobm90CmFsbG93ZWQgaW4g
+bWFpbmxpbmUpCi0gbGFjayBvZiBkcml2ZXIgZm9yIGFuYWxvZyBudWJzCgpUaGF0IHNhaWQgdGhl
+cmUgcHJvYmFibHkgYXJlIHNvbWUgcGVvcGxlIHdobyBjYW4gbGl2ZSB3aXRob3V0IHRoZQphYm92
+ZSBhbmQgcHJlZmVyIG5ldyBmZWF0dXJlcyBvZiBuZXcgbWFpbmxpbmUga2VybmVscy4KCj4+IEht
+bSB3aWZpIHNob3VsZCBiZSBlYXN5LCBpc24ndCB0aGF0IGp1c3QgbGliZXJ0YXNfc2Rpbz8KPgo+
+IE5vcGUgd2wxMjUxLCB3ZSBjYW4gaW5pdGlhbGl6ZSB3aXRoIHBkYXRhLXF1aXJrcy5jIGZvciBu
+b3cgaWYgaXQKPiBkb2VzIG5vdCB5ZXQgc3VwcG9ydCBkZXZpY2UgdHJlZSBleGNlcHQgZm9yIHRo
+ZSBTUEkgdmVyc2lvbi4KPiBUaGUgc2FtZSBnb2VzIGZvciB0aGUgb3RoZXIgZGV2aWNlcyB0b28g
+aWYgbmVlZGVkLCBJJ2QgYXNzdW1lCj4gdGhlIHRoZSBFSENJIGlzIHNpbWlsYXIgdG8gYmVhZ2xl
+IHRob3VnaC4KClllYWggbWF5YmUgSSBzaG91bGQgdHJ5IHRvIGNvbWUgdXAgd2l0aCBhIHBhdGNo
+Li4uCgo+IEFuZCBvZiBjb3Vyc2Ugd2UgY2FuIHN0aWxsIHdhaXQgb24gcmVtb3ZpbmcgdGhlIHBh
+bmRvcmEgYm9hcmQgZmlsZQo+IGlmIHlvdSB3YW50IHRvLiBTb3VuZHMgbGlrZSB0aGF0IG1heSBu
+b3QgYmUgbmVlZGVkIHRob3VnaCBiZWNhdXNlIG9mCj4gcGVvcGxlIHVzaW5nICJ2ZW5kb3IiIGtl
+cm5lbCBpbiB0aGlzIGNhc2UgZXZlbiB3aXRoIHRoZSBsZWdhY3kKPiBib290aW5nPwoKWWVzIGlm
+IGl0IGludGVyZmVyZXMgd2l0aCBvdGhlciBtYWlubGluZSB3b3JrIGp1c3QgZ28gYWhlYWQgYW5k
+IHJlbW92ZSBpdC4KCj4KPiBSZWdhcmRzLAo+Cj4gVG9ueQoKR3Jhxb52eWRhcwoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
+YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
+aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
