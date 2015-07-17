@@ -1,106 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy booting support for Pandora
-Date: Fri, 17 Jul 2015 06:49:32 -0700
-Message-ID: <20150717134931.GU17550@atomide.com>
-References: <1437047951-22300-1-git-send-email-tony@atomide.com>
- <1437047951-22300-3-git-send-email-tony@atomide.com>
- <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
- <20150716162616.GO17550@atomide.com>
- <20150717045405.GQ17550@atomide.com>
- <CANOLnOPxteeZ7dkd0wrZKCRzf=0qiW7-kcG-aup2S=XME8v0VQ@mail.gmail.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v2 0/3] soc: ti: Introduce wkup_m3_ipc driver
+Date: Fri, 17 Jul 2015 15:56:29 -0500
+Message-ID: <1437166592-25378-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CANOLnOPxteeZ7dkd0wrZKCRzf=0qiW7-kcG-aup2S=XME8v0VQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Suman Anna <s-anna@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Keerthy <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Grazvydas Ignotas <notasas@gmail.com> [150717 04:24]:
-> On Fri, Jul 17, 2015 at 7:54 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Tony Lindgren <tony@atomide.com> [150716 09:28]:
-> >> * Grazvydas Ignotas <notasas@gmail.com> [150716 07:16]:
-> >> > Hi,
-> >> >
-> >> > On Thu, Jul 16, 2015 at 2:59 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > > We've been moving all omap2+ based systems to boot in device tree only
-> >> > > mode for a few years now. Only omap3 has legacy booting support
-> >> > > remaining. Most omap3 boards already have related arch/arm/boot/*.dts*
-> >> > > files for booting with device tree.
-> >> > >
-> >> > > This board has support for device tree based booting, and we've been
-> >> > > printing warnings about the legacy booting being deprecated for a
-> >> > > few merge cycles now. Let's attempt to remove the legacy booting
-> >> > > for it.
-> >> > >
-> >> > > The reason for removing the legacy booting support now rather than
-> >> > > later is we can simply revert this patch if necessary if we run
-> >> > > into some unexpected issues that are not trivial to fix for the
-> >> > > device tree based booting.
-> >> >
-> >> > It seems we lose wifi, backlight, audio and usb host mainline support
-> >> > with this as pandora's .dts currently lacks all that stuff.
-> >
-> > More on that later on, but a question on the vendor kernel first..
-> >
-> >> > That said I'm not aware of any mainline users (everyone seems to be on
-> >> > our "vendor" kernel), so maybe we can add those later.
-> >
-> > What all is keeping people from using mainline kernel on pandora?
-> > Is it the sgx or are there other reasons too remaining?
-> 
-> There are multiple things, besides SGX:
-> - lack of 1GHz support due to lack of ABB/AVS. Meanwhile we have been
-> running all pandoras at 1GHz for years without ABB/AVS on our kernel
-> and no problems have been reported by users.
-> - overclocking support. It seems most DM3730s can do 1.2GHz and all
-> can do 1.1GHz, running the device at that clock noticeably speeds up
-> things, so we provide that functionality out of the box. No instances
-> of SoC damage were reported over the years.
-> - using aufs for software packages, aufs wasn't merged and probably
-> will never be
-> - keypad Fn key handling in the driver to simulate hardware Fn (not
-> allowed in mainline)
-> - lack of driver for analog nubs
+Hi,
 
-OK yeah the 1GHz mode would be nice to have for sure.
- 
-> That said there probably are some people who can live without the
-> above and prefer new features of new mainline kernels.
+This series is version 2 of the code to introduce a wkup_m3_ipc driver
+to handle communication between the MPU and Cortex M3 present on TI AM335x
+and AM437x SoCs. v1 of this series can be found at [1]. Changes include:
 
-Yes seems that can be done quite easilly :)
- 
-> >> Hmm wifi should be easy, isn't that just libertas_sdio?
-> >
-> > Nope wl1251, we can initialize with pdata-quirks.c for now if it
-> > does not yet support device tree except for the SPI version.
-> > The same goes for the other devices too if needed, I'd assume
-> > the the EHCI is similar to beagle though.
-> 
-> Yeah maybe I should try to come up with a patch...
+- Buildable as a module
+- Added am437x support
+- Various cleanups and fixes based on comments on v1
+- Ability to use mailbox in noirq mode for cpuidle on am335x
 
-OK
+v2 contains an additional patch for the omap mailbox driver now to allow
+us to set ti,mbox-send-noirq for the wkup_m3 mailbox to allow us to
+support cpuidle on am335x. Although we can rely on interrupts during
+the suspend path, we must send a message during the cpuidle path from
+noirq context so we must have the ability to do this without using
+an interrupt, so we introduce the flag to indicate this. The patch has
+been included here with the wkup_m3_ipc patch so that the usage and
+context is clear.
 
-> > And of course we can still wait on removing the pandora board file
-> > if you want to. Sounds like that may not be needed though because of
-> > people using "vendor" kernel in this case even with the legacy
-> > booting?
-> 
-> Yes if it interferes with other mainline work just go ahead and remove it.
+This series uses the wkup_m3_rproc driver which is merged as of v4.2-rc1,
+but the required dt nodes are not yet merged and can be found here [2].
+A full branch containing all necessary PM code for both am335x and am437x
+has been pushed here [3] a big picture view of the plan for this series.
 
-OK will do then.
+This driver relies on the firmware at [4] being present in /lib/firmware
+in the rootfs or built in to the kernel.
 
-Thanks,
+Regards,
+Dave
 
-Tony
+[1] http://www.spinics.net/lists/arm-kernel/msg387990.html
+[2] http://www.spinics.net/lists/linux-omap/msg119973.html
+[3] https://github.com/dgerlach/linux-pm/tree/pm-v4.2-rc2-amx3-suspend
+[4] https://git.ti.com/ti-cm3-pm-firmware
+
+Dave Gerlach (3):
+  mailbox/omap: Add ti,mbox-send-noirq quirk to fix AM33xx CPU Idle
+  Documentation: dt: add bindings for TI Wakeup M3 IPC device
+  soc: ti: Add wkup_m3_ipc driver
+
+ .../devicetree/bindings/mailbox/omap-mailbox.txt   |   8 +
+ .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     |  57 +++
+ drivers/mailbox/omap-mailbox.c                     |  49 ++-
+ drivers/soc/ti/Kconfig                             |  10 +
+ drivers/soc/ti/Makefile                            |   1 +
+ drivers/soc/ti/wkup_m3_ipc.c                       | 486 +++++++++++++++++++++
+ include/linux/wkup_m3_ipc.h                        |  30 ++
+ 7 files changed, 637 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+ create mode 100644 drivers/soc/ti/wkup_m3_ipc.c
+ create mode 100644 include/linux/wkup_m3_ipc.h
+
+-- 
+2.4.5
