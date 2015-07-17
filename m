@@ -1,55 +1,131 @@
-From: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
-Subject: Re: [PATCH] [TWL4030 MADC] Fix ADC[3:6] readings
-Date: Fri, 17 Jul 2015 11:42:47 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1507171136180.14972@pmeerw.net>
-References: <1437085227-28845-1-git-send-email-adam.yh.lee@gmail.com> <1437085227-28845-2-git-send-email-adam.yh.lee@gmail.com> <20150717090039.GC9331@earth>
+From: Li Jun <b47624@freescale.com>
+Subject: Re: [PATCH v3 10/11] usb: otg: Add dual-role device (DRD) support
+Date: Fri, 17 Jul 2015 17:02:13 +0800
+Message-ID: <20150717090212.GC4515@shlinux2>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+ <1436350777-28056-11-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150717090039.GC9331@earth>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1436350777-28056-11-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+On Wed, Jul 08, 2015 at 01:19:36PM +0300, Roger Quadros wrote:
 
-adding linux-iio...
+[...]
 
-> To get a chance of this patch being considered for inclusion, you
-> should send this to the maintainers of the phy and iio framework.
-> There is a high chance, that none of them will see your mail.
-> 
-> On Thu, Jul 16, 2015 at 03:20:27PM -0700, Adam YH Lee wrote:
-> > MADC[3:6] reads incorrect values without these two following changes:
-> 
-> uhm MADC[3:6] are externally available analog inputs. Your
-> change will result in them being tied to the USB module.
+>  struct otg_fsm *usb_otg_register(struct device *parent_dev,
+> -				 struct otg_fsm_ops *fsm_ops)
+> +				 struct otg_fsm_ops *fsm_ops,
+> +				 bool drd_only)
+>  {
+>  	struct otg_data *otgd;
+>  	int ret = 0;
+> @@ -328,7 +482,15 @@ struct otg_fsm *usb_otg_register(struct device *parent_dev,
+>  		goto err_wq;
+>  	}
+>  
+> -	usb_otg_init_timers(otgd);
+> +	otgd->drd_only = drd_only;
+> +	/* For DRD mode we don't need OTG timers */
+> +	if (!drd_only) {
+> +		usb_otg_init_timers(otgd);
+> +
+> +		/* FIXME: we ignore caller's timer ops */
+> +		otgd->fsm_ops.add_timer = usb_otg_add_timer;
+> +		otgd->fsm_ops.del_timer = usb_otg_del_timer;
+> +	}
+>  
+>  	/* save original start host/gadget ops */
+>  	otgd->start_host = fsm_ops->start_host;
+> @@ -338,9 +500,6 @@ struct otg_fsm *usb_otg_register(struct device *parent_dev,
 
-change regarding TWL4030_USB_SEL_MADC_MCPC is necessary at 
-least for some hardware revisions to get proper ADC values
- 
-> > - enable the 3v1 bias regulator for ADC[3:6]
-> 
-> The regulator is not required for correct MADC functionality, but
-> for correct USB measureing. The regulator should not be requested
-> by the madc module, but by the usb module, which is connected to
-> the madc.
+Your above override will be override back to be fsm_ops's by below copy:
 
-in my experience, the MADC exhibits several strange things, I wouldn't be 
-surprised that this bias is somehow necessary for operation even if it is 
-not what the spec says -- has this been tested?
- 
-> > - configure ADC[3:6] lines as input, not as USB
-> 
-> I don't think that should be done for all boards.
-> 
-> > [...]
-> 
-> -- Sebastian
-> 
+	/* create copy of original ops */
+	otgd->fsm_ops = *fsm_ops;
 
--- 
+So add/del_timer must be override after the copy.
 
-Peter Meerwald
-+43-664-2444418 (mobile)
+>  	/* override ops */
+>  	otgd->fsm_ops.start_host = usb_otg_start_host;
+>  	otgd->fsm_ops.start_gadget = usb_otg_start_gadget;
+> -	/* FIXME: we ignore caller's timer ops */
+> -	otgd->fsm_ops.add_timer = usb_otg_add_timer;
+> -	otgd->fsm_ops.del_timer = usb_otg_del_timer;
+>  	/* set otg ops */
+>  	otgd->fsm.ops = &otgd->fsm_ops;
+>  	otgd->fsm.otg = &otgd->otg;
+> @@ -443,8 +602,10 @@ static void usb_otg_stop_fsm(struct otg_fsm *fsm)
+>  	otgd->fsm_running = false;
+>  
+>  	/* Stop state machine / timers */
+> -	for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
+> -		hrtimer_cancel(&otgd->timers[i].timer);
+> +	if (!otgd->drd_only) {
+> +		for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
+> +			hrtimer_cancel(&otgd->timers[i].timer);
+> +	}
+>  
+>  	flush_workqueue(otgd->wq);
+>  	fsm->otg->state = OTG_STATE_UNDEFINED;
+> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
+> index 22d8baa..ae9c30a 100644
+> --- a/include/linux/usb/otg-fsm.h
+> +++ b/include/linux/usb/otg-fsm.h
+> @@ -48,6 +48,11 @@ enum otg_fsm_timer {
+>  /**
+>   * struct otg_fsm - OTG state machine according to the OTG spec
+>   *
+> + * DRD mode hardware Inputs
+> + *
+> + * @id:		TRUE for B-device, FALSE for A-device.
+> + * @vbus:	VBUS voltage in regulation.
+> + *
+>   * OTG hardware Inputs
+>   *
+>   *	Common inputs for A and B device
+> @@ -122,7 +127,8 @@ enum otg_fsm_timer {
+>   */
+>  struct otg_fsm {
+>  	/* Input */
+> -	int id;
+> +	int id;			/* DRD + OTG */
+> +	int vbus;		/* DRD only */
+
+Existing b_sess_vld can be also used for drd only case, no need create
+a new flag.
+
+>  	int adp_change;
+>  	int power_up;
+>  	int a_srp_det;
+> diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+> index ce6f8d8..1086a0b 100644
+> --- a/include/linux/usb/otg.h
+> +++ b/include/linux/usb/otg.h
+> @@ -58,7 +58,7 @@ enum usb_dr_mode {
+>  
+>  #if IS_ENABLED(CONFIG_USB_OTG)
+>  struct otg_fsm *usb_otg_register(struct device *parent_dev,
+> -				 struct otg_fsm_ops *fsm_ops);
+> +				 struct otg_fsm_ops *fsm_ops, bool drd_only);
+>  int usb_otg_unregister(struct device *parent_dev);
+>  int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+>  			 unsigned long irqflags, struct otg_hcd_ops *ops);
+> @@ -73,7 +73,8 @@ struct device *usb_otg_fsm_to_dev(struct otg_fsm *fsm);
+>  #else /* CONFIG_USB_OTG */
+>  
+>  static inline struct otg_fsm *usb_otg_register(struct device *parent_dev,
+> -					       struct otg_fsm_ops *fsm_ops)
+> +					       struct otg_fsm_ops *fsm_ops,
+> +					       bool drd_only)
+>  {
+>  	return ERR_PTR(-ENOSYS);
+>  }
+> -- 
+> 2.1.4
+> 
