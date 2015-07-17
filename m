@@ -1,156 +1,120 @@
-From: Roger Quadros <rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH v3 10/11] usb: otg: Add dual-role device (DRD) support
-Date: Fri, 17 Jul 2015 13:41:31 +0300
-Message-ID: <55A8DBDB.5080304@ti.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <1436350777-28056-11-git-send-email-rogerq@ti.com> <20150717081427.GB4515@shlinux2>
+Date: Fri, 17 Jul 2015 13:47:12 +0300
+Message-ID: <55A8DD30.5030407@ti.com>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <1436350777-28056-11-git-send-email-rogerq@ti.com> <20150717090212.GC4515@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150717081427.GB4515@shlinux2>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Li Jun <b47624@freescale.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150717090212.GC4515@shlinux2>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 17/07/15 11:14, Li Jun wrote:
-> Hi,
-> 
+On 17/07/15 12:02, Li Jun wrote:
 > On Wed, Jul 08, 2015 at 01:19:36PM +0300, Roger Quadros wrote:
->> DRD mode is a reduced functionality OTG mode. In this mode
->> we don't support SRP, HNP and dynamic role-swap.
->>
->> In DRD operation, the controller mode (Host or Peripheral)
->> is decided based on the ID pin status. Once a cable plug (Type-A
->> or Type-B) is attached the controller selects the state
->> and doesn't change till the cable in unplugged and a different
->> cable type is inserted.
->>
->> As we don't need most of the complex OTG states and OTG timers
->> we implement a lean DRD state machine in usb-otg.c.
->> The DRD state machine is only interested in 2 hardware inputs
->> 'id' and 'vbus; that are still passed via the origintal struct otg_fsm.
->>
->> Most of the usb-otg.c functionality remains the same except
->> adding a new parameter to usb_otg_register() to indicate that
->> the OTG controller needs to operate in DRD mode.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/usb/common/usb-otg.c | 179 ++++++++++++++++++++++++++++++++++++++++---
->>  include/linux/usb/otg-fsm.h  |   8 +-
->>  include/linux/usb/otg.h      |   5 +-
->>  3 files changed, 180 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
->> index 1f19001..9b89f4b 100644
->> --- a/drivers/usb/common/usb-otg.c
->> +++ b/drivers/usb/common/usb-otg.c
->> @@ -44,6 +44,7 @@ struct otg_hcd {
->>  struct otg_data {
->>  	struct device *dev;	/* HCD & GCD's parent device */
+> 
+> [...]
+> 
+>>  struct otg_fsm *usb_otg_register(struct device *parent_dev,
+>> -				 struct otg_fsm_ops *fsm_ops)
+>> +				 struct otg_fsm_ops *fsm_ops,
+>> +				 bool drd_only)
+>>  {
+>>  	struct otg_data *otgd;
+>>  	int ret = 0;
+>> @@ -328,7 +482,15 @@ struct otg_fsm *usb_otg_register(struct device *parent_dev,
+>>  		goto err_wq;
+>>  	}
 >>  
->> +	bool drd_only;		/* Dual-role only, no OTG features */
-> 
-> After we introduce otg caps, we can use hnp_support to judge it it's
-> drd or OTG.
-
-Yes. I will rebase this series on top of your otg_caps patches
-and incorporate it.
-
-> 
->>  	struct otg_fsm fsm;
->>  	/* HCD, GCD and usb_otg_state are present in otg_fsm->otg
->>  	 * HCD is bus_to_hcd(fsm->otg->host)
->> @@ -272,20 +273,172 @@ static int usb_otg_start_gadget(struct otg_fsm *fsm, int on)
->>  	return 0;
->>  }
+>> -	usb_otg_init_timers(otgd);
+>> +	otgd->drd_only = drd_only;
+>> +	/* For DRD mode we don't need OTG timers */
+>> +	if (!drd_only) {
+>> +		usb_otg_init_timers(otgd);
+>> +
+>> +		/* FIXME: we ignore caller's timer ops */
+>> +		otgd->fsm_ops.add_timer = usb_otg_add_timer;
+>> +		otgd->fsm_ops.del_timer = usb_otg_del_timer;
+>> +	}
 >>  
->> +/* Change USB protocol when there is a protocol change */
->> +static int drd_set_protocol(struct otg_fsm *fsm, int protocol)
->> +{
->> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
->> +	int ret = 0;
->> +
->> +	if (fsm->protocol != protocol) {
->> +		dev_dbg(otgd->dev, "otg: changing role fsm->protocol= %d; new protocol= %d\n",
->> +			fsm->protocol, protocol);
->> +		/* stop old protocol */
->> +		if (fsm->protocol == PROTO_HOST)
->> +			ret = otg_start_host(fsm, 0);
->> +		else if (fsm->protocol == PROTO_GADGET)
->> +			ret = otg_start_gadget(fsm, 0);
->> +		if (ret)
->> +			return ret;
->> +
->> +		/* start new protocol */
->> +		if (protocol == PROTO_HOST)
->> +			ret = otg_start_host(fsm, 1);
->> +		else if (protocol == PROTO_GADGET)
->> +			ret = otg_start_gadget(fsm, 1);
->> +		if (ret)
->> +			return ret;
->> +
->> +		fsm->protocol = protocol;
->> +		return 0;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +/* Called when entering a DRD state */
->> +static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->> +{
->> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
->> +
->> +	if (fsm->otg->state == new_state)
->> +		return;
->> +
->> +	fsm->state_changed = 1;
->> +	dev_dbg(otgd->dev, "otg: set state: %s\n",
->> +		usb_otg_state_string(new_state));
->> +	switch (new_state) {
->> +	case OTG_STATE_B_IDLE:
+>>  	/* save original start host/gadget ops */
+>>  	otgd->start_host = fsm_ops->start_host;
+>> @@ -338,9 +500,6 @@ struct otg_fsm *usb_otg_register(struct device *parent_dev,
 > 
-> otg_drv_vbus(fsm, 0);
+> Your above override will be override back to be fsm_ops's by below copy:
 > 
->> +		drd_set_protocol(fsm, PROTO_UNDEF);
->> +		break;
->> +	case OTG_STATE_B_PERIPHERAL:
+> 	/* create copy of original ops */
+> 	otgd->fsm_ops = *fsm_ops;
 > 
-> otg_drv_vbus(fsm, 0);
-> 
->> +		drd_set_protocol(fsm, PROTO_GADGET);
->> +		break;
->> +	case OTG_STATE_A_HOST:
-> 
-> otg_drv_vbus(fsm, 1);
+> So add/del_timer must be override after the copy.
 
-OK.
+Good catch :).
 
 > 
->> +		drd_set_protocol(fsm, PROTO_HOST);
->> +		break;
->> +	case OTG_STATE_UNDEFINED:
->> +	case OTG_STATE_B_SRP_INIT:
->> +	case OTG_STATE_B_WAIT_ACON:
->> +	case OTG_STATE_B_HOST:
->> +	case OTG_STATE_A_IDLE:
->> +	case OTG_STATE_A_WAIT_VRISE:
->> +	case OTG_STATE_A_WAIT_BCON:
->> +	case OTG_STATE_A_SUSPEND:
->> +	case OTG_STATE_A_PERIPHERAL:
->> +	case OTG_STATE_A_WAIT_VFALL:
->> +	case OTG_STATE_A_VBUS_ERR:
->> +	default:
->> +		dev_warn(otgd->dev, "%s: otg: invalid state: %s\n",
->> +			 __func__, usb_otg_state_string(new_state));
->> +		break;
+>>  	/* override ops */
+>>  	otgd->fsm_ops.start_host = usb_otg_start_host;
+>>  	otgd->fsm_ops.start_gadget = usb_otg_start_gadget;
+>> -	/* FIXME: we ignore caller's timer ops */
+>> -	otgd->fsm_ops.add_timer = usb_otg_add_timer;
+>> -	otgd->fsm_ops.del_timer = usb_otg_del_timer;
+>>  	/* set otg ops */
+>>  	otgd->fsm.ops = &otgd->fsm_ops;
+>>  	otgd->fsm.otg = &otgd->otg;
+>> @@ -443,8 +602,10 @@ static void usb_otg_stop_fsm(struct otg_fsm *fsm)
+>>  	otgd->fsm_running = false;
+>>  
+>>  	/* Stop state machine / timers */
+>> -	for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
+>> -		hrtimer_cancel(&otgd->timers[i].timer);
+>> +	if (!otgd->drd_only) {
+>> +		for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
+>> +			hrtimer_cancel(&otgd->timers[i].timer);
 >> +	}
->> +
->> +	fsm->otg->state = new_state;
->> +}
->> +
+>>  
+>>  	flush_workqueue(otgd->wq);
+>>  	fsm->otg->state = OTG_STATE_UNDEFINED;
+>> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
+>> index 22d8baa..ae9c30a 100644
+>> --- a/include/linux/usb/otg-fsm.h
+>> +++ b/include/linux/usb/otg-fsm.h
+>> @@ -48,6 +48,11 @@ enum otg_fsm_timer {
+>>  /**
+>>   * struct otg_fsm - OTG state machine according to the OTG spec
+>>   *
+>> + * DRD mode hardware Inputs
+>> + *
+>> + * @id:		TRUE for B-device, FALSE for A-device.
+>> + * @vbus:	VBUS voltage in regulation.
+>> + *
+>>   * OTG hardware Inputs
+>>   *
+>>   *	Common inputs for A and B device
+>> @@ -122,7 +127,8 @@ enum otg_fsm_timer {
+>>   */
+>>  struct otg_fsm {
+>>  	/* Input */
+>> -	int id;
+>> +	int id;			/* DRD + OTG */
+>> +	int vbus;		/* DRD only */
+> 
+> Existing b_sess_vld can be also used for drd only case, no need create
+> a new flag.
+
+b_sess_vld is a bit confusing to people not familiar with OTG.
+My suggestion is to use dedicated 'vbus' flag for DRD case
+for simplicity.
+
+> 
+>>  	int adp_change;
+>>  	int power_up;
+>>  	int a_srp_det;
 
 cheers,
 -roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
