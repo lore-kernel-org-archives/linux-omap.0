@@ -1,80 +1,54 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: [PATCH 12/18] ARM/omap1/time: Migrate to new 'set-state' interface
-Date: Fri, 17 Jul 2015 10:41:06 +0530
-Message-ID: <29105e102085a9c1a1eea4f634db2890aca884b8.1437101996.git.viresh.kumar@linaro.org>
-References: <cover.1437101996.git.viresh.kumar@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1437101996.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1437101996.git.viresh.kumar@linaro.org>
-References: <cover.1437101996.git.viresh.kumar@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: arm@kernel.org, olof@lixom.net
-Cc: linaro-kernel@lists.linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, Viresh Kumar <viresh.kumar@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, open list <linux-kernel@vger.kernel.org>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: omap2: restore OMAP4 barrier behaviour
+Date: Thu, 16 Jul 2015 22:48:42 -0700
+Message-ID: <20150717054842.GS17550@atomide.com>
+References: <20150715174647.GA7557@n2100.arm.linux.org.uk>
+ <E1ZFQmM-0006GN-5Y@rmk-PC.arm.linux.org.uk>
+ <20150716064854.GG17550@atomide.com>
+ <20150716135413.GD7576@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20150716135413.GD7576@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Migrate omap driver to the new 'set-state' interface provided by
-clockevents core, the earlier 'set-mode' interface is marked obsolete
-now.
-
-This also enables us to implement callbacks for new states of clockevent
-devices, for example: ONESHOT_STOPPED.
-
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
----
- arch/arm/mach-omap1/time.c | 35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-index a7588cfd0286..524977a31a49 100644
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -124,29 +124,26 @@ static int omap_mpu_set_next_event(unsigned long cycles,
- 	return 0;
- }
- 
--static void omap_mpu_set_mode(enum clock_event_mode mode,
--			      struct clock_event_device *evt)
-+static int omap_mpu_set_oneshot(struct clock_event_device *evt)
- {
--	switch (mode) {
--	case CLOCK_EVT_MODE_PERIODIC:
--		omap_mpu_set_autoreset(0);
--		break;
--	case CLOCK_EVT_MODE_ONESHOT:
--		omap_mpu_timer_stop(0);
--		omap_mpu_remove_autoreset(0);
--		break;
--	case CLOCK_EVT_MODE_UNUSED:
--	case CLOCK_EVT_MODE_SHUTDOWN:
--	case CLOCK_EVT_MODE_RESUME:
--		break;
--	}
-+	omap_mpu_timer_stop(0);
-+	omap_mpu_remove_autoreset(0);
-+	return 0;
-+}
-+
-+static int omap_mpu_set_periodic(struct clock_event_device *evt)
-+{
-+	omap_mpu_set_autoreset(0);
-+	return 0;
- }
- 
- static struct clock_event_device clockevent_mpu_timer1 = {
--	.name		= "mpu_timer1",
--	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
--	.set_next_event	= omap_mpu_set_next_event,
--	.set_mode	= omap_mpu_set_mode,
-+	.name			= "mpu_timer1",
-+	.features		= CLOCK_EVT_FEAT_PERIODIC |
-+				  CLOCK_EVT_FEAT_ONESHOT,
-+	.set_next_event		= omap_mpu_set_next_event,
-+	.set_state_periodic	= omap_mpu_set_periodic,
-+	.set_state_oneshot	= omap_mpu_set_oneshot,
- };
- 
- static irqreturn_t omap_mpu_timer1_interrupt(int irq, void *dev_id)
--- 
-2.4.0
+KiBSdXNzZWxsIEtpbmcgLSBBUk0gTGludXggPGxpbnV4QGFybS5saW51eC5vcmcudWs+IFsxNTA3
+MTYgMDY6NTZdOgo+IE9uIFdlZCwgSnVsIDE1LCAyMDE1IGF0IDExOjQ4OjU0UE0gLTA3MDAsIFRv
+bnkgTGluZGdyZW4gd3JvdGU6Cj4gPiBIaSwKPiA+IAo+ID4gKiBSdXNzZWxsIEtpbmcgPHJtaytr
+ZXJuZWxAYXJtLmxpbnV4Lm9yZy51az4gWzE1MDcxNSAxMDo1MF06Cj4gPiA+IFJlc3RvcmUgdGhl
+IE9NQVA0IGJhcnJpZXIgYmVoYXZpb3VyIHVzaW5nIHRoZSBuZXcgaW1wbGVtZW50YXRpb24gd2hp
+Y2gKPiA+ID4gYWxsb3dzIG11bHRpcGxhdGZvcm0gc3lzdGVtcyB0byBob29rIGludG8gdGhlIG1i
+KCkgYW5kIHdtYigpIEFSTQo+ID4gPiBpbXBsZW1lbnRhdGlvbnMgdG8gcGVyZm9ybSBhbnkgbmVj
+ZXNzYXJ5IGFkZGl0aW9uYWwgYmFycmllciBtYWludGFuZW5jZS4KPiA+IAo+ID4gSSdtIGdldHRo
+aW5nIHRoaXMgd2l0aCBvbWFwMnBsdXNfZGVmY29uZmlnIHdpdGggdGhlIGxhc3QgcGF0Y2gKPiA+
+IGFwcGxpZWQ6Cj4gPiAKPiA+IGFyY2gvYXJtL21hY2gtb21hcDIvb21hcDQtY29tbW9uLmM6IElu
+IGZ1bmN0aW9uIOKAmG9tYXA0X3NyYW1faW5pdOKAmToKPiA+IGFyY2gvYXJtL21hY2gtb21hcDIv
+b21hcDQtY29tbW9uLmM6MTM4OjE0OiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVu
+Y3Rpb24g4oCYb2ZfZ2V0X25hbWVkX2dlbl9wb29s4oCZIFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0
+aW9uLWRlY2xhcmF0aW9uXQo+ID4gICBzcmFtX3Bvb2wgPSBvZl9nZXRfbmFtZWRfZ2VuX3Bvb2wo
+bnAsICJzcmFtIiwgMCk7Cj4gPiAgICAgICAgICAgICAgIF4KPiA+IGFyY2gvYXJtL21hY2gtb21h
+cDIvb21hcDQtY29tbW9uLmM6MTM4OjEyOiB3YXJuaW5nOiBhc3NpZ25tZW50IG1ha2VzIHBvaW50
+ZXIgZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IFstV2ludC1jb252ZXJzaW9uXQo+ID4gICBz
+cmFtX3Bvb2wgPSBvZl9nZXRfbmFtZWRfZ2VuX3Bvb2wobnAsICJzcmFtIiwgMCk7Cj4gPiAgICAg
+ICAgICAgICBeCj4gCj4gSSdkIGZvcmdvdHRlbiB0byBtZXJnZSBpbiB0aGUgbWVyZ2Ugd2luZG93
+IGZpeGVzIGZvciB0aGlzLi4uIHdoaWNoIGhhdmUgbm93Cj4gYmVlbiBsb3N0LiAgVGhpcyBuZWVk
+cyB0byBiZWNvbWUgb2ZfZ2VuX3Bvb2xfZ2V0KCkgaW4gNC4yLXJjMSBhbmQgbGF0ZXIuCgpPSyB3
+aXRoIHRoYXQgY2hhbmdlIGxvb2tzIGdvb2QgdG8gbWUsIHNvIHBsZWFzZSBmZWVsIGZyZWUgdG8K
+YWRkIGZvciB0aGUgd2hvbGUgc2VyaWVzOgoKQWNrZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlA
+YXRvbWlkZS5jb20+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3Rz
+LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1hcm0ta2VybmVsCg==
