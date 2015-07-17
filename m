@@ -1,17 +1,11 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Remove legacy booting support for Pandora
-Date: Fri, 17 Jul 2015 14:22:20 +0300
-Message-ID: <CANOLnOPxteeZ7dkd0wrZKCRzf=0qiW7-kcG-aup2S=XME8v0VQ@mail.gmail.com>
-References: <1437047951-22300-1-git-send-email-tony@atomide.com>
- <1437047951-22300-3-git-send-email-tony@atomide.com>
- <CANOLnOPQHOY5Up8+uKQn-JTK4zN=iK+owSN2KjhJGNFLVzN9yQ@mail.gmail.com>
- <20150716162616.GO17550@atomide.com>
- <20150717045405.GQ17550@atomide.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH v2 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
+Date: Fri, 17 Jul 2015 17:20:30 +0530
+Message-ID: <1437133833-32355-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150717045405.GQ17550@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,63 +15,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: paul@pwsan.com, tony@atomide.com
+Cc: t-kristo@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBKdWwgMTcsIDIwMTUgYXQgNzo1NCBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
-aWRlLmNvbT4gd3JvdGU6Cj4gKiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiBbMTUw
-NzE2IDA5OjI4XToKPj4gKiBHcmF6dnlkYXMgSWdub3RhcyA8bm90YXNhc0BnbWFpbC5jb20+IFsx
-NTA3MTYgMDc6MTZdOgo+PiA+IEhpLAo+PiA+Cj4+ID4gT24gVGh1LCBKdWwgMTYsIDIwMTUgYXQg
-Mjo1OSBQTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3JvdGU6Cj4+ID4gPiBX
-ZSd2ZSBiZWVuIG1vdmluZyBhbGwgb21hcDIrIGJhc2VkIHN5c3RlbXMgdG8gYm9vdCBpbiBkZXZp
-Y2UgdHJlZSBvbmx5Cj4+ID4gPiBtb2RlIGZvciBhIGZldyB5ZWFycyBub3cuIE9ubHkgb21hcDMg
-aGFzIGxlZ2FjeSBib290aW5nIHN1cHBvcnQKPj4gPiA+IHJlbWFpbmluZy4gTW9zdCBvbWFwMyBi
-b2FyZHMgYWxyZWFkeSBoYXZlIHJlbGF0ZWQgYXJjaC9hcm0vYm9vdC8qLmR0cyoKPj4gPiA+IGZp
-bGVzIGZvciBib290aW5nIHdpdGggZGV2aWNlIHRyZWUuCj4+ID4gPgo+PiA+ID4gVGhpcyBib2Fy
-ZCBoYXMgc3VwcG9ydCBmb3IgZGV2aWNlIHRyZWUgYmFzZWQgYm9vdGluZywgYW5kIHdlJ3ZlIGJl
-ZW4KPj4gPiA+IHByaW50aW5nIHdhcm5pbmdzIGFib3V0IHRoZSBsZWdhY3kgYm9vdGluZyBiZWlu
-ZyBkZXByZWNhdGVkIGZvciBhCj4+ID4gPiBmZXcgbWVyZ2UgY3ljbGVzIG5vdy4gTGV0J3MgYXR0
-ZW1wdCB0byByZW1vdmUgdGhlIGxlZ2FjeSBib290aW5nCj4+ID4gPiBmb3IgaXQuCj4+ID4gPgo+
-PiA+ID4gVGhlIHJlYXNvbiBmb3IgcmVtb3ZpbmcgdGhlIGxlZ2FjeSBib290aW5nIHN1cHBvcnQg
-bm93IHJhdGhlciB0aGFuCj4+ID4gPiBsYXRlciBpcyB3ZSBjYW4gc2ltcGx5IHJldmVydCB0aGlz
-IHBhdGNoIGlmIG5lY2Vzc2FyeSBpZiB3ZSBydW4KPj4gPiA+IGludG8gc29tZSB1bmV4cGVjdGVk
-IGlzc3VlcyB0aGF0IGFyZSBub3QgdHJpdmlhbCB0byBmaXggZm9yIHRoZQo+PiA+ID4gZGV2aWNl
-IHRyZWUgYmFzZWQgYm9vdGluZy4KPj4gPgo+PiA+IEl0IHNlZW1zIHdlIGxvc2Ugd2lmaSwgYmFj
-a2xpZ2h0LCBhdWRpbyBhbmQgdXNiIGhvc3QgbWFpbmxpbmUgc3VwcG9ydAo+PiA+IHdpdGggdGhp
-cyBhcyBwYW5kb3JhJ3MgLmR0cyBjdXJyZW50bHkgbGFja3MgYWxsIHRoYXQgc3R1ZmYuCj4KPiBN
-b3JlIG9uIHRoYXQgbGF0ZXIgb24sIGJ1dCBhIHF1ZXN0aW9uIG9uIHRoZSB2ZW5kb3Iga2VybmVs
-IGZpcnN0Li4KPgo+PiA+IFRoYXQgc2FpZCBJJ20gbm90IGF3YXJlIG9mIGFueSBtYWlubGluZSB1
-c2VycyAoZXZlcnlvbmUgc2VlbXMgdG8gYmUgb24KPj4gPiBvdXIgInZlbmRvciIga2VybmVsKSwg
-c28gbWF5YmUgd2UgY2FuIGFkZCB0aG9zZSBsYXRlci4KPgo+IFdoYXQgYWxsIGlzIGtlZXBpbmcg
-cGVvcGxlIGZyb20gdXNpbmcgbWFpbmxpbmUga2VybmVsIG9uIHBhbmRvcmE/Cj4gSXMgaXQgdGhl
-IHNneCBvciBhcmUgdGhlcmUgb3RoZXIgcmVhc29ucyB0b28gcmVtYWluaW5nPwoKVGhlcmUgYXJl
-IG11bHRpcGxlIHRoaW5ncywgYmVzaWRlcyBTR1g6Ci0gbGFjayBvZiAxR0h6IHN1cHBvcnQgZHVl
-IHRvIGxhY2sgb2YgQUJCL0FWUy4gTWVhbndoaWxlIHdlIGhhdmUgYmVlbgpydW5uaW5nIGFsbCBw
-YW5kb3JhcyBhdCAxR0h6IGZvciB5ZWFycyB3aXRob3V0IEFCQi9BVlMgb24gb3VyIGtlcm5lbAph
-bmQgbm8gcHJvYmxlbXMgaGF2ZSBiZWVuIHJlcG9ydGVkIGJ5IHVzZXJzLgotIG92ZXJjbG9ja2lu
-ZyBzdXBwb3J0LiBJdCBzZWVtcyBtb3N0IERNMzczMHMgY2FuIGRvIDEuMkdIeiBhbmQgYWxsCmNh
-biBkbyAxLjFHSHosIHJ1bm5pbmcgdGhlIGRldmljZSBhdCB0aGF0IGNsb2NrIG5vdGljZWFibHkg
-c3BlZWRzIHVwCnRoaW5ncywgc28gd2UgcHJvdmlkZSB0aGF0IGZ1bmN0aW9uYWxpdHkgb3V0IG9m
-IHRoZSBib3guIE5vIGluc3RhbmNlcwpvZiBTb0MgZGFtYWdlIHdlcmUgcmVwb3J0ZWQgb3ZlciB0
-aGUgeWVhcnMuCi0gdXNpbmcgYXVmcyBmb3Igc29mdHdhcmUgcGFja2FnZXMsIGF1ZnMgd2Fzbid0
-IG1lcmdlZCBhbmQgcHJvYmFibHkKd2lsbCBuZXZlciBiZQotIGtleXBhZCBGbiBrZXkgaGFuZGxp
-bmcgaW4gdGhlIGRyaXZlciB0byBzaW11bGF0ZSBoYXJkd2FyZSBGbiAobm90CmFsbG93ZWQgaW4g
-bWFpbmxpbmUpCi0gbGFjayBvZiBkcml2ZXIgZm9yIGFuYWxvZyBudWJzCgpUaGF0IHNhaWQgdGhl
-cmUgcHJvYmFibHkgYXJlIHNvbWUgcGVvcGxlIHdobyBjYW4gbGl2ZSB3aXRob3V0IHRoZQphYm92
-ZSBhbmQgcHJlZmVyIG5ldyBmZWF0dXJlcyBvZiBuZXcgbWFpbmxpbmUga2VybmVscy4KCj4+IEht
-bSB3aWZpIHNob3VsZCBiZSBlYXN5LCBpc24ndCB0aGF0IGp1c3QgbGliZXJ0YXNfc2Rpbz8KPgo+
-IE5vcGUgd2wxMjUxLCB3ZSBjYW4gaW5pdGlhbGl6ZSB3aXRoIHBkYXRhLXF1aXJrcy5jIGZvciBu
-b3cgaWYgaXQKPiBkb2VzIG5vdCB5ZXQgc3VwcG9ydCBkZXZpY2UgdHJlZSBleGNlcHQgZm9yIHRo
-ZSBTUEkgdmVyc2lvbi4KPiBUaGUgc2FtZSBnb2VzIGZvciB0aGUgb3RoZXIgZGV2aWNlcyB0b28g
-aWYgbmVlZGVkLCBJJ2QgYXNzdW1lCj4gdGhlIHRoZSBFSENJIGlzIHNpbWlsYXIgdG8gYmVhZ2xl
-IHRob3VnaC4KClllYWggbWF5YmUgSSBzaG91bGQgdHJ5IHRvIGNvbWUgdXAgd2l0aCBhIHBhdGNo
-Li4uCgo+IEFuZCBvZiBjb3Vyc2Ugd2UgY2FuIHN0aWxsIHdhaXQgb24gcmVtb3ZpbmcgdGhlIHBh
-bmRvcmEgYm9hcmQgZmlsZQo+IGlmIHlvdSB3YW50IHRvLiBTb3VuZHMgbGlrZSB0aGF0IG1heSBu
-b3QgYmUgbmVlZGVkIHRob3VnaCBiZWNhdXNlIG9mCj4gcGVvcGxlIHVzaW5nICJ2ZW5kb3IiIGtl
-cm5lbCBpbiB0aGlzIGNhc2UgZXZlbiB3aXRoIHRoZSBsZWdhY3kKPiBib290aW5nPwoKWWVzIGlm
-IGl0IGludGVyZmVyZXMgd2l0aCBvdGhlciBtYWlubGluZSB3b3JrIGp1c3QgZ28gYWhlYWQgYW5k
-IHJlbW92ZSBpdC4KCj4KPiBSZWdhcmRzLAo+Cj4gVG9ueQoKR3Jhxb52eWRhcwoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
-YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+This series implements lock and unlock functions for RTC and hooks
+the same to DRA7 and AMx3xx hwmod.
+This is dependent on the patch https://patchwork.kernel.org/patch/6578281/,
+which is queued recently by Paul.
+
+Tested on DRA72-evm: http://pastebin.ubuntu.com/11892356/
+
+Lokesh Vutla (3):
+  ARM: hwmod: RTC: Add lock and unlock functions
+  ARM: DRA7: RTC: Add lock and unlock functions
+  ARM: AMx3xx: RTC: Add lock and unlock functions
+
+ arch/arm/mach-omap2/omap_hwmod.h                   |  2 +
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +
+ arch/arm/mach-omap2/omap_hwmod_reset.c             | 56 ++++++++++++++++++++++
+ 4 files changed, 62 insertions(+)
+
+-- 
+2.1.4
