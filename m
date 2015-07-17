@@ -1,73 +1,84 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 1/2] input: touchscreen: pixcir_i2c_ts: Add support for optional wakeup interrupt
-Date: Fri, 17 Jul 2015 12:10:40 +0530
-Message-ID: <1437115241-17859-2-git-send-email-vigneshr@ti.com>
-References: <1437115241-17859-1-git-send-email-vigneshr@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 0/2] Drop two more omap3 legacy board files for v4.3
+ merge window
+Date: Fri, 17 Jul 2015 10:26:46 +0200
+Message-ID: <20150717082645.GB9331@earth>
+References: <1437047951-22300-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437115241-17859-1-git-send-email-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>
-Cc: Roger Quadros <rogerq@ti.com>, Henrik Rydberg <rydberg@bitmath.org>, Frodo Lai <frodo.lai@gmail.com>, Jingoo Han <jg1.han@samsung.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+Content-Type: multipart/mixed; boundary="===============2342407208593729602=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1437047951-22300-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On am437x-gp-evm, pixcir touchscreen can wake the system from low power
-state by generating wake-up interrupt via pinctrl and IO daisy chain.
-Add support for optional wakeup interrupt source by regsitering to
-automated wake IRQ framework introduced by commit 4990d4fe327b ("PM /
-Wakeirq: Add automated device wake IRQ handling").
-This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
-support for optional wake-up")
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- drivers/input/touchscreen/pixcir_i2c_ts.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+--===============2342407208593729602==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="St7VIuEGZ6dlpu13"
+Content-Disposition: inline
 
-diff --git a/drivers/input/touchscreen/pixcir_i2c_ts.c b/drivers/input/touchscreen/pixcir_i2c_ts.c
-index 8f3e243a62bf..f7c602027fbd 100644
---- a/drivers/input/touchscreen/pixcir_i2c_ts.c
-+++ b/drivers/input/touchscreen/pixcir_i2c_ts.c
-@@ -29,6 +29,8 @@
- #include <linux/of.h>
- #include <linux/of_gpio.h>
- #include <linux/of_device.h>
-+#include <linux/of_irq.h>
-+#include <linux/pm_wakeirq.h>
- 
- #define PIXCIR_MAX_SLOTS       5 /* Max fingers supported by driver */
- 
-@@ -38,6 +40,7 @@ struct pixcir_i2c_ts_data {
- 	const struct pixcir_ts_platform_data *pdata;
- 	bool running;
- 	int max_fingers;	/* Max fingers supported in this instance */
-+	int wakeirq;
- };
- 
- struct pixcir_touch {
-@@ -564,11 +567,22 @@ static int pixcir_i2c_ts_probe(struct i2c_client *client,
- 	i2c_set_clientdata(client, tsdata);
- 	device_init_wakeup(&client->dev, 1);
- 
-+	/* Register wakeirq, if available */
-+	tsdata->wakeirq = of_irq_get(dev->of_node, 1);
-+	if (tsdata->wakeirq) {
-+		error = dev_pm_set_dedicated_wake_irq(dev,
-+						      tsdata->wakeirq);
-+		if (error)
-+			dev_dbg(dev, "unable to get wakeirq %d\n",
-+				error);
-+	}
-+
- 	return 0;
- }
- 
- static int pixcir_i2c_ts_remove(struct i2c_client *client)
- {
-+	dev_pm_clear_wake_irq(&client->dev);
- 	device_init_wakeup(&client->dev, 0);
- 
- 	return 0;
--- 
-2.4.5
+
+--St7VIuEGZ6dlpu13
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+On Thu, Jul 16, 2015 at 04:59:09AM -0700, Tony Lindgren wrote:
+> I think we can drop these now. This just leaves n900 and ldp with
+> n900 pending patches for legacy proc support.
+
+So I guess n900 board file removal depends on the atag procfs
+support in DT. What's the problem with ldp? Its DT file seem
+to cover everything in the board file. I guess both of them
+will finally be removed in 4.4?
+
+-- Sebastian
+
+--St7VIuEGZ6dlpu13
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVqLxDAAoJENju1/PIO/qaO2cP/0Hoo+MeCcW+240gn8bLCYsn
+jQk2v0juXaGmpaK4+wZMBVvZ9EEOSP4FeXl7nYz/r63jls9ID9Tr+I4ISm+J/qER
+hujFHpD/ZNLM3+BpClJRvcYWWaM/zroL5+wlFD8d6cytPGbxF1xcKtGbSKb35fur
+h74tSJlEMzHXXVCQjAnKmFqg2ZXJfKQMUwm2vdDtstAkwiTgjA9mVc+LBSh2e5r+
+v2OdLOrGJUp7EOlIkQ2Op06nWqSY9PK+Bi/sqgF+3vmrTPVYMf4puhRojEOzuiRD
+oh+Ulq9GYqJDQJoNumgs88y+FikbYcWiB+j/8jIqM+3S+gobvgf5mD1qJujrnZbY
+QagvbeBYStKaWqia0hG1tTDc4Yng38/+OgyK5p1GnkOuy8toGm0hBSSVWzNdUyBG
+OoHeks/VTeT9AGrLCe6oaGcI8T1gI5Difpl6MzG3gk8Glu6tGpiPLdtIYkUzKZD4
++9QEUeM3cvHCOt2tZMhCEkOoCaScnUWeBSvh2dM+sc2xMV2I6GnOosMpxp0oEVBb
+31KsuqbAq/yDf0OmRsUCG6ZywW/G4OQYSWMaS5VqmEfwTliGinoPZMGdx1RJLb3Z
+F0s8lUYC3wA00bJvZShOXQ904NOddfSIJ8ZS87fvE/lsRrvyDw7cCvz2ytTGEjHq
+EuNiCIznpffrkI/78x+6
+=BElv
+-----END PGP SIGNATURE-----
+
+--St7VIuEGZ6dlpu13--
+
+
+--===============2342407208593729602==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============2342407208593729602==--
