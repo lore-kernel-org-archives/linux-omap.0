@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 4/4] ARM: dts: AM4372: Add the wkup_m3_ipc node
-Date: Fri, 17 Jul 2015 16:08:04 -0500
-Message-ID: <1437167284-25659-5-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 3/4] ARM: dts: AM33xx: Add the wkup_m3_ipc node
+Date: Fri, 17 Jul 2015 16:08:03 -0500
+Message-ID: <1437167284-25659-4-git-send-email-d-gerlach@ti.com>
 References: <1437167284-25659-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,28 +23,28 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Suman Anna <s-anna@ti.com>
 
-Add the Wakeup M3 IPC device node for the wkup_m3_ipc driver on
-AM4372 SoC. This node uses the IPC registers, part of the Control
-Module, and is therefore added as a child of the scm node.
+Add the Wakeup M3 IPC node for the wkup_m3_ipc driver on AM33xx SoCs.
+This node uses the IPC registers, part of the Control Module, and is
+therefore added as a child of the scm node.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 8 ++++++++
+ arch/arm/boot/dts/am33xx.dtsi | 8 ++++++++
  1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 5bccc48..45bcd1b 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -136,6 +136,14 @@
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 4f2c07a..13f097f 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -153,6 +153,14 @@
  					};
  				};
  
 +				wkup_m3_ipc: wkup_m3_ipc@1324 {
-+					compatible = "ti,am4372-wkup-m3-ipc";
-+					reg = <0x1324 0x44>;
-+					interrupts = <GIC_SPI 78 IRQ_TYPE_LEVEL_HIGH>;
++					compatible = "ti,am3352-wkup-m3-ipc";
++					reg = <0x1324 0x24>;
++					interrupts = <78>;
 +					ti,rproc = <&wkup_m3>;
 +					mboxes = <&mailbox &mbox_wkupm3>;
 +				};
