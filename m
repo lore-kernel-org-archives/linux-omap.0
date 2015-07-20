@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 05/11] iommu/omap: Remove unused union fields
-Date: Mon, 20 Jul 2015 17:33:27 -0500
-Message-ID: <1437431613-55656-6-git-send-email-s-anna@ti.com>
+Subject: [PATCH 10/11] iommu/omap: Align code with open parenthesis
+Date: Mon, 20 Jul 2015 17:33:32 -0500
+Message-ID: <1437431613-55656-11-git-send-email-s-anna@ti.com>
 References: <1437431613-55656-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,56 +21,110 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-There are couple of unions defined in the structures
-iotlb_entry and cr_regs. There are no usage/references
-to some of these union fields in the code, so clean
-them up and simplify the structures.
+Fix all the occurrences of the following check warning
+generated with the checkpatch --strict option:
+    "CHECK: Alignment should match open parenthesis"
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.h | 23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
+ drivers/iommu/omap-iommu.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index b6cc90b2ba41..5b98408c18bf 100644
---- a/drivers/iommu/omap-iommu.h
-+++ b/drivers/iommu/omap-iommu.h
-@@ -22,12 +22,7 @@ struct iotlb_entry {
- 	u32 da;
- 	u32 pa;
- 	u32 pgsz, prsvd, valid;
--	union {
--		u16 ap;
--		struct {
--			u32 endian, elsz, mixed;
--		};
--	};
-+	u32 endian, elsz, mixed;
- };
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index 4328d9855edb..36d0033c2ccb 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -787,14 +787,14 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
  
- struct omap_iommu {
-@@ -54,20 +49,8 @@ struct omap_iommu {
- };
+ 	if (!iopgd_is_table(*iopgd)) {
+ 		dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x pgd:0x%p *pgd:px%08x\n",
+-				obj->name, errs, da, iopgd, *iopgd);
++			obj->name, errs, da, iopgd, *iopgd);
+ 		return IRQ_NONE;
+ 	}
  
- struct cr_regs {
--	union {
--		struct {
--			u16 cam_l;
--			u16 cam_h;
--		};
--		u32 cam;
--	};
--	union {
--		struct {
--			u16 ram_l;
--			u16 ram_h;
--		};
--		u32 ram;
--	};
-+	u32 cam;
-+	u32 ram;
- };
+ 	iopte = iopte_offset(iopgd, da);
  
- struct iotlb_lock {
+ 	dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x pgd:0x%p *pgd:0x%08x pte:0x%p *pte:0x%08x\n",
+-			obj->name, errs, da, iopgd, *iopgd, iopte, *iopte);
++		obj->name, errs, da, iopgd, *iopgd, iopte, *iopte);
+ 
+ 	return IRQ_NONE;
+ }
+@@ -820,9 +820,8 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
+ 	struct device *dev;
+ 	struct omap_iommu *obj;
+ 
+-	dev = driver_find_device(&omap_iommu_driver.driver, NULL,
+-				(void *)name,
+-				device_match_by_alias);
++	dev = driver_find_device(&omap_iommu_driver.driver, NULL, (void *)name,
++				 device_match_by_alias);
+ 	if (!dev)
+ 		return ERR_PTR(-ENODEV);
+ 
+@@ -977,7 +976,7 @@ static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa, int pgsz)
+ }
+ 
+ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
+-			 phys_addr_t pa, size_t bytes, int prot)
++			  phys_addr_t pa, size_t bytes, int prot)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+ 	struct omap_iommu *oiommu = omap_domain->iommu_dev;
+@@ -1004,7 +1003,7 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
+ }
+ 
+ static size_t omap_iommu_unmap(struct iommu_domain *domain, unsigned long da,
+-			    size_t size)
++			       size_t size)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+ 	struct omap_iommu *oiommu = omap_domain->iommu_dev;
+@@ -1055,7 +1054,7 @@ out:
+ }
+ 
+ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
+-			struct device *dev)
++				   struct device *dev)
+ {
+ 	struct omap_iommu *oiommu = dev_to_omap_iommu(dev);
+ 	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
+@@ -1076,7 +1075,7 @@ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
+ }
+ 
+ static void omap_iommu_detach_dev(struct iommu_domain *domain,
+-				 struct device *dev)
++				  struct device *dev)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+ 
+@@ -1137,7 +1136,7 @@ static void omap_iommu_domain_free(struct iommu_domain *domain)
+ }
+ 
+ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
+-					  dma_addr_t da)
++					   dma_addr_t da)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+ 	struct omap_iommu *oiommu = omap_domain->iommu_dev;
+@@ -1154,7 +1153,7 @@ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
+ 			ret = omap_iommu_translate(*pte, da, IOLARGE_MASK);
+ 		else
+ 			dev_err(dev, "bogus pte 0x%x, da 0x%llx", *pte,
+-							(unsigned long long)da);
++				(unsigned long long)da);
+ 	} else {
+ 		if (iopgd_is_section(*pgd))
+ 			ret = omap_iommu_translate(*pgd, da, IOSECTION_MASK);
+@@ -1162,7 +1161,7 @@ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
+ 			ret = omap_iommu_translate(*pgd, da, IOSUPER_MASK);
+ 		else
+ 			dev_err(dev, "bogus pgd 0x%x, da 0x%llx", *pgd,
+-							(unsigned long long)da);
++				(unsigned long long)da);
+ 	}
+ 
+ 	return ret;
 -- 
 2.4.4
