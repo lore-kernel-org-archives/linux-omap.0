@@ -1,111 +1,84 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] irqchip: omap-intc: improve IRQ handler
-Date: Mon, 20 Jul 2015 11:44:08 -0500
-Message-ID: <20150720164408.GB31951@saruman.tx.rr.com>
-References: <1420224433-27001-1-git-send-email-balbi@ti.com>
- <20150119213458.GK18552@atomide.com>
- <20150715064923.GA17550@atomide.com>
- <alpine.DEB.2.11.1507151435480.18576@nanos>
-Reply-To: balbi@ti.com
+Subject: [PATCH RESEND] irqchip: omap-intc: improve IRQ handler
+Date: Mon, 20 Jul 2015 11:45:59 -0500
+Message-ID: <1437410759-4945-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4646255388095684781=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.11.1507151435480.18576@nanos>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jason Cooper <jason@lakedaemon.net>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============4646255388095684781==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
-Content-Disposition: inline
+as it turns out the current IRQ number will
+*always* be available from SIR register which
+renders the reads of PENDING registers as plain
+unnecessary overhead.
 
---dTy3Mrz/UPE2dbVg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In order to catch any situation where SIR reads
+as zero, we're adding a WARN() to turn it into
+a very verbose error and users actually report
+it.
 
-On Wed, Jul 15, 2015 at 02:36:54PM +0200, Thomas Gleixner wrote:
-> On Wed, 15 Jul 2015, Tony Lindgren wrote:
-> > Felipe,
-> >=20
-> > * Tony Lindgren <tony@atomide.com> [150119 13:41]:
-> > > * Felipe Balbi <balbi@ti.com> [150102 10:50]:
-> > > > as it turns out the current IRQ number will
-> > > > *always* be available from SIR register which
-> > > > renders the reads of PENDING registers as plain
-> > > > unnecessary overhead.
-> > > >=20
-> > > > In order to catch any situation where SIR reads
-> > > > as zero, we're adding a WARN() to turn it into
-> > > > a very verbose error and users actually report
-> > > > it.
-> > > >=20
-> > > > With this patch average running time of
-> > > > omap_intc_handle_irq() reduced from about 28.5us
-> > > > to 19.8us as measured by the kernel function
-> > > > profiler.
-> > > >=20
-> > > > Tested with BeagleBoneBlack Rev A5C.
-> > > >=20
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > >=20
-> > > Jason, looks like this is not showing up in Linux next. The
-> > > same for the changes I did for dm81xx.
-> >=20
-> > Can you please resend this to Jason? Looks like this
-> > is still not merged.
->=20
-> Please send it to me asap and please cc lkml on irqchip patches.
+With this patch average running time of
+omap_intc_handle_irq() reduced from about 28.5us
+to 19.8us as measured by the kernel function
+profiler.
 
-building and testing again. Will resend shortly
+Tested with BeagleBoneBlack Rev A5C.
 
---=20
-balbi
+Tested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/irqchip/irq-omap-intc.c | 35 +++++------------------------------
+ 1 file changed, 5 insertions(+), 30 deletions(-)
 
---dTy3Mrz/UPE2dbVg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVrSVXAAoJEIaOsuA1yqREKHAQALRBTyQcTkcrDvZ8MClpU76/
-TkiIjbDYHzE5HTZPRWa4zqRV8FH0tEglEUvO5Ex+J36Y0Cl+zxSKwEul3D6E/lVo
-aCJtnAy/kdOekYlQ3vlO1kYGG2WCQTyERd4pwaBjhlML/4yYPY6bNDTXOS8B70ES
-wHYvYoFSjtG7a5RxHl8Rj3hjqqDWWMnZ+SxxNKh8TB+HCI8ppWLJaO6dFyUAhIuE
-Lz/UmK2wcyqdFqiX6kD87SRJqgxrjJt+RqObUVolu+0Eq+PmKxtaRjapCzKeC+Xs
-/B5Mena8bEbSmQFBZbElyTKMjovPcdQWIjW9h52B4O2NhVm52tPC1+oPJkdq/G3v
-EfRC1++nhAsaa5dCwmQj2lal+QhBMSmb6IgZXIsuYPWiJWoWaQaUhxkHwIuOpQlt
-50IDXyfdKq8/zID+0e6jP4I0CQ/rPTVZrPrb/Tcr9Lnx8DqqapYCpSNJjaYNXdg/
-VQzGEdt0PzGmJHrXEWFJ8pQfWrwZiGMpQqT+O93Zxjm+8oFmklccLXXP0obyAcSJ
-WVlzE9kNYrCz0UGNBfZnlFyjqpYdFJ35kkDFaTZVhAUt/IcdonelbgWJJUCWNZxS
-TIGwtx64DgWyY8M2LG38U8k+u5rmh/QCv2DetuDsu/zIIUoFQf3z1krrmlARdnk9
-YKjF/KL4oYhGyEhIv1Mb
-=+Kbs
------END PGP SIGNATURE-----
-
---dTy3Mrz/UPE2dbVg--
-
-
---===============4646255388095684781==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============4646255388095684781==--
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index a569c6dbd1d1..0706db624213 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -331,37 +331,12 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+ static asmlinkage void __exception_irq_entry
+ omap_intc_handle_irq(struct pt_regs *regs)
+ {
+-	u32 irqnr = 0;
+-	int handled_irq = 0;
+-	int i;
+-
+-	do {
+-		for (i = 0; i < omap_nr_pending; i++) {
+-			irqnr = intc_readl(INTC_PENDING_IRQ0 + (0x20 * i));
+-			if (irqnr)
+-				goto out;
+-		}
+-
+-out:
+-		if (!irqnr)
+-			break;
+-
+-		irqnr = intc_readl(INTC_SIR);
+-		irqnr &= ACTIVEIRQ_MASK;
++	u32 irqnr;
+ 
+-		if (irqnr) {
+-			handle_domain_irq(domain, irqnr, regs);
+-			handled_irq = 1;
+-		}
+-	} while (irqnr);
+-
+-	/*
+-	 * If an irq is masked or deasserted while active, we will
+-	 * keep ending up here with no irq handled. So remove it from
+-	 * the INTC with an ack.
+-	 */
+-	if (!handled_irq)
+-		omap_ack_irq(NULL);
++	irqnr = intc_readl(INTC_SIR);
++	irqnr &= ACTIVEIRQ_MASK;
++	WARN(!irqnr, "Spurious IRQ ?\n");
++	handle_domain_irq(domain, irqnr, regs);
+ }
+ 
+ void __init omap3_init_irq(void)
+-- 
+2.4.4
