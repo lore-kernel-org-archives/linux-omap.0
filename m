@@ -1,111 +1,40 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 1/2] input: touchscreen: pixcir_i2c_ts: Add support for
- optional wakeup interrupt
-Date: Mon, 20 Jul 2015 10:18:33 +0530
-Message-ID: <55AC7DA1.9050002@ti.com>
-References: <1437115241-17859-1-git-send-email-vigneshr@ti.com> <1437115241-17859-2-git-send-email-vigneshr@ti.com> <20150717215122.GC39282@dtor-ws>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/2] pixcir_i2c_ts: Add optional wakeup irq support
+Date: Mon, 20 Jul 2015 10:20:12 +0530
+Message-ID: <1437367814-27785-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150717215122.GC39282@dtor-ws>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "Quadros, Roger" <rogerq@ti.com>, Henrik Rydberg <rydberg@bitmath.org>, Frodo Lai <frodo.lai@gmail.com>, Jingoo Han <jg1.han@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Henrik Rydberg <rydberg-FFUHeuDi6mxAfugRpC6u6w@public.gmane.org>, Frodo Lai <frodo.lai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
 
-On 7/18/2015 3:21 AM, Dmitry Torokhov wrote:
-> Hi Vignesh,
-> 
-> On Fri, Jul 17, 2015 at 12:10:40PM +0530, Vignesh R wrote:
->> On am437x-gp-evm, pixcir touchscreen can wake the system from low power
->> state by generating wake-up interrupt via pinctrl and IO daisy chain.
->> Add support for optional wakeup interrupt source by regsitering to
->> automated wake IRQ framework introduced by commit 4990d4fe327b ("PM /
->> Wakeirq: Add automated device wake IRQ handling").
->> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
->> support for optional wake-up")
->>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->>  drivers/input/touchscreen/pixcir_i2c_ts.c | 14 ++++++++++++++
->>  1 file changed, 14 insertions(+)
->>
->> diff --git a/drivers/input/touchscreen/pixcir_i2c_ts.c b/drivers/input/touchscreen/pixcir_i2c_ts.c
->> index 8f3e243a62bf..f7c602027fbd 100644
->> --- a/drivers/input/touchscreen/pixcir_i2c_ts.c
->> +++ b/drivers/input/touchscreen/pixcir_i2c_ts.c
->> @@ -29,6 +29,8 @@
->>  #include <linux/of.h>
->>  #include <linux/of_gpio.h>
->>  #include <linux/of_device.h>
->> +#include <linux/of_irq.h>
->> +#include <linux/pm_wakeirq.h>
->>  
->>  #define PIXCIR_MAX_SLOTS       5 /* Max fingers supported by driver */
->>  
->> @@ -38,6 +40,7 @@ struct pixcir_i2c_ts_data {
->>  	const struct pixcir_ts_platform_data *pdata;
->>  	bool running;
->>  	int max_fingers;	/* Max fingers supported in this instance */
->> +	int wakeirq;
->>  };
->>  
->>  struct pixcir_touch {
->> @@ -564,11 +567,22 @@ static int pixcir_i2c_ts_probe(struct i2c_client *client,
->>  	i2c_set_clientdata(client, tsdata);
->>  	device_init_wakeup(&client->dev, 1);
->>  
->> +	/* Register wakeirq, if available */
->> +	tsdata->wakeirq = of_irq_get(dev->of_node, 1);
-> 
-> Can we put this in platform data and parse in pixcir_parse_dt() please?
-> Also, why not of_irq_get_byname()?
->
+On am437x-gp-evm, pixcir_i2c_tsc can wake-up system from low power
+state via pinctrl and IO daisy chain mechanism. This patch series add
+support for such optional wake up interrupt to be handled via recently
+introduced generic wake irq handling framework.
 
-Ok.
+Tested on am437x-gp-evm, with some out of tree patches to support
+suspend/resume on am437x.
 
->> +	if (tsdata->wakeirq) {
->> +		error = dev_pm_set_dedicated_wake_irq(dev,
->> +						      tsdata->wakeirq);
->> +		if (error)
->> +			dev_dbg(dev, "unable to get wakeirq %d\n",
->> +				error);
->> +	}
-> 
-> Shouldn't his actually be:
-> 
-> 	error = tsdata->wakeirq ?
-> 		dev_pm_set_dedicated_wake_irq(dev, tsdata->wakeirq) :
-> 		dev_pm_set_wake_irq(dev, client->irq);
-> 	if (error) {
-> 		...
-> 	}
-> 
-> and then we can get rid of enable_irq_wake()/disable_irq_wake() in
-> pixcir_i2c_ts_suspend() and pixcir_i2c_ts_resume().
-> 
 
-Yes, I will do this in v2.
+Vignesh R (2):
+  input: touchscreen: pixcir_i2c_ts: Add support for optional wakeup
+    interrupt
+  ARM: dts: AM437x-gp-evm: Add wakeup interrupt source for
+    pixcir_i2c_tsc
 
->> +
->>  	return 0;
->>  }
->>  
->>  static int pixcir_i2c_ts_remove(struct i2c_client *client)
->>  {
->> +	dev_pm_clear_wake_irq(&client->dev);
->>  	device_init_wakeup(&client->dev, 0);
-> 
-> I wonder if driver core should be responsible for clearing wake irq and
-> also for clearing wakeup flag.
-> 
+ arch/arm/boot/dts/am437x-gp-evm.dts       |  4 ++++
+ drivers/input/touchscreen/pixcir_i2c_ts.c | 17 +++++++++++++----
+ include/linux/input/pixcir_ts.h           |  1 +
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-AFAICU, wakeup flag is deleted when struct device is deleted, hence,
-device_init_wakeup() call may not be required in .remove(). But,
-dev_pm_clear_wake_irq() can be moved to driver core.
+-- 
+2.4.5
 
-Regards
-Vignesh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
