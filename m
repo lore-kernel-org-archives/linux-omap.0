@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 10/11] iommu/omap: Align code with open parenthesis
-Date: Mon, 20 Jul 2015 17:33:32 -0500
-Message-ID: <1437431613-55656-11-git-send-email-s-anna@ti.com>
+Subject: [PATCH 08/11] iommu/omap: Use BIT(x) macros in omap-iopgtable.h
+Date: Mon, 20 Jul 2015 17:33:30 -0500
+Message-ID: <1437431613-55656-9-git-send-email-s-anna@ti.com>
 References: <1437431613-55656-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,110 +21,92 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fix all the occurrences of the following check warning
-generated with the checkpatch --strict option:
-    "CHECK: Alignment should match open parenthesis"
+Switch to using the BIT(x) macros in omap-iopgtable.h where
+possible. This eliminates the following checkpatch check
+warning:
+    "CHECK: Prefer using the BIT macro"
+
+A couple of macros that used zero bit shifting are defined
+directly to avoid the above warning on one of the macros.
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ drivers/iommu/omap-iopgtable.h | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 4328d9855edb..36d0033c2ccb 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -787,14 +787,14 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+diff --git a/drivers/iommu/omap-iopgtable.h b/drivers/iommu/omap-iopgtable.h
+index bfde5405f514..01a315227bf0 100644
+--- a/drivers/iommu/omap-iopgtable.h
++++ b/drivers/iommu/omap-iopgtable.h
+@@ -13,25 +13,27 @@
+ #ifndef _OMAP_IOPGTABLE_H
+ #define _OMAP_IOPGTABLE_H
  
- 	if (!iopgd_is_table(*iopgd)) {
- 		dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x pgd:0x%p *pgd:px%08x\n",
--				obj->name, errs, da, iopgd, *iopgd);
-+			obj->name, errs, da, iopgd, *iopgd);
- 		return IRQ_NONE;
- 	}
++#include <linux/bitops.h>
++
+ /*
+  * "L2 table" address mask and size definitions.
+  */
+ #define IOPGD_SHIFT		20
+-#define IOPGD_SIZE		(1UL << IOPGD_SHIFT)
++#define IOPGD_SIZE		BIT(IOPGD_SHIFT)
+ #define IOPGD_MASK		(~(IOPGD_SIZE - 1))
  
- 	iopte = iopte_offset(iopgd, da);
+ /*
+  * "section" address mask and size definitions.
+  */
+ #define IOSECTION_SHIFT		20
+-#define IOSECTION_SIZE		(1UL << IOSECTION_SHIFT)
++#define IOSECTION_SIZE		BIT(IOSECTION_SHIFT)
+ #define IOSECTION_MASK		(~(IOSECTION_SIZE - 1))
  
- 	dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x pgd:0x%p *pgd:0x%08x pte:0x%p *pte:0x%08x\n",
--			obj->name, errs, da, iopgd, *iopgd, iopte, *iopte);
-+		obj->name, errs, da, iopgd, *iopgd, iopte, *iopte);
+ /*
+  * "supersection" address mask and size definitions.
+  */
+ #define IOSUPER_SHIFT		24
+-#define IOSUPER_SIZE		(1UL << IOSUPER_SHIFT)
++#define IOSUPER_SIZE		BIT(IOSUPER_SHIFT)
+ #define IOSUPER_MASK		(~(IOSUPER_SIZE - 1))
  
- 	return IRQ_NONE;
- }
-@@ -820,9 +820,8 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
- 	struct device *dev;
- 	struct omap_iommu *obj;
+ #define PTRS_PER_IOPGD		(1UL << (32 - IOPGD_SHIFT))
+@@ -41,14 +43,14 @@
+  * "small page" address mask and size definitions.
+  */
+ #define IOPTE_SHIFT		12
+-#define IOPTE_SIZE		(1UL << IOPTE_SHIFT)
++#define IOPTE_SIZE		BIT(IOPTE_SHIFT)
+ #define IOPTE_MASK		(~(IOPTE_SIZE - 1))
  
--	dev = driver_find_device(&omap_iommu_driver.driver, NULL,
--				(void *)name,
--				device_match_by_alias);
-+	dev = driver_find_device(&omap_iommu_driver.driver, NULL, (void *)name,
-+				 device_match_by_alias);
- 	if (!dev)
- 		return ERR_PTR(-ENODEV);
+ /*
+  * "large page" address mask and size definitions.
+  */
+ #define IOLARGE_SHIFT		16
+-#define IOLARGE_SIZE		(1UL << IOLARGE_SHIFT)
++#define IOLARGE_SIZE		BIT(IOLARGE_SHIFT)
+ #define IOLARGE_MASK		(~(IOLARGE_SIZE - 1))
  
-@@ -977,7 +976,7 @@ static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa, int pgsz)
- }
+ #define PTRS_PER_IOPTE		(1UL << (IOPGD_SHIFT - IOPTE_SHIFT))
+@@ -72,16 +74,16 @@ static inline phys_addr_t omap_iommu_translate(u32 d, u32 va, u32 mask)
+ /*
+  * some descriptor attributes.
+  */
+-#define IOPGD_TABLE		(1 << 0)
+-#define IOPGD_SECTION		(2 << 0)
+-#define IOPGD_SUPER		(1 << 18 | 2 << 0)
++#define IOPGD_TABLE		(1)
++#define IOPGD_SECTION		(2)
++#define IOPGD_SUPER		(BIT(18) | IOPGD_SECTION)
  
- static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
--			 phys_addr_t pa, size_t bytes, int prot)
-+			  phys_addr_t pa, size_t bytes, int prot)
- {
- 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
- 	struct omap_iommu *oiommu = omap_domain->iommu_dev;
-@@ -1004,7 +1003,7 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
- }
+ #define iopgd_is_table(x)	(((x) & 3) == IOPGD_TABLE)
+ #define iopgd_is_section(x)	(((x) & (1 << 18 | 3)) == IOPGD_SECTION)
+ #define iopgd_is_super(x)	(((x) & (1 << 18 | 3)) == IOPGD_SUPER)
  
- static size_t omap_iommu_unmap(struct iommu_domain *domain, unsigned long da,
--			    size_t size)
-+			       size_t size)
- {
- 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
- 	struct omap_iommu *oiommu = omap_domain->iommu_dev;
-@@ -1055,7 +1054,7 @@ out:
- }
+-#define IOPTE_SMALL		(2 << 0)
+-#define IOPTE_LARGE		(1 << 0)
++#define IOPTE_SMALL		(2)
++#define IOPTE_LARGE		(1)
  
- static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
--			struct device *dev)
-+				   struct device *dev)
- {
- 	struct omap_iommu *oiommu = dev_to_omap_iommu(dev);
- 	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
-@@ -1076,7 +1075,7 @@ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
- }
- 
- static void omap_iommu_detach_dev(struct iommu_domain *domain,
--				 struct device *dev)
-+				  struct device *dev)
- {
- 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
- 
-@@ -1137,7 +1136,7 @@ static void omap_iommu_domain_free(struct iommu_domain *domain)
- }
- 
- static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
--					  dma_addr_t da)
-+					   dma_addr_t da)
- {
- 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
- 	struct omap_iommu *oiommu = omap_domain->iommu_dev;
-@@ -1154,7 +1153,7 @@ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
- 			ret = omap_iommu_translate(*pte, da, IOLARGE_MASK);
- 		else
- 			dev_err(dev, "bogus pte 0x%x, da 0x%llx", *pte,
--							(unsigned long long)da);
-+				(unsigned long long)da);
- 	} else {
- 		if (iopgd_is_section(*pgd))
- 			ret = omap_iommu_translate(*pgd, da, IOSECTION_MASK);
-@@ -1162,7 +1161,7 @@ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
- 			ret = omap_iommu_translate(*pgd, da, IOSUPER_MASK);
- 		else
- 			dev_err(dev, "bogus pgd 0x%x, da 0x%llx", *pgd,
--							(unsigned long long)da);
-+				(unsigned long long)da);
- 	}
- 
- 	return ret;
+ #define iopte_is_small(x)	(((x) & 2) == IOPTE_SMALL)
+ #define iopte_is_large(x)	(((x) & 3) == IOPTE_LARGE)
 -- 
 2.4.4
