@@ -1,45 +1,57 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v3 2/3] ARM: dts: dra7: Add syscon-pllreset syscon to
- SATA PHY
-Date: Mon, 20 Jul 2015 15:08:21 +0300
-Message-ID: <55ACE4B5.7000107@ti.com>
-References: <1437140844-6032-1-git-send-email-rogerq@ti.com> <1437140844-6032-3-git-send-email-rogerq@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/1 linux-next] mmc: omap: use for_each_sg() for
+ scatterlist parsing
+Date: Mon, 20 Jul 2015 16:20:49 +0200
+Message-ID: <CAPDyKFqCBN1BT3O62-N9hL8ga0YgiOurkrnVOJqbTtVvtWZBuQ@mail.gmail.com>
+References: <1434482116-29583-1-git-send-email-fabf@skynet.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437140844-6032-3-git-send-email-rogerq@ti.com>
+In-Reply-To: <1434482116-29583-1-git-send-email-fabf@skynet.be>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, kishon@ti.com, tony@atomide.com
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Fabian Frederick <fabf@skynet.be>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/17/2015 04:47 PM, Roger Quadros wrote:
-> This register is required to be passed to the SATA PHY driver
-> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
+On 16 June 2015 at 21:15, Fabian Frederick <fabf@skynet.be> wrote:
+> See Documentation/DMA-API.txt - Part Id
 >
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+
+Thanks, applied!
+
+Kind regards
+Uffe
+
 > ---
->   arch/arm/boot/dts/dra7.dtsi | 1 +
->   1 file changed, 1 insertion(+)
+> This is untested.
 >
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 8f1e25b..4a0718c 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1140,6 +1140,7 @@
->   				ctrl-module = <&omap_control_sata>;
->   				clocks = <&sys_clkin1>, <&sata_ref_clk>;
->   				clock-names = "sysclk", "refclk";
-> +				syscon-pllreset = <&scm_conf 0x3fc>;
->   				#phy-cells = <0>;
->   			};
+>  drivers/mmc/host/omap.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 >
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index 68dd6c7..70dcf07 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -948,6 +948,7 @@ mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
+>  {
+>         struct mmc_data *data = req->data;
+>         int i, use_dma = 1, block_size;
+> +       struct scatterlist *sg;
+>         unsigned sg_len;
 >
-
-Looks fine to me.
-
-Make sure you use this register via regmap_update_bits only, seeing 
-there is another potential user for the same register.
-
--Tero
+>         host->data = data;
+> @@ -972,8 +973,8 @@ mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
+>         sg_len = (data->blocks == 1) ? 1 : data->sg_len;
+>
+>         /* Only do DMA for entire blocks */
+> -       for (i = 0; i < sg_len; i++) {
+> -               if ((data->sg[i].length % block_size) != 0) {
+> +       for_each_sg(data->sg, sg, sg_len, i) {
+> +               if ((sg->length % block_size) != 0) {
+>                         use_dma = 0;
+>                         break;
+>                 }
+> --
+> 2.4.2
+>
