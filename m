@@ -1,147 +1,58 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH RESEND] irqchip: omap-intc: improve IRQ handler
-Date: Mon, 20 Jul 2015 15:49:10 -0500
-Message-ID: <20150720204910.GH5394@saruman.tx.rr.com>
-References: <1437410759-4945-1-git-send-email-balbi@ti.com>
- <alpine.DEB.2.11.1507202241550.18576@nanos>
-Reply-To: <balbi@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap5-uevm: Add Palmas power button support
+Date: Mon, 20 Jul 2015 15:58:13 -0500
+Message-ID: <55AD60E5.60301@ti.com>
+References: <omap5uevm_palmas> <1437426451-27372-1-git-send-email-aparnab@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="smOfPzt+Qjm5bNGJ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1507202241550.18576@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1437426451-27372-1-git-send-email-aparnab-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aparna Balasubramanian <aparnab-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---smOfPzt+Qjm5bNGJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/20/2015 04:07 PM, Aparna Balasubramanian wrote:
+> Palmas on OMAP5uevm has support for power button, so enable it.
+> 
+> Signed-off-by: Aparna Balasubramanian <aparnab-l0cyMroinI0@public.gmane.org>
+> ---
+> 
+> Based on kernel tag 4.2.0-rc1 and test result log is at
+> http://pastebin.ubuntu.com/11910178/
+> 
+>  arch/arm/boot/dts/omap5-uevm.dts |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+> index 275618f..3cc8f35 100644
+> --- a/arch/arm/boot/dts/omap5-uevm.dts
+> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+> @@ -510,6 +510,13 @@
+>  				};
+>  			};
+>  		};
+> +
+> +		palmas_power_button: palmas_power_button {
+> +			compatible = "ti,palmas-pwrbutton";
+> +			interrupt-parent = <&palmas>;
+> +			interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+> +			wakeup-source;
+> +		};
+>  	};
+>  
+>  	twl6040: twl@4b {
+> 
 
-On Mon, Jul 20, 2015 at 10:44:08PM +0200, Thomas Gleixner wrote:
-> On Mon, 20 Jul 2015, Felipe Balbi wrote:
-> > +	irqnr =3D intc_readl(INTC_SIR);
-> > +	irqnr &=3D ACTIVEIRQ_MASK;
-> > +	WARN(!irqnr, "Spurious IRQ ?\n");
->=20
-> Shouldn't that be WARN_ONCE?
+Tested (with evtest) and verified on v4.2-rc3
 
-Sure, why not ?
+Acked-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 
-8<--------------------------------------------------------------------
-
-=46rom a71590d725e54b888db278de6c278d2a106fc76d Mon Sep 17 00:00:00 2001
-=46rom: Felipe Balbi <balbi@ti.com>
-Date: Fri, 2 Jan 2015 16:18:54 -0600
-Subject: [PATCH RESEND v2] irqchip: omap-intc: improve IRQ handler
-
-as it turns out the current IRQ number will
-*always* be available from SIR register which
-renders the reads of PENDING registers as plain
-unnecessary overhead.
-
-In order to catch any situation where SIR reads
-as zero, we're adding a WARN() to turn it into
-a very verbose error and users actually report
-it.
-
-With this patch average running time of
-omap_intc_handle_irq() reduced from about 28.5us
-to 19.8us as measured by the kernel function
-profiler.
-
-Tested with BeagleBoneBlack Rev A5C.
-
-Tested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
-
-Changes from V1:
-
- - replace WARN() with WARN_ONCE()
-
- drivers/irqchip/irq-omap-intc.c | 35 +++++------------------------------
- 1 file changed, 5 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-int=
-c.c
-index a569c6dbd1d1..e15f10746310 100644
---- a/drivers/irqchip/irq-omap-intc.c
-+++ b/drivers/irqchip/irq-omap-intc.c
-@@ -331,37 +331,12 @@ static int __init omap_init_irq(u32 base, struct devi=
-ce_node *node)
- static asmlinkage void __exception_irq_entry
- omap_intc_handle_irq(struct pt_regs *regs)
- {
--	u32 irqnr =3D 0;
--	int handled_irq =3D 0;
--	int i;
--
--	do {
--		for (i =3D 0; i < omap_nr_pending; i++) {
--			irqnr =3D intc_readl(INTC_PENDING_IRQ0 + (0x20 * i));
--			if (irqnr)
--				goto out;
--		}
--
--out:
--		if (!irqnr)
--			break;
--
--		irqnr =3D intc_readl(INTC_SIR);
--		irqnr &=3D ACTIVEIRQ_MASK;
-+	u32 irqnr;
-=20
--		if (irqnr) {
--			handle_domain_irq(domain, irqnr, regs);
--			handled_irq =3D 1;
--		}
--	} while (irqnr);
--
--	/*
--	 * If an irq is masked or deasserted while active, we will
--	 * keep ending up here with no irq handled. So remove it from
--	 * the INTC with an ack.
--	 */
--	if (!handled_irq)
--		omap_ack_irq(NULL);
-+	irqnr =3D intc_readl(INTC_SIR);
-+	irqnr &=3D ACTIVEIRQ_MASK;
-+	WARN_ONCE(!irqnr, "Spurious IRQ ?\n");
-+	handle_domain_irq(domain, irqnr, regs);
- }
-=20
- void __init omap3_init_irq(void)
---=20
-2.4.4
-
-
---=20
-balbi
-
---smOfPzt+Qjm5bNGJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVrV7GAAoJEIaOsuA1yqREr3QP/R58mJXTHF5XYUEmoq3jmYS2
-e6iQM/JQrW48AMwyenkp1XEQyNSZHtiG92t4jSsW7DMfrJWzZVTofrvm1G54kJeQ
-8QeM5ZYSJEgaGnC4iLTUwBGG/Orrxwovsu2oPojIqqUqjHGTvddF03fWvqKBHLhw
-SwzUL0jIuBXGvgMJH55zem2Ab7MbxIsyTStMMbCziKLqCx2sqcaxZuJuTEcxSTQ+
-QxtmRl4XryZEUo3cAWu7rvPsh/K+5dH9iH5AagcB1mWNGZy9EkR200OJocropE5/
-wyGwBZefNygSvfGAJqhBVTzlfmYz8Uus5YRicdIeyHTrjLKutRDzzgAEYaIes1Os
-+6vghtlJ59iCrDZt+QVl+uSLuFr1t8JJoUR5YIP+GN6oDZXdwgaLlOnTpj8fqMxk
-2jEQ3sJMXaePpvgh0CRQGReIfLIMfpwgq7nKNieBEXLktGwk8nkWrZ9G068T9uHM
-sKI8/Wn2PvObcHxEcyFLhYJV7l5iwNTw7kWmQ03wsDAyPuyK9ipjXI0BUdwhBh4v
-OuD7tS0O5p8tL4XB5SP8/d8szXPjvmUP+WRtpEZfMk80KAzAfaayRpCtB6oGiQi/
-HryP8orl3mI98co/mkKjbz/37wkunMZh6/8llAjCiHqrPiZ4ircMUNV1v+p4x+kY
-8YTrUKIQ/OzDL2sLJvBA
-=E2rz
------END PGP SIGNATURE-----
-
---smOfPzt+Qjm5bNGJ--
+-- 
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
