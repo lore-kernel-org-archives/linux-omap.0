@@ -1,84 +1,79 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH RESEND] irqchip: omap-intc: improve IRQ handler
-Date: Mon, 20 Jul 2015 11:45:59 -0500
-Message-ID: <1437410759-4945-1-git-send-email-balbi@ti.com>
+From: Adam Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] [TWL4030 MADC] Fix ADC[3:6] readings
+Date: Mon, 20 Jul 2015 10:47:28 -0700
+Message-ID: <CAFeBWL6ARBReHq8jom3kGu3iOaPib41nOJ3-gx358nYwsGKLfw@mail.gmail.com>
+References: <1437085227-28845-1-git-send-email-adam.yh.lee@gmail.com>
+	<1437085227-28845-2-git-send-email-adam.yh.lee@gmail.com>
+	<20150717090039.GC9331@earth>
+	<alpine.DEB.2.02.1507171136180.14972@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.02.1507171136180.14972-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-as it turns out the current IRQ number will
-*always* be available from SIR register which
-renders the reads of PENDING registers as plain
-unnecessary overhead.
+Hello, here is some more context from the TPS65950's TRM [1].
 
-In order to catch any situation where SIR reads
-as zero, we're adding a WARN() to turn it into
-a very verbose error and users actually report
-it.
+Quoting from section 15.3.1.2.1 VUSB3V1 section:
 
-With this patch average running time of
-omap_intc_handle_irq() reduced from about 28.5us
-to 19.8us as measured by the kernel function
-profiler.
+    "VUSB3V1 is also used to bias analog multiplexers on the four MCPC
+pins between the carkit and the MADC (supplied by VINTANA2)."
 
-Tested with BeagleBoneBlack Rev A5C.
 
-Tested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/irqchip/irq-omap-intc.c | 35 +++++------------------------------
- 1 file changed, 5 insertions(+), 30 deletions(-)
+And from section 15.4.11. MADC Monitoring Using MCPC:
 
-diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
-index a569c6dbd1d1..0706db624213 100644
---- a/drivers/irqchip/irq-omap-intc.c
-+++ b/drivers/irqchip/irq-omap-intc.c
-@@ -331,37 +331,12 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
- static asmlinkage void __exception_irq_entry
- omap_intc_handle_irq(struct pt_regs *regs)
- {
--	u32 irqnr = 0;
--	int handled_irq = 0;
--	int i;
--
--	do {
--		for (i = 0; i < omap_nr_pending; i++) {
--			irqnr = intc_readl(INTC_PENDING_IRQ0 + (0x20 * i));
--			if (irqnr)
--				goto out;
--		}
--
--out:
--		if (!irqnr)
--			break;
--
--		irqnr = intc_readl(INTC_SIR);
--		irqnr &= ACTIVEIRQ_MASK;
-+	u32 irqnr;
- 
--		if (irqnr) {
--			handle_domain_irq(domain, irqnr, regs);
--			handled_irq = 1;
--		}
--	} while (irqnr);
--
--	/*
--	 * If an irq is masked or deasserted while active, we will
--	 * keep ending up here with no irq handled. So remove it from
--	 * the INTC with an ack.
--	 */
--	if (!handled_irq)
--		omap_ack_irq(NULL);
-+	irqnr = intc_readl(INTC_SIR);
-+	irqnr &= ACTIVEIRQ_MASK;
-+	WARN(!irqnr, "Spurious IRQ ?\n");
-+	handle_domain_irq(domain, irqnr, regs);
- }
- 
- void __init omap3_init_irq(void)
--- 
-2.4.4
+    "Four MCPC pins can be selected as analog conversion input pins by
+setting the CARKIT_ANA_CTRL[3] SEL_MADC_MCPC bit."
+
+My patch addresses both (set the register, and enable 3v1). And yes it
+has been tested on Gumstix Overo COMs (OMAP3 + TPS65950).
+
+Hope to hear from IIO maintainers!
+
+[1] http://www.droid-developers.org/images/2/21/Tps65950_TRM.pdf
+
+On Fri, Jul 17, 2015 at 2:42 AM, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org> wrote:
+> Hello,
+>
+> adding linux-iio...
+>
+>> To get a chance of this patch being considered for inclusion, you
+>> should send this to the maintainers of the phy and iio framework.
+>> There is a high chance, that none of them will see your mail.
+>>
+>> On Thu, Jul 16, 2015 at 03:20:27PM -0700, Adam YH Lee wrote:
+>> > MADC[3:6] reads incorrect values without these two following changes:
+>>
+>> uhm MADC[3:6] are externally available analog inputs. Your
+>> change will result in them being tied to the USB module.
+>
+> change regarding TWL4030_USB_SEL_MADC_MCPC is necessary at
+> least for some hardware revisions to get proper ADC values
+>
+>> > - enable the 3v1 bias regulator for ADC[3:6]
+>>
+>> The regulator is not required for correct MADC functionality, but
+>> for correct USB measureing. The regulator should not be requested
+>> by the madc module, but by the usb module, which is connected to
+>> the madc.
+>
+> in my experience, the MADC exhibits several strange things, I wouldn't be
+> surprised that this bias is somehow necessary for operation even if it is
+> not what the spec says -- has this been tested?
+>
+>> > - configure ADC[3:6] lines as input, not as USB
+>>
+>> I don't think that should be done for all boards.
+>>
+>> > [...]
+>>
+>> -- Sebastian
+>>
+>
+> --
+>
+> Peter Meerwald
+> +43-664-2444418 (mobile)
