@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 09/11] iommu/omap: Use BIT(x) macros in omap-iommu.h
-Date: Mon, 20 Jul 2015 17:33:31 -0500
-Message-ID: <1437431613-55656-10-git-send-email-s-anna@ti.com>
+Subject: [PATCH 03/11] iommu/omap: Move debugfs functions to omap-iommu-debug.c
+Date: Mon, 20 Jul 2015 17:33:25 -0500
+Message-ID: <1437431613-55656-4-git-send-email-s-anna@ti.com>
 References: <1437431613-55656-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,91 +21,419 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Switch to using the BIT(x) macros in omap-iommu.h where
-possible. This eliminates the following checkpatch check
-warning:
-    "CHECK: Prefer using the BIT macro"
+The main OMAP IOMMU driver file has some helper functions used
+by the OMAP IOMMU debugfs functionality, and there is already a
+dedicated source file omap-iommu-debug.c dealing with these debugfs
+routines. Move all these functions to the omap-iommu-debug.c file,
+so that all the debugfs related routines are in one place.
 
-A couple of the warnings were ignored for better readability
-of the bit-shift for the different values.
+The move required exposing some new functions and moving some
+definitions to the internal omap-iommu.h header file.
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.h | 28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ drivers/iommu/omap-iommu-debug.c | 111 +++++++++++++++++++++++++++++
+ drivers/iommu/omap-iommu.c       | 148 +--------------------------------------
+ drivers/iommu/omap-iommu.h       |  28 ++++++--
+ 3 files changed, 137 insertions(+), 150 deletions(-)
 
+diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
+index f3d20a2039d2..b4b96db37e6a 100644
+--- a/drivers/iommu/omap-iommu-debug.c
++++ b/drivers/iommu/omap-iommu-debug.c
+@@ -14,6 +14,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
++#include <linux/pm_runtime.h>
+ #include <linux/debugfs.h>
+ #include <linux/platform_data/iommu-omap.h>
+ 
+@@ -29,6 +30,59 @@ static inline bool is_omap_iommu_detached(struct omap_iommu *obj)
+ 	return !obj->domain;
+ }
+ 
++#define pr_reg(name)							\
++	do {								\
++		ssize_t bytes;						\
++		const char *str = "%20s: %08x\n";			\
++		const int maxcol = 32;					\
++		bytes = snprintf(p, maxcol, str, __stringify(name),	\
++				 iommu_read_reg(obj, MMU_##name));	\
++		p += bytes;						\
++		len -= bytes;						\
++		if (len < maxcol)					\
++			goto out;					\
++	} while (0)
++
++static ssize_t
++omap2_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len)
++{
++	char *p = buf;
++
++	pr_reg(REVISION);
++	pr_reg(IRQSTATUS);
++	pr_reg(IRQENABLE);
++	pr_reg(WALKING_ST);
++	pr_reg(CNTL);
++	pr_reg(FAULT_AD);
++	pr_reg(TTB);
++	pr_reg(LOCK);
++	pr_reg(LD_TLB);
++	pr_reg(CAM);
++	pr_reg(RAM);
++	pr_reg(GFLUSH);
++	pr_reg(FLUSH_ENTRY);
++	pr_reg(READ_CAM);
++	pr_reg(READ_RAM);
++	pr_reg(EMU_FAULT_AD);
++out:
++	return p - buf;
++}
++
++static ssize_t omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf,
++				   ssize_t bytes)
++{
++	if (!obj || !buf)
++		return -EINVAL;
++
++	pm_runtime_get_sync(obj->dev);
++
++	bytes = omap2_iommu_dump_ctx(obj, buf, bytes);
++
++	pm_runtime_put_sync(obj->dev);
++
++	return bytes;
++}
++
+ static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
+ 			       size_t count, loff_t *ppos)
+ {
+@@ -55,6 +109,63 @@ static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
+ 	return bytes;
+ }
+ 
++static int
++__dump_tlb_entries(struct omap_iommu *obj, struct cr_regs *crs, int num)
++{
++	int i;
++	struct iotlb_lock saved;
++	struct cr_regs tmp;
++	struct cr_regs *p = crs;
++
++	pm_runtime_get_sync(obj->dev);
++	iotlb_lock_get(obj, &saved);
++
++	for_each_iotlb_cr(obj, num, i, tmp) {
++		if (!iotlb_cr_valid(&tmp))
++			continue;
++		*p++ = tmp;
++	}
++
++	iotlb_lock_set(obj, &saved);
++	pm_runtime_put_sync(obj->dev);
++
++	return  p - crs;
++}
++
++static ssize_t iotlb_dump_cr(struct omap_iommu *obj, struct cr_regs *cr,
++			     char *buf)
++{
++	char *p = buf;
++
++	/* FIXME: Need more detail analysis of cam/ram */
++	p += sprintf(p, "%08x %08x %01x\n", cr->cam, cr->ram,
++					(cr->cam & MMU_CAM_P) ? 1 : 0);
++
++	return p - buf;
++}
++
++static size_t omap_dump_tlb_entries(struct omap_iommu *obj, char *buf,
++				    ssize_t bytes)
++{
++	int i, num;
++	struct cr_regs *cr;
++	char *p = buf;
++
++	num = bytes / sizeof(*cr);
++	num = min(obj->nr_tlb_entries, num);
++
++	cr = kcalloc(num, sizeof(*cr), GFP_KERNEL);
++	if (!cr)
++		return 0;
++
++	num = __dump_tlb_entries(obj, cr, num);
++	for (i = 0; i < num; i++)
++		p += iotlb_dump_cr(obj, cr + i, p);
++	kfree(cr);
++
++	return p - buf;
++}
++
+ static ssize_t debug_read_tlb(struct file *file, char __user *userbuf,
+ 			      size_t count, loff_t *ppos)
+ {
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index eeecfc4073af..0fc00f31c39d 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -37,11 +37,6 @@
+ #define to_iommu(dev)							\
+ 	((struct omap_iommu *)platform_get_drvdata(to_platform_device(dev)))
+ 
+-#define for_each_iotlb_cr(obj, n, __i, cr)				\
+-	for (__i = 0;							\
+-	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
+-	     __i++)
+-
+ /* bitmap of the page sizes currently supported */
+ #define OMAP_IOMMU_PGSIZES	(SZ_4K | SZ_64K | SZ_1M | SZ_16M)
+ 
+@@ -71,11 +66,6 @@ struct omap_iommu_domain {
+ #define MMU_LOCK_VICT(x)	\
+ 	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
+ 
+-struct iotlb_lock {
+-	short base;
+-	short vict;
+-};
+-
+ static struct platform_driver omap_iommu_driver;
+ static struct kmem_cache *iopte_cachep;
+ 
+@@ -212,14 +202,6 @@ static void iommu_disable(struct omap_iommu *obj)
+ /*
+  *	TLB operations
+  */
+-static inline int iotlb_cr_valid(struct cr_regs *cr)
+-{
+-	if (!cr)
+-		return -EINVAL;
+-
+-	return cr->cam & MMU_CAM_V;
+-}
+-
+ static u32 iotlb_cr_to_virt(struct cr_regs *cr)
+ {
+ 	u32 page_size = cr->cam & MMU_CAM_PGSZ_MASK;
+@@ -259,7 +241,7 @@ static u32 iommu_report_fault(struct omap_iommu *obj, u32 *da)
+ 	return status;
+ }
+ 
+-static void iotlb_lock_get(struct omap_iommu *obj, struct iotlb_lock *l)
++void iotlb_lock_get(struct omap_iommu *obj, struct iotlb_lock *l)
+ {
+ 	u32 val;
+ 
+@@ -267,10 +249,9 @@ static void iotlb_lock_get(struct omap_iommu *obj, struct iotlb_lock *l)
+ 
+ 	l->base = MMU_LOCK_BASE(val);
+ 	l->vict = MMU_LOCK_VICT(val);
+-
+ }
+ 
+-static void iotlb_lock_set(struct omap_iommu *obj, struct iotlb_lock *l)
++void iotlb_lock_set(struct omap_iommu *obj, struct iotlb_lock *l)
+ {
+ 	u32 val;
+ 
+@@ -296,7 +277,7 @@ static void iotlb_load_cr(struct omap_iommu *obj, struct cr_regs *cr)
+ }
+ 
+ /* only used in iotlb iteration for-loop */
+-static struct cr_regs __iotlb_read_cr(struct omap_iommu *obj, int n)
++struct cr_regs __iotlb_read_cr(struct omap_iommu *obj, int n)
+ {
+ 	struct cr_regs cr;
+ 	struct iotlb_lock l;
+@@ -467,129 +448,6 @@ static void flush_iotlb_all(struct omap_iommu *obj)
+ 	pm_runtime_put_sync(obj->dev);
+ }
+ 
+-#ifdef CONFIG_OMAP_IOMMU_DEBUG
+-
+-#define pr_reg(name)							\
+-	do {								\
+-		ssize_t bytes;						\
+-		const char *str = "%20s: %08x\n";			\
+-		const int maxcol = 32;					\
+-		bytes = snprintf(p, maxcol, str, __stringify(name),	\
+-				 iommu_read_reg(obj, MMU_##name));	\
+-		p += bytes;						\
+-		len -= bytes;						\
+-		if (len < maxcol)					\
+-			goto out;					\
+-	} while (0)
+-
+-static ssize_t
+-omap2_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len)
+-{
+-	char *p = buf;
+-
+-	pr_reg(REVISION);
+-	pr_reg(IRQSTATUS);
+-	pr_reg(IRQENABLE);
+-	pr_reg(WALKING_ST);
+-	pr_reg(CNTL);
+-	pr_reg(FAULT_AD);
+-	pr_reg(TTB);
+-	pr_reg(LOCK);
+-	pr_reg(LD_TLB);
+-	pr_reg(CAM);
+-	pr_reg(RAM);
+-	pr_reg(GFLUSH);
+-	pr_reg(FLUSH_ENTRY);
+-	pr_reg(READ_CAM);
+-	pr_reg(READ_RAM);
+-	pr_reg(EMU_FAULT_AD);
+-out:
+-	return p - buf;
+-}
+-
+-ssize_t omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t bytes)
+-{
+-	if (!obj || !buf)
+-		return -EINVAL;
+-
+-	pm_runtime_get_sync(obj->dev);
+-
+-	bytes = omap2_iommu_dump_ctx(obj, buf, bytes);
+-
+-	pm_runtime_put_sync(obj->dev);
+-
+-	return bytes;
+-}
+-
+-static int
+-__dump_tlb_entries(struct omap_iommu *obj, struct cr_regs *crs, int num)
+-{
+-	int i;
+-	struct iotlb_lock saved;
+-	struct cr_regs tmp;
+-	struct cr_regs *p = crs;
+-
+-	pm_runtime_get_sync(obj->dev);
+-	iotlb_lock_get(obj, &saved);
+-
+-	for_each_iotlb_cr(obj, num, i, tmp) {
+-		if (!iotlb_cr_valid(&tmp))
+-			continue;
+-		*p++ = tmp;
+-	}
+-
+-	iotlb_lock_set(obj, &saved);
+-	pm_runtime_put_sync(obj->dev);
+-
+-	return  p - crs;
+-}
+-
+-/**
+- * iotlb_dump_cr - Dump an iommu tlb entry into buf
+- * @obj:	target iommu
+- * @cr:		contents of cam and ram register
+- * @buf:	output buffer
+- **/
+-static ssize_t iotlb_dump_cr(struct omap_iommu *obj, struct cr_regs *cr,
+-			     char *buf)
+-{
+-	char *p = buf;
+-
+-	/* FIXME: Need more detail analysis of cam/ram */
+-	p += sprintf(p, "%08x %08x %01x\n", cr->cam, cr->ram,
+-					(cr->cam & MMU_CAM_P) ? 1 : 0);
+-
+-	return p - buf;
+-}
+-
+-/**
+- * omap_dump_tlb_entries - dump cr arrays to given buffer
+- * @obj:	target iommu
+- * @buf:	output buffer
+- **/
+-size_t omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t bytes)
+-{
+-	int i, num;
+-	struct cr_regs *cr;
+-	char *p = buf;
+-
+-	num = bytes / sizeof(*cr);
+-	num = min(obj->nr_tlb_entries, num);
+-
+-	cr = kcalloc(num, sizeof(*cr), GFP_KERNEL);
+-	if (!cr)
+-		return 0;
+-
+-	num = __dump_tlb_entries(obj, cr, num);
+-	for (i = 0; i < num; i++)
+-		p += iotlb_dump_cr(obj, cr + i, p);
+-	kfree(cr);
+-
+-	return p - buf;
+-}
+-
+-#endif /* CONFIG_OMAP_IOMMU_DEBUG */
+-
+ /*
+  *	H/W pagetable operations
+  */
 diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 5b98408c18bf..a656df2f9e03 100644
+index d736630df3c8..b6cc90b2ba41 100644
 --- a/drivers/iommu/omap-iommu.h
 +++ b/drivers/iommu/omap-iommu.h
-@@ -13,6 +13,8 @@
+@@ -13,6 +13,11 @@
  #ifndef _OMAP_IOMMU_H
  #define _OMAP_IOMMU_H
  
-+#include <linux/bitops.h>
++#define for_each_iotlb_cr(obj, n, __i, cr)				\
++	for (__i = 0;							\
++	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
++	     __i++)
 +
- #define for_each_iotlb_cr(obj, n, __i, cr)				\
- 	for (__i = 0;							\
- 	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
-@@ -96,11 +98,11 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
-  * MMU Register bit definitions
+ struct iotlb_entry {
+ 	u32 da;
+ 	u32 pa;
+@@ -65,6 +70,11 @@ struct cr_regs {
+ 	};
+ };
+ 
++struct iotlb_lock {
++	short base;
++	short vict;
++};
++
+ /**
+  * dev_to_omap_iommu() - retrieves an omap iommu object from a user device
+  * @dev: iommu client device
+@@ -190,12 +200,12 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ /*
+  * global functions
   */
- /* IRQSTATUS & IRQENABLE */
--#define MMU_IRQ_MULTIHITFAULT	(1 << 4)
--#define MMU_IRQ_TABLEWALKFAULT	(1 << 3)
--#define MMU_IRQ_EMUMISS		(1 << 2)
--#define MMU_IRQ_TRANSLATIONFAULT	(1 << 1)
--#define MMU_IRQ_TLBMISS		(1 << 0)
-+#define MMU_IRQ_MULTIHITFAULT	BIT(4)
-+#define MMU_IRQ_TABLEWALKFAULT	BIT(3)
-+#define MMU_IRQ_EMUMISS		BIT(2)
-+#define MMU_IRQ_TRANSLATIONFAULT	BIT(1)
-+#define MMU_IRQ_TLBMISS		BIT(0)
+-#ifdef CONFIG_OMAP_IOMMU_DEBUG
+-extern ssize_t
+-omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
+-extern size_t
+-omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t len);
  
- #define __MMU_IRQ_FAULT		\
- 	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_EMUMISS | MMU_IRQ_TRANSLATIONFAULT)
-@@ -112,16 +114,16 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- /* MMU_CNTL */
- #define MMU_CNTL_SHIFT		1
- #define MMU_CNTL_MASK		(7 << MMU_CNTL_SHIFT)
--#define MMU_CNTL_EML_TLB	(1 << 3)
--#define MMU_CNTL_TWL_EN		(1 << 2)
--#define MMU_CNTL_MMU_EN		(1 << 1)
-+#define MMU_CNTL_EML_TLB	BIT(3)
-+#define MMU_CNTL_TWL_EN		BIT(2)
-+#define MMU_CNTL_MMU_EN		BIT(1)
++struct cr_regs __iotlb_read_cr(struct omap_iommu *obj, int n);
++void iotlb_lock_get(struct omap_iommu *obj, struct iotlb_lock *l);
++void iotlb_lock_set(struct omap_iommu *obj, struct iotlb_lock *l);
++
++#ifdef CONFIG_OMAP_IOMMU_DEBUG
+ void omap_iommu_debugfs_init(void);
+ void omap_iommu_debugfs_exit(void);
  
- /* CAM */
- #define MMU_CAM_VATAG_SHIFT	12
- #define MMU_CAM_VATAG_MASK \
- 	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
--#define MMU_CAM_P		(1 << 3)
--#define MMU_CAM_V		(1 << 2)
-+#define MMU_CAM_P		BIT(3)
-+#define MMU_CAM_V		BIT(2)
- #define MMU_CAM_PGSZ_MASK	3
- #define MMU_CAM_PGSZ_1M		(0 << 0)
- #define MMU_CAM_PGSZ_64K	(1 << 0)
-@@ -134,9 +136,9 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- 	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
+@@ -222,4 +232,12 @@ static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
+ 	__raw_writel(val, obj->regbase + offs);
+ }
  
- #define MMU_RAM_ENDIAN_SHIFT	9
--#define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ENDIAN_MASK	BIT(MMU_RAM_ENDIAN_SHIFT)
- #define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
--#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ENDIAN_BIG	BIT(MMU_RAM_ENDIAN_SHIFT)
- 
- #define MMU_RAM_ELSZ_SHIFT	7
- #define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
-@@ -145,7 +147,7 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- #define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
- #define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
- #define MMU_RAM_MIXED_SHIFT	6
--#define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
-+#define MMU_RAM_MIXED_MASK	BIT(MMU_RAM_MIXED_SHIFT)
- #define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
- 
- #define MMU_GP_REG_BUS_ERR_BACK_EN	0x1
++static inline int iotlb_cr_valid(struct cr_regs *cr)
++{
++	if (!cr)
++		return -EINVAL;
++
++	return cr->cam & MMU_CAM_V;
++}
++
+ #endif /* _OMAP_IOMMU_H */
 -- 
 2.4.4
