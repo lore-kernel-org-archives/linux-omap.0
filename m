@@ -1,103 +1,108 @@
-From: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] [TWL4030 MADC] Fix ADC[3:6] readings
-Date: Mon, 20 Jul 2015 11:14:18 -0700
-Message-ID: <1437416058-24586-2-git-send-email-adam.yh.lee@gmail.com>
-References: <1437416058-24586-1-git-send-email-adam.yh.lee@gmail.com>
+From: Adam Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] [TWL4030 MADC] Fix ADC[3:6] readings
+Date: Mon, 20 Jul 2015 11:23:46 -0700
+Message-ID: <CAFeBWL4dEZ09UdNH6moDzDy8S+2w7XpM6vWcK6yVW++H7qZTjA@mail.gmail.com>
+References: <1437085227-28845-1-git-send-email-adam.yh.lee@gmail.com>
+	<1437085227-28845-2-git-send-email-adam.yh.lee@gmail.com>
+	<20150717090039.GC9331@earth>
+	<alpine.DEB.2.02.1507171136180.14972@pmeerw.net>
+	<CAFeBWL6ARBReHq8jom3kGu3iOaPib41nOJ3-gx358nYwsGKLfw@mail.gmail.com>
+	<55AD35D1.7000607@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437416058-24586-1-git-send-email-adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <55AD35D1.7000607-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org, Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-MADC[3:6] reads incorrect values without these two following changes:
+Hello Jonathan, I sent the same patch with linux-iio cc'd.
+I expanded the cover letter with the quotes from TI's documents, but
+the text has been removed in the email somehow.
+The discussion in this thread should be enough (I think) for linux-iio
+maintainers, so we will see!
 
-- enable the 3v1 bias regulator for ADC[3:6]
-- configure ADC[3:6] lines as input, not as USB
+Thanks,
 
-Signed-off-by: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/iio/adc/twl4030-madc.c | 14 ++++++++++++++
- drivers/phy/phy-twl4030-usb.c  |  7 +++++++
- 2 files changed, 21 insertions(+)
+Adam
 
-diff --git a/drivers/iio/adc/twl4030-madc.c b/drivers/iio/adc/twl4030-madc.c
-index 94c5f05..b5020ab 100644
---- a/drivers/iio/adc/twl4030-madc.c
-+++ b/drivers/iio/adc/twl4030-madc.c
-@@ -45,6 +45,7 @@
- #include <linux/types.h>
- #include <linux/gfp.h>
- #include <linux/err.h>
-+#include <linux/regulator/consumer.h>
- 
- #include <linux/iio/iio.h>
- 
-@@ -52,6 +53,7 @@
-  * struct twl4030_madc_data - a container for madc info
-  * @dev:		Pointer to device structure for madc
-  * @lock:		Mutex protecting this data structure
-+ * @regulator:		Pointer to bias regulator for madc
-  * @requests:		Array of request struct corresponding to SW1, SW2 and RT
-  * @use_second_irq:	IRQ selection (main or co-processor)
-  * @imr:		Interrupt mask register of MADC
-@@ -60,6 +62,7 @@
- struct twl4030_madc_data {
- 	struct device *dev;
- 	struct mutex lock;	/* mutex protecting this data structure */
-+	struct regulator *usb3v1;
- 	struct twl4030_madc_request requests[TWL4030_MADC_NUM_METHODS];
- 	bool use_second_irq;
- 	u8 imr;
-@@ -848,6 +851,14 @@ static int twl4030_madc_probe(struct platform_device *pdev)
- 		goto err_i2c;
- 	}
- 
-+	madc->usb3v1 = devm_regulator_get(madc->dev, "vusb3v1");
-+	if (IS_ERR(madc->usb3v1))
-+		return -ENODEV;
-+
-+	ret = regulator_enable(madc->usb3v1);
-+	if (ret)
-+		dev_err(madc->dev, "could not be enable 3v1 bias regulator\n");
-+
- 	return 0;
- 
- err_i2c:
-@@ -867,6 +878,9 @@ static int twl4030_madc_remove(struct platform_device *pdev)
- 	twl4030_madc_set_current_generator(madc, 0, 0);
- 	twl4030_madc_set_power(madc, 0);
- 
-+	regulator_disable(madc->usb3v1);
-+	regulator_put(madc->usb3v1);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 7b04bef..88fc7d7 100644
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -144,6 +144,9 @@
- #define PMBR1				0x0D
- #define GPIO_USB_4PIN_ULPI_2430C	(3 << 0)
- 
-+#define TWL4030_USB_SEL_MADC_MCPC	(1<<3)
-+#define TWL4030_USB_CARKIT_ANA_CTRL	0xBB
-+
- struct twl4030_usb {
- 	struct usb_phy		phy;
- 	struct device		*dev;
-@@ -459,6 +462,10 @@ static int twl4030_phy_power_on(struct phy *phy)
- 		twl4030_i2c_access(twl, 0);
- 	schedule_delayed_work(&twl->id_workaround_work, 0);
- 
-+	twl4030_usb_write(twl, TWL4030_USB_CARKIT_ANA_CTRL,
-+		twl4030_usb_read(twl, TWL4030_USB_CARKIT_ANA_CTRL) |
-+		TWL4030_USB_SEL_MADC_MCPC);
-+
- 	return 0;
- }
- 
--- 
-2.1.4
+On Mon, Jul 20, 2015 at 10:54 AM, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On 20/07/15 18:47, Adam Lee wrote:
+>> Hello, here is some more context from the TPS65950's TRM [1].
+>>
+>> Quoting from section 15.3.1.2.1 VUSB3V1 section:
+>>
+>>     "VUSB3V1 is also used to bias analog multiplexers on the four MCPC
+>> pins between the carkit and the MADC (supplied by VINTANA2)."
+>>
+>>
+>> And from section 15.4.11. MADC Monitoring Using MCPC:
+>>
+>>     "Four MCPC pins can be selected as analog conversion input pins by
+>> setting the CARKIT_ANA_CTRL[3] SEL_MADC_MCPC bit."
+>>
+>> My patch addresses both (set the register, and enable 3v1). And yes it
+>> has been tested on Gumstix Overo COMs (OMAP3 + TPS65950).
+>>
+>> Hope to hear from IIO maintainers!
+> I dug the patch out of the archives.
+>
+> Looks clear enough to me.  Could you resend the patch with linux-iio cc'd?
+> I will want an Ack from Sebastian.
+>
+> Thanks,
+>
+> Jonathan
+>
+>>
+>> [1] http://www.droid-developers.org/images/2/21/Tps65950_TRM.pdf
+>>
+>> On Fri, Jul 17, 2015 at 2:42 AM, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org> wrote:
+>>> Hello,
+>>>
+>>> adding linux-iio...
+>>>
+>>>> To get a chance of this patch being considered for inclusion, you
+>>>> should send this to the maintainers of the phy and iio framework.
+>>>> There is a high chance, that none of them will see your mail.
+>>>>
+>>>> On Thu, Jul 16, 2015 at 03:20:27PM -0700, Adam YH Lee wrote:
+>>>>> MADC[3:6] reads incorrect values without these two following changes:
+>>>>
+>>>> uhm MADC[3:6] are externally available analog inputs. Your
+>>>> change will result in them being tied to the USB module.
+>>>
+>>> change regarding TWL4030_USB_SEL_MADC_MCPC is necessary at
+>>> least for some hardware revisions to get proper ADC values
+>>>
+>>>>> - enable the 3v1 bias regulator for ADC[3:6]
+>>>>
+>>>> The regulator is not required for correct MADC functionality, but
+>>>> for correct USB measureing. The regulator should not be requested
+>>>> by the madc module, but by the usb module, which is connected to
+>>>> the madc.
+>>>
+>>> in my experience, the MADC exhibits several strange things, I wouldn't be
+>>> surprised that this bias is somehow necessary for operation even if it is
+>>> not what the spec says -- has this been tested?
+>>>
+>>>>> - configure ADC[3:6] lines as input, not as USB
+>>>>
+>>>> I don't think that should be done for all boards.
+>>>>
+>>>>> [...]
+>>>>
+>>>> -- Sebastian
+>>>>
+>>>
+>>> --
+>>>
+>>> Peter Meerwald
+>>> +43-664-2444418 (mobile)
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
