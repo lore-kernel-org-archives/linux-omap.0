@@ -1,63 +1,86 @@
-From: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [PATCH v3 10/11] usb: otg: Add dual-role device (DRD) support
-Date: Mon, 20 Jul 2015 09:23:09 +0800
-Message-ID: <20150720012308.GB4584@shlinux2>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [PATCH v3 07/11] usb: otg: add OTG core
+Date: Mon, 20 Jul 2015 09:45:01 +0800
+Message-ID: <20150720014500.GC4584@shlinux2>
 References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
- <1436350777-28056-11-git-send-email-rogerq@ti.com>
- <20150717090212.GC4515@shlinux2> <55A8DD30.5030407@ti.com>
+ <1436350777-28056-8-git-send-email-rogerq@ti.com>
+ <20150717074832.GA4515@shlinux2>
+ <55A8EFBA.1000504@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55A8DD30.5030407-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <55A8EFBA.1000504@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Li Jun <b47624@freescale.com>, stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 17, 2015 at 01:47:12PM +0300, Roger Quadros wrote:
-> >> + * DRD mode hardware Inputs
-> >> + *
-> >> + * @id:		TRUE for B-device, FALSE for A-device.
-> >> + * @vbus:	VBUS voltage in regulation.
-> >> + *
-> >>   * OTG hardware Inputs
-> >>   *
-> >>   *	Common inputs for A and B device
-> >> @@ -122,7 +127,8 @@ enum otg_fsm_timer {
-> >>   */
-> >>  struct otg_fsm {
-> >>  	/* Input */
-> >> -	int id;
-> >> +	int id;			/* DRD + OTG */
-> >> +	int vbus;		/* DRD only */
+On Fri, Jul 17, 2015 at 03:06:18PM +0300, Roger Quadros wrote:
+> >> +
+> >> +/**
+> >> + * OTG FSM ops function to start/stop host
+> >> + */
+> >> +static int usb_otg_start_host(struct otg_fsm *fsm, int on)
+> >> +{
+> >> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> >> +	struct otg_hcd_ops *hcd_ops;
+> >> +
+> >> +	dev_dbg(otgd->dev, "otg: %s %d\n", __func__, on);
+> >> +	if (!fsm->otg->host) {
+> >> +		WARN_ONCE(1, "otg: fsm running without host\n");
+> >> +		return 0;
+> >> +	}
+> >> +
+> >> +	if (on) {
+> >> +		/* OTG device operations */
+> >> +		if (otgd->start_host)
+> >> +			otgd->start_host(fsm, on);
+> >> +
+> >> +		/* start host */
+> >> +		hcd_ops = otgd->primary_hcd.ops;
+> >> +		hcd_ops->add(otgd->primary_hcd.hcd, otgd->primary_hcd.irqnum,
+> >> +			     otgd->primary_hcd.irqflags);
+> >> +		if (otgd->shared_hcd.hcd) {
+> >> +			hcd_ops = otgd->shared_hcd.ops;
+> >> +			hcd_ops->add(otgd->shared_hcd.hcd,
+> >> +				     otgd->shared_hcd.irqnum,
+> >> +				     otgd->shared_hcd.irqflags);
+> >> +		}
+> >> +	} else {
+> >> +		/* stop host */
+> >> +		if (otgd->shared_hcd.hcd) {
+> >> +			hcd_ops = otgd->shared_hcd.ops;
+> >> +			hcd_ops->remove(otgd->shared_hcd.hcd);
+> >> +		}
+> >> +		hcd_ops = otgd->primary_hcd.ops;
+> >> +		hcd_ops->remove(otgd->primary_hcd.hcd);
+> >> +
+> >> +		/* OTG device operations */
+> >> +		if (otgd->start_host)
+> >> +			otgd->start_host(fsm, on);
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
 > > 
-> > Existing b_sess_vld can be also used for drd only case, no need create
-> > a new flag.
+> > I do not see much benefit by this override function, usb_add/remove_hcd
+> > can be simply included by controller's start_host function, also there
+> > maybe some additional operations after usb_add_hcd, but this override
+> > function limit usb_add_hcd() is the last step.
 > 
-> b_sess_vld is a bit confusing to people not familiar with OTG.
-> My suggestion is to use dedicated 'vbus' flag for DRD case
-> for simplicity.
+> I had tried host start/stop way before but Alan's suggestion was to use
+> bind/unbind the host controller completely as that is much simpler
+> 
+> [1] http://article.gmane.org/gmane.linux.usb.general/123842
 > 
 
-Since OTG DRD is the subset in OTG FSM (FSM, data structure, APIs, etc),
-I agree with Jun to reuse existing variables, and we can add some comments
-for b_sess_vld if needed.
-
-
-> > 
-> >>  	int adp_change;
-> >>  	int power_up;
-> >>  	int a_srp_det;
-> 
-> cheers,
-> -roger
+Jun may want we have some ways to override otg_fsm->ops by platform
+drivers, I think we all agree to call usb_add_hcd/usb_remove_hcd
+to start/stop host roles, just some platforms may need more than
+just call them.
 
 -- 
 
 Best Regards,
 Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
