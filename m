@@ -1,101 +1,421 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Update driver to support without regulators
-Date: Tue, 21 Jul 2015 13:40:20 +0200
-Message-ID: <CAPDyKFq8NVqkZQ_8oL_5JM0_wYK6-gTaXr9ExHLa767tmcpxxA@mail.gmail.com>
-References: <1436902186-6542-1-git-send-email-fcooper@ti.com>
+From: Li Jun <b47624@freescale.com>
+Subject: Re: [PATCH v3 07/11] usb: otg: add OTG core
+Date: Tue, 21 Jul 2015 18:52:17 +0800
+Message-ID: <20150721105159.GA8903@shlinux2>
+References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
+ <1436350777-28056-8-git-send-email-rogerq@ti.com>
+ <20150717074832.GA4515@shlinux2> <55A8EFBA.1000504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1436902186-6542-1-git-send-email-fcooper@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, kishon@ti.com, rogerq@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, Murali Karicheri <m-karicheri2@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55A8EFBA.1000504@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14 July 2015 at 21:29, Franklin S Cooper Jr <fcooper@ti.com> wrote:
-> From: Roger Quadros <rogerq@ti.com>
->
-> Update driver to support without regulators.
->
-> Without this patch boards that do not enable regulator config options will
-> fail to boot with a kernel panic.
+Hi,
 
-I guess that's because the rootfs is mounted on the card that doesn't
-get detected, right?
+[...]
 
->
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> ---
->  Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt |  2 ++
->  drivers/mmc/host/omap_hsmmc.c                           | 14 ++++++++++----
->  2 files changed, 12 insertions(+), 4 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> index 76bf087..2408e87 100644
-> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> @@ -22,6 +22,8 @@ ti,dual-volt: boolean, supports dual voltage cards
->  ti,non-removable: non-removable slot (like eMMC)
->  ti,needs-special-reset: Requires a special softreset sequence
->  ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
-> +voltage-ranges: Specify the voltage range supported if regulator framework
-> +isn't enabled.
->  dmas: List of DMA specifiers with the controller specific format
->  as described in the generic DMA client binding. A tx and rx
->  specifier is required.
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index b2b411d..16c870f 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1551,10 +1551,13 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
->         if (ios->power_mode != host->power_mode) {
->                 switch (ios->power_mode) {
->                 case MMC_POWER_OFF:
-> -                       mmc_pdata(host)->set_power(host->dev, 0, 0);
-> +                       if (host->use_reg)
-> +                               mmc_pdata(host)->set_power(host->dev, 0, 0);
->                         break;
->                 case MMC_POWER_UP:
-> -                       mmc_pdata(host)->set_power(host->dev, 1, ios->vdd);
-> +                       if (host->use_reg)
-> +                               mmc_pdata(host)->set_power(host->dev, 1,
-> +                                                          ios->vdd);
->                         break;
->                 case MMC_POWER_ON:
->                         do_send_init_stream = 1;
-> @@ -2082,10 +2085,13 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                 if (ret)
->                         goto err_irq;
->                 host->use_reg = 1;
-> +               mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
-> +       } else {
-> +               ret = mmc_of_parse_voltage(pdev->dev.of_node, &mmc->ocr_avail);
-> +               if (ret)
-> +                       goto err_irq;
->         }
->
-> -       mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
-> -
->         omap_hsmmc_disable_irq(host);
->
->         /*
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> +	otg_timer_init(A_WAIT_ENUM, otgd, set_tmout, TB_SRP_FAIL, NULL);
+> > 
+> > 2 timers are missing: B_DATA_PLS, B_SSEND_SRP.
+> 
+> Those 2 are not used by usb-otg-fsm.c. We can add it when usb-otg-fsm.c is updated.
+> 
 
-No, I don't like this patch. If your board have regulators which can
-be used to find out the voltage levels, we shall use them. We shall
-not use DT to workaround this.
+ok.
 
-So, perhaps the Kconfig section for omap_hsmmc should select
-CONFIG_REGULATOR (and friends)?
+> > 
+> >> +}
 
-Kind regards
-Uffe
+[...]
+
+> >> +
+> >> +/**
+> >> + * OTG FSM ops function to start/stop host
+> >> + */
+> >> +static int usb_otg_start_host(struct otg_fsm *fsm, int on)
+> >> +{
+> >> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> >> +	struct otg_hcd_ops *hcd_ops;
+> >> +
+> >> +	dev_dbg(otgd->dev, "otg: %s %d\n", __func__, on);
+> >> +	if (!fsm->otg->host) {
+> >> +		WARN_ONCE(1, "otg: fsm running without host\n");
+> >> +		return 0;
+> >> +	}
+> >> +
+> >> +	if (on) {
+> >> +		/* OTG device operations */
+> >> +		if (otgd->start_host)
+> >> +			otgd->start_host(fsm, on);
+> >> +
+> >> +		/* start host */
+> >> +		hcd_ops = otgd->primary_hcd.ops;
+> >> +		hcd_ops->add(otgd->primary_hcd.hcd, otgd->primary_hcd.irqnum,
+> >> +			     otgd->primary_hcd.irqflags);
+> >> +		if (otgd->shared_hcd.hcd) {
+> >> +			hcd_ops = otgd->shared_hcd.ops;
+> >> +			hcd_ops->add(otgd->shared_hcd.hcd,
+> >> +				     otgd->shared_hcd.irqnum,
+> >> +				     otgd->shared_hcd.irqflags);
+> >> +		}
+> >> +	} else {
+> >> +		/* stop host */
+> >> +		if (otgd->shared_hcd.hcd) {
+> >> +			hcd_ops = otgd->shared_hcd.ops;
+> >> +			hcd_ops->remove(otgd->shared_hcd.hcd);
+> >> +		}
+> >> +		hcd_ops = otgd->primary_hcd.ops;
+> >> +		hcd_ops->remove(otgd->primary_hcd.hcd);
+> >> +
+> >> +		/* OTG device operations */
+> >> +		if (otgd->start_host)
+> >> +			otgd->start_host(fsm, on);
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
+> > 
+> > I do not see much benefit by this override function, usb_add/remove_hcd
+> > can be simply included by controller's start_host function, also there
+> > maybe some additional operations after usb_add_hcd, but this override
+> > function limit usb_add_hcd() is the last step.
+> 
+> I had tried host start/stop way before but Alan's suggestion was to use
+> bind/unbind the host controller completely as that is much simpler
+> 
+> [1] http://article.gmane.org/gmane.linux.usb.general/123842
+> 
+
+I did not mean host start/stop in your first version, I agree using
+usb_add/remove_hcd() for simple.
+
+> > 
+> > Maybe your intention is to make usb_add_hcd is the only operation required
+> > to start host, so ideally controller driver need not define its start_host
+> > routine for this otg ops, I am not sure if this can work for different otg
+> 
+> Yes that was the intention.
+> 
+> > platforms. If the shared code is only usb_add/remove_hcd(), maybe leave this
+> > ops defined by controller driver can make core code simple and give flexibility
+> > to controller drivers.
+> 
+> We don't completely override start/stop_host(). The flexibility is still there.
+> We call controllers start_host(1) before starting the controller and controllers
+> start_host(0) after stopping the controller.
+> So the the controller can still do what they want in otg_fsm_ops.start_host/gadget().
+> 
+
+But if controller driver wants to do something after usb_otg_add_hcd(),
+it's impossible with your current usb_otg_start_host().
+
+> The OTG core only takes care of actually starting/stopping the host controller.
+> 
+> If we don't do that then the code in usb_otg_start_host() has to be pasted
+> in every OTG controller driver. This is code duplication.
+> 
+
+Actually the only duplication code may be a function call to original
+usb_add/remove_hcd().
+
+> > 
+> >> +
+> >> +/**
+> >> + * OTG FSM ops function to start/stop gadget
+> >> + */
+> >> +static int usb_otg_start_gadget(struct otg_fsm *fsm, int on)
+> >> +{
+> >> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> >> +	struct usb_gadget *gadget = fsm->otg->gadget;
+> >> +
+> >> +	dev_dbg(otgd->dev, "otg: %s %d\n", __func__, on);
+> >> +	if (!gadget) {
+> >> +		WARN_ONCE(1, "otg: fsm running without gadget\n");
+> >> +		return 0;
+> >> +	}
+> >> +
+> >> +	if (on) {
+> >> +		/* OTG device operations */
+> >> +		if (otgd->start_gadget)
+> >> +			otgd->start_gadget(fsm, on);
+> >> +
+> >> +		otgd->gadget_ops->start(fsm->otg->gadget);
+> >> +	} else {
+> >> +		otgd->gadget_ops->stop(fsm->otg->gadget);
+> >> +
+> >> +		/* OTG device operations */
+> >> +		if (otgd->start_gadget)
+> >> +			otgd->start_gadget(fsm, on);
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +/**
+> >> + * OTG FSM work function
+> >> + */
+> >> +static void usb_otg_work(struct work_struct *work)
+> >> +{
+> >> +	struct otg_data *otgd = container_of(work, struct otg_data, work);
+> >> +
+> >> +	otg_statemachine(&otgd->fsm);
+> > 
+> > Need consider runtime pm, or you want to rely on controller driver take
+> > care of it?
+> 
+> For simplicity let's say that controller driver takes care of it.
+> 
+
+Then controller driver need add runtime pm for every otg fsm ops.
+
+Code like below can make it simple:
+runtime_pm_get_sync(otgd->dev);
+otg_statemachine(&otgd->fsm);
+runtime_pm_get_put(otgd->dev);
+
+There is another problem, otg work will only do one state transition, but
+in some cases we may need successive state transitions.  
+
+> > 
+> >> +}
+> >> +
+> >> +/**
+> >> + * usb_otg_register() - Register the OTG device to OTG core
+> >> + * @parent_device:	parent device of Host & Gadget controllers.
+> >> + * @otg_fsm_ops:	otg state machine ops.
+> >> + *
+
+[...]
+
+> >> +/**
+> >> + * start/kick the OTG FSM if we can
+> >> + * fsm->lock must be held
+> >> + */
+> >> +static void usb_otg_start_fsm(struct otg_fsm *fsm)
+> >> +{
+> >> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
+> >> +
+> >> +	if (otgd->fsm_running)
+> >> +		goto kick_fsm;
+> >> +
+> >> +	if (!fsm->otg->host) {
+> >> +		dev_info(otgd->dev, "otg: can't start till host registers\n");
+> >> +		return;
+> >> +	}
+> >> +
+> > 
+> > This cannot work, fsm->otg->host is set in usb_otg_register_hcd(), which is
+> > called by usb_add_hcd(), but usb_add_hcd() should be called only if otg fsm
+> > already started to some A-device state, deadlock.
+> 
+> I've changed usb_add_hcd() behaviour. Now usb_otg_add_hcd() does the real work of adding
+> the hcd. usb_add_hcd() prevents the add if it is an otg hcd and just registers
+> with OTG core.
+> 
+
+So you expect the controller driver still call usb_add_hcd() before otg fsm
+start, in which it only registers the created hcd with OTG core.
+
+> > 
+> >> +	if (!fsm->otg->gadget) {
+> >> +		dev_info(otgd->dev, "otg: can't start till gadget registers\n");
+> >> +		return;
+> >> +	}
+> >> +
+> >> +	otgd->fsm_running = true;
+> >> +kick_fsm:
+> >> +	queue_work(otgd->wq, &otgd->work);
+> >> +}
+> >> +
+
+[...]
+
+> >> +
+> >> +/**
+> >> + * usb_otg_register_hcd - Register Host controller to OTG core
+> >> + * @hcd:	Host controller device
+> >> + * @irqnum:	interrupt number
+> >> + * @irqflags:	interrupt flags
+> >> + * @ops:	HCD ops to add/remove the HCD
+> >> + *
+> >> + * This is used by the USB Host stack to register the Host controller
+> >> + * to the OTG core. Host controller must not be started by the
+> >> + * caller as it is left upto the OTG state machine to do so.
+> >> + *
+> >> + * Returns: 0 on success, error value otherwise.
+> >> + */
+> >> +int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+> >> +			 unsigned long irqflags, struct otg_hcd_ops *ops)
+> >> +{
+> >> +	struct otg_data *otgd;
+> >> +	struct device *otg_dev = hcd->self.controller->parent;
+> >> +
+
+I see normally we directly use controller dev for hcd->self.controller,
+usb_create_hcd(... struct device *dev, ...)
+{
+	... ...
+	hcd->self.controller = dev;
+	... ...
+}
+
+For register gadget, it's okay since:
+int usb_add_gadget_udc_release(struct device *parent, ...)
+{
+	... ...
+	gadget->dev.parent = parent;
+	... ...
+}
+
+So we need parent dev for usb_otg_register(struct device *dev,...), and child dev
+for usb_create_hcd(struct device *dev,...)? dwc3 is designed like this?
+
+> >> +	mutex_lock(&otg_list_mutex);
+> >> +	otgd = usb_otg_device_get_otgd(otg_dev);
+> >> +	if (!otgd) {
+> >> +		dev_dbg(otg_dev, "otg: %s: device not registered to otg core\n",
+> >> +			__func__);
+> >> +		mutex_unlock(&otg_list_mutex);
+> >> +		return -EINVAL;
+> >> +	}
+> >> +
+> >> +	mutex_unlock(&otg_list_mutex);
+> >> +	/* HCD will be started by OTG fsm when needed */
+> >> +	mutex_lock(&otgd->fsm.lock);
+> >> +	if (otgd->primary_hcd.hcd) {
+> >> +		/* probably a shared HCD ? */
+> >> +		if (usb_otg_hcd_is_primary_hcd(hcd)) {
+> >> +			dev_err(otg_dev, "otg: primary host already registered\n");
+> >> +			goto err;
+> >> +		}
+> >> +
+> >> +		if (hcd->shared_hcd == otgd->primary_hcd.hcd) {
+> >> +			if (otgd->shared_hcd.hcd) {
+> >> +				dev_err(otg_dev, "otg: shared host already registered\n");
+> >> +				goto err;
+> >> +			}
+> >> +
+> >> +			otgd->shared_hcd.hcd = hcd;
+> >> +			otgd->shared_hcd.irqnum = irqnum;
+> >> +			otgd->shared_hcd.irqflags = irqflags;
+> >> +			otgd->shared_hcd.ops = ops;
+> >> +			dev_info(otg_dev, "otg: shared host %s registered\n",
+> >> +				 dev_name(hcd->self.controller));
+> >> +		} else {
+> >> +			dev_err(otg_dev, "otg: invalid shared host %s\n",
+> >> +				dev_name(hcd->self.controller));
+> >> +			goto err;
+> >> +		}
+> >> +	} else {
+> >> +		if (!usb_otg_hcd_is_primary_hcd(hcd)) {
+> >> +			dev_err(otg_dev, "otg: primary host must be registered first\n");
+> >> +			goto err;
+> >> +		}
+> >> +
+> >> +		otgd->primary_hcd.hcd = hcd;
+> >> +		otgd->primary_hcd.irqnum = irqnum;
+> >> +		otgd->primary_hcd.irqflags = irqflags;
+> >> +		otgd->primary_hcd.ops = ops;
+> >> +		dev_info(otg_dev, "otg: primary host %s registered\n",
+> >> +			 dev_name(hcd->self.controller));
+> >> +	}
+> >> +
+> >> +	/*
+> >> +	 * we're ready only if we have shared HCD
+> >> +	 * or we don't need shared HCD.
+> >> +	 */
+> >> +	if (otgd->shared_hcd.hcd || !otgd->primary_hcd.hcd->shared_hcd) {
+> >> +		otgd->fsm.otg->host = hcd_to_bus(hcd);
+> >> +		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
+> >> +
+> >> +		/* start FSM */
+> >> +		usb_otg_start_fsm(&otgd->fsm);
+> > 
+> > usb_otg_register_hcd() is called before usb_otg_add_hcd(), start fsm on
+> > this point can make sense since hcd has not been added?
+> 
+> for OTG/DRD HCD case:
+> - usb_add_hcd() does not really ADD (or START) the HCD. It just registers with OTG core.
+> - FSM takes care of ADDing (or STARTing) the HCD when it wants using the
+> usb_otg_add_hcd() call.
+
+Understood.
+
+> - FSM does not need HCD to be already added. It just needs it to be registered.
+
+My point is only registering hcd to OTG core cannot be a valid *input* to make
+otg fsm state can be changed, so it's making no sense to call usb_otg_start_fsm(),
+but it's no harm.
+
+> It takes care of strting it when it wants to.
+> 
+
+Any otg fsm state change(or start it to make its state change) need some otg fsm
+input or variables change happen.
+
+> > 
+> >> +	} else {
+> >> +		dev_dbg(otg_dev, "otg: can't start till shared host registers\n");
+> >> +	}
+> >> +
+> >> +	mutex_unlock(&otgd->fsm.lock);
+> >> +
+> >> +	return 0;
+> >> +
+> >> +err:
+> >> +	mutex_unlock(&otgd->fsm.lock);
+> >> +	return -EINVAL;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(usb_otg_register_hcd);
+
+[...]
+
+> >> +#define TB_ASE0_BRST         (155)	/* minimum 155 ms, section:5.3.1 */
+> >> +/* SE0 Time Before SRP */
+> >> +#define TB_SE0_SRP           (1000)	/* b_idle,minimum 1s, section:5.1.2 */
+> >> +/* SSEND time before SRP */
+> >> +#define TB_SSEND_SRP         (1500)	/* minimum 1.5 sec, section:5.1.2 */
+> >> +
+> >> +#define TB_SESS_VLD          (1000)
+> >> +
+> > 
+> > All otg timer timeout value should be in some *range* defined by otg spec,
+> > not some specific value, I don't think one specific value can meet all otg
+> > platforms, so we need find a way to make those value can be configured by
+> > controller drivers.
+> 
+> OK. How about introducing 'struct usb_otg_config' which must be passed
+> to usb_otg_register().
+>
+
+I think it's okay.
+ 
+> /* otg controller configuration */
+> struct usb_otg_config {
+> 	/* OTG caps */
+> 	struct usb_otg_caps otg_caps;
+
+You can use a pointer to avoid data copy.
+
+> 
+> 	/* OTG Timer timeouts in ms. If 0, sane default will be used */
+> 	int ta_wait_vrise;
+> 	...
+> };
+> 
+
+> > 
+> >> 2.1.4
+> >>
+> > 
+> > I assume I will have more comments after try more.
+> 
+> Sure, no worries :)
+> 
+> cheers,
+> -roger
