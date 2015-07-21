@@ -1,14 +1,11 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] Documentation: dt: Update OMAP iommu bindings for DRA7
-	DSPs
-Date: Tue, 21 Jul 2015 18:55:35 -0500
-Message-ID: <1437522936-19758-2-git-send-email-s-anna@ti.com>
-References: <1437522936-19758-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH 0/2] DRA7 DSP MMU config support
+Date: Tue, 21 Jul 2015 18:55:34 -0500
+Message-ID: <1437522936-19758-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1437522936-19758-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -22,73 +19,47 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The DSP processor sub-systems on DRA7xx have two MMU instances
-each, one for the processor core and the other for an internal
-EDMA block. These MMUs need an additional shared register to be
-programmed in the DSP_SYSTEM sub-module to be enabled properly.
+Hi,
 
-The OMAP IOMMU bindings is updated to account for this additional
-syscon property required for these DSP IOMMU instances on DRA7xx
-SoCs. A new compatible "ti,dra7-dsp-iommu" is also defined to
-distinguish these devices specifically from other DRA7 IOMMU
-devices.
+This series adds the basic support in the OMAP IOMMU driver to
+enable/disable DSP IOMMUs for the DRA7xx family of SoCs. The
+DRA7 family has two MMUs within the DSP processor subsystems.
+This is the first time this was designed so in the silicon
+compared to the equivalent ones on OMAP2+ SoCs.
 
-An example of the DRA7 DSP IOMMU nodes is also added to the
-document for clarity.
+Each MMU requires a specific bit to be turned on within a register
+from a separate sub-module DSP_SYSTEM present within the respective
+processor subsystem. The DSP_SYSTEM sub-module is represented as a
+syscon node, and an additional property "ti,syscon-mmuconfig" is
+used alongside a unique compatible property for configuring these
+devices. The register and bit offset is coded up in the driver
+while the DT property references the syscon phandle the MMU instance
+number.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
----
- .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 27 ++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+The binding support could have been done in couple of other ways,
+like using separate compatible each for the DSP processor MMU &
+the DSP EDMA MMU that automatically identifies the instance number;
+and/or coding up the register offset & bit position/offset in
+the syscon property, so let me know if the current approach is
+fine.
 
-diff --git a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-index 869699925fd5..4bd10dd881b8 100644
---- a/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-+++ b/Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
-@@ -4,6 +4,7 @@ Required properties:
- - compatible : Should be one of,
- 		"ti,omap2-iommu" for OMAP2/OMAP3 IOMMU instances
- 		"ti,omap4-iommu" for OMAP4/OMAP5 IOMMU instances
-+		"ti,dra7-dsp-iommu" for DRA7xx DSP IOMMU instances
- 		"ti,dra7-iommu" for DRA7xx IOMMU instances
- - ti,hwmods  : Name of the hwmod associated with the IOMMU instance
- - reg        : Address space for the configuration registers
-@@ -19,6 +20,13 @@ Optional properties:
-                     Should be either 8 or 32 (default: 32)
- - ti,iommu-bus-err-back : Indicates the IOMMU instance supports throwing
- 		          back a bus error response on MMU faults.
-+- ti,syscon-mmuconfig : Should be a pair of the phandle to the DSP_SYSTEM
-+                        syscon node that contains the additional control
-+                        register for enabling the MMU, and the MMU instance
-+                        number (0-indexed) within the sub-system. This property
-+                        is required for DSP IOMMU instances on DRA7xx SoCs. The
-+                        instance number should be 0 for DSP MDMA MMUs and 1 for
-+                        DSP EDMA MMUs.
- 
- Example:
- 	/* OMAP3 ISP MMU */
-@@ -30,3 +38,22 @@ Example:
- 		ti,hwmods = "mmu_isp";
- 		ti,#tlb-entries = <8>;
- 	};
-+
-+	/* DRA74x DSP2 MMUs */
-+	mmu0_dsp2: mmu@41501000 {
-+		compatible = "ti,dra7-dsp-iommu";
-+		reg = <0x41501000 0x100>;
-+		interrupts = <GIC_SPI 146 IRQ_TYPE_LEVEL_HIGH>;
-+		ti,hwmods = "mmu0_dsp2";
-+		#iommu-cells = <0>;
-+		ti,syscon-mmuconfig = <&dsp2_system 0x0>;
-+	};
-+
-+	mmu1_dsp2: mmu@41502000 {
-+		compatible = "ti,dra7-dsp-iommu";
-+		reg = <0x41502000 0x100>;
-+		interrupts = <GIC_SPI 147 IRQ_TYPE_LEVEL_HIGH>;
-+		ti,hwmods = "mmu1_dsp2";
-+		#iommu-cells = <0>;
-+		ti,syscon-mmuconfig = <&dsp2_system 0x1>;
-+	};
+The patches are baselined on 4.2-rc3 + the recent OMAP IOMMU
+cleanup series [1]. I will post the DTS patches separately to
+allow Tony to pick them up independently.
+
+regards
+Suman
+
+[1] http://lists.linuxfoundation.org/pipermail/iommu/2015-July/013659.html
+
+Suman Anna (2):
+  Documentation: dt: Update OMAP iommu bindings for DRA7 DSPs
+  iommu/omap: Add support for configuring dsp iommus on DRA7xx
+
+ .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 27 ++++++++++
+ drivers/iommu/omap-iommu.c                         | 58 ++++++++++++++++++++++
+ drivers/iommu/omap-iommu.h                         |  9 ++++
+ 3 files changed, 94 insertions(+)
+
 -- 
 2.4.4
