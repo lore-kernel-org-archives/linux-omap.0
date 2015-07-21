@@ -1,74 +1,78 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH] thermal: consistently use int for temperatures
-Date: Tue, 21 Jul 2015 09:31:11 +0200
-Message-ID: <20150721073111.GH5161@pengutronix.de>
-References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
- <9hhd1zrc9yb.fsf@e105922-lin.cambridge.arm.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: linux 4.2-rc1 broken Nokia N900
+Date: Tue, 21 Jul 2015 09:31:27 +0200
+Message-ID: <20150721073127.GA13216@amd>
+References: <201507132234.22082@pali>
+ <20150713215232.GA22584@deathray>
+ <201507140002.44119@pali>
+ <20150713223607.GA23001@deathray>
+ <20150714071412.GA12844@pali>
+ <20150714163342.GA8512@deathray>
+ <20150714200125.GA26147@amd>
+ <20150714201722.GA31356@deathray>
+ <20150715194932.GA10967@amd>
+ <20150715201048.GA23569@deathray>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9hhd1zrc9yb.fsf@e105922-lin.cambridge.arm.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Punit Agrawal <punit.agrawal@arm.com>
-Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
+In-Reply-To: <20150715201048.GA23569@deathray>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michael Welling <mwelling@ieee.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Punit,
+On Wed 2015-07-15 15:10:48, Michael Welling wrote:
+> On Wed, Jul 15, 2015 at 09:49:33PM +0200, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > > Ok, so:
+> > > > 
+> > > > 4.2-rc1 worked for me, IIRC.
+> > > 
+> > > This does not make sense.
+> > > 
+> > > Nothing has changed in drivers/spi between these versions.
+> > > Are you sure that 4.2-rc1 worked for you?
+> > 
+> > Tested again: yes, I have 4.2-rc1 booted on the device... based on
+> > Linus' 1c4c7159ed2468f3ac4ce5a7f08d79663d381a93 . I can push the
+> > configs and trees to some public place.
+> > 
+> 
+> Interesting. Something very strange is happening here.
+> Send me the links if you push your tree/config to a public repo. 
 
-On Fri, Jul 17, 2015 at 12:14:36PM +0100, Punit Agrawal wrote:
-> Hi Sascha,
->=20
-> Sascha Hauer <s.hauer@pengutronix.de> writes:
->=20
-> > The thermal code uses int, long and unsigned long for temperatures
-> > in different places.
-> >
-> > Using an unsigned type limits the thermal framework to positive
-> > temperatures without need. Also several drivers currently will repo=
-rt
-> > temperatures near UINT_MAX for temperatures below 0=B0C. This will =
-probably
-> > immediately shut the machine down due to overtemperature if started=
- below
-> > 0=B0C.
-> >
-> > 'long' is 64bit on several architectures. This is not needed since =
-INT_MAX =B0mC
-> > is above the melting point of all known materials.
-> >
-> > Consistently use a plain 'int' for temperatures throughout the ther=
-mal code and
-> > the drivers. This only changes the places in the drivers where the =
-temperature
-> > is passed around as pointer, when drivers internally use another ty=
-pe this is
-> > not changed.
-> >
-> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
->=20
-> Thanks for moving over the thermal sub-system in Linux to consistentl=
-y
-> use a single type.
->=20
-> In your patch, you missed migrating over power_allocator governor and
-> it's associated trace events. It got merged for v4.2.
->=20
-> Could you incorporate something like below in your next version?
+Pushing now. It is on
+kernel.org:pub/scm/linux/kernel/git/pavel/linux-n900 mini-v4.2
 
-It seems I have changed drivers/thermal/power_allocator.c but missed
-include/trace/events/thermal_power_allocator.h. Please check out the v2
-patch I just sent.
+f1376b91c1c765cf041235c14ac44c04d56fd2a9 is broken
 
-Sascha
+cb8b6850aa49f72f226629796e349dd75d3f4f78 mostly works. (My notes say
+that GSM is broken, but they may be not enough patches applied.) I
+believe I even run the "tefone" testsuite, with only s2ram acting
+funny.
 
---=20
-Pengutronix e.K.                           |                           =
-  |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  =
-  |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-555=
-5 |
+https://gitlab.com/tui/tui/tree/master/ofone
+
+> I would not hurt to have the same from Pali for comparison.
+> 
+> > > > 4.2-rc2 oopses a lot.
+> > > > 
+> > > > 4.2-rc2+ this patch oopses, too. I don't have serial console, so it is
+> > > > hard to tell if it is the same oops.
+> > 
+> > But... I'm not sure I'm getting the same oops.
+> 
+> If the system is still booting, you could tell if the oopses were the
+> same if your touchscreen and wifi do no work.
+
+I'm pretty sure they worked. I'd notice broken touchscreen.
+
+(Sorry, I'm a bit busy at the moment).
+
+Best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
