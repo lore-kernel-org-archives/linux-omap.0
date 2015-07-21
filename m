@@ -1,14 +1,15 @@
 From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 02/11] iommu/omap: Remove all module references
-Date: Tue, 21 Jul 2015 19:00:52 +0300
-Message-ID: <6880124.2DpxpaPkkx@avalon>
+Subject: Re: [PATCH 04/11] iommu/omap: Protect omap-iopgtable.h against double
+	inclusion
+Date: Tue, 21 Jul 2015 19:01:22 +0300
+Message-ID: <9915916.m7jlAc5up8@avalon>
 References: <1437431613-55656-1-git-send-email-s-anna@ti.com>
-	<1437431613-55656-3-git-send-email-s-anna@ti.com>
+	<1437431613-55656-5-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1437431613-55656-3-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1437431613-55656-5-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -24,73 +25,41 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Suman,
 
-On Monday 20 July 2015 17:33:24 Suman Anna wrote:
-> The OMAP IOMMU driver has been adapted to the IOMMU framework
-> for a while now, and it does not support being built as a
-> module anymore. So, remove all the module references from the
-> OMAP IOMMU driver.
-> 
-> While at it, also relocate a comment around the subsys_initcall
-> to avoid a checkpatch strict warning about using a blank line
-> after function/struct/union/enum declarations.
+Thank you for the patch.
+
+On Monday 20 July 2015 17:33:26 Suman Anna wrote:
+> Protect the omap-pgtable.h header against double inclusion in
+> source code by using the standard include guard mechanism.
 > 
 > Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-
-I think this is one of the checkpatch warnings that can be safely ignored, but 
-it doesn't matter much. The comment will be removed after the OMAP3 ISP and 
-OMAP IOMMU drivers get support for a saner IOMMU probing dependency order 
-solution.
-
-The code seems fine to me.
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
 > ---
->  drivers/iommu/omap-iommu.c | 19 +------------------
->  1 file changed, 1 insertion(+), 18 deletions(-)
+>  drivers/iommu/omap-iopgtable.h | 5 +++++
+>  1 file changed, 5 insertions(+)
 > 
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index a22c33d6a486..eeecfc4073af 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -12,7 +12,6 @@
+> diff --git a/drivers/iommu/omap-iopgtable.h b/drivers/iommu/omap-iopgtable.h
+> index f891683e3f05..bfde5405f514 100644
+> --- a/drivers/iommu/omap-iopgtable.h
+> +++ b/drivers/iommu/omap-iopgtable.h
+> @@ -10,6 +10,9 @@
+>   * published by the Free Software Foundation.
 >   */
 > 
->  #include <linux/err.h>
-> -#include <linux/module.h>
->  #include <linux/slab.h>
->  #include <linux/interrupt.h>
->  #include <linux/ioport.h>
-> @@ -1089,7 +1088,6 @@ static const struct of_device_id omap_iommu_of_match[]
-> = { { .compatible = "ti,dra7-iommu"	},
->  	{},
->  };
-> -MODULE_DEVICE_TABLE(of, omap_iommu_of_match);
-> 
->  static struct platform_driver omap_iommu_driver = {
->  	.probe	= omap_iommu_probe,
-> @@ -1405,20 +1403,5 @@ static int __init omap_iommu_init(void)
-> 
->  	return platform_driver_register(&omap_iommu_driver);
->  }
-> -/* must be ready before omap3isp is probed */
->  subsys_initcall(omap_iommu_init);
-> -
-> -static void __exit omap_iommu_exit(void)
-> -{
-> -	kmem_cache_destroy(iopte_cachep);
-> -
-> -	platform_driver_unregister(&omap_iommu_driver);
-> -
-> -	omap_iommu_debugfs_exit();
-> -}
-> -module_exit(omap_iommu_exit);
-> -
-> -MODULE_DESCRIPTION("omap iommu: tlb and pagetable primitives");
-> -MODULE_ALIAS("platform:omap-iommu");
-> -MODULE_AUTHOR("Hiroshi DOYU, Paul Mundt and Toshihiro Kobayashi");
-> -MODULE_LICENSE("GPL v2");
-> +/* must be ready before omap3isp is probed */
+> +#ifndef _OMAP_IOPGTABLE_H
+> +#define _OMAP_IOPGTABLE_H
+> +
+>  /*
+>   * "L2 table" address mask and size definitions.
+>   */
+> @@ -93,3 +96,5 @@ static inline phys_addr_t omap_iommu_translate(u32 d, u32
+> va, u32 mask) /* to find an entry in the second-level page table. */
+>  #define iopte_index(da)		(((da) >> IOPTE_SHIFT) & (PTRS_PER_IOPTE - 1))
+>  #define iopte_offset(iopgd, da)	(iopgd_page_vaddr(iopgd) + 
+iopte_index(da))
+> +
+> +#endif /* _OMAP_IOPGTABLE_H */
 
 -- 
 Regards,
