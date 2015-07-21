@@ -1,421 +1,200 @@
-From: Li Jun <b47624@freescale.com>
-Subject: Re: [PATCH v3 07/11] usb: otg: add OTG core
-Date: Tue, 21 Jul 2015 18:52:17 +0800
-Message-ID: <20150721105159.GA8903@shlinux2>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
- <1436350777-28056-8-git-send-email-rogerq@ti.com>
- <20150717074832.GA4515@shlinux2> <55A8EFBA.1000504@ti.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [PATCH v2] thermal: consistently use int for temperatures
+Date: Tue, 21 Jul 2015 13:35:31 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B9092630153E699@SHSMSX101.ccr.corp.intel.com>
+References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
+ <9hhk2tteqb3.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55A8EFBA.1000504@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <9hhk2tteqb3.fsf@e105922-lin.cambridge.arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
+To: Punit Agrawal <punit.agrawal@arm.com>, Sascha Hauer <s.hauer@pengutronix.de>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>Darren Hart <d>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-[...]
-
-> >> +	otg_timer_init(A_WAIT_ENUM, otgd, set_tmout, TB_SRP_FAIL, NULL);
-> > 
-> > 2 timers are missing: B_DATA_PLS, B_SSEND_SRP.
-> 
-> Those 2 are not used by usb-otg-fsm.c. We can add it when usb-otg-fsm.c is updated.
-> 
-
-ok.
-
-> > 
-> >> +}
-
-[...]
-
-> >> +
-> >> +/**
-> >> + * OTG FSM ops function to start/stop host
-> >> + */
-> >> +static int usb_otg_start_host(struct otg_fsm *fsm, int on)
-> >> +{
-> >> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
-> >> +	struct otg_hcd_ops *hcd_ops;
-> >> +
-> >> +	dev_dbg(otgd->dev, "otg: %s %d\n", __func__, on);
-> >> +	if (!fsm->otg->host) {
-> >> +		WARN_ONCE(1, "otg: fsm running without host\n");
-> >> +		return 0;
-> >> +	}
-> >> +
-> >> +	if (on) {
-> >> +		/* OTG device operations */
-> >> +		if (otgd->start_host)
-> >> +			otgd->start_host(fsm, on);
-> >> +
-> >> +		/* start host */
-> >> +		hcd_ops = otgd->primary_hcd.ops;
-> >> +		hcd_ops->add(otgd->primary_hcd.hcd, otgd->primary_hcd.irqnum,
-> >> +			     otgd->primary_hcd.irqflags);
-> >> +		if (otgd->shared_hcd.hcd) {
-> >> +			hcd_ops = otgd->shared_hcd.ops;
-> >> +			hcd_ops->add(otgd->shared_hcd.hcd,
-> >> +				     otgd->shared_hcd.irqnum,
-> >> +				     otgd->shared_hcd.irqflags);
-> >> +		}
-> >> +	} else {
-> >> +		/* stop host */
-> >> +		if (otgd->shared_hcd.hcd) {
-> >> +			hcd_ops = otgd->shared_hcd.ops;
-> >> +			hcd_ops->remove(otgd->shared_hcd.hcd);
-> >> +		}
-> >> +		hcd_ops = otgd->primary_hcd.ops;
-> >> +		hcd_ops->remove(otgd->primary_hcd.hcd);
-> >> +
-> >> +		/* OTG device operations */
-> >> +		if (otgd->start_host)
-> >> +			otgd->start_host(fsm, on);
-> >> +	}
-> >> +
-> >> +	return 0;
-> >> +}
-> > 
-> > I do not see much benefit by this override function, usb_add/remove_hcd
-> > can be simply included by controller's start_host function, also there
-> > maybe some additional operations after usb_add_hcd, but this override
-> > function limit usb_add_hcd() is the last step.
-> 
-> I had tried host start/stop way before but Alan's suggestion was to use
-> bind/unbind the host controller completely as that is much simpler
-> 
-> [1] http://article.gmane.org/gmane.linux.usb.general/123842
-> 
-
-I did not mean host start/stop in your first version, I agree using
-usb_add/remove_hcd() for simple.
-
-> > 
-> > Maybe your intention is to make usb_add_hcd is the only operation required
-> > to start host, so ideally controller driver need not define its start_host
-> > routine for this otg ops, I am not sure if this can work for different otg
-> 
-> Yes that was the intention.
-> 
-> > platforms. If the shared code is only usb_add/remove_hcd(), maybe leave this
-> > ops defined by controller driver can make core code simple and give flexibility
-> > to controller drivers.
-> 
-> We don't completely override start/stop_host(). The flexibility is still there.
-> We call controllers start_host(1) before starting the controller and controllers
-> start_host(0) after stopping the controller.
-> So the the controller can still do what they want in otg_fsm_ops.start_host/gadget().
-> 
-
-But if controller driver wants to do something after usb_otg_add_hcd(),
-it's impossible with your current usb_otg_start_host().
-
-> The OTG core only takes care of actually starting/stopping the host controller.
-> 
-> If we don't do that then the code in usb_otg_start_host() has to be pasted
-> in every OTG controller driver. This is code duplication.
-> 
-
-Actually the only duplication code may be a function call to original
-usb_add/remove_hcd().
-
-> > 
-> >> +
-> >> +/**
-> >> + * OTG FSM ops function to start/stop gadget
-> >> + */
-> >> +static int usb_otg_start_gadget(struct otg_fsm *fsm, int on)
-> >> +{
-> >> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
-> >> +	struct usb_gadget *gadget = fsm->otg->gadget;
-> >> +
-> >> +	dev_dbg(otgd->dev, "otg: %s %d\n", __func__, on);
-> >> +	if (!gadget) {
-> >> +		WARN_ONCE(1, "otg: fsm running without gadget\n");
-> >> +		return 0;
-> >> +	}
-> >> +
-> >> +	if (on) {
-> >> +		/* OTG device operations */
-> >> +		if (otgd->start_gadget)
-> >> +			otgd->start_gadget(fsm, on);
-> >> +
-> >> +		otgd->gadget_ops->start(fsm->otg->gadget);
-> >> +	} else {
-> >> +		otgd->gadget_ops->stop(fsm->otg->gadget);
-> >> +
-> >> +		/* OTG device operations */
-> >> +		if (otgd->start_gadget)
-> >> +			otgd->start_gadget(fsm, on);
-> >> +	}
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +/**
-> >> + * OTG FSM work function
-> >> + */
-> >> +static void usb_otg_work(struct work_struct *work)
-> >> +{
-> >> +	struct otg_data *otgd = container_of(work, struct otg_data, work);
-> >> +
-> >> +	otg_statemachine(&otgd->fsm);
-> > 
-> > Need consider runtime pm, or you want to rely on controller driver take
-> > care of it?
-> 
-> For simplicity let's say that controller driver takes care of it.
-> 
-
-Then controller driver need add runtime pm for every otg fsm ops.
-
-Code like below can make it simple:
-runtime_pm_get_sync(otgd->dev);
-otg_statemachine(&otgd->fsm);
-runtime_pm_get_put(otgd->dev);
-
-There is another problem, otg work will only do one state transition, but
-in some cases we may need successive state transitions.  
-
-> > 
-> >> +}
-> >> +
-> >> +/**
-> >> + * usb_otg_register() - Register the OTG device to OTG core
-> >> + * @parent_device:	parent device of Host & Gadget controllers.
-> >> + * @otg_fsm_ops:	otg state machine ops.
-> >> + *
-
-[...]
-
-> >> +/**
-> >> + * start/kick the OTG FSM if we can
-> >> + * fsm->lock must be held
-> >> + */
-> >> +static void usb_otg_start_fsm(struct otg_fsm *fsm)
-> >> +{
-> >> +	struct otg_data *otgd = container_of(fsm, struct otg_data, fsm);
-> >> +
-> >> +	if (otgd->fsm_running)
-> >> +		goto kick_fsm;
-> >> +
-> >> +	if (!fsm->otg->host) {
-> >> +		dev_info(otgd->dev, "otg: can't start till host registers\n");
-> >> +		return;
-> >> +	}
-> >> +
-> > 
-> > This cannot work, fsm->otg->host is set in usb_otg_register_hcd(), which is
-> > called by usb_add_hcd(), but usb_add_hcd() should be called only if otg fsm
-> > already started to some A-device state, deadlock.
-> 
-> I've changed usb_add_hcd() behaviour. Now usb_otg_add_hcd() does the real work of adding
-> the hcd. usb_add_hcd() prevents the add if it is an otg hcd and just registers
-> with OTG core.
-> 
-
-So you expect the controller driver still call usb_add_hcd() before otg fsm
-start, in which it only registers the created hcd with OTG core.
-
-> > 
-> >> +	if (!fsm->otg->gadget) {
-> >> +		dev_info(otgd->dev, "otg: can't start till gadget registers\n");
-> >> +		return;
-> >> +	}
-> >> +
-> >> +	otgd->fsm_running = true;
-> >> +kick_fsm:
-> >> +	queue_work(otgd->wq, &otgd->work);
-> >> +}
-> >> +
-
-[...]
-
-> >> +
-> >> +/**
-> >> + * usb_otg_register_hcd - Register Host controller to OTG core
-> >> + * @hcd:	Host controller device
-> >> + * @irqnum:	interrupt number
-> >> + * @irqflags:	interrupt flags
-> >> + * @ops:	HCD ops to add/remove the HCD
-> >> + *
-> >> + * This is used by the USB Host stack to register the Host controller
-> >> + * to the OTG core. Host controller must not be started by the
-> >> + * caller as it is left upto the OTG state machine to do so.
-> >> + *
-> >> + * Returns: 0 on success, error value otherwise.
-> >> + */
-> >> +int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
-> >> +			 unsigned long irqflags, struct otg_hcd_ops *ops)
-> >> +{
-> >> +	struct otg_data *otgd;
-> >> +	struct device *otg_dev = hcd->self.controller->parent;
-> >> +
-
-I see normally we directly use controller dev for hcd->self.controller,
-usb_create_hcd(... struct device *dev, ...)
-{
-	... ...
-	hcd->self.controller = dev;
-	... ...
-}
-
-For register gadget, it's okay since:
-int usb_add_gadget_udc_release(struct device *parent, ...)
-{
-	... ...
-	gadget->dev.parent = parent;
-	... ...
-}
-
-So we need parent dev for usb_otg_register(struct device *dev,...), and child dev
-for usb_create_hcd(struct device *dev,...)? dwc3 is designed like this?
-
-> >> +	mutex_lock(&otg_list_mutex);
-> >> +	otgd = usb_otg_device_get_otgd(otg_dev);
-> >> +	if (!otgd) {
-> >> +		dev_dbg(otg_dev, "otg: %s: device not registered to otg core\n",
-> >> +			__func__);
-> >> +		mutex_unlock(&otg_list_mutex);
-> >> +		return -EINVAL;
-> >> +	}
-> >> +
-> >> +	mutex_unlock(&otg_list_mutex);
-> >> +	/* HCD will be started by OTG fsm when needed */
-> >> +	mutex_lock(&otgd->fsm.lock);
-> >> +	if (otgd->primary_hcd.hcd) {
-> >> +		/* probably a shared HCD ? */
-> >> +		if (usb_otg_hcd_is_primary_hcd(hcd)) {
-> >> +			dev_err(otg_dev, "otg: primary host already registered\n");
-> >> +			goto err;
-> >> +		}
-> >> +
-> >> +		if (hcd->shared_hcd == otgd->primary_hcd.hcd) {
-> >> +			if (otgd->shared_hcd.hcd) {
-> >> +				dev_err(otg_dev, "otg: shared host already registered\n");
-> >> +				goto err;
-> >> +			}
-> >> +
-> >> +			otgd->shared_hcd.hcd = hcd;
-> >> +			otgd->shared_hcd.irqnum = irqnum;
-> >> +			otgd->shared_hcd.irqflags = irqflags;
-> >> +			otgd->shared_hcd.ops = ops;
-> >> +			dev_info(otg_dev, "otg: shared host %s registered\n",
-> >> +				 dev_name(hcd->self.controller));
-> >> +		} else {
-> >> +			dev_err(otg_dev, "otg: invalid shared host %s\n",
-> >> +				dev_name(hcd->self.controller));
-> >> +			goto err;
-> >> +		}
-> >> +	} else {
-> >> +		if (!usb_otg_hcd_is_primary_hcd(hcd)) {
-> >> +			dev_err(otg_dev, "otg: primary host must be registered first\n");
-> >> +			goto err;
-> >> +		}
-> >> +
-> >> +		otgd->primary_hcd.hcd = hcd;
-> >> +		otgd->primary_hcd.irqnum = irqnum;
-> >> +		otgd->primary_hcd.irqflags = irqflags;
-> >> +		otgd->primary_hcd.ops = ops;
-> >> +		dev_info(otg_dev, "otg: primary host %s registered\n",
-> >> +			 dev_name(hcd->self.controller));
-> >> +	}
-> >> +
-> >> +	/*
-> >> +	 * we're ready only if we have shared HCD
-> >> +	 * or we don't need shared HCD.
-> >> +	 */
-> >> +	if (otgd->shared_hcd.hcd || !otgd->primary_hcd.hcd->shared_hcd) {
-> >> +		otgd->fsm.otg->host = hcd_to_bus(hcd);
-> >> +		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
-> >> +
-> >> +		/* start FSM */
-> >> +		usb_otg_start_fsm(&otgd->fsm);
-> > 
-> > usb_otg_register_hcd() is called before usb_otg_add_hcd(), start fsm on
-> > this point can make sense since hcd has not been added?
-> 
-> for OTG/DRD HCD case:
-> - usb_add_hcd() does not really ADD (or START) the HCD. It just registers with OTG core.
-> - FSM takes care of ADDing (or STARTing) the HCD when it wants using the
-> usb_otg_add_hcd() call.
-
-Understood.
-
-> - FSM does not need HCD to be already added. It just needs it to be registered.
-
-My point is only registering hcd to OTG core cannot be a valid *input* to make
-otg fsm state can be changed, so it's making no sense to call usb_otg_start_fsm(),
-but it's no harm.
-
-> It takes care of strting it when it wants to.
-> 
-
-Any otg fsm state change(or start it to make its state change) need some otg fsm
-input or variables change happen.
-
-> > 
-> >> +	} else {
-> >> +		dev_dbg(otg_dev, "otg: can't start till shared host registers\n");
-> >> +	}
-> >> +
-> >> +	mutex_unlock(&otgd->fsm.lock);
-> >> +
-> >> +	return 0;
-> >> +
-> >> +err:
-> >> +	mutex_unlock(&otgd->fsm.lock);
-> >> +	return -EINVAL;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(usb_otg_register_hcd);
-
-[...]
-
-> >> +#define TB_ASE0_BRST         (155)	/* minimum 155 ms, section:5.3.1 */
-> >> +/* SE0 Time Before SRP */
-> >> +#define TB_SE0_SRP           (1000)	/* b_idle,minimum 1s, section:5.1.2 */
-> >> +/* SSEND time before SRP */
-> >> +#define TB_SSEND_SRP         (1500)	/* minimum 1.5 sec, section:5.1.2 */
-> >> +
-> >> +#define TB_SESS_VLD          (1000)
-> >> +
-> > 
-> > All otg timer timeout value should be in some *range* defined by otg spec,
-> > not some specific value, I don't think one specific value can meet all otg
-> > platforms, so we need find a way to make those value can be configured by
-> > controller drivers.
-> 
-> OK. How about introducing 'struct usb_otg_config' which must be passed
-> to usb_otg_register().
->
-
-I think it's okay.
- 
-> /* otg controller configuration */
-> struct usb_otg_config {
-> 	/* OTG caps */
-> 	struct usb_otg_caps otg_caps;
-
-You can use a pointer to avoid data copy.
-
-> 
-> 	/* OTG Timer timeouts in ms. If 0, sane default will be used */
-> 	int ta_wait_vrise;
-> 	...
-> };
-> 
-
-> > 
-> >> 2.1.4
-> >>
-> > 
-> > I assume I will have more comments after try more.
-> 
-> Sure, no worries :)
-> 
-> cheers,
-> -roger
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUHVuaXQgQWdyYXdhbCBb
+bWFpbHRvOnB1bml0LmFncmF3YWxAYXJtLmNvbV0NCj4gU2VudDogVHVlc2RheSwgSnVseSAyMSwg
+MjAxNSA2OjUyIFBNDQo+IFRvOiBTYXNjaGEgSGF1ZXINCj4gQ2M6IGxpbnV4LXBtQHZnZXIua2Vy
+bmVsLm9yZzsgWmhhbmcsIFJ1aTsgRWR1YXJkbyBWYWxlbnRpbjsgbGludXgtDQo+IGtlcm5lbEB2
+Z2VyLmtlcm5lbC5vcmc7IEplYW4gRGVsdmFyZTsgUGV0ZXIgRmV1ZXJlcjsgSGVpa28gU3R1ZWJu
+ZXI7DQo+IEx1a2FzeiBNYWpld3NraTsgU3RlcGhlbiBXYXJyZW47IFRoaWVycnkgUmVkaW5nOyBs
+aW51eC0NCj4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IHBsYXRmb3JtLWRyaXZlci14ODZAdmdlci5r
+ZXJuZWwub3JnOyBsaW51eC1hcm0tDQo+IGtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBsaW51
+eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgbGludXgtc2Ftc3VuZy0NCj4gc29jQHZnZXIua2VybmVs
+Lm9yZzsgR3VlbnRlciBSb2VjazsgUmFmYWVsIEouIFd5c29ja2k7IE1heGltZSBSaXBhcmQ7DQo+
+IERhcnJlbiBIYXJ0OyBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnDQo+IFN1YmplY3Q6IFJlOiBb
+UEFUQ0ggdjJdIHRoZXJtYWw6IGNvbnNpc3RlbnRseSB1c2UgaW50IGZvciB0ZW1wZXJhdHVyZXMN
+Cj4gSW1wb3J0YW5jZTogSGlnaA0KPiANCj4gSGkgU2FzY2hhLA0KPiANCj4gU2FzY2hhIEhhdWVy
+IDxzLmhhdWVyQHBlbmd1dHJvbml4LmRlPiB3cml0ZXM6DQo+IA0KPiA+IFRoZSB0aGVybWFsIGNv
+ZGUgdXNlcyBpbnQsIGxvbmcgYW5kIHVuc2lnbmVkIGxvbmcgZm9yIHRlbXBlcmF0dXJlcyBpbg0K
+PiA+IGRpZmZlcmVudCBwbGFjZXMuDQo+ID4NCj4gPiBVc2luZyBhbiB1bnNpZ25lZCB0eXBlIGxp
+bWl0cyB0aGUgdGhlcm1hbCBmcmFtZXdvcmsgdG8gcG9zaXRpdmUNCj4gPiB0ZW1wZXJhdHVyZXMg
+d2l0aG91dCBuZWVkLiBBbHNvIHNldmVyYWwgZHJpdmVycyBjdXJyZW50bHkgd2lsbCByZXBvcnQN
+Cj4gPiB0ZW1wZXJhdHVyZXMgbmVhciBVSU5UX01BWCBmb3IgdGVtcGVyYXR1cmVzIGJlbG93IDDC
+sEMuIFRoaXMgd2lsbA0KPiA+IHByb2JhYmx5IGltbWVkaWF0ZWx5IHNodXQgdGhlIG1hY2hpbmUg
+ZG93biBkdWUgdG8gb3ZlcnRlbXBlcmF0dXJlIGlmDQo+ID4gc3RhcnRlZCBiZWxvdyAwwrBDLg0K
+PiA+DQo+ID4gJ2xvbmcnIGlzIDY0Yml0IG9uIHNldmVyYWwgYXJjaGl0ZWN0dXJlcy4gVGhpcyBp
+cyBub3QgbmVlZGVkIHNpbmNlDQo+ID4gSU5UX01BWCDCsG1DIGlzIGFib3ZlIHRoZSBtZWx0aW5n
+IHBvaW50IG9mIGFsbCBrbm93biBtYXRlcmlhbHMuDQo+ID4NCj4gPiBDb25zaXN0ZW50bHkgdXNl
+IGEgcGxhaW4gJ2ludCcgZm9yIHRlbXBlcmF0dXJlcyB0aHJvdWdob3V0IHRoZSB0aGVybWFsDQo+
+ID4gY29kZSBhbmQgdGhlIGRyaXZlcnMuIFRoaXMgb25seSBjaGFuZ2VzIHRoZSBwbGFjZXMgaW4g
+dGhlIGRyaXZlcnMNCj4gPiB3aGVyZSB0aGUgdGVtcGVyYXR1cmUgaXMgcGFzc2VkIGFyb3VuZCBh
+cyBwb2ludGVyLCB3aGVuIGRyaXZlcnMNCj4gPiBpbnRlcm5hbGx5IHVzZSBhbm90aGVyIHR5cGUg
+dGhpcyBpcyBub3QgY2hhbmdlZC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFNhc2NoYSBIYXVl
+ciA8cy5oYXVlckBwZW5ndXRyb25peC5kZT4NCj4gPiBBY2tlZC1ieTogR2VlcnQgVXl0dGVyaG9l
+dmVuIDxnZWVydCtyZW5lc2FzQGdsaWRlci5iZT4NCj4gPiBSZXZpZXdlZC1ieTogSmVhbiBEZWx2
+YXJlIDxqZGVsdmFyZUBzdXNlLmRlPg0KPiA+IFJldmlld2VkLWJ5OiBMdWthc3ogTWFqZXdza2kg
+PGwubWFqZXdza2lAc2Ftc3VuZy5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IERhcnJlbiBIYXJ0IDxk
+dmhhcnRAbGludXguaW50ZWwuY29tPg0KPiA+IFJldmlld2VkLWJ5OiBIZWlrbyBTdHVlYm5lciA8
+aGVpa29Ac250ZWNoLmRlPg0KPiA+IFJldmlld2VkLWJ5OiBQZXRlciBGZXVlcmVyIDxwZXRlckBw
+aWllLm5ldD4NCj4gPiBDYzogUHVuaXQgQWdyYXdhbCA8cHVuaXQuYWdyYXdhbEBhcm0uY29tPg0K
+PiANCj4gVGhlIGNoYW5nZXMgYmVsb3cgbG9vayBnb29kLg0KPiANCj4gRm9yIHRoZSBwb3dlcl9h
+bGxvY2F0b3IgZ292ZXJub3IgYW5kIGNvcnJlc3BvbmRpbmcgdHJhY2UgZXZlbnRzLA0KPiANCj4g
+UmV2aWV3ZWQtYnk6IFB1bml0IEFncmF3YWwgPHB1bml0LmFncmF3YWxAYXJtLmNvbT4NCj4gDQo+
+IFRoYW5rcw0KPiANCj4gPiBDYzogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPg0KPiA+
+IENjOiBFZHVhcmRvIFZhbGVudGluIDxlZHViZXp2YWxAZ21haWwuY29tPg0KPiA+IENjOiBsaW51
+eC1wbUB2Z2VyLmtlcm5lbC5vcmcNCj4gPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
+Zw0KPiA+IENjOiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+DQo+ID4gQ2M6IFBldGVy
+IEZldWVyZXIgPHBldGVyQHBpaWUubmV0Pg0KPiA+IENjOiBIZWlrbyBTdHVlYm5lciA8aGVpa29A
+c250ZWNoLmRlPg0KPiA+IENjOiBMdWthc3ogTWFqZXdza2kgPGwubWFqZXdza2lAc2Ftc3VuZy5j
+b20+DQo+ID4gQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+DQo+ID4g
+Q2M6IFRoaWVycnkgUmVkaW5nIDx0aGllcnJ5LnJlZGluZ0BnbWFpbC5jb20+DQo+ID4gQ2M6IGxp
+bnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+ID4gQ2M6IHBsYXRmb3JtLWRyaXZlci14ODZAdmdl
+ci5rZXJuZWwub3JnDQo+ID4gQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
+Zw0KPiA+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiA+IENjOiBsaW51eC1zYW1z
+dW5nLXNvY0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiBDYzogR3VlbnRlciBSb2VjayA8bGludXhAcm9l
+Y2stdXMubmV0Pg0KPiA+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+
+DQo+ID4gQ2M6IE1heGltZSBSaXBhcmQgPG1heGltZS5yaXBhcmRAZnJlZS1lbGVjdHJvbnMuY29t
+Pg0KPiA+IENjOiBEYXJyZW4gSGFydCA8ZHZoYXJ0QGluZnJhZGVhZC5vcmc+DQo+ID4gQ2M6IGxt
+LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcNCj4gPiAtLS0NCj4gPg0KUGF0Y2ggYXBwbGllZC4NCg0K
+VGhhbmtzLA0KcnVpDQo+ID4gY2hhbmdlcyBzaW5jZSB2MToNCj4gPiAtIEFkZCBtaXNzaW5nIHBp
+ZWNlcyBmb3IgcG93ZXJfYWxsb2NhdG9yIGRyaXZlcg0KPiA+DQo+ID4gIGRyaXZlcnMvYWNwaS90
+aGVybWFsLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTIgKysrKystLS0tLQ0KPiA+
+ICBkcml2ZXJzL2h3bW9uL2xtNzUuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAy
+ICstDQo+ID4gIGRyaXZlcnMvaHdtb24vbnRjX3RoZXJtaXN0b3IuYyAgICAgICAgICAgICAgICAg
+ICAgIHwgIDIgKy0NCj4gPiAgZHJpdmVycy9od21vbi90bXAxMDIuYyAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgfCAgMiArLQ0KPiA+ICBkcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL3N1bjRp
+LXRzLmMgICAgICAgICAgICAgICB8ICA4ICsrKy0tLS0NCj4gPiAgZHJpdmVycy9wbGF0Zm9ybS94
+ODYvYWNlcmhkZi5jICAgICAgICAgICAgICAgICAgICAgfCAgOSArKysrLS0tLQ0KPiA+ICBkcml2
+ZXJzL3BsYXRmb3JtL3g4Ni9pbnRlbF9taWRfdGhlcm1hbC5jICAgICAgICAgICB8ICA5ICsrKyst
+LS0tDQo+ID4gIGRyaXZlcnMvcG93ZXIvcG93ZXJfc3VwcGx5X2NvcmUuYyAgICAgICAgICAgICAg
+ICAgIHwgIDIgKy0NCj4gPiAgZHJpdmVycy90aGVybWFsL2FybWFkYV90aGVybWFsLmMgICAgICAg
+ICAgICAgICAgICAgfCAgMiArLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvZGI4NTAwX3RoZXJtYWwu
+YyAgICAgICAgICAgICAgICAgICB8ICA3ICsrKy0tLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvZG92
+ZV90aGVybWFsLmMgICAgICAgICAgICAgICAgICAgICB8ICAyICstDQo+ID4gIGRyaXZlcnMvdGhl
+cm1hbC9mYWlyX3NoYXJlLmMgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4gPiAgZHJp
+dmVycy90aGVybWFsL2dvdl9iYW5nX2JhbmcuYyAgICAgICAgICAgICAgICAgICAgfCAgNSArKy0t
+DQo+ID4gIGRyaXZlcnMvdGhlcm1hbC9oaXNpX3RoZXJtYWwuYyAgICAgICAgICAgICAgICAgICAg
+IHwgIDQgKystLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvaW14X3RoZXJtYWwuYyAgICAgICAgICAg
+ICAgICAgICAgICB8IDI3ICsrKysrKysrKysrLS0tLS0tLS0tLS0NCj4gPiAgZHJpdmVycy90aGVy
+bWFsL2ludDM0MHhfdGhlcm1hbC9pbnQzNDAwX3RoZXJtYWwuYyAgfCAgMiArLQ0KPiA+IC4uLi90
+aGVybWFsL2ludDM0MHhfdGhlcm1hbC9pbnQzNDB4X3RoZXJtYWxfem9uZS5jIHwgMTAgKysrKy0t
+LS0NCj4gPiAuLi4vdGhlcm1hbC9pbnQzNDB4X3RoZXJtYWwvaW50MzQweF90aGVybWFsX3pvbmUu
+aCB8ICA4ICsrKy0tLS0NCj4gPiAgLi4uL2ludDM0MHhfdGhlcm1hbC9wcm9jZXNzb3JfdGhlcm1h
+bF9kZXZpY2UuYyAgICAgfCAgNCArKy0tDQo+ID4gIGRyaXZlcnMvdGhlcm1hbC9pbnRlbF9xdWFy
+a19kdHNfdGhlcm1hbC5jICAgICAgICAgIHwgMTMgKysrKystLS0tLS0NCj4gPiAgZHJpdmVycy90
+aGVybWFsL2ludGVsX3NvY19kdHNfaW9zZi5jICAgICAgICAgICAgICAgfCAgOCArKystLS0tDQo+
+ID4gIGRyaXZlcnMvdGhlcm1hbC9raXJrd29vZF90aGVybWFsLmMgICAgICAgICAgICAgICAgIHwg
+IDIgKy0NCj4gPiAgZHJpdmVycy90aGVybWFsL29mLXRoZXJtYWwuYyAgICAgICAgICAgICAgICAg
+ICAgICAgfCAxNCArKysrKy0tLS0tLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvcG93ZXJfYWxsb2Nh
+dG9yLmMgICAgICAgICAgICAgICAgICB8IDE2ICsrKysrKy0tLS0tLS0NCj4gPiAgZHJpdmVycy90
+aGVybWFsL3Fjb20tc3BtaS10ZW1wLWFsYXJtLmMgICAgICAgICAgICAgfCAgMiArLQ0KPiA+ICBk
+cml2ZXJzL3RoZXJtYWwvcmNhcl90aGVybWFsLmMgICAgICAgICAgICAgICAgICAgICB8ICA3ICsr
+Ky0tLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvcm9ja2NoaXBfdGhlcm1hbC5jICAgICAgICAgICAg
+ICAgICB8IDEwICsrKystLS0tDQo+ID4gIGRyaXZlcnMvdGhlcm1hbC9zYW1zdW5nL2V4eW5vc190
+bXUuYyAgICAgICAgICAgICAgIHwgMjMgKysrKysrKysrLS0tLS0tLS0tDQo+ID4gIGRyaXZlcnMv
+dGhlcm1hbC9zcGVhcl90aGVybWFsLmMgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4gPiAg
+ZHJpdmVycy90aGVybWFsL3N0L3N0X3RoZXJtYWwuYyAgICAgICAgICAgICAgICAgICAgfCAgNSAr
+Ky0tDQo+ID4gIGRyaXZlcnMvdGhlcm1hbC9zdGVwX3dpc2UuYyAgICAgICAgICAgICAgICAgICAg
+ICAgIHwgIDQgKystLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvdGVncmFfc29jdGhlcm0uYyAgICAg
+ICAgICAgICAgICAgICB8ICA0ICsrLS0NCj4gPiAgZHJpdmVycy90aGVybWFsL3RoZXJtYWxfY29y
+ZS5jICAgICAgICAgICAgICAgICAgICAgfCAyNiArKysrKysrKysrLS0tLS0tLS0tLS0NCj4gPiAg
+ZHJpdmVycy90aGVybWFsL3RoZXJtYWxfaHdtb24uYyAgICAgICAgICAgICAgICAgICAgfCAxMCAr
+KysrLS0tLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvdGktc29jLXRoZXJtYWwvdGktdGhlcm1hbC1j
+b21tb24uYyB8IDEwICsrKystLS0tDQo+ID4gIGRyaXZlcnMvdGhlcm1hbC94ODZfcGtnX3RlbXBf
+dGhlcm1hbC5jICAgICAgICAgICAgIHwgMTAgKysrKy0tLS0NCj4gPiAgaW5jbHVkZS9saW51eC90
+aGVybWFsLmggICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAyNiArKysrKysrKystLS0tLS0t
+LS0tLS0NCj4gPiAgaW5jbHVkZS90cmFjZS9ldmVudHMvdGhlcm1hbF9wb3dlcl9hbGxvY2F0b3Iu
+aCAgICAgfCAgNiArKy0tLQ0KPiA+ICAzOCBmaWxlcyBjaGFuZ2VkLCAxNTEgaW5zZXJ0aW9ucygr
+KSwgMTY2IGRlbGV0aW9ucygtKQ0KPiA+DQo+IA0KPiBbLi4uXQ0KPiANCj4gPiBkaWZmIC0tZ2l0
+IGEvZHJpdmVycy90aGVybWFsL3Bvd2VyX2FsbG9jYXRvci5jDQo+ID4gYi9kcml2ZXJzL3RoZXJt
+YWwvcG93ZXJfYWxsb2NhdG9yLmMNCj4gPiBpbmRleCA0NjcyMjUwLi4wNDVhZWE1OSAxMDA2NDQN
+Cj4gPiAtLS0gYS9kcml2ZXJzL3RoZXJtYWwvcG93ZXJfYWxsb2NhdG9yLmMNCj4gPiArKysgYi9k
+cml2ZXJzL3RoZXJtYWwvcG93ZXJfYWxsb2NhdG9yLmMNCj4gPiBAQCAtOTIsOCArOTIsOCBAQCBz
+dHJ1Y3QgcG93ZXJfYWxsb2NhdG9yX3BhcmFtcyB7DQo+ID4gICAqIFJldHVybjogVGhlIHBvd2Vy
+IGJ1ZGdldCBmb3IgdGhlIG5leHQgcGVyaW9kLg0KPiA+ICAgKi8NCj4gPiAgc3RhdGljIHUzMiBw
+aWRfY29udHJvbGxlcihzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosDQo+ID4gLQkJCSAg
+dW5zaWduZWQgbG9uZyBjdXJyZW50X3RlbXAsDQo+ID4gLQkJCSAgdW5zaWduZWQgbG9uZyBjb250
+cm9sX3RlbXAsDQo+ID4gKwkJCSAgaW50IGN1cnJlbnRfdGVtcCwNCj4gPiArCQkJICBpbnQgY29u
+dHJvbF90ZW1wLA0KPiA+ICAJCQkgIHUzMiBtYXhfYWxsb2NhdGFibGVfcG93ZXIpDQo+ID4gIHsN
+Cj4gPiAgCXM2NCBwLCBpLCBkLCBwb3dlcl9yYW5nZTsNCj4gPiBAQCAtMTAyLDcgKzEwMiw3IEBA
+IHN0YXRpYyB1MzIgcGlkX2NvbnRyb2xsZXIoc3RydWN0DQo+ID4gdGhlcm1hbF96b25lX2Rldmlj
+ZSAqdHosDQo+ID4NCj4gPiAgCW1heF9wb3dlcl9mcmFjID0gaW50X3RvX2ZyYWMobWF4X2FsbG9j
+YXRhYmxlX3Bvd2VyKTsNCj4gPg0KPiA+IC0JZXJyID0gKChzMzIpY29udHJvbF90ZW1wIC0gKHMz
+MiljdXJyZW50X3RlbXApOw0KPiA+ICsJZXJyID0gY29udHJvbF90ZW1wIC0gY3VycmVudF90ZW1w
+Ow0KPiA+ICAJZXJyID0gaW50X3RvX2ZyYWMoZXJyKTsNCj4gPg0KPiA+ICAJLyogQ2FsY3VsYXRl
+IHRoZSBwcm9wb3J0aW9uYWwgdGVybSAqLyBAQCAtMjIzLDggKzIyMyw4IEBAIHN0YXRpYw0KPiA+
+IHZvaWQgZGl2dnlfdXBfcG93ZXIodTMyICpyZXFfcG93ZXIsIHUzMiAqbWF4X3Bvd2VyLCBpbnQN
+Cj4gbnVtX2FjdG9ycywgIH0NCj4gPg0KPiA+ICBzdGF0aWMgaW50IGFsbG9jYXRlX3Bvd2VyKHN0
+cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiAtCQkJICB1bnNpZ25lZCBsb25nIGN1
+cnJlbnRfdGVtcCwNCj4gPiAtCQkJICB1bnNpZ25lZCBsb25nIGNvbnRyb2xfdGVtcCkNCj4gPiAr
+CQkJICBpbnQgY3VycmVudF90ZW1wLA0KPiA+ICsJCQkgIGludCBjb250cm9sX3RlbXApDQo+ID4g
+IHsNCj4gPiAgCXN0cnVjdCB0aGVybWFsX2luc3RhbmNlICppbnN0YW5jZTsNCj4gPiAgCXN0cnVj
+dCBwb3dlcl9hbGxvY2F0b3JfcGFyYW1zICpwYXJhbXMgPSB0ei0+Z292ZXJub3JfZGF0YTsgQEAg
+LQ0KPiAzMjYsNw0KPiA+ICszMjYsNyBAQCBzdGF0aWMgaW50IGFsbG9jYXRlX3Bvd2VyKHN0cnVj
+dCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiAgCQkJCSAgICAgIGdyYW50ZWRfcG93ZXIs
+IHRvdGFsX2dyYW50ZWRfcG93ZXIsDQo+ID4gIAkJCQkgICAgICBudW1fYWN0b3JzLCBwb3dlcl9y
+YW5nZSwNCj4gPiAgCQkJCSAgICAgIG1heF9hbGxvY2F0YWJsZV9wb3dlciwgY3VycmVudF90ZW1w
+LA0KPiA+IC0JCQkJICAgICAgKHMzMiljb250cm9sX3RlbXAgLSAoczMyKWN1cnJlbnRfdGVtcCk7
+DQo+ID4gKwkJCQkgICAgICBjb250cm9sX3RlbXAgLSBjdXJyZW50X3RlbXApOw0KPiA+DQo+ID4g
+IAlkZXZtX2tmcmVlKCZ0ei0+ZGV2aWNlLCByZXFfcG93ZXIpOw0KPiA+ICB1bmxvY2s6DQo+ID4g
+QEAgLTQxMSw3ICs0MTEsNyBAQCBzdGF0aWMgaW50IHBvd2VyX2FsbG9jYXRvcl9iaW5kKHN0cnVj
+dA0KPiA+IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KSAgew0KPiA+ICAJaW50IHJldDsNCj4gPiAg
+CXN0cnVjdCBwb3dlcl9hbGxvY2F0b3JfcGFyYW1zICpwYXJhbXM7DQo+ID4gLQl1bnNpZ25lZCBs
+b25nIHN3aXRjaF9vbl90ZW1wLCBjb250cm9sX3RlbXA7DQo+ID4gKwlpbnQgc3dpdGNoX29uX3Rl
+bXAsIGNvbnRyb2xfdGVtcDsNCj4gPiAgCXUzMiB0ZW1wZXJhdHVyZV90aHJlc2hvbGQ7DQo+ID4N
+Cj4gPiAgCWlmICghdHotPnR6cCB8fCAhdHotPnR6cC0+c3VzdGFpbmFibGVfcG93ZXIpIHsgQEAg
+LTQ3Niw3ICs0NzYsNyBAQA0KPiA+IHN0YXRpYyB2b2lkIHBvd2VyX2FsbG9jYXRvcl91bmJpbmQo
+c3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KQ0KPiA+IHN0YXRpYyBpbnQgcG93ZXJfYWxs
+b2NhdG9yX3Rocm90dGxlKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiBpbnQg
+dHJpcCkgIHsNCj4gPiAgCWludCByZXQ7DQo+ID4gLQl1bnNpZ25lZCBsb25nIHN3aXRjaF9vbl90
+ZW1wLCBjb250cm9sX3RlbXAsIGN1cnJlbnRfdGVtcDsNCj4gPiArCWludCBzd2l0Y2hfb25fdGVt
+cCwgY29udHJvbF90ZW1wLCBjdXJyZW50X3RlbXA7DQo+ID4gIAlzdHJ1Y3QgcG93ZXJfYWxsb2Nh
+dG9yX3BhcmFtcyAqcGFyYW1zID0gdHotPmdvdmVybm9yX2RhdGE7DQo+ID4NCj4gPiAgCS8qDQo+
+IA0KPiBbLi4uXQ0KPiANCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS90cmFjZS9ldmVudHMvdGhl
+cm1hbF9wb3dlcl9hbGxvY2F0b3IuaA0KPiA+IGIvaW5jbHVkZS90cmFjZS9ldmVudHMvdGhlcm1h
+bF9wb3dlcl9hbGxvY2F0b3IuaA0KPiA+IGluZGV4IDEyZTEzMjEuLjVhZmFlOGYgMTAwNjQ0DQo+
+ID4gLS0tIGEvaW5jbHVkZS90cmFjZS9ldmVudHMvdGhlcm1hbF9wb3dlcl9hbGxvY2F0b3IuaA0K
+PiA+ICsrKyBiL2luY2x1ZGUvdHJhY2UvZXZlbnRzL3RoZXJtYWxfcG93ZXJfYWxsb2NhdG9yLmgN
+Cj4gPiBAQCAtMTEsNyArMTEsNyBAQCBUUkFDRV9FVkVOVCh0aGVybWFsX3Bvd2VyX2FsbG9jYXRv
+ciwNCj4gPiAgCQkgdTMyIHRvdGFsX3JlcV9wb3dlciwgdTMyICpncmFudGVkX3Bvd2VyLA0KPiA+
+ICAJCSB1MzIgdG90YWxfZ3JhbnRlZF9wb3dlciwgc2l6ZV90IG51bV9hY3RvcnMsDQo+ID4gIAkJ
+IHUzMiBwb3dlcl9yYW5nZSwgdTMyIG1heF9hbGxvY2F0YWJsZV9wb3dlciwNCj4gPiAtCQkgdW5z
+aWduZWQgbG9uZyBjdXJyZW50X3RlbXAsIHMzMiBkZWx0YV90ZW1wKSwNCj4gPiArCQkgaW50IGN1
+cnJlbnRfdGVtcCwgczMyIGRlbHRhX3RlbXApLA0KPiA+ICAJVFBfQVJHUyh0eiwgcmVxX3Bvd2Vy
+LCB0b3RhbF9yZXFfcG93ZXIsIGdyYW50ZWRfcG93ZXIsDQo+ID4gIAkJdG90YWxfZ3JhbnRlZF9w
+b3dlciwgbnVtX2FjdG9ycywgcG93ZXJfcmFuZ2UsDQo+ID4gIAkJbWF4X2FsbG9jYXRhYmxlX3Bv
+d2VyLCBjdXJyZW50X3RlbXAsIGRlbHRhX3RlbXApLCBAQCAtDQo+IDI0LDcgKzI0LDcgQEANCj4g
+PiBUUkFDRV9FVkVOVCh0aGVybWFsX3Bvd2VyX2FsbG9jYXRvciwNCj4gPiAgCQlfX2ZpZWxkKHNp
+emVfdCwgICAgICAgIG51bV9hY3RvcnMgICAgICAgICAgICAgICApDQo+ID4gIAkJX19maWVsZCh1
+MzIsICAgICAgICAgICBwb3dlcl9yYW5nZSAgICAgICAgICAgICAgKQ0KPiA+ICAJCV9fZmllbGQo
+dTMyLCAgICAgICAgICAgbWF4X2FsbG9jYXRhYmxlX3Bvd2VyICAgICkNCj4gPiAtCQlfX2ZpZWxk
+KHVuc2lnbmVkIGxvbmcsIGN1cnJlbnRfdGVtcCAgICAgICAgICAgICApDQo+ID4gKwkJX19maWVs
+ZChpbnQsICAgICAgICAgICBjdXJyZW50X3RlbXAgICAgICAgICAgICAgKQ0KPiA+ICAJCV9fZmll
+bGQoczMyLCAgICAgICAgICAgZGVsdGFfdGVtcCAgICAgICAgICAgICAgICkNCj4gPiAgCSksDQo+
+ID4gIAlUUF9mYXN0X2Fzc2lnbigNCj4gPiBAQCAtNDIsNyArNDIsNyBAQCBUUkFDRV9FVkVOVCh0
+aGVybWFsX3Bvd2VyX2FsbG9jYXRvciwNCj4gPiAgCQlfX2VudHJ5LT5kZWx0YV90ZW1wID0gZGVs
+dGFfdGVtcDsNCj4gPiAgCSksDQo+ID4NCj4gPiAtCVRQX3ByaW50aygidGhlcm1hbF96b25lX2lk
+PSVkIHJlcV9wb3dlcj17JXN9DQo+IHRvdGFsX3JlcV9wb3dlcj0ldSBncmFudGVkX3Bvd2VyPXsl
+c30gdG90YWxfZ3JhbnRlZF9wb3dlcj0ldQ0KPiBwb3dlcl9yYW5nZT0ldSBtYXhfYWxsb2NhdGFi
+bGVfcG93ZXI9JXUgY3VycmVudF90ZW1wZXJhdHVyZT0lbHUNCj4gZGVsdGFfdGVtcGVyYXR1cmU9
+JWQiLA0KPiA+ICsJVFBfcHJpbnRrKCJ0aGVybWFsX3pvbmVfaWQ9JWQgcmVxX3Bvd2VyPXslc30N
+Cj4gdG90YWxfcmVxX3Bvd2VyPSV1DQo+ID4gK2dyYW50ZWRfcG93ZXI9eyVzfSB0b3RhbF9ncmFu
+dGVkX3Bvd2VyPSV1IHBvd2VyX3JhbmdlPSV1DQo+ID4gK21heF9hbGxvY2F0YWJsZV9wb3dlcj0l
+dSBjdXJyZW50X3RlbXBlcmF0dXJlPSVkDQo+ID4gK2RlbHRhX3RlbXBlcmF0dXJlPSVkIiwNCj4g
+PiAgCQlfX2VudHJ5LT50el9pZCwNCj4gPiAgCQlfX3ByaW50X2FycmF5KF9fZ2V0X2R5bmFtaWNf
+YXJyYXkocmVxX3Bvd2VyKSwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgX19l
+bnRyeS0+bnVtX2FjdG9ycywgNCksDQo=
