@@ -1,56 +1,71 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/4] ARM: OMAP2+: omap3-pandora: add backlight support
-Date: Tue, 21 Jul 2015 04:12:00 +0300
-Message-ID: <1437441121-31658-3-git-send-email-notasas@gmail.com>
-References: <1437441121-31658-1-git-send-email-notasas@gmail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437441121-31658-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 3/3] ARM: dts: dra7: Add scm_conf1 node and remove
+ redundant nodes
+Date: Tue, 21 Jul 2015 10:41:16 +0530
+Message-ID: <55ADD474.6080709@ti.com>
+References: <1437140844-6032-1-git-send-email-rogerq@ti.com> <1437140844-6032-4-git-send-email-rogerq@ti.com> <55ACE3DC.7070806@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55ACE3DC.7070806@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add backlight support via pdata-quirks as it's driver lacks DT support.
+Hi,
 
-Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- arch/arm/mach-omap2/pdata-quirks.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+On Monday 20 July 2015 05:34 PM, Tero Kristo wrote:
+> On 07/17/2015 04:47 PM, Roger Quadros wrote:
+>> scm_conf1 maps the control register address space after the
+>> padconf till the end.
+>>
+>> Fix the scm_conf and pmx_core resource lengths. We need to add
+>> 4 bytes to include the last 32-bit register space.
+>>
+>> Remove the redundant dra7_ctrl_core and dra7_ctrl_general nodes.
+>> They are not used by anyone and no longer needed as they are
+>> covered by scm_conf and scm_conf1.
+> 
+> Looks like you are doing three things in this patch, maybe split it up 
+> as such?
+> 
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   arch/arm/boot/dts/dra7.dtsi | 19 ++++++++-----------
+>>   1 file changed, 8 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 4a0718c..d07c34c 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -141,7 +141,7 @@
+>>   				dra7_pmx_core: pinmux@1400 {
+>>   					compatible = "ti,dra7-padconf",
+>>   						     "pinctrl-single";
+>> -					reg = <0x1400 0x0464>;
+>> +					reg = <0x1400 0x0468>;
+>>   					#address-cells = <1>;
+>>   					#size-cells = <0>;
+>>   					#interrupt-cells = <1>;
+>> @@ -149,6 +149,13 @@
+>>   					pinctrl-single,register-width = <32>;
+>>   					pinctrl-single,function-mask = <0x3fffffff>;
+>>   				};
+>> +
+>> +				scm_conf1: scm_conf@1 {
+> 
+> Should be ... scm_conf@1868?
+> 
+> Are there any users for this area anyway? I don't think we should map 
+> this area just for fun of it. Mostly it looks like this contains efuse 
+> values for OPPs, which should be mapped from the OPP layer, not as a 
+> generic syscon.
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 821171c..3c97aa49 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -268,6 +268,16 @@ static void __init omap3_tao3530_legacy_init(void)
- {
- 	hsmmc2_internal_input_clk();
- }
-+
-+static struct platform_device pandora_backlight = {
-+	.name	= "pandora-backlight",
-+	.id	= -1,
-+};
-+
-+static void __init omap3_pandora_legacy_init(void)
-+{
-+	platform_device_register(&pandora_backlight);
-+}
- #endif /* CONFIG_ARCH_OMAP3 */
- 
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
-@@ -381,6 +391,8 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
- 	{ "ti,am3517-evm", am3517_evm_legacy_init, },
- 	{ "technexion,omap3-tao3530", omap3_tao3530_legacy_init, },
-+	{ "openpandora,omap3-pandora-600mhz", omap3_pandora_legacy_init, },
-+	{ "openpandora,omap3-pandora-1ghz", omap3_pandora_legacy_init, },
- #endif
- #ifdef CONFIG_SOC_OMAP5
- 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
--- 
-1.9.1
+The last few registers are used for PCIe PHY and I'll be needing it for the
+next version of my patch series.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
