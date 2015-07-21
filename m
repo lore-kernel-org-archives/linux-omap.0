@@ -1,15 +1,14 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 02/11] iommu/omap: Remove all module references
-Date: Tue, 21 Jul 2015 18:44:15 -0500
-Message-ID: <55AED94F.50006@ti.com>
-References: <1437431613-55656-1-git-send-email-s-anna@ti.com>
-	<1437431613-55656-3-git-send-email-s-anna@ti.com>
-	<6880124.2DpxpaPkkx@avalon>
+Subject: [PATCH 2/2] iommu/omap: Add support for configuring dsp iommus on
+	DRA7xx
+Date: Tue, 21 Jul 2015 18:55:36 -0500
+Message-ID: <1437522936-19758-3-git-send-email-s-anna@ti.com>
+References: <1437522936-19758-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <6880124.2DpxpaPkkx@avalon>
+In-Reply-To: <1437522936-19758-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -19,37 +18,176 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Laurent,
+The DSP MMUs on DRA7xx SoC requires configuring an additional
+MMU_CONFIG register present in the DSP_SYSTEM sub module. This
+setting dictates whether the DSP Core's MDMA and EDMA traffic
+is routed through the respective MMU or not. Add the support
+to the OMAP iommu driver so that the traffic is not bypassed
+when enabling the MMUs.
 
->
-> On Monday 20 July 2015 17:33:24 Suman Anna wrote:
->> The OMAP IOMMU driver has been adapted to the IOMMU framework
->> for a while now, and it does not support being built as a
->> module anymore. So, remove all the module references from the
->> OMAP IOMMU driver.
->>
->> While at it, also relocate a comment around the subsys_initcall
->> to avoid a checkpatch strict warning about using a blank line
->> after function/struct/union/enum declarations.
->>
->> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-> 
-> I think this is one of the checkpatch warnings that can be safely ignored, but 
-> it doesn't matter much. The comment will be removed after the OMAP3 ISP and 
-> OMAP IOMMU drivers get support for a saner IOMMU probing dependency order 
-> solution.
-> 
-> The code seems fine to me.
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+The MMU_CONFIG register has two different bits for enabling
+each of these two MMUs present in the DSP processor sub-system
+on DRA7xx. An id field is added to the OMAP iommu object to
+identify and enable each IOMMU. The id information and the
+DSP_SYSTEM.MMU_CONFIG register programming is achieved through
+the processing of the optional "ti,syscon-mmuconfig" property.
+A proper value is assigned to the id field only when this
+property is present.
 
-Yes, indeed. I have also started to work on some patches to switch to
-using the IOMMU_OF_DECLARE init, that should also help us. I will post
-those for the 4.4 kernel merge window.
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ drivers/iommu/omap-iommu.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/iommu/omap-iommu.h |  9 +++++++
+ 2 files changed, 67 insertions(+)
 
-regards
-Suman
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index fe742c01a4f2..0849a5927732 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -26,6 +26,8 @@
+ #include <linux/of_iommu.h>
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
+ 
+ #include <asm/cacheflush.h>
+ 
+@@ -112,6 +114,18 @@ void omap_iommu_restore_ctx(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(omap_iommu_restore_ctx);
+ 
++static void dra7_cfg_dspsys_mmu(struct omap_iommu *obj, bool enable)
++{
++	u32 val, mask;
++
++	if (!obj->syscfg)
++		return;
++
++	mask = (1 << (obj->id * DSP_SYS_MMU_CONFIG_EN_SHIFT));
++	val = enable ? mask : 0;
++	regmap_update_bits(obj->syscfg, DSP_SYS_MMU_CONFIG, mask, val);
++}
++
+ static void __iommu_set_twl(struct omap_iommu *obj, bool on)
+ {
+ 	u32 l = iommu_read_reg(obj, MMU_CNTL);
+@@ -147,6 +161,8 @@ static int omap2_iommu_enable(struct omap_iommu *obj)
+ 
+ 	iommu_write_reg(obj, pa, MMU_TTB);
+ 
++	dra7_cfg_dspsys_mmu(obj, true);
++
+ 	if (obj->has_bus_err_back)
+ 		iommu_write_reg(obj, MMU_GP_REG_BUS_ERR_BACK_EN, MMU_GP_REG);
+ 
+@@ -161,6 +177,7 @@ static void omap2_iommu_disable(struct omap_iommu *obj)
+ 
+ 	l &= ~MMU_CNTL_MASK;
+ 	iommu_write_reg(obj, l, MMU_CNTL);
++	dra7_cfg_dspsys_mmu(obj, false);
+ 
+ 	dev_dbg(obj->dev, "%s is shutting down\n", obj->name);
+ }
+@@ -864,6 +881,42 @@ static void omap_iommu_detach(struct omap_iommu *obj)
+ 	dev_dbg(obj->dev, "%s: %s\n", __func__, obj->name);
+ }
+ 
++static int omap_iommu_dra7_get_dsp_system_cfg(struct platform_device *pdev,
++					      struct omap_iommu *obj)
++{
++	struct device_node *np = pdev->dev.of_node;
++	int ret;
++
++	if (!of_device_is_compatible(np, "ti,dra7-dsp-iommu"))
++		return 0;
++
++	if (!of_property_read_bool(np, "ti,syscon-mmuconfig")) {
++		dev_err(&pdev->dev, "ti,syscon-mmuconfig property is missing\n");
++		return -EINVAL;
++	}
++
++	obj->syscfg =
++		syscon_regmap_lookup_by_phandle(np, "ti,syscon-mmuconfig");
++	if (IS_ERR(obj->syscfg)) {
++		/* can fail with -EPROBE_DEFER */
++		ret = PTR_ERR(obj->syscfg);
++		return ret;
++	}
++
++	if (of_property_read_u32_index(np, "ti,syscon-mmuconfig", 1,
++				       &obj->id)) {
++		dev_err(&pdev->dev, "couldn't get the IOMMU instance id within subsystem\n");
++		return -EINVAL;
++	}
++
++	if (obj->id != 0 && obj->id != 1) {
++		dev_err(&pdev->dev, "invalid IOMMU instance id\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /*
+  *	OMAP Device MMU(IOMMU) detection
+  */
+@@ -907,6 +960,10 @@ static int omap_iommu_probe(struct platform_device *pdev)
+ 	if (IS_ERR(obj->regbase))
+ 		return PTR_ERR(obj->regbase);
+ 
++	err = omap_iommu_dra7_get_dsp_system_cfg(pdev, obj);
++	if (err)
++		return err;
++
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0)
+ 		return -ENODEV;
+@@ -943,6 +1000,7 @@ static const struct of_device_id omap_iommu_of_match[] = {
+ 	{ .compatible = "ti,omap2-iommu" },
+ 	{ .compatible = "ti,omap4-iommu" },
+ 	{ .compatible = "ti,dra7-iommu"	},
++	{ .compatible = "ti,dra7-dsp-iommu" },
+ 	{},
+ };
+ 
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index a656df2f9e03..59628e5017b4 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -30,6 +30,7 @@ struct iotlb_entry {
+ struct omap_iommu {
+ 	const char	*name;
+ 	void __iomem	*regbase;
++	struct regmap	*syscfg;
+ 	struct device	*dev;
+ 	struct iommu_domain *domain;
+ 	struct dentry	*debug_dir;
+@@ -48,6 +49,7 @@ struct omap_iommu {
+ 	void *ctx; /* iommu context: registres saved area */
+ 
+ 	int has_bus_err_back;
++	u32 id;
+ };
+ 
+ struct cr_regs {
+@@ -159,6 +161,13 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ 	 ((pgsz) == MMU_CAM_PGSZ_4K)  ? 0xfffff000 : 0)
+ 
+ /*
++ * DSP_SYSTEM registers and bit definitions (applicable only for DRA7xx DSP)
++ */
++#define DSP_SYS_REVISION		0x00
++#define DSP_SYS_MMU_CONFIG		0x18
++#define DSP_SYS_MMU_CONFIG_EN_SHIFT	4
++
++/*
+  * utilities for super page(16MB, 1MB, 64KB and 4KB)
+  */
+ 
+-- 
+2.4.4
