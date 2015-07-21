@@ -1,34 +1,36 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/4] ARM: dts: omap3-pandora: miscellaneous corrections
-Date: Tue, 21 Jul 2015 04:10:17 -0700
-Message-ID: <20150721111017.GE17550@atomide.com>
-References: <1437441121-31658-1-git-send-email-notasas@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: am437x: add aliases for all UART instances
+Date: Tue, 21 Jul 2015 04:01:50 -0700
+Message-ID: <20150721110150.GC17550@atomide.com>
+References: <b1af39962d1cae5c344e8593ca738c825af40955.1437390674.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1437441121-31658-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <b1af39962d1cae5c344e8593ca738c825af40955.1437390674.git.nsekhar@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Eyal Reizer <eyalr@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150720 18:14]:
-> - add pandora specific compatible name
-> - fix mmc2 card detect polarity
-> - fix mmc1 and mmc2 write protect polarity
-> - disable write protect pins because of production issue and add an
->   explanation why they are disabled
-> - fix NAND partition name to reflect the correct address
+* Sekhar Nori <nsekhar@ti.com> [150720 04:15]:
+> Add serialN aliases for all 6 UART instances on
+> the AM437x SoC so each board's .dts file does not
+> have to define its own aliases.
+> 
+> Remove the alias added for am437x-gp-evm.dts now
+> that we have the aliases defined in am4372.dtsi
+> file.
 
-Thanks applying all four into omap-for-v4.3/dt and also
-now adding the dropping of the legacy board file into Linux
-next.
-
-Regards,
+Applying both into omap-for-v4.3/dt thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
