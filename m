@@ -1,15 +1,15 @@
 From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 04/11] iommu/omap: Protect omap-iopgtable.h against double
-	inclusion
-Date: Tue, 21 Jul 2015 19:01:22 +0300
-Message-ID: <9915916.m7jlAc5up8@avalon>
+Subject: Re: [PATCH 07/11] iommu/omap: Remove unnecessary error traces on
+	alloc failures
+Date: Tue, 21 Jul 2015 19:03:18 +0300
+Message-ID: <110578668.3031HDm9MJ@avalon>
 References: <1437431613-55656-1-git-send-email-s-anna@ti.com>
-	<1437431613-55656-5-git-send-email-s-anna@ti.com>
+	<1437431613-55656-8-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1437431613-55656-5-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1437431613-55656-8-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -27,39 +27,45 @@ Hi Suman,
 
 Thank you for the patch.
 
-On Monday 20 July 2015 17:33:26 Suman Anna wrote:
-> Protect the omap-pgtable.h header against double inclusion in
-> source code by using the standard include guard mechanism.
+On Monday 20 July 2015 17:33:29 Suman Anna wrote:
+> Fix couple of checkpatch warnings of the type,
+>     "WARNING: Possible unnecessary 'out of memory' message"
 > 
 > Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+
+The commit message could also mention that the reason to remove the error 
+messages is that memory allocation failures will already be reported in the 
+kernel log by the memory management code. No big deal though,
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
 > ---
->  drivers/iommu/omap-iopgtable.h | 5 +++++
->  1 file changed, 5 insertions(+)
+>  drivers/iommu/omap-iommu.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/iommu/omap-iopgtable.h b/drivers/iommu/omap-iopgtable.h
-> index f891683e3f05..bfde5405f514 100644
-> --- a/drivers/iommu/omap-iopgtable.h
-> +++ b/drivers/iommu/omap-iopgtable.h
-> @@ -10,6 +10,9 @@
->   * published by the Free Software Foundation.
->   */
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index 0fc00f31c39d..4328d9855edb 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -1093,16 +1093,12 @@ static struct iommu_domain
+> *omap_iommu_domain_alloc(unsigned type) return NULL;
 > 
-> +#ifndef _OMAP_IOPGTABLE_H
-> +#define _OMAP_IOPGTABLE_H
-> +
->  /*
->   * "L2 table" address mask and size definitions.
->   */
-> @@ -93,3 +96,5 @@ static inline phys_addr_t omap_iommu_translate(u32 d, u32
-> va, u32 mask) /* to find an entry in the second-level page table. */
->  #define iopte_index(da)		(((da) >> IOPTE_SHIFT) & (PTRS_PER_IOPTE - 1))
->  #define iopte_offset(iopgd, da)	(iopgd_page_vaddr(iopgd) + 
-iopte_index(da))
-> +
-> +#endif /* _OMAP_IOPGTABLE_H */
+>  	omap_domain = kzalloc(sizeof(*omap_domain), GFP_KERNEL);
+> -	if (!omap_domain) {
+> -		pr_err("kzalloc failed\n");
+> +	if (!omap_domain)
+>  		goto out;
+> -	}
+> 
+>  	omap_domain->pgtable = kzalloc(IOPGD_TABLE_SIZE, GFP_KERNEL);
+> -	if (!omap_domain->pgtable) {
+> -		pr_err("kzalloc failed\n");
+> +	if (!omap_domain->pgtable)
+>  		goto fail_nomem;
+> -	}
+> 
+>  	/*
+>  	 * should never fail, but please keep this around to ensure
 
 -- 
 Regards,
