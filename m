@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/4] ARM: dts: DRA7: Add dsp1_system syscon node
-Date: Tue, 21 Jul 2015 19:01:31 -0500
-Message-ID: <1437523294-20058-2-git-send-email-s-anna@ti.com>
+Subject: [PATCH 4/4] ARM: dts: DRA74x: Add IOMMU nodes for DSP2
+Date: Tue, 21 Jul 2015 19:01:34 -0500
+Message-ID: <1437523294-20058-5-git-send-email-s-anna@ti.com>
 References: <1437523294-20058-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,40 +21,47 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The DSP_SYSTEM sub-module is a dedicated system control logic
-module present within a DRA7 DSP processor sub-system. This
-module is responsible for power management, clock generation
-and connection to the device PRCM module.
-
-Add a syscon node for this module for the DSP1 processor
-sub-system. This is added as a syscon node as it is a common
-configuration module that can be used by the different IOMMU
-instances and the corresponding remoteproc device.
-
-The node is added to the common dra7.dtsi file, as the DSP1
-processor sub-system is mostly common across all the variants
-of the DRA7 SoC family.
+The DRA74x family of SoCs have a second DSP, that also has
+two MMUs just like the DSP1 subsystem. Add the IOMMU nodes
+for this DSP2 subsystem in disabled state to the DRA74x
+specific DTS file, the nodes would need to be enabled
+appropriately in the respective board DTS files.
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/dra74x.dtsi | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 8f1e25bcecbd..1c96729641b6 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -296,6 +296,11 @@
- 			reg = <0x4a002e00 0x7c>;
+diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
+index 6cb112450ddd..612cc7e13bab 100644
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -76,6 +76,26 @@
+ 				dr_mode = "otg";
+ 			};
  		};
- 
-+		dsp1_system: dsp_system@40d00000 {
-+			compatible = "syscon";
-+			reg = <0x40d00000 0x100>;
++
++		mmu0_dsp2: mmu@41501000 {
++			compatible = "ti,dra7-dsp-iommu";
++			reg = <0x41501000 0x100>;
++			interrupts = <GIC_SPI 146 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "mmu0_dsp2";
++			#iommu-cells = <0>;
++			ti,syscon-mmuconfig = <&dsp2_system 0x0>;
++			status = "disabled";
 +		};
 +
- 		sdma: dma-controller@4a056000 {
- 			compatible = "ti,omap4430-sdma";
- 			reg = <0x4a056000 0x1000>;
++		mmu1_dsp2: mmu@41502000 {
++			compatible = "ti,dra7-dsp-iommu";
++			reg = <0x41502000 0x100>;
++			interrupts = <GIC_SPI 147 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "mmu1_dsp2";
++			#iommu-cells = <0>;
++			ti,syscon-mmuconfig = <&dsp2_system 0x1>;
++			status = "disabled";
++		};
+ 	};
+ };
+ 
 -- 
 2.4.4
