@@ -1,10 +1,8 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Sebastian Reichel <sre@kernel.org>
 Subject: Re: linux 4.2-rc1 broken Nokia N900
-Date: Wed, 22 Jul 2015 15:30:38 +0200
-Message-ID: <20150722133038.GA20106@amd>
-References: <201507111405.06048@pali>
- <201507132234.22082@pali>
- <20150713215232.GA22584@deathray>
+Date: Wed, 22 Jul 2015 15:33:18 +0200
+Message-ID: <20150722133318.GA17442@earth>
+References: <20150713215232.GA22584@deathray>
  <201507140002.44119@pali>
  <20150713223607.GA23001@deathray>
  <20150714071412.GA12844@pali>
@@ -12,108 +10,89 @@ References: <201507111405.06048@pali>
  <20150721093441.GA23241@amd>
  <20150722001741.GA7950@deathstar>
  <20150722020306.GA8379@earth>
+ <20150722051334.GA2165@deathstar>
+ <20150722072732.GB22138@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150722020306.GA8379@earth>
+In-Reply-To: <20150722072732.GB22138@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Michael Welling <mwelling@ieee.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Michael Welling <mwelling@ieee.org>, Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 2015-07-22 04:03:07, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Tue, Jul 21, 2015 at 07:17:41PM -0500, Michael Welling wrote:
-> > On Tue, Jul 21, 2015 at 11:34:41AM +0200, Pavel Machek wrote:
-> > 
-> > This code has my head spinning.
-> > 
-> > I found that the errors do not occur when the driver is built into the kernel.
-> > 
-> > I also found that with the patch below the errors go away.
-> > 
-> > Not sure if it is acceptible but see if it fixes things on your side.
-> > 
-> > 
-> > diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> > index cf8b91b..3164d13 100644
-> > --- a/drivers/spi/spi.c
-> > +++ b/drivers/spi/spi.c
-> > @@ -1801,11 +1801,11 @@ int spi_setup(struct spi_device *spi)
-> >  	if (!spi->max_speed_hz)
-> >  		spi->max_speed_hz = spi->master->max_speed_hz;
-> >  
-> > -	spi_set_cs(spi, false);
-> > -
-> >  	if (spi->master->setup)
-> >  		status = spi->master->setup(spi);
-> >  
-> > +	spi_set_cs(spi, false);
-> > +
-> >  	dev_dbg(&spi->dev, "setup mode %d, %s%s%s%s%u bits/w, %u Hz max --> %d\n",
-> >  			(int) (spi->mode & (SPI_CPOL | SPI_CPHA)),
-> >  			(spi->mode & SPI_CS_HIGH) ? "cs_high, " : "",
-> 
-> mh. maybe a runtime PM issue?
-> 
->  * external abort on non-linefetch: address cannot be accessed,
->    since the module's clocks are disabled
->  * built-in works, module not: built-in is probably a little bit
->    faster (module must not be loaded from filesystem), so that
->    the device has not yet been suspended
->  * Before 4.2, omap2_mcspi_set_cs() was called in the setup
->    routine, which acquired runtime PM
->  * In 4.2, omap2_mcspi_set_cs() seems to be called without a
->    prior pm_runtime_get_sync()
->  * With your workaround, the device has not yet returned to
->    suspend after the runtime PM acquisition in setup()
-> 
-> So I suggest trying the following (compile tested only) patch:
 
-Solves problem for me. I had to apply it by patch -l.
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tested-by: Pavel Machek <pavel@ucw.cz>
-									Pavel
-									
+Hi,
 
-> -- Sebastian
-> 
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 5867384..f7d9ffd 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -245,6 +245,7 @@ static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
->  
->  static void omap2_mcspi_set_cs(struct spi_device *spi, bool enable)
->  {
-> +       struct omap2_mcspi *mcspi = spi_master_get_devdata(spi->master);
->         u32 l;
->  
->         /* The controller handles the inverted chip selects
-> @@ -255,6 +256,8 @@ static void omap2_mcspi_set_cs(struct spi_device *spi, bool enable)
->                 enable = !enable;
->  
->         if (spi->controller_state) {
-> +               pm_runtime_get_sync(mcspi->dev);
-> +
->                 l = mcspi_cached_chconf0(spi);
->  
->                 if (enable)
-> @@ -263,6 +266,9 @@ static void omap2_mcspi_set_cs(struct spi_device *spi, bool enable)
->                         l |= OMAP2_MCSPI_CHCONF_FORCE;
->  
->                 mcspi_write_chconf0(spi, l);
-> +
-> +               pm_runtime_mark_last_busy(mcspi->dev);
-> +               pm_runtime_put_autosuspend(mcspi->dev);
->         }
->  }
->  
+On Wed, Jul 22, 2015 at 09:27:32AM +0200, Pali Roh=E1r wrote:
+> > > diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mc=
+spi.c
+> > > index 5867384..f7d9ffd 100644
+> > > --- a/drivers/spi/spi-omap2-mcspi.c
+> > > +++ b/drivers/spi/spi-omap2-mcspi.c
+> > > @@ -245,6 +245,7 @@ static void omap2_mcspi_set_enable(const struct s=
+pi_device *spi, int enable)
+> > > =20
+> > >  static void omap2_mcspi_set_cs(struct spi_device *spi, bool enable)
+> > >  {
+> > > +       struct omap2_mcspi *mcspi =3D spi_master_get_devdata(spi->mas=
+ter);
+> > >         u32 l;
+> > > =20
+> > >         /* The controller handles the inverted chip selects
+> > > @@ -255,6 +256,8 @@ static void omap2_mcspi_set_cs(struct spi_device =
+*spi, bool enable)
+> > >                 enable =3D !enable;
+> > > =20
+> > >         if (spi->controller_state) {
+> > > +               pm_runtime_get_sync(mcspi->dev);
+> > > +
+> >=20
+> > Should the return code should be checked here as with the other
+> > instances of pm_runtime_get_sync?
 
+Yes. If it fails, the line fetch error would be triggered again.
 
+Probably the set_cs callback should also be changed, so that it can
+return an error code. This is not something for 4.2-rc, though.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> Anyway, what do you think about adding gcc macro for pm_runtime_get_sync
+> function which report compiler warning when return value is not checked?
+
+Adding __must_check to pm_runtime_get_sync() should be discussed
+separately with the relevant people in Cc. A quick grep in drivers/
+reveals a huge amount of code not handling pm_runtime_get_sync's return
+code.
+
+-- Sebastian
+
+--u3/rZRmxL6MmkK24
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVr5uYAAoJENju1/PIO/qaf/oP/1tQOTVzrvv51ZnR9TuFB6yn
+t/pid8g8gm407Hi6QVpFZJV7apSDvj0D/cXNKECIjypwNPvrXYt8LvTx7tTkuON2
+XqXYIHmsHMSXQISmhefL0nV7pMkfERlawLMpQHUk9HVyC/rOd1I3jWX8kOeM6b/o
+MpAEP1B7edu7MSL2jzt2Oe6zpFwJGM2CjjS+BWkOOl3g1AobzuE0KvRc8Qx+ddHM
+WbJDYynHF9qI4h2psXqCRQmL3dClhDMyFmqeX2fNR84CgEF7iYhDC7c8o9iz+f6k
+CBu4ezbZiGBggJOcNb+oq7R9SWoWSWho8z2THTmNsYCs+K5ZdprS8TtOMmIrZjeu
+zuz2OwR/OgGztPvwxsIfkb8SK8onQkJ07JXcUdvz9NtREBQfaCoz7VBia4aD16Db
+MMPQsJKVrVjTib3EFs1l3rc798w8oIR3fABmuKTREfvXbwwhQAtx/jtCcYt+otTm
+xSVHr6zV17DwoFEhdOWzXolQMVcy8FgvcjdQZeNMBAA00RMyl4osDCu0NJELbqF9
+oGwdij7Y4v0vkwv+g3yvTgRJ41/GsvDaLppKwi+ANaTIjvhtwiilcAN3/GN05+g4
+iJs5ViLkrao4qDhIW+4n9df/5yTg0TEqpog789iN0pJpT5Gg2rcCXHf3LWhxEnLZ
+sD2ThumvEE2JExZ9/VUo
+=LED5
+-----END PGP SIGNATURE-----
+
+--u3/rZRmxL6MmkK24--
