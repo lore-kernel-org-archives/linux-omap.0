@@ -1,85 +1,42 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 4/5] Input: tsc2005 - simplify drvdata acquisition
-Date: Wed, 22 Jul 2015 22:04:44 +0200
-Message-ID: <1437595485-16421-5-git-send-email-sre@kernel.org>
-References: <1437595485-16421-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437595485-16421-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org
-Cc: Michael Welling <mwelling@emacinc.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 3/4] Revert "ARM: OMAP4: remove dead kconfig option
+ OMAP4_ERRATA_I688"
+Date: Wed, 22 Jul 2015 20:13:08 +0000
+Message-ID: <EF62F09C0797D947AD4180A1043C0DF740BB3AD2@DLEE11.ent.ti.com>
+References: <20150715174647.GA7557@n2100.arm.linux.org.uk>
+ <E1ZFQmH-0006GH-22@rmk-PC.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <E1ZFQmH-0006GH-22@rmk-PC.arm.linux.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Will Deacon <will.deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-Using dev_*_drvdata() instead of spi_*_drvdata() reduces
-lines of code and prepares the driver for possible tsc2004
-support, which is i2c based.
+> From: linux-arm-kernel [mailto:linux-arm-kernel-
+> bounces@lists.infradead.org] On Behalf Of Russell King
+> Sent: Wednesday, July 15, 2015 12:47 PM
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- drivers/input/touchscreen/tsc2005.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+> This reverts commit 606da4826b89b044b51e3a84958b802204cfe4c7.
+> 
+> We actually need this code for proper behaviour of OMAP4, and it needs
+> fixing a different way other than just removing the code.  Disabling code
+> which is necessary in the hopes of persuing multiplatform kernels is a stupid
+> approach.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
-index bd05389..f82b860 100644
---- a/drivers/input/touchscreen/tsc2005.c
-+++ b/drivers/input/touchscreen/tsc2005.c
-@@ -355,8 +355,7 @@ static ssize_t tsc2005_selftest_show(struct device *dev,
- 				     struct device_attribute *attr,
- 				     char *buf)
- {
--	struct spi_device *spi = to_spi_device(dev);
--	struct tsc2005 *ts = spi_get_drvdata(spi);
-+	struct tsc2005 *ts = dev_get_drvdata(dev);
- 	unsigned int temp_high;
- 	unsigned int temp_high_orig;
- 	unsigned int temp_high_test;
-@@ -441,8 +440,7 @@ static umode_t tsc2005_attr_is_visible(struct kobject *kobj,
- 				      struct attribute *attr, int n)
- {
- 	struct device *dev = container_of(kobj, struct device, kobj);
--	struct spi_device *spi = to_spi_device(dev);
--	struct tsc2005 *ts = spi_get_drvdata(spi);
-+	struct tsc2005 *ts = dev_get_drvdata(dev);
- 	umode_t mode = attr->mode;
- 
- 	if (attr == &dev_attr_selftest.attr) {
-@@ -690,7 +688,7 @@ static int tsc2005_probe(struct spi_device *spi)
- 			return error;
- 	}
- 
--	spi_set_drvdata(spi, ts);
-+	dev_set_drvdata(&spi->dev, ts);
- 	error = sysfs_create_group(&spi->dev.kobj, &tsc2005_attr_group);
- 	if (error) {
- 		dev_err(&spi->dev,
-@@ -718,7 +716,7 @@ disable_regulator:
- 
- static int tsc2005_remove(struct spi_device *spi)
- {
--	struct tsc2005 *ts = spi_get_drvdata(spi);
-+	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
- 
- 	sysfs_remove_group(&spi->dev.kobj, &tsc2005_attr_group);
- 
-@@ -730,8 +728,7 @@ static int tsc2005_remove(struct spi_device *spi)
- 
- static int __maybe_unused tsc2005_suspend(struct device *dev)
- {
--	struct spi_device *spi = to_spi_device(dev);
--	struct tsc2005 *ts = spi_get_drvdata(spi);
-+	struct tsc2005 *ts = dev_get_drvdata(dev);
- 
- 	mutex_lock(&ts->mutex);
- 
-@@ -747,8 +744,7 @@ static int __maybe_unused tsc2005_suspend(struct device *dev)
- 
- static int __maybe_unused tsc2005_resume(struct device *dev)
- {
--	struct spi_device *spi = to_spi_device(dev);
--	struct tsc2005 *ts = spi_get_drvdata(spi);
-+	struct tsc2005 *ts = dev_get_drvdata(dev);
- 
- 	mutex_lock(&ts->mutex);
- 
--- 
-2.1.4
+The series looks good.  It improves code generation and fixes race issues which have been see production devices running Linux.
+
+Acked-by: Richard Woodruff <r-woodruff2@ti.com>
