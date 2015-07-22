@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] omap dts changes for v4.3, part2
-Date: Wed, 22 Jul 2015 02:41:16 -0700
-Message-ID: <36286.4007860937$1437558158@news.gmane.org>
+Subject: [GIT PULL 2/3] drop few more legacy boards for v4.3
+Date: Wed, 22 Jul 2015 02:41:17 -0700
+Message-ID: <37805.3809902214$1437558172@news.gmane.org>
+References: <pull-1437549432-994499>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1437549432-994499>
+In-Reply-To: <pull-1437549432-994499>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,69 +22,47 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 80edaaead3687b47ba3760588306937439ebd7bd:
+The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
 
-  ARM: dts: am335x-evm: Switch using simple-audio-card for audio support (2015-07-14 04:28:25 -0700)
+  Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/dt-pt2
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/legacy-v2-signed
 
-for you to fetch changes up to f9d50fef4b6447527c2be1ad07499221c2511391:
+for you to fetch changes up to 7fcf7e061edd368fac7fe4841a7f9e54c83b3ec8:
 
-  ARM: OMAP2+: omap3-pandora: add wifi support (2015-07-21 04:07:42 -0700)
-
-----------------------------------------------------------------
-More omap dts changes for v4.3 merge window:
-
-- Add missing devices for pandora. Note that we're adding wl1251
-  WLAN and LCD backlight support for now using legacy pdata as that
-  allows us to drop the legacy board file for pandora in another
-  series of patches
-
-- Enable power button support for omap5-uevm
-
-- Add aliases for am437x UARTs
-
-- Add support for phyCORE phyBOARD-WEGA-AM335x rdk and
-  phyCORE-AM335x SoM
-
-- Use u16 values for tsc2046 on omap3-lilly
+  ARM: OMAP2+: Remove legacy booting support for Pandora (2015-07-16 04:12:32 -0700)
 
 ----------------------------------------------------------------
-Aparna Balasubramanian (1):
-      ARM: dts: omap5-uevm: Add Palmas power button support
+Drop more omap3 legacy board-*.c files for v4.3. This time we're
+dropping the board files for omap3logic and omap3pandora.
 
-Fugang Duan (1):
-      ARM: dts: omap3: correct the format of u16 values for tsc2046 node
+The reason for dropping these now rather than later is that now
+we can simply revert the patches in case of unexpected issues as
+we are not dropping any platform data at this point.
 
-Grazvydas Ignotas (4):
-      ARM: dts: omap3-pandora: miscellaneous corrections
-      ARM: dts: omap3-pandora: add support for usb host and 32k buffer
-      ARM: OMAP2+: omap3-pandora: add backlight support
-      ARM: OMAP2+: omap3-pandora: add wifi support
+This leaves us with only the following board-*.c files:
 
-Sekhar Nori (1):
-      ARM: dts: am437x: add aliases for all UART instances
+BOARD                   REASON NEEDED
+board-ldp.c             Still used in RMKs boot test system
+board-rx51-*.c          Needs /proc/atags support for user space
 
-Teresa Remmet (2):
-      ARM: dts: Add support for phyCORE-AM335x SoM
-      ARM: dts: Add phyBOARD-WEGA-AM335x rdk
+Once we have the n900 legacy user space issues sorted out for
+/proc/atags and system_rev, we can drop the remaining two
+board-*.c files. And then one merge window after that we can
+drop the legacy booting support assuming no unexpected issues
+are found.
 
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +
- arch/arm/boot/dts/Makefile                         |   3 +-
- arch/arm/boot/dts/am335x-phycore-som.dtsi          | 368 +++++++++++++++++++++
- arch/arm/boot/dts/am335x-wega-rdk.dts              |  22 ++
- arch/arm/boot/dts/am335x-wega.dtsi                 | 151 +++++++++
- arch/arm/boot/dts/am4372.dtsi                      |   5 +
- arch/arm/boot/dts/am437x-gp-evm.dts                |   1 -
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |  12 +-
- arch/arm/boot/dts/omap3-pandora-1ghz.dts           |   2 +-
- arch/arm/boot/dts/omap3-pandora-600mhz.dts         |   2 +-
- arch/arm/boot/dts/omap3-pandora-common.dtsi        |  54 ++-
- arch/arm/boot/dts/omap5-uevm.dts                   |   7 +
- arch/arm/mach-omap2/pdata-quirks.c                 | 113 +++++++
- 13 files changed, 729 insertions(+), 14 deletions(-)
- create mode 100644 arch/arm/boot/dts/am335x-phycore-som.dtsi
- create mode 100644 arch/arm/boot/dts/am335x-wega-rdk.dts
- create mode 100644 arch/arm/boot/dts/am335x-wega.dtsi
+----------------------------------------------------------------
+Tony Lindgren (2):
+      ARM: OMAP2+: Remove legacy booting support for LogicPD Torpedo
+      ARM: OMAP2+: Remove legacy booting support for Pandora
+
+ arch/arm/mach-omap2/Kconfig              |  20 -
+ arch/arm/mach-omap2/Makefile             |   3 -
+ arch/arm/mach-omap2/board-omap3logic.c   | 249 ------------
+ arch/arm/mach-omap2/board-omap3pandora.c | 633 -------------------------------
+ 4 files changed, 905 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-omap3logic.c
+ delete mode 100644 arch/arm/mach-omap2/board-omap3pandora.c
