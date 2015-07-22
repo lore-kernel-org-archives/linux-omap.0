@@ -1,56 +1,45 @@
-From: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-Subject: Re: twl6030-gpadc support for twl6037
-Date: Wed, 22 Jul 2015 20:41:02 +0100
-Message-ID: <1437594062.2382998.330577153.4CE28783@webmail.messagingengine.com>
-References: <CAAfyv354=J+iDgLcu9KRZSScGSzYrRsCMmUEc_tW84GfduSebw@mail.gmail.com>
- <CAAfyv35bUMZKfMQDJYwD_uGRNOiqLqAB4UG=gREgCSWa8vhjdw@mail.gmail.com>
- <1437593628.2381718.330572297.2F6F1C50@webmail.messagingengine.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437593628.2381718.330572297.2F6F1C50-2RFepEojUI2N1INw9kWLP6GC3tUn3ZHUQQ4Iyu8u01E@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Axel Lin <axel.lin-8E1dMatC8ynQT0dZR+AlfA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, balajitk-l0cyMroinI0@public.gmane.org, oleksandr.kozaruk-l0cyMroinI0@public.gmane.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 0/5] [input] tsc2005 cleanup
+Date: Wed, 22 Jul 2015 22:04:40 +0200
+Message-ID: <1437595485-16421-1-git-send-email-sre@kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org
+Cc: Michael Welling <mwelling@emacinc.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+The following patches simplify and cleanup the tsc2005 touchscreen driver.
+Apart from making the driver more readable, the direct usage of SPI has been
+reduced to one function, so that tsc2004 support may be addable now (see [0]).
 
-On Wed, 22 Jul 2015, at 08:33 PM, Graeme Gregory wrote:
-> 
-> 
-> On Wed, 22 Jul 2015, at 08:28 PM, Belisko Marek wrote:
-> > Adding also twl6030-gpadc driver authors to loop
-> > 
-> > On Mon, Jul 20, 2015 at 8:57 AM, Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > wrote:
-> > > Hi all,
-> > >
-> > > I'm trying to figure out what is relation between palmas mfd driver
-> > > and twl-core for twl603x devices.
-> > > twl-core driver seems to be older than palmas driver but seems both
-> > > export same functionality (except that palmas have defined structs for
-> > > gpadc but functionality is missing). My main focus is to add support
-> > > for twl6037 to gpadc iio driver in iio/adc/twl6030-gpadc which is
-> > > using twl-core for twl6030 and twl6032. Adding twl6037 support should
-> > > be straightforward but dts file used in omap5-uevm using palmas driver
-> > > and not twl6030. So it's completely confusing to me how to proceed or
-> > > which direction is correct. Seems I'm missing some parts of puzzle ;)
-> > > Thanks for any hints.
-> > >
-> Phoenix is twl6030, twl6032
-> 
-> Palmas is twl6035, twl6037 and maybe others.
-> 
-> Phoenix and Palmas are two totally different chips but marketing gave
-> them numbers near each other for unknown reasons.
-> 
-Also this might be useful.
+Changes since PATCHv1 [1]:
+ * Avoid mixing spi_*_drvdata() and dev_*_drvdata() by converting
+   all spi_*_drvdata() to  dev_*_drvdata()
+ * Add new patch fixing the indent of TSC2005's Kconfig entry
+ * Select REGMAP_SPI in TSC2005's Kconfig entry
+ * Use optional gpiod and regulator API, so that the DT check can
+   be removed
+ * Set TSC2005_REG_PND0 on regmap writes, since it has also been
+   used before the regmap conversion.
 
-https://github.com/slimlogic/linux/commit/312a6a1c8013fd056431c31567b43d8eef40f333
+[0] http://permalink.gmane.org/gmane.linux.kernel.input/37513
+[1] https://lkml.org/lkml/2015/7/15/500
 
-A pre IIO palmas ADC driver which I never got around to upstreaming
-because TIpocalypse left me with no access to a palmas chip.
+-- Sebastian
 
-Graeme
+Sebastian Reichel (5):
+  Input: tsc2005 - improve readability of register defines
+  Input: tsc2005 - fix Kconfig indentation
+  Input: tsc2005 - convert to regmap
+  Input: tsc2005 - simplify drvdata acquisition
+  Input: tsc2005 - convert to gpiod
+
+ drivers/input/touchscreen/Kconfig   |   9 +-
+ drivers/input/touchscreen/tsc2005.c | 262 ++++++++++++++----------------------
+ 2 files changed, 106 insertions(+), 165 deletions(-)
+
+-- 
+2.1.4
+
