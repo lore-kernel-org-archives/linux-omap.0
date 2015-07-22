@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] drop few more legacy boards for v4.3
-Date: Wed, 22 Jul 2015 02:41:17 -0700
-Message-ID: <37805.3809902214$1437558172@news.gmane.org>
+Subject: [GIT PULL 3/3]  defconfig changes for v4.3
+Date: Wed, 22 Jul 2015 02:41:18 -0700
+Message-ID: <47644.8693465956$1437558186@news.gmane.org>
 References: <pull-1437549432-994499>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,41 +28,18 @@ The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/legacy-v2-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.3/defconfig
 
-for you to fetch changes up to 7fcf7e061edd368fac7fe4841a7f9e54c83b3ec8:
+for you to fetch changes up to da104dc845afbebcad6d87bd5810c266a426f4dc:
 
-  ARM: OMAP2+: Remove legacy booting support for Pandora (2015-07-16 04:12:32 -0700)
-
-----------------------------------------------------------------
-Drop more omap3 legacy board-*.c files for v4.3. This time we're
-dropping the board files for omap3logic and omap3pandora.
-
-The reason for dropping these now rather than later is that now
-we can simply revert the patches in case of unexpected issues as
-we are not dropping any platform data at this point.
-
-This leaves us with only the following board-*.c files:
-
-BOARD                   REASON NEEDED
-board-ldp.c             Still used in RMKs boot test system
-board-rx51-*.c          Needs /proc/atags support for user space
-
-Once we have the n900 legacy user space issues sorted out for
-/proc/atags and system_rev, we can drop the remaining two
-board-*.c files. And then one merge window after that we can
-drop the legacy booting support assuming no unexpected issues
-are found.
+  ARM: omap2plus_defconfig: enable support for M25P80 SPI NOR (2015-07-16 00:54:53 -0700)
 
 ----------------------------------------------------------------
-Tony Lindgren (2):
-      ARM: OMAP2+: Remove legacy booting support for LogicPD Torpedo
-      ARM: OMAP2+: Remove legacy booting support for Pandora
+Sekhar Nori (4):
+      ARM: omap2plus_defconfig: enable support for TI ADC
+      ARM: omap2plus_defconfig: enable support for TI touchscreen
+      ARM: omap2plus_defconfig: enable support for TI CPTS
+      ARM: omap2plus_defconfig: enable support for M25P80 SPI NOR
 
- arch/arm/mach-omap2/Kconfig              |  20 -
- arch/arm/mach-omap2/Makefile             |   3 -
- arch/arm/mach-omap2/board-omap3logic.c   | 249 ------------
- arch/arm/mach-omap2/board-omap3pandora.c | 633 -------------------------------
- 4 files changed, 905 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-omap3logic.c
- delete mode 100644 arch/arm/mach-omap2/board-omap3pandora.c
+ arch/arm/configs/omap2plus_defconfig | 7 +++++++
+ 1 file changed, 7 insertions(+)
