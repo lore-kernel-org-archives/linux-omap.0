@@ -1,11 +1,13 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/2] DRA7 DSP MMU config support
-Date: Tue, 21 Jul 2015 18:55:34 -0500
-Message-ID: <1437522936-19758-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH 1/4] ARM: dts: DRA7: Add dsp1_system syscon node
+Date: Tue, 21 Jul 2015 19:01:31 -0500
+Message-ID: <1437523294-20058-2-git-send-email-s-anna@ti.com>
+References: <1437523294-20058-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1437523294-20058-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -15,51 +17,44 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The DSP_SYSTEM sub-module is a dedicated system control logic
+module present within a DRA7 DSP processor sub-system. This
+module is responsible for power management, clock generation
+and connection to the device PRCM module.
 
-This series adds the basic support in the OMAP IOMMU driver to
-enable/disable DSP IOMMUs for the DRA7xx family of SoCs. The
-DRA7 family has two MMUs within the DSP processor subsystems.
-This is the first time this was designed so in the silicon
-compared to the equivalent ones on OMAP2+ SoCs.
+Add a syscon node for this module for the DSP1 processor
+sub-system. This is added as a syscon node as it is a common
+configuration module that can be used by the different IOMMU
+instances and the corresponding remoteproc device.
 
-Each MMU requires a specific bit to be turned on within a register
-from a separate sub-module DSP_SYSTEM present within the respective
-processor subsystem. The DSP_SYSTEM sub-module is represented as a
-syscon node, and an additional property "ti,syscon-mmuconfig" is
-used alongside a unique compatible property for configuring these
-devices. The register and bit offset is coded up in the driver
-while the DT property references the syscon phandle the MMU instance
-number.
+The node is added to the common dra7.dtsi file, as the DSP1
+processor sub-system is mostly common across all the variants
+of the DRA7 SoC family.
 
-The binding support could have been done in couple of other ways,
-like using separate compatible each for the DSP processor MMU &
-the DSP EDMA MMU that automatically identifies the instance number;
-and/or coding up the register offset & bit position/offset in
-the syscon property, so let me know if the current approach is
-fine.
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra7.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-The patches are baselined on 4.2-rc3 + the recent OMAP IOMMU
-cleanup series [1]. I will post the DTS patches separately to
-allow Tony to pick them up independently.
-
-regards
-Suman
-
-[1] http://lists.linuxfoundation.org/pipermail/iommu/2015-July/013659.html
-
-Suman Anna (2):
-  Documentation: dt: Update OMAP iommu bindings for DRA7 DSPs
-  iommu/omap: Add support for configuring dsp iommus on DRA7xx
-
- .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 27 ++++++++++
- drivers/iommu/omap-iommu.c                         | 58 ++++++++++++++++++++++
- drivers/iommu/omap-iommu.h                         |  9 ++++
- 3 files changed, 94 insertions(+)
-
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 8f1e25bcecbd..1c96729641b6 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -296,6 +296,11 @@
+ 			reg = <0x4a002e00 0x7c>;
+ 		};
+ 
++		dsp1_system: dsp_system@40d00000 {
++			compatible = "syscon";
++			reg = <0x40d00000 0x100>;
++		};
++
+ 		sdma: dma-controller@4a056000 {
+ 			compatible = "ti,omap4430-sdma";
+ 			reg = <0x4a056000 0x1000>;
 -- 
 2.4.4
