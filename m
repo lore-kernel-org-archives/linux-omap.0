@@ -1,117 +1,85 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 5/5] Input: tsc2005 - convert to gpiod
-Date: Wed, 22 Jul 2015 22:04:45 +0200
-Message-ID: <1437595485-16421-6-git-send-email-sre@kernel.org>
+Subject: [PATCH 4/5] Input: tsc2005 - simplify drvdata acquisition
+Date: Wed, 22 Jul 2015 22:04:44 +0200
+Message-ID: <1437595485-16421-5-git-send-email-sre@kernel.org>
 References: <1437595485-16421-1-git-send-email-sre@kernel.org>
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1437595485-16421-1-git-send-email-sre@kernel.org>
-Sender: linux-input-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org
 Cc: Michael Welling <mwelling@emacinc.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The GPIOD API can be used from boardcode, so that
-the DT check can be removed. To avoid breaking
-existing boardcode, _optional() variant has been
-chosen. For completly removing the DT check, the
-regulator has also been made optional, so that it
-could be supplied from boardcode.
-
-As a side-effect the patch fixes the after-probe
-reset GPIO state, so that the device is not kept
-in reset state.
+Using dev_*_drvdata() instead of spi_*_drvdata() reduces
+lines of code and prepares the driver for possible tsc2004
+support, which is i2c based.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/input/touchscreen/tsc2005.c | 47 ++++++++++++++-----------------------
- 1 file changed, 18 insertions(+), 29 deletions(-)
+ drivers/input/touchscreen/tsc2005.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
-index f82b860..bf1b782 100644
+index bd05389..f82b860 100644
 --- a/drivers/input/touchscreen/tsc2005.c
 +++ b/drivers/input/touchscreen/tsc2005.c
-@@ -30,11 +30,11 @@
- #include <linux/delay.h>
- #include <linux/pm.h>
- #include <linux/of.h>
--#include <linux/of_gpio.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/tsc2005.h>
- #include <linux/regulator/consumer.h>
- #include <linux/regmap.h>
-+#include <linux/gpio/consumer.h>
- 
- /*
-  * The touchscreen interface operates as follows:
-@@ -180,7 +180,7 @@ struct tsc2005 {
- 
- 	struct regulator	*vio;
- 
--	int			reset_gpio;
-+	struct gpio_desc	*reset_gpio;
- 	void			(*set_reset)(bool enable);
- };
- 
-@@ -318,8 +318,8 @@ static void tsc2005_stop_scan(struct tsc2005 *ts)
- 
- static void tsc2005_set_reset(struct tsc2005 *ts, bool enable)
+@@ -355,8 +355,7 @@ static ssize_t tsc2005_selftest_show(struct device *dev,
+ 				     struct device_attribute *attr,
+ 				     char *buf)
  {
--	if (ts->reset_gpio >= 0)
--		gpio_set_value(ts->reset_gpio, enable);
-+	if (ts->reset_gpio)
-+		gpiod_set_value_cansleep(ts->reset_gpio, enable);
- 	else if (ts->set_reset)
- 		ts->set_reset(enable);
- }
-@@ -611,34 +611,23 @@ static int tsc2005_probe(struct spi_device *spi)
- 	ts->x_plate_ohm = x_plate_ohm;
- 	ts->esd_timeout = esd_timeout;
+-	struct spi_device *spi = to_spi_device(dev);
+-	struct tsc2005 *ts = spi_get_drvdata(spi);
++	struct tsc2005 *ts = dev_get_drvdata(dev);
+ 	unsigned int temp_high;
+ 	unsigned int temp_high_orig;
+ 	unsigned int temp_high_test;
+@@ -441,8 +440,7 @@ static umode_t tsc2005_attr_is_visible(struct kobject *kobj,
+ 				      struct attribute *attr, int n)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+-	struct spi_device *spi = to_spi_device(dev);
+-	struct tsc2005 *ts = spi_get_drvdata(spi);
++	struct tsc2005 *ts = dev_get_drvdata(dev);
+ 	umode_t mode = attr->mode;
  
--	if (np) {
--		ts->reset_gpio = of_get_named_gpio(np, "reset-gpios", 0);
--		if (ts->reset_gpio == -EPROBE_DEFER)
--			return ts->reset_gpio;
--		if (ts->reset_gpio < 0) {
--			dev_err(&spi->dev, "error acquiring reset gpio: %d\n",
--				ts->reset_gpio);
--			return ts->reset_gpio;
--		}
-+	ts->reset_gpio = devm_gpiod_get_optional(&spi->dev, "reset",
-+						 GPIOD_OUT_HIGH);
-+	if (IS_ERR(ts->reset_gpio)) {
-+		error = PTR_ERR(ts->reset_gpio);
-+		dev_err(&spi->dev, "error acquiring reset gpio: %d\n", error);
-+		return error;
-+	}
+ 	if (attr == &dev_attr_selftest.attr) {
+@@ -690,7 +688,7 @@ static int tsc2005_probe(struct spi_device *spi)
+ 			return error;
+ 	}
  
--		error = devm_gpio_request_one(&spi->dev, ts->reset_gpio, 0,
--					      "reset-gpios");
--		if (error) {
--			dev_err(&spi->dev, "error requesting reset gpio: %d\n",
--				error);
--			return error;
--		}
-+	ts->vio = devm_regulator_get_optional(&spi->dev, "vio");
-+	if (IS_ERR(ts->vio)) {
-+		error = PTR_ERR(ts->vio);
-+		dev_err(&spi->dev, "vio regulator missing (%d)", error);
-+		return error;
-+	}
+-	spi_set_drvdata(spi, ts);
++	dev_set_drvdata(&spi->dev, ts);
+ 	error = sysfs_create_group(&spi->dev.kobj, &tsc2005_attr_group);
+ 	if (error) {
+ 		dev_err(&spi->dev,
+@@ -718,7 +716,7 @@ disable_regulator:
  
--		ts->vio = devm_regulator_get(&spi->dev, "vio");
--		if (IS_ERR(ts->vio)) {
--			error = PTR_ERR(ts->vio);
--			dev_err(&spi->dev, "vio regulator missing (%d)", error);
--			return error;
--		}
--	} else {
--		ts->reset_gpio = -1;
-+	if(!ts->reset_gpio && pdata)
- 		ts->set_reset = pdata->set_reset;
--	}
+ static int tsc2005_remove(struct spi_device *spi)
+ {
+-	struct tsc2005 *ts = spi_get_drvdata(spi);
++	struct tsc2005 *ts = dev_get_drvdata(&spi->dev);
  
- 	mutex_init(&ts->mutex);
+ 	sysfs_remove_group(&spi->dev.kobj, &tsc2005_attr_group);
+ 
+@@ -730,8 +728,7 @@ static int tsc2005_remove(struct spi_device *spi)
+ 
+ static int __maybe_unused tsc2005_suspend(struct device *dev)
+ {
+-	struct spi_device *spi = to_spi_device(dev);
+-	struct tsc2005 *ts = spi_get_drvdata(spi);
++	struct tsc2005 *ts = dev_get_drvdata(dev);
+ 
+ 	mutex_lock(&ts->mutex);
+ 
+@@ -747,8 +744,7 @@ static int __maybe_unused tsc2005_suspend(struct device *dev)
+ 
+ static int __maybe_unused tsc2005_resume(struct device *dev)
+ {
+-	struct spi_device *spi = to_spi_device(dev);
+-	struct tsc2005 *ts = spi_get_drvdata(spi);
++	struct tsc2005 *ts = dev_get_drvdata(dev);
+ 
+ 	mutex_lock(&ts->mutex);
  
 -- 
 2.1.4
-
