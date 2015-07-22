@@ -1,64 +1,72 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 3/3] mmc: host: omap_hsmmc: Add custom card detect irq
- handler
-Date: Wed, 22 Jul 2015 13:01:21 +0530
-Message-ID: <55AF46C9.9050308@ti.com>
-References: <1434451039-18195-1-git-send-email-vigneshr@ti.com>	<1434451039-18195-4-git-send-email-vigneshr@ti.com>	<CALtMJEAy8p23dkqPYZT9wTfyvvjiwi6Swj9Fzpau9Y4K9dym5g@mail.gmail.com>	<55880B24.9010906@ti.com> <CALtMJEBnqzJsGgBoLDjkO+6iJ=67Cw1FXjQm0vfmcm1i3yZ5oA@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 1/2] dmaengine: ti-dma-crossbar: Make idr xbar instance-specific
+Date: Wed, 22 Jul 2015 11:48:09 +0300
+Message-ID: <1437554890-2088-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1437554890-2088-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CALtMJEBnqzJsGgBoLDjkO+6iJ=67Cw1FXjQm0vfmcm1i3yZ5oA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, NeilBrown <neilb@suse.de>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437554890-2088-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, tony@atomide.com
+Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
+From: Misael Lopez Cruz <misael.lopez@ti.com>
 
-On 07/21/2015 01:46 PM, Andreas Fenkart wrote:
-> Hi Vignesh,
-> 
-> Generally I don't like this patch, it will make it harder, not easier,
-> to maintain the omap hsmmc driver. Also given that the bug occurs
-> rarely, people will be reluctant to clean it up later or accept
-> patches.
-> 
-> see also comments below
-> 
-[snip]
-> 2015-06-22 15:18 GMT+02:00 Vignesh R <vigneshr@ti.com>:
->>
-> 
->> But calls to omap_hsmmc_card_init or omap_hsmmc_get_cd are in the same
->> mmc_rescan thread. Hence, moving the recovery code to init_card does not
->> help.
-> 
-> what about clearing any pending transfer in
-> - mmc_gpio_cd_irqt, or
-> - mmc_detect_change
-> 
-> e.g. trigger the later mentioned .card_event callback from those
-> functions, instead mmc_rescan? Then you can install your
-> omap_hsmmc_request_clear as the card_event callback. This makes your
-> custom isr handler redundant, actually your isr handler became
-> standard.
-> 
+In preparation for supporting multiple DMA crossbar instances,
+make the idr xbar instance specific.
 
-I looked  at the commit fa372a51cb5f93800f711473e5a36e0e0c9a8f00 which
-moved .card_event out of mmc_gpio_cd_irqt. It points to two threads
-where discussion to move .card_event to mmc_rescan happened[1][2]. The
-concern there was this callback was being called from "atomic context"
-but, I don't understand how threaded irq is "atomic context". (I am not
-sure, if this is because those drivers have irqs disabled till threaded
-irq is complete) But, I believe moving card_event callback back to
-mmc_gpio_cd_irqt may break some drivers.
-I will look into this further.
-Do you have any insight on this commit? Thanks!
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/ti-dma-crossbar.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-[1]https://lkml.org/lkml/2014/3/19/79
-[2]https://lkml.org/lkml/2013/8/19/539
-
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+index 24f5ca2356bf..1fd3fb73d6e8 100644
+--- a/drivers/dma/ti-dma-crossbar.c
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -20,12 +20,11 @@
+ #define TI_XBAR_OUTPUTS	127
+ #define TI_XBAR_INPUTS	256
+ 
+-static DEFINE_IDR(map_idr);
+-
+ struct ti_dma_xbar_data {
+ 	void __iomem *iomem;
+ 
+ 	struct dma_router dmarouter;
++	struct idr map_idr;
+ 
+ 	u16 safe_val; /* Value to rest the crossbar lines */
+ 	u32 xbar_requests; /* number of DMA requests connected to XBAR */
+@@ -51,7 +50,7 @@ static void ti_dma_xbar_free(struct device *dev, void *route_data)
+ 		map->xbar_in, map->xbar_out);
+ 
+ 	ti_dma_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
+-	idr_remove(&map_idr, map->xbar_out);
++	idr_remove(&xbar->map_idr, map->xbar_out);
+ 	kfree(map);
+ }
+ 
+@@ -81,7 +80,7 @@ static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	map->xbar_out = idr_alloc(&map_idr, NULL, 0, xbar->dma_requests,
++	map->xbar_out = idr_alloc(&xbar->map_idr, NULL, 0, xbar->dma_requests,
+ 				  GFP_KERNEL);
+ 	map->xbar_in = (u16)dma_spec->args[0];
+ 
+@@ -113,6 +112,8 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
+ 	if (!xbar)
+ 		return -ENOMEM;
+ 
++	idr_init(&xbar->map_idr);
++
+ 	dma_node = of_parse_phandle(node, "dma-masters", 0);
+ 	if (!dma_node) {
+ 		dev_err(&pdev->dev, "Can't get DMA master node\n");
 -- 
-Regards
-Vignesh
+2.4.5
