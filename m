@@ -1,72 +1,47 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 1/2] dmaengine: ti-dma-crossbar: Make idr xbar instance-specific
-Date: Wed, 22 Jul 2015 11:48:09 +0300
-Message-ID: <1437554890-2088-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1437554890-2088-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 0/2] dmaengine: ti-dma-crossbar: Support for eDMA
+Date: Wed, 22 Jul 2015 11:48:08 +0300
+Message-ID: <1437554890-2088-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437554890-2088-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, tony@atomide.com
 Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, misael.lopez@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Misael Lopez Cruz <misael.lopez@ti.com>
+Hi Vinod,
 
-In preparation for supporting multiple DMA crossbar instances,
-make the idr xbar instance specific.
+Strange, for me the v2 series applied cleanly on top of rc1, but to be safe I
+have generated this series on top of 4.2-rc3
 
-Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Changes since v02:
+- generated on top of 4.2-rc3
+
+Changes since v01:
+- Drop change in compatible for the crossbar driver and do the configuration
+  based on the DT structure.
+
+The ti-dma-crossbar driver in it's current form can work when it is used with
+sDMA (omap-dma). On DRA7x class of devices we have both sDMA and eDMA available.
+The sDMA driver expects to get the DMA request line with offset 1. The eDMA
+stack does not need the offset.
+The crosbbar itself is identical for sDMA and eDMA.
+At probe time the driver will do a match to figure out which dma engine it is
+connected to and based on that information it will configure the offset needed
+by the DMA driver.
+
+Regards,
+Peter
 ---
- drivers/dma/ti-dma-crossbar.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Misael Lopez Cruz (1):
+  dmaengine: ti-dma-crossbar: Make idr xbar instance-specific
 
-diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
-index 24f5ca2356bf..1fd3fb73d6e8 100644
---- a/drivers/dma/ti-dma-crossbar.c
-+++ b/drivers/dma/ti-dma-crossbar.c
-@@ -20,12 +20,11 @@
- #define TI_XBAR_OUTPUTS	127
- #define TI_XBAR_INPUTS	256
- 
--static DEFINE_IDR(map_idr);
--
- struct ti_dma_xbar_data {
- 	void __iomem *iomem;
- 
- 	struct dma_router dmarouter;
-+	struct idr map_idr;
- 
- 	u16 safe_val; /* Value to rest the crossbar lines */
- 	u32 xbar_requests; /* number of DMA requests connected to XBAR */
-@@ -51,7 +50,7 @@ static void ti_dma_xbar_free(struct device *dev, void *route_data)
- 		map->xbar_in, map->xbar_out);
- 
- 	ti_dma_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
--	idr_remove(&map_idr, map->xbar_out);
-+	idr_remove(&xbar->map_idr, map->xbar_out);
- 	kfree(map);
- }
- 
-@@ -81,7 +80,7 @@ static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	map->xbar_out = idr_alloc(&map_idr, NULL, 0, xbar->dma_requests,
-+	map->xbar_out = idr_alloc(&xbar->map_idr, NULL, 0, xbar->dma_requests,
- 				  GFP_KERNEL);
- 	map->xbar_in = (u16)dma_spec->args[0];
- 
-@@ -113,6 +112,8 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
- 	if (!xbar)
- 		return -ENOMEM;
- 
-+	idr_init(&xbar->map_idr);
-+
- 	dma_node = of_parse_phandle(node, "dma-masters", 0);
- 	if (!dma_node) {
- 		dev_err(&pdev->dev, "Can't get DMA master node\n");
+Peter Ujfalusi (1):
+  dmaengine: ti-dma-crossbar: Add support for eDMA
+
+ drivers/dma/ti-dma-crossbar.c | 34 +++++++++++++++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 5 deletions(-)
+
 -- 
 2.4.5
