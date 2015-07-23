@@ -1,116 +1,122 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: PRCM and hwmod changes for v4.3
-Date: Thu, 23 Jul 2015 14:58:22 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1507231456540.29543@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/3] drivers: usb: dwc3: Add adjust_frame_length_quirk
+Date: Thu, 23 Jul 2015 10:08:44 -0500
+Message-ID: <20150723150844.GD21984@saruman.tx.rr.com>
+References: <1437646295-1858-1-git-send-email-nikhil.badola@freescale.com>
+ <20150723145532.GC21984@saruman.tx.rr.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="rz+pwK2yUstbofK6"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150723145532.GC21984@saruman.tx.rr.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Nikhil Badola <nikhil.badola@freescale.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--rz+pwK2yUstbofK6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
+Hi again,
 
-The following changes since commit d770e558e21961ad6cfdf0ff7df0eb5d7d4f0754:
+On Thu, Jul 23, 2015 at 09:55:32AM -0500, Felipe Balbi wrote:
+> > diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+> > index 0447788..b7a5119 100644
+> > --- a/drivers/usb/dwc3/core.h
+> > +++ b/drivers/usb/dwc3/core.h
+> > @@ -124,6 +124,7 @@
+> >  #define DWC3_GEVNTCOUNT(n)	(0xc40c + (n * 0x10))
+> > =20
+> >  #define DWC3_GHWPARAMS8		0xc600
+> > +#define DWC3_GFLADJ		0xc630
+> > =20
+> >  /* Device Registers */
+> >  #define DWC3_DCFG		0xc700
+> > @@ -234,6 +235,10 @@
+> >  /* Global HWPARAMS6 Register */
+> >  #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
+> > =20
+> > +/* Global Frame Length Adjustment Register */
+> > +#define GFLADJ_30MHZ_REG_SEL		(1 << 7)
+>=20
+> always prepend with DWC3_ like *all* other macros in this file.
+>=20
+> Also, match docs to ease grepping. This should be called
+> DWC3_GFLADJ_30MHZ_SDBND_SEL
 
-  Linux 4.2-rc1 (2015-07-05 11:01:52 -0700)
+yet another problem is that this register doesn't exist in *all*
+versions of DWC3. It was introduced in version 2.50a so the branch I
+typed above needs one extra check, and since it's getting so large, it
+deserves be factored out into its own function.
 
-are available in the git repository at:
+static int dwc3_frame_length_adjustment(struct dwc3 *dwc, u32 fladj)
+{
+	u32 reg;
+	u32 dft;
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.3/omap-hwmod-prcm-a
+	if (dwc->revision <=3D DWC3_REVISION_250A)
+		return 0;
 
-for you to fetch changes up to 3b86616e3058462c340710dc7a5ac34ec8453944:
+	if (fladj =3D=3D 0)
+		return 0;
 
-  Merge branch 'prcm-a-for-v4.3' into hwmod-prcm-for-v4.3 (2015-07-23 08:49:57 -0600)
+	reg =3D dwc3_readl(dwc->regs, DWC3_GFLADJ);
+	dft =3D reg & 0x3f; /* needs a mask macro */
 
-- ----------------------------------------------------------------
-ARM: OMAP2+: PRCM and hwmod changes for v4.3
+	if (!dev_WARN_ONCE(dwc->dev, dft =3D=3D fladj,
+		"requested value same as default, ignoring\n")) {
+		reg &=3D ~0x3f; /* needs a mask macro */
+		reg |=3D DWC3_GFLADJ_30MHZ_SDBND_SEL |
+			DWC3_GFLADJ_30MHZ(fladj_value);
 
-This series adds:
+		dwc3_writel(dwc->regs, DWC3_GFLADJ, reg);
+	}
+}
 
-- - I/O wakeup support for AM43xx
-- - register lock and unlock support to the hwmod code (needed for the RTC
-  IP blocks on some chips)
-- - several fixes for sparse warnings and an unnecessary null pointer test
-- - a DRA7xx clockdomain configuration workaround, to deal with some hardware
-  bugs
+you really *MUST* check this sort of this out when writing patches. It's
+not only about *your* SoC. You gotta remember we have a ton of different
+users and those a prone to major grumpyness should a completely
+unrelated patch break their use case.
 
-Basic build, boot, and PM tests are here:
+You have access to the IP's documentation, and that contains the entire
+history of the IP itself, so it's easy to figure all of this out with a
+simple search in the documentation.
 
-http://www.pwsan.com/omap/testlogs/hwmod-prcm-for-v4.3/20150723080012/
+One extra detail is that you were very careless when writing to the
+GFLADJ register too. You simply wrote your 30MHz sideband value,
+potentially clearing other bits which shouldn't be touched. That alone
+can add regressions.
 
-Since I do not have an AM43xx or DRA7xx device, I can't test on those
-platforms.
+When resending, make sure all 3 patches reach linux-usb. I still can't
+find patch 3/3.
 
-- ----------------------------------------------------------------
-Keerthy (6):
-      ARM: OMAP4: PRM: Remove hardcoding of PRM_IO_PMCTRL_OFFSET register
-      ARM: AM43xx: Add the PRM IRQ register offsets
-      ARM: dts: AM4372: Add PRCM IRQ entry
-      ARM: OMAP: PRM: Remove hardcoding of IRQENABLE_MPU_2 and IRQSTATUS_MPU_2 register offsets
-      ARM: OMAP4+: PRM: Add AM437x specific data
-      ARM: PRM: AM437x: Enable IO wakeup feature
+--=20
+balbi
 
-Lokesh Vutla (1):
-      ARM: OMAP2+: hwmod: add support for lock and unlock hooks
+--rz+pwK2yUstbofK6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Markus Elfring (1):
-      ARM: OMAP2: Delete an unnecessary check
-
-Paul Walmsley (1):
-      Merge branch 'prcm-a-for-v4.3' into hwmod-prcm-for-v4.3
-
-Sekhar Nori (2):
-      ARM: OMAP2+: sparse: add missing static declaration
-      ARM: OMAP2+: sparse: add missing function declarations
-
-Vignesh R (1):
-      ARM: OMAP2+: DRA7: clockdomain: change l4per2_7xx_clkdm to SW_WKUP
-
- arch/arm/boot/dts/am4372.dtsi                      |  1 +
- arch/arm/mach-omap2/clockdomains7xx_data.c         |  2 +-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c          |  2 +-
- arch/arm/mach-omap2/omap3-restart.c                |  1 +
- arch/arm/mach-omap2/omap4-restart.c                |  1 +
- arch/arm/mach-omap2/omap_hwmod.c                   | 13 +++++
- arch/arm/mach-omap2/omap_hwmod.h                   |  4 ++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  2 +-
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  2 +-
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c         | 34 ++++++------
- arch/arm/mach-omap2/pdata-quirks.c                 |  6 +--
- arch/arm/mach-omap2/prcm-common.h                  |  2 +
- arch/arm/mach-omap2/prcm43xx.h                     |  7 +++
- arch/arm/mach-omap2/prm44xx.c                      | 61 +++++++++++++---------
- arch/arm/mach-omap2/prm_common.c                   |  1 +
- arch/arm/mach-omap2/timer.c                        |  3 +-
- 16 files changed, 92 insertions(+), 50 deletions(-)
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVsQCiAAoJEMePsQ0LvSpLSxUP/2BIP8+R5r6CGzsSF/r5uQny
-aEYZoVPnB7bnTQJnrkrIlkj+oGoH+5JwMX4/v1G6/y6p9f5tTon9uvZSzSkJsW/k
-mmm4LPK+lX4UiCDRw6w21rJD2DrRUlpXqFSsfdK8XwY94dx1eGWB+bZBcoJXQb7/
-67ge693e6/ZCtg4J1BA1SMXnk9vaa4seDJ1N4AY09fJtROno30tUS7gfBanXi1Ht
-EQ8FIRB68tTwzrUAnG6osyDR1av/hB1nj9OX4VfoAzgPceyc7u33zUpo5iat1+Ib
-iAQjdvdMYYFpT7ExuXNSmrLT7v0W0bJ950EDy7XHss4Q/F8Fyevo96dRecypM4wx
-nCo5a5zk378tlVpPILcTYcrAYax1pU6z0FVc7ghTG7/lYMEe2YRD8mdqSwuLMyHZ
-GG1ofYX8WNEWai0SyPwGECSNFQXxrgbCqLlWzoJk8t4RjE9yHJEr+b1gi7Wh0/ZB
-KZMb6rSMzP5tmyQOjIhuQxTlFwZV44noJHf55wyIk1OFmiDPkGjKw5HaLttxb5V2
-yJOLSJQ0+CpMakDBwWQd8oWTuiDX9VxbUXZxIndEAoEc9YpTmFg2hUwwLqrAI/6/
-Y+J3XHkfwxj8va+FRdY6dZsh51Fq+o6yUoweuwsUUOwyrkuaI2p6iZGTHvjiOyt+
-w9T0RwVuta9hX19Bc2gF
-=9zrq
+iQIcBAEBAgAGBQJVsQN8AAoJEIaOsuA1yqREiI4QALRJmIxuDmlVzcBSliZONk5u
+Gp6JQXX9JvaV8eo8JL93PZMRBcWG9ZZQq1V1xGCQpJa5zFNbHM1LjER1G3ouczfI
+mjLAZNKjuKPKyisdtrw0W2rxMOFdnB9IxYFnfFEdihIwTmPp9BDLcNpM+0jweJOV
+Gi84XTeQgGFXKtO0xkZ0/sALKDJi4Q80Eo+aTGx+rc719gAg9zRPwq98R3JS3dlP
+slECLIb81O/JcGy57SZUErjzvJ2f7VpEhZbGK3G5OS1x1ceSiRIP/qYVdtqz0XAL
+6jjts4lQwbbcs0rdbVTA95xSfSExGce7n1QHwOx1uMQ2QrbLSM8cRWK6fEXsaw0w
+8EmBTN48FlBtY9QAo9RDwGiELY9aLXJARGq3R9sqOUluoD91qmphgWRuaaM210bZ
+wHoUjy/LBd/KdaY24UAcb34EGq6rX/Zje27KFliTSbpsQyJHGOFWkQxdO6Hn/tzF
+XuNamBvnRnyA/y8MYzVIoNOK8jE1cGJ/+LDfWAT63DO/noy6/JYJesCj6BDw5q9f
+PV/ySqsiqIduEnULZzpiZ1xnE2T2iVGwVaDXd50dLdWo8Bkyj+HqHnVq/nyigIln
+cRbMisxIXn+ul6E9Q87KR0sPTTikdeB1KAHZshL/T4PmkfY05Wtwo7A8dmmaRgOC
+Swb1gomxBYYUQ88EB/XK
+=U4Pq
 -----END PGP SIGNATURE-----
+
+--rz+pwK2yUstbofK6--
