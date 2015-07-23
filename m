@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 3/3] ARM: errata 430973: move !ARCH_MULTIPLATFORM to Kconfig
-Date: Thu, 23 Jul 2015 02:48:03 +0200
-Message-ID: <1437612483-30160-4-git-send-email-sre@kernel.org>
+Subject: [PATCH 1/3] ARM: OMAP2+: N900: always enable IBE bit
+Date: Thu, 23 Jul 2015 02:48:01 +0200
+Message-ID: <1437612483-30160-2-git-send-email-sre@kernel.org>
 References: <1437612483-30160-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1437612483-30160-1-git-send-email-sre@kernel.org>
@@ -10,39 +10,65 @@ To: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Having the !ARCH_MULTIPLATFORM dependency in the Kconfig file results
-in one option less to think about when configuring the kernel.
+The kernel's workaround for Errata 430973 consists of a BTAC/BTB
+flush at context switch. This requires the IBE bit being set, which
+should normally be done by the bootloader.
+
+Since the Nokia N900's bootloader is not easily replaceable,
+a pdata quirk enables the IBE bit for the Nokia N900. Until
+e748994f5cc5, the flush at context switch required
+CONFIG_ARM_ERRATA_430973, so the same check has been used
+for setting the IBE bit.
+
+Since all sold N900s are assumed to be affected, the guard
+can be removed now, so that the IBE bit is always set.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/Kconfig      | 1 +
- arch/arm/mm/proc-v7.S | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-rx51.c   |  2 --
+ arch/arm/mach-omap2/pdata-quirks.c | 11 ++---------
+ 2 files changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 0e4929b..f0e2d92 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1066,6 +1066,7 @@ config ARM_ERRATA_411920
- config ARM_ERRATA_430973
- 	bool "ARM errata: Stale prediction on replaced interworking branch"
- 	depends on CPU_V7
-+	depends on !ARCH_MULTIPLATFORM
- 	help
- 	  This option enables the workaround for the 430973 Cortex-A8
- 	  r1p* erratum. If a code sequence containing an ARM/Thumb
-diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
-index 0716bbe..494e844 100644
---- a/arch/arm/mm/proc-v7.S
-+++ b/arch/arm/mm/proc-v7.S
-@@ -294,7 +294,7 @@ __v7_ca17mp_setup:
-  *  r9: MIDR
-  */
- __ca8_errata:
--#if defined(CONFIG_ARM_ERRATA_430973) && !defined(CONFIG_ARCH_MULTIPLATFORM)
-+#ifdef CONFIG_ARM_ERRATA_430973
- 	teq	r3, #0x00100000			@ only present in r1p*
- 	mrceq	p15, 0, r0, c1, c0, 1		@ read aux control register
- 	orreq	r0, r0, #(1 << 6)		@ set IBE to 1
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 2d1e5a6..3df01cc 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -108,11 +108,9 @@ static void __init rx51_init(void)
+ 	rx51_peripherals_init();
+ 
+ 	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
+-#ifdef CONFIG_ARM_ERRATA_430973
+ 		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
+ 		/* set IBE to 1 */
+ 		rx51_secure_update_aux_cr(BIT(6), 0);
+-#endif
+ 	}
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 821171c..0aa438d 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -249,18 +249,11 @@ static void __init nokia_n900_legacy_init(void)
+ 	hsmmc2_internal_input_clk();
+ 
+ 	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
+-		if (IS_ENABLED(CONFIG_ARM_ERRATA_430973)) {
+-			pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
+-			/* set IBE to 1 */
+-			rx51_secure_update_aux_cr(BIT(6), 0);
+-		} else {
+-			pr_warn("RX-51: Not enabling ARM errata 430973 workaround\n");
+-			pr_warn("Thumb binaries may crash randomly without this workaround\n");
+-		}
++		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
++		rx51_secure_update_aux_cr(BIT(6), 0); /* set IBE to 1 */
+ 
+ 		pr_info("RX-51: Registring OMAP3 HWRNG device\n");
+ 		platform_device_register(&omap3_rom_rng_device);
+-
+ 	}
+ }
+ 
 -- 
 2.1.4
