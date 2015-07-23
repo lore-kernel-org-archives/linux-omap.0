@@ -1,106 +1,85 @@
-From: Nikhil Badola <nikhil.badola-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: [PATCH 2/3] drivers: usb: dwc3: Add adjust_frame_length_quirk
-Date: Thu, 23 Jul 2015 15:41:35 +0530
-Message-ID: <1437646295-1858-1-git-send-email-nikhil.badola@freescale.com>
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH v2] thermal: consistently use int for temperatures
+Date: Thu, 23 Jul 2015 12:37:58 +0200
+Message-ID: <20150723103758.GI18700@pengutronix.de>
+References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
+ <9hhk2tteqb3.fsf@e105922-lin.cambridge.arm.com>
+ <744357E9AAD1214791ACBA4B0B9092630153E699@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Nikhil Badola <nikhil.badola-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <744357E9AAD1214791ACBA4B0B9092630153E699@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Punit Agrawal <punit.agrawal@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard>
 List-Id: linux-omap@vger.kernel.org
 
-Add adjust_frame_length_quirk for writing to fladj register
-which adjusts (micro)frame length to value provided by
-"snps,configure-fladj" property thus avoiding USB 2.0 devices
-to time-out over a longer run
+Hi Zhang,
 
-Signed-off-by: Nikhil Badola <nikhil.badola-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+On Tue, Jul 21, 2015 at 01:35:31PM +0000, Zhang, Rui wrote:
+> > >
+> Patch applied.
+
+Thanks for applying. I missed to convert another place, so we get a new
+compiler warning. The attached patch fixes this (suitable for git rebas=
+e
+--autosquash). Please let me know if you can handle this or if you
+prefer a new patch instead.
+
+Thanks
+ Sascha
+
+
+-----------------------------8<-------------------------------------
+
+=46rom 4907a7c32fd16eaf9f31d9f904276c9a0176b717 Mon Sep 17 00:00:00 200=
+1
+=46rom: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Thu, 23 Jul 2015 12:32:31 +0200
+Subject: [PATCH] fixup! thermal: consistently use int for temperatures
+MIME-Version: 1.0
+Content-Type: text/plain; charset=3DUTF-8
+Content-Transfer-Encoding: 8bit
+
+fixes:
+drivers/power/charger-manager.c: In function =E2=80=98cm_get_battery_te=
+mperature=E2=80=99:
+drivers/power/charger-manager.c:622:45: warning: passing argument 2 of =
+=E2=80=98thermal_zone_get_temp=E2=80=99 from incompatible pointer type
+   ret =3D thermal_zone_get_temp(cm->tzd_batt, (unsigned long *)temp);
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 ---
- drivers/usb/dwc3/core.c | 12 ++++++++++++
- drivers/usb/dwc3/core.h |  7 +++++++
- 2 files changed, 19 insertions(+)
+ drivers/power/charger-manager.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 5c110d8..72ba025 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -779,6 +779,7 @@ static int dwc3_probe(struct platform_device *pdev)
- 	u8			lpm_nyet_threshold;
- 	u8			tx_de_emphasis;
- 	u8			hird_threshold;
-+	u32			fladj_value;
- 
- 	int			ret;
- 
-@@ -886,6 +887,12 @@ static int dwc3_probe(struct platform_device *pdev)
- 				&tx_de_emphasis);
- 		of_property_read_string(node, "snps,hsphy_interface",
- 					&dwc->hsphy_interface);
-+		ret = of_property_read_u32(node, "snps,configure-fladj",
-+					   &fladj_value);
-+		if (!ret)
-+			dwc->adjust_frame_length_quirk = 1;
-+		else
-+			dwc->adjust_frame_length_quirk = 0;
- 	} else if (pdata) {
- 		dwc->maximum_speed = pdata->maximum_speed;
- 		dwc->has_lpm_erratum = pdata->has_lpm_erratum;
-@@ -957,6 +964,11 @@ static int dwc3_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
-+	/* Adjust Frame Length */
-+	if (dwc->adjust_frame_length_quirk)
-+		dwc3_writel(dwc->regs, DWC3_GFLADJ, GFLADJ_30MHZ_REG_SEL |
-+			    GFLADJ_30MHZ(fladj_value));
-+
- 	if (IS_ENABLED(CONFIG_USB_DWC3_HOST))
- 		dwc->dr_mode = USB_DR_MODE_HOST;
- 	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 0447788..b7a5119 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -124,6 +124,7 @@
- #define DWC3_GEVNTCOUNT(n)	(0xc40c + (n * 0x10))
- 
- #define DWC3_GHWPARAMS8		0xc600
-+#define DWC3_GFLADJ		0xc630
- 
- /* Device Registers */
- #define DWC3_DCFG		0xc700
-@@ -234,6 +235,10 @@
- /* Global HWPARAMS6 Register */
- #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
- 
-+/* Global Frame Length Adjustment Register */
-+#define GFLADJ_30MHZ_REG_SEL		(1 << 7)
-+#define GFLADJ_30MHZ(n)			((n) & 0x3f)
-+
- /* Device Configuration Register */
- #define DWC3_DCFG_DEVADDR(addr)	((addr) << 3)
- #define DWC3_DCFG_DEVADDR_MASK	DWC3_DCFG_DEVADDR(0x7f)
-@@ -712,6 +717,7 @@ struct dwc3_scratchpad_array {
-  * @rx_detect_poll_quirk: set if we enable rx_detect to polling lfps quirk
-  * @dis_u3_susphy_quirk: set if we disable usb3 suspend phy
-  * @dis_u2_susphy_quirk: set if we disable usb2 suspend phy
-+ * @adjust_frame_length_quirk: enables post-silicon frame length adjustment
-  * @tx_de_emphasis_quirk: set if we enable Tx de-emphasis quirk
-  * @tx_de_emphasis: Tx de-emphasis value
-  * 	0	- -6dB de-emphasis
-@@ -841,6 +847,7 @@ struct dwc3 {
- 	unsigned		rx_detect_poll_quirk:1;
- 	unsigned		dis_u3_susphy_quirk:1;
- 	unsigned		dis_u2_susphy_quirk:1;
-+	unsigned		adjust_frame_length_quirk:1;
- 
- 	unsigned		tx_de_emphasis_quirk:1;
- 	unsigned		tx_de_emphasis:2;
--- 
-2.1.0
+diff --git a/drivers/power/charger-manager.c b/drivers/power/charger-ma=
+nager.c
+index 1c202cc..907293e 100644
+--- a/drivers/power/charger-manager.c
++++ b/drivers/power/charger-manager.c
+@@ -619,7 +619,7 @@ static int cm_get_battery_temperature(struct charge=
+r_manager *cm,
+=20
+ #ifdef CONFIG_THERMAL
+ 	if (cm->tzd_batt) {
+-		ret =3D thermal_zone_get_temp(cm->tzd_batt, (unsigned long *)temp);
++		ret =3D thermal_zone_get_temp(cm->tzd_batt, temp);
+ 		if (!ret)
+ 			/* Calibrate temperature unit */
+ 			*temp /=3D 100;
+--=20
+2.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+Pengutronix e.K.                           |                           =
+  |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  =
+  |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-555=
+5 |
