@@ -1,154 +1,97 @@
-From: "R, Vignesh" <vigneshr@ti.com>
-Subject: Re: [PATCH v2 2/5] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
-Date: Thu, 23 Jul 2015 21:05:29 +0530
-Message-ID: <55B109C1.80901@ti.com>
-References: <1433332284-10766-1-git-send-email-vigneshr@ti.com>
- <1433332284-10766-3-git-send-email-vigneshr@ti.com>
- <alpine.DEB.2.02.1507152029460.32764@utopia.booyaka.com>
- <55A7CE59.6010600@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] iommu/omap: Add support for configuring dsp iommus
+	on DRA7xx
+Date: Thu, 23 Jul 2015 11:22:55 -0500
+Message-ID: <55B114DF.8070800@ti.com>
+References: <1437522936-19758-1-git-send-email-s-anna@ti.com>
+	<1437522936-19758-3-git-send-email-s-anna@ti.com>
+	<20150722052600.GF17550@atomide.com> <55AFC34E.4000603@ti.com>
+	<20150723072455.GC16878@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <55A7CE59.6010600@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20150723072455.GC16878-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tony,
 
+On 07/23/2015 02:24 AM, Tony Lindgren wrote:
+> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [150722 09:25]:
+>> On 07/22/2015 12:26 AM, Tony Lindgren wrote:
+>>>
+>>> I don't like using syscon for tinkering directly with SoC registers.
+>>
+>> This is not a SoC-level register, but a register within a sub-module of
+>> the DSP processor sub-system. The DSP_SYSTEM sub-module in general is
+>> described in Section 5.3.3 of the TRM [1], and it implements different
+>> functionalities like the PRCM handshaking, wakeup logic and DSP
+>> subsystem top-level configuration. It is a module present within the DSP
+>> processor sub-system, so can only be accessed when the sub-system is
+>> clocked and the appropriate reset is released.
+> 
+> OK so if it's specific to the DSP driver along the lines of sysc and
+> syss registers.
 
-On 7/16/2015 9:01 PM, R, Vignesh wrote:
-> Hi,
-> 
-> On 07/16/2015 03:24 AM, Paul Walmsley wrote:
->> Hi,
->>
->> some comments.
->>
->> On Wed, 3 Jun 2015, Vignesh R wrote:
->>
->>> Add hwmod entries for the PWMSS on DRA7.
->>>
->>> Set l4_root_clk_div as the main_clk of PWMSS. It is fixed-factored clock
->>> equal to L4PER2_L3_GICLK/2(l3_iclk_div/2).
->>> As per AM57x TRM SPRUHZ6[1], October 2014, Section 29.1.3 Table 29-4,
->>> clock source to PWMSS is L4PER2_L3_GICLK. But it is actually
->>> L4PER2_L3_GICLK/2. The TRM does not show the division by 2.
->>
->> Is the divide-by-two coming from PWMSS_EPWM.EPWM_TBCTL[HSPCLKDIV]?  Or is 
->> HSPCLKDIV a separate divider after the divide-by-2 you mention above?
-> 
-> No, it not related to HSPCLKDIV. The TRM wrongly states L4PER2_L3_GICLK
-> as clock input for PWMSS. But actually  L4PER2_L4_GICLK(=L3_GICLK/2) is
-> the clock input for PWMSS. This will be updated in TRM soon.
-> 
->>
->>> [1] www.ti.com/lit/ug/spruhz6/spruhz6.pdf
->>>
->>> Signed-off-by: Vignesh R <vigneshr@ti.com>
->>> ---
->>>
->>> v2:
->>>  * add TRM references.
->>>
->>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 239 ++++++++++++++++++++++++++++++
->>>  1 file changed, 239 insertions(+)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> index 0e64c2fac0b5..86a7ac9a3138 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> @@ -362,6 +362,149 @@ static struct omap_hwmod dra7xx_dcan2_hwmod = {
->>>  	},
->>>  };
->>>  
->>> +/* pwmss  */
->>> +static struct omap_hwmod_class_sysconfig dra7xx_epwmss_sysc = {
->>> +	.rev_offs	= 0x0,
->>> +	.sysc_offs	= 0x4,
->>> +	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_RESET_STATUS,
->>
->> This doesn't match SPRUHZ6 Table 29-13 "PWMSS_SYSCONFIG".  There's no 
->> RESETSTATUS bit.  There is a SOFTRESET bit. 
->>
->> Could you please confirm whether this is intentional?
-> 
-> sorry my bad... I will change this in v3.
-> 
->>
->>> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
->>> +	.sysc_fields	= &omap_hwmod_sysc_type2,
->>> +};
->>> +
->>> +struct omap_hwmod_class dra7xx_epwmss_hwmod_class = {
->>> +	.name		= "epwmss",
->>> +	.sysc		= &dra7xx_epwmss_sysc,
->>> +};
->>> +
->>> +static struct omap_hwmod_class dra7xx_ecap_hwmod_class = {
->>> +	.name		= "ecap",
->>> +};
->>> +
->>> +static struct omap_hwmod_class dra7xx_eqep_hwmod_class = {
->>> +	.name		= "eqep",
->>> +};
->>> +
->>> +struct omap_hwmod_class dra7xx_ehrpwm_hwmod_class = {
->>> +	.name		= "ehrpwm",
->>> +};
->>> +
->>> +/* epwmss0 */
->>> +struct omap_hwmod dra7xx_epwmss0_hwmod = {
->>> +	.name		= "epwmss0",
->>> +	.class		= &dra7xx_epwmss_hwmod_class,
->>> +	.clkdm_name	= "l4per2_clkdm",
->>> +	.main_clk	= "l4_root_clk_div",
->>> +	.prcm		= {
->>> +		.omap4	= {
->>> +			.modulemode	= MODULEMODE_SWCTRL,
->>> +			.clkctrl_offs	= DRA7XX_CM_L4PER2_PWMSS1_CLKCTRL_OFFSET,
->>> +			.context_offs	= DRA7XX_RM_L4PER2_PWMSS1_CONTEXT_OFFSET,
->>> +		},
->>> +	},
->>
->> Per my comment on the previous patch, sounds like it might be better to 
->> mark this as HWMOD_SWSUP_SIDLE?  Then again, see the next comment below 
->> re: main_clk.
->>
->>> +};
->>> +
->>> +/* ecap0 */
->>> +struct omap_hwmod dra7xx_ecap0_hwmod = {
->>> +	.name		= "ecap0",
->>> +	.class		= &dra7xx_ecap_hwmod_class,
->>> +	.clkdm_name	= "l4per2_clkdm",
->>> +	.main_clk	= "l4_root_clk_div",
->>
->> Looking at SPRUHZ6 Section 29.1.4.2 "PWMSS Modules Local Clock Gating", 
->> there appears to be a local "mini-PRCM" for the PWMSS which implements 
->> clock gating and reports back on the status of what I'd guess is the local 
->> clock gating FSM.
->>
->> So from that point of view, you should probably create a clock driver that 
->> manages both the clock gate request bit and the FSM status bit.  It should 
->> be something that can be reused for the other PWMSS IP blocks.  Then 
->> you'd create per-IP block clock nodes and set the main_clk to point to 
->> that node.
->>
-> 
-> Since, this register is within the config space of PWMSS, the individual
-> gating and reporting for the modules within PWMSS
-> (PWMSS_CLKCONFIG) is currently being taken care by pwm-tipwmss.c(almost
-> the sole function this driver is doing). It has been the same since
-> am335x. Adding new clock nodes will result in driver changes and also
-> changes to am335x, am437x (and other platforms) hwmod files. It also
-> involves adding new nodes to clocks.dtsi and it will be difficult to
-> maintain backward compatibility for older platforms. Is it not better to
-> keep this as is, in order to maintain consistency (with am335x, am437x
-> etc) and also that these clock bits are within IP's config space?
-> 
-ping...
+There will be those registers too within the MMU config register space,
+even for DRA7xx MMUs. This is different, think of it like a register in
+the Control module except that it is present within the DSP sub-system
+instead of at the SoC level.
 
-Regards
-Vignesh
+> 
+> Typically we handle these registers by mapping them to the PM runtime
+> functions for the interconnect so we can reset and idle the hardware
+> modules even if there is no driver, see for example
+> omap54xx_mmu_dsp_hwmod.
+
+I haven't yet submitted the DRA7xx hwmods, but they will look almost
+exactly like the OMAP5 ones. The reset and idle on these are in general
+not effective at boot time since these are also controlled by a
+hard-reset line, so that's left to the drivers to deal with it through
+the omap_device_deassert_hardreset API.
+
+>  
+>>> We should use some Linux generic framework for configuring these
+>>> bits to avoid nasty dependencies between various hardware modules
+>>> on the SoC.
+>>>
+>>> What does DSP_SYS_MMU_CONFIG register do? It seems it's probably
+>>> a regulator or a gate clock? If so, it should be set up as a
+>>> regulator or a clock and then the omap-iommu driver can just
+>>> use regulator or clcok framework to request the resource.
+>>
+>> No, its neither. It is a control bit that dictates whether the
+>> processor/EDMA addresses go through the respective MMU or not. The
+>> register currently has 4 bits (bit 0 in each nibble), one each for
+>> enabling each MMU and requesting an MMU abort on each. The MMU
+>> integration and enablement notes are detailed in Section 5.3.6 of the
+>> TRM [1], and the DSP_SYS_MMU_CONFIG register layout is in Table 5-28
+>> (Page 1641).
+> 
+> OK yeah seems like it should be handled by the DSP driver during
+> probe after doing pm_runtime_get. Then the driver can configure
+> things like IOMMU and load firmware. Or am I missing something here?
+
+The DSP (remoteproc) driver uses the generic IOMMU API, and all the
+IOMMU enabling sequence is transparent to the DSP driver. So, any
+configuration/enabling sequence specific to the IOMMU has to be handled
+within the respective IOMMU platform driver that gets integrated into
+the IOMMU API.
+
+regards
+Suman
+
+> 
+>  
+>> [1] http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
