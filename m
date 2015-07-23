@@ -1,97 +1,78 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/3] PCI: host: pcie-designware: add support for suspend
- and resume
-Date: Thu, 23 Jul 2015 18:20:31 +0530
-Message-ID: <55B0E317.9030700@ti.com>
-References: <1435921425-15121-1-git-send-email-kishon@ti.com> <1435921425-15121-3-git-send-email-kishon@ti.com> <000301d0bc8d$e067e420$a137ac60$@com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <000301d0bc8d$e067e420$a137ac60$@com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jingoo Han <jingoohan1@gmail.com>
-Cc: 'Bjorn Helgaas' <bhelgaas@google.com>, 'Pratyush Anand' <pratyush.anand@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+From: "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: gpadc iio support for tlw6037/palmas [was: twl6030-gpadc support for twl6037]
+Date: Thu, 23 Jul 2015 14:58:26 +0200
+Message-ID: <CB1BA4C2-51EC-493D-A290-E506DE974605@goldelico.com>
+References: <CAAfyv354=J+iDgLcu9KRZSScGSzYrRsCMmUEc_tW84GfduSebw@mail.gmail.com> <CAAfyv35bUMZKfMQDJYwD_uGRNOiqLqAB4UG=gREgCSWa8vhjdw@mail.gmail.com> <1437593628.2381718.330572297.2F6F1C50@webmail.messagingengine.com> <1437594062.2382998.330577153.4CE28783@webmail.messagingengine.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1437594062.2382998.330577153.4CE28783-2RFepEojUI2N1INw9kWLP6GC3tUn3ZHUQQ4Iyu8u01E@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Axel Lin <axel.lin-8E1dMatC8ynQT0dZR+AlfA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, balajitk-l0cyMroinI0@public.gmane.org, oleksandr.kozaruk-l0cyMroinI0@public.gmane.org, Michael Mrozek <EvilDragon-in7WBhxDdJqvTmjiLVyRpw@public.gmane.org>, Grazvydas Ignotas <notaz-in7WBhxDdJqvTmjiLVyRpw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Graeme,
 
-On Sunday 12 July 2015 04:01 PM, Jingoo Han wrote:
-> On Friday, July 03, 2015 8:04 PM, Kishon Vijay Abraham I wrote:
->>
->> Certain platforms require MSE bit to be cleared to set the master
->> in standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
-> 
-> This patch is a work-around specific for DRA7xx chips?
-> If so, please move this patch to 'pci-dra7xx.c'.
-> I don't want to include chip-specific codes, because
-> 'pcie-designware.c' is designed for including common codes.
+Am 22.07.2015 um 21:41 schrieb Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>:
 
-Alright. Will change it that way in the next version.
+> 
+> 
+> On Wed, 22 Jul 2015, at 08:33 PM, Graeme Gregory wrote:
+>> 
+>> 
+>> On Wed, 22 Jul 2015, at 08:28 PM, Belisko Marek wrote:
+>>> Adding also twl6030-gpadc driver authors to loop
+>>> 
+>>> On Mon, Jul 20, 2015 at 8:57 AM, Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>> wrote:
+>>>> Hi all,
+>>>> 
+>>>> I'm trying to figure out what is relation between palmas mfd driver
+>>>> and twl-core for twl603x devices.
+>>>> twl-core driver seems to be older than palmas driver but seems both
+>>>> export same functionality (except that palmas have defined structs for
+>>>> gpadc but functionality is missing). My main focus is to add support
+>>>> for twl6037 to gpadc iio driver in iio/adc/twl6030-gpadc which is
+>>>> using twl-core for twl6030 and twl6032. Adding twl6037 support should
+>>>> be straightforward but dts file used in omap5-uevm using palmas driver
+>>>> and not twl6030. So it's completely confusing to me how to proceed or
+>>>> which direction is correct. Seems I'm missing some parts of puzzle ;)
+>>>> Thanks for any hints.
+>>>> 
+>> Phoenix is twl6030, twl6032
+>> 
+>> Palmas is twl6035, twl6037 and maybe others.
+>> 
+>> Phoenix and Palmas are two totally different chips but marketing gave
+>> them numbers near each other for unknown reasons.
+>> 
+> Also this might be useful.
+> 
+> https://github.com/slimlogic/linux/commit/312a6a1c8013fd056431c31567b43d8eef40f333
+> 
+> A pre IIO palmas ADC driver which I never got around to upstreaming
+> because TIpocalypse left me with no access to a palmas chip.
 
-Thanks
-Kishon
-> 
-> Best regards,
-> Jingoo Han
-> 
->> Controller Master Standby Behavior advises to use the clearing
->> of the local MSE bit to set the master in standby. Without this
->> some of the clocks do not idle).
->>
->> Cleared the MSE bit on suspend and enabled it back on resume.
->> This is required to get suspend/resume working.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> ---
->>  drivers/pci/host/pcie-designware.c |   20 ++++++++++++++++++++
->>  drivers/pci/host/pcie-designware.h |    2 ++
->>  2 files changed, 22 insertions(+)
->>
->> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
->> index 69486be..cfb2bd6 100644
->> --- a/drivers/pci/host/pcie-designware.c
->> +++ b/drivers/pci/host/pcie-designware.c
->> @@ -811,6 +811,26 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
->>  	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
->>  }
->>
->> +void dw_pcie_suspend_rc(struct pcie_port *pp)
->> +{
->> +	u32 val;
->> +
->> +	/* clear MSE */
->> +	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
->> +	val &= ~PCI_COMMAND_MEMORY;
->> +	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
->> +}
->> +
->> +void dw_pcie_resume_rc(struct pcie_port *pp)
->> +{
->> +	u32 val;
->> +
->> +	/* set MSE */
->> +	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
->> +	val |= PCI_COMMAND_MEMORY;
->> +	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
->> +}
->> +
->>  MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
->>  MODULE_DESCRIPTION("Designware PCIe host controller driver");
->>  MODULE_LICENSE("GPL v2");
->> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
->> index d0bbd27..0df2dfa 100644
->> --- a/drivers/pci/host/pcie-designware.h
->> +++ b/drivers/pci/host/pcie-designware.h
->> @@ -83,5 +83,7 @@ void dw_pcie_msi_init(struct pcie_port *pp);
->>  int dw_pcie_link_up(struct pcie_port *pp);
->>  void dw_pcie_setup_rc(struct pcie_port *pp);
->>  int dw_pcie_host_init(struct pcie_port *pp);
->> +void dw_pcie_suspend_rc(struct pcie_port *pp);
->> +void dw_pcie_resume_rc(struct pcie_port *pp);
->>
->>  #endif /* _PCIE_DESIGNWARE_H */
->> --
->> 1.7.9.5
-> 
+We managed to integrate your code into our 4.1 kernel (needed minor fixes mainly for
+irq initialization) and it appears to work on the omap5432evm. Especially channels
+in6_channel and in7_channel in /sys/bus/platform/drivers/palmas-gpadc/48070000.i2c:palmas@48:gpadc
+show reasonable (and slightly fluctuating) volt values.
+
+Now the question is how to proceed. We could either write some drivers/iio/adc/palmas-gpadc.c
+wrapper around your driver, or could try this one which appears to be a pure iio implementation:
+
+https://android.googlesource.com/kernel/tegra.git/+/28f245bb8f590f61bb244f1b4d03f4b4919d32ea/Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
+https://android.googlesource.com/kernel/tegra/+/aaabb2e045f31e5a970109ffdaae900dd403d17e/drivers/staging/iio/adc/palmas_gpadc.c
+
+Do you think the latter has a chance to be accepted upstream?
+
+The reason we ask is that we neither want to write new code if something exists nor base
+our work on something that can not be upstreamed.
+
+We have added the author(s) of this tegra/android driver so they can please also comment
+on their plans for submitting the driver upstream.
+
+BR and thank you,
+Nikolaus and Marek
