@@ -1,33 +1,97 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/3] ARM: errata 430973: move !ARCH_MULTIPLATFORM to
- Kconfig
-Date: Thu, 23 Jul 2015 13:35:53 +0100
-Message-ID: <20150723123553.GE7576@n2100.arm.linux.org.uk>
-References: <1437612483-30160-1-git-send-email-sre@kernel.org>
- <1437612483-30160-4-git-send-email-sre@kernel.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 2/3] PCI: host: pcie-designware: add support for suspend
+ and resume
+Date: Thu, 23 Jul 2015 18:20:31 +0530
+Message-ID: <55B0E317.9030700@ti.com>
+References: <1435921425-15121-1-git-send-email-kishon@ti.com> <1435921425-15121-3-git-send-email-kishon@ti.com> <000301d0bc8d$e067e420$a137ac60$@com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1437612483-30160-4-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <000301d0bc8d$e067e420$a137ac60$@com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jingoo Han <jingoohan1@gmail.com>
+Cc: 'Bjorn Helgaas' <bhelgaas@google.com>, 'Pratyush Anand' <pratyush.anand@gmail.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 23, 2015 at 02:48:03AM +0200, Sebastian Reichel wrote:
-> Having the !ARCH_MULTIPLATFORM dependency in the Kconfig file results
-> in one option less to think about when configuring the kernel.
+Hi,
 
-> -#if defined(CONFIG_ARM_ERRATA_430973) && !defined(CONFIG_ARCH_MULTIPLATFORM)
-> +#ifdef CONFIG_ARM_ERRATA_430973
->  	teq	r3, #0x00100000			@ only present in r1p*
->  	mrceq	p15, 0, r0, c1, c0, 1		@ read aux control register
->  	orreq	r0, r0, #(1 << 6)		@ set IBE to 1
+On Sunday 12 July 2015 04:01 PM, Jingoo Han wrote:
+> On Friday, July 03, 2015 8:04 PM, Kishon Vijay Abraham I wrote:
+>>
+>> Certain platforms require MSE bit to be cleared to set the master
+>> in standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
+> 
+> This patch is a work-around specific for DRA7xx chips?
+> If so, please move this patch to 'pci-dra7xx.c'.
+> I don't want to include chip-specific codes, because
+> 'pcie-designware.c' is designed for including common codes.
 
-NAK.  Please read the mailing list history, I'm not repeating myself
-again on this.  Thanks.
+Alright. Will change it that way in the next version.
 
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Thanks
+Kishon
+> 
+> Best regards,
+> Jingoo Han
+> 
+>> Controller Master Standby Behavior advises to use the clearing
+>> of the local MSE bit to set the master in standby. Without this
+>> some of the clocks do not idle).
+>>
+>> Cleared the MSE bit on suspend and enabled it back on resume.
+>> This is required to get suspend/resume working.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>> ---
+>>  drivers/pci/host/pcie-designware.c |   20 ++++++++++++++++++++
+>>  drivers/pci/host/pcie-designware.h |    2 ++
+>>  2 files changed, 22 insertions(+)
+>>
+>> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+>> index 69486be..cfb2bd6 100644
+>> --- a/drivers/pci/host/pcie-designware.c
+>> +++ b/drivers/pci/host/pcie-designware.c
+>> @@ -811,6 +811,26 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
+>>  	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
+>>  }
+>>
+>> +void dw_pcie_suspend_rc(struct pcie_port *pp)
+>> +{
+>> +	u32 val;
+>> +
+>> +	/* clear MSE */
+>> +	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
+>> +	val &= ~PCI_COMMAND_MEMORY;
+>> +	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
+>> +}
+>> +
+>> +void dw_pcie_resume_rc(struct pcie_port *pp)
+>> +{
+>> +	u32 val;
+>> +
+>> +	/* set MSE */
+>> +	dw_pcie_readl_rc(pp, PCI_COMMAND, &val);
+>> +	val |= PCI_COMMAND_MEMORY;
+>> +	dw_pcie_writel_rc(pp, val, PCI_COMMAND);
+>> +}
+>> +
+>>  MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
+>>  MODULE_DESCRIPTION("Designware PCIe host controller driver");
+>>  MODULE_LICENSE("GPL v2");
+>> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+>> index d0bbd27..0df2dfa 100644
+>> --- a/drivers/pci/host/pcie-designware.h
+>> +++ b/drivers/pci/host/pcie-designware.h
+>> @@ -83,5 +83,7 @@ void dw_pcie_msi_init(struct pcie_port *pp);
+>>  int dw_pcie_link_up(struct pcie_port *pp);
+>>  void dw_pcie_setup_rc(struct pcie_port *pp);
+>>  int dw_pcie_host_init(struct pcie_port *pp);
+>> +void dw_pcie_suspend_rc(struct pcie_port *pp);
+>> +void dw_pcie_resume_rc(struct pcie_port *pp);
+>>
+>>  #endif /* _PCIE_DESIGNWARE_H */
+>> --
+>> 1.7.9.5
+> 
