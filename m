@@ -1,59 +1,130 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] serial: 8250_omap: workaround for IP errata
-Date: Fri, 24 Jul 2015 05:01:08 -0700
-Message-ID: <20150724120108.GI16878@atomide.com>
-References: <cover.1436855646.git.nsekhar@ti.com>
- <55A4FEEC.3080101@hurleysoftware.com>
- <20150714124908.GE10928@atomide.com>
- <55B1DE10.60408@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] omap soc changes for v4.3
+Date: Fri, 24 Jul 2015 05:06:10 -0700
+Message-ID: <16826.1477527723$1437739679@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55B1DE10.60408-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [150723 23:44]:
-> Hi Greg,
-> 
-> On Tuesday 14 July 2015 06:19 PM, Tony Lindgren wrote:
-> > * Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org> [150714 05:24]:
-> >> On 07/14/2015 04:02 AM, Sekhar Nori wrote:
-> >>> This series works around "Advisory 21" as documented in
-> >>> AM437x SoC errata[1]. This errata prevents UART module
-> >>> from idling after DMA is used. AM335x and DRA7x also suffer
-> >>> from the same errata and chip design team is in the process
-> >>> of updating the errata documents of those devices as well.
-> >>>
-> >>> Patch 1/7 fixes a related bug but can be applied independently.
-> >>
-> >> Looks good. Thanks Sekhar!
-> >>
-> >> For series,
-> >>
-> >> Reviewed-by: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
-> > 
-> > Also things still work for me, and the dts changes should
-> > not cause merge conflicts during v4.3 merge window based on
-> > what I have queued. So please feel free to queue these
-> > all via the tty tree and add:
-> > 
-> > Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> 
-> 
-> Looks like you have queued the first 6 patches of this series but left
-> out 7/7 which is a DTS update. Based on above, Tony is okay with you
-> going ahead and queuing that DTS patch too. Can you please go ahead and
-> queue 7/7 as well?
+The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
 
-OK seems it won't cause merge conflicts so I've acked it.
+  Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
 
-Regards,
+are available in the git repository at:
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/soc-signed
+
+for you to fetch changes up to 24da741c678f865de3182194604dbddcc7fc7f3c:
+
+  Merge branch 'dm814x-soc' into omap-for-v4.3/soc (2015-07-23 21:59:18 -0700)
+
+----------------------------------------------------------------
+SoC changes for omaps for v4.3 merge window:
+
+- Clean-up omap4_local_timer_init to drop deal legacy code
+
+- Provide proper IO map table for dra7
+
+- Clean-up IOMMU layer init code as it now uses IOMMU framework
+
+- A series of changes to fix up dm814x support that's been in a broken
+  half-merged state for quite some time
+
+- A series of PRCM and hwmod changes via Paul Walmsley <paul@pwsan.com>:
+
+  - I/O wakeup support for AM43xx
+  - register lock and unlock support to the hwmod code (needed for the RTC
+    IP blocks on some chips)
+  - several fixes for sparse warnings and an unnecessary null pointer test
+  - a DRA7xx clockdomain configuration workaround, to deal with some hardware
+    bugs
+
+----------------------------------------------------------------
+Keerthy (6):
+      ARM: OMAP4: PRM: Remove hardcoding of PRM_IO_PMCTRL_OFFSET register
+      ARM: AM43xx: Add the PRM IRQ register offsets
+      ARM: dts: AM4372: Add PRCM IRQ entry
+      ARM: OMAP: PRM: Remove hardcoding of IRQENABLE_MPU_2 and IRQSTATUS_MPU_2 register offsets
+      ARM: OMAP4+: PRM: Add AM437x specific data
+      ARM: PRM: AM437x: Enable IO wakeup feature
+
+Lokesh Vutla (1):
+      ARM: OMAP2+: hwmod: add support for lock and unlock hooks
+
+Markus Elfring (1):
+      ARM: OMAP2: Delete an unnecessary check
+
+Nishanth Menon (1):
+      ARM: DRA7: Provide proper IO map table
+
+Paul Walmsley (1):
+      Merge branch 'prcm-a-for-v4.3' into hwmod-prcm-for-v4.3
+
+Sekhar Nori (2):
+      ARM: OMAP2+: sparse: add missing static declaration
+      ARM: OMAP2+: sparse: add missing function declarations
+
+Suman Anna (1):
+      ARM: OMAP2+: Remove module references from IOMMU machine layer
+
+Tony Lindgren (10):
+      ARM: OMAP2+: Clean up omap4_local_timer_init
+      ARM: OMAP2+: Fix dm814x DT_MACHINE_START
+      ARM: OMAP2+: Fix scm compatible for dm814x
+      ARM: OMAP2+: Add minimal clockdomains for dm814x
+      ARM: OMAP2+: Add custom prwdm_operations for 81xx to support dm814x
+      ARM: OMAP2+: Add support for initializing dm814x clocks
+      Merge tag 'for-v4.3/omap-hwmod-prcm-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v4.3/soc
+      ARM: OMAP2+: Prepare dm81xx hwmod code for adding minimal dm814x support
+      ARM: OMAP2: Add minimal dm814x hwmod support
+      Merge branch 'dm814x-soc' into omap-for-v4.3/soc
+
+Vignesh R (1):
+      ARM: OMAP2+: DRA7: clockdomain: change l4per2_7xx_clkdm to SW_WKUP
+
+ arch/arm/boot/dts/am4372.dtsi                      |   1 +
+ arch/arm/mach-omap2/Makefile                       |   3 +-
+ arch/arm/mach-omap2/board-generic.c                |   6 +-
+ arch/arm/mach-omap2/clockdomain.h                  |   3 +-
+ arch/arm/mach-omap2/clockdomains7xx_data.c         |   2 +-
+ arch/arm/mach-omap2/clockdomains81xx_data.c        |  23 +-
+ arch/arm/mach-omap2/common.h                       |   1 +
+ arch/arm/mach-omap2/control.c                      |   1 +
+ arch/arm/mach-omap2/io.c                           |  70 ++-
+ arch/arm/mach-omap2/iomap.h                        |  63 +++
+ arch/arm/mach-omap2/omap-iommu.c                   |  13 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c          |   2 +-
+ arch/arm/mach-omap2/omap3-restart.c                |   1 +
+ arch/arm/mach-omap2/omap4-restart.c                |   1 +
+ arch/arm/mach-omap2/omap54xx.h                     |   8 +
+ arch/arm/mach-omap2/omap_hwmod.c                   |  16 +-
+ arch/arm/mach-omap2/omap_hwmod.h                   |   7 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         | 571 ++++++++++++++-------
+ arch/arm/mach-omap2/pdata-quirks.c                 |   6 +-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c        | 122 ++++-
+ arch/arm/mach-omap2/prcm-common.h                  |   8 +
+ arch/arm/mach-omap2/prcm43xx.h                     |   7 +
+ arch/arm/mach-omap2/prm44xx.c                      |  61 ++-
+ arch/arm/mach-omap2/prm_common.c                   |   1 +
+ arch/arm/mach-omap2/timer.c                        |  18 +-
+ drivers/clk/ti/Makefile                            |   2 +-
+ drivers/clk/ti/clk-814x.c                          |  31 ++
+ drivers/clk/ti/clk-816x.c                          |   2 +-
+ include/linux/clk/ti.h                             |   3 +-
+ 31 files changed, 778 insertions(+), 279 deletions(-)
+ create mode 100644 drivers/clk/ti/clk-814x.c
