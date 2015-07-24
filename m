@@ -1,111 +1,115 @@
 From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: linux 4.2-rc1 broken Nokia N900
-Date: Fri, 24 Jul 2015 17:50:33 +0200
-Message-ID: <201507241750.33492@pali>
-References: <201507111405.06048@pali> <20150724081809.GB22852@dhcp-128-11.nay.redhat.com> <20150724084058.GB10476@pali>
+Subject: omapdss: Division by zero in kernel
+Date: Fri, 24 Jul 2015 18:03:42 +0200
+Message-ID: <201507241803.42891@pali>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart3583609.LXa6laD4ZF";
+  boundary="nextPart1609956.yA967ILsQD";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150724084058.GB10476@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Young <dyoung@redhat.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart3583609.LXa6laD4ZF
+--nextPart1609956.yA967ILsQD
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Friday 24 July 2015 10:40:58 Pali Roh=C3=A1r wrote:
-> On Friday 24 July 2015 16:18:09 Dave Young wrote:
-> > On 07/11/15 at 02:05pm, Pali Roh=C3=A1r wrote:
-> > > Hello,
-> > >=20
-> > > now I tested 4.2-rc1 release on Nokia N900 and couple of drivers
-> > > are broken and cause kernel oops...
-> > >=20
-> > > Basically wifi, touchscreen and rtc drivers not working...
-> >=20
-> > Pali, could you tell how do you test mainline kernel on n900?
-> >=20
-> > I used to use n900 as a usb dbgp gadget with a backport patch to
-> > 2.6.28 so that I can get early debug kernel message from my laptop.
-> >=20
-> > I tried mainline previously with Fedora arm, text mode works but
-> > no graphics. Is there a way to use maemo UI with mainline kernel?
-> >=20
-> > Thanks
-> > Dave
->=20
-> Hi! Starting Maemo with mainline kernel is not possible. But you can
-> patch Maemo (userspace) and apply some kernel patches and you could
-> boot Maemo system with Hildon UI.
->=20
-> You need:
->=20
-> Patched kernel:
-> https://github.com/pali/linux-n900
->=20
-> CSSU-devel:
-> https://wiki.maemo.org/CSSU
-> http://talk.maemo.org/showthread.php?t=3D84292
->=20
-> Open source battery management:
-> http://talk.maemo.org/showthread.php?t=3D93183
->=20
-> Fixup for Dialer application (rtcom-call-ui):
-> Fixing HAL path
-> /org/freedesktop/Hal/devices/platform_soc_audio_logicaldev_input
->=20
+Hello,
 
-Create new file /etc/event.d/userspace-fixes with content:
+when on N900 (real HW or qemu) I run this command
 
-start on started hildon-desktop
-service
-console none
-script
-	if ! hal-device /org/freedesktop/Hal/devices/platform_soc_audio_logicaldev=
-_input 2> /dev/null; then
-		hal-device --add /org/freedesktop/Hal/devices/platform_soc_audio_logicald=
-ev_input < /dev/null
-		hal-set-property --udi /org/freedesktop/Hal/devices/platform_soc_audio_lo=
-gicaldev_input --key input.jack.type --
-strlist-pre "a"
-		hal-set-property --udi /org/freedesktop/Hal/devices/platform_soc_audio_lo=
-gicaldev_input --key input.jack.type --
-strlist-rem "a"
-	fi
-end script
+/ # echo 0 > /sys/devices/platform/omapdss/overlay0/enabled && echo 0 > /sy=
+s/class/graphics/fb0/size
 
+then kernel crash with this error message
 
-> Fixup for SGX video driver:
-> Fixing script /etc/event.d/sgx
->=20
+/ # [   29.904113] Division by zero in kernel.
+** 3375 printk messages dropped ** [   29.963836] [<c01e0008>] (__aeabi_uid=
+ivmod) from [<c022071c>]=20
+(cfb_imageblit+0xac/0x464)
+** 8426 printk messages dropped ** [   30.111083] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 8380 printk messages dropped ** [   30.258209] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 7813 printk messages dropped ** [   30.400054] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 7666 printk messages dropped ** [   30.538391] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 7687 printk messages dropped ** [   30.676544] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 7960 printk messages dropped ** [   30.819915] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 8317 printk messages dropped ** [   30.966979] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 8590 printk messages dropped ** [   31.122528] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 8885 printk messages dropped ** [   31.287658] [<c0218ed0>] (fbcon_scrol=
+l) from [<c025af90>] (scrup+0x60/0x128)
+** 9408 printk messages dropped ** [   31.461425] [<c02187a4>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 9787 printk messages dropped ** [   31.644287] [<c02187e8>] (fbcon_redra=
+w.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10081 printk messages dropped ** [   31.833984] [<c02187a4>] (fbcon_redr=
+aw.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10501 printk messages dropped ** [   32.031066] [<c02187a4>] (fbcon_redr=
+aw.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10816 printk messages dropped ** [   32.233001] [<c02187a4>] (fbcon_redr=
+aw.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10900 printk messages dropped ** [   32.440490] [<c02187a4>] (fbcon_redr=
+aw.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10837 printk messages dropped ** [   32.645233] [<c02187a4>] (fbcon_redr=
+aw.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10837 printk messages dropped ** [   32.848999] [<c02187a4>] (fbcon_redr=
+aw.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10837 printk messages dropped ** [   33.053833] [<c02187a4>] (fbcon_redr=
+aw.isra.12) from [<c0218ed0>]=20
+(fbcon_scroll+0x6a0/0xcbc)
+** 10838 printk messages dropped ** [   33.258361] [<c0218ed0>] (fbcon_scro=
+ll) from [<c025af90>] (scrup+0x60/0x128)
 
-Change if condition to:
+I suspect that problem is in omapdss.
 
-if [ -n "$(grep RX-51 /proc/component_version)" ] && uname -r | grep -q '^2=
-=2E'; then
+I do not know if size 0 make sense, but Maemo userspace is calling above
+commands and on Nokia's 2.6.28 kernel there is no crash or error message.
+
+IMHO Division by zero in kernel should not be there even if userspace
+call "incorrect" command.
 
 =2D-=20
 Pali Roh=C3=A1r
 pali.rohar@gmail.com
 
---nextPart3583609.LXa6laD4ZF
+--nextPart1609956.yA967ILsQD
 Content-Type: application/pgp-signature; name=signature.asc 
 Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEABECAAYFAlWyXskACgkQi/DJPQPkQ1LbDQCdE8RYBhZBjRzQPwn1r0ZTn2/t
-qqQAoIoG1Ete02F4w13WiE7wFzvmt5Ec
-=n2gw
+iEYEABECAAYFAlWyYd4ACgkQi/DJPQPkQ1JDZQCgwPOH8YzfeGMxGeiagvpuVQFY
+ycoAn3LHUR3eQMWXDmLQfC1YY1U0AEXd
+=H5AP
 -----END PGP SIGNATURE-----
 
---nextPart3583609.LXa6laD4ZF--
+--nextPart1609956.yA967ILsQD--
