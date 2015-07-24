@@ -1,52 +1,62 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v2] thermal: consistently use int for temperatures
-Date: Fri, 24 Jul 2015 06:59:26 -0700
-Message-ID: <55B244BE.1060203@roeck-us.net>
-References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de> <20150723120759.GA17690@amd> <20150724062948.GK18700@pengutronix.de>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 01/14] twl4030_charger: use devm_request_threaded_irq
+Date: Fri, 24 Jul 2015 16:34:16 +0200
+Message-ID: <20150724143416.GB27569@earth>
+References: <20150322231635.23789.70149.stgit@notabene.brown>
+ <20150322232028.23789.97241.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150724062948.GK18700@pengutronix.de>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sascha Hauer <s.hauer@pengutronix.de>, Pavel Machek <pavel@ucw.cz>
-Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="yNb1oOkm5a9FJOVX"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150322232028.23789.97241.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neil@brown.name>
+Cc: NeilBrown <neilb@suse.de>, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, GTA04 owners <gta04-owner@goldelico.com>, inux-pm@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/23/2015 11:29 PM, Sascha Hauer wrote:
-> On Thu, Jul 23, 2015 at 02:07:59PM +0200, Pavel Machek wrote:
->> On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
->>> The thermal code uses int, long and unsigned long for temperatures
->>> in different places.
->>>
->>> Using an unsigned type limits the thermal framework to positive
->>> temperatures without need. Also several drivers currently will repo=
-rt
->>> temperatures near UINT_MAX for temperatures below 0=B0C. This will =
-probably
->>> immediately shut the machine down due to overtemperature if started=
- below
->>> 0=B0C.
->>>
->>> 'long' is 64bit on several architectures. This is not needed since =
-INT_MAX =B0mC
->>> is above the melting point of all known materials.
->>
->> Can we do something like
->>
->> typedef millicelsius_t int;
->>
->> ...to document the units?
->
-> I am not very fond of typedefs and I am not sure this adds any value.=
- I
-> could change it when more people ask for it, but I just sent the new
-> version without this.
->
 
-I thought we are supposed to not introduce new typedefs anyway.
+--yNb1oOkm5a9FJOVX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Guenter
+Hi,
 
+On Mon, Mar 23, 2015 at 10:20:28AM +1100, NeilBrown wrote:
+> From: NeilBrown <neilb@suse.de>
+>=20
+> This simplifies the error paths.
+>=20
+> Signed-off-by: NeilBrown <neilb@suse.de>
 
+I queued this with Pavel's ACK after a rebase to current master:
+
+http://git.infradead.org/battery-2.6.git/commit/1b7cac23419e1398eac4c28368d=
+a6671c9c4ce9d
+
+-- Sebastian
+
+--yNb1oOkm5a9FJOVX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVskzkAAoJENju1/PIO/qaOD4P/jR284yP1PQDWS3MCD7V4DOu
+nPhnYkAzN3qkZ3rVO09fPf0FOQVRbctNt2qG4N0D5xxks/i9Ys7znzODhgHeHVMe
+QVQEp50igMwtGQHcGPYhD5TeSq50Wtjg1Q5/YvycNY/ku4iCM5/1Z2FcefywBDXU
+hq9NEN6iaVQxXAnRROWgiUGohmCqKcBJKeyKVsjrDkJgxS4RcingY8WNfWXZ1XuT
+7mffcdL81abt1AfC69Oyd4bXrLoy0MTc78oecxv5Sw4kb+CFSktZqE7SbT/G9+4p
+F2xLcR6FOYHHwmCo+i7BM+WFt9CfStr5Jz0GyirOnbaMB8qwyHAELYSIEt3FUB5/
++sOpuzME8/YlUsb/UMfyDCMx/sCRQADX3WIdPAOU1HwQ9hzi+BRVX/EC6c/JPZ1A
+QuM694+ftcb7kaGQHG+dypkiV1Lln3qLt3IQp/D9SWqeoAf5AiQ1hIV3lmC3Scj7
+rxoxTUWSVc2UfFP81upWfK1safrHyB7hwAF3h1pjZfDrAW3Xj74NfzFhrbXNAty2
+o6a0/VwIEbxRa5igz084up42xfOrRfPjwdUcW8Ll8V0RcebYCKFg14+7rqw9dHtD
+fdcb5ae0cRZLFHDO+gh8ubnGpDs0fUcEYPWJ6zNdR3shyxwQ1S/SDcHjtWvVtFCO
+aHvpO/k51pLwZrz42L7m
+=kOyO
+-----END PGP SIGNATURE-----
+
+--yNb1oOkm5a9FJOVX--
