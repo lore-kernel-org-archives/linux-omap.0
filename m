@@ -1,55 +1,62 @@
-From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] serial: 8250_omap: workaround for IP errata
-Date: Fri, 24 Jul 2015 11:59:50 -0700
-Message-ID: <20150724185950.GA21552@kroah.com>
-References: <cover.1436855646.git.nsekhar@ti.com>
- <55A4FEEC.3080101@hurleysoftware.com>
- <20150714124908.GE10928@atomide.com>
- <55B1DE10.60408@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2] thermal: consistently use int for temperatures
+Date: Sat, 25 Jul 2015 00:11:02 +0200
+Message-ID: <20150724221102.GA31517@amd>
+References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
+ <20150723120759.GA17690@amd>
+ <20150724062948.GK18700@pengutronix.de>
+ <55B244BE.1060203@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55B1DE10.60408-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+In-Reply-To: <55B244BE.1060203@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 24, 2015 at 12:11:20PM +0530, Sekhar Nori wrote:
-> Hi Greg,
-> 
-> On Tuesday 14 July 2015 06:19 PM, Tony Lindgren wrote:
-> > * Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org> [150714 05:24]:
-> >> On 07/14/2015 04:02 AM, Sekhar Nori wrote:
-> >>> This series works around "Advisory 21" as documented in
-> >>> AM437x SoC errata[1]. This errata prevents UART module
-> >>> from idling after DMA is used. AM335x and DRA7x also suffer
-> >>> from the same errata and chip design team is in the process
-> >>> of updating the errata documents of those devices as well.
+On Fri 2015-07-24 06:59:26, Guenter Roeck wrote:
+> On 07/23/2015 11:29 PM, Sascha Hauer wrote:
+> >On Thu, Jul 23, 2015 at 02:07:59PM +0200, Pavel Machek wrote:
+> >>On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
+> >>>The thermal code uses int, long and unsigned long for temperatures
+> >>>in different places.
 > >>>
-> >>> Patch 1/7 fixes a related bug but can be applied independently.
+> >>>Using an unsigned type limits the thermal framework to positive
+> >>>temperatures without need. Also several drivers currently will rep=
+ort
+> >>>temperatures near UINT_MAX for temperatures below 0=B0C. This will=
+ probably
+> >>>immediately shut the machine down due to overtemperature if starte=
+d below
+> >>>0=B0C.
+> >>>
+> >>>'long' is 64bit on several architectures. This is not needed since=
+ INT_MAX =B0mC
+> >>>is above the melting point of all known materials.
 > >>
-> >> Looks good. Thanks Sekhar!
+> >>Can we do something like
 > >>
-> >> For series,
+> >>typedef millicelsius_t int;
 > >>
-> >> Reviewed-by: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
-> > 
-> > Also things still work for me, and the dts changes should
-> > not cause merge conflicts during v4.3 merge window based on
-> > what I have queued. So please feel free to queue these
-> > all via the tty tree and add:
-> > 
-> > Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> 
-> 
-> Looks like you have queued the first 6 patches of this series but left
-> out 7/7 which is a DTS update. Based on above, Tony is okay with you
-> going ahead and queuing that DTS patch too. Can you please go ahead and
-> queue 7/7 as well?
+> >>...to document the units?
+> >
+> >I am not very fond of typedefs and I am not sure this adds any value=
+=2E I
+> >could change it when more people ask for it, but I just sent the new
+> >version without this.
+> >
+>=20
+> I thought we are supposed to not introduce new typedefs anyway.
 
-Can you please resend it?  My queue is now empty.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You are not supposed to typedef struct, but typedef for millicelsius_t
+would be ok. And it is your only chance if you want people to pay
+attention. If you make it int, someone will pass it to long or
+something else..
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
