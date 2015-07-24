@@ -1,52 +1,65 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] serial: 8250_omap: workaround for IP errata
-Date: Fri, 24 Jul 2015 12:11:20 +0530
-Message-ID: <55B1DE10.60408@ti.com>
-References: <cover.1436855646.git.nsekhar@ti.com> <55A4FEEC.3080101@hurleysoftware.com> <20150714124908.GE10928@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 0/6] usb: dwc3: handle non maxpacket aligned transfers > 512
+Date: Fri, 24 Jul 2015 12:17:10 +0530
+Message-ID: <1437720436-4261-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150714124908.GE10928-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, John Ogness <john.ogness-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Greg,
+Patch series first fixes memory corruption and then adds support to
+handle non maxpacket aligned transfers.
 
-On Tuesday 14 July 2015 06:19 PM, Tony Lindgren wrote:
-> * Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org> [150714 05:24]:
->> On 07/14/2015 04:02 AM, Sekhar Nori wrote:
->>> This series works around "Advisory 21" as documented in
->>> AM437x SoC errata[1]. This errata prevents UART module
->>> from idling after DMA is used. AM335x and DRA7x also suffer
->>> from the same errata and chip design team is in the process
->>> of updating the errata documents of those devices as well.
->>>
->>> Patch 1/7 fixes a related bug but can be applied independently.
->>
->> Looks good. Thanks Sekhar!
->>
->> For series,
->>
->> Reviewed-by: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
-> 
-> Also things still work for me, and the dts changes should
-> not cause merge conflicts during v4.3 merge window based on
-> what I have queued. So please feel free to queue these
-> all via the tty tree and add:
-> 
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> 
+Patch series adds support to handle non maxpacket aligned transfers
+greater than bounce buffer size (512). It first adds chained TRB
+support and then uses it to handle non maxpacket aligned transfers
+greater than bounce buffer size.
 
-Looks like you have queued the first 6 patches of this series but left
-out 7/7 which is a DTS update. Based on above, Tony is okay with you
-going ahead and queuing that DTS patch too. Can you please go ahead and
-queue 7/7 as well?
+Also included a cleanup patch to use 'roundup' macro.
 
-Thanks,
-Sekhar
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes from v1:
+*) Included the patch to fix memory corruption in this series. (Also
+   marked it for stable release).
+
+Non maxpacket aligned transfers can be initiated by
+"./testusb -t 14 -c 1 -s 520 -v 1"
+
+Before this series: (Causes memory corruption)
+unknown speed	/dev/bus/usb/010/009	0
+/dev/bus/usb/010/009 test 14,    0.219638 secs
+
+After the 1st patch of this series:
+unknown speed   /dev/bus/usb/001/018    0
+/dev/bus/usb/001/018 test 14 --> 110 (Connection timed out)
+
+After this series: (No memory corruption)
+unknown speed   /dev/bus/usb/001/023    0
+/dev/bus/usb/001/023 test 14,    0.000486 secs
+
+Tested this patch using USB3 Gen X CV (ch9 tests: usb2 and usb3,
+link layer testing and MSC tests) and using USB2 X CV (ch9 tests,
+MSC tests) and verified this doesn't cause additional failures.
+
+Lecroy compliance tests fail even without this patch series so
+deferred testing it.
+
+Kishon Vijay Abraham I (6):
+  usb: dwc3: ep0: Fix mem corruption on OUT transfers of more than 512
+    bytes
+  usb: dwc3: ep0: use _roundup_ to calculate the transfer size
+  usb: dwc3: ep0: preparation for handling non maxpacket aligned
+    transfers > 512
+  usb: dwc3; ep0: Modify _dwc3_ep0_start_trans_ API to take 'chain'
+    parameter
+  usb: dwc3: ep0: Add chained TRB support
+  usb: dwc3: ep0: handle non maxpacket aligned transfers > 512
+
+ drivers/usb/dwc3/ep0.c    |   92 ++++++++++++++++++++++++++++++++-------------
+ drivers/usb/dwc3/gadget.c |    2 +-
+ 2 files changed, 67 insertions(+), 27 deletions(-)
+
+-- 
+1.7.9.5
