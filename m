@@ -1,115 +1,151 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: omapdss: Division by zero in kernel
-Date: Fri, 24 Jul 2015 18:03:42 +0200
-Message-ID: <201507241803.42891@pali>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] iommu/omap: Add support for configuring dsp iommus
+	on DRA7xx
+Date: Fri, 24 Jul 2015 11:24:46 -0500
+Message-ID: <55B266CE.9070202@ti.com>
+References: <1437522936-19758-1-git-send-email-s-anna@ti.com>
+	<1437522936-19758-3-git-send-email-s-anna@ti.com>
+	<20150722052600.GF17550@atomide.com> <55AFC34E.4000603@ti.com>
+	<20150723072455.GC16878@atomide.com> <55B114DF.8070800@ti.com>
+	<20150724043056.GG16878@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1609956.yA967ILsQD";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20150724043056.GG16878-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1609956.yA967ILsQD
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Tony,
 
-Hello,
+On 07/23/2015 11:30 PM, Tony Lindgren wrote:
+> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [150723 09:25]:
+>> Hi Tony,
+>>
+>> On 07/23/2015 02:24 AM, Tony Lindgren wrote:
+>>> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [150722 09:25]:
+>>>> On 07/22/2015 12:26 AM, Tony Lindgren wrote:
+>>>>>
+>>>>> I don't like using syscon for tinkering directly with SoC registers.
+>>>>
+>>>> This is not a SoC-level register, but a register within a sub-module of
+>>>> the DSP processor sub-system. The DSP_SYSTEM sub-module in general is
+>>>> described in Section 5.3.3 of the TRM [1], and it implements different
+>>>> functionalities like the PRCM handshaking, wakeup logic and DSP
+>>>> subsystem top-level configuration. It is a module present within the DSP
+>>>> processor sub-system, so can only be accessed when the sub-system is
+>>>> clocked and the appropriate reset is released.
+>>>
+>>> OK so if it's specific to the DSP driver along the lines of sysc and
+>>> syss registers.
+>>
+>> There will be those registers too within the MMU config register space,
+>> even for DRA7xx MMUs. This is different, think of it like a register in
+>> the Control module except that it is present within the DSP sub-system
+>> instead of at the SoC level.
+> 
+> And what is taking care of pm_runtime_get here to ensure the module
+> is powered and clocked?
 
-when on N900 (real HW or qemu) I run this command
+pm_runtime_get_sync is indeed getting invoked, its just the current
+patch doesn't include the code block that invokes it. The function that
+invokes omap2_iommu_enable does so after a call to the
+pm_runtime_get_sync() call.
 
-/ # echo 0 > /sys/devices/platform/omapdss/overlay0/enabled && echo 0 > /sy=
-s/class/graphics/fb0/size
+> 
+> I think you are missing a layer here and it's the Linux kernel side
+> device driver for DSP that initializes things.
 
-then kernel crash with this error message
+We already have separate drivers for MMUs (omap-iommu) and the processor
+management (omap-rproc). The former manages all the low-level
+programming sequences for the MMUs, while the latter manages the
+low-level reset etc, and is a client user of the respective IOMMU
+device. Both integrate into the respective frameworks. The IOMMU API
+invocations are handled in the remoteproc core, with the OMAP remoteproc
+driver publishing itself as having an MMU with the remoteproc core. The
+IOMMU API invoke the appropriate iommu_ops.
 
-/ # [   29.904113] Division by zero in kernel.
-** 3375 printk messages dropped ** [   29.963836] [<c01e0008>] (__aeabi_uid=
-ivmod) from [<c022071c>]=20
-(cfb_imageblit+0xac/0x464)
-** 8426 printk messages dropped ** [   30.111083] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 8380 printk messages dropped ** [   30.258209] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 7813 printk messages dropped ** [   30.400054] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 7666 printk messages dropped ** [   30.538391] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 7687 printk messages dropped ** [   30.676544] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 7960 printk messages dropped ** [   30.819915] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 8317 printk messages dropped ** [   30.966979] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 8590 printk messages dropped ** [   31.122528] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 8885 printk messages dropped ** [   31.287658] [<c0218ed0>] (fbcon_scrol=
-l) from [<c025af90>] (scrup+0x60/0x128)
-** 9408 printk messages dropped ** [   31.461425] [<c02187a4>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 9787 printk messages dropped ** [   31.644287] [<c02187e8>] (fbcon_redra=
-w.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10081 printk messages dropped ** [   31.833984] [<c02187a4>] (fbcon_redr=
-aw.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10501 printk messages dropped ** [   32.031066] [<c02187a4>] (fbcon_redr=
-aw.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10816 printk messages dropped ** [   32.233001] [<c02187a4>] (fbcon_redr=
-aw.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10900 printk messages dropped ** [   32.440490] [<c02187a4>] (fbcon_redr=
-aw.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10837 printk messages dropped ** [   32.645233] [<c02187a4>] (fbcon_redr=
-aw.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10837 printk messages dropped ** [   32.848999] [<c02187a4>] (fbcon_redr=
-aw.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10837 printk messages dropped ** [   33.053833] [<c02187a4>] (fbcon_redr=
-aw.isra.12) from [<c0218ed0>]=20
-(fbcon_scroll+0x6a0/0xcbc)
-** 10838 printk messages dropped ** [   33.258361] [<c0218ed0>] (fbcon_scro=
-ll) from [<c025af90>] (scrup+0x60/0x128)
+You can lookup the functions rproc_enable_iommu()/rproc_disable_iommu()
+in the remoteproc core. The IOMMU enabling sequences happen within the
+iommu_attach_device() API. The call flow is
+iommu_attach_device()->omap_iommu_attach_dev()->omap_iommu_attach()->
+iommu_enable()->
+   omap_device_deassert_hardreset, pm_runtime_get_sync, omap2_iommu_enable.
 
-I suspect that problem is in omapdss.
+>  
+>>> Typically we handle these registers by mapping them to the PM runtime
+>>> functions for the interconnect so we can reset and idle the hardware
+>>> modules even if there is no driver, see for example
+>>> omap54xx_mmu_dsp_hwmod.
+>>
+>> I haven't yet submitted the DRA7xx hwmods, but they will look almost
+>> exactly like the OMAP5 ones. The reset and idle on these are in general
+>> not effective at boot time since these are also controlled by a
+>> hard-reset line, so that's left to the drivers to deal with it through
+>> the omap_device_deassert_hardreset API.
+> 
+> If the MMU configuration is one time init, it may make sense to add
+> it to the hwmod reset function. However, if the Linux kernel side
+> driver needs to configure things depending on the DSP firmware, it
+> should be done in the kernel side device driver.
 
-I do not know if size 0 make sense, but Maemo userspace is calling above
-commands and on Nokia's 2.6.28 kernel there is no crash or error message.
+The MMU configuration comes into picture whenever the remoteproc driver
+is being booted and shut down, and also during suspend (no support for
+this yet in mainline on OMAP rproc). Today, the hwmod
+_enable/_idle/reset functions alone are not enough to power on the OMAP
+remoteproc/iommus. We need sequencing calls to both
+omap_device_assert/_deassert_hardreset (done through pdata-quirks) and
+pm_runtime API to achieve this.
 
-IMHO Division by zero in kernel should not be there even if userspace
-call "incorrect" command.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+>  
+>>>>> We should use some Linux generic framework for configuring these
+>>>>> bits to avoid nasty dependencies between various hardware modules
+>>>>> on the SoC.
+>>>>>
+>>>>> What does DSP_SYS_MMU_CONFIG register do? It seems it's probably
+>>>>> a regulator or a gate clock? If so, it should be set up as a
+>>>>> regulator or a clock and then the omap-iommu driver can just
+>>>>> use regulator or clcok framework to request the resource.
+>>>>
+>>>> No, its neither. It is a control bit that dictates whether the
+>>>> processor/EDMA addresses go through the respective MMU or not. The
+>>>> register currently has 4 bits (bit 0 in each nibble), one each for
+>>>> enabling each MMU and requesting an MMU abort on each. The MMU
+>>>> integration and enablement notes are detailed in Section 5.3.6 of the
+>>>> TRM [1], and the DSP_SYS_MMU_CONFIG register layout is in Table 5-28
+>>>> (Page 1641).
+>>>
+>>> OK yeah seems like it should be handled by the DSP driver during
+>>> probe after doing pm_runtime_get. Then the driver can configure
+>>> things like IOMMU and load firmware. Or am I missing something here?
+>>
+>> The DSP (remoteproc) driver uses the generic IOMMU API, and all the
+>> IOMMU enabling sequence is transparent to the DSP driver. So, any
+>> configuration/enabling sequence specific to the IOMMU has to be handled
+>> within the respective IOMMU platform driver that gets integrated into
+>> the IOMMU API.
+> 
+> To me it seems you still need a DSP kernel driver to manage the
+> DSP hardware for PM runtime. I don't see how iommu and remoteproc
+> alone would be sufficient here. You end up sprinkling DSP driver
+> specific code to the iommu and remoteproc layers.
 
---nextPart1609956.yA967ILsQD
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+I am not sure what you envision to be in this DSP kernel driver, because
+all the needed functionality is already handled by existing drivers. The
+OMAP remoteproc driver is the kernel driver to deal with the device
+management for both IPUs and DSPs on OMAP4, OMAP5 and DRA7 (DT support
+to be added).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlWyYd4ACgkQi/DJPQPkQ1JDZQCgwPOH8YzfeGMxGeiagvpuVQFY
-ycoAn3LHUR3eQMWXDmLQfC1YY1U0AEXd
-=H5AP
------END PGP SIGNATURE-----
-
---nextPart1609956.yA967ILsQD--
+regards
+Suman
