@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 1/3] PCI: host: pci-dra7xx: Disable pm_runtime on get_sync failure
-Date: Fri, 24 Jul 2015 17:23:08 +0530
-Message-ID: <1437738790-11114-2-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 2/3] PCI: host: pci-dra7xx: add pm support to pci dra7xx
+Date: Fri, 24 Jul 2015 17:23:09 +0530
+Message-ID: <1437738790-11114-3-git-send-email-kishon@ti.com>
 References: <1437738790-11114-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,109 @@ To: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, 
 Cc: nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix the error handling code in case pm_runtime_get_sync fails. Now
-when pm_runtime_get_sync fails pm_runtime_disable is invoked so that
-there is no unbalanced pm_runtime_enable calls.
+Add PM support to pci-dra7xx so that PCI clocks can be disabled
+during suspend and enabled back during resume without affecting
+PCI functionality.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/host/pci-dra7xx.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/pci/host/pci-dra7xx.c |   77 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
 
 diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 80db09e..d8b6d66 100644
+index d8b6d66..d3ee2ef 100644
 --- a/drivers/pci/host/pci-dra7xx.c
 +++ b/drivers/pci/host/pci-dra7xx.c
-@@ -384,7 +384,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	ret = pm_runtime_get_sync(dev);
- 	if (IS_ERR_VALUE(ret)) {
- 		dev_err(dev, "pm_runtime_get_sync failed\n");
--		goto err_phy;
-+		goto err_get_sync;
- 	}
+@@ -433,6 +433,82 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-@@ -401,6 +401,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 
- err_add_port:
- 	pm_runtime_put(dev);
++#ifdef CONFIG_PM_SLEEP
++static int dra7xx_pcie_suspend(struct device *dev)
++{
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	struct pcie_port *pp = &dra7xx->pp;
 +
-+err_get_sync:
- 	pm_runtime_disable(dev);
++	dw_pcie_suspend_rc(pp);
++
++	return 0;
++}
++
++static int dra7xx_pcie_resume(struct device *dev)
++{
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	struct pcie_port *pp = &dra7xx->pp;
++
++	dw_pcie_resume_rc(pp);
++
++	return 0;
++}
++
++static int dra7xx_pcie_suspend_noirq(struct device *dev)
++{
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	int count = dra7xx->phy_count;
++
++	while (count--) {
++		phy_power_off(dra7xx->phy[count]);
++		phy_exit(dra7xx->phy[count]);
++	}
++
++	return 0;
++}
++
++static int dra7xx_pcie_resume_noirq(struct device *dev)
++{
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	int phy_count = dra7xx->phy_count;
++	int ret;
++	int i;
++
++	for (i = 0; i < phy_count; i++) {
++		ret = phy_init(dra7xx->phy[i]);
++		if (ret < 0)
++			goto err_phy;
++
++		ret = phy_power_on(dra7xx->phy[i]);
++		if (ret < 0) {
++			phy_exit(dra7xx->phy[i]);
++			goto err_phy;
++		}
++	}
++
++	return 0;
++
++err_phy:
++	while (--i >= 0) {
++		phy_power_off(dra7xx->phy[i]);
++		phy_exit(dra7xx->phy[i]);
++	}
++
++	return ret;
++}
++
++static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
++	.suspend_noirq = dra7xx_pcie_suspend_noirq,
++	.suspend = dra7xx_pcie_suspend,
++	.resume_noirq = dra7xx_pcie_resume_noirq,
++	.resume = dra7xx_pcie_resume,
++};
++
++#define DEV_PM_OPS	(&dra7xx_pcie_pm_ops)
++#else
++#define DEV_PM_OPS	NULL
++#endif
++
+ static const struct of_device_id of_dra7xx_pcie_match[] = {
+ 	{ .compatible = "ti,dra7-pcie", },
+ 	{},
+@@ -444,6 +520,7 @@ static struct platform_driver dra7xx_pcie_driver = {
+ 	.driver = {
+ 		.name	= "dra7-pcie",
+ 		.of_match_table = of_dra7xx_pcie_match,
++		.pm	= DEV_PM_OPS,
+ 	},
+ };
  
- err_phy:
 -- 
 1.7.9.5
