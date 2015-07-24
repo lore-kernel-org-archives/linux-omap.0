@@ -1,65 +1,74 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 0/6] usb: dwc3: handle non maxpacket aligned transfers > 512
-Date: Fri, 24 Jul 2015 12:17:10 +0530
-Message-ID: <1437720436-4261-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 5/6] usb: dwc3: ep0: Add chained TRB support
+Date: Fri, 24 Jul 2015 12:17:15 +0530
+Message-ID: <1437720436-4261-6-git-send-email-kishon@ti.com>
+References: <1437720436-4261-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437720436-4261-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Patch series first fixes memory corruption and then adds support to
-handle non maxpacket aligned transfers.
+Add chained TRB support to ep0. Now TRB's can be chained just by
+invoking _dwc3_ep0_start_trans_ with 'chain' parameter set to true.
 
-Patch series adds support to handle non maxpacket aligned transfers
-greater than bounce buffer size (512). It first adds chained TRB
-support and then uses it to handle non maxpacket aligned transfers
-greater than bounce buffer size.
-
-Also included a cleanup patch to use 'roundup' macro.
-
-Changes from v1:
-*) Included the patch to fix memory corruption in this series. (Also
-   marked it for stable release).
-
-Non maxpacket aligned transfers can be initiated by
-"./testusb -t 14 -c 1 -s 520 -v 1"
-
-Before this series: (Causes memory corruption)
-unknown speed	/dev/bus/usb/010/009	0
-/dev/bus/usb/010/009 test 14,    0.219638 secs
-
-After the 1st patch of this series:
-unknown speed   /dev/bus/usb/001/018    0
-/dev/bus/usb/001/018 test 14 --> 110 (Connection timed out)
-
-After this series: (No memory corruption)
-unknown speed   /dev/bus/usb/001/023    0
-/dev/bus/usb/001/023 test 14,    0.000486 secs
-
-Tested this patch using USB3 Gen X CV (ch9 tests: usb2 and usb3,
-link layer testing and MSC tests) and using USB2 X CV (ch9 tests,
-MSC tests) and verified this doesn't cause additional failures.
-
-Lecroy compliance tests fail even without this patch series so
-deferred testing it.
-
-Kishon Vijay Abraham I (6):
-  usb: dwc3: ep0: Fix mem corruption on OUT transfers of more than 512
-    bytes
-  usb: dwc3: ep0: use _roundup_ to calculate the transfer size
-  usb: dwc3: ep0: preparation for handling non maxpacket aligned
-    transfers > 512
-  usb: dwc3; ep0: Modify _dwc3_ep0_start_trans_ API to take 'chain'
-    parameter
-  usb: dwc3: ep0: Add chained TRB support
-  usb: dwc3: ep0: handle non maxpacket aligned transfers > 512
-
- drivers/usb/dwc3/ep0.c    |   92 ++++++++++++++++++++++++++++++++-------------
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/usb/dwc3/ep0.c    |   16 +++++++++++++---
  drivers/usb/dwc3/gadget.c |    2 +-
- 2 files changed, 67 insertions(+), 27 deletions(-)
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+index d1a2be1..6847afe 100644
+--- a/drivers/usb/dwc3/ep0.c
++++ b/drivers/usb/dwc3/ep0.c
+@@ -70,7 +70,10 @@ static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum, dma_addr_t buf_dma,
+ 		return 0;
+ 	}
+ 
+-	trb = dwc->ep0_trb;
++	trb = &dwc->ep0_trb[dep->free_slot];
++
++	if (chain)
++		dep->free_slot++;
+ 
+ 	trb->bpl = lower_32_bits(buf_dma);
+ 	trb->bph = upper_32_bits(buf_dma);
+@@ -78,10 +81,17 @@ static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum, dma_addr_t buf_dma,
+ 	trb->ctrl = type;
+ 
+ 	trb->ctrl |= (DWC3_TRB_CTRL_HWO
+-			| DWC3_TRB_CTRL_LST
+-			| DWC3_TRB_CTRL_IOC
+ 			| DWC3_TRB_CTRL_ISP_IMI);
+ 
++	if (chain)
++		trb->ctrl |= DWC3_TRB_CTRL_CHN;
++	else
++		trb->ctrl |= (DWC3_TRB_CTRL_IOC
++				| DWC3_TRB_CTRL_LST);
++
++	if (chain)
++		return 0;
++
+ 	memset(&params, 0, sizeof(params));
+ 	params.param0 = upper_32_bits(dwc->ep0_trb_addr);
+ 	params.param1 = lower_32_bits(dwc->ep0_trb_addr);
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index d97fcfa..2feed9e 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2687,7 +2687,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+ 		goto err0;
+ 	}
+ 
+-	dwc->ep0_trb = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ep0_trb),
++	dwc->ep0_trb = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ep0_trb) * 2,
+ 			&dwc->ep0_trb_addr, GFP_KERNEL);
+ 	if (!dwc->ep0_trb) {
+ 		dev_err(dwc->dev, "failed to allocate ep0 trb\n");
 -- 
 1.7.9.5
