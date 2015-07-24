@@ -1,97 +1,73 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] iommu/omap: Add support for configuring dsp iommus
-	on DRA7xx
-Date: Thu, 23 Jul 2015 11:22:55 -0500
-Message-ID: <55B114DF.8070800@ti.com>
-References: <1437522936-19758-1-git-send-email-s-anna@ti.com>
-	<1437522936-19758-3-git-send-email-s-anna@ti.com>
-	<20150722052600.GF17550@atomide.com> <55AFC34E.4000603@ti.com>
-	<20150723072455.GC16878@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 3/3] ARM: errata 430973: move !ARCH_MULTIPLATFORM to
+ Kconfig
+Date: Fri, 24 Jul 2015 02:16:06 +0200
+Message-ID: <20150724001605.GA1453@earth>
+References: <1437612483-30160-1-git-send-email-sre@kernel.org>
+ <1437612483-30160-4-git-send-email-sre@kernel.org>
+ <20150723123553.GE7576@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20150723072455.GC16878-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150723123553.GE7576@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
 
-On 07/23/2015 02:24 AM, Tony Lindgren wrote:
-> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [150722 09:25]:
->> On 07/22/2015 12:26 AM, Tony Lindgren wrote:
->>>
->>> I don't like using syscon for tinkering directly with SoC registers.
->>
->> This is not a SoC-level register, but a register within a sub-module of
->> the DSP processor sub-system. The DSP_SYSTEM sub-module in general is
->> described in Section 5.3.3 of the TRM [1], and it implements different
->> functionalities like the PRCM handshaking, wakeup logic and DSP
->> subsystem top-level configuration. It is a module present within the DSP
->> processor sub-system, so can only be accessed when the sub-system is
->> clocked and the appropriate reset is released.
-> 
-> OK so if it's specific to the DSP driver along the lines of sysc and
-> syss registers.
+--ReaqsoxgOBHFXBhH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There will be those registers too within the MMU config register space,
-even for DRA7xx MMUs. This is different, think of it like a register in
-the Control module except that it is present within the DSP sub-system
-instead of at the SoC level.
+Hi Russel,
 
-> 
-> Typically we handle these registers by mapping them to the PM runtime
-> functions for the interconnect so we can reset and idle the hardware
-> modules even if there is no driver, see for example
-> omap54xx_mmu_dsp_hwmod.
+On Thu, Jul 23, 2015 at 01:35:53PM +0100, Russell King - ARM Linux wrote:
+> On Thu, Jul 23, 2015 at 02:48:03AM +0200, Sebastian Reichel wrote:
+> > Having the !ARCH_MULTIPLATFORM dependency in the Kconfig file results
+> > in one option less to think about when configuring the kernel.
+>=20
+> > -#if defined(CONFIG_ARM_ERRATA_430973) && !defined(CONFIG_ARCH_MULTIPLA=
+TFORM)
+> > +#ifdef CONFIG_ARM_ERRATA_430973
+> >  	teq	r3, #0x00100000			@ only present in r1p*
+> >  	mrceq	p15, 0, r0, c1, c0, 1		@ read aux control register
+> >  	orreq	r0, r0, #(1 << 6)		@ set IBE to 1
+>=20
+> NAK.  Please read the mailing list history, I'm not repeating myself
+> again on this.  Thanks.
 
-I haven't yet submitted the DRA7xx hwmods, but they will look almost
-exactly like the OMAP5 ones. The reset and idle on these are in general
-not effective at boot time since these are also controlled by a
-hard-reset line, so that's left to the drivers to deal with it through
-the omap_device_deassert_hardreset API.
+It's a bit hard to search the mailing list history without a bit
+more information.
 
->  
->>> We should use some Linux generic framework for configuring these
->>> bits to avoid nasty dependencies between various hardware modules
->>> on the SoC.
->>>
->>> What does DSP_SYS_MMU_CONFIG register do? It seems it's probably
->>> a regulator or a gate clock? If so, it should be set up as a
->>> regulator or a clock and then the omap-iommu driver can just
->>> use regulator or clcok framework to request the resource.
->>
->> No, its neither. It is a control bit that dictates whether the
->> processor/EDMA addresses go through the respective MMU or not. The
->> register currently has 4 bits (bit 0 in each nibble), one each for
->> enabling each MMU and requesting an MMU abort on each. The MMU
->> integration and enablement notes are detailed in Section 5.3.6 of the
->> TRM [1], and the DSP_SYS_MMU_CONFIG register layout is in Table 5-28
->> (Page 1641).
-> 
-> OK yeah seems like it should be handled by the DSP driver during
-> probe after doing pm_runtime_get. Then the driver can configure
-> things like IOMMU and load firmware. Or am I missing something here?
+I guess you prefer to just add the !ARCH_MULTIPLATFORM dependency to
+the Kconfig entry without removing the additional check in the code?
 
-The DSP (remoteproc) driver uses the generic IOMMU API, and all the
-IOMMU enabling sequence is transparent to the DSP driver. So, any
-configuration/enabling sequence specific to the IOMMU has to be handled
-within the respective IOMMU platform driver that gets integrated into
-the IOMMU API.
+-- Sebastian
 
-regards
-Suman
+--ReaqsoxgOBHFXBhH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> 
->  
->> [1] http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVsYPCAAoJENju1/PIO/qaKmsQAIUJopuLDR9RukmynwELLnH6
+9zgnCJIDUMjxScmeDiofN4wAWoFIS/MpSY+rAyNDsjblfBLZ6PFIyJMSVthBPjs0
+vRMuHVJyKEpMggB8YIlA2xBhtKnGwV10RvU+DTbCZQH8GZZKcZI+PwlgkwUr3v7n
+r6+FX9XvsZCn7dIf8F8ABCRR5nPftizJiUZBTSbYlq8AOm+qsLlRhVR3nqEsw4Uk
+KYHSqQiptn87Iy75dVtFEaEDcoa7zaIbmohuPOGjQX6csx2LqDob4TGqAhwNpUZz
+sjZsQgheTFazU7tDyNgumhiJzzSClQQP+6wl/yFkBH71mvVAH4gyRtQostxgzZNB
+aKnosDcJlpGcpuUVf+dq2kABW0CM/Ycwg5OOxRRkVXeK5ovjXfEbaoBKKWF8yL5A
+hS4hmyZPASY1MM884xQhHQHyh//NF4iOJU4AOm/km5BTTrFZbo6LXQ1QCtiTOzVB
+4lZwG2He2c64XWXIewNvI/vsqiyfjwb7F9xYY1oFF4Nh/KYAGRrDLSVnTcnSWZSq
+hXETpA+yEWPBi/PLDSlcaJgzJ5WJ/j6G52B1GeE2xQJ5VPGqg2iWgWceRqF8NSZY
+rZGPd3rvU3AI5uLdJJd07LH/7bLR0h7GZ634VvTCwwQogPc5bLIdgcjDjUaKS5Iu
+2c+QELx6o1XvFHrA86F5
+=fUXy
+-----END PGP SIGNATURE-----
+
+--ReaqsoxgOBHFXBhH--
