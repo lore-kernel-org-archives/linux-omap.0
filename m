@@ -1,51 +1,52 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 4/6] usb: dwc3; ep0: Modify _dwc3_ep0_start_trans_ API
- to take 'chain' parameter
-Date: Fri, 24 Jul 2015 15:51:19 +0300
-Message-ID: <55B234C7.6050200@cogentembedded.com>
-References: <1437720436-4261-1-git-send-email-kishon@ti.com>
- <1437720436-4261-5-git-send-email-kishon@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v2] thermal: consistently use int for temperatures
+Date: Fri, 24 Jul 2015 06:59:26 -0700
+Message-ID: <55B244BE.1060203@roeck-us.net>
+References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de> <20150723120759.GA17690@amd> <20150724062948.GK18700@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437720436-4261-5-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20150724062948.GK18700@pengutronix.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>, Pavel Machek <pavel@ucw.cz>
+Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
-
-On 7/24/2015 9:47 AM, Kishon Vijay Abraham I wrote:
-
-> No functional change. Added a new parameter in _dwc3_ep0_start_trans_ to
-> indicate whether the TRB is a chained TRB or last TRB. This is in
-> preparation for adding chained TRB support for ep0.
-
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> ---
->   drivers/usb/dwc3/ep0.c |   15 ++++++++-------
->   1 file changed, 8 insertions(+), 7 deletions(-)
-
-> diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
-> index 4998074..d1a2be1 100644
-> --- a/drivers/usb/dwc3/ep0.c
-> +++ b/drivers/usb/dwc3/ep0.c
-> @@ -56,7 +56,7 @@ static const char *dwc3_ep0_state_string(enum dwc3_ep0_state state)
->   }
+On 07/23/2015 11:29 PM, Sascha Hauer wrote:
+> On Thu, Jul 23, 2015 at 02:07:59PM +0200, Pavel Machek wrote:
+>> On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
+>>> The thermal code uses int, long and unsigned long for temperatures
+>>> in different places.
+>>>
+>>> Using an unsigned type limits the thermal framework to positive
+>>> temperatures without need. Also several drivers currently will repo=
+rt
+>>> temperatures near UINT_MAX for temperatures below 0=B0C. This will =
+probably
+>>> immediately shut the machine down due to overtemperature if started=
+ below
+>>> 0=B0C.
+>>>
+>>> 'long' is 64bit on several architectures. This is not needed since =
+INT_MAX =B0mC
+>>> is above the melting point of all known materials.
+>>
+>> Can we do something like
+>>
+>> typedef millicelsius_t int;
+>>
+>> ...to document the units?
 >
->   static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum, dma_addr_t buf_dma,
-> -		u32 len, u32 type)
-> +		u32 len, u32 type, unsigned chain)
+> I am not very fond of typedefs and I am not sure this adds any value.=
+ I
+> could change it when more people ask for it, but I just sent the new
+> version without this.
+>
 
-    I'm seeing you always pass *false*, so why not just *bool* here?
+I thought we are supposed to not introduce new typedefs anyway.
 
-[...]
+Guenter
 
-WBR, Sergei
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
