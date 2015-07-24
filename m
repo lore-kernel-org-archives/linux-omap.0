@@ -1,33 +1,82 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 0/3] dra7xx: Add PM support to PCIe
-Date: Fri, 24 Jul 2015 17:23:07 +0530
-Message-ID: <1437738790-11114-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 3/3] PCI: host: pci-dra7xx: Idle the module by disabling MSE bit
+Date: Fri, 24 Jul 2015 17:23:10 +0530
+Message-ID: <1437738790-11114-4-git-send-email-kishon@ti.com>
+References: <1437738790-11114-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437738790-11114-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-This series adds PM support to pci-dra7xx so that PCI clocks can be disabled
-during suspend and enabled back during resume without affecting
-PCI functionality.
+DRA7xx require MSE bit to be cleared to set the master in
+standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
+Controller Master Standby Behavior advises to use the clearing
+of the local MSE bit to set the master in standby. Without this
+some of the clocks do not idle).
 
-Changes from v1:
-*) Moved resetting and setting of MSE bit to pci-dra7xx.
+Cleared the MSE bit on suspend and enabled it back on resume.
+Clearing MSE bit is required to get clocks to be idled after
+suspend.
 
-The comment to reset and set ISE is not done now since I don't have a card
-with IO space. Once I get to test that, I'll post a separate patch for
-handling that.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ drivers/pci/host/pci-dra7xx.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-Kishon Vijay Abraham I (3):
-  PCI: host: pci-dra7xx: Disable pm_runtime on get_sync failure
-  PCI: host: pci-dra7xx: add pm support to pci dra7xx
-  PCI: host: pci-dra7xx: Idle the module by disabling MSE bit
-
- drivers/pci/host/pci-dra7xx.c |  100 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 99 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index d3ee2ef..7e798e8 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -83,6 +83,17 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
+ 	writel(value, pcie->base + offset);
+ }
+ 
++static inline u32 dra7xx_pcie_readl_rc(struct pcie_port *pp, u32 offset)
++{
++	return readl(pp->dbi_base + offset);
++}
++
++static inline void dra7xx_pcie_writel_rc(struct pcie_port *pp, u32 offset,
++					 u32 value)
++{
++	writel(value, pp->dbi_base + offset);
++}
++
+ static int dra7xx_pcie_link_up(struct pcie_port *pp)
+ {
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+@@ -438,8 +449,12 @@ static int dra7xx_pcie_suspend(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+ 	struct pcie_port *pp = &dra7xx->pp;
++	u32 val;
+ 
+-	dw_pcie_suspend_rc(pp);
++	/* clear MSE */
++	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
++	val &= ~PCI_COMMAND_MEMORY;
++	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
+ 
+ 	return 0;
+ }
+@@ -448,8 +463,12 @@ static int dra7xx_pcie_resume(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+ 	struct pcie_port *pp = &dra7xx->pp;
++	u32 val;
+ 
+-	dw_pcie_resume_rc(pp);
++	/* clear MSE */
++	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
++	val |= PCI_COMMAND_MEMORY;
++	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
+ 
+ 	return 0;
+ }
 -- 
 1.7.9.5
