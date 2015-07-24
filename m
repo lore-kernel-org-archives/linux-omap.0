@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 5/6] usb: dwc3: ep0: Add chained TRB support
-Date: Fri, 24 Jul 2015 12:17:15 +0530
-Message-ID: <1437720436-4261-6-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 2/6] usb: dwc3: ep0: use _roundup_ to calculate the transfer size
+Date: Fri, 24 Jul 2015 12:17:12 +0530
+Message-ID: <1437720436-4261-3-git-send-email-kishon@ti.com>
 References: <1437720436-4261-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,63 +12,30 @@ To: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-k
 Cc: gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add chained TRB support to ep0. Now TRB's can be chained just by
-invoking _dwc3_ep0_start_trans_ with 'chain' parameter set to true.
+No functional change. Used _roundup_ macro to calculate the transfer
+size aligned to maxpacket in  dwc3_ep0_complete_data. It also makes it
+similar to how transfer size is calculated in __dwc3_ep0_do_control_data.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/dwc3/ep0.c    |   16 +++++++++++++---
- drivers/usb/dwc3/gadget.c |    2 +-
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/usb/dwc3/ep0.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
-index d1a2be1..6847afe 100644
+index 8858c60..713e46a 100644
 --- a/drivers/usb/dwc3/ep0.c
 +++ b/drivers/usb/dwc3/ep0.c
-@@ -70,7 +70,10 @@ static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum, dma_addr_t buf_dma,
- 		return 0;
- 	}
+@@ -812,10 +812,8 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
+ 	length = trb->size & DWC3_TRB_SIZE_MASK;
  
--	trb = dwc->ep0_trb;
-+	trb = &dwc->ep0_trb[dep->free_slot];
-+
-+	if (chain)
-+		dep->free_slot++;
+ 	if (dwc->ep0_bounced) {
+-		unsigned transfer_size = ur->length;
+ 		unsigned maxp = ep0->endpoint.maxpacket;
+-
+-		transfer_size += (maxp - (transfer_size % maxp));
++		unsigned transfer_size = roundup(ur->length, maxp);
  
- 	trb->bpl = lower_32_bits(buf_dma);
- 	trb->bph = upper_32_bits(buf_dma);
-@@ -78,10 +81,17 @@ static int dwc3_ep0_start_trans(struct dwc3 *dwc, u8 epnum, dma_addr_t buf_dma,
- 	trb->ctrl = type;
- 
- 	trb->ctrl |= (DWC3_TRB_CTRL_HWO
--			| DWC3_TRB_CTRL_LST
--			| DWC3_TRB_CTRL_IOC
- 			| DWC3_TRB_CTRL_ISP_IMI);
- 
-+	if (chain)
-+		trb->ctrl |= DWC3_TRB_CTRL_CHN;
-+	else
-+		trb->ctrl |= (DWC3_TRB_CTRL_IOC
-+				| DWC3_TRB_CTRL_LST);
-+
-+	if (chain)
-+		return 0;
-+
- 	memset(&params, 0, sizeof(params));
- 	params.param0 = upper_32_bits(dwc->ep0_trb_addr);
- 	params.param1 = lower_32_bits(dwc->ep0_trb_addr);
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index d97fcfa..2feed9e 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -2687,7 +2687,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
- 		goto err0;
- 	}
- 
--	dwc->ep0_trb = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ep0_trb),
-+	dwc->ep0_trb = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ep0_trb) * 2,
- 			&dwc->ep0_trb_addr, GFP_KERNEL);
- 	if (!dwc->ep0_trb) {
- 		dev_err(dwc->dev, "failed to allocate ep0 trb\n");
+ 		/* Maximum of DWC3_EP0_BOUNCE_SIZE can only be received */
+ 		if (transfer_size > DWC3_EP0_BOUNCE_SIZE)
 -- 
 1.7.9.5
