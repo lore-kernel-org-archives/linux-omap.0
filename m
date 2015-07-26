@@ -1,71 +1,36 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: n900 in 4.2-rc0: repeating oopses
-Date: Sun, 26 Jul 2015 11:26:15 +0200
-Message-ID: <20150726092615.GA6824@amd>
-References: <20150416093234.GA17423@amd>
- <20150629091146.GA5103@amd>
- <20150630092404.GA19285@amd>
- <20150630095310.GF27720@pali>
- <20150701065932.GS4156@atomide.com>
- <20150701072255.GA17577@pali>
- <20150701095954.GD7969@amd>
- <20150701103421.GV4156@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod fixes for v4.2-rc
+Date: Sun, 26 Jul 2015 20:52:44 +0200
+Message-ID: <20150726185244.GB24272@localhost>
+References: <alpine.DEB.2.02.1507231357020.29543@utopia.booyaka.com>
+ <20150724041857.GF16878@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150701103421.GV4156@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20150724041857.GF16878@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> > > So, Pavel can you re-test? Maybe there can be problem with some driver
-> > > which Tony did not compiled into zImage? Just speculation...
-> > 
-> > I re-tested with today's git, and it seems to boot. Thanks for help...
+On Thu, Jul 23, 2015 at 09:18:58PM -0700, Tony Lindgren wrote:
+> Hi,
 > 
-> OK good to hear.
->  
-> > Now. "echo mem > /sys/power/state" is broken, as in "returns
-> > immediately in about 50% cases". The messages are
-> > 
-> > Powerdomain (per_pwrdm) didn't enter target state 1
-> > Powerdomain (core_pwerdm) didn't enter target state 1
-> > 
-> > Any ideas? Thanks,
+> Can you guys please pull this into arm soc fixes for v4.2 directly?
 > 
-> Works for me after enabling the idle timeouts with the following
-> script and blanking the screen and disconnecting USB:
-> 
-> Also both keyboard LEDs should start blinking after the idle
-> timeout with screen blanked and USB disconnected. If not, you
-> have some module loaded that blocks the deeper idle states.
+> I don't have other omap fixes queued at this point.
 
-Ok, tried that, I had to do:
+Merged, thanks!
 
- cd /sys/class/gpio
- echo 162 > export
- cd gpio162
- echo out > direction
- echo 1 > value
 
-to get the debug lights to work. But I could not get those leds to
-blink.
-
-> modprobe leds-gpio
-> modprobe ledtrig-default-on
-
-Is this actually neccessary/relevant?
-
-> echo 255 > /sys/class/backlight/acx565akm/brightness
-
-And this?
-
-Thanks,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-Olof
