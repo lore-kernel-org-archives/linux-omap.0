@@ -1,36 +1,50 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod fixes for v4.2-rc
-Date: Sun, 26 Jul 2015 20:52:44 +0200
-Message-ID: <20150726185244.GB24272@localhost>
-References: <alpine.DEB.2.02.1507231357020.29543@utopia.booyaka.com>
- <20150724041857.GF16878@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: n900 in 4.2-rc0: repeating oopses
+Date: Mon, 27 Jul 2015 00:31:19 +0200
+Message-ID: <20150726223119.GA28514@amd>
+References: <20150416093234.GA17423@amd>
+ <20150629091146.GA5103@amd>
+ <20150630092404.GA19285@amd>
+ <20150630095310.GF27720@pali>
+ <20150701065932.GS4156@atomide.com>
+ <20150701072255.GA17577@pali>
+ <20150701095954.GD7969@amd>
+ <20150701103421.GV4156@atomide.com>
+ <20150701130903.GG7969@amd>
+ <20150702061620.GY4156@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150724041857.GF16878@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <20150702061620.GY4156@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 23, 2015 at 09:18:58PM -0700, Tony Lindgren wrote:
-> Hi,
+On Wed 2015-07-01 23:16:21, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [150701 06:11]:
+> > On Wed 2015-07-01 03:34:22, Tony Lindgren wrote:
+> > > 
+> > > Works for me after enabling the idle timeouts with the following
+> > > script and blanking the screen and disconnecting USB:
+> > 
+> > Um. I'm forcing suspend with "echo mem > /sys/power/state" . (It
+> > worked in 4.1). That should just make it sleep, no autosuspend-related
+> > trickery... (But yes, I guess I should set up the leds and try
+> > autosuspend, too.)
 > 
-> Can you guys please pull this into arm soc fixes for v4.2 directly?
-> 
-> I don't have other omap fixes queued at this point.
+> That too works just fine for me with omap2plus_defconfig after
+> echo enabled > /sys/class/tty/ttyO2/power/wakeup as I have n900
+> in my test rack.
 
-Merged, thanks!
+Going through that. AFAICT, you are not using devicetree on n900?
 
+CONFIG_MACH_NOKIA_RX51=y
 
--Olof
+Unfortunately, not having serials, it is tricky to get any output from
+that cnofiguration, so I don't know what I got wrong...
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
