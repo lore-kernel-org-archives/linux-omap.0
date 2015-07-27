@@ -1,14 +1,15 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/2] omap soc changes for v4.3
-Date: Mon, 27 Jul 2015 14:47:38 +0200
-Message-ID: <20150727124738.GI14224@localhost>
-References: <55b22a40.4b226b0a.bc37c.ffffce3aSMTPIN_ADDED_BROKEN@mx.google.com>
+Subject: Re: [GIT PULL 2/2] omap dts changes for dm814x for v4.3
+Date: Mon, 27 Jul 2015 14:48:32 +0200
+Message-ID: <20150727124832.GJ14224@localhost>
+References: <pull-1437718313-185670>
+ <55b22a44.4b226b0a.bc37c.ffffce74SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <55b22a40.4b226b0a.bc37c.ffffce3aSMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <55b22a44.4b226b0a.bc37c.ffffce74SMTPIN_ADDED_BROKEN@mx.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,40 +23,38 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 24, 2015 at 05:06:10AM -0700, Tony Lindgren wrote:
-> The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
+On Fri, Jul 24, 2015 at 05:06:11AM -0700, Tony Lindgren wrote:
+> The following changes since commit f9d50fef4b6447527c2be1ad07499221c2511391:
 > 
->   Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
+>   ARM: OMAP2+: omap3-pandora: add wifi support (2015-07-21 04:07:42 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/soc-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/dt-dm814x
 > 
-> for you to fetch changes up to 24da741c678f865de3182194604dbddcc7fc7f3c:
+> for you to fetch changes up to f5887fe5d14181aef0653ab04f60988252d42461:
 > 
->   Merge branch 'dm814x-soc' into omap-for-v4.3/soc (2015-07-23 21:59:18 -0700)
+>   ARM: OMAP2+: Add custom abort handler for t410 (2015-07-23 22:33:19 -0700)
 > 
 > ----------------------------------------------------------------
-> SoC changes for omaps for v4.3 merge window:
+> omap dts changes for minimal dm814x support for v4.3 merge window.
 > 
-> - Clean-up omap4_local_timer_init to drop deal legacy code
+> These changes make dm814x boot and adds minimal board support for
+> dm814x-evm and hp t410.
 > 
-> - Provide proper IO map table for dra7
+> Note that to boot these depend on omap-for-v4.3/soc-signed branch,
+> but as dm814x support is currently broken, these can be merged
+> separately with the other dts changes.
 > 
-> - Clean-up IOMMU layer init code as it now uses IOMMU framework
-> 
-> - A series of changes to fix up dm814x support that's been in a broken
->   half-merged state for quite some time
-> 
-> - A series of PRCM and hwmod changes via Paul Walmsley <paul@pwsan.com>:
-> 
->   - I/O wakeup support for AM43xx
->   - register lock and unlock support to the hwmod code (needed for the RTC
->     IP blocks on some chips)
->   - several fixes for sparse warnings and an unnecessary null pointer test
->   - a DRA7xx clockdomain configuration workaround, to deal with some hardware
->     bugs
+> ----------------------------------------------------------------
+> Tony Lindgren (5):
+>       ARM: dts: Add minimal dm814x support
+>       ARM: dts: Add minimal clocks for dm814x
+>       ARM: dts: Add minimal dts support for dm8148-evm
+>       ARM: dts: Add minimal support for HP T410
+>       ARM: OMAP2+: Add custom abort handler for t410
 
-Merged, thanks!
+Thanks, merged.
+
 
 -Olof
