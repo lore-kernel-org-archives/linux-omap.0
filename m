@@ -1,430 +1,165 @@
-From: Matt Porter <mporter@konsulko.com>
-Subject: Re: [PATCH 1/2] ARM: dts: Add support for phyCORE-AM335x SoM
-Date: Mon, 27 Jul 2015 10:34:44 -0400
-Message-ID: <20150727143444.GD15004@beef>
-References: <1437035449-26956-1-git-send-email-t.remmet@phytec.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/3] drivers: usb: dwc3: Add adjust_frame_length_quirk
+Date: Mon, 27 Jul 2015 10:08:23 -0500
+Message-ID: <20150727150823.GB10703@saruman.tx.rr.com>
+References: <1437646295-1858-1-git-send-email-nikhil.badola@freescale.com>
+ <20150723145532.GC21984@saruman.tx.rr.com>
+ <20150723150844.GD21984@saruman.tx.rr.com>
+ <SN1PR0301MB162948EF7089997EFE80CA22F38E0@SN1PR0301MB1629.namprd03.prod.outlook.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1437035449-26956-1-git-send-email-t.remmet@phytec.de>
+In-Reply-To: <SN1PR0301MB162948EF7089997EFE80CA22F38E0@SN1PR0301MB1629.namprd03.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Teresa Remmet <t.remmet@phytec.de>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>
+To: Badola Nikhil <nikhil.badola@freescale.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 16, 2015 at 10:30:48AM +0200, Teresa Remmet wrote:
-> phyCORE-AM335x is a SoM (System on Module) containing
-> a AM335x SOC. The module can be connected to different
-> carrier boards.
-> 
-> Some hardware parts are configurable on the phyCORE-AM335x.
-> So they are disabled on default in this som dtsi file.
-> They will be enabled in the board dts files, when populated.
-> 
-> * RAM up to 1GiB
-> * PMIC
-> * NAND flash up to 1GiB
-> * Eth PHY on SOM: 1x RMII
-> * SPI NOR flash 8MiB (optional)
-> * i2c RTC (optional)
-> * i2c EEPROM 4kiB (optional)
-> 
-> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-> ---
->  arch/arm/boot/dts/am335x-phycore-som.dtsi | 368 ++++++++++++++++++++++++++++++
->  1 file changed, 368 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am335x-phycore-som.dtsi
-> 
-> diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-> new file mode 100644
-> index 0000000..4d28fc3
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-> @@ -0,0 +1,368 @@
-> +/*
-> + * Copyright (C) 2015 Phytec Messtechnik GmbH
-> + * Author: Teresa Remmet <t.remmet@phytec.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include "am33xx.dtsi"
-> +
-> +/ {
-> +	model = "Phytec AM335x phyCORE";
-> +	compatible = "phytec,am335x-phycore-som", "ti,am33xx";
+--vGgW1X5XWziG23Ko
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-One minor thing here...wildcards in compatible strings aren't permitted.
-However, family compatibles like "ti,am33xx" that came in before this
-was enforced are grandfathered. Ideally, the newly introced board/som
-specific strings should not propagate that wildcard. i.e. something
-like "phytec,am3352-phycore-som" or whatever is the base family part
-on these SOMs.
+On Mon, Jul 27, 2015 at 06:56:48AM +0000, Badola Nikhil wrote:
+> > -----Original Message-----
+> > From: Felipe Balbi [mailto:balbi@ti.com]
+> > Sent: Thursday, July 23, 2015 8:39 PM
+> > To: Felipe Balbi
+> > Cc: Badola Nikhil-B46172; linux-kernel@vger.kernel.org; linux-
+> > usb@vger.kernel.org; linux-omap@vger.kernel.org;
+> > gregkh@linuxfoundation.org
+> > Subject: Re: [PATCH 2/3] drivers: usb: dwc3: Add adjust_frame_length_qu=
+irk
+> >=20
+> > Hi again,
+> >=20
+> > On Thu, Jul 23, 2015 at 09:55:32AM -0500, Felipe Balbi wrote:
+> > > > diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h index
+> > > > 0447788..b7a5119 100644
+> > > > --- a/drivers/usb/dwc3/core.h
+> > > > +++ b/drivers/usb/dwc3/core.h
+> > > > @@ -124,6 +124,7 @@
+> > > >  #define DWC3_GEVNTCOUNT(n)	(0xc40c + (n * 0x10))
+> > > >
+> > > >  #define DWC3_GHWPARAMS8		0xc600
+> > > > +#define DWC3_GFLADJ		0xc630
+> > > >
+> > > >  /* Device Registers */
+> > > >  #define DWC3_DCFG		0xc700
+> > > > @@ -234,6 +235,10 @@
+> > > >  /* Global HWPARAMS6 Register */
+> > > >  #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
+> > > >
+> > > > +/* Global Frame Length Adjustment Register */
+> > > > +#define GFLADJ_30MHZ_REG_SEL		(1 << 7)
+> > >
+> > > always prepend with DWC3_ like *all* other macros in this file.
+> > >
+> > > Also, match docs to ease grepping. This should be called
+> > > DWC3_GFLADJ_30MHZ_SDBND_SEL
+>=20
+> GFLADJ_30MHZ_REG_SEL is the field's name in LS1021A Reference Manual
+> as well as dwc3 databook. Though DWC3_GFLADJ_30MHZ_SDBND_SEL seems
+> more relevant.=20
 
--Matt
+databook calls it GFLADJ_30MHZ_SDBND_SEL, I checked before sending my
+email.
 
-> +
-> +	aliases {
-> +		rtc0 = &i2c_rtc;
-> +		rtc1 = &rtc;
-> +	};
-> +
-> +	cpus {
-> +		cpu@0 {
-> +			cpu0-supply = <&vdd1_reg>;
-> +		};
-> +	};
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> +	};
-> +
-> +	vbat: fixedregulator@0 {
-> +		compatible = "regulator-fixed";
-> +	};
-> +};
-> +
-> +/* Crypto Module */
-> +&aes {
-> +	status = "okay";
-> +};
-> +
-> +&sham {
-> +	status = "okay";
-> +};
-> +
-> +/* Ethernet */
-> +&am33xx_pinmux {
-> +	ethernet0_pins: pinmux_ethernet0 {
-> +		pinctrl-single,pins = <
-> +			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_crs.rmii1_crs_dv */
-> +			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_rxerr.rmii1_rxerr */
-> +			0x114 (PIN_OUTPUT | MUX_MODE1)		/* mii1_txen.rmii1_txen */
-> +			0x124 (PIN_OUTPUT | MUX_MODE1)		/* mii1_txd1.rmii1_txd1 */
-> +			0x128 (PIN_OUTPUT | MUX_MODE1)		/* mii1_txd0.rmii1_txd0 */
-> +			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_rxd1.rmii1_rxd1 */
-> +			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_rxd0.rmii1_rxd0 */
-> +			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* rmii1_refclk.rmii1_refclk */
-> +		>;
-> +	};
-> +
-> +	mdio_pins: pinmux_mdio {
-> +		pinctrl-single,pins = <
-> +			/* MDIO */
-> +			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-> +			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-> +		>;
-> +	};
-> +};
-> +
-> +&cpsw_emac0 {
-> +	phy_id = <&davinci_mdio>, <0>;
-> +	phy-mode = "rmii";
-> +	dual_emac_res_vlan = <1>;
-> +};
-> +
-> +&davinci_mdio {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mdio_pins>;
-> +	status = "okay";
-> +};
-> +
-> +&mac {
-> +	slaves = <1>;
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&ethernet0_pins>;
-> +	status = "okay";
-> +};
-> +
-> +&phy_sel {
-> +	rmii-clock-ext;
-> +};
-> +
-> +/* I2C Busses */
-> +&am33xx_pinmux {
-> +	i2c0_pins: pinmux_i2c0 {
-> +		pinctrl-single,pins = <
-> +			0x188 (PIN_INPUT | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-> +			0x18c (PIN_INPUT | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-> +		>;
-> +	};
-> +};
-> +
-> +&i2c0 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c0_pins>;
-> +	clock-frequency = <400000>;
-> +	status = "okay";
-> +
-> +	tps: pmic@2d {
-> +		reg = <0x2d>;
-> +	};
-> +
-> +	i2c_eeprom: eeprom@52 {
-> +		compatible = "atmel,24c32";
-> +		pagesize = <32>;
-> +		reg = <0x52>;
-> +		status = "disabled";
-> +	};
-> +
-> +	i2c_rtc: rtc@68 {
-> +		compatible = "rv4162";
-> +		reg = <0x68>;
-> +		status = "disabled";
-> +	};
-> +};
-> +
-> +/* NAND memory */
-> +&am33xx_pinmux {
-> +		nandflash_pins: pinmux_nandflash {
-> +			pinctrl-single,pins = <
-> +			0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
-> +			0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
-> +			0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
-> +			0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
-> +			0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
-> +			0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
-> +			0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
-> +			0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
-> +			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
-> +			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0 */
-> +			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
-> +			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
-> +			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
-> +			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
-> +		>;
-> +	};
-> +};
-> +
-> +&elm {
-> +	status = "okay";
-> +};
-> +
-> +&gpmc {
-> +	status = "okay";
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&nandflash_pins>;
-> +	ranges = <0 0 0x08000000 0x1000000>;   /* CS0: NAND */
-> +	nandflash: nand@0,0 {
-> +		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
-> +		nand-bus-width = <8>;
-> +		ti,nand-ecc-opt = "bch8";
-> +		gpmc,device-nand = "true";
-> +		gpmc,device-width = <1>;
-> +		gpmc,sync-clk-ps = <0>;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <30>;
-> +		gpmc,cs-wr-off-ns = <30>;
-> +		gpmc,adv-on-ns = <0>;
-> +		gpmc,adv-rd-off-ns = <30>;
-> +		gpmc,adv-wr-off-ns = <30>;
-> +		gpmc,we-on-ns = <0>;
-> +		gpmc,we-off-ns = <20>;
-> +		gpmc,oe-on-ns = <10>;
-> +		gpmc,oe-off-ns = <30>;
-> +		gpmc,access-ns = <30>;
-> +		gpmc,rd-cycle-ns = <30>;
-> +		gpmc,wr-cycle-ns = <30>;
-> +		gpmc,wait-on-read = "true";
-> +		gpmc,wait-on-write = "true";
-> +		gpmc,bus-turnaround-ns = <0>;
-> +		gpmc,cycle2cycle-delay-ns = <50>;
-> +		gpmc,cycle2cycle-diffcsen;
-> +		gpmc,clk-activation-ns = <0>;
-> +		gpmc,wait-monitoring-ns = <0>;
-> +		gpmc,wr-access-ns = <30>;
-> +		gpmc,wr-data-mux-bus-ns = <0>;
-> +
-> +		elm_id = <&elm>;
-> +
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +
-> +		partition@0 {
-> +			label = "xload";
-> +			reg = <0x0 0x20000>;
-> +		};
-> +		partition@1 {
-> +			label = "xload_backup1";
-> +			reg = <0x20000 0x20000>;
-> +		};
-> +		partition@2 {
-> +			label = "xload_backup2";
-> +			reg = <0x40000 0x20000>;
-> +		};
-> +		partition@3 {
-> +			label = "xload_backup3";
-> +			reg = <0x60000 0x20000>;
-> +		};
-> +		partition@4 {
-> +			label = "barebox";
-> +			reg = <0x80000 0x80000>;
-> +		};
-> +		partition@5 {
-> +			label = "bareboxenv";
-> +			reg = <0x100000 0x40000>;
-> +		};
-> +		partition@6 {
-> +			label = "oftree";
-> +			reg = <0x140000 0x40000>;
-> +		};
-> +		partition@7 {
-> +			label = "kernel";
-> +			reg = <0x180000 0x800000>;
-> +		};
-> +		partition@8 {
-> +			label = "root";
-> +			reg = <0x980000 0x0>;
-> +		};
-> +	};
-> +};
-> +
-> +/* Power */
-> +#include "tps65910.dtsi"
-> +
-> +&tps {
-> +	vcc1-supply = <&vbat>;
-> +	vcc2-supply = <&vbat>;
-> +	vcc3-supply = <&vbat>;
-> +	vcc4-supply = <&vbat>;
-> +	vcc5-supply = <&vbat>;
-> +	vcc6-supply = <&vbat>;
-> +	vcc7-supply = <&vbat>;
-> +	vccio-supply = <&vbat>;
-> +
-> +	regulators {
-> +		vrtc_reg: regulator@0 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vio_reg: regulator@1 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdd1_reg: regulator@2 {
-> +			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
-> +			regulator-name = "vdd_mpu";
-> +			regulator-min-microvolt = <912500>;
-> +			regulator-max-microvolt = <1312500>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdd2_reg: regulator@3 {
-> +			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
-> +			regulator-name = "vdd_core";
-> +			regulator-min-microvolt = <912500>;
-> +			regulator-max-microvolt = <1150000>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdd3_reg: regulator@4 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdig1_reg: regulator@5 {
-> +			regulator-name = "vdig1_1p8v";
-> +			regulator-min-microvolt = <1800000>;
-> +			regulator-max-microvolt = <1800000>;
-> +		};
-> +
-> +		vdig2_reg: regulator@6 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vpll_reg: regulator@7 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vdac_reg: regulator@8 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vaux1_reg: regulator@9 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vaux2_reg: regulator@10 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vaux33_reg: regulator@11 {
-> +			regulator-always-on;
-> +		};
-> +
-> +		vmmc_reg: regulator@12 {
-> +			regulator-min-microvolt = <3300000>;
-> +			regulator-max-microvolt = <3300000>;
-> +			regulator-always-on;
-> +		};
-> +	};
-> +};
-> +
-> +&vbat {
-> +	regulator-name = "vbat";
-> +	regulator-min-microvolt = <5000000>;
-> +	regulator-max-microvolt = <5000000>;
-> +	regulator-boot-on;
-> +};
-> +
-> +/* SPI Busses */
-> +&am33xx_pinmux {
-> +	spi0_pins: pinmux_spi0 {
-> +		pinctrl-single,pins = <
-> +			0x150 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* spi0_clk.spi0_clk */
-> +			0x154 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* spi0_d0.spi0_d0 */
-> +			0x158 (PIN_INPUT_PULLUP | MUX_MODE0)	/* spi0_d1.spi0_d1 */
-> +			0x15c (PIN_INPUT_PULLUP | MUX_MODE0)	/* spi0_cs0.spi0_cs0 */
-> +		>;
-> +	};
-> +};
-> +
-> +&spi0 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&spi0_pins>;
-> +	status = "okay";
-> +
-> +	serial_flash: m25p80@0 {
-> +		compatible = "m25p80";
-> +		spi-max-frequency = <48000000>;
-> +		reg = <0x0>;
-> +		m25p,fast-read;
-> +		status = "disabled";
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +
-> +		partition@0 {
-> +			label = "xload";
-> +			reg = <0x0 0x20000>;
-> +		};
-> +		partition@1 {
-> +			label = "barebox";
-> +			reg = <0x20000 0x80000>;
-> +		};
-> +		partition@2 {
-> +			label = "bareboxenv";
-> +			reg = <0xa0000 0x20000>;
-> +		};
-> +		partition@3 {
-> +			label = "oftree";
-> +			reg = <0xc0000 0x20000>;
-> +		};
-> +		partition@4 {
-> +			label = "kernel";
-> +			reg = <0xe0000 0x0>;
-> +		};
-> +	};
-> +};
-> -- 
-> 1.9.1
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> > yet another problem is that this register doesn't exist in *all* versio=
+ns of
+> > DWC3. It was introduced in version 2.50a so the branch I typed above ne=
+eds
+> > one extra check, and since it's getting so large, it deserves be factor=
+ed out
+> > into its own function.
+> >=20
+> > static int dwc3_frame_length_adjustment(struct dwc3 *dwc, u32 fladj) {
+> > 	u32 reg;
+> > 	u32 dft;
+> >=20
+> > 	if (dwc->revision <=3D DWC3_REVISION_250A)
+> > 		return 0;
+> >=20
+> > 	if (fladj =3D=3D 0)
+> > 		return 0;
+> >=20
+> > 	reg =3D dwc3_readl(dwc->regs, DWC3_GFLADJ);
+> > 	dft =3D reg & 0x3f; /* needs a mask macro */
+> >=20
+> > 	if (!dev_WARN_ONCE(dwc->dev, dft =3D=3D fladj,
+> > 		"requested value same as default, ignoring\n")) {
+> > 		reg &=3D ~0x3f; /* needs a mask macro */
+> > 		reg |=3D DWC3_GFLADJ_30MHZ_SDBND_SEL |
+> > 			DWC3_GFLADJ_30MHZ(fladj_value);
+> >=20
+> > 		dwc3_writel(dwc->regs, DWC3_GFLADJ, reg);
+> > 	}
+> > }
+> >=20
+> > you really *MUST* check this sort of this out when writing patches. It'=
+s not
+> > only about *your* SoC. You gotta remember we have a ton of different
+> > users and those a prone to major grumpyness should a completely unrelat=
+ed
+> > patch break their use case.
+> >=20
+> > You have access to the IP's documentation, and that contains the entire
+> > history of the IP itself, so it's easy to figure all of this out with a=
+ simple search
+> > in the documentation.
+> >=20
+> > One extra detail is that you were very careless when writing to the GFL=
+ADJ
+> > register too. You simply wrote your 30MHz sideband value, potentially
+> > clearing other bits which shouldn't be touched. That alone can add
+> > regressions.
+> >=20
+> > When resending, make sure all 3 patches reach linux-usb. I still can't =
+find
+> > patch 3/3.
+> >
+>=20
+> Will take care of above scenarios and resend patches cc'ing linux-usb
+> in each of them.
+>=20
+> Regarding acceptance of the patch only when it's used in glue layer,
+> there is no freescale's glue layer present for dwc3 as of now.
+
+if there is no glue layer, how are you testing your patch ?
+
+> Furthermore, there is not any platform specific code required in glue
+> layer apart from the ones present in dwc3/core.c.=20
+
+sorry ? core.c is generic for all users, the glue layer should somewhat
+hide platform details such as clocks and PM. It's surprising if you
+don't need anything on that side.
+
+--=20
+balbi
+
+--vGgW1X5XWziG23Ko
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVtklnAAoJEIaOsuA1yqREqAEP/2FI6WDDNqg9Hrart5jBxuDe
+U3FuvYcuxjKUcIeETMgbwQuqUh6AIL57/GxmQOVev88kFVN9tXvZbpgEIzIJlvuX
+cC3LMXvU5ehWNWuLzR6IXmRYC/XtodqMg5EKxwF4x9kfuhLv9j0MD5UthZ9F+gv+
+sQb0G9pxOb+5S98AevFHpoVvnMzIxk3rKdW6UMP67K4FTqLTstO9guz1ZerwQF28
++es5expcRtnOk7MvmyDEpY9ITfY/iQCz9TV/PbOZNjfdj3gF61Y5pXT4zQRr2p9H
+GUhSoP02b14aVm/E/nx2VxNhTt5B0UPchlxcjHr53F/fhXHC+fPJroD07i/mPyjC
+kGdbMuopFOK6ygtOvAqYK2tO1Xy0NVfYoaS9ZEY1ImLNccPnd9BqUbkwaVKts+50
+NFf8MhcXVPuyYkIGAy7prxS0JgtTsm+0pNbKu8HcEJ6R4LmGs8R1QIO7lxMPw54r
+PR6GJgj1nbeBo2OZtcN8aN0+jOXQNSBTvtWYfXlbb4knvx0NTR3gedKQZ/k5UEWF
+lY90zlXM/cRKU1zepAJM+h4OfgC4WLhz0Blvkz8QMnAlU7EVPfJEi/Gc97hriA+r
+gLR0CdYPMDGs29IxIPe/JBRQYIQoW5VerNJDovNIvUNtACz0EmzlS3R1rOx7BeNx
+CDR3YhY9Yabp+crh5f6x
+=8J7g
+-----END PGP SIGNATURE-----
+
+--vGgW1X5XWziG23Ko--
