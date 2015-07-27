@@ -1,74 +1,57 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v4 02/46] usb: gadget: add endpoint capabilities flags
-Date: Mon, 27 Jul 2015 11:16:12 +0200
-Message-ID: <1437988616-6962-3-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v4 05/46] usb: chipidea: udc: add ep capabilities support
+Date: Mon, 27 Jul 2015 11:16:15 +0200
+Message-ID: <1437988616-6962-6-git-send-email-r.baldyga@samsung.com>
 References: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 In-reply-to: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com, stern@rowland.harvard.edu, petr.cvek@tul.cz, Robert Baldyga <r.baldyga@samsung.com>
+Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, Robert Baldyga <r.baldyga@samsung.com>, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
 List-Id: linux-omap@vger.kernel.org
 
-Introduce struct usb_ep_caps which contains information about capabilities
-of usb endpoints - supported transfer types and directions. This structure
-should be filled by UDC driver for each of its endpoints, and will be
-used in epautoconf in new ep matching mechanism which will replace ugly
-guessing of endpoint capabilities basing on its name.
+Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- include/linux/usb/gadget.h | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/usb/chipidea/udc.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index 9c5e486..2e85b86 100644
---- a/include/linux/usb/gadget.h
-+++ b/include/linux/usb/gadget.h
-@@ -141,10 +141,29 @@ struct usb_ep_ops {
- };
+diff --git a/drivers/usb/chipidea/udc.c b/drivers/usb/chipidea/udc.c
+index b7cca3e..4aaa476 100644
+--- a/drivers/usb/chipidea/udc.c
++++ b/drivers/usb/chipidea/udc.c
+@@ -1624,6 +1624,20 @@ static int init_eps(struct ci_hdrc *ci)
  
- /**
-+ * struct usb_ep_caps - endpoint capabilities description
-+ * @type_control:Endpoint supports control type (reserved for ep0).
-+ * @type_iso:Endpoint supports isochronous transfers.
-+ * @type_bulk:Endpoint supports bulk transfers.
-+ * @type_int:Endpoint supports interrupt transfers.
-+ * @dir_in:Endpoint supports IN direction.
-+ * @dir_out:Endpoint supports OUT direction.
-+ */
-+struct usb_ep_caps {
-+	unsigned type_control:1;
-+	unsigned type_iso:1;
-+	unsigned type_bulk:1;
-+	unsigned type_int:1;
-+	unsigned dir_in:1;
-+	unsigned dir_out:1;
-+};
+ 			hwep->ep.name      = hwep->name;
+ 			hwep->ep.ops       = &usb_ep_ops;
 +
-+/**
-  * struct usb_ep - device side representation of USB endpoint
-  * @name:identifier for the endpoint, such as "ep-a" or "ep9in-bulk"
-  * @ops: Function pointers used to access hardware-specific operations.
-  * @ep_list:the gadget's ep_list holds all of its endpoints
-+ * @caps:The structure describing types and directions supported by endoint.
-  * @maxpacket:The maximum packet size used on this endpoint.  The initial
-  *	value can sometimes be reduced (hardware allowing), according to
-  *      the endpoint descriptor used to configure the endpoint.
-@@ -167,12 +186,14 @@ struct usb_ep_ops {
-  * gadget->ep_list.  the control endpoint (gadget->ep0) is not in that list,
-  * and is accessed only in response to a driver setup() callback.
-  */
++			if (i == 0) {
++				hwep->ep.caps.type_control = true;
++			} else {
++				hwep->ep.caps.type_iso = true;
++				hwep->ep.caps.type_bulk = true;
++				hwep->ep.caps.type_int = true;
++			}
 +
- struct usb_ep {
- 	void			*driver_data;
- 
- 	const char		*name;
- 	const struct usb_ep_ops	*ops;
- 	struct list_head	ep_list;
-+	struct usb_ep_caps	caps;
- 	bool			claimed;
- 	unsigned		maxpacket:16;
- 	unsigned		maxpacket_limit:16;
++			if (j == TX)
++				hwep->ep.caps.dir_in = true;
++			else
++				hwep->ep.caps.dir_out = true;
++
+ 			/*
+ 			 * for ep0: maxP defined in desc, for other
+ 			 * eps, maxP is set by epautoconfig() called
 -- 
 1.9.1
