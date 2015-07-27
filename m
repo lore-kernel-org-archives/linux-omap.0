@@ -1,7 +1,8 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v4 35/46] usb: renesas: gadget: add ep capabilities support
-Date: Mon, 27 Jul 2015 11:16:45 +0200
-Message-ID: <1437988616-6962-36-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v4 36/46] usb: gadget: atmel_usba_udc: add ep capabilities
+ support
+Date: Mon, 27 Jul 2015 11:16:46 +0200
+Message-ID: <1437988616-6962-37-git-send-email-r.baldyga@samsung.com>
 References: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,31 +26,30 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/renesas_usbhs/mod_gadget.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/usb/gadget/udc/atmel_usba_udc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas_usbhs/mod_gadget.c
-index 494dfe0..de4f97d 100644
---- a/drivers/usb/renesas_usbhs/mod_gadget.c
-+++ b/drivers/usb/renesas_usbhs/mod_gadget.c
-@@ -1103,12 +1103,18 @@ int usbhs_mod_gadget_probe(struct usbhs_priv *priv)
- 		if (usbhsg_is_dcp(uep)) {
- 			gpriv->gadget.ep0 = &uep->ep;
- 			usb_ep_set_maxpacket_limit(&uep->ep, 64);
-+			uep->ep.caps.type_control = true;
- 		}
- 		/* init normal pipe */
- 		else {
- 			usb_ep_set_maxpacket_limit(&uep->ep, 512);
-+			uep->ep.caps.type_iso = true;
-+			uep->ep.caps.type_bulk = true;
-+			uep->ep.caps.type_int = true;
- 			list_add_tail(&uep->ep.ep_list, &gpriv->gadget.ep_list);
- 		}
-+		uep->ep.caps.dir_in = true;
-+		uep->ep.caps.dir_out = true;
- 	}
+diff --git a/drivers/usb/gadget/udc/atmel_usba_udc.c b/drivers/usb/gadget/udc/atmel_usba_udc.c
+index 37d414e..267d84f 100644
+--- a/drivers/usb/gadget/udc/atmel_usba_udc.c
++++ b/drivers/usb/gadget/udc/atmel_usba_udc.c
+@@ -2067,6 +2067,17 @@ static struct usba_ep * usba_udc_pdata(struct platform_device *pdev,
+ 		ep->can_dma = pdata->ep[i].can_dma;
+ 		ep->can_isoc = pdata->ep[i].can_isoc;
  
- 	ret = usb_add_gadget_udc(dev, &gpriv->gadget);
++		if (i == 0) {
++			ep->ep.caps.type_control = true;
++		} else {
++			ep->ep.caps.type_iso = ep->can_isoc;
++			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
++		}
++
++		ep->ep.caps.dir_in = true;
++		ep->ep.caps.dir_out = true;
++
+ 		if (i)
+ 			list_add_tail(&ep->ep.ep_list, &udc->gadget.ep_list);
+ 	}
 -- 
 1.9.1
