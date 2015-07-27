@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v4 18/46] usb: gadget: gr_udc: add ep capabilities support
-Date: Mon, 27 Jul 2015 11:16:28 +0200
-Message-ID: <1437988616-6962-19-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v4 20/46] usb: gadget: m66592-udc: add ep capabilities support
+Date: Mon, 27 Jul 2015 11:16:30 +0200
+Message-ID: <1437988616-6962-21-git-send-email-r.baldyga@samsung.com>
 References: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,36 +25,30 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/gr_udc.c | 11 +++++++++++
+ drivers/usb/gadget/udc/m66592-udc.c | 11 +++++++++++
  1 file changed, 11 insertions(+)
 
-diff --git a/drivers/usb/gadget/udc/gr_udc.c b/drivers/usb/gadget/udc/gr_udc.c
-index c886887..8aa2593 100644
---- a/drivers/usb/gadget/udc/gr_udc.c
-+++ b/drivers/usb/gadget/udc/gr_udc.c
-@@ -2018,12 +2018,23 @@ static int gr_ep_init(struct gr_udc *dev, int num, int is_in, u32 maxplimit)
- 
- 		usb_ep_set_maxpacket_limit(&ep->ep, MAX_CTRL_PL_SIZE);
- 		ep->bytes_per_buffer = MAX_CTRL_PL_SIZE;
+diff --git a/drivers/usb/gadget/udc/m66592-udc.c b/drivers/usb/gadget/udc/m66592-udc.c
+index 309706f..e404553 100644
+--- a/drivers/usb/gadget/udc/m66592-udc.c
++++ b/drivers/usb/gadget/udc/m66592-udc.c
+@@ -1644,6 +1644,17 @@ static int m66592_probe(struct platform_device *pdev)
+ 		ep->ep.name = m66592_ep_name[i];
+ 		ep->ep.ops = &m66592_ep_ops;
+ 		usb_ep_set_maxpacket_limit(&ep->ep, 512);
 +
-+		ep->ep.caps.type_control = true;
- 	} else {
- 		usb_ep_set_maxpacket_limit(&ep->ep, (u16)maxplimit);
- 		list_add_tail(&ep->ep.ep_list, &dev->gadget.ep_list);
++		if (i == 0) {
++			ep->ep.caps.type_control = true;
++		} else {
++			ep->ep.caps.type_iso = true;
++			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
++		}
 +
-+		ep->ep.caps.type_iso = true;
-+		ep->ep.caps.type_bulk = true;
-+		ep->ep.caps.type_int = true;
- 	}
- 	list_add_tail(&ep->ep_list, &dev->ep_list);
- 
-+	if (is_in)
 +		ep->ep.caps.dir_in = true;
-+	else
 +		ep->ep.caps.dir_out = true;
-+
- 	ep->tailbuf = dma_alloc_coherent(dev->dev, ep->ep.maxpacket_limit,
- 					 &ep->tailbuf_paddr, GFP_ATOMIC);
- 	if (!ep->tailbuf)
+ 	}
+ 	usb_ep_set_maxpacket_limit(&m66592->ep[0].ep, 64);
+ 	m66592->ep[0].pipenum = 0;
 -- 
 1.9.1
