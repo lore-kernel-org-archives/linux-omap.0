@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v4 25/46] usb: gadget: omap_udc: add ep capabilities support
-Date: Mon, 27 Jul 2015 11:16:35 +0200
-Message-ID: <1437988616-6962-26-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v4 28/46] usb: gadget: pxa27x_udc: add ep capabilities support
+Date: Mon, 27 Jul 2015 11:16:38 +0200
+Message-ID: <1437988616-6962-29-git-send-email-r.baldyga@samsung.com>
 References: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,41 +25,56 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/omap_udc.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/usb/gadget/udc/pxa27x_udc.h | 33 ++++++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc/omap_udc.c b/drivers/usb/gadget/udc/omap_udc.c
-index e2fcdb8..9b7d394 100644
---- a/drivers/usb/gadget/udc/omap_udc.c
-+++ b/drivers/usb/gadget/udc/omap_udc.c
-@@ -2579,6 +2579,28 @@ omap_ep_setup(char *name, u8 addr, u8 type,
- 	ep->double_buf = dbuf;
- 	ep->udc = udc;
+diff --git a/drivers/usb/gadget/udc/pxa27x_udc.h b/drivers/usb/gadget/udc/pxa27x_udc.h
+index 11e1423..ded058c 100644
+--- a/drivers/usb/gadget/udc/pxa27x_udc.h
++++ b/drivers/usb/gadget/udc/pxa27x_udc.h
+@@ -234,25 +234,28 @@
+ /*
+  * Endpoint definition helpers
+  */
+-#define USB_EP_DEF(addr, bname, dir, type, maxpkt) \
+-{ .usb_ep = { .name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, }, \
++#define USB_EP_DEF(addr, bname, dir, type, maxpkt, ctype, cdir) \
++{ .usb_ep = {	.name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, \
++		.caps = USB_EP_CAPS(USB_EP_CAPS_TYPE_ ## ctype, \
++				    USB_EP_CAPS_DIR_ ## cdir), }, \
+   .desc = {	.bEndpointAddress = addr | (dir ? USB_DIR_IN : 0), \
+-		.bmAttributes = type, \
++		.bmAttributes = USB_ENDPOINT_XFER_ ## type, \
+ 		.wMaxPacketSize = maxpkt, }, \
+   .dev = &memory \
+ }
+-#define USB_EP_BULK(addr, bname, dir) \
+-  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_BULK, BULK_FIFO_SIZE)
+-#define USB_EP_ISO(addr, bname, dir) \
+-  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_ISOC, ISO_FIFO_SIZE)
+-#define USB_EP_INT(addr, bname, dir) \
+-  USB_EP_DEF(addr, bname, dir, USB_ENDPOINT_XFER_INT, INT_FIFO_SIZE)
+-#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1)
+-#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0)
+-#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1)
+-#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0)
+-#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1)
+-#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, 0, EP0_FIFO_SIZE)
++#define USB_EP_BULK(addr, bname, dir, cdir) \
++	USB_EP_DEF(addr, bname, dir, BULK, BULK_FIFO_SIZE, BULK, cdir)
++#define USB_EP_ISO(addr, bname, dir, cdir) \
++	USB_EP_DEF(addr, bname, dir, ISOC, ISO_FIFO_SIZE, ISO, cdir)
++#define USB_EP_INT(addr, bname, dir, cdir) \
++	USB_EP_DEF(addr, bname, dir, INT, INT_FIFO_SIZE, INT, cdir)
++#define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1, IN)
++#define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0, OUT)
++#define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1, IN)
++#define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0, OUT)
++#define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1, IN)
++#define USB_EP_CTRL		USB_EP_DEF(0,  "ep0", 0, CONTROL, \
++					   EP0_FIFO_SIZE, CONTROL, ALL)
  
-+	switch (type) {
-+	case USB_ENDPOINT_XFER_CONTROL:
-+		ep->ep.caps.type_control = true;
-+		ep->ep.caps.dir_in = true;
-+		ep->ep.caps.dir_out = true;
-+		break;
-+	case USB_ENDPOINT_XFER_ISOC:
-+		ep->ep.caps.type_iso = true;
-+		break;
-+	case USB_ENDPOINT_XFER_BULK:
-+		ep->ep.caps.type_bulk = true;
-+		break;
-+	case USB_ENDPOINT_XFER_INT:
-+		ep->ep.caps.type_int = true;
-+		break;
-+	};
-+
-+	if (addr & USB_DIR_IN)
-+		ep->ep.caps.dir_in = true;
-+	else
-+		ep->ep.caps.dir_out = true;
-+
- 	ep->ep.name = ep->name;
- 	ep->ep.ops = &omap_ep_ops;
- 	ep->maxpacket = maxp;
+ #define PXA_EP_DEF(_idx, _addr, dir, _type, maxpkt, _config, iface, altset) \
+ { \
 -- 
 1.9.1
