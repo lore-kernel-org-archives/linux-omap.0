@@ -1,57 +1,48 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 10/11] usb: otg: Add dual-role device (DRD) support
-Date: Mon, 27 Jul 2015 12:31:48 +0300
-Message-ID: <55B5FA84.1040508@ti.com>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com> <1436350777-28056-11-git-send-email-rogerq@ti.com> <20150717090212.GC4515@shlinux2> <55A8DD30.5030407@ti.com> <20150720012308.GB4584@shlinux2>
+Subject: Re: [PATCH v3 2/3] ARM: dts: dra7: Add syscon-pllreset syscon to
+ SATA PHY
+Date: Mon, 27 Jul 2015 12:34:00 +0300
+Message-ID: <55B5FB08.7060503@ti.com>
+References: <1437140844-6032-1-git-send-email-rogerq@ti.com> <1437140844-6032-3-git-send-email-rogerq@ti.com> <55ACE4B5.7000107@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150720012308.GB4584@shlinux2>
+In-Reply-To: <55ACE4B5.7000107@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <peter.chen@freescale.com>
-Cc: Li Jun <b47624@freescale.com>, stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, kishon@ti.com, tony@atomide.com
+Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 20/07/15 04:23, Peter Chen wrote:
-> On Fri, Jul 17, 2015 at 01:47:12PM +0300, Roger Quadros wrote:
->>>> + * DRD mode hardware Inputs
->>>> + *
->>>> + * @id:		TRUE for B-device, FALSE for A-device.
->>>> + * @vbus:	VBUS voltage in regulation.
->>>> + *
->>>>   * OTG hardware Inputs
->>>>   *
->>>>   *	Common inputs for A and B device
->>>> @@ -122,7 +127,8 @@ enum otg_fsm_timer {
->>>>   */
->>>>  struct otg_fsm {
->>>>  	/* Input */
->>>> -	int id;
->>>> +	int id;			/* DRD + OTG */
->>>> +	int vbus;		/* DRD only */
->>>
->>> Existing b_sess_vld can be also used for drd only case, no need create
->>> a new flag.
+On 20/07/15 15:08, Tero Kristo wrote:
+> On 07/17/2015 04:47 PM, Roger Quadros wrote:
+>> This register is required to be passed to the SATA PHY driver
+>> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
 >>
->> b_sess_vld is a bit confusing to people not familiar with OTG.
->> My suggestion is to use dedicated 'vbus' flag for DRD case
->> for simplicity.
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   arch/arm/boot/dts/dra7.dtsi | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 8f1e25b..4a0718c 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -1140,6 +1140,7 @@
+>>                   ctrl-module = <&omap_control_sata>;
+>>                   clocks = <&sys_clkin1>, <&sata_ref_clk>;
+>>                   clock-names = "sysclk", "refclk";
+>> +                syscon-pllreset = <&scm_conf 0x3fc>;
+>>                   #phy-cells = <0>;
+>>               };
+>>
 >>
 > 
-> Since OTG DRD is the subset in OTG FSM (FSM, data structure, APIs, etc),
-> I agree with Jun to reuse existing variables, and we can add some comments
-> for b_sess_vld if needed.
+> Looks fine to me.
+> 
+> Make sure you use this register via regmap_update_bits only, seeing there is another potential user for the same register.
 
-OK then. I'll get rid of vbus and use b_sess_vld.
+Yes. Patch 1 is the user using regmap_update_bits.
 
 cheers,
 -roger
-
-> 
-> 
->>>
->>>>  	int adp_change;
->>>>  	int power_up;
->>>>  	int a_srp_det;
->>
