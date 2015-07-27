@@ -1,45 +1,84 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v4 07/46] usb: dwc3: gadget: add ep capabilities support
-Date: Mon, 27 Jul 2015 11:16:17 +0200
-Message-ID: <1437988616-6962-8-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v4 09/46] usb: gadget: at91_udc: add ep capabilities support
+Date: Mon, 27 Jul 2015 11:16:19 +0200
+Message-ID: <1437988616-6962-10-git-send-email-r.baldyga@samsung.com>
 References: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 In-reply-to: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com, stern@rowland.harvard.edu, petr.cvek@tul.cz, Robert Baldyga <r.baldyga@samsung.com>
+Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, Robert Baldyga <r.baldyga@samsung.com>, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
 List-Id: linux-omap@vger.kernel.org
 
 Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/dwc3/gadget.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/usb/gadget/udc/at91_udc.c | 33 ++++++++++++++++++++++++---------
+ 1 file changed, 24 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index d97fcfa..65fd959 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -1715,6 +1715,19 @@ static int dwc3_gadget_init_hw_endpoints(struct dwc3 *dwc,
- 				return ret;
- 		}
+diff --git a/drivers/usb/gadget/udc/at91_udc.c b/drivers/usb/gadget/udc/at91_udc.c
+index fc42264..a04b073 100644
+--- a/drivers/usb/gadget/udc/at91_udc.c
++++ b/drivers/usb/gadget/udc/at91_udc.c
+@@ -59,15 +59,29 @@
+ #define	DRIVER_VERSION	"3 May 2006"
  
-+		if (epnum == 0 || epnum == 1) {
-+			dep->endpoint.caps.type_control = true;
-+		} else {
-+			dep->endpoint.caps.type_iso = true;
-+			dep->endpoint.caps.type_bulk = true;
-+			dep->endpoint.caps.type_int = true;
-+		}
+ static const char driver_name [] = "at91_udc";
+-static const char * const ep_names[] = {
+-	"ep0",
+-	"ep1",
+-	"ep2",
+-	"ep3-int",
+-	"ep4",
+-	"ep5",
 +
-+		if (direction)
-+			dep->endpoint.caps.dir_in = true;
-+		else
-+			dep->endpoint.caps.dir_out = true;
++static const struct {
++	const char *name;
++	const struct usb_ep_caps caps;
++} ep_info[] = {
++#define EP_INFO(_name, _type, _dir) \
++	{ \
++		.name = _name, \
++		.caps = USB_EP_CAPS(USB_EP_CAPS_TYPE_ ## _type, \
++				USB_EP_CAPS_DIR_ ## _dir), \
++	}
 +
- 		INIT_LIST_HEAD(&dep->request_list);
- 		INIT_LIST_HEAD(&dep->req_queued);
- 	}
++	EP_INFO("ep0",		CONTROL, ALL),
++	EP_INFO("ep1",		ALL,	ALL),
++	EP_INFO("ep2",		ALL,	ALL),
++	EP_INFO("ep3-int",	INT,	ALL),
++	EP_INFO("ep4",		ALL,	ALL),
++	EP_INFO("ep5",		ALL,	ALL),
++
++#undef EP_INFO
+ };
+-#define ep0name		ep_names[0]
++
++#define ep0name		ep_info[0].name
+ 
+ #define VBUS_POLL_TIMEOUT	msecs_to_jiffies(1000)
+ 
+@@ -1830,7 +1844,8 @@ static int at91udc_probe(struct platform_device *pdev)
+ 
+ 	for (i = 0; i < NUM_ENDPOINTS; i++) {
+ 		ep = &udc->ep[i];
+-		ep->ep.name = ep_names[i];
++		ep->ep.name = ep_info[i].name;
++		ep->ep.caps = ep_info[i].caps;
+ 		ep->ep.ops = &at91_ep_ops;
+ 		ep->udc = udc;
+ 		ep->int_mask = BIT(i);
 -- 
 1.9.1
