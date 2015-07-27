@@ -1,82 +1,41 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 3/3] PCI: host: pci-dra7xx: Idle the module by disabling MSE bit
-Date: Mon, 27 Jul 2015 11:54:54 +0530
-Message-ID: <1437978294-22317-4-git-send-email-kishon@ti.com>
-References: <1437978294-22317-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 2/6] usb: dwc3: ep0: use _roundup_ to calculate the transfer size
+Date: Mon, 27 Jul 2015 12:25:28 +0530
+Message-ID: <1437980132-20232-3-git-send-email-kishon@ti.com>
+References: <1437980132-20232-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437978294-22317-1-git-send-email-kishon@ti.com>
+In-Reply-To: <1437980132-20232-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: nsekhar@ti.com, kishon@ti.com
+To: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-DRA7xx require MSE bit to be cleared to set the master in
-standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
-Controller Master Standby Behavior advises to use the clearing
-of the local MSE bit to set the master in standby. Without this
-some of the clocks do not idle).
-
-Cleared the MSE bit on suspend and enabled it back on resume.
-Clearing MSE bit is required to get clocks to be idled after
-suspend.
+No functional change. Used _roundup_ macro to calculate the transfer
+size aligned to maxpacket in  dwc3_ep0_complete_data. It also makes it
+similar to how transfer size is calculated in __dwc3_ep0_do_control_data.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ drivers/usb/dwc3/ep0.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 7599201..7acc833 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -83,6 +83,17 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
- 	writel(value, pcie->base + offset);
- }
+diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+index 8858c60..713e46a 100644
+--- a/drivers/usb/dwc3/ep0.c
++++ b/drivers/usb/dwc3/ep0.c
+@@ -812,10 +812,8 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
+ 	length = trb->size & DWC3_TRB_SIZE_MASK;
  
-+static inline u32 dra7xx_pcie_readl_rc(struct pcie_port *pp, u32 offset)
-+{
-+	return readl(pp->dbi_base + offset);
-+}
-+
-+static inline void dra7xx_pcie_writel_rc(struct pcie_port *pp, u32 offset,
-+					 u32 value)
-+{
-+	writel(value, pp->dbi_base + offset);
-+}
-+
- static int dra7xx_pcie_link_up(struct pcie_port *pp)
- {
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-@@ -438,8 +449,12 @@ static int dra7xx_pcie_suspend(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
- 	struct pcie_port *pp = &dra7xx->pp;
-+	u32 val;
+ 	if (dwc->ep0_bounced) {
+-		unsigned transfer_size = ur->length;
+ 		unsigned maxp = ep0->endpoint.maxpacket;
+-
+-		transfer_size += (maxp - (transfer_size % maxp));
++		unsigned transfer_size = roundup(ur->length, maxp);
  
--	dw_pcie_suspend_rc(pp);
-+	/* clear MSE */
-+	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
-+	val &= ~PCI_COMMAND_MEMORY;
-+	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
- 
- 	return 0;
- }
-@@ -448,8 +463,12 @@ static int dra7xx_pcie_resume(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
- 	struct pcie_port *pp = &dra7xx->pp;
-+	u32 val;
- 
--	dw_pcie_resume_rc(pp);
-+	/* clear MSE */
-+	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
-+	val |= PCI_COMMAND_MEMORY;
-+	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
- 
- 	return 0;
- }
+ 		/* Maximum of DWC3_EP0_BOUNCE_SIZE can only be received */
+ 		if (transfer_size > DWC3_EP0_BOUNCE_SIZE)
 -- 
 1.7.9.5
