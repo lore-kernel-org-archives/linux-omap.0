@@ -1,11 +1,13 @@
 From: Rob Herring <robh@kernel.org>
-Subject: [PATCH v3] ARM: kill off set_irq_flags usage
-Date: Mon, 27 Jul 2015 15:55:13 -0500
-Message-ID: <1438030523-15853-1-git-send-email-robh@kernel.org>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: arm@kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Greg Ungerer <gerg@uclinux.org>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Simtec Linux Team <linux@simtec.co.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: [PATCH v3] mfd: kill off set_irq_flags usage
+Date: Mon, 27 Jul 2015 15:55:20 -0500
+Message-ID: <1438030523-15853-8-git-send-email-robh@kernel.org>
+References: <1438030523-15853-1-git-send-email-robh@kernel.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <1438030523-15853-1-git-send-email-robh@kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Samuel Ortiz <sameo@linux.intel.com>, Milo Kim <milo.kim@ti.com>, Kumar Gala <galak@codeaurora.org>, Andy Gross <agross@codeaurora.org>, David Brown <davidb@codeaurora.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 set_irq_flags is ARM specific with custom flags which have genirq
@@ -24,597 +26,565 @@ is not clear that is really needed. There appears to be a great deal of
 blind copy and paste of this code.
 
 Signed-off-by: Rob Herring <robh@kernel.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Sekhar Nori <nsekhar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Cc: Gregory Clement <gregory.clement@free-electrons.com>
-Acked-by: Hans Ulli Kroll <ulli.kroll@googlemail.com>
-Acked-by: Shawn Guo <shawnguo@kernel.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: Imre Kaloz <kaloz@openwrt.org>
-Acked-by: Krzysztof Halasa <khalasa@piap.pl>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Roland Stigge <stigge@antcom.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Milo Kim <milo.kim@ti.com>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Andy Gross <agross@codeaurora.org>
+Cc: David Brown <davidb@codeaurora.org>
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: Daniel Mack <daniel@zonque.org>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Simtec Linux Team <linux@simtec.co.uk>
-Cc: Kukjin Kim <kgene@kernel.org>
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Wan ZongShun <mcuos.com@gmail.com>
 Cc: linux-arm-kernel@lists.infradead.org
+Cc: patches@opensource.wolfsonmicro.com
+Cc: linux-arm-msm@vger.kernel.org
+Cc: linux-soc@vger.kernel.org
 Cc: linux-omap@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org
-Tested-by: Kevin Hilman <khilman@linaro.org>
 ---
 Thomas asked that this be merged thru subsystem trees instead of arm-soc,
-so please apply just this patch to your tree.
+so please apply this to your tree.
 
 Rob
 
- arch/arm/common/it8152.c             |  2 +-
- arch/arm/common/locomo.c             |  2 +-
- arch/arm/common/sa1111.c             |  4 ++--
- arch/arm/mach-davinci/cp_intc.c      |  2 +-
- arch/arm/mach-dove/irq.c             |  2 +-
- arch/arm/mach-ebsa110/core.c         |  2 +-
- arch/arm/mach-footbridge/common.c    |  2 +-
- arch/arm/mach-footbridge/isa-irq.c   |  8 ++++----
- arch/arm/mach-gemini/gpio.c          |  2 +-
- arch/arm/mach-gemini/irq.c           |  2 +-
- arch/arm/mach-imx/3ds_debugboard.c   |  2 +-
- arch/arm/mach-imx/mach-mx31ads.c     |  2 +-
- arch/arm/mach-iop13xx/irq.c          |  2 +-
- arch/arm/mach-iop32x/irq.c           |  2 +-
- arch/arm/mach-iop33x/irq.c           |  2 +-
- arch/arm/mach-ixp4xx/common.c        |  2 +-
- arch/arm/mach-ks8695/irq.c           |  2 +-
- arch/arm/mach-lpc32xx/irq.c          |  2 +-
- arch/arm/mach-netx/generic.c         |  2 +-
- arch/arm/mach-omap1/fpga.c           |  2 +-
- arch/arm/mach-omap1/irq.c            |  2 +-
- arch/arm/mach-pxa/balloon3.c         |  2 +-
- arch/arm/mach-pxa/irq.c              |  1 -
- arch/arm/mach-pxa/lpd270.c           |  2 +-
- arch/arm/mach-pxa/pcm990-baseboard.c |  2 +-
- arch/arm/mach-pxa/pxa3xx.c           |  2 +-
- arch/arm/mach-pxa/viper.c            |  2 +-
- arch/arm/mach-pxa/zeus.c             |  2 +-
- arch/arm/mach-rpc/ecard.c            |  2 +-
- arch/arm/mach-rpc/irq.c              | 16 ++++++++--------
- arch/arm/mach-s3c24xx/bast-irq.c     |  2 +-
- arch/arm/mach-s3c64xx/common.c       |  2 +-
- arch/arm/mach-sa1100/neponset.c      |  4 ++--
- arch/arm/mach-w90x900/irq.c          |  2 +-
- drivers/irqchip/irq-sa11x0.c         |  1 -
- 35 files changed, 45 insertions(+), 47 deletions(-)
+ drivers/mfd/88pm860x-core.c |  4 ----
+ drivers/mfd/ab8500-core.c   |  4 ----
+ drivers/mfd/arizona-irq.c   |  7 -------
+ drivers/mfd/asic3.c         |  4 ++--
+ drivers/mfd/db8500-prcmu.c  |  1 -
+ drivers/mfd/ezx-pcap.c      |  6 +-----
+ drivers/mfd/htc-egpio.c     |  4 ++--
+ drivers/mfd/htc-i2cpld.c    |  6 +-----
+ drivers/mfd/lp8788-irq.c    |  5 -----
+ drivers/mfd/max8925-core.c  |  5 +----
+ drivers/mfd/max8997-irq.c   |  5 +----
+ drivers/mfd/max8998-irq.c   |  5 +----
+ drivers/mfd/mt6397-core.c   |  4 ----
+ drivers/mfd/pm8921-core.c   |  5 +----
+ drivers/mfd/rc5t583-irq.c   |  4 +---
+ drivers/mfd/stmpe.c         |  7 -------
+ drivers/mfd/t7l66xb.c       |  6 ------
+ drivers/mfd/tc3589x.c       |  7 -------
+ drivers/mfd/tc6393xb.c      |  4 ++--
+ drivers/mfd/tps6586x.c      |  7 -------
+ drivers/mfd/tps65912-irq.c  |  8 +-------
+ drivers/mfd/twl4030-irq.c   | 11 +----------
+ drivers/mfd/twl6030-irq.c   | 13 -------------
+ drivers/mfd/ucb1x00-core.c  |  2 +-
+ drivers/mfd/wm831x-irq.c    |  7 -------
+ drivers/mfd/wm8350-irq.c    |  8 +-------
+ drivers/mfd/wm8994-irq.c    |  7 -------
+ 27 files changed, 17 insertions(+), 139 deletions(-)
 
-diff --git a/arch/arm/common/it8152.c b/arch/arm/common/it8152.c
-index 5114b68..96dabcb 100644
---- a/arch/arm/common/it8152.c
-+++ b/arch/arm/common/it8152.c
-@@ -91,7 +91,7 @@ void it8152_init_irq(void)
- 	for (irq = IT8152_IRQ(0); irq <= IT8152_LAST_IRQ; irq++) {
- 		irq_set_chip_and_handler(irq, &it8152_irq_chip,
- 					 handle_level_irq);
--		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
- }
-
-diff --git a/arch/arm/common/locomo.c b/arch/arm/common/locomo.c
-index b55c362..339fc41 100644
---- a/arch/arm/common/locomo.c
-+++ b/arch/arm/common/locomo.c
-@@ -205,7 +205,7 @@ static void locomo_setup_irq(struct locomo *lchip)
- 	for ( ; irq <= lchip->irq_base + 3; irq++) {
- 		irq_set_chip_and_handler(irq, &locomo_chip, handle_level_irq);
- 		irq_set_chip_data(irq, lchip);
--		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
- }
-
-diff --git a/arch/arm/common/sa1111.c b/arch/arm/common/sa1111.c
-index 93ee70d..680374d 100644
---- a/arch/arm/common/sa1111.c
-+++ b/arch/arm/common/sa1111.c
-@@ -486,7 +486,7 @@ static int sa1111_setup_irq(struct sa1111 *sachip, unsigned irq_base)
- 		irq_set_chip_and_handler(irq, &sa1111_low_chip,
- 					 handle_edge_irq);
- 		irq_set_chip_data(irq, sachip);
--		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
-
- 	for (i = AUDXMTDMADONEA; i <= IRQ_S1_BVD1_STSCHG; i++) {
-@@ -494,7 +494,7 @@ static int sa1111_setup_irq(struct sa1111 *sachip, unsigned irq_base)
- 		irq_set_chip_and_handler(irq, &sa1111_high_chip,
- 					 handle_edge_irq);
- 		irq_set_chip_data(irq, sachip);
--		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
-
- 	/*
-diff --git a/arch/arm/mach-davinci/cp_intc.c b/arch/arm/mach-davinci/cp_intc.c
-index 006dae8df..bf12ce6 100644
---- a/arch/arm/mach-davinci/cp_intc.c
-+++ b/arch/arm/mach-davinci/cp_intc.c
-@@ -112,7 +112,7 @@ static int cp_intc_host_map(struct irq_domain *h, unsigned int virq,
- 	pr_debug("cp_intc_host_map(%d, 0x%lx)\n", virq, hw);
-
- 	irq_set_chip(virq, &cp_intc_irq_chip);
--	set_irq_flags(virq, IRQF_VALID | IRQF_PROBE);
-+	irq_set_probe(virq);
- 	irq_set_handler(virq, handle_edge_irq);
+diff --git a/drivers/mfd/88pm860x-core.c b/drivers/mfd/88pm860x-core.c
+index e03b7f4..bc0f3c0 100644
+--- a/drivers/mfd/88pm860x-core.c
++++ b/drivers/mfd/88pm860x-core.c
+@@ -558,11 +558,7 @@ static int pm860x_irq_domain_map(struct irq_domain *d, unsigned int virq,
+ 	irq_set_chip_data(virq, d->host_data);
+ 	irq_set_chip_and_handler(virq, &pm860x_irq_chip, handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
  	return 0;
  }
-diff --git a/arch/arm/mach-dove/irq.c b/arch/arm/mach-dove/irq.c
-index df0223f..ea7892e 100644
---- a/arch/arm/mach-dove/irq.c
-+++ b/arch/arm/mach-dove/irq.c
-@@ -172,7 +172,7 @@ void __init dove_init_irq(void)
- 	for (i = IRQ_DOVE_PMU_START; i < NR_IRQS; i++) {
- 		irq_set_chip_and_handler(i, &pmu_irq_chip, handle_level_irq);
- 		irq_set_status_flags(i, IRQ_LEVEL);
--		set_irq_flags(i, IRQF_VALID);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST);
- 	}
- 	irq_set_chained_handler(IRQ_DOVE_PMU, pmu_irq_handler);
+
+diff --git a/drivers/mfd/ab8500-core.c b/drivers/mfd/ab8500-core.c
+index 000da72..fefbe4c 100644
+--- a/drivers/mfd/ab8500-core.c
++++ b/drivers/mfd/ab8500-core.c
+@@ -565,11 +565,7 @@ static int ab8500_irq_map(struct irq_domain *d, unsigned int virq,
+ 	irq_set_chip_and_handler(virq, &ab8500_irq_chip,
+ 				handle_simple_irq);
+ 	irq_set_nested_thread(virq, 1);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
+
+ 	return 0;
  }
-diff --git a/arch/arm/mach-ebsa110/core.c b/arch/arm/mach-ebsa110/core.c
-index 8254e71..688e5fe 100644
---- a/arch/arm/mach-ebsa110/core.c
-+++ b/arch/arm/mach-ebsa110/core.c
-@@ -65,7 +65,7 @@ static void __init ebsa110_init_irq(void)
- 	for (irq = 0; irq < NR_IRQS; irq++) {
- 		irq_set_chip_and_handler(irq, &ebsa110_irq_chip,
- 					 handle_level_irq);
--		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
+diff --git a/drivers/mfd/arizona-irq.c b/drivers/mfd/arizona-irq.c
+index 2b9965d5..7d66aec 100644
+--- a/drivers/mfd/arizona-irq.c
++++ b/drivers/mfd/arizona-irq.c
+@@ -174,14 +174,7 @@ static int arizona_irq_map(struct irq_domain *h, unsigned int virq,
+ 	irq_set_chip_data(virq, data);
+ 	irq_set_chip_and_handler(virq, &arizona_irq_chip, handle_simple_irq);
+ 	irq_set_nested_thread(virq, 1);
+-
+-	/* ARM needs us to explicitly flag the IRQ as valid
+-	 * and will set them noprobe when we do so. */
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
+
+ 	return 0;
  }
+diff --git a/drivers/mfd/asic3.c b/drivers/mfd/asic3.c
+index 120df5c..4b54128 100644
+--- a/drivers/mfd/asic3.c
++++ b/drivers/mfd/asic3.c
+@@ -411,7 +411,7 @@ static int __init asic3_irq_probe(struct platform_device *pdev)
 
-diff --git a/arch/arm/mach-footbridge/common.c b/arch/arm/mach-footbridge/common.c
-index 9e8220e..0f0c9e0 100644
---- a/arch/arm/mach-footbridge/common.c
-+++ b/arch/arm/mach-footbridge/common.c
-@@ -106,7 +106,7 @@ static void __init __fb_init_irq(void)
-
- 	for (irq = _DC21285_IRQ(0); irq < _DC21285_IRQ(20); irq++) {
- 		irq_set_chip_and_handler(irq, &fb_chip, handle_level_irq);
--		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
- }
-
-diff --git a/arch/arm/mach-footbridge/isa-irq.c b/arch/arm/mach-footbridge/isa-irq.c
-index c3a0abb..fcd79bc 100644
---- a/arch/arm/mach-footbridge/isa-irq.c
-+++ b/arch/arm/mach-footbridge/isa-irq.c
-@@ -153,13 +153,13 @@ void __init isa_init_irq(unsigned int host_irq)
- 		for (irq = _ISA_IRQ(0); irq < _ISA_IRQ(8); irq++) {
- 			irq_set_chip_and_handler(irq, &isa_lo_chip,
- 						 handle_level_irq);
--			set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+			irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 		}
-
- 		for (irq = _ISA_IRQ(8); irq < _ISA_IRQ(16); irq++) {
- 			irq_set_chip_and_handler(irq, &isa_hi_chip,
- 						 handle_level_irq);
--			set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+			irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 		}
-
- 		request_resource(&ioport_resource, &pic1_resource);
-@@ -175,8 +175,8 @@ void __init isa_init_irq(unsigned int host_irq)
- 		 * resistor on this line.
- 		 */
- 		if (machine_is_netwinder())
--			set_irq_flags(_ISA_IRQ(11), IRQF_VALID |
--				      IRQF_PROBE | IRQF_NOAUTOEN);
-+			irq_modify_status(_ISA_IRQ(11),
-+				IRQ_NOREQUEST | IRQ_NOPROBE, IRQ_NOAUTOEN);
- 	}
- }
-
-diff --git a/arch/arm/mach-gemini/gpio.c b/arch/arm/mach-gemini/gpio.c
-index 3292f2e..220333e 100644
---- a/arch/arm/mach-gemini/gpio.c
-+++ b/arch/arm/mach-gemini/gpio.c
-@@ -220,7 +220,7 @@ void __init gemini_gpio_init(void)
- 		     j < GPIO_IRQ_BASE + (i + 1) * 32; j++) {
- 			irq_set_chip_and_handler(j, &gpio_irq_chip,
- 						 handle_edge_irq);
--			set_irq_flags(j, IRQF_VALID);
-+			irq_clear_status_flags(j, IRQ_NOREQUEST);
- 		}
-
- 		irq_set_chained_handler_and_data(IRQ_GPIO(i), gpio_irq_handler,
-diff --git a/arch/arm/mach-gemini/irq.c b/arch/arm/mach-gemini/irq.c
-index 44f50dc..d929b3f 100644
---- a/arch/arm/mach-gemini/irq.c
-+++ b/arch/arm/mach-gemini/irq.c
-@@ -92,7 +92,7 @@ void __init gemini_init_irq(void)
- 		} else {
- 			irq_set_handler(i, handle_level_irq);
- 		}
--		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
-
- 	/* Disable all interrupts */
-diff --git a/arch/arm/mach-imx/3ds_debugboard.c b/arch/arm/mach-imx/3ds_debugboard.c
-index 1343773..45903be 100644
---- a/arch/arm/mach-imx/3ds_debugboard.c
-+++ b/arch/arm/mach-imx/3ds_debugboard.c
-@@ -195,7 +195,7 @@ int __init mxc_expio_init(u32 base, u32 intr_gpio)
-
- 	for (i = irq_base; i < irq_base + MXC_MAX_EXP_IO_LINES; i++) {
- 		irq_set_chip_and_handler(i, &expio_irq_chip, handle_level_irq);
--		set_irq_flags(i, IRQF_VALID);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST);
- 	}
- 	irq_set_irq_type(p_irq, IRQF_TRIGGER_LOW);
- 	irq_set_chained_handler(p_irq, mxc_expio_irq_handler);
-diff --git a/arch/arm/mach-imx/mach-mx31ads.c b/arch/arm/mach-imx/mach-mx31ads.c
-index d08c37c..2c08535 100644
---- a/arch/arm/mach-imx/mach-mx31ads.c
-+++ b/arch/arm/mach-imx/mach-mx31ads.c
-@@ -238,7 +238,7 @@ static void __init mx31ads_init_expio(void)
-
- 	for (i = irq_base; i < irq_base + MXC_MAX_EXP_IO_LINES; i++) {
- 		irq_set_chip_and_handler(i, &expio_irq_chip, handle_level_irq);
--		set_irq_flags(i, IRQF_VALID);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST);
- 	}
- 	irq = gpio_to_irq(IOMUX_TO_GPIO(MX31_PIN_GPIO1_4));
- 	irq_set_irq_type(irq, IRQ_TYPE_LEVEL_HIGH);
-diff --git a/arch/arm/mach-iop13xx/irq.c b/arch/arm/mach-iop13xx/irq.c
-index bc73970..623d85a 100644
---- a/arch/arm/mach-iop13xx/irq.c
-+++ b/arch/arm/mach-iop13xx/irq.c
-@@ -233,7 +233,7 @@ void __init iop13xx_init_irq(void)
- 			irq_set_chip(i, &iop13xx_irqchip4);
-
- 		irq_set_handler(i, handle_level_irq);
--		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
-
- 	iop13xx_msi_init();
-diff --git a/arch/arm/mach-iop32x/irq.c b/arch/arm/mach-iop32x/irq.c
-index d7ee278..2d1f69a 100644
---- a/arch/arm/mach-iop32x/irq.c
-+++ b/arch/arm/mach-iop32x/irq.c
-@@ -69,6 +69,6 @@ void __init iop32x_init_irq(void)
-
- 	for (i = 0; i < NR_IRQS; i++) {
- 		irq_set_chip_and_handler(i, &ext_chip, handle_level_irq);
--		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
- }
-diff --git a/arch/arm/mach-iop33x/irq.c b/arch/arm/mach-iop33x/irq.c
-index f7f5d3e..c99ec8d 100644
---- a/arch/arm/mach-iop33x/irq.c
-+++ b/arch/arm/mach-iop33x/irq.c
-@@ -113,6 +113,6 @@ void __init iop33x_init_irq(void)
- 		irq_set_chip_and_handler(i,
- 					 (i < 32) ? &iop33x_irqchip1 : &iop33x_irqchip2,
- 					 handle_level_irq);
--		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
- }
-diff --git a/arch/arm/mach-ixp4xx/common.c b/arch/arm/mach-ixp4xx/common.c
-index 8537d4c..0f3f01a 100644
---- a/arch/arm/mach-ixp4xx/common.c
-+++ b/arch/arm/mach-ixp4xx/common.c
-@@ -296,7 +296,7 @@ void __init ixp4xx_init_irq(void)
- 	for(i = 0; i < NR_IRQS; i++) {
- 		irq_set_chip_and_handler(i, &ixp4xx_irq_chip,
- 					 handle_level_irq);
--		set_irq_flags(i, IRQF_VALID);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST);
- 	}
- }
-
-diff --git a/arch/arm/mach-ks8695/irq.c b/arch/arm/mach-ks8695/irq.c
-index 76802aa..31439f2 100644
---- a/arch/arm/mach-ks8695/irq.c
-+++ b/arch/arm/mach-ks8695/irq.c
-@@ -172,6 +172,6 @@ void __init ks8695_init_irq(void)
- 							 handle_edge_irq);
- 		}
-
--		set_irq_flags(irq, IRQF_VALID);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST);
- 	}
- }
-diff --git a/arch/arm/mach-lpc32xx/irq.c b/arch/arm/mach-lpc32xx/irq.c
-index d4f7dc8..4ffe333 100644
---- a/arch/arm/mach-lpc32xx/irq.c
-+++ b/arch/arm/mach-lpc32xx/irq.c
-@@ -434,7 +434,7 @@ void __init lpc32xx_init_irq(void)
- 	for (i = 0; i < NR_IRQS; i++) {
- 		irq_set_chip_and_handler(i, &lpc32xx_irq_chip,
- 					 handle_level_irq);
--		set_irq_flags(i, IRQF_VALID);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST);
- 	}
-
- 	/* Set default mappings */
-diff --git a/arch/arm/mach-netx/generic.c b/arch/arm/mach-netx/generic.c
-index db25b0c..6373e2b 100644
---- a/arch/arm/mach-netx/generic.c
-+++ b/arch/arm/mach-netx/generic.c
-@@ -174,7 +174,7 @@ void __init netx_init_irq(void)
- 	for (irq = NETX_IRQ_HIF_CHAINED(0); irq <= NETX_IRQ_HIF_LAST; irq++) {
- 		irq_set_chip_and_handler(irq, &netx_hif_chip,
- 					 handle_level_irq);
--		set_irq_flags(irq, IRQF_VALID);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST);
- 	}
-
- 	writel(NETX_DPMAS_INT_EN_GLB_EN, NETX_DPMAS_INT_EN);
-diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
-index 3c0e422..dfec671 100644
---- a/arch/arm/mach-omap1/fpga.c
-+++ b/arch/arm/mach-omap1/fpga.c
-@@ -169,7 +169,7 @@ void omap1510_fpga_init_irq(void)
- 		}
-
- 		irq_set_handler(i, handle_edge_irq);
--		set_irq_flags(i, IRQF_VALID);
-+		irq_clear_status_flags(i, IRQ_NOREQUEST);
- 	}
-
- 	/*
-diff --git a/arch/arm/mach-omap1/irq.c b/arch/arm/mach-omap1/irq.c
-index f4d346f..b11edc8 100644
---- a/arch/arm/mach-omap1/irq.c
-+++ b/arch/arm/mach-omap1/irq.c
-@@ -262,7 +262,7 @@ void __init omap1_init_irq(void)
-
- 			irq_trigger = irq_banks[i].trigger_map >> IRQ_BIT(j);
- 			omap_irq_set_cfg(j, 0, 0, irq_trigger);
--			set_irq_flags(j, IRQF_VALID);
-+			irq_clear_status_flags(j, IRQ_NOREQUEST);
- 		}
- 		omap_alloc_gc(irq_banks[i].va, irq_base + i * 32, 32);
- 	}
-diff --git a/arch/arm/mach-pxa/balloon3.c b/arch/arm/mach-pxa/balloon3.c
-index d897292..09b9a36 100644
---- a/arch/arm/mach-pxa/balloon3.c
-+++ b/arch/arm/mach-pxa/balloon3.c
-@@ -528,7 +528,7 @@ static void __init balloon3_init_irq(void)
- 	for (irq = BALLOON3_IRQ(0); irq <= BALLOON3_IRQ(7); irq++) {
- 		irq_set_chip_and_handler(irq, &balloon3_irq_chip,
- 					 handle_level_irq);
+ 		irq_set_chip_data(irq, asic);
+ 		irq_set_handler(irq, handle_level_irq);
 -		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
 +		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
  	}
 
- 	irq_set_chained_handler(BALLOON3_AUX_NIRQ, balloon3_irq_handler);
-diff --git a/arch/arm/mach-pxa/irq.c b/arch/arm/mach-pxa/irq.c
-index 98608c5..9c10248 100644
---- a/arch/arm/mach-pxa/irq.c
-+++ b/arch/arm/mach-pxa/irq.c
-@@ -133,7 +133,6 @@ static int pxa_irq_map(struct irq_domain *h, unsigned int virq,
- 	irq_set_chip_and_handler(virq, &pxa_internal_irq_chip,
- 				 handle_level_irq);
- 	irq_set_chip_data(virq, base);
+ 	asic3_write_register(asic, ASIC3_OFFSET(INTR, INT_MASK),
+@@ -431,7 +431,7 @@ static void asic3_irq_remove(struct platform_device *pdev)
+ 	irq_base = asic->irq_base;
+
+ 	for (irq = irq_base; irq < irq_base + ASIC3_NR_IRQS; irq++) {
+-		set_irq_flags(irq, 0);
++		irq_set_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 		irq_set_chip_and_handler(irq, NULL, NULL);
+ 		irq_set_chip_data(irq, NULL);
+ 	}
+diff --git a/drivers/mfd/db8500-prcmu.c b/drivers/mfd/db8500-prcmu.c
+index 8b14740..e6e4bac 100644
+--- a/drivers/mfd/db8500-prcmu.c
++++ b/drivers/mfd/db8500-prcmu.c
+@@ -2654,7 +2654,6 @@ static int db8500_irq_map(struct irq_domain *d, unsigned int virq,
+ {
+ 	irq_set_chip_and_handler(virq, &prcmu_irq_chip,
+ 				handle_simple_irq);
 -	set_irq_flags(virq, IRQF_VALID);
 
  	return 0;
  }
-diff --git a/arch/arm/mach-pxa/lpd270.c b/arch/arm/mach-pxa/lpd270.c
-index eaee2c2..2670fb0 100644
---- a/arch/arm/mach-pxa/lpd270.c
-+++ b/arch/arm/mach-pxa/lpd270.c
-@@ -151,7 +151,7 @@ static void __init lpd270_init_irq(void)
- 	for (irq = LPD270_IRQ(2); irq <= LPD270_IRQ(4); irq++) {
- 		irq_set_chip_and_handler(irq, &lpd270_irq_chip,
- 					 handle_level_irq);
+diff --git a/drivers/mfd/ezx-pcap.c b/drivers/mfd/ezx-pcap.c
+index 5991fad..19e55dd 100644
+--- a/drivers/mfd/ezx-pcap.c
++++ b/drivers/mfd/ezx-pcap.c
+@@ -463,11 +463,7 @@ static int ezx_pcap_probe(struct spi_device *spi)
+ 	for (i = pcap->irq_base; i < (pcap->irq_base + PCAP_NIRQS); i++) {
+ 		irq_set_chip_and_handler(i, &pcap_irq_chip, handle_simple_irq);
+ 		irq_set_chip_data(i, pcap);
+-#ifdef CONFIG_ARM
+-		set_irq_flags(i, IRQF_VALID);
+-#else
+-		irq_set_noprobe(i);
+-#endif
++		irq_clear_status_flags(i, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 	}
+
+ 	/* mask/ack all PCAP interrupts */
+diff --git a/drivers/mfd/htc-egpio.c b/drivers/mfd/htc-egpio.c
+index 49f39fe..c9d5e3f 100644
+--- a/drivers/mfd/htc-egpio.c
++++ b/drivers/mfd/htc-egpio.c
+@@ -350,7 +350,7 @@ static int __init egpio_probe(struct platform_device *pdev)
+ 			irq_set_chip_and_handler(irq, &egpio_muxed_chip,
+ 						 handle_simple_irq);
+ 			irq_set_chip_data(irq, ei);
+-			set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
++			irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 		}
+ 		irq_set_irq_type(ei->chained_irq, IRQ_TYPE_EDGE_RISING);
+ 		irq_set_handler_data(ei->chained_irq, ei);
+@@ -376,7 +376,7 @@ static int __exit egpio_remove(struct platform_device *pdev)
+ 		irq_end = ei->irq_start + ei->nirqs;
+ 		for (irq = ei->irq_start; irq < irq_end; irq++) {
+ 			irq_set_chip_and_handler(irq, NULL, NULL);
+-			set_irq_flags(irq, 0);
++			irq_set_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 		}
+ 		irq_set_chained_handler(ei->chained_irq, NULL);
+ 		device_init_wakeup(&pdev->dev, 0);
+diff --git a/drivers/mfd/htc-i2cpld.c b/drivers/mfd/htc-i2cpld.c
+index b54baad..1bd5b04 100644
+--- a/drivers/mfd/htc-i2cpld.c
++++ b/drivers/mfd/htc-i2cpld.c
+@@ -330,11 +330,7 @@ static int htcpld_setup_chip_irq(
+ 		irq_set_chip_and_handler(irq, &htcpld_muxed_chip,
+ 					 handle_simple_irq);
+ 		irq_set_chip_data(irq, chip);
+-#ifdef CONFIG_ARM
 -		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
+-#else
+-		irq_set_probe(irq);
+-#endif
 +		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
  	}
- 	irq_set_chained_handler(PXA_GPIO_TO_IRQ(0), lpd270_irq_handler);
- 	irq_set_irq_type(PXA_GPIO_TO_IRQ(0), IRQ_TYPE_EDGE_FALLING);
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index 2897da2..86e01bf 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -311,7 +311,7 @@ static void __init pcm990_init_irq(void)
- 	for (irq = PCM027_IRQ(0); irq <= PCM027_IRQ(3); irq++) {
- 		irq_set_chip_and_handler(irq, &pcm990_irq_chip,
- 					 handle_level_irq);
--		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
 
- 	/* disable all Interrupts */
-diff --git a/arch/arm/mach-pxa/pxa3xx.c b/arch/arm/mach-pxa/pxa3xx.c
-index bd4cbef..e1362c0 100644
---- a/arch/arm/mach-pxa/pxa3xx.c
-+++ b/arch/arm/mach-pxa/pxa3xx.c
-@@ -325,7 +325,7 @@ static void __init pxa_init_ext_wakeup_irq(int (*fn)(struct irq_data *,
- 	for (irq = IRQ_WAKEUP0; irq <= IRQ_WAKEUP1; irq++) {
- 		irq_set_chip_and_handler(irq, &pxa_ext_wakeup_chip,
- 					 handle_edge_irq);
--		set_irq_flags(irq, IRQF_VALID);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST);
- 	}
+ 	return ret;
+diff --git a/drivers/mfd/lp8788-irq.c b/drivers/mfd/lp8788-irq.c
+index a87f2b5..c7a9825 100644
+--- a/drivers/mfd/lp8788-irq.c
++++ b/drivers/mfd/lp8788-irq.c
+@@ -141,12 +141,7 @@ static int lp8788_irq_map(struct irq_domain *d, unsigned int virq,
+ 	irq_set_chip_data(virq, irqd);
+ 	irq_set_chip_and_handler(virq, chip, handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
 
- 	pxa_ext_wakeup_chip.irq_set_wake = fn;
-diff --git a/arch/arm/mach-pxa/viper.c b/arch/arm/mach-pxa/viper.c
-index de3b080..dae3de8 100644
---- a/arch/arm/mach-pxa/viper.c
-+++ b/arch/arm/mach-pxa/viper.c
-@@ -313,7 +313,7 @@ static void __init viper_init_irq(void)
- 		isa_irq = viper_bit_to_irq(level);
- 		irq_set_chip_and_handler(isa_irq, &viper_irq_chip,
- 					 handle_edge_irq);
--		set_irq_flags(isa_irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(isa_irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
-
- 	irq_set_chained_handler(gpio_to_irq(VIPER_CPLD_GPIO),
-diff --git a/arch/arm/mach-pxa/zeus.c b/arch/arm/mach-pxa/zeus.c
-index 6158566f..6e6c1e7 100644
---- a/arch/arm/mach-pxa/zeus.c
-+++ b/arch/arm/mach-pxa/zeus.c
-@@ -151,7 +151,7 @@ static void __init zeus_init_irq(void)
- 		isa_irq = zeus_bit_to_irq(level);
- 		irq_set_chip_and_handler(isa_irq, &zeus_irq_chip,
- 					 handle_edge_irq);
--		set_irq_flags(isa_irq, IRQF_VALID | IRQF_PROBE);
-+		irq_clear_status_flags(isa_irq, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	}
-
- 	irq_set_irq_type(gpio_to_irq(ZEUS_ISA_GPIO), IRQ_TYPE_EDGE_RISING);
-diff --git a/arch/arm/mach-rpc/ecard.c b/arch/arm/mach-rpc/ecard.c
-index fcb1d59..f726d4c 100644
---- a/arch/arm/mach-rpc/ecard.c
-+++ b/arch/arm/mach-rpc/ecard.c
-@@ -946,7 +946,7 @@ static int __init ecard_probe(int slot, unsigned irq, card_type_t type)
- 		irq_set_chip_and_handler(ec->irq, &ecard_chip,
- 					 handle_level_irq);
- 		irq_set_chip_data(ec->irq, ec);
--		set_irq_flags(ec->irq, IRQF_VALID);
-+		irq_clear_status_flags(ec->irq, IRQ_NOREQUEST);
- 	}
-
- #ifdef CONFIG_ARCH_RPC
-diff --git a/arch/arm/mach-rpc/irq.c b/arch/arm/mach-rpc/irq.c
-index 3e4fa84..66502e6 100644
---- a/arch/arm/mach-rpc/irq.c
-+++ b/arch/arm/mach-rpc/irq.c
-@@ -117,7 +117,7 @@ extern unsigned char rpc_default_fiq_start, rpc_default_fiq_end;
-
- void __init rpc_init_irq(void)
- {
--	unsigned int irq, flags;
-+	unsigned int irq, clr, set = 0;
-
- 	iomd_writeb(0, IOMD_IRQMASKA);
- 	iomd_writeb(0, IOMD_IRQMASKB);
-@@ -128,37 +128,37 @@ void __init rpc_init_irq(void)
- 		&rpc_default_fiq_end - &rpc_default_fiq_start);
-
- 	for (irq = 0; irq < NR_IRQS; irq++) {
--		flags = IRQF_VALID;
-+		clr = IRQ_NOREQUEST;
-
- 		if (irq <= 6 || (irq >= 9 && irq <= 15))
--			flags |= IRQF_PROBE;
-+			clr |= IRQ_NOPROBE;
-
- 		if (irq == 21 || (irq >= 16 && irq <= 19) ||
- 		    irq == IRQ_KEYBOARDTX)
--			flags |= IRQF_NOAUTOEN;
-+			set |= IRQ_NOAUTOEN;
-
- 		switch (irq) {
- 		case 0 ... 7:
- 			irq_set_chip_and_handler(irq, &iomd_a_chip,
- 						 handle_level_irq);
--			set_irq_flags(irq, flags);
-+			irq_modify_status(irq, clr, set);
- 			break;
-
- 		case 8 ... 15:
- 			irq_set_chip_and_handler(irq, &iomd_b_chip,
- 						 handle_level_irq);
--			set_irq_flags(irq, flags);
-+			irq_modify_status(irq, clr, set);
- 			break;
-
- 		case 16 ... 21:
- 			irq_set_chip_and_handler(irq, &iomd_dma_chip,
- 						 handle_level_irq);
--			set_irq_flags(irq, flags);
-+			irq_modify_status(irq, clr, set);
- 			break;
-
- 		case 64 ... 71:
- 			irq_set_chip(irq, &iomd_fiq_chip);
--			set_irq_flags(irq, IRQF_VALID);
-+			irq_modify_status(irq, clr, set);
- 			break;
- 		}
- 	}
-diff --git a/arch/arm/mach-s3c24xx/bast-irq.c b/arch/arm/mach-s3c24xx/bast-irq.c
-index cb1b791..ced1ab8 100644
---- a/arch/arm/mach-s3c24xx/bast-irq.c
-+++ b/arch/arm/mach-s3c24xx/bast-irq.c
-@@ -147,7 +147,7 @@ static __init int bast_irq_init(void)
-
- 			irq_set_chip_and_handler(irqno, &bast_pc104_chip,
- 						 handle_level_irq);
--			set_irq_flags(irqno, IRQF_VALID);
-+			irq_clear_status_flags(irqno, IRQ_NOREQUEST);
- 		}
- 	}
-
-diff --git a/arch/arm/mach-s3c64xx/common.c b/arch/arm/mach-s3c64xx/common.c
-index 16547f2..06ba943 100644
---- a/arch/arm/mach-s3c64xx/common.c
-+++ b/arch/arm/mach-s3c64xx/common.c
-@@ -420,7 +420,7 @@ static int __init s3c64xx_init_irq_eint(void)
- 	for (irq = IRQ_EINT(0); irq <= IRQ_EINT(27); irq++) {
- 		irq_set_chip_and_handler(irq, &s3c_irq_eint, handle_level_irq);
- 		irq_set_chip_data(irq, (void *)eint_irq_to_bit(irq));
--		set_irq_flags(irq, IRQF_VALID);
-+		irq_clear_status_flags(irq, IRQ_NOREQUEST);
- 	}
-
- 	irq_set_chained_handler(IRQ_EINT0_3, s3c_irq_demux_eint0_3);
-diff --git a/arch/arm/mach-sa1100/neponset.c b/arch/arm/mach-sa1100/neponset.c
-index 99d9a3b..6d237b4 100644
---- a/arch/arm/mach-sa1100/neponset.c
-+++ b/arch/arm/mach-sa1100/neponset.c
-@@ -320,10 +320,10 @@ static int neponset_probe(struct platform_device *dev)
-
- 	irq_set_chip_and_handler(d->irq_base + NEP_IRQ_SMC91X, &nochip,
- 		handle_simple_irq);
--	set_irq_flags(d->irq_base + NEP_IRQ_SMC91X, IRQF_VALID | IRQF_PROBE);
-+	irq_clear_status_flags(d->irq_base + NEP_IRQ_SMC91X, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	irq_set_chip_and_handler(d->irq_base + NEP_IRQ_USAR, &nochip,
- 		handle_simple_irq);
--	set_irq_flags(d->irq_base + NEP_IRQ_USAR, IRQF_VALID | IRQF_PROBE);
-+	irq_clear_status_flags(d->irq_base + NEP_IRQ_USAR, IRQ_NOREQUEST | IRQ_NOPROBE);
- 	irq_set_chip(d->irq_base + NEP_IRQ_SA1111, &nochip);
-
- 	irq_set_irq_type(irq, IRQ_TYPE_EDGE_RISING);
-diff --git a/arch/arm/mach-w90x900/irq.c b/arch/arm/mach-w90x900/irq.c
-index d66d43a..491b317 100644
---- a/arch/arm/mach-w90x900/irq.c
-+++ b/arch/arm/mach-w90x900/irq.c
-@@ -211,6 +211,6 @@ void __init nuc900_init_irq(void)
- 	for (irqno = IRQ_WDT; irqno <= IRQ_ADC; irqno++) {
- 		irq_set_chip_and_handler(irqno, &nuc900_irq_chip,
- 					 handle_level_irq);
--		set_irq_flags(irqno, IRQF_VALID);
-+		irq_clear_status_flags(irqno, IRQ_NOREQUEST);
- 	}
+ 	return 0;
  }
-diff --git a/drivers/irqchip/irq-sa11x0.c b/drivers/irqchip/irq-sa11x0.c
-index 46df287..61bb28d 100644
---- a/drivers/irqchip/irq-sa11x0.c
-+++ b/drivers/irqchip/irq-sa11x0.c
-@@ -70,7 +70,6 @@ static int sa1100_normal_irqdomain_map(struct irq_domain *d,
- {
- 	irq_set_chip_and_handler(irq, &sa1100_normal_chip,
- 				 handle_level_irq);
+diff --git a/drivers/mfd/max8925-core.c b/drivers/mfd/max8925-core.c
+index 8520bd6..fd8b15c 100644
+--- a/drivers/mfd/max8925-core.c
++++ b/drivers/mfd/max8925-core.c
+@@ -650,11 +650,8 @@ static int max8925_irq_domain_map(struct irq_domain *d, unsigned int virq,
+ 	irq_set_chip_data(virq, d->host_data);
+ 	irq_set_chip_and_handler(virq, &max8925_irq_chip, handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
++
+ 	return 0;
+ }
+
+diff --git a/drivers/mfd/max8997-irq.c b/drivers/mfd/max8997-irq.c
+index d3025be..684d901 100644
+--- a/drivers/mfd/max8997-irq.c
++++ b/drivers/mfd/max8997-irq.c
+@@ -295,11 +295,8 @@ static int max8997_irq_domain_map(struct irq_domain *d, unsigned int irq,
+ 	irq_set_chip_data(irq, max8997);
+ 	irq_set_chip_and_handler(irq, &max8997_irq_chip, handle_edge_irq);
+ 	irq_set_nested_thread(irq, 1);
+-#ifdef CONFIG_ARM
 -	set_irq_flags(irq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(irq);
+-#endif
++
+ 	return 0;
+ }
+
+diff --git a/drivers/mfd/max8998-irq.c b/drivers/mfd/max8998-irq.c
+index 3702056..35a0774 100644
+--- a/drivers/mfd/max8998-irq.c
++++ b/drivers/mfd/max8998-irq.c
+@@ -206,11 +206,8 @@ static int max8998_irq_domain_map(struct irq_domain *d, unsigned int irq,
+ 	irq_set_chip_data(irq, max8998);
+ 	irq_set_chip_and_handler(irq, &max8998_irq_chip, handle_edge_irq);
+ 	irq_set_nested_thread(irq, 1);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(irq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(irq);
+-#endif
++
+ 	return 0;
+ }
+
+diff --git a/drivers/mfd/mt6397-core.c b/drivers/mfd/mt6397-core.c
+index 03929a6..665d5e1 100644
+--- a/drivers/mfd/mt6397-core.c
++++ b/drivers/mfd/mt6397-core.c
+@@ -142,11 +142,7 @@ static int mt6397_irq_domain_map(struct irq_domain *d, unsigned int irq,
+ 	irq_set_chip_data(irq, mt6397);
+ 	irq_set_chip_and_handler(irq, &mt6397_irq_chip, handle_level_irq);
+ 	irq_set_nested_thread(irq, 1);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(irq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(irq);
+-#endif
+
+ 	return 0;
+ }
+diff --git a/drivers/mfd/pm8921-core.c b/drivers/mfd/pm8921-core.c
+index 5a92646..8ef8d71 100644
+--- a/drivers/mfd/pm8921-core.c
++++ b/drivers/mfd/pm8921-core.c
+@@ -251,11 +251,8 @@ static int pm8xxx_irq_domain_map(struct irq_domain *d, unsigned int irq,
+
+ 	irq_set_chip_and_handler(irq, &pm8xxx_irq_chip, handle_level_irq);
+ 	irq_set_chip_data(irq, chip);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(irq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(irq);
+-#endif
++
+ 	return 0;
+ }
+
+diff --git a/drivers/mfd/rc5t583-irq.c b/drivers/mfd/rc5t583-irq.c
+index bb85020..3f8812d 100644
+--- a/drivers/mfd/rc5t583-irq.c
++++ b/drivers/mfd/rc5t583-irq.c
+@@ -386,9 +386,7 @@ int rc5t583_irq_init(struct rc5t583 *rc5t583, int irq, int irq_base)
+ 		irq_set_chip_and_handler(__irq, &rc5t583_irq_chip,
+ 					 handle_simple_irq);
+ 		irq_set_nested_thread(__irq, 1);
+-#ifdef CONFIG_ARM
+-		set_irq_flags(__irq, IRQF_VALID);
+-#endif
++		irq_clear_status_flags(__irq, IRQ_NOREQUEST);
+ 	}
+
+ 	ret = request_threaded_irq(irq, NULL, rc5t583_irq, IRQF_ONESHOT,
+diff --git a/drivers/mfd/stmpe.c b/drivers/mfd/stmpe.c
+index 18c4d72..e971af8 100644
+--- a/drivers/mfd/stmpe.c
++++ b/drivers/mfd/stmpe.c
+@@ -971,20 +971,13 @@ static int stmpe_irq_map(struct irq_domain *d, unsigned int virq,
+ 	irq_set_chip_data(virq, stmpe);
+ 	irq_set_chip_and_handler(virq, chip, handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
+
+ 	return 0;
+ }
+
+ static void stmpe_irq_unmap(struct irq_domain *d, unsigned int virq)
+ {
+-#ifdef CONFIG_ARM
+-		set_irq_flags(virq, 0);
+-#endif
+ 		irq_set_chip_and_handler(virq, NULL, NULL);
+ 		irq_set_chip_data(virq, NULL);
+ }
+diff --git a/drivers/mfd/t7l66xb.c b/drivers/mfd/t7l66xb.c
+index c09fb5d..01af111 100644
+--- a/drivers/mfd/t7l66xb.c
++++ b/drivers/mfd/t7l66xb.c
+@@ -246,9 +246,6 @@ static void t7l66xb_attach_irq(struct platform_device *dev)
+ 	for (irq = irq_base; irq < irq_base + T7L66XB_NR_IRQS; irq++) {
+ 		irq_set_chip_and_handler(irq, &t7l66xb_chip, handle_level_irq);
+ 		irq_set_chip_data(irq, t7l66xb);
+-#ifdef CONFIG_ARM
+-		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
+-#endif
+ 	}
+
+ 	irq_set_irq_type(t7l66xb->irq, IRQ_TYPE_EDGE_FALLING);
+@@ -267,9 +264,6 @@ static void t7l66xb_detach_irq(struct platform_device *dev)
+ 	irq_set_handler_data(t7l66xb->irq, NULL);
+
+ 	for (irq = irq_base; irq < irq_base + T7L66XB_NR_IRQS; irq++) {
+-#ifdef CONFIG_ARM
+-		set_irq_flags(irq, 0);
+-#endif
+ 		irq_set_chip(irq, NULL);
+ 		irq_set_chip_data(irq, NULL);
+ 	}
+diff --git a/drivers/mfd/tc3589x.c b/drivers/mfd/tc3589x.c
+index 96d420d..211829c 100644
+--- a/drivers/mfd/tc3589x.c
++++ b/drivers/mfd/tc3589x.c
+@@ -215,20 +215,13 @@ static int tc3589x_irq_map(struct irq_domain *d, unsigned int virq,
+ 	irq_set_chip_and_handler(virq, &dummy_irq_chip,
+ 				handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
+
+ 	return 0;
+ }
+
+ static void tc3589x_irq_unmap(struct irq_domain *d, unsigned int virq)
+ {
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, 0);
+-#endif
+ 	irq_set_chip_and_handler(virq, NULL, NULL);
+ 	irq_set_chip_data(virq, NULL);
+ }
+diff --git a/drivers/mfd/tc6393xb.c b/drivers/mfd/tc6393xb.c
+index 63458b3..c108472 100644
+--- a/drivers/mfd/tc6393xb.c
++++ b/drivers/mfd/tc6393xb.c
+@@ -586,7 +586,7 @@ static void tc6393xb_attach_irq(struct platform_device *dev)
+ 	for (irq = irq_base; irq < irq_base + TC6393XB_NR_IRQS; irq++) {
+ 		irq_set_chip_and_handler(irq, &tc6393xb_chip, handle_edge_irq);
+ 		irq_set_chip_data(irq, tc6393xb);
+-		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
++		irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 	}
+
+ 	irq_set_irq_type(tc6393xb->irq, IRQ_TYPE_EDGE_FALLING);
+@@ -605,7 +605,7 @@ static void tc6393xb_detach_irq(struct platform_device *dev)
+ 	irq_base = tc6393xb->irq_base;
+
+ 	for (irq = irq_base; irq < irq_base + TC6393XB_NR_IRQS; irq++) {
+-		set_irq_flags(irq, 0);
++		irq_set_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 		irq_set_chip(irq, NULL);
+ 		irq_set_chip_data(irq, NULL);
+ 	}
+diff --git a/drivers/mfd/tps6586x.c b/drivers/mfd/tps6586x.c
+index e0a2583..6ac1220 100644
+--- a/drivers/mfd/tps6586x.c
++++ b/drivers/mfd/tps6586x.c
+@@ -299,14 +299,7 @@ static int tps6586x_irq_map(struct irq_domain *h, unsigned int virq,
+ 	irq_set_chip_data(virq, tps6586x);
+ 	irq_set_chip_and_handler(virq, &tps6586x_irq_chip, handle_simple_irq);
+ 	irq_set_nested_thread(virq, 1);
+-
+-	/* ARM needs us to explicitly flag the IRQ as valid
+-	 * and will set them noprobe when we do so. */
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
+
+ 	return 0;
+ }
+diff --git a/drivers/mfd/tps65912-irq.c b/drivers/mfd/tps65912-irq.c
+index fbecec7..db2c29cb 100644
+--- a/drivers/mfd/tps65912-irq.c
++++ b/drivers/mfd/tps65912-irq.c
+@@ -197,13 +197,7 @@ int tps65912_irq_init(struct tps65912 *tps65912, int irq,
+ 		irq_set_chip_and_handler(cur_irq, &tps65912_irq_chip,
+ 					 handle_edge_irq);
+ 		irq_set_nested_thread(cur_irq, 1);
+-		/* ARM needs us to explicitly flag the IRQ as valid
+-		 * and will set them noprobe when we do so. */
+-#ifdef CONFIG_ARM
+-		set_irq_flags(cur_irq, IRQF_VALID);
+-#else
+-		irq_set_noprobe(cur_irq);
+-#endif
++		irq_clear_status_flags(cur_irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 	}
+
+ 	ret = request_threaded_irq(irq, NULL, tps65912_irq, flags,
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index a3fa7f4..40e51b0 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -419,16 +419,7 @@ static int twl4030_init_sih_modules(unsigned line)
+
+ static inline void activate_irq(int irq)
+ {
+-#ifdef CONFIG_ARM
+-	/*
+-	 * ARM requires an extra step to clear IRQ_NOREQUEST, which it
+-	 * sets on behalf of every irq_chip.  Also sets IRQ_NOPROBE.
+-	 */
+-	set_irq_flags(irq, IRQF_VALID);
+-#else
+-	/* same effect on other architectures */
+-	irq_set_noprobe(irq);
+-#endif
++	irq_clear_status_flags(irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ }
+
+ /*----------------------------------------------------------------------*/
+diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+index 20fb581..c1bb624 100644
+--- a/drivers/mfd/twl6030-irq.c
++++ b/drivers/mfd/twl6030-irq.c
+@@ -352,26 +352,13 @@ static int twl6030_irq_map(struct irq_domain *d, unsigned int virq,
+ 	irq_set_chip_and_handler(virq,  &pdata->irq_chip, handle_simple_irq);
+ 	irq_set_nested_thread(virq, true);
+ 	irq_set_parent(virq, pdata->twl_irq);
+-
+-#ifdef CONFIG_ARM
+-	/*
+-	 * ARM requires an extra step to clear IRQ_NOREQUEST, which it
+-	 * sets on behalf of every irq_chip.  Also sets IRQ_NOPROBE.
+-	 */
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+-	/* same effect on other architectures */
+ 	irq_set_noprobe(virq);
+-#endif
+
+ 	return 0;
+ }
+
+ static void twl6030_irq_unmap(struct irq_domain *d, unsigned int virq)
+ {
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, 0);
+-#endif
+ 	irq_set_chip_and_handler(virq, NULL, NULL);
+ 	irq_set_chip_data(virq, NULL);
+ }
+diff --git a/drivers/mfd/ucb1x00-core.c b/drivers/mfd/ucb1x00-core.c
+index 3591550..616f5e4 100644
+--- a/drivers/mfd/ucb1x00-core.c
++++ b/drivers/mfd/ucb1x00-core.c
+@@ -562,7 +562,7 @@ static int ucb1x00_probe(struct mcp *mcp)
+
+ 		irq_set_chip_and_handler(irq, &ucb1x00_irqchip, handle_edge_irq);
+ 		irq_set_chip_data(irq, ucb);
+-		set_irq_flags(irq, IRQF_VALID | IRQ_NOREQUEST);
++		irq_clear_status_flags(irq, IRQ_NOREQUEST);
+ 	}
+
+ 	irq_set_irq_type(ucb->irq, IRQ_TYPE_EDGE_RISING);
+diff --git a/drivers/mfd/wm831x-irq.c b/drivers/mfd/wm831x-irq.c
+index 3da8126..dfea8b9 100644
+--- a/drivers/mfd/wm831x-irq.c
++++ b/drivers/mfd/wm831x-irq.c
+@@ -552,14 +552,7 @@ static int wm831x_irq_map(struct irq_domain *h, unsigned int virq,
+ 	irq_set_chip_data(virq, h->host_data);
+ 	irq_set_chip_and_handler(virq, &wm831x_irq_chip, handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-
+-	/* ARM needs us to explicitly flag the IRQ as valid
+-	 * and will set them noprobe when we do so. */
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
+
+ 	return 0;
+ }
+diff --git a/drivers/mfd/wm8350-irq.c b/drivers/mfd/wm8350-irq.c
+index 813ff50..27054f3 100644
+--- a/drivers/mfd/wm8350-irq.c
++++ b/drivers/mfd/wm8350-irq.c
+@@ -526,13 +526,7 @@ int wm8350_irq_init(struct wm8350 *wm8350, int irq,
+ 					 handle_edge_irq);
+ 		irq_set_nested_thread(cur_irq, 1);
+
+-		/* ARM needs us to explicitly flag the IRQ as valid
+-		 * and will set them noprobe when we do so. */
+-#ifdef CONFIG_ARM
+-		set_irq_flags(cur_irq, IRQF_VALID);
+-#else
+-		irq_set_noprobe(cur_irq);
+-#endif
++		irq_clear_status_flags(cur_irq, IRQ_NOREQUEST | IRQ_NOPROBE);
+ 	}
+
+ 	ret = request_threaded_irq(irq, NULL, wm8350_irq, flags,
+diff --git a/drivers/mfd/wm8994-irq.c b/drivers/mfd/wm8994-irq.c
+index 55c380a..6f1427d 100644
+--- a/drivers/mfd/wm8994-irq.c
++++ b/drivers/mfd/wm8994-irq.c
+@@ -172,14 +172,7 @@ static int wm8994_edge_irq_map(struct irq_domain *h, unsigned int virq,
+ 	irq_set_chip_data(virq, wm8994);
+ 	irq_set_chip_and_handler(virq, &wm8994_edge_irq_chip, handle_edge_irq);
+ 	irq_set_nested_thread(virq, 1);
+-
+-	/* ARM needs us to explicitly flag the IRQ as valid
+-	 * and will set them noprobe when we do so. */
+-#ifdef CONFIG_ARM
+-	set_irq_flags(virq, IRQF_VALID);
+-#else
+ 	irq_set_noprobe(virq);
+-#endif
 
  	return 0;
  }
