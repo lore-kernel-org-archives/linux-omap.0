@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v4 33/46] usb: isp1760: udc: add ep capabilities support
-Date: Mon, 27 Jul 2015 11:16:43 +0200
-Message-ID: <1437988616-6962-34-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v4 34/46] usb: musb: gadget: add ep capabilities support
+Date: Mon, 27 Jul 2015 11:16:44 +0200
+Message-ID: <1437988616-6962-35-git-send-email-r.baldyga@samsung.com>
 References: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,37 +25,41 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/isp1760/isp1760-udc.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/usb/musb/musb_gadget.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/usb/isp1760/isp1760-udc.c b/drivers/usb/isp1760/isp1760-udc.c
-index 3699962..1c3d0fd 100644
---- a/drivers/usb/isp1760/isp1760-udc.c
-+++ b/drivers/usb/isp1760/isp1760-udc.c
-@@ -1383,13 +1383,24 @@ static void isp1760_udc_init_eps(struct isp1760_udc *udc)
- 		 */
- 		if (ep_num == 0) {
- 			usb_ep_set_maxpacket_limit(&ep->ep, 64);
-+			ep->ep.caps.type_control = true;
-+			ep->ep.caps.dir_in = true;
-+			ep->ep.caps.dir_out = true;
- 			ep->maxpacket = 64;
- 			udc->gadget.ep0 = &ep->ep;
- 		} else {
- 			usb_ep_set_maxpacket_limit(&ep->ep, 512);
-+			ep->ep.caps.type_iso = true;
-+			ep->ep.caps.type_bulk = true;
-+			ep->ep.caps.type_int = true;
- 			ep->maxpacket = 0;
- 			list_add_tail(&ep->ep.ep_list, &udc->gadget.ep_list);
- 		}
-+
-+		if (is_in)
-+			ep->ep.caps.dir_in = true;
-+		else
-+			ep->ep.caps.dir_out = true;
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 625d482f..043248a 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1729,6 +1729,7 @@ init_peripheral_ep(struct musb *musb, struct musb_ep *ep, u8 epnum, int is_in)
+ 	INIT_LIST_HEAD(&ep->end_point.ep_list);
+ 	if (!epnum) {
+ 		usb_ep_set_maxpacket_limit(&ep->end_point, 64);
++		ep->end_point.caps.type_control = true;
+ 		ep->end_point.ops = &musb_g_ep0_ops;
+ 		musb->g.ep0 = &ep->end_point;
+ 	} else {
+@@ -1736,9 +1737,20 @@ init_peripheral_ep(struct musb *musb, struct musb_ep *ep, u8 epnum, int is_in)
+ 			usb_ep_set_maxpacket_limit(&ep->end_point, hw_ep->max_packet_sz_tx);
+ 		else
+ 			usb_ep_set_maxpacket_limit(&ep->end_point, hw_ep->max_packet_sz_rx);
++		ep->end_point.caps.type_iso = true;
++		ep->end_point.caps.type_bulk = true;
++		ep->end_point.caps.type_int = true;
+ 		ep->end_point.ops = &musb_ep_ops;
+ 		list_add_tail(&ep->end_point.ep_list, &musb->g.ep_list);
  	}
++
++	if (!epnum || hw_ep->is_shared_fifo) {
++		ep->end_point.caps.dir_in = true;
++		ep->end_point.caps.dir_out = true;
++	} else if (is_in)
++		ep->end_point.caps.dir_in = true;
++	else
++		ep->end_point.caps.dir_out = true;
  }
  
+ /*
 -- 
 1.9.1
