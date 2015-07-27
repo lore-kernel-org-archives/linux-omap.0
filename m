@@ -1,56 +1,61 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: omap: use raw locks for locking
-Date: Mon, 27 Jul 2015 14:50:53 +0200
-Message-ID: <CACRpkdaHiJ5qYGu=t7hDTvvUuf4h-Q2_5Xv4GzvSPS1SZ6F_Gw@mail.gmail.com>
-References: <1437496011-11486-1-git-send-email-bigeasy@linutronix.de>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/2] omap soc changes for v4.3
+Date: Mon, 27 Jul 2015 14:47:38 +0200
+Message-ID: <20150727124738.GI14224@localhost>
+References: <55b22a40.4b226b0a.bc37c.ffffce3aSMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1437496011-11486-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <55b22a40.4b226b0a.bc37c.ffffce3aSMTPIN_ADDED_BROKEN@mx.google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 21, 2015 at 6:26 PM, Sebastian Andrzej Siewior
-<bigeasy@linutronix.de> wrote:
+On Fri, Jul 24, 2015 at 05:06:10AM -0700, Tony Lindgren wrote:
+> The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
+> 
+>   Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/soc-signed
+> 
+> for you to fetch changes up to 24da741c678f865de3182194604dbddcc7fc7f3c:
+> 
+>   Merge branch 'dm814x-soc' into omap-for-v4.3/soc (2015-07-23 21:59:18 -0700)
+> 
+> ----------------------------------------------------------------
+> SoC changes for omaps for v4.3 merge window:
+> 
+> - Clean-up omap4_local_timer_init to drop deal legacy code
+> 
+> - Provide proper IO map table for dra7
+> 
+> - Clean-up IOMMU layer init code as it now uses IOMMU framework
+> 
+> - A series of changes to fix up dm814x support that's been in a broken
+>   half-merged state for quite some time
+> 
+> - A series of PRCM and hwmod changes via Paul Walmsley <paul@pwsan.com>:
+> 
+>   - I/O wakeup support for AM43xx
+>   - register lock and unlock support to the hwmod code (needed for the RTC
+>     IP blocks on some chips)
+>   - several fixes for sparse warnings and an unnecessary null pointer test
+>   - a DRA7xx clockdomain configuration workaround, to deal with some hardware
+>     bugs
 
-> This patch converts gpio_bank.lock from a spin_lock into a
-> raw_spin_lock. The call path is to access this lock is always under a
-> raw_spin_lock, for instance
-> - __setup_irq() holds &desc->lock with irq off
->   + __irq_set_trigger()
->    + omap_gpio_irq_type()
->
-> - handle_level_irq() (runs with irqs off therefore raw locks)
->   + mask_ack_irq()
->    + omap_gpio_mask_irq()
->
-> This fixes the obvious backtrace on -RT. However the locking vs context
-> is not and this is not limited to -RT:
-> - omap_gpio_irq_type() is called with IRQ off and has an conditional
->   call to pm_runtime_get_sync() which may sleep. Either it may happen or
->   it may not happen but pm_runtime_get_sync() should not be called with
->   irqs off.
->
-> - omap_gpio_debounce() is holding the lock with IRQs off.
->   + omap2_set_gpio_debounce()
->    + clk_prepare_enable()
->     + clk_prepare() this one might sleep.
->   The number of users of gpiod_set_debounce() / gpio_set_debounce()
->   looks low but still this is not good.
->
-> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
-> Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Merged, thanks!
 
-Patch applied.
-
-Now this question appear in my head:
-
-Is drivers/gpio full of stuff that will not work with the -RT kernel,
-and is this a change that should be done mutatis mutandis on
-all the GPIO drivers?
-
-Yours,
-Linus Walleij
+-Olof
