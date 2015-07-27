@@ -1,119 +1,37 @@
-From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v4 45/46] usb: gadget: goku_udc: add goku_match_ep() function
-Date: Mon, 27 Jul 2015 11:16:55 +0200
-Message-ID: <1437988616-6962-46-git-send-email-r.baldyga@samsung.com>
-References: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 0/5] ARM: dts: OMAP2+: Enable USB dual-role on supported
+ boards
+Date: Mon, 27 Jul 2015 12:27:50 +0300
+Message-ID: <55B5F996.20504@ti.com>
+References: <1436352154-28966-1-git-send-email-rogerq@ti.com> <20150721105433.GZ17550@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-reply-to: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: balbi@ti.com
-Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, Robert Baldyga <r.baldyga@samsung.com>, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150721105433.GZ17550@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, Joao.Pinto@synopsys.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add 'match_ep' callback to utilize chip-specific knowledge in endpoint matching
-process. Function does the same that was done by chip-specific code inside
-of epautoconf. Now this code can be removed from there to separate generic code
-from platform specific logic.
+Tony,
 
-Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
----
- drivers/usb/gadget/epautoconf.c   | 20 ++------------------
- drivers/usb/gadget/udc/goku_udc.c | 25 +++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 18 deletions(-)
+On 21/07/15 13:54, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [150708 03:45]:
+>> Hi,
+>>
+>> Enables dual-role feaure on supported boards.
+>>
+>> Depends on
+>> [1] - core USB DRD support - http://thread.gmane.org/gmane.linux.kernel/1991413
+>> [2] - dwc3 DRD support - http://thread.gmane.org/gmane.linux.usb.general/127890
+> 
+> Is this series safe to apply separately actually? Adding the
+> interrupts and the mode name may not be a problem without
+> the related driver changes?
 
-diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index d41fd82..da45371 100644
---- a/drivers/usb/gadget/epautoconf.c
-+++ b/drivers/usb/gadget/epautoconf.c
-@@ -86,24 +86,8 @@ struct usb_ep *usb_ep_autoconfig_ss(
- 	/* First, apply chip-specific "best usage" knowledge.
- 	 * This might make a good usb_gadget_ops hook ...
- 	 */
--	if (gadget_is_goku (gadget)) {
--		if (USB_ENDPOINT_XFER_INT == type) {
--			/* single buffering is enough */
--			ep = gadget_find_ep_by_name(gadget, "ep3-bulk");
--			if (ep && usb_gadget_ep_match_desc(gadget,
--					ep, desc, ep_comp))
--				goto found_ep;
--		} else if (USB_ENDPOINT_XFER_BULK == type
--				&& (USB_DIR_IN & desc->bEndpointAddress)) {
--			/* DMA may be available */
--			ep = gadget_find_ep_by_name(gadget, "ep2-bulk");
--			if (ep && usb_gadget_ep_match_desc(gadget,
--					ep, desc, ep_comp))
--				goto found_ep;
--		}
--
- #ifdef CONFIG_BLACKFIN
--	} else if (gadget_is_musbhdrc(gadget)) {
-+	if (gadget_is_musbhdrc(gadget)) {
- 		if ((USB_ENDPOINT_XFER_BULK == type) ||
- 		    (USB_ENDPOINT_XFER_ISOC == type)) {
- 			if (USB_DIR_IN & desc->bEndpointAddress)
-@@ -119,8 +103,8 @@ struct usb_ep *usb_ep_autoconfig_ss(
- 			ep = NULL;
- 		if (ep && usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
- 			goto found_ep;
--#endif
- 	}
-+#endif
- 
- 	/* Second, look at endpoints until an unclaimed one looks usable */
- 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
-diff --git a/drivers/usb/gadget/udc/goku_udc.c b/drivers/usb/gadget/udc/goku_udc.c
-index 46b8d14..d5a93ea 100644
---- a/drivers/usb/gadget/udc/goku_udc.c
-+++ b/drivers/usb/gadget/udc/goku_udc.c
-@@ -990,6 +990,30 @@ static int goku_get_frame(struct usb_gadget *_gadget)
- 	return -EOPNOTSUPP;
- }
- 
-+static struct usb_ep *goku_match_ep(struct usb_gadget *g,
-+		struct usb_endpoint_descriptor *desc,
-+		struct usb_ss_ep_comp_descriptor *ep_comp)
-+{
-+	struct goku_udc	*dev = to_goku_udc(g);
-+	struct usb_ep *ep;
-+	u8 type = usb_endpoint_type(desc);
-+
-+	if (type == USB_ENDPOINT_XFER_INT) {
-+		/* single buffering is enough */
-+		ep = &dev->ep[3].ep;
-+		if (ep && usb_gadget_ep_match_desc(g, ep, desc, ep_comp))
-+			return ep;
-+	} else if (type == USB_ENDPOINT_XFER_BULK
-+			&& usb_endpoint_dir_in(desc)) {
-+		/* DMA may be available */
-+		ep = &dev->ep[2].ep;
-+		if (ep && usb_gadget_ep_match_desc(g, ep, desc, ep_comp))
-+			return ep;
-+	}
-+
-+	return NULL;
-+}
-+
- static int goku_udc_start(struct usb_gadget *g,
- 		struct usb_gadget_driver *driver);
- static int goku_udc_stop(struct usb_gadget *g);
-@@ -998,6 +1022,7 @@ static const struct usb_gadget_ops goku_ops = {
- 	.get_frame	= goku_get_frame,
- 	.udc_start	= goku_udc_start,
- 	.udc_stop	= goku_udc_stop,
-+	.match_ep	= goku_match_ep,
- 	// no remote wakeup
- 	// not selfpowered
- };
--- 
-1.9.1
+The interrupt changes (patches 1 to 3) should be fine but let's not
+add the otg mode change yet till we have the driver OTG patches in.
+
+cheers,
+-roger
