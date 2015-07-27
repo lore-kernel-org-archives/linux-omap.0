@@ -1,58 +1,204 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: n900 in 4.2-rc0: repeating oopses
-Date: Mon, 27 Jul 2015 09:12:04 +0200
-Message-ID: <20150727071204.GA28038@pali>
-References: <20150629091146.GA5103@amd>
- <20150630092404.GA19285@amd>
- <20150630095310.GF27720@pali>
- <20150701065932.GS4156@atomide.com>
- <20150701072255.GA17577@pali>
- <20150701095954.GD7969@amd>
- <20150701103421.GV4156@atomide.com>
- <20150701130903.GG7969@amd>
- <20150702061620.GY4156@atomide.com>
- <20150726223119.GA28514@amd>
+From: Robert Baldyga <r.baldyga@samsung.com>
+Subject: [PATCH v4 00/46] usb: gadget: rework ep matching and claiming
+ mechanism
+Date: Mon, 27 Jul 2015 11:16:10 +0200
+Message-ID: <1437988616-6962-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150726223119.GA28514@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: balbi@ti.com
+Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, Robert Baldyga <r.baldyga@samsung.com>, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 27 July 2015 00:31:19 Pavel Machek wrote:
-> On Wed 2015-07-01 23:16:21, Tony Lindgren wrote:
-> > * Pavel Machek <pavel@ucw.cz> [150701 06:11]:
-> > > On Wed 2015-07-01 03:34:22, Tony Lindgren wrote:
-> > > >=20
-> > > > Works for me after enabling the idle timeouts with the followin=
-g
-> > > > script and blanking the screen and disconnecting USB:
-> > >=20
-> > > Um. I'm forcing suspend with "echo mem > /sys/power/state" . (It
-> > > worked in 4.1). That should just make it sleep, no autosuspend-re=
-lated
-> > > trickery... (But yes, I guess I should set up the leds and try
-> > > autosuspend, too.)
-> >=20
-> > That too works just fine for me with omap2plus_defconfig after
-> > echo enabled > /sys/class/tty/ttyO2/power/wakeup as I have n900
-> > in my test rack.
->=20
-> Going through that. AFAICT, you are not using devicetree on n900?
->=20
-> CONFIG_MACH_NOKIA_RX51=3Dy
->=20
-> Unfortunately, not having serials, it is tricky to get any output fro=
-m
-> that cnofiguration, so I don't know what I got wrong...
-> 									Pavel
+Hello,
 
-You can try to test it in qemu. It has emulation also of serial.
+This patch series reworks endpoint matching and claiming mechanism in
+epautoconf. From v2 there are couple of new patches adding 'ep_match'
+to usb_gadget_ops and removing chip-specific quirk handling from generic
+code of autoconfig.
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+I'm not sure if this patch set isn't too long, as it has 46 patches,
+but I decided to send it as single series to avoid problems with patch
+applying order.
+
+The aim of whole patchset is to rework epautoconf code to get rid of
+things like name-based endpoint matching and UDC name-based quirks in
+generic code. These needed to do some modifications in framework like
+adding 'endpoint capabilities flags' feature or adding 'match_ep'.
+
+Following paragraphs contain brief description of what modifications are
+done by particular parts of this patch set:
+
+Patch (1) introduces new safer endpoint claiming method, basing on new
+'claimed' flag. It was discussed here [1]. I proposed this solution over
+year ago and it was accepted, but I apparently forgot to send the final
+version of my patch.
+
+Patches (2-3) add the 'capabilities flags' structure and helper macros.
+This solution is inspired by the 'feature flags' originally proposed
+by Felipe Balbi in 2013 [2], but unfortunately implementation of this
+feature has never been completed.
+
+Patches (4-36) add' capabilites flags' support to all UDC drivers present
+in the kernel tree. It's needed to be done before replacing old endpoint
+matching mechanism, otherwise UDC drivers which doesn't set 'capabilities
+flags' won't work with new matching function.
+
+Patch (37) finally replaces old endpoint matching method with the new
+one basing on capabilities flags.
+
+These changes aims to get rid of code, which guesses endpoint capabilities
+basing on it's name, and introduce new better replacement. In result
+we have better way to describe types and directions supported by each
+endpoint.
+
+For example the old name-based method didn't allow to have endpoint
+supporing two types of transfers - there were only ability to support
+one or all of endpoint types. The 'capabilities flags' feature supply
+precise, flexible and extensible mechanism of description of endpoint
+hardware limitations, which is desired for proper endpoint matching.
+
+Patch (38) removes chip-specific quirk from ep_matches() function.
+
+Patches (39-40) remove code modifying endpoint and descriptor structures
+from ep_matches() function and cleans it up to make it simpler and more
+readable.
+
+Patch (41) add 'match_ep' callback to usb_gadget_ops and make use of
+it in epautoconf. This callback allows UDC drivers to supply non-standard
+endpoint matching algorithms.
+
+Patches (42-43) move ep_matches() and find_ep() functions outside
+epautoconf and rename them to usb_gadget_ep_match_desc() and
+gadget_find_ep_by_name(). It's because they may be useful in 'match_ep'
+callbacks in UDC drivers to avoid writing repetitive code.
+
+Patches (44-46) move chip-specific enpoint matching algorithms from
+generic code of usb_ep_autoconfig_ss() function to UDC controller drivers
+using 'match_ep' callback.
+
+In the result we have epautoconf source free of chip-specific code, plus
+two new mechanisms allowing to handle non-standard hardware limitations.
+
+[1] https://lkml.org/lkml/2014/6/16/94
+[2] http://www.spinics.net/lists/linux-usb/msg99662.html
+
+Best regards,
+Robert Baldyga
+
+Changelog:
+
+v4:
+- addressed comments from Krzysztof Opasiak and Felipe Balbi
+
+v3: https://lkml.org/lkml/2015/7/15/68
+- addressed comments from Sergei Shtylyov
+
+v2: https://lkml.org/lkml/2015/7/14/172
+- remove PXA quirk from ep_matches() function without behaviour change
+  using ep capabilities flags
+- separate ep and desc configuration code from ep_match() function
+- add 'ep_match' to usb_gadget_ops and move chip-specific endpoint
+  matching algorithms from generic code to UDC controller drivers
+
+v1: https://lkml.org/lkml/2015/7/8/436
+
+Robert Baldyga (46):
+  usb: gadget: encapsulate endpoint claiming mechanism
+  usb: gadget: add endpoint capabilities flags
+  usb: gadget: add endpoint capabilities helper macros
+  staging: emxx_udc: add ep capabilities support
+  usb: chipidea: udc: add ep capabilities support
+  usb: dwc2: gadget: add ep capabilities support
+  usb: dwc3: gadget: add ep capabilities support
+  usb: gadget: amd5536udc: add ep capabilities support
+  usb: gadget: at91_udc: add ep capabilities support
+  usb: gadget: bcm63xx_udc: add ep capabilities support
+  usb: gadget: bdc: add ep capabilities support
+  usb: gadget: dummy-hcd: add ep capabilities support
+  usb: gadget: fotg210-udc: add ep capabilities support
+  usb: gadget: fsl_qe_udc: add ep capabilities support
+  usb: gadget: fsl_udc_core: add ep capabilities support
+  usb: gadget: fusb300_udc: add ep capabilities support
+  usb: gadget: goku_udc: add ep capabilities support
+  usb: gadget: gr_udc: add ep capabilities support
+  usb: gadget: lpc32xx_udc: add ep capabilities support
+  usb: gadget: m66592-udc: add ep capabilities support
+  usb: gadget: mv_u3d_core: add ep capabilities support
+  usb: gadget: mv_udc_core: add ep capabilities support
+  usb: gadget: net2272: add ep capabilities support
+  usb: gadget: net2280: add ep capabilities support
+  usb: gadget: omap_udc: add ep capabilities support
+  usb: gadget: pch_udc: add ep capabilities support
+  usb: gadget: pxa25x_udc: add ep capabilities support
+  usb: gadget: pxa27x_udc: add ep capabilities support
+  usb: gadget: r8a66597-udc: add ep capabilities support
+  usb: gadget: s3c-hsudc: add ep capabilities support
+  usb: gadget: s3c2410_udc: add ep capabilities support
+  usb: gadget: udc-xilinx: add ep capabilities support
+  usb: isp1760: udc: add ep capabilities support
+  usb: musb: gadget: add ep capabilities support
+  usb: renesas: gadget: add ep capabilities support
+  usb: gadget: atmel_usba_udc: add ep capabilities support
+  usb: gadget: epautoconf: add endpoint capabilities flags verification
+  usb: gadget: epautoconf: remove pxa quirk from ep_matches()
+  usb: gadget: epautoconf: remove ep and desc configuration from
+    ep_matches()
+  usb: gadget: epautoconf: rework ep_matches() function
+  usb: gadget: add 'ep_match' callback to usb_gadget_ops
+  usb: gadget: move ep_matches() from epautoconf to udc-core
+  usb: gadget: move find_ep() from epautoconf to gadget.h
+  usb: gadget: net2280: add net2280_match_ep() function
+  usb: gadget: goku_udc: add goku_match_ep() function
+  usb: musb: gadget: add musb_match_ep() function
+
+ drivers/staging/emxx_udc/emxx_udc.c     |  60 ++++---
+ drivers/usb/chipidea/udc.c              |  14 ++
+ drivers/usb/dwc2/gadget.c               |  13 ++
+ drivers/usb/dwc3/gadget.c               |  13 ++
+ drivers/usb/gadget/epautoconf.c         | 280 +++++---------------------------
+ drivers/usb/gadget/udc/amd5536udc.c     |  57 +++++--
+ drivers/usb/gadget/udc/at91_udc.c       |  33 +++-
+ drivers/usb/gadget/udc/atmel_usba_udc.c |  11 ++
+ drivers/usb/gadget/udc/bcm63xx_udc.c    |  25 ++-
+ drivers/usb/gadget/udc/bdc/bdc_ep.c     |   9 +
+ drivers/usb/gadget/udc/dummy_hcd.c      |  65 ++++++--
+ drivers/usb/gadget/udc/fotg210-udc.c    |  11 ++
+ drivers/usb/gadget/udc/fsl_qe_udc.c     |  11 ++
+ drivers/usb/gadget/udc/fsl_udc_core.c   |  13 ++
+ drivers/usb/gadget/udc/fusb300_udc.c    |  11 ++
+ drivers/usb/gadget/udc/goku_udc.c       |  33 ++++
+ drivers/usb/gadget/udc/gr_udc.c         |  11 ++
+ drivers/usb/gadget/udc/lpc32xx_udc.c    |  32 ++++
+ drivers/usb/gadget/udc/m66592-udc.c     |  11 ++
+ drivers/usb/gadget/udc/mv_u3d_core.c    |   9 +
+ drivers/usb/gadget/udc/mv_udc_core.c    |   9 +
+ drivers/usb/gadget/udc/net2272.c        |  11 ++
+ drivers/usb/gadget/udc/net2280.c        |  81 +++++++--
+ drivers/usb/gadget/udc/omap_udc.c       |  22 +++
+ drivers/usb/gadget/udc/pch_udc.c        |  14 +-
+ drivers/usb/gadget/udc/pxa25x_udc.c     |  29 ++++
+ drivers/usb/gadget/udc/pxa27x_udc.h     |  33 ++--
+ drivers/usb/gadget/udc/r8a66597-udc.c   |  10 ++
+ drivers/usb/gadget/udc/s3c-hsudc.c      |  15 ++
+ drivers/usb/gadget/udc/s3c2410_udc.c    |  10 ++
+ drivers/usb/gadget/udc/udc-core.c       |  69 ++++++++
+ drivers/usb/gadget/udc/udc-xilinx.c     |   9 +
+ drivers/usb/isp1760/isp1760-udc.c       |  11 ++
+ drivers/usb/musb/musb_gadget.c          |  46 ++++++
+ drivers/usb/renesas_usbhs/mod_gadget.c  |   6 +
+ include/linux/usb/gadget.h              |  71 ++++++++
+ 36 files changed, 833 insertions(+), 335 deletions(-)
+
+-- 
+1.9.1
