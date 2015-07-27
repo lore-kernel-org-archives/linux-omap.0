@@ -1,60 +1,43 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 2/2] omap dts changes for dm814x for v4.3
-Date: Mon, 27 Jul 2015 14:48:32 +0200
-Message-ID: <20150727124832.GJ14224@localhost>
-References: <pull-1437718313-185670>
- <55b22a44.4b226b0a.bc37c.ffffce74SMTPIN_ADDED_BROKEN@mx.google.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 0/2] extcon: palmas: am57xx-beagle-x15: use palmas for VBUS/ID detection
+Date: Mon, 27 Jul 2015 16:10:15 +0300
+Message-ID: <1438002617-15152-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <55b22a44.4b226b0a.bc37c.ffffce74SMTPIN_ADDED_BROKEN@mx.google.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: myungjoo.ham@samsung.com, cw00.choi@samsung.com, tony@atomide.com
+Cc: nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 24, 2015 at 05:06:11AM -0700, Tony Lindgren wrote:
-> The following changes since commit f9d50fef4b6447527c2be1ad07499221c2511391:
-> 
->   ARM: OMAP2+: omap3-pandora: add wifi support (2015-07-21 04:07:42 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/dt-dm814x
-> 
-> for you to fetch changes up to f5887fe5d14181aef0653ab04f60988252d42461:
-> 
->   ARM: OMAP2+: Add custom abort handler for t410 (2015-07-23 22:33:19 -0700)
-> 
-> ----------------------------------------------------------------
-> omap dts changes for minimal dm814x support for v4.3 merge window.
-> 
-> These changes make dm814x boot and adds minimal board support for
-> dm814x-evm and hp t410.
-> 
-> Note that to boot these depend on omap-for-v4.3/soc-signed branch,
-> but as dm814x support is currently broken, these can be merged
-> separately with the other dts changes.
-> 
-> ----------------------------------------------------------------
-> Tony Lindgren (5):
->       ARM: dts: Add minimal dm814x support
->       ARM: dts: Add minimal clocks for dm814x
->       ARM: dts: Add minimal dts support for dm8148-evm
->       ARM: dts: Add minimal support for HP T410
->       ARM: OMAP2+: Add custom abort handler for t410
+Hi,
 
-Thanks, merged.
+am57xx-beagle-x15 uses a variant of the Palmas chip and has
+USB1 port's VBUS and ID connected to it.
 
+However this Palmas variant does not support OTG ID detection but
+does have GPIO support on the pin where ID line is connected.
 
--Olof
+This series adds GPIO based ID detection to the Palmas extcon
+driver and updates am57xx-beagle-x15.dts to use Palmas
+for VBUS and ID detection for USB1 port.
+
+v2:
+- Add debounce-delay-ms property. Re-use enable-id-detection property
+to enable GPIO based ID detection based on availability of id-gpio.
+
+cheers,
+-roger
+
+Roger Quadros (2):
+  extcon: palmas: Support GPIO based USB ID detection
+  ARM: dts: am57xx-beagle-x15: use palmas-usb for USB2
+
+ .../devicetree/bindings/extcon/extcon-palmas.txt   |   5 +-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            |  29 +++---
+ drivers/extcon/extcon-palmas.c                     | 114 ++++++++++++++++++---
+ include/linux/mfd/palmas.h                         |   6 ++
+ 4 files changed, 125 insertions(+), 29 deletions(-)
+
+-- 
+2.1.4
