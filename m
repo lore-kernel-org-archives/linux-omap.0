@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 3/3] ARM: dts: dra7: Add scm_conf@1c04 node
-Date: Mon, 27 Jul 2015 13:27:30 +0300
-Message-ID: <1437992850-6008-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 2/3] ARM: dts: dra7: fix pinmux@1400 resource length
+Date: Mon, 27 Jul 2015 13:27:29 +0300
+Message-ID: <1437992850-6008-3-git-send-email-rogerq@ti.com>
 References: <1437992850-6008-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,32 +12,25 @@ To: kishon@ti.com, tony@atomide.com
 Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This region contains CTRL_CORE_SMA_SW2..9 registers which
-are not specific to any domain and can be reasonably
-accessed via syscon driver.
+We need to add 4 bytes to include the last 32-bit register space.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 913032b..43b5074 100644
+index cf2931e..913032b 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -149,6 +149,13 @@
- 					pinctrl-single,register-width = <32>;
- 					pinctrl-single,function-mask = <0x3fffffff>;
- 				};
-+
-+				scm_conf1: scm_conf@1c04 {
-+					compatible = "syscon";
-+					reg = <0x1c04 0x0020>;
-+					#address-cells = <1>;
-+					#size-cells = <1>;
-+				};
- 			};
- 
- 			cm_core_aon: cm_core_aon@5000 {
+@@ -141,7 +141,7 @@
+ 				dra7_pmx_core: pinmux@1400 {
+ 					compatible = "ti,dra7-padconf",
+ 						     "pinctrl-single";
+-					reg = <0x1400 0x0464>;
++					reg = <0x1400 0x0468>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
+ 					#interrupt-cells = <1>;
 -- 
 2.1.4
