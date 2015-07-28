@@ -1,82 +1,124 @@
-From: Teresa Remmet <t.remmet@phytec.de>
-Subject: Re: [PATCH 1/2] ARM: dts: Add support for phyCORE-AM335x SoM
-Date: Tue, 28 Jul 2015 10:47:28 +0200
-Message-ID: <1438073248.3649.6.camel@lws-tremmet.phytec.de>
-References: <1437035449-26956-1-git-send-email-t.remmet@phytec.de>
-	 <20150727143444.GD15004@beef> <55B73D6D.2040801@compulab.co.il>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 1/2] input: touchscreen: pixcir_i2c_ts: Add support
+ for optional wakeup interrupt
+Date: Tue, 28 Jul 2015 12:04:16 +0300
+Message-ID: <55B74590.4090506@ti.com>
+References: <1437663246-16049-1-git-send-email-vigneshr@ti.com> <1437663246-16049-2-git-send-email-vigneshr@ti.com> <55B60CA1.3090800@ti.com> <55B613BA.3070402@ti.com> <20150727212042.GD5144@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55B73D6D.2040801@compulab.co.il>
+In-Reply-To: <20150727212042.GD5144@dtor-ws>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>, Matt Porter <mporter@konsulko.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Vignesh R <vigneshr@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Henrik Rydberg <rydberg@bitmath.org>, Frodo Lai <frodo.lai@gmail.com>, Jingoo Han <jg1.han@samsung.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Igor,
+On 28/07/15 00:20, Dmitry Torokhov wrote:
+> On Mon, Jul 27, 2015 at 04:49:22PM +0530, Vignesh R wrote:
+>>
+>>
+>> On 07/27/2015 04:19 PM, Roger Quadros wrote:
+>>> Hi,
+>>>
+>>> On 23/07/15 17:54, Vignesh R wrote:
+>>>> On am437x-gp-evm, pixcir touchscreen can wake the system from low power
+>>>> state by generating wake-up interrupt via pinctrl and IO daisy chain.
+>>>> Add support for optional wakeup interrupt source by regsitering to
+>>>> automated wake IRQ framework introduced by commit 4990d4fe327b ("PM /
+>>>> Wakeirq: Add automated device wake IRQ handling").
+>>>> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
+>>>> support for optional wake-up")
+>>>>
+>>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>>> ---
+>>>>
+>>>> v3:
+>>>>  * handle error code returned by of_irq_get_byname()
+>>>>
+>>>> v2:
+>>>>  * use of_irq_get_byname()
+>>>>  * remove enable/disable_wake_irq()
+>>>>
+>>>>  drivers/input/touchscreen/pixcir_i2c_ts.c | 22 ++++++++++++++++++----
+>>>>  include/linux/input/pixcir_ts.h           |  1 +
+>>>>  2 files changed, 19 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/drivers/input/touchscreen/pixcir_i2c_ts.c b/drivers/input/touchscreen/pixcir_i2c_ts.c
+>>>> index 8f3e243a62bf..3a4ab358bf52 100644
+>>>> --- a/drivers/input/touchscreen/pixcir_i2c_ts.c
+>>>> +++ b/drivers/input/touchscreen/pixcir_i2c_ts.c
+>>>> @@ -29,6 +29,8 @@
+>>>>  #include <linux/of.h>
+>>>>  #include <linux/of_gpio.h>
+>>>>  #include <linux/of_device.h>
+>>>> +#include <linux/of_irq.h>
+>>>> +#include <linux/pm_wakeirq.h>
+>>>>  
+>>>>  #define PIXCIR_MAX_SLOTS       5 /* Max fingers supported by driver */
+>>>>  
+>>>> @@ -364,8 +366,6 @@ static int __maybe_unused pixcir_i2c_ts_suspend(struct device *dev)
+>>>>  				goto unlock;
+>>>>  			}
+>>>>  		}
+>>>> -
+>>>> -		enable_irq_wake(client->irq);
+>>>>  	} else if (input->users) {
+>>>>  		ret = pixcir_stop(ts);
+>>>>  	}
+>>>> @@ -386,8 +386,6 @@ static int __maybe_unused pixcir_i2c_ts_resume(struct device *dev)
+>>>>  	mutex_lock(&input->mutex);
+>>>>  
+>>>>  	if (device_may_wakeup(&client->dev)) {
+>>>> -		disable_irq_wake(client->irq);
+>>>> -
+>>>>  		if (!input->users) {
+>>>>  			ret = pixcir_stop(ts);
+>>>>  			if (ret) {
+>>>> @@ -445,6 +443,13 @@ static struct pixcir_ts_platform_data *pixcir_parse_dt(struct device *dev)
+>>>>  	dev_dbg(dev, "%s: x %d, y %d, gpio %d\n", __func__,
+>>>>  		pdata->x_max + 1, pdata->y_max + 1, pdata->gpio_attb);
+>>>>  
+>>>> +	pdata->wakeirq = of_irq_get_byname(dev->of_node, "wakeup");
+>>>> +	if (pdata->wakeirq < 0 && pdata->wakeirq != -ENODATA &&
+>>>> +	    pdata->wakeirq != -EINVAL) {
+>>>> +		dev_err(dev, "Failed to get wakeirq\n");
+>>>> +		return ERR_PTR(pdata->wakeirq);
+>>>> +	}
+>>>> +
+>>>>  	return pdata;
+>>>>  }
+>>>>  #else
+>>>> @@ -564,11 +569,20 @@ static int pixcir_i2c_ts_probe(struct i2c_client *client,
+>>>>  	i2c_set_clientdata(client, tsdata);
+>>>>  	device_init_wakeup(&client->dev, 1);
+>>>>  
+>>>> +	/* Register wakeirq */
+>>>> +	error = (pdata->wakeirq > 0) ?
+>>>> +		dev_pm_set_dedicated_wake_irq(dev, pdata->wakeirq) :
+>>>> +		dev_pm_set_wake_irq(dev, client->irq);
+>>>
+>>> Can 0 be a valid wakeirq or client->irq?
+>>> If yes then this logic is broken.
+>>>
+>>
+>> AFAIK, IRQ 0 is always assigned to system timer interrupt (cannot find
+>> reliable source to quote).
+>>
+>>> I would set wakeirq to -EINVAL or something if it is not available
+>>> during probe and check for that condition.
+>>>
+>>
+>> Not sure, if I understand you correctly
+>> pdata->wakeirq will have -ENODATA or -EINVAL(as returned by
+>> of_irq_get_byname()), if wakeirq is not available. Do you want me to
+>> check for these two conditions specifically rather than
+>> (pdata->wakeirq > 0) ?
+> 
+> 0 is not really valid general IRQ number; I2C for example sets
+> client->irq to 0 when there is no IRQ.
 
-Am Dienstag, den 28.07.2015, 11:29 +0300 schrieb Igor Grinberg:
-> Hi Matt,
-> 
-> On 07/27/15 17:34, Matt Porter wrote:
-> > On Thu, Jul 16, 2015 at 10:30:48AM +0200, Teresa Remmet wrote:
-> >> phyCORE-AM335x is a SoM (System on Module) containing
-> >> a AM335x SOC. The module can be connected to different
-> >> carrier boards.
-> >>
-> >> Some hardware parts are configurable on the phyCORE-AM335x.
-> >> So they are disabled on default in this som dtsi file.
-> >> They will be enabled in the board dts files, when populated.
-> >>
-> >> * RAM up to 1GiB
-> >> * PMIC
-> >> * NAND flash up to 1GiB
-> >> * Eth PHY on SOM: 1x RMII
-> >> * SPI NOR flash 8MiB (optional)
-> >> * i2c RTC (optional)
-> >> * i2c EEPROM 4kiB (optional)
-> >>
-> >> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-> >> ---
-> >>  arch/arm/boot/dts/am335x-phycore-som.dtsi | 368 ++++++++++++++++++++++++++++++
-> >>  1 file changed, 368 insertions(+)
-> >>  create mode 100644 arch/arm/boot/dts/am335x-phycore-som.dtsi
-> >>
-> >> diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-> >> new file mode 100644
-> >> index 0000000..4d28fc3
-> >> --- /dev/null
-> >> +++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-> 
-> [...]
-> 
-> >> +#include "am33xx.dtsi"
-> >> +
-> >> +/ {
-> >> +	model = "Phytec AM335x phyCORE";
-> >> +	compatible = "phytec,am335x-phycore-som", "ti,am33xx";
-> > 
-> > One minor thing here...wildcards in compatible strings aren't permitted.
-> > However, family compatibles like "ti,am33xx" that came in before this
-> > was enforced are grandfathered. Ideally, the newly introced board/som
-> > specific strings should not propagate that wildcard. i.e. something
-> > like "phytec,am3352-phycore-som" or whatever is the base family part
-> > on these SOMs.
-> > 
-> 
-> I'm not sure this is wild card.
-> I tend to think that it is the real name of the som [1], no?
-> 
-> http://phytec.com/products/system-on-modules/phycore/am335x/
+OK. If we assume 0 is invalid IRQ, then the patch is fine.
 
-Yes, your right. This is the name of the SoM. The phyCORE may have
-different am335x versions mounted. So there is not the one am3352 or
-am3359 always used.
-
-Regards,
-Teresa
-
-> 
-> [...]
-> 
+cheers,
+-roger
