@@ -1,175 +1,117 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v2 1/2] extcon: fix hang and extcon_get/set_cable_state().
-Date: Tue, 28 Jul 2015 08:26:45 +0900
-Message-ID: <55B6BE35.7020409@samsung.com>
-References: <1436194018-18696-2-git-send-email-rogerq@ti.com>
- <1436274375-10308-1-git-send-email-rogerq@ti.com>
- <CAGTfZH3qM6_R8F8bE7oEUYhS0hW0hv7fKzYJ6K6z+dZmExCExA@mail.gmail.com>
- <55B60A73.8080905@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 5/5] Input: tsc2005 - convert to gpiod
+Date: Mon, 27 Jul 2015 17:51:38 -0700
+Message-ID: <20150728005138.GH3613@dtor-ws>
+References: <1437595485-16421-1-git-send-email-sre@kernel.org>
+ <1437595485-16421-6-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <55B60A73.8080905@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1437595485-16421-6-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: ivan.ivanov@linaro.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-input@vger.kernel.org, Michael Welling <mwelling@emacinc.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+On Wed, Jul 22, 2015 at 10:04:45PM +0200, Sebastian Reichel wrote:
+> The GPIOD API can be used from boardcode, so that
+> the DT check can be removed. To avoid breaking
+> existing boardcode, _optional() variant has been
+> chosen. For completly removing the DT check, the
+> regulator has also been made optional, so that it
+> could be supplied from boardcode.
+> 
+> As a side-effect the patch fixes the after-probe
+> reset GPIO state, so that the device is not kept
+> in reset state.
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> ---
+>  drivers/input/touchscreen/tsc2005.c | 47 ++++++++++++++-----------------------
+>  1 file changed, 18 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
+> index f82b860..bf1b782 100644
+> --- a/drivers/input/touchscreen/tsc2005.c
+> +++ b/drivers/input/touchscreen/tsc2005.c
+> @@ -30,11 +30,11 @@
+>  #include <linux/delay.h>
+>  #include <linux/pm.h>
+>  #include <linux/of.h>
+> -#include <linux/of_gpio.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/spi/tsc2005.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/regmap.h>
+> +#include <linux/gpio/consumer.h>
+>  
+>  /*
+>   * The touchscreen interface operates as follows:
+> @@ -180,7 +180,7 @@ struct tsc2005 {
+>  
+>  	struct regulator	*vio;
+>  
+> -	int			reset_gpio;
+> +	struct gpio_desc	*reset_gpio;
+>  	void			(*set_reset)(bool enable);
+>  };
+>  
+> @@ -318,8 +318,8 @@ static void tsc2005_stop_scan(struct tsc2005 *ts)
+>  
+>  static void tsc2005_set_reset(struct tsc2005 *ts, bool enable)
+>  {
+> -	if (ts->reset_gpio >= 0)
+> -		gpio_set_value(ts->reset_gpio, enable);
+> +	if (ts->reset_gpio)
+> +		gpiod_set_value_cansleep(ts->reset_gpio, enable);
+>  	else if (ts->set_reset)
+>  		ts->set_reset(enable);
+>  }
+> @@ -611,34 +611,23 @@ static int tsc2005_probe(struct spi_device *spi)
+>  	ts->x_plate_ohm = x_plate_ohm;
+>  	ts->esd_timeout = esd_timeout;
+>  
+> -	if (np) {
+> -		ts->reset_gpio = of_get_named_gpio(np, "reset-gpios", 0);
+> -		if (ts->reset_gpio == -EPROBE_DEFER)
+> -			return ts->reset_gpio;
+> -		if (ts->reset_gpio < 0) {
+> -			dev_err(&spi->dev, "error acquiring reset gpio: %d\n",
+> -				ts->reset_gpio);
+> -			return ts->reset_gpio;
+> -		}
+> +	ts->reset_gpio = devm_gpiod_get_optional(&spi->dev, "reset",
+> +						 GPIOD_OUT_HIGH);
+> +	if (IS_ERR(ts->reset_gpio)) {
+> +		error = PTR_ERR(ts->reset_gpio);
+> +		dev_err(&spi->dev, "error acquiring reset gpio: %d\n", error);
+> +		return error;
+> +	}
+>  
+> -		error = devm_gpio_request_one(&spi->dev, ts->reset_gpio, 0,
+> -					      "reset-gpios");
+> -		if (error) {
+> -			dev_err(&spi->dev, "error requesting reset gpio: %d\n",
+> -				error);
+> -			return error;
+> -		}
+> +	ts->vio = devm_regulator_get_optional(&spi->dev, "vio");
+> +	if (IS_ERR(ts->vio)) {
+> +		error = PTR_ERR(ts->vio);
+> +		dev_err(&spi->dev, "vio regulator missing (%d)", error);
+> +		return error;
+> +	}
 
-On 07/27/2015 07:39 PM, Roger Quadros wrote:
-> Chanwoo,
-> 
-> On 10/07/15 18:54, Chanwoo Choi wrote:
->> Hi Roger,
->>
->> Thanks for your working.
->>
->> I'll review, test and apply it on next week because I'm on vacation now.
-> 
-> Can you please take this for -rc cycle? Thanks.
+I wonder if we should actually make it devm_regulator_get()because if we
+have full constraints then we'll simply get a dummy regulator here if
+vio-supply is not defined.
 
-I'm sorry for delay review. I'll do it within this week.
+Can be done as a follow-up though.
 
-Thanks,
-Chanwoo Choi
+I've applied all 5.
 
-> 
-> cheers,
-> -roger
-> 
->>
->> Thanks,
->> Chanwoo Choi
->>
->> On Tue, Jul 7, 2015 at 3:06 PM, Roger Quadros <rogerq@ti.com> wrote:
->>> Users of find_cable_index_by_name() will cause a kernel hang
->>> as the while loop counter is never incremented and end condition
->>> is never reached.
->>>
->>> extcon_get_cable_state() and extcon_set_cable_state() are broken
->>> because they use cable index instead of cable id. This causes
->>> the first cable state (cable.0) to be always invalid in sysfs
->>> or extcon_get_cable_state() users.
->>>
->>> Introduce a new function find_cable_id_by_name() that fixes
->>> both of the above issues.
->>>
->>> Fixes: commit 73b6ecdb93e8 ("extcon: Redefine the unique id of supported external connectors without 'enum extcon' type")
->>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  drivers/extcon/extcon.c | 38 +++++++++++++++++++++++++++++---------
->>>  1 file changed, 29 insertions(+), 9 deletions(-)
->>>
->>> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
->>> index 76157ab..987dd3c 100644
->>> --- a/drivers/extcon/extcon.c
->>> +++ b/drivers/extcon/extcon.c
->>> @@ -124,22 +124,34 @@ static int find_cable_index_by_id(struct extcon_dev *edev, const unsigned int id
->>>         return -EINVAL;
->>>  }
->>>
->>> -static int find_cable_index_by_name(struct extcon_dev *edev, const char *name)
->>> +static int find_cable_id_by_name(struct extcon_dev *edev, const char *name)
->>>  {
->>> -       unsigned int id = EXTCON_NONE;
->>> +       unsigned int id = -EINVAL;
->>>         int i = 0;
->>>
->>> -       if (edev->max_supported == 0)
->>> -               return -EINVAL;
->>> -
->>> -       /* Find the the number of extcon cable */
->>> +       /* Find the id of extcon cable */
->>>         while (extcon_name[i]) {
->>>                 if (!strncmp(extcon_name[i], name, CABLE_NAME_MAX)) {
->>>                         id = i;
->>>                         break;
->>>                 }
->>> +
->>> +               i++;
->>>         }
->>>
->>> +       return id;
->>> +};
->>> +
->>> +static int find_cable_index_by_name(struct extcon_dev *edev, const char *name)
->>> +{
->>> +       unsigned int id = EXTCON_NONE;
->>> +
->>> +       if (edev->max_supported == 0)
->>> +               return -EINVAL;
->>> +
->>> +       /* Find the the number of extcon cable */
->>> +       id = find_cable_id_by_name(edev, name);
->>> +
->>>         if (id == EXTCON_NONE)
->>>                 return -EINVAL;
->>>
->>> @@ -228,9 +240,11 @@ static ssize_t cable_state_show(struct device *dev,
->>>         struct extcon_cable *cable = container_of(attr, struct extcon_cable,
->>>                                                   attr_state);
->>>
->>> +       int i = cable->cable_index;
->>> +
->>>         return sprintf(buf, "%d\n",
->>>                        extcon_get_cable_state_(cable->edev,
->>> -                                              cable->cable_index));
->>> +                                              cable->edev->supported_cable[i]));
->>>  }
->>>
->>>  /**
->>> @@ -341,6 +355,9 @@ int extcon_get_cable_state_(struct extcon_dev *edev, const unsigned int id)
->>>  {
->>>         int index;
->>>
->>> +       if (id == EXTCON_NONE)
->>> +               return -EINVAL;
->>> +
->>>         index = find_cable_index_by_id(edev, id);
->>>         if (index < 0)
->>>                 return index;
->>> @@ -361,7 +378,7 @@ EXPORT_SYMBOL_GPL(extcon_get_cable_state_);
->>>   */
->>>  int extcon_get_cable_state(struct extcon_dev *edev, const char *cable_name)
->>>  {
->>> -       return extcon_get_cable_state_(edev, find_cable_index_by_name
->>> +       return extcon_get_cable_state_(edev, find_cable_id_by_name
->>>                                                 (edev, cable_name));
->>>  }
->>>  EXPORT_SYMBOL_GPL(extcon_get_cable_state);
->>> @@ -380,6 +397,9 @@ int extcon_set_cable_state_(struct extcon_dev *edev, unsigned int id,
->>>         u32 state;
->>>         int index;
->>>
->>> +       if (id == EXTCON_NONE)
->>> +               return -EINVAL;
->>> +
->>>         index = find_cable_index_by_id(edev, id);
->>>         if (index < 0)
->>>                 return index;
->>> @@ -404,7 +424,7 @@ EXPORT_SYMBOL_GPL(extcon_set_cable_state_);
->>>  int extcon_set_cable_state(struct extcon_dev *edev,
->>>                         const char *cable_name, bool cable_state)
->>>  {
->>> -       return extcon_set_cable_state_(edev, find_cable_index_by_name
->>> +       return extcon_set_cable_state_(edev, find_cable_id_by_name
->>>                                         (edev, cable_name), cable_state);
->>>  }
->>>  EXPORT_SYMBOL_GPL(extcon_set_cable_state);
->>> --
->>> 2.1.4
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> Please read the FAQ at  http://www.tux.org/lkml/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+Thanks.
+
+-- 
+Dmitry
