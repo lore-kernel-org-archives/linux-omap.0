@@ -1,200 +1,85 @@
-From: Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3] PCI: kill off set_irq_flags usage
-Date: Tue, 28 Jul 2015 09:51:49 +0900
-Message-ID: <CCCF3D8A-025B-4359-976C-782F9D932DB7@gmail.com>
-References: <1438030523-15853-1-git-send-email-robh@kernel.org> <1438030523-15853-9-git-send-email-robh@kernel.org>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438030523-15853-9-git-send-email-robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pratyush Anand <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, =?utf-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: n900 in 4.2-rc0: repeating oopses
+Date: Mon, 27 Jul 2015 23:01:43 -0700
+Message-ID: <20150728060143.GK16878@atomide.com>
+References: <20150416093234.GA17423@amd>
+ <20150629091146.GA5103@amd>
+ <20150630092404.GA19285@amd>
+ <20150630095310.GF27720@pali>
+ <20150701065932.GS4156@atomide.com>
+ <20150701072255.GA17577@pali>
+ <20150701095954.GD7969@amd>
+ <20150701103421.GV4156@atomide.com>
+ <20150726092615.GA6824@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150726092615.GA6824@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
+* Pavel Machek <pavel@ucw.cz> [150726 02:29]:
+> Hi!
+> 
+> > > > So, Pavel can you re-test? Maybe there can be problem with some driver
+> > > > which Tony did not compiled into zImage? Just speculation...
+> > > 
+> > > I re-tested with today's git, and it seems to boot. Thanks for help...
+> > 
+> > OK good to hear.
+> >  
+> > > Now. "echo mem > /sys/power/state" is broken, as in "returns
+> > > immediately in about 50% cases". The messages are
+> > > 
+> > > Powerdomain (per_pwrdm) didn't enter target state 1
+> > > Powerdomain (core_pwerdm) didn't enter target state 1
+> > > 
+> > > Any ideas? Thanks,
+> > 
+> > Works for me after enabling the idle timeouts with the following
+> > script and blanking the screen and disconnecting USB:
+> > 
+> > Also both keyboard LEDs should start blinking after the idle
+> > timeout with screen blanked and USB disconnected. If not, you
+> > have some module loaded that blocks the deeper idle states.
+> 
+> Ok, tried that, I had to do:
+> 
+>  cd /sys/class/gpio
+>  echo 162 > export
+>  cd gpio162
+>  echo out > direction
+>  echo 1 > value
+> 
+> to get the debug lights to work. But I could not get those leds to
+> blink.
 
-On 2015. 7. 28., at AM 5:55, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->=20
-> set_irq_flags is ARM specific with custom flags which have genirq
-> equivalents. Convert drivers to use the genirq interfaces directly, s=
-o we
-> can kill off set_irq_flags. The translation of flags is as follows:
->=20
-> IRQF_VALID -> !IRQ_NOREQUEST
-> IRQF_PROBE -> !IRQ_NOPROBE
-> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
->=20
-> For IRQs managed by an irqdomain, the irqdomain core code handles cle=
-aring
-> and setting IRQ_NOREQUEST already, so there is no need to do this in
-> .map() functions and we can simply remove the set_irq_flags calls. So=
-me
-> users also modify IRQ_NOPROBE and this has been maintained although i=
-t
-> is not clear that is really needed. There appears to be a great deal =
-of
-> blind copy and paste of this code.
->=20
-> Signed-off-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> Cc: Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>
-> Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-> Cc: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+I think that's the GPIO override for them? And in that case the
+PMIC sys_clkreq and sys_off_mode signals are not cutting off the
+LEDs I believe.
 
-Acked-by: Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Also not that any driver blocking the deeper idle states will
+also cause the LEDs to stay on. And USB cable being plugged in
+too at least for core off.. So you if you're using NFSroot over
+USB Ethernet, you probably can only see the left LED ever go off.
+ 
+> > modprobe leds-gpio
+> > modprobe ledtrig-default-on
+> 
+> Is this actually neccessary/relevant?
 
-Best regards,
-Jingoo Han
+Yes at least with omap2plus_defconfig.
+ 
+> > echo 255 > /sys/class/backlight/acx565akm/brightness
+> 
+> And this?
 
-> Cc: Pratyush Anand <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>
-> Cc: Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
-> Cc: "S=C3=B6ren Brinkmann" <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> Cc: linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> ---
-> Thomas asked that this be merged thru subsystem trees instead of arm-=
-soc,
-> so please apply this to your tree.
->=20
-> Rob
->=20
-> drivers/pci/host/pci-dra7xx.c      | 1 -
-> drivers/pci/host/pci-keystone-dw.c | 2 --
-> drivers/pci/host/pci-tegra.c       | 1 -
-> drivers/pci/host/pci-xgene-msi.c   | 1 -
-> drivers/pci/host/pcie-designware.c | 1 -
-> drivers/pci/host/pcie-rcar.c       | 1 -
-> drivers/pci/host/pcie-xilinx.c     | 2 --
-> 7 files changed, 9 deletions(-)
->=20
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra=
-7xx.c
-> index 80db09e..1a0d124 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -155,7 +155,6 @@ static int dra7xx_pcie_intx_map(struct irq_domain=
- *domain, unsigned int irq,
-> {
->    irq_set_chip_and_handler(irq, &dummy_irq_chip, handle_simple_irq);
->    irq_set_chip_data(irq, domain->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    return 0;
-> }
-> diff --git a/drivers/pci/host/pci-keystone-dw.c b/drivers/pci/host/pc=
-i-keystone-dw.c
-> index f34892e..f1d0749 100644
-> --- a/drivers/pci/host/pci-keystone-dw.c
-> +++ b/drivers/pci/host/pci-keystone-dw.c
-> @@ -196,7 +196,6 @@ static int ks_dw_pcie_msi_map(struct irq_domain *=
-domain, unsigned int irq,
->    irq_set_chip_and_handler(irq, &ks_dw_pcie_msi_irq_chip,
->                 handle_level_irq);
->    irq_set_chip_data(irq, domain->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    return 0;
-> }
-> @@ -277,7 +276,6 @@ static int ks_dw_pcie_init_legacy_irq_map(struct =
-irq_domain *d,
->    irq_set_chip_and_handler(irq, &ks_dw_pcie_legacy_irq_chip,
->                 handle_level_irq);
->    irq_set_chip_data(irq, d->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    return 0;
-> }
-> diff --git a/drivers/pci/host/pci-tegra.c b/drivers/pci/host/pci-tegr=
-a.c
-> index 10c0571..81df0c1 100644
-> --- a/drivers/pci/host/pci-tegra.c
-> +++ b/drivers/pci/host/pci-tegra.c
-> @@ -1248,7 +1248,6 @@ static int tegra_msi_map(struct irq_domain *dom=
-ain, unsigned int irq,
-> {
->    irq_set_chip_and_handler(irq, &tegra_msi_irq_chip, handle_simple_i=
-rq);
->    irq_set_chip_data(irq, domain->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    tegra_cpuidle_pcie_irqs_in_use();
->=20
-> diff --git a/drivers/pci/host/pci-xgene-msi.c b/drivers/pci/host/pci-=
-xgene-msi.c
-> index 2d31d4d..8e559d1 100644
-> --- a/drivers/pci/host/pci-xgene-msi.c
-> +++ b/drivers/pci/host/pci-xgene-msi.c
-> @@ -223,7 +223,6 @@ static int xgene_irq_domain_alloc(struct irq_doma=
-in *domain, unsigned int virq,
->    irq_domain_set_info(domain, virq, msi_irq,
->                &xgene_msi_bottom_irq_chip, domain->host_data,
->                handle_simple_irq, NULL, NULL);
-> -    set_irq_flags(virq, IRQF_VALID);
->=20
->    return 0;
-> }
-> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pc=
-ie-designware.c
-> index 69486be..5c6b562 100644
-> --- a/drivers/pci/host/pcie-designware.c
-> +++ b/drivers/pci/host/pcie-designware.c
-> @@ -350,7 +350,6 @@ static int dw_pcie_msi_map(struct irq_domain *dom=
-ain, unsigned int irq,
-> {
->    irq_set_chip_and_handler(irq, &dw_msi_irq_chip, handle_simple_irq)=
-;
->    irq_set_chip_data(irq, domain->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    return 0;
-> }
-> diff --git a/drivers/pci/host/pcie-rcar.c b/drivers/pci/host/pcie-rca=
-r.c
-> index c086210..7678fe0 100644
-> --- a/drivers/pci/host/pcie-rcar.c
-> +++ b/drivers/pci/host/pcie-rcar.c
-> @@ -664,7 +664,6 @@ static int rcar_msi_map(struct irq_domain *domain=
-, unsigned int irq,
-> {
->    irq_set_chip_and_handler(irq, &rcar_msi_irq_chip, handle_simple_ir=
-q);
->    irq_set_chip_data(irq, domain->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    return 0;
-> }
-> diff --git a/drivers/pci/host/pcie-xilinx.c b/drivers/pci/host/pcie-x=
-ilinx.c
-> index f1a06a0..72015119 100644
-> --- a/drivers/pci/host/pcie-xilinx.c
-> +++ b/drivers/pci/host/pcie-xilinx.c
-> @@ -338,7 +338,6 @@ static int xilinx_pcie_msi_map(struct irq_domain =
-*domain, unsigned int irq,
-> {
->    irq_set_chip_and_handler(irq, &xilinx_msi_irq_chip, handle_simple_=
-irq);
->    irq_set_chip_data(irq, domain->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    return 0;
-> }
-> @@ -377,7 +376,6 @@ static int xilinx_pcie_intx_map(struct irq_domain=
- *domain, unsigned int irq,
-> {
->    irq_set_chip_and_handler(irq, &dummy_irq_chip, handle_simple_irq);
->    irq_set_chip_data(irq, domain->host_data);
-> -    set_irq_flags(irq, IRQF_VALID);
->=20
->    return 0;
-> }
-> --
-> 2.1.0
->=20
+It used to be the backlight did not come on initially as modules
+or something.. May not be needed any longer.
+
+Regards,
+
+Tony
