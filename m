@@ -1,7 +1,7 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [RFC PATCH 3/5] mtd: devices: m25p80: set flag to request memory mapped read
-Date: Tue, 28 Jul 2015 14:11:14 +0530
-Message-ID: <1438072876-16338-4-git-send-email-vigneshr@ti.com>
+Subject: [RFC PATCH 5/5] ARM: dts: AM4372: Add memory map region entries for qspi
+Date: Tue, 28 Jul 2015 14:11:16 +0530
+Message-ID: <1438072876-16338-6-git-send-email-vigneshr@ti.com>
 References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,29 +12,29 @@ To: Mark Brown <broonie@kernel.org>, David Woodhouse <dwmw2@infradead.org>, Bria
 Cc: Huang Shijie <b32955@freescale.com>, Vignesh R <vigneshr@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Set use_mmap_read flag to true, to indicate to spi-master that the
-spi-message is from mtd layer. This helps spi-master to do memory
-mapped reads over SPI flash memories, when hardware support is
-available.
+Add qspi memory mapped region entries for AM43xx based SoCs.
 
 Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- drivers/mtd/devices/m25p80.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
-index d313f948b96c..aac2121c5454 100644
---- a/drivers/mtd/devices/m25p80.c
-+++ b/drivers/mtd/devices/m25p80.c
-@@ -148,6 +148,9 @@ static int m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
- 	t[1].len = len;
- 	spi_message_add_tail(&t[1], &m);
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 8f1e25bcecbd..75a17c78b0ad 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1103,8 +1103,10 @@
  
-+	m.spi = spi;
-+	m.use_mmap_mode = true;
-+
- 	spi_sync(spi, &m);
- 
- 	*retlen = m.actual_length - m25p_cmdsz(nor) - dummy;
+ 		qspi: qspi@4b300000 {
+ 			compatible = "ti,dra7xxx-qspi";
+-			reg = <0x4b300000 0x100>;
+-			reg-names = "qspi_base";
++			reg = <0x4b300000 0x100>, <0x4a002558 0x4>,
++			      <0x5c000000 0x3ffffff>;
++			reg-names = "qspi_base", "qspi_ctrlmod",
++				    "qspi_mmap";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "qspi";
 -- 
 2.4.6
