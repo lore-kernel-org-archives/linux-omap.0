@@ -1,102 +1,69 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: omapdss: Division by zero in kernel
-Date: Tue, 28 Jul 2015 13:56:02 +0200
-Message-ID: <20150728115602.GL13765@pali>
-References: <201507241803.42891@pali>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v3] ARM: kill off set_irq_flags usage
+Date: Tue, 28 Jul 2015 14:00:53 +0200
+Message-ID: <20150728120053.GB21866@localhost>
+References: <1438030523-15853-1-git-send-email-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201507241803.42891@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+In-Reply-To: <1438030523-15853-1-git-send-email-robh@kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: arm@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Greg Ungerer <gerg@uclinux.org>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Simtec Linux Team <linux@simtec.co.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 24 July 2015 18:03:42 Pali Roh=C3=A1r wrote:
-> Hello,
->=20
-> when on N900 (real HW or qemu) I run this command
->=20
-> / # echo 0 > /sys/devices/platform/omapdss/overlay0/enabled && echo 0=
- > /sys/class/graphics/fb0/size
->=20
-> then kernel crash with this error message
->=20
-> / # [   29.904113] Division by zero in kernel.
-> ** 3375 printk messages dropped ** [   29.963836] [<c01e0008>] (__aea=
-bi_uidivmod) from [<c022071c>]=20
-> (cfb_imageblit+0xac/0x464)
-> ** 8426 printk messages dropped ** [   30.111083] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 8380 printk messages dropped ** [   30.258209] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 7813 printk messages dropped ** [   30.400054] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 7666 printk messages dropped ** [   30.538391] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 7687 printk messages dropped ** [   30.676544] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 7960 printk messages dropped ** [   30.819915] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 8317 printk messages dropped ** [   30.966979] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 8590 printk messages dropped ** [   31.122528] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 8885 printk messages dropped ** [   31.287658] [<c0218ed0>] (fbcon=
-_scroll) from [<c025af90>] (scrup+0x60/0x128)
-> ** 9408 printk messages dropped ** [   31.461425] [<c02187a4>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 9787 printk messages dropped ** [   31.644287] [<c02187e8>] (fbcon=
-_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10081 printk messages dropped ** [   31.833984] [<c02187a4>] (fbco=
-n_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10501 printk messages dropped ** [   32.031066] [<c02187a4>] (fbco=
-n_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10816 printk messages dropped ** [   32.233001] [<c02187a4>] (fbco=
-n_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10900 printk messages dropped ** [   32.440490] [<c02187a4>] (fbco=
-n_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10837 printk messages dropped ** [   32.645233] [<c02187a4>] (fbco=
-n_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10837 printk messages dropped ** [   32.848999] [<c02187a4>] (fbco=
-n_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10837 printk messages dropped ** [   33.053833] [<c02187a4>] (fbco=
-n_redraw.isra.12) from [<c0218ed0>]=20
-> (fbcon_scroll+0x6a0/0xcbc)
-> ** 10838 printk messages dropped ** [   33.258361] [<c0218ed0>] (fbco=
-n_scroll) from [<c025af90>] (scrup+0x60/0x128)
->=20
-> I suspect that problem is in omapdss.
->=20
-> I do not know if size 0 make sense, but Maemo userspace is calling ab=
-ove
-> commands and on Nokia's 2.6.28 kernel there is no crash or error mess=
-age.
->=20
-> IMHO Division by zero in kernel should not be there even if userspace
-> call "incorrect" command.
->=20
+On Mon, Jul 27, 2015 at 03:55:13PM -0500, Rob Herring wrote:
+> set_irq_flags is ARM specific with custom flags which have genirq
+> equivalents. Convert drivers to use the genirq interfaces directly, so we
+> can kill off set_irq_flags. The translation of flags is as follows:
+> 
+> IRQF_VALID -> !IRQ_NOREQUEST
+> IRQF_PROBE -> !IRQ_NOPROBE
+> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
+> 
+> For IRQs managed by an irqdomain, the irqdomain core code handles clearing
+> and setting IRQ_NOREQUEST already, so there is no need to do this in
+> .map() functions and we can simply remove the set_irq_flags calls. Some
+> users also modify IRQ_NOPROBE and this has been maintained although it
+> is not clear that is really needed. There appears to be a great deal of
+> blind copy and paste of this code.
+> 
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Jason Cooper <jason@lakedaemon.net>
+> Cc: Andrew Lunn <andrew@lunn.ch>
+> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+> Cc: Gregory Clement <gregory.clement@free-electrons.com>
+> Acked-by: Hans Ulli Kroll <ulli.kroll@googlemail.com>
+> Acked-by: Shawn Guo <shawnguo@kernel.org>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Imre Kaloz <kaloz@openwrt.org>
+> Acked-by: Krzysztof Halasa <khalasa@piap.pl>
+> Cc: Greg Ungerer <gerg@uclinux.org>
+> Cc: Roland Stigge <stigge@antcom.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Daniel Mack <daniel@zonque.org>
+> Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> Cc: Simtec Linux Team <linux@simtec.co.uk>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Acked-by: Wan ZongShun <mcuos.com@gmail.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Tested-by: Kevin Hilman <khilman@linaro.org>
+> ---
+> Thomas asked that this be merged thru subsystem trees instead of arm-soc,
+> so please apply just this patch to your tree.
 
-PING! Any idea what to do with Division by zero in kernel?
+"this be merged through subsystem trees" + "please apply just this
+patch". I'm going to assume that the first "this" means a patch series. So
+I've applied this to next/cleanup, let me know if this was in error and
+should be removed, it's easy to drop at this time.
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+
+-Olof
