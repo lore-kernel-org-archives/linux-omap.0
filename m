@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 1/3] PCI: host: pci-dra7xx: Disable pm_runtime on get_sync failure
-Date: Tue, 28 Jul 2015 19:24:34 +0530
-Message-ID: <1438091676-21243-2-git-send-email-kishon@ti.com>
+Subject: [PATCH v4 3/3] PCI: host: pci-dra7xx: Idle the module by disabling MSE bit
+Date: Tue, 28 Jul 2015 19:24:36 +0530
+Message-ID: <1438091676-21243-4-git-send-email-kishon@ti.com>
 References: <1438091676-21243-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,78 @@ To: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, 
 Cc: nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix the error handling code in case pm_runtime_get_sync fails. Now
-when pm_runtime_get_sync fails pm_runtime_disable is invoked so that
-there is no unbalanced pm_runtime_enable calls.
+DRA7xx require MSE bit to be cleared to set the master in
+standby mode. (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe
+Controller Master Standby Behavior advises to use the clearing
+of the local MSE bit to set the master in standby. Without this
+some of the clocks do not idle).
+
+Cleared the MSE bit on suspend and enabled it back on resume.
+Clearing MSE bit is required to get clocks to be idled after
+suspend.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/pci/host/pci-dra7xx.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/pci/host/pci-dra7xx.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
 diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 80db09e..d8b6d66 100644
+index 08b999a..773349f 100644
 --- a/drivers/pci/host/pci-dra7xx.c
 +++ b/drivers/pci/host/pci-dra7xx.c
-@@ -384,7 +384,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	ret = pm_runtime_get_sync(dev);
- 	if (IS_ERR_VALUE(ret)) {
- 		dev_err(dev, "pm_runtime_get_sync failed\n");
--		goto err_phy;
-+		goto err_get_sync;
- 	}
+@@ -83,6 +83,17 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
+ 	writel(value, pcie->base + offset);
+ }
  
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-@@ -401,6 +401,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 
- err_add_port:
- 	pm_runtime_put(dev);
++static inline u32 dra7xx_pcie_readl_rc(struct pcie_port *pp, u32 offset)
++{
++	return readl(pp->dbi_base + offset);
++}
 +
-+err_get_sync:
- 	pm_runtime_disable(dev);
++static inline void dra7xx_pcie_writel_rc(struct pcie_port *pp, u32 offset,
++					 u32 value)
++{
++	writel(value, pp->dbi_base + offset);
++}
++
+ static int dra7xx_pcie_link_up(struct pcie_port *pp)
+ {
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+@@ -434,6 +445,34 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
+ }
  
- err_phy:
+ #ifdef CONFIG_PM_SLEEP
++static int dra7xx_pcie_suspend(struct device *dev)
++{
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	struct pcie_port *pp = &dra7xx->pp;
++	u32 val;
++
++	/* clear MSE */
++	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
++	val &= ~PCI_COMMAND_MEMORY;
++	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
++
++	return 0;
++}
++
++static int dra7xx_pcie_resume(struct device *dev)
++{
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	struct pcie_port *pp = &dra7xx->pp;
++	u32 val;
++
++	/* Set MSE */
++	val = dra7xx_pcie_readl_rc(pp, PCI_COMMAND);
++	val |= PCI_COMMAND_MEMORY;
++	dra7xx_pcie_writel_rc(pp, PCI_COMMAND, val);
++
++	return 0;
++}
++
+ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
 -- 
 1.7.9.5
