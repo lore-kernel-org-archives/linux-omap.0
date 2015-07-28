@@ -1,73 +1,86 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] gpio: omap: use raw locks for locking
-Date: Tue, 28 Jul 2015 14:22:08 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1507281417140.3825@nanos>
-References: <1437496011-11486-1-git-send-email-bigeasy@linutronix.de> <CACRpkdaHiJ5qYGu=t7hDTvvUuf4h-Q2_5Xv4GzvSPS1SZ6F_Gw@mail.gmail.com> <55B63167.9000107@linutronix.de>
+From: Matt Porter <mporter-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: dts: Add support for phyCORE-AM335x SoM
+Date: Tue, 28 Jul 2015 08:24:47 -0400
+Message-ID: <20150728122447.GE15004@beef>
+References: <1437035449-26956-1-git-send-email-t.remmet@phytec.de>
+ <20150727143444.GD15004@beef>
+ <55B73D6D.2040801@compulab.co.il>
+ <1438073248.3649.6.camel@lws-tremmet.phytec.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <55B63167.9000107@linutronix.de>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1438073248.3649.6.camel-wipSkzokR0f8DgGbXC/JcDlJRLeN4+xs@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 27 Jul 2015, Sebastian Andrzej Siewior wrote:
-> On 07/27/2015 02:50 PM, Linus Walleij wrote:
-> > Patch applied.
-> thanks.
+On Tue, Jul 28, 2015 at 10:47:28AM +0200, Teresa Remmet wrote:
+> Hello Igor,
 > 
+> Am Dienstag, den 28.07.2015, 11:29 +0300 schrieb Igor Grinberg:
+> > Hi Matt,
 > > 
-> > Now this question appear in my head:
+> > On 07/27/15 17:34, Matt Porter wrote:
+> > > On Thu, Jul 16, 2015 at 10:30:48AM +0200, Teresa Remmet wrote:
+> > >> phyCORE-AM335x is a SoM (System on Module) containing
+> > >> a AM335x SOC. The module can be connected to different
+> > >> carrier boards.
+> > >>
+> > >> Some hardware parts are configurable on the phyCORE-AM335x.
+> > >> So they are disabled on default in this som dtsi file.
+> > >> They will be enabled in the board dts files, when populated.
+> > >>
+> > >> * RAM up to 1GiB
+> > >> * PMIC
+> > >> * NAND flash up to 1GiB
+> > >> * Eth PHY on SOM: 1x RMII
+> > >> * SPI NOR flash 8MiB (optional)
+> > >> * i2c RTC (optional)
+> > >> * i2c EEPROM 4kiB (optional)
+> > >>
+> > >> Signed-off-by: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+> > >> ---
+> > >>  arch/arm/boot/dts/am335x-phycore-som.dtsi | 368 ++++++++++++++++++++++++++++++
+> > >>  1 file changed, 368 insertions(+)
+> > >>  create mode 100644 arch/arm/boot/dts/am335x-phycore-som.dtsi
+> > >>
+> > >> diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+> > >> new file mode 100644
+> > >> index 0000000..4d28fc3
+> > >> --- /dev/null
+> > >> +++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
 > > 
-> > Is drivers/gpio full of stuff that will not work with the -RT kernel,
-> > and is this a change that should be done mutatis mutandis on
-> > all the GPIO drivers?
+> > [...]
+> > 
+> > >> +#include "am33xx.dtsi"
+> > >> +
+> > >> +/ {
+> > >> +	model = "Phytec AM335x phyCORE";
+> > >> +	compatible = "phytec,am335x-phycore-som", "ti,am33xx";
+> > > 
+> > > One minor thing here...wildcards in compatible strings aren't permitted.
+> > > However, family compatibles like "ti,am33xx" that came in before this
+> > > was enforced are grandfathered. Ideally, the newly introced board/som
+> > > specific strings should not propagate that wildcard. i.e. something
+> > > like "phytec,am3352-phycore-som" or whatever is the base family part
+> > > on these SOMs.
+> > > 
+> > 
+> > I'm not sure this is wild card.
+> > I tend to think that it is the real name of the som [1], no?
+> > 
+> > http://phytec.com/products/system-on-modules/phycore/am335x/
 > 
-> I described two call paths where you need a rawlock_t. If your gpio
-> driver uses irq_chip_generic then you a rawlock here and things should
-> be fine.
-> 
-> In general: If your gpio controller acts as an interrupts controller
-> (that is via chained handler) then you need the raw-locks if you need
-> any locking (if you have a write 1 to mask/unmask/enable/disable
-> register then you probably don't need any locking here at all). If the
-> gpio controller does not act as an interrupt controller than the
-> spinlock_t type should be enough.
-> If your gpio-interrupt controller requests its interrupt via
-> requested_threaded_irq() then it should do handle_nested_irq() and a
-> mutex is probably used for locking.
-> 
-> Using request_irq() with "0" flags is kind of broken. It works in
-> IRQ-context and delivers the interrupts with generic_handle_irq() and
-> this one passes it the handler (like handle_edge_irq() /
-> handle_level_irq()) which takes a raw_lock. Now, if you boot the
-> vanilla kernel with threadedirq then the irq-handler runs in threaded
-> context and you can't take a spinlock here anymore. So I think you
-> should use here IRQF_NO_THREAD here (and the raw lock type). I added
-> tglx on Cc: to back up because it is Monday.
+> Yes, your right. This is the name of the SoM. The phyCORE may have
+> different am335x versions mounted. So there is not the one am3352 or
+> am3359 always used.
 
-Indeed it was monday.
+Ok, great. Disregard then.
 
-It's an RT only problem. On mainline spinlock resovles to raw_spinlock.
-
-Now there is the story what breaks in RT:
-
-1) irq controller specific locks which are taken in the irq chip
-   callbacks need to be raw_spinlocks because these functions are
-   called with irq_desc->lock helds and interrupts disabled.
-
-   If that irq chip lock is not raw you rightfully get a backtrace.
-
-   raw_spinlock_irq(&desc->lock);
-   chip->callback()
-     spin_lock(chip_private_lock);
-       might_sleep() triggers
-
-2) locks which are taken in chained interrupt handlers need to be raw
-   on RT. These handlers run in hard interrupt context so again
-   might_sleep() rightfully complains.
-
-Thanks,
-
-	tglx
+-Matt
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
