@@ -1,69 +1,73 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v3] ARM: kill off set_irq_flags usage
-Date: Tue, 28 Jul 2015 14:00:53 +0200
-Message-ID: <20150728120053.GB21866@localhost>
-References: <1438030523-15853-1-git-send-email-robh@kernel.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH] gpio: omap: use raw locks for locking
+Date: Tue, 28 Jul 2015 14:22:08 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1507281417140.3825@nanos>
+References: <1437496011-11486-1-git-send-email-bigeasy@linutronix.de> <CACRpkdaHiJ5qYGu=t7hDTvvUuf4h-Q2_5Xv4GzvSPS1SZ6F_Gw@mail.gmail.com> <55B63167.9000107@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1438030523-15853-1-git-send-email-robh@kernel.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: arm@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Greg Ungerer <gerg@uclinux.org>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Simtec Linux Team <linux@simtec.co.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <55B63167.9000107@linutronix.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 27, 2015 at 03:55:13PM -0500, Rob Herring wrote:
-> set_irq_flags is ARM specific with custom flags which have genirq
-> equivalents. Convert drivers to use the genirq interfaces directly, so we
-> can kill off set_irq_flags. The translation of flags is as follows:
+On Mon, 27 Jul 2015, Sebastian Andrzej Siewior wrote:
+> On 07/27/2015 02:50 PM, Linus Walleij wrote:
+> > Patch applied.
+> thanks.
 > 
-> IRQF_VALID -> !IRQ_NOREQUEST
-> IRQF_PROBE -> !IRQ_NOPROBE
-> IRQF_NOAUTOEN -> IRQ_NOAUTOEN
+> > 
+> > Now this question appear in my head:
+> > 
+> > Is drivers/gpio full of stuff that will not work with the -RT kernel,
+> > and is this a change that should be done mutatis mutandis on
+> > all the GPIO drivers?
 > 
-> For IRQs managed by an irqdomain, the irqdomain core code handles clearing
-> and setting IRQ_NOREQUEST already, so there is no need to do this in
-> .map() functions and we can simply remove the set_irq_flags calls. Some
-> users also modify IRQ_NOPROBE and this has been maintained although it
-> is not clear that is really needed. There appears to be a great deal of
-> blind copy and paste of this code.
+> I described two call paths where you need a rawlock_t. If your gpio
+> driver uses irq_chip_generic then you a rawlock here and things should
+> be fine.
 > 
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Sekhar Nori <nsekhar@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Jason Cooper <jason@lakedaemon.net>
-> Cc: Andrew Lunn <andrew@lunn.ch>
-> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-> Cc: Gregory Clement <gregory.clement@free-electrons.com>
-> Acked-by: Hans Ulli Kroll <ulli.kroll@googlemail.com>
-> Acked-by: Shawn Guo <shawnguo@kernel.org>
-> Cc: Sascha Hauer <kernel@pengutronix.de>
-> Cc: Imre Kaloz <kaloz@openwrt.org>
-> Acked-by: Krzysztof Halasa <khalasa@piap.pl>
-> Cc: Greg Ungerer <gerg@uclinux.org>
-> Cc: Roland Stigge <stigge@antcom.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Daniel Mack <daniel@zonque.org>
-> Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-> Cc: Simtec Linux Team <linux@simtec.co.uk>
-> Cc: Kukjin Kim <kgene@kernel.org>
-> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> Acked-by: Wan ZongShun <mcuos.com@gmail.com>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Tested-by: Kevin Hilman <khilman@linaro.org>
-> ---
-> Thomas asked that this be merged thru subsystem trees instead of arm-soc,
-> so please apply just this patch to your tree.
+> In general: If your gpio controller acts as an interrupts controller
+> (that is via chained handler) then you need the raw-locks if you need
+> any locking (if you have a write 1 to mask/unmask/enable/disable
+> register then you probably don't need any locking here at all). If the
+> gpio controller does not act as an interrupt controller than the
+> spinlock_t type should be enough.
+> If your gpio-interrupt controller requests its interrupt via
+> requested_threaded_irq() then it should do handle_nested_irq() and a
+> mutex is probably used for locking.
+> 
+> Using request_irq() with "0" flags is kind of broken. It works in
+> IRQ-context and delivers the interrupts with generic_handle_irq() and
+> this one passes it the handler (like handle_edge_irq() /
+> handle_level_irq()) which takes a raw_lock. Now, if you boot the
+> vanilla kernel with threadedirq then the irq-handler runs in threaded
+> context and you can't take a spinlock here anymore. So I think you
+> should use here IRQF_NO_THREAD here (and the raw lock type). I added
+> tglx on Cc: to back up because it is Monday.
 
-"this be merged through subsystem trees" + "please apply just this
-patch". I'm going to assume that the first "this" means a patch series. So
-I've applied this to next/cleanup, let me know if this was in error and
-should be removed, it's easy to drop at this time.
+Indeed it was monday.
 
+It's an RT only problem. On mainline spinlock resovles to raw_spinlock.
 
--Olof
+Now there is the story what breaks in RT:
+
+1) irq controller specific locks which are taken in the irq chip
+   callbacks need to be raw_spinlocks because these functions are
+   called with irq_desc->lock helds and interrupts disabled.
+
+   If that irq chip lock is not raw you rightfully get a backtrace.
+
+   raw_spinlock_irq(&desc->lock);
+   chip->callback()
+     spin_lock(chip_private_lock);
+       might_sleep() triggers
+
+2) locks which are taken in chained interrupt handlers need to be raw
+   on RT. These handlers run in hard interrupt context so again
+   might_sleep() rightfully complains.
+
+Thanks,
+
+	tglx
