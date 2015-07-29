@@ -1,44 +1,61 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix bus recovery setup
-Date: Wed, 29 Jul 2015 12:27:30 +0200
-Message-ID: <1438165650.20986.2.camel@pengutronix.de>
-References: <1436366127-24756-1-git-send-email-jlu@pengutronix.de>
-	 <20150714111004.GB1517@katana> <55A4FC19.4040709@ti.com>
-	 <20150714121207.GI1517@katana>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 00/17] omap_hsmmc: regulator usage cleanup and fixes
+Date: Wed, 29 Jul 2015 16:39:30 +0530
+Message-ID: <1438168187-1614-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150714121207.GI1517@katana>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, afenkart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Di, 2015-07-14 at 14:12 +0200, Wolfram Sang wrote:
-> On Tue, Jul 14, 2015 at 03:10:01PM +0300, Grygorii Strashko wrote:
-> > Hi Wolfram,
-> > 
-> > On 07/14/2015 02:10 PM, Wolfram Sang wrote:
-> > > On Wed, Jul 08, 2015 at 04:35:27PM +0200, Jan Luebbe wrote:
-> > >> At least on the AM335x, enabling OMAP_I2C_SYSTEST_ST_EN is not enough to
-> > > 
-> > > Felipe: it seems you did not need this; is this AM335x specific?
-> > 
-> > We need it (Felipe's reply can be delayed).
-> 
-> So, how did it work for him?
-> 
-> > It's not AM335x specific. TMODE has to be configured for all OMAP4+ SoCs too.
-> 
-> Okay, thanks for the stepping in!
+This patch series does the following
+*) Uses devm_regulator_get_optional() for vmmc and then removes the
+   CONFIG_REGULATOR check altogether.
+*) return on -EPROBE_DEFER
+*) enable/disable vmmc_aux regulator based on prior state
 
-Wolfram, will you pick this as-is?
+This series is in preparation for implementing the voltage switch
+sequence so that UHS cards can be supported.
 
-Regards,
-Jan
+Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
+Beaglebone black, OMAP5 uEVM and OMAP4 PANDA.
+
+Kishon Vijay Abraham I (16):
+  mmc: host: omap_hsmmc: use devm_regulator_get_optional() for vmmc
+  mmc: host: omap_hsmmc: return error from omap_hsmmc_reg_get on
+    -EPROBE_DEFER
+  mmc: host: omap_hsmmc: cleanup omap_hsmmc_reg_get()
+  mmc: host: omap_hsmmc: use the ocrmask provided by the vmmc regulator
+  mmc: host: omap_hsmmc: use mmc_host's vmmc and vqmmc
+  mmc: host: omap_hsmmc: remove unnecessary pbias set_voltage
+  mmc: host: omap_hsmmc: return error if any of the regulator APIs fail
+  mmc: host: omap_hsmmc: add separate functions for enable/disable
+    supply
+  mmc: host: omap_hsmmc: add separate function to set pbias
+  mmc: host: omap_hsmmc: avoid pbias regulator enable on power off
+  mmc: host: omap_hsmmc: don't use ->set_power to set initial regulator
+    state
+  ARM: dts: am57xx-beagle-x15: Fix regulator populated in MMC1 dt node
+  mmc: host: omap_hsmmc: enable/disable vmmc_aux regulator based on
+    prior state
+  mmc: host: omap_hsmmc: use regulator_is_enabled to find pbias status
+  mmc: host: omap_hsmmc: use ios->vdd for setting vmmc voltage
+  mmc: host: omap_hsmmc: remove CONFIG_REGULATOR check
+
+Roger Quadros (1):
+  mmc: host: omap_hsmmc: use "mmc_of_parse_voltage" to get ocr_avail
+
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 +
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            |    1 -
+ drivers/mmc/host/omap_hsmmc.c                      |  333 +++++++++++++-------
+ 3 files changed, 216 insertions(+), 120 deletions(-)
+
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
