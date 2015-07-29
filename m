@@ -1,47 +1,44 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/4] omap: Fix broken pbias device creation
-Date: Wed, 29 Jul 2015 11:57:52 +0300
-Message-ID: <55B89590.6000109@ti.com>
-References: <1437999401-3519-1-git-send-email-kishon@ti.com>
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: fix bus recovery setup
+Date: Wed, 29 Jul 2015 12:27:30 +0200
+Message-ID: <1438165650.20986.2.camel@pengutronix.de>
+References: <1436366127-24756-1-git-send-email-jlu@pengutronix.de>
+	 <20150714111004.GB1517@katana> <55A4FC19.4040709@ti.com>
+	 <20150714121207.GI1517@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1437999401-3519-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150714121207.GI1517@katana>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/27/2015 03:16 PM, Kishon Vijay Abraham I wrote:
-> pbias device creation got broken once SCM cleanup got merged.
-> This patch series re-enables device creation by adding
-> "simple-bus" in the compatible property of the syscon
-> dt node.
->
-> validated this series in DRA72, OMAP4 PANDA and OMAP5 UEVM
-> boards.
->
-> Kishon Vijay Abraham I (4):
->    ARM: dts: omap24xx: Fix broken pbias device creation
->    ARM: dts: OMAP4: Fix broken pbias device creation
->    ARM: dts: OMAP5: Fix broken pbias device creation
->    ARM: dts: dra7: Fix broken pbias device creation
->
->   arch/arm/boot/dts/dra7.dtsi     |    2 +-
->   arch/arm/boot/dts/omap2430.dtsi |    3 ++-
->   arch/arm/boot/dts/omap4.dtsi    |    3 ++-
->   arch/arm/boot/dts/omap5.dtsi    |    3 ++-
->   4 files changed, 7 insertions(+), 4 deletions(-)
->
+On Di, 2015-07-14 at 14:12 +0200, Wolfram Sang wrote:
+> On Tue, Jul 14, 2015 at 03:10:01PM +0300, Grygorii Strashko wrote:
+> > Hi Wolfram,
+> > 
+> > On 07/14/2015 02:10 PM, Wolfram Sang wrote:
+> > > On Wed, Jul 08, 2015 at 04:35:27PM +0200, Jan Luebbe wrote:
+> > >> At least on the AM335x, enabling OMAP_I2C_SYSTEST_ST_EN is not enough to
+> > > 
+> > > Felipe: it seems you did not need this; is this AM335x specific?
+> > 
+> > We need it (Felipe's reply can be delayed).
+> 
+> So, how did it work for him?
+> 
+> > It's not AM335x specific. TMODE has to be configured for all OMAP4+ SoCs too.
+> 
+> Okay, thanks for the stepping in!
 
-For dra7-evm:
-Tested-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Wolfram, will you pick this as-is?
 
+Regards,
+Jan
 -- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
