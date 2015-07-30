@@ -1,61 +1,183 @@
 From: NeilBrown <neil@brown.name>
-Subject: Re: [Gta04-owner] [PATCH 08/14] twl4030_charger: allow max_current
- to be managed via sysfs.
-Date: Thu, 30 Jul 2015 08:10:46 +1000
-Message-ID: <20150730081046.027ba82e@home.neil.brown.name>
-References: <20150322231635.23789.70149.stgit@notabene.brown>
-	<20150322232029.23789.13768.stgit@notabene.brown>
-	<a05a88a7a3ea4519ada7216ab5bfe097@rommel.stw.uni-erlangen.de>
+Subject: [PATCH 12/13] twl4030_charger: Increase current carefully while
+ watching voltage.
+Date: Thu, 30 Jul 2015 10:11:24 +1000
+Message-ID: <20150730001124.4012.20451.stgit@noble>
+References: <20150730001113.4012.18086.stgit@noble>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a05a88a7a3ea4519ada7216ab5bfe097@rommel.stw.uni-erlangen.de>
+In-Reply-To: <20150730001113.4012.18086.stgit@noble>
 Sender: linux-kernel-owner@vger.kernel.org
-To: jake42 <jake42@rommel.stw.uni-erlangen.de>
-Cc: Sebastian Reichel <sre@kernel.org>, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, inux-pm@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 23 Mar 2015 13:14:50 +0100 jake42
-<jake42@rommel.stw.uni-erlangen.de> wrote:
 
-> Hello Neil,
-> 
-> some suggestions:
-> 
-> On 23.03.2015 00:20, NeilBrown wrote:
-> > From: NeilBrown <neilb@suse.de>
-> > diff --git a/Documentation/ABI/testing/sysfs-class-power-twl4030
-> > b/Documentation/ABI/testing/sysfs-class-power-twl4030
-> > new file mode 100644
-> > index 000000000000..06092209d851
-> > --- /dev/null
-> > +++ b/Documentation/ABI/testing/sysfs-class-power-twl4030
-> > @@ -0,0 +1,15 @@
-> > +What: /sys/class/power_supply/twl4030_ac/max_current
-> > +      /sys/class/power_supply/twl4030_usb/max_current
-> > +Description:
-> > +	Read/Write limit on current which which may
-> one less which                        ^^
-> > +	be drawn from the ac (Accessory Charger) or
-> > +	USB port.
-> > +
-> > +	Value is in micro-Amps.
-> > +
-> > +	Value is set automatically to an appropriate
-> > +	value when a cable is plugged on unplugged.
-> s/on/or                               ^^
-> > +
-> > +	Value can the set by writing to the attribute.
->                    ^^ be set?
-> > +	The change will only persist until the next
-> > +	plug event.  These event are reported via udev.
-> 
-> Regards
-> Jake
-> 
+The USB Battery Charging spec (BC1.2) suggests a dedicated
+charging port can deliver from 0.5 to 5.0A at between 4.75 and 5.25
+volts.
 
-Thanks.
-I've made those two changes.
+To choose the "correct" current voltage setting requires a trial
+and error approach: try to draw current and see if the voltage drops
+too low.
 
-NeilBrown
+Even with a configured Standard Downstream Port, it may not be possible
+to reliably pull 500mA - depending on cable quality and source
+quality I have reports of charging failure due to the voltage dropping
+too low.
+
+To address both these concerns, this patch introduce incremental
+current setting.
+The current pull from VBUS is increased in steps of 20mA every 100ms
+until the target is reached or until the measure voltage drops below
+4.75V.  If the voltage does go too low, the target current is reduced
+by 20mA and kept there.
+
+This applies to currents selected automatically, or to values
+set via sysfs.  So setting a large value will cause the maximum
+available to be used - up to the limit of 1.7A imposed by the
+hardware.
+
+Signed-off-by: NeilBrown <neil@brown.name>
+---
+ drivers/power/twl4030_charger.c |   67 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 61 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+index 68117ad23564..2c537ee11bbe 100644
+--- a/drivers/power/twl4030_charger.c
++++ b/drivers/power/twl4030_charger.c
+@@ -119,6 +119,18 @@ struct twl4030_bci {
+ #define	CHARGE_AUTO	1
+ #define	CHARGE_LINEAR	2
+ 
++	/* When setting the USB current we slowly increase the
++	 * requested current until target is reached or the voltage
++	 * drops below 4.75V.  In the latter case we step back one
++	 * step.
++	 */
++	unsigned int		usb_cur_target;
++	struct delayed_work	current_worker;
++#define	USB_CUR_STEP	20000	/* 20mA at a time */
++#define	USB_MIN_VOLT	4750000	/* 4.75V */
++#define	USB_CUR_DELAY	msecs_to_jiffies(100)
++#define	USB_MAX_CURRENT	1700000 /* TWL4030 caps at 1.7A */
++
+ 	unsigned long		event;
+ };
+ 
+@@ -257,6 +269,12 @@ static int twl4030_charger_update_current(struct twl4030_bci *bci)
+ 	} else {
+ 		cur = bci->usb_cur;
+ 		bci->ac_is_active = false;
++		if (cur > bci->usb_cur_target) {
++			cur = bci->usb_cur_target;
++			bci->usb_cur = cur;
++		}
++		if (cur < bci->usb_cur_target)
++			schedule_delayed_work(&bci->current_worker, USB_CUR_DELAY);
+ 	}
+ 
+ 	/* First, check thresholds and see if cgain is needed */
+@@ -391,6 +409,41 @@ static int twl4030_charger_update_current(struct twl4030_bci *bci)
+ 	return 0;
+ }
+ 
++static int twl4030_charger_get_current(void);
++
++static void twl4030_current_worker(struct work_struct *data)
++{
++	int v, curr;
++	int res;
++	struct twl4030_bci *bci = container_of(data, struct twl4030_bci,
++					       current_worker.work);
++
++	res = twl4030bci_read_adc_val(TWL4030_BCIVBUS);
++	if (res < 0)
++		v = 0;
++	else
++		/* BCIVBUS uses ADCIN8, 7/1023 V/step */
++		v = res * 6843;
++	curr = twl4030_charger_get_current();
++
++	dev_dbg(bci->dev, "v=%d cur=%d limit=%d target=%d\n", v, curr,
++		bci->usb_cur, bci->usb_cur_target);
++
++	if (v < USB_MIN_VOLT) {
++		/* Back up and stop adjusting. */
++		bci->usb_cur -= USB_CUR_STEP;
++		bci->usb_cur_target = bci->usb_cur;
++	} else if (bci->usb_cur >= bci->usb_cur_target ||
++		   bci->usb_cur + USB_CUR_STEP > USB_MAX_CURRENT) {
++		/* Reached target and voltage is OK - stop */
++		return;
++	} else {
++		bci->usb_cur += USB_CUR_STEP;
++		schedule_delayed_work(&bci->current_worker, USB_CUR_DELAY);
++	}
++	twl4030_charger_update_current(bci);
++}
++
+ /*
+  * Enable/Disable USB Charge functionality.
+  */
+@@ -451,6 +504,7 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
+ 			pm_runtime_put_autosuspend(bci->transceiver->dev);
+ 			bci->usb_enabled = 0;
+ 		}
++		bci->usb_cur = 0;
+ 	}
+ 
+ 	return ret;
+@@ -599,7 +653,7 @@ twl4030_bci_max_current_store(struct device *dev, struct device_attribute *attr,
+ 	if (dev == &bci->ac->dev)
+ 		bci->ac_cur = cur;
+ 	else
+-		bci->usb_cur = cur;
++		bci->usb_cur_target = cur;
+ 
+ 	twl4030_charger_update_current(bci);
+ 	return n;
+@@ -621,7 +675,7 @@ static ssize_t twl4030_bci_max_current_show(struct device *dev,
+ 			cur = bci->ac_cur;
+ 	} else {
+ 		if (bci->ac_is_active)
+-			cur = bci->usb_cur;
++			cur = bci->usb_cur_target;
+ 	}
+ 	if (cur < 0) {
+ 		cur = twl4030bci_read_adc_val(TWL4030_BCIIREF1);
+@@ -662,9 +716,9 @@ static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
+ 
+ 	/* reset current on each 'plug' event */
+ 	if (allow_usb)
+-		bci->usb_cur = 500000;
++		bci->usb_cur_target = 500000;
+ 	else
+-		bci->usb_cur = 100000;
++		bci->usb_cur_target = 100000;
+ 
+ 	bci->event = val;
+ 	schedule_work(&bci->work);
+@@ -927,9 +981,9 @@ static int twl4030_bci_probe(struct platform_device *pdev)
+ 	bci->ichg_hi = 500000; /* High threshold */
+ 	bci->ac_cur = 500000; /* 500mA */
+ 	if (allow_usb)
+-		bci->usb_cur = 500000;  /* 500mA */
++		bci->usb_cur_target = 500000;  /* 500mA */
+ 	else
+-		bci->usb_cur = 100000;  /* 100mA */
++		bci->usb_cur_target = 100000;  /* 100mA */
+ 	bci->usb_mode = CHARGE_AUTO;
+ 	bci->ac_mode = CHARGE_AUTO;
+ 
+@@ -980,6 +1034,7 @@ static int twl4030_bci_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	INIT_WORK(&bci->work, twl4030_bci_usb_work);
++	INIT_DELAYED_WORK(&bci->current_worker, twl4030_current_worker);
+ 
+ 	bci->usb_nb.notifier_call = twl4030_bci_usb_ncb;
+ 	if (bci->dev->of_node) {
