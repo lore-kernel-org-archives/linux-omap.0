@@ -1,154 +1,70 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.2-rc4
-Date: Thu, 30 Jul 2015 19:08:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1507301907320.2344@utopia.booyaka.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH stable/v4.0] ARM: OMAP3: Fix booting with thumb2 kernel
+Date: Thu, 30 Jul 2015 15:27:54 -0500
+Message-ID: <CAMAWPa-sC7q+vAob-ce2_ubZCvfkKRA9m2bs2CAsP3p6zLFOtw@mail.gmail.com>
+References: <1436542126-2634-1-git-send-email-khilman@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1436542126-2634-1-git-send-email-khilman@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: stable@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Greg,
 
-Here are some basic OMAP test results for Linux v4.2-rc4.
-Logs and other details at:
+On Fri, Jul 10, 2015 at 10:28 AM, Kevin Hilman <khilman@kernel.org> wrote:
+> From: Tony Lindgren <tony@atomide.com>
+>
+> We get a NULL pointer dereference on omap3 for thumb2 compiled kernels:
+>
+> Internal error: Oops: 80000005 [#1] SMP THUMB2
+> ...
+> [<c046497b>] (_raw_spin_unlock_irqrestore) from [<c0024375>]
+> (omap3_enter_idle_bm+0xc5/0x178)
+> [<c0024375>] (omap3_enter_idle_bm) from [<c0374e63>]
+> (cpuidle_enter_state+0x77/0x27c)
+> [<c0374e63>] (cpuidle_enter_state) from [<c00627f1>]
+> (cpu_startup_entry+0x155/0x23c)
+> [<c00627f1>] (cpu_startup_entry) from [<c06b9a47>]
+> (start_kernel+0x32f/0x338)
+> [<c06b9a47>] (start_kernel) from [<8000807f>] (0x8000807f)
+>
+> The power management related assembly on omaps needs to interact with
+> ARM mode bootrom code, so we need to keep most of the related assembly
+> in ARM mode.
+>
+> Turns out this error is because of missing ENDPROC for assembly code
+> as suggested by Stephen Boyd <sboyd@codeaurora.org>. Let's fix the
+> problem by adding ENDPROC in two places to sleep34xx.S.
+>
+> Let's also remove the now duplicate custom code for mode switching.
+> This has been unnecessary since commit 6ebbf2ce437b ("ARM: convert
+> all "mov.* pc, reg" to "bx reg" for ARMv6+").
+>
+> And let's also remove the comments about local variables, they are
+> now just confusing after the ENDPROC.
+>
+> The reason why ENDPROC makes a difference is it sets .type and then
+> the compiler knows what to do with the thumb bit as explained at:
+>
+> https://wiki.ubuntu.com/ARM/Thumb2PortingHowto
+>
+> Reported-by: Kevin Hilman <khilman@kernel.org>
+> Tested-by: Kevin Hilman <khilman@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> (cherry picked from commit d8a50941c91a68da202aaa96a3dacd471ea9c693)
+> Cc: <stable@vger.kernel.org> # v4.0+
+> Signed-off-by: Kevin Hilman <khilman@linaro.org>
 
-    http://www.pwsan.com/omap/testlogs/test_v4.2-rc4/20150730100856/
+This  one seems to be missing in v4.0.9, though it was submitted ~10
+days before.  I missed noticing it was not present in the stable queue
+because I've been on vacation.
 
+I know you mentioned you were wrapping up v4.0, but any chance of this
+being included?
 
-Test summary
-------------
+Thanks,
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-stk-om44,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    (none)
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL (10/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 3/17): 5912osk, 3517evm, 5430es2sbct54
-    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 2/17): 4430es2panda, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  2430sdp, 5430es2uevm
-    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  2430sdp, 5430es2uevm
-    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 1/ 4): 37xxevm
-    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    FAIL ( 1/ 4): 37xxevm
-    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 1/17): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 1/20): multi_v7_defconfig
-
-
-vmlinux object size
-(delta in bytes from test_v4.2-rc3 (52721d9d3334c1cb1f76219a161084094ec634dc)):
-   text     data      bss    total  kernel
-   +819      +64        0     +883  omap1_defconfig
-   +819      +96        0     +915  omap1_defconfig_1510innovator_only
-   +851      +64        0     +915  omap1_defconfig_5912osk_only
-    +99     +128        0     +227  multi_v7_defconfig
-   +356        0        0     +356  omap2plus_defconfig
-   +792        0        0     +792  omap2plus_defconfig_2430sdp_only
-   +356        0        0     +356  omap2plus_defconfig_am33xx_only
-  +4452        0        0    +4452  omap2plus_defconfig_am43xx_only
-   +356        0        0     +356  omap2plus_defconfig_cpupm
-   +356        0        0     +356  omap2plus_defconfig_dra7xx_only
-    -47        0      -32      -79  omap2plus_defconfig_n800_multi_omap2xxx
-   -228        0        0     -228  omap2plus_defconfig_n800_only_a
-   +540        0        0     +540  omap2plus_defconfig_no_pm
-   +356        0        0     +356  omap2plus_defconfig_omap2_4_only
-   +356        0        0     +356  omap2plus_defconfig_omap3_4_only
-   +356        0        0     +356  omap2plus_defconfig_omap5_only
-   +196        0      -16     +180  rmk_omap3430_ldp_allnoconfig
-  +7213     +456        0    +7669  rmk_omap3430_ldp_oldconfig
-   +244        0      -32     +212  rmk_omap4430_sdp_allnoconfig
-   +633        0        0     +633  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v4.2-rc3 (52721d9d3334c1cb1f76219a161084094ec634dc))
-  avail  rsrvd   high  freed  board          kconfig
-     4k    -4k      .      .  4460varsomom   omap2plus_defconfig
+Kevin
