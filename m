@@ -1,77 +1,50 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 16/27] mfd: Export OF module alias information in missing drivers
-Date: Thu, 30 Jul 2015 18:18:41 +0200
-Message-ID: <1438273132-20926-17-git-send-email-javier@osg.samsung.com>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/27] Export I2C and OF module aliases in missing drivers
+Date: Thu, 30 Jul 2015 09:35:17 -0700
+Message-ID: <20150730163517.GA13165@dtor-ws>
 References: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1438273132-20926-1-git-send-email-javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sjoe
 List-Id: linux-omap@vger.kernel.org
 
-The I2C core always reports the MODALIAS uevent as "i2c:<client name"
-regardless if the driver was matched using the I2C id_table or the
-of_match_table. So technically there's no need for a driver to export
-the OF table since currently it's not used.
+Hi Javier,
 
-In fact, the I2C device ID table is mandatory for I2C drivers since
-a i2c_device_id is passed to the driver's probe function even if the
-I2C core used the OF table to match the driver.
+On Thu, Jul 30, 2015 at 06:18:25PM +0200, Javier Martinez Canillas wrote:
+> Hello,
+> 
+> Short version:
+> 
+> This series add the missing MODULE_DEVICE_TABLE() for OF and I2C tables
+> to export that information so modules have the correct aliases built-in
+> and autoloading works correctly.
+> 
+> Longer version:
+> 
+> Currently it's mandatory for I2C drivers to have an I2C device ID table
+> regardless if the device was registered using platform data or OF. This
+> is because the I2C core needs an I2C device ID table for two reasons:
+> 
+> 1) Match the I2C client with a I2C device ID so a struct i2c_device_id
+>    is passed to the I2C driver probe() function.
+> 
+> 2) Export the module aliases from the I2C device ID table so userspace
+>    can auto-load the correct module. This is because i2c_device_uevent
+>    always reports a MODALIAS of the form i2c:<client->name>.
 
-And since the I2C core uses different tables, OF-only drivers needs to
-have duplicated data that has to be kept in sync and also the dev node
-compatible manufacturer prefix is stripped when reporting the MODALIAS.
+Why are we not fixing this? We emit specially carved uevent for
+ACPI-based devices, why not the same for OF? Platform bus does this...
 
-To avoid the above, the I2C core behavior may be changed in the future
-to not require an I2C device table for OF-only drivers and report the
-OF module alias. So, it's better to also export the OF table to prevent
-breaking module autoloading if that happens.
+Thanks.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
----
-
- drivers/mfd/rt5033.c   | 1 +
- drivers/mfd/tps65217.c | 1 +
- drivers/mfd/tps65218.c | 1 +
- 3 files changed, 3 insertions(+)
-
-diff --git a/drivers/mfd/rt5033.c b/drivers/mfd/rt5033.c
-index db395a6c52bc..d60f91619c4a 100644
---- a/drivers/mfd/rt5033.c
-+++ b/drivers/mfd/rt5033.c
-@@ -124,6 +124,7 @@ static const struct of_device_id rt5033_dt_match[] = {
- 	{ .compatible = "richtek,rt5033", },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(of, rt5033_dt_match);
- 
- static struct i2c_driver rt5033_driver = {
- 	.driver = {
-diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-index bc455feb42be..55add0453ae9 100644
---- a/drivers/mfd/tps65217.c
-+++ b/drivers/mfd/tps65217.c
-@@ -156,6 +156,7 @@ static const struct of_device_id tps65217_of_match[] = {
- 	{ .compatible = "ti,tps65217", .data = (void *)TPS65217 },
- 	{ /* sentinel */ },
- };
-+MODULE_DEVICE_TABLE(of, tps65217_of_match);
- 
- static int tps65217_probe(struct i2c_client *client,
- 				const struct i2c_device_id *ids)
-diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index cb38d725250f..80b9dc363cd8 100644
---- a/drivers/mfd/tps65218.c
-+++ b/drivers/mfd/tps65218.c
-@@ -211,6 +211,7 @@ static const struct of_device_id of_tps65218_match_table[] = {
- 	{ .compatible = "ti,tps65218", },
- 	{}
- };
-+MODULE_DEVICE_TABLE(of, of_tps65218_match_table);
- 
- static int tps65218_probe(struct i2c_client *client,
- 				const struct i2c_device_id *ids)
 -- 
-2.4.3
+Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
