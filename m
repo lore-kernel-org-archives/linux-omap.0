@@ -1,46 +1,38 @@
-From: John Ogness <john.ogness@linutronix.de>
-Subject: [PATCH 3/3] serial: 8250: omap: restore registers on shutdown
-Date: Fri, 31 Jul 2015 00:54:45 +0200
-Message-ID: <87egjp2r4a.fsf@linutronix.de>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 1/3] serial: 8250: unlock port for uart_write_wakeup()
+Date: Thu, 30 Jul 2015 19:15:23 -0400
+Message-ID: <55BAB00B.3010806@hurleysoftware.com>
+References: <87h9ol2r4y.fsf@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87h9ol2r4y.fsf@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-omap@vger.kernel.org, nsekhar@ti.comtony@atomide.com, nm@ti.com, linux-serial@vger.kernel.org
+To: John Ogness <john.ogness@linutronix.de>, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-If DMA is active during a shutdown, a delayed restore of the
-registers may be pending. The restore must be performed after
-the DMA is stopped, otherwise the delayed restore remains
-pending and will fire upon the first DMA TX complete of a
-totally different serial session.
+On 07/30/2015 06:54 PM, John Ogness wrote:
+> uart_write_wakeup() should be called without holding the port lock.
+> Otherwise a possible recursive spinlock issue can occur, such as
+> the following callchain:
+> 
+> 8250_core.c:serial8250_tx_chars() - called with port locked
+>  serial_core.c:uart_write_wakeup()
+>   tty_io.c:tty_wakeup()
+>    st_core.c:st_tty_wakeup()
+>     st_core.c:st_tx_wakeup()
+>      st_core.c:st_int_write()
+>       serial_core.c:uart_write() - locks port
 
-Signed-off-by: John Ogness <john.ogness@linutronix.de>
----
- drivers/tty/serial/8250/8250_omap.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+NAK.
 
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index 5b39892..25f6255 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -657,9 +657,15 @@ static void omap_8250_shutdown(struct uart_port *port)
- 	up->ier = 0;
- 	serial_out(up, UART_IER, 0);
- 
--	if (up->dma)
-+	if (up->dma) {
- 		serial8250_release_dma(up);
- 
-+		if (priv->delayed_restore) {
-+			priv->delayed_restore = 0;
-+			omap8250_restore_regs(up);
-+		}
-+	}
-+
- 	/*
- 	 * Disable break condition and FIFOs
- 	 */
--- 
-1.7.10.4
+This is a bug in the N_TI_WL line discipline, specifically in the
+st_tx_wakeup() function, which cannot perform the write synchronously.
+
+This is a common line discipline bug, and typically fixed by performing
+the wakeup operations from a kworker instead.
+
+Regards,
+Peter Hurley
