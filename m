@@ -1,138 +1,82 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v5 02/46] usb: gadget: add endpoint capabilities flags
-Date: Fri, 31 Jul 2015 10:58:10 -0500
-Message-ID: <20150731155810.GI31041@saruman.tx.rr.com>
-References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
- <1438351258-31578-3-git-send-email-r.baldyga@samsung.com>
- <063D6719AE5E284EB5DD2968C1650D6D1CB71091@AcuExch.aculab.com>
-Reply-To: balbi@ti.com
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Fri, 31 Jul 2015 19:17:45 +0100
+Message-ID: <20150731181745.GM20873@sirena.org.uk>
+References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
+ <1438072876-16338-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7772284958395875233=="
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CB71091@AcuExch.aculab.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: David Laight <David.Laight@ACULAB.COM>
-Cc: "nicolas.ferre@atmel.com" <nicolas.ferre@atmel.com>, "robert.jarzmik@free.fr" <robert.jarzmik@free.fr>, "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "cernekee@gmail.com" <cernekee@gmail.com>, "michal.simek@xilinx.com" <michal.simek@xilinx.com>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "Peter.Chen@freescale.com" <Peter.Chen@freescale.com>, "dahlmann.thomas@arcor.de" <dahlmann.thomas@arcor.de>, "johnyoun@synopsys.com" <johnyoun@synopsys.com>, 'Robert Baldyga' <r.baldyga@samsung.com>, "linux-geode@lists.infradead.org" <linux-geode@lists.infradead.org>, "haojian.zhuang@gmail.com" <haojian.zhuang@gmail.com>, "andrzej.p@samsung.com" <andrzej.p@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "petr.cvek@tul.cz" <petr.cvek@tul.cz>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed; boundary="===============3341315158122503325=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1438072876-16338-2-git-send-email-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: devicetree@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Huang Shijie <b32955@freescale.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============7772284958395875233==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GBuTPvBEOL0MYPgd"
+
+--===============3341315158122503325==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="00sTfE/IIAT5d2r5"
 Content-Disposition: inline
 
---GBuTPvBEOL0MYPgd
+
+--00sTfE/IIAT5d2r5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Tue, Jul 28, 2015 at 02:11:12PM +0530, Vignesh R wrote:
 
-On Fri, Jul 31, 2015 at 03:51:52PM +0000, David Laight wrote:
-> From: Robert Baldyga
-> > Sent: 31 July 2015 15:00
-> > Introduce struct usb_ep_caps which contains information about capabilit=
-ies
-> > of usb endpoints - supported transfer types and directions. This struct=
-ure
-> > should be filled by UDC driver for each of its endpoints, and will be
-> > used in epautoconf in new ep matching mechanism which will replace ugly
-> > guessing of endpoint capabilities basing on its name.
-> >=20
-> > Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
-> > ---
-> >  include/linux/usb/gadget.h | 21 +++++++++++++++++++++
-> >  1 file changed, 21 insertions(+)
-> >=20
-> > diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-> > index 68fb5e8..a9a4959 100644
-> > --- a/include/linux/usb/gadget.h
-> > +++ b/include/linux/usb/gadget.h
-> > @@ -141,10 +141,29 @@ struct usb_ep_ops {
-> >  };
-> ...
-> > +struct usb_ep_caps {
-> > +	unsigned type_control:1;
-> > +	unsigned type_iso:1;
-> > +	unsigned type_bulk:1;
-> > +	unsigned type_int:1;
-> > +	unsigned dir_in:1;
-> > +	unsigned dir_out:1;
-> > +};
->=20
-> With the way this is used (eg below from 13/46)
->=20
-> +
-> +		if (i =3D=3D 0) {
-> +			ep->ep.caps.type_control =3D true;
-> +		} else {
-> +			ep->ep.caps.type_iso =3D true;
-> +			ep->ep.caps.type_bulk =3D true;
-> +			ep->ep.caps.type_int =3D true;
-> +		}
-> +
-> +		ep->ep.caps.dir_in =3D true;
-> +		ep->ep.caps.dir_out =3D true;
->=20
-> I think it would be more obvious if you used a u8 and explicit bitmasks.
-> The initialisation (as above) would the be explicitly assigning 'not supp=
-orted'
-> to the other fields.
-> The compiler will also generate much better code...
+> Introduce use_mmap_read field in spi_message struct. This can be set by
+> mtd devices (m25p80) to indicate to spi-master (ti-qspi) to perform
+> memory mapped read. This helps to distinguish whether the spi-message is
+> from mtd layer(hence mmap read is possible) or by other spi devices.
 
-compiler should convert single bit flags into u32 just fine. It's all
-static data anyway. Besides, single bit flags allow us to have as many
-as we need without ending up with stuff like:
+Based on this description and...
 
-u32 flags;
-u32 flags1;
-u32 flags2;
+> + * @use_mmap_mode: Indicate to spi master to perform memory mapped
+> + *	read if possible.
 
-etc. Just let the compiler do those conversions for us.
+...the internal documentation I unable to tell what is meant by "perform
+a memory mapped read", at least to the extent where it is visible
+outside of the driver.  This means we can't really use this as a generic
+API since other people won't be able to tell what it does.
 
---=20
-balbi
-
---GBuTPvBEOL0MYPgd
+--00sTfE/IIAT5d2r5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJVu5sRAAoJEIaOsuA1yqREW+UQAJ503AefExQYzPY1uQAxv4m9
-Y2YwLdzc3ZAIOeaN5VLEuIOUauYpTyq3cl7CbiB/RYfAyrWBvUqeV82lZAG3fLqs
-14jtUu3orfgclX4zrtb0mSmVYv+jvI9pRDJNPysF3Y7zBFCtyJKJ2TO+qn4DQHSL
-Rffk8b8UbiMqZeX+fbZt9Hh4a/pv53Fc+7aUNcGHhpOmSkx/cQZAjx+uwgK+0ANo
-2K42ufAtEjqB83z0q8c/uuGMApLq5A7BwOxC1cWP+itjDtm7FxBo/CmWLck/M61E
-ofUEkHHpoM2PK6nZyghgwgaLleEvC/sNtWWyhn8cJai/iYGNR50udBwmFW6/fY6I
-NO0PA24HSTycbnqrAwFs2su4qHKQSCi580pYCAvIEmXBcIh6VxkkIsNkPumnxrEO
-D+1s4j2otcbz/rmfvxqOvFi60rzhVZw4ydSBDyWtHAroSW8C9NSaxw5yi/dqmR//
-4Ij4YiSxZHkxu3k9aOwXC9T0PdiHZtexY7RLrmdLUMmUbprXzqjfsr+St8Jzcvff
-LY0cxJMaqNPX1nSpf4sf+NYoL/RKfOsThHMobIUz5yVKOm/+vhZYPKTehGaX51VR
-i0uGuloEzyuYzWyvlUuFy0RNyLEhiAPV47IF/HTIH9v6S1kyJXX42cla6yQRBpBN
-Mda/gXkbvixg3W5IEnyG
-=M/Kf
+iQEcBAEBCAAGBQJVu7vIAAoJECTWi3JdVIfQfrcH/0pJFX98izm/xHRxCwsEfEd3
+J1YH0uS6BbvZ4CEpe6XuitCyh6Fl7YRTq1LRSQ1Gy7drdZSrajyJcgdTNI8CO81L
+qDZ2xasU9Fuqo4r/oOozKS1WG8op3jRtpVxAnajm2A0vMqA6YQLdK28F46dggDWQ
+opCortabqzzgp/3/fgNSxpPmIeEW+IwO4yGeIvr3Sz05krSdYcTZTmgFSCgfdKVP
+m/K4bURA0/J483komR39SeYaVccYkeyvz8jfvlPSK+sIGDc3hMQ4Q7dQqhNIU4ol
+Yo+xShyIgcyUTVM3NRTxgYfAWCDgXgPlfCvDUTo3oxsVERcjQBQ8WkuKDLHqatk=
+=x6wY
 -----END PGP SIGNATURE-----
 
---GBuTPvBEOL0MYPgd--
+--00sTfE/IIAT5d2r5--
 
---===============7772284958395875233==
+
+--===============3341315158122503325==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 _______________________________________________
-devel mailing list
-devel@linuxdriverproject.org
-http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============7772284958395875233==--
+--===============3341315158122503325==--
