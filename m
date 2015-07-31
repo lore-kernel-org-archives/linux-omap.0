@@ -1,122 +1,63 @@
-From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v5 46/46] usb: musb: gadget: add musb_match_ep() function
-Date: Fri, 31 Jul 2015 16:00:58 +0200
-Message-ID: <1438351258-31578-47-git-send-email-r.baldyga@samsung.com>
-References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 01/17] mmc: host: omap_hsmmc: use devm_regulator_get_optional()
+ for vmmc
+Date: Fri, 31 Jul 2015 20:59:58 +0530
+Message-ID: <55BB9476.7070105@ti.com>
+References: <1438168187-1614-1-git-send-email-kishon@ti.com> <1438168187-1614-2-git-send-email-kishon@ti.com> <55B8C265.1050801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-reply-to: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: balbi@ti.com
-Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, Robert Baldyga <r.baldyga@samsung.com>, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <55B8C265.1050801@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, tony@atomide.com, ulf.hansson@linaro.org, afenkart@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org
+Cc: nsekhar@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add 'match_ep' callback to utilize chip-specific knowledge in endpoint matching
-process. Function does the same that was done by chip-specific code inside
-of epautoconf. Now this code can be removed from there to separate generic code
-from platform specific logic.
+Hi Grygorii,
 
-Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
----
- drivers/usb/gadget/epautoconf.c | 23 -----------------------
- drivers/usb/musb/musb_gadget.c  | 34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 23 deletions(-)
+On Wednesday 29 July 2015 05:39 PM, Grygorii Strashko wrote:
+> On 07/29/2015 02:09 PM, Kishon Vijay Abraham I wrote:
+>> Since vmmc can be optional for some platforms, use
+>> devm_regulator_get_optional() for vmmc. Now return error only
+>> in the case of -EPROBE_DEFER and for all other cases set
+>> host->vcc to NULL.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c |    8 +++++---
+>>   1 file changed, 5 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 4d12032..b673e59 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -344,11 +344,13 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>>   	struct regulator *reg;
+>>   	int ocr_value = 0;
+>>   
+>> -	reg = devm_regulator_get(host->dev, "vmmc");
+>> +	reg = devm_regulator_get_optional(host->dev, "vmmc");
+>>   	if (IS_ERR(reg)) {
+>> -		dev_err(host->dev, "unable to get vmmc regulator %ld\n",
+>> +		if (PTR_ERR(reg) == -EPROBE_DEFER)
+>> +			return -EPROBE_DEFER;
+>> +		host->vcc = NULL;
+>> +		dev_dbg(host->dev, "unable to get vmmc regulator %ld\n",
+>>   			PTR_ERR(reg));
+>> -		return PTR_ERR(reg);
+> 
+> I think, It could be unsafe to just drop this return.
+> regulator_get_optional may return:
+> 1 valid pointer on regulator : success;
+> 2 ERR_PTR(-ENODEV)           : regulator is not assigned, can proceed.
+> 3 ERR_PTR(-EPROBE_DEFER)     : regulator is assigned, but not ready yet, retry.
+> 4 ERR_PTR(<other error codes>: regulator is assigned, but can't be retrieved, failure, can't proceed
+> 
+> So, It's allowed to continue with host->vcc = NULL; only in case [2], while
+> in case [4] probe should fail.
 
-diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
-index da45371..254ece7 100644
---- a/drivers/usb/gadget/epautoconf.c
-+++ b/drivers/usb/gadget/epautoconf.c
-@@ -83,29 +83,6 @@ struct usb_ep *usb_ep_autoconfig_ss(
- 			goto found_ep;
- 	}
- 
--	/* First, apply chip-specific "best usage" knowledge.
--	 * This might make a good usb_gadget_ops hook ...
--	 */
--#ifdef CONFIG_BLACKFIN
--	if (gadget_is_musbhdrc(gadget)) {
--		if ((USB_ENDPOINT_XFER_BULK == type) ||
--		    (USB_ENDPOINT_XFER_ISOC == type)) {
--			if (USB_DIR_IN & desc->bEndpointAddress)
--				ep = gadget_find_ep_by_name(gadget, "ep5in");
--			else
--				ep = gadget_find_ep_by_name(gadget, "ep6out");
--		} else if (USB_ENDPOINT_XFER_INT == type) {
--			if (USB_DIR_IN & desc->bEndpointAddress)
--				ep = gadget_find_ep_by_name(gadget, "ep1in");
--			else
--				ep = gadget_find_ep_by_name(gadget, "ep2out");
--		} else
--			ep = NULL;
--		if (ep && usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
--			goto found_ep;
--	}
--#endif
--
- 	/* Second, look at endpoints until an unclaimed one looks usable */
- 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
- 		if (usb_gadget_ep_match_desc(gadget, ep, desc, ep_comp))
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 4150baf..02c3f8a 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1684,6 +1684,39 @@ static int musb_gadget_pullup(struct usb_gadget *gadget, int is_on)
- 	return 0;
- }
- 
-+#ifdef CONFIG_BLACKFIN
-+static struct usb_ep *musb_match_ep(struct usb_gadget *g,
-+		struct usb_endpoint_descriptor *desc,
-+		struct usb_ss_ep_comp_descriptor *ep_comp)
-+{
-+	struct usb_ep *ep = NULL;
-+	u8 type = usb_endpoint_type(desc);
-+
-+	switch(type) {
-+	case USB_ENDPOINT_XFER_ISOC:
-+	case USB_ENDPOINT_XFER_BULK:
-+		if (usb_endpoint_dir_in(desc))
-+			ep = gadget_find_ep_by_name(g, "ep5in");
-+		else
-+			ep = gadget_find_ep_by_name(g, "ep6out");
-+		break;
-+	case USB_ENDPOINT_XFER_INT:
-+		if (usb_endpoint_dir_in(desc))
-+			ep = gadget_find_ep_by_name(g, "ep1in");
-+		else
-+			ep = gadget_find_ep_by_name(g, "ep2out");
-+	default:
-+	}
-+
-+	if (ep && usb_gadget_ep_match_desc(g, ep, desc, ep_comp))
-+		return ep;
-+
-+	return NULL;
-+}
-+#else
-+#define musb_match_ep NULL
-+#endif
-+
- static int musb_gadget_start(struct usb_gadget *g,
- 		struct usb_gadget_driver *driver);
- static int musb_gadget_stop(struct usb_gadget *g);
-@@ -1697,6 +1730,7 @@ static const struct usb_gadget_ops musb_gadget_operations = {
- 	.pullup			= musb_gadget_pullup,
- 	.udc_start		= musb_gadget_start,
- 	.udc_stop		= musb_gadget_stop,
-+	.match_ep		= musb_match_ep,
- };
- 
- /* ----------------------------------------------------------------------- */
--- 
-1.9.1
+You are right. Will fix it and resend the patch.
+
+Thanks
+Kishon
