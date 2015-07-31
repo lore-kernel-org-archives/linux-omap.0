@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v5 06/46] usb: dwc2: gadget: add ep capabilities support
-Date: Fri, 31 Jul 2015 16:00:18 +0200
-Message-ID: <1438351258-31578-7-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v5 09/46] usb: gadget: at91_udc: add ep capabilities support
+Date: Fri, 31 Jul 2015 16:00:21 +0200
+Message-ID: <1438351258-31578-10-git-send-email-r.baldyga@samsung.com>
 References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,32 +25,65 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/dwc2/gadget.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/usb/gadget/udc/at91_udc.c | 38 +++++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/usb/dwc2/gadget.c b/drivers/usb/dwc2/gadget.c
-index 731b13d..3ee5b4c 100644
---- a/drivers/usb/dwc2/gadget.c
-+++ b/drivers/usb/dwc2/gadget.c
-@@ -3289,6 +3289,19 @@ static void s3c_hsotg_initep(struct dwc2_hsotg *hsotg,
- 	usb_ep_set_maxpacket_limit(&hs_ep->ep, epnum ? 1024 : EP0_MPS_LIMIT);
- 	hs_ep->ep.ops = &s3c_hsotg_ep_ops;
+diff --git a/drivers/usb/gadget/udc/at91_udc.c b/drivers/usb/gadget/udc/at91_udc.c
+index 32f50a7..d0d1894 100644
+--- a/drivers/usb/gadget/udc/at91_udc.c
++++ b/drivers/usb/gadget/udc/at91_udc.c
+@@ -59,15 +59,34 @@
+ #define	DRIVER_VERSION	"3 May 2006"
  
-+	if (epnum == 0) {
-+		hs_ep->ep.caps.type_control = true;
-+	} else {
-+		hs_ep->ep.caps.type_iso = true;
-+		hs_ep->ep.caps.type_bulk = true;
-+		hs_ep->ep.caps.type_int = true;
+ static const char driver_name [] = "at91_udc";
+-static const char * const ep_names[] = {
+-	"ep0",
+-	"ep1",
+-	"ep2",
+-	"ep3-int",
+-	"ep4",
+-	"ep5",
++
++static const struct {
++	const char *name;
++	const struct usb_ep_caps caps;
++} ep_info[] = {
++#define EP_INFO(_name, _caps) \
++	{ \
++		.name = _name, \
++		.caps = _caps, \
 +	}
 +
-+	if (dir_in)
-+		hs_ep->ep.caps.dir_in = true;
-+	else
-+		hs_ep->ep.caps.dir_out = true;
++	EP_INFO("ep0",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_ALL)),
++	EP_INFO("ep1",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
++	EP_INFO("ep2",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
++	EP_INFO("ep3-int",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_INT, USB_EP_CAPS_DIR_ALL)),
++	EP_INFO("ep4",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
++	EP_INFO("ep5",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
 +
- 	/*
- 	 * if we're using dma, we need to set the next-endpoint pointer
- 	 * to be something valid.
++#undef EP_INFO
+ };
+-#define ep0name		ep_names[0]
++
++#define ep0name		ep_info[0].name
+ 
+ #define VBUS_POLL_TIMEOUT	msecs_to_jiffies(1000)
+ 
+@@ -1831,7 +1850,8 @@ static int at91udc_probe(struct platform_device *pdev)
+ 
+ 	for (i = 0; i < NUM_ENDPOINTS; i++) {
+ 		ep = &udc->ep[i];
+-		ep->ep.name = ep_names[i];
++		ep->ep.name = ep_info[i].name;
++		ep->ep.caps = ep_info[i].caps;
+ 		ep->ep.ops = &at91_ep_ops;
+ 		ep->udc = udc;
+ 		ep->int_mask = BIT(i);
 -- 
 1.9.1
