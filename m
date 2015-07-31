@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v5 09/46] usb: gadget: at91_udc: add ep capabilities support
-Date: Fri, 31 Jul 2015 16:00:21 +0200
-Message-ID: <1438351258-31578-10-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v5 10/46] usb: gadget: bcm63xx_udc: add ep capabilities support
+Date: Fri, 31 Jul 2015 16:00:22 +0200
+Message-ID: <1438351258-31578-11-git-send-email-r.baldyga@samsung.com>
 References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,65 +25,55 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/at91_udc.c | 38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ drivers/usb/gadget/udc/bcm63xx_udc.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc/at91_udc.c b/drivers/usb/gadget/udc/at91_udc.c
-index 32f50a7..d0d1894 100644
---- a/drivers/usb/gadget/udc/at91_udc.c
-+++ b/drivers/usb/gadget/udc/at91_udc.c
-@@ -59,15 +59,34 @@
- #define	DRIVER_VERSION	"3 May 2006"
+diff --git a/drivers/usb/gadget/udc/bcm63xx_udc.c b/drivers/usb/gadget/udc/bcm63xx_udc.c
+index 9db968b..8cbb003 100644
+--- a/drivers/usb/gadget/udc/bcm63xx_udc.c
++++ b/drivers/usb/gadget/udc/bcm63xx_udc.c
+@@ -44,9 +44,29 @@
+ #define DRV_MODULE_NAME		"bcm63xx_udc"
  
- static const char driver_name [] = "at91_udc";
--static const char * const ep_names[] = {
--	"ep0",
--	"ep1",
--	"ep2",
--	"ep3-int",
--	"ep4",
--	"ep5",
+ static const char bcm63xx_ep0name[] = "ep0";
+-static const char *const bcm63xx_ep_name[] = {
+-	bcm63xx_ep0name,
+-	"ep1in-bulk", "ep2out-bulk", "ep3in-int", "ep4out-int",
 +
 +static const struct {
 +	const char *name;
 +	const struct usb_ep_caps caps;
-+} ep_info[] = {
++} bcm63xx_ep_info[] = {
 +#define EP_INFO(_name, _caps) \
 +	{ \
 +		.name = _name, \
 +		.caps = _caps, \
 +	}
 +
-+	EP_INFO("ep0",
++	EP_INFO(bcm63xx_ep0name,
 +		USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep1",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep2",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep3-int",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_INT, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep4",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep5",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
++	EP_INFO("ep1in-bulk",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_IN)),
++	EP_INFO("ep2out-bulk",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_BULK, USB_EP_CAPS_DIR_OUT)),
++	EP_INFO("ep3in-int",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_INT, USB_EP_CAPS_DIR_IN)),
++	EP_INFO("ep4out-int",
++		USB_EP_CAPS(USB_EP_CAPS_TYPE_INT, USB_EP_CAPS_DIR_OUT)),
 +
 +#undef EP_INFO
  };
--#define ep0name		ep_names[0]
-+
-+#define ep0name		ep_info[0].name
  
- #define VBUS_POLL_TIMEOUT	msecs_to_jiffies(1000)
+ static bool use_fullspeed;
+@@ -943,7 +963,8 @@ static int bcm63xx_init_udc_hw(struct bcm63xx_udc *udc)
+ 	for (i = 0; i < BCM63XX_NUM_EP; i++) {
+ 		struct bcm63xx_ep *bep = &udc->bep[i];
  
-@@ -1831,7 +1850,8 @@ static int at91udc_probe(struct platform_device *pdev)
- 
- 	for (i = 0; i < NUM_ENDPOINTS; i++) {
- 		ep = &udc->ep[i];
--		ep->ep.name = ep_names[i];
-+		ep->ep.name = ep_info[i].name;
-+		ep->ep.caps = ep_info[i].caps;
- 		ep->ep.ops = &at91_ep_ops;
- 		ep->udc = udc;
- 		ep->int_mask = BIT(i);
+-		bep->ep.name = bcm63xx_ep_name[i];
++		bep->ep.name = bcm63xx_ep_info[i].name;
++		bep->ep.caps = bcm63xx_ep_info[i].caps;
+ 		bep->ep_num = i;
+ 		bep->ep.ops = &bcm63xx_udc_ep_ops;
+ 		list_add_tail(&bep->ep.ep_list, &udc->gadget.ep_list);
 -- 
 1.9.1
