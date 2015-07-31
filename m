@@ -1,61 +1,270 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix bus recovery setup
-Date: Fri, 31 Jul 2015 12:51:45 +0200
-Message-ID: <20150731105145.GH1522@katana>
-References: <1436366127-24756-1-git-send-email-jlu@pengutronix.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 1/2] extcon: palmas: Support GPIO based USB ID detection
+Date: Fri, 31 Jul 2015 14:08:32 +0300
+Message-ID: <55BB5730.8030600@ti.com>
+References: <1438002617-15152-1-git-send-email-rogerq@ti.com> <1438002617-15152-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6cMF9JLEeZkfJjkP"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1436366127-24756-1-git-send-email-jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1438002617-15152-2-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: myungjoo.ham@samsung.com, cw00.choi@samsung.com, tony@atomide.com
+Cc: nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Some palmas based chip variants do not have OTG based ID logic.
+For these variants we rely on GPIO based USB ID detection.
 
---6cMF9JLEeZkfJjkP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+These chips do have VBUS comparator for VBUS detection so we
+continue to use the old way of detecting VBUS.
 
-On Wed, Jul 08, 2015 at 04:35:27PM +0200, Jan Luebbe wrote:
-> At least on the AM335x, enabling OMAP_I2C_SYSTEST_ST_EN is not enough to
-> allow direct access to the SCL and SDA pins. In addition to ST_EN, we
-> need to set the TMODE to 0b11 (Loop back & SDA/SCL IO mode select).
-> Also, as the reset values of SCL_O and SDA_O are 0 (which means "drive
-> low level"), we need to set them to 1 (which means "high-impedance") to
-> avoid unwanted changes on the pins.
->=20
-> As a precaution, reset all these bits to their default values after
-> recovery is complete.
->=20
-> Signed-off-by: Jan Luebbe <jlu-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
 
-Applied to for-current, thanks!
+v3:
+-rebased on extcon-next. 
+-don't use deperecated name based extcon_set_cable_state()
 
+ .../devicetree/bindings/extcon/extcon-palmas.txt   |   5 +-
+ drivers/extcon/extcon-palmas.c                     | 115 ++++++++++++++++++---
+ include/linux/mfd/palmas.h                         |   6 ++
+ 3 files changed, 110 insertions(+), 16 deletions(-)
 
---6cMF9JLEeZkfJjkP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVu1NBAAoJEBQN5MwUoCm2WaQP/1Ln7a8dR2DIWk4dXkN6ipS/
-AZZT9HD4WOQNWHyNq8uvqixZH3W/XcxhTvtQK+zjrC0N1NVR/tVibGA77xWV33ha
-afJgPxh6rA3oxgyA590nnqc1V81FgyjFUBfS3xoQZTGLgB5drxPiG+ZO9hjo0eaY
-Wy4nMRVXvcuG6DSAXmuA01YxHslpCvL5xBnPr4n2RHVkItvpBHTA4A9QZgBUPfph
-FQFFrk3+sVjXE1mJUc4YWziRiGirUaNyHm49xxcqgB+NwOcJpmi5qOBUJf/Q5SSK
-4ddkZwH174Lb9gTOavFj0J6VAQwFskhYtdD2Y94VKxVMB5QNQhJCQtOnP/iD4T/+
-VUFB7FeQ73QNLxZndTMLbWJ33j00cdifPzuhWekMfuXMpb+LFioWcT9QW6DB79gD
-7vQKDYnzCkNh2/KMS0zCEavnFePo9DgSwE4rJ2L+rXV8sZ2y1mRfj4/Pq8Q4wEV2
-8V8Ubf9reSBMo8sx/aT7ZHHRdlS2nsI8Hxf3mknH5Ni+P2MgprI2evuPS8aWpUFO
-oq0W6BHHwop4Spel4A7tuhupyK2BBXsGFv9y6KMD8RnRq+En8Hg8CgsVv4LodmhF
-Mt1OW/2k4b8Y9oALl4KV9diLYaEVjNzMB+mYqWTpvkYGR78mN9G1ilvGOhXiUmYy
-RoWWr0JESNhuTSGauDv2
-=aht1
------END PGP SIGNATURE-----
-
---6cMF9JLEeZkfJjkP--
+diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+index 45414bb..f61d5af 100644
+--- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
++++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+@@ -10,8 +10,11 @@ Required Properties:
+ 
+ Optional Properties:
+  - ti,wakeup : To enable the wakeup comparator in probe
+- - ti,enable-id-detection: Perform ID detection.
++ - ti,enable-id-detection: Perform ID detection. If id-gpio is specified
++		it performs id-detection using GPIO else using OTG core.
+  - ti,enable-vbus-detection: Perform VBUS detection.
++ - id-gpio: gpio for GPIO ID detection. See gpio binding.
++ - debounce-delay-ms: debounce delay for GPIO ID pin in milliseconds.
+ 
+ palmas-usb {
+        compatible = "ti,twl6035-usb", "ti,palmas-usb";
+diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+index 8933e7e..b948984 100644
+--- a/drivers/extcon/extcon-palmas.c
++++ b/drivers/extcon/extcon-palmas.c
+@@ -28,6 +28,9 @@
+ #include <linux/mfd/palmas.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
++#include <linux/of_gpio.h>
++
++#define USB_GPIO_DEBOUNCE_MS	20	/* ms */
+ 
+ static const unsigned int palmas_extcon_cable[] = {
+ 	EXTCON_USB,
+@@ -118,19 +121,53 @@ static irqreturn_t palmas_id_irq_handler(int irq, void *_palmas_usb)
+ 	return IRQ_HANDLED;
+ }
+ 
++static void palmas_gpio_id_detect(struct palmas_usb *palmas_usb)
++{
++	int id;
++	struct extcon_dev *edev = palmas_usb->edev;
++
++	if (!palmas_usb->id_gpiod)
++		return;
++
++	id = gpiod_get_value_cansleep(palmas_usb->id_gpiod);
++
++	if (id) {
++		extcon_set_cable_state_(edev, EXTCON_USB_HOST, false);
++		dev_info(palmas_usb->dev, "USB-HOST cable is detached\n");
++	} else {
++		extcon_set_cable_state_(edev, EXTCON_USB_HOST, true);
++		dev_info(palmas_usb->dev, "USB-HOST cable is attached\n");
++	}
++}
++
++static irqreturn_t palmas_gpio_id_irq_handler(int irq, void *_palmas_usb)
++{
++	struct palmas_usb *palmas_usb = _palmas_usb;
++
++	if (palmas_usb->sw_debounce_ms)
++		mdelay(palmas_usb->sw_debounce_ms);
++
++	palmas_gpio_id_detect(palmas_usb);
++
++	return IRQ_HANDLED;
++}
++
+ static void palmas_enable_irq(struct palmas_usb *palmas_usb)
+ {
+ 	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+ 		PALMAS_USB_VBUS_CTRL_SET,
+ 		PALMAS_USB_VBUS_CTRL_SET_VBUS_ACT_COMP);
+ 
+-	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+-		PALMAS_USB_ID_CTRL_SET, PALMAS_USB_ID_CTRL_SET_ID_ACT_COMP);
++	if (palmas_usb->enable_id_detection) {
++		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
++			     PALMAS_USB_ID_CTRL_SET,
++			     PALMAS_USB_ID_CTRL_SET_ID_ACT_COMP);
+ 
+-	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
+-		PALMAS_USB_ID_INT_EN_HI_SET,
+-		PALMAS_USB_ID_INT_EN_HI_SET_ID_GND |
+-		PALMAS_USB_ID_INT_EN_HI_SET_ID_FLOAT);
++		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
++			     PALMAS_USB_ID_INT_EN_HI_SET,
++			     PALMAS_USB_ID_INT_EN_HI_SET_ID_GND |
++			     PALMAS_USB_ID_INT_EN_HI_SET_ID_FLOAT);
++	}
+ 
+ 	if (palmas_usb->enable_vbus_detection)
+ 		palmas_vbus_irq_handler(palmas_usb->vbus_irq, palmas_usb);
+@@ -169,20 +206,34 @@ static int palmas_usb_probe(struct platform_device *pdev)
+ 			palmas_usb->wakeup = pdata->wakeup;
+ 	}
+ 
++	palmas_usb->id_gpiod = devm_gpiod_get_optional(&pdev->dev, "id");
++	if (IS_ERR(palmas_usb->id_gpiod)) {
++		dev_err(&pdev->dev, "failed to get id gpio\n");
++		return PTR_ERR(palmas_usb->id_gpiod);
++	}
++
++	if (palmas_usb->enable_id_detection && palmas_usb->id_gpiod) {
++		palmas_usb->enable_id_detection = false;
++		palmas_usb->enable_gpio_id_detection = true;
++	}
++
++	if (palmas_usb->enable_gpio_id_detection) {
++		u32 debounce;
++
++		if (of_property_read_u32(node, "debounce-delay-ms", &debounce))
++			debounce = USB_GPIO_DEBOUNCE_MS;
++
++		status = gpiod_set_debounce(palmas_usb->id_gpiod,
++					    debounce * 1000);
++		if (status < 0)
++			palmas_usb->sw_debounce_ms = debounce;
++	}
++
+ 	palmas->usb = palmas_usb;
+ 	palmas_usb->palmas = palmas;
+ 
+ 	palmas_usb->dev	 = &pdev->dev;
+ 
+-	palmas_usb->id_otg_irq = regmap_irq_get_virq(palmas->irq_data,
+-						PALMAS_ID_OTG_IRQ);
+-	palmas_usb->id_irq = regmap_irq_get_virq(palmas->irq_data,
+-						PALMAS_ID_IRQ);
+-	palmas_usb->vbus_otg_irq = regmap_irq_get_virq(palmas->irq_data,
+-						PALMAS_VBUS_OTG_IRQ);
+-	palmas_usb->vbus_irq = regmap_irq_get_virq(palmas->irq_data,
+-						PALMAS_VBUS_IRQ);
+-
+ 	palmas_usb_wakeup(palmas, palmas_usb->wakeup);
+ 
+ 	platform_set_drvdata(pdev, palmas_usb);
+@@ -201,6 +252,10 @@ static int palmas_usb_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (palmas_usb->enable_id_detection) {
++		palmas_usb->id_otg_irq = regmap_irq_get_virq(palmas->irq_data,
++							     PALMAS_ID_OTG_IRQ);
++		palmas_usb->id_irq = regmap_irq_get_virq(palmas->irq_data,
++							 PALMAS_ID_IRQ);
+ 		status = devm_request_threaded_irq(palmas_usb->dev,
+ 				palmas_usb->id_irq,
+ 				NULL, palmas_id_irq_handler,
+@@ -212,9 +267,33 @@ static int palmas_usb_probe(struct platform_device *pdev)
+ 					palmas_usb->id_irq, status);
+ 			return status;
+ 		}
++	} else if (palmas_usb->enable_gpio_id_detection) {
++		palmas_usb->gpio_id_irq = gpiod_to_irq(palmas_usb->id_gpiod);
++		if (palmas_usb->gpio_id_irq < 0) {
++			dev_err(&pdev->dev, "failed to get id irq\n");
++			return palmas_usb->gpio_id_irq;
++		}
++		status = devm_request_threaded_irq(&pdev->dev,
++						   palmas_usb->gpio_id_irq,
++						   NULL,
++						   palmas_gpio_id_irq_handler,
++						   IRQF_TRIGGER_RISING |
++						   IRQF_TRIGGER_FALLING |
++						   IRQF_ONESHOT,
++						   "palmas_usb_id",
++						   palmas_usb);
++		if (status < 0) {
++			dev_err(&pdev->dev,
++				"failed to request handler for id irq\n");
++			return status;
++		}
+ 	}
+ 
+ 	if (palmas_usb->enable_vbus_detection) {
++		palmas_usb->vbus_otg_irq = regmap_irq_get_virq(palmas->irq_data,
++						       PALMAS_VBUS_OTG_IRQ);
++		palmas_usb->vbus_irq = regmap_irq_get_virq(palmas->irq_data,
++							   PALMAS_VBUS_IRQ);
+ 		status = devm_request_threaded_irq(palmas_usb->dev,
+ 				palmas_usb->vbus_irq, NULL,
+ 				palmas_vbus_irq_handler,
+@@ -229,6 +308,8 @@ static int palmas_usb_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	palmas_enable_irq(palmas_usb);
++	/* perform initial detection */
++	palmas_gpio_id_detect(palmas_usb);
+ 	device_set_wakeup_capable(&pdev->dev, true);
+ 	return 0;
+ }
+@@ -243,6 +324,8 @@ static int palmas_usb_suspend(struct device *dev)
+ 			enable_irq_wake(palmas_usb->vbus_irq);
+ 		if (palmas_usb->enable_id_detection)
+ 			enable_irq_wake(palmas_usb->id_irq);
++		if (palmas_usb->enable_gpio_id_detection)
++			enable_irq_wake(palmas_usb->gpio_id_irq);
+ 	}
+ 	return 0;
+ }
+@@ -256,6 +339,8 @@ static int palmas_usb_resume(struct device *dev)
+ 			disable_irq_wake(palmas_usb->vbus_irq);
+ 		if (palmas_usb->enable_id_detection)
+ 			disable_irq_wake(palmas_usb->id_irq);
++		if (palmas_usb->enable_gpio_id_detection)
++			disable_irq_wake(palmas_usb->gpio_id_irq);
+ 	}
+ 	return 0;
+ };
+diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+index bb270bd..1a202a6 100644
+--- a/include/linux/mfd/palmas.h
++++ b/include/linux/mfd/palmas.h
+@@ -21,6 +21,7 @@
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/extcon.h>
++#include <linux/of_gpio.h>
+ #include <linux/usb/phy_companion.h>
+ 
+ #define PALMAS_NUM_CLIENTS		3
+@@ -551,10 +552,15 @@ struct palmas_usb {
+ 	int vbus_otg_irq;
+ 	int vbus_irq;
+ 
++	int gpio_id_irq;
++	struct gpio_desc *id_gpiod;
++	int sw_debounce_ms;
++
+ 	enum palmas_usb_state linkstat;
+ 	int wakeup;
+ 	bool enable_vbus_detection;
+ 	bool enable_id_detection;
++	bool enable_gpio_id_detection;
+ };
+ 
+ #define comparator_to_palmas(x) container_of((x), struct palmas_usb, comparator)
+-- 
+2.1.4
