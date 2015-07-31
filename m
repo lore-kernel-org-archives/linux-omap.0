@@ -1,44 +1,60 @@
 From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 1/3] serial: 8250: unlock port for uart_write_wakeup()
-Date: Thu, 30 Jul 2015 19:53:24 -0400
-Message-ID: <55BAB8F4.1060205@hurleysoftware.com>
-References: <87h9ol2r4y.fsf@linutronix.de> <55BAB00B.3010806@hurleysoftware.com>
+Subject: Re: [PATCH 3/3] serial: 8250: omap: restore registers on shutdown
+Date: Thu, 30 Jul 2015 20:51:10 -0400
+Message-ID: <55BAC67E.1010400@hurleysoftware.com>
+References: <87egjp2r4a.fsf@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55BAB00B.3010806@hurleysoftware.com>
+In-Reply-To: <87egjp2r4a.fsf@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: John Ogness <john.ogness@linutronix.de>
 Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/30/2015 07:15 PM, Peter Hurley wrote:
-> On 07/30/2015 06:54 PM, John Ogness wrote:
->> uart_write_wakeup() should be called without holding the port lock.
->> Otherwise a possible recursive spinlock issue can occur, such as
->> the following callchain:
->>
->> 8250_core.c:serial8250_tx_chars() - called with port locked
->>  serial_core.c:uart_write_wakeup()
->>   tty_io.c:tty_wakeup()
->>    st_core.c:st_tty_wakeup()
->>     st_core.c:st_tx_wakeup()
->>      st_core.c:st_int_write()
->>       serial_core.c:uart_write() - locks port
-> 
-> NAK.
-> 
-> This is a bug in the N_TI_WL line discipline, specifically in the
-> st_tx_wakeup() function, which cannot perform the write synchronously.
-> 
-> This is a common line discipline bug, and typically fixed by performing
-> the wakeup operations from a kworker instead.
+Hi John,
 
-Also, seriously consider if you want to use that TI line discipline at all.
+On 07/30/2015 06:54 PM, John Ogness wrote:
+> If DMA is active during a shutdown, a delayed restore of the
+> registers may be pending. The restore must be performed after
+> the DMA is stopped, otherwise the delayed restore remains
+> pending and will fire upon the first DMA TX complete of a
+> totally different serial session.
+> 
+> Signed-off-by: John Ogness <john.ogness@linutronix.de>
+> ---
+>  drivers/tty/serial/8250/8250_omap.c |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> index 5b39892..25f6255 100644
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -657,9 +657,15 @@ static void omap_8250_shutdown(struct uart_port *port)
+>  	up->ier = 0;
+>  	serial_out(up, UART_IER, 0);
+>  
+> -	if (up->dma)
+> +	if (up->dma) {
+>  		serial8250_release_dma(up);
+>  
+> +		if (priv->delayed_restore) {
+> +			priv->delayed_restore = 0;
+> +			omap8250_restore_regs(up);
+> +		}
 
-If you're using it only for bluetooth w/ kernel bluetooth stack, you don't
-need btwilink + st_drv anyway.
+I was never really a fan of the deferred set_termios();
+I think it's more appropriate to wait for tx dma to
+complete in omap_8250_set_termios().
 
 Regards,
 Peter Hurley
+
+
+> +	}
+> +
+>  	/*
+>  	 * Disable break condition and FIFOs
+>  	 */
+> 
