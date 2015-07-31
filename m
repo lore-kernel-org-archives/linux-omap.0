@@ -1,7 +1,7 @@
 From: Robert Baldyga <r.baldyga@samsung.com>
-Subject: [PATCH v5 24/46] usb: gadget: net2280: add ep capabilities support
-Date: Fri, 31 Jul 2015 16:00:36 +0200
-Message-ID: <1438351258-31578-25-git-send-email-r.baldyga@samsung.com>
+Subject: [PATCH v5 26/46] usb: gadget: pch_udc: add ep capabilities support
+Date: Fri, 31 Jul 2015 16:00:38 +0200
+Message-ID: <1438351258-31578-27-git-send-email-r.baldyga@samsung.com>
 References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,103 +25,36 @@ Convert endpoint configuration to new capabilities model.
 
 Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 ---
- drivers/usb/gadget/udc/net2280.c | 67 +++++++++++++++++++++++++++++++++-------
- 1 file changed, 55 insertions(+), 12 deletions(-)
+ drivers/usb/gadget/udc/pch_udc.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc/net2280.c b/drivers/usb/gadget/udc/net2280.c
-index 2bee912..872ca25 100644
---- a/drivers/usb/gadget/udc/net2280.c
-+++ b/drivers/usb/gadget/udc/net2280.c
-@@ -74,19 +74,58 @@ static const char driver_desc[] = DRIVER_DESC;
- 
- static const u32 ep_bit[9] = { 0, 17, 2, 19, 4, 1, 18, 3, 20 };
- static const char ep0name[] = "ep0";
--static const char *const ep_name[] = {
--	ep0name,
--	"ep-a", "ep-b", "ep-c", "ep-d",
--	"ep-e", "ep-f", "ep-g", "ep-h",
--};
- 
--/* Endpoint names for usb3380 advance mode */
--static const char *const ep_name_adv[] = {
--	ep0name,
--	"ep1in", "ep2out", "ep3in", "ep4out",
--	"ep1out", "ep2in", "ep3out", "ep4in",
-+#define EP_INFO(_name, _caps) \
-+	{ \
-+		.name = _name, \
-+		.caps = _caps, \
-+	}
-+
-+static const struct {
-+	const char *name;
-+	const struct usb_ep_caps caps;
-+} ep_info_dft[] = { /* Default endpoint configuration */
-+	EP_INFO(ep0name,
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-a",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-b",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-c",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-d",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-e",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-f",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-g",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep-h",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_ALL)),
-+}, ep_info_adv[] = { /* Endpoints for usb3380 advance mode */
-+	EP_INFO(ep0name,
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_ALL)),
-+	EP_INFO("ep1in",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_IN)),
-+	EP_INFO("ep2out",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_OUT)),
-+	EP_INFO("ep3in",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_IN)),
-+	EP_INFO("ep4out",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_OUT)),
-+	EP_INFO("ep1out",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_OUT)),
-+	EP_INFO("ep2in",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_IN)),
-+	EP_INFO("ep3out",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_OUT)),
-+	EP_INFO("ep4in",
-+		USB_EP_CAPS(USB_EP_CAPS_TYPE_ALL, USB_EP_CAPS_DIR_IN)),
- };
- 
-+#undef EP_INFO
-+
- /* mode 0 == ep-{a,b,c,d} 1K fifo each
-  * mode 1 == ep-{a,b} 2K fifo each, ep-{c,d} unavailable
-  * mode 2 == ep-a 2K fifo, ep-{b,c} 1K each, ep-d unavailable
-@@ -2055,7 +2094,8 @@ static void usb_reinit_228x(struct net2280 *dev)
- 	for (tmp = 0; tmp < 7; tmp++) {
- 		struct net2280_ep	*ep = &dev->ep[tmp];
- 
--		ep->ep.name = ep_name[tmp];
-+		ep->ep.name = ep_info_dft[tmp].name;
-+		ep->ep.caps = ep_info_dft[tmp].caps;
- 		ep->dev = dev;
- 		ep->num = tmp;
- 
-@@ -2095,7 +2135,10 @@ static void usb_reinit_338x(struct net2280 *dev)
- 	for (i = 0; i < dev->n_ep; i++) {
- 		struct net2280_ep *ep = &dev->ep[i];
- 
--		ep->ep.name = dev->enhanced_mode ? ep_name_adv[i] : ep_name[i];
-+		ep->ep.name = dev->enhanced_mode ? ep_info_adv[i].name :
-+						   ep_info_dft[i].name;
-+		ep->ep.caps = dev->enhanced_mode ? ep_info_adv[i].caps :
-+						   ep_info_dft[i].caps;
- 		ep->dev = dev;
- 		ep->num = i;
- 
+diff --git a/drivers/usb/gadget/udc/pch_udc.c b/drivers/usb/gadget/udc/pch_udc.c
+index dcf5def..fa9eb3c 100644
+--- a/drivers/usb/gadget/udc/pch_udc.c
++++ b/drivers/usb/gadget/udc/pch_udc.c
+@@ -2895,11 +2895,21 @@ static void pch_udc_pcd_reinit(struct pch_udc_dev *dev)
+ 		ep->in = ~i & 1;
+ 		ep->ep.name = ep_string[i];
+ 		ep->ep.ops = &pch_udc_ep_ops;
+-		if (ep->in)
++		if (ep->in) {
+ 			ep->offset_addr = ep->num * UDC_EP_REG_SHIFT;
+-		else
++			ep->ep.caps.dir_in = true;
++		} else {
+ 			ep->offset_addr = (UDC_EPINT_OUT_SHIFT + ep->num) *
+ 					  UDC_EP_REG_SHIFT;
++			ep->ep.caps.dir_out = true;
++		}
++		if (i == UDC_EP0IN_IDX || i == UDC_EP0OUT_IDX) {
++			ep->ep.caps.type_control = true;
++		} else {
++			ep->ep.caps.type_iso = true;
++			ep->ep.caps.type_bulk = true;
++			ep->ep.caps.type_int = true;
++		}
+ 		/* need to set ep->ep.maxpacket and set Default Configuration?*/
+ 		usb_ep_set_maxpacket_limit(&ep->ep, UDC_BULK_MAX_PKT_SIZE);
+ 		list_add_tail(&ep->ep.ep_list, &dev->gadget.ep_list);
 -- 
 1.9.1
