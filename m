@@ -1,134 +1,57 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 03/12] mtd: nand: omap: Move IRQ handling from GPMC to
- NAND driver
-Date: Fri, 31 Jul 2015 13:21:17 +0300
-Message-ID: <55BB4C1D.5080905@ti.com>
-References: <1436531019-18088-1-git-send-email-rogerq@ti.com> <1436531019-18088-4-git-send-email-rogerq@ti.com> <20150713071008.GC26485@atomide.com> <55A38D2E.9010500@ti.com> <20150713124059.GF26485@atomide.com> <55B8C1D5.3090807@ti.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: fix cleanup regression
+Date: Fri, 31 Jul 2015 12:39:54 +0200
+Message-ID: <20150731103954.GC1522@katana>
+References: <1436875847-18700-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55B8C1D5.3090807-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mvpLiMfbWzRoNl4x"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1436875847-18700-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 29/07/15 15:06, Roger Quadros wrote:
-> Tony,
-> 
-> On 13/07/15 15:40, Tony Lindgren wrote:
->> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150713 03:07]:
->>> Tony,
->>>
->>> On 13/07/15 10:10, Tony Lindgren wrote:
->>>> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150710 05:26]:
->>>>> Since the Interrupt Events are used only by the NAND driver,
->>>>> there is no point in managing the Interrupt registers
->>>>> in the GPMC driver and complicating it with irqchip modeling.
->>>>
->>>> I don't think it's a good idea to allow external drivers to
->>>> tinker directly with GPMC registers. How about just set up GPMC
->>>> as an irqchip for the edge detection interrupts?
->>>>
->>>> I think we already have devices with multiple NAND chips. And
->>>> there's nothing stopping other drivers from using the edge
->>>> detection interrupts.
->>>
->>> OK. The GPMC_IRQ registers manage 2 NAND specific interrupts
->>> (terminalcount and fifo) and 'n' WAIT pin edge interrupts.
->>>
->>>  So we can model this as a irqchip with 'n + 2' interrupts.
->>
->> OK
-> 
-> For the wait pins irqchip is not sufficient and it needs to be gpiochip
-> with irqchip. Waitpin status can be read from GPIO_STATUS register.
-> 
-> Just getting the interrupt is not enough and we want to know if the
-> line is high or low. That is how nand->dev_ready works.
-> 
-> How about having 2 IRQ domains?
-> One is irqchip with 2 interrupts (terminalcount and fifo) and second is
-> gpiochip + irqchip for the n wait pins.
-> 
-> The nand driver can then be modified to use GPIO to get Read/Busy
-> pin status from the wait pin.
 
-One more observation I've had is that using irqchip modelling for
-the 2 NAND events causes a performance impact.
+--mvpLiMfbWzRoNl4x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Using mtd_oobtest I see the following on dra7-evm
+On Tue, Jul 14, 2015 at 02:10:47PM +0200, Wolfram Sang wrote:
+> Patch "i2c: omap: abolish variable name confusion" triggered a
+> coccinelle warning which we fix here:
+>=20
+> drivers/i2c/busses/i2c-omap.c:1333:5-24: pm_runtime_get_sync returns < 0 =
+as error. Unecessary IS_ERR_VALUE at line 1334
+>=20
+> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 
-1) v4.2-rc4 with prefetch-polled (no IRQs used)
-mtd_speedtest: eraseblock write speed is 7142 KiB/s
-mtd_speedtest: eraseblock read speed is 13721 KiB/s
+Applied to for-next, thanks!
 
-2) v4.2-rc4 with prefetch-irq (IRQchip model)
-eraseblock write speed is 5475 KiB/s
-eraseblock read speed is 6420 KiB/s
 
-3) this series (*) with prefetch-irq (no IRQchip model, nand driver
-directly accesses irqstatus/irqenable)
-eraseblock write speed is 6564 KiB/s
-eraseblock read speed is 10850 KiB/s
+--mvpLiMfbWzRoNl4x
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-(*) diff at the end is required on top to fix an issue with this series.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-So should we continue IRQchip modelling for the NAND events
-or use the GPMC interrupt as shared and add APIs to access
-the NAND bits of the IRQSTATUS/ENABLE register.
+iQIcBAEBAgAGBQJVu1B6AAoJEBQN5MwUoCm2iZUP/094tCwzCAW/itUkzim7IW0X
+IbRiY/7e5zoIQ32mL1H7zis5sNCJoxov2gLM7MltZHkxIgJMeoa50j0g+mUm1J3y
+jluodBL9eE0XlNdscPhYR4bGPgk/QnFCkh8h2eu0Bylg16gdB3+1Rk1GuiaCj4og
+QQ+zzZujXn0CRnqwkU1TYIkYgbmwaeA8PY1Ffte2iJiuiYAd4KmaEnw8Y8xVmcL8
+Tve35bMLu9T8rJF0AyCrpnk3SaeNPK7VQfxCslPRbjGu3wtg0wh2CriyRZW0oQY/
+ZigWMzfw5qJSpKmMlFhOeZyJAmhieBZcgNPw4yZXtsp4agv4CeMJAVxYbAoZ1Lds
+OCT7m8o2Rw1DpSjk2inMeSaPBf99XONQqmFo4wTUvSPOvo/NQaPkSN1eUAZTi+Iv
+REsc3TOGBfgICAK1hmyg6uoNqVSXnYu9KMIxOfA3S0nVIiEdx6tXsB4Z6KRA9AHu
+oQkFhmz80OWnmghWCvnWwOOLI7WyoW8BVjvLPRjimOE6IsAetE6N4sIaKce0CbWs
+GZaLXXCplqa/ruakgxfnsdlha7vWPabnOQZf9iy+Jp1MCgo5f6i/2fcHH2P9fsbt
+D9jYdPIRC854NkZt7pgaaEvYp70SIHNe29yW/50kYY1APSn/fUQZ+87HbqqzGH2m
+ttKUkYL+AyNd+9SOyy/3
+=cAXC
+-----END PGP SIGNATURE-----
 
-cheers,
--roger
-
---
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index fecc054..26ef2bd 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1832,13 +1832,14 @@ static int omap_get_dt_info(struct device *dev, struct omap_nand_info *info)
- 		for (i = 0; i < ARRAY_SIZE(nand_xfer_types); i++) {
- 			if (!strcasecmp(s, nand_xfer_types[i])) {
- 				info->xfer_type = i;
--				break;
-+				goto next;
- 			}
- 		}
- 
- 		dev_err(dev, "unrecognized value for ti,nand-xfer-type\n");
- 		return -EINVAL;
- 	}
-+next:
- 
- 	of_get_nand_on_flash_bbt(child);
- 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 26ef2bd..e8bdff5 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -670,17 +670,12 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
- 			goto done;
- 	}
- 
--	/* Clear FIFOEVENT STATUS */
--	irqstatus &= ~GPMC_IRQ_FIFOEVENT;
--	writel(irqstatus, info->reg.gpmc_irqstatus);
--
- 	return IRQ_HANDLED;
- 
- done:
- 	complete(&info->comp);
- 
--	/* Clear FIFOEVENT and TERMCOUNT STATUS */
--	irqstatus &= ~(GPMC_IRQ_TERMCOUNT | GPMC_IRQ_FIFOEVENT);
-+	/* Clear IRQ STATUS */
- 	writel(irqstatus, info->reg.gpmc_irqstatus);
- 
- 	/* Disable Interrupt generation */
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--mvpLiMfbWzRoNl4x--
