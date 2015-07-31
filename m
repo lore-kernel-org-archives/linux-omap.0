@@ -1,74 +1,95 @@
 From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH 2/2] extcon: Fix extcon_cable_get_state() from getting old
- state after notification
-Date: Fri, 31 Jul 2015 15:38:08 +0900
-Message-ID: <55BB17D0.8000701@samsung.com>
-References: <1436194018-18696-1-git-send-email-rogerq@ti.com>
- <1436194018-18696-3-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v2 1/2] extcon: palmas: Support GPIO based USB ID detection
+Date: Fri, 31 Jul 2015 16:46:27 +0900
+Message-ID: <55BB27D3.8040209@samsung.com>
+References: <1438002617-15152-1-git-send-email-rogerq@ti.com>
+ <1438002617-15152-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1436194018-18696-3-git-send-email-rogerq@ti.com>
+In-reply-to: <1438002617-15152-2-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: myungjoo.ham@samsung.com, tony@atomide.com, nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi Roger,
 
-On 07/06/2015 11:46 PM, Roger Quadros wrote:
-> Currently the extcon code notifiers the interested listeners
-> before it updates the extcon state with the new state.
-> This will cause the listeners that use extcon_cable_get_state()
-> to get the stale state and loose the new state.
+When I apply it for build test, merge conflict happen.
+So, I recommend that you rebase this patchset on extcon-next branch.
+
+On 07/27/2015 10:10 PM, Roger Quadros wrote:
+> Some palmas based chip variants do not have OTG based ID logic.
+> For these variants we rely on GPIO based USB ID detection.
 > 
-> Fix this by first changing the extcon state variable and then
-> notifying listeners.
+> These chips do have VBUS comparator for VBUS detection so we
+> continue to use the old way of detecting VBUS.
 > 
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  drivers/extcon/extcon.c | 14 ++++++++++----
->  1 file changed, 10 insertions(+), 4 deletions(-)
+>  .../devicetree/bindings/extcon/extcon-palmas.txt   |   5 +-
+>  drivers/extcon/extcon-palmas.c                     | 114 ++++++++++++++++++---
+>  include/linux/mfd/palmas.h                         |   6 ++
+>  3 files changed, 109 insertions(+), 16 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+> index 45414bb..f61d5af 100644
+> --- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+> +++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+> @@ -10,8 +10,11 @@ Required Properties:
+>  
+>  Optional Properties:
+>   - ti,wakeup : To enable the wakeup comparator in probe
+> - - ti,enable-id-detection: Perform ID detection.
+> + - ti,enable-id-detection: Perform ID detection. If id-gpio is specified
+> +		it performs id-detection using GPIO else using OTG core.
+>   - ti,enable-vbus-detection: Perform VBUS detection.
+> + - id-gpio: gpio for GPIO ID detection. See gpio binding.
+> + - debounce-delay-ms: debounce delay for GPIO ID pin in milliseconds.
+>  
+>  palmas-usb {
+>         compatible = "ti,twl6035-usb", "ti,palmas-usb";
+> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+> index 080d5cc..d0ed764 100644
+> --- a/drivers/extcon/extcon-palmas.c
+> +++ b/drivers/extcon/extcon-palmas.c
+> @@ -28,6 +28,9 @@
+>  #include <linux/mfd/palmas.h>
+>  #include <linux/of.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/of_gpio.h>
+> +
+> +#define USB_GPIO_DEBOUNCE_MS	20	/* ms */
+>  
+>  static const unsigned int palmas_extcon_cable[] = {
+>  	EXTCON_USB,
+> @@ -120,19 +123,52 @@ static irqreturn_t palmas_id_irq_handler(int irq, void *_palmas_usb)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static void palmas_gpio_id_detect(struct palmas_usb *palmas_usb)
+> +{
+> +	int id;
+> +
+> +	if (!palmas_usb->id_gpiod)
+> +		return;
+> +
+> +	id = gpiod_get_value_cansleep(palmas_usb->id_gpiod);
+> +
+> +	if (id) {
+> +		extcon_set_cable_state(palmas_usb->edev, "USB-HOST", false);
 
-Applied it.
+Use the extcon_set_cable_state_() because extcon_set_cable_state() with cable name
+is deprecated.
+
+> +		dev_info(palmas_usb->dev, "USB-HOST cable is detached\n");
+> +	} else {
+> +		extcon_set_cable_state(palmas_usb->edev, "USB-HOST", true);
+
+ditto. Use the extcon_set_cable_state_() with extcon id.
+
+[snip]
 
 Thanks,
 Chanwoo Choi
-
-> 
-> diff --git a/drivers/extcon/extcon.c b/drivers/extcon/extcon.c
-> index 868c6e2..26d1e1e 100644
-> --- a/drivers/extcon/extcon.c
-> +++ b/drivers/extcon/extcon.c
-> @@ -275,19 +275,25 @@ int extcon_update_state(struct extcon_dev *edev, u32 mask, u32 state)
->  	spin_lock_irqsave(&edev->lock, flags);
->  
->  	if (edev->state != ((edev->state & ~mask) | (state & mask))) {
-> +		u32 old_state;
-> +
->  		if (check_mutually_exclusive(edev, (edev->state & ~mask) |
->  						   (state & mask))) {
->  			spin_unlock_irqrestore(&edev->lock, flags);
->  			return -EPERM;
->  		}
->  
-> +		old_state = edev->state;
-> +		edev->state &= ~mask;
-> +		edev->state |= state & mask;
-> +
->  		for (index = 0; index < edev->max_supported; index++) {
-> -			if (is_extcon_changed(edev->state, state, index, &attached))
-> -				raw_notifier_call_chain(&edev->nh[index], attached, edev);
-> +			if (is_extcon_changed(old_state, edev->state, index,
-> +					      &attached))
-> +				raw_notifier_call_chain(&edev->nh[index],
-> +							attached, edev);
->  		}
->  
-> -		edev->state &= ~mask;
-> -		edev->state |= state & mask;
->  
->  		/* This could be in interrupt handler */
->  		prop_buf = (char *)get_zeroed_page(GFP_ATOMIC);
-> 
