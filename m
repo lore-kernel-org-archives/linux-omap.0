@@ -1,37 +1,102 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [RFC PATCH 4/5] ARM: dts: DRA7: Add memory map region entries
- for qspi
-Date: Fri, 31 Jul 2015 19:18:20 +0530
-Message-ID: <55BB7CA4.1020300@ti.com>
-References: <1438072876-16338-1-git-send-email-vigneshr@ti.com> <1438072876-16338-5-git-send-email-vigneshr@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Robert Baldyga <r.baldyga@samsung.com>
+Subject: [PATCH v5 01/46] usb: gadget: encapsulate endpoint claiming mechanism
+Date: Fri, 31 Jul 2015 16:00:13 +0200
+Message-ID: <1438351258-31578-2-git-send-email-r.baldyga@samsung.com>
+References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438072876-16338-5-git-send-email-vigneshr@ti.com>
+In-reply-to: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>, Mark Brown <broonie@kernel.org>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Huang Shijie <b32955@freescale.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
+To: balbi@ti.com
+Cc: gregkh@linuxfoundation.org, Peter.Chen@freescale.com, johnyoun@synopsys.com, dahlmann.thomas@arcor.de, nicolas.ferre@atmel.com, cernekee@gmail.com, leoli@freescale.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, michal.simek@xilinx.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-geode@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, andrzej.p@samsung.com, m.szyprowski@samsung.com, stern@rowland.harvard.edu, petr.cvek@tul.cz, Robert Baldyga <r.baldyga@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 28 July 2015 02:11 PM, Vignesh R wrote:
-> Add qspi memory mapped region entries for DRA7xx based SoCs.
-> 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->  arch/arm/boot/dts/am4372.dtsi | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index ade28c790f4b..5317a0f24ab9 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
+So far it was necessary for usb functions to set ep->driver_data in
+endpoint obtained from autoconfig to non-null value, to indicate that
+endpoint is claimed by function (in autoconfig it was checked if endpoint
+has set this field to non-null value, and if it has, it was assumed that
+it is claimed). It could cause bugs because if some function doesn't
+set this field autoconfig could return the same endpoint more than one
+time.
 
-The patch talks about DRA7x in subject and description but you modify
-AM437x here. You have got commit text mixed up between 4/5 and 5/5.
+To help to avoid such bugs this patch adds claimed flag to struct usb_ep,
+and  encapsulates endpoint claiming mechanism inside usb_ep_autoconfig_ss()
+and usb_ep_autoconfig_reset(), so now usb functions don't need to perform
+any additional actions to mark endpoint obtained from autoconfig as claimed.
 
-Probably not the kind of feedback you are looking for an RFC, but since
-I noticed it..
+Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
+---
+ drivers/usb/gadget/epautoconf.c | 11 ++++++-----
+ include/linux/usb/gadget.h      |  1 +
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-Thanks,
-Sekhar
+diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
+index 919cdfd..8e00ca7 100644
+--- a/drivers/usb/gadget/epautoconf.c
++++ b/drivers/usb/gadget/epautoconf.c
+@@ -53,7 +53,7 @@ ep_matches (
+ 	int		num_req_streams = 0;
+ 
+ 	/* endpoint already claimed? */
+-	if (NULL != ep->driver_data)
++	if (ep->claimed)
+ 		return 0;
+ 
+ 	/* only support ep0 for portable CONTROL traffic */
+@@ -240,7 +240,7 @@ find_ep (struct usb_gadget *gadget, const char *name)
+  * updated with the assigned number of streams if it is
+  * different from the original value. To prevent the endpoint
+  * from being returned by a later autoconfig call, claim it by
+- * assigning ep->driver_data to some non-null value.
++ * assigning ep->claimed to true.
+  *
+  * On failure, this returns a null endpoint descriptor.
+  */
+@@ -323,6 +323,7 @@ struct usb_ep *usb_ep_autoconfig_ss(
+ found_ep:
+ 	ep->desc = NULL;
+ 	ep->comp_desc = NULL;
++	ep->claimed = true;
+ 	return ep;
+ }
+ EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
+@@ -354,7 +355,7 @@ EXPORT_SYMBOL_GPL(usb_ep_autoconfig_ss);
+  * descriptor bEndpointAddress.  For bulk endpoints, the wMaxPacket value
+  * is initialized as if the endpoint were used at full speed.  To prevent
+  * the endpoint from being returned by a later autoconfig call, claim it
+- * by assigning ep->driver_data to some non-null value.
++ * by assigning ep->claimed to true.
+  *
+  * On failure, this returns a null endpoint descriptor.
+  */
+@@ -373,7 +374,7 @@ EXPORT_SYMBOL_GPL(usb_ep_autoconfig);
+  *
+  * Use this for devices where one configuration may need to assign
+  * endpoint resources very differently from the next one.  It clears
+- * state such as ep->driver_data and the record of assigned endpoints
++ * state such as ep->claimed and the record of assigned endpoints
+  * used by usb_ep_autoconfig().
+  */
+ void usb_ep_autoconfig_reset (struct usb_gadget *gadget)
+@@ -381,7 +382,7 @@ void usb_ep_autoconfig_reset (struct usb_gadget *gadget)
+ 	struct usb_ep	*ep;
+ 
+ 	list_for_each_entry (ep, &gadget->ep_list, ep_list) {
+-		ep->driver_data = NULL;
++		ep->claimed = false;
+ 	}
+ 	gadget->in_epnum = 0;
+ 	gadget->out_epnum = 0;
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index 353a720..68fb5e8 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -173,6 +173,7 @@ struct usb_ep {
+ 	const char		*name;
+ 	const struct usb_ep_ops	*ops;
+ 	struct list_head	ep_list;
++	bool			claimed;
+ 	unsigned		maxpacket:16;
+ 	unsigned		maxpacket_limit:16;
+ 	unsigned		max_streams:16;
+-- 
+1.9.1
