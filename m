@@ -1,169 +1,132 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 3/3] serial: 8250: omap: restore registers on shutdown
-Date: Mon, 03 Aug 2015 18:54:56 +0200
-Message-ID: <55BF9CE0.4080107@linutronix.de>
-References: <87egjp2r4a.fsf@linutronix.de> <55BAC67E.1010400@hurleysoftware.com> <20150803160937.GA26497@linutronix.de> <55BF980E.20908@hurleysoftware.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Mon, 3 Aug 2015 20:17:45 +0200
+Message-ID: <201508032017.45654@pali>
+References: <201507251228.27128@pali> <201508011218.45076@pali> <55BFACE4.1010100@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed;
+  boundary="nextPart13451724.AVhIQa7zlz";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55BF980E.20908@hurleysoftware.com>
+In-Reply-To: <55BFACE4.1010100@bitmer.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: John Ogness <john.ogness@linutronix.de>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, linux-serial@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/03/2015 06:34 PM, Peter Hurley wrote:
-> Hi Sebastian,
+--nextPart13451724.AVhIQa7zlz
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Peter,
+On Monday 03 August 2015 20:03:16 Jarkko Nikula wrote:
+> Hi
+>=20
+> On 08/01/2015 01:18 PM, Pali Roh=C3=A1r wrote:
+> > On Saturday 25 July 2015 15:17:13 Lars-Peter Clausen wrote:
+> >> On 07/25/2015 12:28 PM, Pali Roh=C3=A1r wrote:
+> >>> Hello,
+> >>>=20
+> >>> sometimes after rebooting Nokia N900 initializing alsa audio
+> >>> fails. Here output from dmesg log when it happen:
+> >>>=20
+> >>> [    6.925140] tpa6130a2 2-0060: Write failed
+> >>> [    6.929534] tpa6130a2 2-0060: Failed to initialize chip
+> >>> [    6.935272] tpa6130a2: probe of 2-0060 failed with error -121
+> >>> [    7.624237] rx51-audio n900-audio: Failed to add TPA6130A2
+> >>> controls [    7.635101] rx51-audio n900-audio: ASoC: failed to
+> >>> init TLV320AIC34: -19 [    7.645874] rx51-audio n900-audio: ASoC:
+> >>> failed to instantiate card -19 [    7.665740] rx51-audio
+> >>> n900-audio: snd_soc_register_card failed (-19) [    8.063049]
+> >>> ALSA device list:
+> >>> [    8.070343]   No soundcards found.
+> >>>=20
+> >>> Any idea what to do?
+> >>=20
+> >> Looks like the chip is not responding. Try to add a small delay
+> >> after powerup to give the device to be fully ready, something
+> >> like the following:
+> >>=20
+> >> --- a/sound/soc/codecs/tpa6130a2.c
+> >> +++ b/sound/soc/codecs/tpa6130a2.c
+> >> @@ -152,6 +152,8 @@ static int tpa6130a2_power(u8 power)
+> >>=20
+> >>   		if (data->power_gpio >=3D 0)
+> >>   	=09
+> >>   			gpio_set_value(data->power_gpio, 1);
+> >>=20
+> >> +		msleep(5);
+> >> +
+> >>=20
+> >>   		data->power_state =3D 1;
+> >>   		ret =3D tpa6130a2_initialize();
+> >>   		if (ret < 0) {
+> >=20
+> > Hello, your patch did not helped. Problem is still there...
+>=20
+> For me v4.2-rc5 works, i.e. TPA6130A2 can still play loudly to
+> headphones. Don't know were there any i2c etc regression before it or
+> how easy it would be to reproduce.
+>=20
 
->>  struct old_serial_port {
->> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
->> index d9a37191a1ae..12249125a218 100644
->> --- a/drivers/tty/serial/8250/8250_omap.c
->> +++ b/drivers/tty/serial/8250/8250_omap.c
->> @@ -100,9 +100,9 @@ struct omap8250_priv {
->>  	u8 wer;
->>  	u8 xon;
->>  	u8 xoff;
->> -	u8 delayed_restore;
->>  	u16 quot;
->>  
->> +	wait_queue_head_t termios_wait;
->>  	bool is_suspending;
->>  	int wakeirq;
->>  	int wakeups_enabled;
->> @@ -256,18 +256,6 @@ static void omap8250_update_mdr1(struct uart_8250_port *up,
->>  static void omap8250_restore_regs(struct uart_8250_port *up)
->>  {
->>  	struct omap8250_priv *priv = up->port.private_data;
->> -	struct uart_8250_dma	*dma = up->dma;
->> -
->> -	if (dma && dma->tx_running) {
->> -		/*
->> -		 * TCSANOW requests the change to occur immediately however if
->> -		 * we have a TX-DMA operation in progress then it has been
->> -		 * observed that it might stall and never complete. Therefore we
->> -		 * delay DMA completes to prevent this hang from happen.
->> -		 */
->> -		priv->delayed_restore = 1;
->> -		return;
->> -	}
->>  
->>  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
->>  	serial_out(up, UART_EFR, UART_EFR_ECB);
->> @@ -309,6 +297,7 @@ static void omap8250_restore_regs(struct uart_8250_port *up)
->>  	up->port.ops->set_mctrl(&up->port, up->port.mctrl);
->>  }
->>  
->> +static void omap_8250_dma_tx_complete(void *param);
->>  /*
->>   * OMAP can use "CLK / (16 or 13) / div" for baud rate. And then we have have
->>   * some differences in how we want to handle flow control.
->> @@ -322,6 +311,7 @@ static void omap_8250_set_termios(struct uart_port *port,
->>  	struct omap8250_priv *priv = up->port.private_data;
->>  	unsigned char cval = 0;
->>  	unsigned int baud;
->> +	unsigned int complete_dma = 0;
->>  
->>  	switch (termios->c_cflag & CSIZE) {
->>  	case CS5:
->> @@ -473,6 +463,25 @@ static void omap_8250_set_termios(struct uart_port *port,
->>  		if (termios->c_iflag & IXANY)
->>  			up->mcr |= UART_MCR_XONANY;
->>  	}
->> +
->> +	if (up->dma && up->dma->tx_running) {
->> +		struct uart_8250_dma	*dma = up->dma;
->> +
->> +		/*
->> +		 * TCSANOW requests the change to occur immediately however if
->> +		 * we have a TX-DMA operation in progress then it has been
->> +		 * observed that it might stall and never complete. Therefore we
->> +		 * wait until DMA completes to prevent this hang from happen.
->> +		 */
->> +
->> +		dma->tx_running = 2;
->> +
->> +		spin_unlock_irq(&up->port.lock);
->> +		wait_event(priv->termios_wait,
->> +			   dma->tx_running == 3);
-> 
-> Doesn't the dmaengine api offer a race-free way to wait for pending tx dma
-> to complete?
+Did you tested it on Nokia N900? Or other device?
 
-Not that I know of. You still need to ensure that once that DMA
-completed, nobody triggers another TX transfer before you do what you
-planned. This is ensures by the tx_running != 0 and the spin lock.
+> Logs below made me thinking can it be a HW issue? Although if it is
+> an HW issue it shouldn't work sometimes I guess. Do you have any
+> earlier well known configuration you could try is it an SW
+> regression or something else?
+>=20
 
-> Maybe we could wrap that in the 8250 dma api?
+Stock Nokia's 2.6.28 kernel works always. With that kernel I have never=20
+seen this problem. So I do not think this is HW problem.
 
-You mean a function in 8250-dma API which does what I did just here
-with the wait_event() and the wake_up in the callback? That way I could
-move the termios_wait into the dma struct instead of keeping in the
-omap specific part. I am also not sure if OMAP is the only one that may
-hang here or the other people just didn't notice it yet.
+This problem is there in more kernel versions, maybe in some older (like=20
+v3.5) is was there not so often. But do not remember correctly...
 
-> Regards,
-> Peter Hurley
-> 
->> +		spin_lock_irq(&up->port.lock);
->> +		complete_dma = 1;
->> +	}
->>  	omap8250_restore_regs(up);
->>  
->>  	spin_unlock_irq(&up->port.lock);
->> @@ -488,6 +497,8 @@ static void omap_8250_set_termios(struct uart_port *port,
->>  	/* Don't rewrite B0 */
->>  	if (tty_termios_baud_rate(termios))
->>  		tty_termios_encode_baud_rate(termios, baud, baud);
->> +	if (complete_dma)
->> +		omap_8250_dma_tx_complete(up);
->>  }
->>  
->>  /* same as 8250 except that we may have extra flow bits set in EFR */
->> @@ -869,17 +880,18 @@ static void omap_8250_dma_tx_complete(void *param)
->>  
->>  	spin_lock_irqsave(&p->port.lock, flags);
->>  
->> +	if (dma->tx_running == 2) {
->> +		dma->tx_running = 3;
->> +		wake_up(&priv->termios_wait);
->> +		goto out;
->> +	}
->> +
->>  	dma->tx_running = 0;
->>  
->>  	xmit->tail += dma->tx_size;
->>  	xmit->tail &= UART_XMIT_SIZE - 1;
->>  	p->port.icount.tx += dma->tx_size;
->>  
->> -	if (priv->delayed_restore) {
->> -		priv->delayed_restore = 0;
->> -		omap8250_restore_regs(p);
->> -	}
->> -
->>  	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
->>  		uart_write_wakeup(&p->port);
->>  
->> @@ -899,7 +911,7 @@ static void omap_8250_dma_tx_complete(void *param)
->>  		p->ier |= UART_IER_THRI;
->>  		serial_port_out(&p->port, UART_IER, p->ier);
->>  	}
->> -
->> +out:
->>  	spin_unlock_irqrestore(&p->port.lock, flags);
->>  }
->>  
->> @@ -1216,6 +1228,7 @@ static int omap8250_probe(struct platform_device *pdev)
->>  			priv->omap8250_dma.rx_size = RX_TRIGGER;
->>  			priv->omap8250_dma.rxconf.src_maxburst = RX_TRIGGER;
->>  			priv->omap8250_dma.txconf.dst_maxburst = TX_TRIGGER;
->> +			init_waitqueue_head(&priv->termios_wait);
->>  
->>  			if (of_machine_is_compatible("ti,am33xx"))
->>  				priv->habit |= OMAP_DMA_TX_KICK;
->>
+> > [    5.962585] tpa6130a2 2-0060: Write failed
+> > [    5.962707] tpa6130a2 2-0060: Failed to initialize chip
+> > [    5.962860] tpa6130a2: probe of 2-0060 failed with error -121
+>=20
+> -121 =3D=3D EREMOTEIO which is returned from i2c-omap.c when there is no
+> ACK from the chip.
+>=20
 
-Sebastian
+Maybe some power management problem? Something is not always initialized=20
+correctly?
+
+I remember that there is some problem (maybe in NoLo - Nokia bootloader)=20
+that sometimes chainloaded U-Boot (booted via NoLo) is not able to=20
+initialize mmc chip (all read operation fails). In U-Boot I added some=20
+code to enable some parts in twl4030 regulator and after that mmc is=20
+working always...
+
+So maybe something similar? Kernel expects that some PM or regulator=20
+parts are initialized, but they are only sometimes? Just speculation...
+
+> > [   28.102233] omap_i2c 48072000.i2c: controller timed out
+> > [   29.463653] lp5523x 2-0032: lp5523 Programmable led chip found
+> > [   30.734191] omap_i2c 48072000.i2c: controller timed out waiting
+> > for start condition to finish [   32.142333] i2c i2c-2: SCL is
+> > stuck low, exit recovery
+>=20
+> If SCL is really stuck it also explains why chip doesn't acknowledge.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart13451724.AVhIQa7zlz
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlW/sEkACgkQi/DJPQPkQ1LzwACglgDwJ371iDeGNrxGCjLCvS76
+0voAoKn7Tx+mSYkYaDOPXSzlfL+BhZjW
+=yVKw
+-----END PGP SIGNATURE-----
+
+--nextPart13451724.AVhIQa7zlz--
