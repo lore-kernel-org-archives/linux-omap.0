@@ -1,61 +1,73 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 02/16] mmc: host: omap_hsmmc: return on fatal errors from omap_hsmmc_reg_get
-Date: Mon, 3 Aug 2015 17:56:27 +0530
-Message-ID: <1438604801-11823-3-git-send-email-kishon@ti.com>
-References: <1438604801-11823-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438604801-11823-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ulf.hansson@linaro.org, afenkart@gmail.com, tony@atomide.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: nsekhar@ti.com, kishon@ti.com
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] usb: musb: Allow building in all the DMA code
+Date: Mon,  3 Aug 2015 05:37:10 -0700
+Message-ID: <1438605430-26435-1-git-send-email-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Now return error only if the return value of
-devm_regulator_get_optional() is not the same as -ENODEV, since with
--EPROBE_DEFER, the regulator can be obtained later and all other
-errors are fatal.
+With recent changes to MUSB code, we can now now get rid of
+the Kconfig choise for the DMA code and allow building in any
+of the desired DMA code. This makes life easier for distros.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/mmc/host/omap_hsmmc.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index b4b1bde..5637793 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -371,10 +371,28 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+This should be safe to dow now. Felipe, I've ran some randcocnfig
+builds on it but it's probably a good idea to run some more.
+
+---
+ drivers/usb/musb/Kconfig | 38 ++++++++++++++------------------------
+ 1 file changed, 14 insertions(+), 24 deletions(-)
+
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -124,19 +124,20 @@ config USB_MUSB_JZ4740
+ config USB_MUSB_AM335X_CHILD
+ 	tristate
  
- 	/* Allow an aux regulator */
- 	reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
--	host->vcc_aux = IS_ERR(reg) ? NULL : reg;
-+	if (IS_ERR(reg)) {
-+		ret = PTR_ERR(reg);
-+		if (ret != -ENODEV)
-+			return ret;
-+		host->vcc_aux = NULL;
-+		dev_dbg(host->dev, "unable to get vmmc_aux regulator %ld\n",
-+			PTR_ERR(reg));
-+	} else {
-+		host->vcc_aux = reg;
-+	}
+-choice
+-	prompt 'MUSB DMA mode'
+-	default MUSB_PIO_ONLY if ARCH_MULTIPLATFORM || USB_MUSB_JZ4740
+-	default USB_UX500_DMA if USB_MUSB_UX500
+-	default USB_INVENTRA_DMA if USB_MUSB_OMAP2PLUS || USB_MUSB_BLACKFIN
+-	default USB_TI_CPPI_DMA if USB_MUSB_DAVINCI
+-	default USB_TUSB_OMAP_DMA if USB_MUSB_TUSB6010
+-	default MUSB_PIO_ONLY if USB_MUSB_TUSB6010 || USB_MUSB_DA8XX || USB_MUSB_AM35X \
+-				|| USB_MUSB_DSPS
++comment "MUSB DMA mode"
++
++config MUSB_PIO_ONLY
++	bool 'Disable DMA (always use PIO)'
+ 	help
+-	  Unfortunately, only one option can be enabled here. Ideally one
+-	  should be able to build all these drivers into one kernel to
+-	  allow using DMA on multiplatform kernels.
++	  All data is copied between memory and FIFO by the CPU.
++	  DMA controllers are ignored.
++
++	  Do not choose this unless DMA support for your SOC or board
++	  is unavailable (or unstable).  When DMA is enabled at compile time,
++	  you can still disable it at run time using the "use_dma=n" module
++	  parameter.
++
++if !MUSB_PIO_ONLY
  
- 	reg = devm_regulator_get_optional(host->dev, "pbias");
--	host->pbias = IS_ERR(reg) ? NULL : reg;
-+	if (IS_ERR(reg)) {
-+		ret = PTR_ERR(reg);
-+		if (ret != -ENODEV)
-+			return ret;
-+		host->pbias = NULL;
-+		dev_dbg(host->dev, "unable to get pbias regulator %ld\n",
-+			PTR_ERR(reg));
-+	} else {
-+		host->pbias = reg;
-+	}
+ config USB_UX500_DMA
+ 	bool 'ST Ericsson Ux500'
+@@ -168,17 +169,6 @@ config USB_TUSB_OMAP_DMA
+ 	help
+ 	  Enable DMA transfers on TUSB 6010 when OMAP DMA is available.
  
- 	/* For eMMC do not power off when not in sleep state */
- 	if (mmc_pdata(host)->no_regulator_off_init)
--- 
-1.7.9.5
+-config MUSB_PIO_ONLY
+-	bool 'Disable DMA (always use PIO)'
+-	help
+-	  All data is copied between memory and FIFO by the CPU.
+-	  DMA controllers are ignored.
+-
+-	  Do not choose this unless DMA support for your SOC or board
+-	  is unavailable (or unstable).  When DMA is enabled at compile time,
+-	  you can still disable it at run time using the "use_dma=n" module
+-	  parameter.
