@@ -1,82 +1,70 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/17] omap_hsmmc: regulator usage cleanup and fixes
-Date: Mon, 3 Aug 2015 17:42:57 +0530
-Message-ID: <55BF5AC9.9000007@ti.com>
-References: <1438168187-1614-1-git-send-email-kishon@ti.com> <CALtMJEDP1-Q9W=x-0hq3tZQ1QZ2LVwVj47=ADYDjT7BsfanffA@mail.gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 00/16] omap_hsmmc: regulator usage cleanup and fixes
+Date: Mon, 3 Aug 2015 17:56:25 +0530
+Message-ID: <1438604801-11823-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALtMJEDP1-Q9W=x-0hq3tZQ1QZ2LVwVj47=ADYDjT7BsfanffA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andreas Fenkart <afenkart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-mmc <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: ulf.hansson@linaro.org, afenkart@gmail.com, tony@atomide.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Changes from v1:
+*) return on -EPROBE_DEFER and other fatal errors. (Don't return only
+   if the return value is -ENODEV)
+*) Remove the beagle x15 dts patch. It can be part of a different
+   series.
+*) Avoid using regulator_is_enabled for vqmmc since if the regulator
+   is shared and the other users are not using regulator_is_enabled
+   then there can be unbalanced regulator_enable/regulator_disable
 
-On Monday 03 August 2015 12:58 PM, Andreas Fenkart wrote:
-> Hi Kishon,
-> 
-> Thanks for taking a look at the regulator code. Do you have a public
-> git repository so I can pull your patches instead of cherry picking
-> 1-by-1?
+This patch series does the following
+*) Uses devm_regulator_get_optional() for vmmc and then removes the
+   CONFIG_REGULATOR check altogether.
+*) return on -EPROBE_DEFER and any other fatal errors
+*) enable/disable vmmc_aux regulator based on prior state
 
-I'll post v2 shortly. With that I'll have the patches in a git tree.
+I've pushed this patch series to
+git://git.ti.com/linux-phy/linux-phy.git mmc_regulator_cleanup_fixes_v2
 
-Thanks
-Kishon
+Please note the branch also has the pbias fixes [1] & [2].
+[1] -> https://lkml.org/lkml/2015/7/27/358
+[2] -> https://lkml.org/lkml/2015/7/27/391
 
-> 
-> /Andi
-> 
-> 2015-07-29 13:09 GMT+02:00 Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>:
->> This patch series does the following
->> *) Uses devm_regulator_get_optional() for vmmc and then removes the
->>    CONFIG_REGULATOR check altogether.
->> *) return on -EPROBE_DEFER
->> *) enable/disable vmmc_aux regulator based on prior state
->>
->> This series is in preparation for implementing the voltage switch
->> sequence so that UHS cards can be supported.
->>
->> Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
->> Beaglebone black, OMAP5 uEVM and OMAP4 PANDA.
->>
->> Kishon Vijay Abraham I (16):
->>   mmc: host: omap_hsmmc: use devm_regulator_get_optional() for vmmc
->>   mmc: host: omap_hsmmc: return error from omap_hsmmc_reg_get on
->>     -EPROBE_DEFER
->>   mmc: host: omap_hsmmc: cleanup omap_hsmmc_reg_get()
->>   mmc: host: omap_hsmmc: use the ocrmask provided by the vmmc regulator
->>   mmc: host: omap_hsmmc: use mmc_host's vmmc and vqmmc
->>   mmc: host: omap_hsmmc: remove unnecessary pbias set_voltage
->>   mmc: host: omap_hsmmc: return error if any of the regulator APIs fail
->>   mmc: host: omap_hsmmc: add separate functions for enable/disable
->>     supply
->>   mmc: host: omap_hsmmc: add separate function to set pbias
->>   mmc: host: omap_hsmmc: avoid pbias regulator enable on power off
->>   mmc: host: omap_hsmmc: don't use ->set_power to set initial regulator
->>     state
->>   ARM: dts: am57xx-beagle-x15: Fix regulator populated in MMC1 dt node
->>   mmc: host: omap_hsmmc: enable/disable vmmc_aux regulator based on
->>     prior state
->>   mmc: host: omap_hsmmc: use regulator_is_enabled to find pbias status
->>   mmc: host: omap_hsmmc: use ios->vdd for setting vmmc voltage
->>   mmc: host: omap_hsmmc: remove CONFIG_REGULATOR check
->>
->> Roger Quadros (1):
->>   mmc: host: omap_hsmmc: use "mmc_of_parse_voltage" to get ocr_avail
->>
->>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 +
->>  arch/arm/boot/dts/am57xx-beagle-x15.dts            |    1 -
->>  drivers/mmc/host/omap_hsmmc.c                      |  333 +++++++++++++-------
->>  3 files changed, 216 insertions(+), 120 deletions(-)
->>
->> --
->> 1.7.9.5
->>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This series is in preparation for implementing the voltage switch
+sequence so that UHS cards can be supported.
+
+Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
+Beaglebone black, OMAP5 uEVM and OMAP4 PANDA.
+
+Kishon Vijay Abraham I (15):
+  mmc: host: omap_hsmmc: use devm_regulator_get_optional() for vmmc
+  mmc: host: omap_hsmmc: return on fatal errors from omap_hsmmc_reg_get
+  mmc: host: omap_hsmmc: cleanup omap_hsmmc_reg_get()
+  mmc: host: omap_hsmmc: use the ocrmask provided by the vmmc regulator
+  mmc: host: omap_hsmmc: use mmc_host's vmmc and vqmmc
+  mmc: host: omap_hsmmc: remove unnecessary pbias set_voltage
+  mmc: host: omap_hsmmc: return error if any of the regulator APIs fail
+  mmc: host: omap_hsmmc: add separate functions for enable/disable
+    supply
+  mmc: host: omap_hsmmc: add separate function to set pbias
+  mmc: host: omap_hsmmc: avoid pbias regulator enable on power off
+  mmc: host: omap_hsmmc: don't use ->set_power to set initial regulator
+    state
+  mmc: host: omap_hsmmc: enable/disable vmmc_aux regulator based on
+    previous state
+  mmc: host: omap_hsmmc: use regulator_is_enabled to find pbias status
+  mmc: host: omap_hsmmc: use ios->vdd for setting vmmc voltage
+  mmc: host: omap_hsmmc: remove CONFIG_REGULATOR check
+
+Roger Quadros (1):
+  mmc: host: omap_hsmmc: use "mmc_of_parse_voltage" to get ocr_avail
+
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 +
+ drivers/mmc/host/omap_hsmmc.c                      |  340 +++++++++++++-------
+ 2 files changed, 224 insertions(+), 118 deletions(-)
+
+-- 
+1.7.9.5
+
