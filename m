@@ -1,47 +1,68 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 4/5] ARM: dts: DRA7: Add memory map region entries
- for qspi
-Date: Mon, 3 Aug 2015 10:39:38 +0530
-Message-ID: <55BEF792.7000307@ti.com>
-References: <1438072876-16338-1-git-send-email-vigneshr@ti.com> <1438072876-16338-5-git-send-email-vigneshr@ti.com> <55BB7CA4.1020300@ti.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: Re: [PATCH 00/17] omap_hsmmc: regulator usage cleanup and fixes
+Date: Mon, 3 Aug 2015 09:28:24 +0200
+Message-ID: <CALtMJEDP1-Q9W=x-0hq3tZQ1QZ2LVwVj47=ADYDjT7BsfanffA@mail.gmail.com>
+References: <1438168187-1614-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55BB7CA4.1020300-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1438168187-1614-1-git-send-email-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mmc <linux-mmc@vger.kernel.org>, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi Kishon,
 
+Thanks for taking a look at the regulator code. Do you have a public
+git repository so I can pull your patches instead of cherry picking
+1-by-1?
 
-On 07/31/2015 07:18 PM, Sekhar Nori wrote:
-> On Tuesday 28 July 2015 02:11 PM, Vignesh R wrote:
->> Add qspi memory mapped region entries for DRA7xx based SoCs.
->>
->> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
->> ---
->>  arch/arm/boot/dts/am4372.dtsi | 4 +++-
->>  1 file changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
->> index ade28c790f4b..5317a0f24ab9 100644
->> --- a/arch/arm/boot/dts/am4372.dtsi
->> +++ b/arch/arm/boot/dts/am4372.dtsi
-> 
-> The patch talks about DRA7x in subject and description but you modify
-> AM437x here. You have got commit text mixed up between 4/5 and 5/5.
-> 
-> Probably not the kind of feedback you are looking for an RFC, but since
-> I noticed it..
+/Andi
 
-Oh, my bad.. I will correct $subject when I submit actual patch series.
-
--- 
-Regards
-Vignesh
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2015-07-29 13:09 GMT+02:00 Kishon Vijay Abraham I <kishon@ti.com>:
+> This patch series does the following
+> *) Uses devm_regulator_get_optional() for vmmc and then removes the
+>    CONFIG_REGULATOR check altogether.
+> *) return on -EPROBE_DEFER
+> *) enable/disable vmmc_aux regulator based on prior state
+>
+> This series is in preparation for implementing the voltage switch
+> sequence so that UHS cards can be supported.
+>
+> Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
+> Beaglebone black, OMAP5 uEVM and OMAP4 PANDA.
+>
+> Kishon Vijay Abraham I (16):
+>   mmc: host: omap_hsmmc: use devm_regulator_get_optional() for vmmc
+>   mmc: host: omap_hsmmc: return error from omap_hsmmc_reg_get on
+>     -EPROBE_DEFER
+>   mmc: host: omap_hsmmc: cleanup omap_hsmmc_reg_get()
+>   mmc: host: omap_hsmmc: use the ocrmask provided by the vmmc regulator
+>   mmc: host: omap_hsmmc: use mmc_host's vmmc and vqmmc
+>   mmc: host: omap_hsmmc: remove unnecessary pbias set_voltage
+>   mmc: host: omap_hsmmc: return error if any of the regulator APIs fail
+>   mmc: host: omap_hsmmc: add separate functions for enable/disable
+>     supply
+>   mmc: host: omap_hsmmc: add separate function to set pbias
+>   mmc: host: omap_hsmmc: avoid pbias regulator enable on power off
+>   mmc: host: omap_hsmmc: don't use ->set_power to set initial regulator
+>     state
+>   ARM: dts: am57xx-beagle-x15: Fix regulator populated in MMC1 dt node
+>   mmc: host: omap_hsmmc: enable/disable vmmc_aux regulator based on
+>     prior state
+>   mmc: host: omap_hsmmc: use regulator_is_enabled to find pbias status
+>   mmc: host: omap_hsmmc: use ios->vdd for setting vmmc voltage
+>   mmc: host: omap_hsmmc: remove CONFIG_REGULATOR check
+>
+> Roger Quadros (1):
+>   mmc: host: omap_hsmmc: use "mmc_of_parse_voltage" to get ocr_avail
+>
+>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 +
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts            |    1 -
+>  drivers/mmc/host/omap_hsmmc.c                      |  333 +++++++++++++-------
+>  3 files changed, 216 insertions(+), 120 deletions(-)
+>
+> --
+> 1.7.9.5
+>
