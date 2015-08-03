@@ -1,61 +1,69 @@
-From: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>
-Subject: Re: [PATCH v2 0/7] uio_pruss cleanup and platform support
-Date: Sun, 2 Aug 2015 21:42:18 +0300
-Message-ID: <CAJs94EZAEmab8K=sxtBFu4+86XFmS9UfbvafUFSiZaf5ecoqEg@mail.gmail.com>
-References: <1348861072-14507-1-git-send-email-mporter@ti.com> <20121003150058.GB11180@beef>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Mon, 3 Aug 2015 10:27:19 +0530
+Message-ID: <55BEF4AF.5090704@ti.com>
+References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
+ <1438072876-16338-2-git-send-email-vigneshr@ti.com>
+ <20150731181745.GM20873@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121003150058.GB11180@beef>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>, mporter@konsulko.com
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150731181745.GM20873@sirena.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Huang Shijie <b32955@freescale.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-2012-10-03 19:00 GMT+04:00 Matt Porter <mporter@ti.com>:
-> On Fri, Sep 28, 2012 at 03:37:45PM -0400, Matt Porter wrote:
->> Changes since v1:
->>       - Replaced uio_pruss private SRAM API use with genalloc
->>       - Added DA850 platform device and clock support
->>       - Added DA850 L3 RAM gen_pool support
->>       - Split out DT binding
->>
->> This series enables uio_pruss on both DA850 and AM33xx. The driver
->> previously was not enabled by any platform and the private SRAM API
->> was accessing an invalid SRAM bank for use on DA850. For AM33xx,
->> DT, pinctrl, and runtime PM support are added since AM33xx only
->> boots via DT.
->
-> I'm dropping AM33xx/OMAP support from v3 for this series since the
-> focus has turned to fixing Davinci SRAM to provide genalloc support
-> and the associated use of that in the driver.
->
-> I'll have a separate series with AM33xx support since dealing cleanly
-> with external resets on OMAP is a bigger issue.
+Hi,
 
-Hello Matt,
-
-Any news on AM33xx support here?
-
-I would even try to implement it by myself, but at the moment stuff
-about external resets is too complicated to me, I even can not
-understand where problem is. Fetching config from DT instead of
-platform in pruss_probe seems to be trivial.
-
->
-> -Matt
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
->
+On 7/31/2015 11:47 PM, Mark Brown wrote:
+> On Tue, Jul 28, 2015 at 02:11:12PM +0530, Vignesh R wrote:
+> 
+>> Introduce use_mmap_read field in spi_message struct. This can be set by
+>> mtd devices (m25p80) to indicate to spi-master (ti-qspi) to perform
+>> memory mapped read. This helps to distinguish whether the spi-message is
+>> from mtd layer(hence mmap read is possible) or by other spi devices.
+> 
+> Based on this description and...
+> 
+>> + * @use_mmap_mode: Indicate to spi master to perform memory mapped
+>> + *	read if possible.
+> 
+> ...the internal documentation I unable to tell what is meant by "perform
+> a memory mapped read", at least to the extent where it is visible
+> outside of the driver.  This means we can't really use this as a generic
+> API since other people won't be able to tell what it does.
+> 
 
 
+Will the following documentation provide better idea regarding the flag:
 
--- 
-With best regards,
-Matwey V. Kornilov
-http://blog.matwey.name
-xmpp://0x2207@jabber.ru
+@use_mmap_mode: Some SPI controller chips are optimized for interacting
+with serial flash memories. These chips have memory mapped interface,
+through which entire serial flash memory slave can be read/written as if
+though they are physical memories (like RAM). Using this interface,
+flash can be accessed using memcpy() function and the spi controller
+hardware will take care of communicating with serial flash over SPI.
+Setting this flag will indicate the SPI controller driver that the
+spi_message is from mtd layer to read from/write to flash. The SPI
+master driver can then appropriately switch the controller to memory
+mapped interface to read from/write to flash, based on this flag (See
+drivers/spi/spi-ti-qspi.c for example).
+NOTE: If the SPI controller chip lacks memory mapped interface, then the
+driver will ignore this flag and use normal SPI protocol to read
+from/write to flash. Communication with non-flash SPI devices is not
+possible using the memory mapped interface.
+
+I can update the patch commit message and documentation accordingly?
+
+Regards
+Vignesh
