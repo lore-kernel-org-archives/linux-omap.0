@@ -1,122 +1,85 @@
-From: Adam Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [V3] [TWL4030 MADC] Fix ADC[3:6] readings
-Date: Tue, 4 Aug 2015 11:19:25 -0700
-Message-ID: <CAFeBWL7myKYF6wROibHNtZ+eT4eoFp6C0meCA3P0sttoPxyJqw@mail.gmail.com>
-References: <1437439755-30618-1-git-send-email-adam.yh.lee@gmail.com>
-	<55BE4B75.9090708@kernel.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v5 40/46] usb: gadget: epautoconf: rework ep_matches()
+ function
+Date: Tue, 4 Aug 2015 13:30:59 -0500
+Message-ID: <20150804183059.GC9623@saruman.tx.rr.com>
+References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
+ <1438351258-31578-41-git-send-email-r.baldyga@samsung.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55BE4B75.9090708-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============2597694409143107442=="
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1438351258-31578-41-git-send-email-r.baldyga@samsung.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Robert Baldyga <r.baldyga@samsung.com>
+Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Jonathan, thanks for your comment.
+--===============2597694409143107442==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YD3LsXFS42OYHhNZ"
+Content-Disposition: inline
 
-Just submitted V4 with corrections:
+--YD3LsXFS42OYHhNZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-1. regulator configuration is now done before iio_device_register
-2. devm_regulator_put has been removed as it is not necessary
+On Fri, Jul 31, 2015 at 04:00:52PM +0200, Robert Baldyga wrote:
+> Rework ep_matches() function to make it shorter and more readable.
+>=20
+> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 
-Let me know!
+this regresses at least mass storage. How did you test it ? I'll keep
+all patches up to this one, please fix the problem, rebase on
+testing/next and resend the remaining patches.
 
-Adam
+cheers
 
-On Sun, Aug 2, 2015 at 9:55 AM, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On 21/07/15 01:49, Adam YH Lee wrote:
->> MADC[3:6] reads incorrect values without these two following changes:
->>
->> - enable the 3v1 bias regulator for ADC[3:6]
->> - configure ADC[3:6] lines as input, not as USB
->>
->> Signed-off-by: Adam YH Lee <adam.yh.lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/iio/adc/twl4030-madc.c | 36 ++++++++++++++++++++++++++++++++++++
->>  1 file changed, 36 insertions(+)
->>
->> diff --git a/drivers/iio/adc/twl4030-madc.c b/drivers/iio/adc/twl4030-madc.c
->> index 94c5f05..ae33eba 100644
->> --- a/drivers/iio/adc/twl4030-madc.c
->> +++ b/drivers/iio/adc/twl4030-madc.c
->> @@ -45,13 +45,18 @@
->>  #include <linux/types.h>
->>  #include <linux/gfp.h>
->>  #include <linux/err.h>
->> +#include <linux/regulator/consumer.h>
->>
->>  #include <linux/iio/iio.h>
->>
->> +#define TWL4030_USB_SEL_MADC_MCPC    (1<<3)
->> +#define TWL4030_USB_CARKIT_ANA_CTRL  0xBB
->> +
->>  /**
->>   * struct twl4030_madc_data - a container for madc info
->>   * @dev:             Pointer to device structure for madc
->>   * @lock:            Mutex protecting this data structure
->> + * @regulator:               Pointer to bias regulator for madc
->>   * @requests:                Array of request struct corresponding to SW1, SW2 and RT
->>   * @use_second_irq:  IRQ selection (main or co-processor)
->>   * @imr:             Interrupt mask register of MADC
->> @@ -60,6 +65,7 @@
->>  struct twl4030_madc_data {
->>       struct device *dev;
->>       struct mutex lock;      /* mutex protecting this data structure */
->> +     struct regulator *usb3v1;
->>       struct twl4030_madc_request requests[TWL4030_MADC_NUM_METHODS];
->>       bool use_second_irq;
->>       u8 imr;
->> @@ -848,6 +854,33 @@ static int twl4030_madc_probe(struct platform_device *pdev)
->>               goto err_i2c;
->>       }
->>
-> At this point in the driver the userspace (an in kernel) interfaces to read
-> from the device are exposed. Thus if you need this stuff set up right, it
-> wants to be done before the iio_device_register call.
->> +     /* Configure MADC[3:6] */
->> +     ret = twl_i2c_read_u8(TWL_MODULE_USB, &regval,
->> +                     TWL4030_USB_CARKIT_ANA_CTRL);
->> +     if (ret) {
->> +             dev_err(&pdev->dev, "unable to read reg CARKIT_ANA_CTRL  0x%X\n",
->> +                             TWL4030_USB_CARKIT_ANA_CTRL);
->> +             goto err_i2c;
->> +     }
->> +     regval |= TWL4030_USB_SEL_MADC_MCPC;
->> +     ret = twl_i2c_write_u8(TWL_MODULE_USB, regval,
->> +                              TWL4030_USB_CARKIT_ANA_CTRL);
->> +     if (ret) {
->> +             dev_err(&pdev->dev, "unable to write reg CARKIT_ANA_CTRL 0x%X\n",
->> +                             TWL4030_USB_CARKIT_ANA_CTRL);
->> +             goto err_i2c;
->> +     }
->> +
->> +
->> +     /* Enable 3v1 bias regulator for MADC[3:6] */
->> +     madc->usb3v1 = devm_regulator_get(madc->dev, "vusb3v1");
->> +     if (IS_ERR(madc->usb3v1))
->> +             return -ENODEV;
->> +
->> +     ret = regulator_enable(madc->usb3v1);
->> +     if (ret)
->> +             dev_err(madc->dev, "could not enable 3v1 bias regulator\n");
->> +
->>       return 0;
->>
->>  err_i2c:
->> @@ -867,6 +900,9 @@ static int twl4030_madc_remove(struct platform_device *pdev)
->>       twl4030_madc_set_current_generator(madc, 0, 0);
->>       twl4030_madc_set_power(madc, 0);
->>
->> +     regulator_disable(madc->usb3v1);
->> +     devm_regulator_put(madc->usb3v1);
-> The whole point of devm_ allocators (or in this case _gets) is that when
-> the driver is removed they are cleaned up automatically.  Hence you don't
-> need them in your remove call.  Obviously it also clears up the error
-> handling in probe as well.
->> +
->>       return 0;
->>  }
->>
->>
->
+--=20
+balbi
+
+--YD3LsXFS42OYHhNZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVwQTiAAoJEIaOsuA1yqREn9QP/0X2aNlkKVBwLNCCW3TvSshr
+7CcCEFbtFfBMwSHAowzm5A/XxS3LVYc8oIDc6O1ZaUP3RqB3WTXuPC4bZ/B7Xtgl
+bP+Us6DqMcxCUm4w512IfW2hhHzfFL2ZcgjLxyuRM1xJBGzfLYEp4iP8NPYbO9S+
+BRZ7h0w5ob10FrS3uwh0rswBv1jnrs5GEVfOMu/r9e81IPmijbi1B1qSs56tanXW
+Rq4yVUTa9YoRX1BAwynKwNPfGl4cZdPCLSxwFR9R3xA5J58nSzcRLJOE5z3PwswB
+mm2KEGJA9kwiteasTDX6pYYgj38tCUlZL4odBN7n0Wyjo3R5lDO/fGgQGrkM4M3i
+mVTF2KW82+u6wkmfbYZD/tjQ0aNXFIK9mnujI7vajF+4H/FfHQrTan1/9CybnOCu
+Fzx4lR4ch4lOZEc1vzy9oo6RxmGMrt1KDIVnRJbBV6thhRsu3TWIy4/IlUvWvv0S
+zD7AzLcCPMwvT7UrcLzsWQiJyphyQGBQkvvWcfc7pKclENWE3EB3lAKnA0qoE+7l
+Xs/2SMuPuNd9Bsp797F8XideVU1aYeXDsbfBdeG5vXZKHKqaHCIVeUApxNiuGqT8
+Rv7e0VRNLpgswc5hfVIjeQSKZuNPSaGHO81AH8tP4Q60naoBZ6TvEPzHIqCtehF3
+xn56Ib1RMFe3n2POJcHf
+=yCEP
+-----END PGP SIGNATURE-----
+
+--YD3LsXFS42OYHhNZ--
+
+--===============2597694409143107442==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devel mailing list
+devel@linuxdriverproject.org
+http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+
+--===============2597694409143107442==--
