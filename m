@@ -1,53 +1,50 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 02/10] ARM: dts: dra7: Use "syscon-phy-power" instead of "ctrl-module" in SATA PHY node
-Date: Tue, 4 Aug 2015 21:00:25 +0530
-Message-ID: <1438702233-8027-3-git-send-email-kishon@ti.com>
+Subject: [PATCH 01/10] ARM: dts: dra7: Add dt node for PCIe registers in
+ sysctrl space
+Date: Tue, 4 Aug 2015 21:00:24 +0530
+Message-ID: <1438702233-8027-2-git-send-email-kishon@ti.com>
 References: <1438702233-8027-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1438702233-8027-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: rogerq@ti.com, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: balbi@ti.com, bcousson@baylibre.com, linux@arm.linux.org.uk, nsekhar@ti.com, kishon@ti.com
+Cc: nsekhar@ti.com, linux@arm.linux.org.uk, bcousson@baylibre.com, balbi@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
-property from SATA PHY node. Since "omap_control_sata" note is no longer
-used, remove it.
+Add new device tree node for the control module register space where
+PCIe registers are present.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi |    5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 33c5655..6854385 100644
+index aa6abfc..33c5655 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1115,14 +1115,6 @@
- 			status = "disabled";
- 		};
+@@ -154,6 +154,11 @@
+ 					compatible = "syscon";
+ 					reg = <0x1c04 0x0020>;
+ 				};
++
++				scm_conf2: scm_conf@1c24 {
++					compatible = "syscon";
++					reg = <0x1c24 0x0024>;
++				};
+ 			};
  
--		omap_control_sata: control-phy@4a002374 {
--			compatible = "ti,control-phy-pipe3";
--			reg = <0x4a002374 0x4>;
--			reg-names = "power";
--			clocks = <&sys_clkin1>;
--			clock-names = "sysclk";
--		};
--
- 		/* OCP2SCP3 */
- 		ocp2scp@4a090000 {
- 			compatible = "ti,omap-ocp2scp";
-@@ -1137,7 +1129,7 @@
- 				      <0x4A096400 0x64>, /* phy_tx */
- 				      <0x4A096800 0x40>; /* pll_ctrl */
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
--				ctrl-module = <&omap_control_sata>;
-+				syscon-phy-power = <&scm_conf 0x374>;
- 				clocks = <&sys_clkin1>, <&sata_ref_clk>;
- 				clock-names = "sysclk", "refclk";
- 				#phy-cells = <0>;
+ 			cm_core_aon: cm_core_aon@5000 {
 -- 
 1.7.9.5
