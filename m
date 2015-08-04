@@ -1,49 +1,53 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 2/7] phy: ti-pipe3: use ti_pipe3_power_off to power off the PHY during probe
-Date: Tue, 4 Aug 2015 20:50:41 +0530
-Message-ID: <1438701646-7876-3-git-send-email-kishon@ti.com>
-References: <1438701646-7876-1-git-send-email-kishon@ti.com>
+Subject: [PATCH 0/7] phy: use syscon framework APIs to set ctrl mod reg
+Date: Tue, 4 Aug 2015 20:50:39 +0530
+Message-ID: <1438701646-7876-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438701646-7876-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: rogerq@ti.com, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, kishon@ti.com
 Cc: balbi@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Previously omap_control_phy_power() was used to power
-off the PHY during probe. But once PIPE3 driver is adapted to use syscon,
-omap_control_phy_power() cannot be used. Hence used ti_pipe3_power_off
-to power off the PHY.
+This series is split from [1] to include only the PHY patches.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Roger Quadros <rogerq@ti.com>
----
- drivers/phy/phy-ti-pipe3.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This series is basically to deprecate using phy-omap-control and use
+syscon APIs to program the control module registers.
 
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index 072d308..9782c16 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -474,8 +474,6 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	omap_control_phy_power(phy->control_dev, 0);
--
- 	platform_set_drvdata(pdev, phy);
- 	pm_runtime_enable(phy->dev);
- 
-@@ -494,6 +492,8 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 		return PTR_ERR(generic_phy);
- 
- 	phy_set_drvdata(generic_phy, phy);
-+	ti_pipe3_power_off(generic_phy);
-+
- 	phy_provider = devm_of_phy_provider_register(phy->dev,
- 			of_phy_simple_xlate);
- 	if (IS_ERR(phy_provider))
+Changes from [1] in PHY patches include
+*) cleanup ti_pipe3_probe
+*) have mask, power_on and power_off values in usb_phy_data for
+   omap-usb2 phy
+
+Did basic enumeration testing in the below platforms.
+*) Tested PCIe, SATA and USB in dra7
+*) Tested SATA and USB in omap5
+*) Tested USB(dwc3) in am43xx_evm
+*) Tested USB(musb) in omap4 panda after including [2]
+
+All the testing was done both before applying the dt patches and after
+applying the dt patches (dt patches will be posted shortly).
+
+[1] -> https://lkml.org/lkml/2015/6/23/189
+[2] -> http://permalink.gmane.org/gmane.linux.kernel/2012427
+
+Kishon Vijay Abraham I (7):
+  phy: ti-pipe3: cleanup ti_pipe3_probe()
+  phy: ti-pipe3: use ti_pipe3_power_off to power off the PHY during
+    probe
+  phy: ti-pipe3: use *syscon* framework API to power on/off the PHY
+  phy: ti-pipe3: use *syscon* framework API to set PCS value of the PHY
+  phy: omap-usb2: use omap_usb_power_off to power off the PHY during
+    probe
+  phy: omap-usb2: Add a new compatible string for USB2 PHY2
+  phy: omap-usb2: use *syscon* framework API to power on/off the PHY
+
+ Documentation/devicetree/bindings/phy/ti-phy.txt |   20 +-
+ drivers/phy/phy-omap-usb2.c                      |   96 ++++++--
+ drivers/phy/phy-ti-pipe3.c                       |  283 ++++++++++++++++------
+ include/linux/phy/omap_usb.h                     |   23 ++
+ 4 files changed, 329 insertions(+), 93 deletions(-)
+
 -- 
 1.7.9.5
