@@ -1,159 +1,67 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: musb: omap2430: use *syscon* framework API to write
- to mailbox register
-Date: Tue, 4 Aug 2015 10:58:03 -0500
-Message-ID: <20150804155803.GF23659@saruman.tx.rr.com>
-References: <1438697169-32359-1-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/7] phy: ti-pipe3: cleanup ti_pipe3_probe()
+Date: Tue, 4 Aug 2015 11:00:28 -0500
+Message-ID: <20150804160028.GG23659@saruman.tx.rr.com>
+References: <1438701646-7876-1-git-send-email-kishon@ti.com>
+ <1438701646-7876-2-git-send-email-kishon@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RE3pQJLXZi4fr8Xo"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="xs+9IvWevLaxKUtW"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1438697169-32359-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gregkh@linuxfoundation.org
+In-Reply-To: <1438701646-7876-2-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: rogerq-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---RE3pQJLXZi4fr8Xo
+--xs+9IvWevLaxKUtW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Tue, Aug 04, 2015 at 07:36:09PM +0530, Kishon Vijay Abraham I wrote:
-> Deprecate using phy-omap-control driver to write to the mailbox register
-> and start using *syscon* framework to do the same.
+On Tue, Aug 04, 2015 at 08:50:40PM +0530, Kishon Vijay Abraham I wrote:
+> No functional change. Add separate functions for pll,
+> clocks and syscon to make ti_pipe3_probe clean.
 >=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  Documentation/devicetree/bindings/usb/omap-usb.txt |    7 +-
->  drivers/usb/musb/omap2430.c                        |  115 ++++++++++++++=
-++----
->  2 files changed, 99 insertions(+), 23 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documen=
-tation/devicetree/bindings/usb/omap-usb.txt
-> index 38d9bb8..c001306 100644
-> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> @@ -20,10 +20,15 @@ OMAP MUSB GLUE
->   - phy-names : the names of the PHY corresponding to the PHYs present in=
- the
->     *phy* phandle.
-> =20
-> -Optional properties:
-> +Optional Properties:
-> +Deprecated properties:
->   - ctrl-module : phandle of the control module this glue uses to write to
->     mailbox
-> =20
-> +Recommended properies:
-> + - syscon-otghs : phandle/offset pair. Phandle to the system control mod=
-ule and the
-> +   register offset of the mailbox.
-> +
->  SOC specific device node entry
->  usb_otg_hs: usb_otg_hs@4a0ab000 {
->  	compatible =3D "ti,omap4-musb";
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 70f2b8a..a03cf1e 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -39,16 +39,27 @@
->  #include <linux/usb/musb-omap.h>
->  #include <linux/phy/omap_control_phy.h>
->  #include <linux/of_platform.h>
-> +#include <linux/regmap.h>
-> +#include <linux/mfd/syscon.h>
-> =20
->  #include "musb_core.h"
->  #include "omap2430.h"
-> =20
-> +#define OMAP2430_MUSB_MODE_MASK	0x1f
-> +#define OMAP2430_MUSB_AVALID	BIT(0)
-> +#define OMAP2430_MUSB_BVALID	BIT(1)
-> +#define OMAP2430_MUSB_VBUSVALID	BIT(2)
-> +#define OMAP2430_MUSB_SESSEND	BIT(3)
-> +#define OMAP2430_MUSB_IDDIG	BIT(4)
-> +
->  struct omap2430_glue {
->  	struct device		*dev;
->  	struct platform_device	*musb;
->  	enum omap_musb_vbus_id_status status;
->  	struct work_struct	omap_musb_mailbox_work;
->  	struct device		*control_otghs;
-> +	struct regmap		*syscon_otghs; /* ctrl. reg. acces */
-> +	unsigned int            otghs_reg; /* otghs reg. index within syscon */
->  };
->  #define glue_to_musb(g)		platform_get_drvdata(g->musb)
-> =20
-> @@ -253,6 +264,44 @@ void omap_musb_mailbox(enum omap_musb_vbus_id_status=
- status)
->  }
->  EXPORT_SYMBOL_GPL(omap_musb_mailbox);
-> =20
-> +static void omap2430_musb_set_usbmode(struct omap2430_glue *glue,
-> +				      enum omap_control_usb_mode mode)
-> +{
-> +	u32 val;
-> +	int ret;
-> +
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 
-	if (!glue->syscon_otghs) {
-		omap_control_usb_set_mode(glue->control_otghs, mode);
-		return;
-	}
+I think this needs to be splitted into smaller patches.
 
-	switch (mode) {
-	case USB_MODE_HOST:
-		val =3D OMAP2430_MUSB_AVALID | OMAP2430_MUSB_VBUSVALID;
-		break;
-	case USB_MODE_DEVICE:
-		val =3D OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_AVALID |
-			OMAP2430_MUSB_VBUSVALID;
-		break;
-	case USB_MODE_DISCONNECT:
-		val =3D OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_SESSEND;
-		break;
-	default:
-		dev_dbg(glue->dev, "Invalid mode\n");
-		dev_err(glue->dev, "Failed to set mode to %d\n", mode);
-	}
-
-	ret =3D regmap_update_bits(glue->syscon_otghs,
-				 glue->otghs_reg,
-				 OMAP2430_MUSB_MODE_MASK, val);
-	if (ret < 0)
-		dev_err(glue->dev, "Failed to update regmap\n");
-
-other than that, looks fine.
+Seems like the very first patch would be to introduce a local struct
+device pointer to be used. Than add each and every new function on their
+own patch. This will help big time making your refactoring a lot clearer
+and, should anything go wrong, we can atomically revert a specific
+change, instead of loosing the entire refactor.
 
 --=20
 balbi
 
---RE3pQJLXZi4fr8Xo
+--xs+9IvWevLaxKUtW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVwOELAAoJEIaOsuA1yqREBWYQAIsVZVIr5V6hXT+jLXnxsP5t
-MntExVVGel7LlxLP2h3gVN1oX0HWsA6PC6VEjfHrQysxT8gQ6Q2YavxTSv5PQBoX
-tAd3dplJ6GUjEEtyCTRuqtDFmuVLfKHU/CJUpmPWUuwh8OqqSURzRLNAKASSXfm6
-ljMUnmKCOi8DBEJCuReg3QmjKtKCbT29eaXISFEIs35nZfPTQM0hAo8hCxRwZ1/j
-neFqYwfbCLt5PhfqTV89Kz+ssv+BZKkchVnpfnP//VmHadfsicl0FmMp5jqSICPV
-Ay/2sR+uD8cjBNj9pnPjnyde10uWPe2ulRdGnoL9TERZNdNjDCtqs/OlEL+UFlVH
-ptGJYqBq4xdFYpWgm7kcncVP02SFDr7bi0GVnp2gBPZOYbF0XiT36riRm/l2q0x4
-068qq1kAr92q5xMbfp4aFTj+6kn/5zNKTWCrvmaP2ETcU9tzQDTbBhCaLD9rAbdc
-FDxQ/okBiFjePSmhtYw9oCo1i3slr16Mr7pkvc67g7pdjXhr5tvds7LB6wV2qJnX
-2CLSg5AWcGaaYuhA0dd3KhN24wbOCc5gjEcAsR4qdsKPDzedo9M+mJrv7HNQiPcj
-HwsVrFeQBWZvNlrI2CBfd06pUZXobUpIAln5jBjB32eA41g/3jh8DfPzdpQ5GE0j
-AyTcI8rKNxADZd2HPg+Y
-=SPyv
+iQIcBAEBAgAGBQJVwOGbAAoJEIaOsuA1yqREHbUP/i3RO4hl2GJzeN8vL6Edwkdm
++jhJ1GKYWUX7KQEZ74HKKG1oAORT3R095ruJtszq0nrbEhVyM/FaC8TwvZFhbtxK
+4F7Id9kxjrQ1njFN87n4WfzUQlAAO2IuqFdSh+qKDAj2zTNYhMO8mcqQdLPYs3Kj
+k4ew8RXsS8toHqpWnmH7L5w30WjiqOo8z3UUaVm3Zogdw6pNnYYidqoqBX8ZC42z
+62LDHSmZ8CP7P4iAFr8kZSAXp9SZCamrVRTy2o8q5LpyduWCxIvdAmOpZcijlDlP
+fYkZD4yP/1G03b9Fis+BOcXmXZKPJRYtZKMEer0zeVgxA6fP3XqUxaepRHJA4PDs
+1xhHjuczw3e1wa3k8ZMTNjcFn4F+soMgIbAR4Y3QjIVXz2d7E7EMyWWcT2Io13zF
+ceaISmghmdZcLnhQDOp27p4tPgeFWVjkG/4bgyiNUt847wnhhVZtfUx3pDFDIvEV
+ct+Q2TpGVeHt0+pnMOPAlS5STN6um/FI9/zuGhGdOAqTVXV3gxNrNq7bhH6xwd5L
+jbl8kqjR/Rf5GWiaWlTnibcv+TZNCYfN3z/RfiP3QcELcIs+ejbucGbI1qB1Fqnm
+gfn6REfySExuh5Ppy2F67qETDRwawNNRf9WiwsMrg/zdRDs6fA9zghrjrJhiVWt1
+dARmvr2TNn3123P+TSeN
+=Vv01
 -----END PGP SIGNATURE-----
 
---RE3pQJLXZi4fr8Xo--
+--xs+9IvWevLaxKUtW--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
