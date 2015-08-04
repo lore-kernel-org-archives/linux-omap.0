@@ -1,92 +1,108 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 5/7] phy: omap-usb2: use omap_usb_power_off to power off
- the PHY during probe
-Date: Tue, 4 Aug 2015 11:07:21 -0500
-Message-ID: <20150804160721.GI23659@saruman.tx.rr.com>
-References: <1438701646-7876-1-git-send-email-kishon@ti.com>
- <1438701646-7876-6-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+Subject: Re: [PATCH v5 07/46] usb: dwc3: gadget: add ep capabilities support
+Date: Tue, 4 Aug 2015 11:09:48 -0500
+Message-ID: <20150804160948.GJ23659@saruman.tx.rr.com>
+References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
+ <1438351258-31578-8-git-send-email-r.baldyga@samsung.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dCSxeJc5W8HZXZrD"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1438701646-7876-6-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: rogerq@ti.com, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, nsekhar@ti.com
+Content-Type: multipart/mixed; boundary="===============8398830895221987623=="
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1438351258-31578-8-git-send-email-r.baldyga@samsung.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Robert Baldyga <r.baldyga@samsung.com>
+Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
 List-Id: linux-omap@vger.kernel.org
 
---dCSxeJc5W8HZXZrD
+--===============8398830895221987623==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YZVh52eu0Ophig4D"
+Content-Disposition: inline
+
+--YZVh52eu0Ophig4D
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 04, 2015 at 08:50:44PM +0530, Kishon Vijay Abraham I wrote:
-> No functional change. Previously omap_control_phy_power() was used to pow=
-er
-
-same comment as before.
-
-> off the PHY during probe. But once phy-omap-usb2 driver is adapted to
-> use syscon, omap_control_phy_power() cannot be used. Hence used
-> omap_usb_power_off to power off the PHY.
+On Fri, Jul 31, 2015 at 04:00:19PM +0200, Robert Baldyga wrote:
+> Convert endpoint configuration to new capabilities model.
 >=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Acked-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Robert Baldyga <r.baldyga@samsung.com>
 > ---
->  drivers/phy/phy-omap-usb2.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/usb/dwc3/gadget.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
 >=20
-> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-> index c1a4686..b5c266a 100644
-> --- a/drivers/phy/phy-omap-usb2.c
-> +++ b/drivers/phy/phy-omap-usb2.c
-> @@ -241,7 +241,6 @@ static int omap_usb2_probe(struct platform_device *pd=
-ev)
->  	}
+> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> index 2feed9e..bd4c3db 100644
+> --- a/drivers/usb/dwc3/gadget.c
+> +++ b/drivers/usb/dwc3/gadget.c
+> @@ -1715,6 +1715,19 @@ static int dwc3_gadget_init_hw_endpoints(struct dw=
+c3 *dwc,
+>  				return ret;
+>  		}
 > =20
->  	phy->control_dev =3D &control_pdev->dev;
-> -	omap_control_phy_power(phy->control_dev, 0);
-> =20
->  	otg->set_host		=3D omap_usb_set_host;
->  	otg->set_peripheral	=3D omap_usb_set_peripheral;
-> @@ -261,6 +260,7 @@ static int omap_usb2_probe(struct platform_device *pd=
-ev)
->  	}
-> =20
->  	phy_set_drvdata(generic_phy, phy);
-> +	omap_usb_power_off(generic_phy);
-> =20
->  	phy_provider =3D devm_of_phy_provider_register(phy->dev,
->  			of_phy_simple_xlate);
-> --=20
-> 1.7.9.5
->=20
+> +		if (epnum =3D=3D 0 || epnum =3D=3D 1) {
+> +			dep->endpoint.caps.type_control =3D true;
+> +		} else {
+> +			dep->endpoint.caps.type_iso =3D true;
+> +			dep->endpoint.caps.type_bulk =3D true;
+> +			dep->endpoint.caps.type_int =3D true;
+> +		}
+> +
+> +		if (direction)
+> +			dep->endpoint.caps.dir_in =3D true;
+> +		else
+> +			dep->endpoint.caps.dir_out =3D true;
+
+you can avoid the branch for the direction:
+
+		dep->endpoint.caps.dir_in =3D !!direction;
+		dep->endpoint.caps.dir_out =3D !direction;
 
 --=20
 balbi
 
---dCSxeJc5W8HZXZrD
+--YZVh52eu0Ophig4D
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVwOM5AAoJEIaOsuA1yqREUvMP/0P4SFD9Vy70w/xu0jxcgSf/
-jX7Cdk/yK29A/lrFvzIJhjX65Z6RazB69YNQVQvAhdIHq2ij3j17Hdp9Vx0Df096
-o7sh2rip9SWiLwBqP+5bQPg/TnLnKRoZ8iU6dLfmHwrkM7IJ45WK60YOdU8velSX
-cQdGq/F7/F9ZPX9LMqtS9coqG4Z7Jr9hgQxuvuQGnSZEwoT9bWr8qJwwn7spTqbz
-T43eRm2PiGidjqub4wOgXGjHCuiOpNd+r6rVqZLSV6XWTc245x/wPPwVxbQgGeNC
-4oVNiEuD6h2PNqtpg+SvOqUhTtMnPF3J0eIeiPge4jWuBGOnrV0dpiviCOUrA03B
-4xN8bYhS0++WHor6OND6a4PabVBBHwt758liWKLVZRuwTD7+SA6PNH9E14iWM5AI
-bmZFIjqJ4jxBNgbTpdaYenjTub9vrbpyDDTryeuzA3vDPpoiV8HRVmwV0WyFdzq5
-Au9L+ROnpVhlQpHB523OShzGu/mj4Eg9a6i5Zlz9ZGvr83sS8kt/s5MVrI2U6M4l
-EDgYFztNtiTXNUmdmXH6bE8cHQFnXuRpI4kscramPCxYH4ZZK1zlmIybAP1ykcbb
-TDbRfjsMkBKLh850PDqcYBdcWntBcGNMQGDrsRWymYuXvU0KuXPEmFsplP0V+Bhw
-bX+7xRfpKPLlGShcvadV
-=+/kn
+iQIcBAEBAgAGBQJVwOPLAAoJEIaOsuA1yqREeMsQAIPG7g/oNsMI+/wgc4MgLGj4
+PRHvg9RnBfZaeh0OoXPyA+YPZPVzl9NMNhv2+Y1fs57Kxs/vGRtDZHzBWLd+8ttd
+sOm5xEFxy/Y386OSe1R9B0lSv2bdQhQylXML4kLH5T9qkxMobNVKZa1Ao1OYHCBe
+DHCeAa8qZqTyP3cW8sFScXKiIonDJQ0NMnYHC2Pu8YHTCWjltPEpj12Y2kA3uiKZ
+dUNMyvYMqhqzmTui3s3Wvyv/2YnA3/KVz8obu2b+tfGUTXMsZ3qtGAcboq9gknd8
+GwcRQ+RpVYfu5nuLhsbkD8Osw6qiWguETcsavxLxrrCh+DRfJUkVIQ/rhOdO/+hq
+WMLVgRjBxp0NHbq/ftXMAdrQuNTF8b3oEyH6MXIXwVhNc3R453HqbuswaWNl1bzg
+cElNL7IytQVF0ksLF2R6nBQrnHnMmdK+j1QpJZiL98ea6Z942a5ykawHhsJ2XL0M
+Q5VpSfL98+4Awg9YX0fdao6R7HbyDklMEmkEb2q99wXlf8vOGQQIWN5WTPLFtmfp
++h2+Pw2Q7R+pPn0sg284eqctA0LTiOYPakzKcXMVMRhx3NuRhzzDDVydhROsg40F
+kcuKLSFR/ZHGh798vqpU/22cENVimjYHIlHPvJuM53uOP8rslntxg1octhrYRToF
+Eyx4MQPzIbkUZ6OlAWgL
+=Zeuq
 -----END PGP SIGNATURE-----
 
---dCSxeJc5W8HZXZrD--
+--YZVh52eu0Ophig4D--
+
+--===============8398830895221987623==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devel mailing list
+devel@linuxdriverproject.org
+http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+
+--===============8398830895221987623==--
