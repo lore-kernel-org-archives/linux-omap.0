@@ -1,45 +1,48 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 3/3] ARM: dts: dra7: Add scm_conf@1c04 node
-Date: Tue, 4 Aug 2015 12:10:14 +0300
-Message-ID: <55C08176.4000107@ti.com>
-References: <1437992850-6008-1-git-send-email-rogerq@ti.com> <1437992850-6008-4-git-send-email-rogerq@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 3/3] serial: 8250: omap: restore registers on shutdown
+Date: Tue, 04 Aug 2015 13:58:44 +0200
+Message-ID: <55C0A8F4.4010204@linutronix.de>
+References: <87egjp2r4a.fsf@linutronix.de> <55BAC67E.1010400@hurleysoftware.com> <20150803160937.GA26497@linutronix.de> <55BF980E.20908@hurleysoftware.com> <55BF9CE0.4080107@linutronix.de> <55BFC1BA.5020605@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437992850-6008-4-git-send-email-rogerq@ti.com>
+In-Reply-To: <55BFC1BA.5020605@hurleysoftware.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, tony@atomide.com
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rogerq@ti.com
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: John Ogness <john.ogness@linutronix.de>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, linux-serial@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-This region contains CTRL_CORE_SMA_SW2..9 registers which
-are not specific to any domain and can be reasonably
-accessed via syscon driver.
+On 08/03/2015 09:32 PM, Peter Hurley wrote:
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
+>> You mean a function in 8250-dma API which does what I did just here
+>> with the wait_event() and the wake_up in the callback? That way I could
+>> move the termios_wait into the dma struct instead of keeping in the
+>> omap specific part. I am also not sure if OMAP is the only one that may
+>> hang here or the other people just didn't notice it yet.
+> 
+> Exactly; and we need to fix DMA wrt x_char anyway.
+> 
+> Going back to the dmaengine api, I think something like this might work
+> (as a first approximation):
+> 
+> 	dma_sync_wait(dma->txchan, dma->tx_cookie);
+> 	dmaengine_pause(dma->txchan);
+> 
+> 	/* remainder of set_termios */
+> 
+> 	dmaengine_resume(dma->txchan);
+> 
+> We could require 8250 core dma to support pause/resume.
 
-v3: removed #address/size-cells.
+I would prefer the waitqueue approach.
+You can't do this while holding the port lock. The lock is taken with
+irqs off so may not see the transfer completing.
+Why do you pause the channel? It may not work without an active
+descriptor and a start without "resume" should work. Also you must
+ensure that DMA's complete callback does not start another transfer if
+there is something queued up (that is why I had the tx_running dance).
+I am not sure if a transfer that is active and then paused will not
+trigger the hang bug if we change the termios in between.
 
- arch/arm/boot/dts/dra7.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 913032b..2cab476 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -149,6 +149,11 @@
- 					pinctrl-single,register-width = <32>;
- 					pinctrl-single,function-mask = <0x3fffffff>;
- 				};
-+
-+				scm_conf1: scm_conf@1c04 {
-+					compatible = "syscon";
-+					reg = <0x1c04 0x0020>;
-+				};
- 			};
- 
- 			cm_core_aon: cm_core_aon@5000 {
--- 
-2.1.4
+Sebastian
