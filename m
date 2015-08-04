@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 03/10] ARM: dts: dra7: Use "syscon-phy-power" and "syscon-pcs" in PCIe PHY node
-Date: Tue, 4 Aug 2015 21:00:26 +0530
-Message-ID: <1438702233-8027-4-git-send-email-kishon@ti.com>
+Subject: [PATCH 02/10] ARM: dts: dra7: Use "syscon-phy-power" instead of "ctrl-module" in SATA PHY node
+Date: Tue, 4 Aug 2015 21:00:25 +0530
+Message-ID: <1438702233-8027-3-git-send-email-kishon@ti.com>
 References: <1438702233-8027-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,81 +12,42 @@ To: rogerq@ti.com, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org
 Cc: balbi@ti.com, bcousson@baylibre.com, linux@arm.linux.org.uk, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add "syscon-phy-power" property and "syscon-pcs" property which can
-be used to perform the control module initializations and remove
-the deprecated "ctrl-module" property from PCIe PHY dt nodes.
-
-Phandle to "sysclk" clock node is also added to the PCIe PHY node
-since some of the syscon initializations is based on system clock
-frequency.
-
-Since "omap_control_pcie1phy" and "omap_control_pcie2phy" devicetree
-nodes are no longer used, remove it.
+Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
+property from SATA PHY node. Since "omap_control_sata" note is no longer
+used, remove it.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |   28 +++++++---------------------
- 1 file changed, 7 insertions(+), 21 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 6854385..0ebb808 100644
+index 33c5655..6854385 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1140,16 +1140,18 @@
- 				reg = <0x4a094000 0x80>, /* phy_rx */
- 				      <0x4a094400 0x64>; /* phy_tx */
- 				reg-names = "phy_rx", "phy_tx";
--				ctrl-module = <&omap_control_pcie1phy>;
-+				syscon-phy-power = <&scm_conf2 0x1c>;
-+				syscon-pcs = <&scm_conf2 0x10>;
- 				clocks = <&dpll_pcie_ref_ck>,
- 					 <&dpll_pcie_ref_m2ldo_ck>,
- 					 <&optfclk_pciephy1_32khz>,
- 					 <&optfclk_pciephy1_clk>,
- 					 <&optfclk_pciephy1_div_clk>,
--					 <&optfclk_pciephy_div>;
-+					 <&optfclk_pciephy_div>,
-+					 <&sys_clkin1>;
- 				clock-names = "dpll_ref", "dpll_ref_m2",
- 					      "wkupclk", "refclk",
--					      "div-clk", "phy-div";
-+					      "div-clk", "phy-div", "sysclk";
- 				#phy-cells = <0>;
- 			};
- 
-@@ -1158,7 +1160,8 @@
- 				reg = <0x4a095000 0x80>, /* phy_rx */
- 				      <0x4a095400 0x64>; /* phy_tx */
- 				reg-names = "phy_rx", "phy_tx";
--				ctrl-module = <&omap_control_pcie2phy>;
-+				syscon-phy-power = <&scm_conf2 0x20>;
-+				syscon-pcs = <&scm_conf2 0x10>;
- 				clocks = <&dpll_pcie_ref_ck>,
- 					 <&dpll_pcie_ref_m2ldo_ck>,
- 					 <&optfclk_pciephy2_32khz>,
-@@ -1183,23 +1186,6 @@
- 			ti,hwmods = "sata";
+@@ -1115,14 +1115,6 @@
+ 			status = "disabled";
  		};
  
--		omap_control_pcie1phy: control-phy@0x4a003c40 {
--			compatible = "ti,control-phy-pcie";
--			reg = <0x4a003c40 0x4>, <0x4a003c14 0x4>, <0x4a003c34 0x4>;
--			reg-names = "power", "control_sma", "pcie_pcs";
+-		omap_control_sata: control-phy@4a002374 {
+-			compatible = "ti,control-phy-pipe3";
+-			reg = <0x4a002374 0x4>;
+-			reg-names = "power";
 -			clocks = <&sys_clkin1>;
 -			clock-names = "sysclk";
 -		};
 -
--		omap_control_pcie2phy: control-pcie@0x4a003c44 {
--			compatible = "ti,control-phy-pcie";
--			reg = <0x4a003c44 0x4>, <0x4a003c14 0x4>, <0x4a003c34 0x4>;
--			reg-names = "power", "control_sma", "pcie_pcs";
--			clocks = <&sys_clkin1>;
--			clock-names = "sysclk";
--			status = "disabled";
--		};
--
- 		rtc: rtc@48838000 {
- 			compatible = "ti,am3352-rtc";
- 			reg = <0x48838000 0x100>;
+ 		/* OCP2SCP3 */
+ 		ocp2scp@4a090000 {
+ 			compatible = "ti,omap-ocp2scp";
+@@ -1137,7 +1129,7 @@
+ 				      <0x4A096400 0x64>, /* phy_tx */
+ 				      <0x4A096800 0x40>; /* pll_ctrl */
+ 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+-				ctrl-module = <&omap_control_sata>;
++				syscon-phy-power = <&scm_conf 0x374>;
+ 				clocks = <&sys_clkin1>, <&sata_ref_clk>;
+ 				clock-names = "sysclk", "refclk";
+ 				#phy-cells = <0>;
 -- 
 1.7.9.5
