@@ -1,64 +1,159 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 4/5] ARM: dts: DRA7: Add memory map region entries
- for qspi
-Date: Tue, 4 Aug 2015 16:52:36 +0100
-Message-ID: <20150804155236.GS20873@sirena.org.uk>
-References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
- <1438072876-16338-5-git-send-email-vigneshr@ti.com>
- <20150731181903.GN20873@sirena.org.uk>
- <55BEF5D1.1050608@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: musb: omap2430: use *syscon* framework API to write
+ to mailbox register
+Date: Tue, 4 Aug 2015 10:58:03 -0500
+Message-ID: <20150804155803.GF23659@saruman.tx.rr.com>
+References: <1438697169-32359-1-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="DNbkntcEGyiBe7B+"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RE3pQJLXZi4fr8Xo"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55BEF5D1.1050608-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1438697169-32359-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-
---DNbkntcEGyiBe7B+
+--RE3pQJLXZi4fr8Xo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 03, 2015 at 10:32:09AM +0530, Vignesh R wrote:
-> On 07/31/2015 11:49 PM, Mark Brown wrote:
+Hi,
 
-> >> -			reg = <0x47900000 0x100>;
-> >> +			reg = <0x47900000 0x100>,
-> >> +			      <0x30000000 0x3ffffff>;
-> >> +			reg-names = "qspi_base", "qspi_mmap";
+On Tue, Aug 04, 2015 at 07:36:09PM +0530, Kishon Vijay Abraham I wrote:
+> Deprecate using phy-omap-control driver to write to the mailbox register
+> and start using *syscon* framework to do the same.
+>=20
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |    7 +-
+>  drivers/usb/musb/omap2430.c                        |  115 ++++++++++++++=
+++----
+>  2 files changed, 99 insertions(+), 23 deletions(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documen=
+tation/devicetree/bindings/usb/omap-usb.txt
+> index 38d9bb8..c001306 100644
+> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
+> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+> @@ -20,10 +20,15 @@ OMAP MUSB GLUE
+>   - phy-names : the names of the PHY corresponding to the PHYs present in=
+ the
+>     *phy* phandle.
+> =20
+> -Optional properties:
+> +Optional Properties:
+> +Deprecated properties:
+>   - ctrl-module : phandle of the control module this glue uses to write to
+>     mailbox
+> =20
+> +Recommended properies:
+> + - syscon-otghs : phandle/offset pair. Phandle to the system control mod=
+ule and the
+> +   register offset of the mailbox.
+> +
+>  SOC specific device node entry
+>  usb_otg_hs: usb_otg_hs@4a0ab000 {
+>  	compatible =3D "ti,omap4-musb";
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 70f2b8a..a03cf1e 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -39,16 +39,27 @@
+>  #include <linux/usb/musb-omap.h>
+>  #include <linux/phy/omap_control_phy.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/regmap.h>
+> +#include <linux/mfd/syscon.h>
+> =20
+>  #include "musb_core.h"
+>  #include "omap2430.h"
+> =20
+> +#define OMAP2430_MUSB_MODE_MASK	0x1f
+> +#define OMAP2430_MUSB_AVALID	BIT(0)
+> +#define OMAP2430_MUSB_BVALID	BIT(1)
+> +#define OMAP2430_MUSB_VBUSVALID	BIT(2)
+> +#define OMAP2430_MUSB_SESSEND	BIT(3)
+> +#define OMAP2430_MUSB_IDDIG	BIT(4)
+> +
+>  struct omap2430_glue {
+>  	struct device		*dev;
+>  	struct platform_device	*musb;
+>  	enum omap_musb_vbus_id_status status;
+>  	struct work_struct	omap_musb_mailbox_work;
+>  	struct device		*control_otghs;
+> +	struct regmap		*syscon_otghs; /* ctrl. reg. acces */
+> +	unsigned int            otghs_reg; /* otghs reg. index within syscon */
+>  };
+>  #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+> =20
+> @@ -253,6 +264,44 @@ void omap_musb_mailbox(enum omap_musb_vbus_id_status=
+ status)
+>  }
+>  EXPORT_SYMBOL_GPL(omap_musb_mailbox);
+> =20
+> +static void omap2430_musb_set_usbmode(struct omap2430_glue *glue,
+> +				      enum omap_control_usb_mode mode)
+> +{
+> +	u32 val;
+> +	int ret;
+> +
 
-> > The DT binding document for the controller needs to be extended to
-> > document this change in the binding.
+	if (!glue->syscon_otghs) {
+		omap_control_usb_set_mode(glue->control_otghs, mode);
+		return;
+	}
 
-> DT bindings are already documented at
-> Documentation/devicetree/bindings/spi/ti_qspi.txt. Did you mean to add
-> this node as an example in that file?
+	switch (mode) {
+	case USB_MODE_HOST:
+		val =3D OMAP2430_MUSB_AVALID | OMAP2430_MUSB_VBUSVALID;
+		break;
+	case USB_MODE_DEVICE:
+		val =3D OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_AVALID |
+			OMAP2430_MUSB_VBUSVALID;
+		break;
+	case USB_MODE_DISCONNECT:
+		val =3D OMAP2430_MUSB_IDDIG | OMAP2430_MUSB_SESSEND;
+		break;
+	default:
+		dev_dbg(glue->dev, "Invalid mode\n");
+		dev_err(glue->dev, "Failed to set mode to %d\n", mode);
+	}
 
-No, I mean you're changing the binding to add this new memory region -
-that new region needs to be added to the documentation.
+	ret =3D regmap_update_bits(glue->syscon_otghs,
+				 glue->otghs_reg,
+				 OMAP2430_MUSB_MODE_MASK, val);
+	if (ret < 0)
+		dev_err(glue->dev, "Failed to update regmap\n");
 
---DNbkntcEGyiBe7B+
+other than that, looks fine.
+
+--=20
+balbi
+
+--RE3pQJLXZi4fr8Xo
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQEcBAEBCAAGBQJVwN/DAAoJECTWi3JdVIfQDmgIAIR4xT4J2eYaCKDeCNkOZR0Z
-oGMLIpACnU+bu9wiAPbfQMq43bQOdP7XSZAHrxKkXmLVZpVUPeGpOmN4Wa99U25W
-whmSIjwJf73efIv8N8K4Y4QUiU73JL1RAfIDl2moe2708e4sFEJGN0NufeHcppHr
-vZdjKfIfhVnZ6DuF7TkItapDBq6E5BVMXLoIr1RCN11gYcupBqBiqQGEhrY6fQsy
-bVzX1OjtJoGtTaybt1or9KPgMWcP2EapqBJ8qTwcLdnAlsMr8Jb1qxS89in82Q6q
-QqwahNKtFSNzzVtds/Mc7YOEGUBdl9qWc669cKTwJClNmbHv4chkuXAPCnkf7uU=
-=Hgzf
+iQIcBAEBAgAGBQJVwOELAAoJEIaOsuA1yqREBWYQAIsVZVIr5V6hXT+jLXnxsP5t
+MntExVVGel7LlxLP2h3gVN1oX0HWsA6PC6VEjfHrQysxT8gQ6Q2YavxTSv5PQBoX
+tAd3dplJ6GUjEEtyCTRuqtDFmuVLfKHU/CJUpmPWUuwh8OqqSURzRLNAKASSXfm6
+ljMUnmKCOi8DBEJCuReg3QmjKtKCbT29eaXISFEIs35nZfPTQM0hAo8hCxRwZ1/j
+neFqYwfbCLt5PhfqTV89Kz+ssv+BZKkchVnpfnP//VmHadfsicl0FmMp5jqSICPV
+Ay/2sR+uD8cjBNj9pnPjnyde10uWPe2ulRdGnoL9TERZNdNjDCtqs/OlEL+UFlVH
+ptGJYqBq4xdFYpWgm7kcncVP02SFDr7bi0GVnp2gBPZOYbF0XiT36riRm/l2q0x4
+068qq1kAr92q5xMbfp4aFTj+6kn/5zNKTWCrvmaP2ETcU9tzQDTbBhCaLD9rAbdc
+FDxQ/okBiFjePSmhtYw9oCo1i3slr16Mr7pkvc67g7pdjXhr5tvds7LB6wV2qJnX
+2CLSg5AWcGaaYuhA0dd3KhN24wbOCc5gjEcAsR4qdsKPDzedo9M+mJrv7HNQiPcj
+HwsVrFeQBWZvNlrI2CBfd06pUZXobUpIAln5jBjB32eA41g/3jh8DfPzdpQ5GE0j
+AyTcI8rKNxADZd2HPg+Y
+=SPyv
 -----END PGP SIGNATURE-----
 
---DNbkntcEGyiBe7B+--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--RE3pQJLXZi4fr8Xo--
