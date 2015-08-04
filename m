@@ -1,56 +1,66 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 2/3] ARM: dts: dra7: Add syscon-pllreset syscon to
- SATA PHY
-Date: Tue, 4 Aug 2015 21:13:28 +0530
-Message-ID: <55C0DDA0.1020304@ti.com>
-References: <1437140844-6032-1-git-send-email-rogerq@ti.com> <1437140844-6032-3-git-send-email-rogerq@ti.com> <55C0757D.1090306@ti.com> <20150804084151.GS16878@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Tue, 4 Aug 2015 16:51:48 +0100
+Message-ID: <20150804155148.GR20873@sirena.org.uk>
+References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
+ <1438072876-16338-2-git-send-email-vigneshr@ti.com>
+ <20150731181745.GM20873@sirena.org.uk>
+ <55BEF4AF.5090704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="zYaYz6F2svGt3wno"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150804084151.GS16878@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <55BEF4AF.5090704@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
-Cc: nm@ti.com, nsekhar@ti.com, balbi@ti.com, grygorii.strashko@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Huang Shijie <b32955@freescale.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--zYaYz6F2svGt3wno
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Tuesday 04 August 2015 02:11 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [150804 01:22]:
->> Tony,
->>
->> On 17/07/15 16:47, Roger Quadros wrote:
->>> This register is required to be passed to the SATA PHY driver
->>> to workaround errata i783 (SATA Lockup After SATA DPLL Unlock/Relock).
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>
->> Can you please Ack or pick this for -fixes.
->> Kishon has already picked patch 1 in this series. Thanks.
-> 
-> Best that Kishon takes both then:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+On Mon, Aug 03, 2015 at 10:27:19AM +0530, Vignesh R wrote:
 
-merged, thanks.
+> @use_mmap_mode: Some SPI controller chips are optimized for interacting
+> with serial flash memories. These chips have memory mapped interface,
+> through which entire serial flash memory slave can be read/written as if
+> though they are physical memories (like RAM). Using this interface,
+> flash can be accessed using memcpy() function and the spi controller
+> hardware will take care of communicating with serial flash over SPI.
+> Setting this flag will indicate the SPI controller driver that the
+> spi_message is from mtd layer to read from/write to flash. The SPI
+> master driver can then appropriately switch the controller to memory
+> mapped interface to read from/write to flash, based on this flag (See
+> drivers/spi/spi-ti-qspi.c for example).
+> NOTE: If the SPI controller chip lacks memory mapped interface, then the
+> driver will ignore this flag and use normal SPI protocol to read
+> from/write to flash. Communication with non-flash SPI devices is not
+> possible using the memory mapped interface.
 
--Kishon
->  
->>> ---
->>>  arch/arm/boot/dts/dra7.dtsi | 1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>> index 8f1e25b..4a0718c 100644
->>> --- a/arch/arm/boot/dts/dra7.dtsi
->>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>> @@ -1140,6 +1140,7 @@
->>>  				ctrl-module = <&omap_control_sata>;
->>>  				clocks = <&sys_clkin1>, <&sata_ref_clk>;
->>>  				clock-names = "sysclk", "refclk";
->>> +				syscon-pllreset = <&scm_conf 0x3fc>;
->>>  				#phy-cells = <0>;
->>>  			};
->>>  
->>>
+I still can't tell from the above what this interface is supposed to do.
+It sounds like the use of memory mapped mode is supposed to be
+transparent to users, it should just affect how the controller interacts
+with the hardware, but if that's the case why do we need to expose it to
+users at all?  Shouldn't the driver just use memory mapped mode if it's
+faster?
+
+--zYaYz6F2svGt3wno
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVwN+UAAoJECTWi3JdVIfQYvEH/AxbIEh4Z3wk0/fRXRwuE2N6
+M8CdBC7sVqTzidzqFY1PyXOc8tHIxlYHUEEG9Fx/yC1oOW0NJNVV+8FOJj4HVC0N
+unGPXMEH/PaBAZYAeaiGYUZg7sGzUVcAX2QqA594NJpcaG5stX/0wrcshiTBofEc
+0ebxHQy9WAxvOUGhB0DJDn4m/j34+42krz+O2OI7nGMm2p/0G1r1EobuHejHCEyQ
+i8cpQbdngVQYIUrhLtiGUSYppfC0qB70Nw97H0WXEaIuF9zQ4CtIsJpnAlCMKznw
+BLF0obMgtKkOHqA9TyzrosVBzOb+EYjHkSQyWRs/tt/r+qwh+Qt8i06sq4gaQ7o=
+=VgSn
+-----END PGP SIGNATURE-----
+
+--zYaYz6F2svGt3wno--
