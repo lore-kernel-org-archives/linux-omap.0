@@ -1,50 +1,64 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 0/7] ARM: dts: MMC fixes for DRA7 based boards
-Date: Wed, 5 Aug 2015 20:36:25 +0530
-Message-ID: <55C22671.1060906@ti.com>
-References: <1438244020-4244-1-git-send-email-kishon@ti.com> <20150805105400.GF16878@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/8] ARM: dts: AM4372: Reorder the rtc compatible string
+Date: Wed, 5 Aug 2015 10:31:48 -0500
+Message-ID: <20150805153148.GB12328@saruman.tx.rr.com>
+References: <1438771792-12604-1-git-send-email-j-keerthy@ti.com>
+ <1438771792-12604-2-git-send-email-j-keerthy@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20150805105400.GF16878@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, nsekhar@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZoaI/ZTpAVc4A5k6"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1438771792-12604-2-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+--ZoaI/ZTpAVc4A5k6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 05 August 2015 04:24 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [150730 01:16]:
->> Miscellaneous fixes in dts files for MMC device tree nodes.
->>
->> Did basic read/write test in J6, J6 Eco and Beagle-x15
->>
->> Balaji T K (1):
->>   ARM: dts: dra7-evm: add evm_3v3_sd regulator
->>
->> Kishon Vijay Abraham I (5):
->>   ARM: dts: dra72-evm: add evm_3v3_sd regulator
->>   ARM: dts: dra72-evm: Set max clock frequency of MMC1 and MMC2
->>   ARM: dts: am57xx-beagle-x15: mmc1: remove redundant pbias-supply
->>     property
->>   ARM: dts: dra7-evm: Fix spurious card insert/removal interrupt
->>   ARM: dts: dra72-evm: Fix spurious card insert/removal interrupt
->>
->> Nishanth Menon (1):
->>   ARM: dts: dra7-evm: Add MMCSD card removal GPIO
->>
->>  arch/arm/boot/dts/am57xx-beagle-x15.dts |    1 -
->>  arch/arm/boot/dts/dra7-evm.dts          |   18 +++++++++++++++++-
->>  arch/arm/boot/dts/dra72-evm.dts         |   16 ++++++++++++++--
->>  3 files changed, 31 insertions(+), 4 deletions(-)
-> 
-> Thanks applying all these into omap-for-v4.3/dt.
+On Wed, Aug 05, 2015 at 04:19:45PM +0530, Keerthy wrote:
+> Compared to da830-rtc compatibility am3352-rtc is more compatible to
+> the one in am437x. Hence adding the am3352-rtc compatible to cover the
+> entire feature set.
+>=20
+> The ti,am4372-rtc has no Documentation and not used even in the driver
+> hence removing it.
 
-Thanks. Please take [1] one too.
+why don't you do the inverse ? Document am4372-rtc and make driver use
+it ?
 
-[1] -> https://lkml.org/lkml/2015/8/5/443
+--=20
+balbi
 
-Thanks
-Kishon
+--ZoaI/ZTpAVc4A5k6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVwixkAAoJEIaOsuA1yqREFnIP/0OAY66II01TnoWFH50xdN0D
+yeyDBOonE236MYbcuu396SYan3lelXABSvbPHtRJA7JMYk48Or8xkxaO+YkCEOJZ
+GD9Cj1b4GBftM+RehuBKMQjwaO6yIlzqPWa05CtbwsoHCUzOU6GLFHpxEksRl/Hz
+X+fRUSxFlyphkZM7118567jaqeGqelcxzj+bY+1hkNzvmVP93D+roBpl7Kywy+5i
+uPgoz2l4X6gNFxGQCW6sWvjbf3yasvVxZcPklHwi6KjxVqFiSXtxTYMH4E9OwT25
+vmLeGgUvCQ8pohYfdPOmoLqIWsfoCJS8v6jMJO4najhZHc2ya5LupxedYW7i/xXD
+ShV5K5iZE7VgX+VOMNXq2zbNneA+gTL56qha7A9gipHS6rA3KR0nYFyXdR0sgv9M
+H1rAuFvv5ML7T4g0n+ny1q5QWmAU09GJF3NN49CRqgNbCySgtQt1YPaDYl9hR3aO
+waJBM8aZchTtXRPGDqC0DpSek8+JrPoPjveCbzuz12/jnsng6xJUuk6CXvBSTabH
+rBtQEsyKDbuaRFQ4E1OrZ6b9gl2xWbIsi+f16h4lFbMYhxxTKD7R/SI57H4qzwpy
+t9D8vtj26qNHy7gr/rzVemwa6dyEUMKRDUI15mWMavPYgBIF62f409R8k8TOhYdf
+TPJt4Ye6CDgui61GLzrX
+=qvGZ
+-----END PGP SIGNATURE-----
+
+--ZoaI/ZTpAVc4A5k6--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
