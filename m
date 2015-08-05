@@ -1,288 +1,73 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 7/7] phy: omap-usb2: use *syscon* framework API to power
- on/off the PHY
-Date: Wed, 5 Aug 2015 19:51:56 +0530
-Message-ID: <55C21C04.9000704@ti.com>
-References: <1438701646-7876-1-git-send-email-kishon@ti.com> <1438701646-7876-8-git-send-email-kishon@ti.com> <55C1CAE1.3060901@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 10/10] ARM: dts: omap4: Use "syscon-otghs" instead of
+ "ctrl-module" in USB node
+Date: Wed, 5 Aug 2015 19:55:17 +0530
+Message-ID: <55C21CCD.6050101@ti.com>
+References: <1438702233-8027-1-git-send-email-kishon@ti.com> <1438702233-8027-11-git-send-email-kishon@ti.com> <55C1C325.5040703@ti.com> <55C1C486.6050202@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55C1CAE1.3060901-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55C1C486.6050202@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: balbi@ti.com, bcousson@baylibre.com, linux@arm.linux.org.uk, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Roger,
 
-On Wednesday 05 August 2015 02:05 PM, Roger Quadros wrote:
-> On 04/08/15 18:20, Kishon Vijay Abraham I wrote:
->> Deprecate using phy-omap-control driver to power on/off the PHY,
->> and use *syscon* framework to do the same. This handles
->> powering on/off the PHY for the USB2 PHYs used in various TI SoCs.
+On Wednesday 05 August 2015 01:38 PM, Roger Quadros wrote:
+> On 05/08/15 11:02, Roger Quadros wrote:
+>> Kishon,
 >>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->> ---
->>  Documentation/devicetree/bindings/phy/ti-phy.txt |    6 +-
->>  drivers/phy/phy-omap-usb2.c                      |   85 +++++++++++++++++-----
->>  include/linux/phy/omap_usb.h                     |   23 ++++++
->>  3 files changed, 96 insertions(+), 18 deletions(-)
+>> On 04/08/15 18:30, Kishon Vijay Abraham I wrote:
+>>> Add "syscon-otghs" property and remove the deprecated "ctrl-module"
+>>> property from MUSB devicetree node.
+>>>
+>>> Since "omap_control_usbotg" devicetree node is no longer used, remove
+>>> it.
+>>>
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>> ---
+>>>  arch/arm/boot/dts/omap4.dtsi |    8 +-------
+>>>  1 file changed, 1 insertion(+), 7 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>>> index b27634d..2fb49a5 100644
+>>> --- a/arch/arm/boot/dts/omap4.dtsi
+>>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>>> @@ -854,12 +854,6 @@
+>>>  			};
+>>>  		};
+>>>  
+>>> -		omap_control_usbotg: control-phy@4a00233c {
+>>> -			compatible = "ti,control-phy-otghs";
+>>> -			reg = <0x4a00233c 0x4>;
+>>> -			reg-names = "otghs_control";
+>>> -		};
+>>> -
+>>>  		usb_otg_hs: usb_otg_hs@4a0ab000 {
+>>>  			compatible = "ti,omap4-musb";
+>>>  			reg = <0x4a0ab000 0x7ff>;
+>>> @@ -872,7 +866,7 @@
+>>>  			multipoint = <1>;
+>>>  			num-eps = <16>;
+>>>  			ram-bits = <12>;
+>>> -			ctrl-module = <&omap_control_usbotg>;
+>>> +			syscon-otghs = <&scm_conf 0x33c>;
 >>
->> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->> index a061077..a3b3945 100644
->> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->> @@ -42,10 +42,14 @@ Required properties:
->>     * "wkupclk" - wakeup clock.
->>     * "refclk" - reference clock (optional).
->>  
->> -Optional properties:
->> +Deprecated properties:
->>   - ctrl-module : phandle of the control module used by PHY driver to power on
->>     the PHY.
->>  
->> +Recommended properies:
->> +- syscon-phy-power : phandle/offset pair. Phandle to the system control
->> +  module and the register offset to power on/off the PHY.
->> +
->>  This is usually a subnode of ocp2scp to which it is connected.
->>  
->>  usb2phy@4a0ad080 {
->> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->> index 2f7220f..531fe04 100644
->> --- a/drivers/phy/phy-omap-usb2.c
->> +++ b/drivers/phy/phy-omap-usb2.c
->> @@ -29,6 +29,8 @@
->>  #include <linux/delay.h>
->>  #include <linux/phy/omap_control_phy.h>
->>  #include <linux/phy/phy.h>
->> +#include <linux/mfd/syscon.h>
->> +#include <linux/regmap.h>
->>  #include <linux/of_platform.h>
->>  
->>  #define USB2PHY_DISCON_BYP_LATCH (1 << 31)
->> @@ -97,22 +99,40 @@ static int omap_usb_set_peripheral(struct usb_otg *otg,
->>  	return 0;
->>  }
->>  
->> -static int omap_usb_power_off(struct phy *x)
->> +static int omap_usb_phy_power(struct omap_usb *phy, int on)
->>  {
->> -	struct omap_usb *phy = phy_get_drvdata(x);
->> +	u32 val = 0;
+>> All other properties were of the format "syscon-phy-foo".
+>> Why use a different format here?
+>>
 > 
-> No need to initialize val.
+> Ah, looks like we don't have a dedicated phy driver for this?
+> We will need to add a PHY driver I guess then and handle this register
+> in that driver rather than in the musb driver.
 
-indeed.
-> 
->> +	int ret;
->>  
->> -	omap_control_phy_power(phy->control_dev, 0);
->> +	if (phy->syscon_phy_power) {
->> +		if (on)
->> +			val = phy->power_on;
->> +		else
->> +			val = phy->power_off;
->> +
->> +		ret = regmap_update_bits(phy->syscon_phy_power, phy->power_reg,
->> +					 phy->mask, val);
->> +		if (ret < 0)
->> +			return ret;
->> +	} else {
->> +		omap_control_phy_power(phy->control_dev, on);
->> +	}
->>  
->>  	return 0;
->>  }
->>  
->> -static int omap_usb_power_on(struct phy *x)
->> +static int omap_usb_power_off(struct phy *x)
->>  {
->>  	struct omap_usb *phy = phy_get_drvdata(x);
->>  
->> -	omap_control_phy_power(phy->control_dev, 1);
->> +	return omap_usb_phy_power(phy, false);
->> +}
->>  
->> -	return 0;
->> +static int omap_usb_power_on(struct phy *x)
->> +{
->> +	struct omap_usb *phy = phy_get_drvdata(x);
->> +
->> +	return omap_usb_phy_power(phy, true);
->>  }
->>  
->>  static int omap_usb_init(struct phy *x)
->> @@ -147,26 +167,38 @@ static struct phy_ops ops = {
->>  static const struct usb_phy_data omap_usb2_data = {
->>  	.label = "omap_usb2",
->>  	.flags = OMAP_USB2_HAS_START_SRP | OMAP_USB2_HAS_SET_VBUS,
->> +	.mask = OMAP_DEV_PHY_PD,
->> +	.power_off = OMAP_DEV_PHY_PD,
->>  };
->>  
->>  static const struct usb_phy_data omap5_usb2_data = {
->>  	.label = "omap5_usb2",
->>  	.flags = 0,
->> +	.mask = OMAP_DEV_PHY_PD,
->> +	.power_off = OMAP_DEV_PHY_PD,
->>  };
->>  
->>  static const struct usb_phy_data dra7x_usb2_data = {
->>  	.label = "dra7x_usb2",
->>  	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
->> +	.mask = OMAP_DEV_PHY_PD,
->> +	.power_off = OMAP_DEV_PHY_PD,
->>  };
->>  
->>  static const struct usb_phy_data dra7x_usb2_phy2_data = {
->>  	.label = "dra7x_usb2_phy2",
->>  	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
->> +	.mask = OMAP_USB2_PHY_PD,
->> +	.power_off = OMAP_USB2_PHY_PD,
->>  };
->>  
->>  static const struct usb_phy_data am437x_usb2_data = {
->>  	.label = "am437x_usb2",
->>  	.flags =  0,
->> +	.mask = AM437X_USB2_PHY_PD | AM437X_USB2_OTG_PD |
->> +		AM437X_USB2_OTGVDET_EN | AM437X_USB2_OTGSESSEND_EN,
->> +	.power_on = AM437X_USB2_OTGVDET_EN | AM437X_USB2_OTGSESSEND_EN,
->> +	.power_off = AM437X_USB2_PHY_PD | AM437X_USB2_OTG_PD,
-> 
-> We're combining some OTG operations with PHY on/off. This is probably OK
-> for now but looks like we need a OTG phy driver for this?
-
-Yes. Once we have that we can stop using the USB PHY library from this driver.
-> 
->>  };
->>  
->>  static const struct of_device_id omap_usb2_id_table[] = {
->> @@ -228,6 +260,9 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>  	phy->phy.label		= phy_data->label;
->>  	phy->phy.otg		= otg;
->>  	phy->phy.type		= USB_PHY_TYPE_USB2;
->> +	phy->mask		= phy_data->mask;
->> +	phy->power_on		= phy_data->power_on;
->> +	phy->power_off		= phy_data->power_off;
->>  
->>  	if (phy_data->flags & OMAP_USB2_CALIBRATE_FALSE_DISCONNECT) {
->>  		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> @@ -237,20 +272,36 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>  		phy->flags |= OMAP_USB2_CALIBRATE_FALSE_DISCONNECT;
->>  	}
->>  
->> -	control_node = of_parse_phandle(node, "ctrl-module", 0);
->> -	if (!control_node) {
->> -		dev_err(&pdev->dev, "Failed to get control device phandle\n");
->> -		return -EINVAL;
->> -	}
->> +	phy->syscon_phy_power = syscon_regmap_lookup_by_phandle(node,
->> +							"syscon-phy-power");
->> +	if (IS_ERR(phy->syscon_phy_power)) {
->> +		dev_info(&pdev->dev,
->> +			 "can't get syscon-phy-power, using control device\n");
-> 
-> dev_dbg()?
-
-okay.
-> 
->> +		phy->syscon_phy_power = NULL;
->> +
->> +		control_node = of_parse_phandle(node, "ctrl-module", 0);
->> +		if (!control_node) {
->> +			dev_err(&pdev->dev,
->> +				"Failed to get control device phandle\n");
->> +			return -EINVAL;
->> +		}
->>  
->> -	control_pdev = of_find_device_by_node(control_node);
->> -	if (!control_pdev) {
->> -		dev_err(&pdev->dev, "Failed to get control device\n");
->> -		return -EINVAL;
->> +		control_pdev = of_find_device_by_node(control_node);
->> +		if (!control_pdev) {
->> +			dev_err(&pdev->dev, "Failed to get control device\n");
->> +			return -EINVAL;
->> +		}
->> +		phy->control_dev = &control_pdev->dev;
->> +	} else {
->> +		if (of_property_read_u32_index(node,
->> +					       "syscon-phy-power", 1,
->> +					       &phy->power_reg)) {
->> +			dev_err(&pdev->dev,
->> +				"couldn't get power reg. offset\n");
->> +			return -EINVAL;
->> +		}
->>  	}
->>  
->> -	phy->control_dev = &control_pdev->dev;
->> -
->>  	otg->set_host		= omap_usb_set_host;
->>  	otg->set_peripheral	= omap_usb_set_peripheral;
->>  	if (phy_data->flags & OMAP_USB2_HAS_SET_VBUS)
->> diff --git a/include/linux/phy/omap_usb.h b/include/linux/phy/omap_usb.h
->> index dc2c541..2e5fb87 100644
->> --- a/include/linux/phy/omap_usb.h
->> +++ b/include/linux/phy/omap_usb.h
->> @@ -30,6 +30,12 @@ struct usb_dpll_params {
->>  	u32	mf;
->>  };
->>  
->> +enum omap_usb_phy_type {
->> +	TYPE_USB2,    /* USB2_PHY, power down in CONTROL_DEV_CONF */
->> +	TYPE_DRA7USB2, /* USB2 PHY, power and power_aux e.g. DRA7 */
->> +	TYPE_AM437USB2, /* USB2 PHY, power e.g. AM437x */
->> +};
->> +
->>  struct omap_usb {
->>  	struct usb_phy		phy;
->>  	struct phy_companion	*comparator;
->> @@ -40,11 +46,20 @@ struct omap_usb {
->>  	struct clk		*wkupclk;
->>  	struct clk		*optclk;
->>  	u8			flags;
->> +	enum omap_usb_phy_type	type;
->> +	struct regmap		*syscon_phy_power; /* ctrl. reg. acces */
->> +	unsigned int		power_reg; /* power reg. index within syscon */
->> +	u32			mask;
->> +	u32			power_on;
->> +	u32			power_off;
->>  };
->>  
->>  struct usb_phy_data {
->>  	const char *label;
->>  	u8 flags;
->> +	u32 mask;
->> +	u32 power_on;
->> +	u32 power_off;
->>  };
->>  
->>  /* Driver Flags */
->> @@ -52,6 +67,14 @@ struct usb_phy_data {
->>  #define OMAP_USB2_HAS_SET_VBUS (1 << 1)
->>  #define OMAP_USB2_CALIBRATE_FALSE_DISCONNECT (1 << 2)
->>  
->> +#define OMAP_DEV_PHY_PD		BIT(0)
->> +#define OMAP_USB2_PHY_PD	BIT(28)
->> +
->> +#define AM437X_USB2_PHY_PD		BIT(0)
->> +#define AM437X_USB2_OTG_PD		BIT(1)
->> +#define AM437X_USB2_OTGVDET_EN		BIT(19)
->> +#define AM437X_USB2_OTGSESSEND_EN	BIT(20)
->> +
-> 
-> Is all this used by anyone other than the phy driver?
-> If not we should move whatever possible into the .c file.
-> 
-> Could be a separate patch of course.
-
-sure.
+I was explaining in the other thread to Tony on why this shouldn't be done in a
+PHY driver [1].
 
 Thanks
 Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+[1] -> https://lkml.org/lkml/2015/8/5/455
