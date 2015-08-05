@@ -1,14 +1,14 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 02/10] ARM: dts: dra7: Use "syscon-phy-power" instead
- of "ctrl-module" in SATA PHY node
-Date: Wed, 5 Aug 2015 10:55:42 +0300
-Message-ID: <55C1C17E.9050306@ti.com>
-References: <1438702233-8027-1-git-send-email-kishon@ti.com> <1438702233-8027-3-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH 05/10] ARM: dts: dra7: Use "syscon-phy-power" instead
+ of "ctrl-module" in USB PHY node
+Date: Wed, 5 Aug 2015 10:56:43 +0300
+Message-ID: <55C1C1BB.3060600@ti.com>
+References: <1438702233-8027-1-git-send-email-kishon@ti.com> <1438702233-8027-6-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438702233-8027-3-git-send-email-kishon@ti.com>
+In-Reply-To: <1438702233-8027-6-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: balbi@ti.com, bcousson@baylibre.com, linux@arm.linux.org.uk, nsekhar@ti.com
@@ -16,8 +16,13 @@ List-Id: linux-omap@vger.kernel.org
 
 On 04/08/15 18:30, Kishon Vijay Abraham I wrote:
 > Add "syscon-phy-power" property and remove the deprecated "ctrl-module"
-> property from SATA PHY node. Since "omap_control_sata" note is no longer
-> used, remove it.
+> property from USB PHY devicetree nodes.
+> 
+> Since "omap_control_usb2phy1", "omap_control_usb3phy1" and
+> "omap_control_usb2phy2" devicetree nodes are no longer used, remove it.
+
+s/it/them
+
 > 
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
@@ -27,35 +32,63 @@ cheers,
 -roger
 
 > ---
->  arch/arm/boot/dts/dra7.dtsi |   10 +---------
->  1 file changed, 1 insertion(+), 9 deletions(-)
+>  arch/arm/boot/dts/dra7.dtsi |   24 +++---------------------
+>  1 file changed, 3 insertions(+), 21 deletions(-)
 > 
 > diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 33c5655..6854385 100644
+> index dfefd17..191ffae 100644
 > --- a/arch/arm/boot/dts/dra7.dtsi
 > +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1115,14 +1115,6 @@
->  			status = "disabled";
+> @@ -1195,24 +1195,6 @@
+>  			clocks = <&sys_32k_ck>;
 >  		};
 >  
-> -		omap_control_sata: control-phy@4a002374 {
-> -			compatible = "ti,control-phy-pipe3";
-> -			reg = <0x4a002374 0x4>;
+> -		omap_control_usb2phy1: control-phy@4a002300 {
+> -			compatible = "ti,control-phy-usb2";
+> -			reg = <0x4a002300 0x4>;
 > -			reg-names = "power";
-> -			clocks = <&sys_clkin1>;
-> -			clock-names = "sysclk";
 > -		};
 > -
->  		/* OCP2SCP3 */
->  		ocp2scp@4a090000 {
+> -		omap_control_usb3phy1: control-phy@4a002370 {
+> -			compatible = "ti,control-phy-pipe3";
+> -			reg = <0x4a002370 0x4>;
+> -			reg-names = "power";
+> -		};
+> -
+> -		omap_control_usb2phy2: control-phy@0x4a002e74 {
+> -			compatible = "ti,control-phy-usb2-dra7";
+> -			reg = <0x4a002e74 0x4>;
+> -			reg-names = "power";
+> -		};
+> -
+>  		/* OCP2SCP1 */
+>  		ocp2scp@4a080000 {
 >  			compatible = "ti,omap-ocp2scp";
-> @@ -1137,7 +1129,7 @@
->  				      <0x4A096400 0x64>, /* phy_tx */
->  				      <0x4A096800 0x40>; /* pll_ctrl */
+> @@ -1225,7 +1207,7 @@
+>  			usb2_phy1: phy@4a084000 {
+>  				compatible = "ti,omap-usb2";
+>  				reg = <0x4a084000 0x400>;
+> -				ctrl-module = <&omap_control_usb2phy1>;
+> +				syscon-phy-power = <&scm_conf 0x300>;
+>  				clocks = <&usb_phy1_always_on_clk32k>,
+>  					 <&usb_otg_ss1_refclk960m>;
+>  				clock-names =	"wkupclk",
+> @@ -1236,7 +1218,7 @@
+>  			usb2_phy2: phy@4a085000 {
+>  				compatible = "ti,dra7x-usb2-phy2", "ti,omap-usb2";
+>  				reg = <0x4a085000 0x400>;
+> -				ctrl-module = <&omap_control_usb2phy2>;
+> +				syscon-phy-power = <&scm_conf 0xe74>;
+>  				clocks = <&usb_phy2_always_on_clk32k>,
+>  					 <&usb_otg_ss2_refclk960m>;
+>  				clock-names =	"wkupclk",
+> @@ -1250,7 +1232,7 @@
+>  				      <0x4a084800 0x64>,
+>  				      <0x4a084c00 0x40>;
 >  				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-> -				ctrl-module = <&omap_control_sata>;
-> +				syscon-phy-power = <&scm_conf 0x374>;
->  				clocks = <&sys_clkin1>, <&sata_ref_clk>;
->  				clock-names = "sysclk", "refclk";
->  				#phy-cells = <0>;
+> -				ctrl-module = <&omap_control_usb3phy1>;
+> +				syscon-phy-power = <&scm_conf 0x370>;
+>  				clocks = <&usb_phy3_always_on_clk32k>,
+>  					 <&sys_clkin1>,
+>  					 <&usb_otg_ss1_refclk960m>;
 > 
