@@ -1,35 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to
- program pbias regulator
-Date: Wed, 5 Aug 2015 02:47:18 -0700
-Message-ID: <20150805094717.GX16878@atomide.com>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com>
- <1437996250-2913-2-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH 0/4] omap: Fix broken pbias device creation
+Date: Wed, 5 Aug 2015 03:00:09 -0700
+Message-ID: <20150805100009.GY16878@atomide.com>
+References: <1437999401-3519-1-git-send-email-kishon@ti.com>
+ <55B89590.6000109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1437996250-2913-2-git-send-email-kishon@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: lgirdwood@gmail.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, nsekhar@ti.com, stable@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+In-Reply-To: <55B89590.6000109@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, nsekhar@ti.com, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [150727 04:27]:
-> vsel_reg and enable_reg of the pbias regulator descriptor should actually
-> have the offset from syscon. However after the pbias device tree node
-> is moved as a child node of syscon, vsel_reg and enable_reg has the
-> absolute address because of the address translation that happens while
-> creating device from device tree node.
-> So avoid using platform_get_resource and use of_get_address in order to
-> get only the offset (untranslated address) and populate these in
-> vsel_reg and enable_reg.
+* Grygorii Strashko <grygorii.strashko@ti.com> [150729 02:01]:
+> On 07/27/2015 03:16 PM, Kishon Vijay Abraham I wrote:
+> >pbias device creation got broken once SCM cleanup got merged.
+> >This patch series re-enables device creation by adding
+> >"simple-bus" in the compatible property of the syscon
+> >dt node.
+> >
+> >validated this series in DRA72, OMAP4 PANDA and OMAP5 UEVM
+> >boards.
+> >
+> >Kishon Vijay Abraham I (4):
+> >   ARM: dts: omap24xx: Fix broken pbias device creation
+> >   ARM: dts: OMAP4: Fix broken pbias device creation
+> >   ARM: dts: OMAP5: Fix broken pbias device creation
+> >   ARM: dts: dra7: Fix broken pbias device creation
+> >
+> >  arch/arm/boot/dts/dra7.dtsi     |    2 +-
+> >  arch/arm/boot/dts/omap2430.dtsi |    3 ++-
+> >  arch/arm/boot/dts/omap4.dtsi    |    3 ++-
+> >  arch/arm/boot/dts/omap5.dtsi    |    3 ++-
+> >  4 files changed, 7 insertions(+), 4 deletions(-)
+> >
+> 
+> For dra7-evm:
+> Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-I think this gets fixed automatically with your other series
-adding the "simple-bus" to the nodes. For the children of_ioremap
-and friends should do the right thing, but without help from the bus
-things won't work right without "simple-bus".
-
-Regards,
+Applying all into omap-for-v4.2fixes-v2 thanks.
 
 Tony
