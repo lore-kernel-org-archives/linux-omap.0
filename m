@@ -1,65 +1,79 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 00/13] Enhance twl4030_charger functionality. - V3
-Date: Wed, 5 Aug 2015 05:35:18 +0200
-Message-ID: <20150805033518.GA16139@earth>
-References: <20150730001113.4012.18086.stgit@noble>
+From: Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Wed, 5 Aug 2015 07:21:00 +0200
+Message-ID: <CAOMqctThys1C3vw7u8UU6iX8c9EDCWowaWg5F1O3i3X-w7KQhA@mail.gmail.com>
+References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
+ <1438072876-16338-2-git-send-email-vigneshr@ti.com> <20150731181745.GM20873@sirena.org.uk>
+ <55BEF4AF.5090704@ti.com> <20150804155148.GR20873@sirena.org.uk> <55C0FD98.1090107@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150730001113.4012.18086.stgit@noble>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neil@brown.name>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <55C0FD98.1090107-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hello,
 
---FCuugMFkClbJLl1L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 4 August 2015 at 19:59, R, Vignesh <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
+>
+>
+> On 8/4/2015 9:21 PM, Mark Brown wrote:
+>> On Mon, Aug 03, 2015 at 10:27:19AM +0530, Vignesh R wrote:
+>>
+>>> @use_mmap_mode: Some SPI controller chips are optimized for interacting
+>>> with serial flash memories. These chips have memory mapped interface,
+>>> through which entire serial flash memory slave can be read/written as if
+>>> though they are physical memories (like RAM). Using this interface,
+>>> flash can be accessed using memcpy() function and the spi controller
+>>> hardware will take care of communicating with serial flash over SPI.
+>>> Setting this flag will indicate the SPI controller driver that the
+>>> spi_message is from mtd layer to read from/write to flash. The SPI
+>>> master driver can then appropriately switch the controller to memory
+>>> mapped interface to read from/write to flash, based on this flag (See
+>>> drivers/spi/spi-ti-qspi.c for example).
+>>> NOTE: If the SPI controller chip lacks memory mapped interface, then the
+>>> driver will ignore this flag and use normal SPI protocol to read
+>>> from/write to flash. Communication with non-flash SPI devices is not
+>>> possible using the memory mapped interface.
+>>
+>> I still can't tell from the above what this interface is supposed to do.
+>> It sounds like the use of memory mapped mode is supposed to be
+>> transparent to users, it should just affect how the controller interacts
+>> with the hardware, but if that's the case why do we need to expose it to
+>> users at all?  Shouldn't the driver just use memory mapped mode if it's
+>> faster?
+>>
+>
+> TI QSPI controller has two blocks:
+> 1. SPI_CORE: This is generic(normal) spi mode. This can be used to
+> communicate with any SPI devices (serial flashes as well as non-flash
+> devices like touchscreen).
+> 2. SFI_MM_IF(SPI memory mapped interface): The SFI_MM_IF block only
+> allows reading and writing to an SPI flash device only. Used to speed up
+> flash reads. It _cannot_ be used to communicate with non flash devices.
+> Now, the spi_message that ti-qspi receives in transfer_one() callback
+> can be from mtd device(in which case SFI_MM_IF can be used) or from any
+> other non flash SPI device (in which case SFI_MM_IF must not be used
+> instead SPI_CORE is to be used) but there is no way(is there?) to
+> distinguish where spi_message is from. Therefore I introduced flag
+> (use_mmap_mode) to struct spi_message. mtd driver will set flag to true,
+> this helps the ti-qspi driver to determine that the user is flash device
+> and thus can do read via SFI_MM_IF. If this flag is not set then the
+> user is assumed to be non flash SPI driver and will use SPI_CORE block
+> to communicate.
+>
+> On the whole, I just need a way to determine that the user is a flash
+> device in order to switch to memory mapped interface.
+>
 
-Hi,
+Maybe it can be set on the SPI slave rather than each message.
 
-On Thu, Jul 30, 2015 at 10:11:24AM +1000, NeilBrown wrote:
-> Following is most of my twl4030_charger patches, rebased against
->  git://git.infradead.org/battery-2.6
->=20
-> Since the previous set I have added the conversion to
-> module_platform_driver so EPROBE_DEFER can be used, and fixed
-> a few minor typos.
->=20
-> This does not include the changes to add extcon support, in part
-> because extcon has seen some changes lately which leave me even more
-> confused about how best to use it than before.
-> I need to sort that out before I can resolve the rest of my usb phy
-> patches and then add a few more charger patches.
+Thanks
 
-Thanks, queued.
-
--- Sebastian
-
---FCuugMFkClbJLl1L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVwYRzAAoJENju1/PIO/qamp0P/3MjpidjsVjMZqUzPrdl5R73
-QnbZ/xJ23WuKJzvNsDs66gu1og6yEIPPy4IzprWlPl/Gq0eFw082hy0M/xE8/HlR
-tzb6F4pqeGHqHCxQWy5SrYaGprLrg/9rk/GnVxOjzDOnKhW6dfiDlUJyiDVmLgY1
-UlD+5E5WYvKQyPL1TtfdnoPutd9yPqzY7vxyNtO8Bxr+bYMVu9RoVAdPLQkWEf9v
-JAY8UEIqfE3alGIrmifJ9ixt4dogQZCgqGRm3TdhjDLYTIK30Rn2hM3NXAlflSLc
-Qip9y9MP/zCGr1Z8QzBEzQb/rIIESncCHPEu0v1DYNumbo+Oawxf58UhXD2s1aE3
-n9e8m0o3ihnxrStkEaPh6c5XA2/g7Ga6yDvEDtUQR0Mlg0e5rWaAy3V0+Y6Fp4Ys
-qvnAScGC41qTv5jcMQOKoNTZOGBH3mrXQ6Ts3l8be90PNNSG30mLRI87NJ01EY4D
-cwezk+A+9M13LVKXrfZydLLSov+TTnN8GWLVXm3iJBZ6P7ZcMUC+ruNdUoMPndD5
-MZ8/sVi3eaFo9vM7TatRLtTHisT9HQEsGTXO8muh5V7z44W1AqfFYC4bfhonjTYI
-GtzSdL3qJqNUWg2qkAS7MLBhjRgM8UzINz5ZBhKFim+MoXEkPKCydsIpYXvQ9Nyi
-3aeUpX7MhAocMK1yHm7b
-=ZGn0
------END PGP SIGNATURE-----
-
---FCuugMFkClbJLl1L--
+Michal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
