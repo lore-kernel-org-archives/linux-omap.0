@@ -1,72 +1,38 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/7] phy: ti-pipe3: use ti_pipe3_power_off to power off
- the PHY during probe
-Date: Wed, 5 Aug 2015 10:35:03 -0500
-Message-ID: <20150805153503.GC12328@saruman.tx.rr.com>
-References: <1438701646-7876-1-git-send-email-kishon@ti.com>
- <1438701646-7876-3-git-send-email-kishon@ti.com>
- <20150804160631.GH23659@saruman.tx.rr.com>
- <55C219C8.8010304@ti.com>
-Reply-To: <balbi@ti.com>
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/8] ARM: dts: AM4372: Reorder the rtc compatible string
+Date: Wed, 5 Aug 2015 21:21:05 +0530
+Message-ID: <55C230E9.9010309@ti.com>
+References: <1438771792-12604-1-git-send-email-j-keerthy@ti.com> <1438771792-12604-2-git-send-email-j-keerthy@ti.com> <20150805153148.GB12328@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xo44VMWPx7vlQ2+2"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55C219C8.8010304@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, rogerq@ti.com, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150805153148.GB12328-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---xo44VMWPx7vlQ2+2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Felipe,
 
-On Wed, Aug 05, 2015 at 07:42:24PM +0530, Kishon Vijay Abraham I wrote:
-> Hi,
->=20
-> On Tuesday 04 August 2015 09:36 PM, Felipe Balbi wrote:
-> > On Tue, Aug 04, 2015 at 08:50:41PM +0530, Kishon Vijay Abraham I wrote:
-> >> No functional change. Previously omap_control_phy_power() was used to =
-power
-> >=20
-> > there is a slight functional change. You moved PHY power off from before
-> > to after pm_runtime_enable(), clk_prepare_enable() and creation of the
-> > PHY device. That ought to have a slight impact on how the driver
-> > behaves.
->=20
-> okay. I'll modify the commit log. I think it won't impact the functionali=
-ty as
-> such since the ->init and ->power_on callbacks won't be invoked at that p=
-oint.
+On Wednesday 05 August 2015 09:01 PM, Felipe Balbi wrote:
+> On Wed, Aug 05, 2015 at 04:19:45PM +0530, Keerthy wrote:
+>> Compared to da830-rtc compatibility am3352-rtc is more compatible to
+>> the one in am437x. Hence adding the am3352-rtc compatible to cover the
+>> entire feature set.
+>>
+>> The ti,am4372-rtc has no Documentation and not used even in the driver
+>> hence removing it.
+>
+> why don't you do the inverse ? Document am4372-rtc and make driver use
+> it ?
 
-all right, then
+am3352-rtc suffices for am4372 too. No need to add additional one for 
+am4372.
 
---=20
-balbi
 
---xo44VMWPx7vlQ2+2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVwi0nAAoJEIaOsuA1yqRE6KQP/jtJ1X8urHOy6NPE9wOBP/cm
-NVUIHrNAbXWmLIxiCvwTt+ahn9jWv3m6nJ4StSrUnOgj9ouJgmbSkpdM+yZULC8+
-Y7s/5pSKpmqQxBGjqmylK89PRbV8wCGBekbnc0Sn6ZGg5Ugtsp4VyJ4XgHKUIssR
-sV8xrUtTlwQor4Obb5qq5zDnlFTtuSB39juKAf/AHZLy2vl46m9hv7O8ncvU3y6h
-AwQDv+J1Qy0HwDYwP+/eyNZGgvUX7Gl/XjCgiip1HI+bBbFXUGU5z4hXtkF+nwXQ
-g5TpWN7E5vJx3ANYpqzeGPDJ+2hVofjhLqKxItsxfTv/3GEbyepnVh3lEze9op8M
-L1Df8w417zRaM6yt+TzIHUv1qiXN82AVtHYRe4HqbY2tbiM3fbxuJkU9Nq+xn+Pg
-nQ3oHjFkkRDfzMKw/3Z3iz6yVO6QOeK5x1OYNBYNQSxmbdN4LF/kc1kMpOfHpYKv
-xRDEKpMJ25bO23Zi+EuJxfmW9OoqIJcrCGF7qxECi1yzkuSh8tDOto/VeAceE430
-e+K9XiSwLTxKcP5VfaF/Ldn8LAIEfJzSLWrohAsQQ7URDFvtIT9PQBIZqTwU6T28
-9dZ+FGvxFLo5DOc+FpgqvZYkFl1HhQGJxPhXX9EWfAQBZyFgFrwHdEwAQH9exn5U
-cN1FUDnQcVVGKx7YU11b
-=sYg4
------END PGP SIGNATURE-----
-
---xo44VMWPx7vlQ2+2--
+>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
