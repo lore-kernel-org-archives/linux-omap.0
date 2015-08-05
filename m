@@ -1,43 +1,39 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH] gpio: omap: Fix missing raw locks conversion
-Date: Wed, 05 Aug 2015 22:37:41 +0800
-Message-ID: <1438785461.9624.1.camel@ingics.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to program
+ pbias regulator
+Date: Wed, 5 Aug 2015 20:26:45 +0530
+Message-ID: <55C2242D.4030703@ti.com>
+References: <1437996250-2913-1-git-send-email-kishon@ti.com> <1437996250-2913-2-git-send-email-kishon@ti.com> <20150805094717.GX16878@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20150805094717.GX16878@atomide.com>
+Sender: stable-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: lgirdwood@gmail.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, nsekhar@ti.com, stable@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Fix below build warning:
-  CC      drivers/gpio/gpio-omap.o
-drivers/gpio/gpio-omap.c: In function 'omap_gpio_irq_type':
-drivers/gpio/gpio-omap.c:504:3: warning: passing argument 1 of 'spin_unlock_irqrestore' from incompatible pointer type [enabled by default]
-include/linux/spinlock.h:360:29: note: expected 'struct spinlock_t *' but argument is of type 'struct raw_spinlock_t *'
+Hi Tony,
 
-Fixes: commit 4dbada2be460 ("gpio: omap: use raw locks for locking")
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/gpio/gpio-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wednesday 05 August 2015 03:17 PM, Tony Lindgren wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [150727 04:27]:
+>> vsel_reg and enable_reg of the pbias regulator descriptor should actually
+>> have the offset from syscon. However after the pbias device tree node
+>> is moved as a child node of syscon, vsel_reg and enable_reg has the
+>> absolute address because of the address translation that happens while
+>> creating device from device tree node.
+>> So avoid using platform_get_resource and use of_get_address in order to
+>> get only the offset (untranslated address) and populate these in
+>> vsel_reg and enable_reg.
+> 
+> I think this gets fixed automatically with your other series
+> adding the "simple-bus" to the nodes. For the children of_ioremap
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index dba67b2..466fe70 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -501,7 +501,7 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
- 	raw_spin_lock_irqsave(&bank->lock, flags);
- 	retval = omap_set_gpio_triggering(bank, offset, type);
- 	if (retval) {
--		spin_unlock_irqrestore(&bank->lock, flags);
-+		raw_spin_unlock_irqrestore(&bank->lock, flags);
- 		goto error;
- 	}
- 	omap_gpio_init_irq(bank, offset);
--- 
-2.1.0
+Nope. The probe of pbias regulator fails as Grygorii has already pointed out
+here [1].
 
+Thanks
+Kishon
 
-
+[1] -> http://www.spinics.net/lists/linux-omap/msg120462.html
