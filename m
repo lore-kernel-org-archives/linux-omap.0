@@ -1,112 +1,83 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
-Date: Thu, 6 Aug 2015 17:46:56 +0100
-Message-ID: <20150806164656.GY20873@sirena.org.uk>
-References: <55C0FD98.1090107@ti.com>
- <20150805115013.GJ20873@sirena.org.uk>
- <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
- <20150805124412.GN20873@sirena.org.uk>
- <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
- <20150806090202.GO20873@sirena.org.uk>
- <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
- <20150806102225.GI7576@n2100.arm.linux.org.uk>
- <55C35233.2000105@ti.com>
- <20150806135129.GJ7576@n2100.arm.linux.org.uk>
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/8] ARM: dts: AM4372: Reorder the rtc compatible string
+Date: Thu, 6 Aug 2015 22:18:12 +0530
+Message-ID: <55C38FCC.1040306@ti.com>
+References: <1438771792-12604-1-git-send-email-j-keerthy@ti.com> <1438771792-12604-2-git-send-email-j-keerthy@ti.com> <20150805153148.GB12328@saruman.tx.rr.com> <55C230E9.9010309@ti.com> <20150805161445.GF12328@saruman.tx.rr.com> <55C23740.2080102@ti.com> <20150805165122.GH12328@saruman.tx.rr.com> <55C2B7A5.5000400@ti.com> <20150806141618.GA19110@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="pwuPNfS0paSTjpGn"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150806135129.GJ7576-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+In-Reply-To: <20150806141618.GA19110-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---pwuPNfS0paSTjpGn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 06, 2015 at 02:51:29PM +0100, Russell King - ARM Linux wrote:
+On Thursday 06 August 2015 07:46 PM, Felipe Balbi wrote:
+> On Thu, Aug 06, 2015 at 06:55:57AM +0530, Keerthy wrote:
+>>
+>>
+>> On Wednesday 05 August 2015 10:21 PM, Felipe Balbi wrote:
+>>> On Wed, Aug 05, 2015 at 09:48:08PM +0530, Keerthy wrote:
+>>>>
+>>>>
+>>>> On Wednesday 05 August 2015 09:44 PM, Felipe Balbi wrote:
+>>>>> On Wed, Aug 05, 2015 at 09:21:05PM +0530, Keerthy wrote:
+>>>>>> Felipe,
+>>>>>>
+>>>>>> On Wednesday 05 August 2015 09:01 PM, Felipe Balbi wrote:
+>>>>>>> On Wed, Aug 05, 2015 at 04:19:45PM +0530, Keerthy wrote:
+>>>>>>>> Compared to da830-rtc compatibility am3352-rtc is more compatible to
+>>>>>>>> the one in am437x. Hence adding the am3352-rtc compatible to cover the
+>>>>>>>> entire feature set.
+>>>>>>>>
+>>>>>>>> The ti,am4372-rtc has no Documentation and not used even in the driver
+>>>>>>>> hence removing it.
+>>>>>>>
+>>>>>>> why don't you do the inverse ? Document am4372-rtc and make driver use
+>>>>>>> it ?
+>>>>>>
+>>>>>> am3352-rtc suffices for am4372 too. No need to add additional one for
+>>>>>> am4372.
+>>>>>
+>>>>> Until we end up needing it, right ? :-)
+>>>>>
+>>>>> Besides, it's already used in a DTS. What happens if someone branched
+>>>> >from that DTS and ships that in a product. RTC will just stop working
+>>>>> for them. Sure, it wasn't documented, but that's a problem of commit
+>>>>> 73456012734b80442b33916406cfd13bf1b73acb (ARM: dts: AM4372: add few
+>>>>> nodes) which, essentially, added that compatible flag without
+>>>>> documenting it.
+>>>>>
+>>>>> BTW, this compatible has been in tree since August 2013, IMO it's unfar
+>>>>> to drop it just like that. Documenting it would be a better approach.
+>>>>
+>>>> Okay. Can you point me to a file which is already accessing it in dts?
+>>>
+>>> Accessing what ? Also, once DTS reaches a major kernel release, it's
+>>> deemed stable and should be supported. Are we dropping that ?
+>>
+>> I meant getting used in any other dts files than the one i just dropped it.
+>
+> how can you ever know that for sure ? There are already quite a few
+> third party platforms based on AM437x, how can you be sure those
+> companies don't have their own DTS ?
 
-> The M25P80 driver just appends additional bytes to the message to
-> achieve this:
->=20
->         struct m25p *flash =3D nor->priv;
->         unsigned int dummy =3D nor->read_dummy;
->=20
->         /* convert the dummy cycles to the number of bytes */
->         dummy /=3D 8;
->=20
->         flash->command[0] =3D nor->read_opcode;
->         m25p_addr2cmd(nor, from, flash->command);
->=20
->         t[0].tx_buf =3D flash->command;
->         t[0].len =3D m25p_cmdsz(nor) + dummy;
->         spi_message_add_tail(&t[0], &m);
+Felipe,
 
-> The reason that the number of dummy bytes can't be detected is because
-> it's all hidden in the first transaction as the total number of bytes to
-> be transmitted - and the dummy bytes are uninitialised, so you can't
-> make any assumptions what value they are.  There is no way for the SPI
-> driver to know whether these dummy bytes are dummy bytes or whether they
-> have an effect on the targetted device.
+If that is a concern i can re-do this.
 
-We *could* (as you suggest below) indicate dummy transfers by having a
-separate transfer which omits the transmit buffers though I'd expect
-that normally that is going to be a small performance hit if interpreted
-directly so we need to think what to do there.  We do get other devices
-sending dummy bytes, it's sometimes a requirement for high speed
-register access to give settling time for the device, so other things
-would get some milage from it.
+Tony,
 
-> What may make more sense from the SPI point of view is to communicate to
-> all SPI drivers how many dummy bytes are to be transferred.  I'm not fully
-> up on SPI, but maybe something like this:
+Shall i re-do this patch without removing am4372-rtc? If you can drop 
+this i can re-do without removing the original am4372 compatible.
 
-> 	t[0].tx_buf =3D flash->command;
-> 	t[0].len =3D m25p_cmdsz(nor);
-> 	spi_message_add_tail(&t[0], &m);
-> 	t[1].tx_buf =3D dummy_buffer;
-> 	t[1].len =3D dummy;
-> 	t[1].dummy =3D 1;
-> 	spi_message_add_tail(&t[1], &m);
+Regards,
+Keerthy
 
-> This way, we're describing the transfer to the SPI core, and explicitly
-> indicating that there are some dummy bytes.  The SPI driver can then
-> tell that these are dummy bytes, and if the SPI message consists of:
-
-That'd work as well, my first thought would to use NULL as a dummy
-buffer pointer and let the core substitute in data for the drivers.  We
-currently insist on having at least one buffer but that's fixable.
-
-> This would not be a hack to the SPI code: we're describing to the SPI
-> code what we want to achieve in terms of the activity on the bus, and
-> providing that level of description then allows the SPI driver to make
-> informed decisions on whether it can handle the transfer using some
-> non-standard feature.
-
-Yup.
-
---pwuPNfS0paSTjpGn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVw49/AAoJECTWi3JdVIfQ1F0H/0r3XHXrg83DWGFZidmiKHIM
-3RTAuQQspERwEFOCDEKHJr2h7ZcZsusPTQcOK5IwadiaQL9izDyeDoeDswABr99Z
-FBVKKa9S1KlLZrlT3NmfOftQpCXTmX9CG9N8mBqgqVQdrJ7IS2bn3Kn4ztFCMhsT
-6OyjWIkL4y2hKnHDSedaB/CK0K219yS2bL+D6S1EkTrTk8nEU3OQOaRFbHPknCCO
-9VN0dF4/n70OqvYQYEgJ4yr7w+13TZu/gINRpzJ8kCon6JmrgGbNFydYGWNf61p0
-naxSlkptfPEOGyrkv19VaIE9LnlbKWjP5+DV3i8iwg7PdRy9AM25Bo8KXYQDQCU=
-=bduc
------END PGP SIGNATURE-----
-
---pwuPNfS0paSTjpGn--
+>
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
