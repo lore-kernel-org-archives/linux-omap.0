@@ -1,84 +1,49 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/8] ARM: dts: AM4372: Reorder the rtc compatible string
-Date: Thu, 6 Aug 2015 22:18:12 +0530
-Message-ID: <55C38FCC.1040306@ti.com>
-References: <1438771792-12604-1-git-send-email-j-keerthy@ti.com> <1438771792-12604-2-git-send-email-j-keerthy@ti.com> <20150805153148.GB12328@saruman.tx.rr.com> <55C230E9.9010309@ti.com> <20150805161445.GF12328@saruman.tx.rr.com> <55C23740.2080102@ti.com> <20150805165122.GH12328@saruman.tx.rr.com> <55C2B7A5.5000400@ti.com> <20150806141618.GA19110@saruman.tx.rr.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: next-20150806 build: 2 failures 52 warnings (next-20150806)
+Date: Thu, 6 Aug 2015 19:01:56 +0100
+Message-ID: <20150806180156.GC20873@sirena.org.uk>
+References: <E1ZNIul-0007IF-Ev@optimist>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150806141618.GA19110-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="h8+hH1OQkST14sOt"
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <E1ZNIul-0007IF-Ev@optimist>
+Sender: linux-next-owner@vger.kernel.org
+To: Salva =?iso-8859-1?Q?Peir=F3?= <speirofr@gmail.com>, Joerg Roedel <jroedel@suse.de>, Joe Perches <joe@perches.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--h8+hH1OQkST14sOt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Thursday 06 August 2015 07:46 PM, Felipe Balbi wrote:
-> On Thu, Aug 06, 2015 at 06:55:57AM +0530, Keerthy wrote:
->>
->>
->> On Wednesday 05 August 2015 10:21 PM, Felipe Balbi wrote:
->>> On Wed, Aug 05, 2015 at 09:48:08PM +0530, Keerthy wrote:
->>>>
->>>>
->>>> On Wednesday 05 August 2015 09:44 PM, Felipe Balbi wrote:
->>>>> On Wed, Aug 05, 2015 at 09:21:05PM +0530, Keerthy wrote:
->>>>>> Felipe,
->>>>>>
->>>>>> On Wednesday 05 August 2015 09:01 PM, Felipe Balbi wrote:
->>>>>>> On Wed, Aug 05, 2015 at 04:19:45PM +0530, Keerthy wrote:
->>>>>>>> Compared to da830-rtc compatibility am3352-rtc is more compatible to
->>>>>>>> the one in am437x. Hence adding the am3352-rtc compatible to cover the
->>>>>>>> entire feature set.
->>>>>>>>
->>>>>>>> The ti,am4372-rtc has no Documentation and not used even in the driver
->>>>>>>> hence removing it.
->>>>>>>
->>>>>>> why don't you do the inverse ? Document am4372-rtc and make driver use
->>>>>>> it ?
->>>>>>
->>>>>> am3352-rtc suffices for am4372 too. No need to add additional one for
->>>>>> am4372.
->>>>>
->>>>> Until we end up needing it, right ? :-)
->>>>>
->>>>> Besides, it's already used in a DTS. What happens if someone branched
->>>> >from that DTS and ships that in a product. RTC will just stop working
->>>>> for them. Sure, it wasn't documented, but that's a problem of commit
->>>>> 73456012734b80442b33916406cfd13bf1b73acb (ARM: dts: AM4372: add few
->>>>> nodes) which, essentially, added that compatible flag without
->>>>> documenting it.
->>>>>
->>>>> BTW, this compatible has been in tree since August 2013, IMO it's unfar
->>>>> to drop it just like that. Documenting it would be a better approach.
->>>>
->>>> Okay. Can you point me to a file which is already accessing it in dts?
->>>
->>> Accessing what ? Also, once DTS reaches a major kernel release, it's
->>> deemed stable and should be supported. Are we dropping that ?
->>
->> I meant getting used in any other dts files than the one i just dropped it.
->
-> how can you ever know that for sure ? There are already quite a few
-> third party platforms based on AM437x, how can you be sure those
-> companies don't have their own DTS ?
+On Thu, Aug 06, 2015 at 12:00:47PM +0100, Build bot for Mark Brown wrote:
 
-Felipe,
+Today's linux-next fails to build an ARM allmodconfig with:
 
-If that is a concern i can re-do this.
+> ../drivers/iommu/omap-iommu-debug.c:138:2: error: void value not ignored as it ought to be
 
-Tony,
+caused by a combination of 1ba2f20ac (fs/seq_file: convert int
+seq_vprint/seq_printf/etc... returns to void) which made seq_printf()
+return void and e203db293863fa15 (iommu/omap: Fix debug_read_tlb() to
+use seq_printf()) which has been in -next for a little while now.
 
-Shall i re-do this patch without removing am4372-rtc? If you can drop 
-this i can re-do without removing the original am4372 compatible.
+--h8+hH1OQkST14sOt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Regards,
-Keerthy
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQEcBAEBCAAGBQJVw6ETAAoJECTWi3JdVIfQVbAH/iQskElfQvE0GpmXkvFrquxu
+JwIO3BLyf6aqDrHkqndjHzuUCvfEJJSa3Kvn0HIwWl+ze5b59LL57Jx/WCK2tC6G
+T49xpKqU6YP91tIuasYgBdyFOE+tsgvTfIER5EaWZbBVly+xqb2WB1OzVzzb9iEV
+V3lShrL/2F+y40nCgoK+06KQwXk8M05EkBCp2ADqdZ76ywDJm6jkH8vdXDgPXSb6
+yCyJp5EaF+AuRi/DSVNXaAJDc0awth89paYRWCmdGvnZBDOBQUkwfz3A167GL9H9
+o4cTKWDRi0jOcbQF/lJFXpcmq95j/J/velLyZ/on6jlGIHwCMaJkViVGBncgJV0=
+=mSUr
+-----END PGP SIGNATURE-----
+
+--h8+hH1OQkST14sOt--
