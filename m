@@ -1,144 +1,113 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: OMAP5 / DRA7: Introduce workaround for 801819
-Date: Thu, 6 Aug 2015 10:54:24 -0500
-Message-ID: <1438876464-15424-1-git-send-email-nm@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Thu, 6 Aug 2015 17:46:56 +0100
+Message-ID: <20150806164656.GY20873@sirena.org.uk>
+References: <55C0FD98.1090107@ti.com>
+ <20150805115013.GJ20873@sirena.org.uk>
+ <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
+ <20150805124412.GN20873@sirena.org.uk>
+ <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+ <20150806090202.GO20873@sirena.org.uk>
+ <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
+ <20150806102225.GI7576@n2100.arm.linux.org.uk>
+ <55C35233.2000105@ti.com>
+ <20150806135129.GJ7576@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: Nishanth Menon <nm@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Brad Griffis <bgriffis@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="pwuPNfS0paSTjpGn"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150806135129.GJ7576-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-QWRkIHdvcmthcm91bmQgZm9yIENvcnRleC1BMTUgQVJNIGVycmF0dW0gODAxODE5IHdoaWNoIHNh
-eXMgaW4gc3VtbWFyeQp0aGF0ICJBIGxpdmVsb2NrIGNhbiBvY2N1ciBpbiB0aGUgTDIgY2FjaGUg
-YXJiaXRyYXRpb24gdGhhdCBtaWdodApwcmV2ZW50IGEgc25vb3AgZnJvbSBjb21wbGV0aW5nLiBV
-bmRlciBjZXJ0YWluIGNvbmRpdGlvbnMgdGhpcyBjYW4KY2F1c2UgdGhlIHN5c3RlbSB0byBkZWFk
-bG9jay4gIgoKUmVjb21tZW5kZWQgd29ya2Fyb3VuZCBpcyBhcyBmb2xsb3dzOgpEbyBib3RoIG9m
-IHRoZSBmb2xsb3dpbmc6CgoxKSBEbyBub3QgdXNlIHRoZSB3cml0ZS1iYWNrIG5vLWFsbG9jYXRl
-IG1lbW9yeSB0eXBlLgoyKSBEbyBub3QgaXNzdWUgd3JpdGUtYmFjayBjYWNoZWFibGUgc3RvcmVz
-IGF0IGFueSB0aW1lIHdoZW4gdGhlIGNhY2hlCmlzIGRpc2FibGVkIChTQ1RMUi5DPTApIGFuZCB0
-aGUgTU1VIGlzIGVuYWJsZWQgKFNDVExSLk09MSkuIEJlY2F1c2UgaXQKaXMgaW1wbGVtZW50YXRp
-b24gZGVmaW5lZCB3aGV0aGVyIGNhY2hlYWJsZSBzdG9yZXMgdXBkYXRlIHRoZSBjYWNoZSB3aGVu
-CnRoZSBjYWNoZSBpcyBkaXNhYmxlZCBpdCBpcyBub3QgZXhwZWN0ZWQgdGhhdCBhbnkgcG9ydGFi
-bGUgY29kZSB3aWxsCmV4ZWN1dGUgY2FjaGVhYmxlIHN0b3JlcyB3aGVuIHRoZSBjYWNoZSBpcyBk
-aXNhYmxlZC4KCkZvciBpbXBsZW1lbnRhdGlvbnMgb2YgQ29ydGV4LUExNSBjb25maWd1cmVkIHdp
-dGhvdXQgdGhlIOKAnEwyIGFyYml0cmF0aW9uCnJlZ2lzdGVyIHNsaWNl4oCdIG9wdGlvbiAodHlw
-aWNhbGx5IG9uZSBvciB0d28gY29yZSBzeXN0ZW1zKSwgeW91IG11c3QKYWxzbyBkbyB0aGUgZm9s
-bG93aW5nOgoKMykgRGlzYWJsZSB3cml0ZS1zdHJlYW1pbmcgaW4gZWFjaCBDUFUgYnkgc2V0dGlu
-ZyBBQ1RMUlsyODoyNV0gPSAwYjExMTEKClNvLCB3ZSBwcm92aWRlIGFuIG9wdGlvbiB0byBkaXNh
-YmxlIHdyaXRlIHN0cmVhbWluZyBvbiBPTUFQNSBhbmQgRFJBNy4KSXQgaXMgYSByYXJlIGNvbmRp
-dGlvbiB0byBvY2N1ciBhbmQgbWF5IGJlIGVuYWJsZWQgc2VsZWN0aXZlbHkgYmFzZWQKb24gcGxh
-dGZvcm0gYWNjZXB0YW5jZSBvZiByaXNrLgoKQXBwbGllcyB0bzogQTE1IHJldmlzaW9ucyByMnAw
-LCByMnAxLCByMnAyLCByMnAzIG9yIHIycDQgYW5kIFJFVklEUlszXQppcyBzZXQgdG8gMC4KCkJh
-c2VkIG9uIEFSTSBlcnJhdGEgRG9jdW1lbnQgcmV2aXNpb24gMTguMCAoMjIgTm92IDIwMTMpCgpO
-b3RlOiB0aGUgY29uZmlndXJhdGlvbiBmb3IgdGhlIHdvcmthcm91bmQgbmVlZHMgdG8gYmUgZG9u
-ZSB3aXRoCmVhY2ggQ1BVIGJyaW5ndXAsIHNpbmNlIENQVTAgYnJpbmd1cCBpcyBkb25lIGJ5IGJv
-b3Rsb2FkZXIsIGl0IGlzCnJlY29tbWVuZGVkIHRvIGhhdmUgdGhlIHdvcmthcm91bmQgaW4gdGhl
-IGJvb3Rsb2FkZXIsIGtlcm5lbCBhbHNvIGRvZXMKZW5zdXJlIHRoYXQgQ1BVMCBoYXMgdGhlIHdv
-cmthcm91bmQgYW5kIG1ha2VzIHRoZSB3b3JrYXJvdW5kIGFjdGl2ZQp3aGVuIENQVTEgZ2V0cyBh
-Y3RpdmUuCgpXaXRoIENPTkZJR19TTVAgZGlzYWJsZWQsIGl0IGlzIGV4cGVjdGVkIHRvIGJlIGRv
-bmUgYnkgdGhlIGJvb3Rsb2FkZXIuCgpUaGlzIGRvZXMgc2hvdyBzaWduaWZpY2FudCBkZWdyYWRh
-dGlvbiBpbiBzeW50aGV0aWMgdGVzdHMgc3VjaCBhcwptYncgKGh0dHBzOi8vcGFja2FnZXMucWEu
-ZGViaWFuLm9yZy9tL21idy5odG1sKQptYncgLW4gMTAwIDEwMHxncmVwIEFWRyAob24gYSB0ZXN0
-IHBsYXRmb3JtKQpXaXRob3V0IGVuYWJsaW5nIHRoZSBlcnJhdHVtOgpBVkcgTWV0aG9kOiBNRU1D
-UFkgIEVsYXBzZWQ6IDAuMTM0MDYgIE1pQjogMTAwLjAwMDAwICBDb3B5OiA3NDUuOTEzIE1pQi9z
-CkFWRyBNZXRob2Q6IERVTUIgICAgRWxhcHNlZDogMC4wNjc0NiAgTWlCOiAxMDAuMDAwMDAgIENv
-cHk6IDE0ODIuMzU3IE1pQi9zCkFWRyBNZXRob2Q6IE1DQkxPQ0sgRWxhcHNlZDogMC4wMzA1OCAg
-TWlCOiAxMDAuMDAwMDAgIENvcHk6IDMyNzAuNTY5IE1pQi9zCkFmdGVyIGVuYWJsaW5nIHRoZSBl
-cnJhdHVtOgpBVkcgTWV0aG9kOiBNRU1DUFkgIEVsYXBzZWQ6IDAuMTM3NTcgIE1pQjogMTAwLjAw
-MDAwICBDb3B5OiA3MjYuOTEzIE1pQi9zCkFWRyBNZXRob2Q6IERVTUIgICAgRWxhcHNlZDogMC4x
-MjAyNCAgTWlCOiAxMDAuMDAwMDAgIENvcHk6IDgzMS42NjggTWlCL3MKQVZHIE1ldGhvZDogTUNC
-TE9DSyBFbGFwc2VkOiAwLjA5MjQzICBNaUI6IDEwMC4wMDAwMCAgQ29weTogMTA4MS45NDIgTWlC
-L3MKCk1vc3QgYmVuY2htYXJrcyBhcmUgZGVzaWduZWQgZm9yIHNwZWNpZmljIHBlcmZvcm1hbmNl
-IGFuYWx5c2lzLCBzbwpvdmVyYWxsIHVzZWNhc2UgbXVzdCBiZSBjb25zaWRlcmVkIGJlZm9yZSBt
-YWtpbmcgYSBkZWNpc2lvbiB0bwplbmFibGUvZGlzYWJsZSB0aGUgZXJyYXR1bSB3b3JrYXJvdW5k
-LgoKUGVuZGluZyBpbnRlcm5hbCBpbnZlc3RpZ2F0aW9uLCB0aGUgZXJyYXR1bSBpcyBrZXB0IGRp
-c2FibGVkIGJ5IGRlZmF1bHQuCgpDYzogUnVzc2VsbCBLaW5nIDxybWsra2VybmVsQGFybS5saW51
-eC5vcmcudWs+CkNjOiBDYXRhbGluIE1hcmluYXMgPGNhdGFsaW4ubWFyaW5hc0Bhcm0uY29tPgpD
-YzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KU3VnZ2VzdGVkLWJ5OiBSaWNoYXJk
-IFdvb2RydWZmIDxyLXdvb2RydWZmMkB0aS5jb20+ClN1Z2dlc3RlZC1ieTogQnJhZCBHcmlmZmlz
-IDxiZ3JpZmZpc0B0aS5jb20+ClNpZ25lZC1vZmYtYnk6IE5pc2hhbnRoIE1lbm9uIDxubUB0aS5j
-b20+Ci0tLQoKU2luY2UgdGhpcyBpcyBhIGdlbmVyaWMgQVJNIGVycmF0dW0gd2l0aCBwb3RlbnRp
-YWxseSBvdGhlciBTb0NzCmJlbmVmaXR0aW5nIGZyb20gYSB3b3JrYXJvdW5kLi4gdGhlIG9ubHkg
-cHJvYmxlbSB3aXRoIGEgZ2VuZXJpYwp3b3JrYXJvdW5kLCBhcyBmYXIgYXMgSSBjYW4gc2VlIGlm
-IHRoZSBTb0Mgc3BlY2lmaWMgc21jIGJhc2VkIGFjcgptb2RpZmljYXRpb24uIEl0IHdpbGwgYmUg
-Z3JlYXQgdG8gZ2V0IHNvbWUgZGlyZWN0aW9uIGluIHRoaXMgZnJvbnQuCgpBbHNvIG5vdGU6CgpX
-ZSBkaWQgbm90aWNlIHRoYXQgdGhpcyBlcnJhdHVtIHdhcyBkaXNjdXNzZWQgZWFybGllciBbMV0g
-aG93ZXZlciwKd2l0aCBpbnRlcm5hbCBldmFsdWF0aW9uLCBpdCB3YXMgc3VtbWFyaXplZCB0aGF0
-IHRoaXMgZG9lcyBpbXBhY3Qgb3VyClNvQ3MuCgoKWzFdIGh0dHBzOi8vbGlzdHMubGluYXJvLm9y
-Zy9waXBlcm1haWwvbGluYXJvLWtlcm5lbC8yMDEzLUp1bmUvMDA0Njg3Lmh0bWwKIGFyY2gvYXJt
-L21hY2gtb21hcDIvS2NvbmZpZyAgICAgICB8ICA4ICsrKysrKysKIGFyY2gvYXJtL21hY2gtb21h
-cDIvb21hcC1zZWN1cmUuaCB8ICAxICsKIGFyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbXAuYyAg
-ICB8IDQ4ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLQogMyBmaWxlcyBj
-aGFuZ2VkLCA1MiBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2Fy
-Y2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZyBiL2FyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZwpp
-bmRleCA0YTAyM2U4ZDFiZGIuLmI2MjgzNTU2MmZmMCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFj
-aC1vbWFwMi9LY29uZmlnCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZwpAQCAtMjQ1
-LDQgKzI0NSwxMiBAQCBlbmRtZW51CiAKIGVuZGlmCiAKK2NvbmZpZyBPTUFQNV9FUlJBVEFfODAx
-ODE5CisJYm9vbCAiRXJyYXRhIDgwMTgxOTogQW4gZXZpY3Rpb24gZnJvbSBMMSBkYXRhIGNhY2hl
-IG1pZ2h0IHN0YWxsIGluZGVmaW5pdGVseSIKKwlkZXBlbmRzIG9uIFNPQ19PTUFQNSB8fCBTT0Nf
-RFJBN1hYCisJaGVscAorCSAgQSBsaXZlbG9jayBjYW4gb2NjdXIgaW4gdGhlIEwyIGNhY2hlIGFy
-Yml0cmF0aW9uIHRoYXQgbWlnaHQgcHJldmVudAorCSAgYSBzbm9vcCBmcm9tIGNvbXBsZXRpbmcu
-IFVuZGVyIGNlcnRhaW4gY29uZGl0aW9ucyB0aGlzIGNhbiBjYXVzZSB0aGUKKwkgIHN5c3RlbSB0
-byBkZWFkbG9jay4KKwogZW5kbWVudQpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9v
-bWFwLXNlY3VyZS5oIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwLXNlY3VyZS5oCmluZGV4IGFm
-Mjg1MWZiY2RmMC4uYmFlMjYzZmJhNjQwIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAy
-L29tYXAtc2VjdXJlLmgKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwLXNlY3VyZS5oCkBA
-IC00Niw2ICs0Niw3IEBACiAKICNkZWZpbmUgT01BUDVfRFJBN19NT05fU0VUX0NOVEZSUV9JTkRF
-WAkweDEwOQogI2RlZmluZSBPTUFQNV9NT05fQU1CQV9JRl9JTkRFWAkJMHgxMDgKKyNkZWZpbmUg
-T01BUDVfRFJBN19NT05fU0VUX0FDUl9JTkRFWAkweDEwNwogCiAvKiBTZWN1cmUgUFBBKFByaW1h
-cnkgUHJvdGVjdGVkIEFwcGxpY2F0aW9uKSBBUElzICovCiAjZGVmaW5lIE9NQVA0X1BQQV9MMl9Q
-T1JfSU5ERVgJCTB4MjMKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbXAu
-YyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbXAuYwppbmRleCA1MzA1ZWM3MzQxZWMuLmZh
-YWYzNjZjMjIwZSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwLXNtcC5jCisr
-KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcC1zbXAuYwpAQCAtNTAsNiArNTAsMzkgQEAgdm9p
-ZCBfX2lvbWVtICpvbWFwNF9nZXRfc2N1X2Jhc2Uodm9pZCkKIAlyZXR1cm4gc2N1X2Jhc2U7CiB9
-CiAKKyNpZmRlZiBDT05GSUdfT01BUDVfRVJSQVRBXzgwMTgxOQordm9pZCBvbWFwNV9lcnJhdHVt
-X3dvcmthcm91bmRfODAxODE5KHZvaWQpCit7CisJdTMyIGFjciwgcmV2aWRyOworCXUzMiBhY3Jf
-bWFzazsKKworCS8qIFJFVklEUlszXSBpbmRpY2F0ZXMgZXJyYXR1bSBmaXggYXZhaWxhYmxlIG9u
-IHNpbGljb24gKi8KKwlhc20gdm9sYXRpbGUgKCJtcmMgcDE1LCAwLCAlMCwgYzAsIGMwLCA2IiA6
-ICI9ciIgKHJldmlkcikpOworCWlmIChyZXZpZHIgJiAoMHgxIDw8IDMpKQorCQlyZXR1cm47CisK
-Kwlhc20gdm9sYXRpbGUgKCJtcmMgcDE1LCAwLCAlMCwgYzEsIGMwLCAxIiA6ICI9ciIgKGFjcikp
-OworCS8qCisJICogQklUKDI3KSAtIERpc2FibGVzIHN0cmVhbWluZy4gQWxsIHdyaXRlLWFsbG9j
-YXRlIGxpbmVzIGFsbG9jYXRlIGluCisJICogdGhlIEwxIG9yIEwyIGNhY2hlLgorCSAqIEJJVCgy
-NSkgLSBEaXNhYmxlcyBzdHJlYW1pbmcuIEFsbCB3cml0ZS1hbGxvY2F0ZSBsaW5lcyBhbGxvY2F0
-ZSBpbgorCSAqIHRoZSBMMSBjYWNoZS4KKwkgKi8KKwlhY3JfbWFzayA9ICgweDMgPDwgMjUpIHwg
-KDB4MyA8PCAyNyk7CisJLyogZG8gd2UgYWxyZWFkeSBoYXZlIGl0IGRvbmUuLiBpZiB5ZXMsIHNr
-aXAgZXhwZW5zaXZlIHNtYyAqLworCWlmICgoYWNyICYgYWNyX21hc2spID09IGFjcl9tYXNrKQor
-CQlyZXR1cm47CisKKwlhY3IgfD0gYWNyX21hc2s7CisJb21hcF9zbWMxKE9NQVA1X0RSQTdfTU9O
-X1NFVF9BQ1JfSU5ERVgsIGFjcik7CisKKwlwcl9kZWJ1ZygiJXM6IEFSTSBlcnJhdHVtIHdvcmth
-cm91bmQgODAxODE5IGFwcGxpZWQgb24gQ1BVJWRcbiIsCisJCSBfX2Z1bmNfXywgc21wX3Byb2Nl
-c3Nvcl9pZCgpKTsKK30KKyNlbHNlCitzdGF0aWMgaW5saW5lIHZvaWQgb21hcDVfZXJyYXR1bV93
-b3JrYXJvdW5kXzgwMTgxOSh2b2lkKSB7IH0KKyNlbmRpZgorCiBzdGF0aWMgdm9pZCBvbWFwNF9z
-ZWNvbmRhcnlfaW5pdCh1bnNpZ25lZCBpbnQgY3B1KQogewogCS8qCkBAIC02NCwxMiArOTcsMTUg
-QEAgc3RhdGljIHZvaWQgb21hcDRfc2Vjb25kYXJ5X2luaXQodW5zaWduZWQgaW50IGNwdSkKIAkJ
-b21hcF9zZWN1cmVfZGlzcGF0Y2hlcihPTUFQNF9QUEFfQ1BVX0FDVFJMX1NNUF9JTkRFWCwKIAkJ
-CQkJCQk0LCAwLCAwLCAwLCAwLCAwKTsKIAotCS8qCi0JICogQ29uZmlndXJlIHRoZSBDTlRGUlEg
-cmVnaXN0ZXIgZm9yIHRoZSBzZWNvbmRhcnkgY3B1J3Mgd2hpY2gKLQkgKiBpbmRpY2F0ZXMgdGhl
-IGZyZXF1ZW5jeSBvZiB0aGUgY3B1IGxvY2FsIHRpbWVycy4KLQkgKi8KLQlpZiAoc29jX2lzX29t
-YXA1NHh4KCkgfHwgc29jX2lzX2RyYTd4eCgpKQorCWlmIChzb2NfaXNfb21hcDU0eHgoKSB8fCBz
-b2NfaXNfZHJhN3h4KCkpIHsKKwkJLyoKKwkJICogQ29uZmlndXJlIHRoZSBDTlRGUlEgcmVnaXN0
-ZXIgZm9yIHRoZSBzZWNvbmRhcnkgY3B1J3Mgd2hpY2gKKwkJICogaW5kaWNhdGVzIHRoZSBmcmVx
-dWVuY3kgb2YgdGhlIGNwdSBsb2NhbCB0aW1lcnMuCisJCSAqLwogCQlzZXRfY250ZnJlcSgpOwor
-CQkvKiBDb25maWd1cmUgQUNSIHRvIGRpc2FibGUgc3RyZWFtaW5nIFdBIGZvciA4MDE4MTkgKi8K
-KwkJb21hcDVfZXJyYXR1bV93b3JrYXJvdW5kXzgwMTgxOSgpOworCX0KIAogCS8qCiAJICogU3lu
-Y2hyb25pc2Ugd2l0aCB0aGUgYm9vdCB0aHJlYWQuCkBAIC0yMTgsNiArMjU0LDggQEAgc3RhdGlj
-IHZvaWQgX19pbml0IG9tYXA0X3NtcF9wcmVwYXJlX2NwdXModW5zaWduZWQgaW50IG1heF9jcHVz
-KQogCiAJaWYgKGNwdV9pc19vbWFwNDQ2eCgpKQogCQlzdGFydHVwX2FkZHIgPSBvbWFwNDQ2MF9z
-ZWNvbmRhcnlfc3RhcnR1cDsKKwlpZiAoc29jX2lzX2RyYTc0eCgpIHx8IHNvY19pc19vbWFwNTR4
-eCgpKQorCQlvbWFwNV9lcnJhdHVtX3dvcmthcm91bmRfODAxODE5KCk7CiAKIAkvKgogCSAqIFdy
-aXRlIHRoZSBhZGRyZXNzIG9mIHNlY29uZGFyeSBzdGFydHVwIHJvdXRpbmUgaW50byB0aGUKLS0g
-CjIuMS40CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
-YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtYXJtLWtlcm5lbAo=
+
+--pwuPNfS0paSTjpGn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Aug 06, 2015 at 02:51:29PM +0100, Russell King - ARM Linux wrote:
+
+> The M25P80 driver just appends additional bytes to the message to
+> achieve this:
+>=20
+>         struct m25p *flash =3D nor->priv;
+>         unsigned int dummy =3D nor->read_dummy;
+>=20
+>         /* convert the dummy cycles to the number of bytes */
+>         dummy /=3D 8;
+>=20
+>         flash->command[0] =3D nor->read_opcode;
+>         m25p_addr2cmd(nor, from, flash->command);
+>=20
+>         t[0].tx_buf =3D flash->command;
+>         t[0].len =3D m25p_cmdsz(nor) + dummy;
+>         spi_message_add_tail(&t[0], &m);
+
+> The reason that the number of dummy bytes can't be detected is because
+> it's all hidden in the first transaction as the total number of bytes to
+> be transmitted - and the dummy bytes are uninitialised, so you can't
+> make any assumptions what value they are.  There is no way for the SPI
+> driver to know whether these dummy bytes are dummy bytes or whether they
+> have an effect on the targetted device.
+
+We *could* (as you suggest below) indicate dummy transfers by having a
+separate transfer which omits the transmit buffers though I'd expect
+that normally that is going to be a small performance hit if interpreted
+directly so we need to think what to do there.  We do get other devices
+sending dummy bytes, it's sometimes a requirement for high speed
+register access to give settling time for the device, so other things
+would get some milage from it.
+
+> What may make more sense from the SPI point of view is to communicate to
+> all SPI drivers how many dummy bytes are to be transferred.  I'm not fully
+> up on SPI, but maybe something like this:
+
+> 	t[0].tx_buf =3D flash->command;
+> 	t[0].len =3D m25p_cmdsz(nor);
+> 	spi_message_add_tail(&t[0], &m);
+> 	t[1].tx_buf =3D dummy_buffer;
+> 	t[1].len =3D dummy;
+> 	t[1].dummy =3D 1;
+> 	spi_message_add_tail(&t[1], &m);
+
+> This way, we're describing the transfer to the SPI core, and explicitly
+> indicating that there are some dummy bytes.  The SPI driver can then
+> tell that these are dummy bytes, and if the SPI message consists of:
+
+That'd work as well, my first thought would to use NULL as a dummy
+buffer pointer and let the core substitute in data for the drivers.  We
+currently insist on having at least one buffer but that's fixable.
+
+> This would not be a hack to the SPI code: we're describing to the SPI
+> code what we want to achieve in terms of the activity on the bus, and
+> providing that level of description then allows the SPI driver to make
+> informed decisions on whether it can handle the transfer using some
+> non-standard feature.
+
+Yup.
+
+--pwuPNfS0paSTjpGn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVw49/AAoJECTWi3JdVIfQ1F0H/0r3XHXrg83DWGFZidmiKHIM
+3RTAuQQspERwEFOCDEKHJr2h7ZcZsusPTQcOK5IwadiaQL9izDyeDoeDswABr99Z
+FBVKKa9S1KlLZrlT3NmfOftQpCXTmX9CG9N8mBqgqVQdrJ7IS2bn3Kn4ztFCMhsT
+6OyjWIkL4y2hKnHDSedaB/CK0K219yS2bL+D6S1EkTrTk8nEU3OQOaRFbHPknCCO
+9VN0dF4/n70OqvYQYEgJ4yr7w+13TZu/gINRpzJ8kCon6JmrgGbNFydYGWNf61p0
+naxSlkptfPEOGyrkv19VaIE9LnlbKWjP5+DV3i8iwg7PdRy9AM25Bo8KXYQDQCU=
+=bduc
+-----END PGP SIGNATURE-----
+
+--pwuPNfS0paSTjpGn--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
