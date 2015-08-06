@@ -1,62 +1,40 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 3/3] serial: 8250: omap: restore registers on shutdown
-Date: Thu, 06 Aug 2015 14:31:27 +0200
-Message-ID: <55C3539F.4070403@linutronix.de>
-References: <87egjp2r4a.fsf@linutronix.de> <55BAC67E.1010400@hurleysoftware.com> <20150803160937.GA26497@linutronix.de> <55BF980E.20908@hurleysoftware.com> <55BF9CE0.4080107@linutronix.de> <55BFC1BA.5020605@hurleysoftware.com> <55C0A8F4.4010204@linutronix.de> <55C352A8.3070102@hurleysoftware.com>
+From: Afzal Mohammed <afzal.mohd.ma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/8] ARM: dts: AM4372: Reorder the rtc compatible string
+Date: Thu, 6 Aug 2015 19:03:06 +0530
+Message-ID: <20150806133306.GA5484@afzalpc>
+References: <1438771792-12604-1-git-send-email-j-keerthy@ti.com>
+ <1438771792-12604-2-git-send-email-j-keerthy@ti.com>
+ <20150805153148.GB12328@saruman.tx.rr.com>
+ <55C230E9.9010309@ti.com>
+ <20150805161445.GF12328@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55C352A8.3070102@hurleysoftware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: John Ogness <john.ogness@linutronix.de>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, linux-serial@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150805161445.GF12328-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/2015 02:27 PM, Peter Hurley wrote:
-> Hi Sebastian,
+Hi,
 
-Hi Peter,
+On Wed, Aug 05, 2015 at 11:14:45AM -0500, Felipe Balbi wrote:
 
-> On 08/04/2015 07:58 AM, Sebastian Andrzej Siewior wrote:
->> On 08/03/2015 09:32 PM, Peter Hurley wrote:
->>
->>>> You mean a function in 8250-dma API which does what I did just here
->>>> with the wait_event() and the wake_up in the callback? That way I could
->>>> move the termios_wait into the dma struct instead of keeping in the
->>>> omap specific part. I am also not sure if OMAP is the only one that may
->>>> hang here or the other people just didn't notice it yet.
->>>
->>> Exactly; and we need to fix DMA wrt x_char anyway.
->>>
->>> Going back to the dmaengine api, I think something like this might work
->>> (as a first approximation):
->>>
->>> 	dma_sync_wait(dma->txchan, dma->tx_cookie);
->>> 	dmaengine_pause(dma->txchan);
->>>
->>> 	/* remainder of set_termios */
->>>
->>> 	dmaengine_resume(dma->txchan);
->>>
->>> We could require 8250 core dma to support pause/resume.
->>
->> I would prefer the waitqueue approach.
->> You can't do this while holding the port lock. The lock is taken with
->> irqs off so may not see the transfer completing.
->> Why do you pause the channel? It may not work without an active
->> descriptor and a start without "resume" should work. Also you must
->> ensure that DMA's complete callback does not start another transfer if
->> there is something queued up (that is why I had the tx_running dance).
->> I am not sure if a transfer that is active and then paused will not
->> trigger the hang bug if we change the termios in between.
-> 
-> I'll look at/test this this weekend, ok?
+> for them. Sure, it wasn't documented, but that's a problem of commit
+> 73456012734b80442b33916406cfd13bf1b73acb (ARM: dts: AM4372: add few
+> nodes) which, essentially, added that compatible flag without
+> documenting it.
 
-Sure. I'm currently re-spinning the patches so have everything in
-proper pieces. While at it I will take a look at x_char.
+It was required to be done that way that time, probably author didn't
+want to be loyal to the king than the king himself ;), see,
 
-> Regards,
-> Peter Hurley
-> 
-Sebastian
+1. http://lists.infradead.org/pipermail/linux-arm-kernel/2013-August/191206.html
+2. http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg89473.html
+
+Regards
+Afzal
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
