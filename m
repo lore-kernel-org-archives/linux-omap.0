@@ -1,100 +1,60 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
-Date: Thu, 6 Aug 2015 19:20:29 +0100
-Message-ID: <20150806182029.GD20873@sirena.org.uk>
-References: <20150804155148.GR20873@sirena.org.uk>
- <55C0FD98.1090107@ti.com>
- <20150805115013.GJ20873@sirena.org.uk>
- <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
- <20150805124412.GN20873@sirena.org.uk>
- <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
- <20150806090202.GO20873@sirena.org.uk>
- <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
- <20150806102225.GI7576@n2100.arm.linux.org.uk>
- <55C35233.2000105@ti.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 3/3] serial: 8250: omap: restore registers on shutdown
+Date: Thu, 06 Aug 2015 14:22:32 -0400
+Message-ID: <55C3A5E8.4030506@hurleysoftware.com>
+References: <87egjp2r4a.fsf@linutronix.de> <55BAC67E.1010400@hurleysoftware.com> <20150803160937.GA26497@linutronix.de> <55BF980E.20908@hurleysoftware.com> <55BF9CE0.4080107@linutronix.de> <55BFC1BA.5020605@hurleysoftware.com> <55C0A8F4.4010204@linutronix.de> <55C352A8.3070102@hurleysoftware.com> <55C3539F.4070403@linutronix.de> <55C36846.8010104@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="/WOH3aHYQbLswZnX"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55C35233.2000105@ti.com>
+In-Reply-To: <55C36846.8010104@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Michal Suchanek <hramrach@gmail.com>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: John Ogness <john.ogness@linutronix.de>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, linux-serial@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
+On 08/06/2015 09:59 AM, Sebastian Andrzej Siewior wrote:
+> On 08/06/2015 02:31 PM, Sebastian Andrzej Siewior wrote:
+> 
+> Hi Peter,
+> 
+>>> I'll look at/test this this weekend, ok?
+>>
+>> Sure. I'm currently re-spinning the patches so have everything in
+>> proper pieces. While at it I will take a look at x_char.
+> 
+> So now that I actually look at it. If I read this right, we never send
+> the x_char if the TX-DMA never fails to do its job.
 
---/WOH3aHYQbLswZnX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+That's what I saw too; almost all the dma drivers are broken wrt x_char.
+The amba-pl011 driver gets it right.
 
-On Thu, Aug 06, 2015 at 05:55:23PM +0530, Vignesh R wrote:
+> The comment above uart_send_xchar() says it is high priority.
 
-> 1.Write to flash config register via config port to switch to QUAD MODE
-> (or any mode that flash supports).
-> 2. Populate QSPI_SPI_SETUP_REGx with flash read command, number of
-> address bytes to use and dummy bytes required.
+'High' priority is meant relative to previously written data which has
+not yet been sent.
 
-These things being constant for a given flash?
+> What do you suggest, wait
+> until the transfer completes, send the x_char _or_ pause the transfer
+> send that byte and then send the byte?
 
-> 3. Switch to memory mapped port by writing to QSPI_SPI_SWITCH_REG.
-> 4. Now, its possible to perform read from 0x5C000000 to 0x5FFFFFFF using
-> memcpy. The qspi controller hardware will communicate over SPI bus and
-> get the data. This data is directly sent to RAM via SoC's interconnect.
+'Better' would be sending the x_char when the current dma transfer
+completes. However, it will probably have /some/ impact on what line
+rates software flow control can be used. Worst case @ 115Kbaud is 35ms
+delay in sending.
 
-Presumably if it's done via memcpy() it won't go direct to RAM but
-rather be bounced through the CPU which is a bit interesting for
-performance (it might help, but it does mean that there's a core stalled
-waiting for the flash which might not be the best use of resources if
-there's other things it can be getting on with).  With DMA it'd be a
-direct to memory transfer though.
+'Best' would be pausing the dma and sending the byte. However, I'm not
+even sure if this is possible on OMAP; the TRM is woefully under-documented
+in that regard.
 
-> Advantages of memory mapped port are: improved read performance,
-> MEM_TO_MEM DMA support can be added (ti-qspi hardware as such does not
-> provide DMA events).
+> In both cases we have to wait until for the FIFO-empty interrupt to
+> make sure we don't overrun that TX-FIFO.
+> 
+> I *think* waiting until the transfer completes would be simpler but it
+> is not necessarily high priority.
 
-DMA would definitely help here.
+I agree; this is what we should do first because someone might want it
+for backports.
 
-> I just need to know whether the user that requested the transfer is
-> m25p80 driver. If yes, ti-qspi driver can take advantage of memory
-> mapped interface, else just use config port to access SPI bus directly.
-
-You don't *really* care if it's that specific user so much as that it's
-that particular pattern.
-
-> Writing separate driver based on spi-nor framework to interface with
-> m25p80 is not an option because, I would lose the ability to interface
-> with non-flash devices.
-
-You could, however, expose an explicit flash mapping interface for this
-functionality.  That does seem like it's going to be an awful lot easier=20
-and help with keeping things like DMA support out of the driver and in
-the core (which would be useful if there's other controllers with the
-same functionality, I seem to recall that there are).
-
-> The spi_message that is received in transfer_one_message() is too
-> generic to imply the slave device that is on the other side of the wire.
-> IMO, the read command does not imply that the slave is m25p80 flash
-> (besides the read opcodes vary across vendors of m25p80 and across modes).
-
-Again, it doesn't matter if it's actually a read command only that it's
-got a compatible format on the bus.
-
---/WOH3aHYQbLswZnX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVw6VsAAoJECTWi3JdVIfQo5kH/jhi48J/GzyKzpi6siPcw1Zf
-9XvGK+lnjE0cifv7vsMLqlSe5q+MHcBGFo0v2HJ3sGsNX2nROE7soj8TiLroee22
-k6GYn0+k/5pNHEQ3eGjkOElD/GCmGGkSQkRkuvJDjj2gfsaQ2Qs2uH5jl6bkTdgM
-9rNYnFJf/tVf1Ct4mQpjXuDJqX22+NZmE5HpWt7nnmZz/+WrUAqFuQfSaSoG7AVD
-HCHBYHrj13/p5L5XfcMsTX+jHqsfuMVCJRhGtyfOOmzD/ftZczg8XNmp3KBRg3vd
-k6/sGgTqhcV7uJDqlCxbhc/6nWddP9LuPG7CeadvSxNz+DXoh992m9BnKikv0UE=
-=lR6+
------END PGP SIGNATURE-----
-
---/WOH3aHYQbLswZnX--
+Regards,
+Peter Hurley
