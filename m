@@ -1,84 +1,74 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
-Date: Thu, 6 Aug 2015 10:02:02 +0100
-Message-ID: <20150806090202.GO20873@sirena.org.uk>
-References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
- <1438072876-16338-2-git-send-email-vigneshr@ti.com>
- <20150731181745.GM20873@sirena.org.uk>
- <55BEF4AF.5090704@ti.com>
- <20150804155148.GR20873@sirena.org.uk>
- <55C0FD98.1090107@ti.com>
- <20150805115013.GJ20873@sirena.org.uk>
- <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
- <20150805124412.GN20873@sirena.org.uk>
- <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/8] rtc: omap: Add external clock enabling support
+Date: Thu, 6 Aug 2015 12:36:54 +0300
+Message-ID: <55C32AB6.7090509@ti.com>
+References: <1438771792-12604-1-git-send-email-j-keerthy@ti.com> <1438771792-12604-4-git-send-email-j-keerthy@ti.com> <20150805111316.GI16878@atomide.com> <20150805114119.GF3486@piout.net> <20150805114357.GG3486@piout.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="kVEG7nX9o2Fku/dg"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Suchanek <hramrach@gmail.com>
-Cc: "R, Vignesh" <vigneshr@ti.com>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150805114357.GG3486-m++hUPXGwpdeoWH0uzbU5w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Alexandre,
+On 08/05/2015 02:43 PM, Alexandre Belloni wrote:
+> On 05/08/2015 at 13:41:19 +0200, Alexandre Belloni wrote :
+>> Hi,
+>>
+>> On 05/08/2015 at 04:13:17 -0700, Tony Lindgren wrote :
+>>> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [150805 03:53]:
+>>>> Based on the board property switch the source from internal
+>>>> to external clock. Switching to external source is needed for
+>>>> rtcwake to work in low power modes.
+>>>
+>>> I think this is better handled based on the compatible string
+>>> in the device driver rather than introducing a custom dts
+>>> property for it. You can just set the quirk flag in the driver
+>>> probe based on the compatible.
+>>>
+>>
+>> Why not use the clocks property? Then you can pass an external clock. If
+>> it is present you can even get its rate if this is needed at some point
+>> in the future. You could also disable it when going to suspend.
+>>
+> 
+> Actually, that was already my suggestion back in april:
+> http://patchwork.ozlabs.org/patch/445631/
+> 
+> (Please Cc: the rtc mailing list for RTC related patches so that they
+> get picked up by patchwork).
+> 
 
---kVEG7nX9o2Fku/dg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Pls, correct me if I'm not right. Is below what you propose?
 
-On Wed, Aug 05, 2015 at 02:56:09PM +0200, Michal Suchanek wrote:
-> On 5 August 2015 at 14:44, Mark Brown <broonie@kernel.org> wrote:
-> > On Wed, Aug 05, 2015 at 02:40:01PM +0200, Michal Suchanek wrote:
+Doard dts:
+/ {
+ rtc_32k_ext_clk: rtc_osc_xi_clkin32_ext {
+	#clock-cells = <0>;
+	compatible = "fixed-clock";
+	clock-frequency = <32000>;
+  	clock-output-names = "rtc_osc_xi_clkin32";
+  };
+}
 
-> >> I don't think sending 03 or other random byte as the first byte of a
-> >> SPI transfer can be used as reliable detection that we are talking to
-> >> a SPI flash memory.
+ &rtc {
+ 	status = "okay";
+	clocks = <&sys_32k_ck>, <&rtc_32k_ext_clk>;
+	[optional] clock-names = "int-clk", "ext-clk";
+ };
 
-> > Why care - if something is physically in the same format as a flash read
-> > command how would a device be able to tell that it wasn't actually a
-> > flash read command?  The signals sent on the bus are going to be
-> > identical anyway.
+Driver:
+1) clk0 is mandatory, internal clock source
+2) clk1 is optional, external clock source, so
+if present - RTC driver can switch to use ext clock source
 
-> Not only must the command be the same but also the response must be tha same.
-
-What difference would that make?  The caller is sending a single SPI
-operation and this is a user visible thing...
-
-> The flash chip responds by sending arbitrary amount of data. Given
-> that transfer_one gets only the part that sends the read command and
-> the part to do the actual read may or may not follow this is getting a
-> bit hairy. Add in dummy bytes due to fast-read lag and page write
-> wrap-around and you get something that you definitely do not want
-> unless you are really sure that there is a flash memory on the other
-> end of the wire.
-
-So if you're doing this you may have a good reason to implement
-transfer_one_message() instead.  Or perhaps implement it in the core and
-provide operations to do the map and unmap.  And of course if this sort
-of requirement exists that's an obvious thing that must be documented
-in the interfaces but isn't.
-
-We need a lot more thought about the interface here, the lack of any
-explanation of what the interface is supposed to be and the fact that
-all questions about it are being answered in terms of describing the
-specific system are both a bit worrying.
-
---kVEG7nX9o2Fku/dg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVwyKGAAoJECTWi3JdVIfQiYUH/0VIEkVZqyLsAeTxJFMAWxLp
-c7/RgUO0oBGWWp8OJrAT+IRDVgEJ7Nu5nSNtKch8jwSwtsIi1QeGYIcFUFsbEA8V
-fzGkMtp2/hnABtD2qciCc2r5AkJdB1rcbrFMqyVes8dbW3Otq9z9fu8K12x59FJr
-2y2X6o5pqdrQPL6vH0GmUodWs28Rc0t5qsWbiXPm08k5TF27hEOF2O/0EKBNsDjS
-JIiVrqdybHfKjEF8nZCadt/MUlClpG3j/PCZlu9XFs1yKMFALIbbwfgQ1kF8N/Sh
-XVVhR02v16wmIecRjiPt7S23RhPspqkRiX6KtEJMNug0Rhs3w+5+T2c+tvQL1IE=
-=S1cX
------END PGP SIGNATURE-----
-
---kVEG7nX9o2Fku/dg--
+-- 
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
