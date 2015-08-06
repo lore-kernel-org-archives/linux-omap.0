@@ -1,49 +1,100 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: next-20150806 build: 2 failures 52 warnings (next-20150806)
-Date: Thu, 6 Aug 2015 19:01:56 +0100
-Message-ID: <20150806180156.GC20873@sirena.org.uk>
-References: <E1ZNIul-0007IF-Ev@optimist>
+From: Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Thu, 6 Aug 2015 20:20:02 +0200
+Message-ID: <CAOMqctTisUv4YcSSojKadotX5XAB4Ro0bxT4Wn9tRP=Jyc0iqw@mail.gmail.com>
+References: <20150804155148.GR20873@sirena.org.uk> <55C0FD98.1090107@ti.com>
+ <20150805115013.GJ20873@sirena.org.uk> <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
+ <20150805124412.GN20873@sirena.org.uk> <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+ <20150806090202.GO20873@sirena.org.uk> <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
+ <20150806102225.GI7576@n2100.arm.linux.org.uk> <55C35233.2000105@ti.com>
+ <20150806135129.GJ7576@n2100.arm.linux.org.uk> <CAMuHMdWWDwZ=ziGQXFCnOX8pErXpsEi533J73_Hh=sEqq4hR6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="h8+hH1OQkST14sOt"
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <E1ZNIul-0007IF-Ev@optimist>
-Sender: linux-next-owner@vger.kernel.org
-To: Salva =?iso-8859-1?Q?Peir=F3?= <speirofr@gmail.com>, Joerg Roedel <jroedel@suse.de>, Joe Perches <joe@perches.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMuHMdWWDwZ=ziGQXFCnOX8pErXpsEi533J73_Hh=sEqq4hR6Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 6 August 2015 at 18:14, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
+> On Thu, Aug 6, 2015 at 3:51 PM, Russell King - ARM Linux
+> <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
+>> On Thu, Aug 06, 2015 at 05:55:23PM +0530, Vignesh R wrote:
+>>> On the whole following are my requirements:
+>>> 1. to be able to communicate with non -flash SPI devices via config port
+>>> ( this functionality is supported by current driver, I dont want to
+>>> break it). Or pump any spi_message on to SPI bus directly.
+>>> 2. take advantage of memory mapped port in order to increase read
+>>> throughput( and use dma in future) when the slave is a m25p80 type flash.
+>>> 3. handle m25p80 as well as other slave on multiple chipselects.
+>>>
+>>> I just need to know whether the user that requested the transfer is
+>>> m25p80 driver. If yes, ti-qspi driver can take advantage of memory
+>>> mapped interface, else just use config port to access SPI bus directly.
+>>
+>> The problem with this approach is that it's an abomination.  It's adding
+>> a SPI-user specific hack which is detected by a specific driver.  That's
+>> really not sane - what happens when we have lots of these kinds of "I'm
+>> an X SPI-user" with drivers detecting that?  It's not maintainable in the
+>> long term.
+>>
+>> Yes, your requirements _today_ seem simple and easy, but you're only
+>> thinking about today, not tomorrow when you've moved on and someone else
+>> has to maintain the mess left behind (or delete it from mainline because
+>> they're sick of dealing with a hack.)
+>>
+>>> The spi_message that is received in transfer_one_message() is too
+>>> generic to imply the slave device that is on the other side of the wire.
+>>> IMO, the read command does not imply that the slave is m25p80 flash
+>>> (besides the read opcodes vary across vendors of m25p80 and across modes).
+>>
+>> I can see both sides of the argument.
+>>
+>> Mark is saying: if the SPI driver detects that the message to be transmitted
+>> is a read command followed by the appropriate number of dummy bytes, and
+>> then the data being read _and_ it's using quad-mode access, and the hardware
+>> generates _exactly_ that in hardware using the memory mapped mode, there is
+>> no reason _not_ to use the hardware to achieve that SPI transaction.  The
+>> bus activity will be identical to what happens when the SPI controller is
+>> used manually to achieve that bus sequence.
+>>
+>> You're saying: but the documentation says you can't use it for anything
+>> except m25p80.  If you look at 24.5.4.1.2, it tells you what the SFI
+>> generates on the bus, which is:
+>>
+>> 1. CS active
+>> 2. Read command byte sent
+>> 3. 1-4 address bytes sent
+>> 4. 0-3 dummy bytes sent
+>> 5. data bytes read from bus
+>> 6. CS inactive
+>>
+>> So, Mark's point is "if we can detect a transaction which fits _that_
+>> bus activity, there's no reason not to use this acceleration for the
+>> transaction."
+>>
+>> What you're failing to counter with is: we don't have enough information
+>> in the SPI driver to know how many dummy bytes there are between the
+>> address bytes and the data read from the bus.
+>
+> Irrespective of the dummy bytes.
+> What if the spi device is not a FLASH ROM, but some other device,
+> which receives a data packet that accidentally looks like an m25p80 READ
+> command?
+>
 
---h8+hH1OQkST14sOt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Presumably the driver would interpret some random part of the message
+as address and map the reply in your address space at that address
+from the flash mmap base.
 
-On Thu, Aug 06, 2015 at 12:00:47PM +0100, Build bot for Mark Brown wrote:
+If you happen to overflow the flash memory mmap space the behaviour
+will probably not be well defined.
 
-Today's linux-next fails to build an ARM allmodconfig with:
+Thanks
 
-> ../drivers/iommu/omap-iommu-debug.c:138:2: error: void value not ignored as it ought to be
-
-caused by a combination of 1ba2f20ac (fs/seq_file: convert int
-seq_vprint/seq_printf/etc... returns to void) which made seq_printf()
-return void and e203db293863fa15 (iommu/omap: Fix debug_read_tlb() to
-use seq_printf()) which has been in -next for a little while now.
-
---h8+hH1OQkST14sOt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVw6ETAAoJECTWi3JdVIfQVbAH/iQskElfQvE0GpmXkvFrquxu
-JwIO3BLyf6aqDrHkqndjHzuUCvfEJJSa3Kvn0HIwWl+ze5b59LL57Jx/WCK2tC6G
-T49xpKqU6YP91tIuasYgBdyFOE+tsgvTfIER5EaWZbBVly+xqb2WB1OzVzzb9iEV
-V3lShrL/2F+y40nCgoK+06KQwXk8M05EkBCp2ADqdZ76ywDJm6jkH8vdXDgPXSb6
-yCyJp5EaF+AuRi/DSVNXaAJDc0awth89paYRWCmdGvnZBDOBQUkwfz3A167GL9H9
-o4cTKWDRi0jOcbQF/lJFXpcmq95j/J/velLyZ/on6jlGIHwCMaJkViVGBncgJV0=
-=mSUr
------END PGP SIGNATURE-----
-
---h8+hH1OQkST14sOt--
+Michal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
