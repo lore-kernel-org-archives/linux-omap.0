@@ -1,52 +1,71 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to program
- pbias regulator
-Date: Thu, 6 Aug 2015 12:58:10 +0300
-Message-ID: <55C32FB2.4070802@ti.com>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com> <1437996250-2913-2-git-send-email-kishon@ti.com> <20150805094717.GX16878@atomide.com> <55C2242D.4030703@ti.com> <20150806062655.GM16878@atomide.com>
+From: Michal Suchanek <hramrach@gmail.com>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Thu, 6 Aug 2015 12:01:37 +0200
+Message-ID: <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
+References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
+ <1438072876-16338-2-git-send-email-vigneshr@ti.com> <20150731181745.GM20873@sirena.org.uk>
+ <55BEF4AF.5090704@ti.com> <20150804155148.GR20873@sirena.org.uk>
+ <55C0FD98.1090107@ti.com> <20150805115013.GJ20873@sirena.org.uk>
+ <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
+ <20150805124412.GN20873@sirena.org.uk> <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+ <20150806090202.GO20873@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150806062655.GM16878@atomide.com>
+In-Reply-To: <20150806090202.GO20873@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: lgirdwood@gmail.com, broonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, stable@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: "R, Vignesh" <vigneshr@ti.com>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/2015 09:26 AM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [150805 07:59]:
->> Hi Tony,
->>
->> On Wednesday 05 August 2015 03:17 PM, Tony Lindgren wrote:
->>> * Kishon Vijay Abraham I <kishon@ti.com> [150727 04:27]:
->>>> vsel_reg and enable_reg of the pbias regulator descriptor should actually
->>>> have the offset from syscon. However after the pbias device tree node
->>>> is moved as a child node of syscon, vsel_reg and enable_reg has the
->>>> absolute address because of the address translation that happens while
->>>> creating device from device tree node.
->>>> So avoid using platform_get_resource and use of_get_address in order to
->>>> get only the offset (untranslated address) and populate these in
->>>> vsel_reg and enable_reg.
->>>
->>> I think this gets fixed automatically with your other series
->>> adding the "simple-bus" to the nodes. For the children of_ioremap
->>
->> Nope. The probe of pbias regulator fails as Grygorii has already pointed out
->> here [1].
-> 
-> Oh I see, you want the offset from syscon, not the virtual address of
-> the register. Yeah then it makes sense to me. You could also get the
-> offset by doing res->start & 0xff or something but I don't know if
-> that's any better. I guess ideallly we'd have some syscon function
-> to get the offest from the syscon base if it does not exist already.
+On 6 August 2015 at 11:02, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, Aug 05, 2015 at 02:56:09PM +0200, Michal Suchanek wrote:
+>> On 5 August 2015 at 14:44, Mark Brown <broonie@kernel.org> wrote:
+>> > On Wed, Aug 05, 2015 at 02:40:01PM +0200, Michal Suchanek wrote:
+>
+>> >> I don't think sending 03 or other random byte as the first byte of a
+>> >> SPI transfer can be used as reliable detection that we are talking to
+>> >> a SPI flash memory.
+>
+>> > Why care - if something is physically in the same format as a flash read
+>> > command how would a device be able to tell that it wasn't actually a
+>> > flash read command?  The signals sent on the bus are going to be
+>> > identical anyway.
+>
+>> Not only must the command be the same but also the response must be tha same.
+>
+> What difference would that make?  The caller is sending a single SPI
+> operation and this is a user visible thing...
+>
+>> The flash chip responds by sending arbitrary amount of data. Given
+>> that transfer_one gets only the part that sends the read command and
+>> the part to do the actual read may or may not follow this is getting a
+>> bit hairy. Add in dummy bytes due to fast-read lag and page write
+>> wrap-around and you get something that you definitely do not want
+>> unless you are really sure that there is a flash memory on the other
+>> end of the wire.
+>
+> So if you're doing this you may have a good reason to implement
+> transfer_one_message() instead.  Or perhaps implement it in the core and
+> provide operations to do the map and unmap.  And of course if this sort
+> of requirement exists that's an obvious thing that must be documented
+> in the interfaces but isn't.
+>
+> We need a lot more thought about the interface here, the lack of any
+> explanation of what the interface is supposed to be and the fact that
+> all questions about it are being answered in terms of describing the
+> specific system are both a bit worrying.
 
-Hypothetically, the "syscon" property can be used to get register offset
-syscon = <&scm_conf 0xe00>;
-and even "reg" property can be dropped if driver uses syscon/regmap only for io.
+Disclaimer: I am not familiar with the hardware for which this patch
+adds support.
 
-But, in this particular case, such change will lead to DT compatibility issues :(
+However, I am familiar m25p80.c and as I understand it the controller
+is basically supposed to implement m25p80.c in hardware when this flag
+is set.
 
--- 
-regards,
--grygorii
+If I was using m25p80.c to talk to anything but an actual flash chip
+it would get me quite worried.
+
+Thanks
+
+Michal
