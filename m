@@ -1,112 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap dts changes for v4.3 merge window, part 3
-Date: Thu, 6 Aug 2015 03:45:16 -0700
-Message-ID: <20150806104516.GF4215@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Thu, 6 Aug 2015 12:00:18 +0100
+Message-ID: <20150806110018.GS20873@sirena.org.uk>
+References: <55BEF4AF.5090704@ti.com>
+ <20150804155148.GR20873@sirena.org.uk>
+ <55C0FD98.1090107@ti.com>
+ <20150805115013.GJ20873@sirena.org.uk>
+ <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
+ <20150805124412.GN20873@sirena.org.uk>
+ <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+ <20150806090202.GO20873@sirena.org.uk>
+ <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
+ <20150806102225.GI7576@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="4dezoEM3dweX1vMa"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20150806102225.GI7576@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Michal Suchanek <hramrach@gmail.com>, "R, Vignesh" <vigneshr@ti.com>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit f5887fe5d14181aef0653ab04f60988252d42461:
 
-  ARM: OMAP2+: Add custom abort handler for t410 (2015-07-23 22:33:19 -0700)
+--4dezoEM3dweX1vMa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-are available in the git repository at:
+On Thu, Aug 06, 2015 at 11:22:25AM +0100, Russell King - ARM Linux wrote:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/dt-pt3
+> If that's the case, then maybe you should consider whether using the SPI
+> bus infrastructure is really the best way forward.  Would it make more
+> sense instead to adopt a different software structure, something more
+> high-level like:
 
-for you to fetch changes up to ed05637c30e6d13e5793aab64d6a6e57e30228af:
+>      +-------------------------------------------+
+>      |          m25p80 high-level driver         |
+>      +----------------------+--------------------+
+>      |   SPI m25p80 driver  |                    |
+>      +----------------------+                    |
+>      |      SPI layer       |  Special driver    |
+>      +----------------------+                    |
+>      |    SPI bus driver    |                    |
+>      +----------------------+--------------------+
+>      |     SPI hardware     |  Special hardware  |
+>      +----------------------+--------------------+
 
-  ARM: dts: omap3-devkit8000: Add ADS7846 Touchscreen support (2015-08-06 02:43:09 -0700)
+Yes, that's what's been talked about before - for some of these devices
+they're sufficiently flash specialist that we just don't bother exposing
+a SPI interface at all though AIUI they could be persuaded to do it.  It
+isn't entirely clear that we want exactly that split, if the devices are
+reasonable SPI controllers we will want to handle the case where they
+have flash and non-flash devices on the same bus.  For that there is
+going to be some generalisable work possible for managing switching
+between memory mapped and SPI modes where those are mutually exclusive,
+especially if the switch between them isn't free.
 
-----------------------------------------------------------------
-Omap device tree changes for v4.3 merge window. Pretty much all
-just trivial additions to configure devices for various SoCs and
-boards:
+--4dezoEM3dweX1vMa
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-- Updates for omap3-devkit8000 board support
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-- M3 coprosessor, regulator, mux, RTC and eMMC updates for am437x
+iQEcBAEBCAAGBQJVwz5CAAoJECTWi3JdVIfQ6VAH/114XYi5VzW0D8sB+8ukrq/A
+bkJ/eHqojBMErmudkznI8zyirx0/R9p6sv3v8bz70HnNtQbBGNfUBX7o+fxaWnH2
+tyXMxr1f51ZwKuZqJKritN/HZ1nN4N1JFgkfeYQm+KK+DoOVNj+AQAAhCrm2zvwi
+CrmTBcgupZYme/sRSm9kwf9lXcxUr3VFXoeHiHik4FN3Mbt7YxDvyxqz6H+fkEFn
+6UWXSuEdg2O/SJ4x7MHH/GFehqCSwyHPzXwhbt+/oOR/r61xg/99VA4z3kWsImp+
+yZBkUPWdS5ZR4a3HzswVt39/t7/utQ02GG4GL4gO5z4brnMN2hgmCI9v/v6Jja8=
+=JvaZ
+-----END PGP SIGNATURE-----
 
-- MMC, regmap, mux and dwc3 updates for dra7 and omap5
-
-----------------------------------------------------------------
-Anthoine Bourgeois (7):
-      ARM: dts: omap3-devkit8000: Add user button support
-      ARM: dts: omap3-devkit8000: Add PMU stat support
-      ARM: dts: omap3-devkit8000: Add keymap support
-      ARM: dts: omap3-devkit8000: Add S-video output support
-      ARM: dts: omap3-devkit8000: Add DSS' DVI support
-      ARM: dts: omap3-devkit8000: add LCD panels
-      ARM: dts: omap3-devkit8000: Add ADS7846 Touchscreen support
-
-Balaji T K (1):
-      ARM: dts: dra7-evm: add evm_3v3_sd regulator
-
-Dave Gerlach (2):
-      ARM: dts: am43xx: Introduce MUX_MODE9 for pinctrl
-      ARM: dts: am437x-gp-evm: Add regulator-always-on and regulator-boot-on for RTC DCDCs
-
-Felipe Balbi (1):
-      ARM: dts: am4372: Add named interrupt property for dwc3
-
-Keerthy (1):
-      ARM: dts: AM4372: Reorder the rtc compatible string
-
-Kishon Vijay Abraham I (5):
-      ARM: dts: dra72-evm: add evm_3v3_sd regulator
-      ARM: dts: dra72-evm: Set max clock frequency of MMC1 and MMC2
-      ARM: dts: am57xx-beagle-x15: mmc1: remove redundant pbias-supply property
-      ARM: dts: dra7-evm: Fix spurious card insert/removal interrupt
-      ARM: dts: dra72-evm: Fix spurious card insert/removal interrupt
-
-Nishanth Menon (1):
-      ARM: dts: dra7-evm: Add MMCSD card removal GPIO
-
-Roger Quadros (7):
-      ARM: dts: omap5: Add named interrupt property for dwc3
-      ARM: dts: dra7: Add named interrupt property for dwc3
-      ARM: dts: dra7: Remove ctrl_core and ctrl_general nodes
-      ARM: dts: dra7: fix pinmux@1400 resource length
-      ARM: dts: dra7: Add scm_conf@1c04 node
-      ARM: dts: am437x-gp-evm: Add gpio-hog for configuring eMMC/NAND driver
-      ARM: dts: am437x-gp-evm: Add eMMC support
-
-Suman Anna (2):
-      ARM: dts: AM33xx: Add the wkup_m3_ipc node
-      ARM: dts: AM4372: Add the wkup_m3_ipc node
-
- arch/arm/boot/dts/Makefile                         |   2 +
- arch/arm/boot/dts/am33xx.dtsi                      |   8 +
- arch/arm/boot/dts/am4372.dtsi                      |  24 +-
- arch/arm/boot/dts/am437x-gp-evm.dts                |  76 ++++-
- arch/arm/boot/dts/am57xx-beagle-x15.dts            |   1 -
- arch/arm/boot/dts/dra7-evm.dts                     |  18 +-
- arch/arm/boot/dts/dra7.dtsi                        |  38 ++-
- arch/arm/boot/dts/dra72-evm.dts                    |  16 +-
- arch/arm/boot/dts/dra74x.dtsi                      |   7 +-
- arch/arm/boot/dts/omap3-devkit8000-common.dtsi     | 369 +++++++++++++++++++++
- arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi |  73 ++++
- arch/arm/boot/dts/omap3-devkit8000-lcd43.dts       |  37 +++
- arch/arm/boot/dts/omap3-devkit8000-lcd70.dts       |  37 +++
- arch/arm/boot/dts/omap3-devkit8000.dts             | 191 +----------
- arch/arm/boot/dts/omap5.dtsi                       |   7 +-
- include/dt-bindings/pinctrl/am43xx.h               |   1 +
- 16 files changed, 695 insertions(+), 210 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-devkit8000-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-devkit8000-lcd43.dts
- create mode 100644 arch/arm/boot/dts/omap3-devkit8000-lcd70.dts
+--4dezoEM3dweX1vMa--
