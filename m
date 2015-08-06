@@ -1,99 +1,103 @@
-From: Mark Brown <broonie@kernel.org>
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
 Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
-Date: Thu, 6 Aug 2015 17:03:50 +0100
-Message-ID: <20150806160350.GX20873@sirena.org.uk>
+Date: Thu, 6 Aug 2015 18:14:00 +0200
+Message-ID: <CAMuHMdWWDwZ=ziGQXFCnOX8pErXpsEi533J73_Hh=sEqq4hR6Q@mail.gmail.com>
 References: <20150804155148.GR20873@sirena.org.uk>
- <55C0FD98.1090107@ti.com>
- <20150805115013.GJ20873@sirena.org.uk>
- <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
- <20150805124412.GN20873@sirena.org.uk>
- <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
- <20150806090202.GO20873@sirena.org.uk>
- <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
- <20150806112353.GT20873@sirena.org.uk>
- <CAOMqctQKc6f5Mbe_CSd-ghguUfZvf6v_BRvYxQJVqPne73iESA@mail.gmail.com>
+	<55C0FD98.1090107@ti.com>
+	<20150805115013.GJ20873@sirena.org.uk>
+	<CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
+	<20150805124412.GN20873@sirena.org.uk>
+	<CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+	<20150806090202.GO20873@sirena.org.uk>
+	<CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
+	<20150806102225.GI7576@n2100.arm.linux.org.uk>
+	<55C35233.2000105@ti.com>
+	<20150806135129.GJ7576@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="7+SiJqgcYR1fH3/L"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOMqctQKc6f5Mbe_CSd-ghguUfZvf6v_BRvYxQJVqPne73iESA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Suchanek <hramrach@gmail.com>
-Cc: "R, Vignesh" <vigneshr@ti.com>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150806135129.GJ7576-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Aug 6, 2015 at 3:51 PM, Russell King - ARM Linux
+<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
+> On Thu, Aug 06, 2015 at 05:55:23PM +0530, Vignesh R wrote:
+>> On the whole following are my requirements:
+>> 1. to be able to communicate with non -flash SPI devices via config port
+>> ( this functionality is supported by current driver, I dont want to
+>> break it). Or pump any spi_message on to SPI bus directly.
+>> 2. take advantage of memory mapped port in order to increase read
+>> throughput( and use dma in future) when the slave is a m25p80 type flash.
+>> 3. handle m25p80 as well as other slave on multiple chipselects.
+>>
+>> I just need to know whether the user that requested the transfer is
+>> m25p80 driver. If yes, ti-qspi driver can take advantage of memory
+>> mapped interface, else just use config port to access SPI bus directly.
+>
+> The problem with this approach is that it's an abomination.  It's adding
+> a SPI-user specific hack which is detected by a specific driver.  That's
+> really not sane - what happens when we have lots of these kinds of "I'm
+> an X SPI-user" with drivers detecting that?  It's not maintainable in the
+> long term.
+>
+> Yes, your requirements _today_ seem simple and easy, but you're only
+> thinking about today, not tomorrow when you've moved on and someone else
+> has to maintain the mess left behind (or delete it from mainline because
+> they're sick of dealing with a hack.)
+>
+>> The spi_message that is received in transfer_one_message() is too
+>> generic to imply the slave device that is on the other side of the wire.
+>> IMO, the read command does not imply that the slave is m25p80 flash
+>> (besides the read opcodes vary across vendors of m25p80 and across modes).
+>
+> I can see both sides of the argument.
+>
+> Mark is saying: if the SPI driver detects that the message to be transmitted
+> is a read command followed by the appropriate number of dummy bytes, and
+> then the data being read _and_ it's using quad-mode access, and the hardware
+> generates _exactly_ that in hardware using the memory mapped mode, there is
+> no reason _not_ to use the hardware to achieve that SPI transaction.  The
+> bus activity will be identical to what happens when the SPI controller is
+> used manually to achieve that bus sequence.
+>
+> You're saying: but the documentation says you can't use it for anything
+> except m25p80.  If you look at 24.5.4.1.2, it tells you what the SFI
+> generates on the bus, which is:
+>
+> 1. CS active
+> 2. Read command byte sent
+> 3. 1-4 address bytes sent
+> 4. 0-3 dummy bytes sent
+> 5. data bytes read from bus
+> 6. CS inactive
+>
+> So, Mark's point is "if we can detect a transaction which fits _that_
+> bus activity, there's no reason not to use this acceleration for the
+> transaction."
+>
+> What you're failing to counter with is: we don't have enough information
+> in the SPI driver to know how many dummy bytes there are between the
+> address bytes and the data read from the bus.
 
---7+SiJqgcYR1fH3/L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Irrespective of the dummy bytes.
+What if the spi device is not a FLASH ROM, but some other device,
+which receives a data packet that accidentally looks like an m25p80 READ
+command?
 
-On Thu, Aug 06, 2015 at 01:42:32PM +0200, Michal Suchanek wrote:
-> On 6 August 2015 at 13:23, Mark Brown <broonie@kernel.org> wrote:
+Gr{oetje,eeting}s,
 
-> > Sure, but at the end of the day it's just emitting standard SPI messages
-> > which don't know anything about flash.  If those messages are a sensible
-> > interface here then why bother with the flag, we can just pattern match
-> > on the format of the message.  If that doesn't work then probably this
-> > isn't a great interface and a separate, application specific interface
-> > makes more sense.
+                        Geert
 
-> The messages are sensible interface for communicating with a device
-> that interprets a particular part of the mesasge as address and
-> another particular part of the message as command and sends same
-> amount of junk before reply as the flash chip would. If your device
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
 
-That's just a statement that it's possible to do things this way, it's
-not clear to me that it's an explanation as to why it is sensible to do
-so - the obvious thing to do there would be to specify the flash
-operation as a flash operation rather than reverse engineer the flash
-operation from the wire format.
-
-> happens to send reply immediately part of it is trashed. If it happens
-> to interpret address differently the data ends up in random part of
-> your memory. So no, that is not something you can autodetect.
-
-If this stuff doesn't appear in the spi_message in some observable form
-then I'd expect that any existing flash support is broken since a SPI
-controller that doesn't have any acceleration is just going to do what
-the message says.
-
-> At the end of the day you have valid SPI messages but the m25p80 layer
-> adds interpretation to those messages which may not always give
-> correct result.
-
-Which comes back to the thing I keep saying about needing some sort of
-information about what the flag means and the questions about why this
-is a good interface...
-
-> On the other hand, if you ever get to m25p80 or spi-nor you can assume
-> any message you send goes to a flash chip and insist that the
-> controller uses the flash-specific interface.
-
-There's an awful lot of flashes out there connected to controllers that
-don't implement any sort of acceleration for flash, I'm not convinced
-that your assumption there is valid.
-
-> If there is possibility of connecting different kind of devices to
-> multiple chipselects on the same master then you probably want to
-> select this option per message or per slave.
-
-We definitely need to account for that.
-
---7+SiJqgcYR1fH3/L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVw4ViAAoJECTWi3JdVIfQbM4H/RY/VF5HAbtQ/1Ww6OtlMWLZ
-nz4M4lYZY6ewHN29PQRX47yMovTe3ZPso9FZCUm2uHvbp1+SLhWTe4YIFev9CraA
-+0kSyaNwHcPAEOc+MdGiDmu7XqNuqWL/eAWTafyzSpstDZ2bBziE0FXQvul3abss
-XAszRbb5Jk0Rd5IGA+zL+Njnv54lQcEgMojkssWxDXi6Qb0GTK1VxDwvROuWazOK
-FFUwi1NhSxK7+X6SH4xt4aKQqj4LKmX9zGGfQA+aeq4NpTwcHI339iWYDvSZaeaf
-1TbevBGafIPcPy+FrVDzTEn0mf9sxzZV3jVJ6BBbhieRekau/s4tlKs2U1O8lxY=
-=eX3o
------END PGP SIGNATURE-----
-
---7+SiJqgcYR1fH3/L--
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
