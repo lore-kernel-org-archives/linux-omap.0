@@ -1,44 +1,72 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [GIT PULL] omap clock dts changes for v4.3 merge window
-Date: Thu, 6 Aug 2015 14:08:22 +0300
-Message-ID: <55C34026.20101@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Thu, 6 Aug 2015 12:23:53 +0100
+Message-ID: <20150806112353.GT20873@sirena.org.uk>
+References: <20150731181745.GM20873@sirena.org.uk>
+ <55BEF4AF.5090704@ti.com>
+ <20150804155148.GR20873@sirena.org.uk>
+ <55C0FD98.1090107@ti.com>
+ <20150805115013.GJ20873@sirena.org.uk>
+ <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
+ <20150805124412.GN20873@sirena.org.uk>
+ <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+ <20150806090202.GO20873@sirena.org.uk>
+ <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="62KrrilqlZ2duPAE"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
 
-   Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
+--62KrrilqlZ2duPAE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-are available in the git repository at:
+On Thu, Aug 06, 2015 at 12:01:37PM +0200, Michal Suchanek wrote:
 
-   https://github.com/t-kristo/linux-pm.git for-4.3/ti-clk-dt
+> However, I am familiar m25p80.c and as I understand it the controller
+> is basically supposed to implement m25p80.c in hardware when this flag
+> is set.
 
-for you to fetch changes up to dff8a207815a605872dfc5bffc1bae1cad29d87c:
+But what in concrete terms is that supposed to mean?  It's currently
+just an essentially undocumented flag on a message rather than something
+operating at the level of a flash chip.  That's pretty much where
+Russell's comments come from.
 
-   ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk 
-clock (2015-07-31 12:13:18 +0300)
+> If I was using m25p80.c to talk to anything but an actual flash chip
+> it would get me quite worried.
 
-----------------------------------------------------------------
-Keerthy (2):
-       ARM: dts: AM437X: add dpll_clksel_mac_clk node
-       ARM: dts: am4372: Set the default clock rate for 
-dpll_clksel_mac_clk clock
+Sure, but at the end of the day it's just emitting standard SPI messages
+which don't know anything about flash.  If those messages are a sensible
+interface here then why bother with the flag, we can just pattern match
+on the format of the message.  If that doesn't work then probably this
+isn't a great interface and a separate, application specific interface
+makes more sense.
 
-  arch/arm/boot/dts/am4372.dtsi        |    7 +++++--
-  arch/arm/boot/dts/am43xx-clocks.dtsi |    9 +++++++++
-  drivers/clk/ti/clk-43xx.c            |    1 +
-  3 files changed, 15 insertions(+), 2 deletions(-)
+--62KrrilqlZ2duPAE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVw0PJAAoJECTWi3JdVIfQlDwH/RoJjV1vtBZvIz6y2rNeg6SY
+/EngkfZbUpsCABFhzmUP0eF4uLs6R4JzzRaEbG02wW3XcEjn+l1eFywV4ab9iVuu
+QXlEYaxK6jChxAZWps+AGHXXZ8sBOKTc3rEjX1fv5ahCgjikPZ6/q2EsahqliE+L
+87r0GR+Vslu5eedlvXytMPQiepzHxLAmoWiIeyA/fRJhpSyeh1VYB/LrUWsf/2tf
+B1HTFQeiYkbL2F/83qFZzEC+ODwYF08/7a/aaDQraEZ9dkTimjeLO6r9NxuF90iE
+F6ivbguXfkxBSil0BaJRL2PpVf3ZWAfFxOiMbIvr1HudheTnvm+7PLDrawgiux4=
+=RTgY
+-----END PGP SIGNATURE-----
+
+--62KrrilqlZ2duPAE--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
