@@ -1,71 +1,79 @@
-From: Michal Suchanek <hramrach@gmail.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
-Date: Thu, 6 Aug 2015 12:01:37 +0200
-Message-ID: <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
-References: <1438072876-16338-1-git-send-email-vigneshr@ti.com>
- <1438072876-16338-2-git-send-email-vigneshr@ti.com> <20150731181745.GM20873@sirena.org.uk>
- <55BEF4AF.5090704@ti.com> <20150804155148.GR20873@sirena.org.uk>
- <55C0FD98.1090107@ti.com> <20150805115013.GJ20873@sirena.org.uk>
+Date: Thu, 6 Aug 2015 11:22:25 +0100
+Message-ID: <20150806102225.GI7576@n2100.arm.linux.org.uk>
+References: <20150731181745.GM20873@sirena.org.uk>
+ <55BEF4AF.5090704@ti.com>
+ <20150804155148.GR20873@sirena.org.uk>
+ <55C0FD98.1090107@ti.com>
+ <20150805115013.GJ20873@sirena.org.uk>
  <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com>
- <20150805124412.GN20873@sirena.org.uk> <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
+ <20150805124412.GN20873@sirena.org.uk>
+ <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com>
  <20150806090202.GO20873@sirena.org.uk>
+ <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150806090202.GO20873@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "R, Vignesh" <vigneshr@ti.com>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Huang Shijie <b32955-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 6 August 2015 at 11:02, Mark Brown <broonie@kernel.org> wrote:
-> On Wed, Aug 05, 2015 at 02:56:09PM +0200, Michal Suchanek wrote:
->> On 5 August 2015 at 14:44, Mark Brown <broonie@kernel.org> wrote:
->> > On Wed, Aug 05, 2015 at 02:40:01PM +0200, Michal Suchanek wrote:
->
->> >> I don't think sending 03 or other random byte as the first byte of a
->> >> SPI transfer can be used as reliable detection that we are talking to
->> >> a SPI flash memory.
->
->> > Why care - if something is physically in the same format as a flash read
->> > command how would a device be able to tell that it wasn't actually a
->> > flash read command?  The signals sent on the bus are going to be
->> > identical anyway.
->
->> Not only must the command be the same but also the response must be tha same.
->
-> What difference would that make?  The caller is sending a single SPI
-> operation and this is a user visible thing...
->
->> The flash chip responds by sending arbitrary amount of data. Given
->> that transfer_one gets only the part that sends the read command and
->> the part to do the actual read may or may not follow this is getting a
->> bit hairy. Add in dummy bytes due to fast-read lag and page write
->> wrap-around and you get something that you definitely do not want
->> unless you are really sure that there is a flash memory on the other
->> end of the wire.
->
-> So if you're doing this you may have a good reason to implement
-> transfer_one_message() instead.  Or perhaps implement it in the core and
-> provide operations to do the map and unmap.  And of course if this sort
-> of requirement exists that's an obvious thing that must be documented
-> in the interfaces but isn't.
->
-> We need a lot more thought about the interface here, the lack of any
-> explanation of what the interface is supposed to be and the fact that
-> all questions about it are being answered in terms of describing the
-> specific system are both a bit worrying.
+On Thu, Aug 06, 2015 at 12:01:37PM +0200, Michal Suchanek wrote:
+> Disclaimer: I am not familiar with the hardware for which this patch
+> adds support.
+> 
+> However, I am familiar m25p80.c and as I understand it the controller
+> is basically supposed to implement m25p80.c in hardware when this flag
+> is set.
 
-Disclaimer: I am not familiar with the hardware for which this patch
-adds support.
+That, to me, sounds like what you have is:
 
-However, I am familiar m25p80.c and as I understand it the controller
-is basically supposed to implement m25p80.c in hardware when this flag
-is set.
+---m25p80 specific interface--->SPI bus--->m25p80 device
 
-If I was using m25p80.c to talk to anything but an actual flash chip
-it would get me quite worried.
+Where the m25p80 specific interface does not expose direct access to the
+SPI bus?
 
-Thanks
+If that's the case, then maybe you should consider whether using the SPI
+bus infrastructure is really the best way forward.  Would it make more
+sense instead to adopt a different software structure, something more
+high-level like:
 
-Michal
+     +-------------------------------------------+
+     |          m25p80 high-level driver         |
+     +----------------------+--------------------+
+     |   SPI m25p80 driver  |                    |
+     +----------------------+                    |
+     |      SPI layer       |  Special driver    |
+     +----------------------+                    |
+     |    SPI bus driver    |                    |
+     +----------------------+--------------------+
+     |     SPI hardware     |  Special hardware  |
+     +----------------------+--------------------+
+
+Rather than what you seem to be trying to do, which seems to be:
+
+     +----------------------+
+     |   SPI m25p80 driver  |
+     +----------------------+
+     |      SPI layer       |
+     +----------------------+
+     |  Translation driver  |
+     +----------------------+
+     |   Special hardware   |
+     +----------------------+
+
+where this requires M25P80 specific hacks to be introduced into the SPI
+layer so that you can communicate additional information between the SPI
+M25P80 driver and the translation driver.
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
