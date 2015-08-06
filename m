@@ -1,84 +1,82 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: omap2430: use *syscon* framework API to write
- to mailbox register
-Date: Thu, 6 Aug 2015 01:47:16 -0700
-Message-ID: <20150806084716.GB4215@atomide.com>
-References: <1438697169-32359-1-git-send-email-kishon@ti.com>
- <20150805080113.GV16878@atomide.com>
- <55C21885.6000902@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 10/10] ARM: dts: omap4: Use "syscon-otghs" instead of
+ "ctrl-module" in USB node
+Date: Thu, 6 Aug 2015 01:48:13 -0700
+Message-ID: <20150806084812.GC4215@atomide.com>
+References: <1438702233-8027-1-git-send-email-kishon@ti.com>
+ <1438702233-8027-11-git-send-email-kishon@ti.com>
+ <55C1C325.5040703@ti.com>
+ <55C1C486.6050202@ti.com>
+ <55C21CCD.6050101@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55C21885.6000902-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+In-Reply-To: <55C21CCD.6050101@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, bcousson@baylibre.com, linux@arm.linux.org.uk, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150805 07:10]:
-> On Wednesday 05 August 2015 01:31 PM, Tony Lindgren wrote:
+* Kishon Vijay Abraham I <kishon@ti.com> [150805 07:28]:
+> Hi Roger,
+> 
+> On Wednesday 05 August 2015 01:38 PM, Roger Quadros wrote:
+> > On 05/08/15 11:02, Roger Quadros wrote:
+> >> Kishon,
+> >>
+> >> On 04/08/15 18:30, Kishon Vijay Abraham I wrote:
+> >>> Add "syscon-otghs" property and remove the deprecated "ctrl-module"
+> >>> property from MUSB devicetree node.
+> >>>
+> >>> Since "omap_control_usbotg" devicetree node is no longer used, remove
+> >>> it.
+> >>>
+> >>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >>> ---
+> >>>  arch/arm/boot/dts/omap4.dtsi |    8 +-------
+> >>>  1 file changed, 1 insertion(+), 7 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> >>> index b27634d..2fb49a5 100644
+> >>> --- a/arch/arm/boot/dts/omap4.dtsi
+> >>> +++ b/arch/arm/boot/dts/omap4.dtsi
+> >>> @@ -854,12 +854,6 @@
+> >>>  			};
+> >>>  		};
+> >>>  
+> >>> -		omap_control_usbotg: control-phy@4a00233c {
+> >>> -			compatible = "ti,control-phy-otghs";
+> >>> -			reg = <0x4a00233c 0x4>;
+> >>> -			reg-names = "otghs_control";
+> >>> -		};
+> >>> -
+> >>>  		usb_otg_hs: usb_otg_hs@4a0ab000 {
+> >>>  			compatible = "ti,omap4-musb";
+> >>>  			reg = <0x4a0ab000 0x7ff>;
+> >>> @@ -872,7 +866,7 @@
+> >>>  			multipoint = <1>;
+> >>>  			num-eps = <16>;
+> >>>  			ram-bits = <12>;
+> >>> -			ctrl-module = <&omap_control_usbotg>;
+> >>> +			syscon-otghs = <&scm_conf 0x33c>;
+> >>
+> >> All other properties were of the format "syscon-phy-foo".
+> >> Why use a different format here?
+> >>
 > > 
-> > We don't have syscon-otghs and to me it seems we need a PHY driver
-> > as I pointed out at:
+> > Ah, looks like we don't have a dedicated phy driver for this?
+> > We will need to add a PHY driver I guess then and handle this register
+> > in that driver rather than in the musb driver.
 > 
-> If *syscon-otghs* is not present, then it'll fall-back to using the *ctrl-module*.
+> I was explaining in the other thread to Tony on why this shouldn't be done in a
+> PHY driver [1].
 
-OK great.
-
-> > 
-> > https://lkml.org/lkml/2015/6/24/231
-> 
-> Maybe I should have explained this in the previous thread. The *otghs* register
-> that we are trying to access here does _not_ belong to the PHY. It acts as
-> mailbox register from MUSB glue (TI integration layer) to MUSB core. That's why
-> it's programmed in the TI glue layer (omap2430.c).
-> 
-> Even when we were using the older API [omap_control_usb_set_mode()], we first
-> call omap_musb_mailbox from the PHY drivers (phy-twl4030-usb.c,
-> phy-twl6030-usb.c) and then omap_musb_mailbox in the TI glue writes to the
-> control module instead of PHY drivers directly calling omap_control_usb_set_mode().
-
-Hmm looking at "Table 18-204. CONTROL_USBOTGHS_CONTROL" it seems to mention
-"transceiver" for quite a few bitfields :) Probably what that register does
-is control a PHY over ULPI.
-
-So from Linux kernel point of view we're best off treating it as a PHY.
-It seems it should have a minimal PHY driver similar to what we have for
-dm816x control module in drivers/phy/phy-dm816x-usb.c.
-
-For reference, here is the register bitfields pasted from 4460 TRM:
-
-Table 18-204. CONTROL_USBOTGHS_CONTROL, p3972
-Physical Address 0x4A00 233C
-
-BIT	NAME		DESCIPTION
-8	DISCHRGVBUS	... OTG transceiver does (not) discharge VBUS ...
-7	CHRGVBUS	... OTG transceiver does (not) charge VBUS ...
-6	IDPULLUP	... OTG transceiver does (not) drive VBUS ...
-4	IDDIG		... OTG transceiver does (not) apply a pullup to ID ...
-3	SESSEND		... VBUS voltage is above/below VB_SESS_END ...	
-2	VBUSVALID	... VBUS is above the threshold ...
-1	BVALID		... VBUS voltage is above/below VB_SESS_VLD ...
-0	AVALID		... BUS voltage is above/below VA_SESS_VLD ...
-
-So how about just adding ONTROL_USBOTGHS_CONTROL support to the existing
-drivers/phy/phy-omap-usb2.c instead? It seems that it should allow us
-to completely get rid of the custom mailbox stuff for MUSB 2430 support?
-
-> > So let's sort that issue first. It also seems this just completely
-> > breaks the MUSB support?
-> 
-> Why do you think so? If *syscon-otghs* is not present in dt, then it'll
-> fall-back to using the *ctrl-module* and everything should work seamlessly.
-
-OK that's good to hear. IMO drivers/phy/phy-omap4.c or similar should
-manage the syscon-otghs syscon register, not MUSB driver.
+And I just suggested thhere that it should be in the drivers/phy/phy-omap-usb2.c
+PHY driver instead of the MUSB driver.
 
 Regards,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony 
+ 
+> [1] -> https://lkml.org/lkml/2015/8/5/455
