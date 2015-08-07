@@ -1,83 +1,89 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 6/7] phy: omap-usb2: Add a new compatible string for USB2
- PHY2
-Date: Fri, 7 Aug 2015 11:27:20 +0300
-Message-ID: <55C46BE8.9060804@ti.com>
-References: <1438701646-7876-1-git-send-email-kishon@ti.com> <1438701646-7876-7-git-send-email-kishon@ti.com> <55C1C803.4030905@ti.com> <55C1C895.8070305@ti.com> <55C21B35.7010901@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Fri, 7 Aug 2015 14:05:10 +0530
+Message-ID: <55C46DBE.7060809@ti.com>
+References: <20150805115013.GJ20873@sirena.org.uk> <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com> <20150805124412.GN20873@sirena.org.uk> <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com> <20150806090202.GO20873@sirena.org.uk> <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com> <20150806102225.GI7576@n2100.arm.linux.org.uk> <55C35233.2000105@ti.com> <20150806135129.GJ7576@n2100.arm.linux.org.uk> <CAMuHMdWWDwZ=ziGQXFCnOX8pErXpsEi533J73_Hh=sEqq4hR6Q@mail.gmail.com> <20150806213340.GK7576@n2100.arm.linux.org.uk> <CAOMqctRBW230fA4AEhK7MyqkZY==6ENNNHE-LVm7-mHKA_VzRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55C21B35.7010901@ti.com>
+In-Reply-To: <CAOMqctRBW230fA4AEhK7MyqkZY==6ENNNHE-LVm7-mHKA_VzRw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, nsekhar@ti.com
+To: Michal Suchanek <hramrach@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Mark Brown <broonie@kernel.org>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/08/15 17:18, Kishon Vijay Abraham I wrote:
-> Hi Roger,
-> 
-> On Wednesday 05 August 2015 01:55 PM, Roger Quadros wrote:
->> On 05/08/15 11:23, Roger Quadros wrote:
->>>
->>> On 04/08/15 18:20, Kishon Vijay Abraham I wrote:
->>>> The USB2 PHY2 has a different register map compared to USB2 PHY1
->>>> to power on/off the PHY. In order to handle it, add a new
->>>> "compatible" string.
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>> ---
->>>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    2 ++
->>>>  drivers/phy/phy-omap-usb2.c                      |    9 +++++++++
->>>>  2 files changed, 11 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> index 49e5b0c..a061077 100644
->>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>> @@ -31,6 +31,8 @@ OMAP USB2 PHY
->>>>  
->>>>  Required properties:
->>>>   - compatible: Should be "ti,omap-usb2"
->>>> +	       Should be "ti,dra7x-usb2-phy2" for the 2nd instance of USB2 PHY
->>>> +	       in DRA7x
->>>>   - reg : Address and length of the register set for the device.
->>>>   - #phy-cells: determine the number of cells that should be given in the
->>>>     phandle while referencing this phy.
->>>> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->>>> index b5c266a..2f7220f 100644
->>>> --- a/drivers/phy/phy-omap-usb2.c
->>>> +++ b/drivers/phy/phy-omap-usb2.c
->>>> @@ -159,6 +159,11 @@ static const struct usb_phy_data dra7x_usb2_data = {
->>>>  	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
->>>>  };
->>>>  
->>>> +static const struct usb_phy_data dra7x_usb2_phy2_data = {
->>>> +	.label = "dra7x_usb2_phy2",
->>>> +	.flags = OMAP_USB2_CALIBRATE_FALSE_DISCONNECT,
->>>> +};
->>>> +
->>>>  static const struct usb_phy_data am437x_usb2_data = {
->>>>  	.label = "am437x_usb2",
->>>>  	.flags =  0,
->>>> @@ -178,6 +183,10 @@ static const struct of_device_id omap_usb2_id_table[] = {
->>>>  		.data = &dra7x_usb2_data,
->>>>  	},
->>>>  	{
->>>> +		.compatible = "ti,dra7x-usb2-phy2",
->>>> +		.data = &dra7x_usb2_phy2_data,
->>>
->>> Why is this needed? You can reuse dra7x_usb2_data as is.
->>
->> OK. I see why we need it in the next patch.
->> Probably both patches could be squashed.
->>
->> What does .label indicate?
-> 
-> it's actually used only in usb_add_phy() (drivers/usb/phy/phy.c). I don't think
-> it's actually important unless you strongly feel so.
 
-I leave it to you then :).
 
-cheers,
--roger
+On 08/07/2015 01:08 PM, Michal Suchanek wrote:
+
+> Now since the description is clearer it's obvious that ti-qspi cannot
+> work fully mmapped as fsl-qspi does because the setup has to be done
+> over normal spi access and using non-m25p80 devices on the same bus is
+> a requirement.
+> 
+> The place where it is known if a transfer can use the mmap access is m25p80.c
+> 
+> So my suggestion is
+> 
+>  - add a new method for spi master that gets the read opcode, dummy
+> length, address, address length, buffer, buffer length and performs
+> read from the flash memory in a hardware-specific way
+> 
+> - add a check in m25p80.c that the master supports this feature and if
+> so use it (eg check that the method is non-null)
+> 
+> Presumably if some new SPI controllers with similar feature are
+> supported in the future they can use the same inteface because you
+> pass on everything the m25p80 read knows.
+> 
+
+Ok... Do you mean something like this?
+
+I will take m25p80 as example but can be expanded for any flash.
+
+In include/linux/mtd.h:
+	struct spi_mtd_config_info {
+		struct spi_device 	*spi;
+	        u32                     page_size;
+	        u8                      addr_width;
+       		u8                      erase_opcode;
+	        u8                      read_opcode;
+        	u8                      read_dummy;
+	        u8                      program_opcode;
+        	enum read_mode          flash_read;
+
+	} /* subset of struct spi_nor */
+
+
+In m25p80.c:
+
+	static int m25p80_read(struct spi_nor *nor, loff_t from,
+				size_t len, size_t *retlen,
+				u_char *buf)
+	{
+		struct spi_mtd_config_info info;
+		struct spi_device *spi;
+		
+		if (spi->master->spi_mtd_mmap_read) {
+		  /* Populate spi_mtd_config_info */
+		  spi->master->spi_mtd_mmap_read(&info, from, len,
+						 retlen, buf);
+		}
+		else {
+		/* no mtd specific acceleration supported try normal
+		 * SPI way of communicating with flash
+		 * continue with current code
+		 * set up spi_message and call spi_sync()
+		 */
+	}
+
+      }
+
+In spi-ti-qspi.c:
+Implement spi_mtd_mmap_read while holding master->bus_lock mutex.
+
+
+-- 
+Regards
+Vignesh
