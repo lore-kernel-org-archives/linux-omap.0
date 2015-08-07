@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 13/22] memory: omap-gpmc: Prevent mapping into 1st 16MB
-Date: Fri, 7 Aug 2015 12:12:23 +0300
-Message-ID: <1438938752-31010-14-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 19/22] ARM: dts: dra7: Enable gpio & interrupt controller for gpmc node
+Date: Fri, 7 Aug 2015 12:12:29 +0300
+Message-ID: <1438938752-31010-20-git-send-email-rogerq@ti.com>
 References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,67 +12,57 @@ To: tony@atomide.com
 Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We have been preventing mapping GPMC children in the
-first 1MB but really it has to be the first 16MB as
-the minimum GPMC partition size is 16MB.
+The GPMC driver now implements gpiochip and irqchip so
+enable gpio-controller and interrupt-controller properties.
 
-Also print an error message if CS mapping fails
-due to DT requesting address outside the GPMC
-map.
+With this the interrupt parent of NAND node changes so fix it
+accordingly.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/memory/omap-gpmc.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/dra7-evm.dts  | 1 +
+ arch/arm/boot/dts/dra7.dtsi     | 4 ++++
+ arch/arm/boot/dts/dra72-evm.dts | 1 +
+ 3 files changed, 6 insertions(+)
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 1c87252..30d9c21 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -93,6 +93,14 @@
- #define GPMC_CS_SIZE		0x30
- #define	GPMC_BCH_SIZE		0x10
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index ce11b0f..3fb1ced 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -573,6 +573,7 @@
+ 	nand@0,0 {
+ 		compatible = "ti,omap2-nand";
+ 		reg = <0 0 4>;		/* device IO registers */
++		interrupt-parent = <&crossbar_mpu>;
+ 		interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
+ 		ti,nand-ecc-opt = "bch8";
+ 		ti,elm-id = <&elm>;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 8f1e25b..a4ab66d 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1369,6 +1369,10 @@
+ 			gpmc,num-waitpins = <2>;
+ 			#address-cells = <2>;
+ 			#size-cells = <1>;
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <2>;
+ 			status = "disabled";
+ 		};
  
-+/*
-+ * The first 1MB of GPMC address space is typically mapped to
-+ * the internal ROM. Never allocate the first page, to
-+ * facilitate bug detection; even if we didn't boot from ROM.
-+ * As GPMC minimum partition size is 16MB we can only start from
-+ * there.
-+ */
-+#define GPMC_MEM_START		0x1000000
- #define GPMC_MEM_END		0x3FFFFFFF
- 
- #define GPMC_CHUNK_SHIFT	24		/* 16 MB */
-@@ -1171,12 +1179,7 @@ static void gpmc_mem_init(void)
- {
- 	int cs;
- 
--	/*
--	 * The first 1MB of GPMC address space is typically mapped to
--	 * the internal ROM. Never allocate the first page, to
--	 * facilitate bug detection; even if we didn't boot from ROM.
--	 */
--	gpmc_mem_root.start = SZ_1M;
-+	gpmc_mem_root.start = GPMC_MEM_START;
- 	gpmc_mem_root.end = GPMC_MEM_END;
- 
- 	/* Reserve all regions that has been set up by bootloader */
-@@ -1830,6 +1833,15 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "cannot remap GPMC CS %d to %pa\n",
- 			cs, &res.start);
-+		if (res.start < GPMC_MEM_START) {
-+			dev_info(&pdev->dev,
-+				 "GPMC CS %d start cannot be lesser than 0x%x\n",
-+				 cs, GPMC_MEM_START);
-+		} else if (res.end > GPMC_MEM_END) {
-+			dev_info(&pdev->dev,
-+				 "GPMC CS %d end cannot be greater than 0x%x\n",
-+				 cs, GPMC_MEM_END);
-+		}
- 		goto err;
- 	}
- 
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 8037384..fc0677a 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -386,6 +386,7 @@
+ 		 * SW5.9 (GPMC_WPN) = OFF (HIGH)
+ 		 */
+ 		reg = <0 0 4>;		/* device IO registers */
++		interrupt-parent = <&crossbar_mpu>;
+ 		ti,nand-ecc-opt = "bch8";
+ 		ti,elm-id = <&elm>;
+ 		nand-bus-width = <16>;
 -- 
 2.1.4
