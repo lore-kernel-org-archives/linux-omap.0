@@ -1,61 +1,71 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 22/22] memory: omap-gpmc: Prevent GPMC_STATUS from being accessed via gpmc_regs
-Date: Fri, 7 Aug 2015 12:12:32 +0300
-Message-ID: <1438938752-31010-23-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 05/22] memory: omap-gpmc: Add GPMC-NAND ops to get
+ writebufferempty status
+Date: Fri, 7 Aug 2015 12:12:15 +0300
+Message-ID: <1438938752-31010-6-git-send-email-rogerq@ti.com>
 References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 In-Reply-To: <1438938752-31010-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: tony@atomide.com
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-GPMC_STATUS register is private to the GPMC module and must not be
-accessed directly by NAND driver through the gpmc_regs.
-
-They must use gpmc_omap_get_nand_ops() instead.
+This is needed by OMAP NAND driver to poll the empty status
+of the writebuffer.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/memory/omap-gpmc.c                   | 2 +-
- include/linux/platform_data/mtd-nand-omap2.h | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/memory/omap-gpmc.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 417acce..bdd1533 100644
+index 79d78ab..41df030 100644
 --- a/drivers/memory/omap-gpmc.c
 +++ b/drivers/memory/omap-gpmc.c
-@@ -1051,7 +1051,7 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
- {
- 	int i;
+@@ -81,6 +81,8 @@
  
--	reg->gpmc_status = gpmc_base + GPMC_STATUS;
-+	reg->gpmc_status = NULL;	/* deprecated */
- 	reg->gpmc_nand_command = gpmc_base + GPMC_CS0_OFFSET +
- 				GPMC_CS_NAND_COMMAND + GPMC_CS_SIZE * cs;
- 	reg->gpmc_nand_address = gpmc_base + GPMC_CS0_OFFSET +
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index 19e509d..17d57a1 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -45,7 +45,6 @@ enum omap_ecc {
- };
+ #define GPMC_CONFIG_LIMITEDADDRESS		BIT(1)
  
- struct gpmc_nand_regs {
--	void __iomem	*gpmc_status;
- 	void __iomem	*gpmc_nand_command;
- 	void __iomem	*gpmc_nand_address;
- 	void __iomem	*gpmc_nand_data;
-@@ -64,6 +63,8 @@ struct gpmc_nand_regs {
- 	void __iomem	*gpmc_bch_result4[GPMC_BCH_NUM_REMAINDER];
- 	void __iomem	*gpmc_bch_result5[GPMC_BCH_NUM_REMAINDER];
- 	void __iomem	*gpmc_bch_result6[GPMC_BCH_NUM_REMAINDER];
-+	/* Deprecated. Do not use */
-+	void __iomem	*gpmc_status;
- };
++#define GPMC_STATUS_EMPTYWRITEBUFFERSTATUS	BIT(0)
++
+ #define	GPMC_CONFIG2_CSEXTRADELAY		BIT(7)
+ #define	GPMC_CONFIG3_ADVEXTRADELAY		BIT(7)
+ #define	GPMC_CONFIG4_OEEXTRADELAY		BIT(7)
+@@ -1099,7 +1101,17 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+ 	}
+ }
  
- struct omap_nand_platform_data {
+-static struct gpmc_nand_ops nand_ops;
++static bool gpmc_nand_writebuffer_empty(void)
++{
++	if (gpmc_read_reg(GPMC_STATUS) & GPMC_STATUS_EMPTYWRITEBUFFERSTATUS)
++		return true;
++
++	return false;
++}
++
++static struct gpmc_nand_ops nand_ops = {
++	.nand_writebuffer_empty = gpmc_nand_writebuffer_empty,
++};
+ 
+ /**
+  * gpmc_omap_get_nand_ops - Get the GPMC NAND interface
 -- 
 2.1.4
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
