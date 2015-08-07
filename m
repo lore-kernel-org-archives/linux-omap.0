@@ -1,438 +1,200 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 11/22] mtd: nand: omap: Clean up device tree support
-Date: Fri, 7 Aug 2015 12:12:21 +0300
-Message-ID: <1438938752-31010-12-git-send-email-rogerq@ti.com>
-References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] dma: omap-dma: add support for pause of non-cyclic
+ transfers
+Date: Fri, 7 Aug 2015 12:44:01 +0300
+Message-ID: <55C47DE1.9020902@ti.com>
+References: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438938752-31010-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Move NAND specific device tree parsing to NAND driver.
+On 08/07/2015 11:41 AM, Sebastian Andrzej Siewior wrote:
+> This DMA driver is used by 8250-omap on DRA7-evm. There is one
+> requirement that is to pause a transfer. This is currently used on th=
+e RX
+> side. It is possible that the UART HW aborted the RX (UART's RX-timeo=
+ut)
+> but the DMA controller starts the transfer shortly after.
+> Before we can manually purge the FIFO we need to pause the transfer,
+> check how many bytes it already received and terminate the transfer
+> without it making any progress.
+>=20
+> From testing on the TX side it seems that it is possible that we invo=
+ke
+> pause once the transfer has completed which is indicated by the missi=
+ng
+> CCR_ENABLE bit but before the interrupt has been noticed. In that cas=
+e the
+> interrupt will come even after disabling it.
+>=20
+> The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
+> CCR_WR_ACTIVE bits to be gone before programming it again here is the
+> drain loop. Also it looks like without the drain the TX-transfer make=
+s
+> sometimes progress.
+>=20
+> One note: The pause + resume combo is broken because after resume the
+> the complete transfer will be programmed again. That means the alread=
+y
+> transferred bytes (until the pause event) will be sent again. This is
+> currently not important for my UART user because it does only pause +
+> terminate.
 
-The NAND controller node must have a compatible id, register space
-resource and interrupt resource.
+with a short testing audio did not broke (the only user of pause/resume=
+)
+Some comments embedded.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/gpmc-nand.c              |   5 +-
- drivers/memory/omap-gpmc.c                   | 135 ++++++--------------------
- drivers/mtd/nand/omap2.c                     | 136 +++++++++++++++++++++++----
- include/linux/platform_data/mtd-nand-omap2.h |   3 +-
- 4 files changed, 147 insertions(+), 132 deletions(-)
+> Cc: <stable@vger.kernel.org>
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index ffe646a..e07ca27 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -95,10 +95,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	gpmc_nand_res[1].start = gpmc_get_irq();
- 
- 	memset(&s, 0, sizeof(struct gpmc_settings));
--	if (gpmc_nand_data->of_node)
--		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
--	else
--		gpmc_set_legacy(gpmc_nand_data, &s);
-+	gpmc_set_legacy(gpmc_nand_data, &s);
- 
- 	s.device_nand = true;
- 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 713d7af..1c87252 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -29,7 +29,6 @@
- #include <linux/of_device.h>
- #include <linux/of_platform.h>
- #include <linux/omap-gpmc.h>
--#include <linux/mtd/nand.h>
- #include <linux/pm_runtime.h>
- 
- #include <linux/platform_data/mtd-nand-omap2.h>
-@@ -1716,105 +1715,6 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
- 		of_property_read_bool(np, "gpmc,time-para-granularity");
- }
- 
--#if IS_ENABLED(CONFIG_MTD_NAND)
--
--static const char * const nand_xfer_types[] = {
--	[NAND_OMAP_PREFETCH_POLLED]		= "prefetch-polled",
--	[NAND_OMAP_POLLED]			= "polled",
--	[NAND_OMAP_PREFETCH_DMA]		= "prefetch-dma",
--	[NAND_OMAP_PREFETCH_IRQ]		= "prefetch-irq",
--};
--
--static int gpmc_probe_nand_child(struct platform_device *pdev,
--				 struct device_node *child)
--{
--	u32 val;
--	const char *s;
--	struct gpmc_timings gpmc_t;
--	struct omap_nand_platform_data *gpmc_nand_data;
--
--	if (of_property_read_u32(child, "reg", &val) < 0) {
--		dev_err(&pdev->dev, "%s has no 'reg' property\n",
--			child->full_name);
--		return -ENODEV;
--	}
--
--	gpmc_nand_data = devm_kzalloc(&pdev->dev, sizeof(*gpmc_nand_data),
--				      GFP_KERNEL);
--	if (!gpmc_nand_data)
--		return -ENOMEM;
--
--	gpmc_nand_data->cs = val;
--	gpmc_nand_data->of_node = child;
--
--	/* Detect availability of ELM module */
--	gpmc_nand_data->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
--	if (gpmc_nand_data->elm_of_node == NULL)
--		gpmc_nand_data->elm_of_node =
--					of_parse_phandle(child, "elm_id", 0);
--
--	/* select ecc-scheme for NAND */
--	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
--		pr_err("%s: ti,nand-ecc-opt not found\n", __func__);
--		return -ENODEV;
--	}
--
--	if (!strcmp(s, "sw"))
--		gpmc_nand_data->ecc_opt = OMAP_ECC_HAM1_CODE_SW;
--	else if (!strcmp(s, "ham1") ||
--		 !strcmp(s, "hw") || !strcmp(s, "hw-romcode"))
--		gpmc_nand_data->ecc_opt =
--				OMAP_ECC_HAM1_CODE_HW;
--	else if (!strcmp(s, "bch4"))
--		if (gpmc_nand_data->elm_of_node)
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH4_CODE_HW;
--		else
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH4_CODE_HW_DETECTION_SW;
--	else if (!strcmp(s, "bch8"))
--		if (gpmc_nand_data->elm_of_node)
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH8_CODE_HW;
--		else
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
--	else if (!strcmp(s, "bch16"))
--		if (gpmc_nand_data->elm_of_node)
--			gpmc_nand_data->ecc_opt =
--				OMAP_ECC_BCH16_CODE_HW;
--		else
--			pr_err("%s: BCH16 requires ELM support\n", __func__);
--	else
--		pr_err("%s: ti,nand-ecc-opt invalid value\n", __func__);
--
--	/* select data transfer mode for NAND controller */
--	if (!of_property_read_string(child, "ti,nand-xfer-type", &s))
--		for (val = 0; val < ARRAY_SIZE(nand_xfer_types); val++)
--			if (!strcasecmp(s, nand_xfer_types[val])) {
--				gpmc_nand_data->xfer_type = val;
--				break;
--			}
--
--	gpmc_nand_data->flash_bbt = of_get_nand_on_flash_bbt(child);
--
--	val = of_get_nand_bus_width(child);
--	if (val == 16)
--		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
--
--	gpmc_read_timings_dt(child, &gpmc_t);
--	gpmc_nand_init(gpmc_nand_data, &gpmc_t);
--
--	return 0;
--}
--#else
--static int gpmc_probe_nand_child(struct platform_device *pdev,
--				 struct device_node *child)
--{
--	return 0;
--}
--#endif
--
- #if IS_ENABLED(CONFIG_MTD_ONENAND)
- static int gpmc_probe_onenand_child(struct platform_device *pdev,
- 				 struct device_node *child)
-@@ -1933,9 +1833,34 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 		goto err;
- 	}
- 
--	ret = of_property_read_u32(child, "bank-width", &gpmc_s.device_width);
--	if (ret < 0)
--		goto err;
-+	if (of_node_cmp(child->name, "nand") == 0) {
-+		/* NAND specific setup */
-+		u32 val;
-+
-+		val = of_get_nand_bus_width(child);
-+		switch (val) {
-+		case 8:
-+			gpmc_s.device_width = GPMC_DEVWIDTH_8BIT;
-+			break;
-+		case 16:
-+			gpmc_s.device_width = GPMC_DEVWIDTH_16BIT;
-+			break;
-+		default:
-+			dev_err(&pdev->dev, "%s: invalid 'nand-bus-width'\n",
-+				child->name);
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+
-+		/* disable write protect */
-+		gpmc_configure(GPMC_CONFIG_WP, 0);
-+		gpmc_s.device_nand = true;
-+	} else {
-+		ret = of_property_read_u32(child, "bank-width",
-+					   &gpmc_s.device_width);
-+		if (ret < 0)
-+			goto err;
-+	}
- 
- 	ret = gpmc_cs_program_settings(cs, &gpmc_s);
- 	if (ret < 0)
-@@ -2018,9 +1943,7 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 		if (!child->name)
- 			continue;
- 
--		if (of_node_cmp(child->name, "nand") == 0)
--			ret = gpmc_probe_nand_child(pdev, child);
--		else if (of_node_cmp(child->name, "onenand") == 0)
-+		if (of_node_cmp(child->name, "onenand") == 0)
- 			ret = gpmc_probe_onenand_child(pdev, child);
- 		else
- 			ret = gpmc_probe_generic_child(pdev, child);
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 589404c..b009d1d 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -24,6 +24,7 @@
- #include <linux/slab.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/of_mtd.h>
- 
- #include <linux/mtd/nand_bch.h>
- #include <linux/platform_data/elm.h>
-@@ -177,6 +178,8 @@ struct omap_nand_info {
- 	struct gpmc_nand_regs		reg;
- 	struct gpmc_nand_ops		*ops;
- 	/* generated at runtime depending on ECC algorithm and layout selected */
-+	bool				flash_bbt;
-+	/* generated at runtime depending on ECC algorithm and layout */
- 	struct nand_ecclayout		oobinfo;
- 	/* fields specific for BCHx_HW ECC scheme */
- 	struct device			*elm_dev;
-@@ -1662,10 +1665,84 @@ static bool omap2_nand_ecc_check(struct omap_nand_info *info,
- 	return true;
- }
- 
-+static const char * const nand_xfer_types[] = {
-+	[NAND_OMAP_PREFETCH_POLLED] = "prefetch-polled",
-+	[NAND_OMAP_POLLED] = "polled",
-+	[NAND_OMAP_PREFETCH_DMA] = "prefetch-dma",
-+	[NAND_OMAP_PREFETCH_IRQ] = "prefetch-irq",
-+};
-+
-+static int omap_get_dt_info(struct device *dev, struct omap_nand_info *info)
-+{
-+	struct device_node *child = dev->of_node;
-+	int i;
-+	const char *s;
-+
-+	/* In old bindings, CS num is embedded in reg property */
-+	if (of_property_read_u32(child, "reg", &info->gpmc_cs) < 0) {
-+		dev_err(dev, "reg not found in DT\n");
-+		return -EINVAL;
-+	}
-+
-+	/* detect availability of ELM module. Won't be present pre-OMAP4 */
-+	info->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
-+	if (info->elm_of_node == NULL)
-+		dev_dbg(dev, "ti,elm-id not in DT\n");
-+
-+	/* select ecc-scheme for NAND */
-+	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
-+		dev_err(dev, "ti,nand-ecc-opt not found\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!strcmp(s, "sw"))
-+		info->ecc_opt = OMAP_ECC_HAM1_CODE_SW;
-+	else if (!strcmp(s, "ham1") ||
-+		 !strcmp(s, "hw") || !strcmp(s, "hw-romcode"))
-+		info->ecc_opt =	OMAP_ECC_HAM1_CODE_HW;
-+	else if (!strcmp(s, "bch4")) {
-+		if (info->elm_of_node)
-+			info->ecc_opt = OMAP_ECC_BCH4_CODE_HW;
-+		else
-+			info->ecc_opt = OMAP_ECC_BCH4_CODE_HW_DETECTION_SW;
-+	} else if (!strcmp(s, "bch8")) {
-+		if (info->elm_of_node)
-+			info->ecc_opt = OMAP_ECC_BCH8_CODE_HW;
-+		else
-+			info->ecc_opt = OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
-+	} else if (!strcmp(s, "bch16")) {
-+		info->ecc_opt =	OMAP_ECC_BCH16_CODE_HW;
-+	} else {
-+		dev_err(dev, "unrecognized value for ti,nand-ecc-opt\n");
-+		return -EINVAL;
-+	}
-+
-+	/* select data transfer mode */
-+	if (!of_property_read_string(child, "ti,nand-xfer-type", &s)) {
-+		for (i = 0; i < ARRAY_SIZE(nand_xfer_types); i++) {
-+			if (!strcasecmp(s, nand_xfer_types[i])) {
-+				info->xfer_type = i;
-+				goto next;
-+			}
-+		}
-+
-+		dev_err(dev, "unrecognized value for ti,nand-xfer-type\n");
-+		return -EINVAL;
-+	}
-+
-+next:
-+	of_get_nand_on_flash_bbt(child);
-+
-+	if (of_get_nand_bus_width(child) == 16)
-+		info->devsize = NAND_BUSWIDTH_16;
-+
-+	return 0;
-+}
-+
- static int omap_nand_probe(struct platform_device *pdev)
- {
- 	struct omap_nand_info		*info;
--	struct omap_nand_platform_data	*pdata;
-+	struct omap_nand_platform_data	*pdata = NULL;
- 	struct mtd_info			*mtd;
- 	struct nand_chip		*nand_chip;
- 	struct nand_ecclayout		*ecclayout;
-@@ -1676,33 +1753,42 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	unsigned			oob_index;
- 	struct resource			*res;
- 	struct mtd_part_parser_data	ppdata = {};
--
--	pdata = dev_get_platdata(&pdev->dev);
--	if (pdata == NULL) {
--		dev_err(&pdev->dev, "platform data missing\n");
--		return -ENODEV;
--	}
-+	struct device			*dev = &pdev->dev;
- 
- 	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
- 				GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
- 
--	platform_set_drvdata(pdev, info);
-+	info->pdev = pdev;
- 
-+	if (dev->of_node) {
-+		if (omap_get_dt_info(dev, info))
-+			return -EINVAL;
-+	} else {
-+		pdata = dev_get_platdata(&pdev->dev);
-+		if (pdata == NULL) {
-+			dev_err(&pdev->dev, "platform data missing\n");
-+			return -EINVAL;
-+		}
-+
-+		info->gpmc_cs = pdata->cs;
-+		info->reg = pdata->reg;
-+		info->of_node = pdata->of_node;
-+		info->ecc_opt = pdata->ecc_opt;
-+		info->dev_ready	= pdata->dev_ready;
-+		info->xfer_type = pdata->xfer_type;
-+		info->devsize = pdata->devsize;
-+		info->elm_of_node = pdata->elm_of_node;
-+		info->flash_bbt = pdata->flash_bbt;
-+	}
-+
-+	platform_set_drvdata(pdev, info);
- 	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
- 	if (!info->ops) {
- 		dev_err(&pdev->dev, "Failed to get GPMC->NAND interface\n");
- 		return -ENODEV;
- 	}
--	info->pdev		= pdev;
--	info->gpmc_cs		= pdata->cs;
--	info->of_node		= pdata->of_node;
--	info->ecc_opt		= pdata->ecc_opt;
--	info->dev_ready	= pdata->dev_ready;
--	info->xfer_type = pdata->xfer_type;
--	info->devsize = pdata->devsize;
--	info->elm_of_node = pdata->elm_of_node;
- 
- 	mtd			= &info->mtd;
- 	mtd->priv		= &info->nand;
-@@ -1738,7 +1824,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		nand_chip->chip_delay = 50;
- 	}
- 
--	if (pdata->flash_bbt)
-+	if (info->flash_bbt)
- 		nand_chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
- 	else
- 		nand_chip->options |= NAND_SKIP_BBTSCAN;
-@@ -2043,9 +2129,13 @@ scan_tail:
- 		goto return_error;
- 	}
- 
--	ppdata.of_node = pdata->of_node;
--	mtd_device_parse_register(mtd, NULL, &ppdata, pdata->parts,
--				  pdata->nr_parts);
-+	if (dev->of_node) {
-+		ppdata.of_node = dev->of_node;
-+		mtd_device_parse_register(mtd, NULL, &ppdata, NULL, 0);
-+
-+	} else {
-+		mtd_device_register(mtd, pdata->parts, pdata->nr_parts);
-+	}
- 
- 	platform_set_drvdata(pdev, mtd);
- 
-@@ -2077,11 +2167,17 @@ static int omap_nand_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct of_device_id omap_nand_ids[] = {
-+	{ .compatible = "ti,omap2-nand", },
-+	{},
-+};
-+
- static struct platform_driver omap_nand_driver = {
- 	.probe		= omap_nand_probe,
- 	.remove		= omap_nand_remove,
- 	.driver		= {
- 		.name	= DRIVER_NAME,
-+		.of_match_table = of_match_ptr(omap_nand_ids),
- 	},
- };
- 
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index a067f58..ff27e5a 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -76,11 +76,10 @@ struct omap_nand_platform_data {
- 	int			devsize;
- 	enum omap_ecc           ecc_opt;
- 
--	/* for passing the partitions */
--	struct device_node	*of_node;
- 	struct device_node	*elm_of_node;
- 
- 	/* deprecated */
- 	struct gpmc_nand_regs	reg;
-+	struct device_node	*of_node;
- };
- #endif
--- 
-2.1.4
+Why stable? This is not fixing any bugs since the PAUSE was not allowed=
+ for
+non cyclic transfers.
+
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  drivers/dma/omap-dma.c | 54 ++++++++++++++++++++++++++++++++++++++--=
+----------
+>  1 file changed, 41 insertions(+), 13 deletions(-)
+>=20
+> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> index 249445c8a4c6..6b8497203caf 100644
+> --- a/drivers/dma/omap-dma.c
+> +++ b/drivers/dma/omap-dma.c
+> @@ -299,7 +299,7 @@ static void omap_dma_start(struct omap_chan *c, s=
+truct omap_desc *d)
+>  	omap_dma_chan_write(c, CCR, d->ccr | CCR_ENABLE);
+>  }
+> =20
+> -static void omap_dma_stop(struct omap_chan *c)
+> +static int omap_dma_stop(struct omap_chan *c)
+>  {
+>  	struct omap_dmadev *od =3D to_omap_dma_dev(c->vc.chan.device);
+>  	uint32_t val;
+> @@ -342,8 +342,26 @@ static void omap_dma_stop(struct omap_chan *c)
+> =20
+>  		omap_dma_glbl_write(od, OCP_SYSCONFIG, sysconfig);
+>  	} else {
+> +		int i =3D 0;
+> +
+> +		if (!(val & CCR_ENABLE))
+> +			return -EINVAL;
+> +
+>  		val &=3D ~CCR_ENABLE;
+>  		omap_dma_chan_write(c, CCR, val);
+> +		do {
+> +			val =3D omap_dma_chan_read(c, CCR);
+> +			if (!(val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE)))
+> +				break;
+> +			if (i > 100)
+
+if (++i > 100)
+	break;
+to avoid infinite loop?
+
+
+> +				break;
+> +			udelay(5);
+> +		} while (1);
+> +
+> +		if (val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE))
+
+if (i > 100) ?
+
+
+
+> +			dev_err(c->vc.chan.device->dev,
+> +				"DMA drain did not complete on lch %d\n",
+> +				c->dma_ch);
+>  	}
+> =20
+>  	mb();
+> @@ -358,6 +376,7 @@ static void omap_dma_stop(struct omap_chan *c)
+> =20
+>  		omap_dma_chan_write(c, CLNK_CTRL, val);
+>  	}
+> +	return 0;
+>  }
+> =20
+>  static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc =
+*d,
+> @@ -728,6 +747,8 @@ static enum dma_status omap_dma_tx_status(struct =
+dma_chan *chan,
+>  	} else {
+>  		txstate->residue =3D 0;
+>  	}
+> +	if (ret =3D=3D DMA_IN_PROGRESS && c->paused)
+> +		ret =3D DMA_PAUSED;
+>  	spin_unlock_irqrestore(&c->vc.lock, flags);
+> =20
+>  	return ret;
+> @@ -1053,28 +1074,33 @@ static int omap_dma_terminate_all(struct dma_=
+chan *chan)
+>  static int omap_dma_pause(struct dma_chan *chan)
+>  {
+>  	struct omap_chan *c =3D to_omap_dma_chan(chan);
+> +	struct omap_dmadev *od =3D to_omap_dma_dev(chan->device);
+> +	unsigned long flags;
+> +	int ret =3D -EINVAL;
+> =20
+> -	/* Pause/Resume only allowed with cyclic mode */
+> -	if (!c->cyclic)
+> -		return -EINVAL;
+> +	spin_lock_irqsave(&od->irq_lock, flags);
+> =20
+> -	if (!c->paused) {
+> -		omap_dma_stop(c);
+> -		c->paused =3D true;
+> +	if (!c->paused && c->desc) {
+> +		ret =3D omap_dma_stop(c);
+> +		if (!ret)
+> +			c->paused =3D true;
+>  	}
+> =20
+> -	return 0;
+> +	spin_unlock_irqrestore(&od->irq_lock, flags);
+> +
+> +	return ret;
+>  }
+> =20
+>  static int omap_dma_resume(struct dma_chan *chan)
+>  {
+>  	struct omap_chan *c =3D to_omap_dma_chan(chan);
+> +	struct omap_dmadev *od =3D to_omap_dma_dev(chan->device);
+> +	unsigned long flags;
+> +	int ret =3D -EINVAL;
+> =20
+> -	/* Pause/Resume only allowed with cyclic mode */
+> -	if (!c->cyclic)
+> -		return -EINVAL;
+> +	spin_lock_irqsave(&od->irq_lock, flags);
+> =20
+> -	if (c->paused) {
+> +	if (c->paused && c->desc) {
+>  		mb();
+> =20
+>  		/* Restore channel link register */
+> @@ -1082,9 +1108,11 @@ static int omap_dma_resume(struct dma_chan *ch=
+an)
+> =20
+>  		omap_dma_start(c, c->desc);
+>  		c->paused =3D false;
+> +		ret =3D 0;
+>  	}
+> +	spin_unlock_irqrestore(&od->irq_lock, flags);
+> =20
+> -	return 0;
+> +	return ret;
+>  }
+> =20
+>  static int omap_dma_chan_init(struct omap_dmadev *od)
+>=20
+
+
+--=20
+P=E9ter
