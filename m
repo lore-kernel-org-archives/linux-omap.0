@@ -1,89 +1,157 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
-Date: Fri, 7 Aug 2015 14:05:10 +0530
-Message-ID: <55C46DBE.7060809@ti.com>
-References: <20150805115013.GJ20873@sirena.org.uk> <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com> <20150805124412.GN20873@sirena.org.uk> <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com> <20150806090202.GO20873@sirena.org.uk> <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com> <20150806102225.GI7576@n2100.arm.linux.org.uk> <55C35233.2000105@ti.com> <20150806135129.GJ7576@n2100.arm.linux.org.uk> <CAMuHMdWWDwZ=ziGQXFCnOX8pErXpsEi533J73_Hh=sEqq4hR6Q@mail.gmail.com> <20150806213340.GK7576@n2100.arm.linux.org.uk> <CAOMqctRBW230fA4AEhK7MyqkZY==6ENNNHE-LVm7-mHKA_VzRw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH] dma: omap-dma: add support for pause of non-cyclic transfers
+Date: Fri,  7 Aug 2015 10:41:57 +0200
+Message-ID: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOMqctRBW230fA4AEhK7MyqkZY==6ENNNHE-LVm7-mHKA_VzRw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Suchanek <hramrach@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Mark Brown <broonie@kernel.org>, devicetree <devicetree@vger.kernel.org>, Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Huang Shijie <b32955@freescale.com>, MTD Maling List <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+This DMA driver is used by 8250-omap on DRA7-evm. There is one
+requirement that is to pause a transfer. This is currently used on the RX
+side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
+but the DMA controller starts the transfer shortly after.
+Before we can manually purge the FIFO we need to pause the transfer,
+check how many bytes it already received and terminate the transfer
+without it making any progress.
 
+>From testing on the TX side it seems that it is possible that we invoke
+pause once the transfer has completed which is indicated by the missing
+CCR_ENABLE bit but before the interrupt has been noticed. In that case the
+interrupt will come even after disabling it.
 
-On 08/07/2015 01:08 PM, Michal Suchanek wrote:
+The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
+CCR_WR_ACTIVE bits to be gone before programming it again here is the
+drain loop. Also it looks like without the drain the TX-transfer makes
+sometimes progress.
 
-> Now since the description is clearer it's obvious that ti-qspi cannot
-> work fully mmapped as fsl-qspi does because the setup has to be done
-> over normal spi access and using non-m25p80 devices on the same bus is
-> a requirement.
-> 
-> The place where it is known if a transfer can use the mmap access is m25p80.c
-> 
-> So my suggestion is
-> 
->  - add a new method for spi master that gets the read opcode, dummy
-> length, address, address length, buffer, buffer length and performs
-> read from the flash memory in a hardware-specific way
-> 
-> - add a check in m25p80.c that the master supports this feature and if
-> so use it (eg check that the method is non-null)
-> 
-> Presumably if some new SPI controllers with similar feature are
-> supported in the future they can use the same inteface because you
-> pass on everything the m25p80 read knows.
-> 
+One note: The pause + resume combo is broken because after resume the
+the complete transfer will be programmed again. That means the already
+transferred bytes (until the pause event) will be sent again. This is
+currently not important for my UART user because it does only pause +
+terminate.
 
-Ok... Do you mean something like this?
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/dma/omap-dma.c | 54 ++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 41 insertions(+), 13 deletions(-)
 
-I will take m25p80 as example but can be expanded for any flash.
-
-In include/linux/mtd.h:
-	struct spi_mtd_config_info {
-		struct spi_device 	*spi;
-	        u32                     page_size;
-	        u8                      addr_width;
-       		u8                      erase_opcode;
-	        u8                      read_opcode;
-        	u8                      read_dummy;
-	        u8                      program_opcode;
-        	enum read_mode          flash_read;
-
-	} /* subset of struct spi_nor */
-
-
-In m25p80.c:
-
-	static int m25p80_read(struct spi_nor *nor, loff_t from,
-				size_t len, size_t *retlen,
-				u_char *buf)
-	{
-		struct spi_mtd_config_info info;
-		struct spi_device *spi;
-		
-		if (spi->master->spi_mtd_mmap_read) {
-		  /* Populate spi_mtd_config_info */
-		  spi->master->spi_mtd_mmap_read(&info, from, len,
-						 retlen, buf);
-		}
-		else {
-		/* no mtd specific acceleration supported try normal
-		 * SPI way of communicating with flash
-		 * continue with current code
-		 * set up spi_message and call spi_sync()
-		 */
-	}
-
-      }
-
-In spi-ti-qspi.c:
-Implement spi_mtd_mmap_read while holding master->bus_lock mutex.
-
-
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 249445c8a4c6..6b8497203caf 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -299,7 +299,7 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+ 	omap_dma_chan_write(c, CCR, d->ccr | CCR_ENABLE);
+ }
+ 
+-static void omap_dma_stop(struct omap_chan *c)
++static int omap_dma_stop(struct omap_chan *c)
+ {
+ 	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
+ 	uint32_t val;
+@@ -342,8 +342,26 @@ static void omap_dma_stop(struct omap_chan *c)
+ 
+ 		omap_dma_glbl_write(od, OCP_SYSCONFIG, sysconfig);
+ 	} else {
++		int i = 0;
++
++		if (!(val & CCR_ENABLE))
++			return -EINVAL;
++
+ 		val &= ~CCR_ENABLE;
+ 		omap_dma_chan_write(c, CCR, val);
++		do {
++			val = omap_dma_chan_read(c, CCR);
++			if (!(val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE)))
++				break;
++			if (i > 100)
++				break;
++			udelay(5);
++		} while (1);
++
++		if (val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE))
++			dev_err(c->vc.chan.device->dev,
++				"DMA drain did not complete on lch %d\n",
++				c->dma_ch);
+ 	}
+ 
+ 	mb();
+@@ -358,6 +376,7 @@ static void omap_dma_stop(struct omap_chan *c)
+ 
+ 		omap_dma_chan_write(c, CLNK_CTRL, val);
+ 	}
++	return 0;
+ }
+ 
+ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
+@@ -728,6 +747,8 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ 	} else {
+ 		txstate->residue = 0;
+ 	}
++	if (ret == DMA_IN_PROGRESS && c->paused)
++		ret = DMA_PAUSED;
+ 	spin_unlock_irqrestore(&c->vc.lock, flags);
+ 
+ 	return ret;
+@@ -1053,28 +1074,33 @@ static int omap_dma_terminate_all(struct dma_chan *chan)
+ static int omap_dma_pause(struct dma_chan *chan)
+ {
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
++	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
++	unsigned long flags;
++	int ret = -EINVAL;
+ 
+-	/* Pause/Resume only allowed with cyclic mode */
+-	if (!c->cyclic)
+-		return -EINVAL;
++	spin_lock_irqsave(&od->irq_lock, flags);
+ 
+-	if (!c->paused) {
+-		omap_dma_stop(c);
+-		c->paused = true;
++	if (!c->paused && c->desc) {
++		ret = omap_dma_stop(c);
++		if (!ret)
++			c->paused = true;
+ 	}
+ 
+-	return 0;
++	spin_unlock_irqrestore(&od->irq_lock, flags);
++
++	return ret;
+ }
+ 
+ static int omap_dma_resume(struct dma_chan *chan)
+ {
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
++	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
++	unsigned long flags;
++	int ret = -EINVAL;
+ 
+-	/* Pause/Resume only allowed with cyclic mode */
+-	if (!c->cyclic)
+-		return -EINVAL;
++	spin_lock_irqsave(&od->irq_lock, flags);
+ 
+-	if (c->paused) {
++	if (c->paused && c->desc) {
+ 		mb();
+ 
+ 		/* Restore channel link register */
+@@ -1082,9 +1108,11 @@ static int omap_dma_resume(struct dma_chan *chan)
+ 
+ 		omap_dma_start(c, c->desc);
+ 		c->paused = false;
++		ret = 0;
+ 	}
++	spin_unlock_irqrestore(&od->irq_lock, flags);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int omap_dma_chan_init(struct omap_dmadev *od)
 -- 
-Regards
-Vignesh
+2.5.0
