@@ -1,50 +1,84 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] dma: omap-dma: add support for pause of non-cyclic
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v2] dma: omap-dma: add support for pause of non-cyclic
  transfers
-Date: Fri, 7 Aug 2015 10:55:02 -0700
-Message-ID: <20150807175502.GA10282@kroah.com>
-References: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
+Date: Fri, 7 Aug 2015 19:55:48 +0200
+Message-ID: <20150807175548.GA4163@linutronix.de>
+References: <1438961765-22554-1-git-send-email-bigeasy@linutronix.de>
+ <20150807162648.GR7576@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <20150807162648.GR7576@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 07, 2015 at 10:41:57AM +0200, Sebastian Andrzej Siewior wrote:
-> This DMA driver is used by 8250-omap on DRA7-evm. There is one
-> requirement that is to pause a transfer. This is currently used on the RX
-> side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
-> but the DMA controller starts the transfer shortly after.
-> Before we can manually purge the FIFO we need to pause the transfer,
-> check how many bytes it already received and terminate the transfer
-> without it making any progress.
-> 
-> >From testing on the TX side it seems that it is possible that we invoke
-> pause once the transfer has completed which is indicated by the missing
-> CCR_ENABLE bit but before the interrupt has been noticed. In that case the
-> interrupt will come even after disabling it.
-> 
-> The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
-> CCR_WR_ACTIVE bits to be gone before programming it again here is the
-> drain loop. Also it looks like without the drain the TX-transfer makes
-> sometimes progress.
-> 
-> One note: The pause + resume combo is broken because after resume the
-> the complete transfer will be programmed again. That means the already
-> transferred bytes (until the pause event) will be sent again. This is
-> currently not important for my UART user because it does only pause +
-> terminate.
-> 
-> Cc: <stable@vger.kernel.org>
+* Russell King - ARM Linux | 2015-08-07 17:26:48 [+0100]:
 
-You don't get a "add support" patch into the stable tree unless it's a
-trivial device id or quirk table addition, please go re-read
-Documentation/stable_kernel_rules.txt
+>On Fri, Aug 07, 2015 at 05:36:05PM +0200, Sebastian Andrzej Siewior wr=
+ote:
+>> +		/*
+>> +		 * We do not allow DMA_MEM_TO_DEV transfers to be paused.
+>> +		 * According to RMK the OMAP hardware might prefetch bytes from
+>> +		 * memory into its FIFO and not send it to the device due to the
+>> +		 * pause. The bytes in the FIFO are cleared on pause. It is
+>> +		 * unspecified by how many bytes the source address is updated
+>> +		 * if at all.
+>
+>Would you mind rewording the above.
+>
+>Please take the time to read the manuals for the device you are playin=
+g
+>with.  It's mostly documented in there.  See the OMAP4430 ES2.x TRM,
+>16.4.18 and 16.4.19.
 
-thanks,
+I didn't connect the dots that well. Thank you.
 
-greg k-h
+=E2=80=A6
+
+I updated the comment to:
+
+/*=20
+ * We do not allow DMA_MEM_TO_DEV transfers to be paused.
+ * From the AM572x TRM, 16.1.4.18 Disabling a Channel During Transfer:
+ * "When a channel is disabled during a transfer, the channel undergoes
+ * an abort, unless it is hardware-source-synchronized =E2=80=A6".
+ * A source-synchronised channel is one where the fetching of data is
+ * under control of the device. In other words, a device-to-memory
+ * transfer. So, a destination-synchronised channel (which would be a
+ * memory-to-device transfer) undergoes an abort if the the CCR_ENABLE
+ * bit is cleared.
+ * From 16.1.4.20.4.6.2 Abort: "If an abort trigger occurs, the channel
+ * aborts immediately after completion of current read/write
+ * transactions and then the FIFO is cleaned up." The term "cleaned up"
+ * is not defined. TI recommends to check that RD_ACTIVE and WR_ACTIVE
+ * are both clear _before_ disabling the channel, otherwise data loss
+ * will occur.
+ * The problem is that if the channel is active, then device activity
+ * can result in DMA activity starting between reading those as both
+ * clear and the write to DMA_CCR to clear the enable bit hitting the
+ * hardware. If the DMA hardware can't drain the data in its FIFO to th=
+e
+ * destination, then data loss "might" occur (say if we write to an UAR=
+T
+ * and the UART is not accepting any further data).
+ */
+
+would that be okay?
+
+>Due to this, the OMAP DMA engine driver was submitted with this in the
+>cover note:
+>
+>"For the OMAP DMAengine driver, there's a few short-comings:
+>
+>1. pause/resume support is not implemented; it's not clear whether the
+>   OMAP hardware is capable of supporting this sanely."
+
+If I google for it, I find it. pause/resume support for cyclic was adde=
+d
+later without a note why it is only supported for cyclic.
+
+Sebastian
