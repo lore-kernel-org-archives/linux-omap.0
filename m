@@ -1,8 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 17/22] memory: omap-gpmc: Reserve WAITPIN if needed for
- WAIT monitoring
-Date: Fri, 7 Aug 2015 12:12:27 +0300
-Message-ID: <1438938752-31010-18-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 16/22] memory: omap-gpmc: Support general purpose input for
+ WAITPINs
+Date: Fri, 7 Aug 2015 12:12:26 +0300
+Message-ID: <1438938752-31010-17-git-send-email-rogerq@ti.com>
 References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,70 +22,223 @@ To: tony@atomide.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-If the device attached to GPMC wants to use the WAIT pin
-for WAIT monitoring then we reserve it internally for
-exclusive use.
+OMAPs can have 2 to 4 WAITPINs that can be used as general purpose
+input if not used for memory wait state insertion.
+
+The first user will be the OMAP NAND chip to get the NAND
+read/busy status using gpiolib.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/memory/omap-gpmc.c | 23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ drivers/memory/omap-gpmc.c | 122 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 117 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 264009d..0df70ab 100644
+index 30d9c21..264009d 100644
 --- a/drivers/memory/omap-gpmc.c
 +++ b/drivers/memory/omap-gpmc.c
-@@ -1779,6 +1779,8 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 	const char *name;
- 	int ret, cs;
- 	u32 val;
-+	struct gpio_desc *waitpin_desc = NULL;
-+	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+@@ -21,6 +21,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
++#include <linux/gpio/driver.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
+@@ -223,6 +224,11 @@ struct omap3_gpmc_regs {
+ 	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
+ };
  
- 	if (of_property_read_u32(child, "reg", &cs) < 0) {
- 		dev_err(&pdev->dev, "%s has no 'reg' property\n",
-@@ -1880,15 +1882,28 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 			goto err;
- 	}
- 
-+	/* Reserve wait pin if it is required and valid */
-+	if (gpmc_s.wait_on_read || gpmc_s.wait_on_write) {
-+		unsigned wait_pin = gpmc_s.wait_pin;
++struct gpmc_device {
++	struct device *dev;
++	struct gpio_chip gpio_chip;
++};
 +
-+		waitpin_desc = gpiochip_request_own_desc(&gpmc->gpio_chip,
-+							 wait_pin, "WAITPIN");
-+		if (IS_ERR(waitpin_desc)) {
-+			dev_err(&pdev->dev, "invalid wait-pin: %d\n", wait_pin);
-+			ret = PTR_ERR(waitpin_desc);
-+			goto err;
-+		}
+ static struct resource	gpmc_mem_root;
+ static struct gpmc_cs_data gpmc_cs[GPMC_CS_NUM];
+ static DEFINE_SPINLOCK(gpmc_mem_lock);
+@@ -1919,10 +1925,69 @@ err:
+ 	return ret;
+ }
+ 
++static int gpmc_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
++{
++	return 1;	/* we're input only */
++}
++
++static int gpmc_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
++{
++	return 0;	/* we're input only */
++}
++
++static int gpmc_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
++				      int value)
++{
++	return -EINVAL;	/* we're input only */
++}
++
++static void gpmc_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
++{
++}
++
++static int gpmc_gpio_get(struct gpio_chip *chip, unsigned offset)
++{
++	u32 reg;
++
++	offset += 8;
++
++	reg = gpmc_read_reg(GPMC_STATUS) & BIT(offset);
++
++	return !!reg;
++}
++
++static int gpmc_gpio_init(struct gpmc_device *gpmc)
++{
++	int ret;
++
++	gpmc->gpio_chip.dev = gpmc->dev;
++	gpmc->gpio_chip.owner = THIS_MODULE;
++	gpmc->gpio_chip.label = DEVICE_NAME;
++	gpmc->gpio_chip.ngpio = gpmc_nr_waitpins;
++	gpmc->gpio_chip.get_direction = gpmc_gpio_get_direction;
++	gpmc->gpio_chip.direction_input = gpmc_gpio_direction_input;
++	gpmc->gpio_chip.direction_output = gpmc_gpio_direction_output;
++	gpmc->gpio_chip.set = gpmc_gpio_set;
++	gpmc->gpio_chip.get = gpmc_gpio_get;
++	gpmc->gpio_chip.base = -1;
++
++	ret = gpiochip_add(&gpmc->gpio_chip);
++	if (ret < 0) {
++		dev_err(gpmc->dev, "could not register gpio chip: %d\n", ret);
++		return ret;
 +	}
 +
- 	ret = gpmc_cs_program_settings(cs, &gpmc_s);
- 	if (ret < 0)
--		goto err;
-+		goto err_cs;
++	return 0;
++}
++
++static void gpmc_gpio_exit(struct gpmc_device *gpmc)
++{
++	gpiochip_remove(&gpmc->gpio_chip);
++}
++
+ static int gpmc_probe_dt(struct platform_device *pdev)
+ {
+ 	int ret;
+-	struct device_node *child;
+ 	const struct of_device_id *of_id =
+ 		of_match_device(gpmc_dt_ids, &pdev->dev);
  
- 	ret = gpmc_cs_set_timings(cs, &gpmc_t, &gpmc_s);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to set gpmc timings for: %s\n",
- 			child->name);
--		goto err;
-+		goto err_cs;
+@@ -1950,6 +2015,17 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 		return ret;
  	}
  
- 	/* Clear limited address i.e. enable A26-A11 */
-@@ -1919,6 +1934,10 @@ err_child_fail:
- 	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
- 	ret = -ENODEV;
- 
-+err_cs:
-+	if (waitpin_desc)
-+		gpiochip_free_own_desc(waitpin_desc);
++	dev_info(&pdev->dev, "num-cs %d, num-wait %d\n",
++		 gpmc_cs_num, gpmc_nr_waitpins);
 +
- err:
- 	gpmc_cs_free(cs);
++	return 0;
++}
++
++static int gpmc_probe_dt_children(struct platform_device *pdev)
++{
++	int ret;
++	struct device_node *child;
++
+ 	for_each_available_child_of_node(pdev->dev.of_node, child) {
  
+ 		if (!child->name)
+@@ -1959,6 +2035,9 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 			ret = gpmc_probe_onenand_child(pdev, child);
+ 		else
+ 			ret = gpmc_probe_generic_child(pdev, child);
++
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return 0;
+@@ -1968,6 +2047,11 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ {
+ 	return 0;
+ }
++
++static int gpmc_probe_dt_children(struct platform_device *pdev)
++{
++	return 0;
++}
+ #endif
+ 
+ static int gpmc_probe(struct platform_device *pdev)
+@@ -1975,6 +2059,7 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	int rc;
+ 	u32 l;
+ 	struct resource *res;
++	struct gpmc_device *gpmc;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL)
+@@ -2005,6 +2090,17 @@ static int gpmc_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
++	rc = gpmc_probe_dt(pdev);
++	if (rc)
++		return rc;
++
++	gpmc = devm_kzalloc(&pdev->dev, sizeof(*gpmc), GFP_KERNEL);
++	if (!gpmc)
++		return -ENOMEM;
++
++	gpmc->dev = &pdev->dev;
++	platform_set_drvdata(pdev, gpmc);
++
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
+ 
+@@ -2032,24 +2128,40 @@ static int gpmc_probe(struct platform_device *pdev)
+ 		 GPMC_REVISION_MINOR(l));
+ 
+ 	gpmc_mem_init();
++	rc = gpmc_gpio_init(gpmc);
++	if (rc)
++		goto gpio_init_failed;
++
+ 
+ 	if (!pdev->dev.of_node) {
+ 		gpmc_cs_num	 = GPMC_CS_NUM;
+ 		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
+ 	}
+ 
+-	rc = gpmc_probe_dt(pdev);
++	rc = gpmc_probe_dt_children(pdev);
+ 	if (rc < 0) {
+-		pm_runtime_put_sync(&pdev->dev);
+-		dev_err(gpmc_dev, "failed to probe DT parameters\n");
+-		return rc;
++		dev_err(gpmc_dev, "failed to probe DT children\n");
++		goto dt_children_failed;
+ 	}
+ 
+ 	return 0;
++
++dt_children_failed:
++	gpmc_gpio_exit(gpmc);
++gpio_init_failed:
++	gpmc_mem_exit();
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++	gpmc_dev = NULL;
++
++	return rc;
+ }
+ 
+ static int gpmc_remove(struct platform_device *pdev)
+ {
++	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
++
++	gpmc_gpio_exit(gpmc);
+ 	gpmc_mem_exit();
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
 -- 
 2.1.4
 
