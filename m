@@ -1,87 +1,53 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] dma: omap-dma: add support for pause of non-cyclic
- transfers
-Date: Fri, 7 Aug 2015 14:57:28 +0100
-Message-ID: <20150807135727.GP7576@n2100.arm.linux.org.uk>
-References: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
- <55C47DE1.9020902@ti.com>
- <55C48A1E.3070007@linutronix.de>
- <20150807132241.GN7576@n2100.arm.linux.org.uk>
- <55C4B5AE.10309@linutronix.de>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 0/4] omap: Fix broken pbias device creation
+Date: Fri, 7 Aug 2015 19:55:43 +0530
+Message-ID: <55C4BFE7.2070302@ti.com>
+References: <1437999401-3519-1-git-send-email-kishon@ti.com>	<55B89590.6000109@ti.com>	<20150805100009.GY16878@atomide.com> <CALeDE9OBjESdkXhkAEVj1L-XKJ1yoFg8rkHvcJ_Uj_RXOC-yUQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55C4B5AE.10309@linutronix.de>
+In-Reply-To: <CALeDE9OBjESdkXhkAEVj1L-XKJ1yoFg8rkHvcJ_Uj_RXOC-yUQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de
+To: Peter Robinson <pbrobinson@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, nsekhar@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 07, 2015 at 03:42:06PM +0200, Sebastian Andrzej Siewior wrote:
-> On 08/07/2015 03:22 PM, Russell King - ARM Linux wrote:
-> > On Fri, Aug 07, 2015 at 12:36:14PM +0200, Sebastian Andrzej Siewior wrote:
-> >> On 08/07/2015 11:44 AM, Peter Ujfalusi wrote:
-> >>> with a short testing audio did not broke (the only user of pause/resume)
-> >>> Some comments embedded.
-> >>>
-> >>>> Cc: <stable@vger.kernel.org>
-> >>>
-> >>> Why stable? This is not fixing any bugs since the PAUSE was not allowed for
-> >>> non cyclic transfers.
-> >>
-> >> Hmmm. The DRA7x was using pause before for UART. I just did not see it
-> >> coming that it was not allowed here. John made a similar change to the
-> >> edma driver and I assumed it went stable but now I see that it was just
-> >> cherry-picked into the ti tree.
-> > 
-> > This is *NOT* stable material.
-> > 
-> > Pause of these channels is something that omap-dma has *never* supported.
-> > Therefore, it is *not* a regression.  What you are doing is *adding* a
-> > feature to the omap-dma driver.  That is not stable material in any sense.
-> > Stable is for bug fixes to existing code, not feature enhancements.
+Hi Peter,
+
+On Friday 07 August 2015 05:18 PM, Peter Robinson wrote:
+> On Wed, Aug 5, 2015 at 11:00 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Grygorii Strashko <grygorii.strashko@ti.com> [150729 02:01]:
+>>> On 07/27/2015 03:16 PM, Kishon Vijay Abraham I wrote:
+>>>> pbias device creation got broken once SCM cleanup got merged.
+>>>> This patch series re-enables device creation by adding
+>>>> "simple-bus" in the compatible property of the syscon
+>>>> dt node.
+>>>>
+>>>> validated this series in DRA72, OMAP4 PANDA and OMAP5 UEVM
+>>>> boards.
+>>>>
+>>>> Kishon Vijay Abraham I (4):
+>>>>   ARM: dts: omap24xx: Fix broken pbias device creation
+>>>>   ARM: dts: OMAP4: Fix broken pbias device creation
+>>>>   ARM: dts: OMAP5: Fix broken pbias device creation
+>>>>   ARM: dts: dra7: Fix broken pbias device creation
+>>>>
+>>>>  arch/arm/boot/dts/dra7.dtsi     |    2 +-
+>>>>  arch/arm/boot/dts/omap2430.dtsi |    3 ++-
+>>>>  arch/arm/boot/dts/omap4.dtsi    |    3 ++-
+>>>>  arch/arm/boot/dts/omap5.dtsi    |    3 ++-
+>>>>  4 files changed, 7 insertions(+), 4 deletions(-)
+>>>>
+>>>
+>>> For dra7-evm:
+>>> Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>
+>> Applying all into omap-for-v4.2fixes-v2 thanks.
 > 
-> I didn't consider this as a feature.
+> Do we need the same for am33xx.dtsi too given commit e3bc5358e097 ?
 
-As it is something that the driver has _not_ supported, you are clearly
-adding a feature to an existing driver.  It's not a bug fix.
+PBIAS is not present in am33xx.
 
-> > If something else has been converted to pause channels and that is causing
-> > a problem, then _that_ conversion is where the bug lies, not the lack of
-> > support in the omap-dma.
-> 
-> So we had the 8250-DMA doing pause and all its current users implement
-> it. We have a DMA driver tree which is not used and it not implementing
-> pause (not implementing pause at all). Later we get a combo of 8250-DMA
-> + DMA driver that is broken because the lack of pause and this is
-> noticed a few kernel releases later.
-
-Right, so the patch which caused the regression is the one which arranged
-for the 8250-dma + omap-dma combination to work together, not the missing
-pause support in omap-dma.
-
-It doesn't matter that it's several releases old, it's that change caused
-the regression you have today.  That change is incorrect today, and it was
-just as incorrect at the time that it was merged.
-
-> The only way of fixing the bug is by implementing the pause feature.
-
-That's not the only way of fixing the bug.
-
-As the binding of drivers is controlled by DT, you can disable the binding
-of these two drivers there and 8250 will go back to using non-DMA mode -
-which is the situation which existed prior to the change which coupled the
-two drivers together.  That's an acceptable change for -stable trees,
-because it's reverting the change which caused the regression, taking us
-back to a situation we _know_ worked previously.
-
-Then, in mainline during the next merge window, we can introduce the pause
-feature to omap-dma, and re-enable the 8250 driver to use it.  _Once_ that's
-proven stable, we can then take a view whether those changes should _then_
-be backported to stable kernels with greater confidence that backporting
-the feature addition won't itself cause a new regression.
-
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Thanks
+Kishon
