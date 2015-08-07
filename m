@@ -1,318 +1,173 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 1/2] extcon: palmas: Support GPIO based USB ID detection
-Date: Fri, 7 Aug 2015 11:24:54 +0300
-Message-ID: <55C46B56.5070107@ti.com>
-References: <1438002617-15152-1-git-send-email-rogerq@ti.com> <1438002617-15152-2-git-send-email-rogerq@ti.com> <55BB5730.8030600@ti.com> <55BF7D73.1040805@ti.com>
+From: Martin Sperl <martin-d5rIkyn9cnPYtjvyW6yDsg@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] spi: introduce flag for memory mapped read
+Date: Fri, 07 Aug 2015 10:25:40 +0200
+Message-ID: <55C46B84.3010304@sperl.org>
+References: <20150805115013.GJ20873@sirena.org.uk> <CAOMqctQXwcHyiWBwtugSDSE_k65qrNfrwnhjQMDJkLoJMmGzUw@mail.gmail.com> <20150805124412.GN20873@sirena.org.uk> <CAOMqctS9Y5FxpUCCJew6+cnjH5iTvbzkH3g-8yrXs4OuS2pSGA@mail.gmail.com> <20150806090202.GO20873@sirena.org.uk> <CAOMqctQZRZ4zG_yYy=CeX3DX4NVNWN1COP4Q-2YvMun9xYOA7g@mail.gmail.com> <20150806102225.GI7576@n2100.arm.linux.org.uk> <55C35233.2000105@ti.com> <20150806135129.GJ7576@n2100.arm.linux.org.uk> <CAMuHMdWWDwZ=ziGQXFCnOX8pErXpsEi533J73_Hh=sEqq4hR6Q@mail.gmail.com> <20150806213340.GK7576@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55BF7D73.1040805@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lee.jones@linaro.org, sameo@linux.intel.com
-Cc: myungjoo.ham@samsung.com, cw00.choi@samsung.com, tony@atomide.com, nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150806213340.GK7576-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, MTD Maling List <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lee / Samuel,
+On 8/6/2015 23:33, Russell King - ARM Linux wrote:
+> On Thu, Aug 06, 2015 at 06:14:00PM +0200, Geert Uytterhoeven wrote:
+>>
+>> Irrespective of the dummy bytes.
+>> What if the spi device is not a FLASH ROM, but some other device,
+>> which receives a data packet that accidentally looks like an m25p80 READ
+>> command?
+> Well, for the most part it looks like it should still work, but there
+> could be a gotcha, but first, let's get rid of a myth there.
+>
+> The QSPI is _not_ specific to the M25P80.  The manual says nothing
+> about being specific to that device.  What it says is that it's for
+> SPI NOR memory.  It will work with bus widths of 1, 2 or 4 data lines,
+> so it probably works with non-M25P80 SPI NOR devices too - and the fact
+> that the read and write commands are completely programmable suggests
+> that using it with SPI NOR devices which do not use the M25P80 read
+> command value is intended.
+>
+>
+> The SFI is a state machine based translator which sits behind the SPI
+> interface (look at the manual).  It sequence sthe SPI bus through a
+> series of standard SPI states which happen to be the states I detailed
+> above.
+>
+> Now, the first byte of the SFI-generated SPI message can be programmed
+> to any 8 bit value.  So the first byte of the SPI message is totally
+> under software control.  The next one to four bytes which comprise the
+> "address" can be controlled to by deciding where in the memory map to
+> start reading from.  Hence, the value of those bytes is also totally
+> under software control.  The number of dummy bytes can be programmed
+> too.  So far so good.
+>
+> So, if we know that we have a SPI message which says "send 0x01 0x20
+> 0x30, send one dummy byte, read 32 bytes", if we program the SFI to
+> send a read command as 0x01, program an address length of 2 bytes
+> with one dummy byte, and then read the next 32 bytes at the appropriate
+> offset in the memory mapping to cause the next two bytes to be 0x20,
+> 0x30, then what we end up with on the bus is:
+>
+> 	send 0x01, 0x20, 0x30
+> 	send one dummy byte
+>
+> That much is good, but now is the problem - how does the SFI know that
+> we're going to require to read 32 bytes?  I think the answer to that
+> is that it doesn't know, so it probably just reads the number of bytes
+> which the access on the SoC bus is asking for, which makes it
+> indeterminant from a software point of view to control how many bytes
+> will be read without provoking another "send 0x01, next address, dummy
+> byte" sequence.
+>
+> So, I'm now on the side of not parsing commands in the SPI driver, and
+> back on the idea that this needs to be handled in some other manner
+> which doesn't involve polluting the SPI core with flag-hacks.
+>
+So I see 2 distinct options:
 
-On 03/08/15 17:40, Roger Quadros wrote:
-> Some palmas based chip variants do not have OTG based ID logic.
-> For these variants we rely on GPIO based USB ID detection.
-> 
-> These chips do have VBUS comparator for VBUS detection so we
-> continue to use the old way of detecting VBUS.
-> 
-> Acked-by: Chanwoo Choi <cw00.choi@samsung.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+Have the nor driver modified to run SPI commands and then ask the
+SPI framework (and driver) to switch into mmap mode:
 
-It seems the extcon maintainer Chanwoo needs either of your Ack
-to accept this patch.
+Would probably look something like this inside the nor driver:
+    /* lock spi bus for other activities */
+    spi_bus_lock(spi);
+    /* send the "configuration" for mmap */
+    t[0].tx_buf = flash->command;
+    t[0].len = m25p_cmdsz(nor);
+    spi_message_add_tail(&t[0], &m);
+    t[1].tx_buf = dummy_buffer;
+    t[1].len = dummy;
+    spi_message_add_tail(&t[1], &m);
+    spi_sync(spi, &m);
+    /* switch to mmap mode */
+    spi->mode |= SPI_MMAP;
+    spi_setup(spi);
+    /* run the mmapped transfers bypassing the spi-layer */
+    memcpy(...)
+    /* open questions here: which address range
+     * and how to detect if transfer is done
+*/
+/* restore back to "normal" mode */
+    spi->mode &= ~SPI_MMAP;
+    spi_setup(spi);
+    /* unlock spi bus for other activities */
+    spi_bus_unlock(spi);
 
-Can you please take a look and Ack if OK? Thanks.
+The downside is that it requires modification in several places
+(nor-framework, spi-framework plus the driver) and it would not
+be generic enough...
 
-cheers,
--roger
+IMO such a situation is feasible if we only got a single device
+on the spi-bus, but leaves a lot of questions open...
+Alternatively we could create an additional api.
 
-> ---
-> v4: updated gpio debounce logic to use delayed_workqueue.
-> 
->  .../devicetree/bindings/extcon/extcon-palmas.txt   |   5 +-
->  drivers/extcon/extcon-palmas.c                     | 129 ++++++++++++++++++---
->  drivers/extcon/extcon-usb-gpio.c                   |   1 +
->  include/linux/mfd/palmas.h                         |   7 ++
->  4 files changed, 126 insertions(+), 16 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-> index 45414bb..f61d5af 100644
-> --- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-> +++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-> @@ -10,8 +10,11 @@ Required Properties:
->  
->  Optional Properties:
->   - ti,wakeup : To enable the wakeup comparator in probe
-> - - ti,enable-id-detection: Perform ID detection.
-> + - ti,enable-id-detection: Perform ID detection. If id-gpio is specified
-> +		it performs id-detection using GPIO else using OTG core.
->   - ti,enable-vbus-detection: Perform VBUS detection.
-> + - id-gpio: gpio for GPIO ID detection. See gpio binding.
-> + - debounce-delay-ms: debounce delay for GPIO ID pin in milliseconds.
->  
->  palmas-usb {
->         compatible = "ti,twl6035-usb", "ti,palmas-usb";
-> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
-> index 8933e7e..662e917 100644
-> --- a/drivers/extcon/extcon-palmas.c
-> +++ b/drivers/extcon/extcon-palmas.c
-> @@ -28,6 +28,10 @@
->  #include <linux/mfd/palmas.h>
->  #include <linux/of.h>
->  #include <linux/of_platform.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/workqueue.h>
-> +
-> +#define USB_GPIO_DEBOUNCE_MS	20	/* ms */
->  
->  static const unsigned int palmas_extcon_cable[] = {
->  	EXTCON_USB,
-> @@ -118,19 +122,54 @@ static irqreturn_t palmas_id_irq_handler(int irq, void *_palmas_usb)
->  	return IRQ_HANDLED;
->  }
->  
-> +static void palmas_gpio_id_detect(struct work_struct *work)
-> +{
-> +	int id;
-> +	struct palmas_usb *palmas_usb = container_of(to_delayed_work(work),
-> +						     struct palmas_usb,
-> +						     wq_detectid);
-> +	struct extcon_dev *edev = palmas_usb->edev;
-> +
-> +	if (!palmas_usb->id_gpiod)
-> +		return;
-> +
-> +	id = gpiod_get_value_cansleep(palmas_usb->id_gpiod);
-> +
-> +	if (id) {
-> +		extcon_set_cable_state_(edev, EXTCON_USB_HOST, false);
-> +		dev_info(palmas_usb->dev, "USB-HOST cable is detached\n");
-> +	} else {
-> +		extcon_set_cable_state_(edev, EXTCON_USB_HOST, true);
-> +		dev_info(palmas_usb->dev, "USB-HOST cable is attached\n");
-> +	}
-> +}
-> +
-> +static irqreturn_t palmas_gpio_id_irq_handler(int irq, void *_palmas_usb)
-> +{
-> +	struct palmas_usb *palmas_usb = _palmas_usb;
-> +
-> +	queue_delayed_work(system_power_efficient_wq, &palmas_usb->wq_detectid,
-> +			   palmas_usb->sw_debounce_jiffies);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
->  static void palmas_enable_irq(struct palmas_usb *palmas_usb)
->  {
->  	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
->  		PALMAS_USB_VBUS_CTRL_SET,
->  		PALMAS_USB_VBUS_CTRL_SET_VBUS_ACT_COMP);
->  
-> -	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
-> -		PALMAS_USB_ID_CTRL_SET, PALMAS_USB_ID_CTRL_SET_ID_ACT_COMP);
-> +	if (palmas_usb->enable_id_detection) {
-> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
-> +			     PALMAS_USB_ID_CTRL_SET,
-> +			     PALMAS_USB_ID_CTRL_SET_ID_ACT_COMP);
->  
-> -	palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
-> -		PALMAS_USB_ID_INT_EN_HI_SET,
-> -		PALMAS_USB_ID_INT_EN_HI_SET_ID_GND |
-> -		PALMAS_USB_ID_INT_EN_HI_SET_ID_FLOAT);
-> +		palmas_write(palmas_usb->palmas, PALMAS_USB_OTG_BASE,
-> +			     PALMAS_USB_ID_INT_EN_HI_SET,
-> +			     PALMAS_USB_ID_INT_EN_HI_SET_ID_GND |
-> +			     PALMAS_USB_ID_INT_EN_HI_SET_ID_FLOAT);
-> +	}
->  
->  	if (palmas_usb->enable_vbus_detection)
->  		palmas_vbus_irq_handler(palmas_usb->vbus_irq, palmas_usb);
-> @@ -169,20 +208,36 @@ static int palmas_usb_probe(struct platform_device *pdev)
->  			palmas_usb->wakeup = pdata->wakeup;
->  	}
->  
-> +	palmas_usb->id_gpiod = devm_gpiod_get_optional(&pdev->dev, "id");
-> +	if (IS_ERR(palmas_usb->id_gpiod)) {
-> +		dev_err(&pdev->dev, "failed to get id gpio\n");
-> +		return PTR_ERR(palmas_usb->id_gpiod);
-> +	}
-> +
-> +	if (palmas_usb->enable_id_detection && palmas_usb->id_gpiod) {
-> +		palmas_usb->enable_id_detection = false;
-> +		palmas_usb->enable_gpio_id_detection = true;
-> +	}
-> +
-> +	if (palmas_usb->enable_gpio_id_detection) {
-> +		u32 debounce;
-> +
-> +		if (of_property_read_u32(node, "debounce-delay-ms", &debounce))
-> +			debounce = USB_GPIO_DEBOUNCE_MS;
-> +
-> +		status = gpiod_set_debounce(palmas_usb->id_gpiod,
-> +					    debounce * 1000);
-> +		if (status < 0)
-> +			palmas_usb->sw_debounce_jiffies = msecs_to_jiffies(debounce);
-> +	}
-> +
-> +	INIT_DELAYED_WORK(&palmas_usb->wq_detectid, palmas_gpio_id_detect);
-> +
->  	palmas->usb = palmas_usb;
->  	palmas_usb->palmas = palmas;
->  
->  	palmas_usb->dev	 = &pdev->dev;
->  
-> -	palmas_usb->id_otg_irq = regmap_irq_get_virq(palmas->irq_data,
-> -						PALMAS_ID_OTG_IRQ);
-> -	palmas_usb->id_irq = regmap_irq_get_virq(palmas->irq_data,
-> -						PALMAS_ID_IRQ);
-> -	palmas_usb->vbus_otg_irq = regmap_irq_get_virq(palmas->irq_data,
-> -						PALMAS_VBUS_OTG_IRQ);
-> -	palmas_usb->vbus_irq = regmap_irq_get_virq(palmas->irq_data,
-> -						PALMAS_VBUS_IRQ);
-> -
->  	palmas_usb_wakeup(palmas, palmas_usb->wakeup);
->  
->  	platform_set_drvdata(pdev, palmas_usb);
-> @@ -201,6 +256,10 @@ static int palmas_usb_probe(struct platform_device *pdev)
->  	}
->  
->  	if (palmas_usb->enable_id_detection) {
-> +		palmas_usb->id_otg_irq = regmap_irq_get_virq(palmas->irq_data,
-> +							     PALMAS_ID_OTG_IRQ);
-> +		palmas_usb->id_irq = regmap_irq_get_virq(palmas->irq_data,
-> +							 PALMAS_ID_IRQ);
->  		status = devm_request_threaded_irq(palmas_usb->dev,
->  				palmas_usb->id_irq,
->  				NULL, palmas_id_irq_handler,
-> @@ -212,9 +271,33 @@ static int palmas_usb_probe(struct platform_device *pdev)
->  					palmas_usb->id_irq, status);
->  			return status;
->  		}
-> +	} else if (palmas_usb->enable_gpio_id_detection) {
-> +		palmas_usb->gpio_id_irq = gpiod_to_irq(palmas_usb->id_gpiod);
-> +		if (palmas_usb->gpio_id_irq < 0) {
-> +			dev_err(&pdev->dev, "failed to get id irq\n");
-> +			return palmas_usb->gpio_id_irq;
-> +		}
-> +		status = devm_request_threaded_irq(&pdev->dev,
-> +						   palmas_usb->gpio_id_irq,
-> +						   NULL,
-> +						   palmas_gpio_id_irq_handler,
-> +						   IRQF_TRIGGER_RISING |
-> +						   IRQF_TRIGGER_FALLING |
-> +						   IRQF_ONESHOT,
-> +						   "palmas_usb_id",
-> +						   palmas_usb);
-> +		if (status < 0) {
-> +			dev_err(&pdev->dev,
-> +				"failed to request handler for id irq\n");
-> +			return status;
-> +		}
->  	}
->  
->  	if (palmas_usb->enable_vbus_detection) {
-> +		palmas_usb->vbus_otg_irq = regmap_irq_get_virq(palmas->irq_data,
-> +						       PALMAS_VBUS_OTG_IRQ);
-> +		palmas_usb->vbus_irq = regmap_irq_get_virq(palmas->irq_data,
-> +							   PALMAS_VBUS_IRQ);
->  		status = devm_request_threaded_irq(palmas_usb->dev,
->  				palmas_usb->vbus_irq, NULL,
->  				palmas_vbus_irq_handler,
-> @@ -229,10 +312,21 @@ static int palmas_usb_probe(struct platform_device *pdev)
->  	}
->  
->  	palmas_enable_irq(palmas_usb);
-> +	/* perform initial detection */
-> +	palmas_gpio_id_detect(&palmas_usb->wq_detectid.work);
->  	device_set_wakeup_capable(&pdev->dev, true);
->  	return 0;
->  }
->  
-> +static int palmas_usb_remove(struct platform_device *pdev)
-> +{
-> +	struct palmas_usb *palmas_usb = platform_get_drvdata(pdev);
-> +
-> +	cancel_delayed_work_sync(&palmas_usb->wq_detectid);
-> +
-> +	return 0;
-> +}
-> +
->  #ifdef CONFIG_PM_SLEEP
->  static int palmas_usb_suspend(struct device *dev)
->  {
-> @@ -243,6 +337,8 @@ static int palmas_usb_suspend(struct device *dev)
->  			enable_irq_wake(palmas_usb->vbus_irq);
->  		if (palmas_usb->enable_id_detection)
->  			enable_irq_wake(palmas_usb->id_irq);
-> +		if (palmas_usb->enable_gpio_id_detection)
-> +			enable_irq_wake(palmas_usb->gpio_id_irq);
->  	}
->  	return 0;
->  }
-> @@ -256,6 +352,8 @@ static int palmas_usb_resume(struct device *dev)
->  			disable_irq_wake(palmas_usb->vbus_irq);
->  		if (palmas_usb->enable_id_detection)
->  			disable_irq_wake(palmas_usb->id_irq);
-> +		if (palmas_usb->enable_gpio_id_detection)
-> +			disable_irq_wake(palmas_usb->gpio_id_irq);
->  	}
->  	return 0;
->  };
-> @@ -273,6 +371,7 @@ static const struct of_device_id of_palmas_match_tbl[] = {
->  
->  static struct platform_driver palmas_usb_driver = {
->  	.probe = palmas_usb_probe,
-> +	.remove = palmas_usb_remove,
->  	.driver = {
->  		.name = "palmas-usb",
->  		.of_match_table = of_palmas_match_tbl,
-> diff --git a/drivers/extcon/extcon-usb-gpio.c b/drivers/extcon/extcon-usb-gpio.c
-> index a2a4453..2b2fecf 100644
-> --- a/drivers/extcon/extcon-usb-gpio.c
-> +++ b/drivers/extcon/extcon-usb-gpio.c
-> @@ -15,6 +15,7 @@
->   */
->  
->  #include <linux/extcon.h>
-> +#include <linux/gpio.h>
->  #include <linux/gpio/consumer.h>
->  #include <linux/init.h>
->  #include <linux/interrupt.h>
-> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-> index bb270bd..13e1d96 100644
-> --- a/include/linux/mfd/palmas.h
-> +++ b/include/linux/mfd/palmas.h
-> @@ -21,6 +21,7 @@
->  #include <linux/regmap.h>
->  #include <linux/regulator/driver.h>
->  #include <linux/extcon.h>
-> +#include <linux/of_gpio.h>
->  #include <linux/usb/phy_companion.h>
->  
->  #define PALMAS_NUM_CLIENTS		3
-> @@ -551,10 +552,16 @@ struct palmas_usb {
->  	int vbus_otg_irq;
->  	int vbus_irq;
->  
-> +	int gpio_id_irq;
-> +	struct gpio_desc *id_gpiod;
-> +	unsigned long sw_debounce_jiffies;
-> +	struct delayed_work wq_detectid;
-> +
->  	enum palmas_usb_state linkstat;
->  	int wakeup;
->  	bool enable_vbus_detection;
->  	bool enable_id_detection;
-> +	bool enable_gpio_id_detection;
->  };
->  
->  #define comparator_to_palmas(x) container_of((x), struct palmas_usb, comparator)
-> 
+On the other end of spectrum could be a solution where the
+spi-master driverwould have the opportunity to query the
+device-tree for specific propertiesduring the spi_add_device
+phase - in this case querying the followingproperty in the
+device-tree:
+   spi-master-XXX,use-mmap-cmd-mode = <0x08 0x38>;
+to implement mmap-mode for commands 0x08 and 0x38.
+
+Maybe we would want to also encode the number of address bytes
+to send per command without hardcoding those values explicitly:
+so maybe something like:
+   spi-master-XXX,use-mmap-cmd-mode = <0x08 2> <0x38 3>;
+
+Obviously these would need to get documented in the bindings
+documentation of that driver.
+
+Alternatively we could also introduce generic alternate modes
+for the driver(similar to GPIO - ALT modes), but that would be
+less transparent and more hard-coded...
+
+In the end this would mean that from the nor framework side
+therewould be no change at all - it still would be issuing
+something like this:
+    /* send the "normal" block read command */
+    t[0].tx_buf = flash->command;
+    /* note that the address would be encoded here */
+    t[0].len = m25p_cmdsz(nor);
+    spi_message_add_tail(&t[0], &m);
+    /* dummy bytes could also get added to the above transfer */
+    t[1].tx_buf = dummy_buffer;
+    t[1].len = dummy;
+    spi_message_add_tail(&t[1], &m);
+    /* the real transfer */
+    t[2].rx_buf = read_buffer;
+    t[2].len = transfer_size;
+    spi_message_add_tail(&t[2], &m);
+    spi_sync(spi, &m);
+
+On the spi-master side the driver would need to run:
+*  if the spi-message (in this case the first byte) matches
+    the "allowed" command pattern:
+   * "setup" device in normal mode preparing the transfer engine
+   * mode-switch to "mmapped" mode
+   * copy via mmapped mode (via DMA to avoid blocking the CPU?)
+   * return to "normal" mode
+* else
+   * run in "normal" spi mode.
+(obviously it would be a bit more complicated that that).
+
+Note that a discussion in regards to spi-master methods called
+duringspi_add_device has just come up a few days ago in a
+slightly differentcontext - forcing to always/never use DMA mode
+for a specific spi-device on the bus (as well as tuning other
+parameters per device).
+
+Obviously the additional properties should describe required
+HW behaviour and not tune the driver parameters - sys should be
+used for those, but also for implementing those sys parameters we
+would need those above "hooks"...
+
+Just an idea.
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
