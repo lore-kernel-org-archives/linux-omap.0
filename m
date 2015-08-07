@@ -1,83 +1,53 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 12/22] mtd: nand: omap: Update DT binding documentation
-Date: Fri, 7 Aug 2015 12:12:22 +0300
-Message-ID: <1438938752-31010-13-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 21/22] ARM: dts: dra7x-evm: Provide NAND ready pin
+Date: Fri, 7 Aug 2015 12:12:31 +0300
+Message-ID: <1438938752-31010-22-git-send-email-rogerq@ti.com>
 References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1438938752-31010-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
+Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add compatible id and interrupts. The NAND interrupts are
-provided by the GPMC controller node.
+On these boards NAND ready pin status is avilable over
+GPMC_WAIT0 pin.
+
+Read speed increases from 13768 KiB/ to 17246 KiB/s.
+Write speed was unchanged at 7123 KiB/s.
+Measured using mtd_speedtest.ko.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/dra7-evm.dts  | 1 +
+ arch/arm/boot/dts/dra72-evm.dts | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index fb733c4..253e6de 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -13,7 +13,11 @@ Documentation/devicetree/bindings/mtd/nand.txt
- 
- Required properties:
- 
-- - reg:		The CS line the peripheral is connected to
-+ - compatible:	"ti,omap2-nand"
-+ - reg:		range id (CS number), base offset and length of the
-+		NAND I/O space
-+ - interrupt-parent: must point to gpmc node
-+ - interrupts: gpmc interrupt
- 
- Optional properties:
- 
-@@ -55,20 +59,24 @@ Example for an AM33xx board:
- 	gpmc: gpmc@50000000 {
- 		compatible = "ti,am3352-gpmc";
- 		ti,hwmods = "gpmc";
--		reg = <0x50000000 0x1000000>;
-+		reg = <0x50000000 0x36c>;
- 		interrupts = <100>;
- 		gpmc,num-cs = <8>;
- 		gpmc,num-waitpins = <2>;
- 		#address-cells = <2>;
- 		#size-cells = <1>;
--		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
-+		ranges = <0 0 0x08000000 0x1000000>;	/* CS0 space, 16MB */
- 		elm_id = <&elm>;
- 
- 		nand@0,0 {
--			reg = <0 0 0>; /* CS0, offset 0 */
-+			compatible = "ti,omap2-nand";
-+			reg = <0 0 4>;		/* CS0, offset 0, NAND I/O window 4 */
-+			interrupts = <100>;
- 			nand-bus-width = <16>;
- 			ti,nand-ecc-opt = "bch8";
- 			ti,nand-xfer-type = "polled";
-+			interrupt-parent = <&gpmc>;
-+			interrupts = <0>, <1>;
- 
- 			gpmc,sync-clk-ps = <0>;
- 			gpmc,cs-on-ns = <0>;
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 3fb1ced..b717fd0 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -575,6 +575,7 @@
+ 		reg = <0 0 4>;		/* device IO registers */
+ 		interrupt-parent = <&crossbar_mpu>;
+ 		interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
++		ready-gpio = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 pin */
+ 		ti,nand-ecc-opt = "bch8";
+ 		ti,elm-id = <&elm>;
+ 		nand-bus-width = <16>;
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index fc0677a..c1a3397 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -387,6 +387,7 @@
+ 		 */
+ 		reg = <0 0 4>;		/* device IO registers */
+ 		interrupt-parent = <&crossbar_mpu>;
++		ready-gpio = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 pin */
+ 		ti,nand-ecc-opt = "bch8";
+ 		ti,elm-id = <&elm>;
+ 		nand-bus-width = <16>;
 -- 
 2.1.4
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
