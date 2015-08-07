@@ -1,92 +1,94 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] memory: omap-gpmc: Don't try to save the GPMC context
-Date: Fri, 7 Aug 2015 12:10:57 +0300
-Message-ID: <55C47621.3070304@ti.com>
-References: <1438777455-28009-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 00/22] memory: omap-gpmc: mtd: nand: Support GPMC NAND on non-OMAP platforms
+Date: Fri, 7 Aug 2015 12:12:10 +0300
+Message-ID: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438777455-28009-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/08/15 15:24, Tomeu Vizoso wrote:
-> ...if there isn't one already.
-> 
-> If for some reason the GPMC device hasn't been probed yet, gpmc_base is
-> going to be NULL. Because there's no context yet to be saved, just turn
-> these functions into no-ops until that device gets probed.
-> 
-> Unable to handle kernel NULL pointer dereference at virtual address 00000010
-> pgd = c0204000
-> [00000010] *pgd=00000000
-> Internal error: Oops: 5 [#1] SMP ARM
-> Modules linked in:
-> CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.2.0-rc5-next-20150804-05947-g23f38fe8eda9 #1
-> Hardware name: Generic OMAP3-GP (Flattened Device Tree)
-> task: c0e623e8 ti: c0e5c000 task.ti: c0e5c000
-> PC is at omap3_gpmc_save_context+0x8/0xc4
-> LR is at omap_sram_idle+0x154/0x23c
-> pc : [<c087c7ac>]    lr : [<c023262c>]    psr: 60000193
-> sp : c0e5df40  ip : c0f92a80  fp : c0999eb0
-> r10: c0e57364  r9 : c0e66f14  r8 : 00000003
-> r7 : 00000000  r6 : 00000003  r5 : 00000000  r4 : c0f5f174
-> r3 : c0fa4fe8  r2 : 00000000  r1 : 00000000  r0 : fa200280
-> Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c5387d  Table: 80204019  DAC: 00000015
-> Process swapper/0 (pid: 0, stack limit = 0xc0e5c220)
-> Stack: (0xc0e5df40 to 0xc0e5e000)
-> df40: 00000000 c0e66ef8 c0f5f1a4 00000000 00000003 c02333a4 c3813822 00000000
-> df60: 00000000 c0e5a5c8 cfb8a5d0 c07f0c44 0e4f1d7e 00000000 00000000 00000000
-> df80: c3813822 00000000 cfb8a5d0 c0e5e4e4 cfb8a5d0 c0e66f14 c0e5a5c8 c0e5e54c
-> dfa0: c0e5e544 c0e57364 c0999eb0 c0277758 000000fa c0f5d000 00000000 c0d61c18
-> dfc0: ffffffff ffffffff 00000000 c0d61674 00000000 c0df7a48 00000000 c0f5d5d4
-> dfe0: c0e5e4c0 c0df7a44 c0e634f8 80204059 00000000 8020807c 00000000 00000000
-> [<c087c7ac>] (omap3_gpmc_save_context) from [<c023262c>] (omap_sram_idle+0x154/0x23c)
-> [<c023262c>] (omap_sram_idle) from [<c02333a4>] (omap3_enter_idle_bm+0xec/0x1a8)
-> [<c02333a4>] (omap3_enter_idle_bm) from [<c07f0c44>] (cpuidle_enter_state+0xbc/0x284)
-> [<c07f0c44>] (cpuidle_enter_state) from [<c0277758>] (cpu_startup_entry+0x174/0x24c)
-> [<c0277758>] (cpu_startup_entry) from [<c0d61c18>] (start_kernel+0x358/0x3c0)
-> [<c0d61c18>] (start_kernel) from [<8020807c>] (0x8020807c)
-> Code: c0ccace8 c0ccacc0 e59f30b4 e5932000 (e5921010)
-> 
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> Suggested-by: Javier Martinez Canillas <javier@dowhile0.org>
+Hi,
 
-Acked-by: Roger Quadros <rogerq@ti.com>
+We do a couple of things in this series which result in
+cleaner device tree implementation, faster perfomance and
+multi-platform support. As an added bonus we get new GPI/Interrupt pins
+for use in the system.
+
+- Establish a custom interface between NAND and GPMC driver. This is
+needed because all of the NAND registers sit in the GPMC register space.
+Some bits like NAND IRQ are even shared with GPMC.
+
+- Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
+with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
+This causes performance increase when using prefetch-irq mode.
+30% increase in read, 17% increase in write in prefetch-irq mode.
+
+- Clean up device tree support so that omap-gpmc IP and the omap2 NAND
+driver can be used on non-OMAP platforms. e.g. Keystone.
+
+- Implement GPIOCHIP + IRQCHIP for the GPMC WAITPINS. SoCs can contain
+2 to 4 of these and most of them would be unused otherwise. It also
+allows a cleaner implementation of NAND Ready pin status for the NAND driver.
+
+- Implement GPIOlib based NAND ready pin checking for OMAP NAND driver.
+
+NOTE: I've only adapted dra7.dtsi and dra7x-evms for this series.
+I will adapt all other boards when the series is in a shape to be accepted.
 
 cheers,
 -roger
 
-> ---
->  drivers/memory/omap-gpmc.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index 3a27a84ad3ec..9426276dbe14 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -2245,6 +2245,9 @@ void omap3_gpmc_save_context(void)
->  {
->  	int i;
->  
-> +	if (!gpmc_base)
-> +		return;
-> +
->  	gpmc_context.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
->  	gpmc_context.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
->  	gpmc_context.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
-> @@ -2277,6 +2280,9 @@ void omap3_gpmc_restore_context(void)
->  {
->  	int i;
->  
-> +	if (!gpmc_base)
-> +		return;
-> +
->  	gpmc_write_reg(GPMC_SYSCONFIG, gpmc_context.sysconfig);
->  	gpmc_write_reg(GPMC_IRQENABLE, gpmc_context.irqenable);
->  	gpmc_write_reg(GPMC_TIMEOUT_CONTROL, gpmc_context.timeout_ctrl);
-> 
+This is done in patches 1 to 14
+
+Roger Quadros (22):
+  ARM: OMAP2+: gpmc: Add platform data
+  ARM: OMAP2+: gpmc: Add gpmc timings and settings to platform data
+  memory: omap-gpmc: Introduce GPMC to NAND interface
+  mtd: nand: omap2: Use gpmc_omap_get_nand_ops() to get NAND registers
+  memory: omap-gpmc: Add GPMC-NAND ops to get writebufferempty status
+  mtd: nand: omap2: Switch to using GPMC-NAND ops for writebuffer empty
+    check
+  memory: omap-gpmc: Remove NAND IRQ code
+  memory: omap-gpmc: Add IRQ ops for GPMC-NAND interface
+  mtd: nand: omap2: manage NAND interrupts
+  mtd: nand: omap: Copy platform data parameters to omap_nand_info data
+  mtd: nand: omap: Clean up device tree support
+  mtd: nand: omap: Update DT binding documentation
+  memory: omap-gpmc: Prevent mapping into 1st 16MB
+  ARM: dts: OMAP2+: Fix NAND device nodes.
+  memory: omap-gpmc: Move device tree binding to correct location
+  memory: omap-gpmc: Support general purpose input for WAITPINs
+  memory: omap-gpmc: Reserve WAITPIN if needed for WAIT monitoring
+  memory: omap-gpmc: Add irqchip support to the gpiochip
+  ARM: dts: dra7: Enable gpio & interrupt controller for gpmc node
+  mtd: nand: omap2: Implement NAND ready using gpiolib
+  ARM: dts: dra7x-evm: Provide NAND ready pin
+  memory: omap-gpmc: Prevent GPMC_STATUS from being accessed via
+    gpmc_regs
+
+ .../omap-gpmc.txt}                                 |   0
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  16 +-
+ arch/arm/boot/dts/dra7-evm.dts                     |   6 +-
+ arch/arm/boot/dts/dra7.dtsi                        |   4 +
+ arch/arm/boot/dts/dra72-evm.dts                    |   2 +
+ arch/arm/boot/dts/omap3-beagle.dts                 |   3 +-
+ arch/arm/mach-omap2/gpmc-nand.c                    |  11 +-
+ drivers/memory/omap-gpmc.c                         | 610 ++++++++++++---------
+ drivers/mtd/nand/omap2.c                           | 261 ++++++---
+ include/linux/omap-gpmc.h                          | 172 ++----
+ include/linux/platform_data/gpmc-omap.h            | 169 ++++++
+ include/linux/platform_data/mtd-nand-omap2.h       |  12 +-
+ 12 files changed, 782 insertions(+), 484 deletions(-)
+ rename Documentation/devicetree/bindings/{bus/ti-gpmc.txt => memory-controllers/omap-gpmc.txt} (100%)
+ create mode 100644 include/linux/platform_data/gpmc-omap.h
+
+-- 
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
