@@ -1,68 +1,91 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 19/22] ARM: dts: dra7: Enable gpio & interrupt controller for gpmc node
-Date: Fri, 7 Aug 2015 12:12:29 +0300
-Message-ID: <1438938752-31010-20-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 01/22] ARM: OMAP2+: gpmc: Add platform data
+Date: Fri, 7 Aug 2015 12:12:11 +0300
+Message-ID: <1438938752-31010-2-git-send-email-rogerq@ti.com>
 References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 In-Reply-To: <1438938752-31010-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: tony@atomide.com
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The GPMC driver now implements gpiochip and irqchip so
-enable gpio-controller and interrupt-controller properties.
-
-With this the interrupt parent of NAND node changes so fix it
-accordingly.
+Add a platform data structure for GPMC. It contains all the necessary
+platform information that needs to be passed from platform init code
+to GPMC driver.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts  | 1 +
- arch/arm/boot/dts/dra7.dtsi     | 4 ++++
- arch/arm/boot/dts/dra72-evm.dts | 1 +
- 3 files changed, 6 insertions(+)
+ include/linux/omap-gpmc.h               |  3 +--
+ include/linux/platform_data/gpmc-omap.h | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 2 deletions(-)
+ create mode 100644 include/linux/platform_data/gpmc-omap.h
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index ce11b0f..3fb1ced 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -573,6 +573,7 @@
- 	nand@0,0 {
- 		compatible = "ti,omap2-nand";
- 		reg = <0 0 4>;		/* device IO registers */
-+		interrupt-parent = <&crossbar_mpu>;
- 		interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 8f1e25b..a4ab66d 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1369,6 +1369,10 @@
- 			gpmc,num-waitpins = <2>;
- 			#address-cells = <2>;
- 			#size-cells = <1>;
-+			gpio-controller;
-+			#gpio-cells = <2>;
-+			interrupt-controller;
-+			#interrupt-cells = <2>;
- 			status = "disabled";
- 		};
+diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
+index 7dee0014..5c79190 100644
+--- a/include/linux/omap-gpmc.h
++++ b/include/linux/omap-gpmc.h
+@@ -7,8 +7,7 @@
+  *  option) any later version.
+  */
  
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 8037384..fc0677a 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -386,6 +386,7 @@
- 		 * SW5.9 (GPMC_WPN) = OFF (HIGH)
- 		 */
- 		reg = <0 0 4>;		/* device IO registers */
-+		interrupt-parent = <&crossbar_mpu>;
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <16>;
+-/* Maximum Number of Chip Selects */
+-#define GPMC_CS_NUM		8
++#include <linux/platform_data/gpmc-omap.h>
+ 
+ #define GPMC_CONFIG_WP		0x00000005
+ 
+diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
+new file mode 100644
+index 0000000..d32d9de
+--- /dev/null
++++ b/include/linux/platform_data/gpmc-omap.h
+@@ -0,0 +1,30 @@
++/*
++ * OMAP GPMC Platform data
++ *
++ * Copyright (C) 2014 Texas Instruments, Inc. - http://www.ti.com
++ *	Roger Quadros <rogerq@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ */
++
++#ifndef _GPMC_OMAP_H_
++#define _GPMC_OMAP_H_
++
++/* Maximum Number of Chip Selects */
++#define GPMC_CS_NUM		8
++
++/* Data for each chip select */
++struct gpmc_omap_cs_data {
++	bool valid;			/* data is valid */
++	bool is_nand;			/* device within this CS is NAND */
++	struct platform_device *pdev;	/* device within this CS region */
++	unsigned pdata_size;
++};
++
++struct gpmc_omap_platform_data {
++	struct gpmc_omap_cs_data cs[GPMC_CS_NUM];
++};
++
++#endif /* _GPMC_OMAP_H */
 -- 
 2.1.4
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
