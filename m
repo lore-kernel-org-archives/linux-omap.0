@@ -1,8 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 06/22] mtd: nand: omap2: Switch to using GPMC-NAND ops for
- writebuffer empty check
-Date: Fri, 7 Aug 2015 12:12:16 +0300
-Message-ID: <1438938752-31010-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 10/22] mtd: nand: omap: Copy platform data parameters to
+ omap_nand_info data
+Date: Fri, 7 Aug 2015 12:12:20 +0300
+Message-ID: <1438938752-31010-11-git-send-email-rogerq@ti.com>
 References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,55 +22,99 @@ To: tony@atomide.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Instead of accessing the gpmc_status register directly start
-using the gpmc_nand_ops->nand_writebuffer_empty() helper
-to check write buffer empty status.
+Copy all the platform data parameters to the driver's local data
+structure 'omap_nand_info' and use it in the entire driver. This will
+make it easer for device tree migration.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/mtd/nand/omap2.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index f214fe2..5c2f6df 100644
+index cabc5ea..589404c 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -289,15 +289,11 @@ static void omap_write_buf8(struct mtd_info *mtd, const u_char *buf, int len)
- 	struct omap_nand_info *info = container_of(mtd,
- 						struct omap_nand_info, mtd);
- 	u_char *p = (u_char *)buf;
--	u32	status = 0;
+@@ -152,14 +152,18 @@ static struct nand_hw_control omap_gpmc_controller = {
+ };
  
- 	while (len--) {
- 		iowrite8(*p++, info->nand.IO_ADDR_W);
- 		/* wait until buffer is available for write */
--		do {
--			status = readl(info->reg.gpmc_status) &
--					STATUS_BUFF_EMPTY;
--		} while (!status);
-+		while (info->ops->nand_writebuffer_empty());
+ struct omap_nand_info {
+-	struct omap_nand_platform_data	*pdata;
+ 	struct mtd_info			mtd;
+ 	struct nand_chip		nand;
+ 	struct platform_device		*pdev;
+ 
+ 	int				gpmc_cs;
+-	unsigned long			phys_base;
++	bool				dev_ready;
++	enum nand_io			xfer_type;
++	int				devsize;
+ 	enum omap_ecc			ecc_opt;
++	struct device_node		*elm_of_node;
++
++	unsigned long			phys_base;
+ 	struct completion		comp;
+ 	struct dma_chan			*dma;
+ 	int				gpmc_irq;
+@@ -1650,7 +1654,7 @@ static bool omap2_nand_ecc_check(struct omap_nand_info *info,
+ 			"CONFIG_MTD_NAND_OMAP_BCH not enabled\n");
+ 		return false;
  	}
- }
- 
-@@ -325,17 +321,13 @@ static void omap_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
- 	struct omap_nand_info *info = container_of(mtd,
- 						struct omap_nand_info, mtd);
- 	u16 *p = (u16 *) buf;
--	u32	status = 0;
- 	/* FIXME try bursts of writesw() or DMA ... */
- 	len >>= 1;
- 
- 	while (len--) {
- 		iowrite16(*p++, info->nand.IO_ADDR_W);
- 		/* wait until buffer is available for write */
--		do {
--			status = readl(info->reg.gpmc_status) &
--					STATUS_BUFF_EMPTY;
--		} while (!status);
-+		while (info->ops->nand_writebuffer_empty());
+-	if (ecc_needs_elm && !is_elm_present(info, pdata->elm_of_node)) {
++	if (ecc_needs_elm && !is_elm_present(info, info->elm_of_node)) {
+ 		dev_err(&info->pdev->dev, "ELM not available\n");
+ 		return false;
  	}
- }
+@@ -1695,6 +1699,11 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	info->gpmc_cs		= pdata->cs;
+ 	info->of_node		= pdata->of_node;
+ 	info->ecc_opt		= pdata->ecc_opt;
++	info->dev_ready	= pdata->dev_ready;
++	info->xfer_type = pdata->xfer_type;
++	info->devsize = pdata->devsize;
++	info->elm_of_node = pdata->elm_of_node;
++
+ 	mtd			= &info->mtd;
+ 	mtd->priv		= &info->nand;
+ 	mtd->name		= dev_name(&pdev->dev);
+@@ -1721,7 +1730,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	 * chip delay which is slightly more than tR (AC Timing) of the NAND
+ 	 * device and read status register until you get a failure or success
+ 	 */
+-	if (pdata->dev_ready) {
++	if (info->dev_ready) {
+ 		nand_chip->dev_ready = omap_dev_ready;
+ 		nand_chip->chip_delay = 0;
+ 	} else {
+@@ -1735,15 +1744,16 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		nand_chip->options |= NAND_SKIP_BBTSCAN;
  
+ 	/* scan NAND device connected to chip controller */
+-	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
++	nand_chip->options |= info->devsize & NAND_BUSWIDTH_16;
+ 	if (nand_scan_ident(mtd, 1, NULL)) {
+-		dev_err(&info->pdev->dev, "scan failed, may be bus-width mismatch\n");
++		dev_err(&info->pdev->dev,
++			"scan failed, may be bus-width mismatch\n");
+ 		err = -ENXIO;
+ 		goto return_error;
+ 	}
+ 
+ 	/* re-populate low-level callbacks based on xfer modes */
+-	switch (pdata->xfer_type) {
++	switch (info->xfer_type) {
+ 	case NAND_OMAP_PREFETCH_POLLED:
+ 		nand_chip->read_buf   = omap_read_buf_pref;
+ 		nand_chip->write_buf  = omap_write_buf_pref;
+@@ -1806,7 +1816,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 
+ 	default:
+ 		dev_err(&pdev->dev,
+-			"xfer_type(%d) not supported!\n", pdata->xfer_type);
++			"xfer_type(%d) not supported!\n", info->xfer_type);
+ 		err = -EINVAL;
+ 		goto return_error;
+ 	}
 -- 
 2.1.4
 
