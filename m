@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 07/22] memory: omap-gpmc: Remove NAND IRQ code
-Date: Fri, 7 Aug 2015 12:12:17 +0300
-Message-ID: <1438938752-31010-8-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 12/22] mtd: nand: omap: Update DT binding documentation
+Date: Fri, 7 Aug 2015 12:12:22 +0300
+Message-ID: <1438938752-31010-13-git-send-email-rogerq@ti.com>
 References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,314 +21,59 @@ To: tony@atomide.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-NAND IRQs will now be managed directly in the OMAP NAND driver
-so remove the IRQchip model.
-
-Another patch will add back GPIO-IRQchip code to handle the
-WAITPIN interrupts.
+Add compatible id and interrupts. The NAND interrupts are
+provided by the GPMC controller node.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c |   4 +-
- drivers/memory/omap-gpmc.c      | 164 +---------------------------------------
- include/linux/omap-gpmc.h       |   5 +-
- 3 files changed, 5 insertions(+), 168 deletions(-)
+ Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 04e6998..ffe646a 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -80,7 +80,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	struct resource gpmc_nand_res[] = {
- 		{ .flags = IORESOURCE_MEM, },
- 		{ .flags = IORESOURCE_IRQ, },
--		{ .flags = IORESOURCE_IRQ, },
- 	};
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index fb733c4..253e6de 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -13,7 +13,11 @@ Documentation/devicetree/bindings/mtd/nand.txt
  
- 	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
-@@ -93,8 +92,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 		return err;
- 	}
- 	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
--	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
--	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
-+	gpmc_nand_res[1].start = gpmc_get_irq();
+ Required properties:
  
- 	memset(&s, 0, sizeof(struct gpmc_settings));
- 	if (gpmc_nand_data->of_node)
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 41df030..e70a8df 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -123,12 +123,6 @@
- #define GPMC_CS_NAND_ADDRESS	0x20
- #define GPMC_CS_NAND_DATA	0x24
+- - reg:		The CS line the peripheral is connected to
++ - compatible:	"ti,omap2-nand"
++ - reg:		range id (CS number), base offset and length of the
++		NAND I/O space
++ - interrupt-parent: must point to gpmc node
++ - interrupts: gpmc interrupt
  
--/* Control Commands */
--#define GPMC_CONFIG_RDY_BSY	0x00000001
--#define GPMC_CONFIG_DEV_SIZE	0x00000002
--#define GPMC_CONFIG_DEV_TYPE	0x00000003
--#define GPMC_SET_IRQ_STATUS	0x00000004
--
- #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
- #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
- #define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
-@@ -176,17 +170,11 @@
- #define GPMC_CONFIG_WRITEPROTECT	0x00000010
- #define WR_RD_PIN_MONITORING		0x00600000
+ Optional properties:
  
--#define GPMC_ENABLE_IRQ		0x0000000d
--
- /* ECC commands */
- #define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
- #define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
- #define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
+@@ -55,20 +59,24 @@ Example for an AM33xx board:
+ 	gpmc: gpmc@50000000 {
+ 		compatible = "ti,am3352-gpmc";
+ 		ti,hwmods = "gpmc";
+-		reg = <0x50000000 0x1000000>;
++		reg = <0x50000000 0x36c>;
+ 		interrupts = <100>;
+ 		gpmc,num-cs = <8>;
+ 		gpmc,num-waitpins = <2>;
+ 		#address-cells = <2>;
+ 		#size-cells = <1>;
+-		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
++		ranges = <0 0 0x08000000 0x1000000>;	/* CS0 space, 16MB */
+ 		elm_id = <&elm>;
  
--/* XXX: Only NAND irq has been considered,currently these are the only ones used
-- */
--#define	GPMC_NR_IRQ		2
--
- enum gpmc_clk_domain {
- 	GPMC_CD_FCLK,
- 	GPMC_CD_CLK
-@@ -201,11 +189,6 @@ struct gpmc_cs_data {
- 	struct resource mem;
- };
+ 		nand@0,0 {
+-			reg = <0 0 0>; /* CS0, offset 0 */
++			compatible = "ti,omap2-nand";
++			reg = <0 0 4>;		/* CS0, offset 0, NAND I/O window 4 */
++			interrupts = <100>;
+ 			nand-bus-width = <16>;
+ 			ti,nand-ecc-opt = "bch8";
+ 			ti,nand-xfer-type = "polled";
++			interrupt-parent = <&gpmc>;
++			interrupts = <0>, <1>;
  
--struct gpmc_client_irq	{
--	unsigned		irq;
--	u32			bitmask;
--};
--
- /* Structure to save gpmc cs context */
- struct gpmc_cs_config {
- 	u32 config1;
-@@ -233,10 +216,6 @@ struct omap3_gpmc_regs {
- 	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
- };
- 
--static struct gpmc_client_irq gpmc_client_irq[GPMC_NR_IRQ];
--static struct irq_chip gpmc_irq_chip;
--static int gpmc_irq_start;
--
- static struct resource	gpmc_mem_root;
- static struct gpmc_cs_data gpmc_cs[GPMC_CS_NUM];
- static DEFINE_SPINLOCK(gpmc_mem_lock);
-@@ -244,15 +223,13 @@ static DEFINE_SPINLOCK(gpmc_mem_lock);
- static unsigned int gpmc_cs_num = GPMC_CS_NUM;
- static unsigned int gpmc_nr_waitpins;
- static struct device *gpmc_dev;
--static int gpmc_irq;
-+static int gpmc_irq = -EINVAL;
- static resource_size_t phys_base, mem_size;
- static unsigned gpmc_capability;
- static void __iomem *gpmc_base;
- 
- static struct clk *gpmc_l3_clk;
- 
--static irqreturn_t gpmc_handle_irq(int irq, void *dev);
--
- static void gpmc_write_reg(int idx, u32 val)
- {
- 	writel_relaxed(val, gpmc_base + idx);
-@@ -1037,14 +1014,6 @@ int gpmc_configure(int cmd, int wval)
- 	u32 regval;
- 
- 	switch (cmd) {
--	case GPMC_ENABLE_IRQ:
--		gpmc_write_reg(GPMC_IRQENABLE, wval);
--		break;
--
--	case GPMC_SET_IRQ_STATUS:
--		gpmc_write_reg(GPMC_IRQSTATUS, wval);
--		break;
--
- 	case GPMC_CONFIG_WP:
- 		regval = gpmc_read_reg(GPMC_CONFIG);
- 		if (wval)
-@@ -1132,113 +1101,9 @@ struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
- }
- EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
- 
--int gpmc_get_client_irq(unsigned irq_config)
--{
--	int i;
--
--	if (hweight32(irq_config) > 1)
--		return 0;
--
--	for (i = 0; i < GPMC_NR_IRQ; i++)
--		if (gpmc_client_irq[i].bitmask & irq_config)
--			return gpmc_client_irq[i].irq;
--
--	return 0;
--}
--
--static int gpmc_irq_endis(unsigned irq, bool endis)
--{
--	int i;
--	u32 regval;
--
--	for (i = 0; i < GPMC_NR_IRQ; i++)
--		if (irq == gpmc_client_irq[i].irq) {
--			regval = gpmc_read_reg(GPMC_IRQENABLE);
--			if (endis)
--				regval |= gpmc_client_irq[i].bitmask;
--			else
--				regval &= ~gpmc_client_irq[i].bitmask;
--			gpmc_write_reg(GPMC_IRQENABLE, regval);
--			break;
--		}
--
--	return 0;
--}
--
--static void gpmc_irq_disable(struct irq_data *p)
-+int gpmc_get_irq(void)
- {
--	gpmc_irq_endis(p->irq, false);
--}
--
--static void gpmc_irq_enable(struct irq_data *p)
--{
--	gpmc_irq_endis(p->irq, true);
--}
--
--static void gpmc_irq_noop(struct irq_data *data) { }
--
--static unsigned int gpmc_irq_noop_ret(struct irq_data *data) { return 0; }
--
--static int gpmc_setup_irq(void)
--{
--	int i;
--	u32 regval;
--
--	if (!gpmc_irq)
--		return -EINVAL;
--
--	gpmc_irq_start = irq_alloc_descs(-1, 0, GPMC_NR_IRQ, 0);
--	if (gpmc_irq_start < 0) {
--		pr_err("irq_alloc_descs failed\n");
--		return gpmc_irq_start;
--	}
--
--	gpmc_irq_chip.name = "gpmc";
--	gpmc_irq_chip.irq_startup = gpmc_irq_noop_ret;
--	gpmc_irq_chip.irq_enable = gpmc_irq_enable;
--	gpmc_irq_chip.irq_disable = gpmc_irq_disable;
--	gpmc_irq_chip.irq_shutdown = gpmc_irq_noop;
--	gpmc_irq_chip.irq_ack = gpmc_irq_noop;
--	gpmc_irq_chip.irq_mask = gpmc_irq_noop;
--	gpmc_irq_chip.irq_unmask = gpmc_irq_noop;
--
--	gpmc_client_irq[0].bitmask = GPMC_IRQ_FIFOEVENTENABLE;
--	gpmc_client_irq[1].bitmask = GPMC_IRQ_COUNT_EVENT;
--
--	for (i = 0; i < GPMC_NR_IRQ; i++) {
--		gpmc_client_irq[i].irq = gpmc_irq_start + i;
--		irq_set_chip_and_handler(gpmc_client_irq[i].irq,
--					&gpmc_irq_chip, handle_simple_irq);
--		set_irq_flags(gpmc_client_irq[i].irq,
--				IRQF_VALID | IRQF_NOAUTOEN);
--	}
--
--	/* Disable interrupts */
--	gpmc_write_reg(GPMC_IRQENABLE, 0);
--
--	/* clear interrupts */
--	regval = gpmc_read_reg(GPMC_IRQSTATUS);
--	gpmc_write_reg(GPMC_IRQSTATUS, regval);
--
--	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
--}
--
--static int gpmc_free_irq(void)
--{
--	int i;
--
--	if (gpmc_irq)
--		free_irq(gpmc_irq, NULL);
--
--	for (i = 0; i < GPMC_NR_IRQ; i++) {
--		irq_set_handler(gpmc_client_irq[i].irq, NULL);
--		irq_set_chip(gpmc_client_irq[i].irq, &no_irq_chip);
--		irq_modify_status(gpmc_client_irq[i].irq, 0, 0);
--	}
--
--	irq_free_descs(gpmc_irq_start, GPMC_NR_IRQ);
--
--	return 0;
-+	return gpmc_irq;
- }
- 
- static void gpmc_mem_exit(void)
-@@ -2183,9 +2048,6 @@ static int gpmc_probe(struct platform_device *pdev)
- 
- 	gpmc_mem_init();
- 
--	if (gpmc_setup_irq() < 0)
--		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
--
- 	if (!pdev->dev.of_node) {
- 		gpmc_cs_num	 = GPMC_CS_NUM;
- 		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
-@@ -2203,7 +2065,6 @@ static int gpmc_probe(struct platform_device *pdev)
- 
- static int gpmc_remove(struct platform_device *pdev)
- {
--	gpmc_free_irq();
- 	gpmc_mem_exit();
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
-@@ -2253,25 +2114,6 @@ static __exit void gpmc_exit(void)
- postcore_initcall(gpmc_init);
- module_exit(gpmc_exit);
- 
--static irqreturn_t gpmc_handle_irq(int irq, void *dev)
--{
--	int i;
--	u32 regval;
--
--	regval = gpmc_read_reg(GPMC_IRQSTATUS);
--
--	if (!regval)
--		return IRQ_NONE;
--
--	for (i = 0; i < GPMC_NR_IRQ; i++)
--		if (regval & gpmc_client_irq[i].bitmask)
--			generic_handle_irq(gpmc_client_irq[i].irq);
--
--	gpmc_write_reg(GPMC_IRQSTATUS, regval);
--
--	return IRQ_HANDLED;
--}
--
- static struct omap3_gpmc_regs gpmc_context;
- 
- void omap3_gpmc_save_context(void)
-diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index a811c91..44e322f 100644
---- a/include/linux/omap-gpmc.h
-+++ b/include/linux/omap-gpmc.h
-@@ -11,9 +11,6 @@
- 
- #define GPMC_CONFIG_WP		0x00000005
- 
--#define GPMC_IRQ_FIFOEVENTENABLE	0x01
--#define GPMC_IRQ_COUNT_EVENT		0x02
--
- enum gpmc_nand_irq {
- 	GPMC_NAND_IRQ_FIFOEVENT = 0,
- 	GPMC_NAND_IRQ_TERMCOUNT,
-@@ -60,7 +57,7 @@ extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- 
- struct device_node;
- 
--extern int gpmc_get_client_irq(unsigned irq_config);
-+extern int gpmc_get_irq(void);
- 
- extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
- 
+ 			gpmc,sync-clk-ps = <0>;
+ 			gpmc,cs-on-ns = <0>;
 -- 
 2.1.4
 
