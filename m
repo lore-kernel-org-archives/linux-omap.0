@@ -1,65 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/1] ARM: OMAP2+: Fix power domain operations regression
- caused by 81xx
-Date: Thu,  6 Aug 2015 22:19:03 -0700
-Message-ID: <1438924743-30025-1-git-send-email-tony@atomide.com>
+From: NeilBrown <neil@brown.name>
+Subject: Re: [PATCH 07/13] twl4030_charger: distinguish between USB current
+ and 'AC' current
+Date: Fri, 7 Aug 2015 15:29:09 +1000
+Message-ID: <20150807152909.77603f47@home.neil.brown.name>
+References: <20150730001113.4012.18086.stgit@noble>
+	<20150730001124.4012.48552.stgit@noble>
+	<20150807031116.GH4215@atomide.com>
+	<20150807134525.251528ab@home.neil.brown.name>
+	<20150807051309.GA24702@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/QjdZNJ7FBx5MmMlsKFN5zKT"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150807051309.GA24702@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-I managed to mess up omap3 power domain operations with commit
-7c80a3f89c51 ("ARM: OMAP2+: Add custom prwdm_operations for 81xx
-to support dm814x"), by default we should keep on using the
-omap3_pwrdm_operations, only 81xx needs custom handling.
+--Sig_/QjdZNJ7FBx5MmMlsKFN5zKT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-This causes omap3 PM to break so we won't hit off mode any longer
-causing idle power consumption go up from less than 10mW to over
-50 mW.
+On Fri, 7 Aug 2015 07:13:09 +0200 Sebastian Reichel <sre@kernel.org>
+wrote:
 
-Fixs: 7c80a3f89c51 ("ARM: OMAP2+: Add custom prwdm_operations for
-81xx to support dm814x")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/powerdomains3xxx_data.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+> Hi,
+>=20
+> This actually slipped through my review. IMHO madc should be
+> accessed through IIO, as already done for twl4030-madc-battery
+> and rx51-battery. That way the custom API can be removed at
+> some point.
+>=20
+> Anyway, I queued the below patch with Tony's ACK to fix the build
+> issue in next.
+>=20
 
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -580,7 +580,9 @@ void __init omap3xxx_powerdomains_init(void)
- 	if (!cpu_is_omap34xx() && !cpu_is_ti81xx())
- 		return;
- 
--	pwrdm_register_platform_funcs(&ti81xx_pwrdm_operations);
-+	/* Only 81xx needs custom pwrdm_operations */
-+	if (!cpu_is_ti81xx())
-+		pwrdm_register_platform_funcs(&omap3_pwrdm_operations);;
- 
- 	rev = omap_rev();
- 
-@@ -588,9 +590,11 @@ void __init omap3xxx_powerdomains_init(void)
- 		pwrdm_register_pwrdms(powerdomains_am35x);
- 	} else if (rev == TI8148_REV_ES1_0 || rev == TI8148_REV_ES2_0 ||
- 		   rev == TI8148_REV_ES2_1) {
-+		pwrdm_register_platform_funcs(&ti81xx_pwrdm_operations);
- 		pwrdm_register_pwrdms(powerdomains_ti814x);
- 	} else if (rev == TI8168_REV_ES1_0 || rev == TI8168_REV_ES1_1
- 			|| rev == TI8168_REV_ES2_0 || rev == TI8168_REV_ES2_1) {
-+		pwrdm_register_platform_funcs(&ti81xx_pwrdm_operations);
- 		pwrdm_register_pwrdms(powerdomains_ti816x);
- 	} else {
- 		pwrdm_register_pwrdms(powerdomains_omap3430_common);
--- 
-2.1.4
+OK, thanks.
+
+I'll try to figure out are more proper approach ... might be a week or
+so though.
+
+Thanks,
+NeilBrown
+
+--Sig_/QjdZNJ7FBx5MmMlsKFN5zKT
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJVxEIlAAoJEDnsnt1WYoG5fcsP/0s0RvbvSrJOxlVaQ5HSs24L
+6ZUYi1Enlb/Mz2wTP1F86TwFX0/1dT85A5hC3LIXEj3EmBTWL4ZXjqoy5oBTD2bH
+WqnpFUU2tEd0a2bZhEk6KyjvZXQZphRWqf03DA5iVJXh06uvBVgsCi3tSWSZKqEU
+t1Bp2XqK0WXSCZDXuCFqTENDqdCY/mNuvp/Tjc1vMBLmR2Ia4wXfsOhRDNbNDsAx
+Ek+afZvpjqvMc6LnkTOkzluOqwlrH65rPpNzhwwPgYJQ1q58AyXuZFfKCK9iJAHy
+cZTw75jCYLvGZjlAwt08hX3duKKq1lkrDqhPhkwJZG/dR4SwS+T7x1kWfLuz8Pzj
+QIhpPyhXofquYPlckUOCjXxv5uei5VJqjBN9wH6scrEJQfvv51myOR9D0CUAJlnT
+BMO+LXVoBTT6hITVw01uk2bXWVnCMSV2M6bwWtoWrwvjF/1T0ghy80pEOPjciYZ/
+B7G0b8A8IydOsRKTxjWhX1H9oM0fRLj0kSC+5eYd3esQJD1IAHOqqhKh/r5c5TPl
+lN/joCIMhYKCU5etORAWNmwpDN0HP37twJIO7uJZ0zgO8gQJfzFYhYQ/ZEXYapPj
+6I2PfdudiUFT3XRPR6TqH34DeN5g0MEXaaByzwnHGyPnAmYydW2lKjXY3M65dG2b
+kP4t2H1O4k85tuhw8PZF
+=90c5
+-----END PGP SIGNATURE-----
+
+--Sig_/QjdZNJ7FBx5MmMlsKFN5zKT--
