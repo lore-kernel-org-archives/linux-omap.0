@@ -1,45 +1,50 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Greg KH <greg@kroah.com>
 Subject: Re: [PATCH] dma: omap-dma: add support for pause of non-cyclic
  transfers
-Date: Fri, 7 Aug 2015 18:42:17 +0100
-Message-ID: <20150807174217.GV7576@n2100.arm.linux.org.uk>
-References: <55C47DE1.9020902@ti.com>
- <55C48A1E.3070007@linutronix.de>
- <20150807132241.GN7576@n2100.arm.linux.org.uk>
- <55C4B5AE.10309@linutronix.de>
- <20150807135727.GP7576@n2100.arm.linux.org.uk>
- <55C4CA00.3060206@hurleysoftware.com>
- <20150807152939.GQ7576@n2100.arm.linux.org.uk>
- <55C4D243.4080305@linutronix.de>
- <20150807163921.GU7576@n2100.arm.linux.org.uk>
- <55C4E988.8090605@hurleysoftware.com>
+Date: Fri, 7 Aug 2015 10:55:02 -0700
+Message-ID: <20150807175502.GA10282@kroah.com>
+References: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55C4E988.8090605@hurleysoftware.com>
+In-Reply-To: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Greg KH <gregkh@linuxfoundation.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Russell King <rmk+kernel@arm.linux.org.uk>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 07, 2015 at 01:23:20PM -0400, Peter Hurley wrote:
-> The omap-serial driver which doesn't use dma is still the preferred
-> stable driver for omap, for the moment.
+On Fri, Aug 07, 2015 at 10:41:57AM +0200, Sebastian Andrzej Siewior wrote:
+> This DMA driver is used by 8250-omap on DRA7-evm. There is one
+> requirement that is to pause a transfer. This is currently used on the RX
+> side. It is possible that the UART HW aborted the RX (UART's RX-timeout)
+> but the DMA controller starts the transfer shortly after.
+> Before we can manually purge the FIFO we need to pause the transfer,
+> check how many bytes it already received and terminate the transfer
+> without it making any progress.
 > 
-> One of the main features of the 8250_omap integration was the addition
-> of dma support. Without it, 8250_omap is ttyO in ttyS clothing.
+> >From testing on the TX side it seems that it is possible that we invoke
+> pause once the transfer has completed which is indicated by the missing
+> CCR_ENABLE bit but before the interrupt has been noticed. In that case the
+> interrupt will come even after disabling it.
+> 
+> The AM572x manual says that we have to wait for the CCR_RD_ACTIVE &
+> CCR_WR_ACTIVE bits to be gone before programming it again here is the
+> drain loop. Also it looks like without the drain the TX-transfer makes
+> sometimes progress.
+> 
+> One note: The pause + resume combo is broken because after resume the
+> the complete transfer will be programmed again. That means the already
+> transferred bytes (until the pause event) will be sent again. This is
+> currently not important for my UART user because it does only pause +
+> terminate.
+> 
+> Cc: <stable@vger.kernel.org>
 
-Correct.  omap-serial used to have broken DMA support, and I had a
-series of patches fixing it.  Unfortunately, despite TI asking me to
-work on this, TI went ahead and removed the DMA support behind my
-back, which totally screwed my patch series after I merged some of
-its pre-requists.  It was then decided that DMA support was no longer
-an important feature, so I dropped the patch set.
+You don't get a "add support" patch into the stable tree unless it's a
+trivial device id or quirk table addition, please go re-read
+Documentation/stable_kernel_rules.txt
 
-So, I'm well aware of the issues here, and the problems of using the
-OMAP sDMA with the UARTs.
+thanks,
 
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+greg k-h
