@@ -1,36 +1,83 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] dma: omap-dma: add support for pause of non-cyclic transfers
-Date: Fri, 07 Aug 2015 18:20:44 +0200
-Message-ID: <55C4DADC.9070004@linutronix.de>
-References: <1438936917-7254-1-git-send-email-bigeasy@linutronix.de> <55C47DE1.9020902@ti.com> <55C48A1E.3070007@linutronix.de> <20150807132241.GN7576@n2100.arm.linux.org.uk> <55C4B5AE.10309@linutronix.de> <20150807135727.GP7576@n2100.arm.linux.org.uk> <55C4CA00.3060206@hurleysoftware.com> <20150807152939.GQ7576@n2100.arm.linux.org.uk> <55C4D7AF.8060305@hurleysoftware.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2] dma: omap-dma: add support for pause of non-cyclic
+ transfers
+Date: Fri, 7 Aug 2015 17:26:48 +0100
+Message-ID: <20150807162648.GR7576@n2100.arm.linux.org.uk>
+References: <1438961765-22554-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55C4D7AF.8060305@hurleysoftware.com>
+Content-Disposition: inline
+In-Reply-To: <1438961765-22554-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Greg KH <gregkh@linuxfoundation.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/07/2015 06:07 PM, Peter Hurley wrote:
->> If we look at what 8250-dma.c is doing:
->>
->>                 if (dma->rx_running) {
->>                         dmaengine_pause(dma->rxchan);
->>
->> It's 8250-dma.c which is silently _ignoring_ the return code, failing
->> to check that the operation it requested worked.  Maybe this should be
->> WARN_ON(dmaengine_pause(dma->rxchan)) or at least it should print a
->> message?
-> 
-> Thanks for the suggestion; I'll hold on to that and push it after we add
-> the 8250 omap dma pause in mainline.
+On Fri, Aug 07, 2015 at 05:36:05PM +0200, Sebastian Andrzej Siewior wrote:
+> +		/*
+> +		 * We do not allow DMA_MEM_TO_DEV transfers to be paused.
+> +		 * According to RMK the OMAP hardware might prefetch bytes from
+> +		 * memory into its FIFO and not send it to the device due to the
+> +		 * pause. The bytes in the FIFO are cleared on pause. It is
+> +		 * unspecified by how many bytes the source address is updated
+> +		 * if at all.
 
-I have a patch ready with WARN_ON_ONCE() for 8250-omap and 8250-dma.
-This warning would trigger on am335x/edma until v4.2-rc1 and omap-dma
-based version is open. I could post it if you want me to.
-Besides that those two, there are four other drivers ignoring the
-return code dmaengine_pause().
+Would you mind rewording the above.
 
-Sebastian
+Please take the time to read the manuals for the device you are playing
+with.  It's mostly documented in there.  See the OMAP4430 ES2.x TRM,
+16.4.18 and 16.4.19.
+
+16.4.19 states that:
+
+ "When a source-synchronized channel is disabled during a transfer...
+ "In all other cases, the channel undergoes an abort."
+
+A source-synchronised channel is one where the fetching of data is under
+control of the device.  In other words, a device-to-memory transfer.
+
+So, a destination-synchronised channel (which would be a memory-to-device
+transfer) undergoes an abort if you clear the enable bit.
+
+16.4.20.4.6.2 defines what happens when a channel aborts:
+
+ "If an abort trigger occurs, the channel aborts immediately after
+  completion of current read/write transactions and then FIFO is
+  cleaned up."
+
+It doesn't define what "cleaned up" means, so that's open to some
+interpretation.  That's why I contacted TI about this back in 2012:
+| What is the behaviour of the OMAP DMA hardware when the DMA4_CCRi[7]
+| enable bit is cleared and subsequently set without any additional
+| reprogramming?  I'm thinking specifically about memory-to-device DMA
+| operations, in particular the UART ports.
+| 
+| Will this allow a transfer to be temporarily paused, and then
+| subsequently resumed with out loss of data in the DMA hardware, as if
+| nothing had actually happened?
+
+The answer I received was to check that RD_ACTIVE and WR_ACTIVE are both
+clear _before_ disabling the channel, otherwise data loss will occur.
+
+The problem is that if the channel is active, then device activity can
+result in DMA activity starting between reading those as both clear and
+the write to DMA_CCR to clear the enable bit hitting the hardware.
+
+The explanation went on to say that if the DMA hardware can't drain
+the data in its FIFO to the destination, then data loss "might" occur.
+
+That will occur if we're destination-synchronised (eg) to a UART and
+the UART is not accepting any further data.
+
+Due to this, the OMAP DMA engine driver was submitted with this in the
+cover note:
+
+"For the OMAP DMAengine driver, there's a few short-comings:
+
+1. pause/resume support is not implemented; it's not clear whether the
+   OMAP hardware is capable of supporting this sanely."
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
