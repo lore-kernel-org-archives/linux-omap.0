@@ -1,92 +1,49 @@
 From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 1/3] tty: serial: 8250_omap: do not use RX DMA if pause
- is not supported
-Date: Fri, 07 Aug 2015 20:28:57 -0400
-Message-ID: <55C54D49.3090406@hurleysoftware.com>
-References: <1438977619-15488-1-git-send-email-bigeasy@linutronix.de> <1438977619-15488-2-git-send-email-bigeasy@linutronix.de>
+Subject: Re: [PATCH 2/3] dma: add __must_check annotation for dmaengine_pause()
+Date: Fri, 07 Aug 2015 20:40:00 -0400
+Message-ID: <55C54FE0.8000407@hurleysoftware.com>
+References: <1438977619-15488-1-git-send-email-bigeasy@linutronix.de> <1438977619-15488-3-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438977619-15488-2-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <1438977619-15488-3-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vinod Koul <vinod.koul@intel.com>, Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 On 08/07/2015 04:00 PM, Sebastian Andrzej Siewior wrote:
-> The 8250-omap driver requires the DMA-engine driver to support the pause
-> command in order to properly turn off programmed RX transfer before the
-> driver stars manually reading from the FIFO.
-> The lacking support of the requirement has been discovered recently. In
-> order to stay safe here we disable support for RX-DMA as soon as we
-> notice that it does not work. This should happen very early.
-> If the user does not want to see this backtrace he can either disable
-> DMA support (completely or RX-only) or backport the required patches for
-> edma / omap-dma once they hit mainline.
+> In 8250-omap I learned it the hard way that ignoring the return code
+> of dmaengine_pause() might be bad because the underlying DMA driver
+> might not support the function at all and so not doing what one is
+> expecting.
+> This patch adds the __must_check annotation as suggested by Russell King.
 > 
-> Cc: <stable@vger.kernel.org>
 > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 > ---
->  drivers/tty/serial/8250/8250_omap.c | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
+>  include/linux/dmaengine.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-> index 0340ee6ba970..07a11e0935e4 100644
-> --- a/drivers/tty/serial/8250/8250_omap.c
-> +++ b/drivers/tty/serial/8250/8250_omap.c
-> @@ -112,6 +112,7 @@ struct omap8250_priv {
->  	struct work_struct qos_work;
->  	struct uart_8250_dma omap8250_dma;
->  	spinlock_t rx_dma_lock;
-> +	bool rx_dma_broken;
->  };
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index 8ad9a4e839f6..4eac4716bded 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -825,7 +825,7 @@ static inline int dmaengine_terminate_all(struct dma_chan *chan)
+>  	return -ENOSYS;
+>  }
 >  
->  static u32 uart_read(struct uart_8250_port *up, u32 reg)
-> @@ -761,6 +762,7 @@ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
->  	struct omap8250_priv	*priv = p->port.private_data;
->  	struct uart_8250_dma	*dma = p->dma;
->  	unsigned long		flags;
-> +	int ret;
->  
->  	spin_lock_irqsave(&priv->rx_dma_lock, flags);
->  
-> @@ -769,7 +771,9 @@ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
->  		return;
->  	}
->  
-> -	dmaengine_pause(dma->rxchan);
-> +	ret = dmaengine_pause(dma->rxchan);
-> +	if (WARN_ON_ONCE(ret))
-> +		priv->rx_dma_broken = true;
+> -static inline int dmaengine_pause(struct dma_chan *chan)
+> +static inline int __must_check dmaengine_pause(struct dma_chan *chan)
+>  {
+>  	if (chan->device->device_pause)
+>  		return chan->device->device_pause(chan);
+> 
 
-No offense, Sebastian, but it boggles my mind that anyone could defend this
-as solid api design. We're in the middle of an interrupt handler and the
-slave dma driver is /just/ telling us now that it doesn't implement this
-functionality?!!?
-
-The dmaengine api has _so much_ setup and none of it contemplates telling the
-consumer that critical functionality is missing?
-
-Even dma_get_slave_caps() returns _true_ for cmd_pause support; ok, that
-interface is pointless.
-
-Rather than losing /critical data/ here, the interrupt handler should just
-busy-wait until dmaengine_tx_status() returns DMA_COMPLETE for the rx_cookie.
+Not that this is your responsibility, Sebastian, but considering there are
+fewer than 20 users of dmaengine_pause() in the entire tree, we should add
+WARN_ON_ONCE() around those uses with this patch to avoid a bunch needless
+one-off "fixes".
 
 Regards,
 Peter Hurley
-
->  	spin_unlock_irqrestore(&priv->rx_dma_lock, flags);
->  
-> @@ -813,6 +817,9 @@ static int omap_8250_rx_dma(struct uart_8250_port *p, unsigned int iir)
->  		break;
->  	}
->  
-> +	if (priv->rx_dma_broken)
-> +		return -EINVAL;
-> +
->  	spin_lock_irqsave(&priv->rx_dma_lock, flags);
->  
->  	if (dma->rx_running)
-> 
