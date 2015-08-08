@@ -1,35 +1,92 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH 0/3] ARM: multi_v7_defconfig: Enable more OMAP family
- platforms
-Date: Fri, 07 Aug 2015 16:07:07 -0700
-Message-ID: <7hfv3uwvdw.fsf@deeprootsystems.com>
-References: <1428614121-3374-1-git-send-email-nm@ti.com>
- <20150805102234.GZ16878@atomide.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 1/3] tty: serial: 8250_omap: do not use RX DMA if pause
+ is not supported
+Date: Fri, 07 Aug 2015 20:28:57 -0400
+Message-ID: <55C54D49.3090406@hurleysoftware.com>
+References: <1438977619-15488-1-git-send-email-bigeasy@linutronix.de> <1438977619-15488-2-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150805102234.GZ16878@atomide.com> (Tony Lindgren's message of
- "Wed, 5 Aug 2015 03:22:34 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, balbi@ti.com, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1438977619-15488-2-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vinod Koul <vinod.koul@intel.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+On 08/07/2015 04:00 PM, Sebastian Andrzej Siewior wrote:
+> The 8250-omap driver requires the DMA-engine driver to support the pause
+> command in order to properly turn off programmed RX transfer before the
+> driver stars manually reading from the FIFO.
+> The lacking support of the requirement has been discovered recently. In
+> order to stay safe here we disable support for RX-DMA as soon as we
+> notice that it does not work. This should happen very early.
+> If the user does not want to see this backtrace he can either disable
+> DMA support (completely or RX-only) or backport the required patches for
+> edma / omap-dma once they hit mainline.
+> 
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  drivers/tty/serial/8250/8250_omap.c | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> index 0340ee6ba970..07a11e0935e4 100644
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -112,6 +112,7 @@ struct omap8250_priv {
+>  	struct work_struct qos_work;
+>  	struct uart_8250_dma omap8250_dma;
+>  	spinlock_t rx_dma_lock;
+> +	bool rx_dma_broken;
+>  };
+>  
+>  static u32 uart_read(struct uart_8250_port *up, u32 reg)
+> @@ -761,6 +762,7 @@ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
+>  	struct omap8250_priv	*priv = p->port.private_data;
+>  	struct uart_8250_dma	*dma = p->dma;
+>  	unsigned long		flags;
+> +	int ret;
+>  
+>  	spin_lock_irqsave(&priv->rx_dma_lock, flags);
+>  
+> @@ -769,7 +771,9 @@ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
+>  		return;
+>  	}
+>  
+> -	dmaengine_pause(dma->rxchan);
+> +	ret = dmaengine_pause(dma->rxchan);
+> +	if (WARN_ON_ONCE(ret))
+> +		priv->rx_dma_broken = true;
 
-> Ping, looks like these are still pending. Probably should be
-> applied directly by the arm-soc maintainers.
+No offense, Sebastian, but it boggles my mind that anyone could defend this
+as solid api design. We're in the middle of an interrupt handler and the
+slave dma driver is /just/ telling us now that it doesn't implement this
+functionality?!!?
 
-If these should go through arm-soc, please resend to:arm@kernel.org so
-they make it into our queue of stuff to be reviewed/applied.
+The dmaengine api has _so much_ setup and none of it contemplates telling the
+consumer that critical functionality is missing?
 
-Kevin
+Even dma_get_slave_caps() returns _true_ for cmd_pause support; ok, that
+interface is pointless.
+
+Rather than losing /critical data/ here, the interrupt handler should just
+busy-wait until dmaengine_tx_status() returns DMA_COMPLETE for the rx_cookie.
+
+Regards,
+Peter Hurley
+
+>  	spin_unlock_irqrestore(&priv->rx_dma_lock, flags);
+>  
+> @@ -813,6 +817,9 @@ static int omap_8250_rx_dma(struct uart_8250_port *p, unsigned int iir)
+>  		break;
+>  	}
+>  
+> +	if (priv->rx_dma_broken)
+> +		return -EINVAL;
+> +
+>  	spin_lock_irqsave(&priv->rx_dma_lock, flags);
+>  
+>  	if (dma->rx_running)
+> 
