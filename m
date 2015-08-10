@@ -1,8 +1,8 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH-v4.2-rc6 3/5] arm: omap2: Kconfig: select TWD and global
- timer on AM43xx devices
-Date: Mon, 10 Aug 2015 16:41:49 -0500
-Message-ID: <1439242911-715-4-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH-v4.2-rc6 1/5] Revert "ARM: 7655/1: smp_twd: make
+ twd_local_timer_of_register() no-op for nosmp"
+Date: Mon, 10 Aug 2015 16:41:47 -0500
+Message-ID: <1439242911-715-2-git-send-email-balbi@ti.com>
 References: <1439242911-715-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,30 +19,50 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+Cc: Dirk Behme <dirk.behme@de.bosch.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Make sure to tell the kernel that AM437x has
-TWD and global timers.
+This reverts commit 904464b91eca8c665acea033489225af02eeb75a.
 
+The problem pointed out by commit 904464b91eca ("ARM: 7655/1:
+smp_twd: make twd_local_timer_of_register() no-op for nosmp")
+doesn't exist anymore.
+
+We can safely boot with nosmp and the warning won't show up.
+
+The other side benefit of this patch is that TWD has a chance
+to probe on single-core A9 systems such as AM437x which sport
+TWD.
+
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Dirk Behme <dirk.behme@de.bosch.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/kernel/smp_twd.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 4a023e8d1bdb..eea902280989 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -61,6 +61,9 @@ config SOC_AM43XX
- 	select MACH_OMAP_GENERIC
- 	select MIGHT_HAVE_CACHE_L2X0
- 	select HAVE_ARM_SCU
-+	select HAVE_ARM_TWD
-+	select ARM_GLOBAL_TIMER
-+	select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
+index 172c6a05d27f..e8f6d241881f 100644
+--- a/arch/arm/kernel/smp_twd.c
++++ b/arch/arm/kernel/smp_twd.c
+@@ -23,7 +23,6 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_address.h>
  
- config SOC_DRA7XX
- 	bool "TI DRA7XX"
+-#include <asm/smp_plat.h>
+ #include <asm/smp_twd.h>
+ 
+ /* set up by the platform code */
+@@ -388,9 +387,6 @@ static void __init twd_local_timer_of_register(struct device_node *np)
+ {
+ 	int err;
+ 
+-	if (!is_smp() || !setup_max_cpus)
+-		return;
+-
+ 	twd_ppi = irq_of_parse_and_map(np, 0);
+ 	if (!twd_ppi) {
+ 		err = -EINVAL;
 -- 
 2.5.0
