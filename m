@@ -1,118 +1,50 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH] ARM: OMAP: irqdomain_hierarchy: fix arm gic irq type
- configuration
-Date: Tue, 11 Aug 2015 15:33:38 +0100
-Message-ID: <20150811153338.7e67e6ba@arm.com>
-References: <1439285147-20027-1-git-send-email-grygorii.strashko@ti.com>
-	<20150811122456.1efe1656@arm.com>
-	<55C9E78D.7040404@ti.com>
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 3/6] ARM: AM43xx: Introduce a separate soc_is function
+ for am438x series of SoCs
+Date: Tue, 11 Aug 2015 23:24:26 +0530
+Message-ID: <55CA36D2.3080509@ti.com>
+References: <1439198906-31189-1-git-send-email-j-keerthy@ti.com> <1439198906-31189-4-git-send-email-j-keerthy@ti.com> <20150811125515.GN4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55C9E78D.7040404@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150811125515.GN4215-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 11 Aug 2015 13:16:13 +0100
-Grygorii Strashko <grygorii.strashko@ti.com> wrote:
-
-> On 08/11/2015 02:24 PM, Marc Zyngier wrote:
-> > On Tue, 11 Aug 2015 10:25:47 +0100
-> > Grygorii Strashko <grygorii.strashko@ti.com> wrote:
-> >
-> > Hi Grygorii,
-> >
-> >> It's observed that ARM GIC IRQ triggering type is not configured
-> >> properly when IRQ is routed through IRQ domains hierarchy and
-> >> system started using DT. As result, system will start using default
-> >> ARM GIC configuration, ignore DT IRQ type configuration,
-> >> and value of desc->irq_data.state_use_accessors = 0.
-> >>
-> >> In case of TI OMAP the following IRQ hierarchy is defined:
-> >> ARM GIC <- OMAP wakeupgen <- TI CBAR
-> >>
-> >> Failed call chain:
-> >>   irq_create_of_mapping
-> >>   irq_set_irq_type
-> >>   __irq_set_trigger
-> >>   if (!chip || !chip->irq_set_type) {
-> >>      return 0; <- return here
-> >>   }
-> >>   CBAR has no .irq_set_type() defined and, so, IRQ triggering
-> >>   configuration will not be propagated to parent IRQ domain.
-> >>
-> >> Hence, fix it by introducing irq_chip_set_type_parent(), in the
-> >> same manner as irq_chip_set_wake_parent(), and use it for IRQ
-> >> triggering type propagation to the parent IRQ domain in
-> >> irq-crossbar and omap-wakeupgen.
-> >>
-> >> / # cat /proc/interrupts -- before
-> >> 230:          0          0      CBAR  30 Edge    -00000000  48051000.gpio
-> >> 263:          0          0      CBAR 116 Edge    -00000000  48053000.gpio
-> >> 296:        246          0      CBAR  67 Edge    -00000000  OMAP UART0
-> >> 311:        341          0      CBAR  51 Edge    -00000000  48070000.i2c
-> >> 312:          3          0      CBAR  52 Edge    -00000000  48072000.i2c
-> >> 313:          0          0      CBAR  56 Edge    -00000000  48060000.i2c
-> >> 314:        255          0      CBAR  78 Edge    -00000000  mmc0
-> >> 315:         40          0      CBAR  81 Edge    -00000000  mmc1
-> >> 316:         13          0      CBAR  91 Edge    -00000000  mmc2
-> >> 320:          0          0      CBAR  49 Edge    -00000000  4a140000.sata
-> >> 324:          0          0      CBAR   1 Edge    -00000000  48078000.elm
-> >> 325:          0          0      CBAR  15 Edge    -00000000  gpmc
-> >> 333:          0          0      CBAR 335 Edge    -00000000  48484000.ethernet
-> >> 334:          0          0      CBAR 336 Edge    -00000000  48484000.ethernet
-> >> 415:          0          0   pcf857x   2 Edge    -00000000  btnUser1
-> >> 416:          0          0   pcf857x   3 Edge    -00000000  btnUser2
-> >> 445:          0          0   pinctrl 992 Edge    -00010000  4806a000.seria
-> >>
-> >> / # cat /proc/interrupts -- after
-> >> 230:          0          0      CBAR  30 Level   -00002004  48051000.gpio
-> >> 263:          0          0      CBAR 116 Level   -00002004  48053000.gpio
-> >> 296:        567          0      CBAR  67 Level   -00002004  OMAP UART0
-> >> 311:        363          0      CBAR  51 Level   -00002004  48070000.i2c
-> >> 312:          3          0      CBAR  52 Level   -00002004  48072000.i2c
-> >> 313:          0          0      CBAR  56 Level   -00002004  48060000.i2c
-> >> 314:        197          0      CBAR  78 Level   -00002004  mmc0
-> >> 315:         40          0      CBAR  81 Level   -00002004  mmc1
-> >> 316:         13          0      CBAR  91 Level   -00002004  mmc2
-> >> 320:          0          0      CBAR  49 Level   -00002004  4a140000.sata
-> >> 324:          0          0      CBAR   1 Level   -00002004  48078000.elm
-> >> 325:          0          0      CBAR  15 Level   -00002004  gpmc
-> >> 333:          0          0      CBAR 335 Level   -00002004  48484000.ethernet
-> >> 334:          0          0      CBAR 336 Level   -00002004  48484000.ethernet
-> >> 415:          0          0   pcf857x   2 Edge    -00000000  btnUser1
-> >> 416:          4          2   pcf857x   3 Edge    -00000000  btnUser2
-> >> 445:          0          0   pinctrl 992 Edge    -00010000  4806a000.serial
-> >>
-> >> Fixes: 783d31863fb8 ('irqchip: crossbar: Convert dra7 crossbar to stacked domains')
-> >> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> >> ---
-> >> Hi All,
-> >>
-> >> I can split patch if required and overall solution acceptable.
-> >
-> > This looks good to me. Please repost it after splitting it in two
-> > patches.
-> 
-> just to clarify - Do you want to see two or three patches?
-> 
-> 2) or 3) arch/arm/mach-omap2/omap-wakeupgen.c |  1 +
-> 2) drivers/irqchip/irq-crossbar.c       |  1 +
-> 1) include/linux/irq.h                  |  1 +
-> 1) kernel/irq/chip.c                    | 16 ++++++++++++++++
-
-Ah, I forgot wakeupgen lived in the omap-specific directory.
-
-Please cut it in 3 then (generic implementation, crossbar and
-wakeupgen).
-
-Thanks,
-
-	M.
 
 
--- 
-Jazz is not dead. It just smells funny.
+On Tuesday 11 August 2015 06:25 PM, Tony Lindgren wrote:
+> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [150810 02:31]:
+>> @@ -371,8 +372,10 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>   #ifdef	CONFIG_SOC_AM43XX
+>>   # undef soc_is_am43xx
+>>   # undef soc_is_am437x
+>> -# define soc_is_am43xx()		is_am43xx()
+>> -# define soc_is_am437x()		is_am437x()
+>> +# undef soc_is_am438x
+>> +# define soc_is_am43xx()		of_machine_is_compatible("ti,am43")
+>> +# define soc_is_am437x()		of_machine_is_compatible("ti,am4372")
+>> +# define soc_is_am438x()		of_machine_is_compatible("ti,am438x")
+>>   #endif
+>
+> Hmm didn't I already comment on this change? I don't want to do it
+> for one SoC. Please add the SoC detection the old way for am43xx,
+> then do another series that changes all the DT only SoCs to use
+> of_machine_is_compatible() after it's been properly tested so now
+> regressions are caused for the early init code.
+
+Okay. I misinterpreted your earlier comment. Thanks for clarifying.
+I will re-do.
+
+>
+> Regards,
+>
+> Tony
+>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
