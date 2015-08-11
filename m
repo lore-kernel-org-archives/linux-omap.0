@@ -1,98 +1,184 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH] ARM: OMAP: irqdomain_hierarchy: fix arm gic irq type
- configuration
-Date: Tue, 11 Aug 2015 12:24:56 +0100
-Message-ID: <20150811122456.1efe1656@arm.com>
-References: <1439285147-20027-1-git-send-email-grygorii.strashko@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 3/3] dma: omap-dma: add support for pause of non-cyclic
+ transfers
+Date: Tue, 11 Aug 2015 15:02:44 +0300
+Message-ID: <55C9E464.2060404@ti.com>
+References: <1438977619-15488-1-git-send-email-bigeasy@linutronix.de>
+ <1438977619-15488-4-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1439285147-20027-1-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <1438977619-15488-4-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vinod Koul <vinod.koul@intel.com>, Russell King <rmk+kernel@arm.linux.org.uk>, peter@hurleysoftware.com
+Cc: Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 11 Aug 2015 10:25:47 +0100
-Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+On 08/07/2015 11:00 PM, Sebastian Andrzej Siewior wrote:
+> -static void omap_dma_stop(struct omap_chan *c)
+> +static void omap_dma_drain_chan(struct omap_chan *c)
+> +{
+> +	int i;
+> +	uint32_t val;
+> +
+> +	/* Wait for sDMA FIFO to drain */
+> +	for (i =3D 0; ; i++) {
+> +		val =3D omap_dma_chan_read(c, CCR);
+> +		if (!(val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE)))
+> +			break;
+> +
+> +		if (i > 100)
+> +			break;
+> +
+> +		udelay(5);
+> +	}
+> +
+> +	if (val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE))
+> +		dev_err(c->vc.chan.device->dev,
+> +			"DMA drain did not complete on lch %d\n",
+> +			c->dma_ch);
+> +}
+> +
+> +static int omap_dma_stop(struct omap_chan *c)
+>  {
+>  	struct omap_dmadev *od =3D to_omap_dma_dev(c->vc.chan.device);
+>  	uint32_t val;
+> @@ -312,7 +335,6 @@ static void omap_dma_stop(struct omap_chan *c)
+>  	val =3D omap_dma_chan_read(c, CCR);
+>  	if (od->plat->errata & DMA_ERRATA_i541 && val & CCR_TRIGGER_SRC) {
+>  		uint32_t sysconfig;
+> -		unsigned i;
+> =20
+>  		sysconfig =3D omap_dma_glbl_read(od, OCP_SYSCONFIG);
+>  		val =3D sysconfig & ~DMA_SYSCONFIG_MIDLEMODE_MASK;
+> @@ -323,27 +345,18 @@ static void omap_dma_stop(struct omap_chan *c)
+>  		val &=3D ~CCR_ENABLE;
+>  		omap_dma_chan_write(c, CCR, val);
+> =20
+> -		/* Wait for sDMA FIFO to drain */
+> -		for (i =3D 0; ; i++) {
+> -			val =3D omap_dma_chan_read(c, CCR);
+> -			if (!(val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE)))
+> -				break;
+> -
+> -			if (i > 100)
+> -				break;
+> -
+> -			udelay(5);
+> -		}
+> -
+> -		if (val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE))
+> -			dev_err(c->vc.chan.device->dev,
+> -				"DMA drain did not complete on lch %d\n",
+> -			        c->dma_ch);
+> +		omap_dma_drain_chan(c);
+> =20
+>  		omap_dma_glbl_write(od, OCP_SYSCONFIG, sysconfig);
+>  	} else {
+> +
+> +		if (!(val & CCR_ENABLE))
+> +			return -EINVAL;
+> +
+>  		val &=3D ~CCR_ENABLE;
+>  		omap_dma_chan_write(c, CCR, val);
+> +
+> +		omap_dma_drain_chan(c);
 
-Hi Grygorii,
+Note that the FIFO drain only applies to source synchronized transfers.=
+=2E. When
+the BUFFERING is _not_ disabled - in most of the cases this is true.
 
-> It's observed that ARM GIC IRQ triggering type is not configured
-> properly when IRQ is routed through IRQ domains hierarchy and
-> system started using DT. As result, system will start using default
-> ARM GIC configuration, ignore DT IRQ type configuration,
-> and value of desc->irq_data.state_use_accessors = 0.
-> 
-> In case of TI OMAP the following IRQ hierarchy is defined:
-> ARM GIC <- OMAP wakeupgen <- TI CBAR
-> 
-> Failed call chain:
->  irq_create_of_mapping
->  irq_set_irq_type
->  __irq_set_trigger
->  if (!chip || !chip->irq_set_type) {
->     return 0; <- return here
+> +	/*
+> +	 * We do not allow DMA_MEM_TO_DEV transfers to be paused.
+> +	 * From the AM572x TRM, 16.1.4.18 Disabling a Channel During Transf=
+er:
+> +	 * "When a channel is disabled during a transfer, the channel under=
+goes
+> +	 * an abort, unless it is hardware-source-synchronized =E2=80=A6".
+> +	 * A source-synchronised channel is one where the fetching of data =
+is
+> +	 * under control of the device. In other words, a device-to-memory
+> +	 * transfer. So, a destination-synchronised channel (which would be=
+ a
+> +	 * memory-to-device transfer) undergoes an abort if the the CCR_ENA=
+BLE
+> +	 * bit is cleared.
+> +	 * From 16.1.4.20.4.6.2 Abort: "If an abort trigger occurs, the cha=
+nnel
+> +	 * aborts immediately after completion of current read/write
+> +	 * transactions and then the FIFO is cleaned up." The term "cleaned=
+ up"
+> +	 * is not defined. TI recommends to check that RD_ACTIVE and WR_ACT=
+IVE
+> +	 * are both clear _before_ disabling the channel, otherwise data lo=
+ss
+> +	 * will occur.
+> +	 * The problem is that if the channel is active, then device activi=
+ty
+> +	 * can result in DMA activity starting between reading those as bot=
+h
+> +	 * clear and the write to DMA_CCR to clear the enable bit hitting t=
+he
+> +	 * hardware. If the DMA hardware can't drain the data in its FIFO t=
+o the
+> +	 * destination, then data loss "might" occur (say if we write to an=
+ UART
+> +	 * and the UART is not accepting any further data).
+
+I don't know if you have checked it, but probably the TX DMA could be a=
+lso
+used when the PRZEFETCH is disabled for the channel? Just a guess
+
+> +	 */
+> +	else if (c->desc->dir =3D=3D DMA_DEV_TO_MEM)
+> +		can_pause =3D true;
+> +
+> +	if (can_pause && !c->paused) {
+> +		ret =3D omap_dma_stop(c);
+> +		if (!ret)
+> +			c->paused =3D true;
+>  	}
+> +out:
+> +	spin_unlock_irqrestore(&od->irq_lock, flags);
+> =20
+> -	return 0;
+> +	return ret;
 >  }
->  CBAR has no .irq_set_type() defined and, so, IRQ triggering
->  configuration will not be propagated to parent IRQ domain.
-> 
-> Hence, fix it by introducing irq_chip_set_type_parent(), in the
-> same manner as irq_chip_set_wake_parent(), and use it for IRQ 
-> triggering type propagation to the parent IRQ domain in
-> irq-crossbar and omap-wakeupgen.
-> 
-> / # cat /proc/interrupts -- before
-> 230:          0          0      CBAR  30 Edge    -00000000  48051000.gpio
-> 263:          0          0      CBAR 116 Edge    -00000000  48053000.gpio
-> 296:        246          0      CBAR  67 Edge    -00000000  OMAP UART0
-> 311:        341          0      CBAR  51 Edge    -00000000  48070000.i2c
-> 312:          3          0      CBAR  52 Edge    -00000000  48072000.i2c
-> 313:          0          0      CBAR  56 Edge    -00000000  48060000.i2c
-> 314:        255          0      CBAR  78 Edge    -00000000  mmc0
-> 315:         40          0      CBAR  81 Edge    -00000000  mmc1
-> 316:         13          0      CBAR  91 Edge    -00000000  mmc2
-> 320:          0          0      CBAR  49 Edge    -00000000  4a140000.sata
-> 324:          0          0      CBAR   1 Edge    -00000000  48078000.elm
-> 325:          0          0      CBAR  15 Edge    -00000000  gpmc
-> 333:          0          0      CBAR 335 Edge    -00000000  48484000.ethernet
-> 334:          0          0      CBAR 336 Edge    -00000000  48484000.ethernet
-> 415:          0          0   pcf857x   2 Edge    -00000000  btnUser1
-> 416:          0          0   pcf857x   3 Edge    -00000000  btnUser2
-> 445:          0          0   pinctrl 992 Edge    -00010000  4806a000.seria
-> 
-> / # cat /proc/interrupts -- after
-> 230:          0          0      CBAR  30 Level   -00002004  48051000.gpio
-> 263:          0          0      CBAR 116 Level   -00002004  48053000.gpio
-> 296:        567          0      CBAR  67 Level   -00002004  OMAP UART0
-> 311:        363          0      CBAR  51 Level   -00002004  48070000.i2c
-> 312:          3          0      CBAR  52 Level   -00002004  48072000.i2c
-> 313:          0          0      CBAR  56 Level   -00002004  48060000.i2c
-> 314:        197          0      CBAR  78 Level   -00002004  mmc0
-> 315:         40          0      CBAR  81 Level   -00002004  mmc1
-> 316:         13          0      CBAR  91 Level   -00002004  mmc2
-> 320:          0          0      CBAR  49 Level   -00002004  4a140000.sata
-> 324:          0          0      CBAR   1 Level   -00002004  48078000.elm
-> 325:          0          0      CBAR  15 Level   -00002004  gpmc
-> 333:          0          0      CBAR 335 Level   -00002004  48484000.ethernet
-> 334:          0          0      CBAR 336 Level   -00002004  48484000.ethernet
-> 415:          0          0   pcf857x   2 Edge    -00000000  btnUser1
-> 416:          4          2   pcf857x   3 Edge    -00000000  btnUser2
-> 445:          0          0   pinctrl 992 Edge    -00010000  4806a000.serial
-> 
-> Fixes: 783d31863fb8 ('irqchip: crossbar: Convert dra7 crossbar to stacked domains')
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
-> Hi All,
-> 
-> I can split patch if required and overall solution acceptable.
+> =20
+>  static int omap_dma_resume(struct dma_chan *chan)
+>  {
+>  	struct omap_chan *c =3D to_omap_dma_chan(chan);
+> +	struct omap_dmadev *od =3D to_omap_dma_dev(chan->device);
+> +	unsigned long flags;
+> +	int ret =3D -EINVAL;
+> =20
+> -	/* Pause/Resume only allowed with cyclic mode */
+> -	if (!c->cyclic)
+> -		return -EINVAL;
+> +	spin_lock_irqsave(&od->irq_lock, flags);
+> =20
+> -	if (c->paused) {
+> +	if (c->paused && c->desc) {
+>  		mb();
+> =20
+>  		/* Restore channel link register */
+> @@ -1082,9 +1134,11 @@ static int omap_dma_resume(struct dma_chan *ch=
+an)
+> =20
+>  		omap_dma_start(c, c->desc);
+>  		c->paused =3D false;
+> +		ret =3D 0;
+>  	}
+> +	spin_unlock_irqrestore(&od->irq_lock, flags);
+> =20
+> -	return 0;
+> +	return ret;
+>  }
+> =20
+>  static int omap_dma_chan_init(struct omap_dmadev *od)
+>=20
 
-This looks good to me. Please repost it after splitting it in two
-patches.
 
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny.
+--=20
+P=C3=A9ter
