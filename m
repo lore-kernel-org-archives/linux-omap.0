@@ -1,153 +1,65 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] ARM: OMAP: irqdomain_hierarchy: fix arm gic irq type configuration
-Date: Tue, 11 Aug 2015 12:25:47 +0300
-Message-ID: <1439285147-20027-1-git-send-email-grygorii.strashko@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 1/3] tty: serial: 8250_omap: do not use RX DMA if pause
+ is not supported
+Date: Tue, 11 Aug 2015 15:27:28 +0530
+Message-ID: <20150811095728.GV11789@localhost>
+References: <1438977619-15488-1-git-send-email-bigeasy@linutronix.de>
+ <1438977619-15488-2-git-send-email-bigeasy@linutronix.de>
+ <55C54D49.3090406@hurleysoftware.com>
+ <20150808090343.GY7576@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150808090343.GY7576@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-It's observed that ARM GIC IRQ triggering type is not configured
-properly when IRQ is routed through IRQ domains hierarchy and
-system started using DT. As result, system will start using default
-ARM GIC configuration, ignore DT IRQ type configuration,
-and value of desc->irq_data.state_use_accessors = 0.
+On Sat, Aug 08, 2015 at 10:03:43AM +0100, Russell King - ARM Linux wrote:
+> On Fri, Aug 07, 2015 at 08:28:57PM -0400, Peter Hurley wrote:
+> > Even dma_get_slave_caps() returns _true_ for cmd_pause support; ok, that
+> > interface is pointless.
+> 
+> How about reporting that as a bug then, because if you look back in the
+> git history, as you are fully capable of, you will find that the slave
+> capability stuff went in _after_ omap-dma, and *many* DMA engine drivers
+> have not been updated.  Here, let me do _your_ work for you:
+> 
+> commit cb8cea513c80db1dfe2dce468d2d0772005bb9a1
+> Author: Maxime Ripard <maxime.ripard@free-electrons.com>
+> Date:   Mon Nov 17 14:42:04 2014 +0100
+> 
+>     dmaengine: Create a generic dma_slave_caps callback
+> 
+> commit 2dcdf570936168d488acf90be9b04a3d32dafce7
+> Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Date:   Fri Sep 14 15:05:45 2012 +0300
+> 
+>     dmaengine: omap: Add support for pause/resume in cyclic dma mode
+> 
+> Oh look, omap-dma pre-dates the creation of dma_slave_caps by over two
+> years!
+> 
+> However, it's *not* as trivial as you think: the dma_slave_caps() call
+> has no knowledge whether a channel will be used in cyclic mode or not,
+> or which direction it will be used.  So, it really _can't_ report
+> whether pause mode is supported or not.  So actually, this is something
+> that can't be fixed trivially, and was a detail missed when the slave
+> caps was reviewed (I probably missed the review or missed the point.)
 
-In case of TI OMAP the following IRQ hierarchy is defined:
-ARM GIC <- OMAP wakeupgen <- TI CBAR
+The API queries the capabilities for a channel. So a channel has been
+allocated. BUT it would not imply the direction as that is descriptor based,
+so should we query the capabilities for a descriptor and use those in
+clients ?
 
-Failed call chain:
- irq_create_of_mapping
- irq_set_irq_type
- __irq_set_trigger
- if (!chip || !chip->irq_set_type) {
-    return 0; <- return here
- }
- CBAR has no .irq_set_type() defined and, so, IRQ triggering
- configuration will not be propagated to parent IRQ domain.
+Also the current dma_slave_caps() has been moved to framework and reports
+based on driver callbacks.
+Now we have a hardware which supports pause for one direction only so we
+should model it bit differently
 
-Hence, fix it by introducing irq_chip_set_type_parent(), in the
-same manner as irq_chip_set_wake_parent(), and use it for IRQ 
-triggering type propagation to the parent IRQ domain in
-irq-crossbar and omap-wakeupgen.
+Thoughts... ??
 
-/ # cat /proc/interrupts -- before
-230:          0          0      CBAR  30 Edge    -00000000  48051000.gpio
-263:          0          0      CBAR 116 Edge    -00000000  48053000.gpio
-296:        246          0      CBAR  67 Edge    -00000000  OMAP UART0
-311:        341          0      CBAR  51 Edge    -00000000  48070000.i2c
-312:          3          0      CBAR  52 Edge    -00000000  48072000.i2c
-313:          0          0      CBAR  56 Edge    -00000000  48060000.i2c
-314:        255          0      CBAR  78 Edge    -00000000  mmc0
-315:         40          0      CBAR  81 Edge    -00000000  mmc1
-316:         13          0      CBAR  91 Edge    -00000000  mmc2
-320:          0          0      CBAR  49 Edge    -00000000  4a140000.sata
-324:          0          0      CBAR   1 Edge    -00000000  48078000.elm
-325:          0          0      CBAR  15 Edge    -00000000  gpmc
-333:          0          0      CBAR 335 Edge    -00000000  48484000.ethernet
-334:          0          0      CBAR 336 Edge    -00000000  48484000.ethernet
-415:          0          0   pcf857x   2 Edge    -00000000  btnUser1
-416:          0          0   pcf857x   3 Edge    -00000000  btnUser2
-445:          0          0   pinctrl 992 Edge    -00010000  4806a000.seria
-
-/ # cat /proc/interrupts -- after
-230:          0          0      CBAR  30 Level   -00002004  48051000.gpio
-263:          0          0      CBAR 116 Level   -00002004  48053000.gpio
-296:        567          0      CBAR  67 Level   -00002004  OMAP UART0
-311:        363          0      CBAR  51 Level   -00002004  48070000.i2c
-312:          3          0      CBAR  52 Level   -00002004  48072000.i2c
-313:          0          0      CBAR  56 Level   -00002004  48060000.i2c
-314:        197          0      CBAR  78 Level   -00002004  mmc0
-315:         40          0      CBAR  81 Level   -00002004  mmc1
-316:         13          0      CBAR  91 Level   -00002004  mmc2
-320:          0          0      CBAR  49 Level   -00002004  4a140000.sata
-324:          0          0      CBAR   1 Level   -00002004  48078000.elm
-325:          0          0      CBAR  15 Level   -00002004  gpmc
-333:          0          0      CBAR 335 Level   -00002004  48484000.ethernet
-334:          0          0      CBAR 336 Level   -00002004  48484000.ethernet
-415:          0          0   pcf857x   2 Edge    -00000000  btnUser1
-416:          4          2   pcf857x   3 Edge    -00000000  btnUser2
-445:          0          0   pinctrl 992 Edge    -00010000  4806a000.serial
-
-Fixes: 783d31863fb8 ('irqchip: crossbar: Convert dra7 crossbar to stacked domains')
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
-Hi All,
-
-I can split patch if required and overall solution acceptable.
-
-
- arch/arm/mach-omap2/omap-wakeupgen.c |  1 +
- drivers/irqchip/irq-crossbar.c       |  1 +
- include/linux/irq.h                  |  1 +
- kernel/irq/chip.c                    | 16 ++++++++++++++++
- 4 files changed, 19 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index 8e52621..e1d2e99 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -392,6 +392,7 @@ static struct irq_chip wakeupgen_chip = {
- 	.irq_mask		= wakeupgen_mask,
- 	.irq_unmask		= wakeupgen_unmask,
- 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
-+	.irq_set_type		= irq_chip_set_type_parent,
- 	.flags			= IRQCHIP_SKIP_SET_WAKE | IRQCHIP_MASK_ON_SUSPEND,
- #ifdef CONFIG_SMP
- 	.irq_set_affinity	= irq_chip_set_affinity_parent,
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 692fe2b..3ba58e7 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -69,6 +69,7 @@ static struct irq_chip crossbar_chip = {
- 	.irq_unmask		= irq_chip_unmask_parent,
- 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
- 	.irq_set_wake		= irq_chip_set_wake_parent,
-+	.irq_set_type		= irq_chip_set_type_parent,
- #ifdef CONFIG_SMP
- 	.irq_set_affinity	= irq_chip_set_affinity_parent,
- #endif
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 92188b0..51744bc 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -484,6 +484,7 @@ extern int irq_chip_set_affinity_parent(struct irq_data *data,
- extern int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on);
- extern int irq_chip_set_vcpu_affinity_parent(struct irq_data *data,
- 					     void *vcpu_info);
-+extern int irq_chip_set_type_parent(struct irq_data *data, unsigned int type);
- #endif
- 
- /* Handling of unhandled and spurious interrupts: */
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 27f4332..ac3ff8a 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -985,6 +985,22 @@ int irq_chip_set_affinity_parent(struct irq_data *data,
- }
- 
- /**
-+ * irq_chip_set_type_parent - Set IRQ type on the parent interrupt
-+ * @data:	Pointer to interrupt specific data
-+ * @type:	IRQ_TYPE_{LEVEL,EDGE}_* value - see include/linux/irq.h
-+ *
-+ * Conditional, as the underlying parent chip might not implement it.
-+ */
-+int irq_chip_set_type_parent(struct irq_data *data, unsigned int type)
-+{
-+	data = data->parent_data;
-+	if (data->chip->irq_set_type)
-+		return data->chip->irq_set_type(data, type);
-+
-+	return -ENOSYS;
-+}
-+
-+/**
-  * irq_chip_retrigger_hierarchy - Retrigger an interrupt in hardware
-  * @data:	Pointer to interrupt specific data
-  *
 -- 
-2.5.0
+~Vinod
