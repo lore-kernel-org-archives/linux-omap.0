@@ -1,122 +1,55 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 3/3] dma: omap-dma: add support for pause of non-cyclic
- transfers
-Date: Tue, 11 Aug 2015 15:43:19 +0300
-Message-ID: <55C9EDE7.9060909@ti.com>
-References: <1438977619-15488-1-git-send-email-bigeasy@linutronix.de>
- <1438977619-15488-4-git-send-email-bigeasy@linutronix.de>
- <55C9E464.2060404@ti.com> <20150811123057.GE7576@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 00/22] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Tue, 11 Aug 2015 05:48:29 -0700
+Message-ID: <20150811124829.GM4215@atomide.com>
+References: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150811123057.GE7576@n2100.arm.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <1438938752-31010-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vinod Koul <vinod.koul@intel.com>, peter@hurleysoftware.com, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de
+To: Roger Quadros <rogerq@ti.com>
+Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/11/2015 03:30 PM, Russell King - ARM Linux wrote:
-> On Tue, Aug 11, 2015 at 03:02:44PM +0300, Peter Ujfalusi wrote:
->> On 08/07/2015 11:00 PM, Sebastian Andrzej Siewior wrote:
->>> +	/*
->>> +	 * We do not allow DMA_MEM_TO_DEV transfers to be paused.
->>> +	 * From the AM572x TRM, 16.1.4.18 Disabling a Channel During Tran=
-sfer:
->>> +	 * "When a channel is disabled during a transfer, the channel und=
-ergoes
->>> +	 * an abort, unless it is hardware-source-synchronized =E2=80=A6"=
-=2E
->>> +	 * A source-synchronised channel is one where the fetching of dat=
-a is
->>> +	 * under control of the device. In other words, a device-to-memor=
-y
->>> +	 * transfer. So, a destination-synchronised channel (which would =
-be a
->>> +	 * memory-to-device transfer) undergoes an abort if the the CCR_E=
-NABLE
->>> +	 * bit is cleared.
->>> +	 * From 16.1.4.20.4.6.2 Abort: "If an abort trigger occurs, the c=
-hannel
->>> +	 * aborts immediately after completion of current read/write
->>> +	 * transactions and then the FIFO is cleaned up." The term "clean=
-ed up"
->>> +	 * is not defined. TI recommends to check that RD_ACTIVE and WR_A=
-CTIVE
->>> +	 * are both clear _before_ disabling the channel, otherwise data =
-loss
->>> +	 * will occur.
->>> +	 * The problem is that if the channel is active, then device acti=
-vity
->>> +	 * can result in DMA activity starting between reading those as b=
-oth
->>> +	 * clear and the write to DMA_CCR to clear the enable bit hitting=
- the
->>> +	 * hardware. If the DMA hardware can't drain the data in its FIFO=
- to the
->>> +	 * destination, then data loss "might" occur (say if we write to =
-an UART
->>> +	 * and the UART is not accepting any further data).
->>
->> I don't know if you have checked it, but probably the TX DMA could b=
-e also
->> used when the PRZEFETCH is disabled for the channel? Just a guess
->=20
-> The docs aren't very clear on that... and iirc Santosh's reply didn't
-> suggest that the prefetch bit had any influence on this behaviour.  G=
-iven
-> the wording in the documentation which seems to be quite explicit abo=
-ut
-> the conditions, and it omits talking about the prefetch bit, I can on=
-ly
-> assume that the prefetch bit has no influence over this behaviour.
->=20
-> For example, what happens if the DMA to the device has started - the
-> device has raised its DMA request line.  The DMA controller has then =
-gone
-> to memory and has fetched some data and incremented the source addres=
-s.
-> Meanwhile, we've cleared the ENABLE bit.  What happens then?  Does th=
-e
-> DMA controller drain the read data to the device, or does it "clean u=
-p"
-> the FIFO by discarding the data?
+* Roger Quadros <rogerq@ti.com> [150807 02:15]:
+> Hi,
+> 
+> We do a couple of things in this series which result in
+> cleaner device tree implementation, faster perfomance and
+> multi-platform support. As an added bonus we get new GPI/Interrupt pins
+> for use in the system.
+> 
+> - Establish a custom interface between NAND and GPMC driver. This is
+> needed because all of the NAND registers sit in the GPMC register space.
+> Some bits like NAND IRQ are even shared with GPMC.
+> 
+> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
+> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
+> This causes performance increase when using prefetch-irq mode.
+> 30% increase in read, 17% increase in write in prefetch-irq mode.
+> 
+> - Clean up device tree support so that omap-gpmc IP and the omap2 NAND
+> driver can be used on non-OMAP platforms. e.g. Keystone.
+> 
+> - Implement GPIOCHIP + IRQCHIP for the GPMC WAITPINS. SoCs can contain
+> 2 to 4 of these and most of them would be unused otherwise. It also
+> allows a cleaner implementation of NAND Ready pin status for the NAND driver.
+> 
+> - Implement GPIOlib based NAND ready pin checking for OMAP NAND driver.
 
-Hrm, yes. If we do not have prefetch and the destination is using FIFO =
-- so
-DMA pushes multiple elemets per DMA request this might be the case. But=
- I
-think - nothing backs this up - if the transfer is element syncronized =
-than we
-would not loose data if the prefetch is not enabled. If we have prefetc=
-h then
-the DMA is prefetching data to it's FIFO and an abort will just send th=
-e
-content of the FIFO to /dev/null (or something).
+Nice job :) Using GPIOCHIP + IRQCHIP allows us to make the GPMC
+using drivers pretty much generic eventually.
+ 
+> NOTE: I've only adapted dra7.dtsi and dra7x-evms for this series.
+> I will adapt all other boards when the series is in a shape to be accepted.
 
-> Given that the conditions under which the FIFO is drained to the
-> destination are very specific, and which explicitly excludes destinat=
-ion-
-> synchronised transfers, the only conclusion that's possible without
-> knowing the implementation intimately is that the FIFO is "cleaned up=
-"
-> which suggests that it's discarded rather than drained to the destina=
-tion.
+OK. Yeah let's make sure no regressions are caused by this.. We also
+still have the omap3 legacy booting around, have you checked that it
+keeps on working?
 
-Yes, the wording is not explicit and this is also my take on the issue =
-- the
-content of the FIFO is just dropped after it finished the ongoing eleme=
-nt.
+Regards,
 
-> As this DMA controller is in all of the OMAP devices and similar, I
-> don't think we can rely on the behaviour of any one implementation
-> either - we don't know what the differences are between the
-> implementations in different generations of devices without TI provid=
-ing
-> more detailed documentation in this area across their various devices=
-=2E
-
-Yep. Let me try to get more information if I can.
-
---=20
-P=C3=A9ter
+Tony
