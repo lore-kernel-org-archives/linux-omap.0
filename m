@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH-v4.2-rc6 4/5] arm: omap2: timer: simplify
- omap4_local_timer_init()
-Date: Wed, 12 Aug 2015 00:14:24 -0700
-Message-ID: <20150812071424.GO4215@atomide.com>
+Subject: Re: [RFC/PATCH-v4.2-rc6 1/5] Revert "ARM: 7655/1: smp_twd: make
+ twd_local_timer_of_register() no-op for nosmp"
+Date: Wed, 12 Aug 2015 00:15:27 -0700
+Message-ID: <20150812071527.GP4215@atomide.com>
 References: <1439242911-715-1-git-send-email-balbi@ti.com>
- <1439242911-715-5-git-send-email-balbi@ti.com>
+ <1439242911-715-2-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1439242911-715-5-git-send-email-balbi@ti.com>
+In-Reply-To: <1439242911-715-2-git-send-email-balbi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,17 +21,23 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Dirk Behme <dirk.behme@de.bosch.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [150810 14:44]:
-> all users of omap4_local_timer_init() are already
-> DT-only, so we can remove the check for having
-> DTB or not.
+* Felipe Balbi <balbi@ti.com> [150810 14:45]:
+> This reverts commit 904464b91eca8c665acea033489225af02eeb75a.
 > 
-> While at that, fix a typo in comment.
+> The problem pointed out by commit 904464b91eca ("ARM: 7655/1:
+> smp_twd: make twd_local_timer_of_register() no-op for nosmp")
+> doesn't exist anymore.
+> 
+> We can safely boot with nosmp and the warning won't show up.
+> 
+> The other side benefit of this patch is that TWD has a chance
+> to probe on single-core A9 systems such as AM437x which sport
+> TWD.
 
-We already have d1dabab2841d ("ARM: OMAP2+: Clean up
-omap4_local_timer_init") in Linux next reviewed-by you :)
+Can you please upload this into Russell's patch tracking system
+if no comments? Please also feel free to add:
 
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
