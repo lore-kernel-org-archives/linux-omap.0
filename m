@@ -1,16 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH-v4.2-rc6 1/5] Revert "ARM: 7655/1: smp_twd: make
- twd_local_timer_of_register() no-op for nosmp"
-Date: Wed, 12 Aug 2015 00:15:27 -0700
-Message-ID: <20150812071527.GP4215@atomide.com>
-References: <1439242911-715-1-git-send-email-balbi@ti.com>
- <1439242911-715-2-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: clock: remove un-used core dpll re-program
+ code
+Date: Wed, 12 Aug 2015 00:25:36 -0700
+Message-ID: <20150812072535.GQ4215@atomide.com>
+References: <1437034091-18306-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1439242911-715-2-git-send-email-balbi@ti.com>
+In-Reply-To: <1437034091-18306-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,24 +19,24 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Dirk Behme <dirk.behme@de.bosch.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Shawn Guo <shawn.guo@linaro.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [150810 14:45]:
-> This reverts commit 904464b91eca8c665acea033489225af02eeb75a.
+* Tero Kristo <t-kristo@ti.com> [150716 01:10]:
+> Remove the OMAP3 core DPLL re-program code, and the associated SRAM
+> code that does the low-level programming of the DPLL divider, idling
+> of the SDRAM etc.
 > 
-> The problem pointed out by commit 904464b91eca ("ARM: 7655/1:
-> smp_twd: make twd_local_timer_of_register() no-op for nosmp")
-> doesn't exist anymore.
-> 
-> We can safely boot with nosmp and the warning won't show up.
-> 
-> The other side benefit of this patch is that TWD has a chance
-> to probe on single-core A9 systems such as AM437x which sport
-> TWD.
+> This code was never fully implemented in the kernel; things missing
+> were driver side handling of core clock changes (they need to account
+> for their functional clock rate being changed on-the-fly), and the whole
+> framework required for handling this. Thus, there is not much point
+> to keep carrying the low-level support code either.
 
-Can you please upload this into Russell's patch tracking system
-if no comments? Please also feel free to add:
+OK I'm applying this into omap-for-v4.3/soc. If we ever need the code
+it will be in the git history.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
