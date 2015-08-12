@@ -1,65 +1,55 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 3/6] ARM: AM43xx: Introduce a separate soc_is function
- for am438x series of SoCs
-Date: Wed, 12 Aug 2015 01:37:18 -0700
-Message-ID: <20150812083718.GS4215@atomide.com>
-References: <1439198906-31189-1-git-send-email-j-keerthy@ti.com>
- <1439198906-31189-4-git-send-email-j-keerthy@ti.com>
- <20150811125515.GN4215@atomide.com>
- <55CA36D2.3080509@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap clock dts changes for v4.3 merge window
+Date: Wed, 12 Aug 2015 01:40:51 -0700
+Message-ID: <20150812084051.GT4215@atomide.com>
+References: <55C34026.20101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <55CA36D2.3080509-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+In-Reply-To: <55C34026.20101@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [150811 10:57]:
+* Tero Kristo <t-kristo@ti.com> [150806 04:10]:
+> The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
 > 
+>   Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
 > 
-> On Tuesday 11 August 2015 06:25 PM, Tony Lindgren wrote:
-> >* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [150810 02:31]:
-> >>@@ -371,8 +372,10 @@ IS_OMAP_TYPE(3430, 0x3430)
-> >>  #ifdef	CONFIG_SOC_AM43XX
-> >>  # undef soc_is_am43xx
-> >>  # undef soc_is_am437x
-> >>-# define soc_is_am43xx()		is_am43xx()
-> >>-# define soc_is_am437x()		is_am437x()
-> >>+# undef soc_is_am438x
-> >>+# define soc_is_am43xx()		of_machine_is_compatible("ti,am43")
-> >>+# define soc_is_am437x()		of_machine_is_compatible("ti,am4372")
-> >>+# define soc_is_am438x()		of_machine_is_compatible("ti,am438x")
-> >>  #endif
-> >
-> >Hmm didn't I already comment on this change? I don't want to do it
-> >for one SoC. Please add the SoC detection the old way for am43xx,
-> >then do another series that changes all the DT only SoCs to use
-> >of_machine_is_compatible() after it's been properly tested so now
-> >regressions are caused for the early init code.
+> are available in the git repository at:
 > 
-> Okay. I misinterpreted your earlier comment. Thanks for clarifying.
-> I will re-do.
+>   https://github.com/t-kristo/linux-pm.git for-4.3/ti-clk-dt
+> 
+> for you to fetch changes up to dff8a207815a605872dfc5bffc1bae1cad29d87c:
+> 
+>   ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk clock
+> (2015-07-31 12:13:18 +0300)
+> 
+> ----------------------------------------------------------------
+> Keerthy (2):
+>       ARM: dts: AM437X: add dpll_clksel_mac_clk node
+>       ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk
+> clock
+> 
+>  arch/arm/boot/dts/am4372.dtsi        |    7 +++++--
+>  arch/arm/boot/dts/am43xx-clocks.dtsi |    9 +++++++++
+>  drivers/clk/ti/clk-43xx.c            |    1 +
+>  3 files changed, 15 insertions(+), 2 deletions(-)
 
-Actually, can you please do the following patches first while at it:
-
-1.  Change dra7 SoC detection to intialize soc_name and soc_rev
-    registers based on the of_machine_is_compatible so we don't
-    do pointless string comparisons with the current code
-
-2. Add am437x detection the same way
-
-3. Change all the existing DT only SoCs to do the same (this
-   can be done in a separate series)
-
-That should allow us to drop most of the SoC detection code.
+Pulling this into omap-for-v4.3/dt-v2 thanks. We're getting close
+to the merge window so guarantees it will get merged.
 
 Regards,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony 
