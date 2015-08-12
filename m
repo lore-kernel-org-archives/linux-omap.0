@@ -1,103 +1,37 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v5 0/3] dra7xx: Add PM support to PCIe
-Date: Wed, 12 Aug 2015 11:10:50 +0530
-Message-ID: <55CADC62.7060007@ti.com>
-References: <1438345512-28973-1-git-send-email-kishon@ti.com> <20150811205205.GJ13982@google.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC/PATCH-v4.2-rc6 4/5] arm: omap2: timer: simplify
+ omap4_local_timer_init()
+Date: Wed, 12 Aug 2015 00:14:24 -0700
+Message-ID: <20150812071424.GO4215@atomide.com>
+References: <1439242911-715-1-git-send-email-balbi@ti.com>
+ <1439242911-715-5-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150811205205.GJ13982@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, jingoohan1@gmail.com, nsekhar@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1439242911-715-5-git-send-email-balbi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Felipe Balbi <balbi@ti.com> [150810 14:44]:
+> all users of omap4_local_timer_init() are already
+> DT-only, so we can remove the check for having
+> DTB or not.
+> 
+> While at that, fix a typo in comment.
 
+We already have d1dabab2841d ("ARM: OMAP2+: Clean up
+omap4_local_timer_init") in Linux next reviewed-by you :)
 
-On Wednesday 12 August 2015 02:22 AM, Bjorn Helgaas wrote:
-> On Fri, Jul 31, 2015 at 05:55:09PM +0530, Kishon Vijay Abraham I wrote:
->> This series adds PM support to pci-dra7xx so that PCI clocks can be disabled
->> during suspend and enabled back during resume without affecting
->> PCI functionality.
->>
->> Changes from v4:
->> *) Fixed a bug caused by sending incomplete patch.
->>
->> Changes from v3:
->> *) Fix compilation errors when individual patches are applied
->>
->> Changes from v2:
->> *) Used SET_SYSTEM_SLEEP_PM_OPS and SET_NOIRQ_SYSTEM_SLEEP_PM_OPS for
->>    populating PM ops.
->>
->> Changes from v1:
->> *) Moved resetting and setting of MSE bit to pci-dra7xx.
->>
->> The comment to reset and set ISE is not done now since I don't have a card
->> with IO space. Once I get to test that, I'll post a separate patch for
->> handling that.
->>
->> Kishon Vijay Abraham I (3):
->>   PCI: host: pci-dra7xx: Disable pm_runtime on get_sync failure
->>   PCI: host: pci-dra7xx: add pm support to pci dra7xx
->>   PCI: host: pci-dra7xx: Idle the module by disabling MSE bit
->>
->>  drivers/pci/host/pci-dra7xx.c |   95 ++++++++++++++++++++++++++++++++++++++++-
->>  1 file changed, 94 insertions(+), 1 deletion(-)
-> 
-> Applied with Jingoo's Reviewed-by to pci/host-dra7xx for v4.3, thanks!
-> 
-> I tweaked the changelogs as follows:
-> 
-> 
-> commit 0e2bdb0e7abf4b5170874e415ec42df547916dd3
-> Author: Kishon Vijay Abraham I <kishon@ti.com>
-> Date:   Fri Jul 31 17:55:10 2015 +0530
-> 
->     PCI: dra7xx: Disable pm_runtime on get_sync failure
->     
->     Fix the error handling when pm_runtime_get_sync() fails.
->     
->     If pm_runtime_get_sync() fails, call pm_runtime_disable() so there are no
->     unbalanced pm_runtime_enable() calls.
->     
->     Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->     Reviewed-by: Jingoo Han <jingoohan1@gmail.com>
-> 
-> commit e52eb445ea1d97bf7fb92d2297e487a305392136
-> Author: Kishon Vijay Abraham I <kishon@ti.com>
-> Date:   Fri Jul 31 17:55:11 2015 +0530
-> 
->     PCI: dra7xx: Add PM support
->     
->     Add PM support to pci-dra7xx so PCI clocks can be disabled during suspend
->     and enabled during resume without affecting PCI functionality.
->     
->     Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->     Reviewed-by: Jingoo Han <jingoohan1@gmail.com>
-> 
-> commit 389c7094ec241ee8ebe358ba10fe392018692c8c
-> Author: Kishon Vijay Abraham I <kishon@ti.com>
-> Date:   Fri Jul 31 17:55:12 2015 +0530
-> 
->     PCI: dra7xx: Clear MSE bit during suspend so clocks will idle
->     
->     DRA7xx requires the MSE bit to be cleared to set the master in standby
->     mode.  (In DRA7xx TRM_vE, section 24.9.4.5.2.2.1 PCIe Controller Master
->     Standby Behavior advises to use the clearing of the local MSE bit to set
->     the master in standby.  Without this some of the clocks do not idle).
->     
->     Clear the MSE bit on suspend and enable it on resume.  Clearing MSE bit is
->     required to get clocks to be idled after suspend.
->     
->     Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->     Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->     Reviewed-by: Jingoo Han <jingoohan1@gmail.com>
-
-Thanks Bjorn!
-
--Kishon
+Tony
