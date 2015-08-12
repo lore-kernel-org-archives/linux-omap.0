@@ -1,16 +1,11 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: clock: remove un-used core dpll re-program
- code
-Date: Wed, 12 Aug 2015 03:56:42 -0700
-Message-ID: <20150812105642.GW4215@atomide.com>
-References: <1437034091-18306-1-git-send-email-t-kristo@ti.com>
- <20150812072535.GQ4215@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.2-rc5
+Date: Wed, 12 Aug 2015 13:37:35 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1508121336330.7154@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20150812072535.GQ4215@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,28 +15,140 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150812 00:29]:
-> * Tero Kristo <t-kristo@ti.com> [150716 01:10]:
-> > Remove the OMAP3 core DPLL re-program code, and the associated SRAM
-> > code that does the low-level programming of the DPLL divider, idling
-> > of the SDRAM etc.
-> > 
-> > This code was never fully implemented in the kernel; things missing
-> > were driver side handling of core clock changes (they need to account
-> > for their functional clock rate being changed on-the-fly), and the whole
-> > framework required for handling this. Thus, there is not much point
-> > to keep carrying the low-level support code either.
-> 
-> OK I'm applying this into omap-for-v4.3/soc. If we ever need the code
-> it will be in the git history.
 
-Actually I'll wait on this one and apply it later on as it currently
-adds merge conflicts into Linux next.
+Here are some basic OMAP test results for Linux v4.2-rc5.
+Logs and other details at:
 
-Regards,
+    http://www.pwsan.com/omap/testlogs/test_v4.2-rc5/20150809200304/
 
-Tony
+
+Test summary
+------------
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
+
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
+
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Build warnings from toolchain: uImage:
+    (none)
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL (10/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only
+
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 3/17): 5912osk, 3517evm, 5430es2sbct54
+    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 2/17): 4430es2panda, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 1/17): 4430es2panda
+
+Obsolete Kconfig symbols:
+    FAIL ( 1/20): multi_v7_defconfig
+
+
+vmlinux object size
+(delta in bytes from test_v4.2-rc5 (74d33293e467df61de1b1d8b2fbe29e550dec33b)):
+   text     data      bss    total  kernel
+      0        0        0        0  omap1_defconfig
+      0        0        0        0  omap1_defconfig_1510innovator_only
+      0        0        0        0  omap1_defconfig_5912osk_only
+      0        0        0        0  multi_v7_defconfig
+      0        0        0        0  omap2plus_defconfig
+      0        0        0        0  omap2plus_defconfig_2430sdp_only
+      0        0        0        0  omap2plus_defconfig_am33xx_only
+      0        0        0        0  omap2plus_defconfig_am43xx_only
+      0        0        0        0  omap2plus_defconfig_cpupm
+      0        0        0        0  omap2plus_defconfig_dra7xx_only
+      0        0        0        0  omap2plus_defconfig_n800_multi_omap2xxx
+      0        0        0        0  omap2plus_defconfig_n800_only_a
+      0        0        0        0  omap2plus_defconfig_no_pm
+      0        0        0        0  omap2plus_defconfig_omap2_4_only
+      0        0        0        0  omap2plus_defconfig_omap3_4_only
+      0        0        0        0  omap2plus_defconfig_omap5_only
+      0        0        0        0  rmk_omap3430_ldp_allnoconfig
+      0        0        0        0  rmk_omap3430_ldp_oldconfig
+      0        0        0        0  rmk_omap4430_sdp_allnoconfig
+      0        0        0        0  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v4.2-rc5 (74d33293e467df61de1b1d8b2fbe29e550dec33b))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
