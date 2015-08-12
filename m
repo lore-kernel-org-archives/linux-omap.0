@@ -1,11 +1,14 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH-next 0/4] arm: am437x: use TWD/Global timers
-Date: Wed, 12 Aug 2015 14:56:52 -0500
-Message-ID: <1439409416-32673-1-git-send-email-balbi@ti.com>
+Subject: [PATCH-next 3/4] arm: omap2: Kconfig: select TWD and global timer on
+ AM43xx devices
+Date: Wed, 12 Aug 2015 14:56:55 -0500
+Message-ID: <1439409416-32673-4-git-send-email-balbi@ti.com>
+References: <1439409416-32673-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1439409416-32673-1-git-send-email-balbi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,45 +22,27 @@ To: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony L
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Make sure to tell the kernel that AM437x has
+TWD and global timers.
 
-with these patches AM437x devices can use TWD/global timers.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/Kconfig | 3 +++
+ 1 file changed, 3 insertions(+)
 
-At least TWD is now used as sched_clock() which gives better latency as seen
-below. Keep in mind that while I ran cyclictest to have a feel for avg latency
-this test was not against an RT kernel, so results should be taken with a
-grain of salt.
-
-Also, I'm not 100% sure clock rate is correct. According to TRM, this timer
-should run as MPU_CLK/2 which would be 1GHz / 2 = 500MHz, but even though
-I'm using dpll_mpu_m2_ck clock, it still shows as 1000MHz.
-
-Are there any other tests I could/should run ? BTW, I boot-tested on AM4372
-with and without 'nosmp' on cmdline.
-
-pre-patch:
-T: 0 (  245) P:95 I:1000 C:   9995 Min:     24 Act:   31 Avg:   36 Max:     596
-
-post-patch:
-T: 0 (  253) P:95 I:1000 C:   9995 Min:     10 Act:   12 Avg:   14 Max:      68
-
-
-Changes since v1:
-	- Rebased on top of today's linux-next (c1a0c66f231d Add linux-next
-	  specific files for 20150812)
-
-Felipe Balbi (4):
-  Revert "ARM: 7655/1: smp_twd: make twd_local_timer_of_register() no-op
-    for nosmp"
-  arm: boot: dts: am4372: add ARM timers and SCU nodes
-  arm: omap2: Kconfig: select TWD and global timer on AM43xx devices
-  arm: omap2: board-generic: use omap4_local_timer_init for AM437x
-
- arch/arm/boot/dts/am4372.dtsi       | 21 +++++++++++++++++++++
- arch/arm/kernel/smp_twd.c           |  4 ----
- arch/arm/mach-omap2/Kconfig         |  3 +++
- arch/arm/mach-omap2/board-generic.c |  2 +-
- 4 files changed, 25 insertions(+), 5 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 07d2e100caab..88ef10b2d415 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -63,6 +63,9 @@ config SOC_AM43XX
+ 	select MACH_OMAP_GENERIC
+ 	select MIGHT_HAVE_CACHE_L2X0
+ 	select HAVE_ARM_SCU
++	select HAVE_ARM_TWD
++	select ARM_GLOBAL_TIMER
++	select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+ 
+ config SOC_DRA7XX
+ 	bool "TI DRA7XX"
 -- 
 2.5.0
