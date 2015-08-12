@@ -1,37 +1,47 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH 2/3] ARM: dts: dra7: update cpsw compatible
-Date: Wed, 12 Aug 2015 15:22:54 +0530
-Message-ID: <1439373175-8650-3-git-send-email-mugunthanvnm@ti.com>
-References: <1439373175-8650-1-git-send-email-mugunthanvnm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP3: clock: remove un-used core dpll re-program
+ code
+Date: Wed, 12 Aug 2015 03:56:42 -0700
+Message-ID: <20150812105642.GW4215@atomide.com>
+References: <1437034091-18306-1-git-send-email-t-kristo@ti.com>
+ <20150812072535.GQ4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1439373175-8650-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, alex.aring@gmail.com, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20150812072535.GQ4215@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-CPSW driver has been updated with compatibles for enabling errata
-workarounds. So updating cpsw compatibles.
+* Tony Lindgren <tony@atomide.com> [150812 00:29]:
+> * Tero Kristo <t-kristo@ti.com> [150716 01:10]:
+> > Remove the OMAP3 core DPLL re-program code, and the associated SRAM
+> > code that does the low-level programming of the DPLL divider, idling
+> > of the SDRAM etc.
+> > 
+> > This code was never fully implemented in the kernel; things missing
+> > were driver side handling of core clock changes (they need to account
+> > for their functional clock rate being changed on-the-fly), and the whole
+> > framework required for handling this. Thus, there is not much point
+> > to keep carrying the low-level support code either.
+> 
+> OK I'm applying this into omap-for-v4.3/soc. If we ever need the code
+> it will be in the git history.
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Actually I'll wait on this one and apply it later on as it currently
+adds merge conflicts into Linux next.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 8f1e25b..b4fdd10 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1398,7 +1398,7 @@
- 		};
- 
- 		mac: ethernet@4a100000 {
--			compatible = "ti,cpsw";
-+			compatible = "ti,dra7-cpsw","ti,cpsw";
- 			ti,hwmods = "gmac";
- 			clocks = <&dpll_gmac_ck>, <&gmac_gmii_ref_clk_div>;
- 			clock-names = "fck", "cpts";
--- 
-2.5.0.234.gefc8a62
+Regards,
+
+Tony
