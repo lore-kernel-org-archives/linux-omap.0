@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2 2/6] genirq: fix irqchip_set_wake_parent if IRQCHIP_SKIP_SET_WAKE
-Date: Wed, 12 Aug 2015 20:45:58 +0300
-Message-ID: <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH v2 4/6] irqchip: crossbar: fix arm gic irq type configuration
+Date: Wed, 12 Aug 2015 20:46:00 +0300
+Message-ID: <1439401562-28874-5-git-send-email-grygorii.strashko@ti.com>
 References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,53 +12,45 @@ To: tglx@linutronix.de, tony@atomide.com, marc.zyngier@arm.com
 Cc: linux@arm.linux.org.uk, nsekhar@ti.com, jason@lakedaemon.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The irqchip_set_wake_parent should not fail if IRQ chip
-specifies IRQCHIP_SKIP_SET_WAKE. Otherwise, IRQ wakeup
-configuration can't be propagated properly through IRQ
-domains hierarchy.
+It's observed that ARM GIC IRQ triggering type is not configured
+properly when IRQ is routed through IRQ domain hierarchy and
+system started using DT. As result, system will start using default
+ARM GIC configuration, ignore DT IRQ triggering configuration,
+and value of desc->irq_data.state_use_accessors = 0.
 
-In case of TI OMAP DRA7 the issue reproduced with following
-configuration:
-ARM GIC<-OMAP wakeupgen<-TI CBAR<-GPIO<-GPIO pcf857x<-gpio_key
+In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
+ARM GIC <- OMAP wakeupgen <- TI CBAR
 
-gpio_key is wakeup source
+Failed call chain:
+     irq_create_of_mapping
+     irq_set_irq_type
+     __irq_set_trigger
+     if (!chip || !chip->irq_set_type) {
+        return 0; <- return here
+     }
+Crossbar has no .irq_set_type() defined and, so, IRQ triggering
+configuration will not be propagated to parent IRQ domain.
 
-Failure is reproduced during suspend/resume to RAM:
-suspend:
- - gpio_keys_suspend
-   enable_irq_wake
-     + pcf857x_irq_set_wake
-       + omap_gpio_wake_enable
-         + TI CBAR irq_chip_set_wake_parent
-           + OMAP wakeupgen has no .irq_set_wake()
-           and -ENOSYS will be returned
+Hence, fix it by using irq_chip_set_type_parent() for
+propagation IRQ triggering type to parent IRQ domains.
 
-resume:
- - gpio_keys_resume
-   + disable_irq_wake
-     + irq_set_irq_wake
-       + WARN(1, "Unbalanced IRQ %d wake disable\n", irq);
-
-Fixes: 08b55e2a9208 ('genirq: Add irqchip_set_wake_parent')
+Fixes: 783d31863fb8 ('irqchip: crossbar: Convert dra7 crossbar...')
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- kernel/irq/chip.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/irqchip/irq-crossbar.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 6de638b..bdb1b9d 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -1024,6 +1024,10 @@ int irq_chip_set_vcpu_affinity_parent(struct irq_data *data, void *vcpu_info)
- int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
- {
- 	data = data->parent_data;
-+
-+	if (irq_data_get_irq_chip(data)->flags & IRQCHIP_SKIP_SET_WAKE)
-+		return 0;
-+
- 	if (data->chip->irq_set_wake)
- 		return data->chip->irq_set_wake(data, on);
- 
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 692fe2b..3ba58e7 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -69,6 +69,7 @@ static struct irq_chip crossbar_chip = {
+ 	.irq_unmask		= irq_chip_unmask_parent,
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+ 	.irq_set_wake		= irq_chip_set_wake_parent,
++	.irq_set_type		= irq_chip_set_type_parent,
+ #ifdef CONFIG_SMP
+ 	.irq_set_affinity	= irq_chip_set_affinity_parent,
+ #endif
 -- 
 2.5.0
