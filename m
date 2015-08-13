@@ -1,67 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 5/6] ARM: OMAP: wakeupgen: fix arm gic irq type
- configuration
-Date: Thu, 13 Aug 2015 02:50:48 -0700
-Message-ID: <20150813095048.GA4215@atomide.com>
-References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com>
- <1439401562-28874-6-git-send-email-grygorii.strashko@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2 2/6] genirq: fix irqchip_set_wake_parent if IRQCHIP_SKIP_SET_WAKE
+Date: Thu, 13 Aug 2015 12:51:28 +0300
+Message-ID: <55CC68A0.40101@ti.com>
+References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com> <55CC5B2F.7060503@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1439401562-28874-6-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <55CC5B2F.7060503@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: tglx@linutronix.de, marc.zyngier@arm.com, linux@arm.linux.org.uk, nsekhar@ti.com, jason@lakedaemon.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>
+Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "nsekhar@ti.com" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [150812 10:49]:
-> It's observed that ARM GIC IRQ triggering type is not configured
-> properly when IRQ is routed through IRQ domain hierarchy and
-> system started using DT. As result, system will start using default
-> ARM GIC configuration, ignore DT IRQ triggering configuration,
-> and value of desc->irq_data.state_use_accessors = 0.
-> 
-> In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
-> ARM GIC <- OMAP wakeupgen <- TI CBAR
-> 
-> Failed call chain:
->      irq_create_of_mapping
->      irq_set_irq_type
->      __irq_set_trigger
->      if (!chip || !chip->irq_set_type) {
->         return 0; <- return here
->      }
-> OMAP wakeupgen has no .irq_set_type() defined and, so, IRQ triggering
-> configuration will not be propagated to parent IRQ domain.
-> 
-> Hence, fix it by using irq_chip_set_type_parent() for
-> propagation IRQ triggering type to parent IRQ domains.
-> 
-> Fixes: 7136d457f365 ('ARM: omap: convert wakeupgen to stacked domains')
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+On 08/13/2015 11:54 AM, Sudeep Holla wrote:
+>
+>
+> On 12/08/15 18:45, Grygorii Strashko wrote:
+>> The irqchip_set_wake_parent should not fail if IRQ chip
+>> specifies IRQCHIP_SKIP_SET_WAKE. Otherwise, IRQ wakeup
+>> configuration can't be propagated properly through IRQ
+>> domains hierarchy.
+>>
+>> In case of TI OMAP DRA7 the issue reproduced with following
+>> configuration:
+>> ARM GIC<-OMAP wakeupgen<-TI CBAR<-GPIO<-GPIO pcf857x<-gpio_key
+>>
+>> gpio_key is wakeup source
+>>
+>> Failure is reproduced during suspend/resume to RAM:
+>> suspend:
+>>   - gpio_keys_suspend
+>>     enable_irq_wake
+>>       + pcf857x_irq_set_wake
+>>         + omap_gpio_wake_enable
+>>           + TI CBAR irq_chip_set_wake_parent
+>>             + OMAP wakeupgen has no .irq_set_wake()
+>>             and -ENOSYS will be returned
+>>
+>> resume:
+>>   - gpio_keys_resume
+>>     + disable_irq_wake
+>>       + irq_set_irq_wake
+>>         + WARN(1, "Unbalanced IRQ %d wake disable\n", irq);
+>>
+>> Fixes: 08b55e2a9208 ('genirq: Add irqchip_set_wake_parent')
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>>   kernel/irq/chip.c | 4 ++++
+>>   1 file changed, 4 insertions(+)
+>>
+>> diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+>> index 6de638b..bdb1b9d 100644
+>> --- a/kernel/irq/chip.c
+>> +++ b/kernel/irq/chip.c
+>> @@ -1024,6 +1024,10 @@ int irq_chip_set_vcpu_affinity_parent(struct
+>> irq_data *data, void *vcpu_info)
+>>   int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
+>>   {
+>>       data = data->parent_data;
+>> +
+>> +    if (irq_data_get_irq_chip(data)->flags & IRQCHIP_SKIP_SET_WAKE)
+>> +        return 0;
+>> +
+>
+> [Nit] I think the irq core can access data->chip directly. Either way,
+> it's better to be consistent, the statement following doesn't use helper
+> function.
 
-Makse sense to merge this along with the irqchip changes once those
-are ready, so feel free to add to this one:
+thanks. I'll change it to:
+	if (data->chip->flags & IRQCHIP_SKIP_SET_WAKE)
+		return 0;
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+>
+> Otherwise looks good to me.
 
-> ---
->  arch/arm/mach-omap2/omap-wakeupgen.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-> index 8e52621..e1d2e99 100644
-> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
-> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-> @@ -392,6 +392,7 @@ static struct irq_chip wakeupgen_chip = {
->  	.irq_mask		= wakeupgen_mask,
->  	.irq_unmask		= wakeupgen_unmask,
->  	.irq_retrigger		= irq_chip_retrigger_hierarchy,
-> +	.irq_set_type		= irq_chip_set_type_parent,
->  	.flags			= IRQCHIP_SKIP_SET_WAKE | IRQCHIP_MASK_ON_SUSPEND,
->  #ifdef CONFIG_SMP
->  	.irq_set_affinity	= irq_chip_set_affinity_parent,
-> -- 
-> 2.5.0
-> 
+Does it means that I can add your Reviewed-by: with above change?
+
+
+>
+>>       if (data->chip->irq_set_wake)
+>>           return data->chip->irq_set_wake(data, on);
+>>
+>>
+
+
+-- 
+regards,
+-grygorii
