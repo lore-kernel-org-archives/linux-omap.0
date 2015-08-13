@@ -1,47 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] omap soc fix for v4.3 merge window
-Date: Thu, 13 Aug 2015 03:08:45 -0700
-Message-ID: <31420.2355723411$1439460611@news.gmane.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2 6/6] irqchip: crossbar: fix irq masking at suspend
+Date: Thu, 13 Aug 2015 13:17:28 +0300
+Message-ID: <55CC6EB8.3050906@ti.com>
+References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-7-git-send-email-grygorii.strashko@ti.com> <55CC63D0.8030707@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55CC63D0.8030707@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>
+Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "nsekhar@ti.com" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 24da741c678f865de3182194604dbddcc7fc7f3c:
+On 08/13/2015 12:30 PM, Sudeep Holla wrote:
+> 
+> 
+> On 12/08/15 18:46, Grygorii Strashko wrote:
+>> All ARM GIC IRQs have to masked during suspend if they are not
+>> wakeup source. Now this is not happen, since switching to
+>> use IRQ domain hierarchy, because suspend_device_irq() only checks flags
+>> in the last IRQ chip in hierarchy for IRQCHIP_MASK_ON_SUSPEND
+>> bit set. And in the case of TI OMAP DRA7 the last IRQ chip is TI Crossbar
+>> which do not have this flag set.
+>>
+>> In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
+>>    ARM GIC <- OMAP wakeupgen <- TI CBAR
+>> ARM GIC - IRQCHIP_MASK_ON_SUSPEND=n
+> 
+> May be this won't affect your platform or this patch but even GIC marks
+> IRQCHIP_MASK_ON_SUSPEND=y now since GIC doesn't provide any facility to
+> configure the wakeup source and keeps all the interrupt source enabled.
 
-  Merge branch 'dm814x-soc' into omap-for-v4.3/soc (2015-07-23 21:59:18 -0700)
+That's true for next, bur not true for 4.2-rc6 or 4.1 :(
 
-are available in the git repository at:
+> 
+> We have this flag enabled now as it's always safer to mask all the non
+> wakeup interrupts are masked at the chip level when suspending.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/soc-pt2
+Indeed, but that's do not work in case of IRQ domain hierarchy and
+it's do not clear how should it work?
+I've tried to describe this problem in cover letter actually.
 
-for you to fetch changes up to ed293d1ad2b0c28b6abc3bd728b07754bc00f1cd:
+> 
+> Also the beginning of the commit message contradicts when you also say
+> in the following statement IRQCHIP_MASK_ON_SUSPEND=n. So you may need to
+> update the log.
 
-  memory: kill off set_irq_flags usage (2015-08-13 00:48:52 -0700)
+I'll try to reword. What I've tried to mention that IRQs masking on
+suspend is default expected behavior and that how it was before
+switching to IRQ domain hierarchy.
 
-----------------------------------------------------------------
-Fix omap PM regression in Linux next and kill set_irq_flags usage
-for GPMC.
+"All ARM GIC IRQs have to masked during suspend if they are not
+ wakeup source - this is expected behavior and that's how it was before
+ switching to IRQ domain hierarchy. ..."
+ok?
 
-----------------------------------------------------------------
-Rob Herring (1):
-      memory: kill off set_irq_flags usage
-
-Tony Lindgren (1):
-      ARM: OMAP2+: Fix power domain operations regression caused by 81xx
-
- arch/arm/mach-omap2/powerdomains3xxx_data.c | 6 +++++-
- drivers/memory/omap-gpmc.c                  | 5 ++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+-- 
+regards,
+-grygorii
