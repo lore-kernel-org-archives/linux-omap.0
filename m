@@ -1,61 +1,42 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 6/6] irqchip: crossbar: fix irq masking at suspend
-Date: Thu, 13 Aug 2015 13:17:28 +0300
-Message-ID: <55CC6EB8.3050906@ti.com>
-References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-7-git-send-email-grygorii.strashko@ti.com> <55CC63D0.8030707@arm.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] usb: phy: phy-generic: Fix reset behaviour on legacy boot
+Date: Thu, 13 Aug 2015 13:28:42 +0300
+Message-ID: <1439461722-9498-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55CC63D0.8030707@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>
-Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "nsekhar@ti.com" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: balbi@ti.com
+Cc: tony@atomide.com, robert.jarzmik@free.fr, fabio.estevam@freescale.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/13/2015 12:30 PM, Sudeep Holla wrote:
-> 
-> 
-> On 12/08/15 18:46, Grygorii Strashko wrote:
->> All ARM GIC IRQs have to masked during suspend if they are not
->> wakeup source. Now this is not happen, since switching to
->> use IRQ domain hierarchy, because suspend_device_irq() only checks flags
->> in the last IRQ chip in hierarchy for IRQCHIP_MASK_ON_SUSPEND
->> bit set. And in the case of TI OMAP DRA7 the last IRQ chip is TI Crossbar
->> which do not have this flag set.
->>
->> In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
->>    ARM GIC <- OMAP wakeupgen <- TI CBAR
->> ARM GIC - IRQCHIP_MASK_ON_SUSPEND=n
-> 
-> May be this won't affect your platform or this patch but even GIC marks
-> IRQCHIP_MASK_ON_SUSPEND=y now since GIC doesn't provide any facility to
-> configure the wakeup source and keeps all the interrupt source enabled.
+The gpio-desc migration done in v4.0 caused a regression
+with legacy boots due to reversed reset logic.
+e.g. omap3-beagle USB host breaks on legacy boot.
 
-That's true for next, bur not true for 4.2-rc6 or 4.1 :(
+Request the reset GPIO with GPIOF_ACTIVE_LOW flag so that
+it matches the driver logic and pin behaviour.
 
-> 
-> We have this flag enabled now as it's always safer to mask all the non
-> wakeup interrupts are masked at the chip level when suspending.
+Fixes: e9f2cefb0cdc ("usb: phy: generic: migrate to gpio_desc")
+Cc: <stable@vger.kernel.org> # 4.0+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/phy/phy-generic.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Indeed, but that's do not work in case of IRQ domain hierarchy and
-it's do not clear how should it work?
-I've tried to describe this problem in cover letter actually.
-
-> 
-> Also the beginning of the commit message contradicts when you also say
-> in the following statement IRQCHIP_MASK_ON_SUSPEND=n. So you may need to
-> update the log.
-
-I'll try to reword. What I've tried to mention that IRQs masking on
-suspend is default expected behavior and that how it was before
-switching to IRQ domain hierarchy.
-
-"All ARM GIC IRQs have to masked during suspend if they are not
- wakeup source - this is expected behavior and that's how it was before
- switching to IRQ domain hierarchy. ..."
-ok?
-
+diff --git a/drivers/usb/phy/phy-generic.c b/drivers/usb/phy/phy-generic.c
+index deee68e..0cd85f2 100644
+--- a/drivers/usb/phy/phy-generic.c
++++ b/drivers/usb/phy/phy-generic.c
+@@ -230,7 +230,8 @@ int usb_phy_gen_create_phy(struct device *dev, struct usb_phy_generic *nop,
+ 		clk_rate = pdata->clk_rate;
+ 		needs_vcc = pdata->needs_vcc;
+ 		if (gpio_is_valid(pdata->gpio_reset)) {
+-			err = devm_gpio_request_one(dev, pdata->gpio_reset, 0,
++			err = devm_gpio_request_one(dev, pdata->gpio_reset,
++						    GPIOF_ACTIVE_LOW,
+ 						    dev_name(dev));
+ 			if (!err)
+ 				nop->gpiod_reset =
 -- 
-regards,
--grygorii
+2.1.4
