@@ -1,66 +1,244 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v2 6/6] irqchip: crossbar: fix irq masking at suspend
-Date: Thu, 13 Aug 2015 12:04:29 +0100
-Message-ID: <55CC79BD.4030001@arm.com>
-References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-7-git-send-email-grygorii.strashko@ti.com> <55CC63D0.8030707@arm.com> <55CC6EB8.3050906@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 16/22] memory: omap-gpmc: Support general purpose input
+ for WAITPINs
+Date: Thu, 13 Aug 2015 14:58:09 +0300
+Message-ID: <55CC8651.2030600@ti.com>
+References: <1438938752-31010-1-git-send-email-rogerq@ti.com> <1438938752-31010-17-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55CC6EB8.3050906@ti.com>
+In-Reply-To: <1438938752-31010-17-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Marc Zyngier <Marc.Zyngier@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "nsekhar@ti.com" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 13/08/15 11:17, Grygorii Strashko wrote:
-> On 08/13/2015 12:30 PM, Sudeep Holla wrote:
->>
->>
->> On 12/08/15 18:46, Grygorii Strashko wrote:
->>> All ARM GIC IRQs have to masked during suspend if they are not
->>> wakeup source. Now this is not happen, since switching to
->>> use IRQ domain hierarchy, because suspend_device_irq() only checks flags
->>> in the last IRQ chip in hierarchy for IRQCHIP_MASK_ON_SUSPEND
->>> bit set. And in the case of TI OMAP DRA7 the last IRQ chip is TI Crossbar
->>> which do not have this flag set.
->>>
->>> In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
->>>     ARM GIC <- OMAP wakeupgen <- TI CBAR
->>> ARM GIC - IRQCHIP_MASK_ON_SUSPEND=n
->>
->> May be this won't affect your platform or this patch but even GIC marks
->> IRQCHIP_MASK_ON_SUSPEND=y now since GIC doesn't provide any facility to
->> configure the wakeup source and keeps all the interrupt source enabled.
->
-> That's true for next, bur not true for 4.2-rc6 or 4.1 :(
->
+On 07/08/15 12:12, Roger Quadros wrote:
+> OMAPs can have 2 to 4 WAITPINs that can be used as general purpose
+> input if not used for memory wait state insertion.
+> 
+> The first user will be the OMAP NAND chip to get the NAND
+> read/busy status using gpiolib.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/memory/omap-gpmc.c | 122 +++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 117 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index 30d9c21..264009d 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/io.h>
+>  #include <linux/module.h>
+> +#include <linux/gpio/driver.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/of.h>
+> @@ -223,6 +224,11 @@ struct omap3_gpmc_regs {
+>  	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
+>  };
+>  
+> +struct gpmc_device {
+> +	struct device *dev;
+> +	struct gpio_chip gpio_chip;
+> +};
+> +
+>  static struct resource	gpmc_mem_root;
+>  static struct gpmc_cs_data gpmc_cs[GPMC_CS_NUM];
+>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+> @@ -1919,10 +1925,69 @@ err:
+>  	return ret;
+>  }
+>  
+> +static int gpmc_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
+> +{
+> +	return 1;	/* we're input only */
+> +}
+> +
+> +static int gpmc_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
+> +{
+> +	return 0;	/* we're input only */
+> +}
+> +
+> +static int gpmc_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
+> +				      int value)
+> +{
+> +	return -EINVAL;	/* we're input only */
+> +}
+> +
+> +static void gpmc_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
+> +{
+> +}
+> +
+> +static int gpmc_gpio_get(struct gpio_chip *chip, unsigned offset)
+> +{
+> +	u32 reg;
+> +
+> +	offset += 8;
+> +
+> +	reg = gpmc_read_reg(GPMC_STATUS) & BIT(offset);
+> +
+> +	return !!reg;
+> +}
+> +
+> +static int gpmc_gpio_init(struct gpmc_device *gpmc)
+> +{
+> +	int ret;
+> +
+> +	gpmc->gpio_chip.dev = gpmc->dev;
+> +	gpmc->gpio_chip.owner = THIS_MODULE;
+> +	gpmc->gpio_chip.label = DEVICE_NAME;
+> +	gpmc->gpio_chip.ngpio = gpmc_nr_waitpins;
+> +	gpmc->gpio_chip.get_direction = gpmc_gpio_get_direction;
+> +	gpmc->gpio_chip.direction_input = gpmc_gpio_direction_input;
+> +	gpmc->gpio_chip.direction_output = gpmc_gpio_direction_output;
+> +	gpmc->gpio_chip.set = gpmc_gpio_set;
+> +	gpmc->gpio_chip.get = gpmc_gpio_get;
+> +	gpmc->gpio_chip.base = -1;
+> +
+> +	ret = gpiochip_add(&gpmc->gpio_chip);
+> +	if (ret < 0) {
+> +		dev_err(gpmc->dev, "could not register gpio chip: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void gpmc_gpio_exit(struct gpmc_device *gpmc)
+> +{
+> +	gpiochip_remove(&gpmc->gpio_chip);
+> +}
+> +
+>  static int gpmc_probe_dt(struct platform_device *pdev)
+>  {
+>  	int ret;
+> -	struct device_node *child;
+>  	const struct of_device_id *of_id =
+>  		of_match_device(gpmc_dt_ids, &pdev->dev);
+>  
+> @@ -1950,6 +2015,17 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  		return ret;
+>  	}
+>  
+> +	dev_info(&pdev->dev, "num-cs %d, num-wait %d\n",
+> +		 gpmc_cs_num, gpmc_nr_waitpins);
+> +
+> +	return 0;
+> +}
+> +
+> +static int gpmc_probe_dt_children(struct platform_device *pdev)
+> +{
+> +	int ret;
+> +	struct device_node *child;
+> +
+>  	for_each_available_child_of_node(pdev->dev.of_node, child) {
+>  
+>  		if (!child->name)
+> @@ -1959,6 +2035,9 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  			ret = gpmc_probe_onenand_child(pdev, child);
+>  		else
+>  			ret = gpmc_probe_generic_child(pdev, child);
+> +
+> +		if (ret)
+> +			return ret;
+>  	}
+>  
+>  	return 0;
+> @@ -1968,6 +2047,11 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  {
+>  	return 0;
+>  }
+> +
+> +static int gpmc_probe_dt_children(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+>  #endif
+>  
+>  static int gpmc_probe(struct platform_device *pdev)
+> @@ -1975,6 +2059,7 @@ static int gpmc_probe(struct platform_device *pdev)
+>  	int rc;
+>  	u32 l;
+>  	struct resource *res;
+> +	struct gpmc_device *gpmc;
+>  
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (res == NULL)
+> @@ -2005,6 +2090,17 @@ static int gpmc_probe(struct platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+>  
+> +	rc = gpmc_probe_dt(pdev);
+> +	if (rc)
+> +		return rc;
+> +
+> +	gpmc = devm_kzalloc(&pdev->dev, sizeof(*gpmc), GFP_KERNEL);
+> +	if (!gpmc)
+> +		return -ENOMEM;
+> +
+> +	gpmc->dev = &pdev->dev;
+> +	platform_set_drvdata(pdev, gpmc);
+> +
+>  	pm_runtime_enable(&pdev->dev);
+>  	pm_runtime_get_sync(&pdev->dev);
+>  
+> @@ -2032,24 +2128,40 @@ static int gpmc_probe(struct platform_device *pdev)
+>  		 GPMC_REVISION_MINOR(l));
+>  
+>  	gpmc_mem_init();
+> +	rc = gpmc_gpio_init(gpmc);
+> +	if (rc)
+> +		goto gpio_init_failed;
+> +
+>  
+>  	if (!pdev->dev.of_node) {
+>  		gpmc_cs_num	 = GPMC_CS_NUM;
+>  		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
+>  	}
 
-True, I just wanted to ensure there is no assumption.
+The above if {} needs to move near gpmc_probe_dt()
+else we break gpmc for legacy boot.
 
-[...]
->>
->> Also the beginning of the commit message contradicts when you also say
->> in the following statement IRQCHIP_MASK_ON_SUSPEND=n. So you may need to
->> update the log.
->
-> I'll try to reword. What I've tried to mention that IRQs masking on
-> suspend is default expected behavior and that how it was before
-> switching to IRQ domain hierarchy.
->
-> "All ARM GIC IRQs have to masked during suspend if they are not
->   wakeup source - this is expected behavior and that's how it was before
->   switching to IRQ domain hierarchy. ..."
-> ok?
->
+cheers,
+-roger
 
-My mistake I referred the code after it was converted to use stack
-domains. So I missed to understand that you were using gic_arch_extn
-flags before to override GIC flags as gic_set_irqchip_flags was not
-used when I removed it. Sorry for the noise, you can retain the commit
-log as is.
-
-Regards,
-Sudeep
+>  
+> -	rc = gpmc_probe_dt(pdev);
+> +	rc = gpmc_probe_dt_children(pdev);
+>  	if (rc < 0) {
+> -		pm_runtime_put_sync(&pdev->dev);
+> -		dev_err(gpmc_dev, "failed to probe DT parameters\n");
+> -		return rc;
+> +		dev_err(gpmc_dev, "failed to probe DT children\n");
+> +		goto dt_children_failed;
+>  	}
+>  
+>  	return 0;
+> +
+> +dt_children_failed:
+> +	gpmc_gpio_exit(gpmc);
+> +gpio_init_failed:
+> +	gpmc_mem_exit();
+> +	pm_runtime_put_sync(&pdev->dev);
+> +	pm_runtime_disable(&pdev->dev);
+> +	gpmc_dev = NULL;
+> +
+> +	return rc;
+>  }
+>  
+>  static int gpmc_remove(struct platform_device *pdev)
+>  {
+> +	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+> +
+> +	gpmc_gpio_exit(gpmc);
+>  	gpmc_mem_exit();
+>  	pm_runtime_put_sync(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+> 
