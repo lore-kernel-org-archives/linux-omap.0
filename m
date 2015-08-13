@@ -1,56 +1,43 @@
-From: Andrew Bresticker <abrestic@chromium.org>
-Subject: Re: [PATCH 2/2] clk: Convert __clk_get_name(hw->clk) to clk_hw_get_name(hw)
-Date: Thu, 13 Aug 2015 09:40:07 -0700
-Message-ID: <CAL1qeaE-UJD3CBx=6feF=Hu4=gu5AtQiWwQAZmbg+6qYLhOy2Q@mail.gmail.com>
-References: <1439421161-17868-1-git-send-email-sboyd@codeaurora.org>
-	<1439421161-17868-2-git-send-email-sboyd@codeaurora.org>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 2/6] rtc: omap: Add external clock enabling support
+Date: Thu, 13 Aug 2015 20:17:23 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1508131822510.1009@utopia.booyaka.com>
+References: <1439198906-31189-1-git-send-email-j-keerthy@ti.com> <1439198906-31189-3-git-send-email-j-keerthy@ti.com> <alpine.DEB.2.02.1508121422020.7154@utopia.booyaka.com> <55CB99C2.7010007@ti.com> <20150812201636.GJ3411@piout.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1439421161-17868-2-git-send-email-sboyd@codeaurora.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Mike Turquette <mturquette@baylibre.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-clk@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Tero Kristo <t-kristo@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Ezequiel Garcia <ezequiel.garcia@imgtec.com>, Ralf Baechle <ralf@linux-mips.org>, Kevin Cernekee <cernekee@chromium.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Ulrich Hecht <ulrich.hecht+renesas@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150812201636.GJ3411-m++hUPXGwpdeoWH0uzbU5w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <a0393675-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 12, 2015 at 4:12 PM, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> Use the provider based method to get a clock's name so that we
-> can get rid of the clk member in struct clk_hw one day. Mostly
-> converted with the following coccinelle script.
->
-> @@
-> struct clk_hw *E;
-> @@
->
-> -__clk_get_name(E->clk)
-> +clk_hw_get_name(E)
->
-> Cc: Heiko Stuebner <heiko@sntech.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Tomasz Figa <tomasz.figa@gmail.com>
-> Cc: Peter De Schrijver <pdeschrijver@nvidia.com>
-> Cc: Prashant Gaikwad <pgaikwad@nvidia.com>
-> Cc: Stephen Warren <swarren@wwwdotorg.org>
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Cc: Alexandre Courbot <gnurou@gmail.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Ulf Hansson <ulf.hansson@linaro.org>
-> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-> Cc: Andrew Bresticker <abrestic@chromium.org>
-> Cc: Ezequiel Garcia <ezequiel.garcia@imgtec.com>
-> Cc: Ralf Baechle <ralf@linux-mips.org>
-> Cc: Kevin Cernekee <cernekee@chromium.org>
-> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-rockchip@lists.infradead.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: linux-tegra@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Hi guys
 
->  drivers/clk/pistachio/clk-pll.c      |  4 ++--
+On Wed, 12 Aug 2015, Alexandre Belloni wrote:
 
-For Pistachio,
+> On 13/08/2015 at 00:38:50 +0530, Keerthy wrote :
+> > The intent here is to switch to a higher precision clock which is the
+> > internal clock when available.
+> > 
+> > Alexandre,
+> > 
+> > Is dynamic switching preferred over sticking  to external clock always if
+> > present?
+> 
+> I'd say that I don't really care. I'd say the best would be to make a
+> decision based on clock-accuracy but maybe that is an information you
+> don't have yet. Anyway, this could be added at a later date.
 
-Acked-by: Andrew Bresticker <abrestic@chromium.org>
+Either the clock mux logic is glitchless, in which case the RTC is likely 
+to lose at least 31 microseconds per switch; or it's not glitchless, in 
+which case it's unsafe to switch the RTC clock source while the clock 
+isn't gated.  Keerthy, before submitting this patch for merging, I'd 
+suggest consulting your hardware folks to figure out which case it is.
+
+
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
