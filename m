@@ -1,46 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [net-next PATCH 3/3] ARM: dts: am33xx: update cpsw compatible
-Date: Thu, 13 Aug 2015 02:56:14 -0700
-Message-ID: <20150813095613.GC4215@atomide.com>
-References: <1439373175-8650-1-git-send-email-mugunthanvnm@ti.com>
- <1439373175-8650-4-git-send-email-mugunthanvnm@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 3/6] ARM: AM43xx: Introduce a separate soc_is function
+ for am438x series of SoCs
+Date: Thu, 13 Aug 2015 02:59:15 -0700
+Message-ID: <20150813095915.GD4215@atomide.com>
+References: <1439198906-31189-1-git-send-email-j-keerthy@ti.com>
+ <1439198906-31189-4-git-send-email-j-keerthy@ti.com>
+ <20150811125515.GN4215@atomide.com>
+ <55CA36D2.3080509@ti.com>
+ <20150812083718.GS4215@atomide.com>
+ <55CC5DB4.7040704@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1439373175-8650-4-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, alex.aring@gmail.com
+In-Reply-To: <55CC5DB4.7040704-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mugunthan V N <mugunthanvnm@ti.com> [150812 02:56]:
-> CPSW driver has been updated with compatibles for enabling errata
-> workarounds. So updating cpsw compatibles.
+* Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [150813 02:08]:
 > 
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-
-This too:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  arch/arm/boot/dts/am33xx.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 21fcc44..8b59c86 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -700,7 +700,7 @@
->  		};
->  
->  		mac: ethernet@4a100000 {
-> -			compatible = "ti,cpsw";
-> +			compatible = "ti,am335x-cpsw","ti,cpsw";
->  			ti,hwmods = "cpgmac0";
->  			clocks = <&cpsw_125mhz_gclk>, <&cpsw_cpts_rft_clk>;
->  			clock-names = "fck", "cpts";
-> -- 
-> 2.5.0.234.gefc8a62
+> On Wednesday 12 August 2015 02:07 PM, Tony Lindgren wrote:
+> >* Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [150811 10:57]:
+> >>
+> >>
+> >>On Tuesday 11 August 2015 06:25 PM, Tony Lindgren wrote:
+> >>>* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [150810 02:31]:
+> >>>>@@ -371,8 +372,10 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >>>>  #ifdef	CONFIG_SOC_AM43XX
+> >>>>  # undef soc_is_am43xx
+> >>>>  # undef soc_is_am437x
+> >>>>-# define soc_is_am43xx()		is_am43xx()
+> >>>>-# define soc_is_am437x()		is_am437x()
+> >>>>+# undef soc_is_am438x
+> >>>>+# define soc_is_am43xx()		of_machine_is_compatible("ti,am43")
+> >>>>+# define soc_is_am437x()		of_machine_is_compatible("ti,am4372")
+> >>>>+# define soc_is_am438x()		of_machine_is_compatible("ti,am438x")
+> >>>>  #endif
+> >>>
+> >>>Hmm didn't I already comment on this change? I don't want to do it
+> >>>for one SoC. Please add the SoC detection the old way for am43xx,
+> >>>then do another series that changes all the DT only SoCs to use
+> >>>of_machine_is_compatible() after it's been properly tested so now
+> >>>regressions are caused for the early init code.
+> >>
+> >>Okay. I misinterpreted your earlier comment. Thanks for clarifying.
+> >>I will re-do.
+> >
+> >Actually, can you please do the following patches first while at it:
+> >
+> >1.  Change dra7 SoC detection to intialize soc_name and soc_rev
+> >     registers based on the of_machine_is_compatible so we don't
+> >     do pointless string comparisons with the current code
 > 
+> just another confirmation. So the intent here is to directly do
+> of_machine_is_compatible checks instead if soc_is_dra* and try to remove
+> soc_is calls from mach-omap2 code right?
+
+Only do of_machine_is_compatible check once to initialize
+the necessary variables for soc_is_* to use. 
+
+Rgarads,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
