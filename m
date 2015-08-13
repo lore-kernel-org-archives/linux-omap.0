@@ -1,80 +1,98 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: DRA752: Add ID detect for ES2.0
-Date: Thu, 13 Aug 2015 09:32:20 -0500
-Message-ID: <1439476340-20141-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] i2c: omap: improve duty cycle on SCL
+Date: Thu, 13 Aug 2015 09:36:51 -0500
+Message-ID: <20150813143651.GG27560@saruman.tx.rr.com>
+References: <1434569475-17378-1-git-send-email-balbi@ti.com>
+ <55827CD7.7030207@nokia.com>
+ <20150618172558.GC27790@saruman.tx.rr.com>
+ <20150709194241.GF4744@katana>
+ <20150710172714.GC20408@saruman.tx.rr.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vishal Mahaveer <vishalm@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="APlYHCtpeOhspHkB"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150710172714.GC20408-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Vishal Mahaveer <vishalm@ti.com>
+--APlYHCtpeOhspHkB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-ES2.0 is a minor variant of ES1.1. ES2.0 is an incremental revision
-with various fixes including the following:
-	- reset logic fixes
-	- few assymetric aging logic fixes
-	- MMC clock rate fixes
-	- Ethernet speed fixes
-	- edma fixes for mcasp
+On Fri, Jul 10, 2015 at 12:27:15PM -0500, Felipe Balbi wrote:
+> On Thu, Jul 09, 2015 at 09:42:41PM +0200, Wolfram Sang wrote:
+> > On Thu, Jun 18, 2015 at 12:25:58PM -0500, Felipe Balbi wrote:
+> > > On Thu, Jun 18, 2015 at 10:09:59AM +0200, Alexander Sverdlin wrote:
+> > > > Hello Felipe,
+> > > >=20
+> > > > On 17/06/15 21:31, ext Felipe Balbi wrote:
+> > > > > With this patch we try to be as close to 50%
+> > > > > duty cycle as possible. The reason for this
+> > > > > is that some devices present an erratic behavior
+> > > > > with certain duty cycles.
+> > > > >=20
+> > > > > One such example is TPS65218 PMIC which fails
+> > > > > to change voltages when running @ 400kHz and
+> > > > > duty cycle is lower than 34%.
+> > > > >=20
+> > > > > The idea of the patch is simple:
+> > > > >=20
+> > > > > calculate desired scl_period from requested scl
+> > > > > and use 50% for tLow and 50% for tHigh.
+> > > > >=20
+> > > > > tLow is calculated with a DIV_ROUND_UP() to make
+> > > > > sure it's slightly higher than tHigh and to make
+> > > > > sure that we end up within I2C specifications.
+> > > >=20
+> > > > if you refuse to change the calculations to achieve maximum possible
+> > > > bus rate (as I've shown you with SCLL=3D9 and SCLH=3D9), maybe you =
+want to
+> > > > change the description? Because you are doing something else than is
+> > > > written here. You are only in spec because you are not doing 50% du=
+ty
+> > > > cycle. And you didn't mention here that you lower the bus speed bel=
+ow
+> > > > 400kHz to achieve this.
+> > >=20
+> > > and there's a comment where the calculation goes which states "as clo=
+se
+> > > to 50% as possible but we make sure tLow is higher than tHigh so we're
+> > > still within spec".
+> >=20
+> > So, is that ready to go in for-next?
+>=20
+> should be.
 
-NOTE: even though we use a compatible of dra742 and dra752, the usage in
-the Linux kernel is more or less interchangable - we use dra752 more
-often in the linux kernel compared to dra742 and 4.2-rc6
+ping ?
 
-Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-based on linux-next next-20150812, applies to v4.2-rc6 as well.
-Definetly not a 4.2 material, for 4.3, this probably missed the first merge
-window for 4.3, will be great if it could be considered for the second merge
-window.
+--=20
+balbi
 
- arch/arm/mach-omap2/id.c  | 8 ++++++--
- arch/arm/mach-omap2/soc.h | 2 ++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+--APlYHCtpeOhspHkB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index e3f713ffb06b..54a5ba54d2ff 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -653,8 +653,12 @@ void __init dra7xxx_check_revision(void)
- 			omap_revision = DRA752_REV_ES1_0;
- 			break;
- 		case 1:
--		default:
- 			omap_revision = DRA752_REV_ES1_1;
-+			break;
-+		case 2:
-+		default:
-+			omap_revision = DRA752_REV_ES2_0;
-+			break;
- 		}
- 		break;
- 
-@@ -674,7 +678,7 @@ void __init dra7xxx_check_revision(void)
- 		/* Unknown default to latest silicon rev as default*/
- 		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%x)\n",
- 			__func__, idcode, hawkeye, rev);
--		omap_revision = DRA752_REV_ES1_1;
-+		omap_revision = DRA752_REV_ES2_0;
- 	}
- 
- 	sprintf(soc_name, "DRA%03x", omap_rev() >> 16);
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index f97654d11ea5..2d1d3845253c 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -469,6 +469,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define DRA7XX_CLASS		0x07000000
- #define DRA752_REV_ES1_0	(DRA7XX_CLASS | (0x52 << 16) | (0x10 << 8))
- #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
-+#define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
-+#define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
- #define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
- 
- void omap2xxx_check_revision(void);
--- 
-2.1.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVzKuDAAoJEIaOsuA1yqREd/wP/Rsg7UHhmqDfKqnEcIRRAiBJ
+FJCEdDg/mT5Ul5mB8m71+Fd1xQn3S9v7oOY3ohE8enr8+iz9FjBwmJ+J8YKvV9W4
+YTwpz+yqz/0u0cLf5df5sh6deS3EUFeFb9hXxt+AnDPRUQkwK7NtmrL1jq/E4uly
+EI+U/MFXbN2QCvoLzlo9Si8wH2z7GyCwFbrbgei65ZP43JOGTmrxpHgec5RXpMFs
+P+KAtO2aa3Ku6zCuiz6bODDxS+DTQZee0nBYiOU8itiRbYwD3OeKf28yz9W1ovIt
+1exkh+XgL7yVxEANz3cIoYkeo0BzHs5jvyVd08VZOW++HMVLDE71n0u1MjsjJmML
+IuoYVhdYdgN11c8ImsOCOCJ4mCvKmbyMpZazk0nkPWZEmOVxBIpnxmnbY2pYTOcO
+cLteZtiNvQKBdL+LSQAiqjnJVP8Zkf1kw+s5Edhy17ywjV5HeWsBH1N41OY4qpfs
+s3EVVVr1rnAraPJKJkZ1oUYIJKJtogyYKHw/4D0sUi3GeH3WZU0509OqMV0O8J7l
+xwrWRZBanhwPgNS1/1fKHBvFxVX8YQgQgDbebRrK50tCrk3QJTqVm9IhM0pl86Hn
+qStrVs+KkUvF1toL67Ta9IkRHJLgtKXLFq2nA0ZrYa4xCcTahng62orDGZzP88Lk
+holhwqFqWTRNMqrBCrI2
+=uBGc
+-----END PGP SIGNATURE-----
+
+--APlYHCtpeOhspHkB--
