@@ -1,94 +1,80 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 2/6] genirq: fix irqchip_set_wake_parent if IRQCHIP_SKIP_SET_WAKE
-Date: Thu, 13 Aug 2015 15:58:59 +0300
-Message-ID: <55CC9493.9020101@ti.com>
-References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com> <55CC6AFF.8060400@arm.com> <55CC71E8.80604@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: DRA752: Add ID detect for ES2.0
+Date: Thu, 13 Aug 2015 09:32:20 -0500
+Message-ID: <1439476340-20141-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55CC71E8.80604@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "nsekhar@ti.com" <nsekhar@ti.com>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vishal Mahaveer <vishalm@ti.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/13/2015 01:31 PM, Grygorii Strashko wrote:
-> On 08/13/2015 01:01 PM, Marc Zyngier wrote:
->> On 12/08/15 18:45, Grygorii Strashko wrote:
->>> The irqchip_set_wake_parent should not fail if IRQ chip
->>> specifies IRQCHIP_SKIP_SET_WAKE. Otherwise, IRQ wakeup
->>> configuration can't be propagated properly through IRQ
->>> domains hierarchy.
->>>
->>> In case of TI OMAP DRA7 the issue reproduced with following
->>> configuration:
->>> ARM GIC<-OMAP wakeupgen<-TI CBAR<-GPIO<-GPIO pcf857x<-gpio_key
->>>
->>> gpio_key is wakeup source
->>>
->>> Failure is reproduced during suspend/resume to RAM:
->>> suspend:
->>>   - gpio_keys_suspend
->>>     enable_irq_wake
->>>       + pcf857x_irq_set_wake
->>>         + omap_gpio_wake_enable
->>>           + TI CBAR irq_chip_set_wake_parent
->>>             + OMAP wakeupgen has no .irq_set_wake()
->>
->> Most importantly, wakeupgen has IRQCHIP_SKIP_SET_WAKE set.
->>
->>>             and -ENOSYS will be returned
->>>
->>> resume:
->>>   - gpio_keys_resume
->>>     + disable_irq_wake
->>>       + irq_set_irq_wake
->>>         + WARN(1, "Unbalanced IRQ %d wake disable\n", irq);
->>>
->>> Fixes: 08b55e2a9208 ('genirq: Add irqchip_set_wake_parent')
->>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>> ---
->>>   kernel/irq/chip.c | 4 ++++
->>>   1 file changed, 4 insertions(+)
->>>
->>> diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
->>> index 6de638b..bdb1b9d 100644
->>> --- a/kernel/irq/chip.c
->>> +++ b/kernel/irq/chip.c
->>> @@ -1024,6 +1024,10 @@ int irq_chip_set_vcpu_affinity_parent(struct 
->>> irq_data *data, void *vcpu_info)
->>>   int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
->>>   {
->>>       data = data->parent_data;
->>> +
->>> +    if (irq_data_get_irq_chip(data)->flags & IRQCHIP_SKIP_SET_WAKE)
->>> +        return 0;
->>> +
->>>       if (data->chip->irq_set_wake)
->>>           return data->chip->irq_set_wake(data, on);
->>>
->>>
->>
->> We have a more general issue with chip flags, and how they combine
->> within a stack of irqchips.
-> 
-> Indeed. Problem looks similar to IRQCHIP_MASK_ON_SUSPEND flag usage.
-> 
->>
->> What if you remove the irq_chip_set_wake_parent from the crossbar
->> driver, and instead set IRQCHIP_SKIP_SET_WAKE?
-> 
-> I've thought about this and it should work for me.
-> One question - what if crossbar will be not the last one in
-> IRQ domains hierarchy?
-> 
+From: Vishal Mahaveer <vishalm@ti.com>
 
-I can confirm, if I revert this patch, add IRQCHIP_SKIP_SET_WAKE to
-the crossbar and remove irq_chip_set_wake_parent wakeups still works.
-What do you prefer me to do: add additional patch for the crossbar,
-drop/keep this patch?
+ES2.0 is a minor variant of ES1.1. ES2.0 is an incremental revision
+with various fixes including the following:
+	- reset logic fixes
+	- few assymetric aging logic fixes
+	- MMC clock rate fixes
+	- Ethernet speed fixes
+	- edma fixes for mcasp
 
+NOTE: even though we use a compatible of dra742 and dra752, the usage in
+the Linux kernel is more or less interchangable - we use dra752 more
+often in the linux kernel compared to dra742 and 4.2-rc6
+
+Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+based on linux-next next-20150812, applies to v4.2-rc6 as well.
+Definetly not a 4.2 material, for 4.3, this probably missed the first merge
+window for 4.3, will be great if it could be considered for the second merge
+window.
+
+ arch/arm/mach-omap2/id.c  | 8 ++++++--
+ arch/arm/mach-omap2/soc.h | 2 ++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index e3f713ffb06b..54a5ba54d2ff 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -653,8 +653,12 @@ void __init dra7xxx_check_revision(void)
+ 			omap_revision = DRA752_REV_ES1_0;
+ 			break;
+ 		case 1:
+-		default:
+ 			omap_revision = DRA752_REV_ES1_1;
++			break;
++		case 2:
++		default:
++			omap_revision = DRA752_REV_ES2_0;
++			break;
+ 		}
+ 		break;
+ 
+@@ -674,7 +678,7 @@ void __init dra7xxx_check_revision(void)
+ 		/* Unknown default to latest silicon rev as default*/
+ 		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%x)\n",
+ 			__func__, idcode, hawkeye, rev);
+-		omap_revision = DRA752_REV_ES1_1;
++		omap_revision = DRA752_REV_ES2_0;
+ 	}
+ 
+ 	sprintf(soc_name, "DRA%03x", omap_rev() >> 16);
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index f97654d11ea5..2d1d3845253c 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -469,6 +469,8 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define DRA7XX_CLASS		0x07000000
+ #define DRA752_REV_ES1_0	(DRA7XX_CLASS | (0x52 << 16) | (0x10 << 8))
+ #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
++#define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
++#define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
+ #define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
+ 
+ void omap2xxx_check_revision(void);
 -- 
-regards,
--grygorii
+2.1.4
