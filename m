@@ -1,17 +1,16 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/3] ARM: multi_v7_defconfig: Enable more OMAP family
- platforms
-Date: Thu, 13 Aug 2015 10:09:41 -0500
-Message-ID: <CAGo_u6q+U_Yi7Oq2pAFr4hs28_-G6dFbiHJQg3s3aEj0vG1asg@mail.gmail.com>
-References: <1428614121-3374-1-git-send-email-nm@ti.com>
- <20150805102234.GZ16878@atomide.com>
- <7hfv3uwvdw.fsf@deeprootsystems.com>
- <20150811103751.GK4215@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH-next 1/4] Revert "ARM: 7655/1: smp_twd: make
+ twd_local_timer_of_register() no-op for nosmp"
+Date: Thu, 13 Aug 2015 16:37:07 +0100
+Message-ID: <20150813153707.GF7576@n2100.arm.linux.org.uk>
+References: <1439409416-32673-1-git-send-email-balbi@ti.com>
+ <1439409416-32673-2-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150811103751.GK4215@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <1439409416-32673-2-git-send-email-balbi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,29 +20,26 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@kernel.org>, "Balbi, Felipe" <balbi@ti.com>, Olof Johansson <olof@lixom.net>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Dirk Behme <dirk.behme@de.bosch.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Shawn Guo <shawn.guo@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 11, 2015 at 5:37 AM, Tony Lindgren <tony@atomide.com> wrote:
->
-> * Kevin Hilman <khilman@kernel.org> [150807 16:10]:
-> > Tony Lindgren <tony@atomide.com> writes:
-> >
-> > > Ping, looks like these are still pending. Probably should be
-> > > applied directly by the arm-soc maintainers.
-> >
-> > If these should go through arm-soc, please resend to:arm@kernel.org so
-> > they make it into our queue of stuff to be reviewed/applied.
->
-> OK thanks, up to Nihshant to resend.
->
+On Wed, Aug 12, 2015 at 02:56:53PM -0500, Felipe Balbi wrote:
+> This reverts commit 904464b91eca8c665acea033489225af02eeb75a.
+> 
+> The problem pointed out by commit 904464b91eca ("ARM: 7655/1:
+> smp_twd: make twd_local_timer_of_register() no-op for nosmp")
+> doesn't exist anymore.
+> 
+> We can safely boot with nosmp and the warning won't show up.
+> 
+> The other side benefit of this patch is that TWD has a chance
+> to probe on single-core A9 systems such as AM437x which sport
+> TWD.
 
-Sorry about the slow response - i will have to do this at a later
-point(probably based off 4.3-rc1). tied up with a few other internal
-stuff atm :(
+I don't remember all the details from Feb 2013 on why we made that
+change.  If this is proven safe, then I guess it's okay.
 
 -- 
----
-Regards,
-Nishanth Menon
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
