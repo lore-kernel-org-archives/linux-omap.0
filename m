@@ -1,67 +1,77 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH 2/2] clk: Convert __clk_get_name(hw->clk) to clk_hw_get_name(hw)
-Date: Thu, 13 Aug 2015 10:41:09 +0200
-Message-ID: <CAMuHMdXo4ChAfbi5h0okyw18LNM5iv-rfx_AO9e_u7QAB8Vx9A@mail.gmail.com>
-References: <1439421161-17868-1-git-send-email-sboyd@codeaurora.org>
-	<1439421161-17868-2-git-send-email-sboyd@codeaurora.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v2 2/6] genirq: fix irqchip_set_wake_parent if IRQCHIP_SKIP_SET_WAKE
+Date: Thu, 13 Aug 2015 09:54:07 +0100
+Message-ID: <55CC5B2F.7060503@arm.com>
+References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1439421161-17868-2-git-send-email-sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Mike Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Prashant Gaikwad <pgaikwad-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Ezequiel Garcia <ezequiel.garcia-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Kevin Cernekee <cernekee-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>, Ulrich Hecht <ulrich.hecht+renesas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Marc Zyngier <Marc.Zyngier@arm.com>
+Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, Sudeep Holla <sudeep.holla@arm.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "nsekhar@ti.com" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 13, 2015 at 1:12 AM, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> wrote:
-> Use the provider based method to get a clock's name so that we
-> can get rid of the clk member in struct clk_hw one day. Mostly
-> converted with the following coccinelle script.
+
+
+On 12/08/15 18:45, Grygorii Strashko wrote:
+> The irqchip_set_wake_parent should not fail if IRQ chip
+> specifies IRQCHIP_SKIP_SET_WAKE. Otherwise, IRQ wakeup
+> configuration can't be propagated properly through IRQ
+> domains hierarchy.
 >
-> @@
-> struct clk_hw *E;
-> @@
+> In case of TI OMAP DRA7 the issue reproduced with following
+> configuration:
+> ARM GIC<-OMAP wakeupgen<-TI CBAR<-GPIO<-GPIO pcf857x<-gpio_key
 >
-> -__clk_get_name(E->clk)
-> +clk_hw_get_name(E)
+> gpio_key is wakeup source
 >
-> Cc: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
-> Cc: Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Cc: Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> Cc: Prashant Gaikwad <pgaikwad-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> Cc: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-> Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Andrew Bresticker <abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> Cc: Ezequiel Garcia <ezequiel.garcia-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
-> Cc: Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> Cc: Kevin Cernekee <cernekee-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> Cc: Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
-> Cc: Ulrich Hecht <ulrich.hecht+renesas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> Cc: linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Signed-off-by: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+> Failure is reproduced during suspend/resume to RAM:
+> suspend:
+>   - gpio_keys_suspend
+>     enable_irq_wake
+>       + pcf857x_irq_set_wake
+>         + omap_gpio_wake_enable
+>           + TI CBAR irq_chip_set_wake_parent
+>             + OMAP wakeupgen has no .irq_set_wake()
+>             and -ENOSYS will be returned
+>
+> resume:
+>   - gpio_keys_resume
+>     + disable_irq_wake
+>       + irq_set_irq_wake
+>         + WARN(1, "Unbalanced IRQ %d wake disable\n", irq);
+>
+> Fixes: 08b55e2a9208 ('genirq: Add irqchip_set_wake_parent')
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>   kernel/irq/chip.c | 4 ++++
+>   1 file changed, 4 insertions(+)
+>
+> diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+> index 6de638b..bdb1b9d 100644
+> --- a/kernel/irq/chip.c
+> +++ b/kernel/irq/chip.c
+> @@ -1024,6 +1024,10 @@ int irq_chip_set_vcpu_affinity_parent(struct irq_data *data, void *vcpu_info)
+>   int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
+>   {
+>   	data = data->parent_data;
+> +
+> +	if (irq_data_get_irq_chip(data)->flags & IRQCHIP_SKIP_SET_WAKE)
+> +		return 0;
+> +
 
->  drivers/clk/shmobile/clk-div6.c      |  2 +-
+[Nit] I think the irq core can access data->chip directly. Either way,
+it's better to be consistent, the statement following doesn't use helper
+function.
 
-For the shmobile part:
+Otherwise looks good to me.
 
-Acked-by: Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>
+Regards,
+Sudeep
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+>   	if (data->chip->irq_set_wake)
+>   		return data->chip->irq_set_wake(data, on);
+>
+>
