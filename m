@@ -1,80 +1,58 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 2/6] genirq: fix irqchip_set_wake_parent if IRQCHIP_SKIP_SET_WAKE
-Date: Thu, 13 Aug 2015 11:01:35 +0100
-Message-ID: <55CC6AFF.8060400@arm.com>
-References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 2/2] omap device tree changes for v4.3, part 4
+Date: Thu, 13 Aug 2015 03:08:46 -0700
+Message-ID: <31973.27218154$1439460611@news.gmane.org>
+References: <pull-1439455019-336197>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "nsekhar@ti.com" <nsekhar@ti.com>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1439455019-336197>
+In-Reply-To: <pull-1439455019-336197>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/08/15 18:45, Grygorii Strashko wrote:
-> The irqchip_set_wake_parent should not fail if IRQ chip
-> specifies IRQCHIP_SKIP_SET_WAKE. Otherwise, IRQ wakeup
-> configuration can't be propagated properly through IRQ
-> domains hierarchy.
-> 
-> In case of TI OMAP DRA7 the issue reproduced with following
-> configuration:
-> ARM GIC<-OMAP wakeupgen<-TI CBAR<-GPIO<-GPIO pcf857x<-gpio_key
-> 
-> gpio_key is wakeup source
-> 
-> Failure is reproduced during suspend/resume to RAM:
-> suspend:
->  - gpio_keys_suspend
->    enable_irq_wake
->      + pcf857x_irq_set_wake
->        + omap_gpio_wake_enable
->          + TI CBAR irq_chip_set_wake_parent
->            + OMAP wakeupgen has no .irq_set_wake()
+The following changes since commit ed05637c30e6d13e5793aab64d6a6e57e30228af:
 
-Most importantly, wakeupgen has IRQCHIP_SKIP_SET_WAKE set.
+  ARM: dts: omap3-devkit8000: Add ADS7846 Touchscreen support (2015-08-06 02:43:09 -0700)
 
->            and -ENOSYS will be returned
-> 
-> resume:
->  - gpio_keys_resume
->    + disable_irq_wake
->      + irq_set_irq_wake
->        + WARN(1, "Unbalanced IRQ %d wake disable\n", irq);
-> 
-> Fixes: 08b55e2a9208 ('genirq: Add irqchip_set_wake_parent')
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->  kernel/irq/chip.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-> index 6de638b..bdb1b9d 100644
-> --- a/kernel/irq/chip.c
-> +++ b/kernel/irq/chip.c
-> @@ -1024,6 +1024,10 @@ int irq_chip_set_vcpu_affinity_parent(struct irq_data *data, void *vcpu_info)
->  int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
->  {
->  	data = data->parent_data;
-> +
-> +	if (irq_data_get_irq_chip(data)->flags & IRQCHIP_SKIP_SET_WAKE)
-> +		return 0;
-> +
->  	if (data->chip->irq_set_wake)
->  		return data->chip->irq_set_wake(data, on);
->  
-> 
+are available in the git repository at:
 
-We have a more general issue with chip flags, and how they combine
-within a stack of irqchips.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/dt-pt4-v2
 
-What if you remove the irq_chip_set_wake_parent from the crossbar
-driver, and instead set IRQCHIP_SKIP_SET_WAKE?
+for you to fetch changes up to 8cbd4c2f6a996f6cf5dfdf8775d331606cff95bd:
 
-Thanks,
+  arm: boot: dts: am4372: add ARM timers and SCU nodes (2015-08-13 01:25:11 -0700)
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+----------------------------------------------------------------
+Fix up bogus RTC compatible change for am4372 and add missing
+DPLL for am4372 cpsw Ethernet driver. Also add ARM global and
+local timers for am4372.
+
+----------------------------------------------------------------
+Felipe Balbi (1):
+      arm: boot: dts: am4372: add ARM timers and SCU nodes
+
+Keerthy (3):
+      ARM: dts: AM437X: add dpll_clksel_mac_clk node
+      ARM: dts: am4372: Set the default clock rate for dpll_clksel_mac_clk clock
+      ARM: dts: AM4372: Add the am4372-rtc compatible string
+
+Tony Lindgren (1):
+      Merge branch 'for-4.3/ti-clk-dt' of https://github.com/t-kristo/linux-pm into omap-for-v4.3/dt-v2
+
+ Documentation/devicetree/bindings/rtc/rtc-omap.txt |  1 +
+ arch/arm/boot/dts/am4372.dtsi                      | 31 +++++++++++++++++++---
+ arch/arm/boot/dts/am43xx-clocks.dtsi               |  9 +++++++
+ drivers/clk/ti/clk-43xx.c                          |  1 +
+ 4 files changed, 39 insertions(+), 3 deletions(-)
