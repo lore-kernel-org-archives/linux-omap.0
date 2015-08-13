@@ -1,98 +1,235 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3] i2c: omap: improve duty cycle on SCL
-Date: Thu, 13 Aug 2015 09:36:51 -0500
-Message-ID: <20150813143651.GG27560@saruman.tx.rr.com>
-References: <1434569475-17378-1-git-send-email-balbi@ti.com>
- <55827CD7.7030207@nokia.com>
- <20150618172558.GC27790@saruman.tx.rr.com>
- <20150709194241.GF4744@katana>
- <20150710172714.GC20408@saruman.tx.rr.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] gpiolib: irqchip: use different lockdep class for each gpio irqchip
+Date: Thu, 13 Aug 2015 17:58:39 +0300
+Message-ID: <1439477919-24356-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="APlYHCtpeOhspHkB"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150710172714.GC20408-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---APlYHCtpeOhspHkB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Since IRQ chip helpers were introduced drivers lose ability to
+register separate lockdep classes for each registered GPIO IRQ
+chip and the gpiolib now is using shared lockdep class for
+all GPIO IRQ chips (gpiochip_irq_lock_class).
+As result, lockdep will produce warning when there are min two
+stacked GPIO chips and all of them are interrupt controllers.
 
-On Fri, Jul 10, 2015 at 12:27:15PM -0500, Felipe Balbi wrote:
-> On Thu, Jul 09, 2015 at 09:42:41PM +0200, Wolfram Sang wrote:
-> > On Thu, Jun 18, 2015 at 12:25:58PM -0500, Felipe Balbi wrote:
-> > > On Thu, Jun 18, 2015 at 10:09:59AM +0200, Alexander Sverdlin wrote:
-> > > > Hello Felipe,
-> > > >=20
-> > > > On 17/06/15 21:31, ext Felipe Balbi wrote:
-> > > > > With this patch we try to be as close to 50%
-> > > > > duty cycle as possible. The reason for this
-> > > > > is that some devices present an erratic behavior
-> > > > > with certain duty cycles.
-> > > > >=20
-> > > > > One such example is TPS65218 PMIC which fails
-> > > > > to change voltages when running @ 400kHz and
-> > > > > duty cycle is lower than 34%.
-> > > > >=20
-> > > > > The idea of the patch is simple:
-> > > > >=20
-> > > > > calculate desired scl_period from requested scl
-> > > > > and use 50% for tLow and 50% for tHigh.
-> > > > >=20
-> > > > > tLow is calculated with a DIV_ROUND_UP() to make
-> > > > > sure it's slightly higher than tHigh and to make
-> > > > > sure that we end up within I2C specifications.
-> > > >=20
-> > > > if you refuse to change the calculations to achieve maximum possible
-> > > > bus rate (as I've shown you with SCLL=3D9 and SCLH=3D9), maybe you =
-want to
-> > > > change the description? Because you are doing something else than is
-> > > > written here. You are only in spec because you are not doing 50% du=
-ty
-> > > > cycle. And you didn't mention here that you lower the bus speed bel=
-ow
-> > > > 400kHz to achieve this.
-> > >=20
-> > > and there's a comment where the calculation goes which states "as clo=
-se
-> > > to 50% as possible but we make sure tLow is higher than tHigh so we're
-> > > still within spec".
-> >=20
-> > So, is that ready to go in for-next?
->=20
-> should be.
+HW configuration which generates lockdep warning (TI dra7-evm):
 
-ping ?
+[SOC GPIO bankA.gpioX]
+  <- irq - [pcf875x.gpioY]
+            <- irq - DevZ.enable_irq_wake(pcf_gpioY_irq);
+The issue was reported in [1] and discussed [2].
 
---=20
-balbi
+=============================================
+[ INFO: possible recursive locking detected ]
+4.2.0-rc6-00013-g5d050ed-dirty #55 Not tainted
+---------------------------------------------
+sh/63 is trying to acquire lock:
+ (class){......}, at: [<c009b91c>] __irq_get_desc_lock+0x50/0x94
 
---APlYHCtpeOhspHkB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+but task is already holding lock:
+ (class){......}, at: [<c009b91c>] __irq_get_desc_lock+0x50/0x94
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+other info that might help us debug this:
+ Possible unsafe locking scenario:
 
-iQIcBAEBAgAGBQJVzKuDAAoJEIaOsuA1yqREd/wP/Rsg7UHhmqDfKqnEcIRRAiBJ
-FJCEdDg/mT5Ul5mB8m71+Fd1xQn3S9v7oOY3ohE8enr8+iz9FjBwmJ+J8YKvV9W4
-YTwpz+yqz/0u0cLf5df5sh6deS3EUFeFb9hXxt+AnDPRUQkwK7NtmrL1jq/E4uly
-EI+U/MFXbN2QCvoLzlo9Si8wH2z7GyCwFbrbgei65ZP43JOGTmrxpHgec5RXpMFs
-P+KAtO2aa3Ku6zCuiz6bODDxS+DTQZee0nBYiOU8itiRbYwD3OeKf28yz9W1ovIt
-1exkh+XgL7yVxEANz3cIoYkeo0BzHs5jvyVd08VZOW++HMVLDE71n0u1MjsjJmML
-IuoYVhdYdgN11c8ImsOCOCJ4mCvKmbyMpZazk0nkPWZEmOVxBIpnxmnbY2pYTOcO
-cLteZtiNvQKBdL+LSQAiqjnJVP8Zkf1kw+s5Edhy17ywjV5HeWsBH1N41OY4qpfs
-s3EVVVr1rnAraPJKJkZ1oUYIJKJtogyYKHw/4D0sUi3GeH3WZU0509OqMV0O8J7l
-xwrWRZBanhwPgNS1/1fKHBvFxVX8YQgQgDbebRrK50tCrk3QJTqVm9IhM0pl86Hn
-qStrVs+KkUvF1toL67Ta9IkRHJLgtKXLFq2nA0ZrYa4xCcTahng62orDGZzP88Lk
-holhwqFqWTRNMqrBCrI2
-=uBGc
------END PGP SIGNATURE-----
+       CPU0
+       ----
+  lock(class);
+  lock(class);
 
---APlYHCtpeOhspHkB--
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+7 locks held by sh/63:
+ #0:  (sb_writers#4){.+.+.+}, at: [<c016bbb8>] vfs_write+0x13c/0x164
+ #1:  (&of->mutex){+.+.+.}, at: [<c01debf4>] kernfs_fop_write+0x4c/0x1a0
+ #2:  (s_active#36){.+.+.+}, at: [<c01debfc>] kernfs_fop_write+0x54/0x1a0
+ #3:  (pm_mutex){+.+.+.}, at: [<c009758c>] pm_suspend+0xec/0x4c4
+ #4:  (&dev->mutex){......}, at: [<c03f77f8>] __device_suspend+0xd4/0x398
+ #5:  (&gpio->lock){+.+.+.}, at: [<c009b940>] __irq_get_desc_lock+0x74/0x94
+ #6:  (class){......}, at: [<c009b91c>] __irq_get_desc_lock+0x50/0x94
+
+stack backtrace:
+CPU: 0 PID: 63 Comm: sh Not tainted 4.2.0-rc6-00013-g5d050ed-dirty #55
+Hardware name: Generic DRA74X (Flattened Device Tree)
+[<c0016e24>] (unwind_backtrace) from [<c0013338>] (show_stack+0x10/0x14)
+[<c0013338>] (show_stack) from [<c05f6b24>] (dump_stack+0x84/0x9c)
+[<c05f6b24>] (dump_stack) from [<c00903f4>] (__lock_acquire+0x19c0/0x1e20)
+[<c00903f4>] (__lock_acquire) from [<c0091098>] (lock_acquire+0xa8/0x128)
+[<c0091098>] (lock_acquire) from [<c05fd61c>] (_raw_spin_lock_irqsave+0x38/0x4c)
+[<c05fd61c>] (_raw_spin_lock_irqsave) from [<c009b91c>] (__irq_get_desc_lock+0x50/0x94)
+[<c009b91c>] (__irq_get_desc_lock) from [<c009c4f4>] (irq_set_irq_wake+0x20/0xfc)
+[<c009c4f4>] (irq_set_irq_wake) from [<c0393ac4>] (pcf857x_irq_set_wake+0x24/0x54)
+[<c0393ac4>] (pcf857x_irq_set_wake) from [<c009c560>] (irq_set_irq_wake+0x8c/0xfc)
+[<c009c560>] (irq_set_irq_wake) from [<c04a02ac>] (gpio_keys_suspend+0x70/0xd4)
+[<c04a02ac>] (gpio_keys_suspend) from [<c03f6a00>] (dpm_run_callback+0x50/0x124)
+[<c03f6a00>] (dpm_run_callback) from [<c03f7830>] (__device_suspend+0x10c/0x398)
+[<c03f7830>] (__device_suspend) from [<c03f90f0>] (dpm_suspend+0x134/0x2f4)
+[<c03f90f0>] (dpm_suspend) from [<c0096e20>] (suspend_devices_and_enter+0xa8/0x728)
+[<c0096e20>] (suspend_devices_and_enter) from [<c00977cc>] (pm_suspend+0x32c/0x4c4)
+[<c00977cc>] (pm_suspend) from [<c0096060>] (state_store+0x64/0xb8)
+[<c0096060>] (state_store) from [<c01dec64>] (kernfs_fop_write+0xbc/0x1a0)
+[<c01dec64>] (kernfs_fop_write) from [<c016b280>] (__vfs_write+0x20/0xd8)
+[<c016b280>] (__vfs_write) from [<c016bb0c>] (vfs_write+0x90/0x164)
+[<c016bb0c>] (vfs_write) from [<c016c330>] (SyS_write+0x44/0x9c)
+[<c016c330>] (SyS_write) from [<c000f500>] (ret_fast_syscall+0x0/0x54)
+
+Lets fix it by using separate lockdep class for each registered GPIO
+IRQ Chip. This is done by wrapping gpiochip_irqchip_add call into macros.
+
+The implementation of this patch inspired by solution done by Nicolas
+Boichat for regmap [3]
+
+[1] http://www.spinics.net/lists/linux-gpio/msg05844.html
+[2] http://www.spinics.net/lists/linux-gpio/msg06021.html
+[3] http://www.spinics.net/lists/arm-kernel/msg429834.html
+
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roger Quadros <rogerq@ti.com>
+Reported-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/gpio/gpiolib.c      | 27 ++++++++++++++-------------
+ include/linux/gpio/driver.h | 27 ++++++++++++++++++++++-----
+ 2 files changed, 36 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index bf4bd1d..75dddc1 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -456,12 +456,6 @@ void gpiochip_set_chained_irqchip(struct gpio_chip *gpiochip,
+ }
+ EXPORT_SYMBOL_GPL(gpiochip_set_chained_irqchip);
+ 
+-/*
+- * This lock class tells lockdep that GPIO irqs are in a different
+- * category than their parents, so it won't report false recursion.
+- */
+-static struct lock_class_key gpiochip_irq_lock_class;
+-
+ /**
+  * gpiochip_irq_map() - maps an IRQ into a GPIO irqchip
+  * @d: the irqdomain used by this irqchip
+@@ -478,7 +472,11 @@ static int gpiochip_irq_map(struct irq_domain *d, unsigned int irq,
+ 	struct gpio_chip *chip = d->host_data;
+ 
+ 	irq_set_chip_data(irq, chip);
+-	irq_set_lockdep_class(irq, &gpiochip_irq_lock_class);
++	/*
++	 * This lock class tells lockdep that GPIO irqs are in a different
++	 * category than their parents, so it won't report false recursion.
++	 */
++	irq_set_lockdep_class(irq, chip->lock_key);
+ 	irq_set_chip_and_handler(irq, chip->irqchip, chip->irq_handler);
+ 	/* Chips that can sleep need nested thread handlers */
+ 	if (chip->can_sleep && !chip->irq_not_threaded)
+@@ -584,6 +582,7 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip)
+  * @handler: the irq handler to use (often a predefined irq core function)
+  * @type: the default type for IRQs on this irqchip, pass IRQ_TYPE_NONE
+  * to have the core avoid setting up any default type in the hardware.
++ * @lock_key: lockdep class
+  *
+  * This function closely associates a certain irqchip with a certain
+  * gpiochip, providing an irq domain to translate the local IRQs to
+@@ -599,11 +598,12 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip)
+  * the pins on the gpiochip can generate a unique IRQ. Everything else
+  * need to be open coded.
+  */
+-int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+-			 struct irq_chip *irqchip,
+-			 unsigned int first_irq,
+-			 irq_flow_handler_t handler,
+-			 unsigned int type)
++int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
++			  struct irq_chip *irqchip,
++			  unsigned int first_irq,
++			  irq_flow_handler_t handler,
++			  unsigned int type,
++			  struct lock_class_key *lock_key)
+ {
+ 	struct device_node *of_node;
+ 	unsigned int offset;
+@@ -629,6 +629,7 @@ int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+ 	gpiochip->irq_handler = handler;
+ 	gpiochip->irq_default_type = type;
+ 	gpiochip->to_irq = gpiochip_to_irq;
++	gpiochip->lock_key = lock_key;
+ 	gpiochip->irqdomain = irq_domain_add_simple(of_node,
+ 					gpiochip->ngpio, first_irq,
+ 					&gpiochip_domain_ops, gpiochip);
+@@ -658,7 +659,7 @@ int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(gpiochip_irqchip_add);
++EXPORT_SYMBOL_GPL(_gpiochip_irqchip_add);
+ 
+ #else /* CONFIG_GPIOLIB_IRQCHIP */
+ 
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index c8393cd..dd1dfbb 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -6,6 +6,7 @@
+ #include <linux/irq.h>
+ #include <linux/irqchip/chained_irq.h>
+ #include <linux/irqdomain.h>
++#include <linux/lockdep.h>
+ #include <linux/pinctrl/pinctrl.h>
+ 
+ struct device;
+@@ -62,6 +63,7 @@ struct seq_file;
+  *	implies that if the chip supports IRQs, these IRQs need to be threaded
+  *	as the chip access may sleep when e.g. reading out the IRQ status
+  *	registers.
++ * @exported: flags if the gpiochip is exported for use from sysfs. Private.
+  * @irq_not_threaded: flag must be set if @can_sleep is set but the
+  *	IRQs don't need to be threaded
+  *
+@@ -126,6 +128,7 @@ struct gpio_chip {
+ 	irq_flow_handler_t	irq_handler;
+ 	unsigned int		irq_default_type;
+ 	int			irq_parent;
++	struct lock_class_key	*lock_key;
+ #endif
+ 
+ #if defined(CONFIG_OF_GPIO)
+@@ -171,11 +174,25 @@ void gpiochip_set_chained_irqchip(struct gpio_chip *gpiochip,
+ 		int parent_irq,
+ 		irq_flow_handler_t parent_handler);
+ 
+-int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+-		struct irq_chip *irqchip,
+-		unsigned int first_irq,
+-		irq_flow_handler_t handler,
+-		unsigned int type);
++int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
++			  struct irq_chip *irqchip,
++			  unsigned int first_irq,
++			  irq_flow_handler_t handler,
++			  unsigned int type,
++			  struct lock_class_key *lock_key);
++
++#ifdef CONFIG_LOCKDEP
++#define gpiochip_irqchip_add(...)				\
++(								\
++	({							\
++		static struct lock_class_key _key;		\
++		_gpiochip_irqchip_add(__VA_ARGS__, &_key);	\
++	})							\
++)
++#else
++#define gpiochip_irqchip_add(...)				\
++	_gpiochip_irqchip_add(__VA_ARGS__, NULL)
++#endif
+ 
+ #endif /* CONFIG_GPIOLIB_IRQCHIP */
+ 
+-- 
+2.5.0
