@@ -1,75 +1,46 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 3/6] genirq: introduce irq_chip_set_type_parent() helper
-Date: Thu, 13 Aug 2015 12:54:36 +0300
-Message-ID: <55CC695C.1080601@ti.com>
-References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-4-git-send-email-grygorii.strashko@ti.com> <55CC5C2C.4080301@arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [net-next PATCH 3/3] ARM: dts: am33xx: update cpsw compatible
+Date: Thu, 13 Aug 2015 02:56:14 -0700
+Message-ID: <20150813095613.GC4215@atomide.com>
+References: <1439373175-8650-1-git-send-email-mugunthanvnm@ti.com>
+ <1439373175-8650-4-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55CC5C2C.4080301@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>
-Cc: "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "nsekhar@ti.com" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1439373175-8650-4-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, alex.aring@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 08/13/2015 11:58 AM, Sudeep Holla wrote:
->
->
-> On 12/08/15 18:45, Grygorii Strashko wrote:
->> It's expected to use this helper when the current
->> domain doesn't implement .irq_set_type(),  but expect
->> the parent to do so.
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
->>   include/linux/irq.h |  1 +
->>   kernel/irq/chip.c   | 20 ++++++++++++++++++++
->>   2 files changed, 21 insertions(+)
->>
->> diff --git a/include/linux/irq.h b/include/linux/irq.h
->> index 92188b0..51744bc 100644
->> --- a/include/linux/irq.h
->> +++ b/include/linux/irq.h
->> @@ -484,6 +484,7 @@ extern int irq_chip_set_affinity_parent(struct
->> irq_data *data,
->>   extern int irq_chip_set_wake_parent(struct irq_data *data, unsigned
->> int on);
->>   extern int irq_chip_set_vcpu_affinity_parent(struct irq_data *data,
->>                            void *vcpu_info);
->> +extern int irq_chip_set_type_parent(struct irq_data *data, unsigned
->> int type);
->>   #endif
->>
->>   /* Handling of unhandled and spurious interrupts: */
->> diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
->> index bdb1b9d..b48938b 100644
->> --- a/kernel/irq/chip.c
->> +++ b/kernel/irq/chip.c
->> @@ -985,6 +985,26 @@ int irq_chip_set_affinity_parent(struct irq_data
->> *data,
->>   }
->>
->>   /**
->> + * irq_chip_set_type_parent - Set IRQ type on the parent interrupt
->> + * @data:    Pointer to interrupt specific data
->> + * @type:    IRQ_TYPE_{LEVEL,EDGE}_* value - see include/linux/irq.h
->> + *
->> + * Conditional, as the underlying parent chip might not implement it.
->> + */
->> +int irq_chip_set_type_parent(struct irq_data *data, unsigned int type)
->> +{
->> +    data = data->parent_data;
->> +
->> +    if (irq_data_get_irq_chip(data)->flags & IRQCHIP_SKIP_SET_WAKE)
->> +        return 0;
->> +
->
-> I think this is unrelated here(perhaps copy-paste error ?). I fail to
-> see how wakeup and trigger type are related.
+* Mugunthan V N <mugunthanvnm@ti.com> [150812 02:56]:
+> CPSW driver has been updated with compatibles for enabling errata
+> workarounds. So updating cpsw compatibles.
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-Oh. Yes, it's copy-paste error. thanks, will fix.
+This too:
 
--- 
-regards,
--grygorii
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 21fcc44..8b59c86 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -700,7 +700,7 @@
+>  		};
+>  
+>  		mac: ethernet@4a100000 {
+> -			compatible = "ti,cpsw";
+> +			compatible = "ti,am335x-cpsw","ti,cpsw";
+>  			ti,hwmods = "cpgmac0";
+>  			clocks = <&cpsw_125mhz_gclk>, <&cpsw_cpts_rft_clk>;
+>  			clock-names = "fck", "cpts";
+> -- 
+> 2.5.0.234.gefc8a62
+> 
