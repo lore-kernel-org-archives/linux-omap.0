@@ -1,38 +1,41 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 00/22] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Thu, 13 Aug 2015 15:00:01 +0300
-Message-ID: <55CC86C1.8000107@ti.com>
-References: <1438938752-31010-1-git-send-email-rogerq@ti.com> <20150811124829.GM4215@atomide.com> <55CC43B1.4020409@ti.com> <20150813083616.GZ4215@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap gpmc null pointer fix against v4.2-rc6
+Date: Thu, 13 Aug 2015 14:27:55 +0200
+Message-ID: <20150813122755.GB23581@localhost>
+References: <20150813082022.GL10928@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150813083616.GZ4215@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20150813082022.GL10928@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 13/08/15 11:36, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [150813 00:17]:
->> On 11/08/15 15:48, Tony Lindgren wrote:
->>>
->>> OK. Yeah let's make sure no regressions are caused by this.. We also
->>> still have the omap3 legacy booting around, have you checked that it
->>> keeps on working?
->>
->> I don't have any omap3 board with legacy support with me. I have omap3-beagle
->> but looks like legacy boot is dropped for it already.
->>
->> I'll try to revert the patch that drops beagle support and test it on that one.
+On Thu, Aug 13, 2015 at 01:20:22AM -0700, Tony Lindgren wrote:
+> The following changes since commit cd4556733b30cc363adc7b1cea3bffa7e2dd0c7c:
 > 
-> OK yeah that should work just fine.
+>   ARM: dts: dra7: Fix broken pbias device creation (2015-08-05 03:04:07 -0700)
 > 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.2/fixes-rc6
+> 
+> for you to fetch changes up to e984a1791ac6a7c944911207e8a9c344763f0003:
+> 
+>   memory: omap-gpmc: Don't try to save uninitialized GPMC context (2015-08-12 01:43:49 -0700)
 
-Just verified that with the change in patch 6 it works on omap3-beagle legacy boot.
-I have fixed some checkpatch issues in this series as well. Will post a v3
-after you have gone one pass over this series.
+Thanks, merged.
 
-cheers,
--roger
+
+-Olof
