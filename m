@@ -1,74 +1,63 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 3/6] ARM: AM43xx: Introduce a separate soc_is function
- for am438x series of SoCs
-Date: Thu, 13 Aug 2015 14:34:52 +0530
-Message-ID: <55CC5DB4.7040704@ti.com>
-References: <1439198906-31189-1-git-send-email-j-keerthy@ti.com> <1439198906-31189-4-git-send-email-j-keerthy@ti.com> <20150811125515.GN4215@atomide.com> <55CA36D2.3080509@ti.com> <20150812083718.GS4215@atomide.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH 2/2] clk: Convert __clk_get_name(hw->clk) to
+ clk_hw_get_name(hw)
+Date: Thu, 13 Aug 2015 11:07:32 +0200
+Message-ID: <20150813090731.GC21716@ulmo>
+References: <1439421161-17868-1-git-send-email-sboyd@codeaurora.org>
+ <1439421161-17868-2-git-send-email-sboyd@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150812083718.GS4215-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="oJ71EGRlYNjSvfq7"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1439421161-17868-2-git-send-email-sboyd@codeaurora.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Mike Turquette <mturquette@baylibre.com>, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <gnurou@gmail.com>, Tero Kristo <t-kristo@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Andrew Bresticker <abrestic@chromium.org>, Ezequiel Garcia <ezequiel.garcia@imgtec.com>, Ralf Baechle <ralf@linux-mips.org>, Kevin Cernekee <cernekee@chromium.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Ulrich Hecht <ulrich.hecht+renesas@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-rockchip@lists.infradead.org, linux-samsung-soc@vger.kernel.orglinu
 List-Id: linux-omap@vger.kernel.org
 
 
+--oJ71EGRlYNjSvfq7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 12 August 2015 02:07 PM, Tony Lindgren wrote:
-> * Keerthy <a0393675-l0cyMroinI0@public.gmane.org> [150811 10:57]:
->>
->>
->> On Tuesday 11 August 2015 06:25 PM, Tony Lindgren wrote:
->>> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [150810 02:31]:
->>>> @@ -371,8 +372,10 @@ IS_OMAP_TYPE(3430, 0x3430)
->>>>   #ifdef	CONFIG_SOC_AM43XX
->>>>   # undef soc_is_am43xx
->>>>   # undef soc_is_am437x
->>>> -# define soc_is_am43xx()		is_am43xx()
->>>> -# define soc_is_am437x()		is_am437x()
->>>> +# undef soc_is_am438x
->>>> +# define soc_is_am43xx()		of_machine_is_compatible("ti,am43")
->>>> +# define soc_is_am437x()		of_machine_is_compatible("ti,am4372")
->>>> +# define soc_is_am438x()		of_machine_is_compatible("ti,am438x")
->>>>   #endif
->>>
->>> Hmm didn't I already comment on this change? I don't want to do it
->>> for one SoC. Please add the SoC detection the old way for am43xx,
->>> then do another series that changes all the DT only SoCs to use
->>> of_machine_is_compatible() after it's been properly tested so now
->>> regressions are caused for the early init code.
->>
->> Okay. I misinterpreted your earlier comment. Thanks for clarifying.
->> I will re-do.
->
-> Actually, can you please do the following patches first while at it:
->
-> 1.  Change dra7 SoC detection to intialize soc_name and soc_rev
->      registers based on the of_machine_is_compatible so we don't
->      do pointless string comparisons with the current code
+On Wed, Aug 12, 2015 at 04:12:41PM -0700, Stephen Boyd wrote:
+> Use the provider based method to get a clock's name so that we
+> can get rid of the clk member in struct clk_hw one day. Mostly
+> converted with the following coccinelle script.
+>=20
+> @@
+> struct clk_hw *E;
+> @@
+>=20
+> -__clk_get_name(E->clk)
+> +clk_hw_get_name(E)
+>=20
+[...]
+>  drivers/clk/tegra/clk-pll.c          |  8 ++++----
 
-Tony,
+Acked-by: Thierry Reding <treding@nvidia.com>
 
-just another confirmation. So the intent here is to directly do
-of_machine_is_compatible checks instead if soc_is_dra* and try to remove 
-soc_is calls from mach-omap2 code right?
+--oJ71EGRlYNjSvfq7
+Content-Type: application/pgp-signature; name="signature.asc"
 
--Keerthy
->
-> 2. Add am437x detection the same way
->
-> 3. Change all the existing DT only SoCs to do the same (this
->     can be done in a separate series)
->
-> That should allow us to drop most of the SoC detection code.
->
-> Regards,
->
-> Tony
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVzF5SAAoJEN0jrNd/PrOhHT0P/iJrUUYIutPfBNvH8txerL+7
+xnmwuEmllVmcxsJsk8a+CogZtFbkZQvYifmGh2IlSy9XcsOsDruHgdsp1330NSr0
+Fuh7nla7Ygt7L98jGh+8Dplpiy9le6F3n4Wr5YWgsXZ2cUgpihp8hSRynx4arTYn
+zmK//oqvSarKhzChh4bjUwHH0f5GZwt9amftL1QY1nwinuVHN3VTz2j6GFoGki3J
+KC6+PD9KvHiqxjmZbiDe8PNk3gph6qZj2g6g9BZAn1oHy2HwIYPyG964kgjuVwSw
+g4wfSg51pDuQW/LQgh53bRo9wrnbCc3Lb8DwlWzlc99fwIKuPC09A7pC01/8sQl8
+09WOSh9v9O5+Df+lMzp0wV0021KrfEWeZTHlMo5zKHVF5yTbF6q0pxrJ5kysxkKz
+MtbpCqWXtpER0OVPl7Ekj0l3f3b7N4ZeqWvqcaHD3WTPrS9h2tmE4SLyErtfEaMH
+NW7icXmC3vZ2keQL6ffjQgrNs110h3zSy1yC0znHl2ofFsJSmlGvk5qiS81oW0j5
+QE5pSbT5tacz6EvOQA92waF4rDPn2gWzy0vyPhhHHIEQUmDrkGotzGyorAgULLqO
+s1ka0NDRwZ+DswuRd+KEKU/XC5IyBp/9EK2fAIzx5qG4spBwj5pN3gDEmY7WzuiG
+IYTtgeucC9Ose6KTNzjn
+=QsVn
+-----END PGP SIGNATURE-----
+
+--oJ71EGRlYNjSvfq7--
