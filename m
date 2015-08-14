@@ -1,73 +1,73 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v3 6/6] irqchip: crossbar: fix set_wake functionality
-Date: Fri, 14 Aug 2015 15:20:30 +0300
-Message-ID: <1439554830-19502-7-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH v3 1/6] genirq: fix irq_chip_retrigger_hierarchy
+Date: Fri, 14 Aug 2015 15:20:25 +0300
+Message-ID: <1439554830-19502-2-git-send-email-grygorii.strashko@ti.com>
 References: <1439554830-19502-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1439554830-19502-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tglx@linutronix.de, tony@atomide.com, marc.zyngier@arm.com
-Cc: linux@arm.linux.org.uk, nsekhar@ti.com, jason@lakedaemon.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Sudeep Holla <sudeep.holla@arm.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux@arm.linux.org.uk, jason@lakedaemon.net, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, Sudeep Holla <sudeep.holla@arm.com>, linux-omap@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The TI crossbar doesn't provides any facility to configure the wakeup
-sources, but it implements .irq_set_wake() callback:
-	.irq_set_wake		= irq_chip_set_wake_parent
+Now irq_chip_retrigger_hierarchy() returns -ENOSYS if it
+was not able to find at least one .irq_retrigger() callback
+implemented in IRQ domain hierarchy. As result, IRQ
+re-triggering is not working now on ARM (TI OMAP) where
+ARM GIC is not implemented this callback.
+The .irq_retrigger() is optional (see check_irq_resend())
+and there are no reasons to fail if it was not found, hence
+lets return 0 in this case.
 
-As result, the irq_chip_set_wake_parent() will try to execute
-.irq_set_wake() callback for parent IRQ domain, which is TI OMAP wakeupgen,
-but TI OMAP wakeupgen has IRQCHIP_SKIP_SET_WAKE flag set and do not
-implement .irq_set_wake() callback. Thus, irq_chip_set_wake_parent() will
-fail with -ENOSYS.
+In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
+ARM GIC <- OMAP wakeupgen <- TI CBAR
 
-In case of TI OMAP DRA7 the issue reproduced with following
-configuration:
-   ARM GIC<-OMAP wakeupgen<-TI CBAR<-GPIO<-GPIO pcf857x<-gpio_key
-
-gpio_key is wakeup source
-
-Failure is reproduced during suspend/resume to RAM:
- suspend:
-  - gpio_keys_suspend
-    + enable_irq_wake
-      + pcf857x_irq_set_wake
-        + omap_gpio_wake_enable
-          + TI CBAR irq_chip_set_wake_parent
-            + OMAP wakeupgen has no .irq_set_wake() and
-              -ENOSYS will be returned
-
- resume:
-  - gpio_keys_resume
-    + disable_irq_wake
-      + irq_set_irq_wake
-         + WARN(1, "Unbalanced IRQ %d wake disable\n", irq);
-
-Hence, fix it by adding IRQCHIP_SKIP_SET_WAKE flag to TI Crossbar and
-drop .irq_set_wake() at the same time.
+Failure is reproduced during resume from suspend to RAM:
+- wakeup by IRQx
+- suspend_enter
+  + arch_suspend_enable_irqs
+    + handle_fasteoi_irq
+      + irq_may_run
+        + irq_pm_check_wakeup
+          + irq_disable(IRQx)
+  + dpm_resume_noirq()
+    + resume_device_irqs
+      + resume_irqs
+        + resume_irq
+          + __enable_irq <== IRQx is not re-triggered
 
 Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>
+Fixes: 85f08c17de26 ('genirq: Introduce helper functions...')
+Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/irqchip/irq-crossbar.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/irq/chip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index f5a72cc..c12bb93 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -68,9 +68,9 @@ static struct irq_chip crossbar_chip = {
- 	.irq_mask		= irq_chip_mask_parent,
- 	.irq_unmask		= irq_chip_unmask_parent,
- 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
--	.irq_set_wake		= irq_chip_set_wake_parent,
- 	.irq_set_type		= irq_chip_set_type_parent,
--	.flags			= IRQCHIP_MASK_ON_SUSPEND,
-+	.flags			= IRQCHIP_MASK_ON_SUSPEND |
-+				  IRQCHIP_SKIP_SET_WAKE,
- #ifdef CONFIG_SMP
- 	.irq_set_affinity	= irq_chip_set_affinity_parent,
- #endif
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 27f4332..6de638b 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -997,7 +997,7 @@ int irq_chip_retrigger_hierarchy(struct irq_data *data)
+ 		if (data->chip && data->chip->irq_retrigger)
+ 			return data->chip->irq_retrigger(data);
+ 
+-	return -ENOSYS;
++	return 0;
+ }
+ 
+ /**
 -- 
 2.5.0
