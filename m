@@ -1,26 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH 0/3] Add AM335x PG1.0 CPSW errata workaround
-Date: Thu, 13 Aug 2015 16:51:13 -0700 (PDT)
-Message-ID: <20150813.165113.1810080698956348801.davem@davemloft.net>
-References: <1439373175-8650-1-git-send-email-mugunthanvnm@ti.com>
+From: Fabio Estevam <festevam@gmail.com>
+Subject: Re: [PATCH] usb: phy: phy-generic: Fix reset behaviour on legacy boot
+Date: Thu, 13 Aug 2015 22:48:10 -0300
+Message-ID: <CAOMZO5BZnY6X+PYQxB9zzq8e6__t8uiTRF+89orkJ891j6s=og@mail.gmail.com>
+References: <1439461722-9498-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1439373175-8650-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, alex.aring@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439461722-9498-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Fabio Estevam <fabio.estevam@freescale.com>, USB list <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Date: Wed, 12 Aug 2015 15:22:52 +0530
+On Thu, Aug 13, 2015 at 7:28 AM, Roger Quadros <rogerq@ti.com> wrote:
+> The gpio-desc migration done in v4.0 caused a regression
+> with legacy boots due to reversed reset logic.
+> e.g. omap3-beagle USB host breaks on legacy boot.
+>
+> Request the reset GPIO with GPIOF_ACTIVE_LOW flag so that
+> it matches the driver logic and pin behaviour.
+>
+> Fixes: e9f2cefb0cdc ("usb: phy: generic: migrate to gpio_desc")
+> Cc: <stable@vger.kernel.org> # 4.0+
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-> With commit 870915feabdc ("drivers: net: cpsw: remove
-> disable_irq/enable_irq as irq can be masked from cpsw itself"),
-> CPSW on AM335x beagle bone white is broken as there is a errata
-> for AM335x PG1.0. This patch series implements the workaround by
-> disabling the interrupts from ARM IRQ controller for AM335x SoC
-> in addition to the masking of interrupts in CPSW.
+The USB on my mx51-babbage board still works fine with this change:
 
-Series applied, thanks.
+Tested-by: Fabio Estevam <fabio.estevam@freescale.com>
