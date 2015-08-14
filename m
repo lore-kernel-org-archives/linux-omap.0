@@ -1,118 +1,61 @@
-From: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Subject: Re: [PATCH v3 07/11] usb: otg: add OTG core
-Date: Fri, 14 Aug 2015 16:43:19 +0800
-Message-ID: <20150814084318.GF11072@shlinux2>
-References: <1436350777-28056-1-git-send-email-rogerq@ti.com>
- <1436350777-28056-8-git-send-email-rogerq@ti.com>
- <20150713021456.GE27710@shlinux2>
- <55A390FB.5080406@ti.com>
- <55CDB80E.2030403@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH RFC v3 3/7] ASoC: hdmi-codec: Add hdmi-codec for external
+ HDMI-encoders
+Date: Fri, 14 Aug 2015 10:57:41 +0100
+Message-ID: <20150814095741.GG7576@n2100.arm.linux.org.uk>
+References: <cover.1439542916.git.jsarha@ti.com>
+ <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <55CDB80E.2030403-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 14, 2015 at 12:42:38PM +0300, Roger Quadros wrote:
-> Hi Peter,
-> 
-> On 13/07/15 13:20, Roger Quadros wrote:
-> > On 13/07/15 05:14, Peter Chen wrote:
-> >> On Wed, Jul 08, 2015 at 01:19:33PM +0300, Roger Quadros wrote:
-> >>> The OTG core instantiates the OTG Finite State Machine
-> >>> per OTG controller and manages starting/stopping the
-> >>> host and gadget controllers based on the bus state.
-> >>>
-> >>> It provides APIs for the following tasks
-> >>>
-> >>> - Registering an OTG capable controller
-> >>> - Registering Host and Gadget controllers to OTG core
-> >>> - Providing inputs to and kicking the OTG state machine
-> >>>
-> >>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> >>> ---
-> >>>  MAINTAINERS                  |   4 +-
-> >>>  drivers/usb/Kconfig          |   2 +-
-> >>>  drivers/usb/Makefile         |   1 +
-> >>>  drivers/usb/common/Makefile  |   3 +-
-> >>>  drivers/usb/common/usb-otg.c | 768 +++++++++++++++++++++++++++++++++++++++++++
-> >>>  drivers/usb/common/usb-otg.h |  71 ++++
-> >>>  drivers/usb/core/Kconfig     |  11 +-
-> >>>  include/linux/usb/otg.h      |  91 ++++-
-> >>>  8 files changed, 930 insertions(+), 21 deletions(-)
-> >>>  create mode 100644 drivers/usb/common/usb-otg.c
-> >>>  create mode 100644 drivers/usb/common/usb-otg.h
-> >>>
-> >>> diff --git a/MAINTAINERS b/MAINTAINERS
-> >>> index 8133cef..b21278e 100644
-> >>> --- a/MAINTAINERS
-> >>> +++ b/MAINTAINERS
-> >>> @@ -10640,12 +10640,14 @@ S:	Maintained
-> >>>  F:	Documentation/usb/ohci.txt
-> >>>  F:	drivers/usb/host/ohci*
-> >>>  
-> >>> -USB OTG FSM (Finite State Machine)
-> >>> +USB OTG/DRD core and FSM (Finite State Machine)
-> >>>  M:	Peter Chen <Peter.Chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-> >>> +M:	Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> >>>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/peter.chen/usb.git
-> >>>  L:	linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>>  S:	Maintained
-> >>>  F:	drivers/usb/common/usb-otg-fsm.c
-> >>> +F:	drivers/usb/common/usb-otg.c
-> >>>  
-> >>>  USB OVER IP DRIVER
-> >>>  M:	Valentina Manea <valentina.manea.m-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> >>> diff --git a/drivers/usb/Kconfig b/drivers/usb/Kconfig
-> >>> index 8ed451d..5b625e2 100644
-> >>> --- a/drivers/usb/Kconfig
-> >>> +++ b/drivers/usb/Kconfig
-> >>> @@ -32,7 +32,7 @@ if USB_SUPPORT
-> >>>  config USB_COMMON
-> >>>  	tristate
-> >>>  	default y
-> >>> -	depends on USB || USB_GADGET
-> >>> +	depends on USB || USB_GADGET || USB_OTG
-> >>>  
-> >>
-> >> USB_OTG can depends on USB || UB_GADGET?
-> > 
-> > I didn't understand. The above is for USB_COMMON.
-> > 
-> >>
-> >>>  config USB_ARCH_HAS_HCD
-> >>>  	def_bool y
-> >>> diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
-> >>> index d8926c6..769d13b 100644
-> >>> --- a/drivers/usb/Makefile
-> >>> +++ b/drivers/usb/Makefile
-> >>> @@ -60,5 +60,6 @@ obj-$(CONFIG_USB_RENESAS_USBHS)	+= renesas_usbhs/
-> >>>  obj-$(CONFIG_USB_GADGET)	+= gadget/
-> >>>  
-> >>>  obj-$(CONFIG_USB_COMMON)	+= common/
-> >>> +obj-$(CONFIG_USB_OTG)		+= common/
-> >>>  
-> >>
-> >> The comment like above.
-> > 
-> > What should it look like?
-> > 
-> 
-> Can you please clarify what you meant at the above two
-> comments? Thanks.
-> 
-
-Forget them, I had thought the USB_OTG could be module.
-
--- 
-
-Best Regards,
-Peter Chen
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gRnJpLCBBdWcgMTQsIDIwMTUgYXQgMTI6MzA6NDFQTSArMDMwMCwgSnlyaSBTYXJoYSB3cm90
+ZToKPiArc3RhdGljIGludCBoZG1pX2NvZGVjX2h3X3BhcmFtcyhzdHJ1Y3Qgc25kX3BjbV9zdWJz
+dHJlYW0gKnN1YnN0cmVhbSwKPiArCQkJCXN0cnVjdCBzbmRfcGNtX2h3X3BhcmFtcyAqcGFyYW1z
+LAo+ICsJCQkJc3RydWN0IHNuZF9zb2NfZGFpICpkYWkpCj4gK3sKPiArCXN0cnVjdCBoZG1pX2Nv
+ZGVjX3ByaXYgKmhjcCA9IHNuZF9zb2NfZGFpX2dldF9kcnZkYXRhKGRhaSk7Cj4gKwlzdHJ1Y3Qg
+aGRtaV9jb2RlY19wYXJhbXMgaHAgPSB7Cj4gKwkJLmNlYSA9IHsgMCB9LAoKVW5uZWNlc3Nhcnkg
+aW5pdGlhbGlzYXRpb24gLSBiZWNhdXNlIHlvdSBhcmUgaW5pdGlhbGlzaW5nIHRoaXMgc3RydWN0
+dXJlLAphbGwgdW5uYW1lZCBmaWVsZHMgd2lsbCBiZSB6ZXJvZWQuCgo+ICsJCS5pZWMgPSB7Cj4g
+KwkJCS5zdGF0dXMgPSB7Cj4gKwkJCQlJRUM5NThfQUVTMF9DT05fTk9UX0NPUFlSSUdIVCwKPiAr
+CQkJCUlFQzk1OF9BRVMxX0NPTl9HRU5FUkFMLAo+ICsJCQkJSUVDOTU4X0FFUzJfQ09OX1NPVVJD
+RV9VTlNQRUMsCj4gKwkJCQlJRUM5NThfQUVTM19DT05fQ0xPQ0tfVkFSSUFCTEUsCj4gKwkJCX0s
+CgouLi4KCj4gKwloZG1pX2F1ZGlvX2luZm9mcmFtZV9pbml0KCZocC5jZWEpOwo+ICsJaHAuY2Vh
+LmNvZGluZ190eXBlID0gSERNSV9BVURJT19DT0RJTkdfVFlQRV9QQ007CgpTb21ldGhpbmcgdGVs
+bHMgbWUgaGVyZSB0aGF0IHlvdSBoYXZlbid0IHJlYWQgdGhlIEhETUkgc3BlY2lmaWNhdGlvbi4K
+SERNSSBzYXlzIHRoYXQgdGhlIGNvZGluZyB0eXBlIHdpbGwgYmUgemVybyAocmVmZXIgdG8gc3Ry
+ZWFtIGhlYWRlcikuClRoZSBzYW1lIGdvZXMgZm9yIG11Y2ggb2YgdGhlIENFQSBhdWRpbyBpbmZv
+ZnJhbWUuICBQbGVhc2Ugc2VlIHRoZQpBdWRpbyBJbmZvRnJhbWUgZGV0YWlscyBpbiB0aGUgSERN
+SSBzcGVjaWZpY2F0aW9uLgoKPiArCWhwLmNlYS5jaGFubmVscyA9IHBhcmFtc19jaGFubmVscyhw
+YXJhbXMpOwo+ICsKPiArCXN3aXRjaCAocGFyYW1zX3dpZHRoKHBhcmFtcykpIHsKPiArCWNhc2Ug
+MTY6Cj4gKwkJaHAuaWVjLnN0YXR1c1s0XSB8PSBJRUM5NThfQUVTNF9DT05fV09SRExFTl8yMF8x
+NjsKPiArCQlocC5jZWEuc2FtcGxlX3NpemUgPSBIRE1JX0FVRElPX1NBTVBMRV9TSVpFXzE2Owo+
+ICsJCWJyZWFrOwo+ICsJY2FzZSAxODoKPiArCQlocC5pZWMuc3RhdHVzWzRdIHw9IElFQzk1OF9B
+RVM0X0NPTl9XT1JETEVOXzIyXzE4Owo+ICsJCWhwLmNlYS5zYW1wbGVfc2l6ZSA9IEhETUlfQVVE
+SU9fU0FNUExFX1NJWkVfMjA7Cj4gKwkJYnJlYWs7Cj4gKwljYXNlIDIwOgo+ICsJCWhwLmllYy5z
+dGF0dXNbNF0gfD0gSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjRfMjA7Cj4gKwkJaHAuY2VhLnNh
+bXBsZV9zaXplID0gSERNSV9BVURJT19TQU1QTEVfU0laRV8yMDsKPiArCQlicmVhazsKPiArCWNh
+c2UgMjQ6Cj4gKwljYXNlIDMyOgo+ICsJCWhwLmllYy5zdGF0dXNbNF0gfD0gSUVDOTU4X0FFUzRf
+Q09OX01BWF9XT1JETEVOXzI0IHwKPiArCQkJSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjRfMjA7
+CgpXaHkgbm90IHVzZSB0aGUgZ2VuZXJpYyBjb2RlIHRvIGdlbmVyYXRlIHRoZSBBRVMgY2hhbm5l
+bCBzdGF0dXMgYml0cz8KU2VlIHNvdW5kL2NvcmUvcGNtX2llYzk1OC5jLgoKLS0gCkZUVEMgYnJv
+YWRiYW5kIGZvciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCAxMC41TWJwcyBkb3duIDQwMGti
+cHMgdXAKYWNjb3JkaW5nIHRvIHNwZWVkdGVzdC5uZXQuCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
+QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
+YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
