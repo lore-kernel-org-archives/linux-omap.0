@@ -1,143 +1,247 @@
-From: Vaibhav Hiremath <vaibhav.hiremath-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] rtc: omap: Add external clock enabling support
-Date: Fri, 14 Aug 2015 14:06:44 +0530
-Message-ID: <55CDA89C.1080407@linaro.org>
-References: <1439449668-32301-1-git-send-email-j-keerthy@ti.com> <1439449668-32301-3-git-send-email-j-keerthy@ti.com> <20150814083319.GG22269@piout.net>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] gpiolib: irqchip: use different lockdep class for each
+ gpio irqchip
+Date: Fri, 14 Aug 2015 12:00:49 +0300
+Message-ID: <55CDAE41.7060400@ti.com>
+References: <1439477919-24356-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150814083319.GG22269-m++hUPXGwpdeoWH0uzbU5w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439477919-24356-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 13/08/15 17:58, Grygorii Strashko wrote:
+> Since IRQ chip helpers were introduced drivers lose ability to
+> register separate lockdep classes for each registered GPIO IRQ
+> chip and the gpiolib now is using shared lockdep class for
+> all GPIO IRQ chips (gpiochip_irq_lock_class).
+> As result, lockdep will produce warning when there are min two
+> stacked GPIO chips and all of them are interrupt controllers.
+> 
+> HW configuration which generates lockdep warning (TI dra7-evm):
+> 
+> [SOC GPIO bankA.gpioX]
+>   <- irq - [pcf875x.gpioY]
+>             <- irq - DevZ.enable_irq_wake(pcf_gpioY_irq);
+> The issue was reported in [1] and discussed [2].
+> 
+> =============================================
+> [ INFO: possible recursive locking detected ]
+> 4.2.0-rc6-00013-g5d050ed-dirty #55 Not tainted
+> ---------------------------------------------
+> sh/63 is trying to acquire lock:
+>  (class){......}, at: [<c009b91c>] __irq_get_desc_lock+0x50/0x94
+> 
+> but task is already holding lock:
+>  (class){......}, at: [<c009b91c>] __irq_get_desc_lock+0x50/0x94
+> 
+> other info that might help us debug this:
+>  Possible unsafe locking scenario:
+> 
+>        CPU0
+>        ----
+>   lock(class);
+>   lock(class);
+> 
+>  *** DEADLOCK ***
+> 
+>  May be due to missing lock nesting notation
+> 
+> 7 locks held by sh/63:
+>  #0:  (sb_writers#4){.+.+.+}, at: [<c016bbb8>] vfs_write+0x13c/0x164
+>  #1:  (&of->mutex){+.+.+.}, at: [<c01debf4>] kernfs_fop_write+0x4c/0x1a0
+>  #2:  (s_active#36){.+.+.+}, at: [<c01debfc>] kernfs_fop_write+0x54/0x1a0
+>  #3:  (pm_mutex){+.+.+.}, at: [<c009758c>] pm_suspend+0xec/0x4c4
+>  #4:  (&dev->mutex){......}, at: [<c03f77f8>] __device_suspend+0xd4/0x398
+>  #5:  (&gpio->lock){+.+.+.}, at: [<c009b940>] __irq_get_desc_lock+0x74/0x94
+>  #6:  (class){......}, at: [<c009b91c>] __irq_get_desc_lock+0x50/0x94
+> 
+> stack backtrace:
+> CPU: 0 PID: 63 Comm: sh Not tainted 4.2.0-rc6-00013-g5d050ed-dirty #55
+> Hardware name: Generic DRA74X (Flattened Device Tree)
+> [<c0016e24>] (unwind_backtrace) from [<c0013338>] (show_stack+0x10/0x14)
+> [<c0013338>] (show_stack) from [<c05f6b24>] (dump_stack+0x84/0x9c)
+> [<c05f6b24>] (dump_stack) from [<c00903f4>] (__lock_acquire+0x19c0/0x1e20)
+> [<c00903f4>] (__lock_acquire) from [<c0091098>] (lock_acquire+0xa8/0x128)
+> [<c0091098>] (lock_acquire) from [<c05fd61c>] (_raw_spin_lock_irqsave+0x38/0x4c)
+> [<c05fd61c>] (_raw_spin_lock_irqsave) from [<c009b91c>] (__irq_get_desc_lock+0x50/0x94)
+> [<c009b91c>] (__irq_get_desc_lock) from [<c009c4f4>] (irq_set_irq_wake+0x20/0xfc)
+> [<c009c4f4>] (irq_set_irq_wake) from [<c0393ac4>] (pcf857x_irq_set_wake+0x24/0x54)
+> [<c0393ac4>] (pcf857x_irq_set_wake) from [<c009c560>] (irq_set_irq_wake+0x8c/0xfc)
+> [<c009c560>] (irq_set_irq_wake) from [<c04a02ac>] (gpio_keys_suspend+0x70/0xd4)
+> [<c04a02ac>] (gpio_keys_suspend) from [<c03f6a00>] (dpm_run_callback+0x50/0x124)
+> [<c03f6a00>] (dpm_run_callback) from [<c03f7830>] (__device_suspend+0x10c/0x398)
+> [<c03f7830>] (__device_suspend) from [<c03f90f0>] (dpm_suspend+0x134/0x2f4)
+> [<c03f90f0>] (dpm_suspend) from [<c0096e20>] (suspend_devices_and_enter+0xa8/0x728)
+> [<c0096e20>] (suspend_devices_and_enter) from [<c00977cc>] (pm_suspend+0x32c/0x4c4)
+> [<c00977cc>] (pm_suspend) from [<c0096060>] (state_store+0x64/0xb8)
+> [<c0096060>] (state_store) from [<c01dec64>] (kernfs_fop_write+0xbc/0x1a0)
+> [<c01dec64>] (kernfs_fop_write) from [<c016b280>] (__vfs_write+0x20/0xd8)
+> [<c016b280>] (__vfs_write) from [<c016bb0c>] (vfs_write+0x90/0x164)
+> [<c016bb0c>] (vfs_write) from [<c016c330>] (SyS_write+0x44/0x9c)
+> [<c016c330>] (SyS_write) from [<c000f500>] (ret_fast_syscall+0x0/0x54)
+> 
+> Lets fix it by using separate lockdep class for each registered GPIO
+> IRQ Chip. This is done by wrapping gpiochip_irqchip_add call into macros.
+> 
+> The implementation of this patch inspired by solution done by Nicolas
+> Boichat for regmap [3]
+> 
+> [1] http://www.spinics.net/lists/linux-gpio/msg05844.html
+> [2] http://www.spinics.net/lists/linux-gpio/msg06021.html
+> [3] http://www.spinics.net/lists/arm-kernel/msg429834.html
+> 
+> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Roger Quadros <rogerq@ti.com>
+> Reported-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
+Nice !! :)
 
-On Friday 14 August 2015 02:03 PM, Alexandre Belloni wrote:
-> On 13/08/2015 at 12:37:48 +0530, Keerthy wrote :
->> Configure the clock source to either internal clock
->> or external clock based on the availability of the clocks.
->> External clock is preferred as it can be ticking during suspend.
->>
->> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->> ---
->>   drivers/rtc/rtc-omap.c | 44 ++++++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 44 insertions(+)
->>
->> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
->> index 8b6355f..479f730 100644
->> --- a/drivers/rtc/rtc-omap.c
->> +++ b/drivers/rtc/rtc-omap.c
->> @@ -25,6 +25,7 @@
->>   #include <linux/of_device.h>
->>   #include <linux/pm_runtime.h>
->>   #include <linux/io.h>
->> +#include <linux/clk.h>
->>
->>   /*
->>    * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
->> @@ -107,6 +108,7 @@
->>
->>   /* OMAP_RTC_OSC_REG bit fields: */
->>   #define OMAP_RTC_OSC_32KCLK_EN		BIT(6)
->> +#define OMAP_RTC_OSC_SEL_32KCLK_SRC	BIT(3)
->>
->>   /* OMAP_RTC_IRQWAKEEN bit fields: */
->>   #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
->> @@ -136,6 +138,7 @@ struct omap_rtc {
->>   	int irq_timer;
->>   	u8 interrupts_reg;
->>   	bool is_pmic_controller;
->> +	bool has_ext_clk;
->>   	const struct omap_rtc_device_type *type;
->>   };
->>
->> @@ -525,6 +528,7 @@ static int omap_rtc_probe(struct platform_device *pdev)
->>   {
->>   	struct omap_rtc	*rtc;
->>   	struct resource	*res;
->> +	struct clk *ext_clk, *int_clk;
->>   	u8 reg, mask, new_ctrl;
->>   	const struct platform_device_id *id_entry;
->>   	const struct of_device_id *of_id;
->> @@ -553,6 +557,17 @@ static int omap_rtc_probe(struct platform_device *pdev)
->>   	if (rtc->irq_alarm <= 0)
->>   		return -ENOENT;
->>
->> +	ext_clk = devm_clk_get(&pdev->dev, "ext-clk");
->> +	if (!IS_ERR(ext_clk)) {
->> +		rtc->has_ext_clk = true;
->> +		clk_prepare(ext_clk);
->
-> I'd say this has to be prepare_enable because you are not enabling those
-> clocks anywhere
->
->> +	} else {
->> +		int_clk = devm_clk_get(&pdev->dev, "int-clk");
->> +
->> +		if (!IS_ERR(int_clk))
->> +			clk_prepare(int_clk);
->> +	}
->> +
->>   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>   	rtc->base = devm_ioremap_resource(&pdev->dev, res);
->>   	if (IS_ERR(rtc->base))
->> @@ -627,6 +642,17 @@ static int omap_rtc_probe(struct platform_device *pdev)
->>   	if (reg != new_ctrl)
->>   		rtc_write(rtc, OMAP_RTC_CTRL_REG, new_ctrl);
->>
->> +	/*
->> +	 * If we have the external clock then
->> +	 * Switch to external clock so we can keep ticking
->> +	 * acorss suspend
->> +	 */
->> +	if (rtc->has_ext_clk) {
->> +		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
->> +		rtc_write(rtc, OMAP_RTC_OSC_REG, reg |
->> +			  OMAP_RTC_OSC_SEL_32KCLK_SRC);
->> +	}
->> +
->>   	rtc->type->lock(rtc);
->>
->>   	device_init_wakeup(&pdev->dev, true);
->> @@ -672,6 +698,8 @@ err:
->>   static int __exit omap_rtc_remove(struct platform_device *pdev)
->>   {
->>   	struct omap_rtc *rtc = platform_get_drvdata(pdev);
->> +	struct clk *ext_clk, *int_clk;
->> +	u8 reg;
->>
->>   	if (pm_power_off == omap_rtc_power_off &&
->>   			omap_rtc_power_off_rtc == rtc) {
->> @@ -681,10 +709,26 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
->>
->>   	device_init_wakeup(&pdev->dev, 0);
->>
->> +	ext_clk = devm_clk_get(&pdev->dev, "ext-clk");
->> +	if (!IS_ERR(ext_clk)) {
->> +		clk_unprepare(ext_clk);
->> +	} else {
->> +		int_clk = devm_clk_get(&pdev->dev, "int-clk");
->> +
->> +		if (!IS_ERR(int_clk))
->> +			clk_unprepare(int_clk);
->> +	}
->> +
->
-> You can probably add ext_clk and int_clk to struct omap_rtc and avoid
-> those devm_clk_get.
->
+Tested-by: Roger Quadros <rogerq@ti.com>
 
+cheers,
+-roger
 
-Since both int_clk and ext_clk are mutual exclusive, you can have only 
-one variable.
-
-
-Thanks,
-Vaibhav
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/gpio/gpiolib.c      | 27 ++++++++++++++-------------
+>  include/linux/gpio/driver.h | 27 ++++++++++++++++++++++-----
+>  2 files changed, 36 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index bf4bd1d..75dddc1 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -456,12 +456,6 @@ void gpiochip_set_chained_irqchip(struct gpio_chip *gpiochip,
+>  }
+>  EXPORT_SYMBOL_GPL(gpiochip_set_chained_irqchip);
+>  
+> -/*
+> - * This lock class tells lockdep that GPIO irqs are in a different
+> - * category than their parents, so it won't report false recursion.
+> - */
+> -static struct lock_class_key gpiochip_irq_lock_class;
+> -
+>  /**
+>   * gpiochip_irq_map() - maps an IRQ into a GPIO irqchip
+>   * @d: the irqdomain used by this irqchip
+> @@ -478,7 +472,11 @@ static int gpiochip_irq_map(struct irq_domain *d, unsigned int irq,
+>  	struct gpio_chip *chip = d->host_data;
+>  
+>  	irq_set_chip_data(irq, chip);
+> -	irq_set_lockdep_class(irq, &gpiochip_irq_lock_class);
+> +	/*
+> +	 * This lock class tells lockdep that GPIO irqs are in a different
+> +	 * category than their parents, so it won't report false recursion.
+> +	 */
+> +	irq_set_lockdep_class(irq, chip->lock_key);
+>  	irq_set_chip_and_handler(irq, chip->irqchip, chip->irq_handler);
+>  	/* Chips that can sleep need nested thread handlers */
+>  	if (chip->can_sleep && !chip->irq_not_threaded)
+> @@ -584,6 +582,7 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip)
+>   * @handler: the irq handler to use (often a predefined irq core function)
+>   * @type: the default type for IRQs on this irqchip, pass IRQ_TYPE_NONE
+>   * to have the core avoid setting up any default type in the hardware.
+> + * @lock_key: lockdep class
+>   *
+>   * This function closely associates a certain irqchip with a certain
+>   * gpiochip, providing an irq domain to translate the local IRQs to
+> @@ -599,11 +598,12 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip)
+>   * the pins on the gpiochip can generate a unique IRQ. Everything else
+>   * need to be open coded.
+>   */
+> -int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+> -			 struct irq_chip *irqchip,
+> -			 unsigned int first_irq,
+> -			 irq_flow_handler_t handler,
+> -			 unsigned int type)
+> +int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+> +			  struct irq_chip *irqchip,
+> +			  unsigned int first_irq,
+> +			  irq_flow_handler_t handler,
+> +			  unsigned int type,
+> +			  struct lock_class_key *lock_key)
+>  {
+>  	struct device_node *of_node;
+>  	unsigned int offset;
+> @@ -629,6 +629,7 @@ int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+>  	gpiochip->irq_handler = handler;
+>  	gpiochip->irq_default_type = type;
+>  	gpiochip->to_irq = gpiochip_to_irq;
+> +	gpiochip->lock_key = lock_key;
+>  	gpiochip->irqdomain = irq_domain_add_simple(of_node,
+>  					gpiochip->ngpio, first_irq,
+>  					&gpiochip_domain_ops, gpiochip);
+> @@ -658,7 +659,7 @@ int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+>  
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(gpiochip_irqchip_add);
+> +EXPORT_SYMBOL_GPL(_gpiochip_irqchip_add);
+>  
+>  #else /* CONFIG_GPIOLIB_IRQCHIP */
+>  
+> diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+> index c8393cd..dd1dfbb 100644
+> --- a/include/linux/gpio/driver.h
+> +++ b/include/linux/gpio/driver.h
+> @@ -6,6 +6,7 @@
+>  #include <linux/irq.h>
+>  #include <linux/irqchip/chained_irq.h>
+>  #include <linux/irqdomain.h>
+> +#include <linux/lockdep.h>
+>  #include <linux/pinctrl/pinctrl.h>
+>  
+>  struct device;
+> @@ -62,6 +63,7 @@ struct seq_file;
+>   *	implies that if the chip supports IRQs, these IRQs need to be threaded
+>   *	as the chip access may sleep when e.g. reading out the IRQ status
+>   *	registers.
+> + * @exported: flags if the gpiochip is exported for use from sysfs. Private.
+>   * @irq_not_threaded: flag must be set if @can_sleep is set but the
+>   *	IRQs don't need to be threaded
+>   *
+> @@ -126,6 +128,7 @@ struct gpio_chip {
+>  	irq_flow_handler_t	irq_handler;
+>  	unsigned int		irq_default_type;
+>  	int			irq_parent;
+> +	struct lock_class_key	*lock_key;
+>  #endif
+>  
+>  #if defined(CONFIG_OF_GPIO)
+> @@ -171,11 +174,25 @@ void gpiochip_set_chained_irqchip(struct gpio_chip *gpiochip,
+>  		int parent_irq,
+>  		irq_flow_handler_t parent_handler);
+>  
+> -int gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+> -		struct irq_chip *irqchip,
+> -		unsigned int first_irq,
+> -		irq_flow_handler_t handler,
+> -		unsigned int type);
+> +int _gpiochip_irqchip_add(struct gpio_chip *gpiochip,
+> +			  struct irq_chip *irqchip,
+> +			  unsigned int first_irq,
+> +			  irq_flow_handler_t handler,
+> +			  unsigned int type,
+> +			  struct lock_class_key *lock_key);
+> +
+> +#ifdef CONFIG_LOCKDEP
+> +#define gpiochip_irqchip_add(...)				\
+> +(								\
+> +	({							\
+> +		static struct lock_class_key _key;		\
+> +		_gpiochip_irqchip_add(__VA_ARGS__, &_key);	\
+> +	})							\
+> +)
+> +#else
+> +#define gpiochip_irqchip_add(...)				\
+> +	_gpiochip_irqchip_add(__VA_ARGS__, NULL)
+> +#endif
+>  
+>  #endif /* CONFIG_GPIOLIB_IRQCHIP */
+>  
+> 
