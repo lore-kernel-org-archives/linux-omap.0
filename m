@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v3 1/6] genirq: fix irq_chip_retrigger_hierarchy
-Date: Fri, 14 Aug 2015 15:20:25 +0300
-Message-ID: <1439554830-19502-2-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH v3 5/6] irqchip: crossbar: fix irq masking at suspend
+Date: Fri, 14 Aug 2015 15:20:29 +0300
+Message-ID: <1439554830-19502-6-git-send-email-grygorii.strashko@ti.com>
 References: <1439554830-19502-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,56 +18,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tglx@linutronix.de, tony@atomide.com, marc.zyngier@arm.com
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux@arm.linux.org.uk, jason@lakedaemon.net, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, Sudeep Holla <sudeep.holla@arm.com>, linux-omap@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux@arm.linux.org.uk, jason@lakedaemon.net, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, Sudeep Holla <sudeep.holla@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now irq_chip_retrigger_hierarchy() returns -ENOSYS if it
-was not able to find at least one .irq_retrigger() callback
-implemented in IRQ domain hierarchy. As result, IRQ
-re-triggering is not working now on ARM (TI OMAP) where
-ARM GIC is not implemented this callback.
-The .irq_retrigger() is optional (see check_irq_resend())
-and there are no reasons to fail if it was not found, hence
-lets return 0 in this case.
+All ARM GIC IRQs have to masked during suspend if they are not
+wakeup source - this is expected behavior.Now this is not happen, since
+switching to use IRQ domain hierarchy, because suspend_device_irq()
+only checks flags in the last IRQ chip in hierarchy for
+IRQCHIP_MASK_ON_SUSPEND bit set. And in the case of TI OMAP DRA7 the
+last IRQ chip is TI Crossbar which do not have this flag set.
 
 In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
-ARM GIC <- OMAP wakeupgen <- TI CBAR
+  ARM GIC <- OMAP wakeupgen <- TI CBAR
+ARM GIC - IRQCHIP_MASK_ON_SUSPEND=n
+OMAP wakeupgen - IRQCHIP_MASK_ON_SUSPEND=y
+TI CBAR - IRQCHIP_MASK_ON_SUSPEND=n
 
-Failure is reproduced during resume from suspend to RAM:
-- wakeup by IRQx
-- suspend_enter
-  + arch_suspend_enable_irqs
-    + handle_fasteoi_irq
-      + irq_may_run
-        + irq_pm_check_wakeup
-          + irq_disable(IRQx)
-  + dpm_resume_noirq()
-    + resume_device_irqs
-      + resume_irqs
-        + resume_irq
-          + __enable_irq <== IRQx is not re-triggered
+Hence, fix by adding IRQCHIP_MASK_ON_SUSPEND for TI Crossbar IRQ chip.
 
 Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>
-Fixes: 85f08c17de26 ('genirq: Introduce helper functions...')
-Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- kernel/irq/chip.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/irqchip/irq-crossbar.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 27f4332..6de638b 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -997,7 +997,7 @@ int irq_chip_retrigger_hierarchy(struct irq_data *data)
- 		if (data->chip && data->chip->irq_retrigger)
- 			return data->chip->irq_retrigger(data);
- 
--	return -ENOSYS;
-+	return 0;
- }
- 
- /**
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 3ba58e7..f5a72cc 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -70,6 +70,7 @@ static struct irq_chip crossbar_chip = {
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+ 	.irq_set_wake		= irq_chip_set_wake_parent,
+ 	.irq_set_type		= irq_chip_set_type_parent,
++	.flags			= IRQCHIP_MASK_ON_SUSPEND,
+ #ifdef CONFIG_SMP
+ 	.irq_set_affinity	= irq_chip_set_affinity_parent,
+ #endif
 -- 
 2.5.0
