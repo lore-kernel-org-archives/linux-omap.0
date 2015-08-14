@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v3 2/6] genirq: introduce irq_chip_set_type_parent() helper
-Date: Fri, 14 Aug 2015 15:20:26 +0300
-Message-ID: <1439554830-19502-3-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH v3 3/6] irqchip: crossbar: fix arm gic irq type configuration
+Date: Fri, 14 Aug 2015 15:20:27 +0300
+Message-ID: <1439554830-19502-4-git-send-email-grygorii.strashko@ti.com>
 References: <1439554830-19502-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,56 +12,46 @@ To: tglx@linutronix.de, tony@atomide.com, marc.zyngier@arm.com
 Cc: linux@arm.linux.org.uk, nsekhar@ti.com, jason@lakedaemon.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-It's expected to use this helper when the current
-domain doesn't implement .irq_set_type(),  but expect
-the parent to do so.
+It's observed that ARM GIC IRQ triggering type is not configured
+properly when IRQ is routed through IRQ domain hierarchy and
+system started using DT. As result, system will start using default
+ARM GIC configuration, ignore DT IRQ triggering configuration,
+and value of desc->irq_data.state_use_accessors = 0.
+
+In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
+ARM GIC <- OMAP wakeupgen <- TI CBAR
+
+Failed call chain:
+     irq_create_of_mapping
+     irq_set_irq_type
+     __irq_set_trigger
+     if (!chip || !chip->irq_set_type) {
+        return 0; <- return here
+     }
+Crossbar has no .irq_set_type() defined and, so, IRQ triggering
+configuration will not be propagated to parent IRQ domain.
+
+Hence, fix it by using irq_chip_set_type_parent() for
+propagation IRQ triggering type to parent IRQ domains.
 
 Cc: Sudeep Holla <sudeep.holla@arm.com>
+Fixes: 783d31863fb8 ('irqchip: crossbar: Convert dra7 crossbar...')
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- include/linux/irq.h |  1 +
- kernel/irq/chip.c   | 17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ drivers/irqchip/irq-crossbar.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 92188b0..51744bc 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -484,6 +484,7 @@ extern int irq_chip_set_affinity_parent(struct irq_data *data,
- extern int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on);
- extern int irq_chip_set_vcpu_affinity_parent(struct irq_data *data,
- 					     void *vcpu_info);
-+extern int irq_chip_set_type_parent(struct irq_data *data, unsigned int type);
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 692fe2b..3ba58e7 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -69,6 +69,7 @@ static struct irq_chip crossbar_chip = {
+ 	.irq_unmask		= irq_chip_unmask_parent,
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+ 	.irq_set_wake		= irq_chip_set_wake_parent,
++	.irq_set_type		= irq_chip_set_type_parent,
+ #ifdef CONFIG_SMP
+ 	.irq_set_affinity	= irq_chip_set_affinity_parent,
  #endif
- 
- /* Handling of unhandled and spurious interrupts: */
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 6de638b..ae21682 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -985,6 +985,23 @@ int irq_chip_set_affinity_parent(struct irq_data *data,
- }
- 
- /**
-+ * irq_chip_set_type_parent - Set IRQ type on the parent interrupt
-+ * @data:	Pointer to interrupt specific data
-+ * @type:	IRQ_TYPE_{LEVEL,EDGE}_* value - see include/linux/irq.h
-+ *
-+ * Conditional, as the underlying parent chip might not implement it.
-+ */
-+int irq_chip_set_type_parent(struct irq_data *data, unsigned int type)
-+{
-+	data = data->parent_data;
-+
-+	if (data->chip->irq_set_type)
-+		return data->chip->irq_set_type(data, type);
-+
-+	return -ENOSYS;
-+}
-+
-+/**
-  * irq_chip_retrigger_hierarchy - Retrigger an interrupt in hardware
-  * @data:	Pointer to interrupt specific data
-  *
 -- 
 2.5.0
