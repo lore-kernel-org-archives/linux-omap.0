@@ -1,59 +1,80 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to
- program pbias regulator
-Date: Fri, 14 Aug 2015 19:00:06 +0100
-Message-ID: <20150814180006.GB10748@sirena.org.uk>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com>
- <1437996250-2913-2-git-send-email-kishon@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH RFC v3 3/7] ASoC: hdmi-codec: Add hdmi-codec for external
+ HDMI-encoders
+Date: Fri, 14 Aug 2015 17:18:20 +0100
+Message-ID: <20150814161820.GU10748@sirena.org.uk>
+References: <cover.1439542916.git.jsarha@ti.com>
+ <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="PgFjNgMZ2k7V6t4+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="m+1hRa/9CwYN9i9M"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1437996250-2913-2-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, nsekhar@ti.com, stable@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+In-Reply-To: <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---PgFjNgMZ2k7V6t4+
+--m+1hRa/9CwYN9i9M
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jul 27, 2015 at 04:54:09PM +0530, Kishon Vijay Abraham I wrote:
+On Fri, Aug 14, 2015 at 12:30:41PM +0300, Jyri Sarha wrote:
 
-> vsel_reg and enable_reg of the pbias regulator descriptor should actually
-> have the offset from syscon. However after the pbias device tree node
+> +struct hdmi_codec_ops {
+> +	/* For runtime clock configuration from ASoC machine driver.
+> +	 * A direct forward from set_sysclk in struct snd_soc_dai_ops.
+> +	 * Optional */
+> +	int (*set_clk)(struct device *dev, int clk_id, int freq);
 
-I'm having a hard time understanding this statement, sorry.  What makes
-you say that they "shouild actually have the offset from syscon"?  What
-is the problem that this is supposed to fix?
+I'd be much happier if we were using the clock API as the external
+interface here, it's where we want to be internally too and it's going
+to be easier to not introduce any external dependencies on the ASoC
+internal stuff.
 
-> is moved as a child node of syscon, vsel_reg and enable_reg has the
-> absolute address because of the address translation that happens while
-> creating device from device tree node.
-> So avoid using platform_get_resource and use of_get_address in order to
-> get only the offset (untranslated address) and populate these in
-> vsel_reg and enable_reg.
+> +	/* Called when ASoC starts an audio stream setup. The call
+> +	 * provides an audio abort callback for stoping an ongoing
+> +	 * stream if the HDMI audio becomes unavailable.
+> +	 * Optional */
+> +	int (*audio_startup)(struct device *dev,
+> +			     void (*abort_cb)(struct device *dev));
 
-This sounds like we're going in the wrong direction, we're moving from a
-more generic API to a firmware specific one.  Why is this a good fix?
+I'm a bit confused about what is going to use abort_cb() and why they
+wouldn't just call shutdown instead?
 
---PgFjNgMZ2k7V6t4+
+> +/* HDMI codec initalization data */
+> +struct hdmi_codec_pdata {
+> +	struct device *dev; /* The HDMI encoder registering the codec */
+
+Shouldn't this just be dev->parent?
+
+> +enum {
+> +	DAI_ID_I2C = 0,
+> +	DAI_ID_SPDIF,
+> +};
+
+I2C?  :P
+
+--m+1hRa/9CwYN9i9M
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJVziylAAoJECTWi3JdVIfQaOMH/3Rk/ouE+Qi7y2sGKljwxsb/
-8vJRM2j4Mdw/+i9ngU0i7nRgvqsicwSaHPXK7sCVHMz45zgW2w75UUn+aXRoMYID
-3MzlSSB7i7o4f3FjPMlCqTy4BFAinOEyej9AHFGfeYs21UvtBww90JB4IIIST7o3
-tNOTCD3N/LGBhFa16aXIk/B+4/iErYlNH7xvqxHEAi5slpqhCNzKnMJ4eeTIJx/b
-fXOFpU8j0Ur+GAH4UYChfz2jBigRMYVA57F7K0nvsQXplwH55AKcThsQLwEUysYU
-S58lop6XvTxjlP4YlR2ajXqjO8Oc+3qt9x4kp8p3lMJyBtAHifspZseAIdrjOd0=
-=g6YC
+iQEcBAEBCAAGBQJVzhTLAAoJECTWi3JdVIfQjp0H/0RWulQb/WC9GMi64BDKCmdm
+paUTUKdFTuhaC2HUn8ecFaE4RLYmunc8jgP1rqdI4cLZq7J98lhD3KOgm1n03q6O
+Dv/NlYem4THejxX8b8WiNmuXXcJI07NERSyy7B3YrpEsu30RU95z/r4nlFm1wXqo
+8UIQC8PsDDimuicYWuC2UKaZV5B9w4ZT8YAzCDDWoBZwMU4gJ0IA0lt4mDhNd1fc
+j32CImAzlCT9VJIC8ez5LtOgZmLnzO4ch8UB0vw5dG3mnpnQRalr6+Lzd9JhERee
+Co9PQj+FIZvNBqXf3YawGffEt5veDfgsvnKP5i/jh5E55hrNx/XryMuzy1dZpcI=
+=ryRi
 -----END PGP SIGNATURE-----
 
---PgFjNgMZ2k7V6t4+--
+--m+1hRa/9CwYN9i9M--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
