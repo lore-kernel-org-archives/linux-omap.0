@@ -1,48 +1,67 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] rtc: omap: Add external clock enabling support
-Date: Fri, 14 Aug 2015 12:54:23 +0200
-Message-ID: <20150814105423.GA20570@localhost>
-References: <1439449668-32301-1-git-send-email-j-keerthy@ti.com>
- <1439449668-32301-3-git-send-email-j-keerthy@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH v3 2/6] genirq: introduce irq_chip_set_type_parent() helper
+Date: Fri, 14 Aug 2015 15:20:26 +0300
+Message-ID: <1439554830-19502-3-git-send-email-grygorii.strashko@ti.com>
+References: <1439554830-19502-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1439449668-32301-3-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439554830-19502-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tglx@linutronix.de, tony@atomide.com, marc.zyngier@arm.com
+Cc: linux@arm.linux.org.uk, nsekhar@ti.com, jason@lakedaemon.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 13, 2015 at 12:37:48PM +0530, Keerthy wrote:
-> Configure the clock source to either internal clock
-> or external clock based on the availability of the clocks.
-> External clock is preferred as it can be ticking during suspend.
-> 
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+It's expected to use this helper when the current
+domain doesn't implement .irq_set_type(),  but expect
+the parent to do so.
 
-> @@ -627,6 +642,17 @@ static int omap_rtc_probe(struct platform_device *pdev)
->  	if (reg != new_ctrl)
->  		rtc_write(rtc, OMAP_RTC_CTRL_REG, new_ctrl);
->  
-> +	/*
-> +	 * If we have the external clock then
-> +	 * Switch to external clock so we can keep ticking
-> +	 * acorss suspend
-> +	 */
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ include/linux/irq.h |  1 +
+ kernel/irq/chip.c   | 17 +++++++++++++++++
+ 2 files changed, 18 insertions(+)
 
-You should fix up the comment (e.g. stray capitalisation and typo) as
-well.
-
-Perhaps reword as
-
-	/*
-	 * If we have an external clock then switch to it so we can keep
-	 * ticking across suspend.
-	 */
-
-Johan
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 92188b0..51744bc 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -484,6 +484,7 @@ extern int irq_chip_set_affinity_parent(struct irq_data *data,
+ extern int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on);
+ extern int irq_chip_set_vcpu_affinity_parent(struct irq_data *data,
+ 					     void *vcpu_info);
++extern int irq_chip_set_type_parent(struct irq_data *data, unsigned int type);
+ #endif
+ 
+ /* Handling of unhandled and spurious interrupts: */
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 6de638b..ae21682 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -985,6 +985,23 @@ int irq_chip_set_affinity_parent(struct irq_data *data,
+ }
+ 
+ /**
++ * irq_chip_set_type_parent - Set IRQ type on the parent interrupt
++ * @data:	Pointer to interrupt specific data
++ * @type:	IRQ_TYPE_{LEVEL,EDGE}_* value - see include/linux/irq.h
++ *
++ * Conditional, as the underlying parent chip might not implement it.
++ */
++int irq_chip_set_type_parent(struct irq_data *data, unsigned int type)
++{
++	data = data->parent_data;
++
++	if (data->chip->irq_set_type)
++		return data->chip->irq_set_type(data, type);
++
++	return -ENOSYS;
++}
++
++/**
+  * irq_chip_retrigger_hierarchy - Retrigger an interrupt in hardware
+  * @data:	Pointer to interrupt specific data
+  *
+-- 
+2.5.0
