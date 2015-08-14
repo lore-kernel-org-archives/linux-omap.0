@@ -1,91 +1,114 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH RFC v3 6/7] drm/i2c: tda998x: Register ASoC HDMI codec
- for audio functionality
-Date: Fri, 14 Aug 2015 11:06:16 +0100
-Message-ID: <20150814100616.GH7576@n2100.arm.linux.org.uk>
-References: <cover.1439542916.git.jsarha@ti.com>
- <1e8e3215caa932dab68de8576aee81f5e1008163.1439542916.git.jsarha@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v2 2/6] genirq: fix irqchip_set_wake_parent if IRQCHIP_SKIP_SET_WAKE
+Date: Fri, 14 Aug 2015 13:18:49 +0300
+Message-ID: <55CDC089.1060309@ti.com>
+References: <1439401562-28874-1-git-send-email-grygorii.strashko@ti.com> <1439401562-28874-3-git-send-email-grygorii.strashko@ti.com> <55CC6AFF.8060400@arm.com> <55CC71E8.80604@ti.com> <55CC9493.9020101@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1e8e3215caa932dab68de8576aee81f5e1008163.1439542916.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55CC9493.9020101@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, sudeep.holla@arm.com
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "nsekhar@ti.com" <nsekhar@ti.com>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 14, 2015 at 12:30:44PM +0300, Jyri Sarha wrote:
-> +static int tda998x_write_aif(struct tda998x_priv *priv,
-> +			     struct hdmi_audio_infoframe *cea)
-> +{
-> +	uint8_t buf[HDMI_INFOFRAME_SIZE(AUDIO)];
-> +	int len;
-> +
-> +	len = hdmi_audio_infoframe_pack(cea, buf, sizeof(buf));
-> +	if (len < 0) {
-> +		dev_err(&priv->hdmi->dev,
-> +			"Failed to pack audio infoframe: %d\n", len);
-> +		return len;
-> +	}
-> +
-> +	/* Write the audio information packet */
-> +	tda998x_write_if(priv, DIP_IF_FLAGS_IF4, REG_IF4_HB0, buf, len);
-> +	return 0;
-> +}
-> +
+On 08/13/2015 03:58 PM, Grygorii Strashko wrote:
+> On 08/13/2015 01:31 PM, Grygorii Strashko wrote:
+>> On 08/13/2015 01:01 PM, Marc Zyngier wrote:
+>>> On 12/08/15 18:45, Grygorii Strashko wrote:
+>>>> The irqchip_set_wake_parent should not fail if IRQ chip
+>>>> specifies IRQCHIP_SKIP_SET_WAKE. Otherwise, IRQ wakeup
+>>>> configuration can't be propagated properly through IRQ
+>>>> domains hierarchy.
+>>>>
+>>>> In case of TI OMAP DRA7 the issue reproduced with following
+>>>> configuration:
+>>>> ARM GIC<-OMAP wakeupgen<-TI CBAR<-GPIO<-GPIO pcf857x<-gpio_key
+>>>>
+>>>> gpio_key is wakeup source
+>>>>
+>>>> Failure is reproduced during suspend/resume to RAM:
+>>>> suspend:
+>>>>    - gpio_keys_suspend
+>>>>      enable_irq_wake
+>>>>        + pcf857x_irq_set_wake
+>>>>          + omap_gpio_wake_enable
+>>>>            + TI CBAR irq_chip_set_wake_parent
+>>>>              + OMAP wakeupgen has no .irq_set_wake()
+>>>
+>>> Most importantly, wakeupgen has IRQCHIP_SKIP_SET_WAKE set.
+>>>
+>>>>              and -ENOSYS will be returned
+>>>>
+>>>> resume:
+>>>>    - gpio_keys_resume
+>>>>      + disable_irq_wake
+>>>>        + irq_set_irq_wake
+>>>>          + WARN(1, "Unbalanced IRQ %d wake disable\n", irq);
+>>>>
+>>>> Fixes: 08b55e2a9208 ('genirq: Add irqchip_set_wake_parent')
+>>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>>> ---
+>>>>    kernel/irq/chip.c | 4 ++++
+>>>>    1 file changed, 4 insertions(+)
+>>>>
+>>>> diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+>>>> index 6de638b..bdb1b9d 100644
+>>>> --- a/kernel/irq/chip.c
+>>>> +++ b/kernel/irq/chip.c
+>>>> @@ -1024,6 +1024,10 @@ int irq_chip_set_vcpu_affinity_parent(struct
+>>>> irq_data *data, void *vcpu_info)
+>>>>    int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on)
+>>>>    {
+>>>>        data = data->parent_data;
+>>>> +
+>>>> +    if (irq_data_get_irq_chip(data)->flags & IRQCHIP_SKIP_SET_WAKE)
+>>>> +        return 0;
+>>>> +
+>>>>        if (data->chip->irq_set_wake)
+>>>>            return data->chip->irq_set_wake(data, on);
+>>>>
+>>>>
+>>>
+>>> We have a more general issue with chip flags, and how they combine
+>>> within a stack of irqchips.
+>>
+>> Indeed. Problem looks similar to IRQCHIP_MASK_ON_SUSPEND flag usage.
+>>
+>>>
+>>> What if you remove the irq_chip_set_wake_parent from the crossbar
+>>> driver, and instead set IRQCHIP_SKIP_SET_WAKE?
+>>
+>> I've thought about this and it should work for me.
+>> One question - what if crossbar will be not the last one in
+>> IRQ domains hierarchy?
+>>
+> 
+> I can confirm, if I revert this patch, add IRQCHIP_SKIP_SET_WAKE to
+> the crossbar and remove irq_chip_set_wake_parent wakeups still works.
+> What do you prefer me to do: add additional patch for the crossbar,
+> drop/keep this patch?
+> 
 
-I have such a function already queued up, but I can't push it out at the
-moment because of too many conflicts across all my DRM work.  I'm waiting
-for after 4.3-rc1 before publishing anything from or accepting anything
-else into DRM branches.
+OK. There are two possibilities to fix set_wake functionality for TI OMAPs
+where below HW configurations are used:
+  OMAP4/5: GIC <- OMAP wakeupgen
+  DRA7: GIC <- OMAP wakeupgen <- TI CBAR
 
->  static void
->  tda998x_write_avi(struct tda998x_priv *priv, struct drm_display_mode *mode)
->  {
-> @@ -670,19 +691,24 @@ static void tda998x_audio_mute(struct tda998x_priv *priv, bool on)
->  	}
->  }
->  
-> -static void
-> +static int
->  tda998x_configure_audio(struct tda998x_priv *priv,
-> -		struct drm_display_mode *mode, struct tda998x_encoder_params *p)
-> +			int mode_clock,
-> +			int ena_ap,
-> +			int dai_format,
-> +			int sample_width,
-> +			int sample_rate,
-> +			const u8 *status)
 
-I don't think this is an improvement.
+1) ensure that IRQCHIP_SKIP_SET_WAKE flag is set only for GIC and
+use irq_chip_set_wake_parent() in both wakeupgen and crossbar 
+ [this patch is required]
 
-> +static int tda998x_audio_get_eld(struct device *dev, uint8_t *buf, size_t len)
-> +{
-> +	struct tda998x_priv *priv = dev_get_drvdata(dev);
-> +	struct drm_mode_config *config = &priv->encoder->dev->mode_config;
-> +	struct drm_connector *connector;
-> +	int ret = -ENODEV;
-> +
-> +	mutex_lock(&config.mutex);
-> +	list_for_each_entry(connector, &config->connector_list, head) {
-> +		if (priv->encoder == connector->encoder) {
-> +			memcpy(buf, connector->eld, 
-> +			       min(sizeof(connector->eld), len));
-> +			ret = 0;
-> +		}
-> +	}
-> +	mutex_unlock(&config.mutex);
+2) ensure that IRQCHIP_SKIP_SET_WAKE flag is set and drop 
+.irq_set_wake()/irq_chip_set_wake_parent() for all IRQ chips
+in IRQ domains hierarchy.
+ [this patch can be dropped]
 
-Obviously untested.  Should be config->mutex.
+I'm going to select approach 2 and re-send.
 
-But in any case, when I kill the DRM slave encoder code in here, this
-becomes unnecessary.
 
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
