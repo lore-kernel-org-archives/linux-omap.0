@@ -1,61 +1,91 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH RFC v3 3/7] ASoC: hdmi-codec: Add hdmi-codec for external
- HDMI-encoders
-Date: Fri, 14 Aug 2015 10:57:41 +0100
-Message-ID: <20150814095741.GG7576@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH RFC v3 6/7] drm/i2c: tda998x: Register ASoC HDMI codec
+ for audio functionality
+Date: Fri, 14 Aug 2015 11:06:16 +0100
+Message-ID: <20150814100616.GH7576@n2100.arm.linux.org.uk>
 References: <cover.1439542916.git.jsarha@ti.com>
- <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
+ <1e8e3215caa932dab68de8576aee81f5e1008163.1439542916.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+In-Reply-To: <1e8e3215caa932dab68de8576aee81f5e1008163.1439542916.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBBdWcgMTQsIDIwMTUgYXQgMTI6MzA6NDFQTSArMDMwMCwgSnlyaSBTYXJoYSB3cm90
-ZToKPiArc3RhdGljIGludCBoZG1pX2NvZGVjX2h3X3BhcmFtcyhzdHJ1Y3Qgc25kX3BjbV9zdWJz
-dHJlYW0gKnN1YnN0cmVhbSwKPiArCQkJCXN0cnVjdCBzbmRfcGNtX2h3X3BhcmFtcyAqcGFyYW1z
-LAo+ICsJCQkJc3RydWN0IHNuZF9zb2NfZGFpICpkYWkpCj4gK3sKPiArCXN0cnVjdCBoZG1pX2Nv
-ZGVjX3ByaXYgKmhjcCA9IHNuZF9zb2NfZGFpX2dldF9kcnZkYXRhKGRhaSk7Cj4gKwlzdHJ1Y3Qg
-aGRtaV9jb2RlY19wYXJhbXMgaHAgPSB7Cj4gKwkJLmNlYSA9IHsgMCB9LAoKVW5uZWNlc3Nhcnkg
-aW5pdGlhbGlzYXRpb24gLSBiZWNhdXNlIHlvdSBhcmUgaW5pdGlhbGlzaW5nIHRoaXMgc3RydWN0
-dXJlLAphbGwgdW5uYW1lZCBmaWVsZHMgd2lsbCBiZSB6ZXJvZWQuCgo+ICsJCS5pZWMgPSB7Cj4g
-KwkJCS5zdGF0dXMgPSB7Cj4gKwkJCQlJRUM5NThfQUVTMF9DT05fTk9UX0NPUFlSSUdIVCwKPiAr
-CQkJCUlFQzk1OF9BRVMxX0NPTl9HRU5FUkFMLAo+ICsJCQkJSUVDOTU4X0FFUzJfQ09OX1NPVVJD
-RV9VTlNQRUMsCj4gKwkJCQlJRUM5NThfQUVTM19DT05fQ0xPQ0tfVkFSSUFCTEUsCj4gKwkJCX0s
-CgouLi4KCj4gKwloZG1pX2F1ZGlvX2luZm9mcmFtZV9pbml0KCZocC5jZWEpOwo+ICsJaHAuY2Vh
-LmNvZGluZ190eXBlID0gSERNSV9BVURJT19DT0RJTkdfVFlQRV9QQ007CgpTb21ldGhpbmcgdGVs
-bHMgbWUgaGVyZSB0aGF0IHlvdSBoYXZlbid0IHJlYWQgdGhlIEhETUkgc3BlY2lmaWNhdGlvbi4K
-SERNSSBzYXlzIHRoYXQgdGhlIGNvZGluZyB0eXBlIHdpbGwgYmUgemVybyAocmVmZXIgdG8gc3Ry
-ZWFtIGhlYWRlcikuClRoZSBzYW1lIGdvZXMgZm9yIG11Y2ggb2YgdGhlIENFQSBhdWRpbyBpbmZv
-ZnJhbWUuICBQbGVhc2Ugc2VlIHRoZQpBdWRpbyBJbmZvRnJhbWUgZGV0YWlscyBpbiB0aGUgSERN
-SSBzcGVjaWZpY2F0aW9uLgoKPiArCWhwLmNlYS5jaGFubmVscyA9IHBhcmFtc19jaGFubmVscyhw
-YXJhbXMpOwo+ICsKPiArCXN3aXRjaCAocGFyYW1zX3dpZHRoKHBhcmFtcykpIHsKPiArCWNhc2Ug
-MTY6Cj4gKwkJaHAuaWVjLnN0YXR1c1s0XSB8PSBJRUM5NThfQUVTNF9DT05fV09SRExFTl8yMF8x
-NjsKPiArCQlocC5jZWEuc2FtcGxlX3NpemUgPSBIRE1JX0FVRElPX1NBTVBMRV9TSVpFXzE2Owo+
-ICsJCWJyZWFrOwo+ICsJY2FzZSAxODoKPiArCQlocC5pZWMuc3RhdHVzWzRdIHw9IElFQzk1OF9B
-RVM0X0NPTl9XT1JETEVOXzIyXzE4Owo+ICsJCWhwLmNlYS5zYW1wbGVfc2l6ZSA9IEhETUlfQVVE
-SU9fU0FNUExFX1NJWkVfMjA7Cj4gKwkJYnJlYWs7Cj4gKwljYXNlIDIwOgo+ICsJCWhwLmllYy5z
-dGF0dXNbNF0gfD0gSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjRfMjA7Cj4gKwkJaHAuY2VhLnNh
-bXBsZV9zaXplID0gSERNSV9BVURJT19TQU1QTEVfU0laRV8yMDsKPiArCQlicmVhazsKPiArCWNh
-c2UgMjQ6Cj4gKwljYXNlIDMyOgo+ICsJCWhwLmllYy5zdGF0dXNbNF0gfD0gSUVDOTU4X0FFUzRf
-Q09OX01BWF9XT1JETEVOXzI0IHwKPiArCQkJSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjRfMjA7
-CgpXaHkgbm90IHVzZSB0aGUgZ2VuZXJpYyBjb2RlIHRvIGdlbmVyYXRlIHRoZSBBRVMgY2hhbm5l
-bCBzdGF0dXMgYml0cz8KU2VlIHNvdW5kL2NvcmUvcGNtX2llYzk1OC5jLgoKLS0gCkZUVEMgYnJv
-YWRiYW5kIGZvciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCAxMC41TWJwcyBkb3duIDQwMGti
-cHMgdXAKYWNjb3JkaW5nIHRvIHNwZWVkdGVzdC5uZXQuCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
-YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Fri, Aug 14, 2015 at 12:30:44PM +0300, Jyri Sarha wrote:
+> +static int tda998x_write_aif(struct tda998x_priv *priv,
+> +			     struct hdmi_audio_infoframe *cea)
+> +{
+> +	uint8_t buf[HDMI_INFOFRAME_SIZE(AUDIO)];
+> +	int len;
+> +
+> +	len = hdmi_audio_infoframe_pack(cea, buf, sizeof(buf));
+> +	if (len < 0) {
+> +		dev_err(&priv->hdmi->dev,
+> +			"Failed to pack audio infoframe: %d\n", len);
+> +		return len;
+> +	}
+> +
+> +	/* Write the audio information packet */
+> +	tda998x_write_if(priv, DIP_IF_FLAGS_IF4, REG_IF4_HB0, buf, len);
+> +	return 0;
+> +}
+> +
+
+I have such a function already queued up, but I can't push it out at the
+moment because of too many conflicts across all my DRM work.  I'm waiting
+for after 4.3-rc1 before publishing anything from or accepting anything
+else into DRM branches.
+
+>  static void
+>  tda998x_write_avi(struct tda998x_priv *priv, struct drm_display_mode *mode)
+>  {
+> @@ -670,19 +691,24 @@ static void tda998x_audio_mute(struct tda998x_priv *priv, bool on)
+>  	}
+>  }
+>  
+> -static void
+> +static int
+>  tda998x_configure_audio(struct tda998x_priv *priv,
+> -		struct drm_display_mode *mode, struct tda998x_encoder_params *p)
+> +			int mode_clock,
+> +			int ena_ap,
+> +			int dai_format,
+> +			int sample_width,
+> +			int sample_rate,
+> +			const u8 *status)
+
+I don't think this is an improvement.
+
+> +static int tda998x_audio_get_eld(struct device *dev, uint8_t *buf, size_t len)
+> +{
+> +	struct tda998x_priv *priv = dev_get_drvdata(dev);
+> +	struct drm_mode_config *config = &priv->encoder->dev->mode_config;
+> +	struct drm_connector *connector;
+> +	int ret = -ENODEV;
+> +
+> +	mutex_lock(&config.mutex);
+> +	list_for_each_entry(connector, &config->connector_list, head) {
+> +		if (priv->encoder == connector->encoder) {
+> +			memcpy(buf, connector->eld, 
+> +			       min(sizeof(connector->eld), len));
+> +			ret = 0;
+> +		}
+> +	}
+> +	mutex_unlock(&config.mutex);
+
+Obviously untested.  Should be config->mutex.
+
+But in any case, when I kill the DRM slave encoder code in here, this
+becomes unnecessary.
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
