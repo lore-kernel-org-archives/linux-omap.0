@@ -1,82 +1,107 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v3 0/7] Implement generic ASoC HDMI codec
-	and use it in tda998x
-Date: Fri, 14 Aug 2015 12:30:38 +0300
-Message-ID: <cover.1439542916.git.jsarha@ti.com>
+Subject: [PATCH RFC v3 5/7] drm/i2c: tda998x: Remove include/sound/tda998x.h
+ and fix graph parsing
+Date: Fri, 14 Aug 2015 12:30:43 +0300
+Message-ID: <6c25a61a82370101167b45ce9f19485b99782981.1439542916.git.jsarha@ti.com>
+References: <cover.1439542916.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1439542916.git.jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, moinejf@free.fr, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-This is my third RFC patch series on the subject. This time also the
-tda998x driver patches are a serious attempt to come up with an
-initial implementation for HDMI audio ASoC support.
-
-Russell's "drm/edid: add function to help find SADs" is here just to
-produce a working patch-set on top of mainline. It should be getting in
-trough drm-next at some point.
-
-The binding for tda998x is taken from Jean Francois' patch series[1] on
-the same subject. The implementation of the of-node parsing has some
-minor changes from my self.
-
-Here is what I think at least could or should still be done, but non of
-that stuff does not sounds critical right now.
- 
-Missing from tda998x driver side
-- hdmi_codec_ops audio_startup() implementation for audio abort support
-- multi channel audio support (I would need specs and preferably some
-  HW to test for this).
-
-Missing from ASoC side generic implementation:
-- channel_allocation handling is completely left for the video side driver,
-  see if ASoC side could help in any way
-- snd_soc_jack functionality to handle hdmi cable plug/unplug events
-
-[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2015-July/095596.html
-
-Best regards,
-Jyri
-
-Jean-Francois Moine (1):
-  drm/i2c: tda998x: Add support of a DT graph of ports
-
-Jyri Sarha (5):
-  ASoC: hdmi: Remove obsolete dummy HDMI codec
-  ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders
-  drm/i2c: tda998x: Remove include/sound/tda998x.h and fix graph parsing
-  drm/i2c: tda998x: Register ASoC HDMI codec for audio functionality
-  ARM: dts: am335x-boneblack: Add HDMI audio support
-
-Russell King - ARM Linux (1):
-  drm/edid: add function to help find SADs, DO NOT MERGE
-
- .../devicetree/bindings/drm/i2c/tda998x.txt        |  51 +++
- arch/arm/boot/dts/am335x-boneblack.dts             |  90 +++-
- drivers/gpu/drm/i2c/Kconfig                        |   1 +
- drivers/gpu/drm/i2c/tda998x_drv.c                  | 336 +++++++++++++--
- include/drm/drm_edid.h                             |  19 +
- include/sound/hdmi-codec.h                         |  99 +++++
- sound/soc/codecs/Kconfig                           |   3 +-
- sound/soc/codecs/Makefile                          |   4 +-
- sound/soc/codecs/hdmi-codec.c                      | 467 +++++++++++++++++++++
- sound/soc/codecs/hdmi.c                            | 109 -----
- 10 files changed, 1026 insertions(+), 153 deletions(-)
- create mode 100644 include/sound/hdmi-codec.h
- create mode 100644 sound/soc/codecs/hdmi-codec.c
- delete mode 100644 sound/soc/codecs/hdmi.c
-
--- 
-1.9.1
+TW92ZSBzdHJ1Y3QgdGRhOTk4eF9hdWRpbyBkZWZpbml0aW9uIHRvIHRkYTk5OHhfZHJ2LmMgYW5k
+IHJlbW92ZQppbmNsdWRlL3NvdW5kL3RkYTk5OHguaC4gVGhlcmUgaXMgbm8gZXh0ZXJuYWwgdXNl
+IGZvciBzdHJ1Y3QKdGRhOTk4eF9hdWRpby4KCkZpeCBncmFwaCBwYXJzaW5nIHRvIGFsbG93IHBv
+cnRzIHRvIGJlIGluc2lkZSBhIHNlcGFyYXRlICJwb3J0cyItbm9kZSBhcwpzcGVjaWZpZWQgaW4g
+RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2dyYXBoLnR4dC4KClNpZ25lZC1vZmYt
+Ynk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQogZHJpdmVycy9ncHUvZHJtL2kyYy90
+ZGE5OTh4X2Rydi5jIHwgNTkgKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0t
+CiBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaCAgICAgICAgICAgfCAgOCAtLS0tLS0KIDIgZmlsZXMg
+Y2hhbmdlZCwgMzIgaW5zZXJ0aW9ucygrKSwgMzUgZGVsZXRpb25zKC0pCiBkZWxldGUgbW9kZSAx
+MDA2NDQgaW5jbHVkZS9zb3VuZC90ZGE5OTh4LmgKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9k
+cm0vaTJjL3RkYTk5OHhfZHJ2LmMgYi9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMK
+aW5kZXggMDk1MmVhYy4uNGRjMmRjMCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2kyYy90
+ZGE5OTh4X2Rydi5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwpAQCAt
+MjcsMTAgKzI3LDE0IEBACiAjaW5jbHVkZSA8ZHJtL2RybV9lZGlkLmg+CiAjaW5jbHVkZSA8ZHJt
+L2RybV9vZi5oPgogI2luY2x1ZGUgPGRybS9pMmMvdGRhOTk4eC5oPgotI2luY2x1ZGUgPHNvdW5k
+L3RkYTk5OHguaD4KIAogI2RlZmluZSBEQkcoZm10LCAuLi4pIERSTV9ERUJVRyhmbXQiXG4iLCAj
+I19fVkFfQVJHU19fKQogCitzdHJ1Y3QgdGRhOTk4eF9hdWRpbyB7CisJdTggcG9ydHNbMl07CQkJ
+LyogQVAgdmFsdWUgKi8KKwl1OCBwb3J0X3R5cGVzWzJdOwkJLyogQUZNVF94eHggKi8KK307CisK
+IHN0cnVjdCB0ZGE5OTh4X3ByaXYgewogCXN0cnVjdCBpMmNfY2xpZW50ICpjZWM7CiAJc3RydWN0
+IGkyY19jbGllbnQgKmhkbWk7CkBAIC0xMjQwLDkgKzEyNDQsMTAgQEAgc3RhdGljIGludCB0ZGE5
+OTh4X3BhcnNlX3BvcnRzKHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXYsCiB7CiAJc3RydWN0IGRl
+dmljZV9ub2RlICpvZl9wb3J0OwogCWNvbnN0IGNoYXIgKnBvcnRfdHlwZTsKLQlpbnQgcmV0LCBh
+dWRpb19pbmRleCwgcmVnLCBhZm10OworCWludCByZXQsIGF1ZGlvX2luZGV4LCByZWcsIGFmbXQs
+IHJnYl9pbml0aWFsaXplZDsKIAogCWF1ZGlvX2luZGV4ID0gMDsKKwlyZ2JfaW5pdGlhbGl6ZWQg
+PSAwOwogCWZvcl9lYWNoX2NoaWxkX29mX25vZGUobnAsIG9mX3BvcnQpIHsKIAkJaWYgKCFvZl9w
+b3J0LT5uYW1lCiAJCSB8fCBvZl9ub2RlX2NtcChvZl9wb3J0LT5uYW1lLCAicG9ydCIpICE9IDAp
+CkBAIC0xMjUyLDExICsxMjU3LDE3IEBAIHN0YXRpYyBpbnQgdGRhOTk4eF9wYXJzZV9wb3J0cyhz
+dHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2LAogCQlpZiAocmV0IDwgMCkKIAkJCWNvbnRpbnVlOwog
+CQlyZXQgPSBvZl9wcm9wZXJ0eV9yZWFkX3UzMihvZl9wb3J0LCAicmVnIiwgJnJlZyk7CisJCWlm
+IChyZXQgPCAwKSB7CisJCQlkZXZfZXJyKCZwcml2LT5oZG1pLT5kZXYsICJtaXNzaW5nIHJlZyBm
+b3IgJXNcbiIsCisJCQkJcG9ydF90eXBlKTsKKwkJCXJldHVybiByZXQ7CisJCX0KIAkJaWYgKHN0
+cmNtcChwb3J0X3R5cGUsICJyZ2IiKSA9PSAwKSB7CiAJCQlpZiAoIXJldCkgewkJLyogdmlkZW8g
+cmVnIGlzIG9wdGlvbmFsICovCiAJCQkJcHJpdi0+dmlwX2NudHJsXzAgPSByZWcgPj4gMTY7CiAJ
+CQkJcHJpdi0+dmlwX2NudHJsXzEgPSByZWcgPj4gODsKIAkJCQlwcml2LT52aXBfY250cmxfMiA9
+IHJlZzsKKwkJCQlyZ2JfaW5pdGlhbGl6ZWQgPSAxOwogCQkJfQogCQkJY29udGludWU7CiAJCX0K
+QEAgLTEyNjYsMTEgKzEyNzcsNiBAQCBzdGF0aWMgaW50IHRkYTk5OHhfcGFyc2VfcG9ydHMoc3Ry
+dWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwKIAkJCWFmbXQgPSBBRk1UX1NQRElGOwogCQllbHNlCiAJ
+CQljb250aW51ZTsKLQkJaWYgKHJldCA8IDApIHsKLQkJCWRldl9lcnIoJnByaXYtPmhkbWktPmRl
+diwgIm1pc3NpbmcgcmVnIGZvciAlc1xuIiwKLQkJCQlwb3J0X3R5cGUpOwotCQkJcmV0dXJuIHJl
+dDsKLQkJfQogCQlpZiAoYXVkaW9faW5kZXggPj0gQVJSQVlfU0laRShwcml2LT5hdWRpby5wb3J0
+cykpIHsKIAkJCWRldl9lcnIoJnByaXYtPmhkbWktPmRldiwgInRvbyBtYW55IGF1ZGlvIHBvcnRz
+XG4iKTsKIAkJCWJyZWFrOwpAQCAtMTI3OSwxMyArMTI4NSwxMyBAQCBzdGF0aWMgaW50IHRkYTk5
+OHhfcGFyc2VfcG9ydHMoc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwKIAkJcHJpdi0+YXVkaW8u
+cG9ydF90eXBlc1thdWRpb19pbmRleF0gPSBhZm10OwogCQlhdWRpb19pbmRleCsrOwogCX0KLQly
+ZXR1cm4gMDsKKwlyZXR1cm4gcmdiX2luaXRpYWxpemVkOwogfQogCiBzdGF0aWMgaW50IHRkYTk5
+OHhfY3JlYXRlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsIHN0cnVjdCB0ZGE5OTh4X3ByaXYg
+KnByaXYpCiB7CiAJc3RydWN0IGRldmljZV9ub2RlICpucCA9IGNsaWVudC0+ZGV2Lm9mX25vZGU7
+Ci0Jc3RydWN0IGRldmljZV9ub2RlICpvZl9wb3J0OworCXN0cnVjdCBkZXZpY2Vfbm9kZSAqcG9y
+dHM7CiAJdTMyIHZpZGVvOwogCWludCByZXZfbG8sIHJldl9oaSwgcmV0OwogCXVuc2lnbmVkIHNo
+b3J0IGNlY19hZGRyOwpAQCAtMTM5MiwyNCArMTM5OCwxNSBAQCBzdGF0aWMgaW50IHRkYTk5OHhf
+Y3JlYXRlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsIHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnBy
+aXYpCiAKIAkvKiBnZXQgdGhlIGRldmljZSB0cmVlIHBhcmFtZXRlcnMgKi8KIAlpZiAobnApIHsK
+LQkJb2ZfcG9ydCA9IG9mX2dldF9jaGlsZF9ieV9uYW1lKG5wLCAicG9ydCIpOwotCQlpZiAob2Zf
+cG9ydCkgewkJCQkvKiBncmFwaCBvZiBwb3J0cyAqLwotCQkJb2Zfbm9kZV9wdXQob2ZfcG9ydCk7
+Ci0JCQlyZXQgPSB0ZGE5OTh4X3BhcnNlX3BvcnRzKHByaXYsIG5wKTsKLQkJCWlmIChyZXQgPCAw
+KQotCQkJCWdvdG8gZmFpbDsKLQotCQkJLyogaW5pdGlhbGl6ZSB0aGUgZGVmYXVsdCBhdWRpbyBj
+b25maWd1cmF0aW9uICovCi0JCQlpZiAocHJpdi0+YXVkaW8ucG9ydHNbMF0pIHsKLQkJCQlwcml2
+LT5wYXJhbXMuYXVkaW9fY2ZnID0gcHJpdi0+YXVkaW8ucG9ydHNbMF07Ci0JCQkJcHJpdi0+cGFy
+YW1zLmF1ZGlvX2Zvcm1hdCA9Ci0JCQkJCQlwcml2LT5hdWRpby5wb3J0X3R5cGVzWzBdOwotCQkJ
+CXByaXYtPnBhcmFtcy5hdWRpb19jbGtfY2ZnID0KLQkJCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2Zv
+cm1hdCA9PQotCQkJCQkJCUFGTVRfU1BESUYgPyAwIDogMTsKLQkJCX0KLQkJfSBlbHNlIHsKLQor
+CQlwb3J0cyA9IG9mX2dldF9jaGlsZF9ieV9uYW1lKG5wLCAicG9ydHMiKTsKKwkJaWYgKCFwb3J0
+cykKKwkJCXBvcnRzID0gb2Zfbm9kZV9nZXQobnApOworCQkvKiBncmFwaCBvZiBwb3J0cyAqLwor
+CQlyZXQgPSB0ZGE5OTh4X3BhcnNlX3BvcnRzKHByaXYsIHBvcnRzKTsKKwkJb2Zfbm9kZV9wdXQo
+cG9ydHMpOworCQlpZiAocmV0IDwgMCkKKwkJCWdvdG8gZmFpbDsKKwkJaWYgKHJldCA9PSAwKSB7
+CiAJCQkvKiBvcHRpb25hbCB2aWRlbyBwcm9wZXJ0aWVzICovCiAJCQlyZXQgPSBvZl9wcm9wZXJ0
+eV9yZWFkX3UzMihucCwgInZpZGVvLXBvcnRzIiwgJnZpZGVvKTsKIAkJCWlmIChyZXQgPT0gMCkg
+ewpAQCAtMTQxOCw2ICsxNDE1LDE0IEBAIHN0YXRpYyBpbnQgdGRhOTk4eF9jcmVhdGUoc3RydWN0
+IGkyY19jbGllbnQgKmNsaWVudCwgc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdikKIAkJCQlwcml2
+LT52aXBfY250cmxfMiA9IHZpZGVvOwogCQkJfQogCQl9CisJCWlmIChwcml2LT5hdWRpby5wb3J0
+c1swXSkgeworCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2NmZyA9IHByaXYtPmF1ZGlvLnBvcnRzWzBd
+OworCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2Zvcm1hdCA9CisJCQkJcHJpdi0+YXVkaW8ucG9ydF90
+eXBlc1swXTsKKwkJCXByaXYtPnBhcmFtcy5hdWRpb19jbGtfY2ZnID0KKwkJCQlwcml2LT5wYXJh
+bXMuYXVkaW9fZm9ybWF0ID09CisJCQkJQUZNVF9TUERJRiA/IDAgOiAxOworCQl9CiAJfQogCiAJ
+cmV0dXJuIDA7CmRpZmYgLS1naXQgYS9pbmNsdWRlL3NvdW5kL3RkYTk5OHguaCBiL2luY2x1ZGUv
+c291bmQvdGRhOTk4eC5oCmRlbGV0ZWQgZmlsZSBtb2RlIDEwMDY0NAppbmRleCBiZWYxZGE3Li4w
+MDAwMDAwCi0tLSBhL2luY2x1ZGUvc291bmQvdGRhOTk4eC5oCisrKyAvZGV2L251bGwKQEAgLTEs
+OCArMCwwIEBACi0jaWZuZGVmIFNORF9UREE5OThYX0gKLSNkZWZpbmUgU05EX1REQTk5OFhfSAot
+Ci1zdHJ1Y3QgdGRhOTk4eF9hdWRpbyB7Ci0JdTggcG9ydHNbMl07CQkJLyogQVAgdmFsdWUgKi8K
+LQl1OCBwb3J0X3R5cGVzWzJdOwkJLyogQUZNVF94eHggKi8KLX07Ci0jZW5kaWYKLS0gCjEuOS4x
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2
+ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
