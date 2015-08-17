@@ -1,150 +1,128 @@
-From: Nikhil Badola <nikhil.badola@freescale.com>
-Subject: [PATCH 2/3][v2] drivers: usb: dwc3: Add frame length adjustment quirk
-Date: Mon, 17 Aug 2015 09:54:56 +0530
-Message-ID: <1439785496-27243-1-git-send-email-nikhil.badola@freescale.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 1/2] ARM: dts: AM437x: Add the internal and external clock nodes for rtc
+Date: Mon, 17 Aug 2015 10:25:37 +0530
+Message-ID: <1439787338-27396-2-git-send-email-j-keerthy@ti.com>
+References: <1439787338-27396-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, Nikhil Badola <nikhil.badola@freescale.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1439787338-27396-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add adjust_frame_length_quirk for writing to fladj register
-which adjusts (micro)frame length to value provided by
-"snps,quirk-frame-length-adjustment" property thus avoiding
-USB 2.0 devices to time-out over a longer run
+rtc can either be supplied from internal 32k clock or external crystal
+generated 32k clock. Internal clock is SOC specific and the external
+clock is board dependent. Adding the corresponding nodes.
 
-Signed-off-by: Nikhil Badola <nikhil.badola@freescale.com>
+Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 ---
-changes for v2 :
-	- updated quirk's name 
-	- added separate function for frame length adjustment
-	- added frame length adjustment for pdata users
-	- removed unnecessary flag from struct dwc3
+ arch/arm/boot/dts/am4372.dtsi        |  2 ++
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 13 +++++++++++++
+ arch/arm/boot/dts/am437x-idk-evm.dts |  9 +++++++++
+ arch/arm/boot/dts/am437x-sk-evm.dts  |  9 +++++++++
+ 4 files changed, 33 insertions(+)
 
- drivers/usb/dwc3/core.c          | 37 +++++++++++++++++++++++++++++++++++++
- drivers/usb/dwc3/core.h          |  5 +++++
- drivers/usb/dwc3/platform_data.h |  2 ++
- 3 files changed, 44 insertions(+)
-
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 064123e..f3beb2e 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -143,6 +143,34 @@ static int dwc3_soft_reset(struct dwc3 *dwc)
- 	return 0;
- }
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d99b2ee..484f092 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -336,6 +336,8 @@
+ 			interrupts = <GIC_SPI 75 IRQ_TYPE_LEVEL_HIGH
+ 				      GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "rtc";
++			clocks = <&clk_32768_ck>;
++			clock-names = "int-clk";
+ 			status = "disabled";
+ 		};
  
-+/*
-+ * dwc3_frame_length_adjustment - Adjusts frame length if required
-+ * @dwc3: Pointer to our controller context structure
-+ * @fladj: Value of GFLADJ_30MHZ to adjust frame length
-+ */
-+static void dwc3_frame_length_adjustment(struct dwc3 *dwc, u32 fladj)
-+{
-+	if (dwc->revision < DWC3_REVISION_250A)
-+		return;
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 215775d..22038f2 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -112,6 +112,13 @@
+ 		clock-frequency = <12000000>;
+ 	};
+ 
++	/* fixed 32k external oscillator clock */
++	clk_32k_rtc: clk_32k_rtc {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
 +
-+	if (fladj == 0)
-+		return;
-+
-+	if (fladj) {
-+		u32 reg;
-+		u32 dft;
-+
-+		reg = dwc3_readl(dwc->regs, DWC3_GFLADJ);
-+		dft = reg & DWC3_GFLADJ_30MHZ_MASK;
-+		if (!dev_WARN_ONCE(dwc->dev, dft == fladj,
-+		"request value same as default, ignoring\n")) {
-+			reg &= ~DWC3_GFLADJ_30MHZ_MASK;
-+			reg |= DWC3_GFLADJ_30MHZ_SDBND_SEL | fladj;
-+			dwc3_writel(dwc->regs, DWC3_GFLADJ, reg);
-+		}
-+	}
-+}
-+
- /**
-  * dwc3_free_one_event_buffer - Frees one event buffer
-  * @dwc: Pointer to our controller context structure
-@@ -779,6 +807,7 @@ static int dwc3_probe(struct platform_device *pdev)
- 	u8			lpm_nyet_threshold;
- 	u8			tx_de_emphasis;
- 	u8			hird_threshold;
-+	u32			fladj = 0;
- 
- 	int			ret;
- 
-@@ -886,6 +915,9 @@ static int dwc3_probe(struct platform_device *pdev)
- 				&tx_de_emphasis);
- 		of_property_read_string(node, "snps,hsphy_interface",
- 					&dwc->hsphy_interface);
-+		of_property_read_u32(node,
-+				     "snps,quirk-frame-length-adjustment",
-+				     &fladj);
- 	} else if (pdata) {
- 		dwc->maximum_speed = pdata->maximum_speed;
- 		dwc->has_lpm_erratum = pdata->has_lpm_erratum;
-@@ -915,6 +947,7 @@ static int dwc3_probe(struct platform_device *pdev)
- 			tx_de_emphasis = pdata->tx_de_emphasis;
- 
- 		dwc->hsphy_interface = pdata->hsphy_interface;
-+		fladj = pdata->fladj_value;
- 	}
- 
- 	/* default to superspeed if no maximum_speed passed */
-@@ -957,6 +990,7 @@ static int dwc3_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
-+
- 	if (IS_ENABLED(CONFIG_USB_DWC3_HOST))
- 		dwc->dr_mode = USB_DR_MODE_HOST;
- 	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
-@@ -971,6 +1005,9 @@ static int dwc3_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
-+	/* Adjust Frame Length */
-+	dwc3_frame_length_adjustment(dwc, fladj);
-+
- 	usb_phy_set_suspend(dwc->usb2_phy, 0);
- 	usb_phy_set_suspend(dwc->usb3_phy, 0);
- 	ret = phy_power_on(dwc->usb2_generic_phy);
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 0447788..9188745 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -124,6 +124,7 @@
- #define DWC3_GEVNTCOUNT(n)	(0xc40c + (n * 0x10))
- 
- #define DWC3_GHWPARAMS8		0xc600
-+#define DWC3_GFLADJ		0xc630
- 
- /* Device Registers */
- #define DWC3_DCFG		0xc700
-@@ -234,6 +235,10 @@
- /* Global HWPARAMS6 Register */
- #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
- 
-+/* Global Frame Length Adjustment Register */
-+#define DWC3_GFLADJ_30MHZ_SDBND_SEL		(1 << 7)
-+#define DWC3_GFLADJ_30MHZ_MASK			0x3f
-+
- /* Device Configuration Register */
- #define DWC3_DCFG_DEVADDR(addr)	((addr) << 3)
- #define DWC3_DCFG_DEVADDR_MASK	DWC3_DCFG_DEVADDR(0x7f)
-diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
-index d3614ec..400b197 100644
---- a/drivers/usb/dwc3/platform_data.h
-+++ b/drivers/usb/dwc3/platform_data.h
-@@ -46,5 +46,7 @@ struct dwc3_platform_data {
- 	unsigned tx_de_emphasis_quirk:1;
- 	unsigned tx_de_emphasis:2;
- 
-+	u32 fladj_value;
-+
- 	const char *hsphy_interface;
+ 	sound0: sound@0 {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "AM437x-GP-EVM";
+@@ -941,3 +948,9 @@
+ 	tx-num-evt = <32>;
+ 	rx-num-evt = <32>;
  };
++
++&rtc {
++	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
++	clock-names = "ext-clk", "int-clk";
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
+index 37834427..af25801 100644
+--- a/arch/arm/boot/dts/am437x-idk-evm.dts
++++ b/arch/arm/boot/dts/am437x-idk-evm.dts
+@@ -110,6 +110,13 @@
+ 			gpios = <&gpio4 2 GPIO_ACTIVE_LOW>;
+ 		};
+ 	};
++
++	/* fixed 32k external oscillator clock */
++	clk_32k_rtc: clk_32k_rtc {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
+ };
+ 
+ &am43xx_pinmux {
+@@ -394,6 +401,8 @@
+ };
+ 
+ &rtc {
++	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
++	clock-names = "ext-clk", "int-clk";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 22af448..7da7c2d 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -24,6 +24,13 @@
+ 		display0 = &lcd0;
+ 	};
+ 
++	/* fixed 32k external oscillator clock */
++	clk_32k_rtc: clk_32k_rtc {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <32768>;
++	};
++
+ 	backlight {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&ecap0 0 50000 PWM_POLARITY_INVERTED>;
+@@ -697,6 +704,8 @@
+ };
+ 
+ &rtc {
++	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
++	clock-names = "ext-clk", "int-clk";
+ 	status = "okay";
+ };
+ 
 -- 
-2.1.0
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
