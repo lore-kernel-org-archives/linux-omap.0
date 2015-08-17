@@ -1,45 +1,40 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC v3 3/7] ASoC: hdmi-codec: Add hdmi-codec for external
- HDMI-encoders
-Date: Mon, 17 Aug 2015 15:59:21 +0300
-Message-ID: <55D1DAA9.8050702@ti.com>
-References: <cover.1439542916.git.jsarha@ti.com>
- <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
- <20150814161820.GU10748@sirena.org.uk> <55D193CF.5070605@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 1/2] gpiolib: irqchip: use different lockdep class for
+ each gpio irqchip
+Date: Mon, 17 Aug 2015 15:33:04 +0200
+Message-ID: <CACRpkdbB7YY6pBhyG6_Rq9BY1Xk-tikk2_88D5YHibaGDm+5DQ@mail.gmail.com>
+References: <1439814924-11881-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <55D193CF.5070605@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439814924-11881-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDgvMTcvMTUgMTA6NTcsIEp5cmkgU2FyaGEgd3JvdGU6Cj4gTWlzc2VkIG9uZSBjb21tZXQg
-Zmlyc3QgdGltZSBhcm91bmQuLi4KPgo+IE9uIDA4LzE0LzE1IDE5OjE4LCBNYXJrIEJyb3duIHdy
-b3RlOgo+PiBPbiBGcmksIEF1ZyAxNCwgMjAxNSBhdCAxMjozMDo0MVBNICswMzAwLCBKeXJpIFNh
-cmhhIHdyb3RlOgo+IC4uLgo+Pj4gKy8qIEhETUkgY29kZWMgaW5pdGFsaXphdGlvbiBkYXRhICov
-Cj4+PiArc3RydWN0IGhkbWlfY29kZWNfcGRhdGEgewo+Pj4gKyAgICBzdHJ1Y3QgZGV2aWNlICpk
-ZXY7IC8qIFRoZSBIRE1JIGVuY29kZXIgcmVnaXN0ZXJpbmcgdGhlIGNvZGVjICovCj4+Cj4+IFNo
-b3VsZG4ndCB0aGlzIGp1c3QgYmUgZGV2LT5wYXJlbnQ/Cj4+Cj4KPiBOby4gVGhlIEhETUkgZW5j
-b2RlciBkZXZpY2UgaXMgdGhlIHBhcmVudCBmb3IgSERNSS1jb2RlYy4KPgo+IFRoZSBwYXRjaCB5
-b3UgdG9vayBpbiBpbiB0aGUgbGFzdCByb3VuZCB1c2VzIHRoZSBBU29DIGNvbXBvbmVudCBkcml2
-ZXJzCj4gcGFyZW50J3Mgb2Ytbm9kZSBpZiB0aGUgY29tcG9uZW50IGRyaXZlciBkb2VzIG5vdCBo
-YXZlIG9uZSBpdHNlbGYuIEluCj4gdGhpcyBjYXNlIHRoZSBwaGFuZGxlIGluIHRoZSBiaW5kaW5n
-IHBvaW50cyB0byB0aGUgSERNSSBlbmNvZGVyJ3Mgbm9kZSwKPiB3aGljaCBpcyB0aGUgcGFyZW50
-IG9mIHRoZSBIRE1JIGNvZGVjLgo+CgpBZnRlciByZWFkaW5nIHRoZSBjb21tZW50IGFnYWluIEkg
-c2VlIG5vdyB3aGF0IHlvdSBtZWFudC4KClllcywgSSBjYW4gZXh0cmFjdCB0aGUgZW5jb2RlciBk
-ZXZpY2UgZnJvbSB0aGUgZGV2LT5wYXJlbnQgcG9pbnRlci4gTm8gCm5lZWQgdG8gaGF2ZSBpdCBp
-biBwZGF0YS4KClRoYW5rcywKSnlyaQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGlu
-Zm8vZHJpLWRldmVsCg==
+On Mon, Aug 17, 2015 at 2:35 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
+
+> Since IRQ chip helpers were introduced drivers lose ability to
+> register separate lockdep classes for each registered GPIO IRQ
+> chip and the gpiolib now is using shared lockdep class for
+> all GPIO IRQ chips (gpiochip_irq_lock_class).
+> As result, lockdep will produce warning when there are min two
+> stacked GPIO chips and all of them are interrupt controllers.
+>
+> HW configuration which generates lockdep warning (TI dra7-evm):
+(...)
+> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Roger Quadros <rogerq@ti.com>
+> Reported-by: Roger Quadros <rogerq@ti.com>
+> Tested-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+> Changes in v2:
+> - removed accidental change in gpio chip structure description.
+
+This v2 patch applied. I see no better alternative.
+
+Yours,
+Linus Walleij
