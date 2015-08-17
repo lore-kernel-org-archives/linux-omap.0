@@ -1,69 +1,150 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [PATCH v3 1/6] genirq: fix irq_chip_retrigger_hierarchy
-Date: Mon, 17 Aug 2015 11:28:47 +0800
-Message-ID: <55D154EF.1070500@linux.intel.com>
-References: <1439554830-19502-1-git-send-email-grygorii.strashko@ti.com>
- <1439554830-19502-2-git-send-email-grygorii.strashko@ti.com>
+From: Nikhil Badola <nikhil.badola@freescale.com>
+Subject: [PATCH 2/3][v2] drivers: usb: dwc3: Add frame length adjustment quirk
+Date: Mon, 17 Aug 2015 09:54:56 +0530
+Message-ID: <1439785496-27243-1-git-send-email-nikhil.badola@freescale.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1439554830-19502-2-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, tglx@linutronix.de, tony@atomide.com, marc.zyngier@arm.com
-Cc: linux@arm.linux.org.uk, nsekhar@ti.com, jason@lakedaemon.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>
+To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, Nikhil Badola <nikhil.badola@freescale.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 2015/8/14 20:20, Grygorii Strashko wrote:
-> Now irq_chip_retrigger_hierarchy() returns -ENOSYS if it
-> was not able to find at least one .irq_retrigger() callback
-> implemented in IRQ domain hierarchy. As result, IRQ
-> re-triggering is not working now on ARM (TI OMAP) where
-> ARM GIC is not implemented this callback.
-> The .irq_retrigger() is optional (see check_irq_resend())
-> and there are no reasons to fail if it was not found, hence
-> lets return 0 in this case.
-> 
-> In case of TI OMAP DRA7 the following IRQ hierarchy is defined:
-> ARM GIC <- OMAP wakeupgen <- TI CBAR
-> 
-> Failure is reproduced during resume from suspend to RAM:
-> - wakeup by IRQx
-> - suspend_enter
->   + arch_suspend_enable_irqs
->     + handle_fasteoi_irq
->       + irq_may_run
->         + irq_pm_check_wakeup
->           + irq_disable(IRQx)
->   + dpm_resume_noirq()
->     + resume_device_irqs
->       + resume_irqs
->         + resume_irq
->           + __enable_irq <== IRQx is not re-triggered
-> 
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> Fixes: 85f08c17de26 ('genirq: Introduce helper functions...')
-> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->  kernel/irq/chip.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-> index 27f4332..6de638b 100644
-> --- a/kernel/irq/chip.c
-> +++ b/kernel/irq/chip.c
-> @@ -997,7 +997,7 @@ int irq_chip_retrigger_hierarchy(struct irq_data *data)
->  		if (data->chip && data->chip->irq_retrigger)
->  			return data->chip->irq_retrigger(data);
->  
-> -	return -ENOSYS;
-> +	return 0;
->  }
->  
->  /**
+Add adjust_frame_length_quirk for writing to fladj register
+which adjusts (micro)frame length to value provided by
+"snps,quirk-frame-length-adjustment" property thus avoiding
+USB 2.0 devices to time-out over a longer run
 
-Hi Grygorii,
-	Thanks for fixing this regression:)
-Reviewed-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Nikhil Badola <nikhil.badola@freescale.com>
+---
+changes for v2 :
+	- updated quirk's name 
+	- added separate function for frame length adjustment
+	- added frame length adjustment for pdata users
+	- removed unnecessary flag from struct dwc3
+
+ drivers/usb/dwc3/core.c          | 37 +++++++++++++++++++++++++++++++++++++
+ drivers/usb/dwc3/core.h          |  5 +++++
+ drivers/usb/dwc3/platform_data.h |  2 ++
+ 3 files changed, 44 insertions(+)
+
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 064123e..f3beb2e 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -143,6 +143,34 @@ static int dwc3_soft_reset(struct dwc3 *dwc)
+ 	return 0;
+ }
+ 
++/*
++ * dwc3_frame_length_adjustment - Adjusts frame length if required
++ * @dwc3: Pointer to our controller context structure
++ * @fladj: Value of GFLADJ_30MHZ to adjust frame length
++ */
++static void dwc3_frame_length_adjustment(struct dwc3 *dwc, u32 fladj)
++{
++	if (dwc->revision < DWC3_REVISION_250A)
++		return;
++
++	if (fladj == 0)
++		return;
++
++	if (fladj) {
++		u32 reg;
++		u32 dft;
++
++		reg = dwc3_readl(dwc->regs, DWC3_GFLADJ);
++		dft = reg & DWC3_GFLADJ_30MHZ_MASK;
++		if (!dev_WARN_ONCE(dwc->dev, dft == fladj,
++		"request value same as default, ignoring\n")) {
++			reg &= ~DWC3_GFLADJ_30MHZ_MASK;
++			reg |= DWC3_GFLADJ_30MHZ_SDBND_SEL | fladj;
++			dwc3_writel(dwc->regs, DWC3_GFLADJ, reg);
++		}
++	}
++}
++
+ /**
+  * dwc3_free_one_event_buffer - Frees one event buffer
+  * @dwc: Pointer to our controller context structure
+@@ -779,6 +807,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	u8			lpm_nyet_threshold;
+ 	u8			tx_de_emphasis;
+ 	u8			hird_threshold;
++	u32			fladj = 0;
+ 
+ 	int			ret;
+ 
+@@ -886,6 +915,9 @@ static int dwc3_probe(struct platform_device *pdev)
+ 				&tx_de_emphasis);
+ 		of_property_read_string(node, "snps,hsphy_interface",
+ 					&dwc->hsphy_interface);
++		of_property_read_u32(node,
++				     "snps,quirk-frame-length-adjustment",
++				     &fladj);
+ 	} else if (pdata) {
+ 		dwc->maximum_speed = pdata->maximum_speed;
+ 		dwc->has_lpm_erratum = pdata->has_lpm_erratum;
+@@ -915,6 +947,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 			tx_de_emphasis = pdata->tx_de_emphasis;
+ 
+ 		dwc->hsphy_interface = pdata->hsphy_interface;
++		fladj = pdata->fladj_value;
+ 	}
+ 
+ 	/* default to superspeed if no maximum_speed passed */
+@@ -957,6 +990,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
++
+ 	if (IS_ENABLED(CONFIG_USB_DWC3_HOST))
+ 		dwc->dr_mode = USB_DR_MODE_HOST;
+ 	else if (IS_ENABLED(CONFIG_USB_DWC3_GADGET))
+@@ -971,6 +1005,9 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
++	/* Adjust Frame Length */
++	dwc3_frame_length_adjustment(dwc, fladj);
++
+ 	usb_phy_set_suspend(dwc->usb2_phy, 0);
+ 	usb_phy_set_suspend(dwc->usb3_phy, 0);
+ 	ret = phy_power_on(dwc->usb2_generic_phy);
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 0447788..9188745 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -124,6 +124,7 @@
+ #define DWC3_GEVNTCOUNT(n)	(0xc40c + (n * 0x10))
+ 
+ #define DWC3_GHWPARAMS8		0xc600
++#define DWC3_GFLADJ		0xc630
+ 
+ /* Device Registers */
+ #define DWC3_DCFG		0xc700
+@@ -234,6 +235,10 @@
+ /* Global HWPARAMS6 Register */
+ #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
+ 
++/* Global Frame Length Adjustment Register */
++#define DWC3_GFLADJ_30MHZ_SDBND_SEL		(1 << 7)
++#define DWC3_GFLADJ_30MHZ_MASK			0x3f
++
+ /* Device Configuration Register */
+ #define DWC3_DCFG_DEVADDR(addr)	((addr) << 3)
+ #define DWC3_DCFG_DEVADDR_MASK	DWC3_DCFG_DEVADDR(0x7f)
+diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
+index d3614ec..400b197 100644
+--- a/drivers/usb/dwc3/platform_data.h
++++ b/drivers/usb/dwc3/platform_data.h
+@@ -46,5 +46,7 @@ struct dwc3_platform_data {
+ 	unsigned tx_de_emphasis_quirk:1;
+ 	unsigned tx_de_emphasis:2;
+ 
++	u32 fladj_value;
++
+ 	const char *hsphy_interface;
+ };
+-- 
+2.1.0
