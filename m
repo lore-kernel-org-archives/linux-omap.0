@@ -1,134 +1,29 @@
 From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/2] rtc: omap: Add external clock enabling support
-Date: Mon, 17 Aug 2015 10:25:38 +0530
-Message-ID: <1439787338-27396-3-git-send-email-j-keerthy@ti.com>
-References: <1439787338-27396-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2 0/2]  ARM: AM437X: Add rtc clock handling
+Date: Mon, 17 Aug 2015 10:25:36 +0530
+Message-ID: <1439787338-27396-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1439787338-27396-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Configure the clock source to either internal clock
-or external clock based on the availability of the clocks.
-External clock is preferred as it can be ticking during suspend.
+The series is applicable for all am437x series of processors.
+It adds clock handling support. Boot tested on am437x-gp-evm.
 
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
----
+Keerthy (2):
+  ARM: dts: AM437x: Add the internal and external clock nodes for rtc
+  rtc: omap: Add external clock enabling support
 
-Changes in V2:
+ arch/arm/boot/dts/am4372.dtsi        |  2 ++
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 13 +++++++++++
+ arch/arm/boot/dts/am437x-idk-evm.dts |  9 ++++++++
+ arch/arm/boot/dts/am437x-sk-evm.dts  |  9 ++++++++
+ drivers/rtc/rtc-omap.c               | 44 ++++++++++++++++++++++++++++++++++++
+ 5 files changed, 77 insertions(+)
 
-  * Changed clk_prepare calls to clk_prepare_enable.
-  * Changed clk_unprepare calls to clk_disable_unprepare.
-  * Added clk pointers for external and internal clock to omap_rtc structure.
-
- drivers/rtc/rtc-omap.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
-
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 8b6355f..46b3944 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -25,6 +25,7 @@
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/io.h>
-+#include <linux/clk.h>
- 
- /*
-  * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
-@@ -107,6 +108,7 @@
- 
- /* OMAP_RTC_OSC_REG bit fields: */
- #define OMAP_RTC_OSC_32KCLK_EN		BIT(6)
-+#define OMAP_RTC_OSC_SEL_32KCLK_SRC	BIT(3)
- 
- /* OMAP_RTC_IRQWAKEEN bit fields: */
- #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
-@@ -132,10 +134,13 @@ struct omap_rtc_device_type {
- struct omap_rtc {
- 	struct rtc_device *rtc;
- 	void __iomem *base;
-+	struct clk *ext_clk;
-+	struct clk *int_clk;
- 	int irq_alarm;
- 	int irq_timer;
- 	u8 interrupts_reg;
- 	bool is_pmic_controller;
-+	bool has_ext_clk;
- 	const struct omap_rtc_device_type *type;
- };
- 
-@@ -553,6 +558,17 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 	if (rtc->irq_alarm <= 0)
- 		return -ENOENT;
- 
-+	rtc->ext_clk = devm_clk_get(&pdev->dev, "ext-clk");
-+	if (!IS_ERR(rtc->ext_clk)) {
-+		rtc->has_ext_clk = true;
-+		clk_prepare_enable(rtc->ext_clk);
-+	} else {
-+		rtc->int_clk = devm_clk_get(&pdev->dev, "int-clk");
-+
-+		if (!IS_ERR(rtc->int_clk))
-+			clk_prepare_enable(rtc->int_clk);
-+	}
-+
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	rtc->base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(rtc->base))
-@@ -627,6 +643,16 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 	if (reg != new_ctrl)
- 		rtc_write(rtc, OMAP_RTC_CTRL_REG, new_ctrl);
- 
-+	/*
-+	 * If we have the external clock then switch to it so we can keep
-+	 * ticking acorss suspend.
-+	 */
-+	if (rtc->has_ext_clk) {
-+		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
-+		rtc_write(rtc, OMAP_RTC_OSC_REG, reg |
-+			  OMAP_RTC_OSC_SEL_32KCLK_SRC);
-+	}
-+
- 	rtc->type->lock(rtc);
- 
- 	device_init_wakeup(&pdev->dev, true);
-@@ -672,6 +698,7 @@ err:
- static int __exit omap_rtc_remove(struct platform_device *pdev)
- {
- 	struct omap_rtc *rtc = platform_get_drvdata(pdev);
-+	u8 reg;
- 
- 	if (pm_power_off == omap_rtc_power_off &&
- 			omap_rtc_power_off_rtc == rtc) {
-@@ -681,10 +708,23 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- 
- 	device_init_wakeup(&pdev->dev, 0);
- 
-+	if (!IS_ERR(rtc->ext_clk)) {
-+		clk_disable_unprepare(rtc->ext_clk);
-+	} else {
-+		if (!IS_ERR(rtc->int_clk))
-+			clk_disable_unprepare(rtc->int_clk);
-+	}
-+
- 	rtc->type->unlock(rtc);
- 	/* leave rtc running, but disable irqs */
- 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
- 
-+	if (rtc->has_ext_clk) {
-+		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
-+		reg &= ~OMAP_RTC_OSC_SEL_32KCLK_SRC;
-+		rtc_write(rtc, OMAP_RTC_OSC_REG, reg);
-+	}
-+
- 	rtc->type->lock(rtc);
- 
- 	/* Disable the clock/module */
 -- 
 1.9.1
 
