@@ -1,49 +1,58 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC v3 2/7] ASoC: hdmi: Remove obsolete
-	dummy HDMI codec
-Date: Mon, 17 Aug 2015 10:00:07 +0300
-Message-ID: <55D18677.3050805@ti.com>
+Subject: Re: [PATCH RFC v3 3/7] ASoC: hdmi-codec: Add hdmi-codec for external
+ HDMI-encoders
+Date: Mon, 17 Aug 2015 10:07:55 +0300
+Message-ID: <55D1884B.6050800@ti.com>
 References: <cover.1439542916.git.jsarha@ti.com>
- <360a38c83ae2a24620da85b8496b745326d995de.1439542916.git.jsarha@ti.com>
- <20150814161033.GT10748@sirena.org.uk>
+ <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
+ <20150814161820.GU10748@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20150814161033.GT10748@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20150814161820.GU10748@sirena.org.uk>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, moinejf@free.fr, airlied@linux.ie, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/14/15 19:10, Mark Brown wrote:
-> On Fri, Aug 14, 2015 at 12:30:40PM +0300, Jyri Sarha wrote:
->> The hdmi stub codec has not been used since refactoring of OMAP HDMI
->> audio support.
->
-> grep tells me that the OMAP HDMI4 and HDMI5 drivers are still
-> registering this device in -next...
->
-
-Really? My source trees for mainline and linux-next look like this:
-
-$ git grep "hdmi-audio-codec"
-sound/soc/codecs/hdmi.c:#define DRV_NAME "hdmi-audio-codec"
-
-Don't you mean "omap-hdmi-audio", that is implemented in 
-sound/soc/omap/omap-hdmi-audio.c ?
-
-That driver is bit different. It implements ASoC card and uses generic 
-dummy codec. The "hdmi-audio-codec" has not been used for OMAP HDMI 
-audio for several releases already.
-
-Best regards,
-Jyri
+T24gMDgvMTQvMTUgMTk6MTgsIE1hcmsgQnJvd24gd3JvdGU6Cj4gT24gRnJpLCBBdWcgMTQsIDIw
+MTUgYXQgMTI6MzA6NDFQTSArMDMwMCwgSnlyaSBTYXJoYSB3cm90ZToKPgo+PiArc3RydWN0IGhk
+bWlfY29kZWNfb3BzIHsKPj4gKwkvKiBGb3IgcnVudGltZSBjbG9jayBjb25maWd1cmF0aW9uIGZy
+b20gQVNvQyBtYWNoaW5lIGRyaXZlci4KPj4gKwkgKiBBIGRpcmVjdCBmb3J3YXJkIGZyb20gc2V0
+X3N5c2NsayBpbiBzdHJ1Y3Qgc25kX3NvY19kYWlfb3BzLgo+PiArCSAqIE9wdGlvbmFsICovCj4+
+ICsJaW50ICgqc2V0X2Nsaykoc3RydWN0IGRldmljZSAqZGV2LCBpbnQgY2xrX2lkLCBpbnQgZnJl
+cSk7Cj4KPiBJJ2QgYmUgbXVjaCBoYXBwaWVyIGlmIHdlIHdlcmUgdXNpbmcgdGhlIGNsb2NrIEFQ
+SSBhcyB0aGUgZXh0ZXJuYWwKPiBpbnRlcmZhY2UgaGVyZSwgaXQncyB3aGVyZSB3ZSB3YW50IHRv
+IGJlIGludGVybmFsbHkgdG9vIGFuZCBpdCdzIGdvaW5nCj4gdG8gYmUgZWFzaWVyIHRvIG5vdCBp
+bnRyb2R1Y2UgYW55IGV4dGVybmFsIGRlcGVuZGVuY2llcyBvbiB0aGUgQVNvQwo+IGludGVybmFs
+IHN0dWZmLgo+CgpTb3VuZHMgYmV0dGVyLiBJJ2xsIGNoYW5nZSB0aGF0LgoKPj4gKwkvKiBDYWxs
+ZWQgd2hlbiBBU29DIHN0YXJ0cyBhbiBhdWRpbyBzdHJlYW0gc2V0dXAuIFRoZSBjYWxsCj4+ICsJ
+ICogcHJvdmlkZXMgYW4gYXVkaW8gYWJvcnQgY2FsbGJhY2sgZm9yIHN0b3BpbmcgYW4gb25nb2lu
+Zwo+PiArCSAqIHN0cmVhbSBpZiB0aGUgSERNSSBhdWRpbyBiZWNvbWVzIHVuYXZhaWxhYmxlLgo+
+PiArCSAqIE9wdGlvbmFsICovCj4+ICsJaW50ICgqYXVkaW9fc3RhcnR1cCkoc3RydWN0IGRldmlj
+ZSAqZGV2LAo+PiArCQkJICAgICB2b2lkICgqYWJvcnRfY2IpKHN0cnVjdCBkZXZpY2UgKmRldikp
+Owo+Cj4gSSdtIGEgYml0IGNvbmZ1c2VkIGFib3V0IHdoYXQgaXMgZ29pbmcgdG8gdXNlIGFib3J0
+X2NiKCkgYW5kIHdoeSB0aGV5Cj4gd291bGRuJ3QganVzdCBjYWxsIHNodXRkb3duIGluc3RlYWQ/
+Cj4KCmF1ZGlvX3NodXRkb3duKCkgaXMgZm9yIEFTb0Mgc2lkZSB0byB0ZWxsIHZpZGVvIHNpZGUg
+dGhhdCBhdWRpbyBwbGF5YmFjayAKaGFzIHN0b3BwZWQuCgpUaGUgYWJvcnRfY2IoKSBpcyBmb3Ig
+dmlkZW8gc2lkZSB0byBpbmZvcm0gQVNvQyB0aGF0IGN1cnJlbnQgYXVkaW8gCnN0cmVhbSBjYW4g
+bm90IGNvbnRpbnVlIGFueW1vcmUgYW5kIGl0IHNob3VsZCBiZSBhYm9ydGVkLiBUaGUgc2ltaWxh
+ciAKbWVjaGFuaXNtIGlzIGN1cnJlbnRseSBpbiB1c2UgaW4gc291bmQvc29jL29tYXAvb21hcC1o
+ZG1pLWF1ZGlvLmMuCgo+PiArLyogSERNSSBjb2RlYyBpbml0YWxpemF0aW9uIGRhdGEgKi8KPj4g
+K3N0cnVjdCBoZG1pX2NvZGVjX3BkYXRhIHsKPj4gKwlzdHJ1Y3QgZGV2aWNlICpkZXY7IC8qIFRo
+ZSBIRE1JIGVuY29kZXIgcmVnaXN0ZXJpbmcgdGhlIGNvZGVjICovCj4KPiBTaG91bGRuJ3QgdGhp
+cyBqdXN0IGJlIGRldi0+cGFyZW50Pwo+Cj4+ICtlbnVtIHsKPj4gKwlEQUlfSURfSTJDID0gMCwK
+Pj4gKwlEQUlfSURfU1BESUYsCj4+ICt9Owo+Cj4gSTJDPyAgOlAKPgoKUmlnaHQsIHNob3VsZCBi
+ZSBJMlMuIFRoYW5rcyEKCkJlc3QgcmVnYXJkcywKSnlyaQoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
