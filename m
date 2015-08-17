@@ -1,15 +1,15 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC v3 3/7] ASoC: hdmi-codec: Add
- hdmi-codec for external HDMI-encoders
-Date: Mon, 17 Aug 2015 11:41:02 -0700
-Message-ID: <20150817184102.GW10748@sirena.org.uk>
+Subject: Re: [PATCH RFC v3 2/7] ASoC: hdmi: Remove obsolete
+	dummy HDMI codec
+Date: Mon, 17 Aug 2015 11:46:50 -0700
+Message-ID: <20150817184650.GX10748@sirena.org.uk>
 References: <cover.1439542916.git.jsarha@ti.com>
- <ed41a6c0b594866c05e695cc066371d0e3862c7e.1439542916.git.jsarha@ti.com>
- <20150814161820.GU10748@sirena.org.uk> <55D1884B.6050800@ti.com>
+ <360a38c83ae2a24620da85b8496b745326d995de.1439542916.git.jsarha@ti.com>
+ <20150814161033.GT10748@sirena.org.uk> <55D18677.3050805@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2287357263356496001=="
+Content-Type: multipart/mixed; boundary="===============6533137771017260714=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <55D1884B.6050800@ti.com>
+In-Reply-To: <55D18677.3050805@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -24,62 +24,52 @@ Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.c
 List-Id: linux-omap@vger.kernel.org
 
 
---===============2287357263356496001==
+--===============6533137771017260714==
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="AXVeTwB1tCcD1nEH"
+	protocol="application/pgp-signature"; boundary="YXsbNr0GD8juqqEr"
 Content-Disposition: inline
 
 
---AXVeTwB1tCcD1nEH
+--YXsbNr0GD8juqqEr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Aug 17, 2015 at 10:07:55AM +0300, Jyri Sarha wrote:
-> On 08/14/15 19:18, Mark Brown wrote:
-> >On Fri, Aug 14, 2015 at 12:30:41PM +0300, Jyri Sarha wrote:
+On Mon, Aug 17, 2015 at 10:00:07AM +0300, Jyri Sarha wrote:
+> On 08/14/15 19:10, Mark Brown wrote:
 
-> >>+	/* Called when ASoC starts an audio stream setup. The call
-> >>+	 * provides an audio abort callback for stoping an ongoing
-> >>+	 * stream if the HDMI audio becomes unavailable.
-> >>+	 * Optional */
-> >>+	int (*audio_startup)(struct device *dev,
-> >>+			     void (*abort_cb)(struct device *dev));
+> Don't you mean "omap-hdmi-audio", that is implemented in
+> sound/soc/omap/omap-hdmi-audio.c ?
 
-> >I'm a bit confused about what is going to use abort_cb() and why they
-> >wouldn't just call shutdown instead?
+> That driver is bit different. It implements ASoC card and uses generic dummy
+> codec. The "hdmi-audio-codec" has not been used for OMAP HDMI audio for
+> several releases already.
 
-> audio_shutdown() is for ASoC side to tell video side that audio playback has
-> stopped.
+Possibly, yes, or I was on an old tree by mistake.  It's definitely not
+used now like you say.
 
-> The abort_cb() is for video side to inform ASoC that current audio stream
-> can not continue anymore and it should be aborted. The similar mechanism is
-> currently in use in sound/soc/omap/omap-hdmi-audio.c.
-
-Someone reading the code needs to be able to understand this.
-
---AXVeTwB1tCcD1nEH
+--YXsbNr0GD8juqqEr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJV0iq9AAoJECTWi3JdVIfQkP8IAIBnhDFmE7PxTUWEQ/8qpwwV
-VXsEs4lNDKcPaZw09mjq1de6UkA4NL9jXZ3N52K77NadS3++OoA4xkaq27C7IogF
-g6sSp32K5PStTrC/3lRRomwvfJACAq9sxSkud/NWQSEBOT7msrISehF44boLDtRX
-BhsnG08im4OJYWqDjKDoQKFou7dbdSP7tMjvrTJTn7Rap3nJff2fl8JSmVBqvb16
-WxxJ9nXOGoglOlcwZnoxmYUbNq4SAk2ZEllqytElbZP5R3o4uSDFby2h1uTkqpFw
-OFW1iHYV3rs+6xU8LnQMMxoUU2At4knbjgP2lTRls/AUcFalBDDd/FNnsj52vIQ=
-=jzCG
+iQEcBAEBCAAGBQJV0iwZAAoJECTWi3JdVIfQzyoH/3SUXYWr+Le59p7deArzuYhR
+vp+ODOeYAn7N1WiBg5/vLbr6Kqyuo6ggmHYd2v+2/A4XL/BfWnD/qDCI1PnblYVn
+XRmuqzgN1OKBpHiiD7ZEAoTNyMkbEobfvsR6+ra/Xnx5nTGmHRj+hrDIc8K7P1A6
+eTJh9uNNe9o8GQqDmB7fd+97MQ6xEvd7aJgrYD6zNRWFi83EItJPWWtsvGyb+HgC
+DZTJWojXqBsuI/r9r7PkQtBdJ7BuVEGqbI25NLmwuKXgbY5Dl7GKAXoQKPQ56j/A
+JqrFmy3EmustPXyLWAY7G6AFVp9qLwwLm1K5gFAYZo437OzVTYGHlQJNmB/+iPk=
+=2qex
 -----END PGP SIGNATURE-----
 
---AXVeTwB1tCcD1nEH--
+--YXsbNr0GD8juqqEr--
 
---===============2287357263356496001==
+--===============6533137771017260714==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============2287357263356496001==--
+--===============6533137771017260714==--
