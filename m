@@ -1,33 +1,76 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/2]  ARM: AM437X: Add rtc clock handling
-Date: Mon, 17 Aug 2015 10:25:36 +0530
-Message-ID: <1439787338-27396-1-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFT PATCH] arm: omap1_defconfig: convert to use libata PATA
+ drivers
+Date: Sun, 16 Aug 2015 23:34:55 -0700
+Message-ID: <20150817063454.GF4215@atomide.com>
+References: <1439571876-13758-1-git-send-email-b.zolnierkie@samsung.com>
+ <1439571876-13758-16-git-send-email-b.zolnierkie@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1439571876-13758-16-git-send-email-b.zolnierkie@samsung.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The series is applicable for all am437x series of processors.
-It adds clock handling support. Boot tested on am437x-gp-evm.
+* Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> [150814 10:10]:
+> IDE subsystem has been deprecated since 2009 and the majority
+> (if not all) of Linux distributions have switched to use
+> libata for ATA support exclusively.  However there are still
+> some users (mostly old or/and embedded non-x86 systems) that
+> have not converted from using IDE subsystem to libata PATA
+> drivers.  This doesn't seem to be good thing in the long-term
+> for Linux as while there is less and less PATA systems left
+> in use:
+> 
+> * testing efforts are divided between two subsystems
+> 
+> * having duplicate drivers for same hardware confuses users
+> 
+> This patch converts omap1_defconfig to use libata PATA
+> drivers.
+> 
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> ---
+> Build tested only.
+> If you have affected hardware please test.  Thank you.
 
-Keerthy (2):
-  ARM: dts: AM437x: Add the internal and external clock nodes for rtc
-  rtc: omap: Add external clock enabling support
+All my omap1 devices are in a rack using NFSroot or MMC so
+I can't test this. Seems like a good idea to me thoug, and does
+not cause merge conflicts. So if you want to queue this via
+along with other PATA related patches, please feel free to
+add:
 
- arch/arm/boot/dts/am4372.dtsi        |  2 ++
- arch/arm/boot/dts/am437x-gp-evm.dts  | 13 +++++++++++
- arch/arm/boot/dts/am437x-idk-evm.dts |  9 ++++++++
- arch/arm/boot/dts/am437x-sk-evm.dts  |  9 ++++++++
- drivers/rtc/rtc-omap.c               | 44 ++++++++++++++++++++++++++++++++++++
- 5 files changed, 77 insertions(+)
-
--- 
-1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
+ 
+>  arch/arm/configs/omap1_defconfig | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+> index 0c8a787..6ffc984 100644
+> --- a/arch/arm/configs/omap1_defconfig
+> +++ b/arch/arm/configs/omap1_defconfig
+> @@ -96,14 +96,14 @@ CONFIG_BLK_DEV_LOOP=y
+>  CONFIG_BLK_DEV_RAM=y
+>  CONFIG_BLK_DEV_RAM_COUNT=2
+>  CONFIG_BLK_DEV_RAM_SIZE=8192
+> -CONFIG_IDE=m
+> -CONFIG_BLK_DEV_IDECS=m
+>  CONFIG_SCSI=y
+>  # CONFIG_SCSI_PROC_FS is not set
+>  CONFIG_BLK_DEV_SD=y
+>  CONFIG_CHR_DEV_ST=y
+>  CONFIG_BLK_DEV_SR=y
+>  CONFIG_CHR_DEV_SG=y
+> +CONFIG_ATA=m
+> +CONFIG_PATA_PCMCIA=m
+>  CONFIG_NETDEVICES=y
+>  CONFIG_TUN=y
+>  CONFIG_PHYLIB=y
+> -- 
+> 1.9.1
+> 
