@@ -1,58 +1,42 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 0/7] gpio: omap: fixes and improvements
-Date: Tue, 18 Aug 2015 09:12:57 -0700
-Message-ID: <55D35989.9030508@oracle.com>
-References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/2] omap soc fix for v4.3 merge window
+Date: Tue, 18 Aug 2015 13:33:26 -0700
+Message-ID: <20150818203326.GH4732@localhost>
+References: <55cc6d03.8a8d420a.93b25.50c3SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <55cc6d03.8a8d420a.93b25.50c3SMTPIN_ADDED_BROKEN@mx.google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 8/18/2015 4:10 AM, Grygorii Strashko wrote:
-> Hi,
->
-> This patch series contains set of trivial fixes and improvements, and also
-> patches which fixes wrong APIs usage in atomic context as for -RT as for
-> non-RT kernel. The final goal of this series is to make TI OMAP GPIO
-> driver compatible with -RT kernel as much as possible.
->
-> Patch 1-4: trivial fixes and improvements
-> Patch 5: fixes wrong CLK clk_prepare/unprepare APIs usage in atomic contexet
-> Patch 6(rfc): required to be compatible with -RT kernel, because PM runtime
->   can't be used in atimic context on -RT.
-> Patch 7(rfc): This patch converts TI OMAP GPIO driver to use generic irq
->   handler instead of chained IRQ handler. This way OMAP GPIO driver will be
->   compatible with RT kernel where it will be forced thread IRQ handler
->   while in non-RT kernel it still will be executed in HW IRQ context.
->
-> Based on
-> git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git
-> branch: devel
-> commit: 929550b gpio: mxc: fix section mismatch warning
->
-> Boot, basic gpio functionality tested on:
->   dra7-evm, BeagleBone(white), am43xx-gpevm, am437x-sk
-> Manually tested on dra7-evm including suspend/resume and wakeup.
->
-> Grygorii Strashko (7):
->    gpio: omap: remove wrong irq_domain_remove usage in probe
->    gpio: omap: switch to use platform_get_irq
->    gpio: omap: fix omap2_set_gpio_debounce
->    gpio: omap: protect regs access in omap_gpio_irq_handler
->    gpio: omap: fix clk_prepare/unprepare usage
->    gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
->    gpio: omap: convert to use generic irq handler
->
->   drivers/gpio/gpio-omap.c | 146 +++++++++++++++++++++++++++--------------------
->   1 file changed, 85 insertions(+), 61 deletions(-)
->
-Patch 1 to 5 looks fine to me. You can have that one as a series.
-Am not convinced about 6 and 7. Will look at it again in detail.
+On Thu, Aug 13, 2015 at 03:08:45AM -0700, Tony Lindgren wrote:
+> The following changes since commit 24da741c678f865de3182194604dbddcc7fc7f3c:
+> 
+>   Merge branch 'dm814x-soc' into omap-for-v4.3/soc (2015-07-23 21:59:18 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/soc-pt2
+> 
+> for you to fetch changes up to ed293d1ad2b0c28b6abc3bd728b07754bc00f1cd:
+> 
+>   memory: kill off set_irq_flags usage (2015-08-13 00:48:52 -0700)
 
-For 1 to 5,
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+
+Merged, thanks.
+
+
+-Olof
