@@ -1,51 +1,59 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to program
- pbias regulator
-Date: Tue, 18 Aug 2015 11:23:54 +0530
-Message-ID: <55D2C872.9000400@ti.com>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com> <1437996250-2913-2-git-send-email-kishon@ti.com> <20150814180006.GB10748@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 03/13] twl4030_charger: correctly handle -EPROBE_DEFER
+ from devm_usb_get_phy_by_node
+Date: Tue, 18 Aug 2015 01:07:58 -0700
+Message-ID: <20150818080758.GG4215@atomide.com>
+References: <20150730001113.4012.18086.stgit@noble>
+ <20150730001124.4012.31980.stgit@noble>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150814180006.GB10748@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, nsekhar@ti.com, stable@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150730001124.4012.31980.stgit@noble>
+Sender: linux-pm-owner@vger.kernel.org
+To: NeilBrown <neil@brown.name>
+Cc: Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark Brown,
-
-On Friday 14 August 2015 11:30 PM, Mark Brown wrote:
-> On Mon, Jul 27, 2015 at 04:54:09PM +0530, Kishon Vijay Abraham I wrote:
+* NeilBrown <neil@brown.name> [150729 17:29]:
+> Now that twl4030_bci_probe can safely return -EPROBE_DEFER,
+> do so when devm_usb_get_phy_by_node returns that error.
 > 
->> vsel_reg and enable_reg of the pbias regulator descriptor should actually
->> have the offset from syscon. However after the pbias device tree node
+> Signed-off-by: NeilBrown <neil@brown.name>
+> ---
+>  drivers/power/twl4030_charger.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 > 
-> I'm having a hard time understanding this statement, sorry.  What makes
-> you say that they "shouild actually have the offset from syscon"?  What
-> is the problem that this is supposed to fix?
+> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+> index 045238370d3f..ffc123fb7158 100644
+> --- a/drivers/power/twl4030_charger.c
+> +++ b/drivers/power/twl4030_charger.c
+> @@ -636,9 +636,13 @@ static int twl4030_bci_probe(struct platform_device *pdev)
+>  
+>  		phynode = of_find_compatible_node(bci->dev->of_node->parent,
+>  						  NULL, "ti,twl4030-usb");
+> -		if (phynode)
+> +		if (phynode) {
+>  			bci->transceiver = devm_usb_get_phy_by_node(
+>  				bci->dev, phynode, &bci->usb_nb);
+> +			if (IS_ERR(bci->transceiver) &&
+> +			    PTR_ERR(bci->transceiver) == -EPROBE_DEFER)
+> +				return -EPROBE_DEFER;
+> +		}
+>  	}
 
-The register to program pbias regulator is 0x4A002E00. The syscon base address
-is 0x4a002000. So the vsel_reg and enable_reg should have the offset from
-syscon base address. regulator_enable_regmap gets the base address from
-'regmap' and offset from 'enable_reg' in order to program the pbias regulator.
+Neil, the return with -EPROBE_DEFER here causes flakeyness booting
+for me somehow at least on my logicpd-torpedo-37xx-devkit using
+omap2plus_defconfig.
 
-But without this patch vsel_reg and enable_reg have the absolute address
-instead of just the offset.
-> 
->> is moved as a child node of syscon, vsel_reg and enable_reg has the
->> absolute address because of the address translation that happens while
->> creating device from device tree node.
->> So avoid using platform_get_resource and use of_get_address in order to
->> get only the offset (untranslated address) and populate these in
->> vsel_reg and enable_reg.
-> 
-> This sounds like we're going in the wrong direction, we're moving from a
-> more generic API to a firmware specific one.  Why is this a good fix?
+It seems that the twl4030_bci_probe keeps looping or something about
+1/3 of the boots and that probably prevents the other twl modules
+from loading? Reverting this patch alone seems to fix the issue.
 
-platform_get_resource can be used if we need the absolute address but here we
-need only the offset.
+I don't think I have a battery wired on this board the USB is wired
+the same way as on beagle-xm. So I'd assume also flakeyness on beagle
+xm with this patch.
 
-Thanks
-Kishon
+Regards,
+
+Tony
