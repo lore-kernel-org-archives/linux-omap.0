@@ -1,14 +1,15 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/2] omap soc fix for v4.3 merge window
-Date: Tue, 18 Aug 2015 13:33:26 -0700
-Message-ID: <20150818203326.GH4732@localhost>
-References: <55cc6d03.8a8d420a.93b25.50c3SMTPIN_ADDED_BROKEN@mx.google.com>
+Subject: Re: [GIT PULL 2/2] omap device tree changes for v4.3, part 4
+Date: Tue, 18 Aug 2015 13:34:13 -0700
+Message-ID: <20150818203413.GI4732@localhost>
+References: <pull-1439455019-336197>
+ <55cc7e96.4341440a.f8e59.1a49SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <55cc6d03.8a8d420a.93b25.50c3SMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <55cc7e96.4341440a.f8e59.1a49SMTPIN_ADDED_BROKEN@mx.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,21 +23,26 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 13, 2015 at 03:08:45AM -0700, Tony Lindgren wrote:
-> The following changes since commit 24da741c678f865de3182194604dbddcc7fc7f3c:
+On Thu, Aug 13, 2015 at 03:08:46AM -0700, Tony Lindgren wrote:
+> The following changes since commit ed05637c30e6d13e5793aab64d6a6e57e30228af:
 > 
->   Merge branch 'dm814x-soc' into omap-for-v4.3/soc (2015-07-23 21:59:18 -0700)
+>   ARM: dts: omap3-devkit8000: Add ADS7846 Touchscreen support (2015-08-06 02:43:09 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/soc-pt2
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/dt-pt4-v2
 > 
-> for you to fetch changes up to ed293d1ad2b0c28b6abc3bd728b07754bc00f1cd:
+> for you to fetch changes up to 8cbd4c2f6a996f6cf5dfdf8775d331606cff95bd:
 > 
->   memory: kill off set_irq_flags usage (2015-08-13 00:48:52 -0700)
+>   arm: boot: dts: am4372: add ARM timers and SCU nodes (2015-08-13 01:25:11 -0700)
+> 
+> ----------------------------------------------------------------
+> Fix up bogus RTC compatible change for am4372 and add missing
+> DPLL for am4372 cpsw Ethernet driver. Also add ARM global and
+> local timers for am4372.
+> 
 
-
-Merged, thanks.
+Merged, thanks!
 
 
 -Olof
