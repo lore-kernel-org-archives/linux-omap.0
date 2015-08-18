@@ -1,405 +1,108 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [RFT PATCH] ARM: OMAP: Change all cpu_is_* occurences to soc_is_*
-Date: Tue, 18 Aug 2015 17:24:56 +0530
-Message-ID: <55D31D10.9070405@ti.com>
-References: <1439892601-19306-1-git-send-email-j-keerthy@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: omapdss: Division by zero in kernel
+Date: Tue, 18 Aug 2015 16:00:02 +0200
+Message-ID: <20150818140002.GU32236@pali>
+References: <201507241803.42891@pali>
+ <20150728115602.GL13765@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1439892601-19306-1-git-send-email-j-keerthy@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20150728115602.GL13765@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Tuesday 28 July 2015 13:56:02 Pali Roh=C3=A1r wrote:
+> On Friday 24 July 2015 18:03:42 Pali Roh=C3=A1r wrote:
+> > Hello,
+> >=20
+> > when on N900 (real HW or qemu) I run this command
+> >=20
+> > / # echo 0 > /sys/devices/platform/omapdss/overlay0/enabled && echo=
+ 0 > /sys/class/graphics/fb0/size
+> >=20
+> > then kernel crash with this error message
+> >=20
+> > / # [   29.904113] Division by zero in kernel.
+> > ** 3375 printk messages dropped ** [   29.963836] [<c01e0008>] (__a=
+eabi_uidivmod) from [<c022071c>]=20
+> > (cfb_imageblit+0xac/0x464)
+> > ** 8426 printk messages dropped ** [   30.111083] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 8380 printk messages dropped ** [   30.258209] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 7813 printk messages dropped ** [   30.400054] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 7666 printk messages dropped ** [   30.538391] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 7687 printk messages dropped ** [   30.676544] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 7960 printk messages dropped ** [   30.819915] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 8317 printk messages dropped ** [   30.966979] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 8590 printk messages dropped ** [   31.122528] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 8885 printk messages dropped ** [   31.287658] [<c0218ed0>] (fbc=
+on_scroll) from [<c025af90>] (scrup+0x60/0x128)
+> > ** 9408 printk messages dropped ** [   31.461425] [<c02187a4>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 9787 printk messages dropped ** [   31.644287] [<c02187e8>] (fbc=
+on_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10081 printk messages dropped ** [   31.833984] [<c02187a4>] (fb=
+con_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10501 printk messages dropped ** [   32.031066] [<c02187a4>] (fb=
+con_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10816 printk messages dropped ** [   32.233001] [<c02187a4>] (fb=
+con_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10900 printk messages dropped ** [   32.440490] [<c02187a4>] (fb=
+con_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10837 printk messages dropped ** [   32.645233] [<c02187a4>] (fb=
+con_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10837 printk messages dropped ** [   32.848999] [<c02187a4>] (fb=
+con_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10837 printk messages dropped ** [   33.053833] [<c02187a4>] (fb=
+con_redraw.isra.12) from [<c0218ed0>]=20
+> > (fbcon_scroll+0x6a0/0xcbc)
+> > ** 10838 printk messages dropped ** [   33.258361] [<c0218ed0>] (fb=
+con_scroll) from [<c025af90>] (scrup+0x60/0x128)
+> >=20
+> > I suspect that problem is in omapdss.
+> >=20
+> > I do not know if size 0 make sense, but Maemo userspace is calling =
+above
+> > commands and on Nokia's 2.6.28 kernel there is no crash or error me=
+ssage.
+> >=20
+> > IMHO Division by zero in kernel should not be there even if userspa=
+ce
+> > call "incorrect" command.
+> >=20
+>=20
+> PING! Any idea what to do with Division by zero in kernel?
+>=20
 
+PING again! Can somebody look at this Division by zero in kernel?
 
-On Tuesday 18 August 2015 03:40 PM, Keerthy wrote:
-> Currently apart from dra7, omap5 and amx3 all the other SoCs
-> are identified using cpu_is_* functions which is not right since
-> they are all SoCs(System on Chips). Hence changing the SoC
-> identific=C3=A4tion code to use soc_is instead of cpu_is and keeping
-> defines for cpu_is where needed. This allows us to replace the
-> rest of cpu_is usage along with other fixes as needed.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-
-Boot tested on dra7-evm, omap4-panda, am437x-gp-evm.
-
->   arch/arm/mach-omap2/id.c  |  30 +++----
->   arch/arm/mach-omap2/soc.h | 193 ++++++++++++++++++++++++++---------=
------------
->   2 files changed, 123 insertions(+), 100 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index e3f713f..24f24d4 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -57,15 +57,15 @@ int omap_type(void)
->   	if (val < OMAP2_DEVICETYPE_MASK)
->   		return val;
->
-> -	if (cpu_is_omap24xx()) {
-> +	if (soc_is_omap24xx()) {
->   		val =3D omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
-> -	} else if (cpu_is_ti81xx()) {
-> +	} else if (soc_is_ti81xx()) {
->   		val =3D omap_ctrl_readl(TI81XX_CONTROL_STATUS);
->   	} else if (soc_is_am33xx() || soc_is_am43xx()) {
->   		val =3D omap_ctrl_readl(AM33XX_CONTROL_STATUS);
-> -	} else if (cpu_is_omap34xx()) {
-> +	} else if (soc_is_omap34xx()) {
->   		val =3D omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
-> -	} else if (cpu_is_omap44xx()) {
-> +	} else if (soc_is_omap44xx()) {
->   		val =3D omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
->   	} else if (soc_is_omap54xx() || soc_is_dra7xx()) {
->   		val =3D omap_ctrl_readl(OMAP5XXX_CONTROL_STATUS);
-> @@ -122,7 +122,7 @@ static u16 tap_prod_id;
->
->   void omap_get_die_id(struct omap_die_id *odi)
->   {
-> -	if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
-> +	if (soc_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
->   		odi->id_0 =3D read_tap_reg(OMAP_TAP_DIE_ID_44XX_0);
->   		odi->id_1 =3D read_tap_reg(OMAP_TAP_DIE_ID_44XX_1);
->   		odi->id_2 =3D read_tap_reg(OMAP_TAP_DIE_ID_44XX_2);
-> @@ -218,17 +218,17 @@ static void __init omap3_cpuinfo(void)
->   	 * on available features. Upon detection, update the CPU id
->   	 * and CPU class bits.
->   	 */
-> -	if (cpu_is_omap3630()) {
-> +	if (soc_is_omap3630()) {
->   		cpu_name =3D "OMAP3630";
->   	} else if (soc_is_am35xx()) {
->   		cpu_name =3D (omap3_has_sgx()) ? "AM3517" : "AM3505";
-> -	} else if (cpu_is_ti816x()) {
-> +	} else if (soc_is_ti816x()) {
->   		cpu_name =3D "TI816X";
->   	} else if (soc_is_am335x()) {
->   		cpu_name =3D  "AM335X";
->   	} else if (soc_is_am437x()) {
->   		cpu_name =3D  "AM437x";
-> -	} else if (cpu_is_ti814x()) {
-> +	} else if (soc_is_ti814x()) {
->   		cpu_name =3D "TI814X";
->   	} else if (omap3_has_iva() && omap3_has_sgx()) {
->   		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
-> @@ -275,11 +275,11 @@ void __init omap3xxx_check_features(void)
->   	OMAP3_CHECK_FEATURE(status, SGX);
->   	OMAP3_CHECK_FEATURE(status, NEON);
->   	OMAP3_CHECK_FEATURE(status, ISP);
-> -	if (cpu_is_omap3630())
-> +	if (soc_is_omap3630())
->   		omap_features |=3D OMAP3_HAS_192MHZ_CLK;
-> -	if (cpu_is_omap3430() || cpu_is_omap3630())
-> +	if (soc_is_omap3430() || soc_is_omap3630())
->   		omap_features |=3D OMAP3_HAS_IO_WAKEUP;
-> -	if (cpu_is_omap3630() || omap_rev() =3D=3D OMAP3430_REV_ES3_1 ||
-> +	if (soc_is_omap3630() || omap_rev() =3D=3D OMAP3430_REV_ES3_1 ||
->   	    omap_rev() =3D=3D OMAP3430_REV_ES3_1_2)
->   		omap_features |=3D OMAP3_HAS_IO_CHAIN_CTRL;
->
-> @@ -697,7 +697,7 @@ void __init omap2_set_globals_tap(u32 class, void=
- __iomem *tap)
->   	tap_base =3D tap;
->
->   	/* XXX What is this intended to do? */
-> -	if (cpu_is_omap34xx())
-> +	if (soc_is_omap34xx())
->   		tap_prod_id =3D 0x0210;
->   	else
->   		tap_prod_id =3D 0x0208;
-> @@ -715,11 +715,11 @@ static const char * const omap_types[] =3D {
->
->   static const char * __init omap_get_family(void)
->   {
-> -	if (cpu_is_omap24xx())
-> +	if (soc_is_omap24xx())
->   		return kasprintf(GFP_KERNEL, "OMAP2");
-> -	else if (cpu_is_omap34xx())
-> +	else if (soc_is_omap34xx())
->   		return kasprintf(GFP_KERNEL, "OMAP3");
-> -	else if (cpu_is_omap44xx())
-> +	else if (soc_is_omap44xx())
->   		return kasprintf(GFP_KERNEL, "OMAP4");
->   	else if (soc_is_omap54xx())
->   		return kasprintf(GFP_KERNEL, "OMAP5");
-> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-> index f97654d..bb824ae 100644
-> --- a/arch/arm/mach-omap2/soc.h
-> +++ b/arch/arm/mach-omap2/soc.h
-> @@ -148,13 +148,13 @@ static inline int soc_is_omap(void)
->   /*
->    * Macros to group OMAP into cpu classes.
->    * These can be used in most places.
-> - * cpu_is_omap24xx():	True for OMAP2420, OMAP2422, OMAP2423, OMAP243=
-0
-> - * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
-> - * cpu_is_omap243x():	True for OMAP2430
-> - * cpu_is_omap343x():	True for OMAP3430
-> - * cpu_is_omap443x():	True for OMAP4430
-> - * cpu_is_omap446x():	True for OMAP4460
-> - * cpu_is_omap447x():	True for OMAP4470
-> + * soc_is_omap24xx():	True for OMAP2420, OMAP2422, OMAP2423, OMAP243=
-0
-> + * soc_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
-> + * soc_is_omap243x():	True for OMAP2430
-> + * soc_is_omap343x():	True for OMAP3430
-> + * soc_is_omap443x():	True for OMAP4430
-> + * soc_is_omap446x():	True for OMAP4460
-> + * soc_is_omap447x():	True for OMAP4470
->    * soc_is_omap543x():	True for OMAP5430, OMAP5432
->    */
->   #define GET_OMAP_CLASS	(omap_rev() & 0xff)
-> @@ -225,23 +225,23 @@ IS_TI_SUBCLASS(814x, 0x814)
->   IS_AM_SUBCLASS(335x, 0x335)
->   IS_AM_SUBCLASS(437x, 0x437)
->
-> -#define cpu_is_omap24xx()		0
-> -#define cpu_is_omap242x()		0
-> -#define cpu_is_omap243x()		0
-> -#define cpu_is_omap34xx()		0
-> -#define cpu_is_omap343x()		0
-> -#define cpu_is_ti81xx()			0
-> -#define cpu_is_ti816x()			0
-> -#define cpu_is_ti814x()			0
-> +#define soc_is_omap24xx()		0
-> +#define soc_is_omap242x()		0
-> +#define soc_is_omap243x()		0
-> +#define soc_is_omap34xx()		0
-> +#define soc_is_omap343x()		0
-> +#define soc_is_ti81xx()			0
-> +#define soc_is_ti816x()			0
-> +#define soc_is_ti814x()			0
->   #define soc_is_am35xx()			0
->   #define soc_is_am33xx()			0
->   #define soc_is_am335x()			0
->   #define soc_is_am43xx()			0
->   #define soc_is_am437x()			0
-> -#define cpu_is_omap44xx()		0
-> -#define cpu_is_omap443x()		0
-> -#define cpu_is_omap446x()		0
-> -#define cpu_is_omap447x()		0
-> +#define soc_is_omap44xx()		0
-> +#define soc_is_omap443x()		0
-> +#define soc_is_omap446x()		0
-> +#define soc_is_omap447x()		0
->   #define soc_is_omap54xx()		0
->   #define soc_is_omap543x()		0
->   #define soc_is_dra7xx()			0
-> @@ -250,54 +250,64 @@ IS_AM_SUBCLASS(437x, 0x437)
->
->   #if defined(MULTI_OMAP2)
->   # if defined(CONFIG_ARCH_OMAP2)
-> -#  undef  cpu_is_omap24xx
-> -#  define cpu_is_omap24xx()		is_omap24xx()
-> +#  undef  soc_is_omap24xx
-> +#  define soc_is_omap24xx()		is_omap24xx()
-> +#  define cpu_is_omap24xx		soc_is_omap24xx
->   # endif
->   # if defined (CONFIG_SOC_OMAP2420)
-> -#  undef  cpu_is_omap242x
-> -#  define cpu_is_omap242x()		is_omap242x()
-> +#  undef  soc_is_omap242x
-> +#  define soc_is_omap242x()		is_omap242x()
-> +#  define cpu_is_omap242x		soc_is_omap242x
->   # endif
->   # if defined (CONFIG_SOC_OMAP2430)
-> -#  undef  cpu_is_omap243x
-> -#  define cpu_is_omap243x()		is_omap243x()
-> +#  undef  soc_is_omap243x
-> +#  define soc_is_omap243x()		is_omap243x()
-> +#  define cpu_is_omap243x		soc_is_omap243x
->   # endif
->   # if defined(CONFIG_ARCH_OMAP3)
-> -#  undef  cpu_is_omap34xx
-> -#  undef  cpu_is_omap343x
-> -#  define cpu_is_omap34xx()		is_omap34xx()
-> -#  define cpu_is_omap343x()		is_omap343x()
-> +#  undef  soc_is_omap34xx
-> +#  undef  soc_is_omap343x
-> +#  define soc_is_omap34xx()		is_omap34xx()
-> +#  define cpu_is_omap34xx		soc_is_omap34xx
-> +#  define soc_is_omap343x()		is_omap343x()
-> +#  define cpu_is_omap343x		soc_is_omap343x
->   # endif
->   #else
->   # if defined(CONFIG_ARCH_OMAP2)
-> -#  undef  cpu_is_omap24xx
-> -#  define cpu_is_omap24xx()		1
-> +#  undef  soc_is_omap24xx
-> +#  define soc_is_omap24xx()		1
-> +#  define cpu_is_omap24xx		soc_is_omap24xx
->   # endif
->   # if defined(CONFIG_SOC_OMAP2420)
-> -#  undef  cpu_is_omap242x
-> -#  define cpu_is_omap242x()		1
-> +#  undef  soc_is_omap242x
-> +#  define soc_is_omap242x()		1
-> +#  define cpu_is_omap242x		soc_is_omap242x
->   # endif
->   # if defined(CONFIG_SOC_OMAP2430)
-> -#  undef  cpu_is_omap243x
-> -#  define cpu_is_omap243x()		1
-> +#  undef  soc_is_omap243x
-> +#  define soc_is_omap243x()		1
-> +#  define cpu_is_omap243x		soc_is_omap243x
->   # endif
->   # if defined(CONFIG_ARCH_OMAP3)
-> -#  undef  cpu_is_omap34xx
-> -#  define cpu_is_omap34xx()		1
-> +#  undef  soc_is_omap34xx
-> +#  define soc_is_omap34xx()		1
-> +#  define cpu_is_omap34xx		soc_is_omap34xx
->   # endif
->   # if defined(CONFIG_SOC_OMAP3430)
-> -#  undef  cpu_is_omap343x
-> -#  define cpu_is_omap343x()		1
-> +#  undef  soc_is_omap343x
-> +#  define soc_is_omap343x()		1
-> +#  define cpu_is_omap343x		soc_is_omap343x
->   # endif
->   #endif
->
->   /*
-> - * Macros to detect individual cpu types.
-> + * Macros to detect individual soc types.
->    * These are only rarely needed.
-> - * cpu_is_omap2420():	True for OMAP2420
-> - * cpu_is_omap2422():	True for OMAP2422
-> - * cpu_is_omap2423():	True for OMAP2423
-> - * cpu_is_omap2430():	True for OMAP2430
-> - * cpu_is_omap3430():	True for OMAP3430
-> + * soc_is_omap2420():	True for OMAP2420
-> + * soc_is_omap2422():	True for OMAP2422
-> + * soc_is_omap2423():	True for OMAP2423
-> + * soc_is_omap2430():	True for OMAP2430
-> + * soc_is_omap3430():	True for OMAP3430
->    */
->   #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
->
-> @@ -313,51 +323,60 @@ IS_OMAP_TYPE(2423, 0x2423)
->   IS_OMAP_TYPE(2430, 0x2430)
->   IS_OMAP_TYPE(3430, 0x3430)
->
-> -#define cpu_is_omap2420()		0
-> -#define cpu_is_omap2422()		0
-> -#define cpu_is_omap2423()		0
-> -#define cpu_is_omap2430()		0
-> -#define cpu_is_omap3430()		0
-> -#define cpu_is_omap3630()		0
-> +#define soc_is_omap2420()		0
-> +#define soc_is_omap2422()		0
-> +#define soc_is_omap2423()		0
-> +#define soc_is_omap2430()		0
-> +#define soc_is_omap3430()		0
-> +#define soc_is_omap3630()		0
->   #define soc_is_omap5430()		0
->
->   /* These are needed for the common code */
->   #ifdef CONFIG_ARCH_OMAP2PLUS
-> -#define cpu_is_omap7xx()		0
-> -#define cpu_is_omap15xx()		0
-> -#define cpu_is_omap16xx()		0
-> -#define cpu_is_omap1510()		0
-> -#define cpu_is_omap1610()		0
-> -#define cpu_is_omap1611()		0
-> -#define cpu_is_omap1621()		0
-> -#define cpu_is_omap1710()		0
-> +#define soc_is_omap7xx()		0
-> +#define soc_is_omap15xx()		0
-> +#define soc_is_omap16xx()		0
-> +#define soc_is_omap1510()		0
-> +#define soc_is_omap1610()		0
-> +#define soc_is_omap1611()		0
-> +#define soc_is_omap1621()		0
-> +#define soc_is_omap1710()		0
->   #define cpu_class_is_omap1()		0
->   #define cpu_class_is_omap2()		1
->   #endif
->
->   #if defined(CONFIG_ARCH_OMAP2)
-> -# undef  cpu_is_omap2420
-> -# undef  cpu_is_omap2422
-> -# undef  cpu_is_omap2423
-> -# undef  cpu_is_omap2430
-> -# define cpu_is_omap2420()		is_omap2420()
-> -# define cpu_is_omap2422()		is_omap2422()
-> -# define cpu_is_omap2423()		is_omap2423()
-> -# define cpu_is_omap2430()		is_omap2430()
-> +# undef  soc_is_omap2420
-> +# undef  soc_is_omap2422
-> +# undef  soc_is_omap2423
-> +# undef  soc_is_omap2430
-> +# define soc_is_omap2420()		is_omap2420()
-> +# define cpu_is_omap2420		soc_is_omap2420
-> +# define soc_is_omap2422()		is_omap2422()
-> +# define cpu_is_omap2422		soc_is_omap2422
-> +# define soc_is_omap2423()		is_omap2423()
-> +# define cpu_is_omap2423		soc_is_omap2423
-> +# define soc_is_omap2430()		is_omap2430()
-> +# define cpu_is_omap2430		soc_is_omap2430
->   #endif
->
->   #if defined(CONFIG_ARCH_OMAP3)
-> -# undef cpu_is_omap3430
-> -# undef cpu_is_ti81xx
-> -# undef cpu_is_ti816x
-> -# undef cpu_is_ti814x
-> +# undef soc_is_omap3430
-> +# undef soc_is_ti81xx
-> +# undef soc_is_ti816x
-> +# undef soc_is_ti814x
->   # undef soc_is_am35xx
-> -# define cpu_is_omap3430()		is_omap3430()
-> -# undef cpu_is_omap3630
-> -# define cpu_is_omap3630()		is_omap363x()
-> -# define cpu_is_ti81xx()		is_ti81xx()
-> -# define cpu_is_ti816x()		is_ti816x()
-> -# define cpu_is_ti814x()		is_ti814x()
-> +# define soc_is_omap3430()		is_omap3430()
-> +# define cpu_is_omap3430		soc_is_omap3430
-> +# undef soc_is_omap3630
-> +# define soc_is_omap3630()		is_omap363x()
-> +# define cpu_is_omap3630		soc_is_omap3630
-> +# define soc_is_ti81xx()		is_ti81xx()
-> +# define cpu_is_ti81xx			soc_is_ti81xx
-> +# define soc_is_ti816x()		is_ti816x()
-> +# define cpu_is_ti816x			soc_is_ti816x
-> +# define soc_is_ti814x()		is_ti814x()
-> +# define cpu_is_ti814x			soc_is_ti814x
->   # define soc_is_am35xx()		is_am35xx()
->   #endif
->
-> @@ -376,14 +395,18 @@ IS_OMAP_TYPE(3430, 0x3430)
->   #endif
->
->   # if defined(CONFIG_ARCH_OMAP4)
-> -# undef cpu_is_omap44xx
-> -# undef cpu_is_omap443x
-> -# undef cpu_is_omap446x
-> -# undef cpu_is_omap447x
-> -# define cpu_is_omap44xx()		is_omap44xx()
-> -# define cpu_is_omap443x()		is_omap443x()
-> -# define cpu_is_omap446x()		is_omap446x()
-> -# define cpu_is_omap447x()		is_omap447x()
-> +# undef soc_is_omap44xx
-> +# undef soc_is_omap443x
-> +# undef soc_is_omap446x
-> +# undef soc_is_omap447x
-> +# define soc_is_omap44xx()		is_omap44xx()
-> +# define cpu_is_omap44xx()		soc_is_omap44xx()
-> +# define soc_is_omap443x()		is_omap443x()
-> +# define cpu_is_omap443x()		soc_is_omap443x()
-> +# define soc_is_omap446x()		is_omap446x()
-> +# define cpu_is_omap446x()		soc_is_omap446x()
-> +# define soc_is_omap447x()		is_omap447x()
-> +# define cpu_is_omap447x()		soc_is_omap447x()
->   # endif
->
->   # if defined(CONFIG_SOC_OMAP5)
->
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
