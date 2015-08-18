@@ -1,72 +1,58 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3] i2c: omap: improve duty cycle on SCL
-Date: Tue, 18 Aug 2015 09:43:47 -0500
-Message-ID: <20150818144347.GD9143@saruman.tx.rr.com>
-References: <1434569475-17378-1-git-send-email-balbi@ti.com>
- <55827CD7.7030207@nokia.com>
- <20150618172558.GC27790@saruman.tx.rr.com>
- <20150709194241.GF4744@katana>
- <20150710172714.GC20408@saruman.tx.rr.com>
- <20150813143651.GG27560@saruman.tx.rr.com>
- <CAFqkuUbO1CZ8bu8g8O7SsLF-0nUV274GZ08=6J1sVS4Foy+_EA@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: santosh shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH 0/7] gpio: omap: fixes and improvements
+Date: Tue, 18 Aug 2015 09:12:57 -0700
+Message-ID: <55D35989.9030508@oracle.com>
+References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ieNMXl1Fr3cevapt"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAFqkuUbO1CZ8bu8g8O7SsLF-0nUV274GZ08=6J1sVS4Foy+_EA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matt Reimer <mreimer-9nEMHBxvMEgxoycv7ERPSQ@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Alexander Sverdlin <alexander.sverdlin-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---ieNMXl1Fr3cevapt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 8/18/2015 4:10 AM, Grygorii Strashko wrote:
+> Hi,
+>
+> This patch series contains set of trivial fixes and improvements, and also
+> patches which fixes wrong APIs usage in atomic context as for -RT as for
+> non-RT kernel. The final goal of this series is to make TI OMAP GPIO
+> driver compatible with -RT kernel as much as possible.
+>
+> Patch 1-4: trivial fixes and improvements
+> Patch 5: fixes wrong CLK clk_prepare/unprepare APIs usage in atomic contexet
+> Patch 6(rfc): required to be compatible with -RT kernel, because PM runtime
+>   can't be used in atimic context on -RT.
+> Patch 7(rfc): This patch converts TI OMAP GPIO driver to use generic irq
+>   handler instead of chained IRQ handler. This way OMAP GPIO driver will be
+>   compatible with RT kernel where it will be forced thread IRQ handler
+>   while in non-RT kernel it still will be executed in HW IRQ context.
+>
+> Based on
+> git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git
+> branch: devel
+> commit: 929550b gpio: mxc: fix section mismatch warning
+>
+> Boot, basic gpio functionality tested on:
+>   dra7-evm, BeagleBone(white), am43xx-gpevm, am437x-sk
+> Manually tested on dra7-evm including suspend/resume and wakeup.
+>
+> Grygorii Strashko (7):
+>    gpio: omap: remove wrong irq_domain_remove usage in probe
+>    gpio: omap: switch to use platform_get_irq
+>    gpio: omap: fix omap2_set_gpio_debounce
+>    gpio: omap: protect regs access in omap_gpio_irq_handler
+>    gpio: omap: fix clk_prepare/unprepare usage
+>    gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
+>    gpio: omap: convert to use generic irq handler
+>
+>   drivers/gpio/gpio-omap.c | 146 +++++++++++++++++++++++++++--------------------
+>   1 file changed, 85 insertions(+), 61 deletions(-)
+>
+Patch 1 to 5 looks fine to me. You can have that one as a series.
+Am not convinced about 6 and 7. Will look at it again in detail.
 
-HI,
-
-On Mon, Aug 17, 2015 at 06:28:11PM -0700, Matt Reimer wrote:
-> This doesn't seem to work for higher speeds, like 2.6 MHz. hssclh and
-> hsscll end up going negative.
->=20
-> My case is an OMAP3 trying to configure i2c1 at 2.6 MHz, on which it talks
-> to TPS65950. I end up with the following values:
->=20
->         SCLL 0x0000fd12 SCLH 0x0000fe13
->=20
-> The end result is that the high-speed part gets configured way too slow a=
-nd
-> so the OMAP3 can't talk to the TPS65950.
-
-hmm, indeed. Seems like anything above 1MHz would have an issue. I'll
-see what can be done there.
-
---=20
-balbi
-
---ieNMXl1Fr3cevapt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJV00SjAAoJEIaOsuA1yqREc64P/3tnaj1ziOLUsuzjXdO4Exg4
-vjpR66R+YIejNzCp+iD3oHG9nSJ6q9w9rc6V73iwXNbsFLQ9k7w2y0AXZWA9uKHD
-9F27nosDqQVaH0BLbOD/o2sYpNnsEz1o9j5y6CGUoCscTCQz4iVk662QLKVhn9P4
-/vPR18RcMf9fcRuoC7gR3KfvY7DtKSbRLBurCfXiZvPlkd5Fku56vQDZvGMmy46L
-wvytS/cry//dm95U+67lahzar8mr2+twWd1I2OaZ9hKwLXGSTgp4SDRdVRQtPDwd
-nYxZ8V4J7wr1BqFOCWKoi3khfDk8CU3cqjDuk/E+Zma+n0H9w7/mEku1/v9hnRgy
-P+IOTe/6+NuDU4qsjh5Z4W71ONKWBOwur+PlvT1KNxMNzptCEGhHAl7eDP8AAk8O
-1HrEkRybeiW1d1QkFStj66pMVn78wOYT80fJMmCzCKKe7LseXiaAdgfIZfnKXLAZ
-Z0J0i1iffiQaFZPcD9C4gQSmP9afJl5UHdHJ52ObazVS0YvLdN94CTK8+hM+z7Vm
-FDCr+LxwhD4lipA7ssV+piLOpLy70ScEYEahVWRJxBrM/Uq84e9eJzsJtG9m8RPl
-sOP6yg7inEpBUkFhT6jI5ijUILx+KTWPuuE2v+4EPOXf6xwSr99blpoy9vKkvjAJ
-y6fxIEtrA74atBScc7t8
-=uHuE
------END PGP SIGNATURE-----
-
---ieNMXl1Fr3cevapt--
+For 1 to 5,
+Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
