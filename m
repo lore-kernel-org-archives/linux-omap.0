@@ -1,395 +1,130 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [RFT PATCH] ARM: OMAP: Change all cpu_is_* occurences to soc_is_*
-Date: Tue, 18 Aug 2015 15:40:01 +0530
-Message-ID: <1439892601-19306-1-git-send-email-j-keerthy@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH 5/7] gpio: omap: fix clk_prepare/unprepare usage
+Date: Tue, 18 Aug 2015 14:10:56 +0300
+Message-ID: <1439896258-26449-6-git-send-email-grygorii.strashko@ti.com>
+References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=y
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, j-keerthy@ti.com
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Currently apart from dra7, omap5 and amx3 all the other SoCs
-are identified using cpu_is_* functions which is not right since
-they are all SoCs(System on Chips). Hence changing the SoC
-identific=C3=A4tion code to use soc_is instead of cpu_is and keeping
-defines for cpu_is where needed. This allows us to replace the
-rest of cpu_is usage along with other fixes as needed.
+As per CCF documentation (clk.txt) the clk_prepare/unprepare APIs
+are not allowed in atomic context. But now OMAP GPIO driver
+uses them while applying debounce settings and as part
+of PM runtime irqsafe operations:
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
+- omap_gpio_debounce() is holding the lock with IRQs off.
+  + omap2_set_gpio_debounce()
+   + clk_prepare_enable()
+    + clk_prepare() this one might sleep.
+
+- pm_runtime_get_sync() is holding the lock with IRQs off
+  + omap_gpio_runtime_suspend()
+    + raw_spin_lock_irqsave()
+    + omap_gpio_dbck_disable()
+      + clk_disable_unprepare()
+
+Hence, fix it by moeving dbclk prepare/unprepare in OMAP GPIO
+omap_gpio_probe/omap_gpio_remove. Also, while here, ensure that
+debounce functionality is disabled if clk_get() failed,
+because otherwise kernel will carsh in omap2_set_gpio_debounce().
+
+Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- arch/arm/mach-omap2/id.c  |  30 +++----
- arch/arm/mach-omap2/soc.h | 193 ++++++++++++++++++++++++++------------=
---------
- 2 files changed, 123 insertions(+), 100 deletions(-)
+ drivers/gpio/gpio-omap.c | 27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index e3f713f..24f24d4 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -57,15 +57,15 @@ int omap_type(void)
- 	if (val < OMAP2_DEVICETYPE_MASK)
- 		return val;
-=20
--	if (cpu_is_omap24xx()) {
-+	if (soc_is_omap24xx()) {
- 		val =3D omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
--	} else if (cpu_is_ti81xx()) {
-+	} else if (soc_is_ti81xx()) {
- 		val =3D omap_ctrl_readl(TI81XX_CONTROL_STATUS);
- 	} else if (soc_is_am33xx() || soc_is_am43xx()) {
- 		val =3D omap_ctrl_readl(AM33XX_CONTROL_STATUS);
--	} else if (cpu_is_omap34xx()) {
-+	} else if (soc_is_omap34xx()) {
- 		val =3D omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
--	} else if (cpu_is_omap44xx()) {
-+	} else if (soc_is_omap44xx()) {
- 		val =3D omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
- 	} else if (soc_is_omap54xx() || soc_is_dra7xx()) {
- 		val =3D omap_ctrl_readl(OMAP5XXX_CONTROL_STATUS);
-@@ -122,7 +122,7 @@ static u16 tap_prod_id;
-=20
- void omap_get_die_id(struct omap_die_id *odi)
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 1f02acd..2ae0d47 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -176,7 +176,7 @@ static inline void omap_gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set
+ static inline void omap_gpio_dbck_enable(struct gpio_bank *bank)
  {
--	if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
-+	if (soc_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
- 		odi->id_0 =3D read_tap_reg(OMAP_TAP_DIE_ID_44XX_0);
- 		odi->id_1 =3D read_tap_reg(OMAP_TAP_DIE_ID_44XX_1);
- 		odi->id_2 =3D read_tap_reg(OMAP_TAP_DIE_ID_44XX_2);
-@@ -218,17 +218,17 @@ static void __init omap3_cpuinfo(void)
- 	 * on available features. Upon detection, update the CPU id
- 	 * and CPU class bits.
- 	 */
--	if (cpu_is_omap3630()) {
-+	if (soc_is_omap3630()) {
- 		cpu_name =3D "OMAP3630";
- 	} else if (soc_is_am35xx()) {
- 		cpu_name =3D (omap3_has_sgx()) ? "AM3517" : "AM3505";
--	} else if (cpu_is_ti816x()) {
-+	} else if (soc_is_ti816x()) {
- 		cpu_name =3D "TI816X";
- 	} else if (soc_is_am335x()) {
- 		cpu_name =3D  "AM335X";
- 	} else if (soc_is_am437x()) {
- 		cpu_name =3D  "AM437x";
--	} else if (cpu_is_ti814x()) {
-+	} else if (soc_is_ti814x()) {
- 		cpu_name =3D "TI814X";
- 	} else if (omap3_has_iva() && omap3_has_sgx()) {
- 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
-@@ -275,11 +275,11 @@ void __init omap3xxx_check_features(void)
- 	OMAP3_CHECK_FEATURE(status, SGX);
- 	OMAP3_CHECK_FEATURE(status, NEON);
- 	OMAP3_CHECK_FEATURE(status, ISP);
--	if (cpu_is_omap3630())
-+	if (soc_is_omap3630())
- 		omap_features |=3D OMAP3_HAS_192MHZ_CLK;
--	if (cpu_is_omap3430() || cpu_is_omap3630())
-+	if (soc_is_omap3430() || soc_is_omap3630())
- 		omap_features |=3D OMAP3_HAS_IO_WAKEUP;
--	if (cpu_is_omap3630() || omap_rev() =3D=3D OMAP3430_REV_ES3_1 ||
-+	if (soc_is_omap3630() || omap_rev() =3D=3D OMAP3430_REV_ES3_1 ||
- 	    omap_rev() =3D=3D OMAP3430_REV_ES3_1_2)
- 		omap_features |=3D OMAP3_HAS_IO_CHAIN_CTRL;
-=20
-@@ -697,7 +697,7 @@ void __init omap2_set_globals_tap(u32 class, void _=
-_iomem *tap)
- 	tap_base =3D tap;
-=20
- 	/* XXX What is this intended to do? */
--	if (cpu_is_omap34xx())
-+	if (soc_is_omap34xx())
- 		tap_prod_id =3D 0x0210;
- 	else
- 		tap_prod_id =3D 0x0208;
-@@ -715,11 +715,11 @@ static const char * const omap_types[] =3D {
-=20
- static const char * __init omap_get_family(void)
- {
--	if (cpu_is_omap24xx())
-+	if (soc_is_omap24xx())
- 		return kasprintf(GFP_KERNEL, "OMAP2");
--	else if (cpu_is_omap34xx())
-+	else if (soc_is_omap34xx())
- 		return kasprintf(GFP_KERNEL, "OMAP3");
--	else if (cpu_is_omap44xx())
-+	else if (soc_is_omap44xx())
- 		return kasprintf(GFP_KERNEL, "OMAP4");
- 	else if (soc_is_omap54xx())
- 		return kasprintf(GFP_KERNEL, "OMAP5");
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index f97654d..bb824ae 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -148,13 +148,13 @@ static inline int soc_is_omap(void)
- /*
-  * Macros to group OMAP into cpu classes.
-  * These can be used in most places.
-- * cpu_is_omap24xx():	True for OMAP2420, OMAP2422, OMAP2423, OMAP2430
-- * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
-- * cpu_is_omap243x():	True for OMAP2430
-- * cpu_is_omap343x():	True for OMAP3430
-- * cpu_is_omap443x():	True for OMAP4430
-- * cpu_is_omap446x():	True for OMAP4460
-- * cpu_is_omap447x():	True for OMAP4470
-+ * soc_is_omap24xx():	True for OMAP2420, OMAP2422, OMAP2423, OMAP2430
-+ * soc_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
-+ * soc_is_omap243x():	True for OMAP2430
-+ * soc_is_omap343x():	True for OMAP3430
-+ * soc_is_omap443x():	True for OMAP4430
-+ * soc_is_omap446x():	True for OMAP4460
-+ * soc_is_omap447x():	True for OMAP4470
-  * soc_is_omap543x():	True for OMAP5430, OMAP5432
-  */
- #define GET_OMAP_CLASS	(omap_rev() & 0xff)
-@@ -225,23 +225,23 @@ IS_TI_SUBCLASS(814x, 0x814)
- IS_AM_SUBCLASS(335x, 0x335)
- IS_AM_SUBCLASS(437x, 0x437)
-=20
--#define cpu_is_omap24xx()		0
--#define cpu_is_omap242x()		0
--#define cpu_is_omap243x()		0
--#define cpu_is_omap34xx()		0
--#define cpu_is_omap343x()		0
--#define cpu_is_ti81xx()			0
--#define cpu_is_ti816x()			0
--#define cpu_is_ti814x()			0
-+#define soc_is_omap24xx()		0
-+#define soc_is_omap242x()		0
-+#define soc_is_omap243x()		0
-+#define soc_is_omap34xx()		0
-+#define soc_is_omap343x()		0
-+#define soc_is_ti81xx()			0
-+#define soc_is_ti816x()			0
-+#define soc_is_ti814x()			0
- #define soc_is_am35xx()			0
- #define soc_is_am33xx()			0
- #define soc_is_am335x()			0
- #define soc_is_am43xx()			0
- #define soc_is_am437x()			0
--#define cpu_is_omap44xx()		0
--#define cpu_is_omap443x()		0
--#define cpu_is_omap446x()		0
--#define cpu_is_omap447x()		0
-+#define soc_is_omap44xx()		0
-+#define soc_is_omap443x()		0
-+#define soc_is_omap446x()		0
-+#define soc_is_omap447x()		0
- #define soc_is_omap54xx()		0
- #define soc_is_omap543x()		0
- #define soc_is_dra7xx()			0
-@@ -250,54 +250,64 @@ IS_AM_SUBCLASS(437x, 0x437)
-=20
- #if defined(MULTI_OMAP2)
- # if defined(CONFIG_ARCH_OMAP2)
--#  undef  cpu_is_omap24xx
--#  define cpu_is_omap24xx()		is_omap24xx()
-+#  undef  soc_is_omap24xx
-+#  define soc_is_omap24xx()		is_omap24xx()
-+#  define cpu_is_omap24xx		soc_is_omap24xx
- # endif
- # if defined (CONFIG_SOC_OMAP2420)
--#  undef  cpu_is_omap242x
--#  define cpu_is_omap242x()		is_omap242x()
-+#  undef  soc_is_omap242x
-+#  define soc_is_omap242x()		is_omap242x()
-+#  define cpu_is_omap242x		soc_is_omap242x
- # endif
- # if defined (CONFIG_SOC_OMAP2430)
--#  undef  cpu_is_omap243x
--#  define cpu_is_omap243x()		is_omap243x()
-+#  undef  soc_is_omap243x
-+#  define soc_is_omap243x()		is_omap243x()
-+#  define cpu_is_omap243x		soc_is_omap243x
- # endif
- # if defined(CONFIG_ARCH_OMAP3)
--#  undef  cpu_is_omap34xx
--#  undef  cpu_is_omap343x
--#  define cpu_is_omap34xx()		is_omap34xx()
--#  define cpu_is_omap343x()		is_omap343x()
-+#  undef  soc_is_omap34xx
-+#  undef  soc_is_omap343x
-+#  define soc_is_omap34xx()		is_omap34xx()
-+#  define cpu_is_omap34xx		soc_is_omap34xx
-+#  define soc_is_omap343x()		is_omap343x()
-+#  define cpu_is_omap343x		soc_is_omap343x
- # endif
- #else
- # if defined(CONFIG_ARCH_OMAP2)
--#  undef  cpu_is_omap24xx
--#  define cpu_is_omap24xx()		1
-+#  undef  soc_is_omap24xx
-+#  define soc_is_omap24xx()		1
-+#  define cpu_is_omap24xx		soc_is_omap24xx
- # endif
- # if defined(CONFIG_SOC_OMAP2420)
--#  undef  cpu_is_omap242x
--#  define cpu_is_omap242x()		1
-+#  undef  soc_is_omap242x
-+#  define soc_is_omap242x()		1
-+#  define cpu_is_omap242x		soc_is_omap242x
- # endif
- # if defined(CONFIG_SOC_OMAP2430)
--#  undef  cpu_is_omap243x
--#  define cpu_is_omap243x()		1
-+#  undef  soc_is_omap243x
-+#  define soc_is_omap243x()		1
-+#  define cpu_is_omap243x		soc_is_omap243x
- # endif
- # if defined(CONFIG_ARCH_OMAP3)
--#  undef  cpu_is_omap34xx
--#  define cpu_is_omap34xx()		1
-+#  undef  soc_is_omap34xx
-+#  define soc_is_omap34xx()		1
-+#  define cpu_is_omap34xx		soc_is_omap34xx
- # endif
- # if defined(CONFIG_SOC_OMAP3430)
--#  undef  cpu_is_omap343x
--#  define cpu_is_omap343x()		1
-+#  undef  soc_is_omap343x
-+#  define soc_is_omap343x()		1
-+#  define cpu_is_omap343x		soc_is_omap343x
- # endif
- #endif
-=20
- /*
-- * Macros to detect individual cpu types.
-+ * Macros to detect individual soc types.
-  * These are only rarely needed.
-- * cpu_is_omap2420():	True for OMAP2420
-- * cpu_is_omap2422():	True for OMAP2422
-- * cpu_is_omap2423():	True for OMAP2423
-- * cpu_is_omap2430():	True for OMAP2430
-- * cpu_is_omap3430():	True for OMAP3430
-+ * soc_is_omap2420():	True for OMAP2420
-+ * soc_is_omap2422():	True for OMAP2422
-+ * soc_is_omap2423():	True for OMAP2423
-+ * soc_is_omap2430():	True for OMAP2430
-+ * soc_is_omap3430():	True for OMAP3430
-  */
- #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
-=20
-@@ -313,51 +323,60 @@ IS_OMAP_TYPE(2423, 0x2423)
- IS_OMAP_TYPE(2430, 0x2430)
- IS_OMAP_TYPE(3430, 0x3430)
-=20
--#define cpu_is_omap2420()		0
--#define cpu_is_omap2422()		0
--#define cpu_is_omap2423()		0
--#define cpu_is_omap2430()		0
--#define cpu_is_omap3430()		0
--#define cpu_is_omap3630()		0
-+#define soc_is_omap2420()		0
-+#define soc_is_omap2422()		0
-+#define soc_is_omap2423()		0
-+#define soc_is_omap2430()		0
-+#define soc_is_omap3430()		0
-+#define soc_is_omap3630()		0
- #define soc_is_omap5430()		0
-=20
- /* These are needed for the common code */
- #ifdef CONFIG_ARCH_OMAP2PLUS
--#define cpu_is_omap7xx()		0
--#define cpu_is_omap15xx()		0
--#define cpu_is_omap16xx()		0
--#define cpu_is_omap1510()		0
--#define cpu_is_omap1610()		0
--#define cpu_is_omap1611()		0
--#define cpu_is_omap1621()		0
--#define cpu_is_omap1710()		0
-+#define soc_is_omap7xx()		0
-+#define soc_is_omap15xx()		0
-+#define soc_is_omap16xx()		0
-+#define soc_is_omap1510()		0
-+#define soc_is_omap1610()		0
-+#define soc_is_omap1611()		0
-+#define soc_is_omap1621()		0
-+#define soc_is_omap1710()		0
- #define cpu_class_is_omap1()		0
- #define cpu_class_is_omap2()		1
- #endif
-=20
- #if defined(CONFIG_ARCH_OMAP2)
--# undef  cpu_is_omap2420
--# undef  cpu_is_omap2422
--# undef  cpu_is_omap2423
--# undef  cpu_is_omap2430
--# define cpu_is_omap2420()		is_omap2420()
--# define cpu_is_omap2422()		is_omap2422()
--# define cpu_is_omap2423()		is_omap2423()
--# define cpu_is_omap2430()		is_omap2430()
-+# undef  soc_is_omap2420
-+# undef  soc_is_omap2422
-+# undef  soc_is_omap2423
-+# undef  soc_is_omap2430
-+# define soc_is_omap2420()		is_omap2420()
-+# define cpu_is_omap2420		soc_is_omap2420
-+# define soc_is_omap2422()		is_omap2422()
-+# define cpu_is_omap2422		soc_is_omap2422
-+# define soc_is_omap2423()		is_omap2423()
-+# define cpu_is_omap2423		soc_is_omap2423
-+# define soc_is_omap2430()		is_omap2430()
-+# define cpu_is_omap2430		soc_is_omap2430
- #endif
-=20
- #if defined(CONFIG_ARCH_OMAP3)
--# undef cpu_is_omap3430
--# undef cpu_is_ti81xx
--# undef cpu_is_ti816x
--# undef cpu_is_ti814x
-+# undef soc_is_omap3430
-+# undef soc_is_ti81xx
-+# undef soc_is_ti816x
-+# undef soc_is_ti814x
- # undef soc_is_am35xx
--# define cpu_is_omap3430()		is_omap3430()
--# undef cpu_is_omap3630
--# define cpu_is_omap3630()		is_omap363x()
--# define cpu_is_ti81xx()		is_ti81xx()
--# define cpu_is_ti816x()		is_ti816x()
--# define cpu_is_ti814x()		is_ti814x()
-+# define soc_is_omap3430()		is_omap3430()
-+# define cpu_is_omap3430		soc_is_omap3430
-+# undef soc_is_omap3630
-+# define soc_is_omap3630()		is_omap363x()
-+# define cpu_is_omap3630		soc_is_omap3630
-+# define soc_is_ti81xx()		is_ti81xx()
-+# define cpu_is_ti81xx			soc_is_ti81xx
-+# define soc_is_ti816x()		is_ti816x()
-+# define cpu_is_ti816x			soc_is_ti816x
-+# define soc_is_ti814x()		is_ti814x()
-+# define cpu_is_ti814x			soc_is_ti814x
- # define soc_is_am35xx()		is_am35xx()
- #endif
-=20
-@@ -376,14 +395,18 @@ IS_OMAP_TYPE(3430, 0x3430)
- #endif
-=20
- # if defined(CONFIG_ARCH_OMAP4)
--# undef cpu_is_omap44xx
--# undef cpu_is_omap443x
--# undef cpu_is_omap446x
--# undef cpu_is_omap447x
--# define cpu_is_omap44xx()		is_omap44xx()
--# define cpu_is_omap443x()		is_omap443x()
--# define cpu_is_omap446x()		is_omap446x()
--# define cpu_is_omap447x()		is_omap447x()
-+# undef soc_is_omap44xx
-+# undef soc_is_omap443x
-+# undef soc_is_omap446x
-+# undef soc_is_omap447x
-+# define soc_is_omap44xx()		is_omap44xx()
-+# define cpu_is_omap44xx()		soc_is_omap44xx()
-+# define soc_is_omap443x()		is_omap443x()
-+# define cpu_is_omap443x()		soc_is_omap443x()
-+# define soc_is_omap446x()		is_omap446x()
-+# define cpu_is_omap446x()		soc_is_omap446x()
-+# define soc_is_omap447x()		is_omap447x()
-+# define cpu_is_omap447x()		soc_is_omap447x()
- # endif
-=20
- # if defined(CONFIG_SOC_OMAP5)
---=20
-1.9.1
+ 	if (bank->dbck_enable_mask && !bank->dbck_enabled) {
+-		clk_prepare_enable(bank->dbck);
++		clk_enable(bank->dbck);
+ 		bank->dbck_enabled = true;
+ 
+ 		writel_relaxed(bank->dbck_enable_mask,
+@@ -194,7 +194,7 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
+ 		 */
+ 		writel_relaxed(0, bank->base + bank->regs->debounce_en);
+ 
+-		clk_disable_unprepare(bank->dbck);
++		clk_disable(bank->dbck);
+ 		bank->dbck_enabled = false;
+ 	}
+ }
+@@ -227,7 +227,7 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+ 
+ 	l = BIT(offset);
+ 
+-	clk_prepare_enable(bank->dbck);
++	clk_enable(bank->dbck);
+ 	reg = bank->base + bank->regs->debounce;
+ 	writel_relaxed(debounce, reg);
+ 
+@@ -241,7 +241,7 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+ 	bank->dbck_enable_mask = val;
+ 
+ 	writel_relaxed(val, reg);
+-	clk_disable_unprepare(bank->dbck);
++	clk_disable(bank->dbck);
+ 	/*
+ 	 * Enable debounce clock per module.
+ 	 * This call is mandatory because in omap_gpio_request() when
+@@ -286,7 +286,7 @@ static void omap_clear_gpio_debounce(struct gpio_bank *bank, unsigned offset)
+ 		bank->context.debounce = 0;
+ 		writel_relaxed(bank->context.debounce, bank->base +
+ 			     bank->regs->debounce);
+-		clk_disable_unprepare(bank->dbck);
++		clk_disable(bank->dbck);
+ 		bank->dbck_enabled = false;
+ 	}
+ }
+@@ -1070,10 +1070,6 @@ static void omap_gpio_mod_init(struct gpio_bank *bank)
+ 	 /* Initialize interface clk ungated, module enabled */
+ 	if (bank->regs->ctrl)
+ 		writel_relaxed(0, base + bank->regs->ctrl);
+-
+-	bank->dbck = clk_get(bank->dev, "dbclk");
+-	if (IS_ERR(bank->dbck))
+-		dev_err(bank->dev, "Could not get gpio dbck\n");
+ }
+ 
+ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+@@ -1234,6 +1230,17 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 		return PTR_ERR(bank->base);
+ 	}
+ 
++	if (bank->dbck_flag) {
++		bank->dbck = devm_clk_get(bank->dev, "dbclk");
++		if (IS_ERR(bank->dbck)) {
++			dev_err(bank->dev,
++				"Could not get gpio dbck. Disable debounce\n");
++			bank->dbck_flag = false;
++		} else {
++			clk_prepare(bank->dbck);
++		}
++	}
++
+ 	platform_set_drvdata(pdev, bank);
+ 
+ 	pm_runtime_enable(bank->dev);
+@@ -1265,6 +1272,8 @@ static int omap_gpio_remove(struct platform_device *pdev)
+ 	list_del(&bank->node);
+ 	gpiochip_remove(&bank->chip);
+ 	pm_runtime_disable(bank->dev);
++	if (bank->dbck_flag)
++		clk_unprepare(bank->dbck);
+ 
+ 	return 0;
+ }
+-- 
+2.5.0
