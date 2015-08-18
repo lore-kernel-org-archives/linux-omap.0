@@ -1,115 +1,143 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH 3/7] gpio: omap: fix omap2_set_gpio_debounce
-Date: Tue, 18 Aug 2015 14:10:54 +0300
-Message-ID: <1439896258-26449-4-git-send-email-grygorii.strashko@ti.com>
+Subject: [RFC PATCH 6/7] gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
+Date: Tue, 18 Aug 2015 14:10:57 +0300
+Message-ID: <1439896258-26449-7-git-send-email-grygorii.strashko@ti.com>
 References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, tony@atomide.com
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, linux-rt-users@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-According to TRMs:
+The PM runtime API can't be used in atomic contex on -RT even if
+it's configured as irqsafe. As result, below error report can
+be seen when PM runtime API called from IRQ chip's callbacks
+irq_startup/irq_shutdown/irq_set_type, because they are
+protected by RAW spinlock:
 
-Required input line stable =3D
-  (the value of the GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) =C3=97 3=
-1,
-where the value of the GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME bit field
-is from 0 to 255.
+BUG: sleeping function called from invalid context at kernel/locking/rtmutex.c:917
+in_atomic(): 1, irqs_disabled(): 128, pid: 96, name: insmod
+3 locks held by insmod/96:
+ #0:  (&dev->mutex){......}, at: [<c04752c8>] __driver_attach+0x54/0xa0
+ #1:  (&dev->mutex){......}, at: [<c04752d4>] __driver_attach+0x60/0xa0
+ #2:  (class){......}, at: [<c00a408c>] __irq_get_desc_lock+0x60/0xa4
+irq event stamp: 1834
+hardirqs last  enabled at (1833): [<c06ab2a4>] _raw_spin_unlock_irqrestore+0x88/0x90
+hardirqs last disabled at (1834): [<c06ab068>] _raw_spin_lock_irqsave+0x2c/0x64
+softirqs last  enabled at (0): [<c003d220>] copy_process.part.52+0x410/0x19d8
+softirqs last disabled at (0): [<  (null)>]   (null)
+Preemption disabled at:[<  (null)>]   (null)
 
-But now omap2_set_gpio_debounce() will calculate debounce time and
-behave incorrectly in the following cases:
-1) requested debounce time is !0 and <32
-   calculated DEBOUNCETIME =3D 0x1 =3D=3D 62 us;
-   expected value of DEBOUNCETIME =3D 0x0 =3D=3D 31us
-2) requested debounce time is 0
-   calculated DEBOUNCETIME =3D 0x1 =3D=3D 62 us;
-   expected: disable debounce and DEBOUNCETIME =3D 0x0
-3) requested debounce time is >32 and <63
-   calculated DEBOUNCETIME =3D 0x0 and debounce will be disabled;
-   expected: enable debounce and DEBOUNCETIME =3D 0x1 =3D=3D 62 us
+CPU: 1 PID: 96 Comm: insmod Tainted: G        W  O    4.1.3-rt3-00618-g57e2387-dirty #184
+Hardware name: Generic DRA74X (Flattened Device Tree)
+[<c00190f4>] (unwind_backtrace) from [<c0014734>] (show_stack+0x20/0x24)
+[<c0014734>] (show_stack) from [<c06a62ec>] (dump_stack+0x88/0xdc)
+[<c06a62ec>] (dump_stack) from [<c006ca44>] (___might_sleep+0x198/0x2a8)
+[<c006ca44>] (___might_sleep) from [<c06ab6d4>] (rt_spin_lock+0x30/0x70)
+[<c06ab6d4>] (rt_spin_lock) from [<c04815ac>] (__pm_runtime_resume+0x68/0xa4)
+[<c04815ac>] (__pm_runtime_resume) from [<c04123f4>] (omap_gpio_irq_type+0x188/0x1d8)
+[<c04123f4>] (omap_gpio_irq_type) from [<c00a64e4>] (__irq_set_trigger+0x68/0x130)
+[<c00a64e4>] (__irq_set_trigger) from [<c00a7bc4>] (irq_set_irq_type+0x44/0x6c)
+[<c00a7bc4>] (irq_set_irq_type) from [<c00abbf8>] (irq_create_of_mapping+0x120/0x174)
+[<c00abbf8>] (irq_create_of_mapping) from [<c0577b74>] (of_irq_get+0x48/0x58)
+[<c0577b74>] (of_irq_get) from [<c0540a14>] (i2c_device_probe+0x54/0x15c)
+[<c0540a14>] (i2c_device_probe) from [<c04750dc>] (driver_probe_device+0x184/0x2c8)
+[<c04750dc>] (driver_probe_device) from [<c0475310>] (__driver_attach+0x9c/0xa0)
+[<c0475310>] (__driver_attach) from [<c0473238>] (bus_for_each_dev+0x7c/0xb0)
+[<c0473238>] (bus_for_each_dev) from [<c0474af4>] (driver_attach+0x28/0x30)
+[<c0474af4>] (driver_attach) from [<c0474760>] (bus_add_driver+0x154/0x200)
+[<c0474760>] (bus_add_driver) from [<c0476348>] (driver_register+0x88/0x108)
+[<c0476348>] (driver_register) from [<c0541600>] (i2c_register_driver+0x3c/0x90)
+[<c0541600>] (i2c_register_driver) from [<bf003018>] (pcf857x_init+0x18/0x24 [gpio_pcf857x])
+[<bf003018>] (pcf857x_init [gpio_pcf857x]) from [<c000998c>] (do_one_initcall+0x128/0x1e8)
+[<c000998c>] (do_one_initcall) from [<c06a4220>] (do_init_module+0x6c/0x1bc)
+[<c06a4220>] (do_init_module) from [<c00dd0c8>] (load_module+0x18e8/0x21c4)
+[<c00dd0c8>] (load_module) from [<c00ddaa0>] (SyS_init_module+0xfc/0x158)
+[<c00ddaa0>] (SyS_init_module) from [<c000ff40>] (ret_fast_syscall+0x0/0x54)
 
-Hence, rework omap2_set_gpio_debounce() to fix above cases:
-1) introduce local variable "enable" and use it to identify
-when debounce need to be enabled or disabled. Disable debounce
-if requested debounce time is 0.
-2) use below formula for debounce time calculation:
-   debounce =3D (DIV_ROUND_UP(debounce, 31) - 1) & 0xFF;
+The IRQ chip interface defines only two callbacks which are executed in
+non-atomic contex - irq_bus_lock/irq_bus_sync_unlock, so lets move
+PM runtime calls there.
 
+Cc: <linux-rt-users@vger.kernel.org>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/gpio/gpio-omap.c | 25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 03fd111..9ed5a67 100644
+index 2ae0d47..c33595e 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -29,6 +29,7 @@
- #include <linux/platform_data/gpio-omap.h>
-=20
- #define OFF_MODE	1
-+#define OMAP4_GPIO_DEBOUNCINGTIME_MASK 0xFF
-=20
- static LIST_HEAD(omap_gpio_list);
-=20
-@@ -204,8 +205,9 @@ static inline void omap_gpio_dbck_disable(struct gp=
-io_bank *bank)
-  * @offset: the gpio number on this @bank
-  * @debounce: debounce time to use
-  *
-- * OMAP's debounce time is in 31us steps so we need
-- * to convert and round up to the closest unit.
-+ * OMAP's debounce time is in 31us steps
-+ *   <debounce time> =3D (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) x=
- 31
-+ * so we need to convert and round up to the closest unit.
-  */
- static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned o=
-ffset,
- 				    unsigned debounce)
-@@ -213,16 +215,15 @@ static void omap2_set_gpio_debounce(struct gpio_b=
-ank *bank, unsigned offset,
- 	void __iomem		*reg;
- 	u32			val;
- 	u32			l;
-+	bool			enable =3D !!debounce;
-=20
- 	if (!bank->dbck_flag)
- 		return;
-=20
--	if (debounce < 32)
--		debounce =3D 0x01;
--	else if (debounce > 7936)
--		debounce =3D 0xff;
--	else
--		debounce =3D (debounce / 0x1f) - 1;
-+	if (enable) {
-+		debounce =3D DIV_ROUND_UP(debounce, 31) - 1;
-+		debounce &=3D OMAP4_GPIO_DEBOUNCINGTIME_MASK;
-+	}
-=20
- 	l =3D BIT(offset);
-=20
-@@ -233,7 +234,7 @@ static void omap2_set_gpio_debounce(struct gpio_ban=
-k *bank, unsigned offset,
- 	reg =3D bank->base + bank->regs->debounce_en;
- 	val =3D readl_relaxed(reg);
-=20
--	if (debounce)
-+	if (enable)
- 		val |=3D l;
- 	else
- 		val &=3D ~l;
---=20
+@@ -496,9 +496,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+ 		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+ 		return -EINVAL;
+ 
+-	if (!BANK_USED(bank))
+-		pm_runtime_get_sync(bank->dev);
+-
+ 	raw_spin_lock_irqsave(&bank->lock, flags);
+ 	retval = omap_set_gpio_triggering(bank, offset, type);
+ 	if (retval) {
+@@ -521,8 +518,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
+ 	return 0;
+ 
+ error:
+-	if (!BANK_USED(bank))
+-		pm_runtime_put(bank->dev);
+ 	return retval;
+ }
+ 
+@@ -797,9 +792,6 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
+ 	unsigned long flags;
+ 	unsigned offset = d->hwirq;
+ 
+-	if (!BANK_USED(bank))
+-		pm_runtime_get_sync(bank->dev);
+-
+ 	raw_spin_lock_irqsave(&bank->lock, flags);
+ 
+ 	if (!LINE_USED(bank->mod_usage, offset))
+@@ -815,8 +807,6 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
+ 	return 0;
+ err:
+ 	raw_spin_unlock_irqrestore(&bank->lock, flags);
+-	if (!BANK_USED(bank))
+-		pm_runtime_put(bank->dev);
+ 	return -EINVAL;
+ }
+ 
+@@ -835,6 +825,19 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
+ 		omap_clear_gpio_debounce(bank, offset);
+ 	omap_disable_gpio_module(bank, offset);
+ 	raw_spin_unlock_irqrestore(&bank->lock, flags);
++}
++
++static void omap_gpio_irq_bus_lock(struct irq_data *data)
++{
++	struct gpio_bank *bank = omap_irq_data_get_bank(data);
++
++	if (!BANK_USED(bank))
++		pm_runtime_get_sync(bank->dev);
++}
++
++static void gpio_irq_bus_sync_unlock(struct irq_data *data)
++{
++	struct gpio_bank *bank = omap_irq_data_get_bank(data);
+ 
+ 	/*
+ 	 * If this is the last IRQ to be freed in the bank,
+@@ -1181,6 +1184,8 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	irqc->irq_unmask = omap_gpio_unmask_irq,
+ 	irqc->irq_set_type = omap_gpio_irq_type,
+ 	irqc->irq_set_wake = omap_gpio_wake_enable,
++	irqc->irq_bus_lock = omap_gpio_irq_bus_lock,
++	irqc->irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
+ 	irqc->name = dev_name(&pdev->dev);
+ 
+ 	bank->irq = platform_get_irq(pdev, 0);
+-- 
 2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
