@@ -1,114 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 03/13] twl4030_charger: correctly handle -EPROBE_DEFER
- from devm_usb_get_phy_by_node
-Date: Tue, 18 Aug 2015 23:25:39 -0700
-Message-ID: <20150819062539.GH4215@atomide.com>
-References: <20150730001113.4012.18086.stgit@noble>
- <20150730001124.4012.31980.stgit@noble>
- <20150818080758.GG4215@atomide.com>
- <20150819102832.29a5059f@home.neil.brown.name>
+Subject: Re: [PATCH 0/7] gpio: omap: fixes and improvements
+Date: Tue, 18 Aug 2015 23:38:52 -0700
+Message-ID: <20150819063851.GI4215@atomide.com>
+References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150819102832.29a5059f@home.neil.brown.name>
-Sender: linux-pm-owner@vger.kernel.org
-To: NeilBrown <neil@brown.name>
-Cc: Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+In-Reply-To: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* NeilBrown <neil@brown.name> [150818 17:32]:
-> On Tue, 18 Aug 2015 01:07:58 -0700 Tony Lindgren <tony@atomide.com>
-> wrote:
+Hi,
+
+* Grygorii Strashko <grygorii.strashko@ti.com> [150818 04:14]:
+> Hi,
 > 
-> > * NeilBrown <neil@brown.name> [150729 17:29]:
-> > > Now that twl4030_bci_probe can safely return -EPROBE_DEFER,
-> > > do so when devm_usb_get_phy_by_node returns that error.
-> > > 
-> > > Signed-off-by: NeilBrown <neil@brown.name>
-> > > ---
-> > >  drivers/power/twl4030_charger.c |    6 +++++-
-> > >  1 file changed, 5 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-> > > index 045238370d3f..ffc123fb7158 100644
-> > > --- a/drivers/power/twl4030_charger.c
-> > > +++ b/drivers/power/twl4030_charger.c
-> > > @@ -636,9 +636,13 @@ static int twl4030_bci_probe(struct platform_device *pdev)
-> > >  
-> > >  		phynode = of_find_compatible_node(bci->dev->of_node->parent,
-> > >  						  NULL, "ti,twl4030-usb");
-> > > -		if (phynode)
-> > > +		if (phynode) {
-> > >  			bci->transceiver = devm_usb_get_phy_by_node(
-> > >  				bci->dev, phynode, &bci->usb_nb);
-> > > +			if (IS_ERR(bci->transceiver) &&
-> > > +			    PTR_ERR(bci->transceiver) == -EPROBE_DEFER)
-> > > +				return -EPROBE_DEFER;
-> > > +		}
-> > >  	}
-> > 
-> > Neil, the return with -EPROBE_DEFER here causes flakeyness booting
-> > for me somehow at least on my logicpd-torpedo-37xx-devkit using
-> > omap2plus_defconfig.
-> > 
-> > It seems that the twl4030_bci_probe keeps looping or something about
-> > 1/3 of the boots and that probably prevents the other twl modules
-> > from loading? Reverting this patch alone seems to fix the issue.
-> > 
-> > I don't think I have a battery wired on this board the USB is wired
-> > the same way as on beagle-xm. So I'd assume also flakeyness on beagle
-> > xm with this patch.
+> This patch series contains set of trivial fixes and improvements, and also
+> patches which fixes wrong APIs usage in atomic context as for -RT as for
+> non-RT kernel. The final goal of this series is to make TI OMAP GPIO
+> driver compatible with -RT kernel as much as possible.
 > 
-> What dts file are you using?
-> I'm guessing that it doesn't have something like:
-> 
-> &usb_otg_hs {
->         interface-type = <0>;
->         usb-phy = <&usb2_phy>;
->         phys = <&usb2_phy>;
->         phy-names = "usb2-phy";
->         mode = <3>;
->         power = <50>;
-> };
+> Patch 1-4: trivial fixes and improvements
+> Patch 5: fixes wrong CLK clk_prepare/unprepare APIs usage in atomic contexet
+> Patch 6(rfc): required to be compatible with -RT kernel, because PM runtime
+>  can't be used in atimic context on -RT.
+> Patch 7(rfc): This patch converts TI OMAP GPIO driver to use generic irq
+>  handler instead of chained IRQ handler. This way OMAP GPIO driver will be
+>  compatible with RT kernel where it will be forced thread IRQ handler
+>  while in non-RT kernel it still will be executed in HW IRQ context.
 
-It's the logicpd-torpedo-37xx-devkit.dts like I mentioned above,
-and yes it has the same entry above like beagle xm.
- 
-> ? i.e. with a usb-phy=<&usb2_phy> ?
-> 
-> What if you add
-> 
-> &usb2_phy {
->  status = "disabled";
-> }
-> 
-> to your dts file?
-
-Yes then the PHY driver won't get probed and modprobe of the
-charger won't hang with -EPROBE_DEFER.. The USB is working on this
-one like on beagle xm so that's not a solution.
- 
-> Should the 'status' be disabled in twl4030.dtsi, and then marked OK in
-> any dts that uses it?  I'm not at all clear on how 'status' is meant to
-> be used.
-
-Well status = "disabled" makes kernel completely ignore the
-hardware, so the struct device is never created. I'd stay away from
-using that in general for proper runtime idling of devices.. The
-hardware is there for sure :)
-
-Can you check if something like the the following allows you to
-reproduce the hang of modprobe twl4030_charger:
-
-# rmmod phy-twl4030-usb
-# modprobe twl4030_charger
-
-So just don't probe phy-twl4030-usb before twl4030_charger and
-then modprobe of twl4030_charger hangs?
-
-That is with proper usb2_phy configured in .dts file and not
-set to status = "disabled".
+Based on quick testing this series breaks at least core off idle for omap3.
+You probably should add a beagle xm to your test devices so you can
+properly test PM features.
 
 Regards,
 
