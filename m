@@ -1,56 +1,81 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to program
- pbias regulator
-Date: Thu, 20 Aug 2015 11:21:06 +0530
-Message-ID: <55D56ACA.1030309@ti.com>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com> <1437996250-2913-2-git-send-email-kishon@ti.com> <20150814180006.GB10748@sirena.org.uk> <55D2C872.9000400@ti.com> <20150819181149.GZ10748@sirena.org.uk>
+Subject: Re: [PATCH] usb: musb: omap2430: use *syscon* framework API to write
+ to mailbox register
+Date: Thu, 20 Aug 2015 12:05:20 +0530
+Message-ID: <55D57528.1080207@ti.com>
+References: <1438697169-32359-1-git-send-email-kishon@ti.com> <20150805080113.GV16878@atomide.com> <55C21885.6000902@ti.com> <20150806084716.GB4215@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150819181149.GZ10748@sirena.org.uk>
+In-Reply-To: <20150806084716.GB4215@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, nsekhar@ti.com, stable@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>, balbi@ti.com
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark Brown,
+Hi,
 
-On Wednesday 19 August 2015 11:41 PM, Mark Brown wrote:
-> On Tue, Aug 18, 2015 at 11:23:54AM +0530, Kishon Vijay Abraham I wrote:
->> On Friday 14 August 2015 11:30 PM, Mark Brown wrote:
->>> On Mon, Jul 27, 2015 at 04:54:09PM +0530, Kishon Vijay Abraham I wrote:
+On Thursday 06 August 2015 02:17 PM, Tony Lindgren wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [150805 07:10]:
+>> On Wednesday 05 August 2015 01:31 PM, Tony Lindgren wrote:
+>>>
+>>> We don't have syscon-otghs and to me it seems we need a PHY driver
+>>> as I pointed out at:
+>>
+>> If *syscon-otghs* is not present, then it'll fall-back to using the *ctrl-module*.
 > 
->>>> is moved as a child node of syscon, vsel_reg and enable_reg has the
->>>> absolute address because of the address translation that happens while
->>>> creating device from device tree node.
->>>> So avoid using platform_get_resource and use of_get_address in order to
->>>> get only the offset (untranslated address) and populate these in
->>>> vsel_reg and enable_reg.
+> OK great.
 > 
->>> This sounds like we're going in the wrong direction, we're moving from a
->>> more generic API to a firmware specific one.  Why is this a good fix?
+>>>
+>>> https://lkml.org/lkml/2015/6/24/231
+>>
+>> Maybe I should have explained this in the previous thread. The *otghs* register
+>> that we are trying to access here does _not_ belong to the PHY. It acts as
+>> mailbox register from MUSB glue (TI integration layer) to MUSB core. That's why
+>> it's programmed in the TI glue layer (omap2430.c).
+>>
+>> Even when we were using the older API [omap_control_usb_set_mode()], we first
+>> call omap_musb_mailbox from the PHY drivers (phy-twl4030-usb.c,
+>> phy-twl6030-usb.c) and then omap_musb_mailbox in the TI glue writes to the
+>> control module instead of PHY drivers directly calling omap_control_usb_set_mode().
 > 
->> platform_get_resource can be used if we need the absolute address but here we
->> need only the offset.
+> Hmm looking at "Table 18-204. CONTROL_USBOTGHS_CONTROL" it seems to mention
+> "transceiver" for quite a few bitfields :) Probably what that register does
+> is control a PHY over ULPI.
+
+OMAP4 uses UTMI PHY and it uses CONTROL_USBOTGHS_CONTROL too.
 > 
-> So substract this address from the start of the resource to get the
+> So from Linux kernel point of view we're best off treating it as a PHY.
+> It seems it should have a minimal PHY driver similar to what we have for
+> dm816x control module in drivers/phy/phy-dm816x-usb.c.
 
-That would mean from the offset (provided in dt) get the absolute address and
-then again from the absolute address get the offset.
-> offset?  Or provide a wrapper function in the resource code which does
+hmm.. IMHO CONTROL_USBOTGHS_CONTROL register belongs to the TI MUSB glue and
+should be programmed in omap2430.c. It's better to get the opinion of Felipe
+here. Felipe?
+> 
+> For reference, here is the register bitfields pasted from 4460 TRM:
+> 
+> Table 18-204. CONTROL_USBOTGHS_CONTROL, p3972
+> Physical Address 0x4A00 233C
+> 
+> BIT	NAME		DESCIPTION
+> 8	DISCHRGVBUS	... OTG transceiver does (not) discharge VBUS ...
+> 7	CHRGVBUS	... OTG transceiver does (not) charge VBUS ...
+> 6	IDPULLUP	... OTG transceiver does (not) drive VBUS ...
+> 4	IDDIG		... OTG transceiver does (not) apply a pullup to ID ...
+> 3	SESSEND		... VBUS voltage is above/below VB_SESS_END ...	
+> 2	VBUSVALID	... VBUS is above the threshold ...
+> 1	BVALID		... VBUS voltage is above/below VB_SESS_VLD ...
+> 0	AVALID		... BUS voltage is above/below VA_SESS_VLD ...
+> 
+> So how about just adding ONTROL_USBOTGHS_CONTROL support to the existing
+> drivers/phy/phy-omap-usb2.c instead? It seems that it should allow us
+> to completely get rid of the custom mailbox stuff for MUSB 2430 support?
 
-Why not use 'of_get_address' which does the same thing? Moreover it's not a
-resource we are dealing with here. It's a resource only for the syscon driver.
-> that.  What you're saying above is pretty much "this happens to work"
-> but my concern is that the solution that happens to work isn't really
-> what we want to do.
-
-Not just makes this work, this is also the most reasonable solution available IMHO.
-
-The most ideal way would have been to use something like what Grygorii
-mentioned to use syscon = <&scm_conf 0xe00> and then use the phandle to get the
-offset. But then with this we'll be breaking older dtbs.
+Not in phy-omap-usb2.c. It's the UTMI PHY driver and is not used by OMAP3 based
+boards (uses twl4030 ULPI PHY). CONTROL_USBOTGHS_CONTROL has to be programmed
+for OMAP3 also.
 
 Thanks
 Kishon
