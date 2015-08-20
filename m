@@ -1,97 +1,88 @@
-From: Robert Baldyga <r.baldyga@hackerion.com>
-Subject: Re: [PATCH v5 01/46] usb: gadget: encapsulate endpoint claiming
- mechanism
-Date: Thu, 20 Aug 2015 19:16:48 +0200
-Message-ID: <55D60B80.7040800@hackerion.com>
-References: <1438351258-31578-1-git-send-email-r.baldyga@samsung.com>
- <1438351258-31578-2-git-send-email-r.baldyga@samsung.com>
- <20150820153553.GD1639@saruman.tx.rr.com> <55D6001E.3000504@hackerion.com>
- <20150820164808.GB4938@saruman.tx.rr.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to
+ program pbias regulator
+Date: Thu, 20 Aug 2015 10:42:52 -0700
+Message-ID: <20150820174252.GF12027@sirena.org.uk>
+References: <1437996250-2913-1-git-send-email-kishon@ti.com>
+ <1437996250-2913-2-git-send-email-kishon@ti.com>
+ <20150814180006.GB10748@sirena.org.uk>
+ <55D2C872.9000400@ti.com>
+ <20150819181149.GZ10748@sirena.org.uk>
+ <55D56ACA.1030309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20150820164808.GB4938@saruman.tx.rr.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: balbi@ti.com
-Cc: nicolas.ferre@atmel.com, robert.jarzmik@free.fr, m.szyprowski@samsung.com, devel@driverdev.osuosl.org, cernekee@gmail.com, michal.simek@xilinx.com, stern@rowland.harvard.edu, Peter.Chen@freescale.com, dahlmann.thomas@arcor.de, leoli@freescale.com, johnyoun@synopsys.com, Robert Baldyga <r.baldyga@samsung.com>, linux-geode@lists.infradead.org, haojian.zhuang@gmail.com, andrzej.p@samsung.com, linux-omap@vger.kernel.org, petr.cvek@tul.cz, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="b8GWCKCLzrXbuNet"
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55D56ACA.1030309@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, grygorii.strashko@ti.com, nsekhar@ti.com, stable@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/20/2015 06:48 PM, Felipe Balbi wrote:
-> On Thu, Aug 20, 2015 at 06:28:14PM +0200, Robert Baldyga wrote:
->> Hi Felipe,
->>
->> On 08/20/2015 05:35 PM, Felipe Balbi wrote:
->> [...]
->>> just letting you know that this regresses all gadget drivers making them
->>> try to disable previously disabled endpoints and enable previously
->>> enabled endpoints.
->>>
->>> I have a possible fix (see below) but then it shows a problem on the
->>> host side when using with g_zero (see further below):
->>>
->>> commit 3b8932100aacb6cfbffe288ca93025d8b8430c00
->>> Author: Felipe Balbi <balbi@ti.com>
->>> Date:   Wed Aug 19 18:05:27 2015 -0500
->>>
->>>      usb: gadget: fix ep->claimed lifetime
->>>
->>>      In order to fix a regression introduced by commit
->>>      cc476b42a39d ("usb: gadget: encapsulate endpoint
->>>      claiming mechanism") we have to introduce a simple
->>>      helper to check if a particular is enabled or not.
->>>
->>>      After that, we need to move ep->claimed lifetime to
->>>      usb_ep_enable() and usb_ep_disable() since those
->>>      are the only functions which actually enable and
->>>      disable endpoints.
->>>
->>>      A follow-up patch will come to drop all driver_data
->>>      checks from function drivers, since those are, now,
->>>      pointless.
->>>
->>>      Fixes: cc476b42a39d ("usb: gadget: encapsulate endpoint
->>>      	claiming mechanism")
->>>      Cc: Robert Baldyga <r.baldyga@samsung.com>
->>>      Signed-off-by: Felipe Balbi <balbi@ti.com>
->>>
->>> diff --git a/drivers/usb/gadget/epautoconf.c b/drivers/usb/gadget/epautoconf.c
->>> index 978435a51038..ad45070cd76f 100644
->>> --- a/drivers/usb/gadget/epautoconf.c
->>> +++ b/drivers/usb/gadget/epautoconf.c
->>> @@ -126,7 +126,6 @@ found_ep:
->>>   	ep->address = desc->bEndpointAddress;
->>>   	ep->desc = NULL;
->>>   	ep->comp_desc = NULL;
->>> -	ep->claimed = true;
->>
->> Removing this line causes autoconfig can return the same endpoint many
->> times. This probably causes problems with g_zero.
->>
->> I will try to fix it ASAP.
->
-> I was considering the same thing, but the lifetime of ->claimed doesn't
-> look correct to me either way. Note that once the flag is enabled, it
-> won't get disabled by most gadget drivers.
 
-And it should not be. This flag is indicator, that endpoint is used by 
-some function. It should be set once by usb_ep_autoconfig() and cleared 
-by usb_ep_autoconfig_reset().
+--b8GWCKCLzrXbuNet
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I wonder what is reason of this enable/disable regression. Maybe the 
-problem is that we don't set ep->driver_data to NULL in 
-usb_ep_autoconfig_reset() (so far it was done). Does this problem occur 
-while gadget is binded to UDC for the first time, or at any next time? 
-Unfortunately at this moment I don't have access to my hardware, so it 
-will take a moment before I will setup some testing environment.
+On Thu, Aug 20, 2015 at 11:21:06AM +0530, Kishon Vijay Abraham I wrote:
+> On Wednesday 19 August 2015 11:41 PM, Mark Brown wrote:
+> > On Tue, Aug 18, 2015 at 11:23:54AM +0530, Kishon Vijay Abraham I wrote:
 
-Thanks,
-Robert
+Please fix your mail client to word wrap within paragraphs.
+
+> >> platform_get_resource can be used if we need the absolute address but here we
+> >> need only the offset.
+
+> > So substract this address from the start of the resource to get the
+
+> That would mean from the offset (provided in dt) get the absolute address and
+> then again from the absolute address get the offset.
+
+Sure, that's how the Linux APIs work right now and why I'm suggesting
+you might want a wrapper.
+
+> > offset?  Or provide a wrapper function in the resource code which does
+
+> Why not use 'of_get_address' which does the same thing? Moreover it's not a
+> resource we are dealing with here. It's a resource only for the syscon driver.
+
+This is how the OF description you've done is intended to be parsed and
+hence is interpreted by the generic code, it's just a detail of the
+syscon implementation that you need to translate it into an offset.
+
+> > that.  What you're saying above is pretty much "this happens to work"
+> > but my concern is that the solution that happens to work isn't really
+> > what we want to do.
+
+> Not just makes this work, this is also the most reasonable solution available IMHO.
+
+In general moving to a lower level inteface is not usually a step
+forward.  As far as I can tell the driver already has all the
+information it needs from the more generic APIs, it's just not
+interpreting it in the way that the APIs it's trying to use wants.  It
+just needs to fix the way it interprets the data it's passing through.
+
+> The most ideal way would have been to use something like what Grygorii
+> mentioned to use syscon = <&scm_conf 0xe00> and then use the phandle to get the
+> offset. But then with this we'll be breaking older dtbs.
+
+There is no need to break older DTs, that would clearly be a bad idea.
+
+--b8GWCKCLzrXbuNet
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJV1hGXAAoJECTWi3JdVIfQQuQH/1APBJQhUtBzUE2WhFucY2ny
+lwrBJfdjZ+KCx/eg3Tx/V+o230XixGK6jBJKmI783Bb7Hi26fkJh4/rgPpO+PJk0
+hpES9u1ry4TY67jvn13Ng6QegJqyEaqt2lrZZ8r6+5WBS7k4zyu7iVZ1GbbeB46X
+KMLevQ0tUdwOnElSzwUGedWG9+jbfayhKueN+1B8kuK1m/K95DQPviFesyBKppBb
+Dcoxp2avjraEGR0JF8QQyAYo/JcS5muKB3ynjV1WGvSKs2a88bL922fiRPZYEjsI
+htauZjXwjc0LMz9IZM/0aSUeDDL0ztshIw2mAfjZAmumtrUrKCEKmbyoLQ4wpKg=
+=PiBq
+-----END PGP SIGNATURE-----
+
+--b8GWCKCLzrXbuNet--
