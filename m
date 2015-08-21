@@ -1,61 +1,95 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH 00/18] Export SPI and OF module aliases in missing drivers
-Date: Thu, 20 Aug 2015 23:50:50 +0200
-Message-ID: <55D64BBA.7070802@osg.samsung.com>
-References: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
- <20150820211152.GI74600@google.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] usb: musb: omap2430: use *syscon* framework API to write
+ to mailbox register
+Date: Fri, 21 Aug 2015 00:00:01 -0700
+Message-ID: <20150821070000.GJ4215@atomide.com>
+References: <1438697169-32359-1-git-send-email-kishon@ti.com>
+ <20150805080113.GV16878@atomide.com>
+ <55C21885.6000902@ti.com>
+ <20150806084716.GB4215@atomide.com>
+ <55D57528.1080207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20150820211152.GI74600@google.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, linux-iio@vger.kernel.org, linux-mmc@vger.kernel.org, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Adrian Hunter <adrian.hunter@intel.com>, Andrzej Hajda <a.hajda@samsung.com>, netdev@vger.kernel.org, linux-mtd@lists.infradead.org, Peter Meerwald <pmeerw@pmeerw.net>, Lee Jones <lee.jones@linaro.org>, Aloisio Almeida Jr <aloisio.almeida@openbossa.org>, devel@driverdev.osuosl.org, Lars-Peter Clausen <lars@metafoo.de>, Stephen Warren <swarren@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>, =?UTF-8?Q?S=c3=b8ren_Andersen?= <san@rosetechnology.dk>, Andrea Galbusera <gizero@gmail.com>, Antonio Borneo <borneo.antonio@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-media@vger.kernel.org, Michael Hennerich <Michael.Hennerich@analog.com>, Mauro
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55D57528.1080207@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Brian,
-
-On 08/20/2015 11:11 PM, Brian Norris wrote:
-> On Thu, Aug 20, 2015 at 09:07:13AM +0200, Javier Martinez Canillas wrote:
->> Patches #1 and #2 solves a), patches #3 to #8 solves b) and patches
+* Kishon Vijay Abraham I <kishon@ti.com> [150819 23:38]:
+> Hi,
 > 
-> ^^^ I'm dying to know how this sentence ends :)
->
-
-Sigh, I did some last minute restructuring of the cover letter and
-seems I missed a sentence. I meant to said:
-
-"and patches #9 to #17 solves c)."
- 
->> Patch #18 changes the logic of spi_uevent() to report an OF modalias if
->> the device was registered using OF. But this patch is included in the
->> series only as an RFC for illustration purposes since changing that
->> without first applying all the other patches in this series, will break
->> module autoloading for the drivers of devices registered using OF but
->> that lacks an of_match_table. I'll repost patch #18 once all the patches
->> in this series have landed.
+> On Thursday 06 August 2015 02:17 PM, Tony Lindgren wrote:
+> > * Kishon Vijay Abraham I <kishon@ti.com> [150805 07:10]:
+> >> On Wednesday 05 August 2015 01:31 PM, Tony Lindgren wrote:
+> >>>
+> >>> We don't have syscon-otghs and to me it seems we need a PHY driver
+> >>> as I pointed out at:
+> >>
+> >> If *syscon-otghs* is not present, then it'll fall-back to using the *ctrl-module*.
+> > 
+> > OK great.
+> > 
+> >>>
+> >>> https://lkml.org/lkml/2015/6/24/231
+> >>
+> >> Maybe I should have explained this in the previous thread. The *otghs* register
+> >> that we are trying to access here does _not_ belong to the PHY. It acts as
+> >> mailbox register from MUSB glue (TI integration layer) to MUSB core. That's why
+> >> it's programmed in the TI glue layer (omap2430.c).
+> >>
+> >> Even when we were using the older API [omap_control_usb_set_mode()], we first
+> >> call omap_musb_mailbox from the PHY drivers (phy-twl4030-usb.c,
+> >> phy-twl6030-usb.c) and then omap_musb_mailbox in the TI glue writes to the
+> >> control module instead of PHY drivers directly calling omap_control_usb_set_mode().
+> > 
+> > Hmm looking at "Table 18-204. CONTROL_USBOTGHS_CONTROL" it seems to mention
+> > "transceiver" for quite a few bitfields :) Probably what that register does
+> > is control a PHY over ULPI.
 > 
-> On a more productive note, the patches I've looked at look good to me.
-> The missing aliases are a problem enough that should be fixed (i.e.,
-> part (b)). I'll leave the SPI framework changes to others to comment on.
->
+> OMAP4 uses UTMI PHY and it uses CONTROL_USBOTGHS_CONTROL too.
 
-Great, thanks a lot for your feedback.
- 
-> Brian
+So can't we make the phy-omap-usb2.c driver the onlly user of this
+register then and get rid of the mailbox stuff? I think the phy
+framework can handle everything now?
+
+> > So from Linux kernel point of view we're best off treating it as a PHY.
+> > It seems it should have a minimal PHY driver similar to what we have for
+> > dm816x control module in drivers/phy/phy-dm816x-usb.c.
 > 
+> hmm.. IMHO CONTROL_USBOTGHS_CONTROL register belongs to the TI MUSB glue and
+> should be programmed in omap2430.c. It's better to get the opinion of Felipe
+> here. Felipe?
+> > 
+> > For reference, here is the register bitfields pasted from 4460 TRM:
+> > 
+> > Table 18-204. CONTROL_USBOTGHS_CONTROL, p3972
+> > Physical Address 0x4A00 233C
+> > 
+> > BIT	NAME		DESCIPTION
+> > 8	DISCHRGVBUS	... OTG transceiver does (not) discharge VBUS ...
+> > 7	CHRGVBUS	... OTG transceiver does (not) charge VBUS ...
+> > 6	IDPULLUP	... OTG transceiver does (not) drive VBUS ...
+> > 4	IDDIG		... OTG transceiver does (not) apply a pullup to ID ...
+> > 3	SESSEND		... VBUS voltage is above/below VB_SESS_END ...	
+> > 2	VBUSVALID	... VBUS is above the threshold ...
+> > 1	BVALID		... VBUS voltage is above/below VB_SESS_VLD ...
+> > 0	AVALID		... BUS voltage is above/below VA_SESS_VLD ...
+> > 
+> > So how about just adding ONTROL_USBOTGHS_CONTROL support to the existing
+> > drivers/phy/phy-omap-usb2.c instead? It seems that it should allow us
+> > to completely get rid of the custom mailbox stuff for MUSB 2430 support?
+> 
+> Not in phy-omap-usb2.c. It's the UTMI PHY driver and is not used by OMAP3 based
+> boards (uses twl4030 ULPI PHY). CONTROL_USBOTGHS_CONTROL has to be programmed
+> for OMAP3 also.
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Hmm I don't think omap3 uses that register? There's no ti,control-phy
+anything in the omap3 dts files?  And no USBOTGHS_CONTROL in the TRM?
+Or am I missing something here?
+
+Regards,
+
+Tony
