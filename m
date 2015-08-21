@@ -1,96 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/16] omap_hsmmc: regulator usage cleanup and fixes
-Date: Fri, 21 Aug 2015 00:41:31 -0700
-Message-ID: <20150821074131.GK4215@atomide.com>
-References: <1438604801-11823-1-git-send-email-kishon@ti.com>
- <55D5C9B3.80802@ti.com>
+Subject: Re: [PATCH 0/7] gpio: omap: fixes and improvements
+Date: Fri, 21 Aug 2015 01:13:43 -0700
+Message-ID: <20150821081342.GL4215@atomide.com>
+References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
+ <20150819063851.GI4215@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55D5C9B3.80802@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: ulf.hansson@linaro.org, afenkart@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <20150819063851.GI4215@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [150820 05:39]:
+* Tony Lindgren <tony@atomide.com> [150818 23:42]:
 > Hi,
 > 
-> On Monday 03 August 2015 05:56 PM, Kishon Vijay Abraham I wrote:
-> > Changes from v1:
-> > *) return on -EPROBE_DEFER and other fatal errors. (Don't return only
-> >    if the return value is -ENODEV)
-> > *) Remove the beagle x15 dts patch. It can be part of a different
-> >    series.
-> > *) Avoid using regulator_is_enabled for vqmmc since if the regulator
-> >    is shared and the other users are not using regulator_is_enabled
-> >    then there can be unbalanced regulator_enable/regulator_disable
+> * Grygorii Strashko <grygorii.strashko@ti.com> [150818 04:14]:
+> > Hi,
 > > 
-> > This patch series does the following
-> > *) Uses devm_regulator_get_optional() for vmmc and then removes the
-> >    CONFIG_REGULATOR check altogether.
-> > *) return on -EPROBE_DEFER and any other fatal errors
-> > *) enable/disable vmmc_aux regulator based on prior state
+> > This patch series contains set of trivial fixes and improvements, and also
+> > patches which fixes wrong APIs usage in atomic context as for -RT as for
+> > non-RT kernel. The final goal of this series is to make TI OMAP GPIO
+> > driver compatible with -RT kernel as much as possible.
 > > 
-> > I've pushed this patch series to
-> > git://git.ti.com/linux-phy/linux-phy.git mmc_regulator_cleanup_fixes_v2
-> > 
-> > Please note the branch also has the pbias fixes [1] & [2].
-> > [1] -> https://lkml.org/lkml/2015/7/27/358
-> > [2] -> https://lkml.org/lkml/2015/7/27/391
-> > 
-> > This series is in preparation for implementing the voltage switch
-> > sequence so that UHS cards can be supported.
-> > 
-> > Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
-> > Beaglebone black, OMAP5 uEVM and OMAP4 PANDA.
+> > Patch 1-4: trivial fixes and improvements
+> > Patch 5: fixes wrong CLK clk_prepare/unprepare APIs usage in atomic contexet
+> > Patch 6(rfc): required to be compatible with -RT kernel, because PM runtime
+> >  can't be used in atimic context on -RT.
+> > Patch 7(rfc): This patch converts TI OMAP GPIO driver to use generic irq
+> >  handler instead of chained IRQ handler. This way OMAP GPIO driver will be
+> >  compatible with RT kernel where it will be forced thread IRQ handler
+> >  while in non-RT kernel it still will be executed in HW IRQ context.
 > 
-> I have now done read/write test in omap3 beagle-xm with this series!
+> Based on quick testing this series breaks at least core off idle for omap3.
+> You probably should add a beagle xm to your test devices so you can
+> properly test PM features.
 
-Great thanks for doing that. Also gave this series a try here
-with my off idle MMC SDIO WLAN card test and things still work
-for me. That's not really testing the PBIAS regulator though,
-but a good torture test for saving and restoring context. So
-FWIW:
+Sorry I take that back, after trying to figure out which patch breaks PM
+I noticed I had some other patches applied also. Looks like PM works just
+fine with this series for me, so please feel free to add:
 
 Tested-by: Tony Lindgren <tony@atomide.com>
 
-If you need a PM torture test for PBIAS regulator, you could try
-to do the following on your beagle xm MMC card with
-oamp2plus_defconfig:
-
-1. Make sure EHCI modules are not loaded and OTG USB cable is
-   not connected
-
-2. Enable UART timeouts and off idle with something like:
-
-!/bin/bash
-
-uarts=$(find /sys/class/tty/tty[SO]*/device/power/ -type d)
-for uart in $uarts; do
-        echo 3000 > $uart/autosuspend_delay_ms 2>&1
-done
-
-modprobe leds-gpio
-modprobe ledtrig-default-on
-
-uarts=$(find /sys/class/tty/tty[SO]*/power/ -type d 2>/dev/null)
-for uart in $uarts; do
-        echo enabled > $uart/wakeup 2>&1
-        echo auto > $uart/control 2>&1
-done
-
-echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
-
-3. Make sure you start seeing core_pwrdm OFF count increasing
-   with cat /sys/kernel/debug/pm_debug/count
-
-MMC should keep on working when hitting idle, if not, something
-is not saved or restored properly. And SDIO WLAN cards should
-wake up the system and respond to ping if the wakeirq is
-configured in the dts file for the MMC controller. At least
-mwifiex_sdio cards work for this :)
+Note that I have not been able to test this with gpio button as my
+boards are in a rack. You may want to do some gpio button tests to
+make sure things wake up properly from off idle if you can get hold
+of a beagle xm. I posted some instructions how to test earlier today
+for Kishon in the "[PATCH v2 00/16] omap_hsmmc: regulator usage
+cleanup and fixes" thread.
 
 Regards,
 
