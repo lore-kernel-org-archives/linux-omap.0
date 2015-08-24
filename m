@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 03/13] usb: otg-fsm: Prevent build warning "VDBG" redefined
-Date: Mon, 24 Aug 2015 16:21:14 +0300
-Message-ID: <1440422484-4737-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 01/13] usb: otg-fsm: Add documentation for struct otg_fsm
+Date: Mon, 24 Aug 2015 16:21:12 +0300
+Message-ID: <1440422484-4737-2-git-send-email-rogerq@ti.com>
 References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,139 +12,153 @@ To: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.c
 Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-If usb/otg-fsm.h and usb/composite.h are included together
-then it results in the build warning [1].
+struct otg_fsm is the interface to the OTG state machine.
 
-Prevent that by using dev_vdbg() instead.
+Document the input, output and internal state variables.
+Definations are taken from Table 7-2 and Table 7-4 of
+the USB OTG & EH Specification Rev.2.0
 
-Also get rid of MPC_LOC which doesn't seem to be used
-by anyone.
-
-[1] - warning fixed by this patch:
-
-   In file included from drivers/usb/dwc3/core.h:33,
-                    from drivers/usb/dwc3/ep0.c:33:
-   include/linux/usb/otg-fsm.h:30:1: warning: "VDBG" redefined
-   In file included from drivers/usb/dwc3/ep0.c:31:
-   include/linux/usb/composite.h:615:1: warning: this is the location
-	of the previous definition
+Re-arrange some of the members as per use case for more
+clarity.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Acked-by: Peter Chen <peter.chen@freescale.com>
 ---
- drivers/usb/chipidea/otg_fsm.c   |  1 +
- drivers/usb/common/usb-otg-fsm.c | 12 +++++++-----
- drivers/usb/phy/phy-fsl-usb.c    |  1 +
- include/linux/usb/otg-fsm.h      | 19 ++++---------------
- 4 files changed, 13 insertions(+), 20 deletions(-)
+ include/linux/usb/otg-fsm.h | 90 +++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 83 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/usb/chipidea/otg_fsm.c b/drivers/usb/chipidea/otg_fsm.c
-index 00ab59d..f644752 100644
---- a/drivers/usb/chipidea/otg_fsm.c
-+++ b/drivers/usb/chipidea/otg_fsm.c
-@@ -776,6 +776,7 @@ int ci_hdrc_otg_fsm_init(struct ci_hdrc *ci)
- 	ci->fsm.id = hw_read_otgsc(ci, OTGSC_ID) ? 1 : 0;
- 	ci->fsm.otg->state = OTG_STATE_UNDEFINED;
- 	ci->fsm.ops = &ci_otg_ops;
-+	ci->fsm.dev = ci->dev;
- 
- 	mutex_init(&ci->fsm.lock);
- 
-diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-index 32862a4..a46f29a 100644
---- a/drivers/usb/common/usb-otg-fsm.c
-+++ b/drivers/usb/common/usb-otg-fsm.c
-@@ -36,8 +36,9 @@ static int otg_set_protocol(struct otg_fsm *fsm, int protocol)
- 	int ret = 0;
- 
- 	if (fsm->protocol != protocol) {
--		VDBG("Changing role fsm->protocol= %d; new protocol= %d\n",
--			fsm->protocol, protocol);
-+		dev_vdbg(fsm->dev,
-+			 "Changing role fsm->protocol= %d; new protocol= %d\n",
-+			 fsm->protocol, protocol);
- 		/* stop old protocol */
- 		if (fsm->protocol == PROTO_HOST)
- 			ret = otg_start_host(fsm, 0);
-@@ -123,7 +124,7 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
- {
- 	if (fsm->otg->state == new_state)
- 		return 0;
--	VDBG("Set state: %s\n", usb_otg_state_string(new_state));
-+	dev_vdbg(fsm->dev, "Set state: %s\n", usb_otg_state_string(new_state));
- 	otg_leave_state(fsm, fsm->otg->state);
- 	switch (new_state) {
- 	case OTG_STATE_B_IDLE:
-@@ -251,7 +252,7 @@ int otg_statemachine(struct otg_fsm *fsm)
- 
- 	switch (state) {
- 	case OTG_STATE_UNDEFINED:
--		VDBG("fsm->id = %d\n", fsm->id);
-+		dev_vdbg(fsm->dev, "fsm->id = %d\n", fsm->id);
- 		if (fsm->id)
- 			otg_set_state(fsm, OTG_STATE_B_IDLE);
- 		else
-@@ -359,7 +360,8 @@ int otg_statemachine(struct otg_fsm *fsm)
- 	}
- 	mutex_unlock(&fsm->lock);
- 
--	VDBG("quit statemachine, changed = %d\n", fsm->state_changed);
-+	dev_vdbg(fsm->dev, "quit statemachine, changed = %d\n",
-+		 fsm->state_changed);
- 	return fsm->state_changed;
- }
- EXPORT_SYMBOL_GPL(otg_statemachine);
-diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
-index 94eb292..ee3f2c2 100644
---- a/drivers/usb/phy/phy-fsl-usb.c
-+++ b/drivers/usb/phy/phy-fsl-usb.c
-@@ -817,6 +817,7 @@ static int fsl_otg_conf(struct platform_device *pdev)
- 
- 	/* Set OTG state machine operations */
- 	fsl_otg_tc->fsm.ops = &fsl_otg_ops;
-+	fsl_otg_tc->fsm.dev = &pdev->dev;
- 
- 	/* initialize the otg structure */
- 	fsl_otg_tc->phy.label = DRIVER_DESC;
 diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
-index 20c8219..672551c 100644
+index f728f18..fc5b4d9 100644
 --- a/include/linux/usb/otg-fsm.h
 +++ b/include/linux/usb/otg-fsm.h
-@@ -18,24 +18,10 @@
- #ifndef __LINUX_USB_OTG_FSM_H
- #define __LINUX_USB_OTG_FSM_H
- 
-+#include <linux/device.h>
- #include <linux/mutex.h>
- #include <linux/errno.h>
- 
--#undef VERBOSE
--
--#ifdef VERBOSE
--#define VDBG(fmt, args...) pr_debug("[%s]  " fmt , \
--				 __func__, ## args)
--#else
--#define VDBG(stuff...)	do {} while (0)
--#endif
--
--#ifdef VERBOSE
--#define MPC_LOC printk("Current Location [%s]:[%d]\n", __FILE__, __LINE__)
--#else
--#define MPC_LOC do {} while (0)
--#endif
--
- #define PROTO_UNDEF	(0)
- #define PROTO_HOST	(1)
- #define PROTO_GADGET	(2)
-@@ -196,6 +182,9 @@ struct otg_fsm {
- 	int protocol;
- 	struct mutex lock;
- 	bool state_changed;
-+
-+	/* for debug prints */
-+	struct device *dev;
+@@ -59,37 +59,113 @@ enum otg_fsm_timer {
+ 	NUM_OTG_FSM_TIMERS,
  };
  
- struct otg_fsm_ops {
+-/* OTG state machine according to the OTG spec */
++/**
++ * struct otg_fsm - OTG state machine according to the OTG spec
++ *
++ * OTG hardware Inputs
++ *
++ *	Common inputs for A and B device
++ * @id:		TRUE for B-device, FALSE for A-device.
++ * @adp_change: TRUE when current ADP measurement (n) value, compared to the
++ *		ADP measurement taken at n-2, differs by more than CADP_THR
++ * @power_up:	TRUE when the OTG device first powers up its USB system and
++ *		ADP measurement taken if ADP capable
++ *
++ *	A-Device state inputs
++ * @a_srp_det:	TRUE if the A-device detects SRP
++ * @a_vbus_vld:	TRUE when VBUS voltage is in regulation
++ * @b_conn:	TRUE if the A-device detects connection from the B-device
++ * @a_bus_resume: TRUE when the B-device detects that the A-device is signaling
++ *		  a resume (K state)
++ *	B-Device state inputs
++ * @a_bus_suspend: TRUE when the B-device detects that the A-device has put the
++ *		bus into suspend
++ * @a_conn:	TRUE if the B-device detects a connection from the A-device
++ * @b_se0_srp:	TRUE when the line has been at SE0 for more than the minimum
++ *		time before generating SRP
++ * @b_ssend_srp: TRUE when the VBUS has been below VOTG_SESS_VLD for more than
++ *		 the minimum time before generating SRP
++ * @b_sess_vld:	TRUE when the B-device detects that the voltage on VBUS is
++ *		above VOTG_SESS_VLD
++ * @test_device: TRUE when the B-device switches to B-Host and detects an OTG
++ *		test device. This must be set by host/hub driver
++ *
++ *	Application inputs (A-Device)
++ * @a_bus_drop:	TRUE when A-device application needs to power down the bus
++ * @a_bus_req:	TRUE when A-device application wants to use the bus.
++ *		FALSE to suspend the bus
++ *
++ *	Application inputs (B-Device)
++ * @b_bus_req:	TRUE during the time that the Application running on the
++ *		B-device wants to use the bus
++ *
++ *	Auxilary inputs (OTG v1.3 only. Obsolete now.)
++ * @a_sess_vld:	TRUE if the A-device detects that VBUS is above VA_SESS_VLD
++ * @b_bus_suspend: TRUE when the A-device detects that the B-device has put
++ *		the bus into suspend
++ * @b_bus_resume: TRUE when the A-device detects that the B-device is signaling
++ *		 resume on the bus
++ *
++ * OTG Output status. Read only for users. Updated by OTG FSM helpers defined
++ * in this file
++ *
++ *	Outputs for Both A and B device
++ * @drv_vbus:	TRUE when A-device is driving VBUS
++ * @loc_conn:	TRUE when the local device has signaled that it is connected
++ *		to the bus
++ * @loc_sof:	TRUE when the local device is generating activity on the bus
++ * @adp_prb:	TRUE when the local device is in the process of doing
++ *		ADP probing
++ *
++ *	Outputs for B-device state
++ * @adp_sns:	TRUE when the B-device is in the process of carrying out
++ *		ADP sensing
++ * @data_pulse: TRUE when the B-device is performing data line pulsing
++ *
++ * Internal Variables
++ *
++ * a_set_b_hnp_en: TRUE when the A-device has successfully set the
++ *		b_hnp_enable bit in the B-device.
++ *		   Unused as OTG fsm uses otg->host->b_hnp_enable instead
++ * b_srp_done:	TRUE when the B-device has completed initiating SRP
++ * b_hnp_enable: TRUE when the B-device has accepted the
++ *		SetFeature(b_hnp_enable) B-device.
++ *		Unused as OTG fsm uses otg->gadget->b_hnp_enable instead
++ * a_clr_err:	Asserted (by application ?) to clear a_vbus_err due to an
++ *		overcurrent condition and causes the A-device to transition
++ *		to a_wait_vfall
++ */
+ struct otg_fsm {
+ 	/* Input */
+ 	int id;
+ 	int adp_change;
+ 	int power_up;
+-	int test_device;
+-	int a_bus_drop;
+-	int a_bus_req;
+ 	int a_srp_det;
+ 	int a_vbus_vld;
+ 	int b_conn;
+ 	int a_bus_resume;
+ 	int a_bus_suspend;
+ 	int a_conn;
+-	int b_bus_req;
+ 	int b_se0_srp;
+ 	int b_ssend_srp;
+ 	int b_sess_vld;
++	int test_device;
++	int a_bus_drop;
++	int a_bus_req;
++	int b_bus_req;
++
+ 	/* Auxilary inputs */
+ 	int a_sess_vld;
+ 	int b_bus_resume;
+ 	int b_bus_suspend;
+ 
+ 	/* Output */
+-	int data_pulse;
+ 	int drv_vbus;
+ 	int loc_conn;
+ 	int loc_sof;
+ 	int adp_prb;
+ 	int adp_sns;
++	int data_pulse;
+ 
+ 	/* Internal variables */
+ 	int a_set_b_hnp_en;
+@@ -97,7 +173,7 @@ struct otg_fsm {
+ 	int b_hnp_enable;
+ 	int a_clr_err;
+ 
+-	/* Informative variables */
++	/* Informative variables. All unused as of now */
+ 	int a_bus_drop_inf;
+ 	int a_bus_req_inf;
+ 	int a_clr_err_inf;
 -- 
 2.1.4
