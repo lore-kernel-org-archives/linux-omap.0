@@ -1,50 +1,50 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 05/11] ARM: DTS: dra7-evm: Enable pcf8575 (0x26 address) on
- i2c2 bus
-Date: Mon, 24 Aug 2015 10:20:01 +0300
-Message-ID: <1440400807-32274-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 08/11] ARM: DTS: dra72-evm: Add gpio hog for vin6_sel_s0 to select audio
+Date: Mon, 24 Aug 2015 10:20:04 +0300
+Message-ID: <1440400807-32274-9-git-send-email-peter.ujfalusi@ti.com>
 References: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This GPIO expander is used for controlling various muxes on the board.
-By default select audio functionality over VIN6 by setting the P1
-(vin6_sel_s0) pin to low.
+The GPIO expander's p1 on i2c5 bus 0x26 address is used for selecting
+between audio and VIN6 functionality. For VIN6 use an add on card is
+needed while audio is present on the board itself.
+Select the audio functionality over the VIN6 in the dts file.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/arm/boot/dts/dra72-evm.dts | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index add77ac4f302..3694046c29eb 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -438,6 +438,20 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c2_pins>;
- 	clock-frequency = <400000>;
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index ac3a29483791..33be5c64bda3 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -119,6 +119,13 @@
+ 		>;
+ 	};
+ 
++	i2c5_pins: pinmux_i2c5_pins {
++		pinctrl-single,pins = <
++			0x2b4 (PIN_INPUT | MUX_MODE10) /* mcasp1_axr0.i2c5_sda */
++			0x2b8 (PIN_INPUT | MUX_MODE10) /* mcasp1_axr1.i2c5_scl */
++		>;
++	};
 +
-+	pcf_hdmi: gpio@26 {
-+		compatible = "nxp,pcf8575";
-+		reg = <0x26>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
+ 	nand_default: nand_default {
+ 		pinctrl-single,pins = <
+ 			0x0	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad0 */
+@@ -389,6 +396,14 @@
+ 		 * VIN6_SEL_S0 is low, thus selecting McASP3 over VIN6
+ 		 */
+ 		lines-initial-states = <0x0f2b>;
++
 +		p1 {
 +			/* vin6_sel_s0: high: VIN6, low: audio */
 +			gpio-hog;
@@ -52,9 +52,8 @@ index add77ac4f302..3694046c29eb 100644
 +			output-low;
 +			line-name = "vin6_sel_s0";
 +		};
-+	};
+ 	};
  };
  
- &i2c3 {
 -- 
 2.5.0
