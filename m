@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 03/11] ARM: DTS: dra7-evm: Rename mmc2_3v3 supply to evm_3v3_sw
-Date: Mon, 24 Aug 2015 10:19:59 +0300
-Message-ID: <1440400807-32274-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 04/11] ARM: DTS: dra7-evm: Add fixed regulator to be used by aic3106's DVDD
+Date: Mon, 24 Aug 2015 10:20:00 +0300
+Message-ID: <1440400807-32274-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,38 +12,33 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use the name for the supply as it is in the schematics since the same
-supply is used for other peripherals than MMC2, like audio.
+TPS77018DBVT is used to create 1.8V from avm_3v3_sw's 3.3V connected to
+aic3106's DVDD.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/dra7-evm.dts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index a6c82e5b64fe..de02cf5853a9 100644
+index de02cf5853a9..add77ac4f302 100644
 --- a/arch/arm/boot/dts/dra7-evm.dts
 +++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -28,9 +28,9 @@
- 		gpio = <&pcf_gpio_21 5 GPIO_ACTIVE_HIGH>;
- 	};
- 
--	mmc2_3v3: fixedregulator-mmc2 {
-+	evm_3v3_sw: fixedregulator-evm_3v3_sw {
- 		compatible = "regulator-fixed";
--		regulator-name = "mmc2_3v3";
-+		regulator-name = "evm_3v3_sw";
- 		regulator-min-microvolt = <3300000>;
+@@ -35,6 +35,15 @@
  		regulator-max-microvolt = <3300000>;
  	};
-@@ -484,7 +484,7 @@
  
- &mmc2 {
- 	status = "okay";
--	vmmc-supply = <&mmc2_3v3>;
-+	vmmc-supply = <&evm_3v3_sw>;
- 	bus-width = <8>;
- };
- 
++	aic_dvdd: fixedregulator-aic_dvdd {
++		/* TPS77018DBVT */
++		compatible = "regulator-fixed";
++		regulator-name = "aic_dvdd";
++		vin-supply = <&evm_3v3_sw>;
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++	};
++
+ 	extcon_usb1: extcon_usb1 {
+ 		compatible = "linux,extcon-usb-gpio";
+ 		id-gpio = <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
 -- 
 2.5.0
