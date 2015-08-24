@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 13/13] usb: otg: Add dual-role device (DRD) support
-Date: Mon, 24 Aug 2015 16:21:24 +0300
-Message-ID: <1440422484-4737-14-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 12/13] usb: gadget: udc: adapt to OTG core
+Date: Mon, 24 Aug 2015 16:21:23 +0300
+Message-ID: <1440422484-4737-13-git-send-email-rogerq@ti.com>
 References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,274 +12,243 @@ To: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.c
 Cc: dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-DRD mode is a reduced functionality OTG mode. In this mode
-we don't support SRP, HNP and dynamic role-swap.
+The OTG state machine needs a mechanism to start and
+stop the gadget controller. Add usb_gadget_start()
+and usb_gadget_stop().
 
-In DRD operation, the controller mode (Host or Peripheral)
-is decided based on the ID pin status. Once a cable plug (Type-A
-or Type-B) is attached the controller selects the state
-and doesn't change till the cable in unplugged and a different
-cable type is inserted.
+Register with OTG core when gadget function driver
+is available and unregister when function driver is unbound.
 
-As we don't need most of the complex OTG states and OTG timers
-we implement a lean DRD state machine in usb-otg.c.
-The DRD state machine is only interested in 2 hardware inputs
-'id' and 'b_sess_vld'.
+We need to unlock the usb_lock mutexbefore calling
+usb_otg_register_gadget() in udc_bind_to_driver() and
+usb_gadget_remove_driver() else it will cause a circular
+locking dependency.
+
+Ignore softconnect sysfs control when we're in OTG
+mode as OTG FSM takes care of gadget softconnect using
+the b_bus_req mechanism.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/common/usb-otg.c | 178 +++++++++++++++++++++++++++++++++++++++++--
- include/linux/usb/otg-fsm.h  |   5 ++
- include/linux/usb/otg.h      |   2 +
- 3 files changed, 177 insertions(+), 8 deletions(-)
+ drivers/usb/gadget/udc/udc-core.c | 124 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 114 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/common/usb-otg.c b/drivers/usb/common/usb-otg.c
-index 930c2fe..44b5577 100644
---- a/drivers/usb/common/usb-otg.c
-+++ b/drivers/usb/common/usb-otg.c
-@@ -519,14 +519,165 @@ int usb_otg_start_gadget(struct otg_fsm *fsm, int on)
- }
- EXPORT_SYMBOL_GPL(usb_otg_start_gadget);
+diff --git a/drivers/usb/gadget/udc/udc-core.c b/drivers/usb/gadget/udc/udc-core.c
+index f660afb..e961668 100644
+--- a/drivers/usb/gadget/udc/udc-core.c
++++ b/drivers/usb/gadget/udc/udc-core.c
+@@ -28,6 +28,7 @@
+ #include <linux/usb/ch9.h>
+ #include <linux/usb/gadget.h>
+ #include <linux/usb.h>
++#include <linux/usb/otg.h>
  
-+/* Change USB protocol when there is a protocol change */
-+static int drd_set_protocol(struct otg_fsm *fsm, int protocol)
+ /**
+  * struct usb_udc - describes one usb device controller
+@@ -37,6 +38,7 @@
+  * @list - for use by the udc class driver
+  * @vbus - for udcs who care about vbus status, this value is real vbus status;
+  * for udcs who do not care about vbus status, this value is always true
++ * @is_otg - we're registered with OTG core and it takes care of UDC start/stop
+  *
+  * This represents the internal data structure which is used by the UDC-class
+  * to hold information about udc driver and gadget together.
+@@ -47,6 +49,7 @@ struct usb_udc {
+ 	struct device			dev;
+ 	struct list_head		list;
+ 	bool				vbus;
++	bool				is_otg;
+ };
+ 
+ static struct class *udc_class;
+@@ -300,6 +303,7 @@ EXPORT_SYMBOL_GPL(usb_gadget_udc_reset);
+  */
+ static inline int usb_gadget_udc_start(struct usb_udc *udc)
+ {
++	dev_dbg(&udc->dev, "%s\n", __func__);
+ 	return udc->gadget->ops->udc_start(udc->gadget, udc->driver);
+ }
+ 
+@@ -317,10 +321,81 @@ static inline int usb_gadget_udc_start(struct usb_udc *udc)
+  */
+ static inline void usb_gadget_udc_stop(struct usb_udc *udc)
+ {
++	dev_dbg(&udc->dev, "%s\n", __func__);
+ 	udc->gadget->ops->udc_stop(udc->gadget);
+ }
+ 
+ /**
++ * usb_gadget_start - start the usb gadget controller and connect to bus
++ * @gadget: the gadget device to start
++ *
++ * This is external API for use by OTG core.
++ *
++ * Start the usb device controller and connect to bus (enable pull).
++ */
++static int usb_gadget_start(struct usb_gadget *gadget)
 +{
-+	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
-+	int ret = 0;
++	int ret;
++	struct usb_udc *udc = NULL;
 +
-+	if (fsm->protocol != protocol) {
-+		dev_dbg(otgd->dev, "otg: changing role fsm->protocol= %d; new protocol= %d\n",
-+			fsm->protocol, protocol);
-+		/* stop old protocol */
-+		if (fsm->protocol == PROTO_HOST)
-+			ret = otg_start_host(fsm, 0);
-+		else if (fsm->protocol == PROTO_GADGET)
-+			ret = otg_start_gadget(fsm, 0);
-+		if (ret)
-+			return ret;
++	dev_dbg(&gadget->dev, "%s\n", __func__);
++	mutex_lock(&udc_lock);
++	list_for_each_entry(udc, &udc_list, list)
++		if (udc->gadget == gadget)
++			goto found;
 +
-+		/* start new protocol */
-+		if (protocol == PROTO_HOST)
-+			ret = otg_start_host(fsm, 1);
-+		else if (protocol == PROTO_GADGET)
-+			ret = otg_start_gadget(fsm, 1);
-+		if (ret)
-+			return ret;
++	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
++		__func__);
++	mutex_unlock(&udc_lock);
++	return -EINVAL;
 +
-+		fsm->protocol = protocol;
-+		return 0;
-+	}
++found:
++	ret = usb_gadget_udc_start(udc);
++	if (ret)
++		dev_err(&udc->dev, "USB Device Controller didn't start: %d\n",
++			ret);
++	else
++		usb_udc_connect_control(udc);
++
++	mutex_unlock(&udc_lock);
++
++	return ret;
++}
++
++/**
++ * usb_gadget_stop - disconnect from bus and stop the usb gadget
++ * @gadget: The gadget device we want to stop
++ *
++ * This is external API for use by OTG core.
++ *
++ * Disconnect from the bus (disable pull) and stop the
++ * gadget controller.
++ */
++static int usb_gadget_stop(struct usb_gadget *gadget)
++{
++	struct usb_udc *udc = NULL;
++
++	dev_dbg(&gadget->dev, "%s\n", __func__);
++	mutex_lock(&udc_lock);
++	list_for_each_entry(udc, &udc_list, list)
++		if (udc->gadget == gadget)
++			goto found;
++
++	dev_err(gadget->dev.parent, "%s: gadget not registered.\n",
++		__func__);
++	mutex_unlock(&udc_lock);
++	return -EINVAL;
++
++found:
++	usb_gadget_disconnect(udc->gadget);
++	udc->driver->disconnect(udc->gadget);
++	usb_gadget_udc_stop(udc);
++	mutex_unlock(&udc_lock);
 +
 +	return 0;
 +}
 +
-+/* Called when entering a DRD state */
-+static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
-+{
-+	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
-+
-+	if (fsm->otg->state == new_state)
-+		return;
-+
-+	fsm->state_changed = 1;
-+	dev_dbg(otgd->dev, "otg: set state: %s\n",
-+		usb_otg_state_string(new_state));
-+	switch (new_state) {
-+	case OTG_STATE_B_IDLE:
-+		drd_set_protocol(fsm, PROTO_UNDEF);
-+		break;
-+	case OTG_STATE_B_PERIPHERAL:
-+		drd_set_protocol(fsm, PROTO_GADGET);
-+		break;
-+	case OTG_STATE_A_HOST:
-+		drd_set_protocol(fsm, PROTO_HOST);
-+		break;
-+	case OTG_STATE_UNDEFINED:
-+	case OTG_STATE_B_SRP_INIT:
-+	case OTG_STATE_B_WAIT_ACON:
-+	case OTG_STATE_B_HOST:
-+	case OTG_STATE_A_IDLE:
-+	case OTG_STATE_A_WAIT_VRISE:
-+	case OTG_STATE_A_WAIT_BCON:
-+	case OTG_STATE_A_SUSPEND:
-+	case OTG_STATE_A_PERIPHERAL:
-+	case OTG_STATE_A_WAIT_VFALL:
-+	case OTG_STATE_A_VBUS_ERR:
-+	default:
-+		dev_warn(otgd->dev, "%s: otg: invalid state: %s\n",
-+			 __func__, usb_otg_state_string(new_state));
-+		break;
-+	}
-+
-+	fsm->otg->state = new_state;
-+}
-+
- /**
-- * OTG FSM work function
-+ * DRD state change judgement
-+ *
-+ * For DRD we're only interested in some of the OTG states
-+ * i.e. OTG_STATE_B_IDLE: both peripheral and host are stopped
-+ *	OTG_STATE_B_PERIPHERAL: peripheral active
-+ *	OTG_STATE_A_HOST: host active
-+ * we're only interested in the following inputs
-+ *	fsm->id, fsm->b_sess_vld
-+ */
-+static int drd_statemachine(struct otg_fsm *fsm)
-+{
-+	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
-+	enum usb_otg_state state;
-+
-+	mutex_lock(&fsm->lock);
-+
-+	state = fsm->otg->state;
-+
-+	switch (state) {
-+	case OTG_STATE_UNDEFINED:
-+		if (!fsm->id)
-+			drd_set_state(fsm, OTG_STATE_A_HOST);
-+		else if (fsm->id && fsm->b_sess_vld)
-+			drd_set_state(fsm, OTG_STATE_B_PERIPHERAL);
-+		else
-+			drd_set_state(fsm, OTG_STATE_B_IDLE);
-+		break;
-+	case OTG_STATE_B_IDLE:
-+		if (!fsm->id)
-+			drd_set_state(fsm, OTG_STATE_A_HOST);
-+		else if (fsm->b_sess_vld)
-+			drd_set_state(fsm, OTG_STATE_B_PERIPHERAL);
-+		break;
-+	case OTG_STATE_B_PERIPHERAL:
-+		if (!fsm->id)
-+			drd_set_state(fsm, OTG_STATE_A_HOST);
-+		else if (!fsm->b_sess_vld)
-+			drd_set_state(fsm, OTG_STATE_B_IDLE);
-+		break;
-+	case OTG_STATE_A_HOST:
-+		if (fsm->id && fsm->b_sess_vld)
-+			drd_set_state(fsm, OTG_STATE_B_PERIPHERAL);
-+		else if (fsm->id && !fsm->b_sess_vld)
-+			drd_set_state(fsm, OTG_STATE_B_IDLE);
-+		break;
-+
-+	/* invalid states for DRD */
-+	case OTG_STATE_B_SRP_INIT:
-+	case OTG_STATE_B_WAIT_ACON:
-+	case OTG_STATE_B_HOST:
-+	case OTG_STATE_A_IDLE:
-+	case OTG_STATE_A_WAIT_VRISE:
-+	case OTG_STATE_A_WAIT_BCON:
-+	case OTG_STATE_A_SUSPEND:
-+	case OTG_STATE_A_PERIPHERAL:
-+	case OTG_STATE_A_WAIT_VFALL:
-+	case OTG_STATE_A_VBUS_ERR:
-+		dev_err(otgd->dev, "%s: otg: invalid usb-drd state: %s\n",
-+			__func__, usb_otg_state_string(state));
-+		drd_set_state(fsm, OTG_STATE_UNDEFINED);
-+	break;
-+	}
-+
-+	mutex_unlock(&fsm->lock);
-+	dev_dbg(otgd->dev, "otg: quit statemachine, changed %d\n",
-+		fsm->state_changed);
-+
-+	return fsm->state_changed;
-+}
-+
 +/**
-+ * OTG FSM/DRD work function
-  */
- static void usb_otg_work(struct work_struct *work)
- {
- 	struct usb_otg *otgd = container_of(work, struct usb_otg, work);
+  * usb_udc_release - release the usb_udc struct
+  * @dev: the dev member within usb_udc
+  *
+@@ -438,6 +513,7 @@ int usb_add_gadget_udc(struct device *parent, struct usb_gadget *gadget)
+ }
+ EXPORT_SYMBOL_GPL(usb_add_gadget_udc);
  
--	otg_statemachine(&otgd->fsm);
-+	/* OTG state machine */
-+	if (!otgd->drd_only) {
-+		otg_statemachine(&otgd->fsm);
-+		return;
++/* udc_lock must be held */
+ static void usb_gadget_remove_driver(struct usb_udc *udc)
+ {
+ 	dev_dbg(&udc->dev, "unregistering UDC driver [%s]\n",
+@@ -445,10 +521,18 @@ static void usb_gadget_remove_driver(struct usb_udc *udc)
+ 
+ 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
+ 
+-	usb_gadget_disconnect(udc->gadget);
+-	udc->driver->disconnect(udc->gadget);
++	/* If OTG, the otg core ensures UDC is stopped on unregister */
++	if (udc->is_otg) {
++		mutex_unlock(&udc_lock);
++		usb_otg_unregister_gadget(udc->gadget);
++		mutex_lock(&udc_lock);
++	} else {
++		usb_gadget_disconnect(udc->gadget);
++		udc->driver->disconnect(udc->gadget);
++		usb_gadget_udc_stop(udc);
 +	}
 +
-+	/* DRD state machine */
-+	drd_statemachine(&otgd->fsm);
- }
+ 	udc->driver->unbind(udc->gadget);
+-	usb_gadget_udc_stop(udc);
  
- /**
-@@ -584,13 +735,22 @@ struct otg_fsm *usb_otg_register(struct device *dev,
- 		goto err_wq;
+ 	udc->driver = NULL;
+ 	udc->dev.driver = NULL;
+@@ -473,11 +557,12 @@ void usb_del_gadget_udc(struct usb_gadget *gadget)
+ 
+ 	mutex_lock(&udc_lock);
+ 	list_del(&udc->list);
+-	mutex_unlock(&udc_lock);
+ 
+ 	if (udc->driver)
+ 		usb_gadget_remove_driver(udc);
+ 
++	mutex_unlock(&udc_lock);
++
+ 	kobject_uevent(&udc->dev.kobj, KOBJ_REMOVE);
+ 	flush_work(&gadget->work);
+ 	device_unregister(&udc->dev);
+@@ -487,6 +572,12 @@ EXPORT_SYMBOL_GPL(usb_del_gadget_udc);
+ 
+ /* ------------------------------------------------------------------------- */
+ 
++struct otg_gadget_ops otg_gadget_intf = {
++	.start = usb_gadget_start,
++	.stop = usb_gadget_stop,
++};
++
++/* udc_lock must be held */
+ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *driver)
+ {
+ 	int ret;
+@@ -501,12 +592,19 @@ static int udc_bind_to_driver(struct usb_udc *udc, struct usb_gadget_driver *dri
+ 	ret = driver->bind(udc->gadget, driver);
+ 	if (ret)
+ 		goto err1;
+-	ret = usb_gadget_udc_start(udc);
+-	if (ret) {
+-		driver->unbind(udc->gadget);
+-		goto err1;
++
++	/* If OTG, the otg core starts the UDC when needed */
++	mutex_unlock(&udc_lock);
++	udc->is_otg = !usb_otg_register_gadget(udc->gadget, &otg_gadget_intf);
++	mutex_lock(&udc_lock);
++	if (!udc->is_otg) {
++		ret = usb_gadget_udc_start(udc);
++		if (ret) {
++			driver->unbind(udc->gadget);
++			goto err1;
++		}
++		usb_udc_connect_control(udc);
+ 	}
+-	usb_udc_connect_control(udc);
+ 
+ 	kobject_uevent(&udc->dev.kobj, KOBJ_CHANGE);
+ 	return 0;
+@@ -618,9 +716,15 @@ static ssize_t usb_udc_softconn_store(struct device *dev,
+ 		return -EOPNOTSUPP;
  	}
  
--	usb_otg_init_timers(otgd, config->otg_timeouts);
-+	if (!(otgd->caps->hnp_support || otgd->caps->srp_support ||
-+	      otgd->caps->adp_support))
-+		otgd->drd_only = true;
- 
- 	/* create copy of original ops */
- 	otgd->fsm_ops = *config->fsm_ops;
--	/* FIXME: we ignore caller's timer ops */
--	otgd->fsm_ops.add_timer = usb_otg_add_timer;
--	otgd->fsm_ops.del_timer = usb_otg_del_timer;
-+
-+	/* For DRD mode we don't need OTG timers */
-+	if (!otgd->drd_only) {
-+		usb_otg_init_timers(otgd, config->otg_timeouts);
-+
-+		/* FIXME: we ignore caller's timer ops */
-+		otgd->fsm_ops.add_timer = usb_otg_add_timer;
-+		otgd->fsm_ops.del_timer = usb_otg_del_timer;
++	/* In OTG mode we don't support softconnect, but b_bus_req */
++	if (udc->is_otg) {
++		dev_err(dev, "soft-connect not supported in OTG mode\n");
++		return -EOPNOTSUPP;
 +	}
 +
- 	/* set otg ops */
- 	otgd->fsm.ops = &otgd->fsm_ops;
- 	otgd->fsm.otg = otgd;
-@@ -703,8 +863,10 @@ static void usb_otg_stop_fsm(struct otg_fsm *fsm)
- 	otgd->fsm_running = false;
- 
- 	/* Stop state machine / timers */
--	for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
--		hrtimer_cancel(&otgd->timers[i].timer);
-+	if (!otgd->drd_only) {
-+		for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
-+			hrtimer_cancel(&otgd->timers[i].timer);
-+	}
- 
- 	flush_workqueue(otgd->wq);
- 	fsm->otg->state = OTG_STATE_UNDEFINED;
-diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
-index 75e82cc..48a6aea 100644
---- a/include/linux/usb/otg-fsm.h
-+++ b/include/linux/usb/otg-fsm.h
-@@ -48,6 +48,11 @@ enum otg_fsm_timer {
- /**
-  * struct otg_fsm - OTG state machine according to the OTG spec
-  *
-+ * DRD mode hardware Inputs
-+ *
-+ * @id:		TRUE for B-device, FALSE for A-device.
-+ * @b_sess_vld:	VBUS voltage in regulation.
-+ *
-  * OTG hardware Inputs
-  *
-  *	Common inputs for A and B device
-diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-index 38cabe0..18de812 100644
---- a/include/linux/usb/otg.h
-+++ b/include/linux/usb/otg.h
-@@ -74,6 +74,7 @@ struct otg_timer {
-  * @work: otg state machine work
-  * @wq: otg state machine work queue
-  * @fsm_running: state machine running/stopped indicator
-+ * @drd_only: dual-role mode. no otg features.
-  */
- struct usb_otg {
- 	u8			default_a;
-@@ -102,6 +103,7 @@ struct usb_otg {
- 	struct workqueue_struct *wq;
- 	bool fsm_running;
- 	/* use otg->fsm.lock for serializing access */
-+	bool drd_only;
- 
- /*------------- deprecated interface -----------------------------*/
- 	/* bind/unbind the host controller */
+ 	if (sysfs_streq(buf, "connect")) {
+ 		usb_gadget_udc_start(udc);
+-		usb_gadget_connect(udc->gadget);
++		usb_udc_connect_control(udc);
+ 	} else if (sysfs_streq(buf, "disconnect")) {
+ 		usb_gadget_disconnect(udc->gadget);
+ 		udc->driver->disconnect(udc->gadget);
 -- 
 2.1.4
