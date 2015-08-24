@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 01/11] ARM: OMAP: DRA7: hwmod: Add data for McASP3
-Date: Mon, 24 Aug 2015 10:19:57 +0300
-Message-ID: <1440400807-32274-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 02/11] ARM: DTS: dra7: Add McASP3 node
+Date: Mon, 24 Aug 2015 10:19:58 +0300
+Message-ID: <1440400807-32274-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,78 +21,36 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-McASP3 is used by default on DRA7x based boards for audio.
-
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 41 +++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 562247bced49..c38b7fa30c27 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1298,6 +1298,38 @@ static struct omap_hwmod dra7xx_mcspi4_hwmod = {
- };
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 5d65db9ebc2b..07fa4ea5521a 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1403,6 +1403,21 @@
+ 			status = "disabled";
+ 		};
  
- /*
-+ * 'mcasp' class
-+ *
-+ */
-+static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc = {
-+	.sysc_offs	= 0x0004,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type3,
-+};
++		mcasp3: mcasp@48468000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp3";
++			reg = <0x48468000 0x2000>;
++			reg-names = "mpu";
++			interrupts = <GIC_SPI 151 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 150 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&sdma_xbar 133>, <&sdma_xbar 132>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp3_ahclkx_mux>;
++			clock-names = "fck";
++			status = "disabled";
++		};
 +
-+static struct omap_hwmod_class dra7xx_mcasp_hwmod_class = {
-+	.name	= "mcasp",
-+	.sysc	= &dra7xx_mcasp_sysc,
-+};
-+
-+/* mcasp3 */
-+static struct omap_hwmod dra7xx_mcasp3_hwmod = {
-+	.name		= "mcasp3",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp3_ahclkx_mux",
-+	.flags		= HWMOD_SWSUP_SIDLE,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP3_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'mmc' class
-  *
-  */
-@@ -2566,6 +2598,14 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per2 -> mcasp3 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp3_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
- 	{
- 		.pa_start	= 0x48078000,
-@@ -3338,6 +3378,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_wkup__dcan1,
- 	&dra7xx_l4_per2__dcan2,
- 	&dra7xx_l4_per2__cpgmac0,
-+	&dra7xx_l4_per2__mcasp3,
- 	&dra7xx_gmac__mdio,
- 	&dra7xx_l4_cfg__dma_system,
- 	&dra7xx_l3_main_1__dss,
+ 		crossbar_mpu: crossbar@4a002a48 {
+ 			compatible = "ti,irq-crossbar";
+ 			reg = <0x4a002a48 0x130>;
 -- 
 2.5.0
