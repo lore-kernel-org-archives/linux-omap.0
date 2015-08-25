@@ -1,68 +1,80 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 0/7] gpio: omap: fixes and improvements
-Date: Tue, 25 Aug 2015 14:41:01 +0300
-Message-ID: <55DC544D.9000304@ti.com>
-References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com> <20150819063851.GI4215@atomide.com> <20150821081342.GL4215@atomide.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v2 00/16] omap_hsmmc: regulator usage cleanup and fixes
+Date: Tue, 25 Aug 2015 13:50:19 +0200
+Message-ID: <CAPDyKFpSst5wnR-ZJd3w1J-iWYXqKvXAJTaye_DK=NH_cBzsgw@mail.gmail.com>
+References: <1438604801-11823-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150821081342.GL4215@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1438604801-11823-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/21/2015 11:13 AM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150818 23:42]:
->> Hi,
->>
->> * Grygorii Strashko <grygorii.strashko@ti.com> [150818 04:14]:
->>> Hi,
->>>
->>> This patch series contains set of trivial fixes and improvements, and also
->>> patches which fixes wrong APIs usage in atomic context as for -RT as for
->>> non-RT kernel. The final goal of this series is to make TI OMAP GPIO
->>> driver compatible with -RT kernel as much as possible.
->>>
->>> Patch 1-4: trivial fixes and improvements
->>> Patch 5: fixes wrong CLK clk_prepare/unprepare APIs usage in atomic contexet
->>> Patch 6(rfc): required to be compatible with -RT kernel, because PM runtime
->>>   can't be used in atimic context on -RT.
->>> Patch 7(rfc): This patch converts TI OMAP GPIO driver to use generic irq
->>>   handler instead of chained IRQ handler. This way OMAP GPIO driver will be
->>>   compatible with RT kernel where it will be forced thread IRQ handler
->>>   while in non-RT kernel it still will be executed in HW IRQ context.
->>
->> Based on quick testing this series breaks at least core off idle for omap3.
->> You probably should add a beagle xm to your test devices so you can
->> properly test PM features.
-> 
-> Sorry I take that back, after trying to figure out which patch breaks PM
-> I noticed I had some other patches applied also. Looks like PM works just
-> fine with this series for me, so please feel free to add:
-> 
+On 3 August 2015 at 14:26, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> Changes from v1:
+> *) return on -EPROBE_DEFER and other fatal errors. (Don't return only
+>    if the return value is -ENODEV)
+> *) Remove the beagle x15 dts patch. It can be part of a different
+>    series.
+> *) Avoid using regulator_is_enabled for vqmmc since if the regulator
+>    is shared and the other users are not using regulator_is_enabled
+>    then there can be unbalanced regulator_enable/regulator_disable
+>
+> This patch series does the following
+> *) Uses devm_regulator_get_optional() for vmmc and then removes the
+>    CONFIG_REGULATOR check altogether.
+> *) return on -EPROBE_DEFER and any other fatal errors
+> *) enable/disable vmmc_aux regulator based on prior state
+>
+> I've pushed this patch series to
+> git://git.ti.com/linux-phy/linux-phy.git mmc_regulator_cleanup_fixes_v2
+>
+> Please note the branch also has the pbias fixes [1] & [2].
+> [1] -> https://lkml.org/lkml/2015/7/27/358
+> [2] -> https://lkml.org/lkml/2015/7/27/391
+>
+> This series is in preparation for implementing the voltage switch
+> sequence so that UHS cards can be supported.
+>
+> Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
+> Beaglebone black, OMAP5 uEVM and OMAP4 PANDA.
+>
+> Kishon Vijay Abraham I (15):
+>   mmc: host: omap_hsmmc: use devm_regulator_get_optional() for vmmc
+>   mmc: host: omap_hsmmc: return on fatal errors from omap_hsmmc_reg_get
+>   mmc: host: omap_hsmmc: cleanup omap_hsmmc_reg_get()
+>   mmc: host: omap_hsmmc: use the ocrmask provided by the vmmc regulator
+>   mmc: host: omap_hsmmc: use mmc_host's vmmc and vqmmc
+>   mmc: host: omap_hsmmc: remove unnecessary pbias set_voltage
+>   mmc: host: omap_hsmmc: return error if any of the regulator APIs fail
+>   mmc: host: omap_hsmmc: add separate functions for enable/disable
+>     supply
+>   mmc: host: omap_hsmmc: add separate function to set pbias
+>   mmc: host: omap_hsmmc: avoid pbias regulator enable on power off
+>   mmc: host: omap_hsmmc: don't use ->set_power to set initial regulator
+>     state
+>   mmc: host: omap_hsmmc: enable/disable vmmc_aux regulator based on
+>     previous state
+>   mmc: host: omap_hsmmc: use regulator_is_enabled to find pbias status
+>   mmc: host: omap_hsmmc: use ios->vdd for setting vmmc voltage
+>   mmc: host: omap_hsmmc: remove CONFIG_REGULATOR check
+>
+> Roger Quadros (1):
+>   mmc: host: omap_hsmmc: use "mmc_of_parse_voltage" to get ocr_avail
+>
+>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 +
+>  drivers/mmc/host/omap_hsmmc.c                      |  340 +++++++++++++-------
+>  2 files changed, 224 insertions(+), 118 deletions(-)
+>
+> --
+> 1.7.9.5
+>
 
-Uh... :) Thanks Tony a lot and sorry for delayed reply (was ooo).
-You've restored my heartbeat :)
+I tried to apply this on top of my next branch, but it didn't work.
+Could you please rebase and send a v3!?
+While you do that, please add Tony's tested-by tag as well.
 
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> 
-> Note that I have not been able to test this with gpio button as my
-> boards are in a rack. You may want to do some gpio button tests to
-> make sure things wake up properly from off idle if you can get hold
-> of a beagle xm. I posted some instructions how to test earlier today
-> for Kishon in the "[PATCH v2 00/16] omap_hsmmc: regulator usage
-> cleanup and fixes" thread.
-
-
-I've tested it actually using GPIO buttons and UART console wake-up
-(Results - https://lkml.org/lkml/2015/8/14/194 :)
-
-And I'd try to retest it on beagle xm also, but not sure if i'd be able
-to test button's wake-up - have shared access only now to beagle xm
-which is rack also.
-
--- 
-regards,
--grygorii
+Kind regards
+Uffe
