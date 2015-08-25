@@ -1,52 +1,57 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 12/17] ARM: dts: am57xx-beagle-x15: Fix regulator populated
- in MMC1 dt node
-Date: Tue, 25 Aug 2015 12:06:55 +0530
-Message-ID: <55DC0D07.7030504@ti.com>
-References: <1438168187-1614-1-git-send-email-kishon@ti.com> <1438168187-1614-13-git-send-email-kishon@ti.com> <55B92B88.1080409@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH] spi: ti-qspi: use 128 bit transfer mode for writing to
+ flash
+Date: Tue, 25 Aug 2015 12:24:53 +0530
+Message-ID: <55DC113D.6000406@ti.com>
+References: <1440066659-5356-1-git-send-email-vigneshr@ti.com> <20150820175514.GG12027@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55B92B88.1080409-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, afenkart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150820175514.GG12027@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
 
-On Thursday 30 July 2015 01:07 AM, Nishanth Menon wrote:
-> On 07/29/2015 06:09 AM, Kishon Vijay Abraham I wrote:
->> For beagle x15, both the vdd and io lines are connected to the
->> same regulator (ldo1_reg). However vmmc_aux is populated to vdd_3v3.
->> Remove it.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->> ---
->>  arch/arm/boot/dts/am57xx-beagle-x15.dts |    1 -
->>  1 file changed, 1 deletion(-)
->>
->> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
->> index a63bf78..d0db5c5 100644
->> --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
->> +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
->> @@ -579,7 +579,6 @@
->>  	pinctrl-0 = <&mmc1_pins_default>;
->>  
->>  	vmmc-supply = <&ldo1_reg>;
->> -	vmmc_aux-supply = <&vdd_3v3>;
->>  	pbias-supply = <&pbias_mmc_reg>;
->>  	bus-width = <4>;
->>  	cd-gpios = <&gpio6 27 0>; /* gpio 219 */
->>
-> Acked-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 
-Can you pick this one or you want me to resend it?
+On 08/20/2015 11:25 PM, Mark Brown wrote:
+> On Thu, Aug 20, 2015 at 04:00:59PM +0530, Vignesh R wrote:
+> 
+>> -			writeb(*txbuf, qspi->base + QSPI_SPI_DATA_REG);
+>> +			if (count >= QSPI_WLEN_MAX_BYTES) {
+>> +				u32 *txp = (u32 *)txbuf;
+>> +
+>> +				data = cpu_to_be32(*txp++);
+>> +				writel(data, qspi->base +
+>> +				       QSPI_SPI_DATA_REG_3);
+>> +				data = cpu_to_be32(*txp++);
+>> +				writel(data, qspi->base +
+>> +				       QSPI_SPI_DATA_REG_2);
+>> +				data = cpu_to_be32(*txp++);
+>> +				writel(data, qspi->base +
+>> +				       QSPI_SPI_DATA_REG_1);
+>> +				data = cpu_to_be32(*txp++);
+>> +				writel(data, qspi->base +
+>> +				       QSPI_SPI_DATA_REG);
+>> +				xfer_len = QSPI_WLEN_MAX_BYTES;
+>> +				cmd |= QSPI_WLEN(QSPI_WLEN_MAX_BITS);
+>> +			} else {
+>> +				writeb(*txbuf, qspi->base + QSPI_SPI_DATA_REG);
+>> +				cmd = qspi->cmd | QSPI_WR_SNGL;
+>> +				xfer_len = wlen;
+>> +				cmd |= QSPI_WLEN(wlen);
+>> +			}
+> 
+> It's a bit sad that this isn't able to do a Duff's device type thing and
+> only kicks in for the full 128 bit FIFO size, it looks like it could do
+> any number of words.
+> 
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, any number of bytes can be transfered (max 16 bytes).
+I will try to work on your suggestion. Thanks!
+
+-- 
+Regards
+Vignesh
