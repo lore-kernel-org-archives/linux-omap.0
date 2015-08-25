@@ -1,58 +1,86 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to
- program pbias regulator
-Date: Tue, 25 Aug 2015 14:50:44 +0100
-Message-ID: <20150825135044.GJ27431@sirena.org.uk>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com>
- <1437996250-2913-2-git-send-email-kishon@ti.com>
- <20150814180006.GB10748@sirena.org.uk>
- <55D2C872.9000400@ti.com>
- <20150819181149.GZ10748@sirena.org.uk>
- <55DC3D58.4030409@ti.com>
+From: Paolo Pisati <p.pisati-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: omap_wdt: node present in device-tree but kmod is not autoloaded
+Date: Tue, 25 Aug 2015 16:06:07 +0200
+Message-ID: <20150825140607.GA23311@luxor.wired.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="5me2qT3T17SWzdxI"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55DC3D58.4030409@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Tero Kristo <t-kristo@ti.com>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-dt <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+The question is two-folded, hence the crossposting.
 
---5me2qT3T17SWzdxI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have a kernel that runs perfectly on my beaglebone black, except for one thing
+- the kmod for the watchdog is not autoloaded upon boot albeit the device-tree
+node is present:
 
-On Tue, Aug 25, 2015 at 01:03:04PM +0300, Grygorii Strashko wrote:
-> On 08/19/2015 09:11 PM, Mark Brown wrote:
+ubuntu@beaglebone:~$ dmesg | grep wdt
+ubuntu@beaglebone:~$ ll /dev/watch* 
+ls: cannot access /dev/watch*: No such file or directory
+ubuntu@beaglebone:~$ ls -la /proc/device-tree/ocp/wdt\@44e35000/
+total 0
+drwxr-xr-x  2 root root  0 Aug 25 13:43 .
+drwxr-xr-x 54 root root  0 Aug 25 13:43 ..
+-r--r--r--  1 root root 13 Aug 25 13:43 compatible
+-r--r--r--  1 root root  4 Aug 25 13:43 interrupts
+-r--r--r--  1 root root  4 Aug 25 13:43 name
+-r--r--r--  1 root root  8 Aug 25 13:43 reg
+-r--r--r--  1 root root 10 Aug 25 13:43 ti,hwmods
+ubuntu@beaglebone:~$ cat /proc/device-tree/ocp/wdt\@44e35000/compatible 
+ti,omap3-wdt
+ubuntu@beaglebone:~$ ls -la /sys/bus/platform/devices/ocp/*wdt*
+total 0
+drwxr-xr-x  3 root root    0 Aug 25 13:49 ./
+drwxr-xr-x 33 root root    0 Aug 25 13:49 ../
+-rw-r--r--  1 root root 4096 Aug 25 13:49 driver_override
+-r--r--r--  1 root root 4096 Aug 25 13:49 modalias
+lrwxrwxrwx  1 root root    0 Aug 25 13:49 of_node ->
+../../../../firmware/devicetree/base/ocp/wdt@44e35000/
+drwxr-xr-x  2 root root    0 Aug 25 13:49 power/
+lrwxrwxrwx  1 root root    0 Aug 25 13:49 subsystem -> ../../../../bus/platform/
+-rw-r--r--  1 root root 4096 Aug 25 13:49 uevent
 
-> > So substract this address from the start of the resource to get the
-> > offset?  Or provide a wrapper function in the resource code which does
-> > that. =20
+and if i manually load the module:
 
-> I'd be very appreciated if you have and can share any thought on
-> How can we get this absolute base address to substract?
+ubuntu@beaglebone:~$ sudo modprobe omap_wdt
+ubuntu@beaglebone:~$ dmesg | grep wdt
+[  388.104283] omap_wdt: OMAP Watchdog Timer Rev 0x01: initial timeout 60 sec
+ubuntu@beaglebone:~$ ls -la /dev/watchdog*
+crw------- 1 root root  10, 130 Aug 25 13:46 /dev/watchdog
+crw------- 1 root root 251,   0 Aug 25 13:46 /dev/watchdog0
+ubuntu@beaglebone:~$ ls -la /sys/bus/platform/devices/ocp/*wdt*                                                             
+total 0
+drwxr-xr-x  3 root root    0 Aug 25 13:53 .
+drwxr-xr-x 33 root root    0 Aug 25 13:49 ..
+lrwxrwxrwx  1 root root    0 Aug 25 13:53 driver ->
+../../../../bus/platform/drivers/omap_wdt
+-rw-r--r--  1 root root 4096 Aug 25 13:49 driver_override
+-r--r--r--  1 root root 4096 Aug 25 13:49 modalias
+lrwxrwxrwx  1 root root    0 Aug 25 13:49 of_node ->
+../../../../firmware/devicetree/base/ocp/wdt@44e35000
+drwxr-xr-x  2 root root    0 Aug 25 13:49 power
+lrwxrwxrwx  1 root root    0 Aug 25 13:49 subsystem -> ../../../../bus/platform
+-rw-r--r--  1 root root 4096 Aug 25 13:49 uevent
 
-Ask the syscon device for its resource?  Or have it provide an absolute
-address based interface for that matter?
+and then the device works as expected.
 
---5me2qT3T17SWzdxI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+So here are my questions:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+1) My understanding was that, once a device node was present in the device-tree
+and there was a compatible driver available, it would have been autoloaded, so why it's
+not happening here?
 
-iQEcBAEBCAAGBQJV3HKzAAoJECTWi3JdVIfQNPQH/iwE5u8dw8DI56x0gBtqou9D
-1nFzcRvJDsNV5k0ANg1KRyPGYUxWTb66x0rUV59IEQstvvDpmfI8Vm7eZzV1OQeo
-AJJ4HgmSSTaNSWPzbaRpKPdNq6523l38JKvoipqgwStYhsUeYo8dtPEUMrf4Gkhg
-/JXKufoC2VxpEPua082RdiXeICA5vXIx2MXpO40/y0CQkJP44Ig5qlNu3IO71jNz
-ywUElfDFQqHHffl7WRXGaqI+dH/22fm1GnWB/soXV3z8EjAj+t13qzMuaL/dtkx9
-jIwce7tZ0D027uFiJMvc5BPni7RlOLtZajsq+8RkgmLbezF0qgTIZQIqQax9OOs=
-=wEXm
------END PGP SIGNATURE-----
+2) And more importantly, how do i debug these situations?
+Building a kernel with the driver built-in, and comparing the two dmesgs, didn't
+show any noticeable difference either.
 
---5me2qT3T17SWzdxI--
+Any idea?
+-- 
+bye,
+p.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
