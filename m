@@ -1,42 +1,32 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [RFT PATCH] ARM: OMAP: Change all cpu_is_* occurences to soc_is_*
-Date: Tue, 25 Aug 2015 11:12:48 +0530
-Message-ID: <55DC0058.7080101@ti.com>
-References: <1439892601-19306-1-git-send-email-j-keerthy@ti.com> <20150824212442.GI7576@n2100.arm.linux.org.uk>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [net-next PATCH 1/3] drivers: net: cpsw: add am335x errata workarround
+ for interrutps
+Date: Tue, 25 Aug 2015 11:47:33 +0530
+Message-ID: <55DC087D.4090604@ti.com>
+References: <1439373175-8650-1-git-send-email-mugunthanvnm@ti.com> <1439373175-8650-2-git-send-email-mugunthanvnm@ti.com> <55DAEC28.3030107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150824212442.GI7576@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <55DAEC28.3030107@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, netdev@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, alex.aring@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
+On Monday 24 August 2015 03:34 PM, Sekhar Nori wrote:
+> Hi Mugunthan,
+> 
+> On Wednesday 12 August 2015 03:22 PM, Mugunthan V N wrote:
+>> > +static const struct of_device_id cpsw_of_mtable[] = {
+>> > +	{ .compatible = "ti,cpsw", .data = &cpsw_devtype[CPSW], },
+>> > +	{ .compatible = "ti,am335x-cpsw", .data = &cpsw_devtype[AM335X_CPSW], },
+>> > +	{ .compatible = "ti,am4372-cpsw", .data = &cpsw_devtype[AM4372_CPSW], },
+>> > +	{ .compatible = "ti,dra7-cpsw", .data = &cpsw_devtype[DRA7_CPSW], },
+> I do not see documentation added for these compatibles. Since the series
+> is already applied, can you send additional patches adding documentation?
 
+Will submit a patch ASAP
 
-On Tuesday 25 August 2015 02:54 AM, Russell King - ARM Linux wrote:
-> On Tue, Aug 18, 2015 at 03:40:01PM +0530, Keerthy wrote:
->> Currently apart from dra7, omap5 and amx3 all the other SoCs
->> are identified using cpu_is_* functions which is not right since
->> they are all SoCs(System on Chips). Hence changing the SoC
->> identific=E4tion code to use soc_is instead of cpu_is and keeping
->             ^
-> typo
-
-I will correct and send a v2.
-
->
->> defines for cpu_is where needed. This allows us to replace the
->> rest of cpu_is usage along with other fixes as needed.
->
-> Good to see this change to a more sensible naming of these, despite
-> the obvious churn.
->
-> Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-
-Thanks Russel. I will fix the above typo and add your Ack in the next=20
-version.
-
->
+Regards
+Mugunthan V N
