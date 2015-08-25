@@ -1,121 +1,78 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] of: device: fix NULL pointer dereference on driver removal
-Date: Tue, 25 Aug 2015 14:34:50 -0500
-Message-ID: <1440531290-17526-1-git-send-email-balbi@ti.com>
+Subject: CONFIG_DEBUG_SHIRQ and PM
+Date: Tue, 25 Aug 2015 14:58:30 -0500
+Message-ID: <20150825195830.GH27534@saruman.tx.rr.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9jHkwA2TBA/ec6v+"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-If we don't insert resources into the resource tree,
-calls to of_platform_depopulate() will end up in NULL
-pointer dereferences because the resource parent will
-be set to NULL even though we still have more resources
-to go through.
+--9jHkwA2TBA/ec6v+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Without this patch, the result is as follows:
+Hi Ingo,
 
-[   28.238158] Unable to handle kernel NULL pointer dereference at virtual address 00000008
-[   28.246646] pgd = ed3d8000
-[   28.249480] [00000008] *pgd=00000000
-[   28.253247] Internal error: Oops: 5 [#1] SMP ARM
-[   28.258072] Modules linked in: input_leds hid_generic usbkbd usbhid
-xhci_plat_hcd xhci_hcd usbcore joydev dwc3 udc_core usb_common m25p80 evdev spi_nor omapfb cfbfillrect cfbimg blt cpufreq_dt cfbcopyarea thermal_sys snd_soc_simple_card leds_gpio matrix_keypad pwm_bl hwmon led_class matrix_keymap panel_dpi snd_soc_tlv320aic3x snd_soc_davinci_mcasp snd_soc_edma snd_soc_omap snd_soc_core omapdss snd_compress snd_pcm_dmaengine snd_pcm dwc3_omap(-) extcon snd_timer pwm_tiecap snd lis3lv02d_i2c lis3lv02d soundcore input_polldev rtc_omap spi_ti_qspi tps65218_pwrbutton omap_wdt phy_omap_usb2 autofs4
-[   28.313186] CPU: 0 PID: 289 Comm: modprobe Not tainted 4.2.0-rc7-next-20150824-00002-g5681a109a938-dirty #1093
-[   28.323643] Hardware name: Generic AM43 (Flattened Device Tree)
-[   28.329836] task: ed39d180 ti: ed076000 task.ti: ed076000
-[   28.335496] PC is at __release_resource+0x30/0x13c
-[   28.340501] LR is at __release_resource+0x24/0x13c
-[   28.345501] pc : [<c00439e0>]    lr : [<c00439d4>]    psr: 600d0013
-[   28.345501] sp : ed077e98  ip : 00000007  fp : befb3e14
-[   28.357487] r10: 00000000  r9 : ed076000  r8 : c000f724
-[   28.362941] r7 : 00000000  r6 : ee6f9800  r5 : ed268d40  r4 : c094679c
-[   28.369755] r3 : 00000000  r2 : 000000f4  r1 : c0648b34  r0 : 00000045
-[   28.376560] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM Segment user
-[   28.384008] Control: 10c5387d  Table: ad3d8059  DAC: 00000015
-[   28.390005] Process modprobe (pid: 289, stack limit = 0xed076218)
-[   28.396375] Stack: (0xed077e98 to 0xed078000)
-[   28.400924] 7e80: ed268d40 00000000
-[   28.409455] 7ea0: befb3e14 c0640838 00000001 c094679c ed268d40 ee6f9800 00000081 c0043b1c
-[   28.417996] 7ec0: 0000001c 00000001 ee6f9800 c03e2674 ee6f9800 00000000 c04d3f20 c03e26ac
-[   28.426537] 7ee0: ee6f9810 c04d3fac 00000000 c03dcf10 ee1592c0 ed268cf0 ee170010 ee170010
-[   28.435065] 7f00: ee170044 c04d3f08 ed268ed0 bf093208 ee170010 bf093c94 ee170044 c03e2754
-[   28.443607] 7f20: ee170010 bf093c94 ee170044 c03e095c ee170010 bf093c94 ee170044 c03e116c
-[   28.452150] 7f40: bf093c94 7f6232fc 00000800 c03e04e4 bf093d00 c00c8a80 00000000 33637764
-[   28.460703] 7f60: 616d6f5f b6f70070 ed39d180 00000000 ed076000 00000000 befb3e14 c005be74
-[   28.469241] 7f80: 00000000 ed076000 7f6232c0 7f6232c0 00000001 0000f67c 7f6232c0 7f6232c0
-[   28.477783] 7fa0: 00000001 c000f540 7f6232c0 7f6232c0 7f6232fc 00000800 66d19c00 00000000
-[   28.486341] 7fc0: 7f6232c0 7f6232c0 00000001 00000081 00000000 00000001 7f6232c0 befb3e14
-[   28.494903] 7fe0: b6f1c2e1 befb2a3c 7f60638f b6f1c2e6 800d0030 7f6232fc 00000000 00000000
-[   28.503476] [<c00439e0>] (__release_resource) from [<c0043b1c>] (release_resource+0x30/0x54)
-[   28.512299] [<c0043b1c>] (release_resource) from [<c03e2674>] (platform_device_del+0x70/0x9c)
-[   28.521218] [<c03e2674>] (platform_device_del) from [<c03e26ac>] (platform_device_unregister+0xc/0x20)
-[   28.530962] [<c03e26ac>] (platform_device_unregister) from [<c04d3fac>] (of_platform_device_destroy+0x8c/0x98)
-[   28.541425] [<c04d3fac>] (of_platform_device_destroy) from [<c03dcf10>] (device_for_each_child+0x50/0x7c)
-[   28.551430] [<c03dcf10>] (device_for_each_child) from [<c04d3f08>] (of_platform_depopulate+0x2c/0x44)
-[   28.561101] [<c04d3f08>] (of_platform_depopulate) from [<bf093208>] (dwc3_omap_remove+0x3c/0x5c [dwc3_omap])
-[   28.571390] [<bf093208>] (dwc3_omap_remove [dwc3_omap]) from [<c03e2754>] (platform_drv_remove+0x18/0x30)
-[   28.581387] [<c03e2754>] (platform_drv_remove) from [<c03e095c>] (__device_release_driver+0x88/0x114)
-[   28.591023] [<c03e095c>] (__device_release_driver) from [<c03e116c>] (driver_detach+0xb4/0xb8)
-[   28.600014] [<c03e116c>] (driver_detach) from [<c03e04e4>] (bus_remove_driver+0x4c/0xa0)
-[   28.608485] [<c03e04e4>] (bus_remove_driver) from [<c00c8a80>] (SyS_delete_module+0x11c/0x1e4)
-[   28.617518] [<c00c8a80>] (SyS_delete_module) from [<c000f540>] (ret_fast_syscall+0x0/0x54)
-[   28.626172] Code: eb0354bf e5957010 e3a020f4 e59f10f0 (e5973008)
-[   28.632722] ---[ end trace d2a21fc5d73a2dfd ]---
+I'm facing an issue with CONFIG_DEBUG_SHIRQ and pm_runtime when using
+devm_request_*irq().
 
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+If we using devm_request_*irq(), that irq will be freed after device
+drivers' ->remove() gets called. If on ->remove(), we're calling
+pm_runtime_put_sync(); pm_runtime_disable(), device's clocks might get
+gated and, because we do an extra call to the device's IRQ handler when
+CONFIG_DEBUG_SHIRQ=3Dy, we might trigger an abort exception if, inside the
+IRQ handler, we try to read a register which is clocked by the device's
+clock.
 
-very easy to trigger with 'modprobe -r dwc3-omap' on any of TI's platform
-sporting dwc3
+This is, of course, really old code which has been in tree for many,
+many years. I guess nobody has been running their tests in the setup
+mentioned above (CONFIG_DEBUG_SHIRQ=3Dy, pm_runtime_put_sync() on
+->remove(), a register read on IRQ handler, and a shared IRQ handler),
+so that's why we never caught this before.
 
- drivers/of/device.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+Disabling CONFIG_DEBUG_SHIRQ, of course, makes the problem go away, but
+if driver *must* be ready to receive, and handle, an IRQ even during
+module removal, I wonder what the IRQ handler should do. We can't, in
+most cases, call pm_runtime_put_sync() from IRQ handler.
 
-diff --git a/drivers/of/device.c b/drivers/of/device.c
-index 8b91ea241b10..c03600c08207 100644
---- a/drivers/of/device.c
-+++ b/drivers/of/device.c
-@@ -53,6 +53,8 @@ EXPORT_SYMBOL(of_dev_put);
- 
- int of_device_add(struct platform_device *ofdev)
- {
-+	int i;
-+
- 	BUG_ON(ofdev->dev.of_node == NULL);
- 
- 	/* name and id have to be set so that the platform bus doesn't get
-@@ -66,6 +68,27 @@ int of_device_add(struct platform_device *ofdev)
- 	if (!ofdev->dev.parent)
- 		set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
- 
-+	/* insert resources into the resource tree */
-+	for (i = 0; i < ofdev->num_resources; i++) {
-+		struct resource *p, *r = &ofdev->resource[i];
-+
-+		if (r->name == NULL)
-+			r->name = dev_name(&ofdev->dev);
-+
-+		p = r->parent;
-+		if (!p) {
-+			if (resource_type(r) == IORESOURCE_MEM)
-+				p = &iomem_resource;
-+			else if (resource_type(r) == IORESOURCE_IO)
-+				p = &ioport_resource;
-+		}
-+
-+		if (p && insert_resource(p, r)) {
-+			dev_err(&ofdev->dev, "failed to claim resource %d\n", i);
-+			return -EBUSY;
-+		}
-+	}
-+
- 	return device_add(&ofdev->dev);
- }
- 
--- 
-2.5.0
+I'm guessing the only way would be to move pm_runtime calls into the bus
+driver (in this case, the platform_bus) and make sure it only gets
+called after device managed resources are freed ?
+
+Any hints would be greatly appreciated.
+
+cheers
+
+--=20
+balbi
+
+--9jHkwA2TBA/ec6v+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJV3MjmAAoJEIaOsuA1yqREtNYP/3dsI7WtNXXQSh2a240ysgMU
+MWanrsb3LF7gtfW0mjL5zBfAvzUN2rHpSmfixS2qU2cv61VD9dVyrG0CgYdCxyqc
+PuRDwKHCNcrUxdzQIHrQ/Xxeo9pONiJFwQevgqvMFZun+ciu83EDFdXlDEyGpsfS
+EdZwBZH33h7P/K/tio/TEKPC5jrK2Elftd43SUitJYdiCL/4x46+Dm/hNK5jJw4n
+22pxxE/WqCPEEaZ8tkqmzlW0Q1vaNDR37gb0WZniuZpJsYXwFTx7Il+X2Y2k0LyF
+JdmUVK0F7hBbuCf3EPVSyR56F+Hin9B5g16Hhndt1v7b2MUvFJvKoOlNrMOKZct/
+64atfNXrztTIw6i85QAYDrZ/BdV5+5LK0DShkiNnBd7ucghCjLh9a4ZursfSX1EK
+TXzQF0kubBFkkxOnWXO5+hxeuLvna7reWMVTVGbOgLvBGG9c5CzYGfWU6iXED9E3
+xmpeJS970SV+WvV+UAYAgHw2X7kmaL1RO1f6ir7U81Sqfs0DfKPh+iS9KavxzWhX
+T4iHa1WiONcc5OZmrzalWGxM6foCQ/MWNR1fafWOvb+GOQeNsOBewuNTpSIslF37
+UkDJ9vBRJ0zOHsin/BypYYDpMM6O1gyXe4lm07CTkpr2T65XDfad9ir5E+OnT/WU
+9RUSLuBWO0RRXdT8kEgU
+=95Ib
+-----END PGP SIGNATURE-----
+
+--9jHkwA2TBA/ec6v+--
