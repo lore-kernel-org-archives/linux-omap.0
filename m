@@ -1,57 +1,52 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH] spi: ti-qspi: use 128 bit transfer mode for writing to
- flash
-Date: Tue, 25 Aug 2015 12:24:53 +0530
-Message-ID: <55DC113D.6000406@ti.com>
-References: <1440066659-5356-1-git-send-email-vigneshr@ti.com> <20150820175514.GG12027@sirena.org.uk>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 00/11] omap_hsmmc: voltage switching and tuning
+Date: Tue, 25 Aug 2015 14:35:31 +0530
+Message-ID: <1440493542-26150-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150820175514.GG12027@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: ulf.hansson@linaro.org, afenkart@gmail.com, tony@atomide.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Cc: neilb@suse.de, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Patch series implements voltage switching and tuning for omap_hsmmc
+driver.
 
+Changes from v1:
+*) rebased on top of [1]
+*) Patch breaking omap3 beagle xm is fixed. (set clk rate patch was
+   breaking beagle xm)
 
-On 08/20/2015 11:25 PM, Mark Brown wrote:
-> On Thu, Aug 20, 2015 at 04:00:59PM +0530, Vignesh R wrote:
-> 
->> -			writeb(*txbuf, qspi->base + QSPI_SPI_DATA_REG);
->> +			if (count >= QSPI_WLEN_MAX_BYTES) {
->> +				u32 *txp = (u32 *)txbuf;
->> +
->> +				data = cpu_to_be32(*txp++);
->> +				writel(data, qspi->base +
->> +				       QSPI_SPI_DATA_REG_3);
->> +				data = cpu_to_be32(*txp++);
->> +				writel(data, qspi->base +
->> +				       QSPI_SPI_DATA_REG_2);
->> +				data = cpu_to_be32(*txp++);
->> +				writel(data, qspi->base +
->> +				       QSPI_SPI_DATA_REG_1);
->> +				data = cpu_to_be32(*txp++);
->> +				writel(data, qspi->base +
->> +				       QSPI_SPI_DATA_REG);
->> +				xfer_len = QSPI_WLEN_MAX_BYTES;
->> +				cmd |= QSPI_WLEN(QSPI_WLEN_MAX_BITS);
->> +			} else {
->> +				writeb(*txbuf, qspi->base + QSPI_SPI_DATA_REG);
->> +				cmd = qspi->cmd | QSPI_WR_SNGL;
->> +				xfer_len = wlen;
->> +				cmd |= QSPI_WLEN(wlen);
->> +			}
-> 
-> It's a bit sad that this isn't able to do a Duff's device type thing and
-> only kicks in for the full 128 bit FIFO size, it looks like it could do
-> any number of words.
-> 
+[1] -> https://lkml.org/lkml/2015/8/21/125
 
-Yes, any number of bytes can be transfered (max 16 bytes).
-I will try to work on your suggestion. Thanks!
+Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
+Beaglebone black, OMAP5 uEVM and OMAP4 PANDA, OMAP3 beagle xm.
+Also performed PM suspend/resume test with OMAP3 beagle xm.
+
+Balaji T K (2):
+  mmc: host: omap_hsmmc: add voltage switch support for UHS SD card
+  mmc: host: omap_hsmmc: add tuning support
+
+Kishon Vijay Abraham I (8):
+  mmc: host: omap_hsmmc: Support vmmc_aux to switch to 1.8v
+  mmc: host: omap_hsmmc: separate setting voltage capabilities from bus
+    power
+  mmc: host: omap_hsmmc: program HCTL based on signal_voltage set by
+    mmc core
+  mmc: host: omap_hsmmc: set clk rate to the max frequency
+  mmc: host: omap_hsmmc: set timing in the UHSMS field
+  mmc: host: omap_hsmmc: Workaround for errata id i802
+  mmc: host: omap_hsmmc: Allow io voltage switch even for fixed vdd
+  mmc: host: omap_hsmmc: remove incorrect voltage switch sequence
+
+Mugunthan V N (1):
+  mmc: host: omap_hsmmc: add software timer when timeout greater than
+    hardware capablility
+
+ drivers/mmc/host/omap_hsmmc.c |  677 +++++++++++++++++++++++++++++++++--------
+ 1 file changed, 554 insertions(+), 123 deletions(-)
 
 -- 
-Regards
-Vignesh
+1.7.9.5
+
