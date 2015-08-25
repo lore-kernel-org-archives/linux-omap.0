@@ -1,78 +1,40 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: CONFIG_DEBUG_SHIRQ and PM
-Date: Tue, 25 Aug 2015 14:58:30 -0500
-Message-ID: <20150825195830.GH27534@saruman.tx.rr.com>
-Reply-To: <balbi@ti.com>
+From: Vishal Mahaveer <vishalm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: DRA7: fix a typo in ethernet
+Date: Tue, 25 Aug 2015 16:50:50 -0500
+Message-ID: <1440539450-8393-1-git-send-email-vishalm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9jHkwA2TBA/ec6v+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---9jHkwA2TBA/ec6v+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Register address in name of the node is wrong
 
-Hi Ingo,
+Signed-off-by: Vishal Mahaveer <vishalm-l0cyMroinI0@public.gmane.org>
+Acked-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra7.dtsi |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I'm facing an issue with CONFIG_DEBUG_SHIRQ and pm_runtime when using
-devm_request_*irq().
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 1e29ccf..9a20d46 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1398,7 +1398,7 @@
+ 			ti,irqs-safe-map = <0>;
+ 		};
+ 
+-		mac: ethernet@4a100000 {
++		mac: ethernet@48484000 {
+ 			compatible = "ti,cpsw";
+ 			ti,hwmods = "gmac";
+ 			clocks = <&dpll_gmac_ck>, <&gmac_gmii_ref_clk_div>;
+-- 
+1.7.4.1
 
-If we using devm_request_*irq(), that irq will be freed after device
-drivers' ->remove() gets called. If on ->remove(), we're calling
-pm_runtime_put_sync(); pm_runtime_disable(), device's clocks might get
-gated and, because we do an extra call to the device's IRQ handler when
-CONFIG_DEBUG_SHIRQ=3Dy, we might trigger an abort exception if, inside the
-IRQ handler, we try to read a register which is clocked by the device's
-clock.
-
-This is, of course, really old code which has been in tree for many,
-many years. I guess nobody has been running their tests in the setup
-mentioned above (CONFIG_DEBUG_SHIRQ=3Dy, pm_runtime_put_sync() on
-->remove(), a register read on IRQ handler, and a shared IRQ handler),
-so that's why we never caught this before.
-
-Disabling CONFIG_DEBUG_SHIRQ, of course, makes the problem go away, but
-if driver *must* be ready to receive, and handle, an IRQ even during
-module removal, I wonder what the IRQ handler should do. We can't, in
-most cases, call pm_runtime_put_sync() from IRQ handler.
-
-I'm guessing the only way would be to move pm_runtime calls into the bus
-driver (in this case, the platform_bus) and make sure it only gets
-called after device managed resources are freed ?
-
-Any hints would be greatly appreciated.
-
-cheers
-
---=20
-balbi
-
---9jHkwA2TBA/ec6v+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJV3MjmAAoJEIaOsuA1yqREtNYP/3dsI7WtNXXQSh2a240ysgMU
-MWanrsb3LF7gtfW0mjL5zBfAvzUN2rHpSmfixS2qU2cv61VD9dVyrG0CgYdCxyqc
-PuRDwKHCNcrUxdzQIHrQ/Xxeo9pONiJFwQevgqvMFZun+ciu83EDFdXlDEyGpsfS
-EdZwBZH33h7P/K/tio/TEKPC5jrK2Elftd43SUitJYdiCL/4x46+Dm/hNK5jJw4n
-22pxxE/WqCPEEaZ8tkqmzlW0Q1vaNDR37gb0WZniuZpJsYXwFTx7Il+X2Y2k0LyF
-JdmUVK0F7hBbuCf3EPVSyR56F+Hin9B5g16Hhndt1v7b2MUvFJvKoOlNrMOKZct/
-64atfNXrztTIw6i85QAYDrZ/BdV5+5LK0DShkiNnBd7ucghCjLh9a4ZursfSX1EK
-TXzQF0kubBFkkxOnWXO5+hxeuLvna7reWMVTVGbOgLvBGG9c5CzYGfWU6iXED9E3
-xmpeJS970SV+WvV+UAYAgHw2X7kmaL1RO1f6ir7U81Sqfs0DfKPh+iS9KavxzWhX
-T4iHa1WiONcc5OZmrzalWGxM6foCQ/MWNR1fafWOvb+GOQeNsOBewuNTpSIslF37
-UkDJ9vBRJ0zOHsin/BypYYDpMM6O1gyXe4lm07CTkpr2T65XDfad9ir5E+OnT/WU
-9RUSLuBWO0RRXdT8kEgU
-=95Ib
------END PGP SIGNATURE-----
-
---9jHkwA2TBA/ec6v+--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
