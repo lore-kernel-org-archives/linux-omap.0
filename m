@@ -1,105 +1,103 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: omapdss: Division by zero in kernel
-Date: Wed, 26 Aug 2015 12:16:12 +0200
-Message-ID: <20150826101612.GI27333@pali>
-References: <201507241803.42891@pali>
- <55D6E466.5060706@ti.com>
- <20150821084807.GD27391@pali>
- <55D6ECB5.6010708@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 16/16] mmc: host: omap_hsmmc: use "mmc_of_parse_voltage"
+ to get ocr_avail
+Date: Wed, 26 Aug 2015 17:51:12 +0530
+Message-ID: <55DDAF38.4040502@ti.com>
+References: <1438604801-11823-1-git-send-email-kishon@ti.com>	<1438604801-11823-17-git-send-email-kishon@ti.com> <CAPDyKFoctSjBb0aPFNe0cyHe0uoD_DkWooQ-yyTX-P+bGJa_Vw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55D6ECB5.6010708@ti.com>
+In-Reply-To: <CAPDyKFoctSjBb0aPFNe0cyHe0uoD_DkWooQ-yyTX-P+bGJa_Vw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Roger Quadros <rogerq@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 21 August 2015 12:17:41 Tomi Valkeinen wrote:
->=20
->=20
-> On 21/08/15 11:48, Pali Roh=C3=A1r wrote:
-> > On Friday 21 August 2015 11:42:14 Tomi Valkeinen wrote:
-> >>
-> >>
-> >> On 24/07/15 19:03, Pali Roh=C3=A1r wrote:
-> >>> Hello,
-> >>>
-> >>> when on N900 (real HW or qemu) I run this command
-> >>>
-> >>> / # echo 0 > /sys/devices/platform/omapdss/overlay0/enabled && ec=
-ho 0 > /sys/class/graphics/fb0/size
-> >>>
-> >>> then kernel crash with this error message
-> >>>
-> >>> / # [   29.904113] Division by zero in kernel.
-> >>
-> >=20
-> > Hi! Thanks for explaining.
-> >=20
-> >> The problem is that fb console uses the kernel mmapped framebuffer=
-, but
-> >> omapfb is not aware of the fb console. So the above commands free =
-the
-> >> framebuffer, as omapfb thinks no one is using it, and then fb cons=
-ole
-> >> tries to touch the fb.
-> >>
-> >=20
-> > What about refusing those calls from fb console? So fb console will=
- not
-> > know about this problem and omapfb will just ignore drawn functions=
-?
->=20
-> Hmm, I'm not sure I understand what you mean... omapfb is not drawing
-> anything, fbcon is doing the drawing independently to the fb. And the=
- fb
-> suddenly disappears without fbcon realizing that.
->=20
-> >> omapfb tracks mmaps from userspace, and refuses to free a fb it it=
-'s
-> >> mmapped.
-> >>
-> >> I don't know how to fix it straight away. Maybe there's a way for =
-omapfb
-> >> to check if the fbcon uses the fb in question, and if so, refuses =
-to
-> >> release/resize the memory.
-> >>
-> >>  Tomi
-> >>
-> >=20
-> > Maemo userspace (on Nokia N900) uses above commands to initialize
-> > graphic and Xserver. So it would be nice if disabling framebuffer w=
-ould
-> > work even if fbcon.ko is loaded (or compiled directly into zImage).
->=20
-> Ok. And N900 has fbcon enabled? I wonder how it survives...
->=20
+Hi Ulf,
 
-Depends on compiled kernel. Original stock Nokia kernel 2.6.28 has it
-disabled, but when I recompiled it with fbcon (either static linked int=
-o
-zImage or external fbcon.ko) it works and I do not see any problem.
+On Tuesday 25 August 2015 08:20 PM, Ulf Hansson wrote:
+> On 3 August 2015 at 14:26, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> From: Roger Quadros <rogerq@ti.com>
+>>
+>> For platforms that doesn't have explicit regulator control in MMC,
+>> populate voltage-ranges in MMC device tree node and use
+>> mmc_of_parse_voltage to get ocr_avail
+> 
+> I don't like this.
+> 
+> If we are able to fetch the OCR mask via an external regulator, that
+> shall be done.
+> 
+> I think the mmc_of_parse_voltage() API and the corresponding DT
+> binding it parses, should be used for those HW when we don't have an
+> external regulator to use. For example if the MMC controller itself
+> somehow controls the voltage levels. Is that really the case for you?
 
-So I think it survives...
+This was actually added to support Galileo platform which doesn't have
+regulators modelled. Indeed it would be better to model external
+regulators (even if it is always on) and get OCR from the regulator.
 
-> fbcon can be unbound from userspace with something like:
->=20
-> echo 0 > /sys/class/vtconsole/vtcon1/bind
->=20
-> After that I think the memory can be freed.
->=20
-> But obviously the kernel should not crash here, no question about tha=
-t.
->=20
->  Tomi
->=20
+I'll drop this patch and re-send the series re-based to your next branch.
 
-Maybe just adding that test for zero to prevent division by zero?
+Thanks
+Kishon
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+> 
+> Kind regards
+> Uffe
+> 
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 ++
+>>  drivers/mmc/host/omap_hsmmc.c                      |    9 ++++++++-
+>>  2 files changed, 10 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>> index 76bf087..2408e87 100644
+>> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>> @@ -22,6 +22,8 @@ ti,dual-volt: boolean, supports dual voltage cards
+>>  ti,non-removable: non-removable slot (like eMMC)
+>>  ti,needs-special-reset: Requires a special softreset sequence
+>>  ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
+>> +voltage-ranges: Specify the voltage range supported if regulator framework
+>> +isn't enabled.
+>>  dmas: List of DMA specifiers with the controller specific format
+>>  as described in the generic DMA client binding. A tx and rx
+>>  specifier is required.
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 15973f1..d884d8f 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -2184,7 +2184,13 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>                         goto err_irq;
+>>         }
+>>
+>> -       mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
+>> +       if (!mmc_pdata(host)->ocr_mask) {
+>> +               ret = mmc_of_parse_voltage(pdev->dev.of_node, &mmc->ocr_avail);
+>> +               if (ret)
+>> +                       goto err_parse_voltage;
+>> +       } else {
+>> +               mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
+>> +       }
+>>
+>>         omap_hsmmc_disable_irq(host);
+>>
+>> @@ -2224,6 +2230,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>
+>>  err_slot_name:
+>>         mmc_remove_host(mmc);
+>> +err_parse_voltage:
+>>         omap_hsmmc_reg_put(host);
+>>  err_irq:
+>>         device_init_wakeup(&pdev->dev, false);
+>> --
+>> 1.7.9.5
+>>
