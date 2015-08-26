@@ -1,68 +1,42 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 0/2] OMAPDSS: Couple of HDMI audio fixes
-Date: Wed, 26 Aug 2015 18:42:54 +0100
-Message-ID: <20150826174254.GB28760@sirena.org.uk>
-References: <cover.1440594174.git.jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH -next] smsc911x: Fix crash seen if neither ACPI nor OF is
+ configured or used
+Date: Wed, 26 Aug 2015 10:48:36 -0700
+Message-ID: <20150826174835.GQ4215@atomide.com>
+References: <1439844336-21596-1-git-send-email-linux@roeck-us.net>
+ <20150826170410.GP4215@atomide.com>
+ <55DDF7F8.2030304@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0388446458849526442=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <cover.1440594174.git.jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55DDF7F8.2030304@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Guenter Roeck <linux@roeck-us.net>, Steve Glendinning <steve.glendinning@shawell.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Jeremy Linton <jeremy.linton@arm.com> [150826 10:35]:
+> On 08/26/2015 12:04 PM, Tony Lindgren wrote:
+> >* Guenter Roeck <linux@roeck-us.net> [150817 13:48]:
+> >>Commit 0b50dc4fc971 ("Convert smsc911x to use ACPI as well as DT") makes
+> >Looks like this change makes at least omap boards using smsc911x
+> >fail with -22 for me in Linux next.
+> >
+> >Do any of the the device tree configured smsc911x devices actually
+> >have a phy configured?
+> 
+> Tony,
+> 
+> 	Looks like all the ones in the kernel boot/dts directory have a phy
+> including the omap3-lilly except for the ste-snowball.dts.
+> 
+> 	Do you have smsc,force-internal-phy set instead?
 
---===============0388446458849526442==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
-Content-Disposition: inline
+Hmm most of them are using omap-gpmc-smsc911x.dtsi and
+omap-gpmc-smsc9221.dtsi which are set up the same way as
+omap3-lilly. So no phy.
 
+Regards,
 
---TRYliJ5NKNqkz5bu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Aug 26, 2015 at 04:11:38PM +0300, Jyri Sarha wrote:
-
-> The two fixes are totally independent and the video and audio side
-> patches applied separately trough their own trees.
-
-In general if patches aren't related to each other either through code
-overlap or through content it's better to just send them as individual
-changes, that avoids any potential for confusion.
-
---TRYliJ5NKNqkz5bu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV3fqdAAoJECTWi3JdVIfQxNcIAIHzZws5nLgKZj7ttMs+G0S3
-3B/McybzzK/F6GXoqLJ3e/HWlp3vaR3Is46jB2X/cta1Zm0HOam+sdYKmzAyXtlD
-/mpFdVv3C9buofUPhECy9NPHEgX2TfInKOKRU+8hs8Niytcsjfq5yVBzCL3x2HS8
-NxeTZ39oUR/xH8jUnDIVVl/EJyP2bLd1ZTG43cBJ7nDbn67DlwKcemg1uMCrUHdZ
-ANZ/3z+uTTP56CJIjsfYYA2RSpOceFHTdRGjoyy2z5wELt9oJHp/Aauj2y+ZtdjW
-F5DNmaWuZomFGeSUFA9p100O882idHPx3rl9MHiVreQszPbOXgzCskA35I7cD/M=
-=zdqV
------END PGP SIGNATURE-----
-
---TRYliJ5NKNqkz5bu--
-
---===============0388446458849526442==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============0388446458849526442==--
+Tony
