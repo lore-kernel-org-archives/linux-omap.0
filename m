@@ -1,82 +1,68 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH -next] smsc911x: Fix crash seen if neither ACPI nor OF
- is configured or used
-Date: Wed, 26 Aug 2015 10:36:57 -0700
-Message-ID: <55DDF939.9050209@roeck-us.net>
-References: <1439844336-21596-1-git-send-email-linux@roeck-us.net> <20150826170410.GP4215@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 0/2] OMAPDSS: Couple of HDMI audio fixes
+Date: Wed, 26 Aug 2015 18:42:54 +0100
+Message-ID: <20150826174254.GB28760@sirena.org.uk>
+References: <cover.1440594174.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150826170410.GP4215@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Steve Glendinning <steve.glendinning@shawell.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0388446458849526442=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <cover.1440594174.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
 
-On 08/26/2015 10:04 AM, Tony Lindgren wrote:
-> Hi,
->
-> * Guenter Roeck <linux@roeck-us.net> [150817 13:48]:
->> Commit 0b50dc4fc971 ("Convert smsc911x to use ACPI as well as DT") makes
->> the call to smsc911x_probe_config() unconditional, and no longer fails if
->> there is no device node. device_get_phy_mode() is called unconditionally,
->> and if there is no phy node configured returns an error code. This error
->> code is assigned to phy_interface, and interpreted elsewhere in the code
->> as valid phy mode. This in turn causes qemu to crash when running a
->> variant of realview_pb_defconfig.
->>
->> 	qemu: hardware error: lan9118_read: Bad reg 0x86
->>
->> Fixes: 0b50dc4fc971 ("Convert smsc911x to use ACPI as well as DT")
->> Cc: Jeremy Linton <jeremy.linton@arm.com>
->> Cc Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->>   drivers/net/ethernet/smsc/smsc911x.c | 7 ++++++-
->>   1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
->> index 0f21aa3bb537..34f97684506b 100644
->> --- a/drivers/net/ethernet/smsc/smsc911x.c
->> +++ b/drivers/net/ethernet/smsc/smsc911x.c
->> @@ -2367,12 +2367,17 @@ static const struct smsc911x_ops shifted_smsc911x_ops = {
->>   static int smsc911x_probe_config(struct smsc911x_platform_config *config,
->>   				 struct device *dev)
->>   {
->> +	int phy_interface;
->>   	u32 width = 0;
->>
->>   	if (!dev)
->>   		return -ENODEV;
->>
->> -	config->phy_interface = device_get_phy_mode(dev);
->> +	phy_interface = device_get_phy_mode(dev);
->> +	if (phy_interface < 0)
->> +		return phy_interface;
->> +
->> +	config->phy_interface = phy_interface;
->>
->>   	device_get_mac_address(dev, config->mac, ETH_ALEN);
->
-> Looks like this change makes at least omap boards using smsc911x
-> fail with -22 for me in Linux next.
->
+--===============0388446458849526442==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
+Content-Disposition: inline
 
-What do you see if you revert my patch ? It should assign -22, or its
-unsigned representation, to phy_interface, which isn't such a good idea
-either.
 
-> Do any of the the device tree configured smsc911x devices actually
-> have a phy configured?
->
-Good question, and beats me. Looking into the original code,
-it didn't check for an error return from of_get_phy_mode() either,
-and thus _would_ dutifully assign the error code to phy_interface.
-Wonder how was this supposed to work to start with.
+--TRYliJ5NKNqkz5bu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I'll do some debugging and try to find out what exactly is going on.
+On Wed, Aug 26, 2015 at 04:11:38PM +0300, Jyri Sarha wrote:
 
-Guenter
+> The two fixes are totally independent and the video and audio side
+> patches applied separately trough their own trees.
+
+In general if patches aren't related to each other either through code
+overlap or through content it's better to just send them as individual
+changes, that avoids any potential for confusion.
+
+--TRYliJ5NKNqkz5bu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJV3fqdAAoJECTWi3JdVIfQxNcIAIHzZws5nLgKZj7ttMs+G0S3
+3B/McybzzK/F6GXoqLJ3e/HWlp3vaR3Is46jB2X/cta1Zm0HOam+sdYKmzAyXtlD
+/mpFdVv3C9buofUPhECy9NPHEgX2TfInKOKRU+8hs8Niytcsjfq5yVBzCL3x2HS8
+NxeTZ39oUR/xH8jUnDIVVl/EJyP2bLd1ZTG43cBJ7nDbn67DlwKcemg1uMCrUHdZ
+ANZ/3z+uTTP56CJIjsfYYA2RSpOceFHTdRGjoyy2z5wELt9oJHp/Aauj2y+ZtdjW
+F5DNmaWuZomFGeSUFA9p100O882idHPx3rl9MHiVreQszPbOXgzCskA35I7cD/M=
+=zdqV
+-----END PGP SIGNATURE-----
+
+--TRYliJ5NKNqkz5bu--
+
+--===============0388446458849526442==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0388446458849526442==--
