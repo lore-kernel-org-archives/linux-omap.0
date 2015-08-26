@@ -1,12 +1,15 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] ARM: OMAP2+: omap-device: remove omap_device_late_init call
- completely
-Date: Wed, 26 Aug 2015 20:58:10 +0300
-Message-ID: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap-device: remove omap_device_late_init
+ call completely
+Date: Wed, 26 Aug 2015 11:10:06 -0700
+Message-ID: <20150826181006.GT4215@atomide.com>
+References: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,201 +19,68 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, t-kristo@ti.com
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux@arm.linux.org.uk, Keerthy <j-keerthy@ti.com>, nsekhar@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux@arm.linux.org.uk, Keerthy <j-keerthy@ti.com>, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now Kernel fails to boot 50% of times (form build to build) with
-RT-patchset applied due to the following race - on late boot
-stages deferred_probe_work_func races with omap_device_late_ini
+* Grygorii Strashko <grygorii.strashko@ti.com> [150826 11:01]:
+> Now Kernel fails to boot 50% of times (form build to build) with
+> RT-patchset applied due to the following race - on late boot
+> stages deferred_probe_work_func races with omap_device_late_ini
+> 
+> late_initcall
+>  - deferred_probe_initcal() tries to re-probe all pending driver's probe.
+>    [In general, It's NOT expected to probe any other built-in drivers after
+>    deferred_probe_initcal() is finished, because most of
+>    late_initcall_sync/late_initcall functions expected that all driver
+>    or probed or deferred already.]
+> 
+> - later on, some driver is probing in this case It's could cpsw.c
+>   (but could be any other drivers)
+>   cpsw_init
+>   - platform_driver_register
+>     - really_probe
+>        - driver_bound
+>          - driver_deferred_probe_trigger
+>   and boot proceed.
+>   So, at this moment we have  deferred_probe_work_func scheduled.
+> 
+> late_initcall_sync
+>   - omap_device_late_init
+>     - omap_device_idle
+> 
+> CPU1					CPU2
+>   - deferred_probe_work_func
+>     - really_probe
+>       - omap_hsmmc_probe
+> 	- pm_runtime_get_sync
+> 					late_initcall_sync
+> 					- omap_device_late_init
+> 						if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
+> 							if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
+> 								- omap_device_idle [ops - IP is disabled, ]
+> 	- [fail]
+> 	- pm_runtime_put_sync
+>           - omap_hsmmc_runtime_suspend [ooops!]
 
-late_initcall
- - deferred_probe_initcal() tries to re-probe all pending driver's probe.
-   [In general, It's NOT expected to probe any other built-in drivers after
-   deferred_probe_initcal() is finished, because most of
-   late_initcall_sync/late_initcall functions expected that all driver
-   or probed or deferred already.]
+OK idling of unclaimed devices should not happen for deferred probe,
+it should only happen when there's no driver and no probing happening. 
+ 
+> Lets remove just remove omap_device_late_init completely as suggested
+> by Tero Kristo:
+> 
+> "How about remove omap_device_late_init call completely. I don't think
+> it does anything useful at the moment; none of the omap devices get
+> enabled outside runtime_pm, so there should be no need to explicitly
+> disable the devices."
 
-- later on, some driver is probing in this case It's could cpsw.c
-  (but could be any other drivers)
-  cpsw_init
-  - platform_driver_register
-    - really_probe
-       - driver_bound
-         - driver_deferred_probe_trigger
-  and boot proceed.
-  So, at this moment we have  deferred_probe_work_func scheduled.
+I think this is still needed from PM point of view as otherwise we
+don't idle any devices that don't have a driver available. Or am I
+missing something?
 
-late_initcall_sync
-  - omap_device_late_init
-    - omap_device_idle
+To me it seems the bug is relying on the BUS_NOTIFY_BOUND_DRIVER is
+not set in the deferred probe case.
 
-CPU1					CPU2
-  - deferred_probe_work_func
-    - really_probe
-      - omap_hsmmc_probe
-	- pm_runtime_get_sync
-					late_initcall_sync
-					- omap_device_late_init
-						if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-							if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
-								- omap_device_idle [ops - IP is disabled, ]
-	- [fail]
-	- pm_runtime_put_sync
-          - omap_hsmmc_runtime_suspend [ooops!]
+Regards,
 
-== log ==
- omap_hsmmc 480b4000.mmc: unable to get vmmc regulator -517
- davinci_mdio 48485000.mdio: davinci mdio revision 1.6
- davinci_mdio 48485000.mdio: detected phy mask fffffff3
- libphy: 48485000.mdio: probed
- davinci_mdio 48485000.mdio: phy[2]: device 48485000.mdio:02, driver unknown
- davinci_mdio 48485000.mdio: phy[3]: device 48485000.mdio:03, driver unknown
- omap_hsmmc 480b4000.mmc: unable to get vmmc regulator -517
- cpsw 48484000.ethernet: Detected MACID = b4:99:4c:c7:d2:48
- cpsw 48484000.ethernet: cpsw: Detected MACID = b4:99:4c:c7:d2:49
- hctosys: unable to open rtc device (rtc0)
- omap_hsmmc 480b4000.mmc: omap_device_late_idle: enabled but no driver.  Idling
- ldousb: disabling
- Unhandled fault: imprecise external abort (0x1406) at 0x00000000
- [00000000] *pgd=00000000
- Internal error: : 1406 [#1] PREEMPT SMP ARM
- Modules linked in:
- CPU: 1 PID: 58 Comm: kworker/u4:1 Not tainted 4.1.2-rt1-00467-g6da3c0a-dirty #5
- Hardware name: Generic DRA74X (Flattened Device Tree)
- Workqueue: deferwq deferred_probe_work_func
- task: ee6ddb00 ti: edd3c000 task.ti: edd3c000
- PC is at omap_hsmmc_runtime_suspend+0x1c/0x12c
- LR is at _od_runtime_suspend+0xc/0x24
- pc : [<c0471998>]    lr : [<c0029590>]    psr: a0000013
- sp : edd3dda0  ip : ee6ddb00  fp : c07be540
- r10: 00000000  r9 : c07be540  r8 : 00000008
- r7 : 00000000  r6 : ee646c10  r5 : ee646c10  r4 : edd79380
- r3 : fa0b4100  r2 : 00000000  r1 : 00000000  r0 : ee646c10
- Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
- Control: 10c5387d  Table: 8000406a  DAC: 00000015
- Process kworker/u4:1 (pid: 58, stack limit = 0xedd3c218)
- Stack: (0xedd3dda0 to 0xedd3e000)
- dda0: ee646c70 ee646c10 c0029584 00000000 00000008 c0029590 ee646c70 ee646c10
- ddc0: c0029584 c03adfb8 ee646c10 00000004 0000000c c03adff0 ee646c10 00000004
- dde0: 0000000c c03ae4ec 00000000 edd3c000 ee646c10 00000004 ee646c70 00000004
- de00: fa0b4000 c03aec20 ee6ddb00 ee646c10 00000004 ee646c70 ee646c10 fffffdfb
- de20: edd79380 00000000 fa0b4000 c03aee90 fffffdfb edd79000 ee646c00 c0474290
- de40: 00000000 edda24c0 edd79380 edc81f00 00000000 00000200 00000001 c06dd488
- de60: edda3960 ee646c10 ee646c10 c0824cc4 fffffdfb c0880c94 00000002 edc92600
- de80: c0836378 c03a7f84 ee646c10 c0824cc4 00000000 c0880c80 c0880c94 c03a6568
- dea0: 00000000 ee646c10 c03a66ac ee4f8000 00000000 00000001 edc92600 c03a4b40
- dec0: ee404c94 edc83c4c ee646c10 ee646c10 ee646c44 c03a63c4 ee646c10 ee646c10
- dee0: c0814448 c03a5aa8 ee646c10 c0814220 edd3c000 c03a5ec0 c0814250 ee6be400
- df00: edd3c000 c004e5bc ee6ddb01 00000078 ee6ddb00 ee4f8000 ee6be418 edd3c000
- df20: ee4f8028 00000088 c0836045 ee4f8000 ee6be400 c004e928 ee4f8028 00000000
- df40: c004e8ec 00000000 ee6bf1c0 ee6be400 c004e8ec 00000000 00000000 00000000
- df60: 00000000 c0053450 2e56fa97 00000000 afdffbd7 ee6be400 00000000 00000000
- df80: edd3df80 edd3df80 00000000 00000000 edd3df90 edd3df90 edd3dfac ee6bf1c0
- dfa0: c0053384 00000000 00000000 c000f668 00000000 00000000 00000000 00000000
- dfc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
- dfe0: 00000000 00000000 00000000 00000000 00000013 00000000 f1fc9d7e febfbdff
- [<c0471998>] (omap_hsmmc_runtime_suspend) from [<c0029590>] (_od_runtime_suspend+0xc/0x24)
- [<c0029590>] (_od_runtime_suspend) from [<c03adfb8>] (__rpm_callback+0x24/0x3c)
- [<c03adfb8>] (__rpm_callback) from [<c03adff0>] (rpm_callback+0x20/0x80)
- [<c03adff0>] (rpm_callback) from [<c03ae4ec>] (rpm_suspend+0xe4/0x618)
- [<c03ae4ec>] (rpm_suspend) from [<c03aee90>] (__pm_runtime_idle+0x60/0x80)
- [<c03aee90>] (__pm_runtime_idle) from [<c0474290>] (omap_hsmmc_probe+0x6bc/0xa7c)
- [<c0474290>] (omap_hsmmc_probe) from [<c03a7f84>] (platform_drv_probe+0x44/0xa4)
- [<c03a7f84>] (platform_drv_probe) from [<c03a6568>] (driver_probe_device+0x170/0x2b4)
- [<c03a6568>] (driver_probe_device) from [<c03a4b40>] (bus_for_each_drv+0x64/0x98)
- [<c03a4b40>] (bus_for_each_drv) from [<c03a63c4>] (device_attach+0x70/0x88)
- [<c03a63c4>] (device_attach) from [<c03a5aa8>] (bus_probe_device+0x84/0xac)
- [<c03a5aa8>] (bus_probe_device) from [<c03a5ec0>] (deferred_probe_work_func+0x58/0x88)
- [<c03a5ec0>] (deferred_probe_work_func) from [<c004e5bc>] (process_one_work+0x134/0x464)
- [<c004e5bc>] (process_one_work) from [<c004e928>] (worker_thread+0x3c/0x4fc)
- [<c004e928>] (worker_thread) from [<c0053450>] (kthread+0xcc/0xe4)
- [<c0053450>] (kthread) from [<c000f668>] (ret_from_fork+0x14/0x2c)
- Code: e594302c e593202c e584205c e594302c (e5932128)
- ---[ end trace 0000000000000002 ]---
-
-Lets remove just remove omap_device_late_init completely as suggested
-by Tero Kristo:
-
-"How about remove omap_device_late_init call completely. I don't think
-it does anything useful at the moment; none of the omap devices get
-enabled outside runtime_pm, so there should be no need to explicitly
-disable the devices."
-
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
-Hi Tony,
-
-Keerthy has reported that he can observe the same issue on -next.
-Most probably it's related to new feature - "asynchronous probing support".
-
-regards,
--grygorii 
-
- arch/arm/mach-omap2/omap_device.c | 52 ---------------------------------------
- 1 file changed, 52 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 4cb8fd9..50c923e 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -870,55 +870,3 @@ static int __init omap_device_init(void)
- 	return 0;
- }
- omap_core_initcall(omap_device_init);
--
--/**
-- * omap_device_late_idle - idle devices without drivers
-- * @dev: struct device * associated with omap_device
-- * @data: unused
-- *
-- * Check the driver bound status of this device, and idle it
-- * if there is no driver attached.
-- */
--static int __init omap_device_late_idle(struct device *dev, void *data)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *od = to_omap_device(pdev);
--	int i;
--
--	if (!od)
--		return 0;
--
--	/*
--	 * If omap_device state is enabled, but has no driver bound,
--	 * idle it.
--	 */
--
--	/*
--	 * Some devices (like memory controllers) are always kept
--	 * enabled, and should not be idled even with no drivers.
--	 */
--	for (i = 0; i < od->hwmods_cnt; i++)
--		if (od->hwmods[i]->flags & HWMOD_INIT_NO_IDLE)
--			return 0;
--
--	if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
--		if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
--			dev_warn(dev, "%s: enabled but no driver.  Idling\n",
--				 __func__);
--			omap_device_idle(pdev);
--		}
--	}
--
--	return 0;
--}
--
--static int __init omap_device_late_init(void)
--{
--	bus_for_each_dev(&platform_bus_type, NULL, NULL, omap_device_late_idle);
--
--	WARN(!of_have_populated_dt(),
--		"legacy booting deprecated, please update to boot with .dts\n");
--
--	return 0;
--}
--omap_late_initcall_sync(omap_device_late_init);
--- 
-2.5.0
+Tony
