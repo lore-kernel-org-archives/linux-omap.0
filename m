@@ -1,87 +1,50 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: CONFIG_DEBUG_SHIRQ and PM
-Date: Wed, 26 Aug 2015 17:36:24 -0300
-Message-ID: <CAAEAJfAPB1N-xcz+HbHCcF8JaXAVL05CSwpQGi7ea+114mMpmw@mail.gmail.com>
-References: <20150825195830.GH27534@saruman.tx.rr.com>
-	<CAAEAJfCY1BRuoQCWfD2pCq36E54vDB5Coy2S7rz3RfL2BVLGaw@mail.gmail.com>
-	<20150826193820.GT14625@saruman.tx.rr.com>
-	<CAAEAJfAPVgxhRnfYJYzebFJDRJ4Ooam6n+0B5HJ-+uLJ0exTLA@mail.gmail.com>
-	<20150826200300.GU14625@saruman.tx.rr.com>
-	<CAAEAJfB3iiRENEKm6xx-kLae5AR6BV0XVo0KNkb8-okvLjhFhg@mail.gmail.com>
-	<20150826202429.GV14625@saruman.tx.rr.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH -next] smsc911x: Fix crash seen if neither ACPI nor OF
+ is configured or used
+Date: Wed, 26 Aug 2015 13:55:25 -0700
+Message-ID: <55DE27BD.600@roeck-us.net>
+References: <1439844336-21596-1-git-send-email-linux@roeck-us.net> <20150826170410.GP4215@atomide.com> <55DE069C.7000402@roeck-us.net> <20150826201628.GU4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150826202429.GV14625@saruman.tx.rr.com>
+In-Reply-To: <20150826201628.GU4215@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Steve Glendinning <steve.glendinning@shawell.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 26 August 2015 at 17:24, Felipe Balbi <balbi@ti.com> wrote:
-[..]
+Hi Tony,
+
+On 08/26/2015 01:16 PM, Tony Lindgren wrote:
+[ ... ]
+
+>> We may need two separate patches, one to fix up device_property_read_u32()
+>> to return -ENXIO, and one to fix smsc911x_probe_config() to ignore the error
+>> from device_get_phy_mode(), and to bail out if device_property_read_u32()
+>> returns -ENXIO.
+>
+> I guess the device_property_read_u32() change needs to be discussed
+> separately.. So probably best to fix up the regression to smsc911x
+> first.
+>
+Not sure myself. Jeremy has a point - we don't really know for sure how
+safe it is to check for -ENODATA (in addition to -ENXIO). Also, fixing
+device_property_read_u32() turned out to be much easier than I thought.
+
+>> The simpler alternative would be to check the return value from
+>> device_property_read_u32() for both -ENXIO and -ENODATA.
+>> This would make the code independent of the necessary core changes
+>> (which may take a while). I tested this variant, and it works, at least
+>> for the non-DT case.
 >>
->> static irqreturn_t tw68_irq(int irq, void *dev_id)
->> {
->>         struct tw68_dev *dev =3D dev_id;
->>         u32 status, orig;
->>         int loop;
->>
->>         status =3D orig =3D tw_readl(TW68_INTSTAT) & dev->pci_irqmas=
-k;
+>> Does this make sense ?
 >
-> Now try to read that register when your clock is gated. That's the
-> problem I'm talking about. Everything about the handler is functionin=
-g
-> correctly; however clocks are gated in ->remove() and free_irq() is
-> only called *AFTER* ->remove() has returned.
+> Yeh I think that would allow fixing up the smsc911x regression while
+> discussing the device_property_read_u32() change. Got a test patch
+> for me to try?
 >
 
-Yeah, it's pretty clear you are talking about clocks here. That's
-why I said "read won't stall" in the next paragraph.
+You should have two by now to choose from.
 
->>         [etc]
->> }
->>
->> The IRQ handler accesses the device struct and then
->> reads through PCI. So if you use devm_request_irq
->> you need to make sure the device struct is still allocated
->> after remove(), and the PCI read won't stall or crash.
->
-> dude, that's not the problem I'm talking about. I still have my
-> private_data around, what I don't have is:
->
->               _            _
->   __ _    ___| | ___   ___| | __
->  / _` |  / __| |/ _ \ / __| |/ /
-> | (_| | | (__| | (_) | (__|   <
->  \__,_|  \___|_|\___/ \___|_|\_\
->
->
-
-Yes, *you* may have your private data around and have a clock gated,
-others (the tw68 for instance) may have its region released and unmappe=
-d.
-
-And yet others may have $whatever resource released in the
-remove() and assume it's available in the IRQ handler.
-
-I honestly can't think why using request_irq / free_irq to solve this
-is a workaround.
-
->> Interestingly, tw68 uses devm_request_irq with IRQF_SHARED :-)
->>
->> Still, I don't think that's a good idea, since it relies on
->> the IRQ being freed *before* the device struct.
->
-> that's not an issue at all. If you're using devm_request_irq() you're
-> likely using devm_kzalloc() for the device struct anyway. Also, you
-> called devm_kzalloc() before devm_request_irq() so IRQ *will* be free=
-d
-> before your private data; there's nothing wrong there.
->
-
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+Guenter
