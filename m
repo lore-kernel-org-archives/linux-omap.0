@@ -1,32 +1,47 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 2/3] serial: 8250_omap: check how many bytes were injected
-Date: Wed, 26 Aug 2015 18:31:18 +0530
-Message-ID: <55DDB89E.4000802@ti.com>
-References: <1439568064-7907-1-git-send-email-bigeasy@linutronix.de> <1439568064-7907-2-git-send-email-bigeasy@linutronix.de> <55DDB4C7.5070709@hurleysoftware.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH 0/2] OMAPDSS: Couple of HDMI audio fixes
+Date: Wed, 26 Aug 2015 16:11:38 +0300
+Message-ID: <cover.1440594174.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55DDB4C7.5070709@hurleysoftware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 26 August 2015 06:14 PM, Peter Hurley wrote:
-> On 08/14/2015 12:01 PM, Sebastian Andrzej Siewior wrote:
->> The function tty_insert_flip_string() returns an int and as such it
->> might fail. So the result is that I kindly asked to insert 48 bytes and
->> the function only insterted 32.
->> I have no idea what to do with the remaining 16 so I think dropping them
->> is the only option. I also increase the buf_overrun counter so userpace
->> has a clue that we lost bytes.
-> 
-> No objection to the patch but I'm curious whether this is something you've
-> actually observed and under what circumstances.
+The first fix is a hairy one, but I think the locking is fool proof
+now. It is needed because there is no telling in which order user
+space starts an audio and video stream playback. If the audio is
+started first and the video mode is changed when video playback starts
+the audio setup needs to survive display turning off and back on
+again. After this patch the audio streams should survive a
+suspend-resume cycle too.
+ 
+The second one is a trivial work-around to a problem in ALSA constraint
+resolver code.
 
-This was observed while doing a UART internal loopback test at 3Mbaud on
-TI's DRA7 EVM.
+The two fixes are totally independent and the video and audio side
+patches applied separately trough their own trees.
 
-Thanks,
-Sekhar
+Jyri Sarha (2):
+  OMAPDSS: hdmi: Reconfigure and restart audio when display is enabled
+  ASoC: omap-hdmi-audio: Set buffer bytes step constraint to 128
+
+ drivers/video/fbdev/omap2/dss/hdmi.h  | 10 +++-
+ drivers/video/fbdev/omap2/dss/hdmi4.c | 65 ++++++++++++++++++++-----
+ drivers/video/fbdev/omap2/dss/hdmi5.c | 89 +++++++++++++++++++++++++++++------
+ sound/soc/omap/omap-hdmi-audio.c      | 10 +++-
+ 4 files changed, 146 insertions(+), 28 deletions(-)
+
+-- 
+1.9.1
