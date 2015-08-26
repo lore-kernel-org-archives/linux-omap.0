@@ -1,86 +1,110 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap-device: remove omap_device_late_init
- call completely
-Date: Wed, 26 Aug 2015 11:10:06 -0700
-Message-ID: <20150826181006.GT4215@atomide.com>
-References: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH -next] smsc911x: Fix crash seen if neither ACPI nor OF
+ is configured or used
+Date: Wed, 26 Aug 2015 11:34:04 -0700
+Message-ID: <55DE069C.7000402@roeck-us.net>
+References: <1439844336-21596-1-git-send-email-linux@roeck-us.net> <20150826170410.GP4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux@arm.linux.org.uk, Keerthy <j-keerthy@ti.com>, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150826170410.GP4215@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Steve Glendinning <steve.glendinning@shawell.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [150826 11:01]:
-> Now Kernel fails to boot 50% of times (form build to build) with
-> RT-patchset applied due to the following race - on late boot
-> stages deferred_probe_work_func races with omap_device_late_ini
-> 
-> late_initcall
->  - deferred_probe_initcal() tries to re-probe all pending driver's probe.
->    [In general, It's NOT expected to probe any other built-in drivers after
->    deferred_probe_initcal() is finished, because most of
->    late_initcall_sync/late_initcall functions expected that all driver
->    or probed or deferred already.]
-> 
-> - later on, some driver is probing in this case It's could cpsw.c
->   (but could be any other drivers)
->   cpsw_init
->   - platform_driver_register
->     - really_probe
->        - driver_bound
->          - driver_deferred_probe_trigger
->   and boot proceed.
->   So, at this moment we have  deferred_probe_work_func scheduled.
-> 
-> late_initcall_sync
->   - omap_device_late_init
->     - omap_device_idle
-> 
-> CPU1					CPU2
->   - deferred_probe_work_func
->     - really_probe
->       - omap_hsmmc_probe
-> 	- pm_runtime_get_sync
-> 					late_initcall_sync
-> 					- omap_device_late_init
-> 						if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-> 							if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
-> 								- omap_device_idle [ops - IP is disabled, ]
-> 	- [fail]
-> 	- pm_runtime_put_sync
->           - omap_hsmmc_runtime_suspend [ooops!]
+On 08/26/2015 10:04 AM, Tony Lindgren wrote:
+> Hi,
+>
+> * Guenter Roeck <linux@roeck-us.net> [150817 13:48]:
+>> Commit 0b50dc4fc971 ("Convert smsc911x to use ACPI as well as DT") makes
+>> the call to smsc911x_probe_config() unconditional, and no longer fails if
+>> there is no device node. device_get_phy_mode() is called unconditionally,
+>> and if there is no phy node configured returns an error code. This error
+>> code is assigned to phy_interface, and interpreted elsewhere in the code
+>> as valid phy mode. This in turn causes qemu to crash when running a
+>> variant of realview_pb_defconfig.
+>>
+>> 	qemu: hardware error: lan9118_read: Bad reg 0x86
+>>
+>> Fixes: 0b50dc4fc971 ("Convert smsc911x to use ACPI as well as DT")
+>> Cc: Jeremy Linton <jeremy.linton@arm.com>
+>> Cc Graeme Gregory <graeme.gregory@linaro.org>
+>> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+>> ---
+>>   drivers/net/ethernet/smsc/smsc911x.c | 7 ++++++-
+>>   1 file changed, 6 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
+>> index 0f21aa3bb537..34f97684506b 100644
+>> --- a/drivers/net/ethernet/smsc/smsc911x.c
+>> +++ b/drivers/net/ethernet/smsc/smsc911x.c
+>> @@ -2367,12 +2367,17 @@ static const struct smsc911x_ops shifted_smsc911x_ops = {
+>>   static int smsc911x_probe_config(struct smsc911x_platform_config *config,
+>>   				 struct device *dev)
+>>   {
+>> +	int phy_interface;
+>>   	u32 width = 0;
+>>
+>>   	if (!dev)
+>>   		return -ENODEV;
+>>
+>> -	config->phy_interface = device_get_phy_mode(dev);
+>> +	phy_interface = device_get_phy_mode(dev);
+>> +	if (phy_interface < 0)
+>> +		return phy_interface;
+>> +
+>> +	config->phy_interface = phy_interface;
+>>
+>>   	device_get_mac_address(dev, config->mac, ETH_ALEN);
+>
+> Looks like this change makes at least omap boards using smsc911x
+> fail with -22 for me in Linux next.
+>
+> Do any of the the device tree configured smsc911x devices actually
+> have a phy configured?
+>
 
-OK idling of unclaimed devices should not happen for deferred probe,
-it should only happen when there's no driver and no probing happening. 
- 
-> Lets remove just remove omap_device_late_init completely as suggested
-> by Tero Kristo:
-> 
-> "How about remove omap_device_late_init call completely. I don't think
-> it does anything useful at the moment; none of the omap devices get
-> enabled outside runtime_pm, so there should be no need to explicitly
-> disable the devices."
+Ok, this is more subtle than I thought.
 
-I think this is still needed from PM point of view as otherwise we
-don't idle any devices that don't have a driver available. Or am I
-missing something?
+Previously, the code would not attempt any devicetree configuration
+if devicetree was not configured.
 
-To me it seems the bug is relying on the BUS_NOTIFY_BOUND_DRIVER is
-not set in the deferred probe case.
+Now it does.
 
-Regards,
+The error return from device_get_phy_mode() isn't the actual problem.
+Apparently it doesn't really matter if a nonsensical value is assigned
+to phy_interface.
 
-Tony
+The problem is that the reg-io-width property is obviously not present
+in the non-dt and non-acpi case. This overwrites the existing platform data
+configuration and selects 16 bit mode, to which the (simulated) hardware
+obviously reacts less than enthusiastic.
+
+Fixing this properly won't be easy. If the "reg-io-width" property
+is not present or wrong, the default register width is 16 bit. Obviously,
+if neither DT nor ACPI is available, it won't be present. This causes
+the crash I had observed.
+
+Bad part is that there does not seem to be a reliable means to detect
+that platform data should be used in that situation. Other device_get_XXX
+functions return -ENXIO if that happens, but not device_property_read_u32().
+It is _supposed_ to return it per its API, but it doesn't (it returns
+-ENODATA).
+
+We may need two separate patches, one to fix up device_property_read_u32()
+to return -ENXIO, and one to fix smsc911x_probe_config() to ignore the error
+from device_get_phy_mode(), and to bail out if device_property_read_u32()
+returns -ENXIO.
+
+The simpler alternative would be to check the return value from
+device_property_read_u32() for both -ENXIO and -ENODATA.
+This would make the code independent of the necessary core changes
+(which may take a while). I tested this variant, and it works, at least
+for the non-DT case.
+
+Does this make sense ?
+
+Thanks,
+Guenter
