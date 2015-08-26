@@ -1,38 +1,49 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 0/7] gpio: omap: fixes and improvements
-Date: Wed, 26 Aug 2015 09:53:58 +0200
-Message-ID: <CACRpkdZCGJ3JHxPCaiKkMAGZoxFVY7VbkhkJwBJdiP_452KNLg@mail.gmail.com>
-References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [RFC 3/3] serial: 8250_omap: try to avoid IER_RDI with DMA
+Date: Wed, 26 Aug 2015 14:42:10 +0530
+Message-ID: <55DD82EA.6090300@ti.com>
+References: <1439568064-7907-1-git-send-email-bigeasy@linutronix.de> <1439568064-7907-3-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1439568064-7907-3-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, peter@hurleysoftware.com
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 18, 2015 at 1:10 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
+On Friday 14 August 2015 09:31 PM, Sebastian Andrzej Siewior wrote:
+> It has been observed on DRA7-evm that the UART triggers the interrupt and
+> reading IIR says IIR_NO_INT. It seems that we receive data via RX-DMA
+> but the interrupt is triggered anyway. I have hardly observed it on
+> AM335x and not in *that* quantity. On DRA7-evm with continuous transfers
+> at 3MBaud and CPU running at 1.5Ghz it is possible that the IRQ-core will
+> close the UART interrupt after "some time" with "nobody cared".
+> 
+> I've seen that by not enabling IER_RDI those spurious interrupts are not
+> triggered. Also it seems that DMA and RDI cause the "timeout interrupt"
+> which does not allow RX-DMA to be scheduled even if the FIFO reached the
+> programmed RX threshold. However without RDI we don't get a notification
+> if we have less than RX threshold bytes in the FIFO.
+> This is where we have the rx_dma_wd timer. After programming the RX-DMA
+> transfer wait HZ / 4 or 250ms for it to complete. If it does not
+> complete in that time span we cancel the DMA transfer and enable RDI.
+> RDI will trigger an UART interrupt in case we have bytes in the FIFO.
+> Once we read bytes manually from the FIFO we enable RX-DMA again
+> (without RDI) with the same 250ms timeout.
+> 
+> One downside with this approach is that latency sensitive protocols that
+> transfer less than 48 bytes will have to wait 250ms to complete.
 
-> This patch series contains set of trivial fixes and improvements, and also
-> patches which fixes wrong APIs usage in atomic context as for -RT as for
-> non-RT kernel. The final goal of this series is to make TI OMAP GPIO
-> driver compatible with -RT kernel as much as possible.
->
-> Patch 1-4: trivial fixes and improvements
-> Patch 5: fixes wrong CLK clk_prepare/unprepare APIs usage in atomic contexet
+I guess because of this reason, wlink8 bluetooth connected to TI's DRA7
+EVM failed to probe with this patch included. At the least, looks like
+this patch needs some tuning.
 
-I've applied patches 1-5 with Santosh's ACK and Tony's Tested-by.
+> 
+> Is there maybe a user interface where one could set small or bulk transfers?
+> 
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-> Patch 6(rfc): required to be compatible with -RT kernel, because PM runtime
->  can't be used in atimic context on -RT.
-> Patch 7(rfc): This patch converts TI OMAP GPIO driver to use generic irq
->  handler instead of chained IRQ handler. This way OMAP GPIO driver will be
->  compatible with RT kernel where it will be forced thread IRQ handler
->  while in non-RT kernel it still will be executed in HW IRQ context.
-
-Waiting for more feedback here.
-
-Yours,
-Linus Walleij
+Thanks,
+Sekhar
