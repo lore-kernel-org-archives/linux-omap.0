@@ -1,38 +1,63 @@
 From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 1/3] serial: 8250: move rx_running out of the bitfield
-Date: Wed, 26 Aug 2015 08:43:55 -0400
-Message-ID: <55DDB48B.80701@hurleysoftware.com>
+Subject: Re: [PATCH 2/3] serial: 8250_omap: check how many bytes were injected
+Date: Wed, 26 Aug 2015 08:44:55 -0400
+Message-ID: <55DDB4C7.5070709@hurleysoftware.com>
 References: <1439568064-7907-1-git-send-email-bigeasy@linutronix.de>
- <55DD88E2.3000401@ti.com>
+ <1439568064-7907-2-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55DD88E2.3000401@ti.com>
+In-Reply-To: <1439568064-7907-2-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, john.ogness@linutronix.de, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/26/2015 05:37 AM, Sekhar Nori wrote:
-> On Friday 14 August 2015 09:31 PM, Sebastian Andrzej Siewior wrote:
->> From: John Ogness <john.ogness@linutronix.de>
->>
->> That bitfield is modified by read + or + write operation. If someone
->> sets any of the other two bits it might render the lock useless.
->>
->> While at it, remove other bitfields as well to avoid more such
->> errors.
->>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Signed-off-by: John Ogness <john.ogness@linutronix.de>
->> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> 
-> Tested with wilink BT module on TI's DRA7 EVM.
-> 
-> Tested-by: Sekhar Nori <nsekhar@ti.com>
+On 08/14/2015 12:01 PM, Sebastian Andrzej Siewior wrote:
+> The function tty_insert_flip_string() returns an int and as such it
+> might fail. So the result is that I kindly asked to insert 48 bytes and
+> the function only insterted 32.
+> I have no idea what to do with the remaining 16 so I think dropping them
+> is the only option. I also increase the buf_overrun counter so userpace
+> has a clue that we lost bytes.
 
-Already in Greg's tty-next tree (and 4.3-rc1 pull request), Sekhar.
+No objection to the patch but I'm curious whether this is something you've
+actually observed and under what circumstances.
 
 Regards,
 Peter Hurley
+
+
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  drivers/tty/serial/8250/8250_omap.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> index 2ac63c8bd946..933f7ef2c004 100644
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -738,6 +738,7 @@ static void __dma_rx_do_complete(struct uart_8250_port *p, bool error)
+>  	struct dma_tx_state     state;
+>  	int                     count;
+>  	unsigned long		flags;
+> +	int			ret;
+>  
+>  	dma_sync_single_for_cpu(dma->rxchan->device->dev, dma->rx_addr,
+>  				dma->rx_size, DMA_FROM_DEVICE);
+> @@ -753,8 +754,10 @@ static void __dma_rx_do_complete(struct uart_8250_port *p, bool error)
+>  
+>  	count = dma->rx_size - state.residue;
+>  
+> -	tty_insert_flip_string(tty_port, dma->rx_buf, count);
+> -	p->port.icount.rx += count;
+> +	ret = tty_insert_flip_string(tty_port, dma->rx_buf, count);
+> +
+> +	p->port.icount.rx += ret;
+> +	p->port.icount.buf_overrun += count - ret;
+>  unlock:
+>  	spin_unlock_irqrestore(&priv->rx_dma_lock, flags);
+>  
+> 
