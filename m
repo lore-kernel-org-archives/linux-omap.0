@@ -1,124 +1,152 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH -next] smsc911x: Fix crash seen if neither ACPI nor OF is
- configured or used
-Date: Wed, 26 Aug 2015 13:16:29 -0700
-Message-ID: <20150826201628.GU4215@atomide.com>
-References: <1439844336-21596-1-git-send-email-linux@roeck-us.net>
- <20150826170410.GP4215@atomide.com>
- <55DE069C.7000402@roeck-us.net>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: CONFIG_DEBUG_SHIRQ and PM
+Date: Wed, 26 Aug 2015 15:24:29 -0500
+Message-ID: <20150826202429.GV14625@saruman.tx.rr.com>
+References: <20150825195830.GH27534@saruman.tx.rr.com>
+ <CAAEAJfCY1BRuoQCWfD2pCq36E54vDB5Coy2S7rz3RfL2BVLGaw@mail.gmail.com>
+ <20150826193820.GT14625@saruman.tx.rr.com>
+ <CAAEAJfAPVgxhRnfYJYzebFJDRJ4Ooam6n+0B5HJ-+uLJ0exTLA@mail.gmail.com>
+ <20150826200300.GU14625@saruman.tx.rr.com>
+ <CAAEAJfB3iiRENEKm6xx-kLae5AR6BV0XVo0KNkb8-okvLjhFhg@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jWL1oGPK2mPq0rME"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55DE069C.7000402@roeck-us.net>
-Sender: netdev-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Steve Glendinning <steve.glendinning@shawell.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, linux-omap@vger.kernel.org
+In-Reply-To: <CAAEAJfB3iiRENEKm6xx-kLae5AR6BV0XVo0KNkb8-okvLjhFhg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Felipe Balbi <balbi@ti.com>, Ingo Molnar <mingo@elte.hu>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Guenter Roeck <linux@roeck-us.net> [150826 11:37]:
-> On 08/26/2015 10:04 AM, Tony Lindgren wrote:
-> >Hi,
+--jWL1oGPK2mPq0rME
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Wed, Aug 26, 2015 at 05:15:51PM -0300, Ezequiel Garcia wrote:
+
+<snip>
+
+> >> be prepared to handle it any time, coming from any sources (not only
+> >> your device). And CONFIG_DEBUG_SHIRQ does exactly that, in order to
+> >> make sure all the drivers passing IRQF_SHARED comply with that rule.
 > >
-> >* Guenter Roeck <linux@roeck-us.net> [150817 13:48]:
-> >>Commit 0b50dc4fc971 ("Convert smsc911x to use ACPI as well as DT") makes
-> >>the call to smsc911x_probe_config() unconditional, and no longer fails if
-> >>there is no device node. device_get_phy_mode() is called unconditionally,
-> >>and if there is no phy node configured returns an error code. This error
-> >>code is assigned to phy_interface, and interpreted elsewhere in the code
-> >>as valid phy mode. This in turn causes qemu to crash when running a
-> >>variant of realview_pb_defconfig.
-> >>
-> >>	qemu: hardware error: lan9118_read: Bad reg 0x86
-> >>
-> >>Fixes: 0b50dc4fc971 ("Convert smsc911x to use ACPI as well as DT")
-> >>Cc: Jeremy Linton <jeremy.linton@arm.com>
-> >>Cc Graeme Gregory <graeme.gregory@linaro.org>
-> >>Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> >>---
-> >>  drivers/net/ethernet/smsc/smsc911x.c | 7 ++++++-
-> >>  1 file changed, 6 insertions(+), 1 deletion(-)
-> >>
-> >>diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
-> >>index 0f21aa3bb537..34f97684506b 100644
-> >>--- a/drivers/net/ethernet/smsc/smsc911x.c
-> >>+++ b/drivers/net/ethernet/smsc/smsc911x.c
-> >>@@ -2367,12 +2367,17 @@ static const struct smsc911x_ops shifted_smsc911x_ops = {
-> >>  static int smsc911x_probe_config(struct smsc911x_platform_config *config,
-> >>  				 struct device *dev)
-> >>  {
-> >>+	int phy_interface;
-> >>  	u32 width = 0;
-> >>
-> >>  	if (!dev)
-> >>  		return -ENODEV;
-> >>
-> >>-	config->phy_interface = device_get_phy_mode(dev);
-> >>+	phy_interface = device_get_phy_mode(dev);
-> >>+	if (phy_interface < 0)
-> >>+		return phy_interface;
-> >>+
-> >>+	config->phy_interface = phy_interface;
-> >>
-> >>  	device_get_mac_address(dev, config->mac, ETH_ALEN);
+> > you need to be sure of that with non-shared IRQs anyway.
+>=20
+> Not entirely. If your IRQ is not shared, then you usually have a register
+> to enable or unmask your peripheral interrupts. So the driver is in contr=
+ol
+> of when it will get interrupts.
+>=20
+> If the IRQ is shared, this won't do. This is what I mean by "shared IRQs
+> must be prepared to receive an interrupt any time", in the sense that
+> the driver has no way of preventing IRQs (because they may be
+> coming from any source).
+
+right, the problem is much less likely on non-shared lines but the fine
+that a line is shared or not is a function of HW integration, not the
+e.g. USB Controller, so that knowledge really doesn't fit the driver in
+a sense.
+
+We might as well get rid of IRQF_SHARED and assume all lines are
+shareable.
+
+> In the same sense, shared IRQs handlers need to double-check
+> the IRQ is coming to the current device by checking some IRQ
+> status register to see if there's pending work.
+
+you should the status register even on non-shared IRQs to catch spurious
+right ?
+
+> > Also, an IRQ
+> > which isn't shared in SoC A, might become shared in SoC B which uses the
+> > same IP.
 > >
-> >Looks like this change makes at least omap boards using smsc911x
-> >fail with -22 for me in Linux next.
+> >> So you either avoid using devm_request_irq, or you prepare your handler
+> >> accordingly to be ready to handle an interrupt _any time_.
 > >
-> >Do any of the the device tree configured smsc911x devices actually
-> >have a phy configured?
+> > the handler is ready to handle at any time, what isn't correct is the
+> > fact that clocks get gated before IRQ is freed.
 > >
-> 
-> Ok, this is more subtle than I thought.
-> 
-> Previously, the code would not attempt any devicetree configuration
-> if devicetree was not configured.
-> 
-> Now it does.
-> 
-> The error return from device_get_phy_mode() isn't the actual problem.
-> Apparently it doesn't really matter if a nonsensical value is assigned
-> to phy_interface.
-> 
-> The problem is that the reg-io-width property is obviously not present
-> in the non-dt and non-acpi case. This overwrites the existing platform data
-> configuration and selects 16 bit mode, to which the (simulated) hardware
-> obviously reacts less than enthusiastic.
-> 
-> Fixing this properly won't be easy. If the "reg-io-width" property
-> is not present or wrong, the default register width is 16 bit. Obviously,
-> if neither DT nor ACPI is available, it won't be present. This causes
-> the crash I had observed.
+> > There should be no such special case as "if your handler is shared,
+> > don't use devm_request_*irq()" because if we just disable PM_RUNTIME, it
+> > works as expected anyway.
+> >
+>=20
+> Yeah, I meant to say: if you use devm_request_irq with IRQF_SHARED
+> then you _must_ be prepared to get an IRQ *after* your remove() has
+> been called.
+>=20
+> Let's consider this snippet from tw68:
+>=20
+> static irqreturn_t tw68_irq(int irq, void *dev_id)
+> {
+>         struct tw68_dev *dev =3D dev_id;
+>         u32 status, orig;
+>         int loop;
+>=20
+>         status =3D orig =3D tw_readl(TW68_INTSTAT) & dev->pci_irqmask;
 
-Heh OK :)
- 
-> Bad part is that there does not seem to be a reliable means to detect
-> that platform data should be used in that situation. Other device_get_XXX
-> functions return -ENXIO if that happens, but not device_property_read_u32().
-> It is _supposed_ to return it per its API, but it doesn't (it returns
-> -ENODATA).
-> 
-> We may need two separate patches, one to fix up device_property_read_u32()
-> to return -ENXIO, and one to fix smsc911x_probe_config() to ignore the error
-> from device_get_phy_mode(), and to bail out if device_property_read_u32()
-> returns -ENXIO.
+Now try to read that register when your clock is gated. That's the
+problem I'm talking about. Everything about the handler is functioning
+correctly; however clocks are gated in ->remove() and free_irq() is
+only called *AFTER* ->remove() has returned.
 
-I guess the device_property_read_u32() change needs to be discussed
-separately.. So probably best to fix up the regression to smsc911x
-first.
- 
-> The simpler alternative would be to check the return value from
-> device_property_read_u32() for both -ENXIO and -ENODATA.
-> This would make the code independent of the necessary core changes
-> (which may take a while). I tested this variant, and it works, at least
-> for the non-DT case.
-> 
-> Does this make sense ?
+>         [etc]
+> }
+>=20
+> The IRQ handler accesses the device struct and then
+> reads through PCI. So if you use devm_request_irq
+> you need to make sure the device struct is still allocated
+> after remove(), and the PCI read won't stall or crash.
 
-Yeh I think that would allow fixing up the smsc911x regression while
-discussing the device_property_read_u32() change. Got a test patch
-for me to try?
+dude, that's not the problem I'm talking about. I still have my
+private_data around, what I don't have is:
 
-Regards,
+              _            _   =20
+  __ _    ___| | ___   ___| | __
+ / _` |  / __| |/ _ \ / __| |/ /
+| (_| | | (__| | (_) | (__|   <=20
+ \__,_|  \___|_|\___/ \___|_|\_\
+                               =20
 
-Tony
+> Interestingly, tw68 uses devm_request_irq with IRQF_SHARED :-)
+>=20
+> Still, I don't think that's a good idea, since it relies on
+> the IRQ being freed *before* the device struct.
+
+that's not an issue at all. If you're using devm_request_irq() you're
+likely using devm_kzalloc() for the device struct anyway. Also, you
+called devm_kzalloc() before devm_request_irq() so IRQ *will* be freed
+before your private data; there's nothing wrong there.
+
+--=20
+balbi
+
+--jWL1oGPK2mPq0rME
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJV3iB9AAoJEIaOsuA1yqREUp8P/A4X+xhr2veehTmMB8NaAhox
+W7jVeDyUdlyoXfdxZuK3g0b0e6iVwvmF6mL/KxgAZFATSC43mmmmZhnQ/rud7vwe
++ZUGtcxLbITtsjcQVlW7cunVR7a4pjThmA2+DHObEaFvt3Su/La5R0mc5ZvAMOWe
+D2W19vokmBmztUjSjcjZ1DcWvbXDR78n2KFs4LoN3rVXGswKltG67HZh4erI0yGp
+PPt+2NY2kKNi2DItZ/SjcG81J/sWGKZaamlePjW/ZAc/9CoyVmOH6vBOsWoIhOxi
+9mB8UlFLWQseBp9uIuftbW+++2MEUP4bz1IAuwJ05zkKxN2/lLgEdK8osawJK9xG
+MJoHI2FBavfXUPLbCdZG21rfSBxXK9CDHwMl/KBDzt6TnGl+heiZToVJTpVJaxw6
+6DbQ5CciAqQnOCVd+50E6tS4cUMjr3KzNZeA/3DH1A5Q/ZL7uo3cyhzod7S8b1Z9
+qrLrszzk5cJSEGYKg0J1DGtu1FQowNOEX+p3oVermcITLc4StgTs9uV8NIcmwfuX
+oY/wDVvTA29qaG8LPEWUvK5S5uEk+eEhUIeogotSkfAjb6lH7q8dFu5q+bgK8U8v
+5TlX7NqlB4X/ktWgrSoTjHONT+6Lvh04GTRzziTztmOH7qxiEsdCxGqarl21+up3
+2QfjTzk5Tl14R1yP4zrQ
+=gQQa
+-----END PGP SIGNATURE-----
+
+--jWL1oGPK2mPq0rME--
