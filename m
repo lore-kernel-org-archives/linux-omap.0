@@ -1,82 +1,110 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 00/15] omap_hsmmc: regulator usage cleanup and fixes
-Date: Thu, 27 Aug 2015 18:50:30 +0530
-Message-ID: <55DF0E9E.4010000@ti.com>
-References: <1440666847-12594-1-git-send-email-kishon@ti.com> <CAPDyKFrLmDyxdjxcZKiy5DJJbPbPz38MsjvnbKkokU7McRDmeg@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap-device: remove omap_device_late_init
+ call completely
+Date: Thu, 27 Aug 2015 16:38:47 +0300
+Message-ID: <55DF12E7.10802@ti.com>
+References: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
+ <20150826181006.GT4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFrLmDyxdjxcZKiy5DJJbPbPz38MsjvnbKkokU7McRDmeg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Neil Brown <neilb@suse.de>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150826181006.GT4215@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux@arm.linux.org.uk, Keerthy <j-keerthy@ti.com>, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tony,
 
-
-On Thursday 27 August 2015 06:39 PM, Ulf Hansson wrote:
-> On 27 August 2015 at 11:13, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->> This patch series does the following
->> *) Uses devm_regulator_get_optional() for vmmc and then removes the
->>    CONFIG_REGULATOR check altogether.
->> *) return on -EPROBE_DEFER and any other fatal errors
->> *) enable/disable vmmc_aux regulator based on prior state
+On 08/26/2015 09:10 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [150826 11:01]:
+>> Now Kernel fails to boot 50% of times (form build to build) with
+>> RT-patchset applied due to the following race - on late boot
+>> stages deferred_probe_work_func races with omap_device_late_ini
 >>
->> Changes from v2:
->> *) rebased to mmc -next branch
->> *) dropped using "mmc_of_parse_voltage" to get ocr_avail patch.
+>> late_initcall
+>>   - deferred_probe_initcal() tries to re-probe all pending driver's probe.
+>>     [In general, It's NOT expected to probe any other built-in drivers after
+>>     deferred_probe_initcal() is finished, because most of
+>>     late_initcall_sync/late_initcall functions expected that all driver
+>>     or probed or deferred already.]
 >>
->> Changes from v1:
->> *) return on -EPROBE_DEFER and other fatal errors. (Don't return only
->>    if the return value is -ENODEV)
->> *) Remove the beagle x15 dts patch. It can be part of a different
->>    series.
->> *) Avoid using regulator_is_enabled for vqmmc since if the regulator
->>    is shared and the other users are not using regulator_is_enabled
->>    then there can be unbalanced regulator_enable/regulator_disable
+>> - later on, some driver is probing in this case It's could cpsw.c
+>>    (but could be any other drivers)
+>>    cpsw_init
+>>    - platform_driver_register
+>>      - really_probe
+>>         - driver_bound
+>>           - driver_deferred_probe_trigger
+>>    and boot proceed.
+>>    So, at this moment we have  deferred_probe_work_func scheduled.
 >>
->> I've pushed this patch series to
->> git://git.ti.com/linux-phy/linux-phy.git mmc_for-next
+>> late_initcall_sync
+>>    - omap_device_late_init
+>>      - omap_device_idle
 >>
->> Please note the branch also has the pbias fixes [1].
->> [1] -> https://lkml.org/lkml/2015/7/27/358
->>
->> This series is in preparation for implementing the voltage switch
->> sequence so that UHS cards can be supported.
->>
->> Did basic read/write test in J6, J6 Eco, Beagle-x15, AM437x EVM,
->> Beaglebone black, OMAP5 uEVM, OMAP4 PANDA and OMAP3gle xm.
->>
->> Kishon Vijay Abraham I (15):
->>   mmc: host: omap_hsmmc: use devm_regulator_get_optional() for vmmc
->>   mmc: host: omap_hsmmc: return on fatal errors from omap_hsmmc_reg_get
->>   mmc: host: omap_hsmmc: cleanup omap_hsmmc_reg_get()
->>   mmc: host: omap_hsmmc: use the ocrmask provided by the vmmc regulator
->>   mmc: host: omap_hsmmc: use mmc_host's vmmc and vqmmc
->>   mmc: host: omap_hsmmc: remove unnecessary pbias set_voltage
->>   mmc: host: omap_hsmmc: return error if any of the regulator APIs fail
->>   mmc: host: omap_hsmmc: add separate functions for enable/disable
->>     supply
->>   mmc: host: omap_hsmmc: add separate function to set pbias
->>   mmc: host: omap_hsmmc: avoid pbias regulator enable on power off
->>   mmc: host: omap_hsmmc: don't use ->set_power to set initial regulator
->>     state
->>   mmc: host: omap_hsmmc: enable/disable vmmc_aux regulator based on
->>     previous state
->>   mmc: host: omap_hsmmc: use regulator_is_enabled to find pbias status
->>   mmc: host: omap_hsmmc: use ios->vdd for setting vmmc voltage
->>   mmc: host: omap_hsmmc: remove CONFIG_REGULATOR check
->>
->>  drivers/mmc/host/omap_hsmmc.c |  326 +++++++++++++++++++++++++++--------------
->>  1 file changed, 212 insertions(+), 114 deletions(-)
->>
->> --
->> 1.7.9.5
->>
+>> CPU1					CPU2
+>>    - deferred_probe_work_func
+>>      - really_probe
+>>        - omap_hsmmc_probe
+>> 	- pm_runtime_get_sync
+>> 					late_initcall_sync
+>> 					- omap_device_late_init
+>> 						if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
+>> 							if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
+>> 								- omap_device_idle [ops - IP is disabled, ]
+>> 	- [fail]
+>> 	- pm_runtime_put_sync
+>>            - omap_hsmmc_runtime_suspend [ooops!]
 > 
-> Thanks, applied for next!
+> OK idling of unclaimed devices should not happen for deferred probe,
+> it should only happen when there's no driver and no probing happening.
+>   
+>> Lets remove just remove omap_device_late_init completely as suggested
+>> by Tero Kristo:
+>>
+>> "How about remove omap_device_late_init call completely. I don't think
+>> it does anything useful at the moment; none of the omap devices get
+>> enabled outside runtime_pm, so there should be no need to explicitly
+>> disable the devices."
+> 
+> I think this is still needed from PM point of view as otherwise we
+> don't idle any devices that don't have a driver available. Or am I
+> missing something?
+> 
+> To me it seems the bug is relying on the BUS_NOTIFY_BOUND_DRIVER is
+> not set in the deferred probe case.
+> 
 
-Thank you.
 
--Kishon
+What do you think about below alternative?
+
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 4cb8fd9..72ebc4c 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -901,7 +901,8 @@ static int __init omap_device_late_idle(struct device *dev, void *data)
+                if (od->hwmods[i]->flags & HWMOD_INIT_NO_IDLE)
+                        return 0;
+ 
+-       if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
++       if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER &&
++           od->_driver_status != BUS_NOTIFY_BIND_DRIVER) {
+                if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
+                        dev_warn(dev, "%s: enabled but no driver.  Idling\n",
+                                 __func__);
+
+
+
+-- 
+regards,
+-grygorii
