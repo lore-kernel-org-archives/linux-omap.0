@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap-device: remove omap_device_late_init
- call completely
-Date: Thu, 27 Aug 2015 09:38:56 -0700
-Message-ID: <20150827163856.GX4215@atomide.com>
-References: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
- <20150826181006.GT4215@atomide.com> <55DF12E7.10802@ti.com>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Thu, 27 Aug 2015 09:59:41 -0700
+Message-ID: <20150827165940.GY4215@atomide.com>
+References: <1432156863-19695-1-git-send-email-tony@atomide.com>
+ <1432156863-19695-3-git-send-email-tony@atomide.com>
+ <OFCA2F1DCE.C787A961-ONC1257EAE.001D79BC-C1257EAE.00203AFF@br-automation.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <55DF12E7.10802@ti.com>
+In-Reply-To: <OFCA2F1DCE.C787A961-ONC1257EAE.001D79BC-C1257EAE.00203AFF@br-automation.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,92 +20,55 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux@arm.linux.org.uk, Keerthy <j-keerthy@ti.com>, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Hannes Schmelzer <Hannes.Schmelzer@br-automation.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap-owner@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [150827 06:42]:
+Hi,
+
+* Hannes Schmelzer <Hannes.Schmelzer@br-automation.com> [150826 22:55]:
 > Hi Tony,
 > 
-> On 08/26/2015 09:10 PM, Tony Lindgren wrote:
-> > * Grygorii Strashko <grygorii.strashko@ti.com> [150826 11:01]:
-> >> Now Kernel fails to boot 50% of times (form build to build) with
-> >> RT-patchset applied due to the following race - on late boot
-> >> stages deferred_probe_work_func races with omap_device_late_ini
-> >>
-> >> late_initcall
-> >>   - deferred_probe_initcal() tries to re-probe all pending driver's probe.
-> >>     [In general, It's NOT expected to probe any other built-in drivers after
-> >>     deferred_probe_initcal() is finished, because most of
-> >>     late_initcall_sync/late_initcall functions expected that all driver
-> >>     or probed or deferred already.]
-> >>
-> >> - later on, some driver is probing in this case It's could cpsw.c
-> >>    (but could be any other drivers)
-> >>    cpsw_init
-> >>    - platform_driver_register
-> >>      - really_probe
-> >>         - driver_bound
-> >>           - driver_deferred_probe_trigger
-> >>    and boot proceed.
-> >>    So, at this moment we have  deferred_probe_work_func scheduled.
-> >>
-> >> late_initcall_sync
-> >>    - omap_device_late_init
-> >>      - omap_device_idle
-> >>
-> >> CPU1					CPU2
-> >>    - deferred_probe_work_func
-> >>      - really_probe
-> >>        - omap_hsmmc_probe
-> >> 	- pm_runtime_get_sync
-> >> 					late_initcall_sync
-> >> 					- omap_device_late_init
-> >> 						if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-> >> 							if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
-> >> 								- omap_device_idle [ops - IP is disabled, ]
-> >> 	- [fail]
-> >> 	- pm_runtime_put_sync
-> >>            - omap_hsmmc_runtime_suspend [ooops!]
-> > 
-> > OK idling of unclaimed devices should not happen for deferred probe,
-> > it should only happen when there's no driver and no probing happening.
-> >   
-> >> Lets remove just remove omap_device_late_init completely as suggested
-> >> by Tero Kristo:
-> >>
-> >> "How about remove omap_device_late_init call completely. I don't think
-> >> it does anything useful at the moment; none of the omap devices get
-> >> enabled outside runtime_pm, so there should be no need to explicitly
-> >> disable the devices."
-> > 
-> > I think this is still needed from PM point of view as otherwise we
-> > don't idle any devices that don't have a driver available. Or am I
-> > missing something?
-> > 
-> > To me it seems the bug is relying on the BUS_NOTIFY_BOUND_DRIVER is
-> > not set in the deferred probe case.
-> > 
-> 
-> 
-> What do you think about below alternative?
-> 
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 4cb8fd9..72ebc4c 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -901,7 +901,8 @@ static int __init omap_device_late_idle(struct device *dev, void *data)
->                 if (od->hwmods[i]->flags & HWMOD_INIT_NO_IDLE)
->                         return 0;
->  
-> -       if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-> +       if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER &&
-> +           od->_driver_status != BUS_NOTIFY_BIND_DRIVER) {
->                 if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
->                         dev_warn(dev, "%s: enabled but no driver.  Idling\n",
->                                  __func__);
+> Did anyone test this changeset on some AM335x board?
 
-Seems better to me if it really fixes the issue.
+Apparently not if it does not work or else you somehow have a different
+configuration for GPMC.
+ 
+> Today I ran into trouble with that because:
+> 
+> The GPMC controller gets reseted on kernel boot due to the missing/removed 
+> HWMOD_INIT_NO_RESET flag.
+
+Oh so you mean it only works on am335x if CONFIG_OMAP_GPMC_DEBUG is set?
+ 
+> Primary this should not be a big problem, but on my board (maybe on all 
+> AM335x) the GPMC doesn't behave as described in TRM.
+> Especially the GPMC_CONFIG register is not reset to 0h after reset, 
+> instead it holds the value 0xa00 which is very strange because bit 10-31 
+> are reserved.
+> 
+> Further this 0xa00 means that Bit9 (WAIT1PINPOLARITY) is set, exactly this 
+> causes my system to stall on first access the connected NAND flash because 
+> it never becomes ready due to the wrong wait pin polarity. Maybe others 
+> dont't run into trouble because they may use WAIT0PIN, which one has it's 
+> old polarity.
+> 
+> First approach was simply to write 0x0 to the GPMC_CONFIG register during 
+> gpmc_probe function.
+> It solves the problem.
+
+OK
+ 
+> I also tried to issue some SYSRESET through GPMC registers without 
+> success, same strange behavior.
+
+Interesting, never heard of that one before.
+ 
+> What?s your thinking around that?
+
+We could add a custom hwmod reset function that sets GPMC_CONFIG to 0.
+Similar to omap_i2c_reset() is set up. Or we could set up a property for
+the wait pin polarity. Roger, got any better ideas?
 
 Regards,
 
