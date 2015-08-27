@@ -1,110 +1,166 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap-device: remove omap_device_late_init
- call completely
-Date: Thu, 27 Aug 2015 16:38:47 +0300
-Message-ID: <55DF12E7.10802@ti.com>
-References: <1440611890-4935-1-git-send-email-grygorii.strashko@ti.com>
- <20150826181006.GT4215@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] OMAPDSS: hdmi: Reconfigure and restart
+ audio when display is enabled
+Date: Thu, 27 Aug 2015 17:30:53 +0300
+Message-ID: <55DF1F1D.3080203@ti.com>
+References: <cover.1440594174.git.jsarha@ti.com>
+ <44089dc819903c71e1d0ed0c14dd3ab060ed8c68.1440594174.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150826181006.GT4215@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux@arm.linux.org.uk, Keerthy <j-keerthy@ti.com>, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed; boundary="===============8277218285402594884=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <44089dc819903c71e1d0ed0c14dd3ab060ed8c68.1440594174.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+--===============8277218285402594884==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="3uOh6pdtAiXNsKCOwxrpVj0n25LBqGnmL"
 
-On 08/26/2015 09:10 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [150826 11:01]:
->> Now Kernel fails to boot 50% of times (form build to build) with
->> RT-patchset applied due to the following race - on late boot
->> stages deferred_probe_work_func races with omap_device_late_ini
->>
->> late_initcall
->>   - deferred_probe_initcal() tries to re-probe all pending driver's probe.
->>     [In general, It's NOT expected to probe any other built-in drivers after
->>     deferred_probe_initcal() is finished, because most of
->>     late_initcall_sync/late_initcall functions expected that all driver
->>     or probed or deferred already.]
->>
->> - later on, some driver is probing in this case It's could cpsw.c
->>    (but could be any other drivers)
->>    cpsw_init
->>    - platform_driver_register
->>      - really_probe
->>         - driver_bound
->>           - driver_deferred_probe_trigger
->>    and boot proceed.
->>    So, at this moment we have  deferred_probe_work_func scheduled.
->>
->> late_initcall_sync
->>    - omap_device_late_init
->>      - omap_device_idle
->>
->> CPU1					CPU2
->>    - deferred_probe_work_func
->>      - really_probe
->>        - omap_hsmmc_probe
->> 	- pm_runtime_get_sync
->> 					late_initcall_sync
->> 					- omap_device_late_init
->> 						if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
->> 							if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
->> 								- omap_device_idle [ops - IP is disabled, ]
->> 	- [fail]
->> 	- pm_runtime_put_sync
->>            - omap_hsmmc_runtime_suspend [ooops!]
-> 
-> OK idling of unclaimed devices should not happen for deferred probe,
-> it should only happen when there's no driver and no probing happening.
->   
->> Lets remove just remove omap_device_late_init completely as suggested
->> by Tero Kristo:
->>
->> "How about remove omap_device_late_init call completely. I don't think
->> it does anything useful at the moment; none of the omap devices get
->> enabled outside runtime_pm, so there should be no need to explicitly
->> disable the devices."
-> 
-> I think this is still needed from PM point of view as otherwise we
-> don't idle any devices that don't have a driver available. Or am I
-> missing something?
-> 
-> To me it seems the bug is relying on the BUS_NOTIFY_BOUND_DRIVER is
-> not set in the deferred probe case.
-> 
+--3uOh6pdtAiXNsKCOwxrpVj0n25LBqGnmL
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On 26/08/15 16:11, Jyri Sarha wrote:
+
+I few comments, for the parts I had time to review:
+
+> diff --git a/drivers/video/fbdev/omap2/dss/hdmi5.c b/drivers/video/fbde=
+v/omap2/dss/hdmi5.c
+> index 7f87578..f352c4b 100644
+> --- a/drivers/video/fbdev/omap2/dss/hdmi5.c
+> +++ b/drivers/video/fbdev/omap2/dss/hdmi5.c
+> @@ -352,6 +352,7 @@ static int read_edid(u8 *buf, int len)
+>  static int hdmi_display_enable(struct omap_dss_device *dssdev)
+>  {
+>  	struct omap_dss_device *out =3D &hdmi.output;
+> +	unsigned long flags;
+>  	int r =3D 0;
+> =20
+>  	DSSDBG("ENTER hdmi_display_enable\n");
+> @@ -370,7 +371,37 @@ static int hdmi_display_enable(struct omap_dss_dev=
+ice *dssdev)
+>  		goto err0;
+>  	}
+> =20
+
+I think you could refactor parts of the code below into small helper
+functions:
+
+> +	if (hdmi.audio_configured) {
+> +		spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
+> +		hdmi_wp_audio_core_req_enable(&hdmi.wp, false);
+> +		hdmi_wp_audio_enable(&hdmi.wp, false);
+> +		if (hdmi.wp_idlemode > 0)
+> +			REG_FLD_MOD(hdmi.wp.base, HDMI_WP_SYSCONFIG,
+> +				    hdmi.wp_idlemode, 3, 2);
+> +		hdmi.wp_idlemode =3D -1;
+
+The above looks like it's disabling audio output, the same that's done
+in hdmi_audio_stop(). Adding a helper func for that makes the code more
+readable.
+
+For the wp_idlemode, I think hdmi.wp_idlemode could be initialized to a
+valid value, so that it can be set at any time without the if check above=
+=2E
+
+> +		spin_unlock_irqrestore(&hdmi.audio_playing_lock, flags);
+> +
+> +		r =3D hdmi5_audio_config(&hdmi.core, &hdmi.wp, &hdmi.audio_config,
+> +				       hdmi.cfg.timings.pixelclock);
+> +		if (r) {
+> +			DSSERR("Error restoring audio configuration: %d", r);
+> +			hdmi.audio_abort_cb(&hdmi.pdev->dev);
+> +			hdmi.audio_configured =3D false;
+> +		}
+> +	}
+> +
+> +	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
+> +	if (hdmi.audio_configured && hdmi.audio_playing) {
+> +		/* No-idle while playing audio, store the old value */
+> +		hdmi.wp_idlemode =3D
+> +			REG_GET(hdmi.wp.base, HDMI_WP_SYSCONFIG, 3, 2);
+> +		REG_FLD_MOD(hdmi.wp.base, HDMI_WP_SYSCONFIG, 1, 3, 2);
+> +
+> +		hdmi_wp_audio_enable(&hdmi.wp, true);
+> +		hdmi_wp_audio_core_req_enable(&hdmi.wp, true);
+
+And here maybe a helper func to enable the audio output.
+
+> +	}
+
+>  	hdmi.display_enabled =3D true;
+> +	spin_unlock_irqrestore(&hdmi.audio_playing_lock, flags);
+> =20
+>  	mutex_unlock(&hdmi.lock);
+>  	return 0;
+> @@ -382,17 +413,18 @@ err0:
+> =20
+>  static void hdmi_display_disable(struct omap_dss_device *dssdev)
+>  {
+> +	unsigned long flags;
+> +
+>  	DSSDBG("Enter hdmi_display_disable\n");
+> =20
+>  	mutex_lock(&hdmi.lock);
+> =20
+> -	if (hdmi.audio_pdev && hdmi.audio_abort_cb)
+> -		hdmi.audio_abort_cb(&hdmi.audio_pdev->dev);
+> +	spin_lock_irqsave(&hdmi.audio_playing_lock, flags);
+> +	hdmi.display_enabled =3D false;
+> +	spin_unlock_irqrestore(&hdmi.audio_playing_lock, flags);
+
+Shouldn't something be done here in hdmi_display_disable about audio?
+You probably want to keep the state flag enabled, so that we know the
+user is playing audio, but you could still disable the HDMI audio HW.
+I'm sure the audio output dies when the video is disabled, but being
+more explicit here makes the code logic easier to follow.
+
+ Tomi
 
 
-What do you think about below alternative?
+--3uOh6pdtAiXNsKCOwxrpVj0n25LBqGnmL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 4cb8fd9..72ebc4c 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -901,7 +901,8 @@ static int __init omap_device_late_idle(struct device *dev, void *data)
-                if (od->hwmods[i]->flags & HWMOD_INIT_NO_IDLE)
-                        return 0;
- 
--       if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-+       if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER &&
-+           od->_driver_status != BUS_NOTIFY_BIND_DRIVER) {
-                if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
-                        dev_warn(dev, "%s: enabled but no driver.  Idling\n",
-                                 __func__);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJV3x8dAAoJEPo9qoy8lh71caIQAJZiEL0rOnoQ4KkUtt8gAn/4
+aR8DoJsKk+g9pdPnVqa4nUK4FE3O9mFz50TywENRn+sMb84NLglqvKAsegEub0cu
+UPrQw5cTv3VJE20UE3SC7RVqgY8HMqZ5blbyevDdIf3Ci+4xkmis9i4NhC09B19t
+UrzQ4CkuK+oZ+iTDoJp1/pfBk1E9p9Lb53nJ6ERwr/kcV2yuUDLmBpjTbtzp41ks
+aB2IMkPO/5nSUOCM/RJoNaQVn2s9VWp6LmCreJ1ZvMDvwt3we1xHtt9BuVOCOc8T
+4Y/ocX53COvSoNh9Vjn/XQ/JkBM2eQG9aJlR1qBDvCZ65ft9WJU4g9eY+7aGZ3iL
+98ZqL+mREgYTZLyf9TL8oLHlEMc2xiZqA97BmpV7btAMQFLdgeAPMSxY535dObsw
+Ih9AZKm33PyCTs1exJN4NBetSsPKA1Iwp7yWmcqr7R9qn1SwkUBZbpqkalOVVoC6
+0s9DHtJDpql1yS0GOufhCDWIrH9FRM0kJNToN1Uv49v72cj1oenGyLDLVwfBs1Nt
+rloH97RnpVrOqgLrJJh58CUSHSgcPMdk4PTtiujk0K5EYDIGYqwL6UCv0oKhkQ0v
+95YGKkwipk1FiTt6CdVjTsWSQ++dAvmiTHurmqGk1nD+ZKZv/emTd8fW3rxfvK1X
+ky0a1C5X0neJFb6EHmfh
+=2Ljn
+-----END PGP SIGNATURE-----
+
+--3uOh6pdtAiXNsKCOwxrpVj0n25LBqGnmL--
+
+--===============8277218285402594884==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-
--- 
-regards,
--grygorii
+--===============8277218285402594884==--
