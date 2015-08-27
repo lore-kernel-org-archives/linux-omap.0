@@ -1,57 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH -next] smsc911x: Fix crash seen if neither ACPI nor OF is
- configured or used
-Date: Wed, 26 Aug 2015 14:40:34 -0700
-Message-ID: <20150826214034.GW4215@atomide.com>
-References: <1439844336-21596-1-git-send-email-linux@roeck-us.net>
- <20150826170410.GP4215@atomide.com>
- <55DE069C.7000402@roeck-us.net>
- <20150826201628.GU4215@atomide.com>
- <55DE27BD.600@roeck-us.net>
+From: Lokesh Vutla <a0131933@ti.com>
+Subject: Re: [PATCH v3 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
+Date: Thu, 27 Aug 2015 09:51:41 +0530
+Message-ID: <55DE9055.4090701@ti.com>
+References: <1437657946-10733-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55DE27BD.600@roeck-us.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Steve Glendinning <steve.glendinning@shawell.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1437657946-10733-1-git-send-email-lokeshvutla@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: t-kristo@ti.com, tony@atomide.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Guenter Roeck <linux@roeck-us.net> [150826 13:58]:
-> Hi Tony,
-> 
-> On 08/26/2015 01:16 PM, Tony Lindgren wrote:
-> [ ... ]
-> 
-> >>We may need two separate patches, one to fix up device_property_read_u32()
-> >>to return -ENXIO, and one to fix smsc911x_probe_config() to ignore the error
-> >>from device_get_phy_mode(), and to bail out if device_property_read_u32()
-> >>returns -ENXIO.
-> >
-> >I guess the device_property_read_u32() change needs to be discussed
-> >separately.. So probably best to fix up the regression to smsc911x
-> >first.
-> >
-> Not sure myself. Jeremy has a point - we don't really know for sure how
-> safe it is to check for -ENODATA (in addition to -ENXIO). Also, fixing
-> device_property_read_u32() turned out to be much easier than I thought.
-> 
-> >>The simpler alternative would be to check the return value from
-> >>device_property_read_u32() for both -ENXIO and -ENODATA.
-> >>This would make the code independent of the necessary core changes
-> >>(which may take a while). I tested this variant, and it works, at least
-> >>for the non-DT case.
-> >>
-> >>Does this make sense ?
-> >
-> >Yeh I think that would allow fixing up the smsc911x regression while
-> >discussing the device_property_read_u32() change. Got a test patch
-> >for me to try?
-> >
-> 
-> You should have two by now to choose from.
+Hi Paul,
 
-Acked the second version thanks :)
+On Thursday 23 July 2015 06:55 PM, Lokesh Vutla wrote:
+> This series implements lock and unlock functions for RTC and hooks
+> the same to DRA7 and AMx3xx hwmod.
+> This is dependent on the patch https://patchwork.kernel.org/patch/6578281/,
+> which is queued recently by Paul.
+Gentle ping on this series.
 
-Tony
+Thanks and regards,
+Lokesh
+> 
+> Changes since v2:
+> - Add kerneldoc for omap_hwmod_rtc_lock() function.
+> 
+> Lokesh Vutla (3):
+>   ARM: hwmod: RTC: Add lock and unlock functions
+>   ARM: DRA7: RTC: Add lock and unlock functions
+>   ARM: AMx3xx: RTC: Add lock and unlock functions
+> 
+>  arch/arm/mach-omap2/omap_hwmod.h                   |  2 +
+>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 +
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +
+>  arch/arm/mach-omap2/omap_hwmod_reset.c             | 65 ++++++++++++++++++++++
+>  4 files changed, 71 insertions(+)
+> 
