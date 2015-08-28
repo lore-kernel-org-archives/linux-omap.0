@@ -1,44 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 02/15] mmc: host: omap_hsmmc: return on fatal errors
- from omap_hsmmc_reg_get
-Date: Fri, 28 Aug 2015 12:03:54 -0700
-Message-ID: <20150828190354.GZ4215@atomide.com>
-References: <1440666847-12594-1-git-send-email-kishon@ti.com>
- <1440666847-12594-3-git-send-email-kishon@ti.com>
- <CAOesGMjW=3qqBfqdxGwEqk1uVj_08rnvP095V-9+O=rsmjLOxQ@mail.gmail.com>
+Subject: [PATCH] ARM: OMAP2+: Fix booting if no timer parent clock is available
+Date: Fri, 28 Aug 2015 12:06:16 -0700
+Message-ID: <1440788776-19978-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOesGMjW=3qqBfqdxGwEqk1uVj_08rnvP095V-9+O=rsmjLOxQ@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, afenkart@gmail.com, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Neil Brown <neilb@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Olof Johansson <olof@lixom.net> [150828 11:11]:
-> Hi,
-> 
-> On Thu, Aug 27, 2015 at 2:13 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> > Now return error only if the return value of
-> > devm_regulator_get_optional() is not the same as -ENODEV, since with
-> > -EPROBE_DEFER, the regulator can be obtained later and all other
-> > errors are fatal.
-> >
-> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > Tested-by: Tony Lindgren <tony@atomide.com>
-> 
-> I bisected boot failures on Panda ES with multi_v7_defconfig down to
-> this commit on last night's -next build:
-> 
-> http://arm-soc.lixom.net/bootlogs/next/next-20150828/pandaes-arm-multi_v7_defconfig.html
+When bringing up a new SoC we needlessly prevent booting at timer
+init if timer clock_set_parent fails. This can fail if the system
+is booting on bootloader configured PLL values until the clock
+framework driver for the PLL is implemented.
 
-MMC is working for me at least on Duovero. Interesting that you also
-have all kind of errors there, I guess this is some older revision
-of the board.
+Let's just WARN instead, this will provide helpful information
+for anybody bringing up a new SoC what needs to be fixed.
 
-Anyways, Kishon, care to look into what might be causing this?
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/timer.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index e4d8701..a556551 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -297,12 +297,8 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	if (IS_ERR(src))
+ 		return PTR_ERR(src);
+ 
+-	r = clk_set_parent(timer->fclk, src);
+-	if (r < 0) {
+-		pr_warn("%s: %s cannot set source\n", __func__, oh->name);
+-		clk_put(src);
+-		return r;
+-	}
++	WARN(clk_set_parent(timer->fclk, src) < 0,
++	     "Cannot set timer parent clock, no PLL clock driver?");
+ 
+ 	clk_put(src);
+ 
+-- 
+2.1.4
