@@ -1,8 +1,8 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3] OMAPDSS: hdmi: Reconfigure and restart
+Subject: [PATCH v4] OMAPDSS: hdmi: Reconfigure and restart
 	audio when display is enabled
-Date: Fri, 28 Aug 2015 17:10:34 +0300
-Message-ID: <1440771034-15575-1-git-send-email-jsarha@ti.com>
+Date: Fri, 28 Aug 2015 17:21:46 +0300
+Message-ID: <1440771706-21388-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -24,7 +24,7 @@ Reconfigure and restart audio when display is enabled, if audio
 playback was active before. This is needed in a situation when an
 audio+video stream application opens the audio stream before the
 video. When video stream is opened the display mode may change and
-that would aborted audio playback, because the display is momentarily
+that aborts audio playback, because the display is momentarily
 turned off.
 
 The audio configuration is stored when it is successfully applied and
@@ -50,6 +50,8 @@ commands write their stuff directly to HW.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
+Fixed one bad sentece in the description.
+
  drivers/video/fbdev/omap2/dss/hdmi.h  |  9 ++++-
  drivers/video/fbdev/omap2/dss/hdmi4.c | 66 +++++++++++++++++++++++++-----
  drivers/video/fbdev/omap2/dss/hdmi5.c | 76 ++++++++++++++++++++++++++++-------
