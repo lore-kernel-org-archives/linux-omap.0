@@ -1,33 +1,48 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v3 02/15] mmc: host: omap_hsmmc: return on fatal errors
- from omap_hsmmc_reg_get
-Date: Fri, 28 Aug 2015 11:07:57 -0700
-Message-ID: <CAOesGMjW=3qqBfqdxGwEqk1uVj_08rnvP095V-9+O=rsmjLOxQ@mail.gmail.com>
-References: <1440666847-12594-1-git-send-email-kishon@ti.com>
-	<1440666847-12594-3-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1440666847-12594-3-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, afenkart@gmail.com, Tony Lindgren <tony@atomide.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Neil Brown <neilb@suse.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] gpio: omap: Fix gpiochip_add() handling for deferred probe
+Date: Fri, 28 Aug 2015 11:44:49 -0700
+Message-ID: <1440787489-15992-1-git-send-email-tony@atomide.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Currently we gpio-omap breaks if gpiochip_add() returns -EPROBE_DEFER:
 
-On Thu, Aug 27, 2015 at 2:13 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> Now return error only if the return value of
-> devm_regulator_get_optional() is not the same as -ENODEV, since with
-> -EPROBE_DEFER, the regulator can be obtained later and all other
-> errors are fatal.
->
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Tested-by: Tony Lindgren <tony@atomide.com>
+[    0.570000] gpiochip_add: GPIOs 0..31 (gpio) failed to register
+[    0.570000] omap_gpio 48310000.gpio: Could not register gpio chip -517
+...
+[    3.670000] omap_gpio 48310000.gpio: Unbalanced pm_runtime_enable!
 
-I bisected boot failures on Panda ES with multi_v7_defconfig down to
-this commit on last night's -next build:
+Let's fix the issue by adding the missing pm_runtime_put() on error.
 
-http://arm-soc.lixom.net/bootlogs/next/next-20150828/pandaes-arm-multi_v7_defconfig.html
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/gpio/gpio-omap.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
--Olof
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index b0c57d5..f09bf0b 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1232,8 +1232,11 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	omap_gpio_mod_init(bank);
+ 
+ 	ret = omap_gpio_chip_init(bank, irqc);
+-	if (ret)
++	if (ret) {
++		pm_runtime_put_sync(bank->dev);
++		pm_runtime_disable(bank->dev);
+ 		return ret;
++	}
+ 
+ 	omap_gpio_show_rev(bank);
+ 
+-- 
+2.1.4
+
