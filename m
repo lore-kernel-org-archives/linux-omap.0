@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Fix booting if no timer parent clock is available
-Date: Fri, 28 Aug 2015 12:06:16 -0700
-Message-ID: <1440788776-19978-1-git-send-email-tony@atomide.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Enable MUSB DMA support
+Date: Fri, 28 Aug 2015 12:19:42 -0700
+Message-ID: <1440789582-25392-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,40 +16,31 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When bringing up a new SoC we needlessly prevent booting at timer
-init if timer clock_set_parent fails. This can fail if the system
-is booting on bootloader configured PLL values until the clock
-framework driver for the PLL is implemented.
+With recent MUSB changes we can now build in support for multiple
+DMA implementations. So let's enable DMA by default to make life
+easier for distro use.
 
-Let's just WARN instead, this will provide helpful information
-for anybody bringing up a new SoC what needs to be fixed.
-
+Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/timer.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/arm/configs/omap2plus_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index e4d8701..a556551 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -297,12 +297,8 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 	if (IS_ERR(src))
- 		return PTR_ERR(src);
- 
--	r = clk_set_parent(timer->fclk, src);
--	if (r < 0) {
--		pr_warn("%s: %s cannot set source\n", __func__, oh->name);
--		clk_put(src);
--		return r;
--	}
-+	WARN(clk_set_parent(timer->fclk, src) < 0,
-+	     "Cannot set timer parent clock, no PLL clock driver?");
- 
- 	clk_put(src);
- 
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 789fa5a8..1d5f80f 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -350,6 +350,8 @@ CONFIG_USB_MUSB_HDRC=m
+ CONFIG_USB_MUSB_OMAP2PLUS=m
+ CONFIG_USB_MUSB_AM35X=m
+ CONFIG_USB_MUSB_DSPS=m
++CONFIG_USB_INVENTRA_DMA=y
++CONFIG_USB_TI_CPPI41_DMA=y
+ CONFIG_USB_DWC3=m
+ CONFIG_USB_TEST=m
+ CONFIG_AM335X_PHY_USB=y
 -- 
 2.1.4
