@@ -1,38 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] net/smsc911x: Fix deferred probe for interrupt
-Date: Fri, 28 Aug 2015 11:50:15 -0700
-Message-ID: <1440787815-24655-1-git-send-email-tony@atomide.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Steve Glendinning <steve.glendinning@shawell.net>
+Subject: Re: [PATCH v3 02/15] mmc: host: omap_hsmmc: return on fatal errors
+ from omap_hsmmc_reg_get
+Date: Fri, 28 Aug 2015 12:03:54 -0700
+Message-ID: <20150828190354.GZ4215@atomide.com>
+References: <1440666847-12594-1-git-send-email-kishon@ti.com>
+ <1440666847-12594-3-git-send-email-kishon@ti.com>
+ <CAOesGMjW=3qqBfqdxGwEqk1uVj_08rnvP095V-9+O=rsmjLOxQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOesGMjW=3qqBfqdxGwEqk1uVj_08rnvP095V-9+O=rsmjLOxQ@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, afenkart@gmail.com, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Neil Brown <neilb@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-The interrupt handler may not be available when smsc911x probes if the
-interrupt handler is a GPIO controller for example. Let's fix that
-by adding handling for -EPROBE_DEFER.
+* Olof Johansson <olof@lixom.net> [150828 11:11]:
+> Hi,
+> 
+> On Thu, Aug 27, 2015 at 2:13 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> > Now return error only if the return value of
+> > devm_regulator_get_optional() is not the same as -ENODEV, since with
+> > -EPROBE_DEFER, the regulator can be obtained later and all other
+> > errors are fatal.
+> >
+> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > Tested-by: Tony Lindgren <tony@atomide.com>
+> 
+> I bisected boot failures on Panda ES with multi_v7_defconfig down to
+> this commit on last night's -next build:
+> 
+> http://arm-soc.lixom.net/bootlogs/next/next-20150828/pandaes-arm-multi_v7_defconfig.html
 
-Cc: Steve Glendinning <steve.glendinning@shawell.net>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/net/ethernet/smsc/smsc911x.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+MMC is working for me at least on Duovero. Interesting that you also
+have all kind of errors there, I guess this is some older revision
+of the board.
 
-diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
-index 959aeea..cb9f166f 100644
---- a/drivers/net/ethernet/smsc/smsc911x.c
-+++ b/drivers/net/ethernet/smsc/smsc911x.c
-@@ -2435,7 +2435,10 @@ static int smsc911x_drv_probe(struct platform_device *pdev)
- 	res_size = resource_size(res);
- 
- 	irq = platform_get_irq(pdev, 0);
--	if (irq <= 0) {
-+	if (irq == -EPROBE_DEFER) {
-+		retval = -EPROBE_DEFER;
-+		goto out_0;
-+	} else if (irq <= 0) {
- 		pr_warn("Could not allocate irq resource\n");
- 		retval = -ENODEV;
- 		goto out_0;
--- 
-2.1.4
+Anyways, Kishon, care to look into what might be causing this?
+
+Regards,
+
+Tony
