@@ -1,52 +1,51 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH] net/smsc911x: Fix deferred probe for interrupt
-Date: Sun, 30 Aug 2015 00:33:52 +0300
-Message-ID: <55E22540.3060307@cogentembedded.com>
-References: <1440787815-24655-1-git-send-email-tony@atomide.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] spi: omap2-mcspi: add runtime PM to set_cs()
+Date: Sun, 30 Aug 2015 17:45:21 +0300
+Message-ID: <55E31701.7050807@bitmer.com>
+References: <1437590769-14632-1-git-send-email-sre@kernel.org> <20150724163946.GN11162@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1440787815-24655-1-git-send-email-tony@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Steve Glendinning <steve.glendinning@shawell.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150724163946.GN11162@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>
+Cc: linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Michael Welling <mwelling@ieee.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi
 
-On 8/28/2015 9:50 PM, Tony Lindgren wrote:
+On 07/24/2015 07:39 PM, Mark Brown wrote:
+> On Wed, Jul 22, 2015 at 08:46:09PM +0200, Sebastian Reichel wrote:
+>> Since commit ddcad7e9068eb omap2_mcspi_set_cs() is called without
+>> runtime power management requested. Thus the below kernel oops may be
+>> generated if a device is accessed after the runtime power management
+>> timeout. This patch fixes the problem by requesting runtime power
+>> management in omap2_mcspi_set_cs().
+>>
+>> [   13.933959] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09802c
+>> [   13.940490] pgd = cfb38000
+>> [   13.946594] [fa09802c] *pgd=48011452(bad)
+>> [   13.952758] Internal error: : 1028 [#1] PREEMPT ARM
+>> [   13.958862] Modules linked in: tsc2005(+) omap_sham twl4030_wdt omap_wdt
+>> [   13.965332] CPU: 0 PID: 183 Comm: modprobe Not tainted 4.2.0-rc1+ #363
+>> [   13.971801] Hardware name: Nokia RX-51 board
+>> [   13.978302] task: cf572300 ti: cb1f2000 task.ti: cb1f2000
+>> [   13.984924] PC is at omap2_mcspi_set_cs+0x44/0x4c
+>> [   13.991485] LR is at spi_set_cs+0x5c/0x60
+> 
+> Please don't paste entire backtraces into commit messages, they are very
+> large and almost entirely noise (for example in this case the entire
+> explanation is in the commit message itself).  If you feel a backtrace
+> helps clarify things then please present an *edited* highlight of the
+> relevant sections.
+> present
+> 
+Is there update to this patch? I don't see such in 4.2.0-rc8+. I hit
+this same issue on Nokia N900 WLAN (CONFIG_WL1251=m and
+CONFIG_WL1251_SPI=m) and googling lead to this patch which made the WLAN
+working.
 
-> The interrupt handler may not be available when smsc911x probes if the
-> interrupt handler is a GPIO controller for example. Let's fix that
-> by adding handling for -EPROBE_DEFER.
+If you are going to resend this, please feel free to add my tested by:
 
-> Cc: Steve Glendinning <steve.glendinning@shawell.net>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   drivers/net/ethernet/smsc/smsc911x.c | 5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
-> index 959aeea..cb9f166f 100644
-> --- a/drivers/net/ethernet/smsc/smsc911x.c
-> +++ b/drivers/net/ethernet/smsc/smsc911x.c
-> @@ -2435,7 +2435,10 @@ static int smsc911x_drv_probe(struct platform_device *pdev)
->   	res_size = resource_size(res);
->
->   	irq = platform_get_irq(pdev, 0);
-> -	if (irq <= 0) {
-> +	if (irq == -EPROBE_DEFER) {
-> +		retval = -EPROBE_DEFER;
-> +		goto out_0;
-> +	} else if (irq <= 0) {
->   		pr_warn("Could not allocate irq resource\n");
->   		retval = -ENODEV;
-
-    I'd propagate the error code from platfrom_get_irq() instead (in fact, 
-I've submitted a couple of such patches yesterday and they have been already 
-merged).
-
-[...]
-
-NBR, Sergei
+Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
