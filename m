@@ -1,61 +1,41 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] net/smsc911x: Fix deferred probe for interrupt
-Date: Mon, 31 Aug 2015 17:03:10 +0300
-Message-ID: <55E45E9E.1090900@ti.com>
-References: <1440787815-24655-1-git-send-email-tony@atomide.com>
- <55E22540.3060307@cogentembedded.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] gpio: omap: Fix gpiochip_add() handling for deferred
+ probe
+Date: Mon, 31 Aug 2015 07:11:34 -0700
+Message-ID: <20150831141134.GA4215@atomide.com>
+References: <1440787489-15992-1-git-send-email-tony@atomide.com>
+ <55E4186E.7090605@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <55E22540.3060307@cogentembedded.com>
-Sender: netdev-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>, Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Steve Glendinning <steve.glendinning@shawell.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55E4186E.7090605@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/30/2015 12:33 AM, Sergei Shtylyov wrote:
-> Hello.
+* Grygorii Strashko <grygorii.strashko@ti.com> [150831 02:07]:
+> Hi Tony,
 > 
-> On 8/28/2015 9:50 PM, Tony Lindgren wrote:
+> On 08/28/2015 09:44 PM, Tony Lindgren wrote:
+> >Currently we gpio-omap breaks if gpiochip_add() returns -EPROBE_DEFER:
+> >
+> >[    0.570000] gpiochip_add: GPIOs 0..31 (gpio) failed to register
+> >[    0.570000] omap_gpio 48310000.gpio: Could not register gpio chip -517
+> >...
+> >[    3.670000] omap_gpio 48310000.gpio: Unbalanced pm_runtime_enable!
 > 
->> The interrupt handler may not be available when smsc911x probes if the
->> interrupt handler is a GPIO controller for example. Let's fix that
->> by adding handling for -EPROBE_DEFER.
+> I have no objection to the patch itself.
 > 
->> Cc: Steve Glendinning <steve.glendinning@shawell.net>
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> ---
->>   drivers/net/ethernet/smsc/smsc911x.c | 5 ++++-
->>   1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/net/ethernet/smsc/smsc911x.c 
->> b/drivers/net/ethernet/smsc/smsc911x.c
->> index 959aeea..cb9f166f 100644
->> --- a/drivers/net/ethernet/smsc/smsc911x.c
->> +++ b/drivers/net/ethernet/smsc/smsc911x.c
->> @@ -2435,7 +2435,10 @@ static int smsc911x_drv_probe(struct 
->> platform_device *pdev)
->>       res_size = resource_size(res);
->>
->>       irq = platform_get_irq(pdev, 0);
->> -    if (irq <= 0) {
->> +    if (irq == -EPROBE_DEFER) {
->> +        retval = -EPROBE_DEFER;
->> +        goto out_0;
->> +    } else if (irq <= 0) {
->>           pr_warn("Could not allocate irq resource\n");
->>           retval = -ENODEV;
-> 
->     I'd propagate the error code from platfrom_get_irq() instead (in 
-> fact, I've submitted a couple of such patches yesterday and they have 
-> been already merged).
+> But I curious, How have you got this error output? Was it simulated?
 
-Have you paid some attention on current platform_get_irq_() implementation?
+I ran into it when trying to get rid of all the custom initcalls
+for various drivers. And especially if adding dts mappings for
+gpio-ranges to try to find some solution for the 1.158 issue that
+keeps me from having a mainline GPIO PM regresion test with
+pinging wl12xx during off idle :)
 
-The platform_get_irq() can return 0 in case of DT-boot.
+Regards,
 
-
--- 
-regards,
--grygorii
+Tony
