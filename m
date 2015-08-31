@@ -1,91 +1,52 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to
- program pbias regulator
-Date: Mon, 31 Aug 2015 15:52:49 +0100
-Message-ID: <20150831145249.GO12027@sirena.org.uk>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com>
- <1437996250-2913-2-git-send-email-kishon@ti.com>
- <20150814180006.GB10748@sirena.org.uk>
- <55D2C872.9000400@ti.com>
- <20150819181149.GZ10748@sirena.org.uk>
- <55DC3D58.4030409@ti.com>
- <20150825135044.GJ27431@sirena.org.uk>
- <55E42FF7.9010706@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/2] usb: dwc3: support for pinctrl state change during system sleep
+Date: Mon, 31 Aug 2015 21:09:08 +0530
+Message-ID: <9dd70870cfee40154a37186d4cf3ae0e9a452cbd.1441029572.git.nsekhar@ti.com>
+References: <cover.1441029572.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="XLpnloaskCRyB6mV"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55E42FF7.9010706@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1441029572.git.nsekhar-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Add support for USB DRVVBUS pinctrl state change during
+suspend/resume. This helps is conserving power during
+system sleep.
 
---XLpnloaskCRyB6mV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/dwc3/core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-On Mon, Aug 31, 2015 at 04:14:07PM +0530, Kishon Vijay Abraham I wrote:
-> On Tuesday 25 August 2015 07:20 PM, Mark Brown wrote:
-> > On Tue, Aug 25, 2015 at 01:03:04PM +0300, Grygorii Strashko wrote:
-> >> On 08/19/2015 09:11 PM, Mark Brown wrote:
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index ff5773c66b84..a5ffa66e39fb 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -1093,6 +1093,8 @@ static int dwc3_suspend(struct device *dev)
+ 	phy_exit(dwc->usb2_generic_phy);
+ 	phy_exit(dwc->usb3_generic_phy);
+ 
++	pinctrl_pm_select_sleep_state(dev);
++
+ 	return 0;
+ }
+ 
+@@ -1102,6 +1104,8 @@ static int dwc3_resume(struct device *dev)
+ 	unsigned long	flags;
+ 	int		ret;
+ 
++	pinctrl_pm_select_default_state(dev);
++
+ 	usb_phy_init(dwc->usb3_phy);
+ 	usb_phy_init(dwc->usb2_phy);
+ 	ret = phy_init(dwc->usb2_generic_phy);
+-- 
+2.4.4.408.g16da57c
 
-> >>> So substract this address from the start of the resource to get the
-> >>> offset?  Or provide a wrapper function in the resource code which does
-> >>> that. =20
-> >=20
-> >> I'd be very appreciated if you have and can share any thought on
-> >> How can we get this absolute base address to substract?
-> >=20
-> > Ask the syscon device for its resource?  Or have it provide an absolute
->=20
-> Even if we get the absolute address of syscon, we have to do the
-> subtraction only for the newer dtbs (previous dtbs already have only the
-> offset). Do you recommend adding a new property to differentiate between
-> older dtbs and newer dtbs? Any other suggestions here?
-
-Hang on.  This is the first I've heard of any DTs not just having
-absolute addresses.  How does any of this work - has it ever worked, and
-is the situation completely understood?  My original concern with this
-was that I coudn't understand the commit log and your original response
-seemed to indicate that we always have the absolute address :(  Perhaps
-this is something to do with the brief mention of having moved the DT
-node for some reason?
-
-We at least need some sort of coherent explanation of the problem and a
-comprehensible fix to go with it.  Right now it seems like things are
-just being moved about to hide problems without either of these things
-which seems like it makes the code less clear and more fragile.
-
-> > address based interface for that matter?
-
-> Syscon doesn't directly expose any API's to write to it's register.
-> Rather it uses regmap APIs to read/write to it's register. I'm not sure
-> if it's possible to add regmap APIs to write to a register with absolute
-> address. Any hints?
-
-Yes, I'm aware that it is regmap based!  What I am suggesting is that if
-people are making DTs like yours with devices that are children of the
-syscon then presumably it might be useful for it to allow client drivers
-to pass absolute addresses in so that it can translate for them.
-
---XLpnloaskCRyB6mV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV5GpAAAoJECTWi3JdVIfQTZkH/joidheooGIGCzTHjnT44Vsz
-roSo0Q/Md0Md5k5rGHkjNA2u2Fud+SP2Gj30i6Yg8d8ZWE/sAIpL66gVCTl5PrKE
-TTCz2BGB4xTGF/dAd7RtTHKKfELVHEuVa/I5lAEUxZx5KR06kQJ9poh2bpa/4F21
-xvbxxBZmxaGxVXbCP/XcYSpdOtw0GdqoeXZNAb2sNx2D1kBmVqoyFASbnq7QKSJT
-iIwyT3hzlu71TbGReOIAjlmXjda3VkBf24QUNRhwNkmy49dYfvnzKi5jKRlq4I/I
-3TtMe+ZP+8DP3bWc3JWrqT8/Slko8L1ctuzFWVf3hoR8wqjY4med74k1KkaLeTY=
-=7ZBh
------END PGP SIGNATURE-----
-
---XLpnloaskCRyB6mV--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
