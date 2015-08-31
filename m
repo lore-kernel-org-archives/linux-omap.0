@@ -1,49 +1,91 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] gpio: omap: Fix gpiochip_add() handling for deferred
- probe
-Date: Mon, 31 Aug 2015 17:37:22 +0300
-Message-ID: <55E466A2.9080900@ti.com>
-References: <1440787489-15992-1-git-send-email-tony@atomide.com>
- <55E4186E.7090605@ti.com> <20150831141134.GA4215@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to
+ program pbias regulator
+Date: Mon, 31 Aug 2015 15:52:49 +0100
+Message-ID: <20150831145249.GO12027@sirena.org.uk>
+References: <1437996250-2913-1-git-send-email-kishon@ti.com>
+ <1437996250-2913-2-git-send-email-kishon@ti.com>
+ <20150814180006.GB10748@sirena.org.uk>
+ <55D2C872.9000400@ti.com>
+ <20150819181149.GZ10748@sirena.org.uk>
+ <55DC3D58.4030409@ti.com>
+ <20150825135044.GJ27431@sirena.org.uk>
+ <55E42FF7.9010706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150831141134.GA4215@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="XLpnloaskCRyB6mV"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55E42FF7.9010706@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/31/2015 05:11 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [150831 02:07]:
->> Hi Tony,
->>
->> On 08/28/2015 09:44 PM, Tony Lindgren wrote:
->>> Currently we gpio-omap breaks if gpiochip_add() returns -EPROBE_DEFER:
->>>
->>> [    0.570000] gpiochip_add: GPIOs 0..31 (gpio) failed to register
->>> [    0.570000] omap_gpio 48310000.gpio: Could not register gpio chip -517
->>> ...
->>> [    3.670000] omap_gpio 48310000.gpio: Unbalanced pm_runtime_enable!
->>
->> I have no objection to the patch itself.
->>
->> But I curious, How have you got this error output? Was it simulated?
-> 
-> I ran into it when trying to get rid of all the custom initcalls
-> for various drivers. And especially if adding dts mappings for
-> gpio-ranges to try to find some solution for the 1.158 issue that
-> keeps me from having a mainline GPIO PM regresion test with
-> pinging wl12xx during off idle :)
-> 
 
-Ah. So, -EPROBE_DEFER was returned by of_gpiochip_add_pin_range(),
-I was not able to find a place where gpiochip_add() can return -EPROBE_DEFER ;)
+--XLpnloaskCRyB6mV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for clarification.
+On Mon, Aug 31, 2015 at 04:14:07PM +0530, Kishon Vijay Abraham I wrote:
+> On Tuesday 25 August 2015 07:20 PM, Mark Brown wrote:
+> > On Tue, Aug 25, 2015 at 01:03:04PM +0300, Grygorii Strashko wrote:
+> >> On 08/19/2015 09:11 PM, Mark Brown wrote:
 
+> >>> So substract this address from the start of the resource to get the
+> >>> offset?  Or provide a wrapper function in the resource code which does
+> >>> that. =20
+> >=20
+> >> I'd be very appreciated if you have and can share any thought on
+> >> How can we get this absolute base address to substract?
+> >=20
+> > Ask the syscon device for its resource?  Or have it provide an absolute
+>=20
+> Even if we get the absolute address of syscon, we have to do the
+> subtraction only for the newer dtbs (previous dtbs already have only the
+> offset). Do you recommend adding a new property to differentiate between
+> older dtbs and newer dtbs? Any other suggestions here?
 
--- 
-regards,
--grygorii
+Hang on.  This is the first I've heard of any DTs not just having
+absolute addresses.  How does any of this work - has it ever worked, and
+is the situation completely understood?  My original concern with this
+was that I coudn't understand the commit log and your original response
+seemed to indicate that we always have the absolute address :(  Perhaps
+this is something to do with the brief mention of having moved the DT
+node for some reason?
+
+We at least need some sort of coherent explanation of the problem and a
+comprehensible fix to go with it.  Right now it seems like things are
+just being moved about to hide problems without either of these things
+which seems like it makes the code less clear and more fragile.
+
+> > address based interface for that matter?
+
+> Syscon doesn't directly expose any API's to write to it's register.
+> Rather it uses regmap APIs to read/write to it's register. I'm not sure
+> if it's possible to add regmap APIs to write to a register with absolute
+> address. Any hints?
+
+Yes, I'm aware that it is regmap based!  What I am suggesting is that if
+people are making DTs like yours with devices that are children of the
+syscon then presumably it might be useful for it to allow client drivers
+to pass absolute addresses in so that it can translate for them.
+
+--XLpnloaskCRyB6mV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJV5GpAAAoJECTWi3JdVIfQTZkH/joidheooGIGCzTHjnT44Vsz
+roSo0Q/Md0Md5k5rGHkjNA2u2Fud+SP2Gj30i6Yg8d8ZWE/sAIpL66gVCTl5PrKE
+TTCz2BGB4xTGF/dAd7RtTHKKfELVHEuVa/I5lAEUxZx5KR06kQJ9poh2bpa/4F21
+xvbxxBZmxaGxVXbCP/XcYSpdOtw0GdqoeXZNAb2sNx2D1kBmVqoyFASbnq7QKSJT
+iIwyT3hzlu71TbGReOIAjlmXjda3VkBf24QUNRhwNkmy49dYfvnzKi5jKRlq4I/I
+3TtMe+ZP+8DP3bWc3JWrqT8/Slko8L1ctuzFWVf3hoR8wqjY4med74k1KkaLeTY=
+=7ZBh
+-----END PGP SIGNATURE-----
+
+--XLpnloaskCRyB6mV--
