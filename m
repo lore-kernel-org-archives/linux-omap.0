@@ -1,54 +1,65 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: add runtime PM to set_cs()
-Date: Mon, 31 Aug 2015 09:53:55 +0100
-Message-ID: <20150831085355.GF12027@sirena.org.uk>
-References: <1437590769-14632-1-git-send-email-sre@kernel.org>
- <20150724163946.GN11162@sirena.org.uk>
- <55E31701.7050807@bitmer.com>
- <20150830164444.GA22471@deathstar>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] gpio: omap: Fix gpiochip_add() handling for deferred
+ probe
+Date: Mon, 31 Aug 2015 12:03:42 +0300
+Message-ID: <55E4186E.7090605@ti.com>
+References: <1440787489-15992-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="r8KQfZmTpEqOZYSi"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150830164444.GA22471@deathstar>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>
-Cc: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1440787489-15992-1-git-send-email-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tony,
 
---r8KQfZmTpEqOZYSi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 08/28/2015 09:44 PM, Tony Lindgren wrote:
+> Currently we gpio-omap breaks if gpiochip_add() returns -EPROBE_DEFER:
+>
+> [    0.570000] gpiochip_add: GPIOs 0..31 (gpio) failed to register
+> [    0.570000] omap_gpio 48310000.gpio: Could not register gpio chip -517
+> ...
+> [    3.670000] omap_gpio 48310000.gpio: Unbalanced pm_runtime_enable!
 
-On Sun, Aug 30, 2015 at 11:44:45AM -0500, Michael Welling wrote:
+I have no objection to the patch itself.
 
-> The patch is currently sitting in linux-next.
+But I curious, How have you got this error output? Was it simulated?
 
-> Not sure why it wasn't merged with 4.2.0-rc8.
+>
+> Let's fix the issue by adding the missing pm_runtime_put() on error.
+>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Javier Martinez Canillas <javier@dowhile0.org>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   drivers/gpio/gpio-omap.c | 5 ++++-
+>   1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index b0c57d5..f09bf0b 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1232,8 +1232,11 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>   	omap_gpio_mod_init(bank);
+>
+>   	ret = omap_gpio_chip_init(bank, irqc);
+> -	if (ret)
+> +	if (ret) {
+> +		pm_runtime_put_sync(bank->dev);
+> +		pm_runtime_disable(bank->dev);
+>   		return ret;
+> +	}
+>
+>   	omap_gpio_show_rev(bank);
+>
+>
 
-You didn't indicate that it was a bug fix for Linus rather than a fix
-for recent development :(
 
---r8KQfZmTpEqOZYSi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV5BYeAAoJECTWi3JdVIfQ3TgH/22YHVXRT9KcJo/jr9XEfVCr
-VJk6wR/IvsS6gbkJrEN9+W8XNmRV9MEHjLFhrAiyZCVb9n1jdC1isXpQ2UXtbFX2
-nQ2x9RP9nPK+lxQG1lVqloAlV8sgdi0uYm8Qg0LxNQ5mU24jESvs6iGuuxHgxqSg
-MDNwxQ3rLtEWKCgTLPyo0LSpF+sV2h6dzw2TL7I+UgEQw/4Pj1a2O1jhhxLzQ8wK
-KJj6H2WTKQZUWiy3zAsI8LQPJcsYhVNQP0Lmr0r0ANasMJtQ9qKTGDXENQaYsAbf
-OotQLdSrkhoupcNYLkTLlhevlKWWvE0oIjkKuPHDfjYYBF/fIBpgIjgl+fpxTcs=
-=ld9E
------END PGP SIGNATURE-----
-
---r8KQfZmTpEqOZYSi--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+regards,
+-grygorii
