@@ -1,44 +1,61 @@
-From: Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: add runtime PM to set_cs()
-Date: Mon, 31 Aug 2015 08:46:46 -0500
-Message-ID: <20150831134645.GA11095@deathstar>
-References: <1437590769-14632-1-git-send-email-sre@kernel.org>
- <20150724163946.GN11162@sirena.org.uk>
- <55E31701.7050807@bitmer.com>
- <20150830164444.GA22471@deathstar>
- <20150831085355.GF12027@sirena.org.uk>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] net/smsc911x: Fix deferred probe for interrupt
+Date: Mon, 31 Aug 2015 17:03:10 +0300
+Message-ID: <55E45E9E.1090900@ti.com>
+References: <1440787815-24655-1-git-send-email-tony@atomide.com>
+ <55E22540.3060307@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150831085355.GF12027-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <55E22540.3060307@cogentembedded.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>, Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Steve Glendinning <steve.glendinning@shawell.net>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 31, 2015 at 09:53:55AM +0100, Mark Brown wrote:
-> On Sun, Aug 30, 2015 at 11:44:45AM -0500, Michael Welling wrote:
+On 08/30/2015 12:33 AM, Sergei Shtylyov wrote:
+> Hello.
 > 
-> > The patch is currently sitting in linux-next.
+> On 8/28/2015 9:50 PM, Tony Lindgren wrote:
 > 
-> > Not sure why it wasn't merged with 4.2.0-rc8.
+>> The interrupt handler may not be available when smsc911x probes if the
+>> interrupt handler is a GPIO controller for example. Let's fix that
+>> by adding handling for -EPROBE_DEFER.
 > 
-> You didn't indicate that it was a bug fix for Linus rather than a fix
-> for recent development :(
+>> Cc: Steve Glendinning <steve.glendinning@shawell.net>
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>   drivers/net/ethernet/smsc/smsc911x.c | 5 ++++-
+>>   1 file changed, 4 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/net/ethernet/smsc/smsc911x.c 
+>> b/drivers/net/ethernet/smsc/smsc911x.c
+>> index 959aeea..cb9f166f 100644
+>> --- a/drivers/net/ethernet/smsc/smsc911x.c
+>> +++ b/drivers/net/ethernet/smsc/smsc911x.c
+>> @@ -2435,7 +2435,10 @@ static int smsc911x_drv_probe(struct 
+>> platform_device *pdev)
+>>       res_size = resource_size(res);
+>>
+>>       irq = platform_get_irq(pdev, 0);
+>> -    if (irq <= 0) {
+>> +    if (irq == -EPROBE_DEFER) {
+>> +        retval = -EPROBE_DEFER;
+>> +        goto out_0;
+>> +    } else if (irq <= 0) {
+>>           pr_warn("Could not allocate irq resource\n");
+>>           retval = -ENODEV;
+> 
+>     I'd propagate the error code from platfrom_get_irq() instead (in 
+> fact, I've submitted a couple of such patches yesterday and they have 
+> been already merged).
 
-Sorry, I did not know that it was my responsibility.
+Have you paid some attention on current platform_get_irq_() implementation?
 
-How do I indicate this for future reference?
+The platform_get_irq() can return 0 in case of DT-boot.
 
-The patch that Sebastian sent said the following:
-"
-Michael also tested the patch, but have not explicitly written an
-Tested-By, so you may want to wait for feedback from him. The patch
-should be sent for 4.2-rc, which introduced the regression.
-"
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+regards,
+-grygorii
