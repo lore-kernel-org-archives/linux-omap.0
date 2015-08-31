@@ -1,83 +1,49 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: add runtime PM to set_cs()
-Date: Mon, 31 Aug 2015 15:25:08 +0100
-Message-ID: <20150831142508.GN12027@sirena.org.uk>
-References: <1437590769-14632-1-git-send-email-sre@kernel.org>
- <20150724163946.GN11162@sirena.org.uk>
- <55E31701.7050807@bitmer.com>
- <20150830164444.GA22471@deathstar>
- <20150831085355.GF12027@sirena.org.uk>
- <20150831134645.GA11095@deathstar>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] gpio: omap: Fix gpiochip_add() handling for deferred
+ probe
+Date: Mon, 31 Aug 2015 17:37:22 +0300
+Message-ID: <55E466A2.9080900@ti.com>
+References: <1440787489-15992-1-git-send-email-tony@atomide.com>
+ <55E4186E.7090605@ti.com> <20150831141134.GA4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="dalTE8IaBbGRX0ud"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150831134645.GA11095@deathstar>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>
-Cc: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20150831141134.GA4215@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 08/31/2015 05:11 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [150831 02:07]:
+>> Hi Tony,
+>>
+>> On 08/28/2015 09:44 PM, Tony Lindgren wrote:
+>>> Currently we gpio-omap breaks if gpiochip_add() returns -EPROBE_DEFER:
+>>>
+>>> [    0.570000] gpiochip_add: GPIOs 0..31 (gpio) failed to register
+>>> [    0.570000] omap_gpio 48310000.gpio: Could not register gpio chip -517
+>>> ...
+>>> [    3.670000] omap_gpio 48310000.gpio: Unbalanced pm_runtime_enable!
+>>
+>> I have no objection to the patch itself.
+>>
+>> But I curious, How have you got this error output? Was it simulated?
+> 
+> I ran into it when trying to get rid of all the custom initcalls
+> for various drivers. And especially if adding dts mappings for
+> gpio-ranges to try to find some solution for the 1.158 issue that
+> keeps me from having a mainline GPIO PM regresion test with
+> pinging wl12xx during off idle :)
+> 
 
---dalTE8IaBbGRX0ud
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Ah. So, -EPROBE_DEFER was returned by of_gpiochip_add_pin_range(),
+I was not able to find a place where gpiochip_add() can return -EPROBE_DEFER ;)
 
-On Mon, Aug 31, 2015 at 08:46:46AM -0500, Michael Welling wrote:
-> On Mon, Aug 31, 2015 at 09:53:55AM +0100, Mark Brown wrote:
-> > On Sun, Aug 30, 2015 at 11:44:45AM -0500, Michael Welling wrote:
+Thanks for clarification.
 
-> > > The patch is currently sitting in linux-next.
 
-> > > Not sure why it wasn't merged with 4.2.0-rc8.
-
-> > You didn't indicate that it was a bug fix for Linus rather than a fix
-> > for recent development :(
-
-Ah, actually it did get applied as a fix - it's just that I didn't send
-a pull request before v4.3 got released.  Looking at what's there I
-wasn't comfortable with the volume of fixes that arrived and never got
-round to picking out those that were most urgent.  Sorry, these things
-do happen from time to time I'm afraid especially when I'm travelling,
-if something is urgent it's good to verify around -rc6 or so.
-
-> Sorry, I did not know that it was my responsibility.
-
-> How do I indicate this for future reference?
-
-> The patch that Sebastian sent said the following:
-
-> "
-> Michael also tested the patch, but have not explicitly written an
-> Tested-By, so you may want to wait for feedback from him. The patch
-> should be sent for 4.2-rc, which introduced the regression.
-> "
-
-That's not in the changelog which is all I have after the patch is
-applied (and what I was looking at since I just pulled the commit up by
-ID).  If something is in Linus' tree it's often helpful to say
-"...introduced in v4.2-rc1" or similar in the changelog.  Though in this
-case it wasn't the issue.
-
---dalTE8IaBbGRX0ud
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV5GPDAAoJECTWi3JdVIfQ0CgH/jbSWk6NeyiCuU091WEPvWPw
-Cjm3nWg8F52QPFtG1XYJ7xYhp2SVAByNX5IHsNZ0921fzzNQAZbA5eokTjUfA+uW
-r8KznToxsM7VtWDOt/49RsXbWp299tmE0Zkiz3euD/5emKbWsaiKB2OB4rR+tw+f
-kGpWDrQ26+QiD1tUgXKAf/2UKI/YO12qJJJErGuGeY9gHDXK1Uc4aUdA0Xc7uIcA
-8jUvBgQLQeKiPyo49WGQtLi3mQOas3HyLIcYdAls811it06iehyFRtANgGU8lzib
-UvIqLdZQbfJYeos6ZhEcq9ZnLR3wQS24FzSy+ExK3AvL5h/wTA1FuWHLZP5nZ7A=
-=KyD4
------END PGP SIGNATURE-----
-
---dalTE8IaBbGRX0ud--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+regards,
+-grygorii
