@@ -1,45 +1,44 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to program
- pbias regulator
-Date: Mon, 31 Aug 2015 16:14:07 +0530
-Message-ID: <55E42FF7.9010706@ti.com>
-References: <1437996250-2913-1-git-send-email-kishon@ti.com> <1437996250-2913-2-git-send-email-kishon@ti.com> <20150814180006.GB10748@sirena.org.uk> <55D2C872.9000400@ti.com> <20150819181149.GZ10748@sirena.org.uk> <55DC3D58.4030409@ti.com> <20150825135044.GJ27431@sirena.org.uk>
+From: Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>
+Subject: Re: [PATCH] spi: omap2-mcspi: add runtime PM to set_cs()
+Date: Mon, 31 Aug 2015 08:46:46 -0500
+Message-ID: <20150831134645.GA11095@deathstar>
+References: <1437590769-14632-1-git-send-email-sre@kernel.org>
+ <20150724163946.GN11162@sirena.org.uk>
+ <55E31701.7050807@bitmer.com>
+ <20150830164444.GA22471@deathstar>
+ <20150831085355.GF12027@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150825135044.GJ27431@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: tony@atomide.com, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150831085355.GF12027-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
-
-On Tuesday 25 August 2015 07:20 PM, Mark Brown wrote:
-> On Tue, Aug 25, 2015 at 01:03:04PM +0300, Grygorii Strashko wrote:
->> On 08/19/2015 09:11 PM, Mark Brown wrote:
+On Mon, Aug 31, 2015 at 09:53:55AM +0100, Mark Brown wrote:
+> On Sun, Aug 30, 2015 at 11:44:45AM -0500, Michael Welling wrote:
 > 
->>> So substract this address from the start of the resource to get the
->>> offset?  Or provide a wrapper function in the resource code which does
->>> that.  
+> > The patch is currently sitting in linux-next.
 > 
->> I'd be very appreciated if you have and can share any thought on
->> How can we get this absolute base address to substract?
+> > Not sure why it wasn't merged with 4.2.0-rc8.
 > 
-> Ask the syscon device for its resource?  Or have it provide an absolute
+> You didn't indicate that it was a bug fix for Linus rather than a fix
+> for recent development :(
 
-Even if we get the absolute address of syscon, we have to do the
-subtraction only for the newer dtbs (previous dtbs already have only the
-offset). Do you recommend adding a new property to differentiate between
-older dtbs and newer dtbs? Any other suggestions here?
+Sorry, I did not know that it was my responsibility.
 
-> address based interface for that matter?
+How do I indicate this for future reference?
 
-Syscon doesn't directly expose any API's to write to it's register.
-Rather it uses regmap APIs to read/write to it's register. I'm not sure
-if it's possible to add regmap APIs to write to a register with absolute
-address. Any hints?
+The patch that Sebastian sent said the following:
+"
+Michael also tested the patch, but have not explicitly written an
+Tested-By, so you may want to wait for feedback from him. The patch
+should be sent for 4.2-rc, which introduced the regression.
+"
 
-Thanks
-Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
