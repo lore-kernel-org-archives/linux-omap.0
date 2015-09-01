@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Tue, 1 Sep 2015 15:35:52 +0300
-Message-ID: <55E59BA8.1020602@ti.com>
+Date: Tue, 1 Sep 2015 15:35:38 +0300
+Message-ID: <55E59B9A.1010007@ti.com>
 References: <1432156863-19695-1-git-send-email-tony@atomide.com>
  <1432156863-19695-3-git-send-email-tony@atomide.com>
  <OFCA2F1DCE.C787A961-ONC1257EAE.001D79BC-C1257EAE.00203AFF@br-automation.com>
