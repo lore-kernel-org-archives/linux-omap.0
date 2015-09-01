@@ -1,92 +1,63 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH] drivers: net: cpsw: Add support to make gpio drive which slave connected to phy
-Date: Tue, 1 Sep 2015 16:55:19 +0530
-Message-ID: <1441106719-5896-1-git-send-email-mugunthanvnm@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: DTS: dra72-evm: remove cpsw gpio hogging and add select-slave-gpio
+Date: Tue, 1 Sep 2015 17:00:40 +0530
+Message-ID: <1441107040-6105-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: "David S . Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-In DRA72x EVM, by default slave 1 is connected to the onboard
-phy, but slave 2 pins are also muxed with video input module
-which is controlled by pcf857x gpio and currently to select slave
-0 to connect to phy gpio hogging is used, but with
-omap2plus_defconfig the pcf857x gpio is built as module. So when
-using NFS on DRA72x EVM, board doesn't boot as gpio hogging do
-not set proper gpio state to connect slave 0 to phy as it is
-built as module and you do not see any errors for not setting
-gpio and just mentions dhcp reply not got.
+Since GPIO hogging fails to through error when booting with
+gpio-pcf857x as module and NFS root filesystem. So by having
+select-slave-gpio, it throw error to user so that the used can
+make gpio-pcf857x as inbuilt for NFS. When using mmc/ramdisk as
+root fs, cpsw will probe defer and re-probes again when
+gpio-pcf857x module is inserted and ethernet becomes operational.
 
-To solve this issue, introducing "select-slave-gpio" in DT when
-gpio based muxing is required. This will through a warning when
-vgpio get fails and returns probe defer. When gpio-pcf857x module
-is installed, cpsw probes again and ethernet becomes functional.
-Verified this on DRA72x with pcf as module and ramdisk [1]
-
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 ---
 
-This patch is texted on DRA72x, Logs [1] and pushed a branch [2]
+This patch depends on driver changes [1] and tested on DRA72x, logs [2]
 
-[1]: http://pastebin.ubuntu.com/12244652/
-[2]: git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git cpsw-gpio-optional
+[1]: http://patchwork.ozlabs.org/patch/512783/
+[2]: http://pastebin.ubuntu.com/12244652/
 
 ---
- Documentation/devicetree/bindings/net/cpsw.txt |  3 +++
- drivers/net/ethernet/ti/cpsw.c                 | 10 ++++++++++
- 2 files changed, 13 insertions(+)
+ arch/arm/boot/dts/dra72-evm.dts | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index 33fe846..cb693aa 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -26,6 +26,9 @@ Optional properties:
- - dual_emac		: Specifies Switch to act as Dual EMAC
- - syscon		: Phandle to the system control device node, which is
- 			  the control module device of the am33x
-+- select-slave-gpio	: Should be added if a gpio line is required to
-+			  select which slave is connected to phy
-+
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index be9a89b..96d1bd3 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -343,12 +343,6 @@
+ 		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+-
+-		cpsw_sel_s0 {
+-			gpio-hog;
+-			gpios = <4 GPIO_ACTIVE_HIGH>;
+-			output-low;
+-		};
+ 	};
+ };
  
- Slave Properties:
- Required properties:
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 8fc90f1..ce965ad 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -29,6 +29,7 @@
- #include <linux/workqueue.h>
- #include <linux/delay.h>
- #include <linux/pm_runtime.h>
-+#include <linux/gpio.h>
- #include <linux/of.h>
- #include <linux/of_net.h>
- #include <linux/of_device.h>
-@@ -2207,6 +2208,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	void __iomem			*ss_regs;
- 	struct resource			*res, *ss_res;
- 	const struct of_device_id	*of_id;
-+	struct gpio_desc		*select_slave;
- 	u32 slave_offset, sliver_offset, slave_size;
- 	int ret = 0, i;
- 	int irq;
-@@ -2232,6 +2234,14 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_ndev_ret;
- 	}
+@@ -578,6 +572,7 @@
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
+ 	slaves = <1>;
++	select-slave-gpio = <&pcf_gpio_21 4 GPIO_ACTIVE_HIGH>;
+ };
  
-+	select_slave = devm_gpiod_get_optional(&pdev->dev, "select-slave",
-+					       GPIOD_OUT_LOW);
-+	if (IS_ERR(select_slave)) {
-+		ret = PTR_ERR(select_slave);
-+		dev_err(&pdev->dev, "gpio request failed, ret %d\n", ret);
-+		goto clean_ndev_ret;
-+	}
-+
- 	/*
- 	 * This may be required here for child devices.
- 	 */
+ &cpsw_emac0 {
 -- 
 2.5.0.474.g3a9835b
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
