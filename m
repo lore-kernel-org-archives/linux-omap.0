@@ -1,55 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap2: vc: fix 'or' always true warning
-Date: Tue, 1 Sep 2015 08:46:09 -0700
-Message-ID: <20150901154609.GK4215@atomide.com>
-References: <DUB128-W519E183FDD98EF80BD4CB79C6E0@phx.gbl>
- <1440756632-14043-1-git-send-email-frans.klaver@xsens.com>
+Subject: Re: [PATCH] ARM: DRA752: Add ID detect for ES2.0
+Date: Tue, 1 Sep 2015 08:47:46 -0700
+Message-ID: <20150901154746.GL4215@atomide.com>
+References: <1439476340-20141-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1440756632-14043-1-git-send-email-frans.klaver@xsens.com>
+In-Reply-To: <1439476340-20141-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Frans Klaver <frans.klaver@xsens.com>
-Cc: Frans Klaver <fransklaver@gmail.com>, Russell King <linux@arm.linux.org.uk>, David Binderman <dcb314@hotmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vishal Mahaveer <vishalm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Frans Klaver <frans.klaver@xsens.com> [150828 03:14]:
-> From: Frans Klaver <fransklaver@gmail.com>
->=20
-> Fix the warning:
-> arch/arm/mach-omap2/vc.c:302:47: warning: logical =E2=80=98or=E2=80=99=
- of collectively exhaustive tests is always true [-Wlogical-op]
->=20
-> As we're toggling both CLKREQ and OFFMODE, we should also be checking
-> OFFMODE.
->=20
-> Signed-off-by: Frans Klaver <fransklaver@gmail.com>
+* Nishanth Menon <nm@ti.com> [150813 07:35]:
+> From: Vishal Mahaveer <vishalm@ti.com>
+> 
+> ES2.0 is a minor variant of ES1.1. ES2.0 is an incremental revision
+> with various fixes including the following:
+> 	- reset logic fixes
+> 	- few assymetric aging logic fixes
+> 	- MMC clock rate fixes
+> 	- Ethernet speed fixes
+> 	- edma fixes for mcasp
+> 
+> NOTE: even though we use a compatible of dra742 and dra752, the usage in
+> the Linux kernel is more or less interchangable - we use dra752 more
+> often in the linux kernel compared to dra742 and 4.2-rc6
+> 
+> Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> based on linux-next next-20150812, applies to v4.2-rc6 as well.
+> Definetly not a 4.2 material, for 4.3, this probably missed the first merge
+> window for 4.3, will be great if it could be considered for the second merge
+> window.
 
-Thanks apppying into omap-for-v4.3/fixes.
+I'll apply this into omap-for-v4.3/fixes thanks,
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/vc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> index 076fd20d7e5a..807bc79e3e3d 100644
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -300,7 +300,7 @@ static void __init omap3_vc_init_pmic_signaling(s=
-truct voltagedomain *voltdm)
-> =20
->  	val =3D voltdm->read(OMAP3_PRM_POLCTRL_OFFSET);
->  	if (!(val & OMAP3430_PRM_POLCTRL_CLKREQ_POL) ||
-> -	    (val & OMAP3430_PRM_POLCTRL_CLKREQ_POL)) {
-> +	    (val & OMAP3430_PRM_POLCTRL_OFFMODE_POL)) {
->  		val |=3D OMAP3430_PRM_POLCTRL_CLKREQ_POL;
->  		val &=3D ~OMAP3430_PRM_POLCTRL_OFFMODE_POL;
->  		pr_debug("PM: fixing sys_clkreq and sys_off_mode polarity to 0x%x\=
-n",
-> --=20
-> 2.3.4
->=20
