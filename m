@@ -1,99 +1,96 @@
-From: Hannes Schmelzer <Hannes.Schmelzer@br-automation.com>
-Subject: Antwort: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for
- debug
-Date: Tue, 1 Sep 2015 15:31:42 +0200
-Message-ID: <OFFEAB70E0.C9C6AAC7-ONC1257EB3.0049139E-C1257EB3.004A5089@br-automation.com>
-References: <1432156863-19695-1-git-send-email-tony@atomide.com>
- <1432156863-19695-3-git-send-email-tony@atomide.com>
- <OFCA2F1DCE.C787A961-ONC1257EAE.001D79BC-C1257EAE.00203AFF@br-automation.com>
- <55E59B9A.1010007@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] regulator: pbias: use untranslated address to
+ program pbias regulator
+Date: Tue, 1 Sep 2015 07:17:21 -0700
+Message-ID: <20150901141720.GD4215@atomide.com>
+References: <1437996250-2913-1-git-send-email-kishon@ti.com>
+ <1437996250-2913-2-git-send-email-kishon@ti.com>
+ <20150814180006.GB10748@sirena.org.uk>
+ <55D2C872.9000400@ti.com>
+ <20150819181149.GZ10748@sirena.org.uk>
+ <55DC3D58.4030409@ti.com>
+ <20150825135044.GJ27431@sirena.org.uk>
+ <55E42FF7.9010706@ti.com>
+ <20150831145249.GO12027@sirena.org.uk>
+ <55E5727E.1040103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <55E59B9A.1010007@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Hannes Schmelzer <Hannes.Schmelzer@br-automation.com>, linux-omap-owner@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55E5727E.1040103@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, Lee Jones <lee.jones@linar>, Arnd Bergmann <arnd@arndb.de>, Grygorii Strashko <grygorii.strashko@ti.com>, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-> Hi Hannes,
-Hi Roger,
+Hi,
 
+I think the fix is rather easy here.. See below.
+
+* Kishon Vijay Abraham I <kishon@ti.com> [150901 02:43]:
 > 
-> On 27/08/15 08:52, Hannes Schmelzer wrote:
-> > Hi Tony,
-> > 
-> > Did anyone test this changeset on some AM335x board?
-> > 
-> > Today I ran into trouble with that because:
-> > 
-> > The GPMC controller gets reseted on kernel boot due to the 
-missing/removed 
-> HWMOD_INIT_NO_RESET flag.
-> > 
-> > Primary this should not be a big problem, but on my board (maybe on 
-all 
-> AM335x) the GPMC doesn't behave as described in TRM.
-> > Especially the GPMC_CONFIG register is not reset to 0h after reset, 
-instead 
-> it holds the value 0xa00 which is very strange because bit 10-31 are 
-reserved.
-> > 
-> > Further this 0xa00 means that Bit9 (WAIT1PINPOLARITY) is set, exactly 
-this 
-> causes my system to stall on first access the connected NAND flash 
-because it 
-> never becomes ready due to the wrong wait pin polarity. Maybe others 
-dont't 
-> run into trouble because they may use WAIT0PIN, which one has it's old 
-polarity.
+> Before commit d919501feffa8715147582c3ffce96fad0c7016f ARM: dts: dra7:
+> add minimal l4 bus layout with control module support, the dt was like
 > 
-> So nand ready/busy pin is connected to waitpin1 through an inverter on 
-your board?
+> ocp {
+> 	dra7_ctrl_general: tisyscon@4a002e00 {
+> 		compatible = "syscon";
+> 		reg = <0x4a002e00 0x7c>;
+> 	};
 > 
-> On am335x-evm we use waitpin0. Nand ready/busy is directly connected to 
-waitpin0.
+> 	pbias_regulator: pbias_regulator {
+> 		compatible = "ti,pbias-omap";
+> 		reg = <0 0x4>;
+> 		syscon = <&dra7_ctrl_general>;
+> 	};
+> };
 
-No there is no inverter between flash and AM335x, the READY_nBUSY line is 
-directly connected to waitpin1.
-But your sentence brings some good idea to me, i will try to solder some 
-inverter into the READY_nBUSY line on my board and see if the problem 
-appears again.
-If i'm right in my theory that the value 0xa00 in GPMC_CONFIG register is 
-the problem, the inverter would solve it.
-
-You're right am335x-evm uses waitpin0, which one is not affected from this 
-"bug".
-I have to use waitpin1, because i also have a 2nd ethernet interface 
-connected, and there is waitpin0 uses for collission detect signal from 
-the phy (other pinmux).
-
-> For NAND operation read/write wait monitoring must be disabled.
-> The nand driver uses the WAIT pin purely for Read/Busy signalling.
-> Unfortunately the existing driver cannot handle anything other than 
-waitpin 0 
-> for nand for DT boot.
-for sure ? have a look to omap-gpmc.c at line #90.
-Here i can see that either can be used.
-
+Yes the reg = <0 0x4> above is wrong, it's not an offset from the
+ocp but from the syscon base.
+ 
+> But after commit d919501fef, the dt became like this (after a couple of
+> fixes)
 > 
-> I've tried to address this issue here
-> http://thread.gmane.org/gmane.linux.drivers.devicetree/131076
-This is useful if the READY_nBUSY line cannot be connected to the GPMC 
-itself, instead it maybe connected to some other gpio.
-But it doesn't solve the problem.
-
+> ocp {
+> 	l4_cfg: l4@4a000000 {
+> 		compatible = "ti,dra7-l4-cfg", "simple-bus";
+> 		ranges = <0 0x4a000000 0x22c000>;
 > 
-> cheers,
-> -roger
-best regards,
-Hannes
+> 		scm: scm@2000 {
+> 			compatible = "ti,dra7-scm-core", "simple-bus";
+> 			reg = <0x2000 0x2000>;
+> 			ranges = <0 0x2000 0x2000>;
+> 
+> 			scm_conf: scm_conf@0 {
+> 				compatible = "syscon", "simple-bus";
+> 				reg = <0x0 0x1400>;
+> 				ranges = <0 0x0 0x1400>;
+> 
+> 				pbias_regulator: pbias_regulator {
+> 					compatible = "ti,pbias-omap";
+> 					reg = <0xe00 0x4>;
+> 					syscon = <&scm_conf>;
+>                                 };
+> 			};
+> 		};
+> 	};
+> };
+
+And here we properly describe the hardware interconnect layout and
+of_ioremap and friends do the right thing. And reg = <0xxe00 0x4>
+is correct offset from the scm_conf base.
+
+Why don't you just make reg unused for pbias_regulator since
+we already use regmap for this driver?
+
+Then in the pbias driver just define the register offset from
+the syscon base? You may need to set it based on the compatible
+value, but it's not like it's going to change for SoC.
+
+If we eventually add some API to calculate reg base offset
+from the syscon base it's easy to update the driver to use
+that.
+
+Cheers,
+
+Tony
