@@ -1,342 +1,110 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Tue, 1 Sep 2015 15:35:38 +0300
-Message-ID: <55E59B9A.1010007@ti.com>
-References: <1432156863-19695-1-git-send-email-tony@atomide.com>
- <1432156863-19695-3-git-send-email-tony@atomide.com>
- <OFCA2F1DCE.C787A961-ONC1257EAE.001D79BC-C1257EAE.00203AFF@br-automation.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] security: device_cgroup: fix RCU lockdep splat
+Date: Tue, 1 Sep 2015 08:08:22 -0500
+Message-ID: <20150901130822.GA4728@saruman.tx.rr.com>
+References: <1441053629-31844-1-git-send-email-balbi@ti.com>
+ <alpine.LFD.2.11.1509011109150.1709@denkbrett>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <OFCA2F1DCE.C787A961-ONC1257EAE.001D79BC-C1257EAE.00203AFF@br-automation.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hannes Schmelzer <Hannes.Schmelzer@br-automation.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap-owner@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.11.1509011109150.1709@denkbrett>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Cc: Felipe Balbi <balbi@ti.com>, James Morris <james.l.morris@oracle.com>, serge@hallyn.com, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Hannes,
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 27/08/15 08:52, Hannes Schmelzer wrote:
-> Hi Tony,
-> =
+On Tue, Sep 01, 2015 at 11:12:18AM +0200, Sebastian Ott wrote:
+> On Mon, 31 Aug 2015, Felipe Balbi wrote:
+> > while booting AM437x device, the following splat
+> > triggered:
+> >=20
+> > [   12.005238] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > [   12.009749] [ INFO: suspicious RCU usage. ]
+> > [   12.014116] 4.2.0-next-20150831 #1154 Not tainted
+> > [   12.019050] -------------------------------
+> > [   12.023408] security/device_cgroup.c:405 device_cgroup:verify_new_ex=
+ called without proper synchronization!
+> > [   12.033576] other info that might help us debug this:
+> >=20
+> > [   12.041942] rcu_scheduler_active =3D 1, debug_locks =3D 0
+> > [   12.048796] 4 locks held by systemd/1:
+> > [   12.052700]  #0:  (sb_writers#7){.+.+.+}, at: [<c017af84>] __sb_star=
+t_write+0x8c/0xb0
+> > [   12.060954]  #1:  (&of->mutex){+.+.+.}, at: [<c01f1600>] kernfs_fop_=
+write+0x50/0x1b8
+> > [   12.069085]  #2:  (s_active#30){++++.+}, at: [<c01f1608>] kernfs_fop=
+_write+0x58/0x1b8
+> > [   12.077310]  #3:  (devcgroup_mutex){+.+...}, at: [<c0317bfc>] devcgr=
+oup_access_write+0x20/0x658
+> > [   12.086575] stack backtrace:
+> > [   12.091124] CPU: 0 PID: 1 Comm: systemd Not tainted 4.2.0-next-20150=
+831 #1154
+> > [   12.098609] Hardware name: Generic AM43 (Flattened Device Tree)
+> > [   12.104807] [<c001770c>] (unwind_backtrace) from [<c0013a58>] (show_=
+stack+0x10/0x14)
+> > [   12.112924] [<c0013a58>] (show_stack) from [<c034f014>] (dump_stack+=
+0x84/0x9c)
+> > [   12.120491] [<c034f014>] (dump_stack) from [<c0317a04>] (verify_new_=
+ex+0xc4/0xdc)
+> > [   12.128326] [<c0317a04>] (verify_new_ex) from [<c0317f50>] (devcgrou=
+p_access_write+0x374/0x658)
+> > [   12.137426] [<c0317f50>] (devcgroup_access_write) from [<c00d2800>] =
+(cgroup_file_write+0x28/0x1bc)
+> > [   12.146796] [<c00d2800>] (cgroup_file_write) from [<c01f1670>] (kern=
+fs_fop_write+0xc0/0x1b8)
+> > [   12.155620] [<c01f1670>] (kernfs_fop_write) from [<c0177c94>] (__vfs=
+_write+0x1c/0xd8)
+> > [   12.163783] [<c0177c94>] (__vfs_write) from [<c0178594>] (vfs_write+=
+0x90/0x16c)
+> > [   12.171426] [<c0178594>] (vfs_write) from [<c0178db4>] (SyS_write+0x=
+44/0x9c)
+> > [   12.178806] [<c0178db4>] (SyS_write) from [<c000f680>] (ret_fast_sys=
+call+0x0/0x1c)
+> >=20
+> > Fix it by making sure rcu_read_lock() is held
+> > around devcgroup_update_access().
+>=20
+> With this patch applied I got the following:
+>=20
+> [    4.079102] BUG: sleeping function called from invalid context at mm/s=
+lub.c:1266
+> [    4.079105] in_atomic(): 0, irqs_disabled(): 0, pid: 1, name: systemd
 
-> Did anyone test this changeset on some AM335x board?
-> =
+that didn't trigger here. maybe I didn't have lock debugging enabled.
+I'll have a look.
 
-> Today I ran into trouble with that because:
-> =
+--=20
+balbi
 
-> The GPMC controller gets reseted on kernel boot due to the missing/remove=
-d HWMOD_INIT_NO_RESET flag.
-> =
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> Primary this should not be a big problem, but on my board (maybe on all A=
-M335x) the GPMC doesn't behave as described in TRM.
-> Especially the GPMC_CONFIG register is not reset to 0h after reset, inste=
-ad it holds the value 0xa00 which is very strange because bit 10-31 are res=
-erved.
-> =
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> Further this 0xa00 means that Bit9 (WAIT1PINPOLARITY) is set, exactly thi=
-s causes my system to stall on first access the connected NAND flash becaus=
-e it never becomes ready due to the wrong wait pin polarity. Maybe others d=
-ont't run into trouble because they may use WAIT0PIN, which one has it's ol=
-d polarity.
+iQIcBAEBAgAGBQJV5aNGAAoJEIaOsuA1yqRE/vYP/irPqXndibyLB0WUYoWY8rk6
+lxZbt0kS0uBekMSghzk5lMHgFMpXzZRWGB6mBtz4MeQobRvHi2n2LhGXFrIt+Iyv
+FyjXnXy0OGLzIqzvThe+lb9ptzRXZzdjWDAOg626XUEdHUsWE5BKBHY1lvDH0rzq
+S+sqErFbYMerKmL6HWF2IJRadkXFeuhAVQ5HelyI6/0qVCF0O23P06iB58f0gQmB
+68s3aVv4FoOGTtdyHmbEUXdfHtUImLYsBUP26Moj1rup3agPLIXkpnNo4X9c71bl
+SV02Z0FSQtQq/64bgw0nDSy+sv+QvtTcYyDYAuXwRbxUJWRgMIicXyQ8n/4x4lFw
+KXTjxj2EMfuLaDI1Y5AAM97f5JnbrmpP2+4arDir7rCxb08nyg//LZVKopkwv01q
+jyxuGGfH4yr+lF6pcM8kW9tO8BdkxLrzvvfwafFAgz11w1HVcBUMYYV2s0Oy0fNs
+Guux8M7Fa1ikzwe6cZzrmsilSpiA9imUkHlIS22znACdg0B+hwKdnSE4UaU6gPFU
+0SBxvxXH8WHwIlSd1tHjl7Ib+i84oGQi/qs6PurLoGY2EN0XqYXKqj1buOlWC2Zg
+OtL2IpqIsa8YraKsbV7hdRHayph8OlxDg6+M0qHxfzfKypgvDUc7K6bV+mFPGZN7
+nIxIBWgl7nFsUUXUcqWs
+=0uQl
+-----END PGP SIGNATURE-----
 
-So nand ready/busy pin is connected to waitpin1 through an inverter on your=
- board?
-
-On am335x-evm we use waitpin0. Nand ready/busy is directly connected to wai=
-tpin0.
-
-For NAND operation read/write wait monitoring must be disabled.
-The nand driver uses the WAIT pin purely for Read/Busy signalling.
-Unfortunately the existing driver cannot handle anything other than waitpin=
- 0 for nand for DT boot.
-
-I've tried to address this issue here
-http://thread.gmane.org/gmane.linux.drivers.devicetree/131076
-
-cheers,
--roger
-
-> =
-
-> First approach was simply to write 0x0 to the GPMC_CONFIG register during=
- gpmc_probe function.
-> It solves the problem.
-> =
-
-> I also tried to issue some SYSRESET through GPMC registers without succes=
-s, same strange behavior.
-> =
-
-> What=92s your thinking around that?
-> =
-
-> Best regards,
-> Hannes
-> =
-
-> =
-
-> linux-omap-owner@vger.kernel.org schrieb am 20.05.2015 23:21:03:
-> =
-
->> Von: Tony Lindgren <tony@atomide.com>
->> An: linux-omap@vger.kernel.org
->> Kopie: linux-arm-kernel@lists.infradead.org, Brian Hutchinson
->> <b.hutchman@gmail.com>, Paul Walmsley <paul@pwsan.com>, Roger Quadros <r=
-ogerq@ti.com>
->> Datum: 20.05.2015 23:37
->> Betreff: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
->> Gesendet von: linux-omap-owner@vger.kernel.org
->>
->> We support decoding the bootloader values if DEBUG is defined.
->> But we also need to change the struct omap_hwmod flags to have
->> HWMOD_INIT_NO_RESET to avoid the GPMC being reset during the
->> boot. Otherwise just the default timings will be displayed
->> instead of the bootloader configured timings.
->>
->> This also allows us to clean up the various GPMC related
->> hwmod flags. For debugging, we only need HWMOD_INIT_NO_RESET,
->> and HWMOD_INIT_NO_IDLE is not needed.
->>
->> Cc: Brian Hutchinson <b.hutchman@gmail.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Cc: Roger Quadros <rogerq@ti.com>
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod.h                        |  6 ++++++
->>  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c      | 12 ++--------=
---
->>  arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  3 ++-
->>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c              | 12 ++--------=
---
->>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c              | 11 ++---------
->>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c               |  4 ++--
->>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c              |  2 ++
->>  drivers/memory/Kconfig                                  |  8 ++++++++
->>  drivers/memory/omap-gpmc.c                              |  6 +++---
->>  9 files changed, 29 insertions(+), 35 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap=
-_hwmod.h
->> index 9611c91..b5d27ec 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.h
->> +++ b/arch/arm/mach-omap2/omap_hwmod.h
->> @@ -109,6 +109,12 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sys=
-c_type3;
->>  =
-
->>  #define DEBUG_OMAPUART_FLAGS   (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESE=
-T)
->>  =
-
->> +#ifdef CONFIG_OMAP_GPMC_DEBUG
->> +#define DEBUG_OMAP_GPMC_HWMOD_FLAGS   HWMOD_INIT_NO_RESET
->> +#else
->> +#define DEBUG_OMAP_GPMC_HWMOD_FLAGS   0
->> +#endif
->> +
->>  #if defined(CONFIG_DEBUG_OMAP2UART1)
->>  #undef DEBUG_OMAP2UART1_FLAGS
->>  #define DEBUG_OMAP2UART1_FLAGS DEBUG_OMAPUART_FLAGS
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/a=
-rm/
->> mach-omap2/omap_hwmod_2xxx_ipblock_data.c
->> index 8821b9d..6dcfd03 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
->> @@ -762,16 +762,8 @@ struct omap_hwmod omap2xxx_gpmc_hwmod =3D {
->>     .name      =3D "gpmc",
->>     .class      =3D &omap2xxx_gpmc_hwmod_class,
->>     .main_clk   =3D "gpmc_fck",
->> -   /*
->> -    * XXX HWMOD_INIT_NO_RESET should not be needed for this IP
->> -    * block.  It is not being added due to any known bugs with
->> -    * resetting the GPMC IP block, but rather because any timings
->> -    * set by the bootloader are not being correctly programmed by
->> -    * the kernel from the board file or DT data.
->> -    * HWMOD_INIT_NO_RESET should be removed ASAP.
->> -    */
->> -   .flags      =3D (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
->> -            HWMOD_NO_IDLEST),
->> +   /* Skip reset for CONFIG_OMAP_GPMC_DEBUG for bootloader timings */
->> +   .flags      =3D HWMOD_NO_IDLEST | DEBUG_OMAP_GPMC_HWMOD_FLAGS,
->>     .prcm      =3D {
->>        .omap2   =3D {
->>           .prcm_reg_id =3D 3,
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/a=
-rch/
->> arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
->> index cabc569..ae0cb67 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
->> @@ -668,7 +668,8 @@ struct omap_hwmod am33xx_gpmc_hwmod =3D {
->>     .name      =3D "gpmc",
->>     .class      =3D &am33xx_gpmc_hwmod_class,
->>     .clkdm_name   =3D "l3s_clkdm",
->> -   .flags      =3D (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
->> +   /* Skip reset for CONFIG_OMAP_GPMC_DEBUG for bootloader timings */
->> +   .flags      =3D DEBUG_OMAP_GPMC_HWMOD_FLAGS,
->>     .main_clk   =3D "l3s_gclk",
->>     .prcm      =3D {
->>        .omap4   =3D {
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-=
-omap2/
->> omap_hwmod_3xxx_data.c
->> index 4e8e93c..0ca4d3f 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->> @@ -2169,16 +2169,8 @@ static struct omap_hwmod omap3xxx_gpmc_hwmod =3D {
->>     .clkdm_name   =3D "core_l3_clkdm",
->>     .mpu_irqs   =3D omap3xxx_gpmc_irqs,
->>     .main_clk   =3D "gpmc_fck",
->> -   /*
->> -    * XXX HWMOD_INIT_NO_RESET should not be needed for this IP
->> -    * block.  It is not being added due to any known bugs with
->> -    * resetting the GPMC IP block, but rather because any timings
->> -    * set by the bootloader are not being correctly programmed by
->> -    * the kernel from the board file or DT data.
->> -    * HWMOD_INIT_NO_RESET should be removed ASAP.
->> -    */
->> -   .flags      =3D (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
->> -            HWMOD_NO_IDLEST),
->> +   /* Skip reset for CONFIG_OMAP_GPMC_DEBUG for bootloader timings */
->> +   .flags      =3D HWMOD_NO_IDLEST | DEBUG_OMAP_GPMC_HWMOD_FLAGS,
->>  };
->>  =
-
->>  /*
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-=
-omap2/
->> omap_hwmod_44xx_data.c
->> index f5e68a7..43eebf2 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -1188,15 +1188,8 @@ static struct omap_hwmod omap44xx_gpmc_hwmod =3D {
->>     .name      =3D "gpmc",
->>     .class      =3D &omap44xx_gpmc_hwmod_class,
->>     .clkdm_name   =3D "l3_2_clkdm",
->> -   /*
->> -    * XXX HWMOD_INIT_NO_RESET should not be needed for this IP
->> -    * block.  It is not being added due to any known bugs with
->> -    * resetting the GPMC IP block, but rather because any timings
->> -    * set by the bootloader are not being correctly programmed by
->> -    * the kernel from the board file or DT data.
->> -    * HWMOD_INIT_NO_RESET should be removed ASAP.
->> -    */
->> -   .flags      =3D HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
->> +   /* Skip reset for CONFIG_OMAP_GPMC_DEBUG for bootloader timings */
->> +   .flags      =3D DEBUG_OMAP_GPMC_HWMOD_FLAGS,
->>     .prcm =3D {
->>        .omap4 =3D {
->>           .clkctrl_offs =3D OMAP4_CM_L3_2_GPMC_CLKCTRL_OFFSET,
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-o=
-map2/
->> omap_hwmod_7xx_data.c
->> index 0e64c2f..a0411f3 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> @@ -819,8 +819,8 @@ static struct omap_hwmod dra7xx_gpmc_hwmod =3D {
->>     .name      =3D "gpmc",
->>     .class      =3D &dra7xx_gpmc_hwmod_class,
->>     .clkdm_name   =3D "l3main1_clkdm",
->> -   .flags      =3D (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET |
->> -            HWMOD_SWSUP_SIDLE),
->> +   /* Skip reset for CONFIG_OMAP_GPMC_DEBUG for bootloader timings */
->> +   .flags      =3D HWMOD_SWSUP_SIDLE | DEBUG_OMAP_GPMC_HWMOD_FLAGS,
->>     .main_clk   =3D "l3_iclk_div",
->>     .prcm =3D {
->>        .omap4 =3D {
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-=
-omap2/
->> omap_hwmod_81xx_data.c
->> index cab1eb6..c924137 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
->> @@ -478,6 +478,8 @@ static struct omap_hwmod dm81xx_gpmc_hwmod =3D {
->>     .clkdm_name   =3D "alwon_l3s_clkdm",
->>     .class      =3D &dm81xx_gpmc_hwmod_class,
->>     .main_clk   =3D "sysclk6_ck",
->> +   /* Skip reset for CONFIG_OMAP_GPMC_DEBUG for bootloader timings */
->> +   .flags      =3D DEBUG_OMAP_GPMC_HWMOD_FLAGS,
->>     .prcm =3D {
->>        .omap4 =3D {
->>           .clkctrl_offs =3D DM816X_CM_ALWON_GPMC_CLKCTRL,
->> diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
->> index 868036f..8406c668 100644
->> --- a/drivers/memory/Kconfig
->> +++ b/drivers/memory/Kconfig
->> @@ -49,6 +49,14 @@ config OMAP_GPMC
->>       interfacing to a variety of asynchronous as well as synchronous
->>       memory drives like NOR, NAND, OneNAND, SRAM.
->>  =
-
->> +config OMAP_GPMC_DEBUG
->> +   bool
->> +   depends on OMAP_GPMC
->> +   help
->> +     Enables verbose debugging mostly to decode the bootloader provided
->> +     timings. Enable this during development to configure devices
->> +     connected to the GPMC bus.
->> +
->>  config MVEBU_DEVBUS
->>     bool "Marvell EBU Device Bus Controller"
->>     default y
->> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
->> index 0e524a1..3a27a84 100644
->> --- a/drivers/memory/omap-gpmc.c
->> +++ b/drivers/memory/omap-gpmc.c
->> @@ -403,7 +403,7 @@ static void gpmc_cs_bool_timings(int cs, const struct
->> gpmc_bool_timings *p)
->>              p->cycle2cyclediffcsen);
->>  }
->>  =
-
->> -#ifdef DEBUG
->> +#ifdef CONFIG_OMAP_GPMC_DEBUG
->>  /**
->>   * get_gpmc_timing_reg - read a timing parameter and print DTS settings=
- for it.
->>   * @cs:      Chip Select Region
->> @@ -612,7 +612,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int
->> st_bit, int end_bit, int max
->>     }
->>  =
-
->>     l =3D gpmc_cs_read_reg(cs, reg);
->> -#ifdef DEBUG
->> +#ifdef CONFIG_OMAP_GPMC_DEBUG
->>     pr_info(
->>        "GPMC CS%d: %-17s: %3d ticks, %3lu ns (was %3i ticks) %3d ns\n",
->>            cs, name, ticks, gpmc_get_clk_period(cs, cd) * ticks / 1000,
->> @@ -767,7 +767,7 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_ti=
-mings *t,
->>               GPMC_CONFIG1_CLKACTIVATIONTIME_MAX,
->>               clk_activation, GPMC_CD_FCLK);
->>  =
-
->> -#ifdef DEBUG
->> +#ifdef CONFIG_OMAP_GPMC_DEBUG
->>     pr_info("GPMC CS%d CLK period is %lu ns (div %d)\n",
->>           cs, (div * gpmc_get_fclk_period()) / 1000, div);
->>  #endif
->> --
->> 2.1.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> =
+--C7zPtVaVf+AK4Oqc--
