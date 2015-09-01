@@ -1,41 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: DRA752: Add ID detect for ES2.0
-Date: Tue, 1 Sep 2015 08:47:46 -0700
-Message-ID: <20150901154746.GL4215@atomide.com>
-References: <1439476340-20141-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: DRA7: fix a typo in ethernet
+Date: Tue, 1 Sep 2015 08:50:06 -0700
+Message-ID: <20150901155005.GM4215@atomide.com>
+References: <1440529069-7882-1-git-send-email-vishalm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1439476340-20141-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vishal Mahaveer <vishalm@ti.com>
+In-Reply-To: <1440529069-7882-1-git-send-email-vishalm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vishal Mahaveer <vishalm-l0cyMroinI0@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [150813 07:35]:
-> From: Vishal Mahaveer <vishalm@ti.com>
+* Vishal Mahaveer <vishalm-l0cyMroinI0@public.gmane.org> [150825 12:01]:
+> Register address in name of the node is wrong
 > 
-> ES2.0 is a minor variant of ES1.1. ES2.0 is an incremental revision
-> with various fixes including the following:
-> 	- reset logic fixes
-> 	- few assymetric aging logic fixes
-> 	- MMC clock rate fixes
-> 	- Ethernet speed fixes
-> 	- edma fixes for mcasp
-> 
-> NOTE: even though we use a compatible of dra742 and dra752, the usage in
-> the Linux kernel is more or less interchangable - we use dra752 more
-> often in the linux kernel compared to dra742 and 4.2-rc6
-> 
-> Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> based on linux-next next-20150812, applies to v4.2-rc6 as well.
-> Definetly not a 4.2 material, for 4.3, this probably missed the first merge
-> window for 4.3, will be great if it could be considered for the second merge
-> window.
+> Signed-off-by: Vishal Mahaveer <vishalm-l0cyMroinI0@public.gmane.org>
+> Acked-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 
-I'll apply this into omap-for-v4.3/fixes thanks,
+Thanks applying into omap-for-v4.3/fixes.
 
 Tony
+
+> ---
+>  arch/arm/boot/dts/dra7.dtsi |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index 1e29ccf..9a20d46 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -1398,7 +1398,7 @@
+>  			ti,irqs-safe-map = <0>;
+>  		};
+>  
+> -		mac: ethernet@4a100000 {
+> +		mac: ethernet@48484000 {
+>  			compatible = "ti,cpsw";
+>  			ti,hwmods = "gmac";
+>  			clocks = <&dpll_gmac_ck>, <&gmac_gmii_ref_clk_div>;
+> -- 
+> 1.7.4.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
