@@ -1,33 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [net-next PATCH] drivers: net: cpsw: Add support to make gpio
- drive which slave connected to phy
-Date: Tue, 1 Sep 2015 08:36:22 -0700
-Message-ID: <20150901153621.GI4215@atomide.com>
-References: <1441106719-5896-1-git-send-email-mugunthanvnm@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP2+: omap-device: fix race deferred probe of
+ omap_hsmmc vs omap_device_late_init
+Date: Tue, 1 Sep 2015 08:43:17 -0700
+Message-ID: <20150901154317.GJ4215@atomide.com>
+References: <1440775659-21014-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1441106719-5896-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org
+In-Reply-To: <1440775659-21014-1-git-send-email-grygorii.strashko@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux@arm.linux.org.uk, Keerthy <j-keerthy@ti.com>, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mugunthan V N <mugunthanvnm@ti.com> [150901 04:28]:
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -26,6 +26,9 @@ Optional properties:
->  - dual_emac		: Specifies Switch to act as Dual EMAC
->  - syscon		: Phandle to the system control device node, which is
->  			  the control module device of the am33x
-> +- select-slave-gpio	: Should be added if a gpio line is required to
-> +			  select which slave is connected to phy
-> +
+* Grygorii Strashko <grygorii.strashko@ti.com> [150828 08:31]:
+> Kernel fails to boot 50% of times (form build to build) with
+> RT-patchset applied due to the following race - on late boot
+> stages deferred_probe_work_func->omap_hsmmc_probe races with omap_device_late_ini.
 
-How about using something more generic here for the name?
-Something like mode-gpios?
-
-Regards,
+Applying into omap-for-v4.3/fixes thanks.
 
 Tony
