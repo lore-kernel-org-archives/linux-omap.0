@@ -1,111 +1,81 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 6/9] usb: dwc3: save/restore OTG registers during
- suspend/resume
-Date: Wed, 2 Sep 2015 09:44:32 -0500
-Message-ID: <20150902144432.GH8299@saruman.tx.rr.com>
+Subject: Re: [PATCH v4 8/9] usb: dwc3: core: Prevent otg events from
+ disabling themselves
+Date: Wed, 2 Sep 2015 09:47:05 -0500
+Message-ID: <20150902144705.GI8299@saruman.tx.rr.com>
 References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
- <1441203864-15786-7-git-send-email-rogerq@ti.com>
+ <1441203864-15786-9-git-send-email-rogerq@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PNpeiK4tTqhYOExY"
+	protocol="application/pgp-signature"; boundary="6lCXDTVICvIQMz0h"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1441203864-15786-7-git-send-email-rogerq@ti.com>
+In-Reply-To: <1441203864-15786-9-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: balbi@ti.com, tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---PNpeiK4tTqhYOExY
+--6lCXDTVICvIQMz0h
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 02, 2015 at 05:24:21PM +0300, Roger Quadros wrote:
-> Without this we loose OTG controller register context and malfunction
-> after a system suspend-resume.
+On Wed, Sep 02, 2015 at 05:24:23PM +0300, Roger Quadros wrote:
+> There is a race happening during dwc3_drd_init() that causes
+> otg events to get disabled. This is what happens.
+>=20
+> dwc3_otg_irq() happens immediately when PRTCAP is set to OTG,
+> even though OEVTEN is 0. This is because BIT 31 IRQ of
+> OEVT can't be disabled by OEVTEN.
+> We configure OEVTEN in dwc3_otg_init() but dwc3_otg_irq() has
+> already saved OEVTEN as 0 into dwc->oevten. So finally when
+> dwc3_irq_thread_irq() is called we save 0 into OEVTEN
+> thus disabling OTG irqs forever.
+>=20
+> We fix this by disabling IRQs when configuring OEVTEN in
+> dwc3_otg_init().
 >=20
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
+
+can't you just merge this patch into the one which introduced the bug to
+start with ?
+
 > ---
->  drivers/usb/dwc3/core.c | 17 +++++++++++++++++
->  drivers/usb/dwc3/core.h |  6 +++++-
->  2 files changed, 22 insertions(+), 1 deletion(-)
+>  drivers/usb/dwc3/core.c | 5 +++++
+>  1 file changed, 5 insertions(+)
 >=20
 > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index 632ee53..684010c 100644
+> index 684010c..654aebf 100644
 > --- a/drivers/usb/dwc3/core.c
 > +++ b/drivers/usb/dwc3/core.c
-> @@ -56,6 +56,7 @@ void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
->  	reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
->  	reg &=3D ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
->  	reg |=3D DWC3_GCTL_PRTCAPDIR(mode);
-> +	dwc->current_mode =3D mode;
->  	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
->  }
+> @@ -921,6 +921,7 @@ static int dwc3_drd_init(struct dwc3 *dwc)
+>  	int ret, id, vbus;
+>  	struct usb_otg_caps *otgcaps =3D &dwc->otg_config.otg_caps;
+>  	u32 reg;
+> +	unsigned long flags;
 > =20
-> @@ -1443,6 +1444,14 @@ static int dwc3_suspend(struct device *dev)
+>  	otgcaps->otg_rev =3D 0;
+>  	otgcaps->hnp_support =3D false;
+> @@ -993,6 +994,8 @@ try_otg_core:
+>  		goto error;
+>  	}
 > =20
->  	spin_lock_irqsave(&dwc->lock, flags);
-> =20
-> +	/* Save OTG state only if we're really using it */
-> +	if (dwc->current_mode =3D=3D DWC3_GCTL_PRTCAP_OTG) {
-> +		dwc->ocfg =3D dwc3_readl(dwc->regs, DWC3_OCFG);
-> +		dwc->octl =3D dwc3_readl(dwc->regs, DWC3_OCTL);
-> +		dwc->oevt =3D dwc3_readl(dwc->regs, DWC3_OEVT);
-
-oevt is what you use to clear pending IRQs, which means that ...
-
-> +		dwc->oevten =3D dwc3_readl(dwc->regs, DWC3_OEVTEN);
-> +	}
+> +	spin_lock_irqsave(&dwc->lock, flags);
 > +
->  	switch (dwc->dr_mode) {
->  	case USB_DR_MODE_PERIPHERAL:
->  	case USB_DR_MODE_OTG:
-> @@ -1486,6 +1495,14 @@ static int dwc3_resume(struct device *dev)
->  	dwc3_event_buffers_setup(dwc);
->  	dwc3_writel(dwc->regs, DWC3_GCTL, dwc->gctl);
+>  	/* we need to set OTG to get events from OTG core */
+>  	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
+>  	/* GUSB2PHYCFG0.SusPHY=3D0 */
+> @@ -1018,6 +1021,8 @@ try_otg_core:
+>  	/* OCTL.PeriMode =3D 1 */
+>  	dwc3_writel(dwc->regs, DWC3_OCTL, DWC3_OCTL_PERIMODE);
 > =20
-> +	/* Restore OTG state only if we're really using it */
-> +	if (dwc->current_mode =3D=3D DWC3_GCTL_PRTCAP_OTG) {
-> +		dwc3_writel(dwc->regs, DWC3_OCFG, dwc->ocfg);
-> +		dwc3_writel(dwc->regs, DWC3_OCTL, dwc->octl);
-> +		dwc3_writel(dwc->regs, DWC3_OEVT, dwc->oevt);
-
-=2E.. you could be clearing pending IRQs right here.
-
-> +		dwc3_writel(dwc->regs, DWC3_OEVTEN, dwc->oevten);
-> +	}
+> +	spin_unlock_irqrestore(&dwc->lock, flags);
 > +
->  	switch (dwc->dr_mode) {
->  	case USB_DR_MODE_PERIPHERAL:
->  	case USB_DR_MODE_OTG:
-> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-> index 129ef37..1115ce0 100644
-> --- a/drivers/usb/dwc3/core.h
-> +++ b/drivers/usb/dwc3/core.h
-> @@ -737,6 +737,7 @@ struct dwc3_scratchpad_array {
->   * @regs: base address for our registers
->   * @regs_size: address space size
->   * @oevten: otg interrupt enable mask copy
-> + * @current_mode: current mode of operation written to PRTCAPDIR
->   * @nr_scratch: number of scratch buffers
->   * @num_event_buffers: calculated number of event buffers
->   * @u1u2: only used on revisions <1.83a for workaround
-> @@ -858,9 +859,12 @@ struct dwc3 {
->  	/* used for suspend/resume */
->  	u32			dcfg;
->  	u32			gctl;
-> -
-> +	u32			ocfg;
-> +	u32			octl;
-> +	u32			oevt;
->  	u32			oevten;
+>  	dwc3_otg_fsm_sync(dwc);
+>  	usb_otg_sync_inputs(dwc->fsm);
 > =20
-> +	u32			current_mode;
->  	u32			nr_scratch;
->  	u32			num_event_buffers;
->  	u32			u1u2;
 > --=20
 > 2.1.4
 >=20
@@ -113,26 +83,26 @@ oevt is what you use to clear pending IRQs, which means that ...
 --=20
 balbi
 
---PNpeiK4tTqhYOExY
+--6lCXDTVICvIQMz0h
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJV5wtQAAoJEIaOsuA1yqREtLMP/1Imo+MlV1lIoNsNMHIFGUQx
-ttPrH4M9dUMdcN91jKza6QT2rQEk/S2WbHouAMpWZhfcmm+F+q/wLE07RsTWC0Tb
-4wE2isC8tJe9gw8ZUuk7IM2AcZguhMqN49Nwqaz0It0XKdnfPZTdGnqKsWE26Jxv
-kGGu8CmI4a/ekqaqnGwwnXa1KP4UYUjn4uImPx0Oxq4CoW0i1rpq8qTA3d9rWXKk
-oLZLc/HRbJXZBqLHIDR6fJhnnbKufaoQcd2ZBdBWTfBC3hR3EA1jXjEbfl1L02iJ
-45VJxBZ/Qb1L2A4aD1MtznWckBQBB1xa5PAJeE2aTst0at2ChckQsl797JfbjwvN
-EolYdavbca8w2Rj1xRZmKwhbmnrDUYCvGhuWJuoDiXFi2J/hdwnQrFdQWT4LZ6dq
-GR5UKD3Z4QkrjKOy7NlKYUgW2Fyf/VdJFZJGKoi+n3sqcd25cQYU7gEuH8tUSWrG
-mOZ6ywnaAVUFr1cpoYp3QwXoKFvQMp2EshnwZvtOhIQEivks5uOdkbaYNjDg1ycS
-Uw/Jn8gyxHlDczEQO1a1nJJggVhBrX/nRmaUXehy57KIrXHszgh3mstuaSjmPL/4
-ZoXQ//Obh6Oc5xHV+kJlGhskHM2w+zpAEcK9B7RbaJnJXR/qBKjkcIWb3GN2gvJt
-7oz7UjFv/6TT8fRIQUsE
-=Zqtr
+iQIcBAEBAgAGBQJV5wvpAAoJEIaOsuA1yqREhgQP/RUhDhQZJCvaeKkyOMA7gXOs
+VbLt3ymtkPiJh29q3LkKka1PufA7oxK/rmCMtxFdDu94VwMWKc5Q2iRYpvcdBPvl
+uT6niPlGip9BXpukZydfBFbpZALlLVPTVlPS8K+t4KndkZa0i8myVWpN6LmPwiV8
+ah+pQF96tdZAZU9d7/+lKFFZMh+aLy1/LeDq2Gzj4c6orSqt63xLw5Ea76VSETyS
+J+xdy+OWAmM/FbXQhxYgRA1rBZcqiXTCwV80W+v+Ry4Qx8+FW1b1pq6vYukBxsQn
+uanyi5iavwvKfHxReaskpmuYIQx6aL8mNR1K76jHooFLO24EUhPzULvkLpDafJ4g
+eBozJYQh5wJ9eQX1y3pxwaVVk1LTgsbpW5rqfpmScVKrp07jnRitvtzEQBzaVBsH
+cRMd4F+SvZgBEGmj/qB/536+eycsjilNYWeu4M2Rob+tYNqmbR8lF56qnQqtBMWB
+PERo1f1btHfrx5hl0DSS1LEPa9qvOJlPrv6+WRfOTYagIGDbV6RWGrU/9CNfWVnL
+6ifJR49vs/eln1PauFZO06RKqMD9aFgjXYtgoiBRE0mDN2qysKP461OyFhgpLWDi
+35jnrV1vtWDtJHdlojCa2+EyBlCCbwRc32zZ70+y6dBminqL95Clljeg0cY5gE6D
+PlagW0xjysXsh80P7Kfg
+=didd
 -----END PGP SIGNATURE-----
 
---PNpeiK4tTqhYOExY--
+--6lCXDTVICvIQMz0h--
