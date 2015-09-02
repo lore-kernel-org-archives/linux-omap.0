@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 3/9] usb: dwc3: dwc3-omap: Make the wrapper interrupt shared
-Date: Wed, 2 Sep 2015 17:24:18 +0300
-Message-ID: <1441203864-15786-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 4/9] usb: dwc3: core: Adapt to named interrupts
+Date: Wed, 2 Sep 2015 17:24:19 +0300
+Message-ID: <1441203864-15786-5-git-send-email-rogerq@ti.com>
 References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,27 +12,91 @@ To: balbi@ti.com
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The wrapper interrupt is shared with OTG core so mark it IRQF_SHARED.
+From: Felipe Balbi <balbi@ti.com>
 
+Add support to use interrupt names,
+
+Following are the interrupt names
+
+Peripheral Interrupt - peripheral
+HOST Interrupt - host
+OTG Interrupt - otg
+
+[Roger Q]
+- If any of these are missing we use the
+first available IRQ resource so that we don't
+break with older DTBs.
+
+- Use gadget_irq in gadget driver.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/dwc3/core.c   | 12 ++++++++++++
+ drivers/usb/dwc3/core.h   |  7 +++++++
+ drivers/usb/dwc3/gadget.c |  2 +-
+ 3 files changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index a5a1b7c..b18f2a3 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -506,8 +506,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
- 	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 2e36a9b..38b31df 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -958,6 +958,18 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	dwc->xhci_resources[1].flags = res->flags;
+ 	dwc->xhci_resources[1].name = res->name;
  
--	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
--			"dwc3-omap", omap);
-+	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, IRQF_SHARED,
-+			       "dwc3-omap", omap);
++	dwc->otg_irq = platform_get_irq_byname(pdev, "otg");
++	if (dwc->otg_irq < 0)
++		dwc->otg_irq = res->start;
++
++	dwc->gadget_irq = platform_get_irq_byname(pdev, "peripheral");
++	if (dwc->gadget_irq < 0)
++		dwc->gadget_irq = res->start;
++
++	dwc->xhci_irq = platform_get_irq_byname(pdev, "host");
++	if (dwc->xhci_irq < 0)
++		dwc->xhci_irq = res->start;
++
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+ 		dev_err(dev, "missing memory resource\n");
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 4b85330..bd32cb2 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -742,6 +742,9 @@ struct dwc3_scratchpad_array {
+  * @maximum_speed: maximum speed requested (mainly for testing purposes)
+  * @revision: revision register contents
+  * @dr_mode: requested mode of operation
++ * @xhci_irq: IRQ number for XHCI IRQs
++ * @gadget_irq: IRQ number for Peripheral IRQs
++ * @otg_irq: IRQ number for OTG IRQs
+  * @usb2_phy: pointer to USB2 PHY
+  * @usb3_phy: pointer to USB3 PHY
+  * @usb2_generic_phy: pointer to USB2 PHY
+@@ -847,6 +850,10 @@ struct dwc3 {
+ 
+ 	enum usb_dr_mode	dr_mode;
+ 
++	int			gadget_irq;
++	int			xhci_irq;
++	int			otg_irq;
++
+ 	/* used for suspend/resume */
+ 	u32			dcfg;
+ 	u32			gctl;
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 0c25704..1148ec8 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1533,7 +1533,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+ 	int			irq;
+ 	u32			reg;
+ 
+-	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
++	irq = dwc->gadget_irq;
+ 	ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
+ 			IRQF_SHARED, "dwc3", dwc);
  	if (ret) {
- 		dev_err(dev, "failed to request IRQ #%d --> %d\n",
- 				omap->irq, ret);
 -- 
 2.1.4
