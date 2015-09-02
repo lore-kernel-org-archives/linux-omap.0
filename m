@@ -1,102 +1,51 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 4/9] usb: dwc3: core: Adapt to named interrupts
-Date: Wed, 2 Sep 2015 17:24:19 +0300
-Message-ID: <1441203864-15786-5-git-send-email-rogerq@ti.com>
-References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 0/9] usb: dwc3: add dual-role support
+Date: Wed, 2 Sep 2015 17:24:15 +0300
+Message-ID: <1441203864-15786-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1441203864-15786-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi@ti.com>
+Hi,
 
-Add support to use interrupt names,
+This series adds dual role support to dwc3 controller driver.
+Series depends on [1] for core OTG/dual-role support.
 
-Following are the interrupt names
+Patches are based on greg/usb-next.
 
-Peripheral Interrupt - peripheral
-HOST Interrupt - host
-OTG Interrupt - otg
+Tested on am437x-gp-evm and dra7-evm after platform related patches are
+applied. Those are available at [2].
 
-[Roger Q]
-- If any of these are missing we use the
-first available IRQ resource so that we don't
-break with older DTBs.
+[1] core OTG/DRD support - http://thread.gmane.org/gmane.linux.kernel/2025239
+[2] platform support - http://thread.gmane.org/gmane.linux.usb.general/127898
 
-- Use gadget_irq in gadget driver.
+cheers,
+-roger
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/usb/dwc3/core.c   | 12 ++++++++++++
- drivers/usb/dwc3/core.h   |  7 +++++++
- drivers/usb/dwc3/gadget.c |  2 +-
- 3 files changed, 20 insertions(+), 1 deletion(-)
+Felipe Balbi (1):
+  usb: dwc3: core: Adapt to named interrupts
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 2e36a9b..38b31df 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -958,6 +958,18 @@ static int dwc3_probe(struct platform_device *pdev)
- 	dwc->xhci_resources[1].flags = res->flags;
- 	dwc->xhci_resources[1].name = res->name;
- 
-+	dwc->otg_irq = platform_get_irq_byname(pdev, "otg");
-+	if (dwc->otg_irq < 0)
-+		dwc->otg_irq = res->start;
-+
-+	dwc->gadget_irq = platform_get_irq_byname(pdev, "peripheral");
-+	if (dwc->gadget_irq < 0)
-+		dwc->gadget_irq = res->start;
-+
-+	dwc->xhci_irq = platform_get_irq_byname(pdev, "host");
-+	if (dwc->xhci_irq < 0)
-+		dwc->xhci_irq = res->start;
-+
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(dev, "missing memory resource\n");
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 4b85330..bd32cb2 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -742,6 +742,9 @@ struct dwc3_scratchpad_array {
-  * @maximum_speed: maximum speed requested (mainly for testing purposes)
-  * @revision: revision register contents
-  * @dr_mode: requested mode of operation
-+ * @xhci_irq: IRQ number for XHCI IRQs
-+ * @gadget_irq: IRQ number for Peripheral IRQs
-+ * @otg_irq: IRQ number for OTG IRQs
-  * @usb2_phy: pointer to USB2 PHY
-  * @usb3_phy: pointer to USB3 PHY
-  * @usb2_generic_phy: pointer to USB2 PHY
-@@ -847,6 +850,10 @@ struct dwc3 {
- 
- 	enum usb_dr_mode	dr_mode;
- 
-+	int			gadget_irq;
-+	int			xhci_irq;
-+	int			otg_irq;
-+
- 	/* used for suspend/resume */
- 	u32			dcfg;
- 	u32			gctl;
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 0c25704..1148ec8 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -1533,7 +1533,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
- 	int			irq;
- 	u32			reg;
- 
--	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
-+	irq = dwc->gadget_irq;
- 	ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
- 			IRQF_SHARED, "dwc3", dwc);
- 	if (ret) {
+Roger Quadros (8):
+  usb: dwc3: add dual-role support
+  usb: dwc3: core.h: add some register definitions
+  usb: dwc3: dwc3-omap: Make the wrapper interrupt shared
+  usb: dwc3: core: make dual-role work with OTG irq
+  usb: dwc3: save/restore OTG registers during suspend/resume
+  usb: dwc3: gadget: Fix suspend/resume during dual-role mode
+  usb: dwc3: core: Prevent otg events from disabling themselves
+  usb: dwc3: core: don't break during suspend/resume while we're
+    dual-role
+
+ drivers/usb/dwc3/core.c          | 422 +++++++++++++++++++++++++++++++++++++--
+ drivers/usb/dwc3/core.h          | 103 ++++++++++
+ drivers/usb/dwc3/dwc3-omap.c     |   4 +-
+ drivers/usb/dwc3/gadget.c        |   8 +-
+ drivers/usb/dwc3/platform_data.h |   1 +
+ 5 files changed, 516 insertions(+), 22 deletions(-)
+
 -- 
 2.1.4
