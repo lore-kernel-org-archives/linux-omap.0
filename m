@@ -1,41 +1,48 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [net-next PATCH] drivers: net: cpsw: Add support to make gpio
- drive which slave connected to phy
-Date: Wed, 2 Sep 2015 12:03:10 +0530
-Message-ID: <55E69826.7090503@ti.com>
-References: <1441106719-5896-1-git-send-email-mugunthanvnm@ti.com>
- <20150901153621.GI4215@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 0/6] Fix pbias regulator enable
+Date: Wed, 2 Sep 2015 16:17:27 +0530
+Message-ID: <1441190853-7133-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150901153621.GI4215@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: tony@atomide.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Cc: ulf.hansson@linaro.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 01 September 2015 09:06 PM, Tony Lindgren wrote:
-> * Mugunthan V N <mugunthanvnm@ti.com> [150901 04:28]:
->> --- a/Documentation/devicetree/bindings/net/cpsw.txt
->> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
->> @@ -26,6 +26,9 @@ Optional properties:
->>  - dual_emac		: Specifies Switch to act as Dual EMAC
->>  - syscon		: Phandle to the system control device node, which is
->>  			  the control module device of the am33x
->> +- select-slave-gpio	: Should be added if a gpio line is required to
->> +			  select which slave is connected to phy
->> +
-> 
-> How about using something more generic here for the name?
-> Something like mode-gpios?
-> 
+vsel_reg and enable_reg of the pbias regulator descriptor should actually
+have the offset from syscon.
 
-Yeah, agreed, for DRA72x it is used for connecting to phy, if some other
-board wanted to drive a GPIO for something else we can use this node to
-drive GPIO.
+However after
+"ARM: dts: <platform>: add minimal l4 bus layout with control module
+support"
+vsel_reg and enable_reg started to have the absolute address because
+of address translation that happens due to pbias node made as the
+child node of syscon. This breaks the pbias regulator enable.
 
-Will submit a v2 with name change
+This series adds the 'offset' to be populated in vsel_reg and enable_reg
+in the pbias driver itself.
 
-Regards
-Mugunthan V N
+Tested these patches against mmc -next in omap4 panda, omap3 beagle xm,
+dra72 and omap5 uevm
+
+Kishon Vijay Abraham I (6):
+  regulator: pbias: program pbias register offset in pbias driver
+  ARM: dts: dra7: use "ti,pbias-dra7" compatible string for pbias
+  ARM: dts: omap243x: use "ti,pbias-omap2" compatible string for pbias
+  ARM: dts: omap3: use "ti,pbias-omap3" compatible string for pbias
+  ARM: dts: OMAP4: use "ti,pbias-omap4" compatible string for pbias
+  ARM: dts: OMAP5: use "ti,pbias-omap5" compatible string for pbias
+
+ .../bindings/regulator/pbias-regulator.txt         |    7 ++-
+ arch/arm/boot/dts/dra7.dtsi                        |    2 +-
+ arch/arm/boot/dts/omap2430.dtsi                    |    2 +-
+ arch/arm/boot/dts/omap3.dtsi                       |    2 +-
+ arch/arm/boot/dts/omap4.dtsi                       |    2 +-
+ arch/arm/boot/dts/omap5.dtsi                       |    2 +-
+ drivers/regulator/pbias-regulator.c                |   52 +++++++++++++++++---
+ 7 files changed, 57 insertions(+), 12 deletions(-)
+
+-- 
+1.7.9.5
+
