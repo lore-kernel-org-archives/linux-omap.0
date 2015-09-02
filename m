@@ -1,43 +1,37 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP: Change all cpu_is_* occurences to soc_is_*
-Date: Wed, 2 Sep 2015 05:51:01 +0530
-Message-ID: <55E640ED.6070004@ti.com>
-References: <1440561575-3740-1-git-send-email-j-keerthy@ti.com> <55E5DE12.6070407@ti.com> <20150901180347.GO4215@atomide.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH 03/13] twl4030_charger: correctly handle -EPROBE_DEFER
+ from devm_usb_get_phy_by_node
+Date: Tue, 1 Sep 2015 20:25:35 -0700
+Message-ID: <CAMAWPa_s2ELgRBRtWzFucmREMuLXS_V5Akmad5yFU13-GrzBDA@mail.gmail.com>
+References: <20150730001113.4012.18086.stgit@noble>
+	<20150730001124.4012.31980.stgit@noble>
+	<CAMAWPa__hFOuz24YBcFiR+m5mOUArSuNpuqh3Ju1H+yj6qadfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150901180347.GO4215@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAMAWPa__hFOuz24YBcFiR+m5mOUArSuNpuqh3Ju1H+yj6qadfA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: NeilBrown <neil@brown.name>, Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, lkml <linux-kernel@vger.kernel.org>, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Tyler Baker <tyler.baker@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+ping... this boot failure has now landed in mainline
 
-
-On Tuesday 01 September 2015 11:33 PM, Tony Lindgren wrote:
-> * Keerthy <a0393675@ti.com> [150901 10:22]:
+On Thu, Aug 27, 2015 at 1:51 PM, Kevin Hilman <khilman@kernel.org> wrote:
+> On Wed, Jul 29, 2015 at 5:11 PM, NeilBrown <neil@brown.name> wrote:
+>> Now that twl4030_bci_probe can safely return -EPROBE_DEFER,
+>> do so when devm_usb_get_phy_by_node returns that error.
 >>
->>
->> On Wednesday 26 August 2015 09:29 AM, Keerthy wrote:
->>> Currently apart from dra7, omap5 and amx3 all the other SoCs
->>> are identified using cpu_is_* functions which is not right since
->>> they are all SoCs(System on Chips). Hence changing the SoC
->>> identification code to use soc_is instead of cpu_is and keeping
->>> defines for cpu_is where needed. This allows us to replace the
->>> rest of cpu_is usage along with other fixes as needed.
->>
->> Tony,
->>
->> A Gentle ping on this.
+>> Signed-off-by: NeilBrown <neil@brown.name>
 >
-> Looks good to me for v4.4. I'll apply it after some testing
-> after -rc1.
-
-Thanks Tony.
-
+> This patch has hit linux-next in the form of coommit 3fc3895e4fe1
+> (twl4030_charger: correctly handle -EPROBE_DEFER from
+> devm_usb_get_phy_by_node) and kernelci.org found a regression on
+> omap3-beagle-xm[1].  Bisecting[2] this boot failure pointed at this
+> commit, and I verified that reverting it on top of next-20150827 gets
+> the board booting again.  I haven't debugged any further.
 >
-> Regards,
+> Kevin
 >
-> Tony
->
+> [1] http://storage.kernelci.org/next/next-20150827/arm-omap2plus_defconfig/lab-khilman/boot-omap3-beagle-xm.html
+> [2] https://ci.linaro.org/view/people/job/tbaker-boot-bisect-bot/88/console
