@@ -1,114 +1,138 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: Antwort: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option
- for debug
-Date: Wed, 2 Sep 2015 17:43:34 +0300
-Message-ID: <55E70B16.8050301@ti.com>
-References: <1432156863-19695-1-git-send-email-tony@atomide.com>
- <1432156863-19695-3-git-send-email-tony@atomide.com>
- <OFCA2F1DCE.C787A961-ONC1257EAE.001D79BC-C1257EAE.00203AFF@br-automation.com>
- <55E59B9A.1010007@ti.com>
- <OFFEAB70E0.C9C6AAC7-ONC1257EB3.0049139E-C1257EB3.004A5089@br-automation.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 6/9] usb: dwc3: save/restore OTG registers during
+ suspend/resume
+Date: Wed, 2 Sep 2015 09:44:32 -0500
+Message-ID: <20150902144432.GH8299@saruman.tx.rr.com>
+References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
+ <1441203864-15786-7-git-send-email-rogerq@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <OFFEAB70E0.C9C6AAC7-ONC1257EB3.0049139E-C1257EB3.004A5089@br-automation.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hannes Schmelzer <Hannes.Schmelzer@br-automation.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap-owner@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PNpeiK4tTqhYOExY"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1441203864-15786-7-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/09/15 16:31, Hannes Schmelzer wrote:
->> Hi Hannes,
-> Hi Roger,
-> 
->>
->> On 27/08/15 08:52, Hannes Schmelzer wrote:
->>> Hi Tony,
->>>
->>> Did anyone test this changeset on some AM335x board?
->>>
->>> Today I ran into trouble with that because:
->>>
->>> The GPMC controller gets reseted on kernel boot due to the 
-> missing/removed 
->> HWMOD_INIT_NO_RESET flag.
->>>
->>> Primary this should not be a big problem, but on my board (maybe on 
-> all 
->> AM335x) the GPMC doesn't behave as described in TRM.
->>> Especially the GPMC_CONFIG register is not reset to 0h after reset, 
-> instead 
->> it holds the value 0xa00 which is very strange because bit 10-31 are 
-> reserved.
->>>
->>> Further this 0xa00 means that Bit9 (WAIT1PINPOLARITY) is set, exactly 
-> this 
->> causes my system to stall on first access the connected NAND flash 
-> because it 
->> never becomes ready due to the wrong wait pin polarity. Maybe others 
-> dont't 
->> run into trouble because they may use WAIT0PIN, which one has it's old 
-> polarity.
->>
->> So nand ready/busy pin is connected to waitpin1 through an inverter on 
-> your board?
->>
->> On am335x-evm we use waitpin0. Nand ready/busy is directly connected to 
-> waitpin0.
-> 
-> No there is no inverter between flash and AM335x, the READY_nBUSY line is 
-> directly connected to waitpin1.
-> But your sentence brings some good idea to me, i will try to solder some 
-> inverter into the READY_nBUSY line on my board and see if the problem 
-> appears again.
+--PNpeiK4tTqhYOExY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please don't do that. We want to maintain the NAND ready/busy# logic as it is.
+On Wed, Sep 02, 2015 at 05:24:21PM +0300, Roger Quadros wrote:
+> Without this we loose OTG controller register context and malfunction
+> after a system suspend-resume.
+>=20
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/usb/dwc3/core.c | 17 +++++++++++++++++
+>  drivers/usb/dwc3/core.h |  6 +++++-
+>  2 files changed, 22 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 632ee53..684010c 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -56,6 +56,7 @@ void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
+>  	reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
+>  	reg &=3D ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
+>  	reg |=3D DWC3_GCTL_PRTCAPDIR(mode);
+> +	dwc->current_mode =3D mode;
+>  	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+>  }
+> =20
+> @@ -1443,6 +1444,14 @@ static int dwc3_suspend(struct device *dev)
+> =20
+>  	spin_lock_irqsave(&dwc->lock, flags);
+> =20
+> +	/* Save OTG state only if we're really using it */
+> +	if (dwc->current_mode =3D=3D DWC3_GCTL_PRTCAP_OTG) {
+> +		dwc->ocfg =3D dwc3_readl(dwc->regs, DWC3_OCFG);
+> +		dwc->octl =3D dwc3_readl(dwc->regs, DWC3_OCTL);
+> +		dwc->oevt =3D dwc3_readl(dwc->regs, DWC3_OEVT);
 
-> If i'm right in my theory that the value 0xa00 in GPMC_CONFIG register is 
-> the problem, the inverter would solve it.
+oevt is what you use to clear pending IRQs, which means that ...
 
-You really need to disable read/write monitoring in gpmc-settings.
+> +		dwc->oevten =3D dwc3_readl(dwc->regs, DWC3_OEVTEN);
+> +	}
+> +
+>  	switch (dwc->dr_mode) {
+>  	case USB_DR_MODE_PERIPHERAL:
+>  	case USB_DR_MODE_OTG:
+> @@ -1486,6 +1495,14 @@ static int dwc3_resume(struct device *dev)
+>  	dwc3_event_buffers_setup(dwc);
+>  	dwc3_writel(dwc->regs, DWC3_GCTL, dwc->gctl);
+> =20
+> +	/* Restore OTG state only if we're really using it */
+> +	if (dwc->current_mode =3D=3D DWC3_GCTL_PRTCAP_OTG) {
+> +		dwc3_writel(dwc->regs, DWC3_OCFG, dwc->ocfg);
+> +		dwc3_writel(dwc->regs, DWC3_OCTL, dwc->octl);
+> +		dwc3_writel(dwc->regs, DWC3_OEVT, dwc->oevt);
 
-> 
-> You're right am335x-evm uses waitpin0, which one is not affected from this 
-> "bug".
+=2E.. you could be clearing pending IRQs right here.
 
-Why is it not affected by this bug? The polarities are same for am335x-evm and
-your board. Only the wait pin is different.
+> +		dwc3_writel(dwc->regs, DWC3_OEVTEN, dwc->oevten);
+> +	}
+> +
+>  	switch (dwc->dr_mode) {
+>  	case USB_DR_MODE_PERIPHERAL:
+>  	case USB_DR_MODE_OTG:
+> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+> index 129ef37..1115ce0 100644
+> --- a/drivers/usb/dwc3/core.h
+> +++ b/drivers/usb/dwc3/core.h
+> @@ -737,6 +737,7 @@ struct dwc3_scratchpad_array {
+>   * @regs: base address for our registers
+>   * @regs_size: address space size
+>   * @oevten: otg interrupt enable mask copy
+> + * @current_mode: current mode of operation written to PRTCAPDIR
+>   * @nr_scratch: number of scratch buffers
+>   * @num_event_buffers: calculated number of event buffers
+>   * @u1u2: only used on revisions <1.83a for workaround
+> @@ -858,9 +859,12 @@ struct dwc3 {
+>  	/* used for suspend/resume */
+>  	u32			dcfg;
+>  	u32			gctl;
+> -
+> +	u32			ocfg;
+> +	u32			octl;
+> +	u32			oevt;
+>  	u32			oevten;
+> =20
+> +	u32			current_mode;
+>  	u32			nr_scratch;
+>  	u32			num_event_buffers;
+>  	u32			u1u2;
+> --=20
+> 2.1.4
+>=20
 
-> I have to use waitpin1, because i also have a 2nd ethernet interface 
-> connected, and there is waitpin0 uses for collission detect signal from 
-> the phy (other pinmux).
-> 
->> For NAND operation read/write wait monitoring must be disabled.
->> The nand driver uses the WAIT pin purely for Read/Busy signalling.
->> Unfortunately the existing driver cannot handle anything other than 
-> waitpin 0 
->> for nand for DT boot.
-> for sure ? have a look to omap-gpmc.c at line #90.
-> Here i can see that either can be used.
+--=20
+balbi
 
-Which tree are you referring to?
+--PNpeiK4tTqhYOExY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> 
->>
->> I've tried to address this issue here
->> http://thread.gmane.org/gmane.linux.drivers.devicetree/131076
-> This is useful if the READY_nBUSY line cannot be connected to the GPMC 
-> itself, instead it maybe connected to some other gpio.
-> But it doesn't solve the problem.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-It does. We are adding gpiolib and interrupt controller support for all
-the wait pins.
+iQIcBAEBAgAGBQJV5wtQAAoJEIaOsuA1yqREtLMP/1Imo+MlV1lIoNsNMHIFGUQx
+ttPrH4M9dUMdcN91jKza6QT2rQEk/S2WbHouAMpWZhfcmm+F+q/wLE07RsTWC0Tb
+4wE2isC8tJe9gw8ZUuk7IM2AcZguhMqN49Nwqaz0It0XKdnfPZTdGnqKsWE26Jxv
+kGGu8CmI4a/ekqaqnGwwnXa1KP4UYUjn4uImPx0Oxq4CoW0i1rpq8qTA3d9rWXKk
+oLZLc/HRbJXZBqLHIDR6fJhnnbKufaoQcd2ZBdBWTfBC3hR3EA1jXjEbfl1L02iJ
+45VJxBZ/Qb1L2A4aD1MtznWckBQBB1xa5PAJeE2aTst0at2ChckQsl797JfbjwvN
+EolYdavbca8w2Rj1xRZmKwhbmnrDUYCvGhuWJuoDiXFi2J/hdwnQrFdQWT4LZ6dq
+GR5UKD3Z4QkrjKOy7NlKYUgW2Fyf/VdJFZJGKoi+n3sqcd25cQYU7gEuH8tUSWrG
+mOZ6ywnaAVUFr1cpoYp3QwXoKFvQMp2EshnwZvtOhIQEivks5uOdkbaYNjDg1ycS
+Uw/Jn8gyxHlDczEQO1a1nJJggVhBrX/nRmaUXehy57KIrXHszgh3mstuaSjmPL/4
+ZoXQ//Obh6Oc5xHV+kJlGhskHM2w+zpAEcK9B7RbaJnJXR/qBKjkcIWb3GN2gvJt
+7oz7UjFv/6TT8fRIQUsE
+=Zqtr
+-----END PGP SIGNATURE-----
 
-cheers,
--roger
+--PNpeiK4tTqhYOExY--
