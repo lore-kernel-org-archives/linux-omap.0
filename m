@@ -1,38 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 03/13] twl4030_charger: correctly handle -EPROBE_DEFER
- from devm_usb_get_phy_by_node
-Date: Wed, 2 Sep 2015 06:07:24 -0700
-Message-ID: <20150902130724.GQ4215@atomide.com>
-References: <20150730001113.4012.18086.stgit@noble>
- <20150730001124.4012.31980.stgit@noble>
- <CAMAWPa__hFOuz24YBcFiR+m5mOUArSuNpuqh3Ju1H+yj6qadfA@mail.gmail.com>
- <CAMAWPa_s2ELgRBRtWzFucmREMuLXS_V5Akmad5yFU13-GrzBDA@mail.gmail.com>
- <87si6x4a2f.fsf@notabene.neil.brown.name>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH v2] security: device_cgroup: fix RCU lockdep splat
+Date: Wed, 2 Sep 2015 08:12:28 -0500
+Message-ID: <1441199548-29633-1-git-send-email-balbi@ti.com>
+References: <20150902125608.GA8299@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87si6x4a2f.fsf@notabene.neil.brown.name>
+In-Reply-To: <20150902125608.GA8299@saruman.tx.rr.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Neil Brown <neil@brown.name>
-Cc: Kevin Hilman <khilman@kernel.org>, Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, lkml <linux-kernel@vger.kernel.org>, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Tyler Baker <tyler.baker@linaro.org>
+To: James Morris <james.l.morris@oracle.com>
+Cc: serge@hallyn.com, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Neil Brown <neil@brown.name> [150901 23:23]:
-> Kevin Hilman <khilman@kernel.org> writes:
-> 
-> > ping... this boot failure has now landed in mainline
-> 
-> sorry, I'm on leave at the moment and travelling so I'm unlikely to be
-> able to look at this properly.  I should be able to examine this issue
-> before the end of the month but cannot promise sooner than that (though
-> it is not impossible).
-> 
-> Maybe it would be best to just revert it until a proper analysis can be
-> done.
+while booting AM437x device, the following splat
+triggered:
 
-OK yeah let's revert this one for now until we know what goes wrong.
+[   12.005238] ===============================
+[   12.009749] [ INFO: suspicious RCU usage. ]
+[   12.014116] 4.2.0-next-20150831 #1154 Not tainted
+[   12.019050] -------------------------------
+[   12.023408] security/device_cgroup.c:405 device_cgroup:verify_new_ex called without proper synchronization!
+[   12.033576] other info that might help us debug this:
 
-Regards,
+[   12.041942] rcu_scheduler_active = 1, debug_locks = 0
+[   12.048796] 4 locks held by systemd/1:
+[   12.052700]  #0:  (sb_writers#7){.+.+.+}, at: [<c017af84>] __sb_start_write+0x8c/0xb0
+[   12.060954]  #1:  (&of->mutex){+.+.+.}, at: [<c01f1600>] kernfs_fop_write+0x50/0x1b8
+[   12.069085]  #2:  (s_active#30){++++.+}, at: [<c01f1608>] kernfs_fop_write+0x58/0x1b8
+[   12.077310]  #3:  (devcgroup_mutex){+.+...}, at: [<c0317bfc>] devcgroup_access_write+0x20/0x658
+[   12.086575] stack backtrace:
+[   12.091124] CPU: 0 PID: 1 Comm: systemd Not tainted 4.2.0-next-20150831 #1154
+[   12.098609] Hardware name: Generic AM43 (Flattened Device Tree)
+[   12.104807] [<c001770c>] (unwind_backtrace) from [<c0013a58>] (show_stack+0x10/0x14)
+[   12.112924] [<c0013a58>] (show_stack) from [<c034f014>] (dump_stack+0x84/0x9c)
+[   12.120491] [<c034f014>] (dump_stack) from [<c0317a04>] (verify_new_ex+0xc4/0xdc)
+[   12.128326] [<c0317a04>] (verify_new_ex) from [<c0317f50>] (devcgroup_access_write+0x374/0x658)
+[   12.137426] [<c0317f50>] (devcgroup_access_write) from [<c00d2800>] (cgroup_file_write+0x28/0x1bc)
+[   12.146796] [<c00d2800>] (cgroup_file_write) from [<c01f1670>] (kernfs_fop_write+0xc0/0x1b8)
+[   12.155620] [<c01f1670>] (kernfs_fop_write) from [<c0177c94>] (__vfs_write+0x1c/0xd8)
+[   12.163783] [<c0177c94>] (__vfs_write) from [<c0178594>] (vfs_write+0x90/0x16c)
+[   12.171426] [<c0178594>] (vfs_write) from [<c0178db4>] (SyS_write+0x44/0x9c)
+[   12.178806] [<c0178db4>] (SyS_write) from [<c000f680>] (ret_fast_syscall+0x0/0x1c)
 
-Tony
+Fix it by making sure rcu_read_lock() is held
+around calls to parent_has_perm().
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+
+Changes since v1:
+	- move rcu_read_lock/unlock to wrap parent_has_perm()
+
+ security/device_cgroup.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/security/device_cgroup.c b/security/device_cgroup.c
+index 73455089feef..dd77ed206fa4 100644
+--- a/security/device_cgroup.c
++++ b/security/device_cgroup.c
+@@ -608,6 +608,7 @@ static int devcgroup_update_access(struct dev_cgroup *devcgroup,
+ 	int count, rc = 0;
+ 	struct dev_exception_item ex;
+ 	struct dev_cgroup *parent = css_to_devcgroup(devcgroup->css.parent);
++	int ret;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+@@ -734,7 +735,11 @@ static int devcgroup_update_access(struct dev_cgroup *devcgroup,
+ 			break;
+ 		}
+ 
+-		if (!parent_has_perm(devcgroup, &ex))
++		rcu_read_lock();
++		ret = parent_has_perm(devcgroup, &ex);
++		rcu_read_unlock();
++
++		if (!ret)
+ 			return -EPERM;
+ 		rc = dev_exception_add(devcgroup, &ex);
+ 		break;
+-- 
+2.5.0
