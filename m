@@ -1,51 +1,93 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 0/9] usb: dwc3: add dual-role support
-Date: Wed, 2 Sep 2015 17:24:15 +0300
-Message-ID: <1441203864-15786-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 6/9] usb: dwc3: save/restore OTG registers during suspend/resume
+Date: Wed, 2 Sep 2015 17:24:21 +0300
+Message-ID: <1441203864-15786-7-git-send-email-rogerq@ti.com>
+References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1441203864-15786-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com
 Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Without this we loose OTG controller register context and malfunction
+after a system suspend-resume.
 
-This series adds dual role support to dwc3 controller driver.
-Series depends on [1] for core OTG/dual-role support.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/dwc3/core.c | 17 +++++++++++++++++
+ drivers/usb/dwc3/core.h |  6 +++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-Patches are based on greg/usb-next.
-
-Tested on am437x-gp-evm and dra7-evm after platform related patches are
-applied. Those are available at [2].
-
-[1] core OTG/DRD support - http://thread.gmane.org/gmane.linux.kernel/2025239
-[2] platform support - http://thread.gmane.org/gmane.linux.usb.general/127898
-
-cheers,
--roger
-
-Felipe Balbi (1):
-  usb: dwc3: core: Adapt to named interrupts
-
-Roger Quadros (8):
-  usb: dwc3: add dual-role support
-  usb: dwc3: core.h: add some register definitions
-  usb: dwc3: dwc3-omap: Make the wrapper interrupt shared
-  usb: dwc3: core: make dual-role work with OTG irq
-  usb: dwc3: save/restore OTG registers during suspend/resume
-  usb: dwc3: gadget: Fix suspend/resume during dual-role mode
-  usb: dwc3: core: Prevent otg events from disabling themselves
-  usb: dwc3: core: don't break during suspend/resume while we're
-    dual-role
-
- drivers/usb/dwc3/core.c          | 422 +++++++++++++++++++++++++++++++++++++--
- drivers/usb/dwc3/core.h          | 103 ++++++++++
- drivers/usb/dwc3/dwc3-omap.c     |   4 +-
- drivers/usb/dwc3/gadget.c        |   8 +-
- drivers/usb/dwc3/platform_data.h |   1 +
- 5 files changed, 516 insertions(+), 22 deletions(-)
-
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 632ee53..684010c 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -56,6 +56,7 @@ void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
+ 	reg = dwc3_readl(dwc->regs, DWC3_GCTL);
+ 	reg &= ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
+ 	reg |= DWC3_GCTL_PRTCAPDIR(mode);
++	dwc->current_mode = mode;
+ 	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+ }
+ 
+@@ -1443,6 +1444,14 @@ static int dwc3_suspend(struct device *dev)
+ 
+ 	spin_lock_irqsave(&dwc->lock, flags);
+ 
++	/* Save OTG state only if we're really using it */
++	if (dwc->current_mode == DWC3_GCTL_PRTCAP_OTG) {
++		dwc->ocfg = dwc3_readl(dwc->regs, DWC3_OCFG);
++		dwc->octl = dwc3_readl(dwc->regs, DWC3_OCTL);
++		dwc->oevt = dwc3_readl(dwc->regs, DWC3_OEVT);
++		dwc->oevten = dwc3_readl(dwc->regs, DWC3_OEVTEN);
++	}
++
+ 	switch (dwc->dr_mode) {
+ 	case USB_DR_MODE_PERIPHERAL:
+ 	case USB_DR_MODE_OTG:
+@@ -1486,6 +1495,14 @@ static int dwc3_resume(struct device *dev)
+ 	dwc3_event_buffers_setup(dwc);
+ 	dwc3_writel(dwc->regs, DWC3_GCTL, dwc->gctl);
+ 
++	/* Restore OTG state only if we're really using it */
++	if (dwc->current_mode == DWC3_GCTL_PRTCAP_OTG) {
++		dwc3_writel(dwc->regs, DWC3_OCFG, dwc->ocfg);
++		dwc3_writel(dwc->regs, DWC3_OCTL, dwc->octl);
++		dwc3_writel(dwc->regs, DWC3_OEVT, dwc->oevt);
++		dwc3_writel(dwc->regs, DWC3_OEVTEN, dwc->oevten);
++	}
++
+ 	switch (dwc->dr_mode) {
+ 	case USB_DR_MODE_PERIPHERAL:
+ 	case USB_DR_MODE_OTG:
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 129ef37..1115ce0 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -737,6 +737,7 @@ struct dwc3_scratchpad_array {
+  * @regs: base address for our registers
+  * @regs_size: address space size
+  * @oevten: otg interrupt enable mask copy
++ * @current_mode: current mode of operation written to PRTCAPDIR
+  * @nr_scratch: number of scratch buffers
+  * @num_event_buffers: calculated number of event buffers
+  * @u1u2: only used on revisions <1.83a for workaround
+@@ -858,9 +859,12 @@ struct dwc3 {
+ 	/* used for suspend/resume */
+ 	u32			dcfg;
+ 	u32			gctl;
+-
++	u32			ocfg;
++	u32			octl;
++	u32			oevt;
+ 	u32			oevten;
+ 
++	u32			current_mode;
+ 	u32			nr_scratch;
+ 	u32			num_event_buffers;
+ 	u32			u1u2;
 -- 
 2.1.4
