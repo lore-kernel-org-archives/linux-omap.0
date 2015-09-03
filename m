@@ -1,54 +1,80 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: am57xx-beagle-x15: use palmas-usb for
- USB2
-Date: Thu, 3 Sep 2015 10:36:11 +0300
-Message-ID: <55E7F86B.7040509@ti.com>
-References: <1438002617-15152-1-git-send-email-rogerq@ti.com>
- <1438002617-15152-3-git-send-email-rogerq@ti.com>
- <20150805103728.GC16878@atomide.com> <55C29DE3.9010108@samsung.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v2 0/6] regulator: Fix pbias regulator enable
+Date: Thu, 3 Sep 2015 09:39:50 +0200
+Message-ID: <CAPDyKFrVR+vvmxm43hGimjqo4pcFa1pfDuNNENXU-tk_qXo2=w@mail.gmail.com>
+References: <1441263042-12942-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55C29DE3.9010108@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>, Tony Lindgren <tony@atomide.com>
-Cc: myungjoo.ham@samsung.com, nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1441263042-12942-1-git-send-email-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?Q?Pawe=C5=82_Moll?= <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Chanwoo,
++Olof
 
-On 06/08/15 02:36, Chanwoo Choi wrote:
-> On 08/05/2015 07:37 PM, Tony Lindgren wrote:
->> * Roger Quadros <rogerq@ti.com> [150727 06:13]:
->>> The VBUS line of USB2 is connected to VBUS detect logic on
->>> the PMIC. Use the palmas-usb driver to report VBUS events
->>> to the USB driver.
->>>
->>> As the palmas-usb driver supports GPIO based ID reporting
->>> provide the GPIO for ID pin as well.
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>
->> This should not cause merge conflicts with what I have queeud
->> for v4.3, so Chanwoo please feel free to apply with the rest
->> of the extcon series:
->>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->>
-> 
-> I reviewd this patchset related to extcon and give the acked-by message.
-> but patch1 must need the acked-by message from MFD maintainer.
-> 
-> If patch1 receive the acked-by message from MFD maintainer,
-> I'll apply it for v4.3.
-> 
-> Roger,
-> I think that you better to recevie the acked-by message before v4.2-rc6 release.
-> I have the plan about pull request of extcon for v4.3 after v4.2-rc6 releas.
+On 3 September 2015 at 08:50, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> vsel_reg and enable_reg of the pbias regulator descriptor should actually
+> have the offset from syscon.
+>
+> However after
+> "ARM: dts: <platform>: add minimal l4 bus layout with control module
+> support"
+> vsel_reg and enable_reg started to have the absolute address because
+> of address translation that happens due to pbias node made as the
+> child node of syscon. This breaks the pbias regulator enable.
+>
+> This series adds the 'offset' to be populated in vsel_reg and enable_reg
+> in the pbias driver itself.
+>
+> Changes from v1:
+> *) Fixed Tony's review comments on adding a 'comment' for adding offset in
+>    the driver and adding a warning for using platform_get_resource.
+> *) Added Tony's Acked-by.
+>
+> Tested these patches against mmc -next in omap4 panda, omap3 beagle xm,
+> dra72 and omap5 uevm
+>
+> Kishon Vijay Abraham I (6):
+>   regulator: pbias: program pbias register offset in pbias driver
+>   ARM: dts: dra7: use "ti,pbias-dra7" compatible string for pbias
+>   ARM: dts: omap243x: use "ti,pbias-omap2" compatible string for pbias
+>   ARM: dts: omap3: use "ti,pbias-omap3" compatible string for pbias
+>   ARM: dts: omap4: use "ti,pbias-omap4" compatible string for pbias
+>   ARM: dts: omap5: use "ti,pbias-omap5" compatible string for pbias
+>
+>  .../bindings/regulator/pbias-regulator.txt         |    7 ++-
+>  arch/arm/boot/dts/dra7.dtsi                        |    2 +-
+>  arch/arm/boot/dts/omap2430.dtsi                    |    2 +-
+>  arch/arm/boot/dts/omap3.dtsi                       |    2 +-
+>  arch/arm/boot/dts/omap4.dtsi                       |    2 +-
+>  arch/arm/boot/dts/omap5.dtsi                       |    2 +-
+>  drivers/regulator/pbias-regulator.c                |   56 +++++++++++++++++---
+>  7 files changed, 61 insertions(+), 12 deletions(-)
+>
+> --
+> 1.7.9.5
+>
 
-Seems like you picked patch 1 but not this one. As Tony has already Acked it
-can you please include patch 2 as well in your tree for -next? Thanks.
+I have recently queued another patchset [1] for the mmc omap driver
+for 4.3 through my mmc tree for which Olof Johansson reported a
+regression [2] for Panda ES with multi_v7_defconfig.
 
-cheers,
--roger
+Kishon, could you please clarify if $subject patchset solves that
+regression reported by Olof? Or perhaps Olof can run a test?
+
+Finally, perhaps it's better if we queue this through my mmc tree
+since we would then be able to avoid the regression - if I put
+$subject patchset before [1], right? Then I need an ack from Mark for
+the regulator patch.
+Please tell me if you guys prefer another way.
+
+Kind regards
+Uffe
+
+[1]
+http://permalink.gmane.org/gmane.linux.kernel/2027789
+
+[2]
+http://www.spinics.net/lists/linux-mmc/msg33146.html
