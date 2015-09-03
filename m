@@ -1,39 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/6] regulator: Fix pbias regulator enable
-Date: Thu, 3 Sep 2015 08:04:53 -0700
-Message-ID: <20150903150452.GT4215@atomide.com>
-References: <1441263042-12942-1-git-send-email-kishon@ti.com>
- <CAPDyKFrVR+vvmxm43hGimjqo4pcFa1pfDuNNENXU-tk_qXo2=w@mail.gmail.com>
- <55E81117.2040900@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/4] omap: Fix broken address translation for pbias
+Date: Thu, 3 Sep 2015 08:10:06 -0700
+Message-ID: <20150903151005.GU4215@atomide.com>
+References: <1441279673-28105-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55E81117.2040900@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Olof Johansson <olof@lixom.net>, Mark Brown <broonie@kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?utf-8?B?UGF3ZcWC?= Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
+In-Reply-To: <1441279673-28105-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: t-kristo-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [150903 02:25]:
-> On Thursday 03 September 2015 01:09 PM, Ulf Hansson wrote:
-> > 
-> > Finally, perhaps it's better if we queue this through my mmc tree
-> > since we would then be able to avoid the regression - if I put
-> > $subject patchset before [1], right? Then I need an ack from Mark for
-> > the regulator patch.
-> > Please tell me if you guys prefer another way.
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150903 04:31]:
+> pbias device stopped having memory resource after
+> "ARM: dts: <platform>: add minimal l4 bus layout with control module
+> support" got merged. This results in platform_get_resource returning
+> -EINVAL in pbias driver. This is because address translation fails
+> while trying to convert the address to resource which happens
+> during the device creation process during boot up.
+> 
+> Even though after [1], reg property in pbias dt node is un-used,
+> it might be an issue if we plan to use it at a later point of time.
+> 
+> Patch series is created on top of [1].
+> 
+> [1] -> https://lkml.org/lkml/2015/9/3/51
+> 
+> Verified the address in omap4 panda, omap5 uevm and dra72 boards.
 
-That works for me too. Or Mark can set up an immutable signed
-branch that you can merge in, up to you guys.
+Your other series is obviously needed for v4.3.. But seems these
+are also needed for stable? If so, which versions, v4.2+?
 
-It's still going to break git bisect for booting but
-removes the regression when mergeing to mainline.
+Can you please just do a single patch with multiple Fixes tags
+as they fix regression for multiple commits? Doing tons of one
+liner patches for the same thing just creates commit log noise..
 
-I'd squash all the one liner dts changes into a single
-patch though when applying to cut down on the commit
-noise.
+Remember to not Cc stable when posting, I'll add that tag when
+committing if needed.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
