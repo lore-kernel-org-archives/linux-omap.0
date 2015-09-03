@@ -1,48 +1,54 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 4/6] ARM: dts: omap3: use "ti,
- pbias-omap3" compatible string for pbias
-Date: Thu, 3 Sep 2015 12:20:40 +0530
-Message-ID: <1441263042-12942-5-git-send-email-kishon@ti.com>
-References: <1441263042-12942-1-git-send-email-kishon@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: dts: am57xx-beagle-x15: use palmas-usb for
+ USB2
+Date: Thu, 3 Sep 2015 10:36:11 +0300
+Message-ID: <55E7F86B.7040509@ti.com>
+References: <1438002617-15152-1-git-send-email-rogerq@ti.com>
+ <1438002617-15152-3-git-send-email-rogerq@ti.com>
+ <20150805103728.GC16878@atomide.com> <55C29DE3.9010108@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1441263042-12942-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: mark.rutland@arm.com, ulf.hansson@linaro.org, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, nsekhar@ti.com, lgirdwood@gmail.com, kishon@ti.com, robh+dt@kernel.org, bcousson@baylibre.com, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55C29DE3.9010108@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>, Tony Lindgren <tony@atomide.com>
+Cc: myungjoo.ham@samsung.com, nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Use "ti,pbias-omap3" compatible string which is specifically added
-for OMAP3.
+Chanwoo,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap3.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 06/08/15 02:36, Chanwoo Choi wrote:
+> On 08/05/2015 07:37 PM, Tony Lindgren wrote:
+>> * Roger Quadros <rogerq@ti.com> [150727 06:13]:
+>>> The VBUS line of USB2 is connected to VBUS detect logic on
+>>> the PMIC. Use the palmas-usb driver to report VBUS events
+>>> to the USB driver.
+>>>
+>>> As the palmas-usb driver supports GPIO based ID reporting
+>>> provide the GPIO for ID pin as well.
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>
+>> This should not cause merge conflicts with what I have queeud
+>> for v4.3, so Chanwoo please feel free to apply with the rest
+>> of the extcon series:
+>>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>>
+> 
+> I reviewd this patchset related to extcon and give the acked-by message.
+> but patch1 must need the acked-by message from MFD maintainer.
+> 
+> If patch1 receive the acked-by message from MFD maintainer,
+> I'll apply it for v4.3.
+> 
+> Roger,
+> I think that you better to recevie the acked-by message before v4.2-rc6 release.
+> I have the plan about pull request of extcon for v4.3 after v4.2-rc6 releas.
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 69a40cf..9af9ae1 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -203,7 +203,7 @@
- 		};
- 
- 		pbias_regulator: pbias_regulator {
--			compatible = "ti,pbias-omap";
-+			compatible = "ti,pbias-omap3", "ti,pbias-omap";
- 			reg = <0x2b0 0x4>;
- 			syscon = <&scm_conf>;
- 			pbias_mmc_reg: pbias_mmc_omap2430 {
--- 
-1.7.9.5
+Seems like you picked patch 1 but not this one. As Tony has already Acked it
+can you please include patch 2 as well in your tree for -next? Thanks.
+
+cheers,
+-roger
