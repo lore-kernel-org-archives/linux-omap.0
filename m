@@ -1,373 +1,250 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 1/9] usb: dwc3: add dual-role support
-Date: Thu, 3 Sep 2015 15:21:48 +0300
-Message-ID: <55E83B5C.7050001@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 4/9] usb: dwc3: core: Adapt to named interrupts
+Date: Thu, 3 Sep 2015 15:46:43 +0300
+Message-ID: <55E84133.9070704@ti.com>
 References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
- <1441203864-15786-2-git-send-email-rogerq@ti.com>
- <20150902143149.GD8299@saruman.tx.rr.com>
+ <1441203864-15786-5-git-send-email-rogerq@ti.com>
+ <20150902143457.GF8299@saruman.tx.rr.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150902143149.GD8299@saruman.tx.rr.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150902143457.GF8299-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA256
 
-On 02/09/15 17:31, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Sep 02, 2015 at 05:24:16PM +0300, Roger Quadros wrote:
->> Register with the USB OTG core. Since we don't support
->> OTG yet we just work as a dual-role device even
->> if device tree says "otg".
+On 02/09/15 17:34, Felipe Balbi wrote:
+> On Wed, Sep 02, 2015 at 05:24:19PM +0300, Roger Quadros wrote:
+>> From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 >>
->> Use extcon framework to get VBUS/ID cable events and
->> kick the OTG state machine.
+>> Add support to use interrupt names,
 >>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/usb/dwc3/core.c          | 174 ++++++++++++++++++++++++++++++++++++++-
->>  drivers/usb/dwc3/core.h          |   7 ++
->>  drivers/usb/dwc3/platform_data.h |   1 +
->>  3 files changed, 181 insertions(+), 1 deletion(-)
+>> Following are the interrupt names
 >>
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 064123e..2e36a9b 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -704,6 +704,152 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
->>  	return 0;
->>  }
->>  
->> +/* --------------------- Dual-Role management ------------------------------- */
->> +
->> +static void dwc3_drd_fsm_sync(struct dwc3 *dwc)
->> +{
->> +	int id, vbus;
->> +
->> +	/* get ID */
->> +	id = extcon_get_cable_state(dwc->edev, "USB-HOST");
->> +	/* Host means ID == 0 */
->> +	id = !id;
->> +
->> +	/* get VBUS */
->> +	vbus = extcon_get_cable_state(dwc->edev, "USB");
->> +	dev_dbg(dwc->dev, "id %d vbus %d\n", id, vbus);
-> 
-> tracepoint please. We don't want this driver to use dev_(v)?db anymore.
-> Ditto to all others.
-
-OK.
-
-> 
->> +
->> +	dwc->fsm->id = id;
->> +	dwc->fsm->b_sess_vld = vbus;
->> +	usb_otg_sync_inputs(dwc->fsm);
->> +}
->> +
->> +static int dwc3_drd_start_host(struct otg_fsm *fsm, int on)
->> +{
->> +	struct device *dev = usb_otg_fsm_to_dev(fsm);
->> +	struct dwc3 *dwc = dev_get_drvdata(dev);
-> 
-> how about adding a usb_otg_get_drvdata(fsm) ?
-
-You meant for otg core? That can be done.
-
-> 
->> +	dev_dbg(dwc->dev, "%s: %d\n", __func__, on);
->> +	if (on) {
->> +		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
->> +		/* start the HCD */
->> +		usb_otg_start_host(fsm, true);
->> +	} else {
->> +		/* stop the HCD */
->> +		usb_otg_start_host(fsm, false);
->> +	}
-> 
-> This can be simplified.
-> 
-> 	if (on)
-> 		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
-> 
-> 	usb_otg_start_host(fsm, on);
-
-Indeed.
-
-> 
->> +
->> +	return 0;
->> +}
->> +
->> +static int dwc3_drd_start_gadget(struct otg_fsm *fsm, int on)
->> +{
->> +	struct device *dev = usb_otg_fsm_to_dev(fsm);
->> +	struct dwc3 *dwc = dev_get_drvdata(dev);
->> +
->> +	dev_dbg(dwc->dev, "%s: %d\n", __func__, on);
->> +	if (on) {
->> +		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
->> +		dwc3_event_buffers_setup(dwc);
->> +
->> +		/* start the UDC */
->> +		usb_otg_start_gadget(fsm, true);
->> +	} else {
->> +		/* stop the UDC */
->> +		usb_otg_start_gadget(fsm, false);
->> +	}
-> 
-> likewise:
-> 
-> 	if (on) {
-> 		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
-> 		dwc3_event_buffers_setup(dwc);
-> 	}
-> 
-> 	usb_otg_start_gadget(fsm, on);
-
-OK.
-> 
->> +	return 0;
->> +}
->> +
->> +static struct otg_fsm_ops dwc3_drd_ops = {
->> +	.start_host = dwc3_drd_start_host,
->> +	.start_gadget = dwc3_drd_start_gadget,
->> +};
->> +
->> +static int dwc3_drd_notifier(struct notifier_block *nb,
->> +			     unsigned long event, void *ptr)
->> +{
->> +	struct dwc3 *dwc = container_of(nb, struct dwc3, otg_nb);
->> +
->> +	dwc3_drd_fsm_sync(dwc);
->> +
->> +	return NOTIFY_DONE;
->> +}
->> +
->> +static int dwc3_drd_init(struct dwc3 *dwc)
->> +{
->> +	int ret, id, vbus;
->> +	struct usb_otg_caps *otgcaps = &dwc->otg_config.otg_caps;
->> +
->> +	otgcaps->otg_rev = 0;
->> +	otgcaps->hnp_support = false;
->> +	otgcaps->srp_support = false;
->> +	otgcaps->adp_support = false;
->> +	dwc->otg_config.fsm_ops = &dwc3_drd_ops;
->> +
->> +	if (!dwc->edev) {
->> +		dev_err(dwc->dev, "No extcon device found for OTG mode\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	dwc->otg_nb.notifier_call = dwc3_drd_notifier;
->> +	ret = extcon_register_notifier(dwc->edev, EXTCON_USB, &dwc->otg_nb);
->> +	if (ret < 0) {
->> +		dev_err(dwc->dev, "Couldn't register USB cable notifier\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	ret = extcon_register_notifier(dwc->edev, EXTCON_USB_HOST,
->> +				       &dwc->otg_nb);
->> +	if (ret < 0) {
->> +		dev_err(dwc->dev, "Couldn't register USB-HOST cable notifier\n");
->> +		ret = -ENODEV;
->> +		goto extcon_fail;
->> +	}
->> +
->> +	/* sanity check id & vbus states */
->> +	id = extcon_get_cable_state(dwc->edev, "USB-HOST");
->> +	vbus = extcon_get_cable_state(dwc->edev, "USB");
->> +	if (id < 0 || vbus < 0) {
->> +		dev_err(dwc->dev, "Invalid USB cable state. id %d, vbus %d\n",
->> +			id, vbus);
->> +		ret = -ENODEV;
->> +		goto fail;
->> +	}
->> +
->> +	/* register as DRD device with OTG core */
->> +	dwc->fsm = usb_otg_register(dwc->dev, &dwc->otg_config);
->> +	if (IS_ERR(dwc->fsm)) {
->> +		ret = PTR_ERR(dwc->fsm);
->> +		if (ret == -ENOTSUPP)
->> +			dev_err(dwc->dev, "CONFIG_USB_OTG needed for dual-role\n");
->> +		else
->> +			dev_err(dwc->dev, "Failed to register with OTG core\n");
-> 
-> do you need to cope with EPROBE_DEFER ?
-
-Yes, we should.
-
-> 
->> +
->> +		goto fail;
->> +	}
->> +
->> +	dwc3_drd_fsm_sync(dwc);
->> +
->> +	return 0;
->> +fail:
->> +	extcon_unregister_notifier(dwc->edev, EXTCON_USB_HOST, &dwc->otg_nb);
->> +extcon_fail:
->> +	extcon_unregister_notifier(dwc->edev, EXTCON_USB, &dwc->otg_nb);
->> +
->> +	return ret;
->> +}
->> +
->> +static void dwc3_drd_exit(struct dwc3 *dwc)
->> +{
->> +	usb_otg_unregister(dwc->dev);
->> +	extcon_unregister_notifier(dwc->edev, EXTCON_USB_HOST, &dwc->otg_nb);
->> +	extcon_unregister_notifier(dwc->edev, EXTCON_USB, &dwc->otg_nb);
->> +}
->> +
->> +/* -------------------------------------------------------------------------- */
->> +
->>  static int dwc3_core_init_mode(struct dwc3 *dwc)
->>  {
->>  	struct device *dev = dwc->dev;
->> @@ -727,13 +873,21 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
->>  		}
->>  		break;
->>  	case USB_DR_MODE_OTG:
->> -		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
->> +		ret = dwc3_drd_init(dwc);
->> +		if (ret) {
-
-So here if ret is -EPROBE_DEFER, we return.
-
->> +			dev_err(dev, "limiting to peripheral only\n");
->> +			dwc->dr_mode = USB_DR_MODE_PERIPHERAL;
->> +			dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
->> +			goto gadget_init;
->> +		}
->> +
->>  		ret = dwc3_host_init(dwc);
->>  		if (ret) {
->>  			dev_err(dev, "failed to initialize host\n");
->>  			return ret;
->>  		}
->>  
->> +gadget_init:
->>  		ret = dwc3_gadget_init(dwc);
->>  		if (ret) {
->>  			dev_err(dev, "failed to initialize gadget\n");
->> @@ -760,6 +914,7 @@ static void dwc3_core_exit_mode(struct dwc3 *dwc)
->>  	case USB_DR_MODE_OTG:
->>  		dwc3_host_exit(dwc);
->>  		dwc3_gadget_exit(dwc);
->> +		dwc3_drd_exit(dwc);
->>  		break;
->>  	default:
->>  		/* do nothing */
->> @@ -843,6 +998,16 @@ static int dwc3_probe(struct platform_device *pdev)
->>  	hird_threshold = 12;
->>  
->>  	if (node) {
->> +		if (of_property_read_bool(node, "extcon"))
->> +			dwc->edev = extcon_get_edev_by_phandle(dev, 0);
->> +		else if (of_property_read_bool(dev->parent->of_node, "extcon"))
->> +			dwc->edev = extcon_get_edev_by_phandle(dev->parent, 0);
-> 
-> why do you need to check the parent ? Why isn't that done on the glue
-> layer ?
-
-On DRA7-evm, the extcon device is defined in the glue layer node. But
-we need the device both at the glue layer and at the core layer.
-We do get the extcon device in dwc3-omap.c
-
-Any suggestion how to pass the extcon device from glue layer to core.c?
-Or should I add the extcon property to dwc3 USB node as well in the DT?
-
-> 
->> +
->> +		if (IS_ERR(dwc->edev)) {
->> +			dev_vdbg(dev, "couldn't get extcon device\n");
-> 
-> dev_err() ??
-
-Is it ok to print it even in EPROBE_DEFER case?
-
-> 
->> +			return -EPROBE_DEFER;
-> 
-> this could make us reschedule probe forever.
-
-Good catch, we must return PTR_ERR(dwc->edev).
-
-> 
->> +		}
->> +
->>  		dwc->maximum_speed = of_usb_get_maximum_speed(node);
->>  		dwc->has_lpm_erratum = of_property_read_bool(node,
->>  				"snps,has-lpm-erratum");
->> @@ -887,6 +1052,13 @@ static int dwc3_probe(struct platform_device *pdev)
->>  		of_property_read_string(node, "snps,hsphy_interface",
->>  					&dwc->hsphy_interface);
->>  	} else if (pdata) {
->> +		if (pdata->extcon) {
->> +			dwc->edev = extcon_get_extcon_dev(pdata->extcon);
->> +			if (!dwc->edev) {
->> +				dev_vdbg(dev, "couldn't get extcon device\n");
->> +				return -EPROBE_DEFER;
-> 
-> ditto
-
-OK.
-
-> 
->> +			}
->> +		}
->>  		dwc->maximum_speed = pdata->maximum_speed;
->>  		dwc->has_lpm_erratum = pdata->has_lpm_erratum;
->>  		if (pdata->lpm_nyet_threshold)
->> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
->> index 0447788..5ca2b25 100644
->> --- a/drivers/usb/dwc3/core.h
->> +++ b/drivers/usb/dwc3/core.h
->> @@ -31,8 +31,10 @@
->>  #include <linux/usb/gadget.h>
->>  #include <linux/usb/otg.h>
->>  #include <linux/ulpi/interface.h>
->> +#include <linux/usb/otg-fsm.h>
->>  
->>  #include <linux/phy/phy.h>
->> +#include <linux/extcon.h>
->>  
->>  #define DWC3_MSG_MAX	500
->>  
->> @@ -753,6 +755,11 @@ struct dwc3 {
->>  
->>  	struct ulpi		*ulpi;
->>  
->> +	struct extcon_dev	*edev;	/* USB cable events ID & VBUS */
->> +	struct notifier_block	otg_nb;	/* notifier for USB cable events */
->> +	struct otg_fsm		*fsm;
->> +	struct usb_otg_config	otg_config;
->> +
->>  	void __iomem		*regs;
->>  	size_t			regs_size;
->>  
->> diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
->> index d3614ec..b3b245c 100644
->> --- a/drivers/usb/dwc3/platform_data.h
->> +++ b/drivers/usb/dwc3/platform_data.h
->> @@ -47,4 +47,5 @@ struct dwc3_platform_data {
->>  	unsigned tx_de_emphasis:2;
->>  
->>  	const char *hsphy_interface;
->> +	const char *extcon;	/* extcon name for USB cable events ID/VBUS */
->>  };
->> -- 
->> 2.1.4
+>> Peripheral Interrupt - peripheral
+>> HOST Interrupt - host
+>> OTG Interrupt - otg
 >>
+>> [Roger Q]
+>> - If any of these are missing we use the
+>> first available IRQ resource so that we don't
+>> break with older DTBs.
+> 
+> this is what original commit did:
+> 
+> commit ecd5f71cfd663bcd4efd2f29824acd8b2ba9715d
+> Author: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Date:   Fri Jan 3 13:49:38 2014 -0600
+> 
+>     usb: dwc3: cleanup IRQ resources
+>     
+>     In order to make it easier for the driver to
+>     figure out which modes of operation it has,
+>     and because some dwc3 integrations have rather
+>     fuzzy IRQ routing, we now require three different
+>     IRQ numbers (peripheral, host, otg).
+>     
+>     In order to do that and maintain backwards compatibility,
+>     we still maintain support for the old IRQ resource name,
+>     but if you *really* want to have proper peripheral/host/otg
+>     support, you should make sure your resources are correct.
+>     
+>     Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+
+This is better since we request the resource only if needed and bail out
+if it is not present.
+
+> 
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 60580a01cdd2..1f01031873b7 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -556,10 +556,22 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
+>  static int dwc3_core_init_mode(struct dwc3 *dwc)
+>  {
+>  	struct device *dev = dwc->dev;
+> +	struct platform_device *pdev = to_platform_device(dev);
+>  	int ret;
+>  
+>  	switch (dwc->dr_mode) {
+>  	case USB_DR_MODE_PERIPHERAL:
+> +		dwc->gadget_irq = platform_get_irq_byname(pdev, "dwc3_peripheral");
+
+Shall we just name it just "peripheral"?
+
+> +		if (dwc->gadget_irq < 0) {
+> +			dwc->gadget_irq = platform_get_irq_byname(pdev, "dwc_usb3");
+
+How will this work? Currently we don't have a name for the IRQ in the DT.
+
+> +			if (dwc->gadget_irq < 0) {
+> +				dev_err(dev, "missing IRQ\n");
+> +				return dwc->gadget_irq;
+> +			} else {
+> +				dev_warn(dev, "dwc_usb3 resource is deprecated\n");
+
+Do we want to warn about legacy nodes?
+
+> +			}
+> +		}
+> +
+>  		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
+>  		ret = dwc3_gadget_init(dwc);
+>  		if (ret) {
+> @@ -568,6 +580,22 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
+>  		}
+>  		break;
+>  	case USB_DR_MODE_HOST:
+> +		dwc->xhci_irq = platform_get_irq_byname(pdev, "dwc3_host");
+> +		if (dwc->xhci_irq < 0) {
+> +			dwc->xhci_irq = platform_get_irq_byname(pdev, "dwc_usb3");
+> +			if (dwc->xhci_irq < 0) {
+> +				dev_err(dev, "missing Host IRQ\n");
+> +				return dwc->xhci_irq;
+> +			} else {
+> +				dev_warn(dev, "dwc_usb3 resource is deprecated\n");
+> +			}
+> +
+> +			dwc->xhci_resources[1].start = dwc->xhci_irq;
+> +			dwc->xhci_resources[1].end = dwc->xhci_irq;
+> +			dwc->xhci_resources[1].flags = IORESOURCE_IRQ;
+> +			dwc->xhci_resources[1].name = "xhci";
+> +		}
+> +
+>  		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
+>  		ret = dwc3_host_init(dwc);
+>  		if (ret) {
+> @@ -576,6 +604,28 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
+>  		}
+>  		break;
+>  	case USB_DR_MODE_OTG:
+> +		dwc->gadget_irq = platform_get_irq_byname(pdev, "dwc3_peripheral");
+> +		if (dwc->gadget_irq < 0) {
+> +			dwc->gadget_irq = platform_get_irq_byname(pdev, "dwc_usb3");
+> +			if (dwc->gadget_irq < 0) {
+> +				dev_err(dev, "missing IRQ\n");
+> +				return dwc->gadget_irq;
+> +			} else {
+> +				dev_warn(dev, "dwc_usb3 resource is deprecated\n");
+> +			}
+> +
+> +			dwc->xhci_irq = dwc->gadget_irq;
+> +			dwc->otg_irq = dwc->gadget_irq;
+> +		} else {
+> +			dwc->xhci_irq = platform_get_irq_byname(pdev, "dwc3_host");
+> +			if (dwc->xhci_irq < 0) {
+> +				dev_err(dev, "missing Host IRQ\n");
+> +				return dwc->xhci_irq;
+> +			}
+> +
+> +			dwc->otg_irq = platform_get_irq_byname(pdev, "dwc3_otg");
+
+need to check if error?
+
+> +		}
+
+Need to setup xhci_resource[1]?
+
+> +
+>  		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
+>  		ret = dwc3_otg_init(dwc);
+>  		if (ret) {
+> @@ -647,18 +697,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	dwc->mem = mem;
+>  	dwc->dev = dev;
+>  
+> -	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> -	if (!res) {
+> -		dev_err(dev, "missing IRQ\n");
+> -		return -ENODEV;
+> -	}
+> -	dwc->xhci_resources[1].start = res->start;
+> -	dwc->xhci_resources[1].end = res->end;
+> -	dwc->xhci_resources[1].flags = res->flags;
+> -	dwc->xhci_resources[1].name = res->name;
+> -
+> -	dwc->otg_irq = platform_get_irq_byname(pdev, "dwc3_otg");
+> -
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (!res) {
+>  		dev_err(dev, "missing memory resource\n");
+> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+> index 8e2e579b4b1e..0b02186fad6f 100644
+> --- a/drivers/usb/dwc3/core.h
+> +++ b/drivers/usb/dwc3/core.h
+> @@ -671,6 +671,8 @@ struct dwc3_scratchpad_array {
+>   * @maximum_speed: maximum speed requested (mainly for testing purposes)
+>   * @revision: revision register contents
+>   * @dr_mode: requested mode of operation
+> + * @gadget_irq: IRQ number for Peripheral IRQs
+> + * @xhci_irq: IRQ number for Host IRQs
+>   * @otg_irq: IRQ number for OTG IRQs
+>   * @usb2_phy: pointer to USB2 PHY
+>   * @usb3_phy: pointer to USB3 PHY
+> @@ -747,6 +749,8 @@ struct dwc3 {
+>  
+>  	enum usb_dr_mode	dr_mode;
+>  
+> +	int			gadget_irq;
+> +	int			xhci_irq;
+>  	int			otg_irq;
+>  
+>  	/* used for suspend/resume */
+> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> index a8cf87b3de01..2a6e5155fc89 100644
+> --- a/drivers/usb/dwc3/gadget.c
+> +++ b/drivers/usb/dwc3/gadget.c
+> @@ -1567,15 +1567,13 @@ static int dwc3_gadget_start(struct usb_gadget *g,
+>  	struct dwc3_ep		*dep;
+>  	unsigned long		flags;
+>  	int			ret = 0;
+> -	int			irq;
+>  	u32			reg;
+>  
+> -	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
+> -	ret = request_threaded_irq(irq, dwc3_interrupt, dwc3_thread_interrupt,
+> -			IRQF_SHARED, "dwc3", dwc);
+> +	ret = request_threaded_irq(dwc->gadget_irq, dwc3_interrupt,
+> +			dwc3_thread_interrupt, IRQF_SHARED, "dwc3", dwc);
+>  	if (ret) {
+>  		dev_err(dwc->dev, "failed to request irq #%d --> %d\n",
+> -				irq, ret);
+> +				dwc->gadget_irq, ret);
+>  		goto err0;
+>  	}
+>  
+> @@ -1668,7 +1666,7 @@ err2:
+>  err1:
+>  	spin_unlock_irqrestore(&dwc->lock, flags);
+>  
+> -	free_irq(irq, dwc);
+> +	free_irq(dwc->gadget_irq, dwc);
+>  
+>  err0:
+>  	return ret;
+> @@ -1679,7 +1677,6 @@ static int dwc3_gadget_stop(struct usb_gadget *g,
+>  {
+>  	struct dwc3		*dwc = gadget_to_dwc(g);
+>  	unsigned long		flags;
+> -	int			irq;
+>  
+>  	spin_lock_irqsave(&dwc->lock, flags);
+>  
+> @@ -1691,8 +1688,7 @@ static int dwc3_gadget_stop(struct usb_gadget *g,
+>  
+>  	spin_unlock_irqrestore(&dwc->lock, flags);
+>  
+> -	irq = platform_get_irq(to_platform_device(dwc->dev), 0);
+> -	free_irq(irq, dwc);
+> +	free_irq(dwc->gadget_irq, dwc);
+>  
+>  	return 0;
+>  }
 > 
 
 - --
@@ -376,17 +253,21 @@ cheers,
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJV6DtcAAoJENJaa9O+djCTWYcP/j/nseHR49Z1I8ftXv8urDGl
-mMjMTzhlMxB7CYCtiqGpQ8Dytr9R7Ahm1llUVC4v6vYC5csJW1IcKxp/LOnaYmOL
-d6EVFCSGM5JdEN83JoPfz/BD8qR/pWMmgzAGo60CkESev3E+/KxtcTl8md8CyOJj
-DimMFsAmMxiVD2uABaW64Y96sG/lr8+b2AOksa6P1Os5n3GylNNegNHLSVMfx0b8
-6lTn5uOa70fFZJTQDfF5idzgTrIT9irvP/GZ6RY1d6xLat4Hos1SWCjrDCHfgvHF
-z3z39uW336/dpB56eomUSzctq0gVzzxG8lOIuVPXAJWEmwlx2FbV3M6viul56AGH
-vtgWEB2LloLZxuXz60lnj3y8MSccUfMii+KILKtJVVjD7TW1BziW31juq+QZs+T2
-yTT3YWuJVXpzob9jbzAenyU2ogDoS3vNA9cMRGOdr8cKg33z70rU/mfPcKlQKgWN
-Ngve174czk9ZZgrF+l2r/m3SOqSbTDRqkxarP+KFrzNEn/hFPprSx8Encqg7Xr0t
-EzUNQC64LmTxpzJwXzRuMuCqcu+plhuvSK93ymU5LkNqe+Bv5WtJaqXuxRCQ9rrY
-Mn34QMFaKLz+9mLRvwGEp70MRafy44eJ5qslyj+0glL9mOB3AV7nyAArzeEJgY4/
-vyyf4sA7JD9OL6NpkgVh
-=ZhiZ
+iQIcBAEBCAAGBQJV6EEzAAoJENJaa9O+djCT2CYQALOJ+zhWZ1fw8z1FEHnouTT7
+6riR0KkGkptuGiRCfUTZYNA+YSMLK2vaZbgH6YWqOrrgK2T45kEAsvoO66byN/2W
+XistUWUDRR3X5vhxS4Jsc6euHU7+zKVioTog+qmfFgu/NUJrSUg2w4Q8IR/YGq29
+7En5WjGSagd9EoSrS6q9GxYY5m/WOR2Nt/pqOvdtd+izJiRkKrYNfCBzv47majv7
+Pdyh6VMBLGjLpQDzKJ+dC8pRzBKI5MpGPNsCFuCNGhjrS5KIv+nMnrtezNRHrU9m
+BRzcaYjPj90+zF52BeYPsk+e+r4DqZrnsCw8JWAf/Z+dSiHDcllnNHFjmjyxEWVE
+QSVKX6rzq2ADGlCjklEUiy/iFlVV4tF+BzdS+ykEHAT4H7F6h3uAnLCZIE31DEZ/
+SL7AfBxzO9xp4hweiQfz8VfpjrI7GWv6kR2A8zWV2pPD5TPo0pSNghI+r0eK1mJ8
+rt1IlQnaxqFxNJjYtdVpvppV/ATihqXX+6e3Zgr3rvr8nA/rMEQZ5ePid0tPh4yM
+r4r5JAfrP0ROIkvHkQ/otEey2yK5YBMiQ0kqKWZAOztAZTsEeEP0zrJWKIJXtKt5
+7P3kOTuZNko4INO7i+F3bb2zBL1ies/mKhdsuvu65QJi7KMDYvLfLdtHTudSwkfX
+mtsHh+60Nc0pqqIqH12t
+=M0TG
 -----END PGP SIGNATURE-----
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
