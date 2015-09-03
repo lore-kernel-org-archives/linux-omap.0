@@ -1,103 +1,93 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 8/9] usb: dwc3: core: Prevent otg events from disabling
- themselves
-Date: Thu, 3 Sep 2015 16:54:47 +0300
-Message-ID: <55E85127.9020704@ti.com>
-References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
- <1441203864-15786-9-git-send-email-rogerq@ti.com>
- <20150902144705.GI8299@saruman.tx.rr.com>
+From: Josh Boyer <jwboyer@fedoraproject.org>
+Subject: Re: [PATCH v2] security: device_cgroup: fix RCU lockdep splat
+Date: Thu, 3 Sep 2015 09:56:05 -0400
+Message-ID: <CA+5PVA6NrEhRfaFJgCmH6P3Wznme4W2bPk8=WgmmpM0WSbLjxA@mail.gmail.com>
+References: <20150902125608.GA8299@saruman.tx.rr.com>
+	<1441199548-29633-1-git-send-email-balbi@ti.com>
+	<20150902162450.GJ22326@mtj.duckdns.org>
+	<20150903001433.GB4029@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150902144705.GI8299@saruman.tx.rr.com>
+In-Reply-To: <20150903001433.GB4029@linux.vnet.ibm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Paul McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>, Felipe Balbi <balbi@ti.com>, James Morris <james.l.morris@oracle.com>, "Serge E. Hallyn" <serge@hallyn.com>, linux-security-module <linux-security-module@vger.kernel.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+On Wed, Sep 2, 2015 at 8:14 PM, Paul E. McKenney
+<paulmck@linux.vnet.ibm.com> wrote:
+> On Wed, Sep 02, 2015 at 12:24:50PM -0400, Tejun Heo wrote:
+>> cc'ing Paul.
+>>
+>> On Wed, Sep 02, 2015 at 08:12:28AM -0500, Felipe Balbi wrote:
+>> > while booting AM437x device, the following splat
+>> > triggered:
+>> >
+>> > [   12.005238] ===============================
+>> > [   12.009749] [ INFO: suspicious RCU usage. ]
+>> > [   12.014116] 4.2.0-next-20150831 #1154 Not tainted
+>> > [   12.019050] -------------------------------
+>> > [   12.023408] security/device_cgroup.c:405 device_cgroup:verify_new_ex called without proper synchronization!
+>> ...
+>> > [   12.128326] [<c0317a04>] (verify_new_ex) from [<c0317f50>] (devcgroup_access_write+0x374/0x658)
+>> > [   12.137426] [<c0317f50>] (devcgroup_access_write) from [<c00d2800>] (cgroup_file_write+0x28/0x1bc)
+>> > [   12.146796] [<c00d2800>] (cgroup_file_write) from [<c01f1670>] (kernfs_fop_write+0xc0/0x1b8)
+>> > [   12.155620] [<c01f1670>] (kernfs_fop_write) from [<c0177c94>] (__vfs_write+0x1c/0xd8)
+>> > [   12.163783] [<c0177c94>] (__vfs_write) from [<c0178594>] (vfs_write+0x90/0x16c)
+>> > [   12.171426] [<c0178594>] (vfs_write) from [<c0178db4>] (SyS_write+0x44/0x9c)
+>> > [   12.178806] [<c0178db4>] (SyS_write) from [<c000f680>] (ret_fast_syscall+0x0/0x1c)
+>>
+>> This shouldn't be happening because devcgroup_access_write() always
+>> grabs devcgroup_mutex.  Looking at the log, the culprit seems to be
+>> f78f5b90c4ff ("rcu: Rename rcu_lockdep_assert() to
+>> RCU_LOCKDEP_WARN()").  It missed the bang for the second test while
+>> inverting it, so adding rcu_read_lock() isn't the right fix here.
+>>
+>> Paul, can you please fix it?
+>
+> Gah!  Please see below.
+>
+>                                                         Thanx, Paul
+>
+> ------------------------------------------------------------------------
+>
+> security/device_cgroup: Fix RCU_LOCKDEP_WARN() condition
+>
+> f78f5b90c4ff ("rcu: Rename rcu_lockdep_assert() to RCU_LOCKDEP_WARN()")
+> introduced a bug by incorrectly inverting the condition when moving from
+> rcu_lockdep_assert() to RCU_LOCKDEP_WARN().  This commit therefore fixes
+> the inversion.
+>
+> Reported-by: Felipe Balbi <balbi@ti.com>
+> Reported-by: Tejun Heo <tj@kernel.org>
+> Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> Cc: Serge Hallyn <serge@hallyn.com>
 
-On 02/09/15 17:47, Felipe Balbi wrote:
-> On Wed, Sep 02, 2015 at 05:24:23PM +0300, Roger Quadros wrote:
->> There is a race happening during dwc3_drd_init() that causes
->> otg events to get disabled. This is what happens.
->>
->> dwc3_otg_irq() happens immediately when PRTCAP is set to OTG,
->> even though OEVTEN is 0. This is because BIT 31 IRQ of
->> OEVT can't be disabled by OEVTEN.
->> We configure OEVTEN in dwc3_otg_init() but dwc3_otg_irq() has
->> already saved OEVTEN as 0 into dwc->oevten. So finally when
->> dwc3_irq_thread_irq() is called we save 0 into OEVTEN
->> thus disabling OTG irqs forever.
->>
->> We fix this by disabling IRQs when configuring OEVTEN in
->> dwc3_otg_init().
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> 
-> can't you just merge this patch into the one which introduced the bug to
-> start with ?
+Just tested this patch without Felipe's previous version on all my
+machines.  The splat is indeed gone.
 
-Yes, I'll do that.
+Tested-by: Josh Boyer <jwboyer@fedoraproject.org>
 
-> 
->> ---
->>  drivers/usb/dwc3/core.c | 5 +++++
->>  1 file changed, 5 insertions(+)
->>
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 684010c..654aebf 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -921,6 +921,7 @@ static int dwc3_drd_init(struct dwc3 *dwc)
->>  	int ret, id, vbus;
->>  	struct usb_otg_caps *otgcaps = &dwc->otg_config.otg_caps;
->>  	u32 reg;
->> +	unsigned long flags;
->>  
->>  	otgcaps->otg_rev = 0;
->>  	otgcaps->hnp_support = false;
->> @@ -993,6 +994,8 @@ try_otg_core:
->>  		goto error;
->>  	}
->>  
->> +	spin_lock_irqsave(&dwc->lock, flags);
->> +
->>  	/* we need to set OTG to get events from OTG core */
->>  	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
->>  	/* GUSB2PHYCFG0.SusPHY=0 */
->> @@ -1018,6 +1021,8 @@ try_otg_core:
->>  	/* OCTL.PeriMode = 1 */
->>  	dwc3_writel(dwc->regs, DWC3_OCTL, DWC3_OCTL_PERIMODE);
->>  
->> +	spin_unlock_irqrestore(&dwc->lock, flags);
->> +
->>  	dwc3_otg_fsm_sync(dwc);
->>  	usb_otg_sync_inputs(dwc->fsm);
->>  
->> -- 
->> 2.1.4
->>
-> 
-- --
-cheers,
-- -roger
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+josh
 
-iQIcBAEBCAAGBQJV6FEnAAoJENJaa9O+djCTSjgQALL73OtdfKAWte2JFxsw1PVT
-Xeh+ec7FJqNCKb2TwTSgnnWp6BxapbAlkK3kSwhsbgZvZLGtf3IC+xPHWNCs4dZs
-uCs9oDPC/oAiYBnN3gYZxBFuhe1fsFEuS7aFIzrvKD/+tnXmd0IQ5Yu3k06VDXIM
-jf/034Wep9AK44fyPy0sLKET1J6/UMvjxvUpEyxj9elbvs+GqzD9qR/GF6Ob8q6d
-5f7y4ajMBCgyoC/wpIXDIJi7yqH1MUZq8bdC+7BKyc8Fz7kzVSpU2SL0BSRMU7Jn
-Mzyx25WbWy1mXkfdgOjXtxx6MH5gV6jIIvqobyXXrK/e0z3kU6OeFprbubsOAvmC
-fcgRkOrfr1O7/G5Gm7mhU5kLSZF6kvf6MoDPGCd/TbP4OgfYcPiTj5O020qDbRxZ
-Hfuy/5Xk1oxR2aui1q9ycCWrpSA4L+B4fSpDXUznZw755BhhPnVeoYlXUfcb2sI+
-YPNs6cLeX95I27AoMpK0wjMptmswaKcDmwv50mjK0kXgUcnVGs6z7YxSIJ2eAxPV
-OpYLwVTfJiqoeJMscHvqoipwjlHqq4xS780SbzgZTDFOk2Ik7l0B6mNoL9CgaaXa
-LVCBEywdWo+9os4b3JRrjDSqqdOMhBVaO0GvtiZZqfF7mOTmJHF/yFAODBw/CLXi
-jAmBC/nM3M32CJphQQ1J
-=z7cJ
------END PGP SIGNATURE-----
+>
+> diff --git a/security/device_cgroup.c b/security/device_cgroup.c
+> index 73455089feef..03c1652c9a1f 100644
+> --- a/security/device_cgroup.c
+> +++ b/security/device_cgroup.c
+> @@ -401,7 +401,7 @@ static bool verify_new_ex(struct dev_cgroup *dev_cgroup,
+>         bool match = false;
+>
+>         RCU_LOCKDEP_WARN(!rcu_read_lock_held() &&
+> -                        lockdep_is_held(&devcgroup_mutex),
+> +                        !lockdep_is_held(&devcgroup_mutex),
+>                          "device_cgroup:verify_new_ex called without proper synchronization");
+>
+>         if (dev_cgroup->behavior == DEVCG_DEFAULT_ALLOW) {
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
