@@ -1,61 +1,100 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] mtd: nand: omap2: Rename shippable module to omap2_nand
-Date: Thu, 3 Sep 2015 10:41:06 +0300
-Message-ID: <55E7F992.6050908@ti.com>
-References: <1440153935-28927-1-git-send-email-rogerq@ti.com>
- <20150902210637.GY81844@google.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 0/6] regulator: Fix pbias regulator enable
+Date: Thu, 3 Sep 2015 14:51:27 +0530
+Message-ID: <55E81117.2040900@ti.com>
+References: <1441263042-12942-1-git-send-email-kishon@ti.com> <CAPDyKFrVR+vvmxm43hGimjqo4pcFa1pfDuNNENXU-tk_qXo2=w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150902210637.GY81844@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, tony@atomide.com, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFrVR+vvmxm43hGimjqo4pcFa1pfDuNNENXU-tk_qXo2=w@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?B?UGF3ZcWCIE1vbGw=?= <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/09/15 00:06, Brian Norris wrote:
-> On Fri, Aug 21, 2015 at 01:45:35PM +0300, Roger Quadros wrote:
->> As both omap2 onenand and omap2 nand driver modules are
->> named the same i.e. "omap2.ko", only one of them gets shipped
->> during MODPOST if both are configured as loadable modules.
->>
->> To avoid this ambiguity let's ship the omap2 nand
->> driver as "omap2_nand.ko"
->>
->> Reported by Pierre Neyron via github
->> https://github.com/beagleboard/linux/issues/40
->>
->> Cc: Robert Nelson <robertcnelson@gmail.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/mtd/nand/Makefile | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
->> index 1f897ec..075a027 100644
->> --- a/drivers/mtd/nand/Makefile
->> +++ b/drivers/mtd/nand/Makefile
->> @@ -26,7 +26,8 @@ obj-$(CONFIG_MTD_NAND_CS553X)		+= cs553x_nand.o
->>  obj-$(CONFIG_MTD_NAND_NDFC)		+= ndfc.o
->>  obj-$(CONFIG_MTD_NAND_ATMEL)		+= atmel_nand.o
->>  obj-$(CONFIG_MTD_NAND_GPIO)		+= gpio.o
->> -obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2.o
->> +omap2_nand-objs := omap2.o
->> +obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2_nand.o
+Hi,
+
+On Thursday 03 September 2015 01:09 PM, Ulf Hansson wrote:
+> +Olof
 > 
-> Pushed to l2-mtd.git. I suppose this one should go out for 4.3, as
-> there's little downside to it, and it's kind of a bugfix.
+> On 3 September 2015 at 08:50, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> vsel_reg and enable_reg of the pbias regulator descriptor should actually
+>> have the offset from syscon.
+>>
+>> However after
+>> "ARM: dts: <platform>: add minimal l4 bus layout with control module
+>> support"
+>> vsel_reg and enable_reg started to have the absolute address because
+>> of address translation that happens due to pbias node made as the
+>> child node of syscon. This breaks the pbias regulator enable.
+>>
+>> This series adds the 'offset' to be populated in vsel_reg and enable_reg
+>> in the pbias driver itself.
+>>
+>> Changes from v1:
+>> *) Fixed Tony's review comments on adding a 'comment' for adding offset in
+>>    the driver and adding a warning for using platform_get_resource.
+>> *) Added Tony's Acked-by.
+>>
+>> Tested these patches against mmc -next in omap4 panda, omap3 beagle xm,
+>> dra72 and omap5 uevm
+>>
+>> Kishon Vijay Abraham I (6):
+>>   regulator: pbias: program pbias register offset in pbias driver
+>>   ARM: dts: dra7: use "ti,pbias-dra7" compatible string for pbias
+>>   ARM: dts: omap243x: use "ti,pbias-omap2" compatible string for pbias
+>>   ARM: dts: omap3: use "ti,pbias-omap3" compatible string for pbias
+>>   ARM: dts: omap4: use "ti,pbias-omap4" compatible string for pbias
+>>   ARM: dts: omap5: use "ti,pbias-omap5" compatible string for pbias
+>>
+>>  .../bindings/regulator/pbias-regulator.txt         |    7 ++-
+>>  arch/arm/boot/dts/dra7.dtsi                        |    2 +-
+>>  arch/arm/boot/dts/omap2430.dtsi                    |    2 +-
+>>  arch/arm/boot/dts/omap3.dtsi                       |    2 +-
+>>  arch/arm/boot/dts/omap4.dtsi                       |    2 +-
+>>  arch/arm/boot/dts/omap5.dtsi                       |    2 +-
+>>  drivers/regulator/pbias-regulator.c                |   56 +++++++++++++++++---
+>>  7 files changed, 61 insertions(+), 12 deletions(-)
+>>
+>> --
+>> 1.7.9.5
+>>
+> 
+> I have recently queued another patchset [1] for the mmc omap driver
+> for 4.3 through my mmc tree for which Olof Johansson reported a
+> regression [2] for Panda ES with multi_v7_defconfig.
 
-That is perfectly fine. Thanks.
+I generally perform my tests with omap2plus_defconfig and without this
+series MMC doesn't work with omap2plus_defconfig.
+> 
+> Kishon, could you please clarify if $subject patchset solves that
+> regression reported by Olof? Or perhaps Olof can run a test?
 
-cheers,
--roger
+Just checked multi_v7_defconfig and this series is definitely required
+to get MMC working. But we also have to enable 'CONFIG_REGULATOR_PBIAS'
+which is not enabled by default in multi_v7_defconfig.
+
+So we should have a patch to enable 'CONFIG_REGULATOR_PBIAS' in
+multi_v7_defconfig to completely solve the problem reported by Olof.
+I'll prepare a patch for multi_v7_defconfig and post it asap.
+
+Thanks
+Kishon
 
 > 
->>  obj-$(CONFIG_MTD_NAND_OMAP_BCH_BUILD)	+= omap_elm.o
->>  obj-$(CONFIG_MTD_NAND_CM_X270)		+= cmx270_nand.o
->>  obj-$(CONFIG_MTD_NAND_PXA3xx)		+= pxa3xx_nand.o
->> -- 
->> 2.1.4
->>
+> Finally, perhaps it's better if we queue this through my mmc tree
+> since we would then be able to avoid the regression - if I put
+> $subject patchset before [1], right? Then I need an ack from Mark for
+> the regulator patch.
+> Please tell me if you guys prefer another way.
+> 
+> Kind regards
+> Uffe
+> 
+> [1]
+> http://permalink.gmane.org/gmane.linux.kernel/2027789
+> 
+> [2]
+> http://www.spinics.net/lists/linux-mmc/msg33146.html
+> 
