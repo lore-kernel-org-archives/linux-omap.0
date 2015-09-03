@@ -1,72 +1,138 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v4.3 merge window
-Date: Wed, 2 Sep 2015 17:41:14 -0700
-Message-ID: <20150903004113.GX10928@atomide.com>
+From: Nikhil Badola <nikhil.badola@freescale.com>
+Subject: [PATCH 2/3][v3] drivers: usb: dwc3: Add frame length adjustment quirk
+Date: Thu, 3 Sep 2015 11:34:04 +0530
+Message-ID: <1441260244-27279-1-git-send-email-nikhil.badola@freescale.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, Nikhil Badola <nikhil.badola@freescale.com>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 2faf962d90ca4c5ee7ba026b7351b1f74500bcdf:
+Add adjust_frame_length_quirk for writing to fladj register
+which adjusts (micro)frame length to value provided by
+"snps,quirk-frame-length-adjustment" property thus avoiding
+USB 2.0 devices to time-out over a longer run
 
-  Merge tag 'armsoc-defconfig' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2015-09-01 13:17:43 -0700)
+Signed-off-by: Nikhil Badola <nikhil.badola@freescale.com>
+---
+Changes for v3:
+	- removed unnecessary if(fladj) condition
+	- removed stray newline
 
-are available in the git repository at:
+ drivers/usb/dwc3/core.c          | 34 ++++++++++++++++++++++++++++++++++
+ drivers/usb/dwc3/core.h          |  5 +++++
+ drivers/usb/dwc3/platform_data.h |  2 ++
+ 3 files changed, 41 insertions(+)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/fixes-merge-window
-
-for you to fetch changes up to 21b430d23d233c67e6589ea5054d18392e15a28e:
-
-  ARM: omap2plus_defconfig: Enable MUSB DMA support (2015-09-01 13:59:25 -0700)
-
-----------------------------------------------------------------
-Few omap bug fixes that have come up recently:
-
-- Fix deferred probe with omap_device idling unused devices
-
-- Fix booting if no timer parent can be set
-
-- Fix always true warning for vc register check
-
-And also two minor changes not strictly fixes:
-
-- Add SoC detection for dra752
-
-- Enable omap related MUSB DMA engines as we can now
-  build them all in finally
-
-----------------------------------------------------------------
-
-Frans Klaver (1):
-      ARM: OMAP3: vc: fix 'or' always true warning
-
-Grygorii Strashko (1):
-      ARM: OMAP2+: omap-device: fix race deferred probe of omap_hsmmc vs omap_device_late_init
-
-Tony Lindgren (2):
-      ARM: OMAP2+: Fix booting if no timer parent clock is available
-      ARM: omap2plus_defconfig: Enable MUSB DMA support
-
-Vishal Mahaveer (1):
-      ARM: DRA752: Add ID detect for ES2.0
-
- arch/arm/configs/omap2plus_defconfig | 2 ++
- arch/arm/mach-omap2/id.c             | 8 ++++++--
- arch/arm/mach-omap2/omap_device.c    | 3 ++-
- arch/arm/mach-omap2/soc.h            | 2 ++
- arch/arm/mach-omap2/timer.c          | 8 ++------
- arch/arm/mach-omap2/vc.c             | 2 +-
- 6 files changed, 15 insertions(+), 10 deletions(-)
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 064123e..75a17bf 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -143,6 +143,32 @@ static int dwc3_soft_reset(struct dwc3 *dwc)
+ 	return 0;
+ }
+ 
++/*
++ * dwc3_frame_length_adjustment - Adjusts frame length if required
++ * @dwc3: Pointer to our controller context structure
++ * @fladj: Value of GFLADJ_30MHZ to adjust frame length
++ */
++static void dwc3_frame_length_adjustment(struct dwc3 *dwc, u32 fladj)
++{
++	if (dwc->revision < DWC3_REVISION_250A)
++		return;
++
++	if (fladj == 0)
++		return;
++
++	u32 reg;
++	u32 dft;
++
++	reg = dwc3_readl(dwc->regs, DWC3_GFLADJ);
++	dft = reg & DWC3_GFLADJ_30MHZ_MASK;
++	if (!dev_WARN_ONCE(dwc->dev, dft == fladj,
++	    "request value same as default, ignoring\n")) {
++		reg &= ~DWC3_GFLADJ_30MHZ_MASK;
++		reg |= DWC3_GFLADJ_30MHZ_SDBND_SEL | fladj;
++		dwc3_writel(dwc->regs, DWC3_GFLADJ, reg);
++	}
++}
++
+ /**
+  * dwc3_free_one_event_buffer - Frees one event buffer
+  * @dwc: Pointer to our controller context structure
+@@ -779,6 +805,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	u8			lpm_nyet_threshold;
+ 	u8			tx_de_emphasis;
+ 	u8			hird_threshold;
++	u32			fladj = 0;
+ 
+ 	int			ret;
+ 
+@@ -886,6 +913,9 @@ static int dwc3_probe(struct platform_device *pdev)
+ 				&tx_de_emphasis);
+ 		of_property_read_string(node, "snps,hsphy_interface",
+ 					&dwc->hsphy_interface);
++		of_property_read_u32(node,
++				     "snps,quirk-frame-length-adjustment",
++				     &fladj);
+ 	} else if (pdata) {
+ 		dwc->maximum_speed = pdata->maximum_speed;
+ 		dwc->has_lpm_erratum = pdata->has_lpm_erratum;
+@@ -915,6 +945,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 			tx_de_emphasis = pdata->tx_de_emphasis;
+ 
+ 		dwc->hsphy_interface = pdata->hsphy_interface;
++		fladj = pdata->fladj_value;
+ 	}
+ 
+ 	/* default to superspeed if no maximum_speed passed */
+@@ -971,6 +1002,9 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
++	/* Adjust Frame Length */
++	dwc3_frame_length_adjustment(dwc, fladj);
++
+ 	usb_phy_set_suspend(dwc->usb2_phy, 0);
+ 	usb_phy_set_suspend(dwc->usb3_phy, 0);
+ 	ret = phy_power_on(dwc->usb2_generic_phy);
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 0447788..9188745 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -124,6 +124,7 @@
+ #define DWC3_GEVNTCOUNT(n)	(0xc40c + (n * 0x10))
+ 
+ #define DWC3_GHWPARAMS8		0xc600
++#define DWC3_GFLADJ		0xc630
+ 
+ /* Device Registers */
+ #define DWC3_DCFG		0xc700
+@@ -234,6 +235,10 @@
+ /* Global HWPARAMS6 Register */
+ #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
+ 
++/* Global Frame Length Adjustment Register */
++#define DWC3_GFLADJ_30MHZ_SDBND_SEL		(1 << 7)
++#define DWC3_GFLADJ_30MHZ_MASK			0x3f
++
+ /* Device Configuration Register */
+ #define DWC3_DCFG_DEVADDR(addr)	((addr) << 3)
+ #define DWC3_DCFG_DEVADDR_MASK	DWC3_DCFG_DEVADDR(0x7f)
+diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
+index d3614ec..400b197 100644
+--- a/drivers/usb/dwc3/platform_data.h
++++ b/drivers/usb/dwc3/platform_data.h
+@@ -46,5 +46,7 @@ struct dwc3_platform_data {
+ 	unsigned tx_de_emphasis_quirk:1;
+ 	unsigned tx_de_emphasis:2;
+ 
++	u32 fladj_value;
++
+ 	const char *hsphy_interface;
+ };
+-- 
+2.1.0
