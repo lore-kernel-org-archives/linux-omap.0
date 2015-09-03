@@ -1,73 +1,39 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v4 9/9] usb: dwc3: core: don't break during suspend/resume
- while we're dual-role
-Date: Thu, 3 Sep 2015 17:13:59 +0300
-Message-ID: <55E855A7.2010409@cogentembedded.com>
-References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
- <1441203864-15786-10-git-send-email-rogerq@ti.com>
- <55E7303D.8080904@cogentembedded.com> <55E852BC.9000502@ti.com>
- <55E853BC.5060708@cogentembedded.com> <55E854CB.5080900@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/6] regulator: Fix pbias regulator enable
+Date: Thu, 3 Sep 2015 08:04:53 -0700
+Message-ID: <20150903150452.GT4215@atomide.com>
+References: <1441263042-12942-1-git-send-email-kishon@ti.com>
+ <CAPDyKFrVR+vvmxm43hGimjqo4pcFa1pfDuNNENXU-tk_qXo2=w@mail.gmail.com>
+ <55E81117.2040900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55E854CB.5080900@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, balbi@ti.com
-Cc: tony@atomide.com, Joao.Pinto@synopsys.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55E81117.2040900@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Olof Johansson <olof@lixom.net>, Mark Brown <broonie@kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?utf-8?B?UGF3ZcWC?= Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/03/2015 05:10 PM, Roger Quadros wrote:
+* Kishon Vijay Abraham I <kishon@ti.com> [150903 02:25]:
+> On Thursday 03 September 2015 01:09 PM, Ulf Hansson wrote:
+> > 
+> > Finally, perhaps it's better if we queue this through my mmc tree
+> > since we would then be able to avoid the regression - if I put
+> > $subject patchset before [1], right? Then I need an ack from Mark for
+> > the regulator patch.
+> > Please tell me if you guys prefer another way.
 
->>>>> We can't rely just on dr_mode to decide if we're in host or gadget
->>>>> mode when we're configured as otg/dual-role. So while dr_mode is
->>>>> OTG, we find out from  the otg state machine if we're in host
->>>>> or gadget mode and take the necessary actions during suspend/resume.
->>>>>
->>>>> Also make sure that we disable OTG irq and events during system suspend
->>>>> so that we don't lockup the system during system suspend/resume.
->>>>>
->>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>> ---
->>>>>     drivers/usb/dwc3/core.c | 27 +++++++++------------------
->>>>>     1 file changed, 9 insertions(+), 18 deletions(-)
->>>>>
->>>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>>>> index 654aebf..25891e3 100644
->>>>> --- a/drivers/usb/dwc3/core.c
->>>>> +++ b/drivers/usb/dwc3/core.c
->>>>> @@ -1455,18 +1455,15 @@ static int dwc3_suspend(struct device *dev)
->>>>>             dwc->octl = dwc3_readl(dwc->regs, DWC3_OCTL);
->>>>>             dwc->oevt = dwc3_readl(dwc->regs, DWC3_OEVT);
->>>>>             dwc->oevten = dwc3_readl(dwc->regs, DWC3_OEVTEN);
->>>>> +        dwc3_writel(dwc->regs, DWC3_OEVTEN, 0);
->>>>> +        disable_irq(dwc->otg_irq);
->>>>>         }
->>>>>
->>>>> -    switch (dwc->dr_mode) {
->>>>> -    case USB_DR_MODE_PERIPHERAL:
->>>>> -    case USB_DR_MODE_OTG:
->>>>> +    if (dwc->dr_mode == USB_DR_MODE_PERIPHERAL ||
->>>>> +        ((dwc->dr_mode == USB_DR_MODE_OTG) && (dwc->fsm->protocol == PROTO_GADGET)))
->>>>
->>>>      Hm, you're not very consistent about your parens. :-)
->>>
->>> You're right. Should be
->>>
->>> if ((dwc->dr_mode == USB_DR_MODE_PERIPHERAL) ||
->>>       ((dwc->dr_mode == USB_DR_MODE_OTG) && (dwc->fsm->protocol == PROTO_GADGET)))
->>
->>     Parens around == are useless, I'd prefer if you deleted them. But if you'd like to keep them, let it be so. :-)
+That works for me too. Or Mark can set up an immutable signed
+branch that you can merge in, up to you guys.
 
-> OK, how about this then?
+It's still going to break git bisect for booting but
+removes the regression when mergeing to mainline.
 
-> if (dwc->dr_mode == USB_DR_MODE_PERIPHERAL ||
->      (dwc->dr_mode == USB_DR_MODE_OTG && dwc->fsm->protocol == PROTO_GADGET))
+I'd squash all the one liner dts changes into a single
+patch though when applying to cut down on the commit
+noise.
 
-    Strictly speaking, parens around && are also not needed but gcc may 
-probably issue a warning without them. Not sure, your call.
+Regards,
 
-> cheers,
-> -roger
-
-MBR, Sergei
+Tony
