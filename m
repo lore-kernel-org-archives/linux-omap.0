@@ -1,94 +1,175 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 5/9] usb: dwc3: core: make dual-role work with OTG irq
-Date: Thu, 3 Sep 2015 10:51:25 -0500
-Message-ID: <20150903155125.GC4031@saruman.tx.rr.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 4/9] usb: dwc3: core: Adapt to named interrupts
+Date: Thu, 3 Sep 2015 10:48:49 -0500
+Message-ID: <20150903154849.GB4031@saruman.tx.rr.com>
 References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
- <1441203864-15786-6-git-send-email-rogerq@ti.com>
- <20150902144338.GG8299@saruman.tx.rr.com>
- <55E85082.5040006@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1441203864-15786-5-git-send-email-rogerq@ti.com>
+ <20150902143457.GF8299@saruman.tx.rr.com>
+ <55E84133.9070704@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GZVR6ND4mMseVXL/"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="uZ3hkaAS1mZxFaxD"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55E85082.5040006-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <55E84133.9070704@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---GZVR6ND4mMseVXL/
+--uZ3hkaAS1mZxFaxD
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Sep 03, 2015 at 04:52:02PM +0300, Roger Quadros wrote:
-> >>  	if (on) {
-> >> -		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
-> >> +		/* OCTL.PeriMode =3D 0 */
-> >> +		reg =3D dwc3_readl(dwc->regs, DWC3_OCTL);
-> >> +		reg &=3D ~DWC3_OCTL_PERIMODE;
-> >> +		dwc3_writel(dwc->regs, DWC3_OCTL, reg);
-> >> +		/* unconditionally turn on VBUS */
-> >> +		reg |=3D DWC3_OCTL_PRTPWRCTL;
-> >> +		dwc3_writel(dwc->regs, DWC3_OCTL, reg);
-> >>  		/* start the HCD */
-> >>  		usb_otg_start_host(fsm, true);
-> >>  	} else {
-> >>  		/* stop the HCD */
-> >>  		usb_otg_start_host(fsm, false);
-> >> +		/* turn off VBUS */
-> >> +		reg =3D dwc3_readl(dwc->regs, DWC3_OCTL);
-> >> +		reg &=3D ~DWC3_OCTL_PRTPWRCTL;
-> >> +		dwc3_writel(dwc->regs, DWC3_OCTL, reg);
-> >> +		/* OCTL.PeriMode =3D 1 */
-> >> +		reg =3D dwc3_readl(dwc->regs, DWC3_OCTL);
-> >> +		reg |=3D DWC3_OCTL_PERIMODE;
-> >> +		dwc3_writel(dwc->regs, DWC3_OCTL, reg);
-> >>  	}
-> >=20
-> > it looks like you're not really following the fluxchart from SNPS
-> > documentation, see Figure 11-4 on section 11.1.4.5
+On Thu, Sep 03, 2015 at 03:46:43PM +0300, Roger Quadros wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA256
 >=20
-> Did you mean that I'm ignoring all OTG bits (HNP/SRP/ADP)?
+> On 02/09/15 17:34, Felipe Balbi wrote:
+> > On Wed, Sep 02, 2015 at 05:24:19PM +0300, Roger Quadros wrote:
+> >> From: Felipe Balbi <balbi@ti.com>
+> >>
+> >> Add support to use interrupt names,
+> >>
+> >> Following are the interrupt names
+> >>
+> >> Peripheral Interrupt - peripheral
+> >> HOST Interrupt - host
+> >> OTG Interrupt - otg
+> >>
+> >> [Roger Q]
+> >> - If any of these are missing we use the
+> >> first available IRQ resource so that we don't
+> >> break with older DTBs.
+> >=20
+> > this is what original commit did:
+> >=20
+> > commit ecd5f71cfd663bcd4efd2f29824acd8b2ba9715d
+> > Author: Felipe Balbi <balbi@ti.com>
+> > Date:   Fri Jan 3 13:49:38 2014 -0600
+> >=20
+> >     usb: dwc3: cleanup IRQ resources
+> >    =20
+> >     In order to make it easier for the driver to
+> >     figure out which modes of operation it has,
+> >     and because some dwc3 integrations have rather
+> >     fuzzy IRQ routing, we now require three different
+> >     IRQ numbers (peripheral, host, otg).
+> >    =20
+> >     In order to do that and maintain backwards compatibility,
+> >     we still maintain support for the old IRQ resource name,
+> >     but if you *really* want to have proper peripheral/host/otg
+> >     support, you should make sure your resources are correct.
+> >    =20
+> >     Signed-off-by: Felipe Balbi <balbi@ti.com>
+>=20
+> This is better since we request the resource only if needed and bail out
+> if it is not present.
+>=20
+> >=20
+> > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> > index 60580a01cdd2..1f01031873b7 100644
+> > --- a/drivers/usb/dwc3/core.c
+> > +++ b/drivers/usb/dwc3/core.c
+> > @@ -556,10 +556,22 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
+> >  static int dwc3_core_init_mode(struct dwc3 *dwc)
+> >  {
+> >  	struct device *dev =3D dwc->dev;
+> > +	struct platform_device *pdev =3D to_platform_device(dev);
+> >  	int ret;
+> > =20
+> >  	switch (dwc->dr_mode) {
+> >  	case USB_DR_MODE_PERIPHERAL:
+> > +		dwc->gadget_irq =3D platform_get_irq_byname(pdev, "dwc3_peripheral");
+>=20
+> Shall we just name it just "peripheral"?
 
-yes and no :-)  There's a rather complex flux chart which details how we
-switch from host to peripheral and vice versa. We need to follow that to
-the smallest details since that's what IP provider considers to be
-correct. If we deviate from that we should have very strong reasons for
-doing so and we also want big, fat, long comments in source code
-detailing why and how we're deviating :-)
+sure, why not :-)
+
+> > +		if (dwc->gadget_irq < 0) {
+> > +			dwc->gadget_irq =3D platform_get_irq_byname(pdev, "dwc_usb3");
+>=20
+> How will this work? Currently we don't have a name for the IRQ in the DT.
+
+we can just add interrupt-names, right ? Or, the fallback could be what
+is already done today: just fetch it by index.
+
+>=20
+> > +			if (dwc->gadget_irq < 0) {
+> > +				dev_err(dev, "missing IRQ\n");
+> > +				return dwc->gadget_irq;
+> > +			} else {
+> > +				dev_warn(dev, "dwc_usb3 resource is deprecated\n");
+>=20
+> Do we want to warn about legacy nodes?
+
+Sure :-)
+
+Now, do you want me to update it, or will you do it ? BTW, if you decide
+to do it, we need to patch all users :-)
+
+> > @@ -576,6 +604,28 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
+> >  		}
+> >  		break;
+> >  	case USB_DR_MODE_OTG:
+> > +		dwc->gadget_irq =3D platform_get_irq_byname(pdev, "dwc3_peripheral");
+> > +		if (dwc->gadget_irq < 0) {
+> > +			dwc->gadget_irq =3D platform_get_irq_byname(pdev, "dwc_usb3");
+> > +			if (dwc->gadget_irq < 0) {
+> > +				dev_err(dev, "missing IRQ\n");
+> > +				return dwc->gadget_irq;
+> > +			} else {
+> > +				dev_warn(dev, "dwc_usb3 resource is deprecated\n");
+> > +			}
+> > +
+> > +			dwc->xhci_irq =3D dwc->gadget_irq;
+> > +			dwc->otg_irq =3D dwc->gadget_irq;
+> > +		} else {
+> > +			dwc->xhci_irq =3D platform_get_irq_byname(pdev, "dwc3_host");
+> > +			if (dwc->xhci_irq < 0) {
+> > +				dev_err(dev, "missing Host IRQ\n");
+> > +				return dwc->xhci_irq;
+> > +			}
+> > +
+> > +			dwc->otg_irq =3D platform_get_irq_byname(pdev, "dwc3_otg");
+>=20
+> need to check if error?
+
+right
+
+> > +		}
+>=20
+> Need to setup xhci_resource[1]?
+
+isn't it done above ?
 
 --=20
 balbi
 
---GZVR6ND4mMseVXL/
+--uZ3hkaAS1mZxFaxD
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJV6Gx9AAoJEIaOsuA1yqREECYP/3HC0ogUEgEl6ipp+VQ0F2Y6
-Fts7NG7anSbKQQ5zV8kBV5hMRfmczqgDkgmk3eHhlotD+JEtDz09GP7tViHo5+3u
-TEmANzmYUb2mHe/YaT2z4bRwnfUtR2U1saPCJ00v7KkuPckeHEI3mipcKS4ioNfk
-RbRyFIL7b5ckS3g85aovrbQ2JYPHa1xop+0VVGe9r9Cc39+Umv77Xrcwene/bK5g
-8heJr1OlY47jc5qCjhLG3rkh1qJoEmtTDU+7QinS5lmUzsFxxnnAhXCzeXfrZ2BF
-FUufKteKV7a2Zo67zunoVjt6XH1ch/AsteoF+lYG3RrXVUdtknYPmVL44q8Ysand
-fi7liVcpXmwhykMJ5WoaGJ7hB6Ug/XthKC0aUi2pp9ceLm80Seb3ZPnlhzuI0PkE
-4BQCoTngjG5+hNzzL9ofL2hEGI02G4NTHef8uIgCkqzu2sj6K8TpVMMun7JSlVB1
-C2icbXdDi4GhwpzckMVeteaTDeFv/MQHTNGoc0AmpCVxzsgIh2excVb82HgcoWN+
-WXrlPVGZQ9NdPQ1kJRq3cuOemktnXnR+p55PJP1tWOm9r8Zj/Q3CabCU5hpVJ+az
-mtdt7r6fBvUBu2syq3daqMYSV9gAF/5KRGiqbS4MYNauYfmhxi7FoZtOnukKVGdJ
-NoVccZgi/D438M7GMg3l
-=wxeu
+iQIcBAEBAgAGBQJV6GvhAAoJEIaOsuA1yqREqBsQAIxi7KUdZaillBJdTTAAr049
+IvdiVI685vfFVwrnZQWpK1+/sFJYUxDp72WOYDYEFLPQT9erd5OoMOx/qjOB7gmT
+uK9IDIM6dvMM24RQF7EOA7n4gUtzIjRM2/mh7kKIQCTYwlJQKRo90ySwrTmT5KLi
+lsY8mnnMpPplXengiIINuwBdJNIHQoritG0gO+IyW+lC7aSqsEksjEgXKDp8OOXS
+3vhgM7i+gX1Nafznr+IOMJlfxzkGiDW5EECCYmhVyUtdFc1U5ce4BQhN1bF7eL6Y
+6mECQvUBmLRgkybKkn4BbjXV2PTUVSckB5LjIHWM3uEBKzC3tV0VHZqIY4IVTpg2
+Gm5xv8e5ElRX8Fo7fe9FMiJAHDlHujd3XVc1bSzRitRpzkV3sDLjB1YQ5cz8Ny3y
+GrHg3ubBVBg+fQ4IVlWod7IIRVbfQeCWpYGu5QQr6yYqtBRr+RUR8XCF7839yDMm
+cOqbNfpXN4SD70HxQLNIk+x9MBJSuiUIy6a4KzUzxnP4DS525M38DXHB3jrLaWwc
+cqoleQHBpAj5LuChaIgDdgTs495dEZ20boDQ/ffkMkQMbFlI7ntSsdtKkwPVqLtY
+yUdRouQMKIqCLp6ZVBgAbH8UnXS55w/oi/PbXeB/UmLkUwnVerakg9f7MnyIbw2y
+Ek5wioU/gMJ/5VRT/Yv/
+=daZk
 -----END PGP SIGNATURE-----
 
---GZVR6ND4mMseVXL/--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--uZ3hkaAS1mZxFaxD--
