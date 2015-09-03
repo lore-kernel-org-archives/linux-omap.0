@@ -1,138 +1,98 @@
-From: Nikhil Badola <nikhil.badola@freescale.com>
-Subject: [PATCH 2/3][v3] drivers: usb: dwc3: Add frame length adjustment quirk
-Date: Thu, 3 Sep 2015 11:34:04 +0530
-Message-ID: <1441260244-27279-1-git-send-email-nikhil.badola@freescale.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH v2] drivers: net: cpsw: Add support to make gpio drive which slave connected to phy
+Date: Thu, 3 Sep 2015 11:31:55 +0530
+Message-ID: <1441260115-16219-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, Nikhil Badola <nikhil.badola@freescale.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: "David S . Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add adjust_frame_length_quirk for writing to fladj register
-which adjusts (micro)frame length to value provided by
-"snps,quirk-frame-length-adjustment" property thus avoiding
-USB 2.0 devices to time-out over a longer run
+In DRA72x EVM, by default slave 1 is connected to the onboard
+phy, but slave 2 pins are also muxed with video input module
+which is controlled by pcf857x gpio and currently to select slave
+0 to connect to phy gpio hogging is used, but with
+omap2plus_defconfig the pcf857x gpio is built as module. So when
+using NFS on DRA72x EVM, board doesn't boot as gpio hogging do
+not set proper gpio state to connect slave 0 to phy as it is
+built as module and you do not see any errors for not setting
+gpio and just mentions dhcp reply not got.
 
-Signed-off-by: Nikhil Badola <nikhil.badola@freescale.com>
+To solve this issue, introducing "mode-gpio" in DT when gpio
+based muxing is required. This will throw a warning when gpio
+get fails and returns probe defer. When gpio-pcf857x module is
+installed, cpsw probes again and ethernet becomes functional.
+Verified this on DRA72x with pcf as module and ramdisk.
+
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
-Changes for v3:
-	- removed unnecessary if(fladj) condition
-	- removed stray newline
 
- drivers/usb/dwc3/core.c          | 34 ++++++++++++++++++++++++++++++++++
- drivers/usb/dwc3/core.h          |  5 +++++
- drivers/usb/dwc3/platform_data.h |  2 ++
- 3 files changed, 41 insertions(+)
+Changes from initial version:
+* Updated the gpio dt naming to be more generic.
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 064123e..75a17bf 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -143,6 +143,32 @@ static int dwc3_soft_reset(struct dwc3 *dwc)
- 	return 0;
- }
+This patch is texted on DRA72x, Logs [1] and pushed a branch [2]
+
+[1]: http://pastebin.ubuntu.com/12260767/
+[2]: git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git cpsw-gpio-optional-v2
+
+---
+ Documentation/devicetree/bindings/net/cpsw.txt | 7 +++++++
+ drivers/net/ethernet/ti/cpsw.c                 | 9 +++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+index 33fe846..dfe3e0b 100644
+--- a/Documentation/devicetree/bindings/net/cpsw.txt
++++ b/Documentation/devicetree/bindings/net/cpsw.txt
+@@ -26,6 +26,13 @@ Optional properties:
+ - dual_emac		: Specifies Switch to act as Dual EMAC
+ - syscon		: Phandle to the system control device node, which is
+ 			  the control module device of the am33x
++- mode-gpio		: Should be added if a gpio line is required to
++			  be driven so that cpsw data lines can be
++			  connected to the phy via selective mux. For
++			  example in dra72x-evm, pcf gpio has to be
++			  driven low so that cpsw slave 0 and phy
++			  data lines are connected via mux.
++
  
-+/*
-+ * dwc3_frame_length_adjustment - Adjusts frame length if required
-+ * @dwc3: Pointer to our controller context structure
-+ * @fladj: Value of GFLADJ_30MHZ to adjust frame length
-+ */
-+static void dwc3_frame_length_adjustment(struct dwc3 *dwc, u32 fladj)
-+{
-+	if (dwc->revision < DWC3_REVISION_250A)
-+		return;
-+
-+	if (fladj == 0)
-+		return;
-+
-+	u32 reg;
-+	u32 dft;
-+
-+	reg = dwc3_readl(dwc->regs, DWC3_GFLADJ);
-+	dft = reg & DWC3_GFLADJ_30MHZ_MASK;
-+	if (!dev_WARN_ONCE(dwc->dev, dft == fladj,
-+	    "request value same as default, ignoring\n")) {
-+		reg &= ~DWC3_GFLADJ_30MHZ_MASK;
-+		reg |= DWC3_GFLADJ_30MHZ_SDBND_SEL | fladj;
-+		dwc3_writel(dwc->regs, DWC3_GFLADJ, reg);
+ Slave Properties:
+ Required properties:
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 8fc90f1..90ae3f9 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -29,6 +29,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/delay.h>
+ #include <linux/pm_runtime.h>
++#include <linux/gpio.h>
+ #include <linux/of.h>
+ #include <linux/of_net.h>
+ #include <linux/of_device.h>
+@@ -2207,6 +2208,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	void __iomem			*ss_regs;
+ 	struct resource			*res, *ss_res;
+ 	const struct of_device_id	*of_id;
++	struct gpio_desc		*mode;
+ 	u32 slave_offset, sliver_offset, slave_size;
+ 	int ret = 0, i;
+ 	int irq;
+@@ -2232,6 +2234,13 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		goto clean_ndev_ret;
+ 	}
+ 
++	mode = devm_gpiod_get_optional(&pdev->dev, "mode", GPIOD_OUT_LOW);
++	if (IS_ERR(mode)) {
++		ret = PTR_ERR(mode);
++		dev_err(&pdev->dev, "gpio request failed, ret %d\n", ret);
++		goto clean_ndev_ret;
 +	}
-+}
 +
- /**
-  * dwc3_free_one_event_buffer - Frees one event buffer
-  * @dwc: Pointer to our controller context structure
-@@ -779,6 +805,7 @@ static int dwc3_probe(struct platform_device *pdev)
- 	u8			lpm_nyet_threshold;
- 	u8			tx_de_emphasis;
- 	u8			hird_threshold;
-+	u32			fladj = 0;
- 
- 	int			ret;
- 
-@@ -886,6 +913,9 @@ static int dwc3_probe(struct platform_device *pdev)
- 				&tx_de_emphasis);
- 		of_property_read_string(node, "snps,hsphy_interface",
- 					&dwc->hsphy_interface);
-+		of_property_read_u32(node,
-+				     "snps,quirk-frame-length-adjustment",
-+				     &fladj);
- 	} else if (pdata) {
- 		dwc->maximum_speed = pdata->maximum_speed;
- 		dwc->has_lpm_erratum = pdata->has_lpm_erratum;
-@@ -915,6 +945,7 @@ static int dwc3_probe(struct platform_device *pdev)
- 			tx_de_emphasis = pdata->tx_de_emphasis;
- 
- 		dwc->hsphy_interface = pdata->hsphy_interface;
-+		fladj = pdata->fladj_value;
- 	}
- 
- 	/* default to superspeed if no maximum_speed passed */
-@@ -971,6 +1002,9 @@ static int dwc3_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
-+	/* Adjust Frame Length */
-+	dwc3_frame_length_adjustment(dwc, fladj);
-+
- 	usb_phy_set_suspend(dwc->usb2_phy, 0);
- 	usb_phy_set_suspend(dwc->usb3_phy, 0);
- 	ret = phy_power_on(dwc->usb2_generic_phy);
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 0447788..9188745 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -124,6 +124,7 @@
- #define DWC3_GEVNTCOUNT(n)	(0xc40c + (n * 0x10))
- 
- #define DWC3_GHWPARAMS8		0xc600
-+#define DWC3_GFLADJ		0xc630
- 
- /* Device Registers */
- #define DWC3_DCFG		0xc700
-@@ -234,6 +235,10 @@
- /* Global HWPARAMS6 Register */
- #define DWC3_GHWPARAMS6_EN_FPGA			(1 << 7)
- 
-+/* Global Frame Length Adjustment Register */
-+#define DWC3_GFLADJ_30MHZ_SDBND_SEL		(1 << 7)
-+#define DWC3_GFLADJ_30MHZ_MASK			0x3f
-+
- /* Device Configuration Register */
- #define DWC3_DCFG_DEVADDR(addr)	((addr) << 3)
- #define DWC3_DCFG_DEVADDR_MASK	DWC3_DCFG_DEVADDR(0x7f)
-diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
-index d3614ec..400b197 100644
---- a/drivers/usb/dwc3/platform_data.h
-+++ b/drivers/usb/dwc3/platform_data.h
-@@ -46,5 +46,7 @@ struct dwc3_platform_data {
- 	unsigned tx_de_emphasis_quirk:1;
- 	unsigned tx_de_emphasis:2;
- 
-+	u32 fladj_value;
-+
- 	const char *hsphy_interface;
- };
+ 	/*
+ 	 * This may be required here for child devices.
+ 	 */
 -- 
-2.1.0
+2.5.1.522.g7aa67f6
