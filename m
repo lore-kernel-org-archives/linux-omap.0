@@ -1,14 +1,14 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 1/2] regulator: pbias: program pbias register offset
- in pbias driver
-Date: Fri, 4 Sep 2015 16:17:32 +0100
-Message-ID: <20150904151732.GN5313@sirena.org.uk>
-References: <1441368025-21182-1-git-send-email-kishon@ti.com>
- <1441368025-21182-2-git-send-email-kishon@ti.com>
+From: Joel Porquet <joel@porquet.org>
+Subject: Re: [PATCH] arm:irqchip: IRQCHIP_DECLARE macro is now accessible
+Date: Fri, 04 Sep 2015 16:54:21 -0400
+Message-ID: <7212409.q6uiaM0l3x@joel-zenbook>
+References: <1436299411-12329-1-git-send-email-joel@porquet.org>
+ <20150713152035.GD26642@tiger>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5505380206831694397=="
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1441368025-21182-2-git-send-email-kishon@ti.com>
+In-Reply-To: <20150713152035.GD26642@tiger>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,57 +18,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, ulf.hansson@linaro.org, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, nsekhar@ti.com, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, lgirdwood@gmail.com, robh+dt@kernel.org, bcousson@baylibre.com, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Shawn Guo <shawnguo@kernel.org>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-samsung-soc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Kukjin Kim <kgene@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Monday, July 13, 2015 11:20:35 PM Shawn Guo wrote:
+> On Tue, Jul 07, 2015 at 04:02:53PM -0400, Joel Porquet wrote:
+> > The IRQCHIP_DECLARE macro migrated to 'include/linux/irqchip.h', making=
+ it
+> > globally accessible.
+> > =
 
---===============5505380206831694397==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="nWqF9Q8pq9VTXuIf"
-Content-Disposition: inline
+> > See commit 91e20b5040c67c51aad88cf87db4305c5bd7f79d
+> > ("irqchip: Move IRQCHIP_DECLARE macro to include/linux/irqchip.h").
+> > =
 
+> > This patch adds inclusions of 'include/linux/irqchip.h' and replaces us=
+es
+> > of macro OF_DECLARE_2 with IRQCHIP_DECLARE.
+> > =
 
---nWqF9Q8pq9VTXuIf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> > Signed-off-by: Joel Porquet <joel@porquet.org>
+> > ---
+> =
 
-On Fri, Sep 04, 2015 at 05:30:24PM +0530, Kishon Vijay Abraham I wrote:
-> Add separate compatible strings for every platform and populate the
-> pbias register offset in the driver data.
-> This helps avoid depending on the dt for pbias register offset.
+> ...
+> =
 
-If there are any changes from the already applied patch for this please
-send an incremental patch.  Please don't resend already applied patches.
+> >  arch/arm/mach-imx/gpc.c              | 7 ++-----
+> =
 
---nWqF9Q8pq9VTXuIf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Acked-by: Shawn Guo <shawnguo@kernel.org>
+> =
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> How will this patch be sent to upstream?
 
-iQEcBAEBCAAGBQJV6bYLAAoJECTWi3JdVIfQS0oH/iTGdObqUdleqiDezsMsoH3U
-gJCee9Nlztwh1YLi36qn95IIP/KquitAsZiytRTxaHklezaWuokMwkX5yvGCJdOU
-T9UloT5Ky8UbwZ3LtYlnEJNiAzS4yRx7vP1/BRe+PrC+6ux+zEwv4EDDIWO+tvCb
-IY9RRrmctRBcsSoXD8Fd8WtW1PwF5KiF18L1tkmnnDNMA16/cwxszVXuxXWeYQ+o
-CGGtbH9EGqKuIg3FrUg57FuzVlAgh4SQcbyTMlv7TPuwsGanj9uO63N1hanXWPJV
-mmGgmOV9MaedRnVZrjZu/+gssS1DLFultjGn+HBoAua3qCJjOmRTENiO1G1kZno=
-=NprE
------END PGP SIGNATURE-----
+If it's more convenient for the different maintainers affected by this patc=
+h, =
 
---nWqF9Q8pq9VTXuIf--
+I can probably resubmit it into a series of patches that modify each file =
 
+separately... Let me know quickly so we don't miss the merge window!
 
---===============5505380206831694397==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============5505380206831694397==--
+Jo=EBl
