@@ -1,59 +1,89 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/4] omap: Fix broken address translation for pbias
-Date: Fri, 4 Sep 2015 16:33:26 +0530
-Message-ID: <55E97A7E.8010308@ti.com>
-References: <1441279673-28105-1-git-send-email-kishon@ti.com> <20150903151005.GU4215@atomide.com>
+From: Jagan Teki <jteki-oRp2ZoJdM/RWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/5] spi: introduce mmap read support for spi flash devices
+Date: Fri, 4 Sep 2015 16:55:33 +0530
+Message-ID: <CAD6G_RT8Q+Uyp1ZjzHf54Tno1wHm0SmLKEwRAe2gkdp772FD9A@mail.gmail.com>
+References: <1441355402-6837-1-git-send-email-vigneshr@ti.com>
+	<1441355402-6837-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150903151005.GU4215-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: t-kristo-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1441355402-6837-2-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On 4 September 2015 at 13:59, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
+> In addition to providing direct access to SPI bus, some spi controller
+> hardwares (like ti-qspi) provide special memory mapped port
+> to accesses SPI flash devices in order to increase read performance.
+> This means the controller can automatically send the SPI signals
+> required to read data from the SPI flash device.
+> For this, spi controller needs to know flash specific information like
+> read command to use, dummy bytes and address width. Once these settings
+> are populated in hardware registers, any read accesses to flash's memory
+> map region(SoC specific) through memcpy or mem-to-mem DMA copy will be
+> handled by controller hardware. The hardware will automatically generate
+> spi signals required to read data from flash and present it to CPU or
+> DMA engine.
+>
+> Introduce spi_mtd_mmap_read() method to support memory mapped read
+> over SPI flash devices. SPI master drivers can implement this method to
+> support memory mapped read interfaces. m25p80 flash driver and other
+> flash drivers can call this to request memory mapped read. The interface
+> should only be used mtd flashes and cannot be used with other spi devices.
+>
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> ---
+>  include/linux/spi/spi.h | 21 +++++++++++++++++++++
+>  1 file changed, 21 insertions(+)
+>
+> diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+> index d673072346f2..b74a3f169fc2 100644
+> --- a/include/linux/spi/spi.h
+> +++ b/include/linux/spi/spi.h
+> @@ -293,6 +293,23 @@ static inline void spi_unregister_driver(struct spi_driver *sdrv)
+>   * @handle_err: the subsystem calls the driver to handle an error that occurs
+>   *             in the generic implementation of transfer_one_message().
+>   * @unprepare_message: undo any work done by prepare_message().
+> + * @spi_mtd_mmap_read: some spi-controller hardwares provide memory
+> + *                     mapped interface to communicate with mtd flashes.
+> + *                     For this, spi  controller needs to know flash
+> + *                     memory settings like read command to use, dummy
+> + *                     bytes and address width. Once these settings are
+> + *                     populated in hardware registers, any read
+> + *                     accesses to flash's memory map region(as defined
+> + *                     by SoC) through memcpy or mem-to-mem DMA copy
+> + *                     will be handled by controller hardware. The
+> + *                     hardware will automatically generate spi signals
+> + *                     required to read data from flash and present it
+> + *                     to CPU or DMA. SPI master drivers can use this
+> + *                     callback to implement memory mapped read
+> + *                     interface. Flash driver (like m25p80) requests
+> + *                     memory mapped read via this method. The interface
+> + *                     should  only be used mtd flashes and cannot be
+> + *                     used with other spi devices.
+>   * @cs_gpios: Array of GPIOs to use as chip select lines; one per CS
+>   *     number. Any individual value may be -ENOENT for CS lines that
+>   *     are not GPIOs (driven by the SPI controller itself).
+> @@ -438,6 +455,10 @@ struct spi_master {
+>                                struct spi_message *message);
+>         int (*unprepare_message)(struct spi_master *master,
+>                                  struct spi_message *message);
+> +       int (*spi_mtd_mmap_read)(struct  spi_device *spi,
+> +                                loff_t from, size_t len, size_t *retlen,
+> +                                u_char *buf, u8 read_opcode,
+> +                                u8 addr_width, u8 dummy_bytes);
 
-On Thursday 03 September 2015 08:40 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150903 04:31]:
->> pbias device stopped having memory resource after
->> "ARM: dts: <platform>: add minimal l4 bus layout with control module
->> support" got merged. This results in platform_get_resource returning
->> -EINVAL in pbias driver. This is because address translation fails
->> while trying to convert the address to resource which happens
->> during the device creation process during boot up.
->>
->> Even though after [1], reg property in pbias dt node is un-used,
->> it might be an issue if we plan to use it at a later point of time.
->>
->> Patch series is created on top of [1].
->>
->> [1] -> https://lkml.org/lkml/2015/9/3/51
->>
->> Verified the address in omap4 panda, omap5 uevm and dra72 boards.
-> 
-> Your other series is obviously needed for v4.3.. But seems these
-> are also needed for stable? If so, which versions, v4.2+?
+This looks un-manageable to know spi core or master knows what are the
+command or opcode used by spi-nor flash and also I think mmap support
+seems to be flash related or any justification this is spi bus
+master/controller feature?
 
-Both the series are needed from v4.1+. However since the 'reg' property
-is not going to be used, I'm not sure if this series has to be marked
-for stable.
-> 
-> Can you please just do a single patch with multiple Fixes tags
-> as they fix regression for multiple commits? Doing tons of one
-> liner patches for the same thing just creates commit log noise..
-
-Sure.
-> 
-> Remember to not Cc stable when posting, I'll add that tag when
-> committing if needed.
-
-Sure.
-
-Thanks
-Kishon
+thanks!
+-- 
+Jagan | openedev.
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
