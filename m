@@ -1,159 +1,94 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 1/2] regulator: pbias: program pbias register offset in pbias driver
-Date: Fri, 4 Sep 2015 17:30:24 +0530
-Message-ID: <1441368025-21182-2-git-send-email-kishon@ti.com>
-References: <1441368025-21182-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2] ARM: dts: <omap2/omap4/omap5/dra7>>: fix address translation for pbias
+Date: Fri, 4 Sep 2015 17:38:24 +0530
+Message-ID: <1441368504-21304-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441368025-21182-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: t-kristo@ti.com, bcousson@baylibre.com, tony@atomide.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: linux@arm.linux.org.uk, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add separate compatible strings for every platform and populate the
-pbias register offset in the driver data.
-This helps avoid depending on the dt for pbias register offset.
+"ARM: dts: <omap2/omap4/omap5/dra7>: add minimal l4 bus
+layout with control module support" moved pbias_regulator dt node
+from being a child node of ocp to be the child node of
+'syscon'. Since 'syscon' doesn't have the 'ranges' property,
+address translation fails while trying to convert the address
+to resource. Fix it here by populating 'ranges' property in
+syscon dt node.
 
-Also update the dt binding documentation with the new compatible
-strings.
+Fixes: 72b10ac00eb1 ("ARM: dts: omap24xx: add minimal l4 bus
+layout with control module support")
 
-Suggested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Fixes: 7415b0b4c645 ("ARM: dts: omap4: add minimal l4 bus layout
+with control module support")
+
+Fixes: ed8509edddeb ("ARM: dts: omap5: add minimal l4 bus
+layout with control module support")
+
+Fixes: d919501feffa ("ARM: dts: dra7: add minimal l4 bus
+layout with control module support")
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../bindings/regulator/pbias-regulator.txt         |    7 ++-
- drivers/regulator/pbias-regulator.c                |   56 +++++++++++++++++---
- 2 files changed, 56 insertions(+), 7 deletions(-)
+Changes from v1:
+*) squashed [1] to a single patch
+[1] -> https://lkml.org/lkml/2015/9/3/166
 
-diff --git a/Documentation/devicetree/bindings/regulator/pbias-regulator.txt b/Documentation/devicetree/bindings/regulator/pbias-regulator.txt
-index 32aa26f..acbcb45 100644
---- a/Documentation/devicetree/bindings/regulator/pbias-regulator.txt
-+++ b/Documentation/devicetree/bindings/regulator/pbias-regulator.txt
-@@ -2,7 +2,12 @@ PBIAS internal regulator for SD card dual voltage i/o pads on OMAP SoCs.
+ arch/arm/boot/dts/dra7.dtsi     |    1 +
+ arch/arm/boot/dts/omap2430.dtsi |    1 +
+ arch/arm/boot/dts/omap4.dtsi    |    1 +
+ arch/arm/boot/dts/omap5.dtsi    |    1 +
+ 4 files changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index d6bc6db..5896896 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -120,6 +120,7 @@
+ 					reg = <0x0 0x1400>;
+ 					#address-cells = <1>;
+ 					#size-cells = <1>;
++					ranges = <0 0x0 0x1400>;
  
- Required properties:
- - compatible:
--  - "ti,pbias-omap" for OMAP2, OMAP3, OMAP4, OMAP5, DRA7.
-+  - should be "ti,pbias-dra7" for DRA7
-+  - should be "ti,pbias-omap2" for OMAP2
-+  - should be "ti,pbias-omap3" for OMAP3
-+  - should be "ti,pbias-omap4" for OMAP4
-+  - should be "ti,pbias-omap5" for OMAP5
-+  - "ti,pbias-omap" is deprecated
- - reg: pbias register offset from syscon base and size of pbias register.
- - syscon : phandle of the system control module
- - regulator-name : should be
-diff --git a/drivers/regulator/pbias-regulator.c b/drivers/regulator/pbias-regulator.c
-index bd2b75c..c21cedb 100644
---- a/drivers/regulator/pbias-regulator.c
-+++ b/drivers/regulator/pbias-regulator.c
-@@ -44,6 +44,10 @@ struct pbias_regulator_data {
- 	int voltage;
- };
+ 					pbias_regulator: pbias_regulator {
+ 						compatible = "ti,pbias-dra7", "ti,pbias-omap";
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index 3961a6f..798dda0 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -56,6 +56,7 @@
+ 					reg = <0x270 0x240>;
+ 					#address-cells = <1>;
+ 					#size-cells = <1>;
++					ranges = <0 0x270 0x240>;
  
-+struct pbias_of_data {
-+	unsigned int offset;
-+};
-+
- static const unsigned int pbias_volt_table[] = {
- 	1800000,
- 	3000000
-@@ -98,8 +102,35 @@ static struct of_regulator_match pbias_matches[] = {
- };
- #define PBIAS_NUM_REGS	ARRAY_SIZE(pbias_matches)
+ 					scm_clocks: clocks {
+ 						#address-cells = <1>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 5aad7f3..5a206c1 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -196,6 +196,7 @@
+ 					reg = <0x5a0 0x170>;
+ 					#address-cells = <1>;
+ 					#size-cells = <1>;
++					ranges = <0 0x5a0 0x170>;
  
-+/* Offset from SCM general area (and syscon) base */
-+
-+static const struct pbias_of_data pbias_of_data_omap2 = {
-+	.offset = 0x230,
-+};
-+
-+static const struct pbias_of_data pbias_of_data_omap3 = {
-+	.offset = 0x2b0,
-+};
-+
-+static const struct pbias_of_data pbias_of_data_omap4 = {
-+	.offset = 0x60,
-+};
-+
-+static const struct pbias_of_data pbias_of_data_omap5 = {
-+	.offset = 0x60,
-+};
-+
-+static const struct pbias_of_data pbias_of_data_dra7 = {
-+	.offset = 0xe00,
-+};
-+
- static const struct of_device_id pbias_of_match[] = {
- 	{ .compatible = "ti,pbias-omap", },
-+	{ .compatible = "ti,pbias-omap2", .data = &pbias_of_data_omap2, },
-+	{ .compatible = "ti,pbias-omap3", .data = &pbias_of_data_omap3, },
-+	{ .compatible = "ti,pbias-omap4", .data = &pbias_of_data_omap4, },
-+	{ .compatible = "ti,pbias-omap5", .data = &pbias_of_data_omap5, },
-+	{ .compatible = "ti,pbias-dra7", .data = &pbias_of_data_dra7, },
- 	{},
- };
- MODULE_DEVICE_TABLE(of, pbias_of_match);
-@@ -114,6 +145,9 @@ static int pbias_regulator_probe(struct platform_device *pdev)
- 	const struct pbias_reg_info *info;
- 	int ret = 0;
- 	int count, idx, data_idx = 0;
-+	const struct of_device_id *match;
-+	const struct pbias_of_data *data;
-+	unsigned int offset;
+ 					pbias_regulator: pbias_regulator {
+ 						compatible = "ti,pbias-omap4", "ti,pbias-omap";
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 76ef595..dd7a0e8 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -185,6 +185,7 @@
+ 					reg = <0x5a0 0xec>;
+ 					#address-cells = <1>;
+ 					#size-cells = <1>;
++					ranges = <0 0x5a0 0xec>;
  
- 	count = of_regulator_match(&pdev->dev, np, pbias_matches,
- 						PBIAS_NUM_REGS);
-@@ -129,6 +163,20 @@ static int pbias_regulator_probe(struct platform_device *pdev)
- 	if (IS_ERR(syscon))
- 		return PTR_ERR(syscon);
- 
-+	match = of_match_device(of_match_ptr(pbias_of_match), &pdev->dev);
-+	if (match && match->data) {
-+		data = match->data;
-+		offset = data->offset;
-+	} else {
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+		if (!res)
-+			return -EINVAL;
-+
-+		offset = res->start;
-+		dev_WARN(&pdev->dev,
-+			 "using legacy dt data for pbias offset\n");
-+	}
-+
- 	cfg.regmap = syscon;
- 	cfg.dev = &pdev->dev;
- 
-@@ -141,10 +189,6 @@ static int pbias_regulator_probe(struct platform_device *pdev)
- 		if (!info)
- 			return -ENODEV;
- 
--		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--		if (!res)
--			return -EINVAL;
--
- 		drvdata[data_idx].syscon = syscon;
- 		drvdata[data_idx].info = info;
- 		drvdata[data_idx].desc.name = info->name;
-@@ -154,9 +198,9 @@ static int pbias_regulator_probe(struct platform_device *pdev)
- 		drvdata[data_idx].desc.volt_table = pbias_volt_table;
- 		drvdata[data_idx].desc.n_voltages = 2;
- 		drvdata[data_idx].desc.enable_time = info->enable_time;
--		drvdata[data_idx].desc.vsel_reg = res->start;
-+		drvdata[data_idx].desc.vsel_reg = offset;
- 		drvdata[data_idx].desc.vsel_mask = info->vmode;
--		drvdata[data_idx].desc.enable_reg = res->start;
-+		drvdata[data_idx].desc.enable_reg = offset;
- 		drvdata[data_idx].desc.enable_mask = info->enable_mask;
- 		drvdata[data_idx].desc.enable_val = info->enable;
- 
+ 					pbias_regulator: pbias_regulator {
+ 						compatible = "ti,pbias-omap5", "ti,pbias-omap";
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
