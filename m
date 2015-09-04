@@ -1,63 +1,42 @@
-From: Joel Porquet <joel@porquet.org>
-Subject: Re: [PATCH] arm:irqchip: IRQCHIP_DECLARE macro is now accessible
-Date: Fri, 04 Sep 2015 16:54:21 -0400
-Message-ID: <7212409.q6uiaM0l3x@joel-zenbook>
-References: <1436299411-12329-1-git-send-email-joel@porquet.org>
- <20150713152035.GD26642@tiger>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150713152035.GD26642@tiger>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Shawn Guo <shawnguo@kernel.org>
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-samsung-soc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Kukjin Kim <kgene@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] twl4030_charger: fix another compile error
+Date: Sat,  5 Sep 2015 02:32:34 +0300
+Message-ID: <1441409554-518-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org
+Cc: David Woodhouse <dwmw2@infradead.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>, NeilBrown <neil@brown.name>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, July 13, 2015 11:20:35 PM Shawn Guo wrote:
-> On Tue, Jul 07, 2015 at 04:02:53PM -0400, Joel Porquet wrote:
-> > The IRQCHIP_DECLARE macro migrated to 'include/linux/irqchip.h', making=
- it
-> > globally accessible.
-> > =
+When CONFIG_CHARGER_TWL4030=y and CONFIG_TWL4030_MADC=m we get a
+compile error:
 
-> > See commit 91e20b5040c67c51aad88cf87db4305c5bd7f79d
-> > ("irqchip: Move IRQCHIP_DECLARE macro to include/linux/irqchip.h").
-> > =
+drivers/built-in.o: In function `twl4030_charger_update_current':
+twl4030_charger.c:(.text+0x504681): undefined reference to
+`twl4030_get_madc_conversion'
 
-> > This patch adds inclusions of 'include/linux/irqchip.h' and replaces us=
-es
-> > of macro OF_DECLARE_2 with IRQCHIP_DECLARE.
-> > =
+Use IS_REACHABLE to fix it.
 
-> > Signed-off-by: Joel Porquet <joel@porquet.org>
-> > ---
-> =
+Cc: NeilBrown <neil@brown.name>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ drivers/power/twl4030_charger.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> ...
-> =
+diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+index f4f2c1f..5bcc76f 100644
+--- a/drivers/power/twl4030_charger.c
++++ b/drivers/power/twl4030_charger.c
+@@ -91,7 +91,7 @@
+ #define TWL4030_MSTATEC_COMPLETE1	0x0b
+ #define TWL4030_MSTATEC_COMPLETE4	0x0e
+ 
+-#if IS_ENABLED(CONFIG_TWL4030_MADC)
++#if IS_REACHABLE(CONFIG_TWL4030_MADC)
+ /*
+  * If AC (Accessory Charger) voltage exceeds 4.5V (MADC 11)
+  * then AC is available.
+-- 
+1.9.1
 
-> >  arch/arm/mach-imx/gpc.c              | 7 ++-----
-> =
-
-> Acked-by: Shawn Guo <shawnguo@kernel.org>
-> =
-
-> How will this patch be sent to upstream?
-
-If it's more convenient for the different maintainers affected by this patc=
-h, =
-
-I can probably resubmit it into a series of patches that modify each file =
-
-separately... Let me know quickly so we don't miss the merge window!
-
-Jo=EBl
