@@ -1,89 +1,94 @@
-From: Jagan Teki <jteki-oRp2ZoJdM/RWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/5] spi: introduce mmap read support for spi flash devices
-Date: Fri, 4 Sep 2015 16:55:33 +0530
-Message-ID: <CAD6G_RT8Q+Uyp1ZjzHf54Tno1wHm0SmLKEwRAe2gkdp772FD9A@mail.gmail.com>
-References: <1441355402-6837-1-git-send-email-vigneshr@ti.com>
-	<1441355402-6837-2-git-send-email-vigneshr@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 2/2] ARM: dts: <omap2/3/4/5/dra7>: use "ti,pbias-<platform>" compatible string for pbias
+Date: Fri, 4 Sep 2015 17:30:25 +0530
+Message-ID: <1441368025-21182-3-git-send-email-kishon@ti.com>
+References: <1441368025-21182-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441355402-6837-2-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1441368025-21182-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: ulf.hansson@linaro.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, lgirdwood@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 4 September 2015 at 13:59, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
-> In addition to providing direct access to SPI bus, some spi controller
-> hardwares (like ti-qspi) provide special memory mapped port
-> to accesses SPI flash devices in order to increase read performance.
-> This means the controller can automatically send the SPI signals
-> required to read data from the SPI flash device.
-> For this, spi controller needs to know flash specific information like
-> read command to use, dummy bytes and address width. Once these settings
-> are populated in hardware registers, any read accesses to flash's memory
-> map region(SoC specific) through memcpy or mem-to-mem DMA copy will be
-> handled by controller hardware. The hardware will automatically generate
-> spi signals required to read data from flash and present it to CPU or
-> DMA engine.
->
-> Introduce spi_mtd_mmap_read() method to support memory mapped read
-> over SPI flash devices. SPI master drivers can implement this method to
-> support memory mapped read interfaces. m25p80 flash driver and other
-> flash drivers can call this to request memory mapped read. The interface
-> should only be used mtd flashes and cannot be used with other spi devices.
->
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> ---
->  include/linux/spi/spi.h | 21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
->
-> diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
-> index d673072346f2..b74a3f169fc2 100644
-> --- a/include/linux/spi/spi.h
-> +++ b/include/linux/spi/spi.h
-> @@ -293,6 +293,23 @@ static inline void spi_unregister_driver(struct spi_driver *sdrv)
->   * @handle_err: the subsystem calls the driver to handle an error that occurs
->   *             in the generic implementation of transfer_one_message().
->   * @unprepare_message: undo any work done by prepare_message().
-> + * @spi_mtd_mmap_read: some spi-controller hardwares provide memory
-> + *                     mapped interface to communicate with mtd flashes.
-> + *                     For this, spi  controller needs to know flash
-> + *                     memory settings like read command to use, dummy
-> + *                     bytes and address width. Once these settings are
-> + *                     populated in hardware registers, any read
-> + *                     accesses to flash's memory map region(as defined
-> + *                     by SoC) through memcpy or mem-to-mem DMA copy
-> + *                     will be handled by controller hardware. The
-> + *                     hardware will automatically generate spi signals
-> + *                     required to read data from flash and present it
-> + *                     to CPU or DMA. SPI master drivers can use this
-> + *                     callback to implement memory mapped read
-> + *                     interface. Flash driver (like m25p80) requests
-> + *                     memory mapped read via this method. The interface
-> + *                     should  only be used mtd flashes and cannot be
-> + *                     used with other spi devices.
->   * @cs_gpios: Array of GPIOs to use as chip select lines; one per CS
->   *     number. Any individual value may be -ENOENT for CS lines that
->   *     are not GPIOs (driven by the SPI controller itself).
-> @@ -438,6 +455,10 @@ struct spi_master {
->                                struct spi_message *message);
->         int (*unprepare_message)(struct spi_master *master,
->                                  struct spi_message *message);
-> +       int (*spi_mtd_mmap_read)(struct  spi_device *spi,
-> +                                loff_t from, size_t len, size_t *retlen,
-> +                                u_char *buf, u8 read_opcode,
-> +                                u8 addr_width, u8 dummy_bytes);
+Use platform specific compatible strings instead of the common
+"ti,pbias-omap" compatible string.
 
-This looks un-manageable to know spi core or master knows what are the
-command or opcode used by spi-nor flash and also I think mmap support
-seems to be flash related or any justification this is spi bus
-master/controller feature?
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/dra7.dtsi     |    2 +-
+ arch/arm/boot/dts/omap2430.dtsi |    2 +-
+ arch/arm/boot/dts/omap3.dtsi    |    2 +-
+ arch/arm/boot/dts/omap4.dtsi    |    2 +-
+ arch/arm/boot/dts/omap5.dtsi    |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-thanks!
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 1e29ccf..d6bc6db 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -122,7 +122,7 @@
+ 					#size-cells = <1>;
+ 
+ 					pbias_regulator: pbias_regulator {
+-						compatible = "ti,pbias-omap";
++						compatible = "ti,pbias-dra7", "ti,pbias-omap";
+ 						reg = <0xe00 0x4>;
+ 						syscon = <&scm_conf>;
+ 						pbias_mmc_reg: pbias_mmc_omap5 {
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index 2390f38..3961a6f 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -63,7 +63,7 @@
+ 					};
+ 
+ 					pbias_regulator: pbias_regulator {
+-						compatible = "ti,pbias-omap";
++						compatible = "ti,pbias-omap2", "ti,pbias-omap";
+ 						reg = <0x230 0x4>;
+ 						syscon = <&scm_conf>;
+ 						pbias_mmc_reg: pbias_mmc_omap2430 {
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 69a40cf..9af9ae1 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -203,7 +203,7 @@
+ 		};
+ 
+ 		pbias_regulator: pbias_regulator {
+-			compatible = "ti,pbias-omap";
++			compatible = "ti,pbias-omap3", "ti,pbias-omap";
+ 			reg = <0x2b0 0x4>;
+ 			syscon = <&scm_conf>;
+ 			pbias_mmc_reg: pbias_mmc_omap2430 {
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index abc4473..5aad7f3 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -198,7 +198,7 @@
+ 					#size-cells = <1>;
+ 
+ 					pbias_regulator: pbias_regulator {
+-						compatible = "ti,pbias-omap";
++						compatible = "ti,pbias-omap4", "ti,pbias-omap";
+ 						reg = <0x60 0x4>;
+ 						syscon = <&omap4_padconf_global>;
+ 						pbias_mmc_reg: pbias_mmc_omap4 {
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index b1a1263..76ef595 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -187,7 +187,7 @@
+ 					#size-cells = <1>;
+ 
+ 					pbias_regulator: pbias_regulator {
+-						compatible = "ti,pbias-omap";
++						compatible = "ti,pbias-omap5", "ti,pbias-omap";
+ 						reg = <0x60 0x4>;
+ 						syscon = <&omap5_padconf_global>;
+ 						pbias_mmc_reg: pbias_mmc_omap5 {
 -- 
-Jagan | openedev.
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.5
