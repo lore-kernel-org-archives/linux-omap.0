@@ -1,58 +1,130 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 0/5] Add memory mapped read support for ti-qspi
-Date: Fri, 4 Sep 2015 13:59:57 +0530
-Message-ID: <1441355402-6837-1-git-send-email-vigneshr@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 1/9] usb: dwc3: add dual-role support
+Date: Fri, 4 Sep 2015 12:06:28 +0300
+Message-ID: <55E95F14.20901@ti.com>
+References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
+ <1441203864-15786-2-git-send-email-rogerq@ti.com>
+ <20150902143149.GD8299@saruman.tx.rr.com> <55E83B5C.7050001@ti.com>
+ <20150903154444.GA4031@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>, hramrach@gmail.com
-Cc: devicetree@vger.kernel.org, Vignesh R <vigneshr@ti.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150903154444.GA4031@saruman.tx.rr.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: tony@atomide.com, Joao.Pinto@synopsys.com, sergei.shtylyov@cogentembedded.com, peter.chen@freescale.com, jun.li@freescale.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
 
-Hi,
+Felipe,
 
-This patch series adds support for memory mapped read port of ti-qspi.
-ti-qspi has a special memory mapped port through which SPI flash
-memories can be accessed directly via SoC specific memory region.
+On 03/09/15 18:44, Felipe Balbi wrote:
+> Hi,
+> 
+> On Thu, Sep 03, 2015 at 03:21:48PM +0300, Roger Quadros wrote:
+>>>> +	dwc->fsm->id = id;
+>>>> +	dwc->fsm->b_sess_vld = vbus;
+>>>> +	usb_otg_sync_inputs(dwc->fsm);
+>>>> +}
+>>>> +
+>>>> +static int dwc3_drd_start_host(struct otg_fsm *fsm, int on)
+>>>> +{
+>>>> +	struct device *dev = usb_otg_fsm_to_dev(fsm);
+>>>> +	struct dwc3 *dwc = dev_get_drvdata(dev);
+>>>
+>>> how about adding a usb_otg_get_drvdata(fsm) ?
+>>
+>> You meant for otg core? That can be done.
+> 
+> yeah. BTW, I think otg core needs quite a few changes to become actually
+> useful. Currently it's just too much pointer ping-pong going back and
+> forth between phy, otg core, udc and hcd.
 
-First patch adds a method to pass flash specific information like read
-opcode, dummy bytes etc and to request mmap read. Second patch
-implements mmap read method in ti-qspi driver. Patch 3 adapts m25p80 to
-use mmap read method before trying normal SPI transfer. Patch 4 and 5
-add memory map region DT entries for DRA7xx and AM43xx SoCs.
+Sure, any inputs for improvement appreciated.
 
-This patch series is based on the discussions here:
-http://www.spinics.net/lists/linux-spi/msg04796.html
+> 
+> Also, I caught a ton of issues with it and suspend/resume. You might
+> want to fix them before adding more users to it.
 
-Tested on DRA74 EVM and AM437x-SK.
-Read performance increases from ~100kB/s to ~2.5MB/s.
+OK.
 
+> 
+> It's also rather racy and that needs fixing too. On top of all that, I
+> think there's too much being added to UDC just to get Dual-Role, let's
+> see if we can improve that too.
 
-Vignesh R (5):
-  spi: introduce mmap read support for spi flash devices
-  spi: spi-ti-qspi: add mmap mode read support
-  mtd: devices: m25p80: add support for mmap read request
-  ARM: dts: DRA7: add entry for qspi mmap region
-  ARM: dts: AM4372: add entry for qspi mmap region
+Would appreciate if you could give all your inputs on the otg core thread
+as early as you can :)
 
- Documentation/devicetree/bindings/spi/ti_qspi.txt |  18 +++-
- arch/arm/boot/dts/am4372.dtsi                     |   4 +-
- arch/arm/boot/dts/dra7.dtsi                       |   6 +-
- drivers/mtd/devices/m25p80.c                      |   8 ++
- drivers/spi/spi-ti-qspi.c                         | 106 +++++++++++++++++++++-
- include/linux/spi/spi.h                           |  21 +++++
- 6 files changed, 154 insertions(+), 9 deletions(-)
+> 
+>>>> @@ -843,6 +998,16 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>>  	hird_threshold = 12;
+>>>>  
+>>>>  	if (node) {
+>>>> +		if (of_property_read_bool(node, "extcon"))
+>>>> +			dwc->edev = extcon_get_edev_by_phandle(dev, 0);
+>>>> +		else if (of_property_read_bool(dev->parent->of_node, "extcon"))
+>>>> +			dwc->edev = extcon_get_edev_by_phandle(dev->parent, 0);
+>>>
+>>> why do you need to check the parent ? Why isn't that done on the glue
+>>> layer ?
+>>
+>> On DRA7-evm, the extcon device is defined in the glue layer node. But
+>> we need the device both at the glue layer and at the core layer.
+> 
+> why do you need extcon here ? Glue updates core via UTMI about the
+> states, right ? So you should get proper VBUS and ID status via OTG IRQ.
+> Is that not working ?
 
--- 
-2.5.1
+I didn't even expect that would work. Let me give that a try.
+
+> 
+>> We do get the extcon device in dwc3-omap.c
+>>
+>> Any suggestion how to pass the extcon device from glue layer to core.c?
+>> Or should I add the extcon property to dwc3 USB node as well in the DT?
+> 
+> GPIO toggles
+>   dwc3-omap extcon event
+>     update status via UTMI STATUS register
+>       OTG IRQ on core
+>         Horray!
+> 
+> :-)
+
+That's great. Thanks :)
+
+> 
+>>>> +
+>>>> +		if (IS_ERR(dwc->edev)) {
+>>>> +			dev_vdbg(dev, "couldn't get extcon device\n");
+>>>
+>>> dev_err() ??
+>>
+>> Is it ok to print it even in EPROBE_DEFER case?
+> 
+> hmm, probably pointless, indeed.
+> 
+
+cheers,
+- -roger
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJV6V8UAAoJENJaa9O+djCToUwP/1SRrcUG/1KG54c1loxKFvYG
+51x17TiVuQc68xtrp56HYJNRpZzZIwBqlfa3LU19bd/p6alYGaaY6jOqW+gFWWt8
+tJd+7lyjVuCWkrJBQ6obK4yDPK4r6ZLcFlCTLGsfnd6SSBdsGxNrpcNCwz2rhhE/
+uTPQdU4wvgxDFnGFVtTMhM+/ehtJtkKB4dppoFA5Vw86vsKinJ7o5EJMwho/PwJu
+4D+mQVi17kQDBx1wkQPBxyVHD6RXfjMBLK+zg46T6lsg1eUodkv22Grf9Xy4i4wT
+9Pr3g6SFnczkKiU1Bp7q4TV048SY0KedA7oe1U7K9B+hjHK4Fc2/vxtb3kGyNK7x
+VPkN3NbvqSZalcgmdoDnv6VvU5NdnZUyKasVeJQDp9Fzaom9rUmNvic0ZLx9TOTP
+4e4R2ovyCFnU1nODDUccYDInPiJ3EUo6D7CX3L7rfud5h6qAXcqC6vzZ3oHcSnBu
+S1PXPTjLyk/a+den4gf41ReF5xKXzNocH21cXe7oFwKDaCJ9VgEn4+E5tX0vK778
+KGHz3qFEQGkM6Eib0tEZEdHUEgeO8H99rNAELFNTrtS0FPZIEtQPHr2lmFDM/iYC
+sEECc/HFP+LvmAzuJLA4XRUeNh6xo0K/ZDOtX1YOCCqnjy/UHNKvB4gUDzVaNti+
+DB0wWXP+/A9Qz1PBK1dG
+=rFBL
+-----END PGP SIGNATURE-----
