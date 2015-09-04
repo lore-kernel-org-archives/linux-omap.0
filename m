@@ -1,191 +1,93 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] iommu/omap: Add support for configuring dsp iommus on
-	DRA7xx
-Date: Thu, 3 Sep 2015 17:57:59 -0500
-Message-ID: <55E8D077.3050108@ti.com>
-References: <1437522936-19758-1-git-send-email-s-anna@ti.com>
-	<1437522936-19758-3-git-send-email-s-anna@ti.com>
-	<20150722052600.GF17550@atomide.com> <55AFC34E.4000603@ti.com>
-	<20150723072455.GC16878@atomide.com> <55B114DF.8070800@ti.com>
-	<20150724043056.GG16878@atomide.com> <55B266CE.9070202@ti.com>
-	<20150728061426.GL16878@atomide.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH v2] security: device_cgroup: fix RCU lockdep splat
+Date: Thu, 3 Sep 2015 18:14:58 -0700
+Message-ID: <20150904011458.GT4029@linux.vnet.ibm.com>
+References: <20150902125608.GA8299@saruman.tx.rr.com>
+ <1441199548-29633-1-git-send-email-balbi@ti.com>
+ <20150902162450.GJ22326@mtj.duckdns.org>
+ <20150903001433.GB4029@linux.vnet.ibm.com>
+ <20150903134839.GB8834@mail.hallyn.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20150728061426.GL16878-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150903134839.GB8834@mail.hallyn.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Tejun Heo <tj@kernel.org>, Felipe Balbi <balbi@ti.com>, James Morris <james.l.morris@oracle.com>, linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-Sorry for the long delay in getting back on this. I will repost the
-series once 4.3-rc1 is out, but at the moment I do not think any changes
-are required. Let me know if you still need any additional details.
-
->>>> On 07/23/2015 02:24 AM, Tony Lindgren wrote:
->>>>> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [150722 09:25]:
->>>>>> On 07/22/2015 12:26 AM, Tony Lindgren wrote:
->>>>>>>
->>>>>>> I don't like using syscon for tinkering directly with SoC registers.
->>>>>>
->>>>>> This is not a SoC-level register, but a register within a sub-module of
->>>>>> the DSP processor sub-system. The DSP_SYSTEM sub-module in general is
->>>>>> described in Section 5.3.3 of the TRM [1], and it implements different
->>>>>> functionalities like the PRCM handshaking, wakeup logic and DSP
->>>>>> subsystem top-level configuration. It is a module present within the DSP
->>>>>> processor sub-system, so can only be accessed when the sub-system is
->>>>>> clocked and the appropriate reset is released.
->>>>>
->>>>> OK so if it's specific to the DSP driver along the lines of sysc and
->>>>> syss registers.
->>>>
->>>> There will be those registers too within the MMU config register space,
->>>> even for DRA7xx MMUs. This is different, think of it like a register in
->>>> the Control module except that it is present within the DSP sub-system
->>>> instead of at the SoC level.
->>>
->>> And what is taking care of pm_runtime_get here to ensure the module
->>> is powered and clocked?
->>
->> pm_runtime_get_sync is indeed getting invoked, its just the current
->> patch doesn't include the code block that invokes it. The function that
->> invokes omap2_iommu_enable does so after a call to the
->> pm_runtime_get_sync() call.
+On Thu, Sep 03, 2015 at 08:48:39AM -0500, Serge E. Hallyn wrote:
+> On Wed, Sep 02, 2015 at 05:14:33PM -0700, Paul E. McKenney wrote:
+> > On Wed, Sep 02, 2015 at 12:24:50PM -0400, Tejun Heo wrote:
+> > > cc'ing Paul.
+> > > 
+> > > On Wed, Sep 02, 2015 at 08:12:28AM -0500, Felipe Balbi wrote:
+> > > > while booting AM437x device, the following splat
+> > > > triggered:
+> > > > 
+> > > > [   12.005238] ===============================
+> > > > [   12.009749] [ INFO: suspicious RCU usage. ]
+> > > > [   12.014116] 4.2.0-next-20150831 #1154 Not tainted
+> > > > [   12.019050] -------------------------------
+> > > > [   12.023408] security/device_cgroup.c:405 device_cgroup:verify_new_ex called without proper synchronization!
+> > > ...
+> > > > [   12.128326] [<c0317a04>] (verify_new_ex) from [<c0317f50>] (devcgroup_access_write+0x374/0x658)
+> > > > [   12.137426] [<c0317f50>] (devcgroup_access_write) from [<c00d2800>] (cgroup_file_write+0x28/0x1bc)
+> > > > [   12.146796] [<c00d2800>] (cgroup_file_write) from [<c01f1670>] (kernfs_fop_write+0xc0/0x1b8)
+> > > > [   12.155620] [<c01f1670>] (kernfs_fop_write) from [<c0177c94>] (__vfs_write+0x1c/0xd8)
+> > > > [   12.163783] [<c0177c94>] (__vfs_write) from [<c0178594>] (vfs_write+0x90/0x16c)
+> > > > [   12.171426] [<c0178594>] (vfs_write) from [<c0178db4>] (SyS_write+0x44/0x9c)
+> > > > [   12.178806] [<c0178db4>] (SyS_write) from [<c000f680>] (ret_fast_syscall+0x0/0x1c)
+> > > 
+> > > This shouldn't be happening because devcgroup_access_write() always
+> > > grabs devcgroup_mutex.  Looking at the log, the culprit seems to be
+> > > f78f5b90c4ff ("rcu: Rename rcu_lockdep_assert() to
+> > > RCU_LOCKDEP_WARN()").  It missed the bang for the second test while
+> > > inverting it, so adding rcu_read_lock() isn't the right fix here.
+> > > 
+> > > Paul, can you please fix it?
+> > 
+> > Gah!  Please see below.
+> > 
+> > 							Thanx, Paul
+> > 
+> > ------------------------------------------------------------------------
+> > 
+> > security/device_cgroup: Fix RCU_LOCKDEP_WARN() condition
+> > 
+> > f78f5b90c4ff ("rcu: Rename rcu_lockdep_assert() to RCU_LOCKDEP_WARN()")
+> > introduced a bug by incorrectly inverting the condition when moving from
+> > rcu_lockdep_assert() to RCU_LOCKDEP_WARN().  This commit therefore fixes
+> > the inversion.
+> > 
+> > Reported-by: Felipe Balbi <balbi@ti.com>
+> > Reported-by: Tejun Heo <tj@kernel.org>
+> > Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> > Cc: Serge Hallyn <serge@hallyn.com>
 > 
-> OK 
-> 
->>> I think you are missing a layer here and it's the Linux kernel side
->>> device driver for DSP that initializes things.
->>
->> We already have separate drivers for MMUs (omap-iommu) and the processor
->> management (omap-rproc). The former manages all the low-level
->> programming sequences for the MMUs, while the latter manages the
->> low-level reset etc, and is a client user of the respective IOMMU
->> device. Both integrate into the respective frameworks. The IOMMU API
->> invocations are handled in the remoteproc core, with the OMAP remoteproc
->> driver publishing itself as having an MMU with the remoteproc core. The
->> IOMMU API invoke the appropriate iommu_ops.
->>
->> You can lookup the functions rproc_enable_iommu()/rproc_disable_iommu()
->> in the remoteproc core. The IOMMU enabling sequences happen within the
->> iommu_attach_device() API. The call flow is
->> iommu_attach_device()->omap_iommu_attach_dev()->omap_iommu_attach()->
->> iommu_enable()->
->>    omap_device_deassert_hardreset, pm_runtime_get_sync, omap2_iommu_enable.
-> 
-> OK. The thing to check here is that you have a separate device driver
-> for each sysc/syss device registers. This is because each hardware module
-> can be independently clocked and idled. Otherwise things will break at
-> some point. And no "things are configured for autoidle" or "we're not
-> doing PM is not a good excuse here" :)
-> 
-> Can you please check that? If the remoteproc driver and iommu driver
-> are tinkering with registers in separate hardware modules, we have
-> a layering violation. My guess is that we have at least two hardware
-> modules involved here, one for the iommu and one for the DSP device.
+> Oh, makes sense :)  (didn't see the original patch when it came by, sorry)
 
-Only the IOMMU has a SYSC/SYSS device register. It has both a soft-reset
-as well as a hard-reset line. The IOMMU stays in reset, and its state
-machine/programming is controlled through the remoteproc driver. The
-clock source is also single clock going into the remote processor
-subsystem, and split up internally to feed the memories and the
-processors. For the PRCM to auto-gate the clocks, we also need the
-processor to be executing a IDLE (DSPs) or WFI/WFE (Cortex M3/M4s). Just
-the IOMMU will allow the OCP idle because of the associated sysc/syss
-registers. Depending on the remote processor, there might be a separate
-internal module (like the DSPs usually have a separate SYSC module), but
-that programming is left to the software running on the DSP.
+I should have CCed you, apologies for failing to do so.
 
->  
->>>>> Typically we handle these registers by mapping them to the PM runtime
->>>>> functions for the interconnect so we can reset and idle the hardware
->>>>> modules even if there is no driver, see for example
->>>>> omap54xx_mmu_dsp_hwmod.
->>>>
->>>> I haven't yet submitted the DRA7xx hwmods, but they will look almost
->>>> exactly like the OMAP5 ones. The reset and idle on these are in general
->>>> not effective at boot time since these are also controlled by a
->>>> hard-reset line, so that's left to the drivers to deal with it through
->>>> the omap_device_deassert_hardreset API.
->>>
->>> If the MMU configuration is one time init, it may make sense to add
->>> it to the hwmod reset function. However, if the Linux kernel side
->>> driver needs to configure things depending on the DSP firmware, it
->>> should be done in the kernel side device driver.
->>
->> The MMU configuration comes into picture whenever the remoteproc driver
->> is being booted and shut down, and also during suspend (no support for
->> this yet in mainline on OMAP rproc). Today, the hwmod
->> _enable/_idle/reset functions alone are not enough to power on the OMAP
->> remoteproc/iommus. We need sequencing calls to both
->> omap_device_assert/_deassert_hardreset (done through pdata-quirks) and
->> pm_runtime API to achieve this.
+> Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+
+Added, thank you!
+
+							Thanx, Paul
+
+> > diff --git a/security/device_cgroup.c b/security/device_cgroup.c
+> > index 73455089feef..03c1652c9a1f 100644
+> > --- a/security/device_cgroup.c
+> > +++ b/security/device_cgroup.c
+> > @@ -401,7 +401,7 @@ static bool verify_new_ex(struct dev_cgroup *dev_cgroup,
+> >  	bool match = false;
+> >  
+> >  	RCU_LOCKDEP_WARN(!rcu_read_lock_held() &&
+> > -			 lockdep_is_held(&devcgroup_mutex),
+> > +			 !lockdep_is_held(&devcgroup_mutex),
+> >  			 "device_cgroup:verify_new_ex called without proper synchronization");
+> >  
+> >  	if (dev_cgroup->behavior == DEVCG_DEFAULT_ALLOW) {
 > 
-> Right and that's why I'm worried that we have multiple hardware modules
-> involved :)  
->  
->>>>>>> We should use some Linux generic framework for configuring these
->>>>>>> bits to avoid nasty dependencies between various hardware modules
->>>>>>> on the SoC.
->>>>>>>
->>>>>>> What does DSP_SYS_MMU_CONFIG register do? It seems it's probably
->>>>>>> a regulator or a gate clock? If so, it should be set up as a
->>>>>>> regulator or a clock and then the omap-iommu driver can just
->>>>>>> use regulator or clcok framework to request the resource.
->>>>>>
->>>>>> No, its neither. It is a control bit that dictates whether the
->>>>>> processor/EDMA addresses go through the respective MMU or not. The
->>>>>> register currently has 4 bits (bit 0 in each nibble), one each for
->>>>>> enabling each MMU and requesting an MMU abort on each. The MMU
->>>>>> integration and enablement notes are detailed in Section 5.3.6 of the
->>>>>> TRM [1], and the DSP_SYS_MMU_CONFIG register layout is in Table 5-28
->>>>>> (Page 1641).
->>>>>
->>>>> OK yeah seems like it should be handled by the DSP driver during
->>>>> probe after doing pm_runtime_get. Then the driver can configure
->>>>> things like IOMMU and load firmware. Or am I missing something here?
->>>>
->>>> The DSP (remoteproc) driver uses the generic IOMMU API, and all the
->>>> IOMMU enabling sequence is transparent to the DSP driver. So, any
->>>> configuration/enabling sequence specific to the IOMMU has to be handled
->>>> within the respective IOMMU platform driver that gets integrated into
->>>> the IOMMU API.
->>>
->>> To me it seems you still need a DSP kernel driver to manage the
->>> DSP hardware for PM runtime. I don't see how iommu and remoteproc
->>> alone would be sufficient here. You end up sprinkling DSP driver
->>> specific code to the iommu and remoteproc layers.
->>
->> I am not sure what you envision to be in this DSP kernel driver, because
->> all the needed functionality is already handled by existing drivers. The
->> OMAP remoteproc driver is the kernel driver to deal with the device
->> management for both IPUs and DSPs on OMAP4, OMAP5 and DRA7 (DT support
->> to be added).
-> 
-> OK maybe check the syss/sysc registers involved here for each hardware
-> module here and which driver tinkers with which registers? This will
-> make things a lot easier in the long run for sure.
-
-The OMAP remoteproc driver typically deals with only the reset registers
-and another register in the Control module for programming the boot
-address for the DSPs. You can look up the OMAP4 hwmod data for
-reference. There is currently a .prcm.omap4.modulemode set for these,
-and I have a patch to remove those. I haven't yet posted it yet [1],
-because OMAP remoteprocs are still not bootable on mainline.
-
-regards
-Suman
-
-[1]
-http://git.ti.com/gitweb/?p=rpmsg/remoteproc.git;a=commit;h=0dd2a6a2d8869ee6cec92f75d70663259a41c11f
