@@ -1,66 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] gpio: omap: Fix GPIO numbering for deferred probe
-Date: Fri, 4 Sep 2015 16:52:35 -0700
-Message-ID: <20150904235235.GB4215@atomide.com>
-References: <1441301487-6238-1-git-send-email-tony@atomide.com>
- <55E96BC6.1040003@ti.com>
+Subject: Re: [PATCH] twl4030_charger: fix another compile error
+Date: Fri, 4 Sep 2015 16:55:29 -0700
+Message-ID: <20150904235528.GC4215@atomide.com>
+References: <1441409554-518-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55E96BC6.1040003@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>
+In-Reply-To: <1441409554-518-1-git-send-email-notasas@gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-pm@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org, NeilBrown <neil@brown.name>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [150904 03:04]:
-> On 09/03/2015 08:31 PM, Tony Lindgren wrote:
-> >If gpio-omap probe fails with -EPROBE_DEFER, the GPIO numbering
-> >keeps increasing. Only increase the gpio count if gpiochip_add()
-> >was successful as otherwise the numbers will increase for each
-> >probe attempt.
-> >
-> >Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> >Cc: Javier Martinez Canillas <javier@dowhile0.org>
-> >Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> >Cc: Santosh Shilimkar <ssantosh@kernel.org>
-> >Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >---
-> >  drivers/gpio/gpio-omap.c | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> >
-> >--- a/drivers/gpio/gpio-omap.c
-> >+++ b/drivers/gpio/gpio-omap.c
-> >@@ -1095,7 +1095,6 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
-> >  	} else {
-> >  		bank->chip.label = "gpio";
-> >  		bank->chip.base = gpio;
-> >-		gpio += bank->width;
-> >  	}
-> >  	bank->chip.ngpio = bank->width;
-> >
-> >@@ -1105,6 +1104,9 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
-> >  		return ret;
-> >  	}
-> >
-> >+	if (!bank->is_mpuio)
-> >+		gpio += bank->width;
-> >+
-> >  #ifdef CONFIG_ARCH_OMAP1
-> >  	/*
-> >  	 * REVISIT: Once we have OMAP1 supporting SPARSE_IRQ, we can drop
-> >
+* Grazvydas Ignotas <notasas@gmail.com> [150904 16:36]:
+> When CONFIG_CHARGER_TWL4030=y and CONFIG_TWL4030_MADC=m we get a
+> compile error:
 > 
-> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> drivers/built-in.o: In function `twl4030_charger_update_current':
+> twl4030_charger.c:(.text+0x504681): undefined reference to
+> `twl4030_get_madc_conversion'
 > 
-> With hope that only GPIO0 will be deferred, otherwise
-> there will be total mess in gpios enumeration ;)
+> Use IS_REACHABLE to fix it.
+> 
+> Cc: NeilBrown <neil@brown.name>
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 
-Heh nope :) If pinctrl currently ever causes deferred probe
-things will get totally messed up.. Works fine after $subject
-patch.
+Looks OK to me:
 
-Regards,
+Acked-by: Tony Lindgren <tony#atomide.com>
 
-Tony
+> ---
+>  drivers/power/twl4030_charger.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+> index f4f2c1f..5bcc76f 100644
+> --- a/drivers/power/twl4030_charger.c
+> +++ b/drivers/power/twl4030_charger.c
+> @@ -91,7 +91,7 @@
+>  #define TWL4030_MSTATEC_COMPLETE1	0x0b
+>  #define TWL4030_MSTATEC_COMPLETE4	0x0e
+>  
+> -#if IS_ENABLED(CONFIG_TWL4030_MADC)
+> +#if IS_REACHABLE(CONFIG_TWL4030_MADC)
+>  /*
+>   * If AC (Accessory Charger) voltage exceeds 4.5V (MADC 11)
+>   * then AC is available.
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
