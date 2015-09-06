@@ -1,49 +1,51 @@
-From: Shawn Guo <shawnguo@kernel.org>
-Subject: Re: [PATCH] arm:irqchip: IRQCHIP_DECLARE macro is now accessible
-Date: Sun, 6 Sep 2015 08:45:31 +0800
-Message-ID: <20150906004531.GA30746@tiger>
-References: <1436299411-12329-1-git-send-email-joel@porquet.org>
- <20150713152035.GD26642@tiger>
- <7212409.q6uiaM0l3x@joel-zenbook>
+From: Peter Chen <peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Subject: Re: [PATCH v4 1/9] usb: dwc3: add dual-role support
+Date: Sun, 6 Sep 2015 10:02:41 +0800
+Message-ID: <20150906020240.GB4914@shlinux2>
+References: <1441203864-15786-1-git-send-email-rogerq@ti.com>
+ <1441203864-15786-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <7212409.q6uiaM0l3x@joel-zenbook>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Joel Porquet <joel@porquet.org>
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-samsung-soc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Kukjin Kim <kgene@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1441203864-15786-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 04, 2015 at 04:54:21PM -0400, Joel Porquet wrote:
-> On Monday, July 13, 2015 11:20:35 PM Shawn Guo wrote:
-> > On Tue, Jul 07, 2015 at 04:02:53PM -0400, Joel Porquet wrote:
-> > > The IRQCHIP_DECLARE macro migrated to 'include/linux/irqchip.h', making it
-> > > globally accessible.
-> > > 
-> > > See commit 91e20b5040c67c51aad88cf87db4305c5bd7f79d
-> > > ("irqchip: Move IRQCHIP_DECLARE macro to include/linux/irqchip.h").
-> > > 
-> > > This patch adds inclusions of 'include/linux/irqchip.h' and replaces uses
-> > > of macro OF_DECLARE_2 with IRQCHIP_DECLARE.
-> > > 
-> > > Signed-off-by: Joel Porquet <joel@porquet.org>
-> > > ---
-> > 
-> > ...
-> > 
-> > >  arch/arm/mach-imx/gpc.c              | 7 ++-----
-> > 
-> > Acked-by: Shawn Guo <shawnguo@kernel.org>
-> > 
-> > How will this patch be sent to upstream?
+On Wed, Sep 02, 2015 at 05:24:16PM +0300, Roger Quadros wrote:
+> Register with the USB OTG core. Since we don't support
+> OTG yet we just work as a dual-role device even
+> if device tree says "otg".
 > 
-> If it's more convenient for the different maintainers affected by this patch, 
-> I can probably resubmit it into a series of patches that modify each file 
-> separately... Let me know quickly so we don't miss the merge window!
+> +
+> +static int dwc3_drd_init(struct dwc3 *dwc)
+> +{
+> +	int ret, id, vbus;
+> +	struct usb_otg_caps *otgcaps = &dwc->otg_config.otg_caps;
+> +
+> +	otgcaps->otg_rev = 0;
+> +	otgcaps->hnp_support = false;
+> +	otgcaps->srp_support = false;
+> +	otgcaps->adp_support = false;
+> +	dwc->otg_config.fsm_ops = &dwc3_drd_ops;
+> +
+> +	if (!dwc->edev) {
+> +		dev_err(dwc->dev, "No extcon device found for OTG mode\n");
+> +		return -ENODEV;
+> +	}
+> +
 
-We had sent out the materials for this merge window.  So if you have a
-path to upstream, you'd better send this patch through that.  You've
-already got the ACKs from maintainers of affected platform.
+Do All dwc3 platforms id/vbus need to get through extcon? Do the
+SoCs have id/vbus pin?
 
-Shawn
+
+-- 
+
+Best Regards,
+Peter Chen
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
