@@ -1,25 +1,586 @@
 From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v4 07/13] usb: otg: add OTG core
-Date: Mon, 7 Sep 2015 13:23:01 +0300
-Message-ID: <55ED6585.5050200@ti.com>
+Date: Mon, 7 Sep 2015 13:53:19 +0300
+Message-ID: <55ED6C9F.2000502@ti.com>
 References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
  <1440422484-4737-8-git-send-email-rogerq@ti.com>
- <20150907012327.GG4914@shlinux2>
+ <20150907074002.GA30578@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150907012327.GG4914@shlinux2>
+In-Reply-To: <20150907074002.GA30578@shlinux2>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <peter.chen@freescale.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Li Jun <b47624@freescale.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, peter.chen@freescale.com, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/09/15 04:23, Peter Chen wrote:
+On 07/09/15 10:40, Li Jun wrote:
 > On Mon, Aug 24, 2015 at 04:21:18PM +0300, Roger Quadros wrote:
+>> The OTG core instantiates the OTG Finite State Machine
+>> per OTG controller and manages starting/stopping the
+>> host and gadget controllers based on the bus state.
+>>
+>> It provides APIs for the following tasks
+>>
+>> - Registering an OTG capable controller
+>> - Registering Host and Gadget controllers to OTG core
+>> - Providing inputs to and kicking the OTG state machine
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  MAINTAINERS                  |    4 +-
+>>  drivers/usb/Kconfig          |    2 +-
+>>  drivers/usb/Makefile         |    1 +
+>>  drivers/usb/common/Makefile  |    3 +-
+>>  drivers/usb/common/usb-otg.c | 1061 ++++++++++++++++++++++++++++++++++++++++++
+>>  drivers/usb/common/usb-otg.h |   71 +++
+>>  drivers/usb/core/Kconfig     |   11 +-
+>>  include/linux/usb/otg.h      |  189 +++++++-
+>>  8 files changed, 1321 insertions(+), 21 deletions(-)
+>>  create mode 100644 drivers/usb/common/usb-otg.c
+>>  create mode 100644 drivers/usb/common/usb-otg.h
+>>
+> 
+> ... ...
+> 
+>> +
+>> +/**
+>> + * Get OTG device from host or gadget device.
+>> + *
+>> + * For non device tree boot, the OTG controller is assumed to be
+>> + * the parent of the host/gadget device.
+> 
+> This assumption/restriction maybe a problem, as I pointed in your previous
+> version, usb_create_hcd() use the passed dev as its dev, but,
+> usb_add_gadget_udc() use the passed dev as its parent dev, so often the
+> host and gadget don't share the same parent device, at least it doesn't
+> apply to chipidea case.
+
+Let's provide a way for OTG driver to provide the OTG core exactly which is
+the related host/gadget device.
+
+> 
+>> + * For device tree boot, the OTG controller is derived from the
+>> + * "otg-controller" property.
+>> + */
+>> +static struct device *usb_otg_get_device(struct device *hcd_gcd_dev)
+>> +{
+>> +	struct device *otg_dev;
+>> +
+>> +	if (!hcd_gcd_dev)
+>> +		return NULL;
+>> +
+>> +	if (hcd_gcd_dev->of_node) {
+>> +		struct device_node *np;
+>> +		struct platform_device *pdev;
+>> +
+>> +		np = of_parse_phandle(hcd_gcd_dev->of_node, "otg-controller",
+>> +				      0);
+>> +		if (!np)
+>> +			goto legacy;	/* continue legacy way */
+>> +
+>> +		pdev = of_find_device_by_node(np);
+>> +		of_node_put(np);
+>> +		if (!pdev) {
+>> +			dev_err(&pdev->dev, "couldn't get otg-controller device\n");
+>> +			return NULL;
+>> +		}
+>> +
+>> +		otg_dev = &pdev->dev;
+>> +		return otg_dev;
+>> +	}
+>> +
+>> +legacy:
+>> +	/* otg device is parent and must be registered */
+>> +	otg_dev = hcd_gcd_dev->parent;
+>> +	if (!usb_otg_get_data(otg_dev))
+>> +		return NULL;
+>> +
+>> +	return otg_dev;
+>> +}
+>> +
+> 
+> ... ...
+> 
+>> +static void usb_otg_init_timers(struct usb_otg *otgd, unsigned *timeouts)
+>> +{
+>> +	struct otg_fsm *fsm = &otgd->fsm;
+>> +	unsigned long tmouts[NUM_OTG_FSM_TIMERS];
+>> +	int i;
+>> +
+>> +	/* set default timeouts */
+>> +	tmouts[A_WAIT_VRISE] = TA_WAIT_VRISE;
+>> +	tmouts[A_WAIT_VFALL] = TA_WAIT_VFALL;
+>> +	tmouts[A_WAIT_BCON] = TA_WAIT_BCON;
+>> +	tmouts[A_AIDL_BDIS] = TA_AIDL_BDIS;
+>> +	tmouts[A_BIDL_ADIS] = TA_BIDL_ADIS;
+>> +	tmouts[B_ASE0_BRST] = TB_ASE0_BRST;
+>> +	tmouts[B_SE0_SRP] = TB_SE0_SRP;
+>> +	tmouts[B_SRP_FAIL] = TB_SRP_FAIL;
+>> +
+>> +	/* set controller provided timeouts */
+>> +	if (timeouts) {
+>> +		for (i = 0; i < NUM_OTG_FSM_TIMERS; i++) {
+>> +			if (timeouts[i])
+>> +				tmouts[i] = timeouts[i];
+>> +		}
+>> +	}
+>> +
+>> +	otg_timer_init(A_WAIT_VRISE, otgd, set_tmout, TA_WAIT_VRISE,
+>> +		       &fsm->a_wait_vrise_tmout);
+>> +	otg_timer_init(A_WAIT_VFALL, otgd, set_tmout, TA_WAIT_VFALL,
+>> +		       &fsm->a_wait_vfall_tmout);
+>> +	otg_timer_init(A_WAIT_BCON, otgd, set_tmout, TA_WAIT_BCON,
+>> +		       &fsm->a_wait_bcon_tmout);
+>> +	otg_timer_init(A_AIDL_BDIS, otgd, set_tmout, TA_AIDL_BDIS,
+>> +		       &fsm->a_aidl_bdis_tmout);
+>> +	otg_timer_init(A_BIDL_ADIS, otgd, set_tmout, TA_BIDL_ADIS,
+>> +		       &fsm->a_bidl_adis_tmout);
+>> +	otg_timer_init(B_ASE0_BRST, otgd, set_tmout, TB_ASE0_BRST,
+>> +		       &fsm->b_ase0_brst_tmout);
+>> +
+>> +	otg_timer_init(B_SE0_SRP, otgd, set_tmout, TB_SE0_SRP,
+>> +		       &fsm->b_se0_srp);
+>> +	otg_timer_init(B_SRP_FAIL, otgd, set_tmout, TB_SRP_FAIL,
+>> +		       &fsm->b_srp_done);
+>> +
+>> +	/* FIXME: what about A_WAIT_ENUM? */
+> 
+> Either you init it as other timers, or you remove all of it, otherwise
+> there will be NULL pointer crash.
+
+I want to initialize it but was not sure about the timeout value.
+What timeout value I must use?
+
+> 
+>> +}
+>> +
+>> +/**
+>> + * OTG FSM ops function to add timer
+>> + */
+>> +static void usb_otg_add_timer(struct otg_fsm *fsm, enum otg_fsm_timer id)
+>> +{
+>> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> +	struct otg_timer *otgtimer = &otgd->timers[id];
+>> +	struct hrtimer *timer = &otgtimer->timer;
+>> +
+>> +	if (!otgd->fsm_running)
+>> +		return;
+>> +
+>> +	/* if timer is already active, exit */
+>> +	if (hrtimer_active(timer)) {
+>> +		dev_err(otgd->dev, "otg: timer %d is already running\n", id);
+>> +		return;
+>> +	}
+>> +
+>> +	hrtimer_start(timer, otgtimer->timeout, HRTIMER_MODE_REL);
+>> +}
+>> +
+>> +/**
+>> + * OTG FSM ops function to delete timer
+>> + */
+>> +static void usb_otg_del_timer(struct otg_fsm *fsm, enum otg_fsm_timer id)
+>> +{
+>> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> +	struct hrtimer *timer = &otgd->timers[id].timer;
+>> +
+>> +	hrtimer_cancel(timer);
+>> +}
+>> +
+>> +/**
+>> + * Helper function to start/stop otg host. For use by otg controller.
+>> + */
+>> +int usb_otg_start_host(struct otg_fsm *fsm, int on)
+>> +{
+>> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> +	struct otg_hcd_ops *hcd_ops;
+>> +
+>> +	dev_dbg(otgd->dev, "otg: %s %d\n", __func__, on);
+>> +	if (!fsm->otg->host) {
+>> +		WARN_ONCE(1, "otg: fsm running without host\n");
+>> +		return 0;
+>> +	}
+>> +
+>> +	if (on) {
+>> +		/* start host */
+>> +		hcd_ops = otgd->primary_hcd.ops;
+>> +		hcd_ops->add(otgd->primary_hcd.hcd, otgd->primary_hcd.irqnum,
+>> +			     otgd->primary_hcd.irqflags);
+>> +		if (otgd->shared_hcd.hcd) {
+>> +			hcd_ops = otgd->shared_hcd.ops;
+>> +			hcd_ops->add(otgd->shared_hcd.hcd,
+>> +				     otgd->shared_hcd.irqnum,
+>> +				     otgd->shared_hcd.irqflags);
+>> +		}
+>> +	} else {
+>> +		/* stop host */
+>> +		if (otgd->shared_hcd.hcd) {
+>> +			hcd_ops = otgd->shared_hcd.ops;
+>> +			hcd_ops->remove(otgd->shared_hcd.hcd);
+>> +		}
+>> +		hcd_ops = otgd->primary_hcd.ops;
+>> +		hcd_ops->remove(otgd->primary_hcd.hcd);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_otg_start_host);
+>> +
+>> +/**
+>> + * Helper function to start/stop otg gadget. For use by otg controller.
+>> + */
+>> +int usb_otg_start_gadget(struct otg_fsm *fsm, int on)
+>> +{
+>> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> +	struct usb_gadget *gadget = fsm->otg->gadget;
+>> +
+>> +	dev_dbg(otgd->dev, "otg: %s %d\n", __func__, on);
+>> +	if (!gadget) {
+>> +		WARN_ONCE(1, "otg: fsm running without gadget\n");
+>> +		return 0;
+>> +	}
+>> +
+>> +	if (on)
+>> +		otgd->gadget_ops->start(fsm->otg->gadget);
+>> +	else
+>> +		otgd->gadget_ops->stop(fsm->otg->gadget);
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_otg_start_gadget);
+>> +
+>> +/**
+>> + * OTG FSM work function
+>> + */
+>> +static void usb_otg_work(struct work_struct *work)
+>> +{
+>> +	struct usb_otg *otgd = container_of(work, struct usb_otg, work);
+>> +
+> 
+> Add runtime pm for it
+> 	pm_runtime_get_sync(otgd->dev);
+>> +	otg_statemachine(&otgd->fsm);
+> 	pm_runtime_put_sync(otgd->dev);
+> 
+
+Sorry missed this one. Will add.
+
+> Also as I raised in your previous version, we need successive state machine
+> transition, how about:
+> 	if (otg_statemachine(&otgd->fsm))
+> 		usb_otg_sync_inputs(&otgd->fsm);
+
+OK. will add this too.
+
+>> +}
+>> +
+>> +/**
+>> + * usb_otg_register() - Register the OTG device to OTG core
+>> + * @dev: OTG controller device.
+>> + * @config: OTG configuration.
+>> + *
+>> + * Register the OTG controller device with the USB OTG core.
+>> + * The associated Host and Gadget controllers will be prevented from
+>> + * being started till both are available for use.
+>> + *
+>> + * For non device tree boots, the OTG controller device must be the
+>> + * parent node of the Host and Gadget controllers.
+>> + *
+>> + * For device tree case, the otg-controller property must be present
+>> + * in the Host and Gadget controller node and it must point to the
+>> + * same OTG controller node.
+>> + *
+>> + * Return: struct otg_fsm * if success, NULL if error.
+>> + */
+>> +struct otg_fsm *usb_otg_register(struct device *dev,
+>> +				 struct usb_otg_config *config)
+> 
+> Why not return usb_otg? Since you create usb_otg which contains all stuff
+> for otg.
+
+yes, returning usb_otg makes more sense now.
+
+> 
+>> +{
+>> +	struct usb_otg *otgd;
+>> +	struct otg_wait_data *wait;
+>> +	int ret = 0;
+>> +
+>> +	if (!dev || !config || !config->fsm_ops)
+>> +		return ERR_PTR(-EINVAL);
+>> +
+>> +	/* already in list? */
+>> +	mutex_lock(&otg_list_mutex);
+>> +	if (usb_otg_get_data(dev)) {
+>> +		dev_err(dev, "otg: %s: device already in otg list\n",
+>> +			__func__);
+>> +		ret = -EINVAL;
+>> +		goto unlock;
+>> +	}
+>> +
+>> +	/* allocate and add to list */
+>> +	otgd = kzalloc(sizeof(*otgd), GFP_KERNEL);
+>> +	if (!otgd) {
+>> +		ret = -ENOMEM;
+>> +		goto unlock;
+>> +	}
+>> +
+>> +	otgd->dev = dev;
+>> +	otgd->caps = &config->otg_caps;
+> 
+> How about define otgd->caps as a pointer, then don't need copy it.
+
+otgd->caps is a pointer.
+
+> 
+>> +	INIT_WORK(&otgd->work, usb_otg_work);
+>> +	otgd->wq = create_singlethread_workqueue("usb_otg");
+>> +	if (!otgd->wq) {
+>> +		dev_err(dev, "otg: %s: can't create workqueue\n",
+>> +			__func__);
+>> +		ret = -ENOMEM;
+>> +		goto err_wq;
+>> +	}
+>> +
+>> +	usb_otg_init_timers(otgd, config->otg_timeouts);
+>> +
+>> +	/* create copy of original ops */
+>> +	otgd->fsm_ops = *config->fsm_ops;
+> 
+> The same, use a pointer is enough?
+
+We are creating a copy because we are overriding timer ops.
+
+> 
+>> +	/* FIXME: we ignore caller's timer ops */
+>> +	otgd->fsm_ops.add_timer = usb_otg_add_timer;
+>> +	otgd->fsm_ops.del_timer = usb_otg_del_timer;
+>> +	/* set otg ops */
+>> +	otgd->fsm.ops = &otgd->fsm_ops;
+>> +	otgd->fsm.otg = otgd;
+>> +
+>> +	mutex_init(&otgd->fsm.lock);
+>> +
+>> +	list_add_tail(&otgd->list, &otg_list);
+>> +	mutex_unlock(&otg_list_mutex);
+>> +
+>> +	/* were we in wait list? */
+>> +	mutex_lock(&wait_list_mutex);
+>> +	wait = usb_otg_get_wait(dev);
+>> +	mutex_unlock(&wait_list_mutex);
+>> +	if (wait) {
+>> +		/* register pending host/gadget and flush from list */
+>> +		usb_otg_flush_wait(dev);
+>> +	}
+>> +
+>> +	return &otgd->fsm;
+>> +
+>> +err_wq:
+>> +	kfree(otgd);
+>> +unlock:
+>> +	mutex_unlock(&otg_list_mutex);
+>> +	return ERR_PTR(ret);
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_otg_register);
+>> +
+>> +/**
+>> + * usb_otg_unregister() - Unregister the OTG device from USB OTG core
+>> + * @dev: OTG controller device.
+>> + *
+>> + * Unregister OTG controller device from USB OTG core.
+>> + * Prevents unregistering till both the associated Host and Gadget controllers
+>> + * have unregistered from the OTG core.
+>> + *
+>> + * Return: 0 on success, error value otherwise.
+>> + */
+>> +int usb_otg_unregister(struct device *dev)
+>> +{
+>> +	struct usb_otg *otgd;
+>> +
+>> +	mutex_lock(&otg_list_mutex);
+>> +	otgd = usb_otg_get_data(dev);
+>> +	if (!otgd) {
+>> +		dev_err(dev, "otg: %s: device not in otg list\n",
+>> +			__func__);
+>> +		mutex_unlock(&otg_list_mutex);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/* prevent unregister till both host & gadget have unregistered */
+>> +	if (otgd->fsm.otg->host || otgd->fsm.otg->gadget) {
+>> +		dev_err(dev, "otg: %s: host/gadget still registered\n",
+>> +			__func__);
+>> +		return -EBUSY;
+>> +	}
+>> +
+>> +	/* OTG FSM is halted when host/gadget unregistered */
+>> +	destroy_workqueue(otgd->wq);
+>> +
+>> +	/* remove from otg list */
+>> +	list_del(&otgd->list);
+>> +	kfree(otgd);
+>> +	mutex_unlock(&otg_list_mutex);
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_otg_unregister);
+>> +
+>> +/**
+>> + * start/kick the OTG FSM if we can
+>> + * fsm->lock must be held
+>> + */
+>> +static void usb_otg_start_fsm(struct otg_fsm *fsm)
+>> +{
+>> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> +
+>> +	if (otgd->fsm_running)
+>> +		goto kick_fsm;
+>> +
+>> +	if (!fsm->otg->host) {
+>> +		dev_info(otgd->dev, "otg: can't start till host registers\n");
+>> +		return;
+> 
+> So we need register hcd(usb_otg_register_hcd) before start fsm, right?
+
+Right. But you must use the plain old usb_add_hcd().
+
+> 
+>> +	}
+>> +
+>> +	if (!fsm->otg->gadget) {
+>> +		dev_info(otgd->dev, "otg: can't start till gadget registers\n");
+>> +		return;
+>> +	}
+>> +
+>> +	otgd->fsm_running = true;
+>> +kick_fsm:
+>> +	queue_work(otgd->wq, &otgd->work);
+>> +}
+>> +
+>> +/**
+>> + * stop the OTG FSM. Stops Host & Gadget controllers as well.
+>> + * fsm->lock must be held
+>> + */
+>> +static void usb_otg_stop_fsm(struct otg_fsm *fsm)
+>> +{
+>> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> +	int i;
+>> +
+>> +	if (!otgd->fsm_running)
+>> +		return;
+>> +
+>> +	/* no more new events queued */
+>> +	otgd->fsm_running = false;
+>> +
+>> +	/* Stop state machine / timers */
+>> +	for (i = 0; i < ARRAY_SIZE(otgd->timers); i++)
+>> +		hrtimer_cancel(&otgd->timers[i].timer);
+>> +
+>> +	flush_workqueue(otgd->wq);
+>> +	fsm->otg->state = OTG_STATE_UNDEFINED;
+>> +
+>> +	/* stop host/gadget immediately */
+>> +	if (fsm->protocol == PROTO_HOST)
+>> +		otg_start_host(fsm, 0);
+>> +	else if (fsm->protocol == PROTO_GADGET)
+>> +		otg_start_gadget(fsm, 0);
+>> +	fsm->protocol = PROTO_UNDEF;
+>> +}
+>> +
+>> +/**
+>> + * usb_otg_sync_inputs - Sync OTG inputs with the OTG state machine
+>> + * @fsm:	OTG FSM instance
+>> + *
+>> + * Used by the OTG driver to update the inputs to the OTG
+>> + * state machine.
+>> + *
+>> + * Can be called in IRQ context.
+>> + */
+>> +void usb_otg_sync_inputs(struct otg_fsm *fsm)
+>> +{
+>> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> +
+>> +	/* Don't kick FSM till it has started */
+>> +	if (!otgd->fsm_running)
+>> +		return;
+>> +
+>> +	/* Kick FSM */
+>> +	queue_work(otgd->wq, &otgd->work);
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_otg_sync_inputs);
+>> +
+>> +/**
+>> + * usb_otg_kick_fsm - Kick the OTG state machine
+>> + * @hcd_gcd_device:	Host/Gadget controller device
+>> + *
+>> + * Used by USB host/device stack to sync OTG related
+>> + * events to the OTG state machine.
+>> + * e.g. change in host_bus->b_hnp_enable, gadget->b_hnp_enable
+>> + *
+>> + * Returns: 0 on success, error value otherwise.
+>> + */
+>> +int usb_otg_kick_fsm(struct device *hcd_gcd_device)
+>> +{
+>> +	struct usb_otg *otgd;
+>> +
+>> +	mutex_lock(&otg_list_mutex);
+>> +	otgd = usb_otg_get_data(usb_otg_get_device(hcd_gcd_device));
+>> +	mutex_unlock(&otg_list_mutex);
+>> +	if (!otgd) {
+>> +		dev_dbg(hcd_gcd_device, "otg: %s: invalid host/gadget device\n",
+>> +			__func__);
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	usb_otg_sync_inputs(&otgd->fsm);
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_otg_kick_fsm);
+>> +
+>> +/**
+>> + * usb_otg_register_hcd - Register Host controller to OTG core
+>> + * @hcd:	Host controller device
+>> + * @irqnum:	interrupt number
+>> + * @irqflags:	interrupt flags
+>> + * @ops:	HCD ops to add/remove the HCD
+>> + *
 >> + * This is used by the USB Host stack to register the Host controller
 >> + * to the OTG core. Host controller must not be started by the
 >> + * caller as it is left upto the OTG state machine to do so.
+> 
+> I am confused on how to use this function.
+> - This function should be called before start fsm per usb_otg_start_fsm().
+
+yes.
+
+> - Called by usb_add_hcd(), so we need call usb_add_hcd() before start fsm.
+
+yes.
+
+> - If I want to add hcd when switch to host role, and remove hcd when switch
+>   to peripheral, with this design, I cannot use this function?
+
+You add hcd only once during the life of the OTG device. If it is linked to the
+OTG controller the OTG fsm manages the start/stop of hcd using the otg_hcd_ops.
+
+"usb/core/hcd.c"
+static struct otg_hcd_ops otg_hcd_intf = {
+        .add = usb_otg_add_hcd,
+        .remove = usb_otg_remove_hcd,
+};
+
+Your otg driver must use teh usb_otg_add/remove_hcd to start/stop the controller.
+Using usb_remove_hcd() means the hcd resource is no longer available and the
+otg fsm will be stopped.
+
+> - How about split it out of usb_add_hcd()?
+
+Adding the HCD and starting/stopping the hcd is split into
+usb_add/remove_hcd() and usb_otg_add/remove_hcd() for OTG case.
+
+> 
 >> + *
 >> + * Returns: 0 on success, error value otherwise.
 >> + */
@@ -30,28 +591,6 @@ On 07/09/15 04:23, Peter Chen wrote:
 >> +	struct device *hcd_dev = hcd->self.controller;
 >> +	struct device *otg_dev = usb_otg_get_device(hcd_dev);
 >> +
-> 
-> One big problem here is: there are two designs for current (IP) driver
-> code, one creates dedicated hcd device as roothub's parent, like dwc3.
-> Another one doesn't do this, roothub's parent is core device (or otg device
-> in your patch), like chipidea and dwc2.
-> 
-> Then, otg_dev will be glue layer device for chipidea after that.
-
-OK. Let's add a way for the otg controller driver to provide the host and gadget
-information to the otg core for such devices like chipidea and dwc2.
-
-This API must be called before the hcd/gadget-driver is added so that the otg
-core knows it's linked to an OTG controller.
-
-Any better idea?
-
-cheers,
--roger
-
-> 
-> Peter
-> 
 >> +	if (!otg_dev)
 >> +		return -EINVAL;	/* we're definitely not OTG */
 >> +
@@ -76,6 +615,12 @@ cheers,
 >> +
 >> +	/* HCD will be started by OTG fsm when needed */
 >> +	mutex_lock(&otgd->fsm.lock);
+> 
+> If call usb_add_hcd() when start host role, deadlock.
+
+No. You must call usb_otg_add_hcd() to start host role.
+
+> 
 >> +	if (otgd->primary_hcd.hcd) {
 >> +		/* probably a shared HCD ? */
 >> +		if (usb_otg_hcd_is_primary_hcd(hcd)) {
@@ -120,6 +665,14 @@ cheers,
 >> +	 */
 >> +	if (otgd->shared_hcd.hcd || !otgd->primary_hcd.hcd->shared_hcd) {
 >> +		otgd->fsm.otg->host = hcd_to_bus(hcd);
+> 
+> otgd->host = hcd_to_bus(hcd);
+
+ok. So we set host at both places. struct usb_otg in struct otg_fsm starts to
+feel redundant now. I think we should get rid of it and get the usb_otg struct
+using container_of() instead.
+
+> 
 >> +		/* FIXME: set bus->otg_port if this is true OTG port with HNP */
 >> +
 >> +		/* start FSM */
@@ -135,6 +688,14 @@ cheers,
 >> +err:
 >> +	mutex_unlock(&otgd->fsm.lock);
 >> +	return -EINVAL;
+> 
+> Return non-zero, then if err, do we need call usb_otg_add_hcd() after
+> usb_otg_register_hcd() fails?
+
+You should not call usb_otg_register_hcd() but usb_add_hcd().
+If that fails then you fail as ususal.
+
+> 
 >> +}
 >> +EXPORT_SYMBOL_GPL(usb_otg_register_hcd);
 >> +
@@ -509,6 +1070,9 @@ cheers,
 >>  	/* old usb_phy interface */
 >>  	struct usb_phy		*usb_phy;
 >> +
+> 
+> add a blank line?
+> 
 >>  	struct usb_bus		*host;
 >>  	struct usb_gadget	*gadget;
 >>  
@@ -528,6 +1092,12 @@ cheers,
 >> +	struct work_struct work;
 >> +	struct workqueue_struct *wq;
 >> +	bool fsm_running;
+> 
+> Should fsm_running be added in otg_fsm struct?
+
+Yes, can be moved there.
+
+> 
 >> +	/* use otg->fsm.lock for serializing access */
 >> +
 >> +/*------------- deprecated interface -----------------------------*/
@@ -669,4 +1239,3 @@ cheers,
 >> -- 
 >> 2.1.4
 >>
-> 
