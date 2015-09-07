@@ -1,86 +1,37 @@
-From: Peter Chen <peter.chen@freescale.com>
-Subject: Re: [PATCH v4 04/13] otg-fsm: move usb_bus_start_enum into
- otg-fsm->ops
-Date: Mon, 7 Sep 2015 09:24:38 +0800
-Message-ID: <20150907012437.GH4914@shlinux2>
-References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
- <1440422484-4737-5-git-send-email-rogerq@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/3] ARM: OMAP2+: Optimize soc_is calls
+Date: Mon, 7 Sep 2015 12:35:25 +0530
+Message-ID: <1441609528-20344-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1440422484-4737-5-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 24, 2015 at 04:21:15PM +0300, Roger Quadros wrote:
-> This is to prevent missing symbol build error if OTG is
-> enabled (built-in) and HCD core (CONFIG_USB) is module.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Acked-by: Peter Chen <peter.chen@freescale.com>
-> ---
->  drivers/usb/common/usb-otg-fsm.c | 6 ++++--
->  drivers/usb/phy/phy-fsl-usb.c    | 2 ++
->  include/linux/usb/otg-fsm.h      | 1 +
->  3 files changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-> index a46f29a..6e56c8c 100644
-> --- a/drivers/usb/common/usb-otg-fsm.c
-> +++ b/drivers/usb/common/usb-otg-fsm.c
-> @@ -165,8 +165,10 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->  		otg_loc_conn(fsm, 0);
->  		otg_loc_sof(fsm, 1);
->  		otg_set_protocol(fsm, PROTO_HOST);
-> -		usb_bus_start_enum(fsm->otg->host,
-> -				fsm->otg->host->otg_port);
-> +		if (fsm->ops->start_enum) {
-> +			fsm->ops->start_enum(fsm->otg->host,
-> +					     fsm->otg->host->otg_port);
-> +		}
->  		break;
->  	case OTG_STATE_A_IDLE:
->  		otg_drv_vbus(fsm, 0);
-> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
-> index ee3f2c2..19541ed 100644
-> --- a/drivers/usb/phy/phy-fsl-usb.c
-> +++ b/drivers/usb/phy/phy-fsl-usb.c
-> @@ -783,6 +783,8 @@ static struct otg_fsm_ops fsl_otg_ops = {
->  
->  	.start_host = fsl_otg_start_host,
->  	.start_gadget = fsl_otg_start_gadget,
-> +
-> +	.start_enum = usb_bus_start_enum,
->  };
->  
->  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
-> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
-> index 672551c..75e82cc 100644
-> --- a/include/linux/usb/otg-fsm.h
-> +++ b/include/linux/usb/otg-fsm.h
-> @@ -199,6 +199,7 @@ struct otg_fsm_ops {
->  	void	(*del_timer)(struct otg_fsm *fsm, enum otg_fsm_timer timer);
->  	int	(*start_host)(struct otg_fsm *fsm, int on);
->  	int	(*start_gadget)(struct otg_fsm *fsm, int on);
-> +	int	(*start_enum)(struct usb_bus *bus, unsigned port_num);
->  };
->  
->  
+The series implements optimizing soc_is calls for DRA7 and AM43XX
+family of SoCs. Originally the soc_is calls for DRA7 involved parsing
+device tree nodes and some repetitive string comparisons. Optimizing
+to store the result and use the result in the subsequent calls.
 
-Get one build warning:
+The series is boot tested on am437x-gp-evm, dra7-evm, dra72-evm.
 
-In file included from /u/home/b29397/work/projects/usb/drivers/usb/chipidea/udc.c:23:0:
-/u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: 'struct usb_bus' declared inside parameter list
-  int (*start_enum)(struct usb_bus *bus, unsigned port_num);
-                             ^
-/u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: its scope is only this definition or declaration, which is probably not what you want
+Keerthy (3):
+  ARM: OMAP2: DRA7: Modify optimize string comparisons in soc_is calls
+  ARM: dts: AM43x-epos-evm: Add AM438x compatible string for epos
+  ARM: OMAP2: AM43XX: Modify optimize string comparisons in soc_is calls
 
-It probably dues to we should not have struct usb_bus* at udc driver
+ .../devicetree/bindings/arm/omap/omap.txt          |  5 +++-
+ arch/arm/boot/dts/am43x-epos-evm.dts               |  2 +-
+ arch/arm/mach-omap2/id.c                           | 28 ++++++++++++++++++++++
+ arch/arm/mach-omap2/soc.h                          | 25 +++++++++++++++----
+ 4 files changed, 53 insertions(+), 7 deletions(-)
 
 -- 
+1.9.1
 
-Best Regards,
-Peter Chen
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
