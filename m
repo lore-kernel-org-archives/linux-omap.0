@@ -1,108 +1,89 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 13/13] usb: otg: Add dual-role device (DRD) support
-Date: Mon, 7 Sep 2015 12:51:46 +0300
-Message-ID: <55ED5E32.80203@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 04/13] otg-fsm: move usb_bus_start_enum into
+ otg-fsm->ops
+Date: Mon, 7 Sep 2015 12:57:21 +0300
+Message-ID: <55ED5F81.5060601@ti.com>
 References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
- <1440422484-4737-14-git-send-email-rogerq@ti.com>
- <20150907075347.GB30578@shlinux2>
+ <1440422484-4737-5-git-send-email-rogerq@ti.com>
+ <20150907012437.GH4914@shlinux2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150907075347.GB30578@shlinux2>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Li Jun <b47624-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jun.li-KZfg59tc24xl57MIdRCFDg@public.gmane.org, mathias.nyman-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, abrestic-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150907012437.GH4914@shlinux2>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Chen <peter.chen@freescale.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/09/15 10:53, Li Jun wrote:
-> On Mon, Aug 24, 2015 at 04:21:24PM +0300, Roger Quadros wrote:
->> DRD mode is a reduced functionality OTG mode. In this mode
->> we don't support SRP, HNP and dynamic role-swap.
+On 07/09/15 04:24, Peter Chen wrote:
+> On Mon, Aug 24, 2015 at 04:21:15PM +0300, Roger Quadros wrote:
+>> This is to prevent missing symbol build error if OTG is
+>> enabled (built-in) and HCD core (CONFIG_USB) is module.
 >>
->> In DRD operation, the controller mode (Host or Peripheral)
->> is decided based on the ID pin status. Once a cable plug (Type-A
->> or Type-B) is attached the controller selects the state
->> and doesn't change till the cable in unplugged and a different
->> cable type is inserted.
->>
->> As we don't need most of the complex OTG states and OTG timers
->> we implement a lean DRD state machine in usb-otg.c.
->> The DRD state machine is only interested in 2 hardware inputs
->> 'id' and 'b_sess_vld'.
->>
->> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Acked-by: Peter Chen <peter.chen@freescale.com>
 >> ---
->>  drivers/usb/common/usb-otg.c | 178 +++++++++++++++++++++++++++++++++++++++++--
->>  include/linux/usb/otg-fsm.h  |   5 ++
->>  include/linux/usb/otg.h      |   2 +
->>  3 files changed, 177 insertions(+), 8 deletions(-)
+>>  drivers/usb/common/usb-otg-fsm.c | 6 ++++--
+>>  drivers/usb/phy/phy-fsl-usb.c    | 2 ++
+>>  include/linux/usb/otg-fsm.h      | 1 +
+>>  3 files changed, 7 insertions(+), 2 deletions(-)
 >>
-> 
-> ... ...
-> 
->> +/* Called when entering a DRD state */
->> +static void drd_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
->> +{
->> +	struct usb_otg *otgd = container_of(fsm, struct usb_otg, fsm);
+>> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+>> index a46f29a..6e56c8c 100644
+>> --- a/drivers/usb/common/usb-otg-fsm.c
+>> +++ b/drivers/usb/common/usb-otg-fsm.c
+>> @@ -165,8 +165,10 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+>>  		otg_loc_conn(fsm, 0);
+>>  		otg_loc_sof(fsm, 1);
+>>  		otg_set_protocol(fsm, PROTO_HOST);
+>> -		usb_bus_start_enum(fsm->otg->host,
+>> -				fsm->otg->host->otg_port);usb_bus_start_enum
+>> +		if (fsm->ops->start_enum) {
+>> +			fsm->ops->start_enum(fsm->otg->host,
+>> +					     fsm->otg->host->otg_port);
+>> +		}
+>>  		break;
+>>  	case OTG_STATE_A_IDLE:
+>>  		otg_drv_vbus(fsm, 0);
+>> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
+>> index ee3f2c2..19541ed 100644
+>> --- a/drivers/usb/phy/phy-fsl-usb.c
+>> +++ b/drivers/usb/phy/phy-fsl-usb.c
+>> @@ -783,6 +783,8 @@ static struct otg_fsm_ops fsl_otg_ops = {
+>>  
+>>  	.start_host = fsl_otg_start_host,
+>>  	.start_gadget = fsl_otg_start_gadget,
 >> +
->> +	if (fsm->otg->state == new_state)
->> +		return;
->> +
->> +	fsm->state_changed = 1;
->> +	dev_dbg(otgd->dev, "otg: set state: %s\n",
->> +		usb_otg_state_string(new_state));
->> +	switch (new_state) {
->> +	case OTG_STATE_B_IDLE:
->> +		drd_set_protocol(fsm, PROTO_UNDEF);
+>> +	.start_enum = usb_bus_start_enum,
+>>  };
+>>  
+>>  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
+>> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
+>> index 672551c..75e82cc 100644
+>> --- a/include/linux/usb/otg-fsm.h
+>> +++ b/include/linux/usb/otg-fsm.h
+>> @@ -199,6 +199,7 @@ struct otg_fsm_ops {
+>>  	void	(*del_timer)(struct otg_fsm *fsm, enum otg_fsm_timer timer);
+>>  	int	(*start_host)(struct otg_fsm *fsm, int on);
+>>  	int	(*start_gadget)(struct otg_fsm *fsm, int on);
+>> +	int	(*start_enum)(struct usb_bus *bus, unsigned port_num);
+>>  };
+>>  
+>>  
 > 
-> You didn't address this comment for your previous version.
+> Get one build warning:
 > 
-> otg_drv_vbus(fsm, 0);
+> In file included from /u/home/b29397/work/projects/usb/drivers/usb/chipidea/udc.c:23:0:
+> /u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: 'struct usb_bus' declared inside parameter list
+>   int (*start_enum)(struct usb_bus *bus, unsigned port_num);
+>                              ^
+> /u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: its scope is only this definition or declaration, which is probably not what you want
 > 
->> +		break;
->> +	case OTG_STATE_B_PERIPHERAL:
->> +		drd_set_protocol(fsm, PROTO_GADGET);
+> It probably dues to we should not have struct usb_bus* at udc driver
 > 
-> otg_drv_vbus(fsm, 0);
-> 
->> +		break;
->> +	case OTG_STATE_A_HOST:
-> 
-> otg_drv_vbus(fsm, 1);
-> 
+How about changing it to struct otg_fsm instead like the other APIs?
+And do we leave usb_bus_start_enum() as it is?
 
-Sorry, I missed it. Will add in next version.
-
---
 cheers,
 -roger
-
->> +		drd_set_protocol(fsm, PROTO_HOST);
->> +		break;
->> +	case OTG_STATE_UNDEFINED:
->> +	case OTG_STATE_B_SRP_INIT:
->> +	case OTG_STATE_B_WAIT_ACON:
->> +	case OTG_STATE_B_HOST:
->> +	case OTG_STATE_A_IDLE:
->> +	case OTG_STATE_A_WAIT_VRISE:
->> +	case OTG_STATE_A_WAIT_BCON:
->> +	case OTG_STATE_A_SUSPEND:
->> +	case OTG_STATE_A_PERIPHERAL:
->> +	case OTG_STATE_A_WAIT_VFALL:
->> +	case OTG_STATE_A_VBUS_ERR:
->> +	default:
->> +		dev_warn(otgd->dev, "%s: otg: invalid state: %s\n",
->> +			 __func__, usb_otg_state_string(new_state));
->> +		break;
->> +	}
->> +
->> +	fsm->otg->state = new_state;
->> +}
->> +
-> ... ...
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
