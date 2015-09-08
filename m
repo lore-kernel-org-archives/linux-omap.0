@@ -1,58 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 03/13] twl4030_charger: correctly handle -EPROBE_DEFER
- from devm_usb_get_phy_by_node
-Date: Tue, 8 Sep 2015 13:14:17 -0700
-Message-ID: <20150908201417.GG4215@atomide.com>
-References: <20150730001113.4012.18086.stgit@noble>
- <20150730001124.4012.31980.stgit@noble>
- <CAMAWPa__hFOuz24YBcFiR+m5mOUArSuNpuqh3Ju1H+yj6qadfA@mail.gmail.com>
- <CAMAWPa_s2ELgRBRtWzFucmREMuLXS_V5Akmad5yFU13-GrzBDA@mail.gmail.com>
- <87si6x4a2f.fsf@notabene.neil.brown.name>
- <20150902130724.GQ4215@atomide.com>
- <CAMAWPa8q1BOMvvKqqU88vYq4-_QhuxefVqkM6=4BP4-FGZxRPw@mail.gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: mysterious crashes on OMAP5 uevm
+Date: Tue, 8 Sep 2015 22:41:15 +0200
+Message-ID: <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
+References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
+ <20150908143810.GD4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMAWPa8q1BOMvvKqqU88vYq4-_QhuxefVqkM6=4BP4-FGZxRPw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@kernel.org>
-Cc: Neil Brown <neil@brown.name>, Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, lkml <linux-kernel@vger.kernel.org>, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Tyler Baker <tyler.baker@linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150908143810.GD4215@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@kernel.org> [150908 11:36]:
-> On Wed, Sep 2, 2015 at 6:07 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Neil Brown <neil@brown.name> [150901 23:23]:
-> >> Kevin Hilman <khilman@kernel.org> writes:
-> >>
-> >> > ping... this boot failure has now landed in mainline
-> >>
-> >> sorry, I'm on leave at the moment and travelling so I'm unlikely to be
-> >> able to look at this properly.  I should be able to examine this issue
-> >> before the end of the month but cannot promise sooner than that (though
-> >> it is not impossible).
-> >>
-> >> Maybe it would be best to just revert it until a proper analysis can be
-> >> done.
-> >
-> > OK yeah let's revert this one for now until we know what goes wrong.
-> 
-> Looks like this is still in mainline.
-> 
-> Tony, can you revert?
-
-Probably best that Sebastian does it as there's another fix needed
-too. It seems the following are needed:
-
-- Revert $subject patch 3fc3895e4fe1 ("twl4030_charger: correctly
-  handle -EPROBE_DEFER from devm_usb_get_phy_by_node")
-
-- Apply compile fix "[PATCH] twl4030_charger: fix another compile
-  error"
-
-Just in case Sebastian is travelling or something.. Sebastian,
-can you please confirm?
-
-Regards,
-
-Tony
+T24gVHVlLCBTZXAgOCwgMjAxNSBhdCA0OjM4IFBNLCBUb255IExpbmRncmVuIDx0b255QGF0b21p
+ZGUuY29tPiB3cm90ZToKPiAqIEdyYXp2eWRhcyBJZ25vdGFzIDxub3Rhc2FzQGdtYWlsLmNvbT4g
+WzE1MDkwOCAwNTo1MF06Cj4+IEhpLAo+Pgo+PiB0aGlzIGlzIGEgbG9uZ3N0YW5kaW5nIHByb2Js
+ZW0gSSdtIHNlZWluZyBzaW5jZSB0aGUgdmVyeSBiZWdpbm5pbmcsCj4+IHdoaWNoIHdhcyBhcm91
+bmQgMy4xMiBvciBzbyAod2hlbiBJJ3ZlIGZpcnN0IGdvdCB0aGUgaGFyZHdhcmUpIGFuZCBpdAo+
+PiBzZWVtcyA0LjIgaXMgYWZmZWN0ZWQgYnkgaXQgc3RpbGwuIEJhc2ljYWxseSB3aGF0IGhhcHBl
+bnMgaXMgWG9yZwo+PiByYW5kb21seSBzZWdmYXVsdHMgYXQgc29tZSAiaW1wb3NzaWJsZSIgbG9j
+YXRpb24uIEkgZG9uJ3QgaGF2ZSB0aGUKPj4gZGV0YWlscyBhdCB0aGUgbW9tZW50IChjb3VsZCBn
+ZXQgdGhlbSBpcyBuZWVkZWQpLCBidXQgZnJvbSB3aGF0IEkKPj4gZXhhbWluZWQgd2l0aCBnZGIg
+c29tZSB0aW1lIGFnbyB0aGUgc2l0dWF0aW9uIGRpZCBub3QgbWFrZSBhbnkgc2Vuc2UuCj4+Cj4+
+IFRoZXJlIGFyZSAyIHdvcmthcm91bmRzIHRoYXQgSSBrbm93IHdoaWNoIG1ha2UgdGhlIHByb2Js
+ZW0gZ28gYXdheQo+PiAob25lIGlzIGVub3VnaCk6Cj4+IC0gcmVjb21waWxlIFhvcmcgd2l0aCAt
+bWFybSAoSSdtIHVzaW5nIERlYmlhbiBhcm1oZiBzbyBpdCdzIHRodW1iMiBieSBkZWZhdWx0KQo+
+PiAtIGRpc2FibGUgQVJDSF9NVUxUSV9WNiBpbiB0aGUga2VybmVsIGNvbmZpZwo+Pgo+PiBCZWNh
+dXNlIG9mIHRoZSBhYm92ZSB3b3JrYXJvdW5kcyBJIGhhdmUgZm9yZ290dGVuIGFib3V0IGl0IHNl
+dmVyYWwKPj4gdGltZXMsIGJ1dCBpdCByZWd1bGFybHkgY29tZXMgYmFjayBhbmQgYml0ZXMgYWdh
+aW4uIEl0IHdvdWxkIGxvb2sgbGlrZQo+PiBzb21lIG1pc3NpbmcgZXJyYXR1bSB3b3JrYXJvdW5k
+LCBidXQgSSBoYXZlIGFsbCBvZiB0aGVtIGVuYWJsZWQgaW4gdGhlCj4+IGtlcm5lbC4KPj4KPj4g
+RG9lcyBhbnlvbmUga25vdyBhYm91dCB0aGlzPyBQZXJoYXBzIHNvbWUgbWlzc2luZyBlcnJhdHVt
+IHdvcmthcm91bmQKPj4gaW4gdGhlIGJvb3Rsb2FkZXI/IHUtYm9vdCBpc24ndCB0b28gb2xkIGhl
+cmUgKDIwMTUuMDcpLgo+Cj4gU2VlbXMgbGlrZSBzb21lIGluY29ycmVjdCBoYW5kbGluZyB3aXRo
+IENPTkZJR19DUFVfVjYgY29tcGlsZWQgaW4uLgo+IE1heWJlIHRyeSB0byBuYXJyb3cgaXQgZG93
+biBieSBjb21tZW50aW5nIG91dCBzb21lIENPTkZJR19DUFVfVjYgYW5kCj4gX19MSU5VWF9BUk1f
+QVJDSF9fID0gNiBpZmRlZnMgaW4gdGhlIGdpdCBncmVwIENPTkZJR19DUFVfVjYKPiBwbGFjZXMg
+aWdub3JpbmcgdW5jb21wcmVzcyBhbmQgZGF2aW5jaSBjb2RlLgoKb2sgd2l0aCB0aGF0IGl0IHdh
+cyBxdWl0ZSBlYXN5IHRvIGZpbmQuIE9uIGEga2VybmVsIHdpdGggQVJDSF9NVUxUSV9WNgpkaXNh
+YmxlZCwgaXQgaXMgZW5vdWdoIHRvIGp1c3QgZG8gdGhpczoKCi0tLSBhL2FyY2gvYXJtL2tlcm5l
+bC9zaWduYWwuYworKysgYi9hcmNoL2FybS9rZXJuZWwvc2lnbmFsLmMKQEAgLTM0MCwxMyArMzQw
+LDEzIEBAIHNldHVwX3JldHVybihzdHJ1Y3QgcHRfcmVncyAqcmVncywgc3RydWN0IGtzaWduYWwg
+KmtzaWcsCiAgICAgICAgICAgICAgICAvKgogICAgICAgICAgICAgICAgICogVGhlIExTQiBvZiB0
+aGUgaGFuZGxlciBkZXRlcm1pbmVzIGlmIHdlJ3JlIGdvaW5nIHRvCiAgICAgICAgICAgICAgICAg
+KiBiZSB1c2luZyBUSFVNQiBvciBBUk0gbW9kZSBmb3IgdGhpcyBzaWduYWwgaGFuZGxlci4KICAg
+ICAgICAgICAgICAgICAqLwogICAgICAgICAgICAgICAgdGh1bWIgPSBoYW5kbGVyICYgMTsKCi0j
+aWYgX19MSU5VWF9BUk1fQVJDSF9fID49IDcKKyNpZiAwIC8vX19MSU5VWF9BUk1fQVJDSF9fID49
+IDcKICAgICAgICAgICAgICAgIC8qCiAgICAgICAgICAgICAgICAgKiBDbGVhciB0aGUgSWYtVGhl
+biBUaHVtYi0yIGV4ZWN1dGlvbiBzdGF0ZQogICAgICAgICAgICAgICAgICogQVJNIHNwZWMgcmVx
+dWlyZXMgdGhpcyB0byBiZSBhbGwgMDAwcyBpbiBBUk0gbW9kZQogICAgICAgICAgICAgICAgICog
+U25hcGRyYWdvbiBTNC9LcmFpdCBtaXNiZWhhdmVzIG9uIGEgVGh1bWI9PkFSTQogICAgICAgICAg
+ICAgICAgICogc2lnbmFsIHRyYW5zaXRpb24gd2l0aG91dCB0aGlzLgogICAgICAgICAgICAgICAg
+ICovCgouLi4gYW5kIHRoZSBwcm9ibGVtIGFwcGVhcnMsIHNvIEkgZ3Vlc3MgdGhpcyBuZWVkcyBz
+b21lIHJlYWwKbXVsdGlwbGF0Zm9ybSBoYW5kbGluZywuCgo+IERvIHlvdSBoYXZlIHNvbWUgZWFz
+eSB3YXkgdG8gcmVwcm9kdWNlIHRoaXMgaXNzdWU/CgpKdXN0IG1vdmluZyBhIGJyb3dzZXIgd2lu
+ZG93IGFyb3VuZCB3aXRoIG1vdXNlIHVzdWFsbHkgdHJpZ2dlcnMgaXQKd2l0aGluIGEgbWludXRl
+LgoKPgo+IFJlZ2FyZHMsCj4KPiBUb255CgpHcmHFvnZ5ZGFzCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlz
+dApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJh
+ZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
