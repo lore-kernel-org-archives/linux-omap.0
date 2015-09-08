@@ -1,73 +1,100 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH] ARM: dts: omap3-igep: Move eth IRQ pinmux to IGEPv2
- common dtsi
-Date: Mon, 7 Sep 2015 21:39:38 +0200
-Message-ID: <CAFqH_50Hbzu1WDV7O3_jnUKVZ2Hhg_0PvV9jR_R1PkhfJ1MAxQ@mail.gmail.com>
-References: <1441643058-8641-1-git-send-email-javier@osg.samsung.com>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [PATCH v4 04/13] otg-fsm: move usb_bus_start_enum into
+ otg-fsm->ops
+Date: Tue, 8 Sep 2015 14:54:25 +0800
+Message-ID: <20150908065424.GC7802@shlinux2>
+References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
+ <1440422484-4737-5-git-send-email-rogerq@ti.com>
+ <20150907012437.GH4914@shlinux2>
+ <55ED5F81.5060601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1441643058-8641-1-git-send-email-javier@osg.samsung.com>
+Content-Disposition: inline
+In-Reply-To: <55ED5F81.5060601@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kumar Gala <galak@codeaurora.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-2015-09-07 18:24 GMT+02:00 Javier Martinez Canillas <javier@osg.samsung.com>:
-> Only the IGEPv2 boards have a LAN9221i chip connected to the GPMC
-> so the pinmux configuration for the GPIO connected to the IRQ line
-> of the LAN chip should not be defined in the IGEP common dtsi but
-> in the one common to the IGEPv2 boards.
->
-> While there, use the OMAP3_CORE1_IOPAD() macro for the padconf reg.
->
-> Suggested-by: Ladislav Michl <ladis@linux-mips.org>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->
-> ---
->
->  arch/arm/boot/dts/omap3-igep.dtsi            | 6 ------
->  arch/arm/boot/dts/omap3-igep0020-common.dtsi | 6 ++++++
->  2 files changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-> index d5e5cd449b16..2230e1c03320 100644
-> --- a/arch/arm/boot/dts/omap3-igep.dtsi
-> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
-> @@ -78,12 +78,6 @@
->                 >;
->         };
->
-> -       smsc9221_pins: pinmux_smsc9221_pins {
-> -               pinctrl-single,pins = <
-> -                       0x1a2 (PIN_INPUT | MUX_MODE4)           /* mcspi1_cs2.gpio_176 */
-> -               >;
-> -       };
-> -
->         i2c1_pins: pinmux_i2c1_pins {
->                 pinctrl-single,pins = <
->                         0x18a (PIN_INPUT | MUX_MODE0)   /* i2c1_scl.i2c1_scl */
-> diff --git a/arch/arm/boot/dts/omap3-igep0020-common.dtsi b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
-> index e458c2185e3c..5ad688c57a00 100644
-> --- a/arch/arm/boot/dts/omap3-igep0020-common.dtsi
-> +++ b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
-> @@ -156,6 +156,12 @@
->                         OMAP3_CORE1_IOPAD(0x217a, PIN_INPUT | MUX_MODE0)        /* uart2_rx.uart2_rx */
->                 >;
->         };
-> +
-> +       smsc9221_pins: pinmux_smsc9221_pins {
-> +               pinctrl-single,pins = <
-> +                       OMAP3_CORE1_IOPAD(0x21d2, PIN_INPUT | MUX_MODE4)        /* mcspi1_cs2.gpio_176 */
-> +               >;
-> +       };
->  };
->
->  &omap3_pmx_core2 {
-> --
-> 2.4.3
->
+On Mon, Sep 07, 2015 at 12:57:21PM +0300, Roger Quadros wrote:
+> On 07/09/15 04:24, Peter Chen wrote:
+> > On Mon, Aug 24, 2015 at 04:21:15PM +0300, Roger Quadros wrote:
+> >> This is to prevent missing symbol build error if OTG is
+> >> enabled (built-in) and HCD core (CONFIG_USB) is module.
+> >>
+> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >> Acked-by: Peter Chen <peter.chen@freescale.com>
+> >> ---
+> >>  drivers/usb/common/usb-otg-fsm.c | 6 ++++--
+> >>  drivers/usb/phy/phy-fsl-usb.c    | 2 ++
+> >>  include/linux/usb/otg-fsm.h      | 1 +
+> >>  3 files changed, 7 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
+> >> index a46f29a..6e56c8c 100644
+> >> --- a/drivers/usb/common/usb-otg-fsm.c
+> >> +++ b/drivers/usb/common/usb-otg-fsm.c
+> >> @@ -165,8 +165,10 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
+> >>  		otg_loc_conn(fsm, 0);
+> >>  		otg_loc_sof(fsm, 1);
+> >>  		otg_set_protocol(fsm, PROTO_HOST);
+> >> -		usb_bus_start_enum(fsm->otg->host,
+> >> -				fsm->otg->host->otg_port);usb_bus_start_enum
+> >> +		if (fsm->ops->start_enum) {
+> >> +			fsm->ops->start_enum(fsm->otg->host,
+> >> +					     fsm->otg->host->otg_port);
+> >> +		}
+> >>  		break;
+> >>  	case OTG_STATE_A_IDLE:
+> >>  		otg_drv_vbus(fsm, 0);
+> >> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
+> >> index ee3f2c2..19541ed 100644
+> >> --- a/drivers/usb/phy/phy-fsl-usb.c
+> >> +++ b/drivers/usb/phy/phy-fsl-usb.c
+> >> @@ -783,6 +783,8 @@ static struct otg_fsm_ops fsl_otg_ops = {
+> >>  
+> >>  	.start_host = fsl_otg_start_host,
+> >>  	.start_gadget = fsl_otg_start_gadget,
+> >> +
+> >> +	.start_enum = usb_bus_start_enum,
+> >>  };
+> >>  
+> >>  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
+> >> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
+> >> index 672551c..75e82cc 100644
+> >> --- a/include/linux/usb/otg-fsm.h
+> >> +++ b/include/linux/usb/otg-fsm.h
+> >> @@ -199,6 +199,7 @@ struct otg_fsm_ops {
+> >>  	void	(*del_timer)(struct otg_fsm *fsm, enum otg_fsm_timer timer);
+> >>  	int	(*start_host)(struct otg_fsm *fsm, int on);
+> >>  	int	(*start_gadget)(struct otg_fsm *fsm, int on);
+> >> +	int	(*start_enum)(struct usb_bus *bus, unsigned port_num);
+> >>  };
+> >>  
+> >>  
+> > 
+> > Get one build warning:
+> > 
+> > In file included from /u/home/b29397/work/projects/usb/drivers/usb/chipidea/udc.c:23:0:
+> > /u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: 'struct usb_bus' declared inside parameter list
+> >   int (*start_enum)(struct usb_bus *bus, unsigned port_num);
+> >                              ^
+> > /u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: its scope is only this definition or declaration, which is probably not what you want
+> > 
+> > It probably dues to we should not have struct usb_bus* at udc driver
+> > 
+> How about changing it to struct otg_fsm instead like the other APIs?
+> And do we leave usb_bus_start_enum() as it is?
+> 
 
-Looks good to me.
+You have defined struct otg_hcd_ops to let otg visit hcd stuff, how
+about move this to otg_hcd_ops?
 
-Acked-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+> cheers,
+> -roger
+
+-- 
+
+Best Regards,
+Peter Chen
