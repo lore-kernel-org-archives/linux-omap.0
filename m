@@ -1,14 +1,16 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: mysterious crashes on OMAP5 uevm
-Date: Tue, 8 Sep 2015 22:41:15 +0200
-Message-ID: <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
+Date: Tue, 8 Sep 2015 14:07:08 -0700
+Message-ID: <20150908210708.GH4215@atomide.com>
 References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
  <20150908143810.GD4215@atomide.com>
+ <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150908143810.GD4215@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,54 +20,74 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
 Cc: Nishanth Menon <nm@ti.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCBTZXAgOCwgMjAxNSBhdCA0OjM4IFBNLCBUb255IExpbmRncmVuIDx0b255QGF0b21p
-ZGUuY29tPiB3cm90ZToKPiAqIEdyYXp2eWRhcyBJZ25vdGFzIDxub3Rhc2FzQGdtYWlsLmNvbT4g
-WzE1MDkwOCAwNTo1MF06Cj4+IEhpLAo+Pgo+PiB0aGlzIGlzIGEgbG9uZ3N0YW5kaW5nIHByb2Js
-ZW0gSSdtIHNlZWluZyBzaW5jZSB0aGUgdmVyeSBiZWdpbm5pbmcsCj4+IHdoaWNoIHdhcyBhcm91
-bmQgMy4xMiBvciBzbyAod2hlbiBJJ3ZlIGZpcnN0IGdvdCB0aGUgaGFyZHdhcmUpIGFuZCBpdAo+
-PiBzZWVtcyA0LjIgaXMgYWZmZWN0ZWQgYnkgaXQgc3RpbGwuIEJhc2ljYWxseSB3aGF0IGhhcHBl
-bnMgaXMgWG9yZwo+PiByYW5kb21seSBzZWdmYXVsdHMgYXQgc29tZSAiaW1wb3NzaWJsZSIgbG9j
-YXRpb24uIEkgZG9uJ3QgaGF2ZSB0aGUKPj4gZGV0YWlscyBhdCB0aGUgbW9tZW50IChjb3VsZCBn
-ZXQgdGhlbSBpcyBuZWVkZWQpLCBidXQgZnJvbSB3aGF0IEkKPj4gZXhhbWluZWQgd2l0aCBnZGIg
-c29tZSB0aW1lIGFnbyB0aGUgc2l0dWF0aW9uIGRpZCBub3QgbWFrZSBhbnkgc2Vuc2UuCj4+Cj4+
-IFRoZXJlIGFyZSAyIHdvcmthcm91bmRzIHRoYXQgSSBrbm93IHdoaWNoIG1ha2UgdGhlIHByb2Js
-ZW0gZ28gYXdheQo+PiAob25lIGlzIGVub3VnaCk6Cj4+IC0gcmVjb21waWxlIFhvcmcgd2l0aCAt
-bWFybSAoSSdtIHVzaW5nIERlYmlhbiBhcm1oZiBzbyBpdCdzIHRodW1iMiBieSBkZWZhdWx0KQo+
-PiAtIGRpc2FibGUgQVJDSF9NVUxUSV9WNiBpbiB0aGUga2VybmVsIGNvbmZpZwo+Pgo+PiBCZWNh
-dXNlIG9mIHRoZSBhYm92ZSB3b3JrYXJvdW5kcyBJIGhhdmUgZm9yZ290dGVuIGFib3V0IGl0IHNl
-dmVyYWwKPj4gdGltZXMsIGJ1dCBpdCByZWd1bGFybHkgY29tZXMgYmFjayBhbmQgYml0ZXMgYWdh
-aW4uIEl0IHdvdWxkIGxvb2sgbGlrZQo+PiBzb21lIG1pc3NpbmcgZXJyYXR1bSB3b3JrYXJvdW5k
-LCBidXQgSSBoYXZlIGFsbCBvZiB0aGVtIGVuYWJsZWQgaW4gdGhlCj4+IGtlcm5lbC4KPj4KPj4g
-RG9lcyBhbnlvbmUga25vdyBhYm91dCB0aGlzPyBQZXJoYXBzIHNvbWUgbWlzc2luZyBlcnJhdHVt
-IHdvcmthcm91bmQKPj4gaW4gdGhlIGJvb3Rsb2FkZXI/IHUtYm9vdCBpc24ndCB0b28gb2xkIGhl
-cmUgKDIwMTUuMDcpLgo+Cj4gU2VlbXMgbGlrZSBzb21lIGluY29ycmVjdCBoYW5kbGluZyB3aXRo
-IENPTkZJR19DUFVfVjYgY29tcGlsZWQgaW4uLgo+IE1heWJlIHRyeSB0byBuYXJyb3cgaXQgZG93
-biBieSBjb21tZW50aW5nIG91dCBzb21lIENPTkZJR19DUFVfVjYgYW5kCj4gX19MSU5VWF9BUk1f
-QVJDSF9fID0gNiBpZmRlZnMgaW4gdGhlIGdpdCBncmVwIENPTkZJR19DUFVfVjYKPiBwbGFjZXMg
-aWdub3JpbmcgdW5jb21wcmVzcyBhbmQgZGF2aW5jaSBjb2RlLgoKb2sgd2l0aCB0aGF0IGl0IHdh
-cyBxdWl0ZSBlYXN5IHRvIGZpbmQuIE9uIGEga2VybmVsIHdpdGggQVJDSF9NVUxUSV9WNgpkaXNh
-YmxlZCwgaXQgaXMgZW5vdWdoIHRvIGp1c3QgZG8gdGhpczoKCi0tLSBhL2FyY2gvYXJtL2tlcm5l
-bC9zaWduYWwuYworKysgYi9hcmNoL2FybS9rZXJuZWwvc2lnbmFsLmMKQEAgLTM0MCwxMyArMzQw
-LDEzIEBAIHNldHVwX3JldHVybihzdHJ1Y3QgcHRfcmVncyAqcmVncywgc3RydWN0IGtzaWduYWwg
-KmtzaWcsCiAgICAgICAgICAgICAgICAvKgogICAgICAgICAgICAgICAgICogVGhlIExTQiBvZiB0
-aGUgaGFuZGxlciBkZXRlcm1pbmVzIGlmIHdlJ3JlIGdvaW5nIHRvCiAgICAgICAgICAgICAgICAg
-KiBiZSB1c2luZyBUSFVNQiBvciBBUk0gbW9kZSBmb3IgdGhpcyBzaWduYWwgaGFuZGxlci4KICAg
-ICAgICAgICAgICAgICAqLwogICAgICAgICAgICAgICAgdGh1bWIgPSBoYW5kbGVyICYgMTsKCi0j
-aWYgX19MSU5VWF9BUk1fQVJDSF9fID49IDcKKyNpZiAwIC8vX19MSU5VWF9BUk1fQVJDSF9fID49
-IDcKICAgICAgICAgICAgICAgIC8qCiAgICAgICAgICAgICAgICAgKiBDbGVhciB0aGUgSWYtVGhl
-biBUaHVtYi0yIGV4ZWN1dGlvbiBzdGF0ZQogICAgICAgICAgICAgICAgICogQVJNIHNwZWMgcmVx
-dWlyZXMgdGhpcyB0byBiZSBhbGwgMDAwcyBpbiBBUk0gbW9kZQogICAgICAgICAgICAgICAgICog
-U25hcGRyYWdvbiBTNC9LcmFpdCBtaXNiZWhhdmVzIG9uIGEgVGh1bWI9PkFSTQogICAgICAgICAg
-ICAgICAgICogc2lnbmFsIHRyYW5zaXRpb24gd2l0aG91dCB0aGlzLgogICAgICAgICAgICAgICAg
-ICovCgouLi4gYW5kIHRoZSBwcm9ibGVtIGFwcGVhcnMsIHNvIEkgZ3Vlc3MgdGhpcyBuZWVkcyBz
-b21lIHJlYWwKbXVsdGlwbGF0Zm9ybSBoYW5kbGluZywuCgo+IERvIHlvdSBoYXZlIHNvbWUgZWFz
-eSB3YXkgdG8gcmVwcm9kdWNlIHRoaXMgaXNzdWU/CgpKdXN0IG1vdmluZyBhIGJyb3dzZXIgd2lu
-ZG93IGFyb3VuZCB3aXRoIG1vdXNlIHVzdWFsbHkgdHJpZ2dlcnMgaXQKd2l0aGluIGEgbWludXRl
-LgoKPgo+IFJlZ2FyZHMsCj4KPiBUb255CgpHcmHFvnZ5ZGFzCgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlz
-dApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJh
-ZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+* Grazvydas Ignotas <notasas@gmail.com> [150908 13:44]:
+> On Tue, Sep 8, 2015 at 4:38 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Grazvydas Ignotas <notasas@gmail.com> [150908 05:50]:
+> >> Hi,
+> >>
+> >> this is a longstanding problem I'm seeing since the very beginning,
+> >> which was around 3.12 or so (when I've first got the hardware) and it
+> >> seems 4.2 is affected by it still. Basically what happens is Xorg
+> >> randomly segfaults at some "impossible" location. I don't have the
+> >> details at the moment (could get them is needed), but from what I
+> >> examined with gdb some time ago the situation did not make any sense.
+> >>
+> >> There are 2 workarounds that I know which make the problem go away
+> >> (one is enough):
+> >> - recompile Xorg with -marm (I'm using Debian armhf so it's thumb2 by default)
+> >> - disable ARCH_MULTI_V6 in the kernel config
+> >>
+> >> Because of the above workarounds I have forgotten about it several
+> >> times, but it regularly comes back and bites again. It would look like
+> >> some missing erratum workaround, but I have all of them enabled in the
+> >> kernel.
+> >>
+> >> Does anyone know about this? Perhaps some missing erratum workaround
+> >> in the bootloader? u-boot isn't too old here (2015.07).
+> >
+> > Seems like some incorrect handling with CONFIG_CPU_V6 compiled in..
+> > Maybe try to narrow it down by commenting out some CONFIG_CPU_V6 and
+> > __LINUX_ARM_ARCH__ = 6 ifdefs in the git grep CONFIG_CPU_V6
+> > places ignoring uncompress and davinci code.
+> 
+> ok with that it was quite easy to find. On a kernel with ARCH_MULTI_V6
+> disabled, it is enough to just do this:
+> 
+> --- a/arch/arm/kernel/signal.c
+> +++ b/arch/arm/kernel/signal.c
+> @@ -340,13 +340,13 @@ setup_return(struct pt_regs *regs, struct ksignal *ksig,
+>                 /*
+>                  * The LSB of the handler determines if we're going to
+>                  * be using THUMB or ARM mode for this signal handler.
+>                  */
+>                 thumb = handler & 1;
+> 
+> -#if __LINUX_ARM_ARCH__ >= 7
+> +#if 0 //__LINUX_ARM_ARCH__ >= 7
+>                 /*
+>                  * Clear the If-Then Thumb-2 execution state
+>                  * ARM spec requires this to be all 000s in ARM mode
+>                  * Snapdragon S4/Krait misbehaves on a Thumb=>ARM
+>                  * signal transition without this.
+>                  */
+> 
+> ... and the problem appears, so I guess this needs some real
+> multiplatform handling,.
+
+OK nice to hear you found it. Yeah looks like some runtime
+capability check is needed.
+ 
+> > Do you have some easy way to reproduce this issue?
+> 
+> Just moving a browser window around with mouse usually triggers it
+> within a minute.
+
+OK good to know.
+
+Regards,
+
+Tony
