@@ -1,42 +1,55 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: mysterious crashes on OMAP5 uevm
-Date: Tue, 8 Sep 2015 14:46:48 +0200
-Message-ID: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: omap: Fix gpiochip_add() handling for deferred probe
+Date: Tue, 8 Sep 2015 15:57:39 +0200
+Message-ID: <CACRpkdZdTM5Sgtcn8PoP2X-haqzHZTgjEsvPJzZNLP=0A7XYYg@mail.gmail.com>
+References: <1440787489-15992-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1440787489-15992-1-git-send-email-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgp0aGlzIGlzIGEgbG9uZ3N0YW5kaW5nIHByb2JsZW0gSSdtIHNlZWluZyBzaW5jZSB0aGUg
-dmVyeSBiZWdpbm5pbmcsCndoaWNoIHdhcyBhcm91bmQgMy4xMiBvciBzbyAod2hlbiBJJ3ZlIGZp
-cnN0IGdvdCB0aGUgaGFyZHdhcmUpIGFuZCBpdApzZWVtcyA0LjIgaXMgYWZmZWN0ZWQgYnkgaXQg
-c3RpbGwuIEJhc2ljYWxseSB3aGF0IGhhcHBlbnMgaXMgWG9yZwpyYW5kb21seSBzZWdmYXVsdHMg
-YXQgc29tZSAiaW1wb3NzaWJsZSIgbG9jYXRpb24uIEkgZG9uJ3QgaGF2ZSB0aGUKZGV0YWlscyBh
-dCB0aGUgbW9tZW50IChjb3VsZCBnZXQgdGhlbSBpcyBuZWVkZWQpLCBidXQgZnJvbSB3aGF0IEkK
-ZXhhbWluZWQgd2l0aCBnZGIgc29tZSB0aW1lIGFnbyB0aGUgc2l0dWF0aW9uIGRpZCBub3QgbWFr
-ZSBhbnkgc2Vuc2UuCgpUaGVyZSBhcmUgMiB3b3JrYXJvdW5kcyB0aGF0IEkga25vdyB3aGljaCBt
-YWtlIHRoZSBwcm9ibGVtIGdvIGF3YXkKKG9uZSBpcyBlbm91Z2gpOgotIHJlY29tcGlsZSBYb3Jn
-IHdpdGggLW1hcm0gKEknbSB1c2luZyBEZWJpYW4gYXJtaGYgc28gaXQncyB0aHVtYjIgYnkgZGVm
-YXVsdCkKLSBkaXNhYmxlIEFSQ0hfTVVMVElfVjYgaW4gdGhlIGtlcm5lbCBjb25maWcKCkJlY2F1
-c2Ugb2YgdGhlIGFib3ZlIHdvcmthcm91bmRzIEkgaGF2ZSBmb3Jnb3R0ZW4gYWJvdXQgaXQgc2V2
-ZXJhbAp0aW1lcywgYnV0IGl0IHJlZ3VsYXJseSBjb21lcyBiYWNrIGFuZCBiaXRlcyBhZ2Fpbi4g
-SXQgd291bGQgbG9vayBsaWtlCnNvbWUgbWlzc2luZyBlcnJhdHVtIHdvcmthcm91bmQsIGJ1dCBJ
-IGhhdmUgYWxsIG9mIHRoZW0gZW5hYmxlZCBpbiB0aGUKa2VybmVsLgoKRG9lcyBhbnlvbmUga25v
-dyBhYm91dCB0aGlzPyBQZXJoYXBzIHNvbWUgbWlzc2luZyBlcnJhdHVtIHdvcmthcm91bmQKaW4g
-dGhlIGJvb3Rsb2FkZXI/IHUtYm9vdCBpc24ndCB0b28gb2xkIGhlcmUgKDIwMTUuMDcpLgoKR3Jh
-xb52eWRhcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
-YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtYXJtLWtlcm5lbAo=
+On Fri, Aug 28, 2015 at 8:44 PM, Tony Lindgren <tony@atomide.com> wrote:
+
+> Currently we gpio-omap breaks if gpiochip_add() returns -EPROBE_DEFER:
+>
+> [    0.570000] gpiochip_add: GPIOs 0..31 (gpio) failed to register
+> [    0.570000] omap_gpio 48310000.gpio: Could not register gpio chip -517
+> ...
+> [    3.670000] omap_gpio 48310000.gpio: Unbalanced pm_runtime_enable!
+>
+> Let's fix the issue by adding the missing pm_runtime_put() on error.
+>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Javier Martinez Canillas <javier@dowhile0.org>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/gpio/gpio-omap.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index b0c57d5..f09bf0b 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1232,8 +1232,11 @@ static int omap_gpio_probe(struct platform_device *pdev)
+>         omap_gpio_mod_init(bank);
+>
+>         ret = omap_gpio_chip_init(bank, irqc);
+> -       if (ret)
+> +       if (ret) {
+> +               pm_runtime_put_sync(bank->dev);
+> +               pm_runtime_disable(bank->dev);
+>                 return ret;
+> +       }
+>
+>         omap_gpio_show_rev(bank);
+
+Patch applied for fixes with Santosh's ACK.
+
+Yours,
+Linus Walleij
