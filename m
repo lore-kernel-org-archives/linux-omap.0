@@ -1,41 +1,108 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH 03/13] twl4030_charger: correctly handle -EPROBE_DEFER
- from devm_usb_get_phy_by_node
-Date: Tue, 8 Sep 2015 11:32:24 -0700
-Message-ID: <CAMAWPa8q1BOMvvKqqU88vYq4-_QhuxefVqkM6=4BP4-FGZxRPw@mail.gmail.com>
-References: <20150730001113.4012.18086.stgit@noble>
-	<20150730001124.4012.31980.stgit@noble>
-	<CAMAWPa__hFOuz24YBcFiR+m5mOUArSuNpuqh3Ju1H+yj6qadfA@mail.gmail.com>
-	<CAMAWPa_s2ELgRBRtWzFucmREMuLXS_V5Akmad5yFU13-GrzBDA@mail.gmail.com>
-	<87si6x4a2f.fsf@notabene.neil.brown.name>
-	<20150902130724.GQ4215@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [net-next PATCH v3] drivers: net: cpsw: Add support to drive
+ gpios for ethernet to be functional
+Date: Tue, 8 Sep 2015 13:06:18 -0700
+Message-ID: <20150908200618.GF4215@atomide.com>
+References: <1441619204-15403-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150902130724.GQ4215@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Neil Brown <neil@brown.name>, Kevin Hilman <khilman@kernel.org>, Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, lkml <linux-kernel@vger.kernel.org>, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Tyler Baker <tyler.baker@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1441619204-15403-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 2, 2015 at 6:07 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Neil Brown <neil@brown.name> [150901 23:23]:
->> Kevin Hilman <khilman@kernel.org> writes:
->>
->> > ping... this boot failure has now landed in mainline
->>
->> sorry, I'm on leave at the moment and travelling so I'm unlikely to be
->> able to look at this properly.  I should be able to examine this issue
->> before the end of the month but cannot promise sooner than that (though
->> it is not impossible).
->>
->> Maybe it would be best to just revert it until a proper analysis can be
->> done.
->
-> OK yeah let's revert this one for now until we know what goes wrong.
+* Mugunthan V N <mugunthanvnm@ti.com> [150907 02:50]:
+> In DRA72x EVM, by default slave 1 is connected to the onboard
+> phy, but slave 2 pins are also muxed with video input module
+> which is controlled by pcf857x gpio and currently to select slave
+> 0 to connect to phy gpio hogging is used, but with
+> omap2plus_defconfig the pcf857x gpio is built as module. So when
+> using NFS on DRA72x EVM, board doesn't boot as gpio hogging do
+> not set proper gpio state to connect slave 0 to phy as it is
+> built as module and you do not see any errors for not setting
+> gpio and just mentions dhcp reply not got.
+> 
+> To solve this issue, introducing "mode-gpios" in DT when gpio
+> based muxing is required. This will throw a warning when gpio
+> get fails and returns probe defer. When gpio-pcf857x module is
+> installed, cpsw probes again and ethernet becomes functional.
+> Verified this on DRA72x with pcf as module and ramdisk.
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-Looks like this is still in mainline.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Tony, can you revert?
-
-Kevin
+> ---
+> 
+> Changes from v2:
+> * Used mode-gpios, so that the driver is generic enough to handle
+>   multiple gpios
+> 
+> This patch is tested on DRA72x, Logs [1] and pushed a branch [2]
+> 
+> [1]: http://pastebin.ubuntu.com/12306224/
+> [2]: git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git cpsw-gpio-optional-v3
+> 
+> ---
+>  Documentation/devicetree/bindings/net/cpsw.txt | 7 +++++++
+>  drivers/net/ethernet/ti/cpsw.c                 | 9 +++++++++
+>  2 files changed, 16 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+> index a9df21a..676ecf6 100644
+> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+> @@ -30,6 +30,13 @@ Optional properties:
+>  - dual_emac		: Specifies Switch to act as Dual EMAC
+>  - syscon		: Phandle to the system control device node, which is
+>  			  the control module device of the am33x
+> +- mode-gpios		: Should be added if one/multiple gpio lines are
+> +			  required to be driven so that cpsw data lines
+> +			  can be connected to the phy via selective mux.
+> +			  For example in dra72x-evm, pcf gpio has to be
+> +			  driven low so that cpsw slave 0 and phy data
+> +			  lines are connected via mux.
+> +
+>  
+>  Slave Properties:
+>  Required properties:
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 8fc90f1..c670317 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/workqueue.h>
+>  #include <linux/delay.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/gpio.h>
+>  #include <linux/of.h>
+>  #include <linux/of_net.h>
+>  #include <linux/of_device.h>
+> @@ -2207,6 +2208,7 @@ static int cpsw_probe(struct platform_device *pdev)
+>  	void __iomem			*ss_regs;
+>  	struct resource			*res, *ss_res;
+>  	const struct of_device_id	*of_id;
+> +	struct gpio_descs		*mode;
+>  	u32 slave_offset, sliver_offset, slave_size;
+>  	int ret = 0, i;
+>  	int irq;
+> @@ -2232,6 +2234,13 @@ static int cpsw_probe(struct platform_device *pdev)
+>  		goto clean_ndev_ret;
+>  	}
+>  
+> +	mode = devm_gpiod_get_array_optional(&pdev->dev, "mode", GPIOD_OUT_LOW);
+> +	if (IS_ERR(mode)) {
+> +		ret = PTR_ERR(mode);
+> +		dev_err(&pdev->dev, "gpio request failed, ret %d\n", ret);
+> +		goto clean_ndev_ret;
+> +	}
+> +
+>  	/*
+>  	 * This may be required here for child devices.
+>  	 */
+> -- 
+> 2.6.0.rc0.24.gec371ff
+> 
