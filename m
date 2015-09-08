@@ -1,55 +1,42 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] dmaengine: omap-dma: Add support for memcpy
-Date: Tue, 8 Sep 2015 15:25:33 +0300
-Message-ID: <55EED3BD.1080605@ti.com>
-References: <1429688069-31765-1-git-send-email-peter.ujfalusi@ti.com>
- <3187470.tKXzQaPa1m@avalon>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: mysterious crashes on OMAP5 uevm
+Date: Tue, 8 Sep 2015 14:46:48 +0200
+Message-ID: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3187470.tKXzQaPa1m@avalon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: vinod.koul@intel.com, linux@arm.linux.org.uk, tony@atomide.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, dan.j.williams@intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Laurent,
-
-On 09/08/2015 02:24 PM, Laurent Pinchart wrote:
-> Hi Peter,
->=20
-> Thank you for the patch.
->=20
-> While trying to port the omap_vout driver to the DMA engine API I not=
-iced that=20
-> the driver makes use of double-indexed transfers, which are not suppo=
-rted by=20
-> the omap-dma driver. I haven't checked in details what would be requi=
-red, but=20
-> the interleaved API might be a good candidate for this. Do you have a=
-ny plan=20
-> to add support for double-indexed transfers to the omap-dma driver ?
-
-If double-indexed transfer support is needed by drivers still using the
-legacy/direct sDMA API, then I don't think we have other options..
-So far I have not looked at that part and where it would fit.
-I'll try to find time to look at this. I hope not in the distant future=
- ;)
-
-> On Wednesday 22 April 2015 10:34:29 Peter Ujfalusi wrote:
->> The sDMA controller is capable of performing memory copy operation. =
-It need
->> to be configured to software triggered mode and without HW synchroni=
-zation.
->> The sDMA can copy data which is aligned to 8, 16 or 32 bits.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->>  drivers/dma/omap-dma.c | 51 +++++++++++++++++++++++++++++++++++++++=
-++++++--
->>  1 file changed, 49 insertions(+), 2 deletions(-)
->=20
-
---=20
-P=E9ter
+SGksCgp0aGlzIGlzIGEgbG9uZ3N0YW5kaW5nIHByb2JsZW0gSSdtIHNlZWluZyBzaW5jZSB0aGUg
+dmVyeSBiZWdpbm5pbmcsCndoaWNoIHdhcyBhcm91bmQgMy4xMiBvciBzbyAod2hlbiBJJ3ZlIGZp
+cnN0IGdvdCB0aGUgaGFyZHdhcmUpIGFuZCBpdApzZWVtcyA0LjIgaXMgYWZmZWN0ZWQgYnkgaXQg
+c3RpbGwuIEJhc2ljYWxseSB3aGF0IGhhcHBlbnMgaXMgWG9yZwpyYW5kb21seSBzZWdmYXVsdHMg
+YXQgc29tZSAiaW1wb3NzaWJsZSIgbG9jYXRpb24uIEkgZG9uJ3QgaGF2ZSB0aGUKZGV0YWlscyBh
+dCB0aGUgbW9tZW50IChjb3VsZCBnZXQgdGhlbSBpcyBuZWVkZWQpLCBidXQgZnJvbSB3aGF0IEkK
+ZXhhbWluZWQgd2l0aCBnZGIgc29tZSB0aW1lIGFnbyB0aGUgc2l0dWF0aW9uIGRpZCBub3QgbWFr
+ZSBhbnkgc2Vuc2UuCgpUaGVyZSBhcmUgMiB3b3JrYXJvdW5kcyB0aGF0IEkga25vdyB3aGljaCBt
+YWtlIHRoZSBwcm9ibGVtIGdvIGF3YXkKKG9uZSBpcyBlbm91Z2gpOgotIHJlY29tcGlsZSBYb3Jn
+IHdpdGggLW1hcm0gKEknbSB1c2luZyBEZWJpYW4gYXJtaGYgc28gaXQncyB0aHVtYjIgYnkgZGVm
+YXVsdCkKLSBkaXNhYmxlIEFSQ0hfTVVMVElfVjYgaW4gdGhlIGtlcm5lbCBjb25maWcKCkJlY2F1
+c2Ugb2YgdGhlIGFib3ZlIHdvcmthcm91bmRzIEkgaGF2ZSBmb3Jnb3R0ZW4gYWJvdXQgaXQgc2V2
+ZXJhbAp0aW1lcywgYnV0IGl0IHJlZ3VsYXJseSBjb21lcyBiYWNrIGFuZCBiaXRlcyBhZ2Fpbi4g
+SXQgd291bGQgbG9vayBsaWtlCnNvbWUgbWlzc2luZyBlcnJhdHVtIHdvcmthcm91bmQsIGJ1dCBJ
+IGhhdmUgYWxsIG9mIHRoZW0gZW5hYmxlZCBpbiB0aGUKa2VybmVsLgoKRG9lcyBhbnlvbmUga25v
+dyBhYm91dCB0aGlzPyBQZXJoYXBzIHNvbWUgbWlzc2luZyBlcnJhdHVtIHdvcmthcm91bmQKaW4g
+dGhlIGJvb3Rsb2FkZXI/IHUtYm9vdCBpc24ndCB0b28gb2xkIGhlcmUgKDIwMTUuMDcpLgoKR3Jh
+xb52eWRhcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
+YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
+dXgtYXJtLWtlcm5lbAo=
