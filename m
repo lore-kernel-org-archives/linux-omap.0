@@ -1,100 +1,34 @@
-From: Peter Chen <peter.chen@freescale.com>
-Subject: Re: [PATCH v4 04/13] otg-fsm: move usb_bus_start_enum into
- otg-fsm->ops
-Date: Tue, 8 Sep 2015 14:54:25 +0800
-Message-ID: <20150908065424.GC7802@shlinux2>
-References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
- <1440422484-4737-5-git-send-email-rogerq@ti.com>
- <20150907012437.GH4914@shlinux2>
- <55ED5F81.5060601@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
+Subject: [PATCH 0/3] Add support for tps65217 charger
+Date: Tue,  8 Sep 2015 10:09:36 +0200
+Message-ID: <1441699779-22189-1-git-send-email-enric.balletbo@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55ED5F81.5060601@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, lee.jones@linaro.org, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 07, 2015 at 12:57:21PM +0300, Roger Quadros wrote:
-> On 07/09/15 04:24, Peter Chen wrote:
-> > On Mon, Aug 24, 2015 at 04:21:15PM +0300, Roger Quadros wrote:
-> >> This is to prevent missing symbol build error if OTG is
-> >> enabled (built-in) and HCD core (CONFIG_USB) is module.
-> >>
-> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >> Acked-by: Peter Chen <peter.chen@freescale.com>
-> >> ---
-> >>  drivers/usb/common/usb-otg-fsm.c | 6 ++++--
-> >>  drivers/usb/phy/phy-fsl-usb.c    | 2 ++
-> >>  include/linux/usb/otg-fsm.h      | 1 +
-> >>  3 files changed, 7 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/usb/common/usb-otg-fsm.c b/drivers/usb/common/usb-otg-fsm.c
-> >> index a46f29a..6e56c8c 100644
-> >> --- a/drivers/usb/common/usb-otg-fsm.c
-> >> +++ b/drivers/usb/common/usb-otg-fsm.c
-> >> @@ -165,8 +165,10 @@ static int otg_set_state(struct otg_fsm *fsm, enum usb_otg_state new_state)
-> >>  		otg_loc_conn(fsm, 0);
-> >>  		otg_loc_sof(fsm, 1);
-> >>  		otg_set_protocol(fsm, PROTO_HOST);
-> >> -		usb_bus_start_enum(fsm->otg->host,
-> >> -				fsm->otg->host->otg_port);usb_bus_start_enum
-> >> +		if (fsm->ops->start_enum) {
-> >> +			fsm->ops->start_enum(fsm->otg->host,
-> >> +					     fsm->otg->host->otg_port);
-> >> +		}
-> >>  		break;
-> >>  	case OTG_STATE_A_IDLE:
-> >>  		otg_drv_vbus(fsm, 0);
-> >> diff --git a/drivers/usb/phy/phy-fsl-usb.c b/drivers/usb/phy/phy-fsl-usb.c
-> >> index ee3f2c2..19541ed 100644
-> >> --- a/drivers/usb/phy/phy-fsl-usb.c
-> >> +++ b/drivers/usb/phy/phy-fsl-usb.c
-> >> @@ -783,6 +783,8 @@ static struct otg_fsm_ops fsl_otg_ops = {
-> >>  
-> >>  	.start_host = fsl_otg_start_host,
-> >>  	.start_gadget = fsl_otg_start_gadget,
-> >> +
-> >> +	.start_enum = usb_bus_start_enum,
-> >>  };
-> >>  
-> >>  /* Initialize the global variable fsl_otg_dev and request IRQ for OTG */
-> >> diff --git a/include/linux/usb/otg-fsm.h b/include/linux/usb/otg-fsm.h
-> >> index 672551c..75e82cc 100644
-> >> --- a/include/linux/usb/otg-fsm.h
-> >> +++ b/include/linux/usb/otg-fsm.h
-> >> @@ -199,6 +199,7 @@ struct otg_fsm_ops {
-> >>  	void	(*del_timer)(struct otg_fsm *fsm, enum otg_fsm_timer timer);
-> >>  	int	(*start_host)(struct otg_fsm *fsm, int on);
-> >>  	int	(*start_gadget)(struct otg_fsm *fsm, int on);
-> >> +	int	(*start_enum)(struct usb_bus *bus, unsigned port_num);
-> >>  };
-> >>  
-> >>  
-> > 
-> > Get one build warning:
-> > 
-> > In file included from /u/home/b29397/work/projects/usb/drivers/usb/chipidea/udc.c:23:0:
-> > /u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: 'struct usb_bus' declared inside parameter list
-> >   int (*start_enum)(struct usb_bus *bus, unsigned port_num);
-> >                              ^
-> > /u/home/b29397/work/projects/usb/include/linux/usb/otg-fsm.h:207:27: warning: its scope is only this definition or declaration, which is probably not what you want
-> > 
-> > It probably dues to we should not have struct usb_bus* at udc driver
-> > 
-> How about changing it to struct otg_fsm instead like the other APIs?
-> And do we leave usb_bus_start_enum() as it is?
-> 
+Hi all,
 
-You have defined struct otg_hcd_ops to let otg visit hcd stuff, how
-about move this to otg_hcd_ops?
+The following series add initial support for tps65217 battery charger. This
+series is a first attempt and will have mistake so all comments and
+suggestions are welcomed.
 
-> cheers,
-> -roger
+Best regards,
+
+Enric Balletbo i Serra (3):
+  devicetree: Add TPS65217 charger binding.
+  power_supply: Add support for tps65217-charger.
+  mfd: Add battery charger as subdevice to the tps65217.
+
+ .../bindings/power_supply/tps65217_charger.txt     |  12 +
+ drivers/mfd/tps65217.c                             |   4 +
+ drivers/power/Kconfig                              |   7 +
+ drivers/power/Makefile                             |   1 +
+ drivers/power/tps65217_charger.c                   | 269 +++++++++++++++++++++
+ 5 files changed, 293 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/power_supply/tps65217_charger.txt
+ create mode 100644 drivers/power/tps65217_charger.c
 
 -- 
-
-Best Regards,
-Peter Chen
+2.1.0
