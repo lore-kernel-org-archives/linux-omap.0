@@ -1,139 +1,148 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 10/13] usb: hcd: Adapt to OTG core
-Date: Wed, 9 Sep 2015 12:39:16 +0300
-Message-ID: <55EFFE44.7010304@ti.com>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [PATCH v4 07/13] usb: otg: add OTG core
+Date: Wed, 9 Sep 2015 16:45:45 +0800
+Message-ID: <20150909084544.GO7802@shlinux2>
 References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
- <1440422484-4737-11-git-send-email-rogerq@ti.com>
- <20150909022336.GG7802@shlinux2>
+ <1440422484-4737-8-git-send-email-rogerq@ti.com>
+ <20150907012327.GG4914@shlinux2>
+ <55ED6585.5050200@ti.com>
+ <20150908083059.GD7802@shlinux2>
+ <55EED3B5.5030806@ti.com>
+ <20150909022116.GF7802@shlinux2>
+ <55EFF6FA.1000705@ti.com>
+ <20150909081304.GM7802@shlinux2>
+ <55EFFCE0.5070109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150909022336.GG7802@shlinux2>
+Content-Disposition: inline
+In-Reply-To: <55EFFCE0.5070109@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Chen <peter.chen@freescale.com>
+To: Roger Quadros <rogerq@ti.com>
 Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/09/15 05:23, Peter Chen wrote:
-> On Mon, Aug 24, 2015 at 04:21:21PM +0300, Roger Quadros wrote:
->> The existing usb_add/remove_hcd() functionality
->> remains unchanged for non-OTG devices. For OTG
->> devices they only register the HCD with the OTG core.
->>
->> Introduce usb_otg_add/remove_hcd() for use by OTG core.
->> These functions actually add/remove the HCD.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/usb/core/hcd.c | 55 +++++++++++++++++++++++++++++++++++++++++++++-----
->>  1 file changed, 50 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
->> index c0fd1f6..4851682 100644
->> --- a/drivers/usb/core/hcd.c
->> +++ b/drivers/usb/core/hcd.c
->> @@ -46,6 +46,7 @@
->>  #include <linux/usb.h>
->>  #include <linux/usb/hcd.h>
->>  #include <linux/usb/phy.h>
->> +#include <linux/usb/otg.h>
->>  
->>  #include "usb.h"
->>  
->> @@ -2625,8 +2626,8 @@ static void usb_put_invalidate_rhdev(struct usb_hcd *hcd)
->>   * buffers of consistent memory, register the bus, request the IRQ line,
->>   * and call the driver's reset() and start() routines.
->>   */
->> -int usb_add_hcd(struct usb_hcd *hcd,
->> -		unsigned int irqnum, unsigned long irqflags)
->> +static int usb_otg_add_hcd(struct usb_hcd *hcd,
->> +			   unsigned int irqnum, unsigned long irqflags)
+On Wed, Sep 09, 2015 at 12:33:20PM +0300, Roger Quadros wrote:
+> On 09/09/15 11:13, Peter Chen wrote:
+> > On Wed, Sep 09, 2015 at 12:08:10PM +0300, Roger Quadros wrote:
+> >> On 09/09/15 05:21, Peter Chen wrote:
+> >>> On Tue, Sep 08, 2015 at 03:25:25PM +0300, Roger Quadros wrote:
+> >>>>
+> >>>>
+> >>>> On 08/09/15 11:31, Peter Chen wrote:
+> >>>>> On Mon, Sep 07, 2015 at 01:23:01PM +0300, Roger Quadros wrote:
+> >>>>>> On 07/09/15 04:23, Peter Chen wrote:
+> >>>>>>> On Mon, Aug 24, 2015 at 04:21:18PM +0300, Roger Quadros wrote:
+> >>>>>>>> + * This is used by the USB Host stack to register the Host controller
+> >>>>>>>> + * to the OTG core. Host controller must not be started by the
+> >>>>>>>> + * caller as it is left upto the OTG state machine to do so.
+> >>>>>>>> + *
+> >>>>>>>> + * Returns: 0 on success, error value otherwise.
+> >>>>>>>> + */
+> >>>>>>>> +int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+> >>>>>>>> +			 unsigned long irqflags, struct otg_hcd_ops *ops)
+> >>>>>>>> +{
+> >>>>>>>> +	struct usb_otg *otgd;
+> >>>>>>>> +	struct device *hcd_dev = hcd->self.controller;
+> >>>>>>>> +	struct device *otg_dev = usb_otg_get_device(hcd_dev);
+> >>>>>>>> +
+> >>>>>>>
+> >>>>>>> One big problem here is: there are two designs for current (IP) driver
+> >>>>>>> code, one creates dedicated hcd device as roothub's parent, like dwc3.
+> >>>>>>> Another one doesn't do this, roothub's parent is core device (or otg device
+> >>>>>>> in your patch), like chipidea and dwc2.
+> >>>>>>>
+> >>>>>>> Then, otg_dev will be glue layer device for chipidea after that.
+> >>>>>>
+> >>>>>> OK. Let's add a way for the otg controller driver to provide the host and gadget
+> >>>>>> information to the otg core for such devices like chipidea and dwc2.
+> >>>>>>
+> >>>>>
+> >>>>> Roger, not only chipidea and dwc2, I think the musb uses the same
+> >>>>> hierarchy. If the host, device, and otg share the same register
+> >>>>> region, host part can't be a platform driver since we don't want
+> >>>>> to remap the same register region again.
+> >>>>>
+> >>>>> So, in the design, we may need to consider both situations, one
+> >>>>> is otg/host/device has its own register region, and host is a
+> >>>>> separate platform device (A), the other is three parts share the
+> >>>>> same register region, there is only one platform driver (B).
+> >>>>>
+> >>>>> A:
+> >>>>>
+> >>>>> 			IP core device 
+> >>>>> 			    |
+> >>>>> 			    |
+> >>>>> 		      |-----|-----|
+> >>>>> 		      gadget   host platform device	
+> >>>>> 		      		|
+> >>>>> 				roothub
+> >>>>>
+> >>>>> B:
+> >>>>>
+> >>>>> 			IP core device
+> >>>>> 			    |
+> >>>>> 			    |
+> >>>>> 		      |-----|-----|
+> >>>>> 		      gadget   	 roothub
+> >>>>> 		      		
+> >>>>>
+> >>>>>> This API must be called before the hcd/gadget-driver is added so that the otg
+> >>>>>> core knows it's linked to an OTG controller.
+> >>>>>>
+> >>>>>> Any better idea?
+> >>>>>>
+> >>>>>
+> >>>>> A flag stands for this hcd controller is the same with otg controller
+> >>>>> can be used, this flag can be stored at struct usb_otg_config.
+> >>>>
+> >>>> What if there is another architecture like so?
+> >>>>
+> >>>> C:
+> >>>> 			[Parent]
+> >>>> 			   |
+> >>>> 			   |
+> >>>> 		|------------------|--------------|
+> >>>> 	[OTG core]		[gadget]	[host]
+> >>>>
+> >>>> We need a more flexible mechanism to link the gadget and
+> >>>> host device to the otg core for non DT case.
+> >>>>
+> >>>> How about adding struct usb_otg parameter to usb_otg_register_hcd()?
+> >>>>
+> >>>> e.g.
+> >>>> int usb_otg_register_hcd(struct usb_otg *otg, struct usb_hcd *hcd, ..)
+> >>>>
+> >>>> If otg is NULL it will try DT otg-controller property or parent to
+> >>>> get the otg controller.
+> >>>
+> >>> How usb_otg_register_hcd get struct usb_otg, from where?
+> >>
+> >> This only works when the parent driver creating the hcd has registered the
+> >> otg controller too.
+> >>
+> > 
+> > Sorry? So we need to find another way to solve this issue, right?
 > 
-> You may change the kernel doc to this name too.
+> For existing cases this is sufficient.
+> The otg device is either the one supplied during usb_otg_register_hcd
+> (cases B and C) or it is the parent device (case A).
 
-Yes.
+How we differentiate case A and case B at usb_otg_register_hcd?
+Would you show me the sample code?
 
 > 
->>  {
->>  	int retval;
->>  	struct usb_device *rhdev;
->> @@ -2839,17 +2840,16 @@ err_phy:
->>  	}
->>  	return retval;
->>  }
->> -EXPORT_SYMBOL_GPL(usb_add_hcd);
->>  
->>  /**
->> - * usb_remove_hcd - shutdown processing for generic HCDs
->> + * usb_otg_remove_hcd - shutdown processing for generic HCDs
->>   * @hcd: the usb_hcd structure to remove
->>   * Context: !in_interrupt()
->>   *
->>   * Disconnects the root hub, then reverses the effects of usb_add_hcd(),
->>   * invoking the HCD's stop() method.
->>   */
->> -void usb_remove_hcd(struct usb_hcd *hcd)
->> +static void usb_otg_remove_hcd(struct usb_hcd *hcd)
->>  {
->>  	struct usb_device *rhdev = hcd->self.root_hub;
->>  
->> @@ -2923,6 +2923,51 @@ void usb_remove_hcd(struct usb_hcd *hcd)
->>  
->>  	usb_put_invalidate_rhdev(hcd);
->>  }
->> +
->> +static struct otg_hcd_ops otg_hcd_intf = {
->> +	.add = usb_otg_add_hcd,
->> +	.remove = usb_otg_remove_hcd,
->> +};
->> +
->> +/**
->> + * usb_add_hcd - finish generic HCD structure initialization and register
->> + * @hcd: the usb_hcd structure to initialize
->> + * @irqnum: Interrupt line to allocate
->> + * @irqflags: Interrupt type flags
->> + *
->> + * Finish the remaining parts of generic HCD initialization: allocate the
->> + * buffers of consistent memory, register the bus, request the IRQ line,
->> + * and call the driver's reset() and start() routines.
->> + * If it is an OTG device then it only registers the HCD with OTG core.
->> + *
->> + */
->> +int usb_add_hcd(struct usb_hcd *hcd,
->> +		unsigned int irqnum, unsigned long irqflags)
->> +{
->> +	/* If OTG device, OTG core takes care of adding HCD */
->> +	if (usb_otg_register_hcd(hcd, irqnum, irqflags, &otg_hcd_intf))
->> +		return usb_otg_add_hcd(hcd, irqnum, irqflags);
->> +
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(usb_add_hcd);
->> +
->> +/**
->> + * usb_remove_hcd - shutdown processing for generic HCDs
->> + * @hcd: the usb_hcd structure to remove
->> + * Context: !in_interrupt()
->> + *
->> + * Disconnects the root hub, then reverses the effects of usb_add_hcd(),
->> + * invoking the HCD's stop() method.
->> + * If it is an OTG device then it unregisters the HCD from OTG core
->> + * as well.
->> + */
->> +void usb_remove_hcd(struct usb_hcd *hcd)
->> +{
->> +	/* If OTG device, OTG core takes care of stopping HCD */
->> +	if (usb_otg_unregister_hcd(hcd))
->> +		usb_otg_remove_hcd(hcd);
->> +}
->>  EXPORT_SYMBOL_GPL(usb_remove_hcd);
->>  
->>  void
->> -- 
->> 2.1.4
->>
+> It does not work when the 3 devices are totally independent and get registered
+> at different times.
+> I don't think there is such a case for non-DT yet, but let's not have this
+> limitation. So yes, we need to look for better solution :).
 > 
---
-cheers,
--roger
+
+Yes, we need to find some places to store gadget/host/otg information,
+Alan's suggestion to save them at device drvdata may be a direction, but
+I still doesn't have way to cover all cases.
+
+-- 
+
+Best Regards,
+Peter Chen
