@@ -1,55 +1,70 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 13/21] dmaengine: edma: Use devm_kcalloc when possible
-Date: Thu, 10 Sep 2015 11:37:42 +0300
-Message-ID: <1441874270-2399-14-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 20/21] dmaengine: edma: Move the pending error check into helper function
+Date: Thu, 10 Sep 2015 11:37:49 +0300
+Message-ID: <1441874270-2399-21-git-send-email-peter.ujfalusi@ti.com>
 References: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When allocating a memory for number of items it is better (looks better)
-to use devm_kcalloc.
+In the ccerr interrupt handler the code checks for pending errors in the
+error status registers in two different places.
+Move the check out to a helper function.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/dma/edma.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index bed09ce22ff2..0b46d4263ec6 100644
+index 5436c811aa2d..f1e898525ae6 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -2034,7 +2034,7 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 	 * priority. So Q0 is the highest priority queue and the last queue has
- 	 * the lowest priority.
- 	 */
--	queue_priority_map = devm_kzalloc(dev, (ecc->num_tc + 1) * sizeof(s8),
-+	queue_priority_map = devm_kcalloc(dev, ecc->num_tc + 1, sizeof(s8),
- 					  GFP_KERNEL);
- 	if (!queue_priority_map)
- 		return -ENOMEM;
-@@ -2065,7 +2065,7 @@ static int edma_xbar_event_map(struct device *dev, struct edma_soc_info *pdata,
- 	u32 shift, offset, mux;
- 	int ret, i;
+@@ -1608,6 +1608,16 @@ static void edma_error_handler(struct edma_chan *echan)
+ 	spin_unlock(&echan->vchan.lock);
+ }
  
--	xbar_chans = devm_kzalloc(dev, (nelm + 2) * sizeof(s16), GFP_KERNEL);
-+	xbar_chans = devm_kcalloc(dev, nelm + 2, sizeof(s16), GFP_KERNEL);
- 	if (!xbar_chans)
- 		return -ENOMEM;
++static inline bool edma_error_pending(struct edma_cc *ecc)
++{
++	if (edma_read_array(ecc, EDMA_EMR, 0) ||
++	    edma_read_array(ecc, EDMA_EMR, 1) ||
++	    edma_read(ecc, EDMA_QEMR) || edma_read(ecc, EDMA_CCERR))
++		return true;
++
++	return false;
++}
++
+ /* eDMA error interrupt handler */
+ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ {
+@@ -1622,10 +1632,7 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
  
+ 	dev_dbg(ecc->dev, "dma_ccerr_handler\n");
+ 
+-	if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
+-	    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
+-	    (edma_read(ecc, EDMA_QEMR) == 0) &&
+-	    (edma_read(ecc, EDMA_CCERR) == 0))
++	if (!edma_error_pending(ecc))
+ 		return IRQ_NONE;
+ 
+ 	while (1) {
+@@ -1678,10 +1685,7 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ 				}
+ 			}
+ 		}
+-		if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
+-		    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
+-		    (edma_read(ecc, EDMA_QEMR) == 0) &&
+-		    (edma_read(ecc, EDMA_CCERR) == 0))
++		if (!edma_error_pending(ecc))
+ 			break;
+ 		cnt++;
+ 		if (cnt > 10)
 -- 
 2.5.1
