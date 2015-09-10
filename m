@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 03/21] dmaengine: edma: Simplify and optimize the edma_execute
- path
-Date: Thu, 10 Sep 2015 11:37:32 +0300
-Message-ID: <1441874270-2399-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 05/21] ARM/dmaengine: edma: Move of_dma_controller_register to
+ the dmaengine driver
+Date: Thu, 10 Sep 2015 11:37:34 +0300
+Message-ID: <1441874270-2399-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,172 +22,104 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The code path in edma_execute() and edma_callback() can be simplified
-and make it more optimal.
-There is not need to call in to edma_execute() when the transfer
-has been finished for example.
-Also the handling of missed/first or next batch of paRAMs can
-be done in a more optimal way.
+If the of_dma_controller is registered in the non dmaengine driver we could
+have race condition:
+the of_dma_controller has been registered, but the dmaengine driver is not
+yet probed. Drivers requesting DMA channels during this window will fail
+since we do not yet have dmaengine drivers registered.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 76 +++++++++++++++++++++---------------------------------
- 1 file changed, 29 insertions(+), 47 deletions(-)
+ arch/arm/common/edma.c | 10 ----------
+ drivers/dma/edma.c     | 16 ++++++++++++++++
+ 2 files changed, 16 insertions(+), 10 deletions(-)
 
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 72fce68a959f..dc960de1a95f 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -29,7 +29,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/of_address.h>
+ #include <linux/of_device.h>
+-#include <linux/of_dma.h>
+ #include <linux/of_irq.h>
+ #include <linux/pm_runtime.h>
+ 
+@@ -1191,10 +1190,6 @@ static int edma_of_parse_dt(struct device *dev,
+ 	return ret;
+ }
+ 
+-static struct of_dma_filter_info edma_filter_info = {
+-	.filter_fn = edma_filter_fn,
+-};
+-
+ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
+ 						      struct device_node *node)
+ {
+@@ -1209,11 +1204,6 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+-	dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
+-	dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
+-	of_dma_controller_register(dev->of_node, of_dma_simple_xlate,
+-				   &edma_filter_info);
+-
+ 	return info;
+ }
+ #else
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 3e5d4f193005..19fa49d6f555 100644
+index 19fa49d6f555..fcb4680efed7 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -154,15 +154,11 @@ static void edma_execute(struct edma_chan *echan)
- 	struct device *dev = echan->vchan.chan.device->dev;
- 	int i, j, left, nslots;
+@@ -25,6 +25,7 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/of.h>
++#include <linux/of_dma.h>
  
--	/* If either we processed all psets or we're still not started */
--	if (!echan->edesc ||
--	    echan->edesc->pset_nr == echan->edesc->processed) {
--		/* Get next vdesc */
-+	if (!echan->edesc) {
-+		/* Setup is needed for the first transfer */
- 		vdesc = vchan_next_desc(&echan->vchan);
--		if (!vdesc) {
--			echan->edesc = NULL;
-+		if (!vdesc)
- 			return;
--		}
- 		list_del(&vdesc->node);
- 		echan->edesc = to_edma_desc(&vdesc->tx);
- 	}
-@@ -220,28 +216,26 @@ static void edma_execute(struct edma_chan *echan)
- 				  echan->ecc->dummy_slot);
- 	}
+ #include <linux/platform_data/edma.h>
  
--	if (edesc->processed <= MAX_NR_SG) {
--		dev_dbg(dev, "first transfer starting on channel %d\n",
--			echan->ch_num);
--		edma_start(echan->ch_num);
--	} else {
--		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
--			echan->ch_num, edesc->processed);
--		edma_resume(echan->ch_num);
--	}
--
--	/*
--	 * This happens due to setup times between intermediate transfers
--	 * in long SG lists which have to be broken up into transfers of
--	 * MAX_NR_SG
--	 */
- 	if (echan->missed) {
-+		/*
-+		 * This happens due to setup times between intermediate
-+		 * transfers in long SG lists which have to be broken up into
-+		 * transfers of MAX_NR_SG
-+		 */
- 		dev_dbg(dev, "missed event on channel %d\n", echan->ch_num);
- 		edma_clean_channel(echan->ch_num);
- 		edma_stop(echan->ch_num);
- 		edma_start(echan->ch_num);
- 		edma_trigger_channel(echan->ch_num);
- 		echan->missed = 0;
-+	} else if (edesc->processed <= MAX_NR_SG) {
-+		dev_dbg(dev, "first transfer starting on channel %d\n",
-+			echan->ch_num);
-+		edma_start(echan->ch_num);
-+	} else {
-+		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
-+			echan->ch_num, edesc->processed);
-+		edma_resume(echan->ch_num);
- 	}
+@@ -987,9 +988,14 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 	INIT_LIST_HEAD(&dma->channels);
  }
  
-@@ -259,20 +253,17 @@ static int edma_terminate_all(struct dma_chan *chan)
- 	 * echan->edesc is NULL and exit.)
- 	 */
- 	if (echan->edesc) {
--		int cyclic = echan->edesc->cyclic;
--
-+		edma_stop(echan->ch_num);
-+		/* Move the cyclic channel back to default queue */
-+		if (echan->edesc->cyclic)
-+			edma_assign_channel_eventq(echan->ch_num,
-+						   EVENTQ_DEFAULT);
- 		/*
- 		 * free the running request descriptor
- 		 * since it is not in any of the vdesc lists
- 		 */
- 		edma_desc_free(&echan->edesc->vdesc);
--
- 		echan->edesc = NULL;
--		edma_stop(echan->ch_num);
--		/* Move the cyclic channel back to default queue */
--		if (cyclic)
--			edma_assign_channel_eventq(echan->ch_num,
--						   EVENTQ_DEFAULT);
- 	}
- 
- 	vchan_get_all_descriptors(&echan->vchan, &head);
-@@ -725,41 +716,33 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
- 
- 	edesc = echan->edesc;
- 
--	/* Pause the channel for non-cyclic */
--	if (!edesc || (edesc && !edesc->cyclic))
--		edma_pause(echan->ch_num);
--
-+	spin_lock(&echan->vchan.lock);
- 	switch (ch_status) {
- 	case EDMA_DMA_COMPLETE:
--		spin_lock(&echan->vchan.lock);
--
- 		if (edesc) {
- 			if (edesc->cyclic) {
- 				vchan_cyclic_callback(&edesc->vdesc);
-+				goto out;
- 			} else if (edesc->processed == edesc->pset_nr) {
- 				dev_dbg(dev, "Transfer complete, stopping channel %d\n", ch_num);
- 				edesc->residue = 0;
- 				edma_stop(echan->ch_num);
- 				vchan_cookie_complete(&edesc->vdesc);
--				edma_execute(echan);
-+				echan->edesc = NULL;
- 			} else {
- 				dev_dbg(dev, "Intermediate transfer complete on channel %d\n", ch_num);
- 
-+				edma_pause(echan->ch_num);
++static struct of_dma_filter_info edma_filter_info = {
++	.filter_fn = edma_filter_fn,
++};
 +
- 				/* Update statistics for tx_status */
- 				edesc->residue -= edesc->sg_len;
- 				edesc->residue_stat = edesc->residue;
- 				edesc->processed_stat = edesc->processed;
--
--				edma_execute(echan);
- 			}
-+			edma_execute(echan);
- 		}
--
--		spin_unlock(&echan->vchan.lock);
--
- 		break;
- 	case EDMA_DMA_CC_ERROR:
--		spin_lock(&echan->vchan.lock);
--
- 		edma_read_slot(EDMA_CHAN_SLOT(echan->slot[0]), &p);
+ static int edma_probe(struct platform_device *pdev)
+ {
+ 	struct edma_cc *ecc;
++	struct device_node *parent_node = pdev->dev.parent->of_node;
+ 	int ret;
  
- 		/*
-@@ -788,13 +771,12 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
- 			edma_start(echan->ch_num);
- 			edma_trigger_channel(echan->ch_num);
- 		}
--
--		spin_unlock(&echan->vchan.lock);
--
- 		break;
- 	default:
- 		break;
- 	}
-+out:
-+	spin_unlock(&echan->vchan.lock);
- }
+ 	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+@@ -1024,6 +1030,13 @@ static int edma_probe(struct platform_device *pdev)
  
- /* Alloc channel resources */
+ 	platform_set_drvdata(pdev, ecc);
+ 
++	if (parent_node) {
++		dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
++		dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
++		of_dma_controller_register(parent_node, of_dma_simple_xlate,
++					   &edma_filter_info);
++	}
++
+ 	dev_info(&pdev->dev, "TI EDMA DMA engine driver\n");
+ 
+ 	return 0;
+@@ -1037,7 +1050,10 @@ static int edma_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct edma_cc *ecc = dev_get_drvdata(dev);
++	struct device_node *parent_node = pdev->dev.parent->of_node;
+ 
++	if (parent_node)
++		of_dma_controller_free(parent_node);
+ 	dma_async_device_unregister(&ecc->dma_slave);
+ 	edma_free_slot(ecc->dummy_slot);
+ 
 -- 
 2.5.1
