@@ -1,157 +1,132 @@
-From: Peter Chen <peter.chen@freescale.com>
-Subject: Re: [PATCH v4 07/13] usb: otg: add OTG core
-Date: Thu, 10 Sep 2015 13:35:08 +0800
-Message-ID: <20150910053507.GA19400@shlinux2>
-References: <20150907012327.GG4914@shlinux2>
- <55ED6585.5050200@ti.com>
- <20150908083059.GD7802@shlinux2>
- <55EED3B5.5030806@ti.com>
- <20150909022116.GF7802@shlinux2>
- <55EFF6FA.1000705@ti.com>
- <20150909081304.GM7802@shlinux2>
- <55EFFCE0.5070109@ti.com>
- <20150909084544.GO7802@shlinux2>
- <55F0083E.6050802@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH RFC 4/5] ASoC: davinci-mcasp: Get rid of bclk_lrclk_ratio
+ in private data
+Date: Thu, 10 Sep 2015 10:16:30 +0300
+Message-ID: <55F12E4E.9020607@ti.com>
+References: <cover.1441806963.git.jsarha@ti.com>
+ <f23dab7c68fe1cc899a8bc95cb5c3c5bd1038e18.1441806963.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55F0083E.6050802@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f23dab7c68fe1cc899a8bc95cb5c3c5bd1038e18.1441806963.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, misael.lopez-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 09, 2015 at 01:21:50PM +0300, Roger Quadros wrote:
-> On 09/09/15 11:45, Peter Chen wrote:
-> > On Wed, Sep 09, 2015 at 12:33:20PM +0300, Roger Quadros wrote:
-> >> On 09/09/15 11:13, Peter Chen wrote:
-> >>> On Wed, Sep 09, 2015 at 12:08:10PM +0300, Roger Quadros wrote:
-> >>>> On 09/09/15 05:21, Peter Chen wrote:
-> >>>>> On Tue, Sep 08, 2015 at 03:25:25PM +0300, Roger Quadros wrote:
-> >>>>>>
-> >>>>>>
-> >>>>>> On 08/09/15 11:31, Peter Chen wrote:
-> >>>>>>> On Mon, Sep 07, 2015 at 01:23:01PM +0300, Roger Quadros wrote:
-> >>>>>>>> On 07/09/15 04:23, Peter Chen wrote:
-> >>>>>>>>> On Mon, Aug 24, 2015 at 04:21:18PM +0300, Roger Quadros wrote:
-> >>>>>>>>>> + * This is used by the USB Host stack to register the Host controller
-> >>>>>>>>>> + * to the OTG core. Host controller must not be started by the
-> >>>>>>>>>> + * caller as it is left upto the OTG state machine to do so.
-> >>>>>>>>>> + *
-> >>>>>>>>>> + * Returns: 0 on success, error value otherwise.
-> >>>>>>>>>> + */
-> >>>>>>>>>> +int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
-> >>>>>>>>>> +			 unsigned long irqflags, struct otg_hcd_ops *ops)
-> >>>>>>>>>> +{
-> >>>>>>>>>> +	struct usb_otg *otgd;
-> >>>>>>>>>> +	struct device *hcd_dev = hcd->self.controller;
-> >>>>>>>>>> +	struct device *otg_dev = usb_otg_get_device(hcd_dev);
-> >>>>>>>>>> +
-> >>>>>>>>>
-> >>>>>>>>> One big problem here is: there are two designs for current (IP) driver
-> >>>>>>>>> code, one creates dedicated hcd device as roothub's parent, like dwc3.
-> >>>>>>>>> Another one doesn't do this, roothub's parent is core device (or otg device
-> >>>>>>>>> in your patch), like chipidea and dwc2.
-> >>>>>>>>>
-> >>>>>>>>> Then, otg_dev will be glue layer device for chipidea after that.
-> >>>>>>>>
-> >>>>>>>> OK. Let's add a way for the otg controller driver to provide the host and gadget
-> >>>>>>>> information to the otg core for such devices like chipidea and dwc2.
-> >>>>>>>>
-> >>>>>>>
-> >>>>>>> Roger, not only chipidea and dwc2, I think the musb uses the same
-> >>>>>>> hierarchy. If the host, device, and otg share the same register
-> >>>>>>> region, host part can't be a platform driver since we don't want
-> >>>>>>> to remap the same register region again.
-> >>>>>>>
-> >>>>>>> So, in the design, we may need to consider both situations, one
-> >>>>>>> is otg/host/device has its own register region, and host is a
-> >>>>>>> separate platform device (A), the other is three parts share the
-> >>>>>>> same register region, there is only one platform driver (B).
-> >>>>>>>
-> >>>>>>> A:
-> >>>>>>>
-> >>>>>>> 			IP core device 
-> >>>>>>> 			    |
-> >>>>>>> 			    |
-> >>>>>>> 		      |-----|-----|
-> >>>>>>> 		      gadget   host platform device	
-> >>>>>>> 		      		|
-> >>>>>>> 				roothub
-> >>>>>>>
-> >>>>>>> B:
-> >>>>>>>
-> >>>>>>> 			IP core device
-> >>>>>>> 			    |
-> >>>>>>> 			    |
-> >>>>>>> 		      |-----|-----|
-> >>>>>>> 		      gadget   	 roothub
-> >>>>>>> 		      		
-> >>>>>>>
-> >>>>>>>> This API must be called before the hcd/gadget-driver is added so that the otg
-> >>>>>>>> core knows it's linked to an OTG controller.
-> >>>>>>>>
-> >>>>>>>> Any better idea?
-> >>>>>>>>
-> >>>>>>>
-> >>>>>>> A flag stands for this hcd controller is the same with otg controller
-> >>>>>>> can be used, this flag can be stored at struct usb_otg_config.
-> >>>>>>
-> >>>>>> What if there is another architecture like so?
-> >>>>>>
-> >>>>>> C:
-> >>>>>> 			[Parent]
-> >>>>>> 			   |
-> >>>>>> 			   |
-> >>>>>> 		|------------------|--------------|
-> >>>>>> 	[OTG core]		[gadget]	[host]
-> >>>>>>
-> >>>>>> We need a more flexible mechanism to link the gadget and
-> >>>>>> host device to the otg core for non DT case.
-> >>>>>>
-> >>>>>> How about adding struct usb_otg parameter to usb_otg_register_hcd()?
-> >>>>>>
-> >>>>>> e.g.
-> >>>>>> int usb_otg_register_hcd(struct usb_otg *otg, struct usb_hcd *hcd, ..)
-> >>>>>>
-> >>>>>> If otg is NULL it will try DT otg-controller property or parent to
-> >>>>>> get the otg controller.
-> >>>>>
-> >>>>> How usb_otg_register_hcd get struct usb_otg, from where?
-> >>>>
-> >>>> This only works when the parent driver creating the hcd has registered the
-> >>>> otg controller too.
-> >>>>
-> >>>
-> >>> Sorry? So we need to find another way to solve this issue, right?
-> >>
-> >> For existing cases this is sufficient.
-> >> The otg device is either the one supplied during usb_otg_register_hcd
-> >> (cases B and C) or it is the parent device (case A).
-> > 
-> > How we differentiate case A and case B at usb_otg_register_hcd?
-> > Would you show me the sample code?
-> 
-> Case A:
-> 
-> hcd platform driver doesn't know about otg device so it calls
-> 
-> 	usb_add_hcd(hcd,..)->usb_otg_register_hcd(NULL, hcd,..);
-> 
-> Case B:
-> 
-> core driver knows about both otg and hcd so it calls
-> 	usb_otg_register_hcd(otg, hcd,...);
-> 
+On 09/09/15 21:27, Jyri Sarha wrote:
+> The slot_width is for essentially same thing. Instead of storing
+> bclk_lrclk_ratio, just store the slot_width. Comments has been updated
+> accordingly and some variable names changed to more descriptive.
+>
+> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+> ---
+>   sound/soc/davinci/davinci-mcasp.c | 56 ++++++++++++++++++++++-----------------
+>   1 file changed, 31 insertions(+), 25 deletions(-)
+>
+> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+> index de1e3a8..25ff1fc 100644
+> --- a/sound/soc/davinci/davinci-mcasp.c
+> +++ b/sound/soc/davinci/davinci-mcasp.c
+> @@ -87,7 +87,6 @@ struct davinci_mcasp {
+>   	u8	*serial_dir;
+>   	u8	version;
+>   	u8	bclk_div;
+> -	u16	bclk_lrclk_ratio;
+>   	int	streams;
+>   	u32	irq_request[2];
+>   	int	dma_request[2];
+> @@ -558,8 +557,21 @@ static int __davinci_mcasp_set_clkdiv(struct snd_soc_dai *dai, int div_id,
+>   			mcasp->bclk_div = div;
+>   		break;
+>
+> -	case 2:		/* BCLK/LRCLK ratio */
+> -		mcasp->bclk_lrclk_ratio = div;
+> +	case 2:	/*
+> +		 * BCLK/LRCLK ratio descries how many bit-clock cycles
+> +		 * fit into one frame. The clock ratio is given for a
+> +		 * full period of data (for I2S format both left and
+> +		 * right channels), so it has to be divided by number
+> +		 * of tdm-slots (for I2S - divided by 2).
+> +		 * Instead of storing this ratio, we calculate a new
+> +		 * tdm_slot width by dividing the the ratio by the
+> +		 * number of configured tdm slots.
+> +		 */
+> +		mcasp->slot_width = div / mcasp->tdm_slots;
+> +		if (div % mcasp->tdm_slots)
+> +			dev_warn(mcasp->dev,
+> +				 "%s(): BCLK/LRCLK %d is not divisible by %d tdm slots",
+> +				 div, mcasp->tdm_slots);
 
-Ok, Get your points, you mean invoke usb_otg_register_hcd at platform
-driver directly instead of at hcd.c. It may be not a good solution
-due to we use different otg APIs for two cases, it may confuse the
-users, unless we can have some APIs (flags) are easy to read and well
-documentation.
+Oops, there is a __func__ missing here.
 
--- 
+>   		break;
+>
+>   	default:
+> @@ -682,11 +694,13 @@ static int davinci_mcasp_set_tdm_slot(struct snd_soc_dai *dai,
+>   }
+>
+>   static int davinci_config_channel_size(struct davinci_mcasp *mcasp,
+> -				       int word_length)
+> +				       int sample_width)
+>   {
+>   	u32 fmt;
+> -	u32 tx_rotate = (word_length / 4) & 0x7;
+> -	u32 mask = (1ULL << word_length) - 1;
+> +	u32 tx_rotate = (sample_width / 4) & 0x7;
+> +	u32 mask = (1ULL << sample_width) - 1;
+> +	u32 slot_width = sample_width;
+> +
+>   	/*
+>   	 * For captured data we should not rotate, inversion and masking is
+>   	 * enoguh to get the data to the right position:
+> @@ -699,31 +713,23 @@ static int davinci_config_channel_size(struct davinci_mcasp *mcasp,
+>   	u32 rx_rotate = 0;
+>
+>   	/*
+> -	 * if s BCLK-to-LRCLK ratio has been configured via the set_clkdiv()
+> -	 * callback, take it into account here. That allows us to for example
+> -	 * send 32 bits per channel to the codec, while only 16 of them carry
+> -	 * audio payload.
+> -	 * The clock ratio is given for a full period of data (for I2S format
+> -	 * both left and right channels), so it has to be divided by number of
+> -	 * tdm-slots (for I2S - divided by 2).
+> +	 * Setting the tdm slot width either with set_clkdiv() or
+> +	 * set_tdm_slot() allows us to for example send 32 bits per
+> +	 * channel to the codec, while only 16 of them carry audio
+> +	 * payload.
+>   	 */
+> -	if (mcasp->bclk_lrclk_ratio) {
+> -		u32 slot_length = mcasp->bclk_lrclk_ratio / mcasp->tdm_slots;
+> -
+> +	if (mcasp->slot_width) {
+>   		/*
+> -		 * When we have more bclk then it is needed for the data, we
+> -		 * need to use the rotation to move the received samples to have
+> -		 * correct alignment.
+> +		 * When we have more bclk then it is needed for the
+> +		 * data, we need to use the rotation to move the
+> +		 * received samples to have correct alignment.
+>   		 */
+> -		rx_rotate = (slot_length - word_length) / 4;
+> -		word_length = slot_length;
+> -	} else if (mcasp->slot_width) {
+> -		rx_rotate = (mcasp->slot_width - word_length) / 4;
+> -		word_length = mcasp->slot_width;
+> +		slot_width = mcasp->slot_width;
+> +		rx_rotate = (slot_width - sample_width) / 4;
+>   	}
+>
+>   	/* mapping of the XSSZ bit-field as described in the datasheet */
+> -	fmt = (word_length >> 1) - 1;
+> +	fmt = (slot_width >> 1) - 1;
+>
+>   	if (mcasp->op_mode != DAVINCI_MCASP_DIT_MODE) {
+>   		mcasp_mod_bits(mcasp, DAVINCI_MCASP_RXFMT_REG, RXSSZ(fmt),
+>
 
-Best Regards,
-Peter Chen
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
