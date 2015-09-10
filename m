@@ -1,109 +1,49 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: mysterious crashes on OMAP5 uevm
-Date: Thu, 10 Sep 2015 09:30:26 +0100
-Message-ID: <20150910083026.GA21098@n2100.arm.linux.org.uk>
-References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
- <20150908143810.GD4215@atomide.com>
- <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
- <20150908210708.GH4215@atomide.com>
- <E0068B56-0DEE-4E2F-94CF-DB104AE16D63@goldelico.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 01/21] ARM: common: edma: Fix channel parameter for irq callbacks
+Date: Thu, 10 Sep 2015 11:37:30 +0300
+Message-ID: <1441874270-2399-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <E0068B56-0DEE-4E2F-94CF-DB104AE16D63@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBTZXAgMTAsIDIwMTUgYXQgMDg6NDI6NTdBTSArMDIwMCwgRHIuIEguIE5pa29sYXVz
-IFNjaGFsbGVyIHdyb3RlOgo+IAo+IEFtIDA4LjA5LjIwMTUgdW0gMjM6MDcgc2NocmllYiBUb255
-IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPjoKPiAKPiA+ICogR3JhenZ5ZGFzIElnbm90YXMg
-PG5vdGFzYXNAZ21haWwuY29tPiBbMTUwOTA4IDEzOjQ0XToKPiA+PiBPbiBUdWUsIFNlcCA4LCAy
-MDE1IGF0IDQ6MzggUE0sIFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+IHdyb3RlOgo+
-ID4+PiAqIEdyYXp2eWRhcyBJZ25vdGFzIDxub3Rhc2FzQGdtYWlsLmNvbT4gWzE1MDkwOCAwNTo1
-MF06Cj4gPj4+PiBIaSwKPiA+Pj4+IAo+ID4+Pj4gdGhpcyBpcyBhIGxvbmdzdGFuZGluZyBwcm9i
-bGVtIEknbSBzZWVpbmcgc2luY2UgdGhlIHZlcnkgYmVnaW5uaW5nLAo+ID4+Pj4gd2hpY2ggd2Fz
-IGFyb3VuZCAzLjEyIG9yIHNvICh3aGVuIEkndmUgZmlyc3QgZ290IHRoZSBoYXJkd2FyZSkgYW5k
-IGl0Cj4gPj4+PiBzZWVtcyA0LjIgaXMgYWZmZWN0ZWQgYnkgaXQgc3RpbGwuIEJhc2ljYWxseSB3
-aGF0IGhhcHBlbnMgaXMgWG9yZwo+ID4+Pj4gcmFuZG9tbHkgc2VnZmF1bHRzIGF0IHNvbWUgImlt
-cG9zc2libGUiIGxvY2F0aW9uLiBJIGRvbid0IGhhdmUgdGhlCj4gPj4+PiBkZXRhaWxzIGF0IHRo
-ZSBtb21lbnQgKGNvdWxkIGdldCB0aGVtIGlzIG5lZWRlZCksIGJ1dCBmcm9tIHdoYXQgSQo+ID4+
-Pj4gZXhhbWluZWQgd2l0aCBnZGIgc29tZSB0aW1lIGFnbyB0aGUgc2l0dWF0aW9uIGRpZCBub3Qg
-bWFrZSBhbnkgc2Vuc2UuCj4gPj4+PiAKPiA+Pj4+IFRoZXJlIGFyZSAyIHdvcmthcm91bmRzIHRo
-YXQgSSBrbm93IHdoaWNoIG1ha2UgdGhlIHByb2JsZW0gZ28gYXdheQo+ID4+Pj4gKG9uZSBpcyBl
-bm91Z2gpOgo+ID4+Pj4gLSByZWNvbXBpbGUgWG9yZyB3aXRoIC1tYXJtIChJJ20gdXNpbmcgRGVi
-aWFuIGFybWhmIHNvIGl0J3MgdGh1bWIyIGJ5IGRlZmF1bHQpCj4gPj4+PiAtIGRpc2FibGUgQVJD
-SF9NVUxUSV9WNiBpbiB0aGUga2VybmVsIGNvbmZpZwo+ID4+Pj4gCj4gPj4+PiBCZWNhdXNlIG9m
-IHRoZSBhYm92ZSB3b3JrYXJvdW5kcyBJIGhhdmUgZm9yZ290dGVuIGFib3V0IGl0IHNldmVyYWwK
-PiA+Pj4+IHRpbWVzLCBidXQgaXQgcmVndWxhcmx5IGNvbWVzIGJhY2sgYW5kIGJpdGVzIGFnYWlu
-LiBJdCB3b3VsZCBsb29rIGxpa2UKPiA+Pj4+IHNvbWUgbWlzc2luZyBlcnJhdHVtIHdvcmthcm91
-bmQsIGJ1dCBJIGhhdmUgYWxsIG9mIHRoZW0gZW5hYmxlZCBpbiB0aGUKPiA+Pj4+IGtlcm5lbC4K
-PiA+Pj4+IAo+ID4+Pj4gRG9lcyBhbnlvbmUga25vdyBhYm91dCB0aGlzPyBQZXJoYXBzIHNvbWUg
-bWlzc2luZyBlcnJhdHVtIHdvcmthcm91bmQKPiA+Pj4+IGluIHRoZSBib290bG9hZGVyPyB1LWJv
-b3QgaXNuJ3QgdG9vIG9sZCBoZXJlICgyMDE1LjA3KS4KPiA+Pj4gCj4gPj4+IFNlZW1zIGxpa2Ug
-c29tZSBpbmNvcnJlY3QgaGFuZGxpbmcgd2l0aCBDT05GSUdfQ1BVX1Y2IGNvbXBpbGVkIGluLi4K
-PiA+Pj4gTWF5YmUgdHJ5IHRvIG5hcnJvdyBpdCBkb3duIGJ5IGNvbW1lbnRpbmcgb3V0IHNvbWUg
-Q09ORklHX0NQVV9WNiBhbmQKPiA+Pj4gX19MSU5VWF9BUk1fQVJDSF9fID0gNiBpZmRlZnMgaW4g
-dGhlIGdpdCBncmVwIENPTkZJR19DUFVfVjYKPiA+Pj4gcGxhY2VzIGlnbm9yaW5nIHVuY29tcHJl
-c3MgYW5kIGRhdmluY2kgY29kZS4KPiA+PiAKPiA+PiBvayB3aXRoIHRoYXQgaXQgd2FzIHF1aXRl
-IGVhc3kgdG8gZmluZC4gT24gYSBrZXJuZWwgd2l0aCBBUkNIX01VTFRJX1Y2Cj4gPj4gZGlzYWJs
-ZWQsIGl0IGlzIGVub3VnaCB0byBqdXN0IGRvIHRoaXM6Cj4gPj4gCj4gPj4gLS0tIGEvYXJjaC9h
-cm0va2VybmVsL3NpZ25hbC5jCj4gPj4gKysrIGIvYXJjaC9hcm0va2VybmVsL3NpZ25hbC5jCj4g
-Pj4gQEAgLTM0MCwxMyArMzQwLDEzIEBAIHNldHVwX3JldHVybihzdHJ1Y3QgcHRfcmVncyAqcmVn
-cywgc3RydWN0IGtzaWduYWwgKmtzaWcsCj4gPj4gICAgICAgICAgICAgICAgLyoKPiA+PiAgICAg
-ICAgICAgICAgICAgKiBUaGUgTFNCIG9mIHRoZSBoYW5kbGVyIGRldGVybWluZXMgaWYgd2UncmUg
-Z29pbmcgdG8KPiA+PiAgICAgICAgICAgICAgICAgKiBiZSB1c2luZyBUSFVNQiBvciBBUk0gbW9k
-ZSBmb3IgdGhpcyBzaWduYWwgaGFuZGxlci4KPiA+PiAgICAgICAgICAgICAgICAgKi8KPiA+PiAg
-ICAgICAgICAgICAgICB0aHVtYiA9IGhhbmRsZXIgJiAxOwo+ID4+IAo+ID4+IC0jaWYgX19MSU5V
-WF9BUk1fQVJDSF9fID49IDcKPiA+PiArI2lmIDAgLy9fX0xJTlVYX0FSTV9BUkNIX18gPj0gNwo+
-ID4+ICAgICAgICAgICAgICAgIC8qCj4gPj4gICAgICAgICAgICAgICAgICogQ2xlYXIgdGhlIElm
-LVRoZW4gVGh1bWItMiBleGVjdXRpb24gc3RhdGUKPiA+PiAgICAgICAgICAgICAgICAgKiBBUk0g
-c3BlYyByZXF1aXJlcyB0aGlzIHRvIGJlIGFsbCAwMDBzIGluIEFSTSBtb2RlCj4gPj4gICAgICAg
-ICAgICAgICAgICogU25hcGRyYWdvbiBTNC9LcmFpdCBtaXNiZWhhdmVzIG9uIGEgVGh1bWI9PkFS
-TQo+ID4+ICAgICAgICAgICAgICAgICAqIHNpZ25hbCB0cmFuc2l0aW9uIHdpdGhvdXQgdGhpcy4K
-PiA+PiAgICAgICAgICAgICAgICAgKi8KPiA+PiAKPiA+PiAuLi4gYW5kIHRoZSBwcm9ibGVtIGFw
-cGVhcnMsIHNvIEkgZ3Vlc3MgdGhpcyBuZWVkcyBzb21lIHJlYWwKPiA+PiBtdWx0aXBsYXRmb3Jt
-IGhhbmRsaW5nLC4KPiA+IAo+ID4gT0sgbmljZSB0byBoZWFyIHlvdSBmb3VuZCBpdC4gWWVhaCBs
-b29rcyBsaWtlIHNvbWUgcnVudGltZQo+ID4gY2FwYWJpbGl0eSBjaGVjayBpcyBuZWVkZWQuCj4g
-PiAKPiA+Pj4gRG8geW91IGhhdmUgc29tZSBlYXN5IHdheSB0byByZXByb2R1Y2UgdGhpcyBpc3N1
-ZT8KPiA+PiAKPiA+PiBKdXN0IG1vdmluZyBhIGJyb3dzZXIgd2luZG93IGFyb3VuZCB3aXRoIG1v
-dXNlIHVzdWFsbHkgdHJpZ2dlcnMgaXQKPiA+PiB3aXRoaW4gYSBtaW51dGUuCj4gPiAKPiA+IE9L
-IGdvb2QgdG8ga25vdy4KPiAKPiBJdCBsb29rcyBhcyBpZiB0aGlzIGlzIHRoZSBzb2x1dGlvbiBm
-b3IgdGhlIHNhbWUgc3ltcHRvbSBvbiBvdXIgT01BUDMgYm9hcmQgKGd0YTA0KS4KPiBUaGVyZSwg
-aXQgc3VmZmljZXMgdG8gZHJhdyBvbiB0aGUgdG91Y2ggc2NyZWVuIGZvciB+MTAgc2Vjb25kcyB0
-byBtYWtlIHRoZSB4c2VydmVyIHNlZ2ZhdWx0Lgo+IAo+IFt3ZSBhcmUgdXNpbmcgdGhlIGJpbmFy
-eSB4c2VydmVyIGZyb20gZGViaWFuIHdoZWV6eQo+IGlpICB4c2VydmVyLXhvcmctY29yZSAgICAg
-ICAgICAgICAgICAgICAgICAgIDI6MS4xMi40LTYrZGViN3U1ICAgICAgICAgICAgIGFybWhmICAg
-ICAgICBYb3JnIFggc2VydmVyIC0gY29yZSBzZXJ2ZXJdCj4gCj4gV2Uga25vdyBhYm91dCB0aGlz
-IGJ1ZyBmb3IgYSB3aGlsZSwgYnV0IHNvIGZhciBkaWQgdGhpbmsgdGhhdCBzb21lIHRvdWNoIHNj
-cmVlbgo+IGV2ZW50IGJpdCBoYXMgY2hhbmdlZCBhbmQgd2UgaGF2ZSB0byBmaXggb3VyIHRvdWNo
-IHNjcmVlbiBkcml2ZXIuCj4gCj4gTm93LCBkaXNhYmxpbmcgQ09ORklHX0FSQ0hfTVVMVElfVjYg
-YWxzbyBtYWtlcyB0aGUgYnVnIGdvIGF3YXkgYW5kIGFkZGluZyB0aGUKPiA+PiAjaWYgMCAvL19f
-TElOVVhfQVJNX0FSQ0hfXyA+PSA3Cj4gbWFrZXMgaXQgcmUtYXBwZWFyLgo+IAo+IEEgd2hpbGUg
-YWdvIEkgdHJpZWQgdG8gZGVidWcgcnVubmluZyB0aGUgeC1zZXJ2ZXIgdW5kZXIgc3RyYWNlIGFu
-ZCBjb3VsZCBmaW5kIHRoYXQgaXQgYWxzbyBoYXMKPiBzb21ldGhpbmcgdG8gZG8gd2l0aCBTSUdB
-TFJNLgo+IAo+IEFuZCB0aGF0IGlzIHZlcnkgY29uc2lzdGVudCB3aXRoIOKAnGVuYWJsZS9kaXNh
-Ymxl4oCdIGJ5IG1vZGlmeWluZyBhcmNoL2FybS9rZXJuZWwvc2lnbmFsLmMKCkl0IHdvdWxkIGJl
-IHJlYWxseSBuaWNlIGlmIHNvbWVvbmUgY291bGQgZGlhZ25vc2Ugd2hhdCdzIGdvaW5nIG9uIGhl
-cmUuCldoYXQgZXhjZXB0aW9uIGlzIGNhdXNpbmcgdGhlIFggc2VydmVyIHRvIGJlIGtpbGxlZCAo
-c29tZW9uZSBzYWlkIGEKc2VnZmF1bHQpPyAgV2hhdCBpcyB0aGUgcmVnaXN0ZXIgc3RhdGUgYXQg
-dGhlIHBvaW50IHRoYXQgaGFwcGVucz8gIFdoYXQKZG9lcyB0aGUgY29kZSBsb29rIGxpa2UgIElz
-IGl0IGhhcHBlbmluZyBpbnNpZGUgdGhlIFNJR0FMUk0gaGFuZGxlciwgb3IKd2hlbiB0aGUgU0lH
-QUxSTSBoYW5kbGVyIGhhcyByZXR1cm5lZD8KCkknZCBzdWdnZXN0IGF0dGFjaGluZyBnZGIgdG8g
-dGhlIFggc2VydmVyLCBidXQgcmVtZW1iZXIgdG8gc2V0IGdkYiB0bwppZ25vcmUgU0lHUElQRXMu
-CgotLSAKRlRUQyBicm9hZGJhbmQgZm9yIDAuOG1pbGUgbGluZTogY3VycmVudGx5IGF0IDkuNk1i
-cHMgZG93biA0MDBrYnBzIHVwCmFjY29yZGluZyB0byBzcGVlZHRlc3QubmV0LgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
-YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+In case when the interrupt happened for the second eDMA the channel
+number was incorrectly passed to the client driver.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: <stable@vger.kernel.org>
+---
+ arch/arm/common/edma.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 873dbfcc7dc9..56fc339571f9 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -406,7 +406,8 @@ static irqreturn_t dma_irq_handler(int irq, void *data)
+ 					BIT(slot));
+ 			if (edma_cc[ctlr]->intr_data[channel].callback)
+ 				edma_cc[ctlr]->intr_data[channel].callback(
+-					channel, EDMA_DMA_COMPLETE,
++					EDMA_CTLR_CHAN(ctlr, channel),
++					EDMA_DMA_COMPLETE,
+ 					edma_cc[ctlr]->intr_data[channel].data);
+ 		}
+ 	} while (sh_ipr);
+@@ -460,7 +461,8 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ 					if (edma_cc[ctlr]->intr_data[k].
+ 								callback) {
+ 						edma_cc[ctlr]->intr_data[k].
+-						callback(k,
++						callback(
++						EDMA_CTLR_CHAN(ctlr, k),
+ 						EDMA_DMA_CC_ERROR,
+ 						edma_cc[ctlr]->intr_data
+ 						[k].data);
+-- 
+2.5.1
