@@ -1,132 +1,100 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RFC 4/5] ASoC: davinci-mcasp: Get rid of bclk_lrclk_ratio
- in private data
-Date: Thu, 10 Sep 2015 10:16:30 +0300
-Message-ID: <55F12E4E.9020607@ti.com>
-References: <cover.1441806963.git.jsarha@ti.com>
- <f23dab7c68fe1cc899a8bc95cb5c3c5bd1038e18.1441806963.git.jsarha@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 03/13] twl4030_charger: correctly handle -EPROBE_DEFER
+ from devm_usb_get_phy_by_node
+Date: Thu, 10 Sep 2015 10:08:50 +0200
+Message-ID: <20150910080849.GA6164@earth>
+References: <20150730001113.4012.18086.stgit@noble>
+ <20150730001124.4012.31980.stgit@noble>
+ <CAMAWPa__hFOuz24YBcFiR+m5mOUArSuNpuqh3Ju1H+yj6qadfA@mail.gmail.com>
+ <CAMAWPa_s2ELgRBRtWzFucmREMuLXS_V5Akmad5yFU13-GrzBDA@mail.gmail.com>
+ <87si6x4a2f.fsf@notabene.neil.brown.name>
+ <20150902130724.GQ4215@atomide.com>
+ <CAMAWPa8q1BOMvvKqqU88vYq4-_QhuxefVqkM6=4BP4-FGZxRPw@mail.gmail.com>
+ <20150908201417.GG4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f23dab7c68fe1cc899a8bc95cb5c3c5bd1038e18.1441806963.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, misael.lopez-l0cyMroinI0@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150908201417.GG4215@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@kernel.org>, Neil Brown <neil@brown.name>, Samuel Ortiz <sameo@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, lkml <linux-kernel@vger.kernel.org>, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Tyler Baker <tyler.baker@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/09/15 21:27, Jyri Sarha wrote:
-> The slot_width is for essentially same thing. Instead of storing
-> bclk_lrclk_ratio, just store the slot_width. Comments has been updated
-> accordingly and some variable names changed to more descriptive.
->
-> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-> ---
->   sound/soc/davinci/davinci-mcasp.c | 56 ++++++++++++++++++++++-----------------
->   1 file changed, 31 insertions(+), 25 deletions(-)
->
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-> index de1e3a8..25ff1fc 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -87,7 +87,6 @@ struct davinci_mcasp {
->   	u8	*serial_dir;
->   	u8	version;
->   	u8	bclk_div;
-> -	u16	bclk_lrclk_ratio;
->   	int	streams;
->   	u32	irq_request[2];
->   	int	dma_request[2];
-> @@ -558,8 +557,21 @@ static int __davinci_mcasp_set_clkdiv(struct snd_soc_dai *dai, int div_id,
->   			mcasp->bclk_div = div;
->   		break;
->
-> -	case 2:		/* BCLK/LRCLK ratio */
-> -		mcasp->bclk_lrclk_ratio = div;
-> +	case 2:	/*
-> +		 * BCLK/LRCLK ratio descries how many bit-clock cycles
-> +		 * fit into one frame. The clock ratio is given for a
-> +		 * full period of data (for I2S format both left and
-> +		 * right channels), so it has to be divided by number
-> +		 * of tdm-slots (for I2S - divided by 2).
-> +		 * Instead of storing this ratio, we calculate a new
-> +		 * tdm_slot width by dividing the the ratio by the
-> +		 * number of configured tdm slots.
-> +		 */
-> +		mcasp->slot_width = div / mcasp->tdm_slots;
-> +		if (div % mcasp->tdm_slots)
-> +			dev_warn(mcasp->dev,
-> +				 "%s(): BCLK/LRCLK %d is not divisible by %d tdm slots",
-> +				 div, mcasp->tdm_slots);
 
-Oops, there is a __func__ missing here.
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->   		break;
->
->   	default:
-> @@ -682,11 +694,13 @@ static int davinci_mcasp_set_tdm_slot(struct snd_soc_dai *dai,
->   }
->
->   static int davinci_config_channel_size(struct davinci_mcasp *mcasp,
-> -				       int word_length)
-> +				       int sample_width)
->   {
->   	u32 fmt;
-> -	u32 tx_rotate = (word_length / 4) & 0x7;
-> -	u32 mask = (1ULL << word_length) - 1;
-> +	u32 tx_rotate = (sample_width / 4) & 0x7;
-> +	u32 mask = (1ULL << sample_width) - 1;
-> +	u32 slot_width = sample_width;
-> +
->   	/*
->   	 * For captured data we should not rotate, inversion and masking is
->   	 * enoguh to get the data to the right position:
-> @@ -699,31 +713,23 @@ static int davinci_config_channel_size(struct davinci_mcasp *mcasp,
->   	u32 rx_rotate = 0;
->
->   	/*
-> -	 * if s BCLK-to-LRCLK ratio has been configured via the set_clkdiv()
-> -	 * callback, take it into account here. That allows us to for example
-> -	 * send 32 bits per channel to the codec, while only 16 of them carry
-> -	 * audio payload.
-> -	 * The clock ratio is given for a full period of data (for I2S format
-> -	 * both left and right channels), so it has to be divided by number of
-> -	 * tdm-slots (for I2S - divided by 2).
-> +	 * Setting the tdm slot width either with set_clkdiv() or
-> +	 * set_tdm_slot() allows us to for example send 32 bits per
-> +	 * channel to the codec, while only 16 of them carry audio
-> +	 * payload.
->   	 */
-> -	if (mcasp->bclk_lrclk_ratio) {
-> -		u32 slot_length = mcasp->bclk_lrclk_ratio / mcasp->tdm_slots;
-> -
-> +	if (mcasp->slot_width) {
->   		/*
-> -		 * When we have more bclk then it is needed for the data, we
-> -		 * need to use the rotation to move the received samples to have
-> -		 * correct alignment.
-> +		 * When we have more bclk then it is needed for the
-> +		 * data, we need to use the rotation to move the
-> +		 * received samples to have correct alignment.
->   		 */
-> -		rx_rotate = (slot_length - word_length) / 4;
-> -		word_length = slot_length;
-> -	} else if (mcasp->slot_width) {
-> -		rx_rotate = (mcasp->slot_width - word_length) / 4;
-> -		word_length = mcasp->slot_width;
-> +		slot_width = mcasp->slot_width;
-> +		rx_rotate = (slot_width - sample_width) / 4;
->   	}
->
->   	/* mapping of the XSSZ bit-field as described in the datasheet */
-> -	fmt = (word_length >> 1) - 1;
-> +	fmt = (slot_width >> 1) - 1;
->
->   	if (mcasp->op_mode != DAVINCI_MCASP_DIT_MODE) {
->   		mcasp_mod_bits(mcasp, DAVINCI_MCASP_RXFMT_REG, RXSSZ(fmt),
->
+Hi,
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Sep 08, 2015 at 01:14:17PM -0700, Tony Lindgren wrote:
+> * Kevin Hilman <khilman@kernel.org> [150908 11:36]:
+> > On Wed, Sep 2, 2015 at 6:07 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > > * Neil Brown <neil@brown.name> [150901 23:23]:
+> > >> Kevin Hilman <khilman@kernel.org> writes:
+> > >>
+> > >> > ping... this boot failure has now landed in mainline
+> > >>
+> > >> sorry, I'm on leave at the moment and travelling so I'm unlikely to =
+be
+> > >> able to look at this properly.  I should be able to examine this iss=
+ue
+> > >> before the end of the month but cannot promise sooner than that (tho=
+ugh
+> > >> it is not impossible).
+> > >>
+> > >> Maybe it would be best to just revert it until a proper analysis can=
+ be
+> > >> done.
+> > >
+> > > OK yeah let's revert this one for now until we know what goes wrong.
+> >=20
+> > Looks like this is still in mainline.
+> >=20
+> > Tony, can you revert?
+>=20
+> Probably best that Sebastian does it as there's another fix needed
+> too. It seems the following are needed:
+>=20
+> - Revert $subject patch 3fc3895e4fe1 ("twl4030_charger: correctly
+>   handle -EPROBE_DEFER from devm_usb_get_phy_by_node")
+>=20
+> - Apply compile fix "[PATCH] twl4030_charger: fix another compile
+>   error"
+>=20
+> Just in case Sebastian is travelling or something..
+
+Right, I was on vacation without internet access until now.
+
+> Sebastian, can you please confirm?
+
+Sounds fine to me. I will take care of it once I've slept a bit.
+
+-- Sebastian
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJV8TqJAAoJENju1/PIO/qa6SwP/jepTsWYlxhOsM4Dz0LICkpD
+DLK1cvFAJgPDj9nI1a6IKdLqX7fqB8kJ7UnFm+MY75mI8Q0N5TT+7hiQkgQczB8e
+xzQpOasfoHaccZTTljxcbERxK7JKsqQN+qDlsMEvCd22gs6LeEYSyv57glHGFZey
+AXuw0ISxeXyG9vV5+U47FFszhv7FXVW2CDFxiblt9yFRObtIo+aXqG9JtaO1ZTbN
+kbTqS7pma+Rm489884+Wws+TVd0t7djOssVTskA/YZ4VIWMwJNTvYpv5SnGmrk3L
+V1TKCmhnYmf14GHa6V+dJwTHktSwPGDIzUTh7lPIYRA4GxN+nkDZHaRlI/krynBo
+fjD6Qbhb6YIxOkq9RZkQSh1xpWdnTHwvRwv+eXEsQ1WMi+cc2fznzLx1UIO/nfAu
+sWCo4Mt76hKvOCZZtK6lTm9tsUz9LZAfXSBJAo7XH37NjwMqXKmWE3309LPFvAnC
+haXWQwNwFSt4guTMSFOoQI1L37fqdy9ifDHmFeMHle/0nh4x9cRbCt40dQtp5dU/
+UfBXDcEvN5xc70uxcmlqQL7T0XKeW+m98pQSBSU4JAaA4b+ZfiCxoZwTz1TOOPAt
+THM8080GJ6T5cA4M5yoEaqzLsLSA6jchTmoJhTWgRfastxzqLnYtP6gUdqzzqiHj
+LB/69vmQgOUg8in/OS9V
+=DbD4
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
