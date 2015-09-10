@@ -1,135 +1,157 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: mysterious crashes on OMAP5 uevm
-Date: Thu, 10 Sep 2015 08:42:57 +0200
-Message-ID: <E0068B56-0DEE-4E2F-94CF-DB104AE16D63@goldelico.com>
-References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
- <20150908143810.GD4215@atomide.com>
- <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
- <20150908210708.GH4215@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150908210708.GH4215@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Grazvydas Ignotas <notasas@gmail.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Peter Chen <peter.chen@freescale.com>
+Subject: Re: [PATCH v4 07/13] usb: otg: add OTG core
+Date: Thu, 10 Sep 2015 13:35:08 +0800
+Message-ID: <20150910053507.GA19400@shlinux2>
+References: <20150907012327.GG4914@shlinux2>
+ <55ED6585.5050200@ti.com>
+ <20150908083059.GD7802@shlinux2>
+ <55EED3B5.5030806@ti.com>
+ <20150909022116.GF7802@shlinux2>
+ <55EFF6FA.1000705@ti.com>
+ <20150909081304.GM7802@shlinux2>
+ <55EFFCE0.5070109@ti.com>
+ <20150909084544.GO7802@shlinux2>
+ <55F0083E.6050802@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55F0083E.6050802@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Sep 09, 2015 at 01:21:50PM +0300, Roger Quadros wrote:
+> On 09/09/15 11:45, Peter Chen wrote:
+> > On Wed, Sep 09, 2015 at 12:33:20PM +0300, Roger Quadros wrote:
+> >> On 09/09/15 11:13, Peter Chen wrote:
+> >>> On Wed, Sep 09, 2015 at 12:08:10PM +0300, Roger Quadros wrote:
+> >>>> On 09/09/15 05:21, Peter Chen wrote:
+> >>>>> On Tue, Sep 08, 2015 at 03:25:25PM +0300, Roger Quadros wrote:
+> >>>>>>
+> >>>>>>
+> >>>>>> On 08/09/15 11:31, Peter Chen wrote:
+> >>>>>>> On Mon, Sep 07, 2015 at 01:23:01PM +0300, Roger Quadros wrote:
+> >>>>>>>> On 07/09/15 04:23, Peter Chen wrote:
+> >>>>>>>>> On Mon, Aug 24, 2015 at 04:21:18PM +0300, Roger Quadros wrote:
+> >>>>>>>>>> + * This is used by the USB Host stack to register the Host controller
+> >>>>>>>>>> + * to the OTG core. Host controller must not be started by the
+> >>>>>>>>>> + * caller as it is left upto the OTG state machine to do so.
+> >>>>>>>>>> + *
+> >>>>>>>>>> + * Returns: 0 on success, error value otherwise.
+> >>>>>>>>>> + */
+> >>>>>>>>>> +int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+> >>>>>>>>>> +			 unsigned long irqflags, struct otg_hcd_ops *ops)
+> >>>>>>>>>> +{
+> >>>>>>>>>> +	struct usb_otg *otgd;
+> >>>>>>>>>> +	struct device *hcd_dev = hcd->self.controller;
+> >>>>>>>>>> +	struct device *otg_dev = usb_otg_get_device(hcd_dev);
+> >>>>>>>>>> +
+> >>>>>>>>>
+> >>>>>>>>> One big problem here is: there are two designs for current (IP) driver
+> >>>>>>>>> code, one creates dedicated hcd device as roothub's parent, like dwc3.
+> >>>>>>>>> Another one doesn't do this, roothub's parent is core device (or otg device
+> >>>>>>>>> in your patch), like chipidea and dwc2.
+> >>>>>>>>>
+> >>>>>>>>> Then, otg_dev will be glue layer device for chipidea after that.
+> >>>>>>>>
+> >>>>>>>> OK. Let's add a way for the otg controller driver to provide the host and gadget
+> >>>>>>>> information to the otg core for such devices like chipidea and dwc2.
+> >>>>>>>>
+> >>>>>>>
+> >>>>>>> Roger, not only chipidea and dwc2, I think the musb uses the same
+> >>>>>>> hierarchy. If the host, device, and otg share the same register
+> >>>>>>> region, host part can't be a platform driver since we don't want
+> >>>>>>> to remap the same register region again.
+> >>>>>>>
+> >>>>>>> So, in the design, we may need to consider both situations, one
+> >>>>>>> is otg/host/device has its own register region, and host is a
+> >>>>>>> separate platform device (A), the other is three parts share the
+> >>>>>>> same register region, there is only one platform driver (B).
+> >>>>>>>
+> >>>>>>> A:
+> >>>>>>>
+> >>>>>>> 			IP core device 
+> >>>>>>> 			    |
+> >>>>>>> 			    |
+> >>>>>>> 		      |-----|-----|
+> >>>>>>> 		      gadget   host platform device	
+> >>>>>>> 		      		|
+> >>>>>>> 				roothub
+> >>>>>>>
+> >>>>>>> B:
+> >>>>>>>
+> >>>>>>> 			IP core device
+> >>>>>>> 			    |
+> >>>>>>> 			    |
+> >>>>>>> 		      |-----|-----|
+> >>>>>>> 		      gadget   	 roothub
+> >>>>>>> 		      		
+> >>>>>>>
+> >>>>>>>> This API must be called before the hcd/gadget-driver is added so that the otg
+> >>>>>>>> core knows it's linked to an OTG controller.
+> >>>>>>>>
+> >>>>>>>> Any better idea?
+> >>>>>>>>
+> >>>>>>>
+> >>>>>>> A flag stands for this hcd controller is the same with otg controller
+> >>>>>>> can be used, this flag can be stored at struct usb_otg_config.
+> >>>>>>
+> >>>>>> What if there is another architecture like so?
+> >>>>>>
+> >>>>>> C:
+> >>>>>> 			[Parent]
+> >>>>>> 			   |
+> >>>>>> 			   |
+> >>>>>> 		|------------------|--------------|
+> >>>>>> 	[OTG core]		[gadget]	[host]
+> >>>>>>
+> >>>>>> We need a more flexible mechanism to link the gadget and
+> >>>>>> host device to the otg core for non DT case.
+> >>>>>>
+> >>>>>> How about adding struct usb_otg parameter to usb_otg_register_hcd()?
+> >>>>>>
+> >>>>>> e.g.
+> >>>>>> int usb_otg_register_hcd(struct usb_otg *otg, struct usb_hcd *hcd, ..)
+> >>>>>>
+> >>>>>> If otg is NULL it will try DT otg-controller property or parent to
+> >>>>>> get the otg controller.
+> >>>>>
+> >>>>> How usb_otg_register_hcd get struct usb_otg, from where?
+> >>>>
+> >>>> This only works when the parent driver creating the hcd has registered the
+> >>>> otg controller too.
+> >>>>
+> >>>
+> >>> Sorry? So we need to find another way to solve this issue, right?
+> >>
+> >> For existing cases this is sufficient.
+> >> The otg device is either the one supplied during usb_otg_register_hcd
+> >> (cases B and C) or it is the parent device (case A).
+> > 
+> > How we differentiate case A and case B at usb_otg_register_hcd?
+> > Would you show me the sample code?
+> 
+> Case A:
+> 
+> hcd platform driver doesn't know about otg device so it calls
+> 
+> 	usb_add_hcd(hcd,..)->usb_otg_register_hcd(NULL, hcd,..);
+> 
+> Case B:
+> 
+> core driver knows about both otg and hcd so it calls
+> 	usb_otg_register_hcd(otg, hcd,...);
+> 
 
-Am 08.09.2015 um 23:07 schrieb Tony Lindgren <tony@atomide.com>:
+Ok, Get your points, you mean invoke usb_otg_register_hcd at platform
+driver directly instead of at hcd.c. It may be not a good solution
+due to we use different otg APIs for two cases, it may confuse the
+users, unless we can have some APIs (flags) are easy to read and well
+documentation.
 
-> * Grazvydas Ignotas <notasas@gmail.com> [150908 13:44]:
->> On Tue, Sep 8, 2015 at 4:38 PM, Tony Lindgren <tony@atomide.com> wrote:
->>> * Grazvydas Ignotas <notasas@gmail.com> [150908 05:50]:
->>>> Hi,
->>>> =
+-- 
 
->>>> this is a longstanding problem I'm seeing since the very beginning,
->>>> which was around 3.12 or so (when I've first got the hardware) and it
->>>> seems 4.2 is affected by it still. Basically what happens is Xorg
->>>> randomly segfaults at some "impossible" location. I don't have the
->>>> details at the moment (could get them is needed), but from what I
->>>> examined with gdb some time ago the situation did not make any sense.
->>>> =
-
->>>> There are 2 workarounds that I know which make the problem go away
->>>> (one is enough):
->>>> - recompile Xorg with -marm (I'm using Debian armhf so it's thumb2 by =
-default)
->>>> - disable ARCH_MULTI_V6 in the kernel config
->>>> =
-
->>>> Because of the above workarounds I have forgotten about it several
->>>> times, but it regularly comes back and bites again. It would look like
->>>> some missing erratum workaround, but I have all of them enabled in the
->>>> kernel.
->>>> =
-
->>>> Does anyone know about this? Perhaps some missing erratum workaround
->>>> in the bootloader? u-boot isn't too old here (2015.07).
->>> =
-
->>> Seems like some incorrect handling with CONFIG_CPU_V6 compiled in..
->>> Maybe try to narrow it down by commenting out some CONFIG_CPU_V6 and
->>> __LINUX_ARM_ARCH__ =3D 6 ifdefs in the git grep CONFIG_CPU_V6
->>> places ignoring uncompress and davinci code.
->> =
-
->> ok with that it was quite easy to find. On a kernel with ARCH_MULTI_V6
->> disabled, it is enough to just do this:
->> =
-
->> --- a/arch/arm/kernel/signal.c
->> +++ b/arch/arm/kernel/signal.c
->> @@ -340,13 +340,13 @@ setup_return(struct pt_regs *regs, struct ksignal =
-*ksig,
->>                /*
->>                 * The LSB of the handler determines if we're going to
->>                 * be using THUMB or ARM mode for this signal handler.
->>                 */
->>                thumb =3D handler & 1;
->> =
-
->> -#if __LINUX_ARM_ARCH__ >=3D 7
->> +#if 0 //__LINUX_ARM_ARCH__ >=3D 7
->>                /*
->>                 * Clear the If-Then Thumb-2 execution state
->>                 * ARM spec requires this to be all 000s in ARM mode
->>                 * Snapdragon S4/Krait misbehaves on a Thumb=3D>ARM
->>                 * signal transition without this.
->>                 */
->> =
-
->> ... and the problem appears, so I guess this needs some real
->> multiplatform handling,.
-> =
-
-> OK nice to hear you found it. Yeah looks like some runtime
-> capability check is needed.
-> =
-
->>> Do you have some easy way to reproduce this issue?
->> =
-
->> Just moving a browser window around with mouse usually triggers it
->> within a minute.
-> =
-
-> OK good to know.
-
-It looks as if this is the solution for the same symptom on our OMAP3 board=
- (gta04).
-There, it suffices to draw on the touch screen for ~10 seconds to make the =
-xserver segfault.
-
-[we are using the binary xserver from debian wheezy
-ii  xserver-xorg-core                        2:1.12.4-6+deb7u5             =
-armhf        Xorg X server - core server]
-
-We know about this bug for a while, but so far did think that some touch sc=
-reen
-event bit has changed and we have to fix our touch screen driver.
-
-Now, disabling CONFIG_ARCH_MULTI_V6 also makes the bug go away and adding t=
-he
->> #if 0 //__LINUX_ARM_ARCH__ >=3D 7
-makes it re-appear.
-
-A while ago I tried to debug running the x-server under strace and could fi=
-nd that it also has
-something to do with SIGALRM.
-
-And that is very consistent with =93enable/disable=94 by modifying arch/arm=
-/kernel/signal.c
-
-BR,
-Nikolaus
+Best Regards,
+Peter Chen
