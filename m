@@ -1,40 +1,38 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 09/21] ARM: davinci: Add set dma_mask to eDMA devices
-Date: Thu, 10 Sep 2015 10:45:12 +0200
-Message-ID: <1510483.LNzviKQJ8l@wuerfel>
-References: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com> <1441874270-2399-10-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 00/21] dmaengine/ARM: Merge the edma drivers into one
+Date: Thu, 10 Sep 2015 10:47:28 +0200
+Message-ID: <1936630.COymDSFqK4@wuerfel>
+References: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1441874270-2399-10-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 10 September 2015 11:37:38 Peter Ujfalusi wrote:
-> +static u64 da8xx_edma0_dmamask = DMA_BIT_MASK(32);
-> +
->  static struct platform_device da8xx_edma0_device = {
->         .name           = "edma",
->         .id             = 0,
->         .dev = {
->                 .platform_data = &da8xx_edma0_pdata,
-> +               .dma_mask = &da8xx_edma0_dmamask,
-> +               .coherent_dma_mask = DMA_BIT_MASK(32),
->         },
->         .num_resources  = ARRAY_SIZE(da8xx_edma0_resources),
->         .resource       = da8xx_edma0_resources,
->  };
+On Thursday 10 September 2015 11:37:29 Peter Ujfalusi wrote:
+> 
+> with this series the edma two driver setup will be changed to have only one
+> driver to support eDMA3. The legacy edma interface will be removed and eDMA can
+> only be used via dmaengine API from this point on.
+> In order to do the merge the following improvements has been done:
+> - One driver instance per eDMA:
+>  - Any number of eDMA instances are supported (both legacy and DT boot)
+> - Not relying on global variables, arrays, etc
+> - Code simplification and optimizations in several places
+> 
+> This change will also help us to do bigger changes in the eDMA driver since,
+> since now we have only one driver to work with.
+> 
 
-While this is technically correct for all I can tell, could you
-convert it to use __initconst platform_device_info and
-platform_device_register_full() instead?
+Very nice series, thanks for addressing this long-standing issue!
 
-statically declaring platform_devices has been frowned upon for a long
-time (even though a lot of arm platforms still do it), and statically
-declaring the dma mask seems worse to me (and yes, I realize we also
-do that elsewhere).
+I've briefly read over the series and did not see anything major
+sticking out, but I did not attempt to do a thorough review.
+
+I found two minor things that I commented on that could be improved.
 
 	Arnd
