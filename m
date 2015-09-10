@@ -1,163 +1,193 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 11/21] dmaengine: edma: Allocate memory dynamically for bitmaps and structures
-Date: Thu, 10 Sep 2015 11:37:40 +0300
-Message-ID: <1441874270-2399-12-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 03/21] dmaengine: edma: Simplify and optimize the edma_execute
+ path
+Date: Thu, 10 Sep 2015 11:37:32 +0300
+Message-ID: <1441874270-2399-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1441874270-2399-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
+Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Instead of using defines to specify the size of different arrays and
-bitmaps, allocate the memory for them based on the information we get from
-the HW itself.
-Since these defines are set based on the worst case, there are devices
-where they are not valid.
+The code path in edma_execute() and edma_callback() can be simplified
+and make it more optimal.
+There is not need to call in to edma_execute() when the transfer
+has been finished for example.
+Also the handling of missed/first or next batch of paRAMs can
+be done in a more optimal way.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 62 ++++++++++++++++++++++++++++++------------------------
- 1 file changed, 34 insertions(+), 28 deletions(-)
+ drivers/dma/edma.c | 76 +++++++++++++++++++++---------------------------------
+ 1 file changed, 29 insertions(+), 47 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index cdde9a69cc59..153869c9e13c 100644
+index 3e5d4f193005..19fa49d6f555 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -113,23 +113,6 @@
- #define CHMAP_EXIST		BIT(24)
+@@ -154,15 +154,11 @@ static void edma_execute(struct edma_chan *echan)
+ 	struct device *dev = echan->vchan.chan.device->dev;
+ 	int i, j, left, nslots;
  
- /*
-- * This will go away when the private EDMA API is folded
-- * into this driver and the platform device(s) are
-- * instantiated in the arch code. We can only get away
-- * with this simplification because DA8XX may not be built
-- * in the same kernel image with other DaVinci parts. This
-- * avoids having to sprinkle dmaengine driver platform devices
-- * and data throughout all the existing board files.
-- */
--#ifdef CONFIG_ARCH_DAVINCI_DA8XX
--#define EDMA_CTLRS	2
--#define EDMA_CHANS	32
--#else
--#define EDMA_CTLRS	1
--#define EDMA_CHANS	64
--#endif /* CONFIG_ARCH_DAVINCI_DA8XX */
--
--/*
-  * Max of 20 segments per channel to conserve PaRAM slots
-  * Also note that MAX_NR_SG should be atleast the no.of periods
-  * that are required for ASoC, otherwise DMA prep calls will
-@@ -140,16 +123,12 @@
- #define EDMA_MAX_SLOTS		MAX_NR_SG
- #define EDMA_DESCRIPTORS	16
- 
--#define EDMA_MAX_PARAMENTRY     512
--
- #define EDMA_CHANNEL_ANY		-1	/* for edma_alloc_channel() */
- #define EDMA_SLOT_ANY			-1	/* for edma_alloc_slot() */
- #define EDMA_CONT_PARAMS_ANY		 1001
- #define EDMA_CONT_PARAMS_FIXED_EXACT	 1002
- #define EDMA_CONT_PARAMS_FIXED_NOT_EXACT 1003
- 
--#define EDMA_MAX_CC               2
--
- /* PaRAM slots are laid out like this */
- struct edmacc_param {
- 	u32 opt;
-@@ -256,22 +235,22 @@ struct edma_cc {
- 	/* The edma_inuse bit for each PaRAM slot is clear unless the
- 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
- 	 */
--	DECLARE_BITMAP(edma_inuse, EDMA_MAX_PARAMENTRY);
-+	unsigned long *edma_inuse;
- 
- 	/* The edma_unused bit for each channel is clear unless
- 	 * it is not being used on this platform. It uses a bit
- 	 * of SOC-specific initialization code.
- 	 */
--	DECLARE_BITMAP(edma_unused, EDMA_CHANS);
-+	unsigned long *edma_unused;
- 
- 	struct dma_interrupt_data {
- 		void (*callback)(unsigned channel, unsigned short ch_status,
- 				void *data);
- 		void *data;
--	} intr_data[EDMA_CHANS];
-+	} *intr_data;
- 
- 	struct dma_device		dma_slave;
--	struct edma_chan		slave_chans[EDMA_CHANS];
-+	struct edma_chan		*slave_chans;
- 	int				dummy_slot;
- };
- 
-@@ -431,6 +410,8 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct edma_cc *ecc = data;
-+	int dma_req_min = EDMA_CTLR_CHAN(ecc->id, 0);
-+	int dma_req_max = dma_req_min + ecc->num_channels;
- 	int i, count;
- 	struct of_phandle_args  dma_spec;
- 
-@@ -466,11 +447,15 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
- 	/* For non-OF case */
- 	for (i = 0; i < pdev->num_resources; i++) {
- 		struct resource	*res = &pdev->resource[i];
-+		int dma_req;
- 
--		if ((res->flags & IORESOURCE_DMA) && (int)res->start >= 0) {
-+		if (!(res->flags & IORESOURCE_DMA))
-+			continue;
-+
-+		dma_req = (int)res->start;
-+		if (dma_req >= dma_req_min && dma_req < dma_req_max)
- 			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
- 				  ecc->edma_unused);
+-	/* If either we processed all psets or we're still not started */
+-	if (!echan->edesc ||
+-	    echan->edesc->pset_nr == echan->edesc->processed) {
+-		/* Get next vdesc */
++	if (!echan->edesc) {
++		/* Setup is needed for the first transfer */
+ 		vdesc = vchan_next_desc(&echan->vchan);
+-		if (!vdesc) {
+-			echan->edesc = NULL;
++		if (!vdesc)
+ 			return;
 -		}
+ 		list_del(&vdesc->node);
+ 		echan->edesc = to_edma_desc(&vdesc->tx);
+ 	}
+@@ -220,28 +216,26 @@ static void edma_execute(struct edma_chan *echan)
+ 				  echan->ecc->dummy_slot);
  	}
  
- 	return 0;
-@@ -1953,7 +1938,7 @@ static void __init edma_chan_init(struct edma_cc *ecc,
- {
- 	int i, j;
+-	if (edesc->processed <= MAX_NR_SG) {
+-		dev_dbg(dev, "first transfer starting on channel %d\n",
+-			echan->ch_num);
+-		edma_start(echan->ch_num);
+-	} else {
+-		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
+-			echan->ch_num, edesc->processed);
+-		edma_resume(echan->ch_num);
+-	}
+-
+-	/*
+-	 * This happens due to setup times between intermediate transfers
+-	 * in long SG lists which have to be broken up into transfers of
+-	 * MAX_NR_SG
+-	 */
+ 	if (echan->missed) {
++		/*
++		 * This happens due to setup times between intermediate
++		 * transfers in long SG lists which have to be broken up into
++		 * transfers of MAX_NR_SG
++		 */
+ 		dev_dbg(dev, "missed event on channel %d\n", echan->ch_num);
+ 		edma_clean_channel(echan->ch_num);
+ 		edma_stop(echan->ch_num);
+ 		edma_start(echan->ch_num);
+ 		edma_trigger_channel(echan->ch_num);
+ 		echan->missed = 0;
++	} else if (edesc->processed <= MAX_NR_SG) {
++		dev_dbg(dev, "first transfer starting on channel %d\n",
++			echan->ch_num);
++		edma_start(echan->ch_num);
++	} else {
++		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
++			echan->ch_num, edesc->processed);
++		edma_resume(echan->ch_num);
+ 	}
+ }
  
--	for (i = 0; i < EDMA_CHANS; i++) {
-+	for (i = 0; i < ecc->num_channels; i++) {
- 		struct edma_chan *echan = &echans[i];
- 		echan->ch_num = EDMA_CTLR_CHAN(ecc->id, i);
- 		echan->ecc = ecc;
-@@ -2222,6 +2207,27 @@ static int edma_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
+@@ -259,20 +253,17 @@ static int edma_terminate_all(struct dma_chan *chan)
+ 	 * echan->edesc is NULL and exit.)
+ 	 */
+ 	if (echan->edesc) {
+-		int cyclic = echan->edesc->cyclic;
+-
++		edma_stop(echan->ch_num);
++		/* Move the cyclic channel back to default queue */
++		if (echan->edesc->cyclic)
++			edma_assign_channel_eventq(echan->ch_num,
++						   EVENTQ_DEFAULT);
+ 		/*
+ 		 * free the running request descriptor
+ 		 * since it is not in any of the vdesc lists
+ 		 */
+ 		edma_desc_free(&echan->edesc->vdesc);
+-
+ 		echan->edesc = NULL;
+-		edma_stop(echan->ch_num);
+-		/* Move the cyclic channel back to default queue */
+-		if (cyclic)
+-			edma_assign_channel_eventq(echan->ch_num,
+-						   EVENTQ_DEFAULT);
+ 	}
  
-+	/* Allocate memory based on the information we got from the IP */
-+	ecc->slave_chans = devm_kcalloc(dev, ecc->num_channels,
-+					sizeof(*ecc->slave_chans), GFP_KERNEL);
-+	if (!ecc->slave_chans)
-+		return -ENOMEM;
-+
-+	ecc->intr_data = devm_kcalloc(dev, ecc->num_channels,
-+				      sizeof(*ecc->intr_data), GFP_KERNEL);
-+	if (!ecc->intr_data)
-+		return -ENOMEM;
-+
-+	ecc->edma_unused = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_channels),
-+					sizeof(unsigned long), GFP_KERNEL);
-+	if (!ecc->edma_unused)
-+		return -ENOMEM;
-+
-+	ecc->edma_inuse = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_slots),
-+				       sizeof(unsigned long), GFP_KERNEL);
-+	if (!ecc->edma_inuse)
-+		return -ENOMEM;
-+
- 	ecc->default_queue = info->default_queue;
+ 	vchan_get_all_descriptors(&echan->vchan, &head);
+@@ -725,41 +716,33 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
  
- 	for (i = 0; i < ecc->num_slots; i++)
+ 	edesc = echan->edesc;
+ 
+-	/* Pause the channel for non-cyclic */
+-	if (!edesc || (edesc && !edesc->cyclic))
+-		edma_pause(echan->ch_num);
+-
++	spin_lock(&echan->vchan.lock);
+ 	switch (ch_status) {
+ 	case EDMA_DMA_COMPLETE:
+-		spin_lock(&echan->vchan.lock);
+-
+ 		if (edesc) {
+ 			if (edesc->cyclic) {
+ 				vchan_cyclic_callback(&edesc->vdesc);
++				goto out;
+ 			} else if (edesc->processed == edesc->pset_nr) {
+ 				dev_dbg(dev, "Transfer complete, stopping channel %d\n", ch_num);
+ 				edesc->residue = 0;
+ 				edma_stop(echan->ch_num);
+ 				vchan_cookie_complete(&edesc->vdesc);
+-				edma_execute(echan);
++				echan->edesc = NULL;
+ 			} else {
+ 				dev_dbg(dev, "Intermediate transfer complete on channel %d\n", ch_num);
+ 
++				edma_pause(echan->ch_num);
++
+ 				/* Update statistics for tx_status */
+ 				edesc->residue -= edesc->sg_len;
+ 				edesc->residue_stat = edesc->residue;
+ 				edesc->processed_stat = edesc->processed;
+-
+-				edma_execute(echan);
+ 			}
++			edma_execute(echan);
+ 		}
+-
+-		spin_unlock(&echan->vchan.lock);
+-
+ 		break;
+ 	case EDMA_DMA_CC_ERROR:
+-		spin_lock(&echan->vchan.lock);
+-
+ 		edma_read_slot(EDMA_CHAN_SLOT(echan->slot[0]), &p);
+ 
+ 		/*
+@@ -788,13 +771,12 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ 			edma_start(echan->ch_num);
+ 			edma_trigger_channel(echan->ch_num);
+ 		}
+-
+-		spin_unlock(&echan->vchan.lock);
+-
+ 		break;
+ 	default:
+ 		break;
+ 	}
++out:
++	spin_unlock(&echan->vchan.lock);
+ }
+ 
+ /* Alloc channel resources */
 -- 
 2.5.1
