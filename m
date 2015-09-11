@@ -1,99 +1,183 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 00/23] dmaengine/ARM: Merge the edma drivers into one
-Date: Fri, 11 Sep 2015 15:26:59 +0300
-Message-ID: <1441974442-8233-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 03/23] dmaengine: edma: Simplify and optimize the edma_execute path
+Date: Fri, 11 Sep 2015 15:27:02 +0300
+Message-ID: <1441974442-8233-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1441974442-8233-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1441974442-8233-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The code path in edma_execute() and edma_callback() can be simplified
+and make it more optimal.
+There is not need to call in to edma_execute() when the transfer
+has been finished for example.
+Also the handling of missed/first or next batch of paRAMs can
+be done in a more optimal way.
 
-Changes since v1:
-- Convert edma platform device registration to use platform_device_register_full
-- Moved the PM callback also to the dmaengine driver - missed in v1
-- Commit message added to:
-  ARM/dmaengine: edma: Remove limitation on the number of eDMA controllers
-- New patch which reads the flag for the channel mapping support in one place
-
-Cover letter:
-
-with this series the edma two driver setup will be changed to have only one
-driver to support eDMA3. The legacy edma interface will be removed and eDMA can
-only be used via dmaengine API from this point on.
-In order to do the merge the following improvements has been done:
-- One driver instance per eDMA:
- - Any number of eDMA instances are supported (both legacy and DT boot)
-- Not relying on global variables, arrays, etc
-- Code simplification and optimizations in several places
-
-This change will also help us to do bigger changes in the eDMA driver since,
-since now we have only one driver to work with.
-
-The series has been tested on:
-da850-evm (OMAP-L138)
-- with legacy and DT boot (both eDMA0 and eDMA1 is enabled)
-- In code swapping the eDMA instances in legacy mode to make sure the second
-  instance is handled correctly.
-
-am335x-evmsk
-- DT boot
-
-I think this series could go via the dmaengine tree. Changes are trivial under
-arch/arm/
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (23):
-  ARM: common: edma: Fix channel parameter for irq callbacks
-  ARM: common: edma: Remove unused functions
-  dmaengine: edma: Simplify and optimize the edma_execute path
-  ARM: davinci/common: Convert edma driver to handle one eDMA instance
-    per driver
-  ARM/dmaengine: edma: Move of_dma_controller_register to the dmaengine
-    driver
-  ARM: common: edma: Internal API to use pointer to 'struct edma'
-  ARM/dmaengine: edma: Public API to use private struct pointer
-  ARM/dmaengine: edma: Remove limitation on the number of eDMA
-    controllers
-  ARM: davinci: Use platform_device_register_full() to create pdev for
-    eDMA
-  ARM: davinci: Add set dma_mask to eDMA devices
-  ARM/dmaengine: edma: Merge the two drivers under drivers/dmaengine
-  dmaengine: edma: Allocate memory dynamically for bitmaps and
-    structures
-  dmaengine: edma: Parameter alignment and long line fixes
-  dmaengine: edma: Use devm_kcalloc when possible
-  dmaengine: edma: Cleanup regarding the use of dev around the code
-  dmaengine: edma: Use dev_dbg instead pr_debug
-  dmaengine: edma: Use the edma_write_slot instead open coded
-    memcpy_toio
-  dmaengine: edma: Print warning when linking slots from different eDMA
-  dmaengine: edma: Consolidate the comments for functions
-  dmaengine: edma: Simplify the interrupt handling
-  dmaengine: edma: Move the pending error check into helper function
-  dmaengine: edma: Simplify and optimize ccerr interrupt handler
-  dmaengine: edma: Read channel mapping support only once from HW
+ drivers/dma/edma.c | 76 +++++++++++++++++++++---------------------------------
+ 1 file changed, 29 insertions(+), 47 deletions(-)
 
- arch/arm/Kconfig                      |    1 -
- arch/arm/common/Kconfig               |    3 -
- arch/arm/common/Makefile              |    1 -
- arch/arm/common/edma.c                | 1876 ---------------------------------
- arch/arm/mach-davinci/devices-da8xx.c |  122 +--
- arch/arm/mach-davinci/dm355.c         |   40 +-
- arch/arm/mach-davinci/dm365.c         |   25 +-
- arch/arm/mach-davinci/dm644x.c        |   40 +-
- arch/arm/mach-davinci/dm646x.c        |   44 +-
- arch/arm/mach-omap2/Kconfig           |    1 -
- drivers/dma/Kconfig                   |    1 -
- drivers/dma/edma.c                    | 1560 ++++++++++++++++++++++++---
- include/linux/platform_data/edma.h    |  101 --
- 13 files changed, 1516 insertions(+), 2299 deletions(-)
- delete mode 100644 arch/arm/common/edma.c
-
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 3e5d4f193005..19fa49d6f555 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -154,15 +154,11 @@ static void edma_execute(struct edma_chan *echan)
+ 	struct device *dev = echan->vchan.chan.device->dev;
+ 	int i, j, left, nslots;
+ 
+-	/* If either we processed all psets or we're still not started */
+-	if (!echan->edesc ||
+-	    echan->edesc->pset_nr == echan->edesc->processed) {
+-		/* Get next vdesc */
++	if (!echan->edesc) {
++		/* Setup is needed for the first transfer */
+ 		vdesc = vchan_next_desc(&echan->vchan);
+-		if (!vdesc) {
+-			echan->edesc = NULL;
++		if (!vdesc)
+ 			return;
+-		}
+ 		list_del(&vdesc->node);
+ 		echan->edesc = to_edma_desc(&vdesc->tx);
+ 	}
+@@ -220,28 +216,26 @@ static void edma_execute(struct edma_chan *echan)
+ 				  echan->ecc->dummy_slot);
+ 	}
+ 
+-	if (edesc->processed <= MAX_NR_SG) {
+-		dev_dbg(dev, "first transfer starting on channel %d\n",
+-			echan->ch_num);
+-		edma_start(echan->ch_num);
+-	} else {
+-		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
+-			echan->ch_num, edesc->processed);
+-		edma_resume(echan->ch_num);
+-	}
+-
+-	/*
+-	 * This happens due to setup times between intermediate transfers
+-	 * in long SG lists which have to be broken up into transfers of
+-	 * MAX_NR_SG
+-	 */
+ 	if (echan->missed) {
++		/*
++		 * This happens due to setup times between intermediate
++		 * transfers in long SG lists which have to be broken up into
++		 * transfers of MAX_NR_SG
++		 */
+ 		dev_dbg(dev, "missed event on channel %d\n", echan->ch_num);
+ 		edma_clean_channel(echan->ch_num);
+ 		edma_stop(echan->ch_num);
+ 		edma_start(echan->ch_num);
+ 		edma_trigger_channel(echan->ch_num);
+ 		echan->missed = 0;
++	} else if (edesc->processed <= MAX_NR_SG) {
++		dev_dbg(dev, "first transfer starting on channel %d\n",
++			echan->ch_num);
++		edma_start(echan->ch_num);
++	} else {
++		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
++			echan->ch_num, edesc->processed);
++		edma_resume(echan->ch_num);
+ 	}
+ }
+ 
+@@ -259,20 +253,17 @@ static int edma_terminate_all(struct dma_chan *chan)
+ 	 * echan->edesc is NULL and exit.)
+ 	 */
+ 	if (echan->edesc) {
+-		int cyclic = echan->edesc->cyclic;
+-
++		edma_stop(echan->ch_num);
++		/* Move the cyclic channel back to default queue */
++		if (echan->edesc->cyclic)
++			edma_assign_channel_eventq(echan->ch_num,
++						   EVENTQ_DEFAULT);
+ 		/*
+ 		 * free the running request descriptor
+ 		 * since it is not in any of the vdesc lists
+ 		 */
+ 		edma_desc_free(&echan->edesc->vdesc);
+-
+ 		echan->edesc = NULL;
+-		edma_stop(echan->ch_num);
+-		/* Move the cyclic channel back to default queue */
+-		if (cyclic)
+-			edma_assign_channel_eventq(echan->ch_num,
+-						   EVENTQ_DEFAULT);
+ 	}
+ 
+ 	vchan_get_all_descriptors(&echan->vchan, &head);
+@@ -725,41 +716,33 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ 
+ 	edesc = echan->edesc;
+ 
+-	/* Pause the channel for non-cyclic */
+-	if (!edesc || (edesc && !edesc->cyclic))
+-		edma_pause(echan->ch_num);
+-
++	spin_lock(&echan->vchan.lock);
+ 	switch (ch_status) {
+ 	case EDMA_DMA_COMPLETE:
+-		spin_lock(&echan->vchan.lock);
+-
+ 		if (edesc) {
+ 			if (edesc->cyclic) {
+ 				vchan_cyclic_callback(&edesc->vdesc);
++				goto out;
+ 			} else if (edesc->processed == edesc->pset_nr) {
+ 				dev_dbg(dev, "Transfer complete, stopping channel %d\n", ch_num);
+ 				edesc->residue = 0;
+ 				edma_stop(echan->ch_num);
+ 				vchan_cookie_complete(&edesc->vdesc);
+-				edma_execute(echan);
++				echan->edesc = NULL;
+ 			} else {
+ 				dev_dbg(dev, "Intermediate transfer complete on channel %d\n", ch_num);
+ 
++				edma_pause(echan->ch_num);
++
+ 				/* Update statistics for tx_status */
+ 				edesc->residue -= edesc->sg_len;
+ 				edesc->residue_stat = edesc->residue;
+ 				edesc->processed_stat = edesc->processed;
+-
+-				edma_execute(echan);
+ 			}
++			edma_execute(echan);
+ 		}
+-
+-		spin_unlock(&echan->vchan.lock);
+-
+ 		break;
+ 	case EDMA_DMA_CC_ERROR:
+-		spin_lock(&echan->vchan.lock);
+-
+ 		edma_read_slot(EDMA_CHAN_SLOT(echan->slot[0]), &p);
+ 
+ 		/*
+@@ -788,13 +771,12 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ 			edma_start(echan->ch_num);
+ 			edma_trigger_channel(echan->ch_num);
+ 		}
+-
+-		spin_unlock(&echan->vchan.lock);
+-
+ 		break;
+ 	default:
+ 		break;
+ 	}
++out:
++	spin_unlock(&echan->vchan.lock);
+ }
+ 
+ /* Alloc channel resources */
 -- 
 2.5.1
