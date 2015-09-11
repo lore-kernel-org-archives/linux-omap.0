@@ -1,69 +1,56 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC] ASoC: simple-card: Update clocks binding for simple-card DAI subnodes
-Date: Fri, 11 Sep 2015 16:18:02 +0300
-Message-ID: <1441977482-29215-1-git-send-email-jsarha@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: mysterious crashes on OMAP5 uevm
+Date: Fri, 11 Sep 2015 15:27:13 +0200
+Message-ID: <CANOLnOM-PYcAL=f4rgucfdWZ1+U3HkP34bfwrKP4Rob+J6iTfw@mail.gmail.com>
+References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
+ <20150908143810.GD4215@atomide.com>
+ <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
+ <20150908210708.GH4215@atomide.com>
+ <E0068B56-0DEE-4E2F-94CF-DB104AE16D63@goldelico.com>
+ <20150910083026.GA21098@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, Xiubo.Lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150910083026.GA21098@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The updated binding provides a way to set clock-ID and direction
-parameters for DAI drivers set_sysclk() call back.
-
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
----
-I proposed something similar about a year ago, but Mark rejected that
-at the time. This RFC is to start that discussion again. This time
-before I do any code changes.
-
-Best regards,
-Jyri
-
- Documentation/devicetree/bindings/sound/simple-card.txt | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/devicetree/bindings/sound/simple-card.txt b/Documentation/devicetree/bindings/sound/simple-card.txt
-index cf3979e..d10bf2d 100644
---- a/Documentation/devicetree/bindings/sound/simple-card.txt
-+++ b/Documentation/devicetree/bindings/sound/simple-card.txt
-@@ -76,6 +76,7 @@ Optional CPU/CODEC subnodes properties:
- - dai-tdm-slot-num			: Please refer to tdm-slot.txt.
- - dai-tdm-slot-width			: Please refer to tdm-slot.txt.
- - clocks / system-clock-frequency	: specify subnode's clock if needed.
-+
- 					  it can be specified via "clocks" if system has
- 					  clock node (= common clock), or "system-clock-frequency"
- 					  (if system doens't support common clock)
-@@ -83,7 +84,21 @@ Optional CPU/CODEC subnodes properties:
- 					  enabled with clk_prepare_enable()
- 					  in dai startup() and disabled with
- 					  clk_disable_unprepare() in dai
--					  shutdown().
-+					  shutdown(). "system-clock-frequency" 
-+					  can also be an array if more than one
-+					  clock is described.
-+- clock-ids				: An array of clock ID integers,
-+					  preferrably defined in DT header.
-+					  Each entry corresponds to the same
-+					  index postion first in "clocks" and
-+					  after the end of clocks array to
-+					  "system-clock-frequency" array.
-+- clock-dirs				: An array of integers describing
-+					  clock directions: CLK_IN (= 0) or
-+					  OUT (= 1). Entries in the array
-+					  refer to clocks in the same way as
-+					  in clock-ids property.
-+
- 
- Example 1 - single DAI link:
- 
--- 
-1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCBTZXAgMTAsIDIwMTUgYXQgMTA6MzAgQU0sIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51
+eAo8bGludXhAYXJtLmxpbnV4Lm9yZy51az4gd3JvdGU6Cj4gT24gVGh1LCBTZXAgMTAsIDIwMTUg
+YXQgMDg6NDI6NTdBTSArMDIwMCwgRHIuIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOgo+PiAu
+Li4KPj4KPj4gTm93LCBkaXNhYmxpbmcgQ09ORklHX0FSQ0hfTVVMVElfVjYgYWxzbyBtYWtlcyB0
+aGUgYnVnIGdvIGF3YXkgYW5kIGFkZGluZyB0aGUKPj4gPj4gI2lmIDAgLy9fX0xJTlVYX0FSTV9B
+UkNIX18gPj0gNwo+PiBtYWtlcyBpdCByZS1hcHBlYXIuCj4+Cj4+IEEgd2hpbGUgYWdvIEkgdHJp
+ZWQgdG8gZGVidWcgcnVubmluZyB0aGUgeC1zZXJ2ZXIgdW5kZXIgc3RyYWNlIGFuZCBjb3VsZCBm
+aW5kIHRoYXQgaXQgYWxzbyBoYXMKPj4gc29tZXRoaW5nIHRvIGRvIHdpdGggU0lHQUxSTS4KPj4K
+Pj4gQW5kIHRoYXQgaXMgdmVyeSBjb25zaXN0ZW50IHdpdGgg4oCcZW5hYmxlL2Rpc2FibGXigJ0g
+YnkgbW9kaWZ5aW5nIGFyY2gvYXJtL2tlcm5lbC9zaWduYWwuYwo+Cj4gSXQgd291bGQgYmUgcmVh
+bGx5IG5pY2UgaWYgc29tZW9uZSBjb3VsZCBkaWFnbm9zZSB3aGF0J3MgZ29pbmcgb24gaGVyZS4K
+PiBXaGF0IGV4Y2VwdGlvbiBpcyBjYXVzaW5nIHRoZSBYIHNlcnZlciB0byBiZSBraWxsZWQgKHNv
+bWVvbmUgc2FpZCBhCj4gc2VnZmF1bHQpPyAgV2hhdCBpcyB0aGUgcmVnaXN0ZXIgc3RhdGUgYXQg
+dGhlIHBvaW50IHRoYXQgaGFwcGVucz8gIFdoYXQKPiBkb2VzIHRoZSBjb2RlIGxvb2sgbGlrZSAg
+SXMgaXQgaGFwcGVuaW5nIGluc2lkZSB0aGUgU0lHQUxSTSBoYW5kbGVyLCBvcgo+IHdoZW4gdGhl
+IFNJR0FMUk0gaGFuZGxlciBoYXMgcmV0dXJuZWQ/Cj4KPiBJJ2Qgc3VnZ2VzdCBhdHRhY2hpbmcg
+Z2RiIHRvIHRoZSBYIHNlcnZlciwgYnV0IHJlbWVtYmVyIHRvIHNldCBnZGIgdG8KPiBpZ25vcmUg
+U0lHUElQRXMuCgpJdCdzIGFjdHVhbGx5IHByZXR0eSByYW5kb20sIHNlZSBzb21lIGRlYnVnIHNl
+c3Npb25zIGluIFsxXS4KVGhlIGZpcnN0IG9uZSBpcyB0aGUgbW9zdCB1c2VmdWwgb25lLCBidXQg
+SSBoYXZlbid0IHRob3VnaCBvZiBjaGVja2luZwp3aGF0IHBpeG1hbl9yYXN0ZXJpemVfZWRnZXMo
+KSB3YXMgZG9pbmcgd2hlbiB0aGUgc2lnbmFsIGFycml2ZWQsIGFuZAptb3N0IG9mdGVuIHRoZSAi
+bGVzcyB1c2VmdWwiIHNlZ2ZhdWx0cyBvY2N1ci4gSG93ZXZlciBmcm9tIHRoZQpkaXNhc3NlbWJs
+eSAoc2VlIGRlYnVnMV9saWJwaXhtYW4uZ3opIGl0IGNhbiBiZSBzZWVuIHRoYXQgdGhlIHNpZ25h
+bAphcnJpdmVkIHJpZ2h0IGFmdGVyIElULgoKWzFdIGh0dHA6Ly9ub3Rhei5ncDJ4LmRlL3RtcC90
+aHVtYl9zZWdmYXVsdC8KCkdyYcW+dnlkYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
