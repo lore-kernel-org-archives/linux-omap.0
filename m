@@ -1,59 +1,99 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH RFC 1/5] ASoC: davinci-mcasp: Set
- .symmetric_rates = 1 in snd_soc_dai_driver
-Date: Fri, 11 Sep 2015 11:48:00 +0300
-Message-ID: <55F29540.40002@ti.com>
-References: <cover.1441806963.git.jsarha@ti.com>
- <2ada475a3e0243b093a958e8bb5c465e8fb08abf.1441806963.git.jsarha@ti.com>
+Subject: [PATCH v2 00/23] dmaengine/ARM: Merge the edma drivers into one
+Date: Fri, 11 Sep 2015 15:26:59 +0300
+Message-ID: <1441974442-8233-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <2ada475a3e0243b093a958e8bb5c465e8fb08abf.1441806963.git.jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: liam.r.girdwood@linux.intel.com, Li.Xiubo@freescale.com, misael.lopez@ti.com, broonie@kernel.org, bcousson@baylibre.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/09/2015 09:27 PM, Jyri Sarha wrote:
-> The TX and RX direction share the same bit clock and frame sync, so
-> the samplerate must be the same to both directions.
+Hi,
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Changes since v1:
+- Convert edma platform device registration to use platform_device_register_full
+- Moved the PM callback also to the dmaengine driver - missed in v1
+- Commit message added to:
+  ARM/dmaengine: edma: Remove limitation on the number of eDMA controllers
+- New patch which reads the flag for the channel mapping support in one place
 
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  sound/soc/davinci/davinci-mcasp.c | 1 +
->  1 file changed, 1 insertion(+)
-> =
+Cover letter:
 
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinc=
-i-mcasp.c
-> index fa0511b..bbd1987 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -1304,6 +1304,7 @@ static struct snd_soc_dai_driver davinci_mcasp_dai[=
-] =3D {
->  		.ops 		=3D &davinci_mcasp_dai_ops,
->  =
+with this series the edma two driver setup will be changed to have only one
+driver to support eDMA3. The legacy edma interface will be removed and eDMA can
+only be used via dmaengine API from this point on.
+In order to do the merge the following improvements has been done:
+- One driver instance per eDMA:
+ - Any number of eDMA instances are supported (both legacy and DT boot)
+- Not relying on global variables, arrays, etc
+- Code simplification and optimizations in several places
 
->  		.symmetric_samplebits	=3D 1,
-> +		.symmetric_rates	=3D 1,
->  	},
->  	{
->  		.name		=3D "davinci-mcasp.1",
-> =
+This change will also help us to do bigger changes in the eDMA driver since,
+since now we have only one driver to work with.
 
+The series has been tested on:
+da850-evm (OMAP-L138)
+- with legacy and DT boot (both eDMA0 and eDMA1 is enabled)
+- In code swapping the eDMA instances in legacy mode to make sure the second
+  instance is handled correctly.
 
+am335x-evmsk
+- DT boot
 
--- =
+I think this series could go via the dmaengine tree. Changes are trivial under
+arch/arm/
 
-P=E9ter
+Regards,
+Peter
+---
+Peter Ujfalusi (23):
+  ARM: common: edma: Fix channel parameter for irq callbacks
+  ARM: common: edma: Remove unused functions
+  dmaengine: edma: Simplify and optimize the edma_execute path
+  ARM: davinci/common: Convert edma driver to handle one eDMA instance
+    per driver
+  ARM/dmaengine: edma: Move of_dma_controller_register to the dmaengine
+    driver
+  ARM: common: edma: Internal API to use pointer to 'struct edma'
+  ARM/dmaengine: edma: Public API to use private struct pointer
+  ARM/dmaengine: edma: Remove limitation on the number of eDMA
+    controllers
+  ARM: davinci: Use platform_device_register_full() to create pdev for
+    eDMA
+  ARM: davinci: Add set dma_mask to eDMA devices
+  ARM/dmaengine: edma: Merge the two drivers under drivers/dmaengine
+  dmaengine: edma: Allocate memory dynamically for bitmaps and
+    structures
+  dmaengine: edma: Parameter alignment and long line fixes
+  dmaengine: edma: Use devm_kcalloc when possible
+  dmaengine: edma: Cleanup regarding the use of dev around the code
+  dmaengine: edma: Use dev_dbg instead pr_debug
+  dmaengine: edma: Use the edma_write_slot instead open coded
+    memcpy_toio
+  dmaengine: edma: Print warning when linking slots from different eDMA
+  dmaengine: edma: Consolidate the comments for functions
+  dmaengine: edma: Simplify the interrupt handling
+  dmaengine: edma: Move the pending error check into helper function
+  dmaengine: edma: Simplify and optimize ccerr interrupt handler
+  dmaengine: edma: Read channel mapping support only once from HW
+
+ arch/arm/Kconfig                      |    1 -
+ arch/arm/common/Kconfig               |    3 -
+ arch/arm/common/Makefile              |    1 -
+ arch/arm/common/edma.c                | 1876 ---------------------------------
+ arch/arm/mach-davinci/devices-da8xx.c |  122 +--
+ arch/arm/mach-davinci/dm355.c         |   40 +-
+ arch/arm/mach-davinci/dm365.c         |   25 +-
+ arch/arm/mach-davinci/dm644x.c        |   40 +-
+ arch/arm/mach-davinci/dm646x.c        |   44 +-
+ arch/arm/mach-omap2/Kconfig           |    1 -
+ drivers/dma/Kconfig                   |    1 -
+ drivers/dma/edma.c                    | 1560 ++++++++++++++++++++++++---
+ include/linux/platform_data/edma.h    |  101 --
+ 13 files changed, 1516 insertions(+), 2299 deletions(-)
+ delete mode 100644 arch/arm/common/edma.c
+
+-- 
+2.5.1
