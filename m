@@ -1,7 +1,7 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: mysterious crashes on OMAP5 uevm
-Date: Fri, 11 Sep 2015 15:03:07 +0100
-Message-ID: <20150911140306.GB21098@n2100.arm.linux.org.uk>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: mysterious crashes on OMAP5 uevm
+Date: Fri, 11 Sep 2015 16:12:21 +0000
+Message-ID: <EF62F09C0797D947AD4180A1043C0DF740C23E8D@DLEE11.ent.ti.com>
 References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
  <20150908143810.GD4215@atomide.com>
  <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
@@ -9,12 +9,13 @@ References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
  <E0068B56-0DEE-4E2F-94CF-DB104AE16D63@goldelico.com>
  <20150910083026.GA21098@n2100.arm.linux.org.uk>
  <CANOLnOM-PYcAL=f4rgucfdWZ1+U3HkP34bfwrKP4Rob+J6iTfw@mail.gmail.com>
+ <20150911140306.GB21098@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CANOLnOM-PYcAL=f4rgucfdWZ1+U3HkP34bfwrKP4Rob+J6iTfw@mail.gmail.com>
+In-Reply-To: <20150911140306.GB21098@n2100.arm.linux.org.uk>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,92 +25,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Grazvydas Ignotas <notasas@gmail.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBTZXAgMTEsIDIwMTUgYXQgMDM6Mjc6MTNQTSArMDIwMCwgR3JhenZ5ZGFzIElnbm90
-YXMgd3JvdGU6Cj4gT24gVGh1LCBTZXAgMTAsIDIwMTUgYXQgMTA6MzAgQU0sIFJ1c3NlbGwgS2lu
-ZyAtIEFSTSBMaW51eAo+IDxsaW51eEBhcm0ubGludXgub3JnLnVrPiB3cm90ZToKPiA+IE9uIFRo
-dSwgU2VwIDEwLCAyMDE1IGF0IDA4OjQyOjU3QU0gKzAyMDAsIERyLiBILiBOaWtvbGF1cyBTY2hh
-bGxlciB3cm90ZToKPiA+PiAuLi4KPiA+Pgo+ID4+IE5vdywgZGlzYWJsaW5nIENPTkZJR19BUkNI
-X01VTFRJX1Y2IGFsc28gbWFrZXMgdGhlIGJ1ZyBnbyBhd2F5IGFuZCBhZGRpbmcgdGhlCj4gPj4g
-Pj4gI2lmIDAgLy9fX0xJTlVYX0FSTV9BUkNIX18gPj0gNwo+ID4+IG1ha2VzIGl0IHJlLWFwcGVh
-ci4KPiA+Pgo+ID4+IEEgd2hpbGUgYWdvIEkgdHJpZWQgdG8gZGVidWcgcnVubmluZyB0aGUgeC1z
-ZXJ2ZXIgdW5kZXIgc3RyYWNlIGFuZCBjb3VsZCBmaW5kIHRoYXQgaXQgYWxzbyBoYXMKPiA+PiBz
-b21ldGhpbmcgdG8gZG8gd2l0aCBTSUdBTFJNLgo+ID4+Cj4gPj4gQW5kIHRoYXQgaXMgdmVyeSBj
-b25zaXN0ZW50IHdpdGgg4oCcZW5hYmxlL2Rpc2FibGXigJ0gYnkgbW9kaWZ5aW5nIGFyY2gvYXJt
-L2tlcm5lbC9zaWduYWwuYwo+ID4KPiA+IEl0IHdvdWxkIGJlIHJlYWxseSBuaWNlIGlmIHNvbWVv
-bmUgY291bGQgZGlhZ25vc2Ugd2hhdCdzIGdvaW5nIG9uIGhlcmUuCj4gPiBXaGF0IGV4Y2VwdGlv
-biBpcyBjYXVzaW5nIHRoZSBYIHNlcnZlciB0byBiZSBraWxsZWQgKHNvbWVvbmUgc2FpZCBhCj4g
-PiBzZWdmYXVsdCk/ICBXaGF0IGlzIHRoZSByZWdpc3RlciBzdGF0ZSBhdCB0aGUgcG9pbnQgdGhh
-dCBoYXBwZW5zPyAgV2hhdAo+ID4gZG9lcyB0aGUgY29kZSBsb29rIGxpa2UgIElzIGl0IGhhcHBl
-bmluZyBpbnNpZGUgdGhlIFNJR0FMUk0gaGFuZGxlciwgb3IKPiA+IHdoZW4gdGhlIFNJR0FMUk0g
-aGFuZGxlciBoYXMgcmV0dXJuZWQ/Cj4gPgo+ID4gSSdkIHN1Z2dlc3QgYXR0YWNoaW5nIGdkYiB0
-byB0aGUgWCBzZXJ2ZXIsIGJ1dCByZW1lbWJlciB0byBzZXQgZ2RiIHRvCj4gPiBpZ25vcmUgU0lH
-UElQRXMuCj4gCj4gSXQncyBhY3R1YWxseSBwcmV0dHkgcmFuZG9tLCBzZWUgc29tZSBkZWJ1ZyBz
-ZXNzaW9ucyBpbiBbMV0uCj4gVGhlIGZpcnN0IG9uZSBpcyB0aGUgbW9zdCB1c2VmdWwgb25lLCBi
-dXQgSSBoYXZlbid0IHRob3VnaCBvZiBjaGVja2luZwo+IHdoYXQgcGl4bWFuX3Jhc3Rlcml6ZV9l
-ZGdlcygpIHdhcyBkb2luZyB3aGVuIHRoZSBzaWduYWwgYXJyaXZlZCwgYW5kCj4gbW9zdCBvZnRl
-biB0aGUgImxlc3MgdXNlZnVsIiBzZWdmYXVsdHMgb2NjdXIuIEhvd2V2ZXIgZnJvbSB0aGUKPiBk
-aXNhc3NlbWJseSAoc2VlIGRlYnVnMV9saWJwaXhtYW4uZ3opIGl0IGNhbiBiZSBzZWVuIHRoYXQg
-dGhlIHNpZ25hbAo+IGFycml2ZWQgcmlnaHQgYWZ0ZXIgSVQuCj4gCj4gWzFdIGh0dHA6Ly9ub3Rh
-ei5ncDJ4LmRlL3RtcC90aHVtYl9zZWdmYXVsdC8KCldlJ3JlIG5vdCBnb2luZyBmcm9tIEFSTSAt
-PiBUaHVtYiBvciBUaHVtYiAtPiBBUk0gaGVyZSwgYnV0IFRodW1iIGNvZGUKaW4gbGlicGl4bWFu
-IGlzIGJlaW5nIGludGVycnVwdGVkIGNhbGxpbmcgYSBUaHVtYiBzaWduYWwgaGFuZGxlci4KCldv
-cmtpbmcgdGhyb3VnaCB0aGUgY29kZToKCiAgIDB4N2Y3MTdlYzggPFNtYXJ0U2NoZWR1bGVUaW1l
-cj46ICAgICBsZHIgICAgIHIyLCBbcGMsICMyMF0gICA7ID0gMHgwMDA0MTEyZQogICAweDdmNzE3
-ZWNhIDxTbWFydFNjaGVkdWxlVGltZXIrMj46ICAgbGRyICAgICByMSwgW3BjLCAjMjRdICAgOyA9
-IDB4MDAwMDBjNDgKICAgMHg3ZjcxN2VjYyA8U21hcnRTY2hlZHVsZVRpbWVyKzQ+OiAgIGxkciAg
-ICAgcjMsIFtwYywgIzI0XSAgIDsgPSAweDAwMDAwZTZjCiAgIDB4N2Y3MTdlY2UgPFNtYXJ0U2No
-ZWR1bGVUaW1lcis2PjogICBhZGQgICAgIHIyLCBwYwogICAweDdmNzE3ZWQwIDxTbWFydFNjaGVk
-dWxlVGltZXIrOD46ICAgbGRyICAgICByMSwgW3IyLCByMV0KICAgMHg3ZjcxN2VkMiA8U21hcnRT
-Y2hlZHVsZVRpbWVyKzEwPjogIGxkciAgICAgcjMsIFtyMiwgcjNdCj0+IDB4N2Y3MTdlZDQgPFNt
-YXJ0U2NoZWR1bGVUaW1lcisxMj46ICBsZHIgICAgIHIyLCBbcjEsICMwXQoKVGhlIGluc3RydWN0
-aW9uIGF0IDB4N2Y3MTdlZDQgd2FzIHRyeWluZyB0byBhY2Nlc3MgMHhkMTI0Mjk2MyB3aGljaApp
-cyBpbiBrZXJuZWwgc3BhY2UsIGFuZCB0aGlzIGlzIHRoZSBmYXVsdGluZyBpbnN0cnVjdGlvbi4K
-CkF0IHRoaXMgcG9pbnQsIHIyIHNob3VsZCBjb250YWluIDB4MDAwNDExMmUgcGx1cyB0aGUgUEMg
-dmFsdWUuICByMiBpbgp0aGUgcmVnaXN0ZXIgZHVtcCB3YXMgMHg3ZjcxN2ZhMC4gIExldCdzIGNh
-bGN1bGF0ZSB0aGUgdmFsdWUgdGhhdCBQQwpzaG91bGQgYmUgaGVyZS4gIDB4N2Y3MTdmYTAgLSAw
-eDAwMDQxMTJlID0gMHg3ZjZkNmU3Miwgd2hpY2ggaXMKY2xlYXJseSB3cm9uZy4KClNvLCBJIGRv
-bid0IHRoaW5rIHRoZSBmaXJzdCBpbnN0cnVjdGlvbiBoZXJlIHdhcyBleGVjdXRlZCBieSB0aGUg
-Q1BVLgoKZ2RiIGluZGljYXRlcyB0aGF0IHRoZSBwYXJlbnQgY29udGV4dCB0byB0aGUgc2lnbmFs
-IGZyYW1lLCBwYyB3YXMgYXQKMHhiNmRkODdmOCwgd2hpY2ggd29ya3Mgb3V0IGF0IDB4Mjk3Zjgg
-aW50byB0aGUgbGlicGl4bWFuLTEgbGlicmFyeToKCiAgIDI5N2YwOiAgICAgICA0NDljICAgICAg
-ICAgICAgYWRkICAgICBpcCwgcjMKICAgMjk3ZjI6ICAgICAgIGYxYmMgMGZmZiAgICAgICBjbXAu
-dyAgIGlwLCAjMjU1ICAgICAgICA7IDB4ZmYKICAgMjk3ZjY6ICAgICAgIGJmZDQgICAgICAgICAg
-ICBpdGUgICAgIGxlCiAgIDI5N2Y4OiAgICAgICBmYTVmIGZjOGMgICAgICAgdXh0YmxlLncgICAg
-ICAgIGlwLCBpcAogICAyOTdmYzogICAgICAgZjA0ZiAwY2ZmICAgICAgIG1vdmd0LncgaXAsICMy
-NTUgICAgICAgIDsgMHhmZgogICAyOTgwMDogICAgICAgZjg4YSBjMDAwICAgICAgIHN0cmIudyAg
-aXAsIFtzbF0KCmFuZCBhcyB5b3Ugc2F5LCBpcyBqdXN0IGFmdGVyIGFuIElUIGluc3RydWN0aW9u
-LCB3aGljaCB3b3VsZCBoYXZlCnNldCB0aGUgSVQgZXhlY3V0aW9uIHN0YXRlIHRvIGFwcHJvcHJp
-YXRlbHkgc2tpcCBlaXRoZXIgdGhlIGZpcnN0IG9yCnRoZSBzZWNvbmQgaW5zdHJ1Y3Rpb24uCgpV
-bmZvcnR1bmF0ZWx5LCB0aGUgSVQgaW5zdHJ1Y3Rpb24ncyBjb25kaXRpb24gaXMgYmVpbmcgY2Fy
-cmllZCBmb3J3YXJkCnRvIHRoZSBzaWduYWwgaGFuZGxlciwgY2F1c2luZyBlaXRoZXIgdGhlIGZp
-cnN0IG9yIHNlY29uZCBpbnN0cnVjdGlvbgp0aGVyZSB0byBiZSBza2lwcGVkLgoKTG9va2luZyBi
-YWNrIGF0IHRoZSBoaXN0b3J5LCB0aGUgb3JpZ2luYWwgY29tbWl0IGludHJvZHVjaW5nIHRoZQpj
-bGVhcmluZyBvZiB0aGUgUFNSX0lUX01BU0sgYml0cyBpcyBqdXN0IHdyb25nOgoKLSAgICAgICAg
-ICAgICAgIGlmICh0aHVtYikKKyAgICAgICAgICAgICAgIGlmICh0aHVtYikgewogICAgICAgICAg
-ICAgICAgICAgICAgICBjcHNyIHw9IFBTUl9UX0JJVDsKLSAgICAgICAgICAgICAgIGVsc2UKKyNp
-ZiBfX0xJTlVYX0FSTV9BUkNIX18gPj0gNworICAgICAgICAgICAgICAgICAgICAgICAvKiBjbGVh
-ciB0aGUgSWYtVGhlbiBUaHVtYi0yIGV4ZWN1dGlvbiBzdGF0ZSAqLworICAgICAgICAgICAgICAg
-ICAgICAgICBjcHNyICY9IH5QU1JfSVRfTUFTSzsKKyNlbmRpZgorICAgICAgICAgICAgICAgfSBl
-bHNlCiAgICAgICAgICAgICAgICAgICAgICAgIGNwc3IgJj0gflBTUl9UX0JJVDsKClRoaXMgc2hv
-dWxkbid0IGJlIGEgY29tcGlsZS10aW1lIGRlY2lzaW9uIGF0IGFsbCwgYW5kIGl0IGNlcnRhaW5s
-eSBzaG91bGQKbm90IGJlIGRlcGVuZGVudCBvbiBfX0xJTlVYX0FSTV9BUkNIX18sIHdoaWNoIG1h
-cmtzIHRoZSBfbG93ZXN0XyBzdXBwb3J0ZWQKYXJjaGl0ZWN0dXJlLgoKSG93ZXZlciwgZXZlbiB0
-aGUgaWRlYSB0aGF0IGl0J3MgQVJNdjcgb3IgbGF0ZXIgaXMgd3JvbmcuICBBY2NvcmRpbmcgdG8K
-dGhlIEFSTSBBUk0sIHRoZSBJVCBpbnN0cnVjdGlvbiBpcyBwcmVzZW50IGluIEFSTXY2VDIgYXMg
-d2VsbCwgd2hpY2gKbWVhbnMgaXQncyBBUk12NiB0b28gKHdoaWNoIHdvdWxkIGhhdmUgX19MSU5V
-WF9BUk1fQVJDSF9fID0gNikuCgpMb29raW5nIGF0IHRoZSBBUk0gQVJNLCB0aGVzZSBiaXRzIGFy
-ZSAicmVzZXJ2ZWQiIGluIHByZXZpb3VzIG5vbi1UMgphcmNoaXRlY3R1cmVzLCBoYXZlIGFuIHVu
-ZGVmaW5lZCB2YWx1ZSBhdCByZXNldCwgYW5kIGFyZSBwcm9iYWJseSB6ZXJvCmFueXdheS4KCk1l
-cmVseSBjaGFuZ2luZyBfX0xJTlVYX0FSTV9BUkNIX18gPj0gNyB0byA+PSA2IHNob3VsZCBmaXgg
-dGhlIHByb2JsZW0sCmFuZCBJIGRvdWJ0IHRoZXJlJ3MgYW55IEFSTXY2IG5vbi1UMiBzeXN0ZW1z
-IG91dCB0aGVyZSB0aGF0IHdvdWxkIGJlCmFmZmVjdGVkIGJ5IGNsZWFyaW5nIHRoZSBJVCBzdGF0
-ZSBiaXRzLgoKLS0gCkZUVEMgYnJvYWRiYW5kIGZvciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBh
-dCA5LjZNYnBzIGRvd24gNDAwa2JwcyB1cAphY2NvcmRpbmcgdG8gc3BlZWR0ZXN0Lm5ldC4KCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1r
-ZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
-dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJu
-ZWwK
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Russell King - ARM Linux
+> Sent: Friday, September 11, 2015 9:03 AM
+> To: Grazvydas Ignotas
+
+> However, even the idea that it's ARMv7 or later is wrong.  According to
+> the ARM ARM, the IT instruction is present in ARMv6T2 as well, which
+> means it's ARMv6 too (which would have __LINUX_ARM_ARCH__ = 6).
+
+I recall seeing ARMv6T2 first implemented in the ARM1156 which is a v6 CPU with T2 option added.
+
+Cortex-R class was the ARMv7 successor to the 1156 CPU which also use T2.
+
+> Looking at the ARM ARM, these bits are "reserved" in previous non-T2
+> architectures, have an undefined value at reset, and are probably zero
+> anyway.
+> 
+> Merely changing __LINUX_ARM_ARCH__ >= 7 to >= 6 should fix the
+> problem,
+> and I doubt there's any ARMv6 non-T2 systems out there that would be
+> affected by clearing the IT state bits.
+
+Probably you already looked, but cpsr.it usage is not restricted to this one spot.
+
+Looking back at old notes I think both debug and signal handler code keyed on bit usage.  I see from LXR kernel KVM code also uses in some capacity.
+
+The 1156/Cortex-R are typically MMU-less.   They may (or not) have something else to consider when fixing.
+
+Regards,
+Richard W.
