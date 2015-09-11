@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 12/23] dmaengine: edma: Allocate memory dynamically for
- bitmaps and structures
-Date: Fri, 11 Sep 2015 15:27:11 +0300
-Message-ID: <1441974442-8233-13-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 19/23] dmaengine: edma: Consolidate the comments for
+ functions
+Date: Fri, 11 Sep 2015 15:27:18 +0300
+Message-ID: <1441974442-8233-20-git-send-email-peter.ujfalusi@ti.com>
 References: <1441974442-8233-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,152 +22,172 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Instead of using defines to specify the size of different arrays and
-bitmaps, allocate the memory for them based on the information we get from
-the HW itself.
-Since these defines are set based on the worst case, there are devices
-where they are not valid.
+Remove or rewrite the comments for the internal functions.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 62 ++++++++++++++++++++++++++++++------------------------
- 1 file changed, 34 insertions(+), 28 deletions(-)
+ drivers/dma/edma.c | 86 +++++++-----------------------------------------------
+ 1 file changed, 11 insertions(+), 75 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 8912049111a2..a08ca0800b95 100644
+index 5dd0cd478523..ffbf63a64313 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -113,23 +113,6 @@
- #define CHMAP_EXIST		BIT(24)
+@@ -486,19 +486,7 @@ static void edma_setup_interrupt(struct edma_cc *ecc, unsigned lch,
+ }
  
  /*
-- * This will go away when the private EDMA API is folded
-- * into this driver and the platform device(s) are
-- * instantiated in the arch code. We can only get away
-- * with this simplification because DA8XX may not be built
-- * in the same kernel image with other DaVinci parts. This
-- * avoids having to sprinkle dmaengine driver platform devices
-- * and data throughout all the existing board files.
+- * paRAM management functions
 - */
--#ifdef CONFIG_ARCH_DAVINCI_DA8XX
--#define EDMA_CTLRS	2
--#define EDMA_CHANS	32
--#else
--#define EDMA_CTLRS	1
--#define EDMA_CHANS	64
--#endif /* CONFIG_ARCH_DAVINCI_DA8XX */
 -
--/*
-  * Max of 20 segments per channel to conserve PaRAM slots
-  * Also note that MAX_NR_SG should be atleast the no.of periods
-  * that are required for ASoC, otherwise DMA prep calls will
-@@ -140,16 +123,12 @@
- #define EDMA_MAX_SLOTS		MAX_NR_SG
- #define EDMA_DESCRIPTORS	16
+-/**
+- * edma_write_slot - write parameter RAM data for slot
+- * @ecc: pointer to edma_cc struct
+- * @slot: number of parameter RAM slot being modified
+- * @param: data to be written into parameter RAM slot
+- *
+- * Use this to assign all parameters of a transfer at once.  This
+- * allows more efficient setup of transfers than issuing multiple
+- * calls to set up those parameters in small pieces, and provides
+- * complete control over all transfer options.
++ * paRAM slot management functions
+  */
+ static void edma_write_slot(struct edma_cc *ecc, unsigned slot,
+ 			    const struct edmacc_param *param)
+@@ -509,15 +497,6 @@ static void edma_write_slot(struct edma_cc *ecc, unsigned slot,
+ 	memcpy_toio(ecc->base + PARM_OFFSET(slot), param, PARM_SIZE);
+ }
  
--#define EDMA_MAX_PARAMENTRY     512
--
- #define EDMA_CHANNEL_ANY		-1	/* for edma_alloc_channel() */
- #define EDMA_SLOT_ANY			-1	/* for edma_alloc_slot() */
- #define EDMA_CONT_PARAMS_ANY		 1001
- #define EDMA_CONT_PARAMS_FIXED_EXACT	 1002
- #define EDMA_CONT_PARAMS_FIXED_NOT_EXACT 1003
- 
--#define EDMA_MAX_CC               2
--
- /* PaRAM slots are laid out like this */
- struct edmacc_param {
- 	u32 opt;
-@@ -256,22 +235,22 @@ struct edma_cc {
- 	/* The edma_inuse bit for each PaRAM slot is clear unless the
- 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
- 	 */
--	DECLARE_BITMAP(edma_inuse, EDMA_MAX_PARAMENTRY);
-+	unsigned long *edma_inuse;
- 
- 	/* The edma_unused bit for each channel is clear unless
- 	 * it is not being used on this platform. It uses a bit
- 	 * of SOC-specific initialization code.
- 	 */
--	DECLARE_BITMAP(edma_unused, EDMA_CHANS);
-+	unsigned long *edma_unused;
- 
- 	struct dma_interrupt_data {
- 		void (*callback)(unsigned channel, unsigned short ch_status,
- 				void *data);
- 		void *data;
--	} intr_data[EDMA_CHANS];
-+	} *intr_data;
- 
- 	struct dma_device		dma_slave;
--	struct edma_chan		slave_chans[EDMA_CHANS];
-+	struct edma_chan		*slave_chans;
- 	int				dummy_slot;
- };
- 
-@@ -431,6 +410,8 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
+-/**
+- * edma_read_slot - read parameter RAM data from slot
+- * @ecc: pointer to edma_cc struct
+- * @slot: number of parameter RAM slot being copied
+- * @param: where to store copy of parameter RAM data
+- *
+- * Use this to read data from a parameter RAM slot, perhaps to
+- * save them as a template for later reuse.
+- */
+ static void edma_read_slot(struct edma_cc *ecc, unsigned slot,
+ 			   struct edmacc_param *param)
  {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct edma_cc *ecc = data;
-+	int dma_req_min = EDMA_CTLR_CHAN(ecc->id, 0);
-+	int dma_req_max = dma_req_min + ecc->num_channels;
- 	int i, count;
- 	struct of_phandle_args  dma_spec;
+@@ -568,15 +547,6 @@ static int edma_alloc_slot(struct edma_cc *ecc, int slot)
+ 	return EDMA_CTLR_CHAN(ecc->id, slot);
+ }
  
-@@ -466,11 +447,15 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
- 	/* For non-OF case */
- 	for (i = 0; i < pdev->num_resources; i++) {
- 		struct resource	*res = &pdev->resource[i];
-+		int dma_req;
-+
-+		if (!(res->flags & IORESOURCE_DMA))
-+			continue;
+-/**
+- * edma_free_slot - deallocate DMA parameter RAM
+- * @ecc: pointer to edma_cc struct
+- * @slot: parameter RAM slot returned from edma_alloc_slot()
+- *
+- * This deallocates the parameter RAM slot allocated by edma_alloc_slot().
+- * Callers are responsible for ensuring the slot is inactive, and will
+- * not be activated.
+- */
+ static void edma_free_slot(struct edma_cc *ecc, unsigned slot)
+ {
  
--		if ((res->flags & IORESOURCE_DMA) && (int)res->start >= 0) {
-+		dma_req = (int)res->start;
-+		if (dma_req >= dma_req_min && dma_req < dma_req_max)
- 			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
- 				  ecc->edma_unused);
--		}
+@@ -686,10 +656,9 @@ static int edma_start(struct edma_cc *ecc, unsigned channel)
+  * @ecc: pointer to edma_cc struct
+  * @channel: channel being deactivated
+  *
+- * When @lch is a channel, any active transfer is paused and
+- * all pending hardware events are cleared.  The current transfer
+- * may not be resumed, and the channel's Parameter RAM should be
+- * reinitialized before being reused.
++ * Any active transfer is paused and all pending hardware events are cleared.
++ * The current transfer may not be resumed, and the channel's Parameter RAM
++ * should be reinitialized before being reused.
+  */
+ static void edma_stop(struct edma_cc *ecc, unsigned channel)
+ {
+@@ -721,13 +690,9 @@ static void edma_stop(struct edma_cc *ecc, unsigned channel)
  	}
+ }
  
- 	return 0;
-@@ -1953,7 +1938,7 @@ static void __init edma_chan_init(struct edma_cc *ecc,
+-/**
+- * edma_pause - pause dma on a channel
+- * @ecc: pointer to edma_cc struct
+- * @channel: on which edma_start() has been called
+- *
+- * This temporarily disables EDMA hardware events on the specified channel,
+- * preventing them from triggering new transfers on its behalf
++/*
++ * Temporarily disable EDMA hardware events on the specified channel,
++ * preventing them from triggering new transfers
+  */
+ static void edma_pause(struct edma_cc *ecc, unsigned channel)
  {
- 	int i, j;
+@@ -745,13 +710,7 @@ static void edma_pause(struct edma_cc *ecc, unsigned channel)
+ 	}
+ }
  
--	for (i = 0; i < EDMA_CHANS; i++) {
-+	for (i = 0; i < ecc->num_channels; i++) {
- 		struct edma_chan *echan = &echans[i];
- 		echan->ch_num = EDMA_CTLR_CHAN(ecc->id, i);
- 		echan->ecc = ecc;
-@@ -2222,6 +2207,27 @@ static int edma_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
+-/**
+- * edma_resume - resumes dma on a paused channel
+- * @ecc: pointer to edma_cc struct
+- * @channel: on which edma_pause() has been called
+- *
+- * This re-enables EDMA hardware events on the specified channel.
+- */
++/* Re-enable EDMA hardware events on the specified channel.  */
+ static void edma_resume(struct edma_cc *ecc, unsigned channel)
+ {
+ 	if (ecc->id != EDMA_CTLR(channel)) {
+@@ -787,19 +746,6 @@ static int edma_trigger_channel(struct edma_cc *ecc, unsigned channel)
+ 	return 0;
+ }
  
-+	/* Allocate memory based on the information we got from the IP */
-+	ecc->slave_chans = devm_kcalloc(dev, ecc->num_channels,
-+					sizeof(*ecc->slave_chans), GFP_KERNEL);
-+	if (!ecc->slave_chans)
-+		return -ENOMEM;
-+
-+	ecc->intr_data = devm_kcalloc(dev, ecc->num_channels,
-+				      sizeof(*ecc->intr_data), GFP_KERNEL);
-+	if (!ecc->intr_data)
-+		return -ENOMEM;
-+
-+	ecc->edma_unused = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_channels),
-+					sizeof(unsigned long), GFP_KERNEL);
-+	if (!ecc->edma_unused)
-+		return -ENOMEM;
-+
-+	ecc->edma_inuse = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_slots),
-+				       sizeof(unsigned long), GFP_KERNEL);
-+	if (!ecc->edma_inuse)
-+		return -ENOMEM;
-+
- 	ecc->default_queue = info->default_queue;
+-/******************************************************************************
+- *
+- * It cleans ParamEntry qand bring back EDMA to initial state if media has
+- * been removed before EDMA has finished.It is usedful for removable media.
+- * Arguments:
+- *      ch_no     - channel no
+- *
+- * Return: zero on success, or corresponding error no on failure
+- *
+- * FIXME this should not be needed ... edma_stop() should suffice.
+- *
+- *****************************************************************************/
+-
+ static void edma_clean_channel(struct edma_cc *ecc, unsigned channel)
+ {
+ 	if (ecc->id != EDMA_CTLR(channel)) {
+@@ -956,14 +902,7 @@ static void edma_free_channel(struct edma_cc *ecc, unsigned channel)
+ 	clear_bit(channel, ecc->edma_inuse);
+ }
  
- 	for (i = 0; i < ecc->num_slots; i++)
+-/*
+- * edma_assign_channel_eventq - move given channel to desired eventq
+- * Arguments:
+- *	channel - channel number
+- *	eventq_no - queue to move the channel
+- *
+- * Can be used to move a channel to a selected event queue.
+- */
++/* Move channel to a specific event queue */
+ static void edma_assign_channel_eventq(struct edma_cc *ecc, unsigned channel,
+ 				       enum dma_event_q eventq_no)
+ {
+@@ -986,6 +925,7 @@ static void edma_assign_channel_eventq(struct edma_cc *ecc, unsigned channel,
+ 	edma_map_dmach_to_queue(ecc, channel, eventq_no);
+ }
+ 
++/* eDMA interrupt handler */
+ static irqreturn_t dma_irq_handler(int irq, void *data)
+ {
+ 	struct edma_cc *ecc = data;
+@@ -1037,11 +977,7 @@ static irqreturn_t dma_irq_handler(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-/******************************************************************************
+- *
+- * DMA error interrupt handler
+- *
+- *****************************************************************************/
++/* eDMA error interrupt handler */
+ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ {
+ 	struct edma_cc *ecc = data;
 -- 
 2.5.1
