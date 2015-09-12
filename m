@@ -1,23 +1,13 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: mysterious crashes on OMAP5 uevm
-Date: Fri, 11 Sep 2015 18:34:34 +0000
-Message-ID: <EF62F09C0797D947AD4180A1043C0DF740C24764@DLEE11.ent.ti.com>
-References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
- <20150908143810.GD4215@atomide.com>
- <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
- <20150908210708.GH4215@atomide.com>
- <E0068B56-0DEE-4E2F-94CF-DB104AE16D63@goldelico.com>
- <20150910083026.GA21098@n2100.arm.linux.org.uk>
- <CANOLnOM-PYcAL=f4rgucfdWZ1+U3HkP34bfwrKP4Rob+J6iTfw@mail.gmail.com>
- <20150911140306.GB21098@n2100.arm.linux.org.uk>
- <EF62F09C0797D947AD4180A1043C0DF740C23E8D@DLEE11.ent.ti.com>
- <20150911174837.GC21098@n2100.arm.linux.org.uk>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2 00/23] dmaengine/ARM: Merge the edma drivers into one
+Date: Sat, 12 Sep 2015 16:51:12 +0530
+Message-ID: <55F40AA8.9050706@ti.com>
+References: <1441974442-8233-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150911174837.GC21098@n2100.arm.linux.org.uk>
-Content-Language: en-US
+In-Reply-To: <1441974442-8233-1-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -27,32 +17,51 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, vinod.koul@intel.com, linux@arm.linux.org.uk
+Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Friday, September 11, 2015 12:49 PM
+On Friday 11 September 2015 05:56 PM, Peter Ujfalusi wrote:
+> Hi,
+> 
+> Changes since v1:
+> - Convert edma platform device registration to use platform_device_register_full
+> - Moved the PM callback also to the dmaengine driver - missed in v1
+> - Commit message added to:
+>   ARM/dmaengine: edma: Remove limitation on the number of eDMA controllers
+> - New patch which reads the flag for the channel mapping support in one place
+> 
+> Cover letter:
+> 
+> with this series the edma two driver setup will be changed to have only one
+> driver to support eDMA3. The legacy edma interface will be removed and eDMA can
+> only be used via dmaengine API from this point on.
+> In order to do the merge the following improvements has been done:
+> - One driver instance per eDMA:
+>  - Any number of eDMA instances are supported (both legacy and DT boot)
+> - Not relying on global variables, arrays, etc
+> - Code simplification and optimizations in several places
+> 
+> This change will also help us to do bigger changes in the eDMA driver since,
+> since now we have only one driver to work with.
+> 
+> The series has been tested on:
+> da850-evm (OMAP-L138)
+> - with legacy and DT boot (both eDMA0 and eDMA1 is enabled)
+> - In code swapping the eDMA instances in legacy mode to make sure the second
+>   instance is handled correctly.
+> 
+> am335x-evmsk
+> - DT boot
+> 
+> I think this series could go via the dmaengine tree. Changes are trivial under
+> arch/arm/
 
-> Frankly, Richard, you're getting on my nerves in this thread - you seem to
-> know all about this problem, yet you never reported the problem upstream,
-> so people are effectively having to waste time re-doing the work that you've
-> already done.
->
-> Nothing annoys me more than having people say "oh yes, I found that
-> problem and worked on it" and nothing coming of it (no report, no patch, no
-> nothing.)
+I looked at the series, it looks pretty good. Thanks for getting it done!
 
-Yes, when I put out the hint (to help speed resolution) I expected there might be some negative interpretation.
+No problem with entire series going through dmaengine. The week after
+next, when I am back in office, I would like to test on DM365 as well.
+But really no need to wait for it if the series is ready otherwise.
 
-When I originally hit the issue, I did pass along information to folks who work in the area with expectation they would follow through.  Probably it got lost.
-
-When I noticed this thread, it appeared like the CPSR.IT information didn't make it out, so I directly posted what I recalled.
-
-> As you have "old notes" you've already investigated this issue, and
-> presumably you came up with a patch.  Where is it?
-
-I didn't generate a comprehensive one. I did a couple of hack versions but was unsure in some of the areas your analysis has cleared... for that issue I ended up advising a reversion of MULTI_V6 for that older kernel.
-
-Regards,
-Richard W.
+Thanks,
+Sekhar
