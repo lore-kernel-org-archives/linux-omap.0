@@ -1,62 +1,87 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP/DTS: dra7/72-evm/beagle-x15: Audio
- support
-Date: Mon, 14 Sep 2015 11:50:40 +0300
-Message-ID: <55F68A60.6050900@ti.com>
-References: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] clk: ti: clk-7xx: Remove hardwired ABE clock
+ configuration
+Date: Mon, 14 Sep 2015 11:52:17 +0300
+Message-ID: <55F68AC1.1040807@ti.com>
+References: <1440401702-32420-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1440401702-32420-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Tero,
 
-On 08/24/2015 10:19 AM, Peter Ujfalusi wrote:
-> Hi,
->=20
-> this series will enable analog audio (via onboard aic310x codec) for =
-dra7-evm,
-> dra72-evm and am57xx-beagle-x15 boards.
-> In these board McASP3 is connected to the codec and for the McASP3 we=
- needed to
-> have the DMA crossbar in place since the request lines are not mapped=
- by
-> default.
+On 08/24/2015 10:35 AM, Peter Ujfalusi wrote:
+> The ABE related clocks should be configured via DT and not have it wi=
+red
+> inside of the kernel.
 
-Did you had a chance to look at this series?
+can you take a look at this patch? It will not cause any regression sin=
+ce we
+do not have audio support mainline and the pending series does not need=
+ this
+part anymore.
 
-> Regars,
-> Peter
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
-> Peter Ujfalusi (11):
->   ARM: OMAP: DRA7: hwmod: Add data for McASP3
->   ARM: DTS: dra7: Add McASP3 node
->   ARM: DTS: dra7-evm: Rename mmc2_3v3 supply to evm_3v3_sw
->   ARM: DTS: dra7-evm: Add fixed regulator to be used by aic3106's DVD=
-D
->   ARM: DTS: dra7-evm: Enable pcf8575 (0x26 address) on i2c2 bus
->   ARM: DTS: dra7-evm: Audio support
->   ARM: DTS: dra72-evm: Add fixed regulator representing DVDD supply f=
-or
->     aic3106
->   ARM: DTS: dra72-evm: Add gpio hog for vin6_sel_s0 to select audio
->   ARM: DTS: dra72-evm: Audio support
->   ARM: DTS: am57xx-beagle-x15: Add fixed regulator for aic3104's DVDD
->   ARM: DTS: am57xx-beagle-x15: Enable analog audio support
+> Hi Tero,
 >=20
->  arch/arm/boot/dts/am57xx-beagle-x15.dts   |  95 ++++++++++++++++++++
->  arch/arm/boot/dts/dra7-evm.dts            | 142 ++++++++++++++++++++=
-+++++++++-
->  arch/arm/boot/dts/dra7.dtsi               |  15 ++++
->  arch/arm/boot/dts/dra72-evm.dts           | 138 ++++++++++++++++++++=
-+++++++++
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  41 +++++++++
->  5 files changed, 428 insertions(+), 3 deletions(-)
+> the ABE PLL configuration can, and will be done for dra7xx in DT with=
+ the
+> assigned-clocks/rate/parent feature so no need to have this anymore.
+>=20
+> Regards,
+> Peter
+>=20
+>  drivers/clk/ti/clk-7xx.c | 18 +-----------------
+>  1 file changed, 1 insertion(+), 17 deletions(-)
+>=20
+> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+> index 9b5b289e6334..a911d7de3377 100644
+> --- a/drivers/clk/ti/clk-7xx.c
+> +++ b/drivers/clk/ti/clk-7xx.c
+> @@ -18,7 +18,6 @@
+> =20
+>  #include "clock.h"
+> =20
+> -#define DRA7_DPLL_ABE_DEFFREQ				180633600
+>  #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
+>  #define DRA7_DPLL_USB_DEFFREQ				960000000
+> =20
+> @@ -313,27 +312,12 @@ static struct ti_dt_clk dra7xx_clks[] =3D {
+>  int __init dra7xx_dt_clk_init(void)
+>  {
+>  	int rc;
+> -	struct clk *abe_dpll_mux, *sys_clkin2, *dpll_ck, *hdcp_ck;
+> +	struct clk *dpll_ck, *hdcp_ck;
+> =20
+>  	ti_dt_clocks_register(dra7xx_clks);
+> =20
+>  	omap2_clk_disable_autoidle_all();
+> =20
+> -	abe_dpll_mux =3D clk_get_sys(NULL, "abe_dpll_sys_clk_mux");
+> -	sys_clkin2 =3D clk_get_sys(NULL, "sys_clkin2");
+> -	dpll_ck =3D clk_get_sys(NULL, "dpll_abe_ck");
+> -
+> -	rc =3D clk_set_parent(abe_dpll_mux, sys_clkin2);
+> -	if (!rc)
+> -		rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ);
+> -	if (rc)
+> -		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+> -
+> -	dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+> -	rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
+> -	if (rc)
+> -		pr_err("%s: failed to configure ABE DPLL m2x2!\n", __func__);
+> -
+>  	dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
+>  	rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
+>  	if (rc)
 >=20
 
 
