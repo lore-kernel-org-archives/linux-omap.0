@@ -1,48 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
-Date: Mon, 14 Sep 2015 09:33:53 -0700
-Message-ID: <20150914163353.GN4215@atomide.com>
-References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com>
- <20150716125800.GN17550@atomide.com>
- <55E8CAE7.3010301@ti.com>
- <55F6F5FF.2060801@ti.com>
+Subject: Re: [PATCH 12/17] ARM: dts: am57xx-beagle-x15: Fix regulator
+ populated in MMC1 dt node
+Date: Mon, 14 Sep 2015 10:12:42 -0700
+Message-ID: <20150914171242.GO4215@atomide.com>
+References: <1438168187-1614-1-git-send-email-kishon@ti.com>
+ <1438168187-1614-13-git-send-email-kishon@ti.com>
+ <55B92B88.1080409@ti.com>
+ <55DC0D07.7030504@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55F6F5FF.2060801@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sakari Ailus <sakari.ailus@iki.fi>
+In-Reply-To: <55DC0D07.7030504@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, ulf.hansson@linaro.org, afenkart@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [150914 09:33]:
+* Kishon Vijay Abraham I <kishon@ti.com> [150824 23:40]:
 > Hi Tony,
 > 
-> On 09/03/2015 05:34 PM, Suman Anna wrote:
-> > Hi Sakari,
-> > 
-> > On 07/16/2015 07:58 AM, Tony Lindgren wrote:
-> >> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [150716 05:57]:
-> >>> The OMAP3 ISP is now fully supported in DT, remove its instantiation
-> >>> from C code.
+> On Thursday 30 July 2015 01:07 AM, Nishanth Menon wrote:
+> > On 07/29/2015 06:09 AM, Kishon Vijay Abraham I wrote:
+> >> For beagle x15, both the vdd and io lines are connected to the
+> >> same regulator (ldo1_reg). However vmmc_aux is populated to vdd_3v3.
+> >> Remove it.
 > >>
-> >> Please feel to queue this along with the second patch in this series,
-> >> this should not cause any merge conflicts:
+> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >> ---
+> >>  arch/arm/boot/dts/am57xx-beagle-x15.dts |    1 -
+> >>  1 file changed, 1 deletion(-)
 > >>
-> >> Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Just wondering if you have already queued this, I see the v4l changes in
-> > linux-next, but not this patch. Also, can you confirm if this series is
-> > making it into 4.3?
-> > 
+> >> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> >> index a63bf78..d0db5c5 100644
+> >> --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> >> +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> >> @@ -579,7 +579,6 @@
+> >>  	pinctrl-0 = <&mmc1_pins_default>;
+> >>  
+> >>  	vmmc-supply = <&ldo1_reg>;
+> >> -	vmmc_aux-supply = <&vdd_3v3>;
+> >>  	pbias-supply = <&pbias_mmc_reg>;
+> >>  	bus-width = <4>;
+> >>  	cd-gpios = <&gpio6 27 0>; /* gpio 219 */
+> >>
+> > Acked-by: Nishanth Menon <nm@ti.com>
 > 
-> This patch is not in 4.3-rc1, can you pick this up for the next merge
-> window? I am gonna send out some additional cleanup patches (removing
-> legacy mailbox and iommu pieces) on top on this patch. The second patch
-> in this series did make it.
+> Can you pick this one or you want me to resend it?
 
-OK tagging this one for next, will apply once I'm done with fixes.
+Picking into omap-for-v4.3/fixes thanks.
 
 Tony
