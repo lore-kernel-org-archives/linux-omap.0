@@ -1,8 +1,8 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 1/2] arm: omap2: Kconfig: select TWD and global timer on
- AM43xx devices
-Date: Mon, 14 Sep 2015 08:42:39 -0500
-Message-ID: <1442238160-5674-2-git-send-email-balbi@ti.com>
+Subject: [PATCH 2/2] arm: omap2: board-generic: use omap4_local_timer_init for
+ AM437x
+Date: Mon, 14 Sep 2015 08:42:40 -0500
+Message-ID: <1442238160-5674-3-git-send-email-balbi@ti.com>
 References: <1442238160-5674-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,27 +22,26 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Make sure to tell the kernel that AM437x has
-TWD and global timers.
+AM437x-based boards, can use omap4_local_timer_init()
+just fine. Let's use that instead.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/mach-omap2/board-generic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 07d2e100caab..88ef10b2d415 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -63,6 +63,9 @@ config SOC_AM43XX
- 	select MACH_OMAP_GENERIC
- 	select MIGHT_HAVE_CACHE_L2X0
- 	select HAVE_ARM_SCU
-+	select HAVE_ARM_TWD
-+	select ARM_GLOBAL_TIMER
-+	select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
- 
- config SOC_DRA7XX
- 	bool "TI DRA7XX"
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 24c9afc9e8a7..89bf39663d61 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -279,7 +279,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
+ 	.init_late	= am43xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+-	.init_time	= omap3_gptimer_timer_init,
++	.init_time	= omap4_local_timer_init,
+ 	.dt_compat	= am43_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
 -- 
 2.5.0
