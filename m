@@ -1,52 +1,65 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/5] spi: introduce mmap read support for spi flash
- devices
-Date: Mon, 14 Sep 2015 19:37:44 +0100
-Message-ID: <20150914183744.GF12027@sirena.org.uk>
-References: <1441355402-6837-1-git-send-email-vigneshr@ti.com>
- <1441355402-6837-2-git-send-email-vigneshr@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am57xx-beagle-x15: Add wakeup irq for mcp79410
+Date: Mon, 14 Sep 2015 11:56:43 -0700
+Message-ID: <20150914185643.GT4215@atomide.com>
+References: <1441308240-26725-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="fC9kceC3Ynf/5ezY"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1441355402-6837-2-git-send-email-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, hramrach@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
+In-Reply-To: <1441308240-26725-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [150903 12:27]:
+> With the support in the generic PM framework for wakeirq and capability
+> added to the rtc-ds1307 driver to support this, we can now define the
+> optional wakeup irq to allow the RTC to wakeup the system from low power
+> modes as part of suspend.
+> 
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> ---
+> 
+> This patch depends on upcoming merge for RTC
+> https://git.kernel.org/cgit/linux/kernel/git/abelloni/linux.git/log/?h=rtc-next&ofs=50
+> 
+> merge to master of:
+> 9901c41bd019 rtc: ds1307: Support optional wakeup interrupt source
+> 496a7ede6cac rtc: ds1307: Sort the headers
+> e28475b15b65 rtc: ds1307: Switch to managed irq allocation
+> 27a1dce6528a rtc: ds1307: Convert to threaded IRQ
+> 
+> Tested with the above commits from linux-next: http://pastebin.ubuntu.com/12265857/
+> 
+> Could probably go in round 2 of merges for 4.3?
 
---fC9kceC3Ynf/5ezY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Applying into omap-for-v4.3/fixes thanks.
 
-On Fri, Sep 04, 2015 at 01:59:58PM +0530, Vignesh R wrote:
-> In addition to providing direct access to SPI bus, some spi controller
-> hardwares (like ti-qspi) provide special memory mapped port
-> to accesses SPI flash devices in order to increase read performance.
-> This means the controller can automatically send the SPI signals
-> required to read data from the SPI flash device.
-
-Sorry, also meant to say here: as I kind of indicated in response to the
-flash patch I'd expect to see the SPI core know something about this and
-export an API for this which is integrated with things like the existing
-message queue.
-
---fC9kceC3Ynf/5ezY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV9xP3AAoJECTWi3JdVIfQVdsIAIaKztku1w9l7oUknpHXmGwH
-FpSTCB2fOR/Xc7hQAx547MKaa4GIa7F/ktQsNuDuBzxS67/zBa3gEdlizep+0yCB
-AtLpKhEIsVADiVmstVEzHsbVCeNc2W7/gN+qd+Rh4F/xsEwwzeF1vTbuU1mNaX70
-t4n0E6v24u+yVEzqEEhczoJ+4kbsIICPd4hgllVKrK0JLQtAT8BS9kmXOVajik9h
-Ldkeoc5Njh1MaYhMZ0tCXfImEzo91zZHXMfUCtrParR47HKbEgXej//NuS4/PHC3
-fLs6IGP0/o0JikbFCMzo77Sq3z2okfA6pfQ2sFa5EFbEaPJIHVu+H1S7YDlRrXs=
-=p9SY
------END PGP SIGNATURE-----
-
---fC9kceC3Ynf/5ezY--
+Tony
+ 
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> index ede7fb73c717..8464f3cea280 100644
+> --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> @@ -526,7 +526,8 @@
+>  	mcp_rtc: rtc@6f {
+>  		compatible = "microchip,mcp7941x";
+>  		reg = <0x6f>;
+> -		interrupts = <GIC_SPI 2 IRQ_TYPE_EDGE_RISING>;  /* IRQ_SYS_1N */
+> +		interrupts-extended = <&crossbar_mpu GIC_SPI 2 IRQ_TYPE_EDGE_RISING>,
+> +				      <&dra7_pmx_core 0x424>;
+>  
+>  		pinctrl-names = "default";
+>  		pinctrl-0 = <&mcp79410_pins_default>;
+> -- 
+> 1.7.9.5
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
