@@ -1,7 +1,8 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: Remove legacy mailbox device instantiation
-Date: Mon, 14 Sep 2015 18:37:12 -0500
-Message-ID: <1442273833-25013-2-git-send-email-s-anna@ti.com>
+Subject: [PATCH 2/2] ARM: OMAP3: hwmod data: Remove legacy mailbox data and
+ addrs
+Date: Mon, 14 Sep 2015 18:37:13 -0500
+Message-ID: <1442273833-25013-3-git-send-email-s-anna@ti.com>
 References: <1442273833-25013-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,70 +22,83 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The legacy-style mailbox device creation is supported currently
-only for OMAP3, as all other SoCs are DT-boot only. Even on this
-SoC, there are no client drivers that utilize these mailbox devices.
-So, clean up the legacy-style mailbox device instantiation logic.
-The mailbox devices are already present and supported for the DT
-boot on OMAP3.
+Remove the mailbox attribute data, irq info and hwmod addr space
+data that are used for creating the legacy-style mailbox devices,
+there is no need for these as the support for legacy-mode for this
+IP is being dropped.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/mach-omap2/devices.c | 28 ----------------------------
- 1 file changed, 28 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 9374da313e8e..f0f9901d90b0 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -18,7 +18,6 @@
- #include <linux/slab.h>
- #include <linux/of.h>
- #include <linux/pinctrl/machine.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index dc55f8dedf2c..aff78d5198d2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -26,7 +26,6 @@
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/iommu-omap.h>
 -#include <linux/platform_data/mailbox-omap.h>
+ #include <plat/dmtimer.h>
  
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
-@@ -66,32 +65,6 @@ static int __init omap3_l3_init(void)
- }
- omap_postcore_initcall(omap3_l3_init);
+ #include "soc.h"
+@@ -1506,26 +1505,9 @@ static struct omap_hwmod_class omap3xxx_mailbox_hwmod_class = {
+ 	.sysc = &omap3xxx_mailbox_sysc,
+ };
  
--#if defined(CONFIG_OMAP2PLUS_MBOX) || defined(CONFIG_OMAP2PLUS_MBOX_MODULE)
--static inline void __init omap_init_mbox(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--	struct omap_mbox_pdata *pdata;
+-static struct omap_mbox_dev_info omap3xxx_mailbox_info[] = {
+-	{ .name = "dsp", .tx_id = 0, .rx_id = 1 },
+-};
 -
--	oh = omap_hwmod_lookup("mailbox");
--	if (!oh) {
--		pr_err("%s: unable to find hwmod\n", __func__);
--		return;
--	}
--	if (!oh->dev_attr) {
--		pr_err("%s: hwmod doesn't have valid attrs\n", __func__);
--		return;
--	}
+-static struct omap_mbox_pdata omap3xxx_mailbox_attrs = {
+-	.num_users	= 2,
+-	.num_fifos	= 2,
+-	.info_cnt	= ARRAY_SIZE(omap3xxx_mailbox_info),
+-	.info		= omap3xxx_mailbox_info,
+-};
 -
--	pdata = (struct omap_mbox_pdata *)oh->dev_attr;
--	pdev = omap_device_build("omap-mailbox", -1, oh, pdata, sizeof(*pdata));
--	WARN(IS_ERR(pdev), "%s: could not build device, err %ld\n",
--						__func__, PTR_ERR(pdev));
--}
--#else
--static inline void omap_init_mbox(void) { }
--#endif /* CONFIG_OMAP2PLUS_MBOX */
+-static struct omap_hwmod_irq_info omap3xxx_mailbox_irqs[] = {
+-	{ .irq = 26 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
 -
- static inline void omap_init_sti(void) {}
+ static struct omap_hwmod omap3xxx_mailbox_hwmod = {
+ 	.name		= "mailbox",
+ 	.class		= &omap3xxx_mailbox_hwmod_class,
+-	.mpu_irqs	= omap3xxx_mailbox_irqs,
+ 	.main_clk	= "mailboxes_ick",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -1536,7 +1518,6 @@ static struct omap_hwmod omap3xxx_mailbox_hwmod = {
+ 			.idlest_idle_bit = OMAP3430_ST_MAILBOXES_SHIFT,
+ 		},
+ 	},
+-	.dev_attr	= &omap3xxx_mailbox_attrs,
+ };
  
- #if defined(CONFIG_SND_SOC) || defined(CONFIG_SND_SOC_MODULE)
-@@ -246,7 +219,6 @@ static int __init omap2_init_devices(void)
- 	omap_init_audio();
- 	/* If dtb is there, the devices will be created dynamically */
- 	if (!of_have_populated_dt()) {
--		omap_init_mbox();
- 		omap_init_mcspi();
- 		omap_init_sham();
- 		omap_init_aes();
+ /*
+@@ -3276,20 +3257,10 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_per__mcbsp3_sidetone = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+-static struct omap_hwmod_addr_space omap3xxx_mailbox_addrs[] = {
+-	{
+-		.pa_start	= 0x48094000,
+-		.pa_end		= 0x480941ff,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+ /* l4_core -> mailbox */
+ static struct omap_hwmod_ocp_if omap3xxx_l4_core__mailbox = {
+ 	.master		= &omap3xxx_l4_core_hwmod,
+ 	.slave		= &omap3xxx_mailbox_hwmod,
+-	.addr		= omap3xxx_mailbox_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
 -- 
 2.5.0
