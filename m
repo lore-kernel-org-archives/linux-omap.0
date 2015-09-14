@@ -1,154 +1,85 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: mysterious crashes on OMAP5 uevm
-Date: Mon, 14 Sep 2015 13:12:48 +0100
-Message-ID: <20150914121248.GD21098@n2100.arm.linux.org.uk>
-References: <CANOLnOO3NdK1r1jZQtS=TcHEE7SQwhGHh0YsqqoCJpFW3NO05Q@mail.gmail.com>
- <20150908143810.GD4215@atomide.com>
- <CANOLnOODjTaBcL1QzAm7o4YOB=_P-s7JYovu6fhNSqJSV2Bq+Q@mail.gmail.com>
- <20150908210708.GH4215@atomide.com>
- <E0068B56-0DEE-4E2F-94CF-DB104AE16D63@goldelico.com>
- <20150910083026.GA21098@n2100.arm.linux.org.uk>
- <CANOLnOM-PYcAL=f4rgucfdWZ1+U3HkP34bfwrKP4Rob+J6iTfw@mail.gmail.com>
- <20150911140306.GB21098@n2100.arm.linux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: omap-dma: Enable packed accesses for cyclic transfers
+Date: Mon, 14 Sep 2015 15:31:05 +0300
+Message-ID: <1442233865-10412-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20150911140306.GB21098@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grazvydas Ignotas <notasas@gmail.com>, Will Deacon <will.deacon@arm.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, misael.lopez@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBTZXAgMTEsIDIwMTUgYXQgMDM6MDM6MDdQTSArMDEwMCwgUnVzc2VsbCBLaW5nIC0g
-QVJNIExpbnV4IHdyb3RlOgo+IE9uIEZyaSwgU2VwIDExLCAyMDE1IGF0IDAzOjI3OjEzUE0gKzAy
-MDAsIEdyYXp2eWRhcyBJZ25vdGFzIHdyb3RlOgo+ID4gT24gVGh1LCBTZXAgMTAsIDIwMTUgYXQg
-MTA6MzAgQU0sIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eAo+ID4gPGxpbnV4QGFybS5saW51eC5v
-cmcudWs+IHdyb3RlOgo+ID4gPiBPbiBUaHUsIFNlcCAxMCwgMjAxNSBhdCAwODo0Mjo1N0FNICsw
-MjAwLCBEci4gSC4gTmlrb2xhdXMgU2NoYWxsZXIgd3JvdGU6Cj4gPiA+PiAuLi4KPiA+ID4+Cj4g
-PiA+PiBOb3csIGRpc2FibGluZyBDT05GSUdfQVJDSF9NVUxUSV9WNiBhbHNvIG1ha2VzIHRoZSBi
-dWcgZ28gYXdheSBhbmQgYWRkaW5nIHRoZQo+ID4gPj4gPj4gI2lmIDAgLy9fX0xJTlVYX0FSTV9B
-UkNIX18gPj0gNwo+ID4gPj4gbWFrZXMgaXQgcmUtYXBwZWFyLgo+ID4gPj4KPiA+ID4+IEEgd2hp
-bGUgYWdvIEkgdHJpZWQgdG8gZGVidWcgcnVubmluZyB0aGUgeC1zZXJ2ZXIgdW5kZXIgc3RyYWNl
-IGFuZCBjb3VsZCBmaW5kIHRoYXQgaXQgYWxzbyBoYXMKPiA+ID4+IHNvbWV0aGluZyB0byBkbyB3
-aXRoIFNJR0FMUk0uCj4gPiA+Pgo+ID4gPj4gQW5kIHRoYXQgaXMgdmVyeSBjb25zaXN0ZW50IHdp
-dGgg4oCcZW5hYmxlL2Rpc2FibGXigJ0gYnkgbW9kaWZ5aW5nIGFyY2gvYXJtL2tlcm5lbC9zaWdu
-YWwuYwo+ID4gPgo+ID4gPiBJdCB3b3VsZCBiZSByZWFsbHkgbmljZSBpZiBzb21lb25lIGNvdWxk
-IGRpYWdub3NlIHdoYXQncyBnb2luZyBvbiBoZXJlLgo+ID4gPiBXaGF0IGV4Y2VwdGlvbiBpcyBj
-YXVzaW5nIHRoZSBYIHNlcnZlciB0byBiZSBraWxsZWQgKHNvbWVvbmUgc2FpZCBhCj4gPiA+IHNl
-Z2ZhdWx0KT8gIFdoYXQgaXMgdGhlIHJlZ2lzdGVyIHN0YXRlIGF0IHRoZSBwb2ludCB0aGF0IGhh
-cHBlbnM/ICBXaGF0Cj4gPiA+IGRvZXMgdGhlIGNvZGUgbG9vayBsaWtlICBJcyBpdCBoYXBwZW5p
-bmcgaW5zaWRlIHRoZSBTSUdBTFJNIGhhbmRsZXIsIG9yCj4gPiA+IHdoZW4gdGhlIFNJR0FMUk0g
-aGFuZGxlciBoYXMgcmV0dXJuZWQ/Cj4gPiA+Cj4gPiA+IEknZCBzdWdnZXN0IGF0dGFjaGluZyBn
-ZGIgdG8gdGhlIFggc2VydmVyLCBidXQgcmVtZW1iZXIgdG8gc2V0IGdkYiB0bwo+ID4gPiBpZ25v
-cmUgU0lHUElQRXMuCj4gPiAKPiA+IEl0J3MgYWN0dWFsbHkgcHJldHR5IHJhbmRvbSwgc2VlIHNv
-bWUgZGVidWcgc2Vzc2lvbnMgaW4gWzFdLgo+ID4gVGhlIGZpcnN0IG9uZSBpcyB0aGUgbW9zdCB1
-c2VmdWwgb25lLCBidXQgSSBoYXZlbid0IHRob3VnaCBvZiBjaGVja2luZwo+ID4gd2hhdCBwaXht
-YW5fcmFzdGVyaXplX2VkZ2VzKCkgd2FzIGRvaW5nIHdoZW4gdGhlIHNpZ25hbCBhcnJpdmVkLCBh
-bmQKPiA+IG1vc3Qgb2Z0ZW4gdGhlICJsZXNzIHVzZWZ1bCIgc2VnZmF1bHRzIG9jY3VyLiBIb3dl
-dmVyIGZyb20gdGhlCj4gPiBkaXNhc3NlbWJseSAoc2VlIGRlYnVnMV9saWJwaXhtYW4uZ3opIGl0
-IGNhbiBiZSBzZWVuIHRoYXQgdGhlIHNpZ25hbAo+ID4gYXJyaXZlZCByaWdodCBhZnRlciBJVC4K
-PiA+IAo+ID4gWzFdIGh0dHA6Ly9ub3Rhei5ncDJ4LmRlL3RtcC90aHVtYl9zZWdmYXVsdC8KPiAK
-PiBXZSdyZSBub3QgZ29pbmcgZnJvbSBBUk0gLT4gVGh1bWIgb3IgVGh1bWIgLT4gQVJNIGhlcmUs
-IGJ1dCBUaHVtYiBjb2RlCj4gaW4gbGlicGl4bWFuIGlzIGJlaW5nIGludGVycnVwdGVkIGNhbGxp
-bmcgYSBUaHVtYiBzaWduYWwgaGFuZGxlci4KPiAKPiBXb3JraW5nIHRocm91Z2ggdGhlIGNvZGU6
-Cj4gCj4gICAgMHg3ZjcxN2VjOCA8U21hcnRTY2hlZHVsZVRpbWVyPjogICAgIGxkciAgICAgcjIs
-IFtwYywgIzIwXSAgIDsgPSAweDAwMDQxMTJlCj4gICAgMHg3ZjcxN2VjYSA8U21hcnRTY2hlZHVs
-ZVRpbWVyKzI+OiAgIGxkciAgICAgcjEsIFtwYywgIzI0XSAgIDsgPSAweDAwMDAwYzQ4Cj4gICAg
-MHg3ZjcxN2VjYyA8U21hcnRTY2hlZHVsZVRpbWVyKzQ+OiAgIGxkciAgICAgcjMsIFtwYywgIzI0
-XSAgIDsgPSAweDAwMDAwZTZjCj4gICAgMHg3ZjcxN2VjZSA8U21hcnRTY2hlZHVsZVRpbWVyKzY+
-OiAgIGFkZCAgICAgcjIsIHBjCj4gICAgMHg3ZjcxN2VkMCA8U21hcnRTY2hlZHVsZVRpbWVyKzg+
-OiAgIGxkciAgICAgcjEsIFtyMiwgcjFdCj4gICAgMHg3ZjcxN2VkMiA8U21hcnRTY2hlZHVsZVRp
-bWVyKzEwPjogIGxkciAgICAgcjMsIFtyMiwgcjNdCj4gPT4gMHg3ZjcxN2VkNCA8U21hcnRTY2hl
-ZHVsZVRpbWVyKzEyPjogIGxkciAgICAgcjIsIFtyMSwgIzBdCj4gCj4gVGhlIGluc3RydWN0aW9u
-IGF0IDB4N2Y3MTdlZDQgd2FzIHRyeWluZyB0byBhY2Nlc3MgMHhkMTI0Mjk2MyB3aGljaAo+IGlz
-IGluIGtlcm5lbCBzcGFjZSwgYW5kIHRoaXMgaXMgdGhlIGZhdWx0aW5nIGluc3RydWN0aW9uLgo+
-IAo+IEF0IHRoaXMgcG9pbnQsIHIyIHNob3VsZCBjb250YWluIDB4MDAwNDExMmUgcGx1cyB0aGUg
-UEMgdmFsdWUuICByMiBpbgo+IHRoZSByZWdpc3RlciBkdW1wIHdhcyAweDdmNzE3ZmEwLiAgTGV0
-J3MgY2FsY3VsYXRlIHRoZSB2YWx1ZSB0aGF0IFBDCj4gc2hvdWxkIGJlIGhlcmUuICAweDdmNzE3
-ZmEwIC0gMHgwMDA0MTEyZSA9IDB4N2Y2ZDZlNzIsIHdoaWNoIGlzCj4gY2xlYXJseSB3cm9uZy4K
-PiAKPiBTbywgSSBkb24ndCB0aGluayB0aGUgZmlyc3QgaW5zdHJ1Y3Rpb24gaGVyZSB3YXMgZXhl
-Y3V0ZWQgYnkgdGhlIENQVS4KPiAKPiBnZGIgaW5kaWNhdGVzIHRoYXQgdGhlIHBhcmVudCBjb250
-ZXh0IHRvIHRoZSBzaWduYWwgZnJhbWUsIHBjIHdhcyBhdAo+IDB4YjZkZDg3ZjgsIHdoaWNoIHdv
-cmtzIG91dCBhdCAweDI5N2Y4IGludG8gdGhlIGxpYnBpeG1hbi0xIGxpYnJhcnk6Cj4gCj4gICAg
-Mjk3ZjA6ICAgICAgIDQ0OWMgICAgICAgICAgICBhZGQgICAgIGlwLCByMwo+ICAgIDI5N2YyOiAg
-ICAgICBmMWJjIDBmZmYgICAgICAgY21wLncgICBpcCwgIzI1NSAgICAgICAgOyAweGZmCj4gICAg
-Mjk3ZjY6ICAgICAgIGJmZDQgICAgICAgICAgICBpdGUgICAgIGxlCj4gICAgMjk3Zjg6ICAgICAg
-IGZhNWYgZmM4YyAgICAgICB1eHRibGUudyAgICAgICAgaXAsIGlwCj4gICAgMjk3ZmM6ICAgICAg
-IGYwNGYgMGNmZiAgICAgICBtb3ZndC53IGlwLCAjMjU1ICAgICAgICA7IDB4ZmYKPiAgICAyOTgw
-MDogICAgICAgZjg4YSBjMDAwICAgICAgIHN0cmIudyAgaXAsIFtzbF0KPiAKPiBhbmQgYXMgeW91
-IHNheSwgaXMganVzdCBhZnRlciBhbiBJVCBpbnN0cnVjdGlvbiwgd2hpY2ggd291bGQgaGF2ZQo+
-IHNldCB0aGUgSVQgZXhlY3V0aW9uIHN0YXRlIHRvIGFwcHJvcHJpYXRlbHkgc2tpcCBlaXRoZXIg
-dGhlIGZpcnN0IG9yCj4gdGhlIHNlY29uZCBpbnN0cnVjdGlvbi4KPiAKPiBVbmZvcnR1bmF0ZWx5
-LCB0aGUgSVQgaW5zdHJ1Y3Rpb24ncyBjb25kaXRpb24gaXMgYmVpbmcgY2FycmllZCBmb3J3YXJk
-Cj4gdG8gdGhlIHNpZ25hbCBoYW5kbGVyLCBjYXVzaW5nIGVpdGhlciB0aGUgZmlyc3Qgb3Igc2Vj
-b25kIGluc3RydWN0aW9uCj4gdGhlcmUgdG8gYmUgc2tpcHBlZC4KPiAKPiBMb29raW5nIGJhY2sg
-YXQgdGhlIGhpc3RvcnksIHRoZSBvcmlnaW5hbCBjb21taXQgaW50cm9kdWNpbmcgdGhlCj4gY2xl
-YXJpbmcgb2YgdGhlIFBTUl9JVF9NQVNLIGJpdHMgaXMganVzdCB3cm9uZzoKPiAKPiAtICAgICAg
-ICAgICAgICAgaWYgKHRodW1iKQo+ICsgICAgICAgICAgICAgICBpZiAodGh1bWIpIHsKPiAgICAg
-ICAgICAgICAgICAgICAgICAgICBjcHNyIHw9IFBTUl9UX0JJVDsKPiAtICAgICAgICAgICAgICAg
-ZWxzZQo+ICsjaWYgX19MSU5VWF9BUk1fQVJDSF9fID49IDcKPiArICAgICAgICAgICAgICAgICAg
-ICAgICAvKiBjbGVhciB0aGUgSWYtVGhlbiBUaHVtYi0yIGV4ZWN1dGlvbiBzdGF0ZSAqLwo+ICsg
-ICAgICAgICAgICAgICAgICAgICAgIGNwc3IgJj0gflBTUl9JVF9NQVNLOwo+ICsjZW5kaWYKPiAr
-ICAgICAgICAgICAgICAgfSBlbHNlCj4gICAgICAgICAgICAgICAgICAgICAgICAgY3BzciAmPSB+
-UFNSX1RfQklUOwo+IAo+IFRoaXMgc2hvdWxkbid0IGJlIGEgY29tcGlsZS10aW1lIGRlY2lzaW9u
-IGF0IGFsbCwgYW5kIGl0IGNlcnRhaW5seSBzaG91bGQKPiBub3QgYmUgZGVwZW5kZW50IG9uIF9f
-TElOVVhfQVJNX0FSQ0hfXywgd2hpY2ggbWFya3MgdGhlIF9sb3dlc3RfIHN1cHBvcnRlZAo+IGFy
-Y2hpdGVjdHVyZS4KPiAKPiBIb3dldmVyLCBldmVuIHRoZSBpZGVhIHRoYXQgaXQncyBBUk12NyBv
-ciBsYXRlciBpcyB3cm9uZy4gIEFjY29yZGluZyB0bwo+IHRoZSBBUk0gQVJNLCB0aGUgSVQgaW5z
-dHJ1Y3Rpb24gaXMgcHJlc2VudCBpbiBBUk12NlQyIGFzIHdlbGwsIHdoaWNoCj4gbWVhbnMgaXQn
-cyBBUk12NiB0b28gKHdoaWNoIHdvdWxkIGhhdmUgX19MSU5VWF9BUk1fQVJDSF9fID0gNikuCj4g
-Cj4gTG9va2luZyBhdCB0aGUgQVJNIEFSTSwgdGhlc2UgYml0cyBhcmUgInJlc2VydmVkIiBpbiBw
-cmV2aW91cyBub24tVDIKPiBhcmNoaXRlY3R1cmVzLCBoYXZlIGFuIHVuZGVmaW5lZCB2YWx1ZSBh
-dCByZXNldCwgYW5kIGFyZSBwcm9iYWJseSB6ZXJvCj4gYW55d2F5Lgo+IAo+IE1lcmVseSBjaGFu
-Z2luZyBfX0xJTlVYX0FSTV9BUkNIX18gPj0gNyB0byA+PSA2IHNob3VsZCBmaXggdGhlIHByb2Js
-ZW0sCj4gYW5kIEkgZG91YnQgdGhlcmUncyBhbnkgQVJNdjYgbm9uLVQyIHN5c3RlbXMgb3V0IHRo
-ZXJlIHRoYXQgd291bGQgYmUKPiBhZmZlY3RlZCBieSBjbGVhcmluZyB0aGUgSVQgc3RhdGUgYml0
-cy4KClBsZWFzZSB0ZXN0IHRoZSBmb2xsb3dpbmcgcGF0Y2g6Cgo4PD09PQpGcm9tOiBSdXNzZWxs
-IEtpbmcgPHJtaytrZXJuZWxAYXJtLmxpbnV4Lm9yZy51az4KU3ViamVjdDogW1BBVENIXSBBUk06
-IGZpeCBUaHVtYjIgc2lnbmFsIGhhbmRsaW5nIHdoZW4gQVJNdjYgaXMgZW5hYmxlZAoKV2hlbiBh
-IGtlcm5lbCBpcyBidWlsdCBjb3ZlcmluZyBBUk12NiB0byBBUk12Nywgd2Ugb21pdCB0byBjbGVh
-ciB0aGUKSVQgc3RhdGUgd2hlbiBlbnRlcmluZyBhIHNpZ25hbCBoYW5kbGVyLiAgVGhpcyBjYW4g
-Y2F1c2UgdGhlIGZpcnN0CmZldyBpbnN0cnVjdGlvbnMgdG8gYmUgY29uZGl0aW9uYWxseSBleGVj
-dXRlZCBkZXBlbmRpbmcgb24gdGhlIHBhcmVudApjb250ZXh0LgoKSW4gYW55IGNhc2UsIHRoZSBv
-cmlnaW5hbCB0ZXN0IGZvciA+PSBBUk12NyBpcyBicm9rZW4gLSBBUk12NiBjYW4gaGF2ZQpUaHVt
-Yi0yIHN1cHBvcnQgYXMgd2VsbCwgYW5kIGFuIEFSTXY2VDIgc3BlY2lmaWMgYnVpbGQgd291bGQg
-b21pdCB0aGlzCmNvZGUgdG9vLgoKUmVsYXggdGhlIHRlc3QgYmFjayB0byBBUk12NiBvciBncmVh
-dGVyLiAgVGhpcyByZXN1bHRzIGluIHVzIGFsd2F5cwpjbGVhcmluZyB0aGUgSVQgc3RhdGUgYml0
-cyBpbiB0aGUgUFNSLCBldmVuIG9uIENQVXMgd2hlcmUgdGhlc2UgYml0cwphcmUgcmVzZXJ2ZWQu
-ICBIb3dldmVyLCB0aGV5J3JlIHJlc2VydmVkIGZvciB0aGUgSVQgc3RhdGUsIHNvIHRoaXMKc2hv
-dWxkIGNhdXNlIG5vIGhhcm0uCgpTaWduZWQtb2ZmLWJ5OiBSdXNzZWxsIEtpbmcgPHJtaytrZXJu
-ZWxAYXJtLmxpbnV4Lm9yZy51az4KLS0tCiBhcmNoL2FybS9rZXJuZWwvc2lnbmFsLmMgfCAxNSAr
-KysrKysrKysrLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCA1IGRlbGV0
-aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2tlcm5lbC9zaWduYWwuYyBiL2FyY2gvYXJt
-L2tlcm5lbC9zaWduYWwuYwppbmRleCBiNmNkYTA2YjQ1NWYuLmI0M2I0ZDM2MGJhYiAxMDA2NDQK
-LS0tIGEvYXJjaC9hcm0va2VybmVsL3NpZ25hbC5jCisrKyBiL2FyY2gvYXJtL2tlcm5lbC9zaWdu
-YWwuYwpAQCAtMzQzLDEyICszNDMsMTcgQEAgc2V0dXBfcmV0dXJuKHN0cnVjdCBwdF9yZWdzICpy
-ZWdzLCBzdHJ1Y3Qga3NpZ25hbCAqa3NpZywKIAkJICovCiAJCXRodW1iID0gaGFuZGxlciAmIDE7
-CiAKLSNpZiBfX0xJTlVYX0FSTV9BUkNIX18gPj0gNworI2lmIF9fTElOVVhfQVJNX0FSQ0hfXyA+
-PSA2CiAJCS8qCi0JCSAqIENsZWFyIHRoZSBJZi1UaGVuIFRodW1iLTIgZXhlY3V0aW9uIHN0YXRl
-Ci0JCSAqIEFSTSBzcGVjIHJlcXVpcmVzIHRoaXMgdG8gYmUgYWxsIDAwMHMgaW4gQVJNIG1vZGUK
-LQkJICogU25hcGRyYWdvbiBTNC9LcmFpdCBtaXNiZWhhdmVzIG9uIGEgVGh1bWI9PkFSTQotCQkg
-KiBzaWduYWwgdHJhbnNpdGlvbiB3aXRob3V0IHRoaXMuCisJCSAqIENsZWFyIHRoZSBJZi1UaGVu
-IFRodW1iLTIgZXhlY3V0aW9uIHN0YXRlLiAgQVJNIHNwZWMKKwkJICogcmVxdWlyZXMgdGhpcyB0
-byBiZSBhbGwgMDAwcyBpbiBBUk0gbW9kZS4gIFNuYXBkcmFnb24KKwkJICogUzQvS3JhaXQgbWlz
-YmVoYXZlcyBvbiBhIFRodW1iPT5BUk0gc2lnbmFsIHRyYW5zaXRpb24KKwkJICogd2l0aG91dCB0
-aGlzLgorCQkgKgorCQkgKiBXZSBtdXN0IGRvIHRoaXMgd2hlbmV2ZXIgd2UgYXJlIHJ1bm5pbmcg
-b24gYSBUaHVtYi0yCisJCSAqIGNhcGFibGUgQ1BVLCB3aGljaCBpbmNsdWRlcyBBUk12NlQyLiAg
-SG93ZXZlciwgd2UgZWxlY3QKKwkJICogdG8gZG8gdGhpcyB3aGVuZXZlciB3ZSdyZSBvbiBhbiBB
-Uk12NiBvciBsYXRlciBDUFUgZm9yCisJCSAqIHNpbXBsaWNpdHkuCiAJCSAqLwogCQljcHNyICY9
-IH5QU1JfSVRfTUFTSzsKICNlbmRpZgotLSAKMi4xLjAKCgoKLS0gCkZUVEMgYnJvYWRiYW5kIGZv
-ciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCA5LjZNYnBzIGRvd24gNDAwa2JwcyB1cAphY2Nv
-cmRpbmcgdG8gc3BlZWR0ZXN0Lm5ldC4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+From: Misael Lopez Cruz <misael.lopez@ti.com>
+
+The L3 throughput can be higher than expected when packed access
+is not enabled.  The ratio depends on the number of bytes in a
+transaction and the EMIF interface width.
+
+The throughput was measured for the following settings/cases:
+
+* Case 1: Burst size of 64 bytes, packed access disabled
+* Case 2: Burst size of 64 bytes, packed access enabled
+* Case 3: Burst disabled, packed access disabled
+
+Throughput measurements were done during McASP-based audio
+playback on the Jacinto6 EVM using the omapconf tool [1]:
+$ omapconf trace bw -m sdma_rd
+
+ ---------------------------------------------------------
+                                  Throughput (MB/s)
+  Audio parameters            Case 1    Case 2    Case 3
+ ---------------------------------------------------------
+  44.1kHz, 16-bits, stereo      1.41      0.18      1.41
+  44.1kHz, 32-bits, stereo      1.41      0.35      1.41
+  44.1kHz, 16-bits, 4-chan      2.82      0.35      2.82
+  44.1kHz, 16-bits, 6-chan      4.23      0.53      4.23
+  44.1kHz, 16-bits, 8-chan      5.64      0.71      5.64
+ ---------------------------------------------------------
+
+>From above measurements, case 2 is the only one that delivers
+the expected throughput for the given audio parameters.  For
+that reason, the packed accesses are now enabled.
+
+It's worth to mention that packed accesses cannot be enabled
+for all addressing modes. In cyclic transfers, it can be
+enabled in the source for MEM_TO_DEV and in dest for DEV_TO_MEM,
+as they use post-increment mode which supports packed accesses.
+
+Peter Ujfalusi:
+>From the TRM regarding to this:
+"NOTE: Except in the constant addressing mode, the source or
+destination must be specified as packed for burst transactions
+to occur."
+
+So w/o the packed setting the burst on the MEM side was not
+enabled, this explains the numbers.
+
+[1] https://github.com/omapconf/omapconf
+
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/omap-dma.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 249445c8a4c6..1dfc71c90123 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -935,8 +935,12 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
+ 		else
+ 			d->ccr |= CCR_SYNC_ELEMENT;
+ 
+-		if (dir == DMA_DEV_TO_MEM)
++		if (dir == DMA_DEV_TO_MEM) {
+ 			d->ccr |= CCR_TRIGGER_SRC;
++			d->csdp |= CSDP_DST_PACKED;
++		} else {
++			d->csdp |= CSDP_SRC_PACKED;
++		}
+ 
+ 		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
+ 
+-- 
+2.5.2
