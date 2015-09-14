@@ -1,85 +1,48 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: omap-dma: Enable packed accesses for cyclic transfers
-Date: Mon, 14 Sep 2015 15:31:05 +0300
-Message-ID: <1442233865-10412-1-git-send-email-peter.ujfalusi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 1/2] arm: omap2: Kconfig: select TWD and global timer on
+ AM43xx devices
+Date: Mon, 14 Sep 2015 08:42:39 -0500
+Message-ID: <1442238160-5674-2-git-send-email-balbi@ti.com>
+References: <1442238160-5674-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, misael.lopez@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1442238160-5674-1-git-send-email-balbi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Misael Lopez Cruz <misael.lopez@ti.com>
+Make sure to tell the kernel that AM437x has
+TWD and global timers.
 
-The L3 throughput can be higher than expected when packed access
-is not enabled.  The ratio depends on the number of bytes in a
-transaction and the EMIF interface width.
-
-The throughput was measured for the following settings/cases:
-
-* Case 1: Burst size of 64 bytes, packed access disabled
-* Case 2: Burst size of 64 bytes, packed access enabled
-* Case 3: Burst disabled, packed access disabled
-
-Throughput measurements were done during McASP-based audio
-playback on the Jacinto6 EVM using the omapconf tool [1]:
-$ omapconf trace bw -m sdma_rd
-
- ---------------------------------------------------------
-                                  Throughput (MB/s)
-  Audio parameters            Case 1    Case 2    Case 3
- ---------------------------------------------------------
-  44.1kHz, 16-bits, stereo      1.41      0.18      1.41
-  44.1kHz, 32-bits, stereo      1.41      0.35      1.41
-  44.1kHz, 16-bits, 4-chan      2.82      0.35      2.82
-  44.1kHz, 16-bits, 6-chan      4.23      0.53      4.23
-  44.1kHz, 16-bits, 8-chan      5.64      0.71      5.64
- ---------------------------------------------------------
-
->From above measurements, case 2 is the only one that delivers
-the expected throughput for the given audio parameters.  For
-that reason, the packed accesses are now enabled.
-
-It's worth to mention that packed accesses cannot be enabled
-for all addressing modes. In cyclic transfers, it can be
-enabled in the source for MEM_TO_DEV and in dest for DEV_TO_MEM,
-as they use post-increment mode which supports packed accesses.
-
-Peter Ujfalusi:
->From the TRM regarding to this:
-"NOTE: Except in the constant addressing mode, the source or
-destination must be specified as packed for burst transactions
-to occur."
-
-So w/o the packed setting the burst on the MEM side was not
-enabled, this explains the numbers.
-
-[1] https://github.com/omapconf/omapconf
-
-Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/dma/omap-dma.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/Kconfig | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 249445c8a4c6..1dfc71c90123 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -935,8 +935,12 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 		else
- 			d->ccr |= CCR_SYNC_ELEMENT;
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 07d2e100caab..88ef10b2d415 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -63,6 +63,9 @@ config SOC_AM43XX
+ 	select MACH_OMAP_GENERIC
+ 	select MIGHT_HAVE_CACHE_L2X0
+ 	select HAVE_ARM_SCU
++	select HAVE_ARM_TWD
++	select ARM_GLOBAL_TIMER
++	select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
  
--		if (dir == DMA_DEV_TO_MEM)
-+		if (dir == DMA_DEV_TO_MEM) {
- 			d->ccr |= CCR_TRIGGER_SRC;
-+			d->csdp |= CSDP_DST_PACKED;
-+		} else {
-+			d->csdp |= CSDP_SRC_PACKED;
-+		}
- 
- 		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
- 
+ config SOC_DRA7XX
+ 	bool "TI DRA7XX"
 -- 
-2.5.2
+2.5.0
