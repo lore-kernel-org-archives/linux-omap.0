@@ -1,51 +1,64 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCHv2 10/10] thermal: ti-soc: Kconfig fix to avoid menu showing wrongly
-Date: Sun, 13 Sep 2015 19:31:39 -0700
-Message-ID: <1442197899-5952-11-git-send-email-edubezval@gmail.com>
-References: <1442197899-5952-1-git-send-email-edubezval@gmail.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1442197899-5952-1-git-send-email-edubezval@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, linux-omap@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP/DTS: dra7/72-evm/beagle-x15: Audio
+ support
+Date: Mon, 14 Sep 2015 11:50:40 +0300
+Message-ID: <55F68A60.6050900@ti.com>
+References: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Move the dependencies to menu, so we avoid showing it wrongly.
+Hi Tony,
 
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
----
- drivers/thermal/Kconfig                | 1 +
- drivers/thermal/ti-soc-thermal/Kconfig | 2 --
- 2 files changed, 1 insertion(+), 2 deletions(-)
+On 08/24/2015 10:19 AM, Peter Ujfalusi wrote:
+> Hi,
+>=20
+> this series will enable analog audio (via onboard aic310x codec) for =
+dra7-evm,
+> dra72-evm and am57xx-beagle-x15 boards.
+> In these board McASP3 is connected to the codec and for the McASP3 we=
+ needed to
+> have the DMA crossbar in place since the request lines are not mapped=
+ by
+> default.
 
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 63b46c0..9453553 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -341,6 +341,7 @@ config ACPI_THERMAL_REL
- 	depends on ACPI
- 
- menu "Texas Instruments thermal drivers"
-+depends on ARCH_HAS_BANDGAP || COMPILE_TEST
- source "drivers/thermal/ti-soc-thermal/Kconfig"
- endmenu
- 
-diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-index 7a24018..cb6686f 100644
---- a/drivers/thermal/ti-soc-thermal/Kconfig
-+++ b/drivers/thermal/ti-soc-thermal/Kconfig
-@@ -1,7 +1,5 @@
- config TI_SOC_THERMAL
- 	tristate "Texas Instruments SoCs temperature sensor driver"
--	depends on THERMAL
--	depends on ARCH_HAS_BANDGAP || COMPILE_TEST
- 	help
- 	  If you say yes here you get support for the Texas Instruments
- 	  OMAP4460+ on die bandgap temperature sensor support. The register
--- 
-2.5.0
+Did you had a chance to look at this series?
 
+> Regars,
+> Peter
+> ---
+> Peter Ujfalusi (11):
+>   ARM: OMAP: DRA7: hwmod: Add data for McASP3
+>   ARM: DTS: dra7: Add McASP3 node
+>   ARM: DTS: dra7-evm: Rename mmc2_3v3 supply to evm_3v3_sw
+>   ARM: DTS: dra7-evm: Add fixed regulator to be used by aic3106's DVD=
+D
+>   ARM: DTS: dra7-evm: Enable pcf8575 (0x26 address) on i2c2 bus
+>   ARM: DTS: dra7-evm: Audio support
+>   ARM: DTS: dra72-evm: Add fixed regulator representing DVDD supply f=
+or
+>     aic3106
+>   ARM: DTS: dra72-evm: Add gpio hog for vin6_sel_s0 to select audio
+>   ARM: DTS: dra72-evm: Audio support
+>   ARM: DTS: am57xx-beagle-x15: Add fixed regulator for aic3104's DVDD
+>   ARM: DTS: am57xx-beagle-x15: Enable analog audio support
+>=20
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts   |  95 ++++++++++++++++++++
+>  arch/arm/boot/dts/dra7-evm.dts            | 142 ++++++++++++++++++++=
++++++++++-
+>  arch/arm/boot/dts/dra7.dtsi               |  15 ++++
+>  arch/arm/boot/dts/dra72-evm.dts           | 138 ++++++++++++++++++++=
++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  41 +++++++++
+>  5 files changed, 428 insertions(+), 3 deletions(-)
+>=20
+
+
+--=20
+P=E9ter
