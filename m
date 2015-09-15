@@ -1,98 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 01/11 RESEND] ARM: OMAP: DRA7: hwmod: Add data for McASP3
-Date: Tue, 15 Sep 2015 17:10:06 +0300
-Message-ID: <1442326206-30192-1-git-send-email-peter.ujfalusi@ti.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH] ARM: Remove __ref on hotplug cpu die path
+Date: Tue, 15 Sep 2015 15:12:30 +0100
+Message-ID: <55F8274E.5060008@arm.com>
+References: <1442276597-14325-1-git-send-email-sboyd@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442276597-14325-1-git-send-email-sboyd@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, paul@pwsan.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+To: Stephen Boyd <sboyd@codeaurora.org>, "arm@kernel.org" <arm@kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Barry Song <baohua@kernel.org>, Andy Gross <agross@codeaurora.org>, Viresh Kumar <vireshk@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <Will.Deacon@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spear-devel@list.st.com" <spear-devel@list.st.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel>
 List-Id: linux-omap@vger.kernel.org
 
-McASP3 is used by default on DRA7x based boards for audio.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi Paul,
 
-this patch is part of my earlier series and as Tony suggested I'll resend the
-hwmod patch for you to review since I missed you from the TO in the series.
+On 15/09/15 01:23, Stephen Boyd wrote:
+> Now that __cpuinit has been removed, the __ref markings on these
+> functions are useless. Remove them. This also reduces the size of
+> the multi_v7_defconfig image:
+>
+> $ size before after
+>     text    data     bss     dec     hex filename
+>     12683578        1470996  348904 14503478         dd4e36 before
+>     12683274        1470996  348904 14503174         dd4d06 after
+>
+> presumably because now we don't have to jump to code in the
+> .ref.text section and/or the noinline marking is removed.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Barry Song <baohua@kernel.org>
+> Cc: Andy Gross <agross@codeaurora.org>
+> Cc: Viresh Kumar <vireshk@kernel.org>
+> Cc: Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+> Cc: Stephen Warren <swarren@wwwdotorg.org>
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: <linux-omap@vger.kernel.org>
+> Cc: <linux-arm-msm@vger.kernel.org>
+> Cc: <spear-devel@list.st.com>
+> Cc: <linux-tegra@vger.kernel.org>
+> Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+> ---
+>
+> This patch can be broken up into per-SoC if desired.
+>
 
-The original series:
-https://www.mail-archive.com/linux-omap@vger.kernel.org/msg119319.html
+[...]
+
+>   arch/arm/mach-vexpress/hotplug.c     | 2 +-
+
+Acked-by: Sudeep Holla <sudeep.holla@arm.com>
 
 Regards,
-Peter
-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 41 +++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 562247bced49..c38b7fa30c27 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1298,6 +1298,38 @@ static struct omap_hwmod dra7xx_mcspi4_hwmod = {
- };
- 
- /*
-+ * 'mcasp' class
-+ *
-+ */
-+static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc = {
-+	.sysc_offs	= 0x0004,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type3,
-+};
-+
-+static struct omap_hwmod_class dra7xx_mcasp_hwmod_class = {
-+	.name	= "mcasp",
-+	.sysc	= &dra7xx_mcasp_sysc,
-+};
-+
-+/* mcasp3 */
-+static struct omap_hwmod dra7xx_mcasp3_hwmod = {
-+	.name		= "mcasp3",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp3_ahclkx_mux",
-+	.flags		= HWMOD_SWSUP_SIDLE,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP3_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'mmc' class
-  *
-  */
-@@ -2566,6 +2598,14 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per2 -> mcasp3 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp3_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
- 	{
- 		.pa_start	= 0x48078000,
-@@ -3338,6 +3378,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_wkup__dcan1,
- 	&dra7xx_l4_per2__dcan2,
- 	&dra7xx_l4_per2__cpgmac0,
-+	&dra7xx_l4_per2__mcasp3,
- 	&dra7xx_gmac__mdio,
- 	&dra7xx_l4_cfg__dma_system,
- 	&dra7xx_l3_main_1__dss,
--- 
-2.5.0
