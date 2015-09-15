@@ -1,36 +1,42 @@
-From: Andy Gross <agross@codeaurora.org>
-Subject: Re: [PATCH] ARM: Remove __ref on hotplug cpu die path
-Date: Tue, 15 Sep 2015 12:58:55 -0500
-Message-ID: <20150915175855.GA18435@qualcomm.com>
-References: <1442276597-14325-1-git-send-email-sboyd@codeaurora.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [net-next PATCH v3] drivers: net: cpsw: Add support to drive
+ gpios for ethernet to be functional
+Date: Tue, 15 Sep 2015 12:38:15 -0700 (PDT)
+Message-ID: <20150915.123815.1848038420469146072.davem@davemloft.net>
+References: <1441619204-15403-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1442276597-14325-1-git-send-email-sboyd@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: arm@kernel.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Barry Song <baohua@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, spear-devel@list.st.com, linux-tegra@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1441619204-15403-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: mugunthanvnm-l0cyMroinI0@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 14, 2015 at 05:23:17PM -0700, Stephen Boyd wrote:
-> Now that __cpuinit has been removed, the __ref markings on these
-> functions are useless. Remove them. This also reduces the size of
-> the multi_v7_defconfig image:
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Date: Mon, 7 Sep 2015 15:16:44 +0530
+
+> In DRA72x EVM, by default slave 1 is connected to the onboard
+> phy, but slave 2 pins are also muxed with video input module
+> which is controlled by pcf857x gpio and currently to select slave
+> 0 to connect to phy gpio hogging is used, but with
+> omap2plus_defconfig the pcf857x gpio is built as module. So when
+> using NFS on DRA72x EVM, board doesn't boot as gpio hogging do
+> not set proper gpio state to connect slave 0 to phy as it is
+> built as module and you do not see any errors for not setting
+> gpio and just mentions dhcp reply not got.
 > 
-> $ size before after
->    text    data     bss     dec     hex filename
->    12683578        1470996  348904 14503478         dd4e36 before
->    12683274        1470996  348904 14503174         dd4d06 after
+> To solve this issue, introducing "mode-gpios" in DT when gpio
+> based muxing is required. This will throw a warning when gpio
+> get fails and returns probe defer. When gpio-pcf857x module is
+> installed, cpsw probes again and ethernet becomes functional.
+> Verified this on DRA72x with pcf as module and ramdisk.
 > 
-> presumably because now we don't have to jump to code in the
-> .ref.text section and/or the noinline marking is removed.
+> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 
-<snip>
-
-Acked-by: Andy Gross <agross@codeaurora.org>
-
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Applied, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
