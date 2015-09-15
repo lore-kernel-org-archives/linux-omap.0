@@ -1,31 +1,38 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 04/13] twl4030_charger: trust phy to determine when USB
- power is available.
-Date: Tue, 15 Sep 2015 13:30:09 +0200
-Message-ID: <20150915113009.GC10704@amd>
-References: <20150730001113.4012.18086.stgit@noble>
- <20150730001124.4012.85912.stgit@noble>
+From: Christ van Willegen <cvwillegen@gmail.com>
+Subject: Re: [Gta04-owner] [PATCH 10/13] twl4030_charger: add software
+ controlled linear charging mode.
+Date: Tue, 15 Sep 2015 14:08:55 +0200
+Message-ID: <CA+Ot1Ow8d8Q+U6oFKibWiPHLcua5WknFbZy0PEsU36ONas=7UQ@mail.gmail.com>
+References: <20150730001113.4012.18086.stgit@noble> <20150730001124.4012.27784.stgit@noble>
+ <20150915112825.GA10704@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150730001124.4012.85912.stgit@noble>
-Sender: linux-pm-owner@vger.kernel.org
-To: NeilBrown <neil@brown.name>
-Cc: Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150915112825.GA10704@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
+Cc: NeilBrown <neil@brown.name>, Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu 2015-07-30 10:11:24, NeilBrown wrote:
-> The usb phy driver already determines when VBUS is available,
-> so repeating the test in the charger driver is pointless duplication.
-> 
-> On probe, process the last event from the phy, and from then on,
-> do whatever the phy tells us without double-checking.
-> 
-> Signed-off-by: NeilBrown <neil@brown.name>
+Hi all,
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+On Tue, Sep 15, 2015 at 1:28 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Thu 2015-07-30 10:11:24, NeilBrown wrote:
+>>
+>> Add a 'continuous' option for usb charging which enables
+>> the "linear" charging mode of the twl4030.
+>>
+>> Linear charging does a good job with not-so-reliable power sources.
+>> Auto mode does not work well as it switches off when voltage drops
+>> momentarily.  Care must be taken not to over-charge.
+>
+> Can you explain how the user can "care not to over-charge"?
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Just my $0.02, I assumed (whoops!) that Neil mean that the _code_
+should take care not to over-charge... but not sure how he intended to
+to that.
+
+Anyway, that was my interpretation of the (indeed, it could be
+explained in different ways...) comment.
+
+Christ van Willegen
