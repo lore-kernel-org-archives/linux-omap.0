@@ -1,63 +1,53 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: am57xx-beagle-x15: use palmas-usb for
- USB2
-Date: Tue, 15 Sep 2015 13:43:04 +0300
-Message-ID: <55F7F638.4030205@ti.com>
-References: <1438002617-15152-1-git-send-email-rogerq@ti.com>
- <1438002617-15152-3-git-send-email-rogerq@ti.com>
- <20150805103728.GC16878@atomide.com> <55C29DE3.9010108@samsung.com>
- <55E7F86B.7040509@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCHv3 1/1] ti-soc-thermal: implement omap3 support
+Date: Tue, 15 Sep 2015 13:24:16 +0200
+Message-ID: <20150915112416.GC32689@amd>
+References: <1441861089-23868-1-git-send-email-edubezval@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55E7F86B.7040509@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, myungjoo.ham@samsung.com, nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1441861089-23868-1-git-send-email-edubezval@gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, pali.rohar@gmail.com
+Cc: Rui Zhang <rui.zhang@intel.com>, linux-omap@vger.kernel.org, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
-
-On 03/09/15 10:36, Roger Quadros wrote:
-> Chanwoo,
+On Wed 2015-09-09 21:58:09, Eduardo Valentin wrote:
+> From: Pavel Machek <pavel@ucw.cz>
 > 
-> On 06/08/15 02:36, Chanwoo Choi wrote:
->> On 08/05/2015 07:37 PM, Tony Lindgren wrote:
->>> * Roger Quadros <rogerq@ti.com> [150727 06:13]:
->>>> The VBUS line of USB2 is connected to VBUS detect logic on
->>>> the PMIC. Use the palmas-usb driver to report VBUS events
->>>> to the USB driver.
->>>>
->>>> As the palmas-usb driver supports GPIO based ID reporting
->>>> provide the GPIO for ID pin as well.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>
->>> This should not cause merge conflicts with what I have queeud
->>> for v4.3, so Chanwoo please feel free to apply with the rest
->>> of the extcon series:
->>>
->>> Acked-by: Tony Lindgren <tony@atomide.com>
->>>
->>,
->> I reviewd this patchset related to extcon and give the acked-by message.
->> but patch1 must need the acked-by message from MFD maintainer.
->>
->> If patch1 receive the acked-by message from MFD maintainer,
->> I'll apply it for v4.3.
->>
->> Roger,
->> I think that you better to recevie the acked-by message before v4.2-rc6 release.
->> I have the plan about pull request of extcon for v4.3 after v4.2-rc6 releas.
+> This adds support for OMAP3 chips to ti-soc-thermal. As requested by
+> TI people, it is marked unreliable and warning is printed.
 > 
-> Seems like you picked patch 1 but not this one. As Tony has already Acked it
-> can you please include patch 2 as well in your tree for -next? Thanks.
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+> ---
+>  .../devicetree/bindings/thermal/ti_soc_thermal.txt |   7 ++
+>  drivers/thermal/ti-soc-thermal/Kconfig             |  15 +++
+>  drivers/thermal/ti-soc-thermal/Makefile            |   1 +
+>  .../thermal/ti-soc-thermal/omap3-thermal-data.c    | 103 +++++++++++++++++++++
+>  drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  10 ++
+>  drivers/thermal/ti-soc-thermal/ti-bandgap.h        |   9 ++
+>  6 files changed, 145 insertions(+)
+>  create mode 100644 drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
+> ---
 > 
+> Just not leave Pavels work behind, I took his patch and amended a couple
+> of things:
+> (1) added the omap3 DT example
+> (2) improved the dev_warn message
+> (3) improved the code documentation
 
-Is it possible for you to pick this up for -rc cycle via omap-soc tree?
-Thanks.
+Thanks!
 
---
-cheers,
--roger
+Is it on its way to mainline or is there something more to do?
+
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
