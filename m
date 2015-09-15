@@ -1,207 +1,81 @@
-From: Barry Song <baohua-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ARM: Remove __ref on hotplug cpu die path
-Date: Tue, 15 Sep 2015 10:22:27 +0800
-Message-ID: <CAGsJ_4wRUKxKKV0h_e8uJPRyz+sQOzzZmCb9XPfP8dRN+s_A6w@mail.gmail.com>
-References: <1442276597-14325-1-git-send-email-sboyd@codeaurora.org>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 0/2] regulator: Fix pbias regulator enable
+Date: Tue, 15 Sep 2015 11:20:22 +0530
+Message-ID: <55F7B19E.1010804@ti.com>
+References: <1441368025-21182-1-git-send-email-kishon@ti.com> <CAPDyKFqCYx0JfXGq0T-44034UcR=v8nvKp7Fww=Zxa7N-z_vFg@mail.gmail.com> <20150914202230.GY4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442276597-14325-1-git-send-email-sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: "arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Andy Gross <agross-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shiraz Hashim <shiraz.linux.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20150914202230.GY4215@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?B?UGF3ZcWCIE1vbGw=?= <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Liam Girdwood <lgirdwood@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-2015-09-15 8:23 GMT+08:00 Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>:
-> Now that __cpuinit has been removed, the __ref markings on these
-> functions are useless. Remove them. This also reduces the size of
-> the multi_v7_defconfig image:
->
-> $ size before after
->    text    data     bss     dec     hex filename
->    12683578        1470996  348904 14503478         dd4e36 before
->    12683274        1470996  348904 14503174         dd4d06 after
->
-> presumably because now we don't have to jump to code in the
-> .ref.text section and/or the noinline marking is removed.
->
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Barry Song <baohua-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Andy Gross <agross-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Cc: Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Shiraz Hashim <shiraz.linux.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-> Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> Cc: <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> Cc: <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> Cc: <spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org>
-> Cc: <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> Signed-off-by: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Hi,
 
-Acked-by: Barry Song <baohua-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+On Tuesday 15 September 2015 01:52 AM, Tony Lindgren wrote:
+> Hi,
+> 
+> * Ulf Hansson <ulf.hansson@linaro.org> [150904 05:48]:
+>>
+>> Okay, just to be clear on the way forward. I spoked with Mark Brown
+>> offlist, and he will/has picked up the regulator patch and will send
+>> it as fix for the 4.3 rc[n].
+>>
+>> Regarding the ARM patch here, I guess Tony might as well handle it and
+>> send through arm-soc, especially since the regression won't be fixed
+>> within my mmc tree anyway.
+>>
+>> So, I am going to leave my next branch as is - and thus relying on
+>> teet the regression for OMAP will be fixed in some the 4.3 rc[n].
+> 
+> I'm picking up the .dts changes from this series into
+> omap-for-v4.3/fixes as those are safe to apply while waiting
+> for the pbias-regulator.c fix to hit mainline.
+> 
+> I'm not yet applying the related dts change "fix address translation
+> for pbias" as that depends on the pbias-regulator.c change.
+> 
+> Howver, when testing all the patches applied, I'm still getting
+> the following splat at least on duovero (with MMC working):
+> 
+> WARNING: CPU: 0 PID: 6 at drivers/regulator/core.c:2105 _regulator_disable+0x13c/0x1d4()
+> unbalanced disables for pbias_mmc_omap4
+> Modules linked in:
+> CPU: 0 PID: 6 Comm: kworker/u4:0 Not tainted 4.3.0-rc1-00015-gf5c4173-dirty #1295
+> Hardware name: Generic OMAP4 (Flattened Device Tree)
+> Workqueue: deferwq deferred_probe_work_func
+> [<c001770c>] (unwind_backtrace) from [<c0013a58>] (show_stack+0x10/0x14)
+> [<c0013a58>] (show_stack) from [<c0346628>] (dump_stack+0x84/0x9c)
+> [<c0346628>] (dump_stack) from [<c003e958>] (warn_slowpath_common+0x78/0xb4)
+> [<c003e958>] (warn_slowpath_common) from [<c003e9c4>] (warn_slowpath_fmt+0x30/0x40)
+> [<c003e9c4>] (warn_slowpath_fmt) from [<c03a4e74>] (_regulator_disable+0x13c/0x1d4)
+> [<c03a4e74>] (_regulator_disable) from [<c03a4f3c>] (regulator_disable+0x30/0x6c)
+> [<c03a4f3c>] (regulator_disable) from [<c04c55a8>] (omap_hsmmc_set_power+0x158/0x1e8)
+> [<c04c55a8>] (omap_hsmmc_set_power) from [<c04c57d0>] (omap_hsmmc_set_ios+0x198/0x318)
+> [<c04c57d0>] (omap_hsmmc_set_ios) from [<c04af404>] (mmc_power_up.part.10+0x30/0xf8)
+> [<c04af404>] (mmc_power_up.part.10) from [<c04b0310>] (mmc_start_host+0x40/0x7c)
+> [<c04b0310>] (mmc_start_host) from [<c04b1424>] (mmc_add_host+0x5c/0x84)
+> [<c04b1424>] (mmc_add_host) from [<c04c5010>] (omap_hsmmc_probe+0x5b0/0x9f0)
+> [<c04c5010>] (omap_hsmmc_probe) from [<c03e0e9c>] (platform_drv_probe+0x44/0xac)
+> [<c03e0e9c>] (platform_drv_probe) from [<c03df550>] (driver_probe_device+0x1f4/0x2f0)
+> [<c03df550>] (driver_probe_device) from [<c03dda5c>] (bus_for_each_drv+0x64/0x98)
+> [<c03dda5c>] (bus_for_each_drv) from [<c03df2d0>] (__device_attach+0xb0/0x118)
+> [<c03df2d0>] (__device_attach) from [<c03de878>] (bus_probe_device+0x88/0x90)
+> [<c03de878>] (bus_probe_device) from [<c03deca0>] (deferred_probe_work_func+0x60/0x90)
+> [<c03deca0>] (deferred_probe_work_func) from [<c005899c>] (process_one_work+0x1a4/0x558)
+> [<c005899c>] (process_one_work) from [<c0058d8c>] (worker_thread+0x3c/0x514)
+> [<c0058d8c>] (worker_thread) from [<c005eb1c>] (kthread+0xd4/0xf0)
+> [<c005eb1c>] (kthread) from [<c000f710>] (ret_from_fork+0x14/0x24)
+> 
+> Kishon, can you please take a look?
 
-> ---
->
-> This patch can be broken up into per-SoC if desired.
->
->  arch/arm/kernel/psci_smp.c           | 4 ++--
->  arch/arm/mach-omap2/omap-hotplug.c   | 2 +-
->  arch/arm/mach-omap2/omap-wakeupgen.c | 2 +-
->  arch/arm/mach-prima2/hotplug.c       | 2 +-
->  arch/arm/mach-qcom/platsmp.c         | 2 +-
->  arch/arm/mach-realview/hotplug.c     | 2 +-
->  arch/arm/mach-spear/hotplug.c        | 2 +-
->  arch/arm/mach-tegra/hotplug.c        | 2 +-
->  arch/arm/mach-ux500/hotplug.c        | 2 +-
->  arch/arm/mach-vexpress/hotplug.c     | 2 +-
->  10 files changed, 11 insertions(+), 11 deletions(-)
->
-> diff --git a/arch/arm/kernel/psci_smp.c b/arch/arm/kernel/psci_smp.c
-> index 61c04b02faeb..9d479b2ea40d 100644
-> --- a/arch/arm/kernel/psci_smp.c
-> +++ b/arch/arm/kernel/psci_smp.c
-> @@ -71,7 +71,7 @@ int psci_cpu_disable(unsigned int cpu)
->         return 0;
->  }
->
-> -void __ref psci_cpu_die(unsigned int cpu)
-> +void psci_cpu_die(unsigned int cpu)
->  {
->         u32 state = PSCI_POWER_STATE_TYPE_POWER_DOWN <<
->                     PSCI_0_2_POWER_STATE_TYPE_SHIFT;
-> @@ -83,7 +83,7 @@ void __ref psci_cpu_die(unsigned int cpu)
->         panic("psci: cpu %d failed to shutdown\n", cpu);
->  }
->
-> -int __ref psci_cpu_kill(unsigned int cpu)
-> +int psci_cpu_kill(unsigned int cpu)
->  {
->         int err, i;
->
-> diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-> index 971791fe9a3f..593fec753b28 100644
-> --- a/arch/arm/mach-omap2/omap-hotplug.c
-> +++ b/arch/arm/mach-omap2/omap-hotplug.c
-> @@ -27,7 +27,7 @@
->   * platform-specific code to shutdown a CPU
->   * Called with IRQs disabled
->   */
-> -void __ref omap4_cpu_die(unsigned int cpu)
-> +void omap4_cpu_die(unsigned int cpu)
->  {
->         unsigned int boot_cpu = 0;
->         void __iomem *base = omap_get_wakeupgen_base();
-> diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-> index e1d2e991d17a..d9b317706e63 100644
-> --- a/arch/arm/mach-omap2/omap-wakeupgen.c
-> +++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-> @@ -330,7 +330,7 @@ static int irq_cpu_hotplug_notify(struct notifier_block *self,
->         return NOTIFY_OK;
->  }
->
-> -static struct notifier_block __refdata irq_hotplug_notifier = {
-> +static struct notifier_block irq_hotplug_notifier = {
->         .notifier_call = irq_cpu_hotplug_notify,
->  };
->
-> diff --git a/arch/arm/mach-prima2/hotplug.c b/arch/arm/mach-prima2/hotplug.c
-> index 0ab2f8bae28e..a728c78b996f 100644
-> --- a/arch/arm/mach-prima2/hotplug.c
-> +++ b/arch/arm/mach-prima2/hotplug.c
-> @@ -32,7 +32,7 @@ static inline void platform_do_lowpower(unsigned int cpu)
->   *
->   * Called with IRQs disabled
->   */
-> -void __ref sirfsoc_cpu_die(unsigned int cpu)
-> +void sirfsoc_cpu_die(unsigned int cpu)
->  {
->         platform_do_lowpower(cpu);
->  }
-> diff --git a/arch/arm/mach-qcom/platsmp.c b/arch/arm/mach-qcom/platsmp.c
-> index 5cde63a64b34..9b00123a315d 100644
-> --- a/arch/arm/mach-qcom/platsmp.c
-> +++ b/arch/arm/mach-qcom/platsmp.c
-> @@ -49,7 +49,7 @@ extern void secondary_startup_arm(void);
->  static DEFINE_SPINLOCK(boot_lock);
->
->  #ifdef CONFIG_HOTPLUG_CPU
-> -static void __ref qcom_cpu_die(unsigned int cpu)
-> +static void qcom_cpu_die(unsigned int cpu)
->  {
->         wfi();
->  }
-> diff --git a/arch/arm/mach-realview/hotplug.c b/arch/arm/mach-realview/hotplug.c
-> index ac22dd41b135..968e2d1964f6 100644
-> --- a/arch/arm/mach-realview/hotplug.c
-> +++ b/arch/arm/mach-realview/hotplug.c
-> @@ -90,7 +90,7 @@ static inline void platform_do_lowpower(unsigned int cpu, int *spurious)
->   *
->   * Called with IRQs disabled
->   */
-> -void __ref realview_cpu_die(unsigned int cpu)
-> +void realview_cpu_die(unsigned int cpu)
->  {
->         int spurious = 0;
->
-> diff --git a/arch/arm/mach-spear/hotplug.c b/arch/arm/mach-spear/hotplug.c
-> index d97749c642ce..12edd1cf8a12 100644
-> --- a/arch/arm/mach-spear/hotplug.c
-> +++ b/arch/arm/mach-spear/hotplug.c
-> @@ -80,7 +80,7 @@ static inline void spear13xx_do_lowpower(unsigned int cpu, int *spurious)
->   *
->   * Called with IRQs disabled
->   */
-> -void __ref spear13xx_cpu_die(unsigned int cpu)
-> +void spear13xx_cpu_die(unsigned int cpu)
->  {
->         int spurious = 0;
->
-> diff --git a/arch/arm/mach-tegra/hotplug.c b/arch/arm/mach-tegra/hotplug.c
-> index 6fc71f1534b0..1b129899a277 100644
-> --- a/arch/arm/mach-tegra/hotplug.c
-> +++ b/arch/arm/mach-tegra/hotplug.c
-> @@ -37,7 +37,7 @@ int tegra_cpu_kill(unsigned cpu)
->   *
->   * Called with IRQs disabled
->   */
-> -void __ref tegra_cpu_die(unsigned int cpu)
-> +void tegra_cpu_die(unsigned int cpu)
->  {
->         if (!tegra_hotplug_shutdown) {
->                 WARN(1, "hotplug is not yet initialized\n");
-> diff --git a/arch/arm/mach-ux500/hotplug.c b/arch/arm/mach-ux500/hotplug.c
-> index 2bc00b085e38..1cbed0331fd3 100644
-> --- a/arch/arm/mach-ux500/hotplug.c
-> +++ b/arch/arm/mach-ux500/hotplug.c
-> @@ -21,7 +21,7 @@
->   *
->   * Called with IRQs disabled
->   */
-> -void __ref ux500_cpu_die(unsigned int cpu)
-> +void ux500_cpu_die(unsigned int cpu)
->  {
->         /* directly enter low power state, skipping secure registers */
->         for (;;) {
-> diff --git a/arch/arm/mach-vexpress/hotplug.c b/arch/arm/mach-vexpress/hotplug.c
-> index f0ce6b8f5e71..f2fafc10a91d 100644
-> --- a/arch/arm/mach-vexpress/hotplug.c
-> +++ b/arch/arm/mach-vexpress/hotplug.c
-> @@ -85,7 +85,7 @@ static inline void platform_do_lowpower(unsigned int cpu, int *spurious)
->   *
->   * Called with IRQs disabled
->   */
-> -void __ref vexpress_cpu_die(unsigned int cpu)
-> +void vexpress_cpu_die(unsigned int cpu)
->  {
->         int spurious = 0;
->
-> --
-> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-> a Linux Foundation Collaborative Project
->
+really weird, since I didn't see any issues with my OMAP4 PANDA. Most
+likely it's because the PBIAS register is not showing the correct state
+of PBIAS. So we might have to remove using regulator_is_enabled and use
+our own bookkeeping pbias_enabled variable. Anyway I'll check this.
+
+Thanks
+Kishon
