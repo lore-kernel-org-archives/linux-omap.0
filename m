@@ -1,64 +1,106 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/5] spi: introduce mmap read support for spi flash
- devices
-Date: Wed, 16 Sep 2015 16:24:21 +0100
-Message-ID: <20150916152421.GL11268@sirena.org.uk>
+From: Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/5] spi: introduce mmap read support for spi flash devices
+Date: Wed, 16 Sep 2015 17:30:36 +0200
+Message-ID: <CAOMqctRWCkVg8gthkkkgg7_6=c00SORNx7_6_NperxXfgGf5xA@mail.gmail.com>
 References: <1441355402-6837-1-git-send-email-vigneshr@ti.com>
- <1441355402-6837-2-git-send-email-vigneshr@ti.com>
- <CAD6G_RT8Q+Uyp1ZjzHf54Tno1wHm0SmLKEwRAe2gkdp772FD9A@mail.gmail.com>
- <20150914183553.GE12027@sirena.org.uk>
- <CAD6G_RQOazkS7KHrG75wgMXx1cH_pKjx43Mve6fz1qOJGPpq9w@mail.gmail.com>
+ <1441355402-6837-2-git-send-email-vigneshr@ti.com> <CAD6G_RT8Q+Uyp1ZjzHf54Tno1wHm0SmLKEwRAe2gkdp772FD9A@mail.gmail.com>
+ <20150914183553.GE12027@sirena.org.uk> <CAD6G_RQOazkS7KHrG75wgMXx1cH_pKjx43Mve6fz1qOJGPpq9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="BFVE2HhgxTpCzM8t"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <CAD6G_RQOazkS7KHrG75wgMXx1cH_pKjx43Mve6fz1qOJGPpq9w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jagan Teki <jteki-oRp2ZoJdM/RWk0Htik3J/w@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---BFVE2HhgxTpCzM8t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Sep 16, 2015 at 06:16:55PM +0530, Jagan Teki wrote:
+On 16 September 2015 at 14:46, Jagan Teki <jteki-oRp2ZoJdM/RWk0Htik3J/w@public.gmane.org> wrote:
 > On 15 September 2015 at 00:05, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-
-> > There seem to be a reasonable number of SPI controllers out there which
-> > have as an extension the ability to do memory mapped reads but are
-> > otherwise perfectly normal SPI controllers and which rely on that for
-> > everything except reads.
-
+>> On Fri, Sep 04, 2015 at 04:55:33PM +0530, Jagan Teki wrote:
+>>> On 4 September 2015 at 13:59, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
+>>
+>>> > + * @spi_mtd_mmap_read: some spi-controller hardwares provide memory
+>>> > + *                     mapped interface to communicate with mtd flashes.
+>>> > + *                     For this, spi  controller needs to know flash
+>>> > + *                     memory settings like read command to use, dummy
+>>> > + *                     bytes and address width. Once these settings are
+>>> > + *                     populated in hardware registers, any read
+>>> > + *                     accesses to flash's memory map region(as defined
+>>> > + *                     by SoC) through memcpy or mem-to-mem DMA copy
+>>> > + *                     will be handled by controller hardware. The
+>>> > + *                     hardware will automatically generate spi signals
+>>> > + *                     required to read data from flash and present it
+>>> > + *                     to CPU or DMA. SPI master drivers can use this
+>>> > + *                     callback to implement memory mapped read
+>>> > + *                     interface. Flash driver (like m25p80) requests
+>>> > + *                     memory mapped read via this method. The interface
+>>> > + *                     should  only be used mtd flashes and cannot be
+>>> > + *                     used with other spi devices.
+>>
+>> This comment is *way* too verbose - probably you just need up to the
+>> "Once" here.
+>>
+>>> > +       int (*spi_mtd_mmap_read)(struct  spi_device *spi,
+>>> > +                                loff_t from, size_t len, size_t *retlen,
+>>> > +                                u_char *buf, u8 read_opcode,
+>>> > +                                u8 addr_width, u8 dummy_bytes);
+>>
+>>> This looks un-manageable to know spi core or master knows what are the
+>>> command or opcode used by spi-nor flash and also I think mmap support
+>>> seems to be flash related or any justification this is spi bus
+>>> master/controller feature?
+>>
+>> There seem to be a reasonable number of SPI controllers out there which
+>> have as an extension the ability to do memory mapped reads but are
+>> otherwise perfectly normal SPI controllers and which rely on that for
+>> everything except reads.
+>
 > This is true, but exposing direct spi-nor arguments or features like
 > read_opcode, addr_width or dummy_byte to spi layer isn't fine? because
 > for spi layer there is a spi to flash transition mtd m25p80.c is there
 > to handle is it?
 
-The m25p80 driver is a generic, SPI level piece of code not a driver for
-specific controller hardware.  The controller hardware drivers live in
-the SPI subsystem.  In order to support this memory mapped feature we
-need the controller drivers to expose an interface for controlling it.
+For the TI SPI controller this is programmable. So instead of
+composing a SPI message that sends the opcode (and address and dummy
+bytes) you set the opcode in a controller register and then perform
+the memory read which sends the configured opcode to the flash memory.
+So this needs to be exposed in an API which the m25p80 driver can use.
 
---BFVE2HhgxTpCzM8t
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+On 16 September 2015 at 12:08, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> wrote:
+>
+>
+> On 09/15/2015 12:07 AM, Mark Brown wrote:
+>> On Fri, Sep 04, 2015 at 01:59:58PM +0530, Vignesh R wrote:
+>>> In addition to providing direct access to SPI bus, some spi controller
+>>> hardwares (like ti-qspi) provide special memory mapped port
+>>> to accesses SPI flash devices in order to increase read performance.
+>>> This means the controller can automatically send the SPI signals
+>>> required to read data from the SPI flash device.
+>>
+>> Sorry, also meant to say here: as I kind of indicated in response to the
+>> flash patch I'd expect to see the SPI core know something about this and
+>> export an API for this which is integrated with things like the existing
+>> message queue.
+>>
+>
+>
+> Adding an API to SPI core makes sense to me. This can take care of spi
+> bus locking and runtime pm.
+> But, I didn't get how to integrate with existing message queue. Memory
+> mapped read by-passes message queue of SPI core. Could you please
+> explain a bit more on integrating with message queue? Did you mean
+> locking the existing message queue when memory mapped read is being
+> requested?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Presumably when you have a function in SPI core for this it takes the
+same lock transfer_one does so either you do mmap transfer or normal
+SPI transfer. You can probably manually sync on transfer completion in
+a driver that uses both normal SPI messages and mmap transfer - which
+m25p80 does anyway.
 
-iQEcBAEBCAAGBQJV+YmkAAoJECTWi3JdVIfQHf0IAIACpwZyIQQHENTwLqckYkld
-Dh8gtSVtQ5ONVXG6fKdztQivwKTFw4Kh/BcmQYMUv6Glf/dhPHOA5dhDF+AmbRUb
-Ld7f06b6n4aAk3URhR2EEFJSlCpHGcz099t6VONILlPss+N7/x4kZcHbGEs6DQvu
-omKwGZN3UsLJiSKcibZiJjCzbBFcyf0rtv1RA6PzbO7jt4TeDHZ/4fM8wZ81jc89
-onYapT+fWg8i7A8EwAeWSaPi3rQny1dZZ/MiCZqEZnrHFcTd7zMPI08TK6r4hsHN
-CI6iVWgwxGgZX1XGUP9hMR6tDLu0CwAoK7N/RlMrZFI2gkggs8he3c4dbmDLM2s=
-=F3z7
------END PGP SIGNATURE-----
+Thanks
 
---BFVE2HhgxTpCzM8t--
+Michal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-spi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
