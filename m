@@ -1,7 +1,7 @@
-From: Dan Murphy <dmurphy@ti.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH 1/1] regulator: tps65218: Fix missing zero typo
-Date: Wed, 16 Sep 2015 08:24:42 -0500
-Message-ID: <55F96D9A.3090307@ti.com>
+Date: Wed, 16 Sep 2015 08:55:09 -0500
+Message-ID: <55F974BD.1060207@ti.com>
 References: <1442349262-32391-1-git-send-email-afd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
@@ -16,12 +16,15 @@ List-Id: linux-omap@vger.kernel.org
 On 09/15/2015 03:34 PM, Andrew F. Davis wrote:
 > Add missing zero to value. This will be needed when range checking
 > is implemented.
->
+> 
 > Signed-off-by: Andrew F. Davis <afd@ti.com>
+
+Care about Fixes tag?
+
 > ---
 >  drivers/regulator/tps65218-regulator.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
->
+> 
 > diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
 > index 7f97223..a02c1b9 100644
 > --- a/drivers/regulator/tps65218-regulator.c
@@ -35,9 +38,9 @@ On 09/15/2015 03:34 PM, Andrew F. Davis wrote:
 >  	TPS65218_INFO(DCDC2, "DCDC2", 850000, 1675000),
 >  	TPS65218_INFO(DCDC3, "DCDC3", 900000, 3400000),
 >  	TPS65218_INFO(DCDC4, "DCDC4", 1175000, 3400000),
+> 
 
-Acked-by: Dan Murphy <dmurphy@ti.com>
 
 -- 
-------------------
-Dan Murphy
+Regards,
+Nishanth Menon
