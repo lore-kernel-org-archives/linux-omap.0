@@ -1,55 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: AM43XX: Enable autoidle for clks in
- am43xx_init_late
-Date: Wed, 16 Sep 2015 17:02:04 -0700
-Message-ID: <20150917000203.GD4215@atomide.com>
-References: <1442346454-5305-1-git-send-email-d-gerlach@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: dts: am57xx-beagle-x15: use palmas-usb for
+ USB2
+Date: Wed, 16 Sep 2015 17:06:28 -0700
+Message-ID: <20150917000627.GE4215@atomide.com>
+References: <1438002617-15152-1-git-send-email-rogerq@ti.com>
+ <1438002617-15152-3-git-send-email-rogerq@ti.com>
+ <20150805103728.GC16878@atomide.com>
+ <55C29DE3.9010108@samsung.com>
+ <55E7F86B.7040509@ti.com>
+ <55F7F638.4030205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1442346454-5305-1-git-send-email-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <55F7F638.4030205@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>, myungjoo.ham@samsung.com, nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [150915 12:51]:
-> Add omap2_clk_enable_autoidle_all to am43xx_init_late otherwise the call
-> to omap2_clk_disable_autoidle_all in am43xx_init_early may cause some
-> clocks to always stay active and prevent low power mode transitions.
+* Roger Quadros <rogerq@ti.com> [150915 03:46]:
+> Tony,
 > 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> On 03/09/15 10:36, Roger Quadros wrote:
+> > Chanwoo,
+> > 
+> > On 06/08/15 02:36, Chanwoo Choi wrote:
+> >> On 08/05/2015 07:37 PM, Tony Lindgren wrote:
+> >>> * Roger Quadros <rogerq@ti.com> [150727 06:13]:
+> >>>> The VBUS line of USB2 is connected to VBUS detect logic on
+> >>>> the PMIC. Use the palmas-usb driver to report VBUS events
+> >>>> to the USB driver.
+> >>>>
+> >>>> As the palmas-usb driver supports GPIO based ID reporting
+> >>>> provide the GPIO for ID pin as well.
+> >>>>
+> >>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >>>
+> >>> This should not cause merge conflicts with what I have queeud
+> >>> for v4.3, so Chanwoo please feel free to apply with the rest
+> >>> of the extcon series:
+> >>>
+> >>> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>>
+> >>,
+> >> I reviewd this patchset related to extcon and give the acked-by message.
+> >> but patch1 must need the acked-by message from MFD maintainer.
+> >>
+> >> If patch1 receive the acked-by message from MFD maintainer,
+> >> I'll apply it for v4.3.
+> >>
+> >> Roger,
+> >> I think that you better to recevie the acked-by message before v4.2-rc6 release.
+> >> I have the plan about pull request of extcon for v4.3 after v4.2-rc6 releas.
+> > 
+> > Seems like you picked patch 1 but not this one. As Tony has already Acked it
+> > can you please include patch 2 as well in your tree for -next? Thanks.
+> > 
+> 
+> Is it possible for you to pick this up for -rc cycle via omap-soc tree?
+> Thanks.
 
-Applying into omap-for-v4.3/fixes thanks.
+OK picking up the second patch into omap-for-v4.3/fixes thanks.
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/io.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 980c937..3eaeaca 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -676,6 +676,7 @@ void __init am43xx_init_early(void)
->  void __init am43xx_init_late(void)
->  {
->  	omap_common_late_init();
-> +	omap2_clk_enable_autoidle_all();
->  }
->  #endif
->  
-> -- 
-> 2.4.6
-> 
