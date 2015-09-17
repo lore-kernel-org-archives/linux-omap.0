@@ -1,42 +1,37 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] ARM: OMAP: Remove duplicated operand in OR operation
-Date: Thu, 17 Sep 2015 15:22:51 +0200
-Message-ID: <1442496171-28741-1-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH] ARM: OMAP3: vc: Remove unused macros
+Date: Thu, 17 Sep 2015 15:24:14 +0200
+Message-ID: <1442496254-29028-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Commit b483a4a5a711 ("ARM: OMAP4+: hwmod data: Don't prevent RESET of
-USB Host module") added the SYSC_HAS_RESET_STATUS flag to both OMAP4
-and OMAP5 USB host module hwmon sysconfig but that flag was already
-set for OMAP5. So now the flag appears twice in the expression.
-
-make coccicheck complains with the following message:
-
-omap_hwmod_54xx_data.c:1846:37-58: duplicated argument to & or |
+The PRM_POLCTRL_TWL_MASK and PRM_POLCTRL_TWL_MASK
+macros are not used so they can be deleted.
 
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
 ---
 
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm/mach-omap2/vc.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 7c3fac035e93..8cdfd9b7ab4f 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1844,8 +1844,7 @@ static struct omap_hwmod_class_sysconfig omap54xx_usb_host_hs_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
- 	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
--			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
--			   SYSC_HAS_RESET_STATUS),
-+			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
- 			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index d44d311704ba..2028167fff31 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -280,10 +280,6 @@ void omap3_vc_set_pmic_signaling(int core_next_state)
+ 	}
+ }
+ 
+-#define PRM_POLCTRL_TWL_MASK	(OMAP3430_PRM_POLCTRL_CLKREQ_POL | \
+-					OMAP3430_PRM_POLCTRL_CLKREQ_POL)
+-#define PRM_POLCTRL_TWL_VAL	OMAP3430_PRM_POLCTRL_CLKREQ_POL
+-
+ /*
+  * Configure signal polarity for sys_clkreq and sys_off_mode pins
+  * as the default values are wrong and can cause the system to hang
 -- 
 2.4.3
