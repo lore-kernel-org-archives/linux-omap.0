@@ -1,8 +1,8 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v2] ASoC: soc-core: Fix sparse warning in
+Subject: [PATCH v3] ASoC: soc-core: Fix sparse warning in
 	be32_to_cpup() call
-Date: Thu, 17 Sep 2015 12:48:10 +0300
-Message-ID: <1442483290-30470-1-git-send-email-jsarha@ti.com>
+Date: Thu, 17 Sep 2015 13:13:38 +0300
+Message-ID: <1442484818-30983-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,8 +20,21 @@ To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Store return value of of_get_property() to a pointer of __be32 type as
+device tree has big endian type. This fixes a sparse warning couple of
+lines later when be32_to_cpup() is used to convert from big endian to
+cpu endian.
+
+The whole conversion is not really necessary, as we are only checking
+if the value is zero or not, but I wanted to add it to remind in the
+future that the data has to be converted before use. Compiler should
+optimize the unnecessary operations away.
+
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
+Damn, I wrote description ready but forgot to produce the patch again.
+So here is a v3 of the same one liner patch.
+
  sound/soc/soc-core.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
