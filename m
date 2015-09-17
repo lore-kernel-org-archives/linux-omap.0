@@ -1,58 +1,56 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap5-uevm.dts: fix i2c5 pinctrl offsets
-Date: Wed, 16 Sep 2015 17:14:58 -0700
-Message-ID: <20150917001458.GF4215@atomide.com>
-References: <1442356471-13235-1-git-send-email-notasas@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: omapdss: Division by zero in kernel
+Date: Thu, 17 Sep 2015 07:16:44 +0200
+Message-ID: <20150917051644.GA6665@amd>
+References: <201507241803.42891@pali>
+ <CAHnt0GX6442mtZ=J6CS_60TyTeUu==oROcf4Y=upHGSr71X3EA@mail.gmail.com>
+ <20150819081139.GB15712@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1442356471-13235-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20150819081139.GB15712@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Peter Teoh <htmldeveloper@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>, omap <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150915 15:38]:
-> The i2c5 pinctrl offsets are wrong. If the bootloader doesn't set the
-> pins up, communication with tca6424a doesn't work (controller timeouts)
-> and it is not possible to enable HDMI.
-> 
-> Fixes: 9be495c42609 ("ARM: dts: omap5-evm: Add I2c pinctrl data")
-> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Thanks applying into omap-for-v4.3/fixes.
+> >         if (image->depth == 1) {
+> >                 if (p->fix.visual == FB_VISUAL_TRUECOLOR ||
+> >                     p->fix.visual == FB_VISUAL_DIRECTCOLOR) {
+> >                         fgcolor = ((u32*)(p->pseudo_palette))[image->fg_color];
+> >                         bgcolor = ((u32*)(p->pseudo_palette))[image->bg_color];
+> >                 } else {
+> >                         fgcolor = image->fg_color;
+> >                         bgcolor = image->bg_color;
+> >                 }
+> > 
+> >                 if (32 % bpp == 0 && !start_index && !pitch_index &&
+> >                     ((width & (32/bpp-1)) == 0) &&
+> >                     bpp >= 8 && bpp <= 32)
+> >                         fast_imageblit(image, p, dst1, fgcolor, bgcolor);
+> >                 else
+> >                         slow_imageblit(image, p, dst1, fgcolor, bgcolor,
+> >                                         start_index, pitch_index);
+> >         } else
+> >                 color_imageblit(image, p, dst1, start_index, pitch_i
+> > 
+> > 
+> > Notice that bpp is not checked for zero, and thus bpp==0 is totally
+> > feasible?   resulting in 32/bpp crashing the kernel?
+> > 
+> 
+> Hm... this could really be a problem! But how to patch it? Which branch
+> should be called (fast_ or slow_ function) if bpp is zero?
+> 
+> And is there some way to force kernel to dump backtrace into dmesg when
+> division by zero occur?
 
-Tony
+You can do WARN_ON(bpp==1) ... and should probably return in that
+case.
 
-> ---
->  arch/arm/boot/dts/omap5-uevm.dts | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-> index 3cc8f35..3cb030f 100644
-> --- a/arch/arm/boot/dts/omap5-uevm.dts
-> +++ b/arch/arm/boot/dts/omap5-uevm.dts
-> @@ -174,8 +174,8 @@
->  
->  	i2c5_pins: pinmux_i2c5_pins {
->  		pinctrl-single,pins = <
-> -			0x184 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
-> -			0x186 (PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
-> +			0x186 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
-> +			0x188 (PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
->  		>;
->  	};
->  
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
