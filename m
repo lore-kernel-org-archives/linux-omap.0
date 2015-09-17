@@ -1,55 +1,42 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3] ASoC: soc-core: Fix sparse warning in
-	be32_to_cpup() call
-Date: Thu, 17 Sep 2015 13:13:38 +0300
-Message-ID: <1442484818-30983-1-git-send-email-jsarha@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] ARM: OMAP: Remove duplicated operand in OR operation
+Date: Thu, 17 Sep 2015 15:22:51 +0200
+Message-ID: <1442496171-28741-1-git-send-email-javier@osg.samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Store return value of of_get_property() to a pointer of __be32 type as
-device tree has big endian type. This fixes a sparse warning couple of
-lines later when be32_to_cpup() is used to convert from big endian to
-cpu endian.
+Commit b483a4a5a711 ("ARM: OMAP4+: hwmod data: Don't prevent RESET of
+USB Host module") added the SYSC_HAS_RESET_STATUS flag to both OMAP4
+and OMAP5 USB host module hwmon sysconfig but that flag was already
+set for OMAP5. So now the flag appears twice in the expression.
 
-The whole conversion is not really necessary, as we are only checking
-if the value is zero or not, but I wanted to add it to remind in the
-future that the data has to be converted before use. Compiler should
-optimize the unnecessary operations away.
+make coccicheck complains with the following message:
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+omap_hwmod_54xx_data.c:1846:37-58: duplicated argument to & or |
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
-Damn, I wrote description ready but forgot to produce the patch again.
-So here is a v3 of the same one liner patch.
 
- sound/soc/soc-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-index 1929f0e..af4999c 100644
---- a/sound/soc/soc-core.c
-+++ b/sound/soc/soc-core.c
-@@ -3294,7 +3294,7 @@ static int snd_soc_of_get_slot_mask(struct device_node *np,
- 				    unsigned int *mask)
- {
- 	u32 val;
--	const u32 *of_slot_mask = of_get_property(np, prop_name, &val);
-+	const __be32 *of_slot_mask = of_get_property(np, prop_name, &val);
- 	int i;
- 
- 	if (!of_slot_mask)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index 7c3fac035e93..8cdfd9b7ab4f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -1844,8 +1844,7 @@ static struct omap_hwmod_class_sysconfig omap54xx_usb_host_hs_sysc = {
+ 	.rev_offs	= 0x0000,
+ 	.sysc_offs	= 0x0010,
+ 	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
+-			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
+-			   SYSC_HAS_RESET_STATUS),
++			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+ 			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
+ 			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
 -- 
-1.9.1
+2.4.3
