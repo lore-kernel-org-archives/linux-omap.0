@@ -1,66 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: am57xx-beagle-x15: use palmas-usb for
- USB2
-Date: Wed, 16 Sep 2015 17:06:28 -0700
-Message-ID: <20150917000627.GE4215@atomide.com>
-References: <1438002617-15152-1-git-send-email-rogerq@ti.com>
- <1438002617-15152-3-git-send-email-rogerq@ti.com>
- <20150805103728.GC16878@atomide.com>
- <55C29DE3.9010108@samsung.com>
- <55E7F86B.7040509@ti.com>
- <55F7F638.4030205@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap5-uevm.dts: fix i2c5 pinctrl offsets
+Date: Wed, 16 Sep 2015 17:14:58 -0700
+Message-ID: <20150917001458.GF4215@atomide.com>
+References: <1442356471-13235-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <55F7F638.4030205@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>, myungjoo.ham@samsung.com, nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1442356471-13235-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [150915 03:46]:
-> Tony,
+* Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [150915 15:38]:
+> The i2c5 pinctrl offsets are wrong. If the bootloader doesn't set the
+> pins up, communication with tca6424a doesn't work (controller timeouts)
+> and it is not possible to enable HDMI.
 > 
-> On 03/09/15 10:36, Roger Quadros wrote:
-> > Chanwoo,
-> > 
-> > On 06/08/15 02:36, Chanwoo Choi wrote:
-> >> On 08/05/2015 07:37 PM, Tony Lindgren wrote:
-> >>> * Roger Quadros <rogerq@ti.com> [150727 06:13]:
-> >>>> The VBUS line of USB2 is connected to VBUS detect logic on
-> >>>> the PMIC. Use the palmas-usb driver to report VBUS events
-> >>>> to the USB driver.
-> >>>>
-> >>>> As the palmas-usb driver supports GPIO based ID reporting
-> >>>> provide the GPIO for ID pin as well.
-> >>>>
-> >>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>>
-> >>> This should not cause merge conflicts with what I have queeud
-> >>> for v4.3, so Chanwoo please feel free to apply with the rest
-> >>> of the extcon series:
-> >>>
-> >>> Acked-by: Tony Lindgren <tony@atomide.com>
-> >>>
-> >>,
-> >> I reviewd this patchset related to extcon and give the acked-by message.
-> >> but patch1 must need the acked-by message from MFD maintainer.
-> >>
-> >> If patch1 receive the acked-by message from MFD maintainer,
-> >> I'll apply it for v4.3.
-> >>
-> >> Roger,
-> >> I think that you better to recevie the acked-by message before v4.2-rc6 release.
-> >> I have the plan about pull request of extcon for v4.3 after v4.2-rc6 releas.
-> > 
-> > Seems like you picked patch 1 but not this one. As Tony has already Acked it
-> > can you please include patch 2 as well in your tree for -next? Thanks.
-> > 
-> 
-> Is it possible for you to pick this up for -rc cycle via omap-soc tree?
-> Thanks.
+> Fixes: 9be495c42609 ("ARM: dts: omap5-evm: Add I2c pinctrl data")
+> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-OK picking up the second patch into omap-for-v4.3/fixes thanks.
+Thanks applying into omap-for-v4.3/fixes.
 
 Tony
+
+> ---
+>  arch/arm/boot/dts/omap5-uevm.dts | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+> index 3cc8f35..3cb030f 100644
+> --- a/arch/arm/boot/dts/omap5-uevm.dts
+> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+> @@ -174,8 +174,8 @@
+>  
+>  	i2c5_pins: pinmux_i2c5_pins {
+>  		pinctrl-single,pins = <
+> -			0x184 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
+> -			0x186 (PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
+> +			0x186 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
+> +			0x188 (PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
+>  		>;
+>  	};
+>  
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
