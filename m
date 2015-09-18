@@ -1,107 +1,126 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v4 5/8] drm/i2c: tda998x: Remove include/sound/tda998x.h
- and fix graph parsing
-Date: Fri, 18 Sep 2015 14:06:42 +0300
-Message-ID: <b038d2199507ecf286b76a60d697827b0e66afd1.1442572860.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RFC v4 2/8] ALSA: pcm: add IEC958 channel status helper for hw_params
+Date: Fri, 18 Sep 2015 14:06:39 +0300
+Message-ID: <a7b69fb075b0ae993846cfb65abb20ecab5c9805.1442572860.git.jsarha@ti.com>
 References: <cover.1442572860.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1442572860.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1442572860.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-TW92ZSBzdHJ1Y3QgdGRhOTk4eF9hdWRpbyBkZWZpbml0aW9uIHRvIHRkYTk5OHhfZHJ2LmMgYW5k
-IHJlbW92ZQppbmNsdWRlL3NvdW5kL3RkYTk5OHguaC4gVGhlcmUgaXMgbm8gZXh0ZXJuYWwgdXNl
-IGZvciBzdHJ1Y3QKdGRhOTk4eF9hdWRpby4KCkZpeCBncmFwaCBwYXJzaW5nIHRvIGFsbG93IHBv
-cnRzIHRvIGJlIGluc2lkZSBhIHNlcGFyYXRlICJwb3J0cyItbm9kZSBhcwpzcGVjaWZpZWQgaW4g
-RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2dyYXBoLnR4dC4KClNpZ25lZC1vZmYt
-Ynk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQogZHJpdmVycy9ncHUvZHJtL2kyYy90
-ZGE5OTh4X2Rydi5jIHwgNTkgKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0t
-CiBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaCAgICAgICAgICAgfCAgOCAtLS0tLS0KIDIgZmlsZXMg
-Y2hhbmdlZCwgMzIgaW5zZXJ0aW9ucygrKSwgMzUgZGVsZXRpb25zKC0pCiBkZWxldGUgbW9kZSAx
-MDA2NDQgaW5jbHVkZS9zb3VuZC90ZGE5OTh4LmgKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9k
-cm0vaTJjL3RkYTk5OHhfZHJ2LmMgYi9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMK
-aW5kZXggMDk1MmVhYy4uNGRjMmRjMCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2kyYy90
-ZGE5OTh4X2Rydi5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwpAQCAt
-MjcsMTAgKzI3LDE0IEBACiAjaW5jbHVkZSA8ZHJtL2RybV9lZGlkLmg+CiAjaW5jbHVkZSA8ZHJt
-L2RybV9vZi5oPgogI2luY2x1ZGUgPGRybS9pMmMvdGRhOTk4eC5oPgotI2luY2x1ZGUgPHNvdW5k
-L3RkYTk5OHguaD4KIAogI2RlZmluZSBEQkcoZm10LCAuLi4pIERSTV9ERUJVRyhmbXQiXG4iLCAj
-I19fVkFfQVJHU19fKQogCitzdHJ1Y3QgdGRhOTk4eF9hdWRpbyB7CisJdTggcG9ydHNbMl07CQkJ
-LyogQVAgdmFsdWUgKi8KKwl1OCBwb3J0X3R5cGVzWzJdOwkJLyogQUZNVF94eHggKi8KK307CisK
-IHN0cnVjdCB0ZGE5OTh4X3ByaXYgewogCXN0cnVjdCBpMmNfY2xpZW50ICpjZWM7CiAJc3RydWN0
-IGkyY19jbGllbnQgKmhkbWk7CkBAIC0xMjQwLDkgKzEyNDQsMTAgQEAgc3RhdGljIGludCB0ZGE5
-OTh4X3BhcnNlX3BvcnRzKHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXYsCiB7CiAJc3RydWN0IGRl
-dmljZV9ub2RlICpvZl9wb3J0OwogCWNvbnN0IGNoYXIgKnBvcnRfdHlwZTsKLQlpbnQgcmV0LCBh
-dWRpb19pbmRleCwgcmVnLCBhZm10OworCWludCByZXQsIGF1ZGlvX2luZGV4LCByZWcsIGFmbXQs
-IHJnYl9pbml0aWFsaXplZDsKIAogCWF1ZGlvX2luZGV4ID0gMDsKKwlyZ2JfaW5pdGlhbGl6ZWQg
-PSAwOwogCWZvcl9lYWNoX2NoaWxkX29mX25vZGUobnAsIG9mX3BvcnQpIHsKIAkJaWYgKCFvZl9w
-b3J0LT5uYW1lCiAJCSB8fCBvZl9ub2RlX2NtcChvZl9wb3J0LT5uYW1lLCAicG9ydCIpICE9IDAp
-CkBAIC0xMjUyLDExICsxMjU3LDE3IEBAIHN0YXRpYyBpbnQgdGRhOTk4eF9wYXJzZV9wb3J0cyhz
-dHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2LAogCQlpZiAocmV0IDwgMCkKIAkJCWNvbnRpbnVlOwog
-CQlyZXQgPSBvZl9wcm9wZXJ0eV9yZWFkX3UzMihvZl9wb3J0LCAicmVnIiwgJnJlZyk7CisJCWlm
-IChyZXQgPCAwKSB7CisJCQlkZXZfZXJyKCZwcml2LT5oZG1pLT5kZXYsICJtaXNzaW5nIHJlZyBm
-b3IgJXNcbiIsCisJCQkJcG9ydF90eXBlKTsKKwkJCXJldHVybiByZXQ7CisJCX0KIAkJaWYgKHN0
-cmNtcChwb3J0X3R5cGUsICJyZ2IiKSA9PSAwKSB7CiAJCQlpZiAoIXJldCkgewkJLyogdmlkZW8g
-cmVnIGlzIG9wdGlvbmFsICovCiAJCQkJcHJpdi0+dmlwX2NudHJsXzAgPSByZWcgPj4gMTY7CiAJ
-CQkJcHJpdi0+dmlwX2NudHJsXzEgPSByZWcgPj4gODsKIAkJCQlwcml2LT52aXBfY250cmxfMiA9
-IHJlZzsKKwkJCQlyZ2JfaW5pdGlhbGl6ZWQgPSAxOwogCQkJfQogCQkJY29udGludWU7CiAJCX0K
-QEAgLTEyNjYsMTEgKzEyNzcsNiBAQCBzdGF0aWMgaW50IHRkYTk5OHhfcGFyc2VfcG9ydHMoc3Ry
-dWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwKIAkJCWFmbXQgPSBBRk1UX1NQRElGOwogCQllbHNlCiAJ
-CQljb250aW51ZTsKLQkJaWYgKHJldCA8IDApIHsKLQkJCWRldl9lcnIoJnByaXYtPmhkbWktPmRl
-diwgIm1pc3NpbmcgcmVnIGZvciAlc1xuIiwKLQkJCQlwb3J0X3R5cGUpOwotCQkJcmV0dXJuIHJl
-dDsKLQkJfQogCQlpZiAoYXVkaW9faW5kZXggPj0gQVJSQVlfU0laRShwcml2LT5hdWRpby5wb3J0
-cykpIHsKIAkJCWRldl9lcnIoJnByaXYtPmhkbWktPmRldiwgInRvbyBtYW55IGF1ZGlvIHBvcnRz
-XG4iKTsKIAkJCWJyZWFrOwpAQCAtMTI3OSwxMyArMTI4NSwxMyBAQCBzdGF0aWMgaW50IHRkYTk5
-OHhfcGFyc2VfcG9ydHMoc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwKIAkJcHJpdi0+YXVkaW8u
-cG9ydF90eXBlc1thdWRpb19pbmRleF0gPSBhZm10OwogCQlhdWRpb19pbmRleCsrOwogCX0KLQly
-ZXR1cm4gMDsKKwlyZXR1cm4gcmdiX2luaXRpYWxpemVkOwogfQogCiBzdGF0aWMgaW50IHRkYTk5
-OHhfY3JlYXRlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsIHN0cnVjdCB0ZGE5OTh4X3ByaXYg
-KnByaXYpCiB7CiAJc3RydWN0IGRldmljZV9ub2RlICpucCA9IGNsaWVudC0+ZGV2Lm9mX25vZGU7
-Ci0Jc3RydWN0IGRldmljZV9ub2RlICpvZl9wb3J0OworCXN0cnVjdCBkZXZpY2Vfbm9kZSAqcG9y
-dHM7CiAJdTMyIHZpZGVvOwogCWludCByZXZfbG8sIHJldl9oaSwgcmV0OwogCXVuc2lnbmVkIHNo
-b3J0IGNlY19hZGRyOwpAQCAtMTM5MiwyNCArMTM5OCwxNSBAQCBzdGF0aWMgaW50IHRkYTk5OHhf
-Y3JlYXRlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsIHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnBy
-aXYpCiAKIAkvKiBnZXQgdGhlIGRldmljZSB0cmVlIHBhcmFtZXRlcnMgKi8KIAlpZiAobnApIHsK
-LQkJb2ZfcG9ydCA9IG9mX2dldF9jaGlsZF9ieV9uYW1lKG5wLCAicG9ydCIpOwotCQlpZiAob2Zf
-cG9ydCkgewkJCQkvKiBncmFwaCBvZiBwb3J0cyAqLwotCQkJb2Zfbm9kZV9wdXQob2ZfcG9ydCk7
-Ci0JCQlyZXQgPSB0ZGE5OTh4X3BhcnNlX3BvcnRzKHByaXYsIG5wKTsKLQkJCWlmIChyZXQgPCAw
-KQotCQkJCWdvdG8gZmFpbDsKLQotCQkJLyogaW5pdGlhbGl6ZSB0aGUgZGVmYXVsdCBhdWRpbyBj
-b25maWd1cmF0aW9uICovCi0JCQlpZiAocHJpdi0+YXVkaW8ucG9ydHNbMF0pIHsKLQkJCQlwcml2
-LT5wYXJhbXMuYXVkaW9fY2ZnID0gcHJpdi0+YXVkaW8ucG9ydHNbMF07Ci0JCQkJcHJpdi0+cGFy
-YW1zLmF1ZGlvX2Zvcm1hdCA9Ci0JCQkJCQlwcml2LT5hdWRpby5wb3J0X3R5cGVzWzBdOwotCQkJ
-CXByaXYtPnBhcmFtcy5hdWRpb19jbGtfY2ZnID0KLQkJCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2Zv
-cm1hdCA9PQotCQkJCQkJCUFGTVRfU1BESUYgPyAwIDogMTsKLQkJCX0KLQkJfSBlbHNlIHsKLQor
-CQlwb3J0cyA9IG9mX2dldF9jaGlsZF9ieV9uYW1lKG5wLCAicG9ydHMiKTsKKwkJaWYgKCFwb3J0
-cykKKwkJCXBvcnRzID0gb2Zfbm9kZV9nZXQobnApOworCQkvKiBncmFwaCBvZiBwb3J0cyAqLwor
-CQlyZXQgPSB0ZGE5OTh4X3BhcnNlX3BvcnRzKHByaXYsIHBvcnRzKTsKKwkJb2Zfbm9kZV9wdXQo
-cG9ydHMpOworCQlpZiAocmV0IDwgMCkKKwkJCWdvdG8gZmFpbDsKKwkJaWYgKHJldCA9PSAwKSB7
-CiAJCQkvKiBvcHRpb25hbCB2aWRlbyBwcm9wZXJ0aWVzICovCiAJCQlyZXQgPSBvZl9wcm9wZXJ0
-eV9yZWFkX3UzMihucCwgInZpZGVvLXBvcnRzIiwgJnZpZGVvKTsKIAkJCWlmIChyZXQgPT0gMCkg
-ewpAQCAtMTQxOCw2ICsxNDE1LDE0IEBAIHN0YXRpYyBpbnQgdGRhOTk4eF9jcmVhdGUoc3RydWN0
-IGkyY19jbGllbnQgKmNsaWVudCwgc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdikKIAkJCQlwcml2
-LT52aXBfY250cmxfMiA9IHZpZGVvOwogCQkJfQogCQl9CisJCWlmIChwcml2LT5hdWRpby5wb3J0
-c1swXSkgeworCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2NmZyA9IHByaXYtPmF1ZGlvLnBvcnRzWzBd
-OworCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2Zvcm1hdCA9CisJCQkJcHJpdi0+YXVkaW8ucG9ydF90
-eXBlc1swXTsKKwkJCXByaXYtPnBhcmFtcy5hdWRpb19jbGtfY2ZnID0KKwkJCQlwcml2LT5wYXJh
-bXMuYXVkaW9fZm9ybWF0ID09CisJCQkJQUZNVF9TUERJRiA/IDAgOiAxOworCQl9CiAJfQogCiAJ
-cmV0dXJuIDA7CmRpZmYgLS1naXQgYS9pbmNsdWRlL3NvdW5kL3RkYTk5OHguaCBiL2luY2x1ZGUv
-c291bmQvdGRhOTk4eC5oCmRlbGV0ZWQgZmlsZSBtb2RlIDEwMDY0NAppbmRleCBiZWYxZGE3Li4w
-MDAwMDAwCi0tLSBhL2luY2x1ZGUvc291bmQvdGRhOTk4eC5oCisrKyAvZGV2L251bGwKQEAgLTEs
-OCArMCwwIEBACi0jaWZuZGVmIFNORF9UREE5OThYX0gKLSNkZWZpbmUgU05EX1REQTk5OFhfSAot
-Ci1zdHJ1Y3QgdGRhOTk4eF9hdWRpbyB7Ci0JdTggcG9ydHNbMl07CQkJLyogQVAgdmFsdWUgKi8K
-LQl1OCBwb3J0X3R5cGVzWzJdOwkJLyogQUZNVF94eHggKi8KLX07Ci0jZW5kaWYKLS0gCjEuOS4x
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2
-ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xp
-c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Add IEC958 channel status helper that gets the audio properties from
+snd_pcm_hw_params instead of snd_pcm_runtime. This is needed to
+produce the channel status bits already in audio stream configuration
+phase.
+
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+---
+ include/sound/pcm_iec958.h |  2 ++
+ sound/core/pcm_iec958.c    | 52 +++++++++++++++++++++++++++++++---------------
+ 2 files changed, 37 insertions(+), 17 deletions(-)
+
+diff --git a/include/sound/pcm_iec958.h b/include/sound/pcm_iec958.h
+index 0eed397..36f023a 100644
+--- a/include/sound/pcm_iec958.h
++++ b/include/sound/pcm_iec958.h
+@@ -6,4 +6,6 @@
+ int snd_pcm_create_iec958_consumer(struct snd_pcm_runtime *runtime, u8 *cs,
+ 	size_t len);
+ 
++int snd_pcm_create_iec958_consumer_hw_params(struct snd_pcm_hw_params *params,
++					     u8 *cs, size_t len);
+ #endif
+diff --git a/sound/core/pcm_iec958.c b/sound/core/pcm_iec958.c
+index 36b2d7a..c9f8b66 100644
+--- a/sound/core/pcm_iec958.c
++++ b/sound/core/pcm_iec958.c
+@@ -9,30 +9,18 @@
+ #include <linux/types.h>
+ #include <sound/asoundef.h>
+ #include <sound/pcm.h>
++#include <sound/pcm_params.h>
+ #include <sound/pcm_iec958.h>
+ 
+-/**
+- * snd_pcm_create_iec958_consumer - create consumer format IEC958 channel status
+- * @runtime: pcm runtime structure with ->rate filled in
+- * @cs: channel status buffer, at least four bytes
+- * @len: length of channel status buffer
+- *
+- * Create the consumer format channel status data in @cs of maximum size
+- * @len corresponding to the parameters of the PCM runtime @runtime.
+- *
+- * Drivers may wish to tweak the contents of the buffer after creation.
+- *
+- * Returns: length of buffer, or negative error code if something failed.
+- */
+-int snd_pcm_create_iec958_consumer(struct snd_pcm_runtime *runtime, u8 *cs,
+-	size_t len)
++static int create_iec958_consumer(uint rate, uint sample_width,
++				  u8 *cs, size_t len)
+ {
+ 	unsigned int fs, ws;
+ 
+ 	if (len < 4)
+ 		return -EINVAL;
+ 
+-	switch (runtime->rate) {
++	switch (rate) {
+ 	case 32000:
+ 		fs = IEC958_AES3_CON_FS_32000;
+ 		break;
+@@ -59,7 +47,7 @@ int snd_pcm_create_iec958_consumer(struct snd_pcm_runtime *runtime, u8 *cs,
+ 	}
+ 
+ 	if (len > 4) {
+-		switch (snd_pcm_format_width(runtime->format)) {
++		switch (sample_width) {
+ 		case 16:
+ 			ws = IEC958_AES4_CON_WORDLEN_20_16;
+ 			break;
+@@ -92,4 +80,34 @@ int snd_pcm_create_iec958_consumer(struct snd_pcm_runtime *runtime, u8 *cs,
+ 
+ 	return len;
+ }
++
++/**
++ * snd_pcm_create_iec958_consumer - create consumer format IEC958 channel status
++ * @runtime: pcm runtime structure with ->rate filled in
++ * @cs: channel status buffer, at least four bytes
++ * @len: length of channel status buffer
++ *
++ * Create the consumer format channel status data in @cs of maximum size
++ * @len corresponding to the parameters of the PCM runtime @runtime.
++ *
++ * Drivers may wish to tweak the contents of the buffer after creation.
++ *
++ * Returns: length of buffer, or negative error code if something failed.
++ */
++int snd_pcm_create_iec958_consumer(struct snd_pcm_runtime *runtime, u8 *cs,
++	size_t len)
++{
++	return create_iec958_consumer(runtime->rate,
++				      snd_pcm_format_width(runtime->format),
++				      cs, len);
++}
+ EXPORT_SYMBOL(snd_pcm_create_iec958_consumer);
++
++
++int snd_pcm_create_iec958_consumer_hw_params(struct snd_pcm_hw_params *params,
++					     u8 *cs, size_t len)
++{
++	return create_iec958_consumer(params_rate(params), params_width(params),
++				      cs, len);
++}
++EXPORT_SYMBOL(snd_pcm_create_iec958_consumer_hw_params);
+-- 
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
