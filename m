@@ -1,56 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: Fix WLAN regression on omap5-uevm
-Date: Fri, 18 Sep 2015 10:48:36 -0700
-Message-ID: <20150918174836.GG8020@atomide.com>
-References: <1442593745-16725-1-git-send-email-tony@atomide.com>
- <1442593745-16725-3-git-send-email-tony@atomide.com>
- <CABxcv=mGNmoVu3TDvd1888TiJ_vg0FJF6qz0p4XTu5T776sJ2Q@mail.gmail.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/5] ARM: dts: DRA74x: Add IPC sub-mailbox nodes for all IPUs & DSPs
+Date: Fri, 18 Sep 2015 13:16:30 -0500
+Message-ID: <1442600194-62520-2-git-send-email-s-anna@ti.com>
+References: <1442600194-62520-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CABxcv=mGNmoVu3TDvd1888TiJ_vg0FJF6qz0p4XTu5T776sJ2Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sourav Poddar <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1442600194-62520-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier@dowhile0.org> [150918 10:39]:
-> Hello Tony,
-> 
-> [snip]
-> 
-> >
-> > +       vmmcsdio_fixed: fixedregulator-mmcsdio {
-> > +               compatible = "regulator-fixed";
-> > +               regulator-name = "vmmcsdio_fixed";
-> > +               regulator-min-microvolt = <1800000>;
-> > +               regulator-max-microvolt = <1800000>;
-> > +               gpio = <&gpio5 12 GPIO_ACTIVE_HIGH>;    /* gpio140 WLAN_EN */
-> 
-> I know that other OMAP boards use a fake fixed regulator to toggle the
-> WiFi enable pin but now the MMC subsystem has proper support for power
-> sequence providers so that should be used instead. For simple uses
-> like this, Documentation/devicetree/bindings/mmc/mmc-pwrseq-simple.txt
-> should be enough.
+Add the sub-mailbox nodes that are used to communicate between
+MPU and the remote processors IPU1, IPU2, DSP1 and DSP2.
 
-Hmm OK great, I'll take a look. Looks like that might also provide a
-nice solution for handling the 32k clock from palmas to the wl12xx.
+The sub-mailbox nodes utilize the System Mailbox instances 5 and 6.
+These sub-mailbox nodes are added to match the hard-coded mailbox
+configuration used within the TI IPC 3.x software package. The
+Dual-Cortex M4 IPU1 and IPU2 processor sub-systems are assumed to
+be running in SMP-mode, and hence only a single sub-mailbox node
+is added for each.
 
-In the wl12xx case it's a real regulator on wl12xx though, not a fake.
-It gets the power directly from VBAT and generates it's own clocks..
-Of course nobody knows what the chip is actually doing with the GPIO
-pin, it's probably just a hint to some wl12xx internal state machine.
+All these sub-mailbox nodes are left in disabled state, and should
+be enabled (and modified if needed) as per the individual product
+configuration in the corresponding board dts files.
 
-Regards,
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra74x.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-Tony
+diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
+index feea98e0a4b5..33d11c2c8af3 100644
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -93,3 +93,29 @@
+ 		 <&dss_video2_clk>;
+ 	clock-names = "fck", "video1_clk", "video2_clk";
+ };
++
++&mailbox5 {
++	mbox_ipu1_ipc3x: mbox_ipu1_ipc3x {
++		ti,mbox-tx = <6 2 2>;
++		ti,mbox-rx = <4 2 2>;
++		status = "disabled";
++	};
++	mbox_dsp1_ipc3x: mbox_dsp1_ipc3x {
++		ti,mbox-tx = <5 2 2>;
++		ti,mbox-rx = <1 2 2>;
++		status = "disabled";
++	};
++};
++
++&mailbox6 {
++	mbox_ipu2_ipc3x: mbox_ipu2_ipc3x {
++		ti,mbox-tx = <6 2 2>;
++		ti,mbox-rx = <4 2 2>;
++		status = "disabled";
++	};
++	mbox_dsp2_ipc3x: mbox_dsp2_ipc3x {
++		ti,mbox-tx = <5 2 2>;
++		ti,mbox-rx = <1 2 2>;
++		status = "disabled";
++	};
++};
+-- 
+2.5.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
