@@ -1,343 +1,609 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC v4 6/8] drm/i2c: tda998x: Improve tda998x_configure_audio() audio related pdata
-Date: Fri, 18 Sep 2015 14:06:43 +0300
-Message-ID: <59dbf9a45b35ad77def32e1d44bb8f9241a92026.1442572860.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC v4 3/8] ASoC: hdmi-codec: Add hdmi-codec
+	for external HDMI-encoders
+Date: Fri, 18 Sep 2015 14:06:40 +0300
+Message-ID: <6fe9ab5dff972e6f228259d6818f3f481a11577d.1442572860.git.jsarha@ti.com>
 References: <cover.1442572860.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1442572860.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <cover.1442572860.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, moinejf@free.fr, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Declare struct tda998x_audio_params in include/drm/i2c/tda998x.h and
-use it in pdata and for tda998x_configure_audio() parameters. Also updates
-tda998x_write_aif() to use hdmi_audio_infoframe_pack() and friends.
+The hdmi-codec is a platform device driver to be registered from
+drivers of external HDMI encoders with I2S and/or spdif interface. The
+driver in turn registers an ASoC codec for the HDMI encoder's audio
+functionality.
 
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+The structures and definitions in the API header are mostly redundant
+copies of similar structures in ASoC headers. This is on purpose to
+avoid direct dependencies to ASoC structures in video side driver.
+
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/gpu/drm/armada/armada_drv.c |  25 ++++++--
- drivers/gpu/drm/i2c/tda998x_drv.c   | 123 ++++++++++++++++++++----------------
- include/drm/i2c/tda998x.h           |  23 ++++---
- 3 files changed, 102 insertions(+), 69 deletions(-)
+ include/sound/hdmi-codec.h    | 104 +++++++++++
+ sound/soc/codecs/Kconfig      |   6 +
+ sound/soc/codecs/Makefile     |   2 +
+ sound/soc/codecs/hdmi-codec.c | 404 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 516 insertions(+)
+ create mode 100644 include/sound/hdmi-codec.h
+ create mode 100644 sound/soc/codecs/hdmi-codec.c
 
-diff --git a/drivers/gpu/drm/armada/armada_drv.c b/drivers/gpu/drm/armada/armada_drv.c
-index 225034b..d500840 100644
---- a/drivers/gpu/drm/armada/armada_drv.c
-+++ b/drivers/gpu/drm/armada/armada_drv.c
-@@ -20,6 +20,7 @@
- 
- #ifdef CONFIG_DRM_ARMADA_TDA1998X
- #include <drm/i2c/tda998x.h>
-+#include <sound/asoundef.h>
- #include "armada_slave.h"
- 
- static struct tda998x_encoder_params params = {
-@@ -35,10 +36,26 @@ static struct tda998x_encoder_params params = {
- 	.swap_d = 5,
- 	.swap_e = 0,
- 	.swap_f = 1,
--	.audio_cfg = BIT(2),
--	.audio_frame[1] = 1,
--	.audio_format = AFMT_SPDIF,
--	.audio_sample_rate = 44100,
-+	.audio = {
-+		.config = BIT(2),
-+		.format = AFMT_SPDIF,
-+		.sample_width = 24,
-+		.sample_rate = 44100,
-+		.cea = {
-+			.channels = 2,
-+			.coding_type = HDMI_AUDIO_CODING_TYPE_STREAM,
-+			.sample_size = HDMI_AUDIO_SAMPLE_SIZE_STREAM,
-+			.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM,
-+		},
-+		.status = {
-+			IEC958_AES0_CON_NOT_COPYRIGHT,
-+			IEC958_AES1_CON_GENERAL,
-+			IEC958_AES2_CON_SOURCE_UNSPEC |
-+			IEC958_AES2_CON_CHANNEL_UNSPEC,
-+			IEC958_AES3_CON_CLOCK_1000PPM |
-+			IEC958_AES3_CON_FS_NOTID,
-+		},
-+	}
- };
- 
- static const struct armada_drm_slave_config tda19988_config = {
-diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-index 4dc2dc0..2fc6399 100644
---- a/drivers/gpu/drm/i2c/tda998x_drv.c
-+++ b/drivers/gpu/drm/i2c/tda998x_drv.c
-@@ -47,7 +47,7 @@ struct tda998x_priv {
- 	u8 vip_cntrl_0;
- 	u8 vip_cntrl_1;
- 	u8 vip_cntrl_2;
--	struct tda998x_encoder_params params;
-+	struct tda998x_audio_params audio_params;
- 
- 	wait_queue_head_t wq_edid;
- 	volatile int wq_edid_wait;
-@@ -597,15 +597,6 @@ static irqreturn_t tda998x_irq_thread(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
--static uint8_t tda998x_cksum(uint8_t *buf, size_t bytes)
--{
--	int sum = 0;
--
--	while (bytes--)
--		sum -= *buf++;
--	return sum;
--}
--
- #define HB(x) (x)
- #define PB(x) (HB(2) + 1 + (x))
- 
-@@ -618,24 +609,22 @@ tda998x_write_if(struct tda998x_priv *priv, uint8_t bit, uint16_t addr,
- 	reg_set(priv, REG_DIP_IF_FLAGS, bit);
- }
- 
--static void
--tda998x_write_aif(struct tda998x_priv *priv, struct tda998x_encoder_params *p)
-+static int tda998x_write_aif(struct tda998x_priv *priv,
-+			     struct hdmi_audio_infoframe *cea)
- {
--	u8 buf[PB(HDMI_AUDIO_INFOFRAME_SIZE) + 1];
--
--	memset(buf, 0, sizeof(buf));
--	buf[HB(0)] = HDMI_INFOFRAME_TYPE_AUDIO;
--	buf[HB(1)] = 0x01;
--	buf[HB(2)] = HDMI_AUDIO_INFOFRAME_SIZE;
--	buf[PB(1)] = p->audio_frame[1] & 0x07; /* CC */
--	buf[PB(2)] = p->audio_frame[2] & 0x1c; /* SF */
--	buf[PB(4)] = p->audio_frame[4];
--	buf[PB(5)] = p->audio_frame[5] & 0xf8; /* DM_INH + LSV */
-+	uint8_t buf[HDMI_INFOFRAME_SIZE(AUDIO)];
-+	int len;
- 
--	buf[PB(0)] = tda998x_cksum(buf, sizeof(buf));
-+	len = hdmi_audio_infoframe_pack(cea, buf, sizeof(buf));
-+	if (len < 0) {
-+		dev_err(&priv->hdmi->dev,
-+			"Failed to pack audio infoframe: %d\n", len);
-+		return len;
-+	}
- 
--	tda998x_write_if(priv, DIP_IF_FLAGS_IF4, REG_IF4_HB0, buf,
--			 sizeof(buf));
-+	/* Write the audio information packet */
-+	tda998x_write_if(priv, DIP_IF_FLAGS_IF4, REG_IF4_HB0, buf, len);
-+	return 0;
- }
- 
- static void
-@@ -670,19 +659,20 @@ static void tda998x_audio_mute(struct tda998x_priv *priv, bool on)
- 	}
- }
- 
--static void
-+static int
- tda998x_configure_audio(struct tda998x_priv *priv,
--		struct drm_display_mode *mode, struct tda998x_encoder_params *p)
-+			struct tda998x_audio_params *params,
-+			unsigned mode_clock)
- {
- 	uint8_t buf[6], clksel_aip, clksel_fs, cts_n, adiv;
- 	uint32_t n;
- 
- 	/* Enable audio ports */
--	reg_write(priv, REG_ENA_AP, p->audio_cfg);
--	reg_write(priv, REG_ENA_ACLK, p->audio_clk_cfg);
-+	reg_write(priv, REG_ENA_AP, params->config);
-+	reg_write(priv, REG_ENA_ACLK, params->format == AFMT_SPDIF ? 0 : 1);
- 
- 	/* Set audio input source */
--	switch (p->audio_format) {
-+	switch (params->format) {
- 	case AFMT_SPDIF:
- 		reg_write(priv, REG_MUX_AP, MUX_AP_SELECT_SPDIF);
- 		clksel_aip = AIP_CLKSEL_AIP_SPDIF;
-@@ -694,12 +684,25 @@ tda998x_configure_audio(struct tda998x_priv *priv,
- 		reg_write(priv, REG_MUX_AP, MUX_AP_SELECT_I2S);
- 		clksel_aip = AIP_CLKSEL_AIP_I2S;
- 		clksel_fs = AIP_CLKSEL_FS_ACLK;
--		cts_n = CTS_N_M(3) | CTS_N_K(3);
-+		switch (params->sample_width) {
-+		case 16:
-+			cts_n = CTS_N_M(3) | CTS_N_K(1);
-+			break;
-+		case 18:
-+		case 20:
-+		case 24:
-+			cts_n = CTS_N_M(3) | CTS_N_K(2);
-+			break;
-+		default:
-+		case 32:
-+			cts_n = CTS_N_M(3) | CTS_N_K(3);
-+			break;
-+		}
- 		break;
- 
- 	default:
- 		BUG();
--		return;
-+		return -EINVAL;
- 	}
- 
- 	reg_write(priv, REG_AIP_CLKSEL, clksel_aip);
-@@ -715,11 +718,11 @@ tda998x_configure_audio(struct tda998x_priv *priv,
- 	 * assume 100MHz requires larger divider.
- 	 */
- 	adiv = AUDIO_DIV_SERCLK_8;
--	if (mode->clock > 100000)
-+	if (mode_clock > 100000)
- 		adiv++;			/* AUDIO_DIV_SERCLK_16 */
- 
- 	/* S/PDIF asks for a larger divider */
--	if (p->audio_format == AFMT_SPDIF)
-+	if (params->format == AFMT_SPDIF)
- 		adiv++;			/* AUDIO_DIV_SERCLK_16 or _32 */
- 
- 	reg_write(priv, REG_AUDIO_DIV, adiv);
-@@ -728,7 +731,7 @@ tda998x_configure_audio(struct tda998x_priv *priv,
- 	 * This is the approximate value of N, which happens to be
- 	 * the recommended values for non-coherent clocks.
- 	 */
--	n = 128 * p->audio_sample_rate / 1000;
-+	n = 128 * params->sample_rate / 1000;
- 
- 	/* Write the CTS and N values */
- 	buf[0] = 0x44;
-@@ -747,19 +750,13 @@ tda998x_configure_audio(struct tda998x_priv *priv,
- 	reg_clear(priv, REG_AIP_CNTRL_0, AIP_CNTRL_0_RST_CTS);
- 
- 	/* Write the channel status */
--	buf[0] = IEC958_AES0_CON_NOT_COPYRIGHT;
--	buf[1] = 0x00;
--	buf[2] = IEC958_AES3_CON_FS_NOTID;
--	buf[3] = IEC958_AES4_CON_ORIGFS_NOTID |
--			IEC958_AES4_CON_MAX_WORDLEN_24;
--	reg_write_range(priv, REG_CH_STAT_B(0), buf, 4);
-+	reg_write_range(priv, REG_CH_STAT_B(0), params->status, 4);
- 
- 	tda998x_audio_mute(priv, true);
- 	msleep(20);
- 	tda998x_audio_mute(priv, false);
- 
--	/* Write the audio information packet */
--	tda998x_write_aif(priv, p);
-+	return tda998x_write_aif(priv, &params->cea);
- }
- 
- /* DRM encoder functions */
-@@ -780,9 +777,7 @@ static void tda998x_encoder_set_config(struct tda998x_priv *priv,
- 			    VIP_CNTRL_2_SWAP_F(p->swap_f) |
- 			    (p->mirr_f ? VIP_CNTRL_2_MIRR_F : 0);
- 
--	priv->params = *p;
--	priv->audio.port_types[0] = p->audio_format;
--	priv->audio.ports[0] = p->audio_cfg;
-+	priv->audio_params = p->audio;
- }
- 
- static void tda998x_encoder_dpms(struct tda998x_priv *priv, int mode)
-@@ -1033,9 +1028,11 @@ tda998x_encoder_mode_set(struct tda998x_priv *priv,
- 
- 		tda998x_write_avi(priv, adjusted_mode);
- 
--		if (priv->params.audio_cfg)
--			tda998x_configure_audio(priv, adjusted_mode,
--						&priv->params);
-+		if (priv->audio_params.config) {
-+			tda998x_configure_audio(priv,
-+						&priv->audio_params,
-+						adjusted_mode->clock);
-+		}
- 	}
- }
- 
-@@ -1416,12 +1413,28 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
- 			}
- 		}
- 		if (priv->audio.ports[0]) {
--			priv->params.audio_cfg = priv->audio.ports[0];
--			priv->params.audio_format =
--				priv->audio.port_types[0];
--			priv->params.audio_clk_cfg =
--				priv->params.audio_format ==
--				AFMT_SPDIF ? 0 : 1;
-+			struct tda998x_audio_params params = {
-+				.config = priv->audio.ports[0],
-+				.format = priv->audio.port_types[0],
-+				.sample_width = 24,
-+				.sample_rate = 44100,
-+				.cea = {
-+					.channels = 2,
-+					.coding_type = HDMI_AUDIO_CODING_TYPE_STREAM,
-+					.sample_size = HDMI_AUDIO_SAMPLE_SIZE_STREAM,
-+					.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM,
-+				},
-+				.status = {
-+					IEC958_AES0_CON_NOT_COPYRIGHT,
-+					IEC958_AES1_CON_GENERAL,
-+					IEC958_AES2_CON_SOURCE_UNSPEC |
-+					IEC958_AES2_CON_CHANNEL_UNSPEC,
-+					IEC958_AES3_CON_CLOCK_1000PPM |
-+					IEC958_AES3_CON_FS_NOTID,
-+				},
-+			};
+diff --git a/include/sound/hdmi-codec.h b/include/sound/hdmi-codec.h
+new file mode 100644
+index 0000000..15fe70f
+--- /dev/null
++++ b/include/sound/hdmi-codec.h
+@@ -0,0 +1,104 @@
++/*
++ * hdmi-codec.h - HDMI Codec driver API
++ *
++ * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
++ *
++ * Author: Jyri Sarha <jsarha@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
 +
-+			priv->audio_params = params;
- 		}
- 	}
- 
-diff --git a/include/drm/i2c/tda998x.h b/include/drm/i2c/tda998x.h
-index 3e419d9..dfe7829 100644
---- a/include/drm/i2c/tda998x.h
-+++ b/include/drm/i2c/tda998x.h
-@@ -1,6 +1,18 @@
- #ifndef __DRM_I2C_TDA998X_H__
- #define __DRM_I2C_TDA998X_H__
- 
-+struct tda998x_audio_params {
-+	u8 config;
++#ifndef __HDMI_CODEC_H__
++#define __HDMI_CODEC_H__
++
++#include <linux/hdmi.h>
++#include <drm/drm_edid.h>
++#include <sound/asoundef.h>
++#include <uapi/sound/asound.h>
++
++/*
++ * Protocol between ASoC cpu-dai and HDMI-encoder
++ */
++struct hdmi_codec_daifmt {
 +	enum {
-+		AFMT_SPDIF,
-+		AFMT_I2S
-+	} format;
-+	unsigned sample_width;
-+	unsigned sample_rate;
-+	struct hdmi_audio_infoframe cea;
-+	u8 status[4];
++		HDMI_I2S,
++		HDMI_RIGHT_J,
++		HDMI_LEFT_J,
++		HDMI_DSP_A,
++		HDMI_DSP_B,
++		HDMI_AC97,
++		HDMI_SPDIF,
++	} fmt;
++	int bit_clk_inv:1;
++	int frame_clk_inv:1;
++	int bit_clk_master:1;
++	int frame_clk_master:1;
 +};
 +
- struct tda998x_encoder_params {
- 	u8 swap_b:3;
- 	u8 mirr_b:1;
-@@ -15,16 +27,7 @@ struct tda998x_encoder_params {
- 	u8 swap_e:3;
- 	u8 mirr_e:1;
++/*
++ * HDMI audio parameters
++ */
++struct hdmi_codec_params {
++	struct hdmi_audio_infoframe cea;
++	struct snd_aes_iec958 iec;
++	int sample_rate;
++	int sample_width;
++	int channels;
++};
++
++struct hdmi_codec_ops {
++	/*
++	 * Called when ASoC starts an audio stream setup. The call
++	 * provides an audio abort callback for stoping an ongoing
++	 * stream from video side driver if the HDMI audio becomes
++	 * unavailable.
++	 * Optional
++	 */
++	int (*audio_startup)(struct device *dev,
++			     void (*abort_cb)(struct device *dev));
++
++	/*
++	 * Configures HDMI-encoder for audio stream.
++	 * Mandatory
++	 */
++	int (*hw_params)(struct device *dev,
++			 struct hdmi_codec_daifmt *fmt,
++			 struct hdmi_codec_params *hparms);
++
++	/*
++	 * Shuts down the audio stream.
++	 * Mandatory
++	 */
++	void (*audio_shutdown)(struct device *dev);
++
++	/*
++	 * Mute/unmute HDMI audio stream.
++	 * Optional
++	 */
++	int (*digital_mute)(struct device *dev, bool enable);
++
++	/*
++	 * Provides EDID-Like-Data from connected HDMI device.
++	 * Optional
++	 */
++	int (*get_eld)(struct device *dev, uint8_t *buf, size_t len);
++};
++
++/* HDMI codec initalization data */
++struct hdmi_codec_pdata {
++	const struct hdmi_codec_ops *ops;
++	uint i2s:1;
++	uint spdif:1;
++	int max_i2s_channels;
++};
++
++#define HDMI_CODEC_DRV_NAME "hdmi-audio-codec"
++
++#endif /* __HDMI_CODEC_H__ */
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 0142396..1e6c7e7 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -79,6 +79,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_MAX9877 if I2C
+ 	select SND_SOC_MC13783 if MFD_MC13XXX
+ 	select SND_SOC_ML26124 if I2C
++	select SND_SOC_HDMI_CODEC
+ 	select SND_SOC_PCM1681 if I2C
+ 	select SND_SOC_PCM1792A if SPI_MASTER
+ 	select SND_SOC_PCM3008
+@@ -441,6 +442,11 @@ config SND_SOC_BT_SCO
+ config SND_SOC_DMIC
+ 	tristate
  
--	u8 audio_cfg;
--	u8 audio_clk_cfg;
--	u8 audio_frame[6];
--
--	enum {
--		AFMT_SPDIF,
--		AFMT_I2S
--	} audio_format;
--
--	unsigned audio_sample_rate;
-+	struct tda998x_audio_params audio;
- };
++config SND_SOC_HDMI_CODEC
++       tristate
++       select SND_PCM_ELD
++       select SND_PCM_IEC958
++
+ config SND_SOC_ES8328
+ 	tristate "Everest Semi ES8328 CODEC"
  
- #endif
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index 7d7cc1b..068d483 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -72,6 +72,7 @@ snd-soc-max98925-objs := max98925.o
+ snd-soc-max9850-objs := max9850.o
+ snd-soc-mc13783-objs := mc13783.o
+ snd-soc-ml26124-objs := ml26124.o
++snd-soc-hdmi-codec-objs := hdmi-codec.o
+ snd-soc-pcm1681-objs := pcm1681.o
+ snd-soc-pcm1792a-codec-objs := pcm1792a.o
+ snd-soc-pcm3008-objs := pcm3008.o
+@@ -263,6 +264,7 @@ obj-$(CONFIG_SND_SOC_MAX98925)	+= snd-soc-max98925.o
+ obj-$(CONFIG_SND_SOC_MAX9850)	+= snd-soc-max9850.o
+ obj-$(CONFIG_SND_SOC_MC13783)	+= snd-soc-mc13783.o
+ obj-$(CONFIG_SND_SOC_ML26124)	+= snd-soc-ml26124.o
++obj-$(CONFIG_SND_SOC_HDMI_CODEC)	+= snd-soc-hdmi-codec.o
+ obj-$(CONFIG_SND_SOC_PCM1681)	+= snd-soc-pcm1681.o
+ obj-$(CONFIG_SND_SOC_PCM1792A)	+= snd-soc-pcm1792a-codec.o
+ obj-$(CONFIG_SND_SOC_PCM3008)	+= snd-soc-pcm3008.o
+diff --git a/sound/soc/codecs/hdmi-codec.c b/sound/soc/codecs/hdmi-codec.c
+new file mode 100644
+index 0000000..687332d
+--- /dev/null
++++ b/sound/soc/codecs/hdmi-codec.c
+@@ -0,0 +1,404 @@
++/*
++ * ALSA SoC codec for HDMI encoder drivers
++ * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: Jyri Sarha <jsarha@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
++ * General Public License for more details.
++ */
++#include <linux/module.h>
++#include <linux/string.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/soc.h>
++#include <sound/pcm_drm_eld.h>
++#include <sound/hdmi-codec.h>
++#include <sound/pcm_iec958.h>
++
++#include <drm/drm_crtc.h> /* This is only to get MAX_ELD_BYTES */
++
++struct hdmi_codec_priv {
++	struct hdmi_codec_pdata hcd;
++	struct snd_soc_dai_driver *daidrv;
++	struct hdmi_codec_daifmt daifmt[2];
++	struct mutex current_stream_lock;
++	struct snd_pcm_substream *current_stream;
++	struct snd_pcm_hw_constraint_list ratec;
++	uint8_t eld[MAX_ELD_BYTES];
++};
++
++static const struct snd_soc_dapm_widget hdmi_widgets[] = {
++	SND_SOC_DAPM_OUTPUT("TX"),
++};
++
++static const struct snd_soc_dapm_route hdmi_routes[] = {
++	{ "TX", NULL, "Playback" },
++};
++
++enum {
++	DAI_ID_I2S = 0,
++	DAI_ID_SPDIF,
++};
++
++static void hdmi_codec_abort(struct device *dev)
++{
++	struct hdmi_codec_priv *hcp = dev_get_drvdata(dev);
++
++	dev_dbg(dev, "%s()\n", __func__);
++
++	mutex_lock(&hcp->current_stream_lock);
++	if (hcp->current_stream && hcp->current_stream->runtime &&
++	    snd_pcm_running(hcp->current_stream)) {
++		dev_info(dev, "HDMI audio playback aborted\n");
++		snd_pcm_stream_lock_irq(hcp->current_stream);
++		snd_pcm_stop(hcp->current_stream, SNDRV_PCM_STATE_DISCONNECTED);
++		snd_pcm_stream_unlock_irq(hcp->current_stream);
++	}
++	mutex_unlock(&hcp->current_stream_lock);
++}
++
++static int hdmi_codec_new_stream(struct snd_pcm_substream *substream,
++				 struct snd_soc_dai *dai)
++{
++	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
++	int ret = 0;
++
++	mutex_lock(&hcp->current_stream_lock);
++	if (!hcp->current_stream) {
++		hcp->current_stream = substream;
++	} else if (hcp->current_stream != substream) {
++		dev_err(dai->dev, "Only one simultaneous stream supported!\n");
++		ret = -EINVAL;
++	}
++	mutex_unlock(&hcp->current_stream_lock);
++
++	return ret;
++}
++
++static int hdmi_codec_startup(struct snd_pcm_substream *substream,
++			      struct snd_soc_dai *dai)
++{
++	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
++	int ret = 0;
++
++	dev_dbg(dai->dev, "%s()\n", __func__);
++
++	ret = hdmi_codec_new_stream(substream, dai);
++	if (ret)
++		return ret;
++
++	if (hcp->hcd.ops->audio_startup) {
++		ret = hcp->hcd.ops->audio_startup(dai->dev->parent,
++						  hdmi_codec_abort);
++		if (ret) {
++			mutex_lock(&hcp->current_stream_lock);
++			hcp->current_stream = NULL;
++			mutex_unlock(&hcp->current_stream_lock);
++			return ret;
++		}
++	}
++
++	if (hcp->hcd.ops->get_eld) {
++		ret = hcp->hcd.ops->get_eld(dai->dev->parent, hcp->eld,
++					    sizeof(hcp->eld));
++
++		if (!ret) {
++			ret = snd_pcm_hw_constraint_eld(substream->runtime,
++							hcp->eld);
++			if (ret)
++				return ret;
++		}
++	}
++	return 0;
++}
++
++static void hdmi_codec_shutdown(struct snd_pcm_substream *substream,
++				struct snd_soc_dai *dai)
++{
++	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
++
++	dev_dbg(dai->dev, "%s()\n", __func__);
++
++	WARN_ON(hcp->current_stream != substream);
++
++	hcp->hcd.ops->audio_shutdown(dai->dev->parent);
++
++	mutex_lock(&hcp->current_stream_lock);
++	hcp->current_stream = NULL;
++	mutex_unlock(&hcp->current_stream_lock);
++}
++
++static int hdmi_codec_hw_params(struct snd_pcm_substream *substream,
++				struct snd_pcm_hw_params *params,
++				struct snd_soc_dai *dai)
++{
++	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
++	struct hdmi_codec_params hp = {
++		.iec = {
++			.status = { 0 },
++			.subcode = { 0 },
++			.pad = 0,
++			.dig_subframe = { 0 },
++		}
++	};
++	int ret;
++
++	dev_dbg(dai->dev, "%s() width %d rate %d channels %d\n", __func__,
++		params_width(params), params_rate(params),
++		params_channels(params));
++
++	ret = snd_pcm_create_iec958_consumer_hw_params(params, hp.iec.status,
++						       sizeof(hp.iec.status));
++	if (ret < 0) {
++		dev_err(dai->dev, "Creating IEC958 channel status failed %d\n",
++			ret);
++		return ret;
++	}
++
++	ret = hdmi_codec_new_stream(substream, dai);
++	if (ret)
++		return ret;
++
++	hdmi_audio_infoframe_init(&hp.cea);
++	hp.cea.channels = params_channels(params);
++	hp.cea.coding_type = HDMI_AUDIO_CODING_TYPE_STREAM;
++	hp.cea.sample_size = HDMI_AUDIO_SAMPLE_SIZE_STREAM;
++	hp.cea.sample_frequency = HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM;
++
++	hp.sample_width = params_width(params);
++	hp.sample_rate = params_rate(params);
++	hp.channels = params_channels(params);
++
++	return hcp->hcd.ops->hw_params(dai->dev->parent, &hcp->daifmt[dai->id],
++				       &hp);
++}
++
++static int hdmi_codec_set_fmt(struct snd_soc_dai *dai,
++			      unsigned int fmt)
++{
++	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
++	struct hdmi_codec_daifmt cf = { 0 };
++	int ret = 0;
++
++	dev_dbg(dai->dev, "%s()\n", __func__);
++
++	if (dai->id == DAI_ID_SPDIF) {
++		cf.fmt = HDMI_SPDIF;
++	} else {
++		switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
++		case SND_SOC_DAIFMT_CBM_CFM:
++			cf.bit_clk_master = 1;
++			cf.frame_clk_master = 1;
++			break;
++		case SND_SOC_DAIFMT_CBS_CFM:
++			cf.frame_clk_master = 1;
++			break;
++		case SND_SOC_DAIFMT_CBM_CFS:
++			cf.bit_clk_master = 1;
++			break;
++		case SND_SOC_DAIFMT_CBS_CFS:
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
++		case SND_SOC_DAIFMT_NB_NF:
++			break;
++		case SND_SOC_DAIFMT_NB_IF:
++			cf.frame_clk_inv = 1;
++			break;
++		case SND_SOC_DAIFMT_IB_NF:
++			cf.bit_clk_inv = 1;
++			break;
++		case SND_SOC_DAIFMT_IB_IF:
++			cf.frame_clk_inv = 1;
++			cf.bit_clk_inv = 1;
++			break;
++		}
++
++		switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
++		case SND_SOC_DAIFMT_I2S:
++			cf.fmt = HDMI_I2S;
++			break;
++		case SND_SOC_DAIFMT_DSP_A:
++			cf.fmt = HDMI_DSP_A;
++			break;
++		case SND_SOC_DAIFMT_DSP_B:
++			cf.fmt = HDMI_DSP_B;
++			break;
++		case SND_SOC_DAIFMT_RIGHT_J:
++			cf.fmt = HDMI_RIGHT_J;
++			break;
++		case SND_SOC_DAIFMT_LEFT_J:
++			cf.fmt = HDMI_LEFT_J;
++			break;
++		case SND_SOC_DAIFMT_AC97:
++			cf.fmt = HDMI_AC97;
++			break;
++		default:
++			dev_err(dai->dev, "Invalid DAI interface format\n");
++			return -EINVAL;
++		}
++	}
++
++	hcp->daifmt[dai->id] = cf;
++
++	return ret;
++}
++
++static int hdmi_codec_digital_mute(struct snd_soc_dai *dai, int mute)
++{
++	struct hdmi_codec_priv *hcp = snd_soc_dai_get_drvdata(dai);
++
++	dev_dbg(dai->dev, "%s()\n", __func__);
++
++	if (hcp->hcd.ops->digital_mute)
++		return hcp->hcd.ops->digital_mute(dai->dev->parent, mute);
++
++	return 0;
++}
++
++static const struct snd_soc_dai_ops hdmi_dai_ops = {
++	.startup	= hdmi_codec_startup,
++	.shutdown	= hdmi_codec_shutdown,
++	.hw_params	= hdmi_codec_hw_params,
++	.set_fmt	= hdmi_codec_set_fmt,
++	.digital_mute	= hdmi_codec_digital_mute,
++};
++
++
++#define HDMI_RATES	(SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |\
++			 SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 |\
++			 SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 |\
++			 SNDRV_PCM_RATE_192000)
++
++#define SPDIF_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |\
++			 SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE |\
++			 SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE |\
++			 SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_BE)
++
++#define I2S_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |\
++			 SNDRV_PCM_FMTBIT_S18_3LE | SNDRV_PCM_FMTBIT_S18_3BE |\
++			 SNDRV_PCM_FMTBIT_S20_3LE | SNDRV_PCM_FMTBIT_S20_3BE |\
++			 SNDRV_PCM_FMTBIT_S24_3LE | SNDRV_PCM_FMTBIT_S24_3BE |\
++			 SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_BE |\
++			 SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_S32_BE)
++
++static struct snd_soc_dai_driver hdmi_i2s_dai = {
++	.name = "i2s-hifi",
++	.id = DAI_ID_I2S,
++	.playback = {
++		.stream_name = "Playback",
++		.channels_min = 2,
++		.channels_max = 8,
++		.rates = HDMI_RATES,
++		.formats = I2S_FORMATS,
++		.sig_bits = 24,
++	},
++	.ops = &hdmi_dai_ops,
++};
++
++static const struct snd_soc_dai_driver hdmi_spdif_dai = {
++	.name = "spdif-hifi",
++	.id = DAI_ID_SPDIF,
++	.playback = {
++		.stream_name = "Playback",
++		.channels_min = 2,
++		.channels_max = 2,
++		.rates = HDMI_RATES,
++		.formats = SPDIF_FORMATS,
++	},
++	.ops = &hdmi_dai_ops,
++};
++
++static struct snd_soc_codec_driver hdmi_codec = {
++	.dapm_widgets = hdmi_widgets,
++	.num_dapm_widgets = ARRAY_SIZE(hdmi_widgets),
++	.dapm_routes = hdmi_routes,
++	.num_dapm_routes = ARRAY_SIZE(hdmi_routes),
++};
++
++static int hdmi_codec_probe(struct platform_device *pdev)
++{
++	struct hdmi_codec_pdata *hcd = pdev->dev.platform_data;
++	struct device *dev = &pdev->dev;
++	struct hdmi_codec_priv *hcp;
++	int dai_count, i = 0;
++	int ret;
++
++	dev_dbg(dev, "%s()\n", __func__);
++
++	if (!hcd) {
++		dev_err(dev, "%s: No plalform data\n", __func__);
++		return -EINVAL;
++	}
++
++	dai_count = hcd->i2s + hcd->spdif;
++	if (dai_count < 1 || !hcd->ops || !hcd->ops->hw_params ||
++	    !hcd->ops->audio_shutdown) {
++		dev_err(dev, "%s: Invalid parameters\n", __func__);
++		return -EINVAL;
++	}
++
++	hcp = devm_kzalloc(dev, sizeof(*hcp), GFP_KERNEL);
++	if (!hcp)
++		return -ENOMEM;
++
++	hcp->hcd = *hcd;
++	mutex_init(&hcp->current_stream_lock);
++
++	hcp->daidrv = devm_kzalloc(dev, dai_count * sizeof(*hcp->daidrv),
++				   GFP_KERNEL);
++	if (!hcp->daidrv)
++		return -ENOMEM;
++
++	if (hcd->i2s) {
++		hcp->daidrv[i] = hdmi_i2s_dai;
++		hcp->daidrv[i].playback.channels_max =
++			hcd->max_i2s_channels;
++		i++;
++	}
++
++	if (hcd->spdif)
++		hcp->daidrv[i] = hdmi_spdif_dai;
++
++	ret = snd_soc_register_codec(dev, &hdmi_codec, hcp->daidrv,
++				     dai_count);
++	if (ret) {
++		dev_err(dev, "%s: snd_soc_register_codec() failed (%d)\n",
++			__func__, ret);
++		return ret;
++	}
++
++	dev_set_drvdata(dev, hcp);
++	return 0;
++}
++
++static int hdmi_codec_remove(struct platform_device *pdev)
++{
++	snd_soc_unregister_codec(&pdev->dev);
++	return 0;
++}
++
++static struct platform_driver hdmi_codec_driver = {
++	.driver = {
++		.name = HDMI_CODEC_DRV_NAME,
++	},
++	.probe = hdmi_codec_probe,
++	.remove = hdmi_codec_remove,
++};
++
++module_platform_driver(hdmi_codec_driver);
++
++MODULE_AUTHOR("Jyri Sarha <jsarha@ti.com>");
++MODULE_DESCRIPTION("HDMI Audio Codec Driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" HDMI_CODEC_DRV_NAME);
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
