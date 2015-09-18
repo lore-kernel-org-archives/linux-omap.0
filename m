@@ -1,189 +1,107 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC v4 1/8] ASoC: hdmi: Remove obsolete dummy HDMI codec
-Date: Fri, 18 Sep 2015 14:06:38 +0300
-Message-ID: <264873be73a82b06beda2f80dee26202c13caf51.1442572860.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC v4 5/8] drm/i2c: tda998x: Remove include/sound/tda998x.h
+ and fix graph parsing
+Date: Fri, 18 Sep 2015 14:06:42 +0300
+Message-ID: <b038d2199507ecf286b76a60d697827b0e66afd1.1442572860.git.jsarha@ti.com>
 References: <cover.1442572860.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1442572860.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1442572860.git.jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-The hdmi stub codec has not been used since refactoring of OMAP HDMI
-audio support.
-
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
----
- sound/soc/codecs/Kconfig  |   4 --
- sound/soc/codecs/Makefile |   2 -
- sound/soc/codecs/hdmi.c   | 109 ----------------------------------------------
- 3 files changed, 115 deletions(-)
- delete mode 100644 sound/soc/codecs/hdmi.c
-
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 0c9733e..0142396 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -79,7 +79,6 @@ config SND_SOC_ALL_CODECS
- 	select SND_SOC_MAX9877 if I2C
- 	select SND_SOC_MC13783 if MFD_MC13XXX
- 	select SND_SOC_ML26124 if I2C
--	select SND_SOC_HDMI_CODEC
- 	select SND_SOC_PCM1681 if I2C
- 	select SND_SOC_PCM1792A if SPI_MASTER
- 	select SND_SOC_PCM3008
-@@ -442,9 +441,6 @@ config SND_SOC_BT_SCO
- config SND_SOC_DMIC
- 	tristate
- 
--config SND_SOC_HDMI_CODEC
--       tristate "HDMI stub CODEC"
--
- config SND_SOC_ES8328
- 	tristate "Everest Semi ES8328 CODEC"
- 
-diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-index 4a32077..7d7cc1b 100644
---- a/sound/soc/codecs/Makefile
-+++ b/sound/soc/codecs/Makefile
-@@ -72,7 +72,6 @@ snd-soc-max98925-objs := max98925.o
- snd-soc-max9850-objs := max9850.o
- snd-soc-mc13783-objs := mc13783.o
- snd-soc-ml26124-objs := ml26124.o
--snd-soc-hdmi-codec-objs := hdmi.o
- snd-soc-pcm1681-objs := pcm1681.o
- snd-soc-pcm1792a-codec-objs := pcm1792a.o
- snd-soc-pcm3008-objs := pcm3008.o
-@@ -264,7 +263,6 @@ obj-$(CONFIG_SND_SOC_MAX98925)	+= snd-soc-max98925.o
- obj-$(CONFIG_SND_SOC_MAX9850)	+= snd-soc-max9850.o
- obj-$(CONFIG_SND_SOC_MC13783)	+= snd-soc-mc13783.o
- obj-$(CONFIG_SND_SOC_ML26124)	+= snd-soc-ml26124.o
--obj-$(CONFIG_SND_SOC_HDMI_CODEC) += snd-soc-hdmi-codec.o
- obj-$(CONFIG_SND_SOC_PCM1681)	+= snd-soc-pcm1681.o
- obj-$(CONFIG_SND_SOC_PCM1792A)	+= snd-soc-pcm1792a-codec.o
- obj-$(CONFIG_SND_SOC_PCM3008)	+= snd-soc-pcm3008.o
-diff --git a/sound/soc/codecs/hdmi.c b/sound/soc/codecs/hdmi.c
-deleted file mode 100644
-index bd42ad3..0000000
---- a/sound/soc/codecs/hdmi.c
-+++ /dev/null
-@@ -1,109 +0,0 @@
--/*
-- * ALSA SoC codec driver for HDMI audio codecs.
-- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-- * Author: Ricardo Neri <ricardo.neri-l0cyMroinI0@public.gmane.org>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-- */
--#include <linux/module.h>
--#include <sound/soc.h>
--#include <linux/of.h>
--#include <linux/of_device.h>
--
--#define DRV_NAME "hdmi-audio-codec"
--
--static const struct snd_soc_dapm_widget hdmi_widgets[] = {
--	SND_SOC_DAPM_INPUT("RX"),
--	SND_SOC_DAPM_OUTPUT("TX"),
--};
--
--static const struct snd_soc_dapm_route hdmi_routes[] = {
--	{ "Capture", NULL, "RX" },
--	{ "TX", NULL, "Playback" },
--};
--
--static struct snd_soc_dai_driver hdmi_codec_dai = {
--	.name = "hdmi-hifi",
--	.playback = {
--		.stream_name = "Playback",
--		.channels_min = 2,
--		.channels_max = 8,
--		.rates = SNDRV_PCM_RATE_32000 |
--			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 |
--			SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
--			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000,
--		.formats = SNDRV_PCM_FMTBIT_S16_LE |
--			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE,
--		.sig_bits = 24,
--	},
--	.capture = {
--		.stream_name = "Capture",
--		.channels_min = 2,
--		.channels_max = 2,
--		.rates = SNDRV_PCM_RATE_32000 |
--			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 |
--			SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
--			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000,
--		.formats = SNDRV_PCM_FMTBIT_S16_LE |
--			SNDRV_PCM_FMTBIT_S24_LE,
--	},
--
--};
--
--#ifdef CONFIG_OF
--static const struct of_device_id hdmi_audio_codec_ids[] = {
--	{ .compatible = "linux,hdmi-audio", },
--	{ }
--};
--MODULE_DEVICE_TABLE(of, hdmi_audio_codec_ids);
--#endif
--
--static struct snd_soc_codec_driver hdmi_codec = {
--	.dapm_widgets = hdmi_widgets,
--	.num_dapm_widgets = ARRAY_SIZE(hdmi_widgets),
--	.dapm_routes = hdmi_routes,
--	.num_dapm_routes = ARRAY_SIZE(hdmi_routes),
--	.ignore_pmdown_time = true,
--};
--
--static int hdmi_codec_probe(struct platform_device *pdev)
--{
--	return snd_soc_register_codec(&pdev->dev, &hdmi_codec,
--			&hdmi_codec_dai, 1);
--}
--
--static int hdmi_codec_remove(struct platform_device *pdev)
--{
--	snd_soc_unregister_codec(&pdev->dev);
--	return 0;
--}
--
--static struct platform_driver hdmi_codec_driver = {
--	.driver		= {
--		.name	= DRV_NAME,
--		.of_match_table = of_match_ptr(hdmi_audio_codec_ids),
--	},
--
--	.probe		= hdmi_codec_probe,
--	.remove		= hdmi_codec_remove,
--};
--
--module_platform_driver(hdmi_codec_driver);
--
--MODULE_AUTHOR("Ricardo Neri <ricardo.neri-l0cyMroinI0@public.gmane.org>");
--MODULE_DESCRIPTION("ASoC generic HDMI codec driver");
--MODULE_LICENSE("GPL");
--MODULE_ALIAS("platform:" DRV_NAME);
--- 
-1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+TW92ZSBzdHJ1Y3QgdGRhOTk4eF9hdWRpbyBkZWZpbml0aW9uIHRvIHRkYTk5OHhfZHJ2LmMgYW5k
+IHJlbW92ZQppbmNsdWRlL3NvdW5kL3RkYTk5OHguaC4gVGhlcmUgaXMgbm8gZXh0ZXJuYWwgdXNl
+IGZvciBzdHJ1Y3QKdGRhOTk4eF9hdWRpby4KCkZpeCBncmFwaCBwYXJzaW5nIHRvIGFsbG93IHBv
+cnRzIHRvIGJlIGluc2lkZSBhIHNlcGFyYXRlICJwb3J0cyItbm9kZSBhcwpzcGVjaWZpZWQgaW4g
+RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2dyYXBoLnR4dC4KClNpZ25lZC1vZmYt
+Ynk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQogZHJpdmVycy9ncHUvZHJtL2kyYy90
+ZGE5OTh4X2Rydi5jIHwgNTkgKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0t
+CiBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaCAgICAgICAgICAgfCAgOCAtLS0tLS0KIDIgZmlsZXMg
+Y2hhbmdlZCwgMzIgaW5zZXJ0aW9ucygrKSwgMzUgZGVsZXRpb25zKC0pCiBkZWxldGUgbW9kZSAx
+MDA2NDQgaW5jbHVkZS9zb3VuZC90ZGE5OTh4LmgKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9k
+cm0vaTJjL3RkYTk5OHhfZHJ2LmMgYi9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMK
+aW5kZXggMDk1MmVhYy4uNGRjMmRjMCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2kyYy90
+ZGE5OTh4X2Rydi5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwpAQCAt
+MjcsMTAgKzI3LDE0IEBACiAjaW5jbHVkZSA8ZHJtL2RybV9lZGlkLmg+CiAjaW5jbHVkZSA8ZHJt
+L2RybV9vZi5oPgogI2luY2x1ZGUgPGRybS9pMmMvdGRhOTk4eC5oPgotI2luY2x1ZGUgPHNvdW5k
+L3RkYTk5OHguaD4KIAogI2RlZmluZSBEQkcoZm10LCAuLi4pIERSTV9ERUJVRyhmbXQiXG4iLCAj
+I19fVkFfQVJHU19fKQogCitzdHJ1Y3QgdGRhOTk4eF9hdWRpbyB7CisJdTggcG9ydHNbMl07CQkJ
+LyogQVAgdmFsdWUgKi8KKwl1OCBwb3J0X3R5cGVzWzJdOwkJLyogQUZNVF94eHggKi8KK307CisK
+IHN0cnVjdCB0ZGE5OTh4X3ByaXYgewogCXN0cnVjdCBpMmNfY2xpZW50ICpjZWM7CiAJc3RydWN0
+IGkyY19jbGllbnQgKmhkbWk7CkBAIC0xMjQwLDkgKzEyNDQsMTAgQEAgc3RhdGljIGludCB0ZGE5
+OTh4X3BhcnNlX3BvcnRzKHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXYsCiB7CiAJc3RydWN0IGRl
+dmljZV9ub2RlICpvZl9wb3J0OwogCWNvbnN0IGNoYXIgKnBvcnRfdHlwZTsKLQlpbnQgcmV0LCBh
+dWRpb19pbmRleCwgcmVnLCBhZm10OworCWludCByZXQsIGF1ZGlvX2luZGV4LCByZWcsIGFmbXQs
+IHJnYl9pbml0aWFsaXplZDsKIAogCWF1ZGlvX2luZGV4ID0gMDsKKwlyZ2JfaW5pdGlhbGl6ZWQg
+PSAwOwogCWZvcl9lYWNoX2NoaWxkX29mX25vZGUobnAsIG9mX3BvcnQpIHsKIAkJaWYgKCFvZl9w
+b3J0LT5uYW1lCiAJCSB8fCBvZl9ub2RlX2NtcChvZl9wb3J0LT5uYW1lLCAicG9ydCIpICE9IDAp
+CkBAIC0xMjUyLDExICsxMjU3LDE3IEBAIHN0YXRpYyBpbnQgdGRhOTk4eF9wYXJzZV9wb3J0cyhz
+dHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2LAogCQlpZiAocmV0IDwgMCkKIAkJCWNvbnRpbnVlOwog
+CQlyZXQgPSBvZl9wcm9wZXJ0eV9yZWFkX3UzMihvZl9wb3J0LCAicmVnIiwgJnJlZyk7CisJCWlm
+IChyZXQgPCAwKSB7CisJCQlkZXZfZXJyKCZwcml2LT5oZG1pLT5kZXYsICJtaXNzaW5nIHJlZyBm
+b3IgJXNcbiIsCisJCQkJcG9ydF90eXBlKTsKKwkJCXJldHVybiByZXQ7CisJCX0KIAkJaWYgKHN0
+cmNtcChwb3J0X3R5cGUsICJyZ2IiKSA9PSAwKSB7CiAJCQlpZiAoIXJldCkgewkJLyogdmlkZW8g
+cmVnIGlzIG9wdGlvbmFsICovCiAJCQkJcHJpdi0+dmlwX2NudHJsXzAgPSByZWcgPj4gMTY7CiAJ
+CQkJcHJpdi0+dmlwX2NudHJsXzEgPSByZWcgPj4gODsKIAkJCQlwcml2LT52aXBfY250cmxfMiA9
+IHJlZzsKKwkJCQlyZ2JfaW5pdGlhbGl6ZWQgPSAxOwogCQkJfQogCQkJY29udGludWU7CiAJCX0K
+QEAgLTEyNjYsMTEgKzEyNzcsNiBAQCBzdGF0aWMgaW50IHRkYTk5OHhfcGFyc2VfcG9ydHMoc3Ry
+dWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwKIAkJCWFmbXQgPSBBRk1UX1NQRElGOwogCQllbHNlCiAJ
+CQljb250aW51ZTsKLQkJaWYgKHJldCA8IDApIHsKLQkJCWRldl9lcnIoJnByaXYtPmhkbWktPmRl
+diwgIm1pc3NpbmcgcmVnIGZvciAlc1xuIiwKLQkJCQlwb3J0X3R5cGUpOwotCQkJcmV0dXJuIHJl
+dDsKLQkJfQogCQlpZiAoYXVkaW9faW5kZXggPj0gQVJSQVlfU0laRShwcml2LT5hdWRpby5wb3J0
+cykpIHsKIAkJCWRldl9lcnIoJnByaXYtPmhkbWktPmRldiwgInRvbyBtYW55IGF1ZGlvIHBvcnRz
+XG4iKTsKIAkJCWJyZWFrOwpAQCAtMTI3OSwxMyArMTI4NSwxMyBAQCBzdGF0aWMgaW50IHRkYTk5
+OHhfcGFyc2VfcG9ydHMoc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwKIAkJcHJpdi0+YXVkaW8u
+cG9ydF90eXBlc1thdWRpb19pbmRleF0gPSBhZm10OwogCQlhdWRpb19pbmRleCsrOwogCX0KLQly
+ZXR1cm4gMDsKKwlyZXR1cm4gcmdiX2luaXRpYWxpemVkOwogfQogCiBzdGF0aWMgaW50IHRkYTk5
+OHhfY3JlYXRlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsIHN0cnVjdCB0ZGE5OTh4X3ByaXYg
+KnByaXYpCiB7CiAJc3RydWN0IGRldmljZV9ub2RlICpucCA9IGNsaWVudC0+ZGV2Lm9mX25vZGU7
+Ci0Jc3RydWN0IGRldmljZV9ub2RlICpvZl9wb3J0OworCXN0cnVjdCBkZXZpY2Vfbm9kZSAqcG9y
+dHM7CiAJdTMyIHZpZGVvOwogCWludCByZXZfbG8sIHJldl9oaSwgcmV0OwogCXVuc2lnbmVkIHNo
+b3J0IGNlY19hZGRyOwpAQCAtMTM5MiwyNCArMTM5OCwxNSBAQCBzdGF0aWMgaW50IHRkYTk5OHhf
+Y3JlYXRlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsIHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnBy
+aXYpCiAKIAkvKiBnZXQgdGhlIGRldmljZSB0cmVlIHBhcmFtZXRlcnMgKi8KIAlpZiAobnApIHsK
+LQkJb2ZfcG9ydCA9IG9mX2dldF9jaGlsZF9ieV9uYW1lKG5wLCAicG9ydCIpOwotCQlpZiAob2Zf
+cG9ydCkgewkJCQkvKiBncmFwaCBvZiBwb3J0cyAqLwotCQkJb2Zfbm9kZV9wdXQob2ZfcG9ydCk7
+Ci0JCQlyZXQgPSB0ZGE5OTh4X3BhcnNlX3BvcnRzKHByaXYsIG5wKTsKLQkJCWlmIChyZXQgPCAw
+KQotCQkJCWdvdG8gZmFpbDsKLQotCQkJLyogaW5pdGlhbGl6ZSB0aGUgZGVmYXVsdCBhdWRpbyBj
+b25maWd1cmF0aW9uICovCi0JCQlpZiAocHJpdi0+YXVkaW8ucG9ydHNbMF0pIHsKLQkJCQlwcml2
+LT5wYXJhbXMuYXVkaW9fY2ZnID0gcHJpdi0+YXVkaW8ucG9ydHNbMF07Ci0JCQkJcHJpdi0+cGFy
+YW1zLmF1ZGlvX2Zvcm1hdCA9Ci0JCQkJCQlwcml2LT5hdWRpby5wb3J0X3R5cGVzWzBdOwotCQkJ
+CXByaXYtPnBhcmFtcy5hdWRpb19jbGtfY2ZnID0KLQkJCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2Zv
+cm1hdCA9PQotCQkJCQkJCUFGTVRfU1BESUYgPyAwIDogMTsKLQkJCX0KLQkJfSBlbHNlIHsKLQor
+CQlwb3J0cyA9IG9mX2dldF9jaGlsZF9ieV9uYW1lKG5wLCAicG9ydHMiKTsKKwkJaWYgKCFwb3J0
+cykKKwkJCXBvcnRzID0gb2Zfbm9kZV9nZXQobnApOworCQkvKiBncmFwaCBvZiBwb3J0cyAqLwor
+CQlyZXQgPSB0ZGE5OTh4X3BhcnNlX3BvcnRzKHByaXYsIHBvcnRzKTsKKwkJb2Zfbm9kZV9wdXQo
+cG9ydHMpOworCQlpZiAocmV0IDwgMCkKKwkJCWdvdG8gZmFpbDsKKwkJaWYgKHJldCA9PSAwKSB7
+CiAJCQkvKiBvcHRpb25hbCB2aWRlbyBwcm9wZXJ0aWVzICovCiAJCQlyZXQgPSBvZl9wcm9wZXJ0
+eV9yZWFkX3UzMihucCwgInZpZGVvLXBvcnRzIiwgJnZpZGVvKTsKIAkJCWlmIChyZXQgPT0gMCkg
+ewpAQCAtMTQxOCw2ICsxNDE1LDE0IEBAIHN0YXRpYyBpbnQgdGRhOTk4eF9jcmVhdGUoc3RydWN0
+IGkyY19jbGllbnQgKmNsaWVudCwgc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdikKIAkJCQlwcml2
+LT52aXBfY250cmxfMiA9IHZpZGVvOwogCQkJfQogCQl9CisJCWlmIChwcml2LT5hdWRpby5wb3J0
+c1swXSkgeworCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2NmZyA9IHByaXYtPmF1ZGlvLnBvcnRzWzBd
+OworCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2Zvcm1hdCA9CisJCQkJcHJpdi0+YXVkaW8ucG9ydF90
+eXBlc1swXTsKKwkJCXByaXYtPnBhcmFtcy5hdWRpb19jbGtfY2ZnID0KKwkJCQlwcml2LT5wYXJh
+bXMuYXVkaW9fZm9ybWF0ID09CisJCQkJQUZNVF9TUERJRiA/IDAgOiAxOworCQl9CiAJfQogCiAJ
+cmV0dXJuIDA7CmRpZmYgLS1naXQgYS9pbmNsdWRlL3NvdW5kL3RkYTk5OHguaCBiL2luY2x1ZGUv
+c291bmQvdGRhOTk4eC5oCmRlbGV0ZWQgZmlsZSBtb2RlIDEwMDY0NAppbmRleCBiZWYxZGE3Li4w
+MDAwMDAwCi0tLSBhL2luY2x1ZGUvc291bmQvdGRhOTk4eC5oCisrKyAvZGV2L251bGwKQEAgLTEs
+OCArMCwwIEBACi0jaWZuZGVmIFNORF9UREE5OThYX0gKLSNkZWZpbmUgU05EX1REQTk5OFhfSAot
+Ci1zdHJ1Y3QgdGRhOTk4eF9hdWRpbyB7Ci0JdTggcG9ydHNbMl07CQkJLyogQVAgdmFsdWUgKi8K
+LQl1OCBwb3J0X3R5cGVzWzJdOwkJLyogQUZNVF94eHggKi8KLX07Ci0jZW5kaWYKLS0gCjEuOS4x
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2
+ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
