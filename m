@@ -1,36 +1,40 @@
-From: Luis de Bethencourt <luis@debethencourt.com>
-Subject: [PATCH 3/3] mmc: omap: Fix module autoload for OF platform driver
-Date: Thu, 17 Sep 2015 23:50:25 +0200
-Message-ID: <20150917215025.GA8079@goodgumbo.baconseed.org>
+From: Jisheng Zhang <jszhang@marvell.com>
+Subject: [PATCH] ARM: OMAP2+: PM: Denote the cpuidle tracepoints as _rcuidle()
+Date: Fri, 18 Sep 2015 13:41:21 +0800
+Message-ID: <1442554881-706-1-git-send-email-jszhang@marvell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: khilman@deeprootsystems.com, tony@atomide.com, linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jisheng Zhang <jszhang@marvell.com>
 List-Id: linux-omap@vger.kernel.org
 
-This platform driver has a OF device ID table but the OF module
-alias information is not created so module autoloading won't work.
+The cpuidle tracepoints are called within a rcu_idle_exit() section, and
+must be denoted with the _rcuidle() version of the tracepoint.
 
-Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+Signed-off-by: Jisheng Zhang <jszhang@marvell.com>
 ---
- drivers/mmc/host/omap.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/mach-omap2/pm34xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index b763b11..b9958a1 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1490,6 +1490,7 @@ static const struct of_device_id mmc_omap_match[] = {
- 	{ .compatible = "ti,omap2420-mmc", },
- 	{ },
- };
-+MODULE_DEVICE_TABLE(of, mmc_omap_match);
- #endif
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 87b98bf9..2dbd378 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -301,11 +301,11 @@ static void omap3_pm_idle(void)
+ 	if (omap_irq_pending())
+ 		return;
  
- static struct platform_driver mmc_omap_driver = {
+-	trace_cpu_idle(1, smp_processor_id());
++	trace_cpu_idle_rcuidle(1, smp_processor_id());
+ 
+ 	omap_sram_idle();
+ 
+-	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
++	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
+ }
+ 
+ #ifdef CONFIG_SUSPEND
 -- 
-2.4.6
-
+2.5.1
