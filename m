@@ -1,76 +1,49 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH 2/2] ARM: dts: Fix WLAN regression on omap5-uevm
-Date: Fri, 18 Sep 2015 13:39:17 -0500
-Message-ID: <CAOCHtYisPQ2g0GCD4NF7m14TchfaZ+k3UedPoaA0Rjtpo9ug+g@mail.gmail.com>
-References: <1442593745-16725-1-git-send-email-tony@atomide.com>
- <1442593745-16725-3-git-send-email-tony@atomide.com>
- <CAOCHtYh3pDg6_mdX71G=L5Vz-mOmBnerwR5pjumq5jYQ-tN5Pw@mail.gmail.com>
- <20150918165109.GB8020@atomide.com>
+From: Luis de Bethencourt <luis@debethencourt.com>
+Subject: [PATCH] omapdss: acx565akm: Fix module autoload for OF platform
+ driver
+Date: Fri, 18 Sep 2015 20:44:57 +0200
+Message-ID: <20150918184457.GA32636@goodgumbo.baconseed.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150918165109.GB8020@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sourav Poddar <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 18, 2015 at 11:51 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Robert Nelson <robertcnelson@gmail.com> [150918 09:45]:
->> On Fri, Sep 18, 2015 at 11:29 AM, Tony Lindgren <tony@atomide.com> wrote:
->> > Commit 99f84cae43df ("ARM: dts: add wl12xx/wl18xx bindings") added
->> > device tree bindings for the TI WLAN SDIO on many omap variants.
->> >
->> > I recall wondering how come omap5-uevm did not have the WLAN
->> > added and this issue has been bugging me for a while now, and
->> > I finally tracked it down to a bad pinmux regression, and a missing
->> > deferred probe handling for the 32k clock from palmas that's
->> > requested by twl6040.
->> >
->> > Basically 392adaf796b9 ("ARM: dts: omap5-evm: Add mcspi data")
->> > added pin muxing for mcspi4 that conflicts with the onboard
->> > WLAN. While the omap5-uevm docs say the WLAN is not populated,
->> > this was probably only the case for initial prototypes. Both
->> > omap5-uevm boards I have have WLAN populated.
->>
->> Production boards from svtronics don't populate the wlan..
->>
->> http://www.svtronics.com/EVM/OMAP5432/5432
->>
->> quote: "WiFi not available on this model"
+This platform driver has a OF device ID table but the OF module
+alias information is not created so module autoloading won't work.
 
-Okay, got an email back from svtronics, there was a special omap5_uevm
-+ wlan order option for production units.
+Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+---
 
->>
->> They have an option to order a version with a "COM8Q" connector to add wlan...
->
-> Oh OK interesting.
->
->> http://www.svtronics.com/EVM/OMAP5432/5432C
->>
->> http://www.svtronics.com/EVM/OMAP5432/COM8Q
->>
->> I'm not sure who to bug from that era, but the wlan populated devices
->> might have been prototype only.
->
-> Hmm OK. Well as it's a SDIO card, it seems safe to add for now.
-> We may want to have a minimal separate dts file if the wiring is
-> different with the COM8Q card.
+Hello,
 
-Well we can take care of that as an device tree overlay. ;)
+This patch adds the missing MODULE_DEVICE_TABLE() for OF to export
+that information so modules have the correct aliases built-in and
+autoloading works correctly.
 
-Regards,
+A longer explanation by Javier Canillas can be found here:
+https://lkml.org/lkml/2015/7/30/519
 
+Thanks,
+Luis
+
+ drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+index 90cbc4c..c581231 100644
+--- a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
++++ b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+@@ -898,6 +898,7 @@ static const struct of_device_id acx565akm_of_match[] = {
+ 	{ .compatible = "omapdss,sony,acx565akm", },
+ 	{},
+ };
++MODULE_DEVICE_TABLE(of, acx565akm_of_match);
+ 
+ static struct spi_driver acx565akm_driver = {
+ 	.driver = {
 -- 
-Robert Nelson
-https://rcn-ee.com/
+2.4.6
