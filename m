@@ -1,7 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 03/27] memory: omap-gpmc: Introduce GPMC to NAND interface
-Date: Fri, 18 Sep 2015 17:53:25 +0300
-Message-ID: <1442588029-13769-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 16/27] memory: omap-gpmc: Reserve WAITPIN if needed for
+ WAIT monitoring
+Date: Fri, 18 Sep 2015 17:53:38 +0300
+Message-ID: <1442588029-13769-17-git-send-email-rogerq@ti.com>
 References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,127 +22,70 @@ To: tony@atomide.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP GPMC module has certain registers dedicated for NAND
-access and some NAND bits mixed with other GPMC functionality.
-
-For the NAND dedicated registers we have the struct gpmc_nand_regs.
-
-The NAND driver needs to access NAND specific bits from the
-following non-dedicated registers
-1) FIFOEVENT and TERMCOUNT from GPMC_IRQENABLE and GPMC_IRQSTATUS
-2) EMPTYWRITEBUFFERSTATUS from GPMC_STATUS
-
-For accessing these bits we introduce the struct gpmc_nand_ops.
-
-Rename the gpmc_update_nand_reg() API to gpmc_omap_get_nand_ops()
-and make it return the gpmc_nand_ops along with updating the
-gpmc_nand_regs. This API will be called by the OMAP NAND driver
-to access the necessary bits in GPMC register space.
+If the device attached to GPMC wants to use the WAIT pin
+for WAIT monitoring then we reserve it internally for
+exclusive use.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/memory/omap-gpmc.c | 21 ++++++++++++++++++++
- include/linux/omap-gpmc.h  | 49 ++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 68 insertions(+), 2 deletions(-)
+ drivers/memory/omap-gpmc.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 32ac049..a80c53e 100644
+index 518b418..fdf19eeb 100644
 --- a/drivers/memory/omap-gpmc.c
 +++ b/drivers/memory/omap-gpmc.c
-@@ -1099,6 +1099,27 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+@@ -1779,6 +1779,8 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	const char *name;
+ 	int ret, cs;
+ 	u32 val;
++	struct gpio_desc *waitpin_desc = NULL;
++	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+ 
+ 	if (of_property_read_u32(child, "reg", &cs) < 0) {
+ 		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+@@ -1880,15 +1882,28 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 			goto err;
  	}
- }
  
-+static struct gpmc_nand_ops nand_ops;
++	/* Reserve wait pin if it is required and valid */
++	if (gpmc_s.wait_on_read || gpmc_s.wait_on_write) {
++		unsigned wait_pin = gpmc_s.wait_pin;
 +
-+/**
-+ * gpmc_omap_get_nand_ops - Get the GPMC NAND interface
-+ * @regs: the GPMC NAND register map exclusive for NAND use.
-+ * @cs: GPMC chip select number on which the NAND sits. The
-+ *      register map returned will be specific to this chip select.
-+ *
-+ * Returns NULL on error e.g. invalid cs.
-+ */
-+struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
-+{
-+	if (cs >= gpmc_cs_num)
-+		return NULL;
++		waitpin_desc = gpiochip_request_own_desc(&gpmc->gpio_chip,
++							 wait_pin, "WAITPIN");
++		if (IS_ERR(waitpin_desc)) {
++			dev_err(&pdev->dev, "invalid wait-pin: %d\n", wait_pin);
++			ret = PTR_ERR(waitpin_desc);
++			goto err;
++		}
++	}
 +
-+	gpmc_update_nand_reg(reg, cs);
-+
-+	return &nand_ops;
-+}
-+EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
-+
- int gpmc_get_client_irq(unsigned irq_config)
- {
- 	int i;
-diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index 2dcef1c..7de9f9b 100644
---- a/include/linux/omap-gpmc.h
-+++ b/include/linux/omap-gpmc.h
-@@ -14,14 +14,59 @@
- #define GPMC_IRQ_FIFOEVENTENABLE	0x01
- #define GPMC_IRQ_COUNT_EVENT		0x02
+ 	ret = gpmc_cs_program_settings(cs, &gpmc_s);
+ 	if (ret < 0)
+-		goto err;
++		goto err_cs;
  
-+enum gpmc_nand_irq {
-+	GPMC_NAND_IRQ_FIFOEVENT = 0,
-+	GPMC_NAND_IRQ_TERMCOUNT,
-+};
-+
-+/**
-+ * gpmc_nand_ops - Interface between NAND and GPMC
-+ * @nand_irq_enable: enable the requested GPMC NAND interrupt event.
-+ * @nand_irq_disable: disable the requested GPMC NAND interrupt event.
-+ * @nand_irq_clear: clears the GPMC NAND interrupt event status.
-+ * @nand_irq_status: get the NAND interrupt event status.
-+ * @nand_write_buffer_empty: get the NAND write buffer empty status.
-+ */
-+struct gpmc_nand_ops {
-+	int (*nand_irq_enable)(enum gpmc_nand_irq irq);
-+	int (*nand_irq_disable)(enum gpmc_nand_irq irq);
-+	void (*nand_irq_clear)(enum gpmc_nand_irq irq);
-+	u32 (*nand_irq_status)(void);
-+	bool (*nand_writebuffer_empty)(void);
-+};
-+
-+struct gpmc_nand_regs;
-+
-+#if IS_ENABLED(CONFIG_OMAP_GPMC)
-+struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
-+					     int cs);
-+#else
-+static inline gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
-+						    int cs)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_OMAP_GPMC */
-+
-+/*--------------------------------*/
-+
-+/* deprecated APIs */
-+#if IS_ENABLED(CONFIG_OMAP_GPMC)
-+void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
-+#else
-+static inline void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
-+{
-+	reg = NULL;
-+}
-+#endif /* CONFIG_OMAP_GPMC */
-+/*--------------------------------*/
-+
- extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
- 			     struct gpmc_settings *gpmc_s,
- 			     struct gpmc_device_timings *dev_t);
+ 	ret = gpmc_cs_set_timings(cs, &gpmc_t, &gpmc_s);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to set gpmc timings for: %s\n",
+ 			child->name);
+-		goto err;
++		goto err_cs;
+ 	}
  
--struct gpmc_nand_regs;
- struct device_node;
+ 	/* Clear limited address i.e. enable A26-A11 */
+@@ -1919,6 +1934,10 @@ err_child_fail:
+ 	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
+ 	ret = -ENODEV;
  
--extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
- extern int gpmc_get_client_irq(unsigned irq_config);
++err_cs:
++	if (waitpin_desc)
++		gpiochip_free_own_desc(waitpin_desc);
++
+ err:
+ 	gpmc_cs_free(cs);
  
- extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
 -- 
 2.1.4
 
