@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 21/27] ARM: dts: dra7x-evm: Provide NAND ready pin
-Date: Fri, 18 Sep 2015 17:53:43 +0300
-Message-ID: <1442588029-13769-22-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 22/27] ARM: dts: am437x: Fix NAND device nodes
+Date: Fri, 18 Sep 2015 17:53:44 +0300
+Message-ID: <1442588029-13769-23-git-send-email-rogerq@ti.com>
 References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,42 +12,72 @@ To: tony@atomide.com
 Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On these boards NAND ready pin status is avilable over
-GPMC_WAIT0 pin.
+Add compatible id, GPMC register resource and interrupt
+resource to NAND controller nodes.
 
-Read speed increases from 13768 KiB/ to 17246 KiB/s.
-Write speed was unchanged at 7123 KiB/s.
-Measured using mtd_speedtest.ko.
+The GPMC driver now implements gpiochip and irqchip so
+enable gpio-controller and interrupt-controller properties.
+
+With this the interrupt parent of NAND node changes so fix it
+accordingly.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts  | 1 +
- arch/arm/boot/dts/dra72-evm.dts | 1 +
- 2 files changed, 2 insertions(+)
+ arch/arm/boot/dts/am4372.dtsi        | 4 ++++
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 5 ++++-
+ arch/arm/boot/dts/am43x-epos-evm.dts | 5 ++++-
+ 3 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 8a31161..4760562 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -591,6 +591,7 @@
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 0447c04a..ec8b7a3 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -849,6 +849,10 @@
+ 			gpmc,num-waitpins = <2>;
+ 			#address-cells = <2>;
+ 			#size-cells = <1>;
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <2>;
+ 			status = "disabled";
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 22038f2..aa96c99 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -794,9 +794,12 @@
+ 	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&nand_flash_x8>;
+-	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
++	ranges = <0 0 0x08000000 0x01000000>;	/* CS0 space. Min partition = 16MB */
+ 	nand@0,0 {
++		compatible = "ti,omap2-nand";
  		reg = <0 0 4>;		/* device IO registers */
- 		interrupt-parent = <&crossbar_mpu>;
- 		interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
-+		ready-gpio = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 pin */
- 		ti,nand-ecc-opt = "bch8";
++		interrupt-parent = <&gic>;
++		interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
+ 		ti,nand-ecc-opt = "bch16";
  		ti,elm-id = <&elm>;
- 		nand-bus-width = <16>;
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 245f5f9..a11a646 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -405,6 +405,7 @@
- 		reg = <0 0 4>;		/* device IO registers */
- 		interrupt-parent = <&crossbar_mpu>;
- 		interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
-+		ready-gpio = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 pin */
- 		ti,nand-ecc-opt = "bch8";
+ 		nand-bus-width = <8>;
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 86c2dfb..9a7786d 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -561,9 +561,12 @@
+ 	status = "okay";	/* Disable QSPI when enabling GPMC (NAND) */
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&nand_flash_x8>;
+-	ranges = <0 0 0x08000000 0x1000000>;	/* CS0: 16MB for NAND */
++	ranges = <0 0 0x08000000 0x01000000>;	/* CS0 space. Min partition = 16MB */
+ 	nand@0,0 {
++		compatible = "ti,omap2-nand";
+ 		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
++		interrupt-parent = <&gic>;
++		interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_HIGH>;
+ 		ti,nand-ecc-opt = "bch16";
  		ti,elm-id = <&elm>;
- 		nand-bus-width = <16>;
+ 		nand-bus-width = <8>;
 -- 
 2.1.4
