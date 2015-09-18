@@ -1,45 +1,82 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v3] crypto: omap-aes: Add support for GCM mode
-Date: Fri, 18 Sep 2015 21:17:13 +0800
-Message-ID: <20150918131713.GF7638@gondor.apana.org.au>
-References: <1436283109-13318-7-git-send-email-lokeshvutla@ti.com>
- <1442323681-6538-1-git-send-email-lokeshvutla@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 01/27] ARM: OMAP2+: gpmc: Add platform data
+Date: Fri, 18 Sep 2015 17:53:23 +0300
+Message-ID: <1442588029-13769-2-git-send-email-rogerq@ti.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1442323681-6538-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-crypto@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1442588029-13769-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 15, 2015 at 06:58:01PM +0530, Lokesh Vutla wrote:
->
-> +	assoc = &req->src[0];
-> +	sg_init_table(dd->in_sgl, nsg + 1);
-> +	if (assoclen) {
-> +		if (omap_aes_check_aligned(assoc, assoclen)) {
-> +			dd->sgs_copied |= AES_ASSOC_DATA_COPIED;
-> +			pages = get_order(alen);
-> +			buf_in = (void *)__get_free_pages(GFP_ATOMIC, pages);
+Add a platform data structure for GPMC. It contains all the necessary
+platform information that needs to be passed from platform init code
+to GPMC driver.
 
-It would be better if you used a list of pages rather than n
-contiguous pages which is likely to fail.
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ include/linux/omap-gpmc.h               |  3 +--
+ include/linux/platform_data/gpmc-omap.h | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 2 deletions(-)
+ create mode 100644 include/linux/platform_data/gpmc-omap.h
 
-> +			buf_in = sg_virt(assoc);
-
-This is bogus as assoc may not be mapped.
-
-> +	if (req->cryptlen) {
-> +		input = scatterwalk_ffwd(tmp, req->src, req->assoclen);
-
-scatterwalk_ffwd may return tmp so tmp must not be on the stack
-unless you stop using input after the function returns.  Also tmp
-must not be reused by a subsequent call to scatterwalk_ffwd.
-
-Cheers,
+diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
+index 7dee0014..5c79190 100644
+--- a/include/linux/omap-gpmc.h
++++ b/include/linux/omap-gpmc.h
+@@ -7,8 +7,7 @@
+  *  option) any later version.
+  */
+ 
+-/* Maximum Number of Chip Selects */
+-#define GPMC_CS_NUM		8
++#include <linux/platform_data/gpmc-omap.h>
+ 
+ #define GPMC_CONFIG_WP		0x00000005
+ 
+diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
+new file mode 100644
+index 0000000..d32d9de
+--- /dev/null
++++ b/include/linux/platform_data/gpmc-omap.h
+@@ -0,0 +1,30 @@
++/*
++ * OMAP GPMC Platform data
++ *
++ * Copyright (C) 2014 Texas Instruments, Inc. - http://www.ti.com
++ *	Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ */
++
++#ifndef _GPMC_OMAP_H_
++#define _GPMC_OMAP_H_
++
++/* Maximum Number of Chip Selects */
++#define GPMC_CS_NUM		8
++
++/* Data for each chip select */
++struct gpmc_omap_cs_data {
++	bool valid;			/* data is valid */
++	bool is_nand;			/* device within this CS is NAND */
++	struct platform_device *pdev;	/* device within this CS region */
++	unsigned pdata_size;
++};
++
++struct gpmc_omap_platform_data {
++	struct gpmc_omap_cs_data cs[GPMC_CS_NUM];
++};
++
++#endif /* _GPMC_OMAP_H */
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
