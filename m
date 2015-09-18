@@ -1,17 +1,18 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 2/2] ARM: dts: Fix WLAN regression on omap5-uevm
-Date: Fri, 18 Sep 2015 13:27:19 -0700
-Message-ID: <20150918202718.GH8020@atomide.com>
+Date: Fri, 18 Sep 2015 13:35:08 -0700
+Message-ID: <20150918203508.GI8020@atomide.com>
 References: <1442593745-16725-1-git-send-email-tony@atomide.com>
  <1442593745-16725-3-git-send-email-tony@atomide.com>
  <CABxcv=mGNmoVu3TDvd1888TiJ_vg0FJF6qz0p4XTu5T776sJ2Q@mail.gmail.com>
  <20150918174836.GG8020@atomide.com>
+ <20150918202718.GH8020@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150918174836.GG8020@atomide.com>
+In-Reply-To: <20150918202718.GH8020@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,49 +26,23 @@ To: Javier Martinez Canillas <javier@dowhile0.org>
 Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sourav Poddar <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150918 10:54]:
-> * Javier Martinez Canillas <javier@dowhile0.org> [150918 10:39]:
-> > Hello Tony,
-> > 
-> > [snip]
-> > 
-> > >
-> > > +       vmmcsdio_fixed: fixedregulator-mmcsdio {
-> > > +               compatible = "regulator-fixed";
-> > > +               regulator-name = "vmmcsdio_fixed";
-> > > +               regulator-min-microvolt = <1800000>;
-> > > +               regulator-max-microvolt = <1800000>;
-> > > +               gpio = <&gpio5 12 GPIO_ACTIVE_HIGH>;    /* gpio140 WLAN_EN */
-> > 
-> > I know that other OMAP boards use a fake fixed regulator to toggle the
-> > WiFi enable pin but now the MMC subsystem has proper support for power
-> > sequence providers so that should be used instead. For simple uses
-> > like this, Documentation/devicetree/bindings/mmc/mmc-pwrseq-simple.txt
-> > should be enough.
-> 
-> Hmm OK great, I'll take a look. Looks like that might also provide a
-> nice solution for handling the 32k clock from palmas to the wl12xx.
+* Tony Lindgren <tony@atomide.com> [150918 13:27]:
 
-It seems it's not quite working yet.. It seems pwrseq_simple.c can't
-deal with delay on a power pin. It might be best to treat those using
-the regulator framework because of the refcounting and start-up delay.
-I don't think also having regulator handling in pwrseq_simple.c
-conflicts with the MMC regulators as they can be separate?
+> And also.. It seems wl18xx somehow keeps looing for a wrong
 
-Also not related to wl12xx, the power pin on mwifiex_sdio 8787 wlan
-must be asserted low while reset is asserted and must stay low for
-300ms after power pin has deasserted. Again using a regulator there
-for the power pin might make more sense.
+Sorry sent the email before finishing it :) Note related to
+these patches, but the wl18xx keeps looking for wrong firmware
+and produces the following:
 
-Then getting the 32k clock from palmas is not working either, it
-seems some better deferred probe handling is needed there if
-omap_hsmmc is built-in and palmas-clk is a loadable module.
+# modprobe wlcore_sdio
+...
+wlcore: ERROR configuration binary file size is wrong, expected 1229 got 1221
+wlcore: WARNING falling back to default config
+wlcore: wl18xx HW: 183x or 180x, PG 2.0 (ROM 0x9)
+wlcore: loaded
 
-I think for the fix I'll stick with regulator fixed, let's update
-it later on unless you have better suggestions.
+So that's yet another bug to fix somewhere.
 
-And also.. It seems wl18xx somehow keeps looing for a wrong
-
-Cheers,
+Regards,
 
 Tony
