@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 12/27] mtd: nand: omap: Update DT binding documentation
-Date: Fri, 18 Sep 2015 17:53:34 +0300
-Message-ID: <1442588029-13769-13-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 03/27] memory: omap-gpmc: Introduce GPMC to NAND interface
+Date: Fri, 18 Sep 2015 17:53:25 +0300
+Message-ID: <1442588029-13769-4-git-send-email-rogerq@ti.com>
 References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,59 +21,127 @@ To: tony@atomide.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add compatible id and interrupts. The NAND interrupts are
-provided by the GPMC controller node.
+The OMAP GPMC module has certain registers dedicated for NAND
+access and some NAND bits mixed with other GPMC functionality.
+
+For the NAND dedicated registers we have the struct gpmc_nand_regs.
+
+The NAND driver needs to access NAND specific bits from the
+following non-dedicated registers
+1) FIFOEVENT and TERMCOUNT from GPMC_IRQENABLE and GPMC_IRQSTATUS
+2) EMPTYWRITEBUFFERSTATUS from GPMC_STATUS
+
+For accessing these bits we introduce the struct gpmc_nand_ops.
+
+Rename the gpmc_update_nand_reg() API to gpmc_omap_get_nand_ops()
+and make it return the gpmc_nand_ops along with updating the
+gpmc_nand_regs. This API will be called by the OMAP NAND driver
+to access the necessary bits in GPMC register space.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/memory/omap-gpmc.c | 21 ++++++++++++++++++++
+ include/linux/omap-gpmc.h  | 49 ++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 68 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index fb733c4..253e6de 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -13,7 +13,11 @@ Documentation/devicetree/bindings/mtd/nand.txt
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index 32ac049..a80c53e 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -1099,6 +1099,27 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+ 	}
+ }
  
- Required properties:
++static struct gpmc_nand_ops nand_ops;
++
++/**
++ * gpmc_omap_get_nand_ops - Get the GPMC NAND interface
++ * @regs: the GPMC NAND register map exclusive for NAND use.
++ * @cs: GPMC chip select number on which the NAND sits. The
++ *      register map returned will be specific to this chip select.
++ *
++ * Returns NULL on error e.g. invalid cs.
++ */
++struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
++{
++	if (cs >= gpmc_cs_num)
++		return NULL;
++
++	gpmc_update_nand_reg(reg, cs);
++
++	return &nand_ops;
++}
++EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
++
+ int gpmc_get_client_irq(unsigned irq_config)
+ {
+ 	int i;
+diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
+index 2dcef1c..7de9f9b 100644
+--- a/include/linux/omap-gpmc.h
++++ b/include/linux/omap-gpmc.h
+@@ -14,14 +14,59 @@
+ #define GPMC_IRQ_FIFOEVENTENABLE	0x01
+ #define GPMC_IRQ_COUNT_EVENT		0x02
  
-- - reg:		The CS line the peripheral is connected to
-+ - compatible:	"ti,omap2-nand"
-+ - reg:		range id (CS number), base offset and length of the
-+		NAND I/O space
-+ - interrupt-parent: must point to gpmc node
-+ - interrupts: gpmc interrupt
++enum gpmc_nand_irq {
++	GPMC_NAND_IRQ_FIFOEVENT = 0,
++	GPMC_NAND_IRQ_TERMCOUNT,
++};
++
++/**
++ * gpmc_nand_ops - Interface between NAND and GPMC
++ * @nand_irq_enable: enable the requested GPMC NAND interrupt event.
++ * @nand_irq_disable: disable the requested GPMC NAND interrupt event.
++ * @nand_irq_clear: clears the GPMC NAND interrupt event status.
++ * @nand_irq_status: get the NAND interrupt event status.
++ * @nand_write_buffer_empty: get the NAND write buffer empty status.
++ */
++struct gpmc_nand_ops {
++	int (*nand_irq_enable)(enum gpmc_nand_irq irq);
++	int (*nand_irq_disable)(enum gpmc_nand_irq irq);
++	void (*nand_irq_clear)(enum gpmc_nand_irq irq);
++	u32 (*nand_irq_status)(void);
++	bool (*nand_writebuffer_empty)(void);
++};
++
++struct gpmc_nand_regs;
++
++#if IS_ENABLED(CONFIG_OMAP_GPMC)
++struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
++					     int cs);
++#else
++static inline gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
++						    int cs)
++{
++	return NULL;
++}
++#endif /* CONFIG_OMAP_GPMC */
++
++/*--------------------------------*/
++
++/* deprecated APIs */
++#if IS_ENABLED(CONFIG_OMAP_GPMC)
++void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
++#else
++static inline void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
++{
++	reg = NULL;
++}
++#endif /* CONFIG_OMAP_GPMC */
++/*--------------------------------*/
++
+ extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+ 			     struct gpmc_settings *gpmc_s,
+ 			     struct gpmc_device_timings *dev_t);
  
- Optional properties:
+-struct gpmc_nand_regs;
+ struct device_node;
  
-@@ -55,20 +59,24 @@ Example for an AM33xx board:
- 	gpmc: gpmc@50000000 {
- 		compatible = "ti,am3352-gpmc";
- 		ti,hwmods = "gpmc";
--		reg = <0x50000000 0x1000000>;
-+		reg = <0x50000000 0x36c>;
- 		interrupts = <100>;
- 		gpmc,num-cs = <8>;
- 		gpmc,num-waitpins = <2>;
- 		#address-cells = <2>;
- 		#size-cells = <1>;
--		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
-+		ranges = <0 0 0x08000000 0x1000000>;	/* CS0 space, 16MB */
- 		elm_id = <&elm>;
+-extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
+ extern int gpmc_get_client_irq(unsigned irq_config);
  
- 		nand@0,0 {
--			reg = <0 0 0>; /* CS0, offset 0 */
-+			compatible = "ti,omap2-nand";
-+			reg = <0 0 4>;		/* CS0, offset 0, NAND I/O window 4 */
-+			interrupts = <100>;
- 			nand-bus-width = <16>;
- 			ti,nand-ecc-opt = "bch8";
- 			ti,nand-xfer-type = "polled";
-+			interrupt-parent = <&gpmc>;
-+			interrupts = <0>, <1>;
- 
- 			gpmc,sync-clk-ps = <0>;
- 			gpmc,cs-on-ns = <0>;
+ extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
 -- 
 2.1.4
 
