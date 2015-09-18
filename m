@@ -1,56 +1,346 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 05/27] memory: omap-gpmc: Add GPMC-NAND ops to get writebufferempty status
-Date: Fri, 18 Sep 2015 17:53:27 +0300
-Message-ID: <1442588029-13769-6-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 07/27] memory: omap-gpmc: Remove NAND IRQ code
+Date: Fri, 18 Sep 2015 17:53:29 +0300
+Message-ID: <1442588029-13769-8-git-send-email-rogerq@ti.com>
 References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442588029-13769-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1442588029-13769-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is needed by OMAP NAND driver to poll the empty status
-of the writebuffer.
+NAND IRQs will now be managed directly in the OMAP NAND driver
+so remove the IRQchip model.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Another patch will add back GPIO-IRQchip code to handle the
+WAITPIN interrupts.
+
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/memory/omap-gpmc.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/gpmc-nand.c |   4 +-
+ drivers/memory/omap-gpmc.c      | 163 +---------------------------------------
+ include/linux/omap-gpmc.h       |  11 +--
+ 3 files changed, 10 insertions(+), 168 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 04e6998..ffe646a 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -80,7 +80,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 	struct resource gpmc_nand_res[] = {
+ 		{ .flags = IORESOURCE_MEM, },
+ 		{ .flags = IORESOURCE_IRQ, },
+-		{ .flags = IORESOURCE_IRQ, },
+ 	};
+ 
+ 	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
+@@ -93,8 +92,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 		return err;
+ 	}
+ 	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
+-	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
+-	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
++	gpmc_nand_res[1].start = gpmc_get_irq();
+ 
+ 	memset(&s, 0, sizeof(struct gpmc_settings));
+ 	if (gpmc_nand_data->of_node)
 diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index a80c53e..174c45b 100644
+index 174c45b..a9071bb 100644
 --- a/drivers/memory/omap-gpmc.c
 +++ b/drivers/memory/omap-gpmc.c
-@@ -81,6 +81,8 @@
+@@ -123,12 +123,6 @@
+ #define GPMC_CS_NAND_ADDRESS	0x20
+ #define GPMC_CS_NAND_DATA	0x24
  
- #define GPMC_CONFIG_LIMITEDADDRESS		BIT(1)
+-/* Control Commands */
+-#define GPMC_CONFIG_RDY_BSY	0x00000001
+-#define GPMC_CONFIG_DEV_SIZE	0x00000002
+-#define GPMC_CONFIG_DEV_TYPE	0x00000003
+-#define GPMC_SET_IRQ_STATUS	0x00000004
+-
+ #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+ #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+ #define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
+@@ -176,17 +170,11 @@
+ #define GPMC_CONFIG_WRITEPROTECT	0x00000010
+ #define WR_RD_PIN_MONITORING		0x00600000
  
-+#define GPMC_STATUS_EMPTYWRITEBUFFERSTATUS	BIT(0)
-+
- #define	GPMC_CONFIG2_CSEXTRADELAY		BIT(7)
- #define	GPMC_CONFIG3_ADVEXTRADELAY		BIT(7)
- #define	GPMC_CONFIG4_OEEXTRADELAY		BIT(7)
-@@ -1099,7 +1101,17 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
- 	}
+-#define GPMC_ENABLE_IRQ		0x0000000d
+-
+ /* ECC commands */
+ #define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
+ #define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
+ #define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
+ 
+-/* XXX: Only NAND irq has been considered,currently these are the only ones used
+- */
+-#define	GPMC_NR_IRQ		2
+-
+ enum gpmc_clk_domain {
+ 	GPMC_CD_FCLK,
+ 	GPMC_CD_CLK
+@@ -201,11 +189,6 @@ struct gpmc_cs_data {
+ 	struct resource mem;
+ };
+ 
+-struct gpmc_client_irq	{
+-	unsigned		irq;
+-	u32			bitmask;
+-};
+-
+ /* Structure to save gpmc cs context */
+ struct gpmc_cs_config {
+ 	u32 config1;
+@@ -233,10 +216,6 @@ struct omap3_gpmc_regs {
+ 	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
+ };
+ 
+-static struct gpmc_client_irq gpmc_client_irq[GPMC_NR_IRQ];
+-static struct irq_chip gpmc_irq_chip;
+-static int gpmc_irq_start;
+-
+ static struct resource	gpmc_mem_root;
+ static struct gpmc_cs_data gpmc_cs[GPMC_CS_NUM];
+ static DEFINE_SPINLOCK(gpmc_mem_lock);
+@@ -244,15 +223,13 @@ static DEFINE_SPINLOCK(gpmc_mem_lock);
+ static unsigned int gpmc_cs_num = GPMC_CS_NUM;
+ static unsigned int gpmc_nr_waitpins;
+ static struct device *gpmc_dev;
+-static int gpmc_irq;
++static int gpmc_irq = -EINVAL;
+ static resource_size_t phys_base, mem_size;
+ static unsigned gpmc_capability;
+ static void __iomem *gpmc_base;
+ 
+ static struct clk *gpmc_l3_clk;
+ 
+-static irqreturn_t gpmc_handle_irq(int irq, void *dev);
+-
+ static void gpmc_write_reg(int idx, u32 val)
+ {
+ 	writel_relaxed(val, gpmc_base + idx);
+@@ -1037,14 +1014,6 @@ int gpmc_configure(int cmd, int wval)
+ 	u32 regval;
+ 
+ 	switch (cmd) {
+-	case GPMC_ENABLE_IRQ:
+-		gpmc_write_reg(GPMC_IRQENABLE, wval);
+-		break;
+-
+-	case GPMC_SET_IRQ_STATUS:
+-		gpmc_write_reg(GPMC_IRQSTATUS, wval);
+-		break;
+-
+ 	case GPMC_CONFIG_WP:
+ 		regval = gpmc_read_reg(GPMC_CONFIG);
+ 		if (wval)
+@@ -1132,112 +1101,9 @@ struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
+ }
+ EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
+ 
+-int gpmc_get_client_irq(unsigned irq_config)
+-{
+-	int i;
+-
+-	if (hweight32(irq_config) > 1)
+-		return 0;
+-
+-	for (i = 0; i < GPMC_NR_IRQ; i++)
+-		if (gpmc_client_irq[i].bitmask & irq_config)
+-			return gpmc_client_irq[i].irq;
+-
+-	return 0;
+-}
+-
+-static int gpmc_irq_endis(unsigned irq, bool endis)
+-{
+-	int i;
+-	u32 regval;
+-
+-	for (i = 0; i < GPMC_NR_IRQ; i++)
+-		if (irq == gpmc_client_irq[i].irq) {
+-			regval = gpmc_read_reg(GPMC_IRQENABLE);
+-			if (endis)
+-				regval |= gpmc_client_irq[i].bitmask;
+-			else
+-				regval &= ~gpmc_client_irq[i].bitmask;
+-			gpmc_write_reg(GPMC_IRQENABLE, regval);
+-			break;
+-		}
+-
+-	return 0;
+-}
+-
+-static void gpmc_irq_disable(struct irq_data *p)
++int gpmc_get_irq(void)
+ {
+-	gpmc_irq_endis(p->irq, false);
+-}
+-
+-static void gpmc_irq_enable(struct irq_data *p)
+-{
+-	gpmc_irq_endis(p->irq, true);
+-}
+-
+-static void gpmc_irq_noop(struct irq_data *data) { }
+-
+-static unsigned int gpmc_irq_noop_ret(struct irq_data *data) { return 0; }
+-
+-static int gpmc_setup_irq(void)
+-{
+-	int i;
+-	u32 regval;
+-
+-	if (!gpmc_irq)
+-		return -EINVAL;
+-
+-	gpmc_irq_start = irq_alloc_descs(-1, 0, GPMC_NR_IRQ, 0);
+-	if (gpmc_irq_start < 0) {
+-		pr_err("irq_alloc_descs failed\n");
+-		return gpmc_irq_start;
+-	}
+-
+-	gpmc_irq_chip.name = "gpmc";
+-	gpmc_irq_chip.irq_startup = gpmc_irq_noop_ret;
+-	gpmc_irq_chip.irq_enable = gpmc_irq_enable;
+-	gpmc_irq_chip.irq_disable = gpmc_irq_disable;
+-	gpmc_irq_chip.irq_shutdown = gpmc_irq_noop;
+-	gpmc_irq_chip.irq_ack = gpmc_irq_noop;
+-	gpmc_irq_chip.irq_mask = gpmc_irq_noop;
+-	gpmc_irq_chip.irq_unmask = gpmc_irq_noop;
+-
+-	gpmc_client_irq[0].bitmask = GPMC_IRQ_FIFOEVENTENABLE;
+-	gpmc_client_irq[1].bitmask = GPMC_IRQ_COUNT_EVENT;
+-
+-	for (i = 0; i < GPMC_NR_IRQ; i++) {
+-		gpmc_client_irq[i].irq = gpmc_irq_start + i;
+-		irq_set_chip_and_handler(gpmc_client_irq[i].irq,
+-					&gpmc_irq_chip, handle_simple_irq);
+-		irq_modify_status(gpmc_client_irq[i].irq, IRQ_NOREQUEST,
+-				  IRQ_NOAUTOEN);
+-	}
+-
+-	/* Disable interrupts */
+-	gpmc_write_reg(GPMC_IRQENABLE, 0);
+-
+-	/* clear interrupts */
+-	regval = gpmc_read_reg(GPMC_IRQSTATUS);
+-	gpmc_write_reg(GPMC_IRQSTATUS, regval);
+-
+-	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
+-}
+-
+-static int gpmc_free_irq(void)
+-{
+-	int i;
+-
+-	if (gpmc_irq)
+-		free_irq(gpmc_irq, NULL);
+-
+-	for (i = 0; i < GPMC_NR_IRQ; i++) {
+-		irq_set_handler(gpmc_client_irq[i].irq, NULL);
+-		irq_set_chip(gpmc_client_irq[i].irq, &no_irq_chip);
+-	}
+-
+-	irq_free_descs(gpmc_irq_start, GPMC_NR_IRQ);
+-
+-	return 0;
++	return gpmc_irq;
  }
  
--static struct gpmc_nand_ops nand_ops;
-+static bool gpmc_nand_writebuffer_empty(void)
-+{
-+	if (gpmc_read_reg(GPMC_STATUS) & GPMC_STATUS_EMPTYWRITEBUFFERSTATUS)
-+		return true;
-+
-+	return false;
-+}
-+
-+static struct gpmc_nand_ops nand_ops = {
-+	.nand_writebuffer_empty = gpmc_nand_writebuffer_empty,
-+};
+ static void gpmc_mem_exit(void)
+@@ -2182,9 +2048,6 @@ static int gpmc_probe(struct platform_device *pdev)
  
- /**
-  * gpmc_omap_get_nand_ops - Get the GPMC NAND interface
+ 	gpmc_mem_init();
+ 
+-	if (gpmc_setup_irq() < 0)
+-		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
+-
+ 	if (!pdev->dev.of_node) {
+ 		gpmc_cs_num	 = GPMC_CS_NUM;
+ 		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
+@@ -2202,7 +2065,6 @@ static int gpmc_probe(struct platform_device *pdev)
+ 
+ static int gpmc_remove(struct platform_device *pdev)
+ {
+-	gpmc_free_irq();
+ 	gpmc_mem_exit();
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+@@ -2252,25 +2114,6 @@ static __exit void gpmc_exit(void)
+ postcore_initcall(gpmc_init);
+ module_exit(gpmc_exit);
+ 
+-static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+-{
+-	int i;
+-	u32 regval;
+-
+-	regval = gpmc_read_reg(GPMC_IRQSTATUS);
+-
+-	if (!regval)
+-		return IRQ_NONE;
+-
+-	for (i = 0; i < GPMC_NR_IRQ; i++)
+-		if (regval & gpmc_client_irq[i].bitmask)
+-			generic_handle_irq(gpmc_client_irq[i].irq);
+-
+-	gpmc_write_reg(GPMC_IRQSTATUS, regval);
+-
+-	return IRQ_HANDLED;
+-}
+-
+ static struct omap3_gpmc_regs gpmc_context;
+ 
+ void omap3_gpmc_save_context(void)
+diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
+index 7de9f9b..58f6bd2 100644
+--- a/include/linux/omap-gpmc.h
++++ b/include/linux/omap-gpmc.h
+@@ -11,9 +11,6 @@
+ 
+ #define GPMC_CONFIG_WP		0x00000005
+ 
+-#define GPMC_IRQ_FIFOEVENTENABLE	0x01
+-#define GPMC_IRQ_COUNT_EVENT		0x02
+-
+ enum gpmc_nand_irq {
+ 	GPMC_NAND_IRQ_FIFOEVENT = 0,
+ 	GPMC_NAND_IRQ_TERMCOUNT,
+@@ -53,11 +50,17 @@ static inline gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
+ /* deprecated APIs */
+ #if IS_ENABLED(CONFIG_OMAP_GPMC)
+ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
++int gpmc_get_irq(void);
+ #else
+ static inline void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+ {
+ 	reg = NULL;
+ }
++
++static inline int gpmc_get_irq(void)
++{
++	return -ENOTSUPP;
++}
+ #endif /* CONFIG_OMAP_GPMC */
+ /*--------------------------------*/
+ 
+@@ -67,8 +70,6 @@ extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+ 
+ struct device_node;
+ 
+-extern int gpmc_get_client_irq(unsigned irq_config);
+-
+ extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+ 
+ extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
