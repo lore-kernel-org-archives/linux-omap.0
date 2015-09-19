@@ -1,18 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: Fix WLAN regression on omap5-uevm
-Date: Fri, 18 Sep 2015 13:35:08 -0700
-Message-ID: <20150918203508.GI8020@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 1/2] mfd: twl6040: Fix deferred probe handling for clk32k
+Date: Sat, 19 Sep 2015 10:57:58 +0100
+Message-ID: <20150919095758.GH3218@x1>
 References: <1442593745-16725-1-git-send-email-tony@atomide.com>
- <1442593745-16725-3-git-send-email-tony@atomide.com>
- <CABxcv=mGNmoVu3TDvd1888TiJ_vg0FJF6qz0p4XTu5T776sJ2Q@mail.gmail.com>
- <20150918174836.GG8020@atomide.com>
- <20150918202718.GH8020@atomide.com>
+ <1442593745-16725-2-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20150918202718.GH8020@atomide.com>
+In-Reply-To: <1442593745-16725-2-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,27 +19,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sourav Poddar <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150918 13:27]:
-
-> And also.. It seems wl18xx somehow keeps looing for a wrong
-
-Sorry sent the email before finishing it :) Note related to
-these patches, but the wl18xx keeps looking for wrong firmware
-and produces the following:
-
-# modprobe wlcore_sdio
-...
-wlcore: ERROR configuration binary file size is wrong, expected 1229 got 1221
-wlcore: WARNING falling back to default config
-wlcore: wl18xx HW: 183x or 180x, PG 2.0 (ROM 0x9)
-wlcore: loaded
-
-So that's yet another bug to fix somewhere.
-
-Regards,
-
-Tony
+T24gRnJpLCAxOCBTZXAgMjAxNSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4gQ29tbWl0IDY4YmFi
+ODY2MmY0OSAoIm1mZDogdHdsNjA0MDogT3B0aW9uYWwgY2xrMzJrIGNsb2NrIGhhbmRsaW5nIikK
+PiBhZGRlZCBjbG9jayBoYW5kbGluZyBmb3IgdGhlIDMyayBjbG9jayBmcm9tIHBhbG1hcy1jbGsu
+IEhvd2V2ZXIsIHRoYXQKPiBwYXRjaCBkaWQgbm90IGNvbnNpZGVyIGEgdHlwaWNhbCBzaXR1YXRp
+b24gd2hlcmUgdHdsNjA0MCBpcyBidWlsdC1pbiwKPiBhbmQgcGFsbWFzLWNsayBpcyBhIGxvYWRh
+YmxlIG1vZHVsZSBsaWtlIHdlIGhhdmUgaW4gb21hcDJwbHVzX2RlZmNvbmZpZy4KPiAKPiBJZiBw
+YWxtYXMtY2xrIGlzIG5vdCBsb2FkZWQgYmVmb3JlIHR3bDYwNDAgcHJvYmVzLCB3ZSB3aWxsIGdl
+dCBhCj4gImNsazMyayBpcyBub3QgaGFuZGxlZCIgd2FybmluZyBkdXJpbmcgYm9vdGluZy4gVGhp
+cyBtZWFucyB0aGF0IGFueQo+IGRyaXZlcnMgcmVseWluZyBvbiB0aGlzIGNsb2NrIHdpbGwgbXlz
+dGVyaW91c2x5IGZhaWwsIGluY2x1ZGluZwo+IG9tYXA1LXVldm0gV0xBTiBhbmQgYXVkaW8uCj4g
+Cj4gTm90ZSB0aGF0IGZvciBXTEFOLCB3ZSBwcm9iYWJseSBzaG91bGQgYWxzbyBldmVudHVhbGx5
+IGdldAo+IHRoZSBjbGszMmtnYXVkaW8gZm9yIE1NQzMgZGlyZWN0bHkgYXMgdGhhdCdzIHNoYXJl
+ZCBiZXR3ZWVuCj4gYXVkaW8gYW5kIFdMQU4gU0RJTyBhdCBsZWFzdCBmb3Igb21hcDUtdWV2bS4g
+SXQgc2VlbXMgdGhlCj4gV0xBTiBjaGlwIGNhbm5vdCBnZXQgaXQgYXMgb3RoZXJ3aXNlIE1NQzMg
+d29uJ3QgZ2V0IHByb3Blcmx5Cj4gcHJvYmVkLgo+IAo+IEZpeGVzOiA2OGJhYjg2NjJmNDkgKCJt
+ZmQ6IHR3bDYwNDA6IE9wdGlvbmFsIGNsazMyayBjbG9jayBoYW5kbGluZyIpCj4gQ2M6IEJlbm9p
+dCBDb3Vzc29uIDxiY291c3NvbkBiYXlsaWJyZS5jb20+Cj4gQ2M6IERyLiBILiBOaWtvbGF1cyBT
+Y2hhbGxlciA8aG5zQGdvbGRlbGljby5jb20+Cj4gQ2M6IEdyYXp2eWRhcyBJZ25vdGFzIDxub3Rh
+c2FzQGdtYWlsLmNvbT4KPiBDYzogTGVlIEpvbmVzIDxsZWUuam9uZXNAbGluYXJvLm9yZz4KPiBD
+YzogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KPiBDYzogU2FtdWVsIE9y
+dGl6IDxzYW1lb0BsaW51eC5pbnRlbC5jb20+Cj4gQ2M6IFNvdXJhdiBQb2RkYXIgPHNvdXJhdi5w
+b2RkYXJAdGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlk
+ZS5jb20+Cj4gLS0tCj4gIGRyaXZlcnMvbWZkL3R3bDYwNDAuYyB8IDIgKysKPiAgMSBmaWxlIGNo
+YW5nZWQsIDIgaW5zZXJ0aW9ucygrKQoKQXBwbGllZCwgdGhhbmtzLgoKPiAtLS0gYS9kcml2ZXJz
+L21mZC90d2w2MDQwLmMKPiArKysgYi9kcml2ZXJzL21mZC90d2w2MDQwLmMKPiBAQCAtNjQ3LDYg
+KzY0Nyw4IEBAIHN0YXRpYyBpbnQgdHdsNjA0MF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xp
+ZW50LAo+ICAKPiAgCXR3bDYwNDAtPmNsazMyayA9IGRldm1fY2xrX2dldCgmY2xpZW50LT5kZXYs
+ICJjbGszMmsiKTsKPiAgCWlmIChJU19FUlIodHdsNjA0MC0+Y2xrMzJrKSkgewo+ICsJCWlmIChQ
+VFJfRVJSKHR3bDYwNDAtPmNsazMyaykgPT0gLUVQUk9CRV9ERUZFUikKPiArCQkJcmV0dXJuIC1F
+UFJPQkVfREVGRVI7Cj4gIAkJZGV2X2luZm8oJmNsaWVudC0+ZGV2LCAiY2xrMzJrIGlzIG5vdCBo
+YW5kbGVkXG4iKTsKPiAgCQl0d2w2MDQwLT5jbGszMmsgPSBOVUxMOwo+ICAJfQoKLS0gCkxlZSBK
+b25lcwpMaW5hcm8gU1RNaWNyb2VsZWN0cm9uaWNzIExhbmRpbmcgVGVhbSBMZWFkCkxpbmFyby5v
+cmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwpGb2xsb3cgTGluYXJvOiBG
+YWNlYm9vayB8IFR3aXR0ZXIgfCBCbG9nCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
