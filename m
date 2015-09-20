@@ -1,50 +1,40 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 3/3] mfd: Add battery charger as subdevice to the
- tps65217.
-Date: Sun, 20 Sep 2015 05:19:53 +0100
-Message-ID: <20150920041953.GV3039@x1>
-References: <1441699779-22189-1-git-send-email-enric.balletbo@collabora.com>
- <1441699779-22189-4-git-send-email-enric.balletbo@collabora.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH v3] crypto: omap-aes: Add support for GCM mode
+Date: Sun, 20 Sep 2015 12:38:44 +0200
+Message-ID: <CAALWOA_=hs+Xa2f+3=s=QaxA9HfVfHJnW0dzK6toRcFFiOvdTA@mail.gmail.com>
+References: <1436283109-13318-7-git-send-email-lokeshvutla@ti.com> <1442323681-6538-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1441699779-22189-4-git-send-email-enric.balletbo@collabora.com>
+In-Reply-To: <1442323681-6538-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, davem@davemloft.net, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 08 Sep 2015, Enric Balletbo i Serra wrote:
+On 15 September 2015 at 15:28, Lokesh Vutla <lokeshvutla@ti.com> wrote:
+> --- a/drivers/crypto/Kconfig
+> +++ b/drivers/crypto/Kconfig
+> @@ -293,6 +293,7 @@ config CRYPTO_DEV_OMAP_AES
+>         depends on ARCH_OMAP2 || ARCH_OMAP3 || ARCH_OMAP2PLUS
+>         select CRYPTO_AES
+>         select CRYPTO_BLKCIPHER
+> +       select CRYPTO_AEAD
 
-> Add tps65217 battery charger subdevice.
->=20
-> Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-> ---
->  drivers/mfd/tps65217.c | 4 ++++
->  1 file changed, 4 insertions(+)
+Is it appropriate that this also selects CRYPTO_AEAD on omap2/omap3,
+even though they do not support GCM?
 
-Applied, thanks.
 
-> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-> index 55add04..d32b5442 100644
-> --- a/drivers/mfd/tps65217.c
-> +++ b/drivers/mfd/tps65217.c
-> @@ -39,6 +39,10 @@ static const struct mfd_cell tps65217s[] =3D {
->  		.name =3D "tps65217-bl",
->  		.of_compatible =3D "ti,tps65217-bl",
->  	},
-> +	{
-> +		.name =3D "tps65217-charger",
-> +		.of_compatible =3D "ti,tps65217-charger",
-> +	},
->  };
-> =20
->  /**
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+> +#define AES_REG_CTRL_GCM               GENMASK(17, 16)
+
+Instead of adding these definitions one bit at a time, can't we get
+the whole list over with at once? This thing supports:
+
+ECB, CBC, and CFB-128 encryption
+CTR and F8 encryption with 16/32/64/96/128-bit counter
+XEX (disk encryption)
+CBC-MAC authentication including the CMAC/OMAC/PMAC subflavors
+F9 authentication
+GCM and CCM aead
+(and raw GHASH, if you happen to have a use for it)
