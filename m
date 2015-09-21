@@ -1,55 +1,85 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Subject: Re: [PATCH RFC v4 2/8] ALSA: pcm: add IEC958
-	channel	status helper for hw_params
-Date: Mon, 21 Sep 2015 17:08:15 +0200
-Message-ID: <56001D5F.1010903@ladisch.de>
-References: <cover.1442572860.git.jsarha@ti.com>
- <a7b69fb075b0ae993846cfb65abb20ecab5c9805.1442572860.git.jsarha@ti.com>
- <20150921093748.GG21098@n2100.arm.linux.org.uk>
- <560016BE.6010801@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <560016BE.6010801@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, moinejf@free.fr, airlied@linux.ie, broonie@kernel.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, Takashi Iwai <tiwai@suse.de>, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH 12/17] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
+Date: Mon, 21 Sep 2015 16:47:08 +0100
+Message-ID: <1442850433-5903-13-git-send-email-sudeep.holla@arm.com>
+References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Jyri Sarha wrote:
-> On 09/21/15 12:37, Russell King - ARM Linux wrote:
->> ALSA documentation (which may be out of date) says that the hw_params
->> callback can be called multiple times during stream setup.  Do we want
->> to be repeatedly programming the HDMI infoframe with different settings,
->> potentially confusing the attached device, or would it be better to do
->> it slightly later (in the prepare callback) after the parameters have
->> been fully negotiated?
->
-> If it is possible that hw_params() can be called multiple times, at
-> least it does not happen very often. I wonder if it would ever happen
-> again after a successful hw_params() call.
+The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+be left enabled so as to allow them to work as expected during the
+suspend-resume cycle, but doesn't guarantee that it will wake the system
+from a suspended state, enable_irq_wake is recommended to be used for
+the wakeup.
 
-It is certainly allowed, and it happens regularly when using OSS
-emulation.  AFAIK PulseAudio does something similar when enumerating
-devices.
+This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+enable_irq_wake instead.
 
-> But there is no downside in using prepare callback.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ arch/arm/mach-omap2/mux.c    | 4 ++--
+ arch/arm/mach-omap2/pm34xx.c | 9 ++++-----
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-The prepare callback also can be called multiple times.  This certainly
-happens when the stream is stopped/restarted multiple times.
-
-If something does not need to be done again when a stream is restarted,
-then it should be done in the hw_params callback.
-
-
-Regards,
-Clemens
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 176eef6ef338..12012bef8e63 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -810,13 +810,13 @@ int __init omap_mux_late_init(void)
+ 		return 0;
+ 
+ 	ret = request_irq(omap_prcm_event_to_irq("io"),
+-		omap_hwmod_mux_handle_irq, IRQF_SHARED | IRQF_NO_SUSPEND,
++		omap_hwmod_mux_handle_irq, IRQF_SHARED,
+ 			"hwmod_io", omap_mux_late_init);
+ 
+ 	if (ret)
+ 		pr_warn("mux: Failed to setup hwmod io irq %d\n", ret);
+ 
+-	return 0;
++	return enable_irq_wake(omap_prcm_event_to_irq("io"));
+ }
+ 
+ static void __init omap_mux_package_fixup(struct omap_mux *p,
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 87b98bf92366..4b7ac7cd633a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -472,23 +472,22 @@ int __init omap3_pm_init(void)
+ 	prcm_setup_regs();
+ 
+ 	ret = request_irq(omap_prcm_event_to_irq("wkup"),
+-		_prcm_int_handle_wakeup, IRQF_NO_SUSPEND, "pm_wkup", NULL);
++		_prcm_int_handle_wakeup, 0, "pm_wkup", NULL);
+ 
+ 	if (ret) {
+ 		pr_err("pm: Failed to request pm_wkup irq\n");
+ 		goto err1;
+ 	}
++	enable_irq_wake(omap_prcm_event_to_irq("wkup"));
+ 
+ 	/* IO interrupt is shared with mux code */
+ 	ret = request_irq(omap_prcm_event_to_irq("io"),
+-		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
+-		omap3_pm_init);
+-	enable_irq(omap_prcm_event_to_irq("io"));
+-
++		_prcm_int_handle_io, IRQF_SHARED, "pm_io", omap3_pm_init);
+ 	if (ret) {
+ 		pr_err("pm: Failed to request pm_io irq\n");
+ 		goto err2;
+ 	}
++	enable_irq_wake(omap_prcm_event_to_irq("io"));
+ 
+ 	ret = pwrdm_for_each(pwrdms_setup, NULL);
+ 	if (ret) {
+-- 
+1.9.1
