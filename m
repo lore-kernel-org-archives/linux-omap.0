@@ -1,54 +1,66 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: Remove duplicated operand in OR operation
-Date: Mon, 21 Sep 2015 10:28:36 +0300
-Message-ID: <55FFB1A4.4090107@ti.com>
-References: <1442496171-28741-1-git-send-email-javier@osg.samsung.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/1] ARM: DTS: dra72-evm: remove cpsw gpio hogging and add select-slave-gpio
+Date: Mon, 21 Sep 2015 13:34:46 +0530
+Message-ID: <1442822686-28063-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442496171-28741-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>, linux-kernel@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 17/09/15 16:22, Javier Martinez Canillas wrote:
-> Commit b483a4a5a711 ("ARM: OMAP4+: hwmod data: Don't prevent RESET of
-> USB Host module") added the SYSC_HAS_RESET_STATUS flag to both OMAP4
-> and OMAP5 USB host module hwmon sysconfig but that flag was already
-> set for OMAP5. So now the flag appears twice in the expression.
-> 
-> make coccicheck complains with the following message:
-> 
-> omap_hwmod_54xx_data.c:1846:37-58: duplicated argument to & or |
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Since GPIO hogging fails to through error when booting with
+gpio-pcf857x as module and NFS root filesystem. So by having
+mode-gpio, it throw error to user so that the used can make
+gpio-pcf857x as inbuilt for NFS. When using mmc/ramdisk as root
+fs, cpsw will probe defer and re-probes again when gpio-pcf857x
+module is inserted and ethernet becomes operational.
 
-Acked-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+---
 
-> 
-> ---
-> 
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> index 7c3fac035e93..8cdfd9b7ab4f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> @@ -1844,8 +1844,7 @@ static struct omap_hwmod_class_sysconfig omap54xx_usb_host_hs_sysc = {
->  	.rev_offs	= 0x0000,
->  	.sysc_offs	= 0x0010,
->  	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
-> -			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-> -			   SYSC_HAS_RESET_STATUS),
-> +			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
->  	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->  			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
->  			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-> 
+The driver patch is applied to net-next branch (also present in
+linux-next) with commit '1d147ccbfc35 ("drivers: net: cpsw: Add
+support to drive gpios for ethernet to be functional") and logs
+[1] also pushed a branch [2] for testing.
+
+[1]: http://pastebin.ubuntu.com/12306224/
+[2]: git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git cpsw-gpio-optional-v3
+
+---
+ arch/arm/boot/dts/dra72-evm.dts | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index c11ccb1..b7eca13 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -353,12 +353,6 @@
+ 		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+-
+-		cpsw_sel_s0 {
+-			gpio-hog;
+-			gpios = <4 GPIO_ACTIVE_HIGH>;
+-			output-low;
+-		};
+ 	};
+ };
+ 
+@@ -590,6 +584,7 @@
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
+ 	slaves = <1>;
++	mode-gpios = <&pcf_gpio_21 4 GPIO_ACTIVE_HIGH>;
+ };
+ 
+ &cpsw_emac0 {
+-- 
+2.6.0.rc2.10.gf4d9753
 
 --
-cheers,
--roger
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
