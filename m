@@ -1,59 +1,64 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC v4 2/8] ALSA: pcm: add IEC958 channel
- status helper for hw_params
-Date: Mon, 21 Sep 2015 17:39:58 +0300
-Message-ID: <560016BE.6010801@ti.com>
-References: <cover.1442572860.git.jsarha@ti.com>
- <a7b69fb075b0ae993846cfb65abb20ecab5c9805.1442572860.git.jsarha@ti.com>
- <20150921093748.GG21098@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: usb: dwc3: gadget: warning on v4.3-rc1
+Date: Mon, 21 Sep 2015 09:41:50 -0500
+Message-ID: <20150921144150.GB9144@saruman.tx.rr.com>
+References: <55FFBA83.7010003@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20150921093748.GG21098@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, moinejf@free.fr, airlied@linux.ie, tomi.valkeinen@ti.com, Takashi Iwai <tiwai@suse.de>, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JYK4vJDZwFMowpUq"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <55FFBA83.7010003-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/21/15 12:37, Russell King - ARM Linux wrote:
-> On Fri, Sep 18, 2015 at 02:06:39PM +0300, Jyri Sarha wrote:
->> Add IEC958 channel status helper that gets the audio properties from
->> snd_pcm_hw_params instead of snd_pcm_runtime. This is needed to
->> produce the channel status bits already in audio stream configuration
->> phase.
->
-> What is the reason for doing this early?
->
+--JYK4vJDZwFMowpUq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-After some thinking, there is no good reason. It makes the codec bit 
-more complicated, but that is not a good reason. I'll change that and 
-use the prepare callback.
+On Mon, Sep 21, 2015 at 11:06:27AM +0300, Roger Quadros wrote:
+> Hi Felipe,
+>=20
+> I see the following warning when g_zero is loaded
+> and USB cable is plugged to host on dra7-evm's USB1 port.
+>=20
+> It happens only once and no longer appears on re-loading gadget
+> or plugging/unplugging cable.
 
-This patch can be dropped.
+already fixed, -rc2 should have the fix.
 
-> ALSA documentation (which may be out of date) says that the hw_params
-> callback can be called multiple times during stream setup.  Do we want
-> to be repeatedly programming the HDMI infoframe with different settings,
-> potentially confusing the attached device, or would it be better to do
-> it slightly later (in the prepare callback) after the parameters have
-> been fully negotiated?
->
+thanks
 
-If it is possible that hw_params() can be called multiple times, at 
-least it does not happen very often. I wonder if it would ever happen 
-again after a successful hw_params() call. But there is no downside in 
-using prepare callback. I was just too much following the way ASoC 
-codecs usually do the thing by writing everything to iron as the 
-callbacks come in.
+--=20
+balbi
 
-Best regards,
-Jyri
+--JYK4vJDZwFMowpUq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWABcuAAoJEIaOsuA1yqRE8IsQAJ7/HLbHKUMA0OOz/KtzF48z
+hEl3FcWGB4h6L7sTesmBeNZBGJ+heJUSVLXRIfhhU4PUC7cmehm3z8auwKH6z9ic
+2CGNC67ebn06BBQr2QsOkz8G19wO9jW2JHvnYTSOq2Ktc32RaLOoD5EUF0qKusgA
+NmZ1ax98Ezhp2iCKxtj3Cawty8VBRD0pJWwpTZNC19kzBfXegEr5iOaLsQQYRbPJ
+2mrn3CsW6FF0bfcs/YSQqdtpv/x2KR59CXU0A32tZarikdT8kASxqUf7YoooGnpw
+m9R6QYeYkItacswHIAZyDyyi3dBK1SOBCw5zj70RfNE/Abs+B57MXddDozD4WWez
++Ydk5NnQXcYSkNHoSn1d0at02oVzws+vdeMFV4H8aDYCOzgtCFAGsrR70tQErWvA
+Ox7gczBjbMy0JCud+KmwbptB0j2r9XlkIyw5R6zk3QKjknkKVAbTbpwzmpWv+Sm2
++ktdY71iIi/lBpp9unpd0x5B1udFFAw+MiiBHXe3Ujqj+e6lbUGKwbWO7SuW9UQD
+jT/NY7KDxwIqvVyP1N4K6/7ihUBsmEjaT+BlQPbFiJIxx35Aa1fXTa8w+Sf0cTSv
+wnd31oDjiW2f/gt4n+c+9gg//HxZe8ewl2xpEQ9kt4LVIdIeyvJr9irh76DLEeC1
+k9Kxv7saybsnuFtSpEGd
+=MZ7D
+-----END PGP SIGNATURE-----
+
+--JYK4vJDZwFMowpUq--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
