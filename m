@@ -1,270 +1,84 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH RFC v4 4/8] drm/i2c: tda998x: Add support of a DT graph of
- ports
-Date: Mon, 21 Sep 2015 10:19:18 -0500
-Message-ID: <56001FF6.5070504@kernel.org>
-References: <cover.1442572860.git.jsarha@ti.com>
- <e9ebb04f781fef7cff99190d301fb64805b97d39.1442572860.git.jsarha@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH RFC v4 3/8] ASoC: hdmi-codec: Add
+ hdmi-codec for external HDMI-encoders
+Date: Mon, 21 Sep 2015 10:18:23 -0700
+Message-ID: <20150921171823.GY30445@sirena.org.uk>
+References: <20150921093107.GF21098@n2100.arm.linux.org.uk>
+ <56000900.3070404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e9ebb04f781fef7cff99190d301fb64805b97d39.1442572860.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============9012289225446264356=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <56000900.3070404@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, peter.ujfalusi@ti.com, moinejf@free.fr, airlied@linux.ie, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/18/2015 06:06 AM, Jyri Sarha wrote:
-> From: Jean-Francois Moine <moinejf-GANU6spQydw@public.gmane.org>
-> 
-> Two kinds of ports may be declared in a DT graph of ports: video and audio.
-> This patch accepts the port value from a video port as an alternative
-> to the video-ports property.
-> It also accepts audio ports in the case the transmitter is not used as
-> a slave encoder.
-> The new file include/sound/tda998x.h prepares to the definition of
-> a tda998x CODEC.
-> 
-> Signed-off-by: Jean-Francois Moine <moinejf-GANU6spQydw@public.gmane.org>
-> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-> ---
->  .../devicetree/bindings/drm/i2c/tda998x.txt        | 51 ++++++++++++
->  drivers/gpu/drm/i2c/tda998x_drv.c                  | 90 +++++++++++++++++++---
->  include/sound/tda998x.h                            |  8 ++
->  3 files changed, 140 insertions(+), 9 deletions(-)
->  create mode 100644 include/sound/tda998x.h
-> 
-> diff --git a/Documentation/devicetree/bindings/drm/i2c/tda998x.txt b/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
-> index e9e4bce..35f6a80 100644
-> --- a/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
-> +++ b/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
-> @@ -16,6 +16,35 @@ Optional properties:
->  
->    - video-ports: 24 bits value which defines how the video controller
->  	output is wired to the TDA998x input - default: <0x230145>
-> +	This property is not used when ports are defined.
-> +
-> +Optional nodes:
-> +
-> +  - port: up to three ports.
-> +	The ports are defined according to [1].
-> +
-> +    Video port.
-> +	There may be only one video port.
-> +	This one must contain the following property:
-> +
-> +	- port-type: must be "rgb"
 
-Why do you need this if there is no other choice? The port number should
-define which one is video.
+--===============9012289225446264356==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="+9WMDU/RdULAIC7Q"
+Content-Disposition: inline
 
-> +
-> +	and may contain the optional property:
-> +
-> +	- reg: 24 bits value which defines how the video controller
-> +		output is wired to the TDA998x input (video pins)
-> +		When absent, the default value is <0x230145>.
 
-I'm failing to decode how this value works. In any case, I would keep
-this as a vendor specific property rather than abusing reg.
+--+9WMDU/RdULAIC7Q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> +
-> +    Audio ports.
-> +	There may be one or two audio ports.
-> +	These ones must contain the following properties:
-> +
-> +	- port-type: must be "i2s" or "spdif"
-> +
-> +	- reg: 8 bits value which defines how the audio controller
-> +		output is wired to the TDA998x input (audio pins)
+On Mon, Sep 21, 2015 at 04:41:20PM +0300, Jyri Sarha wrote:
+> On 09/21/15 12:31, Russell King - ARM Linux wrote:
 
-reg is 32-bits.
+> >The device may accept 32 bit I2S, but it would have to be truncated to
+> >24 bit before transmitting it to the sink.  This should be mentioned
+> >somewhere.
 
-> +
-> +[1] Documentation/devicetree/bindings/graph.txt
->  
->  Example:
->  
-> @@ -26,4 +55,26 @@ Example:
->  		interrupts = <27 2>;		/* falling edge */
->  		pinctrl-0 = <&pmx_camera>;
->  		pinctrl-names = "default";
-> +
-> +		port@230145 {
-> +			port-type = "rgb";
-> +			reg = <0x230145>;
-> +			hdmi_0: endpoint {
-> +				remote-endpoint = <&lcd0_0>;
-> +			};
-> +		};
-> +		port@3 {			/* AP1 = I2S */
+> There is ".sig_bits = 24" in hdmi_i2s_dai, but I can add an explicit comment
+> about it.
 
-Is 3 significant? What happened to 0-2?
+> We needed 32bit format in practice until Peter got 24_LE properly working
+> with McASP. I just thought the may still be some platforms out there that
+> can not produce 24bit i2s samples for some reason, but work just fine with
+> 32bit samples. Those platforms would be limited to less than 24bit precision
+> without 32bit formats. But as said, it is not critical to us any more and I
+> can drop the 32bit formats as well.
 
-> +			port-type = "i2s";
-> +			reg = <0x03>;
-> +			tda998x_i2s: endpoint {
-> +				remote-endpoint = <&audio1_i2s>;
-> +			};
-> +		};
-> +		port@4 {			 /* AP2 = S/PDIF */
-> +			port-type = "spdif";
-> +			reg = <0x04>;
-> +			tda998x_spdif: endpoint {
-> +				remote-endpoint = <&audio1_spdif1>;
-> +			};
-> +		};
->  	};
-> diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
-> index 424228b..0952eac 100644
-> --- a/drivers/gpu/drm/i2c/tda998x_drv.c
-> +++ b/drivers/gpu/drm/i2c/tda998x_drv.c
-> @@ -27,6 +27,7 @@
->  #include <drm/drm_edid.h>
->  #include <drm/drm_of.h>
->  #include <drm/i2c/tda998x.h>
-> +#include <sound/tda998x.h>
->  
->  #define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
->  
-> @@ -47,6 +48,8 @@ struct tda998x_priv {
->  	wait_queue_head_t wq_edid;
->  	volatile int wq_edid_wait;
->  	struct drm_encoder *encoder;
-> +
-> +	struct tda998x_audio audio;
->  };
->  
->  #define to_tda998x_priv(x)  ((struct tda998x_priv *)to_encoder_slave(x)->slave_priv)
-> @@ -774,6 +777,8 @@ static void tda998x_encoder_set_config(struct tda998x_priv *priv,
->  			    (p->mirr_f ? VIP_CNTRL_2_MIRR_F : 0);
->  
->  	priv->params = *p;
-> +	priv->audio.port_types[0] = p->audio_format;
-> +	priv->audio.ports[0] = p->audio_cfg;
->  }
->  
->  static void tda998x_encoder_dpms(struct tda998x_priv *priv, int mode)
-> @@ -1230,9 +1235,57 @@ static struct drm_encoder_slave_funcs tda998x_encoder_slave_funcs = {
->  
->  /* I2C driver functions */
->  
-> +static int tda998x_parse_ports(struct tda998x_priv *priv,
-> +				struct device_node *np)
-> +{
-> +	struct device_node *of_port;
-> +	const char *port_type;
-> +	int ret, audio_index, reg, afmt;
-> +
-> +	audio_index = 0;
-> +	for_each_child_of_node(np, of_port) {
-> +		if (!of_port->name
-> +		 || of_node_cmp(of_port->name, "port") != 0)
-> +			continue;
-> +		ret = of_property_read_string(of_port, "port-type",
-> +					&port_type);
-> +		if (ret < 0)
-> +			continue;
-> +		ret = of_property_read_u32(of_port, "reg", &reg);
-> +		if (strcmp(port_type, "rgb") == 0) {
-> +			if (!ret) {		/* video reg is optional */
-> +				priv->vip_cntrl_0 = reg >> 16;
-> +				priv->vip_cntrl_1 = reg >> 8;
-> +				priv->vip_cntrl_2 = reg;
-> +			}
-> +			continue;
-> +		}
-> +		if (strcmp(port_type, "i2s") == 0)
-> +			afmt = AFMT_I2S;
-> +		else if (strcmp(port_type, "spdif") == 0)
-> +			afmt = AFMT_SPDIF;
-> +		else
-> +			continue;
-> +		if (ret < 0) {
-> +			dev_err(&priv->hdmi->dev, "missing reg for %s\n",
-> +				port_type);
-> +			return ret;
-> +		}
-> +		if (audio_index >= ARRAY_SIZE(priv->audio.ports)) {
-> +			dev_err(&priv->hdmi->dev, "too many audio ports\n");
-> +			break;
-> +		}
-> +		priv->audio.ports[audio_index] = reg;
-> +		priv->audio.port_types[audio_index] = afmt;
-> +		audio_index++;
-> +	}
-> +	return 0;
-> +}
-> +
->  static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
->  {
->  	struct device_node *np = client->dev.of_node;
-> +	struct device_node *of_port;
->  	u32 video;
->  	int rev_lo, rev_hi, ret;
->  	unsigned short cec_addr;
-> @@ -1337,15 +1390,34 @@ static int tda998x_create(struct i2c_client *client, struct tda998x_priv *priv)
->  	/* enable EDID read irq: */
->  	reg_set(priv, REG_INT_FLAGS_2, INT_FLAGS_2_EDID_BLK_RD);
->  
-> -	if (!np)
-> -		return 0;		/* non-DT */
-> -
-> -	/* get the optional video properties */
-> -	ret = of_property_read_u32(np, "video-ports", &video);
-> -	if (ret == 0) {
-> -		priv->vip_cntrl_0 = video >> 16;
-> -		priv->vip_cntrl_1 = video >> 8;
-> -		priv->vip_cntrl_2 = video;
-> +	/* get the device tree parameters */
-> +	if (np) {
-> +		of_port = of_get_child_by_name(np, "port");
-> +		if (of_port) {				/* graph of ports */
-> +			of_node_put(of_port);
-> +			ret = tda998x_parse_ports(priv, np);
-> +			if (ret < 0)
-> +				goto fail;
-> +
-> +			/* initialize the default audio configuration */
-> +			if (priv->audio.ports[0]) {
-> +				priv->params.audio_cfg = priv->audio.ports[0];
-> +				priv->params.audio_format =
-> +						priv->audio.port_types[0];
-> +				priv->params.audio_clk_cfg =
-> +					priv->params.audio_format ==
-> +							AFMT_SPDIF ? 0 : 1;
-> +			}
-> +		} else {
-> +
-> +			/* optional video properties */
-> +			ret = of_property_read_u32(np, "video-ports", &video);
-> +			if (ret == 0) {
-> +				priv->vip_cntrl_0 = video >> 16;
-> +				priv->vip_cntrl_1 = video >> 8;
-> +				priv->vip_cntrl_2 = video;
-> +			}
-> +		}
->  	}
->  
->  	return 0;
-> diff --git a/include/sound/tda998x.h b/include/sound/tda998x.h
-> new file mode 100644
-> index 0000000..bef1da7
-> --- /dev/null
-> +++ b/include/sound/tda998x.h
-> @@ -0,0 +1,8 @@
-> +#ifndef SND_TDA998X_H
-> +#define SND_TDA998X_H
-> +
-> +struct tda998x_audio {
-> +	u8 ports[2];			/* AP value */
-> +	u8 port_types[2];		/* AFMT_xxx */
-> +};
-> +#endif
-> 
+Yes, this is currently a bit messy - we should really be able to allow
+S24_LE and S32 to interoperate better without drivers having to know
+about it since physically they are essentially compatible in memory.
+I'm pretty much OK with it for now since even with that framework
+support it should be harmless.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--+9WMDU/RdULAIC7Q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWADveAAoJECTWi3JdVIfQQmsH/0zk2wceghIe8zLAV97hlifQ
+DVL6jXaV3pUZHsJcS5vX/aVJ8ZIrPaedTguxfIrMeHMCgZpkJRyGaNRwKd50Kgn4
+pNRIt9Td6fbb07TF4Rn95u/sga30qRZrsCjs7s1as+Zzr/aPjvvMAn3lj83Zxq8x
+suQVfjwx+V2sPbE4XRW8SOh0GgX5mRt737gsAAQMSYVRCz+diTajsYCoM8FRxt5v
+ruUZA2L01fF5rwUppwW4A+CGkdSll63+c0XwBe+xzhmY6fOA7DTI4dvNYAEJvB44
+nNKLyqK+Kt5wSXMghuXQeV92SB0d2MK3S2MXHZn/K8q414gwX2O33CaV/47Ux9I=
+=h6py
+-----END PGP SIGNATURE-----
+
+--+9WMDU/RdULAIC7Q--
+
+--===============9012289225446264356==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============9012289225446264356==--
