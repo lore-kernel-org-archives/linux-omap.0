@@ -1,43 +1,89 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH RFC v4 2/8] ALSA: pcm: add IEC958 channel status helper
- for hw_params
-Date: Mon, 21 Sep 2015 10:37:48 +0100
-Message-ID: <20150921093748.GG21098@n2100.arm.linux.org.uk>
-References: <cover.1442572860.git.jsarha@ti.com>
- <a7b69fb075b0ae993846cfb65abb20ecab5c9805.1442572860.git.jsarha@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/2] mfd: twl6040: Fix deferred probe handling for clk32k
+Date: Mon, 21 Sep 2015 12:55:46 +0300
+Message-ID: <55FFD422.2080506@ti.com>
+References: <1442593745-16725-1-git-send-email-tony@atomide.com>
+ <1442593745-16725-2-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <a7b69fb075b0ae993846cfb65abb20ecab5c9805.1442572860.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1442593745-16725-2-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBTZXAgMTgsIDIwMTUgYXQgMDI6MDY6MzlQTSArMDMwMCwgSnlyaSBTYXJoYSB3cm90
-ZToKPiBBZGQgSUVDOTU4IGNoYW5uZWwgc3RhdHVzIGhlbHBlciB0aGF0IGdldHMgdGhlIGF1ZGlv
-IHByb3BlcnRpZXMgZnJvbQo+IHNuZF9wY21faHdfcGFyYW1zIGluc3RlYWQgb2Ygc25kX3BjbV9y
-dW50aW1lLiBUaGlzIGlzIG5lZWRlZCB0bwo+IHByb2R1Y2UgdGhlIGNoYW5uZWwgc3RhdHVzIGJp
-dHMgYWxyZWFkeSBpbiBhdWRpbyBzdHJlYW0gY29uZmlndXJhdGlvbgo+IHBoYXNlLgoKV2hhdCBp
-cyB0aGUgcmVhc29uIGZvciBkb2luZyB0aGlzIGVhcmx5PwoKQUxTQSBkb2N1bWVudGF0aW9uICh3
-aGljaCBtYXkgYmUgb3V0IG9mIGRhdGUpIHNheXMgdGhhdCB0aGUgaHdfcGFyYW1zCmNhbGxiYWNr
-IGNhbiBiZSBjYWxsZWQgbXVsdGlwbGUgdGltZXMgZHVyaW5nIHN0cmVhbSBzZXR1cC4gIERvIHdl
-IHdhbnQKdG8gYmUgcmVwZWF0ZWRseSBwcm9ncmFtbWluZyB0aGUgSERNSSBpbmZvZnJhbWUgd2l0
-aCBkaWZmZXJlbnQgc2V0dGluZ3MsCnBvdGVudGlhbGx5IGNvbmZ1c2luZyB0aGUgYXR0YWNoZWQg
-ZGV2aWNlLCBvciB3b3VsZCBpdCBiZSBiZXR0ZXIgdG8gZG8KaXQgc2xpZ2h0bHkgbGF0ZXIgKGlu
-IHRoZSBwcmVwYXJlIGNhbGxiYWNrKSBhZnRlciB0aGUgcGFyYW1ldGVycyBoYXZlCmJlZW4gZnVs
-bHkgbmVnb3RpYXRlZD8KCi0tIApGVFRDIGJyb2FkYmFuZCBmb3IgMC44bWlsZSBsaW5lOiBjdXJy
-ZW50bHkgYXQgOS42TWJwcyBkb3duIDQwMGticHMgdXAKYWNjb3JkaW5nIHRvIHNwZWVkdGVzdC5u
-ZXQuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On 09/18/2015 07:29 PM, Tony Lindgren wrote:
+> Commit 68bab8662f49 ("mfd: twl6040: Optional clk32k clock handling")
+> added clock handling for the 32k clock from palmas-clk. However, that
+> patch did not consider a typical situation where twl6040 is built-in,
+> and palmas-clk is a loadable module like we have in omap2plus_defconfig.
+> =
+
+> If palmas-clk is not loaded before twl6040 probes, we will get a
+> "clk32k is not handled" warning during booting. This means that any
+> drivers relying on this clock will mysteriously fail, including
+> omap5-uevm WLAN and audio.
+> =
+
+> Note that for WLAN, we probably should also eventually get
+> the clk32kgaudio for MMC3 directly as that's shared between
+> audio and WLAN SDIO at least for omap5-uevm. It seems the
+> WLAN chip cannot get it as otherwise MMC3 won't get properly
+> probed.
+
+While this is going to 'fix' the WLAN because currently the twl6040 is powe=
+red
+on all the time (32k clock is enabled). My plan is to finally implement the
+power state handling for the twl6040, which means that w/o audio activity t=
+he
+twl6040 will be turned off. This will imply that any clock which is only us=
+ed
+by twl6040 will be off as well.
+The proper solution would be to add clock handling to the WLAN driver stack.
+
+Otherwise:
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> Fixes: 68bab8662f49 ("mfd: twl6040: Optional clk32k clock handling")
+> Cc: Benoit Cousson <bcousson@baylibre.com>
+> Cc: Dr. H. Nikolaus Schaller <hns@goldelico.com>
+> Cc: Grazvydas Ignotas <notasas@gmail.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Sourav Poddar <sourav.poddar@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/mfd/twl6040.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> =
+
+> --- a/drivers/mfd/twl6040.c
+> +++ b/drivers/mfd/twl6040.c
+> @@ -647,6 +647,8 @@ static int twl6040_probe(struct i2c_client *client,
+>  =
+
+>  	twl6040->clk32k =3D devm_clk_get(&client->dev, "clk32k");
+>  	if (IS_ERR(twl6040->clk32k)) {
+> +		if (PTR_ERR(twl6040->clk32k) =3D=3D -EPROBE_DEFER)
+> +			return -EPROBE_DEFER;
+>  		dev_info(&client->dev, "clk32k is not handled\n");
+>  		twl6040->clk32k =3D NULL;
+>  	}
+> =
+
+
+
+-- =
+
+P=E9ter
