@@ -1,64 +1,82 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: usb: dwc3: gadget: warning on v4.3-rc1
-Date: Mon, 21 Sep 2015 09:41:50 -0500
-Message-ID: <20150921144150.GB9144@saruman.tx.rr.com>
-References: <55FFBA83.7010003@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 1/1] ARM: DTS: dra72-evm: remove cpsw gpio hogging and add mode-gpios
+Date: Mon, 21 Sep 2015 20:23:51 +0530
+Message-ID: <1442847231-23637-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JYK4vJDZwFMowpUq"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <55FFBA83.7010003-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---JYK4vJDZwFMowpUq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+With the current implementation of GPIO hogging and with
+gpio-pcf857x is built as module, ethernet doesn't work on boot
+and doesn't throw any error/warning to user. Ethernet becomes
+operational when inserting gpio-pcf857x module, even this time
+there is no error/warning logs to user that ethernet is
+operational.
 
-On Mon, Sep 21, 2015 at 11:06:27AM +0300, Roger Quadros wrote:
-> Hi Felipe,
->=20
-> I see the following warning when g_zero is loaded
-> and USB cable is plugged to host on dra7-evm's USB1 port.
->=20
-> It happens only once and no longer appears on re-loading gadget
-> or plugging/unplugging cable.
+When using with NFS rootfs and gpio-pcf857x as module, board
+doesn't boot as it doesn't get any ip address and doesn't throw
+any error/warning. To over come this, now cpsw driver tries to
+get mode-gpios. When gpio-pcf857x is built as module it will
+throw error, so that user can decide either to built in
+gpio-pcf857x to continue with nfs boot or choose alternate rootfs
+filesystem like sd/ramdisk.
 
-already fixed, -rc2 should have the fix.
+When using mmc/ramdisk as root fs, cpsw will probe defer and
+re-probes again when gpio-pcf857x module is inserted and ethernet
+becomes operational.
 
-thanks
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+---
 
---=20
-balbi
+The driver patch is applied to net-next branch (also present in
+linux-next) with commit: '1d147ccbfc35 ("drivers: net: cpsw: Add
+support to drive gpios for ethernet to be functional")
 
---JYK4vJDZwFMowpUq
-Content-Type: application/pgp-signature; name="signature.asc"
+Tested on DRA72x EVM, logs [1] and pushed a branch [2] for testing
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+[1]: http://pastebin.ubuntu.com/12514591/
+[2]: git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git cpsw-mode-gpios-dt 
 
-iQIcBAEBAgAGBQJWABcuAAoJEIaOsuA1yqRE8IsQAJ7/HLbHKUMA0OOz/KtzF48z
-hEl3FcWGB4h6L7sTesmBeNZBGJ+heJUSVLXRIfhhU4PUC7cmehm3z8auwKH6z9ic
-2CGNC67ebn06BBQr2QsOkz8G19wO9jW2JHvnYTSOq2Ktc32RaLOoD5EUF0qKusgA
-NmZ1ax98Ezhp2iCKxtj3Cawty8VBRD0pJWwpTZNC19kzBfXegEr5iOaLsQQYRbPJ
-2mrn3CsW6FF0bfcs/YSQqdtpv/x2KR59CXU0A32tZarikdT8kASxqUf7YoooGnpw
-m9R6QYeYkItacswHIAZyDyyi3dBK1SOBCw5zj70RfNE/Abs+B57MXddDozD4WWez
-+Ydk5NnQXcYSkNHoSn1d0at02oVzws+vdeMFV4H8aDYCOzgtCFAGsrR70tQErWvA
-Ox7gczBjbMy0JCud+KmwbptB0j2r9XlkIyw5R6zk3QKjknkKVAbTbpwzmpWv+Sm2
-+ktdY71iIi/lBpp9unpd0x5B1udFFAw+MiiBHXe3Ujqj+e6lbUGKwbWO7SuW9UQD
-jT/NY7KDxwIqvVyP1N4K6/7ihUBsmEjaT+BlQPbFiJIxx35Aa1fXTa8w+Sf0cTSv
-wnd31oDjiW2f/gt4n+c+9gg//HxZe8ewl2xpEQ9kt4LVIdIeyvJr9irh76DLEeC1
-k9Kxv7saybsnuFtSpEGd
-=MZ7D
------END PGP SIGNATURE-----
+Changes from initial version:
+* Modified the commit message to add more information
 
---JYK4vJDZwFMowpUq--
+---
+ arch/arm/boot/dts/dra72-evm.dts | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 6f6bd98..a12c6f4 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -353,12 +353,6 @@
+ 		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+-
+-		cpsw_sel_s0 {
+-			gpio-hog;
+-			gpios = <4 GPIO_ACTIVE_HIGH>;
+-			output-low;
+-		};
+ 	};
+ };
+ 
+@@ -590,6 +584,7 @@
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
+ 	slaves = <1>;
++	mode-gpios = <&pcf_gpio_21 4 GPIO_ACTIVE_HIGH>;
+ };
+ 
+ &cpsw_emac0 {
+-- 
+2.6.0.rc2.10.gf4d9753
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
