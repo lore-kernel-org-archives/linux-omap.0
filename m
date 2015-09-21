@@ -1,56 +1,116 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: usb: dwc3: gadget: warning on v4.3-rc1
-Date: Mon, 21 Sep 2015 11:06:27 +0300
-Message-ID: <55FFBA83.7010003@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 2/2] ARM: dts: Fix WLAN regression on omap5-uevm
+Date: Mon, 21 Sep 2015 11:13:39 +0200
+Message-ID: <CABxcv=nUuqHSJmP=z3X7F=ukeaFi+9cYTYW-wRwuv+mA8Jw2HQ@mail.gmail.com>
+References: <1442593745-16725-1-git-send-email-tony@atomide.com>
+ <1442593745-16725-3-git-send-email-tony@atomide.com>
+ <CABxcv=mGNmoVu3TDvd1888TiJ_vg0FJF6qz0p4XTu5T776sJ2Q@mail.gmail.com>
+ <20150918174836.GG8020@atomide.com>
+ <20150918202718.GH8020@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150918202718.GH8020@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sourav Poddar <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+[adding Ulf and Tomeu to cc list]
 
-I see the following warning when g_zero is loaded
-and USB cable is plugged to host on dra7-evm's USB1 port.
+On Fri, Sep 18, 2015 at 10:27 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [150918 10:54]:
+>> * Javier Martinez Canillas <javier@dowhile0.org> [150918 10:39]:
+>> > Hello Tony,
+>> >
+>> > [snip]
+>> >
+>> > >
+>> > > +       vmmcsdio_fixed: fixedregulator-mmcsdio {
+>> > > +               compatible = "regulator-fixed";
+>> > > +               regulator-name = "vmmcsdio_fixed";
+>> > > +               regulator-min-microvolt = <1800000>;
+>> > > +               regulator-max-microvolt = <1800000>;
+>> > > +               gpio = <&gpio5 12 GPIO_ACTIVE_HIGH>;    /* gpio140 WLAN_EN */
+>> >
+>> > I know that other OMAP boards use a fake fixed regulator to toggle the
+>> > WiFi enable pin but now the MMC subsystem has proper support for power
+>> > sequence providers so that should be used instead. For simple uses
+>> > like this, Documentation/devicetree/bindings/mmc/mmc-pwrseq-simple.txt
+>> > should be enough.
+>>
+>> Hmm OK great, I'll take a look. Looks like that might also provide a
+>> nice solution for handling the 32k clock from palmas to the wl12xx.
+>
+> It seems it's not quite working yet.. It seems pwrseq_simple.c can't
+> deal with delay on a power pin. It might be best to treat those using
+> the regulator framework because of the refcounting and start-up delay.
 
-It happens only once and no longer appears on re-loading gadget
-or plugging/unplugging cable.
+Yes, pwrseq_simple does not support delaying a power pin. IIRC Tomeu
+wanted to add a delay for power / reset pins at some point but then
+the SDIO device he wanted to power up didn't need it so he dropped
+that change at the end. I may be missremembering though.
 
-root@rockdesk:~# modprobe g_zero
-[   28.414895] zero gadget: Gadget Zero, version: Cinco de Mayo 2008
-[   28.421284] zero gadget: zero ready
-root@rockdesk:~# [   35.298997] zero gadget: high-speed config #3: source/sink
-[   35.305079] ------------[ cut here ]------------
-[   35.309948] WARNING: CPU: 1 PID: 2269 at drivers/usb/dwc3/gadget.c:697 dwc3_gadget_ep_disable+0xa8/0xc8 [dwc3]()
-[   35.320613] dwc3 48890000.usb: ep1in is already disabled
-[   35.326174] Modules linked in: usb_f_ss_lb g_zero libcomposite xhci_plat_hcd xhci_hcd usbcore dwc3 m25p80 spi_nor udc_core usb_common c_can_platform c_can spi_ti_qspi can_dev cpufreq_dt omap_wdt extcon_usb_gx
-[   35.353787] CPU: 1 PID: 2269 Comm: irq/415-dwc3 Not tainted 4.3.0-rc2-00001-g895eac6 #289
-[   35.362349] Hardware name: Generic DRA74X (Flattened Device Tree)
-[   35.368749] [<c0016ed4>] (unwind_backtrace) from [<c00131d4>] (show_stack+0x10/0x14)
-[   35.376877] [<c00131d4>] (show_stack) from [<c033c94c>] (dump_stack+0x80/0x9c)
-[   35.384459] [<c033c94c>] (dump_stack) from [<c003e684>] (warn_slowpath_common+0x7c/0xb8)
-[   35.392952] [<c003e684>] (warn_slowpath_common) from [<c003e754>] (warn_slowpath_fmt+0x30/0x40)
-[   35.402088] [<c003e754>] (warn_slowpath_fmt) from [<bf098acc>] (dwc3_gadget_ep_disable+0xa8/0xc8 [dwc3])
-[   35.412080] [<bf098acc>] (dwc3_gadget_ep_disable [dwc3]) from [<bf149ac0>] (disable_ep+0x2c/0x6c [usb_f_ss_lb])
-[   35.422676] [<bf149ac0>] (disable_ep [usb_f_ss_lb]) from [<bf14a6b0>] (disable_endpoints+0x18/0x50 [usb_f_ss_lb])
-[   35.433445] [<bf14a6b0>] (disable_endpoints [usb_f_ss_lb]) from [<bf14a714>] (disable_source_sink+0x2c/0x34 [usb_f_ss_lb])
-[   35.445032] [<bf14a714>] (disable_source_sink [usb_f_ss_lb]) from [<bf14a74c>] (sourcesink_set_alt+0x2c/0x264 [usb_f_ss_lb])
-[   35.456810] [<bf14a74c>] (sourcesink_set_alt [usb_f_ss_lb]) from [<bf131730>] (composite_setup+0xc28/0x1574 [libcomposite])
-[   35.468500] [<bf131730>] (composite_setup [libcomposite]) from [<bf099ac0>] (dwc3_ep0_delegate_req+0x2c/0x40 [dwc3])
-[   35.479559] [<bf099ac0>] (dwc3_ep0_delegate_req [dwc3]) from [<bf09a840>] (dwc3_ep0_interrupt+0x984/0xc40 [dwc3])
-[   35.490353] [<bf09a840>] (dwc3_ep0_interrupt [dwc3]) from [<bf09821c>] (dwc3_thread_interrupt+0x7a8/0x9c8 [dwc3])
-[   35.501195] [<bf09821c>] (dwc3_thread_interrupt [dwc3]) from [<c009c5d8>] (irq_thread_fn+0x1c/0x34)
-[   35.510689] [<c009c5d8>] (irq_thread_fn) from [<c009c78c>] (irq_thread+0x148/0x1a4)
-[   35.518724] [<c009c78c>] (irq_thread) from [<c005de20>] (kthread+0xd0/0xec)
-[   35.526024] [<c005de20>] (kthread) from [<c000f870>] (ret_from_fork+0x14/0x24)
-[   35.533593] ---[ end trace fe01e35c4677ca2f ]---
+> I don't think also having regulator handling in pwrseq_simple.c
+> conflicts with the MMC regulators as they can be separate?
+>
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The original "mmc: add support for power-on sequencing through DT" [0]
+patch from Olof that added just properties to the MMC controller slot
+dev node had a "card-external-vcc-supply" for SDIO devices that needed
+an external supply separate to vqmmc and vmmc supplies. The
+pwrseq_simple does not support having an input supply regulator right
+now but one can be added if that is needed.
+
+> Also not related to wl12xx, the power pin on mwifiex_sdio 8787 wlan
+> must be asserted low while reset is asserted and must stay low for
+> 300ms after power pin has deasserted. Again using a regulator there
+> for the power pin might make more sense.
+>
+
+Interesting, I've a patch queued on my tree to convert pwrseq_simple
+to use the GPIO descriptors array API since all the code do now is to
+set GPIO levels high or low for all the pins at the same time. But for
+such a fine grained timing control as you said, I wonder if we should
+just keep the code as it is now. Even when is open coding what
+gpiod_{get,set,put}_array already do, it may make sense if we add
+assert and deassert delay time for each pin.
+
+Or maybe such a HW should have its own power sequence provider instead
+of making pwrseq_simple more and more complex?
+
+> Then getting the 32k clock from palmas is not working either, it
+> seems some better deferred probe handling is needed there if
+> omap_hsmmc is built-in and palmas-clk is a loadable module.
+>
+
+IIUC from another email, you already solved this.
+
+> I think for the fix I'll stick with regulator fixed, let's update
+> it later on unless you have better suggestions.
+>
+
+Yes, I didn't want to block your fixed regulator approach. I was just
+pointing out that the MMC infrastructure already has support for power
+sequence providers but if what is there doesn't fit your use case, I
+agree that we can go with the regulator fixed for now and then change
+it later.
+
+>
+> Cheers,
+>
+> Tony
+
+[0]: http://patchwork.ozlabs.org/patch/312444/
+
+Best regards,
+Javier
