@@ -1,67 +1,52 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC v4 3/8] ASoC: hdmi-codec: Add hdmi-codec for external
- HDMI-encoders
-Date: Mon, 21 Sep 2015 16:41:20 +0300
-Message-ID: <56000900.3070404@ti.com>
-References: <cover.1442572860.git.jsarha@ti.com>
- <6fe9ab5dff972e6f228259d6818f3f481a11577d.1442572860.git.jsarha@ti.com>
- <20150919175450.GL30445@sirena.org.uk>
- <20150921093107.GF21098@n2100.arm.linux.org.uk>
+From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 00/38] Fixes related to incorrect usage of unsigned types
+Date: Mon, 21 Sep 2015 14:42:25 +0100
+Message-ID: <17571.1442842945@warthog.procyon.org.uk>
+References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20150921093107.GF21098@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1442842450-29769-1-git-send-email-a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-ID: <17570.1442842945.1-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-cachefs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDkvMjEvMTUgMTI6MzEsIFJ1c3NlbGwgS2luZyAtIEFSTSBMaW51eCB3cm90ZToKPiBPbiBT
-YXQsIFNlcCAxOSwgMjAxNSBhdCAxMDo1NDo1MUFNIC0wNzAwLCBNYXJrIEJyb3duIHdyb3RlOgo+
-PiBPbiBGcmksIFNlcCAxOCwgMjAxNSBhdCAwMjowNjo0MFBNICswMzAwLCBKeXJpIFNhcmhhIHdy
-b3RlOgo+Pj4gKyNkZWZpbmUgU1BESUZfRk9STUFUUwkoU05EUlZfUENNX0ZNVEJJVF9TMTZfTEUg
-fCBTTkRSVl9QQ01fRk1UQklUX1MxNl9CRSB8XAo+Pj4gKwkJCSBTTkRSVl9QQ01fRk1UQklUX1My
-MF8zTEUgfCBTTkRSVl9QQ01fRk1UQklUX1MyMF8zQkUgfFwKPj4+ICsJCQkgU05EUlZfUENNX0ZN
-VEJJVF9TMjRfM0xFIHwgU05EUlZfUENNX0ZNVEJJVF9TMjRfM0JFIHxcCj4+PiArCQkJIFNORFJW
-X1BDTV9GTVRCSVRfUzI0X0xFIHwgU05EUlZfUENNX0ZNVEJJVF9TMjRfQkUpCj4+PiArCj4+PiAr
-I2RlZmluZSBJMlNfRk9STUFUUwkoU05EUlZfUENNX0ZNVEJJVF9TMTZfTEUgfCBTTkRSVl9QQ01f
-Rk1UQklUX1MxNl9CRSB8XAo+Pj4gKwkJCSBTTkRSVl9QQ01fRk1UQklUX1MxOF8zTEUgfCBTTkRS
-Vl9QQ01fRk1UQklUX1MxOF8zQkUgfFwKPj4+ICsJCQkgU05EUlZfUENNX0ZNVEJJVF9TMjBfM0xF
-IHwgU05EUlZfUENNX0ZNVEJJVF9TMjBfM0JFIHxcCj4+PiArCQkJIFNORFJWX1BDTV9GTVRCSVRf
-UzI0XzNMRSB8IFNORFJWX1BDTV9GTVRCSVRfUzI0XzNCRSB8XAo+Pj4gKwkJCSBTTkRSVl9QQ01f
-Rk1UQklUX1MyNF9MRSB8IFNORFJWX1BDTV9GTVRCSVRfUzI0X0JFIHxcCj4+PiArCQkJIFNORFJW
-X1BDTV9GTVRCSVRfUzMyX0xFIHwgU05EUlZfUENNX0ZNVEJJVF9TMzJfQkUpCj4+Cj4+IEknbSBu
-b3Qgc3VyZSBob3cgYWJzdHJhY3RlZCB0aGlzIEkyUyBhbmQgUy9QRElGIERBSSBidXNpbmVzcyBp
-cyAtIGl0Cj4+IGRvZXNuJ3QgZmVlbCBsaWtlIHNvbWV0aGluZyB0aGF0J3MgZ29pbmcgdG8gYmUg
-YSBwcm9wZXJ0eSBvZiBhbGwgSERNSQo+PiBkZXZpY2VzLCBhbmQgdGhlIHNwZWNpZmljIHNldHMg
-b2YgZm9ybWF0cyBhYm92ZSBjYXVzZSBtZSB0byByYWlzZSBhIGJpdAo+PiBvZiBhbiBleWVicm93
-LiAgU2hvdWxkIHRoaXMgYmUgYW4gaW50ZXJmYWNlIHdoZXJlIHRoZSBIRE1JIGNoaXAKPj4gcmVn
-aXN0ZXJzIG11bHRpcGxlIGludGVyZmFjZXMgaWYgaXQgaGFzIHRoZW0gaW5zdGVhZCBvZiBhdXRv
-bWF0aWNhbGx5Cj4+IGdldHRpbmcgdGhpcyBzcGxpdCBhcyBpcz8KPgo+IFRoZSBpbmNsdXNpb24g
-b2YgdGhlIDMyLWJpdCBmb3JtYXRzIGRvZXMgcmFpc2UgYW4gZXllYnJvdyBoZXJlIHRvby4KPiBB
-dWRpbyB0cmFuc21pc3Npb24gYWNyb3NzIHRoZSBIRE1JIGxpbmsgaXMgUy9QRElGLCBzdXBwb3J0
-aW5nIHVwIHRvCj4gMjQtYml0IHVuY29tcHJlc3NlZCBhdWRpbyAoYWthIEwtUENNKS4KPgo+IFRo
-ZSBkZXZpY2UgbWF5IGFjY2VwdCAzMiBiaXQgSTJTLCBidXQgaXQgd291bGQgaGF2ZSB0byBiZSB0
-cnVuY2F0ZWQgdG8KPiAyNCBiaXQgYmVmb3JlIHRyYW5zbWl0dGluZyBpdCB0byB0aGUgc2luay4g
-IFRoaXMgc2hvdWxkIGJlIG1lbnRpb25lZAo+IHNvbWV3aGVyZS4KPgoKVGhlcmUgaXMgIi5zaWdf
-Yml0cyA9IDI0IiBpbiBoZG1pX2kyc19kYWksIGJ1dCBJIGNhbiBhZGQgYW4gZXhwbGljaXQgCmNv
-bW1lbnQgYWJvdXQgaXQuCgpXZSBuZWVkZWQgMzJiaXQgZm9ybWF0IGluIHByYWN0aWNlIHVudGls
-IFBldGVyIGdvdCAyNF9MRSBwcm9wZXJseSAKd29ya2luZyB3aXRoIE1jQVNQLiBJIGp1c3QgdGhv
-dWdodCB0aGUgbWF5IHN0aWxsIGJlIHNvbWUgcGxhdGZvcm1zIG91dCAKdGhlcmUgdGhhdCBjYW4g
-bm90IHByb2R1Y2UgMjRiaXQgaTJzIHNhbXBsZXMgZm9yIHNvbWUgcmVhc29uLCBidXQgd29yayAK
-anVzdCBmaW5lIHdpdGggMzJiaXQgc2FtcGxlcy4gVGhvc2UgcGxhdGZvcm1zIHdvdWxkIGJlIGxp
-bWl0ZWQgdG8gbGVzcyAKdGhhbiAyNGJpdCBwcmVjaXNpb24gd2l0aG91dCAzMmJpdCBmb3JtYXRz
-LiBCdXQgYXMgc2FpZCwgaXQgaXMgbm90IApjcml0aWNhbCB0byB1cyBhbnkgbW9yZSBhbmQgSSBj
-YW4gZHJvcCB0aGUgMzJiaXQgZm9ybWF0cyBhcyB3ZWxsLgoKQlIsCkp5cmkKCgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
-bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> wrote:
+
+> Semantic patch finds comparisons of types:
+>     unsigned < 0
+>     unsigned >= 0
+> The former is always false, the latter is always true.
+> Such comparisons are useless, so theoretically they could be
+> safely removed, but their presence quite often indicates bugs.
+
+Or someone has left them in because they don't matter and there's the
+possibility that the type being tested might be or become signed under some
+circumstances.  If the comparison is useless, I'd expect the compiler to just
+discard it - for such cases your patch is pointless.
+
+If I have, for example:
+
+	unsigned x;
+
+	if (x == 0 || x > 27)
+		give_a_range_error();
+
+I will write this as:
+
+	unsigned x;
+
+	if (x <= 0 || x > 27)
+		give_a_range_error();
+
+because it that gives a way to handle x being changed to signed at some point
+in the future for no cost.  In which case, your changing the <= to an ==
+"because the < part of the case is useless" is arguably wrong.
+
+David
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
