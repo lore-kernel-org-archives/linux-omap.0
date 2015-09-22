@@ -1,89 +1,104 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 2/3] power_supply: Add support for tps65217-charger.
-Date: Tue, 22 Sep 2015 15:44:32 +0200
-Message-ID: <20150922134432.GG23334@earth>
-References: <1441699779-22189-1-git-send-email-enric.balletbo@collabora.com>
- <1441699779-22189-3-git-send-email-enric.balletbo@collabora.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="z9ECzHErBrwFF8sy"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1441699779-22189-3-git-send-email-enric.balletbo@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, lee.jones@linaro.org, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] clk: ti: Fix FAPLL udelay in clk_enable with clk_prepare
+Date: Tue, 22 Sep 2015 14:23:05 -0700
+Message-ID: <1442956985-32642-1-git-send-email-tony@atomide.com>
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+As recently pointed out (again) by Thomas and Russell, we must not
+wait in in clk_enable. The wait for PLL to lock needs to happen
+in clk_prepare instead.
 
---z9ECzHErBrwFF8sy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+It seems this is a common copy paste error with the PLL drivers,
+and similar fixes should be applied to other PLL drivers after
+testing.
 
-Hi,
+Cc: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/clk/ti/fapll.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-On Tue, Sep 08, 2015 at 10:09:38AM +0200, Enric Balletbo i Serra wrote:
-> This patch adds support for the tps65217 charger driver. This driver is
-> responsible for controlling the charger aspect of the tps65217 mfd.
-> Currently, this mainly consists of turning on and off the charger, but
-> some other features of the charger can be supported through this driver.
+diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
+index f4b2e98..e1db74a 100644
+--- a/drivers/clk/ti/fapll.c
++++ b/drivers/clk/ti/fapll.c
+@@ -37,7 +37,7 @@
+ #define FAPLL_PWD_OFFSET	4
+ 
+ #define MAX_FAPLL_OUTPUTS	7
+-#define FAPLL_MAX_RETRIES	1000
++#define FAPLL_MAX_RETRIES	5
+ 
+ #define to_fapll(_hw)		container_of(_hw, struct fapll_data, hw)
+ #define to_synth(_hw)		container_of(_hw, struct fapll_synth, hw)
+@@ -126,7 +126,7 @@ static int ti_fapll_wait_lock(struct fapll_data *fd)
+ 		if (retries-- <= 0)
+ 			break;
+ 
+-		udelay(1);
++		usleep_range(200, 300);
+ 	}
+ 
+ 	pr_err("%s failed to lock\n", fd->name);
+@@ -134,7 +134,7 @@ static int ti_fapll_wait_lock(struct fapll_data *fd)
+ 	return -ETIMEDOUT;
+ }
+ 
+-static int ti_fapll_enable(struct clk_hw *hw)
++static int ti_fapll_prepare(struct clk_hw *hw)
+ {
+ 	struct fapll_data *fd = to_fapll(hw);
+ 	u32 v = readl_relaxed(fd->base);
+@@ -146,7 +146,7 @@ static int ti_fapll_enable(struct clk_hw *hw)
+ 	return 0;
+ }
+ 
+-static void ti_fapll_disable(struct clk_hw *hw)
++static void ti_fapll_unprepare(struct clk_hw *hw)
+ {
+ 	struct fapll_data *fd = to_fapll(hw);
+ 	u32 v = readl_relaxed(fd->base);
+@@ -155,7 +155,7 @@ static void ti_fapll_disable(struct clk_hw *hw)
+ 	writel_relaxed(v, fd->base);
+ }
+ 
+-static int ti_fapll_is_enabled(struct clk_hw *hw)
++static int ti_fapll_is_prepared(struct clk_hw *hw)
+ {
+ 	struct fapll_data *fd = to_fapll(hw);
+ 	u32 v = readl_relaxed(fd->base);
+@@ -261,7 +261,7 @@ static int ti_fapll_set_rate(struct clk_hw *hw, unsigned long rate,
+ 	v |= pre_div_p << FAPLL_MAIN_DIV_P_SHIFT;
+ 	v |= mult_n << FAPLL_MAIN_MULT_N_SHIFT;
+ 	writel_relaxed(v, fd->base);
+-	if (ti_fapll_is_enabled(hw))
++	if (ti_fapll_is_prepared(hw))
+ 		ti_fapll_wait_lock(fd);
+ 	ti_fapll_clear_bypass(fd);
+ 
+@@ -269,9 +269,9 @@ static int ti_fapll_set_rate(struct clk_hw *hw, unsigned long rate,
+ }
+ 
+ static struct clk_ops ti_fapll_ops = {
+-	.enable = ti_fapll_enable,
+-	.disable = ti_fapll_disable,
+-	.is_enabled = ti_fapll_is_enabled,
++	.prepare = ti_fapll_prepare,
++	.unprepare = ti_fapll_unprepare,
++	.is_prepared = ti_fapll_is_prepared,
+ 	.recalc_rate = ti_fapll_recalc_rate,
+ 	.get_parent = ti_fapll_get_parent,
+ 	.round_rate = ti_fapll_round_rate,
+-- 
+2.1.4
 
-Driver looks mostly fine. I have two comments though:
-
-> [...]
->
-> +static int tps65217_ac_get_property(struct power_supply *psy,
-> +			enum power_supply_property psp,
-> +			union power_supply_propval *val)
-> +{
-> +	struct tps65217_charger *charger = power_supply_get_drvdata(psy);
-> +
-> +	if (psp == POWER_SUPPLY_PROP_ONLINE) {
-> +		val->intval = charger->ac_online;
-> +		charger->prev_ac_online = charger->ac_online;
-
-I think prev_ac_online should be set at the beginning of
-tps65217_charger_irq().
-
-> [...]
->
-> +static int tps65217_charger_probe(struct platform_device *pdev)
-> +{
->
-> [...]
->
-> +	charger->ac = power_supply_register(&pdev->dev,
-> +					&tps65217_charger_desc, NULL);
-> +	if (IS_ERR(charger->ac)) {
-> +		dev_err(&pdev->dev, "failed: power supply register\n");
-> +		return PTR_ERR(charger->ac);
-> +	}
-
-You can use devm_power_supply_register(...) to simplify the driver
-a bit more.
-
--- Sebastian
-
---z9ECzHErBrwFF8sy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWAVs9AAoJENju1/PIO/qaMZwP/2hkjOS3EBALtiClJtJQ9pkP
-J1WFNEJqAjg9gBzz0qQraa6ObwQaK7bvR3IIizpWEztNuAcbg9zK6EJc7LGfwgFr
-tmbDpWsJ/x30WVpeg/7c3GWZipFo6xgBCbA/1Ew6DD3ZWrgd9nwJb8CnMPIO1Bw8
-QoSJb88AxCb74k2dwrBhkCp2b/d7+DQXDAbDRXj50ZiPmZIieFXrRe1bGKingUs9
-pTaMm4e1+u2EfN4UyMhCulLaguyhp3skZY5T7eCLEhU5X8ieAABFbHINWngfjGch
-twj2VU9AZgvOkB5ipcdAdj4mPuI3fEH8XuvHx/3U6V5NeDH7EW647Wx3TW7359DX
-VXETmoqeLezM4mojTv3gRaQwbeiKINwkxpNsreANNCcd+sONTkuGCZS3w7jkJu8T
-0lrZ+C1PkzuyroGoXWt1PPgCzmqbR4ldojx8W/wfpKECyuaVI/RiwzTf4nneOtWX
-76DXZn3S+76GhgEjRo7p8IYk9oFRZdAFOQKfDmnvv6Sc6R0THqH0nTXdTXnORc3p
-8yDgpIr7KjWfD96Wt1FEEXVYsxudgLMk2cQrbFY33BhCkKcoToHZ9bMwNR875j+M
-HMsRlxyLssrTrLmuR8qdAd7VByAyO/C9Do1B0N0TNRY3WZQVVui6e3KsiCIOpC4q
-yaCUV1iG5jDaqNiWdgD+
-=Oas6
------END PGP SIGNATURE-----
-
---z9ECzHErBrwFF8sy--
