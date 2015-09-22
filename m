@@ -1,70 +1,108 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH 00/38] Fixes related to incorrect usage of unsigned types
-Date: Tue, 22 Sep 2015 11:46:58 +0200
-Message-ID: <56012392.7020807@samsung.com>
-References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
- <17571.1442842945@warthog.procyon.org.uk> <56011BB9.5030004@samsung.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 00/24] dmaengine/ARM: Merge the edma drivers into one
+Date: Tue, 22 Sep 2015 12:54:11 +0300
+Message-ID: <1442915675-7121-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-reply-to: <56011BB9.5030004@samsung.com>
-Sender: owner-linux-mm@kvack.org
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: David Howells <dhowells@redhat.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-kernel@vger.kernel.org, brcm80211-dev-list@broadcom.com, devel@driverdev.osuosl.org, dev@openvswitch.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cachefs@redhat.com, linux-clk@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-input@vger.kernel.org, linux-leds@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-mm@kvack.org, linux-omap@vger.kernel.org, linux-rdma@vger.kernel.org, linux-serial@vger.kernel.org, linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, lustre-devel@lists.lustre.org, netdev@vger.kernel.org, rtc-linux@googlegroups.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/22/2015 11:13 AM, Andrzej Hajda wrote:
-> On 09/21/2015 03:42 PM, David Howells wrote:
->> Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> wrote:
->>
->>> Semantic patch finds comparisons of types:
->>>      unsigned < 0
->>>      unsigned >= 0
->>> The former is always false, the latter is always true.
->>> Such comparisons are useless, so theoretically they could be
->>> safely removed, but their presence quite often indicates bugs.
->>
->> Or someone has left them in because they don't matter and there's the
->> possibility that the type being tested might be or become signed under some
->> circumstances.  If the comparison is useless, I'd expect the compiler to just
->> discard it - for such cases your patch is pointless.
->>
->> If I have, for example:
->>
->> 	unsigned x;
->>
->> 	if (x == 0 || x > 27)
->> 		give_a_range_error();
->>
->> I will write this as:
->>
->> 	unsigned x;
->>
->> 	if (x <= 0 || x > 27)
->> 		give_a_range_error();
->>
->> because it that gives a way to handle x being changed to signed at some point
->> in the future for no cost.  In which case, your changing the <= to an ==
->> "because the < part of the case is useless" is arguably wrong.
->
-> This is why I have not checked for such cases - I have skipped checks of type
-> 	unsigned <= 0
-> exactly for the reasons above.
->
-> However I have left two other checks as they seems to me more suspicious - they
-> are always true or false. But as Dmitry and Andrew pointed out Linus have quite
-> strong opinion against removing range checks in such cases as he finds it
-> clearer. I think it applies to patches 29-36. I am not sure about patches 26-28,37.
+Hi,
 
-Dropped 30/38 and 31/38 from LED tree then.
+Changes since v2:
+- devm_kasprintf format string fixed
+- Additional patch to enable dynamic paRAM slot usage when the channel mapping
+  is supported by the eDMA module.
+  On am335x we have 256 paRAM slots and 64 DMA channels, this means that we had
+  64 slots 'locked away' all the time. The dynamic paRAM slot logic will allow
+  us to use all 256 slots freely for any purpose.
+
+Changes since v1:
+- Convert edma platform device registration to use platform_device_register_full
+- Moved the PM callback also to the dmaengine driver - missed in v1
+- Commit message added to:
+  ARM/dmaengine: edma: Remove limitation on the number of eDMA controllers
+- New patch which reads the flag for the channel mapping support in one place
+
+Cover letter:
+
+with this series the edma two driver setup will be changed to have only one
+driver to support eDMA3. The legacy edma interface will be removed and eDMA can
+only be used via dmaengine API from this point on.
+In order to do the merge the following improvements has been done:
+- One driver instance per eDMA:
+ - Any number of eDMA instances are supported (both legacy and DT boot)
+- Not relying on global variables, arrays, etc
+- Code simplification and optimizations in several places
+
+This change will also help us to do bigger changes in the eDMA driver since,
+since now we have only one driver to work with.
+
+The series has been tested on:
+da850-evm (OMAP-L138)
+- with legacy and DT boot (both eDMA0 and eDMA1 is enabled)
+- In code swapping the eDMA instances in legacy mode to make sure the second
+  instance is handled correctly.
+
+am335x-evmsk
+- DT boot
+
+I think this series could go via the dmaengine tree. Changes are trivial under
+arch/arm/
+
+Regards,
+Peter
+---
+Peter Ujfalusi (24):
+  ARM: common: edma: Fix channel parameter for irq callbacks
+  ARM: common: edma: Remove unused functions
+  dmaengine: edma: Simplify and optimize the edma_execute path
+  ARM: davinci/common: Convert edma driver to handle one eDMA instance
+    per driver
+  ARM/dmaengine: edma: Move of_dma_controller_register to the dmaengine
+    driver
+  ARM: common: edma: Internal API to use pointer to 'struct edma'
+  ARM/dmaengine: edma: Public API to use private struct pointer
+  ARM/dmaengine: edma: Remove limitation on the number of eDMA
+    controllers
+  ARM: davinci: Use platform_device_register_full() to create pdev for
+    eDMA
+  ARM: davinci: Add set dma_mask to eDMA devices
+  dmaengine: edma: Allocate memory dynamically for bitmaps and
+    structures
+  dmaengine: edma: Parameter alignment and long line fixes
+  dmaengine: edma: Use devm_kcalloc when possible
+  dmaengine: edma: Cleanup regarding the use of dev around the code
+  dmaengine: edma: Use dev_dbg instead pr_debug
+  dmaengine: edma: Use the edma_write_slot instead open coded
+    memcpy_toio
+  dmaengine: edma: Print warning when linking slots from different eDMA
+  dmaengine: edma: Consolidate the comments for functions
+  dmaengine: edma: Simplify the interrupt handling
+  dmaengine: edma: Move the pending error check into helper function
+  dmaengine: edma: Simplify and optimize ccerr interrupt handler
+  dmaengine: edma: Read channel mapping support only once from HW
+  dmaengine: edma: Rename bitfields for slot and channel usage tracking
+  dmaengine: edma: Dynamic paRAM slot handling if HW supports it
+
+ arch/arm/Kconfig                      |    1 -
+ arch/arm/common/Kconfig               |    3 -
+ arch/arm/common/Makefile              |    1 -
+ arch/arm/common/edma.c                | 1876 ---------------------------------
+ arch/arm/mach-davinci/devices-da8xx.c |  122 +--
+ arch/arm/mach-davinci/dm355.c         |   40 +-
+ arch/arm/mach-davinci/dm365.c         |   25 +-
+ arch/arm/mach-davinci/dm644x.c        |   40 +-
+ arch/arm/mach-davinci/dm646x.c        |   44 +-
+ arch/arm/mach-omap2/Kconfig           |    1 -
+ drivers/dma/Kconfig                   |    1 -
+ drivers/dma/edma.c                    | 1569 ++++++++++++++++++++++++---
+ include/linux/platform_data/edma.h    |  101 --
+ 13 files changed, 1523 insertions(+), 2301 deletions(-)
+ delete mode 100644 arch/arm/common/edma.c
 
 -- 
-Best Regards,
-Jacek Anaszewski
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+2.5.2
