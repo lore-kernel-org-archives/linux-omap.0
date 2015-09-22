@@ -1,580 +1,238 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 19/24] dmaengine: edma: Simplify the interrupt handling
-Date: Tue, 22 Sep 2015 12:54:30 +0300
-Message-ID: <1442915675-7121-20-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 09/24] ARM: davinci: Use platform_device_register_full() to
+ create pdev for eDMA
+Date: Tue, 22 Sep 2015 12:54:20 +0300
+Message-ID: <1442915675-7121-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1442915675-7121-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1442915675-7121-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
+Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With the merger of the arch/arm/common/edma.c code into the dmaengine
-driver, there is no longer need to have per channel callback/data storage
-for interrupt events.
+Convert the eDMA platform device creation to use
+struct platform_device_info XXXXXX __initconst and
+platform_device_register_full()
+This will allow us to cleanly specify the dma_mask for the devices in an
+upcoming patch.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 447 ++++++++++++++++++++++++-----------------------------
- 1 file changed, 204 insertions(+), 243 deletions(-)
+ arch/arm/mach-davinci/devices-da8xx.c | 38 ++++++++++++++++++-----------------
+ arch/arm/mach-davinci/dm355.c         | 20 +++++++++++-------
+ arch/arm/mach-davinci/dm644x.c        | 20 +++++++++++-------
+ arch/arm/mach-davinci/dm646x.c        | 18 ++++++++++-------
+ 4 files changed, 57 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index d872efed0760..03f411cc900b 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -154,12 +154,6 @@ struct edmacc_param {
- #define TCCHEN		BIT(22)
- #define ITCCHEN		BIT(23)
+diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
+index 9ae049ae816a..9f7d266faa0c 100644
+--- a/arch/arm/mach-davinci/devices-da8xx.c
++++ b/arch/arm/mach-davinci/devices-da8xx.c
+@@ -213,48 +213,50 @@ static struct resource da850_edma1_resources[] = {
+ 	},
+ };
  
--/*ch_status paramater of callback function possible values*/
--#define EDMA_DMA_COMPLETE 1
--#define EDMA_DMA_CC_ERROR 2
--#define EDMA_DMA_TC1_ERROR 3
--#define EDMA_DMA_TC2_ERROR 4
--
- struct edma_pset {
- 	u32				len;
- 	dma_addr_t			addr;
-@@ -243,12 +237,6 @@ struct edma_cc {
- 	 */
- 	unsigned long *edma_unused;
+-static struct platform_device da8xx_edma0_device = {
++static const struct platform_device_info da8xx_edma0_device __initconst = {
+ 	.name		= "edma",
+ 	.id		= 0,
+-	.dev = {
+-		.platform_data = &da8xx_edma0_pdata,
+-	},
+-	.num_resources	= ARRAY_SIZE(da8xx_edma0_resources),
+-	.resource	= da8xx_edma0_resources,
++	.res		= da8xx_edma0_resources,
++	.num_res	= ARRAY_SIZE(da8xx_edma0_resources),
++	.data		= &da8xx_edma0_pdata,
++	.size_data	= sizeof(da8xx_edma0_pdata),
+ };
  
--	struct dma_interrupt_data {
--		void (*callback)(unsigned channel, unsigned short ch_status,
--				void *data);
--		void *data;
--	} *intr_data;
--
- 	struct dma_device		dma_slave;
- 	struct edma_chan		*slave_chans;
- 	int				dummy_slot;
-@@ -464,24 +452,18 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
- 	return 0;
+-static struct platform_device da850_edma1_device = {
++static const struct platform_device_info da850_edma1_device __initconst = {
+ 	.name		= "edma",
+ 	.id		= 1,
+-	.dev = {
+-		.platform_data = &da850_edma1_pdata,
+-	},
+-	.num_resources	= ARRAY_SIZE(da850_edma1_resources),
+-	.resource	= da850_edma1_resources,
++	.res		= da850_edma1_resources,
++	.num_res	= ARRAY_SIZE(da850_edma1_resources),
++	.data		= &da850_edma1_pdata,
++	.size_data	= sizeof(da850_edma1_pdata),
+ };
+ 
+ int __init da830_register_edma(struct edma_rsv_info *rsv)
+ {
++	struct platform_device *edma_pdev;
++
+ 	da8xx_edma0_pdata.rsv = rsv;
+ 
+-	return platform_device_register(&da8xx_edma0_device);
++	edma_pdev = platform_device_register_full(&da8xx_edma0_device);
++	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
  }
  
--static void edma_setup_interrupt(struct edma_cc *ecc, unsigned lch,
--	void (*callback)(unsigned channel, u16 ch_status, void *data),
--	void *data)
-+static void edma_setup_interrupt(struct edma_cc *ecc, unsigned lch, bool enable)
+ int __init da850_register_edma(struct edma_rsv_info *rsv[2])
  {
- 	lch = EDMA_CHAN_SLOT(lch);
+-	int ret;
++	struct platform_device *edma_pdev;
  
--	if (!callback)
--		edma_shadow0_write_array(ecc, SH_IECR, lch >> 5,
--					 BIT(lch & 0x1f));
--
--	ecc->intr_data[lch].callback = callback;
--	ecc->intr_data[lch].data = data;
--
--	if (callback) {
-+	if (enable) {
- 		edma_shadow0_write_array(ecc, SH_ICR, lch >> 5,
- 					 BIT(lch & 0x1f));
- 		edma_shadow0_write_array(ecc, SH_IESR, lch >> 5,
- 					 BIT(lch & 0x1f));
-+	} else {
-+		edma_shadow0_write_array(ecc, SH_IECR, lch >> 5,
-+					 BIT(lch & 0x1f));
+ 	if (rsv) {
+ 		da8xx_edma0_pdata.rsv = rsv[0];
+ 		da850_edma1_pdata.rsv = rsv[1];
  	}
+ 
+-	ret = platform_device_register(&da8xx_edma0_device);
+-	if (ret) {
++	edma_pdev = platform_device_register_full(&da8xx_edma0_device);
++	if (IS_ERR(edma_pdev)) {
+ 		pr_warn("%s: Failed to register eDMA0\n", __func__);
+-		return ret;
++		return PTR_ERR(edma_pdev);
+ 	}
+-	return platform_device_register(&da850_edma1_device);
++	edma_pdev = platform_device_register_full(&da850_edma1_device);
++	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
  }
  
-@@ -774,8 +756,6 @@ static void edma_clean_channel(struct edma_cc *ecc, unsigned channel)
-  * edma_alloc_channel - allocate DMA channel and paired parameter RAM
-  * @ecc: pointer to edma_cc struct
-  * @channel: specific channel to allocate; negative for "any unmapped channel"
-- * @callback: optional; to be issued on DMA completion or errors
-- * @data: passed to callback
-  * @eventq_no: an EVENTQ_* constant, used to choose which Transfer
-  *	Controller (TC) executes requests using this channel.  Use
-  *	EVENTQ_DEFAULT unless you really need a high priority queue.
-@@ -802,9 +782,7 @@ static void edma_clean_channel(struct edma_cc *ecc, unsigned channel)
-  * Returns the number of the channel, else negative errno.
-  */
- static int edma_alloc_channel(struct edma_cc *ecc, int channel,
--		void (*callback)(unsigned channel, u16 ch_status, void *data),
--		void *data,
--		enum dma_event_q eventq_no)
-+			      enum dma_event_q eventq_no)
+ static struct resource da8xx_i2c_resources0[] = {
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index a50bb9c66952..5f10c6695e31 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -613,12 +613,13 @@ static struct resource edma_resources[] = {
+ 	/* not using (or muxing) TC*_ERR */
+ };
+ 
+-static struct platform_device dm355_edma_device = {
+-	.name			= "edma",
+-	.id			= 0,
+-	.dev.platform_data	= &dm355_edma_pdata,
+-	.num_resources		= ARRAY_SIZE(edma_resources),
+-	.resource		= edma_resources,
++static const struct platform_device_info dm355_edma_device __initconst = {
++	.name		= "edma",
++	.id		= 0,
++	.res		= edma_resources,
++	.num_res	= ARRAY_SIZE(edma_resources),
++	.data		= &dm355_edma_pdata,
++	.size_data	= sizeof(dm355_edma_pdata),
+ };
+ 
+ static struct resource dm355_asp1_resources[] = {
+@@ -1057,13 +1058,18 @@ int __init dm355_init_video(struct vpfe_config *vpfe_cfg,
+ 
+ static int __init dm355_init_devices(void)
  {
- 	unsigned done = 0;
++	struct platform_device *edma_pdev;
  	int ret = 0;
-@@ -860,9 +838,7 @@ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
- 	edma_stop(ecc, EDMA_CTLR_CHAN(ecc->id, channel));
- 	edma_write_slot(ecc, channel, &dummy_paramset);
  
--	if (callback)
--		edma_setup_interrupt(ecc, EDMA_CTLR_CHAN(ecc->id, channel),
--				     callback, data);
-+	edma_setup_interrupt(ecc, EDMA_CTLR_CHAN(ecc->id, channel), true);
+ 	if (!cpu_is_davinci_dm355())
+ 		return 0;
  
- 	edma_map_dmach_to_queue(ecc, channel, eventq_no);
+ 	davinci_cfg_reg(DM355_INT_EDMA_CC);
+-	platform_device_register(&dm355_edma_device);
++	edma_pdev = platform_device_register_full(&dm355_edma_device);
++	if (IS_ERR(edma_pdev)) {
++		pr_warn("%s: Failed to register eDMA\n", __func__);
++		return PTR_ERR(edma_pdev);
++	}
  
-@@ -895,7 +871,7 @@ static void edma_free_channel(struct edma_cc *ecc, unsigned channel)
- 	if (channel >= ecc->num_channels)
- 		return;
+ 	ret = davinci_init_wdt();
+ 	if (ret)
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index d759ca8e58e8..aa3453b40d5f 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -542,12 +542,13 @@ static struct resource edma_resources[] = {
+ 	/* not using TC*_ERR */
+ };
  
--	edma_setup_interrupt(ecc, channel, NULL, NULL);
-+	edma_setup_interrupt(ecc, channel, false);
- 	/* REVISIT should probably take out of shadow region 0 */
+-static struct platform_device dm644x_edma_device = {
+-	.name			= "edma",
+-	.id			= 0,
+-	.dev.platform_data	= &dm644x_edma_pdata,
+-	.num_resources		= ARRAY_SIZE(edma_resources),
+-	.resource		= edma_resources,
++static const struct platform_device_info dm644x_edma_device __initconst = {
++	.name		= "edma",
++	.id		= 0,
++	.res		= edma_resources,
++	.num_res	= ARRAY_SIZE(edma_resources),
++	.data		= &dm644x_edma_pdata,
++	.size_data	= sizeof(dm644x_edma_pdata),
+ };
  
- 	edma_write_slot(ecc, channel, &dummy_paramset);
-@@ -925,146 +901,6 @@ static void edma_assign_channel_eventq(struct edma_cc *ecc, unsigned channel,
- 	edma_map_dmach_to_queue(ecc, channel, eventq_no);
- }
+ /* DM6446 EVM uses ASP0; line-out is a pair of RCA jacks */
+@@ -945,12 +946,17 @@ int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
  
--/* eDMA interrupt handler */
--static irqreturn_t dma_irq_handler(int irq, void *data)
--{
--	struct edma_cc *ecc = data;
--	int ctlr;
--	u32 sh_ier;
--	u32 sh_ipr;
--	u32 bank;
--
--	ctlr = ecc->id;
--	if (ctlr < 0)
--		return IRQ_NONE;
--
--	dev_dbg(ecc->dev, "dma_irq_handler\n");
--
--	sh_ipr = edma_shadow0_read_array(ecc, SH_IPR, 0);
--	if (!sh_ipr) {
--		sh_ipr = edma_shadow0_read_array(ecc, SH_IPR, 1);
--		if (!sh_ipr)
--			return IRQ_NONE;
--		sh_ier = edma_shadow0_read_array(ecc, SH_IER, 1);
--		bank = 1;
--	} else {
--		sh_ier = edma_shadow0_read_array(ecc, SH_IER, 0);
--		bank = 0;
--	}
--
--	do {
--		u32 slot;
--		u32 channel;
--
--		dev_dbg(ecc->dev, "IPR%d %08x\n", bank, sh_ipr);
--
--		slot = __ffs(sh_ipr);
--		sh_ipr &= ~(BIT(slot));
--
--		if (sh_ier & BIT(slot)) {
--			channel = (bank << 5) | slot;
--			/* Clear the corresponding IPR bits */
--			edma_shadow0_write_array(ecc, SH_ICR, bank, BIT(slot));
--			if (ecc->intr_data[channel].callback)
--				ecc->intr_data[channel].callback(
--						EDMA_CTLR_CHAN(ctlr, channel),
--						EDMA_DMA_COMPLETE,
--						ecc->intr_data[channel].data);
--		}
--	} while (sh_ipr);
--
--	edma_shadow0_write(ecc, SH_IEVAL, 1);
--	return IRQ_HANDLED;
--}
--
--/* eDMA error interrupt handler */
--static irqreturn_t dma_ccerr_handler(int irq, void *data)
--{
--	struct edma_cc *ecc = data;
--	int i;
--	int ctlr;
--	unsigned int cnt = 0;
--
--	ctlr = ecc->id;
--	if (ctlr < 0)
--		return IRQ_NONE;
--
--	dev_dbg(ecc->dev, "dma_ccerr_handler\n");
--
--	if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
--	    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
--	    (edma_read(ecc, EDMA_QEMR) == 0) &&
--	    (edma_read(ecc, EDMA_CCERR) == 0))
--		return IRQ_NONE;
--
--	while (1) {
--		int j = -1;
--		if (edma_read_array(ecc, EDMA_EMR, 0))
--			j = 0;
--		else if (edma_read_array(ecc, EDMA_EMR, 1))
--			j = 1;
--		if (j >= 0) {
--			dev_dbg(ecc->dev, "EMR%d %08x\n", j,
--				edma_read_array(ecc, EDMA_EMR, j));
--			for (i = 0; i < 32; i++) {
--				int k = (j << 5) + i;
--				if (edma_read_array(ecc, EDMA_EMR, j) &
--							BIT(i)) {
--					/* Clear the corresponding EMR bits */
--					edma_write_array(ecc, EDMA_EMCR, j,
--							 BIT(i));
--					/* Clear any SER */
--					edma_shadow0_write_array(ecc, SH_SECR,
--								j, BIT(i));
--					if (ecc->intr_data[k].callback) {
--						ecc->intr_data[k].callback(
--							EDMA_CTLR_CHAN(ctlr, k),
--							EDMA_DMA_CC_ERROR,
--							ecc->intr_data[k].data);
--					}
--				}
--			}
--		} else if (edma_read(ecc, EDMA_QEMR)) {
--			dev_dbg(ecc->dev, "QEMR %02x\n",
--				edma_read(ecc, EDMA_QEMR));
--			for (i = 0; i < 8; i++) {
--				if (edma_read(ecc, EDMA_QEMR) & BIT(i)) {
--					/* Clear the corresponding IPR bits */
--					edma_write(ecc, EDMA_QEMCR, BIT(i));
--					edma_shadow0_write(ecc, SH_QSECR,
--							   BIT(i));
--
--					/* NOTE:  not reported!! */
--				}
--			}
--		} else if (edma_read(ecc, EDMA_CCERR)) {
--			dev_dbg(ecc->dev, "CCERR %08x\n",
--				edma_read(ecc, EDMA_CCERR));
--			/* FIXME:  CCERR.BIT(16) ignored!  much better
--			 * to just write CCERRCLR with CCERR value...
--			 */
--			for (i = 0; i < 8; i++) {
--				if (edma_read(ecc, EDMA_CCERR) & BIT(i)) {
--					/* Clear the corresponding IPR bits */
--					edma_write(ecc, EDMA_CCERRCLR, BIT(i));
--
--					/* NOTE:  not reported!! */
--				}
--			}
--		}
--		if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
--		    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
--		    (edma_read(ecc, EDMA_QEMR) == 0) &&
--		    (edma_read(ecc, EDMA_CCERR) == 0))
--			break;
--		cnt++;
--		if (cnt > 10)
--			break;
--	}
--	edma_write(ecc, EDMA_EEVAL, 1);
--	return IRQ_HANDLED;
--}
--
- static inline struct edma_cc *to_edma_cc(struct dma_device *d)
+ static int __init dm644x_init_devices(void)
  {
- 	return container_of(d, struct edma_cc, dma_slave);
-@@ -1646,81 +1482,213 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
- 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
- }
++	struct platform_device *edma_pdev;
+ 	int ret = 0;
  
--static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
-+static void edma_completion_handler(struct edma_chan *echan)
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
+ 
+-	platform_device_register(&dm644x_edma_device);
++	edma_pdev = platform_device_register_full(&dm644x_edma_device);
++	if (IS_ERR(edma_pdev)) {
++		pr_warn("%s: Failed to register eDMA\n", __func__);
++		return PTR_ERR(edma_pdev);
++	}
+ 
+ 	platform_device_register(&dm644x_mdio_device);
+ 	platform_device_register(&dm644x_emac_device);
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 219ebc8f674a..79c1d8917dd3 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -589,12 +589,13 @@ static struct resource edma_resources[] = {
+ 	/* not using TC*_ERR */
+ };
+ 
+-static struct platform_device dm646x_edma_device = {
+-	.name			= "edma",
+-	.id			= 0,
+-	.dev.platform_data	= &dm646x_edma_pdata,
+-	.num_resources		= ARRAY_SIZE(edma_resources),
+-	.resource		= edma_resources,
++static const struct platform_device_info dm646x_edma_device __initconst = {
++	.name		= "edma",
++	.id		= 0,
++	.res		= edma_resources,
++	.num_res	= ARRAY_SIZE(edma_resources),
++	.data		= &dm646x_edma_pdata,
++	.size_data	= sizeof(dm646x_edma_pdata),
+ };
+ 
+ static struct resource dm646x_mcasp0_resources[] = {
+@@ -931,9 +932,12 @@ void dm646x_setup_vpif(struct vpif_display_config *display_config,
+ 
+ int __init dm646x_init_edma(struct edma_rsv_info *rsv)
  {
--	struct edma_chan *echan = data;
- 	struct edma_cc *ecc = echan->ecc;
- 	struct device *dev = echan->vchan.chan.device->dev;
--	struct edma_desc *edesc;
--	struct edmacc_param p;
-+	struct edma_desc *edesc = echan->edesc;
++	struct platform_device *edma_pdev;
++
+ 	dm646x_edma_pdata.rsv = rsv;
  
--	edesc = echan->edesc;
-+	if (!edesc)
-+		return;
- 
- 	spin_lock(&echan->vchan.lock);
--	switch (ch_status) {
--	case EDMA_DMA_COMPLETE:
--		if (edesc) {
--			if (edesc->cyclic) {
--				vchan_cyclic_callback(&edesc->vdesc);
--				goto out;
--			} else if (edesc->processed == edesc->pset_nr) {
--				dev_dbg(dev,
--					"Transfer completed on channel %d\n",
--					ch_num);
--				edesc->residue = 0;
--				edma_stop(ecc, echan->ch_num);
--				vchan_cookie_complete(&edesc->vdesc);
--				echan->edesc = NULL;
--			} else {
--				dev_dbg(dev,
--					"Sub transfer completed on channel %d\n",
--					ch_num);
--
--				edma_pause(ecc, echan->ch_num);
--
--				/* Update statistics for tx_status */
--				edesc->residue -= edesc->sg_len;
--				edesc->residue_stat = edesc->residue;
--				edesc->processed_stat = edesc->processed;
--			}
--			edma_execute(echan);
-+	if (edesc->cyclic) {
-+		vchan_cyclic_callback(&edesc->vdesc);
-+		spin_unlock(&echan->vchan.lock);
-+		return;
-+	} else if (edesc->processed == edesc->pset_nr) {
-+		dev_dbg(dev, "Transfer completed on channel %d\n",
-+			echan->ch_num);
-+		edesc->residue = 0;
-+		edma_stop(ecc, echan->ch_num);
-+		vchan_cookie_complete(&edesc->vdesc);
-+		echan->edesc = NULL;
-+	} else {
-+		dev_dbg(dev, "Sub transfer completed on channel %d\n",
-+			echan->ch_num);
-+
-+		edma_pause(ecc, echan->ch_num);
-+
-+		/* Update statistics for tx_status */
-+		edesc->residue -= edesc->sg_len;
-+		edesc->residue_stat = edesc->residue;
-+		edesc->processed_stat = edesc->processed;
-+	}
-+	edma_execute(echan);
-+
-+	spin_unlock(&echan->vchan.lock);
-+}
-+
-+/* eDMA interrupt handler */
-+static irqreturn_t dma_irq_handler(int irq, void *data)
-+{
-+	struct edma_cc *ecc = data;
-+	int ctlr;
-+	u32 sh_ier;
-+	u32 sh_ipr;
-+	u32 bank;
-+
-+	ctlr = ecc->id;
-+	if (ctlr < 0)
-+		return IRQ_NONE;
-+
-+	dev_dbg(ecc->dev, "dma_irq_handler\n");
-+
-+	sh_ipr = edma_shadow0_read_array(ecc, SH_IPR, 0);
-+	if (!sh_ipr) {
-+		sh_ipr = edma_shadow0_read_array(ecc, SH_IPR, 1);
-+		if (!sh_ipr)
-+			return IRQ_NONE;
-+		sh_ier = edma_shadow0_read_array(ecc, SH_IER, 1);
-+		bank = 1;
-+	} else {
-+		sh_ier = edma_shadow0_read_array(ecc, SH_IER, 0);
-+		bank = 0;
-+	}
-+
-+	do {
-+		u32 slot;
-+		u32 channel;
-+
-+		dev_dbg(ecc->dev, "IPR%d %08x\n", bank, sh_ipr);
-+
-+		slot = __ffs(sh_ipr);
-+		sh_ipr &= ~(BIT(slot));
-+
-+		if (sh_ier & BIT(slot)) {
-+			channel = (bank << 5) | slot;
-+			/* Clear the corresponding IPR bits */
-+			edma_shadow0_write_array(ecc, SH_ICR, bank, BIT(slot));
-+			edma_completion_handler(&ecc->slave_chans[channel]);
- 		}
--		break;
--	case EDMA_DMA_CC_ERROR:
--		edma_read_slot(ecc, echan->slot[0], &p);
-+	} while (sh_ipr);
-+
-+	edma_shadow0_write(ecc, SH_IEVAL, 1);
-+	return IRQ_HANDLED;
-+}
-+
-+static void edma_error_handler(struct edma_chan *echan)
-+{
-+	struct edma_cc *ecc = echan->ecc;
-+	struct device *dev = echan->vchan.chan.device->dev;
-+	struct edmacc_param p;
-+
-+	if (!echan->edesc)
-+		return;
-+
-+	spin_lock(&echan->vchan.lock);
- 
-+	edma_read_slot(ecc, echan->slot[0], &p);
-+	/*
-+	 * Issue later based on missed flag which will be sure
-+	 * to happen as:
-+	 * (1) we finished transmitting an intermediate slot and
-+	 *     edma_execute is coming up.
-+	 * (2) or we finished current transfer and issue will
-+	 *     call edma_execute.
-+	 *
-+	 * Important note: issuing can be dangerous here and
-+	 * lead to some nasty recursion when we are in a NULL
-+	 * slot. So we avoid doing so and set the missed flag.
-+	 */
-+	if (p.a_b_cnt == 0 && p.ccnt == 0) {
-+		dev_dbg(dev, "Error on null slot, setting miss\n");
-+		echan->missed = 1;
-+	} else {
- 		/*
--		 * Issue later based on missed flag which will be sure
--		 * to happen as:
--		 * (1) we finished transmitting an intermediate slot and
--		 *     edma_execute is coming up.
--		 * (2) or we finished current transfer and issue will
--		 *     call edma_execute.
--		 *
--		 * Important note: issuing can be dangerous here and
--		 * lead to some nasty recursion when we are in a NULL
--		 * slot. So we avoid doing so and set the missed flag.
-+		 * The slot is already programmed but the event got
-+		 * missed, so its safe to issue it here.
- 		 */
--		if (p.a_b_cnt == 0 && p.ccnt == 0) {
--			dev_dbg(dev, "Error on null slot, setting miss\n");
--			echan->missed = 1;
--		} else {
--			/*
--			 * The slot is already programmed but the event got
--			 * missed, so its safe to issue it here.
-+		dev_dbg(dev, "Missed event, TRIGGERING\n");
-+		edma_clean_channel(ecc, echan->ch_num);
-+		edma_stop(ecc, echan->ch_num);
-+		edma_start(ecc, echan->ch_num);
-+		edma_trigger_channel(ecc, echan->ch_num);
-+	}
-+	spin_unlock(&echan->vchan.lock);
-+}
-+
-+/* eDMA error interrupt handler */
-+static irqreturn_t dma_ccerr_handler(int irq, void *data)
-+{
-+	struct edma_cc *ecc = data;
-+	int i;
-+	int ctlr;
-+	unsigned int cnt = 0;
-+
-+	ctlr = ecc->id;
-+	if (ctlr < 0)
-+		return IRQ_NONE;
-+
-+	dev_dbg(ecc->dev, "dma_ccerr_handler\n");
-+
-+	if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
-+	    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
-+	    (edma_read(ecc, EDMA_QEMR) == 0) &&
-+	    (edma_read(ecc, EDMA_CCERR) == 0))
-+		return IRQ_NONE;
-+
-+	while (1) {
-+		int j = -1;
-+		if (edma_read_array(ecc, EDMA_EMR, 0))
-+			j = 0;
-+		else if (edma_read_array(ecc, EDMA_EMR, 1))
-+			j = 1;
-+		if (j >= 0) {
-+			dev_dbg(ecc->dev, "EMR%d %08x\n", j,
-+				edma_read_array(ecc, EDMA_EMR, j));
-+			for (i = 0; i < 32; i++) {
-+				int k = (j << 5) + i;
-+				if (edma_read_array(ecc, EDMA_EMR, j) &
-+							BIT(i)) {
-+					/* Clear the corresponding EMR bits */
-+					edma_write_array(ecc, EDMA_EMCR, j,
-+							 BIT(i));
-+					/* Clear any SER */
-+					edma_shadow0_write_array(ecc, SH_SECR,
-+								j, BIT(i));
-+					edma_error_handler(&ecc->slave_chans[k]);
-+				}
-+			}
-+		} else if (edma_read(ecc, EDMA_QEMR)) {
-+			dev_dbg(ecc->dev, "QEMR %02x\n",
-+				edma_read(ecc, EDMA_QEMR));
-+			for (i = 0; i < 8; i++) {
-+				if (edma_read(ecc, EDMA_QEMR) & BIT(i)) {
-+					/* Clear the corresponding IPR bits */
-+					edma_write(ecc, EDMA_QEMCR, BIT(i));
-+					edma_shadow0_write(ecc, SH_QSECR,
-+							   BIT(i));
-+
-+					/* NOTE:  not reported!! */
-+				}
-+			}
-+		} else if (edma_read(ecc, EDMA_CCERR)) {
-+			dev_dbg(ecc->dev, "CCERR %08x\n",
-+				edma_read(ecc, EDMA_CCERR));
-+			/* FIXME:  CCERR.BIT(16) ignored!  much better
-+			 * to just write CCERRCLR with CCERR value...
- 			 */
--			dev_dbg(dev, "Missed event, TRIGGERING\n");
--			edma_clean_channel(ecc, echan->ch_num);
--			edma_stop(ecc, echan->ch_num);
--			edma_start(ecc, echan->ch_num);
--			edma_trigger_channel(ecc, echan->ch_num);
-+			for (i = 0; i < 8; i++) {
-+				if (edma_read(ecc, EDMA_CCERR) & BIT(i)) {
-+					/* Clear the corresponding IPR bits */
-+					edma_write(ecc, EDMA_CCERRCLR, BIT(i));
-+
-+					/* NOTE:  not reported!! */
-+				}
-+			}
- 		}
--		break;
--	default:
--		break;
-+		if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
-+		    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
-+		    (edma_read(ecc, EDMA_QEMR) == 0) &&
-+		    (edma_read(ecc, EDMA_CCERR) == 0))
-+			break;
-+		cnt++;
-+		if (cnt > 10)
-+			break;
- 	}
--out:
--	spin_unlock(&echan->vchan.lock);
-+	edma_write(ecc, EDMA_EEVAL, 1);
-+	return IRQ_HANDLED;
+-	return platform_device_register(&dm646x_edma_device);
++	edma_pdev = platform_device_register_full(&dm646x_edma_device);
++	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
  }
  
- /* Alloc channel resources */
-@@ -1732,8 +1700,7 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
- 	int a_ch_num;
- 	LIST_HEAD(descs);
- 
--	a_ch_num = edma_alloc_channel(echan->ecc, echan->ch_num,
--				      edma_callback, echan, EVENTQ_DEFAULT);
-+	a_ch_num = edma_alloc_channel(echan->ecc, echan->ch_num, EVENTQ_DEFAULT);
- 
- 	if (a_ch_num < 0) {
- 		ret = -ENODEV;
-@@ -2154,11 +2121,6 @@ static int edma_probe(struct platform_device *pdev)
- 	if (!ecc->slave_chans)
- 		return -ENOMEM;
- 
--	ecc->intr_data = devm_kcalloc(dev, ecc->num_channels,
--				      sizeof(*ecc->intr_data), GFP_KERNEL);
--	if (!ecc->intr_data)
--		return -ENOMEM;
--
- 	ecc->edma_unused = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_channels),
- 					sizeof(unsigned long), GFP_KERNEL);
- 	if (!ecc->edma_unused)
-@@ -2329,8 +2291,7 @@ static int edma_pm_resume(struct device *dev)
- 				       BIT(i & 0x1f));
- 
- 			edma_setup_interrupt(ecc, EDMA_CTLR_CHAN(ecc->id, i),
--					     ecc->intr_data[i].callback,
--					     ecc->intr_data[i].data);
-+					     true);
- 		}
- 	}
- 
+ void __init dm646x_init(void)
 -- 
 2.5.2
