@@ -1,65 +1,60 @@
-From: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] mfd: Add battery charger as subdevice to the tps65217.
-Date: Tue, 22 Sep 2015 09:43:50 +0200
-Message-ID: <CAFqH_51hUMH=1MMWQ3uSz1yJ=i6upNAHJrhD78Ocp9EWRqXW5w@mail.gmail.com>
-References: <1441699779-22189-1-git-send-email-enric.balletbo@collabora.com>
-	<1441699779-22189-4-git-send-email-enric.balletbo@collabora.com>
-	<20150920041953.GV3039@x1>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH 00/38] Fixes related to incorrect usage of
+	unsigned types
+Date: Tue, 22 Sep 2015 11:13:29 +0200
+Message-ID: <56011BB9.5030004@samsung.com>
+References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
+ <17571.1442842945@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150920041953.GV3039@x1>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Sjoerd Simons <sjoerd.simons-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-reply-to: <17571.1442842945@warthog.procyon.org.uk>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: David Howells <dhowells@redhat.com>
+Cc: linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, linux-sh@vger.kernel.org, brcm80211-dev-list@broadcom.com, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, linux-clk@vger.kernel.org, linux-leds@vger.kernel.org, Marek Szyprowski <m.szyprowski@samsung.com>, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-cachefs@redhat.com, linux-serial@vger.kernel.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org, dev@openvswitch.org, rtc-linux@googlegroups.com, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, intel-gfx@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrzej Hajda <a.hajda@samsung.com>, linux-api@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, lustre-devel@lists.lustre.org
 List-Id: linux-omap@vger.kernel.org
 
-2015-09-20 6:19 GMT+02:00 Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>:
-> On Tue, 08 Sep 2015, Enric Balletbo i Serra wrote:
->
->> Add tps65217 battery charger subdevice.
->>
->> Signed-off-by: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
->> ---
->>  drivers/mfd/tps65217.c | 4 ++++
->>  1 file changed, 4 insertions(+)
->
-> Applied, thanks.
->
-
-Many thanks, any feedback about ?
-
-[PATCH 1/3] devicetree: Add TPS65217 charger binding
-[PATCH 2/3] power_supply: Add support for tps65217-charger.
-
-Or should go through another tree ?
-
-
-
->> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
->> index 55add04..d32b5442 100644
->> --- a/drivers/mfd/tps65217.c
->> +++ b/drivers/mfd/tps65217.c
->> @@ -39,6 +39,10 @@ static const struct mfd_cell tps65217s[] =3D {
->>               .name =3D "tps65217-bl",
->>               .of_compatible =3D "ti,tps65217-bl",
->>       },
->> +     {
->> +             .name =3D "tps65217-charger",
->> +             .of_compatible =3D "ti,tps65217-charger",
->> +     },
->>  };
->>
->>  /**
->
-> --
-> Lee Jones
-> Linaro STMicroelectronics Landing Team Lead
-> Linaro.org =E2=94=82 Open source software for ARM SoCs
-> Follow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMDkvMjEvMjAxNSAwMzo0MiBQTSwgRGF2aWQgSG93ZWxscyB3cm90ZToKPiBBbmRyemVqIEhh
+amRhIDxhLmhhamRhLVN6ZTNPM1VVMjJKQkRnaks3eTdUVVFAcHVibGljLmdtYW5lLm9yZz4gd3Jv
+dGU6Cj4gCj4+IFNlbWFudGljIHBhdGNoIGZpbmRzIGNvbXBhcmlzb25zIG9mIHR5cGVzOgo+PiAg
+ICAgdW5zaWduZWQgPCAwCj4+ICAgICB1bnNpZ25lZCA+PSAwCj4+IFRoZSBmb3JtZXIgaXMgYWx3
+YXlzIGZhbHNlLCB0aGUgbGF0dGVyIGlzIGFsd2F5cyB0cnVlLgo+PiBTdWNoIGNvbXBhcmlzb25z
+IGFyZSB1c2VsZXNzLCBzbyB0aGVvcmV0aWNhbGx5IHRoZXkgY291bGQgYmUKPj4gc2FmZWx5IHJl
+bW92ZWQsIGJ1dCB0aGVpciBwcmVzZW5jZSBxdWl0ZSBvZnRlbiBpbmRpY2F0ZXMgYnVncy4KPiAK
+PiBPciBzb21lb25lIGhhcyBsZWZ0IHRoZW0gaW4gYmVjYXVzZSB0aGV5IGRvbid0IG1hdHRlciBh
+bmQgdGhlcmUncyB0aGUKPiBwb3NzaWJpbGl0eSB0aGF0IHRoZSB0eXBlIGJlaW5nIHRlc3RlZCBt
+aWdodCBiZSBvciBiZWNvbWUgc2lnbmVkIHVuZGVyIHNvbWUKPiBjaXJjdW1zdGFuY2VzLiAgSWYg
+dGhlIGNvbXBhcmlzb24gaXMgdXNlbGVzcywgSSdkIGV4cGVjdCB0aGUgY29tcGlsZXIgdG8ganVz
+dAo+IGRpc2NhcmQgaXQgLSBmb3Igc3VjaCBjYXNlcyB5b3VyIHBhdGNoIGlzIHBvaW50bGVzcy4K
+PiAKPiBJZiBJIGhhdmUsIGZvciBleGFtcGxlOgo+IAo+IAl1bnNpZ25lZCB4Owo+IAo+IAlpZiAo
+eCA9PSAwIHx8IHggPiAyNykKPiAJCWdpdmVfYV9yYW5nZV9lcnJvcigpOwo+IAo+IEkgd2lsbCB3
+cml0ZSB0aGlzIGFzOgo+IAo+IAl1bnNpZ25lZCB4Owo+IAo+IAlpZiAoeCA8PSAwIHx8IHggPiAy
+NykKPiAJCWdpdmVfYV9yYW5nZV9lcnJvcigpOwo+IAo+IGJlY2F1c2UgaXQgdGhhdCBnaXZlcyBh
+IHdheSB0byBoYW5kbGUgeCBiZWluZyBjaGFuZ2VkIHRvIHNpZ25lZCBhdCBzb21lIHBvaW50Cj4g
+aW4gdGhlIGZ1dHVyZSBmb3Igbm8gY29zdC4gIEluIHdoaWNoIGNhc2UsIHlvdXIgY2hhbmdpbmcg
+dGhlIDw9IHRvIGFuID09Cj4gImJlY2F1c2UgdGhlIDwgcGFydCBvZiB0aGUgY2FzZSBpcyB1c2Vs
+ZXNzIiBpcyBhcmd1YWJseSB3cm9uZy4KClRoaXMgaXMgd2h5IEkgaGF2ZSBub3QgY2hlY2tlZCBm
+b3Igc3VjaCBjYXNlcyAtIEkgaGF2ZSBza2lwcGVkIGNoZWNrcyBvZiB0eXBlCgl1bnNpZ25lZCA8
+PSAwCmV4YWN0bHkgZm9yIHRoZSByZWFzb25zIGFib3ZlLgoKSG93ZXZlciBJIGhhdmUgbGVmdCB0
+d28gb3RoZXIgY2hlY2tzIGFzIHRoZXkgc2VlbXMgdG8gbWUgbW9yZSBzdXNwaWNpb3VzIC0gdGhl
+eQphcmUgYWx3YXlzIHRydWUgb3IgZmFsc2UuIEJ1dCBhcyBEbWl0cnkgYW5kIEFuZHJldyBwb2lu
+dGVkIG91dCBMaW51cyBoYXZlIHF1aXRlCnN0cm9uZyBvcGluaW9uIGFnYWluc3QgcmVtb3Zpbmcg
+cmFuZ2UgY2hlY2tzIGluIHN1Y2ggY2FzZXMgYXMgaGUgZmluZHMgaXQKY2xlYXJlci4gSSB0aGlu
+ayBpdCBhcHBsaWVzIHRvIHBhdGNoZXMgMjktMzYuIEkgYW0gbm90IHN1cmUgYWJvdXQgcGF0Y2hl
+cyAyNi0yOCwzNy4KClJlZ2FyZHMKQW5kcnplagoKPiAKPiBEYXZpZAo+IC0tCj4gVG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXdp
+cmVsZXNzIiBpbgo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW8tdTc5dXdYTDI5
+VFk3Nloyck01bUhYQUBwdWJsaWMuZ21hbmUub3JnCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAg
+aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCj4gCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBs
+aXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNr
+dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
