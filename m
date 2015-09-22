@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 18/24] dmaengine: edma: Consolidate the comments for functions
-Date: Tue, 22 Sep 2015 12:54:29 +0300
-Message-ID: <1442915675-7121-19-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 24/24] dmaengine: edma: Dynamic paRAM slot handling if HW supports it
+Date: Tue, 22 Sep 2015 12:54:35 +0300
+Message-ID: <1442915675-7121-25-git-send-email-peter.ujfalusi@ti.com>
 References: <1442915675-7121-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,172 +12,239 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove or rewrite the comments for the internal functions.
+If the eDMA3 has support for channel paRAM slot mapping we can utilize it
+to allocate slots on demand and save precious slots for real transfers.
+On am335x the eDMA has 64 channels which means we can unlock 64 paRAM
+slots out from the available 256.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 86 +++++++-----------------------------------------------
- 1 file changed, 11 insertions(+), 75 deletions(-)
+ drivers/dma/edma.c | 96 +++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 51 insertions(+), 45 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index b0102984e98d..d872efed0760 100644
+index a30f6ae69bff..3591bc2584e5 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -486,19 +486,7 @@ static void edma_setup_interrupt(struct edma_cc *ecc, unsigned lch,
+@@ -391,11 +391,13 @@ static void edma_assign_priority_to_queue(struct edma_cc *ecc, int queue_no,
+ 	edma_modify(ecc, EDMA_QUEPRI, ~(0x7 << bit), ((priority & 0x7) << bit));
  }
  
- /*
-- * paRAM management functions
-- */
--
--/**
-- * edma_write_slot - write parameter RAM data for slot
-- * @ecc: pointer to edma_cc struct
-- * @slot: number of parameter RAM slot being modified
-- * @param: data to be written into parameter RAM slot
-- *
-- * Use this to assign all parameters of a transfer at once.  This
-- * allows more efficient setup of transfers than issuing multiple
-- * calls to set up those parameters in small pieces, and provides
-- * complete control over all transfer options.
-+ * paRAM slot management functions
+-static void edma_direct_dmach_to_param_mapping(struct edma_cc *ecc)
++static void edma_set_chmap(struct edma_cc *ecc, int channel, int slot)
+ {
+-	int i;
+-	for (i = 0; i < ecc->num_channels; i++)
+-		edma_write_array(ecc, EDMA_DCHMAP , i , (i << 5));
++	if (ecc->chmap_exist) {
++		channel = EDMA_CHAN_SLOT(channel);
++		slot = EDMA_CHAN_SLOT(slot);
++		edma_write_array(ecc, EDMA_DCHMAP , channel , (slot << 5));
++	}
+ }
+ 
+ static int prepare_unused_channel_list(struct device *dev, void *data)
+@@ -506,10 +508,18 @@ static void edma_read_slot(struct edma_cc *ecc, unsigned slot,
   */
- static void edma_write_slot(struct edma_cc *ecc, unsigned slot,
- 			    const struct edmacc_param *param)
-@@ -509,15 +497,6 @@ static void edma_write_slot(struct edma_cc *ecc, unsigned slot,
- 	memcpy_toio(ecc->base + PARM_OFFSET(slot), param, PARM_SIZE);
- }
- 
--/**
-- * edma_read_slot - read parameter RAM data from slot
-- * @ecc: pointer to edma_cc struct
-- * @slot: number of parameter RAM slot being copied
-- * @param: where to store copy of parameter RAM data
-- *
-- * Use this to read data from a parameter RAM slot, perhaps to
-- * save them as a template for later reuse.
-- */
- static void edma_read_slot(struct edma_cc *ecc, unsigned slot,
- 			   struct edmacc_param *param)
+ static int edma_alloc_slot(struct edma_cc *ecc, int slot)
  {
-@@ -568,15 +547,6 @@ static int edma_alloc_slot(struct edma_cc *ecc, int slot)
- 	return EDMA_CTLR_CHAN(ecc->id, slot);
- }
- 
--/**
-- * edma_free_slot - deallocate DMA parameter RAM
-- * @ecc: pointer to edma_cc struct
-- * @slot: parameter RAM slot returned from edma_alloc_slot()
-- *
-- * This deallocates the parameter RAM slot allocated by edma_alloc_slot().
-- * Callers are responsible for ensuring the slot is inactive, and will
-- * not be activated.
-- */
- static void edma_free_slot(struct edma_cc *ecc, unsigned slot)
+-	if (slot > 0)
++	if (slot > 0) {
+ 		slot = EDMA_CHAN_SLOT(slot);
++		/* Requesting entry paRAM slot for a HW triggered channel. */
++		if (ecc->chmap_exist && slot < ecc->num_channels)
++			slot = EDMA_SLOT_ANY;
++	}
++
+ 	if (slot < 0) {
+-		slot = ecc->num_channels;
++		if (ecc->chmap_exist)
++			slot = 0;
++		else
++			slot = ecc->num_channels;
+ 		for (;;) {
+ 			slot = find_next_zero_bit(ecc->slot_inuse,
+ 						  ecc->num_slots,
+@@ -519,7 +529,7 @@ static int edma_alloc_slot(struct edma_cc *ecc, int slot)
+ 			if (!test_and_set_bit(slot, ecc->slot_inuse))
+ 				break;
+ 		}
+-	} else if (slot < ecc->num_channels || slot >= ecc->num_slots) {
++	} else if (slot >= ecc->num_slots) {
+ 		return -EINVAL;
+ 	} else if (test_and_set_bit(slot, ecc->slot_inuse)) {
+ 		return -EBUSY;
+@@ -534,7 +544,7 @@ static void edma_free_slot(struct edma_cc *ecc, unsigned slot)
  {
  
-@@ -686,10 +656,9 @@ static int edma_start(struct edma_cc *ecc, unsigned channel)
-  * @ecc: pointer to edma_cc struct
-  * @channel: channel being deactivated
-  *
-- * When @lch is a channel, any active transfer is paused and
-- * all pending hardware events are cleared.  The current transfer
-- * may not be resumed, and the channel's Parameter RAM should be
-- * reinitialized before being reused.
-+ * Any active transfer is paused and all pending hardware events are cleared.
-+ * The current transfer may not be resumed, and the channel's Parameter RAM
-+ * should be reinitialized before being reused.
-  */
- static void edma_stop(struct edma_cc *ecc, unsigned channel)
+ 	slot = EDMA_CHAN_SLOT(slot);
+-	if (slot < ecc->num_channels || slot >= ecc->num_slots)
++	if (slot >= ecc->num_slots)
+ 		return;
+ 
+ 	edma_write_slot(ecc, slot, &dummy_paramset);
+@@ -785,7 +795,6 @@ static void edma_clean_channel(struct edma_cc *ecc, unsigned channel)
+ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
+ 			      enum dma_event_q eventq_no)
  {
-@@ -721,13 +690,9 @@ static void edma_stop(struct edma_cc *ecc, unsigned channel)
+-	unsigned done = 0;
+ 	int ret = 0;
+ 
+ 	if (!ecc->unused_chan_list_done) {
+@@ -812,24 +821,12 @@ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
  	}
- }
  
--/**
-- * edma_pause - pause dma on a channel
-- * @ecc: pointer to edma_cc struct
-- * @channel: on which edma_start() has been called
-- *
-- * This temporarily disables EDMA hardware events on the specified channel,
-- * preventing them from triggering new transfers on its behalf
-+/*
-+ * Temporarily disable EDMA hardware events on the specified channel,
-+ * preventing them from triggering new transfers
-  */
- static void edma_pause(struct edma_cc *ecc, unsigned channel)
- {
-@@ -745,13 +710,7 @@ static void edma_pause(struct edma_cc *ecc, unsigned channel)
+ 	if (channel < 0) {
+-		channel = 0;
+-		for (;;) {
+-			channel = find_next_bit(ecc->channel_unused,
+-						ecc->num_channels, channel);
+-			if (channel == ecc->num_channels)
+-				break;
+-			if (!test_and_set_bit(channel, ecc->slot_inuse)) {
+-				done = 1;
+-				break;
+-			}
+-			channel++;
+-		}
+-		if (!done)
+-			return -ENOMEM;
++		channel = find_next_bit(ecc->channel_unused, ecc->num_channels,
++					0);
++		if (channel == ecc->num_channels)
++			return -EBUSY;
+ 	} else if (channel >= ecc->num_channels) {
+ 		return -EINVAL;
+-	} else if (test_and_set_bit(channel, ecc->slot_inuse)) {
+-		return -EBUSY;
  	}
+ 
+ 	/* ensure access through shadow region 0 */
+@@ -837,7 +834,6 @@ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
+ 
+ 	/* ensure no events are pending */
+ 	edma_stop(ecc, EDMA_CTLR_CHAN(ecc->id, channel));
+-	edma_write_slot(ecc, channel, &dummy_paramset);
+ 
+ 	edma_setup_interrupt(ecc, EDMA_CTLR_CHAN(ecc->id, channel), true);
+ 
+@@ -876,7 +872,6 @@ static void edma_free_channel(struct edma_cc *ecc, unsigned channel)
+ 	/* REVISIT should probably take out of shadow region 0 */
+ 
+ 	edma_write_slot(ecc, channel, &dummy_paramset);
+-	clear_bit(channel, ecc->slot_inuse);
  }
  
--/**
-- * edma_resume - resumes dma on a paused channel
-- * @ecc: pointer to edma_cc struct
-- * @channel: on which edma_pause() has been called
-- *
-- * This re-enables EDMA hardware events on the specified channel.
-- */
-+/* Re-enable EDMA hardware events on the specified channel.  */
- static void edma_resume(struct edma_cc *ecc, unsigned channel)
- {
- 	if (ecc->id != EDMA_CTLR(channel)) {
-@@ -787,19 +746,6 @@ static int edma_trigger_channel(struct edma_cc *ecc, unsigned channel)
- 	return 0;
- }
+ /* Move channel to a specific event queue */
+@@ -1703,7 +1698,15 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
+ 	}
  
--/******************************************************************************
-- *
-- * It cleans ParamEntry qand bring back EDMA to initial state if media has
-- * been removed before EDMA has finished.It is usedful for removable media.
-- * Arguments:
-- *      ch_no     - channel no
-- *
-- * Return: zero on success, or corresponding error no on failure
-- *
-- * FIXME this should not be needed ... edma_stop() should suffice.
-- *
-- *****************************************************************************/
+ 	echan->alloced = true;
+-	echan->slot[0] = echan->ch_num;
++	echan->slot[0] = edma_alloc_slot(echan->ecc, echan->ch_num);
++	if (echan->slot[0] < 0) {
++		dev_err(dev, "Entry slot allocation failed for channel %u\n",
++			EDMA_CHAN_SLOT(echan->ch_num));
++		goto err_wrong_chan;
++	}
++
++	/* Set up channel -> slot mapping for the entry slot */
++	edma_set_chmap(echan->ecc, echan->ch_num, echan->slot[0]);
+ 
+ 	dev_dbg(dev, "allocated channel %d for %u:%u\n", echan->ch_num,
+ 		EDMA_CTLR(echan->ch_num), EDMA_CHAN_SLOT(echan->ch_num));
+@@ -1728,13 +1731,16 @@ static void edma_free_chan_resources(struct dma_chan *chan)
+ 	vchan_free_chan_resources(&echan->vchan);
+ 
+ 	/* Free EDMA PaRAM slots */
+-	for (i = 1; i < EDMA_MAX_SLOTS; i++) {
++	for (i = 0; i < EDMA_MAX_SLOTS; i++) {
+ 		if (echan->slot[i] >= 0) {
+ 			edma_free_slot(echan->ecc, echan->slot[i]);
+ 			echan->slot[i] = -1;
+ 		}
+ 	}
+ 
++	/* Set entry slot to the dummy slot */
++	edma_set_chmap(echan->ecc, echan->ch_num, echan->ecc->dummy_slot);
++
+ 	/* Free EDMA channel */
+ 	if (echan->alloced) {
+ 		edma_free_channel(echan->ecc, echan->ch_num);
+@@ -2190,8 +2196,18 @@ static int edma_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	for (i = 0; i < ecc->num_channels; i++)
++	ecc->dummy_slot = edma_alloc_slot(ecc, EDMA_SLOT_ANY);
++	if (ecc->dummy_slot < 0) {
++		dev_err(dev, "Can't allocate PaRAM dummy slot\n");
++		return ecc->dummy_slot;
++	}
++
++	for (i = 0; i < ecc->num_channels; i++) {
++		/* Assign all channels to the default queue */
+ 		edma_map_dmach_to_queue(ecc, i, info->default_queue);
++		/* Set entry slot to the dummy slot */
++		edma_set_chmap(ecc, i, ecc->dummy_slot);
++	}
+ 
+ 	queue_priority_mapping = info->queue_priority_mapping;
+ 
+@@ -2200,10 +2216,6 @@ static int edma_probe(struct platform_device *pdev)
+ 		edma_assign_priority_to_queue(ecc, queue_priority_mapping[i][0],
+ 					      queue_priority_mapping[i][1]);
+ 
+-	/* Map the channel to param entry if channel mapping logic exist */
+-	if (ecc->chmap_exist)
+-		edma_direct_dmach_to_param_mapping(ecc);
 -
- static void edma_clean_channel(struct edma_cc *ecc, unsigned channel)
- {
- 	if (ecc->id != EDMA_CTLR(channel)) {
-@@ -956,14 +902,7 @@ static void edma_free_channel(struct edma_cc *ecc, unsigned channel)
- 	clear_bit(channel, ecc->edma_inuse);
- }
+ 	for (i = 0; i < ecc->num_region; i++) {
+ 		edma_write_array2(ecc, EDMA_DRAE, i, 0, 0x0);
+ 		edma_write_array2(ecc, EDMA_DRAE, i, 1, 0x0);
+@@ -2211,12 +2223,6 @@ static int edma_probe(struct platform_device *pdev)
+ 	}
+ 	ecc->info = info;
  
--/*
-- * edma_assign_channel_eventq - move given channel to desired eventq
-- * Arguments:
-- *	channel - channel number
-- *	eventq_no - queue to move the channel
-- *
-- * Can be used to move a channel to a selected event queue.
-- */
-+/* Move channel to a specific event queue */
- static void edma_assign_channel_eventq(struct edma_cc *ecc, unsigned channel,
- 				       enum dma_event_q eventq_no)
+-	ecc->dummy_slot = edma_alloc_slot(ecc, EDMA_SLOT_ANY);
+-	if (ecc->dummy_slot < 0) {
+-		dev_err(dev, "Can't allocate PaRAM dummy slot\n");
+-		return ecc->dummy_slot;
+-	}
+-
+ 	dma_cap_zero(ecc->dma_slave.cap_mask);
+ 	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
+ 	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
+@@ -2260,6 +2266,7 @@ static int edma_remove(struct platform_device *pdev)
+ static int edma_pm_resume(struct device *dev)
  {
-@@ -986,6 +925,7 @@ static void edma_assign_channel_eventq(struct edma_cc *ecc, unsigned channel,
- 	edma_map_dmach_to_queue(ecc, channel, eventq_no);
- }
+ 	struct edma_cc *ecc = dev_get_drvdata(dev);
++	struct edma_chan *echan = ecc->slave_chans;
+ 	int i;
+ 	s8 (*queue_priority_mapping)[2];
  
-+/* eDMA interrupt handler */
- static irqreturn_t dma_irq_handler(int irq, void *data)
- {
- 	struct edma_cc *ecc = data;
-@@ -1037,11 +977,7 @@ static irqreturn_t dma_irq_handler(int irq, void *data)
- 	return IRQ_HANDLED;
- }
+@@ -2270,18 +2277,17 @@ static int edma_pm_resume(struct device *dev)
+ 		edma_assign_priority_to_queue(ecc, queue_priority_mapping[i][0],
+ 					      queue_priority_mapping[i][1]);
  
--/******************************************************************************
-- *
-- * DMA error interrupt handler
-- *
-- *****************************************************************************/
-+/* eDMA error interrupt handler */
- static irqreturn_t dma_ccerr_handler(int irq, void *data)
- {
- 	struct edma_cc *ecc = data;
+-	/* Map the channel to param entry if channel mapping logic */
+-	if (ecc->chmap_exist)
+-		edma_direct_dmach_to_param_mapping(ecc);
+-
+ 	for (i = 0; i < ecc->num_channels; i++) {
+-		if (test_bit(i, ecc->slot_inuse)) {
++		if (echan[i].alloced) {
+ 			/* ensure access through shadow region 0 */
+ 			edma_or_array2(ecc, EDMA_DRAE, 0, i >> 5,
+ 				       BIT(i & 0x1f));
+ 
+ 			edma_setup_interrupt(ecc, EDMA_CTLR_CHAN(ecc->id, i),
+ 					     true);
++
++			/* Set up channel -> slot mapping for the entry slot */
++			edma_set_chmap(ecc, echan[i].ch_num, echan[i].slot[0]);
+ 		}
+ 	}
+ 
 -- 
 2.5.2
