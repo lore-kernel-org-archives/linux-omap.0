@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 22/24] dmaengine: edma: Read channel mapping support only once from HW
-Date: Tue, 22 Sep 2015 12:54:33 +0300
-Message-ID: <1442915675-7121-23-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 21/24] dmaengine: edma: Simplify and optimize ccerr interrupt handler
+Date: Tue, 22 Sep 2015 12:54:32 +0300
+Message-ID: <1442915675-7121-22-git-send-email-peter.ujfalusi@ti.com>
 References: <1442915675-7121-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,58 +12,104 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Instead of directly reading it from CCCFG register take the information out
-once when we set up the configuration from the HW.
+No need to run through the bits in QEMR and CCERR events since they will
+not trigger any action, so just clearing the errors there is fine.
+In case of the missed event the loop can be optimized so we spend less time
+to handle the event.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/dma/edma.c | 64 ++++++++++++++++++++----------------------------------
+ 1 file changed, 23 insertions(+), 41 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index c8350248c0c6..a818d2bf8709 100644
+index 30e3c54d86e3..c8350248c0c6 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -223,6 +223,7 @@ struct edma_cc {
- 	unsigned			num_region;
- 	unsigned			num_slots;
- 	unsigned			num_tc;
-+	bool				chmap_exist;
- 	enum dma_event_q 		default_queue;
+@@ -1625,6 +1625,7 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ 	int i;
+ 	int ctlr;
+ 	unsigned int cnt = 0;
++	unsigned int val;
  
- 	bool				unused_chan_list_done;
-@@ -1904,11 +1905,14 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 	value = GET_NUM_EVQUE(cccfg);
- 	ecc->num_tc = value + 1;
+ 	ctlr = ecc->id;
+ 	if (ctlr < 0)
+@@ -1637,54 +1638,35 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
  
-+	ecc->chmap_exist = (cccfg & CHMAP_EXIST) ? true : false;
+ 	while (1) {
+ 		int j = -1;
+-		if (edma_read_array(ecc, EDMA_EMR, 0))
++		if ((val = edma_read_array(ecc, EDMA_EMR, 0)))
+ 			j = 0;
+-		else if (edma_read_array(ecc, EDMA_EMR, 1))
++		else if ((val = edma_read_array(ecc, EDMA_EMR, 1)))
+ 			j = 1;
+ 		if (j >= 0) {
+-			dev_dbg(ecc->dev, "EMR%d %08x\n", j,
+-				edma_read_array(ecc, EDMA_EMR, j));
+-			for (i = 0; i < 32; i++) {
++			unsigned long emr = val;
 +
- 	dev_dbg(dev, "eDMA3 CC HW configuration (cccfg: 0x%08x):\n", cccfg);
- 	dev_dbg(dev, "num_region: %u\n", ecc->num_region);
- 	dev_dbg(dev, "num_channels: %u\n", ecc->num_channels);
- 	dev_dbg(dev, "num_slots: %u\n", ecc->num_slots);
- 	dev_dbg(dev, "num_tc: %u\n", ecc->num_tc);
-+	dev_dbg(dev, "chmap_exist: %s\n", ecc->chmap_exist ? "yes" : "no");
- 
- 	/* Nothing need to be done if queue priority is provided */
- 	if (pdata->queue_priority_mapping)
-@@ -2197,7 +2201,7 @@ static int edma_probe(struct platform_device *pdev)
- 					      queue_priority_mapping[i][1]);
- 
- 	/* Map the channel to param entry if channel mapping logic exist */
--	if (edma_read(ecc, EDMA_CCCFG) & CHMAP_EXIST)
-+	if (ecc->chmap_exist)
- 		edma_direct_dmach_to_param_mapping(ecc);
- 
- 	for (i = 0; i < ecc->num_region; i++) {
-@@ -2267,7 +2271,7 @@ static int edma_pm_resume(struct device *dev)
- 					      queue_priority_mapping[i][1]);
- 
- 	/* Map the channel to param entry if channel mapping logic */
--	if (edma_read(ecc, EDMA_CCCFG) & CHMAP_EXIST)
-+	if (ecc->chmap_exist)
- 		edma_direct_dmach_to_param_mapping(ecc);
- 
- 	for (i = 0; i < ecc->num_channels; i++) {
++			dev_dbg(ecc->dev, "EMR%d 0x%08x\n", j, val);
++			for (i = find_next_bit(&emr, 32, 0); i < 32;
++			     i = find_next_bit(&emr, 32, i + 1)) {
+ 				int k = (j << 5) + i;
+-				if (edma_read_array(ecc, EDMA_EMR, j) &
+-							BIT(i)) {
+-					/* Clear the corresponding EMR bits */
+-					edma_write_array(ecc, EDMA_EMCR, j,
++				/* Clear the corresponding EMR bits */
++				edma_write_array(ecc, EDMA_EMCR, j, BIT(i));
++				/* Clear any SER */
++				edma_shadow0_write_array(ecc, SH_SECR, j,
+ 							 BIT(i));
+-					/* Clear any SER */
+-					edma_shadow0_write_array(ecc, SH_SECR,
+-								j, BIT(i));
+-					edma_error_handler(&ecc->slave_chans[k]);
+-				}
+-			}
+-		} else if (edma_read(ecc, EDMA_QEMR)) {
+-			dev_dbg(ecc->dev, "QEMR %02x\n",
+-				edma_read(ecc, EDMA_QEMR));
+-			for (i = 0; i < 8; i++) {
+-				if (edma_read(ecc, EDMA_QEMR) & BIT(i)) {
+-					/* Clear the corresponding IPR bits */
+-					edma_write(ecc, EDMA_QEMCR, BIT(i));
+-					edma_shadow0_write(ecc, SH_QSECR,
+-							   BIT(i));
+-
+-					/* NOTE:  not reported!! */
+-				}
+-			}
+-		} else if (edma_read(ecc, EDMA_CCERR)) {
+-			dev_dbg(ecc->dev, "CCERR %08x\n",
+-				edma_read(ecc, EDMA_CCERR));
+-			/* FIXME:  CCERR.BIT(16) ignored!  much better
+-			 * to just write CCERRCLR with CCERR value...
+-			 */
+-			for (i = 0; i < 8; i++) {
+-				if (edma_read(ecc, EDMA_CCERR) & BIT(i)) {
+-					/* Clear the corresponding IPR bits */
+-					edma_write(ecc, EDMA_CCERRCLR, BIT(i));
+-
+-					/* NOTE:  not reported!! */
+-				}
++				edma_error_handler(&ecc->slave_chans[k]);
+ 			}
++		} else if ((val = edma_read(ecc, EDMA_QEMR))) {
++			dev_dbg(ecc->dev, "QEMR 0x%02x\n", val);
++			/* Not reported, just clear the interrupt reason. */
++			edma_write(ecc, EDMA_QEMCR, val);
++			edma_shadow0_write(ecc, SH_QSECR, val);
++		} else if ((val = edma_read(ecc, EDMA_CCERR))) {
++			dev_warn(ecc->dev, "CCERR 0x%08x\n", val);
++			/* Not reported, just clear the interrupt reason. */
++			edma_write(ecc, EDMA_CCERRCLR, val);
+ 		}
++
+ 		if (!edma_error_pending(ecc))
+ 			break;
+ 		cnt++;
 -- 
 2.5.2
