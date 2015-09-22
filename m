@@ -1,250 +1,125 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 24/24] dmaengine: edma: Dynamic paRAM slot handling if HW supports it
-Date: Tue, 22 Sep 2015 12:54:35 +0300
-Message-ID: <1442915675-7121-25-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 05/24] ARM/dmaengine: edma: Move of_dma_controller_register
+ to the dmaengine driver
+Date: Tue, 22 Sep 2015 12:54:16 +0300
+Message-ID: <1442915675-7121-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1442915675-7121-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1442915675-7121-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
+Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-If the eDMA3 has support for channel paRAM slot mapping we can utilize it
-to allocate slots on demand and save precious slots for real transfers.
-On am335x the eDMA has 64 channels which means we can unlock 64 paRAM
-slots out from the available 256.
+If the of_dma_controller is registered in the non dmaengine driver we could
+have race condition:
+the of_dma_controller has been registered, but the dmaengine driver is not
+yet probed. Drivers requesting DMA channels during this window will fail
+since we do not yet have dmaengine drivers registered.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 96 +++++++++++++++++++++++++++++-------------------------
- 1 file changed, 51 insertions(+), 45 deletions(-)
+ arch/arm/common/edma.c | 10 ----------
+ drivers/dma/edma.c     | 16 ++++++++++++++++
+ 2 files changed, 16 insertions(+), 10 deletions(-)
 
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 7c2fe527e53b..d82fceda13a3 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -29,7 +29,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/of_address.h>
+ #include <linux/of_device.h>
+-#include <linux/of_dma.h>
+ #include <linux/of_irq.h>
+ #include <linux/pm_runtime.h>
+ 
+@@ -1191,10 +1190,6 @@ static int edma_of_parse_dt(struct device *dev,
+ 	return ret;
+ }
+ 
+-static struct of_dma_filter_info edma_filter_info = {
+-	.filter_fn = edma_filter_fn,
+-};
+-
+ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
+ 						      struct device_node *node)
+ {
+@@ -1209,11 +1204,6 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+-	dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
+-	dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
+-	of_dma_controller_register(dev->of_node, of_dma_simple_xlate,
+-				   &edma_filter_info);
+-
+ 	return info;
+ }
+ #else
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index a30f6ae69bff..3591bc2584e5 100644
+index 19fa49d6f555..fcb4680efed7 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -391,11 +391,13 @@ static void edma_assign_priority_to_queue(struct edma_cc *ecc, int queue_no,
- 	edma_modify(ecc, EDMA_QUEPRI, ~(0x7 << bit), ((priority & 0x7) << bit));
+@@ -25,6 +25,7 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/of.h>
++#include <linux/of_dma.h>
+ 
+ #include <linux/platform_data/edma.h>
+ 
+@@ -987,9 +988,14 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 	INIT_LIST_HEAD(&dma->channels);
  }
  
--static void edma_direct_dmach_to_param_mapping(struct edma_cc *ecc)
-+static void edma_set_chmap(struct edma_cc *ecc, int channel, int slot)
++static struct of_dma_filter_info edma_filter_info = {
++	.filter_fn = edma_filter_fn,
++};
++
+ static int edma_probe(struct platform_device *pdev)
  {
--	int i;
--	for (i = 0; i < ecc->num_channels; i++)
--		edma_write_array(ecc, EDMA_DCHMAP , i , (i << 5));
-+	if (ecc->chmap_exist) {
-+		channel = EDMA_CHAN_SLOT(channel);
-+		slot = EDMA_CHAN_SLOT(slot);
-+		edma_write_array(ecc, EDMA_DCHMAP , channel , (slot << 5));
-+	}
- }
+ 	struct edma_cc *ecc;
++	struct device_node *parent_node = pdev->dev.parent->of_node;
+ 	int ret;
  
- static int prepare_unused_channel_list(struct device *dev, void *data)
-@@ -506,10 +508,18 @@ static void edma_read_slot(struct edma_cc *ecc, unsigned slot,
-  */
- static int edma_alloc_slot(struct edma_cc *ecc, int slot)
- {
--	if (slot > 0)
-+	if (slot > 0) {
- 		slot = EDMA_CHAN_SLOT(slot);
-+		/* Requesting entry paRAM slot for a HW triggered channel. */
-+		if (ecc->chmap_exist && slot < ecc->num_channels)
-+			slot = EDMA_SLOT_ANY;
+ 	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+@@ -1024,6 +1030,13 @@ static int edma_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, ecc);
+ 
++	if (parent_node) {
++		dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
++		dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
++		of_dma_controller_register(parent_node, of_dma_simple_xlate,
++					   &edma_filter_info);
 +	}
 +
- 	if (slot < 0) {
--		slot = ecc->num_channels;
-+		if (ecc->chmap_exist)
-+			slot = 0;
-+		else
-+			slot = ecc->num_channels;
- 		for (;;) {
- 			slot = find_next_zero_bit(ecc->slot_inuse,
- 						  ecc->num_slots,
-@@ -519,7 +529,7 @@ static int edma_alloc_slot(struct edma_cc *ecc, int slot)
- 			if (!test_and_set_bit(slot, ecc->slot_inuse))
- 				break;
- 		}
--	} else if (slot < ecc->num_channels || slot >= ecc->num_slots) {
-+	} else if (slot >= ecc->num_slots) {
- 		return -EINVAL;
- 	} else if (test_and_set_bit(slot, ecc->slot_inuse)) {
- 		return -EBUSY;
-@@ -534,7 +544,7 @@ static void edma_free_slot(struct edma_cc *ecc, unsigned slot)
+ 	dev_info(&pdev->dev, "TI EDMA DMA engine driver\n");
+ 
+ 	return 0;
+@@ -1037,7 +1050,10 @@ static int edma_remove(struct platform_device *pdev)
  {
- 
- 	slot = EDMA_CHAN_SLOT(slot);
--	if (slot < ecc->num_channels || slot >= ecc->num_slots)
-+	if (slot >= ecc->num_slots)
- 		return;
- 
- 	edma_write_slot(ecc, slot, &dummy_paramset);
-@@ -785,7 +795,6 @@ static void edma_clean_channel(struct edma_cc *ecc, unsigned channel)
- static int edma_alloc_channel(struct edma_cc *ecc, int channel,
- 			      enum dma_event_q eventq_no)
- {
--	unsigned done = 0;
- 	int ret = 0;
- 
- 	if (!ecc->unused_chan_list_done) {
-@@ -812,24 +821,12 @@ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
- 	}
- 
- 	if (channel < 0) {
--		channel = 0;
--		for (;;) {
--			channel = find_next_bit(ecc->channel_unused,
--						ecc->num_channels, channel);
--			if (channel == ecc->num_channels)
--				break;
--			if (!test_and_set_bit(channel, ecc->slot_inuse)) {
--				done = 1;
--				break;
--			}
--			channel++;
--		}
--		if (!done)
--			return -ENOMEM;
-+		channel = find_next_bit(ecc->channel_unused, ecc->num_channels,
-+					0);
-+		if (channel == ecc->num_channels)
-+			return -EBUSY;
- 	} else if (channel >= ecc->num_channels) {
- 		return -EINVAL;
--	} else if (test_and_set_bit(channel, ecc->slot_inuse)) {
--		return -EBUSY;
- 	}
- 
- 	/* ensure access through shadow region 0 */
-@@ -837,7 +834,6 @@ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
- 
- 	/* ensure no events are pending */
- 	edma_stop(ecc, EDMA_CTLR_CHAN(ecc->id, channel));
--	edma_write_slot(ecc, channel, &dummy_paramset);
- 
- 	edma_setup_interrupt(ecc, EDMA_CTLR_CHAN(ecc->id, channel), true);
- 
-@@ -876,7 +872,6 @@ static void edma_free_channel(struct edma_cc *ecc, unsigned channel)
- 	/* REVISIT should probably take out of shadow region 0 */
- 
- 	edma_write_slot(ecc, channel, &dummy_paramset);
--	clear_bit(channel, ecc->slot_inuse);
- }
- 
- /* Move channel to a specific event queue */
-@@ -1703,7 +1698,15 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
- 	}
- 
- 	echan->alloced = true;
--	echan->slot[0] = echan->ch_num;
-+	echan->slot[0] = edma_alloc_slot(echan->ecc, echan->ch_num);
-+	if (echan->slot[0] < 0) {
-+		dev_err(dev, "Entry slot allocation failed for channel %u\n",
-+			EDMA_CHAN_SLOT(echan->ch_num));
-+		goto err_wrong_chan;
-+	}
-+
-+	/* Set up channel -> slot mapping for the entry slot */
-+	edma_set_chmap(echan->ecc, echan->ch_num, echan->slot[0]);
- 
- 	dev_dbg(dev, "allocated channel %d for %u:%u\n", echan->ch_num,
- 		EDMA_CTLR(echan->ch_num), EDMA_CHAN_SLOT(echan->ch_num));
-@@ -1728,13 +1731,16 @@ static void edma_free_chan_resources(struct dma_chan *chan)
- 	vchan_free_chan_resources(&echan->vchan);
- 
- 	/* Free EDMA PaRAM slots */
--	for (i = 1; i < EDMA_MAX_SLOTS; i++) {
-+	for (i = 0; i < EDMA_MAX_SLOTS; i++) {
- 		if (echan->slot[i] >= 0) {
- 			edma_free_slot(echan->ecc, echan->slot[i]);
- 			echan->slot[i] = -1;
- 		}
- 	}
- 
-+	/* Set entry slot to the dummy slot */
-+	edma_set_chmap(echan->ecc, echan->ch_num, echan->ecc->dummy_slot);
-+
- 	/* Free EDMA channel */
- 	if (echan->alloced) {
- 		edma_free_channel(echan->ecc, echan->ch_num);
-@@ -2190,8 +2196,18 @@ static int edma_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	for (i = 0; i < ecc->num_channels; i++)
-+	ecc->dummy_slot = edma_alloc_slot(ecc, EDMA_SLOT_ANY);
-+	if (ecc->dummy_slot < 0) {
-+		dev_err(dev, "Can't allocate PaRAM dummy slot\n");
-+		return ecc->dummy_slot;
-+	}
-+
-+	for (i = 0; i < ecc->num_channels; i++) {
-+		/* Assign all channels to the default queue */
- 		edma_map_dmach_to_queue(ecc, i, info->default_queue);
-+		/* Set entry slot to the dummy slot */
-+		edma_set_chmap(ecc, i, ecc->dummy_slot);
-+	}
- 
- 	queue_priority_mapping = info->queue_priority_mapping;
- 
-@@ -2200,10 +2216,6 @@ static int edma_probe(struct platform_device *pdev)
- 		edma_assign_priority_to_queue(ecc, queue_priority_mapping[i][0],
- 					      queue_priority_mapping[i][1]);
- 
--	/* Map the channel to param entry if channel mapping logic exist */
--	if (ecc->chmap_exist)
--		edma_direct_dmach_to_param_mapping(ecc);
--
- 	for (i = 0; i < ecc->num_region; i++) {
- 		edma_write_array2(ecc, EDMA_DRAE, i, 0, 0x0);
- 		edma_write_array2(ecc, EDMA_DRAE, i, 1, 0x0);
-@@ -2211,12 +2223,6 @@ static int edma_probe(struct platform_device *pdev)
- 	}
- 	ecc->info = info;
- 
--	ecc->dummy_slot = edma_alloc_slot(ecc, EDMA_SLOT_ANY);
--	if (ecc->dummy_slot < 0) {
--		dev_err(dev, "Can't allocate PaRAM dummy slot\n");
--		return ecc->dummy_slot;
--	}
--
- 	dma_cap_zero(ecc->dma_slave.cap_mask);
- 	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
- 	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
-@@ -2260,6 +2266,7 @@ static int edma_remove(struct platform_device *pdev)
- static int edma_pm_resume(struct device *dev)
- {
+ 	struct device *dev = &pdev->dev;
  	struct edma_cc *ecc = dev_get_drvdata(dev);
-+	struct edma_chan *echan = ecc->slave_chans;
- 	int i;
- 	s8 (*queue_priority_mapping)[2];
++	struct device_node *parent_node = pdev->dev.parent->of_node;
  
-@@ -2270,18 +2277,17 @@ static int edma_pm_resume(struct device *dev)
- 		edma_assign_priority_to_queue(ecc, queue_priority_mapping[i][0],
- 					      queue_priority_mapping[i][1]);
- 
--	/* Map the channel to param entry if channel mapping logic */
--	if (ecc->chmap_exist)
--		edma_direct_dmach_to_param_mapping(ecc);
--
- 	for (i = 0; i < ecc->num_channels; i++) {
--		if (test_bit(i, ecc->slot_inuse)) {
-+		if (echan[i].alloced) {
- 			/* ensure access through shadow region 0 */
- 			edma_or_array2(ecc, EDMA_DRAE, 0, i >> 5,
- 				       BIT(i & 0x1f));
- 
- 			edma_setup_interrupt(ecc, EDMA_CTLR_CHAN(ecc->id, i),
- 					     true);
-+
-+			/* Set up channel -> slot mapping for the entry slot */
-+			edma_set_chmap(ecc, echan[i].ch_num, echan[i].slot[0]);
- 		}
- 	}
++	if (parent_node)
++		of_dma_controller_free(parent_node);
+ 	dma_async_device_unregister(&ecc->dma_slave);
+ 	edma_free_slot(ecc->dummy_slot);
  
 -- 
 2.5.2
