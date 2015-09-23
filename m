@@ -1,32 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PM: Denote the cpuidle tracepoints as
- _rcuidle()
-Date: Wed, 23 Sep 2015 11:08:15 -0700
-Message-ID: <20150923180814.GL23801@atomide.com>
-References: <1442554881-706-1-git-send-email-jszhang@marvell.com>
- <7hfv25dnkn.fsf@deeprootsystems.com>
+Subject: Plan for the PBIAS regulator fix?
+Date: Wed, 23 Sep 2015 11:07:16 -0700
+Message-ID: <20150923180716.GK23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <7hfv25dnkn.fsf@deeprootsystems.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@kernel.org>
-Cc: Jisheng Zhang <jszhang@marvell.com>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@kernel.org> [150923 11:03]:
-> Jisheng Zhang <jszhang@marvell.com> writes:
-> 
-> > The cpuidle tracepoints are called within a rcu_idle_exit() section, and
-> > must be denoted with the _rcuidle() version of the tracepoint.
-> >
-> > Signed-off-by: Jisheng Zhang <jszhang@marvell.com>
->  
-> Acked-by: Kevin Hilman <khilman@linaro.org>
+Hi Mark,
 
-Hmm is this needed as a fix for the -rc cycle or can this wait
-for v4.4?
+Got any estimate on when you might be sending out the pull request
+for the pending regulator fixes for the -rc cycle? Or are you OK
+for me to consider commit b9c93646fd5c immutable and use it as
+a base for a fixes branch for the related dts change?
+
+Commit b9c93646fd5c ("regulator: pbias: program pbias register
+offset in pbias driver") is on -rc1 and would not merge other
+regulator fixes upstream even if it got merged with dts changes
+before your other regulator fixes.
 
 Regards,
 
