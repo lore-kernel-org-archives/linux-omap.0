@@ -1,127 +1,50 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] clk: ti: Fix FAPLL udelay in clk_enable with clk_prepare
-Date: Wed, 23 Sep 2015 09:12:59 +0300
-Message-ID: <560242EB.5070001@ti.com>
-References: <1442956985-32642-1-git-send-email-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1442956985-32642-1-git-send-email-tony@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Sekhar Nori <nsekhar@ti.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH 0/3] Add Palmas iio gpadc
+Date: Wed, 23 Sep 2015 14:48:44 +0200
+Message-ID: <86F849CB-1A50-4BEB-99C6-79FF97971DCB@goldelico.com>
+References: <1437657169.3419965.331206849.51D66A2E@webmail.messagingengine.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437657169.3419965.331206849.51D66A2E@webmail.messagingengine.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Marek Belisko <marek@goldelico.com>, Pradeep Goudagunta <pgoudagunta@nvidia.com>, Nikolaus Schaller <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, gg@slimlogic.co.uk, jic23@jic23.retrosnub.co.uk
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, notaz@openpandora.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+Add iio driver for the TI Palmas (twl6035, 6037) including device tree bindings.
+It enables the gpadc for the OMAP5 uevm.
 
-On 09/23/2015 12:23 AM, Tony Lindgren wrote:
-> As recently pointed out (again) by Thomas and Russell, we must not
-> wait in in clk_enable. The wait for PLL to lock needs to happen
-> in clk_prepare instead.
->=20
-> It seems this is a common copy paste error with the PLL drivers,
-> and similar fixes should be applied to other PLL drivers after
-> testing.
+This patch series is based on original code taken from Android Tegra kernels:
+(https://android.googlesource.com/kernel/tegra/+/aaabb2e045f31e5a970109ffdaae900dd403d17e/drivers/staging/iio/adc)
 
-One thing to note:
-because of how the hwmod code works, at boot time we prepare all clocks=
- for
-the devices and in runtime the hwmod only uses clk_enable/disable, it w=
-ill
-never unprepare the clock(s). This will means that these clocks will be
-enabled all the time and will never turned off.
+Tegra code was developed by:
+Pradeep Goudagunta <pgoudagunta@nvidia.com>
+Laxman Dewangan <ldewangan@nvidia.com>
 
---=20
-P=E9ter
-
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Sekhar Nori <nsekhar@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/clk/ti/fapll.c | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
->=20
-> diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
-> index f4b2e98..e1db74a 100644
-> --- a/drivers/clk/ti/fapll.c
-> +++ b/drivers/clk/ti/fapll.c
-> @@ -37,7 +37,7 @@
->  #define FAPLL_PWD_OFFSET	4
-> =20
->  #define MAX_FAPLL_OUTPUTS	7
-> -#define FAPLL_MAX_RETRIES	1000
-> +#define FAPLL_MAX_RETRIES	5
-> =20
->  #define to_fapll(_hw)		container_of(_hw, struct fapll_data, hw)
->  #define to_synth(_hw)		container_of(_hw, struct fapll_synth, hw)
-> @@ -126,7 +126,7 @@ static int ti_fapll_wait_lock(struct fapll_data *=
-fd)
->  		if (retries-- <=3D 0)
->  			break;
-> =20
-> -		udelay(1);
-> +		usleep_range(200, 300);
->  	}
-> =20
->  	pr_err("%s failed to lock\n", fd->name);
-> @@ -134,7 +134,7 @@ static int ti_fapll_wait_lock(struct fapll_data *=
-fd)
->  	return -ETIMEDOUT;
->  }
-> =20
-> -static int ti_fapll_enable(struct clk_hw *hw)
-> +static int ti_fapll_prepare(struct clk_hw *hw)
->  {
->  	struct fapll_data *fd =3D to_fapll(hw);
->  	u32 v =3D readl_relaxed(fd->base);
-> @@ -146,7 +146,7 @@ static int ti_fapll_enable(struct clk_hw *hw)
->  	return 0;
->  }
-> =20
-> -static void ti_fapll_disable(struct clk_hw *hw)
-> +static void ti_fapll_unprepare(struct clk_hw *hw)
->  {
->  	struct fapll_data *fd =3D to_fapll(hw);
->  	u32 v =3D readl_relaxed(fd->base);
-> @@ -155,7 +155,7 @@ static void ti_fapll_disable(struct clk_hw *hw)
->  	writel_relaxed(v, fd->base);
->  }
-> =20
-> -static int ti_fapll_is_enabled(struct clk_hw *hw)
-> +static int ti_fapll_is_prepared(struct clk_hw *hw)
->  {
->  	struct fapll_data *fd =3D to_fapll(hw);
->  	u32 v =3D readl_relaxed(fd->base);
-> @@ -261,7 +261,7 @@ static int ti_fapll_set_rate(struct clk_hw *hw, u=
-nsigned long rate,
->  	v |=3D pre_div_p << FAPLL_MAIN_DIV_P_SHIFT;
->  	v |=3D mult_n << FAPLL_MAIN_MULT_N_SHIFT;
->  	writel_relaxed(v, fd->base);
-> -	if (ti_fapll_is_enabled(hw))
-> +	if (ti_fapll_is_prepared(hw))
->  		ti_fapll_wait_lock(fd);
->  	ti_fapll_clear_bypass(fd);
-> =20
-> @@ -269,9 +269,9 @@ static int ti_fapll_set_rate(struct clk_hw *hw, u=
-nsigned long rate,
->  }
-> =20
->  static struct clk_ops ti_fapll_ops =3D {
-> -	.enable =3D ti_fapll_enable,
-> -	.disable =3D ti_fapll_disable,
-> -	.is_enabled =3D ti_fapll_is_enabled,
-> +	.prepare =3D ti_fapll_prepare,
-> +	.unprepare =3D ti_fapll_unprepare,
-> +	.is_prepared =3D ti_fapll_is_prepared,
->  	.recalc_rate =3D ti_fapll_recalc_rate,
->  	.get_parent =3D ti_fapll_get_parent,
->  	.round_rate =3D ti_fapll_round_rate,
->=20
+Edited and extended for mainline by:
+H. Nikolaus Schaller <hns@goldelico.com>
+Marek Belisko <marek@goldelico.com>
 
 
+
+H. Nikolaus Schaller (2):
+ iio:adc: add iio driver for Palmas (twl6035/7) gpadc
+ ARM: dts: omap5-uevm: enable iio gpadc for Palmas
+
+Marek Belisko (1):
+ iio:adc:palmas: add DT support
+
+.../devicetree/bindings/iio/adc/palmas-gpadc.txt   |  67 ++
+arch/arm/boot/dts/omap5-uevm.dts                   |  22 +
+drivers/iio/adc/Kconfig                            |   9 +
+drivers/iio/adc/Makefile                           |   1 +
+drivers/iio/adc/palmas_gpadc.c                     | 883 +++++++++++++++++++++
+include/linux/mfd/palmas.h                         |  59 +-
+6 files changed, 1037 insertions(+), 4 deletions(-)
+create mode 100644 Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
+create mode 100644 drivers/iio/adc/palmas_gpadc.c
+
+-- 
+2.5.1
