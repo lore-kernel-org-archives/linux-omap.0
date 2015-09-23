@@ -1,55 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
-Date: Wed, 23 Sep 2015 10:30:40 -0700
-Message-ID: <20150923173040.GI23801@atomide.com>
-References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] iommu/omap: Add support for configuring dsp iommus
+	on DRA7xx
+Date: Wed, 23 Sep 2015 10:53:49 -0700
+Message-ID: <20150923175348.GJ23801@atomide.com>
+References: <1437522936-19758-1-git-send-email-s-anna@ti.com>
+	<1437522936-19758-3-git-send-email-s-anna@ti.com>
+	<20150722052600.GF17550@atomide.com> <55AFC34E.4000603@ti.com>
+	<20150723072455.GC16878@atomide.com> <55B114DF.8070800@ti.com>
+	<20150724043056.GG16878@atomide.com> <55B266CE.9070202@ti.com>
+	<20150728061426.GL16878@atomide.com> <55E8D077.3050108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
-Sender: stable-owner@vger.kernel.org
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
+In-Reply-To: <55E8D077.3050108-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ben Dooks <ben.dooks@codethink.co.uk> [150923 07:53]:
-> On the OMAP AM3517 platform the uart4_ick gets registered
-> twice, causing any power managment to /dev/ttyO3 to fail
-> when trying to wake the device up.
+* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [150903 16:01]:
+> >>>> On 07/23/2015 02:24 AM, Tony Lindgren wrote:
+> > OK maybe check the syss/sysc registers involved here for each hardware
+> > module here and which driver tinkers with which registers? This will
+> > make things a lot easier in the long run for sure.
 > 
-> This solves the following oops:
-> 
-> [] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
-> [] PC is at serial_omap_pm+0x48/0x15c
-> [] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+> The OMAP remoteproc driver typically deals with only the reset registers
+> and another register in the Control module for programming the boot
+> address for the DSPs. You can look up the OMAP4 hwmod data for
+> reference. There is currently a .prcm.omap4.modulemode set for these,
+> and I have a patch to remove those. I haven't yet posted it yet [1],
+> because OMAP remoteprocs are still not bootable on mainline.
 
-No uart4 on 34xx/35xx, that got introduced with 36xx so:
+Thanks for checking that. Like we chatted, let's make sure we don't
+end up with iommu and remoteproc "consumer device" specific data
+in the iommu and remoteproc code.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> ---
->  drivers/clk/ti/clk-3xxx.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
-> index 5e12f32..2e7ef1f 100644
-> --- a/drivers/clk/ti/clk-3xxx.c
-> +++ b/drivers/clk/ti/clk-3xxx.c
-> @@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
->  	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
->  	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
->  	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
-> -	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
->  	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
->  	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
->  	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
-> -- 
-> 2.5.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Tony
+
+> [1]
+> http://git.ti.com/gitweb/?p=rpmsg/remoteproc.git;a=commit;h=0dd2a6a2d8869ee6cec92f75d70663259a41c11f
