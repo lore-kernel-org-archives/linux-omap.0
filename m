@@ -1,70 +1,94 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v3 0/3] soc: ti: Introduce wkup_m3_ipc driver
-Date: Tue, 22 Sep 2015 19:14:51 -0500
-Message-ID: <1442967294-23837-1-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v3 2/3] Documentation: dt: add bindings for TI Wakeup M3 IPC device
+Date: Tue, 22 Sep 2015 19:14:53 -0500
+Message-ID: <1442967294-23837-3-git-send-email-d-gerlach@ti.com>
+References: <1442967294-23837-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442967294-23837-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Jassi Brar <jassisinghbrar@gmail.com>, Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Keerty J <j-keerthy@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This series is version 3 of the code to introduce a wkup_m3_ipc driver
-to handle communication between the MPU and Cortex M3 present on TI AM335x
-and AM437x SoCs. v2 of this series can be found at [1]. Only patch 3
-has been changed based on a request from Tony and a few cleanups:
+Add the device tree bindings document for the TI Wakeup M3 IPC
+device on AM33xx and AM43xx SoCs. These devices are used by the
+TI wkup_m3_ipc driver, and contain the registers upon which the
+IPC protocol to communicate with the Wakeup M3 processor is
+implemented.
 
-- Rather than exporting all of the functionality of the driver, added
-  wkup_m3_ipc_get and wkup_m3_ipc_put to allow users to just get a handle
-  containing an ops structure for use.
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+v2->v3: Unchanged.
 
-- Changed all ops (previously exported functions) to take pointer to
-  struct wkup_m3_ipc as an argument now that user code will get this
-  from wkup_m3_ipc_get.
-
-- General cleanup to probe function
-
-- Added MODULE_DEVICE_TABLE so driver can probe automatically.
-
-The series containing the DT nodes can be found here [2]. The actual dt
-nodes for wkup_m3_ipc (last two patches) have been merged but discussion
-is still open for the ti,mbox-send-noirq flag patches and depends on the
-comments provided for the omap-mailbox change presented in patch 1 of
-this series.
-
-A full branch containing all necessary PM code for both am335x and am437x
-has been pushed here [3] to provide a big picture view of the plan for
-this series.
-
-This driver relies on the firmware at [4] in the next-upstream branch
-being present in /lib/firmware in the rootfs or built in to the kernel.
-
-Regards,
-Dave
-
-[1] https://lkml.org/lkml/2015/7/17/797
-[2] https://lkml.org/lkml/2015/7/17/813
-[3] https://github.com/dgerlach/linux-pm/tree/pm-v4.3-rc1-amx3-suspend
-[4] https://git.ti.com/ti-cm3-pm-firmware
-
-Dave Gerlach (3):
-  mailbox/omap: Add ti,mbox-send-noirq quirk to fix AM33xx CPU Idle
-  Documentation: dt: add bindings for TI Wakeup M3 IPC device
-  soc: ti: Add wkup_m3_ipc driver
-
- .../devicetree/bindings/mailbox/omap-mailbox.txt   |   8 +
- .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     |  57 +++
- drivers/mailbox/omap-mailbox.c                     |  49 +-
- drivers/soc/ti/Kconfig                             |  10 +
- drivers/soc/ti/Makefile                            |   1 +
- drivers/soc/ti/wkup_m3_ipc.c                       | 508 +++++++++++++++++++++
- include/linux/wkup_m3_ipc.h                        |  55 +++
- 7 files changed, 684 insertions(+), 4 deletions(-)
+ .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     | 57 ++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
- create mode 100644 drivers/soc/ti/wkup_m3_ipc.c
- create mode 100644 include/linux/wkup_m3_ipc.h
 
+diff --git a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+new file mode 100644
+index 0000000..4015504
+--- /dev/null
++++ b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+@@ -0,0 +1,57 @@
++Wakeup M3 IPC Driver
++=====================
++
++The TI AM33xx and AM43xx family of devices use a small Cortex M3 co-processor
++(commonly referred to as Wakeup M3 or CM3) to help with various low power tasks
++that cannot be controlled from the MPU, like suspend/resume and certain deep
++C-states for CPU Idle. Once the wkup_m3_ipc driver uses the wkup_m3_rproc driver
++to boot the wkup_m3, it handles communication with the CM3 using IPC registers
++present in the SoC's control module and a mailbox. The wkup_m3_ipc exposes an
++API to allow the SoC PM code to execute specific PM tasks.
++
++Wkup M3 Device Node:
++====================
++A wkup_m3_ipc device node is used to represent the IPC registers within an
++SoC.
++
++Required properties:
++--------------------
++- compatible:		Should be,
++				"ti,am3352-wkup-m3-ipc" for AM33xx SoCs
++				"ti,am4372-wkup-m3-ipc" for AM43xx SoCs
++- reg:			Contains the IPC register address space to communicate
++			with the Wakeup M3 processor
++- interrupts:		Contains the interrupt information for the wkup_m3
++			interrupt that signals the MPU.
++- ti,rproc:		phandle to the wkup_m3 rproc node so the IPC driver
++			can boot it.
++- mboxes:		phandles used by IPC framework to get correct mbox
++			channel for communication. Must point to appropriate
++			mbox_wkupm3 child node.
++
++Example:
++--------
++/* AM33xx */
++	l4_wkup: l4_wkup@44c00000 {
++		...
++
++		scm: scm@210000 {
++			compatible = "ti,am3-scm", "simple-bus";
++			reg = <0x210000 0x2000>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x210000 0x2000>;
++
++			...
++
++			wkup_m3_ipc: wkup_m3_ipc@1324 {
++				compatible = "ti,am3352-wkup-m3-ipc";
++				reg = <0x1324 0x24>;
++				interrupts = <78>;
++				ti,rproc = <&wkup_m3>;
++				mboxes = <&mailbox &mbox_wkupm3>;
++			};
++
++			...
++		};
++	};
 -- 
 2.4.6
