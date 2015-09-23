@@ -1,38 +1,50 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
-Date: Wed, 23 Sep 2015 08:15:38 -0700
-Message-ID: <20150923151538.GA20172@kroah.com>
-References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] clk: ti: Fix FAPLL udelay in clk_enable with clk_prepare
+Date: Wed, 23 Sep 2015 08:38:12 -0700
+Message-ID: <20150923153812.GF23801@atomide.com>
+References: <1442956985-32642-1-git-send-email-tony@atomide.com>
+ <560242EB.5070001@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
-Sender: stable-owner@vger.kernel.org
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
+In-Reply-To: <560242EB.5070001@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 23, 2015 at 03:48:34PM +0100, Ben Dooks wrote:
-> On the OMAP AM3517 platform the uart4_ick gets registered
-> twice, causing any power managment to /dev/ttyO3 to fail
-> when trying to wake the device up.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [150922 23:17]:
+> Tony,
 > 
-> This solves the following oops:
+> On 09/23/2015 12:23 AM, Tony Lindgren wrote:
+> > As recently pointed out (again) by Thomas and Russell, we must not
+> > wait in in clk_enable. The wait for PLL to lock needs to happen
+> > in clk_prepare instead.
+> > 
+> > It seems this is a common copy paste error with the PLL drivers,
+> > and similar fixes should be applied to other PLL drivers after
+> > testing.
 > 
-> [] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
-> [] PC is at serial_omap_pm+0x48/0x15c
-> [] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
-> 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> ---
->  drivers/clk/ti/clk-3xxx.c | 1 -
->  1 file changed, 1 deletion(-)
+> One thing to note:
+> because of how the hwmod code works, at boot time we prepare all clocks for
+> the devices and in runtime the hwmod only uses clk_enable/disable, it will
+> never unprepare the clock(s). This will means that these clocks will be
+> enabled all the time and will never turned off.
 
-<formletter>
+Good point, we need to check that for hwmod pm_runtime related
+functions. Basically the PLLs we can't disable until in
+pm_runtime_disable.
 
-This is not the correct way to submit patches for inclusion in the
-stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
-for how to do this properly.
+I think the approach we need to take to be that clk_enable/disable
+is really optional clk_gate_enable/disable. And in many cases PLLs
+don't have a gate, so it's correct for pm_runtime enable/disable
+to not do anything for the PLLs.
 
-</formletter>
+And the reason we don't want to change pm_runtime hooks to use
+clk_prepare_enable/disable is that then drivers can't use
+pm_runtime_irq_safe like some do currently.
+
+Regards,
+
+Tony
