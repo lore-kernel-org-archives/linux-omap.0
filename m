@@ -1,50 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] clk: ti: Fix FAPLL udelay in clk_enable with clk_prepare
-Date: Wed, 23 Sep 2015 08:38:12 -0700
-Message-ID: <20150923153812.GF23801@atomide.com>
-References: <1442956985-32642-1-git-send-email-tony@atomide.com>
- <560242EB.5070001@ti.com>
+Subject: Re: [PATCH 3/3] ARM: dts: omap5-uevm: enable iio gpadc for Palmas
+Date: Wed, 23 Sep 2015 09:56:14 -0700
+Message-ID: <20150923165613.GG23801@atomide.com>
+References: <1437657169.3419965.331206849.51D66A2E@webmail.messagingengine.com>
+ <cover.1443012491.git.hns@goldelico.com>
+ <4254897D-374E-4122-A1A6-269A22C2D622@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <560242EB.5070001@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Sekhar Nori <nsekhar@ti.com>
+In-Reply-To: <4254897D-374E-4122-A1A6-269A22C2D622@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Marek Belisko <marek@goldelico.com>, Pradeep Goudagunta <pgoudagunta@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, gg@slimlogic.co.uk, jic23@jic23.retrosnub.co.uk, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, notaz@openpandora.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [150922 23:17]:
-> Tony,
-> 
-> On 09/23/2015 12:23 AM, Tony Lindgren wrote:
-> > As recently pointed out (again) by Thomas and Russell, we must not
-> > wait in in clk_enable. The wait for PLL to lock needs to happen
-> > in clk_prepare instead.
-> > 
-> > It seems this is a common copy paste error with the PLL drivers,
-> > and similar fixes should be applied to other PLL drivers after
-> > testing.
-> 
-> One thing to note:
-> because of how the hwmod code works, at boot time we prepare all clocks for
-> the devices and in runtime the hwmod only uses clk_enable/disable, it will
-> never unprepare the clock(s). This will means that these clocks will be
-> enabled all the time and will never turned off.
+* H. Nikolaus Schaller <hns@goldelico.com> [150923 05:53]:
 
-Good point, we need to check that for hwmod pm_runtime related
-functions. Basically the PLLs we can't disable until in
-pm_runtime_disable.
-
-I think the approach we need to take to be that clk_enable/disable
-is really optional clk_gate_enable/disable. And in many cases PLLs
-don't have a gate, so it's correct for pm_runtime enable/disable
-to not do anything for the PLLs.
-
-And the reason we don't want to change pm_runtime hooks to use
-clk_prepare_enable/disable is that then drivers can't use
-pm_runtime_irq_safe like some do currently.
+Missing description? BTW, this I want to queue separately
+as I have patches in works to support omap5 variants with
+omap5-board-common.dtsi to avoid duplicating things as
+we get omap5 better supported for things like regulators.
 
 Regards,
 
 Tony
+
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+> arch/arm/boot/dts/omap5-uevm.dts | 22 ++++++++++++++++++++++
+> 1 file changed, 22 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+> index 3b16e8f..0d4c8ff 100644
+> --- a/arch/arm/boot/dts/omap5-uevm.dts
+> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+> @@ -342,6 +342,28 @@
+> 
+> 			ti,ldo6-vibrator;
+> 
+> +			gpadc {
+> +				compatible = "ti,palmas-gpadc";
+> +				interrupts = <18 0
+> +					      16 0
+> +					      17 0>;
+> +				ti,channel0-current-microamp = <5>;
+> +				ti,channel3-current-microamp = <10>;
+> +				iio_map {
+> +					ch1 {
+> +						ti,adc-channel-number = <1>;
+> +						ti,adc-consumer-device = "generic-adc-thermal.0";
+> +						ti,adc-consumer-channel ="battery-temp-channel";
+> +					};
+> +
+> +					ch6 {
+> +						ti,adc-channel-number = <6>;
+> +						ti,adc-consumer-device = "palmas-battery";
+> +						ti,adc-consumer-channel ="vbat_channel";
+> +					};
+> +				};
+> +			};
+> +
+> 			regulators {
+> 				smps123_reg: smps123 {
+> 					/* VDD_OPP_MPU */
+> -- 
+> 2.5.1
+> 
