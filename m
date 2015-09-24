@@ -1,39 +1,57 @@
-From: Jisheng Zhang <jszhang@marvell.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PM: Denote the cpuidle tracepoints as
- _rcuidle()
-Date: Thu, 24 Sep 2015 11:18:54 +0800
-Message-ID: <20150924111854.43429ca2@xhacker>
-References: <1442554881-706-1-git-send-email-jszhang@marvell.com>
-	<7hfv25dnkn.fsf@deeprootsystems.com>	<20150923180814.GL23801@atomide.com>
+From: Lokesh Vutla <a0131933@ti.com>
+Subject: Re: [PATCH v3 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
+Date: Thu, 24 Sep 2015 10:15:30 +0530
+Message-ID: <56037FEA.5070807@ti.com>
+References: <1437657946-10733-1-git-send-email-lokeshvutla@ti.com>
+ <55DE9055.4090701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150923180814.GL23801@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@kernel.org>, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <55DE9055.4090701@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: t-kristo@ti.com, tony@atomide.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Dear Tony,
+Hi Paul,
 
-On Wed, 23 Sep 2015 11:08:15 -0700
-Tony Lindgren <tony@atomide.com> wrote:
-
-> * Kevin Hilman <khilman@kernel.org> [150923 11:03]:
-> > Jisheng Zhang <jszhang@marvell.com> writes:
-> > 
-> > > The cpuidle tracepoints are called within a rcu_idle_exit() section, and
-> > > must be denoted with the _rcuidle() version of the tracepoint.
-> > >
-> > > Signed-off-by: Jisheng Zhang <jszhang@marvell.com>
-> >  
-> > Acked-by: Kevin Hilman <khilman@linaro.org>
+On Thursday 27 August 2015 09:51 AM, Lokesh Vutla wrote:
+> Hi Paul,
 > 
-> Hmm is this needed as a fix for the -rc cycle or can this wait
-> for v4.4?
+> On Thursday 23 July 2015 06:55 PM, Lokesh Vutla wrote:
+>> This series implements lock and unlock functions for RTC and hooks
+>> the same to DRA7 and AMx3xx hwmod.
+>> This is dependent on the patch https://patchwork.kernel.org/patch/6578281/,
+>> which is queued recently by Paul.
+> Gentle ping on this series.
+Do you have any comments on this series?
 
-IMHO, this is a fix. But it can wait for v4.4 merge window.
-
-Thanks,
-Jisheng
+Thanks and regards,
+Lokesh
+> 
+> Thanks and regards,
+> Lokesh
+>>
+>> Changes since v2:
+>> - Add kerneldoc for omap_hwmod_rtc_lock() function.
+>>
+>> Lokesh Vutla (3):
+>>   ARM: hwmod: RTC: Add lock and unlock functions
+>>   ARM: DRA7: RTC: Add lock and unlock functions
+>>   ARM: AMx3xx: RTC: Add lock and unlock functions
+>>
+>>  arch/arm/mach-omap2/omap_hwmod.h                   |  2 +
+>>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 +
+>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +
+>>  arch/arm/mach-omap2/omap_hwmod_reset.c             | 65 ++++++++++++++++++++++
+>>  4 files changed, 71 insertions(+)
+>>
