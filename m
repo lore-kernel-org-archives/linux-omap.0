@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 04/17] ARM: dts: omap4: add reset data
-Date: Thu, 24 Sep 2015 17:26:45 +0300
-Message-ID: <1443104818-993-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 05/17] ARM: dts: omap5: add reset data
+Date: Thu, 24 Sep 2015 17:26:46 +0300
+Message-ID: <1443104818-993-6-git-send-email-t-kristo@ti.com>
 References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,67 +24,37 @@ List-Id: linux-omap@vger.kernel.org
 Copy over the reset data from hwmod database to DT. After this is taken
 into use, the data in hwmod database can be removed.
 
-A new node has been also added for ipu to support ipu resets.
-
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ arch/arm/boot/dts/omap5.dtsi |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index abc4473..d14c485 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -97,11 +97,25 @@
- 		dsp {
- 			compatible = "ti,omap3-c64";
- 			ti,hwmods = "dsp";
-+			reset-names = "dsp";
-+			resets = <&prm 0x0400 0x10 0 0x14 0>;
- 		};
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 4205a8a..631a8ae 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -242,6 +242,7 @@
+ 				compatible = "ti,omap5-prm";
+ 				reg = <0x6000 0x3000>;
+ 				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
++				#reset-cells = <5>;
  
- 		iva {
- 			compatible = "ti,ivahd";
- 			ti,hwmods = "iva";
-+			reset-names = "seq0", "seq1", "logic";
-+			resets = <&prm 0x0f00 0x10 0 0x14 0>,
-+				 <&prm 0x0f00 0x10 1 0x14 1>,
-+				 <&prm 0x0f00 0x10 2 0x14 2>;
-+		};
-+
-+		ipu {
-+			compatible = "ti,omap4-ipu";
-+			ti,hwmods = "ipu";
-+			reset-names = "cpu0", "cpu1";
-+			resets = <&prm 0x0700 0x210 0 0x214 0>,
-+				 <&prm 0x0700 0x210 1 0x214 1>;
- 		};
- 	};
+ 				prm_clocks: clocks {
+ 					#address-cells = <1>;
+@@ -250,6 +251,12 @@
  
-@@ -226,6 +240,7 @@
- 					compatible = "ti,omap4-prm";
- 					reg = <0x6000 0x3000>;
- 					interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
-+					#reset-cells = <5>;
- 
- 					prm_clocks: clocks {
- 						#address-cells = <1>;
-@@ -234,6 +249,14 @@
- 
- 					prm_clockdomains: clockdomains {
- 					};
-+
-+					system_reset: system_reset {
-+						compatible = "ti,system-reset";
-+						reset-names = "system",
-+							      "cold_sw";
-+						resets = <&prm 0x1b00 0 0 4 0>,
-+							 <&prm 0x1b00 0 1 4 1>;
-+					};
+ 				prm_clockdomains: clockdomains {
  				};
++
++				system_reset: system_reset {
++					compatible = "ti,system-reset";
++					reset-names = "system";
++					resets = <&prm 0x1c00 0 0 4 0>;
++				};
+ 			};
  
- 				scrm: scrm@a000 {
-@@ -553,6 +576,8 @@
+ 			scrm: scrm@a000 {
+@@ -614,6 +621,8 @@
  			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
  			ti,hwmods = "mmu_dsp";
  			#iommu-cells = <0>;
@@ -93,7 +63,7 @@ index abc4473..d14c485 100644
  		};
  
  		mmu_ipu: mmu@55082000 {
-@@ -562,6 +587,8 @@
+@@ -623,6 +632,8 @@
  			ti,hwmods = "mmu_ipu";
  			#iommu-cells = <0>;
  			ti,iommu-bus-err-back;
@@ -101,6 +71,6 @@ index abc4473..d14c485 100644
 +			resets = <&prm 0x700 0x210 2 0x214 2>;
  		};
  
- 		wdt2: wdt@4a314000 {
+ 		keypad: keypad@4ae1c000 {
 -- 
 1.7.9.5
