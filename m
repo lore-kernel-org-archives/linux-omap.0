@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 10/25] ARM: davinci: Add dma_mask to eDMA devices
-Date: Thu, 24 Sep 2015 13:01:57 +0300
-Message-ID: <1443088932-21731-11-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 16/25] dmaengine: edma: Use dev_dbg instead pr_debug
+Date: Thu, 24 Sep 2015 13:02:03 +0300
+Message-ID: <1443088932-21731-17-git-send-email-peter.ujfalusi@ti.com>
 References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,73 +12,78 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The upcoming change to merge the arch/arm/common/edma.c into
-drivers/dma/edma.c will need this change when booting daVinci devices in
-no DT mode.
+We have access to dev, so it is better to use the dev_dbg for debug prints.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-davinci/devices-da8xx.c | 2 ++
- arch/arm/mach-davinci/dm355.c         | 1 +
- arch/arm/mach-davinci/dm644x.c        | 1 +
- arch/arm/mach-davinci/dm646x.c        | 1 +
- 4 files changed, 5 insertions(+)
+ drivers/dma/edma.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
-index 9f7d266faa0c..28c90bc372bd 100644
---- a/arch/arm/mach-davinci/devices-da8xx.c
-+++ b/arch/arm/mach-davinci/devices-da8xx.c
-@@ -216,6 +216,7 @@ static struct resource da850_edma1_resources[] = {
- static const struct platform_device_info da8xx_edma0_device __initconst = {
- 	.name		= "edma",
- 	.id		= 0,
-+	.dma_mask	= DMA_BIT_MASK(32),
- 	.res		= da8xx_edma0_resources,
- 	.num_res	= ARRAY_SIZE(da8xx_edma0_resources),
- 	.data		= &da8xx_edma0_pdata,
-@@ -225,6 +226,7 @@ static const struct platform_device_info da8xx_edma0_device __initconst = {
- static const struct platform_device_info da850_edma1_device __initconst = {
- 	.name		= "edma",
- 	.id		= 1,
-+	.dma_mask	= DMA_BIT_MASK(32),
- 	.res		= da850_edma1_resources,
- 	.num_res	= ARRAY_SIZE(da850_edma1_resources),
- 	.data		= &da850_edma1_pdata,
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index 5f10c6695e31..609950b8c191 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -616,6 +616,7 @@ static struct resource edma_resources[] = {
- static const struct platform_device_info dm355_edma_device __initconst = {
- 	.name		= "edma",
- 	.id		= 0,
-+	.dma_mask	= DMA_BIT_MASK(32),
- 	.res		= edma_resources,
- 	.num_res	= ARRAY_SIZE(edma_resources),
- 	.data		= &dm355_edma_pdata,
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index aa3453b40d5f..d38f5049d56e 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -545,6 +545,7 @@ static struct resource edma_resources[] = {
- static const struct platform_device_info dm644x_edma_device __initconst = {
- 	.name		= "edma",
- 	.id		= 0,
-+	.dma_mask	= DMA_BIT_MASK(32),
- 	.res		= edma_resources,
- 	.num_res	= ARRAY_SIZE(edma_resources),
- 	.data		= &dm644x_edma_pdata,
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 79c1d8917dd3..70eb42725eec 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -592,6 +592,7 @@ static struct resource edma_resources[] = {
- static const struct platform_device_info dm646x_edma_device __initconst = {
- 	.name		= "edma",
- 	.id		= 0,
-+	.dma_mask	= DMA_BIT_MASK(32),
- 	.res		= edma_resources,
- 	.num_res	= ARRAY_SIZE(edma_resources),
- 	.data		= &dm646x_edma_pdata,
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 2332142c36db..fe8cde21b497 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -655,14 +655,14 @@ static int edma_start(struct edma_cc *ecc, unsigned channel)
+ 
+ 		/* EDMA channels without event association */
+ 		if (test_bit(channel, ecc->edma_unused)) {
+-			pr_debug("EDMA: ESR%d %08x\n", j,
+-				 edma_shadow0_read_array(ecc, SH_ESR, j));
++			dev_dbg(ecc->dev, "ESR%d %08x\n", j,
++				edma_shadow0_read_array(ecc, SH_ESR, j));
+ 			edma_shadow0_write_array(ecc, SH_ESR, j, mask);
+ 			return 0;
+ 		}
+ 
+ 		/* EDMA channel with event association */
+-		pr_debug("EDMA: ER%d %08x\n", j,
++		dev_dbg(ecc->dev, "ER%d %08x\n", j,
+ 			edma_shadow0_read_array(ecc, SH_ER, j));
+ 		/* Clear any pending event or error */
+ 		edma_write_array(ecc, EDMA_ECR, j, mask);
+@@ -670,8 +670,8 @@ static int edma_start(struct edma_cc *ecc, unsigned channel)
+ 		/* Clear any SER */
+ 		edma_shadow0_write_array(ecc, SH_SECR, j, mask);
+ 		edma_shadow0_write_array(ecc, SH_EESR, j, mask);
+-		pr_debug("EDMA: EER%d %08x\n", j,
+-			 edma_shadow0_read_array(ecc, SH_EER, j));
++		dev_dbg(ecc->dev, "EER%d %08x\n", j,
++			edma_shadow0_read_array(ecc, SH_EER, j));
+ 		return 0;
+ 	}
+ 
+@@ -709,8 +709,8 @@ static void edma_stop(struct edma_cc *ecc, unsigned channel)
+ 		/* clear possibly pending completion interrupt */
+ 		edma_shadow0_write_array(ecc, SH_ICR, j, mask);
+ 
+-		pr_debug("EDMA: EER%d %08x\n", j,
+-			 edma_shadow0_read_array(ecc, SH_EER, j));
++		dev_dbg(ecc->dev, "EER%d %08x\n", j,
++			edma_shadow0_read_array(ecc, SH_EER, j));
+ 
+ 		/* REVISIT:  consider guarding against inappropriate event
+ 		 * chaining by overwriting with dummy_paramset.
+@@ -779,8 +779,8 @@ static int edma_trigger_channel(struct edma_cc *ecc, unsigned channel)
+ 
+ 	edma_shadow0_write_array(ecc, SH_ESR, (channel >> 5), mask);
+ 
+-	pr_debug("EDMA: ESR%d %08x\n", (channel >> 5),
+-		 edma_shadow0_read_array(ecc, SH_ESR, (channel >> 5)));
++	dev_dbg(ecc->dev, "ESR%d %08x\n", (channel >> 5),
++		edma_shadow0_read_array(ecc, SH_ESR, (channel >> 5)));
+ 	return 0;
+ }
+ 
+@@ -810,8 +810,8 @@ static void edma_clean_channel(struct edma_cc *ecc, unsigned channel)
+ 		int j = (channel >> 5);
+ 		unsigned int mask = BIT(channel & 0x1f);
+ 
+-		pr_debug("EDMA: EMR%d %08x\n", j,
+-			 edma_read_array(ecc, EDMA_EMR, j));
++		dev_dbg(ecc->dev, "EMR%d %08x\n", j,
++			edma_read_array(ecc, EDMA_EMR, j));
+ 		edma_shadow0_write_array(ecc, SH_ECR, j, mask);
+ 		/* Clear the corresponding EMR bits */
+ 		edma_write_array(ecc, EDMA_EMCR, j, mask);
 -- 
 2.5.2
