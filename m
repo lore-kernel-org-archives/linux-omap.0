@@ -1,119 +1,91 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 15/25] dmaengine: edma: Cleanup regarding the use of dev
- around the code
-Date: Thu, 24 Sep 2015 13:02:02 +0300
-Message-ID: <1443088932-21731-16-git-send-email-peter.ujfalusi@ti.com>
-References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapdss: acx565akm: Fix module autoload for OF platform
+ driver
+Date: Thu, 24 Sep 2015 13:17:53 +0300
+Message-ID: <5603CDD1.7030709@ti.com>
+References: <20150918184457.GA32636@goodgumbo.baconseed.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150918184457.GA32636@goodgumbo.baconseed.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luis de Bethencourt <luis@debethencourt.com>, linux-kernel@vger.kernel.org
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Be consistent and do not mix the use of dev, &pdev->dev, etc in the
-functions.
+--gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/edma.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index f5010c8f6273..2332142c36db 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -1177,7 +1177,7 @@ static void edma_execute(struct edma_chan *echan)
- 		j = i + edesc->processed;
- 		edma_write_slot(ecc, echan->slot[i], &edesc->pset[j].param);
- 		edesc->sg_len += edesc->pset[j].len;
--		dev_vdbg(echan->vchan.chan.device->dev,
-+		dev_vdbg(dev,
- 			"\n pset[%d]:\n"
- 			"  chnum\t%d\n"
- 			"  slot\t%d\n"
-@@ -1828,7 +1828,6 @@ err_no_chan:
- static void edma_free_chan_resources(struct dma_chan *chan)
- {
- 	struct edma_chan *echan = to_edma_chan(chan);
--	struct device *dev = chan->device->dev;
- 	int i;
- 
- 	/* Terminate transfers */
-@@ -1850,7 +1849,7 @@ static void edma_free_chan_resources(struct dma_chan *chan)
- 		echan->alloced = false;
- 	}
- 
--	dev_dbg(dev, "freeing channel for %u\n", echan->ch_num);
-+	dev_dbg(chan->device->dev, "freeing channel for %u\n", echan->ch_num);
- }
- 
- /* Send pending descriptor to hardware */
-@@ -2174,13 +2173,13 @@ static int edma_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
--	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-+	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32));
- 	if (ret)
- 		return ret;
- 
--	ecc = devm_kzalloc(&pdev->dev, sizeof(*ecc), GFP_KERNEL);
-+	ecc = devm_kzalloc(dev, sizeof(*ecc), GFP_KERNEL);
- 	if (!ecc) {
--		dev_err(&pdev->dev, "Can't allocate controller\n");
-+		dev_err(dev, "Can't allocate controller\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -2324,7 +2323,7 @@ static int edma_probe(struct platform_device *pdev)
- 
- 	ecc->dummy_slot = edma_alloc_slot(ecc, EDMA_SLOT_ANY);
- 	if (ecc->dummy_slot < 0) {
--		dev_err(&pdev->dev, "Can't allocate PaRAM dummy slot\n");
-+		dev_err(dev, "Can't allocate PaRAM dummy slot\n");
- 		return ecc->dummy_slot;
- 	}
- 
-@@ -2333,7 +2332,7 @@ static int edma_probe(struct platform_device *pdev)
- 	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
- 	dma_cap_set(DMA_MEMCPY, ecc->dma_slave.cap_mask);
- 
--	edma_dma_init(ecc, &ecc->dma_slave, &pdev->dev);
-+	edma_dma_init(ecc, &ecc->dma_slave, dev);
- 
- 	edma_chan_init(ecc, &ecc->dma_slave, ecc->slave_chans);
- 
-@@ -2345,7 +2344,7 @@ static int edma_probe(struct platform_device *pdev)
- 		of_dma_controller_register(node, of_dma_xlate_by_chan_id,
- 					   &ecc->dma_slave);
- 
--	dev_info(&pdev->dev, "TI EDMA DMA engine driver\n");
-+	dev_info(dev, "TI EDMA DMA engine driver\n");
- 
- 	return 0;
- 
-@@ -2359,8 +2358,8 @@ static int edma_remove(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct edma_cc *ecc = dev_get_drvdata(dev);
- 
--	if (pdev->dev.of_node)
--		of_dma_controller_free(pdev->dev.of_node);
-+	if (dev->of_node)
-+		of_dma_controller_free(dev->of_node);
- 	dma_async_device_unregister(&ecc->dma_slave);
- 	edma_free_slot(ecc, ecc->dummy_slot);
- 
--- 
-2.5.2
+
+On 18/09/15 21:44, Luis de Bethencourt wrote:
+> This platform driver has a OF device ID table but the OF module
+> alias information is not created so module autoloading won't work.
+>=20
+> Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+> ---
+>=20
+> Hello,
+>=20
+> This patch adds the missing MODULE_DEVICE_TABLE() for OF to export
+> that information so modules have the correct aliases built-in and
+> autoloading works correctly.
+>=20
+> A longer explanation by Javier Canillas can be found here:
+> https://lkml.org/lkml/2015/7/30/519
+>=20
+> Thanks,
+> Luis
+>=20
+>  drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565ak=
+m.c b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+> index 90cbc4c..c581231 100644
+> --- a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+> +++ b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+> @@ -898,6 +898,7 @@ static const struct of_device_id acx565akm_of_match=
+[] =3D {
+>  	{ .compatible =3D "omapdss,sony,acx565akm", },
+>  	{},
+>  };
+> +MODULE_DEVICE_TABLE(of, acx565akm_of_match);
+> =20
+>  static struct spi_driver acx565akm_driver =3D {
+>  	.driver =3D {
+>=20
+
+Thanks, queued for 4.3 fixes.
+
+ Tomi
+
+
+
+--gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWA83RAAoJEPo9qoy8lh71bFwP/3hB/dtqYBeyG3DziQnnAM+x
+dzNyyBZ68oJlhJ1kCCwwquI3qyB0/A8MYWkZb0xGy/seaaTCjruDR0rEwgahBZi7
+riZ0zP3heqpb19FV6an0NlzU4XqT7vHeqhSXEeZOTiNJAoPdz6uqQ5kuQ+oaDFXv
+n6J2XDiO95jzLg68luaNzUJgO2dNORvBQvSn21ySxgpPh6kQt0kQea7ClMsT9cVJ
+Uskcr9NVTeS7cZwAtAixYi9zVQ+rMhUQVYkBAOtA71WYWrtGlp/WtOEHY0oH/JQA
+cSR4NRLSgtCScKJo/j0AMcv98DIoLuYKNofVrgBHzjBWEEC7/TB1CKz99TlGMs0u
+A2W43B/qL6jpkadQcMjnGs3zhWSkfwv5ihyIp6+Qx6AajXMJ6c+mNBSyvTXsl/uP
+xzJ7iBClbheeF60/yZhZtw1Z58GOMElPUCggD1lIILERE9W/4WgsU0DYvS+g2WVu
+2REBFzFN+750GLfpGVc8iy2tfq+qdNV9UU8463lYHL5j5dxqSLJ1pW9/jsnjQx5R
+a0IfMOUCHpNkCjSM9OsJF+AKdrwcR0ebTCZ5E/4fMFNHtb/kj4EbYg0csPtRLZWe
+AKFwm+yzbwBuPLlf6YEgvTuUVDgSg9raBRQLRN1w47ekuC2SHRZxizC1eh60u6TR
+YGAH2C1VsenGWG2cct0Y
+=61il
+-----END PGP SIGNATURE-----
+
+--gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t--
