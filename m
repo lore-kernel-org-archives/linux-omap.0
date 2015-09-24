@@ -1,7 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 09/17] ARM: dts: OMAP24xx: add reset data
-Date: Thu, 24 Sep 2015 17:26:50 +0300
-Message-ID: <1443104818-993-10-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 15/17] ARM: OMAP24xx: hwmod: remove reset data from hwmod
+ database
+Date: Thu, 24 Sep 2015 17:26:56 +0300
+Message-ID: <1443104818-993-16-git-send-email-t-kristo@ti.com>
 References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,104 +22,75 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add iva, dsp and system reset control as DT data..
+These are now parsed from DT, so not needed under the hwmod database
+anymore.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap2420.dtsi |   24 ++++++++++++++++++++++++
- arch/arm/boot/dts/omap2430.dtsi |   17 +++++++++++++++++
- 2 files changed, 41 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   13 -------------
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    7 -------
+ 2 files changed, 20 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-index 5b9a376..cfb802d 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -13,6 +13,23 @@
- / {
- 	compatible = "ti,omap2420", "ti,omap2";
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 65b1647..5db681d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -49,16 +49,10 @@ static struct omap_hwmod_class iva1_hwmod_class = {
+ 	.name		= "iva1",
+ };
  
-+	soc {
-+		iva {
-+			compatible = "ti,omap2420-iva";
-+			ti,hwmods = "iva";
-+			reset-names = "iva";
-+			resets = <&prcm 0x800 0 8 0 8>;
-+		};
-+
-+		dsp {
-+			ti,hwmods = "dsp";
-+			compatible = "ti,omap2420-dsp";
-+			reset-names = "logic", "mmu";
-+			resets = <&prcm 0x800 0 0 0 4>,
-+				 <&prcm 0x800 0 1 0 5>;
-+		};
-+	};
-+
- 	ocp {
- 		l4: l4@48000000 {
- 			compatible = "ti,omap2-l4", "simple-bus";
-@@ -23,6 +40,7 @@
- 			prcm: prcm@8000 {
- 				compatible = "ti,omap2-prcm";
- 				reg = <0x8000 0x1000>;
-+				#reset-cells = <5>;
+-static struct omap_hwmod_rst_info omap2420_iva_resets[] = {
+-	{ .name = "iva", .rst_shift = 8 },
+-};
+-
+ static struct omap_hwmod omap2420_iva_hwmod = {
+ 	.name		= "iva",
+ 	.class		= &iva1_hwmod_class,
+ 	.clkdm_name	= "iva1_clkdm",
+-	.rst_lines	= omap2420_iva_resets,
+-	.rst_lines_cnt	= ARRAY_SIZE(omap2420_iva_resets),
+ 	.main_clk	= "iva1_ifck",
+ };
  
- 				prcm_clocks: clocks {
- 					#address-cells = <1>;
-@@ -31,6 +49,12 @@
+@@ -67,17 +61,10 @@ static struct omap_hwmod_class dsp_hwmod_class = {
+ 	.name		= "dsp",
+ };
  
- 				prcm_clockdomains: clockdomains {
- 				};
-+
-+				system_reset: system_reset {
-+					compatible = "ti,system-reset";
-+					reset-names = "system";
-+					resets = <&prcm 0x400 0 2 0 0>;
-+				};
- 			};
+-static struct omap_hwmod_rst_info omap2420_dsp_resets[] = {
+-	{ .name = "logic", .rst_shift = 0 },
+-	{ .name = "mmu", .rst_shift = 1 },
+-};
+-
+ static struct omap_hwmod omap2420_dsp_hwmod = {
+ 	.name		= "dsp",
+ 	.class		= &dsp_hwmod_class,
+ 	.clkdm_name	= "dsp_clkdm",
+-	.rst_lines	= omap2420_dsp_resets,
+-	.rst_lines_cnt	= ARRAY_SIZE(omap2420_dsp_resets),
+ 	.main_clk	= "dsp_fck",
+ };
  
- 			scm: scm@0 {
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index 2390f38..0d5f0d6 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -13,6 +13,16 @@
- / {
- 	compatible = "ti,omap2430", "ti,omap2";
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 79127b3..cc0cfaf 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -44,17 +44,10 @@
+  */
  
-+	soc {
-+		iva {
-+			compatible = "ti,iva2.1";
-+			ti,hwmods = "iva";
-+			reset-names = "logic", "mmu";
-+			resets = <&prcm 0x800 0 0 0 4>,
-+				 <&prcm 0x800 0 1 0 5>;
-+		};
-+	};
-+
- 	ocp {
- 		l4_wkup: l4_wkup@49000000 {
- 			compatible = "ti,omap2-l4-wkup", "simple-bus";
-@@ -23,6 +33,7 @@
- 			prcm: prcm@6000 {
- 				compatible = "ti,omap2-prcm";
- 				reg = <0x6000 0x1000>;
-+				#reset-cells = <5>;
+ /* IVA2 (IVA2) */
+-static struct omap_hwmod_rst_info omap2430_iva_resets[] = {
+-	{ .name = "logic", .rst_shift = 0 },
+-	{ .name = "mmu", .rst_shift = 1 },
+-};
+-
+ static struct omap_hwmod omap2430_iva_hwmod = {
+ 	.name		= "iva",
+ 	.class		= &iva_hwmod_class,
+ 	.clkdm_name	= "dsp_clkdm",
+-	.rst_lines	= omap2430_iva_resets,
+-	.rst_lines_cnt	= ARRAY_SIZE(omap2430_iva_resets),
+ 	.main_clk	= "dsp_fck",
+ };
  
- 				prcm_clocks: clocks {
- 					#address-cells = <1>;
-@@ -31,6 +42,12 @@
- 
- 				prcm_clockdomains: clockdomains {
- 				};
-+
-+				system_reset: system_reset {
-+					compatible = "ti,system-reset";
-+					reset-names = "system";
-+					resets = <&prcm 0x400 0 2 0 0>;
-+				};
- 			};
- 
- 			scm: scm@2000 {
 -- 
 1.7.9.5
