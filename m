@@ -1,53 +1,30 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCHv3 0/2] Add support for tps65217 charger
-Date: Fri, 25 Sep 2015 00:18:47 +0200
-Message-ID: <20150924221847.GA32564@earth>
-References: <1443123861-3473-1-git-send-email-enric.balletbo@collabora.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH 6/7] gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
+Date: Thu, 24 Sep 2015 15:28:41 -0700
+Message-ID: <CACRpkdbJW6_-yR8CHnK79oEm2c3exUYU-dbKm3YRYe=VVsCMog@mail.gmail.com>
+References: <1439896258-26449-1-git-send-email-grygorii.strashko@ti.com>
+	<1439896258-26449-7-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1443123861-3473-1-git-send-email-enric.balletbo@collabora.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, lee.jones@linaro.org, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+In-Reply-To: <1439896258-26449-7-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-rt-users@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Aug 18, 2015 at 4:10 AM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
 
---bg08WKrSYDhXBjb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> The PM runtime API can't be used in atomic contex on -RT even if
+> it's configured as irqsafe. As result, below error report can
+> be seen when PM runtime API called from IRQ chip's callbacks
+> irq_startup/irq_shutdown/irq_set_type, because they are
+> protected by RAW spinlock:
 
-Hi,
+Grygorri I have a massive backlog of mail but if patch 6&7 are
+still applicable, can you rebase and send me these for the v4.3-rc2+
+tree?
 
-On Thu, Sep 24, 2015 at 09:44:19PM +0200, Enric Balletbo i Serra wrote:
-> The following series add initial support for tps65217 battery charger.
-
-Thanks, queued.
-
--- Sebastian
-
---bg08WKrSYDhXBjb5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWBHbCAAoJENju1/PIO/qabJ8P/Ark1LxbKmEtjh683qq6PPaL
-czFFZWprXCepx0Isc7mscwr9++3BTEJmagf1j0ExBAOfZtgDISTvwR0SaPrBSubj
-orwwJAw/wGYGqnc+01DK79dGYnHjGqqIpprbR1K86rMQ222Lv8TCH1QLvq9Ke07I
-qPJ8RBGhgpTHkVUrBBqJtNlBQYsiOiQk4ZNz0jMV4otKp9N4aIhXeEzCcwC5g6YL
-mlF1XBnNiJL1Y17UgVbCY6jJc9zQ20Wu/c2oJdnQNQkPfQwlsI6R6ytGYs4FzhUw
-2CJV0nmYMBW/PPsG77Mwpm3SweDlMgrlQ8kVEhSD9t3GzuM1490UpfoJaVpjzXLf
-XyMNEk/OdZ7OVpsiO1IsDAU8nJkmHbOlXt5O2EGbUo4NDDvMgS8InknDIPlucCEw
-EmQBJmK8gfYlBAWXw6ZKz5/5bwacFX7duBq2dbFNFAhculv8vBP4FIlVWFvx3T+P
-2tnr4k+iglgyCCypPEv+Wm5vKCy0mX/6e71pmvNYFknuT08L1keLDoETp/Fz0FbX
-1F2znNTABequKZF6d+DJOQLXKhB7kKgg30bxLcKpACJmVoi2NOJ8hupicyXxDzOE
-LwN5PstQFNN4WCQgY6QU4k+qNfNkmzR2Crc4n4QAa1vGnoGd1B8G6JyfOH/jOCpl
-n97jZGscyAyBT1QpAXEM
-=iB93
------END PGP SIGNATURE-----
-
---bg08WKrSYDhXBjb5--
+Yours,
+Linus Walleij
