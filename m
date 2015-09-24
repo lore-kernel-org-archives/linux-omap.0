@@ -1,41 +1,40 @@
-From: Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCHv2 0/2] Add support for tps65217 charger
-Date: Thu, 24 Sep 2015 09:23:23 +0200
-Message-ID: <1443079405-17813-1-git-send-email-enric.balletbo@collabora.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sjoerd.simons-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
+Subject: [PATCHv2 1/2] devicetree: Add TPS65217 charger binding.
+Date: Thu, 24 Sep 2015 09:23:24 +0200
+Message-ID: <1443079405-17813-2-git-send-email-enric.balletbo@collabora.com>
+References: <1443079405-17813-1-git-send-email-enric.balletbo@collabora.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443079405-17813-1-git-send-email-enric.balletbo@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, lee.jones@linaro.org, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+The TPS65217 charger is a subnode of the TPS65217 MFD.
 
-The following series add initial support for tps65217 battery charger.
-
-Changes since v1:
-  - Requested by Sebastian Reichel
-    - Set prev_ac_online at the beginning of the tps56217_charger_irq()
-    - Use devm_power_supply_register call.
-  - Fix style problems reported by checkpatch.pl --strict
-
-Best regards,
-
-Enric Balletbo i Serra (2):
-  devicetree: Add TPS65217 charger binding.
-  power_supply: Add support for tps65217-charger.
-
- .../bindings/power_supply/tps65217_charger.txt     |  12 +
- drivers/power/Kconfig                              |   7 +
- drivers/power/Makefile                             |   1 +
- drivers/power/tps65217_charger.c                   | 267 +++++++++++++++++++++
- 4 files changed, 287 insertions(+)
+Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+---
+ .../devicetree/bindings/power_supply/tps65217_charger.txt    | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/power_supply/tps65217_charger.txt
- create mode 100644 drivers/power/tps65217_charger.c
 
+diff --git a/Documentation/devicetree/bindings/power_supply/tps65217_charger.txt b/Documentation/devicetree/bindings/power_supply/tps65217_charger.txt
+new file mode 100644
+index 0000000..98d131a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/power_supply/tps65217_charger.txt
+@@ -0,0 +1,12 @@
++TPS65217 Charger
++
++Required Properties:
++-compatible: "ti,tps65217-charger"
++
++This node is a subnode of the tps65217 PMIC.
++
++Example:
++
++	tps65217-charger {
++		compatible = "ti,tps65090-charger";
++	};
 -- 
 2.1.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
