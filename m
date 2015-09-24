@@ -1,91 +1,87 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapdss: acx565akm: Fix module autoload for OF platform
- driver
-Date: Thu, 24 Sep 2015 13:17:53 +0300
-Message-ID: <5603CDD1.7030709@ti.com>
-References: <20150918184457.GA32636@goodgumbo.baconseed.org>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH RFC v4 4/8] drm/i2c: tda998x: Add support of a DT graph
+ of ports
+Date: Thu, 24 Sep 2015 12:36:16 +0200
+Message-ID: <20150924123616.5d47f363@armhf>
+References: <cover.1442572860.git.jsarha@ti.com>
+ <e9ebb04f781fef7cff99190d301fb64805b97d39.1442572860.git.jsarha@ti.com>
+ <56001FF6.5070504@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150918184457.GA32636@goodgumbo.baconseed.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luis de Bethencourt <luis@debethencourt.com>, linux-kernel@vger.kernel.org
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <56001FF6.5070504@kernel.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-
-
-On 18/09/15 21:44, Luis de Bethencourt wrote:
-> This platform driver has a OF device ID table but the OF module
-> alias information is not created so module autoloading won't work.
->=20
-> Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
-> ---
->=20
-> Hello,
->=20
-> This patch adds the missing MODULE_DEVICE_TABLE() for OF to export
-> that information so modules have the correct aliases built-in and
-> autoloading works correctly.
->=20
-> A longer explanation by Javier Canillas can be found here:
-> https://lkml.org/lkml/2015/7/30/519
->=20
-> Thanks,
-> Luis
->=20
->  drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565ak=
-m.c b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
-> index 90cbc4c..c581231 100644
-> --- a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
-> +++ b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
-> @@ -898,6 +898,7 @@ static const struct of_device_id acx565akm_of_match=
-[] =3D {
->  	{ .compatible =3D "omapdss,sony,acx565akm", },
->  	{},
->  };
-> +MODULE_DEVICE_TABLE(of, acx565akm_of_match);
-> =20
->  static struct spi_driver acx565akm_driver =3D {
->  	.driver =3D {
->=20
-
-Thanks, queued for 4.3 fixes.
-
- Tomi
-
-
-
---gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWA83RAAoJEPo9qoy8lh71bFwP/3hB/dtqYBeyG3DziQnnAM+x
-dzNyyBZ68oJlhJ1kCCwwquI3qyB0/A8MYWkZb0xGy/seaaTCjruDR0rEwgahBZi7
-riZ0zP3heqpb19FV6an0NlzU4XqT7vHeqhSXEeZOTiNJAoPdz6uqQ5kuQ+oaDFXv
-n6J2XDiO95jzLg68luaNzUJgO2dNORvBQvSn21ySxgpPh6kQt0kQea7ClMsT9cVJ
-Uskcr9NVTeS7cZwAtAixYi9zVQ+rMhUQVYkBAOtA71WYWrtGlp/WtOEHY0oH/JQA
-cSR4NRLSgtCScKJo/j0AMcv98DIoLuYKNofVrgBHzjBWEEC7/TB1CKz99TlGMs0u
-A2W43B/qL6jpkadQcMjnGs3zhWSkfwv5ihyIp6+Qx6AajXMJ6c+mNBSyvTXsl/uP
-xzJ7iBClbheeF60/yZhZtw1Z58GOMElPUCggD1lIILERE9W/4WgsU0DYvS+g2WVu
-2REBFzFN+750GLfpGVc8iy2tfq+qdNV9UU8463lYHL5j5dxqSLJ1pW9/jsnjQx5R
-a0IfMOUCHpNkCjSM9OsJF+AKdrwcR0ebTCZ5E/4fMFNHtb/kj4EbYg0csPtRLZWe
-AKFwm+yzbwBuPLlf6YEgvTuUVDgSg9raBRQLRN1w47ekuC2SHRZxizC1eh60u6TR
-YGAH2C1VsenGWG2cct0Y
-=61il
------END PGP SIGNATURE-----
-
---gSjBk1NdLgRITD8KDgN9SRljUURVj2e8t--
+T24gTW9uLCAyMSBTZXAgMjAxNSAxMDoxOToxOCAtMDUwMApSb2IgSGVycmluZyA8cm9iaEBrZXJu
+ZWwub3JnPiB3cm90ZToKCj4gT24gMDkvMTgvMjAxNSAwNjowNiBBTSwgSnlyaSBTYXJoYSB3cm90
+ZToKPiA+IEZyb206IEplYW4tRnJhbmNvaXMgTW9pbmUgPG1vaW5lamZAZnJlZS5mcj4KPiA+IAo+
+ID4gVHdvIGtpbmRzIG9mIHBvcnRzIG1heSBiZSBkZWNsYXJlZCBpbiBhIERUIGdyYXBoIG9mIHBv
+cnRzOiB2aWRlbyBhbmQgYXVkaW8uCj4gPiBUaGlzIHBhdGNoIGFjY2VwdHMgdGhlIHBvcnQgdmFs
+dWUgZnJvbSBhIHZpZGVvIHBvcnQgYXMgYW4gYWx0ZXJuYXRpdmUKPiA+IHRvIHRoZSB2aWRlby1w
+b3J0cyBwcm9wZXJ0eS4KPiA+IEl0IGFsc28gYWNjZXB0cyBhdWRpbyBwb3J0cyBpbiB0aGUgY2Fz
+ZSB0aGUgdHJhbnNtaXR0ZXIgaXMgbm90IHVzZWQgYXMKPiA+IGEgc2xhdmUgZW5jb2Rlci4KPiA+
+IFRoZSBuZXcgZmlsZSBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaCBwcmVwYXJlcyB0byB0aGUgZGVm
+aW5pdGlvbiBvZgo+ID4gYSB0ZGE5OTh4IENPREVDLgo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBK
+ZWFuLUZyYW5jb2lzIE1vaW5lIDxtb2luZWpmQGZyZWUuZnI+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBK
+eXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgo+ID4gLS0tCglbc25pcF0KPiA+IGRpZmYgLS1naXQg
+YS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZHJtL2kyYy90ZGE5OTh4LnR4dCBi
+L0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kcm0vaTJjL3RkYTk5OHgudHh0Cj4g
+PiBpbmRleCBlOWU0YmNlLi4zNWY2YTgwIDEwMDY0NAo+ID4gLS0tIGEvRG9jdW1lbnRhdGlvbi9k
+ZXZpY2V0cmVlL2JpbmRpbmdzL2RybS9pMmMvdGRhOTk4eC50eHQKPiA+ICsrKyBiL0RvY3VtZW50
+YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kcm0vaTJjL3RkYTk5OHgudHh0Cj4gPiBAQCAtMTYs
+NiArMTYsMzUgQEAgT3B0aW9uYWwgcHJvcGVydGllczoKPiA+ICAKPiA+ICAgIC0gdmlkZW8tcG9y
+dHM6IDI0IGJpdHMgdmFsdWUgd2hpY2ggZGVmaW5lcyBob3cgdGhlIHZpZGVvIGNvbnRyb2xsZXIK
+PiA+ICAJb3V0cHV0IGlzIHdpcmVkIHRvIHRoZSBUREE5OTh4IGlucHV0IC0gZGVmYXVsdDogPDB4
+MjMwMTQ1Pgo+ID4gKwlUaGlzIHByb3BlcnR5IGlzIG5vdCB1c2VkIHdoZW4gcG9ydHMgYXJlIGRl
+ZmluZWQuCj4gPiArCj4gPiArT3B0aW9uYWwgbm9kZXM6Cj4gPiArCj4gPiArICAtIHBvcnQ6IHVw
+IHRvIHRocmVlIHBvcnRzLgo+ID4gKwlUaGUgcG9ydHMgYXJlIGRlZmluZWQgYWNjb3JkaW5nIHRv
+IFsxXS4KPiA+ICsKPiA+ICsgICAgVmlkZW8gcG9ydC4KPiA+ICsJVGhlcmUgbWF5IGJlIG9ubHkg
+b25lIHZpZGVvIHBvcnQuCj4gPiArCVRoaXMgb25lIG11c3QgY29udGFpbiB0aGUgZm9sbG93aW5n
+IHByb3BlcnR5Ogo+ID4gKwo+ID4gKwktIHBvcnQtdHlwZTogbXVzdCBiZSAicmdiIiAgCj4gCj4g
+V2h5IGRvIHlvdSBuZWVkIHRoaXMgaWYgdGhlcmUgaXMgbm8gb3RoZXIgY2hvaWNlPyBUaGUgcG9y
+dCBudW1iZXIgc2hvdWxkCj4gZGVmaW5lIHdoaWNoIG9uZSBpcyB2aWRlby4KClRoZXJlIGlzIG5v
+IHNwZWNpZmljIHBvcnQgbnVtYmVyLgpPbmUgb2YgdGhlIHBvcnRzIGlzIHZpZGVvIGFuZCB0d28g
+b3RoZXIgb25lcyBhcmUgYXVkaW8uCgo+ID4gKwo+ID4gKwlhbmQgbWF5IGNvbnRhaW4gdGhlIG9w
+dGlvbmFsIHByb3BlcnR5Ogo+ID4gKwo+ID4gKwktIHJlZzogMjQgYml0cyB2YWx1ZSB3aGljaCBk
+ZWZpbmVzIGhvdyB0aGUgdmlkZW8gY29udHJvbGxlcgo+ID4gKwkJb3V0cHV0IGlzIHdpcmVkIHRv
+IHRoZSBUREE5OTh4IGlucHV0ICh2aWRlbyBwaW5zKQo+ID4gKwkJV2hlbiBhYnNlbnQsIHRoZSBk
+ZWZhdWx0IHZhbHVlIGlzIDwweDIzMDE0NT4uICAKPiAKPiBJJ20gZmFpbGluZyB0byBkZWNvZGUg
+aG93IHRoaXMgdmFsdWUgd29ya3MuIEluIGFueSBjYXNlLCBJIHdvdWxkIGtlZXAKPiB0aGlzIGFz
+IGEgdmVuZG9yIHNwZWNpZmljIHByb3BlcnR5IHJhdGhlciB0aGFuIGFidXNpbmcgcmVnLgoKVGhp
+cyBoYXMgYmVlbiBleHBsYWluZWQgaW4KaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTQvMS8yMC84
+NgoKPiA+ICsKPiA+ICsgICAgQXVkaW8gcG9ydHMuCj4gPiArCVRoZXJlIG1heSBiZSBvbmUgb3Ig
+dHdvIGF1ZGlvIHBvcnRzLgo+ID4gKwlUaGVzZSBvbmVzIG11c3QgY29udGFpbiB0aGUgZm9sbG93
+aW5nIHByb3BlcnRpZXM6Cj4gPiArCj4gPiArCS0gcG9ydC10eXBlOiBtdXN0IGJlICJpMnMiIG9y
+ICJzcGRpZiIKPiA+ICsKPiA+ICsJLSByZWc6IDggYml0cyB2YWx1ZSB3aGljaCBkZWZpbmVzIGhv
+dyB0aGUgYXVkaW8gY29udHJvbGxlcgo+ID4gKwkJb3V0cHV0IGlzIHdpcmVkIHRvIHRoZSBUREE5
+OTh4IGlucHV0IChhdWRpbyBwaW5zKSAgCj4gCj4gcmVnIGlzIDMyLWJpdHMuCgpUaGlzIHBvcnQg
+aGFzIG9ubHkgOCBzaWduaWZpY2FudCBiaXRzIGFzIGV4cGxhaW5lZCBpbgpodHRwczovL2xrbWwu
+b3JnL2xrbWwvMjAxNS8xLzcvMzYyCgo+ID4gKwo+ID4gK1sxXSBEb2N1bWVudGF0aW9uL2Rldmlj
+ZXRyZWUvYmluZGluZ3MvZ3JhcGgudHh0Cj4gPiAgCj4gPiAgRXhhbXBsZToKPiA+ICAKPiA+IEBA
+IC0yNiw0ICs1NSwyNiBAQCBFeGFtcGxlOgo+ID4gIAkJaW50ZXJydXB0cyA9IDwyNyAyPjsJCS8q
+IGZhbGxpbmcgZWRnZSAqLwo+ID4gIAkJcGluY3RybC0wID0gPCZwbXhfY2FtZXJhPjsKPiA+ICAJ
+CXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Cj4gPiArCj4gPiArCQlwb3J0QDIzMDE0NSB7Cj4g
+PiArCQkJcG9ydC10eXBlID0gInJnYiI7Cj4gPiArCQkJcmVnID0gPDB4MjMwMTQ1PjsKPiA+ICsJ
+CQloZG1pXzA6IGVuZHBvaW50IHsKPiA+ICsJCQkJcmVtb3RlLWVuZHBvaW50ID0gPCZsY2QwXzA+
+Owo+ID4gKwkJCX07Cj4gPiArCQl9Owo+ID4gKwkJcG9ydEAzIHsJCQkvKiBBUDEgPSBJMlMgKi8g
+IAo+IAo+IElzIDMgc2lnbmlmaWNhbnQ/IFdoYXQgaGFwcGVuZWQgdG8gMC0yPwoKVGhlIHZhbHVl
+IGFmdGVyIEAgaXMgdGhlICdyZWcnIHZhbHVlICg9IHZhbHVlIG9mIHRoZSBwb3J0IHJlZ2lzdGVy
+KS4KCj4gPiArCQkJcG9ydC10eXBlID0gImkycyI7Cj4gPiArCQkJcmVnID0gPDB4MDM+Owo+ID4g
+KwkJCXRkYTk5OHhfaTJzOiBlbmRwb2ludCB7Cj4gPiArCQkJCXJlbW90ZS1lbmRwb2ludCA9IDwm
+YXVkaW8xX2kycz47Cj4gPiArCQkJfTsKPiA+ICsJCX07CgotLSAKS2VuIGFyIGMnaGVudGHDsQl8
+CSAgICAgICoqIEJyZWl6aCBoYSBMaW51eCBhdGF2ISAqKgpKZWYJCXwJCWh0dHA6Ly9tb2luZWpm
+LmZyZWUuZnIvCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
+dHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
