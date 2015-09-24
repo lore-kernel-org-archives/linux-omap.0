@@ -1,40 +1,53 @@
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCHv3 1/2] devicetree: Add TPS65217 charger binding.
-Date: Thu, 24 Sep 2015 21:44:20 +0200
-Message-ID: <1443123861-3473-2-git-send-email-enric.balletbo@collabora.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCHv3 0/2] Add support for tps65217 charger
+Date: Fri, 25 Sep 2015 00:18:47 +0200
+Message-ID: <20150924221847.GA32564@earth>
 References: <1443123861-3473-1-git-send-email-enric.balletbo@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1443123861-3473-1-git-send-email-enric.balletbo@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, lee.jones@linaro.org, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
+Sender: linux-pm-owner@vger.kernel.org
+To: Enric Balletbo i Serra <eballetbo@gmail.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, lee.jones@linaro.org, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
 List-Id: linux-omap@vger.kernel.org
 
-The TPS65217 charger is a subnode of the TPS65217 MFD.
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- .../devicetree/bindings/power_supply/tps65217_charger.txt    | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/power_supply/tps65217_charger.txt
+--bg08WKrSYDhXBjb5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/Documentation/devicetree/bindings/power_supply/tps65217_charger.txt b/Documentation/devicetree/bindings/power_supply/tps65217_charger.txt
-new file mode 100644
-index 0000000..98d131a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/power_supply/tps65217_charger.txt
-@@ -0,0 +1,12 @@
-+TPS65217 Charger
-+
-+Required Properties:
-+-compatible: "ti,tps65217-charger"
-+
-+This node is a subnode of the tps65217 PMIC.
-+
-+Example:
-+
-+	tps65217-charger {
-+		compatible = "ti,tps65090-charger";
-+	};
--- 
-2.1.0
+Hi,
+
+On Thu, Sep 24, 2015 at 09:44:19PM +0200, Enric Balletbo i Serra wrote:
+> The following series add initial support for tps65217 battery charger.
+
+Thanks, queued.
+
+-- Sebastian
+
+--bg08WKrSYDhXBjb5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJWBHbCAAoJENju1/PIO/qabJ8P/Ark1LxbKmEtjh683qq6PPaL
+czFFZWprXCepx0Isc7mscwr9++3BTEJmagf1j0ExBAOfZtgDISTvwR0SaPrBSubj
+orwwJAw/wGYGqnc+01DK79dGYnHjGqqIpprbR1K86rMQ222Lv8TCH1QLvq9Ke07I
+qPJ8RBGhgpTHkVUrBBqJtNlBQYsiOiQk4ZNz0jMV4otKp9N4aIhXeEzCcwC5g6YL
+mlF1XBnNiJL1Y17UgVbCY6jJc9zQ20Wu/c2oJdnQNQkPfQwlsI6R6ytGYs4FzhUw
+2CJV0nmYMBW/PPsG77Mwpm3SweDlMgrlQ8kVEhSD9t3GzuM1490UpfoJaVpjzXLf
+XyMNEk/OdZ7OVpsiO1IsDAU8nJkmHbOlXt5O2EGbUo4NDDvMgS8InknDIPlucCEw
+EmQBJmK8gfYlBAWXw6ZKz5/5bwacFX7duBq2dbFNFAhculv8vBP4FIlVWFvx3T+P
+2tnr4k+iglgyCCypPEv+Wm5vKCy0mX/6e71pmvNYFknuT08L1keLDoETp/Fz0FbX
+1F2znNTABequKZF6d+DJOQLXKhB7kKgg30bxLcKpACJmVoi2NOJ8hupicyXxDzOE
+LwN5PstQFNN4WCQgY6QU4k+qNfNkmzR2Crc4n4QAa1vGnoGd1B8G6JyfOH/jOCpl
+n97jZGscyAyBT1QpAXEM
+=iB93
+-----END PGP SIGNATURE-----
+
+--bg08WKrSYDhXBjb5--
