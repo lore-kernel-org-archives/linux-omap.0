@@ -1,87 +1,85 @@
-From: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH RFC v4 4/8] drm/i2c: tda998x: Add support of a DT graph
- of ports
-Date: Thu, 24 Sep 2015 12:36:16 +0200
-Message-ID: <20150924123616.5d47f363@armhf>
-References: <cover.1442572860.git.jsarha@ti.com>
- <e9ebb04f781fef7cff99190d301fb64805b97d39.1442572860.git.jsarha@ti.com>
- <56001FF6.5070504@kernel.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 28/38] video/omap: remove invalid check
+Date: Thu, 24 Sep 2015 13:48:26 +0300
+Message-ID: <5603D4FA.6090902@ti.com>
+References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
+ <1442842450-29769-29-git-send-email-a.hajda@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <56001FF6.5070504@kernel.org>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, Jyri Sarha <jsarha@ti.com>, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="TjcseAN8aoABfW2jeNbP8f6qKS3goarBU"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442842450-29769-29-git-send-email-a.hajda@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCAyMSBTZXAgMjAxNSAxMDoxOToxOCAtMDUwMApSb2IgSGVycmluZyA8cm9iaEBrZXJu
-ZWwub3JnPiB3cm90ZToKCj4gT24gMDkvMTgvMjAxNSAwNjowNiBBTSwgSnlyaSBTYXJoYSB3cm90
-ZToKPiA+IEZyb206IEplYW4tRnJhbmNvaXMgTW9pbmUgPG1vaW5lamZAZnJlZS5mcj4KPiA+IAo+
-ID4gVHdvIGtpbmRzIG9mIHBvcnRzIG1heSBiZSBkZWNsYXJlZCBpbiBhIERUIGdyYXBoIG9mIHBv
-cnRzOiB2aWRlbyBhbmQgYXVkaW8uCj4gPiBUaGlzIHBhdGNoIGFjY2VwdHMgdGhlIHBvcnQgdmFs
-dWUgZnJvbSBhIHZpZGVvIHBvcnQgYXMgYW4gYWx0ZXJuYXRpdmUKPiA+IHRvIHRoZSB2aWRlby1w
-b3J0cyBwcm9wZXJ0eS4KPiA+IEl0IGFsc28gYWNjZXB0cyBhdWRpbyBwb3J0cyBpbiB0aGUgY2Fz
-ZSB0aGUgdHJhbnNtaXR0ZXIgaXMgbm90IHVzZWQgYXMKPiA+IGEgc2xhdmUgZW5jb2Rlci4KPiA+
-IFRoZSBuZXcgZmlsZSBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaCBwcmVwYXJlcyB0byB0aGUgZGVm
-aW5pdGlvbiBvZgo+ID4gYSB0ZGE5OTh4IENPREVDLgo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBK
-ZWFuLUZyYW5jb2lzIE1vaW5lIDxtb2luZWpmQGZyZWUuZnI+Cj4gPiBTaWduZWQtb2ZmLWJ5OiBK
-eXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgo+ID4gLS0tCglbc25pcF0KPiA+IGRpZmYgLS1naXQg
-YS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZHJtL2kyYy90ZGE5OTh4LnR4dCBi
-L0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kcm0vaTJjL3RkYTk5OHgudHh0Cj4g
-PiBpbmRleCBlOWU0YmNlLi4zNWY2YTgwIDEwMDY0NAo+ID4gLS0tIGEvRG9jdW1lbnRhdGlvbi9k
-ZXZpY2V0cmVlL2JpbmRpbmdzL2RybS9pMmMvdGRhOTk4eC50eHQKPiA+ICsrKyBiL0RvY3VtZW50
-YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kcm0vaTJjL3RkYTk5OHgudHh0Cj4gPiBAQCAtMTYs
-NiArMTYsMzUgQEAgT3B0aW9uYWwgcHJvcGVydGllczoKPiA+ICAKPiA+ICAgIC0gdmlkZW8tcG9y
-dHM6IDI0IGJpdHMgdmFsdWUgd2hpY2ggZGVmaW5lcyBob3cgdGhlIHZpZGVvIGNvbnRyb2xsZXIK
-PiA+ICAJb3V0cHV0IGlzIHdpcmVkIHRvIHRoZSBUREE5OTh4IGlucHV0IC0gZGVmYXVsdDogPDB4
-MjMwMTQ1Pgo+ID4gKwlUaGlzIHByb3BlcnR5IGlzIG5vdCB1c2VkIHdoZW4gcG9ydHMgYXJlIGRl
-ZmluZWQuCj4gPiArCj4gPiArT3B0aW9uYWwgbm9kZXM6Cj4gPiArCj4gPiArICAtIHBvcnQ6IHVw
-IHRvIHRocmVlIHBvcnRzLgo+ID4gKwlUaGUgcG9ydHMgYXJlIGRlZmluZWQgYWNjb3JkaW5nIHRv
-IFsxXS4KPiA+ICsKPiA+ICsgICAgVmlkZW8gcG9ydC4KPiA+ICsJVGhlcmUgbWF5IGJlIG9ubHkg
-b25lIHZpZGVvIHBvcnQuCj4gPiArCVRoaXMgb25lIG11c3QgY29udGFpbiB0aGUgZm9sbG93aW5n
-IHByb3BlcnR5Ogo+ID4gKwo+ID4gKwktIHBvcnQtdHlwZTogbXVzdCBiZSAicmdiIiAgCj4gCj4g
-V2h5IGRvIHlvdSBuZWVkIHRoaXMgaWYgdGhlcmUgaXMgbm8gb3RoZXIgY2hvaWNlPyBUaGUgcG9y
-dCBudW1iZXIgc2hvdWxkCj4gZGVmaW5lIHdoaWNoIG9uZSBpcyB2aWRlby4KClRoZXJlIGlzIG5v
-IHNwZWNpZmljIHBvcnQgbnVtYmVyLgpPbmUgb2YgdGhlIHBvcnRzIGlzIHZpZGVvIGFuZCB0d28g
-b3RoZXIgb25lcyBhcmUgYXVkaW8uCgo+ID4gKwo+ID4gKwlhbmQgbWF5IGNvbnRhaW4gdGhlIG9w
-dGlvbmFsIHByb3BlcnR5Ogo+ID4gKwo+ID4gKwktIHJlZzogMjQgYml0cyB2YWx1ZSB3aGljaCBk
-ZWZpbmVzIGhvdyB0aGUgdmlkZW8gY29udHJvbGxlcgo+ID4gKwkJb3V0cHV0IGlzIHdpcmVkIHRv
-IHRoZSBUREE5OTh4IGlucHV0ICh2aWRlbyBwaW5zKQo+ID4gKwkJV2hlbiBhYnNlbnQsIHRoZSBk
-ZWZhdWx0IHZhbHVlIGlzIDwweDIzMDE0NT4uICAKPiAKPiBJJ20gZmFpbGluZyB0byBkZWNvZGUg
-aG93IHRoaXMgdmFsdWUgd29ya3MuIEluIGFueSBjYXNlLCBJIHdvdWxkIGtlZXAKPiB0aGlzIGFz
-IGEgdmVuZG9yIHNwZWNpZmljIHByb3BlcnR5IHJhdGhlciB0aGFuIGFidXNpbmcgcmVnLgoKVGhp
-cyBoYXMgYmVlbiBleHBsYWluZWQgaW4KaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTQvMS8yMC84
-NgoKPiA+ICsKPiA+ICsgICAgQXVkaW8gcG9ydHMuCj4gPiArCVRoZXJlIG1heSBiZSBvbmUgb3Ig
-dHdvIGF1ZGlvIHBvcnRzLgo+ID4gKwlUaGVzZSBvbmVzIG11c3QgY29udGFpbiB0aGUgZm9sbG93
-aW5nIHByb3BlcnRpZXM6Cj4gPiArCj4gPiArCS0gcG9ydC10eXBlOiBtdXN0IGJlICJpMnMiIG9y
-ICJzcGRpZiIKPiA+ICsKPiA+ICsJLSByZWc6IDggYml0cyB2YWx1ZSB3aGljaCBkZWZpbmVzIGhv
-dyB0aGUgYXVkaW8gY29udHJvbGxlcgo+ID4gKwkJb3V0cHV0IGlzIHdpcmVkIHRvIHRoZSBUREE5
-OTh4IGlucHV0IChhdWRpbyBwaW5zKSAgCj4gCj4gcmVnIGlzIDMyLWJpdHMuCgpUaGlzIHBvcnQg
-aGFzIG9ubHkgOCBzaWduaWZpY2FudCBiaXRzIGFzIGV4cGxhaW5lZCBpbgpodHRwczovL2xrbWwu
-b3JnL2xrbWwvMjAxNS8xLzcvMzYyCgo+ID4gKwo+ID4gK1sxXSBEb2N1bWVudGF0aW9uL2Rldmlj
-ZXRyZWUvYmluZGluZ3MvZ3JhcGgudHh0Cj4gPiAgCj4gPiAgRXhhbXBsZToKPiA+ICAKPiA+IEBA
-IC0yNiw0ICs1NSwyNiBAQCBFeGFtcGxlOgo+ID4gIAkJaW50ZXJydXB0cyA9IDwyNyAyPjsJCS8q
-IGZhbGxpbmcgZWRnZSAqLwo+ID4gIAkJcGluY3RybC0wID0gPCZwbXhfY2FtZXJhPjsKPiA+ICAJ
-CXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7Cj4gPiArCj4gPiArCQlwb3J0QDIzMDE0NSB7Cj4g
-PiArCQkJcG9ydC10eXBlID0gInJnYiI7Cj4gPiArCQkJcmVnID0gPDB4MjMwMTQ1PjsKPiA+ICsJ
-CQloZG1pXzA6IGVuZHBvaW50IHsKPiA+ICsJCQkJcmVtb3RlLWVuZHBvaW50ID0gPCZsY2QwXzA+
-Owo+ID4gKwkJCX07Cj4gPiArCQl9Owo+ID4gKwkJcG9ydEAzIHsJCQkvKiBBUDEgPSBJMlMgKi8g
-IAo+IAo+IElzIDMgc2lnbmlmaWNhbnQ/IFdoYXQgaGFwcGVuZWQgdG8gMC0yPwoKVGhlIHZhbHVl
-IGFmdGVyIEAgaXMgdGhlICdyZWcnIHZhbHVlICg9IHZhbHVlIG9mIHRoZSBwb3J0IHJlZ2lzdGVy
-KS4KCj4gPiArCQkJcG9ydC10eXBlID0gImkycyI7Cj4gPiArCQkJcmVnID0gPDB4MDM+Owo+ID4g
-KwkJCXRkYTk5OHhfaTJzOiBlbmRwb2ludCB7Cj4gPiArCQkJCXJlbW90ZS1lbmRwb2ludCA9IDwm
-YXVkaW8xX2kycz47Cj4gPiArCQkJfTsKPiA+ICsJCX07CgotLSAKS2VuIGFyIGMnaGVudGHDsQl8
-CSAgICAgICoqIEJyZWl6aCBoYSBMaW51eCBhdGF2ISAqKgpKZWYJCXwJCWh0dHA6Ly9tb2luZWpm
-LmZyZWUuZnIvCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
-dHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+--TjcseAN8aoABfW2jeNbP8f6qKS3goarBU
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+
+
+On 21/09/15 16:34, Andrzej Hajda wrote:
+> regno is unsigned so it cannot be negative.
+>=20
+> The problem has been detected using proposed semantic patch
+> scripts/coccinelle/tests/unsigned_lesser_than_zero.cocci [1].
+>=20
+> [1]: http://permalink.gmane.org/gmane.linux.kernel/2038576
+>=20
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> ---
+>  drivers/video/fbdev/omap/omapfb_main.c | 5 -----
+>  1 file changed, 5 deletions(-)
+>=20
+> diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbd=
+ev/omap/omapfb_main.c
+> index 1fb3ea3..393ae1b 100644
+> --- a/drivers/video/fbdev/omap/omapfb_main.c
+> +++ b/drivers/video/fbdev/omap/omapfb_main.c
+> @@ -276,11 +276,6 @@ static int _setcolreg(struct fb_info *info, u_int =
+regno, u_int red, u_int green,
+>  		if (r !=3D 0)
+>  			break;
+> =20
+> -		if (regno < 0) {
+> -			r =3D -EINVAL;
+> -			break;
+> -		}
+> -
+>  		if (regno < 16) {
+>  			u16 pal;
+>  			pal =3D ((red >> (16 - var->red.length)) <<
+>=20
+
+Thanks, queued for 4.4.
+
+ Tomi
+
+
+--TjcseAN8aoABfW2jeNbP8f6qKS3goarBU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWA9T6AAoJEPo9qoy8lh71ds0P/Ailyi1GRoAfYOl2NTG7fgqm
+8yHXC2YzOl1SR+KXhfqf0h+YauQvtsIKMcIzPLt/0zopfhVuZDGOxD2gayoaVCK7
+SGG5gt0Kn0VXdMd8kawrPRploC+HS4hWj/6MO5sSD6A2DgQvHQxDTrKnrBLuQrH8
+1QS/Km4BwTeb+RsWbb8XNBod2/NUbbxYsf2XoiPfTgCwMGqAM9Im8aViVzCiVyRU
+d/c0HLWKuWvCWGjZli5xxHSKWTMjZ3qgiwgKlNv3Tv5xCnieHxvg2MAsAFxPc+V5
+tlN8FbHPcZQ8J4T0GN/C32lJxaB2KNflsWkW4C38T/RzELtA8NToZDXrMWJ82gQ8
+1vqIoRIZimtA+P60+vY10D3EkUDK4voferNeZSuQiQ1vzuJLFdYnRtVbWNRQ/W1k
+OLiqAX1zADUAic49+dMV+LFysNNMeEWgNgmysYmHX9np40BncH+ycQVp1Pr7J1OV
+aODenft59bTZNwWJctXGUpN3HOgsJO/Pl6aCnJBfz5vXy/EZFm7BWo9303ftI6CF
+lngitJkKEUj7RL8DcBpcOsyQqDrPQbAuEgwiYtzQbaftgwmyhtK2SF08zpH1H4FV
+C1ooA160VsZH67obk+yLG6a9SnVyzoRJpD+N4ThvNDPRLVb8cUVBc9sKSGxqDiJE
+v+/hz5vMfFym/Vw4ZOOv
+=D5eW
+-----END PGP SIGNATURE-----
+
+--TjcseAN8aoABfW2jeNbP8f6qKS3goarBU--
