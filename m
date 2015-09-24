@@ -1,65 +1,76 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 28/38] video/omap: remove invalid check
-Date: Thu, 24 Sep 2015 13:48:26 +0300
-Message-ID: <5603D4FA.6090902@ti.com>
-References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
- <1442842450-29769-29-git-send-email-a.hajda@samsung.com>
+Subject: Re: [PATCH] omapdss: acx565akm: Fix module autoload for OF platform
+ driver
+Date: Thu, 24 Sep 2015 14:37:54 +0300
+Message-ID: <5603E092.6050707@ti.com>
+References: <20150918184457.GA32636@goodgumbo.baconseed.org>
+ <5603CDD1.7030709@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="TjcseAN8aoABfW2jeNbP8f6qKS3goarBU"
+	boundary="PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442842450-29769-29-git-send-email-a.hajda@samsung.com>
+In-Reply-To: <5603CDD1.7030709@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Luis de Bethencourt <luis@debethencourt.com>, linux-kernel@vger.kernel.org
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
---TjcseAN8aoABfW2jeNbP8f6qKS3goarBU
+--PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 
+On 24/09/15 13:17, Tomi Valkeinen wrote:
+>=20
+>=20
+> On 18/09/15 21:44, Luis de Bethencourt wrote:
+>> This platform driver has a OF device ID table but the OF module
+>> alias information is not created so module autoloading won't work.
+>>
+>> Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+>> ---
+>>
+>> Hello,
+>>
+>> This patch adds the missing MODULE_DEVICE_TABLE() for OF to export
+>> that information so modules have the correct aliases built-in and
+>> autoloading works correctly.
+>>
+>> A longer explanation by Javier Canillas can be found here:
+>> https://lkml.org/lkml/2015/7/30/519
+>>
+>> Thanks,
+>> Luis
+>>
+>>  drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565a=
+km.c b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+>> index 90cbc4c..c581231 100644
+>> --- a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+>> +++ b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
+>> @@ -898,6 +898,7 @@ static const struct of_device_id acx565akm_of_matc=
+h[] =3D {
+>>  	{ .compatible =3D "omapdss,sony,acx565akm", },
+>>  	{},
+>>  };
+>> +MODULE_DEVICE_TABLE(of, acx565akm_of_match);
+>> =20
+>>  static struct spi_driver acx565akm_driver =3D {
+>>  	.driver =3D {
+>>
+>=20
+> Thanks, queued for 4.3 fixes.
 
-On 21/09/15 16:34, Andrzej Hajda wrote:
-> regno is unsigned so it cannot be negative.
->=20
-> The problem has been detected using proposed semantic patch
-> scripts/coccinelle/tests/unsigned_lesser_than_zero.cocci [1].
->=20
-> [1]: http://permalink.gmane.org/gmane.linux.kernel/2038576
->=20
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> ---
->  drivers/video/fbdev/omap/omapfb_main.c | 5 -----
->  1 file changed, 5 deletions(-)
->=20
-> diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbd=
-ev/omap/omapfb_main.c
-> index 1fb3ea3..393ae1b 100644
-> --- a/drivers/video/fbdev/omap/omapfb_main.c
-> +++ b/drivers/video/fbdev/omap/omapfb_main.c
-> @@ -276,11 +276,6 @@ static int _setcolreg(struct fb_info *info, u_int =
-regno, u_int red, u_int green,
->  		if (r !=3D 0)
->  			break;
-> =20
-> -		if (regno < 0) {
-> -			r =3D -EINVAL;
-> -			break;
-> -		}
-> -
->  		if (regno < 16) {
->  			u16 pal;
->  			pal =3D ((red >> (16 - var->red.length)) <<
->=20
-
-Thanks, queued for 4.4.
+Oh, there was an earlier patch from Javier already posted. So I'll pick
+that one instead.
 
  Tomi
 
 
---TjcseAN8aoABfW2jeNbP8f6qKS3goarBU
+--PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -67,19 +78,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJWA9T6AAoJEPo9qoy8lh71ds0P/Ailyi1GRoAfYOl2NTG7fgqm
-8yHXC2YzOl1SR+KXhfqf0h+YauQvtsIKMcIzPLt/0zopfhVuZDGOxD2gayoaVCK7
-SGG5gt0Kn0VXdMd8kawrPRploC+HS4hWj/6MO5sSD6A2DgQvHQxDTrKnrBLuQrH8
-1QS/Km4BwTeb+RsWbb8XNBod2/NUbbxYsf2XoiPfTgCwMGqAM9Im8aViVzCiVyRU
-d/c0HLWKuWvCWGjZli5xxHSKWTMjZ3qgiwgKlNv3Tv5xCnieHxvg2MAsAFxPc+V5
-tlN8FbHPcZQ8J4T0GN/C32lJxaB2KNflsWkW4C38T/RzELtA8NToZDXrMWJ82gQ8
-1vqIoRIZimtA+P60+vY10D3EkUDK4voferNeZSuQiQ1vzuJLFdYnRtVbWNRQ/W1k
-OLiqAX1zADUAic49+dMV+LFysNNMeEWgNgmysYmHX9np40BncH+ycQVp1Pr7J1OV
-aODenft59bTZNwWJctXGUpN3HOgsJO/Pl6aCnJBfz5vXy/EZFm7BWo9303ftI6CF
-lngitJkKEUj7RL8DcBpcOsyQqDrPQbAuEgwiYtzQbaftgwmyhtK2SF08zpH1H4FV
-C1ooA160VsZH67obk+yLG6a9SnVyzoRJpD+N4ThvNDPRLVb8cUVBc9sKSGxqDiJE
-v+/hz5vMfFym/Vw4ZOOv
-=D5eW
+iQIcBAEBCAAGBQJWA+CSAAoJEPo9qoy8lh717c4P/iQhxqiGQYv0VEaKmhUzoemU
+qdmP6u2MEiEO8r2QKpUMYIFoHutPyWqX1AmAwNt79ODed3vvhoANwSozZksolR41
+aovQmy8T0li7hNhwgDrcoCZGcTQ5Gd9zJ2GFVQPsYChVFu+UEq9ZfS/yta3i1XSf
+6kRM0OtJch+EFydZ2B6n0Q2ogLFZD9NDCVQdwZIAFmWRM/I6uhuffMlAyMXuQpo9
+QoKSVfq3laqZxHlpr7Wz1ON9SMJVFr3PCM5Tvyxsa9YIOvHgoLUSNflE9OqWb3km
+Rspz3LvwwTW9ZElgInt0h+RNM0dMFXkXJoUvLV9WokW+8DlFYgxrCCtST52iMpuX
+RetRnTp+trruXYeuj5BE3Nejp3slfpi2pJSIZ/3ZJl0PucfxmjDPpKJYEO4v/TK9
+nlD6yrU02LT8xYMohR5/UboOOB4YAigw+zwCc+jt3ZwMeAk0yBjBl5efcxbJKYoC
+XHgYl7G1EKjCBNnDKQnSZ/74MXSamgwZyhpbkng5EV9p3geeEirYj7bIWP+4A0Tw
+2Fk6Nm5Deu8e2dEQAZkjIvy5tXWI111NsWQNGDhDE9thedreWnDwxn+8Zs8clNtn
+KnUqwmq7lySrvYjdyB64B2bhE9zD9rvOwilhVe2LWo+eEdSSdFbq3+Fjx7rRmkI3
+RQmNKxSrdfVTI8k6ClMS
+=DUZg
 -----END PGP SIGNATURE-----
 
---TjcseAN8aoABfW2jeNbP8f6qKS3goarBU--
+--PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG--
