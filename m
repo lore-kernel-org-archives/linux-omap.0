@@ -1,343 +1,1060 @@
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCHv2 2/2] power_supply: Add support for tps65217-charger.
-Date: Thu, 24 Sep 2015 09:23:25 +0200
-Message-ID: <1443079405-17813-3-git-send-email-enric.balletbo@collabora.com>
-References: <1443079405-17813-1-git-send-email-enric.balletbo@collabora.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443079405-17813-1-git-send-email-enric.balletbo@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, tony@atomide.com, sameo@linux.intel.com, lee.jones@linaro.org, sjoerd.simons@collabora.co.uk, javier@dowhile0.org
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [PATCH 1/3] iio:adc: add iio driver for Palmas (twl6035/7) gpadc
+Date: Thu, 24 Sep 2015 10:59:43 +0200
+Message-ID: <1F69D079-F344-4865-8391-327DBAA216A0@goldelico.com>
+References: <1437657169.3419965.331206849.51D66A2E@webmail.messagingengine.com> <cover.1443012491.git.hns@goldelico.com> <F03BBE76-3F7D-4995-810E-6E2E98FC156C@goldelico.com> <alpine.DEB.2.02.1509231505150.19984@pmeerw.net>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.02.1509231505150.19984-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Cc: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds support for the tps65217 charger driver. This driver is
-responsible for controlling the charger aspect of the tps65217 mfd.
-Currently, this mainly consists of turning on and off the charger, but
-some other features of the charger can be supported through this driver=
-=2E
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- drivers/power/Kconfig            |   7 +
- drivers/power/Makefile           |   1 +
- drivers/power/tps65217_charger.c | 267 +++++++++++++++++++++++++++++++=
-++++++++
- 3 files changed, 275 insertions(+)
- create mode 100644 drivers/power/tps65217_charger.c
+Am 23.09.2015 um 15:26 schrieb Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>:
 
-diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
-index f8758d6..57fdc80 100644
---- a/drivers/power/Kconfig
-+++ b/drivers/power/Kconfig
-@@ -434,6 +434,13 @@ config CHARGER_TPS65090
- 	 Say Y here to enable support for battery charging with TPS65090
- 	 PMIC chips.
-=20
-+config CHARGER_TPS65217
-+	tristate "TPS65217 battery charger driver"
-+	depends on MFD_TPS65217
-+	help
-+	 Say Y here to enable support for battery charging with TPS65217
-+	 PMIC chips.
-+
- config BATTERY_GAUGE_LTC2941
- 	tristate "LTC2941/LTC2943 Battery Gauge Driver"
- 	depends on I2C
-diff --git a/drivers/power/Makefile b/drivers/power/Makefile
-index 5752ce8..c1409b3 100644
---- a/drivers/power/Makefile
-+++ b/drivers/power/Makefile
-@@ -65,6 +65,7 @@ obj-$(CONFIG_CHARGER_BQ25890)	+=3D bq25890_charger.o
- obj-$(CONFIG_POWER_AVS)		+=3D avs/
- obj-$(CONFIG_CHARGER_SMB347)	+=3D smb347-charger.o
- obj-$(CONFIG_CHARGER_TPS65090)	+=3D tps65090-charger.o
-+obj-$(CONFIG_CHARGER_TPS65217)	+=3D tps65217_charger.o
- obj-$(CONFIG_POWER_RESET)	+=3D reset/
- obj-$(CONFIG_AXP288_FUEL_GAUGE) +=3D axp288_fuel_gauge.o
- obj-$(CONFIG_AXP288_CHARGER)	+=3D axp288_charger.o
-diff --git a/drivers/power/tps65217_charger.c b/drivers/power/tps65217_=
-charger.c
-new file mode 100644
-index 0000000..569463f
---- /dev/null
-+++ b/drivers/power/tps65217_charger.c
-@@ -0,0 +1,267 @@
-+/*
-+ * Battery charger driver for TI's tps65217
-+ *
-+ * Copyright (c) 2015, Collabora Ltd.
-+
-+ * This program is free software; you can redistribute it and/or modif=
-y it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+
-+ * This program is distributed in the hope it will be useful, but WITH=
-OUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY =
-or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public Licen=
-se for
-+ * more details.
-+
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/=
->.
-+ */
-+
-+/*
-+ * Battery charger driver for TI's tps65217
-+ */
-+#include <linux/kernel.h>
-+#include <linux/kthread.h>
-+#include <linux/device.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/slab.h>
-+#include <linux/err.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/power_supply.h>
-+
-+#include <linux/mfd/core.h>
-+#include <linux/mfd/tps65217.h>
-+
-+#define POLL_INTERVAL		(HZ * 2)
-+
-+struct tps65217_charger {
-+	struct tps65217 *tps;
-+	struct device *dev;
-+	struct power_supply *ac;
-+
-+	int	ac_online;
-+	int	prev_ac_online;
-+
-+	struct task_struct	*poll_task;
-+};
-+
-+static enum power_supply_property tps65217_ac_props[] =3D {
-+	POWER_SUPPLY_PROP_ONLINE,
-+};
-+
-+static int tps65217_config_charger(struct tps65217_charger *charger)
-+{
-+	int ret;
-+
-+	dev_dbg(charger->dev, "%s\n", __func__);
-+
-+	/*
-+	 * tps65217 rev. G, p. 31 (see p. 32 for NTC schematic)
-+	 *
-+	 * The device can be configured to support a 100k NTC (B =3D 3960) by
-+	 * setting the the NTC_TYPE bit in register CHGCONFIG1 to 1. However =
-it
-+	 * is not recommended to do so. In sleep mode, the charger continues
-+	 * charging the battery, but all register values are reset to default
-+	 * values. Therefore, the charger would get the wrong temperature
-+	 * information. If 100k NTC setting is required, please contact the
-+	 * factory.
-+	 *
-+	 * ATTENTION, conflicting information, from p. 46
-+	 *
-+	 * NTC TYPE (for battery temperature measurement)
-+	 *   0 =E2=80=93 100k (curve 1, B =3D 3960)
-+	 *   1 =E2=80=93 10k  (curve 2, B =3D 3480) (default on reset)
-+	 *
-+	 */
-+	ret =3D tps65217_clear_bits(charger->tps, TPS65217_REG_CHGCONFIG1,
-+				  TPS65217_CHGCONFIG1_NTC_TYPE,
-+				  TPS65217_PROTECT_NONE);
-+	if (ret) {
-+		dev_err(charger->dev,
-+			"failed to set 100k NTC setting: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tps65217_enable_charging(struct tps65217_charger *charger)
-+{
-+	int ret;
-+
-+	/* charger already enabled */
-+	if (charger->ac_online)
-+		return 0;
-+
-+	dev_dbg(charger->dev, "%s: enable charging\n", __func__);
-+	ret =3D tps65217_set_bits(charger->tps, TPS65217_REG_CHGCONFIG1,
-+				TPS65217_CHGCONFIG1_CHG_EN,
-+				TPS65217_CHGCONFIG1_CHG_EN,
-+				TPS65217_PROTECT_NONE);
-+	if (ret) {
-+		dev_err(charger->dev,
-+			"%s: Error in writing CHG_EN in reg 0x%x: %d\n",
-+			__func__, TPS65217_REG_CHGCONFIG1, ret);
-+		return ret;
-+	}
-+
-+	charger->ac_online =3D 1;
-+
-+	return 0;
-+}
-+
-+static int tps65217_ac_get_property(struct power_supply *psy,
-+			enum power_supply_property psp,
-+			union power_supply_propval *val)
-+{
-+	struct tps65217_charger *charger =3D power_supply_get_drvdata(psy);
-+
-+	if (psp =3D=3D POWER_SUPPLY_PROP_ONLINE) {
-+		val->intval =3D charger->ac_online;
-+		charger->prev_ac_online =3D charger->ac_online;
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
-+
-+static irqreturn_t tps65217_charger_irq(int irq, void *dev)
-+{
-+	int ret, val;
-+	struct tps65217_charger *charger =3D dev;
-+
-+	charger->prev_ac_online =3D charger->ac_online;
-+
-+	ret =3D tps65217_reg_read(charger->tps, TPS65217_REG_STATUS, &val);
-+	if (ret < 0) {
-+		dev_err(charger->dev, "%s: Error in reading reg 0x%x\n",
-+			__func__, TPS65217_REG_STATUS);
-+		return IRQ_HANDLED;
-+	}
-+
-+	dev_dbg(charger->dev, "%s: 0x%x\n", __func__, val);
-+
-+	/* check for AC status bit */
-+	if (val & TPS65217_STATUS_ACPWR) {
-+		ret =3D tps65217_enable_charging(charger);
-+		if (ret) {
-+			dev_err(charger->dev,
-+				"failed to enable charger: %d\n", ret);
-+			return IRQ_HANDLED;
-+		}
-+	} else {
-+		charger->ac_online =3D 0;
-+	}
-+
-+	if (charger->prev_ac_online !=3D charger->ac_online)
-+		power_supply_changed(charger->ac);
-+
-+	ret =3D tps65217_reg_read(charger->tps, TPS65217_REG_CHGCONFIG0, &val=
-);
-+	if (ret < 0) {
-+		dev_err(charger->dev, "%s: Error in reading reg 0x%x\n",
-+			__func__, TPS65217_REG_CHGCONFIG0);
-+		return IRQ_HANDLED;
-+	}
-+
-+	if (val & TPS65217_CHGCONFIG0_ACTIVE)
-+		dev_dbg(charger->dev, "%s: charger is charging\n", __func__);
-+	else
-+		dev_dbg(charger->dev,
-+			"%s: charger is NOT charging\n", __func__);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int tps65217_charger_poll_task(void *data)
-+{
-+	set_freezable();
-+
-+	while (!kthread_should_stop()) {
-+		schedule_timeout_interruptible(POLL_INTERVAL);
-+		try_to_freeze();
-+		tps65217_charger_irq(-1, data);
-+	}
-+	return 0;
-+}
-+
-+static const struct power_supply_desc tps65217_charger_desc =3D {
-+	.name			=3D "tps65217-ac",
-+	.type			=3D POWER_SUPPLY_TYPE_MAINS,
-+	.get_property		=3D tps65217_ac_get_property,
-+	.properties		=3D tps65217_ac_props,
-+	.num_properties		=3D ARRAY_SIZE(tps65217_ac_props),
-+};
-+
-+static int tps65217_charger_probe(struct platform_device *pdev)
-+{
-+	struct tps65217 *tps =3D dev_get_drvdata(pdev->dev.parent);
-+	struct tps65217_charger *charger;
-+	int ret;
-+
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	charger =3D devm_kzalloc(&pdev->dev, sizeof(*charger), GFP_KERNEL);
-+	if (!charger)
-+		return -ENOMEM;
-+
-+	charger->tps =3D tps;
-+	charger->dev =3D &pdev->dev;
-+
-+	charger->ac =3D devm_power_supply_register(&pdev->dev,
-+						 &tps65217_charger_desc,
-+						 NULL);
-+	if (IS_ERR(charger->ac)) {
-+		dev_err(&pdev->dev, "failed: power supply register\n");
-+		return PTR_ERR(charger->ac);
-+	}
-+
-+	ret =3D tps65217_config_charger(charger);
-+	if (ret < 0) {
-+		dev_err(charger->dev, "charger config failed, err %d\n", ret);
-+		return ret;
-+	}
-+
-+	charger->poll_task =3D kthread_run(tps65217_charger_poll_task,
-+				      charger, "ktps65217charger");
-+	if (IS_ERR(charger->poll_task)) {
-+		ret =3D PTR_ERR(charger->poll_task);
-+		dev_err(charger->dev, "Unable to run kthread err %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tps65217_charger_remove(struct platform_device *pdev)
-+{
-+	struct tps65217_charger *charger =3D platform_get_drvdata(pdev);
-+
-+	kthread_stop(charger->poll_task);
-+
-+	power_supply_unregister(charger->ac);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id tps65217_charger_match_table[] =3D {
-+	{ .compatible =3D "ti,tps65217-charger", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, tps65217_charger_match_table);
-+
-+static struct platform_driver tps65217_charger_driver =3D {
-+	.probe	=3D tps65217_charger_probe,
-+	.remove =3D tps65217_charger_remove,
-+	.driver	=3D {
-+		.name	=3D "tps65217-charger",
-+		.of_match_table =3D of_match_ptr(tps65217_charger_match_table),
-+	},
-+
-+};
-+module_platform_driver(tps65217_charger_driver);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Enric Balletbo Serra <enric.balletbo@collabora.com>");
-+MODULE_DESCRIPTION("TPS65217 battery charger driver");
---=20
-2.1.0
+> 
+>> This driver code was found as:
+>> 
+>> https://android.googlesource.com/kernel/tegra/+/aaabb2e045f31e5a970109ffdaae900dd403d17e/drivers/staging/iio/adc
+>> 
+>> Fixed various compilation issues and test this driver on omap5 evm.
+> 
+> several minor comments below
+
+thanks!
+I have worked in for a V2 but will wait a little for further comments until I post it.
+
+> probably the mfd part should be split out in a separate patch
+
+well, I think those changes should stay bundled in a single patch
+since they depend on each other.
+
+> 
+>> Signed-off-by: Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+>> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+>> ---
+>> drivers/iio/adc/Kconfig        |   9 +
+>> drivers/iio/adc/Makefile       |   1 +
+>> drivers/iio/adc/palmas_gpadc.c | 797 +++++++++++++++++++++++++++++++++++++++++
+>> include/linux/mfd/palmas.h     |  59 ++-
+>> 4 files changed, 862 insertions(+), 4 deletions(-)
+>> create mode 100644 drivers/iio/adc/palmas_gpadc.c
+>> 
+>> diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
+>> index eb0cd89..f6df9db 100644
+>> --- a/drivers/iio/adc/Kconfig
+>> +++ b/drivers/iio/adc/Kconfig
+>> @@ -242,6 +242,15 @@ config NAU7802
+>> 	  To compile this driver as a module, choose M here: the
+>> 	  module will be called nau7802.
+>> 
+>> +config PALMAS_GPADC
+>> +	tristate "TI Palmas General Purpose ADC"
+>> +	depends on MFD_PALMAS
+>> +	help
+>> +	  Palmas series pmic chip by texas Instruments (twl6035/6037)
+>> +	  is used in smartphones and tablets and supports a 16 channel
+>> +	  general purpose ADC. Add iio driver to read different channel
+>> +	  of the GPADCs.
+> 
+> PMIC
+> _T_exas
+> 
+> drop meaningless "Add iio driver to read different channel of the GPADCs."
+> 
+>> +
+>> config QCOM_SPMI_IADC
+>> 	tristate "Qualcomm SPMI PMIC current ADC"
+>> 	depends on SPMI
+>> diff --git a/drivers/iio/adc/Makefile b/drivers/iio/adc/Makefile
+>> index a096210..716f112 100644
+>> --- a/drivers/iio/adc/Makefile
+>> +++ b/drivers/iio/adc/Makefile
+>> @@ -26,6 +26,7 @@ obj-$(CONFIG_MCP320X) += mcp320x.o
+>> obj-$(CONFIG_MCP3422) += mcp3422.o
+>> obj-$(CONFIG_MEN_Z188_ADC) += men_z188_adc.o
+>> obj-$(CONFIG_NAU7802) += nau7802.o
+>> +obj-$(CONFIG_PALMAS_GPADC) += palmas_gpadc.o
+>> obj-$(CONFIG_QCOM_SPMI_IADC) += qcom-spmi-iadc.o
+>> obj-$(CONFIG_QCOM_SPMI_VADC) += qcom-spmi-vadc.o
+>> obj-$(CONFIG_ROCKCHIP_SARADC) += rockchip_saradc.o
+>> diff --git a/drivers/iio/adc/palmas_gpadc.c b/drivers/iio/adc/palmas_gpadc.c
+>> new file mode 100644
+>> index 0000000..17abb28
+>> --- /dev/null
+>> +++ b/drivers/iio/adc/palmas_gpadc.c
+>> @@ -0,0 +1,797 @@
+>> +/*
+>> + * palmas-adc.c -- TI PALMAS GPADC.
+>> + *
+>> + * Copyright (c) 2013, NVIDIA Corporation. All rights reserved.
+>> + *
+>> + * Author: Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License as
+>> + * published by the Free Software Foundation version 2.
+>> + */
+> 
+> newline
+> 
+>> +#include <linux/module.h>
+>> +#include <linux/err.h>
+>> +#include <linux/irq.h>
+>> +#include <linux/interrupt.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/delay.h>
+>> +#include <linux/i2c.h>
+>> +#include <linux/pm.h>
+>> +#include <linux/mfd/palmas.h>
+>> +#include <linux/completion.h>
+>> +#include <linux/iio/iio.h>
+>> +#include <linux/iio/machine.h>
+>> +#include <linux/iio/driver.h>
+>> +
+>> +#define MOD_NAME "palmas-gpadc"
+>> +#define ADC_CONVERSION_TIMEOUT	(msecs_to_jiffies(5000))
+>> +#define TO_BE_CALCULATED 0
+> 
+> add prefix PALMAS_
+> 
+>> +
+>> +struct palmas_gpadc_info {
+>> +/* calibration codes and regs */
+>> +	int x1;
+>> +	int x2;
+>> +	int v1;
+>> +	int v2;
+>> +	u8 trim1_reg;
+>> +	u8 trim2_reg;
+>> +	int gain;
+>> +	int offset;
+>> +	int gain_error;
+>> +	bool is_correct_code;
+>> +};
+>> +
+>> +#define PALMAS_ADC_INFO(_chan, _x1, _x2, _v1, _v2, _t1, _t2, _is_correct_code)\
+> 
+> whitespace and indentation
+> 
+>> +[PALMAS_ADC_CH_##_chan] = {						\
+>> +		.x1 = _x1,						\
+>> +		.x2 = _x2,						\
+>> +		.v1 = _v1,						\
+>> +		.v2 = _v2,						\
+>> +		.gain = TO_BE_CALCULATED,				\
+>> +		.offset = TO_BE_CALCULATED,				\
+>> +		.gain_error = TO_BE_CALCULATED,				\
+>> +		.trim1_reg = PALMAS_GPADC_TRIM##_t1,			\
+>> +		.trim2_reg = PALMAS_GPADC_TRIM##_t2,			\
+>> +		.is_correct_code = _is_correct_code			\
+>> +	}
+>> +
+>> +static struct palmas_gpadc_info palmas_gpadc_info[] = {
+>> +	PALMAS_ADC_INFO(IN0, 2064, 3112, 630, 950, 1, 2, false),
+>> +	PALMAS_ADC_INFO(IN1, 2064, 3112, 630, 950, 1, 2, false),
+>> +	PALMAS_ADC_INFO(IN2, 2064, 3112, 1260, 1900, 3, 4, false),
+>> +	PALMAS_ADC_INFO(IN3, 2064, 3112, 630, 950, 1, 2, false),
+>> +	PALMAS_ADC_INFO(IN4, 2064, 3112, 630, 950, 1, 2, false),
+>> +	PALMAS_ADC_INFO(IN5, 2064, 3112, 630, 950, 1, 2, false),
+>> +	PALMAS_ADC_INFO(IN6, 2064, 3112, 2520, 3800, 5, 6, false),
+>> +	PALMAS_ADC_INFO(IN7, 2064, 3112, 2520, 3800, 7, 8, false),
+>> +	PALMAS_ADC_INFO(IN8, 2064, 3112, 3150, 4750, 9, 10, false),
+>> +	PALMAS_ADC_INFO(IN9, 2064, 3112, 5670, 8550, 11, 12, false),
+>> +	PALMAS_ADC_INFO(IN10, 2064, 3112, 3465, 5225, 13, 14, false),
+>> +	PALMAS_ADC_INFO(IN11, 0, 0, 0, 0, INVALID, INVALID, true),
+>> +	PALMAS_ADC_INFO(IN12, 0, 0, 0, 0, INVALID, INVALID, true),
+>> +	PALMAS_ADC_INFO(IN13, 0, 0, 0, 0, INVALID, INVALID, true),
+>> +	PALMAS_ADC_INFO(IN14, 2064, 3112, 3645, 5225, 15, 16, false),
+>> +	PALMAS_ADC_INFO(IN15, 0, 0, 0, 0, INVALID, INVALID, true),
+>> +};
+>> +
+>> +struct palmas_gpadc {
+>> +	struct device			*dev;
+>> +	struct palmas			*palmas;
+>> +	u8				ch0_current;
+>> +	u8				ch3_current;
+>> +	bool				extended_delay;
+>> +	int				irq;
+>> +	int				irq_auto_0;
+>> +	int				irq_auto_1;
+>> +	struct palmas_gpadc_info	*adc_info;
+>> +	struct completion		conv_completion;
+>> +	struct palmas_adc_wakeup_property wakeup1_data;
+>> +	struct palmas_adc_wakeup_property wakeup2_data;
+>> +	bool				wakeup1_enable;
+>> +	bool				wakeup2_enable;
+>> +	int				auto_conversion_period;
+>> +};
+>> +
+>> +/*
+>> + * GPADC lock issue in AUTO mode.
+>> + * Impact: In AUTO mode, GPADC conversion can be locked after disabling AUTO
+>> + *	   mode feature.
+>> + * Details:
+>> + *	When the AUTO mode is the only conversion mode enabled, if the AUTO
+>> + *	mode feature is disabled with bit GPADC_AUTO_CTRL.  AUTO_CONV1_EN = 0
+>> + *	or bit GPADC_AUTO_CTRL.  AUTO_CONV0_EN = 0 during a conversion, the
+>> + *	conversion mechanism can be seen as locked meaning that all following
+>> + *	conversion will give 0 as a result.  Bit GPADC_STATUS.GPADC_AVAILABLE
+>> + *	will stay at 0 meaning that GPADC is busy.  An RT conversion can unlock
+>> + *	the GPADC.
+>> + *
+>> + * Workaround(s):
+>> + *	To avoid the lock mechanism, the workaround to follow before any stop
+>> + *	conversion request is:
+>> + *	Force the GPADC state machine to be ON by using the GPADC_CTRL1.
+>> + *		GPADC_FORCE bit = 1
+>> + *	Shutdown the GPADC AUTO conversion using
+>> + *		GPADC_AUTO_CTRL.SHUTDOWN_CONV[01] = 0.
+>> + *	After 100us, force the GPADC state machine to be OFF by using the
+>> + *		GPADC_CTRL1.  GPADC_FORCE bit = 0
+>> + */
+>> +static int palmas_disable_auto_conversion(struct palmas_gpadc *adc)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +			PALMAS_GPADC_CTRL1,
+>> +			PALMAS_GPADC_CTRL1_GPADC_FORCE,
+>> +			PALMAS_GPADC_CTRL1_GPADC_FORCE);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "GPADC_CTRL1 update failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +			PALMAS_GPADC_AUTO_CTRL,
+>> +			PALMAS_GPADC_AUTO_CTRL_SHUTDOWN_CONV1 |
+>> +			PALMAS_GPADC_AUTO_CTRL_SHUTDOWN_CONV0,
+>> +			0);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "AUTO_CTRL update failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	udelay(100);
+>> +
+>> +	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +			PALMAS_GPADC_CTRL1,
+>> +			PALMAS_GPADC_CTRL1_GPADC_FORCE, 0);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "GPADC_CTRL1 update failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +static irqreturn_t palmas_gpadc_irq(int irq, void *data)
+>> +{
+>> +	struct palmas_gpadc *adc = data;
+>> +
+>> +	complete(&adc->conv_completion);
+>> +	return IRQ_HANDLED;
+>> +}
+>> +
+>> +static irqreturn_t palmas_gpadc_irq_auto(int irq, void *data)
+>> +{
+>> +	struct palmas_gpadc *adc = data;
+>> +
+>> +	dev_info(adc->dev, "Threshold interrupt %d occurs\n", irq);
+> 
+> is the message needed except for debugging?
+> 
+>> +	palmas_disable_auto_conversion(adc);
+>> +	return IRQ_HANDLED;
+>> +}
+>> +
+>> +static int palmas_gpadc_start_mask_interrupt(struct palmas_gpadc *adc, int mask)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (!mask)
+>> +		ret = palmas_update_bits(adc->palmas, PALMAS_INTERRUPT_BASE,
+>> +					PALMAS_INT3_MASK,
+>> +					PALMAS_INT3_MASK_GPADC_EOC_SW, 0);
+>> +	else
+>> +		ret = palmas_update_bits(adc->palmas, PALMAS_INTERRUPT_BASE,
+>> +					PALMAS_INT3_MASK,
+>> +					PALMAS_INT3_MASK_GPADC_EOC_SW,
+>> +					PALMAS_INT3_MASK_GPADC_EOC_SW);
+>> +	if (ret < 0)
+>> +		dev_err(adc->dev, "GPADC INT MASK update failed: %d\n", ret);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int palmas_gpadc_enable(struct palmas_gpadc *adc, int adc_chan,
+>> +			       int enable)
+>> +{
+>> +	unsigned int mask, val;
+>> +	int ret;
+>> +
+>> +	if (enable) {
+>> +		val = (adc->extended_delay
+>> +			<< PALMAS_GPADC_RT_CTRL_EXTEND_DELAY_SHIFT);
+>> +		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +					PALMAS_GPADC_RT_CTRL,
+>> +					PALMAS_GPADC_RT_CTRL_EXTEND_DELAY, val);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev, "RT_CTRL update failed: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +
+>> +		mask = (PALMAS_GPADC_CTRL1_CURRENT_SRC_CH0_MASK |
+>> +			PALMAS_GPADC_CTRL1_CURRENT_SRC_CH3_MASK |
+>> +			PALMAS_GPADC_CTRL1_GPADC_FORCE);
+>> +		val = (adc->ch0_current
+>> +			<< PALMAS_GPADC_CTRL1_CURRENT_SRC_CH0_SHIFT);
+>> +		val |= (adc->ch3_current
+>> +			<< PALMAS_GPADC_CTRL1_CURRENT_SRC_CH3_SHIFT);
+>> +		val |= PALMAS_GPADC_CTRL1_GPADC_FORCE;
+>> +		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_CTRL1, mask, val);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev,
+>> +				"Failed to update current setting: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +
+>> +		mask = (PALMAS_GPADC_SW_SELECT_SW_CONV0_SEL_MASK |
+>> +			PALMAS_GPADC_SW_SELECT_SW_CONV_EN);
+>> +		val = (adc_chan | PALMAS_GPADC_SW_SELECT_SW_CONV_EN);
+>> +		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_SW_SELECT, mask, val);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev, "SW_SELECT update failed: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +	} else {
+>> +		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_SW_SELECT, 0);
+>> +		if (ret < 0)
+>> +			dev_err(adc->dev, "SW_SELECT write failed: %d\n", ret);
+>> +
+>> +		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_CTRL1,
+>> +				PALMAS_GPADC_CTRL1_GPADC_FORCE, 0);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev, "CTRL1 update failed: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int palmas_gpadc_read_prepare(struct palmas_gpadc *adc, int adc_chan)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = palmas_gpadc_enable(adc, adc_chan, true);
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	return palmas_gpadc_start_mask_interrupt(adc, 0);
+>> +}
+>> +
+>> +static void palmas_gpadc_read_done(struct palmas_gpadc *adc, int adc_chan)
+>> +{
+>> +	palmas_gpadc_start_mask_interrupt(adc, 1);
+>> +	palmas_gpadc_enable(adc, adc_chan, false);
+>> +}
+>> +
+>> +static int palmas_gpadc_calibrate(struct palmas_gpadc *adc, int adc_chan)
+>> +{
+>> +	int k;
+>> +	int d1;
+>> +	int d2;
+>> +	int ret;
+>> +	int gain;
+>> +	int x1 =  adc->adc_info[adc_chan].x1;
+>> +	int x2 =  adc->adc_info[adc_chan].x2;
+>> +	int v1 = adc->adc_info[adc_chan].v1;
+>> +	int v2 = adc->adc_info[adc_chan].v2;
+>> +
+>> +	ret = palmas_read(adc->palmas, PALMAS_TRIM_GPADC_BASE,
+>> +				adc->adc_info[adc_chan].trim1_reg, &d1);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "TRIM read failed: %d\n", ret);
+>> +		goto scrub;
+>> +	}
+>> +
+>> +	ret = palmas_read(adc->palmas, PALMAS_TRIM_GPADC_BASE,
+>> +				adc->adc_info[adc_chan].trim2_reg, &d2);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "TRIM read failed: %d\n", ret);
+>> +		goto scrub;
+>> +	}
+>> +
+>> +	/*Gain error Calculation*/
+> 
+> ugly, add whitespace /* bla */
+> 
+>> +	k = (1000 + (1000 * (d2 - d1)) / (x2 - x1));
+>> +
+>> +	/*Gain Calculation*/
+>> +	gain = ((v2 - v1) * 1000) / (x2 - x1);
+>> +
+>> +	adc->adc_info[adc_chan].gain_error = k;
+>> +	adc->adc_info[adc_chan].gain = gain;
+>> +	/*offset Calculation*/
+>> +	adc->adc_info[adc_chan].offset = (d1 * 1000) - ((k - 1000) * x1);
+>> +
+>> +scrub:
+>> +	return ret;
+>> +}
+>> +
+>> +static int palmas_gpadc_start_conversion(struct palmas_gpadc *adc, int adc_chan)
+>> +{
+>> +	unsigned int val;
+>> +	int ret;
+>> +
+>> +	init_completion(&adc->conv_completion);
+>> +	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_SW_SELECT,
+>> +				PALMAS_GPADC_SW_SELECT_SW_START_CONV0,
+>> +				PALMAS_GPADC_SW_SELECT_SW_START_CONV0);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "ADC_SW_START write failed: %d\n", ret);
+> 
+> generally, the ADC_ prefix is not logged
+> 
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = wait_for_completion_timeout(&adc->conv_completion,
+>> +				ADC_CONVERSION_TIMEOUT);
+>> +	if (ret == 0) {
+>> +		dev_err(adc->dev, "ADC conversion not completed\n");
+>> +		ret = -ETIMEDOUT;
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = palmas_bulk_read(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_SW_CONV0_LSB, &val, 2);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "ADCDATA read failed: %d\n", ret);
+> 
+> SW_CONV0_LSB read failed
+> 
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = (val & 0xFFF);
+> 
+> parenthesis not needed, there are plenty of redundant parenthesis below...
+> 
+>> +	return ret;
+>> +}
+>> +
+>> +static int palmas_gpadc_get_calibrated_code(struct palmas_gpadc *adc,
+>> +						int adc_chan, int val)
+>> +{
+>> +	if (((val*1000) - adc->adc_info[adc_chan].offset) < 0) {
+>> +		dev_err(adc->dev, "No Input Connected\n");
+>> +		return 0;
+>> +	}
+>> +
+>> +	if (!(adc->adc_info[adc_chan].is_correct_code))
+>> +		val  = ((val*1000) - adc->adc_info[adc_chan].offset) /
+>> +					adc->adc_info[adc_chan].gain_error;
+>> +
+>> +	val = (val * adc->adc_info[adc_chan].gain) / 1000;
+>> +	return val;
+>> +}
+>> +
+>> +static int palmas_gpadc_read_raw(struct iio_dev *indio_dev,
+>> +	struct iio_chan_spec const *chan, int *val, int *val2, long mask)
+>> +{
+>> +	struct  palmas_gpadc *adc = iio_priv(indio_dev);
+>> +	int adc_chan = chan->channel;
+>> +	int ret = 0;
+>> +
+>> +	if (adc_chan > PALMAS_ADC_CH_MAX)
+>> +		return -EINVAL;
+>> +
+>> +	mutex_lock(&indio_dev->mlock);
+>> +
+>> +	switch (mask) {
+>> +	case IIO_CHAN_INFO_RAW:
+>> +	case IIO_CHAN_INFO_PROCESSED:
+>> +		ret = palmas_gpadc_read_prepare(adc, adc_chan);
+>> +		if (ret < 0)
+>> +			goto out;
+>> +
+>> +		ret = palmas_gpadc_start_conversion(adc, adc_chan);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev,
+>> +			"ADC start coversion failed\n");
+> 
+> typo: conversion
+> 
+>> +			goto out;
+>> +		}
+>> +
+>> +		if (mask == IIO_CHAN_INFO_PROCESSED)
+>> +			ret = palmas_gpadc_get_calibrated_code(
+>> +							adc, adc_chan, ret);
+>> +
+>> +		*val = ret;
+>> +
+>> +		ret = IIO_VAL_INT;
+>> +		goto out;
+>> +	}
+>> +
+>> +	mutex_unlock(&indio_dev->mlock);
+>> +	return ret;
+>> +
+>> +out:
+>> +	palmas_gpadc_read_done(adc, adc_chan);
+>> +	mutex_unlock(&indio_dev->mlock);
+>> +	return ret;
+>> +}
+>> +
+>> +static const struct iio_info palmas_gpadc_iio_info = {
+>> +	.read_raw = palmas_gpadc_read_raw,
+>> +	.driver_module = THIS_MODULE,
+>> +};
+>> +
+>> +#define PALMAS_ADC_CHAN_IIO(chan, _type)			\
+>> +{									\
+>> +	.datasheet_name = PALMAS_DATASHEET_NAME(chan),			\
+>> +	.type = _type,							\
+> 
+> _type is always IIO_VOLTAGE, no need for parameter
+
+here we forgot a minor change to define IIO_TEMP for some
+channels.
+
+> 
+>> +	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |			\
+>> +			BIT(IIO_CHAN_INFO_PROCESSED),			\
+>> +	.indexed = 1,							\
+>> +	.channel = PALMAS_ADC_CH_##chan,				\
+>> +}
+>> +
+>> +static const struct iio_chan_spec palmas_gpadc_iio_channel[] = {
+>> +	PALMAS_ADC_CHAN_IIO(IN0, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN1, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN2, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN3, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN4, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN5, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN6, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN7, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN8, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN9, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN10, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN11, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN12, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN13, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN14, IIO_VOLTAGE),
+>> +	PALMAS_ADC_CHAN_IIO(IN15, IIO_VOLTAGE),
+>> +};
+>> +
+>> +static int palmas_gpadc_probe(struct platform_device *pdev)
+>> +{
+>> +	struct palmas_gpadc *adc;
+>> +	struct palmas_platform_data *pdata;
+>> +	struct palmas_gpadc_platform_data *adc_pdata;
+>> +	struct iio_dev *iodev;
+>> +	int ret, i;
+>> +
+>> +	pdata = dev_get_platdata(pdev->dev.parent);
+>> +	if (!pdata || !pdata->gpadc_pdata) {
+>> +		dev_err(&pdev->dev, "No platform data\n");
+>> +		return -ENODEV;
+>> +	}
+>> +	adc_pdata = pdata->gpadc_pdata;
+>> +
+>> +	iodev = iio_device_alloc(sizeof(*adc));
+> 
+> use devm_iio_device_alloc()
+> indio_dev is the preferred name instead of iodev
+> 
+>> +	if (!iodev) {
+>> +		dev_err(&pdev->dev, "iio_device_alloc failed\n");
+>> +		return -ENOMEM;
+>> +	}
+>> +
+>> +	if (adc_pdata->iio_maps) {
+>> +		ret = iio_map_array_register(iodev, adc_pdata->iio_maps);
+>> +		if (ret < 0) {
+>> +			dev_err(&pdev->dev, "iio_map_array_register failed\n");
+>> +			goto out;
+>> +		}
+>> +	}
+>> +
+>> +	adc = iio_priv(iodev);
+>> +	adc->dev = &pdev->dev;
+>> +	adc->palmas = dev_get_drvdata(pdev->dev.parent);
+>> +	adc->adc_info = palmas_gpadc_info;
+>> +	init_completion(&adc->conv_completion);
+>> +	dev_set_drvdata(&pdev->dev, iodev);
+>> +
+>> +	adc->auto_conversion_period = adc_pdata->auto_conversion_period_ms;
+>> +	adc->irq = palmas_irq_get_virq(adc->palmas, PALMAS_GPADC_EOC_SW_IRQ);
+> 
+> palmas_irq_get_virq() can fail, check needed
+> 
+>> +	ret = request_threaded_irq(adc->irq, NULL,
+>> +		palmas_gpadc_irq,
+>> +		IRQF_ONESHOT | IRQF_EARLY_RESUME, dev_name(adc->dev),
+>> +		adc);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev,
+>> +			"request irq %d failed: %dn", adc->irq, ret);
+> 
+> format string shoule end in %d\n I guess
+> 
+>> +		goto out_unregister_map;
+>> +	}
+>> +
+>> +	if (adc_pdata->adc_wakeup1_data) {
+>> +		memcpy(&adc->wakeup1_data, adc_pdata->adc_wakeup1_data,
+>> +			sizeof(adc->wakeup1_data));
+>> +		adc->wakeup1_enable = true;
+>> +		adc->irq_auto_0 =  platform_get_irq(pdev, 1);
+>> +		ret = request_threaded_irq(adc->irq_auto_0, NULL,
+>> +				palmas_gpadc_irq_auto,
+>> +				IRQF_ONESHOT | IRQF_EARLY_RESUME,
+>> +				"palmas-adc-auto-0", adc);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev, "request auto0 irq %d failed: %dn",
+> 
+> \n
+> 
+>> +				adc->irq_auto_0, ret);
+>> +			goto out_irq_free;
+>> +		}
+>> +	}
+>> +
+>> +	if (adc_pdata->adc_wakeup2_data) {
+>> +		memcpy(&adc->wakeup2_data, adc_pdata->adc_wakeup2_data,
+>> +				sizeof(adc->wakeup2_data));
+>> +		adc->wakeup2_enable = true;
+>> +		adc->irq_auto_1 =  platform_get_irq(pdev, 2);
+>> +		ret = request_threaded_irq(adc->irq_auto_1, NULL,
+>> +				palmas_gpadc_irq_auto,
+>> +				IRQF_ONESHOT | IRQF_EARLY_RESUME,
+>> +				"palmas-adc-auto-1", adc);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev, "request auto1 irq %d failed: %dn",
+> 
+> \n
+> 
+>> +				adc->irq_auto_1, ret);
+>> +			goto out_irq_auto0_free;
+>> +		}
+>> +	}
+>> +
+>> +	if (adc_pdata->ch0_current == 0)
+>> +		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_0;
+>> +	else if (adc_pdata->ch0_current <= 5)
+>> +		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_5;
+>> +	else if (adc_pdata->ch0_current <= 15)
+>> +		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_15;
+>> +	else
+>> +		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_20;
+>> +
+>> +	if (adc_pdata->ch3_current == 0)
+>> +		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_0;
+>> +	else if (adc_pdata->ch3_current <= 10)
+>> +		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_10;
+>> +	else if (adc_pdata->ch3_current <= 400)
+>> +		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_400;
+>> +	else
+>> +		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_800;
+>> +
+>> +	adc->extended_delay = adc_pdata->extended_delay;
+>> +
+>> +	iodev->name = MOD_NAME;
+>> +	iodev->dev.parent = &pdev->dev;
+>> +	iodev->info = &palmas_gpadc_iio_info;
+>> +	iodev->modes = INDIO_DIRECT_MODE;
+>> +	iodev->channels = palmas_gpadc_iio_channel;
+>> +	iodev->num_channels = ARRAY_SIZE(palmas_gpadc_iio_channel);
+>> +
+>> +	ret = iio_device_register(iodev);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "iio_device_register() failed: %d\n", ret);
+>> +		goto out_irq_auto1_free;
+>> +	}
+>> +
+>> +	device_set_wakeup_capable(&pdev->dev, 1);
+>> +	for (i = 0; i < PALMAS_ADC_CH_MAX; i++) {
+>> +		if (!(adc->adc_info[i].is_correct_code))
+>> +			palmas_gpadc_calibrate(adc, i);
+>> +	}
+>> +
+>> +	if (adc->wakeup1_enable || adc->wakeup2_enable)
+>> +		device_wakeup_enable(&pdev->dev);
+>> +
+>> +	return 0;
+>> +
+>> +out_irq_auto1_free:
+>> +	if (adc_pdata->adc_wakeup2_data)
+>> +		free_irq(adc->irq_auto_1, adc);
+>> +out_irq_auto0_free:
+>> +	if (adc_pdata->adc_wakeup1_data)
+>> +		free_irq(adc->irq_auto_0, adc);
+>> +out_irq_free:
+>> +	free_irq(adc->irq, adc);
+>> +out_unregister_map:
+>> +	if (adc_pdata->iio_maps)
+>> +		iio_map_array_unregister(iodev);
+>> +out:
+>> +	iio_device_free(iodev);
+>> +	return ret;
+>> +}
+>> +
+>> +static int palmas_gpadc_remove(struct platform_device *pdev)
+>> +{
+>> +	struct iio_dev *iodev = dev_to_iio_dev(&pdev->dev);
+>> +	struct palmas_gpadc *adc = iio_priv(iodev);
+>> +	struct palmas_platform_data *pdata = dev_get_platdata(pdev->dev.parent);
+>> +
+>> +	if (pdata->gpadc_pdata->iio_maps)
+>> +		iio_map_array_unregister(iodev);
+>> +	iio_device_unregister(iodev);
+>> +	free_irq(adc->irq, adc);
+>> +	if (adc->wakeup1_enable)
+>> +		free_irq(adc->irq_auto_0, adc);
+>> +	if (adc->wakeup2_enable)
+>> +		free_irq(adc->irq_auto_1, adc);
+>> +	iio_device_free(iodev);
+>> +	return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM_SLEEP
+>> +static int palmas_adc_wakeup_configure(struct palmas_gpadc *adc)
+>> +{
+>> +	int adc_period, conv;
+>> +	int i;
+>> +	int ch0 = 0, ch1 = 0;
+>> +	int thres;
+>> +	int ret;
+>> +
+>> +	adc_period = adc->auto_conversion_period;
+>> +	for (i = 0; i < 16; ++i) {
+>> +		if (((1000 * (1 << i))/32) < adc_period)
+>> +			continue;
+>> +	}
+>> +	if (i > 0)
+>> +		i--;
+>> +	adc_period = i;
+>> +	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +			PALMAS_GPADC_AUTO_CTRL,
+>> +			PALMAS_GPADC_AUTO_CTRL_COUNTER_CONV_MASK,
+>> +			adc_period);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "AUTO_CTRL write failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	conv = 0;
+>> +	if (adc->wakeup1_enable) {
+>> +		int is_high;
+>> +
+>> +		ch0 = adc->wakeup1_data.adc_channel_number;
+>> +		conv |= PALMAS_GPADC_AUTO_CTRL_AUTO_CONV0_EN;
+>> +		if (adc->wakeup1_data.adc_high_threshold > 0) {
+>> +			thres = adc->wakeup1_data.adc_high_threshold;
+>> +			is_high = 0;
+>> +		} else {
+>> +			thres = adc->wakeup1_data.adc_low_threshold;
+>> +			is_high = BIT(7);
+>> +		}
+>> +
+>> +		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_THRES_CONV0_LSB, thres & 0xFF);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev,
+>> +				"THRES_CONV0_LSB write failed: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +
+>> +		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_THRES_CONV0_MSB,
+>> +				((thres >> 8) & 0xF) | is_high);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev,
+>> +				"THRES_CONV0_MSB write failed: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +	}
+>> +
+>> +	if (adc->wakeup2_enable) {
+>> +		int is_high;
+>> +
+>> +		ch1 = adc->wakeup2_data.adc_channel_number;
+>> +		conv |= PALMAS_GPADC_AUTO_CTRL_AUTO_CONV1_EN;
+>> +		if (adc->wakeup2_data.adc_high_threshold > 0) {
+>> +			thres = adc->wakeup2_data.adc_high_threshold;
+>> +			is_high = 0;
+>> +		} else {
+>> +			thres = adc->wakeup2_data.adc_low_threshold;
+>> +			is_high = BIT(7);
+>> +		}
+>> +
+>> +		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_THRES_CONV1_LSB, thres & 0xFF);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev,
+>> +				"THRES_CONV1_LSB write failed: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +
+>> +		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+>> +				PALMAS_GPADC_THRES_CONV1_MSB,
+>> +				((thres >> 8) & 0xF) | is_high);
+>> +		if (ret < 0) {
+>> +			dev_err(adc->dev,
+>> +				"THRES_CONV1_MSB write failed: %d\n", ret);
+>> +			return ret;
+>> +		}
+>> +	}
+>> +
+>> +	ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+>> +			PALMAS_GPADC_AUTO_SELECT, (ch1 << 4) | ch0);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "AUTO_SELECT write failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
+>> +			PALMAS_GPADC_AUTO_CTRL,
+>> +			PALMAS_GPADC_AUTO_CTRL_AUTO_CONV1_EN |
+>> +			PALMAS_GPADC_AUTO_CTRL_AUTO_CONV0_EN, conv);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "AUTO_CTRL write failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +static int palmas_adc_wakeup_reset(struct palmas_gpadc *adc)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+>> +			PALMAS_GPADC_AUTO_SELECT, 0);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "AUTO_SELECT write failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	ret = palmas_disable_auto_conversion(adc);
+>> +	if (ret < 0) {
+>> +		dev_err(adc->dev, "Disable auto conversion failed: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +static int palmas_gpadc_suspend(struct device *dev)
+>> +{
+>> +	struct iio_dev *iodev = dev_to_iio_dev(dev);
+>> +	struct palmas_gpadc *adc = iio_priv(iodev);
+>> +	int wakeup = adc->wakeup1_enable || adc->wakeup2_enable;
+>> +	int ret;
+>> +
+>> +	if (!device_may_wakeup(dev) || !wakeup)
+>> +		return 0;
+>> +
+>> +	ret = palmas_adc_wakeup_configure(adc);
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	if (adc->wakeup1_enable)
+>> +		enable_irq_wake(adc->irq_auto_0);
+>> +
+>> +	if (adc->wakeup2_enable)
+>> +		enable_irq_wake(adc->irq_auto_1);
+>> +	return 0;
+>> +}
+>> +
+>> +static int palmas_gpadc_resume(struct device *dev)
+>> +{
+>> +	struct iio_dev *iodev = dev_to_iio_dev(dev);
+>> +	struct palmas_gpadc *adc = iio_priv(iodev);
+>> +	int wakeup = adc->wakeup1_enable || adc->wakeup2_enable;
+>> +	int ret;
+>> +
+>> +	if (!device_may_wakeup(dev) || !wakeup)
+>> +		return 0;
+>> +
+>> +	ret = palmas_adc_wakeup_reset(adc);
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	if (adc->wakeup1_enable)
+>> +		disable_irq_wake(adc->irq_auto_0);
+>> +
+>> +	if (adc->wakeup2_enable)
+>> +		disable_irq_wake(adc->irq_auto_1);
+>> +
+>> +	return 0;
+>> +};
+>> +#endif
+>> +
+>> +static const struct dev_pm_ops palmas_pm_ops = {
+>> +	SET_SYSTEM_SLEEP_PM_OPS(palmas_gpadc_suspend,
+>> +				palmas_gpadc_resume)
+>> +};
+>> +
+>> +static struct platform_driver palmas_gpadc_driver = {
+>> +	.probe = palmas_gpadc_probe,
+>> +	.remove = palmas_gpadc_remove,
+>> +	.driver = {
+>> +		.name = MOD_NAME,
+>> +		.owner = THIS_MODULE,
+>> +		.pm = &palmas_pm_ops,
+>> +	},
+>> +};
+>> +
+>> +static int __init palmas_gpadc_init(void)
+>> +{
+>> +	return platform_driver_register(&palmas_gpadc_driver);
+>> +}
+>> +module_init(palmas_gpadc_init);
+>> +
+>> +static void __exit palmas_gpadc_exit(void)
+>> +{
+>> +	platform_driver_unregister(&palmas_gpadc_driver);
+>> +}
+>> +module_exit(palmas_gpadc_exit);
+>> +
+>> +MODULE_DESCRIPTION("palmas GPADC driver");
+>> +MODULE_AUTHOR("Pradeep Goudagunta<pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>");
+>> +MODULE_ALIAS("platform:palmas-gpadc");
+>> +MODULE_LICENSE("GPL v2");
+>> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+>> index bb270bd..60acfa2 100644
+>> --- a/include/linux/mfd/palmas.h
+>> +++ b/include/linux/mfd/palmas.h
+>> @@ -133,21 +133,32 @@ struct palmas_pmic_driver_data {
+>> 			    struct regulator_config config);
+>> };
+>> 
+>> +struct palmas_adc_wakeup_property {
+>> +	int adc_channel_number;
+>> +	int adc_high_threshold;
+>> +	int adc_low_threshold;
+>> +};
+>> +
+>> struct palmas_gpadc_platform_data {
+>> 	/* Channel 3 current source is only enabled during conversion */
+>> 	int ch3_current;
+>> -
+>> 	/* Channel 0 current source can be used for battery detection.
+>> -	 * If used for battery detection this will cause a permanent current
+>> +	* If used for battery detection this will cause a permanent current
+>> 	 * consumption depending on current level set here.
+>> -	 */
+>> +		 */
+>> 	int ch0_current;
+>> +	bool extended_delay;
+>> 
+>> 	/* default BAT_REMOVAL_DAT setting on device probe */
+>> 	int bat_removal;
+>> 
+>> 	/* Sets the START_POLARITY bit in the RT_CTRL register */
+>> 	int start_polarity;
+>> +
+>> +	struct iio_map *iio_maps;
+>> +	int auto_conversion_period_ms;
+>> +	struct palmas_adc_wakeup_property *adc_wakeup1_data;
+>> +	struct palmas_adc_wakeup_property *adc_wakeup2_data;
+>> };
+>> 
+>> struct palmas_reg_init {
+>> @@ -403,7 +414,7 @@ struct palmas_gpadc_calibration {
+>> 	s32 gain_error;
+>> 	s32 offset_error;
+>> };
+>> -
+>> +/*
+>> struct palmas_gpadc {
+>> 	struct device *dev;
+>> 	struct palmas *palmas;
+>> @@ -426,6 +437,9 @@ struct palmas_gpadc {
+>> 	int conv1_channel;
+>> 	int rt_channel;
+>> };
+>> +*/
+>> +
+>> +#define PALMAS_DATASHEET_NAME(_name)	"palmas-gpadc-chan-"#_name
+>> 
+>> struct palmas_gpadc_result {
+>> 	s32 raw_code;
+>> @@ -519,6 +533,42 @@ enum palmas_irqs {
+>> 	PALMAS_NUM_IRQ,
+>> };
+>> 
+>> +/* Palma GPADC Channels */
+> 
+> Palmas, here and below
+> 
+>> +enum {
+>> +	PALMAS_ADC_CH_IN0,
+>> +	PALMAS_ADC_CH_IN1,
+>> +	PALMAS_ADC_CH_IN2,
+>> +	PALMAS_ADC_CH_IN3,
+>> +	PALMAS_ADC_CH_IN4,
+>> +	PALMAS_ADC_CH_IN5,
+>> +	PALMAS_ADC_CH_IN6,
+>> +	PALMAS_ADC_CH_IN7,
+>> +	PALMAS_ADC_CH_IN8,
+>> +	PALMAS_ADC_CH_IN9,
+>> +	PALMAS_ADC_CH_IN10,
+>> +	PALMAS_ADC_CH_IN11,
+>> +	PALMAS_ADC_CH_IN12,
+>> +	PALMAS_ADC_CH_IN13,
+>> +	PALMAS_ADC_CH_IN14,
+>> +	PALMAS_ADC_CH_IN15,
+>> +	PALMAS_ADC_CH_MAX,
+>> +};
+>> +
+>> +/* Palma GPADC Channel0 Current Source */
+>> +enum {
+>> +	PALMAS_ADC_CH0_CURRENT_SRC_0,
+>> +	PALMAS_ADC_CH0_CURRENT_SRC_5,
+>> +	PALMAS_ADC_CH0_CURRENT_SRC_15,
+>> +	PALMAS_ADC_CH0_CURRENT_SRC_20,
+>> +};
+>> +/* Palma GPADC Channel3 Current Source */
+>> +enum {
+>> +	PALMAS_ADC_CH3_CURRENT_SRC_0,
+>> +	PALMAS_ADC_CH3_CURRENT_SRC_10,
+>> +	PALMAS_ADC_CH3_CURRENT_SRC_400,
+>> +	PALMAS_ADC_CH3_CURRENT_SRC_800,
+>> +};
+>> +
+>> struct palmas_pmic {
+>> 	struct palmas *palmas;
+>> 	struct device *dev;
+>> @@ -2999,6 +3049,7 @@ enum usb_irq_events {
+>> #define PALMAS_GPADC_TRIM14					0x0D
+>> #define PALMAS_GPADC_TRIM15					0x0E
+>> #define PALMAS_GPADC_TRIM16					0x0F
+>> +#define PALMAS_GPADC_TRIMINVALID				-1
+>> 
+>> /* TPS659038 regen2_ctrl offset iss different from palmas */
+>> #define TPS659038_REGEN2_CTRL					0x12
+>> 
+> 
+> -- 
+> 
+> Peter Meerwald
+> +43-664-2444418 (mobile)
+
+BR and tnx,
+Nikolaus Schaller
