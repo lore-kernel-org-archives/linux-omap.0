@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 06/17] ARM: dts: dra7: add reset data
-Date: Thu, 24 Sep 2015 17:26:47 +0300
-Message-ID: <1443104818-993-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 07/17] ARM: dts: am4372: add reset data
+Date: Thu, 24 Sep 2015 17:26:48 +0300
+Message-ID: <1443104818-993-8-git-send-email-t-kristo@ti.com>
 References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,38 +21,67 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Copy over the reset data from kernel to DT. Currently, only system reset
-has been defined, but rest can be added later once needed.
+Add reset data for pruss, gfx, wkup-m3 and system reset.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/am4372.dtsi |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 5d65db9..e299b07 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -199,6 +199,7 @@
- 				compatible = "ti,dra7-prm";
- 				reg = <0x6000 0x3000>;
- 				interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 0447c04a..fcc8d31 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -116,12 +116,15 @@
+ 				reg-names = "umem", "dmem";
+ 				ti,hwmods = "wkup_m3";
+ 				ti,pm-firmware = "am335x-pm-firmware.elf";
++				reset-names = "wkup_m3";
++				resets = <&prcm 0x2000 0x10 3 0x14 5>;
+ 			};
+ 
+ 			prcm: prcm@1f0000 {
+ 				compatible = "ti,am4-prcm";
+ 				reg = <0x1f0000 0x11000>;
+ 				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
 +				#reset-cells = <5>;
  
- 				prm_clocks: clocks {
+ 				prcm_clocks: clocks {
  					#address-cells = <1>;
-@@ -207,6 +208,12 @@
+@@ -130,6 +133,12 @@
  
- 				prm_clockdomains: clockdomains {
+ 				prcm_clockdomains: clockdomains {
  				};
 +
 +				system_reset: system_reset {
 +					compatible = "ti,system-reset";
 +					reset-names = "system";
-+					resets = <&prm 0x1d00 0 0 4 0>;
++					reset-cells = <&prcm 0x4000 0 0 4 0>;
 +				};
  			};
+ 
+ 			scm: scm@210000 {
+@@ -1053,6 +1062,21 @@
+ 			ti,hwmods = "vpfe1";
+ 			status = "disabled";
  		};
++
++		gfx: gfx@56000000 {
++			compatible = "ti,am4376-sgx530", "img,sgx530";
++			ti,hwmods = "gfx";
++			status = "disabled";
++			reset-names = "gfx";
++			resets = <&prcm 0x400 0x10 0 0x14 0>;
++		};
++
++		pruss: pruss@54400000 {
++			compatible = "ti,am4372-pruss";
++			ti,hwmods = "pruss";
++			reset-names = "pruss";
++			resets = <&prcm 0x800 0x10 1 0x14 0>;
++		};
+ 	};
+ };
  
 -- 
 1.7.9.5
