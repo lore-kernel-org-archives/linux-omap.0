@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 23/25] dmaengine: edma: Read channel mapping support only once from HW
-Date: Thu, 24 Sep 2015 13:02:10 +0300
-Message-ID: <1443088932-21731-24-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 21/25] dmaengine: edma: Move the pending error check into helper function
+Date: Thu, 24 Sep 2015 13:02:08 +0300
+Message-ID: <1443088932-21731-22-git-send-email-peter.ujfalusi@ti.com>
 References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,58 +12,59 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Instead of directly reading it from CCCFG register take the information out
-once when we set up the configuration from the HW.
+In the ccerr interrupt handler the code checks for pending errors in the
+error status registers in two different places.
+Move the check out to a helper function.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/dma/edma.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index c8350248c0c6..a818d2bf8709 100644
+index 03f411cc900b..30e3c54d86e3 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -223,6 +223,7 @@ struct edma_cc {
- 	unsigned			num_region;
- 	unsigned			num_slots;
- 	unsigned			num_tc;
-+	bool				chmap_exist;
- 	enum dma_event_q 		default_queue;
+@@ -1608,6 +1608,16 @@ static void edma_error_handler(struct edma_chan *echan)
+ 	spin_unlock(&echan->vchan.lock);
+ }
  
- 	bool				unused_chan_list_done;
-@@ -1904,11 +1905,14 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 	value = GET_NUM_EVQUE(cccfg);
- 	ecc->num_tc = value + 1;
- 
-+	ecc->chmap_exist = (cccfg & CHMAP_EXIST) ? true : false;
++static inline bool edma_error_pending(struct edma_cc *ecc)
++{
++	if (edma_read_array(ecc, EDMA_EMR, 0) ||
++	    edma_read_array(ecc, EDMA_EMR, 1) ||
++	    edma_read(ecc, EDMA_QEMR) || edma_read(ecc, EDMA_CCERR))
++		return true;
 +
- 	dev_dbg(dev, "eDMA3 CC HW configuration (cccfg: 0x%08x):\n", cccfg);
- 	dev_dbg(dev, "num_region: %u\n", ecc->num_region);
- 	dev_dbg(dev, "num_channels: %u\n", ecc->num_channels);
- 	dev_dbg(dev, "num_slots: %u\n", ecc->num_slots);
- 	dev_dbg(dev, "num_tc: %u\n", ecc->num_tc);
-+	dev_dbg(dev, "chmap_exist: %s\n", ecc->chmap_exist ? "yes" : "no");
++	return false;
++}
++
+ /* eDMA error interrupt handler */
+ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ {
+@@ -1622,10 +1632,7 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
  
- 	/* Nothing need to be done if queue priority is provided */
- 	if (pdata->queue_priority_mapping)
-@@ -2197,7 +2201,7 @@ static int edma_probe(struct platform_device *pdev)
- 					      queue_priority_mapping[i][1]);
+ 	dev_dbg(ecc->dev, "dma_ccerr_handler\n");
  
- 	/* Map the channel to param entry if channel mapping logic exist */
--	if (edma_read(ecc, EDMA_CCCFG) & CHMAP_EXIST)
-+	if (ecc->chmap_exist)
- 		edma_direct_dmach_to_param_mapping(ecc);
+-	if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
+-	    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
+-	    (edma_read(ecc, EDMA_QEMR) == 0) &&
+-	    (edma_read(ecc, EDMA_CCERR) == 0))
++	if (!edma_error_pending(ecc))
+ 		return IRQ_NONE;
  
- 	for (i = 0; i < ecc->num_region; i++) {
-@@ -2267,7 +2271,7 @@ static int edma_pm_resume(struct device *dev)
- 					      queue_priority_mapping[i][1]);
- 
- 	/* Map the channel to param entry if channel mapping logic */
--	if (edma_read(ecc, EDMA_CCCFG) & CHMAP_EXIST)
-+	if (ecc->chmap_exist)
- 		edma_direct_dmach_to_param_mapping(ecc);
- 
- 	for (i = 0; i < ecc->num_channels; i++) {
+ 	while (1) {
+@@ -1678,10 +1685,7 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ 				}
+ 			}
+ 		}
+-		if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
+-		    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
+-		    (edma_read(ecc, EDMA_QEMR) == 0) &&
+-		    (edma_read(ecc, EDMA_CCERR) == 0))
++		if (!edma_error_pending(ecc))
+ 			break;
+ 		cnt++;
+ 		if (cnt > 10)
 -- 
 2.5.2
