@@ -1,124 +1,205 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 08/25] ARM/dmaengine: edma: Remove limitation on the number
- of eDMA controllers
-Date: Thu, 24 Sep 2015 13:01:55 +0300
-Message-ID: <1443088932-21731-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 24/25] dmaengine: edma: Rename bitfields for slot and channel usage tracking
+Date: Thu, 24 Sep 2015 13:02:11 +0300
+Message-ID: <1443088932-21731-25-git-send-email-peter.ujfalusi@ti.com>
 References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Since the driver stack no longer depends on lookup with id number in a
-global array of pointers, the limitation for the number of eDMAs are no
-longer needed. We can handle as many eDMAs in legacy and DT boot as we have
-memory for them to allocate the needed structures.
+The names chosen for the bitfields were quite confusing and given no real
+information on what they are used for...
+
+edma_inuse -> slot_inuse: tracks the slot usage/availability
+edma_unused -> channel_unused: tracks the channel usage/availability
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/common/edma.c | 22 +++++-----------------
- drivers/dma/edma.c     | 17 ++++++++---------
- 2 files changed, 13 insertions(+), 26 deletions(-)
+ drivers/dma/edma.c | 48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 03692520812a..5b747f1bc8b5 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -1227,24 +1227,7 @@ static int edma_probe(struct platform_device *pdev)
- 		.parent = &pdev->dev,
- 	};
- 
--	/* When booting with DT the pdev->id is -1 */
--	if (dev_id < 0)
--		dev_id = arch_num_cc;
--
--	if (dev_id >= EDMA_MAX_CC) {
--		dev_err(dev,
--			"eDMA3 with device id 0 and 1 is supported (id: %d)\n",
--			dev_id);
--		return -EINVAL;
--	}
--
- 	if (node) {
--		/* Check if this is a second instance registered */
--		if (arch_num_cc) {
--			dev_err(dev, "only one EDMA instance is supported via DT\n");
--			return -ENODEV;
--		}
--
- 		info = edma_setup_info_from_dt(dev, node);
- 		if (IS_ERR(info)) {
- 			dev_err(dev, "failed to get DT data\n");
-@@ -1278,6 +1261,11 @@ static int edma_probe(struct platform_device *pdev)
- 
- 	cc->dev = dev;
- 	cc->id = dev_id;
-+	/* When booting with DT the pdev->id is -1 */
-+	if (dev_id < 0) {
-+		cc->id = 0;
-+		dev_id = arch_num_cc;
-+	}
- 	dev_set_drvdata(dev, cc);
- 
- 	cc->base = devm_ioremap_resource(dev, mem);
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 53d48b2a700d..fc91ab9dd1bb 100644
+index a818d2bf8709..a30f6ae69bff 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -991,14 +991,12 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
- 	INIT_LIST_HEAD(&dma->channels);
- }
+@@ -227,16 +227,16 @@ struct edma_cc {
+ 	enum dma_event_q 		default_queue;
  
--static struct of_dma_filter_info edma_filter_info = {
--	.filter_fn = edma_filter_fn,
--};
--
- static int edma_probe(struct platform_device *pdev)
- {
- 	struct edma_cc *ecc;
- 	struct device_node *parent_node = pdev->dev.parent->of_node;
-+	struct platform_device *parent_pdev =
-+					to_platform_device(pdev->dev.parent);
- 	int ret;
+ 	bool				unused_chan_list_done;
+-	/* The edma_inuse bit for each PaRAM slot is clear unless the
++	/* The slot_inuse bit for each PaRAM slot is clear unless the
+ 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
+ 	 */
+-	unsigned long *edma_inuse;
++	unsigned long *slot_inuse;
  
- 	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-@@ -1015,7 +1013,10 @@ static int edma_probe(struct platform_device *pdev)
- 	if (!ecc->cc)
- 		return -ENODEV;
+-	/* The edma_unused bit for each channel is clear unless
++	/* The channel_unused bit for each channel is clear unless
+ 	 * it is not being used on this platform. It uses a bit
+ 	 * of SOC-specific initialization code.
+ 	 */
+-	unsigned long *edma_unused;
++	unsigned long *channel_unused;
  
--	ecc->ctlr = pdev->id;
-+	ecc->ctlr = parent_pdev->id;
-+	if (ecc->ctlr < 0)
-+		ecc->ctlr = 0;
-+
- 	ecc->dummy_slot = edma_alloc_slot(ecc->cc, EDMA_SLOT_ANY);
- 	if (ecc->dummy_slot < 0) {
- 		dev_err(&pdev->dev, "Can't allocate PaRAM dummy slot\n");
-@@ -1038,10 +1039,8 @@ static int edma_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, ecc);
+ 	struct dma_device		dma_slave;
+ 	struct edma_chan		*slave_chans;
+@@ -430,7 +430,7 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
+ 				continue;
  
- 	if (parent_node) {
--		dma_cap_set(DMA_SLAVE, edma_filter_info.dma_cap);
--		dma_cap_set(DMA_CYCLIC, edma_filter_info.dma_cap);
--		of_dma_controller_register(parent_node, of_dma_simple_xlate,
--					   &edma_filter_info);
-+		of_dma_controller_register(parent_node, of_dma_xlate_by_chan_id,
-+					   &ecc->dma_slave);
+ 			clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]),
+-				  ecc->edma_unused);
++				  ecc->channel_unused);
+ 			of_node_put(dma_spec.np);
+ 		}
+ 		return 0;
+@@ -447,7 +447,7 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
+ 		dma_req = (int)res->start;
+ 		if (dma_req >= dma_req_min && dma_req < dma_req_max)
+ 			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
+-				  ecc->edma_unused);
++				  ecc->channel_unused);
  	}
  
- 	dev_info(&pdev->dev, "TI EDMA DMA engine driver\n");
+ 	return 0;
+@@ -511,17 +511,17 @@ static int edma_alloc_slot(struct edma_cc *ecc, int slot)
+ 	if (slot < 0) {
+ 		slot = ecc->num_channels;
+ 		for (;;) {
+-			slot = find_next_zero_bit(ecc->edma_inuse,
++			slot = find_next_zero_bit(ecc->slot_inuse,
+ 						  ecc->num_slots,
+ 						  slot);
+ 			if (slot == ecc->num_slots)
+ 				return -ENOMEM;
+-			if (!test_and_set_bit(slot, ecc->edma_inuse))
++			if (!test_and_set_bit(slot, ecc->slot_inuse))
+ 				break;
+ 		}
+ 	} else if (slot < ecc->num_channels || slot >= ecc->num_slots) {
+ 		return -EINVAL;
+-	} else if (test_and_set_bit(slot, ecc->edma_inuse)) {
++	} else if (test_and_set_bit(slot, ecc->slot_inuse)) {
+ 		return -EBUSY;
+ 	}
+ 
+@@ -538,7 +538,7 @@ static void edma_free_slot(struct edma_cc *ecc, unsigned slot)
+ 		return;
+ 
+ 	edma_write_slot(ecc, slot, &dummy_paramset);
+-	clear_bit(slot, ecc->edma_inuse);
++	clear_bit(slot, ecc->slot_inuse);
+ }
+ 
+ /**
+@@ -610,7 +610,7 @@ static int edma_start(struct edma_cc *ecc, unsigned channel)
+ 		unsigned int mask = BIT(channel & 0x1f);
+ 
+ 		/* EDMA channels without event association */
+-		if (test_bit(channel, ecc->edma_unused)) {
++		if (test_bit(channel, ecc->channel_unused)) {
+ 			dev_dbg(ecc->dev, "ESR%d %08x\n", j,
+ 				edma_shadow0_read_array(ecc, SH_ESR, j));
+ 			edma_shadow0_write_array(ecc, SH_ESR, j, mask);
+@@ -814,11 +814,11 @@ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
+ 	if (channel < 0) {
+ 		channel = 0;
+ 		for (;;) {
+-			channel = find_next_bit(ecc->edma_unused,
++			channel = find_next_bit(ecc->channel_unused,
+ 						ecc->num_channels, channel);
+ 			if (channel == ecc->num_channels)
+ 				break;
+-			if (!test_and_set_bit(channel, ecc->edma_inuse)) {
++			if (!test_and_set_bit(channel, ecc->slot_inuse)) {
+ 				done = 1;
+ 				break;
+ 			}
+@@ -828,7 +828,7 @@ static int edma_alloc_channel(struct edma_cc *ecc, int channel,
+ 			return -ENOMEM;
+ 	} else if (channel >= ecc->num_channels) {
+ 		return -EINVAL;
+-	} else if (test_and_set_bit(channel, ecc->edma_inuse)) {
++	} else if (test_and_set_bit(channel, ecc->slot_inuse)) {
+ 		return -EBUSY;
+ 	}
+ 
+@@ -876,7 +876,7 @@ static void edma_free_channel(struct edma_cc *ecc, unsigned channel)
+ 	/* REVISIT should probably take out of shadow region 0 */
+ 
+ 	edma_write_slot(ecc, channel, &dummy_paramset);
+-	clear_bit(channel, ecc->edma_inuse);
++	clear_bit(channel, ecc->slot_inuse);
+ }
+ 
+ /* Move channel to a specific event queue */
+@@ -2111,14 +2111,14 @@ static int edma_probe(struct platform_device *pdev)
+ 	if (!ecc->slave_chans)
+ 		return -ENOMEM;
+ 
+-	ecc->edma_unused = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_channels),
++	ecc->channel_unused = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_channels),
+ 					sizeof(unsigned long), GFP_KERNEL);
+-	if (!ecc->edma_unused)
++	if (!ecc->channel_unused)
+ 		return -ENOMEM;
+ 
+-	ecc->edma_inuse = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_slots),
++	ecc->slot_inuse = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_slots),
+ 				       sizeof(unsigned long), GFP_KERNEL);
+-	if (!ecc->edma_inuse)
++	if (!ecc->slot_inuse)
+ 		return -ENOMEM;
+ 
+ 	ecc->default_queue = info->default_queue;
+@@ -2127,7 +2127,7 @@ static int edma_probe(struct platform_device *pdev)
+ 		edma_write_slot(ecc, i, &dummy_paramset);
+ 
+ 	/* Mark all channels as unused */
+-	memset(ecc->edma_unused, 0xff, sizeof(ecc->edma_unused));
++	memset(ecc->channel_unused, 0xff, sizeof(ecc->channel_unused));
+ 
+ 	if (info->rsv) {
+ 		/* Clear the reserved channels in unused list */
+@@ -2136,7 +2136,7 @@ static int edma_probe(struct platform_device *pdev)
+ 			for (i = 0; rsv_chans[i][0] != -1; i++) {
+ 				off = rsv_chans[i][0];
+ 				ln = rsv_chans[i][1];
+-				clear_bits(off, ln, ecc->edma_unused);
++				clear_bits(off, ln, ecc->channel_unused);
+ 			}
+ 		}
+ 
+@@ -2146,7 +2146,7 @@ static int edma_probe(struct platform_device *pdev)
+ 			for (i = 0; rsv_slots[i][0] != -1; i++) {
+ 				off = rsv_slots[i][0];
+ 				ln = rsv_slots[i][1];
+-				set_bits(off, ln, ecc->edma_inuse);
++				set_bits(off, ln, ecc->slot_inuse);
+ 			}
+ 		}
+ 	}
+@@ -2156,7 +2156,7 @@ static int edma_probe(struct platform_device *pdev)
+ 	if (xbar_chans) {
+ 		for (i = 0; xbar_chans[i][1] != -1; i++) {
+ 			off = xbar_chans[i][1];
+-			clear_bits(off, 1, ecc->edma_unused);
++			clear_bits(off, 1, ecc->channel_unused);
+ 		}
+ 	}
+ 
+@@ -2275,7 +2275,7 @@ static int edma_pm_resume(struct device *dev)
+ 		edma_direct_dmach_to_param_mapping(ecc);
+ 
+ 	for (i = 0; i < ecc->num_channels; i++) {
+-		if (test_bit(i, ecc->edma_inuse)) {
++		if (test_bit(i, ecc->slot_inuse)) {
+ 			/* ensure access through shadow region 0 */
+ 			edma_or_array2(ecc, EDMA_DRAE, 0, i >> 5,
+ 				       BIT(i & 0x1f));
 -- 
 2.5.2
