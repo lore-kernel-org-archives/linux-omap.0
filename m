@@ -1,96 +1,61 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapdss: acx565akm: Fix module autoload for OF platform
- driver
-Date: Thu, 24 Sep 2015 14:37:54 +0300
-Message-ID: <5603E092.6050707@ti.com>
-References: <20150918184457.GA32636@goodgumbo.baconseed.org>
- <5603CDD1.7030709@ti.com>
+From: Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
+Subject: Re: AM3517 usb host issue
+Date: Thu, 24 Sep 2015 13:48:49 +0100
+Message-ID: <5603F131.10603@codethink.co.uk>
+References: <555EE311.3030507@codethink.co.uk> <20150522135039.GA5582@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5603CDD1.7030709@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luis de Bethencourt <luis@debethencourt.com>, linux-kernel@vger.kernel.org
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Javier Martinez Canillas <javier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150522135039.GA5582-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Linux USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On 22/05/15 14:50, Felipe Balbi wrote:
+> Hi,
+> 
+> On Fri, May 22, 2015 at 11:04:33AM +0300, Ben Dooks wrote:
+>> I am trying to get the full-speed USB host working on an custom 
+>> AM3517 device with the 3.18.12 kernel. The hardware works (a 
+>> 2.6.37 kernel has been used for testing).
+>> 
+>> Does anyone have any experience of 3.18 (or similarly recent 
+>> kernel on an AM3517 system) or have any pointers as where to 
+>> start debugging? The ti-linux-3.14.y does not have any patches 
+>> that aren't applied to the usb on 3.18.13.
+>> 
+>> The cpu port 1 is connected by a TI TUSB1106 usb transceiver
+>> that is directly connected to a full-speed hub (TI USB2046) hub
+>> so the OHCI driver is the only one in use.
+>> 
+>> Note, the ohci-omap3 is loaded as a module as this is how their 
+>> user application expects to be able to shut down usb when it
+>> does not need it.
+>> 
+>> The device tree configuration for the usb host:
+> 
+> and what exactly doesn't work ? That old OHCI driver hasn't been 
+> touched in years, it's no surprise that it stopped working :-(
+> 
+> Anyway, what exactly doesn't work ? No device enumerates ? Do you 
+> get any IRQs by plugging a new device in ?
 
+I just found this in my backlog, and thought I should follow up with
+the issue.
 
-On 24/09/15 13:17, Tomi Valkeinen wrote:
->=20
->=20
-> On 18/09/15 21:44, Luis de Bethencourt wrote:
->> This platform driver has a OF device ID table but the OF module
->> alias information is not created so module autoloading won't work.
->>
->> Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
->> ---
->>
->> Hello,
->>
->> This patch adds the missing MODULE_DEVICE_TABLE() for OF to export
->> that information so modules have the correct aliases built-in and
->> autoloading works correctly.
->>
->> A longer explanation by Javier Canillas can be found here:
->> https://lkml.org/lkml/2015/7/30/519
->>
->> Thanks,
->> Luis
->>
->>  drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565a=
-km.c b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
->> index 90cbc4c..c581231 100644
->> --- a/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
->> +++ b/drivers/video/fbdev/omap2/displays-new/panel-sony-acx565akm.c
->> @@ -898,6 +898,7 @@ static const struct of_device_id acx565akm_of_matc=
-h[] =3D {
->>  	{ .compatible =3D "omapdss,sony,acx565akm", },
->>  	{},
->>  };
->> +MODULE_DEVICE_TABLE(of, acx565akm_of_match);
->> =20
->>  static struct spi_driver acx565akm_driver =3D {
->>  	.driver =3D {
->>
->=20
-> Thanks, queued for 4.3 fixes.
+It turns out that even if we're not using the EHCI unit, the 120m
+functional clock needs to be enabled. This may be down to an internal
+routing of port signals, or the USB front-end needing it.
 
-Oh, there was an earlier patch from Javier already posted. So I'll pick
-that one instead.
+I've added a local boolean fix to enable the clock, and will post it
+as soon as we've had a chance to review and document.
 
- Tomi
-
-
---PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWA+CSAAoJEPo9qoy8lh717c4P/iQhxqiGQYv0VEaKmhUzoemU
-qdmP6u2MEiEO8r2QKpUMYIFoHutPyWqX1AmAwNt79ODed3vvhoANwSozZksolR41
-aovQmy8T0li7hNhwgDrcoCZGcTQ5Gd9zJ2GFVQPsYChVFu+UEq9ZfS/yta3i1XSf
-6kRM0OtJch+EFydZ2B6n0Q2ogLFZD9NDCVQdwZIAFmWRM/I6uhuffMlAyMXuQpo9
-QoKSVfq3laqZxHlpr7Wz1ON9SMJVFr3PCM5Tvyxsa9YIOvHgoLUSNflE9OqWb3km
-Rspz3LvwwTW9ZElgInt0h+RNM0dMFXkXJoUvLV9WokW+8DlFYgxrCCtST52iMpuX
-RetRnTp+trruXYeuj5BE3Nejp3slfpi2pJSIZ/3ZJl0PucfxmjDPpKJYEO4v/TK9
-nlD6yrU02LT8xYMohR5/UboOOB4YAigw+zwCc+jt3ZwMeAk0yBjBl5efcxbJKYoC
-XHgYl7G1EKjCBNnDKQnSZ/74MXSamgwZyhpbkng5EV9p3geeEirYj7bIWP+4A0Tw
-2Fk6Nm5Deu8e2dEQAZkjIvy5tXWI111NsWQNGDhDE9thedreWnDwxn+8Zs8clNtn
-KnUqwmq7lySrvYjdyB64B2bhE9zD9rvOwilhVe2LWo+eEdSSdFbq3+Fjx7rRmkI3
-RQmNKxSrdfVTI8k6ClMS
-=DUZg
------END PGP SIGNATURE-----
-
---PoCi9RvPGAiRHmCN9FVUm9c9vvGSWlUFG--
+-- 
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
