@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 13/17] ARM: OMAP5: hwmod_data: remove reset data
-Date: Thu, 24 Sep 2015 17:26:54 +0300
-Message-ID: <1443104818-993-14-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 17/17] ARM: OMAP2+: PRM: remove redundant system reset code
+Date: Thu, 24 Sep 2015 17:26:58 +0300
+Message-ID: <1443104818-993-18-git-send-email-t-kristo@ti.com>
 References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,60 +21,126 @@ To: linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This is provided via DT, and no longer needed in the hwmod database.
+This is now handled via the reset controller and the provided information
+from DT, so the legacy support code is no longer needed. OMAP3 version
+shall be removed once OMAP3 is also DT only.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ arch/arm/mach-omap2/prm2xxx.c     |   15 ---------------
+ arch/arm/mach-omap2/prm33xx.c     |   18 ------------------
+ arch/arm/mach-omap2/prm44xx.c     |    1 -
+ arch/arm/mach-omap2/prminst44xx.c |   20 --------------------
+ 4 files changed, 54 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 7c3fac0..9e33ac8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1378,21 +1378,14 @@ static struct omap_hwmod_class omap54xx_mmu_hwmod_class = {
- 	.sysc = &omap54xx_mmu_sysc,
+diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
+index 752018ce..70f711b 100644
+--- a/arch/arm/mach-omap2/prm2xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx.c
+@@ -101,20 +101,6 @@ static int omap2xxx_pwrst_to_common_pwrst(u8 omap2xxx_pwrst)
+ }
+ 
+ /**
+- * omap2xxx_prm_dpll_reset - use DPLL reset to reboot the OMAP SoC
+- *
+- * Set the DPLL reset bit, which should reboot the SoC.  This is the
+- * recommended way to restart the SoC.  No return value.
+- */
+-static void omap2xxx_prm_dpll_reset(void)
+-{
+-	omap2_prm_set_mod_reg_bits(OMAP_RST_DPLL3_MASK, WKUP_MOD,
+-				   OMAP2_RM_RSTCTRL);
+-	/* OCP barrier */
+-	omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTCTRL);
+-}
+-
+-/**
+  * omap2xxx_prm_clear_mod_irqs - clear wakeup status bits for a module
+  * @module: PRM module to clear wakeups from
+  * @regs: register offset to clear
+@@ -216,7 +202,6 @@ static struct prm_ll_data omap2xxx_prm_ll_data = {
+ 	.assert_hardreset = &omap2_prm_assert_hardreset,
+ 	.deassert_hardreset = &omap2_prm_deassert_hardreset,
+ 	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
+-	.reset_system = &omap2xxx_prm_dpll_reset,
+ 	.clear_mod_irqs = &omap2xxx_prm_clear_mod_irqs,
  };
  
--static struct omap_hwmod_rst_info omap54xx_mmu_dsp_resets[] = {
--	{ .name = "mmu_cache", .rst_shift = 1 },
--};
+diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+index dcb5001..12b15a2 100644
+--- a/arch/arm/mach-omap2/prm33xx.c
++++ b/arch/arm/mach-omap2/prm33xx.c
+@@ -336,23 +336,6 @@ static int am33xx_check_vcvp(void)
+ 	return 0;
+ }
+ 
+-/**
+- * am33xx_prm_global_warm_sw_reset - reboot the device via warm reset
+- *
+- * Immediately reboots the device through warm reset.
+- */
+-static void am33xx_prm_global_warm_sw_reset(void)
+-{
+-	am33xx_prm_rmw_reg_bits(AM33XX_RST_GLOBAL_WARM_SW_MASK,
+-				AM33XX_RST_GLOBAL_WARM_SW_MASK,
+-				AM33XX_PRM_DEVICE_MOD,
+-				AM33XX_PRM_RSTCTRL_OFFSET);
 -
- static struct omap_hwmod omap54xx_mmu_dsp_hwmod = {
- 	.name		= "mmu_dsp",
- 	.class		= &omap54xx_mmu_hwmod_class,
- 	.clkdm_name	= "dsp_clkdm",
--	.rst_lines	= omap54xx_mmu_dsp_resets,
--	.rst_lines_cnt	= ARRAY_SIZE(omap54xx_mmu_dsp_resets),
- 	.main_clk	= "dpll_iva_h11x2_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP54XX_CM_DSP_DSP_CLKCTRL_OFFSET,
--			.rstctrl_offs = OMAP54XX_RM_DSP_RSTCTRL_OFFSET,
- 			.context_offs = OMAP54XX_RM_DSP_DSP_CONTEXT_OFFSET,
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
-@@ -1400,21 +1393,14 @@ static struct omap_hwmod omap54xx_mmu_dsp_hwmod = {
+-	/* OCP barrier */
+-	(void)am33xx_prm_read_reg(AM33XX_PRM_DEVICE_MOD,
+-				  AM33XX_PRM_RSTCTRL_OFFSET);
+-}
+-
+ struct pwrdm_ops am33xx_pwrdm_operations = {
+ 	.pwrdm_set_next_pwrst		= am33xx_pwrdm_set_next_pwrst,
+ 	.pwrdm_read_next_pwrst		= am33xx_pwrdm_read_next_pwrst,
+@@ -375,7 +358,6 @@ static struct prm_ll_data am33xx_prm_ll_data = {
+ 	.assert_hardreset		= am33xx_prm_assert_hardreset,
+ 	.deassert_hardreset		= am33xx_prm_deassert_hardreset,
+ 	.is_hardreset_asserted		= am33xx_prm_is_hardreset_asserted,
+-	.reset_system			= am33xx_prm_global_warm_sw_reset,
  };
  
- /* mmu ipu */
--static struct omap_hwmod_rst_info omap54xx_mmu_ipu_resets[] = {
--	{ .name = "mmu_cache", .rst_shift = 2 },
--};
+ int __init am33xx_prm_init(const struct omap_prcm_init_data *data)
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 3076800..76d7e30 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -702,7 +702,6 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
+ 	.assert_hardreset	= omap4_prminst_assert_hardreset,
+ 	.deassert_hardreset	= omap4_prminst_deassert_hardreset,
+ 	.is_hardreset_asserted	= omap4_prminst_is_hardreset_asserted,
+-	.reset_system		= omap4_prminst_global_warm_sw_reset,
+ 	.vp_check_txdone	= omap4_prm_vp_check_txdone,
+ 	.vp_clear_txdone	= omap4_prm_vp_clear_txdone,
+ };
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index d0b15db..ffed63f 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -174,23 +174,3 @@ int omap4_prminst_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 inst,
+ 
+ 	return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
+ }
 -
- static struct omap_hwmod omap54xx_mmu_ipu_hwmod = {
- 	.name		= "mmu_ipu",
- 	.class		= &omap54xx_mmu_hwmod_class,
- 	.clkdm_name	= "ipu_clkdm",
--	.rst_lines	= omap54xx_mmu_ipu_resets,
--	.rst_lines_cnt	= ARRAY_SIZE(omap54xx_mmu_ipu_resets),
- 	.main_clk	= "dpll_core_h22x2_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP54XX_CM_IPU_IPU_CLKCTRL_OFFSET,
--			.rstctrl_offs = OMAP54XX_RM_IPU_RSTCTRL_OFFSET,
- 			.context_offs = OMAP54XX_RM_IPU_IPU_CONTEXT_OFFSET,
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
+-
+-void omap4_prminst_global_warm_sw_reset(void)
+-{
+-	u32 v;
+-	s32 inst = omap4_prmst_get_prm_dev_inst();
+-
+-	if (inst == PRM_INSTANCE_UNKNOWN)
+-		return;
+-
+-	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION, inst,
+-					OMAP4_PRM_RSTCTRL_OFFSET);
+-	v |= OMAP4430_RST_GLOBAL_WARM_SW_MASK;
+-	omap4_prminst_write_inst_reg(v, OMAP4430_PRM_PARTITION,
+-				 inst, OMAP4_PRM_RSTCTRL_OFFSET);
+-
+-	/* OCP barrier */
+-	v = omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
+-				    inst, OMAP4_PRM_RSTCTRL_OFFSET);
+-}
 -- 
 1.7.9.5
