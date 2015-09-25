@@ -1,119 +1,106 @@
-From: Marc Titinger <mtitinger@baylibre.com>
-Subject: Re: [PATCH 2/2] arm: omap2+: PM: change trace_power_domain_target
- event format.
-Date: Fri, 25 Sep 2015 16:57:49 +0200
-Message-ID: <560560ED.5000803@baylibre.com>
-References: <1443187345-14834-1-git-send-email-mtitinger+renesas@baylibre.com>
- <1443187345-14834-3-git-send-email-mtitinger+renesas@baylibre.com>
- <20150925101025.6b3862bf@gandalf.local.home>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150925101025.6b3862bf@gandalf.local.home>
-Sender: linux-pm-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: khilman@kernel.org, rjw@rjwysocki.net, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+From: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ARM: dts: Add am335x-bonegreen
+Date: Fri, 25 Sep 2015 10:10:31 -0500
+Message-ID: <1443193831-5693-1-git-send-email-robertcnelson@gmail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+SeeedStudio BeagleBone Green (BBG) is clone of the BeagleBone Black (BBB) minus
+the HDMI port and addition of two Grove connectors (i2c2 and usart2).
 
+This board can be identified by the 1A value after A335BNLT (BBB) in the at24 eeprom:
+1A: [aa 55 33 ee 41 33 33 35  42 4e 4c 54 1a 00 00 00 |.U3.A335BNLT....|]
 
-On 25/09/2015 16:10, Steven Rostedt wrote:
-> On Fri, 25 Sep 2015 15:22:25 +0200
-> Marc Titinger <mtitinger@baylibre.com> wrote:
->
->> From: Marc Titinger <mtitinger@baylibre.com>
->>
->> power_domain_target arg3 is now a string (event name) with generic power
->> domains. In the case of Omap, it is a hint to the prev/next switch op.
->> Incidentally this trace is now conditioned by CONFIG_PM_ADVANCED_DEBUG.
-> I'm curious to why the addition of this config option?
->
-I meant to be consistent with Juno/generic-power-domains, so that this 
-trace always (or never) requires this switch.
-I think I will remove this condition for both actually.
+http://beagleboard.org/green
+http://www.seeedstudio.com/wiki/Beaglebone_green
 
->> Compiled for Omap2+ but not tested.
->>
->> Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
->> ---
->>   arch/arm/mach-omap2/powerdomain.c | 32 ++++++++++++++++++++------------
->>   1 file changed, 20 insertions(+), 12 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
->> index 78af6d8..cd77696 100644
->> --- a/arch/arm/mach-omap2/powerdomain.c
->> +++ b/arch/arm/mach-omap2/powerdomain.c
->> @@ -160,7 +160,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
->>   static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->>   {
->>   
->> -	int prev, next, state, trace_state = 0;
->> +	int prev, state;
->>   
->>   	if (pwrdm == NULL)
->>   		return -EINVAL;
->> @@ -177,18 +177,25 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->>   			pwrdm->state_counter[prev]++;
->>   		if (prev == PWRDM_POWER_RET)
->>   			_update_logic_membank_counters(pwrdm);
->> -		/*
->> -		 * If the power domain did not hit the desired state,
->> -		 * generate a trace event with both the desired and hit states
->> -		 */
->> -		next = pwrdm_read_next_pwrst(pwrdm);
->> -		if (next != prev) {
->> -			trace_state = (PWRDM_TRACE_STATES_FLAG |
->> +
->> +#ifdef CONFIG_PM_ADVANCED_DEBUG
-> You do realize that you can add this to the block:
->
->
-> 	if (trace_power_domain_target_enabled()) {
-Nope I didn't, but now I do ;) thanks.
+Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+CC: Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ arch/arm/boot/dts/Makefile             |  1 +
+ arch/arm/boot/dts/am335x-bonegreen.dts | 53 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-bonegreen.dts
 
-Marc.
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 233159d..e45d771 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -446,6 +446,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-base0033.dtb \
+ 	am335x-bone.dtb \
+ 	am335x-boneblack.dtb \
++	am335x-bonegreen.dtb \
+ 	am335x-sl50.dtb \
+ 	am335x-evm.dtb \
+ 	am335x-evmsk.dtb \
+diff --git a/arch/arm/boot/dts/am335x-bonegreen.dts b/arch/arm/boot/dts/am335x-bonegreen.dts
+new file mode 100644
+index 0000000..0f65bda
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-bonegreen.dts
+@@ -0,0 +1,53 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am33xx.dtsi"
++#include "am335x-bone-common.dtsi"
++
++/ {
++	model = "TI AM335x BeagleBone Green";
++	compatible = "ti,am335x-bone-green", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++};
++
++&ldo3_reg {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++};
++
++&mmc2 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	bus-width = <8>;
++	status = "okay";
++};
++
++&am33xx_pinmux {
++	uart2_pins: uart2_pins {
++		pinctrl-single,pins = <
++			0x150 (PIN_INPUT | MUX_MODE1)	/* spi0_sclk.uart2_rxd */
++			0x154 (PIN_OUTPUT | MUX_MODE1)	/* spi0_d0.uart2_txd */
++		>;
++	};
++};
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart2_pins>;
++	status = "okay";
++};
++
++&rtc {
++	system-power-controller;
++};
+-- 
+2.5.3
 
->
-> as it seems this code is only run to pass data to the tracepoint. The
-> above if statement will keep this block in the 'out-of-line' path when
-> tracing is not enabled via a static_key (jump-label).
->
-> -- Steve
->
->> +		{
->> +			/*
->> +			 * If the power domain did not hit the desired state,
->> +			 * generate a trace event with both the desired and hit
->> +			 * states */
->> +			int next = pwrdm_read_next_pwrst(pwrdm);
->> +
->> +			if (next != prev) {
->> +				int trace_state = (PWRDM_TRACE_STATES_FLAG |
->>   				       ((next & OMAP_POWERSTATE_MASK) << 8) |
->>   				       ((prev & OMAP_POWERSTATE_MASK) << 0));
->> -			trace_power_domain_target(pwrdm->name, trace_state,
->> -						  smp_processor_id());
->> +				trace_power_domain_target(pwrdm->name,
->> +					trace_state, "PWRDM_STATE_PREV");
->> +			}
->>   		}
->> +#endif
->> +
->>   		break;
->>   	default:
->>   		return -EINVAL;
->> @@ -522,9 +529,10 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->>   		 pwrdm->name, pwrst);
->>   
->>   	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
->> +#ifdef CONFIG_PM_ADVANCED_DEBUG
->>   		/* Trace the pwrdm desired target state */
->> -		trace_power_domain_target(pwrdm->name, pwrst,
->> -					  smp_processor_id());
->> +		trace_power_domain_target(pwrdm->name, pwrst, "set_next_pwrst");
->> +#endif
->>   		/* Program the pwrdm desired target state */
->>   		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
->>   	}
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
