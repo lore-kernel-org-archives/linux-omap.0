@@ -1,97 +1,118 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] dmaengine: omap-dma: Enable packed accesses for cyclic
- transfers
-Date: Fri, 25 Sep 2015 10:00:42 +0300
-Message-ID: <5604F11A.5040505@ti.com>
-References: <1442233865-10412-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 01/11 RESEND] ARM: OMAP: DRA7: hwmod: Add data for McASP3
+Date: Fri, 25 Sep 2015 10:02:41 +0300
+Message-ID: <5604F191.3010206@ti.com>
+References: <1442326206-30192-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442233865-10412-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1442326206-30192-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, misael.lopez@ti.com
+To: tony@atomide.com, paul@pwsan.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Vinod,
+Paul,
 
-On 09/14/2015 03:31 PM, Peter Ujfalusi wrote:
-> From: Misael Lopez Cruz <misael.lopez@ti.com>
->=20
-> The L3 throughput can be higher than expected when packed access
-> is not enabled.  The ratio depends on the number of bytes in a
-> transaction and the EMIF interface width.
+On 09/15/2015 05:10 PM, Peter Ujfalusi wrote:
+> McASP3 is used by default on DRA7x based boards for audio.
 
-Can you take a look at this patch?
+Can you take a look at this patch? It would be great to have this one r=
+eviewed
+so the audio support for the dra7 family could be applied by Tony.
 
 Thanks,
 P=E9ter
 
-> The throughput was measured for the following settings/cases:
->=20
-> * Case 1: Burst size of 64 bytes, packed access disabled
-> * Case 2: Burst size of 64 bytes, packed access enabled
-> * Case 3: Burst disabled, packed access disabled
->=20
-> Throughput measurements were done during McASP-based audio
-> playback on the Jacinto6 EVM using the omapconf tool [1]:
-> $ omapconf trace bw -m sdma_rd
->=20
->  ---------------------------------------------------------
->                                   Throughput (MB/s)
->   Audio parameters            Case 1    Case 2    Case 3
->  ---------------------------------------------------------
->   44.1kHz, 16-bits, stereo      1.41      0.18      1.41
->   44.1kHz, 32-bits, stereo      1.41      0.35      1.41
->   44.1kHz, 16-bits, 4-chan      2.82      0.35      2.82
->   44.1kHz, 16-bits, 6-chan      4.23      0.53      4.23
->   44.1kHz, 16-bits, 8-chan      5.64      0.71      5.64
->  ---------------------------------------------------------
->=20
-> From above measurements, case 2 is the only one that delivers
-> the expected throughput for the given audio parameters.  For
-> that reason, the packed accesses are now enabled.
->=20
-> It's worth to mention that packed accesses cannot be enabled
-> for all addressing modes. In cyclic transfers, it can be
-> enabled in the source for MEM_TO_DEV and in dest for DEV_TO_MEM,
-> as they use post-increment mode which supports packed accesses.
->=20
-> Peter Ujfalusi:
-> From the TRM regarding to this:
-> "NOTE: Except in the constant addressing mode, the source or
-> destination must be specified as packed for burst transactions
-> to occur."
->=20
-> So w/o the packed setting the burst on the MEM side was not
-> enabled, this explains the numbers.
->=20
-> [1] https://github.com/omapconf/omapconf
->=20
-> Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
 > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
->  drivers/dma/omap-dma.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+> Hi Paul,
 >=20
-> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> index 249445c8a4c6..1dfc71c90123 100644
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -935,8 +935,12 @@ static struct dma_async_tx_descriptor *omap_dma_=
-prep_dma_cyclic(
->  		else
->  			d->ccr |=3D CCR_SYNC_ELEMENT;
+> this patch is part of my earlier series and as Tony suggested I'll re=
+send the
+> hwmod patch for you to review since I missed you from the TO in the s=
+eries.
+>=20
+> The original series:
+> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg119319.htm=
+l
+>=20
+> Regards,
+> Peter
+>=20
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 41 +++++++++++++++++++++=
+++++++++++
+>  1 file changed, 41 insertions(+)
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mac=
+h-omap2/omap_hwmod_7xx_data.c
+> index 562247bced49..c38b7fa30c27 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -1298,6 +1298,38 @@ static struct omap_hwmod dra7xx_mcspi4_hwmod =3D=
+ {
+>  };
 > =20
-> -		if (dir =3D=3D DMA_DEV_TO_MEM)
-> +		if (dir =3D=3D DMA_DEV_TO_MEM) {
->  			d->ccr |=3D CCR_TRIGGER_SRC;
-> +			d->csdp |=3D CSDP_DST_PACKED;
-> +		} else {
-> +			d->csdp |=3D CSDP_SRC_PACKED;
-> +		}
+>  /*
+> + * 'mcasp' class
+> + *
+> + */
+> +static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc =3D {
+> +	.sysc_offs	=3D 0x0004,
+> +	.sysc_flags	=3D SYSC_HAS_SIDLEMODE,
+> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields	=3D &omap_hwmod_sysc_type3,
+> +};
+> +
+> +static struct omap_hwmod_class dra7xx_mcasp_hwmod_class =3D {
+> +	.name	=3D "mcasp",
+> +	.sysc	=3D &dra7xx_mcasp_sysc,
+> +};
+> +
+> +/* mcasp3 */
+> +static struct omap_hwmod dra7xx_mcasp3_hwmod =3D {
+> +	.name		=3D "mcasp3",
+> +	.class		=3D &dra7xx_mcasp_hwmod_class,
+> +	.clkdm_name	=3D "l4per2_clkdm",
+> +	.main_clk	=3D "mcasp3_ahclkx_mux",
+> +	.flags		=3D HWMOD_SWSUP_SIDLE,
+> +	.prcm =3D {
+> +		.omap4 =3D {
+> +			.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP3_CLKCTRL_OFFSET,
+> +			.context_offs =3D DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET,
+> +			.modulemode   =3D MODULEMODE_SWCTRL,
+> +		},
+> +	},
+> +};
+> +
+> +/*
+>   * 'mmc' class
+>   *
+>   */
+> @@ -2566,6 +2598,14 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main=
+_1__hdmi =3D {
+>  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>  };
 > =20
->  		d->cicr |=3D CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
-> =20
+> +/* l4_per2 -> mcasp3 */
+> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 =3D {
+> +	.master		=3D &dra7xx_l4_per2_hwmod,
+> +	.slave		=3D &dra7xx_mcasp3_hwmod,
+> +	.clk		=3D "l3_iclk_div",
+> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+>  static struct omap_hwmod_addr_space dra7xx_elm_addrs[] =3D {
+>  	{
+>  		.pa_start	=3D 0x48078000,
+> @@ -3338,6 +3378,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_o=
+cp_ifs[] __initdata =3D {
+>  	&dra7xx_l4_wkup__dcan1,
+>  	&dra7xx_l4_per2__dcan2,
+>  	&dra7xx_l4_per2__cpgmac0,
+> +	&dra7xx_l4_per2__mcasp3,
+>  	&dra7xx_gmac__mdio,
+>  	&dra7xx_l4_cfg__dma_system,
+>  	&dra7xx_l3_main_1__dss,
 >=20
