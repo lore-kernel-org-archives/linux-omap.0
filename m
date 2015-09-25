@@ -1,66 +1,118 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
-Date: Fri, 25 Sep 2015 08:42:40 +0300
-Message-ID: <5604DED0.5050403@ti.com>
-References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
- <20150923173040.GI23801@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] clk: ti: clk-7xx: Remove hardwired ABE clock
+ configuration
+Date: Fri, 25 Sep 2015 09:59:36 +0300
+Message-ID: <5604F0D8.60402@ti.com>
+References: <1440401702-32420-1-git-send-email-peter.ujfalusi@ti.com>
+ <55F68AC1.1040807@ti.com> <55F90F59.60102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20150923173040.GI23801@atomide.com>
-Sender: stable-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55F90F59.60102@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/23/2015 08:30 PM, Tony Lindgren wrote:
-> * Ben Dooks <ben.dooks@codethink.co.uk> [150923 07:53]:
->> On the OMAP AM3517 platform the uart4_ick gets registered
->> twice, causing any power managment to /dev/ttyO3 to fail
->> when trying to wake the device up.
->>
->> This solves the following oops:
->>
->> [] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
->> [] PC is at serial_omap_pm+0x48/0x15c
->> [] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
->
-> No uart4 on 34xx/35xx, that got introduced with 36xx so:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
->
->> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
->> ---
->>   drivers/clk/ti/clk-3xxx.c | 1 -
->>   1 file changed, 1 deletion(-)
->>
->> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
->> index 5e12f32..2e7ef1f 100644
->> --- a/drivers/clk/ti/clk-3xxx.c
->> +++ b/drivers/clk/ti/clk-3xxx.c
->> @@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
->>   	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
->>   	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
->>   	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
->> -	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
->>   	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
->>   	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
->>   	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+Tero,
 
-NAK.
-
-This patch is actually only partially correct, it removes the uart4_ick 
-alias for omap36xx also. It should be added back to the omap36xx clks 
-array. Care to post a v2?
-
--Tero
-
->> --
->> 2.5.1
+On 09/16/2015 09:42 AM, Tero Kristo wrote:
+> On 09/14/2015 11:52 AM, Peter Ujfalusi wrote:
+>> Hi Tero,
 >>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> On 08/24/2015 10:35 AM, Peter Ujfalusi wrote:
+>>> The ABE related clocks should be configured via DT and not have it =
+wired
+>>> inside of the kernel.
 >>
+>> can you take a look at this patch? It will not cause any regression =
+since we
+>> do not have audio support mainline and the pending series does not n=
+eed this
+>> part anymore.
+>=20
+> This patch looks okay to me. So, you are saying this doesn't depend o=
+n
+> anything? Isn't this causing any boot-time issues with the ABE DPLL l=
+eft
+> dangling with boot setup, potentially blocking PM? I am just wonderin=
+g if we
+> should group this patch with the rest of the audio support patches fo=
+r dra7.
+
+Without this patch the ABE DPLL will have frequency which is not going =
+to be
+correct to be used with the ATL. The ATL is disabled by default and onl=
+y
+enabled when we use the audio. Which is not the case w/o the other seri=
+es.
+
+--=20
+P=E9ter
+
+>=20
+> -Tero
+>=20
+>>
+>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>> ---
+>>> Hi Tero,
+>>>
+>>> the ABE PLL configuration can, and will be done for dra7xx in DT wi=
+th the
+>>> assigned-clocks/rate/parent feature so no need to have this anymore=
+=2E
+>>>
+>>> Regards,
+>>> Peter
+>>>
+>>>   drivers/clk/ti/clk-7xx.c | 18 +-----------------
+>>>   1 file changed, 1 insertion(+), 17 deletions(-)
+>>>
+>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+>>> index 9b5b289e6334..a911d7de3377 100644
+>>> --- a/drivers/clk/ti/clk-7xx.c
+>>> +++ b/drivers/clk/ti/clk-7xx.c
+>>> @@ -18,7 +18,6 @@
+>>>
+>>>   #include "clock.h"
+>>>
+>>> -#define DRA7_DPLL_ABE_DEFFREQ                180633600
+>>>   #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+>>>   #define DRA7_DPLL_USB_DEFFREQ                960000000
+>>>
+>>> @@ -313,27 +312,12 @@ static struct ti_dt_clk dra7xx_clks[] =3D {
+>>>   int __init dra7xx_dt_clk_init(void)
+>>>   {
+>>>       int rc;
+>>> -    struct clk *abe_dpll_mux, *sys_clkin2, *dpll_ck, *hdcp_ck;
+>>> +    struct clk *dpll_ck, *hdcp_ck;
+>>>
+>>>       ti_dt_clocks_register(dra7xx_clks);
+>>>
+>>>       omap2_clk_disable_autoidle_all();
+>>>
+>>> -    abe_dpll_mux =3D clk_get_sys(NULL, "abe_dpll_sys_clk_mux");
+>>> -    sys_clkin2 =3D clk_get_sys(NULL, "sys_clkin2");
+>>> -    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_ck");
+>>> -
+>>> -    rc =3D clk_set_parent(abe_dpll_mux, sys_clkin2);
+>>> -    if (!rc)
+>>> -        rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ);
+>>> -    if (rc)
+>>> -        pr_err("%s: failed to configure ABE DPLL!\n", __func__);
+>>> -
+>>> -    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+>>> -    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
+>>> -    if (rc)
+>>> -        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __func_=
+_);
+>>> -
+>>>       dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
+>>>       rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
+>>>       if (rc)
+>>>
+>>
+>>
+>=20
