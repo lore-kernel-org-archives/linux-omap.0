@@ -1,42 +1,60 @@
-From: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: Add am335x-bonegreen
-Date: Fri, 25 Sep 2015 11:23:50 -0500
-Message-ID: <CAOCHtYhf1yvQcB073VvT1JKmut7M7cdL9a7Ms42AxyuOOWj6-A@mail.gmail.com>
-References: <1443193831-5693-1-git-send-email-robertcnelson@gmail.com>
- <5605704D.5000404@ti.com> <CAOCHtYhuLREw_eKbME+Ssvx=JrHWtbFZPQRH5SrmfVTiSqdtWQ@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] gpio: omap: fix static checker warning
+Date: Fri, 25 Sep 2015 12:06:02 -0700
+Message-ID: <1443207962-16982-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOCHtYhuLREw_eKbME+Ssvx=JrHWtbFZPQRH5SrmfVTiSqdtWQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pantelis Antoniou <pantelis.antoniou-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, tony@atomide.com
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
->>
->> Would still work when https://patchwork.kernel.org/patch/6394821/ gets in?
->
-> That will still work, but we need to extend the board identification
-> to "board-name" + "board-revision", as the Green choose the "A335BNLT"
-> board name in the eeprom to remain compatible with older 3.8.x images
-> from last year.. (most of the clones i've talked too want to support
-> the old image too)...
->
-> So with the 1st byte of the board-revision:
-> All BeagleBone Black's have: 0x30
-> Seeed's using 0x1A (with the potential to increment the A)
+This patch fixes below static checker warning by changing
+type of irq field in struct gpio_bank from u16 to int.
 
-I should add, we have an official-ish list at the top of (1), to help
-keep track of this...
+drivers/gpio/gpio-omap.c:1191 omap_gpio_probe()
+	warn: assigning (-6) to unsigned variable 'bank->irq'
 
-1: https://github.com/beagleboard/image-builder/blob/master/readme.md
+drivers/gpio/gpio-omap.c
+  1188          bank->irq = platform_get_irq(pdev, 0);
+  1189          if (bank->irq <= 0) {
 
-Regards,
+bank->irq is u16.
 
+  1190                  if (!bank->irq)
+  1191                          bank->irq = -ENXIO;
+
+Does not work.
+
+  1192                  if (bank->irq != -EPROBE_DEFER)
+
+Does not work.
+
+  1193                          dev_err(dev,
+  1194                                  "can't get irq resource ret=%d\n", bank->irq);
+  1195                  return bank->irq;
+  1196          }
+
+Fixes: commit 89d18e3af8b9: "gpio: omap: switch to use platform_get_irq"
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/gpio/gpio-omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 376827f..56d2d02 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -51,7 +51,7 @@ struct gpio_regs {
+ struct gpio_bank {
+ 	struct list_head node;
+ 	void __iomem *base;
+-	u16 irq;
++	int irq;
+ 	u32 non_wakeup_gpios;
+ 	u32 enabled_non_wakeup_gpios;
+ 	struct gpio_regs context;
 -- 
-Robert Nelson
-https://rcn-ee.com/
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.5.1
+
