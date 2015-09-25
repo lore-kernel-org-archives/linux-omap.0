@@ -1,110 +1,89 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 2/2] arm: omap2+: PM: change trace_power_domain_target
- event format.
-Date: Fri, 25 Sep 2015 10:10:25 -0400
-Message-ID: <20150925101025.6b3862bf@gandalf.local.home>
-References: <1443187345-14834-1-git-send-email-mtitinger+renesas@baylibre.com>
-	<1443187345-14834-3-git-send-email-mtitinger+renesas@baylibre.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for most mmc regressions and few other fixes
+Date: Fri, 25 Sep 2015 07:40:35 -0700
+Message-ID: <20150925144034.GR23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1443187345-14834-3-git-send-email-mtitinger+renesas@baylibre.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Marc Titinger <mtitinger@baylibre.com>
-Cc: khilman@kernel.org, rjw@rjwysocki.net, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 25 Sep 2015 15:22:25 +0200
-Marc Titinger <mtitinger@baylibre.com> wrote:
+The following changes since commit 7168e947291f0ead07e5638b4599fb7845288b69:
 
-> From: Marc Titinger <mtitinger@baylibre.com>
-> 
-> power_domain_target arg3 is now a string (event name) with generic power
-> domains. In the case of Omap, it is a hint to the prev/next switch op.
-> Incidentally this trace is now conditioned by CONFIG_PM_ADVANCED_DEBUG.
+  Merge branch 'fixes-rc1' into omap-for-v4.3/fixes (2015-09-14 13:42:11 -0700)
 
-I'm curious to why the addition of this config option?
+are available in the git repository at:
 
-> 
-> Compiled for Omap2+ but not tested.
-> 
-> Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
-> ---
->  arch/arm/mach-omap2/powerdomain.c | 32 ++++++++++++++++++++------------
->  1 file changed, 20 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 78af6d8..cd77696 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -160,7 +160,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
->  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->  {
->  
-> -	int prev, next, state, trace_state = 0;
-> +	int prev, state;
->  
->  	if (pwrdm == NULL)
->  		return -EINVAL;
-> @@ -177,18 +177,25 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->  			pwrdm->state_counter[prev]++;
->  		if (prev == PWRDM_POWER_RET)
->  			_update_logic_membank_counters(pwrdm);
-> -		/*
-> -		 * If the power domain did not hit the desired state,
-> -		 * generate a trace event with both the desired and hit states
-> -		 */
-> -		next = pwrdm_read_next_pwrst(pwrdm);
-> -		if (next != prev) {
-> -			trace_state = (PWRDM_TRACE_STATES_FLAG |
-> +
-> +#ifdef CONFIG_PM_ADVANCED_DEBUG
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/fixes-rc2
 
-You do realize that you can add this to the block:
+for you to fetch changes up to 9a5e3f27d1b8ca349b79e8b5fe1874eeeedb6f45:
 
+  ARM: dts: fix omap2+ address translation for pbias (2015-09-24 16:28:32 -0700)
 
-	if (trace_power_domain_target_enabled()) {
+----------------------------------------------------------------
+Fixes for omaps for v4.3-rc cycle:
 
-as it seems this code is only run to pass data to the tracepoint. The
-above if statement will keep this block in the 'out-of-line' path when
-tracing is not enabled via a static_key (jump-label).
+- Two more patches to fix most of the MMC regressions with the
+  PBIAS regulator changes. At least two MMC driver related issues
+  still seems to remain for omap3 legacy booting and omap4 duovero.
+  Note that the dts changes depend on a recent regulator fix, and
+  are based on the regulator commit now in mainline kernel
 
--- Steve
+- Enable autoidle for am43xx clocks to prevent clocks from staying
+  always on
 
-> +		{
-> +			/*
-> +			 * If the power domain did not hit the desired state,
-> +			 * generate a trace event with both the desired and hit
-> +			 * states */
-> +			int next = pwrdm_read_next_pwrst(pwrdm);
-> +
-> +			if (next != prev) {
-> +				int trace_state = (PWRDM_TRACE_STATES_FLAG |
->  				       ((next & OMAP_POWERSTATE_MASK) << 8) |
->  				       ((prev & OMAP_POWERSTATE_MASK) << 0));
-> -			trace_power_domain_target(pwrdm->name, trace_state,
-> -						  smp_processor_id());
-> +				trace_power_domain_target(pwrdm->name,
-> +					trace_state, "PWRDM_STATE_PREV");
-> +			}
->  		}
-> +#endif
-> +
->  		break;
->  	default:
->  		return -EINVAL;
-> @@ -522,9 +529,10 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->  		 pwrdm->name, pwrst);
->  
->  	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
-> +#ifdef CONFIG_PM_ADVANCED_DEBUG
->  		/* Trace the pwrdm desired target state */
-> -		trace_power_domain_target(pwrdm->name, pwrst,
-> -					  smp_processor_id());
-> +		trace_power_domain_target(pwrdm->name, pwrst, "set_next_pwrst");
-> +#endif
->  		/* Program the pwrdm desired target state */
->  		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
->  	}
+- Fix i2c5 pinctrl offsets for omap5-uevm
 
+- Enable PCA953X as that's needed for HDMI to work on omap5
+
+- Update phy supplies for beagle x15 beta board
+
+- Use palmas-usb for on beagle x15 to start using the related
+  driver that recently got merged
+-
+
+----------------------------------------------------------------
+Dave Gerlach (1):
+      ARM: OMAP2+: AM43XX: Enable autoidle for clks in am43xx_init_late
+
+Grazvydas Ignotas (2):
+      ARM: dts: omap5-uevm.dts: fix i2c5 pinctrl offsets
+      ARM: omap2plus_defconfig: enable GPIO_PCA953X
+
+Kishon Vijay Abraham I (2):
+      regulator: pbias: program pbias register offset in pbias driver
+      ARM: dts: fix omap2+ address translation for pbias
+
+Nishanth Menon (1):
+      ARM: dts: am57xx-beagle-x15: Update Phy supplies
+
+Roger Quadros (1):
+      ARM: dts: am57xx-beagle-x15: use palmas-usb for USB2
+
+Tony Lindgren (1):
+      Merge commit 'b8c93646fd5c' into omap-for-v4.3/fixes
+
+ .../bindings/regulator/pbias-regulator.txt         |  7 ++-
+ arch/arm/boot/dts/am57xx-beagle-x15.dts            | 42 ++++++++++------
+ arch/arm/boot/dts/dra7.dtsi                        |  1 +
+ arch/arm/boot/dts/omap2430.dtsi                    |  1 +
+ arch/arm/boot/dts/omap3.dtsi                       | 25 +++++-----
+ arch/arm/boot/dts/omap4.dtsi                       |  1 +
+ arch/arm/boot/dts/omap5-uevm.dts                   |  4 +-
+ arch/arm/boot/dts/omap5.dtsi                       |  1 +
+ arch/arm/configs/omap2plus_defconfig               |  1 +
+ arch/arm/mach-omap2/io.c                           |  1 +
+ drivers/regulator/pbias-regulator.c                | 56 +++++++++++++++++++---
+ 11 files changed, 104 insertions(+), 36 deletions(-)
