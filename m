@@ -1,73 +1,68 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: omapdss: Division by zero in kernel
-Date: Fri, 25 Sep 2015 13:34:29 +0200
-Message-ID: <20150925113429.GF27119@pali>
-References: <201507241803.42891@pali>
- <CAHnt0GX6442mtZ=J6CS_60TyTeUu==oROcf4Y=upHGSr71X3EA@mail.gmail.com>
- <20150819081139.GB15712@pali>
- <20150917051644.GA6665@amd>
+From: Lokesh Vutla <a0131933@ti.com>
+Subject: Re: [PATCH 07/17] ARM: dts: am4372: add reset data
+Date: Fri, 25 Sep 2015 18:27:23 +0530
+Message-ID: <560544B3.3090805@ti.com>
+References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
+ <1443104818-993-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150917051644.GA6665@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Peter Teoh <htmldeveloper@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>, omap <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1443104818-993-8-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 17 September 2015 07:16:44 Pavel Machek wrote:
->=20
-> > >         if (image->depth =3D=3D 1) {
-> > >                 if (p->fix.visual =3D=3D FB_VISUAL_TRUECOLOR ||
-> > >                     p->fix.visual =3D=3D FB_VISUAL_DIRECTCOLOR) {
-> > >                         fgcolor =3D ((u32*)(p->pseudo_palette))[i=
-mage->fg_color];
-> > >                         bgcolor =3D ((u32*)(p->pseudo_palette))[i=
-mage->bg_color];
-> > >                 } else {
-> > >                         fgcolor =3D image->fg_color;
-> > >                         bgcolor =3D image->bg_color;
-> > >                 }
-> > >=20
-> > >                 if (32 % bpp =3D=3D 0 && !start_index && !pitch_i=
-ndex &&
-> > >                     ((width & (32/bpp-1)) =3D=3D 0) &&
-> > >                     bpp >=3D 8 && bpp <=3D 32)
-> > >                         fast_imageblit(image, p, dst1, fgcolor, b=
-gcolor);
-> > >                 else
-> > >                         slow_imageblit(image, p, dst1, fgcolor, b=
-gcolor,
-> > >                                         start_index, pitch_index)=
-;
-> > >         } else
-> > >                 color_imageblit(image, p, dst1, start_index, pitc=
-h_i
-> > >=20
-> > >=20
-> > > Notice that bpp is not checked for zero, and thus bpp=3D=3D0 is t=
-otally
-> > > feasible?   resulting in 32/bpp crashing the kernel?
-> > >=20
-> >=20
-> > Hm... this could really be a problem! But how to patch it? Which br=
-anch
-> > should be called (fast_ or slow_ function) if bpp is zero?
-> >=20
-> > And is there some way to force kernel to dump backtrace into dmesg =
-when
-> > division by zero occur?
->=20
-> You can do WARN_ON(bpp=3D=3D1) ... and should probably return in that
-> case.
->=20
-> 								Pavel
+Hi Tero,
 
-Does not make sense to call slow_ function? In that if condition check
-also that bpp is nonzero...
+On Thursday 24 September 2015 07:56 PM, Tero Kristo wrote:
+> Add reset data for pruss, gfx, wkup-m3 and system reset.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/boot/dts/am4372.dtsi |   24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 0447c04a..fcc8d31 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -116,12 +116,15 @@
+>  				reg-names = "umem", "dmem";
+>  				ti,hwmods = "wkup_m3";
+>  				ti,pm-firmware = "am335x-pm-firmware.elf";
+> +				reset-names = "wkup_m3";
+> +				resets = <&prcm 0x2000 0x10 3 0x14 5>;
+>  			};
+>  
+>  			prcm: prcm@1f0000 {
+>  				compatible = "ti,am4-prcm";
+>  				reg = <0x1f0000 0x11000>;
+>  				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
+> +				#reset-cells = <5>;
+>  
+>  				prcm_clocks: clocks {
+>  					#address-cells = <1>;
+> @@ -130,6 +133,12 @@
+>  
+>  				prcm_clockdomains: clockdomains {
+>  				};
+> +
+> +				system_reset: system_reset {
+> +					compatible = "ti,system-reset";
+> +					reset-names = "system";
+> +					reset-cells = <&prcm 0x4000 0 0 4 0>;
+This should be resets instead of reset-cells.
+With this change, reboot is functional on AM437x GP evm.
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Thanks and regards,
+Lokesh
