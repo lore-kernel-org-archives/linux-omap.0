@@ -1,145 +1,196 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH 1/2] gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
-Date: Fri, 25 Sep 2015 12:28:02 -0700
-Message-ID: <1443209283-20781-2-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH 2/2] gpio: omap: convert to use generic irq handler
+Date: Fri, 25 Sep 2015 12:28:03 -0700
+Message-ID: <1443209283-20781-3-git-send-email-grygorii.strashko@ti.com>
 References: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-rt-users-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-rt-users-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, Austin Schuh <austin@peloton-tech.com>, philipp@peloton-tech.com, linux-rt-users@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The PM runtime API can't be used in atomic contex on -RT even if
-it's configured as irqsafe. As result, below error report can
-be seen when PM runtime API called from IRQ chip's callbacks
-irq_startup/irq_shutdown/irq_set_type, because they are
-protected by RAW spinlock:
+This patch converts TI OMAP GPIO driver to use generic irq handler
+instead of chained IRQ handler. This way OMAP GPIO driver will be
+compatible with RT kernel where it will be forced thread IRQ handler
+while in non-RT kernel it still will be executed in HW IRQ context.
+As part of this change the IRQ wakeup configuration is applied to
+GPIO Bank IRQ as it now will be under control of IRQ PM Core during
+suspend.
 
-BUG: sleeping function called from invalid context at kernel/locking/rtmutex.c:917
-in_atomic(): 1, irqs_disabled(): 128, pid: 96, name: insmod
-3 locks held by insmod/96:
- #0:  (&dev->mutex){......}, at: [<c04752c8>] __driver_attach+0x54/0xa0
- #1:  (&dev->mutex){......}, at: [<c04752d4>] __driver_attach+0x60/0xa0
- #2:  (class){......}, at: [<c00a408c>] __irq_get_desc_lock+0x60/0xa4
-irq event stamp: 1834
-hardirqs last  enabled at (1833): [<c06ab2a4>] _raw_spin_unlock_irqrestore+0x88/0x90
-hardirqs last disabled at (1834): [<c06ab068>] _raw_spin_lock_irqsave+0x2c/0x64
-softirqs last  enabled at (0): [<c003d220>] copy_process.part.52+0x410/0x19d8
-softirqs last disabled at (0): [<  (null)>]   (null)
-Preemption disabled at:[<  (null)>]   (null)
+There are also additional benefits:
+ - on-RT kernel there will be no complains any more about PM runtime usage
+   in atomic context  "BUG: sleeping function called from invalid context";
+ - GPIO bank IRQs will appear in /proc/interrupts and its usage statistic
+    will be  visible;
+ - GPIO bank IRQs could be configured through IRQ proc_fs interface and,
+   as result, could be a part of IRQ balancing process if needed;
+ - GPIO bank IRQs will be under control of IRQ PM Core during
+   suspend to RAM.
 
-CPU: 1 PID: 96 Comm: insmod Tainted: G        W  O    4.1.3-rt3-00618-g57e2387-dirty #184
-Hardware name: Generic DRA74X (Flattened Device Tree)
-[<c00190f4>] (unwind_backtrace) from [<c0014734>] (show_stack+0x20/0x24)
-[<c0014734>] (show_stack) from [<c06a62ec>] (dump_stack+0x88/0xdc)
-[<c06a62ec>] (dump_stack) from [<c006ca44>] (___might_sleep+0x198/0x2a8)
-[<c006ca44>] (___might_sleep) from [<c06ab6d4>] (rt_spin_lock+0x30/0x70)
-[<c06ab6d4>] (rt_spin_lock) from [<c04815ac>] (__pm_runtime_resume+0x68/0xa4)
-[<c04815ac>] (__pm_runtime_resume) from [<c04123f4>] (omap_gpio_irq_type+0x188/0x1d8)
-[<c04123f4>] (omap_gpio_irq_type) from [<c00a64e4>] (__irq_set_trigger+0x68/0x130)
-[<c00a64e4>] (__irq_set_trigger) from [<c00a7bc4>] (irq_set_irq_type+0x44/0x6c)
-[<c00a7bc4>] (irq_set_irq_type) from [<c00abbf8>] (irq_create_of_mapping+0x120/0x174)
-[<c00abbf8>] (irq_create_of_mapping) from [<c0577b74>] (of_irq_get+0x48/0x58)
-[<c0577b74>] (of_irq_get) from [<c0540a14>] (i2c_device_probe+0x54/0x15c)
-[<c0540a14>] (i2c_device_probe) from [<c04750dc>] (driver_probe_device+0x184/0x2c8)
-[<c04750dc>] (driver_probe_device) from [<c0475310>] (__driver_attach+0x9c/0xa0)
-[<c0475310>] (__driver_attach) from [<c0473238>] (bus_for_each_dev+0x7c/0xb0)
-[<c0473238>] (bus_for_each_dev) from [<c0474af4>] (driver_attach+0x28/0x30)
-[<c0474af4>] (driver_attach) from [<c0474760>] (bus_add_driver+0x154/0x200)
-[<c0474760>] (bus_add_driver) from [<c0476348>] (driver_register+0x88/0x108)
-[<c0476348>] (driver_register) from [<c0541600>] (i2c_register_driver+0x3c/0x90)
-[<c0541600>] (i2c_register_driver) from [<bf003018>] (pcf857x_init+0x18/0x24 [gpio_pcf857x])
-[<bf003018>] (pcf857x_init [gpio_pcf857x]) from [<c000998c>] (do_one_initcall+0x128/0x1e8)
-[<c000998c>] (do_one_initcall) from [<c06a4220>] (do_init_module+0x6c/0x1bc)
-[<c06a4220>] (do_init_module) from [<c00dd0c8>] (load_module+0x18e8/0x21c4)
-[<c00dd0c8>] (load_module) from [<c00ddaa0>] (SyS_init_module+0xfc/0x158)
-[<c00ddaa0>] (SyS_init_module) from [<c000ff40>] (ret_fast_syscall+0x0/0x54)
+Disadvantage:
+ - additional runtime overhed as call chain till
+   omap_gpio_irq_handler() will be longer now
+ - necessity to use wa_lock in omap_gpio_irq_handler() to W/A warning
+   in handle_irq_event_percpu()
+   WARNING: CPU: 1 PID: 35 at kernel/irq/handle.c:149 handle_irq_event_percpu+0x51c/0x638()
 
-The IRQ chip interface defines only two callbacks which are executed in
-non-atomic contex - irq_bus_lock/irq_bus_sync_unlock, so lets move
-PM runtime calls there.
+This patch doesn't fully follows recommendations provided by Sebastian
+Andrzej Siewior [1], because It's required to go through and check all
+GPIO IRQ pin states as fast as possible and pass control to handle_level_irq
+or handle_edge_irq. handle_level_irq or handle_edge_irq will perform actions
+specific for IRQ triggering type and wakeup corresponding registered
+threaded IRQ handler (at least it's expected to be threaded).
+IRQs can be lost if handle_nested_irq() will be used, because excecution
+time of some pin specific GPIO IRQ handler can be very significant and
+require accessing ext. devices (I2C).
+
+Idea of such kind reworking was also discussed in [2].
+
+[1] http://www.spinics.net/lists/linux-omap/msg120665.html
+[2] http://www.spinics.net/lists/linux-omap/msg119516.html
 
 Tested-by: Tony Lindgren <tony@atomide.com>
 Tested-by: Austin Schuh <austin@peloton-tech.com>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/gpio/gpio-omap.c | 25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ drivers/gpio/gpio-omap.c | 55 ++++++++++++++++++++++++------------------------
+ 1 file changed, 27 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 5236db1..a254691 100644
+index a254691..376827f 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -496,9 +496,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
- 		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
- 		return -EINVAL;
- 
--	if (!BANK_USED(bank))
--		pm_runtime_get_sync(bank->dev);
--
- 	raw_spin_lock_irqsave(&bank->lock, flags);
- 	retval = omap_set_gpio_triggering(bank, offset, type);
- 	if (retval) {
-@@ -521,8 +518,6 @@ static int omap_gpio_irq_type(struct irq_data *d, unsigned type)
- 	return 0;
- 
- error:
--	if (!BANK_USED(bank))
--		pm_runtime_put(bank->dev);
- 	return retval;
- }
- 
-@@ -797,9 +792,6 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
- 	unsigned long flags;
+@@ -59,6 +59,7 @@ struct gpio_bank {
+ 	u32 level_mask;
+ 	u32 toggle_mask;
+ 	raw_spinlock_t lock;
++	raw_spinlock_t wa_lock;
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
+ 	u32 mod_usage;
+@@ -649,8 +650,13 @@ static int omap_gpio_wake_enable(struct irq_data *d, unsigned int enable)
+ {
+ 	struct gpio_bank *bank = omap_irq_data_get_bank(d);
  	unsigned offset = d->hwirq;
++	int ret;
++
++	ret = omap_set_gpio_wakeup(bank, offset, enable);
++	if (!ret)
++		ret = irq_set_irq_wake(bank->irq, enable);
  
--	if (!BANK_USED(bank))
--		pm_runtime_get_sync(bank->dev);
--
- 	raw_spin_lock_irqsave(&bank->lock, flags);
- 
- 	if (!LINE_USED(bank->mod_usage, offset))
-@@ -815,8 +807,6 @@ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
- 	return 0;
- err:
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
--	if (!BANK_USED(bank))
--		pm_runtime_put(bank->dev);
- 	return -EINVAL;
+-	return omap_set_gpio_wakeup(bank, offset, enable);
++	return ret;
  }
  
-@@ -835,6 +825,19 @@ static void omap_gpio_irq_shutdown(struct irq_data *d)
- 		omap_clear_gpio_debounce(bank, offset);
- 	omap_disable_gpio_module(bank, offset);
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
-+}
-+
-+static void omap_gpio_irq_bus_lock(struct irq_data *data)
-+{
-+	struct gpio_bank *bank = omap_irq_data_get_bank(data);
-+
-+	if (!BANK_USED(bank))
-+		pm_runtime_get_sync(bank->dev);
-+}
-+
-+static void gpio_irq_bus_sync_unlock(struct irq_data *data)
-+{
-+	struct gpio_bank *bank = omap_irq_data_get_bank(data);
+ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+@@ -704,26 +710,21 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+  * line's interrupt handler has been run, we may miss some nested
+  * interrupts.
+  */
+-static void omap_gpio_irq_handler(struct irq_desc *desc)
++static irqreturn_t omap_gpio_irq_handler(int irq, void *gpiobank)
+ {
+ 	void __iomem *isr_reg = NULL;
+ 	u32 isr;
+ 	unsigned int bit;
+-	struct gpio_bank *bank;
+-	int unmasked = 0;
+-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+-	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
++	struct gpio_bank *bank = gpiobank;
++	unsigned long wa_lock_flags;
+ 	unsigned long lock_flags;
  
- 	/*
- 	 * If this is the last IRQ to be freed in the bank,
-@@ -1183,6 +1186,8 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	irqc->irq_unmask = omap_gpio_unmask_irq,
- 	irqc->irq_set_type = omap_gpio_irq_type,
- 	irqc->irq_set_wake = omap_gpio_wake_enable,
-+	irqc->irq_bus_lock = omap_gpio_irq_bus_lock,
-+	irqc->irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
- 	irqc->name = dev_name(&pdev->dev);
+-	chained_irq_enter(irqchip, desc);
+-
+-	bank = container_of(chip, struct gpio_bank, chip);
+ 	isr_reg = bank->base + bank->regs->irqstatus;
+-	pm_runtime_get_sync(bank->dev);
+-
+ 	if (WARN_ON(!isr_reg))
+ 		goto exit;
  
- 	bank->irq = platform_get_irq(pdev, 0);
++	pm_runtime_get_sync(bank->dev);
++
+ 	while (1) {
+ 		u32 isr_saved, level_mask = 0;
+ 		u32 enabled;
+@@ -745,13 +746,6 @@ static void omap_gpio_irq_handler(struct irq_desc *desc)
+ 
+ 		raw_spin_unlock_irqrestore(&bank->lock, lock_flags);
+ 
+-		/* if there is only edge sensitive GPIO pin interrupts
+-		configured, we could unmask GPIO bank interrupt immediately */
+-		if (!level_mask && !unmasked) {
+-			unmasked = 1;
+-			chained_irq_exit(irqchip, desc);
+-		}
+-
+ 		if (!isr)
+ 			break;
+ 
+@@ -772,18 +766,18 @@ static void omap_gpio_irq_handler(struct irq_desc *desc)
+ 
+ 			raw_spin_unlock_irqrestore(&bank->lock, lock_flags);
+ 
++			raw_spin_lock_irqsave(&bank->wa_lock, wa_lock_flags);
++
+ 			generic_handle_irq(irq_find_mapping(bank->chip.irqdomain,
+ 							    bit));
++
++			raw_spin_unlock_irqrestore(&bank->wa_lock,
++						   wa_lock_flags);
+ 		}
+ 	}
+-	/* if bank has any level sensitive GPIO pin interrupt
+-	configured, we must unmask the bank interrupt only after
+-	handler(s) are executed in order to avoid spurious bank
+-	interrupt */
+ exit:
+-	if (!unmasked)
+-		chained_irq_exit(irqchip, desc);
+ 	pm_runtime_put(bank->dev);
++	return IRQ_HANDLED;
+ }
+ 
+ static unsigned int omap_gpio_irq_startup(struct irq_data *d)
+@@ -1135,7 +1129,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 	}
+ 
+ 	ret = gpiochip_irqchip_add(&bank->chip, irqc,
+-				   irq_base, omap_gpio_irq_handler,
++				   irq_base, handle_bad_irq,
+ 				   IRQ_TYPE_NONE);
+ 
+ 	if (ret) {
+@@ -1144,10 +1138,14 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 		return -ENODEV;
+ 	}
+ 
+-	gpiochip_set_chained_irqchip(&bank->chip, irqc,
+-				     bank->irq, omap_gpio_irq_handler);
++	gpiochip_set_chained_irqchip(&bank->chip, irqc, bank->irq, NULL);
+ 
+-	return 0;
++	ret = devm_request_irq(bank->dev, bank->irq, omap_gpio_irq_handler,
++			       0, dev_name(bank->dev), bank);
++	if (ret)
++		gpiochip_remove(&bank->chip);
++
++	return ret;
+ }
+ 
+ static const struct of_device_id omap_gpio_match[];
+@@ -1229,6 +1227,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 		bank->set_dataout = omap_set_gpio_dataout_mask;
+ 
+ 	raw_spin_lock_init(&bank->lock);
++	raw_spin_lock_init(&bank->wa_lock);
+ 
+ 	/* Static mapping, never released */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 -- 
 2.5.1
-
