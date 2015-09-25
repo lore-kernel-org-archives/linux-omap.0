@@ -1,45 +1,73 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: clk-7xx: Remove hardwired ABE clock
- configuration
-Date: Fri, 25 Sep 2015 10:03:40 +0300
-Message-ID: <5604F1CC.5080809@ti.com>
-References: <1440401702-32420-1-git-send-email-peter.ujfalusi@ti.com>
- <55F68AC1.1040807@ti.com> <55F90F59.60102@ti.com> <5604F0D8.60402@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: omapdss: Division by zero in kernel
+Date: Fri, 25 Sep 2015 13:34:29 +0200
+Message-ID: <20150925113429.GF27119@pali>
+References: <201507241803.42891@pali>
+ <CAHnt0GX6442mtZ=J6CS_60TyTeUu==oROcf4Y=upHGSr71X3EA@mail.gmail.com>
+ <20150819081139.GB15712@pali>
+ <20150917051644.GA6665@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <5604F0D8.60402@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150917051644.GA6665@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Peter Teoh <htmldeveloper@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jyri Sarha <jsarha@ti.com>, omap <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/25/2015 09:59 AM, Peter Ujfalusi wrote:
-> Tero,
->
-> On 09/16/2015 09:42 AM, Tero Kristo wrote:
->> On 09/14/2015 11:52 AM, Peter Ujfalusi wrote:
->>> Hi Tero,
->>>
->>> On 08/24/2015 10:35 AM, Peter Ujfalusi wrote:
->>>> The ABE related clocks should be configured via DT and not have it wired
->>>> inside of the kernel.
->>>
->>> can you take a look at this patch? It will not cause any regression since we
->>> do not have audio support mainline and the pending series does not need this
->>> part anymore.
->>
->> This patch looks okay to me. So, you are saying this doesn't depend on
->> anything? Isn't this causing any boot-time issues with the ABE DPLL left
->> dangling with boot setup, potentially blocking PM? I am just wondering if we
->> should group this patch with the rest of the audio support patches for dra7.
->
-> Without this patch the ABE DPLL will have frequency which is not going to be
-> correct to be used with the ATL. The ATL is disabled by default and only
-> enabled when we use the audio. Which is not the case w/o the other series.
->
+On Thursday 17 September 2015 07:16:44 Pavel Machek wrote:
+>=20
+> > >         if (image->depth =3D=3D 1) {
+> > >                 if (p->fix.visual =3D=3D FB_VISUAL_TRUECOLOR ||
+> > >                     p->fix.visual =3D=3D FB_VISUAL_DIRECTCOLOR) {
+> > >                         fgcolor =3D ((u32*)(p->pseudo_palette))[i=
+mage->fg_color];
+> > >                         bgcolor =3D ((u32*)(p->pseudo_palette))[i=
+mage->bg_color];
+> > >                 } else {
+> > >                         fgcolor =3D image->fg_color;
+> > >                         bgcolor =3D image->bg_color;
+> > >                 }
+> > >=20
+> > >                 if (32 % bpp =3D=3D 0 && !start_index && !pitch_i=
+ndex &&
+> > >                     ((width & (32/bpp-1)) =3D=3D 0) &&
+> > >                     bpp >=3D 8 && bpp <=3D 32)
+> > >                         fast_imageblit(image, p, dst1, fgcolor, b=
+gcolor);
+> > >                 else
+> > >                         slow_imageblit(image, p, dst1, fgcolor, b=
+gcolor,
+> > >                                         start_index, pitch_index)=
+;
+> > >         } else
+> > >                 color_imageblit(image, p, dst1, start_index, pitc=
+h_i
+> > >=20
+> > >=20
+> > > Notice that bpp is not checked for zero, and thus bpp=3D=3D0 is t=
+otally
+> > > feasible?   resulting in 32/bpp crashing the kernel?
+> > >=20
+> >=20
+> > Hm... this could really be a problem! But how to patch it? Which br=
+anch
+> > should be called (fast_ or slow_ function) if bpp is zero?
+> >=20
+> > And is there some way to force kernel to dump backtrace into dmesg =
+when
+> > division by zero occur?
+>=20
+> You can do WARN_ON(bpp=3D=3D1) ... and should probably return in that
+> case.
+>=20
+> 								Pavel
 
-Ok, queuing for 4.3-rc fixes.
+Does not make sense to call slow_ function? In that if condition check
+also that bpp is nonzero...
 
--Tero
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
