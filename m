@@ -1,60 +1,41 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] gpio: omap: fix static checker warning
-Date: Fri, 25 Sep 2015 12:06:02 -0700
-Message-ID: <1443207962-16982-1-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH 0/2] convert to use generic irq handler
+Date: Fri, 25 Sep 2015 12:28:01 -0700
+Message-ID: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-gpio-owner@vger.kernel.org>
 Sender: linux-gpio-owner@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, tony@atomide.com
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-omap@vger.kernel.org, Austin Schuh <austin@peloton-tech.com>, philipp@peloton-tech.com, linux-rt-users@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch fixes below static checker warning by changing
-type of irq field in struct gpio_bank from u16 to int.
+This patch series contains patches which fixes wrong APIs usage in atomic
+context on RT-kernel. The final goal is to make TI OMAP GPIO driver
+compatible with -RT kernel as much as possible.
 
-drivers/gpio/gpio-omap.c:1191 omap_gpio_probe()
-	warn: assigning (-6) to unsigned variable 'bank->irq'
+Patch 1: required to be compatible with -RT kernel, because PM runtime's
+irq_safe mode is incompatible with -RT.
+Patch 2: This patch converts TI OMAP GPIO driver to use generic irq
+ handler instead of chained IRQ handler. This way OMAP GPIO driver will be
+ compatible with RT-kernel where it will be forced thread IRQ handler
+ while in non-RT kernel it still will be executed in HW IRQ context.
 
-drivers/gpio/gpio-omap.c
-  1188          bank->irq = platform_get_irq(pdev, 0);
-  1189          if (bank->irq <= 0) {
+Boot, basic gpio functionality tested on:
+ dra7-evm, BeagleBone(white), am43xx-gpevm, am437x-sk
+Manually tested on dra7-evm including suspend/resume and wakeup.
 
-bank->irq is u16.
+Links on RFC:
+ https://lkml.org/lkml/2015/8/18/161
+ https://lkml.org/lkml/2015/8/18/162
 
-  1190                  if (!bank->irq)
-  1191                          bank->irq = -ENXIO;
+Grygorii Strashko (2):
+  gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
+  gpio: omap: convert to use generic irq handler
 
-Does not work.
+ drivers/gpio/gpio-omap.c | 80 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 42 insertions(+), 38 deletions(-)
 
-  1192                  if (bank->irq != -EPROBE_DEFER)
-
-Does not work.
-
-  1193                          dev_err(dev,
-  1194                                  "can't get irq resource ret=%d\n", bank->irq);
-  1195                  return bank->irq;
-  1196          }
-
-Fixes: commit 89d18e3af8b9: "gpio: omap: switch to use platform_get_irq"
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/gpio/gpio-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 376827f..56d2d02 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -51,7 +51,7 @@ struct gpio_regs {
- struct gpio_bank {
- 	struct list_head node;
- 	void __iomem *base;
--	u16 irq;
-+	int irq;
- 	u32 non_wakeup_gpios;
- 	u32 enabled_non_wakeup_gpios;
- 	struct gpio_regs context;
 -- 
 2.5.1
 
