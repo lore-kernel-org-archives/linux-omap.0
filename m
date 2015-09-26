@@ -1,40 +1,64 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 0/2] convert to use generic irq handler
-Date: Fri, 25 Sep 2015 13:36:21 -0700
-Message-ID: <5605B045.9080205@oracle.com>
-References: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: All OMAP platforms: MMC is broken
+Date: Fri, 25 Sep 2015 21:54:36 -0500
+Message-ID: <560608EC.4020208@ti.com>
+References: <20150924090048.GA21626@n2100.arm.linux.org.uk> <20150924233756.GN23801@atomide.com> <20150925011334.GP23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Austin Schuh <austin@peloton-tech.com>, philipp@peloton-tech.com, linux-rt-users@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20150925011334.GP23801@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 9/25/15 12:28 PM, Grygorii Strashko wrote:
-> This patch series contains patches which fixes wrong APIs usage in atomic
-> context on RT-kernel. The final goal is to make TI OMAP GPIO driver
-> compatible with -RT kernel as much as possible.
->
-> Patch 1: required to be compatible with -RT kernel, because PM runtime's
-> irq_safe mode is incompatible with -RT.
-> Patch 2: This patch converts TI OMAP GPIO driver to use generic irq
->   handler instead of chained IRQ handler. This way OMAP GPIO driver will be
->   compatible with RT-kernel where it will be forced thread IRQ handler
->   while in non-RT kernel it still will be executed in HW IRQ context.
->
-> Boot, basic gpio functionality tested on:
->   dra7-evm, BeagleBone(white), am43xx-gpevm, am437x-sk
-> Manually tested on dra7-evm including suspend/resume and wakeup.
->
-> Links on RFC:
->   https://lkml.org/lkml/2015/8/18/161
->   https://lkml.org/lkml/2015/8/18/162
->
-> Grygorii Strashko (2):
->    gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
->    gpio: omap: convert to use generic irq handler
->
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+On 09/24/2015 08:13 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150924 16:42]:
+>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [150924 02:04]:
+>>> Nightly testing has revealed that both the OMAP3430 LDP and the OMAP4430
+>>> SDP fail to boot due to lack of working MMC.  Both platforms fail to
+>>> find their rootfs, which is on a SD card.
+>>>
+>>> The breakage occurred somewhere between trees of September 9th (commit
+>>> 4e4adb2f4628) and September 12th (commit b0a1ea51bda4), so during the
+>>> merge window.
+>>
+>> Yes sorry things got messed up in multiple ways :( I've summarized
+>> the mess here earlier:
+>>
+>> http://article.gmane.org/gmane.linux.kernel.mmc/33911
+>>
+>> And today commit b9c93646fd5c ("regulator: pbias: program pbias register
+>> offset in pbias driver") hit mainline so I'll send a pull request for
+>> the related dts change.
+> 
+> Kishon, while testing I noticed there are still at least two
+> issues remaining that seem to need fixing in the MMC driver:
+> 
+> 1. The legacy booting without device tree does not probe MMC at
+>    all on omap3
+> 
+> 2. I'm getting the regulator warning on omap4 duovero
+> 
+> Anyways, I'm sending a pull request for the fixes so far as that
+> gets MMC working again for most platforms.
+> 
+> Regards,
+> 
+With 0925, i think the patches got merged. here is my testing status on
+the boards I have access to:
+
+https://github.com/nmenon/kernel-test-logs/tree/next-20150925
+
+Looks like with omap2plus_defconfig, at least
+https://github.com/nmenon/kernel-test-logs/blob/next-20150925/omap2plus_defconfig/am335x-evm.txt
+somethign is broken there - dunno what yet.
+
+There are a few more farm related failures in various locations, but not
+too interesting.
+
+
+-- 
+Regards,
+Nishanth Menon
