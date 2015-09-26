@@ -1,64 +1,84 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Fri, 25 Sep 2015 21:54:36 -0500
-Message-ID: <560608EC.4020208@ti.com>
-References: <20150924090048.GA21626@n2100.arm.linux.org.uk> <20150924233756.GN23801@atomide.com> <20150925011334.GP23801@atomide.com>
+From: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: dts: twl4030: Add iio properties for bci subnode
+Date: Sat, 26 Sep 2015 21:58:15 +0200
+Message-ID: <CAAfyv36nZ3c-yw7QQHwBWk3GwY31rV3Uq2n0dz5hppn5JFhEcA@mail.gmail.com>
+References: <1443212447-5841-1-git-send-email-marek@goldelico.com>
+	<1443212447-5841-3-git-send-email-marek@goldelico.com>
+	<20150926172936.GD22315@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20150925011334.GP23801@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150926172936.GD22315@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Neil Brown <neilb-l3A5Bk7waGM@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux PM mailing list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/24/2015 08:13 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150924 16:42]:
->> * Russell King - ARM Linux <linux@arm.linux.org.uk> [150924 02:04]:
->>> Nightly testing has revealed that both the OMAP3430 LDP and the OMAP4430
->>> SDP fail to boot due to lack of working MMC.  Both platforms fail to
->>> find their rootfs, which is on a SD card.
->>>
->>> The breakage occurred somewhere between trees of September 9th (commit
->>> 4e4adb2f4628) and September 12th (commit b0a1ea51bda4), so during the
->>> merge window.
+Tony sorry I forgot to add you to the recipients for this patchset.
+Can you please queue this patch. Many thanks.
+
+@Sebastian: thanks for noticing
+
+On Sat, Sep 26, 2015 at 7:29 PM, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wro=
+te:
+> Hi Marek,
+>
+> On Fri, Sep 25, 2015 at 10:20:47PM +0200, Marek Belisko wrote:
+>> Added new iio properties which are required for twl4030-charger driv=
+er and
+>> allow to use twl4030-madc indirectly.
 >>
->> Yes sorry things got messed up in multiple ways :( I've summarized
->> the mess here earlier:
+>> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+>> ---
+>>  arch/arm/boot/dts/twl4030.dtsi | 2 ++
+>>  1 file changed, 2 insertions(+)
 >>
->> http://article.gmane.org/gmane.linux.kernel.mmc/33911
->>
->> And today commit b9c93646fd5c ("regulator: pbias: program pbias register
->> offset in pbias driver") hit mainline so I'll send a pull request for
->> the related dts change.
-> 
-> Kishon, while testing I noticed there are still at least two
-> issues remaining that seem to need fixing in the MMC driver:
-> 
-> 1. The legacy booting without device tree does not probe MMC at
->    all on omap3
-> 
-> 2. I'm getting the regulator warning on omap4 duovero
-> 
-> Anyways, I'm sending a pull request for the fixes so far as that
-> gets MMC working again for most platforms.
-> 
-> Regards,
-> 
-With 0925, i think the patches got merged. here is my testing status on
-the boards I have access to:
+>> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4=
+030.dtsi
+>> index 36ae916..482b7aa 100644
+>> --- a/arch/arm/boot/dts/twl4030.dtsi
+>> +++ b/arch/arm/boot/dts/twl4030.dtsi
+>> @@ -22,6 +22,8 @@
+>>       charger: bci {
+>>               compatible =3D "ti,twl4030-bci";
+>>               interrupts =3D <9>, <2>;
+>> +             io-channels =3D <&twl4030_madc 11>;
+>> +             io-channel-name =3D "vac";
+>>               bci3v1-supply =3D <&vusb3v1>;
+>>       };
+>
+> Acked-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>
+> This patch is missing correct To/Cc:
+>
+> $ grep -A5 "OMAP DEVICE TREE SUPPORT" MAINTAINERS
+> OMAP DEVICE TREE SUPPORT
+> M:      Beno=C3=AEt Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> M:      Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> L:      linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> L:      devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> S:      Maintained
+>
+> -- Sebastian
 
-https://github.com/nmenon/kernel-test-logs/tree/next-20150925
+BR,
 
-Looks like with omap2plus_defconfig, at least
-https://github.com/nmenon/kernel-test-logs/blob/next-20150925/omap2plus_defconfig/am335x-evm.txt
-somethign is broken there - dunno what yet.
+marek
 
-There are a few more farm related failures in various locations, but not
-too interesting.
+--=20
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+=46reelance Developer
 
-
--- 
-Regards,
-Nishanth Menon
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
