@@ -1,84 +1,162 @@
-From: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: dts: twl4030: Add iio properties for bci subnode
-Date: Sat, 26 Sep 2015 21:58:15 +0200
-Message-ID: <CAAfyv36nZ3c-yw7QQHwBWk3GwY31rV3Uq2n0dz5hppn5JFhEcA@mail.gmail.com>
-References: <1443212447-5841-1-git-send-email-marek@goldelico.com>
-	<1443212447-5841-3-git-send-email-marek@goldelico.com>
-	<20150926172936.GD22315@earth>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.3-rc2
+Date: Sun, 27 Sep 2015 02:18:06 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1509270217330.7947@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150926172936.GD22315@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Neil Brown <neilb-l3A5Bk7waGM@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux PM mailing list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony sorry I forgot to add you to the recipients for this patchset.
-Can you please queue this patch. Many thanks.
 
-@Sebastian: thanks for noticing
+Here are some basic OMAP test results for Linux v4.3-rc2.
+Logs and other details at:
 
-On Sat, Sep 26, 2015 at 7:29 PM, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wro=
-te:
-> Hi Marek,
->
-> On Fri, Sep 25, 2015 at 10:20:47PM +0200, Marek Belisko wrote:
->> Added new iio properties which are required for twl4030-charger driv=
-er and
->> allow to use twl4030-madc indirectly.
->>
->> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
->> ---
->>  arch/arm/boot/dts/twl4030.dtsi | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4=
-030.dtsi
->> index 36ae916..482b7aa 100644
->> --- a/arch/arm/boot/dts/twl4030.dtsi
->> +++ b/arch/arm/boot/dts/twl4030.dtsi
->> @@ -22,6 +22,8 @@
->>       charger: bci {
->>               compatible =3D "ti,twl4030-bci";
->>               interrupts =3D <9>, <2>;
->> +             io-channels =3D <&twl4030_madc 11>;
->> +             io-channel-name =3D "vac";
->>               bci3v1-supply =3D <&vusb3v1>;
->>       };
->
-> Acked-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->
-> This patch is missing correct To/Cc:
->
-> $ grep -A5 "OMAP DEVICE TREE SUPPORT" MAINTAINERS
-> OMAP DEVICE TREE SUPPORT
-> M:      Beno=C3=AEt Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> M:      Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> L:      linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> L:      devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> S:      Maintained
->
-> -- Sebastian
+    http://www.pwsan.com/omap/testlogs/test_v4.3-rc2/20150920195237/
 
-BR,
 
-marek
+Test summary
+------------
 
---=20
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-=46reelance Developer
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
+
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Build warnings from toolchain: uImage:
+    (none)
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL (10/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only
+
+Boot to userspace:
+    FAIL ( 5/17): 4430es2panda, 4460pandaes, 4460varsomom, 2430sdp,
+		  5430es2uevm
+    skip ( 3/17): 5912osk, 3517evm, 5430es2sbct54
+    Pass ( 9/17): am335xbonelt, am335xbone, 37xxevm, 3530es3beagle,
+		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
+		  cmt3517, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 4/17): 4430es2panda, 4460pandaes, 4460varsomom, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 7/11): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 2430sdp, 5430es2uevm
+    Pass ( 4/11): 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 7/11): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 2430sdp, 5430es2uevm
+    Pass ( 4/11): 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 3/17): 4430es2panda, 4460pandaes, 4460varsomom
+
+Obsolete Kconfig symbols:
+    FAIL ( 2/20): omap2plus_defconfig, multi_v7_defconfig
+
+
+vmlinux object size
+(delta in bytes from test_v4.3-rc1 (6ff33f3902c3b1c5d0db6b1e2c70b6d76fba357f)):
+   text     data      bss    total  kernel
+  +3398        0        0    +3398  omap1_defconfig
+  +3422        0        0    +3422  omap1_defconfig_1510innovator_only
+  +3406        0        0    +3406  omap1_defconfig_5912osk_only
+  +3110      -72        0    +3038  multi_v7_defconfig
+  -3238        0        0    -3238  omap2plus_defconfig
+   -542        0        0     -542  omap2plus_defconfig_2430sdp_only
+  -3334        0        0    -3334  omap2plus_defconfig_am33xx_only
+  -3246        0        0    -3246  omap2plus_defconfig_am43xx_only
+  -7334        0        0    -7334  omap2plus_defconfig_cpupm
+  -7342        0        0    -7342  omap2plus_defconfig_dra7xx_only
+   +874        0        0     +874  omap2plus_defconfig_n800_multi_omap2xxx
+  +1046        0        0    +1046  omap2plus_defconfig_n800_only_a
+  -7234        0        0    -7234  omap2plus_defconfig_no_pm
+  -3242        0        0    -3242  omap2plus_defconfig_omap2_4_only
+  -7278        0        0    -7278  omap2plus_defconfig_omap3_4_only
+  -3246        0        0    -3246  omap2plus_defconfig_omap5_only
+  +2860        0     +300    +3160  rmk_omap3430_ldp_allnoconfig
+  +5370      -32        0    +5338  rmk_omap3430_ldp_oldconfig
+  +3004        0     +252    +3256  rmk_omap4430_sdp_allnoconfig
+  +5798        0        0    +5798  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v4.3-rc1 (6ff33f3902c3b1c5d0db6b1e2c70b6d76fba357f))
+  avail  rsrvd   high  freed  board          kconfig
+      .      .      .    -4k  2420n800       omap2plus_defconfig_n800_only_a
+     4k    -4k      .      .  2430sdp        omap2plus_defconfig
+      .      .      .     4k  3530es31beagle omap2plus_defconfig
+      .      .      .     4k  3530es3beagle  omap2plus_defconfig
+      .      .      .     4k  3730beaglexm   omap2plus_defconfig
+      .      .      .     4k  3730es12beaglexmomap2plus_defconfig
+      .      .      .     4k  37xxevm        omap2plus_defconfig
+     8k    -8k      .    -4k  am335xbone     omap2plus_defconfig_am33xx_only
+      .      .      .     4k  am335xbonelt   omap2plus_defconfig
