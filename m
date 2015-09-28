@@ -1,105 +1,81 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 1/2] pci: host: pci-dra7xx: use "num-lanes" property to find phy count
-Date: Mon, 28 Sep 2015 18:27:37 +0530
-Message-ID: <1443445058-643-2-git-send-email-kishon@ti.com>
-References: <1443445058-643-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443445058-643-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
+From: Marc Titinger <mtitinger@baylibre.com>
+Subject: [PATCH v3 2/2] arm: omap2+: PM: change trace_power_domain_target event format.
+Date: Mon, 28 Sep 2015 15:20:45 +0200
+Message-ID: <1443446445-11418-2-git-send-email-mtitinger+renesas@baylibre.com>
+References: <1443446445-11418-1-git-send-email-mtitinger+renesas@baylibre.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1443446445-11418-1-git-send-email-mtitinger+renesas@baylibre.com>
+In-Reply-To: <1443429864-4177-2-git-send-email-mtitinger+renesas@baylibre.com>
+References: <1443429864-4177-2-git-send-email-mtitinger+renesas@baylibre.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Marc Titinger <mtitinger+renesas@baylibre.com>, Marc Titinger <mtitinger@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-use "num-lanes" property to find phy count instead of the number
-phy-names property.
+power_domain_target arg3 is now a string (event name) with generic power
+domains. In the case of Omap, it is a hint to the prev/next switch op.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Compiled for Omap2+ but not tested.
+
+Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c | 27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 199e29a..e15b2e2 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -66,7 +66,7 @@
- struct dra7xx_pcie {
- 	void __iomem		*base;
- 	struct phy		**phy;
--	int			phy_count;
-+	int			lanes;
- 	struct device		*dev;
- 	struct pcie_port	pp;
- };
-@@ -328,7 +328,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	int ret;
- 	int irq;
- 	int i;
--	int phy_count;
-+	u32 lanes;
- 	struct phy **phy;
- 	void __iomem *base;
- 	struct resource *res;
-@@ -362,17 +362,16 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (!base)
- 		return -ENOMEM;
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 78af6d8..02167c2 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -160,7 +160,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ {
  
--	phy_count = of_property_count_strings(np, "phy-names");
--	if (phy_count < 0) {
--		dev_err(dev, "unable to find the strings\n");
--		return phy_count;
-+	if (of_property_read_u32(np, "num-lanes", &lanes)) {
-+		dev_err(dev, "Failed to parse the number of lanes\n");
-+		return -EINVAL;
+-	int prev, next, state, trace_state = 0;
++	int prev, state;
+ 
+ 	if (pwrdm == NULL)
+ 		return -EINVAL;
+@@ -177,17 +177,21 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 			pwrdm->state_counter[prev]++;
+ 		if (prev == PWRDM_POWER_RET)
+ 			_update_logic_membank_counters(pwrdm);
+-		/*
+-		 * If the power domain did not hit the desired state,
+-		 * generate a trace event with both the desired and hit states
+-		 */
+-		next = pwrdm_read_next_pwrst(pwrdm);
+-		if (next != prev) {
+-			trace_state = (PWRDM_TRACE_STATES_FLAG |
++
++		if (trace_power_domain_target_enabled()) {
++			/*
++			 * If the power domain did not hit the desired state,
++			 * generate a trace event with both the desired and hit
++			 * states */
++			int next = pwrdm_read_next_pwrst(pwrdm);
++
++			if (next != prev) {
++				int trace_state = (PWRDM_TRACE_STATES_FLAG |
+ 				       ((next & OMAP_POWERSTATE_MASK) << 8) |
+ 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+-			trace_power_domain_target(pwrdm->name, trace_state,
+-						  smp_processor_id());
++				trace_power_domain_target(pwrdm->name,
++					trace_state, "PWRDM_STATE_PREV");
++			}
+ 		}
+ 		break;
+ 	default:
+@@ -523,8 +527,7 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+ 		/* Trace the pwrdm desired target state */
+-		trace_power_domain_target(pwrdm->name, pwrst,
+-					  smp_processor_id());
++		trace_power_domain_target(pwrdm->name, pwrst, "set_next_pwrst");
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
  	}
- 
--	phy = devm_kzalloc(dev, sizeof(*phy) * phy_count, GFP_KERNEL);
-+	phy = devm_kzalloc(dev, sizeof(*phy) * lanes, GFP_KERNEL);
- 	if (!phy)
- 		return -ENOMEM;
- 
--	for (i = 0; i < phy_count; i++) {
-+	for (i = 0; i < lanes; i++) {
- 		snprintf(name, sizeof(name), "pcie-phy%d", i);
- 		phy[i] = devm_phy_get(dev, name);
- 		if (IS_ERR(phy[i]))
-@@ -392,7 +391,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	dra7xx->base = base;
- 	dra7xx->phy = phy;
- 	dra7xx->dev = dev;
--	dra7xx->phy_count = phy_count;
-+	dra7xx->lanes = lanes;
- 
- 	pm_runtime_enable(dev);
- 	ret = pm_runtime_get_sync(dev);
-@@ -449,7 +448,7 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
- 	struct dra7xx_pcie *dra7xx = platform_get_drvdata(pdev);
- 	struct pcie_port *pp = &dra7xx->pp;
- 	struct device *dev = &pdev->dev;
--	int count = dra7xx->phy_count;
-+	int count = dra7xx->lanes;
- 
- 	if (pp->irq_domain)
- 		irq_domain_remove(pp->irq_domain);
-@@ -495,7 +494,7 @@ static int dra7xx_pcie_resume(struct device *dev)
- static int dra7xx_pcie_suspend_noirq(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
--	int count = dra7xx->phy_count;
-+	int count = dra7xx->lanes;
- 
- 	while (count--) {
- 		phy_power_off(dra7xx->phy[count]);
-@@ -508,7 +507,7 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
- static int dra7xx_pcie_resume_noirq(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
--	int phy_count = dra7xx->phy_count;
-+	int phy_count = dra7xx->lanes;
- 	int ret;
- 	int i;
- 
 -- 
-1.7.9.5
+1.9.1
+
