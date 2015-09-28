@@ -1,96 +1,182 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC v4 3/8] ASoC: hdmi-codec: Add hdmi-codec for external
- HDMI-encoders
-Date: Mon, 28 Sep 2015 15:26:59 +0300
-Message-ID: <56093213.8010008@ti.com>
-References: <mailman.310.1442574427.844.alsa-devel@alsa-project.org>
- <56057A9E.9080602@st.com> <560901EE.60407@st.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 2/2] pci: host: pci-dra7xx: Enable x2 mode support
+Date: Mon, 28 Sep 2015 18:27:38 +0530
+Message-ID: <1443445058-643-3-git-send-email-kishon@ti.com>
+References: <1443445058-643-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <560901EE.60407@st.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Arnaud Pouliquen <arnaud.pouliquen@st.com>, dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, moinejf@free.fr, tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443445058-643-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDkvMjgvMTUgMTI6MDEsIEFybmF1ZCBQb3VsaXF1ZW4gd3JvdGU6Cj4gZmV3IHF1ZXN0aW9u
-cy9yZW1hcmtzCj4gQlIsCj4gQXJuYXVkCj4KPj4gK3N0YXRpYyB2b2lkIGhkbWlfY29kZWNfYWJv
-cnQoc3RydWN0IGRldmljZSAqZGV2KQo+PiArewo+PiArICAgIHN0cnVjdCBoZG1pX2NvZGVjX3By
-aXYgKmhjcCA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+PiArCj4+ICsgICAgZGV2X2RiZyhkZXYs
-ICIlcygpXG4iLCBfX2Z1bmNfXyk7Cj4+ICsKPj4gKyAgICBtdXRleF9sb2NrKCZoY3AtPmN1cnJl
-bnRfc3RyZWFtX2xvY2spOwo+PiArICAgIGlmIChoY3AtPmN1cnJlbnRfc3RyZWFtICYmIGhjcC0+
-Y3VycmVudF9zdHJlYW0tPnJ1bnRpbWUgJiYKPj4gKyAgICAgICAgc25kX3BjbV9ydW5uaW5nKGhj
-cC0+Y3VycmVudF9zdHJlYW0pKSB7Cj4+ICsgICAgICAgIGRldl9pbmZvKGRldiwgIkhETUkgYXVk
-aW8gcGxheWJhY2sgYWJvcnRlZFxuIik7Cj4+ICsgICAgICAgIHNuZF9wY21fc3RyZWFtX2xvY2tf
-aXJxKGhjcC0+Y3VycmVudF9zdHJlYW0pOwo+PiArICAgICAgICBzbmRfcGNtX3N0b3AoaGNwLT5j
-dXJyZW50X3N0cmVhbSwgU05EUlZfUENNX1NUQVRFX0RJU0NPTk5FQ1RFRCk7Cj4+ICsgICAgICAg
-IHNuZF9wY21fc3RyZWFtX3VubG9ja19pcnEoaGNwLT5jdXJyZW50X3N0cmVhbSk7Cj4+ICsgICAg
-fQo+PiArICAgIG11dGV4X3VubG9jaygmaGNwLT5jdXJyZW50X3N0cmVhbV9sb2NrKTsKPj4gK30K
-PiBEb2VzIGRyaXZlciBzaG91bGQgc3RvcCB0aGUgc3RyZWFtIGluIGNhc2Ugb2YgdW5wbHVnPwo+
-IFRoaXMgY291bGQgZ2VuZXJhdGUgdW5leHBlY3RlZCBiZWhhdmlvciBhdCBhcHBsaWNhdGlvbiBs
-ZXZlbC4KPiBQZXJoYXBzIHNob3VsZCBiZSBiZXR0ZXIgaWYgdGhpcyBwYXJ0IGlzIG1hbmFnZWQg
-aW4gRFJNIGRyaXZlci4gaWYgSERNSQo+IG1hc3RlciwgSTJTIGJ1cyBzaG91bGQgYmUgbWFpbnRh
-aW5lZCBPTiB0byBjb25zdW1lIHRoZSBhdWRpbyBzdHJlYW0KPiB1bnRpbCBhcHBsaWNhdGlvbiBh
-Y3Rpb24uCj4KClRoZSB3aG9sZSBwb2ludCBvZiB0aGlzIGFib3J0IGNhbGxiYWNrIGlzIHRvIHBy
-b3ZpZGUgdGhlIG1lYW5zIGZvciB0aGUgCnZpZGVvIHNpZGUgdG8gc3RvcCB0aGUgYXVkaW8gcGxh
-eWJhY2sgaW4gYSBjbGVhbiB3YXkuCgpUaGUgYWJvcnQgY2FsbGJhY2sgaXMgZ2l2ZW4gdG8gdGhl
-IHZpZGVvIHNpZGUgaW4gc3RhcnR1cCgpIGNhbGxiYWNrIAooQVNvQyBzaWRlIGNhbGxzIHZpZGVv
-IHNpZGUpLiBJZiB0aGUgdmlkZW8gc2lkZSBzZWVzIHRoYXQgdGhlIHBsYXliYWNrIApjYW4gbm90
-IGdvIG9uIGl0IGNhbiBjYWxsIHRoZSBhYm9ydCBjYWxsYmFjayBhbmQgdGhlIGF1ZGlvIHBsYXli
-YWNrIHdpbGwgCmFib3J0IGluIHN0YW5kYXJkIEFMU0Egd2F5IGFuZCBhIHByb3Blcmx5IHdyaXR0
-ZW4gYXBwbGljYXRpb25zIHNob3VsZCAKbm90IGdldCBjb25mdXNlZC4KCk5vdGhpbmcgaXMgZm9y
-Y2luZyB0aGUgdmlkZW8gc2lkZSB0byBjYWxsIHRoZSBjYWxsYmFjayBldmVyLCBpZiBzbyAKZGVj
-aWRlZC4gQnV0IGlmIGZvciBpbnN0YW5jZSBwb3dlciBtYW5hZ2VtZW50IHN0b3BzIHRoZSBpMnMg
-Y2xvY2tzIHdoZW4gCmNvbm5lY3RvciBpcyB1bnBsdWdnZWQsIHRoZW4gdGhlIGF1ZGlvIGNhbiBu
-b3QgZ28gb24gYW55IG1vcmUgYW5kIGl0IApzaG91bGQgYmUgYWJvcnRlZCAoYWN0dWFsbHkgaXQg
-d291bGQgYWJvcnQgaW4gYSBtb21lbnQgd2hlbiBBTFNBIApyZWFsaXplcyB0aGF0IHRoZSBETUEg
-aXMgbm90IHJ1bm5pbmcpLgoKPj4gKwo+PiArc3RhdGljIGludCBoZG1pX2NvZGVjX2h3X3BhcmFt
-cyhzdHJ1Y3Qgc25kX3BjbV9zdWJzdHJlYW0gKnN1YnN0cmVhbSwKPj4gKyAgICAgICAgICAgICAg
-ICBzdHJ1Y3Qgc25kX3BjbV9od19wYXJhbXMgKnBhcmFtcywKPj4gKyAgICAgICAgICAgICAgICBz
-dHJ1Y3Qgc25kX3NvY19kYWkgKmRhaSkKPj4gK3sKPj4gKyAgICBzdHJ1Y3QgaGRtaV9jb2RlY19w
-cml2ICpoY3AgPSBzbmRfc29jX2RhaV9nZXRfZHJ2ZGF0YShkYWkpOwo+PiArICAgIHN0cnVjdCBo
-ZG1pX2NvZGVjX3BhcmFtcyBocCA9IHsKPj4gKyAgICAgICAgLmllYyA9IHsKPj4gKyAgICAgICAg
-ICAgIC5zdGF0dXMgPSB7IDAgfSwKPj4gKyAgICAgICAgICAgIC5zdWJjb2RlID0geyAwIH0sCj4+
-ICsgICAgICAgICAgICAucGFkID0gMCwKPj4gKyAgICAgICAgICAgIC5kaWdfc3ViZnJhbWUgPSB7
-IDAgfSwKPj4gKyAgICAgICAgfQo+PiArICAgIH07Cj4+ICsgICAgaW50IHJldDsKPj4gKwo+PiAr
-ICAgIGRldl9kYmcoZGFpLT5kZXYsICIlcygpIHdpZHRoICVkIHJhdGUgJWQgY2hhbm5lbHMgJWRc
-biIsIF9fZnVuY19fLAo+PiArICAgICAgICBwYXJhbXNfd2lkdGgocGFyYW1zKSwgcGFyYW1zX3Jh
-dGUocGFyYW1zKSwKPj4gKyAgICAgICAgcGFyYW1zX2NoYW5uZWxzKHBhcmFtcykpOwo+PiArCj4+
-ICsgICAgcmV0ID0gc25kX3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyX2h3X3BhcmFtcyhwYXJh
-bXMsCj4+IGhwLmllYy5zdGF0dXMsCj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-c2l6ZW9mKGhwLmllYy5zdGF0dXMpKTsKPiBUZWxsIG1lIGlmIGkgYW0gd3JvbmcsIGJ1dCBpbiBj
-YXNlIG9mIFNQRElGIGZvcm1hdCwgSUVDIHN0YXR1cyBpcwo+IG1hbmFnZWQgYnkgY3B1X2RhaSBu
-b3QgYnkgdGhlIGNvZGVjLgo+IFRvIG1hbmFnZSBJRUM2MTkzNyBhIGNvbnRyb2wgc2hvdWxkIGJl
-IG5lZWRlZCB0byB1cGRhdGUgSUVDIHN0YXR1cyBiaXRzLi4uCj4KCkFGQUlLIHllcy4gSG93ZXZl
-ciwgdGhlIHZpZGVvIHNpZGUgaW1wbGVtZW50YXRpb24gaXMgZnJlZSB0byBpZ25vcmUgCnN0YXR1
-cyBiaXRzIGluIHRoZSBzdHJ1Y3QgaGRtaV9jb2RlY19wYXJhbXMgYW5kIGl0IHNob3VsZCBub3Jt
-YWxseSBkbyBzbyAKaWYgdGhlIGZvcm1hdCBpcyBTUERJRi4gT2YgY291cnNlIEkgY291bGQgc2F2
-ZSBjb3VwbGUgQ1BVIGN5Y2xlcyBpbiB0aGUgCmNvZGVjIGNvZGUgaWYgd291bGQgbm90IGV2ZW4g
-cHJvZHVjZSB0aGUgYml0cyB3aGVuIHRoZSBmb3JtYXQgaXMgU1BESUYuCgpCZXN0IHJlZ2FyZHMs
-Ckp5cmkKCj4+ICsgICAgaWYgKHJldCA8IDApIHsKPj4gKyAgICAgICAgZGV2X2VycihkYWktPmRl
-diwgIkNyZWF0aW5nIElFQzk1OCBjaGFubmVsIHN0YXR1cyBmYWlsZWQgJWRcbiIsCj4+ICsgICAg
-ICAgICAgICByZXQpOwo+PiArICAgICAgICByZXR1cm4gcmV0Owo+PiArICAgIH0KPj4gKwo+PiAr
-ICAgIHJldCA9IGhkbWlfY29kZWNfbmV3X3N0cmVhbShzdWJzdHJlYW0sIGRhaSk7Cj4+ICsgICAg
-aWYgKHJldCkKPj4gKyAgICAgICAgcmV0dXJuIHJldDsKPj4gKwo+PiArICAgIGhkbWlfYXVkaW9f
-aW5mb2ZyYW1lX2luaXQoJmhwLmNlYSk7Cj4+ICsgICAgaHAuY2VhLmNoYW5uZWxzID0gcGFyYW1z
-X2NoYW5uZWxzKHBhcmFtcyk7Cj4+ICsgICAgaHAuY2VhLmNvZGluZ190eXBlID0gSERNSV9BVURJ
-T19DT0RJTkdfVFlQRV9TVFJFQU07Cj4+ICsgICAgaHAuY2VhLnNhbXBsZV9zaXplID0gSERNSV9B
-VURJT19TQU1QTEVfU0laRV9TVFJFQU07Cj4+ICsgICAgaHAuY2VhLnNhbXBsZV9mcmVxdWVuY3kg
-PSBIRE1JX0FVRElPX1NBTVBMRV9GUkVRVUVOQ1lfU1RSRUFNOwo+PiArCj4+ICsgICAgaHAuc2Ft
-cGxlX3dpZHRoID0gcGFyYW1zX3dpZHRoKHBhcmFtcyk7Cj4+ICsgICAgaHAuc2FtcGxlX3JhdGUg
-PSBwYXJhbXNfcmF0ZShwYXJhbXMpOwo+PiArICAgIGhwLmNoYW5uZWxzID0gcGFyYW1zX2NoYW5u
-ZWxzKHBhcmFtcyk7Cj4+ICsKPj4gKyAgICByZXR1cm4gaGNwLT5oY2Qub3BzLT5od19wYXJhbXMo
-ZGFpLT5kZXYtPnBhcmVudCwKPj4gJmhjcC0+ZGFpZm10W2RhaS0+aWRdLAo+PiArICAgICAgICAg
-ICAgICAgICAgICAgICAmaHApOwo+PiArfQo+PiArCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Perform syscon configurations to get x2 mode to working in DRA74x and
+DRA72x. Also add a new compatible string to dfferentiate
+DRA72x and DRA74x, since b1c0 mask is different for both these platforms.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ Documentation/devicetree/bindings/pci/ti-pci.txt |    7 +-
+ drivers/pci/host/pci-dra7xx.c                    |   81 +++++++++++++++++++++-
+ 2 files changed, 86 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index 60e2516..1ae1705 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -1,7 +1,8 @@
+ TI PCI Controllers
+ 
+ PCIe Designware Controller
+- - compatible: Should be "ti,dra7-pcie""
++ - compatible: Should be "ti,dra7-pcie" for DRA74x
++	       Should be "ti,dra72-pcie" for DRA72x
+  - reg : Two register ranges as listed in the reg-names property
+  - reg-names : The first entry must be "ti-conf" for the TI specific registers
+ 	       The second entry must be "rc-dbics" for the designware pcie
+@@ -14,6 +15,10 @@ PCIe Designware Controller
+ 	       where <X> is the instance number of the pcie from the HW spec.
+  - interrupts : Two interrupt entries must be specified. The first one is for
+ 		main interrupt line and the second for MSI interrupt line.
++ - syscon-lane-conf : phandle/offset pair. Phandle to the system control module and the
++   register offset to specify 1 lane or 2 lane.
++ - syscon-lane-sel : phandle/offset pair. Phandle to the system control module and the
++   register offset to specify lane selection.
+  - #address-cells,
+    #size-cells,
+    #interrupt-cells,
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index e15b2e2..fb23a58 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -22,8 +22,11 @@
+ #include <linux/phy/phy.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/of_platform.h>
+ #include <linux/resource.h>
+ #include <linux/types.h>
++#include <linux/mfd/syscon.h>
++#include <linux/regmap.h>
+ 
+ #include "pcie-designware.h"
+ 
+@@ -63,14 +66,22 @@
+ #define	PCIECTRL_DRA7XX_CONF_PHY_CS			0x010C
+ #define	LINK_UP						BIT(16)
+ 
++#define PCIE_1LANE_2LANE_SELECTION			BIT(13)
++#define PCIE_B1C0_MODE_SEL				BIT(2)
++
+ struct dra7xx_pcie {
+ 	void __iomem		*base;
++	u32			*b1c0_mask;
+ 	struct phy		**phy;
+ 	int			lanes;
+ 	struct device		*dev;
+ 	struct pcie_port	pp;
+ };
+ 
++struct dra7xx_pcie_data {
++	u32	b1co_mode_sel_mask;
++};
++
+ #define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
+ 
+ static inline u32 dra7xx_pcie_readl(struct dra7xx_pcie *pcie, u32 offset)
+@@ -322,6 +333,57 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+ 	return 0;
+ }
+ 
++static const struct of_device_id of_dra7xx_pcie_match[];
++
++static int dra7xx_pcie_configure_two_lane(struct device *dev)
++{
++	struct device_node *np = dev->of_node;
++	struct regmap *pcie_syscon;
++	unsigned int pcie_reg;
++	struct dra7xx_pcie_data *data;
++	const struct of_device_id *match;
++
++	match = of_match_device(of_dra7xx_pcie_match, dev);
++	if (!match)
++		return -EINVAL;
++
++	data = (struct dra7xx_pcie_data *)match->data;
++	if (!data) {
++		dev_err(dev, "no b1c0 mask data\n");
++		return -EINVAL;
++	}
++
++	pcie_syscon = syscon_regmap_lookup_by_phandle(np, "syscon-lane-conf");
++	if (IS_ERR(pcie_syscon)) {
++		dev_err(dev, "unable to get syscon-lane-conf\n");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32_index(np, "syscon-lane-conf", 1, &pcie_reg)) {
++		dev_err(dev, "couldn't get lane configuration reg offset\n");
++		return -EINVAL;
++	}
++
++	regmap_update_bits(pcie_syscon, pcie_reg, PCIE_1LANE_2LANE_SELECTION,
++			   PCIE_1LANE_2LANE_SELECTION);
++
++	pcie_syscon = syscon_regmap_lookup_by_phandle(np, "syscon-lane-sel");
++	if (IS_ERR(pcie_syscon)) {
++		dev_err(dev, "unable to get syscon-lane-sel\n");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32_index(np, "syscon-lane-sel", 1, &pcie_reg)) {
++		dev_err(dev, "couldn't get lane selection reg offset\n");
++		return -EINVAL;
++	}
++
++	regmap_update_bits(pcie_syscon, pcie_reg, data->b1co_mode_sel_mask,
++			   PCIE_B1C0_MODE_SEL);
++
++	return 0;
++}
++
+ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ {
+ 	u32 reg;
+@@ -386,6 +448,14 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 			phy_exit(phy[i]);
+ 			goto err_phy;
+ 		}
++
++		if (i == 1) {
++			ret = dra7xx_pcie_configure_two_lane(dev);
++			if (ret < 0) {
++				i++;
++				goto err_phy;
++			}
++		}
+ 	}
+ 
+ 	dra7xx->base = base;
+@@ -541,8 +611,17 @@ static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+ 				      dra7xx_pcie_resume_noirq)
+ };
+ 
++static const struct dra7xx_pcie_data dra7_pcie_data = {
++	.b1co_mode_sel_mask = BIT(2),
++};
++
++static const struct dra7xx_pcie_data dra72_pcie_data = {
++	.b1co_mode_sel_mask = GENMASK(2, 3),
++};
++
+ static const struct of_device_id of_dra7xx_pcie_match[] = {
+-	{ .compatible = "ti,dra7-pcie", },
++	{ .compatible = "ti,dra7-pcie", .data = &dra7_pcie_data },
++	{ .compatible = "ti,dra72-pcie", .data = &dra72_pcie_data },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, of_dra7xx_pcie_match);
+-- 
+1.7.9.5
