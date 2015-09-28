@@ -1,14 +1,11 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
-Date: Mon, 28 Sep 2015 16:35:51 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1509280822250.7947@utopia.booyaka.com>
-References: <1437657946-10733-1-git-send-email-lokeshvutla@ti.com>
- <55DE9055.4090701@ti.com> <56037FEA.5070807@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap2: timer: always define omap4_local_timer_init
+Date: Mon, 28 Sep 2015 13:25:44 -0500
+Message-ID: <1443464744-16561-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
- BOUNDARY="843723315-1966970628-1443458151=:19891"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <56037FEA.5070807@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,60 +15,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <a0131933@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+omap4_local_timer_init() can be used by other
+platforms as is. At least AM437x wants to use
+it. Instead of making omap4-only and providing
+a stub for builds without OMAP4, we can just
+always define that function.
 
---843723315-1966970628-1443458151=:19891
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Reported-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/timer.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-On Thu, 24 Sep 2015, Lokesh Vutla wrote:
-
-> On Thursday 27 August 2015 09:51 AM, Lokesh Vutla wrote:
-> > On Thursday 23 July 2015 06:55 PM, Lokesh Vutla wrote:
-> >> This series implements lock and unlock functions for RTC and hooks
-> >> the same to DRA7 and AMx3xx hwmod.
-> >> This is dependent on the patch https://patchwork.kernel.org/patch/6578=
-281/,
-> >> which is queued recently by Paul.
-> > Gentle ping on this series.
-> Do you have any comments on this series?
-
-Looks pretty good.  I'm slightly concerned about the latency jitter impact=
-=20
-on -rt kernels for that local_irq_disable() section.  Looks like it could=
-=20
-hold off interrupts for ~(50 udelay =B5s) + 50*((RTC register read time) +=
-=20
-1).  But I'm not sure if preempt_enable/disable() is a good alternative=20
-since a bunch of interrupt top halves could conceivably run after the RTC=
-=20
-goes non-busy and result in the RTC not being locked/unlocked. =20
-
-Is there an RTC IP block register that the code can read, or a safe=20
-sequence that the code can execute, after the RTC lock/unlock operation to=
-=20
-verify that the RTC has successfully been locked or unlocked?  If so then=
-=20
-it's probably worth converting the local_irq_disable/enable() to=20
-preempt_disable/enable() and testing that, then retrying the lock/unlock=20
-if it fails.
-
-
-- Paul
---843723315-1966970628-1443458151=:19891
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---843723315-1966970628-1443458151=:19891--
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index a55655127ef2..f9028582e962 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -642,20 +642,11 @@ static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
+ 			       2, "sys_clkin_ck", NULL);
+ #endif
+ 
+-#ifdef CONFIG_ARCH_OMAP4
+-#ifdef CONFIG_HAVE_ARM_TWD
+ void __init omap4_local_timer_init(void)
+ {
+ 	omap4_sync32k_timer_init();
+ 	clocksource_of_init();
+ }
+-#else
+-void __init omap4_local_timer_init(void)
+-{
+-	omap4_sync32k_timer_init();
+-}
+-#endif /* CONFIG_HAVE_ARM_TWD */
+-#endif /* CONFIG_ARCH_OMAP4 */
+ 
+ #if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
+ void __init omap5_realtime_timer_init(void)
+-- 
+2.5.0.GIT
