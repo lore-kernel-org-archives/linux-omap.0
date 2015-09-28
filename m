@@ -1,75 +1,81 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 07/17] ARM: dts: am4372: add reset data
-Date: Mon, 28 Sep 2015 11:11:08 +0300
-Message-ID: <5608F61C.30508@ti.com>
-References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
- <1443104818-993-8-git-send-email-t-kristo@ti.com> <560544B3.3090805@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <560544B3.3090805@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <a0131933@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, s-anna@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+From: Marc Titinger <mtitinger@baylibre.com>
+Subject: [PATCH v2 2/2] arm: omap2+: PM: change trace_power_domain_target event format.
+Date: Mon, 28 Sep 2015 10:44:24 +0200
+Message-ID: <1443429864-4177-2-git-send-email-mtitinger+renesas@baylibre.com>
+References: <1443429864-4177-1-git-send-email-mtitinger+renesas@baylibre.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1443429864-4177-1-git-send-email-mtitinger+renesas@baylibre.com>
+In-Reply-To: <1443187345-14834-2-git-send-email-mtitinger+renesas@baylibre.com>
+References: <1443187345-14834-2-git-send-email-mtitinger+renesas@baylibre.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: rostedt@goodmis.org
+Cc: khilman@kernel.org, rjw@rjwysocki.net, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Marc Titinger <mtitinger+renesas@baylibre.com>, Marc Titinger <mtitinger@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/25/2015 03:57 PM, Lokesh Vutla wrote:
-> Hi Tero,
->
-> On Thursday 24 September 2015 07:56 PM, Tero Kristo wrote:
->> Add reset data for pruss, gfx, wkup-m3 and system reset.
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->>   arch/arm/boot/dts/am4372.dtsi |   24 ++++++++++++++++++++++++
->>   1 file changed, 24 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
->> index 0447c04a..fcc8d31 100644
->> --- a/arch/arm/boot/dts/am4372.dtsi
->> +++ b/arch/arm/boot/dts/am4372.dtsi
->> @@ -116,12 +116,15 @@
->>   				reg-names = "umem", "dmem";
->>   				ti,hwmods = "wkup_m3";
->>   				ti,pm-firmware = "am335x-pm-firmware.elf";
->> +				reset-names = "wkup_m3";
->> +				resets = <&prcm 0x2000 0x10 3 0x14 5>;
->>   			};
->>
->>   			prcm: prcm@1f0000 {
->>   				compatible = "ti,am4-prcm";
->>   				reg = <0x1f0000 0x11000>;
->>   				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
->> +				#reset-cells = <5>;
->>
->>   				prcm_clocks: clocks {
->>   					#address-cells = <1>;
->> @@ -130,6 +133,12 @@
->>
->>   				prcm_clockdomains: clockdomains {
->>   				};
->> +
->> +				system_reset: system_reset {
->> +					compatible = "ti,system-reset";
->> +					reset-names = "system";
->> +					reset-cells = <&prcm 0x4000 0 0 4 0>;
-> This should be resets instead of reset-cells.
-> With this change, reboot is functional on AM437x GP evm.
+power_domain_target arg3 is now a string (event name) with generic power
+domains. In the case of Omap, it is a hint to the prev/next switch op.
 
-Oops, nasty typo there. Thanks for catching.
+Compiled for Omap2+ but not tested.
 
--Tero
+Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
+---
+ arch/arm/mach-omap2/powerdomain.c | 27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
->
-> Thanks and regards,
-> Lokesh
->
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 78af6d8..02167c2 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -160,7 +160,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ {
+ 
+-	int prev, next, state, trace_state = 0;
++	int prev, state;
+ 
+ 	if (pwrdm == NULL)
+ 		return -EINVAL;
+@@ -177,17 +177,21 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 			pwrdm->state_counter[prev]++;
+ 		if (prev == PWRDM_POWER_RET)
+ 			_update_logic_membank_counters(pwrdm);
+-		/*
+-		 * If the power domain did not hit the desired state,
+-		 * generate a trace event with both the desired and hit states
+-		 */
+-		next = pwrdm_read_next_pwrst(pwrdm);
+-		if (next != prev) {
+-			trace_state = (PWRDM_TRACE_STATES_FLAG |
++
++		if (trace_power_domain_target_enabled()) {
++			/*
++			 * If the power domain did not hit the desired state,
++			 * generate a trace event with both the desired and hit
++			 * states */
++			int next = pwrdm_read_next_pwrst(pwrdm);
++
++			if (next != prev) {
++				int trace_state = (PWRDM_TRACE_STATES_FLAG |
+ 				       ((next & OMAP_POWERSTATE_MASK) << 8) |
+ 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+-			trace_power_domain_target(pwrdm->name, trace_state,
+-						  smp_processor_id());
++				trace_power_domain_target(pwrdm->name,
++					trace_state, "PWRDM_STATE_PREV");
++			}
+ 		}
+ 		break;
+ 	default:
+@@ -523,8 +527,7 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+ 		/* Trace the pwrdm desired target state */
+-		trace_power_domain_target(pwrdm->name, pwrst,
+-					  smp_processor_id());
++		trace_power_domain_target(pwrdm->name, pwrst, "set_next_pwrst");
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+ 	}
+-- 
+1.9.1
+
