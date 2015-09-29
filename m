@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 09/11] clocksource: add TI 32.768 Hz counter driver
-Date: Tue, 29 Sep 2015 15:44:04 -0500
-Message-ID: <1443559446-26969-10-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 07/11] arm: omap2: timer: remove omap4_local_timer_init
+Date: Tue, 29 Sep 2015 15:44:02 -0500
+Message-ID: <1443559446-26969-8-git-send-email-balbi@ti.com>
 References: <1443559446-26969-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,175 +12,71 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, daniel.lezcano@linaro.org, tglx@linutronix.de, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Introduce a new clocksource driver for Texas
-Instruments 32.768 Hz device which is available
-on most OMAP-like devices.
+We're now always calling clocksource_of_init()
+whenever booting with DT, so we can use the
+generic omap_sync32k_timer_init() (which will
+be renamed in a follow-up patch) for OMAP4
+as well.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/clocksource/Kconfig        |   8 +++
- drivers/clocksource/Makefile       |   1 +
- drivers/clocksource/timer-ti-32k.c | 121 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 130 insertions(+)
- create mode 100644 drivers/clocksource/timer-ti-32k.c
+ arch/arm/mach-omap2/board-generic.c | 4 ++--
+ arch/arm/mach-omap2/common.h        | 1 -
+ arch/arm/mach-omap2/timer.c         | 8 --------
+ 3 files changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index a7726db13abb..0ccfd12a00a3 100644
---- a/drivers/clocksource/Kconfig
-+++ b/drivers/clocksource/Kconfig
-@@ -115,6 +115,14 @@ config CLKSRC_PISTACHIO
- 	bool
- 	select CLKSRC_OF
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index d08191ffabd9..13f7df92baf4 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -235,7 +235,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap4430_init_late,
+-	.init_time	= omap4_local_timer_init,
++	.init_time	= omap_sync32k_timer_init,
+ 	.dt_compat	= omap4_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+@@ -279,7 +279,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
+ 	.init_late	= am43xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+-	.init_time	= omap4_local_timer_init,
++	.init_time	= omap_sync32k_timer_init,
+ 	.dt_compat	= am43_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 844ad031f7f0..bf42fc4e78f4 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -91,7 +91,6 @@ extern void omap2_init_common_infrastructure(void);
+ extern void omap_sync32k_timer_init(void);
+ extern void omap3_secure_sync32k_timer_init(void);
+ extern void omap3_gptimer_timer_init(void);
+-extern void omap4_local_timer_init(void);
+ #ifdef CONFIG_CACHE_L2X0
+ int omap_l2_cache_init(void);
+ #define OMAP_L2C_AUX_CTRL	(L2C_AUX_CTRL_SHARED_OVERRIDE | \
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 1ae563736b12..86c726ba2dd9 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -521,14 +521,6 @@ void __init omap3_gptimer_timer_init(void)
+ }
+ #endif
  
-+config CLKSRC_TI_32K
-+	bool "Texas Instruments 32.768 Hz Clocksource"
-+	depends on OF && ARCH_OMAP2PLUS
-+	select CLKSRC_OF
-+	help
-+	  This option enables support for Texas Instruments 32.768 Hz clocksource
-+	  available on many OMAP-like platforms.
-+
- config CLKSRC_STM32
- 	bool "Clocksource for STM32 SoCs" if !ARCH_STM32
- 	depends on OF && ARM && (ARCH_STM32 || COMPILE_TEST)
-diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
-index 5c00863c3e33..749abc3665b3 100644
---- a/drivers/clocksource/Makefile
-+++ b/drivers/clocksource/Makefile
-@@ -45,6 +45,7 @@ obj-$(CONFIG_VF_PIT_TIMER)	+= vf_pit_timer.o
- obj-$(CONFIG_CLKSRC_QCOM)	+= qcom-timer.o
- obj-$(CONFIG_MTK_TIMER)		+= mtk_timer.o
- obj-$(CONFIG_CLKSRC_PISTACHIO)	+= time-pistachio.o
-+obj-$(CONFIG_CLKSRC_TI_32K)	+= timer-ti-32k.o
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
+-	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
+-void __init omap4_local_timer_init(void)
+-{
+-	omap_sync32k_timer_init();
+-}
+-#endif
+-
+ #if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
  
- obj-$(CONFIG_ARM_ARCH_TIMER)		+= arm_arch_timer.o
- obj-$(CONFIG_ARM_GLOBAL_TIMER)		+= arm_global_timer.o
-diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
-new file mode 100644
-index 000000000000..10ccce2eb645
---- /dev/null
-+++ b/drivers/clocksource/timer-ti-32k.c
-@@ -0,0 +1,121 @@
-+/**
-+ * timer-ti-32k.c - OMAP2 32k Timer Support
-+ *
-+ * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2  of
-+ * the License as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/time.h>
-+#include <linux/interrupt.h>
-+#include <linux/err.h>
-+#include <linux/irq.h>
-+#include <linux/sched_clock.h>
-+#include <linux/clocksource.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/of_irq.h>
-+
-+#include <asm/mach/time.h>
-+
-+/* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
-+#define OMAP2_32KSYNCNT_REV_OFF		0x0
-+#define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
-+#define OMAP2_32KSYNCNT_CR_OFF_LOW	0x10
-+#define OMAP2_32KSYNCNT_CR_OFF_HIGH	0x30
-+
-+/*
-+ * 32KHz clocksource ... always available, on pretty most chips except
-+ * OMAP 730 and 1510.  Other timers could be used as clocksources, with
-+ * higher resolution in free-running counter modes (e.g. 12 MHz xtal),
-+ * but systems won't necessarily want to spend resources that way.
-+ */
-+static void __iomem *sync32k_cnt_reg;
-+
-+/**
-+ * omap_read_persistent_clock64 -  Return time from a persistent clock.
-+ *
-+ * Reads the time from a source which isn't disabled during PM, the
-+ * 32k sync timer.  Convert the cycles elapsed since last read into
-+ * nsecs and adds to a monotonically increasing timespec64.
-+ */
-+static struct timespec64 persistent_ts;
-+static cycles_t cycles;
-+static unsigned int persistent_mult, persistent_shift;
-+
-+static u64 notrace omap_32k_read_sched_clock(void)
-+{
-+	return readl_relaxed(sync32k_cnt_reg);
-+}
-+
-+static void omap_read_persistent_clock64(struct timespec64 *ts)
-+{
-+	unsigned long long nsecs;
-+	cycles_t last_cycles;
-+
-+	last_cycles = cycles;
-+	cycles = sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
-+
-+	nsecs = clocksource_cyc2ns(cycles - last_cycles,
-+					persistent_mult, persistent_shift);
-+
-+	timespec64_add_ns(&persistent_ts, nsecs);
-+
-+	*ts = persistent_ts;
-+}
-+
-+static void __init ti_32k_timer_init(struct device_node *np)
-+{
-+	void __iomem *vbase;
-+	int ret;
-+
-+	vbase = of_iomap(np, 0);
-+	if (!vbase) {
-+		pr_err("Can't ioremap 32k timer base\n");
-+		return;
-+	}
-+
-+	/*
-+	 * 32k sync Counter IP register offsets vary between the
-+	 * highlander version and the legacy ones.
-+	 * The 'SCHEME' bits(30-31) of the revision register is used
-+	 * to identify the version.
-+	 */
-+	if (readl_relaxed(vbase + OMAP2_32KSYNCNT_REV_OFF) &
-+						OMAP2_32KSYNCNT_REV_SCHEME)
-+		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_HIGH;
-+	else
-+		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_LOW;
-+
-+	/*
-+	 * 120000 rough estimate from the calculations in
-+	 * __clocksource_update_freq_scale.
-+	 */
-+	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
-+			32768, NSEC_PER_SEC, 120000);
-+
-+	ret = clocksource_mmio_init(sync32k_cnt_reg, "32k_counter", 32768,
-+				250, 32, clocksource_mmio_readl_up);
-+	if (ret) {
-+		pr_err("32k_counter: can't register clocksource\n");
-+		return;
-+	}
-+
-+	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
-+	register_persistent_clock(NULL, omap_read_persistent_clock64);
-+	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
-+}
-+CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
-+		ti_32k_timer_init);
+ /*
 -- 
 2.5.3
