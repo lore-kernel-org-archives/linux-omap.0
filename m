@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 07/11] arm: omap2: timer: remove omap4_local_timer_init
-Date: Tue, 29 Sep 2015 15:44:02 -0500
-Message-ID: <1443559446-26969-8-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 06/11] arm: omap2: timer: always call clocksource_of_init() when DT
+Date: Tue, 29 Sep 2015 15:44:01 -0500
+Message-ID: <1443559446-26969-7-git-send-email-balbi@ti.com>
 References: <1443559446-26969-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,71 +12,49 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, daniel.lezcano@linaro.org, tglx@linutronix.de, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We're now always calling clocksource_of_init()
-whenever booting with DT, so we can use the
-generic omap_sync32k_timer_init() (which will
-be renamed in a follow-up patch) for OMAP4
-as well.
+If booting with DT, let's make sure to always
+call clocksource_of_init() as this will make
+it easier to move timer code to drivers/clocksource
+in the future.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/board-generic.c | 4 ++--
- arch/arm/mach-omap2/common.h        | 1 -
- arch/arm/mach-omap2/timer.c         | 8 --------
- 3 files changed, 2 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/timer.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index d08191ffabd9..13f7df92baf4 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -235,7 +235,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
- 	.init_late	= omap4430_init_late,
--	.init_time	= omap4_local_timer_init,
-+	.init_time	= omap_sync32k_timer_init,
- 	.dt_compat	= omap4_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
-@@ -279,7 +279,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
- 	.init_late	= am43xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
--	.init_time	= omap4_local_timer_init,
-+	.init_time	= omap_sync32k_timer_init,
- 	.dt_compat	= am43_boards_compat,
- 	.restart	= omap44xx_restart,
- MACHINE_END
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 844ad031f7f0..bf42fc4e78f4 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -91,7 +91,6 @@ extern void omap2_init_common_infrastructure(void);
- extern void omap_sync32k_timer_init(void);
- extern void omap3_secure_sync32k_timer_init(void);
- extern void omap3_gptimer_timer_init(void);
--extern void omap4_local_timer_init(void);
- #ifdef CONFIG_CACHE_L2X0
- int omap_l2_cache_init(void);
- #define OMAP_L2C_AUX_CTRL	(L2C_AUX_CTRL_SHARED_OVERRIDE | \
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 1ae563736b12..86c726ba2dd9 100644
+index deccec2d6ed8..1ae563736b12 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -521,14 +521,6 @@ void __init omap3_gptimer_timer_init(void)
+@@ -500,6 +500,9 @@ void __init omap_sync32k_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+ 			2, "timer_sys_ck", NULL, false);
++
++	if (of_have_populated_dt())
++		clocksource_of_init();
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
+@@ -523,7 +526,6 @@ void __init omap3_gptimer_timer_init(void)
+ void __init omap4_local_timer_init(void)
+ {
+ 	omap_sync32k_timer_init();
+-	clocksource_of_init();
  }
  #endif
  
--#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
--	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
--void __init omap4_local_timer_init(void)
--{
--	omap_sync32k_timer_init();
--}
--#endif
--
- #if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
+@@ -644,10 +646,8 @@ sysclk1_based:
  
- /*
+ void __init omap5_realtime_timer_init(void)
+ {
+-	omap_sync32k_timer_init();
+ 	realtime_counter_init();
+-
+-	clocksource_of_init();
++	omap_sync32k_timer_init();
+ }
+ #endif /* CONFIG_SOC_OMAP5 || CONFIG_SOC_DRA7XX */
+ 
 -- 
 2.5.3
