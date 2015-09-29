@@ -1,62 +1,57 @@
 From: Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
-Date: Tue, 29 Sep 2015 14:10:08 +0100
-Message-ID: <560A8DB0.6020109@codethink.co.uk>
-References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk> <20150923173040.GI23801@atomide.com> <5604DED0.5050403@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <5604DED0.5050403@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
+Subject: [PATCH v2] clk: ti: fix dual-registration of uart4_ick
+Date: Tue, 29 Sep 2015 15:01:08 +0100
+Message-ID: <1443535268-22586-1-git-send-email-ben.dooks@codethink.co.uk>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-kernel@lists.codethink.co.uk
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>, stable@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 25/09/15 06:42, Tero Kristo wrote:
-> On 09/23/2015 08:30 PM, Tony Lindgren wrote:
->> * Ben Dooks <ben.dooks@codethink.co.uk> [150923 07:53]:
->>> On the OMAP AM3517 platform the uart4_ick gets registered
->>> twice, causing any power managment to /dev/ttyO3 to fail
->>> when trying to wake the device up.
->>>
->>> This solves the following oops:
->>>
->>> [] Unhandled fault: external abort on non-linefetch (0x1028) at
->>> 0xfa09e008
->>> [] PC is at serial_omap_pm+0x48/0x15c
->>> [] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
->>
->> No uart4 on 34xx/35xx, that got introduced with 36xx so:
->>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->>
->>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
->>> ---
->>>   drivers/clk/ti/clk-3xxx.c | 1 -
->>>   1 file changed, 1 deletion(-)
->>>
->>> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
->>> index 5e12f32..2e7ef1f 100644
->>> --- a/drivers/clk/ti/clk-3xxx.c
->>> +++ b/drivers/clk/ti/clk-3xxx.c
->>> @@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
->>>       DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
->>>       DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
->>>       DT_CLK(NULL, "uart3_ick", "uart3_ick"),
->>> -    DT_CLK(NULL, "uart4_ick", "uart4_ick"),
->>>       DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
->>>       DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
->>>       DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
-> 
-> NAK.
-> 
-> This patch is actually only partially correct, it removes the uart4_ick
-> alias for omap36xx also. It should be added back to the omap36xx clks
-> array. Care to post a v2?
+On the OMAP AM3517 platform the uart4_ick gets registered
+twice, causing any power managment to /dev/ttyO3 to fail
+when trying to wake the device up.
 
-Thankyou for the feedback. I'll update, but do not have a device to test.
+This solves the following oops:
 
+[] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
+[] PC is at serial_omap_pm+0x48/0x15c
+[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+
+Cc: stable@vger.kernel.org
+Cc: mturquette@baylibre.com
+Cc: sboyd@codeaurora.org
+Cc: linux-clk@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: t-kristo@ti.com
+Cc: linux-kernel@lists.codethink.co.uk
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+--
+v2:
+	- fix omap36xx series clock registration for uart4
+---
+ drivers/clk/ti/clk-3xxx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 5e12f32..8d94b97 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+ 	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
+ 	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+ 	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+-	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+ 	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+ 	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+@@ -523,6 +522,7 @@ static struct ti_dt_clk am35xx_clks[] = {
+ static struct ti_dt_clk omap36xx_clks[] = {
+ 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
+ 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
++	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	{ .node_name = NULL },
+ };
+ 
 -- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+2.5.3
