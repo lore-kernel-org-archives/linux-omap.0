@@ -1,99 +1,76 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv4] arm: omap2: timer: always define omap4_local_timer_init
-Date: Tue, 29 Sep 2015 11:17:17 -0500
-Message-ID: <560AB98D.7040602@ti.com>
-References: <1443543337-2904-1-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 00/11] arm: omap: counter32k rework
+Date: Tue, 29 Sep 2015 15:43:55 -0500
+Message-ID: <1443559446-26969-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1443543337-2904-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, daniel.lezcano@linaro.org, tglx@linutronix.de, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/29/2015 11:15 AM, Felipe Balbi wrote:
-> omap4_local_timer_init() can be used by other
-> platforms as is. At least AM437x wants to use
-> it. Instead of making omap4-only and providing
-> a stub for builds without OMAP4, we can just
-> make sure that function is always available
-> for all SoCs that need it.
+Hi,
 
-Sounds right now. $subject needs fixing. if Tony is ok picking and
-fixing it up himself...
+the following patches de-obfuscate arch/arm/mach-omap2/timer.c
+and start moving code to drivers/clocksource. So far only counter32k
+has been moved over.
 
-Reviewed-by: Nishanth Menon <nm@ti.com>
+Note that we can't get rid of all the code (yet) because there are
+still platforms relying to legacy boot and because of the strong
+coupling with OMAP's hwmod layer.
 
-> 
-> Reported-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
-> 
-> changes since v3:
->   - modify commit log slightly
-> 
-> changes since v2:
->   - move ifdefs around
-> 
-> changes since v1:
->   - make sure result builds on AM43xx-only builds
-> 
->  arch/arm/mach-omap2/timer.c | 16 +++-------------
->  1 file changed, 3 insertions(+), 13 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index e4d8701f99f9..3ebe16cd645e 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -634,32 +634,22 @@ OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
->  			2, "timer_sys_ck", NULL);
->  #endif /* CONFIG_ARCH_OMAP3 */
->  
-> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
-> -	defined(CONFIG_SOC_AM43XX)
-> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
->  OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
->  		       1, "timer_sys_ck", "ti,timer-alwon");
->  #endif
->  
->  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
-> -	defined(CONFIG_SOC_DRA7XX)
-> +	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
->  static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
->  			       2, "sys_clkin_ck", NULL);
-> -#endif
->  
-> -#ifdef CONFIG_ARCH_OMAP4
-> -#ifdef CONFIG_HAVE_ARM_TWD
->  void __init omap4_local_timer_init(void)
->  {
->  	omap4_sync32k_timer_init();
->  	clocksource_of_init();
->  }
-> -#else
-> -void __init omap4_local_timer_init(void)
-> -{
-> -	omap4_sync32k_timer_init();
-> -}
-> -#endif /* CONFIG_HAVE_ARM_TWD */
-> -#endif /* CONFIG_ARCH_OMAP4 */
-> +#endif
->  
->  #if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
->  void __init omap5_realtime_timer_init(void)
-> 
+This is, for now, an RFC and has be written on top of [1]. Boot tested
+with AM335x and AM437x.
 
+[1] http://marc.info/?l=linux-omap&m=144354336924308&w=2
+
+ps: if anybody has a good idea on how to get rid of
+register_persistent_clock(), please let me know
+
+Felipe Balbi (11):
+  arm: omap2: timer: get rid of obfuscating macros
+  arm: omap2: timer: add a gptimer argument to sync32k_timer_init()
+  arm: omap2: timer: remove __omap_gptimer_init()
+  arm: omap2: timer: provide generic sync32k_timer_init function
+  arm: omap2: timer: move realtime_counter_init() around
+  arm: omap2: timer: always call clocksource_of_init() when DT
+  arm: omap2: timer: remove omap4_local_timer_init
+  arm: omap2: timer: rename omap_sync32k_timer_init()
+  clocksource: add TI 32.768 Hz counter driver
+  arm: omap2: timer: limit hwmod usage to non-DT boots
+  arm: boot: dts: omap: add missing default status for 32k counter
+
+ arch/arm/boot/dts/am4372.dtsi         |   1 +
+ arch/arm/boot/dts/am437x-gp-evm.dts   |   4 +
+ arch/arm/boot/dts/am437x-idk-evm.dts  |   4 +
+ arch/arm/boot/dts/am437x-sk-evm.dts   |   4 +
+ arch/arm/boot/dts/am43x-epos-evm.dts  |   4 +
+ arch/arm/boot/dts/dra7.dtsi           |   1 +
+ arch/arm/boot/dts/omap2420-h4.dts     |   4 +
+ arch/arm/boot/dts/omap2420.dtsi       |   1 +
+ arch/arm/boot/dts/omap2430.dtsi       |   1 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts |   4 +
+ arch/arm/boot/dts/omap3-beagle.dts    |   4 +
+ arch/arm/boot/dts/omap3-ldp.dts       |   4 +
+ arch/arm/boot/dts/omap3-n900.dts      |   4 +
+ arch/arm/boot/dts/omap3.dtsi          |   1 +
+ arch/arm/boot/dts/omap3430-sdp.dts    |   4 +
+ arch/arm/boot/dts/omap4-sdp.dts       |   4 +
+ arch/arm/boot/dts/omap4.dtsi          |   1 +
+ arch/arm/boot/dts/omap5-cm-t54.dts    |   4 +
+ arch/arm/boot/dts/omap5-uevm.dts      |   4 +
+ arch/arm/boot/dts/omap5.dtsi          |   1 +
+ arch/arm/mach-omap2/board-generic.c   |  14 ++--
+ arch/arm/mach-omap2/board-ldp.c       |   2 +-
+ arch/arm/mach-omap2/board-rx51.c      |   2 +-
+ arch/arm/mach-omap2/common.h          |   4 +-
+ arch/arm/mach-omap2/timer.c           | 138 ++++++++++++++--------------------
+ drivers/clocksource/Kconfig           |   8 ++
+ drivers/clocksource/Makefile          |   1 +
+ drivers/clocksource/timer-ti-32k.c    | 121 +++++++++++++++++++++++++++++
+ 28 files changed, 255 insertions(+), 94 deletions(-)
+ create mode 100644 drivers/clocksource/timer-ti-32k.c
 
 -- 
-Regards,
-Nishanth Menon
+2.5.3
