@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 11/11] arm: boot: dts: omap: add missing default status for 32k counter
-Date: Tue, 29 Sep 2015 15:44:06 -0500
-Message-ID: <1443559446-26969-12-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 09/11] clocksource: add TI 32.768 Hz counter driver
+Date: Tue, 29 Sep 2015 15:44:04 -0500
+Message-ID: <1443559446-26969-10-git-send-email-balbi@ti.com>
 References: <1443559446-26969-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,274 +12,175 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, daniel.lezcano@linaro.org, tglx@linutronix.de, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-All devices should have a default status. Ignoring
-the arguments if it should be 'okay' or 'disabled'
-by default, let's set them all the 'disabled' and
-have boards enable 32k counter.
+Introduce a new clocksource driver for Texas
+Instruments 32.768 Hz device which is available
+on most OMAP-like devices.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi         | 1 +
- arch/arm/boot/dts/am437x-gp-evm.dts   | 4 ++++
- arch/arm/boot/dts/am437x-idk-evm.dts  | 4 ++++
- arch/arm/boot/dts/am437x-sk-evm.dts   | 4 ++++
- arch/arm/boot/dts/am43x-epos-evm.dts  | 4 ++++
- arch/arm/boot/dts/dra7.dtsi           | 1 +
- arch/arm/boot/dts/omap2420-h4.dts     | 4 ++++
- arch/arm/boot/dts/omap2420.dtsi       | 1 +
- arch/arm/boot/dts/omap2430.dtsi       | 1 +
- arch/arm/boot/dts/omap3-beagle-xm.dts | 4 ++++
- arch/arm/boot/dts/omap3-beagle.dts    | 4 ++++
- arch/arm/boot/dts/omap3-ldp.dts       | 4 ++++
- arch/arm/boot/dts/omap3-n900.dts      | 4 ++++
- arch/arm/boot/dts/omap3.dtsi          | 1 +
- arch/arm/boot/dts/omap3430-sdp.dts    | 4 ++++
- arch/arm/boot/dts/omap4-sdp.dts       | 4 ++++
- arch/arm/boot/dts/omap4.dtsi          | 1 +
- arch/arm/boot/dts/omap5-cm-t54.dts    | 4 ++++
- arch/arm/boot/dts/omap5-uevm.dts      | 4 ++++
- arch/arm/boot/dts/omap5.dtsi          | 1 +
- 20 files changed, 59 insertions(+)
+ drivers/clocksource/Kconfig        |   8 +++
+ drivers/clocksource/Makefile       |   1 +
+ drivers/clocksource/timer-ti-32k.c | 121 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 130 insertions(+)
+ create mode 100644 drivers/clocksource/timer-ti-32k.c
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 0447c04a40cc..0a3e0a82ea96 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -349,6 +349,7 @@
- 			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
- 			reg = <0x44e86000 0x40>;
- 			ti,hwmods = "counter_32k";
-+			status = "disabled";
- 		};
+diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+index a7726db13abb..0ccfd12a00a3 100644
+--- a/drivers/clocksource/Kconfig
++++ b/drivers/clocksource/Kconfig
+@@ -115,6 +115,14 @@ config CLKSRC_PISTACHIO
+ 	bool
+ 	select CLKSRC_OF
  
- 		rtc: rtc@44e3e000 {
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 22038f21f228..f4b6cb6efde3 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -954,3 +954,7 @@
- 	clock-names = "ext-clk", "int-clk";
- 	status = "okay";
- };
++config CLKSRC_TI_32K
++	bool "Texas Instruments 32.768 Hz Clocksource"
++	depends on OF && ARCH_OMAP2PLUS
++	select CLKSRC_OF
++	help
++	  This option enables support for Texas Instruments 32.768 Hz clocksource
++	  available on many OMAP-like platforms.
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index af25801418b4..17c429d4e136 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -413,3 +413,7 @@
- &cpu {
- 	cpu0-supply = <&tps>;
- };
-+
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 7da7c2da4af1..f0d9d26e644e 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -734,3 +734,7 @@
- 		};
- 	};
- };
-+
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 86c2dfbe8875..9a0cd866e3ab 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -792,3 +792,7 @@
- 	tx-num-evt = <32>;
- 	rx-num-evt = <32>;
- };
-+
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 5d65db9ebc2b..a6f2072b6c46 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -193,6 +193,7 @@
- 				compatible = "ti,omap-counter32k";
- 				reg = <0x4000 0x40>;
- 				ti,hwmods = "counter_32k";
-+				status = "disabled";
- 			};
+ config CLKSRC_STM32
+ 	bool "Clocksource for STM32 SoCs" if !ARCH_STM32
+ 	depends on OF && ARM && (ARCH_STM32 || COMPILE_TEST)
+diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
+index 5c00863c3e33..749abc3665b3 100644
+--- a/drivers/clocksource/Makefile
++++ b/drivers/clocksource/Makefile
+@@ -45,6 +45,7 @@ obj-$(CONFIG_VF_PIT_TIMER)	+= vf_pit_timer.o
+ obj-$(CONFIG_CLKSRC_QCOM)	+= qcom-timer.o
+ obj-$(CONFIG_MTK_TIMER)		+= mtk_timer.o
+ obj-$(CONFIG_CLKSRC_PISTACHIO)	+= time-pistachio.o
++obj-$(CONFIG_CLKSRC_TI_32K)	+= timer-ti-32k.o
  
- 			prm: prm@6000 {
-diff --git a/arch/arm/boot/dts/omap2420-h4.dts b/arch/arm/boot/dts/omap2420-h4.dts
-index 34cdecb4fdda..f41d95836dcf 100644
---- a/arch/arm/boot/dts/omap2420-h4.dts
-+++ b/arch/arm/boot/dts/omap2420-h4.dts
-@@ -64,3 +64,7 @@
- 		};
- 	};
- };
+ obj-$(CONFIG_ARM_ARCH_TIMER)		+= arm_arch_timer.o
+ obj-$(CONFIG_ARM_GLOBAL_TIMER)		+= arm_global_timer.o
+diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/timer-ti-32k.c
+new file mode 100644
+index 000000000000..10ccce2eb645
+--- /dev/null
++++ b/drivers/clocksource/timer-ti-32k.c
+@@ -0,0 +1,121 @@
++/**
++ * timer-ti-32k.c - OMAP2 32k Timer Support
++ *
++ * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2  of
++ * the License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-index 5b9a376cc31e..abef0670e7e6 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -70,6 +70,7 @@
- 				compatible = "ti,omap-counter32k";
- 				reg = <0x4000 0x20>;
- 				ti,hwmods = "counter_32k";
-+				status = "disabled";
- 			};
- 		};
- 
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index 2390f387c271..f501b6f355a4 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -82,6 +82,7 @@
- 				compatible = "ti,omap-counter32k";
- 				reg = <0x20000 0x20>;
- 				ti,hwmods = "counter_32k";
-+				status = "disabled";
- 			};
- 		};
- 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 7c4dca122a91..47a354f22363 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -390,3 +390,7 @@
- 		};
- 	};
- };
++#include <linux/init.h>
++#include <linux/time.h>
++#include <linux/interrupt.h>
++#include <linux/err.h>
++#include <linux/irq.h>
++#include <linux/sched_clock.h>
++#include <linux/clocksource.h>
++#include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/of_irq.h>
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index a5474113cd50..3a50baa56399 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -429,3 +429,7 @@
- 		};
- 	};
- };
++#include <asm/mach/time.h>
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap3-ldp.dts b/arch/arm/boot/dts/omap3-ldp.dts
-index bd6e6769c7ce..58ef3e86c31f 100644
---- a/arch/arm/boot/dts/omap3-ldp.dts
-+++ b/arch/arm/boot/dts/omap3-ldp.dts
-@@ -302,3 +302,7 @@
- 	/* Needed for ads7846 */
-         regulator-name = "vcc";
- };
++/* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
++#define OMAP2_32KSYNCNT_REV_OFF		0x0
++#define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
++#define OMAP2_32KSYNCNT_CR_OFF_LOW	0x10
++#define OMAP2_32KSYNCNT_CR_OFF_HIGH	0x30
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 5f5e0f3d5b64..0f9405ef4dc7 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -988,3 +988,7 @@
- &ssi_port2 {
- 	status = "disabled";
- };
++/*
++ * 32KHz clocksource ... always available, on pretty most chips except
++ * OMAP 730 and 1510.  Other timers could be used as clocksources, with
++ * higher resolution in free-running counter modes (e.g. 12 MHz xtal),
++ * but systems won't necessarily want to spend resources that way.
++ */
++static void __iomem *sync32k_cnt_reg;
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 69a40cfc1f29..1bc8fb05d4bd 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -181,6 +181,7 @@
- 			compatible = "ti,omap-counter32k";
- 			reg = <0x48320000 0x20>;
- 			ti,hwmods = "counter_32k";
-+			status = "disabled";
- 		};
- 
- 		intc: interrupt-controller@48200000 {
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-index 16b0cdfbee9c..8344e1d01ac6 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -191,3 +191,7 @@
- 		};
- 	};
- };
++/**
++ * omap_read_persistent_clock64 -  Return time from a persistent clock.
++ *
++ * Reads the time from a source which isn't disabled during PM, the
++ * 32k sync timer.  Convert the cycles elapsed since last read into
++ * nsecs and adds to a monotonically increasing timespec64.
++ */
++static struct timespec64 persistent_ts;
++static cycles_t cycles;
++static unsigned int persistent_mult, persistent_shift;
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index dac86ed7481f..d54ee6605af0 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -697,3 +697,7 @@
- 		};
- 	};
- };
++static u64 notrace omap_32k_read_sched_clock(void)
++{
++	return readl_relaxed(sync32k_cnt_reg);
++}
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index abc4473e6f8a..76371eb9fa02 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -220,6 +220,7 @@
- 					compatible = "ti,omap-counter32k";
- 					reg = <0x4000 0x20>;
- 					ti,hwmods = "counter_32k";
-+					status = "disabled";
- 				};
- 
- 				prm: prm@6000 {
-diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
-index 61ad2ea34720..d88f9bf1ce28 100644
---- a/arch/arm/boot/dts/omap5-cm-t54.dts
-+++ b/arch/arm/boot/dts/omap5-cm-t54.dts
-@@ -677,3 +677,7 @@
- 		};
- 	};
- };
++static void omap_read_persistent_clock64(struct timespec64 *ts)
++{
++	unsigned long long nsecs;
++	cycles_t last_cycles;
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 3cc8f357d5b8..ecf8db4ea64b 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -641,3 +641,7 @@
- 		};
- 	};
- };
++	last_cycles = cycles;
++	cycles = sync32k_cnt_reg ? readl_relaxed(sync32k_cnt_reg) : 0;
 +
-+&counter32k {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 4205a8ac9ddb..aa8216a5bf4f 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -236,6 +236,7 @@
- 				compatible = "ti,omap-counter32k";
- 				reg = <0x4000 0x40>;
- 				ti,hwmods = "counter_32k";
-+				status = "disabled";
- 			};
- 
- 			prm: prm@6000 {
++	nsecs = clocksource_cyc2ns(cycles - last_cycles,
++					persistent_mult, persistent_shift);
++
++	timespec64_add_ns(&persistent_ts, nsecs);
++
++	*ts = persistent_ts;
++}
++
++static void __init ti_32k_timer_init(struct device_node *np)
++{
++	void __iomem *vbase;
++	int ret;
++
++	vbase = of_iomap(np, 0);
++	if (!vbase) {
++		pr_err("Can't ioremap 32k timer base\n");
++		return;
++	}
++
++	/*
++	 * 32k sync Counter IP register offsets vary between the
++	 * highlander version and the legacy ones.
++	 * The 'SCHEME' bits(30-31) of the revision register is used
++	 * to identify the version.
++	 */
++	if (readl_relaxed(vbase + OMAP2_32KSYNCNT_REV_OFF) &
++						OMAP2_32KSYNCNT_REV_SCHEME)
++		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_HIGH;
++	else
++		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_LOW;
++
++	/*
++	 * 120000 rough estimate from the calculations in
++	 * __clocksource_update_freq_scale.
++	 */
++	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
++			32768, NSEC_PER_SEC, 120000);
++
++	ret = clocksource_mmio_init(sync32k_cnt_reg, "32k_counter", 32768,
++				250, 32, clocksource_mmio_readl_up);
++	if (ret) {
++		pr_err("32k_counter: can't register clocksource\n");
++		return;
++	}
++
++	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
++	register_persistent_clock(NULL, omap_read_persistent_clock64);
++	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
++}
++CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
++		ti_32k_timer_init);
 -- 
 2.5.3
