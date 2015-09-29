@@ -1,82 +1,62 @@
-From: Lokesh Vutla <a0131933@ti.com>
-Subject: Re: [PATCH v3 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
-Date: Tue, 29 Sep 2015 09:23:48 +0530
-Message-ID: <560A0B4C.90206@ti.com>
-References: <1437657946-10733-1-git-send-email-lokeshvutla@ti.com>
- <55DE9055.4090701@ti.com> <56037FEA.5070807@ti.com>
- <alpine.DEB.2.02.1509280822250.7947@utopia.booyaka.com>
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
+Date: Tue, 29 Sep 2015 14:10:08 +0100
+Message-ID: <560A8DB0.6020109@codethink.co.uk>
+References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk> <20150923173040.GI23801@atomide.com> <5604DED0.5050403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1509280822250.7947@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <5604DED0.5050403@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
+On 25/09/15 06:42, Tero Kristo wrote:
+> On 09/23/2015 08:30 PM, Tony Lindgren wrote:
+>> * Ben Dooks <ben.dooks@codethink.co.uk> [150923 07:53]:
+>>> On the OMAP AM3517 platform the uart4_ick gets registered
+>>> twice, causing any power managment to /dev/ttyO3 to fail
+>>> when trying to wake the device up.
+>>>
+>>> This solves the following oops:
+>>>
+>>> [] Unhandled fault: external abort on non-linefetch (0x1028) at
+>>> 0xfa09e008
+>>> [] PC is at serial_omap_pm+0x48/0x15c
+>>> [] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+>>
+>> No uart4 on 34xx/35xx, that got introduced with 36xx so:
+>>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>>
+>>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+>>> ---
+>>>   drivers/clk/ti/clk-3xxx.c | 1 -
+>>>   1 file changed, 1 deletion(-)
+>>>
+>>> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+>>> index 5e12f32..2e7ef1f 100644
+>>> --- a/drivers/clk/ti/clk-3xxx.c
+>>> +++ b/drivers/clk/ti/clk-3xxx.c
+>>> @@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+>>>       DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
+>>>       DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+>>>       DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+>>> -    DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+>>>       DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+>>>       DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+>>>       DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+> 
+> NAK.
+> 
+> This patch is actually only partially correct, it removes the uart4_ick
+> alias for omap36xx also. It should be added back to the omap36xx clks
+> array. Care to post a v2?
 
-On Monday 28 September 2015 10:05 PM, Paul Walmsley wrote:
-> On Thu, 24 Sep 2015, Lokesh Vutla wrote:
-> =
+Thankyou for the feedback. I'll update, but do not have a device to test.
 
->> On Thursday 27 August 2015 09:51 AM, Lokesh Vutla wrote:
->>> On Thursday 23 July 2015 06:55 PM, Lokesh Vutla wrote:
->>>> This series implements lock and unlock functions for RTC and hooks
->>>> the same to DRA7 and AMx3xx hwmod.
->>>> This is dependent on the patch https://patchwork.kernel.org/patch/6578=
-281/,
->>>> which is queued recently by Paul.
->>> Gentle ping on this series.
->> Do you have any comments on this series?
-> =
-
-> Looks pretty good.  I'm slightly concerned about the latency jitter impac=
-t =
-
-> on -rt kernels for that local_irq_disable() section.  Looks like it could =
-
-> hold off interrupts for ~(50 udelay =B5s) + 50*((RTC register read time) =
-+ =
-
-> 1).  But I'm not sure if preempt_enable/disable() is a good alternative =
-
-> since a bunch of interrupt top halves could conceivably run after the RTC =
-
-> goes non-busy and result in the RTC not being locked/unlocked. =
-
-Agree.
-
-> =
-
-> Is there an RTC IP block register that the code can read, or a safe =
-
-> sequence that the code can execute, after the RTC lock/unlock operation t=
-o =
-
-> verify that the RTC has successfully been locked or unlocked?  If so then =
-
-> it's probably worth converting the local_irq_disable/enable() to =
-
-> preempt_disable/enable() and testing that, then retrying the lock/unlock =
-
-> if it fails.
-I am afraid there is no such register to verify lock or unlock. Also
-these KICK registers are Write only registers so can't read back the
-value. Even the driver implement the same api's for writing into registers.
-
-One thing I can think of is that to write a known pattern to scratch pad
-register and read back the value to confirm if it is locked/unlocked.
-But don't think this is a good approach.
-
-Thanks and regards,
-Lokesh
+-- 
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
