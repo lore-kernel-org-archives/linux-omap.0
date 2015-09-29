@@ -1,13 +1,15 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv2] arm: omap2: timer: always define omap4_local_timer_init
-Date: Mon, 28 Sep 2015 16:37:31 -0500
-Message-ID: <5609B31B.9030108@ti.com>
-References: <1443475405-15977-1-git-send-email-balbi@ti.com>
+From: Lokesh Vutla <a0131933@ti.com>
+Subject: Re: [PATCH v3 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
+Date: Tue, 29 Sep 2015 09:23:48 +0530
+Message-ID: <560A0B4C.90206@ti.com>
+References: <1437657946-10733-1-git-send-email-lokeshvutla@ti.com>
+ <55DE9055.4090701@ti.com> <56037FEA.5070807@ti.com>
+ <alpine.DEB.2.02.1509280822250.7947@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1443475405-15977-1-git-send-email-balbi@ti.com>
+In-Reply-To: <alpine.DEB.2.02.1509280822250.7947@utopia.booyaka.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,86 +19,64 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Paul,
 
-bit of nitpick on capitalization of $subject.. aside..
+On Monday 28 September 2015 10:05 PM, Paul Walmsley wrote:
+> On Thu, 24 Sep 2015, Lokesh Vutla wrote:
+> =
 
-On 09/28/2015 04:23 PM, Felipe Balbi wrote:
-> omap4_local_timer_init() can be used by other
-> platforms as is. At least AM437x wants to use
-> it. Instead of making omap4-only and providing
-> a stub for builds without OMAP4, we can just
-> always define that function.
-> 
-> Reported-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
-> 
-> changes since v1:
->  - make sure result builds on AM43xx-only builds
-> 
->  arch/arm/mach-omap2/timer.c | 14 ++------------
->  1 file changed, 2 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index e4d8701f99f9..3cdd22251a0d 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -634,32 +634,22 @@ OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
->  			2, "timer_sys_ck", NULL);
->  #endif /* CONFIG_ARCH_OMAP3 */
->  
-> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
-> -	defined(CONFIG_SOC_AM43XX)
-> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
->  OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
->  		       1, "timer_sys_ck", "ti,timer-alwon");
->  #endif
->  
->  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
-> -	defined(CONFIG_SOC_DRA7XX)
-> +	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
->  static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
->  			       2, "sys_clkin_ck", NULL);
->  #endif
->  
-> -#ifdef CONFIG_ARCH_OMAP4
-> -#ifdef CONFIG_HAVE_ARM_TWD
+>> On Thursday 27 August 2015 09:51 AM, Lokesh Vutla wrote:
+>>> On Thursday 23 July 2015 06:55 PM, Lokesh Vutla wrote:
+>>>> This series implements lock and unlock functions for RTC and hooks
+>>>> the same to DRA7 and AMx3xx hwmod.
+>>>> This is dependent on the patch https://patchwork.kernel.org/patch/6578=
+281/,
+>>>> which is queued recently by Paul.
+>>> Gentle ping on this series.
+>> Do you have any comments on this series?
+> =
 
-OK -> so we removed both of these..
+> Looks pretty good.  I'm slightly concerned about the latency jitter impac=
+t =
 
->  void __init omap4_local_timer_init(void)
->  {
->  	omap4_sync32k_timer_init();
+> on -rt kernels for that local_irq_disable() section.  Looks like it could =
 
-but this only gets defined *if*
->  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
-> -	defined(CONFIG_SOC_DRA7XX)
-> +	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
+> hold off interrupts for ~(50 udelay =B5s) + 50*((RTC register read time) =
++ =
 
-we should fail build on omap3 only, correct??
+> 1).  But I'm not sure if preempt_enable/disable() is a good alternative =
 
-or am i missing something else?
+> since a bunch of interrupt top halves could conceivably run after the RTC =
 
->  	clocksource_of_init();
->  }
-> -#else
-> -void __init omap4_local_timer_init(void)
-> -{
-> -	omap4_sync32k_timer_init();
-> -}
-> -#endif /* CONFIG_HAVE_ARM_TWD */
-> -#endif /* CONFIG_ARCH_OMAP4 */
->  
->  #if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
->  void __init omap5_realtime_timer_init(void)
-> 
+> goes non-busy and result in the RTC not being locked/unlocked. =
 
+Agree.
 
+> =
 
--- 
-Regards,
-Nishanth Menon
+> Is there an RTC IP block register that the code can read, or a safe =
+
+> sequence that the code can execute, after the RTC lock/unlock operation t=
+o =
+
+> verify that the RTC has successfully been locked or unlocked?  If so then =
+
+> it's probably worth converting the local_irq_disable/enable() to =
+
+> preempt_disable/enable() and testing that, then retrying the lock/unlock =
+
+> if it fails.
+I am afraid there is no such register to verify lock or unlock. Also
+these KICK registers are Write only registers so can't read back the
+value. Even the driver implement the same api's for writing into registers.
+
+One thing I can think of is that to write a known pattern to scratch pad
+register and read back the value to confirm if it is locked/unlocked.
+But don't think this is a good approach.
+
+Thanks and regards,
+Lokesh
