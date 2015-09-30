@@ -1,34 +1,50 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH 2/2] thermal: ti-soc-thermal: add OMAP36xx support
-Date: Wed, 30 Sep 2015 10:40:31 +0100
-Message-ID: <9hhlhbo5jow.fsf@e105922-lin.cambridge.arm.com>
-References: <1443561552-23254-1-git-send-email-edubezval@gmail.com>
-	<1443561552-23254-3-git-send-email-edubezval@gmail.com>
+From: Lokesh Vutla <a0131933@ti.com>
+Subject: Re: [PATCHv4] arm: omap2: timer: always define omap4_local_timer_init
+Date: Wed, 30 Sep 2015 15:11:54 +0530
+Message-ID: <560BAE62.9000503@ti.com>
+References: <1443543337-2904-1-git-send-email-balbi@ti.com>
+ <560B9210.1080700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443561552-23254-3-git-send-email-edubezval@gmail.com> (Eduardo
-	Valentin's message of "Tue, 29 Sep 2015 14:19:12 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: pavel@ucw.cz, linux-omap@vger.kernel.org, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Eduardo Valentin <edubezva@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <560B9210.1080700@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Eduardo,
 
-Eduardo Valentin <edubezval@gmail.com> writes:
 
-> Add OMAP36xx support to ti-soc-thermal driver. This
-> chip is also unreliable. The data provided here is
-> based on OMAP36xx TRM:
-> http://www.ti.com/lit/ug/swpu177aa/swpu177aa.pdf
->
-> Signed-off-by: Eduardo Valentin <edubezva@gmail.com>
-> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+On Wednesday 30 September 2015 01:11 PM, Lokesh Vutla wrote:
+> Hi Felipe,
+> 
+> On Tuesday 29 September 2015 09:45 PM, Felipe Balbi wrote:
+>> omap4_local_timer_init() can be used by other
+>> platforms as is. At least AM437x wants to use
+>> it. Instead of making omap4-only and providing
+>> a stub for builds without OMAP4, we can just
+>> make sure that function is always available
+>> for all SoCs that need it.
+> You might also want to update init_time function pointer for AM43xx in
+> board_generic.c or is there any dependency for this patch? With this
+> patch alone AM43xx only build is broken.
+> 
+> arch/arm/mach-omap2/built-in.o:(.arch.info.init+0x54): undefined
+> reference to `omap3_gptimer_timer_init'
+> Makefile:944: recipe for target 'vmlinux' failed
+> make: *** [vmlinux] Error 1
+I think the following series needs to be applied.
+http://www.mail-archive.com/linux-omap%40vger.kernel.org/msg119840.html
+Sorry for the noise.
 
-You've got duplicate Signed-off-bys in this patch. 
-
-Thanks,
-Punit
-
-[...]
+Thanks and regards,
+Lokesh
