@@ -1,112 +1,134 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] clk: ti: dflt: fix enable_reg validity check
-Date: Tue, 29 Sep 2015 17:37:47 -0500
-Message-ID: <1443566267-50225-1-git-send-email-s-anna@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Wed, 30 Sep 2015 10:39:04 +0300
+Message-ID: <560B9198.70103@ti.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Mike Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dwmw2@infradead.org, computersforpeace@gmail.com
+Cc: tony@atomide.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The default clock enabling functions for TI clocks -
-omap2_dflt_clk_enable() and omap2_dflt_clk_disable() perform a
-NULL check for the enable_reg field of the clk_hw_omap structure.
-This enable_reg field however is merely a combination of the index
-of the master IP module, and the offset from the master IP module's
-base address. A value of 0 is perfectly valid, and the current error
-checking will fail in these cases. The issue was found when trying
-to enable the iva2_ck clock on OMAP3 platforms.
+Brian/David,
 
-So, switch the check to use IS_ERR. This correction is similar to the
-logic used in commit c807dbedb5e5 ("clk: ti: fix ti_clk_get_reg_addr
-error handling").
+On 18/09/15 17:53, Roger Quadros wrote:
+> Hi,
+> 
+> We do a couple of things in this series which result in
+> cleaner device tree implementation, faster perfomance and
+> multi-platform support. As an added bonus we get new GPI/Interrupt pins
+> for use in the system.
+> 
+> - Establish a custom interface between NAND and GPMC driver. This is
+> needed because all of the NAND registers sit in the GPMC register space.
+> Some bits like NAND IRQ are even shared with GPMC.
+> 
+> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
+> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
+> This causes performance increase when using prefetch-irq mode.
+> 30% increase in read, 17% increase in write in prefetch-irq mode.
+> 
+> - Clean up device tree support so that omap-gpmc IP and the omap2 NAND
+> driver can be used on non-OMAP platforms. e.g. Keystone.
+> 
+> - Implement GPIOCHIP + IRQCHIP for the GPMC WAITPINS. SoCs can contain
+> 2 to 4 of these and most of them would be unused otherwise. It also
+> allows a cleaner implementation of NAND Ready pin status for the NAND driver.
+> 
+> - Implement GPIOlib based NAND ready pin checking for OMAP NAND driver.
+> 
+> This series is available at
+> git@github.com:rogerq/linux.git
+> in branch
+> for-v4.4/gpmc-v3
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
-Hi Tero,
+Could you please ack the patches affecting the omap2 nand driver?
+These would be patches 4, 6, 9, 10, 11, 12, 18. Thanks.
 
-Patch done against 4.3-rc3. There are couple of similar checks in
-drivers/clk/ti/clockdomain.c, but those seem to be ok. This is
-a non-urgent fix, as there are currently no active users of
-iva2_ck in the kernel (the MMU node is disabled in DT atm).
+cheers,
+-roger
 
-Boot tested on OMAP3 Beagle-XM, AM437x GP EVM, AM335x BeagleBone
-Black, OMAP4 Panda, OMAP5 uEVM and DRA7 Beagle-X15 boards.
-
-regards
-Suman
-
-Following is the error log from a unit test of the IVA MMU on OMAP3 using
-some additional patch to enable the DTS node,
-
-[   86.626342] omap_iommu_test_init: iommu_test_init entered
-[   86.632080] omap_iommu_test iommu_test: Enabling IOMMU...
-[   86.647460] omap_iommu_test iommu_test: testing IOMMU 5d000000.mmu
-[   86.654815] omap2_dflt_clk_enable: iva2_ck missing enable_reg
-[   86.680938] ------------[ cut here ]------------
-[   86.685821] WARNING: CPU: 0 PID: 910 at drivers/clk/clk.c:675 clk_disable+0x28/0x34()
-[   86.694091] Modules linked in: iommu_dt_test(O+)
-[   86.698974] CPU: 0 PID: 910 Comm: insmod Tainted: G           O    4.3.0-rc3-00008-g61458979cbbe #40
-[   86.708618] Hardware name: Generic OMAP36xx (Flattened Device Tree)
-[   86.715240] [<c0017b44>] (unwind_backtrace) from [<c0013eac>] (show_stack+0x10/0x14)
-[   86.723419] [<c0013eac>] (show_stack) from [<c0342a04>] (dump_stack+0x84/0x9c)
-[   86.731048] [<c0342a04>] (dump_stack) from [<c003e924>] (warn_slowpath_common+0x78/0xb4)
-[   86.739593] [<c003e924>] (warn_slowpath_common) from [<c003e9fc>] (warn_slowpath_null+0x1c/0x24)
-[   86.748870] [<c003e9fc>] (warn_slowpath_null) from [<c04fe4c8>] (clk_disable+0x28/0x34)
-[   86.757324] [<c04fe4c8>] (clk_disable) from [<c0027da0>] (_disable_clocks+0x18/0x68)
-[   86.765502] [<c0027da0>] (_disable_clocks) from [<c0029cd0>] (omap_hwmod_deassert_hardreset+0xc8/0x180)
-[   86.775421] [<c0029cd0>] (omap_hwmod_deassert_hardreset) from [<c002a7cc>] (omap_device_deassert_hardreset+0x34/
-0x54)
-[   86.786621] [<c002a7cc>] (omap_device_deassert_hardreset) from [<c03d91f4>] (omap_iommu_attach_dev+0xbc/0x1fc)
-[   86.797180] [<c03d91f4>] (omap_iommu_attach_dev) from [<c03d5f9c>] (__iommu_attach_device+0x1c/0x80)
-[   86.806854] [<c03d5f9c>] (__iommu_attach_device) from [<bf000150>] (omap_iommu_test_probe+0xd0/0x21c [iommu_dt_t
-est])
-[   86.818054] [<bf000150>] (omap_iommu_test_probe [iommu_dt_test]) from [<c03e03ec>] (platform_drv_probe+0x44/0xa4
-)
-[   86.828857] [<c03e03ec>] (platform_drv_probe) from [<c03de9b0>] (driver_probe_device+0x1f4/0x2f0)
-[   86.838195] [<c03de9b0>] (driver_probe_device) from [<c03deb40>] (__driver_attach+0x94/0x98)
-[   86.847045] [<c03deb40>] (__driver_attach) from [<c03dce34>] (bus_for_each_dev+0x6c/0xa0)
-[   86.855651] [<c03dce34>] (bus_for_each_dev) from [<c03de0d4>] (bus_add_driver+0x18c/0x214)
-[   86.864349] [<c03de0d4>] (bus_add_driver) from [<c03df494>] (driver_register+0x78/0xf8)
-[   86.872772] [<c03df494>] (driver_register) from [<c0009804>] (do_one_initcall+0x80/0x1dc)
-[   86.881378] [<c0009804>] (do_one_initcall) from [<c0118b60>] (do_init_module+0x5c/0x1d0)
-[   86.889892] [<c0118b60>] (do_init_module) from [<c00cabf4>] (load_module+0x1818/0x1f70)
-[   86.898315] [<c00cabf4>] (load_module) from [<c00cb428>] (SyS_init_module+0xdc/0x14c)
-[   86.906555] [<c00cb428>] (SyS_init_module) from [<c000f6e0>] (ret_fast_syscall+0x0/0x1c)
-[   86.915039] ---[ end trace 49b229a4289ab8b2 ]---
-[   86.919891] omap_hwmod: mmu_iva: failed to hardreset
-[   86.925384] omap-iommu 5d000000.mmu: deassert_reset failed: -16
-[   86.931640] omap_iommu_test iommu_test: can't get omap iommu: -16
-[   86.938140] omap_iommu_test iommu_test: can't attach iommu device: -16
-[   86.945068] omap_iommu_test_init failed, ret = -16
-
- drivers/clk/ti/clkt_dflt.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/clk/ti/clkt_dflt.c b/drivers/clk/ti/clkt_dflt.c
-index 90d7d8a21c49..1ddc288fce4e 100644
---- a/drivers/clk/ti/clkt_dflt.c
-+++ b/drivers/clk/ti/clkt_dflt.c
-@@ -222,7 +222,7 @@ int omap2_dflt_clk_enable(struct clk_hw *hw)
- 		}
- 	}
- 
--	if (unlikely(!clk->enable_reg)) {
-+	if (unlikely(IS_ERR(clk->enable_reg))) {
- 		pr_err("%s: %s missing enable_reg\n", __func__,
- 		       clk_hw_get_name(hw));
- 		ret = -EINVAL;
-@@ -264,7 +264,7 @@ void omap2_dflt_clk_disable(struct clk_hw *hw)
- 	u32 v;
- 
- 	clk = to_clk_hw_omap(hw);
--	if (!clk->enable_reg) {
-+	if (IS_ERR(clk->enable_reg)) {
- 		/*
- 		 * 'independent' here refers to a clock which is not
- 		 * controlled by its parent.
--- 
-2.5.0
-
+> 
+> Changelog:
+> v3:
+> -Fixed and tested NAND using legacy boot on omap3-beagle.
+> -Support rising and falling edge interrupts on WAITpins.
+> -Update DT node of all gpmc users.
+> 
+> Roger Quadros (27):
+>   ARM: OMAP2+: gpmc: Add platform data
+>   ARM: OMAP2+: gpmc: Add gpmc timings and settings to platform data
+>   memory: omap-gpmc: Introduce GPMC to NAND interface
+>   mtd: nand: omap2: Use gpmc_omap_get_nand_ops() to get NAND registers
+>   memory: omap-gpmc: Add GPMC-NAND ops to get writebufferempty status
+>   mtd: nand: omap2: Switch to using GPMC-NAND ops for writebuffer empty
+>     check
+>   memory: omap-gpmc: Remove NAND IRQ code
+>   memory: omap-gpmc: Add IRQ ops for GPMC-NAND interface
+>   mtd: nand: omap2: manage NAND interrupts
+>   mtd: nand: omap: Copy platform data parameters to omap_nand_info data
+>   mtd: nand: omap: Clean up device tree support
+>   mtd: nand: omap: Update DT binding documentation
+>   memory: omap-gpmc: Prevent mapping into 1st 16MB
+>   memory: omap-gpmc: Move device tree binding to correct location
+>   memory: omap-gpmc: Support general purpose input for WAITPINs
+>   memory: omap-gpmc: Reserve WAITPIN if needed for WAIT monitoring
+>   memory: omap-gpmc: Add irqchip support to the gpiochip
+>   mtd: nand: omap2: Implement NAND ready using gpiolib
+>   memory: omap-gpmc: Prevent GPMC_STATUS from being accessed via
+>     gpmc_regs
+>   ARM: dts: dra7: Fix NAND device nodes.
+>   ARM: dts: dra7x-evm: Provide NAND ready pin
+>   ARM: dts: am437x: Fix NAND device nodes
+>   ARM: dts: am437x-gp-evm: Provide NAND ready pin
+>   ARM: dts: am335x: Fix NAND device nodes
+>   ARM: dts: am335x: Provide NAND ready pin
+>   ARM: dts: dm816x: Fix gpmc and NAND node
+>   ARM: dts: omap3: Fix gpmc and NAND nodes
+> 
+>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  | 130 -----
+>  .../bindings/memory-controllers/omap-gpmc.txt      | 130 +++++
+>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  16 +-
+>  arch/arm/boot/dts/am335x-chilisom.dtsi             |   7 +-
+>  arch/arm/boot/dts/am335x-evm.dts                   |   7 +-
+>  arch/arm/boot/dts/am335x-igep0033.dtsi             |   7 +-
+>  arch/arm/boot/dts/am33xx.dtsi                      |   4 +
+>  arch/arm/boot/dts/am4372.dtsi                      |   4 +
+>  arch/arm/boot/dts/am437x-gp-evm.dts                |   8 +-
+>  arch/arm/boot/dts/am43x-epos-evm.dts               |   8 +-
+>  arch/arm/boot/dts/dm8168-evm.dts                   |   7 +-
+>  arch/arm/boot/dts/dm816x.dtsi                      |   4 +
+>  arch/arm/boot/dts/dra7-evm.dts                     |   6 +-
+>  arch/arm/boot/dts/dra7.dtsi                        |   4 +
+>  arch/arm/boot/dts/dra72-evm.dts                    |   6 +-
+>  arch/arm/boot/dts/logicpd-torpedo-som.dtsi         |   7 +-
+>  arch/arm/boot/dts/omap3-beagle.dts                 |   2 +
+>  arch/arm/boot/dts/omap3-cm-t3x.dtsi                |   5 +-
+>  arch/arm/boot/dts/omap3-devkit8000-common.dtsi     |   3 +
+>  arch/arm/boot/dts/omap3-evm-37xx.dts               |   7 +-
+>  arch/arm/boot/dts/omap3-gta04.dtsi                 |   3 +
+>  arch/arm/boot/dts/omap3-igep.dtsi                  |   5 +-
+>  arch/arm/boot/dts/omap3-igep0020-common.dtsi       |   4 +-
+>  arch/arm/boot/dts/omap3-igep0030-common.dtsi       |   4 +
+>  arch/arm/boot/dts/omap3-ldp.dts                    |   9 +-
+>  arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   5 +-
+>  arch/arm/boot/dts/omap3-pandora-common.dtsi        |   3 +
+>  arch/arm/boot/dts/omap3-tao3530.dtsi               |   5 +-
+>  arch/arm/boot/dts/omap3.dtsi                       |   4 +
+>  arch/arm/boot/dts/omap3430-sdp.dts                 |   5 +-
+>  arch/arm/mach-omap2/gpmc-nand.c                    |  11 +-
+>  drivers/memory/omap-gpmc.c                         | 640 ++++++++++++---------
+>  drivers/mtd/nand/omap2.c                           | 261 ++++++---
+>  include/linux/omap-gpmc.h                          | 183 ++----
+>  include/linux/platform_data/gpmc-omap.h            | 167 ++++++
+>  include/linux/platform_data/mtd-nand-omap2.h       |  12 +-
+>  36 files changed, 1045 insertions(+), 648 deletions(-)
+>  delete mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>  create mode 100644 Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+>  create mode 100644 include/linux/platform_data/gpmc-omap.h
+> 
