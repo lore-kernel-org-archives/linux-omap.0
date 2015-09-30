@@ -1,79 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 Subject: Re: [RFC/PATCH 00/11] arm: omap: counter32k rework
-Date: Wed, 30 Sep 2015 09:13:38 -0500
-Message-ID: <20150930141338.GC31865@saruman.tx.rr.com>
-References: <1443559446-26969-1-git-send-email-balbi@ti.com>
- <1986790.syN3WBv9AR@wuerfel>
-Reply-To: <balbi@ti.com>
+Date: Wed, 30 Sep 2015 16:42:21 +0200
+Message-ID: <3705422.OMk7ysE7Jn@wuerfel>
+References: <1443559446-26969-1-git-send-email-balbi@ti.com> <1986790.syN3WBv9AR@wuerfel> <20150930141338.GC31865@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9Ek0hoCL9XbhcSqy"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1986790.syN3WBv9AR@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, daniel.lezcano@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150930141338.GC31865-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---9Ek0hoCL9XbhcSqy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 30 September 2015 09:13:38 Felipe Balbi wrote:
+> On Wed, Sep 30, 2015 at 10:22:46AM +0200, Arnd Bergmann wrote:
+> > On Tuesday 29 September 2015 15:43:55 Felipe Balbi wrote:
+> > > 
+> > > the following patches de-obfuscate arch/arm/mach-omap2/timer.c
+> > > and start moving code to drivers/clocksource. So far only counter32k
+> > > has been moved over.
+> > > 
+> > > Note that we can't get rid of all the code (yet) because there are
+> > > still platforms relying to legacy boot and because of the strong
+> > > coupling with OMAP's hwmod layer.
+> > > 
+> > > This is, for now, an RFC and has be written on top of [1]. Boot tested
+> > > with AM335x and AM437x.
+> > > 
+> > > [1] http://marc.info/?l=linux-omap&m=144354336924308&w=2
+> > 
+> > Looks very nice!
+> > 
+> > > ps: if anybody has a good idea on how to get rid of
+> > > register_persistent_clock(), please let me know
+> > 
+> > I don't think we want to get rid of that, because it is the more
+> > accurate interface. IIRC systems that have an RTC will use
+> > timekeeping_inject_sleeptime64() in rtc_resume(). I don't know however
+> > how the two methods are coordinated, i.e. how the kernel ensures that
+> > exactly one of the two is used, but never both.
+> 
+> however register_persistent_clock() is an ARM-only thing, the question
+> was more towards that. Do we want to continue using the ARM-only
+> register_persistent_clock() or is there a more generic version of it ?
 
-On Wed, Sep 30, 2015 at 10:22:46AM +0200, Arnd Bergmann wrote:
-> On Tuesday 29 September 2015 15:43:55 Felipe Balbi wrote:
-> >=20
-> > the following patches de-obfuscate arch/arm/mach-omap2/timer.c
-> > and start moving code to drivers/clocksource. So far only counter32k
-> > has been moved over.
-> >=20
-> > Note that we can't get rid of all the code (yet) because there are
-> > still platforms relying to legacy boot and because of the strong
-> > coupling with OMAP's hwmod layer.
-> >=20
-> > This is, for now, an RFC and has be written on top of [1]. Boot tested
-> > with AM335x and AM437x.
-> >=20
-> > [1] http://marc.info/?l=3Dlinux-omap&m=3D144354336924308&w=3D2
->=20
-> Looks very nice!
->=20
-> > ps: if anybody has a good idea on how to get rid of
-> > register_persistent_clock(), please let me know
->=20
-> I don't think we want to get rid of that, because it is the more
-> accurate interface. IIRC systems that have an RTC will use
-> timekeeping_inject_sleeptime64() in rtc_resume(). I don't know however
-> how the two methods are coordinated, i.e. how the kernel ensures that
-> exactly one of the two is used, but never both.
+Ah, got it.
 
-however register_persistent_clock() is an ARM-only thing, the question
-was more towards that. Do we want to continue using the ARM-only
-register_persistent_clock() or is there a more generic version of it ?
+I wouldn't worry about it at the moment, the read_persistent_clock64
+interface is very rarely used: only arm, ia64, mips/lasat and s390
+define it at all, only arm has more than one implementation (omap
+and tegra) and the tegra, ia64 and mips implementations should really
+use timekeeping_inject_sleeptime64() instead.
 
---=20
-balbi
+read_boot_clock64() is even rarer: only s390 defines it, apparently
+because it is the only architecture that uses a single register for
+wall-clock time and high-resolution time (it has a 96-bit
+quarternanosecond register that is synchronized before booting Linux).	
 
---9Ek0hoCL9XbhcSqy
-Content-Type: application/pgp-signature; name="signature.asc"
+TEGRA folks: the tegra_read_persistent_clock() implementation apparently
+predates the Tegra RTC driver and I wonder if they actually do the
+right thing in combination. Could it be that the wall time forwards
+twice as fast as it should during resume when the RTC driver is loaded?
+Could it be that we can simply remove  tegra_read_persistent_clock()
+and the register_persistent_clock() infrastructure?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWC+4SAAoJEIaOsuA1yqREiRcQAItkPDxK7EryD3vLQQumF0PD
-M/Z5paWdRlMeMC+gl1A/0OoYi13H87BM3LxcR0nVuyT9mX6Glo2thqJJo8fwBP63
-E0udfhOyRxWY2VgY6bLtF+tHDDXmkqZ6OE/UWDe7xPlsp60gzG84V37ol5jia77C
-1wrVIMV7MYNRjUGJAg0q5u66PSVxWCom6liPlTScB2P12bk2CH3JQp+oIZBwbFh+
-JkM5CROsz2aq6nksA+8koMRj4M3Ui6WBOirvQN4ccVpztB3Xse3mEd/w4jPp4z+x
-AN9wPNVo2zlG4ywW178OZ+On6CWJ9F297aE9lkTGB9jr21cWtEDWwSrv0KNsWKyk
-9dUZsIAQB7Y0AD4VCUcdY9t+k8n70tgfv955oMDcH3G9/8126ioYEQSUTmGaQBBD
-PzNlEzjYCgnKQ2g3ZSPrlPcqKl/u+oFgug03ovkzyasGCiPgLN9dwEXxxI7Qq0JI
-94fVNRgNPXHlFqimoGX/XhG/51esuPV/rjvvzen3IMmj14k4rCE8UtoAmXwn7AJ3
-qhh9WWr2XcEMH/kMqbxgyKAY87y4pxYIX4VWIaeyCSKtV3fHKdk7yI8RdtCiWIKR
-LCKPtSdMxdDj0bW2HPykOZuydAJQBtc5ur46/2gm3bzl+3YVv0K/oLTZraVxQinZ
-tn3B4fTvZ//6ih3Lrogz
-=Yo6n
------END PGP SIGNATURE-----
-
---9Ek0hoCL9XbhcSqy--
+	Arnd
