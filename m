@@ -1,164 +1,56 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] clk: ti: drop locking code from mux/divider drivers
-Date: Thu, 1 Oct 2015 14:20:37 -0500
-Message-ID: <1443727237-21809-1-git-send-email-grygorii.strashko@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/4] ARM: OMAP: dmtimer: check for fixed timers during config
+Date: Thu, 1 Oct 2015 14:32:37 -0500
+Message-ID: <1443727960-32232-2-git-send-email-s-anna@ti.com>
+References: <1443727960-32232-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443727960-32232-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-TI's mux and divider clock drivers do not require locking and they do
-not initialize internal spinlocks. This code was occasionally
-copy-posted from generic mux/divider drivers. So remove it.
+The omap_dm_timer_set_source() function provides a means for client
+users to configure the mux parent for a GPTimer's functional clock.
+However, not all timers are configurable (Eg: Timer12 on DRA7 is fed
+by an internal 32k oscillator clock, and does not have configurable
+parent clocks). So, check for such cases and proceed with out throwing
+an error.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/ti/divider.c | 16 +++-------------
- drivers/clk/ti/mux.c     | 15 +++------------
- 2 files changed, 6 insertions(+), 25 deletions(-)
+ arch/arm/plat-omap/dmtimer.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index 5b17268..df25583 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -214,7 +214,6 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
- {
- 	struct clk_divider *divider;
- 	unsigned int div, value;
--	unsigned long flags = 0;
- 	u32 val;
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 8ca94d379bc3..25693e722f1f 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -36,6 +36,7 @@
+  */
  
- 	if (!hw || !rate)
-@@ -228,9 +227,6 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
- 	if (value > div_mask(divider))
- 		value = div_mask(divider);
+ #include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/module.h>
+ #include <linux/io.h>
+ #include <linux/device.h>
+@@ -504,6 +505,10 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ 	if (IS_ERR(timer->fclk))
+ 		return -EINVAL;
  
--	if (divider->lock)
--		spin_lock_irqsave(divider->lock, flags);
--
- 	if (divider->flags & CLK_DIVIDER_HIWORD_MASK) {
- 		val = div_mask(divider) << (divider->shift + 16);
- 	} else {
-@@ -240,9 +236,6 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
- 	val |= value << divider->shift;
- 	ti_clk_ll_ops->clk_writel(val, divider->reg);
- 
--	if (divider->lock)
--		spin_unlock_irqrestore(divider->lock, flags);
--
- 	return 0;
- }
- 
-@@ -256,8 +249,7 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- 				     const char *parent_name,
- 				     unsigned long flags, void __iomem *reg,
- 				     u8 shift, u8 width, u8 clk_divider_flags,
--				     const struct clk_div_table *table,
--				     spinlock_t *lock)
-+				     const struct clk_div_table *table)
- {
- 	struct clk_divider *div;
- 	struct clk *clk;
-@@ -288,7 +280,6 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- 	div->shift = shift;
- 	div->width = width;
- 	div->flags = clk_divider_flags;
--	div->lock = lock;
- 	div->hw.init = &init;
- 	div->table = table;
- 
-@@ -421,7 +412,7 @@ struct clk *ti_clk_register_divider(struct ti_clk *setup)
- 
- 	clk = _register_divider(NULL, setup->name, div->parent,
- 				flags, (void __iomem *)reg, div->bit_shift,
--				width, div_flags, table, NULL);
-+				width, div_flags, table);
- 
- 	if (IS_ERR(clk))
- 		kfree(table);
-@@ -584,8 +575,7 @@ static void __init of_ti_divider_clk_setup(struct device_node *node)
- 		goto cleanup;
- 
- 	clk = _register_divider(NULL, node->name, parent_name, flags, reg,
--				shift, width, clk_divider_flags, table,
--				NULL);
-+				shift, width, clk_divider_flags, table);
- 
- 	if (!IS_ERR(clk)) {
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index 69f08a1..dab9ba8 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -69,7 +69,6 @@ static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
- {
- 	struct clk_mux *mux = to_clk_mux(hw);
- 	u32 val;
--	unsigned long flags = 0;
- 
- 	if (mux->table) {
- 		index = mux->table[index];
-@@ -81,9 +80,6 @@ static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
- 			index++;
- 	}
- 
--	if (mux->lock)
--		spin_lock_irqsave(mux->lock, flags);
--
- 	if (mux->flags & CLK_MUX_HIWORD_MASK) {
- 		val = mux->mask << (mux->shift + 16);
- 	} else {
-@@ -93,9 +89,6 @@ static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
- 	val |= index << mux->shift;
- 	ti_clk_ll_ops->clk_writel(val, mux->reg);
- 
--	if (mux->lock)
--		spin_unlock_irqrestore(mux->lock, flags);
--
- 	return 0;
- }
- 
-@@ -109,7 +102,7 @@ static struct clk *_register_mux(struct device *dev, const char *name,
- 				 const char **parent_names, u8 num_parents,
- 				 unsigned long flags, void __iomem *reg,
- 				 u8 shift, u32 mask, u8 clk_mux_flags,
--				 u32 *table, spinlock_t *lock)
-+				 u32 *table)
- {
- 	struct clk_mux *mux;
- 	struct clk *clk;
-@@ -133,7 +126,6 @@ static struct clk *_register_mux(struct device *dev, const char *name,
- 	mux->shift = shift;
- 	mux->mask = mask;
- 	mux->flags = clk_mux_flags;
--	mux->lock = lock;
- 	mux->table = table;
- 	mux->hw.init = &init;
- 
-@@ -175,7 +167,7 @@ struct clk *ti_clk_register_mux(struct ti_clk *setup)
- 
- 	return _register_mux(NULL, setup->name, mux->parents, mux->num_parents,
- 			     flags, (void __iomem *)reg, mux->bit_shift, mask,
--			     mux_flags, NULL, NULL);
-+			     mux_flags, NULL);
- }
- 
- /**
-@@ -227,8 +219,7 @@ static void of_mux_clk_setup(struct device_node *node)
- 	mask = (1 << fls(mask)) - 1;
- 
- 	clk = _register_mux(NULL, node->name, parent_names, num_parents,
--			    flags, reg, shift, mask, clk_mux_flags, NULL,
--			    NULL);
-+			    flags, reg, shift, mask, clk_mux_flags, NULL);
- 
- 	if (!IS_ERR(clk))
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
++	/* Check if the clock has parents if not no point checking */
++	if (!clk_hw_get_num_parents(__clk_get_hw(timer->fclk)))
++		return 0;
++
+ 	switch (source) {
+ 	case OMAP_TIMER_SRC_SYS_CLK:
+ 		parent_name = "timer_sys_ck";
 -- 
-2.5.1
+2.6.0
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
