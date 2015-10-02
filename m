@@ -1,32 +1,38 @@
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] clk: ti: dflt: fix enable_reg validity check
-Date: Fri, 2 Oct 2015 11:21:33 -0700
-Message-ID: <20151002182133.GO12338@codeaurora.org>
-References: <1443566267-50225-1-git-send-email-s-anna@ti.com>
+Subject: Re: [GIT PULL] clock: ti: fixes for 4.3-rc
+Date: Fri, 2 Oct 2015 11:28:11 -0700
+Message-ID: <20151002182811.GP12338@codeaurora.org>
+References: <560E26EC.1030801@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1443566267-50225-1-git-send-email-s-anna@ti.com>
+In-Reply-To: <560E26EC.1030801@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-clk@vger.kernel.org, "tony@atomide.com" <tony@atomide.com>, Mike Turquette <mturquette@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/29, Suman Anna wrote:
-> diff --git a/drivers/clk/ti/clkt_dflt.c b/drivers/clk/ti/clkt_dflt.c
-> index 90d7d8a21c49..1ddc288fce4e 100644
-> --- a/drivers/clk/ti/clkt_dflt.c
-> +++ b/drivers/clk/ti/clkt_dflt.c
-> @@ -222,7 +222,7 @@ int omap2_dflt_clk_enable(struct clk_hw *hw)
->  		}
->  	}
->  
-> -	if (unlikely(!clk->enable_reg)) {
-> +	if (unlikely(IS_ERR(clk->enable_reg))) {
+On 10/02, Tero Kristo wrote:
+> Hi Stephen, Mike,
+> 
+> A few TI clock driver fixes to pull against 4.3-rc.
+> 
+> -Tero
+> 
+> ================
+> 
+> The following changes since commit 9ffecb10283508260936b96022d4ee43a7798b4c:
+> 
+>   Linux 4.3-rc3 (2015-09-27 07:50:08 -0400)
+> 
+> are available in the git repository at:
+> 
+>   https://github.com/t-kristo/linux-pm.git for-4.3-rc/ti-clk-fixes
+> 
 
-IS_ERR() already has an unlikely inside it, so the unlikely is
-redundant here.
+Thanks, pulled. I guess we'll wait until Monday next week to send
+off to Linus so this can go through a couple -next cycles.
 
 -- 
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
