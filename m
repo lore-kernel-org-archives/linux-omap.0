@@ -1,60 +1,47 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Queueing b0a688ddcc50 "usb: musb: cppi41: allow it to work
- again" for -stable
-Date: Fri, 2 Oct 2015 11:09:02 -0500
-Message-ID: <20151002160902.GF5552@saruman.tx.rr.com>
+From: Ezequiel Garcia <ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
+Subject: Re: Queueing b0a688ddcc50 "usb: musb: cppi41: allow it to work again"
+ for -stable
+Date: Fri, 2 Oct 2015 14:16:50 -0300
+Message-ID: <CAAEAJfALjV2BCJwzd20TQA3CWa1VZRM5vPv6CydrBuMJc=vVAw@mail.gmail.com>
 References: <CAAEAJfC7z=dvw_5vgXDBWVQdKA5jDpfECYv4Jy67YaT7219uJA@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+	<20151002160902.GF5552@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cpvLTH7QU4gwfq3S"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAEAJfC7z=dvw_5vgXDBWVQdKA5jDpfECYv4Jy67YaT7219uJA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151002160902.GF5552-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---cpvLTH7QU4gwfq3S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 2 October 2015 at 13:09, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> On Fri, Oct 02, 2015 at 02:23:45AM -0300, Ezequiel Garcia wrote:
+>> Hello,
+>>
+>> Commit b0a688ddcc50 "usb: musb: cppi41: allow it to work again" seem=
+s
+>> to fix a regression. It applies cleanly on v4.1 and removes the
+>> "musb-hdrc musb-hdrc.1.auto: Need DT for the DMA engine." error.
+>>
+>> Any chance you can queue it for -stable?
+>
+> Have a look at Documentation/stable_kernel_rules.txt, you can do a pr=
+oper
+> request for Greg and he will make sure it gets there.
+>
 
-On Fri, Oct 02, 2015 at 02:23:45AM -0300, Ezequiel Garcia wrote:
-> Hello,
->=20
-> Commit b0a688ddcc50 "usb: musb: cppi41: allow it to work again" seems
-> to fix a regression. It applies cleanly on v4.1 and removes the
-> "musb-hdrc musb-hdrc.1.auto: Need DT for the DMA engine." error.
->=20
-> Any chance you can queue it for -stable?
+Sure, I will.
 
-Have a look at Documentation/stable_kernel_rules.txt, you can do a proper
-request for Greg and he will make sure it gets there.
+Maybe next time you could add a Cc: stable to these kinds of fixes, alo=
+ng with
+a proper Fixes tag, so the -stable folks can pick them automatically.
 
+Thanks!
 --=20
-balbi
-
---cpvLTH7QU4gwfq3S
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWDqweAAoJEIaOsuA1yqREW1wP/jXv3mLIfiN1KXkHQUM6/tSi
-HaItNhlnNZn0JxUJuYQQGmAHX2NLiH142uyZOJgW9Td5NH+iFdrowpM0KK/hJfTW
-yIM3oYtulhQtlIrY+V+w7xROFdA+McjMtejYn8jTN+a/9tpJlGi/XoQKCh7oTYVt
-Fnzjt4siHc6A08Yc9aH527AZw6oWMIdNneztEuvSCmiC07nNOVYHvQ7UB8sxp9v8
-AKYsYrBeDLCTbCSGI3Q+PlCJF5yE2kYZlnCINMy69hiVaNwnYrZru+iYua0MG9G2
-0Dh96Ledtb/41SwWr/CKwlNYh9yvS88y9rL2h5C7KvbUPqxadmsOmx14Hzwqzshw
-se7mQHRW7JT/yXkTG0WPeTncyC1Vo+EasH7bHUYnqXBqy84/XjpiLUxra/mefN/a
-sKXFGUZ5JODeXljjg4/+yg4NKh+jzYluvA5M9BkmewuwC2egNbEcUxL6aHke8USz
-cgCJo6zUU80/mDjvyUIf4QSwUeJDoeO6zEFp8s77Peh0Y1CTPcC+z4IDmVOgOW2y
-cbDURnGAiXCmj7/822Nf53prGG/9Qumb9ukH3FvJVLYBR0PFkpKQV2+PfQ7NMnLo
-UojcWuCjY+XXDHs3AIueiCtop/HIYm+0xavD4Qfw9HoF6apR1YKv03pXYfHYUx3U
-btMl5/I+PF92vDYlIzXp
-=s7so
------END PGP SIGNATURE-----
-
---cpvLTH7QU4gwfq3S--
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
