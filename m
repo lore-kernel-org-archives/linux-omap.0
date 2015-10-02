@@ -1,146 +1,76 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 01/11 RESEND] ARM: OMAP: DRA7: hwmod: Add data for McASP3
-Date: Fri, 2 Oct 2015 14:55:00 +0300
-Message-ID: <560E7094.408@ti.com>
-References: <1442326206-30192-1-git-send-email-peter.ujfalusi@ti.com>
- <alpine.DEB.2.02.1509270631440.7947@utopia.booyaka.com>
- <560BB434.6080308@ti.com>
- <alpine.DEB.2.02.1510020854390.11596@utopia.booyaka.com>
- <560E6912.4030902@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/2] gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
+Date: Fri, 2 Oct 2015 05:22:15 -0700
+Message-ID: <CACRpkdbHL=uBvPDqmxSGHbn=8nu7So87zEu2sCLBcfaytwk6tg@mail.gmail.com>
+References: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
+	<1443209283-20781-2-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <560E6912.4030902@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443209283-20781-2-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Austin Schuh <austin@peloton-tech.com>, philipp@peloton-tech.com, linux-rt-users@vger.kernel.org, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/02/2015 02:22 PM, Peter Ujfalusi wrote:
-> Paul,
-> =
+On Fri, Sep 25, 2015 at 12:28 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
 
-> On 10/02/2015 12:07 PM, Paul Walmsley wrote:
->> Hello P=E9ter,
->>
->> On Wed, 30 Sep 2015, Peter Ujfalusi wrote:
->>
->>> On 09/27/2015 10:02 AM, Paul Walmsley wrote:
->>>>>  /*
->>>>> + * 'mcasp' class
->>>>> + *
->>>>> + */
->>>>> +static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc =3D {
->>>>> +	.sysc_offs	=3D 0x0004,
->>>>> +	.sysc_flags	=3D SYSC_HAS_SIDLEMODE,
->>>>> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
->>>>> +	.sysc_fields	=3D &omap_hwmod_sysc_type3,
->>>>> +};
->>>>> +
->>>>> +static struct omap_hwmod_class dra7xx_mcasp_hwmod_class =3D {
->>>>> +	.name	=3D "mcasp",
->>>>> +	.sysc	=3D &dra7xx_mcasp_sysc,
->>>>> +};
->>>>> +
->>>>> +/* mcasp3 */
->>>>> +static struct omap_hwmod dra7xx_mcasp3_hwmod =3D {
->>>>> +	.name		=3D "mcasp3",
->>>>> +	.class		=3D &dra7xx_mcasp_hwmod_class,
->>>>> +	.clkdm_name	=3D "l4per2_clkdm",
->>>>> +	.main_clk	=3D "mcasp3_ahclkx_mux",
->>>>
->>>> I'd expect this clock to be something derived from mcasp3_aux_gfclk, =
+> The PM runtime API can't be used in atomic contex on -RT even if
+> it's configured as irqsafe. As result, below error report can
+> be seen when PM runtime API called from IRQ chip's callbacks
+> irq_startup/irq_shutdown/irq_set_type, because they are
+> protected by RAW spinlock:
+>
+> BUG: sleeping function called from invalid context at kernel/locking/rtmutex.c:917
+> in_atomic(): 1, irqs_disabled(): 128, pid: 96, name: insmod
+> 3 locks held by insmod/96:
+>  #0:  (&dev->mutex){......}, at: [<c04752c8>] __driver_attach+0x54/0xa0
+>  #1:  (&dev->mutex){......}, at: [<c04752d4>] __driver_attach+0x60/0xa0
+>  #2:  (class){......}, at: [<c00a408c>] __irq_get_desc_lock+0x60/0xa4
+> irq event stamp: 1834
+> hardirqs last  enabled at (1833): [<c06ab2a4>] _raw_spin_unlock_irqrestore+0x88/0x90
+> hardirqs last disabled at (1834): [<c06ab068>] _raw_spin_lock_irqsave+0x2c/0x64
+> softirqs last  enabled at (0): [<c003d220>] copy_process.part.52+0x410/0x19d8
+> softirqs last disabled at (0): [<  (null)>]   (null)
+> Preemption disabled at:[<  (null)>]   (null)
+>
+> CPU: 1 PID: 96 Comm: insmod Tainted: G        W  O    4.1.3-rt3-00618-g57e2387-dirty #184
+> Hardware name: Generic DRA74X (Flattened Device Tree)
+> [<c00190f4>] (unwind_backtrace) from [<c0014734>] (show_stack+0x20/0x24)
+> [<c0014734>] (show_stack) from [<c06a62ec>] (dump_stack+0x88/0xdc)
+> [<c06a62ec>] (dump_stack) from [<c006ca44>] (___might_sleep+0x198/0x2a8)
+> [<c006ca44>] (___might_sleep) from [<c06ab6d4>] (rt_spin_lock+0x30/0x70)
+> [<c06ab6d4>] (rt_spin_lock) from [<c04815ac>] (__pm_runtime_resume+0x68/0xa4)
+> [<c04815ac>] (__pm_runtime_resume) from [<c04123f4>] (omap_gpio_irq_type+0x188/0x1d8)
+> [<c04123f4>] (omap_gpio_irq_type) from [<c00a64e4>] (__irq_set_trigger+0x68/0x130)
+> [<c00a64e4>] (__irq_set_trigger) from [<c00a7bc4>] (irq_set_irq_type+0x44/0x6c)
+> [<c00a7bc4>] (irq_set_irq_type) from [<c00abbf8>] (irq_create_of_mapping+0x120/0x174)
+> [<c00abbf8>] (irq_create_of_mapping) from [<c0577b74>] (of_irq_get+0x48/0x58)
+> [<c0577b74>] (of_irq_get) from [<c0540a14>] (i2c_device_probe+0x54/0x15c)
+> [<c0540a14>] (i2c_device_probe) from [<c04750dc>] (driver_probe_device+0x184/0x2c8)
+> [<c04750dc>] (driver_probe_device) from [<c0475310>] (__driver_attach+0x9c/0xa0)
+> [<c0475310>] (__driver_attach) from [<c0473238>] (bus_for_each_dev+0x7c/0xb0)
+> [<c0473238>] (bus_for_each_dev) from [<c0474af4>] (driver_attach+0x28/0x30)
+> [<c0474af4>] (driver_attach) from [<c0474760>] (bus_add_driver+0x154/0x200)
+> [<c0474760>] (bus_add_driver) from [<c0476348>] (driver_register+0x88/0x108)
+> [<c0476348>] (driver_register) from [<c0541600>] (i2c_register_driver+0x3c/0x90)
+> [<c0541600>] (i2c_register_driver) from [<bf003018>] (pcf857x_init+0x18/0x24 [gpio_pcf857x])
+> [<bf003018>] (pcf857x_init [gpio_pcf857x]) from [<c000998c>] (do_one_initcall+0x128/0x1e8)
+> [<c000998c>] (do_one_initcall) from [<c06a4220>] (do_init_module+0x6c/0x1bc)
+> [<c06a4220>] (do_init_module) from [<c00dd0c8>] (load_module+0x18e8/0x21c4)
+> [<c00dd0c8>] (load_module) from [<c00ddaa0>] (SyS_init_module+0xfc/0x158)
+> [<c00ddaa0>] (SyS_init_module) from [<c000ff40>] (ret_fast_syscall+0x0/0x54)
+>
+> The IRQ chip interface defines only two callbacks which are executed in
+> non-atomic contex - irq_bus_lock/irq_bus_sync_unlock, so lets move
+> PM runtime calls there.
+>
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> Tested-by: Austin Schuh <austin@peloton-tech.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
->>>> according to Table 24-408 "Clocks and Resets" of SPRUHZ6.  Could you =
+Patch applied with Santosh's ACK.
 
->>>> please doublecheck this?
->>>
->>> I can not explain this. If I change the main_clk to "mcasp3_aux_gfclk_m=
-ux"
->>> then I can not access to McASP3 register at all.
->>> I don't see anything popping out in the clock data, nor in other places.
->>
->> OK thank you for testing that.  Maybe just add a brief comment along tho=
-se =
-
->> lines in the hwmod data, above the structure record declaration?
-> =
-
-> Now I more or less figured out the root of the issue. According to the
-> documentations the McASP in dra7xx family has following clocks:
-> ICLK - interface clock
-> GFCLK - functional clock
-> AHCLKX - Transmit high-frequency master clock
-> AHCLKR - Receive high-frequency master clock (on selected instances)
-> =
-
-> In order to access registers all of these clock lines must have valid clo=
-ck
-> signal. No other SoC with McASP has this setup.
-> As for why things seams to work when mcasp3_ahclkx_mux is set as main_clk=
- and
-> mcasp3_aux_gfclk_mux is not handled at all?
-> The mcasp3_aux_gfclk_mux by default is from PER_ABE_X1GFCLK we never chan=
-ge
-> this. On dra7/72 evm the AHCLKX is reparented to ATL2 clock.
-> When with pm_runtime we enable the device, the mcasp3_ahclkx_mux will be
-> enabled by the SW (and ATL as well) _and_ the mcasp3_aux_gfclk_mux path w=
-ill
-> be enabled by HW w/o SW.
-> The reason why I have had crash when I switched the main_clk to
-> mcasp3_aux_gfclk_mux is that even the path for the mcasp3_ahclkx_mux is
-> enabled by the HW, the ATL itself was not enabled, so it was not generati=
-ng
-> the needed clocks. Same goes backwards for the gfclk: if I reparent it to
-> let's say HDMI clock - which is not present, and handle the ahclkx clock I
-> have similar crash.
-> All in all: the McASP3 needs ICLK and both FCLK and AHCLKX to be running =
-in
-> order to be able to access registers.
-> =
-
-> This current setup works fine, the only issue I see is that the refcounts=
- for
-> the mcasp3_aux_gfclk_mux path is not reflecting the reality.
-> =
-
-> With Tero we looked at different angles of this and how to solve it w/o
-> considering it as a hack.
-> Either we go with the hwmod data with main_clk set to mcasp3_ahclkx_mux a=
-nd
-> document it in a comment, or:
-> Add new flag HWMOD_OPT_CLKS_NEEDED to hwmods to use to tell that the opti=
-onal
-> clocks are not really optional as they are needed to be enabled in order =
-to
-> access to the IP. In omap_hwmod.c's _enable_clocks() and _disable_clocks(=
-) we
-> call _enable_optional_clocks()/_disable_optional_clocks() if the flag is =
-set
-> for the hwmod and add the ahclkx_mux as optional clock for McASP3.
-
-This might be awkward to say that the optional clocks are not optional,
-probably would be better to add:
-struct omap_hwmod {
-	...
-	struct omap_hwmod_opt_clk	*needed_clks;
-	...
-	u8				needed_clks_cnt;
-	...
-};
-
-and use the needed_clks in _init_main_clk()/_enable_clocks()/_disable_clock=
-s() ?
-
--- =
-
-P=E9ter
+Yours,
+Linus Walleij
