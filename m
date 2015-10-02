@@ -1,47 +1,78 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [GIT PULL] clock: ti: fixes for 4.3-rc
-Date: Fri, 2 Oct 2015 09:40:44 +0300
-Message-ID: <560E26EC.1030801@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-clk@vger.kernel.org, "tony@atomide.com" <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, Mike Turquette <mturquette@baylibre.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v8 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Fri,  2 Oct 2015 09:14:27 +0200
+Message-ID: <1443770071-2570-1-git-send-email-tomeu.vizoso@collabora.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Stephen, Mike,
+Hi,
 
-A few TI clock driver fixes to pull against 4.3-rc.
+this is v8 of an attempt to make it easier for devices to remain in
+runtime PM when the system goes to sleep, mainly to reduce the time
+spent resuming devices.
 
--Tero
+For this, we interpret the absence of all PM callback implementations as
+it being safe to do direct_complete, so their ancestors aren't prevented
+from remaining runtime-suspended.
 
-================
+Additionally, the prepare() callback of USB devices will return 1 if
+runtime PM is enabled and the current wakeup settings are correct.
 
-The following changes since commit 9ffecb10283508260936b96022d4ee43a7798b4c:
+With these changes, a uvcvideo device (for example) stays in runtime
+suspend when the system goes to sleep and is left in that state when the
+system resumes, not delaying it unnecessarily.
 
-   Linux 4.3-rc3 (2015-09-27 07:50:08 -0400)
+Thanks,
 
-are available in the git repository at:
+Tomeu
 
-   https://github.com/t-kristo/linux-pm.git for-4.3-rc/ti-clk-fixes
+Changes in v8:
+- Add device_is_bound()
+- Add dev_pm_domain_set() and update code to use it
+- Move no_pm_callbacks field into CONFIG_PM_SLEEP
+- Call device_check_pm_callbacks only after a device is bound or unbound
 
-for you to fetch changes up to 7aba4f5201d1b7b3ddb0b03883d9edf69851ddad:
+Changes in v7:
+- Reduce indentation by adding a label in device_prepare()
 
-   clk: ti: dflt: fix enable_reg validity check (2015-10-02 09:24:28 +0300)
+Changes in v6:
+- Add stub for !CONFIG_PM.
+- Move implementation of device_check_pm_callbacks to power/main.c as it
+  doesn't belong to CONFIG_PM_SLEEP.
+- Take dev->power.lock before modifying flag.
 
-----------------------------------------------------------------
-Ben Dooks (1):
-       clk: ti: fix dual-registration of uart4_ick
+Changes in v5:
+- Check for all dev_pm_ops instances associated to a device, updating a
+  no_pm_callbacks flag at the times when that could change.
 
-Peter Ujfalusi (1):
-       clk: ti: clk-7xx: Remove hardwired ABE clock configuration
+Tomeu Vizoso (4):
+  device core: add device_is_bound()
+  PM / Domains: add setter for dev.pm_domain
+  PM / sleep: Go direct_complete if driver has no callbacks
+  USB / PM: Allow USB devices to remain runtime-suspended when sleeping
 
-Suman Anna (1):
-       clk: ti: dflt: fix enable_reg validity check
+ arch/arm/mach-omap2/omap_device.c |  7 ++++---
+ drivers/acpi/acpi_lpss.c          |  5 +++--
+ drivers/acpi/device_pm.c          |  5 +++--
+ drivers/base/dd.c                 | 12 ++++++++++--
+ drivers/base/power/clock_ops.c    |  5 +++--
+ drivers/base/power/common.c       |  8 ++++++++
+ drivers/base/power/domain.c       |  6 ++++--
+ drivers/base/power/main.c         | 33 +++++++++++++++++++++++++++++++++
+ drivers/base/power/power.h        |  6 ++++++
+ drivers/gpu/vga/vga_switcheroo.c  | 10 +++++-----
+ drivers/misc/mei/pci-me.c         |  5 +++--
+ drivers/misc/mei/pci-txe.c        |  5 +++--
+ drivers/usb/core/port.c           |  6 ++++++
+ drivers/usb/core/usb.c            | 11 ++++++++++-
+ include/linux/device.h            |  2 ++
+ include/linux/pm.h                |  1 +
+ include/linux/pm_domain.h         |  3 +++
+ 17 files changed, 107 insertions(+), 23 deletions(-)
 
-  drivers/clk/ti/clk-3xxx.c  |    2 +-
-  drivers/clk/ti/clk-7xx.c   |   18 +-----------------
-  drivers/clk/ti/clkt_dflt.c |    4 ++--
-  3 files changed, 4 insertions(+), 20 deletions(-)
+-- 
+2.4.3
+
