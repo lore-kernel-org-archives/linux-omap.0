@@ -1,11 +1,14 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [REPOST PATCH 0/2] DRA7 DSP MMU config support
-Date: Fri, 2 Oct 2015 18:02:42 -0500
-Message-ID: <1443826964-10691-1-git-send-email-s-anna@ti.com>
+Subject: [REPOST PATCH 2/2] iommu/omap: Add support for configuring dsp iommus
+	on DRA7xx
+Date: Fri, 2 Oct 2015 18:02:44 -0500
+Message-ID: <1443826964-10691-3-git-send-email-s-anna@ti.com>
+References: <1443826964-10691-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1443826964-10691-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -19,58 +22,172 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joerg,
+The DSP MMUs on DRA7xx SoC requires configuring an additional
+MMU_CONFIG register present in the DSP_SYSTEM sub module. This
+setting dictates whether the DSP Core's MDMA and EDMA traffic
+is routed through the respective MMU or not. Add the support
+to the OMAP iommu driver so that the traffic is not bypassed
+when enabling the MMUs.
 
-This is a repost of the DRA7 DSP MMU config support patch series,
-baselined on the latest rc (4.3-rc3). Details of the MMUs are summarized
-in the previous series [1], and the discussion with Tony did not require
-any changes to the code from that series. As per your request, I have
-also summarized the testing details below.
+The MMU_CONFIG register has two different bits for enabling
+each of these two MMUs present in the DSP processor sub-system
+on DRA7xx. An id field is added to the OMAP iommu object to
+identify and enable each IOMMU. The id information and the
+DSP_SYSTEM.MMU_CONFIG register programming is achieved through
+the processing of the optional "ti,syscon-mmuconfig" property.
+A proper value is assigned to the id field only when this
+property is present.
 
-I have tested the patches on OMAP3 Beagle-XM, OMAP4 Panda Board,
-OMAP5 uEVM and DRA7 Beagle-X15 boards using a OMAP IOMMU unit test
-module [2]. The unit test basically requires a test node to be added
-to the respective nodes with it using the IOMMU under test. The test
-is done during the probe of the test platform driver, with it mainly
-attaching to the IOMMU and programming the MMU pagetable. The entire
-test branch is hosted [3] for your reference and the corresponding
-logs are at [4].
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ drivers/iommu/omap-iommu.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/iommu/omap-iommu.h |  9 +++++++
+ 2 files changed, 67 insertions(+)
 
-A few additional notes regarding testing:
-- OMAP3 IVA MMU node was disabled at the moment in kernel, so it
-  had to be enabled in the test branch along with the test node. A
-  fix [5] was required in the TI CLK driver for it to pass the
-  test, and this fix will be incorporated into the current -rc cycle.
-- One MMU device is tested per boot, depending on the IOMMU used by
-  the test node.
-- This is only a preparatory series in adding the IOMMU support
-  for the DRA7 SoCs. Full enablement of DRA7 IOMMUs requires
-  DTS nodes, hwmod data and pdata quirks needed for reset management.
-  The DRA7 logs therefore do not list any MMUs and the OMAP IOMMU driver
-  is not registered even due to the absence of any compatible DT nodes.
-
-This series also had a supplementary DTS patch series previously [6], and
-I will be reposting those as well after rebasing for Tony to pick them up
-through the linux-omap tree.
-
-regards
-Suman
-
-[1] http://lists.linuxfoundation.org/pipermail/iommu/2015-July/013704.html
-[2] https://github.com/sumananna/omap-test-iommu/blob/master/main_dt.c
-[3] https://github.com/sumananna/omap-kernel/commits/iommu/test/4.3-rc3-dra7-dsp-support
-[4] https://github.com/sumananna/kernel-test-logs/tree/master/4.3-rc3-dra7-dsp-support
-[5] http://marc.info/?l=linux-omap&m=144356627831318&w=2
-[6] http://marc.info/?l=linux-omap&m=143752332808524&w=2
-
-Suman Anna (2):
-  Documentation: dt: Update OMAP iommu bindings for DRA7 DSPs
-  iommu/omap: Add support for configuring dsp iommus on DRA7xx
-
- .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 27 ++++++++++
- drivers/iommu/omap-iommu.c                         | 58 ++++++++++++++++++++++
- drivers/iommu/omap-iommu.h                         |  9 ++++
- 3 files changed, 94 insertions(+)
-
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index 36d0033c2ccb..3dc5b65f3990 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -26,6 +26,8 @@
+ #include <linux/of_iommu.h>
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
+ 
+ #include <asm/cacheflush.h>
+ 
+@@ -112,6 +114,18 @@ void omap_iommu_restore_ctx(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(omap_iommu_restore_ctx);
+ 
++static void dra7_cfg_dspsys_mmu(struct omap_iommu *obj, bool enable)
++{
++	u32 val, mask;
++
++	if (!obj->syscfg)
++		return;
++
++	mask = (1 << (obj->id * DSP_SYS_MMU_CONFIG_EN_SHIFT));
++	val = enable ? mask : 0;
++	regmap_update_bits(obj->syscfg, DSP_SYS_MMU_CONFIG, mask, val);
++}
++
+ static void __iommu_set_twl(struct omap_iommu *obj, bool on)
+ {
+ 	u32 l = iommu_read_reg(obj, MMU_CNTL);
+@@ -147,6 +161,8 @@ static int omap2_iommu_enable(struct omap_iommu *obj)
+ 
+ 	iommu_write_reg(obj, pa, MMU_TTB);
+ 
++	dra7_cfg_dspsys_mmu(obj, true);
++
+ 	if (obj->has_bus_err_back)
+ 		iommu_write_reg(obj, MMU_GP_REG_BUS_ERR_BACK_EN, MMU_GP_REG);
+ 
+@@ -161,6 +177,7 @@ static void omap2_iommu_disable(struct omap_iommu *obj)
+ 
+ 	l &= ~MMU_CNTL_MASK;
+ 	iommu_write_reg(obj, l, MMU_CNTL);
++	dra7_cfg_dspsys_mmu(obj, false);
+ 
+ 	dev_dbg(obj->dev, "%s is shutting down\n", obj->name);
+ }
+@@ -864,6 +881,42 @@ static void omap_iommu_detach(struct omap_iommu *obj)
+ 	dev_dbg(obj->dev, "%s: %s\n", __func__, obj->name);
+ }
+ 
++static int omap_iommu_dra7_get_dsp_system_cfg(struct platform_device *pdev,
++					      struct omap_iommu *obj)
++{
++	struct device_node *np = pdev->dev.of_node;
++	int ret;
++
++	if (!of_device_is_compatible(np, "ti,dra7-dsp-iommu"))
++		return 0;
++
++	if (!of_property_read_bool(np, "ti,syscon-mmuconfig")) {
++		dev_err(&pdev->dev, "ti,syscon-mmuconfig property is missing\n");
++		return -EINVAL;
++	}
++
++	obj->syscfg =
++		syscon_regmap_lookup_by_phandle(np, "ti,syscon-mmuconfig");
++	if (IS_ERR(obj->syscfg)) {
++		/* can fail with -EPROBE_DEFER */
++		ret = PTR_ERR(obj->syscfg);
++		return ret;
++	}
++
++	if (of_property_read_u32_index(np, "ti,syscon-mmuconfig", 1,
++				       &obj->id)) {
++		dev_err(&pdev->dev, "couldn't get the IOMMU instance id within subsystem\n");
++		return -EINVAL;
++	}
++
++	if (obj->id != 0 && obj->id != 1) {
++		dev_err(&pdev->dev, "invalid IOMMU instance id\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /*
+  *	OMAP Device MMU(IOMMU) detection
+  */
+@@ -907,6 +960,10 @@ static int omap_iommu_probe(struct platform_device *pdev)
+ 	if (IS_ERR(obj->regbase))
+ 		return PTR_ERR(obj->regbase);
+ 
++	err = omap_iommu_dra7_get_dsp_system_cfg(pdev, obj);
++	if (err)
++		return err;
++
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0)
+ 		return -ENODEV;
+@@ -943,6 +1000,7 @@ static const struct of_device_id omap_iommu_of_match[] = {
+ 	{ .compatible = "ti,omap2-iommu" },
+ 	{ .compatible = "ti,omap4-iommu" },
+ 	{ .compatible = "ti,dra7-iommu"	},
++	{ .compatible = "ti,dra7-dsp-iommu" },
+ 	{},
+ };
+ 
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index a656df2f9e03..59628e5017b4 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -30,6 +30,7 @@ struct iotlb_entry {
+ struct omap_iommu {
+ 	const char	*name;
+ 	void __iomem	*regbase;
++	struct regmap	*syscfg;
+ 	struct device	*dev;
+ 	struct iommu_domain *domain;
+ 	struct dentry	*debug_dir;
+@@ -48,6 +49,7 @@ struct omap_iommu {
+ 	void *ctx; /* iommu context: registres saved area */
+ 
+ 	int has_bus_err_back;
++	u32 id;
+ };
+ 
+ struct cr_regs {
+@@ -159,6 +161,13 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ 	 ((pgsz) == MMU_CAM_PGSZ_4K)  ? 0xfffff000 : 0)
+ 
+ /*
++ * DSP_SYSTEM registers and bit definitions (applicable only for DRA7xx DSP)
++ */
++#define DSP_SYS_REVISION		0x00
++#define DSP_SYS_MMU_CONFIG		0x18
++#define DSP_SYS_MMU_CONFIG_EN_SHIFT	4
++
++/*
+  * utilities for super page(16MB, 1MB, 64KB and 4KB)
+  */
+ 
 -- 
 2.6.0
