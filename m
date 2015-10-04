@@ -1,409 +1,1003 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] ARM: OMAP: dmtimer: check for fixed timers during
- config
-Date: Sun, 4 Oct 2015 01:29:26 +0800
-Message-ID: <201510040126.SfMisWv2%fengguang.wu@intel.com>
-References: <1443727960-32232-2-git-send-email-s-anna@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="NzB8fVQJ5HfG6fxh"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1443727960-32232-2-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v2 1/3] iio:adc: add iio driver for Palmas (twl6035/7) gpadc
+Date: Sun, 4 Oct 2015 18:05:55 +0200
+Message-ID: <BD561106-5339-407C-A8BC-9F95A50C39CF@goldelico.com>
+References: <86F849CB-1A50-4BEB-99C6-79FF97971DCB@goldelico.com> <cover.1443973837.git.hns@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1443973837.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Marek Belisko <marek@goldelico.com>, Pradeep Goudagunta <pgoudagunta@nvidia.com>, Nikolaus Schaller <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, gg@slimlogic.co.uk, jic23@jic23.retrosnub.co.uk
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+This driver code was found as:
 
---NzB8fVQJ5HfG6fxh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+https://android.googlesource.com/kernel/tegra/+/aaabb2e045f31e5a970109ffdaae900dd403d17e/drivers/staging/iio/adc
 
-Hi Suman,
+Fixed various compilation issues and test this driver on omap5 evm.
 
-[auto build test results on v4.3-rc3 -- if it's inappropriate base, please ignore]
-
-config: arm-omap1_defconfig (attached as .config)
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=arm 
-
-All error/warnings (new ones prefixed by >>):
-
-   arch/arm/plat-omap/dmtimer.c: In function 'omap_dm_timer_set_source':
->> arch/arm/plat-omap/dmtimer.c:509:2: error: implicit declaration of function 'clk_hw_get_num_parents' [-Werror=implicit-function-declaration]
-     if (!clk_hw_get_num_parents(__clk_get_hw(timer->fclk)))
-     ^
->> arch/arm/plat-omap/dmtimer.c:509:2: error: implicit declaration of function '__clk_get_hw' [-Werror=implicit-function-declaration]
-   cc1: some warnings being treated as errors
-
-vim +/clk_hw_get_num_parents +509 arch/arm/plat-omap/dmtimer.c
-
-   503			return pdata->set_timer_src(timer->pdev, source);
-   504	
-   505		if (IS_ERR(timer->fclk))
-   506			return -EINVAL;
-   507	
-   508		/* Check if the clock has parents if not no point checking */
- > 509		if (!clk_hw_get_num_parents(__clk_get_hw(timer->fclk)))
-   510			return 0;
-   511	
-   512		switch (source) {
-
+Signed-off-by: Pradeep Goudagunta <pgoudagunta@nvidia.com>
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Signed-off-by: Marek Belisko <marek@goldelico.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+drivers/iio/adc/Kconfig        |   9 +
+drivers/iio/adc/Makefile       |   1 +
+drivers/iio/adc/palmas_gpadc.c | 818 +++++++++++++++++++++++++++++++++++++++++
+include/linux/mfd/palmas.h     |  75 ++--
+4 files changed, 879 insertions(+), 24 deletions(-)
+create mode 100644 drivers/iio/adc/palmas_gpadc.c
 
---NzB8fVQJ5HfG6fxh
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
+index eb0cd89..05a0368 100644
+--- a/drivers/iio/adc/Kconfig
++++ b/drivers/iio/adc/Kconfig
+@@ -242,6 +242,15 @@ config NAU7802
+	  To compile this driver as a module, choose M here: the
+	  module will be called nau7802.
 
-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
++config PALMAS_GPADC
++	tristate "TI Palmas General Purpose ADC"
++	depends on MFD_PALMAS
++	help
++	  Say yes here to build support for Texas Instruments Palmas.
++
++	  Palmas series pmic chip (twl6035/6037) is used in smartphones and
++	  tablets and supports a 16 channel general purpose ADC.
++
+config QCOM_SPMI_IADC
+	tristate "Qualcomm SPMI PMIC current ADC"
+	depends on SPMI
+diff --git a/drivers/iio/adc/Makefile b/drivers/iio/adc/Makefile
+index a096210..716f112 100644
+--- a/drivers/iio/adc/Makefile
++++ b/drivers/iio/adc/Makefile
+@@ -26,6 +26,7 @@ obj-$(CONFIG_MCP320X) += mcp320x.o
+obj-$(CONFIG_MCP3422) += mcp3422.o
+obj-$(CONFIG_MEN_Z188_ADC) += men_z188_adc.o
+obj-$(CONFIG_NAU7802) += nau7802.o
++obj-$(CONFIG_PALMAS_GPADC) += palmas_gpadc.o
+obj-$(CONFIG_QCOM_SPMI_IADC) += qcom-spmi-iadc.o
+obj-$(CONFIG_QCOM_SPMI_VADC) += qcom-spmi-vadc.o
+obj-$(CONFIG_ROCKCHIP_SARADC) += rockchip_saradc.o
+diff --git a/drivers/iio/adc/palmas_gpadc.c b/drivers/iio/adc/palmas_gpadc.c
+new file mode 100644
+index 0000000..6805d81
+--- /dev/null
++++ b/drivers/iio/adc/palmas_gpadc.c
+@@ -0,0 +1,818 @@
++/*
++ * palmas-adc.c -- TI PALMAS GPADC.
++ *
++ * Copyright (c) 2013, NVIDIA Corporation. All rights reserved.
++ *
++ * Author: Pradeep Goudagunta <pgoudagunta@nvidia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ */
++
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/irq.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/pm.h>
++#include <linux/mfd/palmas.h>
++#include <linux/completion.h>
++#include <linux/iio/iio.h>
++#include <linux/iio/machine.h>
++#include <linux/iio/driver.h>
++
++#define MOD_NAME "palmas-gpadc"
++#define PALMAS_ADC_CONVERSION_TIMEOUT	(msecs_to_jiffies(5000))
++#define PALMAS_TO_BE_CALCULATED 0
++#define PALMAS_GPADC_TRIMINVALID	-1
++
++struct palmas_gpadc_info {
++/* calibration codes and regs */
++	int x1;	/* lower ideal code */
++	int x2;	/* higher ideal code */
++	int v1;	/* expected lower volt reading */
++	int v2;	/* expected higher volt reading */
++	u8 trim1_reg;	/* register number for lower trim */
++	u8 trim2_reg;	/* register number for upper trim */
++	int gain;	/* calculated from above (after reading trim regs) */
++	int offset;	/* calculated from above (after reading trim regs) */
++	int gain_error;	/* calculated from above (after reading trim regs) */
++	bool is_uncalibrated;	/* if channel has calibration data */
++};
++
++#define PALMAS_ADC_INFO(_chan, _x1, _x2, _v1, _v2, _t1, _t2, _is_uncalibrated) \
++	[PALMAS_ADC_CH_##_chan] = { \
++		.x1 = _x1, \
++		.x2 = _x2, \
++		.v1 = _v1, \
++		.v2 = _v2, \
++		.gain = PALMAS_TO_BE_CALCULATED, \
++		.offset = PALMAS_TO_BE_CALCULATED, \
++		.gain_error = PALMAS_TO_BE_CALCULATED, \
++		.trim1_reg = PALMAS_GPADC_TRIM##_t1, \
++		.trim2_reg = PALMAS_GPADC_TRIM##_t2,  \
++		.is_uncalibrated = _is_uncalibrated \
++	}
++
++static struct palmas_gpadc_info palmas_gpadc_info[] = {
++	PALMAS_ADC_INFO(IN0, 2064, 3112, 630, 950, 1, 2, false),
++	PALMAS_ADC_INFO(IN1, 2064, 3112, 630, 950, 1, 2, false),
++	PALMAS_ADC_INFO(IN2, 2064, 3112, 1260, 1900, 3, 4, false),
++	PALMAS_ADC_INFO(IN3, 2064, 3112, 630, 950, 1, 2, false),
++	PALMAS_ADC_INFO(IN4, 2064, 3112, 630, 950, 1, 2, false),
++	PALMAS_ADC_INFO(IN5, 2064, 3112, 630, 950, 1, 2, false),
++	PALMAS_ADC_INFO(IN6, 2064, 3112, 2520, 3800, 5, 6, false),
++	PALMAS_ADC_INFO(IN7, 2064, 3112, 2520, 3800, 7, 8, false),
++	PALMAS_ADC_INFO(IN8, 2064, 3112, 3150, 4750, 9, 10, false),
++	PALMAS_ADC_INFO(IN9, 2064, 3112, 5670, 8550, 11, 12, false),
++	PALMAS_ADC_INFO(IN10, 2064, 3112, 3465, 5225, 13, 14, false),
++	PALMAS_ADC_INFO(IN11, 0, 0, 0, 0, INVALID, INVALID, true),
++	PALMAS_ADC_INFO(IN12, 0, 0, 0, 0, INVALID, INVALID, true),
++	PALMAS_ADC_INFO(IN13, 0, 0, 0, 0, INVALID, INVALID, true),
++	PALMAS_ADC_INFO(IN14, 2064, 3112, 3645, 5225, 15, 16, false),
++	PALMAS_ADC_INFO(IN15, 0, 0, 0, 0, INVALID, INVALID, true),
++};
++
++/**
++ * struct palmas_gpadc - the palmas_gpadc structure
++ * @ch0_current:	channel 0 current source setting
++ *    0: 0 uA
++ *    1: 5 uA
++ *    2: 15 uA
++ *    3: 20 uA
++ * @ch3_current:	channel 3 current source setting
++ *    0: 0 uA
++ *    1: 10 uA
++ *    2: 400 uA
++ *    3: 800 uA
++ * @extended_delay:	enable the gpadc extended delay mode
++ * @auto_conversion_period:	define the auto_conversion_period
++ *
++ * This is the palmas_gpadc structure to store run-time information
++ * and pointers for this driver instance.
++ */
++
++struct palmas_gpadc {
++	struct device			*dev;
++	struct palmas			*palmas;
++	u8				ch0_current;
++	u8				ch3_current;
++	bool				extended_delay;
++	int				irq;
++	int				irq_auto_0;
++	int				irq_auto_1;
++	struct palmas_gpadc_info	*adc_info;
++	struct completion		conv_completion;
++	struct palmas_adc_wakeup_property wakeup1_data;
++	struct palmas_adc_wakeup_property wakeup2_data;
++	bool				wakeup1_enable;
++	bool				wakeup2_enable;
++	int				auto_conversion_period;
++};
++
++/*
++ * GPADC lock issue in AUTO mode.
++ * Impact: In AUTO mode, GPADC conversion can be locked after disabling AUTO
++ *	   mode feature.
++ * Details:
++ *	When the AUTO mode is the only conversion mode enabled, if the AUTO
++ *	mode feature is disabled with bit GPADC_AUTO_CTRL.  AUTO_CONV1_EN = 0
++ *	or bit GPADC_AUTO_CTRL.  AUTO_CONV0_EN = 0 during a conversion, the
++ *	conversion mechanism can be seen as locked meaning that all following
++ *	conversion will give 0 as a result.  Bit GPADC_STATUS.GPADC_AVAILABLE
++ *	will stay at 0 meaning that GPADC is busy.  An RT conversion can unlock
++ *	the GPADC.
++ *
++ * Workaround(s):
++ *	To avoid the lock mechanism, the workaround to follow before any stop
++ *	conversion request is:
++ *	Force the GPADC state machine to be ON by using the GPADC_CTRL1.
++ *		GPADC_FORCE bit = 1
++ *	Shutdown the GPADC AUTO conversion using
++ *		GPADC_AUTO_CTRL.SHUTDOWN_CONV[01] = 0.
++ *	After 100us, force the GPADC state machine to be OFF by using the
++ *		GPADC_CTRL1.  GPADC_FORCE bit = 0
++ */
++
++static int palmas_disable_auto_conversion(struct palmas_gpadc *adc)
++{
++	int ret;
++
++	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++			PALMAS_GPADC_CTRL1,
++			PALMAS_GPADC_CTRL1_GPADC_FORCE,
++			PALMAS_GPADC_CTRL1_GPADC_FORCE);
++	if (ret < 0) {
++		dev_err(adc->dev, "GPADC_CTRL1 update failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++			PALMAS_GPADC_AUTO_CTRL,
++			PALMAS_GPADC_AUTO_CTRL_SHUTDOWN_CONV1 |
++			PALMAS_GPADC_AUTO_CTRL_SHUTDOWN_CONV0,
++			0);
++	if (ret < 0) {
++		dev_err(adc->dev, "AUTO_CTRL update failed: %d\n", ret);
++		return ret;
++	}
++
++	udelay(100);
++
++	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++			PALMAS_GPADC_CTRL1,
++			PALMAS_GPADC_CTRL1_GPADC_FORCE, 0);
++	if (ret < 0)
++		dev_err(adc->dev, "GPADC_CTRL1 update failed: %d\n", ret);
++
++	return ret;
++}
++
++static irqreturn_t palmas_gpadc_irq(int irq, void *data)
++{
++	struct palmas_gpadc *adc = data;
++
++	complete(&adc->conv_completion);
++
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t palmas_gpadc_irq_auto(int irq, void *data)
++{
++	struct palmas_gpadc *adc = data;
++
++	dev_dbg(adc->dev, "Threshold interrupt %d occurs\n", irq);
++	palmas_disable_auto_conversion(adc);
++
++	return IRQ_HANDLED;
++}
++
++static int palmas_gpadc_start_mask_interrupt(struct palmas_gpadc *adc,
++							bool mask)
++{
++	int ret;
++
++	if (!mask)
++		ret = palmas_update_bits(adc->palmas, PALMAS_INTERRUPT_BASE,
++					PALMAS_INT3_MASK,
++					PALMAS_INT3_MASK_GPADC_EOC_SW, 0);
++	else
++		ret = palmas_update_bits(adc->palmas, PALMAS_INTERRUPT_BASE,
++					PALMAS_INT3_MASK,
++					PALMAS_INT3_MASK_GPADC_EOC_SW,
++					PALMAS_INT3_MASK_GPADC_EOC_SW);
++	if (ret < 0)
++		dev_err(adc->dev, "GPADC INT MASK update failed: %d\n", ret);
++
++	return ret;
++}
++
++static int palmas_gpadc_enable(struct palmas_gpadc *adc, int adc_chan,
++			       int enable)
++{
++	unsigned int mask, val;
++	int ret;
++
++	if (enable) {
++		val = (adc->extended_delay
++			<< PALMAS_GPADC_RT_CTRL_EXTEND_DELAY_SHIFT);
++		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++					PALMAS_GPADC_RT_CTRL,
++					PALMAS_GPADC_RT_CTRL_EXTEND_DELAY, val);
++		if (ret < 0) {
++			dev_err(adc->dev, "RT_CTRL update failed: %d\n", ret);
++			return ret;
++		}
++
++		mask = (PALMAS_GPADC_CTRL1_CURRENT_SRC_CH0_MASK |
++			PALMAS_GPADC_CTRL1_CURRENT_SRC_CH3_MASK |
++			PALMAS_GPADC_CTRL1_GPADC_FORCE);
++		val = (adc->ch0_current
++			<< PALMAS_GPADC_CTRL1_CURRENT_SRC_CH0_SHIFT);
++		val |= (adc->ch3_current
++			<< PALMAS_GPADC_CTRL1_CURRENT_SRC_CH3_SHIFT);
++		val |= PALMAS_GPADC_CTRL1_GPADC_FORCE;
++		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_CTRL1, mask, val);
++		if (ret < 0) {
++			dev_err(adc->dev,
++				"Failed to update current setting: %d\n", ret);
++			return ret;
++		}
++
++		mask = (PALMAS_GPADC_SW_SELECT_SW_CONV0_SEL_MASK |
++			PALMAS_GPADC_SW_SELECT_SW_CONV_EN);
++		val = (adc_chan | PALMAS_GPADC_SW_SELECT_SW_CONV_EN);
++		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_SW_SELECT, mask, val);
++		if (ret < 0) {
++			dev_err(adc->dev, "SW_SELECT update failed: %d\n", ret);
++			return ret;
++		}
++	} else {
++		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_SW_SELECT, 0);
++		if (ret < 0)
++			dev_err(adc->dev, "SW_SELECT write failed: %d\n", ret);
++
++		ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_CTRL1,
++				PALMAS_GPADC_CTRL1_GPADC_FORCE, 0);
++		if (ret < 0) {
++			dev_err(adc->dev, "CTRL1 update failed: %d\n", ret);
++			return ret;
++		}
++	}
++
++	return ret;
++}
++
++static int palmas_gpadc_read_prepare(struct palmas_gpadc *adc, int adc_chan)
++{
++	int ret;
++
++	ret = palmas_gpadc_enable(adc, adc_chan, true);
++	if (ret < 0)
++		return ret;
++
++	return palmas_gpadc_start_mask_interrupt(adc, 0);
++}
++
++static void palmas_gpadc_read_done(struct palmas_gpadc *adc, int adc_chan)
++{
++	palmas_gpadc_start_mask_interrupt(adc, 1);
++	palmas_gpadc_enable(adc, adc_chan, false);
++}
++
++static int palmas_gpadc_calibrate(struct palmas_gpadc *adc, int adc_chan)
++{
++	int k;
++	int d1;
++	int d2;
++	int ret;
++	int gain;
++	int x1 =  adc->adc_info[adc_chan].x1;
++	int x2 =  adc->adc_info[adc_chan].x2;
++	int v1 = adc->adc_info[adc_chan].v1;
++	int v2 = adc->adc_info[adc_chan].v2;
++
++	ret = palmas_read(adc->palmas, PALMAS_TRIM_GPADC_BASE,
++				adc->adc_info[adc_chan].trim1_reg, &d1);
++	if (ret < 0) {
++		dev_err(adc->dev, "TRIM read failed: %d\n", ret);
++		goto scrub;
++	}
++
++	ret = palmas_read(adc->palmas, PALMAS_TRIM_GPADC_BASE,
++				adc->adc_info[adc_chan].trim2_reg, &d2);
++	if (ret < 0) {
++		dev_err(adc->dev, "TRIM read failed: %d\n", ret);
++		goto scrub;
++	}
++
++	/* gain error calculation */
++	k = (1000 + (1000 * (d2 - d1)) / (x2 - x1));
++
++	/* gain calculation */
++	gain = ((v2 - v1) * 1000) / (x2 - x1);
++
++	adc->adc_info[adc_chan].gain_error = k;
++	adc->adc_info[adc_chan].gain = gain;
++	/* offset Calculation */
++	adc->adc_info[adc_chan].offset = (d1 * 1000) - ((k - 1000) * x1);
++
++scrub:
++	return ret;
++}
++
++static int palmas_gpadc_start_conversion(struct palmas_gpadc *adc, int adc_chan)
++{
++	unsigned int val;
++	int ret;
++
++	init_completion(&adc->conv_completion);
++	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_SW_SELECT,
++				PALMAS_GPADC_SW_SELECT_SW_START_CONV0,
++				PALMAS_GPADC_SW_SELECT_SW_START_CONV0);
++	if (ret < 0) {
++		dev_err(adc->dev, "SELECT_SW_START write failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = wait_for_completion_timeout(&adc->conv_completion,
++				PALMAS_ADC_CONVERSION_TIMEOUT);
++	if (ret == 0) {
++		dev_err(adc->dev, "conversion not completed\n");
++		return -ETIMEDOUT;
++	}
++
++	ret = palmas_bulk_read(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_SW_CONV0_LSB, &val, 2);
++	if (ret < 0) {
++		dev_err(adc->dev, "SW_CONV0_LSB read failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = val & 0xFFF;
++
++	return ret;
++}
++
++static int palmas_gpadc_get_calibrated_code(struct palmas_gpadc *adc,
++						int adc_chan, int val)
++{
++	if (!adc->adc_info[adc_chan].is_uncalibrated)
++		val  = (val*1000 - adc->adc_info[adc_chan].offset) /
++					adc->adc_info[adc_chan].gain_error;
++
++	if (val < 0) {
++		dev_err(adc->dev, "Mismatch with calibration\n");
++		return 0;
++	}
++
++	val = (val * adc->adc_info[adc_chan].gain) / 1000;
++
++	return val;
++}
++
++static int palmas_gpadc_read_raw(struct iio_dev *indio_dev,
++	struct iio_chan_spec const *chan, int *val, int *val2, long mask)
++{
++	struct  palmas_gpadc *adc = iio_priv(indio_dev);
++	int adc_chan = chan->channel;
++	int ret = 0;
++
++	if (adc_chan > PALMAS_ADC_CH_MAX)
++		return -EINVAL;
++
++	mutex_lock(&indio_dev->mlock);
++
++	switch (mask) {
++	case IIO_CHAN_INFO_RAW:
++	case IIO_CHAN_INFO_PROCESSED:
++		ret = palmas_gpadc_read_prepare(adc, adc_chan);
++		if (ret < 0)
++			goto out;
++
++		ret = palmas_gpadc_start_conversion(adc, adc_chan);
++		if (ret < 0) {
++			dev_err(adc->dev,
++			"ADC start conversion failed\n");
++			goto out;
++		}
++
++		if (mask == IIO_CHAN_INFO_PROCESSED)
++			ret = palmas_gpadc_get_calibrated_code(
++							adc, adc_chan, ret);
++
++		*val = ret;
++
++		ret = IIO_VAL_INT;
++		goto out;
++	}
++
++	mutex_unlock(&indio_dev->mlock);
++	return ret;
++
++out:
++	palmas_gpadc_read_done(adc, adc_chan);
++	mutex_unlock(&indio_dev->mlock);
++
++	return ret;
++}
++
++static const struct iio_info palmas_gpadc_iio_info = {
++	.read_raw = palmas_gpadc_read_raw,
++	.driver_module = THIS_MODULE,
++};
++
++#define PALMAS_ADC_CHAN_IIO(chan, _type, chan_info)	\
++{							\
++	.datasheet_name = PALMAS_DATASHEET_NAME(chan),	\
++	.type = _type,					\
++	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |	\
++			BIT(chan_info),			\
++	.indexed = 1,					\
++	.channel = PALMAS_ADC_CH_##chan,		\
++}
++
++static const struct iio_chan_spec palmas_gpadc_iio_channel[] = {
++	PALMAS_ADC_CHAN_IIO(IN0, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN1, IIO_TEMP, IIO_CHAN_INFO_RAW),
++	PALMAS_ADC_CHAN_IIO(IN2, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN3, IIO_TEMP, IIO_CHAN_INFO_RAW),
++	PALMAS_ADC_CHAN_IIO(IN4, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN5, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN6, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN7, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN8, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN9, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN10, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN11, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN12, IIO_TEMP, IIO_CHAN_INFO_RAW),
++	PALMAS_ADC_CHAN_IIO(IN13, IIO_TEMP, IIO_CHAN_INFO_RAW),
++	PALMAS_ADC_CHAN_IIO(IN14, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++	PALMAS_ADC_CHAN_IIO(IN15, IIO_VOLTAGE, IIO_CHAN_INFO_PROCESSED),
++};
++
++static int palmas_gpadc_probe(struct platform_device *pdev)
++{
++	struct palmas_gpadc *adc;
++	struct palmas_platform_data *pdata;
++	struct palmas_gpadc_platform_data *gpadc_pdata = NULL;
++	struct iio_dev *indio_dev;
++	int ret, i;
++
++	pdata = dev_get_platdata(pdev->dev.parent);
++	if (!pdata || !pdata->gpadc_pdata) {
++		dev_err(&pdev->dev, "No platform data\n");
++		return -ENODEV;
++	}
++
++	gpadc_pdata = pdata->gpadc_pdata;
++
++	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*adc));
++	if (!indio_dev) {
++		dev_err(&pdev->dev, "iio_device_alloc failed\n");
++		return -ENOMEM;
++	}
++
++	adc = iio_priv(indio_dev);
++	adc->dev = &pdev->dev;
++	adc->palmas = dev_get_drvdata(pdev->dev.parent);
++	adc->adc_info = palmas_gpadc_info;
++	init_completion(&adc->conv_completion);
++	dev_set_drvdata(&pdev->dev, indio_dev);
++
++	adc->auto_conversion_period = gpadc_pdata->auto_conversion_period_ms;
++	adc->irq = palmas_irq_get_virq(adc->palmas, PALMAS_GPADC_EOC_SW_IRQ);
++	if (adc->irq < 0) {
++		dev_err(adc->dev,
++			"get virq failed: %d\n", adc->irq);
++		ret = adc->irq;
++		goto out;
++	}
++	ret = request_threaded_irq(adc->irq, NULL,
++		palmas_gpadc_irq,
++		IRQF_ONESHOT | IRQF_EARLY_RESUME, dev_name(adc->dev),
++		adc);
++	if (ret < 0) {
++		dev_err(adc->dev,
++			"request irq %d failed: %d\n", adc->irq, ret);
++		goto out;
++	}
++
++	if (gpadc_pdata->adc_wakeup1_data) {
++		memcpy(&adc->wakeup1_data, gpadc_pdata->adc_wakeup1_data,
++			sizeof(adc->wakeup1_data));
++		adc->wakeup1_enable = true;
++		adc->irq_auto_0 =  platform_get_irq(pdev, 1);
++		ret = request_threaded_irq(adc->irq_auto_0, NULL,
++				palmas_gpadc_irq_auto,
++				IRQF_ONESHOT | IRQF_EARLY_RESUME,
++				"palmas-adc-auto-0", adc);
++		if (ret < 0) {
++			dev_err(adc->dev, "request auto0 irq %d failed: %d\n",
++				adc->irq_auto_0, ret);
++			goto out_irq_free;
++		}
++	}
++
++	if (gpadc_pdata->adc_wakeup2_data) {
++		memcpy(&adc->wakeup2_data, gpadc_pdata->adc_wakeup2_data,
++				sizeof(adc->wakeup2_data));
++		adc->wakeup2_enable = true;
++		adc->irq_auto_1 =  platform_get_irq(pdev, 2);
++		ret = request_threaded_irq(adc->irq_auto_1, NULL,
++				palmas_gpadc_irq_auto,
++				IRQF_ONESHOT | IRQF_EARLY_RESUME,
++				"palmas-adc-auto-1", adc);
++		if (ret < 0) {
++			dev_err(adc->dev, "request auto1 irq %d failed: %d\n",
++				adc->irq_auto_1, ret);
++			goto out_irq_auto0_free;
++		}
++	}
++
++	/* set the current source 0 (value 0/5/15/20 uA => 0..3) */
++	if (gpadc_pdata->ch0_current <= 1)
++		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_0;
++	else if (gpadc_pdata->ch0_current <= 5)
++		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_5;
++	else if (gpadc_pdata->ch0_current <= 15)
++		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_15;
++	else
++		adc->ch0_current = PALMAS_ADC_CH0_CURRENT_SRC_20;
++
++	/* set the current source 3 (value 0/10/400/800 uA => 0..3) */
++	if (gpadc_pdata->ch3_current <= 1)
++		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_0;
++	else if (gpadc_pdata->ch3_current <= 10)
++		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_10;
++	else if (gpadc_pdata->ch3_current <= 400)
++		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_400;
++	else
++		adc->ch3_current = PALMAS_ADC_CH3_CURRENT_SRC_800;
++
++	adc->extended_delay = gpadc_pdata->extended_delay;
++
++	indio_dev->name = MOD_NAME;
++	indio_dev->dev.parent = &pdev->dev;
++	indio_dev->info = &palmas_gpadc_iio_info;
++	indio_dev->modes = INDIO_DIRECT_MODE;
++	indio_dev->channels = palmas_gpadc_iio_channel;
++	indio_dev->num_channels = ARRAY_SIZE(palmas_gpadc_iio_channel);
++
++	ret = iio_device_register(indio_dev);
++	if (ret < 0) {
++		dev_err(adc->dev, "iio_device_register() failed: %d\n", ret);
++		goto out_irq_auto1_free;
++	}
++
++	device_set_wakeup_capable(&pdev->dev, 1);
++	for (i = 0; i < PALMAS_ADC_CH_MAX; i++) {
++		if (!(adc->adc_info[i].is_uncalibrated))
++			palmas_gpadc_calibrate(adc, i);
++	}
++
++	if (adc->wakeup1_enable || adc->wakeup2_enable)
++		device_wakeup_enable(&pdev->dev);
++
++	return 0;
++
++out_irq_auto1_free:
++	if (gpadc_pdata->adc_wakeup2_data)
++		free_irq(adc->irq_auto_1, adc);
++out_irq_auto0_free:
++	if (gpadc_pdata->adc_wakeup1_data)
++		free_irq(adc->irq_auto_0, adc);
++out_irq_free:
++	free_irq(adc->irq, adc);
++out:
++	return ret;
++}
++
++static int palmas_gpadc_remove(struct platform_device *pdev)
++{
++	struct iio_dev *indio_dev = dev_to_iio_dev(&pdev->dev);
++	struct palmas_gpadc *adc = iio_priv(indio_dev);
++
++	if (adc->wakeup1_enable || adc->wakeup2_enable)
++		device_wakeup_disable(&pdev->dev);
++	iio_device_unregister(indio_dev);
++	free_irq(adc->irq, adc);
++	if (adc->wakeup1_enable)
++		free_irq(adc->irq_auto_0, adc);
++	if (adc->wakeup2_enable)
++		free_irq(adc->irq_auto_1, adc);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM_SLEEP
++static int palmas_adc_wakeup_configure(struct palmas_gpadc *adc)
++{
++	int adc_period, conv;
++	int i;
++	int ch0 = 0, ch1 = 0;
++	int thres;
++	int ret;
++
++	adc_period = adc->auto_conversion_period;
++	for (i = 0; i < 16; ++i) {
++		if (((1000 * (1 << i)) / 32) < adc_period)
++			continue;
++	}
++	if (i > 0)
++		i--;
++	adc_period = i;
++	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++			PALMAS_GPADC_AUTO_CTRL,
++			PALMAS_GPADC_AUTO_CTRL_COUNTER_CONV_MASK,
++			adc_period);
++	if (ret < 0) {
++		dev_err(adc->dev, "AUTO_CTRL write failed: %d\n", ret);
++		return ret;
++	}
++
++	conv = 0;
++	if (adc->wakeup1_enable) {
++		int polarity;
++
++		ch0 = adc->wakeup1_data.adc_channel_number;
++		conv |= PALMAS_GPADC_AUTO_CTRL_AUTO_CONV0_EN;
++		if (adc->wakeup1_data.adc_high_threshold > 0) {
++			thres = adc->wakeup1_data.adc_high_threshold;
++			polarity = 0;
++		} else {
++			thres = adc->wakeup1_data.adc_low_threshold;
++			polarity = PALMAS_GPADC_THRES_CONV0_MSB_THRES_CONV0_POL;
++		}
++
++		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_THRES_CONV0_LSB, thres & 0xFF);
++		if (ret < 0) {
++			dev_err(adc->dev,
++				"THRES_CONV0_LSB write failed: %d\n", ret);
++			return ret;
++		}
++
++		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_THRES_CONV0_MSB,
++				((thres >> 8) & 0xF) | polarity);
++		if (ret < 0) {
++			dev_err(adc->dev,
++				"THRES_CONV0_MSB write failed: %d\n", ret);
++			return ret;
++		}
++	}
++
++	if (adc->wakeup2_enable) {
++		int polarity;
++
++		ch1 = adc->wakeup2_data.adc_channel_number;
++		conv |= PALMAS_GPADC_AUTO_CTRL_AUTO_CONV1_EN;
++		if (adc->wakeup2_data.adc_high_threshold > 0) {
++			thres = adc->wakeup2_data.adc_high_threshold;
++			polarity = 0;
++		} else {
++			thres = adc->wakeup2_data.adc_low_threshold;
++			polarity = PALMAS_GPADC_THRES_CONV1_MSB_THRES_CONV1_POL;
++		}
++
++		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_THRES_CONV1_LSB, thres & 0xFF);
++		if (ret < 0) {
++			dev_err(adc->dev,
++				"THRES_CONV1_LSB write failed: %d\n", ret);
++			return ret;
++		}
++
++		ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
++				PALMAS_GPADC_THRES_CONV1_MSB,
++				((thres >> 8) & 0xF) | polarity);
++		if (ret < 0) {
++			dev_err(adc->dev,
++				"THRES_CONV1_MSB write failed: %d\n", ret);
++			return ret;
++		}
++	}
++
++	ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
++			PALMAS_GPADC_AUTO_SELECT, (ch1 << 4) | ch0);
++	if (ret < 0) {
++		dev_err(adc->dev, "AUTO_SELECT write failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = palmas_update_bits(adc->palmas, PALMAS_GPADC_BASE,
++			PALMAS_GPADC_AUTO_CTRL,
++			PALMAS_GPADC_AUTO_CTRL_AUTO_CONV1_EN |
++			PALMAS_GPADC_AUTO_CTRL_AUTO_CONV0_EN, conv);
++	if (ret < 0)
++		dev_err(adc->dev, "AUTO_CTRL write failed: %d\n", ret);
++
++	return ret;
++}
++
++static int palmas_adc_wakeup_reset(struct palmas_gpadc *adc)
++{
++	int ret;
++
++	ret = palmas_write(adc->palmas, PALMAS_GPADC_BASE,
++			PALMAS_GPADC_AUTO_SELECT, 0);
++	if (ret < 0) {
++		dev_err(adc->dev, "AUTO_SELECT write failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = palmas_disable_auto_conversion(adc);
++	if (ret < 0)
++		dev_err(adc->dev, "Disable auto conversion failed: %d\n", ret);
++
++	return ret;
++}
++
++static int palmas_gpadc_suspend(struct device *dev)
++{
++	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
++	struct palmas_gpadc *adc = iio_priv(indio_dev);
++	int wakeup = adc->wakeup1_enable || adc->wakeup2_enable;
++	int ret;
++
++	if (!device_may_wakeup(dev) || !wakeup)
++		return 0;
++
++	ret = palmas_adc_wakeup_configure(adc);
++	if (ret < 0)
++		return ret;
++
++	if (adc->wakeup1_enable)
++		enable_irq_wake(adc->irq_auto_0);
++
++	if (adc->wakeup2_enable)
++		enable_irq_wake(adc->irq_auto_1);
++
++	return 0;
++}
++
++static int palmas_gpadc_resume(struct device *dev)
++{
++	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
++	struct palmas_gpadc *adc = iio_priv(indio_dev);
++	int wakeup = adc->wakeup1_enable || adc->wakeup2_enable;
++	int ret;
++
++	if (!device_may_wakeup(dev) || !wakeup)
++		return 0;
++
++	ret = palmas_adc_wakeup_reset(adc);
++	if (ret < 0)
++		return ret;
++
++	if (adc->wakeup1_enable)
++		disable_irq_wake(adc->irq_auto_0);
++
++	if (adc->wakeup2_enable)
++		disable_irq_wake(adc->irq_auto_1);
++
++	return 0;
++};
++#endif
++
++static const struct dev_pm_ops palmas_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(palmas_gpadc_suspend,
++				palmas_gpadc_resume)
++};
++
++static struct platform_driver palmas_gpadc_driver = {
++	.probe = palmas_gpadc_probe,
++	.remove = palmas_gpadc_remove,
++	.driver = {
++		.name = MOD_NAME,
++		.owner = THIS_MODULE,
++		.pm = &palmas_pm_ops,
++	},
++};
++
++static int __init palmas_gpadc_init(void)
++{
++	return platform_driver_register(&palmas_gpadc_driver);
++}
++module_init(palmas_gpadc_init);
++
++static void __exit palmas_gpadc_exit(void)
++{
++	platform_driver_unregister(&palmas_gpadc_driver);
++}
++module_exit(palmas_gpadc_exit);
++
++MODULE_DESCRIPTION("palmas GPADC driver");
++MODULE_AUTHOR("Pradeep Goudagunta<pgoudagunta@nvidia.com>");
++MODULE_ALIAS("platform:palmas-gpadc");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+index bb270bd..2fcd70e 100644
+--- a/include/linux/mfd/palmas.h
++++ b/include/linux/mfd/palmas.h
+@@ -133,21 +133,32 @@ struct palmas_pmic_driver_data {
+			    struct regulator_config config);
+};
 
---NzB8fVQJ5HfG6fxh--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++struct palmas_adc_wakeup_property {
++	int adc_channel_number;
++	int adc_high_threshold;
++	int adc_low_threshold;
++};
++
+struct palmas_gpadc_platform_data {
+	/* Channel 3 current source is only enabled during conversion */
+-	int ch3_current;
++	int ch3_current;	/* 0: off; 1: 10uA; 2: 400uA; 3: 800 uA */
+
+	/* Channel 0 current source can be used for battery detection.
+	 * If used for battery detection this will cause a permanent current
+	 * consumption depending on current level set here.
+	 */
+-	int ch0_current;
++	int ch0_current;	/* 0: off; 1: 5uA; 2: 15uA; 3: 20 uA */
++	bool extended_delay;	/* use extended delay for conversion */
+
+	/* default BAT_REMOVAL_DAT setting on device probe */
+	int bat_removal;
+
+	/* Sets the START_POLARITY bit in the RT_CTRL register */
+	int start_polarity;
++
++	int auto_conversion_period_ms;
++	struct palmas_adc_wakeup_property *adc_wakeup1_data;
++	struct palmas_adc_wakeup_property *adc_wakeup2_data;
+};
+
+struct palmas_reg_init {
+@@ -404,28 +415,7 @@ struct palmas_gpadc_calibration {
+	s32 offset_error;
+};
+
+-struct palmas_gpadc {
+-	struct device *dev;
+-	struct palmas *palmas;
+-
+-	int ch3_current;
+-	int ch0_current;
+-
+-	int gpadc_force;
+-
+-	int bat_removal;
+-
+-	struct mutex reading_lock;
+-	struct completion irq_complete;
+-
+-	int eoc_sw_irq;
+-
+-	struct palmas_gpadc_calibration *palmas_cal_tbl;
+-
+-	int conv0_channel;
+-	int conv1_channel;
+-	int rt_channel;
+-};
++#define PALMAS_DATASHEET_NAME(_name)	"palmas-gpadc-chan-"#_name
+
+struct palmas_gpadc_result {
+	s32 raw_code;
+@@ -519,6 +509,43 @@ enum palmas_irqs {
+	PALMAS_NUM_IRQ,
+};
+
++/* Palmas GPADC Channels */
++enum {
++	PALMAS_ADC_CH_IN0,
++	PALMAS_ADC_CH_IN1,
++	PALMAS_ADC_CH_IN2,
++	PALMAS_ADC_CH_IN3,
++	PALMAS_ADC_CH_IN4,
++	PALMAS_ADC_CH_IN5,
++	PALMAS_ADC_CH_IN6,
++	PALMAS_ADC_CH_IN7,
++	PALMAS_ADC_CH_IN8,
++	PALMAS_ADC_CH_IN9,
++	PALMAS_ADC_CH_IN10,
++	PALMAS_ADC_CH_IN11,
++	PALMAS_ADC_CH_IN12,
++	PALMAS_ADC_CH_IN13,
++	PALMAS_ADC_CH_IN14,
++	PALMAS_ADC_CH_IN15,
++	PALMAS_ADC_CH_MAX,
++};
++
++/* Palmas GPADC Channel0 Current Source */
++enum {
++	PALMAS_ADC_CH0_CURRENT_SRC_0,
++	PALMAS_ADC_CH0_CURRENT_SRC_5,
++	PALMAS_ADC_CH0_CURRENT_SRC_15,
++	PALMAS_ADC_CH0_CURRENT_SRC_20,
++};
++
++/* Palmas GPADC Channel3 Current Source */
++enum {
++	PALMAS_ADC_CH3_CURRENT_SRC_0,
++	PALMAS_ADC_CH3_CURRENT_SRC_10,
++	PALMAS_ADC_CH3_CURRENT_SRC_400,
++	PALMAS_ADC_CH3_CURRENT_SRC_800,
++};
++
+struct palmas_pmic {
+	struct palmas *palmas;
+	struct device *dev;
+-- 
+2.5.1
