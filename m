@@ -1,64 +1,69 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 03/11] arm: omap2: timer: remove __omap_gptimer_init()
-Date: Mon, 5 Oct 2015 10:24:54 -0500
-Message-ID: <20151005152454.GC18784@saruman.tx.rr.com>
-References: <1443559446-26969-1-git-send-email-balbi@ti.com>
- <1443559446-26969-4-git-send-email-balbi@ti.com>
- <20151005110144.GW23801@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH] dmaengine: omap-dma: Enable packed accesses for cyclic
+ transfers
+Date: Mon, 5 Oct 2015 16:32:58 +0100
+Message-ID: <20151005153258.GF13501@vkoul-mobl.iind.intel.com>
+References: <1442233865-10412-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pZs/OQEoSSbxGlYw"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151005110144.GW23801@atomide.com>
+In-Reply-To: <1442233865-10412-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, daniel.lezcano@linaro.org, tglx@linutronix.de
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, misael.lopez@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---pZs/OQEoSSbxGlYw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Sep 14, 2015 at 03:31:05PM +0300, Peter Ujfalusi wrote:
+> From: Misael Lopez Cruz <misael.lopez@ti.com>
+> 
+> The L3 throughput can be higher than expected when packed access
+> is not enabled.  The ratio depends on the number of bytes in a
+> transaction and the EMIF interface width.
+> 
+> The throughput was measured for the following settings/cases:
+> 
+> * Case 1: Burst size of 64 bytes, packed access disabled
+> * Case 2: Burst size of 64 bytes, packed access enabled
+> * Case 3: Burst disabled, packed access disabled
+> 
+> Throughput measurements were done during McASP-based audio
+> playback on the Jacinto6 EVM using the omapconf tool [1]:
+> $ omapconf trace bw -m sdma_rd
+> 
+>  ---------------------------------------------------------
+>                                   Throughput (MB/s)
+>   Audio parameters            Case 1    Case 2    Case 3
+>  ---------------------------------------------------------
+>   44.1kHz, 16-bits, stereo      1.41      0.18      1.41
+>   44.1kHz, 32-bits, stereo      1.41      0.35      1.41
+>   44.1kHz, 16-bits, 4-chan      2.82      0.35      2.82
+>   44.1kHz, 16-bits, 6-chan      4.23      0.53      4.23
+>   44.1kHz, 16-bits, 8-chan      5.64      0.71      5.64
+>  ---------------------------------------------------------
+> 
+> From above measurements, case 2 is the only one that delivers
+> the expected throughput for the given audio parameters.  For
+> that reason, the packed accesses are now enabled.
+> 
+> It's worth to mention that packed accesses cannot be enabled
+> for all addressing modes. In cyclic transfers, it can be
+> enabled in the source for MEM_TO_DEV and in dest for DEV_TO_MEM,
+> as they use post-increment mode which supports packed accesses.
+> 
+> Peter Ujfalusi:
+> From the TRM regarding to this:
+> "NOTE: Except in the constant addressing mode, the source or
+> destination must be specified as packed for burst transactions
+> to occur."
+> 
+> So w/o the packed setting the burst on the MEM side was not
+> enabled, this explains the numbers.
+> 
+> [1] https://github.com/omapconf/omapconf
+> 
 
-On Mon, Oct 05, 2015 at 04:01:45AM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [150929 13:48]:
-> > since now we can reuse __omap_sync32k_timer_init()
-> > for OMAP3-like devices, we can safely remove
-> > __omap_gptimer_init().
->=20
-> There are tons of boards out there that need to use the
-> high frequency ocillator source with gptimer because of the
-> beagleboard B4 and earlier issue #7. So we need to provide
-> both options for the boards. Using the high frequency
-> oscillator source blocks deeper idle states in hardware
-> so those devices are usable.
+Applied, thanks
 
-have a closer look, that hasn't changed
-
---=20
-balbi
-
---pZs/OQEoSSbxGlYw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWEpZGAAoJEIaOsuA1yqREVuUP/309ZFdt6tEuM2ArlY4AbPmv
-T+A8FLs42RUkbUhzrV2Tq9kM2dH0QBMaPr+cBIhU68kmP/QyH/hnTQTKdX0t1Zw3
-4q/yzhMrHH9CwwagZE457A1pquJ6LuIoZMJBggADG2fr8rNGP0Z4HML692aipFOF
-V3jLJGp9U8jKifnsJDbpEy1CAJ8sHILce3aQcIKcPcRQ/r78xR9zmsp6OQOZ/hRI
-T4ZInLVRpjk/MH0RcDenDGSzphiDXp5Mim3ByDeN3GVTSkQT0qqn197LTJMLzIys
-pOckx0n19oXaKq/OFYqOjKeqB2h3tAA18ksjE+ETbmpDZIFswudOXnLV40mExlcJ
-Gwlcn9YFFCRNcBU7zudG74dLcbzA2YaDJ7UcyHNC2ajmKRGKkYdZ44YbDfpJg9mM
-0MxRQdBY/Hp5IsV6fn2Z8wHIs4qJ6FQeVTWZkfxdzFZq2nOGILFpR75yi8T+87Yj
-kNUeobvZDed48HRar89f4XlB8FkB6YXYnONGPPI4h2OX0k3oS8FDrf2ENxkIEDpr
-yYDqSIUjXoFY0K+Mx9vbcR2Rk1vTnu9I8dh+xrL6QyBBCOo1g8+zviqegHuXnsmv
-Azd3dVb96RvwZs/hcMhDFdKs7g3pXIwHIvv5rWawETZxNL6uQSV5D1QRb+w3WpEy
-pZ3UVKW297iSr7952+ju
-=SfpS
------END PGP SIGNATURE-----
-
---pZs/OQEoSSbxGlYw--
+-- 
+~Vinod
