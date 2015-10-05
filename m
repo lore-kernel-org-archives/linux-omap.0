@@ -1,40 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Ulf Hansson <ulf.hansson@linaro.org>
 Subject: Re: [PATCH v9 0/4] Allow USB devices to remain runtime-suspended when sleeping
-Date: Mon, 05 Oct 2015 22:26:48 +0200
-Message-ID: <8710988.MO9zH1zeoz@vostro.rjw.lan>
+Date: Mon, 5 Oct 2015 23:36:17 +0200
+Message-ID: <CAPDyKFrU5mBz+xrj9dHkNfGa_QFBBWVsarFm4UG0oOTXyQfiHQ@mail.gmail.com>
 References: <1444056332-30246-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444056332-30246-1-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, October 05, 2015 04:45:28 PM Tomeu Vizoso wrote:
+On 5 October 2015 at 16:45, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
 > Hi,
-> 
+>
 > this is v9 of an attempt to make it easier for devices to remain in
 > runtime PM when the system goes to sleep, mainly to reduce the time
 > spent resuming devices.
-> 
+>
 > For this, we interpret the absence of all PM callback implementations as
 > it being safe to do direct_complete, so their ancestors aren't prevented
 > from remaining runtime-suspended.
-> 
+>
 > Additionally, the prepare() callback of USB devices will return 1 if
 > runtime PM is enabled and the current wakeup settings are correct.
-> 
+>
 > With these changes, a uvcvideo device (for example) stays in runtime
 > suspend when the system goes to sleep and is left in that state when the
 > system resumes, not delaying it unnecessarily.
-> 
+>
 > Thanks,
-> 
+>
 > Tomeu
-> 
+>
 > Changes in v9:
 > - Add docs noting the need for the device lock to be held before calling
 >   device_is_bound()
@@ -45,32 +44,32 @@ On Monday, October 05, 2015 04:45:28 PM Tomeu Vizoso wrote:
 >   follow with the naming convention of existing API.
 > - Re-add calling to device_pm_check_callbacks from device registration
 >   and when updating the PM domain of a device.
-> 
+>
 > Changes in v8:
 > - Add device_is_bound()
 > - Add dev_pm_domain_set() and update code to use it
 > - Move no_pm_callbacks field into CONFIG_PM_SLEEP
 > - Call device_check_pm_callbacks only after a device is bound or unbound
-> 
+>
 > Changes in v7:
 > - Reduce indentation by adding a label in device_prepare()
-> 
+>
 > Changes in v6:
 > - Add stub for !CONFIG_PM.
 > - Move implementation of device_check_pm_callbacks to power/main.c as it
 >   doesn't belong to CONFIG_PM_SLEEP.
 > - Take dev->power.lock before modifying flag.
-> 
+>
 > Changes in v5:
 > - Check for all dev_pm_ops instances associated to a device, updating a
 >   no_pm_callbacks flag at the times when that could change.
-> 
+>
 > Tomeu Vizoso (4):
 >   device core: add device_is_bound()
 >   PM / Domains: add setter for dev.pm_domain
 >   PM / sleep: Go direct_complete if driver has no callbacks
 >   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
-> 
+>
 >  arch/arm/mach-omap2/omap_device.c |  7 ++++---
 >  drivers/acpi/acpi_lpss.c          |  5 +++--
 >  drivers/acpi/device_pm.c          |  5 +++--
@@ -89,9 +88,14 @@ On Monday, October 05, 2015 04:45:28 PM Tomeu Vizoso wrote:
 >  include/linux/pm.h                |  1 +
 >  include/linux/pm_domain.h         |  3 +++
 >  17 files changed, 131 insertions(+), 23 deletions(-)
+>
+> --
+> 2.4.3
+>
 
-The series looks good to me now, but patch [4/4] needs an ACK from the USB
-maintainers and patch [1/4] needs an ACK from Greg.
+This looks good to me, for the series you may add:
 
-Thanks,
-Rafael
+Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+
+Kind regards
+Uffe
