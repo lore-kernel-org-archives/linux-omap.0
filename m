@@ -1,77 +1,98 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
-Date: Mon, 5 Oct 2015 15:35:29 +0300
-Message-ID: <56126E91.5070201@ti.com>
-References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
- <20150923173040.GI23801@atomide.com> <5604DED0.5050403@ti.com>
- <560A8DB0.6020109@codethink.co.uk> <20151005101755.GS23801@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: N900: always enable IBE bit
+Date: Mon, 5 Oct 2015 15:53:30 +0200
+Message-ID: <20151005135330.GA12068@xo-6d-61-c0.localdomain>
+References: <1437612483-30160-1-git-send-email-sre@kernel.org>
+ <1437612483-30160-2-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20151005101755.GS23801@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1437612483-30160-2-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/05/2015 01:17 PM, Tony Lindgren wrote:
-> * Ben Dooks <ben.dooks@codethink.co.uk> [150929 06:14]:
->> On 25/09/15 06:42, Tero Kristo wrote:
->>> On 09/23/2015 08:30 PM, Tony Lindgren wrote:
->>>> * Ben Dooks <ben.dooks@codethink.co.uk> [150923 07:53]:
->>>>> On the OMAP AM3517 platform the uart4_ick gets registered
->>>>> twice, causing any power managment to /dev/ttyO3 to fail
->>>>> when trying to wake the device up.
->>>>>
->>>>> This solves the following oops:
->>>>>
->>>>> [] Unhandled fault: external abort on non-linefetch (0x1028) at
->>>>> 0xfa09e008
->>>>> [] PC is at serial_omap_pm+0x48/0x15c
->>>>> [] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
->>>>
->>>> No uart4 on 34xx/35xx, that got introduced with 36xx so:
->>>>
->>>> Acked-by: Tony Lindgren <tony@atomide.com>
->>>>
->>>>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
->>>>> ---
->>>>>    drivers/clk/ti/clk-3xxx.c | 1 -
->>>>>    1 file changed, 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
->>>>> index 5e12f32..2e7ef1f 100644
->>>>> --- a/drivers/clk/ti/clk-3xxx.c
->>>>> +++ b/drivers/clk/ti/clk-3xxx.c
->>>>> @@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
->>>>>        DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
->>>>>        DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
->>>>>        DT_CLK(NULL, "uart3_ick", "uart3_ick"),
->>>>> -    DT_CLK(NULL, "uart4_ick", "uart4_ick"),
->>>>>        DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
->>>>>        DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
->>>>>        DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
->>>
->>> NAK.
->>>
->>> This patch is actually only partially correct, it removes the uart4_ick
->>> alias for omap36xx also. It should be added back to the omap36xx clks
->>> array. Care to post a v2?
->>
->> Thankyou for the feedback. I'll update, but do not have a device to test.
->
-> Hmm but isn't that entry already there for 36xx? So this just removes
-> a duplicate for 36xx.. Tero, can you please check again, maybe I'm
-> confused.
+Hi!
 
-uart4_ick wasn't there, we only had uart4_fck listed for omap36xx.
+> The kernel's workaround for Errata 430973 consists of a BTAC/BTB
+> flush at context switch. This requires the IBE bit being set, which
+> should normally be done by the bootloader.
+> 
+> Since the Nokia N900's bootloader is not easily replaceable,
+> a pdata quirk enables the IBE bit for the Nokia N900. Until
+> e748994f5cc5, the flush at context switch required
+> CONFIG_ARM_ERRATA_430973, so the same check has been used
+> for setting the IBE bit.
+> 
+> Since all sold N900s are assumed to be affected, the guard
+> can be removed now, so that the IBE bit is always set.
 
--Tero
+Is the qemu affected?
 
->
-> Regars,
->
-> Tony
->
+Does qemu have enough secure support not to fail on this?
 
+Best regards,
+
+							Pavel
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> ---
+>  arch/arm/mach-omap2/board-rx51.c   |  2 --
+>  arch/arm/mach-omap2/pdata-quirks.c | 11 ++---------
+>  2 files changed, 2 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+> index 2d1e5a6..3df01cc 100644
+> --- a/arch/arm/mach-omap2/board-rx51.c
+> +++ b/arch/arm/mach-omap2/board-rx51.c
+> @@ -108,11 +108,9 @@ static void __init rx51_init(void)
+>  	rx51_peripherals_init();
+>  
+>  	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
+> -#ifdef CONFIG_ARM_ERRATA_430973
+>  		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
+>  		/* set IBE to 1 */
+>  		rx51_secure_update_aux_cr(BIT(6), 0);
+> -#endif
+>  	}
+>  
+>  	/* Ensure SDRC pins are mux'd for self-refresh */
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> index 821171c..0aa438d 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -249,18 +249,11 @@ static void __init nokia_n900_legacy_init(void)
+>  	hsmmc2_internal_input_clk();
+>  
+>  	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
+> -		if (IS_ENABLED(CONFIG_ARM_ERRATA_430973)) {
+> -			pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
+> -			/* set IBE to 1 */
+> -			rx51_secure_update_aux_cr(BIT(6), 0);
+> -		} else {
+> -			pr_warn("RX-51: Not enabling ARM errata 430973 workaround\n");
+> -			pr_warn("Thumb binaries may crash randomly without this workaround\n");
+> -		}
+> +		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
+> +		rx51_secure_update_aux_cr(BIT(6), 0); /* set IBE to 1 */
+>  
+>  		pr_info("RX-51: Registring OMAP3 HWRNG device\n");
+>  		platform_device_register(&omap3_rom_rng_device);
+> -
+>  	}
+>  }
+>  
+> -- 
+> 2.1.4
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
