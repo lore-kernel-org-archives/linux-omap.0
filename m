@@ -1,54 +1,30 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC/PATCH 00/11] arm: omap: counter32k rework
-Date: Mon, 5 Oct 2015 03:55:55 -0700
-Message-ID: <20151005105554.GV23801@atomide.com>
-References: <1443559446-26969-1-git-send-email-balbi@ti.com>
- <20150930141338.GC31865@saruman.tx.rr.com>
- <3705422.OMk7ysE7Jn@wuerfel>
- <6944324.e1oo8C9xbx@wuerfel>
- <560DAFC5.50003@linaro.org>
+From: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] iio:adc: add iio driver for Palmas (twl6035/7)
+ gpadc
+Date: Mon, 5 Oct 2015 16:18:17 +0530
+Message-ID: <56125571.8070906@nvidia.com>
+References: <cover.1444025625.git.hns@goldelico.com> <fba10a9902d88110569630da2a86ed4faf261e79.1444025628.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <560DAFC5.50003-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <fba10a9902d88110569630da2a86ed4faf261e79.1444025628.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [151001 15:16]:
-> On 09/30/2015 04:49 PM, Arnd Bergmann wrote:
-> >On Wednesday 30 September 2015 16:42:21 Arnd Bergmann wrote:
-> >>
-> >>TEGRA folks: the tegra_read_persistent_clock() implementation apparently
-> >>predates the Tegra RTC driver and I wonder if they actually do the
-> >>right thing in combination. Could it be that the wall time forwards
-> >>twice as fast as it should during resume when the RTC driver is loaded?
-> >>Could it be that we can simply remove  tegra_read_persistent_clock()
-> >>and the register_persistent_clock() infrastructure?
-> >>
-> >
-> >I found the 'sleeptime_injected' variable now, which takes care of
-> >forwarding the clock by the correct amount.
-> >
-> >I also found the CLOCK_SOURCE_SUSPEND_NONSTOP flag next to it, which
-> >should let us use the counter32k driver to provide the correct
-> >time during suspend without the omap_read_persistent_clock() function.
-> >We should be able to just delete that code.
-> >
-> >If we decide to also delete the tegra_read_persistent_clock()
-> >function, we can remove the registration too.
-> 
-> 
-> +1
 
-We could maybe have read_persistent_clock() just check for the
-CLOCK_SOURCE_SUSPEND_NONSTOP flag?
+On Monday 05 October 2015 11:44 AM, H. Nikolaus Schaller wrote:
+> This driver code was found as:
+>
+> https://android.googlesource.com/kernel/tegra/+/aaabb2e045f31e5a970109ffdaae900dd403d17e/drivers/staging/iio/adc
+>
+> Fixed various compilation issues and test this driver on omap5 evm.
+>
+> Signed-off-by: Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+>
 
-And we probably should have also has_persistent_clock() or something
-that also checks for the CLOCK_SOURCE_SUSPEND_NONSTOP.
-
-Regards,
-
-Tony
+Acked-by: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
