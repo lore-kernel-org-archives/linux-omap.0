@@ -1,112 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Mon, 5 Oct 2015 10:11:56 -0700
-Message-ID: <20151005171155.GF23801@atomide.com>
-References: <20150924090048.GA21626@n2100.arm.linux.org.uk>
- <20150924233756.GN23801@atomide.com>
- <20151001093325.GU21513@n2100.arm.linux.org.uk>
- <CAPDyKFpnqJBrtiBekikrNHAf-agZm12KnF9n+=+72HH=jti-KA@mail.gmail.com>
- <20151001100326.GV21513@n2100.arm.linux.org.uk>
- <20151005112304.GZ23801@atomide.com>
- <20151005143532.GA23801@atomide.com>
- <20151005145127.GB23801@atomide.com>
+Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
+Date: Mon, 5 Oct 2015 10:12:57 -0700
+Message-ID: <20151005171257.GG23801@atomide.com>
+References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
+ <20150923173040.GI23801@atomide.com>
+ <5604DED0.5050403@ti.com>
+ <560A8DB0.6020109@codethink.co.uk>
+ <20151005101755.GS23801@atomide.com>
+ <56126E91.5070201@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151005145127.GB23801@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <56126E91.5070201@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151005 07:57]:
-> * Tony Lindgren <tony@atomide.com> [151005 07:44]:
-> > * Tony Lindgren <tony@atomide.com> [151005 04:28]:
-> > 
-> > Based on some tests it seems that the duovero unpaired regulator usage
-> > is fixed by reverting:
-> > 
-> > c55d7a055364 ("mmc: host: omap_hsmmc: use regulator_is_enabled to
-> > find pbias status")
+* Tero Kristo <t-kristo@ti.com> [151005 05:39]:
+> On 10/05/2015 01:17 PM, Tony Lindgren wrote:
+> >* Ben Dooks <ben.dooks@codethink.co.uk> [150929 06:14]:
+> >>On 25/09/15 06:42, Tero Kristo wrote:
+> >>>On 09/23/2015 08:30 PM, Tony Lindgren wrote:
+> >>>>* Ben Dooks <ben.dooks@codethink.co.uk> [150923 07:53]:
+> >>>>>On the OMAP AM3517 platform the uart4_ick gets registered
+> >>>>>twice, causing any power managment to /dev/ttyO3 to fail
+> >>>>>when trying to wake the device up.
+> >>>>>
+> >>>>>This solves the following oops:
+> >>>>>
+> >>>>>[] Unhandled fault: external abort on non-linefetch (0x1028) at
+> >>>>>0xfa09e008
+> >>>>>[] PC is at serial_omap_pm+0x48/0x15c
+> >>>>>[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+> >>>>
+> >>>>No uart4 on 34xx/35xx, that got introduced with 36xx so:
+> >>>>
+> >>>>Acked-by: Tony Lindgren <tony@atomide.com>
+> >>>>
+> >>>>>Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> >>>>>---
+> >>>>>   drivers/clk/ti/clk-3xxx.c | 1 -
+> >>>>>   1 file changed, 1 deletion(-)
+> >>>>>
+> >>>>>diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+> >>>>>index 5e12f32..2e7ef1f 100644
+> >>>>>--- a/drivers/clk/ti/clk-3xxx.c
+> >>>>>+++ b/drivers/clk/ti/clk-3xxx.c
+> >>>>>@@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+> >>>>>       DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
+> >>>>>       DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+> >>>>>       DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+> >>>>>-    DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+> >>>>>       DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+> >>>>>       DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+> >>>>>       DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+> >>>
+> >>>NAK.
+> >>>
+> >>>This patch is actually only partially correct, it removes the uart4_ick
+> >>>alias for omap36xx also. It should be added back to the omap36xx clks
+> >>>array. Care to post a v2?
+> >>
+> >>Thankyou for the feedback. I'll update, but do not have a device to test.
+> >
+> >Hmm but isn't that entry already there for 36xx? So this just removes
+> >a duplicate for 36xx.. Tero, can you please check again, maybe I'm
+> >confused.
 > 
-> With commit c55d7a055364 my guess is that the PBIAS regulator is
-> already on from an earlier MMC probe and getting re-enabled when
-> a deferred probe happens?
+> uart4_ick wasn't there, we only had uart4_fck listed for omap36xx.
 
-Unless somebody has a better fix in mind for the above, I suggest
-we revert it for the -rc kernel.
-
-> > And it seems that omap3 legacy MMC is broken earlier in the
-> > series with:
-> > 
-> > 7d607f917008 ("mmc: host: omap_hsmmc: use
-> > devm_regulator_get_optional() for vmmc")
-> > 
-> > This one does not cleanly revert so have not yet tried reverting
-> > it.
-> 
-> And with commit 7d607f917008 I'm guessing we can't return an
-> error if the PBIAS regulator does not exist as that's not there
-> for the legacy booting.
-
-For omap3 legacy booting, we keep getting -EPROBE_DEFER for
-all the optional regulators.
-
-Something like the following might be the minimal fix for the -rc
-cycle?
-
-Regards,
+OK thanks for checking.
 
 Tony
-
-8< ----------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 5 Oct 2015 09:37:36 -0700
-Subject: [PATCH] mmc: host: omap_hsmmc: Fix MMC for omap3 legacy booting
-
-Starting with commit 7d607f917008 ("mmc: host: omap_hsmmc: use
-devm_regulator_get_optional() for vmmc") MMC on omap3 stopped working
-for legacy booting.
-
-This is because legacy booting sets up some of the resource in the
-platform init code, and for optional regulators always seem to
-return -EPROBE_DEFER for the legacy booting.
-
-Let's fix the issue by checking for device tree based booting for
-now. Then when omap3 boots in device tree only mode, this patch
-can be just reverted.
-
-Fixes: 7d607f917008 ("mmc: host: omap_hsmmc: use
-devm_regulator_get_optional() for vmmc")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -478,7 +478,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- 	mmc->supply.vmmc = devm_regulator_get_optional(host->dev, "vmmc");
- 	if (IS_ERR(mmc->supply.vmmc)) {
- 		ret = PTR_ERR(mmc->supply.vmmc);
--		if (ret != -ENODEV)
-+		if ((ret != -ENODEV) && host->dev->of_node)
- 			return ret;
- 		dev_dbg(host->dev, "unable to get vmmc regulator %ld\n",
- 			PTR_ERR(mmc->supply.vmmc));
-@@ -493,7 +493,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- 	mmc->supply.vqmmc = devm_regulator_get_optional(host->dev, "vmmc_aux");
- 	if (IS_ERR(mmc->supply.vqmmc)) {
- 		ret = PTR_ERR(mmc->supply.vqmmc);
--		if (ret != -ENODEV)
-+		if ((ret != -ENODEV) && host->dev->of_node)
- 			return ret;
- 		dev_dbg(host->dev, "unable to get vmmc_aux regulator %ld\n",
- 			PTR_ERR(mmc->supply.vqmmc));
-@@ -503,7 +503,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- 	host->pbias = devm_regulator_get_optional(host->dev, "pbias");
- 	if (IS_ERR(host->pbias)) {
- 		ret = PTR_ERR(host->pbias);
--		if (ret != -ENODEV)
-+		if ((ret != -ENODEV) && host->dev->of_node)
- 			return ret;
- 		dev_dbg(host->dev, "unable to get pbias regulator %ld\n",
- 			PTR_ERR(host->pbias));
