@@ -1,154 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 11/11] arm: boot: dts: omap: add missing default status for 32k counter
-Date: Mon, 5 Oct 2015 14:41:07 -0500
-Message-ID: <87io6lf6i4.fsf@saruman.tx.rr.com>
-References: <1443559446-26969-1-git-send-email-balbi@ti.com> <4815825.NCBBBMgLGf@wuerfel> <20150930141209.GB31865@saruman.tx.rr.com> <22213826.1MtkNIZ6W3@wuerfel> <20151005175230.GG18784@saruman.tx.rr.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v9 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Mon, 05 Oct 2015 22:26:48 +0200
+Message-ID: <8710988.MO9zH1zeoz@vostro.rjw.lan>
+References: <1444056332-30246-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151005175230.GG18784@saruman.tx.rr.com>
+In-Reply-To: <1444056332-30246-1-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, daniel.lezcano@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Monday, October 05, 2015 04:45:28 PM Tomeu Vizoso wrote:
+> Hi,
+> 
+> this is v9 of an attempt to make it easier for devices to remain in
+> runtime PM when the system goes to sleep, mainly to reduce the time
+> spent resuming devices.
+> 
+> For this, we interpret the absence of all PM callback implementations as
+> it being safe to do direct_complete, so their ancestors aren't prevented
+> from remaining runtime-suspended.
+> 
+> Additionally, the prepare() callback of USB devices will return 1 if
+> runtime PM is enabled and the current wakeup settings are correct.
+> 
+> With these changes, a uvcvideo device (for example) stays in runtime
+> suspend when the system goes to sleep and is left in that state when the
+> system resumes, not delaying it unnecessarily.
+> 
+> Thanks,
+> 
+> Tomeu
+> 
+> Changes in v9:
+> - Add docs noting the need for the device lock to be held before calling
+>   device_is_bound()
+> - Add docs noting the need for the device lock to be held before calling
+>   dev_pm_domain_set()
+> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
+> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
+>   follow with the naming convention of existing API.
+> - Re-add calling to device_pm_check_callbacks from device registration
+>   and when updating the PM domain of a device.
+> 
+> Changes in v8:
+> - Add device_is_bound()
+> - Add dev_pm_domain_set() and update code to use it
+> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
+> - Call device_check_pm_callbacks only after a device is bound or unbound
+> 
+> Changes in v7:
+> - Reduce indentation by adding a label in device_prepare()
+> 
+> Changes in v6:
+> - Add stub for !CONFIG_PM.
+> - Move implementation of device_check_pm_callbacks to power/main.c as it
+>   doesn't belong to CONFIG_PM_SLEEP.
+> - Take dev->power.lock before modifying flag.
+> 
+> Changes in v5:
+> - Check for all dev_pm_ops instances associated to a device, updating a
+>   no_pm_callbacks flag at the times when that could change.
+> 
+> Tomeu Vizoso (4):
+>   device core: add device_is_bound()
+>   PM / Domains: add setter for dev.pm_domain
+>   PM / sleep: Go direct_complete if driver has no callbacks
+>   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+> 
+>  arch/arm/mach-omap2/omap_device.c |  7 ++++---
+>  drivers/acpi/acpi_lpss.c          |  5 +++--
+>  drivers/acpi/device_pm.c          |  5 +++--
+>  drivers/base/dd.c                 | 21 +++++++++++++++++++--
+>  drivers/base/power/clock_ops.c    |  5 +++--
+>  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
+>  drivers/base/power/domain.c       |  6 ++++--
+>  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/base/power/power.h        |  3 +++
+>  drivers/gpu/vga/vga_switcheroo.c  | 10 +++++-----
+>  drivers/misc/mei/pci-me.c         |  5 +++--
+>  drivers/misc/mei/pci-txe.c        |  5 +++--
+>  drivers/usb/core/port.c           |  6 ++++++
+>  drivers/usb/core/usb.c            | 11 ++++++++++-
+>  include/linux/device.h            |  2 ++
+>  include/linux/pm.h                |  1 +
+>  include/linux/pm_domain.h         |  3 +++
+>  17 files changed, 131 insertions(+), 23 deletions(-)
 
-Felipe Balbi <balbi@ti.com> writes:
+The series looks good to me now, but patch [4/4] needs an ACK from the USB
+maintainers and patch [1/4] needs an ACK from Greg.
 
-> On Wed, Sep 30, 2015 at 11:58:16PM +0200, Arnd Bergmann wrote:
->> On Wednesday 30 September 2015 09:12:09 Felipe Balbi wrote:
->> > On Wed, Sep 30, 2015 at 10:15:25AM +0200, Arnd Bergmann wrote:
->> > > On Tuesday 29 September 2015 15:44:06 Felipe Balbi wrote:
->> > > > All devices should have a default status. Ignoring
->> > > > the arguments if it should be 'okay' or 'disabled'
->> > > > by default, let's set them all the 'disabled' and
->> > > > have boards enable 32k counter.
->> > > >=20
->> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
->> > > >=20
->> > >=20
->> > > The patch looks good, but the description is slightly incorrect:
->> > > There is no reason to list "status=3D'okay'" other than overriding
->> > > the 'disabled' status.
->> > >=20
->> > > I'd phrase it something like:
->> > >=20
->> > > "We want the use of the 32k counter to be a per-board setting,
->> > > so let's disable it by default in each dtsi file and override the
->> > > setting in the boards. Any board that does not wire up the counter
->> > > should leave it disabled".
->> > >=20
->> > > However, if you really want all boards to provide the counter all
->> > > the time, I'd argue that we're better off dropping this patch. We
->> > > use the status=3D"disabled" trick for anything that may or may not
->> > > be working based on the board design, but things that are present
->> > > everywhere don't need this.
->> >=20
->> > okay, so here's the thing. While fiddling with the 32k counter, I noti=
-ced
->> > that even though there was no status listed, the thing still initializ=
-es
->> > fine. However, when moving 32k to drivers/clocksource and using
->> > CLOCKSOURCE_OF_DECLARE(), 32k would *NOT* probe unless I had an explic=
-it
->> > status =3D "okay" in DT.
->>=20
->> Very strange, that sounds like a bug in the clocksource probe code.
->> Can you check how this happens?
->
-> seems like something overwrites counter's status field, here's a snippet =
-of boot
-> log:
->
-> [    0.000000] =3D=3D=3D> counter is available ??
-> [    0.000000] =3D=3D=3D> no status -> TRUE!!
-> [    0.000000] =3D=3D=3D> searching for timer
-> [    0.000000] =3D=3D=3D> timer is available ??
-> [    0.000000] =3D=3D=3D> no status -> TRUE!!
-> [    0.000005] sched_clock: 64 bits at 1000MHz, resolution 1ns, wraps eve=
-ry 4398046511103ns
-> [    0.000014] clocksource: arm_global_timer: mask: 0xffffffffffffffff ma=
-x_cycles: 0x1cd42e4dffb, max_idle_ns: 881590591483 ns
-> [    0.000047] =3D=3D=3D> searching for timer
-> [    0.000051] =3D=3D=3D> timer is available ??
-> [    0.000054] =3D=3D=3D> no status -> TRUE!!
-> [    0.000307] =3D=3D=3D> searching for counter
-> [    0.000311] =3D=3D=3D> counter is available ??
-> [    0.000315] =3D=3D=3D> counter status disabled
-> [    0.000318] =3D=3D=3D=3D> counter NOT available
->
-> note that first time around counter had no status and later it got a stat=
-us
-> disabled from somewhere.
-
-found it. arch/arm/mach-omap2/timer.c is the culprit:
-
-/**
- * omap_get_timer_dt - get a timer using device-tree
- * @match	- device-tree match structure for matching a device type
- * @property	- optional timer property to match
- *
- * Helper function to get a timer during early boot using device-tree for u=
-se
- * as kernel system timer. Optionally, the property argument can be used to
- * select a timer with a specific property. Once a timer is found then mark
- * the timer node in device-tree as disabled, to prevent the kernel from
- * registering this timer as a platform device and so no one else can use i=
-t.
- */
-static struct device_node * __init omap_get_timer_dt(const struct of_device=
-_id *match,
-						     const char *property)
-{
-	struct device_node *np;
-
-	for_each_matching_node(np, match) {
-		if (!of_device_is_available(np))
-			continue;
-
-		if (property && !of_get_property(np, property, NULL))
-			continue;
-
-		if (!property && (of_get_property(np, "ti,timer-alwon", NULL) ||
-				  of_get_property(np, "ti,timer-dsp", NULL) ||
-				  of_get_property(np, "ti,timer-pwm", NULL) ||
-				  of_get_property(np, "ti,timer-secure", NULL)))
-			continue;
-
-		of_add_property(np, &device_disabled);
-		return np;
-	}
-
-	return NULL;
-}
-
-I'll patch this up and drop $subject
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWEtJUAAoJEIaOsuA1yqREst0P/j4iFxhOkXXpJ1mxeBqKv76a
-4i52T9OljTSPV76Kp2ko7WZ9eP8wYBfkES7ZQANOw0kCQHfWmWNOEWT4wmhsgyb8
-si6Al3u/FjP4wKpVYTfhlXfOZ/cvEei4gcz5sA664DkO4dBcfxWGVMiMSfYOWO89
-ErdHdTAJcgEF+UOarXDVAQw2zDkUOrcvIEj5O0sWrdUYyRxzhQOPf4+H7PdMlkYD
-tj7cKNYWdmgdv1AkviQayMU118WOkRIBv5ja0jg1MLrJdGuFN2ZKg+bW5NuVj2jR
-l0Z4DmzTqVoVEuXuyrYBzIM3wuM5/b2y7332m8h2w73o1J07xWER2gk6iy/d7J3y
-d2MuAESk+8TGeIm5h1CgKxV8BLv7I/ybUhg2/qN8KMEMxySnLeFfjEy5CB35dAOs
-odwWBJHpVXPPpDuWNZGHjEl8nFCM3vIGsbQ5O4ATXGJMhiNjKfFDTre9S34gyEs2
-i4f68D2n+E4ekHz5C4V7jj5wThB59PmICXTkG2hWZbkD5qgC/yG8geU7/1xf/Nee
-t2wFOgLjvDNciGBSFnMURvOv9syrFRhDLmV5wgfvrB1yNuIJ7ES+tx09ZKQYrbEt
-gxOk9nTg3Axr+UcftXv8jI3pEUR4qPznDyc0MzRjpu5r8UYhHBkxKtJ7qE0KFAj7
-bppd2X8fAK5fj6abATVq
-=er7O
------END PGP SIGNATURE-----
---=-=-=--
+Thanks,
+Rafael
