@@ -1,98 +1,127 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: N900: always enable IBE bit
-Date: Mon, 5 Oct 2015 15:53:30 +0200
-Message-ID: <20151005135330.GA12068@xo-6d-61-c0.localdomain>
-References: <1437612483-30160-1-git-send-email-sre@kernel.org>
- <1437612483-30160-2-git-send-email-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v2 2/3] iio:adc:palmas: add DT support
+Date: Mon, 5 Oct 2015 16:26:22 +0200
+Message-ID: <30A5D09D-1628-4F2C-8601-9C3ABF778CE0@goldelico.com>
+References: <86F849CB-1A50-4BEB-99C6-79FF97971DCB@goldelico.com> <cover.1443973837.git.hns@goldelico.com> <6C211191-87B8-4444-ADA7-8BE454C2B3D3@goldelico.com> <20151005111754.GG19064@leverpostej>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1437612483-30160-2-git-send-email-sre@kernel.org>
+In-Reply-To: <20151005111754.GG19064@leverpostej>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Marek Belisko <marek@goldelico.com>, Pradeep Goudagunta <pgoudagunta@nvidia.com>, Laxman Dewangan <ldewangan@nvidia.com>, gg@slimlogic.co.uk, jic23@jic23.retrosnub.co.uk, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
 
-> The kernel's workaround for Errata 430973 consists of a BTAC/BTB
-> flush at context switch. This requires the IBE bit being set, which
-> should normally be done by the bootloader.
-> 
-> Since the Nokia N900's bootloader is not easily replaceable,
-> a pdata quirk enables the IBE bit for the Nokia N900. Until
-> e748994f5cc5, the flush at context switch required
-> CONFIG_ARM_ERRATA_430973, so the same check has been used
-> for setting the IBE bit.
-> 
-> Since all sold N900s are assumed to be affected, the guard
-> can be removed now, so that the IBE bit is always set.
+Am 05.10.2015 um 13:17 schrieb Mark Rutland <mark.rutland@arm.com>:
 
-Is the qemu affected?
+> On Sun, Oct 04, 2015 at 06:05:59PM +0200, H. Nikolaus Schaller wrote:
+>> From: Marek Belisko <marek@goldelico.com>
+>>=20
+>> Code was found at:
+>> https://android.googlesource.com/kernel/tegra/+/a90856a6626d502d42c6=
+e7abccbdf9d730b36270%5E%21/#F1
+>>=20
+>> Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+>> [Fixed minor typos + add channels list to documentation]
+>> Signed-off-by: Marek Belisko <marek@goldelico.com>
+>> ---
+>> .../devicetree/bindings/iio/adc/palmas-gpadc.txt   | 46 ++++++++++++=
++++++++
+>> drivers/iio/adc/palmas_gpadc.c                     | 52 ++++++++++++=
++++++++---
+>> 2 files changed, 93 insertions(+), 5 deletions(-)
+>> create mode 100644 Documentation/devicetree/bindings/iio/adc/palmas-=
+gpadc.txt
+>>=20
+>> diff --git a/Documentation/devicetree/bindings/iio/adc/palmas-gpadc.=
+txt b/Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
+>> new file mode 100644
+>> index 0000000..2149afe
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
+>> @@ -0,0 +1,46 @@
+>> +* Palmas general purpose ADC IP block devicetree bindings
+>> +
+>> +Channels list:
+>> +	0 battery type
+>> +	1 battery temp NTC (optional current source)
+>> +	2 GP
+>> +	3 temp (with ext. diode, optional current source)
+>> +	4 GP
+>> +	5 GP
+>> +	6 VBAT_SENSE
+>> +	7 VCC_SENSE
+>> +	8 Backup Battery voltage
+>> +	9 external charger (VCHG)
+>> +	10 VBUS
+>> +	11 DC-DC current probe (how does this work?)
+>> +	12 internal die temp
+>> +	13 internal die temp
+>> +	14 USB ID pin voltage
+>> +	15 test network
+>> +
+>> +Required properties:
+>> +- compatible : Must be "ti,palmas-gpadc".
+>> +
+>> +Optional sub-nodes:
+>> +ti,channel0-current-microamp: Channel 0 current in uA.
+>> +	Values are rounded to derive 0uA, 5uA, 15uA, 20uA.
+>> +ti,channel3-current-microamp: Channel 3 current in uA.
+>> +	Valid are rounded to derive 0uA, 10uA, 400uA, 800uA.
+>=20
+> It's only possible to configure channels 0 and 3 in this manner?
 
-Does qemu have enough secure support not to fail on this?
+Yes. The other channels have no built-in current source, i.e. these
+channels are special.
 
-Best regards,
+>=20
+>> +ti,enable-extended-delay: Enable extended delay.
+>=20
+> What is this? When would I select it? Why does it belong in the DT
+> rather than being a runtime option?
 
-							Pavel
-> 
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> ---
->  arch/arm/mach-omap2/board-rx51.c   |  2 --
->  arch/arm/mach-omap2/pdata-quirks.c | 11 ++---------
->  2 files changed, 2 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-> index 2d1e5a6..3df01cc 100644
-> --- a/arch/arm/mach-omap2/board-rx51.c
-> +++ b/arch/arm/mach-omap2/board-rx51.c
-> @@ -108,11 +108,9 @@ static void __init rx51_init(void)
->  	rx51_peripherals_init();
->  
->  	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
-> -#ifdef CONFIG_ARM_ERRATA_430973
->  		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
->  		/* set IBE to 1 */
->  		rx51_secure_update_aux_cr(BIT(6), 0);
-> -#endif
->  	}
->  
->  	/* Ensure SDRC pins are mux'd for self-refresh */
-> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-> index 821171c..0aa438d 100644
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
-> @@ -249,18 +249,11 @@ static void __init nokia_n900_legacy_init(void)
->  	hsmmc2_internal_input_clk();
->  
->  	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
-> -		if (IS_ENABLED(CONFIG_ARM_ERRATA_430973)) {
-> -			pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
-> -			/* set IBE to 1 */
-> -			rx51_secure_update_aux_cr(BIT(6), 0);
-> -		} else {
-> -			pr_warn("RX-51: Not enabling ARM errata 430973 workaround\n");
-> -			pr_warn("Thumb binaries may crash randomly without this workaround\n");
-> -		}
-> +		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
-> +		rx51_secure_update_aux_cr(BIT(6), 0); /* set IBE to 1 */
->  
->  		pr_info("RX-51: Registring OMAP3 HWRNG device\n");
->  		platform_device_register(&omap3_rom_rng_device);
-> -
->  	}
->  }
->  
-> -- 
-> 2.1.4
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+The chip allows to extend the time window between channel selection
+and sampling by 400=B5s (according to data sheet). But for all channels
+and not each one. As far as I understand, this is - depending on hardwa=
+re
+setup - to get more stable ADC readings.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Most channels have a fixed function (e.g. battery voltage, USB VBUS,
+temperature NTC) so it can't be arbitrarily chosen and depends on how
+the Palmas is embedded (it is a PMIC with a bank of ADCs and not a
+general purpose ADC chip).
+
+So I think it is really a hardware dependent parameter and not somethin=
+g
+the user should be able to change.
+
+>=20
+>> +Example:
+>> +
+>> +pmic {
+>> +	compatible =3D "ti,twl6035-pmic", "ti,palmas-pmic";
+>> +	...
+>> +	gpadc {
+>> +		compatible =3D "ti,palmas-gpadc";
+>> +		interrupts =3D <18 0
+>> +			      16 0
+>> +			      17 0>;
+>> +		ti,channel0-current-microamp =3D <5>;
+>> +		ti,channel3-current-microamp =3D <10>;
+>> +		};
+>> +	};
+>> +	...
+>> +};
+>=20
+> I thought you needed #iio-cells for encoding the channel?
+
+Yes, we forgot (we don't have a client for it in our setup yet - so did=
+ not test :)
+
+>=20
+> Mark.
+
+Thanks,
+Nikolaus Schaller
