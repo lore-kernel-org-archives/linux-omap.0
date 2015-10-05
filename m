@@ -1,120 +1,154 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Mon, 5 Oct 2015 19:38:13 +0100
-Message-ID: <20151005183813.GD21626@n2100.arm.linux.org.uk>
-References: <20150924090048.GA21626@n2100.arm.linux.org.uk>
- <20150924233756.GN23801@atomide.com>
- <20151001093325.GU21513@n2100.arm.linux.org.uk>
- <CAPDyKFpnqJBrtiBekikrNHAf-agZm12KnF9n+=+72HH=jti-KA@mail.gmail.com>
- <20151001100326.GV21513@n2100.arm.linux.org.uk>
- <20151005112304.GZ23801@atomide.com>
- <20151005143532.GA23801@atomide.com>
- <20151005145127.GB23801@atomide.com>
- <20151005171155.GF23801@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 11/11] arm: boot: dts: omap: add missing default status for 32k counter
+Date: Mon, 5 Oct 2015 14:41:07 -0500
+Message-ID: <87io6lf6i4.fsf@saruman.tx.rr.com>
+References: <1443559446-26969-1-git-send-email-balbi@ti.com> <4815825.NCBBBMgLGf@wuerfel> <20150930141209.GB31865@saruman.tx.rr.com> <22213826.1MtkNIZ6W3@wuerfel> <20151005175230.GG18784@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151005171155.GF23801@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+	protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151005175230.GG18784@saruman.tx.rr.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, daniel.lezcano@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 05, 2015 at 10:11:56AM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [151005 07:57]:
-> > * Tony Lindgren <tony@atomide.com> [151005 07:44]:
-> > > * Tony Lindgren <tony@atomide.com> [151005 04:28]:
-> > > 
-> > > Based on some tests it seems that the duovero unpaired regulator usage
-> > > is fixed by reverting:
-> > > 
-> > > c55d7a055364 ("mmc: host: omap_hsmmc: use regulator_is_enabled to
-> > > find pbias status")
-> > 
-> > With commit c55d7a055364 my guess is that the PBIAS regulator is
-> > already on from an earlier MMC probe and getting re-enabled when
-> > a deferred probe happens?
-> 
-> Unless somebody has a better fix in mind for the above, I suggest
-> we revert it for the -rc kernel.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Let me try reverting that in my build tree, and...
+Felipe Balbi <balbi@ti.com> writes:
 
-> > > And it seems that omap3 legacy MMC is broken earlier in the
-> > > series with:
-> > > 
-> > > 7d607f917008 ("mmc: host: omap_hsmmc: use
-> > > devm_regulator_get_optional() for vmmc")
-> > > 
-> > > This one does not cleanly revert so have not yet tried reverting
-> > > it.
-> > 
-> > And with commit 7d607f917008 I'm guessing we can't return an
-> > error if the PBIAS regulator does not exist as that's not there
-> > for the legacy booting.
-> 
-> For omap3 legacy booting, we keep getting -EPROBE_DEFER for
-> all the optional regulators.
-> 
-> Something like the following might be the minimal fix for the -rc
-> cycle?
+> On Wed, Sep 30, 2015 at 11:58:16PM +0200, Arnd Bergmann wrote:
+>> On Wednesday 30 September 2015 09:12:09 Felipe Balbi wrote:
+>> > On Wed, Sep 30, 2015 at 10:15:25AM +0200, Arnd Bergmann wrote:
+>> > > On Tuesday 29 September 2015 15:44:06 Felipe Balbi wrote:
+>> > > > All devices should have a default status. Ignoring
+>> > > > the arguments if it should be 'okay' or 'disabled'
+>> > > > by default, let's set them all the 'disabled' and
+>> > > > have boards enable 32k counter.
+>> > > >=20
+>> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+>> > > >=20
+>> > >=20
+>> > > The patch looks good, but the description is slightly incorrect:
+>> > > There is no reason to list "status=3D'okay'" other than overriding
+>> > > the 'disabled' status.
+>> > >=20
+>> > > I'd phrase it something like:
+>> > >=20
+>> > > "We want the use of the 32k counter to be a per-board setting,
+>> > > so let's disable it by default in each dtsi file and override the
+>> > > setting in the boards. Any board that does not wire up the counter
+>> > > should leave it disabled".
+>> > >=20
+>> > > However, if you really want all boards to provide the counter all
+>> > > the time, I'd argue that we're better off dropping this patch. We
+>> > > use the status=3D"disabled" trick for anything that may or may not
+>> > > be working based on the board design, but things that are present
+>> > > everywhere don't need this.
+>> >=20
+>> > okay, so here's the thing. While fiddling with the 32k counter, I noti=
+ced
+>> > that even though there was no status listed, the thing still initializ=
+es
+>> > fine. However, when moving 32k to drivers/clocksource and using
+>> > CLOCKSOURCE_OF_DECLARE(), 32k would *NOT* probe unless I had an explic=
+it
+>> > status =3D "okay" in DT.
+>>=20
+>> Very strange, that sounds like a bug in the clocksource probe code.
+>> Can you check how this happens?
+>
+> seems like something overwrites counter's status field, here's a snippet =
+of boot
+> log:
+>
+> [    0.000000] =3D=3D=3D> counter is available ??
+> [    0.000000] =3D=3D=3D> no status -> TRUE!!
+> [    0.000000] =3D=3D=3D> searching for timer
+> [    0.000000] =3D=3D=3D> timer is available ??
+> [    0.000000] =3D=3D=3D> no status -> TRUE!!
+> [    0.000005] sched_clock: 64 bits at 1000MHz, resolution 1ns, wraps eve=
+ry 4398046511103ns
+> [    0.000014] clocksource: arm_global_timer: mask: 0xffffffffffffffff ma=
+x_cycles: 0x1cd42e4dffb, max_idle_ns: 881590591483 ns
+> [    0.000047] =3D=3D=3D> searching for timer
+> [    0.000051] =3D=3D=3D> timer is available ??
+> [    0.000054] =3D=3D=3D> no status -> TRUE!!
+> [    0.000307] =3D=3D=3D> searching for counter
+> [    0.000311] =3D=3D=3D> counter is available ??
+> [    0.000315] =3D=3D=3D> counter status disabled
+> [    0.000318] =3D=3D=3D=3D> counter NOT available
+>
+> note that first time around counter had no status and later it got a stat=
+us
+> disabled from somewhere.
 
-applying this patch.  If that gets things going again, then we
-_definitely_ should get both of these to Linus ASAP.  The breakage
-has been around far too long already.
+found it. arch/arm/mach-omap2/timer.c is the culprit:
 
-> 8< ----------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Mon, 5 Oct 2015 09:37:36 -0700
-> Subject: [PATCH] mmc: host: omap_hsmmc: Fix MMC for omap3 legacy booting
-> 
-> Starting with commit 7d607f917008 ("mmc: host: omap_hsmmc: use
-> devm_regulator_get_optional() for vmmc") MMC on omap3 stopped working
-> for legacy booting.
-> 
-> This is because legacy booting sets up some of the resource in the
-> platform init code, and for optional regulators always seem to
-> return -EPROBE_DEFER for the legacy booting.
-> 
-> Let's fix the issue by checking for device tree based booting for
-> now. Then when omap3 boots in device tree only mode, this patch
-> can be just reverted.
-> 
-> Fixes: 7d607f917008 ("mmc: host: omap_hsmmc: use
-> devm_regulator_get_optional() for vmmc")
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -478,7 +478,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->  	mmc->supply.vmmc = devm_regulator_get_optional(host->dev, "vmmc");
->  	if (IS_ERR(mmc->supply.vmmc)) {
->  		ret = PTR_ERR(mmc->supply.vmmc);
-> -		if (ret != -ENODEV)
-> +		if ((ret != -ENODEV) && host->dev->of_node)
->  			return ret;
->  		dev_dbg(host->dev, "unable to get vmmc regulator %ld\n",
->  			PTR_ERR(mmc->supply.vmmc));
-> @@ -493,7 +493,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->  	mmc->supply.vqmmc = devm_regulator_get_optional(host->dev, "vmmc_aux");
->  	if (IS_ERR(mmc->supply.vqmmc)) {
->  		ret = PTR_ERR(mmc->supply.vqmmc);
-> -		if (ret != -ENODEV)
-> +		if ((ret != -ENODEV) && host->dev->of_node)
->  			return ret;
->  		dev_dbg(host->dev, "unable to get vmmc_aux regulator %ld\n",
->  			PTR_ERR(mmc->supply.vqmmc));
-> @@ -503,7 +503,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->  	host->pbias = devm_regulator_get_optional(host->dev, "pbias");
->  	if (IS_ERR(host->pbias)) {
->  		ret = PTR_ERR(host->pbias);
-> -		if (ret != -ENODEV)
-> +		if ((ret != -ENODEV) && host->dev->of_node)
->  			return ret;
->  		dev_dbg(host->dev, "unable to get pbias regulator %ld\n",
->  			PTR_ERR(host->pbias));
+/**
+ * omap_get_timer_dt - get a timer using device-tree
+ * @match	- device-tree match structure for matching a device type
+ * @property	- optional timer property to match
+ *
+ * Helper function to get a timer during early boot using device-tree for u=
+se
+ * as kernel system timer. Optionally, the property argument can be used to
+ * select a timer with a specific property. Once a timer is found then mark
+ * the timer node in device-tree as disabled, to prevent the kernel from
+ * registering this timer as a platform device and so no one else can use i=
+t.
+ */
+static struct device_node * __init omap_get_timer_dt(const struct of_device=
+_id *match,
+						     const char *property)
+{
+	struct device_node *np;
 
--- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+	for_each_matching_node(np, match) {
+		if (!of_device_is_available(np))
+			continue;
+
+		if (property && !of_get_property(np, property, NULL))
+			continue;
+
+		if (!property && (of_get_property(np, "ti,timer-alwon", NULL) ||
+				  of_get_property(np, "ti,timer-dsp", NULL) ||
+				  of_get_property(np, "ti,timer-pwm", NULL) ||
+				  of_get_property(np, "ti,timer-secure", NULL)))
+			continue;
+
+		of_add_property(np, &device_disabled);
+		return np;
+	}
+
+	return NULL;
+}
+
+I'll patch this up and drop $subject
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWEtJUAAoJEIaOsuA1yqREst0P/j4iFxhOkXXpJ1mxeBqKv76a
+4i52T9OljTSPV76Kp2ko7WZ9eP8wYBfkES7ZQANOw0kCQHfWmWNOEWT4wmhsgyb8
+si6Al3u/FjP4wKpVYTfhlXfOZ/cvEei4gcz5sA664DkO4dBcfxWGVMiMSfYOWO89
+ErdHdTAJcgEF+UOarXDVAQw2zDkUOrcvIEj5O0sWrdUYyRxzhQOPf4+H7PdMlkYD
+tj7cKNYWdmgdv1AkviQayMU118WOkRIBv5ja0jg1MLrJdGuFN2ZKg+bW5NuVj2jR
+l0Z4DmzTqVoVEuXuyrYBzIM3wuM5/b2y7332m8h2w73o1J07xWER2gk6iy/d7J3y
+d2MuAESk+8TGeIm5h1CgKxV8BLv7I/ybUhg2/qN8KMEMxySnLeFfjEy5CB35dAOs
+odwWBJHpVXPPpDuWNZGHjEl8nFCM3vIGsbQ5O4ATXGJMhiNjKfFDTre9S34gyEs2
+i4f68D2n+E4ekHz5C4V7jj5wThB59PmICXTkG2hWZbkD5qgC/yG8geU7/1xf/Nee
+t2wFOgLjvDNciGBSFnMURvOv9syrFRhDLmV5wgfvrB1yNuIJ7ES+tx09ZKQYrbEt
+gxOk9nTg3Axr+UcftXv8jI3pEUR4qPznDyc0MzRjpu5r8UYhHBkxKtJ7qE0KFAj7
+bppd2X8fAK5fj6abATVq
+=er7O
+-----END PGP SIGNATURE-----
+--=-=-=--
