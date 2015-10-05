@@ -1,41 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH 09/11] clocksource: add TI 32.768 Hz counter driver
-Date: Mon, 5 Oct 2015 03:50:34 -0700
-Message-ID: <20151005105034.GU23801@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC/PATCH 00/11] arm: omap: counter32k rework
+Date: Mon, 5 Oct 2015 03:55:55 -0700
+Message-ID: <20151005105554.GV23801@atomide.com>
 References: <1443559446-26969-1-git-send-email-balbi@ti.com>
- <1443559446-26969-10-git-send-email-balbi@ti.com>
- <560DACD8.8000301@linaro.org>
+ <20150930141338.GC31865@saruman.tx.rr.com>
+ <3705422.OMk7ysE7Jn@wuerfel>
+ <6944324.e1oo8C9xbx@wuerfel>
+ <560DAFC5.50003@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <560DACD8.8000301@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, tglx@linutronix.de, John Stultz <john.stultz@linaro.org>
+In-Reply-To: <560DAFC5.50003-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Lezcano <daniel.lezcano@linaro.org> [151001 15:04]:
-> >+	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
-> >+			32768, NSEC_PER_SEC, 120000);
-> >+
-> >+	ret = clocksource_mmio_init(sync32k_cnt_reg, "32k_counter", 32768,
-> >+				250, 32, clocksource_mmio_readl_up);
-> >+	if (ret) {
-> >+		pr_err("32k_counter: can't register clocksource\n");
-> >+		return;
-> >+	}
-> >+
-> >+	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
-> >+	register_persistent_clock(NULL, omap_read_persistent_clock64);
+* Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [151001 15:16]:
+> On 09/30/2015 04:49 PM, Arnd Bergmann wrote:
+> >On Wednesday 30 September 2015 16:42:21 Arnd Bergmann wrote:
+> >>
+> >>TEGRA folks: the tegra_read_persistent_clock() implementation apparently
+> >>predates the Tegra RTC driver and I wonder if they actually do the
+> >>right thing in combination. Could it be that the wall time forwards
+> >>twice as fast as it should during resume when the RTC driver is loaded?
+> >>Could it be that we can simply remove  tegra_read_persistent_clock()
+> >>and the register_persistent_clock() infrastructure?
+> >>
+> >
+> >I found the 'sleeptime_injected' variable now, which takes care of
+> >forwarding the clock by the correct amount.
+> >
+> >I also found the CLOCK_SOURCE_SUSPEND_NONSTOP flag next to it, which
+> >should let us use the counter32k driver to provide the correct
+> >time during suspend without the omap_read_persistent_clock() function.
+> >We should be able to just delete that code.
+> >
+> >If we decide to also delete the tegra_read_persistent_clock()
+> >function, we can remove the registration too.
 > 
-> I will let John Stultz to have a look at this part because I have doubt
-> regarding the usage of the persistent clock.
+> 
+> +1
 
-The persistent clock we want to keep for deeper idle states..
-Especially when we start changing clocksource for the duration of
-deeper idle states. I'll post some updated patches on that when I
-get a chance.
+We could maybe have read_persistent_clock() just check for the
+CLOCK_SOURCE_SUSPEND_NONSTOP flag?
+
+And we probably should have also has_persistent_clock() or something
+that also checks for the CLOCK_SOURCE_SUSPEND_NONSTOP.
 
 Regards,
 
