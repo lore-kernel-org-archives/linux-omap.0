@@ -1,65 +1,64 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH] pwm: tipwmss: enable on TI DRA7x and AM437x
-Date: Mon, 5 Oct 2015 17:20:38 +0200
-Message-ID: <20151005152038.GB17612@ulmo>
-References: <637af4e1754204dd81677a1290517202eec7f011.1441725097.git.nsekhar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 03/11] arm: omap2: timer: remove __omap_gptimer_init()
+Date: Mon, 5 Oct 2015 10:24:54 -0500
+Message-ID: <20151005152454.GC18784@saruman.tx.rr.com>
+References: <1443559446-26969-1-git-send-email-balbi@ti.com>
+ <1443559446-26969-4-git-send-email-balbi@ti.com>
+ <20151005110144.GW23801@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="St7VIuEGZ6dlpu13"
-Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pZs/OQEoSSbxGlYw"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <637af4e1754204dd81677a1290517202eec7f011.1441725097.git.nsekhar@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: linux-pwm@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Vignesh R <vigneshr@ti.com>
+In-Reply-To: <20151005110144.GW23801@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, daniel.lezcano@linaro.org, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-
---St7VIuEGZ6dlpu13
+--pZs/OQEoSSbxGlYw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 08, 2015 at 08:44:05PM +0530, Sekhar Nori wrote:
-> From: Vignesh R <vigneshr@ti.com>
+On Mon, Oct 05, 2015 at 04:01:45AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [150929 13:48]:
+> > since now we can reuse __omap_sync32k_timer_init()
+> > for OMAP3-like devices, we can safely remove
+> > __omap_gptimer_init().
 >=20
-> TIPWMSS is present on TI's DRA7x and
-> AM437x SoCs. Enable its usage.
->=20
-> Instead of adding each SoC individually,
-> use the more generic ARCH_OMAP2PLUS
-> instead.
->=20
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  drivers/pwm/Kconfig | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+> There are tons of boards out there that need to use the
+> high frequency ocillator source with gptimer because of the
+> beagleboard B4 and earlier issue #7. So we need to provide
+> both options for the boards. Using the high frequency
+> oscillator source blocks deeper idle states in hardware
+> so those devices are usable.
 
-Applied, thanks. In the future, try to make use of the 78 columns. There
-is no need to make lines as short as you did.
+have a closer look, that hasn't changed
 
-Thierry
+--=20
+balbi
 
---St7VIuEGZ6dlpu13
+--pZs/OQEoSSbxGlYw
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAABCAAGBQJWEpVGAAoJEN0jrNd/PrOhzQYP/3/JkuZD1tX8QUR8Ca0QVMDt
-kYWMp6xKJJu5l+9eZzxqMty4aTInEX2xTKMOylNY+CfzIclzV/MkhuP29B0OBbx7
-hBsYkicSsOhfTWuRUIIRZAdi0JldZTqWk2qg2anKMF/1QR0S5qwcIdBWET+EGlZm
-PsH6ekLV/PsP77WQG0CNjRVqF4CPmLF6xHBLVJ85RWtq/Ja+ACKmfUPQNhL3xvCO
-eIEJNAfOBSHmR4fF90I5mTDyibZMaqi7e+U3X4IWpBVjKIdjIFSZs94SXYuosnPs
-VbxdIkBVoX+KMT1Mq9xLniUCQCOG04CESUpe1lsT6eIe45fSKGr1+SL77gOdnTyU
-Zfsx0ALbrzmjOUCqw7K4qSORuwB+9sZhhr8yGPy03czFul9DAMJ4JiS5jtiyZuW7
-FTK5Owfm/y/S/G5Jf5do8Ub07wFzOVv3xdGjPWroWmqzc6QtTQLuwtDSTN8pjHhA
-z+7/7Z5PLgIiwFXXHgqDUValouR7QwFr8/PdrSwOWYmicPUTumLNvvIfEgqpcLK1
-wIHustMysvtHay4Emxfez2FBzix0JWeeaBbGcwTbVQRZF2KtttewwqfHpXSOiy6V
-Kq6o85M9OncvPzUcqAPDPN9+HfQ5X5GvZtOsyquMxL9fluQ1jC1xmvf1ngt4s56R
-szy03qX7khMnYrvIimAd
-=mw1j
+iQIcBAEBAgAGBQJWEpZGAAoJEIaOsuA1yqREVuUP/309ZFdt6tEuM2ArlY4AbPmv
+T+A8FLs42RUkbUhzrV2Tq9kM2dH0QBMaPr+cBIhU68kmP/QyH/hnTQTKdX0t1Zw3
+4q/yzhMrHH9CwwagZE457A1pquJ6LuIoZMJBggADG2fr8rNGP0Z4HML692aipFOF
+V3jLJGp9U8jKifnsJDbpEy1CAJ8sHILce3aQcIKcPcRQ/r78xR9zmsp6OQOZ/hRI
+T4ZInLVRpjk/MH0RcDenDGSzphiDXp5Mim3ByDeN3GVTSkQT0qqn197LTJMLzIys
+pOckx0n19oXaKq/OFYqOjKeqB2h3tAA18ksjE+ETbmpDZIFswudOXnLV40mExlcJ
+Gwlcn9YFFCRNcBU7zudG74dLcbzA2YaDJ7UcyHNC2ajmKRGKkYdZ44YbDfpJg9mM
+0MxRQdBY/Hp5IsV6fn2Z8wHIs4qJ6FQeVTWZkfxdzFZq2nOGILFpR75yi8T+87Yj
+kNUeobvZDed48HRar89f4XlB8FkB6YXYnONGPPI4h2OX0k3oS8FDrf2ENxkIEDpr
+yYDqSIUjXoFY0K+Mx9vbcR2Rk1vTnu9I8dh+xrL6QyBBCOo1g8+zviqegHuXnsmv
+Azd3dVb96RvwZs/hcMhDFdKs7g3pXIwHIvv5rWawETZxNL6uQSV5D1QRb+w3WpEy
+pZ3UVKW297iSr7952+ju
+=SfpS
 -----END PGP SIGNATURE-----
 
---St7VIuEGZ6dlpu13--
+--pZs/OQEoSSbxGlYw--
