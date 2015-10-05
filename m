@@ -1,29 +1,70 @@
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH v2 1/3] iio:adc: add iio driver for Palmas (twl6035/7)
- gpadc
-Date: Mon, 5 Oct 2015 14:54:01 +0800
-Message-ID: <201510051420.XEoCPVd3%fengguang.wu@intel.com>
-References: <fba10a9902d88110569630da2a86ed4faf261e79.1444025628.git.hns@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] clk: ti: fix dual-registration of uart4_ick
+Date: Mon, 5 Oct 2015 03:17:55 -0700
+Message-ID: <20151005101755.GS23801@atomide.com>
+References: <1443019714-12926-1-git-send-email-ben.dooks@codethink.co.uk>
+ <20150923173040.GI23801@atomide.com>
+ <5604DED0.5050403@ti.com>
+ <560A8DB0.6020109@codethink.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <fba10a9902d88110569630da2a86ed4faf261e79.1444025628.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: kbuild-all@01.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Marek Belisko <marek@goldelico.com>, Pradeep Goudagunta <pgoudagunta@nvidia.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, gg@slimlogic.co.uk, jic23@jic23.retrosnub.co.uk, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-iio@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+In-Reply-To: <560A8DB0.6020109@codethink.co.uk>
+Sender: linux-clk-owner@vger.kernel.org
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Tero Kristo <t-kristo@ti.com>, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@lists.codethink.co.uk, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nikolaus,
+* Ben Dooks <ben.dooks@codethink.co.uk> [150929 06:14]:
+> On 25/09/15 06:42, Tero Kristo wrote:
+> > On 09/23/2015 08:30 PM, Tony Lindgren wrote:
+> >> * Ben Dooks <ben.dooks@codethink.co.uk> [150923 07:53]:
+> >>> On the OMAP AM3517 platform the uart4_ick gets registered
+> >>> twice, causing any power managment to /dev/ttyO3 to fail
+> >>> when trying to wake the device up.
+> >>>
+> >>> This solves the following oops:
+> >>>
+> >>> [] Unhandled fault: external abort on non-linefetch (0x1028) at
+> >>> 0xfa09e008
+> >>> [] PC is at serial_omap_pm+0x48/0x15c
+> >>> [] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+> >>
+> >> No uart4 on 34xx/35xx, that got introduced with 36xx so:
+> >>
+> >> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>
+> >>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> >>> ---
+> >>>   drivers/clk/ti/clk-3xxx.c | 1 -
+> >>>   1 file changed, 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+> >>> index 5e12f32..2e7ef1f 100644
+> >>> --- a/drivers/clk/ti/clk-3xxx.c
+> >>> +++ b/drivers/clk/ti/clk-3xxx.c
+> >>> @@ -374,7 +374,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+> >>>       DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
+> >>>       DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+> >>>       DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+> >>> -    DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+> >>>       DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+> >>>       DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+> >>>       DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+> > 
+> > NAK.
+> > 
+> > This patch is actually only partially correct, it removes the uart4_ick
+> > alias for omap36xx also. It should be added back to the omap36xx clks
+> > array. Care to post a v2?
+> 
+> Thankyou for the feedback. I'll update, but do not have a device to test.
 
-[auto build test WARNING on v4.3-rc4 -- if it's inappropriate base, please ignore]
+Hmm but isn't that entry already there for 36xx? So this just removes
+a duplicate for 36xx.. Tero, can you please check again, maybe I'm
+confused.
 
+Regars,
 
-coccinelle warnings: (new ones prefixed by >>)
-
->> drivers/iio/adc/palmas_gpadc.c:798:3-8: No need to set .owner here. The core will do it.
-
-Please review and possibly fold the followup patch.
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Tony
