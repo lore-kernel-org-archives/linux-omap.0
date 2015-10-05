@@ -1,94 +1,67 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v2 2/3] iio:adc:palmas: add DT support
-Date: Mon, 5 Oct 2015 12:17:55 +0100
-Message-ID: <20151005111754.GG19064@leverpostej>
-References: <86F849CB-1A50-4BEB-99C6-79FF97971DCB@goldelico.com>
- <cover.1443973837.git.hns@goldelico.com>
- <6C211191-87B8-4444-ADA7-8BE454C2B3D3@goldelico.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [RFC/PATCH 00/11] arm: omap: counter32k rework
+Date: Mon, 05 Oct 2015 14:19:35 +0200
+Message-ID: <5000312.QFy0tdfCNA@wuerfel>
+References: <1443559446-26969-1-git-send-email-balbi@ti.com> <9068678.D8T0aRhgnK@wuerfel> <20151005111341.GY23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6C211191-87B8-4444-ADA7-8BE454C2B3D3-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151005111341.GY23801-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Oct 04, 2015 at 06:05:59PM +0200, H. Nikolaus Schaller wrote:
-> From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+On Monday 05 October 2015 04:13:41 Tony Lindgren wrote:
+> * Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [151005 04:08]:
+> > On Monday 05 October 2015 03:55:55 Tony Lindgren wrote:
+> > > * Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [151001 15:16]:
+> > > > On 09/30/2015 04:49 PM, Arnd Bergmann wrote:
+> > > > >On Wednesday 30 September 2015 16:42:21 Arnd Bergmann wrote:
+> > > > >>
+> > > > >>TEGRA folks: the tegra_read_persistent_clock() implementation apparently
+> > > > >>predates the Tegra RTC driver and I wonder if they actually do the
+> > > > >>right thing in combination. Could it be that the wall time forwards
+> > > > >>twice as fast as it should during resume when the RTC driver is loaded?
+> > > > >>Could it be that we can simply remove  tegra_read_persistent_clock()
+> > > > >>and the register_persistent_clock() infrastructure?
+> > > > >>
+> > > > >
+> > > > >I found the 'sleeptime_injected' variable now, which takes care of
+> > > > >forwarding the clock by the correct amount.
+> > > > >
+> > > > >I also found the CLOCK_SOURCE_SUSPEND_NONSTOP flag next to it, which
+> > > > >should let us use the counter32k driver to provide the correct
+> > > > >time during suspend without the omap_read_persistent_clock() function.
+> > > > >We should be able to just delete that code.
+> > > > >
+> > > > >If we decide to also delete the tegra_read_persistent_clock()
+> > > > >function, we can remove the registration too.
+> > > > 
+> > > > 
+> > > > +1
+> > > 
+> > > We could maybe have read_persistent_clock() just check for the
+> > > CLOCK_SOURCE_SUSPEND_NONSTOP flag?
+> > 
+> > timekeeping_resume() already ignores the persistent clock values if
+> > the clocksource has this set. Do you mean we should additionally
+> > not call the read_persistent_clock() function at all to safe a
+> > few cycles reading that value?
 > 
-> Code was found at:
-> https://android.googlesource.com/kernel/tegra/+/a90856a6626d502d42c6e7abccbdf9d730b36270%5E%21/#F1
+> Hmm no I mean if we have CLOCK_SOURCE_SUSPEND_NONSTOP we can
+> automatically make read_persistent_clock() use that if nothing
+> else got registered.
+
+Ok, so we don't need to change anything here then.
+
+> > How expensive is the function?
 > 
-> Signed-off-by: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> [Fixed minor typos + add channels list to documentation]
-> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> ---
-> .../devicetree/bindings/iio/adc/palmas-gpadc.txt   | 46 +++++++++++++++++++
-> drivers/iio/adc/palmas_gpadc.c                     | 52 +++++++++++++++++++---
-> 2 files changed, 93 insertions(+), 5 deletions(-)
-> create mode 100644 Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt b/Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
-> new file mode 100644
-> index 0000000..2149afe
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
-> @@ -0,0 +1,46 @@
-> +* Palmas general purpose ADC IP block devicetree bindings
-> +
-> +Channels list:
-> +	0 battery type
-> +	1 battery temp NTC (optional current source)
-> +	2 GP
-> +	3 temp (with ext. diode, optional current source)
-> +	4 GP
-> +	5 GP
-> +	6 VBAT_SENSE
-> +	7 VCC_SENSE
-> +	8 Backup Battery voltage
-> +	9 external charger (VCHG)
-> +	10 VBUS
-> +	11 DC-DC current probe (how does this work?)
-> +	12 internal die temp
-> +	13 internal die temp
-> +	14 USB ID pin voltage
-> +	15 test network
-> +
-> +Required properties:
-> +- compatible : Must be "ti,palmas-gpadc".
-> +
-> +Optional sub-nodes:
-> +ti,channel0-current-microamp: Channel 0 current in uA.
-> +	Values are rounded to derive 0uA, 5uA, 15uA, 20uA.
-> +ti,channel3-current-microamp: Channel 3 current in uA.
-> +	Valid are rounded to derive 0uA, 10uA, 400uA, 800uA.
+> Usually the persistent clock is on some interconnect, so it is
+> way slower compared to a local timer. It doubt it makes a
+> difference in timekeeping_resume() though 
 
-It's only possible to configure channels 0 and 3 in this manner?
+Right.
 
-> +ti,enable-extended-delay: Enable extended delay.
-
-What is this? When would I select it? Why does it belong in the DT
-rather than being a runtime option?
-
-> +Example:
-> +
-> +pmic {
-> +	compatible = "ti,twl6035-pmic", "ti,palmas-pmic";
-> +	...
-> +	gpadc {
-> +		compatible = "ti,palmas-gpadc";
-> +		interrupts = <18 0
-> +			      16 0
-> +			      17 0>;
-> +		ti,channel0-current-microamp = <5>;
-> +		ti,channel3-current-microamp = <10>;
-> +		};
-> +	};
-> +	...
-> +};
-
-I thought you needed #iio-cells for encoding the channel?
-
-Mark.
+	Arnd
