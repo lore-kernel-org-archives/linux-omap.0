@@ -1,114 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Mon, 5 Oct 2015 07:51:27 -0700
-Message-ID: <20151005145127.GB23801@atomide.com>
-References: <20150924090048.GA21626@n2100.arm.linux.org.uk>
- <20150924233756.GN23801@atomide.com>
- <20151001093325.GU21513@n2100.arm.linux.org.uk>
- <CAPDyKFpnqJBrtiBekikrNHAf-agZm12KnF9n+=+72HH=jti-KA@mail.gmail.com>
- <20151001100326.GV21513@n2100.arm.linux.org.uk>
- <20151005112304.GZ23801@atomide.com>
- <20151005143532.GA23801@atomide.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH] pwm: tipwmss: enable on TI DRA7x and AM437x
+Date: Mon, 5 Oct 2015 17:20:38 +0200
+Message-ID: <20151005152038.GB17612@ulmo>
+References: <637af4e1754204dd81677a1290517202eec7f011.1441725097.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="St7VIuEGZ6dlpu13"
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151005143532.GA23801@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <637af4e1754204dd81677a1290517202eec7f011.1441725097.git.nsekhar@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: linux-pwm@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151005 07:44]:
-> * Tony Lindgren <tony@atomide.com> [151005 04:28]:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [151001 03:07]:
-> > > On Thu, Oct 01, 2015 at 11:50:00AM +0200, Ulf Hansson wrote:
-> > > > On 1 October 2015 at 11:33, Russell King - ARM Linux
-> > > > <linux@arm.linux.org.uk> wrote:
-> > > > > On Thu, Sep 24, 2015 at 04:37:56PM -0700, Tony Lindgren wrote:
-> > > > >> * Russell King - ARM Linux <linux@arm.linux.org.uk> [150924 02:04]:
-> > > > >> > Nightly testing has revealed that both the OMAP3430 LDP and the OMAP4430
-> > > > >> > SDP fail to boot due to lack of working MMC.  Both platforms fail to
-> > > > >> > find their rootfs, which is on a SD card.
-> > > > >> >
-> > > > >> > The breakage occurred somewhere between trees of September 9th (commit
-> > > > >> > 4e4adb2f4628) and September 12th (commit b0a1ea51bda4), so during the
-> > > > >> > merge window.
-> > > > >>
-> > > > >> Yes sorry things got messed up in multiple ways :( I've summarized
-> > > > >> the mess here earlier:
-> > > > >>
-> > > > >> http://article.gmane.org/gmane.linux.kernel.mmc/33911
-> > > > >>
-> > > > >> And today commit b9c93646fd5c ("regulator: pbias: program pbias register
-> > > > >> offset in pbias driver") hit mainline so I'll send a pull request for
-> > > > >> the related dts change.
-> > > > >
-> > > > > It's still broken and untestable.  We're 8 days off it being a full
-> > > > > month worth of failed testing for OMAP3 and OMAP4 platforms.
-> > > > >
-> > > > > I think OMAP and MMC people need to do a post-mortem and work out why
-> > > > > this happened, and how to stop it happening again in the future.
-> > > > 
-> > > > You are probably right!
-> > > > 
-> > > > I think I should have been more persistent when asking on how to deal
-> > > > with these patches. Typically they should all have gone together via
-> > > > one tree, or we needed a slower way forward keeping changes more
-> > > > standalone.
-> > > > 
-> > > > Anyway, according to kernelci.org, which builds and boot my next
-> > > > branch omap3/4 seems to boot now...
-> > > > http://kernelci.org/boot/all/job/ulfh/kernel/v4.3-rc3-27-gf7734d097520/
-> > > 
-> > > It continues to fail here.
-> > > 
-> > > Okay, sod it, I'm at the point of just not giving a damn about whether
-> > > OMAP3 and OMAP4 boot anymore.
-> > > 
-> > > I'm taking all OMAP platforms out of my boot farm.  I'm totally fed up
-> > > with this kind of regression happening.  It's probably some config option
-> > > that someone's recently introduced which defaults to being off, thereby
-> > > breaking the ability for people to move forward without constantly having
-> > > to re-configure.  This is not acceptable.
-> > > 
-> > > STOP BREAKING THE KERNEL.
-> > 
-> > I totally agree, this is unacceptable. And I'm fed up chasing driver
-> > breakage and trying to test everything myself.
-> > 
-> > If Kihon is not starting to respond to these issues, we better start
-> > reverting some of the MMC patches. And I'd say in the future non-trivial
-> > patches really have to sit in linux next for two weeks before merging.
-> > 
-> > We have still the omap3 legacy booting issue remaining, and warnings
-> > at least on omap4 overo.
-> 
-> Sorry i mean Kishon instead of Kihon above.
-> 
-> Based on some tests it seems that the duovero unpaired regulator usage
-> is fixed by reverting:
-> 
-> c55d7a055364 ("mmc: host: omap_hsmmc: use regulator_is_enabled to
-> find pbias status")
 
-With commit c55d7a055364 my guess is that the PBIAS regulator is
-already on from an earlier MMC probe and getting re-enabled when
-a deferred probe happens?
+--St7VIuEGZ6dlpu13
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> And it seems that omap3 legacy MMC is broken earlier in the
-> series with:
-> 
-> 7d607f917008 ("mmc: host: omap_hsmmc: use
-> devm_regulator_get_optional() for vmmc")
-> 
-> This one does not cleanly revert so have not yet tried reverting
-> it.
+On Tue, Sep 08, 2015 at 08:44:05PM +0530, Sekhar Nori wrote:
+> From: Vignesh R <vigneshr@ti.com>
+>=20
+> TIPWMSS is present on TI's DRA7x and
+> AM437x SoCs. Enable its usage.
+>=20
+> Instead of adding each SoC individually,
+> use the more generic ARCH_OMAP2PLUS
+> instead.
+>=20
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  drivers/pwm/Kconfig | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 
-And with commit 7d607f917008 I'm guessing we can't return an
-error if the PBIAS regulator does not exist as that's not there
-for the legacy booting.
+Applied, thanks. In the future, try to make use of the 78 columns. There
+is no need to make lines as short as you did.
 
-Regards,
+Thierry
 
-Tony
+--St7VIuEGZ6dlpu13
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJWEpVGAAoJEN0jrNd/PrOhzQYP/3/JkuZD1tX8QUR8Ca0QVMDt
+kYWMp6xKJJu5l+9eZzxqMty4aTInEX2xTKMOylNY+CfzIclzV/MkhuP29B0OBbx7
+hBsYkicSsOhfTWuRUIIRZAdi0JldZTqWk2qg2anKMF/1QR0S5qwcIdBWET+EGlZm
+PsH6ekLV/PsP77WQG0CNjRVqF4CPmLF6xHBLVJ85RWtq/Ja+ACKmfUPQNhL3xvCO
+eIEJNAfOBSHmR4fF90I5mTDyibZMaqi7e+U3X4IWpBVjKIdjIFSZs94SXYuosnPs
+VbxdIkBVoX+KMT1Mq9xLniUCQCOG04CESUpe1lsT6eIe45fSKGr1+SL77gOdnTyU
+Zfsx0ALbrzmjOUCqw7K4qSORuwB+9sZhhr8yGPy03czFul9DAMJ4JiS5jtiyZuW7
+FTK5Owfm/y/S/G5Jf5do8Ub07wFzOVv3xdGjPWroWmqzc6QtTQLuwtDSTN8pjHhA
+z+7/7Z5PLgIiwFXXHgqDUValouR7QwFr8/PdrSwOWYmicPUTumLNvvIfEgqpcLK1
+wIHustMysvtHay4Emxfez2FBzix0JWeeaBbGcwTbVQRZF2KtttewwqfHpXSOiy6V
+Kq6o85M9OncvPzUcqAPDPN9+HfQ5X5GvZtOsyquMxL9fluQ1jC1xmvf1ngt4s56R
+szy03qX7khMnYrvIimAd
+=mw1j
+-----END PGP SIGNATURE-----
+
+--St7VIuEGZ6dlpu13--
