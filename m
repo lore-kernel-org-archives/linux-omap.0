@@ -1,28 +1,46 @@
-From: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 2/3] iio:adc:palmas: add DT support
-Date: Mon, 5 Oct 2015 16:23:37 +0530
-Message-ID: <561256B1.7060604@nvidia.com>
-References: <cover.1444025625.git.hns@goldelico.com> <fd8f41c179c5e4ac3cf8cd22ec888a941e84cef6.1444025628.git.hns@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC/PATCH 09/11] clocksource: add TI 32.768 Hz counter driver
+Date: Mon, 5 Oct 2015 04:03:36 -0700
+Message-ID: <20151005110336.GX23801@atomide.com>
+References: <1443559446-26969-1-git-send-email-balbi@ti.com>
+ <1443559446-26969-10-git-send-email-balbi@ti.com>
+ <560DACD8.8000301@linaro.org>
+ <20151005105034.GU23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fd8f41c179c5e4ac3cf8cd22ec888a941e84cef6.1444025628.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151005105034.GU23801@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, John Stultz <john.stultz@linaro.org>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony@atomide.com> [151005 03:56]:
+> * Daniel Lezcano <daniel.lezcano@linaro.org> [151001 15:04]:
+> > >+	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+> > >+			32768, NSEC_PER_SEC, 120000);
+> > >+
+> > >+	ret = clocksource_mmio_init(sync32k_cnt_reg, "32k_counter", 32768,
+> > >+				250, 32, clocksource_mmio_readl_up);
+> > >+	if (ret) {
+> > >+		pr_err("32k_counter: can't register clocksource\n");
+> > >+		return;
+> > >+	}
+> > >+
+> > >+	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
+> > >+	register_persistent_clock(NULL, omap_read_persistent_clock64);
+> > 
+> > I will let John Stultz to have a look at this part because I have doubt
+> > regarding the usage of the persistent clock.
+> 
+> The persistent clock we want to keep for deeper idle states..
+> Especially when we start changing clocksource for the duration of
+> deeper idle states. I'll post some updated patches on that when I
+> get a chance.
 
-On Monday 05 October 2015 11:44 AM, H. Nikolaus Schaller wrote:
-> From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
->
-> Code was found at:
-> https://android.googlesource.com/kernel/tegra/+/a90856a6626d502d42c6e7abccbdf9d730b36270%5E%21/#F1
->
-> Signed-off-by: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> [Fixed minor typos + add channels list to documentation]
-> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> ---
+But sounds like we can just have read_persistent_clock() check
+for the CLOCK_SOURCE_SUSPEND_NONSTOP like I pointed in the other
+patch in this series.
 
-Acked-by: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Tony
