@@ -1,27 +1,41 @@
-From: "Koul, Vinod" <vinod.koul@intel.com>
-Subject: Re: [PATCH v4 00/25] dmaengine/ARM: Merge the edma drivers into one
-Date: Tue, 6 Oct 2015 07:30:39 +0000
-Message-ID: <1444116637.3579.39.camel@intel.com>
-References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
-	 <561366ED.8010800@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] ARM: dts: DRA7: Add timer12 node
+Date: Tue, 6 Oct 2015 00:52:09 -0700
+Message-ID: <20151006075209.GH23801@atomide.com>
+References: <1444087704-1429-1-git-send-email-s-anna@ti.com>
+ <1444087704-1429-4-git-send-email-s-anna@ti.com>
+ <87y4fgesbz.fsf@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561366ED.8010800@ti.com>
-Content-Language: en-US
-Content-ID: <F7ACFCCE61F8874CB301BA39291E86C5@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "nsekhar@ti.com" <nsekhar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "olof@lixom.net" <olof@lixom.net>, "arnd@arndb.de" <arnd@arndb.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87y4fgesbz.fsf-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCAyMDE1LTEwLTA2IGF0IDA5OjE1ICswMzAwLCBQZXRlciBVamZhbHVzaSB3cm90ZToN
-Cj4gSGkNCj4gDQo+IE9uIDA5LzI0LzIwMTUgMDE6MDEgUE0sIFBldGVyIFVqZmFsdXNpIHdyb3Rl
-Og0KPiA+IEhpLA0KPiA+IA0KPiA+IENoYW5nZXMgc2luY2UgdjM6DQo+ID4gLSBTZXBhcmF0ZWQg
-dGhlIHR3byAocGF0Y2ggMTAvMTEgaW4gdjIgcGF0Y2ggMTAgaW4gdjMpIHBhdGNoIHdoaWNoIGdv
-dCBzcXVhc2hlZA0KPiA+ICAgYnkgYWNjaWRlbnQgZm9yIHYzDQo+ID4gLSBBZGRlZCBUb255J3Mg
-QWNrZWQtYnkgdG8gcGF0Y2ggMTEgKGZvciBtYWNoLW9hbXAyIHBhcnQpDQo+IA0KPiBHZW50bGUg
-cGluZyBvbiB0aGlzIHNlcmllcyA7KQ0KDQpJdHMgYSBsb25nIG9uZSA6KQ0KDQpJIGhvcGUgdG8g
-Z2V0IHRoaXMgZG9uZSBuZXh0IHdlZWsgYWZ0ZXIgYW0gYmFjayBmcm9tIER1Ymxpbg0KDQo+IA0K
-LS0gDQp+Vmlub2QNCg==
+* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [151005 17:51]:
+> 
+> according to Tony we should avoid using status at all for in-SoC
+> devices.
+> 
+> Tony, can you confirm I understood you correctly ?
+
+Yes. With status = "disabled" kernel completely ignores the
+device and struct device is not created at all even with the
+device being there. In general we're better off trying to
+probe the device and idle it.
+
+The only time we really want to mark something with
+status = "disabled" is if some coprocessor firmware is
+using that device and the kernel should not touch it at
+all.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
