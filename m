@@ -1,80 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Tue, 6 Oct 2015 01:33:47 -0700
-Message-ID: <20151006083346.GL23801@atomide.com>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
- <560BC0DB.5020205@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: All OMAP platforms: MMC is broken
+Date: Tue, 6 Oct 2015 10:00:15 +0100
+Message-ID: <20151006090015.GE21626@n2100.arm.linux.org.uk>
+References: <20150924090048.GA21626@n2100.arm.linux.org.uk>
+ <20150924233756.GN23801@atomide.com>
+ <20151001093325.GU21513@n2100.arm.linux.org.uk>
+ <CAPDyKFpnqJBrtiBekikrNHAf-agZm12KnF9n+=+72HH=jti-KA@mail.gmail.com>
+ <20151001100326.GV21513@n2100.arm.linux.org.uk>
+ <20151005112304.GZ23801@atomide.com>
+ <20151005143532.GA23801@atomide.com>
+ <20151005145127.GB23801@atomide.com>
+ <20151005171155.GF23801@atomide.com>
+ <20151005183813.GD21626@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <560BC0DB.5020205@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20151005183813.GD21626@n2100.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [150930 04:04]:
-> Tony,
+On Mon, Oct 05, 2015 at 07:38:13PM +0100, Russell King - ARM Linux wrote:
+> On Mon, Oct 05, 2015 at 10:11:56AM -0700, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [151005 07:57]:
+> > > * Tony Lindgren <tony@atomide.com> [151005 07:44]:
+> > > > * Tony Lindgren <tony@atomide.com> [151005 04:28]:
+> > > > 
+> > > > Based on some tests it seems that the duovero unpaired regulator usage
+> > > > is fixed by reverting:
+> > > > 
+> > > > c55d7a055364 ("mmc: host: omap_hsmmc: use regulator_is_enabled to
+> > > > find pbias status")
+> > > 
+> > > With commit c55d7a055364 my guess is that the PBIAS regulator is
+> > > already on from an earlier MMC probe and getting re-enabled when
+> > > a deferred probe happens?
+> > 
+> > Unless somebody has a better fix in mind for the above, I suggest
+> > we revert it for the -rc kernel.
 > 
-> On 18/09/15 17:53, Roger Quadros wrote:
-> > Hi,
-> > 
-> > We do a couple of things in this series which result in
-> > cleaner device tree implementation, faster perfomance and
-> > multi-platform support. As an added bonus we get new GPI/Interrupt pins
-> > for use in the system.
-> > 
-> > - Establish a custom interface between NAND and GPMC driver. This is
-> > needed because all of the NAND registers sit in the GPMC register space.
-> > Some bits like NAND IRQ are even shared with GPMC.
-> > 
-> > - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
-> > with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
-> > This causes performance increase when using prefetch-irq mode.
-> > 30% increase in read, 17% increase in write in prefetch-irq mode.
-> > 
-> > - Clean up device tree support so that omap-gpmc IP and the omap2 NAND
-> > driver can be used on non-OMAP platforms. e.g. Keystone.
-> > 
-> > - Implement GPIOCHIP + IRQCHIP for the GPMC WAITPINS. SoCs can contain
-> > 2 to 4 of these and most of them would be unused otherwise. It also
-> > allows a cleaner implementation of NAND Ready pin status for the NAND driver.
-> > 
-> > - Implement GPIOlib based NAND ready pin checking for OMAP NAND driver.
-> > 
-> > This series is available at
-> > git@github.com:rogerq/linux.git
-> > in branch
-> > for-v4.4/gpmc-v3
-
-In general, very nice work :)
-
-> I've verified this series with the following boards
-> -dra7-evm
-> -am437x-gp-evm
-> -am335x-evm
-> -beagleboard-c4
+> Let me try reverting that in my build tree, and...
 > 
-> For legacy boot I've checked only on beagleboard-c4.
-
-Great.
-
-Does build and boot and use NAND work throughtout the series?
-Otherwise we'll have hard time bisecting anything..
-
-> Test procedure was to read an existing ubifs partition,
-> create a new one and read it back.
+> > > > And it seems that omap3 legacy MMC is broken earlier in the
+> > > > series with:
+> > > > 
+> > > > 7d607f917008 ("mmc: host: omap_hsmmc: use
+> > > > devm_regulator_get_optional() for vmmc")
+> > > > 
+> > > > This one does not cleanly revert so have not yet tried reverting
+> > > > it.
+> > > 
+> > > And with commit 7d607f917008 I'm guessing we can't return an
+> > > error if the PBIAS regulator does not exist as that's not there
+> > > for the legacy booting.
+> > 
+> > For omap3 legacy booting, we keep getting -EPROBE_DEFER for
+> > all the optional regulators.
+> > 
+> > Something like the following might be the minimal fix for the -rc
+> > cycle?
 > 
-> Need you to Ack if it looks good.
-> Do you mind taking it via omap-soc once MTD maintainers ack their relevant parts?
+> applying this patch.  If that gets things going again, then we
+> _definitely_ should get both of these to Linus ASAP.  The breakage
+> has been around far too long already.
 
-Sure. I'll try to do some testing on the series first too.
+Last night's build shows that this fixes the non-DT LDP3430 booting, but
+DT-based LDP3430 and SDP4430 both remain broken for the same reason -
+neither can find their SD cards.
 
-Can the dts changes be merged separtely? Otherwise we'll have
-a dependency between dts branch and the GPMC/NAND changes.
+We're at -rc4.  That means we're could be only three weeks away from 4.3
+being released, and DT OMAP has yet to boot _once_ here.
 
-Regards,
+What I find *totally* unacceptable is the lack of reaction from the MMC
+and TI people: it's just like "we'll break your crap, and we'll ignore
+reports of regressions."  That is *not* acceptable in any shape or form,
+and people who do this _should_ have their future patches ignored until
+they demonstrate that they understand the need to not break stuff.
 
-Tony
+I'm at the point of suggesting that there should be a moritorium on all
+OMAP related development for 4.4: delay all development to 4.5, and have
+4.4 as a pure bug-fixing _only_ cycle for OMAP.  If 4.3 is released and
+OMAP is still broken, then I don't think there's an option on that.
+
+Maybe the idea that development work won't hit mainline for another 4
+months will help focus the minds on not breaking stuff and then ignoring
+regression reports.
+
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
