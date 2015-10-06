@@ -1,152 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Tue, 6 Oct 2015 20:57:42 +0100
-Message-ID: <20151006195742.GH21626@n2100.arm.linux.org.uk>
-References: <20151005143532.GA23801@atomide.com>
- <20151005145127.GB23801@atomide.com>
- <20151005171155.GF23801@atomide.com>
- <20151005183813.GD21626@n2100.arm.linux.org.uk>
- <20151006090015.GE21626@n2100.arm.linux.org.uk>
- <20151006094425.GM23801@atomide.com>
- <CAPDyKFowuHHoYq3pRa11rg8KThQA5=Pzg5CpKfzMgz1to9+XLA@mail.gmail.com>
- <5613A419.5070006@ti.com>
- <20151006150751.GG21626@n2100.arm.linux.org.uk>
- <56142119.6050603@ti.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Subject: [PATCH 1/2] memory: omap-gpmc: dump "before" state before first
+ modification
+Date: Tue,  6 Oct 2015 22:07:49 +0200
+Message-ID: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56142119.6050603@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 07, 2015 at 12:59:29AM +0530, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Tuesday 06 October 2015 08:37 PM, Russell King - ARM Linux wrote:
-> > On Tue, Oct 06, 2015 at 04:06:09PM +0530, Kishon Vijay Abraham I wrote:
-> >> Hi,
-> >>
-> >> On Tuesday 06 October 2015 03:41 PM, Ulf Hansson wrote:
-> >>> On 6 October 2015 at 11:44, Tony Lindgren <tony@atomide.com> wrote:
-> >>>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 02:04]:
-> >>>>> On Mon, Oct 05, 2015 at 07:38:13PM +0100, Russell King - ARM Linux wrote:
-> >>>>>> On Mon, Oct 05, 2015 at 10:11:56AM -0700, Tony Lindgren wrote:
-> >>>>>>> * Tony Lindgren <tony@atomide.com> [151005 07:57]:
-> >>>>>>>> * Tony Lindgren <tony@atomide.com> [151005 07:44]:
-> >>>>>>>>> * Tony Lindgren <tony@atomide.com> [151005 04:28]:
-> >>>>>>>>>
-> >>>>>>>>> Based on some tests it seems that the duovero unpaired regulator usage
-> >>>>>>>>> is fixed by reverting:
-> >>>>>>>>>
-> >>>>>>>>> c55d7a055364 ("mmc: host: omap_hsmmc: use regulator_is_enabled to
-> >>>>>>>>> find pbias status")
-> >>>>>>>>
-> >>>>>>>> With commit c55d7a055364 my guess is that the PBIAS regulator is
-> >>>>>>>> already on from an earlier MMC probe and getting re-enabled when
-> >>>>>>>> a deferred probe happens?
-> >>>>>>>
-> >>>>>>> Unless somebody has a better fix in mind for the above, I suggest
-> >>>>>>> we revert it for the -rc kernel.
-> >>>>>>
-> >>>>>> Let me try reverting that in my build tree, and...
-> >>>>>>
-> >>>>>>>>> And it seems that omap3 legacy MMC is broken earlier in the
-> >>>>>>>>> series with:
-> >>>>>>>>>
-> >>>>>>>>> 7d607f917008 ("mmc: host: omap_hsmmc: use
-> >>>>>>>>> devm_regulator_get_optional() for vmmc")
-> >>>>>>>>>
-> >>>>>>>>> This one does not cleanly revert so have not yet tried reverting
-> >>>>>>>>> it.
-> >>>>>>>>
-> >>>>>>>> And with commit 7d607f917008 I'm guessing we can't return anHi,
-> >>>>>>>> error if the PBIAS regulator does not exist as that's not there
-> >>>>>>>> for the legacy booting.
-> >>>>>>>
-> >>>>>>> For omap3 legacy booting, we keep getting -EPROBE_DEFER for
-> >>>>>>> all the optional regulators.
-> >>>>>>>
-> >>>>>>> Something like the following might be the minimal fix for the -rc
-> >>>>>>> cycle?
-> >>>>>>
-> >>>>>> applying this patch.  If that gets things going again, then we
-> >>>>>> _definitely_ should get both of these to Linus ASAP.  The breakage
-> >>>>>> has been around far too long already.
-> >>>>>
-> >>>>> Last night's build shows that this fixes the non-DT LDP3430 booting, but
-> >>>>> DT-based LDP3430 and SDP4430 both remain broken for the same reason -
-> >>>>> neither can find their SD cards.
-> >>>>
-> >>>> Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
-> >>>> Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
-> >>>> working for you with DT-based booting because you don't seem to have
-> >>>> CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
-> >>>> for both your omap3 and omap4 seed config files?
-> >>>>
-> >>>>> We're at -rc4.  That means we're could be only three weeks away from 4.3
-> >>>>> being released, and DT OMAP has yet to boot _once_ here.
-> >>>>>
-> >>>>> What I find *totally* unacceptable is the lack of reaction from the MMC
-> >>>>> and TI people: it's just like "we'll break your crap, and we'll ignore
-> >>>>> reports of regressions."  That is *not* acceptable in any shape or form,
-> >>>>> and people who do this _should_ have their future patches ignored until
-> >>>>> they demonstrate that they understand the need to not break stuff.
-> >>>>>
-> >>>>> I'm at the point of suggesting that there should be a moritorium on all
-> >>>>> OMAP related development for 4.4: delay all development to 4.5, and have
-> >>>>> 4.4 as a pure bug-fixing _only_ cycle for OMAP.  If 4.3 is released and
-> >>>>> OMAP is still broken, then I don't think there's an option on that.
-> >>>>>
-> >>>>> Maybe the idea that development work won't hit mainline for another 4
-> >>>>> months will help focus the minds on not breaking stuff and then ignoring
-> >>>>> regression reports.
-> >>>>
-> >>>> I'm thinking along the same lines. In general, I do not and will not
-> >>>> apply any patches that are not fixes until all critical regressions are
-> >>>> out of the way. So not applying anything new for v4.4 until these MMC
-> >>>> regressions are fixed for v4.3.
-> >>>>
-> >>>
-> >>> Tony, Russell - just wanted to say thanks for putting a big effort in
-> >>> fixing this. I was expecting support from Kishon, but I guess he's
-> >>> busy.
-> >>>
-> >>> Unfortunate, I don't have any of the hardware that fails, otherwise I
-> >>> would of course be helping out more. The only thing I can think of is
-> >>> to revert the entire patchset I picked up for 4.3 from Kishon for the
-> >>> omap_hsmmc driver, but then I am not sure if that would cause other
-> >>> issues...
-> >>
-> >> Please don't do that as that will just mask lot of bugs in the
-> >> devicetree and might get MMC working. Indeed I was busy but I'll try to
-> >> get this resolved asap. The 2 pending issues as far as I know
-> > 
-> > Sorry, but no.  None of this "mask bugs ... might" crap.  Either they're
-> > bug fixes, or they aren't bug fixes.  This should be a definite decision,
-> > not some vague crap.
-> 
-> What I meant is the patches merged by Ulf *did* exposed bugs in device
-> tree (for instance a dt patch caused PBIAS regulator from not being
-> registered) and if those patches are reverted then a future dt breakage
-> might again be not caught.
-
-That makes it even worse then.
-
-What you seem to be saying now is that the old DT files were wrong, and
-you've fixed the DT files up in the latest kernel.  You've also changed
-the kernel in a way to make the old DT files fail.
-
-That's totally unacceptable.  Users have the right to expect that old DT
-files work with later kernels.
-
-It's fine to detect the broken DT files and print a warning, and have
-the kernel fix up the breakage, but it is unacceptable to decide that
-old DT files are broken and to then change stuff to prevent them working
-with later kernels.
-
--- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+V2hlbiBncG1jX2NzX3Nob3dfdGltaW5ncyBpcyBjYWxsZWQgaW4gZ3BtY19jc19zZXRfdGltaW5n
+cygpCmdwbWNfY3NfcHJvZ3JhbV9zZXR0aW5ncygpIHdhcyBhbHJlYWR5IHJ1biB3aGljaCBtb2Rp
+ZmllcyB0aGUgQ09ORklHMQpyZWdpc3Rlci4gU28gdG8gYmUgbW9yZSB1c2VmdWwgZG8gdGhlICJi
+ZWZvcmUiIGR1bXAgZWFybGllci4KClNpZ25lZC1vZmYtYnk6IFV3ZSBLbGVpbmUtS8O2bmlnIDx1
+LmtsZWluZS1rb2VuaWdAcGVuZ3V0cm9uaXguZGU+Ci0tLQogZHJpdmVycy9tZW1vcnkvb21hcC1n
+cG1jLmMgfCAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24o
+LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lbW9yeS9vbWFwLWdwbWMuYyBiL2RyaXZlcnMvbWVt
+b3J5L29tYXAtZ3BtYy5jCmluZGV4IDMyYWMwNDlmMmJjNC4uNjUxNWRmYzJiODA1IDEwMDY0NAot
+LS0gYS9kcml2ZXJzL21lbW9yeS9vbWFwLWdwbWMuYworKysgYi9kcml2ZXJzL21lbW9yeS9vbWFw
+LWdwbWMuYwpAQCAtNjk2LDcgKzY5Niw2IEBAIGludCBncG1jX2NzX3NldF90aW1pbmdzKGludCBj
+cywgY29uc3Qgc3RydWN0IGdwbWNfdGltaW5ncyAqdCwKIAlpbnQgZGl2OwogCXUzMiBsOwogCi0J
+Z3BtY19jc19zaG93X3RpbWluZ3MoY3MsICJiZWZvcmUgZ3BtY19jc19zZXRfdGltaW5ncyIpOwog
+CWRpdiA9IGdwbWNfY2FsY19kaXZpZGVyKHQtPnN5bmNfY2xrKTsKIAlpZiAoZGl2IDwgMCkKIAkJ
+cmV0dXJuIGRpdjsKQEAgLTE5ODgsNiArMTk4Nyw3IEBAIHN0YXRpYyBpbnQgZ3BtY19wcm9iZV9n
+ZW5lcmljX2NoaWxkKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYsCiAJaWYgKHJldCA8IDAp
+CiAJCWdvdG8gZXJyOwogCisJZ3BtY19jc19zaG93X3RpbWluZ3MoY3MsICJiZWZvcmUgZ3BtY19j
+c19wcm9ncmFtX3NldHRpbmdzIik7CiAJcmV0ID0gZ3BtY19jc19wcm9ncmFtX3NldHRpbmdzKGNz
+LCAmZ3BtY19zKTsKIAlpZiAocmV0IDwgMCkKIAkJZ290byBlcnI7Ci0tIAoyLjYuMAoKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
+ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
+Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
