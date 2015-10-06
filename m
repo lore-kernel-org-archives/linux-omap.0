@@ -1,72 +1,55 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: cpufreq-dt error: failed to init cpufreq table: -61
-Date: Tue, 6 Oct 2015 16:16:51 +0200
-Message-ID: <CAAfyv366=LOfy4_JeuRgjsbgBADWCanRt9X1JDv_eVkYe872Dw@mail.gmail.com>
-References: <CAAfyv370DFbz9v8URqcipQt-AQ-6du19hf8di2fPeVfTdBzXww@mail.gmail.com>
-	<87fv1o3xmo.fsf@saruman.tx.rr.com>
-	<CAAfyv35mMiuLCCnJFjodNcx-iyOsz56-BPU7fkSc=AL1Xw5nJw@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 10/13] twl4030_charger: add software controlled linear
+ charging mode.
+Date: Tue, 6 Oct 2015 16:34:07 +0200
+Message-ID: <20151006143407.GA24518@xo-6d-61-c0.localdomain>
+References: <20150730001113.4012.18086.stgit@noble>
+ <20150730001124.4012.27784.stgit@noble>
+ <20150915112825.GA10704@amd>
+ <87bncjjesu.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAAfyv35mMiuLCCnJFjodNcx-iyOsz56-BPU7fkSc=AL1Xw5nJw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <87bncjjesu.fsf@notabene.neil.brown.name>
 Sender: linux-pm-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux PM mailing list <linux-pm@vger.kernel.org>
+To: Neil Brown <neil@brown.name>
+Cc: Sebastian Reichel <sre@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, real GTA04 owners <gta04-owner@goldelico.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi!
 
-On Tue, Oct 6, 2015 at 4:03 PM, Belisko Marek <marek.belisko@gmail.com> wrote:
-> Hi Felipe,
->
-> On Tue, Oct 6, 2015 at 4:00 PM, Felipe Balbi <balbi@ti.com> wrote:
->>
->> Hi,
->>
->> Belisko Marek <marek.belisko@gmail.com> writes:
->>> Hi Tony,
->>>
->>> I'm using custom am33xx board where mpu voltage can be changed through
->>> gpio regulator on 4.1 (latest stable) kernel. I defined gpio-regulator
->>> node and also operating-points to DT. Gpio regulator seems to be
->>> working fine but during probing cpufreq-dt I get error:
->>> failed to init cpufreq table: -61
->>>
->>> I did small investigation and seem that dev_pm_opp_init_cpufreq_table
->>> fails at first condition dev_pm_opp_get_opp_count <= 0 and this is
->>> because opp_list is empty. So it seems that any opp for am33xx aren't
->>> defined if I'm getting it right. I did look to mach-omap2/opp3xxx_data
->>> but there is nothing am33xx specific. It is known problem or exist
->>> some patches around to fix that? Many thanks.
->>
->> OPP initialization is not in mainline yet, there are some out-of-tree
->> patches which TI has been working on. If you want to use them, have a
->> look at TI's vendor kernel at [1]
-> Thanks for link. One thing which is still not puzzled before I use 3.9
-> kernel and it was working fine
-> it's stops working when bumped to 4.1.
-Sorry information was incorrect. On 3.9 kernel we did use tps, pmic
-now we have only gpio regulator
-so this is the difference.
->>
->> [1] http://git.ti.com/ti-linux-kernel/ti-linux-kernel/blobs/ti-lsk-linux-4.1.y/arch/arm/mach-omap2/opp33xx_data.c
->>
->> --
->> balbi
->
+> Pavel Machek <pavel@ucw.cz> writes:
+> > On Thu 2015-07-30 10:11:24, NeilBrown wrote:
+> >> 
+> >> Add a 'continuous' option for usb charging which enables
+> >> the "linear" charging mode of the twl4030.
+> >> 
+> >> Linear charging does a good job with not-so-reliable power sources.
+> >> Auto mode does not work well as it switches off when voltage drops
+> >> momentarily.  Care must be taken not to over-charge.
+> >
+> > Can you explain how the user can "care not to over-charge"?
+> 
+> The following text reads:
+> 
+>     It was used with a bike hub dynamo since a year or so. In that case
+>     there are automatically charging stops when the cyclist needs a break.
+> 
+> so: take a break from cycling occasionally.
 
-BR,
+If the charger does not exceed 4.2V, I'd not call it overcharge. (Yes, some clever
+chargers actually let the battery drop below 4.2V when charge is done, but...)
 
-marek
+If the charger _does_ exceed 4.2V, then the battery will explode. Don't do that. Don't
+offer that to the user.
+
+On a related note... I've just killed USB charger by overloading it. They are not protected.
+
+I believe your automatically-pull-max-power really should stick to the well-known charging
+currents (.5A, 1A, 1.7A), at the very minimum.
+
 
 -- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
