@@ -1,65 +1,73 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 11/11] arm: boot: dts: omap: add missing default status for 32k counter
-Date: Tue, 6 Oct 2015 10:29:29 -0500
-Message-ID: <87oagc2exy.fsf@saruman.tx.rr.com>
-References: <1443559446-26969-1-git-send-email-balbi@ti.com> <20151005175230.GG18784@saruman.tx.rr.com> <87io6lf6i4.fsf@saruman.tx.rr.com> <13543270.oBfHhoNL28@wuerfel> <87612k3uza.fsf@saruman.tx.rr.com> <20151006151805.GR23801@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: All OMAP platforms: MMC is broken
+Date: Tue, 6 Oct 2015 08:37:11 -0700
+Message-ID: <20151006153710.GS23801@atomide.com>
+References: <CAPDyKFpnqJBrtiBekikrNHAf-agZm12KnF9n+=+72HH=jti-KA@mail.gmail.com>
+ <20151001100326.GV21513@n2100.arm.linux.org.uk>
+ <20151005112304.GZ23801@atomide.com>
+ <20151005143532.GA23801@atomide.com>
+ <20151005145127.GB23801@atomide.com>
+ <20151005171155.GF23801@atomide.com>
+ <20151005183813.GD21626@n2100.arm.linux.org.uk>
+ <20151006090015.GE21626@n2100.arm.linux.org.uk>
+ <20151006094425.GM23801@atomide.com>
+ <20151006150009.GF21626@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151006151805.GR23801@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, daniel.lezcano@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151006150009.GF21626@n2100.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 08:04]:
+> On Tue, Oct 06, 2015 at 02:44:25AM -0700, Tony Lindgren wrote:
+> > 
+> > Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
+> > Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
+> > working for you with DT-based booting because you don't seem to have
+> > CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
+> > for both your omap3 and omap4 seed config files?
+> 
+> This is precisely the kind of crap I'm objecting to.  New kernel versions
+> come along, and things break because people add extra Kconfig symbols that
+> previous versions did not rely upon - and there's no communication of
+> what's required for new kernel versions.
+> 
+> This stuff needs documenting, so that people are aware what changes they
+> need to make - please put something in Documentation/arm/OMAP which
+> tracks what new additions are required to the Kconfig to keep things
+> working.
 
+Good idea, how about something like the following? AFAIK that's the
+only .config option needed as MFD_SYSCON is selected by Kconfig
+already.
 
-Hi,
+Regrds,
 
-Tony Lindgren <tony@atomide.com> writes:
+Tony
 
-> * Felipe Balbi <balbi@ti.com> [151006 08:02]:
->> - ti,timer-alwon:	Indicates the timer is in an alway-on power
->>   domain.
->>=20
->> Tony, care to comment if we should add timer-alwon to 32k ?
->
-> No that should not be needed for the 32k counter. We should be able
-> to do everything we want with CLOCK_SOURCE_SUSPEND_NONSTOP for the
-> 32k counter.
->
-> We still need ti,timer-alwon for a while for gptimers 1 and 12 as
-> they are the only ones in the always-on domain. I guess that need
-> will eventually go away too once we have a proper interconnect
-> driver and are using genpd.
+8< ----------
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 6 Oct 2015 08:33:16 -0700
+Subject: [PATCH] Documentation: ARM: List new omap MMC requirements
 
-cool, thanks. I'll try to respin this series, hopefully still this week.
+Earlier the PBIAS regulator was optional, not so with recent
+omap_hsmmc changes. To make things easier for people with
+custom .config files, let's add minimal documentation for it
+as suggested by Russell King <rmk+kernel@arm.linux.org.uk>.
 
-=2D-=20
-balbi
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWE+jbAAoJEIaOsuA1yqREeIYP/RwKjr5kbsO5VAbJBdLwvpUh
-0Vqb26/Zwhp7mSVUwdqBZFnUWqW8DY+IXicQByMeJDlcV9M/EchdR5l5tfHWH8rr
-zMq9CFjta7KrfcH39HmXF9lzKKQEZ18n4GsE3Q9cUuWGAkvq2KgxQeR36F5FLxxC
-53xPBixFPdZ1Lq9z9QHMvtrFPDvOx/Sz8qpXarPq6QRGDUs+n+Jgg5wB3XXl8bNi
-PKr1kj73cQw6nZrqfzZmOsJyQTZbwNfUpLHww2JyxF0vGJ15gaKzQg4LtaP1P0eN
-LBR/8JL7D0VlSo2MGtBQDcIUrG+6jKy2fvSMQvYIxKVWJf3v6px6h0aJAb2v7owE
-qg/R5tGoZ6hG8C3X6gc0NgfVs82q0+r3sWhrDZ6lTnTOTiNOniSKIDqkoPvsyq6o
-tPoKwuxqT5/+vEM/NciWbIAUvPqYj30+mN39BKjcFvCukPkEZHZjGxz3XubpxXJe
-bxFXO3twz0nJI/O9Nx5KQWy29s0e8uQ7s9yVWvRoa4g5PkudNmfEYZarjAd/Daph
-3HS/w4ots5Jz7wNhsqZdzvZ4jy0RDEIezsR7TNCOmE5KbvutouC5azSqmTyOK1C5
-ZSyV/73PdUK72QRiOA0n/CU6yd+c1k508tRW5ZzxrGUroSUUlNB64763qP7fyWoi
-h/KTdT+Dq4nb44KrQia1
-=exLB
------END PGP SIGNATURE-----
---=-=-=--
+--- /dev/null
++++ b/Documentation/arm/OMAP/README
+@@ -0,0 +1,7 @@
++This file contains documentation for running mainline
++kernel on omaps.
++
++KERNEL		NEW DEPENDENCIES
++v4.3+		Update is needed for custom .config files to make sure
++		CONFIG_REGULATOR_PBIAS is enabled for MMC1 to work
++		properly.
