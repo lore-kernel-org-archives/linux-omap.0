@@ -1,85 +1,134 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: cpufreq-dt error: failed to init cpufreq table: -61
-Date: Tue, 6 Oct 2015 10:07:20 -0500
-Message-ID: <87zizw2fyv.fsf@saruman.tx.rr.com>
-References: <CAAfyv370DFbz9v8URqcipQt-AQ-6du19hf8di2fPeVfTdBzXww@mail.gmail.com> <87fv1o3xmo.fsf@saruman.tx.rr.com> <CAAfyv35mMiuLCCnJFjodNcx-iyOsz56-BPU7fkSc=AL1Xw5nJw@mail.gmail.com> <CAAfyv366=LOfy4_JeuRgjsbgBADWCanRt9X1JDv_eVkYe872Dw@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: All OMAP platforms: MMC is broken
+Date: Tue, 6 Oct 2015 16:07:51 +0100
+Message-ID: <20151006150751.GG21626@n2100.arm.linux.org.uk>
+References: <20151001100326.GV21513@n2100.arm.linux.org.uk>
+ <20151005112304.GZ23801@atomide.com>
+ <20151005143532.GA23801@atomide.com>
+ <20151005145127.GB23801@atomide.com>
+ <20151005171155.GF23801@atomide.com>
+ <20151005183813.GD21626@n2100.arm.linux.org.uk>
+ <20151006090015.GE21626@n2100.arm.linux.org.uk>
+ <20151006094425.GM23801@atomide.com>
+ <CAPDyKFowuHHoYq3pRa11rg8KThQA5=Pzg5CpKfzMgz1to9+XLA@mail.gmail.com>
+ <5613A419.5070006@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAAfyv366=LOfy4_JeuRgjsbgBADWCanRt9X1JDv_eVkYe872Dw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux PM mailing list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5613A419.5070006@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Belisko Marek <marek.belisko@gmail.com> writes:
-
+On Tue, Oct 06, 2015 at 04:06:09PM +0530, Kishon Vijay Abraham I wrote:
 > Hi,
->
-> On Tue, Oct 6, 2015 at 4:03 PM, Belisko Marek <marek.belisko@gmail.com> w=
-rote:
->> Hi Felipe,
->>
->> On Tue, Oct 6, 2015 at 4:00 PM, Felipe Balbi <balbi@ti.com> wrote:
->>>
->>> Hi,
->>>
->>> Belisko Marek <marek.belisko@gmail.com> writes:
->>>> Hi Tony,
->>>>
->>>> I'm using custom am33xx board where mpu voltage can be changed through
->>>> gpio regulator on 4.1 (latest stable) kernel. I defined gpio-regulator
->>>> node and also operating-points to DT. Gpio regulator seems to be
->>>> working fine but during probing cpufreq-dt I get error:
->>>> failed to init cpufreq table: -61
->>>>
->>>> I did small investigation and seem that dev_pm_opp_init_cpufreq_table
->>>> fails at first condition dev_pm_opp_get_opp_count <=3D 0 and this is
->>>> because opp_list is empty. So it seems that any opp for am33xx aren't
->>>> defined if I'm getting it right. I did look to mach-omap2/opp3xxx_data
->>>> but there is nothing am33xx specific. It is known problem or exist
->>>> some patches around to fix that? Many thanks.
->>>
->>> OPP initialization is not in mainline yet, there are some out-of-tree
->>> patches which TI has been working on. If you want to use them, have a
->>> look at TI's vendor kernel at [1]
->> Thanks for link. One thing which is still not puzzled before I use 3.9
->> kernel and it was working fine
->> it's stops working when bumped to 4.1.
->
-> Sorry information was incorrect. On 3.9 kernel we did use tps, pmic
-> now we have only gpio regulator so this is the difference.
+> 
+> On Tuesday 06 October 2015 03:41 PM, Ulf Hansson wrote:
+> > On 6 October 2015 at 11:44, Tony Lindgren <tony@atomide.com> wrote:
+> >> * Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 02:04]:
+> >>> On Mon, Oct 05, 2015 at 07:38:13PM +0100, Russell King - ARM Linux wrote:
+> >>>> On Mon, Oct 05, 2015 at 10:11:56AM -0700, Tony Lindgren wrote:
+> >>>>> * Tony Lindgren <tony@atomide.com> [151005 07:57]:
+> >>>>>> * Tony Lindgren <tony@atomide.com> [151005 07:44]:
+> >>>>>>> * Tony Lindgren <tony@atomide.com> [151005 04:28]:
+> >>>>>>>
+> >>>>>>> Based on some tests it seems that the duovero unpaired regulator usage
+> >>>>>>> is fixed by reverting:
+> >>>>>>>
+> >>>>>>> c55d7a055364 ("mmc: host: omap_hsmmc: use regulator_is_enabled to
+> >>>>>>> find pbias status")
+> >>>>>>
+> >>>>>> With commit c55d7a055364 my guess is that the PBIAS regulator is
+> >>>>>> already on from an earlier MMC probe and getting re-enabled when
+> >>>>>> a deferred probe happens?
+> >>>>>
+> >>>>> Unless somebody has a better fix in mind for the above, I suggest
+> >>>>> we revert it for the -rc kernel.
+> >>>>
+> >>>> Let me try reverting that in my build tree, and...
+> >>>>
+> >>>>>>> And it seems that omap3 legacy MMC is broken earlier in the
+> >>>>>>> series with:
+> >>>>>>>
+> >>>>>>> 7d607f917008 ("mmc: host: omap_hsmmc: use
+> >>>>>>> devm_regulator_get_optional() for vmmc")
+> >>>>>>>
+> >>>>>>> This one does not cleanly revert so have not yet tried reverting
+> >>>>>>> it.
+> >>>>>>
+> >>>>>> And with commit 7d607f917008 I'm guessing we can't return anHi,
+> >>>>>> error if the PBIAS regulator does not exist as that's not there
+> >>>>>> for the legacy booting.
+> >>>>>
+> >>>>> For omap3 legacy booting, we keep getting -EPROBE_DEFER for
+> >>>>> all the optional regulators.
+> >>>>>
+> >>>>> Something like the following might be the minimal fix for the -rc
+> >>>>> cycle?
+> >>>>
+> >>>> applying this patch.  If that gets things going again, then we
+> >>>> _definitely_ should get both of these to Linus ASAP.  The breakage
+> >>>> has been around far too long already.
+> >>>
+> >>> Last night's build shows that this fixes the non-DT LDP3430 booting, but
+> >>> DT-based LDP3430 and SDP4430 both remain broken for the same reason -
+> >>> neither can find their SD cards.
+> >>
+> >> Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
+> >> Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
+> >> working for you with DT-based booting because you don't seem to have
+> >> CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
+> >> for both your omap3 and omap4 seed config files?
+> >>
+> >>> We're at -rc4.  That means we're could be only three weeks away from 4.3
+> >>> being released, and DT OMAP has yet to boot _once_ here.
+> >>>
+> >>> What I find *totally* unacceptable is the lack of reaction from the MMC
+> >>> and TI people: it's just like "we'll break your crap, and we'll ignore
+> >>> reports of regressions."  That is *not* acceptable in any shape or form,
+> >>> and people who do this _should_ have their future patches ignored until
+> >>> they demonstrate that they understand the need to not break stuff.
+> >>>
+> >>> I'm at the point of suggesting that there should be a moritorium on all
+> >>> OMAP related development for 4.4: delay all development to 4.5, and have
+> >>> 4.4 as a pure bug-fixing _only_ cycle for OMAP.  If 4.3 is released and
+> >>> OMAP is still broken, then I don't think there's an option on that.
+> >>>
+> >>> Maybe the idea that development work won't hit mainline for another 4
+> >>> months will help focus the minds on not breaking stuff and then ignoring
+> >>> regression reports.
+> >>
+> >> I'm thinking along the same lines. In general, I do not and will not
+> >> apply any patches that are not fixes until all critical regressions are
+> >> out of the way. So not applying anything new for v4.4 until these MMC
+> >> regressions are fixed for v4.3.
+> >>
+> > 
+> > Tony, Russell - just wanted to say thanks for putting a big effort in
+> > fixing this. I was expecting support from Kishon, but I guess he's
+> > busy.
+> > 
+> > Unfortunate, I don't have any of the hardware that fails, otherwise I
+> > would of course be helping out more. The only thing I can think of is
+> > to revert the entire patchset I picked up for 4.3 from Kishon for the
+> > omap_hsmmc driver, but then I am not sure if that would cause other
+> > issues...
+> 
+> Please don't do that as that will just mask lot of bugs in the
+> devicetree and might get MMC working. Indeed I was busy but I'll try to
+> get this resolved asap. The 2 pending issues as far as I know
 
-okay, if it's only a regulator how can you set different voltages ?
-Seems like you won't be able to do anything more than enable/disable a
-voltage rail.
+Sorry, but no.  None of this "mask bugs ... might" crap.  Either they're
+bug fixes, or they aren't bug fixes.  This should be a definite decision,
+not some vague crap.
 
-=2D-=20
-balbi
+If they're bug fixes, why the _hell_ aren't they queued for -rc kernels?
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+This sounds really screwed up to me, and it's no wonder that OMAP MMC got
+broken if this is the kind of thing that's going on.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWE+OpAAoJEIaOsuA1yqREvXAP/A2maIn62LAbJ1TT2bluStEc
-0LiNkNVKhRMHKOxC+dnwJ2XE+6qaFk+QgdJ9VaT+VHlb+CBR+1lFM6upS3SQTtG2
-N2VX7gGVp1VzNvcji5LIhNQM+Bs7cVOI4i2vTZKqUTcordUO3GDrQ6QnTyNjTDX9
-4qmk9MvC+NX+xJaONTOMWCDqk9/qnD8PksJIl+j8xi50sWID6wPV1WrKxsuVOJ/V
-ng4c4PajI5w9fZmxTjdsTtusZyawmPCc1TVAMR+UL/TdhHbU2IIMyh2nSLtCgFU3
-xFhL0ZSsjFqcVWqJThmam+1DaXu+NzEiHg1tqB1PVVhi7tvNNZQBiULHkyLVDKaI
-gMXzriL4W/leqG5fDDkiYXXOLlXiOuRo5Zd6Vc+SeIcwdqhaHlnLoeBxOf42dyzJ
-7pbBd7xjLm0dBdeDZkg5u+Z3DoOxQurYaD9/yOJAitAZfDhjJ3mZR36Bkg1WHTYm
-fQSyX7we2jMSH4rgcqlYKBh9WLQqgCMU8oralSCzf2DmCARvIGGefeCFYtxn4Txs
-6580A/AW0AEM6r8x2XG0UEQ2BL/EL0nUmgcn8aZMwansF8dJDkwtv2q3GsVaqLA9
-34tnKBeRZVmEBW7xopEG/frKcZ1OsYARYPajVd9W7jFXjZ8N8yVt6PdJvHaaeDUf
-lwszQ+EvpM78SVwqG1i8
-=bcfU
------END PGP SIGNATURE-----
---=-=-=--
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
