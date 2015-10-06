@@ -1,83 +1,85 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v2] arm: omap2: timer: don't disable our timers
-Date: Mon, 5 Oct 2015 19:45:32 -0500
-Message-ID: <1444092332-9011-1-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] ARM: dts: DRA7: Add timer12 node
+Date: Mon, 5 Oct 2015 19:47:12 -0500
+Message-ID: <87y4fgesbz.fsf@saruman.tx.rr.com>
+References: <1444087704-1429-1-git-send-email-s-anna@ti.com> <1444087704-1429-4-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+	protocol="application/pgp-signature"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1444087704-1429-4-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-We actually want these devices to be created because
-we will be moving timers to drivers/clocksource and
-this will prevent them from probing.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-The only situation where we want secure timers to be
-actually disabled is when we *know* we're running on
-non-GP (read: HS or EMU) chips, because the secure
-timer will NOT be available for the public world.
+Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> writes:
 
-This patch is just moving the call to of_add_property
-to its rightful place.
+> Add the DT node for Timer12 present on DRA7 family of
+> SoCs. Timer12 is present in PD_WKUPAON power domain, and
+> has the same capabilities as the other timers, except for
+> the fact that it serves as a secure timer on HS devices
+> and is clocked only from the secure 32K clock.
+>
+> The node is marked disabled for now, and the kernel should
+> refrain from using this secure timer on HS devices.
+>
+> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/dra7.dtsi | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index e289c706d27d..37d632dad576 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -762,6 +762,16 @@
+>  			ti,hwmods =3D "timer11";
+>  		};
+>=20=20
+> +		timer12: timer@4ae20000 {
+> +			compatible =3D "ti,omap5430-timer";
+> +			reg =3D <0x4ae20000 0x80>;
+> +			interrupts =3D <GIC_SPI 90 IRQ_TYPE_LEVEL_HIGH>;
+> +			ti,hwmods =3D "timer12";
+> +			ti,timer-alwon;
+> +			ti,timer-secure;
+> +			status =3D "disabled";
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+according to Tony we should avoid using status at all for in-SoC
+devices.
 
-Okay, seems like this is a saner approach.
+Tony, can you confirm I understood you correctly ?
 
-changes since v1:
-	- don't completely remove the status disabled trick, just limit it to
-          non-GP chips
+=2D-=20
+balbi
 
- arch/arm/mach-omap2/timer.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 0ff676273b4b..0bd3ee4552de 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -161,9 +161,7 @@ static const struct of_device_id omap_timer_match[] __initconst = {
-  *
-  * Helper function to get a timer during early boot using device-tree for use
-  * as kernel system timer. Optionally, the property argument can be used to
-- * select a timer with a specific property. Once a timer is found then mark
-- * the timer node in device-tree as disabled, to prevent the kernel from
-- * registering this timer as a platform device and so no one else can use it.
-+ * select a timer with a specific property.
-  */
- static struct device_node * __init omap_get_timer_dt(const struct of_device_id *match,
- 						     const char *property)
-@@ -182,8 +180,6 @@ static struct device_node * __init omap_get_timer_dt(const struct of_device_id *
- 				  of_get_property(np, "ti,timer-pwm", NULL) ||
- 				  of_get_property(np, "ti,timer-secure", NULL)))
- 			continue;
--
--		of_add_property(np, &device_disabled);
- 		return np;
- 	}
- 
-@@ -208,7 +204,10 @@ static void __init omap_dmtimer_init(void)
- 	/* If we are a secure device, remove any secure timer nodes */
- 	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)) {
- 		np = omap_get_timer_dt(omap_timer_match, "ti,timer-secure");
--		of_node_put(np);
-+		if (np) {
-+			of_add_property(np, &device_disabled);
-+			of_node_put(np);
-+		}
- 	}
- }
- 
--- 
-2.5.3
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWExoRAAoJEIaOsuA1yqREhhMP/jfbzZ73NFiOGklE+aV4RsAj
+fdvD82uaW4eGf9QbC5boQWDMbg6cu7MOiLdNDu2Pd0K5nRkrxQVh53Z8Sp6h4A0O
+a7r2ZG82FGd8Nwg6zmavoyz9GXytW/8mWvbNFjxjFDCKb2SdX+7RE+aobfpCjex8
+oFiLLCL15gcVh2ethmkvtNf7XFDKPQKmUj84Wp7IL/cVsh1DX9f+/XF3Z4FZ0SS8
+3vwMpNLqwtCpEvQkqB62Y3wOWHBW4nwJlyXe4SnN4hXeGlh6fzLfhmERI0MDu7t3
+vklAVrUPL8vBVaHkQhuy6VeTpVrBpO6UKJtRDm/1sjVkzcvMAFyxQ7NGgQzJ2PLY
+ENFQGS6hBJes/zE/T5FDixKtWbDra9m6/Co3uAoFKrpFD3PlTf2G+TR1Z007i96F
+QHn0vtTPKm4Cq49biaIh2O4be0kVtNjs4qpsbjxgdzhP9SZORDXylam+TmTV6iOi
+da4+Dq5ppu9OETME//BgyoLjWcVlto1mpDiZ67M2hn5jvAyieb4xWQkoNJHzLeRX
+SuneGAbzOc1yZ1tA3kOwvZJZgdIHLaTpGCWpB4J68FQMTBZtkpA6C/9a6zvtQWr1
+GUFCSevGnqrUWsr3mFy5xoEn7A7ccB3VNiZSa3vWTxDUI0srGGgy7nsNg9/uKNNd
+FZ4PucSDo5YVhmnRna3C
+=DeJD
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
