@@ -1,181 +1,81 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 04/11] arm: omap2: timer: provide generic
- sync32k_timer_init function
-Date: Tue, 6 Oct 2015 13:33:22 -0500
-Message-ID: <561413F2.4000700@ti.com>
-References: <1444150927-14771-1-git-send-email-balbi@ti.com>
- <1444150927-14771-5-git-send-email-balbi@ti.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: cpufreq-dt error: failed to init cpufreq table: -61
+Date: Tue, 6 Oct 2015 20:57:30 +0200
+Message-ID: <CAAfyv34AbbgPP0OuMOUxYtcVDnL4C=h4nMB5VKxbHjubdqekrQ@mail.gmail.com>
+References: <CAAfyv370DFbz9v8URqcipQt-AQ-6du19hf8di2fPeVfTdBzXww@mail.gmail.com>
+	<87fv1o3xmo.fsf@saruman.tx.rr.com>
+	<CAAfyv35mMiuLCCnJFjodNcx-iyOsz56-BPU7fkSc=AL1Xw5nJw@mail.gmail.com>
+	<CAAfyv366=LOfy4_JeuRgjsbgBADWCanRt9X1JDv_eVkYe872Dw@mail.gmail.com>
+	<87zizw2fyv.fsf@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444150927-14771-5-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <87zizw2fyv.fsf@saruman.tx.rr.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux PM mailing list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/06/2015 12:02 PM, Balbi, Felipe wrote:
-> instead of constantly defining a small wrapper
-> around __omap_sync32k_timer_init(), let's define
-> a generic one which can be used by all OMAPs.
-> 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->  arch/arm/mach-omap2/board-generic.c | 10 +++++-----
->  arch/arm/mach-omap2/board-ldp.c     |  2 +-
->  arch/arm/mach-omap2/board-rx51.c    |  2 +-
->  arch/arm/mach-omap2/common.h        |  3 +--
->  arch/arm/mach-omap2/timer.c         | 20 +++-----------------
->  5 files changed, 11 insertions(+), 26 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 9df14ed7dab1..871db0f0fa66 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -46,7 +46,7 @@ DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
->  	.map_io		= omap242x_map_io,
->  	.init_early	= omap2420_init_early,
->  	.init_machine	= omap_generic_init,
-> -	.init_time	= omap2_sync32k_timer_init,
-> +	.init_time	= omap_sync32k_timer_init,
->  	.dt_compat	= omap242x_boards_compat,
->  	.restart	= omap2xxx_restart,
->  MACHINE_END
-> @@ -63,7 +63,7 @@ DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
->  	.map_io		= omap243x_map_io,
->  	.init_early	= omap2430_init_early,
->  	.init_machine	= omap_generic_init,
-> -	.init_time	= omap2_sync32k_timer_init,
-> +	.init_time	= omap_sync32k_timer_init,
->  	.dt_compat	= omap243x_boards_compat,
->  	.restart	= omap2xxx_restart,
->  MACHINE_END
-> @@ -82,7 +82,7 @@ DT_MACHINE_START(OMAP3_N900_DT, "Nokia RX-51 board")
->  	.init_early	= omap3430_init_early,
->  	.init_machine	= omap_generic_init,
->  	.init_late	= omap3_init_late,
-> -	.init_time	= omap3_sync32k_timer_init,
-> +	.init_time	= omap_sync32k_timer_init,
->  	.dt_compat	= n900_boards_compat,
->  	.restart	= omap3xxx_restart,
->  MACHINE_END
-> @@ -100,7 +100,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
->  	.init_early	= omap3430_init_early,
->  	.init_machine	= omap_generic_init,
->  	.init_late	= omap3_init_late,
-> -	.init_time	= omap3_sync32k_timer_init,
-> +	.init_time	= omap_sync32k_timer_init,
->  	.dt_compat	= omap3_boards_compat,
->  	.restart	= omap3xxx_restart,
->  MACHINE_END
-> @@ -116,7 +116,7 @@ DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
->  	.init_early	= omap3630_init_early,
->  	.init_machine	= omap_generic_init,
->  	.init_late	= omap3_init_late,
-> -	.init_time	= omap3_sync32k_timer_init,
-> +	.init_time	= omap_sync32k_timer_init,
->  	.dt_compat	= omap36xx_boards_compat,
->  	.restart	= omap3xxx_restart,
->  MACHINE_END
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> index c2975af4cd5d..0d3a57c6931f 100644
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -424,6 +424,6 @@ MACHINE_START(OMAP_LDP, "OMAP LDP board")
->  	.init_irq	= omap3_init_irq,
->  	.init_machine	= omap_ldp_init,
->  	.init_late	= omap3430_init_late,
-> -	.init_time	= omap3_sync32k_timer_init,
-> +	.init_time	= omap_sync32k_timer_init,
->  	.restart	= omap3xxx_restart,
->  MACHINE_END
-> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-> index 2d1e5a6beb85..830256c434ec 100644
-> --- a/arch/arm/mach-omap2/board-rx51.c
-> +++ b/arch/arm/mach-omap2/board-rx51.c
-> @@ -136,6 +136,6 @@ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
->  	.init_irq	= omap3_init_irq,
->  	.init_machine	= rx51_init,
->  	.init_late	= omap3430_init_late,
-> -	.init_time	= omap3_sync32k_timer_init,
-> +	.init_time	= omap_sync32k_timer_init,
->  	.restart	= omap3xxx_restart,
->  MACHINE_END
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index 92e92cfc2775..844ad031f7f0 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -88,8 +88,7 @@ static inline int omap_mux_late_init(void)
->  
->  extern void omap2_init_common_infrastructure(void);
->  
-> -extern void omap2_sync32k_timer_init(void);
-> -extern void omap3_sync32k_timer_init(void);
-> +extern void omap_sync32k_timer_init(void);
->  extern void omap3_secure_sync32k_timer_init(void);
->  extern void omap3_gptimer_timer_init(void);
->  extern void omap4_local_timer_init(void);
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 976ff9fa3594..d14e25b2d7a4 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -608,21 +608,13 @@ static void __init __omap_sync32k_timer_init(int clkev_nr, const char *clkev_src
->  		omap2_sync32k_clocksource_init();
->  }
->  
-> -#ifdef CONFIG_ARCH_OMAP2
-> -void __init omap2_sync32k_timer_init(void)
-> +void __init omap_sync32k_timer_init(void)
->  {
->  	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
->  			2, "timer_sys_ck", NULL, false);
->  }
-> -#endif /* CONFIG_ARCH_OMAP2 */
->  
->  #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
-> -void __init omap3_sync32k_timer_init(void)
-> -{
-> -	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
-> -			2, "timer_sys_ck", NULL, false);
-> -}
-> -
->  void __init omap3_secure_sync32k_timer_init(void)
->  {
->  	__omap_sync32k_timer_init(12, "secure_32k_fck", "ti,timer-secure",
-> @@ -640,15 +632,9 @@ void __init omap3_gptimer_timer_init(void)
->  
->  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
->  	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
-> -static void __init omap4_sync32k_timer_init(void)
-> -{
-> -	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
-> -			2, "sys_clkin_ck", NULL, false);
-> -}
-> -
->  void __init omap4_local_timer_init(void)
->  {
-> -	omap4_sync32k_timer_init();
-> +	omap_sync32k_timer_init();
+On Tue, Oct 6, 2015 at 5:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Belisko Marek <marek.belisko@gmail.com> writes:
+>
+>> Hi,
+>>
+>> On Tue, Oct 6, 2015 at 4:03 PM, Belisko Marek <marek.belisko@gmail.com> wrote:
+>>> Hi Felipe,
+>>>
+>>> On Tue, Oct 6, 2015 at 4:00 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> Belisko Marek <marek.belisko@gmail.com> writes:
+>>>>> Hi Tony,
+>>>>>
+>>>>> I'm using custom am33xx board where mpu voltage can be changed through
+>>>>> gpio regulator on 4.1 (latest stable) kernel. I defined gpio-regulator
+>>>>> node and also operating-points to DT. Gpio regulator seems to be
+>>>>> working fine but during probing cpufreq-dt I get error:
+>>>>> failed to init cpufreq table: -61
+>>>>>
+>>>>> I did small investigation and seem that dev_pm_opp_init_cpufreq_table
+>>>>> fails at first condition dev_pm_opp_get_opp_count <= 0 and this is
+>>>>> because opp_list is empty. So it seems that any opp for am33xx aren't
+>>>>> defined if I'm getting it right. I did look to mach-omap2/opp3xxx_data
+>>>>> but there is nothing am33xx specific. It is known problem or exist
+>>>>> some patches around to fix that? Many thanks.
+>>>>
+>>>> OPP initialization is not in mainline yet, there are some out-of-tree
+>>>> patches which TI has been working on. If you want to use them, have a
+>>>> look at TI's vendor kernel at [1]
+>>> Thanks for link. One thing which is still not puzzled before I use 3.9
+>>> kernel and it was working fine
+>>> it's stops working when bumped to 4.1.
+>>
+>> Sorry information was incorrect. On 3.9 kernel we did use tps, pmic
+>> now we have only gpio regulator so this is the difference.
+>
+> okay, if it's only a regulator how can you set different voltages ?
+> Seems like you won't be able to do anything more than enable/disable a
+> voltage rail.
+Sorry I wasn't precise. There are 2 gpios's with some small logic so
+we have 4 voltage
+states.
+>
+> --
+> balbi
 
-Hmm, this is changing the parent clock source for the timer from
-sys_clkin_ck to timer_sys_ck for OMAP4 and OMAP5 below. I am not sure of
-the history behind the parent source, but is this what you intended to
-do here.
+BR,
 
-regards
-Suman
+marek
 
->  	clocksource_of_init();
->  }
->  #endif
-> @@ -656,7 +642,7 @@ void __init omap4_local_timer_init(void)
->  #if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
->  void __init omap5_realtime_timer_init(void)
->  {
-> -	omap4_sync32k_timer_init();
-> +	omap_sync32k_timer_init();
->  	realtime_counter_init();
->  
->  	clocksource_of_init();
-> 
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
