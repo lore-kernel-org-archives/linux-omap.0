@@ -1,94 +1,129 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: cpufreq-dt error: failed to init cpufreq table: -61
-Date: Tue, 6 Oct 2015 11:10:52 -0500
-Message-ID: <87a8rw2d0z.fsf@saruman.tx.rr.com>
-References: <CAAfyv370DFbz9v8URqcipQt-AQ-6du19hf8di2fPeVfTdBzXww@mail.gmail.com> <87fv1o3xmo.fsf@saruman.tx.rr.com> <CAAfyv35mMiuLCCnJFjodNcx-iyOsz56-BPU7fkSc=AL1Xw5nJw@mail.gmail.com> <CAAfyv366=LOfy4_JeuRgjsbgBADWCanRt9X1JDv_eVkYe872Dw@mail.gmail.com> <87zizw2fyv.fsf@saruman.tx.rr.com>
+Subject: [PATCH 01/11] arm: omap2: timer: get rid of obfuscating macros
+Date: Tue, 6 Oct 2015 12:01:57 -0500
+Message-ID: <1444150927-14771-2-git-send-email-balbi@ti.com>
+References: <1444150927-14771-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <87zizw2fyv.fsf@saruman.tx.rr.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux PM mailing list <linux-pm@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1444150927-14771-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, tglx@linutronix.de, daniel.lezcano@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+those macros just make it a lot more difficult
+to grep around and actually find similarities.
 
-Felipe Balbi <balbi@ti.com> writes:
+In this patch, we will simply remove them and
+replace with actual functions and later commits
+will come to further clean this up.
 
-> Belisko Marek <marek.belisko@gmail.com> writes:
->
->> Hi,
->>
->> On Tue, Oct 6, 2015 at 4:03 PM, Belisko Marek <marek.belisko@gmail.com> =
-wrote:
->>> Hi Felipe,
->>>
->>> On Tue, Oct 6, 2015 at 4:00 PM, Felipe Balbi <balbi@ti.com> wrote:
->>>>
->>>> Hi,
->>>>
->>>> Belisko Marek <marek.belisko@gmail.com> writes:
->>>>> Hi Tony,
->>>>>
->>>>> I'm using custom am33xx board where mpu voltage can be changed through
->>>>> gpio regulator on 4.1 (latest stable) kernel. I defined gpio-regulator
->>>>> node and also operating-points to DT. Gpio regulator seems to be
->>>>> working fine but during probing cpufreq-dt I get error:
->>>>> failed to init cpufreq table: -61
->>>>>
->>>>> I did small investigation and seem that dev_pm_opp_init_cpufreq_table
->>>>> fails at first condition dev_pm_opp_get_opp_count <=3D 0 and this is
->>>>> because opp_list is empty. So it seems that any opp for am33xx aren't
->>>>> defined if I'm getting it right. I did look to mach-omap2/opp3xxx_data
->>>>> but there is nothing am33xx specific. It is known problem or exist
->>>>> some patches around to fix that? Many thanks.
->>>>
->>>> OPP initialization is not in mainline yet, there are some out-of-tree
->>>> patches which TI has been working on. If you want to use them, have a
->>>> look at TI's vendor kernel at [1]
->>> Thanks for link. One thing which is still not puzzled before I use 3.9
->>> kernel and it was working fine
->>> it's stops working when bumped to 4.1.
->>
->> Sorry information was incorrect. On 3.9 kernel we did use tps, pmic
->> now we have only gpio regulator so this is the difference.
->
-> okay, if it's only a regulator how can you set different voltages ?
-                       ^^^^^^^^^
-                       GPIO, rather
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/timer.c | 70 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 43 insertions(+), 27 deletions(-)
 
-
-> Seems like you won't be able to do anything more than enable/disable a
-> voltage rail.
->
-> --=20
-> balbi
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWE/KNAAoJEIaOsuA1yqRE+7cP/3YeYeq6f9EgxiBWZQIPc9KY
-8sm/1ps3exQyKr8WcDNdoYQtxp/ognVTx1hkflvjTp2S0k0kQmNuitaUxCEw2LFx
-l52yBt0D4OY/TmWeDWDjYQtQvhv/hhNOvzHUz/N3evRB2HVjZLHEeY1W2FvOGSVP
-xpkkra0r/R3PvKHOfSJFB6j2Nr9+YoWigrtTzJpDqXABHoH7MBPt4sZwV5bY+221
-nwDlSvUQ/1QC1PzOXAixCUBEVoZVMW8ubJDFSSGqj7JOp+e1ZI19zeBCfA96JBT/
-hvXKbObC0frYub/SBOVWNZxi1l0Ws3mQWDSaWL4D9rsrvay+kIGjwXxbJUcMoQJl
-qAYOy6kqRZ3Yg6sEob34Oz0SdHbNDFUTQyUtpzwbjXoQiD9qf+11cEkX1AnvlAdk
-qX4EpXnN90r8igBy9nQSUVMsfdPSkcshs7TLVfYK7lUdiCZEqPXc6TKo51huCKAO
-aPCpOM2cZEAA4mjYmzFTQHC5nzn/rLku599WwybT7c5G2zRVIpyTjA1wNjRIwick
-WUQqQ922slwXQDt6JZlZAWbVM/c6NGU1cnYFSRgM5zZ37wyLLu81hJtBQiuJtPyx
-yBU+mT8YaHteOJUBR9g8H9DBUendNZu1S/zFnvp7Mc2ppOBlLTjkL28aJVmlNNHz
-KmYSTGg33/tWSBs3XP7U
-=Pg1x
------END PGP SIGNATURE-----
---=-=-=--
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 548d922cb107..23e58ea6a171 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -592,53 +592,69 @@ static inline void __init realtime_counter_init(void)
+ {}
+ #endif
+ 
+-#define OMAP_SYS_GP_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
+-			       clksrc_nr, clksrc_src, clksrc_prop)	\
+-void __init omap##name##_gptimer_timer_init(void)			\
+-{									\
+-	omap_clk_init();					\
+-	omap_dmtimer_init();						\
+-	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+-	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,		\
+-					clksrc_prop);			\
++static void __init __omap_gptimer_init(int clkev_nr, const char *clkev_src,
++		const char *clkev_prop, int clksrc_nr, const char *clksrc_src,
++		const char *clksrc_prop)
++{
++	omap_clk_init();
++	omap_dmtimer_init();
++	omap2_gp_clockevent_init(clkev_nr, clkev_src, clkev_prop);
++	omap2_gptimer_clocksource_init(clksrc_nr, clksrc_src, clksrc_prop);
+ }
+ 
+-#define OMAP_SYS_32K_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
+-				clksrc_nr, clksrc_src, clksrc_prop)	\
+-void __init omap##name##_sync32k_timer_init(void)		\
+-{									\
+-	omap_clk_init();					\
+-	omap_dmtimer_init();						\
+-	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+-	/* Enable the use of clocksource="gp_timer" kernel parameter */	\
+-	if (use_gptimer_clksrc)						\
+-		omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,	\
+-						clksrc_prop);		\
+-	else								\
+-		omap2_sync32k_clocksource_init();			\
++static void __init __omap_sync32k_timer_init(int clkev_nr, const char *clkev_src,
++		const char *clkev_prop, int clksrc_nr, const char *clksrc_src,
++		const char *clksrc_prop)
++{
++	omap_clk_init();
++	omap_dmtimer_init();
++	omap2_gp_clockevent_init(clkev_nr, clkev_src, clkev_prop);
++
++	/* Enable the use of clocksource="gp_timer" kernel parameter */
++	if (use_gptimer_clksrc)
++		omap2_gptimer_clocksource_init(clksrc_nr, clksrc_src,
++						clksrc_prop);
++	else
++		omap2_sync32k_clocksource_init();
+ }
+ 
+ #ifdef CONFIG_ARCH_OMAP2
+-OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
++void __init omap2_sync32k_timer_init(void)
++{
++	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+ 			2, "timer_sys_ck", NULL);
++}
+ #endif /* CONFIG_ARCH_OMAP2 */
+ 
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
+-OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
++void __init omap3_sync32k_timer_init(void)
++{
++	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+ 			2, "timer_sys_ck", NULL);
+-OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
++}
++
++void __init omap3_secure_sync32k_timer_init(void)
++{
++	__omap_sync32k_timer_init(12, "secure_32k_fck", "ti,timer-secure",
+ 			2, "timer_sys_ck", NULL);
++}
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
+-OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
++void __init omap3_gptimer_timer_init(void)
++{
++	__omap_gptimer_init(2, "timer_sys_ck", NULL,
+ 		       1, "timer_sys_ck", "ti,timer-alwon");
++}
+ #endif
+ 
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
+ 	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
+-static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
++static void __init omap4_sync32k_timer_init(void)
++{
++	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+ 			       2, "sys_clkin_ck", NULL);
++}
+ 
+ void __init omap4_local_timer_init(void)
+ {
+-- 
+2.5.3
