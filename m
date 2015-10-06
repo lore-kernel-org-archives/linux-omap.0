@@ -1,73 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Tue, 6 Oct 2015 08:37:11 -0700
-Message-ID: <20151006153710.GS23801@atomide.com>
-References: <CAPDyKFpnqJBrtiBekikrNHAf-agZm12KnF9n+=+72HH=jti-KA@mail.gmail.com>
- <20151001100326.GV21513@n2100.arm.linux.org.uk>
- <20151005112304.GZ23801@atomide.com>
- <20151005143532.GA23801@atomide.com>
- <20151005145127.GB23801@atomide.com>
- <20151005171155.GF23801@atomide.com>
- <20151005183813.GD21626@n2100.arm.linux.org.uk>
- <20151006090015.GE21626@n2100.arm.linux.org.uk>
- <20151006094425.GM23801@atomide.com>
- <20151006150009.GF21626@n2100.arm.linux.org.uk>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] ARM: dts: DRA7: Add timer12 node
+Date: Tue, 6 Oct 2015 11:02:36 -0500
+Message-ID: <5613F09C.1050809@ti.com>
+References: <1444087704-1429-1-git-send-email-s-anna@ti.com>
+ <1444087704-1429-4-git-send-email-s-anna@ti.com>
+ <87y4fgesbz.fsf@saruman.tx.rr.com> <20151006075209.GH23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151006150009.GF21626@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151006075209.GH23801-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 08:04]:
-> On Tue, Oct 06, 2015 at 02:44:25AM -0700, Tony Lindgren wrote:
-> > 
-> > Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
-> > Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
-> > working for you with DT-based booting because you don't seem to have
-> > CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
-> > for both your omap3 and omap4 seed config files?
+On 10/06/2015 02:52 AM, Tony Lindgren wrote:
+> * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [151005 17:51]:
+>>
+>> according to Tony we should avoid using status at all for in-SoC
+>> devices.
+>>
+>> Tony, can you confirm I understood you correctly ?
 > 
-> This is precisely the kind of crap I'm objecting to.  New kernel versions
-> come along, and things break because people add extra Kconfig symbols that
-> previous versions did not rely upon - and there's no communication of
-> what's required for new kernel versions.
+> Yes. With status = "disabled" kernel completely ignores the
+> device and struct device is not created at all even with the
+> device being there. In general we're better off trying to
+> probe the device and idle it.
 > 
-> This stuff needs documenting, so that people are aware what changes they
-> need to make - please put something in Documentation/arm/OMAP which
-> tracks what new additions are required to the Kconfig to keep things
-> working.
+> The only time we really want to mark something with
+> status = "disabled" is if some coprocessor firmware is
+> using that device and the kernel should not touch it at
+> all.
 
-Good idea, how about something like the following? AFAIK that's the
-only .config option needed as MFD_SYSCON is selected by Kconfig
-already.
+Not always, since some of the PM clocking logic depends on the state
+machine variables within the kernel.
 
-Regrds,
+We are also using this to deal with paper-spins (atleast in the DRA7
+case) and the DTS include model, wherein certain instances may not be
+present on all variations of the SoC, and enabled specifically on the
+instances that matter. Obviously, it could be done the other way too,
+but as far as what Nishanth mentioned sometime back, we are following
+the former for DRA7.
 
-Tony
+In anycase, the status property on the Timer12 node can be removed, it
+doesn't fall into the above category, and we are fixing it up properly
+on HS devices in the kernel.
 
-8< ----------
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 6 Oct 2015 08:33:16 -0700
-Subject: [PATCH] Documentation: ARM: List new omap MMC requirements
+regards
+Suman
 
-Earlier the PBIAS regulator was optional, not so with recent
-omap_hsmmc changes. To make things easier for people with
-custom .config files, let's add minimal documentation for it
-as suggested by Russell King <rmk+kernel@arm.linux.org.uk>.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- /dev/null
-+++ b/Documentation/arm/OMAP/README
-@@ -0,0 +1,7 @@
-+This file contains documentation for running mainline
-+kernel on omaps.
-+
-+KERNEL		NEW DEPENDENCIES
-+v4.3+		Update is needed for custom .config files to make sure
-+		CONFIG_REGULATOR_PBIAS is enabled for MMC1 to work
-+		properly.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
