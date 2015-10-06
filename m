@@ -1,110 +1,93 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 11/11] arm: boot: dts: omap: add missing default status for 32k counter
-Date: Tue, 6 Oct 2015 09:57:45 -0500
-Message-ID: <87612k3uza.fsf@saruman.tx.rr.com>
-References: <1443559446-26969-1-git-send-email-balbi@ti.com> <20151005175230.GG18784@saruman.tx.rr.com> <87io6lf6i4.fsf@saruman.tx.rr.com> <13543270.oBfHhoNL28@wuerfel>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: All OMAP platforms: MMC is broken
+Date: Tue, 6 Oct 2015 16:00:09 +0100
+Message-ID: <20151006150009.GF21626@n2100.arm.linux.org.uk>
+References: <20151001093325.GU21513@n2100.arm.linux.org.uk>
+ <CAPDyKFpnqJBrtiBekikrNHAf-agZm12KnF9n+=+72HH=jti-KA@mail.gmail.com>
+ <20151001100326.GV21513@n2100.arm.linux.org.uk>
+ <20151005112304.GZ23801@atomide.com>
+ <20151005143532.GA23801@atomide.com>
+ <20151005145127.GB23801@atomide.com>
+ <20151005171155.GF23801@atomide.com>
+ <20151005183813.GD21626@n2100.arm.linux.org.uk>
+ <20151006090015.GE21626@n2100.arm.linux.org.uk>
+ <20151006094425.GM23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <13543270.oBfHhoNL28@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, daniel.lezcano@linaro.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151006094425.GM23801@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Tue, Oct 06, 2015 at 02:44:25AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 02:04]:
+> > On Mon, Oct 05, 2015 at 07:38:13PM +0100, Russell King - ARM Linux wrote:
+> > > On Mon, Oct 05, 2015 at 10:11:56AM -0700, Tony Lindgren wrote:
+> > > > * Tony Lindgren <tony@atomide.com> [151005 07:57]:
+> > > > > * Tony Lindgren <tony@atomide.com> [151005 07:44]:
+> > > > > > * Tony Lindgren <tony@atomide.com> [151005 04:28]:
+> > > > > > 
+> > > > > > Based on some tests it seems that the duovero unpaired regulator usage
+> > > > > > is fixed by reverting:
+> > > > > > 
+> > > > > > c55d7a055364 ("mmc: host: omap_hsmmc: use regulator_is_enabled to
+> > > > > > find pbias status")
+> > > > > 
+> > > > > With commit c55d7a055364 my guess is that the PBIAS regulator is
+> > > > > already on from an earlier MMC probe and getting re-enabled when
+> > > > > a deferred probe happens?
+> > > > 
+> > > > Unless somebody has a better fix in mind for the above, I suggest
+> > > > we revert it for the -rc kernel.
+> > > 
+> > > Let me try reverting that in my build tree, and...
+> > > 
+> > > > > > And it seems that omap3 legacy MMC is broken earlier in the
+> > > > > > series with:
+> > > > > > 
+> > > > > > 7d607f917008 ("mmc: host: omap_hsmmc: use
+> > > > > > devm_regulator_get_optional() for vmmc")
+> > > > > > 
+> > > > > > This one does not cleanly revert so have not yet tried reverting
+> > > > > > it.
+> > > > > 
+> > > > > And with commit 7d607f917008 I'm guessing we can't return an
+> > > > > error if the PBIAS regulator does not exist as that's not there
+> > > > > for the legacy booting.
+> > > > 
+> > > > For omap3 legacy booting, we keep getting -EPROBE_DEFER for
+> > > > all the optional regulators.
+> > > > 
+> > > > Something like the following might be the minimal fix for the -rc
+> > > > cycle?
+> > > 
+> > > applying this patch.  If that gets things going again, then we
+> > > _definitely_ should get both of these to Linus ASAP.  The breakage
+> > > has been around far too long already.
+> > 
+> > Last night's build shows that this fixes the non-DT LDP3430 booting, but
+> > DT-based LDP3430 and SDP4430 both remain broken for the same reason -
+> > neither can find their SD cards.
+> 
+> Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
+> Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
+> working for you with DT-based booting because you don't seem to have
+> CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
+> for both your omap3 and omap4 seed config files?
 
-Arnd Bergmann <arnd@arndb.de> writes:
+This is precisely the kind of crap I'm objecting to.  New kernel versions
+come along, and things break because people add extra Kconfig symbols that
+previous versions did not rely upon - and there's no communication of
+what's required for new kernel versions.
 
-> On Monday 05 October 2015 14:41:07 Felipe Balbi wrote:
->>=20
->> /**
->>  * omap_get_timer_dt - get a timer using device-tree
->>  * @match       - device-tree match structure for matching a device type
->>  * @property    - optional timer property to match
->>  *
->>  * Helper function to get a timer during early boot using device-tree fo=
-r use
->>  * as kernel system timer. Optionally, the property argument can be used=
- to
->>  * select a timer with a specific property. Once a timer is found then m=
-ark
->>  * the timer node in device-tree as disabled, to prevent the kernel from
->>  * registering this timer as a platform device and so no one else can us=
-e it.
->>  */
->> static struct device_node * __init omap_get_timer_dt(const struct of_dev=
-ice_id *match,
->>                                                      const char *propert=
-y)
->> {
->>         struct device_node *np;
->>=20
->>         for_each_matching_node(np, match) {
->>                 if (!of_device_is_available(np))
->>                         continue;
->>=20
->>                 if (property && !of_get_property(np, property, NULL))
->>                         continue;
->>=20
->>                 if (!property && (of_get_property(np, "ti,timer-alwon", =
-NULL) ||
->>                                   of_get_property(np, "ti,timer-dsp", NU=
-LL) ||
->>                                   of_get_property(np, "ti,timer-pwm", NU=
-LL) ||
->>                                   of_get_property(np, "ti,timer-secure",=
- NULL)))
->>                         continue;
->>=20
->>                 of_add_property(np, &device_disabled);
->>                 return np;
->>         }
->>=20
->>         return NULL;
->> }
->>=20
->> I'll patch this up and drop $subject
->>=20
->
-> Ah, good.
->
-> I'm seeing the "ti,timer-alwon" property here, we probably need to take
-> that into account when setting the CLOCK_SOURCE_SUSPEND_NONSTOP flag, if
-> that isn't how it gets done already.
+This stuff needs documenting, so that people are aware what changes they
+need to make - please put something in Documentation/arm/OMAP which
+tracks what new additions are required to the Kconfig to keep things
+working.
 
-that flag is not set for 32k in any dts. Seems like it should, though,
-judging by the binding documentation:
-
-=2D ti,timer-alwon:	Indicates the timer is in an alway-on power
-  domain.
-
-Tony, care to comment if we should add timer-alwon to 32k ?
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWE+FqAAoJEIaOsuA1yqREzHIQAJo56Pfi0o0iJxNPF7fENKdL
-lQ40IS0oRJlKeGTxlon+OXyJuFyhCTLLwNm2zX9L1Pq0VvuduQjrTZazeNz7RWzK
-rs0bZpQ6eWY41+04itDWRjIRD5h+EFiFL2GbQf7mFL9928OddVQu/W2c7rkw5orl
-3uuEQYex19yzpSTkhvRxoSHFsP4f5svv5MwoqQap4XwZW4f0+YkWASAgg8uKlVAI
-/avpH/IdXHgCcBDEX7xIzb98S4yEkcXXRAb0HIz2KU428d+40/4u1k4bkO9ABH9/
-X9IjoYwdY8TXZXb+KpsKzqbJ0rEOqHjWxO5Ap/jDD1tf6QvhmqNH3MR4gssNVjYd
-hf6euzMpL2t0uvdshFYTcoaEWjJbI+shVwiXaduV53tNvcfb66CulXbKoZX/diSU
-TqqA8d1M++N0NNx8HNfHiKN/eIlNPZr9PwKaYnUJrbkZXSIV9KFCC+RnqweozpNd
-KwWPHLRl2n9cPh9nzK6pcC2wvktj8aEUlVF5aViese9EMN6xarbmxsTWLogTgtTL
-H7DbQUXL+0Pb3Rf8SIK+zD3ucWkdxZLOqc39YJ9TMBBXemg40YmJ9Hp7gJ/z6HQa
-qHfJ2OugAFgR4SvCfj5OLLtNsu5tpx7ERHO6qiSeghoTxiBnsppxl2Ahryt5kDiS
-XgN4JFgx8PvfS/GPGH25
-=QjO8
------END PGP SIGNATURE-----
---=-=-=--
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
