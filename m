@@ -1,36 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/17] ARM: OMAP2+: PRM: add support for reset controller
-Date: Tue, 6 Oct 2015 05:06:06 -0700
-Message-ID: <20151006120606.GP23801@atomide.com>
-References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
- <1443104818-993-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCH] memory: omap-gpmc: Fix unselectable debug option for GPMC
+Date: Tue,  6 Oct 2015 05:13:56 -0700
+Message-ID: <1444133636-31430-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1443104818-993-2-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [150924 07:30]:
-> PRM driver now supports reset controller for the defined reset lines.
-> Reset configurations are provided through device tree. Later, functionality
-> like hwmod and system reboot will be changed to use the generic framework.
+Commit 63aa945b1013 ("memory: omap-gpmc: Add Kconfig option for debug")
+added a debug option for GPMC, but somehow managed to keep it unselecta=
+ble.
 
-This approach seems good to me in general. This should have the related
-reset driver documentation too for the binding though.
+This probably happened because I had some uncommitted changes and the
+GPMC option is selected in the platform specific Kconfig.
 
-Regards,
+Let's also update the description a bit, it does not mention that
+enabling the debug option also disables the reset of GPMC controller
+during the init as pointed out by Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig@pengutronix.de>.
 
-Tony
+=46ixes: 63aa945b1013 ("memory: omap-gpmc: Add Kconfig option for debug=
+")
+Reported-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/memory/Kconfig | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- a/drivers/memory/Kconfig
++++ b/drivers/memory/Kconfig
+@@ -58,12 +58,13 @@ config OMAP_GPMC
+ 	  memory drives like NOR, NAND, OneNAND, SRAM.
+=20
+ config OMAP_GPMC_DEBUG
+-	bool
++	bool "Enable GPMC debug output and skip reset of GPMC during init"
+ 	depends on OMAP_GPMC
+ 	help
+ 	  Enables verbose debugging mostly to decode the bootloader provided
+-	  timings. Enable this during development to configure devices
+-	  connected to the GPMC bus.
++	  timings. To preserve the bootloader provided timings, the reset
++	  of GPMC is skipped during init. Enable this during development to
++	  configure devices connected to the GPMC bus.
+=20
+ config MVEBU_DEVBUS
+ 	bool "Marvell EBU Device Bus Controller"
+--=20
+2.1.4
