@@ -1,29 +1,17 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] arm: omap2: timer: don't disable our timers
-Date: Tue, 6 Oct 2015 11:09:26 -0500
-Message-ID: <87d1ws2d3d.fsf@saruman.tx.rr.com>
-References: <1444092332-9011-1-git-send-email-balbi@ti.com>
- <20151006080028.GI23801@atomide.com> <8737xo3uuq.fsf@saruman.tx.rr.com>
+Subject: Re: cpufreq-dt error: failed to init cpufreq table: -61
+Date: Tue, 6 Oct 2015 11:10:52 -0500
+Message-ID: <87a8rw2d0z.fsf@saruman.tx.rr.com>
+References: <CAAfyv370DFbz9v8URqcipQt-AQ-6du19hf8di2fPeVfTdBzXww@mail.gmail.com> <87fv1o3xmo.fsf@saruman.tx.rr.com> <CAAfyv35mMiuLCCnJFjodNcx-iyOsz56-BPU7fkSc=AL1Xw5nJw@mail.gmail.com> <CAAfyv366=LOfy4_JeuRgjsbgBADWCanRt9X1JDv_eVkYe872Dw@mail.gmail.com> <87zizw2fyv.fsf@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1275218308761861476=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <8737xo3uuq.fsf@saruman.tx.rr.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
-List-Id: linux-omap@vger.kernel.org
-
---===============1275218308761861476==
 Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
 	protocol="application/pgp-signature"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <87zizw2fyv.fsf@saruman.tx.rr.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Belisko Marek <marek.belisko@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux PM mailing list <linux-pm@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
 --=-=-=
 Content-Type: text/plain
@@ -31,21 +19,54 @@ Content-Transfer-Encoding: quoted-printable
 
 Felipe Balbi <balbi@ti.com> writes:
 
-> Tony Lindgren <tony@atomide.com> writes:
+> Belisko Marek <marek.belisko@gmail.com> writes:
 >
->> * Felipe Balbi <balbi@ti.com> [151005 17:49]:
->>> We actually want these devices to be created because
->>> we will be moving timers to drivers/clocksource and
->>> this will prevent them from probing.
+>> Hi,
 >>
->> Great. Is this safe to appy on it's own? We are not getting
->> system timers re-inited to the default values?
+>> On Tue, Oct 6, 2015 at 4:03 PM, Belisko Marek <marek.belisko@gmail.com> =
+wrote:
+>>> Hi Felipe,
+>>>
+>>> On Tue, Oct 6, 2015 at 4:00 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> Belisko Marek <marek.belisko@gmail.com> writes:
+>>>>> Hi Tony,
+>>>>>
+>>>>> I'm using custom am33xx board where mpu voltage can be changed through
+>>>>> gpio regulator on 4.1 (latest stable) kernel. I defined gpio-regulator
+>>>>> node and also operating-points to DT. Gpio regulator seems to be
+>>>>> working fine but during probing cpufreq-dt I get error:
+>>>>> failed to init cpufreq table: -61
+>>>>>
+>>>>> I did small investigation and seem that dev_pm_opp_init_cpufreq_table
+>>>>> fails at first condition dev_pm_opp_get_opp_count <=3D 0 and this is
+>>>>> because opp_list is empty. So it seems that any opp for am33xx aren't
+>>>>> defined if I'm getting it right. I did look to mach-omap2/opp3xxx_data
+>>>>> but there is nothing am33xx specific. It is known problem or exist
+>>>>> some patches around to fix that? Many thanks.
+>>>>
+>>>> OPP initialization is not in mainline yet, there are some out-of-tree
+>>>> patches which TI has been working on. If you want to use them, have a
+>>>> look at TI's vendor kernel at [1]
+>>> Thanks for link. One thing which is still not puzzled before I use 3.9
+>>> kernel and it was working fine
+>>> it's stops working when bumped to 4.1.
+>>
+>> Sorry information was incorrect. On 3.9 kernel we did use tps, pmic
+>> now we have only gpio regulator so this is the difference.
 >
-> not that I could notice. I booted on BBB and AM4. If you give me a few
-> minutes I can boot again and save console logs for reference.
+> okay, if it's only a regulator how can you set different voltages ?
+                       ^^^^^^^^^
+                       GPIO, rather
 
-found another dependency. This will have to be done only after my
-clocksource conversion is finished. Oh well
+
+> Seems like you won't be able to do anything more than enable/disable a
+> voltage rail.
+>
+> --=20
+> balbi
 
 =2D-=20
 balbi
@@ -56,32 +77,18 @@ Content-Type: application/pgp-signature; name="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWE/I3AAoJEIaOsuA1yqRExNwQAJDN34y475501n16RM08HX9Y
-Ax80anO8j8Gxk8vLQE3Uhvq/VVuhPbXwFyim1Eq72VJucT5snlzpOZHtfHUbfHY/
-lJXDettjQlt2kaRMc8CfGCDQb9ZiYTnjWHAfJu1M4oEyNSvuUYWPo8SjgEwV8aep
-WPQcxktrl4hDbVt1t0hqPYfOAnAtDTbJ+QntQ5RrJqJ/hB1xS5xxxq4rSX0LAWKn
-4cWyfBjVokKLg40962KAyO/E12NPUT/pY5k+BqhULGebStAVlnkaoUlOBEOVPFlI
-GSkTsCuUPVnjxobGS+MoySBPif0fbwMY7I20SWBGro6+LEQ0yjEb81AofqKFM5c7
-bihRDf9u310CX8N1qo1AapuwfzsUnTPReem8JWQ4b/Fw2kx5bA3MYsJerXiH4GjQ
-HmnLMzoXL45qFpltUL4M4On9FUONf/MXvl3r6ewDDeXMjAfpDBbo60Paibvx+ee0
-s5fyun8YenLYENAQ0e4JhuRYT50Eu4rt7kaQdCc+pzapkLbzdGupAMqU7sb+EVpU
-6FG8KTjOyV/JMVJ19Ozw83LqaaUDO7vAZdN0hF2jUTq1dC7ln9oD+hZROkCMZqjY
-oUD8hIDAEvfRbbGMp0VdX280Em2u8J0jD4UywG93dQgF+7sWlM1lcID4fCmUDYQM
-imyGia8G37VsuXzqQb++
-=qhd5
+iQIcBAEBAgAGBQJWE/KNAAoJEIaOsuA1yqRE+7cP/3YeYeq6f9EgxiBWZQIPc9KY
+8sm/1ps3exQyKr8WcDNdoYQtxp/ognVTx1hkflvjTp2S0k0kQmNuitaUxCEw2LFx
+l52yBt0D4OY/TmWeDWDjYQtQvhv/hhNOvzHUz/N3evRB2HVjZLHEeY1W2FvOGSVP
+xpkkra0r/R3PvKHOfSJFB6j2Nr9+YoWigrtTzJpDqXABHoH7MBPt4sZwV5bY+221
+nwDlSvUQ/1QC1PzOXAixCUBEVoZVMW8ubJDFSSGqj7JOp+e1ZI19zeBCfA96JBT/
+hvXKbObC0frYub/SBOVWNZxi1l0Ws3mQWDSaWL4D9rsrvay+kIGjwXxbJUcMoQJl
+qAYOy6kqRZ3Yg6sEob34Oz0SdHbNDFUTQyUtpzwbjXoQiD9qf+11cEkX1AnvlAdk
+qX4EpXnN90r8igBy9nQSUVMsfdPSkcshs7TLVfYK7lUdiCZEqPXc6TKo51huCKAO
+aPCpOM2cZEAA4mjYmzFTQHC5nzn/rLku599WwybT7c5G2zRVIpyTjA1wNjRIwick
+WUQqQ922slwXQDt6JZlZAWbVM/c6NGU1cnYFSRgM5zZ37wyLLu81hJtBQiuJtPyx
+yBU+mT8YaHteOJUBR9g8H9DBUendNZu1S/zFnvp7Mc2ppOBlLTjkL28aJVmlNNHz
+KmYSTGg33/tWSBs3XP7U
+=Pg1x
 -----END PGP SIGNATURE-----
 --=-=-=--
-
-
---===============1275218308761861476==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1275218308761861476==--
