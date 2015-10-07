@@ -1,15 +1,17 @@
-From: Roger Quadros <rogerq@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
 Subject: Re: [PATCH 2/2] memory: omap-gpmc: expand the description of the
  debug facility
-Date: Wed, 7 Oct 2015 10:45:50 +0300
-Message-ID: <5614CDAE.6070604@ti.com>
+Date: Wed, 7 Oct 2015 09:53:38 +0200
+Message-ID: <20151007075338.GH3982@pengutronix.de>
 References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
  <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
+ <5614CDAE.6070604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
+Content-Disposition: inline
+In-Reply-To: <5614CDAE.6070604@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,39 +21,61 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDYvMTAvMTUgMjM6MDcsIFV3ZSBLbGVpbmUtS8O2bmlnIHdyb3RlOgo+IE1vc3QgcmVnaXN0
-ZXIgdmFsdWVzIGZvciB0aGUgY2hpcCBzZWxlY3Qgc2V0dXAgZGVwZW5kIG9uIHRoZSBmcmVxdWVu
-Y3kKPiBvZiB0aGUgZmNrIGNsb2NrLgo+IFNvIGFkZCBhIGhpbnQgdGhhdCB0aGUgdmFsdWVzIHNl
-dHVwIGJ5IHRoZSBib290bG9hZGVyIG1pZ2h0IGRpZmZlciBmcm9tCj4gdGhlIHJpZ2h0IHNldHVw
-IGZvciBMaW51eCBpZiB0aGUgYm9vdGxvYWRlciB1c2VzIGEgZGlmZmVyZW50IGZyZXF1ZW5jeS4K
-PiAKPiBTaWduZWQtb2ZmLWJ5OiBVd2UgS2xlaW5lLUvDtm5pZyA8dS5rbGVpbmUta29lbmlnQHBl
-bmd1dHJvbml4LmRlPgo+IC0tLQo+ICBkcml2ZXJzL21lbW9yeS9LY29uZmlnIHwgMyArKysKPiAg
-MSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJz
-L21lbW9yeS9LY29uZmlnIGIvZHJpdmVycy9tZW1vcnkvS2NvbmZpZwo+IGluZGV4IGM2YTY0NGIy
-MmFmNC4uMTQxNGRkNTNiZTU3IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbWVtb3J5L0tjb25maWcK
-PiArKysgYi9kcml2ZXJzL21lbW9yeS9LY29uZmlnCj4gQEAgLTY0LDYgKzY0LDkgQEAgY29uZmln
-IE9NQVBfR1BNQ19ERUJVRwo+ICAJICBFbmFibGVzIHZlcmJvc2UgZGVidWdnaW5nIG1vc3RseSB0
-byBkZWNvZGUgdGhlIGJvb3Rsb2FkZXIgcHJvdmlkZWQKPiAgCSAgdGltaW5ncy4gRW5hYmxlIHRo
-aXMgZHVyaW5nIGRldmVsb3BtZW50IHRvIGNvbmZpZ3VyZSBkZXZpY2VzCj4gIAkgIGNvbm5lY3Rl
-ZCB0byB0aGUgR1BNQyBidXMuCj4gKwkgIE5vdGUgdGhhdCB5b3UgY2Fubm90IGp1c3QgdHdlYWsg
-eW91ciBkZXZpY2UgdHJlZSB1bnRpbCB0aGUgcmVnaXN0ZXJzCj4gKwkgIHNldHVwIGJ5IGxpbnV4
-IG1hdGNoIHdoYXQgdGhlIGJvb3Rsb2FkZXIgZGlkIGJlY2F1c2UgdGhhdCBvbmUgbWlnaHQKPiAr
-CSAgdXNlIGEgZGlmZmVyZW50IGZjayBmcmVxdWVuY3kgaW5mbHVlbmNpbmcgbW9zdCByZWdpc3Rl
-ciBzZXR0aW5ncy4KCkxvb2tzIGxpa2Ugd2UgY2FuJ3Qga25vdyBmb3Igc3VyZSB0aGUgR1BNQyBm
-Y2xrIHVzZWQgYXQgdGhlIGJvb3Rsb2FkZXIKZWxzZSB3ZSBjb3VsZCBoYXZlIGp1c3QgcHJpbnRl
-ZCB0aGUgR1BNQyBmY2xrIHByZSBhbmQgcG9zdCBncG1jIHNldHRpbmdzLgoKSG93IGFib3V0IHRo
-aXMgaW5zdGVhZD8KCk5PVEU6IEFwYXJ0IGZyb20gbWF0Y2hpbmcgdGhlIHJlZ2lzdGVyIHNldHVw
-IHdpdGggdGhlIGJvb3Rsb2FkZXIgeW91IGFsc28gbmVlZCB0bwptYXRjaCB0aGUgR1BNQyBGQ0xL
-IGZyZXF1ZW5jeSB1c2VkIGJ5IHRoZSBib290bG9hZGVyIGVsc2UgdGhlIEdQTUMgdGltaW5ncwp3
-b24ndCBiZSBpZGVudGljYWwgd2l0aCB0aGUgYm9vdGxvYWRlciB0aW1pbmdzLgoKQWxzbyB5b3Ug
-bWlnaHQgbmVlZCB0byBidWlsZCB0aGlzIHBhdGNoIG9uIHRvcCBvZgpodHRwOi8vYXJ0aWNsZS5n
-bWFuZS5vcmcvZ21hbmUubGludXgua2VybmVsLzIwNTQ3OTYKCj4gIAo+ICBjb25maWcgTVZFQlVf
-REVWQlVTCj4gIAlib29sICJNYXJ2ZWxsIEVCVSBEZXZpY2UgQnVzIENvbnRyb2xsZXIiCj4gCgpj
-aGVlcnMsCi1yb2dlcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0
-cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtYXJtLWtlcm5lbAo=
+Hello Roger,
+
+On Wed, Oct 07, 2015 at 10:45:50AM +0300, Roger Quadros wrote:
+> On 06/10/15 23:07, Uwe Kleine-K=F6nig wrote:
+> > Most register values for the chip select setup depend on the frequency
+> > of the fck clock.
+> > So add a hint that the values setup by the bootloader might differ from
+> > the right setup for Linux if the bootloader uses a different frequency.
+> > =
+
+> > Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> > ---
+> >  drivers/memory/Kconfig | 3 +++
+> >  1 file changed, 3 insertions(+)
+> > =
+
+> > diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
+> > index c6a644b22af4..1414dd53be57 100644
+> > --- a/drivers/memory/Kconfig
+> > +++ b/drivers/memory/Kconfig
+> > @@ -64,6 +64,9 @@ config OMAP_GPMC_DEBUG
+> >  	  Enables verbose debugging mostly to decode the bootloader provided
+> >  	  timings. Enable this during development to configure devices
+> >  	  connected to the GPMC bus.
+> > +	  Note that you cannot just tweak your device tree until the registers
+> > +	  setup by linux match what the bootloader did because that one might
+> > +	  use a different fck frequency influencing most register settings.
+> =
+
+> Looks like we can't know for sure the GPMC fclk used at the bootloader
+> else we could have just printed the GPMC fclk pre and post gpmc settings.
+> =
+
+> How about this instead?
+> =
+
+> NOTE: Apart from matching the register setup with the bootloader you also=
+ need to
+> match the GPMC FCLK frequency used by the bootloader else the GPMC timings
+> won't be identical with the bootloader timings.
+Yeah, sounds better, thanks.
+
+> Also you might need to build this patch on top of
+> http://article.gmane.org/gmane.linux.kernel/2054796
+I talked to Tony about this patch yesterday on irc, but I didn't find it
+in the archives yet when I sent my mail.
+
+Thanks
+Uwe
+
+-- =
+
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
