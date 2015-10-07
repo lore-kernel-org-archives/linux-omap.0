@@ -1,55 +1,65 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] genirq: export handle_bad_irq
-Date: Wed, 7 Oct 2015 14:18:24 -0500
-Message-ID: <56157000.4010009@ti.com>
-References: <5847725.4IBopItaOr@wuerfel>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: All OMAP platforms: MMC is broken
+Date: Wed, 7 Oct 2015 21:40:42 +0200
+Message-ID: <CAPDyKFp5e_pizFSCzeYSM8sXGx6Jewgs2PRB-RQ1iWMM6WMOww@mail.gmail.com>
+References: <20151005145127.GB23801@atomide.com>
+	<20151005171155.GF23801@atomide.com>
+	<20151005183813.GD21626@n2100.arm.linux.org.uk>
+	<20151006090015.GE21626@n2100.arm.linux.org.uk>
+	<20151006094425.GM23801@atomide.com>
+	<20151006150009.GF21626@n2100.arm.linux.org.uk>
+	<20151006153710.GS23801@atomide.com>
+	<20151007124551.GI21626@n2100.arm.linux.org.uk>
+	<20151007132642.GV23801@atomide.com>
+	<CAPDyKFoBPEnHuNR_bsrPU6X=q5pHa8cDR7_Ng9xLnLsudymvOg@mail.gmail.com>
+	<20151007155206.GX23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <5847725.4IBopItaOr@wuerfel>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Austin Schuh <austin@peloton-tech.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20151007155206.GX23801@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
+On 7 October 2015 at 17:52, Tony Lindgren <tony@atomide.com> wrote:
+> * Ulf Hansson <ulf.hansson@linaro.org> [151007 06:46]:
+>> On 7 October 2015 at 15:26, Tony Lindgren <tony@atomide.com> wrote:
+>> >> > Good idea, how about something like the following? AFAIK that's the
+>> >> > only .config option needed as MFD_SYSCON is selected by Kconfig
+>> >> > already.
+>>
+>> Similar to MFD_SYSCON, why don't we have REGULATOR_PBIAS to be
+>> selected when omap_hsmmc is being used?
+>>
+>> It seems like that should also be a patch for the rc, right!?
+>
+> Well selecting CONFIG_REGULATOR is still optional and force selecting
+> drivers usually leads into randconfig build issues sooner or later.
+> And we'd like to make everything into loadable modules eventually.
 
-On 10/06/2015 03:24 PM, Arnd Bergmann wrote:
-> A cleanup of the omap gpio driver introduced a use of the
-> handle_bad_irq() function in a device driver that can be
-> a loadable module.
->
-> This broke the ARM allmodconfig build:
->
-> ERROR: "handle_bad_irq" [drivers/gpio/gpio-omap.ko] undefined!
->
-> This patch exports the handle_bad_irq symbol in order to
-> allow the use in modules.
->
+I am not sure I get your point. Perhaps I was too vague in what I suggested.
 
-Thanks for fixing it and sorry for the mess.
-Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Unless we express the dependencies via Kconfig files (or perhaps via
+updated defconfigs), how do you expect build/boot automated tools to
+handle this?
 
+*People* can of course manually poll a README to learn about new
+dependencies for each new kernel version, but me personally would
+prefer if don't have to.
 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: 450fa54cfd66 ("gpio: omap: convert to use generic irq handler")
 >
-> diff --git a/kernel/irq/handle.c b/kernel/irq/handle.c
-> index ea7b5fd99ba5..142bbf3b607f 100644
-> --- a/kernel/irq/handle.c
-> +++ b/kernel/irq/handle.c
-> @@ -35,6 +35,7 @@ void handle_bad_irq(struct irq_desc *desc)
->   	kstat_incr_irqs_this_cpu(desc);
->   	ack_bad_irq(irq);
->   }
-> +EXPORT_SYMBOL_GPL(handle_bad_irq);
->
->   /*
->    * Special, empty irq handler:
->
+> We could print a warning during MMC1 probe if REGULATOR_PBIAS
+> is not selected and attempt to continue probing?
 
+No thanks, it would sprinkle drivers with ugly code :-). I would also
+expect that we would get warnings even when we shouldn't, especially
+as a cross SoC/board driver may have different dependencies.
 
--- 
-regards,
--grygorii
+To me REGULATOR_PBIAS is a dependency required by a certain SoC/board
+when MMC_OMAP_HS is selected. Isn't such dependency easiest dealt with
+from SoC/board Kconfig files? Llike for example in the OMAP2 case,
+arch/arm/mach-omap2/Kconfig.
+
+Kind regards
+Uffe
