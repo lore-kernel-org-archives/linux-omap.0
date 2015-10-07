@@ -1,78 +1,55 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Wed, 7 Oct 2015 15:41:46 +0200
-Message-ID: <CAPDyKFoBPEnHuNR_bsrPU6X=q5pHa8cDR7_Ng9xLnLsudymvOg@mail.gmail.com>
-References: <20151005112304.GZ23801@atomide.com>
-	<20151005143532.GA23801@atomide.com>
-	<20151005145127.GB23801@atomide.com>
-	<20151005171155.GF23801@atomide.com>
-	<20151005183813.GD21626@n2100.arm.linux.org.uk>
-	<20151006090015.GE21626@n2100.arm.linux.org.uk>
-	<20151006094425.GM23801@atomide.com>
-	<20151006150009.GF21626@n2100.arm.linux.org.uk>
-	<20151006153710.GS23801@atomide.com>
-	<20151007124551.GI21626@n2100.arm.linux.org.uk>
-	<20151007132642.GV23801@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: expand the description of the
+ debug facility
+Date: Wed, 7 Oct 2015 16:55:01 +0300
+Message-ID: <56152435.6050500@ti.com>
+References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
+ <5614CDAE.6070604@ti.com> <20151007075338.GH3982@pengutronix.de>
+ <20151007102822.GT23801@atomide.com> <20151007110231.GL3982@pengutronix.de>
+ <5614FD01.6090009@ti.com> <20151007134010.GW23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20151007132642.GV23801@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nishanth Menon <nm@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151007134010.GW23801@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 7 October 2015 at 15:26, Tony Lindgren <tony@atomide.com> wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [151007 05:50]:
->> On Tue, Oct 06, 2015 at 08:37:11AM -0700, Tony Lindgren wrote:
->> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 08:04]:
->> > > On Tue, Oct 06, 2015 at 02:44:25AM -0700, Tony Lindgren wrote:
->> > > >
->> > > > Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
->> > > > Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
->> > > > working for you with DT-based booting because you don't seem to have
->> > > > CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
->> > > > for both your omap3 and omap4 seed config files?
->> > >
->> > > This is precisely the kind of crap I'm objecting to.  New kernel versions
->> > > come along, and things break because people add extra Kconfig symbols that
->> > > previous versions did not rely upon - and there's no communication of
->> > > what's required for new kernel versions.
->> > >
->> > > This stuff needs documenting, so that people are aware what changes they
->> > > need to make - please put something in Documentation/arm/OMAP which
->> > > tracks what new additions are required to the Kconfig to keep things
->> > > working.
->> >
->> > Good idea, how about something like the following? AFAIK that's the
->> > only .config option needed as MFD_SYSCON is selected by Kconfig
->> > already.
-
-Similar to MFD_SYSCON, why don't we have REGULATOR_PBIAS to be
-selected when omap_hsmmc is being used?
-
-It seems like that should also be a patch for the rc, right!?
-
->>
->> Right, that resolves the issue.  Now, what's the story on the revert
->> and the other patch - have they already been taken for -rc kernels?
-
-Great!
-
->
-> Not yet, I was waiting for the confirmation from you. I've now posted the
-> revert with proper description and the fix so Ulf can pick them up and
-> merged as regression fixes for the -rc series:
-
-I am on it!
-
->
-> http://marc.info/?l=linux-omap&m=144422416621373&w=2
-> http://marc.info/?l=linux-omap&m=144422416921375&w=2
-
-Russell, may I add your tested by tag for these?
-
-Again, thanks!
-
-Kind regards
-Uffe
+T24gMDcvMTAvMTUgMTY6NDAsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gKiBSb2dlciBRdWFkcm9z
+IDxyb2dlcnFAdGkuY29tPiBbMTUxMDA3IDA0OjEyXToKPj4gT24gMDcvMTAvMTUgMTQ6MDIsIFV3
+ZSBLbGVpbmUtS8O2bmlnIHdyb3RlOgo+Pj4gSGVsbG8gVG9ueSwKPj4+Cj4+PiBPbiBXZWQsIE9j
+dCAwNywgMjAxNSBhdCAwMzo0MToxOUFNIC0wNzAwLCBUb255IExpbmRncmVuIHdyb3RlOgo+Pj4+
+ICogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5kZT4gWzE1
+MTAwNyAwMDo1N106Cj4+Pj4+IE9uIFdlZCwgT2N0IDA3LCAyMDE1IGF0IDEwOjQ1OjUwQU0gKzAz
+MDAsIFJvZ2VyIFF1YWRyb3Mgd3JvdGU6Cj4+Pj4+Pgo+Pj4+Pj4gSG93IGFib3V0IHRoaXMgaW5z
+dGVhZD8KPj4+Pj4+Cj4+Pj4+PiBOT1RFOiBBcGFydCBmcm9tIG1hdGNoaW5nIHRoZSByZWdpc3Rl
+ciBzZXR1cCB3aXRoIHRoZSBib290bG9hZGVyIHlvdSBhbHNvIG5lZWQgdG8KPj4+Pj4+IG1hdGNo
+IHRoZSBHUE1DIEZDTEsgZnJlcXVlbmN5IHVzZWQgYnkgdGhlIGJvb3Rsb2FkZXIgZWxzZSB0aGUg
+R1BNQyB0aW1pbmdzCj4+Pj4+PiB3b24ndCBiZSBpZGVudGljYWwgd2l0aCB0aGUgYm9vdGxvYWRl
+ciB0aW1pbmdzLgo+Pj4+PiBZZWFoLCBzb3VuZHMgYmV0dGVyLCB0aGFua3MuCj4+Pj4+Cj4+Pj4+
+PiBBbHNvIHlvdSBtaWdodCBuZWVkIHRvIGJ1aWxkIHRoaXMgcGF0Y2ggb24gdG9wIG9mCj4+Pj4+
+PiBodHRwOi8vYXJ0aWNsZS5nbWFuZS5vcmcvZ21hbmUubGludXgua2VybmVsLzIwNTQ3OTYKPj4+
+Pj4gSSB0YWxrZWQgdG8gVG9ueSBhYm91dCB0aGlzIHBhdGNoIHllc3RlcmRheSBvbiBpcmMsIGJ1
+dCBJIGRpZG4ndCBmaW5kIGl0Cj4+Pj4+IGluIHRoZSBhcmNoaXZlcyB5ZXQgd2hlbiBJIHNlbnQg
+bXkgbWFpbC4KPj4+Pgo+Pj4+IFllcyBzb3JyeSBoZXJlJ3MgYSByZXBvc3Qgd2l0aCB5b3VyIGFu
+ZCBSb2dlcidzIGNoYW5nZXMgZm9sZGVkIGluIGFuZAo+Pj4+IGVkaXRlZCBhIGJpdC4gUHJvYmFi
+bHkgYmVzdCB0byBrZWVwIHRoZW0gdG9nZXRoZXIgd2l0aCB0aGlzIHBhdGNoLgo+Pj4+Cj4+Pj4g
+RG9lcyB0aGUgZm9sbG93aW5nIGxvb2sgT0sgdG8geW91IGd1eXM/Cj4+PiBZZXMsCj4+PiBBY2tl
+ZC1ieTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5kZT4K
+Pj4KPj4gTG9va3MgZ29vZCB0byBtZSB0b28uCj4gCj4gQXJlIHlvdSBPSyBpZiBJIHVzZSB5b3Vy
+IEFja2VkLWJ5IGZyb20gdGhlIHByZXZpb3VzIHZlcnNpb24gb24KPiB0aGlzIHVwZGF0ZWQgdmVy
+c2lvbj8KClllcyBwbGVhc2UuCgpjaGVlcnMsCi1yb2dlcgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
+bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
+YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
