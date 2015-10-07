@@ -1,51 +1,67 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v4 00/25] dmaengine/ARM: Merge the edma drivers into one
-Date: Wed, 7 Oct 2015 16:13:23 +0530
-Message-ID: <5614F74B.206@ti.com>
-References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: expand the description of the
+ debug facility
+Date: Wed, 7 Oct 2015 13:02:31 +0200
+Message-ID: <20151007110231.GL3982@pengutronix.de>
+References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
+ <5614CDAE.6070604@ti.com> <20151007075338.GH3982@pengutronix.de>
+ <20151007102822.GT23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, vinod.koul@intel.com, linux@arm.linux.org.uk
-Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20151007102822.GT23801@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 24 September 2015 03:31 PM, Peter Ujfalusi wrote:
+Hello Tony,
 
-> with this series the edma two driver setup will be changed to have only one
-> driver to support eDMA3. The legacy edma interface will be removed and eDMA can
-> only be used via dmaengine API from this point on.
-> In order to do the merge the following improvements has been done:
-> - One driver instance per eDMA:
->  - Any number of eDMA instances are supported (both legacy and DT boot)
-> - Not relying on global variables, arrays, etc
-> - Code simplification and optimizations in several places
-> 
-> This change will also help us to do bigger changes in the eDMA driver since,
-> since now we have only one driver to work with.
-> 
-> The series has been tested on:
-> da850-evm (OMAP-L138)
-> - with legacy and DT boot (both eDMA0 and eDMA1 is enabled)
-> - In code swapping the eDMA instances in legacy mode to make sure the second
->   instance is handled correctly.
-> 
-> am335x-evmsk
-> - DT boot
-> 
-> I think this series could go via the dmaengine tree. Changes are trivial under
-> arch/arm/
+On Wed, Oct 07, 2015 at 03:41:19AM -0700, Tony Lindgren wrote:
+> * Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de> [151007 00:57]:
+> > On Wed, Oct 07, 2015 at 10:45:50AM +0300, Roger Quadros wrote:
+> > > =
 
-I tested this series on DM6446 EVM using MMC/SD as EDMA client. It
-worked well. For the arch/arm/mach-davinci parts, please add
+> > > How about this instead?
+> > > =
 
-Acked-by: Sekhar Nori <nsekhar@ti.com>
+> > > NOTE: Apart from matching the register setup with the bootloader you =
+also need to
+> > > match the GPMC FCLK frequency used by the bootloader else the GPMC ti=
+mings
+> > > won't be identical with the bootloader timings.
+> > Yeah, sounds better, thanks.
+> > =
 
-Vinod, if you prefer me replying with acks on individual patches, I can
-do that too.
+> > > Also you might need to build this patch on top of
+> > > http://article.gmane.org/gmane.linux.kernel/2054796
+> > I talked to Tony about this patch yesterday on irc, but I didn't find it
+> > in the archives yet when I sent my mail.
+> =
 
-Regards,
-Sekhar
+> Yes sorry here's a repost with your and Roger's changes folded in and
+> edited a bit. Probably best to keep them together with this patch.
+> =
+
+> Does the following look OK to you guys?
+Yes,
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+
+Thanks
+Uwe
+
+-- =
+
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
