@@ -1,79 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: expand the description of the
- debug facility
-Date: Wed, 7 Oct 2015 03:41:19 -0700
-Message-ID: <20151007102822.GT23801@atomide.com>
-References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <5614CDAE.6070604@ti.com> <20151007075338.GH3982@pengutronix.de>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v4 00/25] dmaengine/ARM: Merge the edma drivers into one
+Date: Wed, 7 Oct 2015 16:13:23 +0530
+Message-ID: <5614F74B.206@ti.com>
+References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20151007075338.GH3982@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, vinod.koul@intel.com, linux@arm.linux.org.uk
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBVd2UgS2xlaW5lLUvDtm5pZyA8dS5rbGVpbmUta29lbmlnQHBlbmd1dHJvbml4LmRlPiBbMTUx
-MDA3IDAwOjU3XToKPiBPbiBXZWQsIE9jdCAwNywgMjAxNSBhdCAxMDo0NTo1MEFNICswMzAwLCBS
-b2dlciBRdWFkcm9zIHdyb3RlOgo+ID4gCj4gPiBIb3cgYWJvdXQgdGhpcyBpbnN0ZWFkPwo+ID4g
-Cj4gPiBOT1RFOiBBcGFydCBmcm9tIG1hdGNoaW5nIHRoZSByZWdpc3RlciBzZXR1cCB3aXRoIHRo
-ZSBib290bG9hZGVyIHlvdSBhbHNvIG5lZWQgdG8KPiA+IG1hdGNoIHRoZSBHUE1DIEZDTEsgZnJl
-cXVlbmN5IHVzZWQgYnkgdGhlIGJvb3Rsb2FkZXIgZWxzZSB0aGUgR1BNQyB0aW1pbmdzCj4gPiB3
-b24ndCBiZSBpZGVudGljYWwgd2l0aCB0aGUgYm9vdGxvYWRlciB0aW1pbmdzLgo+IFllYWgsIHNv
-dW5kcyBiZXR0ZXIsIHRoYW5rcy4KPiAKPiA+IEFsc28geW91IG1pZ2h0IG5lZWQgdG8gYnVpbGQg
-dGhpcyBwYXRjaCBvbiB0b3Agb2YKPiA+IGh0dHA6Ly9hcnRpY2xlLmdtYW5lLm9yZy9nbWFuZS5s
-aW51eC5rZXJuZWwvMjA1NDc5Ngo+IEkgdGFsa2VkIHRvIFRvbnkgYWJvdXQgdGhpcyBwYXRjaCB5
-ZXN0ZXJkYXkgb24gaXJjLCBidXQgSSBkaWRuJ3QgZmluZCBpdAo+IGluIHRoZSBhcmNoaXZlcyB5
-ZXQgd2hlbiBJIHNlbnQgbXkgbWFpbC4KClllcyBzb3JyeSBoZXJlJ3MgYSByZXBvc3Qgd2l0aCB5
-b3VyIGFuZCBSb2dlcidzIGNoYW5nZXMgZm9sZGVkIGluIGFuZAplZGl0ZWQgYSBiaXQuIFByb2Jh
-Ymx5IGJlc3QgdG8ga2VlcCB0aGVtIHRvZ2V0aGVyIHdpdGggdGhpcyBwYXRjaC4KCkRvZXMgdGhl
-IGZvbGxvd2luZyBsb29rIE9LIHRvIHlvdSBndXlzPwoKUmVnYXJkcywKClRvbnkKCjg8IC0tLS0t
-LS0tLS0tLS0tLS0KRnJvbTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KRGF0ZTog
-VHVlLCA2IE9jdCAyMDE1IDA1OjM2OjE3IC0wNzAwClN1YmplY3Q6IFtQQVRDSF0gbWVtb3J5OiBv
-bWFwLWdwbWM6IEZpeCB1bnNlbGVjdGFibGUgZGVidWcgb3B0aW9uIGZvciBHUE1DCk1JTUUtVmVy
-c2lvbjogMS4wCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOApDb250ZW50
-LVRyYW5zZmVyLUVuY29kaW5nOiA4Yml0CgpDb21taXQgNjNhYTk0NWIxMDEzICgibWVtb3J5OiBv
-bWFwLWdwbWM6IEFkZCBLY29uZmlnIG9wdGlvbiBmb3IgZGVidWciKQphZGRlZCBhIGRlYnVnIG9w
-dGlvbiBmb3IgR1BNQywgYnV0IHNvbWVob3cgbWFuYWdlZCB0byBrZWVwIGl0IHVuc2VsZWN0YWJs
-ZS4KClRoaXMgcHJvYmFibHkgaGFwcGVuZWQgYmVjYXVzZSBJIGhhZCBzb21lIHVuY29tbWl0dGVk
-IGNoYW5nZXMgYW5kIHRoZQpHUE1DIG9wdGlvbiBpcyBzZWxlY3RlZCBpbiB0aGUgcGxhdGZvcm0g
-c3BlY2lmaWMgS2NvbmZpZy4KCkxldCdzIGFsc28gdXBkYXRlIHRoZSBkZXNjcmlwdGlvbiBhIGJp
-dCwgaXQgZG9lcyBub3QgbWVudGlvbiB0aGF0CmVuYWJsaW5nIHRoZSBkZWJ1ZyBvcHRpb24gYWxz
-byBkaXNhYmxlcyB0aGUgcmVzZXQgb2YgR1BNQyBjb250cm9sbGVyCmR1cmluZyB0aGUgaW5pdCBh
-cyBwb2ludGVkIG91dCBieSBVd2UgS2xlaW5lLUvDtm5pZwo8dS5rbGVpbmUta29lbmlnQHBlbmd1
-dHJvbml4LmRlPiBhbmQgUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4uCgpGaXhlczogNjNh
-YTk0NWIxMDEzICgibWVtb3J5OiBvbWFwLWdwbWM6IEFkZCBLY29uZmlnIG9wdGlvbiBmb3IgZGVi
-dWciKQpSZXBvcnRlZC1ieTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5n
-dXRyb25peC5kZT4KU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
-bT4KCi0tLSBhL2RyaXZlcnMvbWVtb3J5L0tjb25maWcKKysrIGIvZHJpdmVycy9tZW1vcnkvS2Nv
-bmZpZwpAQCAtNTgsMTIgKzU4LDE4IEBAIGNvbmZpZyBPTUFQX0dQTUMKIAkgIG1lbW9yeSBkcml2
-ZXMgbGlrZSBOT1IsIE5BTkQsIE9uZU5BTkQsIFNSQU0uCiAKIGNvbmZpZyBPTUFQX0dQTUNfREVC
-VUcKLQlib29sCisJYm9vbCAiRW5hYmxlIEdQTUMgZGVidWcgb3V0cHV0IGFuZCBza2lwIHJlc2V0
-IG9mIEdQTUMgZHVyaW5nIGluaXQiCiAJZGVwZW5kcyBvbiBPTUFQX0dQTUMKIAloZWxwCiAJICBF
-bmFibGVzIHZlcmJvc2UgZGVidWdnaW5nIG1vc3RseSB0byBkZWNvZGUgdGhlIGJvb3Rsb2FkZXIg
-cHJvdmlkZWQKLQkgIHRpbWluZ3MuIEVuYWJsZSB0aGlzIGR1cmluZyBkZXZlbG9wbWVudCB0byBj
-b25maWd1cmUgZGV2aWNlcwotCSAgY29ubmVjdGVkIHRvIHRoZSBHUE1DIGJ1cy4KKwkgIHRpbWlu
-Z3MuIFRvIHByZXNlcnZlIHRoZSBib290bG9hZGVyIHByb3ZpZGVkIHRpbWluZ3MsIHRoZSByZXNl
-dAorCSAgb2YgR1BNQyBpcyBza2lwcGVkIGR1cmluZyBpbml0LiBFbmFibGUgdGhpcyBkdXJpbmcg
-ZGV2ZWxvcG1lbnQgdG8KKwkgIGNvbmZpZ3VyZSBkZXZpY2VzIGNvbm5lY3RlZCB0byB0aGUgR1BN
-QyBidXMuCisKKwkgIE5PVEU6IEluIGFkZGl0aW9uIHRvIG1hdGNoaW5nIHRoZSByZWdpc3RlciBz
-ZXR1cCB3aXRoIHRoZSBib290bG9hZGVyCisJICB5b3UgYWxzbyBuZWVkIHRvIG1hdGNoIHRoZSBH
-UE1DIEZDTEsgZnJlcXVlbmN5IHVzZWQgYnkgdGhlCisJICBib290bG9hZGVyIG9yIGVsc2UgdGhl
-IEdQTUMgdGltaW5ncyB3b24ndCBiZSBpZGVudGljYWwgd2l0aCB0aGUKKwkgIGJvb3Rsb2FkZXIg
-dGltaW5ncy4KIAogY29uZmlnIE1WRUJVX0RFVkJVUwogCWJvb2wgIk1hcnZlbGwgRUJVIERldmlj
-ZSBCdXMgQ29udHJvbGxlciIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Thursday 24 September 2015 03:31 PM, Peter Ujfalusi wrote:
+
+> with this series the edma two driver setup will be changed to have only one
+> driver to support eDMA3. The legacy edma interface will be removed and eDMA can
+> only be used via dmaengine API from this point on.
+> In order to do the merge the following improvements has been done:
+> - One driver instance per eDMA:
+>  - Any number of eDMA instances are supported (both legacy and DT boot)
+> - Not relying on global variables, arrays, etc
+> - Code simplification and optimizations in several places
+> 
+> This change will also help us to do bigger changes in the eDMA driver since,
+> since now we have only one driver to work with.
+> 
+> The series has been tested on:
+> da850-evm (OMAP-L138)
+> - with legacy and DT boot (both eDMA0 and eDMA1 is enabled)
+> - In code swapping the eDMA instances in legacy mode to make sure the second
+>   instance is handled correctly.
+> 
+> am335x-evmsk
+> - DT boot
+> 
+> I think this series could go via the dmaengine tree. Changes are trivial under
+> arch/arm/
+
+I tested this series on DM6446 EVM using MMC/SD as EDMA client. It
+worked well. For the arch/arm/mach-davinci parts, please add
+
+Acked-by: Sekhar Nori <nsekhar@ti.com>
+
+Vinod, if you prefer me replying with acks on individual patches, I can
+do that too.
+
+Regards,
+Sekhar
