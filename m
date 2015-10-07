@@ -1,87 +1,48 @@
-From: Felipe Balbi <balbi@TI.COM>
-Subject: Re: [PATCH 09/11] clocksource: add TI 32.768 Hz counter driver
-Date: Tue, 6 Oct 2015 22:07:46 -0500
-Message-ID: <87bncb1im5.fsf@saruman.tx.rr.com>
-References: <1444150927-14771-1-git-send-email-balbi@ti.com> <1444150927-14771-10-git-send-email-balbi@ti.com> <56145836.4070304@linaro.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/2] memory: omap-gpmc: dump "before" state before first
+ modification
+Date: Wed, 7 Oct 2015 10:37:18 +0300
+Message-ID: <5614CBAE.8030603@ti.com>
+References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56145836.4070304@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, tglx@linutronix.de, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-
-Hi,
-
-Daniel Lezcano <daniel.lezcano@linaro.org> writes:
-
-> On 10/06/2015 07:02 PM, Felipe Balbi wrote:
->> Introduce a new clocksource driver for Texas
->> Instruments 32.768 Hz device which is available
->> on most OMAP-like devices.
->>
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->
-> Hi Felipe,
->
-> With the couple of nits below fixed, you can my:
->
-> Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->
-> [ ... ]
->
->> +#define OMAP2_32KSYNCNT_REV_OFF		0x0
->> +#define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
->> +#define OMAP2_32KSYNCNT_CR_OFF_LOW	0x10
->> +#define OMAP2_32KSYNCNT_CR_OFF_HIGH	0x30
->> +
->> +struct ti_32k {
->> +	void __iomem		*base;
->> +	void __iomem		*counter;
->> +	struct clocksource	cs;
->> +};
->> +#define to_ti_32k(cs)	(container_of((cs), struct ti_32k, cs))
->
-> Usually a static inline is used instead of a macro for that.
-
-not so true and also completely unnecessary, considering container_of()
-already type safety ;-)
-
-Try this:
-
-$ git grep -e "#define.*container_of" | wc -l
-
-no strong feelings though. I tend to prefer a macro to wrap
-container_of() but won't go into an argument
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWFIyDAAoJEIaOsuA1yqREHQ8P/i3yIXpmyUR0h6tER2HOxpCy
-0FQd2UC3E94b8KJ1Rr1VVKUo7T73f3iGOFz8hYvnOBuL36prmmHb9Kn2ayZP5GeK
-Zao2n0+AZJNTASq8a5Wlb+geedMhtKbKetSG78Li/hgL+fELfsosuVnhZRhnQ7iC
-+CMLgL7iZ0LSqylPm7UEZHgG80Aud2BJRCTP/ZLS4tvyHYW/z3NmDVTSdgtFTh5r
-mHRUbG17w6nSpU/kEhChbeXq7RjOWirr+ZpdqTlJBO5LTbBoB7oS57mQaKffODfK
-tzgU4rn7CrL3KsQBvvyh5w5wk2h5IsiBNDifjUDsrsgnqqRkN/Ylp3cOcGqnfg1A
-W57LFDPRZFlOyo/IzkIrkgSG0z9KKLfgOx27dXdmiZQHxB/NU69ofhA8CimN8XdM
-6RgH9A+Jchw/S9+4RSzwXRpmYmmdaWvVrSWTUgrpVsSgMVOSNmdFnwAW+BNTpxDZ
-DAdzqvHYfZWtU0yukXEF9+MLuk3RUvMlJ3zvPas1f3UIFIOOGqAeLeQAP4IthsGu
-xhhs9/klnS+1bT0brk09YzRbfVYflFbXENnpAzB7Nuc8V8tpw+qxq1wddmXO1uok
-hgbRd3WstWyjrMD/waIcrMcxTdlt+h8yA7moVuidL+8oBT3nAkuudAd/dCBCIT1k
-UF0kyuS/hQ0h+8Mmzz/g
-=Kz6j
------END PGP SIGNATURE-----
---=-=-=--
+T24gMDYvMTAvMTUgMjM6MDcsIFV3ZSBLbGVpbmUtS8O2bmlnIHdyb3RlOgo+IFdoZW4gZ3BtY19j
+c19zaG93X3RpbWluZ3MgaXMgY2FsbGVkIGluIGdwbWNfY3Nfc2V0X3RpbWluZ3MoKQo+IGdwbWNf
+Y3NfcHJvZ3JhbV9zZXR0aW5ncygpIHdhcyBhbHJlYWR5IHJ1biB3aGljaCBtb2RpZmllcyB0aGUg
+Q09ORklHMQo+IHJlZ2lzdGVyLiBTbyB0byBiZSBtb3JlIHVzZWZ1bCBkbyB0aGUgImJlZm9yZSIg
+ZHVtcCBlYXJsaWVyLgo+IAo+IFNpZ25lZC1vZmYtYnk6IFV3ZSBLbGVpbmUtS8O2bmlnIDx1Lmts
+ZWluZS1rb2VuaWdAcGVuZ3V0cm9uaXguZGU+CgpBY2tlZC1ieTogUm9nZXIgUXVhZHJvcyA8cm9n
+ZXJxQHRpLmNvbT4KCj4gLS0tCj4gIGRyaXZlcnMvbWVtb3J5L29tYXAtZ3BtYy5jIHwgMiArLQo+
+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkKPiAKPiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9tZW1vcnkvb21hcC1ncG1jLmMgYi9kcml2ZXJzL21lbW9yeS9vbWFw
+LWdwbWMuYwo+IGluZGV4IDMyYWMwNDlmMmJjNC4uNjUxNWRmYzJiODA1IDEwMDY0NAo+IC0tLSBh
+L2RyaXZlcnMvbWVtb3J5L29tYXAtZ3BtYy5jCj4gKysrIGIvZHJpdmVycy9tZW1vcnkvb21hcC1n
+cG1jLmMKPiBAQCAtNjk2LDcgKzY5Niw2IEBAIGludCBncG1jX2NzX3NldF90aW1pbmdzKGludCBj
+cywgY29uc3Qgc3RydWN0IGdwbWNfdGltaW5ncyAqdCwKPiAgCWludCBkaXY7Cj4gIAl1MzIgbDsK
+PiAgCj4gLQlncG1jX2NzX3Nob3dfdGltaW5ncyhjcywgImJlZm9yZSBncG1jX2NzX3NldF90aW1p
+bmdzIik7Cj4gIAlkaXYgPSBncG1jX2NhbGNfZGl2aWRlcih0LT5zeW5jX2Nsayk7Cj4gIAlpZiAo
+ZGl2IDwgMCkKPiAgCQlyZXR1cm4gZGl2Owo+IEBAIC0xOTg4LDYgKzE5ODcsNyBAQCBzdGF0aWMg
+aW50IGdwbWNfcHJvYmVfZ2VuZXJpY19jaGlsZChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2
+LAo+ICAJaWYgKHJldCA8IDApCj4gIAkJZ290byBlcnI7Cj4gIAo+ICsJZ3BtY19jc19zaG93X3Rp
+bWluZ3MoY3MsICJiZWZvcmUgZ3BtY19jc19wcm9ncmFtX3NldHRpbmdzIik7Cj4gIAlyZXQgPSBn
+cG1jX2NzX3Byb2dyYW1fc2V0dGluZ3MoY3MsICZncG1jX3MpOwo+ICAJaWYgKHJldCA8IDApCj4g
+IAkJZ290byBlcnI7Cj4gCgpjaGVlcnMsCi1yb2dlcgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
+dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
