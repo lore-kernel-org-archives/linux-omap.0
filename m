@@ -1,23 +1,19 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Wed, 7 Oct 2015 06:26:42 -0700
-Message-ID: <20151007132642.GV23801@atomide.com>
-References: <20151005112304.GZ23801@atomide.com>
- <20151005143532.GA23801@atomide.com>
- <20151005145127.GB23801@atomide.com>
- <20151005171155.GF23801@atomide.com>
- <20151005183813.GD21626@n2100.arm.linux.org.uk>
- <20151006090015.GE21626@n2100.arm.linux.org.uk>
- <20151006094425.GM23801@atomide.com>
- <20151006150009.GF21626@n2100.arm.linux.org.uk>
- <20151006153710.GS23801@atomide.com>
- <20151007124551.GI21626@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: expand the description of the
+ debug facility
+Date: Wed, 7 Oct 2015 06:40:10 -0700
+Message-ID: <20151007134010.GW23801@atomide.com>
+References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
+ <5614CDAE.6070604@ti.com> <20151007075338.GH3982@pengutronix.de>
+ <20151007102822.GT23801@atomide.com>
+ <20151007110231.GL3982@pengutronix.de> <5614FD01.6090009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20151007124551.GI21626@n2100.arm.linux.org.uk>
+In-Reply-To: <5614FD01.6090009@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -27,45 +23,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Roger Quadros <rogerq@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [151007 05:50]:
-> On Tue, Oct 06, 2015 at 08:37:11AM -0700, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 08:04]:
-> > > On Tue, Oct 06, 2015 at 02:44:25AM -0700, Tony Lindgren wrote:
-> > > > 
-> > > > Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
-> > > > Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
-> > > > working for you with DT-based booting because you don't seem to have
-> > > > CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
-> > > > for both your omap3 and omap4 seed config files?
-> > > 
-> > > This is precisely the kind of crap I'm objecting to.  New kernel versions
-> > > come along, and things break because people add extra Kconfig symbols that
-> > > previous versions did not rely upon - and there's no communication of
-> > > what's required for new kernel versions.
-> > > 
-> > > This stuff needs documenting, so that people are aware what changes they
-> > > need to make - please put something in Documentation/arm/OMAP which
-> > > tracks what new additions are required to the Kconfig to keep things
-> > > working.
-> > 
-> > Good idea, how about something like the following? AFAIK that's the
-> > only .config option needed as MFD_SYSCON is selected by Kconfig
-> > already.
-> 
-> Right, that resolves the issue.  Now, what's the story on the revert
-> and the other patch - have they already been taken for -rc kernels?
-
-Not yet, I was waiting for the confirmation from you. I've now posted the
-revert with proper description and the fix so Ulf can pick them up and
-merged as regression fixes for the -rc series:
-
-http://marc.info/?l=linux-omap&m=144422416621373&w=2
-http://marc.info/?l=linux-omap&m=144422416921375&w=2
-
-Regards,
-
-Tony
+KiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPiBbMTUxMDA3IDA0OjEyXToKPiBPbiAwNy8x
+MC8xNSAxNDowMiwgVXdlIEtsZWluZS1Lw7ZuaWcgd3JvdGU6Cj4gPiBIZWxsbyBUb255LAo+ID4g
+Cj4gPiBPbiBXZWQsIE9jdCAwNywgMjAxNSBhdCAwMzo0MToxOUFNIC0wNzAwLCBUb255IExpbmRn
+cmVuIHdyb3RlOgo+ID4+ICogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5n
+dXRyb25peC5kZT4gWzE1MTAwNyAwMDo1N106Cj4gPj4+IE9uIFdlZCwgT2N0IDA3LCAyMDE1IGF0
+IDEwOjQ1OjUwQU0gKzAzMDAsIFJvZ2VyIFF1YWRyb3Mgd3JvdGU6Cj4gPj4+Pgo+ID4+Pj4gSG93
+IGFib3V0IHRoaXMgaW5zdGVhZD8KPiA+Pj4+Cj4gPj4+PiBOT1RFOiBBcGFydCBmcm9tIG1hdGNo
+aW5nIHRoZSByZWdpc3RlciBzZXR1cCB3aXRoIHRoZSBib290bG9hZGVyIHlvdSBhbHNvIG5lZWQg
+dG8KPiA+Pj4+IG1hdGNoIHRoZSBHUE1DIEZDTEsgZnJlcXVlbmN5IHVzZWQgYnkgdGhlIGJvb3Rs
+b2FkZXIgZWxzZSB0aGUgR1BNQyB0aW1pbmdzCj4gPj4+PiB3b24ndCBiZSBpZGVudGljYWwgd2l0
+aCB0aGUgYm9vdGxvYWRlciB0aW1pbmdzLgo+ID4+PiBZZWFoLCBzb3VuZHMgYmV0dGVyLCB0aGFu
+a3MuCj4gPj4+Cj4gPj4+PiBBbHNvIHlvdSBtaWdodCBuZWVkIHRvIGJ1aWxkIHRoaXMgcGF0Y2gg
+b24gdG9wIG9mCj4gPj4+PiBodHRwOi8vYXJ0aWNsZS5nbWFuZS5vcmcvZ21hbmUubGludXgua2Vy
+bmVsLzIwNTQ3OTYKPiA+Pj4gSSB0YWxrZWQgdG8gVG9ueSBhYm91dCB0aGlzIHBhdGNoIHllc3Rl
+cmRheSBvbiBpcmMsIGJ1dCBJIGRpZG4ndCBmaW5kIGl0Cj4gPj4+IGluIHRoZSBhcmNoaXZlcyB5
+ZXQgd2hlbiBJIHNlbnQgbXkgbWFpbC4KPiA+Pgo+ID4+IFllcyBzb3JyeSBoZXJlJ3MgYSByZXBv
+c3Qgd2l0aCB5b3VyIGFuZCBSb2dlcidzIGNoYW5nZXMgZm9sZGVkIGluIGFuZAo+ID4+IGVkaXRl
+ZCBhIGJpdC4gUHJvYmFibHkgYmVzdCB0byBrZWVwIHRoZW0gdG9nZXRoZXIgd2l0aCB0aGlzIHBh
+dGNoLgo+ID4+Cj4gPj4gRG9lcyB0aGUgZm9sbG93aW5nIGxvb2sgT0sgdG8geW91IGd1eXM/Cj4g
+PiBZZXMsCj4gPiBBY2tlZC1ieTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0Bw
+ZW5ndXRyb25peC5kZT4KPiAKPiBMb29rcyBnb29kIHRvIG1lIHRvby4KCkFyZSB5b3UgT0sgaWYg
+SSB1c2UgeW91ciBBY2tlZC1ieSBmcm9tIHRoZSBwcmV2aW91cyB2ZXJzaW9uIG9uCnRoaXMgdXBk
+YXRlZCB2ZXJzaW9uPwoKUmVnYXJkcywKClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4
+LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
