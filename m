@@ -1,60 +1,54 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: expand the description of the
- debug facility
-Date: Wed, 7 Oct 2015 14:07:45 +0300
-Message-ID: <5614FD01.6090009@ti.com>
-References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <5614CDAE.6070604@ti.com> <20151007075338.GH3982@pengutronix.de>
- <20151007102822.GT23801@atomide.com> <20151007110231.GL3982@pengutronix.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: All OMAP platforms: MMC is broken
+Date: Wed, 7 Oct 2015 13:45:51 +0100
+Message-ID: <20151007124551.GI21626@n2100.arm.linux.org.uk>
+References: <20151001100326.GV21513@n2100.arm.linux.org.uk>
+ <20151005112304.GZ23801@atomide.com>
+ <20151005143532.GA23801@atomide.com>
+ <20151005145127.GB23801@atomide.com>
+ <20151005171155.GF23801@atomide.com>
+ <20151005183813.GD21626@n2100.arm.linux.org.uk>
+ <20151006090015.GE21626@n2100.arm.linux.org.uk>
+ <20151006094425.GM23801@atomide.com>
+ <20151006150009.GF21626@n2100.arm.linux.org.uk>
+ <20151006153710.GS23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151007110231.GL3982@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151006153710.GS23801@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/10/15 14:02, Uwe Kleine-K=F6nig wrote:
-> Hello Tony,
-> =
+On Tue, Oct 06, 2015 at 08:37:11AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [151006 08:04]:
+> > On Tue, Oct 06, 2015 at 02:44:25AM -0700, Tony Lindgren wrote:
+> > > 
+> > > Hmm DT-based boot finds the MMC card for LDP, dmesg below from DT boot [1].
+> > > Looks like you're on on -rc4 and not -rc3. My guess is that MMC is not
+> > > working for you with DT-based booting because you don't seem to have
+> > > CONFIG_REGULATOR_PBIAS in your seed config for. Care to try enabling that
+> > > for both your omap3 and omap4 seed config files?
+> > 
+> > This is precisely the kind of crap I'm objecting to.  New kernel versions
+> > come along, and things break because people add extra Kconfig symbols that
+> > previous versions did not rely upon - and there's no communication of
+> > what's required for new kernel versions.
+> > 
+> > This stuff needs documenting, so that people are aware what changes they
+> > need to make - please put something in Documentation/arm/OMAP which
+> > tracks what new additions are required to the Kconfig to keep things
+> > working.
+> 
+> Good idea, how about something like the following? AFAIK that's the
+> only .config option needed as MFD_SYSCON is selected by Kconfig
+> already.
 
-> On Wed, Oct 07, 2015 at 03:41:19AM -0700, Tony Lindgren wrote:
->> * Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de> [151007 00:57]:
->>> On Wed, Oct 07, 2015 at 10:45:50AM +0300, Roger Quadros wrote:
->>>>
->>>> How about this instead?
->>>>
->>>> NOTE: Apart from matching the register setup with the bootloader you a=
-lso need to
->>>> match the GPMC FCLK frequency used by the bootloader else the GPMC tim=
-ings
->>>> won't be identical with the bootloader timings.
->>> Yeah, sounds better, thanks.
->>>
->>>> Also you might need to build this patch on top of
->>>> http://article.gmane.org/gmane.linux.kernel/2054796
->>> I talked to Tony about this patch yesterday on irc, but I didn't find it
->>> in the archives yet when I sent my mail.
->>
->> Yes sorry here's a repost with your and Roger's changes folded in and
->> edited a bit. Probably best to keep them together with this patch.
->>
->> Does the following look OK to you guys?
-> Yes,
-> Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Right, that resolves the issue.  Now, what's the story on the revert
+and the other patch - have they already been taken for -rc kernels?
 
-Looks good to me too.
-
-cheers,
--roger
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
