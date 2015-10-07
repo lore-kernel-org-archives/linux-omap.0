@@ -1,17 +1,17 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 2/2] memory: omap-gpmc: expand the description of the
  debug facility
-Date: Wed, 7 Oct 2015 09:53:38 +0200
-Message-ID: <20151007075338.GH3982@pengutronix.de>
+Date: Wed, 7 Oct 2015 03:41:19 -0700
+Message-ID: <20151007102822.GT23801@atomide.com>
 References: <1444162070-22034-1-git-send-email-u.kleine-koenig@pengutronix.de>
  <1444162070-22034-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <5614CDAE.6070604@ti.com>
+ <5614CDAE.6070604@ti.com> <20151007075338.GH3982@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <5614CDAE.6070604@ti.com>
+In-Reply-To: <20151007075338.GH3982@pengutronix.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,61 +21,59 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Roger,
-
-On Wed, Oct 07, 2015 at 10:45:50AM +0300, Roger Quadros wrote:
-> On 06/10/15 23:07, Uwe Kleine-K=F6nig wrote:
-> > Most register values for the chip select setup depend on the frequency
-> > of the fck clock.
-> > So add a hint that the values setup by the bootloader might differ from
-> > the right setup for Linux if the bootloader uses a different frequency.
-> > =
-
-> > Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-> > ---
-> >  drivers/memory/Kconfig | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > =
-
-> > diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
-> > index c6a644b22af4..1414dd53be57 100644
-> > --- a/drivers/memory/Kconfig
-> > +++ b/drivers/memory/Kconfig
-> > @@ -64,6 +64,9 @@ config OMAP_GPMC_DEBUG
-> >  	  Enables verbose debugging mostly to decode the bootloader provided
-> >  	  timings. Enable this during development to configure devices
-> >  	  connected to the GPMC bus.
-> > +	  Note that you cannot just tweak your device tree until the registers
-> > +	  setup by linux match what the bootloader did because that one might
-> > +	  use a different fck frequency influencing most register settings.
-> =
-
-> Looks like we can't know for sure the GPMC fclk used at the bootloader
-> else we could have just printed the GPMC fclk pre and post gpmc settings.
-> =
-
-> How about this instead?
-> =
-
-> NOTE: Apart from matching the register setup with the bootloader you also=
- need to
-> match the GPMC FCLK frequency used by the bootloader else the GPMC timings
-> won't be identical with the bootloader timings.
-Yeah, sounds better, thanks.
-
-> Also you might need to build this patch on top of
-> http://article.gmane.org/gmane.linux.kernel/2054796
-I talked to Tony about this patch yesterday on irc, but I didn't find it
-in the archives yet when I sent my mail.
-
-Thanks
-Uwe
-
--- =
-
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+KiBVd2UgS2xlaW5lLUvDtm5pZyA8dS5rbGVpbmUta29lbmlnQHBlbmd1dHJvbml4LmRlPiBbMTUx
+MDA3IDAwOjU3XToKPiBPbiBXZWQsIE9jdCAwNywgMjAxNSBhdCAxMDo0NTo1MEFNICswMzAwLCBS
+b2dlciBRdWFkcm9zIHdyb3RlOgo+ID4gCj4gPiBIb3cgYWJvdXQgdGhpcyBpbnN0ZWFkPwo+ID4g
+Cj4gPiBOT1RFOiBBcGFydCBmcm9tIG1hdGNoaW5nIHRoZSByZWdpc3RlciBzZXR1cCB3aXRoIHRo
+ZSBib290bG9hZGVyIHlvdSBhbHNvIG5lZWQgdG8KPiA+IG1hdGNoIHRoZSBHUE1DIEZDTEsgZnJl
+cXVlbmN5IHVzZWQgYnkgdGhlIGJvb3Rsb2FkZXIgZWxzZSB0aGUgR1BNQyB0aW1pbmdzCj4gPiB3
+b24ndCBiZSBpZGVudGljYWwgd2l0aCB0aGUgYm9vdGxvYWRlciB0aW1pbmdzLgo+IFllYWgsIHNv
+dW5kcyBiZXR0ZXIsIHRoYW5rcy4KPiAKPiA+IEFsc28geW91IG1pZ2h0IG5lZWQgdG8gYnVpbGQg
+dGhpcyBwYXRjaCBvbiB0b3Agb2YKPiA+IGh0dHA6Ly9hcnRpY2xlLmdtYW5lLm9yZy9nbWFuZS5s
+aW51eC5rZXJuZWwvMjA1NDc5Ngo+IEkgdGFsa2VkIHRvIFRvbnkgYWJvdXQgdGhpcyBwYXRjaCB5
+ZXN0ZXJkYXkgb24gaXJjLCBidXQgSSBkaWRuJ3QgZmluZCBpdAo+IGluIHRoZSBhcmNoaXZlcyB5
+ZXQgd2hlbiBJIHNlbnQgbXkgbWFpbC4KClllcyBzb3JyeSBoZXJlJ3MgYSByZXBvc3Qgd2l0aCB5
+b3VyIGFuZCBSb2dlcidzIGNoYW5nZXMgZm9sZGVkIGluIGFuZAplZGl0ZWQgYSBiaXQuIFByb2Jh
+Ymx5IGJlc3QgdG8ga2VlcCB0aGVtIHRvZ2V0aGVyIHdpdGggdGhpcyBwYXRjaC4KCkRvZXMgdGhl
+IGZvbGxvd2luZyBsb29rIE9LIHRvIHlvdSBndXlzPwoKUmVnYXJkcywKClRvbnkKCjg8IC0tLS0t
+LS0tLS0tLS0tLS0KRnJvbTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KRGF0ZTog
+VHVlLCA2IE9jdCAyMDE1IDA1OjM2OjE3IC0wNzAwClN1YmplY3Q6IFtQQVRDSF0gbWVtb3J5OiBv
+bWFwLWdwbWM6IEZpeCB1bnNlbGVjdGFibGUgZGVidWcgb3B0aW9uIGZvciBHUE1DCk1JTUUtVmVy
+c2lvbjogMS4wCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOApDb250ZW50
+LVRyYW5zZmVyLUVuY29kaW5nOiA4Yml0CgpDb21taXQgNjNhYTk0NWIxMDEzICgibWVtb3J5OiBv
+bWFwLWdwbWM6IEFkZCBLY29uZmlnIG9wdGlvbiBmb3IgZGVidWciKQphZGRlZCBhIGRlYnVnIG9w
+dGlvbiBmb3IgR1BNQywgYnV0IHNvbWVob3cgbWFuYWdlZCB0byBrZWVwIGl0IHVuc2VsZWN0YWJs
+ZS4KClRoaXMgcHJvYmFibHkgaGFwcGVuZWQgYmVjYXVzZSBJIGhhZCBzb21lIHVuY29tbWl0dGVk
+IGNoYW5nZXMgYW5kIHRoZQpHUE1DIG9wdGlvbiBpcyBzZWxlY3RlZCBpbiB0aGUgcGxhdGZvcm0g
+c3BlY2lmaWMgS2NvbmZpZy4KCkxldCdzIGFsc28gdXBkYXRlIHRoZSBkZXNjcmlwdGlvbiBhIGJp
+dCwgaXQgZG9lcyBub3QgbWVudGlvbiB0aGF0CmVuYWJsaW5nIHRoZSBkZWJ1ZyBvcHRpb24gYWxz
+byBkaXNhYmxlcyB0aGUgcmVzZXQgb2YgR1BNQyBjb250cm9sbGVyCmR1cmluZyB0aGUgaW5pdCBh
+cyBwb2ludGVkIG91dCBieSBVd2UgS2xlaW5lLUvDtm5pZwo8dS5rbGVpbmUta29lbmlnQHBlbmd1
+dHJvbml4LmRlPiBhbmQgUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4uCgpGaXhlczogNjNh
+YTk0NWIxMDEzICgibWVtb3J5OiBvbWFwLWdwbWM6IEFkZCBLY29uZmlnIG9wdGlvbiBmb3IgZGVi
+dWciKQpSZXBvcnRlZC1ieTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5n
+dXRyb25peC5kZT4KU2lnbmVkLW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
+bT4KCi0tLSBhL2RyaXZlcnMvbWVtb3J5L0tjb25maWcKKysrIGIvZHJpdmVycy9tZW1vcnkvS2Nv
+bmZpZwpAQCAtNTgsMTIgKzU4LDE4IEBAIGNvbmZpZyBPTUFQX0dQTUMKIAkgIG1lbW9yeSBkcml2
+ZXMgbGlrZSBOT1IsIE5BTkQsIE9uZU5BTkQsIFNSQU0uCiAKIGNvbmZpZyBPTUFQX0dQTUNfREVC
+VUcKLQlib29sCisJYm9vbCAiRW5hYmxlIEdQTUMgZGVidWcgb3V0cHV0IGFuZCBza2lwIHJlc2V0
+IG9mIEdQTUMgZHVyaW5nIGluaXQiCiAJZGVwZW5kcyBvbiBPTUFQX0dQTUMKIAloZWxwCiAJICBF
+bmFibGVzIHZlcmJvc2UgZGVidWdnaW5nIG1vc3RseSB0byBkZWNvZGUgdGhlIGJvb3Rsb2FkZXIg
+cHJvdmlkZWQKLQkgIHRpbWluZ3MuIEVuYWJsZSB0aGlzIGR1cmluZyBkZXZlbG9wbWVudCB0byBj
+b25maWd1cmUgZGV2aWNlcwotCSAgY29ubmVjdGVkIHRvIHRoZSBHUE1DIGJ1cy4KKwkgIHRpbWlu
+Z3MuIFRvIHByZXNlcnZlIHRoZSBib290bG9hZGVyIHByb3ZpZGVkIHRpbWluZ3MsIHRoZSByZXNl
+dAorCSAgb2YgR1BNQyBpcyBza2lwcGVkIGR1cmluZyBpbml0LiBFbmFibGUgdGhpcyBkdXJpbmcg
+ZGV2ZWxvcG1lbnQgdG8KKwkgIGNvbmZpZ3VyZSBkZXZpY2VzIGNvbm5lY3RlZCB0byB0aGUgR1BN
+QyBidXMuCisKKwkgIE5PVEU6IEluIGFkZGl0aW9uIHRvIG1hdGNoaW5nIHRoZSByZWdpc3RlciBz
+ZXR1cCB3aXRoIHRoZSBib290bG9hZGVyCisJICB5b3UgYWxzbyBuZWVkIHRvIG1hdGNoIHRoZSBH
+UE1DIEZDTEsgZnJlcXVlbmN5IHVzZWQgYnkgdGhlCisJICBib290bG9hZGVyIG9yIGVsc2UgdGhl
+IEdQTUMgdGltaW5ncyB3b24ndCBiZSBpZGVudGljYWwgd2l0aCB0aGUKKwkgIGJvb3Rsb2FkZXIg
+dGltaW5ncy4KIAogY29uZmlnIE1WRUJVX0RFVkJVUwogCWJvb2wgIk1hcnZlbGwgRUJVIERldmlj
+ZSBCdXMgQ29udHJvbGxlciIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
+bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
