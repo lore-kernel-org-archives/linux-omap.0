@@ -1,56 +1,69 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: All OMAP platforms: MMC is broken
-Date: Thu, 8 Oct 2015 11:00:38 +0100
-Message-ID: <20151008100038.GB32536@n2100.arm.linux.org.uk>
-References: <20151006153710.GS23801@atomide.com>
- <20151007124551.GI21626@n2100.arm.linux.org.uk>
- <20151007132642.GV23801@atomide.com>
- <CAPDyKFoBPEnHuNR_bsrPU6X=q5pHa8cDR7_Ng9xLnLsudymvOg@mail.gmail.com>
- <20151007155206.GX23801@atomide.com>
- <CAPDyKFp5e_pizFSCzeYSM8sXGx6Jewgs2PRB-RQ1iWMM6WMOww@mail.gmail.com>
- <5615A723.6090907@ti.com>
- <20151008084020.GY23801@atomide.com>
- <20151008093543.GA32536@n2100.arm.linux.org.uk>
- <20151008095635.GZ23801@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151008095635.GZ23801@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Nishanth Menon <nm@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "arm@kernel.org" <arm@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Ben Tucker <benjamint@bsquare.com>
+Subject: [PATCH] ARM: OMAP2+: Fixed inverted OMAP_OFFOUT_EN
+Date: Thu,  8 Oct 2015 17:19:49 +0100
+Message-ID: <1444321189-9921-1-git-send-email-benjamint@bsquare.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ben Tucker <benjamint@bsquare.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 08, 2015 at 02:56:36AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [151008 02:40]:
-> > On Thu, Oct 08, 2015 at 01:40:21AM -0700, Tony Lindgren wrote:
-> > > Well the way distros deal with issues like this is have everything
-> > > possible as loadable modules. We should get the regulator_pbiaa
-> > > loaded automatically in that case as long as it's in the dts.. And
-> > > as long as we have the MODULE_DEVICE_TABLE entries right.
-> > 
-> > Assuming you have a rootfs which doesn't depend on one of those modules,
-> > or an initramfs, and a way to get the built modules into that initial
-> > filesystem.  Automated test boot systems do not have that luxury: the
-> > generation of initramfs is distro specific, and would be very large if
-> > it were to include all possible modules.
-> 
-> Right, we need to keep the kernel usable in all these configurations
-> somehow.
-> 
-> For the kernel generated minimal initramfs we could grep for the
-> needed modules in the dts file.
+The OFFOUTENABLE bit of the omap PADCONF registers is active low.
+The mux code assumed that it was active high and this patch fixes this
+problem.
 
-Yes, you might be able to do that, but the only thing that can generate
-the initramfs is the target system itself, or a similar target system.
-For example, you can't sanely generate an initramfs for an ARM Ubuntu
-system on an x86 Fedora host.
+Tested on an AM37x device.
 
-Distros have the luxury of always being able to do the initramfs
-generation on the target system at installation or distro kernel update
-time.
+Signed-off-by: Ben Tucker <benjamint@bsquare.com>
+---
+ arch/arm/mach-omap2/mux.c |  2 +-
+ arch/arm/mach-omap2/mux.h | 13 +++++++------
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 176eef6..427a7f88 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -523,7 +523,7 @@ static inline void omap_mux_decode(struct seq_file *s, u16 val)
+ 
+ 	OMAP_MUX_TEST_FLAG(val, OMAP_PIN_OFF_WAKEUPENABLE);
+ 	if (val & OMAP_OFF_EN) {
+-		if (!(val & OMAP_OFFOUT_EN)) {
++		if (val & OMAP_OFFOUT_EN) {
+ 			if (!(val & OMAP_OFF_PULL_UP)) {
+ 				OMAP_MUX_TEST_FLAG(val,
+ 					OMAP_PIN_OFF_INPUT_PULLDOWN);
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index d121fb6..9a5fd76 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -29,7 +29,7 @@
+ /* omap3/4/5 specific mux bit defines */
+ #define OMAP_INPUT_EN			(1 << 8)
+ #define OMAP_OFF_EN			(1 << 9)
+-#define OMAP_OFFOUT_EN			(1 << 10)
++#define OMAP_OFFOUT_EN			(1 << 10) /* 1 for input, 0 for output */
+ #define OMAP_OFFOUT_VAL			(1 << 11)
+ #define OMAP_OFF_PULL_EN		(1 << 12)
+ #define OMAP_OFF_PULL_UP		(1 << 13)
+@@ -45,12 +45,13 @@
+ 
+ /* Off mode states */
+ #define OMAP_PIN_OFF_NONE		0
+-#define OMAP_PIN_OFF_OUTPUT_HIGH	(OMAP_OFF_EN | OMAP_OFFOUT_EN \
+-						| OMAP_OFFOUT_VAL)
+-#define OMAP_PIN_OFF_OUTPUT_LOW		(OMAP_OFF_EN | OMAP_OFFOUT_EN)
+-#define OMAP_PIN_OFF_INPUT_PULLUP	(OMAP_OFF_EN | OMAP_OFF_PULL_EN \
++#define OMAP_PIN_OFF_OUTPUT_HIGH	(OMAP_OFF_EN | OMAP_OFFOUT_VAL)
++#define OMAP_PIN_OFF_OUTPUT_LOW		(OMAP_OFF_EN)
++#define OMAP_PIN_OFF_INPUT_PULLUP	(OMAP_OFF_EN | OMAP_OFFOUT_EN \
++						| OMAP_OFF_PULL_EN \
+ 						| OMAP_OFF_PULL_UP)
+-#define OMAP_PIN_OFF_INPUT_PULLDOWN	(OMAP_OFF_EN | OMAP_OFF_PULL_EN)
++#define OMAP_PIN_OFF_INPUT_PULLDOWN	(OMAP_OFF_EN | OMAP_OFFOUT_EN \
++						| OMAP_OFF_PULL_EN)
+ #define OMAP_PIN_OFF_WAKEUPENABLE	OMAP_WAKEUP_EN
+ 
+ #define OMAP_MODE_GPIO(partition, x)	(((x) & OMAP_MUX_MODE7) == \
 -- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.9.1
