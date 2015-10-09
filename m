@@ -1,48 +1,62 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Subject: Re: [RFC PATCH 0/2] DRA72/DRA74: Add 2 lane support
-Date: Sat, 10 Oct 2015 04:46:55 +0530
-Message-ID: <56184AE7.6060808@ti.com>
+Date: Sat, 10 Oct 2015 04:48:19 +0530
+Message-ID: <56184B3B.1050807@ti.com>
 References: <1443445058-643-1-git-send-email-kishon@ti.com>
- <20151009225056.GD16112@localhost>
+ <20151009225056.GD16112@localhost> <56184AE7.6060808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20151009225056.GD16112@localhost>
+In-Reply-To: <56184AE7.6060808@ti.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>
 Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bjorn,
+Hi,
 
-On Saturday 10 October 2015 04:20 AM, Bjorn Helgaas wrote:
-> [+cc Arnd, Rob]
+On Saturday 10 October 2015 04:46 AM, Kishon Vijay Abraham I wrote:
+> Hi Bjorn,
 > 
-> On Mon, Sep 28, 2015 at 06:27:36PM +0530, Kishon Vijay Abraham I wrote:
->> Add driver modifications in pci-dra7xx to get x2 mode working in
->> DRA72 and DRA74. Certain modifications is needed in PHY driver also
->> which I'll send as a separate series.
+> On Saturday 10 October 2015 04:20 AM, Bjorn Helgaas wrote:
+>> [+cc Arnd, Rob]
 >>
->> Kishon Vijay Abraham I (2):
->>   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
->>   pci: host: pci-dra7xx: Enable x2 mode support
+>> On Mon, Sep 28, 2015 at 06:27:36PM +0530, Kishon Vijay Abraham I wrote:
+>>> Add driver modifications in pci-dra7xx to get x2 mode working in
+>>> DRA72 and DRA74. Certain modifications is needed in PHY driver also
+>>> which I'll send as a separate series.
+>>>
+>>> Kishon Vijay Abraham I (2):
+>>>   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
+>>>   pci: host: pci-dra7xx: Enable x2 mode support
+>>
+>> Applied to pci/host-dra7xx for v4.4, thanks!
+>>
+>> I adjusted the subject line capitalization & format to match the history.
+>>
+>> Arnd, Rob, any comments on the DT updates or the "num-lanes" vs number of
+>> strings in "phy-names" changes?
 > 
-> Applied to pci/host-dra7xx for v4.4, thanks!
+> I sent it as RFC since I didn't have the board to test 2 lane mode with
+> $patch. And just now I got a board to test x2 and I found a problem with
+> the 2nd patch.
 > 
-> I adjusted the subject line capitalization & format to match the history.
+> .b1co_mode_sel_mask = GENMASK(2, 3), in the patch should be replaced with
+> .b1co_mode_sel_mask = GENMASK(3, 2).
 > 
-> Arnd, Rob, any comments on the DT updates or the "num-lanes" vs number of
-> strings in "phy-names" changes?
+> I'll resend the patch fixing the above.
 
-I sent it as RFC since I didn't have the board to test 2 lane mode with
-$patch. And just now I got a board to test x2 and I found a problem with
-the 2nd patch.
-
-.b1co_mode_sel_mask = GENMASK(2, 3), in the patch should be replaced with
-.b1co_mode_sel_mask = GENMASK(3, 2).
-
-I'll resend the patch fixing the above.
+I'll resend after a couple of days to fix any comments from Arnd or Rob.
 
 Thanks
 Kishon
+
+> 
+> Thanks
+> Kishon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
