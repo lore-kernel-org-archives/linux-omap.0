@@ -1,62 +1,40 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RFC PATCH 0/2] DRA72/DRA74: Add 2 lane support
-Date: Sat, 10 Oct 2015 04:48:19 +0530
-Message-ID: <56184B3B.1050807@ti.com>
-References: <1443445058-643-1-git-send-email-kishon@ti.com>
- <20151009225056.GD16112@localhost> <56184AE7.6060808@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] sched_clock: add data pointer argument to read callback
+Date: Sat, 10 Oct 2015 00:20:15 +0100
+Message-ID: <20151009232015.GC32536@n2100.arm.linux.org.uk>
+References: <1444427858-576-1-git-send-email-mans@mansr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <56184AE7.6060808@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1444427858-576-1-git-send-email-mans@mansr.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Mans Rullgard <mans@mansr.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-cris-kernel@axis.com, linux-mips@linux-mips.org, linux-xtensa@linux-xtensa.org, kernel@stlinux.com, linux-rpi-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, Oct 09, 2015 at 10:57:35PM +0100, Mans Rullgard wrote:
+> This passes a data pointer specified in the sched_clock_register()
+> call to the read callback allowing simpler implementations thereof.
+> 
+> In this patch, existing uses of this interface are simply updated
+> with a null pointer.
 
-On Saturday 10 October 2015 04:46 AM, Kishon Vijay Abraham I wrote:
-> Hi Bjorn,
-> 
-> On Saturday 10 October 2015 04:20 AM, Bjorn Helgaas wrote:
->> [+cc Arnd, Rob]
->>
->> On Mon, Sep 28, 2015 at 06:27:36PM +0530, Kishon Vijay Abraham I wrote:
->>> Add driver modifications in pci-dra7xx to get x2 mode working in
->>> DRA72 and DRA74. Certain modifications is needed in PHY driver also
->>> which I'll send as a separate series.
->>>
->>> Kishon Vijay Abraham I (2):
->>>   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
->>>   pci: host: pci-dra7xx: Enable x2 mode support
->>
->> Applied to pci/host-dra7xx for v4.4, thanks!
->>
->> I adjusted the subject line capitalization & format to match the history.
->>
->> Arnd, Rob, any comments on the DT updates or the "num-lanes" vs number of
->> strings in "phy-names" changes?
-> 
-> I sent it as RFC since I didn't have the board to test 2 lane mode with
-> $patch. And just now I got a board to test x2 and I found a problem with
-> the 2nd patch.
-> 
-> .b1co_mode_sel_mask = GENMASK(2, 3), in the patch should be replaced with
-> .b1co_mode_sel_mask = GENMASK(3, 2).
-> 
-> I'll resend the patch fixing the above.
+This is a bad description.  It tells us what the patch is doing,
+(which we can see by reading the patch) but not _why_.  Please include
+information on why the change is necessary - describe what you are
+trying to achieve.
 
-I'll resend after a couple of days to fix any comments from Arnd or Rob.
+I generally don't accept patches what add new stuff to the kernel with
+no users of that new stuff - that's called experience, experience of
+people who submit stuff like that, and then vanish leaving their junk
+in the kernel without any users.  Please ensure that this gets a user
+very quickly, or better still, submit this patch as part of a series
+which makes use of it.
 
-Thanks
-Kishon
+Also, copying soo many people is guaranteed to be silently dropped by
+mailing lists.
 
-> 
-> Thanks
-> Kishon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
