@@ -1,50 +1,49 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] sched_clock: add data pointer argument to read callback
-Date: Sat, 10 Oct 2015 00:48:22 +0100
-Message-ID: <yw1x4mhzioxl.fsf@unicorn.mansr.com>
-References: <1444427858-576-1-git-send-email-mans@mansr.com>
-	<20151009232015.GC32536@n2100.arm.linux.org.uk>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RFC PATCH 0/2] DRA72/DRA74: Add 2 lane support
+Date: Fri, 9 Oct 2015 18:53:28 -0500
+Message-ID: <20151009235328.GB623@localhost>
+References: <1443445058-643-1-git-send-email-kishon@ti.com>
+ <20151009225056.GD16112@localhost>
+ <56184AE7.6060808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151009232015.GC32536-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org> (Russell King's
-	message of "Sat, 10 Oct 2015 00:20:15 +0100")
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, linux-rpi-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56184AE7.6060808@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> writes:
+On Sat, Oct 10, 2015 at 04:46:55AM +0530, Kishon Vijay Abraham I wrote:
+> Hi Bjorn,
+> 
+> On Saturday 10 October 2015 04:20 AM, Bjorn Helgaas wrote:
+> > [+cc Arnd, Rob]
+> > 
+> > On Mon, Sep 28, 2015 at 06:27:36PM +0530, Kishon Vijay Abraham I wrote:
+> >> Add driver modifications in pci-dra7xx to get x2 mode working in
+> >> DRA72 and DRA74. Certain modifications is needed in PHY driver also
+> >> which I'll send as a separate series.
+> >>
+> >> Kishon Vijay Abraham I (2):
+> >>   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
+> >>   pci: host: pci-dra7xx: Enable x2 mode support
+> > 
+> > Applied to pci/host-dra7xx for v4.4, thanks!
+> > 
+> > I adjusted the subject line capitalization & format to match the history.
+> > 
+> > Arnd, Rob, any comments on the DT updates or the "num-lanes" vs number of
+> > strings in "phy-names" changes?
+> 
+> I sent it as RFC since I didn't have the board to test 2 lane mode with
+> $patch. And just now I got a board to test x2 and I found a problem with
+> the 2nd patch.
+> 
+> .b1co_mode_sel_mask = GENMASK(2, 3), in the patch should be replaced with
+> .b1co_mode_sel_mask = GENMASK(3, 2).
+> 
+> I'll resend the patch fixing the above.
 
-> On Fri, Oct 09, 2015 at 10:57:35PM +0100, Mans Rullgard wrote:
->> This passes a data pointer specified in the sched_clock_register()
->> call to the read callback allowing simpler implementations thereof.
->>=20
->> In this patch, existing uses of this interface are simply updated
->> with a null pointer.
->
-> This is a bad description.  It tells us what the patch is doing,
-> (which we can see by reading the patch) but not _why_.  Please includ=
-e
-> information on why the change is necessary - describe what you are
-> trying to achieve.
-
-Currently most of the callbacks use a global variable to store the
-address of a counter register.  This has several downsides:
-
-- Loading the address of a global variable can be more expensive than
-  keeping a pointer next to the function pointer.
-
-- It makes it impossible to have multiple instances of a driver call
-  sched_clock_register() since the caller can't know which clock will
-  win in the end.
-
-- Many of the existing callbacks are practically identical and could be
-  replaced with a common generic function if it had a pointer argument.
-
-If I've missed something that makes this a stupid idea, please tell.
-
---=20
-M=E5ns Rullg=E5rd
-mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org
+OK, I dropped these two patches.  Thanks for letting me know.
