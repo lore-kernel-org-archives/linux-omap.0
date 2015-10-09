@@ -1,59 +1,34 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net-next PATCH] driver: net: cpsw: add no_bd_ram dt parsing
-Date: Fri, 9 Oct 2015 15:36:46 +0530
-Message-ID: <1444385206-7011-1-git-send-email-mugunthanvnm@ti.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RFC PATCH 0/2] DRA72/DRA74: Add 2 lane support
+Date: Fri, 9 Oct 2015 17:50:56 -0500
+Message-ID: <20151009225056.GD16112@localhost>
+References: <1443445058-643-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1443445058-643-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-cpdma is capable of placing the dma descriptors in ddr using
-dma_alloc_coherent() when the internal bd ram size is not enough.
-To utilize this feature pass the DT parameter "no_bd_ram" and
-increase bd_ram_size and number of rx descriptors.
+[+cc Arnd, Rob]
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 4 ++++
- drivers/net/ethernet/ti/cpsw.h | 1 +
- 2 files changed, 5 insertions(+)
+On Mon, Sep 28, 2015 at 06:27:36PM +0530, Kishon Vijay Abraham I wrote:
+> Add driver modifications in pci-dra7xx to get x2 mode working in
+> DRA72 and DRA74. Certain modifications is needed in PHY driver also
+> which I'll send as a separate series.
+> 
+> Kishon Vijay Abraham I (2):
+>   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
+>   pci: host: pci-dra7xx: Enable x2 mode support
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 8fc90f1..cf1a625 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1987,6 +1987,8 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 	}
- 	data->ale_entries = prop;
- 
-+	data->no_bd_ram = of_property_read_bool(node, "no_bd_ram");
-+
- 	if (of_property_read_u32(node, "bd_ram_size", &prop)) {
- 		dev_err(&pdev->dev, "Missing bd_ram_size property in the DT.\n");
- 		return -EINVAL;
-@@ -2358,6 +2360,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 	dma_params.desc_mem_size	= data->bd_ram_size;
- 	dma_params.desc_align		= 16;
- 	dma_params.has_ext_regs		= true;
-+	if (data->no_bd_ram)
-+		dma_params.desc_mem_phys = 0;
- 	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
- 
- 	priv->dma = cpdma_ctlr_create(&dma_params);
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index ca90efa..b654ac2 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -33,6 +33,7 @@ struct cpsw_platform_data {
- 	u32	cpts_clock_mult;  /* convert input clock ticks to nanoseconds */
- 	u32	cpts_clock_shift; /* convert input clock ticks to nanoseconds */
- 	u32	ale_entries;	/* ale table size */
-+	bool	no_bd_ram;	/* set if cpsw bd ram should not be used */
- 	u32	bd_ram_size;  /*buffer descriptor ram size */
- 	u32	rx_descs;	/* Number of Rx Descriptios */
- 	u32	mac_control;	/* Mac control register */
--- 
-2.6.1.133.gf5b6079
+Applied to pci/host-dra7xx for v4.4, thanks!
+
+I adjusted the subject line capitalization & format to match the history.
+
+Arnd, Rob, any comments on the DT updates or the "num-lanes" vs number of
+strings in "phy-names" changes?
+
+Bjorn
