@@ -1,39 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fixed inverted OMAP_OFFOUT_EN
-Date: Thu, 8 Oct 2015 23:40:06 -0700
-Message-ID: <20151009064005.GA23801@atomide.com>
-References: <1444308486-16204-1-git-send-email-benjamint@bsquare.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [net-next PATCH] driver: net: cpsw: add no_bd_ram dt parsing
+Date: Fri, 9 Oct 2015 15:36:46 +0530
+Message-ID: <1444385206-7011-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1444308486-16204-1-git-send-email-benjamint@bsquare.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ben Tucker <benjamint@bsquare.com>
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Sekhar Nori <nsekhar@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Ben Tucker <benjamint@bsquare.com> [151008 06:09]:
-> The OFFOUTENABLE bit of the omap PADCONF registers is active low.
-> The mux code assumed that it was active high and this patch fixes this
-> problem.
-> 
-> Tested on an AM37x device.
+cpdma is capable of placing the dma descriptors in ddr using
+dma_alloc_coherent() when the internal bd ram size is not enough.
+To utilize this feature pass the DT parameter "no_bd_ram" and
+increase bd_ram_size and number of rx descriptors.
 
-Hmm what are the test cases you're using to validate this so
-I can try to reproduce?
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 4 ++++
+ drivers/net/ethernet/ti/cpsw.h | 1 +
+ 2 files changed, 5 insertions(+)
 
-AFAIK because of erratum 1.158 for GPIO pins needing to be
-muxed temporarly for input + pull + safe mode for off mode,
-so I'm wondering in which cases the OFFOUTENABLE can be used.
-
-I have a patch in works for 1.158 using gpio-ranges, and the
-test case I'm using is the reset of WLAN that happens in off
-mode as the enable GPIO glitches when returning from off mode.
-
-Also.. I'm wondring why this has not been caught earlier?
-Maybe because 1.158 is needed on omap3?
-
-Regrds,
-
-Tony
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 8fc90f1..cf1a625 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1987,6 +1987,8 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 	}
+ 	data->ale_entries = prop;
+ 
++	data->no_bd_ram = of_property_read_bool(node, "no_bd_ram");
++
+ 	if (of_property_read_u32(node, "bd_ram_size", &prop)) {
+ 		dev_err(&pdev->dev, "Missing bd_ram_size property in the DT.\n");
+ 		return -EINVAL;
+@@ -2358,6 +2360,8 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	dma_params.desc_mem_size	= data->bd_ram_size;
+ 	dma_params.desc_align		= 16;
+ 	dma_params.has_ext_regs		= true;
++	if (data->no_bd_ram)
++		dma_params.desc_mem_phys = 0;
+ 	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
+ 
+ 	priv->dma = cpdma_ctlr_create(&dma_params);
+diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
+index ca90efa..b654ac2 100644
+--- a/drivers/net/ethernet/ti/cpsw.h
++++ b/drivers/net/ethernet/ti/cpsw.h
+@@ -33,6 +33,7 @@ struct cpsw_platform_data {
+ 	u32	cpts_clock_mult;  /* convert input clock ticks to nanoseconds */
+ 	u32	cpts_clock_shift; /* convert input clock ticks to nanoseconds */
+ 	u32	ale_entries;	/* ale table size */
++	bool	no_bd_ram;	/* set if cpsw bd ram should not be used */
+ 	u32	bd_ram_size;  /*buffer descriptor ram size */
+ 	u32	rx_descs;	/* Number of Rx Descriptios */
+ 	u32	mac_control;	/* Mac control register */
+-- 
+2.6.1.133.gf5b6079
