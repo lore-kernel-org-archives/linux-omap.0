@@ -1,91 +1,137 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 1/4] ARM: dts: dra7: Add dt node for the sycon pcie
-Date: Mon, 12 Oct 2015 15:23:01 -0700
-Message-ID: <20151012222301.GI23801@atomide.com>
-References: <1442323985-29939-1-git-send-email-kishon@ti.com>
- <1442323985-29939-2-git-send-email-kishon@ti.com>
- <20151012212149.GZ23801@atomide.com>
- <561C2A1B.3000201@ti.com>
- <20151012220322.GF23801@atomide.com>
- <561C2E93.3020809@ti.com>
- <20151012221255.GG23801@atomide.com>
- <561C31B7.3060604@ti.com>
+Subject: Re: [PATCH 00/37] ARM: dts: Fix fixed regulators enable GPIO polarity
+Date: Mon, 12 Oct 2015 15:24:25 -0700
+Message-ID: <20151012222424.GJ23801@atomide.com>
+References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20151012214654.GE23801@atomide.com>
+ <561C31E8.6000408@osg.samsung.com>
+ <5696453.QxruGxICMQ@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <561C31B7.3060604-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <5696453.QxruGxICMQ@avalon>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Gregory Clement <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [151012 15:23]:
-> Hi,
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [151012 15:26]:
+> Hi Javier,
 > 
-> On Tuesday 13 October 2015 03:42 AM, Tony Lindgren wrote:
-> > * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [151012 15:09]:
-> >> Hi,
-> >>
-> >> On Tuesday 13 October 2015 03:33 AM, Tony Lindgren wrote:
-> >>> * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [151012 14:50]:
-> >>>> Hi Tony,
-> >>>>
-> >>>> On Tuesday 13 October 2015 02:51 AM, Tony Lindgren wrote:
-> >>>>> * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150915 06:37]:
-> >>>>>> Add new device tree node for the control module register space where
-> >>>>>> PCIe registers are present.
-> >>>>>>
-> >>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> >>>>>> ---
-> >>>>>>  arch/arm/boot/dts/dra7.dtsi |    5 +++++
-> >>>>>>  1 file changed, 5 insertions(+)
-> >>>>>>
-> >>>>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> >>>>>> index 5d65db9..0769b5d 100644
-> >>>>>> --- a/arch/arm/boot/dts/dra7.dtsi
-> >>>>>> +++ b/arch/arm/boot/dts/dra7.dtsi
-> >>>>>> @@ -154,6 +154,11 @@
-> >>>>>>  					compatible = "syscon";
-> >>>>>>  					reg = <0x1c04 0x0020>;
-> >>>>>>  				};
-> >>>>>> +
-> >>>>>> +				scm_conf_pcie: tisyscon@1c24 {
-> >>>>>> +					compatible = "syscon";
-> >>>>>> +					reg = <0x1c24 0x0024>;
-> >>>>>> +				};
-> >>>>>>  			};
-> >>>>>>  
-> >>>>>>  			cm_core_aon: cm_core_aon@5000 {
-> >>>>>
-> >>>>>
-> >>>>> Why don't you just extend the existing scm_conf1 area? This is not all pcie
-> >>>>> specific for scm_conf_pcie, at least for PLLEN_CONTROL, RMII_CLK_SETTING
-> >>>>> and MUXSEL_32K_CLKIN.
-> >>>>
-> >>>> scm_conf_pcie has only PCIe registers (it starts at 0x4A003C24).
-> >>>> PLLEN_CONTROL and others are at 0x4A003C14 as per
-> >>>> DRA75x_DRA74x_SR1.1_NDA_TRM_vW.
-> >>>
-> >>> Oh sorry I guess I was looking at a wrong address then.
-> >>>
-> >>>> Since PCIe itself has a bunch of registers for itself, thought of
-> >>>> creating a separate dt node. But I can extend scm_conf1 area.
-> >>>
-> >>> Why not just ioremap them then? Do these need to be shared with
-> >>> some other driver?
-> >>
-> >> yeah, some are used by PCIe controller driver and some are used by PCIe
-> >> PHY driver.
+> On Tuesday 13 October 2015 00:19:20 Javier Martinez Canillas wrote:
+> > On 10/12/2015 11:46 PM, Tony Lindgren wrote:
+> > > * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [151012 14:17]:
+> > >> Hello,
+> > >> 
+> > >> While working on regulators, GPIOs and DT I noticed that many of our DT
+> > >> source files incorrectly describe fixed regulators. The common error
+> > >> patterns are
+> > >> 
+> > >> - Usage of the undefined (and never parsed) enable-active-low property
+> > >> - Usage of the enable-active-high property without specifying an enable
+> > >>   GPIO
+> > >> - Typos in the enabl GPIO property name (gpios instead of gpio)
+> > >> - Mismatch between the enable-active-high property (or the lack thereof)
+> > >>   and the enable GPIO flags
+> > >> 
+> > >> This patch series fixes those issues in all the DT sources after locating
+> > >> the errors using the following script.
+> > >> 
+> > >> -------------------------------------------------------------------------
+> > >> !/bin/sh
+> > >> 
+> > >> echo $1
+> > >> cat $1 | awk '
+> > >> BEGIN {
+> > >> 	open_drain = 0;
+> > >> 	active_high = 0;
+> > >> 	gpio = 0;
+> > >> 	flags = 0;
+> > >> }
+> > >> 
+> > >> match($0, /([a-zA-Z0-9@_-]*) {/, ary) {
+> > >> 	name = ary[1];
+> > >> }
+> > >> 
+> > >> /compatible.*"regulator-fixed"/ {
+> > >> 	found = 1;
+> > >> }
+> > >> 
+> > >> /enable-active-high/ {
+> > >> 	active_high = 1;
+> > >> }
+> > >> 
+> > >> /gpio-open-drain/ {
+> > >> 	open_drain = 1;
+> > >> }
+> > >> 
+> > >> match($0, /gpio += <.* ([^ ]*)>/, ary) {
+> > >> 	gpio = 1;
+> > >> 	flags = ary[1];
+> > >> 	if (flags == 0)
+> > >> 		flags = "GPIO_ACTIVE_HIGH";
+> > >> }
+> > >> 
+> > >> /}/ {
+> > >> 	if (found) {
+> > >> 		if (gpio) {
+> > >> 			print "\t" name ": active high " active_high " " flags " open 
+> drain "
+> > >> 			open_drain;
+> > >> 			if ((active_high && flags == "GPIO_ACTIVE_LOW") ||
+> > >> 			    (!active_high && flags == "GPIO_ACTIVE_HIGH"))
+> > >> 				print "WARNING: enable-active-high and flags do not 
+> match"
+> > >> 		} else {
+> > >> 			if (active_high)
+> > >> 				print "WARNING: active high without GPIO"
+> > >> 			if (open_drain)
+> > >> 				print "WARNING: open drain without GPIO"
+> > >> 		}
+> > >> 	}
+> > >> 	
+> > >> 	gpio = 0;
+> > >> 	found = 0;
+> > >> 	active_high = 0;
+> > >> 	open_drain = 0;
+> > >> 	flags = 0;
+> > >> }
+> > >> '
+> > >> -------------------------------------------------------------------------
+> > >> 
+> > >> All patches except for the ones touching omap3-beagle-xm and
+> > >> omap3-overo-base are untested as I lack test hardware.
+> > >> 
+> > >> As there's no dependency between the patches touching different source
+> > >> files the appropriate maintainers could take their share of the patches
+> > >> in their tree. Alternatively I could send a single pull request after
+> > >> collecting all acks but that might be more complex.
+> > > 
+> > > Nice clean-up. For omaps, there's an earlier patch posted by
+> > > Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org> as "[PATCH] ARM: dts:
+> > > Use defined GPIO constants in flags cell for OMAP2+ boards". Can you guys
+> > > do some cross checking and let me know which combination I should appluy
+> > > for omaps?
+> >
+> > Since Laurent's changes for OMAP are part of a bigger series and my patch
+> > was only for OMAP, probably makes sense for you to pick his patches and I
+> > can re-spin mine on top of that.
 > > 
-> > OK makes sense to me then.
+> > BTW, I posted as a single patch since the changes were trivial but maybe
+> > that made handling these conflicts harder and I should split the changes
+> > instead, since I'll resend anyways.
+> > 
+> > What do you prefer? a patch per SoC family (i.e: OMAP{2,3,4,5}) or patch
+> > per board DTS?
 > 
-> Cool.
-> 
-> Btw the driver modifications has not yet been merged, so don't merge
-> these yet. I'll repost these once the driver is merged.
+> My series will likely miss the next merge window as more discussion is needed. 
+> I'll thus respin the patches on top of yours, please proceed without caring 
+> about this.
 
-OK thanks.
+OK applying Javier's patch into omap-for-v4.4/dt then.
+
+Regards,
 
 Tony
 --
