@@ -1,82 +1,53 @@
-From: Konstantin Shkolnyy <Konstantin.Shkolnyy-S6d6foEdJf7QT0dZR+AlfA@public.gmane.org>
-Subject: RE: musb: communication issue with more than 12 FTDI ports
-Date: Mon, 12 Oct 2015 13:33:12 +0000
-Message-ID: <BLUPR0701MB1572B2D99D4118A994E6EB8B91310@BLUPR0701MB1572.namprd07.prod.outlook.com>
-References: <CAGm1_ku3d4q3jQ6ZZYaLktd182O_WY5Hvu-Z877N31e5wN2_NA@mail.gmail.com>
- <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw@mail.gmail.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v4 11/25] ARM/dmaengine: edma: Merge the two drivers
+ under drivers/dma/
+Date: Mon, 12 Oct 2015 21:30:25 +0530
+Message-ID: <20151012160024.GF27370@localhost>
+References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+ <1443088932-21731-12-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1443088932-21731-12-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-U29tZSBob3N0IGNvbnRyb2xsZXJzIGp1c3QgY2FuJ3Qgc3VwcG9ydCBzbyBtYW55IHBpcGVzIG9w
-ZW5lZCBhdCBvbmNlLiBDaGVjayB3aGF0IHRoZSBTb0Mgc3BlYyBzYXlzIGFib3V0IHRoYXQuDQoN
-Ci0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC11c2Itb3duZXJAdmdlci5r
-ZXJuZWwub3JnIFttYWlsdG86bGludXgtdXNiLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVo
-YWxmIE9mIFllZ29yIFllZnJlbW92DQpTZW50OiBNb25kYXksIE9jdG9iZXIgMTIsIDIwMTUgMDU6
-MzUNClRvOiBsaW51eC11c2INCkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgRmVsaXBl
-IEJhbGJpDQpTdWJqZWN0OiBSZTogbXVzYjogY29tbXVuaWNhdGlvbiBpc3N1ZSB3aXRoIG1vcmUg
-dGhhbiAxMiBGVERJIHBvcnRzDQoNCk9uIE1vbiwgT2N0IDEyLCAyMDE1IGF0IDExOjM0IEFNLCBZ
-ZWdvciBZZWZyZW1vdiA8eWVnb3JzbGlzdHNAZ29vZ2xlbWFpbC5jb20+IHdyb3RlOg0KPiBXZSBo
-YXZlIGEgcHJvYmxlbSwgd2hlbiB1c2luZyBtb3JlIHRoYW4gMTIgRlRESSBwb3J0cy4gS2VybmVs
-cyB0cmllZDoNCj4gMy4xOC4xLCA0LjIuMyBhbmQgNC4zLXJjNS4gU29DIGFtMzM1eCA2MDBNSHoN
-Cj4NCj4gQmVsb3cgdGhlIFVTQiB0b3BvbG9neToNCj4NCj4gIyBsc3VzYiAtdA0KPiAvOiAgQnVz
-IDAyLlBvcnQgMTogRGV2IDEsIENsYXNzPXJvb3RfaHViLCBEcml2ZXI9bXVzYi1oZHJjLzFwLCA0
-ODBNDQo+IC86ICBCdXMgMDEuUG9ydCAxOiBEZXYgMSwgQ2xhc3M9cm9vdF9odWIsIERyaXZlcj1t
-dXNiLWhkcmMvMXAsIDQ4ME0NCj4gICAgIHxfXyBQb3J0IDE6IERldiAyLCBJZiAwLCBDbGFzcz0s
-IERyaXZlcj1odWIvNHAsIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAxOiBEZXYgOSwgSWYgMCwg
-Q2xhc3M9LCBEcml2ZXI9aHViLzRwLCA0ODBNDQo+ICAgICAgICAgICAgIHxfXyBQb3J0IDE6IERl
-diAxMCwgSWYgMCwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDEyTQ0KPiAgICAgICAgICAgICB8
-X18gUG9ydCAyOiBEZXYgMTEsIElmIDAsIENsYXNzPSwgRHJpdmVyPWZ0ZGlfc2lvLCA0ODBNDQo+
-ICAgICAgICAgICAgIHxfXyBQb3J0IDI6IERldiAxMSwgSWYgMSwgQ2xhc3M9LCBEcml2ZXI9ZnRk
-aV9zaW8sIDQ4ME0NCj4gICAgICAgICAgICAgfF9fIFBvcnQgMjogRGV2IDExLCBJZiAyLCBDbGFz
-cz0sIERyaXZlcj1mdGRpX3NpbywgNDgwTQ0KPiAgICAgICAgICAgICB8X18gUG9ydCAyOiBEZXYg
-MTEsIElmIDMsIENsYXNzPSwgRHJpdmVyPWZ0ZGlfc2lvLCA0ODBNDQo+ICAgICAgICAgICAgIHxf
-XyBQb3J0IDM6IERldiAxMiwgSWYgMCwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4g
-ICAgICAgICAgICAgfF9fIFBvcnQgMzogRGV2IDEyLCBJZiAxLCBDbGFzcz0sIERyaXZlcj1mdGRp
-X3NpbywgNDgwTQ0KPiAgICAgICAgICAgICB8X18gUG9ydCAzOiBEZXYgMTIsIElmIDIsIENsYXNz
-PSwgRHJpdmVyPWZ0ZGlfc2lvLCA0ODBNDQo+ICAgICAgICAgICAgIHxfXyBQb3J0IDM6IERldiAx
-MiwgSWYgMywgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9y
-dCAyOiBEZXYgNCwgSWYgMCwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAg
-ICB8X18gUG9ydCAyOiBEZXYgNCwgSWYgMSwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0N
-Cj4gICAgICAgICB8X18gUG9ydCAyOiBEZXYgNCwgSWYgMiwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9z
-aW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAyOiBEZXYgNCwgSWYgMywgQ2xhc3M9LCBEcml2
-ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAzOiBEZXYgNywgSWYgMCwgQ2xh
-c3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAzOiBEZXYgNywg
-SWYgMSwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAz
-OiBEZXYgNywgSWYgMiwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8
-X18gUG9ydCAzOiBEZXYgNywgSWYgMywgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4N
-Cj4gV2hlbiB1c2luZyAxMiBwb3J0cyBhbmQgcGVyZm9ybWluZyBzZXJpYWwgdGVzdCAoYSBwYWly
-IG9mIHBvcnRzIGlzIA0KPiBjb25uZWN0ZWQgdmlhIG51bGwtbW9kZW0gY2FibGUgYW5kIGEgcmF0
-aGVyIHNob3J0IHN0cmluZyBjYS4gOTAgDQo+IGNoYXJhY3RlcnMgd2lsbCBiZSBzZW50IGFsdGVy
-bmF0aW5nIGF0IDEyMDAgYW5kIDExNTIwMGIvcywgdGVzdGluZyANCj4gc2NyaXB0cyBhcmUgd3Jp
-dHRlbiBpbiBQeXRob24gYW5kIHJ1bm5pbmcgYXMgb3duIHByb2Nlc3NlcyBwZXIgYSBwYWlyIA0K
-PiBvZiBwb3J0cykgdGhlcmUgYXJlIG5vIHRpbWVvdXRzLCBpLmUuIGFsbCBzZW50IGNoYXJhY3Rl
-cnMgd2lsbCBiZSANCj4gcmVjZWl2ZWQuIEFzIHNvb24gYXMgSSBvcGVuIHBvcnRzIDEzIGFuZCAx
-NCBJIHN0YXJ0IHRvIGdldCBhcmJpdHJhcnkgDQo+IHRpbWVvdXRzICAoZnJvbSB0ZXN0IHNvZnR3
-YXJlIHBvaW50IG9mIHZpZXcpIG9uIGFsbCBwb3J0cy4NCj4NCj4gSW4gb3JkZXIgdG8gY2hlY2ss
-IGlmIGZ0ZGlfc2lvIGhhcyBwcmltYXJ5IHRvIGRvIHdpdGggdGhpcyBpc3N1ZSwgSSd2ZSANCj4g
-cGVyZm9ybWVkIHRoZSBzYW1lIHRlc3Qgb24gYSBQQyBhbmQgUGFuZGFCb2FyZCBSZXYuIEEyIChF
-SENJIHBvcnQpIGFuZCANCj4gdGhlcmUgd2VyZSBubyBpc3N1ZXMgd2l0aCAxNiBwb3J0cy4gU28g
-aXQgc2VlbXMgdG8gaGF2ZSBzb21ldGhpbmcgdG8gDQo+IGRvIHdpdGggYW0zMzV4ICsgbXVzYiAr
-IG51bWJlciBvZiBlbmQgcG9pbnRzLg0KPg0KPiBBbnkgaWRlYT8gTGV0IG1lIGtub3csIGlmIHlv
-dSBuZWVkIG91ciB0ZXN0IHNjcmlwdC4NCg0KRnJvbSB0aW1lIHRvIHRpbWUgSSBnZXQgZm9sbG93
-aW5nIHdhcm5pbmdzICg0LjMuMC1yYzUpOg0KDQptdXNiX2hvc3RfcnggMTkxNTogUlgxIGRtYSBi
-dXN5LCBjc3IgMjAyMCBtdXNiX2hvc3RfcnggMTkxNTogUlg0IGRtYSBidXN5LCBjc3IgMjAyMCBt
-dXNiX2hvc3RfcnggMTkxNTogUlg3IGRtYSBidXN5LCBjc3IgMjIyMCBtdXNiX2hvc3RfcnggMTkx
-NTogUlgxIGRtYSBidXN5LCBjc3IgMjAyMA0KDQpUaG91Z2ggdGhleSBhcmUgbm90IHRpbWVseSBy
-ZWxhdGVkIHRvIHNlcmlhbCB0ZXN0IHRpbWVvdXRzLg0KDQpZZWdvcg0KLS0NClRvIHVuc3Vic2Ny
-aWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC11c2Ii
-IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1v
-cmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWlu
-Zm8uaHRtbA0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Sep 24, 2015 at 01:01:58PM +0300, Peter Ujfalusi wrote:
+> Move the code out from arch/arm/common and merge it inside of the dmaengine
+> driver.
+> This change is done with as minimal change to the code as possible to avoid
+> any possibilities to introducing regression.
+
+Is this a pure move patch or code has been modified, if latter am
+disappointed that existing code style issue have not been fixed
+
+
+> +static inline void edma_write(struct edma_cc *ecc, int offset, int val)
+> +{
+> +	__raw_writel(val, ecc->base + offset);
+> +}
+> +static inline void edma_modify(struct edma_cc *ecc, int offset, unsigned and,
+> +			       unsigned or)
+
+This looks bad on my 80 char screen, and few more places below
+
+> +{
+> +	unsigned val = edma_read(ecc, offset);
+
+checkpatch should have asked you to add empty line here, many places below
+too
+
+> +	val &= and;
+> +	val |= or;
+> +	edma_write(ecc, offset, val);
+> +}
+
+empty line here and few more places
+
+More later :)
+
+-- 
+~Vinod
