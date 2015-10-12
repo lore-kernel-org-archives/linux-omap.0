@@ -1,66 +1,82 @@
-From: Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] sched_clock: add data pointer argument to read callback
-Date: Mon, 12 Oct 2015 15:02:42 +0200
-Message-ID: <87io6c6xzh.fsf@free-electrons.com>
-References: <1444427858-576-1-git-send-email-mans@mansr.com>
+From: Konstantin Shkolnyy <Konstantin.Shkolnyy-S6d6foEdJf7QT0dZR+AlfA@public.gmane.org>
+Subject: RE: musb: communication issue with more than 12 FTDI ports
+Date: Mon, 12 Oct 2015 13:33:12 +0000
+Message-ID: <BLUPR0701MB1572B2D99D4118A994E6EB8B91310@BLUPR0701MB1572.namprd07.prod.outlook.com>
+References: <CAGm1_ku3d4q3jQ6ZZYaLktd182O_WY5Hvu-Z877N31e5wN2_NA@mail.gmail.com>
+ <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444427858-576-1-git-send-email-mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org> (Mans Rullgard's
-	message of "Fri, 9 Oct 2015 22:57:35 +0100")
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mans Rullgard <mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org>
-Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hans Ulli Kroll <ulli.kroll-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Eric Miao <eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mikael Starvik <starvik-VrBV9hrLPhE@public.gmane.org>, Jesper Nilsson <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Chris Zankel <chris-YvXeqwSYzG2sTnJN9+BGXg@public.gmane.org>, Max Filippov <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Srinivas Kandagatla <srinivas.kanda>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mans,
- 
- On ven., oct. 09 2015, Mans Rullgard <mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org> wrote:
-
-> This passes a data pointer specified in the sched_clock_register()
-> call to the read callback allowing simpler implementations thereof.
->
-> In this patch, existing uses of this interface are simply updated
-> with a null pointer.
->
-> Signed-off-by: Mans Rullgard <mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org>
-> ---
-[...]
-> diff --git a/drivers/clocksource/time-armada-370-xp.c b/drivers/clocksource/time-armada-370-xp.c
-> index 2162796..a13b73b 100644
-> --- a/drivers/clocksource/time-armada-370-xp.c
-> +++ b/drivers/clocksource/time-armada-370-xp.c
-> @@ -92,7 +92,7 @@ static void local_timer_ctrl_clrset(u32 clr, u32 set)
->  		local_base + TIMER_CTRL_OFF);
->  }
->  
-> -static u64 notrace armada_370_xp_read_sched_clock(void)
-> +static u64 notrace armada_370_xp_read_sched_clock(void *data)
->  {
->  	return ~readl(timer_base + TIMER0_VAL_OFF);
->  }
-> @@ -290,7 +290,8 @@ static void __init armada_370_xp_timer_common_init(struct device_node *np)
->  	/*
->  	 * Set scale and timer for sched_clock.
->  	 */
-> -	sched_clock_register(armada_370_xp_read_sched_clock, 32, timer_clk);
-> +	sched_clock_register(armada_370_xp_read_sched_clock, 32, timer_clk,
-> +			     NULL);
->  
->  	clocksource_mmio_init(timer_base + TIMER0_VAL_OFF,
->  			      "armada_370_xp_clocksource",
-
-For the time-armada-370-xp.c file:
-
-Acked-by: Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-
-Thanks,
-
-Gregory
-
-
--- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+U29tZSBob3N0IGNvbnRyb2xsZXJzIGp1c3QgY2FuJ3Qgc3VwcG9ydCBzbyBtYW55IHBpcGVzIG9w
+ZW5lZCBhdCBvbmNlLiBDaGVjayB3aGF0IHRoZSBTb0Mgc3BlYyBzYXlzIGFib3V0IHRoYXQuDQoN
+Ci0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC11c2Itb3duZXJAdmdlci5r
+ZXJuZWwub3JnIFttYWlsdG86bGludXgtdXNiLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVo
+YWxmIE9mIFllZ29yIFllZnJlbW92DQpTZW50OiBNb25kYXksIE9jdG9iZXIgMTIsIDIwMTUgMDU6
+MzUNClRvOiBsaW51eC11c2INCkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgRmVsaXBl
+IEJhbGJpDQpTdWJqZWN0OiBSZTogbXVzYjogY29tbXVuaWNhdGlvbiBpc3N1ZSB3aXRoIG1vcmUg
+dGhhbiAxMiBGVERJIHBvcnRzDQoNCk9uIE1vbiwgT2N0IDEyLCAyMDE1IGF0IDExOjM0IEFNLCBZ
+ZWdvciBZZWZyZW1vdiA8eWVnb3JzbGlzdHNAZ29vZ2xlbWFpbC5jb20+IHdyb3RlOg0KPiBXZSBo
+YXZlIGEgcHJvYmxlbSwgd2hlbiB1c2luZyBtb3JlIHRoYW4gMTIgRlRESSBwb3J0cy4gS2VybmVs
+cyB0cmllZDoNCj4gMy4xOC4xLCA0LjIuMyBhbmQgNC4zLXJjNS4gU29DIGFtMzM1eCA2MDBNSHoN
+Cj4NCj4gQmVsb3cgdGhlIFVTQiB0b3BvbG9neToNCj4NCj4gIyBsc3VzYiAtdA0KPiAvOiAgQnVz
+IDAyLlBvcnQgMTogRGV2IDEsIENsYXNzPXJvb3RfaHViLCBEcml2ZXI9bXVzYi1oZHJjLzFwLCA0
+ODBNDQo+IC86ICBCdXMgMDEuUG9ydCAxOiBEZXYgMSwgQ2xhc3M9cm9vdF9odWIsIERyaXZlcj1t
+dXNiLWhkcmMvMXAsIDQ4ME0NCj4gICAgIHxfXyBQb3J0IDE6IERldiAyLCBJZiAwLCBDbGFzcz0s
+IERyaXZlcj1odWIvNHAsIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAxOiBEZXYgOSwgSWYgMCwg
+Q2xhc3M9LCBEcml2ZXI9aHViLzRwLCA0ODBNDQo+ICAgICAgICAgICAgIHxfXyBQb3J0IDE6IERl
+diAxMCwgSWYgMCwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDEyTQ0KPiAgICAgICAgICAgICB8
+X18gUG9ydCAyOiBEZXYgMTEsIElmIDAsIENsYXNzPSwgRHJpdmVyPWZ0ZGlfc2lvLCA0ODBNDQo+
+ICAgICAgICAgICAgIHxfXyBQb3J0IDI6IERldiAxMSwgSWYgMSwgQ2xhc3M9LCBEcml2ZXI9ZnRk
+aV9zaW8sIDQ4ME0NCj4gICAgICAgICAgICAgfF9fIFBvcnQgMjogRGV2IDExLCBJZiAyLCBDbGFz
+cz0sIERyaXZlcj1mdGRpX3NpbywgNDgwTQ0KPiAgICAgICAgICAgICB8X18gUG9ydCAyOiBEZXYg
+MTEsIElmIDMsIENsYXNzPSwgRHJpdmVyPWZ0ZGlfc2lvLCA0ODBNDQo+ICAgICAgICAgICAgIHxf
+XyBQb3J0IDM6IERldiAxMiwgSWYgMCwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4g
+ICAgICAgICAgICAgfF9fIFBvcnQgMzogRGV2IDEyLCBJZiAxLCBDbGFzcz0sIERyaXZlcj1mdGRp
+X3NpbywgNDgwTQ0KPiAgICAgICAgICAgICB8X18gUG9ydCAzOiBEZXYgMTIsIElmIDIsIENsYXNz
+PSwgRHJpdmVyPWZ0ZGlfc2lvLCA0ODBNDQo+ICAgICAgICAgICAgIHxfXyBQb3J0IDM6IERldiAx
+MiwgSWYgMywgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9y
+dCAyOiBEZXYgNCwgSWYgMCwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAg
+ICB8X18gUG9ydCAyOiBEZXYgNCwgSWYgMSwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0N
+Cj4gICAgICAgICB8X18gUG9ydCAyOiBEZXYgNCwgSWYgMiwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9z
+aW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAyOiBEZXYgNCwgSWYgMywgQ2xhc3M9LCBEcml2
+ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAzOiBEZXYgNywgSWYgMCwgQ2xh
+c3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAzOiBEZXYgNywg
+SWYgMSwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8X18gUG9ydCAz
+OiBEZXYgNywgSWYgMiwgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4gICAgICAgICB8
+X18gUG9ydCAzOiBEZXYgNywgSWYgMywgQ2xhc3M9LCBEcml2ZXI9ZnRkaV9zaW8sIDQ4ME0NCj4N
+Cj4gV2hlbiB1c2luZyAxMiBwb3J0cyBhbmQgcGVyZm9ybWluZyBzZXJpYWwgdGVzdCAoYSBwYWly
+IG9mIHBvcnRzIGlzIA0KPiBjb25uZWN0ZWQgdmlhIG51bGwtbW9kZW0gY2FibGUgYW5kIGEgcmF0
+aGVyIHNob3J0IHN0cmluZyBjYS4gOTAgDQo+IGNoYXJhY3RlcnMgd2lsbCBiZSBzZW50IGFsdGVy
+bmF0aW5nIGF0IDEyMDAgYW5kIDExNTIwMGIvcywgdGVzdGluZyANCj4gc2NyaXB0cyBhcmUgd3Jp
+dHRlbiBpbiBQeXRob24gYW5kIHJ1bm5pbmcgYXMgb3duIHByb2Nlc3NlcyBwZXIgYSBwYWlyIA0K
+PiBvZiBwb3J0cykgdGhlcmUgYXJlIG5vIHRpbWVvdXRzLCBpLmUuIGFsbCBzZW50IGNoYXJhY3Rl
+cnMgd2lsbCBiZSANCj4gcmVjZWl2ZWQuIEFzIHNvb24gYXMgSSBvcGVuIHBvcnRzIDEzIGFuZCAx
+NCBJIHN0YXJ0IHRvIGdldCBhcmJpdHJhcnkgDQo+IHRpbWVvdXRzICAoZnJvbSB0ZXN0IHNvZnR3
+YXJlIHBvaW50IG9mIHZpZXcpIG9uIGFsbCBwb3J0cy4NCj4NCj4gSW4gb3JkZXIgdG8gY2hlY2ss
+IGlmIGZ0ZGlfc2lvIGhhcyBwcmltYXJ5IHRvIGRvIHdpdGggdGhpcyBpc3N1ZSwgSSd2ZSANCj4g
+cGVyZm9ybWVkIHRoZSBzYW1lIHRlc3Qgb24gYSBQQyBhbmQgUGFuZGFCb2FyZCBSZXYuIEEyIChF
+SENJIHBvcnQpIGFuZCANCj4gdGhlcmUgd2VyZSBubyBpc3N1ZXMgd2l0aCAxNiBwb3J0cy4gU28g
+aXQgc2VlbXMgdG8gaGF2ZSBzb21ldGhpbmcgdG8gDQo+IGRvIHdpdGggYW0zMzV4ICsgbXVzYiAr
+IG51bWJlciBvZiBlbmQgcG9pbnRzLg0KPg0KPiBBbnkgaWRlYT8gTGV0IG1lIGtub3csIGlmIHlv
+dSBuZWVkIG91ciB0ZXN0IHNjcmlwdC4NCg0KRnJvbSB0aW1lIHRvIHRpbWUgSSBnZXQgZm9sbG93
+aW5nIHdhcm5pbmdzICg0LjMuMC1yYzUpOg0KDQptdXNiX2hvc3RfcnggMTkxNTogUlgxIGRtYSBi
+dXN5LCBjc3IgMjAyMCBtdXNiX2hvc3RfcnggMTkxNTogUlg0IGRtYSBidXN5LCBjc3IgMjAyMCBt
+dXNiX2hvc3RfcnggMTkxNTogUlg3IGRtYSBidXN5LCBjc3IgMjIyMCBtdXNiX2hvc3RfcnggMTkx
+NTogUlgxIGRtYSBidXN5LCBjc3IgMjAyMA0KDQpUaG91Z2ggdGhleSBhcmUgbm90IHRpbWVseSBy
+ZWxhdGVkIHRvIHNlcmlhbCB0ZXN0IHRpbWVvdXRzLg0KDQpZZWdvcg0KLS0NClRvIHVuc3Vic2Ny
+aWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC11c2Ii
+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1v
+cmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWlu
+Zm8uaHRtbA0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
