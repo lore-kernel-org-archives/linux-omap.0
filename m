@@ -1,8 +1,8 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 08/37] ARM: dts: omap3-sb-t35: Remove invalid
+Subject: [PATCH 09/37] ARM: dts: omap3-tao3530: Remove invalid
  enable-active-low regulator property
-Date: Tue, 13 Oct 2015 00:12:37 +0300
-Message-ID: <1444684386-17094-9-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Tue, 13 Oct 2015 00:12:38 +0300
+Message-ID: <1444684386-17094-10-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,23 +27,23 @@ used by the driver. Remove it.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm/boot/dts/omap3-sb-t35.dtsi | 1 -
+ arch/arm/boot/dts/omap3-tao3530.dtsi | 1 -
  1 file changed, 1 deletion(-)
 
 Cc: linux-omap@vger.kernel.org
 Cc: Benoit Cousson <bcousson@baylibre.com>
 Cc: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/boot/dts/omap3-sb-t35.dtsi b/arch/arm/boot/dts/omap3-sb-t35.dtsi
-index 827f614261f6..b77e25d20e07 100644
---- a/arch/arm/boot/dts/omap3-sb-t35.dtsi
-+++ b/arch/arm/boot/dts/omap3-sb-t35.dtsi
-@@ -50,7 +50,6 @@
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&sb_t35_audio_amp>;
- 		gpio = <&gpio2 29 GPIO_ACTIVE_LOW>;   /* gpio_61 */
+diff --git a/arch/arm/boot/dts/omap3-tao3530.dtsi b/arch/arm/boot/dts/omap3-tao3530.dtsi
+index 7bd8d9a4f67f..a520b4fdcf20 100644
+--- a/arch/arm/boot/dts/omap3-tao3530.dtsi
++++ b/arch/arm/boot/dts/omap3-tao3530.dtsi
+@@ -63,7 +63,6 @@
+ 		regulator-min-microvolt = <3150000>;
+ 		regulator-max-microvolt = <3150000>;
+ 		gpio = <&gpio5 29 GPIO_ACTIVE_LOW>;		/* gpio_157 */
 -		enable-active-low;
- 		regulator-always-on;
+ 		startup-delay-us = <10000>;
  	};
  };
 -- 
