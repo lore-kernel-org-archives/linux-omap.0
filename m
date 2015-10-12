@@ -1,73 +1,66 @@
-From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: Re: musb: communication issue with more than 12 FTDI ports
-Date: Mon, 12 Oct 2015 12:34:37 +0200
-Message-ID: <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw@mail.gmail.com>
-References: <CAGm1_ku3d4q3jQ6ZZYaLktd182O_WY5Hvu-Z877N31e5wN2_NA@mail.gmail.com>
+From: Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] sched_clock: add data pointer argument to read callback
+Date: Mon, 12 Oct 2015 15:02:42 +0200
+Message-ID: <87io6c6xzh.fsf@free-electrons.com>
+References: <1444427858-576-1-git-send-email-mans@mansr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAGm1_ku3d4q3jQ6ZZYaLktd182O_WY5Hvu-Z877N31e5wN2_NA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1444427858-576-1-git-send-email-mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org> (Mans Rullgard's
+	message of "Fri, 9 Oct 2015 22:57:35 +0100")
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mans Rullgard <mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hans Ulli Kroll <ulli.kroll-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Eric Miao <eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mikael Starvik <starvik-VrBV9hrLPhE@public.gmane.org>, Jesper Nilsson <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Chris Zankel <chris-YvXeqwSYzG2sTnJN9+BGXg@public.gmane.org>, Max Filippov <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Srinivas Kandagatla <srinivas.kanda>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 12, 2015 at 11:34 AM, Yegor Yefremov
-<yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
-> We have a problem, when using more than 12 FTDI ports. Kernels tried:
-> 3.18.1, 4.2.3 and 4.3-rc5. SoC am335x 600MHz
->
-> Below the USB topology:
->
-> # lsusb -t
-> /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
-> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
->     |__ Port 1: Dev 2, If 0, Class=, Driver=hub/4p, 480M
->         |__ Port 1: Dev 9, If 0, Class=, Driver=hub/4p, 480M
->             |__ Port 1: Dev 10, If 0, Class=, Driver=ftdi_sio, 12M
->             |__ Port 2: Dev 11, If 0, Class=, Driver=ftdi_sio, 480M
->             |__ Port 2: Dev 11, If 1, Class=, Driver=ftdi_sio, 480M
->             |__ Port 2: Dev 11, If 2, Class=, Driver=ftdi_sio, 480M
->             |__ Port 2: Dev 11, If 3, Class=, Driver=ftdi_sio, 480M
->             |__ Port 3: Dev 12, If 0, Class=, Driver=ftdi_sio, 480M
->             |__ Port 3: Dev 12, If 1, Class=, Driver=ftdi_sio, 480M
->             |__ Port 3: Dev 12, If 2, Class=, Driver=ftdi_sio, 480M
->             |__ Port 3: Dev 12, If 3, Class=, Driver=ftdi_sio, 480M
->         |__ Port 2: Dev 4, If 0, Class=, Driver=ftdi_sio, 480M
->         |__ Port 2: Dev 4, If 1, Class=, Driver=ftdi_sio, 480M
->         |__ Port 2: Dev 4, If 2, Class=, Driver=ftdi_sio, 480M
->         |__ Port 2: Dev 4, If 3, Class=, Driver=ftdi_sio, 480M
->         |__ Port 3: Dev 7, If 0, Class=, Driver=ftdi_sio, 480M
->         |__ Port 3: Dev 7, If 1, Class=, Driver=ftdi_sio, 480M
->         |__ Port 3: Dev 7, If 2, Class=, Driver=ftdi_sio, 480M
->         |__ Port 3: Dev 7, If 3, Class=, Driver=ftdi_sio, 480M
->
-> When using 12 ports and performing serial test (a pair of ports is
-> connected via null-modem cable and a rather short string ca. 90
-> characters will be sent alternating at 1200 and 115200b/s, testing
-> scripts are written in Python and running as own processes per a pair
-> of ports) there are no timeouts, i.e. all sent characters will be
-> received. As soon as I open ports 13 and 14 I start to get arbitrary
-> timeouts  (from test software point of view) on all ports.
->
-> In order to check, if ftdi_sio has primary to do with this issue, I've
-> performed the same test on a PC and PandaBoard Rev. A2 (EHCI port) and
-> there were no issues with 16 ports. So it seems to have something to
-> do with am335x + musb + number of end points.
->
-> Any idea? Let me know, if you need our test script.
+Hi Mans,
+ 
+ On ven., oct. 09 2015, Mans Rullgard <mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org> wrote:
 
->From time to time I get following warnings (4.3.0-rc5):
+> This passes a data pointer specified in the sched_clock_register()
+> call to the read callback allowing simpler implementations thereof.
+>
+> In this patch, existing uses of this interface are simply updated
+> with a null pointer.
+>
+> Signed-off-by: Mans Rullgard <mans-2StjZFpD7GcAvxtiuMwx3w@public.gmane.org>
+> ---
+[...]
+> diff --git a/drivers/clocksource/time-armada-370-xp.c b/drivers/clocksource/time-armada-370-xp.c
+> index 2162796..a13b73b 100644
+> --- a/drivers/clocksource/time-armada-370-xp.c
+> +++ b/drivers/clocksource/time-armada-370-xp.c
+> @@ -92,7 +92,7 @@ static void local_timer_ctrl_clrset(u32 clr, u32 set)
+>  		local_base + TIMER_CTRL_OFF);
+>  }
+>  
+> -static u64 notrace armada_370_xp_read_sched_clock(void)
+> +static u64 notrace armada_370_xp_read_sched_clock(void *data)
+>  {
+>  	return ~readl(timer_base + TIMER0_VAL_OFF);
+>  }
+> @@ -290,7 +290,8 @@ static void __init armada_370_xp_timer_common_init(struct device_node *np)
+>  	/*
+>  	 * Set scale and timer for sched_clock.
+>  	 */
+> -	sched_clock_register(armada_370_xp_read_sched_clock, 32, timer_clk);
+> +	sched_clock_register(armada_370_xp_read_sched_clock, 32, timer_clk,
+> +			     NULL);
+>  
+>  	clocksource_mmio_init(timer_base + TIMER0_VAL_OFF,
+>  			      "armada_370_xp_clocksource",
 
-musb_host_rx 1915: RX1 dma busy, csr 2020
-musb_host_rx 1915: RX4 dma busy, csr 2020
-musb_host_rx 1915: RX7 dma busy, csr 2220
-musb_host_rx 1915: RX1 dma busy, csr 2020
+For the time-armada-370-xp.c file:
 
-Though they are not timely related to serial test timeouts.
+Acked-by: Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 
-Yegor
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Gregory
+
+
+-- 
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
