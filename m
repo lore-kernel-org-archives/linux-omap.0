@@ -1,63 +1,78 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/3] ARM: multi_v7_defconfig: Enable more OMAP family
- platforms
-Date: Mon, 12 Oct 2015 18:12:40 -0500
-Message-ID: <561C3E68.1060107@ti.com>
-References: <1428614121-3374-1-git-send-email-nm@ti.com>
- <20150805102234.GZ16878@atomide.com> <7hfv3uwvdw.fsf@deeprootsystems.com>
- <20150811103751.GK4215@atomide.com>
- <CAGo_u6q+U_Yi7Oq2pAFr4hs28_-G6dFbiHJQg3s3aEj0vG1asg@mail.gmail.com>
- <20151012200419.GO23801@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] arm: omap2+: PM: change trace_power_domain_target
+ event format.
+Date: Mon, 12 Oct 2015 16:33:28 -0700
+Message-ID: <20151012233327.GQ23801@atomide.com>
+References: <1443187345-14834-1-git-send-email-mtitinger+renesas@baylibre.com>
+ <1443187345-14834-3-git-send-email-mtitinger+renesas@baylibre.com>
+ <20150925101025.6b3862bf@gandalf.local.home>
+ <560560ED.5000803@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151012200419.GO23801@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@kernel.org>, "Balbi, Felipe" <balbi@ti.com>, Olof Johansson <olof@lixom.net>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <560560ED.5000803@baylibre.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Marc Titinger <mtitinger@baylibre.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>, khilman@kernel.org, rjw@rjwysocki.net, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/12/2015 03:04 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [150813 08:12]:
->> On Tue, Aug 11, 2015 at 5:37 AM, Tony Lindgren <tony@atomide.com> wrote:
->>>
->>> * Kevin Hilman <khilman@kernel.org> [150807 16:10]:
->>>> Tony Lindgren <tony@atomide.com> writes:
->>>>
->>>>> Ping, looks like these are still pending. Probably should be
->>>>> applied directly by the arm-soc maintainers.
->>>>
->>>> If these should go through arm-soc, please resend to:arm@kernel.org so
->>>> they make it into our queue of stuff to be reviewed/applied.
->>>
->>> OK thanks, up to Nihshant to resend.
->>>
->>
->> Sorry about the slow response - i will have to do this at a later
->> point(probably based off 4.3-rc1). tied up with a few other internal
->> stuff atm :(
+* Marc Titinger <mtitinger@baylibre.com> [150925 08:02]:
 > 
-> Ping, can you please resend arm@kernel.org? Would be good to have these
-> working for v4.4.
 > 
-> Anyways, untagging this old thread so don't expect more pings from
-> me on this.
+> On 25/09/2015 16:10, Steven Rostedt wrote:
+> >On Fri, 25 Sep 2015 15:22:25 +0200
+> >Marc Titinger <mtitinger@baylibre.com> wrote:
+> >
+> >>From: Marc Titinger <mtitinger@baylibre.com>
+> >>
+> >>power_domain_target arg3 is now a string (event name) with generic power
+> >>domains. In the case of Omap, it is a hint to the prev/next switch op.
+> >>Incidentally this trace is now conditioned by CONFIG_PM_ADVANCED_DEBUG.
+> >I'm curious to why the addition of this config option?
+> >
+> I meant to be consistent with Juno/generic-power-domains, so that this trace
+> always (or never) requires this switch.
+> I think I will remove this condition for both actually.
 > 
+> >>Compiled for Omap2+ but not tested.
+> >>
+> >>Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
+> >>---
+> >>  arch/arm/mach-omap2/powerdomain.c | 32 ++++++++++++++++++++------------
+> >>  1 file changed, 20 insertions(+), 12 deletions(-)
+> >>
+> >>diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> >>index 78af6d8..cd77696 100644
+> >>--- a/arch/arm/mach-omap2/powerdomain.c
+> >>+++ b/arch/arm/mach-omap2/powerdomain.c
+> >>@@ -160,7 +160,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+> >>  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+> >>  {
+> >>-	int prev, next, state, trace_state = 0;
+> >>+	int prev, state;
+> >>  	if (pwrdm == NULL)
+> >>  		return -EINVAL;
+> >>@@ -177,18 +177,25 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+> >>  			pwrdm->state_counter[prev]++;
+> >>  		if (prev == PWRDM_POWER_RET)
+> >>  			_update_logic_membank_counters(pwrdm);
+> >>-		/*
+> >>-		 * If the power domain did not hit the desired state,
+> >>-		 * generate a trace event with both the desired and hit states
+> >>-		 */
+> >>-		next = pwrdm_read_next_pwrst(pwrdm);
+> >>-		if (next != prev) {
+> >>-			trace_state = (PWRDM_TRACE_STATES_FLAG |
+> >>+
+> >>+#ifdef CONFIG_PM_ADVANCED_DEBUG
+> >You do realize that you can add this to the block:
+> >
+> >
+> >	if (trace_power_domain_target_enabled()) {
+> Nope I didn't, but now I do ;) thanks.
 
-Will do. Sorry about the delay - we had to bring down our board
-farm(where the boards were hosted) for a few days due to some internal
-relocation. will get around to this asap.
+Probably best to keep this with your series, it should not cause merge conflicts,
+so:
 
-
--- 
-Regards,
-Nishanth Menon
+Acked-by: Tony Lindgren <tony@atomide.com>
