@@ -1,40 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Mon, 12 Oct 2015 13:45:09 -0700
-Message-ID: <20151012204509.GT23801@atomide.com>
-References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
- <20150713131902.GH26485@atomide.com>
- <20151012201640.GQ23801@atomide.com>
- <201510122225.12786@pali>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 1/3] video: omapdss: delete unneeded of_node_put
+Date: Mon, 12 Oct 2015 22:43:14 +0200
+Message-ID: <1444682596-3065-2-git-send-email-Julia.Lawall@lip6.fr>
+References: <1444682596-3065-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201510122225.12786@pali>
+In-Reply-To: <1444682596-3065-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: kernel-janitors@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Andrew Lunn <andrew@lunn.ch>, Bjorn Helgaas <bhelgaas@google.com>, Jason Cooper <jason@lakedaemon.net>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [151012 13:29]:
-> On Monday 12 October 2015 22:16:40 Tony Lindgren wrote:
-> >=20
-> > Pali, any news on posting an updated series with the comments
-> > addressed in this thread? It seems that we all pretty much agree
-> > what needs to be done.
->=20
-> Tony, I'm not really sure what to do. Just wrap 4 and 5 patches into=20
-> CONFIG_KEXEC? Or something more?
+Device node iterators perform an of_node_put on each iteration, so putting
+an of_node_put before a continue results in a double put.
 
-Well for most part your patches are fine, I think there were some
-minor comments on the series.
+A simplified version of the semantic match that finds this problem is as
+follows (http://coccinelle.lip6.fr):
 
-=46or the CONFIG_KEXEC dependency, we should just keep the existing
-behavior and keep /proc/atags behind CONFIG_KEXEC. That's all
-I believe :)
+// <smpl>
+@@
+expression root,e;
+local idexpression child;
+iterator i;
+@@
 
-Regards,
+ i(..., child, ...) {
+   ... when != of_node_get(child)
+*  of_node_put(child);
+   ...
+*  continue;
+}
+// </smpl>
 
-Tony
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
+index 8b6f6d5..136d304 100644
+--- a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
++++ b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
+@@ -199,10 +199,8 @@ static int __init omapdss_boot_init(void)
+ 	omapdss_walk_device(dss, true);
+ 
+ 	for_each_available_child_of_node(dss, child) {
+-		if (!of_find_property(child, "compatible", NULL)) {
+-			of_node_put(child);
++		if (!of_find_property(child, "compatible", NULL))
+ 			continue;
+-		}
+ 
+ 		omapdss_walk_device(child, true);
+ 	}
