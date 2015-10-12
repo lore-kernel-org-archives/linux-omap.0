@@ -1,89 +1,60 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/3] ARM: DTS: am43xx: fix cd-gpios definition as per hardware design and dt binding docs
-Date: Mon, 12 Oct 2015 14:37:11 +0530
-Message-ID: <1444640832-7396-3-git-send-email-mugunthanvnm@ti.com>
-References: <1444640832-7396-1-git-send-email-mugunthanvnm@ti.com>
+From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: musb: communication issue with more than 12 FTDI ports
+Date: Mon, 12 Oct 2015 11:34:15 +0200
+Message-ID: <CAGm1_ku3d4q3jQ6ZZYaLktd182O_WY5Hvu-Z877N31e5wN2_NA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1444640832-7396-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-As per mmc device tree binding documentation card detect gpio has
-to be active low signal. When a hardware is designed with active
-high card detect, gpio polarity has to be changed with
-cd-inverted dt property.
+We have a problem, when using more than 12 FTDI ports. Kernels tried:
+3.18.1, 4.2.3 and 4.3-rc5. SoC am335x 600MHz
 
-In AM43xx the card detect gpio is designed as active low gpio.
-So correcting the dt card detect gpio definition.
+Below the USB topology:
 
-Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am437x-gp-evm.dts  | 2 +-
- arch/arm/boot/dts/am437x-idk-evm.dts | 2 +-
- arch/arm/boot/dts/am437x-sk-evm.dts  | 2 +-
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+# lsusb -t
+/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
+    |__ Port 1: Dev 2, If 0, Class=, Driver=hub/4p, 480M
+        |__ Port 1: Dev 9, If 0, Class=, Driver=hub/4p, 480M
+            |__ Port 1: Dev 10, If 0, Class=, Driver=ftdi_sio, 12M
+            |__ Port 2: Dev 11, If 0, Class=, Driver=ftdi_sio, 480M
+            |__ Port 2: Dev 11, If 1, Class=, Driver=ftdi_sio, 480M
+            |__ Port 2: Dev 11, If 2, Class=, Driver=ftdi_sio, 480M
+            |__ Port 2: Dev 11, If 3, Class=, Driver=ftdi_sio, 480M
+            |__ Port 3: Dev 12, If 0, Class=, Driver=ftdi_sio, 480M
+            |__ Port 3: Dev 12, If 1, Class=, Driver=ftdi_sio, 480M
+            |__ Port 3: Dev 12, If 2, Class=, Driver=ftdi_sio, 480M
+            |__ Port 3: Dev 12, If 3, Class=, Driver=ftdi_sio, 480M
+        |__ Port 2: Dev 4, If 0, Class=, Driver=ftdi_sio, 480M
+        |__ Port 2: Dev 4, If 1, Class=, Driver=ftdi_sio, 480M
+        |__ Port 2: Dev 4, If 2, Class=, Driver=ftdi_sio, 480M
+        |__ Port 2: Dev 4, If 3, Class=, Driver=ftdi_sio, 480M
+        |__ Port 3: Dev 7, If 0, Class=, Driver=ftdi_sio, 480M
+        |__ Port 3: Dev 7, If 1, Class=, Driver=ftdi_sio, 480M
+        |__ Port 3: Dev 7, If 2, Class=, Driver=ftdi_sio, 480M
+        |__ Port 3: Dev 7, If 3, Class=, Driver=ftdi_sio, 480M
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 22038f2..81de3a1 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -689,7 +689,7 @@
- 	bus-width = <4>;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
--	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
- };
- 
- /* eMMC sits on mmc2 */
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index af25801..337fb91 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -325,7 +325,7 @@
- 	pinctrl-1 = <&mmc1_pins_sleep>;
- 	vmmc-supply = <&v3_3d>;
- 	bus-width = <4>;
--	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
- };
- 
- &qspi {
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 7da7c2d..1582fdb 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -563,7 +563,7 @@
- 
- 	vmmc-supply = <&dcdc4>;
- 	bus-width = <4>;
--	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
- };
- 
- &usb2_phy1 {
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 86c2dfb..47954ed 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -376,7 +376,7 @@
- 	bus-width = <4>;
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
--	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
- };
- 
- &mac {
--- 
-2.6.1.133.gf5b6079
+When using 12 ports and performing serial test (a pair of ports is
+connected via null-modem cable and a rather short string ca. 90
+characters will be sent alternating at 1200 and 115200b/s, testing
+scripts are written in Python and running as own processes per a pair
+of ports) there are no timeouts, i.e. all sent characters will be
+received. As soon as I open ports 13 and 14 I start to get arbitrary
+timeouts  (from test software point of view) on all ports.
 
+In order to check, if ftdi_sio has primary to do with this issue, I've
+performed the same test on a PC and PandaBoard Rev. A2 (EHCI port) and
+there were no issues with 16 ports. So it seems to have something to
+do with am335x + musb + number of end points.
+
+Any idea? Let me know, if you need our test script.
+
+Yegor
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
