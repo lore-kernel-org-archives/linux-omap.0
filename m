@@ -1,77 +1,24 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] mfd: omap-usb-host: AM3715 OHCI needs 120m functional
- clock
-Date: Mon, 12 Oct 2015 10:45:05 -0700
-Message-ID: <20151012174505.GJ23801@atomide.com>
-References: <1444671232-10253-1-git-send-email-ben.dooks@codethink.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP3: vc: Remove unused macros
+Date: Mon, 12 Oct 2015 10:57:18 -0700
+Message-ID: <20151012175718.GK23801@atomide.com>
+References: <1442496254-29028-1-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1444671232-10253-1-git-send-email-ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-81qHHgoATdFT9dQujB1mzip2UmYkHbXO@public.gmane.org
+In-Reply-To: <1442496254-29028-1-git-send-email-javier@osg.samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org> [151012 10:38]:
-> The AM3715 OHCI controller will not function without the EHCI
-> unit's 120m fclk being enabled. If all the ports in the system
-> are set to OHCI then the 120m_fclk will not get enabled and no
-> devices are detected.
+* Javier Martinez Canillas <javier@osg.samsung.com> [150917 06:28]:
+> The PRM_POLCTRL_TWL_MASK and PRM_POLCTRL_TWL_MASK
+> macros are not used so they can be deleted.
 > 
-> Add a new (optional) property to signal the system must enable
-> the 120m_fck for OHCI so that if no EHCI ports are signalled
-> then the 120m_fclk should be enabled.
-> 
-> We have found no information about why this is necessary, but
-> it is suspected the EHCI controller does not complete the initial
-> reset sequence and therefore does not hand control of the USB
-> port back.
-> 
-> Signed-off-by: Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/usb/omap-usb.txt | 3 +++
->  drivers/mfd/omap-usb-host.c                        | 4 ++++
->  2 files changed, 7 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> index 38d9bb8..fb5fea5 100644
-> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> @@ -23,6 +23,9 @@ OMAP MUSB GLUE
->  Optional properties:
->   - ctrl-module : phandle of the control module this glue uses to write to
->     mailbox
-> + - ti,ohci-needs-120m-fck : bool, enable the 120m ehci clock even if just
-> +   using ohci. Needed for AM3517 in OHCI only mode.
-> +
->  
->  SOC specific device node entry
->  usb_otg_hs: usb_otg_hs@4a0ab000 {
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 1d924d1..13880cf 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -680,6 +680,10 @@ static int usbhs_omap_probe(struct platform_device *pdev)
->  				need_logic_fck |= true;
->  		}
->  
-> +		/* The AM3517 requries the 120m-fck active to allow the OHCI to work */
-> +		if (of_property_read_bool(dev->of_node, "ti,ohci-needs-120m-fck"))
-> +			need_logic_fck |= true;
-> +
->  		if (need_logic_fck) {
->  			omap->ehci_logic_fck = devm_clk_get(dev,
->  							    "usbhost_120m_fck");
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Hmm why not just use the standard device tree clocks property and then do
-clk_get_rate() on the clock?
-
-Regards,
+Thanks applying into omap-for-v4.4/cleanup.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
