@@ -1,55 +1,83 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 1/3] video: omapdss: delete unneeded of_node_put
-Date: Mon, 12 Oct 2015 22:43:14 +0200
-Message-ID: <1444682596-3065-2-git-send-email-Julia.Lawall@lip6.fr>
-References: <1444682596-3065-1-git-send-email-Julia.Lawall@lip6.fr>
+Subject: [PATCH 0/3] delete unneeded of_node_put
+Date: Mon, 12 Oct 2015 22:43:13 +0200
+Message-ID: <1444682596-3065-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444682596-3065-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: kernel-janitors@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Andrew Lunn <andrew@lunn.ch>, Bjorn Helgaas <bhelgaas@google.com>, Jason Cooper <jason@lakedaemon.net>
+To: linux-soc@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Andrew Lunn <andrew@lunn.ch>, Bjorn Helgaas <bhelgaas@google.com>, Jason Cooper <jason@lakedaemon.net>
 List-Id: linux-omap@vger.kernel.org
 
 Device node iterators perform an of_node_put on each iteration, so putting
-an of_node_put before a continue results in a double put.
+an of_node_put before going around to the next iteration results in a
+double put.
 
-A simplified version of the semantic match that finds this problem is as
-follows (http://coccinelle.lip6.fr):
+The complete semantic patch that fixes this problem is as follows
+(http://coccinelle.lip6.fr):
 
 // <smpl>
+@r exists@
+expression e1,e2;
+local idexpression n;
+iterator name for_each_node_by_name, for_each_node_by_type,
+for_each_compatible_node, for_each_matching_node,
+for_each_matching_node_and_match, for_each_child_of_node,
+for_each_available_child_of_node, for_each_node_with_property;
+iterator i;
+position p1,p2;
+statement S;
 @@
-expression root,e;
-local idexpression child;
+
+(
+(
+for_each_node_by_name(n,e1) S
+|
+for_each_node_by_type(n,e1) S
+|
+for_each_compatible_node(n,e1,e2) S
+|
+for_each_matching_node(n,e1) S
+|
+for_each_matching_node_and_match(n,e1,e2) S
+|
+for_each_child_of_node(e1,n) S
+|
+for_each_available_child_of_node(e1,n) S
+|
+for_each_node_with_property(n,e1) S
+)
+&
+i@p1(...) {
+   ... when != of_node_get(n)
+       when any
+   of_node_put@p2(n);
+   ... when any
+}
+)
+
+@s exists@
+local idexpression r.n;
+statement S;
+position r.p1,r.p2;
 iterator i;
 @@
 
- i(..., child, ...) {
-   ... when != of_node_get(child)
-*  of_node_put(child);
-   ...
-*  continue;
-}
+ of_node_put@p2(n);
+ ... when any
+ i@p1(..., n, ...)
+ S
+
+@depends on s@
+local idexpression n;
+position r.p2;
+@@
+
+- of_node_put@p2(n);
 // </smpl>
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
 ---
- drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-index 8b6f6d5..136d304 100644
---- a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-+++ b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-@@ -199,10 +199,8 @@ static int __init omapdss_boot_init(void)
- 	omapdss_walk_device(dss, true);
- 
- 	for_each_available_child_of_node(dss, child) {
--		if (!of_find_property(child, "compatible", NULL)) {
--			of_node_put(child);
-+		if (!of_find_property(child, "compatible", NULL))
- 			continue;
--		}
- 
- 		omapdss_walk_device(child, true);
- 	}
+ arch/arm/mach-exynos/pm_domains.c                 |    8 +++-----
+ drivers/soc/qcom/smd.c                            |    4 +---
+ drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |    4 +---
+ 3 files changed, 5 insertions(+), 11 deletions(-)
