@@ -1,101 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: OMAP: Change all cpu_is_* occurences to soc_is_*
-Date: Mon, 12 Oct 2015 10:29:41 -0700
-Message-ID: <20151012172941.GH23801@atomide.com>
-References: <1440561575-3740-1-git-send-email-j-keerthy@ti.com>
- <55E5DE12.6070407@ti.com>
- <20150901180347.GO4215@atomide.com>
- <55E640ED.6070004@ti.com>
- <20151012171716.GG23801@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151012171716.GG23801@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
+From: Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
+Subject: [PATCH] mfd: omap-usb-host: AM3715 OHCI needs 120m functional clock
+Date: Mon, 12 Oct 2015 18:33:52 +0100
+Message-ID: <1444671232-10253-1-git-send-email-ben.dooks@codethink.co.uk>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-kernel-81qHHgoATdFT9dQujB1mzip2UmYkHbXO@public.gmane.org, Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151012 10:17]:
-> * Keerthy <a0393675@ti.com> [150901 17:24]:
-> >=20
-> >=20
-> > On Tuesday 01 September 2015 11:33 PM, Tony Lindgren wrote:
-> > >* Keerthy <a0393675@ti.com> [150901 10:22]:
-> > >>
-> > >>
-> > >>On Wednesday 26 August 2015 09:29 AM, Keerthy wrote:
-> > >>>Currently apart from dra7, omap5 and amx3 all the other SoCs
-> > >>>are identified using cpu_is_* functions which is not right since
-> > >>>they are all SoCs(System on Chips). Hence changing the SoC
-> > >>>identification code to use soc_is instead of cpu_is and keeping
-> > >>>defines for cpu_is where needed. This allows us to replace the
-> > >>>rest of cpu_is usage along with other fixes as needed.
-> > >>
-> > >>Tony,
-> > >>
-> > >>A Gentle ping on this.
-> > >
-> > >Looks good to me for v4.4. I'll apply it after some testing
-> > >after -rc1.
-> >=20
-> > Thanks Tony.
->=20
-> Now with the fixes finally out of the way, applying into
-> omap-for-v4.4/cleanup.
+The AM3715 OHCI controller will not function without the EHCI
+unit's 120m fclk being enabled. If all the ports in the system
+are set to OHCI then the 120m_fclk will not get enabled and no
+devices are detected.
 
-Uhh actually not applying. This breaks builds quite a bit depending on
-the .config options chosen:
+Add a new (optional) property to signal the system must enable
+the 120m_fck for OHCI so that if no EHCI ports are signalled
+then the 120m_fclk should be enabled.
 
-arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of function=
- =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-declara=
-tion]
-arch/arm/mach-omap2/control.c:257:15: error: implicit declaration of fu=
-nction =E2=80=98cpu_is_omap243x=E2=80=99 [-Werror=3Dimplicit-function-d=
-eclaration]
-arch/arm/mach-omap2/control.c:259:8: error: implicit declaration of fun=
-ction =E2=80=98cpu_is_omap44xx=E2=80=99 [-Werror=3Dimplicit-function-de=
-claration]
-=2E..
-arch/arm/mach-omap2/io.c:389:7: error: implicit declaration of function=
- =E2=80=98cpu_is_omap34xx=E2=80=99 [-Werror=3Dimplicit-function-declara=
-tion]
-arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of function=
- =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-declara=
-tion]
-=2E..
-arch/arm/mach-omap2/io.c:389:7: error: implicit declaration of function=
- =E2=80=98cpu_is_omap34xx=E2=80=99 [-Werror=3Dimplicit-function-declara=
-tion]
-arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of function=
- =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-declara=
-tion]
-=2E..
-arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of function=
- =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-declara=
-tion]
-arch/arm/mach-omap2/control.c:257:15: error: implicit declaration of fu=
-nction =E2=80=98cpu_is_omap243x=E2=80=99 [-Werror=3Dimplicit-function-d=
-eclaration]
-arch/arm/mach-omap2/control.c:259:8: error: implicit declaration of fun=
-ction =E2=80=98cpu_is_omap44xx=E2=80=99 [-Werror=3Dimplicit-function-de=
-claration]
-=2E..
-arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of function=
- =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-declara=
-tion]
+We have found no information about why this is necessary, but
+it is suspected the EHCI controller does not complete the initial
+reset sequence and therefore does not hand control of the USB
+port back.
 
-Keerthy, can you please test this with just single SoC configurations
-and run randconfig builds on this overnight.
+Signed-off-by: Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
+---
+ Documentation/devicetree/bindings/usb/omap-usb.txt | 3 +++
+ drivers/mfd/omap-usb-host.c                        | 4 ++++
+ 2 files changed, 7 insertions(+)
 
-And then we obviously need to test to make sure that this does not
-break booting on various platforms for multi SoC and single SoC
-configurations.
+diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+index 38d9bb8..fb5fea5 100644
+--- a/Documentation/devicetree/bindings/usb/omap-usb.txt
++++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+@@ -23,6 +23,9 @@ OMAP MUSB GLUE
+ Optional properties:
+  - ctrl-module : phandle of the control module this glue uses to write to
+    mailbox
++ - ti,ohci-needs-120m-fck : bool, enable the 120m ehci clock even if just
++   using ohci. Needed for AM3517 in OHCI only mode.
++
+ 
+ SOC specific device node entry
+ usb_otg_hs: usb_otg_hs@4a0ab000 {
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 1d924d1..13880cf 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -680,6 +680,10 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+ 				need_logic_fck |= true;
+ 		}
+ 
++		/* The AM3517 requries the 120m-fck active to allow the OHCI to work */
++		if (of_property_read_bool(dev->of_node, "ti,ohci-needs-120m-fck"))
++			need_logic_fck |= true;
++
+ 		if (need_logic_fck) {
+ 			omap->ehci_logic_fck = devm_clk_get(dev,
+ 							    "usbhost_120m_fck");
+-- 
+2.6.1
 
-And then you can repost, please include what all was tested.
-
-Thanks,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
