@@ -1,89 +1,132 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/4] ARM: dts: dra7: Add dt node for the sycon pcie
-Date: Tue, 13 Oct 2015 03:48:31 +0530
-Message-ID: <561C31B7.3060604@ti.com>
-References: <1442323985-29939-1-git-send-email-kishon@ti.com>
- <1442323985-29939-2-git-send-email-kishon@ti.com>
- <20151012212149.GZ23801@atomide.com> <561C2A1B.3000201@ti.com>
- <20151012220322.GF23801@atomide.com> <561C2E93.3020809@ti.com>
- <20151012221255.GG23801@atomide.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH 00/37] ARM: dts: Fix fixed regulators enable GPIO polarity
+Date: Tue, 13 Oct 2015 00:19:20 +0200
+Message-ID: <561C31E8.6000408@osg.samsung.com>
+References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20151012214654.GE23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151012221255.GG23801-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151012214654.GE23801@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello Tony,
 
-On Tuesday 13 October 2015 03:42 AM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [151012 15:09]:
->> Hi,
+On 10/12/2015 11:46 PM, Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [151012 14:17]:
+>> Hello,
 >>
->> On Tuesday 13 October 2015 03:33 AM, Tony Lindgren wrote:
->>> * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [151012 14:50]:
->>>> Hi Tony,
->>>>
->>>> On Tuesday 13 October 2015 02:51 AM, Tony Lindgren wrote:
->>>>> * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [150915 06:37]:
->>>>>> Add new device tree node for the control module register space where
->>>>>> PCIe registers are present.
->>>>>>
->>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>>>>> ---
->>>>>>  arch/arm/boot/dts/dra7.dtsi |    5 +++++
->>>>>>  1 file changed, 5 insertions(+)
->>>>>>
->>>>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>>>>> index 5d65db9..0769b5d 100644
->>>>>> --- a/arch/arm/boot/dts/dra7.dtsi
->>>>>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>>>>> @@ -154,6 +154,11 @@
->>>>>>  					compatible = "syscon";
->>>>>>  					reg = <0x1c04 0x0020>;
->>>>>>  				};
->>>>>> +
->>>>>> +				scm_conf_pcie: tisyscon@1c24 {
->>>>>> +					compatible = "syscon";
->>>>>> +					reg = <0x1c24 0x0024>;
->>>>>> +				};
->>>>>>  			};
->>>>>>  
->>>>>>  			cm_core_aon: cm_core_aon@5000 {
->>>>>
->>>>>
->>>>> Why don't you just extend the existing scm_conf1 area? This is not all pcie
->>>>> specific for scm_conf_pcie, at least for PLLEN_CONTROL, RMII_CLK_SETTING
->>>>> and MUXSEL_32K_CLKIN.
->>>>
->>>> scm_conf_pcie has only PCIe registers (it starts at 0x4A003C24).
->>>> PLLEN_CONTROL and others are at 0x4A003C14 as per
->>>> DRA75x_DRA74x_SR1.1_NDA_TRM_vW.
->>>
->>> Oh sorry I guess I was looking at a wrong address then.
->>>
->>>> Since PCIe itself has a bunch of registers for itself, thought of
->>>> creating a separate dt node. But I can extend scm_conf1 area.
->>>
->>> Why not just ioremap them then? Do these need to be shared with
->>> some other driver?
+>> While working on regulators, GPIOs and DT I noticed that many of our DT source
+>> files incorrectly describe fixed regulators. The common error patterns are
 >>
->> yeah, some are used by PCIe controller driver and some are used by PCIe
->> PHY driver.
+>> - Usage of the undefined (and never parsed) enable-active-low property
+>> - Usage of the enable-active-high property without specifying an enable GPIO
+>> - Typos in the enabl GPIO property name (gpios instead of gpio)
+>> - Mismatch between the enable-active-high property (or the lack thereof) and
+>>   the enable GPIO flags
+>>
+>> This patch series fixes those issues in all the DT sources after locating the
+>> errors using the following script.
+>>
+>> ------------------------------------------------------------------------------
+>> #!/bin/sh
+>>
+>> echo $1
+>> cat $1 | awk '
+>> BEGIN {
+>> 	open_drain = 0;
+>> 	active_high = 0;
+>> 	gpio = 0;
+>> 	flags = 0;
+>> }
+>>
+>> match($0, /([a-zA-Z0-9@_-]*) {/, ary) {
+>> 	name = ary[1];
+>> }
+>>
+>> /compatible.*"regulator-fixed"/ {
+>> 	found = 1;
+>> }
+>>
+>> /enable-active-high/ {
+>> 	active_high = 1;
+>> }
+>>
+>> /gpio-open-drain/ {
+>> 	open_drain = 1;
+>> }
+>>
+>> match($0, /gpio += <.* ([^ ]*)>/, ary) {
+>> 	gpio = 1;
+>> 	flags = ary[1];
+>> 	if (flags == 0)
+>> 		flags = "GPIO_ACTIVE_HIGH";
+>> }
+>>
+>> /}/ {
+>> 	if (found) {
+>> 		if (gpio) {
+>> 			print "\t" name ": active high " active_high " " flags " open drain " open_drain;
+>> 			if ((active_high && flags == "GPIO_ACTIVE_LOW") ||
+>> 			    (!active_high && flags == "GPIO_ACTIVE_HIGH"))
+>> 				print "WARNING: enable-active-high and flags do not match"
+>> 		} else {
+>> 			if (active_high)
+>> 				print "WARNING: active high without GPIO"
+>> 			if (open_drain)
+>> 				print "WARNING: open drain without GPIO"
+>> 		}
+>> 	}
+>>
+>> 	gpio = 0;
+>> 	found = 0;
+>> 	active_high = 0;
+>> 	open_drain = 0;
+>> 	flags = 0;
+>> }
+>> '
+>> ------------------------------------------------------------------------------
+>>
+>> All patches except for the ones touching omap3-beagle-xm and omap3-overo-base
+>> are untested as I lack test hardware.
+>>
+>> As there's no dependency between the patches touching different source files
+>> the appropriate maintainers could take their share of the patches in their
+>> tree. Alternatively I could send a single pull request after collecting all
+>> acks but that might be more complex.
 > 
-> OK makes sense to me then.
+> Nice clean-up. For omaps, there's an earlier patch posted by
+> Javier Martinez Canillas <javier@osg.samsung.com> as "[PATCH] ARM: dts: Use
+> defined GPIO constants in flags cell for OMAP2+ boards". Can you guys do some
+> cross checking and let me know which combination I should appluy for omaps?
+>
 
-Cool.
+Since Laurent's changes for OMAP are part of a bigger series and my patch
+was only for OMAP, probably makes sense for you to pick his patches and I
+can re-spin mine on top of that.
 
-Btw the driver modifications has not yet been merged, so don't merge
-these yet. I'll repost these once the driver is merged.
+BTW, I posted as a single patch since the changes were trivial but maybe
+that made handling these conflicts harder and I should split the changes
+instead, since I'll resend anyways.
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What do you prefer? a patch per SoC family (i.e: OMAP{2,3,4,5}) or patch
+per board DTS?
+ 
+> Regards,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
