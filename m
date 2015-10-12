@@ -1,8 +1,8 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 30/37] ARM: dts: omap3-beagle-xm: Fix regulator enable GPIO
+Subject: [PATCH 31/37] ARM: dts: omap3-beagle: Fix regulator enable GPIO
  polarity
-Date: Tue, 13 Oct 2015 00:12:59 +0300
-Message-ID: <1444684386-17094-31-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Tue, 13 Oct 2015 00:13:00 +0300
+Message-ID: <1444684386-17094-32-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,18 +29,18 @@ starts making use of the flags. Fix it.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm/boot/dts/omap3-beagle-xm.dts | 2 +-
+ arch/arm/boot/dts/omap3-beagle.dts | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 Cc: linux-omap@vger.kernel.org
 Cc: Benoit Cousson <bcousson@baylibre.com>
 Cc: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 7c4dca122a91..f44f17673061 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -80,7 +80,7 @@
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index a5474113cd50..0849035643fc 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -55,7 +55,7 @@
  		regulator-name = "hsusb2_vbus";
  		regulator-min-microvolt = <3300000>;
  		regulator-max-microvolt = <3300000>;
