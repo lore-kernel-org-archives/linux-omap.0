@@ -1,8 +1,8 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 01/37] ARM: dts: am437x-gp-evm: Remove unneeded regulator
+Subject: [PATCH 02/37] ARM: dts: am43xx-epos-evm: Remove unneeded regulator
  property
-Date: Tue, 13 Oct 2015 00:12:30 +0300
-Message-ID: <1444684386-17094-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Tue, 13 Oct 2015 00:12:31 +0300
+Message-ID: <1444684386-17094-3-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,24 +27,24 @@ enable GPIO is specified. Remove it.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 1 -
+ arch/arm/boot/dts/am43x-epos-evm.dts | 1 -
  1 file changed, 1 deletion(-)
 
 Cc: linux-omap@vger.kernel.org
 Cc: Benoit Cousson <bcousson@baylibre.com>
 Cc: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 84aa30c3235a..a3cd413aebf0 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -29,7 +29,6 @@
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 795d68af6df9..705048bf17c5 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -28,7 +28,6 @@
  		regulator-name = "vmmcsd_fixed";
  		regulator-min-microvolt = <3300000>;
  		regulator-max-microvolt = <3300000>;
 -		enable-active-high;
  	};
  
- 	vtt_fixed: fixedregulator-vtt {
+ 	lcd0: display {
 -- 
 2.4.9
