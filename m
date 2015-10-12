@@ -1,44 +1,28 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP/DTS: dra7/72-evm/beagle-x15: Audio
- support
-Date: Mon, 12 Oct 2015 13:57:32 -0700
-Message-ID: <20151012205732.GW23801@atomide.com>
-References: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
- <55F68A60.6050900@ti.com>
- <20150914162851.GM4215@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: am335x-wega: Clean up regulators
+Date: Mon, 12 Oct 2015 14:04:57 -0700
+Message-ID: <20151012210456.GY23801@atomide.com>
+References: <1441281607-35457-1-git-send-email-t.remmet@phytec.de>
+ <1441281607-35457-2-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20150914162851.GM4215@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+In-Reply-To: <1441281607-35457-2-git-send-email-t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150914 09:32]:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [150914 01:54]:
-> > Hi Tony,
-> > 
-> > On 08/24/2015 10:19 AM, Peter Ujfalusi wrote:
-> > > Hi,
-> > > 
-> > > this series will enable analog audio (via onboard aic310x codec) for dra7-evm,
-> > > dra72-evm and am57xx-beagle-x15 boards.
-> > > In these board McASP3 is connected to the codec and for the McASP3 we needed to
-> > > have the DMA crossbar in place since the request lines are not mapped by
-> > > default.
-> > 
-> > Did you had a chance to look at this series?
-> 
-> Looks OK to me, will look at it more once we have the fixes merged.
-> 
-> Paul may have comments on the hwmod chage, looks like you forgot
-> to Cc him on it. Can you please resend that one with Paul in Cc?
+* Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> [150903 05:03]:
+> Cleaned up the regulators on the wega board. Created a simple bus,
+> renamed the regulators according to the schematics and added missing
+> regulator on wega.
 
-Applying all the dts changes into omap-for-v4.3/dt thanks. Paul
-can pick up the hwmod change then after reviewing it.
-
-Regards,
+Applying this one into omap-for-v4.4/dt thanks.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
