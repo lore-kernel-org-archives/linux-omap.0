@@ -1,52 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
-Date: Mon, 12 Oct 2015 10:05:59 -0700
-Message-ID: <20151012170558.GF23801@atomide.com>
-References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com>
- <20150716125800.GN17550@atomide.com>
- <55E8CAE7.3010301@ti.com>
- <55F6F5FF.2060801@ti.com>
- <20150914163353.GN4215@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP: Change all cpu_is_* occurences to soc_is_*
+Date: Mon, 12 Oct 2015 10:17:16 -0700
+Message-ID: <20151012171716.GG23801@atomide.com>
+References: <1440561575-3740-1-git-send-email-j-keerthy@ti.com>
+ <55E5DE12.6070407@ti.com>
+ <20150901180347.GO4215@atomide.com>
+ <55E640ED.6070004@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150914163353.GN4215@atomide.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sakari Ailus <sakari.ailus@iki.fi>
+In-Reply-To: <55E640ED.6070004@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <a0393675@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [150914 09:37]:
-> * Suman Anna <s-anna@ti.com> [150914 09:33]:
-> > Hi Tony,
-> > 
-> > On 09/03/2015 05:34 PM, Suman Anna wrote:
-> > > Hi Sakari,
-> > > 
-> > > On 07/16/2015 07:58 AM, Tony Lindgren wrote:
-> > >> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [150716 05:57]:
-> > >>> The OMAP3 ISP is now fully supported in DT, remove its instantiation
-> > >>> from C code.
-> > >>
-> > >> Please feel to queue this along with the second patch in this series,
-> > >> this should not cause any merge conflicts:
-> > >>
-> > >> Acked-by: Tony Lindgren <tony@atomide.com>
-> > > 
-> > > Just wondering if you have already queued this, I see the v4l changes in
-> > > linux-next, but not this patch. Also, can you confirm if this series is
-> > > making it into 4.3?
-> > > 
-> > 
-> > This patch is not in 4.3-rc1, can you pick this up for the next merge
-> > window? I am gonna send out some additional cleanup patches (removing
-> > legacy mailbox and iommu pieces) on top on this patch. The second patch
-> > in this series did make it.
+* Keerthy <a0393675@ti.com> [150901 17:24]:
 > 
-> OK tagging this one for next, will apply once I'm done with fixes.
+> 
+> On Tuesday 01 September 2015 11:33 PM, Tony Lindgren wrote:
+> >* Keerthy <a0393675@ti.com> [150901 10:22]:
+> >>
+> >>
+> >>On Wednesday 26 August 2015 09:29 AM, Keerthy wrote:
+> >>>Currently apart from dra7, omap5 and amx3 all the other SoCs
+> >>>are identified using cpu_is_* functions which is not right since
+> >>>they are all SoCs(System on Chips). Hence changing the SoC
+> >>>identification code to use soc_is instead of cpu_is and keeping
+> >>>defines for cpu_is where needed. This allows us to replace the
+> >>>rest of cpu_is usage along with other fixes as needed.
+> >>
+> >>Tony,
+> >>
+> >>A Gentle ping on this.
+> >
+> >Looks good to me for v4.4. I'll apply it after some testing
+> >after -rc1.
+> 
+> Thanks Tony.
 
-Applying into omap-for-v4.4/cleanup finally thanks.
+Now with the fixes finally out of the way, applying into
+omap-for-v4.4/cleanup.
+
+Thanks,
 
 Tony
