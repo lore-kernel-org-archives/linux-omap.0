@@ -1,108 +1,66 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: musb: communication issue with more than 12 FTDI ports
-Date: Tue, 13 Oct 2015 13:22:03 -0500
-Message-ID: <87r3kyd3xw.fsf@saruman.tx.rr.com>
-References: <CAGm1_ku3d4q3jQ6ZZYaLktd182O_WY5Hvu-Z877N31e5wN2_NA@mail.gmail.com> <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/2] gpio: omap: convert to use generic irq handler
+Date: Tue, 13 Oct 2015 21:25:47 +0300
+Message-ID: <561D4CAB.1060704@ti.com>
+References: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
+ <1443209283-20781-3-git-send-email-grygorii.strashko@ti.com>
+ <CACRpkdYDrcwa+h2Lxd65RBMc-1n9CCyVDz1qjc2U1MEU2GP7hA@mail.gmail.com>
+ <560F07CC.9050205@ti.com> <alpine.DEB.2.11.1510120947220.6097@nanos>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, b-liu-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1510120947220.6097@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Dan Murphy <dmurphy@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Austin Schuh <austin@peloton-tech.com>, philipp@peloton-tech.com, linux-rt-users@vger.kernel.org, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi Thomas,
 
-Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> writes:
-> On Mon, Oct 12, 2015 at 11:34 AM, Yegor Yefremov
-> <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
->> We have a problem, when using more than 12 FTDI ports. Kernels tried:
->> 3.18.1, 4.2.3 and 4.3-rc5. SoC am335x 600MHz
->>
->> Below the USB topology:
->>
->> # lsusb -t
->> /:  Bus 02.Port 1: Dev 1, Class=3Droot_hub, Driver=3Dmusb-hdrc/1p, 480M
->> /:  Bus 01.Port 1: Dev 1, Class=3Droot_hub, Driver=3Dmusb-hdrc/1p, 480M
->>     |__ Port 1: Dev 2, If 0, Class=3D, Driver=3Dhub/4p, 480M
->>         |__ Port 1: Dev 9, If 0, Class=3D, Driver=3Dhub/4p, 480M
->>             |__ Port 1: Dev 10, If 0, Class=3D, Driver=3Dftdi_sio, 12M
->>             |__ Port 2: Dev 11, If 0, Class=3D, Driver=3Dftdi_sio, 480M
->>             |__ Port 2: Dev 11, If 1, Class=3D, Driver=3Dftdi_sio, 480M
->>             |__ Port 2: Dev 11, If 2, Class=3D, Driver=3Dftdi_sio, 480M
->>             |__ Port 2: Dev 11, If 3, Class=3D, Driver=3Dftdi_sio, 480M
->>             |__ Port 3: Dev 12, If 0, Class=3D, Driver=3Dftdi_sio, 480M
->>             |__ Port 3: Dev 12, If 1, Class=3D, Driver=3Dftdi_sio, 480M
->>             |__ Port 3: Dev 12, If 2, Class=3D, Driver=3Dftdi_sio, 480M
->>             |__ Port 3: Dev 12, If 3, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 2: Dev 4, If 0, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 2: Dev 4, If 1, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 2: Dev 4, If 2, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 2: Dev 4, If 3, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 3: Dev 7, If 0, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 3: Dev 7, If 1, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 3: Dev 7, If 2, Class=3D, Driver=3Dftdi_sio, 480M
->>         |__ Port 3: Dev 7, If 3, Class=3D, Driver=3Dftdi_sio, 480M
->>
->> When using 12 ports and performing serial test (a pair of ports is
->> connected via null-modem cable and a rather short string ca. 90
->> characters will be sent alternating at 1200 and 115200b/s, testing
->> scripts are written in Python and running as own processes per a pair
->> of ports) there are no timeouts, i.e. all sent characters will be
->> received. As soon as I open ports 13 and 14 I start to get arbitrary
->> timeouts  (from test software point of view) on all ports.
->>
->> In order to check, if ftdi_sio has primary to do with this issue, I've
->> performed the same test on a PC and PandaBoard Rev. A2 (EHCI port) and
->> there were no issues with 16 ports. So it seems to have something to
->> do with am335x + musb + number of end points.
->>
->> Any idea? Let me know, if you need our test script.
->
-> From time to time I get following warnings (4.3.0-rc5):
->
-> musb_host_rx 1915: RX1 dma busy, csr 2020
-> musb_host_rx 1915: RX4 dma busy, csr 2020
-> musb_host_rx 1915: RX7 dma busy, csr 2220
-> musb_host_rx 1915: RX1 dma busy, csr 2020
->
-> Though they are not timely related to serial test timeouts.
+On 10/12/2015 10:52 AM, Thomas Gleixner wrote:
+> Grygorii,
+> 
+> can you please provide a patch set against 4.1-RT? That stuff rejects
+> left and right.
+> 
 
-yeah, I don't think MUSB can easily handle that. IIRC, endpoint
-scheduling in MUSB is rather bad. While we have enough endpoints to
-handle this case, you might be running into some IP (or driver) issues.
+This is really not easy thing to do :( and I don't know how to do it the best way.
 
-Bin, have you ever tested this many serial devices on AM335x ?
+This patches are based on top of big set of other patches. As result we've back-ported
+mostly all GPIO patches from upstream kernel to TI's 4.1 kernel to keep things
+consistent and avoid complicated conflicts during back-porting of fixes.
+The branch linux-4.1.y-rt is continuously merged in TI's 4.1 rt-kernel.
 
-=2D-=20
-balbi
+So, on top of linux-4.1.y there is below set of patches in TI's kernel now:
+*bc6b549 gpio: omap: convert to use generic irq handler
+*d8b79f8 gpio: omap: move pm runtime in irq_chip.irq_bus_lock/sync_unlock
+c5d9d80 gpio: omap: fix static checker warning
+8e3f97d gpio: omap: Fix GPIO numbering for deferred probe
+a5fafaa gpio: omap: Fix gpiochip_add() handling for deferred probe
+*a79afac gpio: omap: fix clk_prepare/unprepare usage
+*e967fb8 gpio: omap: protect regs access in omap_gpio_irq_handler
+7f66a45 gpio: omap: fix omap2_set_gpio_debounce
+225b622 gpio: omap: switch to use platform_get_irq
+4ad92d9 gpio: omap: remove wrong irq_domain_remove usage in probe
+f76691a gpio: omap: Fix missing raw locks conversion
+*97e1a2c gpio: omap: use raw locks for locking
+7a74d02 ARM: OMAP2: Drop the concept of certain power domains not being able to lose context.
+76281a5 gpio: omap: prevent module from being unloaded while in use
+7aa88c9 gpio: omap: add missed spin_unlock_irqrestore in omap_gpio_irq_type
+79d3bc2 gpio: omap: rework omap_gpio_irq_startup to handle current pin state properly
+81dcc40 gpio: omap: rework omap_gpio_request to touch only gpio specific registers
+e44665c gpio: omap: rework omap_x_irq_shutdown to touch only irqs specific registers
+23c487f gpio: omap: fix error handling in omap_gpio_irq_type
+b328dfc gpio: omap: fix omap_gpio_free to not clean up irq configuration
+2966641 gpio: omap: Allow building as a loadable module
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+I'd very appreciate for any advice of how to better proceed with your request.
+ - I can try to apply and re-send only patches marked by '*'
+ - I can prepare branch with all above patches
+ - smth. else
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWHUvNAAoJEIaOsuA1yqRE3UoP/Rh/XLj5AkaZ1t9zBj3lvuyP
-9Bdz3alHchotrA61b4+CswCALRX/E0z0N9O1zW2YzBUqnp9KsjbvHWQqivUVKYyH
-zWkN6jp59C5n3KCnQZK3nNIjqTQcS5p9rOlQL1x54Ut+KUjc8n+HMFaFkt2XLsbV
-9rIEJa8etns6eXTMag+RwxIJBneQy01Y/fPJbO7IbkeP/QHfZgH+rVFptLoIvsI+
-7GZBRndh53SH+WmXj0RxhAETmad6GGbtVyYZl7v2xth3zaMdo5X+v91wqZj6qhOx
-+/pLsjY7z01Ouiqa0n4CGaYB+O4YT3YgLPuigPRcuNHQzAJt9fEdQcvzzy0LBzy+
-yWf/H5hljmTuJoOI/MhLqC8zAsMcsdbilD0JH0iUEPa39yu2RTlmoOhJQXf1kWAt
-nnG+cvSNt8TpGpysWsJ7VzyIiazY1gKWbKw7XhpNNsfZ82eOZNqvHwSGD1a8KzeV
-s5e78hWgKkmC/Rl2o2GFblDUNumWnU9wNUWoGEtH5/1ptQJ48RtPeUTR3yeke5E6
-vbci/qhmPsvFdQnxU+yb6lumG6EwHPwKmm++xbjZMC6vy654tzO5k6ibe6zWxVTs
-qSr7LYUmTFhCpqy9z3hkVu+CcaGB8xAZZ/cMKmDAMAGOCQvwTIy12lemCT8Iusc6
-C2+Ri3bODeairsH5VJjk
-=uKRQ
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+regards,
+-grygorii
