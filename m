@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 3/5] mtd: nand: omap2: Fix high memory dma prefetch transfer
-Date: Mon, 12 Oct 2015 20:38:56 -0500
-Message-ID: <1444700338-27582-4-git-send-email-fcooper@ti.com>
+Subject: [PATCH 4/5] ARM: dts: am437x/am33xx/omap3/dm816x: Add gpmc dma channel
+Date: Mon, 12 Oct 2015 20:38:57 -0500
+Message-ID: <1444700338-27582-5-git-send-email-fcooper@ti.com>
 References: <1444700338-27582-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444700338-27582-1-git-send-email-fcooper@ti.com>
@@ -10,50 +10,68 @@ To: linux-kernel@vger.kernel.org, rogerq@ti.com, devicetree@vger.kernel.org, lin
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Based on DMA documentation and testing using high memory buffer when
-doing dma transfers can lead to various issues including kernel
-panics.
-
-To workaround this simply use cpu copy. The amount of high memory
-buffers used are very uncommon so no noticeable performance hit should
-be seen.
+Add dma channel information to the gpmc. Although not enabled by
+default this will allow prefetch-dma to be used.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi | 2 ++
+ arch/arm/boot/dts/am4372.dtsi | 2 ++
+ arch/arm/boot/dts/dm816x.dtsi | 2 ++
+ arch/arm/boot/dts/omap3.dtsi  | 2 ++
+ 4 files changed, 8 insertions(+)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 94d11de..537be2f 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -479,17 +479,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	int ret;
- 	u32 val;
- 
--	if (addr >= high_memory) {
--		struct page *p1;
--
--		if (((size_t)addr & PAGE_MASK) !=
--			((size_t)(addr + len - 1) & PAGE_MASK))
--			goto out_copy;
--		p1 = vmalloc_to_page(addr);
--		if (!p1)
--			goto out_copy;
--		addr = page_address(p1) + ((size_t)addr & ~PAGE_MASK);
--	}
-+	if (addr >= high_memory)
-+		goto out_copy;
- 
- 	sg_init_one(&sg, addr, len);
- 	n = dma_map_sg(info->dma->device->dev, &sg, 1, dir);
-@@ -545,6 +536,7 @@ out_copy:
- 	else
- 		is_write == 0 ? omap_read_buf8(mtd, (u_char *) addr, len)
- 			: omap_write_buf8(mtd, (u_char *) addr, len);
-+
- 	return 0;
- }
- 
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index e065f21..f2d8eed 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -819,6 +819,8 @@
+ 			ti,no-idle-on-init;
+ 			reg = <0x50000000 0x2000>;
+ 			interrupts = <100>;
++			dmas = <&edma 52>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <7>;
+ 			gpmc,num-waitpins = <2>;
+ 			#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index ec8b7a3..c02061b 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -841,6 +841,8 @@
+ 		gpmc: gpmc@50000000 {
+ 			compatible = "ti,am3352-gpmc";
+ 			ti,hwmods = "gpmc";
++			dmas = <&edma 52>;
++			dma-names = "rxtx";
+ 			clocks = <&l3s_gclk>;
+ 			clock-names = "fck";
+ 			reg = <0x50000000 0x2000>;
+diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
+index 68fb444..d2e5d31 100644
+--- a/arch/arm/boot/dts/dm816x.dtsi
++++ b/arch/arm/boot/dts/dm816x.dtsi
+@@ -180,6 +180,8 @@
+ 			#address-cells = <2>;
+ 			#size-cells = <1>;
+ 			interrupts = <100>;
++			dmas = <&edma 52>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <6>;
+ 			gpmc,num-waitpins = <2>;
+ 			gpio-controller;
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 7f212b6..9dbbcf6 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -717,6 +717,8 @@
+ 			ti,hwmods = "gpmc";
+ 			reg = <0x6e000000 0x02d0>;
+ 			interrupts = <20>;
++			dmas = <&sdma 4>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <8>;
+ 			gpmc,num-waitpins = <4>;
+ 			#address-cells = <2>;
 -- 
 2.6.1
