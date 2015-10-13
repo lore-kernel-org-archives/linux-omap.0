@@ -1,7 +1,7 @@
 From: Joel Porquet <joel@porquet.org>
-Subject: [PATCH v2 1/3] arm:exynos: IRQCHIP_DECLARE macro is now accessible
-Date: Tue, 13 Oct 2015 14:56:13 +0200
-Message-ID: <1444740975-31948-2-git-send-email-joel@porquet.org>
+Subject: [PATCH v2 2/3] arm:imx: IRQCHIP_DECLARE macro is now accessible
+Date: Tue, 13 Oct 2015 14:56:14 +0200
+Message-ID: <1444740975-31948-3-git-send-email-joel@porquet.org>
 References: <1444740975-31948-1-git-send-email-joel@porquet.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -32,29 +32,33 @@ use of OF_DECLARE_2 with IRQCHIP_DECLARE.
 
 Signed-off-by: Joel Porquet <joel@porquet.org>
 ---
- arch/arm/mach-exynos/suspend.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-imx/gpc.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-exynos/suspend.c b/arch/arm/mach-exynos/suspend.c
-index e00eb39..dfb1fcf 100644
---- a/arch/arm/mach-exynos/suspend.c
-+++ b/arch/arm/mach-exynos/suspend.c
-@@ -19,6 +19,7 @@
- #include <linux/cpu_pm.h>
+diff --git a/arch/arm/mach-imx/gpc.c b/arch/arm/mach-imx/gpc.c
+index 8c4467f..c7de608 100644
+--- a/arch/arm/mach-imx/gpc.c
++++ b/arch/arm/mach-imx/gpc.c
+@@ -14,6 +14,7 @@
+ #include <linux/delay.h>
  #include <linux/io.h>
  #include <linux/irq.h>
 +#include <linux/irqchip.h>
- #include <linux/irqdomain.h>
+ #include <linux/of.h>
  #include <linux/of_address.h>
- #include <linux/err.h>
-@@ -262,7 +263,7 @@ static int __init exynos_pmu_irq_init(struct device_node *node,
+ #include <linux/of_irq.h>
+@@ -269,11 +270,7 @@ static int __init imx_gpc_init(struct device_node *node,
  	return 0;
  }
  
--#define EXYNOS_PMU_IRQ(symbol, name)	OF_DECLARE_2(irqchip, symbol, name, exynos_pmu_irq_init)
-+#define EXYNOS_PMU_IRQ(symbol, name)	IRQCHIP_DECLARE(symbol, name, exynos_pmu_irq_init)
+-/*
+- * We cannot use the IRQCHIP_DECLARE macro that lives in
+- * drivers/irqchip, so we're forced to roll our own. Not very nice.
+- */
+-OF_DECLARE_2(irqchip, imx_gpc, "fsl,imx6q-gpc", imx_gpc_init);
++IRQCHIP_DECLARE(imx_gpc, "fsl,imx6q-gpc", imx_gpc_init);
  
- EXYNOS_PMU_IRQ(exynos3250_pmu_irq, "samsung,exynos3250-pmu");
- EXYNOS_PMU_IRQ(exynos4210_pmu_irq, "samsung,exynos4210-pmu");
+ void __init imx_gpc_check_dt(void)
+ {
 -- 
 2.6.1
