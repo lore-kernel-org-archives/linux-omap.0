@@ -1,57 +1,121 @@
-From: Shawn Guo <shawnguo@kernel.org>
-Subject: Re: [PATCH v2 0/3] arm:irchip: IRQCHIP_DECLARE macro is now
- accessible
-Date: Tue, 13 Oct 2015 21:48:51 +0800
-Message-ID: <20151013134851.GA551@tiger>
-References: <1444740975-31948-1-git-send-email-joel@porquet.org>
+From: Dirk Behme <dirk.behme@gmail.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: fix initialization order of mmc block
+ devices
+Date: Tue, 13 Oct 2015 15:59:20 +0200
+Message-ID: <561D0E38.6030006@gmail.com>
+References: <1444714193-24816-1-git-send-email-hs@denx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1444740975-31948-1-git-send-email-joel@porquet.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Joel Porquet <joel@porquet.org>
-Cc: linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, kgene@kernel.org, k.kozlowski@samsung.com, kernel@pengutronix.de, tony@atomide.com, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marc Zyngier <marc.zyngier@arm.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1444714193-24816-1-git-send-email-hs@denx.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Heiko Schocher <hs@denx.de>, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-mmc@vger.kernel.org, Dirk Behme <dirk.behme@bosch.com>, Georg.Soffel@bosch-si.com, linux-omap@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 13, 2015 at 02:56:12PM +0200, Joel Porquet wrote:
-> The IRQCHIP_DECLARE macro migrated to 'include/linux/irqchip.h', maki=
-ng it
-> globally accessible.
->=20
-> See commit 91e20b5040c67c51aad88cf87db4305c5bd7f79d ("irqchip: Move
-> IRQCHIP_DECLARE macro to include/linux/irqchip.h").
->=20
-> This series of patches add inclusions of 'include/linux/irqchip.h' an=
-d
-> replaces uses of macro OF_DECLARE_2 with IRQCHIP_DECLARE for platform=
-s
-> exynos, imx and omap2.
->=20
-> I had submitted a single patch a few months ago
-> (https://lkml.org/lkml/2015/7/7/1069), but it never got merged althou=
-gh it
-> had been acked by all the subsystem maintainers. Hopefully, splitting=
- the
-> patch into these independent patches that can be applied separately s=
-hould
-> help.
->=20
-> Jo=EBl
->=20
-> Joel Porquet (3):
->   arm:exynos: IRQCHIP_DECLARE macro is now accessible
->   arm:imx: IRQCHIP_DECLARE macro is now accessible
->   arm:omap2: IRQCHIP_DECLARE macro is now accessible
->=20
->  arch/arm/mach-exynos/suspend.c       | 3 ++-
->  arch/arm/mach-imx/gpc.c              | 7 ++-----
->  arch/arm/mach-omap2/omap-wakeupgen.c | 7 ++-----
->  3 files changed, 6 insertions(+), 11 deletions(-)
+On 13.10.2015 07:29, Heiko Schocher wrote:
+> On embedded devices, often there is a combination of
+> removable mmc devices (e.g. MMC/SD cards) and hard
+> wired ones (e.g. eMMC). Depending on the hardware
+> configuration, the 'mmcblkN' node might change if
+> the removable device is available or not at boot time.
+>
+> E.g. if the removable device is attached at boot time,
+> it might become mmxblk0. And the hard wired one mmcblk1.
+> But if the removable device isn't there at boot time,
+> the hard wired one will become mmcblk0. This makes it
+> somehow difficult to hard code the root device to the
+> non-removable device and boot fast.
+>
+> Signed-off-by: Heiko Schocher <hs@denx.de>
+> ---
+> Dirk Behme tried to bring this in, last mail I found:
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-July/111022.html
+> where Dirk worked in Arnds suggestion to use the
+> "/aliases" device node"
 
-Marc sent a patch [1] doing the same thing a few days ago.
 
-Shawn
+The last attempt I remember is from last year
 
-[1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/444136
+
+http://www.spinics.net/lists/linux-mmc/msg26586.html
+
+http://www.spinics.net/lists/linux-mmc/msg26588.html
+
+
+I can't remember why this wasn't accepted, too. But maybe searching 
+the archives will help answering that.
+
+
+Best regards
+
+Dirk
+
+
+> I adapt this to the omap_hsmmc driver.
+>
+> Is there another solution for this problem?
+> Or why was this patch not accepted to mainline?
+>
+>   drivers/mmc/card/block.c      | 6 ++++--
+>   drivers/mmc/host/omap_hsmmc.c | 6 ++++++
+>   include/linux/mmc/host.h      | 3 +++
+>   3 files changed, 13 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
+> index c742cfd..62250d8 100644
+> --- a/drivers/mmc/card/block.c
+> +++ b/drivers/mmc/card/block.c
+> @@ -2106,7 +2106,8 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
+>   	struct mmc_blk_data *md;
+>   	int devidx, ret;
+>
+> -	devidx = find_first_zero_bit(dev_use, max_devices);
+> +	devidx = find_next_zero_bit(dev_use, max_devices,
+> +				    card->host->devidx);
+>   	if (devidx >= max_devices)
+>   		return ERR_PTR(-ENOSPC);
+>   	__set_bit(devidx, dev_use);
+> @@ -2124,7 +2125,8 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
+>   	 * index anymore so we keep track of a name index.
+>   	 */
+>   	if (!subname) {
+> -		md->name_idx = find_first_zero_bit(name_use, max_devices);
+> +		md->name_idx = find_next_zero_bit(name_use, max_devices,
+> +						  card->host->devidx);
+>   		__set_bit(md->name_idx, name_use);
+>   	} else
+>   		md->name_idx = ((struct mmc_blk_data *)
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 7fb0753..0b45b48 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2059,6 +2059,12 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>   	host->pbias_enabled = 0;
+>   	host->vqmmc_enabled = 0;
+>
+> +	if (pdev->dev.of_node) {
+> +		ret = of_alias_get_id(pdev->dev.of_node, "mmcblk");
+> +		if (ret >= 0)
+> +			host->mmc->devidx = ret;
+> +	}
+> +
+>   	ret = omap_hsmmc_gpio_init(mmc, host, pdata);
+>   	if (ret)
+>   		goto err_gpio;
+> diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
+> index 83b81fd..4f071681 100644
+> --- a/include/linux/mmc/host.h
+> +++ b/include/linux/mmc/host.h
+> @@ -382,6 +382,9 @@ struct mmc_host {
+>   	int			dsr_req;	/* DSR value is valid */
+>   	u32			dsr;	/* optional driver stage (DSR) value */
+>
+> +	/* preferred mmc block device index (mmcblkX) */
+> +	unsigned int		devidx;
+> +
+>   	unsigned long		private[0] ____cacheline_aligned;
+>   };
+>
+>
