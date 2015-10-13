@@ -1,54 +1,73 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Tue, 13 Oct 2015 16:37:46 +0200
-Message-ID: <20151013143746.GJ23104@pali>
-References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
- <20150713131902.GH26485@atomide.com>
- <20151012201640.GQ23801@atomide.com>
- <201510122225.12786@pali>
- <20151012204509.GT23801@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 12/17] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
+Date: Tue, 13 Oct 2015 07:53:59 -0700
+Message-ID: <20151013145359.GV23801@atomide.com>
+References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+ <1442850433-5903-13-git-send-email-sudeep.holla@arm.com>
+ <20151012202047.GR23801@atomide.com>
+ <20151012202847.GS23801@atomide.com>
+ <561CE017.7030704@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151012204509.GT23801@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <561CE017.7030704@arm.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 12 October 2015 13:45:09 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151012 13:29]:
-> > On Monday 12 October 2015 22:16:40 Tony Lindgren wrote:
-> > >=20
-> > > Pali, any news on posting an updated series with the comments
-> > > addressed in this thread? It seems that we all pretty much agree
-> > > what needs to be done.
-> >=20
-> > Tony, I'm not really sure what to do. Just wrap 4 and 5 patches int=
-o=20
-> > CONFIG_KEXEC? Or something more?
->=20
-> Well for most part your patches are fine, I think there were some
-> minor comments on the series.
->=20
-> For the CONFIG_KEXEC dependency, we should just keep the existing
-> behavior and keep /proc/atags behind CONFIG_KEXEC. That's all
-> I believe :)
->=20
-> Regards,
->=20
-> Tony
->=20
->=20
+* Sudeep Holla <sudeep.holla@arm.com> [151013 03:46]:
+> 
+> 
+> On 12/10/15 21:28, Tony Lindgren wrote:
+> >* Tony Lindgren <tony@atomide.com> [151012 13:27]:
+> >>* Sudeep Holla <sudeep.holla@arm.com> [150921 08:52]:
+> >>>The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+> >>>be left enabled so as to allow them to work as expected during the
+> >>>suspend-resume cycle, but doesn't guarantee that it will wake the system
+> >>>from a suspended state, enable_irq_wake is recommended to be used for
+> >>>the wakeup.
+> >>>
+> >>>This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+> >>>enable_irq_wake instead.
+> >>
+> >>Applying into omap-for-v4.4/cleanup thanks.
+> >
+> >Actually I don't think this does the right thing. The interrupts
+> >in the $subject patch are in the always on powerdomain, and we really
+> 
+> Agreed
+> 
+> >want them to be excluded from the suspend.
+> >
+> 
+> OK but what's wrong with this patch. At-least the name suggest it's a
+> wakeup interrupt. And using IRQF_NO_SUSPEND for the wakeup interrupt is
+> simply wrong.
 
-Ok. I will add CONFIG_KEXEC into atag patches.
+Hmm so if we have a separate always on irq controller for the wake-up events
+and we want to keep it always on and exclude it from any suspend related
+things.. Why would we not use IRQF_NO_SUSPEND on it?
 
-And there is missing documentation for these two new DT properties
-(marked as TODO in commit messages). Where to put them?
+Above you say "The IRQF_NO_SUSPEND flag is used to identify the interrupts
+that should be left enabled so as to allow them to work as expected during
+the suspend-resume cycle..." and that's exactly what we want to do here :)
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+For the dedicated wake-up interrupts, we have separate registers to enable
+and disable them. The $subject irq is the shared interrupt that allows
+making use of the pin specific wake-up interrupts, and for those yes we
+are using enable_irq_wake().
+
+> >So not applying without further explanations.
+> >
+> 
+> But I don't understand the real need for IRQF_NO_SUSPEND over wakeup APIs ?
+
+Because in the $subject case we just want to always keep it on and
+never suspend it. It's unrelated to the wakeup APIs at least for the
+omap related SoCs.
+
+Regards,
+
+Tony
