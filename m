@@ -1,97 +1,72 @@
 From: Heiko Schocher <hs@denx.de>
-Subject: [PATCH] mmc: omap_hsmmc: fix initialization order of mmc block devices
-Date: Tue, 13 Oct 2015 07:29:53 +0200
-Message-ID: <1444714193-24816-1-git-send-email-hs@denx.de>
+Subject: [PATCH] arm, omap2, sram: On HS/EMU devices, only 64K internal SRAM is available.
+Date: Tue, 13 Oct 2015 07:54:15 +0200
+Message-ID: <1444715655-30077-1-git-send-email-hs@denx.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Heiko Schocher <hs@denx.de>, Arnd Bergmann <arnd@arndb.de>, linux-mmc@vger.kernel.org, Dirk Behme <dirk.behme@bosch.com>, Georg.Soffel@bosch-si.com, linux-omap@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Heiko Schocher <hs@denx.de>, Ayoub Zaki <Ayoub.Zaki@bosch-si.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Georg.Soffel@bosch-si.com, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On embedded devices, often there is a combination of
-removable mmc devices (e.g. MMC/SD cards) and hard
-wired ones (e.g. eMMC). Depending on the hardware
-configuration, the 'mmcblkN' node might change if
-the removable device is available or not at boot time.
+Of this, secure content (including PPA) uses initial
+portion of the SRAM. This chunk is not (and shouldn't
+be) accessible from the public code.
 
-E.g. if the removable device is attached at boot time,
-it might become mmxblk0. And the hard wired one mmcblk1.
-But if the removable device isn't there at boot time,
-the hard wired one will become mmcblk0. This makes it
-somehow difficult to hard code the root device to the
-non-removable device and boot fast.
+The minimum size of this chunk (0x350) is used in this
+patch. Available size is rounded off to 63K.
+
+Both values would require a change if size of secure
+content grows beyond 0x350.
 
 Signed-off-by: Heiko Schocher <hs@denx.de>
+Signed-off-by: Ayoub Zaki <Ayoub.Zaki@bosch-si.com>
 ---
-Dirk Behme tried to bring this in, last mail I found:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-July/111022.html
-where Dirk worked in Arnds suggestion to use the
-"/aliases" device node"
 
-I adapt this to the omap_hsmmc driver.
+ arch/arm/mach-omap2/sram.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-Is there another solution for this problem?
-Or why was this patch not accepted to mainline?
-
- drivers/mmc/card/block.c      | 6 ++++--
- drivers/mmc/host/omap_hsmmc.c | 6 ++++++
- include/linux/mmc/host.h      | 3 +++
- 3 files changed, 13 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
-index c742cfd..62250d8 100644
---- a/drivers/mmc/card/block.c
-+++ b/drivers/mmc/card/block.c
-@@ -2106,7 +2106,8 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
- 	struct mmc_blk_data *md;
- 	int devidx, ret;
+diff --git a/arch/arm/mach-omap2/sram.c b/arch/arm/mach-omap2/sram.c
+index cd488b8..2e7c00f 100644
+--- a/arch/arm/mach-omap2/sram.c
++++ b/arch/arm/mach-omap2/sram.c
+@@ -47,6 +47,28 @@
  
--	devidx = find_first_zero_bit(dev_use, max_devices);
-+	devidx = find_next_zero_bit(dev_use, max_devices,
-+				    card->host->devidx);
- 	if (devidx >= max_devices)
- 		return ERR_PTR(-ENOSPC);
- 	__set_bit(devidx, dev_use);
-@@ -2124,7 +2125,8 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
- 	 * index anymore so we keep track of a name index.
- 	 */
- 	if (!subname) {
--		md->name_idx = find_first_zero_bit(name_use, max_devices);
-+		md->name_idx = find_next_zero_bit(name_use, max_devices,
-+						  card->host->devidx);
- 		__set_bit(md->name_idx, name_use);
- 	} else
- 		md->name_idx = ((struct mmc_blk_data *)
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 7fb0753..0b45b48 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2059,6 +2059,12 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	host->pbias_enabled = 0;
- 	host->vqmmc_enabled = 0;
+ #define GP_DEVICE		0x300
  
-+	if (pdev->dev.of_node) {
-+		ret = of_alias_get_id(pdev->dev.of_node, "mmcblk");
-+		if (ret >= 0)
-+			host->mmc->devidx = ret;
-+	}
++/**
++ * Size of chunk used by secure content in the HS/EMU devices.
++ *
++ * This size is not fixed. It depends upon the implementation of PPA.
++ * May need to be modified if the size grows.
++ */
++#define AM33XX_HS_HEADER_SIZE   0x0350
 +
- 	ret = omap_hsmmc_gpio_init(mmc, host, pdata);
- 	if (ret)
- 		goto err_gpio;
-diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
-index 83b81fd..4f071681 100644
---- a/include/linux/mmc/host.h
-+++ b/include/linux/mmc/host.h
-@@ -382,6 +382,9 @@ struct mmc_host {
- 	int			dsr_req;	/* DSR value is valid */
- 	u32			dsr;	/* optional driver stage (DSR) value */
- 
-+	/* preferred mmc block device index (mmcblkX) */
-+	unsigned int		devidx;
++/**
++ * Start of public SRAM on HS/EMU devices.
++ */
++#define AM33XX_SRAM_PA		0x40300000
++#define AM33XX_SRAM_PUB_PA	(AM33XX_SRAM_PA + AM33XX_HS_HEADER_SIZE)
 +
- 	unsigned long		private[0] ____cacheline_aligned;
- };
++/**
++ * Size of public SRAM available on HS/EMU devices.
++ *
++ * This size also depends upon AM33XX_HS_HEADER_SIZE.
++ * Current value is derived from nearest round-off.
++ */
++#define AM33XX_SRAM_PUB_SIZE		0xfc00	/* 63K */
++
+ #define ROUND_DOWN(value,boundary)	((value) & (~((boundary)-1)))
  
+ static unsigned long omap_sram_start;
+@@ -99,6 +121,9 @@ static void __init omap_detect_sram(void)
+ 			} else {
+ 				omap_sram_size = 0x8000; /* 32K */
+ 			}
++		} else if (soc_is_am33xx()) {
++			omap_sram_start = AM33XX_SRAM_PUB_PA;
++			omap_sram_size  = AM33XX_SRAM_PUB_SIZE;
+ 		} else {
+ 			omap_sram_start = OMAP2_SRAM_PUB_PA;
+ 			omap_sram_size = 0x800; /* 2K */
 -- 
 2.1.0
