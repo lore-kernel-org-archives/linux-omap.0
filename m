@@ -1,115 +1,97 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP: Change all cpu_is_* occurences to soc_is_*
-Date: Tue, 13 Oct 2015 09:48:28 +0530
-Message-ID: <561C8614.8080402@ti.com>
-References: <1440561575-3740-1-git-send-email-j-keerthy@ti.com>
- <55E5DE12.6070407@ti.com> <20150901180347.GO4215@atomide.com>
- <55E640ED.6070004@ti.com> <20151012171716.GG23801@atomide.com>
- <20151012172941.GH23801@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Heiko Schocher <hs@denx.de>
+Subject: [PATCH] mmc: omap_hsmmc: fix initialization order of mmc block devices
+Date: Tue, 13 Oct 2015 07:29:53 +0200
+Message-ID: <1444714193-24816-1-git-send-email-hs@denx.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151012172941.GH23801@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk
+To: linux-kernel@vger.kernel.org
+Cc: Heiko Schocher <hs@denx.de>, Arnd Bergmann <arnd@arndb.de>, linux-mmc@vger.kernel.org, Dirk Behme <dirk.behme@bosch.com>, Georg.Soffel@bosch-si.com, linux-omap@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+On embedded devices, often there is a combination of
+removable mmc devices (e.g. MMC/SD cards) and hard
+wired ones (e.g. eMMC). Depending on the hardware
+configuration, the 'mmcblkN' node might change if
+the removable device is available or not at boot time.
 
+E.g. if the removable device is attached at boot time,
+it might become mmxblk0. And the hard wired one mmcblk1.
+But if the removable device isn't there at boot time,
+the hard wired one will become mmcblk0. This makes it
+somehow difficult to hard code the root device to the
+non-removable device and boot fast.
 
-On Monday 12 October 2015 10:59 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [151012 10:17]:
->> * Keerthy <a0393675@ti.com> [150901 17:24]:
->>>
->>>
->>> On Tuesday 01 September 2015 11:33 PM, Tony Lindgren wrote:
->>>> * Keerthy <a0393675@ti.com> [150901 10:22]:
->>>>>
->>>>>
->>>>> On Wednesday 26 August 2015 09:29 AM, Keerthy wrote:
->>>>>> Currently apart from dra7, omap5 and amx3 all the other SoCs
->>>>>> are identified using cpu_is_* functions which is not right since
->>>>>> they are all SoCs(System on Chips). Hence changing the SoC
->>>>>> identification code to use soc_is instead of cpu_is and keeping
->>>>>> defines for cpu_is where needed. This allows us to replace the
->>>>>> rest of cpu_is usage along with other fixes as needed.
->>>>>
->>>>> Tony,
->>>>>
->>>>> A Gentle ping on this.
->>>>
->>>> Looks good to me for v4.4. I'll apply it after some testing
->>>> after -rc1.
->>>
->>> Thanks Tony.
->>
->> Now with the fixes finally out of the way, applying into
->> omap-for-v4.4/cleanup.
->
-> Uhh actually not applying. This breaks builds quite a bit depending o=
-n
-> the .config options chosen:
->
-> arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of functi=
-on =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
-> arch/arm/mach-omap2/control.c:257:15: error: implicit declaration of =
-function =E2=80=98cpu_is_omap243x=E2=80=99 [-Werror=3Dimplicit-function=
--declaration]
-> arch/arm/mach-omap2/control.c:259:8: error: implicit declaration of f=
-unction =E2=80=98cpu_is_omap44xx=E2=80=99 [-Werror=3Dimplicit-function-=
-declaration]
-> ...
-> arch/arm/mach-omap2/io.c:389:7: error: implicit declaration of functi=
-on =E2=80=98cpu_is_omap34xx=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
-> arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of functi=
-on =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
-> ...
-> arch/arm/mach-omap2/io.c:389:7: error: implicit declaration of functi=
-on =E2=80=98cpu_is_omap34xx=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
-> arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of functi=
-on =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
-> ...
-> arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of functi=
-on =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
-> arch/arm/mach-omap2/control.c:257:15: error: implicit declaration of =
-function =E2=80=98cpu_is_omap243x=E2=80=99 [-Werror=3Dimplicit-function=
--declaration]
-> arch/arm/mach-omap2/control.c:259:8: error: implicit declaration of f=
-unction =E2=80=98cpu_is_omap44xx=E2=80=99 [-Werror=3Dimplicit-function-=
-declaration]
-> ...
-> arch/arm/mach-omap2/io.c:767:6: error: implicit declaration of functi=
-on =E2=80=98cpu_is_omap24xx=E2=80=99 [-Werror=3Dimplicit-function-decla=
-ration]
->
-> Keerthy, can you please test this with just single SoC configurations
-> and run randconfig builds on this overnight.
+Signed-off-by: Heiko Schocher <hs@denx.de>
+---
+Dirk Behme tried to bring this in, last mail I found:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-July/111022.html
+where Dirk worked in Arnds suggestion to use the
+"/aliases" device node"
 
-I will do that Tony. I tested omap2plus_defconfig and boot tested on=20
-multiple platforms.
+I adapt this to the omap_hsmmc driver.
 
->
-> And then we obviously need to test to make sure that this does not
-> break booting on various platforms for multi SoC and single SoC
-> configurations.
+Is there another solution for this problem?
+Or why was this patch not accepted to mainline?
 
-Okay.
+ drivers/mmc/card/block.c      | 6 ++++--
+ drivers/mmc/host/omap_hsmmc.c | 6 ++++++
+ include/linux/mmc/host.h      | 3 +++
+ 3 files changed, 13 insertions(+), 2 deletions(-)
 
->
-> And then you can repost, please include what all was tested.
-
-Sure.
-
->
-> Thanks,
->
-> Tony
->
+diff --git a/drivers/mmc/card/block.c b/drivers/mmc/card/block.c
+index c742cfd..62250d8 100644
+--- a/drivers/mmc/card/block.c
++++ b/drivers/mmc/card/block.c
+@@ -2106,7 +2106,8 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
+ 	struct mmc_blk_data *md;
+ 	int devidx, ret;
+ 
+-	devidx = find_first_zero_bit(dev_use, max_devices);
++	devidx = find_next_zero_bit(dev_use, max_devices,
++				    card->host->devidx);
+ 	if (devidx >= max_devices)
+ 		return ERR_PTR(-ENOSPC);
+ 	__set_bit(devidx, dev_use);
+@@ -2124,7 +2125,8 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
+ 	 * index anymore so we keep track of a name index.
+ 	 */
+ 	if (!subname) {
+-		md->name_idx = find_first_zero_bit(name_use, max_devices);
++		md->name_idx = find_next_zero_bit(name_use, max_devices,
++						  card->host->devidx);
+ 		__set_bit(md->name_idx, name_use);
+ 	} else
+ 		md->name_idx = ((struct mmc_blk_data *)
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 7fb0753..0b45b48 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2059,6 +2059,12 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	host->pbias_enabled = 0;
+ 	host->vqmmc_enabled = 0;
+ 
++	if (pdev->dev.of_node) {
++		ret = of_alias_get_id(pdev->dev.of_node, "mmcblk");
++		if (ret >= 0)
++			host->mmc->devidx = ret;
++	}
++
+ 	ret = omap_hsmmc_gpio_init(mmc, host, pdata);
+ 	if (ret)
+ 		goto err_gpio;
+diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
+index 83b81fd..4f071681 100644
+--- a/include/linux/mmc/host.h
++++ b/include/linux/mmc/host.h
+@@ -382,6 +382,9 @@ struct mmc_host {
+ 	int			dsr_req;	/* DSR value is valid */
+ 	u32			dsr;	/* optional driver stage (DSR) value */
+ 
++	/* preferred mmc block device index (mmcblkX) */
++	unsigned int		devidx;
++
+ 	unsigned long		private[0] ____cacheline_aligned;
+ };
+ 
+-- 
+2.1.0
