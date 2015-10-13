@@ -1,73 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 12/17] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
-Date: Tue, 13 Oct 2015 07:53:59 -0700
-Message-ID: <20151013145359.GV23801@atomide.com>
-References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
- <1442850433-5903-13-git-send-email-sudeep.holla@arm.com>
- <20151012202047.GR23801@atomide.com>
- <20151012202847.GS23801@atomide.com>
- <561CE017.7030704@arm.com>
+From: Shawn Guo <shawnguo@kernel.org>
+Subject: Re: [PATCH 00/37] ARM: dts: Fix fixed regulators enable GPIO polarity
+Date: Tue, 13 Oct 2015 23:09:32 +0800
+Message-ID: <20151013150932.GD584@tiger>
+References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20151013140946.GB584@tiger>
+ <1561402.NmbcA6rYT5@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <561CE017.7030704@arm.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1561402.NmbcA6rYT5@avalon>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Sascha Hauer <kernel@pengutronix.de>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sudeep Holla <sudeep.holla@arm.com> [151013 03:46]:
+On Tue, Oct 13, 2015 at 05:17:24PM +0300, Laurent Pinchart wrote:
+> Hi Shawn,
 > 
+> On Tuesday 13 October 2015 22:09:46 Shawn Guo wrote:
+> > On Tue, Oct 13, 2015 at 12:12:29AM +0300, Laurent Pinchart wrote:
+> > > Laurent Pinchart (37):
+> > ...
+> > 
+> > >   ARM: imx6sx-sdb: Fix typo in regulator enable GPIO property
+> > 
+> > ...
+> > 
+> > >   ARM: dts: imx6qdl-tx6: Fix regulator enable GPIO polarity
+> > 
+> > ...
+> > 
+> > >   ARM: dts: imx23-evk: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx23-stmp378x_devb: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx25-pdk: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx28-cfa10036: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx28-evk: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx28-m28cu3: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx28-m28evk: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx28-sps1: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx28-tx28: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx53-m53evk: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx53-mba53: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx53-tx53: Fix regulator enable GPIO polarity
+> > >   ARM: dts: imx6q-dmo-edmqmx6: Fix regulator enable GPIO polarity
+> > 
+> > Applied these 15 patches, thanks.
 > 
-> On 12/10/15 21:28, Tony Lindgren wrote:
-> >* Tony Lindgren <tony@atomide.com> [151012 13:27]:
-> >>* Sudeep Holla <sudeep.holla@arm.com> [150921 08:52]:
-> >>>The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
-> >>>be left enabled so as to allow them to work as expected during the
-> >>>suspend-resume cycle, but doesn't guarantee that it will wake the system
-> >>>from a suspended state, enable_irq_wake is recommended to be used for
-> >>>the wakeup.
-> >>>
-> >>>This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
-> >>>enable_irq_wake instead.
-> >>
-> >>Applying into omap-for-v4.4/cleanup thanks.
-> >
-> >Actually I don't think this does the right thing. The interrupts
-> >in the $subject patch are in the always on powerdomain, and we really
-> 
-> Agreed
-> 
-> >want them to be excluded from the suspend.
-> >
-> 
-> OK but what's wrong with this patch. At-least the name suggest it's a
-> wakeup interrupt. And using IRQF_NO_SUSPEND for the wakeup interrupt is
-> simply wrong.
+> There's ongoing discussions regarding whether this is the right thing to do. 
+> Please see http://www.spinics.net/lists/arm-kernel/msg451724.html. It's thus a 
+> bit early to apply the patches at this point I'm afraid.
 
-Hmm so if we have a separate always on irq controller for the wake-up events
-and we want to keep it always on and exclude it from any suspend related
-things.. Why would we not use IRQF_NO_SUSPEND on it?
+Okay, dropped them except the first one which fixes a typo for
+imx6sx-sdb.
 
-Above you say "The IRQF_NO_SUSPEND flag is used to identify the interrupts
-that should be left enabled so as to allow them to work as expected during
-the suspend-resume cycle..." and that's exactly what we want to do here :)
-
-For the dedicated wake-up interrupts, we have separate registers to enable
-and disable them. The $subject irq is the shared interrupt that allows
-making use of the pin specific wake-up interrupts, and for those yes we
-are using enable_irq_wake().
-
-> >So not applying without further explanations.
-> >
-> 
-> But I don't understand the real need for IRQF_NO_SUSPEND over wakeup APIs ?
-
-Because in the $subject case we just want to always keep it on and
-never suspend it. It's unrelated to the wakeup APIs at least for the
-omap related SoCs.
-
-Regards,
-
-Tony
+Shawn
