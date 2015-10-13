@@ -1,113 +1,69 @@
-From: Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
-Subject: Re: [PATCH] mfd: omap-usb-host: AM3715 OHCI needs 120m functional
- clock
-Date: Tue, 13 Oct 2015 09:50:06 +0100
-Message-ID: <561CC5BE.8040708@codethink.co.uk>
-References: <1444671232-10253-1-git-send-email-ben.dooks@codethink.co.uk> <20151012174505.GJ23801@atomide.com> <561BF97B.2010501@codethink.co.uk> <20151012191948.GM23801@atomide.com> <561CBF7F.7020705@codethink.co.uk> <561CC4C7.8020408@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 11/25] ARM/dmaengine: edma: Merge the two drivers under
+ drivers/dma/
+Date: Tue, 13 Oct 2015 11:58:33 +0300
+Message-ID: <561CC7B9.8000201@ti.com>
+References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+ <1443088932-21731-12-git-send-email-peter.ujfalusi@ti.com>
+ <20151012160024.GF27370@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <561CC4C7.8020408-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-81qHHgoATdFT9dQujB1mzip2UmYkHbXO@public.gmane.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151012160024.GF27370@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 13/10/15 09:45, Roger Quadros wrote:
-> Ben,
-> 
-> On 13/10/15 11:23, Ben Dooks wrote:
->> On 12/10/15 20:19, Tony Lindgren wrote:
->>> * Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org> [151012 11:22]:
->>>> On 12/10/15 18:45, Tony Lindgren wrote:
->>>>> * Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org> [151012 10:38]:
->>>>>> The AM3715 OHCI controller will not function without the EHCI
->>>>>> unit's 120m fclk being enabled. If all the ports in the system
->>>>>> are set to OHCI then the 120m_fclk will not get enabled and no
->>>>>> devices are detected.
->>>>>>
->>>>>> Add a new (optional) property to signal the system must enable
->>>>>> the 120m_fck for OHCI so that if no EHCI ports are signalled
->>>>>> then the 120m_fclk should be enabled.
->>>>>>
->>>>>> We have found no information about why this is necessary, but
->>>>>> it is suspected the EHCI controller does not complete the initial
->>>>>> reset sequence and therefore does not hand control of the USB
->>>>>> port back.
->>>>>>
->>>>>> Signed-off-by: Ben Dooks <ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
->>>>>> ---
->>>>>>  Documentation/devicetree/bindings/usb/omap-usb.txt | 3 +++
->>>>>>  drivers/mfd/omap-usb-host.c                        | 4 ++++
->>>>>>  2 files changed, 7 insertions(+)
->>>>>>
->>>>>> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
->>>>>> index 38d9bb8..fb5fea5 100644
->>>>>> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
->>>>>> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
->>>>>> @@ -23,6 +23,9 @@ OMAP MUSB GLUE
->>>>>>  Optional properties:
->>>>>>   - ctrl-module : phandle of the control module this glue uses to write to
->>>>>>     mailbox
->>>>>> + - ti,ohci-needs-120m-fck : bool, enable the 120m ehci clock even if just
->>>>>> +   using ohci. Needed for AM3517 in OHCI only mode.
->>>>>> +
->>>>>>  
->>>>>>  SOC specific device node entry
->>>>>>  usb_otg_hs: usb_otg_hs@4a0ab000 {
->>>>>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
->>>>>> index 1d924d1..13880cf 100644
->>>>>> --- a/drivers/mfd/omap-usb-host.c
->>>>>> +++ b/drivers/mfd/omap-usb-host.c
->>>>>> @@ -680,6 +680,10 @@ static int usbhs_omap_probe(struct platform_device *pdev)
->>>>>>  				need_logic_fck |= true;
->>>>>>  		}
->>>>>>  
->>>>>> +		/* The AM3517 requries the 120m-fck active to allow the OHCI to work */
->>>>>> +		if (of_property_read_bool(dev->of_node, "ti,ohci-needs-120m-fck"))
->>>>>> +			need_logic_fck |= true;
->>>>>> +
->>>>>>  		if (need_logic_fck) {
->>>>>>  			omap->ehci_logic_fck = devm_clk_get(dev,
->>>>>>  							    "usbhost_120m_fck");
->>>>>
->>>>> Hmm why not just use the standard device tree clocks property and then do
->>>>> clk_get_rate() on the clock?
->>>>
->>>> I don't see that helps enabling the clock. The code decideds if
->>>> no EHCI ports in use that it doesn't need to enable the EHCI fclk.
->>>
->>> Right, you need to do clk_prepare_enable() in it first? :)
->>
->> No, if that was the case the driver would never work for the EHCI case.
->>
->> The issue is:
->>
->> 1) All ports on the system are set to OHCI
->> 2) The omap-usb-host.c does not touch usbhost_120m_fck if no EHCI ports
->> 3) The OHCI fails to detect any devices due to point 2.
->>
-> 
-> Instead of your existing approach why not just modify the preceeding
-> if condition that sets need_logic_fck to suit the OHCI case.
-> 
-> That way you don't need to add a new DT binding.
-> 
-> The old assumption was that 120m_fck logic clock is only needed for
-> EHCI mode but it looks like OHCI mode needs it as well.
-> 
-> You should also rename omap->ehci_logic_fck to omap->hci_logic_fck
-> as it is no longer ehci specific.
+On 10/12/2015 07:00 PM, Vinod Koul wrote:
+> On Thu, Sep 24, 2015 at 01:01:58PM +0300, Peter Ujfalusi wrote:
+>> Move the code out from arch/arm/common and merge it inside of the dm=
+aengine
+>> driver.
+>> This change is done with as minimal change to the code as possible t=
+o avoid
+>> any possibilities to introducing regression.
+>=20
+> Is this a pure move patch or code has been modified, if latter am
+> disappointed that existing code style issue have not been fixed
 
-Thanks, will go and have a look at the manual later as didn't see two
-separate 120m clocks when looking.
+Yes, it is mostly code move, I have done minimal changes only needed to=
+ get
+the moved code working in the new location.
+Patch 13 in this series will go through the file and will fix up most (=
+I hope
+all) of the outstanding coding style issues.
+At this point I wanted to have as small change as possible.
+
+>> +static inline void edma_write(struct edma_cc *ecc, int offset, int =
+val)
+>> +{
+>> +	__raw_writel(val, ecc->base + offset);
+>> +}
+>> +static inline void edma_modify(struct edma_cc *ecc, int offset, uns=
+igned and,
+>> +			       unsigned or)
+>=20
+> This looks bad on my 80 char screen, and few more places below
+>=20
+>> +{
+>> +	unsigned val =3D edma_read(ecc, offset);
+>=20
+> checkpatch should have asked you to add empty line here, many places =
+below
+> too
+>=20
+>> +	val &=3D and;
+>> +	val |=3D or;
+>> +	edma_write(ecc, offset, val);
+>> +}
+>=20
+> empty line here and few more places
+>=20
+> More later :)
+>=20
 
 
--- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+P=E9ter
