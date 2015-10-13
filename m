@@ -1,45 +1,53 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 11/25] ARM/dmaengine: edma: Merge the two drivers under
- drivers/dma/
-Date: Tue, 13 Oct 2015 13:39:07 +0300
-Message-ID: <561CDF4B.3050208@ti.com>
-References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
- <1443088932-21731-12-git-send-email-peter.ujfalusi@ti.com>
- <20151012160024.GF27370@localhost> <561CC7B9.8000201@ti.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH 12/17] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
+Date: Tue, 13 Oct 2015 11:42:31 +0100
+Message-ID: <561CE017.7030704@arm.com>
+References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+ <1442850433-5903-13-git-send-email-sudeep.holla@arm.com>
+ <20151012202047.GR23801@atomide.com> <20151012202847.GS23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561CC7B9.8000201@ti.com>
+In-Reply-To: <20151012202847.GS23801@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/13/2015 11:58 AM, Peter Ujfalusi wrote:
-> On 10/12/2015 07:00 PM, Vinod Koul wrote:
->> On Thu, Sep 24, 2015 at 01:01:58PM +0300, Peter Ujfalusi wrote:
->>> Move the code out from arch/arm/common and merge it inside of the d=
-maengine
->>> driver.
->>> This change is done with as minimal change to the code as possible =
-to avoid
->>> any possibilities to introducing regression.
+
+
+On 12/10/15 21:28, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [151012 13:27]:
+>> * Sudeep Holla <sudeep.holla@arm.com> [150921 08:52]:
+>>> The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+>>> be left enabled so as to allow them to work as expected during the
+>>> suspend-resume cycle, but doesn't guarantee that it will wake the system
+>>> from a suspended state, enable_irq_wake is recommended to be used for
+>>> the wakeup.
+>>>
+>>> This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+>>> enable_irq_wake instead.
 >>
->> Is this a pure move patch or code has been modified, if latter am
->> disappointed that existing code style issue have not been fixed
->=20
-> Yes, it is mostly code move, I have done minimal changes only needed =
-to get
-> the moved code working in the new location.
-> Patch 13 in this series will go through the file and will fix up most=
- (I hope
-> all) of the outstanding coding style issues.
-> At this point I wanted to have as small change as possible.
+>> Applying into omap-for-v4.4/cleanup thanks.
+>
+> Actually I don't think this does the right thing. The interrupts
+> in the $subject patch are in the always on powerdomain, and we really
 
-But fair enough, I will resend the series with checkpatch fixes done fo=
-r this
-patch.
+Agreed
 
---=20
-P=E9ter
+> want them to be excluded from the suspend.
+>
+
+OK but what's wrong with this patch. At-least the name suggest it's a
+wakeup interrupt. And using IRQF_NO_SUSPEND for the wakeup interrupt is
+simply wrong.
+
+> So not applying without further explanations.
+>
+
+But I don't understand the real need for IRQF_NO_SUSPEND over wakeup APIs ?
+
+-- 
+Regards,
+Sudeep
