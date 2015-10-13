@@ -1,115 +1,95 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 27/27] ARM: dts: omap3: Fix gpmc and NAND nodes
-Date: Tue, 13 Oct 2015 08:18:33 -0700
-Message-ID: <20151013151832.GW23801@atomide.com>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
- <1442588029-13769-28-git-send-email-rogerq@ti.com>
- <20151013004335.GU23801@atomide.com>
- <561CA4C3.4@ti.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH 12/17] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
+Date: Tue, 13 Oct 2015 16:20:15 +0100
+Message-ID: <561D212F.3050603@arm.com>
+References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+ <1442850433-5903-13-git-send-email-sudeep.holla@arm.com>
+ <20151012202047.GR23801@atomide.com> <20151012202847.GS23801@atomide.com>
+ <561CE017.7030704@arm.com> <20151013145359.GV23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <561CA4C3.4-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151013145359.GV23801@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [151012 23:33]:
-> On 13/10/15 03:43, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [150918 08:00]:
-> >> Add compatible id, GPMC register resource and interrupt
-> >> resource to NAND controller nodes.
-> >>
-> >> The GPMC driver now implements gpiochip and irqchip so
-> >> enable gpio-controller and interrupt-controller properties.
-> >>
-> >> With this the interrupt parent of NAND node changes so fix it
-> >> accordingly.
-> > ...
-> >> --- a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-> >> +++ b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-> >> @@ -35,11 +35,14 @@
-> >>  };
-> >>  
-> >>  &gpmc {
-> >> -	ranges = <0 0 0x00000000 0x1000000>;	/* CS0: 16MB for NAND */
-> >> +	ranges = <0 0 0x08000000 0x1000000>;	/* CS0: 16MB for NAND */
-> >>  
-> >>  	nand@0,0 {
-> >> -		linux,mtd-name = "micron,mt29f4g16abbda3w";
-> >> +		compatible = "ti,omap2-nand";
-> >>  		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
-> >> +		interrupt-parent = <&intc>;
-> >> +		interrupts = <20>;
-> >> +		linux,mtd-name = "micron,mt29f4g16abbda3w";
-> >>  		nand-bus-width = <16>;
-> >>  		ti,nand-ecc-opt = "bch8";
-> >>  		gpmc,sync-clk-ps = <0>;
-> > 
-> > At least torpedo breaks for NFSroot as NAND now overlaps with
-> > Ethernet.. What's the policy you have for moving the addresses
-> > around?
-> 
-> For OMAP3 I intended to use 0x30000000 for NAND but incorrectly
-> used 0x08000000 for the torpedo.
 
-Might be worth adding some documentation of suggested standardized
-mappings.. For most of theme we could just add them as 16MB chunks,
-then reserve some larger area for NOR?
 
-> Does setting it to 0x30000000 work? If not what is the original
-> NAND address for this board?
+On 13/10/15 15:53, Tony Lindgren wrote:
+> * Sudeep Holla <sudeep.holla@arm.com> [151013 03:46]:
+>>
+>>
+>> On 12/10/15 21:28, Tony Lindgren wrote:
+>>> * Tony Lindgren <tony@atomide.com> [151012 13:27]:
+>>>> * Sudeep Holla <sudeep.holla@arm.com> [150921 08:52]:
+>>>>> The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+>>>>> be left enabled so as to allow them to work as expected during the
+>>>>> suspend-resume cycle, but doesn't guarantee that it will wake the system
+>>>> >from a suspended state, enable_irq_wake is recommended to be used for
+>>>>> the wakeup.
+>>>>>
+>>>>> This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+>>>>> enable_irq_wake instead.
+>>>>
+>>>> Applying into omap-for-v4.4/cleanup thanks.
+>>>
+>>> Actually I don't think this does the right thing. The interrupts
+>>> in the $subject patch are in the always on powerdomain, and we really
+>>
+>> Agreed
+>>
+>>> want them to be excluded from the suspend.
+>>>
+>>
+>> OK but what's wrong with this patch. At-least the name suggest it's a
+>> wakeup interrupt. And using IRQF_NO_SUSPEND for the wakeup interrupt is
+>> simply wrong.
+>
+> Hmm so if we have a separate always on irq controller for the wake-up events
+> and we want to keep it always on and exclude it from any suspend related
+> things.. Why would we not use IRQF_NO_SUSPEND on it?
+>
+> Above you say "The IRQF_NO_SUSPEND flag is used to identify the interrupts
+> that should be left enabled so as to allow them to work as expected during
+> the suspend-resume cycle..." and that's exactly what we want to do here :)
+>
 
-The u-boot addresses are probably what were used in the .dts* files.
-Setting NAND to 0x30000000 is not enough though, looks like there's
-a bug where the logicpd-torpedo-37xx-devkit.dts ranges is missing
-the NAND range in logicpd-torpedo-som.dtsi. Something like the
-patch below seems to make things work again, might be worth
-checking what ranges make sense to standardize on though. Please
-feel free to fold it into your patches.
+OK if these interrupts meet that criteria to use IRQF_NO_SUSPEND, then
+it should be fine, my earlier argument was based on the assumption that
+it's just another wakeup interrupt.
 
-> > There may be other similar cases to check too.
-> 
-> Just checked that all other OMAP3 boards I've set to 0x30000000
-> if they were 0x0.
+> For the dedicated wake-up interrupts, we have separate registers to enable
+> and disable them. The $subject irq is the shared interrupt that allows
+> making use of the pin specific wake-up interrupts, and for those yes we
+> are using enable_irq_wake().
+>
 
-Do you want to reserve a large chunk for NOR at cs0 or what's
-the reason for picking 0x30000000 for NAND?
+If it's already take care, then fine. I am just hunting all the misuse
+of IRQF_NO_SUSPEND flag especially as wakeup source and fixing them
 
-I guess NOR can be also on other chipselects.. Not sure we can
-standardize on any specific partition scheme?
+>>> So not applying without further explanations.
+>>>
+>>
+>> But I don't understand the real need for IRQF_NO_SUSPEND over wakeup APIs ?
+>
+> Because in the $subject case we just want to always keep it on and
+> never suspend it. It's unrelated to the wakeup APIs at least for the
+> omap related SoCs.
+>
 
-Regards,
+OK, understood now. Thanks
 
-Tony
-
-8< --------------------
---- a/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-+++ b/arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts
-@@ -73,7 +73,8 @@
- };
- 
- &gpmc {
--	ranges = <1 0 0x08000000 0x1000000>;	/* CS1: 16MB for LAN9221 */
-+	ranges = <0 0 0x30000000 0x1000000	/* CS0: 16MB for NAND */
-+		  1 0 0x2c000000 0x1000000>;	/* CS1: 16MB for LAN9221 */
- 
- 	ethernet@gpmc {
- 		pinctrl-names = "default";
---- a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-+++ b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-@@ -35,7 +35,7 @@
- };
- 
- &gpmc {
--	ranges = <0 0 0x08000000 0x1000000>;	/* CS0: 16MB for NAND */
-+	ranges = <0 0 0x30000000 0x1000000>;	/* CS0: 16MB for NAND */
- 
- 	nand@0,0 {
- 		compatible = "ti,omap2-nand";
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Sudeep
