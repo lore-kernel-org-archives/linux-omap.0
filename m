@@ -1,46 +1,57 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH] ARM: DRA7: hwmod: Remove elm address space from hwmod data
-Date: Tue, 13 Oct 2015 08:44:34 -0500
-Message-ID: <1444743874-4454-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: paul@pwsan.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, rogerq@ti.com, nm@ti.com
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+From: Shawn Guo <shawnguo@kernel.org>
+Subject: Re: [PATCH v2 0/3] arm:irchip: IRQCHIP_DECLARE macro is now
+ accessible
+Date: Tue, 13 Oct 2015 21:48:51 +0800
+Message-ID: <20151013134851.GA551@tiger>
+References: <1444740975-31948-1-git-send-email-joel@porquet.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1444740975-31948-1-git-send-email-joel@porquet.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Joel Porquet <joel@porquet.org>
+Cc: linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, kgene@kernel.org, k.kozlowski@samsung.com, kernel@pengutronix.de, tony@atomide.com, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-ELM address information is provided by device tree. No longer need
-to include this information within hwmod.
+On Tue, Oct 13, 2015 at 02:56:12PM +0200, Joel Porquet wrote:
+> The IRQCHIP_DECLARE macro migrated to 'include/linux/irqchip.h', maki=
+ng it
+> globally accessible.
+>=20
+> See commit 91e20b5040c67c51aad88cf87db4305c5bd7f79d ("irqchip: Move
+> IRQCHIP_DECLARE macro to include/linux/irqchip.h").
+>=20
+> This series of patches add inclusions of 'include/linux/irqchip.h' an=
+d
+> replaces uses of macro OF_DECLARE_2 with IRQCHIP_DECLARE for platform=
+s
+> exynos, imx and omap2.
+>=20
+> I had submitted a single patch a few months ago
+> (https://lkml.org/lkml/2015/7/7/1069), but it never got merged althou=
+gh it
+> had been acked by all the subsystem maintainers. Hopefully, splitting=
+ the
+> patch into these independent patches that can be applied separately s=
+hould
+> help.
+>=20
+> Jo=EBl
+>=20
+> Joel Porquet (3):
+>   arm:exynos: IRQCHIP_DECLARE macro is now accessible
+>   arm:imx: IRQCHIP_DECLARE macro is now accessible
+>   arm:omap2: IRQCHIP_DECLARE macro is now accessible
+>=20
+>  arch/arm/mach-exynos/suspend.c       | 3 ++-
+>  arch/arm/mach-imx/gpc.c              | 7 ++-----
+>  arch/arm/mach-omap2/omap-wakeupgen.c | 7 ++-----
+>  3 files changed, 6 insertions(+), 11 deletions(-)
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 10 ----------
- 1 file changed, 10 deletions(-)
+Marc sent a patch [1] doing the same thing a few days ago.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 562247b..ad2cc7a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2566,21 +2566,11 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
--	{
--		.pa_start	= 0x48078000,
--		.pa_end		= 0x48078fff,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
- /* l4_per1 -> elm */
- static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm = {
- 	.master		= &dra7xx_l4_per1_hwmod,
- 	.slave		= &dra7xx_elm_hwmod,
- 	.clk		= "l3_iclk_div",
--	.addr		= dra7xx_elm_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--- 
-2.6.1
+Shawn
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/444136
