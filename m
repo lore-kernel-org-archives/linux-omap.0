@@ -1,72 +1,46 @@
-From: Heiko Schocher <hs@denx.de>
-Subject: [PATCH] arm, omap2, sram: On HS/EMU devices, only 64K internal SRAM is available.
-Date: Tue, 13 Oct 2015 07:54:15 +0200
-Message-ID: <1444715655-30077-1-git-send-email-hs@denx.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Heiko Schocher <hs@denx.de>, Ayoub Zaki <Ayoub.Zaki@bosch-si.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Georg.Soffel@bosch-si.com, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH 00/37] ARM: dts: Fix fixed regulators enable GPIO polarity
+Date: Tue, 13 Oct 2015 08:19:29 +0200
+Message-ID: <20151013061929.GX7858@pengutronix.de>
+References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1444684386-17094-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Gregory Clement <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Of this, secure content (including PPA) uses initial
-portion of the SRAM. This chunk is not (and shouldn't
-be) accessible from the public code.
+On Tue, Oct 13, 2015 at 12:12:29AM +0300, Laurent Pinchart wrote:
+> Hello,
+> 
+> While working on regulators, GPIOs and DT I noticed that many of our DT source
+> files incorrectly describe fixed regulators. The common error patterns are
+> 
+> - Usage of the undefined (and never parsed) enable-active-low property
+> - Usage of the enable-active-high property without specifying an enable GPIO
+> - Typos in the enabl GPIO property name (gpios instead of gpio)
+> - Mismatch between the enable-active-high property (or the lack thereof) and
+>   the enable GPIO flags
+> 
+> This patch series fixes those issues in all the DT sources after locating the
+> errors using the following script.
 
-The minimum size of this chunk (0x350) is used in this
-patch. Available size is rounded off to 63K.
+Nice. For the i.MX boards:
 
-Both values would require a change if size of secure
-content grows beyond 0x350.
+Reviewed-by: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 
-Signed-off-by: Heiko Schocher <hs@denx.de>
-Signed-off-by: Ayoub Zaki <Ayoub.Zaki@bosch-si.com>
----
+Sascha
 
- arch/arm/mach-omap2/sram.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/sram.c b/arch/arm/mach-omap2/sram.c
-index cd488b8..2e7c00f 100644
---- a/arch/arm/mach-omap2/sram.c
-+++ b/arch/arm/mach-omap2/sram.c
-@@ -47,6 +47,28 @@
- 
- #define GP_DEVICE		0x300
- 
-+/**
-+ * Size of chunk used by secure content in the HS/EMU devices.
-+ *
-+ * This size is not fixed. It depends upon the implementation of PPA.
-+ * May need to be modified if the size grows.
-+ */
-+#define AM33XX_HS_HEADER_SIZE   0x0350
-+
-+/**
-+ * Start of public SRAM on HS/EMU devices.
-+ */
-+#define AM33XX_SRAM_PA		0x40300000
-+#define AM33XX_SRAM_PUB_PA	(AM33XX_SRAM_PA + AM33XX_HS_HEADER_SIZE)
-+
-+/**
-+ * Size of public SRAM available on HS/EMU devices.
-+ *
-+ * This size also depends upon AM33XX_HS_HEADER_SIZE.
-+ * Current value is derived from nearest round-off.
-+ */
-+#define AM33XX_SRAM_PUB_SIZE		0xfc00	/* 63K */
-+
- #define ROUND_DOWN(value,boundary)	((value) & (~((boundary)-1)))
- 
- static unsigned long omap_sram_start;
-@@ -99,6 +121,9 @@ static void __init omap_detect_sram(void)
- 			} else {
- 				omap_sram_size = 0x8000; /* 32K */
- 			}
-+		} else if (soc_is_am33xx()) {
-+			omap_sram_start = AM33XX_SRAM_PUB_PA;
-+			omap_sram_size  = AM33XX_SRAM_PUB_SIZE;
- 		} else {
- 			omap_sram_start = OMAP2_SRAM_PUB_PA;
- 			omap_sram_size = 0x800; /* 2K */
 -- 
-2.1.0
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
