@@ -1,55 +1,54 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 00/37] ARM: dts: Fix fixed regulators enable GPIO polarity
-Date: Tue, 13 Oct 2015 17:17:24 +0300
-Message-ID: <1561402.NmbcA6rYT5@avalon>
-References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com> <20151013140946.GB584@tiger>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
+ "/chosen/linux,atags" entry
+Date: Tue, 13 Oct 2015 16:37:46 +0200
+Message-ID: <20151013143746.GJ23104@pali>
+References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
+ <20150713131902.GH26485@atomide.com>
+ <20151012201640.GQ23801@atomide.com>
+ <201510122225.12786@pali>
+ <20151012204509.GT23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20151013140946.GB584@tiger>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Shawn Guo <shawnguo@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Sascha Hauer <kernel@pengutronix.de>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linus Walleij <linus.walleij@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151012204509.GT23801@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Shawn,
+On Monday 12 October 2015 13:45:09 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151012 13:29]:
+> > On Monday 12 October 2015 22:16:40 Tony Lindgren wrote:
+> > >=20
+> > > Pali, any news on posting an updated series with the comments
+> > > addressed in this thread? It seems that we all pretty much agree
+> > > what needs to be done.
+> >=20
+> > Tony, I'm not really sure what to do. Just wrap 4 and 5 patches int=
+o=20
+> > CONFIG_KEXEC? Or something more?
+>=20
+> Well for most part your patches are fine, I think there were some
+> minor comments on the series.
+>=20
+> For the CONFIG_KEXEC dependency, we should just keep the existing
+> behavior and keep /proc/atags behind CONFIG_KEXEC. That's all
+> I believe :)
+>=20
+> Regards,
+>=20
+> Tony
+>=20
+>=20
 
-On Tuesday 13 October 2015 22:09:46 Shawn Guo wrote:
-> On Tue, Oct 13, 2015 at 12:12:29AM +0300, Laurent Pinchart wrote:
-> > Laurent Pinchart (37):
-> ...
-> 
-> >   ARM: imx6sx-sdb: Fix typo in regulator enable GPIO property
-> 
-> ...
-> 
-> >   ARM: dts: imx6qdl-tx6: Fix regulator enable GPIO polarity
-> 
-> ...
-> 
-> >   ARM: dts: imx23-evk: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx23-stmp378x_devb: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx25-pdk: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx28-cfa10036: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx28-evk: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx28-m28cu3: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx28-m28evk: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx28-sps1: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx28-tx28: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx53-m53evk: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx53-mba53: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx53-tx53: Fix regulator enable GPIO polarity
-> >   ARM: dts: imx6q-dmo-edmqmx6: Fix regulator enable GPIO polarity
-> 
-> Applied these 15 patches, thanks.
+Ok. I will add CONFIG_KEXEC into atag patches.
 
-There's ongoing discussions regarding whether this is the right thing to do. 
-Please see http://www.spinics.net/lists/arm-kernel/msg451724.html. It's thus a 
-bit early to apply the patches at this point I'm afraid.
+And there is missing documentation for these two new DT properties
+(marked as TODO in commit messages). Where to put them?
 
--- 
-Regards,
-
-Laurent Pinchart
-
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
