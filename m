@@ -1,58 +1,37 @@
-From: Lokesh Vutla <a0131933@ti.com>
-Subject: Re: [PATCH] ARM: DRA7: hwmod: Remove elm address space from hwmod
- data
-Date: Tue, 13 Oct 2015 19:32:16 +0530
-Message-ID: <561D0EE8.8050100@ti.com>
-References: <1444743874-4454-1-git-send-email-fcooper@ti.com>
+From: Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 00/37] ARM: dts: Fix fixed regulators enable GPIO polarity
+Date: Tue, 13 Oct 2015 22:09:46 +0800
+Message-ID: <20151013140946.GB584@tiger>
+References: <1444684386-17094-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444743874-4454-1-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>, paul@pwsan.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, rogerq@ti.com, nm@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1444684386-17094-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Gregory Clement <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Oct 13, 2015 at 12:12:29AM +0300, Laurent Pinchart wrote:
+> Laurent Pinchart (37):
+...
+>   ARM: imx6sx-sdb: Fix typo in regulator enable GPIO property
+...
+>   ARM: dts: imx6qdl-tx6: Fix regulator enable GPIO polarity
+...
+>   ARM: dts: imx23-evk: Fix regulator enable GPIO polarity
+>   ARM: dts: imx23-stmp378x_devb: Fix regulator enable GPIO polarity
+>   ARM: dts: imx25-pdk: Fix regulator enable GPIO polarity
+>   ARM: dts: imx28-cfa10036: Fix regulator enable GPIO polarity
+>   ARM: dts: imx28-evk: Fix regulator enable GPIO polarity
+>   ARM: dts: imx28-m28cu3: Fix regulator enable GPIO polarity
+>   ARM: dts: imx28-m28evk: Fix regulator enable GPIO polarity
+>   ARM: dts: imx28-sps1: Fix regulator enable GPIO polarity
+>   ARM: dts: imx28-tx28: Fix regulator enable GPIO polarity
+>   ARM: dts: imx53-m53evk: Fix regulator enable GPIO polarity
+>   ARM: dts: imx53-mba53: Fix regulator enable GPIO polarity
+>   ARM: dts: imx53-tx53: Fix regulator enable GPIO polarity
+>   ARM: dts: imx6q-dmo-edmqmx6: Fix regulator enable GPIO polarity
 
-
-On Tuesday 13 October 2015 07:14 PM, Franklin S Cooper Jr wrote:
-> ELM address information is provided by device tree. No longer need
-> to include this information within hwmod.
-
-Reviewed-by: Lokesh Vutla <lokeshvutla@ti.com>
-
-Thanks and regards,
-Lokesh
-> 
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 10 ----------
->  1 file changed, 10 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 562247b..ad2cc7a 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -2566,21 +2566,11 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> -static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
-> -	{
-> -		.pa_start	= 0x48078000,
-> -		.pa_end		= 0x48078fff,
-> -		.flags		= ADDR_TYPE_RT
-> -	},
-> -	{ }
-> -};
-> -
->  /* l4_per1 -> elm */
->  static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm = {
->  	.master		= &dra7xx_l4_per1_hwmod,
->  	.slave		= &dra7xx_elm_hwmod,
->  	.clk		= "l3_iclk_div",
-> -	.addr		= dra7xx_elm_addrs,
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> 
+Applied these 15 patches, thanks.
