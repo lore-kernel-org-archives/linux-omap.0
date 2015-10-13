@@ -1,16 +1,11 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 12/17] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
-Date: Tue, 13 Oct 2015 16:20:15 +0100
-Message-ID: <561D212F.3050603@arm.com>
-References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
- <1442850433-5903-13-git-send-email-sudeep.holla@arm.com>
- <20151012202047.GR23801@atomide.com> <20151012202847.GS23801@atomide.com>
- <561CE017.7030704@arm.com> <20151013145359.GV23801@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/3] ARM: dts: Fix WLAN regression on omap5-uevm
+Date: Tue, 13 Oct 2015 10:18:46 -0700
+Message-ID: <1444756728-11185-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151013145359.GV23801@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,76 +15,154 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-pm@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sourav Poddar <sourav.poddar@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Commit 99f84cae43df ("ARM: dts: add wl12xx/wl18xx bindings") added
+device tree bindings for the TI WLAN SDIO on many omap variants.
 
+I recall wondering how come omap5-uevm did not have the WLAN
+added and this issue has been bugging me for a while now, and
+I finally tracked it down to a bad pinmux regression, and a missing
+deferred probe handling for the 32k clock from palmas that's
+requested by twl6040.
 
-On 13/10/15 15:53, Tony Lindgren wrote:
-> * Sudeep Holla <sudeep.holla@arm.com> [151013 03:46]:
->>
->>
->> On 12/10/15 21:28, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [151012 13:27]:
->>>> * Sudeep Holla <sudeep.holla@arm.com> [150921 08:52]:
->>>>> The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
->>>>> be left enabled so as to allow them to work as expected during the
->>>>> suspend-resume cycle, but doesn't guarantee that it will wake the system
->>>> >from a suspended state, enable_irq_wake is recommended to be used for
->>>>> the wakeup.
->>>>>
->>>>> This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
->>>>> enable_irq_wake instead.
->>>>
->>>> Applying into omap-for-v4.4/cleanup thanks.
->>>
->>> Actually I don't think this does the right thing. The interrupts
->>> in the $subject patch are in the always on powerdomain, and we really
->>
->> Agreed
->>
->>> want them to be excluded from the suspend.
->>>
->>
->> OK but what's wrong with this patch. At-least the name suggest it's a
->> wakeup interrupt. And using IRQF_NO_SUSPEND for the wakeup interrupt is
->> simply wrong.
->
-> Hmm so if we have a separate always on irq controller for the wake-up events
-> and we want to keep it always on and exclude it from any suspend related
-> things.. Why would we not use IRQF_NO_SUSPEND on it?
->
-> Above you say "The IRQF_NO_SUSPEND flag is used to identify the interrupts
-> that should be left enabled so as to allow them to work as expected during
-> the suspend-resume cycle..." and that's exactly what we want to do here :)
->
+Basically 392adaf796b9 ("ARM: dts: omap5-evm: Add mcspi data")
+added pin muxing for mcspi4 that conflicts with the onboard
+WLAN. While some omap5-uevm don't have WLAN populated, the
+pins are not reused for other devices. And as the SDIO bus
+should be probed, let's try to enable WLAN by default.
 
-OK if these interrupts meet that criteria to use IRQF_NO_SUSPEND, then
-it should be fine, my earlier argument was based on the assumption that
-it's just another wakeup interrupt.
+Let's fix the regression and add the WLAN configuration as
+done for the other boards in 99f84cae43df ("ARM: dts: add
+wl12xx/wl18xx bindings"). And let's use the new MMC pwrseq for
+the 32k clock as suggested by Javier Martinez Canillas
+<javier@dowhile0.org>.
 
-> For the dedicated wake-up interrupts, we have separate registers to enable
-> and disable them. The $subject irq is the shared interrupt that allows
-> making use of the pin specific wake-up interrupts, and for those yes we
-> are using enable_irq_wake().
->
+Note that without a related deferred probe fix for twl6040,
+the 32k clock is not initialized if palmas-clk is a module
+and twl6040 is built-in.
 
-If it's already take care, then fine. I am just hunting all the misuse
-of IRQF_NO_SUSPEND flag especially as wakeup source and fixing them
+Let's also use the generic "non-removable" instead of the
+legacy "ti,non-removable" property while at it.
 
->>> So not applying without further explanations.
->>>
->>
->> But I don't understand the real need for IRQF_NO_SUSPEND over wakeup APIs ?
->
-> Because in the $subject case we just want to always keep it on and
-> never suspend it. It's unrelated to the wakeup APIs at least for the
-> omap related SoCs.
->
+And finally, note that omap5 seems to require WAKEUP_EN for
+the WLAN GPIO interrupt.
 
-OK, understood now. Thanks
+Fixes: 392adaf796b9 ("ARM: dts: omap5-evm: Add mcspi data")
+Cc: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap5-uevm.dts | 66 +++++++++++++++++++++++++++++++++-------
+ 1 file changed, 55 insertions(+), 11 deletions(-)
 
---
-Regards,
-Sudeep
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 4da9e52..f10b42f 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -31,6 +31,24 @@
+ 		regulator-max-microvolt = <3000000>;
+ 	};
+ 
++	mmc3_pwrseq: sdhci0_pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		clocks = <&clk32kgaudio>;
++		clock-names = "ext_clock";
++	};
++
++	vmmcsdio_fixed: fixedregulator-mmcsdio {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsdio_fixed";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		gpio = <&gpio5 12 GPIO_ACTIVE_HIGH>;	/* gpio140 WLAN_EN */
++		enable-active-high;
++		startup-delay-us = <70000>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&wlan_pins>;
++	};
++
+ 	/* HS USB Host PHY on PORT 2 */
+ 	hsusb2_phy: hsusb2_phy {
+ 		compatible = "usb-nop-xceiv";
+@@ -197,12 +215,20 @@
+ 		>;
+ 	};
+ 
+-	mcspi4_pins: pinmux_mcspi4_pins {
++	mmc3_pins: pinmux_mmc3_pins {
++		pinctrl-single,pins = <
++			OMAP5_IOPAD(0x01a4, PIN_INPUT_PULLUP | MUX_MODE0) /* wlsdio_clk */
++			OMAP5_IOPAD(0x01a6, PIN_INPUT_PULLUP | MUX_MODE0) /* wlsdio_cmd */
++			OMAP5_IOPAD(0x01a8, PIN_INPUT_PULLUP | MUX_MODE0) /* wlsdio_data0 */
++			OMAP5_IOPAD(0x01aa, PIN_INPUT_PULLUP | MUX_MODE0) /* wlsdio_data1 */
++			OMAP5_IOPAD(0x01ac, PIN_INPUT_PULLUP | MUX_MODE0) /* wlsdio_data2 */
++			OMAP5_IOPAD(0x01ae, PIN_INPUT_PULLUP | MUX_MODE0) /* wlsdio_data3 */
++		>;
++	};
++
++	wlan_pins: pinmux_wlan_pins {
+ 		pinctrl-single,pins = <
+-			0x164 (PIN_INPUT | MUX_MODE1)		/*  mcspi4_clk */
+-			0x168 (PIN_INPUT | MUX_MODE1)		/*  mcspi4_simo */
+-			0x16a (PIN_INPUT | MUX_MODE1)		/*  mcspi4_somi */
+-			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi4_cs0 */
++			OMAP5_IOPAD(0x1bc, PIN_OUTPUT | MUX_MODE6) /* mcspi1_clk.gpio5_140 */
+ 		>;
+ 	};
+ 
+@@ -276,6 +302,12 @@
+ 			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out, USB hub clk */
+ 		>;
+ 	};
++
++	wlcore_irq_pin: pinmux_wlcore_irq_pin {
++		pinctrl-single,pins = <
++			OMAP5_IOPAD(0x040, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE6)	/* llia_wakereqin.gpio1_wk14 */
++		>;
++	};
+ };
+ 
+ &mmc1 {
+@@ -290,8 +322,25 @@
+ };
+ 
+ &mmc3 {
++	vmmc-supply = <&vmmcsdio_fixed>;
++	mmc-pwrseq = <&mmc3_pwrseq>;
+ 	bus-width = <4>;
+-	ti,non-removable;
++	non-removable;
++	cap-power-off-card;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc3_pins &wlcore_irq_pin>;
++	interrupts-extended = <&gic GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH
++			       &omap5_pmx_core 0x168>;
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	wlcore: wlcore@2 {
++		compatible = "ti,wl1271";
++		reg = <2>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <14 IRQ_TYPE_LEVEL_HIGH>;	/* gpio 14 */
++		ref-clock-frequency = <26000000>;
++	};
+ };
+ 
+ &mmc4 {
+@@ -598,11 +647,6 @@
+ 	pinctrl-0 = <&mcspi3_pins>;
+ };
+ 
+-&mcspi4 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&mcspi4_pins>;
+-};
+-
+ &uart1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart1_pins>;
+-- 
+2.1.4
