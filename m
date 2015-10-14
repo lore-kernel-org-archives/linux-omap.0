@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 12/13] ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-Date: Wed, 14 Oct 2015 16:12:23 +0300
-Message-ID: <1444828344-21378-13-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 10/13] dmaengine: ti-dma-crossbar: Add support for crossbar on AM33xx/AM43xx
+Date: Wed, 14 Oct 2015 16:12:21 +0300
+Message-ID: <1444828344-21378-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,260 +12,386 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Switch to use the ti,edma3-tpcc and ti,edma3-tptc binding for the eDMA3 and
-enable the DMA even crossbar with ti,am335x-edma-crossbar.
-With the new bindings boards can customize and tweak the DMA channel
-priority to match their needs. With the new binding the memcpy is safe
-to be used since with the old binding it was not possible for a driver
-to know which channel is allowed to be used as non HW triggered channel.
+The DMA event crossbar on AM33xx/AM43xx is different from the one found in
+DRA7x family.
+Instead of a single event crossbar it has 64 identical mux attached to each
+eDMA event line. When the 0 event mux is selected, the default mapped event
+is going to be routed to the corresponding eDMA event line. If different
+mux is selected, then the selected event is going to be routed to the given
+eDMA event.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am335x-evm.dts    |  9 +---
- arch/arm/boot/dts/am335x-pepper.dts | 11 +----
- arch/arm/boot/dts/am33xx.dtsi       | 96 ++++++++++++++++++++++++++-----------
- 3 files changed, 73 insertions(+), 43 deletions(-)
+ .../devicetree/bindings/dma/ti-dma-crossbar.txt    |  15 +-
+ drivers/dma/ti-dma-crossbar.c                      | 237 ++++++++++++++++++---
+ 2 files changed, 226 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 1942a5c8132d..507980672c32 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -743,8 +743,8 @@
- &mmc3 {
- 	/* these are on the crossbar and are outlined in the
- 	   xbar-event-map element */
--	dmas = <&edma 12
--		&edma 13>;
-+	dmas = <&edma_xbar 12 0 1
-+		&edma_xbar 13 0 2>;
- 	dma-names = "tx", "rx";
- 	status = "okay";
- 	vmmc-supply = <&wlan_en_reg>;
-@@ -766,11 +766,6 @@
- 	};
- };
+diff --git a/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt b/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
+index 63a48928f3a8..b152a75dceae 100644
+--- a/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
++++ b/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
+@@ -2,9 +2,10 @@ Texas Instruments DMA Crossbar (DMA request router)
  
--&edma {
--	ti,edma-xbar-event-map = /bits/ 16 <1 12
--					    2 13>;
--};
--
- &sham {
- 	status = "okay";
- };
-diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index 7106114c7464..39073b921664 100644
---- a/arch/arm/boot/dts/am335x-pepper.dts
-+++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -339,13 +339,6 @@
- 	ti,non-removable;
- };
+ Required properties:
+ - compatible:	"ti,dra7-dma-crossbar" for DRA7xx DMA crossbar
++		"ti,am335x-edma-crossbar" for AM335x and AM437x
+ - reg:		Memory map for accessing module
+-- #dma-cells:	Should be set to <1>.
+-		Clients should use the crossbar request number (input)
++- #dma-cells:	Should be set to to match with the DMA controller's dma-cells
++		for ti,dra7-dma-crossbar and <3> for ti,am335x-edma-crossbar.
+ - dma-requests:	Number of DMA requests the crossbar can receive
+ - dma-masters:	phandle pointing to the DMA controller
  
--&edma {
--	/* Map eDMA MMC2 Events from Crossbar */
--	ti,edma-xbar-event-map = /bits/ 16 <1 12
--                                            2 13>;
--};
--
--
- &mmc3 {
- 	/* Wifi & Bluetooth on MMC #3 */
- 	status = "okay";
-@@ -354,8 +347,8 @@
- 	vmmmc-supply = <&v3v3c_reg>;
- 	bus-width = <4>;
- 	ti,non-removable;
--	dmas = <&edma 12
--		&edma 13>;
-+	dmas = <&edma_xbar 12 0 1
-+		&edma_xbar 13 0 2>;
+@@ -14,6 +15,15 @@ The DMA controller node need to have the following poroperties:
+ Optional properties:
+ - ti,dma-safe-map: Safe routing value for unused request lines
+ 
++Notes:
++When requesting channel via ti,dra7-dma-crossbar, the DMA clinet must request
++the DMA event number as crossbar ID (input to the DMA crossbar).
++
++For ti,am335x-edma-crossbar: the meaning of parameters of dmas for clients:
++dmas = <&edma_xbar 12 0 1>; where <12> is the DMA request number, <0> is the TC
++the event should be assigned and <1> is the mux selection for in the crossbar.
++When mux 0 is used the DMA channel can be requested directly from edma node.
++
+ Example:
+ 
+ /* DMA controller */
+@@ -47,6 +57,7 @@ uart1: serial@4806a000 {
+ 	ti,hwmods = "uart1";
+ 	clock-frequency = <48000000>;
+ 	status = "disabled";
++	/* Requesting crossbar input 49 and 50 */
+ 	dmas = <&sdma_xbar 49>, <&sdma_xbar 50>;
  	dma-names = "tx", "rx";
  };
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+index 5cce8c9d0026..9c5ee2149052 100644
+--- a/drivers/dma/ti-dma-crossbar.c
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -23,7 +23,176 @@
+ #define TI_XBAR_EDMA_OFFSET	0
+ #define TI_XBAR_SDMA_OFFSET	1
  
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index d23e2524d694..6053e75c6e99 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -174,12 +174,54 @@
- 		};
- 
- 		edma: edma@49000000 {
--			compatible = "ti,edma3";
--			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
--			reg =	<0x49000000 0x10000>,
--				<0x44e10f90 0x40>;
-+			compatible = "ti,edma3-tpcc";
-+			ti,hwmods = "tpcc";
-+			reg =	<0x49000000 0x10000>;
-+			reg-names = "edma3_cc";
- 			interrupts = <12 13 14>;
--			#dma-cells = <1>;
-+			interrupt-names = "edma3_ccint", "emda3_mperr",
-+					  "edma3_ccerrint";
-+			dma-requests = <64>;
-+			#dma-cells = <2>;
+-struct ti_dma_xbar_data {
++#define TI_XBAR_DRA7		0
++#define TI_XBAR_AM335X		1
 +
-+			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
-+				   <&edma_tptc2 0>;
++static const struct of_device_id ti_dma_xbar_match[] = {
++	{
++		.compatible = "ti,dra7-dma-crossbar",
++		.data = (void *)TI_XBAR_DRA7,
++	},
++	{
++		.compatible = "ti,am335x-edma-crossbar",
++		.data = (void *)TI_XBAR_AM335X,
++	},
++	{},
++};
 +
-+			ti,edma-memcpy-channels = /bits/ 16 <20 21>;
-+		};
++/* Crossbar on AM335x/AM437x family */
++struct ti_am335x_xbar_data {
++	void __iomem *iomem;
 +
-+		edma_tptc0: tptc@49800000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc0";
-+			reg =	<0x49800000 0x100000>;
-+			interrupts = <112>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
++	struct dma_router dmarouter;
 +
-+		edma_tptc1: tptc@49900000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc1";
-+			reg =	<0x49900000 0x100000>;
-+			interrupts = <113>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
++	u32 xbar_events; /* maximum number of events to select in xbar */
++	u32 dma_requests; /* number of DMA requests on eDMA */
++};
 +
-+		edma_tptc2: tptc@49a00000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc2";
-+			reg =	<0x49a00000 0x100000>;
-+			interrupts = <114>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
++struct ti_am335x_xbar_map {
++	u16 dma_line;
++	u16 mux_val;
++};
 +
-+		edma_xbar: dma-router@44e10f90 {
-+			compatible = "ti,am335x-edma-crossbar";
-+			reg = <0x44e10f90 0x40>;
++static inline void ti_am335x_xbar_write(void __iomem *iomem, int event, u16 val)
++{
++	writeb_relaxed(val & 0x1f, iomem + event);
++}
 +
-+			#dma-cells = <3>;
-+			dma-requests = <32>;
++static void ti_am335x_xbar_free(struct device *dev, void *route_data)
++{
++	struct ti_am335x_xbar_data *xbar = dev_get_drvdata(dev);
++	struct ti_am335x_xbar_map *map = route_data;
 +
-+			dma-masters = <&edma>;
- 		};
++	dev_err(dev, "Unmapping XBAR event %u on channel %u\n",
++		map->mux_val, map->dma_line);
++
++	ti_am335x_xbar_write(xbar->iomem, map->dma_line, 0);
++	kfree(map);
++}
++
++static void *ti_am335x_xbar_route_allocate(struct of_phandle_args *dma_spec,
++					   struct of_dma *ofdma)
++{
++	struct platform_device *pdev = of_find_device_by_node(ofdma->of_node);
++	struct ti_am335x_xbar_data *xbar = platform_get_drvdata(pdev);
++	struct ti_am335x_xbar_map *map;
++
++	if (dma_spec->args_count != 3)
++		return ERR_PTR(-EINVAL);
++
++	if (dma_spec->args[2] >= xbar->xbar_events) {
++		dev_err(&pdev->dev, "Invalid XBAR event number: %d\n",
++			dma_spec->args[2]);
++		return ERR_PTR(-EINVAL);
++	}
++
++	if (dma_spec->args[0] >= xbar->dma_requests) {
++		dev_err(&pdev->dev, "Invalid DMA request line number: %d\n",
++			dma_spec->args[0]);
++		return ERR_PTR(-EINVAL);
++	}
++
++	/* The of_node_put() will be done in the core for the node */
++	dma_spec->np = of_parse_phandle(ofdma->of_node, "dma-masters", 0);
++	if (!dma_spec->np) {
++		dev_err(&pdev->dev, "Can't get DMA master\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	map = kzalloc(sizeof(*map), GFP_KERNEL);
++	if (!map) {
++		of_node_put(dma_spec->np);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	map->dma_line = (u16)dma_spec->args[0];
++	map->mux_val = (u16)dma_spec->args[2];
++
++	dma_spec->args[2] = 0;
++	dma_spec->args_count = 2;
++
++	dev_err(&pdev->dev, "Mapping XBAR event%u to DMA%u\n",
++		map->mux_val, map->dma_line);
++
++	ti_am335x_xbar_write(xbar->iomem, map->dma_line, map->mux_val);
++
++	return map;
++}
++
++static const struct of_device_id ti_am335x_master_match[] = {
++	{ .compatible = "ti,edma3-tpcc", },
++	{},
++};
++
++static int ti_am335x_xbar_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	const struct of_device_id *match;
++	struct device_node *dma_node;
++	struct ti_am335x_xbar_data *xbar;
++	struct resource *res;
++	void __iomem *iomem;
++	int i, ret;
++
++	if (!node)
++		return -ENODEV;
++
++	xbar = devm_kzalloc(&pdev->dev, sizeof(*xbar), GFP_KERNEL);
++	if (!xbar)
++		return -ENOMEM;
++
++	dma_node = of_parse_phandle(node, "dma-masters", 0);
++	if (!dma_node) {
++		dev_err(&pdev->dev, "Can't get DMA master node\n");
++		return -ENODEV;
++	}
++
++	match = of_match_node(ti_am335x_master_match, dma_node);
++	if (!match) {
++		dev_err(&pdev->dev, "DMA master is not supported\n");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32(dma_node, "dma-requests",
++				 &xbar->dma_requests)) {
++		dev_info(&pdev->dev,
++			 "Missing XBAR output information, using %u.\n",
++			 TI_XBAR_OUTPUTS);
++		xbar->dma_requests = TI_XBAR_OUTPUTS;
++	}
++	of_node_put(dma_node);
++
++	if (of_property_read_u32(node, "dma-requests", &xbar->xbar_events)) {
++		dev_info(&pdev->dev,
++			 "Missing XBAR input information, using %u.\n",
++			 TI_XBAR_INPUTS);
++		xbar->xbar_events = TI_XBAR_INPUTS;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	iomem = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(iomem))
++		return PTR_ERR(iomem);
++
++	xbar->iomem = iomem;
++
++	xbar->dmarouter.dev = &pdev->dev;
++	xbar->dmarouter.route_free = ti_am335x_xbar_free;
++
++	platform_set_drvdata(pdev, xbar);
++
++	/* Reset the crossbar */
++	for (i = 0; i < xbar->dma_requests; i++)
++		ti_am335x_xbar_write(xbar->iomem, i, 0);
++
++	ret = of_dma_router_register(node, ti_am335x_xbar_route_allocate,
++				     &xbar->dmarouter);
++
++	return ret;
++}
++
++/* Crossbar on DRA7xx family */
++struct ti_dra7_xbar_data {
+ 	void __iomem *iomem;
  
- 		gpio0: gpio@44e07000 {
-@@ -233,7 +275,7 @@
- 			reg = <0x44e09000 0x2000>;
- 			interrupts = <72>;
- 			status = "disabled";
--			dmas = <&edma 26>, <&edma 27>;
-+			dmas = <&edma 26 0>, <&edma 27 0>;
- 			dma-names = "tx", "rx";
- 		};
+ 	struct dma_router dmarouter;
+@@ -35,35 +204,35 @@ struct ti_dma_xbar_data {
+ 	u32 dma_offset;
+ };
  
-@@ -244,7 +286,7 @@
- 			reg = <0x48022000 0x2000>;
- 			interrupts = <73>;
- 			status = "disabled";
--			dmas = <&edma 28>, <&edma 29>;
-+			dmas = <&edma 28 0>, <&edma 29 0>;
- 			dma-names = "tx", "rx";
- 		};
+-struct ti_dma_xbar_map {
++struct ti_dra7_xbar_map {
+ 	u16 xbar_in;
+ 	int xbar_out;
+ };
  
-@@ -255,7 +297,7 @@
- 			reg = <0x48024000 0x2000>;
- 			interrupts = <74>;
- 			status = "disabled";
--			dmas = <&edma 30>, <&edma 31>;
-+			dmas = <&edma 30 0>, <&edma 31 0>;
- 			dma-names = "tx", "rx";
- 		};
+-static inline void ti_dma_xbar_write(void __iomem *iomem, int xbar, u16 val)
++static inline void ti_dra7_xbar_write(void __iomem *iomem, int xbar, u16 val)
+ {
+ 	writew_relaxed(val, iomem + (xbar * 2));
+ }
  
-@@ -322,8 +364,8 @@
- 			ti,dual-volt;
- 			ti,needs-special-reset;
- 			ti,needs-special-hs-handling;
--			dmas = <&edma 24
--				&edma 25>;
-+			dmas = <&edma_xbar 24 0 0
-+				&edma_xbar 25 0 0>;
- 			dma-names = "tx", "rx";
- 			interrupts = <64>;
- 			interrupt-parent = <&intc>;
-@@ -335,8 +377,8 @@
- 			compatible = "ti,omap4-hsmmc";
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
--			dmas = <&edma 2
--				&edma 3>;
-+			dmas = <&edma 2 0
-+				&edma 3 0>;
- 			dma-names = "tx", "rx";
- 			interrupts = <28>;
- 			interrupt-parent = <&intc>;
-@@ -474,10 +516,10 @@
- 			interrupts = <65>;
- 			ti,spi-num-cs = <2>;
- 			ti,hwmods = "spi0";
--			dmas = <&edma 16
--				&edma 17
--				&edma 18
--				&edma 19>;
-+			dmas = <&edma 16 0
-+				&edma 17 0
-+				&edma 18 0
-+				&edma 19 0>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
-@@ -490,10 +532,10 @@
- 			interrupts = <125>;
- 			ti,spi-num-cs = <2>;
- 			ti,hwmods = "spi1";
--			dmas = <&edma 42
--				&edma 43
--				&edma 44
--				&edma 45>;
-+			dmas = <&edma 42 0
-+				&edma 43 0
-+				&edma 44 0
-+				&edma 45 0>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
-@@ -831,7 +873,7 @@
- 			ti,hwmods = "sham";
- 			reg = <0x53100000 0x200>;
- 			interrupts = <109>;
--			dmas = <&edma 36>;
-+			dmas = <&edma 36 0>;
- 			dma-names = "rx";
- 		};
+-static void ti_dma_xbar_free(struct device *dev, void *route_data)
++static void ti_dra7_xbar_free(struct device *dev, void *route_data)
+ {
+-	struct ti_dma_xbar_data *xbar = dev_get_drvdata(dev);
+-	struct ti_dma_xbar_map *map = route_data;
++	struct ti_dra7_xbar_data *xbar = dev_get_drvdata(dev);
++	struct ti_dra7_xbar_map *map = route_data;
  
-@@ -840,8 +882,8 @@
- 			ti,hwmods = "aes";
- 			reg = <0x53500000 0xa0>;
- 			interrupts = <103>;
--			dmas = <&edma 6>,
--			       <&edma 5>;
-+			dmas = <&edma 6 0>,
-+			       <&edma 5 0>;
- 			dma-names = "tx", "rx";
- 		};
+ 	dev_dbg(dev, "Unmapping XBAR%u (was routed to %d)\n",
+ 		map->xbar_in, map->xbar_out);
  
-@@ -854,8 +896,8 @@
- 			interrupts = <80>, <81>;
- 			interrupt-names = "tx", "rx";
- 			status = "disabled";
--			dmas = <&edma 8>,
--				<&edma 9>;
-+			dmas = <&edma 8 2>,
-+				<&edma 9 2>;
- 			dma-names = "tx", "rx";
- 		};
+-	ti_dma_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
++	ti_dra7_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
+ 	idr_remove(&xbar->map_idr, map->xbar_out);
+ 	kfree(map);
+ }
  
-@@ -868,8 +910,8 @@
- 			interrupts = <82>, <83>;
- 			interrupt-names = "tx", "rx";
- 			status = "disabled";
--			dmas = <&edma 10>,
--				<&edma 11>;
-+			dmas = <&edma 10 2>,
-+				<&edma 11 2>;
- 			dma-names = "tx", "rx";
- 		};
+-static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
+-					struct of_dma *ofdma)
++static void *ti_dra7_xbar_route_allocate(struct of_phandle_args *dma_spec,
++					 struct of_dma *ofdma)
+ {
+ 	struct platform_device *pdev = of_find_device_by_node(ofdma->of_node);
+-	struct ti_dma_xbar_data *xbar = platform_get_drvdata(pdev);
+-	struct ti_dma_xbar_map *map;
++	struct ti_dra7_xbar_data *xbar = platform_get_drvdata(pdev);
++	struct ti_dra7_xbar_map *map;
  
+ 	if (dma_spec->args[0] >= xbar->xbar_requests) {
+ 		dev_err(&pdev->dev, "Invalid XBAR request number: %d\n",
+@@ -93,12 +262,12 @@ static void *ti_dma_xbar_route_allocate(struct of_phandle_args *dma_spec,
+ 	dev_dbg(&pdev->dev, "Mapping XBAR%u to DMA%d\n",
+ 		map->xbar_in, map->xbar_out);
+ 
+-	ti_dma_xbar_write(xbar->iomem, map->xbar_out, map->xbar_in);
++	ti_dra7_xbar_write(xbar->iomem, map->xbar_out, map->xbar_in);
+ 
+ 	return map;
+ }
+ 
+-static const struct of_device_id ti_dma_master_match[] = {
++static const struct of_device_id ti_dra7_master_match[] = {
+ 	{
+ 		.compatible = "ti,omap4430-sdma",
+ 		.data = (void *)TI_XBAR_SDMA_OFFSET,
+@@ -110,12 +279,12 @@ static const struct of_device_id ti_dma_master_match[] = {
+ 	{},
+ };
+ 
+-static int ti_dma_xbar_probe(struct platform_device *pdev)
++static int ti_dra7_xbar_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+ 	struct device_node *dma_node;
+-	struct ti_dma_xbar_data *xbar;
++	struct ti_dra7_xbar_data *xbar;
+ 	struct resource *res;
+ 	u32 safe_val;
+ 	void __iomem *iomem;
+@@ -136,7 +305,7 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
+-	match = of_match_node(ti_dma_master_match, dma_node);
++	match = of_match_node(ti_dra7_master_match, dma_node);
+ 	if (!match) {
+ 		dev_err(&pdev->dev, "DMA master is not supported\n");
+ 		return -EINVAL;
+@@ -169,30 +338,50 @@ static int ti_dma_xbar_probe(struct platform_device *pdev)
+ 	xbar->iomem = iomem;
+ 
+ 	xbar->dmarouter.dev = &pdev->dev;
+-	xbar->dmarouter.route_free = ti_dma_xbar_free;
++	xbar->dmarouter.route_free = ti_dra7_xbar_free;
+ 	xbar->dma_offset = (u32)match->data;
+ 
+ 	platform_set_drvdata(pdev, xbar);
+ 
+ 	/* Reset the crossbar */
+ 	for (i = 0; i < xbar->dma_requests; i++)
+-		ti_dma_xbar_write(xbar->iomem, i, xbar->safe_val);
++		ti_dra7_xbar_write(xbar->iomem, i, xbar->safe_val);
+ 
+-	ret = of_dma_router_register(node, ti_dma_xbar_route_allocate,
++	ret = of_dma_router_register(node, ti_dra7_xbar_route_allocate,
+ 				     &xbar->dmarouter);
+ 	if (ret) {
+ 		/* Restore the defaults for the crossbar */
+ 		for (i = 0; i < xbar->dma_requests; i++)
+-			ti_dma_xbar_write(xbar->iomem, i, i);
++			ti_dra7_xbar_write(xbar->iomem, i, i);
+ 	}
+ 
+ 	return ret;
+ }
+ 
+-static const struct of_device_id ti_dma_xbar_match[] = {
+-	{ .compatible = "ti,dra7-dma-crossbar" },
+-	{},
+-};
++static int ti_dma_xbar_probe(struct platform_device *pdev)
++{
++	const struct of_device_id *match;
++	int ret;
++
++	match = of_match_node(ti_dma_xbar_match, pdev->dev.of_node);
++	if (unlikely(!match))
++		return -EINVAL;
++
++	switch ((u32)match->data) {
++	case TI_XBAR_DRA7:
++		ret = ti_dra7_xbar_probe(pdev);
++		break;
++	case TI_XBAR_AM335X:
++		ret = ti_am335x_xbar_probe(pdev);
++		break;
++	default:
++		dev_err(&pdev->dev, "Unsupported crossbar\n");
++		ret = -ENODEV;
++		break;
++	}
++
++	return ret;
++}
+ 
+ static struct platform_driver ti_dma_xbar_driver = {
+ 	.driver = {
 -- 
 2.6.1
