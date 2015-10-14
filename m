@@ -1,34 +1,31 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v4 00/25] dmaengine/ARM: Merge the edma drivers into one
-Date: Wed, 14 Oct 2015 15:57:55 +0530
-Message-ID: <20151014102755.GL27370@localhost>
-References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/2] omap: hsi: Fix warnings on boards that don't use ssi ports
+Date: Wed, 14 Oct 2015 13:44:14 +0300
+Message-ID: <1444819456-26728-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
+To: tony@atomide.com
+Cc: wsa@the-dreams.de, sre@kernel.org, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 24, 2015 at 01:01:47PM +0300, Peter Ujfalusi wrote:
-> Hi,
-> 
-> Cover letter:
-> 
-> with this series the edma two driver setup will be changed to have only one
-> driver to support eDMA3. The legacy edma interface will be removed and eDMA can
-> only be used via dmaengine API from this point on.
-> In order to do the merge the following improvements has been done:
-> - One driver instance per eDMA:
->  - Any number of eDMA instances are supported (both legacy and DT boot)
-> - Not relying on global variables, arrays, etc
-> - Code simplification and optimizations in several places
+Hi,
 
-One question though, after this move and merge are we still left with edma
-in arm/ ?
+This series fixes warnings and console noise for boards that don't use
+ssi ports. Tested on beagleboard-c4.
+
+cheers,
+-roger
+
+Roger Quadros (2):
+  hsi: omap_ssi_port: Prevent warning if cawake_gpio is not defined.
+  ARM: dts: omap3: keep ssi ports by default
+
+ arch/arm/boot/dts/omap3-n900.dts        | 1 +
+ arch/arm/boot/dts/omap3.dtsi            | 2 ++
+ drivers/hsi/controllers/omap_ssi_port.c | 2 +-
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
 -- 
-~Vinod
+2.1.4
