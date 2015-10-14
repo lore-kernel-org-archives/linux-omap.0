@@ -1,60 +1,145 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix oops with LPAE and more than 2GB of
- memory
-Date: Wed, 14 Oct 2015 11:15:14 +0200
-Message-ID: <106715675.XDtZ2nQqSM@wuerfel>
-References: <1444778000-22537-1-git-send-email-tony@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/2] ARM: OMAP2+: hwmod: Add hwmod flag for HWMOD_OPT_CLKS_NEEDED
+Date: Wed, 14 Oct 2015 12:23:27 +0300
+Message-ID: <1444814608-20908-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1444814608-20908-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444778000-22537-1-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1444814608-20908-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, paul@pwsan.com
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 13 October 2015 16:13:20 Tony Lindgren wrote:
-> On boards with more than 2GB of RAM booting goes wrong with things not working
-> and we're getting lots of l3 warnings:
-> 
-> WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x260/0x384()
-> 44000000.ocp:L3 Custom Error: MASTER MMC6 TARGET DMM1 (Idle): Data Access in User mode during Functional access
-> ...
-> [<c044e158>] (scsi_add_host_with_dma) from [<c04705c8>] (ata_scsi_add_hosts+0x5c/0x18c)
-> [<c04705c8>] (ata_scsi_add_hosts) from [<c046b13c>] (ata_host_register+0x150/0x2cc)
-> [<c046b13c>] (ata_host_register) from [<c046b38c>] (ata_host_activate+0xd4/0x124)
-> [<c046b38c>] (ata_host_activate) from [<c047f42c>] (ahci_host_activate+0x5c/0x194)
-> [<c047f42c>] (ahci_host_activate) from [<c0480854>] (ahci_platform_init_host+0x1f0/0x3f0)
-> [<c0480854>] (ahci_platform_init_host) from [<c047c9dc>] (ahci_probe+0x70/0x98)
-> [<c047c9dc>] (ahci_probe) from [<c04220cc>] (platform_drv_probe+0x54/0xb4)
-> 
-> Let's fix the issue by enabling ZONE_DMA for LPAE.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
+Some module needs more than one functional clock in order to be accessible,
+like the McASPs found in DRA7xx family.
+This flag will indicate that the opt_clks need to be handled at the same
+time as the main_clk for the given hwmod, ensuring that all needed clocks
+are enabled before we try to access the module's address space.
 
-I suspect this is not the correct fix, even if it works around the problem.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 66 ++++++++++++++++++++++------------------
+ arch/arm/mach-omap2/omap_hwmod.h |  3 ++
+ 2 files changed, 39 insertions(+), 30 deletions(-)
 
-Am I right that the AHCI device can access the first 4GB of address space
-using 32-bit DMA, and that any RAM beyond 2GB is above that limit?
-
-Does the ZONE_DMA have the same size? If not, you get more bounce buffers
-than you want, which is bad for performance/
-
-Another problem here is that it only works with the SCSI and net subsystems
-that have a hack in there to create manual bounce buffers, but other drivers
-that can do DMA to high addresses will not know about this.
-
-The right solution would be to force the use of an IOMMU, and if that not
-works, add support for SWIOTLB on ARM.
-
-	Arnd
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index cc8a987149e2..48495ad82aba 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -890,6 +890,36 @@ static int _init_opt_clks(struct omap_hwmod *oh)
+ 	return ret;
+ }
+ 
++static void _enable_optional_clocks(struct omap_hwmod *oh)
++{
++	struct omap_hwmod_opt_clk *oc;
++	int i;
++
++	pr_debug("omap_hwmod: %s: enabling optional clocks\n", oh->name);
++
++	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
++		if (oc->_clk) {
++			pr_debug("omap_hwmod: enable %s:%s\n", oc->role,
++				 __clk_get_name(oc->_clk));
++			clk_enable(oc->_clk);
++		}
++}
++
++static void _disable_optional_clocks(struct omap_hwmod *oh)
++{
++	struct omap_hwmod_opt_clk *oc;
++	int i;
++
++	pr_debug("omap_hwmod: %s: disabling optional clocks\n", oh->name);
++
++	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
++		if (oc->_clk) {
++			pr_debug("omap_hwmod: disable %s:%s\n", oc->role,
++				 __clk_get_name(oc->_clk));
++			clk_disable(oc->_clk);
++		}
++}
++
+ /**
+  * _enable_clocks - enable hwmod main clock and interface clocks
+  * @oh: struct omap_hwmod *
+@@ -917,6 +947,9 @@ static int _enable_clocks(struct omap_hwmod *oh)
+ 			clk_enable(os->_clk);
+ 	}
+ 
++	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
++		_enable_optional_clocks(oh);
++
+ 	/* The opt clocks are controlled by the device driver. */
+ 
+ 	return 0;
+@@ -948,41 +981,14 @@ static int _disable_clocks(struct omap_hwmod *oh)
+ 			clk_disable(os->_clk);
+ 	}
+ 
++	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
++		_disable_optional_clocks(oh);
++
+ 	/* The opt clocks are controlled by the device driver. */
+ 
+ 	return 0;
+ }
+ 
+-static void _enable_optional_clocks(struct omap_hwmod *oh)
+-{
+-	struct omap_hwmod_opt_clk *oc;
+-	int i;
+-
+-	pr_debug("omap_hwmod: %s: enabling optional clocks\n", oh->name);
+-
+-	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
+-		if (oc->_clk) {
+-			pr_debug("omap_hwmod: enable %s:%s\n", oc->role,
+-				 __clk_get_name(oc->_clk));
+-			clk_enable(oc->_clk);
+-		}
+-}
+-
+-static void _disable_optional_clocks(struct omap_hwmod *oh)
+-{
+-	struct omap_hwmod_opt_clk *oc;
+-	int i;
+-
+-	pr_debug("omap_hwmod: %s: disabling optional clocks\n", oh->name);
+-
+-	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
+-		if (oc->_clk) {
+-			pr_debug("omap_hwmod: disable %s:%s\n", oc->role,
+-				 __clk_get_name(oc->_clk));
+-			clk_disable(oc->_clk);
+-		}
+-}
+-
+ /**
+  * _omap4_enable_module - enable CLKCTRL modulemode on OMAP4
+  * @oh: struct omap_hwmod *
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index ca6df1a73475..76bce11c85a4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -523,6 +523,8 @@ struct omap_hwmod_omap4_prcm {
+  * HWMOD_RECONFIG_IO_CHAIN: omap_hwmod code needs to reconfigure wake-up 
+  *     events by calling _reconfigure_io_chain() when a device is enabled
+  *     or idled.
++ * HWMOD_OPT_CLKS_NEEDED: The optional clocks are needed for the module to
++ *     operate and they need to be handled at the same time as the main_clk.
+  */
+ #define HWMOD_SWSUP_SIDLE			(1 << 0)
+ #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+@@ -538,6 +540,7 @@ struct omap_hwmod_omap4_prcm {
+ #define HWMOD_FORCE_MSTANDBY			(1 << 11)
+ #define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
+ #define HWMOD_RECONFIG_IO_CHAIN			(1 << 13)
++#define HWMOD_OPT_CLKS_NEEDED			(1 << 14)
+ 
+ /*
+  * omap_hwmod._int_flags definitions
+-- 
+2.6.1
