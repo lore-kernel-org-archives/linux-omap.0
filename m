@@ -1,71 +1,64 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: musb: communication issue with more than 12 FTDI ports
-Date: Wed, 14 Oct 2015 10:57:33 -0500
-Message-ID: <561E7B6D.80605@ti.com>
-References: <CAGm1_ku3d4q3jQ6ZZYaLktd182O_WY5Hvu-Z877N31e5wN2_NA@mail.gmail.com>
- <CAGm1_kvwLu=4R1G8+bXEhmU4298B-+XGKQRaOjZOz15eU1StFw@mail.gmail.com>
- <87r3kyd3xw.fsf@saruman.tx.rr.com> <561E7639.40506@ti.com>
- <87h9ltbg0i.fsf@saruman.tx.rr.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix oops with LPAE and more than 2GB of
+ memory
+Date: Wed, 14 Oct 2015 09:02:45 -0700
+Message-ID: <20151014160245.GA10113@atomide.com>
+References: <1444778000-22537-1-git-send-email-tony@atomide.com>
+ <561DD014.10403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87h9ltbg0i.fsf-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <561DD014.10403@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <a0131933@ti.com>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/14/2015 10:56 AM, Felipe Balbi wrote:
->
-> Hi,
->
-> Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> writes:
->> Hi,
->>
->> On 10/13/2015 01:22 PM, Felipe Balbi wrote:
->>> Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> writes:
->>>> On Mon, Oct 12, 2015 at 11:34 AM, Yegor Yefremov
->>>> <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
->>>>> We have a problem, when using more than 12 FTDI ports. Kernels tried:
->>>>> 3.18.1, 4.2.3 and 4.3-rc5. SoC am335x 600MHz
->>>>>
->>>>> Below the USB topology:
->>>>>
->>>>> # lsusb -t
->>>>> /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
->>>>> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=musb-hdrc/1p, 480M
->>>>>       |__ Port 1: Dev 2, If 0, Class=, Driver=hub/4p, 480M
->>>>>           |__ Port 1: Dev 9, If 0, Class=, Driver=hub/4p, 480M
->>>>>               |__ Port 1: Dev 10, If 0, Class=, Driver=ftdi_sio, 12M
->>>>>               |__ Port 2: Dev 11, If 0, Class=, Driver=ftdi_sio, 480M
->>>>>               |__ Port 2: Dev 11, If 1, Class=, Driver=ftdi_sio, 480M
->>>>>               |__ Port 2: Dev 11, If 2, Class=, Driver=ftdi_sio, 480M
->>>>>               |__ Port 2: Dev 11, If 3, Class=, Driver=ftdi_sio, 480M
->>>>>               |__ Port 3: Dev 12, If 0, Class=, Driver=ftdi_sio, 480M
->>>>>               |__ Port 3: Dev 12, If 1, Class=, Driver=ftdi_sio, 480M
->>>>>               |__ Port 3: Dev 12, If 2, Class=, Driver=ftdi_sio, 480M
->>>>>               |__ Port 3: Dev 12, If 3, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 2: Dev 4, If 0, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 2: Dev 4, If 1, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 2: Dev 4, If 2, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 2: Dev 4, If 3, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 3: Dev 7, If 0, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 3: Dev 7, If 1, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 3: Dev 7, If 2, Class=, Driver=ftdi_sio, 480M
->>>>>           |__ Port 3: Dev 7, If 3, Class=, Driver=ftdi_sio, 480M
->>
->> How many EPs does each FTDI device require? at least one INT EP, right?
->> If I read it right, the topology above has 2 hubs, and 16 high-speed
->> FTDI and 1 full-speed FTDI. So it requires at least 18 high-speed INT
->> EPs. MUSB driver only has 11 high-speed EPs for mode-4 which is the EP
->> configuration used by default. I am wondering how those devices got
->> enumerated properly.
->
-> dynamic EP allocation, but that has its own limitations.
->
-MUSB does not support dynamic EP allocation for INT/ISOCH.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+* Lokesh Vutla <a0131933@ti.com> [151013 20:53]:
+> Hi Tony,
+> 
+> On Wednesday 14 October 2015 04:43 AM, Tony Lindgren wrote:
+> > On boards with more than 2GB of RAM booting goes wrong with things not working
+> > and we're getting lots of l3 warnings:
+> > 
+> > WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x260/0x384()
+> > 44000000.ocp:L3 Custom Error: MASTER MMC6 TARGET DMM1 (Idle): Data Access in User mode during Functional access
+> > ...
+> > [<c044e158>] (scsi_add_host_with_dma) from [<c04705c8>] (ata_scsi_add_hosts+0x5c/0x18c)
+> > [<c04705c8>] (ata_scsi_add_hosts) from [<c046b13c>] (ata_host_register+0x150/0x2cc)
+> > [<c046b13c>] (ata_host_register) from [<c046b38c>] (ata_host_activate+0xd4/0x124)
+> > [<c046b38c>] (ata_host_activate) from [<c047f42c>] (ahci_host_activate+0x5c/0x194)
+> > [<c047f42c>] (ahci_host_activate) from [<c0480854>] (ahci_platform_init_host+0x1f0/0x3f0)
+> > [<c0480854>] (ahci_platform_init_host) from [<c047c9dc>] (ahci_probe+0x70/0x98)
+> > [<c047c9dc>] (ahci_probe) from [<c04220cc>] (platform_drv_probe+0x54/0xb4)
+> > 
+> > Let's fix the issue by enabling ZONE_DMA for LPAE.
+> 
+> May I know on which platform you have reproduced this?
+
+This is on the 4GB version of isee igepv5 GEP0050-RB10
+
+https://isee.biz/products/igep-processor-boards/igepv5-omap5432
+
+> Just wondering what other changes you made for booting a OMAP5+ based
+> board with more than 2GB.
+
+Just the minimal dts changes I posted yesterday to use shared dtsi file
+for omap5-uevm variants. Then boot with something like this in the kernel
+cmdline:
+
+mem=2032M@0x80000000 mem=2048M@0x300000000
+
+Regards,
+
+Tony
