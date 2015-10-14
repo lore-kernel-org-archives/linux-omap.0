@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 13/24] dmaengine: edma: Use devm_kcalloc when possible
-Date: Wed, 14 Oct 2015 14:42:55 +0300
-Message-ID: <1444822986-20562-14-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 16/24] dmaengine: edma: Use the edma_write_slot instead open coded memcpy_toio
+Date: Wed, 14 Oct 2015 14:42:58 +0300
+Message-ID: <1444822986-20562-17-git-send-email-peter.ujfalusi@ti.com>
 References: <1444822986-20562-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,26 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When allocating a memory for number of items it is better (looks better)
-to use devm_kcalloc.
+edma_write_slot() is for writing an entire paRAM slot.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/dma/edma.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index d5a76c67f83f..95c10373168d 100644
+index 08f9bd0aa0b3..f6653da0ee16 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -2055,7 +2055,7 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 	 * priority. So Q0 is the highest priority queue and the last queue has
- 	 * the lowest priority.
- 	 */
--	queue_priority_map = devm_kzalloc(dev, (ecc->num_tc + 1) * sizeof(s8),
-+	queue_priority_map = devm_kcalloc(dev, ecc->num_tc + 1, sizeof(s8),
- 					  GFP_KERNEL);
- 	if (!queue_priority_map)
- 		return -ENOMEM;
-@@ -2086,7 +2086,7 @@ static int edma_xbar_event_map(struct device *dev, struct edma_soc_info *pdata,
- 	u32 shift, offset, mux;
- 	int ret, i;
+@@ -968,8 +968,7 @@ static void edma_free_channel(struct edma_cc *ecc, unsigned channel)
+ 	edma_setup_interrupt(ecc, channel, NULL, NULL);
+ 	/* REVISIT should probably take out of shadow region 0 */
  
--	xbar_chans = devm_kzalloc(dev, (nelm + 2) * sizeof(s16), GFP_KERNEL);
-+	xbar_chans = devm_kcalloc(dev, nelm + 2, sizeof(s16), GFP_KERNEL);
- 	if (!xbar_chans)
- 		return -ENOMEM;
+-	memcpy_toio(ecc->base + PARM_OFFSET(channel), &dummy_paramset,
+-		    PARM_SIZE);
++	edma_write_slot(ecc, channel, &dummy_paramset);
+ 	clear_bit(channel, ecc->edma_inuse);
+ }
  
 -- 
 2.6.1
