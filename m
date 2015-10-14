@@ -1,64 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix oops with LPAE and more than 2GB of
- memory
-Date: Wed, 14 Oct 2015 09:02:45 -0700
-Message-ID: <20151014160245.GA10113@atomide.com>
-References: <1444778000-22537-1-git-send-email-tony@atomide.com>
- <561DD014.10403@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/5] mtd: nand: omap2: Support parsing dma channel
+ information from DT
+Date: Wed, 14 Oct 2015 09:18:13 -0700
+Message-ID: <20151014161813.GC10113@atomide.com>
+References: <1444700338-27582-1-git-send-email-fcooper@ti.com>
+ <1444700338-27582-2-git-send-email-fcooper@ti.com>
+ <561E3E4F.9020302@ti.com>
+ <561E41EB.3050005@ti.com>
+ <561E5803.5090609@ti.com>
+ <561E629F.5070202@ti.com>
+ <561E6791.3030404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <561DD014.10403@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <a0131933@ti.com>
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <561E6791.3030404-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Franklin S Cooper Jr." <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <a0131933@ti.com> [151013 20:53]:
-> Hi Tony,
+* Franklin S Cooper Jr. <fcooper-l0cyMroinI0@public.gmane.org> [151014 07:37]:
 > 
-> On Wednesday 14 October 2015 04:43 AM, Tony Lindgren wrote:
-> > On boards with more than 2GB of RAM booting goes wrong with things not working
-> > and we're getting lots of l3 warnings:
-> > 
-> > WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x260/0x384()
-> > 44000000.ocp:L3 Custom Error: MASTER MMC6 TARGET DMM1 (Idle): Data Access in User mode during Functional access
-> > ...
-> > [<c044e158>] (scsi_add_host_with_dma) from [<c04705c8>] (ata_scsi_add_hosts+0x5c/0x18c)
-> > [<c04705c8>] (ata_scsi_add_hosts) from [<c046b13c>] (ata_host_register+0x150/0x2cc)
-> > [<c046b13c>] (ata_host_register) from [<c046b38c>] (ata_host_activate+0xd4/0x124)
-> > [<c046b38c>] (ata_host_activate) from [<c047f42c>] (ahci_host_activate+0x5c/0x194)
-> > [<c047f42c>] (ahci_host_activate) from [<c0480854>] (ahci_platform_init_host+0x1f0/0x3f0)
-> > [<c0480854>] (ahci_platform_init_host) from [<c047c9dc>] (ahci_probe+0x70/0x98)
-> > [<c047c9dc>] (ahci_probe) from [<c04220cc>] (platform_drv_probe+0x54/0xb4)
-> > 
-> > Let's fix the issue by enabling ZONE_DMA for LPAE.
 > 
-> May I know on which platform you have reproduced this?
+> On 10/14/2015 09:11 AM, Roger Quadros wrote:
+> > On 14/10/15 16:26, Franklin S Cooper Jr. wrote:
+> >>
+> >> On 10/14/2015 06:52 AM, Roger Quadros wrote:
+> >>> Franklin,
+> >>>
+> >>> On 14/10/15 14:36, Roger Quadros wrote:
+> >>>> On 13/10/15 04:38, Franklin S Cooper Jr wrote:
+> >>>>> Switch from dma_request_channel to allow passing dma channel
+> >>>>> information from DT rather than hardcoding a value.
+> >>>>>
+> >>>>> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+> >>>> Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> >>>>
+> >>>>> ---
+> >>>>>  drivers/mtd/nand/omap2.c | 4 +++-
+> >>>>>  1 file changed, 3 insertions(+), 1 deletion(-)
+> >>>>>
+> >>>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> >>>>> index d0f2620..957c32f 100644
+> >>>>> --- a/drivers/mtd/nand/omap2.c
+> >>>>> +++ b/drivers/mtd/nand/omap2.c
+> >>>>> @@ -1866,7 +1866,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+> >>>>>  		dma_cap_zero(mask);
+> >>>>>  		dma_cap_set(DMA_SLAVE, mask);
+> >>>>>  		sig = OMAP24XX_DMA_GPMC;
+> >>>>> -		info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
+> >>>>> +		info->dma = dma_request_slave_channel_compat(mask,
+> >>>>> +			omap_dma_filter_fn, &sig, pdev->dev.parent, "rxtx");
+> >>>>> +
+> >>> Just discovered that you are using the parent device node.
+> >>>
+> >>> How about moving the dma bindings to the nand node instead and using
+> >>> pdev->dev here?
+> >> Roger,
+> >>
+> >> From what I can tell the interrupt number and the dma channel will always be
+> >> the same no matter what. Doesn't matter if you have multiple nands or a
+> >> combination of nands and nors. Since that is the case I think it just makes
+> >> sense to leave it in the gpmc parent node and define it once.
+> > Is prefetch/writepost dma used for NOR or any other GPMC peripheral
+> > or only for NAND?
+> The dma seems tied to the prefetch. From what I can tell the prefetch is only
+> used by nand.
+> >
+> > Let's also get Tony's inputs on this.
+> Sure.
 
-This is on the 4GB version of isee igepv5 GEP0050-RB10
-
-https://isee.biz/products/igep-processor-boards/igepv5-omap5432
-
-> Just wondering what other changes you made for booting a OMAP5+ based
-> board with more than 2GB.
-
-Just the minimal dts changes I posted yesterday to use shared dtsi file
-for omap5-uevm variants. Then boot with something like this in the kernel
-cmdline:
-
-mem=2032M@0x80000000 mem=2048M@0x300000000
+Hmm so what would keep other devices from using the prefetch?
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
