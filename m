@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 1/2] hsi: omap_ssi_port: Prevent warning if cawake_gpio is not defined.
-Date: Wed, 14 Oct 2015 13:44:15 +0300
-Message-ID: <1444819456-26728-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/2] ARM: dts: omap3: keep ssi ports by default
+Date: Wed, 14 Oct 2015 13:44:16 +0300
+Message-ID: <1444819456-26728-3-git-send-email-rogerq@ti.com>
 References: <1444819456-26728-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,53 +12,51 @@ To: tony@atomide.com
 Cc: wsa@the-dreams.de, sre@kernel.org, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The error handling path is broken as cawake_gpio was defined as
-unsigned integer causing the following warnings on boards that don't
-use SSI port and so don't have cawake_gpio defined. e.g. beagleboard C4.
+Let's keep the SSI ports disabled in the omap3.dtsi to avoid
+getting the following noise on the console for boards that don't
+use the SSI ports.
 
-[   30.094635] WARNING: CPU: 0 PID: 322 at drivers/gpio/gpiolib.c:86 gpio_to_desc+0xa4/0xb8()
-[   30.103363] invalid GPIO -2
-[   30.106292] Modules linked in: omap_ssi_port(+) cpufreq_dt cfbfillrect cfbimgblt leds_gpio cfbcopyarea thermal_sys led_class hwmon gpio_keys encoder_tfp410 connector_analog_tv connector_dvi omap_hdq snd phy_i
-[   30.145477] CPU: 0 PID: 322 Comm: modprobe Not tainted 4.3.0-rc4-00030-gca978c0-dirty #335
-[   30.154174] Hardware name: Generic OMAP3-GP (Flattened Device Tree)
-[   30.160827] [<c0016ef4>] (unwind_backtrace) from [<c00131f4>] (show_stack+0x10/0x14)
-[   30.168975] [<c00131f4>] (show_stack) from [<c033cf08>] (dump_stack+0x80/0x9c)
-[   30.176635] [<c033cf08>] (dump_stack) from [<c003e920>] (warn_slowpath_common+0x7c/0xb8)
-[   30.185180] [<c003e920>] (warn_slowpath_common) from [<c003e9f0>] (warn_slowpath_fmt+0x30/0x40)
-[   30.194366] [<c003e9f0>] (warn_slowpath_fmt) from [<c0376314>] (gpio_to_desc+0xa4/0xb8)
-[   30.202819] [<c0376314>] (gpio_to_desc) from [<c0376ac8>] (gpio_request_one+0x14/0x11c)
-[   30.211273] [<c0376ac8>] (gpio_request_one) from [<c037370c>] (devm_gpio_request_one+0x3c/0x78)
-[   30.220458] [<c037370c>] (devm_gpio_request_one) from [<bf184210>] (ssi_port_probe+0x118/0x504 [omap_ssi_port])
-[   30.231170] [<bf184210>] (ssi_port_probe [omap_ssi_port]) from [<c03d4cfc>] (platform_drv_probe+0x48/0xa4)
-[   30.241424] [<c03d4cfc>] (platform_drv_probe) from [<c03d3678>] (driver_probe_device+0x1dc/0x2a0)
-[   30.250793] [<c03d3678>] (driver_probe_device) from [<c03d37d0>] (__driver_attach+0x94/0x98)
-[   30.259643] [<c03d37d0>] (__driver_attach) from [<c03d1d60>] (bus_for_each_dev+0x54/0x88)
-[   30.268249] [<c03d1d60>] (bus_for_each_dev) from [<c03d2d50>] (bus_add_driver+0xe8/0x1f8)
-[   30.276916] [<c03d2d50>] (bus_add_driver) from [<c03d4118>] (driver_register+0x78/0xf4)
-[   30.285369] [<c03d4118>] (driver_register) from [<c03d5380>] (__platform_driver_probe+0x34/0xd8)
-[   30.294647] [<c03d5380>] (__platform_driver_probe) from [<c00097e4>] (do_one_initcall+0x80/0x1d8)
-[   30.303985] [<c00097e4>] (do_one_initcall) from [<c011617c>] (do_init_module+0x5c/0x1cc)
-[   30.312561] [<c011617c>] (do_init_module) from [<c00c7a68>] (load_module+0x18c8/0x1f0c)
-[   30.320983] [<c00c7a68>] (load_module) from [<c00c8188>] (SyS_init_module+0xdc/0x150)
-[   30.329223] [<c00c8188>] (SyS_init_module) from [<c000f7e0>] (ret_fast_syscall+0x0/0x1c)
+"omap_ssi_port 4805a000.ssi-port: DT data is missing cawake gpio (err=-2)"
+
+As omap3-n900 uses one SSI port, mark it enabled there.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/hsi/controllers/omap_ssi_port.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-n900.dts | 1 +
+ arch/arm/boot/dts/omap3.dtsi     | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/hsi/controllers/omap_ssi_port.c b/drivers/hsi/controllers/omap_ssi_port.c
-index 1f8652b..02e6603 100644
---- a/drivers/hsi/controllers/omap_ssi_port.c
-+++ b/drivers/hsi/controllers/omap_ssi_port.c
-@@ -1111,7 +1111,7 @@ static int __init ssi_port_probe(struct platform_device *pd)
- 	struct omap_ssi_port *omap_port;
- 	struct hsi_controller *ssi = dev_get_drvdata(pd->dev.parent);
- 	struct omap_ssi_controller *omap_ssi = hsi_controller_drvdata(ssi);
--	u32 cawake_gpio = 0;
-+	int cawake_gpio = 0;
- 	u32 port_id;
- 	int err;
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 5f5e0f3..bdb72fb 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -949,6 +949,7 @@
+ };
  
+ &ssi_port1 {
++	status = "ok";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&ssi_pins>;
+ 
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 8a2b253..25b0b37 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -815,6 +815,7 @@
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <67>,
+ 					     <68>;
++				status = "disabled";
+ 			};
+ 
+ 			ssi_port2: ssi-port@4805b000 {
+@@ -828,6 +829,7 @@
+ 				interrupt-parent = <&intc>;
+ 				interrupts = <69>,
+ 					     <70>;
++				status = "disabled";
+ 			};
+ 		};
+ 	};
 -- 
 2.1.4
