@@ -1,68 +1,71 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 09/13] dmaengine: edma: Merge the of parsing functions
-Date: Wed, 14 Oct 2015 16:12:20 +0300
-Message-ID: <1444828344-21378-10-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 06/13] dmaengine: edma: Get qDMA channel information from HW
+ also
+Date: Wed, 14 Oct 2015 16:12:17 +0300
+Message-ID: <1444828344-21378-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
+Cc: devicetree@vger.kernel.org, arnd@arndb.de, tony@atomide.com, r.schwebel@pengutronix.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Instead of nesting functions just merge them since the resulting function
-is still small and readable.
+Query the number of qDMA channels from CCCFG register.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+ drivers/dma/edma.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index f511684f83a2..421c4fd67235 100644
+index a02f84c7c3d7..d064fbc47351 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -1915,31 +1915,23 @@ static int edma_xbar_event_map(struct device *dev, struct edma_soc_info *pdata,
- 	return 0;
- }
+@@ -107,6 +107,7 @@
  
--static int edma_of_parse_dt(struct device *dev, struct edma_soc_info *pdata)
--{
--	int ret = 0;
--	struct property *prop;
--	size_t sz;
--
--	prop = of_find_property(dev->of_node, "ti,edma-xbar-event-map", &sz);
--	if (prop)
--		ret = edma_xbar_event_map(dev, pdata, sz);
--
--	return ret;
--}
--
- static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev)
- {
- 	struct edma_soc_info *info;
-+	struct property *prop;
-+	size_t sz;
- 	int ret;
+ /* CCCFG register */
+ #define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
++#define GET_NUM_QDMACH(x)	(x & 0x70 >> 4) /* bits 4-6 */
+ #define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
+ #define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
+ #define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
+@@ -220,6 +221,7 @@ struct edma_cc {
  
- 	info = devm_kzalloc(dev, sizeof(struct edma_soc_info), GFP_KERNEL);
- 	if (!info)
- 		return ERR_PTR(-ENOMEM);
+ 	/* eDMA3 resource information */
+ 	unsigned			num_channels;
++	unsigned			num_qchannels;
+ 	unsigned			num_region;
+ 	unsigned			num_slots;
+ 	unsigned			num_tc;
+@@ -1813,6 +1815,9 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
+ 	value = GET_NUM_DMACH(cccfg);
+ 	ecc->num_channels = BIT(value + 1);
  
--	ret = edma_of_parse_dt(dev, info);
--	if (ret)
--		return ERR_PTR(ret);
-+	prop = of_find_property(dev->of_node, "ti,edma-xbar-event-map", &sz);
-+	if (prop) {
-+		ret = edma_xbar_event_map(dev, info, sz);
-+		if (ret)
-+			return ERR_PTR(ret);
-+	}
++	value = GET_NUM_QDMACH(cccfg);
++	ecc->num_qchannels = value * 2;
++
+ 	value = GET_NUM_PAENTRY(cccfg);
+ 	ecc->num_slots = BIT(value + 4);
  
- 	return info;
- }
+@@ -1824,6 +1829,7 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
+ 	dev_dbg(dev, "eDMA3 CC HW configuration (cccfg: 0x%08x):\n", cccfg);
+ 	dev_dbg(dev, "num_region: %u\n", ecc->num_region);
+ 	dev_dbg(dev, "num_channels: %u\n", ecc->num_channels);
++	dev_dbg(dev, "num_qchannels: %u\n", ecc->num_qchannels);
+ 	dev_dbg(dev, "num_slots: %u\n", ecc->num_slots);
+ 	dev_dbg(dev, "num_tc: %u\n", ecc->num_tc);
+ 	dev_dbg(dev, "chmap_exist: %s\n", ecc->chmap_exist ? "yes" : "no");
 -- 
 2.6.1
