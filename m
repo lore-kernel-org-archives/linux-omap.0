@@ -1,40 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/2] Trace: PM: promote event 'power_domain_target' to generic power domains.
-Date: Wed, 14 Oct 2015 02:55:10 +0200
-Message-ID: <1842060.xHgP7up4AJ@vostro.rjw.lan>
-References: <1443429864-4177-2-git-send-email-mtitinger+renesas@baylibre.com> <1443446445-11418-1-git-send-email-mtitinger+renesas@baylibre.com>
+From: Lokesh Vutla <a0131933@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix oops with LPAE and more than 2GB of
+ memory
+Date: Wed, 14 Oct 2015 09:16:28 +0530
+Message-ID: <561DD014.10403@ti.com>
+References: <1444778000-22537-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1443446445-11418-1-git-send-email-mtitinger+renesas@baylibre.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Marc Titinger <mtitinger@baylibre.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Marc Titinger <mtitinger+renesas@baylibre.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1444778000-22537-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H.
+ Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, September 28, 2015 03:20:44 PM Marc Titinger wrote:
-> - change arg3 to a state name string: we got the current CPU rom the trace
-> backend already. This also prepares for multiple/named states in the power
-> domain, consistent with idle-states. states in the domain may match given
-> CPU states in this case, we will trace them by their name, and potentially
-> use arg2 as a link to their index for the cpuidle driver.
-> 
-> - tested with Juno DP
-> 
-> <idle>-0     [000]    42.395510: power_domain_target:  a53_pd index=0 'cluster-sleep-0'
-> <idle>-0     [000]    42.395528: cpu_idle:             state=4294967295 cpu_id=0
-> <idle>-0     [000]    42.395668: cpu_idle:             state=2 cpu_id=0
-> 
-> - compiled for Omap2+
-> 
-> Signed-off-by: Marc Titinger <mtitinger@baylibre.com>
+Hi Tony,
 
-Hi,
+On Wednesday 14 October 2015 04:43 AM, Tony Lindgren wrote:
+> On boards with more than 2GB of RAM booting goes wrong with things not working
+> and we're getting lots of l3 warnings:
+> 
+> WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x260/0x384()
+> 44000000.ocp:L3 Custom Error: MASTER MMC6 TARGET DMM1 (Idle): Data Access in User mode during Functional access
+> ...
+> [<c044e158>] (scsi_add_host_with_dma) from [<c04705c8>] (ata_scsi_add_hosts+0x5c/0x18c)
+> [<c04705c8>] (ata_scsi_add_hosts) from [<c046b13c>] (ata_host_register+0x150/0x2cc)
+> [<c046b13c>] (ata_host_register) from [<c046b38c>] (ata_host_activate+0xd4/0x124)
+> [<c046b38c>] (ata_host_activate) from [<c047f42c>] (ahci_host_activate+0x5c/0x194)
+> [<c047f42c>] (ahci_host_activate) from [<c0480854>] (ahci_platform_init_host+0x1f0/0x3f0)
+> [<c0480854>] (ahci_platform_init_host) from [<c047c9dc>] (ahci_probe+0x70/0x98)
+> [<c047c9dc>] (ahci_probe) from [<c04220cc>] (platform_drv_probe+0x54/0xb4)
+> 
+> Let's fix the issue by enabling ZONE_DMA for LPAE.
 
-What's your intent regarding this series?  Do you want it to be applied
-separately, or is it going to be part of a larger series?
+May I know on which platform you have reproduced this?
+Just wondering what other changes you made for booting a OMAP5+ based
+board with more than 2GB.
 
-Thanks,
-Rafael
-
+Thanks and regards,
+Lokesh
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index b3a0dff..33d1460 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -49,6 +49,7 @@ config SOC_OMAP5
+>  	select OMAP_INTERCONNECT
+>  	select OMAP_INTERCONNECT_BARRIER
+>  	select PM_OPP if PM
+> +	select ZONE_DMA if ARM_LPAE
+>  
+>  config SOC_AM33XX
+>  	bool "TI AM33XX"
+> @@ -78,6 +79,7 @@ config SOC_DRA7XX
+>  	select OMAP_INTERCONNECT
+>  	select OMAP_INTERCONNECT_BARRIER
+>  	select PM_OPP if PM
+> +	select ZONE_DMA if ARM_LPAE
+>  
+>  config ARCH_OMAP2PLUS
+>  	bool
+> 
