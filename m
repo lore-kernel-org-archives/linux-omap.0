@@ -1,82 +1,61 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: omap3: keep ssi ports by default
-Date: Wed, 14 Oct 2015 14:54:53 +0300
-Message-ID: <561E428D.4030305@ti.com>
-References: <1444819456-26728-1-git-send-email-rogerq@ti.com>
- <1444819456-26728-3-git-send-email-rogerq@ti.com>
- <20151014111939.GB14340@earth> <561E3C1F.5000406@ti.com>
- <20151014113736.GC14340@earth>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: clock: remove un-used core dpll re-program
+ code
+Date: Wed, 14 Oct 2015 14:50:00 +0300
+Message-ID: <561E4168.3050508@ti.com>
+References: <1437034091-18306-1-git-send-email-t-kristo@ti.com>
+ <20150812072535.GQ4215@atomide.com> <20150812105642.GW4215@atomide.com>
+ <20151012170141.GE23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="HFrbafkpcbxjMNtDC6o3tSkNpaimdLOiL"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151014113736.GC14340@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: tony@atomide.com, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151012170141.GE23801@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---HFrbafkpcbxjMNtDC6o3tSkNpaimdLOiL
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 14/10/15 14:37, Sebastian Reichel wrote:
-> Hi,
->=20
-> On Wed, Oct 14, 2015 at 02:27:27PM +0300, Roger Quadros wrote:
->> On 14/10/15 14:19, Sebastian Reichel wrote:
->>> On Wed, Oct 14, 2015 at 01:44:16PM +0300, Roger Quadros wrote:
->>>> Let's keep the SSI ports disabled in the omap3.dtsi to avoid
->>>> getting the following noise on the console for boards that don't
->>>> use the SSI ports.
+On 10/12/2015 08:01 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150812 03:59]:
+>> * Tony Lindgren <tony@atomide.com> [150812 00:29]:
+>>> * Tero Kristo <t-kristo@ti.com> [150716 01:10]:
+>>>> Remove the OMAP3 core DPLL re-program code, and the associated SRAM
+>>>> code that does the low-level programming of the DPLL divider, idling
+>>>> of the SDRAM etc.
 >>>>
->>>> "omap_ssi_port 4805a000.ssi-port: DT data is missing cawake gpio (er=
-r=3D-2)"
->>>>
->>>> As omap3-n900 uses one SSI port, mark it enabled there.
+>>>> This code was never fully implemented in the kernel; things missing
+>>>> were driver side handling of core clock changes (they need to account
+>>>> for their functional clock rate being changed on-the-fly), and the whole
+>>>> framework required for handling this. Thus, there is not much point
+>>>> to keep carrying the low-level support code either.
+>>>
+>>> OK I'm applying this into omap-for-v4.3/soc. If we ever need the code
+>>> it will be in the git history.
 >>
->> Would it be preferable to disable the ssi-controller node as well in t=
-he
->> omap3.dtsi file?
->=20
-> If I remember it correctly, existing, but unused IP-Cores
-> should not be disabled in DT, so that hwmod picks them up
-> for power management.
+>> Actually I'll wait on this one and apply it later on as it currently
+>> adds merge conflicts into Linux next.
+>
+> Looks like this needs to be updated to apply on v4.3-rc4, can you
+> please repost?
 
-OK.
->=20
-> Note, that it actually is disabled in omap3.dtsi and then enabled in
-> omap34xx/omap36xx dts files (the other variants do not have an ssi
-> module).
+Ok, just posted it.
 
-Thanks for the info :)
+-Tero
 
-cheers,
--roger
-
-
---HFrbafkpcbxjMNtDC6o3tSkNpaimdLOiL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWHkKNAAoJENJaa9O+djCTAEQP/Au9JZnJTPNJVSw3hVnwzbCq
-8twlz4xDnuMJqew+AkdGVwvp3MSv4BV175Fxa0StRk7h1uu9skuY0gKcPFjCtl3j
-hnVONqYg0aYHyjZmXCEjix3R7xlnVdrz+md+eN4jKW+tmt6y2Um6RjiyfA7+twLr
-7sxAxq37Xd78BYUIKh/40ABcUZ+XXfZPAU7F1j7meo5WXcb7OmmxRFB6a8uLtQy0
-CtCoIIIf14qJFqUiIARttkeNCu3L7rgnPIxMwC5ajjEbAS3wKT9d0L+/kGM2cRCt
-tM3NZUdLFsxuGnt74p9z4HwWXC5epp0btlHTwLAjo6NBO4g0FfU4qCMOCnVa5Hp/
-KYffNo5WloXf7hKOW6sCSS7PNOqqeN3Y+z37gJAaHW07+n49aa4I/DKLQjY9OlSw
-6oXDjJZakm2EAAUqVzFxOo/1UQD4d2qKhRfHx2maEk1HqoF5Mrf2Eavb/uHbQ2g6
-JTi5D/9/x1CeOvUJQIn8lUEfxX41XCV6zkfTMkByMdd2Yxf2fBJlX9ien1rpmdP/
-kyfJeaUTTE24CBBpnOASHmWwJXOgtGMFufsDaZ3ERbxjRE4RWlnmi8sXpCLNkwPe
-WwHzg5jD8W99Ft09uBpUyFiOyEFeaZdbB7x8t1EubcClTxByyiHxljfA8Q94MaU1
-/S2DJdCogr+fCGFRqCqF
-=WcpW
------END PGP SIGNATURE-----
-
---HFrbafkpcbxjMNtDC6o3tSkNpaimdLOiL--
+>
+> Using v4.3-rc4 as the base for v4.4 because it contains most of the
+> mmc fixes.
+>
+> Regards,
+>
+> Tony
+>
