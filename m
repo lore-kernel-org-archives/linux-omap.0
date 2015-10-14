@@ -1,44 +1,88 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 10/13] dmaengine: ti-dma-crossbar: Add support for
- crossbar on AM33xx/AM43xx
-Date: Wed, 14 Oct 2015 20:18:14 +0530
-Message-ID: <20151014144814.GW27370@localhost>
-References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
- <1444828344-21378-11-git-send-email-peter.ujfalusi@ti.com>
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: [PATCH 2/4] ARM: OMAP2+: remove custom abort handler for t410
+Date: Wed, 14 Oct 2015 16:48:31 +0200
+Message-ID: <1444834113-18122-3-git-send-email-l.stach@pengutronix.de>
+References: <1444834113-18122-1-git-send-email-l.stach@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1444828344-21378-11-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, r.schwebel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1444834113-18122-1-git-send-email-l.stach@pengutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Jason Cooper <jason@lakedaemon.net>, Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, patchwork-lst@pengutronix.de, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 14, 2015 at 04:12:21PM +0300, Peter Ujfalusi wrote:
-> The DMA event crossbar on AM33xx/AM43xx is different from the one found in
-> DRA7x family.
-> Instead of a single event crossbar it has 64 identical mux attached to each
-> eDMA event line. When the 0 event mux is selected, the default mapped event
-> is going to be routed to the corresponding eDMA event line. If different
-> mux is selected, then the selected event is going to be routed to the given
-> eDMA event.
+This is not needed anymore. Handling a potentially pending imprecise external
+abort left behind by the bootloader is now done in a slightly safer way inside
+the common ARM startup code.
 
-Why is crossbar patch in edma series?
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ arch/arm/mach-omap2/pdata-quirks.c | 29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
-> +static void ti_am335x_xbar_free(struct device *dev, void *route_data)
-> +{
-> +	struct ti_am335x_xbar_data *xbar = dev_get_drvdata(dev);
-> +	struct ti_am335x_xbar_map *map = route_data;
-> +
-> +	dev_err(dev, "Unmapping XBAR event %u on channel %u\n",
-> +		map->mux_val, map->dma_line);
-
-Err ?
-
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index ea56397599c2..3a2bc2a88db4 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -24,9 +24,6 @@
+ #include <linux/platform_data/iommu-omap.h>
+ #include <linux/platform_data/wkup_m3.h>
+ 
+-#include <asm/siginfo.h>
+-#include <asm/signal.h>
+-
+ #include "common.h"
+ #include "common-board-devices.h"
+ #include "dss-common.h"
+@@ -385,29 +382,6 @@ static void __init omap3_pandora_legacy_init(void)
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+-#ifdef CONFIG_SOC_TI81XX
+-static int fault_fixed_up;
+-
+-static int t410_abort_handler(unsigned long addr, unsigned int fsr,
+-			      struct pt_regs *regs)
+-{
+-	if ((fsr == 0x406 || fsr == 0xc06) && !fault_fixed_up) {
+-		pr_warn("External imprecise Data abort at addr=%#lx, fsr=%#x ignored.\n",
+-			addr, fsr);
+-		fault_fixed_up = 1;
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+-static void __init t410_abort_init(void)
+-{
+-	hook_fault_code(16 + 6, t410_abort_handler, SIGBUS, BUS_OBJERR,
+-			"imprecise external abort");
+-}
+-#endif
+-
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+ static struct iommu_platform_data omap4_iommu_pdata = {
+ 	.reset_name = "mmu_cache",
+@@ -536,9 +510,6 @@ static struct pdata_init pdata_quirks[] __initdata = {
+ 	{ "openpandora,omap3-pandora-600mhz", omap3_pandora_legacy_init, },
+ 	{ "openpandora,omap3-pandora-1ghz", omap3_pandora_legacy_init, },
+ #endif
+-#ifdef CONFIG_SOC_TI81XX
+-	{ "hp,t410", t410_abort_init, },
+-#endif
+ #ifdef CONFIG_SOC_OMAP5
+ 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
+ #endif
 -- 
-~Vinod
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.6.1
