@@ -1,130 +1,55 @@
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: [PATCH 1/4] ARM: catch pending imprecise abort on unmask
-Date: Wed, 14 Oct 2015 16:48:30 +0200
-Message-ID: <1444834113-18122-2-git-send-email-l.stach@pengutronix.de>
-References: <1444834113-18122-1-git-send-email-l.stach@pengutronix.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 10/13] dmaengine: ti-dma-crossbar: Add support for
+ crossbar on AM33xx/AM43xx
+Date: Wed, 14 Oct 2015 17:53:40 +0300
+Message-ID: <561E6C74.50502@ti.com>
+References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
+ <1444828344-21378-11-git-send-email-peter.ujfalusi@ti.com>
+ <20151014144814.GW27370@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444834113-18122-1-git-send-email-l.stach@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: Jason Cooper <jason@lakedaemon.net>, Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, patchwork-lst@pengutronix.de, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151014144814.GW27370@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Install a non-faulting handler just before unmasking imprecise aborts
-and switch back to the regular one after unmasking is done.
+On 10/14/2015 05:48 PM, Vinod Koul wrote:
+> On Wed, Oct 14, 2015 at 04:12:21PM +0300, Peter Ujfalusi wrote:
+>> The DMA event crossbar on AM33xx/AM43xx is different from the one fo=
+und in
+>> DRA7x family.
+>> Instead of a single event crossbar it has 64 identical mux attached =
+to each
+>> eDMA event line. When the 0 event mux is selected, the default mappe=
+d event
+>> is going to be routed to the corresponding eDMA event line. If diffe=
+rent
+>> mux is selected, then the selected event is going to be routed to th=
+e given
+>> eDMA event.
+>=20
+> Why is crossbar patch in edma series?
 
-This catches any pending imprecise abort that the firmware/bootloader
-may have left behind that would normally crash the kernel at that point.
-As there are apparently a lot of bootlaoders out there that do such a
-thing it makes sense to handle it in the common startup code.
+The old eDMA binding had xbar support which is not supported by the new
+binding since it does not belong to the eDMA driver at all.
+We have couple of boards where the crossbar is in use so I included the
+crossbar support in this series.
 
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
----
- arch/arm/mm/fault.c | 15 +++++++++++++++
- arch/arm/mm/fault.h |  2 ++
- arch/arm/mm/mmu.c   | 19 ++++++++++++++++++-
- 3 files changed, 35 insertions(+), 1 deletion(-)
+>> +static void ti_am335x_xbar_free(struct device *dev, void *route_dat=
+a)
+>> +{
+>> +	struct ti_am335x_xbar_data *xbar =3D dev_get_drvdata(dev);
+>> +	struct ti_am335x_xbar_map *map =3D route_data;
+>> +
+>> +	dev_err(dev, "Unmapping XBAR event %u on channel %u\n",
+>> +		map->mux_val, map->dma_line);
+>=20
+> Err ?
 
-diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
-index 0d629b8f973f..519f694ec9db 100644
---- a/arch/arm/mm/fault.c
-+++ b/arch/arm/mm/fault.c
-@@ -538,6 +538,21 @@ hook_fault_code(int nr, int (*fn)(unsigned long, unsigned int, struct pt_regs *)
- 	fsr_info[nr].name = name;
- }
- 
-+void * __init
-+swap_fault_function(int nr,
-+		    int (*fn)(unsigned long, unsigned int, struct pt_regs *))
-+{
-+	void *old_fn;
-+
-+	if (nr < 0 || nr >= ARRAY_SIZE(fsr_info))
-+		BUG();
-+
-+	old_fn = fsr_info[nr].fn;
-+	fsr_info[nr].fn = fn;
-+
-+	return old_fn;
-+}
-+
- /*
-  * Dispatch a data abort to the relevant handler.
-  */
-diff --git a/arch/arm/mm/fault.h b/arch/arm/mm/fault.h
-index cf08bdfbe0d6..2deb7494d84f 100644
---- a/arch/arm/mm/fault.h
-+++ b/arch/arm/mm/fault.h
-@@ -24,5 +24,7 @@ static inline int fsr_fs(unsigned int fsr)
- 
- void do_bad_area(unsigned long addr, unsigned int fsr, struct pt_regs *regs);
- unsigned long search_exception_table(unsigned long addr);
-+void *swap_fault_function(int nr,
-+		int (*fn)(unsigned long, unsigned int, struct pt_regs *));
- 
- #endif	/* __ARCH_ARM_FAULT_H */
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index f65a6f344b6d..78c420776f4c 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -38,6 +38,7 @@
- #include <asm/mach/pci.h>
- #include <asm/fixmap.h>
- 
-+#include "fault.h"
- #include "mm.h"
- #include "tcm.h"
- 
-@@ -1259,6 +1260,20 @@ void __init arm_mm_memblock_reserve(void)
- }
- 
- /*
-+ * Abort handler to be used only during unmasking of imprecise aborts. This
-+ * makes sure that the machine will not die if the firmware/bootloader left an
-+ * imprecise abort pending for us to trip over.
-+ */
-+static int __init early_abort_handler(unsigned long addr, unsigned int fsr,
-+				      struct pt_regs *regs)
-+{
-+	pr_warn("Hit pending imprecise external abort during first unmask, "
-+		"this is most likely caused by a firmware/bootloader bug.\n");
-+
-+	return 0;
-+}
-+
-+/*
-  * Set up the device mappings.  Since we clear out the page tables for all
-  * mappings above VMALLOC_START, except early fixmap, we might remove debug
-  * device mappings.  This means earlycon can be used to debug this function
-@@ -1269,7 +1284,7 @@ static void __init devicemaps_init(const struct machine_desc *mdesc)
- {
- 	struct map_desc map;
- 	unsigned long addr;
--	void *vectors;
-+	void *vectors, *saved_fault_fn;
- 
- 	/*
- 	 * Allocate the vector page early.
-@@ -1365,7 +1380,9 @@ static void __init devicemaps_init(const struct machine_desc *mdesc)
- 	flush_cache_all();
- 
- 	/* Enable asynchronous aborts */
-+	saved_fault_fn = swap_fault_function(22, early_abort_handler);
- 	local_abt_enable();
-+	swap_fault_function(22, saved_fault_fn);
- }
- 
- static void __init kmap_init(void)
--- 
-2.6.1
+Aargh, leftover from debugging.
+
+--=20
+P=E9ter
