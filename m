@@ -1,35 +1,69 @@
-From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Subject: Re: [REPOST PATCH 0/2] DRA7 DSP MMU config support
-Date: Wed, 14 Oct 2015 14:36:53 +0200
-Message-ID: <20151014123653.GA28120@8bytes.org>
-References: <1443826964-10691-1-git-send-email-s-anna@ti.com>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: hwmod: Remove elm address space from hwmod
+ data
+Date: Wed, 14 Oct 2015 08:08:59 -0500
+Message-ID: <561E53EB.9060207@ti.com>
+References: <1444743874-4454-1-git-send-email-fcooper@ti.com>
+ <561DFD26.9090702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1443826964-10691-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <561DFD26.9090702@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: paul@pwsan.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 02, 2015 at 06:02:42PM -0500, Suman Anna wrote:
-> Suman Anna (2):
->   Documentation: dt: Update OMAP iommu bindings for DRA7 DSPs
->   iommu/omap: Add support for configuring dsp iommus on DRA7xx
-> 
->  .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 27 ++++++++++
->  drivers/iommu/omap-iommu.c                         | 58 ++++++++++++++++++++++
->  drivers/iommu/omap-iommu.h                         |  9 ++++
->  3 files changed, 94 insertions(+)
 
-Applied, thanks.
+
+On 10/14/2015 01:58 AM, Roger Quadros wrote:
+> On 13/10/15 16:44, Franklin S Cooper Jr wrote:
+>> ELM address information is provided by device tree. No longer need
+>> to include this information within hwmod.
+>>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> Acked-by: Roger Quadros <rogerq@ti.com>
+>
+> Franklin,
+>
+> Can you please do the same for gpmc_addr as well?
+>
+> And looks like elm_addr needs to be removed from
+> omap_hwmod_33xx_43xx_interconnect_data.c and omap_hwmod_44xx_data.c as well, no?
+Sure I'll combine the 335x and 44x elm removal with this patch and then create a separate patch for the gpmc version.
+>
+> cheers,
+> -roger
+>
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 10 ----------
+>>  1 file changed, 10 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> index 562247b..ad2cc7a 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> @@ -2566,21 +2566,11 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
+>>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>>  };
+>>  
+>> -static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
+>> -	{
+>> -		.pa_start	= 0x48078000,
+>> -		.pa_end		= 0x48078fff,
+>> -		.flags		= ADDR_TYPE_RT
+>> -	},
+>> -	{ }
+>> -};
+>> -
+>>  /* l4_per1 -> elm */
+>>  static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm = {
+>>  	.master		= &dra7xx_l4_per1_hwmod,
+>>  	.slave		= &dra7xx_elm_hwmod,
+>>  	.clk		= "l3_iclk_div",
+>> -	.addr		= dra7xx_elm_addrs,
+>>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>>  };
+>>  
+>>
