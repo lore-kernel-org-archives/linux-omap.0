@@ -1,72 +1,97 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 2/2] ARM: dts: omap3: keep ssi ports by default
-Date: Wed, 14 Oct 2015 13:37:36 +0200
-Message-ID: <20151014113736.GC14340@earth>
-References: <1444819456-26728-1-git-send-email-rogerq@ti.com>
- <1444819456-26728-3-git-send-email-rogerq@ti.com>
- <20151014111939.GB14340@earth>
- <561E3C1F.5000406@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Add wakeup interrupt source for
+ pixcir_i2c_ts
+Date: Wed, 14 Oct 2015 17:07:40 +0530
+Message-ID: <561E3E84.2000308@ti.com>
+References: <1444801956-17817-1-git-send-email-vigneshr@ti.com>
+ <561E165B.3000907@ti.com> <561E1C89.9080508@ti.com> <561E36BB.7000309@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="t0UkRYy7tHLRMCai"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <561E3C1F.5000406@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <561E36BB.7000309-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Gerlach, Dave" <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---t0UkRYy7tHLRMCai
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi,
+On 10/14/2015 04:34 PM, Roger Quadros wrote:
+> Vignesh,
+> 
+> On 14/10/15 12:12, Vignesh R wrote:
+>>
+>>
+>> On 10/14/2015 02:16 PM, Roger Quadros wrote:
+>>
+>>>
+>>> On 14/10/15 08:52, Vignesh R wrote:
+>>>> On am437x-gp-evm, pixcir_i2c_ts can wakeup the system from lower power
+>>>> state via pinctrl and IO daisy chain using generic wakeirq framework.
+>>>> With commit 3fffd1283927 ("i2c: allow specifying separate wakeup
+>>>> interrupt in device tree") i2c core allows optional wakeirq to be
+>>>> specified via device tree. Add wakeup irq entry to enable pixcir_i2c_ts
+>>>> to wake the system from low power state.
+>>>>
+>>>> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+>>>> ---
+>>>>  arch/arm/boot/dts/am437x-gp-evm.dts | 5 +++++
+>>>>  1 file changed, 5 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+>>>> index 22038f21f228..69e93af7df0d 100644
+>>>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+>>>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+>>>> @@ -581,8 +581,13 @@
+>>>>  
+>>>>  		attb-gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
+>>>>  
+>>>> +		interrupts-extended = <&gpio3 22 GPIO_ACTIVE_HIGH>,
+>>>> +				      <&am43xx_pinmux 0x264>;
+>>>
+>>> How does this work?
+>>>
+>>> interrupts-extended property must have
+>>> 1) interrupt parent
+>>> 2) interrupt number
+>>> 3) interrupt flags
+>>>
+>>> Your change doesn't seem to comply with those requirements.
+>>
+>> AFAIU, interrupts-extended has two parts: interrupt parent phandle and
+>> interrupt specifier.
+>> The number of cells in interrupt specifier is determined by
+>> interrupt-cells property of interrupt parent node.
+> 
+> Got it.
+> 
+>> In above case, gpio3 has interrupt-cells = 2 hence interrupt specifier
+>> has interrupt number and interrupt flag field.
+> 
+> But is GPIO_ACTIVE_HIGH an interrupt flag?
 
-On Wed, Oct 14, 2015 at 02:27:27PM +0300, Roger Quadros wrote:
-> On 14/10/15 14:19, Sebastian Reichel wrote:
-> > On Wed, Oct 14, 2015 at 01:44:16PM +0300, Roger Quadros wrote:
-> >> Let's keep the SSI ports disabled in the omap3.dtsi to avoid
-> >> getting the following noise on the console for boards that don't
-> >> use the SSI ports.
-> >>
-> >> "omap_ssi_port 4805a000.ssi-port: DT data is missing cawake gpio (err=-2)"
-> >>
-> >> As omap3-n900 uses one SSI port, mark it enabled there.
->
-> Would it be preferable to disable the ssi-controller node as well in the
-> omap3.dtsi file?
+Oops.. I will change it to IRQ_TYPE_NONE as represented in interrupts
+property.
 
-If I remember it correctly, existing, but unused IP-Cores
-should not be disabled in DT, so that hwmod picks them up
-for power management.
+> 
+>> But in case am43xx_pinmux node, interrupt-cells is 1 hence has no
+>> interrupt flag field.
+>>
+> Understood, thanks. Might be worth adding a comment as to what 0x264 means though.
+> 
 
-Note, that it actually is disabled in omap3.dtsi and then enabled in
-omap34xx/omap36xx dts files (the other variants do not have an ssi
-module).
+Will add a one line comment indicating its the offset of gpio3_22
+padconf register from am43xx_pinmux base.
 
--- Sebastian
+> cheers,
+> -roger
+> 
 
---t0UkRYy7tHLRMCai
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWHj59AAoJENju1/PIO/qaLssP+wXsidTzLx59MqAxfNnl0Z6D
-1ctBIelecp98W7yy9hPJ6UtsXWVgUSERVhsg5tYlhxMAvIFhi0lYLXjbnqX5EzW/
-hcdzQ0cGxIsfmVOizBRP/LWl4kq/J8cMP+ncQJeQOp93vsxUT8eaEG9vIcABp7tQ
-JLjy9pF6Bt18xqQ4AOjJdn0HE7JyxQNMLiaE6i1p2MgXxtqXtYB0OMFRqN4Q13Q+
-X6kWU+uXlHg8zYJCP+Ph4elnj5JBNLlO1MX15/NtT9UEYQkHXnhRBz1ls7907TjF
-adAipcGn71Ux5fQdvy984o3Q6R+SuXNl8Tz7QT3gdUHhGzfWLVBWb1ITd2+bS06W
-40JWUDznptxAuGhbopAhoU+2bNkSZlzHM77SREomHFrn1nt+NJVBloQmBm+RxGf4
-vFQFFI4IcoxTN8nW1udct16xHpCYUWUPMyCbvIc8OjnxXDALpeLxHP0lftynWbLp
-lqtb3A9wpCgn/r12letCuul9SAg87X0/29cOLQhDooEatTpBdqizVSEvE5Hg3vIY
-7hqX6bcJVYQxyKW8cikKLO/s7JTQb2Yy66O2yjWOme8ODLjoDUemS2XiQSzVvKOC
-IsugvOrjOK0KGRQcDjIPYrgbzJFPYg8vhTwyY1C7Cgs+bkS+BS5g6ggUr/ESEi1J
-UeQuPthzq7ml2raWmtfu
-=xnFE
------END PGP SIGNATURE-----
-
---t0UkRYy7tHLRMCai--
+-- 
+Regards
+Vignesh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
