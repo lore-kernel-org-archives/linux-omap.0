@@ -1,173 +1,70 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 12/24] dmaengine: edma: Allocate memory dynamically for
- bitmaps and structures
-Date: Wed, 14 Oct 2015 14:42:54 +0300
-Message-ID: <1444822986-20562-13-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 20/24] dmaengine: edma: Move the pending error check into helper function
+Date: Wed, 14 Oct 2015 14:43:02 +0300
+Message-ID: <1444822986-20562-21-git-send-email-peter.ujfalusi@ti.com>
 References: <1444822986-20562-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444822986-20562-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: arnd@arndb.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Instead of using defines to specify the size of different arrays and
-bitmaps, allocate the memory for them based on the information we get from
-the HW itself.
-Since these defines are set based on the worst case, there are devices
-where they are not valid.
+In the ccerr interrupt handler the code checks for pending errors in the
+error status registers in two different places.
+Move the check out to a helper function.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 62 ++++++++++++++++++++++++++++++------------------------
- 1 file changed, 34 insertions(+), 28 deletions(-)
+ drivers/dma/edma.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index aeb67e0cc523..d5a76c67f83f 100644
+index daa94a4bbe11..84b98a01993a 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -113,23 +113,6 @@
- #define CHMAP_EXIST		BIT(24)
+@@ -1626,6 +1626,16 @@ static void edma_error_handler(struct edma_chan *echan)
+ 	spin_unlock(&echan->vchan.lock);
+ }
  
- /*
-- * This will go away when the private EDMA API is folded
-- * into this driver and the platform device(s) are
-- * instantiated in the arch code. We can only get away
-- * with this simplification because DA8XX may not be built
-- * in the same kernel image with other DaVinci parts. This
-- * avoids having to sprinkle dmaengine driver platform devices
-- * and data throughout all the existing board files.
-- */
--#ifdef CONFIG_ARCH_DAVINCI_DA8XX
--#define EDMA_CTLRS	2
--#define EDMA_CHANS	32
--#else
--#define EDMA_CTLRS	1
--#define EDMA_CHANS	64
--#endif /* CONFIG_ARCH_DAVINCI_DA8XX */
--
--/*
-  * Max of 20 segments per channel to conserve PaRAM slots
-  * Also note that MAX_NR_SG should be atleast the no.of periods
-  * that are required for ASoC, otherwise DMA prep calls will
-@@ -140,16 +123,12 @@
- #define EDMA_MAX_SLOTS		MAX_NR_SG
- #define EDMA_DESCRIPTORS	16
- 
--#define EDMA_MAX_PARAMENTRY     512
--
- #define EDMA_CHANNEL_ANY		-1	/* for edma_alloc_channel() */
- #define EDMA_SLOT_ANY			-1	/* for edma_alloc_slot() */
- #define EDMA_CONT_PARAMS_ANY		 1001
- #define EDMA_CONT_PARAMS_FIXED_EXACT	 1002
- #define EDMA_CONT_PARAMS_FIXED_NOT_EXACT 1003
- 
--#define EDMA_MAX_CC               2
--
- /* PaRAM slots are laid out like this */
- struct edmacc_param {
- 	u32 opt;
-@@ -256,22 +235,22 @@ struct edma_cc {
- 	/* The edma_inuse bit for each PaRAM slot is clear unless the
- 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
- 	 */
--	DECLARE_BITMAP(edma_inuse, EDMA_MAX_PARAMENTRY);
-+	unsigned long *edma_inuse;
- 
- 	/* The edma_unused bit for each channel is clear unless
- 	 * it is not being used on this platform. It uses a bit
- 	 * of SOC-specific initialization code.
- 	 */
--	DECLARE_BITMAP(edma_unused, EDMA_CHANS);
-+	unsigned long *edma_unused;
- 
- 	struct dma_interrupt_data {
- 		void (*callback)(unsigned channel, unsigned short ch_status,
- 				 void *data);
- 		void *data;
--	} intr_data[EDMA_CHANS];
-+	} *intr_data;
- 
- 	struct dma_device		dma_slave;
--	struct edma_chan		slave_chans[EDMA_CHANS];
-+	struct edma_chan		*slave_chans;
- 	int				dummy_slot;
- };
- 
-@@ -457,6 +436,8 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
++static inline bool edma_error_pending(struct edma_cc *ecc)
++{
++	if (edma_read_array(ecc, EDMA_EMR, 0) ||
++	    edma_read_array(ecc, EDMA_EMR, 1) ||
++	    edma_read(ecc, EDMA_QEMR) || edma_read(ecc, EDMA_CCERR))
++		return true;
++
++	return false;
++}
++
+ /* eDMA error interrupt handler */
+ static irqreturn_t dma_ccerr_handler(int irq, void *data)
  {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct edma_cc *ecc = data;
-+	int dma_req_min = EDMA_CTLR_CHAN(ecc->id, 0);
-+	int dma_req_max = dma_req_min + ecc->num_channels;
- 	int i, count;
- 	struct of_phandle_args  dma_spec;
+@@ -1640,10 +1650,7 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
  
-@@ -491,11 +472,15 @@ static int prepare_unused_channel_list(struct device *dev, void *data)
- 	/* For non-OF case */
- 	for (i = 0; i < pdev->num_resources; i++) {
- 		struct resource	*res = &pdev->resource[i];
-+		int dma_req;
-+
-+		if (!(res->flags & IORESOURCE_DMA))
-+			continue;
+ 	dev_vdbg(ecc->dev, "dma_ccerr_handler\n");
  
--		if ((res->flags & IORESOURCE_DMA) && (int)res->start >= 0) {
-+		dma_req = (int)res->start;
-+		if (dma_req >= dma_req_min && dma_req < dma_req_max)
- 			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
- 				  ecc->edma_unused);
--		}
- 	}
+-	if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
+-	    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
+-	    (edma_read(ecc, EDMA_QEMR) == 0) &&
+-	    (edma_read(ecc, EDMA_CCERR) == 0))
++	if (!edma_error_pending(ecc))
+ 		return IRQ_NONE;
  
- 	return 0;
-@@ -1978,7 +1963,7 @@ static void __init edma_chan_init(struct edma_cc *ecc, struct dma_device *dma,
- {
- 	int i, j;
- 
--	for (i = 0; i < EDMA_CHANS; i++) {
-+	for (i = 0; i < ecc->num_channels; i++) {
- 		struct edma_chan *echan = &echans[i];
- 		echan->ch_num = EDMA_CTLR_CHAN(ecc->id, i);
- 		echan->ecc = ecc;
-@@ -2247,6 +2232,27 @@ static int edma_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	/* Allocate memory based on the information we got from the IP */
-+	ecc->slave_chans = devm_kcalloc(dev, ecc->num_channels,
-+					sizeof(*ecc->slave_chans), GFP_KERNEL);
-+	if (!ecc->slave_chans)
-+		return -ENOMEM;
-+
-+	ecc->intr_data = devm_kcalloc(dev, ecc->num_channels,
-+				      sizeof(*ecc->intr_data), GFP_KERNEL);
-+	if (!ecc->intr_data)
-+		return -ENOMEM;
-+
-+	ecc->edma_unused = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_channels),
-+					sizeof(unsigned long), GFP_KERNEL);
-+	if (!ecc->edma_unused)
-+		return -ENOMEM;
-+
-+	ecc->edma_inuse = devm_kcalloc(dev, BITS_TO_LONGS(ecc->num_slots),
-+				       sizeof(unsigned long), GFP_KERNEL);
-+	if (!ecc->edma_inuse)
-+		return -ENOMEM;
-+
- 	ecc->default_queue = info->default_queue;
- 
- 	for (i = 0; i < ecc->num_slots; i++)
+ 	while (1) {
+@@ -1698,10 +1705,7 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ 				}
+ 			}
+ 		}
+-		if ((edma_read_array(ecc, EDMA_EMR, 0) == 0) &&
+-		    (edma_read_array(ecc, EDMA_EMR, 1) == 0) &&
+-		    (edma_read(ecc, EDMA_QEMR) == 0) &&
+-		    (edma_read(ecc, EDMA_CCERR) == 0))
++		if (!edma_error_pending(ecc))
+ 			break;
+ 		cnt++;
+ 		if (cnt > 10)
 -- 
 2.6.1
