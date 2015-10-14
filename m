@@ -1,69 +1,64 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH] ARM: DRA7: hwmod: Remove elm address space from hwmod
- data
-Date: Wed, 14 Oct 2015 08:08:59 -0500
-Message-ID: <561E53EB.9060207@ti.com>
-References: <1444743874-4454-1-git-send-email-fcooper@ti.com>
- <561DFD26.9090702@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 01/13] dmaengine: edma: Remove alignment constraint for memcpy
+Date: Wed, 14 Oct 2015 16:12:12 +0300
+Message-ID: <1444828344-21378-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561DFD26.9090702@ti.com>
+In-Reply-To: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: paul@pwsan.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, nm@ti.com
+To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
+Despite the claim by the original commit adding the memcpy
+support, eDMA does not have constraint on the alignment of src, dst
+or length in increment mode.
 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/edma.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-On 10/14/2015 01:58 AM, Roger Quadros wrote:
-> On 13/10/15 16:44, Franklin S Cooper Jr wrote:
->> ELM address information is provided by device tree. No longer need
->> to include this information within hwmod.
->>
->> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> Acked-by: Roger Quadros <rogerq@ti.com>
->
-> Franklin,
->
-> Can you please do the same for gpmc_addr as well?
->
-> And looks like elm_addr needs to be removed from
-> omap_hwmod_33xx_43xx_interconnect_data.c and omap_hwmod_44xx_data.c as well, no?
-Sure I'll combine the 335x and 44x elm removal with this patch and then create a separate patch for the gpmc version.
->
-> cheers,
-> -roger
->
->> ---
->>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 10 ----------
->>  1 file changed, 10 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> index 562247b..ad2cc7a 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> @@ -2566,21 +2566,11 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
->>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->>  };
->>  
->> -static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
->> -	{
->> -		.pa_start	= 0x48078000,
->> -		.pa_end		= 0x48078fff,
->> -		.flags		= ADDR_TYPE_RT
->> -	},
->> -	{ }
->> -};
->> -
->>  /* l4_per1 -> elm */
->>  static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm = {
->>  	.master		= &dra7xx_l4_per1_hwmod,
->>  	.slave		= &dra7xx_elm_hwmod,
->>  	.clk		= "l3_iclk_div",
->> -	.addr		= dra7xx_elm_addrs,
->>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->>  };
->>  
->>
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 7eefbf1e1c94..b36dfa5458cb 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -1324,6 +1324,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+ 	struct edma_desc *edesc;
+ 	struct device *dev = chan->device->dev;
+ 	struct edma_chan *echan = to_edma_chan(chan);
++	unsigned int width;
+ 
+ 	if (unlikely(!echan || !len))
+ 		return NULL;
+@@ -1336,8 +1337,12 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+ 
+ 	edesc->pset_nr = 1;
+ 
++	width = 1 << __ffs((src | dest | len));
++	if (width > DMA_SLAVE_BUSWIDTH_64_BYTES)
++		width = DMA_SLAVE_BUSWIDTH_64_BYTES;
++
+ 	ret = edma_config_pset(chan, &edesc->pset[0], src, dest, 1,
+-			       DMA_SLAVE_BUSWIDTH_4_BYTES, len, DMA_MEM_TO_MEM);
++			       width, len, DMA_MEM_TO_MEM);
+ 	if (ret < 0)
+ 		return NULL;
+ 
+@@ -1903,12 +1908,6 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 
+ 	dma->dev = dev;
+ 
+-	/*
+-	 * code using dma memcpy must make sure alignment of
+-	 * length is at dma->copy_align boundary.
+-	 */
+-	dma->copy_align = DMAENGINE_ALIGN_4_BYTES;
+-
+ 	INIT_LIST_HEAD(&dma->channels);
+ }
+ 
+-- 
+2.6.1
