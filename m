@@ -1,77 +1,49 @@
-From: Lokesh Vutla <a0131933@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix oops with LPAE and more than 2GB of
- memory
-Date: Wed, 14 Oct 2015 09:16:28 +0530
-Message-ID: <561DD014.10403@ti.com>
-References: <1444778000-22537-1-git-send-email-tony@atomide.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: am437x-gp-evm: Add wakeup interrupt source for pixcir_i2c_ts
+Date: Wed, 14 Oct 2015 11:22:36 +0530
+Message-ID: <1444801956-17817-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444778000-22537-1-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H.
- Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On am437x-gp-evm, pixcir_i2c_ts can wakeup the system from lower power
+state via pinctrl and IO daisy chain using generic wakeirq framework.
+With commit 3fffd1283927 ("i2c: allow specifying separate wakeup
+interrupt in device tree") i2c core allows optional wakeirq to be
+specified via device tree. Add wakeup irq entry to enable pixcir_i2c_ts
+to wake the system from low power state.
 
-On Wednesday 14 October 2015 04:43 AM, Tony Lindgren wrote:
-> On boards with more than 2GB of RAM booting goes wrong with things not working
-> and we're getting lots of l3 warnings:
-> 
-> WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x260/0x384()
-> 44000000.ocp:L3 Custom Error: MASTER MMC6 TARGET DMM1 (Idle): Data Access in User mode during Functional access
-> ...
-> [<c044e158>] (scsi_add_host_with_dma) from [<c04705c8>] (ata_scsi_add_hosts+0x5c/0x18c)
-> [<c04705c8>] (ata_scsi_add_hosts) from [<c046b13c>] (ata_host_register+0x150/0x2cc)
-> [<c046b13c>] (ata_host_register) from [<c046b38c>] (ata_host_activate+0xd4/0x124)
-> [<c046b38c>] (ata_host_activate) from [<c047f42c>] (ahci_host_activate+0x5c/0x194)
-> [<c047f42c>] (ahci_host_activate) from [<c0480854>] (ahci_platform_init_host+0x1f0/0x3f0)
-> [<c0480854>] (ahci_platform_init_host) from [<c047c9dc>] (ahci_probe+0x70/0x98)
-> [<c047c9dc>] (ahci_probe) from [<c04220cc>] (platform_drv_probe+0x54/0xb4)
-> 
-> Let's fix the issue by enabling ZONE_DMA for LPAE.
+Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am437x-gp-evm.dts | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-May I know on which platform you have reproduced this?
-Just wondering what other changes you made for booting a OMAP5+ based
-board with more than 2GB.
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 22038f21f228..69e93af7df0d 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -581,8 +581,13 @@
+ 
+ 		attb-gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
+ 
++		interrupts-extended = <&gpio3 22 GPIO_ACTIVE_HIGH>,
++				      <&am43xx_pinmux 0x264>;
++		interrupt-names = "tsc", "wakeup";
++
+ 		touchscreen-size-x = <1024>;
+ 		touchscreen-size-y = <600>;
++		wakeup-source;
+ 	};
+ 
+ 	ov2659@30 {
+-- 
+2.6.1
 
-Thanks and regards,
-Lokesh
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/Kconfig | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index b3a0dff..33d1460 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -49,6 +49,7 @@ config SOC_OMAP5
->  	select OMAP_INTERCONNECT
->  	select OMAP_INTERCONNECT_BARRIER
->  	select PM_OPP if PM
-> +	select ZONE_DMA if ARM_LPAE
->  
->  config SOC_AM33XX
->  	bool "TI AM33XX"
-> @@ -78,6 +79,7 @@ config SOC_DRA7XX
->  	select OMAP_INTERCONNECT
->  	select OMAP_INTERCONNECT_BARRIER
->  	select PM_OPP if PM
-> +	select ZONE_DMA if ARM_LPAE
->  
->  config ARCH_OMAP2PLUS
->  	bool
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
