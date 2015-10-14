@@ -1,61 +1,35 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: clock: remove un-used core dpll re-program
- code
-Date: Wed, 14 Oct 2015 14:50:00 +0300
-Message-ID: <561E4168.3050508@ti.com>
-References: <1437034091-18306-1-git-send-email-t-kristo@ti.com>
- <20150812072535.GQ4215@atomide.com> <20150812105642.GW4215@atomide.com>
- <20151012170141.GE23801@atomide.com>
+From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: Re: [REPOST PATCH 0/2] DRA7 DSP MMU config support
+Date: Wed, 14 Oct 2015 14:36:53 +0200
+Message-ID: <20151014123653.GA28120@8bytes.org>
+References: <1443826964-10691-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151012170141.GE23801@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1443826964-10691-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/12/2015 08:01 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [150812 03:59]:
->> * Tony Lindgren <tony@atomide.com> [150812 00:29]:
->>> * Tero Kristo <t-kristo@ti.com> [150716 01:10]:
->>>> Remove the OMAP3 core DPLL re-program code, and the associated SRAM
->>>> code that does the low-level programming of the DPLL divider, idling
->>>> of the SDRAM etc.
->>>>
->>>> This code was never fully implemented in the kernel; things missing
->>>> were driver side handling of core clock changes (they need to account
->>>> for their functional clock rate being changed on-the-fly), and the whole
->>>> framework required for handling this. Thus, there is not much point
->>>> to keep carrying the low-level support code either.
->>>
->>> OK I'm applying this into omap-for-v4.3/soc. If we ever need the code
->>> it will be in the git history.
->>
->> Actually I'll wait on this one and apply it later on as it currently
->> adds merge conflicts into Linux next.
->
-> Looks like this needs to be updated to apply on v4.3-rc4, can you
-> please repost?
+On Fri, Oct 02, 2015 at 06:02:42PM -0500, Suman Anna wrote:
+> Suman Anna (2):
+>   Documentation: dt: Update OMAP iommu bindings for DRA7 DSPs
+>   iommu/omap: Add support for configuring dsp iommus on DRA7xx
+> 
+>  .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 27 ++++++++++
+>  drivers/iommu/omap-iommu.c                         | 58 ++++++++++++++++++++++
+>  drivers/iommu/omap-iommu.h                         |  9 ++++
+>  3 files changed, 94 insertions(+)
 
-Ok, just posted it.
-
--Tero
-
->
-> Using v4.3-rc4 as the base for v4.4 because it contains most of the
-> mmc fixes.
->
-> Regards,
->
-> Tony
->
+Applied, thanks.
