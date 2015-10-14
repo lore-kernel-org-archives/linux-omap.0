@@ -1,113 +1,120 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/2] ARM: OMAP: DRA7: hwmod: Add data for McASP3
-Date: Wed, 14 Oct 2015 12:23:28 +0300
-Message-ID: <1444814608-20908-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1444814608-20908-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444814608-20908-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, paul@pwsan.com
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] ARM: OMAP2+: Update Javier Martinez Canillas's email
+Date: Wed, 14 Oct 2015 12:00:30 +0200
+Message-ID: <1444816830-9689-1-git-send-email-javier@osg.samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, devicetree@vger.kernel.org, Kumar Gala <galak@codeaurora.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-McASP3 is used by default on DRA7x based boards for audio.
+I see that people are still sending emails to my old address (that no
+longer exists) since is the one mentioned in the IGEP DTS. Replace it
+with my current email address to avoid this.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 56 +++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 562247bced49..d798ebe218b2 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1298,6 +1298,44 @@ static struct omap_hwmod dra7xx_mcspi4_hwmod = {
- };
- 
+ arch/arm/boot/dts/omap3-igep.dtsi            | 2 +-
+ arch/arm/boot/dts/omap3-igep0020-common.dtsi | 2 +-
+ arch/arm/boot/dts/omap3-igep0020-rev-f.dts   | 2 +-
+ arch/arm/boot/dts/omap3-igep0020.dts         | 2 +-
+ arch/arm/boot/dts/omap3-igep0030-common.dtsi | 2 +-
+ arch/arm/boot/dts/omap3-igep0030-rev-g.dts   | 2 +-
+ arch/arm/boot/dts/omap3-igep0030.dts         | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+index 2230e1c03320..08f00bee8b86 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -1,7 +1,7 @@
  /*
-+ * 'mcasp' class
-+ *
-+ */
-+static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc = {
-+	.sysc_offs	= 0x0004,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type3,
-+};
-+
-+static struct omap_hwmod_class dra7xx_mcasp_hwmod_class = {
-+	.name	= "mcasp",
-+	.sysc	= &dra7xx_mcasp_sysc,
-+};
-+
-+/* mcasp3 */
-+static struct omap_hwmod_opt_clk mcasp3_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp3_ahclkx_mux" },
-+};
-+
-+static struct omap_hwmod dra7xx_mcasp3_hwmod = {
-+	.name		= "mcasp3",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp3_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP3_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp3_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp3_opt_clks),
-+};
-+
-+/*
-  * 'mmc' class
+  * Common device tree for IGEP boards based on AM/DM37x
   *
-  */
-@@ -2566,6 +2604,22 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per2 -> mcasp3 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp3_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_1 -> mcasp3 */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp3 = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_mcasp3_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
- 	{
- 		.pa_start	= 0x48078000,
-@@ -3338,6 +3392,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_wkup__dcan1,
- 	&dra7xx_l4_per2__dcan2,
- 	&dra7xx_l4_per2__cpgmac0,
-+	&dra7xx_l4_per2__mcasp3,
-+	&dra7xx_l3_main_1__mcasp3,
- 	&dra7xx_gmac__mdio,
- 	&dra7xx_l4_cfg__dma_system,
- 	&dra7xx_l3_main_1__dss,
+- * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
++ * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
+  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/arch/arm/boot/dts/omap3-igep0020-common.dtsi b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+index 5ad688c57a00..441999817285 100644
+--- a/arch/arm/boot/dts/omap3-igep0020-common.dtsi
++++ b/arch/arm/boot/dts/omap3-igep0020-common.dtsi
+@@ -1,7 +1,7 @@
+ /*
+  * Common Device Tree Source for IGEPv2
+  *
+- * Copyright (C) 2014 Javier Martinez Canillas <javier@collabora.co.uk>
++ * Copyright (C) 2014 Javier Martinez Canillas <javier@osg.samsung.com>
+  * Copyright (C) 2014 Enric Balletbo i Serra <eballetbo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+index 72f7cdc091fb..321c2b7a4e9f 100644
+--- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
++++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+@@ -1,7 +1,7 @@
+ /*
+  * Device Tree Source for IGEPv2 Rev. F (TI OMAP AM/DM37x)
+  *
+- * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
++ * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
+  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index fea7f7edb45d..dbff1efd7fec 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -1,7 +1,7 @@
+ /*
+  * Device Tree Source for IGEPv2 Rev. C (TI OMAP AM/DM37x)
+  *
+- * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
++ * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
+  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/arch/arm/boot/dts/omap3-igep0030-common.dtsi b/arch/arm/boot/dts/omap3-igep0030-common.dtsi
+index 0cb1527c39d4..640f06603966 100644
+--- a/arch/arm/boot/dts/omap3-igep0030-common.dtsi
++++ b/arch/arm/boot/dts/omap3-igep0030-common.dtsi
+@@ -1,7 +1,7 @@
+ /*
+  * Common Device Tree Source for IGEP COM MODULE
+  *
+- * Copyright (C) 2014 Javier Martinez Canillas <javier@collabora.co.uk>
++ * Copyright (C) 2014 Javier Martinez Canillas <javier@osg.samsung.com>
+  * Copyright (C) 2014 Enric Balletbo i Serra <eballetbo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+index b899e341874a..76dc08868bfb 100644
+--- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
++++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+@@ -1,7 +1,7 @@
+ /*
+  * Device Tree Source for IGEP COM MODULE Rev. G (TI OMAP AM/DM37x)
+  *
+- * Copyright (C) 2014 Javier Martinez Canillas <javier@collabora.co.uk>
++ * Copyright (C) 2014 Javier Martinez Canillas <javier@osg.samsung.com>
+  * Copyright (C) 2014 Enric Balletbo i Serra <eballetbo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
+index 8150f47ccdf5..468608dab30a 100644
+--- a/arch/arm/boot/dts/omap3-igep0030.dts
++++ b/arch/arm/boot/dts/omap3-igep0030.dts
+@@ -1,7 +1,7 @@
+ /*
+  * Device Tree Source for IGEP COM MODULE Rev. E (TI OMAP AM/DM37x)
+  *
+- * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
++ * Copyright (C) 2012 Javier Martinez Canillas <javier@osg.samsung.com>
+  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
 -- 
-2.6.1
+2.4.3
