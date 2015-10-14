@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 03/24] dmaengine: edma: Simplify and optimize the edma_execute path
-Date: Wed, 14 Oct 2015 14:42:45 +0300
-Message-ID: <1444822986-20562-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 09/24] ARM: davinci: Use platform_device_register_full() to create pdev for eDMA
+Date: Wed, 14 Oct 2015 14:42:51 +0300
+Message-ID: <1444822986-20562-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1444822986-20562-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,172 +12,218 @@ To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
 Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The code path in edma_execute() and edma_callback() can be simplified
-and make it more optimal.
-There is not need to call in to edma_execute() when the transfer
-has been finished for example.
-Also the handling of missed/first or next batch of paRAMs can
-be done in a more optimal way.
+Convert the eDMA platform device creation to use
+struct platform_device_info XXXXXX __initconst and
+platform_device_register_full()
+This will allow us to cleanly specify the dma_mask for the devices in an
+upcoming patch.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/dma/edma.c | 76 +++++++++++++++++++++---------------------------------
- 1 file changed, 29 insertions(+), 47 deletions(-)
+ arch/arm/mach-davinci/devices-da8xx.c | 38 ++++++++++++++++++-----------------
+ arch/arm/mach-davinci/dm355.c         | 20 +++++++++++-------
+ arch/arm/mach-davinci/dm644x.c        | 20 +++++++++++-------
+ arch/arm/mach-davinci/dm646x.c        | 18 ++++++++++-------
+ 4 files changed, 57 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 558b0b4e7536..19fa49d6f555 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -154,15 +154,11 @@ static void edma_execute(struct edma_chan *echan)
- 	struct device *dev = echan->vchan.chan.device->dev;
- 	int i, j, left, nslots;
+diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
+index 9ae049ae816a..9f7d266faa0c 100644
+--- a/arch/arm/mach-davinci/devices-da8xx.c
++++ b/arch/arm/mach-davinci/devices-da8xx.c
+@@ -213,48 +213,50 @@ static struct resource da850_edma1_resources[] = {
+ 	},
+ };
  
--	/* If either we processed all psets or we're still not started */
--	if (!echan->edesc ||
--	    echan->edesc->pset_nr == echan->edesc->processed) {
--		/* Get next vdesc */
-+	if (!echan->edesc) {
-+		/* Setup is needed for the first transfer */
- 		vdesc = vchan_next_desc(&echan->vchan);
--		if (!vdesc) {
--			echan->edesc = NULL;
-+		if (!vdesc)
- 			return;
--		}
- 		list_del(&vdesc->node);
- 		echan->edesc = to_edma_desc(&vdesc->tx);
- 	}
-@@ -220,28 +216,26 @@ static void edma_execute(struct edma_chan *echan)
- 				  echan->ecc->dummy_slot);
- 	}
+-static struct platform_device da8xx_edma0_device = {
++static const struct platform_device_info da8xx_edma0_device __initconst = {
+ 	.name		= "edma",
+ 	.id		= 0,
+-	.dev = {
+-		.platform_data = &da8xx_edma0_pdata,
+-	},
+-	.num_resources	= ARRAY_SIZE(da8xx_edma0_resources),
+-	.resource	= da8xx_edma0_resources,
++	.res		= da8xx_edma0_resources,
++	.num_res	= ARRAY_SIZE(da8xx_edma0_resources),
++	.data		= &da8xx_edma0_pdata,
++	.size_data	= sizeof(da8xx_edma0_pdata),
+ };
  
--	if (edesc->processed <= MAX_NR_SG) {
--		dev_dbg(dev, "first transfer starting on channel %d\n",
--			echan->ch_num);
--		edma_start(echan->ch_num);
--	} else {
--		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
--			echan->ch_num, edesc->processed);
--		edma_resume(echan->ch_num);
--	}
--
--	/*
--	 * This happens due to setup times between intermediate transfers
--	 * in long SG lists which have to be broken up into transfers of
--	 * MAX_NR_SG
--	 */
- 	if (echan->missed) {
-+		/*
-+		 * This happens due to setup times between intermediate
-+		 * transfers in long SG lists which have to be broken up into
-+		 * transfers of MAX_NR_SG
-+		 */
- 		dev_dbg(dev, "missed event on channel %d\n", echan->ch_num);
- 		edma_clean_channel(echan->ch_num);
- 		edma_stop(echan->ch_num);
- 		edma_start(echan->ch_num);
- 		edma_trigger_channel(echan->ch_num);
- 		echan->missed = 0;
-+	} else if (edesc->processed <= MAX_NR_SG) {
-+		dev_dbg(dev, "first transfer starting on channel %d\n",
-+			echan->ch_num);
-+		edma_start(echan->ch_num);
-+	} else {
-+		dev_dbg(dev, "chan: %d: completed %d elements, resuming\n",
-+			echan->ch_num, edesc->processed);
-+		edma_resume(echan->ch_num);
- 	}
- }
+-static struct platform_device da850_edma1_device = {
++static const struct platform_device_info da850_edma1_device __initconst = {
+ 	.name		= "edma",
+ 	.id		= 1,
+-	.dev = {
+-		.platform_data = &da850_edma1_pdata,
+-	},
+-	.num_resources	= ARRAY_SIZE(da850_edma1_resources),
+-	.resource	= da850_edma1_resources,
++	.res		= da850_edma1_resources,
++	.num_res	= ARRAY_SIZE(da850_edma1_resources),
++	.data		= &da850_edma1_pdata,
++	.size_data	= sizeof(da850_edma1_pdata),
+ };
  
-@@ -259,20 +253,17 @@ static int edma_terminate_all(struct dma_chan *chan)
- 	 * echan->edesc is NULL and exit.)
- 	 */
- 	if (echan->edesc) {
--		int cyclic = echan->edesc->cyclic;
--
-+		edma_stop(echan->ch_num);
-+		/* Move the cyclic channel back to default queue */
-+		if (echan->edesc->cyclic)
-+			edma_assign_channel_eventq(echan->ch_num,
-+						   EVENTQ_DEFAULT);
- 		/*
- 		 * free the running request descriptor
- 		 * since it is not in any of the vdesc lists
- 		 */
- 		edma_desc_free(&echan->edesc->vdesc);
--
- 		echan->edesc = NULL;
--		edma_stop(echan->ch_num);
--		/* Move the cyclic channel back to default queue */
--		if (cyclic)
--			edma_assign_channel_eventq(echan->ch_num,
--						   EVENTQ_DEFAULT);
- 	}
- 
- 	vchan_get_all_descriptors(&echan->vchan, &head);
-@@ -725,41 +716,33 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
- 
- 	edesc = echan->edesc;
- 
--	/* Pause the channel for non-cyclic */
--	if (!edesc || !edesc->cyclic)
--		edma_pause(echan->ch_num);
--
-+	spin_lock(&echan->vchan.lock);
- 	switch (ch_status) {
- 	case EDMA_DMA_COMPLETE:
--		spin_lock(&echan->vchan.lock);
--
- 		if (edesc) {
- 			if (edesc->cyclic) {
- 				vchan_cyclic_callback(&edesc->vdesc);
-+				goto out;
- 			} else if (edesc->processed == edesc->pset_nr) {
- 				dev_dbg(dev, "Transfer complete, stopping channel %d\n", ch_num);
- 				edesc->residue = 0;
- 				edma_stop(echan->ch_num);
- 				vchan_cookie_complete(&edesc->vdesc);
--				edma_execute(echan);
-+				echan->edesc = NULL;
- 			} else {
- 				dev_dbg(dev, "Intermediate transfer complete on channel %d\n", ch_num);
- 
-+				edma_pause(echan->ch_num);
+ int __init da830_register_edma(struct edma_rsv_info *rsv)
+ {
++	struct platform_device *edma_pdev;
 +
- 				/* Update statistics for tx_status */
- 				edesc->residue -= edesc->sg_len;
- 				edesc->residue_stat = edesc->residue;
- 				edesc->processed_stat = edesc->processed;
--
--				edma_execute(echan);
- 			}
-+			edma_execute(echan);
- 		}
--
--		spin_unlock(&echan->vchan.lock);
--
- 		break;
- 	case EDMA_DMA_CC_ERROR:
--		spin_lock(&echan->vchan.lock);
--
- 		edma_read_slot(EDMA_CHAN_SLOT(echan->slot[0]), &p);
+ 	da8xx_edma0_pdata.rsv = rsv;
  
- 		/*
-@@ -788,13 +771,12 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
- 			edma_start(echan->ch_num);
- 			edma_trigger_channel(echan->ch_num);
- 		}
--
--		spin_unlock(&echan->vchan.lock);
--
- 		break;
- 	default:
- 		break;
- 	}
-+out:
-+	spin_unlock(&echan->vchan.lock);
+-	return platform_device_register(&da8xx_edma0_device);
++	edma_pdev = platform_device_register_full(&da8xx_edma0_device);
++	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
  }
  
- /* Alloc channel resources */
+ int __init da850_register_edma(struct edma_rsv_info *rsv[2])
+ {
+-	int ret;
++	struct platform_device *edma_pdev;
+ 
+ 	if (rsv) {
+ 		da8xx_edma0_pdata.rsv = rsv[0];
+ 		da850_edma1_pdata.rsv = rsv[1];
+ 	}
+ 
+-	ret = platform_device_register(&da8xx_edma0_device);
+-	if (ret) {
++	edma_pdev = platform_device_register_full(&da8xx_edma0_device);
++	if (IS_ERR(edma_pdev)) {
+ 		pr_warn("%s: Failed to register eDMA0\n", __func__);
+-		return ret;
++		return PTR_ERR(edma_pdev);
+ 	}
+-	return platform_device_register(&da850_edma1_device);
++	edma_pdev = platform_device_register_full(&da850_edma1_device);
++	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
+ }
+ 
+ static struct resource da8xx_i2c_resources0[] = {
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index a50bb9c66952..5f10c6695e31 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -613,12 +613,13 @@ static struct resource edma_resources[] = {
+ 	/* not using (or muxing) TC*_ERR */
+ };
+ 
+-static struct platform_device dm355_edma_device = {
+-	.name			= "edma",
+-	.id			= 0,
+-	.dev.platform_data	= &dm355_edma_pdata,
+-	.num_resources		= ARRAY_SIZE(edma_resources),
+-	.resource		= edma_resources,
++static const struct platform_device_info dm355_edma_device __initconst = {
++	.name		= "edma",
++	.id		= 0,
++	.res		= edma_resources,
++	.num_res	= ARRAY_SIZE(edma_resources),
++	.data		= &dm355_edma_pdata,
++	.size_data	= sizeof(dm355_edma_pdata),
+ };
+ 
+ static struct resource dm355_asp1_resources[] = {
+@@ -1057,13 +1058,18 @@ int __init dm355_init_video(struct vpfe_config *vpfe_cfg,
+ 
+ static int __init dm355_init_devices(void)
+ {
++	struct platform_device *edma_pdev;
+ 	int ret = 0;
+ 
+ 	if (!cpu_is_davinci_dm355())
+ 		return 0;
+ 
+ 	davinci_cfg_reg(DM355_INT_EDMA_CC);
+-	platform_device_register(&dm355_edma_device);
++	edma_pdev = platform_device_register_full(&dm355_edma_device);
++	if (IS_ERR(edma_pdev)) {
++		pr_warn("%s: Failed to register eDMA\n", __func__);
++		return PTR_ERR(edma_pdev);
++	}
+ 
+ 	ret = davinci_init_wdt();
+ 	if (ret)
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index d759ca8e58e8..aa3453b40d5f 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -542,12 +542,13 @@ static struct resource edma_resources[] = {
+ 	/* not using TC*_ERR */
+ };
+ 
+-static struct platform_device dm644x_edma_device = {
+-	.name			= "edma",
+-	.id			= 0,
+-	.dev.platform_data	= &dm644x_edma_pdata,
+-	.num_resources		= ARRAY_SIZE(edma_resources),
+-	.resource		= edma_resources,
++static const struct platform_device_info dm644x_edma_device __initconst = {
++	.name		= "edma",
++	.id		= 0,
++	.res		= edma_resources,
++	.num_res	= ARRAY_SIZE(edma_resources),
++	.data		= &dm644x_edma_pdata,
++	.size_data	= sizeof(dm644x_edma_pdata),
+ };
+ 
+ /* DM6446 EVM uses ASP0; line-out is a pair of RCA jacks */
+@@ -945,12 +946,17 @@ int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
+ 
+ static int __init dm644x_init_devices(void)
+ {
++	struct platform_device *edma_pdev;
+ 	int ret = 0;
+ 
+ 	if (!cpu_is_davinci_dm644x())
+ 		return 0;
+ 
+-	platform_device_register(&dm644x_edma_device);
++	edma_pdev = platform_device_register_full(&dm644x_edma_device);
++	if (IS_ERR(edma_pdev)) {
++		pr_warn("%s: Failed to register eDMA\n", __func__);
++		return PTR_ERR(edma_pdev);
++	}
+ 
+ 	platform_device_register(&dm644x_mdio_device);
+ 	platform_device_register(&dm644x_emac_device);
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 219ebc8f674a..79c1d8917dd3 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -589,12 +589,13 @@ static struct resource edma_resources[] = {
+ 	/* not using TC*_ERR */
+ };
+ 
+-static struct platform_device dm646x_edma_device = {
+-	.name			= "edma",
+-	.id			= 0,
+-	.dev.platform_data	= &dm646x_edma_pdata,
+-	.num_resources		= ARRAY_SIZE(edma_resources),
+-	.resource		= edma_resources,
++static const struct platform_device_info dm646x_edma_device __initconst = {
++	.name		= "edma",
++	.id		= 0,
++	.res		= edma_resources,
++	.num_res	= ARRAY_SIZE(edma_resources),
++	.data		= &dm646x_edma_pdata,
++	.size_data	= sizeof(dm646x_edma_pdata),
+ };
+ 
+ static struct resource dm646x_mcasp0_resources[] = {
+@@ -931,9 +932,12 @@ void dm646x_setup_vpif(struct vpif_display_config *display_config,
+ 
+ int __init dm646x_init_edma(struct edma_rsv_info *rsv)
+ {
++	struct platform_device *edma_pdev;
++
+ 	dm646x_edma_pdata.rsv = rsv;
+ 
+-	return platform_device_register(&dm646x_edma_device);
++	edma_pdev = platform_device_register_full(&dm646x_edma_device);
++	return IS_ERR(edma_pdev) ? PTR_ERR(edma_pdev) : 0;
+ }
+ 
+ void __init dm646x_init(void)
 -- 
 2.6.1
