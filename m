@@ -1,71 +1,271 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 06/13] dmaengine: edma: Get qDMA channel information from HW
- also
-Date: Wed, 14 Oct 2015 16:12:17 +0300
-Message-ID: <1444828344-21378-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 12/13] ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
+Date: Wed, 14 Oct 2015 16:12:23 +0300
+Message-ID: <1444828344-21378-13-git-send-email-peter.ujfalusi@ti.com>
 References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: devicetree@vger.kernel.org, arnd@arndb.de, tony@atomide.com, r.schwebel@pengutronix.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Query the number of qDMA channels from CCCFG register.
+Switch to use the ti,edma3-tpcc and ti,edma3-tptc binding for the eDMA3 and
+enable the DMA even crossbar with ti,am335x-edma-crossbar.
+With the new bindings boards can customize and tweak the DMA channel
+priority to match their needs. With the new binding the memcpy is safe
+to be used since with the old binding it was not possible for a driver
+to know which channel is allowed to be used as non HW triggered channel.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/am335x-evm.dts    |  9 +---
+ arch/arm/boot/dts/am335x-pepper.dts | 11 +----
+ arch/arm/boot/dts/am33xx.dtsi       | 96 ++++++++++++++++++++++++++-----------
+ 3 files changed, 73 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index a02f84c7c3d7..d064fbc47351 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -107,6 +107,7 @@
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 1942a5c8132d..507980672c32 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -743,8 +743,8 @@
+ &mmc3 {
+ 	/* these are on the crossbar and are outlined in the
+ 	   xbar-event-map element */
+-	dmas = <&edma 12
+-		&edma 13>;
++	dmas = <&edma_xbar 12 0 1
++		&edma_xbar 13 0 2>;
+ 	dma-names = "tx", "rx";
+ 	status = "okay";
+ 	vmmc-supply = <&wlan_en_reg>;
+@@ -766,11 +766,6 @@
+ 	};
+ };
  
- /* CCCFG register */
- #define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
-+#define GET_NUM_QDMACH(x)	(x & 0x70 >> 4) /* bits 4-6 */
- #define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
- #define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
- #define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
-@@ -220,6 +221,7 @@ struct edma_cc {
+-&edma {
+-	ti,edma-xbar-event-map = /bits/ 16 <1 12
+-					    2 13>;
+-};
+-
+ &sham {
+ 	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
+index 7106114c7464..39073b921664 100644
+--- a/arch/arm/boot/dts/am335x-pepper.dts
++++ b/arch/arm/boot/dts/am335x-pepper.dts
+@@ -339,13 +339,6 @@
+ 	ti,non-removable;
+ };
  
- 	/* eDMA3 resource information */
- 	unsigned			num_channels;
-+	unsigned			num_qchannels;
- 	unsigned			num_region;
- 	unsigned			num_slots;
- 	unsigned			num_tc;
-@@ -1813,6 +1815,9 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 	value = GET_NUM_DMACH(cccfg);
- 	ecc->num_channels = BIT(value + 1);
+-&edma {
+-	/* Map eDMA MMC2 Events from Crossbar */
+-	ti,edma-xbar-event-map = /bits/ 16 <1 12
+-                                            2 13>;
+-};
+-
+-
+ &mmc3 {
+ 	/* Wifi & Bluetooth on MMC #3 */
+ 	status = "okay";
+@@ -354,8 +347,8 @@
+ 	vmmmc-supply = <&v3v3c_reg>;
+ 	bus-width = <4>;
+ 	ti,non-removable;
+-	dmas = <&edma 12
+-		&edma 13>;
++	dmas = <&edma_xbar 12 0 1
++		&edma_xbar 13 0 2>;
+ 	dma-names = "tx", "rx";
+ };
  
-+	value = GET_NUM_QDMACH(cccfg);
-+	ecc->num_qchannels = value * 2;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index d23e2524d694..6053e75c6e99 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -174,12 +174,54 @@
+ 		};
+ 
+ 		edma: edma@49000000 {
+-			compatible = "ti,edma3";
+-			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+-			reg =	<0x49000000 0x10000>,
+-				<0x44e10f90 0x40>;
++			compatible = "ti,edma3-tpcc";
++			ti,hwmods = "tpcc";
++			reg =	<0x49000000 0x10000>;
++			reg-names = "edma3_cc";
+ 			interrupts = <12 13 14>;
+-			#dma-cells = <1>;
++			interrupt-names = "edma3_ccint", "emda3_mperr",
++					  "edma3_ccerrint";
++			dma-requests = <64>;
++			#dma-cells = <2>;
 +
- 	value = GET_NUM_PAENTRY(cccfg);
- 	ecc->num_slots = BIT(value + 4);
++			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
++				   <&edma_tptc2 0>;
++
++			ti,edma-memcpy-channels = /bits/ 16 <20 21>;
++		};
++
++		edma_tptc0: tptc@49800000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc0";
++			reg =	<0x49800000 0x100000>;
++			interrupts = <112>;
++			interrupt-names = "edma3_tcerrint";
++		};
++
++		edma_tptc1: tptc@49900000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc1";
++			reg =	<0x49900000 0x100000>;
++			interrupts = <113>;
++			interrupt-names = "edma3_tcerrint";
++		};
++
++		edma_tptc2: tptc@49a00000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc2";
++			reg =	<0x49a00000 0x100000>;
++			interrupts = <114>;
++			interrupt-names = "edma3_tcerrint";
++		};
++
++		edma_xbar: dma-router@44e10f90 {
++			compatible = "ti,am335x-edma-crossbar";
++			reg = <0x44e10f90 0x40>;
++
++			#dma-cells = <3>;
++			dma-requests = <32>;
++
++			dma-masters = <&edma>;
+ 		};
  
-@@ -1824,6 +1829,7 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 	dev_dbg(dev, "eDMA3 CC HW configuration (cccfg: 0x%08x):\n", cccfg);
- 	dev_dbg(dev, "num_region: %u\n", ecc->num_region);
- 	dev_dbg(dev, "num_channels: %u\n", ecc->num_channels);
-+	dev_dbg(dev, "num_qchannels: %u\n", ecc->num_qchannels);
- 	dev_dbg(dev, "num_slots: %u\n", ecc->num_slots);
- 	dev_dbg(dev, "num_tc: %u\n", ecc->num_tc);
- 	dev_dbg(dev, "chmap_exist: %s\n", ecc->chmap_exist ? "yes" : "no");
+ 		gpio0: gpio@44e07000 {
+@@ -233,7 +275,7 @@
+ 			reg = <0x44e09000 0x2000>;
+ 			interrupts = <72>;
+ 			status = "disabled";
+-			dmas = <&edma 26>, <&edma 27>;
++			dmas = <&edma 26 0>, <&edma 27 0>;
+ 			dma-names = "tx", "rx";
+ 		};
+ 
+@@ -244,7 +286,7 @@
+ 			reg = <0x48022000 0x2000>;
+ 			interrupts = <73>;
+ 			status = "disabled";
+-			dmas = <&edma 28>, <&edma 29>;
++			dmas = <&edma 28 0>, <&edma 29 0>;
+ 			dma-names = "tx", "rx";
+ 		};
+ 
+@@ -255,7 +297,7 @@
+ 			reg = <0x48024000 0x2000>;
+ 			interrupts = <74>;
+ 			status = "disabled";
+-			dmas = <&edma 30>, <&edma 31>;
++			dmas = <&edma 30 0>, <&edma 31 0>;
+ 			dma-names = "tx", "rx";
+ 		};
+ 
+@@ -322,8 +364,8 @@
+ 			ti,dual-volt;
+ 			ti,needs-special-reset;
+ 			ti,needs-special-hs-handling;
+-			dmas = <&edma 24
+-				&edma 25>;
++			dmas = <&edma_xbar 24 0 0
++				&edma_xbar 25 0 0>;
+ 			dma-names = "tx", "rx";
+ 			interrupts = <64>;
+ 			interrupt-parent = <&intc>;
+@@ -335,8 +377,8 @@
+ 			compatible = "ti,omap4-hsmmc";
+ 			ti,hwmods = "mmc2";
+ 			ti,needs-special-reset;
+-			dmas = <&edma 2
+-				&edma 3>;
++			dmas = <&edma 2 0
++				&edma 3 0>;
+ 			dma-names = "tx", "rx";
+ 			interrupts = <28>;
+ 			interrupt-parent = <&intc>;
+@@ -474,10 +516,10 @@
+ 			interrupts = <65>;
+ 			ti,spi-num-cs = <2>;
+ 			ti,hwmods = "spi0";
+-			dmas = <&edma 16
+-				&edma 17
+-				&edma 18
+-				&edma 19>;
++			dmas = <&edma 16 0
++				&edma 17 0
++				&edma 18 0
++				&edma 19 0>;
+ 			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 			status = "disabled";
+ 		};
+@@ -490,10 +532,10 @@
+ 			interrupts = <125>;
+ 			ti,spi-num-cs = <2>;
+ 			ti,hwmods = "spi1";
+-			dmas = <&edma 42
+-				&edma 43
+-				&edma 44
+-				&edma 45>;
++			dmas = <&edma 42 0
++				&edma 43 0
++				&edma 44 0
++				&edma 45 0>;
+ 			dma-names = "tx0", "rx0", "tx1", "rx1";
+ 			status = "disabled";
+ 		};
+@@ -831,7 +873,7 @@
+ 			ti,hwmods = "sham";
+ 			reg = <0x53100000 0x200>;
+ 			interrupts = <109>;
+-			dmas = <&edma 36>;
++			dmas = <&edma 36 0>;
+ 			dma-names = "rx";
+ 		};
+ 
+@@ -840,8 +882,8 @@
+ 			ti,hwmods = "aes";
+ 			reg = <0x53500000 0xa0>;
+ 			interrupts = <103>;
+-			dmas = <&edma 6>,
+-			       <&edma 5>;
++			dmas = <&edma 6 0>,
++			       <&edma 5 0>;
+ 			dma-names = "tx", "rx";
+ 		};
+ 
+@@ -854,8 +896,8 @@
+ 			interrupts = <80>, <81>;
+ 			interrupt-names = "tx", "rx";
+ 			status = "disabled";
+-			dmas = <&edma 8>,
+-				<&edma 9>;
++			dmas = <&edma 8 2>,
++				<&edma 9 2>;
+ 			dma-names = "tx", "rx";
+ 		};
+ 
+@@ -868,8 +910,8 @@
+ 			interrupts = <82>, <83>;
+ 			interrupt-names = "tx", "rx";
+ 			status = "disabled";
+-			dmas = <&edma 10>,
+-				<&edma 11>;
++			dmas = <&edma 10 2>,
++				<&edma 11 2>;
+ 			dma-names = "tx", "rx";
+ 		};
+ 
 -- 
 2.6.1
