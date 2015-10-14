@@ -1,91 +1,44 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH v3 20/27] ARM: dts: dra7: Fix NAND device nodes.
-Date: Wed, 14 Oct 2015 09:37:18 -0500
-Message-ID: <561E689E.70104@ti.com>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
- <1442588029-13769-21-git-send-email-rogerq@ti.com> <561E59F0.8080906@ti.com>
- <561E6413.2060607@ti.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 10/13] dmaengine: ti-dma-crossbar: Add support for
+ crossbar on AM33xx/AM43xx
+Date: Wed, 14 Oct 2015 20:18:14 +0530
+Message-ID: <20151014144814.GW27370@localhost>
+References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
+ <1444828344-21378-11-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561E6413.2060607@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1444828344-21378-11-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, r.schwebel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Oct 14, 2015 at 04:12:21PM +0300, Peter Ujfalusi wrote:
+> The DMA event crossbar on AM33xx/AM43xx is different from the one found in
+> DRA7x family.
+> Instead of a single event crossbar it has 64 identical mux attached to each
+> eDMA event line. When the 0 event mux is selected, the default mapped event
+> is going to be routed to the corresponding eDMA event line. If different
+> mux is selected, then the selected event is going to be routed to the given
+> eDMA event.
 
+Why is crossbar patch in edma series?
 
-On 10/14/2015 09:17 AM, Roger Quadros wrote:
-> On 14/10/15 16:34, Franklin S Cooper Jr. wrote:
->>
->> On 09/18/2015 09:53 AM, Roger Quadros wrote:
->>> Add compatible id, GPMC register resource and interrupt
->>> resource to NAND controller nodes.
->>>
->>> The GPMC driver now implements gpiochip and irqchip so
->>> enable gpio-controller and interrupt-controller properties.
->>>
->>> With this the interrupt parent of NAND node changes so fix it
->>> accordingly.
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  arch/arm/boot/dts/dra7-evm.dts  | 5 ++++-
->>>  arch/arm/boot/dts/dra7.dtsi     | 4 ++++
->>>  arch/arm/boot/dts/dra72-evm.dts | 5 ++++-
->>>  3 files changed, 12 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->>> index a6c82e5..8a31161 100644
->>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>> @@ -585,9 +585,12 @@
->>>  	status = "okay";
->>>  	pinctrl-names = "default";
->>>  	pinctrl-0 = <&nand_flash_x16>;
->>> -	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
->>> +	ranges = <0 0 0x08000000 0x01000000>;	/* minimum GPMC partition = 16MB */
->>>  	nand@0,0 {
->>> +		compatible = "ti,omap2-nand";
->>>  		reg = <0 0 4>;		/* device IO registers */
->>> +		interrupt-parent = <&crossbar_mpu>;
->>> +		interrupts = <GIC_SPI 15 IRQ_TYPE_LEVEL_HIGH>;
->>>  		ti,nand-ecc-opt = "bch8";
->>>  		ti,elm-id = <&elm>;
->>>  		nand-bus-width = <16>;
->>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>> index 5d65db9..f0a3616 100644
->>> --- a/arch/arm/boot/dts/dra7.dtsi
->>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>> @@ -1389,6 +1389,10 @@
->>>  			gpmc,num-waitpins = <2>;
->>>  			#address-cells = <2>;
->>>  			#size-cells = <1>;
->>> +			gpio-controller;
->>> +			#gpio-cells = <2>;
->>> +			interrupt-controller;
->>> +			#interrupt-cells = <2>;
->>>  			status = "disabled";
->>>  		};
->> Based on the discussion on my patchset I noticed that the nand node defines the
->> interrupt but it is also defined in the parent node. Similar to the dma channel we
->> should conclude where the best place for it to be defined.  But to me it seems at
->> least it should only be defined once.
-> The interrupt is defined at both places because it is used at both places.
-> It is used as a shared interrupt. Wait_pin interrupts are managed by the
-> gpmc driver and NAND specific interrupts are managed by the NAND driver.
->
-> If GPMC dma channel is going to be used only by the NAND driver then
-> we should define the channel in the NAND node.
->
->> This is true for your other patches making similar changes to the dt.
-> Yes, GPMC IRQ is defined in both GPMC and NAND nodes.
-Ok. I would still think you would just reuse the entry from the
-parent since you know it will always be the same. But we can
-go with what Tony thinks is best.
->
-> --
-> cheers,
-> -roger
+> +static void ti_am335x_xbar_free(struct device *dev, void *route_data)
+> +{
+> +	struct ti_am335x_xbar_data *xbar = dev_get_drvdata(dev);
+> +	struct ti_am335x_xbar_map *map = route_data;
+> +
+> +	dev_err(dev, "Unmapping XBAR event %u on channel %u\n",
+> +		map->mux_val, map->dma_line);
+
+Err ?
+
+-- 
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
