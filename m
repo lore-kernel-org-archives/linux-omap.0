@@ -1,7 +1,8 @@
 From: Lucas Stach <l.stach@pengutronix.de>
-Subject: [PATCH 2/4] ARM: OMAP2+: remove custom abort handler for t410
-Date: Wed, 14 Oct 2015 16:48:31 +0200
-Message-ID: <1444834113-18122-3-git-send-email-l.stach@pengutronix.de>
+Subject: [PATCH 3/4] ARM: mvebu: remove the workaround imprecise abort fault
+ handler
+Date: Wed, 14 Oct 2015 16:48:32 +0200
+Message-ID: <1444834113-18122-4-git-send-email-l.stach@pengutronix.de>
 References: <1444834113-18122-1-git-send-email-l.stach@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,62 +28,75 @@ the common ARM startup code.
 
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 ---
- arch/arm/mach-omap2/pdata-quirks.c | 29 -----------------------------
- 1 file changed, 29 deletions(-)
+ arch/arm/mach-mvebu/board-v7.c | 35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index ea56397599c2..3a2bc2a88db4 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -24,9 +24,6 @@
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/wkup_m3.h>
+diff --git a/arch/arm/mach-mvebu/board-v7.c b/arch/arm/mach-mvebu/board-v7.c
+index 9f739f3cad4c..1648edd515a2 100644
+--- a/arch/arm/mach-mvebu/board-v7.c
++++ b/arch/arm/mach-mvebu/board-v7.c
+@@ -22,7 +22,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/memblock.h>
+ #include <linux/mbus.h>
+-#include <linux/signal.h>
+ #include <linux/slab.h>
+ #include <linux/irqchip.h>
+ #include <asm/hardware/cache-l2x0.h>
+@@ -105,27 +104,6 @@ static void __init mvebu_memblock_reserve(void)
+ static void __init mvebu_memblock_reserve(void) {}
+ #endif
  
--#include <asm/siginfo.h>
--#include <asm/signal.h>
--
- #include "common.h"
- #include "common-board-devices.h"
- #include "dss-common.h"
-@@ -385,29 +382,6 @@ static void __init omap3_pandora_legacy_init(void)
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
--#ifdef CONFIG_SOC_TI81XX
--static int fault_fixed_up;
--
--static int t410_abort_handler(unsigned long addr, unsigned int fsr,
--			      struct pt_regs *regs)
+-/*
+- * Early versions of Armada 375 SoC have a bug where the BootROM
+- * leaves an external data abort pending. The kernel is hit by this
+- * data abort as soon as it enters userspace, because it unmasks the
+- * data aborts at this moment. We register a custom abort handler
+- * below to ignore the first data abort to work around this
+- * problem.
+- */
+-static int armada_375_external_abort_wa(unsigned long addr, unsigned int fsr,
+-					struct pt_regs *regs)
 -{
--	if ((fsr == 0x406 || fsr == 0xc06) && !fault_fixed_up) {
--		pr_warn("External imprecise Data abort at addr=%#lx, fsr=%#x ignored.\n",
--			addr, fsr);
--		fault_fixed_up = 1;
+-	static int ignore_first;
+-
+-	if (!ignore_first && fsr == 0x1406) {
+-		ignore_first = 1;
 -		return 0;
 -	}
 -
 -	return 1;
 -}
 -
--static void __init t410_abort_init(void)
+ static void __init mvebu_init_irq(void)
+ {
+ 	irqchip_init();
+@@ -134,17 +112,6 @@ static void __init mvebu_init_irq(void)
+ 	BUG_ON(mvebu_mbus_dt_init(coherency_available()));
+ }
+ 
+-static void __init external_abort_quirk(void)
 -{
--	hook_fault_code(16 + 6, t410_abort_handler, SIGBUS, BUS_OBJERR,
+-	u32 dev, rev;
+-
+-	if (mvebu_get_soc_id(&dev, &rev) == 0 && rev > ARMADA_375_Z1_REV)
+-		return;
+-
+-	hook_fault_code(16 + 6, armada_375_external_abort_wa, SIGBUS, 0,
 -			"imprecise external abort");
 -}
--#endif
 -
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- static struct iommu_platform_data omap4_iommu_pdata = {
- 	.reset_name = "mmu_cache",
-@@ -536,9 +510,6 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ "openpandora,omap3-pandora-600mhz", omap3_pandora_legacy_init, },
- 	{ "openpandora,omap3-pandora-1ghz", omap3_pandora_legacy_init, },
- #endif
--#ifdef CONFIG_SOC_TI81XX
--	{ "hp,t410", t410_abort_init, },
--#endif
- #ifdef CONFIG_SOC_OMAP5
- 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
- #endif
+ static void __init i2c_quirk(void)
+ {
+ 	struct device_node *np;
+@@ -177,8 +144,6 @@ static void __init mvebu_dt_init(void)
+ {
+ 	if (of_machine_is_compatible("marvell,armadaxp"))
+ 		i2c_quirk();
+-	if (of_machine_is_compatible("marvell,a375-db"))
+-		external_abort_quirk();
+ 
+ 	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+ }
 -- 
 2.6.1
