@@ -1,77 +1,117 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Add wakeup interrupt source for
- pixcir_i2c_ts
-Date: Wed, 14 Oct 2015 14:04:27 +0300
-Message-ID: <561E36BB.7000309@ti.com>
-References: <1444801956-17817-1-git-send-email-vigneshr@ti.com>
- <561E165B.3000907@ti.com> <561E1C89.9080508@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 20/25] dmaengine: edma: Simplify the interrupt handling
+Date: Wed, 14 Oct 2015 14:12:03 +0300
+Message-ID: <561E3883.6000705@ti.com>
+References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+ <1443088932-21731-21-git-send-email-peter.ujfalusi@ti.com>
+ <20151014102039.GK27370@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561E1C89.9080508@ti.com>
+In-Reply-To: <20151014102039.GK27370@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, "Gerlach, Dave" <d-gerlach@ti.com>
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Vignesh,
+On 10/14/2015 01:20 PM, Vinod Koul wrote:
+> On Thu, Sep 24, 2015 at 01:02:07PM +0300, Peter Ujfalusi wrote:
+>=20
+>> +	if (edesc->cyclic) {
+>> +		vchan_cyclic_callback(&edesc->vdesc);
+>> +		spin_unlock(&echan->vchan.lock);
+>> +		return;
+>> +	} else if (edesc->processed =3D=3D edesc->pset_nr) {
+>> +		dev_dbg(dev, "Transfer completed on channel %d\n",
+>> +			echan->ch_num);
+>=20
+> perhaps not a great choice for a print, we would ideally want to comp=
+lete
+> the cookie and then print
 
-On 14/10/15 12:12, Vignesh R wrote:
-> 
-> 
-> On 10/14/2015 02:16 PM, Roger Quadros wrote:
-> 
->>
->> On 14/10/15 08:52, Vignesh R wrote:
->>> On am437x-gp-evm, pixcir_i2c_ts can wakeup the system from lower power
->>> state via pinctrl and IO daisy chain using generic wakeirq framework.
->>> With commit 3fffd1283927 ("i2c: allow specifying separate wakeup
->>> interrupt in device tree") i2c core allows optional wakeirq to be
->>> specified via device tree. Add wakeup irq entry to enable pixcir_i2c_ts
->>> to wake the system from low power state.
->>>
->>> Signed-off-by: Vignesh R <vigneshr@ti.com>
->>> ---
->>>  arch/arm/boot/dts/am437x-gp-evm.dts | 5 +++++
->>>  1 file changed, 5 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
->>> index 22038f21f228..69e93af7df0d 100644
->>> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
->>> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
->>> @@ -581,8 +581,13 @@
->>>  
->>>  		attb-gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
->>>  
->>> +		interrupts-extended = <&gpio3 22 GPIO_ACTIVE_HIGH>,
->>> +				      <&am43xx_pinmux 0x264>;
->>
->> How does this work?
->>
->> interrupts-extended property must have
->> 1) interrupt parent
->> 2) interrupt number
->> 3) interrupt flags
->>
->> Your change doesn't seem to comply with those requirements.
-> 
-> AFAIU, interrupts-extended has two parts: interrupt parent phandle and
-> interrupt specifier.
-> The number of cells in interrupt specifier is determined by
-> interrupt-cells property of interrupt parent node.
+OK, I have moved the print.
 
-Got it.
+>=20
+>> +	sh_ipr =3D edma_shadow0_read_array(ecc, SH_IPR, 0);
+>> +	if (!sh_ipr) {
+>> +		sh_ipr =3D edma_shadow0_read_array(ecc, SH_IPR, 1);
+>> +		if (!sh_ipr)
+>> +			return IRQ_NONE;
+>> +		sh_ier =3D edma_shadow0_read_array(ecc, SH_IER, 1);
+>> +		bank =3D 1;
+>> +	} else {
+>> +		sh_ier =3D edma_shadow0_read_array(ecc, SH_IER, 0);
+>> +		bank =3D 0;
+>> +	}
+>> +
+>> +	do {
+>> +		u32 slot;
+>> +		u32 channel;
+>> +
+>> +		dev_dbg(ecc->dev, "IPR%d %08x\n", bank, sh_ipr);
+>=20
+> Too much debug prints...
 
-> In above case, gpio3 has interrupt-cells = 2 hence interrupt specifier
-> has interrupt number and interrupt flag field.
+OK, removed this one and changed the dev_dbg for both completion and er=
+ror
+interrupt handler at the start of each function to dev_vdbg() to genera=
+te less
+noise.
 
-But is GPIO_ACTIVE_HIGH an interrupt flag?
+>=20
+>> +	edma_read_slot(ecc, echan->slot[0], &p);
+>> +	/*
+>> +	 * Issue later based on missed flag which will be sure
+>> +	 * to happen as:
+>> +	 * (1) we finished transmitting an intermediate slot and
+>> +	 *     edma_execute is coming up.
+>> +	 * (2) or we finished current transfer and issue will
+>> +	 *     call edma_execute.
+>> +	 *
+>> +	 * Important note: issuing can be dangerous here and
+>> +	 * lead to some nasty recursion when we are in a NULL
+>> +	 * slot. So we avoid doing so and set the missed flag.
+>> +	 */
+>> +	if (p.a_b_cnt =3D=3D 0 && p.ccnt =3D=3D 0) {
+>> +		dev_dbg(dev, "Error on null slot, setting miss\n");
+>=20
+> Shouldn't this be err?
 
-> But in case am43xx_pinmux node, interrupt-cells is 1 hence has no
-> interrupt flag field.
-> 
-Understood, thanks. Might be worth adding a comment as to what 0x264 means though.
+Probably yes. I have not seen this one ever happening, but it indicates=
+ that
+something went wrong for sure.
 
-cheers,
--roger
+>=20
+>> +		} else if (edma_read(ecc, EDMA_QEMR)) {
+>> +			dev_dbg(ecc->dev, "QEMR %02x\n",
+>> +				edma_read(ecc, EDMA_QEMR));
+>> +			for (i =3D 0; i < 8; i++) {
+>> +				if (edma_read(ecc, EDMA_QEMR) & BIT(i)) {
+>> +					/* Clear the corresponding IPR bits */
+>> +					edma_write(ecc, EDMA_QEMCR, BIT(i));
+>> +					edma_shadow0_write(ecc, SH_QSECR,
+>> +							   BIT(i));
+>> +
+>> +					/* NOTE:  not reported!! */
+>=20
+> what does this mean?
+
+=46or QEMR and CCERR registers the Linux driver only acks the event, bu=
+t do not
+do anything.
+In Linux we are not using the qDMA of the eDMA3 and there is not much w=
+e can
+do when the CCERR happens.
+Hrm, probably moving the CCERR print to dev_err() might be useful, but =
+again I
+have not seen this happen. But if it does, we need to come up with some=
+thing
+to avoid it. Basically repartition the use of Transfer Controllers, but=
+ this
+can not be done with this stack. An upcoming series will give us ways t=
+o fine
+tune the use of TCs.
+
+--=20
+P=E9ter
