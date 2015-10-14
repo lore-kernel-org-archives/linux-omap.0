@@ -1,62 +1,42 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/2] ARM: dts: omap3: keep ssi ports by default
-Date: Wed, 14 Oct 2015 13:44:16 +0300
-Message-ID: <1444819456-26728-3-git-send-email-rogerq@ti.com>
-References: <1444819456-26728-1-git-send-email-rogerq@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 00/25] dmaengine/ARM: Merge the edma drivers into one
+Date: Wed, 14 Oct 2015 13:50:31 +0300
+Message-ID: <561E3377.4050909@ti.com>
+References: <1443088932-21731-1-git-send-email-peter.ujfalusi@ti.com>
+ <20151014102755.GL27370@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444819456-26728-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <20151014102755.GL27370@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: wsa@the-dreams.de, sre@kernel.org, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Let's keep the SSI ports disabled in the omap3.dtsi to avoid
-getting the following noise on the console for boards that don't
-use the SSI ports.
+On 10/14/2015 01:27 PM, Vinod Koul wrote:
+> On Thu, Sep 24, 2015 at 01:01:47PM +0300, Peter Ujfalusi wrote:
+>> Hi,
+>>
+>> Cover letter:
+>>
+>> with this series the edma two driver setup will be changed to have o=
+nly one
+>> driver to support eDMA3. The legacy edma interface will be removed a=
+nd eDMA can
+>> only be used via dmaengine API from this point on.
+>> In order to do the merge the following improvements has been done:
+>> - One driver instance per eDMA:
+>>  - Any number of eDMA instances are supported (both legacy and DT bo=
+ot)
+>> - Not relying on global variables, arrays, etc
+>> - Code simplification and optimizations in several places
+>=20
+> One question though, after this move and merge are we still left with=
+ edma
+> in arm/ ?
 
-"omap_ssi_port 4805a000.ssi-port: DT data is missing cawake gpio (err=-2)"
+The code from arch/arm/ is gone with this series.
 
-As omap3-n900 uses one SSI port, mark it enabled there.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap3-n900.dts | 1 +
- arch/arm/boot/dts/omap3.dtsi     | 2 ++
- 2 files changed, 3 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 5f5e0f3..bdb72fb 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -949,6 +949,7 @@
- };
- 
- &ssi_port1 {
-+	status = "ok";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&ssi_pins>;
- 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 8a2b253..25b0b37 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -815,6 +815,7 @@
- 				interrupt-parent = <&intc>;
- 				interrupts = <67>,
- 					     <68>;
-+				status = "disabled";
- 			};
- 
- 			ssi_port2: ssi-port@4805b000 {
-@@ -828,6 +829,7 @@
- 				interrupt-parent = <&intc>;
- 				interrupts = <69>,
- 					     <70>;
-+				status = "disabled";
- 			};
- 		};
- 	};
--- 
-2.1.4
+--=20
+P=E9ter
