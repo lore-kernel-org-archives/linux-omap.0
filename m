@@ -1,146 +1,199 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 07/13] dmaengine: edma: Refactor the dma device and channel
- struct initialization
-Date: Wed, 14 Oct 2015 16:12:18 +0300
-Message-ID: <1444828344-21378-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 13/13] ARM: DTS: am437x: Use the new DT bindings for the eDMA3
+Date: Wed, 14 Oct 2015 16:12:24 +0300
+Message-ID: <1444828344-21378-14-git-send-email-peter.ujfalusi@ti.com>
 References: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444828344-21378-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, nsekhar@ti.com, linux@arm.linux.org.uk
-Cc: devicetree@vger.kernel.org, arnd@arndb.de, tony@atomide.com, r.schwebel@pengutronix.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Move all code under one function to do the dma device and eDMA channel
-related setup so they are not scattered around the driver.
+Switch to use the ti,edma3-tpcc and ti,edma3-tptc binding for the eDMA3 and
+enable the DMA even crossbar with ti,am335x-edma-crossbar.
+With the new bindings boards can customize and tweak the DMA channel
+priority to match their needs. With the new binding the memcpy is safe
+to be used since with the old binding it was not possible for a driver
+to know which channel is allowed to be used as non HW triggered channel.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 79 +++++++++++++++++++++++++-----------------------------
- 1 file changed, 37 insertions(+), 42 deletions(-)
+ arch/arm/boot/dts/am4372.dtsi       | 82 ++++++++++++++++++++++++++++---------
+ arch/arm/boot/dts/am437x-gp-evm.dts |  9 +---
+ 2 files changed, 64 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index d064fbc47351..53188b9383a6 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -1750,18 +1750,49 @@ static enum dma_status edma_tx_status(struct dma_chan *chan,
- 	return ret;
- }
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d83ff9c9701e..a39428dd85b2 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -183,14 +183,56 @@
+ 		};
  
--static void __init edma_chan_init(struct edma_cc *ecc, struct dma_device *dma,
--				  struct edma_chan *echans)
-+#define EDMA_DMA_BUSWIDTHS	(BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
-+				 BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
-+				 BIT(DMA_SLAVE_BUSWIDTH_3_BYTES) | \
-+				 BIT(DMA_SLAVE_BUSWIDTH_4_BYTES))
+ 		edma: edma@49000000 {
+-			compatible = "ti,edma3";
+-			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+-			reg =	<0x49000000 0x10000>,
+-				<0x44e10f90 0x10>;
++			compatible = "ti,edma3-tpcc";
++			ti,hwmods = "tpcc";
++			reg =	<0x49000000 0x10000>;
++			reg-names = "edma3_cc";
+ 			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+-					<GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
+-					<GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
+-			#dma-cells = <1>;
++				     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "edma3_ccint", "emda3_mperr",
++					  "edma3_ccerrint";
++			dma-requests = <64>;
++			#dma-cells = <2>;
 +
-+static void edma_dma_init(struct edma_cc *ecc)
- {
-+	struct dma_device *ddev = &ecc->dma_slave;
- 	int i, j;
- 
-+	dma_cap_zero(ddev->cap_mask);
-+	dma_cap_set(DMA_SLAVE, ddev->cap_mask);
-+	dma_cap_set(DMA_CYCLIC, ddev->cap_mask);
-+	dma_cap_set(DMA_MEMCPY, ddev->cap_mask);
++			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
++				   <&edma_tptc2 0>;
 +
-+	ddev->device_prep_slave_sg = edma_prep_slave_sg;
-+	ddev->device_prep_dma_cyclic = edma_prep_dma_cyclic;
-+	ddev->device_prep_dma_memcpy = edma_prep_dma_memcpy;
-+	ddev->device_alloc_chan_resources = edma_alloc_chan_resources;
-+	ddev->device_free_chan_resources = edma_free_chan_resources;
-+	ddev->device_issue_pending = edma_issue_pending;
-+	ddev->device_tx_status = edma_tx_status;
-+	ddev->device_config = edma_slave_config;
-+	ddev->device_pause = edma_dma_pause;
-+	ddev->device_resume = edma_dma_resume;
-+	ddev->device_terminate_all = edma_terminate_all;
++			ti,edma-memcpy-channels = /bits/ 16 <32 33>;
++		};
 +
-+	ddev->src_addr_widths = EDMA_DMA_BUSWIDTHS;
-+	ddev->dst_addr_widths = EDMA_DMA_BUSWIDTHS;
-+	ddev->directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
-+	ddev->residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
++		edma_tptc0: tptc@49800000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc0";
++			reg =	<0x49800000 0x100000>;
++			interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "edma3_tcerrint";
++		};
 +
-+	ddev->dev = ecc->dev;
++		edma_tptc1: tptc@49900000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc1";
++			reg =	<0x49900000 0x100000>;
++			interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "edma3_tcerrint";
++		};
 +
-+	INIT_LIST_HEAD(&ddev->channels);
++		edma_tptc2: tptc@49a00000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc2";
++			reg =	<0x49a00000 0x100000>;
++			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "edma3_tcerrint";
++		};
 +
- 	for (i = 0; i < ecc->num_channels; i++) {
--		struct edma_chan *echan = &echans[i];
-+		struct edma_chan *echan = &ecc->slave_chans[i];
- 		echan->ch_num = EDMA_CTLR_CHAN(ecc->id, i);
- 		echan->ecc = ecc;
- 		echan->vchan.desc_free = edma_desc_free;
++		edma_xbar: dma-router@44e10f90 {
++			compatible = "ti,am335x-edma-crossbar";
++			reg = <0x44e10f90 0x40>;
++
++			#dma-cells = <3>;
++			dma-requests = <64>;
++
++			dma-masters = <&edma>;
+ 		};
  
--		vchan_init(&echan->vchan, dma);
-+		vchan_init(&echan->vchan, ddev);
+ 		uart0: serial@44e09000 {
+@@ -495,8 +537,8 @@
+ 			ti,hwmods = "mmc1";
+ 			ti,dual-volt;
+ 			ti,needs-special-reset;
+-			dmas = <&edma 24
+-				&edma 25>;
++			dmas = <&edma 24 0>,
++				<&edma 25 0>;
+ 			dma-names = "tx", "rx";
+ 			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
+ 			status = "disabled";
+@@ -507,8 +549,8 @@
+ 			reg = <0x481d8000 0x1000>;
+ 			ti,hwmods = "mmc2";
+ 			ti,needs-special-reset;
+-			dmas = <&edma 2
+-				&edma 3>;
++			dmas = <&edma 2 0>,
++				<&edma 3 0>;
+ 			dma-names = "tx", "rx";
+ 			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
+ 			status = "disabled";
+@@ -776,7 +818,7 @@
+ 			compatible = "ti,omap5-sham";
+ 			ti,hwmods = "sham";
+ 			reg = <0x53100000 0x300>;
+-			dmas = <&edma 36>;
++			dmas = <&edma 36 0>;
+ 			dma-names = "rx";
+ 			interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
+ 		};
+@@ -786,8 +828,8 @@
+ 			ti,hwmods = "aes";
+ 			reg = <0x53501000 0xa0>;
+ 			interrupts = <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
+-			dmas = <&edma 6
+-				&edma 5>;
++			dmas = <&edma 6 0>,
++				<&edma 5 0>;
+ 			dma-names = "tx", "rx";
+ 		};
  
- 		INIT_LIST_HEAD(&echan->node);
- 		for (j = 0; j < EDMA_MAX_SLOTS; j++)
-@@ -1769,36 +1800,6 @@ static void __init edma_chan_init(struct edma_cc *ecc, struct dma_device *dma,
- 	}
- }
+@@ -796,8 +838,8 @@
+ 			ti,hwmods = "des";
+ 			reg = <0x53701000 0xa0>;
+ 			interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
+-			dmas = <&edma 34
+-				&edma 33>;
++			dmas = <&edma 34 0>,
++				<&edma 33 0>;
+ 			dma-names = "tx", "rx";
+ 		};
  
--#define EDMA_DMA_BUSWIDTHS	(BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
--				 BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
--				 BIT(DMA_SLAVE_BUSWIDTH_3_BYTES) | \
--				 BIT(DMA_SLAVE_BUSWIDTH_4_BYTES))
--
--static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
--			  struct device *dev)
--{
--	dma->device_prep_slave_sg = edma_prep_slave_sg;
--	dma->device_prep_dma_cyclic = edma_prep_dma_cyclic;
--	dma->device_prep_dma_memcpy = edma_prep_dma_memcpy;
--	dma->device_alloc_chan_resources = edma_alloc_chan_resources;
--	dma->device_free_chan_resources = edma_free_chan_resources;
--	dma->device_issue_pending = edma_issue_pending;
--	dma->device_tx_status = edma_tx_status;
--	dma->device_config = edma_slave_config;
--	dma->device_pause = edma_dma_pause;
--	dma->device_resume = edma_dma_resume;
--	dma->device_terminate_all = edma_terminate_all;
--
--	dma->src_addr_widths = EDMA_DMA_BUSWIDTHS;
--	dma->dst_addr_widths = EDMA_DMA_BUSWIDTHS;
--	dma->directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
--	dma->residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
--
--	dma->dev = dev;
--
--	INIT_LIST_HEAD(&dma->channels);
--}
--
- static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 			      struct edma_cc *ecc)
- {
-@@ -2131,14 +2132,8 @@ static int edma_probe(struct platform_device *pdev)
- 	}
- 	ecc->info = info;
+@@ -810,8 +852,8 @@
+ 			interrupts = <80>, <81>;
+ 			interrupt-names = "tx", "rx";
+ 			status = "disabled";
+-			dmas = <&edma 8>,
+-			       <&edma 9>;
++			dmas = <&edma 8 2>,
++			       <&edma 9 2>;
+ 			dma-names = "tx", "rx";
+ 		};
  
--	dma_cap_zero(ecc->dma_slave.cap_mask);
--	dma_cap_set(DMA_SLAVE, ecc->dma_slave.cap_mask);
--	dma_cap_set(DMA_CYCLIC, ecc->dma_slave.cap_mask);
--	dma_cap_set(DMA_MEMCPY, ecc->dma_slave.cap_mask);
--
--	edma_dma_init(ecc, &ecc->dma_slave, dev);
--
--	edma_chan_init(ecc, &ecc->dma_slave, ecc->slave_chans);
-+	/* Init the dma device and channels */
-+	edma_dma_init(ecc);
+@@ -824,8 +866,8 @@
+ 			interrupts = <82>, <83>;
+ 			interrupt-names = "tx", "rx";
+ 			status = "disabled";
+-			dmas = <&edma 10>,
+-			       <&edma 11>;
++			dmas = <&edma 10 2>,
++			       <&edma 11 2>;
+ 			dma-names = "tx", "rx";
+ 		};
  
- 	for (i = 0; i < ecc->num_channels; i++) {
- 		/* Assign all channels to the default queue */
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 22038f21f228..28e3b252c08c 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -711,8 +711,8 @@
+ 	status = "okay";
+ 	/* these are on the crossbar and are outlined in the
+ 	   xbar-event-map element */
+-	dmas = <&edma 30
+-		&edma 31>;
++	dmas = <&edma_xbar 30 0 1>,
++		<&edma_xbar 31 0 2>;
+ 	dma-names = "tx", "rx";
+ 	vmmc-supply = <&vmmcwl_fixed>;
+ 	bus-width = <4>;
+@@ -733,11 +733,6 @@
+ 	};
+ };
+ 
+-&edma {
+-	ti,edma-xbar-event-map = /bits/ 16 <1 30
+-					    2 31>;
+-};
+-
+ &uart3 {
+ 	status = "okay";
+ 	pinctrl-names = "default";
 -- 
 2.6.1
