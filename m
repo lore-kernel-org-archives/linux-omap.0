@@ -1,90 +1,82 @@
 From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH 1/5] mtd: nand: omap2: Support parsing dma channel
- information from DT
-Date: Thu, 15 Oct 2015 12:12:29 -0500
-Message-ID: <561FDE7D.2030307@ti.com>
+Subject: Re: [PATCH 5/5] ARM: OMAP2+: Update gpmc and nand DT binding
+ documentation
+Date: Thu, 15 Oct 2015 12:14:52 -0500
+Message-ID: <561FDF0C.4020902@ti.com>
 References: <1444700338-27582-1-git-send-email-fcooper@ti.com>
- <1444700338-27582-2-git-send-email-fcooper@ti.com> <561E3E4F.9020302@ti.com>
- <561E41EB.3050005@ti.com> <561E5803.5090609@ti.com> <561E629F.5070202@ti.com>
- <561E6791.3030404@ti.com> <20151014161813.GC10113@atomide.com>
- <561E8184.6020206@ti.com> <20151014181337.GF10113@atomide.com>
- <561EB4FB.8040709@ti.com> <561F573D.6010704@ti.com>
+ <1444700338-27582-6-git-send-email-fcooper@ti.com> <561E417F.4020304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561F573D.6010704@ti.com>
+In-Reply-To: <561E417F.4020304@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, computersforpeace@gmail.com, dwmw2@infradead.org, Tony Lindgren <tony@atomide.com>
+To: Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, computersforpeace@gmail.com, dwmw2@infradead.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 10/15/2015 02:35 AM, Roger Quadros wrote:
-> On 14/10/15 23:03, Franklin S Cooper Jr. wrote:
+On 10/14/2015 06:50 AM, Roger Quadros wrote:
+> On 13/10/15 04:38, Franklin S Cooper Jr wrote:
+>> Add additional details to the gpmc and nand documentation to clarify
+>> what is needed to enable nand dma prefetch.
 >>
->> On 10/14/2015 01:13 PM, Tony Lindgren wrote:
->>> * Franklin S Cooper Jr. <fcooper@ti.com> [151014 09:27]:
->>>> On 10/14/2015 11:18 AM, Tony Lindgren wrote:
->>>>> * Franklin S Cooper Jr. <fcooper@ti.com> [151014 07:37]:
->>>>>> On 10/14/2015 09:11 AM, Roger Quadros wrote:
->>>>>>> On 14/10/15 16:26, Franklin S Cooper Jr. wrote:
->>>>>>>> On 10/14/2015 06:52 AM, Roger Quadros wrote:
->>>>>>>>> Franklin,
->>>>>>>>>
->>>>>>>>> On 14/10/15 14:36, Roger Quadros wrote:
->>>>>>>>>> On 13/10/15 04:38, Franklin S Cooper Jr wrote:
->>>>>>>>>>> Switch from dma_request_channel to allow passing dma channel
->>>>>>>>>>> information from DT rather than hardcoding a value.
->>>>>>>>>>>
->>>>>>>>>>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->>>>>>>>>> Acked-by: Roger Quadros <rogerq@ti.com>
->>>>>>>>>>
->>>>>>>>>>> ---
->>>>>>>>>>>  drivers/mtd/nand/omap2.c | 4 +++-
->>>>>>>>>>>  1 file changed, 3 insertions(+), 1 deletion(-)
->>>>>>>>>>>
->>>>>>>>>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
->>>>>>>>>>> index d0f2620..957c32f 100644
->>>>>>>>>>> --- a/drivers/mtd/nand/omap2.c
->>>>>>>>>>> +++ b/drivers/mtd/nand/omap2.c
->>>>>>>>>>> @@ -1866,7 +1866,9 @@ static int omap_nand_probe(struct platform_device *pdev)
->>>>>>>>>>>  		dma_cap_zero(mask);
->>>>>>>>>>>  		dma_cap_set(DMA_SLAVE, mask);
->>>>>>>>>>>  		sig = OMAP24XX_DMA_GPMC;
->>>>>>>>>>> -		info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
->>>>>>>>>>> +		info->dma = dma_request_slave_channel_compat(mask,
->>>>>>>>>>> +			omap_dma_filter_fn, &sig, pdev->dev.parent, "rxtx");
->>>>>>>>>>> +
->>>>>>>>> Just discovered that you are using the parent device node.
->>>>>>>>>
->>>>>>>>> How about moving the dma bindings to the nand node instead and using
->>>>>>>>> pdev->dev here?
->>>>>>>> Roger,
->>>>>>>>
->>>>>>>> From what I can tell the interrupt number and the dma channel will always be
->>>>>>>> the same no matter what. Doesn't matter if you have multiple nands or a
->>>>>>>> combination of nands and nors. Since that is the case I think it just makes
->>>>>>>> sense to leave it in the gpmc parent node and define it once.
->>>>>>> Is prefetch/writepost dma used for NOR or any other GPMC peripheral
->>>>>>> or only for NAND?
->>>>>> The dma seems tied to the prefetch. From what I can tell the prefetch is only
->>>>>> used by nand.
->>>>>>> Let's also get Tony's inputs on this.
->>>>>> Sure.
->>>>> Hmm so what would keep other devices from using the prefetch
->>>> Looking at the TRM any references to the prefetch are always with respect to
->>>> NAND.
->>>>
->>>> I also see the below mentioned in the TRM.
->>>> Pre-fetch and write posting engine associated with system DMA to get full performance from NAND
->>>> device with minimum impact on NOR/SRAM concurrent access.
->>> OK up to you guys to figure out if it may be usable in a generic way then :)
->> Ok I just got clarification from hw folks. DMA for GPMC can be used for any of the
->> various modes. But the prefetch is specific to NAND.
-> In that case the dma information must be in the GPMC node.
-Ok I'll be sending a v2 patchset soon but I'll be leaving this as is.
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt | 7 ++++++-
+>>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt                | 2 ++
+>>  2 files changed, 8 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+>> index 704be93..b1e2802 100644
+>> --- a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+>> +++ b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+>> @@ -33,6 +33,10 @@ Required properties:
+>>  			As this will change in the future, filling correct
+>>  			values here is a requirement.
+>>  
+>> +GPMC DMA information. Required only when GPMC nand prefetch is enabled.
+>> + - dmas			GPMC nand prefetch dma channel
+> s/nand/NAND
 >
+>> + - dma-names		DMA channel name use as a reference within the Nand driver
+> s/Nand/NAND
+>
+> This is inevitably going to be "rxtx". So why not say that it should be "rxtx"
+I'll fix all three of these
+>
+> Should these bindings go in bindings/mtd/gpmc-nand.txt instead?
+>
+>> +
+>>  Timing properties for child nodes. All are optional and default to 0.
+>>  
+>>   - gpmc,sync-clk-ps:	Minimum clock period for synchronous mode, in picoseconds
+>> @@ -119,7 +123,8 @@ Example for an AM33xx board:
+>>  		ti,hwmods = "gpmc";
+>>  		reg = <0x50000000 0x2000>;
+>>  		interrupts = <100>;
+>> -
+>> +		dmas = <&edma 52>;
+>> +		dma-names = "rxtx";
+> Why not define these in the NAND node instead of gpmc node?
+Since we decided that the dma entry will stay in the GPMC node I'll leave these as is.
+>
+>>  		gpmc,num-cs = <8>;
+>>  		gpmc,num-waitpins = <2>;
+>>  		#address-cells = <2>;
+>> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> index 253e6de..4b0c240 100644
+>> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> @@ -61,6 +61,8 @@ Example for an AM33xx board:
+>>  		ti,hwmods = "gpmc";
+>>  		reg = <0x50000000 0x36c>;
+>>  		interrupts = <100>;
+>> +		dmas = <&edma 52>;
+>> +		dma-names = "rxtx";
+>>  		gpmc,num-cs = <8>;
+>>  		gpmc,num-waitpins = <2>;
+>>  		#address-cells = <2>;
+>>
 > cheers,
 > -roger
