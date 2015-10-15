@@ -1,55 +1,75 @@
-From: Heiko Schocher <hs@denx.de>
-Subject: Re: [PATCH] arm, omap2, sram: On HS/EMU devices, only 64K internal
- SRAM is available.
-Date: Thu, 15 Oct 2015 06:26:00 +0200
-Message-ID: <561F2AD8.6080502@denx.de>
-References: <1444715655-30077-1-git-send-email-hs@denx.de>
- <20151014174920.GE10113@atomide.com> <20151014222022.GL10113@atomide.com>
-Reply-To: hs@denx.de
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2 2/3] ARM: dts: AM43x-epos-evm: Add AM438x compatible string
+ for epos
+Date: Thu, 15 Oct 2015 10:40:07 +0530
+Message-ID: <1444885808-6306-3-git-send-email-j-keerthy@ti.com>
+References: <1444885808-6306-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151014222022.GL10113@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, Georg.Soffel@bosch-si.com, Ayoub Zaki <Ayoub.Zaki@bosch-si.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1444885808-6306-1-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Tony,
+Add AM438x compatible property to identify the SoCs on epos evms.
 
-Am 15.10.2015 um 00:20 schrieb Tony Lindgren:
-> * Tony Lindgren <tony@atomide.com> [151014 10:56]:
->> * Heiko Schocher <hs@denx.de> [151012 22:58]:
->>> Of this, secure content (including PPA) uses initial
->>> portion of the SRAM. This chunk is not (and shouldn't
->>> be) accessible from the public code.
->>>
->>> The minimum size of this chunk (0x350) is used in this
->>> patch. Available size is rounded off to 63K.
->>>
->>> Both values would require a change if size of secure
->>> content grows beyond 0x350.
->>
->> Makes sense to me. And something similar is needed at least for
->> dm814x to get rid of the imprecise abort during boot with
->> commit bbeb92095159 ("ARM: 8422/1: enable imprecise aborts during
->> early kernel startup") applied.
->>
->> Is this needed as a fix to the -rc cycle, or can this wait for
->> v4.4?
->
-> Actually I think we may have a regression somwhere. If you look
-> at commit 8b9a2810b02e ("ARM: OMAP4+: Move SRAM data to DT")
-> this should all be handled by drivers/misc/sram.c nowadays.
->
-> So for most SoCs, we should completely skip the plat-omap/sram.c
-> code.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
 
-Yes, correct. So it should be enough for changing the DT, thanks.
+Changes in v2:
 
-bye,
-Heiko
+  * Rebased to latest 4.3-rc5
+
+ Documentation/devicetree/bindings/arm/omap/omap.txt | 5 ++++-
+ arch/arm/boot/dts/am43x-epos-evm.dts                | 2 +-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index 9f4e513..dc3b5f2 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -100,6 +100,9 @@ SoCs:
+ - AM4372
+   compatible = "ti,am4372", "ti,am43"
+ 
++- AM438x
++  compatible = "ti,am438x", "ti,am43"
++
+ Boards:
+ 
+ - OMAP3 BeagleBoard : Low cost community board
+@@ -142,7 +145,7 @@ Boards:
+   compatible = "ti,omap5-evm", "ti,omap5"
+ 
+ - AM43x EPOS EVM
+-  compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
++  compatible = "ti,am43x-epos-evm", "ti,am438x", "ti,am43"
+ 
+ - AM437x GP EVM
+   compatible = "ti,am437x-gp-evm", "ti,am4372", "ti,am43"
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 86c2dfb..1c9b9a0 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -18,7 +18,7 @@
+ 
+ / {
+ 	model = "TI AM43x EPOS EVM";
+-	compatible = "ti,am43x-epos-evm","ti,am4372","ti,am43";
++	compatible = "ti,am43x-epos-evm", "ti,am438x", "ti,am43";
+ 
+ 	aliases {
+ 		display0 = &lcd0;
 -- 
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+1.9.1
