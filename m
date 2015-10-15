@@ -1,101 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/11] ARM: OMAP/DTS: dra7/72-evm/beagle-x15: Audio
- support
-Date: Thu, 15 Oct 2015 10:08:37 +0300
-Message-ID: <561F50F5.9060909@ti.com>
-References: <1440400807-32274-1-git-send-email-peter.ujfalusi@ti.com>
- <55F68A60.6050900@ti.com> <20150914162851.GM4215@atomide.com>
- <20151012205732.GW23801@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v5 00/24] dmaengine/ARM: Merge the edma drivers into one
+Date: Thu, 15 Oct 2015 10:16:12 +0300
+Message-ID: <561F52BC.7040903@ti.com>
+References: <1444822986-20562-1-git-send-email-peter.ujfalusi@ti.com>
+ <20151014143124.GU27370@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151012205732.GW23801-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151014143124.GU27370@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
-
-On 10/12/2015 11:57 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [150914 09:32]:
->> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [150914 01:54]:
->>> Hi Tony,
->>>
->>> On 08/24/2015 10:19 AM, Peter Ujfalusi wrote:
->>>> Hi,
->>>>
->>>> this series will enable analog audio (via onboard aic310x codec) f=
-or dra7-evm,
->>>> dra72-evm and am57xx-beagle-x15 boards.
->>>> In these board McASP3 is connected to the codec and for the McASP3=
- we needed to
->>>> have the DMA crossbar in place since the request lines are not map=
-ped by
->>>> default.
->>>
->>> Did you had a chance to look at this series?
+On 10/14/2015 05:31 PM, Vinod Koul wrote:
+> On Wed, Oct 14, 2015 at 02:42:42PM +0300, Peter Ujfalusi wrote:
+>> Hi,
 >>
->> Looks OK to me, will look at it more once we have the fixes merged.
+>> Cover letter:
 >>
->> Paul may have comments on the hwmod chage, looks like you forgot
->> to Cc him on it. Can you please resend that one with Paul in Cc?
+>> with this series the edma two driver setup will be changed to have o=
+nly one
+>> driver to support eDMA3. The legacy edma interface will be removed a=
+nd eDMA can
+>> only be used via dmaengine API from this point on.
+>> In order to do the merge the following improvements has been done:
+>> - One driver instance per eDMA:
+>>  - Any number of eDMA instances are supported (both legacy and DT bo=
+ot)
+>> - Not relying on global variables, arrays, etc
+>> - Code simplification and optimizations in several places
+>>
+>> This change will also help us to do bigger changes in the eDMA drive=
+r since,
+>> since now we have only one driver to work with.
 >=20
-> Applying all the dts changes into omap-for-v4.3/dt thanks. Paul
-> can pick up the hwmod change then after reviewing it.
+> I have applied this now. I got a conlfict on 3rd one while applying a=
+nd also
+> I got conflict while merging to next
+>=20
+> Pls verify all is well!
 
-Thanks for taking the DTS patches, however if Paul agrees with the way =
-I think we can handle the McASP in DRA7xx then the patch which adds the=
- mcasp3 node to dra7.dtsi needs to be replaced by:
+Thanks Vinod,
 
-=46rom b6733f9ca96a997fab3d0455783e875dd9ae032b Mon Sep 17 00:00:00 200=
-1
-=46rom: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Date: Tue, 24 Feb 2015 15:12:59 +0200
-Subject: [PATCH v2 03/12] ARM: DTS: dra7: Add McASP3 node
+It looks fine.
+It is strange since I'm working on top of linux-next as well. The follo=
+wing
+commit caused the conflict:
+ddfe4d0cce78 dmaengine: edma: remove redundant conditions
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/dra7.dtsi | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+I have it in my linux-next, but for some reason it is missing from your
+topic/edma, so the series applied with conflicts there and when merging=
+ on top
+of linux-next there were again conflict.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 8fedddc35999..cde0a3cbf262 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1404,6 +1404,21 @@
- 			status =3D "disabled";
- 		};
-=20
-+		mcasp3: mcasp@48468000 {
-+			compatible =3D "ti,dra7-mcasp-audio";
-+			ti,hwmods =3D "mcasp3";
-+			reg =3D <0x48468000 0x2000>;
-+			reg-names =3D "mpu";
-+			interrupts =3D <GIC_SPI 151 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 150 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names =3D "tx", "rx";
-+			dmas =3D <&sdma_xbar 133>, <&sdma_xbar 132>;
-+			dma-names =3D "tx", "rx";
-+			clocks =3D <&mcasp3_aux_gfclk_mux>, <&mcasp3_ahclkx_mux>;
-+			clock-names =3D "fck", "ahclkx";
-+			status =3D "disabled";
-+		};
-+
- 		crossbar_mpu: crossbar@4a002a48 {
- 			compatible =3D "ti,irq-crossbar";
- 			reg =3D <0x4a002a48 0x130>;
---=20
-2.6.1
-
-
-
-
---=20
+Thank you,
 P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
