@@ -1,63 +1,40 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v2 2/5] mtd: nand: omap2: Start dma request before enabling prefetch
-Date: Thu, 15 Oct 2015 12:37:25 -0500
-Message-ID: <1444930648-19313-3-git-send-email-fcooper@ti.com>
-References: <1444930648-19313-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444930648-19313-1-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, rogerq@ti.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, computersforpeace@gmail.com, dwmw2@infradead.org, tony@atomide.com
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 2/2] omap device tree changes for v4.4
+Date: Thu, 15 Oct 2015 14:04:26 -0700
+Message-ID: <20151015210425.GQ10113@atomide.com>
+References: <8058507.49AsgX8PR9@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <8058507.49AsgX8PR9@wuerfel>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The prefetch engine sends a dma request once a FIFO threshold has
-been met. No other requests are received until the previous request
-is handled.
+* Arnd Bergmann <arnd@arndb.de> [151015 13:40]:
+> On Wednesday 14 October 2015 14:38:59 Tony Lindgren wrote:
+> 
+> > Note that this branch is against v4.3-rc4 as that contains critical
+> > MMC related fixes to boot with MMC working on most omaps.
+> 
+> While we are lucky this time as I based the branch on -rc4 anyway,
+> a nicer way to do this would be to ensure that a fix you want
+> to base on is based an older -rc, and then you base your own branch
+> on top of that fix, to minimize the number of back-merged patches.
 
-Starting an edma transfer (dma_async_issue_pending) results in any
-previous event for the dma channel to be cleared. Therefore, starting
-the prefetch engine before initiating the dma transfer may result in
-the prefetch triggering a dma request but instead of it being handled
-it can end up being cleared. This will result in a hang since the code
-will continue to wait for the dma request to complete.
+Sure that would be doable too at the cost of a few extra merges.
 
-By initiating the dma request before enabling the prefetch engine this
-race condition is avoided and no dma request are missed/cleared.
+Regards,
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
-V2 Changes:
-Moved comment
-
- drivers/mtd/nand/omap2.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 957c32f..1f58420 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -509,6 +509,11 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	tx->callback_param = &info->comp;
- 	dmaengine_submit(tx);
- 
-+	init_completion(&info->comp);
-+
-+	/* setup and start DMA using dma_addr */
-+	dma_async_issue_pending(info->dma);
-+
- 	/*  configure and start prefetch transfer */
- 	ret = omap_prefetch_enable(info->gpmc_cs,
- 		PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write, info);
-@@ -516,10 +521,6 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy_unmap;
- 
--	init_completion(&info->comp);
--	dma_async_issue_pending(info->dma);
--
--	/* setup and start DMA using dma_addr */
- 	wait_for_completion(&info->comp);
- 	tim = 0;
- 	limit = (loops_per_jiffy * msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
--- 
-2.6.1
+Tony
