@@ -1,8 +1,7 @@
 From: Lucas Stach <l.stach@pengutronix.de>
-Subject: [PATCH v2 3/3] ARM: BCM5301X: remove workaround imprecise abort fault
- handler
-Date: Thu, 15 Oct 2015 12:32:22 +0200
-Message-ID: <1444905142-21500-4-git-send-email-l.stach@pengutronix.de>
+Subject: [PATCH v2 2/3] ARM: OMAP2+: remove custom abort handler for t410
+Date: Thu, 15 Oct 2015 12:32:21 +0200
+Message-ID: <1444905142-21500-3-git-send-email-l.stach@pengutronix.de>
 References: <1444905142-21500-1-git-send-email-l.stach@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,62 +26,64 @@ abort left behind by the bootloader is now done in a slightly safer way inside
 the common ARM startup code.
 
 Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Hauke Mehrtens <hauke@hauke-m.de>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-bcm/bcm_5301x.c | 35 -----------------------------------
- 1 file changed, 35 deletions(-)
+ arch/arm/mach-omap2/pdata-quirks.c | 29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
-diff --git a/arch/arm/mach-bcm/bcm_5301x.c b/arch/arm/mach-bcm/bcm_5301x.c
-index 5478fe6bcce6..c8830a2b0d60 100644
---- a/arch/arm/mach-bcm/bcm_5301x.c
-+++ b/arch/arm/mach-bcm/bcm_5301x.c
-@@ -9,40 +9,6 @@
- #include <asm/hardware/cache-l2x0.h>
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index ea56397599c2..3a2bc2a88db4 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -24,9 +24,6 @@
+ #include <linux/platform_data/iommu-omap.h>
+ #include <linux/platform_data/wkup_m3.h>
  
- #include <asm/mach/arch.h>
 -#include <asm/siginfo.h>
 -#include <asm/signal.h>
 -
+ #include "common.h"
+ #include "common-board-devices.h"
+ #include "dss-common.h"
+@@ -385,29 +382,6 @@ static void __init omap3_pandora_legacy_init(void)
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+-#ifdef CONFIG_SOC_TI81XX
+-static int fault_fixed_up;
 -
--static bool first_fault = true;
--
--static int bcm5301x_abort_handler(unsigned long addr, unsigned int fsr,
--				 struct pt_regs *regs)
+-static int t410_abort_handler(unsigned long addr, unsigned int fsr,
+-			      struct pt_regs *regs)
 -{
--	if ((fsr == 0x1406 || fsr == 0x1c06) && first_fault) {
--		first_fault = false;
--
--		/*
--		 * These faults with codes 0x1406 (BCM4709) or 0x1c06 happens
--		 * for no good reason, possibly left over from the CFE boot
--		 * loader.
--		 */
+-	if ((fsr == 0x406 || fsr == 0xc06) && !fault_fixed_up) {
 -		pr_warn("External imprecise Data abort at addr=%#lx, fsr=%#x ignored.\n",
 -			addr, fsr);
--
--		/* Returning non-zero causes fault display and panic */
+-		fault_fixed_up = 1;
 -		return 0;
 -	}
 -
--	/* Others should cause a fault */
 -	return 1;
 -}
 -
--static void __init bcm5301x_init_early(void)
+-static void __init t410_abort_init(void)
 -{
--	/* Install our hook */
--	hook_fault_code(16 + 6, bcm5301x_abort_handler, SIGBUS, BUS_OBJERR,
+-	hook_fault_code(16 + 6, t410_abort_handler, SIGBUS, BUS_OBJERR,
 -			"imprecise external abort");
 -}
- 
- static const char *const bcm5301x_dt_compat[] __initconst = {
- 	"brcm,bcm4708",
-@@ -52,6 +18,5 @@ static const char *const bcm5301x_dt_compat[] __initconst = {
- DT_MACHINE_START(BCM5301X, "BCM5301X")
- 	.l2c_aux_val	= 0,
- 	.l2c_aux_mask	= ~0,
--	.init_early	= bcm5301x_init_early,
- 	.dt_compat	= bcm5301x_dt_compat,
- MACHINE_END
+-#endif
+-
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+ static struct iommu_platform_data omap4_iommu_pdata = {
+ 	.reset_name = "mmu_cache",
+@@ -536,9 +510,6 @@ static struct pdata_init pdata_quirks[] __initdata = {
+ 	{ "openpandora,omap3-pandora-600mhz", omap3_pandora_legacy_init, },
+ 	{ "openpandora,omap3-pandora-1ghz", omap3_pandora_legacy_init, },
+ #endif
+-#ifdef CONFIG_SOC_TI81XX
+-	{ "hp,t410", t410_abort_init, },
+-#endif
+ #ifdef CONFIG_SOC_OMAP5
+ 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
+ #endif
 -- 
 2.6.1
