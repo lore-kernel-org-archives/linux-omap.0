@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v2 5/5] ARM: OMAP2+: Update GPMC and NAND DT binding documentation
-Date: Thu, 15 Oct 2015 12:37:28 -0500
-Message-ID: <1444930648-19313-6-git-send-email-fcooper@ti.com>
+Subject: [PATCH v2 4/5] ARM: dts: am437x/am33xx/omap/dm816x: Add gpmc dma channel
+Date: Thu, 15 Oct 2015 12:37:27 -0500
+Message-ID: <1444930648-19313-5-git-send-email-fcooper@ti.com>
 References: <1444930648-19313-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444930648-19313-1-git-send-email-fcooper@ti.com>
@@ -10,56 +10,99 @@ To: linux-kernel@vger.kernel.org, rogerq@ti.com, devicetree@vger.kernel.org, lin
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add additional details to the GPMC NAND documentation to clarify
-what is needed to enable NAND DMA prefetch.
+Add dma channel information to the gpmc. Although not enabled by
+default this will allow prefetch-dma to be used.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
 V2 Changes:
-Replace nand and Nand with NAND
-Specify the value dma-names should be set to
+Added DMA entry for OMAP4 and OMAP5
 
- Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt | 7 ++++++-
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt                | 2 ++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am33xx.dtsi | 2 ++
+ arch/arm/boot/dts/am4372.dtsi | 2 ++
+ arch/arm/boot/dts/dm816x.dtsi | 2 ++
+ arch/arm/boot/dts/omap3.dtsi  | 2 ++
+ arch/arm/boot/dts/omap4.dtsi  | 2 ++
+ arch/arm/boot/dts/omap5.dtsi  | 2 ++
+ 6 files changed, 12 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-index 704be93..afae4b3 100644
---- a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-+++ b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-@@ -33,6 +33,10 @@ Required properties:
- 			As this will change in the future, filling correct
- 			values here is a requirement.
- 
-+GPMC DMA information.
-+ - dmas			GPMC NAND prefetch dma channel
-+ - dma-names		Must be set to "rxtx"
-+
- Timing properties for child nodes. All are optional and default to 0.
- 
-  - gpmc,sync-clk-ps:	Minimum clock period for synchronous mode, in picoseconds
-@@ -119,7 +123,8 @@ Example for an AM33xx board:
- 		ti,hwmods = "gpmc";
- 		reg = <0x50000000 0x2000>;
- 		interrupts = <100>;
--
-+		dmas = <&edma 52>;
-+		dma-names = "rxtx";
- 		gpmc,num-cs = <8>;
- 		gpmc,num-waitpins = <2>;
- 		#address-cells = <2>;
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index 253e6de..4b0c240 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -61,6 +61,8 @@ Example for an AM33xx board:
- 		ti,hwmods = "gpmc";
- 		reg = <0x50000000 0x36c>;
- 		interrupts = <100>;
-+		dmas = <&edma 52>;
-+		dma-names = "rxtx";
- 		gpmc,num-cs = <8>;
- 		gpmc,num-waitpins = <2>;
- 		#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index e065f21..f2d8eed 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -819,6 +819,8 @@
+ 			ti,no-idle-on-init;
+ 			reg = <0x50000000 0x2000>;
+ 			interrupts = <100>;
++			dmas = <&edma 52>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <7>;
+ 			gpmc,num-waitpins = <2>;
+ 			#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index ec8b7a3..c02061b 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -841,6 +841,8 @@
+ 		gpmc: gpmc@50000000 {
+ 			compatible = "ti,am3352-gpmc";
+ 			ti,hwmods = "gpmc";
++			dmas = <&edma 52>;
++			dma-names = "rxtx";
+ 			clocks = <&l3s_gclk>;
+ 			clock-names = "fck";
+ 			reg = <0x50000000 0x2000>;
+diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
+index 68fb444..d2e5d31 100644
+--- a/arch/arm/boot/dts/dm816x.dtsi
++++ b/arch/arm/boot/dts/dm816x.dtsi
+@@ -180,6 +180,8 @@
+ 			#address-cells = <2>;
+ 			#size-cells = <1>;
+ 			interrupts = <100>;
++			dmas = <&edma 52>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <6>;
+ 			gpmc,num-waitpins = <2>;
+ 			gpio-controller;
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 7f212b6..9dbbcf6 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -717,6 +717,8 @@
+ 			ti,hwmods = "gpmc";
+ 			reg = <0x6e000000 0x02d0>;
+ 			interrupts = <20>;
++			dmas = <&sdma 4>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <8>;
+ 			gpmc,num-waitpins = <4>;
+ 			#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 5a206c1..32b65be 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -354,6 +354,8 @@
+ 			#address-cells = <2>;
+ 			#size-cells = <1>;
+ 			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&sdma 4>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <8>;
+ 			gpmc,num-waitpins = <4>;
+ 			ti,hwmods = "gpmc";
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 4c04389..ca3c17f 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -391,6 +391,8 @@
+ 			#address-cells = <2>;
+ 			#size-cells = <1>;
+ 			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&sdma 4>;
++			dma-names = "rxtx";
+ 			gpmc,num-cs = <8>;
+ 			gpmc,num-waitpins = <4>;
+ 			ti,hwmods = "gpmc";
 -- 
 2.6.1
