@@ -1,59 +1,75 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v5 00/24] dmaengine/ARM: Merge the edma drivers into one
-Date: Thu, 15 Oct 2015 10:16:12 +0300
-Message-ID: <561F52BC.7040903@ti.com>
-References: <1444822986-20562-1-git-send-email-peter.ujfalusi@ti.com>
- <20151014143124.GU27370@localhost>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/4] ARM: catch pending imprecise abort on unmask
+Date: Thu, 15 Oct 2015 08:21:49 +0100
+Message-ID: <20151015072149.GG32536@n2100.arm.linux.org.uk>
+References: <1444834113-18122-1-git-send-email-l.stach@pengutronix.de>
+ <1444834113-18122-2-git-send-email-l.stach@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151014143124.GU27370@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: nsekhar@ti.com, linux@arm.linux.org.uk, olof@lixom.net, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1444834113-18122-2-git-send-email-l.stach@pengutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lucas Stach <l.stach@pengutronix.de>
+Cc: Jason Cooper <jason@lakedaemon.net>, Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, patchwork-lst@pengutronix.de, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/14/2015 05:31 PM, Vinod Koul wrote:
-> On Wed, Oct 14, 2015 at 02:42:42PM +0300, Peter Ujfalusi wrote:
->> Hi,
->>
->> Cover letter:
->>
->> with this series the edma two driver setup will be changed to have o=
-nly one
->> driver to support eDMA3. The legacy edma interface will be removed a=
-nd eDMA can
->> only be used via dmaengine API from this point on.
->> In order to do the merge the following improvements has been done:
->> - One driver instance per eDMA:
->>  - Any number of eDMA instances are supported (both legacy and DT bo=
-ot)
->> - Not relying on global variables, arrays, etc
->> - Code simplification and optimizations in several places
->>
->> This change will also help us to do bigger changes in the eDMA drive=
-r since,
->> since now we have only one driver to work with.
->=20
-> I have applied this now. I got a conlfict on 3rd one while applying a=
-nd also
-> I got conflict while merging to next
->=20
-> Pls verify all is well!
+On Wed, Oct 14, 2015 at 04:48:30PM +0200, Lucas Stach wrote:
+> Install a non-faulting handler just before unmasking imprecise aborts
+> and switch back to the regular one after unmasking is done.
+> 
+> This catches any pending imprecise abort that the firmware/bootloader
+> may have left behind that would normally crash the kernel at that point.
+> As there are apparently a lot of bootlaoders out there that do such a
+> thing it makes sense to handle it in the common startup code.
+> 
+> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+> ---
+>  arch/arm/mm/fault.c | 15 +++++++++++++++
+>  arch/arm/mm/fault.h |  2 ++
+>  arch/arm/mm/mmu.c   | 19 ++++++++++++++++++-
+>  3 files changed, 35 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
+> index 0d629b8f973f..519f694ec9db 100644
+> --- a/arch/arm/mm/fault.c
+> +++ b/arch/arm/mm/fault.c
+> @@ -538,6 +538,21 @@ hook_fault_code(int nr, int (*fn)(unsigned long, unsigned int, struct pt_regs *)
+>  	fsr_info[nr].name = name;
+>  }
+>  
+> +void * __init
+> +swap_fault_function(int nr,
+> +		    int (*fn)(unsigned long, unsigned int, struct pt_regs *))
+> +{
+> +	void *old_fn;
+> +
+> +	if (nr < 0 || nr >= ARRAY_SIZE(fsr_info))
+> +		BUG();
+> +
+> +	old_fn = fsr_info[nr].fn;
+> +	fsr_info[nr].fn = fn;
+> +
+> +	return old_fn;
+> +}
+> +
 
-Thanks Vinod,
+Please move the abort enable and handler into fault.c - I don't want this
+exposed to the rest of the kernel as people will get the impression that
+they can make use of this, even though it's not in arch/arm/include/, as
+a way to hook and then subsequently unhook a handler.
 
-It looks fine.
-It is strange since I'm working on top of linux-next as well. The follo=
-wing
-commit caused the conflict:
-ddfe4d0cce78 dmaengine: edma: remove redundant conditions
+Thanks.
 
-I have it in my linux-next, but for some reason it is missing from your
-topic/edma, so the series applied with conflicts there and when merging=
- on top
-of linux-next there were again conflict.
-
-Thank you,
-P=E9ter
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
