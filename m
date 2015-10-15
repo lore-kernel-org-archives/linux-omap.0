@@ -1,113 +1,113 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] OMAPDSS: DISPC: Remove boolean comparisons
-Date: Thu, 15 Oct 2015 16:10:27 +0300
-Message-ID: <3907390.ScJmzH11HD@avalon>
-References: <1444912178-15989-1-git-send-email-luisbg@osg.samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix oops with LPAE and more than 2GB of
+ memory
+Date: Thu, 15 Oct 2015 07:05:51 -0700
+Message-ID: <20151015140551.GM10113@atomide.com>
+References: <1444778000-22537-1-git-send-email-tony@atomide.com>
+ <561DD014.10403@ti.com> <20151014160245.GA10113@atomide.com>
+ <561F5C0C.6080106@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444912178-15989-1-git-send-email-luisbg@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luis de Bethencourt <luisbg@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <561F5C0C.6080106@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <a0131933@ti.com>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Luis,
+* Lokesh Vutla <a0131933@ti.com> [151015 01:02]:
+> Hi Tony,
+> 
+> On Wednesday 14 October 2015 09:32 PM, Tony Lindgren wrote:
+> > * Lokesh Vutla <a0131933@ti.com> [151013 20:53]:
+> >> Hi Tony,
+> >>
+> >> On Wednesday 14 October 2015 04:43 AM, Tony Lindgren wrote:
+> >>> On boards with more than 2GB of RAM booting goes wrong with things not working
+> >>> and we're getting lots of l3 warnings:
+> >>>
+> >>> WARNING: CPU: 0 PID: 1 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x260/0x384()
+> >>> 44000000.ocp:L3 Custom Error: MASTER MMC6 TARGET DMM1 (Idle): Data Access in User mode during Functional access
+> >>> ...
+> >>> [<c044e158>] (scsi_add_host_with_dma) from [<c04705c8>] (ata_scsi_add_hosts+0x5c/0x18c)
+> >>> [<c04705c8>] (ata_scsi_add_hosts) from [<c046b13c>] (ata_host_register+0x150/0x2cc)
+> >>> [<c046b13c>] (ata_host_register) from [<c046b38c>] (ata_host_activate+0xd4/0x124)
+> >>> [<c046b38c>] (ata_host_activate) from [<c047f42c>] (ahci_host_activate+0x5c/0x194)
+> >>> [<c047f42c>] (ahci_host_activate) from [<c0480854>] (ahci_platform_init_host+0x1f0/0x3f0)
+> >>> [<c0480854>] (ahci_platform_init_host) from [<c047c9dc>] (ahci_probe+0x70/0x98)
+> >>> [<c047c9dc>] (ahci_probe) from [<c04220cc>] (platform_drv_probe+0x54/0xb4)
+> >>>
+> >>> Let's fix the issue by enabling ZONE_DMA for LPAE.
+> >>
+> >> May I know on which platform you have reproduced this?
+> > 
+> > This is on the 4GB version of isee igepv5 GEP0050-RB10
+> > 
+> > https://isee.biz/products/igep-processor-boards/igepv5-omap5432
+> > 
+> >> Just wondering what other changes you made for booting a OMAP5+ based
+> >> board with more than 2GB.
+> > 
+> > Just the minimal dts changes I posted yesterday to use shared dtsi file
+> > for omap5-uevm variants. Then boot with something like this in the kernel
+> > cmdline:
+> > 
+> > mem=2032M@0x80000000 mem=2048M@0x300000000
+> Is it the upper 2GB memory starts from 0x3_0000_0000? Looking at the
+> Table 4-4. "AXI Access memory map" in TRM, it tells it starts from
+> 0x2_0000_0000.(or am I missing something?)
+> 
+> Any chance you tried doing memtest for all this memory?
 
-Thank you for the patch.
+Seems to work just fine, it's been up since I posted $subject patch., I tried
+a kernel compile on it already earlier and just started memtester 3900M which
+seems to only capable of testing 2924MB though.
 
-On Thursday 15 October 2015 13:29:38 Luis de Bethencourt wrote:
-> Boolean tests do not need explicit comparison to true or false.
-> 
-> Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+> IIUC, It is not allowed to use the mix of L3 address mapping and MA
+> physical address mapping. TRM specifies that
+> "It is expected that the OS uses either the lower 2-GiB space and the
+> lower aliased address of emif(a) and (b), or the continuous 8-GiB space
+> and the upper aliasing of the emif(a) and (b) for all EMIF accesses."
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I think that depends on the chip selects that can be used. The above
+is probably for the case where all 8GB was to be used.
 
-> ---
->  drivers/video/fbdev/omap2/dss/dispc-compat.c | 6 +++---
->  drivers/video/fbdev/omap2/dss/dispc.c        | 6 +++---
->  drivers/video/fbdev/omap2/dss/manager.c      | 2 +-
->  3 files changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/dss/dispc-compat.c
-> b/drivers/video/fbdev/omap2/dss/dispc-compat.c index 633c461..0918b3b
-> 100644
-> --- a/drivers/video/fbdev/omap2/dss/dispc-compat.c
-> +++ b/drivers/video/fbdev/omap2/dss/dispc-compat.c
-> @@ -476,7 +476,7 @@ static void dispc_mgr_disable_lcd_out(enum omap_channel
-> channel) int r;
->  	u32 irq;
-> 
-> -	if (dispc_mgr_is_enabled(channel) == false)
-> +	if (!dispc_mgr_is_enabled(channel))
->  		return;
-> 
->  	/*
-> @@ -524,7 +524,7 @@ static void dispc_mgr_enable_digit_out(void)
->  	int r;
->  	u32 irq_mask;
-> 
-> -	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == true)
-> +	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT))
->  		return;
-> 
->  	/*
-> @@ -562,7 +562,7 @@ static void dispc_mgr_disable_digit_out(void)
->  	u32 irq_mask;
->  	int num_irqs;
-> 
-> -	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == false)
-> +	if (!dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT))
->  		return;
-> 
->  	/*
-> diff --git a/drivers/video/fbdev/omap2/dss/dispc.c
-> b/drivers/video/fbdev/omap2/dss/dispc.c index be716c9..43b0367 100644
-> --- a/drivers/video/fbdev/omap2/dss/dispc.c
-> +++ b/drivers/video/fbdev/omap2/dss/dispc.c
-> @@ -571,7 +571,7 @@ EXPORT_SYMBOL(dispc_mgr_go_busy);
-> 
->  void dispc_mgr_go(enum omap_channel channel)
->  {
-> -	WARN_ON(dispc_mgr_is_enabled(channel) == false);
-> +	WARN_ON(!dispc_mgr_is_enabled(channel));
->  	WARN_ON(dispc_mgr_go_busy(channel));
-> 
->  	DSSDBG("GO %s\n", mgr_desc[channel].name);
-> @@ -3220,7 +3220,7 @@ void dispc_mgr_set_timings(enum omap_channel channel,
-> 
->  		DSSDBG("hsync %luHz, vsync %luHz\n", ht, vt);
->  	} else {
-> -		if (t.interlace == true)
-> +		if (t.interlace)
->  			t.y_res /= 2;
->  	}
-> 
-> @@ -3237,7 +3237,7 @@ static void dispc_mgr_set_lcd_divisor(enum
-> omap_channel channel, u16 lck_div, dispc_write_reg(DISPC_DIVISORo(channel),
->  			FLD_VAL(lck_div, 23, 16) | FLD_VAL(pck_div, 7, 0));
-> 
-> -	if (dss_has_feature(FEAT_CORE_CLK_DIV) == false &&
-> +	if (!dss_has_feature(FEAT_CORE_CLK_DIV) &&
->  			channel == OMAP_DSS_CHANNEL_LCD)
->  		dispc.core_clk_rate = dispc_fclk_rate() / lck_div;
->  }
-> diff --git a/drivers/video/fbdev/omap2/dss/manager.c
-> b/drivers/video/fbdev/omap2/dss/manager.c index 1aac9b4..08a67f4 100644
-> --- a/drivers/video/fbdev/omap2/dss/manager.c
-> +++ b/drivers/video/fbdev/omap2/dss/manager.c
-> @@ -210,7 +210,7 @@ static int dss_mgr_check_lcd_config(struct
-> omap_overlay_manager *mgr, return -EINVAL;
-> 
->  	/* fifohandcheck should be used only with stallmode */
-> -	if (stallmode == false && fifohandcheck == true)
-> +	if (!stallmode && fifohandcheck)
->  		return -EINVAL;
-> 
->  	/*
+> I tried a similar 4GB setup and observed few stuff:
+> - Need to have ARM_PV_FIXUP enabled something similar that is done in
+> Keystone inorder to shift to higher address space.[1] [2]
 
--- 
+Seems that's optional for 4GB.. But probably a must for 8GB :)
+
+> - All the peripherals other than MPU, can access only 2GB. So we need to
+> restrict the DMA and need an addresses translation. Along with this
+> patch [3] [4] are needed.
+
+Yes there's no memory accessible beyond 2GB for the DMA hardware. I'll
+post an updated patch with the 2GB limit for dma_zone_size after some
+more tests.
+
+For the dma-ranges, looks like I have not hit that one yet. Which drivers
+did you run into problems without that?
+
 Regards,
 
-Laurent Pinchart
+Tony
+
+> [1]
+> https://git.ti.com/~lokesh/ti-linux-kernel/lokesh-ti-linux-kernel/commit/be7d2d7e18f473e6078cd7c0b25ec3c58f40736b
+> [2]
+> https://git.ti.com/~lokesh/ti-linux-kernel/lokesh-ti-linux-kernel/commit/dd0a564ee565405bec5e9f58f0c97fb6714110ac
+> [3]
+> https://git.ti.com/~lokesh/ti-linux-kernel/lokesh-ti-linux-kernel/commit/985ed401e04926cb88b23646271dc96900abc50d
+> [4]
+> https://git.ti.com/~lokesh/ti-linux-kernel/lokesh-ti-linux-kernel/commit/c1f7568c4cc6f3146b7137783bd403967aabd0d8
