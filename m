@@ -1,15 +1,17 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/4] ARM: catch pending imprecise abort on unmask
-Date: Thu, 15 Oct 2015 08:21:49 +0100
-Message-ID: <20151015072149.GG32536@n2100.arm.linux.org.uk>
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: Re: [PATCH 3/4] ARM: mvebu: remove the workaround imprecise abort
+ fault handler
+Date: Thu, 15 Oct 2015 09:31:56 +0200
+Message-ID: <87io6837v7.fsf@free-electrons.com>
 References: <1444834113-18122-1-git-send-email-l.stach@pengutronix.de>
- <1444834113-18122-2-git-send-email-l.stach@pengutronix.de>
+ <1444834113-18122-4-git-send-email-l.stach@pengutronix.de>
+ <20151014225826.28313016@free-electrons.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1444834113-18122-2-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <20151014225826.28313016@free-electrons.com> (Thomas Petazzoni's
+ message of "Wed, 14 Oct 2015 22:58:26 +0200")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,56 +22,52 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Lucas Stach <l.stach@pengutronix.de>
-Cc: Jason Cooper <jason@lakedaemon.net>, Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, patchwork-lst@pengutronix.de, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, patchwork-lst@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 14, 2015 at 04:48:30PM +0200, Lucas Stach wrote:
-> Install a non-faulting handler just before unmasking imprecise aborts
-> and switch back to the regular one after unmasking is done.
-> 
-> This catches any pending imprecise abort that the firmware/bootloader
-> may have left behind that would normally crash the kernel at that point.
-> As there are apparently a lot of bootlaoders out there that do such a
-> thing it makes sense to handle it in the common startup code.
-> 
-> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-> ---
->  arch/arm/mm/fault.c | 15 +++++++++++++++
->  arch/arm/mm/fault.h |  2 ++
->  arch/arm/mm/mmu.c   | 19 ++++++++++++++++++-
->  3 files changed, 35 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
-> index 0d629b8f973f..519f694ec9db 100644
-> --- a/arch/arm/mm/fault.c
-> +++ b/arch/arm/mm/fault.c
-> @@ -538,6 +538,21 @@ hook_fault_code(int nr, int (*fn)(unsigned long, unsigned int, struct pt_regs *)
->  	fsr_info[nr].name = name;
->  }
->  
-> +void * __init
-> +swap_fault_function(int nr,
-> +		    int (*fn)(unsigned long, unsigned int, struct pt_regs *))
-> +{
-> +	void *old_fn;
-> +
-> +	if (nr < 0 || nr >= ARRAY_SIZE(fsr_info))
-> +		BUG();
-> +
-> +	old_fn = fsr_info[nr].fn;
-> +	fsr_info[nr].fn = fn;
-> +
-> +	return old_fn;
-> +}
-> +
+Hi Lucas,
+ 
+ On mer., oct. 14 2015, Thomas Petazzoni <thomas.petazzoni@free-electrons.com> wrote:
 
-Please move the abort enable and handler into fault.c - I don't want this
-exposed to the rest of the kernel as people will get the impression that
-they can make use of this, even though it's not in arch/arm/include/, as
-a way to hook and then subsequently unhook a handler.
+> Lucas,
+>
+> On Wed, 14 Oct 2015 16:48:32 +0200, Lucas Stach wrote:
+>> This is not needed anymore. Handling a potentially pending imprecise external
+>> abort left behind by the bootloader is now done in a slightly safer way inside
+>> the common ARM startup code.
+>> 
+>> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 
-Thanks.
+As pointed by Thomas the code is no longer needed. So even if the rest
+of tour series is not merged, I still applied on mvebu/cleanup.
+
+I also amended the commit log to emphasize that the Armada 375 Z1 was
+not support anymore.
+
+Thanks,
+
+Gregory
+
+>> ---
+>>  arch/arm/mach-mvebu/board-v7.c | 35 -----------------------------------
+>>  1 file changed, 35 deletions(-)
+>
+> Reviewed-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+>
+> In fact this code is anyway no longer needed, since this workaround was
+> only needed for the Armada 375 Z1 stepping, which we no longer support
+> in mainline anyway.
+>
+> Thanks!
+>
+> Thomas
+> -- 
+> Thomas Petazzoni, CTO, Free Electrons
+> Embedded Linux, Kernel and Android engineering
+> http://free-electrons.com
 
 -- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
