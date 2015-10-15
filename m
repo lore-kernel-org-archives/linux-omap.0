@@ -1,8 +1,8 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 2/3] ARM: dts: AM43x-epos-evm: Add AM438x compatible string
- for epos
-Date: Thu, 15 Oct 2015 10:40:07 +0530
-Message-ID: <1444885808-6306-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2 3/3] ARM: OMAP2: AM43XX: Modify optimize string comparisons
+ in soc_is calls
+Date: Thu, 15 Oct 2015 10:40:08 +0530
+Message-ID: <1444885808-6306-4-git-send-email-j-keerthy@ti.com>
 References: <1444885808-6306-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,7 +22,10 @@ To: tony@atomide.com
 Cc: j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add AM438x compatible property to identify the SoCs on epos evms.
+Currently everytime soc_is calls are made, firstly device tree nodes
+are parsed and then string comparisons are made to determine the
+soc version. Optimizing it to be done one time and store the result.
+Use the stored value in all the subsequent checks for soc_is calls.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
@@ -30,46 +33,74 @@ Signed-off-by: Keerthy <j-keerthy@ti.com>
 Changes in v2:
 
   * Rebased to latest 4.3-rc5
-
- Documentation/devicetree/bindings/arm/omap/omap.txt | 5 ++++-
- arch/arm/boot/dts/am43x-epos-evm.dts                | 2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index 9f4e513..dc3b5f2 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -100,6 +100,9 @@ SoCs:
- - AM4372
-   compatible = "ti,am4372", "ti,am43"
  
-+- AM438x
-+  compatible = "ti,am438x", "ti,am43"
+ arch/arm/mach-omap2/id.c  | 11 +++++++++++
+ arch/arm/mach-omap2/soc.h | 10 ++++++++--
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 4f497cc..0d7ccd3 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -61,6 +61,16 @@ void init_dra_soc_id(void)
+ 		soc_ids |= DRA72X;
+ }
+ 
++void init_am43_soc_id(void)
++{
++	if (of_machine_is_compatible("ti,am43"))
++		soc_ids |= AM43XX;
++	if (of_machine_is_compatible("ti,am4372"))
++		soc_ids |= AM437X;
++	if (of_machine_is_compatible("ti,am438x"))
++		soc_ids |= AM438X;
++}
 +
- Boards:
+ int check_soc_version(unsigned long id)
+ {
+ 	return soc_ids & id;
+@@ -357,6 +367,7 @@ void __init omap3xxx_check_revision(void)
+ 	u16 hawkeye;
+ 	u8 rev;
  
- - OMAP3 BeagleBoard : Low cost community board
-@@ -142,7 +145,7 @@ Boards:
-   compatible = "ti,omap5-evm", "ti,omap5"
++	init_am43_soc_id();
+ 	/*
+ 	 * We cannot access revision registers on ES1.0.
+ 	 * If the processor type is Cortex-A8 and the revision is 0x0
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 06d8c96..bf092d5 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -132,6 +132,9 @@
+ #define DRA7XX				BIT(0)
+ #define	DRA74X				BIT(1)
+ #define DRA72X				BIT(2)
++#define AM43XX				BIT(3)
++#define AM437X				BIT(4)
++#define AM438X				BIT(5)
  
- - AM43x EPOS EVM
--  compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
-+  compatible = "ti,am43x-epos-evm", "ti,am438x", "ti,am43"
+ int check_soc_version(unsigned long id);
+ int omap_type(void);
+@@ -266,6 +269,7 @@ IS_AM_SUBCLASS(437x, 0x437)
+ #define soc_is_am335x()			0
+ #define soc_is_am43xx()			0
+ #define soc_is_am437x()			0
++#define soc_is_am438x()			0
+ #define cpu_is_omap44xx()		0
+ #define cpu_is_omap443x()		0
+ #define cpu_is_omap446x()		0
+@@ -441,8 +445,10 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #ifdef	CONFIG_SOC_AM43XX
+ # undef soc_is_am43xx
+ # undef soc_is_am437x
+-# define soc_is_am43xx()		is_am43xx()
+-# define soc_is_am437x()		is_am437x()
++# undef soc_is_am438x
++# define soc_is_am43xx()		check_soc_version(AM43XX)
++# define soc_is_am437x()		check_soc_version(AM437X)
++# define soc_is_am438x()		check_soc_version(AM438X)
+ #endif
  
- - AM437x GP EVM
-   compatible = "ti,am437x-gp-evm", "ti,am4372", "ti,am43"
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 86c2dfb..1c9b9a0 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -18,7 +18,7 @@
- 
- / {
- 	model = "TI AM43x EPOS EVM";
--	compatible = "ti,am43x-epos-evm","ti,am4372","ti,am43";
-+	compatible = "ti,am43x-epos-evm", "ti,am438x", "ti,am43";
- 
- 	aliases {
- 		display0 = &lcd0;
+ # if defined(CONFIG_ARCH_OMAP4)
 -- 
 1.9.1
