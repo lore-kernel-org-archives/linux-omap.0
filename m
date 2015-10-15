@@ -1,102 +1,51 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 1/2 v2] ARM: DRA7/335x/437x/OMAP4: hwmod: Remove elm address space from hwmod data
-Date: Thu, 15 Oct 2015 11:27:40 -0500
-Message-ID: <1444926461-16092-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: paul@pwsan.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, rogerq@ti.com, nm@ti.com, lokeshvutla@ti.com
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/2] gpio: omap: convert to use generic irq handler
+Date: Thu, 15 Oct 2015 19:33:43 +0300
+Message-ID: <561FD567.3030803@ti.com>
+References: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
+ <1443209283-20781-3-git-send-email-grygorii.strashko@ti.com>
+ <CACRpkdYDrcwa+h2Lxd65RBMc-1n9CCyVDz1qjc2U1MEU2GP7hA@mail.gmail.com>
+ <560F07CC.9050205@ti.com> <alpine.DEB.2.11.1510120947220.6097@nanos>
+ <561D4CAB.1060704@ti.com> <alpine.DEB.2.11.1510132031360.25029@nanos>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1510132031360.25029@nanos>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dan Murphy <dmurphy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Austin Schuh <austin@peloton-tech.com>, philipp@peloton-tech.com, linux-rt-users@vger.kernel.org, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-ELM address information is provided by device tree. No longer need
-to include this information within hwmod.
+Hi Thomas,
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
-Version 2 changes:
-Removing elm addr entries also for 335x,437x and omap4 hwmod
+On 10/13/2015 09:33 PM, Thomas Gleixner wrote:
+> Grygorii,
+>
+> On Tue, 13 Oct 2015, Grygorii Strashko wrote:
+>> I'd very appreciate for any advice of how to better proceed with your request.
+>>   - I can try to apply and re-send only patches marked by '*'
+>>   - I can prepare branch with all above patches
+>
+> Please provide a branch on top of 4.1.10 which contains the whole
+> lot. I have a look at it and decide then how to go from there.
 
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c | 10 ----------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c                   | 10 ----------
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c                    | 10 ----------
- 3 files changed, 30 deletions(-)
+I've prepared branch linux-4.1.10-ti-gpio:
+in git@git.ti.com:~gragst/ti-linux-kernel/gragsts-ti-linux-kernel.git
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-index 8f5989d..9ba431c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-@@ -152,20 +152,10 @@ struct omap_hwmod_ocp_if am33xx_cpgmac0__mdio = {
- 	.user		= OCP_USER_MPU,
- };
- 
--static struct omap_hwmod_addr_space am33xx_elm_addr_space[] = {
--	{
--		.pa_start	= 0x48080000,
--		.pa_end		= 0x48080000 + SZ_8K - 1,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
- struct omap_hwmod_ocp_if am33xx_l4_ls__elm = {
- 	.master		= &am33xx_l4_ls_hwmod,
- 	.slave		= &am33xx_elm_hwmod,
- 	.clk		= "l4ls_gclk",
--	.addr		= am33xx_elm_addr_space,
- 	.user		= OCP_USER_MPU,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 43eebf2..8f13f4a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -3915,21 +3915,11 @@ static struct omap_hwmod_ocp_if omap44xx_l4_per__dss_venc = {
- 	.user		= OCP_USER_MPU,
- };
- 
--static struct omap_hwmod_addr_space omap44xx_elm_addrs[] = {
--	{
--		.pa_start	= 0x48078000,
--		.pa_end		= 0x48078fff,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
- /* l4_per -> elm */
- static struct omap_hwmod_ocp_if omap44xx_l4_per__elm = {
- 	.master		= &omap44xx_l4_per_hwmod,
- 	.slave		= &omap44xx_elm_hwmod,
- 	.clk		= "l4_div_ck",
--	.addr		= omap44xx_elm_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 562247b..ad2cc7a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2566,21 +2566,11 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
--	{
--		.pa_start	= 0x48078000,
--		.pa_end		= 0x48078fff,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
- /* l4_per1 -> elm */
- static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm = {
- 	.master		= &dra7xx_l4_per1_hwmod,
- 	.slave		= &dra7xx_elm_hwmod,
- 	.clk		= "l3_iclk_div",
--	.addr		= dra7xx_elm_addrs,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
+based on top of
+  git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+  branch : linux-4.1.y
+  commit : 27f1b7f Linux 4.1.10
+
+
+Also, I've tried to merge it in linux-4.1.y-rt and found that merge can 
+be done without merge conflicts if below patch is reverted:
+"
+    Revert "gpio: omap: use raw locks for locking"
+    This reverts commit 26dc4f70eb09ff7d36b1e6cd720e65b3c69098ae
+"
+
 -- 
-2.6.1
+regards,
+-grygorii
