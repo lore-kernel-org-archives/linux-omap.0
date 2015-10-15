@@ -1,89 +1,96 @@
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: [PATCH v2 2/3] ARM: OMAP2+: remove custom abort handler for t410
-Date: Thu, 15 Oct 2015 12:32:21 +0200
-Message-ID: <1444905142-21500-3-git-send-email-l.stach@pengutronix.de>
-References: <1444905142-21500-1-git-send-email-l.stach@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444905142-21500-1-git-send-email-l.stach@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patchwork-lst@pengutronix.de
+From: Luis de Bethencourt <luisbg@osg.samsung.com>
+Subject: [PATCH] OMAPDSS: DISPC: Remove boolean comparisons
+Date: Thu, 15 Oct 2015 13:29:38 +0100
+Message-ID: <1444912178-15989-1-git-send-email-luisbg@osg.samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Luis de Bethencourt <luisbg@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is not needed anymore. Handling a potentially pending imprecise external
-abort left behind by the bootloader is now done in a slightly safer way inside
-the common ARM startup code.
+Boolean tests do not need explicit comparison to true or false.
 
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
 ---
- arch/arm/mach-omap2/pdata-quirks.c | 29 -----------------------------
- 1 file changed, 29 deletions(-)
+ drivers/video/fbdev/omap2/dss/dispc-compat.c | 6 +++---
+ drivers/video/fbdev/omap2/dss/dispc.c        | 6 +++---
+ drivers/video/fbdev/omap2/dss/manager.c      | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index ea56397599c2..3a2bc2a88db4 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -24,9 +24,6 @@
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/wkup_m3.h>
+diff --git a/drivers/video/fbdev/omap2/dss/dispc-compat.c b/drivers/video/fbdev/omap2/dss/dispc-compat.c
+index 633c461..0918b3b 100644
+--- a/drivers/video/fbdev/omap2/dss/dispc-compat.c
++++ b/drivers/video/fbdev/omap2/dss/dispc-compat.c
+@@ -476,7 +476,7 @@ static void dispc_mgr_disable_lcd_out(enum omap_channel channel)
+ 	int r;
+ 	u32 irq;
  
--#include <asm/siginfo.h>
--#include <asm/signal.h>
--
- #include "common.h"
- #include "common-board-devices.h"
- #include "dss-common.h"
-@@ -385,29 +382,6 @@ static void __init omap3_pandora_legacy_init(void)
+-	if (dispc_mgr_is_enabled(channel) == false)
++	if (!dispc_mgr_is_enabled(channel))
+ 		return;
+ 
+ 	/*
+@@ -524,7 +524,7 @@ static void dispc_mgr_enable_digit_out(void)
+ 	int r;
+ 	u32 irq_mask;
+ 
+-	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == true)
++	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT))
+ 		return;
+ 
+ 	/*
+@@ -562,7 +562,7 @@ static void dispc_mgr_disable_digit_out(void)
+ 	u32 irq_mask;
+ 	int num_irqs;
+ 
+-	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == false)
++	if (!dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT))
+ 		return;
+ 
+ 	/*
+diff --git a/drivers/video/fbdev/omap2/dss/dispc.c b/drivers/video/fbdev/omap2/dss/dispc.c
+index be716c9..43b0367 100644
+--- a/drivers/video/fbdev/omap2/dss/dispc.c
++++ b/drivers/video/fbdev/omap2/dss/dispc.c
+@@ -571,7 +571,7 @@ EXPORT_SYMBOL(dispc_mgr_go_busy);
+ 
+ void dispc_mgr_go(enum omap_channel channel)
+ {
+-	WARN_ON(dispc_mgr_is_enabled(channel) == false);
++	WARN_ON(!dispc_mgr_is_enabled(channel));
+ 	WARN_ON(dispc_mgr_go_busy(channel));
+ 
+ 	DSSDBG("GO %s\n", mgr_desc[channel].name);
+@@ -3220,7 +3220,7 @@ void dispc_mgr_set_timings(enum omap_channel channel,
+ 
+ 		DSSDBG("hsync %luHz, vsync %luHz\n", ht, vt);
+ 	} else {
+-		if (t.interlace == true)
++		if (t.interlace)
+ 			t.y_res /= 2;
+ 	}
+ 
+@@ -3237,7 +3237,7 @@ static void dispc_mgr_set_lcd_divisor(enum omap_channel channel, u16 lck_div,
+ 	dispc_write_reg(DISPC_DIVISORo(channel),
+ 			FLD_VAL(lck_div, 23, 16) | FLD_VAL(pck_div, 7, 0));
+ 
+-	if (dss_has_feature(FEAT_CORE_CLK_DIV) == false &&
++	if (!dss_has_feature(FEAT_CORE_CLK_DIV) &&
+ 			channel == OMAP_DSS_CHANNEL_LCD)
+ 		dispc.core_clk_rate = dispc_fclk_rate() / lck_div;
  }
- #endif /* CONFIG_ARCH_OMAP3 */
+diff --git a/drivers/video/fbdev/omap2/dss/manager.c b/drivers/video/fbdev/omap2/dss/manager.c
+index 1aac9b4..08a67f4 100644
+--- a/drivers/video/fbdev/omap2/dss/manager.c
++++ b/drivers/video/fbdev/omap2/dss/manager.c
+@@ -210,7 +210,7 @@ static int dss_mgr_check_lcd_config(struct omap_overlay_manager *mgr,
+ 		return -EINVAL;
  
--#ifdef CONFIG_SOC_TI81XX
--static int fault_fixed_up;
--
--static int t410_abort_handler(unsigned long addr, unsigned int fsr,
--			      struct pt_regs *regs)
--{
--	if ((fsr == 0x406 || fsr == 0xc06) && !fault_fixed_up) {
--		pr_warn("External imprecise Data abort at addr=%#lx, fsr=%#x ignored.\n",
--			addr, fsr);
--		fault_fixed_up = 1;
--		return 0;
--	}
--
--	return 1;
--}
--
--static void __init t410_abort_init(void)
--{
--	hook_fault_code(16 + 6, t410_abort_handler, SIGBUS, BUS_OBJERR,
--			"imprecise external abort");
--}
--#endif
--
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- static struct iommu_platform_data omap4_iommu_pdata = {
- 	.reset_name = "mmu_cache",
-@@ -536,9 +510,6 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ "openpandora,omap3-pandora-600mhz", omap3_pandora_legacy_init, },
- 	{ "openpandora,omap3-pandora-1ghz", omap3_pandora_legacy_init, },
- #endif
--#ifdef CONFIG_SOC_TI81XX
--	{ "hp,t410", t410_abort_init, },
--#endif
- #ifdef CONFIG_SOC_OMAP5
- 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
- #endif
+ 	/* fifohandcheck should be used only with stallmode */
+-	if (stallmode == false && fifohandcheck == true)
++	if (!stallmode && fifohandcheck)
+ 		return -EINVAL;
+ 
+ 	/*
 -- 
-2.6.1
+2.5.1
