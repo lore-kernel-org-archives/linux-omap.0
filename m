@@ -1,51 +1,90 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/2] gpio: omap: convert to use generic irq handler
-Date: Thu, 15 Oct 2015 19:33:43 +0300
-Message-ID: <561FD567.3030803@ti.com>
-References: <1443209283-20781-1-git-send-email-grygorii.strashko@ti.com>
- <1443209283-20781-3-git-send-email-grygorii.strashko@ti.com>
- <CACRpkdYDrcwa+h2Lxd65RBMc-1n9CCyVDz1qjc2U1MEU2GP7hA@mail.gmail.com>
- <560F07CC.9050205@ti.com> <alpine.DEB.2.11.1510120947220.6097@nanos>
- <561D4CAB.1060704@ti.com> <alpine.DEB.2.11.1510132031360.25029@nanos>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [PATCH 1/5] mtd: nand: omap2: Support parsing dma channel
+ information from DT
+Date: Thu, 15 Oct 2015 12:12:29 -0500
+Message-ID: <561FDE7D.2030307@ti.com>
+References: <1444700338-27582-1-git-send-email-fcooper@ti.com>
+ <1444700338-27582-2-git-send-email-fcooper@ti.com> <561E3E4F.9020302@ti.com>
+ <561E41EB.3050005@ti.com> <561E5803.5090609@ti.com> <561E629F.5070202@ti.com>
+ <561E6791.3030404@ti.com> <20151014161813.GC10113@atomide.com>
+ <561E8184.6020206@ti.com> <20151014181337.GF10113@atomide.com>
+ <561EB4FB.8040709@ti.com> <561F573D.6010704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1510132031360.25029@nanos>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dan Murphy <dmurphy@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Austin Schuh <austin@peloton-tech.com>, philipp@peloton-tech.com, linux-rt-users@vger.kernel.org, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <561F573D.6010704@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, computersforpeace@gmail.com, dwmw2@infradead.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Thomas,
 
-On 10/13/2015 09:33 PM, Thomas Gleixner wrote:
-> Grygorii,
+
+On 10/15/2015 02:35 AM, Roger Quadros wrote:
+> On 14/10/15 23:03, Franklin S Cooper Jr. wrote:
+>>
+>> On 10/14/2015 01:13 PM, Tony Lindgren wrote:
+>>> * Franklin S Cooper Jr. <fcooper@ti.com> [151014 09:27]:
+>>>> On 10/14/2015 11:18 AM, Tony Lindgren wrote:
+>>>>> * Franklin S Cooper Jr. <fcooper@ti.com> [151014 07:37]:
+>>>>>> On 10/14/2015 09:11 AM, Roger Quadros wrote:
+>>>>>>> On 14/10/15 16:26, Franklin S Cooper Jr. wrote:
+>>>>>>>> On 10/14/2015 06:52 AM, Roger Quadros wrote:
+>>>>>>>>> Franklin,
+>>>>>>>>>
+>>>>>>>>> On 14/10/15 14:36, Roger Quadros wrote:
+>>>>>>>>>> On 13/10/15 04:38, Franklin S Cooper Jr wrote:
+>>>>>>>>>>> Switch from dma_request_channel to allow passing dma channel
+>>>>>>>>>>> information from DT rather than hardcoding a value.
+>>>>>>>>>>>
+>>>>>>>>>>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>>>>>>>>>> Acked-by: Roger Quadros <rogerq@ti.com>
+>>>>>>>>>>
+>>>>>>>>>>> ---
+>>>>>>>>>>>  drivers/mtd/nand/omap2.c | 4 +++-
+>>>>>>>>>>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>>>>>>>>>>
+>>>>>>>>>>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+>>>>>>>>>>> index d0f2620..957c32f 100644
+>>>>>>>>>>> --- a/drivers/mtd/nand/omap2.c
+>>>>>>>>>>> +++ b/drivers/mtd/nand/omap2.c
+>>>>>>>>>>> @@ -1866,7 +1866,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+>>>>>>>>>>>  		dma_cap_zero(mask);
+>>>>>>>>>>>  		dma_cap_set(DMA_SLAVE, mask);
+>>>>>>>>>>>  		sig = OMAP24XX_DMA_GPMC;
+>>>>>>>>>>> -		info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
+>>>>>>>>>>> +		info->dma = dma_request_slave_channel_compat(mask,
+>>>>>>>>>>> +			omap_dma_filter_fn, &sig, pdev->dev.parent, "rxtx");
+>>>>>>>>>>> +
+>>>>>>>>> Just discovered that you are using the parent device node.
+>>>>>>>>>
+>>>>>>>>> How about moving the dma bindings to the nand node instead and using
+>>>>>>>>> pdev->dev here?
+>>>>>>>> Roger,
+>>>>>>>>
+>>>>>>>> From what I can tell the interrupt number and the dma channel will always be
+>>>>>>>> the same no matter what. Doesn't matter if you have multiple nands or a
+>>>>>>>> combination of nands and nors. Since that is the case I think it just makes
+>>>>>>>> sense to leave it in the gpmc parent node and define it once.
+>>>>>>> Is prefetch/writepost dma used for NOR or any other GPMC peripheral
+>>>>>>> or only for NAND?
+>>>>>> The dma seems tied to the prefetch. From what I can tell the prefetch is only
+>>>>>> used by nand.
+>>>>>>> Let's also get Tony's inputs on this.
+>>>>>> Sure.
+>>>>> Hmm so what would keep other devices from using the prefetch
+>>>> Looking at the TRM any references to the prefetch are always with respect to
+>>>> NAND.
+>>>>
+>>>> I also see the below mentioned in the TRM.
+>>>> Pre-fetch and write posting engine associated with system DMA to get full performance from NAND
+>>>> device with minimum impact on NOR/SRAM concurrent access.
+>>> OK up to you guys to figure out if it may be usable in a generic way then :)
+>> Ok I just got clarification from hw folks. DMA for GPMC can be used for any of the
+>> various modes. But the prefetch is specific to NAND.
+> In that case the dma information must be in the GPMC node.
+Ok I'll be sending a v2 patchset soon but I'll be leaving this as is.
 >
-> On Tue, 13 Oct 2015, Grygorii Strashko wrote:
->> I'd very appreciate for any advice of how to better proceed with your request.
->>   - I can try to apply and re-send only patches marked by '*'
->>   - I can prepare branch with all above patches
->
-> Please provide a branch on top of 4.1.10 which contains the whole
-> lot. I have a look at it and decide then how to go from there.
-
-I've prepared branch linux-4.1.10-ti-gpio:
-in git@git.ti.com:~gragst/ti-linux-kernel/gragsts-ti-linux-kernel.git
-
-based on top of
-  git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
-  branch : linux-4.1.y
-  commit : 27f1b7f Linux 4.1.10
-
-
-Also, I've tried to merge it in linux-4.1.y-rt and found that merge can 
-be done without merge conflicts if below patch is reverted:
-"
-    Revert "gpio: omap: use raw locks for locking"
-    This reverts commit 26dc4f70eb09ff7d36b1e6cd720e65b3c69098ae
-"
-
--- 
-regards,
--grygorii
+> cheers,
+> -roger
