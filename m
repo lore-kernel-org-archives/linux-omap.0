@@ -1,42 +1,53 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 2/2] omap device tree changes for v4.4
-Date: Fri, 16 Oct 2015 11:45:33 +0200
-Message-ID: <17309037.Mt8pPYt4aa@wuerfel>
-References: <8058507.49AsgX8PR9@wuerfel> <20151015210425.GQ10113@atomide.com>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Subject: [RFC PATCH 0/3] pwm: omap: Add PWM support using dual-mode timers
+Date: Fri, 16 Oct 2015 14:27:24 +0200
+Message-ID: <5620ED2C.1090107@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151015210425.GQ10113@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 15 October 2015 14:04:26 Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [151015 13:40]:
-> > On Wednesday 14 October 2015 14:38:59 Tony Lindgren wrote:
-> > 
-> > > Note that this branch is against v4.3-rc4 as that contains critical
-> > > MMC related fixes to boot with MMC working on most omaps.
-> > 
-> > While we are lucky this time as I based the branch on -rc4 anyway,
-> > a nicer way to do this would be to ensure that a fix you want
-> > to base on is based an older -rc, and then you base your own branch
-> > on top of that fix, to minimize the number of back-merged patches.
-> 
-> Sure that would be doable too at the cost of a few extra merges.
+This patch is based on an earlier patch by NeilBrown which is based on
+a older patch from Grant Erickson which provided PWM devices using
+the 'legacy' interface.
 
-You can always look at our existing next/* branches to see what they are
-based on. If we already have the commit you need (like this time), it's
-not a problem at all to use the same base.
+The pwm driver was renamed to not be confused with the OMAP4 PWM dedicated
+hardware and was cleaned with the review from Thierry Reding.
 
-	Arnd
+The first patch introduces a way to select to dmtimer clock source via a
+clocks binding and a dedicated function wit the legacy fallback.
+
+In order to prepare for the future form of the dmtimer (clksource or whatever)
+the first patch introduces the PWM driver with all the dmtimer calls into a
+platform data structure.
+
+The structure is then filled in plat-omap and added as auxdata for the
+ti,pwm-dmtimer-omap compatible nodes.
+
+Cc: Grant Erickson <marathon96@gmail.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Joachim Eastwood <manabian@gmail.com>
+Suggested-by: Tony Lindgren <tony@atomide.com>
+
+Neil Armstrong (3):
+  arm: plat-omap: dmtimer: Add clock source from DT
+  pwm: Add PWM driver for OMAP using dual-mode timers
+  arm: plat-omap: Add PWM dmtimer platforma data quirks
+
+ .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |  18 ++
+ arch/arm/mach-omap2/pdata-quirks.c                 |  23 ++
+ arch/arm/plat-omap/dmtimer.c                       |  32 +-
+ drivers/pwm/Kconfig                                |   9 +
+ drivers/pwm/Makefile                               |   1 +
+ drivers/pwm/pwm-omap-dmtimer.c                     | 322 +++++++++++++++++++++
+ include/linux/platform_data/pwm_omap_dmtimer.h     |  69 +++++
+ 7 files changed, 472 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+ create mode 100644 drivers/pwm/pwm-omap-dmtimer.c
+ create mode 100644 include/linux/platform_data/pwm_omap_dmtimer.h
+
+-- 
+1.9.1
