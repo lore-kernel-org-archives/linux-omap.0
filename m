@@ -1,199 +1,130 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 14/14] ARM: DTS: am437x: Use the new DT bindings for the eDMA3
-Date: Fri, 16 Oct 2015 10:18:12 +0300
-Message-ID: <1444979892-31626-15-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 05/14] dmaengine: edma: Merge map_dmach_to_queue into
+ assign_channel_eventq
+Date: Fri, 16 Oct 2015 10:18:03 +0300
+Message-ID: <1444979892-31626-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, nsekhar@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
+Cc: devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Switch to use the ti,edma3-tpcc and ti,edma3-tptc binding for the eDMA3 and
-enable the DMA even crossbar with ti,am335x-edma-crossbar.
-With the new bindings boards can customize and tweak the DMA channel
-priority to match their needs. With the new binding the memcpy is safe
-to be used since with the old binding it was not possible for a driver
-to know which channel is allowed to be used as non HW triggered channel.
+edma_assign_channel_eventq() is a wrapper around edma_map_dmach_to_queue()
+We can merge the content of the later so we will have only one function
+to be used for mapping channels to given eventq
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi       | 82 ++++++++++++++++++++++++++++---------
- arch/arm/boot/dts/am437x-gp-evm.dts |  9 +---
- 2 files changed, 64 insertions(+), 27 deletions(-)
+ drivers/dma/edma.c | 56 +++++++++++++++++++++---------------------------------
+ 1 file changed, 22 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index d83ff9c9701e..a39428dd85b2 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -183,14 +183,56 @@
- 		};
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 051a7c4593d4..eaf1f9e4bde0 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -391,22 +391,6 @@ static inline void clear_bits(int offset, int len, unsigned long *p)
+ 		clear_bit(offset + (len - 1), p);
+ }
  
- 		edma: edma@49000000 {
--			compatible = "ti,edma3";
--			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
--			reg =	<0x49000000 0x10000>,
--				<0x44e10f90 0x10>;
-+			compatible = "ti,edma3-tpcc";
-+			ti,hwmods = "tpcc";
-+			reg =	<0x49000000 0x10000>;
-+			reg-names = "edma3_cc";
- 			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
--					<GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
--					<GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
--			#dma-cells = <1>;
-+				     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "edma3_ccint", "emda3_mperr",
-+					  "edma3_ccerrint";
-+			dma-requests = <64>;
-+			#dma-cells = <2>;
-+
-+			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
-+				   <&edma_tptc2 0>;
-+
-+			ti,edma-memcpy-channels = /bits/ 16 <32 33>;
-+		};
-+
-+		edma_tptc0: tptc@49800000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc0";
-+			reg =	<0x49800000 0x100000>;
-+			interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
-+
-+		edma_tptc1: tptc@49900000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc1";
-+			reg =	<0x49900000 0x100000>;
-+			interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
-+
-+		edma_tptc2: tptc@49a00000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc2";
-+			reg =	<0x49a00000 0x100000>;
-+			interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
-+
-+		edma_xbar: dma-router@44e10f90 {
-+			compatible = "ti,am335x-edma-crossbar";
-+			reg = <0x44e10f90 0x40>;
-+
-+			#dma-cells = <3>;
-+			dma-requests = <64>;
-+
-+			dma-masters = <&edma>;
- 		};
- 
- 		uart0: serial@44e09000 {
-@@ -495,8 +537,8 @@
- 			ti,hwmods = "mmc1";
- 			ti,dual-volt;
- 			ti,needs-special-reset;
--			dmas = <&edma 24
--				&edma 25>;
-+			dmas = <&edma 24 0>,
-+				<&edma 25 0>;
- 			dma-names = "tx", "rx";
- 			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
-@@ -507,8 +549,8 @@
- 			reg = <0x481d8000 0x1000>;
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
--			dmas = <&edma 2
--				&edma 3>;
-+			dmas = <&edma 2 0>,
-+				<&edma 3 0>;
- 			dma-names = "tx", "rx";
- 			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
-@@ -776,7 +818,7 @@
- 			compatible = "ti,omap5-sham";
- 			ti,hwmods = "sham";
- 			reg = <0x53100000 0x300>;
--			dmas = <&edma 36>;
-+			dmas = <&edma 36 0>;
- 			dma-names = "rx";
- 			interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
- 		};
-@@ -786,8 +828,8 @@
- 			ti,hwmods = "aes";
- 			reg = <0x53501000 0xa0>;
- 			interrupts = <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
--			dmas = <&edma 6
--				&edma 5>;
-+			dmas = <&edma 6 0>,
-+				<&edma 5 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -796,8 +838,8 @@
- 			ti,hwmods = "des";
- 			reg = <0x53701000 0xa0>;
- 			interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
--			dmas = <&edma 34
--				&edma 33>;
-+			dmas = <&edma 34 0>,
-+				<&edma 33 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -810,8 +852,8 @@
- 			interrupts = <80>, <81>;
- 			interrupt-names = "tx", "rx";
- 			status = "disabled";
--			dmas = <&edma 8>,
--			       <&edma 9>;
-+			dmas = <&edma 8 2>,
-+			       <&edma 9 2>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -824,8 +866,8 @@
- 			interrupts = <82>, <83>;
- 			interrupt-names = "tx", "rx";
- 			status = "disabled";
--			dmas = <&edma 10>,
--			       <&edma 11>;
-+			dmas = <&edma 10 2>,
-+			       <&edma 11 2>;
- 			dma-names = "tx", "rx";
- 		};
- 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 22038f21f228..28e3b252c08c 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -711,8 +711,8 @@
- 	status = "okay";
- 	/* these are on the crossbar and are outlined in the
- 	   xbar-event-map element */
--	dmas = <&edma 30
--		&edma 31>;
-+	dmas = <&edma_xbar 30 0 1>,
-+		<&edma_xbar 31 0 2>;
- 	dma-names = "tx", "rx";
- 	vmmc-supply = <&vmmcwl_fixed>;
- 	bus-width = <4>;
-@@ -733,11 +733,6 @@
- 	};
- };
- 
--&edma {
--	ti,edma-xbar-event-map = /bits/ 16 <1 30
--					    2 31>;
--};
+-static void edma_map_dmach_to_queue(struct edma_chan *echan,
+-				    enum dma_event_q queue_no)
+-{
+-	struct edma_cc *ecc = echan->ecc;
+-	int channel = EDMA_CHAN_SLOT(echan->ch_num);
+-	int bit = (channel & 0x7) * 4;
 -
- &uart3 {
- 	status = "okay";
- 	pinctrl-names = "default";
+-	/* default to low priority queue */
+-	if (queue_no == EVENTQ_DEFAULT)
+-		queue_no = ecc->default_queue;
+-
+-	queue_no &= 7;
+-	edma_modify_array(ecc, EDMA_DMAQNUM, (channel >> 3), ~(0x7 << bit),
+-			  queue_no << bit);
+-}
+-
+ static void edma_assign_priority_to_queue(struct edma_cc *ecc, int queue_no,
+ 					  int priority)
+ {
+@@ -723,6 +707,25 @@ static void edma_clean_channel(struct edma_chan *echan)
+ 	edma_write(ecc, EDMA_CCERRCLR, BIT(16) | BIT(1) | BIT(0));
+ }
+ 
++/* Move channel to a specific event queue */
++static void edma_assign_channel_eventq(struct edma_chan *echan,
++				       enum dma_event_q eventq_no)
++{
++	struct edma_cc *ecc = echan->ecc;
++	int channel = EDMA_CHAN_SLOT(echan->ch_num);
++	int bit = (channel & 0x7) * 4;
++
++	/* default to low priority queue */
++	if (eventq_no == EVENTQ_DEFAULT)
++		eventq_no = ecc->default_queue;
++	if (eventq_no >= ecc->num_tc)
++		return;
++
++	eventq_no &= 7;
++	edma_modify_array(ecc, EDMA_DMAQNUM, (channel >> 3), ~(0x7 << bit),
++			  eventq_no << bit);
++}
++
+ static int edma_alloc_channel(struct edma_chan *echan,
+ 			      enum dma_event_q eventq_no)
+ {
+@@ -751,7 +754,7 @@ static int edma_alloc_channel(struct edma_chan *echan,
+ 
+ 	edma_setup_interrupt(echan, true);
+ 
+-	edma_map_dmach_to_queue(echan, eventq_no);
++	edma_assign_channel_eventq(echan, eventq_no);
+ 
+ 	return 0;
+ }
+@@ -764,21 +767,6 @@ static void edma_free_channel(struct edma_chan *echan)
+ 	edma_setup_interrupt(echan, false);
+ }
+ 
+-/* Move channel to a specific event queue */
+-static void edma_assign_channel_eventq(struct edma_chan *echan,
+-				       enum dma_event_q eventq_no)
+-{
+-	struct edma_cc *ecc = echan->ecc;
+-
+-	/* default to low priority queue */
+-	if (eventq_no == EVENTQ_DEFAULT)
+-		eventq_no = ecc->default_queue;
+-	if (eventq_no >= ecc->num_tc)
+-		return;
+-
+-	edma_map_dmach_to_queue(echan, eventq_no);
+-}
+-
+ static inline struct edma_cc *to_edma_cc(struct dma_device *d)
+ {
+ 	return container_of(d, struct edma_cc, dma_slave);
+@@ -2154,8 +2142,8 @@ static int edma_probe(struct platform_device *pdev)
+ 
+ 	for (i = 0; i < ecc->num_channels; i++) {
+ 		/* Assign all channels to the default queue */
+-		edma_map_dmach_to_queue(&ecc->slave_chans[i],
+-					info->default_queue);
++		edma_assign_channel_eventq(&ecc->slave_chans[i],
++					   info->default_queue);
+ 		/* Set entry slot to the dummy slot */
+ 		edma_set_chmap(&ecc->slave_chans[i], ecc->dummy_slot);
+ 	}
 -- 
 2.6.1
