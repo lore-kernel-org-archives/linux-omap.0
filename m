@@ -1,72 +1,28 @@
-From: Neil Armstrong <narmstrong@baylibre.com>
-Subject: [RFC PATCH 3/3] arm: plat-omap: Add PWM dmtimer platforma data quirks
-Date: Fri, 16 Oct 2015 14:27:37 +0200
-Message-ID: <5620ED39.9080809@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH v3 0/3] Add Palmas iio gpadc
+Date: Fri, 16 Oct 2015 14:53:37 +0200
+Message-ID: <cover.1445000017.git.hns@goldelico.com>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-In order to set the currently platform dependent dmtimer
-functions pointers as platform data for the pwm-omap-dmtimer
-platform driver, add it to plat-omap auxdata_lookup table.
+H. Nikolaus Schaller (2):
+  iio:adc: add iio driver for Palmas (twl6035/7) gpadc
+  ARM: dts: omap5-uevm: enable iio gpadc for Palmas
 
-Suggested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- arch/arm/mach-omap2/pdata-quirks.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+Marek Belisko (1):
+  iio:adc:palmas: add DT support
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index ea56397..647dec5 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -23,6 +23,8 @@
- #include <linux/platform_data/pinctrl-single.h>
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/wkup_m3.h>
-+#include <linux/platform_data/pwm_omap_dmtimer.h>
-+#include <plat/dmtimer.h>
+ .../devicetree/bindings/iio/adc/palmas-gpadc.txt   |  48 ++
+ arch/arm/boot/dts/omap5-uevm.dts                   |  10 +
+ drivers/iio/adc/Kconfig                            |   8 +
+ drivers/iio/adc/Makefile                           |   1 +
+ drivers/iio/adc/palmas_gpadc.c                     | 859 +++++++++++++++++++++
+ include/linux/mfd/palmas.h                         |  75 +-
+ 6 files changed, 977 insertions(+), 24 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/iio/adc/palmas-gpadc.txt
+ create mode 100644 drivers/iio/adc/palmas_gpadc.c
 
- #include <asm/siginfo.h>
- #include <asm/signal.h>
-@@ -453,6 +455,24 @@ void omap_auxdata_legacy_init(struct device *dev)
- 	dev->platform_data = &twl_gpio_auxdata;
- }
-
-+/* Dual mode timer PWM callbacks platdata */
-+#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
-+struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
-+	.request_by_node = omap_dm_timer_request_by_node,
-+	.free = omap_dm_timer_free,
-+	.enable = omap_dm_timer_enable,
-+	.disable = omap_dm_timer_disable,
-+	.get_fclk = omap_dm_timer_get_fclk,
-+	.start = omap_dm_timer_start,
-+	.stop = omap_dm_timer_stop,
-+	.set_load = omap_dm_timer_set_load,
-+	.set_match = omap_dm_timer_set_match,
-+	.set_pwm = omap_dm_timer_set_pwm,
-+	.set_prescaler = omap_dm_timer_set_prescaler,
-+	.write_counter = omap_dm_timer_write_counter,
-+};
-+#endif
-+
- /*
-  * Few boards still need auxdata populated before we populate
-  * the dev entries in of_platform_populate().
-@@ -506,6 +526,9 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 	OF_DEV_AUXDATA("ti,am4372-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
- 		       &wkup_m3_data),
- #endif
-+#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
-+	OF_DEV_AUXDATA("ti,omap-dmtimer-pwm", 0, NULL, &pwm_dmtimer_pdata),
-+#endif
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
- 		       &omap4_iommu_pdata),
 -- 
-1.9.1
+2.5.1
