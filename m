@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 01/11] arm: omap2: timer: always define omap4_local_timer_init
-Date: Fri, 16 Oct 2015 11:22:00 -0500
-Message-ID: <1445012530-14126-2-git-send-email-balbi@ti.com>
+Subject: [PATCH 11/11] arm: omap2: timer: limit hwmod usage to non-DT boots
+Date: Fri, 16 Oct 2015 11:22:10 -0500
+Message-ID: <1445012530-14126-12-git-send-email-balbi@ti.com>
 References: <1445012530-14126-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,58 +21,84 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-omap4_local_timer_init() can be used by other
-platforms as is. At least AM437x wants to use
-it. Instead of making omap4-only and providing
-a stub for builds without OMAP4, we can just
-make sure that function is always available
-for all SoCs that need it.
+now that we have a working 32k clocksource driver,
+we can limit HWMOD usage to non-DT boots and rely
+on clocksource_of_init() every time we boot
+with DT.
 
-Reported-by: Nishanth Menon <nm@ti.com>
+While at that, also make sure that we don't disable
+the 32-counter device so it gets probed by its driver.
+
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/timer.c | 16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/timer.c | 33 +++++++++++++--------------------
+ 1 file changed, 13 insertions(+), 20 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index a55655127ef2..548d922cb107 100644
+index d024b2bb5c4c..05c17eb2f2d9 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -630,32 +630,22 @@ OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
- 			2, "timer_sys_ck", NULL);
- #endif /* CONFIG_ARCH_OMAP3 */
+@@ -183,7 +183,8 @@ static struct device_node * __init omap_get_timer_dt(const struct of_device_id *
+ 				  of_get_property(np, "ti,timer-secure", NULL)))
+ 			continue;
  
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || \
--	defined(CONFIG_SOC_AM43XX)
-+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
- OMAP_SYS_GP_TIMER_INIT(3, 2, "timer_sys_ck", NULL,
- 		       1, "timer_sys_ck", "ti,timer-alwon");
- #endif
+-		of_add_property(np, &device_disabled);
++		if (!of_device_is_compatible(np, "ti,omap-counter32k"))
++			of_add_property(np, &device_disabled);
+ 		return np;
+ 	}
  
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
--	defined(CONFIG_SOC_DRA7XX)
-+	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
- static OMAP_SYS_32K_TIMER_INIT(4, 1, "timer_32k_ck", "ti,timer-alwon",
- 			       2, "sys_clkin_ck", NULL);
--#endif
+@@ -394,7 +395,6 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+ 	int ret;
+ 	struct device_node *np = NULL;
+ 	struct omap_hwmod *oh;
+-	void __iomem *vbase;
+ 	const char *oh_name = "counter_32k";
  
--#ifdef CONFIG_ARCH_OMAP4
--#ifdef CONFIG_HAVE_ARM_TWD
- void __init omap4_local_timer_init(void)
- {
- 	omap4_sync32k_timer_init();
- 	clocksource_of_init();
+ 	/*
+@@ -420,18 +420,6 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+ 
+ 	omap_hwmod_setup_one(oh_name);
+ 
+-	if (np) {
+-		vbase = of_iomap(np, 0);
+-		of_node_put(np);
+-	} else {
+-		vbase = omap_hwmod_get_mpu_rt_va(oh);
+-	}
+-
+-	if (!vbase) {
+-		pr_warn("%s: failed to get counter_32k resource\n", __func__);
+-		return -ENXIO;
+-	}
+-
+ 	ret = omap_hwmod_enable(oh);
+ 	if (ret) {
+ 		pr_warn("%s: failed to enable counter_32k module (%d)\n",
+@@ -439,13 +427,18 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+ 		return ret;
+ 	}
+ 
+-	ret = omap_init_clocksource_32k(vbase);
+-	if (ret) {
+-		pr_warn("%s: failed to initialize counter_32k as a clocksource (%d)\n",
+-							__func__, ret);
+-		omap_hwmod_idle(oh);
+-	}
++	if (!of_have_populated_dt()) {
++		void __iomem *vbase;
+ 
++		vbase = omap_hwmod_get_mpu_rt_va(oh);
++
++		ret = omap_init_clocksource_32k(vbase);
++		if (ret) {
++			pr_warn("%s: failed to initialize counter_32k as a clocksource (%d)\n",
++					__func__, ret);
++			omap_hwmod_idle(oh);
++		}
++	}
+ 	return ret;
  }
--#else
--void __init omap4_local_timer_init(void)
--{
--	omap4_sync32k_timer_init();
--}
--#endif /* CONFIG_HAVE_ARM_TWD */
--#endif /* CONFIG_ARCH_OMAP4 */
-+#endif
  
- #if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
- void __init omap5_realtime_timer_init(void)
 -- 
 2.5.3
