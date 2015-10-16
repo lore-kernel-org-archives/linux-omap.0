@@ -1,82 +1,180 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 04/14] dmaengine: edma: Correct PaRAM access function names (_parm_ to _param_)
-Date: Fri, 16 Oct 2015 10:18:02 +0300
-Message-ID: <1444979892-31626-5-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 02/14] dmaengine: edma: Optimize memcpy operation
+Date: Fri, 16 Oct 2015 10:18:00 +0300
+Message-ID: <1444979892-31626-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, nsekhar@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
+Cc: devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-These inline functions are designed to modify parts of the PaRAM in eDMA.
-Change the names accordingly.
+If the transfer is shorted then 64K we can complete it with one ACNT burst
+by configuring ACNT to the length of the copy, this require one paRAM slot.
+Otherwise we use two paRAM slots for the copy:
+slot1: will copy (length / 32767) number of 32767 byte long blocks
+slot2: will be configured to copy the remaining data.
+
+According to tests this patch increases the throughput of memcpy from
+~3MB/s to 15MB/s
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/dma/edma.c | 96 ++++++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 75 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index a64befecf477..051a7c4593d4 100644
+index b36dfa5458cb..c0165e3d3396 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -349,32 +349,32 @@ static inline void edma_shadow0_write_array(struct edma_cc *ecc, int offset,
- 	edma_write(ecc, EDMA_SHADOW0 + offset + (i << 2), val);
- }
- 
--static inline unsigned int edma_parm_read(struct edma_cc *ecc, int offset,
--					  int param_no)
-+static inline unsigned int edma_param_read(struct edma_cc *ecc, int offset,
-+					   int param_no)
+@@ -1107,19 +1107,16 @@ static int edma_dma_resume(struct dma_chan *chan)
+  */
+ static int edma_config_pset(struct dma_chan *chan, struct edma_pset *epset,
+ 			    dma_addr_t src_addr, dma_addr_t dst_addr, u32 burst,
+-			    enum dma_slave_buswidth dev_width,
+-			    unsigned int dma_length,
++			    unsigned int acnt, unsigned int dma_length,
+ 			    enum dma_transfer_direction direction)
  {
- 	return edma_read(ecc, EDMA_PARM + offset + (param_no << 5));
- }
+ 	struct edma_chan *echan = to_edma_chan(chan);
+ 	struct device *dev = chan->device->dev;
+ 	struct edmacc_param *param = &epset->param;
+-	int acnt, bcnt, ccnt, cidx;
++	int bcnt, ccnt, cidx;
+ 	int src_bidx, dst_bidx, src_cidx, dst_cidx;
+ 	int absync;
  
--static inline void edma_parm_write(struct edma_cc *ecc, int offset,
--				   int param_no, unsigned val)
-+static inline void edma_param_write(struct edma_cc *ecc, int offset,
-+				    int param_no, unsigned val)
+-	acnt = dev_width;
+-
+ 	/* src/dst_maxburst == 0 is the same case as src/dst_maxburst == 1 */
+ 	if (!burst)
+ 		burst = 1;
+@@ -1320,41 +1317,98 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
+ 	struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
+ 	size_t len, unsigned long tx_flags)
  {
- 	edma_write(ecc, EDMA_PARM + offset + (param_no << 5), val);
- }
+-	int ret;
++	int ret, nslots;
+ 	struct edma_desc *edesc;
+ 	struct device *dev = chan->device->dev;
+ 	struct edma_chan *echan = to_edma_chan(chan);
+-	unsigned int width;
++	unsigned int width, pset_len;
  
--static inline void edma_parm_modify(struct edma_cc *ecc, int offset,
--				    int param_no, unsigned and, unsigned or)
-+static inline void edma_param_modify(struct edma_cc *ecc, int offset,
-+				     int param_no, unsigned and, unsigned or)
- {
- 	edma_modify(ecc, EDMA_PARM + offset + (param_no << 5), and, or);
- }
+ 	if (unlikely(!echan || !len))
+ 		return NULL;
  
--static inline void edma_parm_and(struct edma_cc *ecc, int offset, int param_no,
--				 unsigned and)
-+static inline void edma_param_and(struct edma_cc *ecc, int offset, int param_no,
-+				  unsigned and)
- {
- 	edma_and(ecc, EDMA_PARM + offset + (param_no << 5), and);
- }
+-	edesc = kzalloc(sizeof(*edesc) + sizeof(edesc->pset[0]), GFP_ATOMIC);
++	if (len < SZ_64K) {
++		/*
++		 * Transfer size less than 64K can be handled with one paRAM
++		 * slot and with one burst.
++		 * ACNT = length
++		 */
++		width = len;
++		pset_len = len;
++		nslots = 1;
++	} else {
++		/*
++		 * Transfer size bigger than 64K will be handled with maximum of
++		 * two paRAM slots.
++		 * slot1: (full_length / 32767) times 32767 bytes bursts.
++		 *	  ACNT = 32767, length1: (full_length / 32767) * 32767
++		 * slot2: the remaining amount of data after slot1.
++		 *	  ACNT = full_length - length1, length2 = ACNT
++		 *
++		 * When the full_length is multibple of 32767 one slot can be
++		 * used to complete the transfer.
++		 */
++		width = SZ_32K - 1;
++		pset_len = rounddown(len, width);
++		/* One slot is enough for lengths multiple of (SZ_32K -1) */
++		if (unlikely(pset_len == len))
++			nslots = 1;
++		else
++			nslots = 2;
++	}
++
++	edesc = kzalloc(sizeof(*edesc) + nslots * sizeof(edesc->pset[0]),
++			GFP_ATOMIC);
+ 	if (!edesc) {
+ 		dev_dbg(dev, "Failed to allocate a descriptor\n");
+ 		return NULL;
+ 	}
  
--static inline void edma_parm_or(struct edma_cc *ecc, int offset, int param_no,
--				unsigned or)
-+static inline void edma_param_or(struct edma_cc *ecc, int offset, int param_no,
-+				 unsigned or)
- {
- 	edma_or(ecc, EDMA_PARM + offset + (param_no << 5), or);
- }
-@@ -594,8 +594,8 @@ static void edma_link(struct edma_cc *ecc, unsigned from, unsigned to)
- 	if (from >= ecc->num_slots || to >= ecc->num_slots)
- 		return;
+-	edesc->pset_nr = 1;
+-
+-	width = 1 << __ffs((src | dest | len));
+-	if (width > DMA_SLAVE_BUSWIDTH_64_BYTES)
+-		width = DMA_SLAVE_BUSWIDTH_64_BYTES;
++	edesc->pset_nr = nslots;
++	edesc->residue = edesc->residue_stat = len;
++	edesc->direction = DMA_MEM_TO_MEM;
++	edesc->echan = echan;
  
--	edma_parm_modify(ecc, PARM_LINK_BCNTRLD, from, 0xffff0000,
--			 PARM_OFFSET(to));
-+	edma_param_modify(ecc, PARM_LINK_BCNTRLD, from, 0xffff0000,
-+			  PARM_OFFSET(to));
- }
+ 	ret = edma_config_pset(chan, &edesc->pset[0], src, dest, 1,
+-			       width, len, DMA_MEM_TO_MEM);
+-	if (ret < 0)
++			       width, pset_len, DMA_MEM_TO_MEM);
++	if (ret < 0) {
++		kfree(edesc);
+ 		return NULL;
++	}
  
- /**
+ 	edesc->absync = ret;
+ 
+-	/*
+-	 * Enable intermediate transfer chaining to re-trigger channel
+-	 * on completion of every TR, and enable transfer-completion
+-	 * interrupt on completion of the whole transfer.
+-	 */
+ 	edesc->pset[0].param.opt |= ITCCHEN;
+-	edesc->pset[0].param.opt |= TCINTEN;
++	if (nslots == 1) {
++		/* Enable transfer complete interrupt */
++		edesc->pset[0].param.opt |= TCINTEN;
++	} else {
++		/* Enable transfer complete chaining for the first slot */
++		edesc->pset[0].param.opt |= TCCHEN;
++
++		if (echan->slot[1] < 0) {
++			echan->slot[1] = edma_alloc_slot(echan->ecc,
++							 EDMA_SLOT_ANY);
++			if (echan->slot[1] < 0) {
++				kfree(edesc);
++				dev_err(dev, "%s: Failed to allocate slot\n",
++					__func__);
++				return NULL;
++			}
++		}
++		dest += pset_len;
++		src += pset_len;
++		pset_len = width = len % (SZ_32K - 1);
++
++		ret = edma_config_pset(chan, &edesc->pset[1], src, dest, 1,
++				       width, pset_len, DMA_MEM_TO_MEM);
++		if (ret < 0) {
++			kfree(edesc);
++			return NULL;
++		}
++
++		edesc->pset[1].param.opt |= ITCCHEN;
++		edesc->pset[1].param.opt |= TCINTEN;
++	}
+ 
+ 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+ }
 -- 
 2.6.1
