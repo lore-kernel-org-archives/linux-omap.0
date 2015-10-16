@@ -1,7 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 02/14] dmaengine: edma: Optimize memcpy operation
-Date: Fri, 16 Oct 2015 10:18:00 +0300
-Message-ID: <1444979892-31626-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 06/14] dmaengine: edma: Get qDMA channel information from
+ HW also
+Date: Fri, 16 Oct 2015 10:18:04 +0300
+Message-ID: <1444979892-31626-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,160 +22,50 @@ To: vinod.koul@intel.com, nsekhar@ti.com
 Cc: devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-If the transfer is shorted then 64K we can complete it with one ACNT burst
-by configuring ACNT to the length of the copy, this require one paRAM slot.
-Otherwise we use two paRAM slots for the copy:
-slot1: will copy (length / 32767) number of 32767 byte long blocks
-slot2: will be configured to copy the remaining data.
-
-According to tests this patch increases the throughput of memcpy from
-~3MB/s to 15MB/s
+Query the number of qDMA channels from CCCFG register.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/edma.c | 96 ++++++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 75 insertions(+), 21 deletions(-)
+ drivers/dma/edma.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index b36dfa5458cb..c0165e3d3396 100644
+index eaf1f9e4bde0..ea851ab05c8e 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -1107,19 +1107,16 @@ static int edma_dma_resume(struct dma_chan *chan)
-  */
- static int edma_config_pset(struct dma_chan *chan, struct edma_pset *epset,
- 			    dma_addr_t src_addr, dma_addr_t dst_addr, u32 burst,
--			    enum dma_slave_buswidth dev_width,
--			    unsigned int dma_length,
-+			    unsigned int acnt, unsigned int dma_length,
- 			    enum dma_transfer_direction direction)
- {
- 	struct edma_chan *echan = to_edma_chan(chan);
- 	struct device *dev = chan->device->dev;
- 	struct edmacc_param *param = &epset->param;
--	int acnt, bcnt, ccnt, cidx;
-+	int bcnt, ccnt, cidx;
- 	int src_bidx, dst_bidx, src_cidx, dst_cidx;
- 	int absync;
+@@ -107,6 +107,7 @@
  
--	acnt = dev_width;
--
- 	/* src/dst_maxburst == 0 is the same case as src/dst_maxburst == 1 */
- 	if (!burst)
- 		burst = 1;
-@@ -1320,41 +1317,98 @@ static struct dma_async_tx_descriptor *edma_prep_dma_memcpy(
- 	struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
- 	size_t len, unsigned long tx_flags)
- {
--	int ret;
-+	int ret, nslots;
- 	struct edma_desc *edesc;
- 	struct device *dev = chan->device->dev;
- 	struct edma_chan *echan = to_edma_chan(chan);
--	unsigned int width;
-+	unsigned int width, pset_len;
+ /* CCCFG register */
+ #define GET_NUM_DMACH(x)	(x & 0x7) /* bits 0-2 */
++#define GET_NUM_QDMACH(x)	(x & 0x70 >> 4) /* bits 4-6 */
+ #define GET_NUM_PAENTRY(x)	((x & 0x7000) >> 12) /* bits 12-14 */
+ #define GET_NUM_EVQUE(x)	((x & 0x70000) >> 16) /* bits 16-18 */
+ #define GET_NUM_REGN(x)		((x & 0x300000) >> 20) /* bits 20-21 */
+@@ -220,6 +221,7 @@ struct edma_cc {
  
- 	if (unlikely(!echan || !len))
- 		return NULL;
+ 	/* eDMA3 resource information */
+ 	unsigned			num_channels;
++	unsigned			num_qchannels;
+ 	unsigned			num_region;
+ 	unsigned			num_slots;
+ 	unsigned			num_tc;
+@@ -1819,6 +1821,9 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
+ 	value = GET_NUM_DMACH(cccfg);
+ 	ecc->num_channels = BIT(value + 1);
  
--	edesc = kzalloc(sizeof(*edesc) + sizeof(edesc->pset[0]), GFP_ATOMIC);
-+	if (len < SZ_64K) {
-+		/*
-+		 * Transfer size less than 64K can be handled with one paRAM
-+		 * slot and with one burst.
-+		 * ACNT = length
-+		 */
-+		width = len;
-+		pset_len = len;
-+		nslots = 1;
-+	} else {
-+		/*
-+		 * Transfer size bigger than 64K will be handled with maximum of
-+		 * two paRAM slots.
-+		 * slot1: (full_length / 32767) times 32767 bytes bursts.
-+		 *	  ACNT = 32767, length1: (full_length / 32767) * 32767
-+		 * slot2: the remaining amount of data after slot1.
-+		 *	  ACNT = full_length - length1, length2 = ACNT
-+		 *
-+		 * When the full_length is multibple of 32767 one slot can be
-+		 * used to complete the transfer.
-+		 */
-+		width = SZ_32K - 1;
-+		pset_len = rounddown(len, width);
-+		/* One slot is enough for lengths multiple of (SZ_32K -1) */
-+		if (unlikely(pset_len == len))
-+			nslots = 1;
-+		else
-+			nslots = 2;
-+	}
++	value = GET_NUM_QDMACH(cccfg);
++	ecc->num_qchannels = value * 2;
 +
-+	edesc = kzalloc(sizeof(*edesc) + nslots * sizeof(edesc->pset[0]),
-+			GFP_ATOMIC);
- 	if (!edesc) {
- 		dev_dbg(dev, "Failed to allocate a descriptor\n");
- 		return NULL;
- 	}
+ 	value = GET_NUM_PAENTRY(cccfg);
+ 	ecc->num_slots = BIT(value + 4);
  
--	edesc->pset_nr = 1;
--
--	width = 1 << __ffs((src | dest | len));
--	if (width > DMA_SLAVE_BUSWIDTH_64_BYTES)
--		width = DMA_SLAVE_BUSWIDTH_64_BYTES;
-+	edesc->pset_nr = nslots;
-+	edesc->residue = edesc->residue_stat = len;
-+	edesc->direction = DMA_MEM_TO_MEM;
-+	edesc->echan = echan;
- 
- 	ret = edma_config_pset(chan, &edesc->pset[0], src, dest, 1,
--			       width, len, DMA_MEM_TO_MEM);
--	if (ret < 0)
-+			       width, pset_len, DMA_MEM_TO_MEM);
-+	if (ret < 0) {
-+		kfree(edesc);
- 		return NULL;
-+	}
- 
- 	edesc->absync = ret;
- 
--	/*
--	 * Enable intermediate transfer chaining to re-trigger channel
--	 * on completion of every TR, and enable transfer-completion
--	 * interrupt on completion of the whole transfer.
--	 */
- 	edesc->pset[0].param.opt |= ITCCHEN;
--	edesc->pset[0].param.opt |= TCINTEN;
-+	if (nslots == 1) {
-+		/* Enable transfer complete interrupt */
-+		edesc->pset[0].param.opt |= TCINTEN;
-+	} else {
-+		/* Enable transfer complete chaining for the first slot */
-+		edesc->pset[0].param.opt |= TCCHEN;
-+
-+		if (echan->slot[1] < 0) {
-+			echan->slot[1] = edma_alloc_slot(echan->ecc,
-+							 EDMA_SLOT_ANY);
-+			if (echan->slot[1] < 0) {
-+				kfree(edesc);
-+				dev_err(dev, "%s: Failed to allocate slot\n",
-+					__func__);
-+				return NULL;
-+			}
-+		}
-+		dest += pset_len;
-+		src += pset_len;
-+		pset_len = width = len % (SZ_32K - 1);
-+
-+		ret = edma_config_pset(chan, &edesc->pset[1], src, dest, 1,
-+				       width, pset_len, DMA_MEM_TO_MEM);
-+		if (ret < 0) {
-+			kfree(edesc);
-+			return NULL;
-+		}
-+
-+		edesc->pset[1].param.opt |= ITCCHEN;
-+		edesc->pset[1].param.opt |= TCINTEN;
-+	}
- 
- 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
- }
+@@ -1830,6 +1835,7 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
+ 	dev_dbg(dev, "eDMA3 CC HW configuration (cccfg: 0x%08x):\n", cccfg);
+ 	dev_dbg(dev, "num_region: %u\n", ecc->num_region);
+ 	dev_dbg(dev, "num_channels: %u\n", ecc->num_channels);
++	dev_dbg(dev, "num_qchannels: %u\n", ecc->num_qchannels);
+ 	dev_dbg(dev, "num_slots: %u\n", ecc->num_slots);
+ 	dev_dbg(dev, "num_tc: %u\n", ecc->num_tc);
+ 	dev_dbg(dev, "chmap_exist: %s\n", ecc->chmap_exist ? "yes" : "no");
 -- 
 2.6.1
