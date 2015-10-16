@@ -1,49 +1,52 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] clocksource: ti-32k: make it depend on GENERIC_CLOCKSOURCE
-Date: Fri, 16 Oct 2015 16:10:05 -0500
-Message-ID: <1445029805-13736-1-git-send-email-balbi@ti.com>
-References: <201510170412.4siQMwFD%fengguang.wu@intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Fri, 16 Oct 2015 14:25:10 -0700
+Message-ID: <20151016212510.GF24370@atomide.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+ <560BC0DB.5020205@ti.com>
+ <20151006083346.GL23801@atomide.com>
+ <56139A72.6040600@ti.com>
+ <20151006100000.GN23801@atomide.com>
+ <56139CE9.8020002@ti.com>
+ <5613A256.8000105@ti.com>
+ <20151006110134.GO23801@atomide.com>
+ <5613ABEF.9000904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201510170412.4siQMwFD%fengguang.wu@intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5613ABEF.9000904@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-the new ti 32k clocksource driver should depend on
-GENERIC_CLOCKSOURCE because of its reliance on
-sched_clock_register().
+* Roger Quadros <rogerq@ti.com> [151006 04:13]:
+>=20
+> Fine. The updated series is now at
+>=20
+> git@github.com:rogerq/linux.git
+>  * [new branch]      for-v4.4/gpmc-v4
 
-Let's enable that to avoid any possible build errors
-and/or warnings on randbuilds.
+Looks like it produces some build errors, this with RMKs 3430 and 4430
+only .configs:
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/clocksource/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+drivers/memory/omap-gpmc.c:2035:43: error: =E2=80=98struct gpio_chip=E2=
+=80=99 has no
+member named =E2=80=98irqdomain=E2=80=99
+drivers/memory/omap-gpmc.c:2116:8: error: implicit declaration of
+function =E2=80=98gpiochip_irqchip_add=E2=80=99 [-Werror=3Dimplicit-fun=
+ction-declaration]
 
-diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index 98b2a9b9bfad..3a1efa3fd88d 100644
---- a/drivers/clocksource/Kconfig
-+++ b/drivers/clocksource/Kconfig
-@@ -117,6 +117,7 @@ config CLKSRC_PISTACHIO
- 
- config CLKSRC_TI_32K
- 	bool "Texas Instruments 32.768 Hz Clocksource" if COMPILE_TEST
-+	depends on GENERIC_SCHED_CLOCK
- 	select CLKSRC_OF if OF
- 	help
- 	  This option enables support for Texas Instruments 32.768 Hz clocksource
--- 
-2.5.3
+Maybe run randconfig builds on it for overnight?
+
+Other than that your series seems to behave for me now, so feel
+free to add:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+Regards,
+
+Tony
