@@ -1,7 +1,8 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 11/11] arm: omap2: timer: limit hwmod usage to non-DT boots
-Date: Fri, 16 Oct 2015 11:22:10 -0500
-Message-ID: <1445012530-14126-12-git-send-email-balbi@ti.com>
+Subject: [PATCH 03/11] arm: omap2: timer: add a gptimer argument to
+ sync32k_timer_init()
+Date: Fri, 16 Oct 2015 11:22:02 -0500
+Message-ID: <1445012530-14126-4-git-send-email-balbi@ti.com>
 References: <1445012530-14126-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,84 +22,80 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-now that we have a working 32k clocksource driver,
-we can limit HWMOD usage to non-DT boots and rely
-on clocksource_of_init() every time we boot
-with DT.
+as it turns out, __omap_gptimer_init() and
+__omap_sync32k_timer_init() are essentially
+the same thing, but __omap_gptimer_init() wants
+to always use gptimer.
 
-While at that, also make sure that we don't disable
-the 32-counter device so it gets probed by its driver.
+Instead of forcing all those devices to pass
+a use_gptimer cmdline argument, we add a new
+function argument to __omap_sync32k_timer_init()
+in preparation to deleting __omap_gptimer_init().
+
+On a follow-up patch, we will remove uses of
+__omap_gptimer_init() and replace them with
+__omap_sync32k_timer_init() and pass the last
+argument as true.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/timer.c | 33 +++++++++++++--------------------
- 1 file changed, 13 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/timer.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index d024b2bb5c4c..05c17eb2f2d9 100644
+index 23e58ea6a171..f53ed049d710 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -183,7 +183,8 @@ static struct device_node * __init omap_get_timer_dt(const struct of_device_id *
- 				  of_get_property(np, "ti,timer-secure", NULL)))
- 			continue;
+@@ -604,14 +604,14 @@ static void __init __omap_gptimer_init(int clkev_nr, const char *clkev_src,
  
--		of_add_property(np, &device_disabled);
-+		if (!of_device_is_compatible(np, "ti,omap-counter32k"))
-+			of_add_property(np, &device_disabled);
- 		return np;
- 	}
+ static void __init __omap_sync32k_timer_init(int clkev_nr, const char *clkev_src,
+ 		const char *clkev_prop, int clksrc_nr, const char *clksrc_src,
+-		const char *clksrc_prop)
++		const char *clksrc_prop, bool gptimer)
+ {
+ 	omap_clk_init();
+ 	omap_dmtimer_init();
+ 	omap2_gp_clockevent_init(clkev_nr, clkev_src, clkev_prop);
  
-@@ -394,7 +395,6 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
- 	int ret;
- 	struct device_node *np = NULL;
- 	struct omap_hwmod *oh;
--	void __iomem *vbase;
- 	const char *oh_name = "counter_32k";
+ 	/* Enable the use of clocksource="gp_timer" kernel parameter */
+-	if (use_gptimer_clksrc)
++	if (use_gptimer_clksrc || gptimer)
+ 		omap2_gptimer_clocksource_init(clksrc_nr, clksrc_src,
+ 						clksrc_prop);
+ 	else
+@@ -622,7 +622,7 @@ static void __init __omap_sync32k_timer_init(int clkev_nr, const char *clkev_src
+ void __init omap2_sync32k_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+-			2, "timer_sys_ck", NULL);
++			2, "timer_sys_ck", NULL, false);
+ }
+ #endif /* CONFIG_ARCH_OMAP2 */
  
- 	/*
-@@ -420,18 +420,6 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
- 
- 	omap_hwmod_setup_one(oh_name);
- 
--	if (np) {
--		vbase = of_iomap(np, 0);
--		of_node_put(np);
--	} else {
--		vbase = omap_hwmod_get_mpu_rt_va(oh);
--	}
--
--	if (!vbase) {
--		pr_warn("%s: failed to get counter_32k resource\n", __func__);
--		return -ENXIO;
--	}
--
- 	ret = omap_hwmod_enable(oh);
- 	if (ret) {
- 		pr_warn("%s: failed to enable counter_32k module (%d)\n",
-@@ -439,13 +427,18 @@ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
- 		return ret;
- 	}
- 
--	ret = omap_init_clocksource_32k(vbase);
--	if (ret) {
--		pr_warn("%s: failed to initialize counter_32k as a clocksource (%d)\n",
--							__func__, ret);
--		omap_hwmod_idle(oh);
--	}
-+	if (!of_have_populated_dt()) {
-+		void __iomem *vbase;
- 
-+		vbase = omap_hwmod_get_mpu_rt_va(oh);
-+
-+		ret = omap_init_clocksource_32k(vbase);
-+		if (ret) {
-+			pr_warn("%s: failed to initialize counter_32k as a clocksource (%d)\n",
-+					__func__, ret);
-+			omap_hwmod_idle(oh);
-+		}
-+	}
- 	return ret;
+@@ -630,13 +630,13 @@ void __init omap2_sync32k_timer_init(void)
+ void __init omap3_sync32k_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+-			2, "timer_sys_ck", NULL);
++			2, "timer_sys_ck", NULL, false);
  }
  
+ void __init omap3_secure_sync32k_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(12, "secure_32k_fck", "ti,timer-secure",
+-			2, "timer_sys_ck", NULL);
++			2, "timer_sys_ck", NULL, false);
+ }
+ #endif /* CONFIG_ARCH_OMAP3 */
+ 
+@@ -653,7 +653,7 @@ void __init omap3_gptimer_timer_init(void)
+ static void __init omap4_sync32k_timer_init(void)
+ {
+ 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+-			       2, "sys_clkin_ck", NULL);
++			2, "sys_clkin_ck", NULL, false);
+ }
+ 
+ void __init omap4_local_timer_init(void)
 -- 
 2.5.3
