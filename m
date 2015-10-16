@@ -1,15 +1,14 @@
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: Re: [PATCH v2 1/3] ARM: catch pending imprecise abort on unmask
-Date: Fri, 16 Oct 2015 10:21:44 +0200
-Message-ID: <1444983704.3180.4.camel@pengutronix.de>
-References: <1444905142-21500-1-git-send-email-l.stach@pengutronix.de>
- <1444905142-21500-2-git-send-email-l.stach@pengutronix.de>
- <20151015153246.GH32536@n2100.arm.linux.org.uk>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH 3/3] ARM: dts: Add basic support for isee igepv5
+Date: Fri, 16 Oct 2015 10:22:04 +0200
+Message-ID: <CAFqH_52T8rPJp-8+Bb7Tjv-kcACU8FJGtqFWOhj02DzQ2yc7nw@mail.gmail.com>
+References: <1444756728-11185-1-git-send-email-tony@atomide.com>
+ <1444756728-11185-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151015153246.GH32536@n2100.arm.linux.org.uk>
+In-Reply-To: <1444756728-11185-3-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,37 +18,75 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patchwork-lst@pengutronix.de
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Pau Pajuel <ppajuel@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, =?UTF-8?Q?Agust=C3=AD_Fontquerni_i_Gorchs?= <afontquerni@iseebcn.com>, egavin@iseebcn.com, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Am Donnerstag, den 15.10.2015, 16:32 +0100 schrieb Russell King - ARM
-Linux:
-> On Thu, Oct 15, 2015 at 12:32:20PM +0200, Lucas Stach wrote:
-> > Install a non-faulting handler just before unmasking imprecise aborts
-> > and switch back to the regular one after unmasking is done.
-> > 
-> > This catches any pending imprecise abort that the firmware/bootloader
-> > may have left behind that would normally crash the kernel at that point.
-> > As there are apparently a lot of bootlaoders out there that do such a
-> > thing it makes sense to handle it in the common startup code.
-> > 
-> > Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-> 
-> Much better.  Please feel free to add it to the patch system, thanks.
-> 
-Do you feel like taking patches 2 and 3 through your tree too, given
-that they are already acked by the platform maintainers, or should they
-pick them up themselves?
-
-> I think, given that the original seems to be breaking platforms, this
-> patch needs to go into -rc kernels, right?
-> 
-No, the original patch is only queued for 4.4, so the regression is only
-in -next. This patch only needs to make it into your 4.4 pull request.
-
-Thanks,
-Lucas
--- 
-Pengutronix e.K.             | Lucas Stach                 |
-Industrial Linux Solutions   | http://www.pengutronix.de/  |
+SGkgVG9ueSwKCk1hbnkgdGhhbmtzIGZvciB0aGUgcGF0Y2gKCjIwMTUtMTAtMTMgMTk6MTggR01U
+KzAyOjAwIFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ogo+IFdpdGggb21hcDUtYm9h
+cmQtY29tbW9uLmR0c2ksIHdlIGNhbiBub3cgZWFzaWx5IGFkZCBzdXBwb3J0IGZvciB2YXJpb3Vz
+IG9tYXA1Cj4gYm9hcmQgdmFyaWFudHMuIExldCdzIGFkZCBtaW5pbWFsIHN1cHBvcnQgZm9yIGlz
+ZWUgaWdlcHY1Lgo+Cj4gU28gZmFyIEkndmUgdGVzdGVkIHRoYXQgYmFzaWMgdGhpbmdzIHdvcmss
+IHN1Y2ggYXMgc2VyaWFsLCBVU0IgRXRoZXJuZXQsIEhETUkKPiBhbmQgV0xBTi4KPgo+IE5vdGUg
+dGhhdCBsaWtlIG9tYXA1LXVldm0sIHRoZXNlIGJvYXJkcyBzZWVtIHRvIG5lZWQgdG8gcmVzZXJ2
+ZSAxNk1CIGZvciBhCj4gdHJhcCBzZWN0aW9uIGFzIGluIGNvbW1pdCAwMzE3OGM2NmQyODkgKCJB
+Uk06IGR0czogb21hcDUtZXZtOiBVcGRhdGUKPiBhdmFpbGFibGUgbWVtb3J5IHRvIDIwMzIgTUIi
+KSBhbmQgYWxzbyBub3RlZCBpbiBhIHUtYm9vdCBjb21taXQgYXQKPiBodHRwOi8vbWFyYy5pbmZv
+Lz9sPXUtYm9vdCZtPTEzNDM3Njg1MjYwMzI1NSBhbmQgYWxzbyBhdAo+IGh0dHA6Ly9wYXRjaHdv
+cmsub3psYWJzLm9yZy9wYXRjaC8xNTk4ODEvLgo+Cj4gTm90IHN1cmUgd2h5IHRoaXMgaXMgbm90
+IG5lZWRlZCBmb3Igb21hcDUtY20tdDU0LmR0cywgbWF5YmUgYmVjYXVzZSBvZgo+IGRpZmZlcmVu
+dCB1LWJvb3QgY29uZmlndXJhdGlvbi4KPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4g
+PHRvbnlAYXRvbWlkZS5jb20+Cj4gLS0tCj4KPiBFbnJpYywgY2FuIHlvdSBwbGVhc2UgY2hlY2sg
+aWYgdGhlcmUgYXJlIHNvbWUgY3JpdGljYWwgcGllY2VzIGNvbXBhcmVkCj4gdG8gb21hcDUtdWV2
+bSB0aGF0IHNob3VsZCBiZSB1cGRhdGVkIGZvciB0aGlzIHBhdGNoPwo+CgpVbmZvcnR1bmF0ZWx5
+IEkgZG9uJ3QgaGF2ZSB0aGUgc2NoZW1hdGljIGFuZCBhbnkgSUdFUHY1IHRvIHZlcmlmeSB5b3Vy
+CnBhdGNoZXMuIEZyb20gYSBxdWljayB2aWV3IEkgY2FuIHNheSB0aGF0IGl0J3Mgb2sgYnV0IGxl
+dCBtZSBjYwpBZ3VzdMOtLCBFZHVhcmQgYW5kIFBhdSB0aGF0IHdpbGwgaGF2ZSBhY2Nlc3MgdG8g
+dGhlIGhhcmR3YXJlIGFuZCB0aGUKc2NoZW1hdGljcy4KCkNoZWVycywKCkVucmljCgo+IC0tLQo+
+ICBhcmNoL2FybS9ib290L2R0cy9NYWtlZmlsZSAgICAgICAgICAgfCAgMSArCj4gIGFyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cyB8IDU0ICsrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKwo+ICAyIGZpbGVzIGNoYW5nZWQsIDU1IGluc2VydGlvbnMoKykKPiAgY3Jl
+YXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cwo+Cj4g
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL01ha2VmaWxlIGIvYXJjaC9hcm0vYm9vdC9k
+dHMvTWFrZWZpbGUKPiBpbmRleCBlNDVkNzcxLi4yYzEyNDExIDEwMDY0NAo+IC0tLSBhL2FyY2gv
+YXJtL2Jvb3QvZHRzL01ha2VmaWxlCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvTWFrZWZpbGUK
+PiBAQCAtNDcxLDYgKzQ3MSw3IEBAIGR0Yi0kKENPTkZJR19TT0NfQU00M1hYKSArPSBcCj4gICAg
+ICAgICBhbTQzN3gtZ3AtZXZtLmR0Ygo+ICBkdGItJChDT05GSUdfU09DX09NQVA1KSArPSBcCj4g
+ICAgICAgICBvbWFwNS1jbS10NTQuZHRiIFwKPiArICAgICAgIG9tYXA1LWlnZXAwMDUwLmR0YiBc
+Cj4gICAgICAgICBvbWFwNS1zYmMtdDU0LmR0YiBcCj4gICAgICAgICBvbWFwNS11ZXZtLmR0Ygo+
+ICBkdGItJChDT05GSUdfU09DX0RSQTdYWCkgKz0gXAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9i
+b290L2R0cy9vbWFwNS1pZ2VwMDA1MC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1pZ2Vw
+MDA1MC5kdHMKPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGluZGV4IDAwMDAwMDAuLjQ2ZWNiMWQK
+PiAtLS0gL2Rldi9udWxsCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAu
+ZHRzCj4gQEAgLTAsMCArMSw1NCBAQAo+ICsvKgo+ICsgKiBDb3B5cmlnaHQgKEMpIDIwMTMgSVNF
+RSAyMDA3IFNMIC0gaHR0cDovL3d3dy5pc2VlLmJpei8KPiArICoKPiArICogVGhpcyBwcm9ncmFt
+IGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkK
+PiArICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5z
+ZSB2ZXJzaW9uIDIgYXMKPiArICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5k
+YXRpb24uCj4gKyAqLwo+ICsvZHRzLXYxLzsKPiArCj4gKyNpbmNsdWRlICJvbWFwNS1ib2FyZC1j
+b21tb24uZHRzaSIKPiArCj4gKy8gewo+ICsgICAgICAgbW9kZWwgPSAiSUdFUHY1IjsKPiArICAg
+ICAgIGNvbXBhdGlibGUgPSAiaXNlZSxvbWFwNS1pZ2VwMDA1MCIsICJ0aSxvbWFwNSI7Cj4gKwo+
+ICsgICAgICAgbWVtb3J5IHsKPiArICAgICAgICAgICAgICAgZGV2aWNlX3R5cGUgPSAibWVtb3J5
+IjsKPiArICAgICAgICAgICAgICAgcmVnID0gPDB4ODAwMDAwMDAgMHg3ZjAwMDAwMD47IC8qIDIw
+MzIgTUIgKi8KPiArICAgICAgIH07Cj4gK307Cj4gKwo+ICsmaGRtaSB7Cj4gKyAgICAgICB2ZGRh
+LXN1cHBseSA9IDwmbGRvN19yZWc+Owo+ICt9Owo+ICsKPiArJmkyYzQgewo+ICsgICAgICAgcGlu
+Y3RybC1uYW1lcyA9ICJkZWZhdWx0IjsKPiArICAgICAgIHBpbmN0cmwtMCA9IDwmaTJjNF9waW5z
+PjsKPiArCj4gKyAgICAgICB0Y2E2NDE2OiB0Y2E2NDE2QDIxIHsKPiArICAgICAgICAgICAgICAg
+Y29tcGF0aWJsZSA9ICJ0aSx0Y2E2NDE2IjsKPiArICAgICAgICAgICAgICAgcmVnID0gPDB4MjE+
+Owo+ICsgICAgICAgICAgICAgICBncGlvLWNvbnRyb2xsZXI7Cj4gKyAgICAgICAgICAgICAgICNn
+cGlvLWNlbGxzID0gPDI+Owo+ICsgICAgICAgfTsKPiArfTsKPiArCj4gKyZvbWFwNV9wbXhfY29y
+ZSB7Cj4gKyAgICAgICBpMmM0X3BpbnM6IHBpbm11eF9pMmM0X3BpbnMgewo+ICsgICAgICAgICAg
+ICAgICBwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAo+ICsgICAgICAgICAgICAgICAgICAgICAgIE9N
+QVA1X0lPUEFEKDB4MGY4LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTApICAgICAgIC8qIGkyYzRfc2Ns
+ICovCj4gKyAgICAgICAgICAgICAgICAgICAgICAgT01BUDVfSU9QQUQoMHgwZmEsIFBJTl9JTlBV
+VCB8IE1VWF9NT0RFMCkgICAgICAgLyogaTJjNF9zZGEgKi8KPiArICAgICAgICAgICAgICAgPjsK
+PiArICAgICAgIH07Cj4gK307Cj4gKwo+ICsmdHBkMTJzMDE1IHsKPiArICAgICAgIGdwaW9zID0g
+PCZ0Y2E2NDE2IDExIDA+LCAgICAgICAgLyogVENBNjQxNiBQMDEsIENUX0NQX0hEUCAqLwo+ICsg
+ICAgICAgICAgICAgICA8JnRjYTY0MTYgMTIgMD4sICAgICAgICAvKiBUQ0E2NDE2IFAwMCwgTFNf
+T0UqLwo+ICsgICAgICAgICAgICAgICA8JmdwaW83IDEgMD4sICAgICAgICAgICAvKiAxOTMsIEhQ
+RCAqLwo+ICsgICAgICAgICAgICAgICA8JmdwaW83IDIgMD4sICAgICAgICAgICAvKiAxOTQsIFND
+TCAqLwo+ICsgICAgICAgICAgICAgICA8JmdwaW83IDMgMD47ICAgICAgICAgICAvKiAxOTUsIFNE
+QSAqLwo+ICt9Owo+ICsKPiAtLQo+IDIuMS40Cj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4
+LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
