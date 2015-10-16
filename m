@@ -1,55 +1,55 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 0/5] mtd: nand: Fix support for NAND DMA prefetch
-Date: Fri, 16 Oct 2015 11:11:14 +0300
-Message-ID: <5620B122.4000208@ti.com>
-References: <1444930648-19313-1-git-send-email-fcooper@ti.com>
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: Re: [PATCH v2 1/3] ARM: catch pending imprecise abort on unmask
+Date: Fri, 16 Oct 2015 10:21:44 +0200
+Message-ID: <1444983704.3180.4.camel@pengutronix.de>
+References: <1444905142-21500-1-git-send-email-l.stach@pengutronix.de>
+ <1444905142-21500-2-git-send-email-l.stach@pengutronix.de>
+ <20151015153246.GH32536@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444930648-19313-1-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, nsekhar@ti.com, computersforpeace@gmail.com, dwmw2@infradead.org, tony@atomide.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151015153246.GH32536@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Hauke Mehrtens <hauke@hauke-m.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patchwork-lst@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On 15/10/15 20:37, Franklin S Cooper Jr wrote:
-> NAND DMA prefetch has been broken for awhile and seems to have only
-> worked for SDMA based devices
+Am Donnerstag, den 15.10.2015, 16:32 +0100 schrieb Russell King - ARM
+Linux:
+> On Thu, Oct 15, 2015 at 12:32:20PM +0200, Lucas Stach wrote:
+> > Install a non-faulting handler just before unmasking imprecise aborts
+> > and switch back to the regular one after unmasking is done.
+> > 
+> > This catches any pending imprecise abort that the firmware/bootloader
+> > may have left behind that would normally crash the kernel at that point.
+> > As there are apparently a lot of bootlaoders out there that do such a
+> > thing it makes sense to handle it in the common startup code.
+> > 
+> > Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 > 
-> This patchset fixes DMA prefetch to work on both EDMA and SDMA devices
+> Much better.  Please feel free to add it to the patch system, thanks.
 > 
-> Test on:
-> am335x gp evm
-> am437x gp evm
-> am37x gp evm
-> 
-> This patchset depends on Roger Quadros recent v4 GPMC/NAND patchset
-> https://github.com/rogerq/linux.git
-> branch: for-v4.4/gpmc-v4
-> 
-> Franklin S Cooper Jr (5):
->   mtd: nand: omap2: Support parsing dma channel information from DT
->   mtd: nand: omap2: Start dma request before enabling prefetch
->   mtd: nand: omap2: Fix high memory dma prefetch transfer
->   ARM: dts: am437x/am33xx/omap/dm816x: Add gpmc dma channel
->   ARM: OMAP2+: Update GPMC and NAND DT binding documentation
-> 
->  .../bindings/memory-controllers/omap-gpmc.txt      |  7 +++++-
->  .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 ++
->  arch/arm/boot/dts/am33xx.dtsi                      |  2 ++
->  arch/arm/boot/dts/am4372.dtsi                      |  2 ++
->  arch/arm/boot/dts/dm816x.dtsi                      |  2 ++
->  arch/arm/boot/dts/omap3.dtsi                       |  2 ++
->  arch/arm/boot/dts/omap4.dtsi                       |  2 ++
->  arch/arm/boot/dts/omap5.dtsi                       |  2 ++
->  drivers/mtd/nand/omap2.c                           | 27 +++++++++-------------
->  9 files changed, 31 insertions(+), 17 deletions(-)
-> 
+Do you feel like taking patches 2 and 3 through your tree too, given
+that they are already acked by the platform maintainers, or should they
+pick them up themselves?
 
-For all patches,
+> I think, given that the original seems to be breaking platforms, this
+> patch needs to go into -rc kernels, right?
+> 
+No, the original patch is only queued for 4.4, so the regression is only
+in -next. This patch only needs to make it into your 4.4 pull request.
 
-Acked-by: Roger Quadros <rogerq@ti.com>
-
---
-cheers,
--roger
+Thanks,
+Lucas
+-- 
+Pengutronix e.K.             | Lucas Stach                 |
+Industrial Linux Solutions   | http://www.pengutronix.de/  |
