@@ -1,14 +1,13 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH 3/3] ARM: dts: Add basic support for isee igepv5
-Date: Fri, 16 Oct 2015 10:22:04 +0200
-Message-ID: <CAFqH_52T8rPJp-8+Bb7Tjv-kcACU8FJGtqFWOhj02DzQ2yc7nw@mail.gmail.com>
-References: <1444756728-11185-1-git-send-email-tony@atomide.com>
- <1444756728-11185-3-git-send-email-tony@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 2/2] omap device tree changes for v4.4
+Date: Fri, 16 Oct 2015 11:45:33 +0200
+Message-ID: <17309037.Mt8pPYt4aa@wuerfel>
+References: <8058507.49AsgX8PR9@wuerfel> <20151015210425.GQ10113@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444756728-11185-3-git-send-email-tony@atomide.com>
+In-Reply-To: <20151015210425.GQ10113@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,74 +18,25 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Pau Pajuel <ppajuel@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, =?UTF-8?Q?Agust=C3=AD_Fontquerni_i_Gorchs?= <afontquerni@iseebcn.com>, egavin@iseebcn.com, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9ueSwKCk1hbnkgdGhhbmtzIGZvciB0aGUgcGF0Y2gKCjIwMTUtMTAtMTMgMTk6MTggR01U
-KzAyOjAwIFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ogo+IFdpdGggb21hcDUtYm9h
-cmQtY29tbW9uLmR0c2ksIHdlIGNhbiBub3cgZWFzaWx5IGFkZCBzdXBwb3J0IGZvciB2YXJpb3Vz
-IG9tYXA1Cj4gYm9hcmQgdmFyaWFudHMuIExldCdzIGFkZCBtaW5pbWFsIHN1cHBvcnQgZm9yIGlz
-ZWUgaWdlcHY1Lgo+Cj4gU28gZmFyIEkndmUgdGVzdGVkIHRoYXQgYmFzaWMgdGhpbmdzIHdvcmss
-IHN1Y2ggYXMgc2VyaWFsLCBVU0IgRXRoZXJuZXQsIEhETUkKPiBhbmQgV0xBTi4KPgo+IE5vdGUg
-dGhhdCBsaWtlIG9tYXA1LXVldm0sIHRoZXNlIGJvYXJkcyBzZWVtIHRvIG5lZWQgdG8gcmVzZXJ2
-ZSAxNk1CIGZvciBhCj4gdHJhcCBzZWN0aW9uIGFzIGluIGNvbW1pdCAwMzE3OGM2NmQyODkgKCJB
-Uk06IGR0czogb21hcDUtZXZtOiBVcGRhdGUKPiBhdmFpbGFibGUgbWVtb3J5IHRvIDIwMzIgTUIi
-KSBhbmQgYWxzbyBub3RlZCBpbiBhIHUtYm9vdCBjb21taXQgYXQKPiBodHRwOi8vbWFyYy5pbmZv
-Lz9sPXUtYm9vdCZtPTEzNDM3Njg1MjYwMzI1NSBhbmQgYWxzbyBhdAo+IGh0dHA6Ly9wYXRjaHdv
-cmsub3psYWJzLm9yZy9wYXRjaC8xNTk4ODEvLgo+Cj4gTm90IHN1cmUgd2h5IHRoaXMgaXMgbm90
-IG5lZWRlZCBmb3Igb21hcDUtY20tdDU0LmR0cywgbWF5YmUgYmVjYXVzZSBvZgo+IGRpZmZlcmVu
-dCB1LWJvb3QgY29uZmlndXJhdGlvbi4KPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4g
-PHRvbnlAYXRvbWlkZS5jb20+Cj4gLS0tCj4KPiBFbnJpYywgY2FuIHlvdSBwbGVhc2UgY2hlY2sg
-aWYgdGhlcmUgYXJlIHNvbWUgY3JpdGljYWwgcGllY2VzIGNvbXBhcmVkCj4gdG8gb21hcDUtdWV2
-bSB0aGF0IHNob3VsZCBiZSB1cGRhdGVkIGZvciB0aGlzIHBhdGNoPwo+CgpVbmZvcnR1bmF0ZWx5
-IEkgZG9uJ3QgaGF2ZSB0aGUgc2NoZW1hdGljIGFuZCBhbnkgSUdFUHY1IHRvIHZlcmlmeSB5b3Vy
-CnBhdGNoZXMuIEZyb20gYSBxdWljayB2aWV3IEkgY2FuIHNheSB0aGF0IGl0J3Mgb2sgYnV0IGxl
-dCBtZSBjYwpBZ3VzdMOtLCBFZHVhcmQgYW5kIFBhdSB0aGF0IHdpbGwgaGF2ZSBhY2Nlc3MgdG8g
-dGhlIGhhcmR3YXJlIGFuZCB0aGUKc2NoZW1hdGljcy4KCkNoZWVycywKCkVucmljCgo+IC0tLQo+
-ICBhcmNoL2FybS9ib290L2R0cy9NYWtlZmlsZSAgICAgICAgICAgfCAgMSArCj4gIGFyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cyB8IDU0ICsrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKwo+ICAyIGZpbGVzIGNoYW5nZWQsIDU1IGluc2VydGlvbnMoKykKPiAgY3Jl
-YXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LWlnZXAwMDUwLmR0cwo+Cj4g
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL01ha2VmaWxlIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvTWFrZWZpbGUKPiBpbmRleCBlNDVkNzcxLi4yYzEyNDExIDEwMDY0NAo+IC0tLSBhL2FyY2gv
-YXJtL2Jvb3QvZHRzL01ha2VmaWxlCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvTWFrZWZpbGUK
-PiBAQCAtNDcxLDYgKzQ3MSw3IEBAIGR0Yi0kKENPTkZJR19TT0NfQU00M1hYKSArPSBcCj4gICAg
-ICAgICBhbTQzN3gtZ3AtZXZtLmR0Ygo+ICBkdGItJChDT05GSUdfU09DX09NQVA1KSArPSBcCj4g
-ICAgICAgICBvbWFwNS1jbS10NTQuZHRiIFwKPiArICAgICAgIG9tYXA1LWlnZXAwMDUwLmR0YiBc
-Cj4gICAgICAgICBvbWFwNS1zYmMtdDU0LmR0YiBcCj4gICAgICAgICBvbWFwNS11ZXZtLmR0Ygo+
-ICBkdGItJChDT05GSUdfU09DX0RSQTdYWCkgKz0gXAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9i
-b290L2R0cy9vbWFwNS1pZ2VwMDA1MC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNS1pZ2Vw
-MDA1MC5kdHMKPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGluZGV4IDAwMDAwMDAuLjQ2ZWNiMWQK
-PiAtLS0gL2Rldi9udWxsCj4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtaWdlcDAwNTAu
-ZHRzCj4gQEAgLTAsMCArMSw1NCBAQAo+ICsvKgo+ICsgKiBDb3B5cmlnaHQgKEMpIDIwMTMgSVNF
-RSAyMDA3IFNMIC0gaHR0cDovL3d3dy5pc2VlLmJpei8KPiArICoKPiArICogVGhpcyBwcm9ncmFt
-IGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkK
-PiArICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5z
-ZSB2ZXJzaW9uIDIgYXMKPiArICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5k
-YXRpb24uCj4gKyAqLwo+ICsvZHRzLXYxLzsKPiArCj4gKyNpbmNsdWRlICJvbWFwNS1ib2FyZC1j
-b21tb24uZHRzaSIKPiArCj4gKy8gewo+ICsgICAgICAgbW9kZWwgPSAiSUdFUHY1IjsKPiArICAg
-ICAgIGNvbXBhdGlibGUgPSAiaXNlZSxvbWFwNS1pZ2VwMDA1MCIsICJ0aSxvbWFwNSI7Cj4gKwo+
-ICsgICAgICAgbWVtb3J5IHsKPiArICAgICAgICAgICAgICAgZGV2aWNlX3R5cGUgPSAibWVtb3J5
-IjsKPiArICAgICAgICAgICAgICAgcmVnID0gPDB4ODAwMDAwMDAgMHg3ZjAwMDAwMD47IC8qIDIw
-MzIgTUIgKi8KPiArICAgICAgIH07Cj4gK307Cj4gKwo+ICsmaGRtaSB7Cj4gKyAgICAgICB2ZGRh
-LXN1cHBseSA9IDwmbGRvN19yZWc+Owo+ICt9Owo+ICsKPiArJmkyYzQgewo+ICsgICAgICAgcGlu
-Y3RybC1uYW1lcyA9ICJkZWZhdWx0IjsKPiArICAgICAgIHBpbmN0cmwtMCA9IDwmaTJjNF9waW5z
-PjsKPiArCj4gKyAgICAgICB0Y2E2NDE2OiB0Y2E2NDE2QDIxIHsKPiArICAgICAgICAgICAgICAg
-Y29tcGF0aWJsZSA9ICJ0aSx0Y2E2NDE2IjsKPiArICAgICAgICAgICAgICAgcmVnID0gPDB4MjE+
-Owo+ICsgICAgICAgICAgICAgICBncGlvLWNvbnRyb2xsZXI7Cj4gKyAgICAgICAgICAgICAgICNn
-cGlvLWNlbGxzID0gPDI+Owo+ICsgICAgICAgfTsKPiArfTsKPiArCj4gKyZvbWFwNV9wbXhfY29y
-ZSB7Cj4gKyAgICAgICBpMmM0X3BpbnM6IHBpbm11eF9pMmM0X3BpbnMgewo+ICsgICAgICAgICAg
-ICAgICBwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAo+ICsgICAgICAgICAgICAgICAgICAgICAgIE9N
-QVA1X0lPUEFEKDB4MGY4LCBQSU5fSU5QVVQgfCBNVVhfTU9ERTApICAgICAgIC8qIGkyYzRfc2Ns
-ICovCj4gKyAgICAgICAgICAgICAgICAgICAgICAgT01BUDVfSU9QQUQoMHgwZmEsIFBJTl9JTlBV
-VCB8IE1VWF9NT0RFMCkgICAgICAgLyogaTJjNF9zZGEgKi8KPiArICAgICAgICAgICAgICAgPjsK
-PiArICAgICAgIH07Cj4gK307Cj4gKwo+ICsmdHBkMTJzMDE1IHsKPiArICAgICAgIGdwaW9zID0g
-PCZ0Y2E2NDE2IDExIDA+LCAgICAgICAgLyogVENBNjQxNiBQMDEsIENUX0NQX0hEUCAqLwo+ICsg
-ICAgICAgICAgICAgICA8JnRjYTY0MTYgMTIgMD4sICAgICAgICAvKiBUQ0E2NDE2IFAwMCwgTFNf
-T0UqLwo+ICsgICAgICAgICAgICAgICA8JmdwaW83IDEgMD4sICAgICAgICAgICAvKiAxOTMsIEhQ
-RCAqLwo+ICsgICAgICAgICAgICAgICA8JmdwaW83IDIgMD4sICAgICAgICAgICAvKiAxOTQsIFND
-TCAqLwo+ICsgICAgICAgICAgICAgICA8JmdwaW83IDMgMD47ICAgICAgICAgICAvKiAxOTUsIFNE
-QSAqLwo+ICt9Owo+ICsKPiAtLQo+IDIuMS40Cj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4
-LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Thursday 15 October 2015 14:04:26 Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [151015 13:40]:
+> > On Wednesday 14 October 2015 14:38:59 Tony Lindgren wrote:
+> > 
+> > > Note that this branch is against v4.3-rc4 as that contains critical
+> > > MMC related fixes to boot with MMC working on most omaps.
+> > 
+> > While we are lucky this time as I based the branch on -rc4 anyway,
+> > a nicer way to do this would be to ensure that a fix you want
+> > to base on is based an older -rc, and then you base your own branch
+> > on top of that fix, to minimize the number of back-merged patches.
+> 
+> Sure that would be doable too at the cost of a few extra merges.
+
+You can always look at our existing next/* branches to see what they are
+based on. If we already have the commit you need (like this time), it's
+not a problem at all to use the same base.
+
+	Arnd
