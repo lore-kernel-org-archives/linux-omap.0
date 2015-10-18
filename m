@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.1 190/202] clk: ti: fix dual-registration of uart4_ick
-Date: Sat, 17 Oct 2015 18:59:33 -0700
-Message-ID: <20151018014910.537434996@linuxfoundation.org>
-References: <20151018014901.946875729@linuxfoundation.org>
+Subject: [PATCH 3.14 75/79] clk: ti: fix dual-registration of uart4_ick
+Date: Sat, 17 Oct 2015 19:06:07 -0700
+Message-ID: <20151018020216.689127958@linuxfoundation.org>
+References: <20151018020213.322172837@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151018014901.946875729@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20151018020213.322172837@linuxfoundation.org>
+Sender: linux-clk-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@lists.codethink.co.uk, Ben Dooks <ben.dooks@codethink.co.uk>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-4.1-stable review patch.  If anyone has any objections, please let me know.
+3.14-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -46,7 +46,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/drivers/clk/ti/clk-3xxx.c
 +++ b/drivers/clk/ti/clk-3xxx.c
-@@ -163,7 +163,6 @@ static struct ti_dt_clk omap3xxx_clks[]
+@@ -174,7 +174,6 @@ static struct ti_dt_clk omap3xxx_clks[]
  	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
  	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
  	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
@@ -54,7 +54,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
  	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
  	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
-@@ -308,6 +307,7 @@ static struct ti_dt_clk am35xx_clks[] =
+@@ -317,6 +316,7 @@ static struct ti_dt_clk am35xx_clks[] =
  static struct ti_dt_clk omap36xx_clks[] = {
  	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
  	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
@@ -62,3 +62,5 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	{ .node_name = NULL },
  };
  
+
+
