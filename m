@@ -1,36 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] clocksource: ti-32k: make it depend on GENERIC_CLOCKSOURCE
-Date: Fri, 16 Oct 2015 14:29:58 -0700
-Message-ID: <20151016212958.GG24370@atomide.com>
-References: <201510170412.4siQMwFD%fengguang.wu@intel.com>
- <1445029805-13736-1-git-send-email-balbi@ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.1 190/202] clk: ti: fix dual-registration of uart4_ick
+Date: Sat, 17 Oct 2015 18:59:33 -0700
+Message-ID: <20151018014910.537434996@linuxfoundation.org>
+References: <20151018014901.946875729@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1445029805-13736-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151018014901.946875729@linuxfoundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@lists.codethink.co.uk, Ben Dooks <ben.dooks@codethink.co.uk>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [151016 14:17]:
-> the new ti 32k clocksource driver should depend on
-> GENERIC_CLOCKSOURCE because of its reliance on
-> sched_clock_register().
-> 
-> Let's enable that to avoid any possible build errors
-> and/or warnings on randbuilds.
+4.1-stable review patch.  If anyone has any objections, please let me know.
 
-Thanks applying this on omap-for-v4.4/soc.
+------------------
 
-Tony
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+
+commit 19e79687de22f23bcfb5e79cce3daba20af228d1 upstream.
+
+On the OMAP AM3517 platform the uart4_ick gets registered
+twice, causing any power management to /dev/ttyO3 to fail
+when trying to wake the device up.
+
+This solves the following oops:
+
+[] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
+[] PC is at serial_omap_pm+0x48/0x15c
+[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+
+Fixes: aafd900cab87 ("CLK: TI: add omap3 clock init file")
+Cc: mturquette@baylibre.com
+Cc: sboyd@codeaurora.org
+Cc: linux-clk@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-kernel@lists.codethink.co.uk
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+ drivers/clk/ti/clk-3xxx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -163,7 +163,6 @@ static struct ti_dt_clk omap3xxx_clks[]
+ 	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
+ 	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+ 	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+-	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+ 	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+ 	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+@@ -308,6 +307,7 @@ static struct ti_dt_clk am35xx_clks[] =
+ static struct ti_dt_clk omap36xx_clks[] = {
+ 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
+ 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
++	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	{ .node_name = NULL },
+ };
+ 
