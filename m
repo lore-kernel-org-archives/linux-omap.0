@@ -1,64 +1,87 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.2 243/258] clk: ti: fix dual-registration of uart4_ick
-Date: Sat, 17 Oct 2015 18:59:16 -0700
-Message-ID: <20151018014741.470565271@linuxfoundation.org>
-References: <20151018014729.976101177@linuxfoundation.org>
+From: Neil Brown <neilb@suse.de>
+Subject: Re: [RFC PATCH 0/3] pwm: omap: Add PWM support using dual-mode timers
+Date: Mon, 19 Oct 2015 12:46:55 +1100
+Message-ID: <87oafvlje8.fsf@notabene.neil.brown.name>
+References: <5620ED2C.1090107@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151018014729.976101177@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@lists.codethink.co.uk, Ben Dooks <ben.dooks@codethink.co.uk>, Tero Kristo <t-kristo@ti.com>
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <5620ED2C.1090107@baylibre.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>, Thierry Reding <thierry.reding@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Erickson <marathon96@gmail.com>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-4.2-stable review patch.  If anyone has any objections, please let me know.
+--=-=-=
+Content-Type: text/plain
 
-------------------
+Neil Armstrong <narmstrong@baylibre.com> writes:
 
-From: Ben Dooks <ben.dooks@codethink.co.uk>
+> This patch is based on an earlier patch by NeilBrown which is based on
+> a older patch from Grant Erickson which provided PWM devices using
+> the 'legacy' interface.
+>
+> The pwm driver was renamed to not be confused with the OMAP4 PWM dedicated
+> hardware and was cleaned with the review from Thierry Reding.
+>
+> The first patch introduces a way to select to dmtimer clock source via a
+> clocks binding and a dedicated function wit the legacy fallback.
+>
+> In order to prepare for the future form of the dmtimer (clksource or whatever)
+> the first patch introduces the PWM driver with all the dmtimer calls into a
+> platform data structure.
+>
+> The structure is then filled in plat-omap and added as auxdata for the
+> ti,pwm-dmtimer-omap compatible nodes.
+>
+> Cc: Grant Erickson <marathon96@gmail.com>
+> Cc: NeilBrown <neilb@suse.de>
+> Cc: Joachim Eastwood <manabian@gmail.com>
+> Suggested-by: Tony Lindgren <tony@atomide.com>
+>
+> Neil Armstrong (3):
+>   arm: plat-omap: dmtimer: Add clock source from DT
+>   pwm: Add PWM driver for OMAP using dual-mode timers
+>   arm: plat-omap: Add PWM dmtimer platforma data quirks
+>
+>  .../devicetree/bindings/pwm/pwm-omap-dmtimer.txt   |  18 ++
+>  arch/arm/mach-omap2/pdata-quirks.c                 |  23 ++
+>  arch/arm/plat-omap/dmtimer.c                       |  32 +-
+>  drivers/pwm/Kconfig                                |   9 +
+>  drivers/pwm/Makefile                               |   1 +
+>  drivers/pwm/pwm-omap-dmtimer.c                     | 322 +++++++++++++++++++++
+>  include/linux/platform_data/pwm_omap_dmtimer.h     |  69 +++++
+>  7 files changed, 472 insertions(+), 2 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+>  create mode 100644 drivers/pwm/pwm-omap-dmtimer.c
+>  create mode 100644 include/linux/platform_data/pwm_omap_dmtimer.h
+>
 
-commit 19e79687de22f23bcfb5e79cce3daba20af228d1 upstream.
+Thanks for much for doing this!
+I haven't looked and wont have a chance for a least a couple of weeks,
+but I'm very encouraged that someone is pursuing it.
 
-On the OMAP AM3517 platform the uart4_ick gets registered
-twice, causing any power management to /dev/ttyO3 to fail
-when trying to wake the device up.
+Thanks,
+NeilBrown
 
-This solves the following oops:
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-[] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
-[] PC is at serial_omap_pm+0x48/0x15c
-[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Fixes: aafd900cab87 ("CLK: TI: add omap3 clock init file")
-Cc: mturquette@baylibre.com
-Cc: sboyd@codeaurora.org
-Cc: linux-clk@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- drivers/clk/ti/clk-3xxx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/drivers/clk/ti/clk-3xxx.c
-+++ b/drivers/clk/ti/clk-3xxx.c
-@@ -163,7 +163,6 @@ static struct ti_dt_clk omap3xxx_clks[]
- 	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
- 	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
- 	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
--	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
- 	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
- 	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
- 	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
-@@ -308,6 +307,7 @@ static struct ti_dt_clk am35xx_clks[] =
- static struct ti_dt_clk omap36xx_clks[] = {
- 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
- 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
-+	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
- 	{ .node_name = NULL },
- };
- 
+iQIcBAEBCAAGBQJWJEuPAAoJEDnsnt1WYoG5ETkP/Rmvy1qaFpERnfnufImzZVOI
+dggm8FMgq176pdOim69YLhut2JIyg+tsqp41xWECvKpPPsdLl2Dtsp4uQnrDzUCp
+mRfomzoXcDORT9D1nGX8+Y9A4JeMxnGPaF90PjJO4h0z81EeNu5PCQl1BI6mn/Ow
+bC+Y0ifXZIUVvH+aze3SxRe1h6HxZabExOdT9OnLA5iNEtePyaq94SYI5vVS3HBA
+n+k+B4gBOpbIpzbtkmUDurJizxO2ufXEO9CZ158DNoiz7qQOwmZoCXWMe0qOiDrC
+4MpjFPQFwokb9j439OpSbWnYaYGcErXnX9/ftiK7KNZWfpESk/FKnbqnY9kFB4bn
+EgAWoKlUaw9Bwg6C41ygmro+B2VRegoC+kx1oTbHu+F1MU6ifwde8voEWFk57oOa
+5nyqKWfV52jgxKgv3qH7E19+LLpX+zTJcotyeXZp7bXJKcQKrdAxH62VRITTfEO7
+lyL08iTmcjE/crrETF2a4dG4lN8OhSRiVaGfhYvt7e+Ub27WMczXwTBfBuVwbmxq
+MpJKICx4l4nrlziyj4Dwhtg5p3J+z4ixjBpkhOWRwemg6XGKK8mcQhXAPfvOpnqG
+XDArAzfCccOfUWkIdluX/D/4qlN7kLTX7kdmeNlIVxX2FaXxV88vDjpglg5t9HXJ
+x9M6cEelGwnrYvR1VtfC
+=UxEJ
+-----END PGP SIGNATURE-----
+--=-=-=--
