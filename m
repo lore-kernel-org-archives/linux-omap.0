@@ -1,43 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix oops with LPAE and more than 2GB of
- memory
-Date: Mon, 19 Oct 2015 08:46:09 -0700
-Message-ID: <20151019154609.GA22043@atomide.com>
-References: <1444778000-22537-1-git-send-email-tony@atomide.com>
- <561DD014.10403@ti.com> <20151014160245.GA10113@atomide.com>
- <561F5C0C.6080106@ti.com> <20151015140551.GM10113@atomide.com>
- <561FC2E9.9050805@ti.com> <20151016192300.GD24370@atomide.com>
- <5624F692.5070302@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: omap3: keep ssi ports by default
+Date: Mon, 19 Oct 2015 09:01:58 -0700
+Message-ID: <20151019160158.GB22043@atomide.com>
+References: <1444819456-26728-1-git-send-email-rogerq@ti.com>
+ <1444819456-26728-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5624F692.5070302@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <a0131933@ti.com>
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, "Woodruff,
- Richard" <r-woodruff2@ti.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1444819456-26728-3-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: wsa@the-dreams.de, sre@kernel.org, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <a0131933@ti.com> [151019 07:03]:
+* Roger Quadros <rogerq@ti.com> [151014 03:48]:
+> Let's keep the SSI ports disabled in the omap3.dtsi to avoid
+> getting the following noise on the console for boards that don't
+> use the SSI ports.
 > 
-> Since there is a big hole with in the memory space, we might also need
-> to enable SPARSEMEM ?
+> "omap_ssi_port 4805a000.ssi-port: DT data is missing cawake gpio (err=-2)"
+> 
+> As omap3-n900 uses one SSI port, mark it enabled there.
 
-No from what I remember that depends on section sizes and smaller
-chunks of physical memory. For example, on the old Psions we had to
-use DISCONTIGMEM/SPARSEMEM because of four discontiguous 8MB memory
-chips.
+This is the wrong way around.. The SSI ports are there on all omap3 SoCs,
+we do want to have the struct device created for them. It's best to have
+the driver probe and then idle SSI and bail out. Marking something with
+status = "disabled" should be only used if you really want to avoid kernel
+touching the device at all, for example, if something is managed from
+the start by a copropcessor.
 
 Regards,
 
 Tony
+
+
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  arch/arm/boot/dts/omap3-n900.dts | 1 +
+>  arch/arm/boot/dts/omap3.dtsi     | 2 ++
+>  2 files changed, 3 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index 5f5e0f3..bdb72fb 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -949,6 +949,7 @@
+>  };
+>  
+>  &ssi_port1 {
+> +	status = "ok";
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&ssi_pins>;
+>  
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 8a2b253..25b0b37 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -815,6 +815,7 @@
+>  				interrupt-parent = <&intc>;
+>  				interrupts = <67>,
+>  					     <68>;
+> +				status = "disabled";
+>  			};
+>  
+>  			ssi_port2: ssi-port@4805b000 {
+> @@ -828,6 +829,7 @@
+>  				interrupt-parent = <&intc>;
+>  				interrupts = <69>,
+>  					     <70>;
+> +				status = "disabled";
+>  			};
+>  		};
+>  	};
+> -- 
+> 2.1.4
+> 
