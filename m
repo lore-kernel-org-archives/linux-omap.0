@@ -1,78 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: omap3: keep ssi ports by default
-Date: Mon, 19 Oct 2015 09:01:58 -0700
-Message-ID: <20151019160158.GB22043@atomide.com>
-References: <1444819456-26728-1-git-send-email-rogerq@ti.com>
- <1444819456-26728-3-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v2 2/3] ARM: dts: AM43x-epos-evm: Add AM438x compatible
+ string for epos
+Date: Mon, 19 Oct 2015 09:06:07 -0700
+Message-ID: <20151019160606.GC22043@atomide.com>
+References: <1444885808-6306-1-git-send-email-j-keerthy@ti.com>
+ <1444885808-6306-3-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1444819456-26728-3-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: wsa@the-dreams.de, sre@kernel.org, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1444885808-6306-3-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [151014 03:48]:
-> Let's keep the SSI ports disabled in the omap3.dtsi to avoid
-> getting the following noise on the console for boards that don't
-> use the SSI ports.
+* Keerthy <j-keerthy@ti.com> [151014 22:14]:
+> Add AM438x compatible property to identify the SoCs on epos evms.
 > 
-> "omap_ssi_port 4805a000.ssi-port: DT data is missing cawake gpio (err=-2)"
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
 > 
-> As omap3-n900 uses one SSI port, mark it enabled there.
+> Changes in v2:
+> 
+>   * Rebased to latest 4.3-rc5
+> 
+>  Documentation/devicetree/bindings/arm/omap/omap.txt | 5 ++++-
+>  arch/arm/boot/dts/am43x-epos-evm.dts                | 2 +-
+>  2 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> index 9f4e513..dc3b5f2 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> @@ -100,6 +100,9 @@ SoCs:
+>  - AM4372
+>    compatible = "ti,am4372", "ti,am43"
+>  
+> +- AM438x
+> +  compatible = "ti,am438x", "ti,am43"
+> +
 
-This is the wrong way around.. The SSI ports are there on all omap3 SoCs,
-we do want to have the struct device created for them. It's best to have
-the driver probe and then idle SSI and bail out. Marking something with
-status = "disabled" should be only used if you really want to avoid kernel
-touching the device at all, for example, if something is managed from
-the start by a copropcessor.
+The compatible strings should not have x, this should be
+"ti,am438" instead. But my guess is that we are better off
+adding proper SoC detection to avoid needing a separate dts
+file for each SoC revision. Ideally booting with "ti,am43"
+should be enough and we can initialize the rest during
+runtime.
 
 Regards,
 
 Tony
-
-
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/boot/dts/omap3-n900.dts | 1 +
->  arch/arm/boot/dts/omap3.dtsi     | 2 ++
->  2 files changed, 3 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index 5f5e0f3..bdb72fb 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -949,6 +949,7 @@
->  };
->  
->  &ssi_port1 {
-> +	status = "ok";
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&ssi_pins>;
->  
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index 8a2b253..25b0b37 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -815,6 +815,7 @@
->  				interrupt-parent = <&intc>;
->  				interrupts = <67>,
->  					     <68>;
-> +				status = "disabled";
->  			};
->  
->  			ssi_port2: ssi-port@4805b000 {
-> @@ -828,6 +829,7 @@
->  				interrupt-parent = <&intc>;
->  				interrupts = <69>,
->  					     <70>;
-> +				status = "disabled";
->  			};
->  		};
->  	};
-> -- 
-> 2.1.4
-> 
