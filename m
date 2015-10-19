@@ -1,54 +1,79 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v3 2/3] iio:adc:palmas: add DT support
-Date: Mon, 19 Oct 2015 14:30:33 +0200
-Message-ID: <6E3CF32E-809D-4BA4-BD78-E10192B2C91C@goldelico.com>
-References: <cover.1445000017.git.hns@goldelico.com> <79429ca1a6d0465b6b19ede16d90de23e4363431.1445000017.git.hns@goldelico.com> <5624DAAB.9040207@metafoo.de>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+From: Neil Armstrong <narmstrong@baylibre.com>
+Subject: Re: [RFC PATCH 1/3] arm: plat-omap: dmtimer: Add clock source from DT
+Date: Mon, 19 Oct 2015 14:41:26 +0200
+Message-ID: <5624E4F6.5000308@baylibre.com>
+References: <5620ED30.2050507@baylibre.com> <87k2qmlt38.fsf@saruman.tx.rr.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5624DAAB.9040207-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87k2qmlt38.fsf@saruman.tx.rr.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-Am 19.10.2015 um 13:57 schrieb Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>:
-
-> On 10/16/2015 02:53 PM, H. Nikolaus Schaller wrote:
-> [...]
->> +Optional sub-nodes:
->> +ti,channel0-current-microamp: Channel 0 current in uA.
->> +	Values are rounded to derive 0uA, 5uA, 15uA, 20uA.
->> +ti,channel3-current-microamp: Channel 3 current in uA.
->> +	Valid are rounded to derive 0uA, 10uA, 400uA, 800uA.
->> +ti,enable-extended-delay: Enable extended delay.
+On 10/16/2015 05:40 PM, Felipe Balbi wrote:
+>> +static int omap_dm_timer_of_set_source(struct omap_dm_timer *timer)
+>> +{
+>> +	int ret;
+>> +	struct clk *parent;
+>> +
+>> +	if (unlikely(!timer))
+>> +		return -EINVAL;
 > 
-> Those three above sound more like configuration policy, rather than hardware
-> description. What influence which values should be chosen?
+> IMO, let this crash. If this happens we have bigger problems.
+> 
+>> +	if (IS_ERR(timer->fclk))
+>> +		return -EINVAL;
+> 
+> We bail out if we can't get fclk, this check is unnecessary.
 
-e.g. the nominal value of the NTC that can be connected if the Palmas
-is hooked up in a standard way.
+Sure, I will remove the checks.
+This was also breaking OMAP1, fclk must be checked against NULL here to detect OMAP1 and return -ENODEV;
 
-If a board has no NTC and uses channel0 for a different purpose one
-should choose 0uA.
+> 
+>> +	parent = clk_get(&timer->pdev->dev, NULL);
+> 
+> why NULL ? You could use something more descriptive, but no strong
+> feelings.
 
-If it is let's say 10kOhm it should probably be 20uA to give a nominal voltage
-reading of 200mV.
 
-100kOhm will give 2V which is at the limit of the ADC input range and
-therefore it would be better to choose 15uA or 5uA.
+Actually, I just wanted the "default" clock for this device, NULL will select the first OF clock found.
+If we specify a name, we should also specify it in the DT as clock-names, is it desired ?
+If you feel I should name it somehow... I don't want it to conflict all the HWMOD clk namings actually.
 
-I think choosing extended delay depends on the noisiness of the input
-signal but I am not a specialist for this feature.
+> 
+>> +	if (IS_ERR(parent))
+>> +		return -ENODEV;
+>> +
+>> +	ret = clk_set_parent(timer->fclk, parent);
+>> +	if (ret < 0)
+>> +		pr_err("%s: failed to set parent\n", __func__);
+>> +
+>> +	clk_put(parent);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>>  static int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+>>  {
+>> -	int rc;
+>> +	int rc, ret;
+> 
+> doesn't seem like you need this extra 'ret' variable. Just use 'rc'.
+> 
+>> @@ -166,7 +190,11 @@ static int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+>>  	__omap_dm_timer_enable_posted(timer);
+>>  	omap_dm_timer_disable(timer);
+>>
+>> -	return omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+>> +	ret = omap_dm_timer_of_set_source(timer);
+>> +	if (ret < 0 && ret == -ENODEV)
+> 
+> this < 0 check is pointless if you're going to check for equality to -ENODEV
 
-So I would say the board hardware mandates some specific value.
+Sure, I was certainly tired, this was a so stupid mistake...
 
-BR,
-Nikolaus
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Neil
