@@ -1,113 +1,84 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH] net, can, ti_hecc: add DT support for the ti,hecc
- controller
-Date: Mon, 19 Oct 2015 09:31:11 +0200
-Message-ID: <56249C3F.3080000@pengutronix.de>
-References: <1445236757-29019-1-git-send-email-hs@denx.de>
- <56249491.4020009@pengutronix.de> <56249B58.6090100@denx.de>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH] irqchip: omap-intc: fix spurious irq handling
+Date: Mon, 19 Oct 2015 15:16:31 +0530
+Message-ID: <3d433cfeeb93366cadbb1668ebeac2e8006b0fd5.1445247844.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="RhfRqRK9DH9GN6VbLvL7VA3a5JxxOrk3j"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <56249B58.6090100@denx.de>
-Sender: linux-can-owner@vger.kernel.org
-To: hs@denx.de, anton.a.glukhov@gmail.com
-Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Anant Gole <anantgole@ti.com>, devicetree@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfgang Grandegger <wg@grandegger.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: John Ogness <john.ogness@linutronix.de>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---RhfRqRK9DH9GN6VbLvL7VA3a5JxxOrk3j
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Under some conditions, irq sorting procedure used by INTC can go wrong
+resulting in a spurious irq getting reported.
 
-On 10/19/2015 09:27 AM, Heiko Schocher wrote:
->>>   .../devicetree/bindings/net/can/ti_hecc-can.txt    | 20 ++++++++++
->>>   arch/arm/boot/dts/am3517.dtsi                      | 13 +++++++
->>>   drivers/net/can/ti_hecc.c                          | 45 +++++++++++=
-++++++++++-
->>>   3 files changed, 76 insertions(+), 2 deletions(-)
->>>   create mode 100644 Documentation/devicetree/bindings/net/can/ti_hec=
-c-can.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/net/can/ti_hecc-can.tx=
-t b/Documentation/devicetree/bindings/net/can/ti_hecc-can.txt
->>> new file mode 100644
->>> index 0000000..09fab59
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/net/can/ti_hecc-can.txt
->>> @@ -0,0 +1,20 @@
->>> +* TI HECC CAN *
->>> +
->>> +Required properties:
->>> +  - compatible: Should be "ti,hecc"
->>
->> We usually put the name of the first SoC this IP core appears in to th=
-e
->> compatible.
->=20
-> Ok, so "ti,am335xx-hecc" would be OK?
-> @Anton: you used "am35x" ... it should be "am35xx"
+This condition is flagged by INTC by setting "Spurious IRQ Flag" in SIR
+register to 0x1ffffff. Section 6.2.5 of AM335x TRM revised Jun 2014
+describes this.
 
-The "xx" is not okay. Give precisely the first SoC Version this IP core
-was implemented in.
+Using IRQ number 0 for checking this condition is wrong. 0 is a valid
+INTC IRQ. For example, on AM335x, it is the emulation interrupt.
 
->=20
->>> +  - reg: Should contain CAN controller registers location and length=
+Fix handing of spurious interrupt condition in omap-intc driver by
+correct detection of spurious interrupt condition.
 
->>> +  - interrupts: Should contain IRQ line for the CAN controller
->>
->> I'm missing the description of the ti,* properties. I think they are
->> required, too. Although the code doesn't enforce it.
->=20
-> Ok.
->=20
->>> +
->>> +Example:
->>> +
->>> +	can0: hecc@5c050000 {
->>> +		compatible =3D "ti,hecc";
->>> +		reg =3D <0x5c050000 0x4000>;
->>> +		interrupts =3D <24>;
->>> +		ti,hecc_scc_offset =3D <0>;
->>> +		ti,hecc_scc_ram_offset =3D <0x3000>;
->>> +		ti,hecc_ram_offset =3D <0x3000>;
->>> +		ti,hecc_mbx_offset =3D <0x2000>;
->>> +		ti,hecc_int_line =3D <0>;
->>> +		ti,hecc_version =3D <1>;
->>
->> Versioning in the OF world is done via the compatible. Are the offsets=
- a
->> per SoC parameter? I'm not sure if it's better to put
->> the offsets into the driver.
->=20
-> I am unsure here too..
+Since spurious IRQ condition can happen under genuine conditions (see
+the section of AM335x TRM for details) and is recoverable, we do not
+need a warning splat for users to report. It can however result in
+reduced performance so we add a ratelimited debug print to aid
+developers.
 
-The devicetree people will hopefully help here.
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ drivers/irqchip/irq-omap-intc.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-regards,
-Marc
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---RhfRqRK9DH9GN6VbLvL7VA3a5JxxOrk3j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEcBAEBCgAGBQJWJJxAAAoJEP5prqPJtc/HVrsH/24NElJepIIymxz/kYbei8YI
-+mT6IWc3rULUVCEy+Lp92NcajDCIXIK/CFDqfavKYAkgvlqLOYxtKha9ZsXfEoW2
-YaxqB4lS2lrxlNniCWGRY+rIf7BsTTmRl5nZgAMueR/mvMIv8B/qGBStSPxp+LDJ
-As0TyzeF5fEDpvldsAZfBeniUX7xT+Be4C/t8V6335EdqqKHnnnmhNz1syNtA2of
-WDHwWCae+rngZw6am+FFhsDVlTRtD+OSjzC10U95FixOfaCgCX8SMp/PZOPKzVIV
-P8qKaup+ncljy3dwwIeHl2CAJM3zbY93v1mgRarPXivuX4OXXi6e/F7f0vbf+wc=
-=VWj/
------END PGP SIGNATURE-----
-
---RhfRqRK9DH9GN6VbLvL7VA3a5JxxOrk3j--
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index 8587d0f8d8c0..739725515fab 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -22,6 +22,8 @@
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/of_irq.h>
++#include <linux/ratelimit.h>
++#include <linux/printk.h>
+ 
+ /* Define these here for now until we drop all board-files */
+ #define OMAP24XX_IC_BASE	0x480fe000
+@@ -47,6 +49,7 @@
+ #define INTC_ILR0		0x0100
+ 
+ #define ACTIVEIRQ_MASK		0x7f	/* omap2/3 active interrupt bits */
++#define SPURIOUSIRQ_MASK	(0x1ffffff << 7)
+ #define INTCPS_NR_ILR_REGS	128
+ #define INTCPS_NR_MIR_REGS	4
+ 
+@@ -333,8 +336,23 @@ omap_intc_handle_irq(struct pt_regs *regs)
+ 	u32 irqnr;
+ 
+ 	irqnr = intc_readl(INTC_SIR);
++
++	/*
++	 * A spurious IRQ can result if interrupt that triggered the
++	 * sorting is no longer active during the sorting (10 INTC
++	 * functional clock cycles after interrupt assertion). Or a
++	 * change in interrupt mask affected the result during sorting
++	 * time. There is no special handling required except ignoring
++	 * the SIR register value just read and retrying.
++	 * See section 6.2.5 of AM335x TRM Literature Number: SPRUH73K
++	 */
++	if ((irqnr & SPURIOUSIRQ_MASK) == SPURIOUSIRQ_MASK) {
++		pr_debug_ratelimited("%s: spurious irq!\n", __func__);
++		omap_ack_irq(NULL);
++		return;
++	}
++
+ 	irqnr &= ACTIVEIRQ_MASK;
+-	WARN_ONCE(!irqnr, "Spurious IRQ ?\n");
+ 	handle_domain_irq(domain, irqnr, regs);
+ }
+ 
+-- 
+2.4.4.408.g16da57c
