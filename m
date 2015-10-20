@@ -1,12 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap dts changes for v4.4 merge window, part 2
-Date: Tue, 20 Oct 2015 12:35:02 -0700
-Message-ID: <20151020193501.GN3078@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap2: board-generic: use omap4_local_timer_init for
+ AM437x
+Date: Tue, 20 Oct 2015 16:05:59 -0500
+Message-ID: <1445375159-22234-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,74 +16,30 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit be146412501bc2ed49183637605da97f47125696:
+AM437x-based boards, can use omap4_local_timer_init()
+just fine. Let's use that instead.
 
-  ARM: dts: omap3-igep: Use OMAP3_CORE1_IOPAD pinmux macro (2015-10-14 12:28:13 -0700)
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/board-generic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.4/dt-pt2
-
-for you to fetch changes up to e9a267702d32fc8e71abe5f172d2924bad86e52f:
-
-  ARM: dts: am335x-base0033: Use IOPAD pinmux macro (2015-10-20 09:28:04 -0700)
-
-----------------------------------------------------------------
-Few more omap dts changes for v4.4 merge window, mostly to fix and clean
-up some omap5 issues to allow adding other omap5 boards. Also some other
-fixes and clean-up:
-
-- Fix SDIO WLAN for omap5 that's been broken for a while. As further
-  patches are still needed for wl18xx, no need for stable on this one.
-
-- Move most of omap5 support into omap5-board-common.dtsi as most omap5
-  boards seem to share the same basic set of devices.
-
-- Add minimal IGEPv5 support using based on omap5-board-common.dtsi
-
-- Remove now unneedes gpio hogging for dra72-evm
-
-- Update Javier Martinez Canillas email address
-
-- Change earlier IGEP boards to use IOPAD pinmux macros
-
-----------------------------------------------------------------
-Javier Martinez Canillas (4):
-      ARM: dts: Update Javier Martinez Canillas's email
-      ARM: dts: omap3-igep0020: Use IOPAD pinmux macro
-      ARM: dts: am335x-igep0033: Use IOPAD pinmux macro
-      ARM: dts: am335x-base0033: Use IOPAD pinmux macro
-
-Mugunthan V N (1):
-      ARM: dts: dra72-evm: remove cpsw gpio hogging and add mode-gpios
-
-Tony Lindgren (3):
-      ARM: dts: Fix WLAN regression on omap5-uevm
-      ARM: dts: Move most of omap5-uevm.dts to omap5-board-common.dtsi
-      ARM: dts: Add basic support for isee igepv5
-
-Vignesh R (1):
-      ARM: dts: am437x-gp-evm: Add wakeup interrupt source for pixcir_i2c_ts
-
- arch/arm/boot/dts/Makefile                   |   1 +
- arch/arm/boot/dts/am335x-base0033.dts        |  48 +-
- arch/arm/boot/dts/am335x-igep0033.dtsi       |  40 +-
- arch/arm/boot/dts/am437x-gp-evm.dts          |   9 +
- arch/arm/boot/dts/dra72-evm.dts              |   7 +-
- arch/arm/boot/dts/omap3-igep.dtsi            |   2 +-
- arch/arm/boot/dts/omap3-igep0020-common.dtsi |  60 +--
- arch/arm/boot/dts/omap3-igep0020-rev-f.dts   |   2 +-
- arch/arm/boot/dts/omap3-igep0020.dts         |   2 +-
- arch/arm/boot/dts/omap3-igep0030-common.dtsi |   2 +-
- arch/arm/boot/dts/omap3-igep0030-rev-g.dts   |   2 +-
- arch/arm/boot/dts/omap3-igep0030.dts         |   2 +-
- arch/arm/boot/dts/omap5-board-common.dtsi    | 655 +++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5-igep0050.dts         |  54 +++
- arch/arm/boot/dts/omap5-uevm.dts             | 618 +------------------------
- 15 files changed, 814 insertions(+), 690 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap5-board-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap5-igep0050.dts
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index fc107bdeb8ca..04a56cc04dfa 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -276,7 +276,7 @@ DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
+ 	.init_late	= am43xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+-	.init_time	= omap3_gptimer_timer_init,
++	.init_time	= omap4_local_timer_init,
+ 	.dt_compat	= am43_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+-- 
+2.6.2
