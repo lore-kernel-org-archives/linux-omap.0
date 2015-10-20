@@ -1,61 +1,86 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [BISECTED] Nokia 770 framebuffer breakage
-Date: Tue, 20 Oct 2015 19:14:28 +0300
-Message-ID: <20151020161428.GB16268@blackmetal.musicnaut.iki.fi>
-References: <20151019193759.GE31069@blackmetal.musicnaut.iki.fi>
- <20151019200522.GJ32536@n2100.arm.linux.org.uk>
- <20151019222413.GG31069@blackmetal.musicnaut.iki.fi>
- <20151019225033.GK32536@n2100.arm.linux.org.uk>
- <20151020085003.GA16268@blackmetal.musicnaut.iki.fi>
- <20151020090700.GL32536@n2100.arm.linux.org.uk>
- <20151020160524.GN32536@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] soc: ti: Introduce wkup_m3_ipc driver
+Date: Tue, 20 Oct 2015 09:18:43 -0700
+Message-ID: <20151020161843.GE3078@atomide.com>
+References: <1442967294-23837-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151020160524.GN32536@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1442967294-23837-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Keerty J <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi all,
 
-On Tue, Oct 20, 2015 at 05:05:24PM +0100, Russell King - ARM Linux wrote:
-> On Tue, Oct 20, 2015 at 10:07:00AM +0100, Russell King - ARM Linux wrote:
-> > On Tue, Oct 20, 2015 at 11:50:03AM +0300, Aaro Koskinen wrote:
-> > > On Mon, Oct 19, 2015 at 11:50:33PM +0100, Russell King - ARM Linux wrote:
-> > > > It shouldn't (I've been through the resulting assembly code.)  I wonder
-> > > > if this is fixing the problem, but it's now failing elsewhere instead.
-> > > > 
-> > > > What happens if you change it to:
-> > > > 
-> > > > 	l = clkdev_create(r, alias, alias_dev_name);
-> > > > 
-> > > > which should be 100% identical to how older kernels behaved
-> > > 
-> > > Ok, this and the earlier patch works on top of
-> > > 2568999835d7797afce3dcc3a3f368051ffcaf1f, but not on 4.2 or newer - so
-> > > it fixes the clk_add_alias issue, and newer kernels have other issues...
-> > 
-> > Thanks, so this fixes the regression you were seeing with the above
-> > mentioned commit, so I'll get that into mainline and stable kernels.
-> > 
-> > Can I add a tested-by tag for it please?
+* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [150922 17:20]:
+> Hi,
+> This series is version 3 of the code to introduce a wkup_m3_ipc driver
+> to handle communication between the MPU and Cortex M3 present on TI AM335x
+> and AM437x SoCs. v2 of this series can be found at [1]. Only patch 3
+> has been changed based on a request from Tony and a few cleanups:
 > 
-> Also make that reported-by as well.
+> - Rather than exporting all of the functionality of the driver, added
+>   wkup_m3_ipc_get and wkup_m3_ipc_put to allow users to just get a handle
+>   containing an ops structure for use.
 > 
-> I'll hold the patch back pending a reply...
+> - Changed all ops (previously exported functions) to take pointer to
+>   struct wkup_m3_ipc as an argument now that user code will get this
+>   from wkup_m3_ipc_get.
+> 
+> - General cleanup to probe function
+> 
+> - Added MODULE_DEVICE_TABLE so driver can probe automatically.
+> 
+> The series containing the DT nodes can be found here [2]. The actual dt
+> nodes for wkup_m3_ipc (last two patches) have been merged but discussion
+> is still open for the ti,mbox-send-noirq flag patches and depends on the
+> comments provided for the omap-mailbox change presented in patch 1 of
+> this series.
+> 
+> A full branch containing all necessary PM code for both am335x and am437x
+> has been pushed here [3] to provide a big picture view of the plan for
+> this series.
+> 
+> This driver relies on the firmware at [4] in the next-upstream branch
+> being present in /lib/firmware in the rootfs or built in to the kernel.
 
-Yes, both or either are fine.
+Anybody got comments on this one? Should I pick up this series or
+what's the plan?
 
-A.
+Regards,
+
+Tony
+
+
+> [1] https://lkml.org/lkml/2015/7/17/797
+> [2] https://lkml.org/lkml/2015/7/17/813
+> [3] https://github.com/dgerlach/linux-pm/tree/pm-v4.3-rc1-amx3-suspend
+> [4] https://git.ti.com/ti-cm3-pm-firmware
+> 
+> Dave Gerlach (3):
+>   mailbox/omap: Add ti,mbox-send-noirq quirk to fix AM33xx CPU Idle
+>   Documentation: dt: add bindings for TI Wakeup M3 IPC device
+>   soc: ti: Add wkup_m3_ipc driver
+> 
+>  .../devicetree/bindings/mailbox/omap-mailbox.txt   |   8 +
+>  .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt     |  57 +++
+>  drivers/mailbox/omap-mailbox.c                     |  49 +-
+>  drivers/soc/ti/Kconfig                             |  10 +
+>  drivers/soc/ti/Makefile                            |   1 +
+>  drivers/soc/ti/wkup_m3_ipc.c                       | 508 +++++++++++++++++++++
+>  include/linux/wkup_m3_ipc.h                        |  55 +++
+>  7 files changed, 684 insertions(+), 4 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+>  create mode 100644 drivers/soc/ti/wkup_m3_ipc.c
+>  create mode 100644 include/linux/wkup_m3_ipc.h
+> 
+> -- 
+> 2.4.6
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
