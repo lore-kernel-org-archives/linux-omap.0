@@ -1,69 +1,47 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
+From: "Anton.Glukhov" <anton.a.glukhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH] net, can, ti_hecc: add DT support for the ti,hecc
  controller
-Date: Tue, 20 Oct 2015 17:20:36 +0200
-Message-ID: <56265BC4.8080403@pengutronix.de>
+Date: Tue, 20 Oct 2015 18:38:06 +0300
+Message-ID: <56265FDE.9050307@gmail.com>
 References: <1445236757-29019-1-git-send-email-hs@denx.de>
  <56249491.4020009@pengutronix.de> <56249B58.6090100@denx.de>
  <56249C3F.3080000@pengutronix.de> <56265661.7000509@gmail.com>
  <56265852.6000601@pengutronix.de> <56265947.8050008@gmail.com>
- <56265B55.2070203@pengutronix.de>
+ <56265B55.2070203@pengutronix.de> <56265BC4.8080403@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="U4N3LwP0TtCQv4oPeFGde3Nt3bNSuGJ3i"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <56265B55.2070203@pengutronix.de>
-Sender: linux-can-owner@vger.kernel.org
-To: "Anton.Glukhov" <anton.a.glukhov@gmail.com>, hs@denx.de
-Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Anant Gole <anantgole@ti.com>, devicetree@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfgang Grandegger <wg@grandegger.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56265BC4.8080403-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, hs-ynQEQJNshbs@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Anant Gole <anantgole-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfgang Grandegger <wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---U4N3LwP0TtCQv4oPeFGde3Nt3bNSuGJ3i
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 10/20/2015 05:18 PM, Marc Kleine-Budde wrote:
-> On 10/20/2015 05:09 PM, Anton.Glukhov wrote:
->>>> It's OMAP3 based arch, but HECC is implemented only in AM3505 and AM=
-3517 SoCs.
->>>> So, I'm confused about what's "name" should I use.
->>>
->>> Which SoC was available first? Pick that.
->=20
->> What do you mean available? I know only that HECC appear in AM3505 and=
- AM3517. Nowhere else.
->=20
-> Available on the market. Which one was produced first or was soldered
-> first to some PCB?
-
-A colleague just looked it up, a AM3517 is a AM3505 with 3d graphics. So
-pick AM3505.
-
-Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
 
---U4N3LwP0TtCQv4oPeFGde3Nt3bNSuGJ3i
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+On 20.10.2015 18:20, Marc Kleine-Budde wrote:
+> On 10/20/2015 05:18 PM, Marc Kleine-Budde wrote:
+>> On 10/20/2015 05:09 PM, Anton.Glukhov wrote:
+>>>>> It's OMAP3 based arch, but HECC is implemented only in AM3505 and AM3517 SoCs.
+>>>>> So, I'm confused about what's "name" should I use.
+>>>>
+>>>> Which SoC was available first? Pick that.
+>>
+>>> What do you mean available? I know only that HECC appear in AM3505 and AM3517. Nowhere else.
+>>
+>> Available on the market. Which one was produced first or was soldered
+>> first to some PCB?
+> 
+> A colleague just looked it up, a AM3517 is a AM3505 with 3d graphics. So
+> pick AM3505.
 
------BEGIN PGP SIGNATURE-----
+Ok, thank you for help!
 
-iQEcBAEBCgAGBQJWJlvEAAoJEP5prqPJtc/H1pUH+wU1Ei8QoFxN8lEQ6sFEyjLW
-ZSJ3Dhpf8jkSwhi8LkLBo2Sv9yI4/22LNkuiKI8jf7qi3xD6pMPinooIHxaswD1O
-/Aw+yWRXq5pjHzSKeDTgIOSWQr4AFp3RvHEMpYap1A2BqcdUsxi/c+0E41VDZOhA
-ccDTuXezFcXgKFZhi3dFhfDAIuQxLQ3RuDB7UFFtyY/zMB9nbV49p2JiIaoOJuwX
-po8qUu1eJyA2qHdtmw0c1xalti+HqtYkcQGtk2PclBE/wiyoWWuL8zv9lvhXZnG+
-kzUXOmezsyBmT9bqeDtb591r0/j4n0R4OGfFtkAGK8OnQTDe+AXzwnumEioYwTs=
-=fH6R
------END PGP SIGNATURE-----
-
---U4N3LwP0TtCQv4oPeFGde3Nt3bNSuGJ3i--
+> 
+> Marc
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
