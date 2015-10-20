@@ -1,43 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] ARM: dts: Use IOPAD pinmux for IGEP boards
-Date: Tue, 20 Oct 2015 09:26:09 -0700
-Message-ID: <20151020162608.GI3078@atomide.com>
-References: <1445268861-11857-1-git-send-email-javier@osg.samsung.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [BISECTED] Nokia 770 framebuffer breakage
+Date: Tue, 20 Oct 2015 17:28:00 +0100
+Message-ID: <20151020162800.GO32536@n2100.arm.linux.org.uk>
+References: <20151019193759.GE31069@blackmetal.musicnaut.iki.fi>
+ <20151019200522.GJ32536@n2100.arm.linux.org.uk>
+ <20151019222413.GG31069@blackmetal.musicnaut.iki.fi>
+ <20151019225033.GK32536@n2100.arm.linux.org.uk>
+ <20151020085003.GA16268@blackmetal.musicnaut.iki.fi>
+ <20151020090700.GL32536@n2100.arm.linux.org.uk>
+ <20151020160524.GN32536@n2100.arm.linux.org.uk>
+ <20151020161428.GB16268@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1445268861-11857-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20151020161428.GB16268@blackmetal.musicnaut.iki.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [151019 08:39]:
-> Hello,
+On Tue, Oct 20, 2015 at 07:14:28PM +0300, Aaro Koskinen wrote:
+> Hi,
 > 
-> This series use the IOPAD pinmux macros for the remaining IGEP boards that
-> still used the register offset instead of the physical address using these
-> macros so the DTS matches what is in the Technical Reference Manual.
+> On Tue, Oct 20, 2015 at 05:05:24PM +0100, Russell King - ARM Linux wrote:
+> > On Tue, Oct 20, 2015 at 10:07:00AM +0100, Russell King - ARM Linux wrote:
+> > > On Tue, Oct 20, 2015 at 11:50:03AM +0300, Aaro Koskinen wrote:
+> > > > On Mon, Oct 19, 2015 at 11:50:33PM +0100, Russell King - ARM Linux wrote:
+> > > > > It shouldn't (I've been through the resulting assembly code.)  I wonder
+> > > > > if this is fixing the problem, but it's now failing elsewhere instead.
+> > > > > 
+> > > > > What happens if you change it to:
+> > > > > 
+> > > > > 	l = clkdev_create(r, alias, alias_dev_name);
+> > > > > 
+> > > > > which should be 100% identical to how older kernels behaved
+> > > > 
+> > > > Ok, this and the earlier patch works on top of
+> > > > 2568999835d7797afce3dcc3a3f368051ffcaf1f, but not on 4.2 or newer - so
+> > > > it fixes the clk_add_alias issue, and newer kernels have other issues...
+> > > 
+> > > Thanks, so this fixes the regression you were seeing with the above
+> > > mentioned commit, so I'll get that into mainline and stable kernels.
+> > > 
+> > > Can I add a tested-by tag for it please?
+> > 
+> > Also make that reported-by as well.
+> > 
+> > I'll hold the patch back pending a reply...
 > 
-> The changes are only cosmetic since they make the DTS easier to read but
-> does not change functionality. I built tested and compared the binary DTB
-> MD5 checksum and both matches before and after the series applied:
-> 
-> Before
-> 
-> d7a56205bdc54365d49d9a90dfe3fafb  am335x-base0033.dtb
-> fa272fcdee65d7bf4c03bd5a6c5ec4fd  omap3-igep0020.dtb
-> ba65bf74d8c6ea8e7bd8face17179e6e  omap3-igep0020-rev-f.dtb
-> 
-> After
-> 
-> d7a56205bdc54365d49d9a90dfe3fafb  am335x-base0033.dtb
-> fa272fcdee65d7bf4c03bd5a6c5ec4fd  omap3-igep0020.dtb
-> ba65bf74d8c6ea8e7bd8face17179e6e  omap3-igep0020-rev-f.dtb
+> Yes, both or either are fine.
 
-Good idea to test the dtb checksums :)
+Thanks, queued for 4.3 and stable.
 
-Applying all into omap-for-v4.4/dt thanks.
-
-Tony
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
