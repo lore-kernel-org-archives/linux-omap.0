@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] two omap fixes for v4.3-rc cycle
-Date: Tue, 20 Oct 2015 12:34:01 -0700
-Message-ID: <20151020193401.GM3078@atomide.com>
+Subject: [GIT PULL] omap dts changes for v4.4 merge window, part 2
+Date: Tue, 20 Oct 2015 12:35:02 -0700
+Message-ID: <20151020193501.GN3078@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,36 +20,70 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit d8e1f5ed11a39a68da00f05000466c4f6db4456e:
+The following changes since commit be146412501bc2ed49183637605da97f47125696:
 
-  Documentation: ARM: List new omap MMC requirements (2015-10-12 16:23:34 -0700)
+  ARM: dts: omap3-igep: Use OMAP3_CORE1_IOPAD pinmux macro (2015-10-14 12:28:13 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.3/fixes-rc6
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.4/dt-pt2
 
-for you to fetch changes up to 57df5380853460bc66b59a46273ce113c923d39c:
+for you to fetch changes up to e9a267702d32fc8e71abe5f172d2924bad86e52f:
 
-  ARM: OMAP2+: Fix imprecise external abort caused by bogus SRAM init (2015-10-19 08:55:46 -0700)
-
-----------------------------------------------------------------
-Fixes for omaps for v4.3-rc cycle:
-
-- Fix oops with LPAE and moew than 2GB of memory by enabling
-  ZONE_DMA for LPAE. Probably no need for stable on this one as we
-  only recently ran into this with the mainline kernel
-
-- Fix imprecise external abort caused by bogus SRAM init. This affects
-  dm814x recently merged, so no need for stable on this one AFAIK
+  ARM: dts: am335x-base0033: Use IOPAD pinmux macro (2015-10-20 09:28:04 -0700)
 
 ----------------------------------------------------------------
-Tony Lindgren (2):
-      ARM: OMAP2+: Fix oops with LPAE and more than 2GB of memory
-      ARM: OMAP2+: Fix imprecise external abort caused by bogus SRAM init
+Few more omap dts changes for v4.4 merge window, mostly to fix and clean
+up some omap5 issues to allow adding other omap5 boards. Also some other
+fixes and clean-up:
 
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts |  2 +-
- arch/arm/boot/dts/omap3-evm-37xx.dts              |  2 +-
- arch/arm/mach-omap2/Kconfig                       |  2 ++
- arch/arm/mach-omap2/board-generic.c               | 10 ++++++++++
- arch/arm/mach-omap2/pdata-quirks.c                |  9 ++++++++-
- 5 files changed, 22 insertions(+), 3 deletions(-)
+- Fix SDIO WLAN for omap5 that's been broken for a while. As further
+  patches are still needed for wl18xx, no need for stable on this one.
+
+- Move most of omap5 support into omap5-board-common.dtsi as most omap5
+  boards seem to share the same basic set of devices.
+
+- Add minimal IGEPv5 support using based on omap5-board-common.dtsi
+
+- Remove now unneedes gpio hogging for dra72-evm
+
+- Update Javier Martinez Canillas email address
+
+- Change earlier IGEP boards to use IOPAD pinmux macros
+
+----------------------------------------------------------------
+Javier Martinez Canillas (4):
+      ARM: dts: Update Javier Martinez Canillas's email
+      ARM: dts: omap3-igep0020: Use IOPAD pinmux macro
+      ARM: dts: am335x-igep0033: Use IOPAD pinmux macro
+      ARM: dts: am335x-base0033: Use IOPAD pinmux macro
+
+Mugunthan V N (1):
+      ARM: dts: dra72-evm: remove cpsw gpio hogging and add mode-gpios
+
+Tony Lindgren (3):
+      ARM: dts: Fix WLAN regression on omap5-uevm
+      ARM: dts: Move most of omap5-uevm.dts to omap5-board-common.dtsi
+      ARM: dts: Add basic support for isee igepv5
+
+Vignesh R (1):
+      ARM: dts: am437x-gp-evm: Add wakeup interrupt source for pixcir_i2c_ts
+
+ arch/arm/boot/dts/Makefile                   |   1 +
+ arch/arm/boot/dts/am335x-base0033.dts        |  48 +-
+ arch/arm/boot/dts/am335x-igep0033.dtsi       |  40 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts          |   9 +
+ arch/arm/boot/dts/dra72-evm.dts              |   7 +-
+ arch/arm/boot/dts/omap3-igep.dtsi            |   2 +-
+ arch/arm/boot/dts/omap3-igep0020-common.dtsi |  60 +--
+ arch/arm/boot/dts/omap3-igep0020-rev-f.dts   |   2 +-
+ arch/arm/boot/dts/omap3-igep0020.dts         |   2 +-
+ arch/arm/boot/dts/omap3-igep0030-common.dtsi |   2 +-
+ arch/arm/boot/dts/omap3-igep0030-rev-g.dts   |   2 +-
+ arch/arm/boot/dts/omap3-igep0030.dts         |   2 +-
+ arch/arm/boot/dts/omap5-board-common.dtsi    | 655 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap5-igep0050.dts         |  54 +++
+ arch/arm/boot/dts/omap5-uevm.dts             | 618 +------------------------
+ 15 files changed, 814 insertions(+), 690 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap5-board-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-igep0050.dts
