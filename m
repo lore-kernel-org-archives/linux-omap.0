@@ -1,28 +1,45 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH RFC RFT 2/3] clk: clk_put WARNs if user has not disabled
- clk
-Date: Tue, 20 Oct 2015 13:52:52 +0100
-Message-ID: <20151020125251.GM32536@n2100.arm.linux.org.uk>
-References: <1438974570-20812-1-git-send-email-mturquette@baylibre.com>
- <1438974570-20812-3-git-send-email-mturquette@baylibre.com>
- <CAMuHMdX8Fq3AfxuZMLe4-CYFzrDiQcwnREQhX5fSGXzYNSkKsA@mail.gmail.com>
- <20151020124000.20687.60752@quantum>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [BISECTED] Nokia 770 framebuffer breakage
+Date: Tue, 20 Oct 2015 07:47:07 -0700
+Message-ID: <20151020144707.GA3078@atomide.com>
+References: <20151019193759.GE31069@blackmetal.musicnaut.iki.fi>
+ <20151019200522.GJ32536@n2100.arm.linux.org.uk>
+ <20151019222413.GG31069@blackmetal.musicnaut.iki.fi>
+ <20151019225033.GK32536@n2100.arm.linux.org.uk>
+ <20151020085003.GA16268@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20151020124000.20687.60752@quantum>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Sascha Hauer <s.hauer@pengutronix.de>, Linux-sh list <linux-sh@vger.kernel.org>, Stephen Boyd <sboyd@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-clk <linux-clk@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20151020085003.GA16268@blackmetal.musicnaut.iki.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 20, 2015 at 05:40:00AM -0700, Michael Turquette wrote:
-> Why not keep the reference to the struct clk after get'ing it the first
-> time?
+Hi,
 
-Yes, that's exactly what you're supposed to do in this case.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [151020 01:51]:
+> 
+> With newer kernels and this fix the kernel now hangs during FB
+> initialization. I tried to bisect it and it seemed to point to OMAP1
+> sparse IRQ changes. Unfortunately those are difficult to test because
+> e.g. commit 685e2d08c54b1a1bf31bbe6562f06db089d31c7b does not seem to
+> compile without some other changes...
 
--- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+If you need to bisect just the omap1 sparse irq changes, maybe you can
+do it between v4.1-rc3..685e2d08c54b1 plus your extra patch carried.
+
+
+Regards,
+
+Tony
