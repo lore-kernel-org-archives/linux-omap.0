@@ -1,67 +1,61 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] ARM: dts: omap5-uevm: enable iio gpadc for Palmas
-Date: Tue, 20 Oct 2015 18:48:00 +0200
-Message-ID: <A872C46B-C0CF-4C67-9615-0A46EDAE9A57@goldelico.com>
-References: <cover.1445000017.git.hns@goldelico.com> <05c57453151c9e2cbd3f15145f1e15223410cd87.1445000017.git.hns@goldelico.com> <20151020162425.GH3078@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151020162425.GH3078-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Pradeep Goudagunta <pgoudagunta-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH 0/3] ARM: dts: Use IOPAD pinmux for IGEP boards
+Date: Tue, 20 Oct 2015 19:26:34 +0200
+Message-ID: <5626794A.8010208@osg.samsung.com>
+References: <1445268861-11857-1-git-send-email-javier@osg.samsung.com>
+ <20151020162608.GI3078@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151020162608.GI3078@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello Tony,
 
-Am 20.10.2015 um 18:24 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
-
-> Hi,
+On 10/20/2015 06:26 PM, Tony Lindgren wrote:
+> * Javier Martinez Canillas <javier@osg.samsung.com> [151019 08:39]:
+>> Hello,
+>>
+>> This series use the IOPAD pinmux macros for the remaining IGEP boards that
+>> still used the register offset instead of the physical address using these
+>> macros so the DTS matches what is in the Technical Reference Manual.
+>>
+>> The changes are only cosmetic since they make the DTS easier to read but
+>> does not change functionality. I built tested and compared the binary DTB
+>> MD5 checksum and both matches before and after the series applied:
+>>
+>> Before
+>>
+>> d7a56205bdc54365d49d9a90dfe3fafb  am335x-base0033.dtb
+>> fa272fcdee65d7bf4c03bd5a6c5ec4fd  omap3-igep0020.dtb
+>> ba65bf74d8c6ea8e7bd8face17179e6e  omap3-igep0020-rev-f.dtb
+>>
+>> After
+>>
+>> d7a56205bdc54365d49d9a90dfe3fafb  am335x-base0033.dtb
+>> fa272fcdee65d7bf4c03bd5a6c5ec4fd  omap3-igep0020.dtb
+>> ba65bf74d8c6ea8e7bd8face17179e6e  omap3-igep0020-rev-f.dtb
 > 
-> * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [151016 05:58]:
->> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
->> ---
->> arch/arm/boot/dts/omap5-uevm.dts | 10 ++++++++++
->> 1 file changed, 10 insertions(+)
->> 
->> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
->> index 0e8128b..63f81bb 100644
->> --- a/arch/arm/boot/dts/omap5-uevm.dts
->> +++ b/arch/arm/boot/dts/omap5-uevm.dts
->> @@ -342,6 +342,16 @@
->> 
->> 			ti,ldo6-vibrator;
->> 
->> +			gpadc {
->> +				compatible = "ti,palmas-gpadc";
->> +				interrupts = <18 0
->> +					      16 0
->> +					      17 0>;
->> +				#io-channel-cells = <1>;
->> +				ti,channel0-current-microamp = <5>;
->> +				ti,channel3-current-microamp = <10>;
->> +			};
->> +
->> 			regulators {
->> 				smps123_reg: smps123 {
->> 					/* VDD_OPP_MPU */
+> Good idea to test the dtb checksums :)
+>
+
+:)
+ 
+> Applying all into omap-for-v4.4/dt thanks.
+>
+
+Thanks, I'm planning to convert the remaining OMAP dts but I'm quite busy
+this week and traveling the next one so that would have to wait for v4.5
+ 
+> Tony
 > 
-> FYI, please send this one separately once the binding and driver is
-> merged.
-> 
-> This need to be updated arch/arm/boot/dts/omap5-board-common.dts, so
-> this will cause merge conflicts if applied with the driver.
 
-Ok!
-
-We have our own OMAP5 board in the pipeline and there it will help
-as well to rebase it using arch/arm/boot/dts/omap5-board-common.dts
-
-BR,
-Nikolaus
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
