@@ -1,43 +1,61 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 1/1] ARM: DTS: dra72-evm: remove cpsw gpio hogging and
- add mode-gpios
-Date: Tue, 20 Oct 2015 09:16:41 -0700
-Message-ID: <20151020161640.GD3078@atomide.com>
-References: <1442847231-23637-1-git-send-email-mugunthanvnm@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [BISECTED] Nokia 770 framebuffer breakage
+Date: Tue, 20 Oct 2015 19:14:28 +0300
+Message-ID: <20151020161428.GB16268@blackmetal.musicnaut.iki.fi>
+References: <20151019193759.GE31069@blackmetal.musicnaut.iki.fi>
+ <20151019200522.GJ32536@n2100.arm.linux.org.uk>
+ <20151019222413.GG31069@blackmetal.musicnaut.iki.fi>
+ <20151019225033.GK32536@n2100.arm.linux.org.uk>
+ <20151020085003.GA16268@blackmetal.musicnaut.iki.fi>
+ <20151020090700.GL32536@n2100.arm.linux.org.uk>
+ <20151020160524.GN32536@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1442847231-23637-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20151020160524.GN32536@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> [150921 07:58]:
-> With the current implementation of GPIO hogging and with
-> gpio-pcf857x is built as module, ethernet doesn't work on boot
-> and doesn't throw any error/warning to user. Ethernet becomes
-> operational when inserting gpio-pcf857x module, even this time
-> there is no error/warning logs to user that ethernet is
-> operational.
-> 
-> When using with NFS rootfs and gpio-pcf857x as module, board
-> doesn't boot as it doesn't get any ip address and doesn't throw
-> any error/warning. To over come this, now cpsw driver tries to
-> get mode-gpios. When gpio-pcf857x is built as module it will
-> throw error, so that user can decide either to built in
-> gpio-pcf857x to continue with nfs boot or choose alternate rootfs
-> filesystem like sd/ramdisk.
-> 
-> When using mmc/ramdisk as root fs, cpsw will probe defer and
-> re-probes again when gpio-pcf857x module is inserted and ethernet
-> becomes operational.
+Hi,
 
-Applying into omap-for-v4.4/dt thanks.
+On Tue, Oct 20, 2015 at 05:05:24PM +0100, Russell King - ARM Linux wrote:
+> On Tue, Oct 20, 2015 at 10:07:00AM +0100, Russell King - ARM Linux wrote:
+> > On Tue, Oct 20, 2015 at 11:50:03AM +0300, Aaro Koskinen wrote:
+> > > On Mon, Oct 19, 2015 at 11:50:33PM +0100, Russell King - ARM Linux wrote:
+> > > > It shouldn't (I've been through the resulting assembly code.)  I wonder
+> > > > if this is fixing the problem, but it's now failing elsewhere instead.
+> > > > 
+> > > > What happens if you change it to:
+> > > > 
+> > > > 	l = clkdev_create(r, alias, alias_dev_name);
+> > > > 
+> > > > which should be 100% identical to how older kernels behaved
+> > > 
+> > > Ok, this and the earlier patch works on top of
+> > > 2568999835d7797afce3dcc3a3f368051ffcaf1f, but not on 4.2 or newer - so
+> > > it fixes the clk_add_alias issue, and newer kernels have other issues...
+> > 
+> > Thanks, so this fixes the regression you were seeing with the above
+> > mentioned commit, so I'll get that into mainline and stable kernels.
+> > 
+> > Can I add a tested-by tag for it please?
+> 
+> Also make that reported-by as well.
+> 
+> I'll hold the patch back pending a reply...
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, both or either are fine.
+
+A.
