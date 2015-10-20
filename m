@@ -1,18 +1,16 @@
-From: Pau Pajuel <ppajuel@gmail.com>
-Subject: Re: [PATCH 3/3] ARM: dts: Add basic support for isee igepv5
-Date: Tue, 20 Oct 2015 12:34:11 +0200
-Message-ID: <CAMVEqEmDoQvnVfQXF9QvtyjPe2RRGe1wf=6=VifGPcSOKLcnbg@mail.gmail.com>
-References: <1444756728-11185-1-git-send-email-tony@atomide.com>
- <1444756728-11185-3-git-send-email-tony@atomide.com>
- <CAFqH_52T8rPJp-8+Bb7Tjv-kcACU8FJGtqFWOhj02DzQ2yc7nw@mail.gmail.com>
- <20151016145707.GU10113@atomide.com>
- <CAMVEqEkoXoE1wgT8p5BNW7TAjz5Xtcvx7gXvk7rbdQXg8bXpzg@mail.gmail.com>
- <20151019145052.GB21839@atomide.com>
+From: Michael Turquette <mturquette@baylibre.com>
+Subject: Re: [PATCH RFC RFT 2/3] clk: clk_put WARNs if user has not disabled
+ clk
+Date: Tue, 20 Oct 2015 05:40:00 -0700
+Message-ID: <20151020124000.20687.60752@quantum>
+References: <1438974570-20812-1-git-send-email-mturquette@baylibre.com>
+ <1438974570-20812-3-git-send-email-mturquette@baylibre.com>
+ <CAMuHMdX8Fq3AfxuZMLe4-CYFzrDiQcwnREQhX5fSGXzYNSkKsA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151019145052.GB21839@atomide.com>
+In-Reply-To: <CAMuHMdX8Fq3AfxuZMLe4-CYFzrDiQcwnREQhX5fSGXzYNSkKsA@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,65 +20,117 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, Enric Balletbo Serra <eballetbo@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, =?UTF-8?Q?Agust=C3=AD_Fontquerni_i_Gorchs?= <afontquerni@iseebcn.com>, egavin@iseebcn.com, Grazvydas Ignotas <notasas@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, Marek Belisko <marek@goldelico.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Sascha Hauer <s.hauer@pengutronix.de>, Linux-sh list <linux-sh@vger.kernel.org>, Stephen Boyd <sboyd@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-clk <linux-clk@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-2015-10-19 16:50 GMT+02:00 Tony Lindgren <tony@atomide.com>:
-> * Pau Pajuel <ppajuel@gmail.com> [151019 06:40]:
->> Hi Tony,
->> 2015-10-16 16:57 GMT+02:00 Tony Lindgren <tony@atomide.com>:
->> > >
->> > > So far I've tested that basic things work, such as serial, USB
->> > > Ethernet, HDMI and WLAN.
->
-> Also mSATA works too BTW.
->
->> I am testing your patch without succes. Which u-boot version are you using?
->
-> I'm using the isee git tree u-boot with the following enabled in the
-> omap5_igep0050.h:
->
-> #define IGEPv5_MEMORY_4G
-> #define CONFIG_SUPPORT_RAW_INITRD
-> #define CONFIG_ENV_IS_IN_FAT
-> #define FAT_ENV_INTERFACE               "mmc"
-> #define FAT_ENV_DEVICE                  1
-> #define FAT_ENV_PART                    1
-> #define FAT_ENV_FILE                    "uboot.env"
-> #define CONFIG_FAT_WRITE
->
-> The CONFIG_SUPPORT_RAW_INITRD is needed to support raw initramfs instead of
-> using mkimage on it for bootz command. I don't think these changes should
-> affect booting though.
->
->> Do you apply config changes into omap2plus_defconfig
->
-> Looks like I only enabled CONFIG_USB_NET_SMSC75XX.
->
->> Here is my setup and log: http://pastebin.com/j51ugRvK
->
-> My guess is that you need to play with initrd_high etc, try doing something
-> like this in u-boot:
->
-> setenv fdtaddr 80a00000
-> setenv loadaddr 80c00000
-> setenv rdaddr 81400000
-> setenv fdt_high 8c000000
-> setenv initrd_high ffffffff
-Setting the above environment variables works for me
->
-> And see if that helps?
->
-> BTW, we really need to use initramfs based booting on these for NFS to
-> avoid having to compile all the USB into the kernel. Well at least for
-> the mainline omap2plus_defconfig.
->
-> Regards,
->
-> Tony
+Hi Geert,
 
-Cheers!
+Quoting Geert Uytterhoeven (2015-09-30 08:38:46)
+> Hi Mike,
+> 
+> On Fri, Aug 7, 2015 at 9:09 PM, Michael Turquette
+> <mturquette@baylibre.com> wrote:
+> > From the clk_put kerneldoc in include/linux/clk.h:
+> >
+> > """
+> > Note: drivers must ensure that all clk_enable calls made on this clock
+> > source are balanced by clk_disable calls prior to calling this function.
+> > """
+> >
+> > The common clock framework implementation of the clk.h api has per-user
+> > reference counts for calls to clk_prepare and clk_disable. As such it
+> > can enforce the requirement to properly call clk_disable and
+> > clk_unprepare before calling clk_put.
+> >
+> > Because this requirement is probably violated in many places, this patch
+> > starts with a simple warning. Once offending code has been fixed this
+> > check could additionally release the reference counts automatically.
+> >
+> > Signed-off-by: Michael Turquette <mturquette@baylibre.com>
+> > ---
+> >  drivers/clk/clk.c | 8 ++++++++
+> >  1 file changed, 8 insertions(+)
+> >
+> > diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> > index 72feee9..6ec0f77 100644
+> > --- a/drivers/clk/clk.c
+> > +++ b/drivers/clk/clk.c
+> > @@ -2764,6 +2764,14 @@ void __clk_put(struct clk *clk)
+> >             clk->max_rate < clk->core->req_rate)
+> >                 clk_core_set_rate_nolock(clk->core, clk->core->req_rate);
+> >
+> > +       /*
+> > +        * before calling clk_put, all calls to clk_prepare and clk_enable from
+> > +        * a given user must be balanced with calls to clk_disable and
+> > +        * clk_unprepare by that same user
+> > +        */
+> > +       WARN_ON(clk->prepare_count);
+> > +       WARN_ON(clk->enable_count);
+> 
+> These two WARN_ON()s are triggered a lot when using a legacy clock domain,
+> and CONFIG_PM=n. Indeed, without Runtime PM, the idea is that the module clocks
+> get enabled unconditionally, which violates the assumptions above.
+> 
+> Cfr. the CONFIG_PM=n version of pm_clk_notify() in
+> drivers/base/power/clock_ops.c, which calls enable_clock():
+> 
+>     /**
+>      * enable_clock - Enable a device clock.
+>      * @dev: Device whose clock is to be enabled.
+>      * @con_id: Connection ID of the clock.
+>      */
+>     static void enable_clock(struct device *dev, const char *con_id)
+>     {
+>             struct clk *clk;
+> 
+>             clk = clk_get(dev, con_id);
+>             if (!IS_ERR(clk)) {
+>                     clk_prepare_enable(clk);
+>                     clk_put(clk);
 
-Pau
+This is a violation of the clkdev api as defined in include/linux/clk.h:
+
+	/**
+	 * clk_put|------ "free" the clock source
+	 * @clk: clock source
+	 *
+	 * Note: drivers must ensure that all clk_enable calls made on this
+	 * clock source are balanced by clk_disable calls prior to calling
+	 * this function.
+
+So the WARN is doing its job and letting us know about incorrect use of
+the API.
+
+>                     dev_info(dev, "Runtime PM disabled, clock forced on.\n");
+>             }
+>     }
+> 
+> I think this affects shmobile, keystone, davinci, omap1, and legacy sh.
+
+Why not keep the reference to the struct clk after get'ing it the first
+time?
+
+> 
+> Sorry for not noticing before, we usually build with CONFIG_PM=y.
+> One more reason for making CONFIG_PM=y mandatory on SoCs with clock domains?
+
+I don't know about that, but it seems like a reason to fix the clkdev
+usage in the clock domain code.
+
+What do you think?
+
+Regards,
+Mike
+
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
