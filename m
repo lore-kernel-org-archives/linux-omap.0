@@ -1,55 +1,82 @@
-From: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 1/3] mailbox/omap: Add ti,mbox-send-noirq quirk to fix
- AM33xx CPU Idle
-Date: Wed, 21 Oct 2015 10:14:37 +0530
-Message-ID: <CABb+yY0rCGCj=vkNXP1c9zonX+snBxdKFeQ4JCo2aKb-h6JhCw@mail.gmail.com>
-References: <1442967294-23837-1-git-send-email-d-gerlach@ti.com>
-	<1442967294-23837-2-git-send-email-d-gerlach@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: omap3: keep ssi ports by default
+Date: Wed, 21 Oct 2015 11:08:48 +0300
+Message-ID: <56274810.9070301@ti.com>
+References: <1444819456-26728-1-git-send-email-rogerq@ti.com>
+ <1444819456-26728-3-git-send-email-rogerq@ti.com>
+ <20151019160158.GB22043@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442967294-23837-2-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Devicetree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Keerty J <j-keerthy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151019160158.GB22043@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: wsa@the-dreams.de, sre@kernel.org, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 23, 2015 at 5:44 AM, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> wrote:
-> The mailbox framework controls the transmission queue and requires
-> either its controller implementations or clients to run the state
-> machine for the Tx queue. The OMAP mailbox controller uses a Tx-ready
-> interrupt as the equivalent of a Tx-done interrupt to run this Tx
-> queue state-machine.
->
-> The WkupM3 processor on AM33xx and AM43xx SoCs is used to offload
-> certain PM tasks, like doing the necessary operations for Device
-> PM suspend/resume or for entering lower c-states during cpuidle.
->
-> The CPUIdle on AM33xx requires the messages to be sent without
-> having to trigger the Tx-ready interrupts, as the interrupt
-> would immediately terminate the CPUIdle operation. Support for
-> this has been added by introducing a DT quirk, "ti,mbox-send-noirq"
-> and using it to modify the normal OMAP mailbox controller behavior
-> on the sub-mailboxes used to communicate with the WkupM3 remote
-> processor. This also requires the wkup_m3_ipc driver to adjust
-> its mailbox usage logic to run the Tx state machine.
->
-Probably Suman already updated you on what was discussed about this
-patch at Connect-SFO. My suggestion was to drive TX poll-based (I
-know, I know...) because the "interrupt-driven" is just an impression,
-it is not really. You get the interrupt as soon as you enable it
-because it is the "FIFO not-full" interrupt which is always because
-there is always space left after writing to the fifo. The cons are
-that it buffers messages hidden from the client while abusing the irq.
-If you guys could break away from the "interrupt-driven" illusion and
-use polling which it actually is, everything falls into place and you
-avoid the "ti,mbox-send-noirq" quirk.
+On 19/10/15 19:01, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [151014 03:48]:
+>> Let's keep the SSI ports disabled in the omap3.dtsi to avoid
+>> getting the following noise on the console for boards that don't
+>> use the SSI ports.
+>>
+>> "omap_ssi_port 4805a000.ssi-port: DT data is missing cawake gpio (err=-2)"
+>>
+>> As omap3-n900 uses one SSI port, mark it enabled there.
+> 
+> This is the wrong way around.. The SSI ports are there on all omap3 SoCs,
+> we do want to have the struct device created for them. It's best to have
+> the driver probe and then idle SSI and bail out. Marking something with
+> status = "disabled" should be only used if you really want to avoid kernel
+> touching the device at all, for example, if something is managed from
+> the start by a copropcessor.
 
-  Anyways I am OK too, if you guys want to fix it with a platform
-specific quirk. Let me know I'll pick this patch.
+Agreed. Please ignore this patch.
 
-Cheers!
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
+
+> 
+> 
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap3-n900.dts | 1 +
+>>  arch/arm/boot/dts/omap3.dtsi     | 2 ++
+>>  2 files changed, 3 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+>> index 5f5e0f3..bdb72fb 100644
+>> --- a/arch/arm/boot/dts/omap3-n900.dts
+>> +++ b/arch/arm/boot/dts/omap3-n900.dts
+>> @@ -949,6 +949,7 @@
+>>  };
+>>  
+>>  &ssi_port1 {
+>> +	status = "ok";
+>>  	pinctrl-names = "default";
+>>  	pinctrl-0 = <&ssi_pins>;
+>>  
+>> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+>> index 8a2b253..25b0b37 100644
+>> --- a/arch/arm/boot/dts/omap3.dtsi
+>> +++ b/arch/arm/boot/dts/omap3.dtsi
+>> @@ -815,6 +815,7 @@
+>>  				interrupt-parent = <&intc>;
+>>  				interrupts = <67>,
+>>  					     <68>;
+>> +				status = "disabled";
+>>  			};
+>>  
+>>  			ssi_port2: ssi-port@4805b000 {
+>> @@ -828,6 +829,7 @@
+>>  				interrupt-parent = <&intc>;
+>>  				interrupts = <69>,
+>>  					     <70>;
+>> +				status = "disabled";
+>>  			};
+>>  		};
+>>  	};
+>> -- 
+>> 2.1.4
+>>
