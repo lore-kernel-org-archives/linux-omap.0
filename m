@@ -1,221 +1,230 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v10 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Wed, 21 Oct 2015 17:34:12 +0200
-Message-ID: <1445441654-31778-3-git-send-email-tomeu.vizoso@collabora.com>
-References: <1445441654-31778-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Michael Turquette <mturquette@baylibre.com>
+Subject: Re: [PATCH RFC RFT 2/3] clk: clk_put WARNs if user has not disabled clk
+Date: Wed, 21 Oct 2015 08:50:57 -0700
+Message-ID: <20151021155057.20687.14055@quantum>
+References: <1438974570-20812-1-git-send-email-mturquette@baylibre.com>
+ <1438974570-20812-3-git-send-email-mturquette@baylibre.com>
+ <CAMuHMdX8Fq3AfxuZMLe4-CYFzrDiQcwnREQhX5fSGXzYNSkKsA@mail.gmail.com>
+ <20151020124000.20687.60752@quantum>
+ <CAMuHMdWd9LxrSWO5snriW+fb_d8FtMeXUBjp3M-Oeahh+FzJcw@mail.gmail.com>
+ <20151021105932.GP32536@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1445441654-31778-1-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Kevin Hilman <khilman@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20151021105932.GP32536@n2100.arm.linux.org.uk>
+Sender: linux-clk-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, Stephen Boyd <sboyd@codeaurora.org>, Lee Jones <lee.jones@linaro.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, Sascha Hauer <s.hauer@pengutronix.de>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-sh list <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-QWRkcyBhIGZ1bmN0aW9uIHRoYXQgc2V0cyB0aGUgcG9pbnRlciB0byBkZXZfcG1fZG9tYWluIGlu
-IHN0cnVjdCBkZXZpY2UKYW5kIHRoYXQgd2FybnMgaWYgdGhlIGRldmljZSBoYXMgYWxyZWFkeSBm
-aW5pc2hlZCBwcm9iaW5nLiBUaGUgcmVhc29uCndoeSB3ZSB3YW50IHRvIGVuZm9yY2UgdGhhdCBp
-cyBiZWNhdXNlIGluIHRoZSBnZW5lcmFsIGNhc2UgdGhhdCBjYW4KY2F1c2UgcHJvYmxlbXMgYW5k
-IGFsc28gdGhhdCB3ZSBjYW4gc2ltcGxpZnkgY29kZSBxdWl0ZSBhIGJpdCBpZiB3ZSBjYW4KYWx3
-YXlzIGFzc3VtZSB0aGF0LgoKVGhpcyBwYXRjaCBhbHNvIGNoYW5nZXMgYWxsIGN1cnJlbnQgY29k
-ZSB0aGF0IGRpcmVjdGx5IHNldHMgdGhlCmRldi5wbV9kb21haW4gcG9pbnRlci4KClNpZ25lZC1v
-ZmYtYnk6IFRvbWV1IFZpem9zbyA8dG9tZXUudml6b3NvQGNvbGxhYm9yYS5jb20+ClJldmlld2Vk
-LWJ5OiBVbGYgSGFuc3NvbiA8dWxmLmhhbnNzb25AbGluYXJvLm9yZz4KLS0tCgpDaGFuZ2VzIGlu
-IHY5OgotIEFkZCBkb2NzIG5vdGluZyB0aGUgbmVlZCBmb3IgdGhlIGRldmljZSBsb2NrIHRvIGJl
-IGhlbGQgYmVmb3JlIGNhbGxpbmcKICBkZXZfcG1fZG9tYWluX3NldCgpCgpDaGFuZ2VzIGluIHY4
-OgotIEFkZCBkZXZfcG1fZG9tYWluX3NldCgpIGFuZCB1cGRhdGUgY29kZSB0byB1c2UgaXQKCiBh
-cmNoL2FybS9tYWNoLW9tYXAyL29tYXBfZGV2aWNlLmMgfCAgNyArKysrLS0tCiBkcml2ZXJzL2Fj
-cGkvYWNwaV9scHNzLmMgICAgICAgICAgfCAgNSArKystLQogZHJpdmVycy9hY3BpL2RldmljZV9w
-bS5jICAgICAgICAgIHwgIDUgKysrLS0KIGRyaXZlcnMvYmFzZS9wb3dlci9jbG9ja19vcHMuYyAg
-ICB8ICA1ICsrKy0tCiBkcml2ZXJzL2Jhc2UvcG93ZXIvY29tbW9uLmMgICAgICAgfCAyMSArKysr
-KysrKysrKysrKysrKysrKysKIGRyaXZlcnMvYmFzZS9wb3dlci9kb21haW4uYyAgICAgICB8ICA0
-ICsrLS0KIGRyaXZlcnMvZ3B1L3ZnYS92Z2Ffc3dpdGNoZXJvby5jICB8IDEwICsrKysrLS0tLS0K
-IGRyaXZlcnMvbWlzYy9tZWkvcGNpLW1lLmMgICAgICAgICB8ICA1ICsrKy0tCiBkcml2ZXJzL21p
-c2MvbWVpL3BjaS10eGUuYyAgICAgICAgfCAgNSArKystLQogaW5jbHVkZS9saW51eC9wbV9kb21h
-aW4uaCAgICAgICAgIHwgIDMgKysrCiAxMCBmaWxlcyBjaGFuZ2VkLCA1MCBpbnNlcnRpb25zKCsp
-LCAyMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBf
-ZGV2aWNlLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfZGV2aWNlLmMKaW5kZXggNGNiOGZk
-OWY3NDFmLi4yMDQxMDFkMTE2MzIgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21h
-cF9kZXZpY2UuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfZGV2aWNlLmMKQEAgLTMy
-LDYgKzMyLDcgQEAKICNpbmNsdWRlIDxsaW51eC9pby5oPgogI2luY2x1ZGUgPGxpbnV4L2Nsay5o
-PgogI2luY2x1ZGUgPGxpbnV4L2Nsa2Rldi5oPgorI2luY2x1ZGUgPGxpbnV4L3BtX2RvbWFpbi5o
-PgogI2luY2x1ZGUgPGxpbnV4L3BtX3J1bnRpbWUuaD4KICNpbmNsdWRlIDxsaW51eC9vZi5oPgog
-I2luY2x1ZGUgPGxpbnV4L25vdGlmaWVyLmg+CkBAIC0xNjgsNyArMTY5LDcgQEAgc3RhdGljIGlu
-dCBvbWFwX2RldmljZV9idWlsZF9mcm9tX2R0KHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYp
-CiAJCQlyLT5uYW1lID0gZGV2X25hbWUoJnBkZXYtPmRldik7CiAJfQogCi0JcGRldi0+ZGV2LnBt
-X2RvbWFpbiA9ICZvbWFwX2RldmljZV9wbV9kb21haW47CisJZGV2X3BtX2RvbWFpbl9zZXQoJnBk
-ZXYtPmRldiwgJm9tYXBfZGV2aWNlX3BtX2RvbWFpbik7CiAKIAlpZiAoZGV2aWNlX2FjdGl2ZSkg
-ewogCQlvbWFwX2RldmljZV9lbmFibGUocGRldik7CkBAIC0xODAsNyArMTgxLDcgQEAgb2RiZmRf
-ZXhpdDE6CiBvZGJmZF9leGl0OgogCS8qIGlmIGRhdGEvd2UgYXJlIGF0IGZhdWx0Li4gbG9hZCB1
-cCBhIGZhaWwgaGFuZGxlciAqLwogCWlmIChyZXQpCi0JCXBkZXYtPmRldi5wbV9kb21haW4gPSAm
-b21hcF9kZXZpY2VfZmFpbF9wbV9kb21haW47CisJCWRldl9wbV9kb21haW5fc2V0KCZwZGV2LT5k
-ZXYsICZvbWFwX2RldmljZV9mYWlsX3BtX2RvbWFpbik7CiAKIAlyZXR1cm4gcmV0OwogfQpAQCAt
-NzAxLDcgKzcwMiw3IEBAIGludCBvbWFwX2RldmljZV9yZWdpc3RlcihzdHJ1Y3QgcGxhdGZvcm1f
-ZGV2aWNlICpwZGV2KQogewogCXByX2RlYnVnKCJvbWFwX2RldmljZTogJXM6IHJlZ2lzdGVyaW5n
-XG4iLCBwZGV2LT5uYW1lKTsKIAotCXBkZXYtPmRldi5wbV9kb21haW4gPSAmb21hcF9kZXZpY2Vf
-cG1fZG9tYWluOworCWRldl9wbV9kb21haW5fc2V0KCZwZGV2LT5kZXYsICZvbWFwX2RldmljZV9w
-bV9kb21haW4pOwogCXJldHVybiBwbGF0Zm9ybV9kZXZpY2VfYWRkKHBkZXYpOwogfQogCmRpZmYg
-LS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaV9scHNzLmMgYi9kcml2ZXJzL2FjcGkvYWNwaV9scHNz
-LmMKaW5kZXggZjUxYmQwZDBiYzE3Li5jYzZlMWFiYzY5YjMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-YWNwaS9hY3BpX2xwc3MuYworKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9scHNzLmMKQEAgLTE3LDYg
-KzE3LDcgQEAKICNpbmNsdWRlIDxsaW51eC9pby5oPgogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3Jt
-X2RldmljZS5oPgogI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RhdGEvY2xrLWxwc3MuaD4KKyNp
-bmNsdWRlIDxsaW51eC9wbV9kb21haW4uaD4KICNpbmNsdWRlIDxsaW51eC9wbV9ydW50aW1lLmg+
-CiAjaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KIApAQCAtNzA2LDcgKzcwNyw3IEBAIHN0YXRpYyBp
-bnQgYWNwaV9scHNzX3BsYXRmb3JtX25vdGlmeShzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iLAog
-CiAJc3dpdGNoIChhY3Rpb24pIHsKIAljYXNlIEJVU19OT1RJRllfQUREX0RFVklDRToKLQkJcGRl
-di0+ZGV2LnBtX2RvbWFpbiA9ICZhY3BpX2xwc3NfcG1fZG9tYWluOworCQlkZXZfcG1fZG9tYWlu
-X3NldCgmcGRldi0+ZGV2LCAmYWNwaV9scHNzX3BtX2RvbWFpbik7CiAJCWlmIChwZGF0YS0+ZGV2
-X2Rlc2MtPmZsYWdzICYgTFBTU19MVFIpCiAJCQlyZXR1cm4gc3lzZnNfY3JlYXRlX2dyb3VwKCZw
-ZGV2LT5kZXYua29iaiwKIAkJCQkJCSAgJmxwc3NfYXR0cl9ncm91cCk7CkBAIC03MTQsNyArNzE1
-LDcgQEAgc3RhdGljIGludCBhY3BpX2xwc3NfcGxhdGZvcm1fbm90aWZ5KHN0cnVjdCBub3RpZmll
-cl9ibG9jayAqbmIsCiAJY2FzZSBCVVNfTk9USUZZX0RFTF9ERVZJQ0U6CiAJCWlmIChwZGF0YS0+
-ZGV2X2Rlc2MtPmZsYWdzICYgTFBTU19MVFIpCiAJCQlzeXNmc19yZW1vdmVfZ3JvdXAoJnBkZXYt
-PmRldi5rb2JqLCAmbHBzc19hdHRyX2dyb3VwKTsKLQkJcGRldi0+ZGV2LnBtX2RvbWFpbiA9IE5V
-TEw7CisJCWRldl9wbV9kb21haW5fc2V0KCZwZGV2LT5kZXYsIE5VTEwpOwogCQlicmVhazsKIAlk
-ZWZhdWx0OgogCQlicmVhazsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYyBi
-L2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYwppbmRleCA0ODA2YjdmODU2YzQuLjhjNTk1NWJmOWJi
-ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL2RldmljZV9wbS5jCisrKyBiL2RyaXZlcnMvYWNw
-aS9kZXZpY2VfcG0uYwpAQCAtMjIsNiArMjIsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2V4cG9ydC5o
-PgogI2luY2x1ZGUgPGxpbnV4L211dGV4Lmg+CiAjaW5jbHVkZSA8bGludXgvcG1fcW9zLmg+Cisj
-aW5jbHVkZSA8bGludXgvcG1fZG9tYWluLmg+CiAjaW5jbHVkZSA8bGludXgvcG1fcnVudGltZS5o
-PgogCiAjaW5jbHVkZSAiaW50ZXJuYWwuaCIKQEAgLTEwNzYsNyArMTA3Nyw3IEBAIHN0YXRpYyB2
-b2lkIGFjcGlfZGV2X3BtX2RldGFjaChzdHJ1Y3QgZGV2aWNlICpkZXYsIGJvb2wgcG93ZXJfb2Zm
-KQogCXN0cnVjdCBhY3BpX2RldmljZSAqYWRldiA9IEFDUElfQ09NUEFOSU9OKGRldik7CiAKIAlp
-ZiAoYWRldiAmJiBkZXYtPnBtX2RvbWFpbiA9PSAmYWNwaV9nZW5lcmFsX3BtX2RvbWFpbikgewot
-CQlkZXYtPnBtX2RvbWFpbiA9IE5VTEw7CisJCWRldl9wbV9kb21haW5fc2V0KGRldiwgTlVMTCk7
-CiAJCWFjcGlfcmVtb3ZlX3BtX25vdGlmaWVyKGFkZXYpOwogCQlpZiAocG93ZXJfb2ZmKSB7CiAJ
-CQkvKgpAQCAtMTEyOCw3ICsxMTI5LDcgQEAgaW50IGFjcGlfZGV2X3BtX2F0dGFjaChzdHJ1Y3Qg
-ZGV2aWNlICpkZXYsIGJvb2wgcG93ZXJfb24pCiAJCXJldHVybiAtRUJVU1k7CiAKIAlhY3BpX2Fk
-ZF9wbV9ub3RpZmllcihhZGV2LCBkZXYsIGFjcGlfcG1fbm90aWZ5X3dvcmtfZnVuYyk7Ci0JZGV2
-LT5wbV9kb21haW4gPSAmYWNwaV9nZW5lcmFsX3BtX2RvbWFpbjsKKwlkZXZfcG1fZG9tYWluX3Nl
-dChkZXYsICZhY3BpX2dlbmVyYWxfcG1fZG9tYWluKTsKIAlpZiAocG93ZXJfb24pIHsKIAkJYWNw
-aV9kZXZfcG1fZnVsbF9wb3dlcihhZGV2KTsKIAkJYWNwaV9kZXZpY2Vfd2FrZXVwKGFkZXYsIEFD
-UElfU1RBVEVfUzAsIGZhbHNlKTsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmFzZS9wb3dlci9jbG9j
-a19vcHMuYyBiL2RyaXZlcnMvYmFzZS9wb3dlci9jbG9ja19vcHMuYwppbmRleCA2NTJiNWEzNjdj
-MWYuLmU4MGZkYTZjMDNhOSAxMDA2NDQKLS0tIGEvZHJpdmVycy9iYXNlL3Bvd2VyL2Nsb2NrX29w
-cy5jCisrKyBiL2RyaXZlcnMvYmFzZS9wb3dlci9jbG9ja19vcHMuYwpAQCAtMTUsNiArMTUsNyBA
-QAogI2luY2x1ZGUgPGxpbnV4L2Nsa2Rldi5oPgogI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4KICNp
-bmNsdWRlIDxsaW51eC9lcnIuaD4KKyNpbmNsdWRlIDxsaW51eC9wbV9kb21haW4uaD4KICNpbmNs
-dWRlIDxsaW51eC9wbV9ydW50aW1lLmg+CiAKICNpZmRlZiBDT05GSUdfUE0KQEAgLTM0Niw3ICsz
-NDcsNyBAQCBzdGF0aWMgaW50IHBtX2Nsa19ub3RpZnkoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpu
-YiwKIAkJaWYgKGVycm9yKQogCQkJYnJlYWs7CiAKLQkJZGV2LT5wbV9kb21haW4gPSBjbGtuYi0+
-cG1fZG9tYWluOworCQlkZXZfcG1fZG9tYWluX3NldChkZXYsIGNsa25iLT5wbV9kb21haW4pOwog
-CQlpZiAoY2xrbmItPmNvbl9pZHNbMF0pIHsKIAkJCWZvciAoY29uX2lkID0gY2xrbmItPmNvbl9p
-ZHM7ICpjb25faWQ7IGNvbl9pZCsrKQogCQkJCXBtX2Nsa19hZGQoZGV2LCAqY29uX2lkKTsKQEAg
-LTM1OSw3ICszNjAsNyBAQCBzdGF0aWMgaW50IHBtX2Nsa19ub3RpZnkoc3RydWN0IG5vdGlmaWVy
-X2Jsb2NrICpuYiwKIAkJaWYgKGRldi0+cG1fZG9tYWluICE9IGNsa25iLT5wbV9kb21haW4pCiAJ
-CQlicmVhazsKIAotCQlkZXYtPnBtX2RvbWFpbiA9IE5VTEw7CisJCWRldl9wbV9kb21haW5fc2V0
-KGRldiwgTlVMTCk7CiAJCXBtX2Nsa19kZXN0cm95KGRldik7CiAJCWJyZWFrOwogCX0KZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvYmFzZS9wb3dlci9jb21tb24uYyBiL2RyaXZlcnMvYmFzZS9wb3dlci9j
-b21tb24uYwppbmRleCBmMzJiODAyYjk4ZjQuLmE3MGY4YTVjZGZkNyAxMDA2NDQKLS0tIGEvZHJp
-dmVycy9iYXNlL3Bvd2VyL2NvbW1vbi5jCisrKyBiL2RyaXZlcnMvYmFzZS9wb3dlci9jb21tb24u
-YwpAQCAtMTI4LDMgKzEyOCwyNCBAQCB2b2lkIGRldl9wbV9kb21haW5fZGV0YWNoKHN0cnVjdCBk
-ZXZpY2UgKmRldiwgYm9vbCBwb3dlcl9vZmYpCiAJCWRldi0+cG1fZG9tYWluLT5kZXRhY2goZGV2
-LCBwb3dlcl9vZmYpOwogfQogRVhQT1JUX1NZTUJPTF9HUEwoZGV2X3BtX2RvbWFpbl9kZXRhY2gp
-OworCisvKioKKyAqIGRldl9wbV9kb21haW5fc2V0IC0gU2V0IFBNIGRvbWFpbiBvZiBhIGRldmlj
-ZS4KKyAqIEBkZXY6IERldmljZSB3aG9zZSBQTSBkb21haW4gaXMgdG8gYmUgc2V0LgorICogQHBk
-OiBQTSBkb21haW4gdG8gYmUgc2V0LCBvciBOVUxMLgorICoKKyAqIFNldHMgdGhlIFBNIGRvbWFp
-biB0aGUgZGV2aWNlIGJlbG9uZ3MgdG8uIFRoZSBQTSBkb21haW4gb2YgYSBkZXZpY2UgbmVlZHMK
-KyAqIHRvIGJlIHNldCBiZWZvcmUgaXRzIHByb2JlIGZpbmlzaGVzIChpdCdzIGJvdW5kIHRvIGEg
-ZHJpdmVyKS4KKyAqCisgKiBUaGlzIGZ1bmN0aW9uIG11c3QgYmUgY2FsbGVkIHdpdGggdGhlIGRl
-dmljZSBsb2NrIGhlbGQuCisgKi8KK3ZvaWQgZGV2X3BtX2RvbWFpbl9zZXQoc3RydWN0IGRldmlj
-ZSAqZGV2LCBzdHJ1Y3QgZGV2X3BtX2RvbWFpbiAqcGQpCit7CisJaWYgKGRldi0+cG1fZG9tYWlu
-ID09IHBkKQorCQlyZXR1cm47CisKKwlXQVJOKGRldmljZV9pc19ib3VuZChkZXYpLAorCSAgICAg
-IlBNIGRvbWFpbnMgY2FuIG9ubHkgYmUgY2hhbmdlZCBmb3IgdW5ib3VuZCBkZXZpY2VzXG4iKTsK
-KwlkZXYtPnBtX2RvbWFpbiA9IHBkOworfQorRVhQT1JUX1NZTUJPTF9HUEwoZGV2X3BtX2RvbWFp
-bl9zZXQpOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9iYXNlL3Bvd2VyL2RvbWFpbi5jIGIvZHJpdmVy
-cy9iYXNlL3Bvd2VyL2RvbWFpbi5jCmluZGV4IDE2NTUwYzYzZDYxMS4uYjc1ZDAyYWE4ZDkzIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL2Jhc2UvcG93ZXIvZG9tYWluLmMKKysrIGIvZHJpdmVycy9iYXNl
-L3Bvd2VyL2RvbWFpbi5jCkBAIC0xMjQwLDcgKzEyNDAsNyBAQCBzdGF0aWMgc3RydWN0IGdlbmVy
-aWNfcG1fZG9tYWluX2RhdGEgKmdlbnBkX2FsbG9jX2Rldl9kYXRhKHN0cnVjdCBkZXZpY2UgKmRl
-diwKIAl9CiAKIAlkZXYtPnBvd2VyLnN1YnN5c19kYXRhLT5kb21haW5fZGF0YSA9ICZncGRfZGF0
-YS0+YmFzZTsKLQlkZXYtPnBtX2RvbWFpbiA9ICZnZW5wZC0+ZG9tYWluOworCWRldl9wbV9kb21h
-aW5fc2V0KGRldiwgJmdlbnBkLT5kb21haW4pOwogCiAJc3Bpbl91bmxvY2tfaXJxKCZkZXYtPnBv
-d2VyLmxvY2spOwogCkBAIC0xMjU5LDcgKzEyNTksNyBAQCBzdGF0aWMgdm9pZCBnZW5wZF9mcmVl
-X2Rldl9kYXRhKHN0cnVjdCBkZXZpY2UgKmRldiwKIHsKIAlzcGluX2xvY2tfaXJxKCZkZXYtPnBv
-d2VyLmxvY2spOwogCi0JZGV2LT5wbV9kb21haW4gPSBOVUxMOworCWRldl9wbV9kb21haW5fc2V0
-KGRldiwgTlVMTCk7CiAJZGV2LT5wb3dlci5zdWJzeXNfZGF0YS0+ZG9tYWluX2RhdGEgPSBOVUxM
-OwogCiAJc3Bpbl91bmxvY2tfaXJxKCZkZXYtPnBvd2VyLmxvY2spOwpkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9ncHUvdmdhL3ZnYV9zd2l0Y2hlcm9vLmMgYi9kcml2ZXJzL2dwdS92Z2EvdmdhX3N3aXRj
-aGVyb28uYwppbmRleCAyMTA2MDY2OGZkMjUuLjJjMzIwOGVhNmRlNCAxMDA2NDQKLS0tIGEvZHJp
-dmVycy9ncHUvdmdhL3ZnYV9zd2l0Y2hlcm9vLmMKKysrIGIvZHJpdmVycy9ncHUvdmdhL3ZnYV9z
-d2l0Y2hlcm9vLmMKQEAgLTY2NSwxNyArNjY1LDE3IEBAIGludCB2Z2Ffc3dpdGNoZXJvb19pbml0
-X2RvbWFpbl9wbV9vcHMoc3RydWN0IGRldmljZSAqZGV2LAogCQlkb21haW4tPm9wcy5ydW50aW1l
-X3N1c3BlbmQgPSB2Z2Ffc3dpdGNoZXJvb19ydW50aW1lX3N1c3BlbmQ7CiAJCWRvbWFpbi0+b3Bz
-LnJ1bnRpbWVfcmVzdW1lID0gdmdhX3N3aXRjaGVyb29fcnVudGltZV9yZXN1bWU7CiAKLQkJZGV2
-LT5wbV9kb21haW4gPSBkb21haW47CisJCWRldl9wbV9kb21haW5fc2V0KGRldiwgZG9tYWluKTsK
-IAkJcmV0dXJuIDA7CiAJfQotCWRldi0+cG1fZG9tYWluID0gTlVMTDsKKwlkZXZfcG1fZG9tYWlu
-X3NldChkZXYsIE5VTEwpOwogCXJldHVybiAtRUlOVkFMOwogfQogRVhQT1JUX1NZTUJPTCh2Z2Ff
-c3dpdGNoZXJvb19pbml0X2RvbWFpbl9wbV9vcHMpOwogCiB2b2lkIHZnYV9zd2l0Y2hlcm9vX2Zp
-bmlfZG9tYWluX3BtX29wcyhzdHJ1Y3QgZGV2aWNlICpkZXYpCiB7Ci0JZGV2LT5wbV9kb21haW4g
-PSBOVUxMOworCWRldl9wbV9kb21haW5fc2V0KGRldiwgTlVMTCk7CiB9CiBFWFBPUlRfU1lNQk9M
-KHZnYV9zd2l0Y2hlcm9vX2ZpbmlfZG9tYWluX3BtX29wcyk7CiAKQEAgLTcxOSwxMCArNzE5LDEw
-IEBAIHZnYV9zd2l0Y2hlcm9vX2luaXRfZG9tYWluX3BtX29wdGltdXNfaGRtaV9hdWRpbyhzdHJ1
-Y3QgZGV2aWNlICpkZXYsCiAJCWRvbWFpbi0+b3BzLnJ1bnRpbWVfcmVzdW1lID0KIAkJCXZnYV9z
-d2l0Y2hlcm9vX3J1bnRpbWVfcmVzdW1lX2hkbWlfYXVkaW87CiAKLQkJZGV2LT5wbV9kb21haW4g
-PSBkb21haW47CisJCWRldl9wbV9kb21haW5fc2V0KGRldiwgZG9tYWluKTsKIAkJcmV0dXJuIDA7
-CiAJfQotCWRldi0+cG1fZG9tYWluID0gTlVMTDsKKwlkZXZfcG1fZG9tYWluX3NldChkZXYsIE5V
-TEwpOwogCXJldHVybiAtRUlOVkFMOwogfQogRVhQT1JUX1NZTUJPTCh2Z2Ffc3dpdGNoZXJvb19p
-bml0X2RvbWFpbl9wbV9vcHRpbXVzX2hkbWlfYXVkaW8pOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
-aXNjL21laS9wY2ktbWUuYyBiL2RyaXZlcnMvbWlzYy9tZWkvcGNpLW1lLmMKaW5kZXggMjc2Nzhk
-ODE1NGUwLi43NWZjOWM2ODhkZjggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWlzYy9tZWkvcGNpLW1l
-LmMKKysrIGIvZHJpdmVycy9taXNjL21laS9wY2ktbWUuYwpAQCAtMzEsNiArMzEsNyBAQAogI2lu
-Y2x1ZGUgPGxpbnV4L2ppZmZpZXMuaD4KICNpbmNsdWRlIDxsaW51eC9pbnRlcnJ1cHQuaD4KIAor
-I2luY2x1ZGUgPGxpbnV4L3BtX2RvbWFpbi5oPgogI2luY2x1ZGUgPGxpbnV4L3BtX3J1bnRpbWUu
-aD4KIAogI2luY2x1ZGUgPGxpbnV4L21laS5oPgpAQCAtNDM2LDcgKzQzNyw3IEBAIHN0YXRpYyBp
-bmxpbmUgdm9pZCBtZWlfbWVfc2V0X3BtX2RvbWFpbihzdHJ1Y3QgbWVpX2RldmljZSAqZGV2KQog
-CQlkZXYtPnBnX2RvbWFpbi5vcHMucnVudGltZV9yZXN1bWUgPSBtZWlfbWVfcG1fcnVudGltZV9y
-ZXN1bWU7CiAJCWRldi0+cGdfZG9tYWluLm9wcy5ydW50aW1lX2lkbGUgPSBtZWlfbWVfcG1fcnVu
-dGltZV9pZGxlOwogCi0JCXBkZXYtPmRldi5wbV9kb21haW4gPSAmZGV2LT5wZ19kb21haW47CisJ
-CWRldl9wbV9kb21haW5fc2V0KCZwZGV2LT5kZXYsICZkZXYtPnBnX2RvbWFpbik7CiAJfQogfQog
-CkBAIC00NDgsNyArNDQ5LDcgQEAgc3RhdGljIGlubGluZSB2b2lkIG1laV9tZV9zZXRfcG1fZG9t
-YWluKHN0cnVjdCBtZWlfZGV2aWNlICpkZXYpCiBzdGF0aWMgaW5saW5lIHZvaWQgbWVpX21lX3Vu
-c2V0X3BtX2RvbWFpbihzdHJ1Y3QgbWVpX2RldmljZSAqZGV2KQogewogCS8qIHN0b3AgdXNpbmcg
-cG0gY2FsbGJhY2tzIGlmIGFueSAqLwotCWRldi0+ZGV2LT5wbV9kb21haW4gPSBOVUxMOworCWRl
-dl9wbV9kb21haW5fc2V0KGRldi0+ZGV2LCBOVUxMKTsKIH0KIAogc3RhdGljIGNvbnN0IHN0cnVj
-dCBkZXZfcG1fb3BzIG1laV9tZV9wbV9vcHMgPSB7CmRpZmYgLS1naXQgYS9kcml2ZXJzL21pc2Mv
-bWVpL3BjaS10eGUuYyBiL2RyaXZlcnMvbWlzYy9tZWkvcGNpLXR4ZS5jCmluZGV4IDA4ODJjMDIw
-MTkwNy4uNzFmOGE3NDc1NzE3IDEwMDY0NAotLS0gYS9kcml2ZXJzL21pc2MvbWVpL3BjaS10eGUu
-YworKysgYi9kcml2ZXJzL21pc2MvbWVpL3BjaS10eGUuYwpAQCAtMjcsNiArMjcsNyBAQAogI2lu
-Y2x1ZGUgPGxpbnV4L2ppZmZpZXMuaD4KICNpbmNsdWRlIDxsaW51eC9pbnRlcnJ1cHQuaD4KICNp
-bmNsdWRlIDxsaW51eC93b3JrcXVldWUuaD4KKyNpbmNsdWRlIDxsaW51eC9wbV9kb21haW4uaD4K
-ICNpbmNsdWRlIDxsaW51eC9wbV9ydW50aW1lLmg+CiAKICNpbmNsdWRlIDxsaW51eC9tZWkuaD4K
-QEAgLTM4OCw3ICszODksNyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgbWVpX3R4ZV9zZXRfcG1fZG9t
-YWluKHN0cnVjdCBtZWlfZGV2aWNlICpkZXYpCiAJCWRldi0+cGdfZG9tYWluLm9wcy5ydW50aW1l
-X3Jlc3VtZSA9IG1laV90eGVfcG1fcnVudGltZV9yZXN1bWU7CiAJCWRldi0+cGdfZG9tYWluLm9w
-cy5ydW50aW1lX2lkbGUgPSBtZWlfdHhlX3BtX3J1bnRpbWVfaWRsZTsKIAotCQlwZGV2LT5kZXYu
-cG1fZG9tYWluID0gJmRldi0+cGdfZG9tYWluOworCQlkZXZfcG1fZG9tYWluX3NldCgmcGRldi0+
-ZGV2LCAmZGV2LT5wZ19kb21haW4pOwogCX0KIH0KIApAQCAtNDAwLDcgKzQwMSw3IEBAIHN0YXRp
-YyBpbmxpbmUgdm9pZCBtZWlfdHhlX3NldF9wbV9kb21haW4oc3RydWN0IG1laV9kZXZpY2UgKmRl
-dikKIHN0YXRpYyBpbmxpbmUgdm9pZCBtZWlfdHhlX3Vuc2V0X3BtX2RvbWFpbihzdHJ1Y3QgbWVp
-X2RldmljZSAqZGV2KQogewogCS8qIHN0b3AgdXNpbmcgcG0gY2FsbGJhY2tzIGlmIGFueSAqLwot
-CWRldi0+ZGV2LT5wbV9kb21haW4gPSBOVUxMOworCWRldl9wbV9kb21haW5fc2V0KGRldi0+ZGV2
-LCBOVUxMKTsKIH0KIAogc3RhdGljIGNvbnN0IHN0cnVjdCBkZXZfcG1fb3BzIG1laV90eGVfcG1f
-b3BzID0gewpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9wbV9kb21haW4uaCBiL2luY2x1ZGUv
-bGludXgvcG1fZG9tYWluLmgKaW5kZXggYjFjZjdlNzk3ODkyLi40YWU0YjE0ZmI3YjQgMTAwNjQ0
-Ci0tLSBhL2luY2x1ZGUvbGludXgvcG1fZG9tYWluLmgKKysrIGIvaW5jbHVkZS9saW51eC9wbV9k
-b21haW4uaApAQCAtMzA2LDEyICszMDYsMTUgQEAgc3RhdGljIGlubGluZSBpbnQgb2ZfZ2VucGRf
-YWRkX3Byb3ZpZGVyX29uZWNlbGwoc3RydWN0IGRldmljZV9ub2RlICpucCwKICNpZmRlZiBDT05G
-SUdfUE0KIGV4dGVybiBpbnQgZGV2X3BtX2RvbWFpbl9hdHRhY2goc3RydWN0IGRldmljZSAqZGV2
-LCBib29sIHBvd2VyX29uKTsKIGV4dGVybiB2b2lkIGRldl9wbV9kb21haW5fZGV0YWNoKHN0cnVj
-dCBkZXZpY2UgKmRldiwgYm9vbCBwb3dlcl9vZmYpOworZXh0ZXJuIHZvaWQgZGV2X3BtX2RvbWFp
-bl9zZXQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BtX2RvbWFpbiAqcGQpOwogI2Vs
-c2UKIHN0YXRpYyBpbmxpbmUgaW50IGRldl9wbV9kb21haW5fYXR0YWNoKHN0cnVjdCBkZXZpY2Ug
-KmRldiwgYm9vbCBwb3dlcl9vbikKIHsKIAlyZXR1cm4gLUVOT0RFVjsKIH0KIHN0YXRpYyBpbmxp
-bmUgdm9pZCBkZXZfcG1fZG9tYWluX2RldGFjaChzdHJ1Y3QgZGV2aWNlICpkZXYsIGJvb2wgcG93
-ZXJfb2ZmKSB7fQorc3RhdGljIGlubGluZSB2b2lkIGRldl9wbV9kb21haW5fc2V0KHN0cnVjdCBk
-ZXZpY2UgKmRldiwKKwkJCQkgICAgIHN0cnVjdCBkZXZfcG1fZG9tYWluICpwZCkge30KICNlbmRp
-ZgogCiAjZW5kaWYgLyogX0xJTlVYX1BNX0RPTUFJTl9IICovCi0tIAoyLjUuMAoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
-bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Quoting Russell King - ARM Linux (2015-10-21 03:59:32)
+> On Wed, Oct 21, 2015 at 11:50:07AM +0200, Geert Uytterhoeven wrote:
+> > Hi Mike, Russell,
+> > 
+> > On Tue, Oct 20, 2015 at 2:40 PM, Michael Turquette
+> > <mturquette@baylibre.com> wrote:
+> > > Why not keep the reference to the struct clk after get'ing it the first
+> > > time?
+> > 
+> > And store it where?
+> 
+> Not my problem :)
+> 
+> Users are supposed to hold on to the reference obtained via clk_get()
+> while they're making use of the clock: in some implementations, this
+> increments the module use count if the clock driver is a module, and
+> may have other effects too.
+> 
+> Dropping that while you're still requiring the clock to be enabled is
+> unsafe: if it is provided by a module, then removing and reinserting
+> the module may very well change the enabled state of the clock, it
+> most certainly will disrupt the enable count.
+> 
+> It's always been this way, right from the outset, and when I've seen
+> people doing this bollocks, I've always pointed out that it's wrong.
+> Generally, people will fix it once they become aware of it, so it's
+> really that people just don't like reading and conforming to published
+> API requirements.
+> 
+> I think the root cause is that people just don't like reading what
+> other people write in terms of documentation, and they prefer to go
+> off and do their own thing, provided it works for them.
+
+Right, so in other words this problem must be solved by the caller of
+clk_get, as it should be. I have never much looked at the pm clk code in
+question, but I gave it a quick look and came up with some example code
+that does not compile, in an effort to be as helpful as possible.
+
+Basically I added a flex array to struct pm_clk_notifier_block, so that
+now there are two flex arrays which is stupid. But I am too lazy to
+replace the nbclk->clks thing with a malloc after walking all of the
+clk_id's to figure out the number of clocks. Or we could just add
+.num_clk to the struct, fix up all 4 users of it and drop the NULL
+sentinel used the .clk_id's... Hmm that would have been better.
+
+Anyways here is the ugly, non-compiling code. I'll take another look at
+it in one year if no one else beats me to it.
+
+Regards,
+Mike
+
+
+
+diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
+index 78eac2c..b46e5ce 100644
+--- a/arch/arm/mach-davinci/pm_domain.c
++++ b/arch/arm/mach-davinci/pm_domain.c
+@@ -24,6 +24,7 @@ static struct dev_pm_domain davinci_pm_domain = {
+ static struct pm_clk_notifier_block platform_bus_notifier = {
+ 	.pm_domain = &davinci_pm_domain,
+ 	.con_ids = { "fck", "master", "slave", NULL },
++	.clks = { ERR_PTR(-EAGAIN), ERR_PTR(-EAGAIN), ERR_PTR(-EAGAIN) },
+ };
+ 
+ static int __init davinci_pm_runtime_init(void)
+diff --git a/arch/arm/mach-keystone/pm_domain.c b/arch/arm/mach-keystone/pm_domain.c
+index e283939..d21c18b 100644
+--- a/arch/arm/mach-keystone/pm_domain.c
++++ b/arch/arm/mach-keystone/pm_domain.c
+@@ -27,6 +27,7 @@ static struct dev_pm_domain keystone_pm_domain = {
+ 
+ static struct pm_clk_notifier_block platform_domain_notifier = {
+ 	.pm_domain = &keystone_pm_domain,
++	.clks = { ERR_PTR(-EAGAIN) },
+ };
+ 
+ static const struct of_device_id of_keystone_table[] = {
+diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
+index 667c163..5506453 100644
+--- a/arch/arm/mach-omap1/pm_bus.c
++++ b/arch/arm/mach-omap1/pm_bus.c
+@@ -31,6 +31,7 @@ static struct dev_pm_domain default_pm_domain = {
+ static struct pm_clk_notifier_block platform_bus_notifier = {
+ 	.pm_domain = &default_pm_domain,
+ 	.con_ids = { "ick", "fck", NULL, },
++	.clks = { ERR_PTR(-EAGAIN), ERR_PTR(-EAGAIN) },
+ };
+ 
+ static int __init omap1_pm_runtime_init(void)
+diff --git a/drivers/base/power/clock_ops.c b/drivers/base/power/clock_ops.c
+index 652b5a3..26f0dcf 100644
+--- a/drivers/base/power/clock_ops.c
++++ b/drivers/base/power/clock_ops.c
+@@ -407,40 +407,6 @@ int pm_clk_runtime_resume(struct device *dev)
+ #else /* !CONFIG_PM */
+ 
+ /**
+- * enable_clock - Enable a device clock.
+- * @dev: Device whose clock is to be enabled.
+- * @con_id: Connection ID of the clock.
+- */
+-static void enable_clock(struct device *dev, const char *con_id)
+-{
+-	struct clk *clk;
+-
+-	clk = clk_get(dev, con_id);
+-	if (!IS_ERR(clk)) {
+-		clk_prepare_enable(clk);
+-		clk_put(clk);
+-		dev_info(dev, "Runtime PM disabled, clock forced on.\n");
+-	}
+-}
+-
+-/**
+- * disable_clock - Disable a device clock.
+- * @dev: Device whose clock is to be disabled.
+- * @con_id: Connection ID of the clock.
+- */
+-static void disable_clock(struct device *dev, const char *con_id)
+-{
+-	struct clk *clk;
+-
+-	clk = clk_get(dev, con_id);
+-	if (!IS_ERR(clk)) {
+-		clk_disable_unprepare(clk);
+-		clk_put(clk);
+-		dev_info(dev, "Runtime PM disabled, clock forced off.\n");
+-	}
+-}
+-
+-/**
+  * pm_clk_notify - Notify routine for device addition and removal.
+  * @nb: Notifier block object this function is a member of.
+  * @action: Operation being carried out by the caller.
+@@ -465,18 +431,45 @@ static int pm_clk_notify(struct notifier_block *nb,
+ 	switch (action) {
+ 	case BUS_NOTIFY_BIND_DRIVER:
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids; *con_id; con_id++)
+-				enable_clock(dev, *con_id);
++			int i;
++			for (con_id = clknb->con_ids, i = 0; *con_id;
++						con_id++, i++) {
++				if (clknb->clks[i] == ERR_PTR(-EAGAIN))
++					clks[i] = clk_get(dev, *con_id);
++				if (!IS_ERR(clknb->clks[i])) {
++					clk_prepare_enable(clk);
++					dev_info(dev, "Runtime PM disabled, clock forced on.\n");
++				}
+ 		} else {
+-			enable_clock(dev, NULL);
++			if (clknb->clks[0] == ERR_PTR(-EAGAIN))
++				clks[0] = clk_get(dev, NULL);
++			if (!IS_ERR(clknb->clks[0])) {
++				clk_prepare_enable(clk);
++				dev_info(dev, "Runtime PM disabled, clock forced on.\n");
++			}
+ 		}
+ 		break;
+ 	case BUS_NOTIFY_UNBOUND_DRIVER:
++		/*
++		 * FIXME
++		 * We never call clk_put. This should be done with
++		 * pm_clk_remove_notifier, which doesn't exist but probably
++		 * should
++		 */
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids; *con_id; con_id++)
+-				disable_clock(dev, *con_id);
++			int i;
++			for (con_id = clknb->con_ids, i = 0; *con_id;
++					con_id++, i++) {
++				if (!IS_ERR(clknb->clks[i])) {
++					clk_disable_unprepare(clknb->clks[i]);
++					dev_info(dev, "Runtime PM disabled, clock forced off.\n");
++				}
++			}
+ 		} else {
+-			disable_clock(dev, NULL);
++			if (!IS_ERR(clknb->clks[0])) {
++				clk_disable_unprepare(clknb->clks[i]);
++				dev_info(dev, "Runtime PM disabled, clock forced off.\n");
++			}
+ 		}
+ 		break;
+ 	}
+diff --git a/drivers/sh/pm_runtime.c b/drivers/sh/pm_runtime.c
+index 25abd4e..08754a4 100644
+--- a/drivers/sh/pm_runtime.c
++++ b/drivers/sh/pm_runtime.c
+@@ -30,6 +30,7 @@ static struct dev_pm_domain default_pm_domain = {
+ static struct pm_clk_notifier_block platform_bus_notifier = {
+ 	.pm_domain = &default_pm_domain,
+ 	.con_ids = { NULL, },
++	.clks = { ERR_PTR(-EAGAIN) },
+ };
+ 
+ static int __init sh_pm_runtime_init(void)
+diff --git a/include/linux/pm_clock.h b/include/linux/pm_clock.h
+index 25266c6..45e58fe 100644
+--- a/include/linux/pm_clock.h
++++ b/include/linux/pm_clock.h
+@@ -16,6 +16,7 @@ struct pm_clk_notifier_block {
+ 	struct notifier_block nb;
+ 	struct dev_pm_domain *pm_domain;
+ 	char *con_ids[];
++	struct clk *clks[];
+ };
+ 
+ struct clk;
