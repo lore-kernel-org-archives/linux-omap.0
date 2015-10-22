@@ -1,41 +1,46 @@
 From: Neil Armstrong <narmstrong@baylibre.com>
-Subject: [PATCH 4/4] arm: dts: Add omap4-hwspinlock support in dm816x
-Date: Thu, 22 Oct 2015 11:19:29 +0200
-Message-ID: <5628AA21.5070801@baylibre.com>
+Subject: [PATCH 3/4] arm: plat-omap: add DT support for ti,dm816-timer
+Date: Thu, 22 Oct 2015 11:18:53 +0200
+Message-ID: <5628A9FD.5030709@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, fisaksen@baylibre.com, devicetree@vger.kernel.org
+Cc: fisaksen@baylibre.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add dm816x DT entries for omap4-hwspinlock support as hwmod spinbox.
+Adds ti,dm816-timer to the dmtimer OF match table.
 
 Cc: Brian Hutchinson <b.hutchman@gmail.com>
 Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- arch/arm/boot/dts/dm816x.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/plat-omap/dmtimer.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
-index 51ad4a9..f655ce1 100644
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -227,6 +227,13 @@
- 			};
- 		};
-
-+		spinbox: spinbox@480ca000 {
-+			compatible = "ti,omap4-hwspinlock";
-+			reg = <0x480ca000 0x2000>;
-+			ti,hwmods = "spinbox";
-+			#hwlock-cells = <1>;
-+		};
-+
- 		mdio: mdio@4a100800 {
- 			compatible = "ti,davinci_mdio";
- 			#address-cells = <1>;
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 8ca94d3..28a6550 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -943,6 +943,10 @@ static const struct of_device_id omap_timer_match[] = {
+ 		.compatible = "ti,am335x-timer-1ms",
+ 		.data = &omap3plus_pdata,
+ 	},
++	{
++		.compatible = "ti,dm816-timer",
++		.data = &omap3plus_pdata,
++	},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, omap_timer_match);
 -- 
 1.9.1
