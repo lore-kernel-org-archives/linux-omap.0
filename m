@@ -1,54 +1,64 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH] rtc: ds1307: Fix alarm programming for mcp794xx
-Date: Fri, 23 Oct 2015 09:29:57 +0300
-Message-ID: <1445581797-19693-1-git-send-email-t-kristo@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Fri, 23 Oct 2015 10:09:19 +0300
+Message-ID: <5629DD1F.60506@ti.com>
+References: <20151006083346.GL23801@atomide.com> <56139A72.6040600@ti.com>
+ <20151006100000.GN23801@atomide.com> <56139CE9.8020002@ti.com>
+ <5613A256.8000105@ti.com> <20151006110134.GO23801@atomide.com>
+ <5613ABEF.9000904@ti.com> <20151016212510.GF24370@atomide.com>
+ <562496DB.4050803@ti.com> <56274D69.1090402@ti.com>
+ <20151021152028.GO3078@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: a.zummo@towertech.it, alexandre.belloni@free-electrons.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151021152028.GO3078@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-mcp794xx alarm registers must be written in BCD format. However, the
-alarm programming logic neglected this by adding one to the value
-after bin2bcd conversion has been already done, writing bad values
-to month register in case the alarm being set is in October. In this
-case, the alarm month value becomes 0x0a instead of the expected 0x10.
+On 21/10/15 18:20, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [151021 01:31]:
+>> On 19/10/15 10:08, Roger Quadros wrote:
+>>> On 17/10/15 00:25, Tony Lindgren wrote:
+>>>> * Roger Quadros <rogerq@ti.com> [151006 04:13]:
+>>>>>
+>>>>> Fine. The updated series is now at
+>>>>>
+>>>>> git@github.com:rogerq/linux.git
+>>>>>  * [new branch]      for-v4.4/gpmc-v4
+>>>>
+>>>> Looks like it produces some build errors, this with RMKs 3430 and =
+4430
+>>>> only .configs:
+>>>>
+>>>> drivers/memory/omap-gpmc.c:2035:43: error: =E2=80=98struct gpio_ch=
+ip=E2=80=99 has no
+>>>> member named =E2=80=98irqdomain=E2=80=99
+>>>> drivers/memory/omap-gpmc.c:2116:8: error: implicit declaration of
+>>>> function =E2=80=98gpiochip_irqchip_add=E2=80=99 [-Werror=3Dimplici=
+t-function-declaration]
+>>>>
+>>>
+>>> Good catch. We'll have to select GPIOLIB_IRQCHIP for this driver.
+>>>
+>>>> Maybe run randconfig builds on it for overnight?
+>>>
+>>> OK. I'll do that.
+>>
+>> I couldn't run randconfig beyond few iterations as it keeps failing
+>> everywhere. How do we limit the randconfig options to OMAP only
+>> platforms?
+>=20
+> You can use Felipe's scripts from github.
 
-Fix by moving the +1 addition within the bin2bcd call also.
+Thanks. I used his scripts and ran 10 randconfigs per platform.
+Didn't find any issues with this series.
 
-Fixes: 1d1945d261a2 ("drivers/rtc/rtc-ds1307.c: add alarm support for mcp7941x chips")
+How can we proceed?
+Patches are on https://github.com/rogerq/linux/commits/for-v4.4/gpmc-v4
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/rtc/rtc-ds1307.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-index a705e64..188006c 100644
---- a/drivers/rtc/rtc-ds1307.c
-+++ b/drivers/rtc/rtc-ds1307.c
-@@ -718,9 +718,9 @@ static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
- 	regs[3] = bin2bcd(t->time.tm_sec);
- 	regs[4] = bin2bcd(t->time.tm_min);
- 	regs[5] = bin2bcd(t->time.tm_hour);
--	regs[6] = bin2bcd(t->time.tm_wday) + 1;
-+	regs[6] = bin2bcd(t->time.tm_wday + 1);
- 	regs[7] = bin2bcd(t->time.tm_mday);
--	regs[8] = bin2bcd(t->time.tm_mon) + 1;
-+	regs[8] = bin2bcd(t->time.tm_mon + 1);
- 
- 	/* Clear the alarm 0 interrupt flag. */
- 	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
--- 
-1.7.9.5
+cheers,
+-roger
