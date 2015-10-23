@@ -1,51 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MUSB peripheral DMA regression caused by driver core runtime PM
- change
-Date: Fri, 23 Oct 2015 13:36:21 -0700
-Message-ID: <20151023203620.GY3078@atomide.com>
-References: <20151023192044.GX3078@atomide.com>
- <Pine.LNX.4.44L0.1510231629430.1644-100000@iolanthe.rowland.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] clk: ti: drop locking code from mux/divider drivers
+Date: Sat, 24 Oct 2015 00:10:27 +0300
+Message-ID: <562AA243.5010504@ti.com>
+References: <1443727237-21809-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1510231629430.1644-100000@iolanthe.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Bin Liu <b-liu@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1443727237-21809-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Alan Stern <stern@rowland.harvard.edu> [151023 13:34]:
-> On Fri, 23 Oct 2015, Tony Lindgren wrote:
-> 
-> > > Thus the sequence of events should be:
-> > > 
-> > > 	Allocate the musb device;
-> > > 	Runtime-enable the omap2430 (since it is now safe to do so);
-> > > 	Runtime-enable the musb and declare it irq_safe (this will
-> > > 		automatically runtime-resume the omap2430);
-> > > 	Register the musb.
-> > > 
-> > > If things are done this way, no special action needs to be taken.
-> > 
-> > Yes good point, that requires changing the init for the whole
-> > drivers/musb though.
-> 
-> This will have to be done anyway, since the way it is now (if I 
-> understand correctly), the musb is registered and made available to 
-> userspace before its parent is operational (i.e., at full power).
+On 10/01/2015 10:20 PM, Grygorii Strashko wrote:
+> TI's mux and divider clock drivers do not require locking and they do
+> not initialize internal spinlocks. This code was occasionally
+> copy-posted from generic mux/divider drivers. So remove it.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
 
-Yes I agree.
+Gentle ping.
 
-> > Also, we should reorganize the whole musb and make
-> > the platform glue and musb core drivers completely separate using a
-> > shared interrupt where needed.
-> > 
-> > For the regression for the -rc series? Do you see any better
-> > alternatives to what I posted?
-> 
-> No.
+>   drivers/clk/ti/divider.c | 16 +++-------------
+>   drivers/clk/ti/mux.c     | 15 +++------------
+>   2 files changed, 6 insertions(+), 25 deletions(-)
+>
 
-OK thanks,
-
-Tony
+-- 
+regards,
+-grygorii
