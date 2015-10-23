@@ -1,66 +1,108 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: MUSB peripheral DMA regression caused by driver core runtime PM
- change
-Date: Fri, 23 Oct 2015 15:50:21 +0300
-Message-ID: <562A2D0D.3060104@ti.com>
-References: <20151021234134.GQ3078@atomide.com>
- <20151022180216.GT3078@atomide.com> <20151022230133.GV3078@atomide.com>
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: Re: [PATCH] ARM: dts: am335x-boneblack: Use pinctrl constants
+Date: Fri, 23 Oct 2015 08:08:17 -0500
+Message-ID: <562A3141.9000701@ti.com>
+References: <1445530847-25217-1-git-send-email-afd@ti.com>
+ <20151022212356.GU3078@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151022230133.GV3078-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151022212356.GU3078@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/23/2015 02:01 AM, Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [151022 11:03]:
->> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [151021 16:44]:
->>> Hi all,
->>>
->>> I noticed a regresssino in v4.3-rc series to day with MUSB gadgets
->>> and DMA. Doing a git bisect between v4.2..v4.3-rc1 on it pointed to:
->>>
->>> ddef08dd00f5 ("Driver core: wakeup the parent device before trying probe")
->>>
->>> With the commit above reverted things work fine with DMA and USB gadgets.
->>>
->>> This is on omap3 with CONFIG_USB_INVENTRA_DMA selected. Selecting
->>> CONFIG_MUSB_PIO_ONLY still works even without reverting ddef08dd00f5.
->>>
->>> Anybody got ideas what might be wrong? Some wrong runtime PM usage
->>> under drivers/usb/musb?
+On 10/22/2015 04:23 PM, Tony Lindgren wrote:
+> * Andrew F. Davis <afd@ti.com> [151022 09:21]:
+>> Using constants for pinctrl allows better readability and removes
+>> redundancy with comments.
+>
+> You should use the include/dt-bindings/pinctrl/omap.h macro
+> AM33XX_IOPAD(pa, val) while at it. Otherwise we'll end up patching
+> the same things again later on.
+>
+
+Hmm, I haven't really been following this change, it kind of seems to add
+some unnecessary abstraction by using physical hardware addresses instead
+of offsets, then just converting them back to offsets. The offset style DT
+nodes are already auto-generated with existing tools anyway:
+https://dev.ti.com/pinmux
+
+I'm sure this has been discussed already so if this is a blocker I'll
+re-spin this.
+
+Andrew
+
+> Regards,
+>
+> Tony
+>
+>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>> ---
+>>   arch/arm/boot/dts/am335x-boneblack.dts | 44 +++++++++++++++++-----------------
+>>   1 file changed, 22 insertions(+), 22 deletions(-)
 >>
->> Here's some more debug info on where things are different initializing
->> the USB gadgets. I added some printks and diffed the dmesg output. The
->> added calls from commit ddef08dd00f5 start with dd:
->
-> Well turns out the problem actually happens earlier. We end up calling
-> omap2430_runtime_resume with NULL struct musb while EPROBE_DEFER
-> probing.
->
-> No ideas yet how it should be fixed though.
->
-
-I'm not sure, but below diff might help
-
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 70f2b8a..aba8ca7 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -391,6 +391,8 @@ static int omap2430_musb_init(struct musb *musb)
-         }
-         musb->isr = omap2430_musb_interrupt;
-
-+       pm_runtime_enable(glue->dev);
-+
-         status = pm_runtime_get_sync(dev);
-         if (status < 0) {
-                 dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
-@@ -626,8 +628,6 @@ static int omap2430_probe(struct platform_device *pdev)
-                 goto err2;
-         }
-
--       pm_runtime_enable(&pdev->dev);
+>> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+>> index eadbba3..a540a10 100644
+>> --- a/arch/arm/boot/dts/am335x-boneblack.dts
+>> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+>> @@ -36,32 +36,32 @@
+>>   &am33xx_pinmux {
+>>   	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+>>   		pinctrl-single,pins = <
+>> -			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
+>> -			0xa0 0x08       /* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xa4 0x08       /* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xa8 0x08       /* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xac 0x08       /* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xb0 0x08       /* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xb4 0x08       /* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xb8 0x08       /* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xbc 0x08       /* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xc0 0x08       /* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xc4 0x08       /* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xc8 0x08       /* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xcc 0x08       /* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xd0 0x08       /* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xd4 0x08       /* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xd8 0x08       /* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xdc 0x08       /* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+>> -			0xe0 0x00       /* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+>> -			0xe4 0x00       /* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+>> -			0xe8 0x00       /* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+>> -			0xec 0x00       /* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+>> +			0x1b0 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
+>> +			0xa0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
+>> +			0xa4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
+>> +			0xa8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
+>> +			0xac (PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
+>> +			0xb0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
+>> +			0xb4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
+>> +			0xb8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
+>> +			0xbc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
+>> +			0xc0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
+>> +			0xc4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
+>> +			0xc8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
+>> +			0xcc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
+>> +			0xd0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
+>> +			0xd4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
+>> +			0xd8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
+>> +			0xdc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
+>> +			0xe0 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
+>> +			0xe4 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
+>> +			0xe8 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
+>> +			0xec (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
+>>   		>;
+>>   	};
+>>   	nxp_hdmi_bonelt_off_pins: nxp_hdmi_bonelt_off_pins {
+>>   		pinctrl-single,pins = <
+>> -			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
+>> +			0x1b0 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
+>>   		>;
+>>   	};
+>>   };
+>> --
+>> 1.9.1
+>>
