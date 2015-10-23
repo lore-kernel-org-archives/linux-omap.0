@@ -1,153 +1,154 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: MUSB peripheral DMA regression caused by driver core runtime PM change
-Date: Fri, 23 Oct 2015 11:48:33 -0500
-Message-ID: <877fmdcyzi.fsf@saruman.tx.rr.com>
-References: <20151021234134.GQ3078@atomide.com> <20151022180216.GT3078@atomide.com> <20151022230133.GV3078@atomide.com> <562A2D0D.3060104@ti.com> <20151023163957.GW3078@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.3-rc6
+Date: Fri, 23 Oct 2015 16:54:57 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1510231654000.9575@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151023163957.GW3078-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+
+Here are some basic OMAP test results for Linux v4.3-rc6.
+Logs and other details at:
+
+    http://www.pwsan.com/omap/testlogs/test_v4.3-rc6/20151018200945/
 
 
-Hi,
+Test summary
+------------
 
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Date: Fri, 23 Oct 2015 09:03:22 -0700
-> Subject: [PATCH] usb: musb: omap2430: Fix regression caused by driver core
->  change
->
-> Commit ddef08dd00f5 ("Driver core: wakeup the parent device before trying
-> probe") started automatically ensuring the parent device is enabled when
-> the child gets probed.
->
-> This however caused a regression for MUSB omap2430 interface as the
-> runtime PM for the parent device needs the child initialized to access
-> the MUSB hardware registers.
->
-> Let's delay the enabling of PM runtime for the parent until the child
-> has been properly initialized as suggested in an earlier patch by
-> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>.
->
-> In addition to delaying pm_runtime_enable, we now also need to make sure
-> the parent is enabled during omap2430_musb_init. We also want to propagate
-> an error from omap2430_runtime_resume if struct musb is not initialized.
->
-> Note that we use pm_runtime_put_noidle here for both the child and parent
-> to prevent an extra runtime_suspend/resume cycle.
->
-> Let's also add some comments to avoid confusion between the
-> two different devices.
->
-> Fixes: ddef08dd00f5 ("Driver core: wakeup the parent device before
-> trying probe")
-> Suggested-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-I'm fine with this patch to fix this v4.3 regression. Greg, do you want
-a pull request or can you take this in as a patch ? In any case:
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -391,9 +391,20 @@ static int omap2430_musb_init(struct musb *musb)
->  	}
->  	musb->isr =3D omap2430_musb_interrupt;
->=20=20
-> +	/*
-> +	 * Enable runtime PM for musb parent (this driver). We can't
-> +	 * do it earlier as struct musb is not yet allocated and we
-> +	 * need to touch the musb registers for runtime PM.
-> +	 */
-> +	pm_runtime_enable(glue->dev);
-> +	status =3D pm_runtime_get_sync(glue->dev);
-> +	if (status < 0)
-> +		goto err1;
-> +
->  	status =3D pm_runtime_get_sync(dev);
->  	if (status < 0) {
->  		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
-> +		pm_runtime_put_sync(glue->dev);
->  		goto err1;
->  	}
->=20=20
-> @@ -426,6 +437,7 @@ static int omap2430_musb_init(struct musb *musb)
->  	phy_power_on(musb->phy);
->=20=20
->  	pm_runtime_put_noidle(musb->controller);
-> +	pm_runtime_put_noidle(glue->dev);
->  	return 0;
->=20=20
->  err1:
-> @@ -626,7 +638,11 @@ static int omap2430_probe(struct platform_device *pd=
-ev)
->  		goto err2;
->  	}
->=20=20
-> -	pm_runtime_enable(&pdev->dev);
-> +	/*
-> +	 * Note that we cannot enable PM runtime yet for this
-> +	 * driver as we need struct musb initialized first.
-> +	 * See omap2430_musb_init above.
-> +	 */
->=20=20
->  	ret =3D platform_device_add(musb);
->  	if (ret) {
-> @@ -675,11 +691,12 @@ static int omap2430_runtime_resume(struct device *d=
-ev)
->  	struct omap2430_glue		*glue =3D dev_get_drvdata(dev);
->  	struct musb			*musb =3D glue_to_musb(glue);
->=20=20
-> -	if (musb) {
-> -		omap2430_low_level_init(musb);
-> -		musb_writel(musb->mregs, OTG_INTERFSEL,
-> -				musb->context.otg_interfsel);
-> -	}
-> +	if (!musb)
-> +		return -EPROBE_DEFER;
-> +
-> +	omap2430_low_level_init(musb);
-> +	musb_writel(musb->mregs, OTG_INTERFSEL,
-> +		    musb->context.otg_interfsel);
->=20=20
->  	return 0;
->  }
+Build warnings from toolchain: uImage:
+    (none)
 
-=2D-=20
-balbi
+Build warnings from toolchain: uImage+dtb:
+    (none)
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+Build warnings from toolchain: zImage:
+    FAIL (10/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 3/17): 5912osk, 3517evm, 5430es2sbct54
+    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  2420n800
 
-iQIcBAEBAgAGBQJWKmTiAAoJEIaOsuA1yqRECP0P/24JT7tHI4IMxesevnzEGgQu
-xa92QhS1rsmENlEpBT9Y56UCPEQ5oiiMMCSDVWzIDrt+HOlt6+fqsJnqcUmirCK5
-Pd9pH4mLJkkKAiRZ7L7uiT2MjURaVGqvZqb4obD9ERC/jOhE2OMj+lS+NuxZ4rS4
-KzBTVsrPASa7jBrN8AcTPjKr4yuQjawBGR9xGEBEbPzlgGf46MYLYZXxFdcfLEJp
-EenZSOX5EsgsByWaJqap6/XQyLQv1Qu8EotAmffjdd+FSSdY5krgAsYNZ3Z+hs/N
-07hu6r9IggN33IgE6T1h0IHLsR/xgH6E12dPHzF3LL7oY6RTBNPB6X1A+AQ9QPWo
-QyIV/ndXqRaEnnI97qtONSHv4ZazAIszFo2UzPPB5Hw7TfKVphB2ZqfSl3f2bPqz
-9QgteiGGCk/5A2wuPEN6BNegswsNNwmeVjw+NDoPrZ0OmATv9ahrndXPMLmyFWDR
-I1LXCOmp32yiJU4aHrfxV2EV7g1qRl7gD7eBNA1GewOy0g0TIGTxZaQZbc2K9gS3
-EqAvL5TjZXZ7fXlpLC2fLPxz0/bbWuZpFeVwoWpvHOAZr/ocKfakP9bLjGBLX1Nk
-19CU/lfkcN/lmPFyF018FN3/Tlk/8J+sxp9XCcGenLn+Nc1Ohl8hbVbPJWvqRuxi
-p2pGk4h2nVmCbvjjjLzF
-=1HMa
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kernel warnings during boot to userspace:
+    FAIL ( 2/17): 4430es2panda, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 7/11): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 2430sdp, 5430es2uevm
+    Pass ( 4/11): 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 1/17): 4430es2panda
+
+Obsolete Kconfig symbols:
+    FAIL ( 2/20): omap2plus_defconfig, multi_v7_defconfig
+
+
+vmlinux object size
+(delta in bytes from test_v4.3-rc5 (25cb62b76430a91cc6195f902e61c2cb84ade622)):
+   text     data      bss    total  kernel
+    +72        0        0      +72  omap1_defconfig
+    +80        0        0      +80  omap1_defconfig_1510innovator_only
+    +80        0        0      +80  omap1_defconfig_5912osk_only
+     +4        0        0       +4  multi_v7_defconfig
+   +124        0        0     +124  omap2plus_defconfig
+    +92        0        0      +92  omap2plus_defconfig_2430sdp_only
+   +124        0        0     +124  omap2plus_defconfig_am33xx_only
+    +60        0        0      +60  omap2plus_defconfig_am43xx_only
+    +60        0        0      +60  omap2plus_defconfig_cpupm
+    +60        0        0      +60  omap2plus_defconfig_dra7xx_only
+    +60        0        0      +60  omap2plus_defconfig_n800_multi_omap2xxx
+    +32        0        0      +32  omap2plus_defconfig_n800_only_a
+    +60        0        0      +60  omap2plus_defconfig_no_pm
+    +60       -8        0      +52  omap2plus_defconfig_omap2_4_only
+   +124        0        0     +124  omap2plus_defconfig_omap3_4_only
+   +124        0        0     +124  omap2plus_defconfig_omap5_only
++372892  +115512   +16592  +504996  rmk_omap3430_ldp_allnoconfig
++3946849  +255220  +8092644  +12294713  rmk_omap3430_ldp_oldconfig
++346440   +64440   +16592  +427472  rmk_omap4430_sdp_allnoconfig
++4554949  +194220  +8122956  +12872125  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v4.3-rc5 (25cb62b76430a91cc6195f902e61c2cb84ade622))
+  avail  rsrvd   high  freed  board          kconfig
+    -4k     4k      .      .  2430sdp        omap2plus_defconfig
