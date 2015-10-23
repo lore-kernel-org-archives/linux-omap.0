@@ -1,46 +1,45 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap dts changes for v4.4 merge window, part 2
-Date: Fri, 23 Oct 2015 22:19:25 +0200
-Message-ID: <4174355.uUodgcne1B@wuerfel>
-References: <20151020193501.GN3078@atomide.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: MUSB peripheral DMA regression caused by driver core runtime PM
+ change
+Date: Fri, 23 Oct 2015 16:33:54 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1510231629430.1644-100000@iolanthe.rowland.org>
+References: <20151023192044.GX3078@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151020193501.GN3078@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20151023192044.GX3078@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Bin Liu <b-liu@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 20 October 2015 12:35:02 Tony Lindgren wrote:
-> Few more omap dts changes for v4.4 merge window, mostly to fix and clean
-> up some omap5 issues to allow adding other omap5 boards. Also some other
-> fixes and clean-up:
-> 
-> - Fix SDIO WLAN for omap5 that's been broken for a while. As further
->   patches are still needed for wl18xx, no need for stable on this one.
-> 
-> - Move most of omap5 support into omap5-board-common.dtsi as most omap5
->   boards seem to share the same basic set of devices.
-> 
-> - Add minimal IGEPv5 support using based on omap5-board-common.dtsi
-> 
-> - Remove now unneedes gpio hogging for dra72-evm
-> 
-> - Update Javier Martinez Canillas email address
-> 
-> - Change earlier IGEP boards to use IOPAD pinmux macros
-> 
+On Fri, 23 Oct 2015, Tony Lindgren wrote:
 
-Pulled into next/dt, thanks!
+> > Thus the sequence of events should be:
+> > 
+> > 	Allocate the musb device;
+> > 	Runtime-enable the omap2430 (since it is now safe to do so);
+> > 	Runtime-enable the musb and declare it irq_safe (this will
+> > 		automatically runtime-resume the omap2430);
+> > 	Register the musb.
+> > 
+> > If things are done this way, no special action needs to be taken.
+> 
+> Yes good point, that requires changing the init for the whole
+> drivers/musb though.
 
-	Arnd
+This will have to be done anyway, since the way it is now (if I 
+understand correctly), the musb is registered and made available to 
+userspace before its parent is operational (i.e., at full power).
+
+> Also, we should reorganize the whole musb and make
+> the platform glue and musb core drivers completely separate using a
+> shared interrupt where needed.
+> 
+> For the regression for the -rc series? Do you see any better
+> alternatives to what I posted?
+
+No.
+
+Alan Stern
+
