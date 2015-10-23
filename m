@@ -1,61 +1,63 @@
 From: Rolf Peukert <rolf.peukert-cSCHQGRfioA@public.gmane.org>
-Subject: [PATCH 0/5] Device tree support for AM35xx M-USB driver
-Date: Fri, 23 Oct 2015 17:42:51 +0200
-Message-ID: <562A557B.4090501@imms.de>
+Subject: [PATCH 2/5] Export am35x helper functions
+Date: Fri, 23 Oct 2015 17:46:29 +0200
+Message-ID: <562A5655.3000406@imms.de>
+References: <562A557B.4090501@imms.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <562A557B.4090501-cSCHQGRfioA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The M-USB drivers glue code for AM35xx SOCs does not yet support device
-trees.
+To be able to call these four helper functions from a M-USB AM35x driver
+module, their name symbols need to be exported.
 
-In legacy kernels, it was left to the respective board_ file to set up
-some necessary data structures before calling am35x_probe(). To support
-initialization using a DT, this now needs to be done in am35x.c.
+Signed-off-by: Rolf Peukert <rolf.peukert-cSCHQGRfioA@public.gmane.org>
+---
+ arch/arm/mach-omap2/omap_phy_internal.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-These data structures including a set of four pointers to CPU-specific
-helper functions from the mach-omap2 directory.
+diff --git a/arch/arm/mach-omap2/omap_phy_internal.c
+b/arch/arm/mach-omap2/omap_phy_internal.c
+index 8e90356..648a60f 100644
+--- a/arch/arm/mach-omap2/omap_phy_internal.c
++++ b/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -82,6 +82,7 @@ void am35x_musb_reset(void)
 
-Unfortunately those functions are only declared locally under
-arch/arm/mach-omap2/, and they can not easily be moved over to am35x.c.
-(While they just set a few bits in some system control module registers,
-they call functions from control.c to access the SCM. These control.c
-functions are also declared locally in mach-omap2 and not exported,
-and use some static variables and several other local include files.)
+ 	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+ }
++EXPORT_SYMBOL(am35x_musb_reset);
 
-So if we want these four functions to be accessible from the driver glue
-code, their declarations have to be moved to the include/ hierarchy and
-their names need to be exported. This makes it possible to use the am35x
-M-USB driver as a kernel module.
+ void am35x_musb_phy_power(u8 on)
+ {
+@@ -120,6 +121,7 @@ void am35x_musb_phy_power(u8 on)
+ 		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+ 	}
+ }
++EXPORT_SYMBOL(am35x_musb_phy_power);
 
-The patch defines a new device 'compatible' name (am35x-musb) to
-differentiate it from omap3-musb. It also adds clock name declarations
-for interface and function clock to the device tree, so the am35x
-glue code's clk_get() calls can find them.
+ void am35x_musb_clear_irq(void)
+ {
+@@ -130,6 +132,7 @@ void am35x_musb_clear_irq(void)
+ 	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
+ 	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+ }
++EXPORT_SYMBOL(am35x_musb_clear_irq);
 
-Rolf Peukert (5):
-  Make am35x helper function declarations accessible
-  Export am35x helper functions
-  Add device tree support for M-USB on AM35xx SOCs
-  Use new MUSB device name in AM3517 device tree.
-  Add some information about the new DT device name
+ void am35x_set_mode(u8 musb_mode)
+ {
+@@ -152,3 +155,4 @@ void am35x_set_mode(u8 musb_mode)
 
- Documentation/devicetree/bindings/usb/omap-usb.txt | 35 +++++++++++
- arch/arm/boot/dts/am3517.dtsi                      |  4 +-
- arch/arm/mach-omap2/omap_phy_internal.c            |  4 ++
- arch/arm/mach-omap2/usb.h                          |  5 --
- drivers/usb/musb/am35x.c                           | 73
-++++++++++++++++++++++
- include/linux/platform_data/usb-omap.h             |  5 ++
- 6 files changed, 120 insertions(+), 6 deletions(-)
-
+ 	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+ }
++EXPORT_SYMBOL(am35x_set_mode);
 -- 
 2.4.10
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
