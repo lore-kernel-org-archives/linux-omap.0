@@ -1,51 +1,54 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: MUSB peripheral DMA regression caused by driver core runtime PM
- change
-Date: Thu, 22 Oct 2015 16:01:33 -0700
-Message-ID: <20151022230133.GV3078@atomide.com>
-References: <20151021234134.GQ3078@atomide.com>
- <20151022180216.GT3078@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] rtc: ds1307: Fix alarm programming for mcp794xx
+Date: Fri, 23 Oct 2015 09:29:57 +0300
+Message-ID: <1445581797-19693-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151022180216.GT3078-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: a.zummo@towertech.it, alexandre.belloni@free-electrons.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [151022 11:03]:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [151021 16:44]:
-> > Hi all,
-> > 
-> > I noticed a regresssino in v4.3-rc series to day with MUSB gadgets
-> > and DMA. Doing a git bisect between v4.2..v4.3-rc1 on it pointed to:
-> > 
-> > ddef08dd00f5 ("Driver core: wakeup the parent device before trying probe")
-> > 
-> > With the commit above reverted things work fine with DMA and USB gadgets.
-> > 
-> > This is on omap3 with CONFIG_USB_INVENTRA_DMA selected. Selecting
-> > CONFIG_MUSB_PIO_ONLY still works even without reverting ddef08dd00f5.
-> > 
-> > Anybody got ideas what might be wrong? Some wrong runtime PM usage
-> > under drivers/usb/musb?
-> 
-> Here's some more debug info on where things are different initializing
-> the USB gadgets. I added some printks and diffed the dmesg output. The
-> added calls from commit ddef08dd00f5 start with dd:
+mcp794xx alarm registers must be written in BCD format. However, the
+alarm programming logic neglected this by adding one to the value
+after bin2bcd conversion has been already done, writing bad values
+to month register in case the alarm being set is in October. In this
+case, the alarm month value becomes 0x0a instead of the expected 0x10.
 
-Well turns out the problem actually happens earlier. We end up calling
-omap2430_runtime_resume with NULL struct musb while EPROBE_DEFER
-probing.
+Fix by moving the +1 addition within the bin2bcd call also.
 
-No ideas yet how it should be fixed though.
+Fixes: 1d1945d261a2 ("drivers/rtc/rtc-ds1307.c: add alarm support for mcp7941x chips")
 
-Regards,
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/rtc/rtc-ds1307.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+index a705e64..188006c 100644
+--- a/drivers/rtc/rtc-ds1307.c
++++ b/drivers/rtc/rtc-ds1307.c
+@@ -718,9 +718,9 @@ static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
+ 	regs[3] = bin2bcd(t->time.tm_sec);
+ 	regs[4] = bin2bcd(t->time.tm_min);
+ 	regs[5] = bin2bcd(t->time.tm_hour);
+-	regs[6] = bin2bcd(t->time.tm_wday) + 1;
++	regs[6] = bin2bcd(t->time.tm_wday + 1);
+ 	regs[7] = bin2bcd(t->time.tm_mday);
+-	regs[8] = bin2bcd(t->time.tm_mon) + 1;
++	regs[8] = bin2bcd(t->time.tm_mon + 1);
+ 
+ 	/* Clear the alarm 0 interrupt flag. */
+ 	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
+-- 
+1.7.9.5
