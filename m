@@ -1,78 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod cleanup for v4.4
-Date: Fri, 23 Oct 2015 18:14:54 -0700
-Message-ID: <20151024011453.GZ3078@atomide.com>
-References: <alpine.DEB.2.02.1510231957310.9575@utopia.booyaka.com>
+Subject: Re: [PATCH 1/4] arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx
+ hwmod data
+Date: Fri, 23 Oct 2015 18:21:13 -0700
+Message-ID: <20151024012112.GA3078@atomide.com>
+References: <5628A9F2.3010801@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1510231957310.9575@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <5628A9F2.3010801@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, fisaksen@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [151023 12:58]:
-> Hi Tony
-> 
-> The following changes since commit 049e6dde7e57f0054fdc49102e7ef4830c698b46:
-> 
->   Linux 4.3-rc4 (2015-10-04 16:57:17 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.4/omap-hwmod-cleanup-a
-> 
-> for you to fetch changes up to c4384a97af852121f66e52ba96e98d6f13ad19eb:
-> 
->   ARM: OMAP3: hwmod data: Remove legacy mailbox data and addrs (2015-10-23 13:01:25 -0600)
-> 
-> ----------------------------------------------------------------
-> ARM: OMAP2+: hwmod cleanup for v4.4
-> 
-> Remove some superfluous data from the OMAP2+ hwmod data files.  Mostly
-> this is a result of data being moved to DT files.  Nothing too
-> controversial, here.
-> 
-> Basic build, boot, and PM test results are available here:
-> 
-> http://www.pwsan.com/omap/testlogs/hwmod-cleanup-a-for-v4.4/20151023130140/
+Hi,
 
-Thanks pulling into omap-for-v4.4/soc. FYI, that's most likely the last branch I'll
-do for the upcoming merge window as we're already late with all the regression
-fixes. Planning to send it off tomorrow.
+* Neil Armstrong <narmstrong@baylibre.com> [151022 02:19]:
+> Add missing HWMOD_NO_IDLEST hwmod flag for entries no
+> having omap4 clkctrl values.
+
+Have you checked this is the case both in dm814x and dm816x TRM?
+Also the documentation may not be complete FYI, might be also
+worth checking the legacy TI kernel tree to be sure.
 
 Regards,
 
 Tony
 
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> ----------------------------------------------------------------
-> Franklin S Cooper Jr (2):
->       ARM: DRA7/AM335x/AM437x: hwmod: Remove elm address space from hwmod data
->       ARM: DRA7/AM335x/AM437x: hwmod: Remove gpmc address space from hwmod data
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> index b1288f5..6256052 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> @@ -144,6 +144,7 @@ static struct omap_hwmod dm81xx_l4_ls_hwmod = {
+>  	.name		= "l4_ls",
+>  	.clkdm_name	= "alwon_l3s_clkdm",
+>  	.class		= &l4_hwmod_class,
+> +	.flags		= HWMOD_NO_IDLEST,
+>  };
 > 
-> Javier Martinez Canillas (1):
->       ARM: OMAP: Remove duplicated operand in OR operation
+>  /*
+> @@ -155,6 +156,7 @@ static struct omap_hwmod dm81xx_l4_hs_hwmod = {
+>  	.name		= "l4_hs",
+>  	.clkdm_name	= "alwon_l3_med_clkdm",
+>  	.class		= &l4_hwmod_class,
+> +	.flags		= HWMOD_NO_IDLEST,
+>  };
 > 
-> Suman Anna (3):
->       ARM: OMAP4: hwmod data: Remove spinlock hwmod addrs
->       ARM: DRA7: hwmod data: Remove spinlock hwmod addrs
->       ARM: OMAP3: hwmod data: Remove legacy mailbox data and addrs
+>  /* L3 slow -> L4 ls peripheral interface running at 125MHz */
+> @@ -850,6 +852,7 @@ static struct omap_hwmod dm816x_emac0_hwmod = {
+>  	.name		= "emac0",
+>  	.clkdm_name	= "alwon_ethernet_clkdm",
+>  	.class		= &dm816x_emac_hwmod_class,
+> +	.flags		= HWMOD_NO_IDLEST,
+>  };
 > 
->  .../omap_hwmod_33xx_43xx_interconnect_data.c       | 20 ---------------
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 29 ---------------------
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 10 --------
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  3 +--
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 30 ----------------------
->  5 files changed, 1 insertion(+), 91 deletions(-)
+>  static struct omap_hwmod_ocp_if dm81xx_l4_hs__emac0 = {
+> -- 
+> 1.9.1
