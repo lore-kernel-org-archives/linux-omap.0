@@ -1,83 +1,56 @@
-From: Neil Armstrong <narmstrong@baylibre.com>
-Subject: Re: [PATCH 1/4] arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx
- hwmod data
-Date: Sat, 24 Oct 2015 12:09:38 +0200
-Message-ID: <CAA3gFWs8-3pqiZR8vYLDWdXwWjUcd9UK23W3dODGTT+FY55E7g@mail.gmail.com>
-References: <5628A9F2.3010801@baylibre.com>
-	<20151024012112.GA3078@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] rtc: ds1307: Fix alarm programming for mcp794xx
+Date: Sat, 24 Oct 2015 09:44:37 -0500
+Message-ID: <562B9955.40308@ti.com>
+References: <1445581797-19693-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151024012112.GA3078@atomide.com>
+In-Reply-To: <1445581797-19693-1-git-send-email-t-kristo@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Frode Isaksen <fisaksen@baylibre.com>
+To: Tero Kristo <t-kristo@ti.com>, a.zummo@towertech.it, alexandre.belloni@free-electrons.com
+Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 10/23/2015 01:29 AM, Tero Kristo wrote:
+> mcp794xx alarm registers must be written in BCD format. However, the
+> alarm programming logic neglected this by adding one to the value
+> after bin2bcd conversion has been already done, writing bad values
+> to month register in case the alarm being set is in October. In this
+> case, the alarm month value becomes 0x0a instead of the expected 0x10.
+> 
+> Fix by moving the +1 addition within the bin2bcd call also.
+> 
+> Fixes: 1d1945d261a2 ("drivers/rtc/rtc-ds1307.c: add alarm support for mcp7941x chips")
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-2015-10-24 3:21 GMT+02:00 Tony Lindgren <tony@atomide.com>:
->
-> Hi,
->
-> * Neil Armstrong <narmstrong@baylibre.com> [151022 02:19]:
-> > Add missing HWMOD_NO_IDLEST hwmod flag for entries no
-> > having omap4 clkctrl values.
->
-> Have you checked this is the case both in dm814x and dm816x TRM?
-> Also the documentation may not be complete FYI, might be also
-> worth checking the legacy TI kernel tree to be sure.
->
-> Regards,
->
-> Tony
->
-> > Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> > Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> > index b1288f5..6256052 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> > @@ -144,6 +144,7 @@ static struct omap_hwmod dm81xx_l4_ls_hwmod = {
-> >       .name           = "l4_ls",
-> >       .clkdm_name     = "alwon_l3s_clkdm",
-> >       .class          = &l4_hwmod_class,
-> > +     .flags          = HWMOD_NO_IDLEST,
-> >  };
-In DM814x TRM, the CM_ALWON_L3_SLOW_CLKSTCTRL does not have IDLEST field.
-Same in DM816x TRM.
+Nice catch.
+Acked-by: Nishanth Menon <nm@ti.com>
+> ---
+>  drivers/rtc/rtc-ds1307.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+> index a705e64..188006c 100644
+> --- a/drivers/rtc/rtc-ds1307.c
+> +++ b/drivers/rtc/rtc-ds1307.c
+> @@ -718,9 +718,9 @@ static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
+>  	regs[3] = bin2bcd(t->time.tm_sec);
+>  	regs[4] = bin2bcd(t->time.tm_min);
+>  	regs[5] = bin2bcd(t->time.tm_hour);
+> -	regs[6] = bin2bcd(t->time.tm_wday) + 1;
+> +	regs[6] = bin2bcd(t->time.tm_wday + 1);
+>  	regs[7] = bin2bcd(t->time.tm_mday);
+> -	regs[8] = bin2bcd(t->time.tm_mon) + 1;
+> +	regs[8] = bin2bcd(t->time.tm_mon + 1);
+>  
+>  	/* Clear the alarm 0 interrupt flag. */
+>  	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
+> 
 
-> >
-> >  /*
-> > @@ -155,6 +156,7 @@ static struct omap_hwmod dm81xx_l4_hs_hwmod = {
-> >       .name           = "l4_hs",
-> >       .clkdm_name     = "alwon_l3_med_clkdm",
-> >       .class          = &l4_hwmod_class,
-> > +     .flags          = HWMOD_NO_IDLEST,
-> >  };
-In DM814x TRM, the CM_ALWON_L3_MED_CLKSTCTRL does not have IDLEST field.
-Same in DM816x TRM.
 
-> >
-> >  /* L3 slow -> L4 ls peripheral interface running at 125MHz */
-> > @@ -850,6 +852,7 @@ static struct omap_hwmod dm816x_emac0_hwmod = {
-> >       .name           = "emac0",
-> >       .clkdm_name     = "alwon_ethernet_clkdm",
-> >       .class          = &dm816x_emac_hwmod_class,
-> > +     .flags          = HWMOD_NO_IDLEST,
-> >  };
-In this particular case, the IDLEST is handled in the MDIO hwmod.
-
-> >
-> >  static struct omap_hwmod_ocp_if dm81xx_l4_hs__emac0 = {
-> > --
-> > 1.9.1
-
-I'll check the TI tree to be sure...
-
+-- 
 Regards,
-Neil
+Nishanth Menon
