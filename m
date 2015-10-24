@@ -1,66 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx
- hwmod data
-Date: Fri, 23 Oct 2015 18:21:13 -0700
-Message-ID: <20151024012112.GA3078@atomide.com>
-References: <5628A9F2.3010801@baylibre.com>
+Subject: Re: [PATCH 2/4] clk: ti816x: Add missing dmtimer clkdev entries
+Date: Fri, 23 Oct 2015 18:21:49 -0700
+Message-ID: <20151024012148.GB3078@atomide.com>
+References: <5628A9F7.9090105@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5628A9F2.3010801@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <5628A9F7.9090105@baylibre.com>
+Sender: linux-clk-owner@vger.kernel.org
 To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, fisaksen@baylibre.com
+Cc: Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-clk@vger.kernel.org, fisaksen@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
 * Neil Armstrong <narmstrong@baylibre.com> [151022 02:19]:
-> Add missing HWMOD_NO_IDLEST hwmod flag for entries no
-> having omap4 clkctrl values.
-
-Have you checked this is the case both in dm814x and dm816x TRM?
-Also the documentation may not be complete FYI, might be also
-worth checking the legacy TI kernel tree to be sure.
-
-Regards,
-
-Tony
-
+> Add missing clkdev dmtimer related entries for dm816x.
+> 32Khz and ext sources were missing.
+> 
 > Cc: Brian Hutchinson <b.hutchman@gmail.com>
 > Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+
+Tero should queue this one:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
 > ---
->  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 3 +++
->  1 file changed, 3 insertions(+)
+>  drivers/clk/ti/clk-816x.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> index b1288f5..6256052 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-> @@ -144,6 +144,7 @@ static struct omap_hwmod dm81xx_l4_ls_hwmod = {
->  	.name		= "l4_ls",
->  	.clkdm_name	= "alwon_l3s_clkdm",
->  	.class		= &l4_hwmod_class,
-> +	.flags		= HWMOD_NO_IDLEST,
->  };
-> 
->  /*
-> @@ -155,6 +156,7 @@ static struct omap_hwmod dm81xx_l4_hs_hwmod = {
->  	.name		= "l4_hs",
->  	.clkdm_name	= "alwon_l3_med_clkdm",
->  	.class		= &l4_hwmod_class,
-> +	.flags		= HWMOD_NO_IDLEST,
->  };
-> 
->  /* L3 slow -> L4 ls peripheral interface running at 125MHz */
-> @@ -850,6 +852,7 @@ static struct omap_hwmod dm816x_emac0_hwmod = {
->  	.name		= "emac0",
->  	.clkdm_name	= "alwon_ethernet_clkdm",
->  	.class		= &dm816x_emac_hwmod_class,
-> +	.flags		= HWMOD_NO_IDLEST,
->  };
-> 
->  static struct omap_hwmod_ocp_if dm81xx_l4_hs__emac0 = {
+> diff --git a/drivers/clk/ti/clk-816x.c b/drivers/clk/ti/clk-816x.c
+> index 1dfad0c..2a5d84f 100644
+> --- a/drivers/clk/ti/clk-816x.c
+> +++ b/drivers/clk/ti/clk-816x.c
+> @@ -20,6 +20,8 @@ static struct ti_dt_clk dm816x_clks[] = {
+>  	DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
+>  	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
+>  	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
+> +	DT_CLK(NULL, "timer_32k_ck", "sysclk18_ck"),
+> +	DT_CLK(NULL, "timer_ext_ck", "tclkin_ck"),
+>  	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
+>  	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
+>  	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
 > -- 
 > 1.9.1
