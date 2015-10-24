@@ -1,56 +1,82 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] rtc: ds1307: Fix alarm programming for mcp794xx
-Date: Sat, 24 Oct 2015 09:44:37 -0500
-Message-ID: <562B9955.40308@ti.com>
-References: <1445581797-19693-1-git-send-email-t-kristo@ti.com>
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: [PATCH v2] ARM: dts: am335x-boneblack: Use pinctrl constants and AM33XX_IOPAD macro
+Date: Sat, 24 Oct 2015 12:05:13 -0500
+Message-ID: <1445706313-14761-1-git-send-email-afd@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1445581797-19693-1-git-send-email-t-kristo@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, a.zummo@towertech.it, alexandre.belloni@free-electrons.com
-Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/23/2015 01:29 AM, Tero Kristo wrote:
-> mcp794xx alarm registers must be written in BCD format. However, the
-> alarm programming logic neglected this by adding one to the value
-> after bin2bcd conversion has been already done, writing bad values
-> to month register in case the alarm being set is in October. In this
-> case, the alarm month value becomes 0x0a instead of the expected 0x10.
-> 
-> Fix by moving the +1 addition within the bin2bcd call also.
-> 
-> Fixes: 1d1945d261a2 ("drivers/rtc/rtc-ds1307.c: add alarm support for mcp7941x chips")
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Using constants for pinctrl allows better readability and removes
+redundancy with comments. AM33XX_IOPAD allows us to use part of the
+pinctrl physical address as in the TRM instead of an offset.
 
-Nice catch.
-Acked-by: Nishanth Menon <nm@ti.com>
-> ---
->  drivers/rtc/rtc-ds1307.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-> index a705e64..188006c 100644
-> --- a/drivers/rtc/rtc-ds1307.c
-> +++ b/drivers/rtc/rtc-ds1307.c
-> @@ -718,9 +718,9 @@ static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
->  	regs[3] = bin2bcd(t->time.tm_sec);
->  	regs[4] = bin2bcd(t->time.tm_min);
->  	regs[5] = bin2bcd(t->time.tm_hour);
-> -	regs[6] = bin2bcd(t->time.tm_wday) + 1;
-> +	regs[6] = bin2bcd(t->time.tm_wday + 1);
->  	regs[7] = bin2bcd(t->time.tm_mday);
-> -	regs[8] = bin2bcd(t->time.tm_mon) + 1;
-> +	regs[8] = bin2bcd(t->time.tm_mon + 1);
->  
->  	/* Clear the alarm 0 interrupt flag. */
->  	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
-> 
+Signed-off-by: Andrew F. Davis <afd@ti.com>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 44 +++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index eadbba3..346f529 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -36,32 +36,32 @@
+ &am33xx_pinmux {
+ 	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+ 		pinctrl-single,pins = <
+-			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
+-			0xa0 0x08       /* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xa4 0x08       /* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xa8 0x08       /* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xac 0x08       /* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xb0 0x08       /* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xb4 0x08       /* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xb8 0x08       /* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xbc 0x08       /* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xc0 0x08       /* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xc4 0x08       /* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xc8 0x08       /* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xcc 0x08       /* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xd0 0x08       /* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xd4 0x08       /* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xd8 0x08       /* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xdc 0x08       /* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xe0 0x00       /* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-			0xe4 0x00       /* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-			0xe8 0x00       /* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-			0xec 0x00       /* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			AM33XX_IOPAD(0x9b0, (PIN_OUTPUT_PULLDOWN | MUX_MODE3))	/* xdma_event_intr0 */
++			AM33XX_IOPAD(0x8a0, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data0.lcd_data0 */
++			AM33XX_IOPAD(0x8a4, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data1.lcd_data1 */
++			AM33XX_IOPAD(0x8a8, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data2.lcd_data2 */
++			AM33XX_IOPAD(0x8ac, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data3.lcd_data3 */
++			AM33XX_IOPAD(0x8b0, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data4.lcd_data4 */
++			AM33XX_IOPAD(0x8b4, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data5.lcd_data5 */
++			AM33XX_IOPAD(0x8b8, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data6.lcd_data6 */
++			AM33XX_IOPAD(0x8bc, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data7.lcd_data7 */
++			AM33XX_IOPAD(0x8c0, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data8.lcd_data8 */
++			AM33XX_IOPAD(0x8c4, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data9.lcd_data9 */
++			AM33XX_IOPAD(0x8c8, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data10.lcd_data10 */
++			AM33XX_IOPAD(0x8cc, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data11.lcd_data11 */
++			AM33XX_IOPAD(0x8d0, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data12.lcd_data12 */
++			AM33XX_IOPAD(0x8d4, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data13.lcd_data13 */
++			AM33XX_IOPAD(0x8d8, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data14.lcd_data14 */
++			AM33XX_IOPAD(0x8dc, (PIN_OUTPUT | MUX_MODE0))		/* lcd_data15.lcd_data15 */
++			AM33XX_IOPAD(0x8e0, (PIN_OUTPUT_PULLDOWN | MUX_MODE0))	/* lcd_vsync.lcd_vsync */
++			AM33XX_IOPAD(0x8e4, (PIN_OUTPUT_PULLDOWN | MUX_MODE0))	/* lcd_hsync.lcd_hsync */
++			AM33XX_IOPAD(0x8e8, (PIN_OUTPUT_PULLDOWN | MUX_MODE0))	/* lcd_pclk.lcd_pclk */
++			AM33XX_IOPAD(0x8ec, (PIN_OUTPUT_PULLDOWN | MUX_MODE0))	/* lcd_ac_bias_en.lcd_ac_bias_en */
+ 		>;
+ 	};
+ 	nxp_hdmi_bonelt_off_pins: nxp_hdmi_bonelt_off_pins {
+ 		pinctrl-single,pins = <
+-			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
++			AM33XX_IOPAD(0x9b0, (PIN_OUTPUT_PULLDOWN | MUX_MODE3))	/* xdma_event_intr0 */
+ 		>;
+ 	};
+ };
 -- 
-Regards,
-Nishanth Menon
+1.9.1
