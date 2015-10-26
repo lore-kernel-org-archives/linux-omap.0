@@ -1,17 +1,28 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: Question about TI Shared Transport
-Date: Mon, 26 Oct 2015 16:54:31 +0200
-Message-ID: <562E3EA7.7010000@ti.com>
+From: Adam Ford <adam.ford-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: Question about TI Shared Transport
+Date: Mon, 26 Oct 2015 15:10:53 +0000
+Message-ID: <4efd97bfa35247edbad2474100901d32@EDPR-MAIL01.logicpd.com>
 References: <8a0b6861e04142798bc4469ee47aca65@EDPR-MAIL01.logicpd.com>
+ <562E3EA7.7010000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8a0b6861e04142798bc4469ee47aca65-RD//sElfeWh+2r9uuM1j//JkEz5vkpnY@public.gmane.org>
+In-Reply-To: <562E3EA7.7010000-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adam Ford <adam.ford-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "'gigi.joseph-l0cyMroinI0@public.gmane.org'" <gigi.joseph-l0cyMroinI0@public.gmane.org>, "'marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org'" <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, "'devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Grygorii Strashko' <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "'gigi.joseph-l0cyMroinI0@public.gmane.org'" <gigi.joseph-l0cyMroinI0@public.gmane.org>, "'marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org'" <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, "'devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "'linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
+
+The revert appears in the 4.2.4 log as well, so it happened before 4.2 was released. From what I can see, that ti-st directory hasn't changed between 4.2.4 and the 4.3.
+
+-----Original Message-----
+From: Grygorii Strashko [mailto:grygorii.strashko-l0cyMroinI0@public.gmane.org] 
+Sent: Monday, October 26, 2015 9:55 AM
+To: Adam Ford <adam.ford-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>; 'gigi.joseph-l0cyMroinI0@public.gmane.org' <gigi.joseph-l0cyMroinI0@public.gmane.org>; 'marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org' <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>; 'devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org' <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>; 'linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org' <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>; Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: Question about TI Shared Transport
 
 On 10/26/2015 03:58 PM, Adam Ford wrote:
 > Gigi,
