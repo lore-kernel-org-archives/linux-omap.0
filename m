@@ -1,50 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2 v2] ARM: DRA7/335x/437x/OMAP4: hwmod: Remove elm
- address space from hwmod data
-Date: Mon, 26 Oct 2015 17:06:45 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1510261700320.17863@utopia.booyaka.com>
-References: <1444926461-16092-1-git-send-email-fcooper@ti.com> <alpine.DEB.2.02.1510231858170.9575@utopia.booyaka.com> <562E3DA8.4000006@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <562E3DA8.4000006@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Franklin S Cooper Jr." <fcooper@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, rogerq@ti.com, nm@ti.com, lokeshvutla@ti.com
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] ARM: OMAP1: fix incorrect INT_DMA_LCD
+Date: Mon, 26 Oct 2015 20:41:43 +0200
+Message-ID: <1445884903-12224-1-git-send-email-aaro.koskinen@iki.fi>
+References: <20151020144707.GA3078@atomide.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20151020144707.GA3078@atomide.com>
+Sender: stable-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Franklin,
+Commit 685e2d08c54b ("ARM: OMAP1: Change interrupt numbering for
+sparse IRQ") turned on SPARSE_IRQ on OMAP1, but forgot to change
+the number of INT_DMA_LCD. This broke the boot at least on Nokia 770,
+where the device hangs during framebuffer initialization.
 
-On Mon, 26 Oct 2015, Franklin S Cooper Jr. wrote:
+Fix by defining INT_DMA_LCD like the other interrupts.
 
-> On 10/23/2015 02:00 PM, Paul Walmsley wrote:
-> > On Thu, 15 Oct 2015, Franklin S Cooper Jr wrote:
-> >
-> >> ELM address information is provided by device tree. No longer need
-> >> to include this information within hwmod.
-> >>
-> >> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> > The OMAP4 DTS files don't have the ELM address space declared.  I'm going 
-> > to drop that portion of your patch.  Could you please send a two-patch 
-> > series that first adds the ELM address space to the OMAP4 DTS file and 
-> > then subsequently drops it from the OMAP4 hwmod data file?
-> Hi Paul,
-> 
-> Sorry about that. I can create the patches but I don't see any board omap4
-> board that has nand support. So I'm not going to be able to test to insure if
-> omap_elm.c will work as is.
-> 
-> Should I just drop omap4 from this patchset or should I just add the elm node
-> to omap4.dtsi and if people report an issue with omap_elm then we can fix it?
+Cc: stable@vger.kernel.org
+Fixes: 685e2d08c54b ("ARM: OMAP1: Change interrupt numbering for sparse IRQ")
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ include/linux/omap-dma.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Please write the OMAP4 patches since we're trying to get the data cleaned 
-up.  You don't need to worry about the DRA7/335x/437x platforms; those 
-patches have already been merged.  The ELM hwmod should be initialized 
-even on boards without NAND, so that should be a reasonable test of the 
-register address space, at least.  Please note in the patch description 
-whether your patches are untested, tested just to initialize/boot, or 
-whether they've been tested on an active NAND flash workload.
-
-thanks
-
-- Paul
+diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+index e5a7013..88fa8af 100644
+--- a/include/linux/omap-dma.h
++++ b/include/linux/omap-dma.h
+@@ -17,7 +17,7 @@
+ 
+ #include <linux/platform_device.h>
+ 
+-#define INT_DMA_LCD			25
++#define INT_DMA_LCD			(NR_IRQS_LEGACY + 25)
+ 
+ #define OMAP1_DMA_TOUT_IRQ		(1 << 0)
+ #define OMAP_DMA_DROP_IRQ		(1 << 1)
+-- 
+2.4.0
