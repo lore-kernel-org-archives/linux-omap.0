@@ -1,39 +1,96 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/6] ARM: OMAP2+: dts: cm-t335: add support for network
- device
-Date: Tue, 27 Oct 2015 18:44:56 +0530
-Message-ID: <562F78D0.5010507@ti.com>
-References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
- <1445948100-16446-6-git-send-email-uri.mashiach@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445948100-16446-6-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, igor.grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v11 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Tue, 27 Oct 2015 15:38:47 +0100
+Message-ID: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 27 October 2015 05:44 PM, Uri Mashiach wrote:
-> From: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> 
-> Add pinmux configurations for RGMII1 based CPSW Ethernet pins and
-> MDIO pins:
->  - default configuration required for module in active state,
->  - sleep configuration required for module in inactive state.
-> Add mac node with single slave device. Add nodes for davinci_mdio and
-> cpsw_emac0.
-> 
-> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Signed-off-by: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Hi,
 
-Acked-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+this is v11 of an attempt to make it easier for devices to remain in
+runtime PM when the system goes to sleep, mainly to reduce the time
+spent resuming devices.
 
-Regards
-Mugunthan V N
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For this, we interpret the absence of all PM callback implementations as
+it being safe to do direct_complete, so their ancestors aren't prevented
+from remaining runtime-suspended.
+
+Additionally, the prepare() callback of USB devices will return 1 if
+runtime PM is enabled and the current wakeup settings are correct.
+
+With these changes, a uvcvideo device (for example) stays in runtime
+suspend when the system goes to sleep and is left in that state when the
+system resumes, not delaying it unnecessarily.
+
+Thanks,
+
+Tomeu
+
+Changes in v11:
+- Move calls to dev_pm_domain_set() out from &dev->power.lock as that
+  isn't needed for dev->pm_domain.
+
+Changes in v10:
+- Remove superfluous call to pm_runtime_enabled() as suggested by Alan
+
+Changes in v9:
+- Add docs noting the need for the device lock to be held before calling
+  device_is_bound()
+- Add docs noting the need for the device lock to be held before calling
+  dev_pm_domain_set()
+- Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
+- Rename from device_check_pm_callbacks to device_pm_check_callbacks to
+  follow with the naming convention of existing API.
+- Re-add calling to device_pm_check_callbacks from device registration
+  and when updating the PM domain of a device.
+
+Changes in v8:
+- Add device_is_bound()
+- Add dev_pm_domain_set() and update code to use it
+- Move no_pm_callbacks field into CONFIG_PM_SLEEP
+- Call device_check_pm_callbacks only after a device is bound or unbound
+
+Changes in v7:
+- Reduce indentation by adding a label in device_prepare()
+
+Changes in v6:
+- Add stub for !CONFIG_PM.
+- Move implementation of device_check_pm_callbacks to power/main.c as it
+  doesn't belong to CONFIG_PM_SLEEP.
+- Take dev->power.lock before modifying flag.
+
+Changes in v5:
+- Check for all dev_pm_ops instances associated to a device, updating a
+  no_pm_callbacks flag at the times when that could change.
+
+Tomeu Vizoso (4):
+  device core: add device_is_bound()
+  PM / Domains: add setter for dev.pm_domain
+  PM / sleep: Go direct_complete if driver has no callbacks
+  USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+
+ arch/arm/mach-omap2/omap_device.c |  7 ++++---
+ drivers/acpi/acpi_lpss.c          |  5 +++--
+ drivers/acpi/device_pm.c          |  5 +++--
+ drivers/base/dd.c                 | 21 +++++++++++++++++++--
+ drivers/base/power/clock_ops.c    |  5 +++--
+ drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
+ drivers/base/power/domain.c       |  8 ++++++--
+ drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
+ drivers/base/power/power.h        |  3 +++
+ drivers/gpu/vga/vga_switcheroo.c  | 10 +++++-----
+ drivers/misc/mei/pci-me.c         |  5 +++--
+ drivers/misc/mei/pci-txe.c        |  5 +++--
+ drivers/usb/core/port.c           |  6 ++++++
+ drivers/usb/core/usb.c            |  8 +++++++-
+ include/linux/device.h            |  2 ++
+ include/linux/pm.h                |  1 +
+ include/linux/pm_domain.h         |  3 +++
+ 17 files changed, 130 insertions(+), 23 deletions(-)
+
+-- 
+2.5.0
+
