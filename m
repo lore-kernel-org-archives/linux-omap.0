@@ -1,46 +1,36 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] regulator: tps65217: remove tps65217.dtsi file
-Date: Tue, 27 Oct 2015 09:31:27 +0900
-Message-ID: <20151027003127.GL28319@sirena.org.uk>
-References: <1445850836-17863-1-git-send-email-hs@denx.de>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 00/14] dmaenigne: edma/ti-crossbar: fixes, new bindings
+Date: Tue, 27 Oct 2015 10:24:53 +0900
+Message-ID: <20151027012452.GB11691@vkoul-mobl.iind.intel.com>
+References: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="EVcIhgQsEzAXu06J"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1445850836-17863-1-git-send-email-hs@denx.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Heiko Schocher <hs@denx.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Kumar Gala <galak@codeaurora.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Herring <robh+dt@kernel.org>, Georg.Soffel@bosch-si.com, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, Mark Jackson <mpfj@newflow.co.uk>, Tony Lindgren <tony@atomide.com>
+In-Reply-To: <1444979892-31626-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, r.schwebel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Oct 16, 2015 at 10:17:58AM +0300, Peter Ujfalusi wrote:
+> Hi,
+> 
+> Changes since v1:
+> - Comments in the memcpy optimization patch extended
+> - The crossbar patch has been improved:
+>  - debug prints changed
+>  - fallback xbar parameters now type specific as the fallback values for DRA7
+>    are not valid for AM33xx crossbar.
+> - New patch for Kconfig to select the crossbar in case the eDMA is used on OMAP
+>   platforms
+> 
+I am applying this series and Please note that this has ARM patches which i
+have not heard any objections so applying :)
 
---EVcIhgQsEzAXu06J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Oct 26, 2015 at 10:13:55AM +0100, Heiko Schocher wrote:
-> remove tps65217.dtsi and adapt all boards, which
-> used it.
-
-Acked-by: Mark Brown <broonie@kernel.org>
-
-but really this is a DTS change so I'd expect it to go via arm-soc
-rather than me.
-
---EVcIhgQsEzAXu06J
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWLsXfAAoJECTWi3JdVIfQYrkH/1ciQAakBPw0mSJsryPcTz/R
-GmNG+OxF6dQyARJwPOPjOrDWem56pAuQFuuJ77M9PefsAwaLITsTJKVUfO6aEuj2
-MNwjOsdamPcBWOQCghk9BXh/Hr1Gjg0N9V/pz7DAEnqEZHRMH8DFeeh3pmjcMGic
-g/UlZ0Vb3PEsTJRdkZ5aIC5hobN6hSMJSkeiVdWw0jpSx5WBgixbJxsmSZT16Gcq
-rbaX6Vwl2MoKAzdxb6sgysd6spiN6sNBBfg/pQHC+zDLE2HgW7FP0gcDv7t/XQ7l
-lnoRzV6xeff76Z9V1ZipexsId0uDv8VMgay7jN1ZT8lleNhPtbY2+TFPzXiOkv4=
-=o5aE
------END PGP SIGNATURE-----
-
---EVcIhgQsEzAXu06J--
+-- 
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
