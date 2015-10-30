@@ -1,74 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/3] dmaengine: ti-dma-crossbar: channel reserving and
- edma3-tcc support
-Date: Fri, 30 Oct 2015 09:20:37 +0200
-Message-ID: <56331A45.6020201@ti.com>
-References: <1446107331-30041-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 0/3] ARM: OMAP2+ McASP(3) support for DRA7xx family
+Date: Fri, 30 Oct 2015 09:54:57 +0200
+Message-ID: <1446191700-11057-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1446107331-30041-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, r.schwebel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, paul@pwsan.com
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Vinod,
+Hi Paul, Tony,
 
-On 10/29/2015 10:28 AM, Peter Ujfalusi wrote:
-> Hi,
->=20
-> This series depends on the eDMA work I have done, which has been now =
-applied:
-> https://lkml.org/lkml/2015/10/16/64
->=20
-> DRA7 family of chips have both sDMA and eDMA. Currently only sDMA can=
- be used
-> becasue the old driver stack for eDMA did not allowed integration w/o=
- hacks.
->=20
-> Due to the nature of eDMA the crossbar needs to know which eDMA event=
-s it can
-> use to map incoming events towards the eDMA. In eDMA a channel is wir=
-ed to be
-> used with one specific event. For example eDMA event 14 can only be h=
-andled by
-> eDMA channel 14.
-> The eDMA itself can be shared by different processors in the system (=
-ARM, DSP,
-> etc) and since ARM/Linux is the master we need to know which channels=
- are used
-> by other cores. Also we need to mask out channels used for memcpy fro=
-m the
-> events we use for HW triggers.
+Changes since v2:
+- DTS patch added which is needed because of the clock handling changes
 
-Please ignore this series, I have found some issue with it and I just s=
-tarted
-to debug it. Will post V2 as soon as I found the problem.
+Felip Balbi reported that linux-next is broken right now since the DTS part of
+the earlier series has been applied, but we do not have the mcasp hwmod in the
+kernel:
+...
+[    0.181029] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
+...
+[    6.121072] davinci-mcasp 48468000.mcasp: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
+[    6.130790] ------------[ cut here ]------------
+[    6.135643] WARNING: CPU: 0 PID: 244 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x220/0x34c()
+[    6.145576] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3 (Read): Data Access in User mode during Functional access
+...
 
->=20
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (3):
->   dmaengine: ti-dma-crossbar: dra7: Use bitops instead of idr
->   dmaengine: ti-dma-crossbar: dra7: Support for reserving DMA event
->     ranges
->   dmaengine: ti-dma-crossbar: dra7: Support for eDMA with new binding=
-s
->=20
->  .../devicetree/bindings/dma/ti-dma-crossbar.txt    |  6 ++
->  drivers/dma/ti-dma-crossbar.c                      | 81 ++++++++++++=
-+++++++---
->  2 files changed, 76 insertions(+), 11 deletions(-)
->=20
+This is the followup series for the hwmod changes needed to get audio working
+on DRA7xx family based boards.
+The DTS patches has been applied by Tony from the original series:
+http://www.spinics.net/lists/linux-omap/msg121473.html
 
+I have addressed your comments in the hwmod data and did some research also
+regarding to the use of ahclkx as fclk in the original submission.
+It turned out that McASP _needs_ all clocks to be enabled (fclk, iclk and
+ahclkx/r) to be able to access registers. The original patch where we handled
+the ahclkx as fclk worked, because the fclk clock got enabled in the HW w/o
+any SW interaction.
+All in all, the McASP found in DRA7 needs all clocks to be enabled.
+To satisfy this I have introduced a new flag to hwmod, which means that the
+listed optional clocks need to be handled alongside with the fclk clock.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Peter
+---
+Peter Ujfalusi (3):
+  ARM: DTS: dra7: Fix McASP3 node regarding to clocks
+  ARM: OMAP2+: hwmod: Add hwmod flag for HWMOD_OPT_CLKS_NEEDED
+  ARM: OMAP: DRA7: hwmod: Add data for McASP3
+
+ arch/arm/boot/dts/dra7.dtsi               |  4 +-
+ arch/arm/mach-omap2/omap_hwmod.c          | 66 +++++++++++++++++--------------
+ arch/arm/mach-omap2/omap_hwmod.h          |  3 ++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 56 ++++++++++++++++++++++++++
+ 4 files changed, 97 insertions(+), 32 deletions(-)
+
+-- 
+2.6.1
