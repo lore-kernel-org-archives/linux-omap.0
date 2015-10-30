@@ -1,59 +1,84 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] dmaengine: ti-dma-crossbar: dra7: Use bitops instead
- of idr
-Date: Fri, 30 Oct 2015 10:02:47 +0200
-Message-ID: <56332427.6000805@ti.com>
-References: <1446107331-30041-1-git-send-email-peter.ujfalusi@ti.com>
- <1446107331-30041-2-git-send-email-peter.ujfalusi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 0/3] ARM: OMAP2+ McASP(3) support for DRA7xx family
+Date: Fri, 30 Oct 2015 16:11:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1510301603530.7580@utopia.booyaka.com>
+References: <1446191700-11057-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1446107331-30041-2-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, r.schwebel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1323759807-1446221477=:7580"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1446191700-11057-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-=46or the record...
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 10/29/2015 10:28 AM, Peter Ujfalusi wrote:
-> The use of idr was nice, but it was a bit heavy and we did not need t=
-he
-> features it provides. Using simple bitmap to track allocated DMA chan=
-nels
-> is adequate here and it will be easier to add support for reserving
-> channels later on.
+--843723315-1323759807-1446221477=:7580
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hi P=E9ter
+
+On Fri, 30 Oct 2015, Peter Ujfalusi wrote:
+
+> Changes since v2:
+> - DTS patch added which is needed because of the clock handling changes
 >=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> -	map->xbar_out =3D idr_alloc(&xbar->map_idr, NULL, 0, xbar->dma_requ=
-ests,
-> -				  GFP_KERNEL);
-> +	mutex_lock(&xbar->mutex);
-> +	map->xbar_out =3D find_next_zero_bit(xbar->dma_inuse, xbar->dma_req=
-uests,
-> +					   0);
+> Felip Balbi reported that linux-next is broken right now since the DTS pa=
+rt of
+> the earlier series has been applied, but we do not have the mcasp hwmod i=
+n the
+> kernel:
+> ...
+> [    0.181029] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
+> ...
+> [    6.121072] davinci-mcasp 48468000.mcasp: _od_fail_runtime_resume: FIX=
+ME: missing hwmod/omap_dev info
+> [    6.130790] ------------[ cut here ]------------
+> [    6.135643] WARNING: CPU: 0 PID: 244 at drivers/bus/omap_l3_noc.c:147 =
+l3_interrupt_handler+0x220/0x34c()
+> [    6.145576] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3=
+ (Read): Data Access in User mode during Functional access
+> ...
+>=20
+> This is the followup series for the hwmod changes needed to get audio wor=
+king
+> on DRA7xx family based boards.
+> The DTS patches has been applied by Tony from the original series:
+> http://www.spinics.net/lists/linux-omap/msg121473.html
+>=20
+> I have addressed your comments in the hwmod data and did some research al=
+so
+> regarding to the use of ahclkx as fclk in the original submission.
+> It turned out that McASP _needs_ all clocks to be enabled (fclk, iclk and
+> ahclkx/r) to be able to access registers. The original patch where we han=
+dled
+> the ahclkx as fclk worked, because the fclk clock got enabled in the HW w=
+/o
+> any SW interaction.
+> All in all, the McASP found in DRA7 needs all clocks to be enabled.
+> To satisfy this I have introduced a new flag to hwmod, which means that t=
+he
+> listed optional clocks need to be handled alongside with the fclk clock.
 
-find_first_zero_bit() ;)
+Thanks.  I'm happy with your series and appreciate the indepth=20
+investigation.  As you probably saw last week, we've hit the limit for=20
+v4.4-rc1:
 
-> +	mutex_unlock(&xbar->mutex);
-> +	if (map->xbar_out) {
+http://marc.info/?l=3Dlinux-omap&m=3D144564929721826&w=3D2
 
-Well, this is obviously wrong... Should have been:
-	if (map->xbar_out =3D=3D xbar->dma_requests) {
+This is why I haven't done anything with this series at this time. =20
+Unfortunately I don't have a DRA7xx board, so I can't do any testing. =20
+But if this series fixes a problem with DRA7xx in linux-next, we should=20
+definitely merge it.
+
+Tony, if you want to take this now, you can either take it with my ack, or=
+=20
+I can send a pull request.  Or, if you'd prefer to take it for v4.4-rc2,=20
+I can send a pull request after v4.4-rc1.
 
 
-> +		dev_err(&pdev->dev, "Run out of free DMA requests\n");
-> +		kfree(map);
-> +		return ERR_PTR(-ENOMEM);
-> +	}
-> +	set_bit(map->xbar_out, xbar->dma_inuse);
-> +
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
+--843723315-1323759807-1446221477=:7580--
