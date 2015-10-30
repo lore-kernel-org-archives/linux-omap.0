@@ -1,55 +1,109 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/3] dmaengine: ti-dma-crossbar: channel reserving and edma3-tpcc support
-Date: Fri, 30 Oct 2015 10:00:35 +0200
-Message-ID: <1446192038-11158-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/3] dmaengine: ti-dma-crossbar: dra7: Use bitops instead of idr
+Date: Fri, 30 Oct 2015 10:00:36 +0200
+Message-ID: <1446192038-11158-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1446192038-11158-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, r.schwebel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1446192038-11158-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, nsekhar@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, r.schwebel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The use of idr was nice, but it was a bit heavy and we did not need the
+features it provides. Using simple bitmap to track allocated DMA channels
+is adequate here and it will be easier to add support for reserving
+channels later on.
 
-Changes since v1:
-- Fixed issue introduced by the bitops patch: wrong error check, also switch to
-  use find_first_zero_bit() instead of find_next_zero_bit()
-
-Cover letter:
-
-This series depends on the eDMA work I have done, which has been now applied:
-https://lkml.org/lkml/2015/10/16/64
-
-DRA7 family of chips have both sDMA and eDMA. Currently only sDMA can be used
-becasue the old driver stack for eDMA did not allowed integration w/o hacks.
-
-Due to the nature of eDMA the crossbar needs to know which eDMA events it can
-use to map incoming events towards the eDMA. In eDMA a channel is wired to be
-used with one specific event. For example eDMA event 14 can only be handled by
-eDMA channel 14.
-The eDMA itself can be shared by different processors in the system (ARM, DSP,
-etc) and since ARM/Linux is the master we need to know which channels are used
-by other cores. Also we need to mask out channels used for memcpy from the
-events we use for HW triggers.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (3):
-  dmaengine: ti-dma-crossbar: dra7: Use bitops instead of idr
-  dmaengine: ti-dma-crossbar: dra7: Support for reserving DMA event
-    ranges
-  dmaengine: ti-dma-crossbar: dra7: Support for eDMA with new bindings
+ drivers/dma/ti-dma-crossbar.c | 30 +++++++++++++++++++++++-------
+ 1 file changed, 23 insertions(+), 7 deletions(-)
 
- .../devicetree/bindings/dma/ti-dma-crossbar.txt    |  6 ++
- drivers/dma/ti-dma-crossbar.c                      | 81 +++++++++++++++++++---
- 2 files changed, 76 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+index a415edbe61b1..463ad6b18a32 100644
+--- a/drivers/dma/ti-dma-crossbar.c
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -12,7 +12,6 @@
+ #include <linux/init.h>
+ #include <linux/list.h>
+ #include <linux/io.h>
+-#include <linux/idr.h>
+ #include <linux/of_address.h>
+ #include <linux/of_device.h>
+ #include <linux/of_dma.h>
+@@ -198,7 +197,8 @@ struct ti_dra7_xbar_data {
+ 	void __iomem *iomem;
+ 
+ 	struct dma_router dmarouter;
+-	struct idr map_idr;
++	struct mutex mutex;
++	unsigned long *dma_inuse;
+ 
+ 	u16 safe_val; /* Value to rest the crossbar lines */
+ 	u32 xbar_requests; /* number of DMA requests connected to XBAR */
+@@ -225,7 +225,9 @@ static void ti_dra7_xbar_free(struct device *dev, void *route_data)
+ 		map->xbar_in, map->xbar_out);
+ 
+ 	ti_dra7_xbar_write(xbar->iomem, map->xbar_out, xbar->safe_val);
+-	idr_remove(&xbar->map_idr, map->xbar_out);
++	mutex_lock(&xbar->mutex);
++	clear_bit(map->xbar_out, xbar->dma_inuse);
++	mutex_unlock(&xbar->mutex);
+ 	kfree(map);
+ }
+ 
+@@ -255,8 +257,17 @@ static void *ti_dra7_xbar_route_allocate(struct of_phandle_args *dma_spec,
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	map->xbar_out = idr_alloc(&xbar->map_idr, NULL, 0, xbar->dma_requests,
+-				  GFP_KERNEL);
++	mutex_lock(&xbar->mutex);
++	map->xbar_out = find_first_zero_bit(xbar->dma_inuse,
++					    xbar->dma_requests);
++	mutex_unlock(&xbar->mutex);
++	if (map->xbar_out == xbar->dma_requests) {
++		dev_err(&pdev->dev, "Run out of free DMA requests\n");
++		kfree(map);
++		return ERR_PTR(-ENOMEM);
++	}
++	set_bit(map->xbar_out, xbar->dma_inuse);
++
+ 	map->xbar_in = (u16)dma_spec->args[0];
+ 
+ 	dma_spec->args[0] = map->xbar_out + xbar->dma_offset;
+@@ -299,8 +310,6 @@ static int ti_dra7_xbar_probe(struct platform_device *pdev)
+ 	if (!xbar)
+ 		return -ENOMEM;
+ 
+-	idr_init(&xbar->map_idr);
+-
+ 	dma_node = of_parse_phandle(node, "dma-masters", 0);
+ 	if (!dma_node) {
+ 		dev_err(&pdev->dev, "Can't get DMA master node\n");
+@@ -322,6 +331,12 @@ static int ti_dra7_xbar_probe(struct platform_device *pdev)
+ 	}
+ 	of_node_put(dma_node);
+ 
++	xbar->dma_inuse = devm_kcalloc(&pdev->dev,
++				       BITS_TO_LONGS(xbar->dma_requests),
++				       sizeof(unsigned long), GFP_KERNEL);
++	if (!xbar->dma_inuse)
++		return -ENOMEM;
++
+ 	if (of_property_read_u32(node, "dma-requests", &xbar->xbar_requests)) {
+ 		dev_info(&pdev->dev,
+ 			 "Missing XBAR input information, using %u.\n",
+@@ -343,6 +358,7 @@ static int ti_dra7_xbar_probe(struct platform_device *pdev)
+ 	xbar->dmarouter.route_free = ti_dra7_xbar_free;
+ 	xbar->dma_offset = (u32)match->data;
+ 
++	mutex_init(&xbar->mutex);
+ 	platform_set_drvdata(pdev, xbar);
+ 
+ 	/* Reset the crossbar */
 -- 
 2.6.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
