@@ -1,77 +1,302 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH] watchdog: omap_wdt: fix null pointer dereference
-Date: Sun, 1 Nov 2015 20:17:08 -0800
-Message-ID: <5636E3C4.6010601@roeck-us.net>
-References: <1446430820-29252-1-git-send-email-pbrobinson@gmail.com>
+From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Subject: Re: [PATCH v2 13/14] ARM: DTS: am33xx: Use the new DT bindings for
+ the eDMA3
+Date: Mon, 2 Nov 2015 01:21:19 -0800
+Message-ID: <CAOesGMg0KsHnbF8hEYPZ8bY8wz9fC0_m7-KS4A6kB__nUi9kAw@mail.gmail.com>
+References: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
+	<1444979892-31626-14-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1446430820-29252-1-git-send-email-pbrobinson@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Peter Robinson <pbrobinson@gmail.com>, linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: stable@vger.kernel.org, Lars Poeschel <poeschel@lemonage.de>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1444979892-31626-14-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: "Koul, Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Robert Schwebel <r.schwebel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/01/2015 06:20 PM, Peter Robinson wrote:
-> Fix issue from two patches overlapping causing a kernel oops
->
-> [ 3569.297449] Unable to handle kernel NULL pointer dereference at virtual address 00000088
-> [ 3569.306272] pgd = dc894000
-> [ 3569.309287] [00000088] *pgd=00000000
-> [ 3569.313104] Internal error: Oops: 5 [#1] SMP ARM
-> [ 3569.317986] Modules linked in: ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 xt_conntrack ebtable_filter ebtable_nat ebtable_broute bridge stp llc ebtables ip6table_security ip6table_raw ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_filter ip6_tables iptable_security iptable_raw iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle musb_dsps cppi41 musb_hdrc phy_am335x udc_core phy_generic phy_am335x_control omap_sham omap_aes omap_rng omap_hwspinlock omap_mailbox hwspinlock_core musb_am335x omap_wdt at24 8250_omap leds_gpio cpufreq_dt smsc davinci_mdio mmc_block ti_cpsw cpsw_common ptp pps_core cpsw_ale davinci_cpdma omap_hsmmc omap_dma mmc_core i2c_dev
-> [ 3569.386293] CPU: 0 PID: 1429 Comm: wdctl Not tainted 4.3.0-0.rc7.git0.1.fc24.armv7hl #1
-> [ 3569.394740] Hardware name: Generic AM33XX (Flattened Device Tree)
-> [ 3569.401179] task: dbd11a00 ti: dbaac000 task.ti: dbaac000
-> [ 3569.406917] PC is at omap_wdt_get_timeleft+0xc/0x20 [omap_wdt]
-> [ 3569.413106] LR is at watchdog_ioctl+0x3cc/0x42c
-> [ 3569.417902] pc : [<bf0ab138>]    lr : [<c0739c54>]    psr: 600f0013
-> [ 3569.417902] sp : dbaadf18  ip : 00000003  fp : 7f5d3bbe
-> [ 3569.430014] r10: 00000000  r9 : 00000003  r8 : bef21ab8
-> [ 3569.435535] r7 : dbbc0f7c  r6 : dbbc0f18  r5 : bef21ab8  r4 : 00000000
-> [ 3569.442427] r3 : 00000000  r2 : 00000000  r1 : 8004570a  r0 : dbbc0f18
-> [ 3569.449323] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
-> [ 3569.456858] Control: 10c5387d  Table: 9c894019  DAC: 00000051
-> [ 3569.462927] Process wdctl (pid: 1429, stack limit = 0xdbaac220)
-> [ 3569.469179] Stack: (0xdbaadf18 to 0xdbaae000)
-> [ 3569.473790] df00:                                                       bef21ab8 dbf60e38
-> [ 3569.482441] df20: dc91b840 8004570a bef21ab8 c03988a4 dbaadf48 dc854000 00000000 dd313850
-> [ 3569.491092] df40: ddf033b8 0000570a dc91b80b dbaadf3c dbf60e38 00000020 c0df9250 c0df6c48
-> [ 3569.499741] df60: dc91b840 8004570a 00000000 dc91b840 dc91b840 8004570a bef21ab8 00000003
-> [ 3569.508389] df80: 00000000 c03989d4 bef21b74 7f5d3bad 00000003 00000036 c020fcc4 dbaac000
-> [ 3569.517037] dfa0: 00000000 c020fb00 bef21b74 7f5d3bad 00000003 8004570a bef21ab8 00000001
-> [ 3569.525685] dfc0: bef21b74 7f5d3bad 00000003 00000036 00000001 00000000 7f5e4eb0 7f5d3bbe
-> [ 3569.534334] dfe0: 7f5e4f10 bef21a3c 7f5d0a54 b6e97e0c a00f0010 00000003 00000000 00000000
-> [ 3569.543038] [<bf0ab138>] (omap_wdt_get_timeleft [omap_wdt]) from [<c0739c54>] (watchdog_ioctl+0x3cc/0x42c)
-> [ 3569.553266] [<c0739c54>] (watchdog_ioctl) from [<c03988a4>] (do_vfs_ioctl+0x5bc/0x698)
-> [ 3569.561648] [<c03988a4>] (do_vfs_ioctl) from [<c03989d4>] (SyS_ioctl+0x54/0x7c)
-> [ 3569.569400] [<c03989d4>] (SyS_ioctl) from [<c020fb00>] (ret_fast_syscall+0x0/0x3c)
-> [ 3569.577413] Code: e12fff1e e52de004 e8bd4000 e5903060 (e5933088)
-> [ 3569.584089] ---[ end trace cec3039bd3ae610a ]---
->
-> Cc: <stable@vger.kernel.org> # v4.2+
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: Lars Poeschel <poeschel@lemonage.de>
-> Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
+Hi,
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+1) This seems to have broken BBB in -next for me, bisected down to this patch.
 
+For bootlog:
+http://arm-soc.lixom.net/bootlogs/next/next-20151102/bbb-arm-omap2plus_defconfig.html
+
+2) Please avoid merging DT/platform code in your driver tree, Vinod,
+at least without an ack from the platform maintainer. It can be a a
+huge mess if they end up causing conflicts, so we always ask to merge
+the DT changes through the platform maintainer (Tony in this case) by
+default.
+
+
+Thanks,
+
+-Olof
+
+On Fri, Oct 16, 2015 at 12:18 AM, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> wrote:
+> Switch to use the ti,edma3-tpcc and ti,edma3-tptc binding for the eDMA3 and
+> enable the DMA even crossbar with ti,am335x-edma-crossbar.
+> With the new bindings boards can customize and tweak the DMA channel
+> priority to match their needs. With the new binding the memcpy is safe
+> to be used since with the old binding it was not possible for a driver
+> to know which channel is allowed to be used as non HW triggered channel.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 > ---
->   drivers/watchdog/omap_wdt.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+>  arch/arm/boot/dts/am335x-evm.dts    |  9 +---
+>  arch/arm/boot/dts/am335x-pepper.dts | 11 +----
+>  arch/arm/boot/dts/am33xx.dtsi       | 96 ++++++++++++++++++++++++++-----------
+>  3 files changed, 73 insertions(+), 43 deletions(-)
 >
-> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> index d96bee0..6f17c93 100644
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -205,7 +205,7 @@ static int omap_wdt_set_timeout(struct watchdog_device *wdog,
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index 1942a5c8132d..507980672c32 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -743,8 +743,8 @@
+>  &mmc3 {
+>         /* these are on the crossbar and are outlined in the
+>            xbar-event-map element */
+> -       dmas = <&edma 12
+> -               &edma 13>;
+> +       dmas = <&edma_xbar 12 0 1
+> +               &edma_xbar 13 0 2>;
+>         dma-names = "tx", "rx";
+>         status = "okay";
+>         vmmc-supply = <&wlan_en_reg>;
+> @@ -766,11 +766,6 @@
+>         };
+>  };
 >
->   static unsigned int omap_wdt_get_timeleft(struct watchdog_device *wdog)
->   {
-> -	struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +	struct omap_wdt_dev *wdev = to_omap_wdt_dev(wdog);
->   	void __iomem *base = wdev->base;
->   	u32 value;
+> -&edma {
+> -       ti,edma-xbar-event-map = /bits/ 16 <1 12
+> -                                           2 13>;
+> -};
+> -
+>  &sham {
+>         status = "okay";
+>  };
+> diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
+> index 7106114c7464..39073b921664 100644
+> --- a/arch/arm/boot/dts/am335x-pepper.dts
+> +++ b/arch/arm/boot/dts/am335x-pepper.dts
+> @@ -339,13 +339,6 @@
+>         ti,non-removable;
+>  };
 >
+> -&edma {
+> -       /* Map eDMA MMC2 Events from Crossbar */
+> -       ti,edma-xbar-event-map = /bits/ 16 <1 12
+> -                                            2 13>;
+> -};
+> -
+> -
+>  &mmc3 {
+>         /* Wifi & Bluetooth on MMC #3 */
+>         status = "okay";
+> @@ -354,8 +347,8 @@
+>         vmmmc-supply = <&v3v3c_reg>;
+>         bus-width = <4>;
+>         ti,non-removable;
+> -       dmas = <&edma 12
+> -               &edma 13>;
+> +       dmas = <&edma_xbar 12 0 1
+> +               &edma_xbar 13 0 2>;
+>         dma-names = "tx", "rx";
+>  };
 >
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index d23e2524d694..6053e75c6e99 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -174,12 +174,54 @@
+>                 };
+>
+>                 edma: edma@49000000 {
+> -                       compatible = "ti,edma3";
+> -                       ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+> -                       reg =   <0x49000000 0x10000>,
+> -                               <0x44e10f90 0x40>;
+> +                       compatible = "ti,edma3-tpcc";
+> +                       ti,hwmods = "tpcc";
+> +                       reg =   <0x49000000 0x10000>;
+> +                       reg-names = "edma3_cc";
+>                         interrupts = <12 13 14>;
+> -                       #dma-cells = <1>;
+> +                       interrupt-names = "edma3_ccint", "emda3_mperr",
+> +                                         "edma3_ccerrint";
+> +                       dma-requests = <64>;
+> +                       #dma-cells = <2>;
+> +
+> +                       ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
+> +                                  <&edma_tptc2 0>;
+> +
+> +                       ti,edma-memcpy-channels = /bits/ 16 <20 21>;
+> +               };
+> +
+> +               edma_tptc0: tptc@49800000 {
+> +                       compatible = "ti,edma3-tptc";
+> +                       ti,hwmods = "tptc0";
+> +                       reg =   <0x49800000 0x100000>;
+> +                       interrupts = <112>;
+> +                       interrupt-names = "edma3_tcerrint";
+> +               };
+> +
+> +               edma_tptc1: tptc@49900000 {
+> +                       compatible = "ti,edma3-tptc";
+> +                       ti,hwmods = "tptc1";
+> +                       reg =   <0x49900000 0x100000>;
+> +                       interrupts = <113>;
+> +                       interrupt-names = "edma3_tcerrint";
+> +               };
+> +
+> +               edma_tptc2: tptc@49a00000 {
+> +                       compatible = "ti,edma3-tptc";
+> +                       ti,hwmods = "tptc2";
+> +                       reg =   <0x49a00000 0x100000>;
+> +                       interrupts = <114>;
+> +                       interrupt-names = "edma3_tcerrint";
+> +               };
+> +
+> +               edma_xbar: dma-router@44e10f90 {
+> +                       compatible = "ti,am335x-edma-crossbar";
+> +                       reg = <0x44e10f90 0x40>;
+> +
+> +                       #dma-cells = <3>;
+> +                       dma-requests = <32>;
+> +
+> +                       dma-masters = <&edma>;
+>                 };
+>
+>                 gpio0: gpio@44e07000 {
+> @@ -233,7 +275,7 @@
+>                         reg = <0x44e09000 0x2000>;
+>                         interrupts = <72>;
+>                         status = "disabled";
+> -                       dmas = <&edma 26>, <&edma 27>;
+> +                       dmas = <&edma 26 0>, <&edma 27 0>;
+>                         dma-names = "tx", "rx";
+>                 };
+>
+> @@ -244,7 +286,7 @@
+>                         reg = <0x48022000 0x2000>;
+>                         interrupts = <73>;
+>                         status = "disabled";
+> -                       dmas = <&edma 28>, <&edma 29>;
+> +                       dmas = <&edma 28 0>, <&edma 29 0>;
+>                         dma-names = "tx", "rx";
+>                 };
+>
+> @@ -255,7 +297,7 @@
+>                         reg = <0x48024000 0x2000>;
+>                         interrupts = <74>;
+>                         status = "disabled";
+> -                       dmas = <&edma 30>, <&edma 31>;
+> +                       dmas = <&edma 30 0>, <&edma 31 0>;
+>                         dma-names = "tx", "rx";
+>                 };
+>
+> @@ -322,8 +364,8 @@
+>                         ti,dual-volt;
+>                         ti,needs-special-reset;
+>                         ti,needs-special-hs-handling;
+> -                       dmas = <&edma 24
+> -                               &edma 25>;
+> +                       dmas = <&edma_xbar 24 0 0
+> +                               &edma_xbar 25 0 0>;
+>                         dma-names = "tx", "rx";
+>                         interrupts = <64>;
+>                         interrupt-parent = <&intc>;
+> @@ -335,8 +377,8 @@
+>                         compatible = "ti,omap4-hsmmc";
+>                         ti,hwmods = "mmc2";
+>                         ti,needs-special-reset;
+> -                       dmas = <&edma 2
+> -                               &edma 3>;
+> +                       dmas = <&edma 2 0
+> +                               &edma 3 0>;
+>                         dma-names = "tx", "rx";
+>                         interrupts = <28>;
+>                         interrupt-parent = <&intc>;
+> @@ -474,10 +516,10 @@
+>                         interrupts = <65>;
+>                         ti,spi-num-cs = <2>;
+>                         ti,hwmods = "spi0";
+> -                       dmas = <&edma 16
+> -                               &edma 17
+> -                               &edma 18
+> -                               &edma 19>;
+> +                       dmas = <&edma 16 0
+> +                               &edma 17 0
+> +                               &edma 18 0
+> +                               &edma 19 0>;
+>                         dma-names = "tx0", "rx0", "tx1", "rx1";
+>                         status = "disabled";
+>                 };
+> @@ -490,10 +532,10 @@
+>                         interrupts = <125>;
+>                         ti,spi-num-cs = <2>;
+>                         ti,hwmods = "spi1";
+> -                       dmas = <&edma 42
+> -                               &edma 43
+> -                               &edma 44
+> -                               &edma 45>;
+> +                       dmas = <&edma 42 0
+> +                               &edma 43 0
+> +                               &edma 44 0
+> +                               &edma 45 0>;
+>                         dma-names = "tx0", "rx0", "tx1", "rx1";
+>                         status = "disabled";
+>                 };
+> @@ -831,7 +873,7 @@
+>                         ti,hwmods = "sham";
+>                         reg = <0x53100000 0x200>;
+>                         interrupts = <109>;
+> -                       dmas = <&edma 36>;
+> +                       dmas = <&edma 36 0>;
+>                         dma-names = "rx";
+>                 };
+>
+> @@ -840,8 +882,8 @@
+>                         ti,hwmods = "aes";
+>                         reg = <0x53500000 0xa0>;
+>                         interrupts = <103>;
+> -                       dmas = <&edma 6>,
+> -                              <&edma 5>;
+> +                       dmas = <&edma 6 0>,
+> +                              <&edma 5 0>;
+>                         dma-names = "tx", "rx";
+>                 };
+>
+> @@ -854,8 +896,8 @@
+>                         interrupts = <80>, <81>;
+>                         interrupt-names = "tx", "rx";
+>                         status = "disabled";
+> -                       dmas = <&edma 8>,
+> -                               <&edma 9>;
+> +                       dmas = <&edma 8 2>,
+> +                               <&edma 9 2>;
+>                         dma-names = "tx", "rx";
+>                 };
+>
+> @@ -868,8 +910,8 @@
+>                         interrupts = <82>, <83>;
+>                         interrupt-names = "tx", "rx";
+>                         status = "disabled";
+> -                       dmas = <&edma 10>,
+> -                               <&edma 11>;
+> +                       dmas = <&edma 10 2>,
+> +                               <&edma 11 2>;
+>                         dma-names = "tx", "rx";
+>                 };
+>
+> --
+> 2.6.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
