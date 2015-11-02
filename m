@@ -1,75 +1,164 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] spi: ti-qspi: improve ->remove() callback
-Date: Mon, 2 Nov 2015 10:06:04 -0600
-Message-ID: <87si4oo07n.fsf@saruman.tx.rr.com>
-References: <1446127050-5957-1-git-send-email-balbi@ti.com> <563778B8.9060109@ti.com> <87bnbcctsk.fsf@saruman.tx.rr.com> <56378492.702@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.3-rc7
+Date: Mon, 2 Nov 2015 17:57:54 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1511021757180.15134@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56378492.702-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+
+Here are some basic OMAP test results for Linux v4.3-rc7.
+Logs and other details at:
+
+    http://www.pwsan.com/omap/testlogs/test_v4.3-rc7/20151025181941/
 
 
-hi,
+Test summary
+------------
 
-Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
-> On 11/02/2015 05:20 PM, Felipe Balbi wrote:
->> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->>=20
->>> On 10/29/2015 03:57 PM, Felipe Balbi wrote:
->>>> there's no need to call pm_runtime_get_sync()
->>>> followed by pm_runtime_put(). We should, instead,
->>>> just call pm_runtime_put_sync() and pm_runtime_disable().
->>>
->>> Sry, but why do we need to call pm_runtime_put[_sync]() here?
->>>
->>> My be just pm_runtime_disable() will be ok?
->>=20
->> and disable with unbalanced pm_runtime_get() ?
->>=20
->
-> Which one is unbalanced pm_runtime_get()?
-> There are no  pm_runtime_get() in probe, so there you are
-> going to introduce unbalanced pm_runtime_put_sync() actually :(
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-look at ti_qspi_setup(). I _do_ see, however, that it calls
-pm_runtime_put_autosuspend() in the same function; what happens if
-driver is removed after ti_qspi_setup() runs but before
-put_autosuspend() has time to actually run ?
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
-=2D-=20
-balbi
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+Build warnings from toolchain: uImage:
+    (none)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Build warnings from toolchain: uImage+dtb:
+    (none)
 
-iQIcBAEBAgAGBQJWN4nuAAoJEIaOsuA1yqREl5UP/0PGJyApyBK7KhPWOVK81l15
-uWO/qCyYOcjM6M0/MRQHs6kikdLGiuU2r4sTfLDJ7z/iLyxCG96mNKUYoSe9DZbk
-26o5NHD1RmL0ngqp5Kh1s2tuFbrsdnhLCMctMQ2ylCU+4qEl/erkC2VPcUoqq8z9
-r4kCv3AjppDsApk5t4e8OsM3k5zDhS/eEbGnIOdiAKcT6752I5wAkyGQD5cJNI2F
-yLIvNz9q6MBGfAZkaqfQJeIDsDquUSE0HwqVJlY2nNGGkG6oQQ1Kgb51SODKfxI0
-bagPcYAa9pjSOFZkrMPBt+DwcwvC0ro03IPKIVyixGpiD7shMtwxOqioOk08Z9Uy
-72Nahv0hMiUgd+FAYeBRPkfsSMdom3RGm3UXncLsGqDCVHFgzks2bgg9E1OAxa2g
-GsjcR2DvMyVwZnzjVr9ynCRPc6UeJga1Dsyyju08ZinN0G77+7OyoCgZPb+wxwoN
-wNVhvhP/TYDvPjeW6txJvzOBYq/sNVWU8m7pgqRwyaZj+u8NJzVB/SzbV1FvQA9v
-mDhJBlasBp90vebjmESYFXinkC66gaw8MNWwtVwKNPRgNyiZCk7Z4c86mqvWSXwo
-aNN4DxOl9BgAsWGtq6vwgGIpvF75T/LR/ZikeK/jBJB9cGWsh1IYIDrUkZB8sV4x
-CWzKl+vPl5vsj8NqFnXP
-=dojI
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Build warnings from toolchain: zImage:
+    FAIL (10/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only
+
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 3/17): 5912osk, 3517evm, 5430es2sbct54
+    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 2/17): 4430es2panda, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 1/17): 4430es2panda
+
+Obsolete Kconfig symbols:
+    FAIL ( 2/20): omap2plus_defconfig, multi_v7_defconfig
+
+
+vmlinux object size
+(delta in bytes from test_v4.3-rc6 (7379047d5585187d1288486d4627873170d0005a)):
+   text     data      bss    total  kernel
+   +606      +64      +32     +702  omap1_defconfig
+   +606      +32      +32     +670  omap1_defconfig_1510innovator_only
+   +606      +64      +32     +702  omap1_defconfig_5912osk_only
+   +528        0        0     +528  multi_v7_defconfig
+   +868      +64        0     +932  omap2plus_defconfig
+   +436      +32      +32     +500  omap2plus_defconfig_2430sdp_only
+   +868      +64        0     +932  omap2plus_defconfig_am33xx_only
+   +868      +64        0     +932  omap2plus_defconfig_am43xx_only
+   +928      +64      +64    +1056  omap2plus_defconfig_cpupm
+   +868      +64        0     +932  omap2plus_defconfig_dra7xx_only
+   +452      -32      +16     +436  omap2plus_defconfig_n800_multi_omap2xxx
+   +608      +32      +16     +656  omap2plus_defconfig_n800_only_a
+   +932      +96        0    +1028  omap2plus_defconfig_no_pm
+   +860      +72      +64     +996  omap2plus_defconfig_omap2_4_only
+   +868      +64        0     +932  omap2plus_defconfig_omap3_4_only
+   +868      +56        0     +924  omap2plus_defconfig_omap5_only
+   +392      +32      -40     +384  rmk_omap3430_ldp_allnoconfig
+   +618      +32        0     +650  rmk_omap3430_ldp_oldconfig
+   +368        0      -48     +320  rmk_omap4430_sdp_allnoconfig
+   +658        0        0     +658  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v4.3-rc6 (7379047d5585187d1288486d4627873170d0005a))
+  avail  rsrvd   high  freed  board          kconfig
+    -4k     4k      .      .  2430sdp        omap2plus_defconfig
+    -8k     8k      .     4k  3530es31beagle omap2plus_defconfig
+    -8k     8k      .     4k  3530es3beagle  omap2plus_defconfig
+    -8k     8k      .     4k  3730beaglexm   omap2plus_defconfig
+    -8k     8k      .     4k  3730es12beaglexmomap2plus_defconfig
+    -8k     8k      .     4k  37xxevm        omap2plus_defconfig
+    -8k     8k      .     4k  4430es2panda   omap2plus_defconfig
+    -8k     8k      .     4k  4460pandaes    omap2plus_defconfig
+    -8k     8k      .     4k  4460varsomom   omap2plus_defconfig
+    -8k     8k      .     4k  5430es2uevm    omap2plus_defconfig
+    -8k     8k      .     4k  am335xbonelt   omap2plus_defconfig
