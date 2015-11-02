@@ -1,94 +1,75 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 13/14] ARM: DTS: am33xx: Use the new DT bindings for
- the eDMA3
-Date: Mon, 2 Nov 2015 17:46:05 +0200
-Message-ID: <5637853D.8040306@ti.com>
-References: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
- <1444979892-31626-14-git-send-email-peter.ujfalusi@ti.com>
- <CAOesGMg0KsHnbF8hEYPZ8bY8wz9fC0_m7-KS4A6kB__nUi9kAw@mail.gmail.com>
- <20151102100405.GJ21326@localhost> <5637534D.2020304@ti.com>
- <20151102154057.GQ21326@localhost>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] spi: ti-qspi: improve ->remove() callback
+Date: Mon, 2 Nov 2015 10:06:04 -0600
+Message-ID: <87si4oo07n.fsf@saruman.tx.rr.com>
+References: <1446127050-5957-1-git-send-email-balbi@ti.com> <563778B8.9060109@ti.com> <87bnbcctsk.fsf@saruman.tx.rr.com> <56378492.702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151102154057.GQ21326@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>, Olof Johansson <olof@lixom.net>
-Cc: Sekhar Nori <nsekhar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Robert Schwebel <r.schwebel@pengutronix.de>, "arm@kernel.org" <arm@kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+	protocol="application/pgp-signature"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56378492.702-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Vinod,
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On 11/02/2015 05:40 PM, Vinod Koul wrote:
-> On Mon, Nov 02, 2015 at 02:13:01PM +0200, Peter Ujfalusi wrote:
->> Vinod,
->>
->> On 11/02/2015 12:04 PM, Vinod Koul wrote:
->>> On Mon, Nov 02, 2015 at 01:21:19AM -0800, Olof Johansson wrote:
->>>> Hi,
->>>>
->>>> 1) This seems to have broken BBB in -next for me, bisected down to=
- this patch.
->>>>
->>>> For bootlog:
->>>> http://arm-soc.lixom.net/bootlogs/next/next-20151102/bbb-arm-omap2=
-plus_defconfig.html
->>>>
->>>> 2) Please avoid merging DT/platform code in your driver tree, Vino=
-d,
->>>> at least without an ack from the platform maintainer. It can be a =
-a
->>>> huge mess if they end up causing conflicts, so we always ask to me=
-rge
->>>> the DT changes through the platform maintainer (Tony in this case)=
- by
->>>> default.
+
+hi,
+
+Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
+> On 11/02/2015 05:20 PM, Felipe Balbi wrote:
+>> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
+>>=20
+>>> On 10/29/2015 03:57 PM, Felipe Balbi wrote:
+>>>> there's no need to call pm_runtime_get_sync()
+>>>> followed by pm_runtime_put(). We should, instead,
+>>>> just call pm_runtime_put_sync() and pm_runtime_disable().
 >>>
->>> I did warn when applying that I am doing so without ACK on ARM code=
-, noone
->>> said a thing!
+>>> Sry, but why do we need to call pm_runtime_put[_sync]() here?
 >>>
->>> I knew Tony was following the work by Peter so assumed he must have=
- been okay
->>> with it otherwise would have spoken for ~couple of weeks these were=
- in
->>> review
->>>
->>> Anyway now that we have a regression, I can revert this patch if th=
-at fixes,
->>> please confirm, but might break edma... peter?
->>
->> Can you revert or drop the last two DTS patches?
->>
->> I think I will try a different route to get the split of the tpcc an=
-d tptc.
->> Without the DT patches the driver will fall back to the legacy mode =
-so things
->> will work in a same way they did before.
->> Or I can send a followup patch for edma.c, with that there is no nee=
-d to add
->> the HWMOD_INIT_NO_IDLE to hwmod and power management looks better.
->> Basically I'm registering a 'dummy' driver for the edma3-tptc so oma=
-p hwmod
->> code will not shut it down but we will keep the possibility to manag=
-e the
->> power state still.
->=20
-> Okay I have reverted the two and applied the edma patch sent, can you=
- please
-> verify topic/edma_fix before I merge it and send my PULL request.
+>>> My be just pm_runtime_disable() will be ok?
+>>=20
+>> and disable with unbalanced pm_runtime_get() ?
+>>=20
+>
+> Which one is unbalanced pm_runtime_get()?
+> There are no  pm_runtime_get() in probe, so there you are
+> going to introduce unbalanced pm_runtime_put_sync() actually :(
 
-The branch looks good. Thank you!
-It would have been great if the DTS changes for am335x/am437x would hav=
-e been
-in 4.4, but I will send them for 4.5 after rc1 is out.
+look at ti_qspi_setup(). I _do_ see, however, that it calls
+pm_runtime_put_autosuspend() in the same function; what happens if
+driver is removed after ti_qspi_setup() runs but before
+put_autosuspend() has time to actually run ?
 
-> Would appreciate any tested-by
->=20
-> Thanks
->=20
+=2D-=20
+balbi
 
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
---=20
-P=E9ter
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWN4nuAAoJEIaOsuA1yqREl5UP/0PGJyApyBK7KhPWOVK81l15
+uWO/qCyYOcjM6M0/MRQHs6kikdLGiuU2r4sTfLDJ7z/iLyxCG96mNKUYoSe9DZbk
+26o5NHD1RmL0ngqp5Kh1s2tuFbrsdnhLCMctMQ2ylCU+4qEl/erkC2VPcUoqq8z9
+r4kCv3AjppDsApk5t4e8OsM3k5zDhS/eEbGnIOdiAKcT6752I5wAkyGQD5cJNI2F
+yLIvNz9q6MBGfAZkaqfQJeIDsDquUSE0HwqVJlY2nNGGkG6oQQ1Kgb51SODKfxI0
+bagPcYAa9pjSOFZkrMPBt+DwcwvC0ro03IPKIVyixGpiD7shMtwxOqioOk08Z9Uy
+72Nahv0hMiUgd+FAYeBRPkfsSMdom3RGm3UXncLsGqDCVHFgzks2bgg9E1OAxa2g
+GsjcR2DvMyVwZnzjVr9ynCRPc6UeJga1Dsyyju08ZinN0G77+7OyoCgZPb+wxwoN
+wNVhvhP/TYDvPjeW6txJvzOBYq/sNVWU8m7pgqRwyaZj+u8NJzVB/SzbV1FvQA9v
+mDhJBlasBp90vebjmESYFXinkC66gaw8MNWwtVwKNPRgNyiZCk7Z4c86mqvWSXwo
+aNN4DxOl9BgAsWGtq6vwgGIpvF75T/LR/ZikeK/jBJB9cGWsh1IYIDrUkZB8sV4x
+CWzKl+vPl5vsj8NqFnXP
+=dojI
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
