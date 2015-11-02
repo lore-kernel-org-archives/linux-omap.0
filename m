@@ -1,58 +1,92 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP: hwmod: AM33xx/43xx: Add HWMOD_INIT_NO_IDLE
- flag to tptc
-Date: Mon, 2 Nov 2015 14:49:22 +0200
-Message-ID: <56375BD2.9050107@ti.com>
-References: <1446459060-16220-1-git-send-email-peter.ujfalusi@ti.com>
- <20151102102440.GM21326@localhost> <5637398C.6020000@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: edma: Add dummy driver skeleton for edma3-tptc
+Date: Mon, 2 Nov 2015 15:21:40 +0200
+Message-ID: <1446470500-27504-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5637398C.6020000-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, nsekhar@ti.com, olof@lixom.net
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/02/2015 12:23 PM, Peter Ujfalusi wrote:
-> On 11/02/2015 12:24 PM, Vinod Koul wrote:
->> On Mon, Nov 02, 2015 at 12:11:00PM +0200, Peter Ujfalusi wrote:
->>> In Linux we do not have driver for TPTCs of eDMA3 since there is no=
- need to
->>> do any configuration within TPTC for the eDMA3 to be operational. A=
-ll
->>> configuration is via the TPCC.
->>> To prevent the omap_device_late_idle() to disable the TPTCs when th=
-ey are
->>> no longer bind with the edma driver, the HWMOD_INIT_NO_IDLE need to=
- be
->>> added.
->>>
->>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
->>> ---
->>> Vinod, Olof,
->>>
->>> This patch somehow got lost in my working branch. It was mixed with=
-in the patches
->>> I will have for 4.5 while it should have been within the new eDMA3 =
-binding
->>> series..
->>
->> Does this fix the issue reported by Olof? Also ACK pls for this
->=20
-> Yes, it is fixing the issue, I have this in my branch. everything loo=
-ks fine
-> on AM335x/AM437x/Dra7xx where I have eDMA in use.
+The eDMA3 TPTC does not need any software configuration, but it is a
+separate IP block in the SoC. In order the omap hwmod core to be able to
+handle the TPTC resources correctly in regards of PM we need to have a
+driver loaded for it.
+This patch will add a dummy driver skeleton without probe or remove
+callbacks provided.
 
-Vinod, can you please ignore this patch? I'm going to send a patch agai=
-ns
-edma.c which will handle this better.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Reported-by: Olof Johansson <olof@lixom.net>
+---
+Hi,
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+while it would have been possible to add the edma3-tptc compatible to be handled
+by the edma-tpcc driver (and when the device is tptc, do nothing) it would
+make the driver code a bit harder to follow.
+I think having separate structure for the tptc looks better and if we ever need
+to have separate driver for the tptc it will be cleaner for us the separate it.
+
+This patch alone w/o any hwmod flag changes will make sure that the edma-tptc is
+not powered down after the kernel is finished it's booting.
+
+Regards,
+Peter
+
+ drivers/dma/edma.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 31722d436a42..6b03e4e84e6b 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -269,6 +269,11 @@ static const struct of_device_id edma_of_ids[] = {
+ 	{}
+ };
+ 
++static const struct of_device_id edma_tptc_of_ids[] = {
++	{ .compatible = "ti,edma3-tptc", },
++	{}
++};
++
+ static inline unsigned int edma_read(struct edma_cc *ecc, int offset)
+ {
+ 	return (unsigned int)__raw_readl(ecc->base + offset);
+@@ -2399,6 +2404,13 @@ static struct platform_driver edma_driver = {
+ 	},
+ };
+ 
++static struct platform_driver edma_tptc_driver = {
++	.driver = {
++		.name	= "edma3-tptc",
++		.of_match_table = edma_tptc_of_ids,
++	},
++};
++
+ bool edma_filter_fn(struct dma_chan *chan, void *param)
+ {
+ 	bool match = false;
+@@ -2418,6 +2430,12 @@ EXPORT_SYMBOL(edma_filter_fn);
+ 
+ static int edma_init(void)
+ {
++	int ret;
++
++	ret = platform_driver_register(&edma_tptc_driver);
++	if (ret)
++		return ret;
++
+ 	return platform_driver_register(&edma_driver);
+ }
+ subsys_initcall(edma_init);
+@@ -2425,6 +2443,7 @@ subsys_initcall(edma_init);
+ static void __exit edma_exit(void)
+ {
+ 	platform_driver_unregister(&edma_driver);
++	platform_driver_unregister(&edma_tptc_driver);
+ }
+ module_exit(edma_exit);
+ 
+-- 
+2.6.1
