@@ -1,109 +1,104 @@
-From: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: null pointer dereference in omap_wdt
-Date: Sun, 1 Nov 2015 15:23:00 -0800
-Message-ID: <56369ED4.9070001@roeck-us.net>
-References: <CALeDE9O3nU1j_eu4v7JbmKr1-+C1L-qBk3qu3XCcQcnGbbtssA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v11 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Mon, 02 Nov 2015 02:50:40 +0100
+Message-ID: <2496228.i2Z9PmMBtz@vostro.rjw.lan>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALeDE9O3nU1j_eu4v7JbmKr1-+C1L-qBk3qu3XCcQcnGbbtssA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Robinson <pbrobinson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/01/2015 03:11 PM, Peter Robinson wrote:
-> Hi Lars,
->
-> I'm seeing the following crash in omap_wdt in omap_wdt_get_timeleft
-> when I just run wdctl on a couple of different TI devices, the
-> beaglebone black/green or panda ES. I'm seeing it on both 4.2.3 and
-> 4.3rc7, looking at git it looks like you added the fuction in June,
-> have you seen this on any of your platforms?
->
+On Tuesday, October 27, 2015 03:38:47 PM Tomeu Vizoso wrote:
+> Hi,
+> 
+> this is v11 of an attempt to make it easier for devices to remain in
+> runtime PM when the system goes to sleep, mainly to reduce the time
+> spent resuming devices.
+> 
+> For this, we interpret the absence of all PM callback implementations as
+> it being safe to do direct_complete, so their ancestors aren't prevented
+> from remaining runtime-suspended.
+> 
+> Additionally, the prepare() callback of USB devices will return 1 if
+> runtime PM is enabled and the current wakeup settings are correct.
+> 
+> With these changes, a uvcvideo device (for example) stays in runtime
+> suspend when the system goes to sleep and is left in that state when the
+> system resumes, not delaying it unnecessarily.
+> 
+> Thanks,
+> 
+> Tomeu
+> 
+> Changes in v11:
+> - Move calls to dev_pm_domain_set() out from &dev->power.lock as that
+>   isn't needed for dev->pm_domain.
+> 
+> Changes in v10:
+> - Remove superfluous call to pm_runtime_enabled() as suggested by Alan
+> 
+> Changes in v9:
+> - Add docs noting the need for the device lock to be held before calling
+>   device_is_bound()
+> - Add docs noting the need for the device lock to be held before calling
+>   dev_pm_domain_set()
+> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
+> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
+>   follow with the naming convention of existing API.
+> - Re-add calling to device_pm_check_callbacks from device registration
+>   and when updating the PM domain of a device.
+> 
+> Changes in v8:
+> - Add device_is_bound()
+> - Add dev_pm_domain_set() and update code to use it
+> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
+> - Call device_check_pm_callbacks only after a device is bound or unbound
+> 
+> Changes in v7:
+> - Reduce indentation by adding a label in device_prepare()
+> 
+> Changes in v6:
+> - Add stub for !CONFIG_PM.
+> - Move implementation of device_check_pm_callbacks to power/main.c as it
+>   doesn't belong to CONFIG_PM_SLEEP.
+> - Take dev->power.lock before modifying flag.
+> 
+> Changes in v5:
+> - Check for all dev_pm_ops instances associated to a device, updating a
+>   no_pm_callbacks flag at the times when that could change.
+> 
+> Tomeu Vizoso (4):
+>   device core: add device_is_bound()
+>   PM / Domains: add setter for dev.pm_domain
+>   PM / sleep: Go direct_complete if driver has no callbacks
+>   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+> 
+>  arch/arm/mach-omap2/omap_device.c |  7 ++++---
+>  drivers/acpi/acpi_lpss.c          |  5 +++--
+>  drivers/acpi/device_pm.c          |  5 +++--
+>  drivers/base/dd.c                 | 21 +++++++++++++++++++--
+>  drivers/base/power/clock_ops.c    |  5 +++--
+>  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
+>  drivers/base/power/domain.c       |  8 ++++++--
+>  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/base/power/power.h        |  3 +++
+>  drivers/gpu/vga/vga_switcheroo.c  | 10 +++++-----
+>  drivers/misc/mei/pci-me.c         |  5 +++--
+>  drivers/misc/mei/pci-txe.c        |  5 +++--
+>  drivers/usb/core/port.c           |  6 ++++++
+>  drivers/usb/core/usb.c            |  8 +++++++-
+>  include/linux/device.h            |  2 ++
+>  include/linux/pm.h                |  1 +
+>  include/linux/pm_domain.h         |  3 +++
+>  17 files changed, 130 insertions(+), 23 deletions(-)
 
-I think that
-	struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-in omap_wdt_get_timeleft() needs to be
-	struct omap_wdt_dev *wdev = to_omap_wdt_dev(wdog);
-
-Looks like there was an overlap between commit d2f78268ba58 ("watchdog:
-omap: put struct watchdog_device into driver data") and commit 452fafed839e
-("watchdog: omap_wdt: implement get_timeleft").
-
-Can someone test this and send a patch to fix the problem ?
+I've queued up this series for the second half of the v4.4 merge window.
 
 Thanks,
-Guenter
+Rafael
 
-> Peter
->
-> [  299.672508] Unable to handle kernel NULL pointer dereference at
-> virtual address 00000088
-> [  299.681372] pgd = de35c000
-> [  299.684385] [00000088] *pgd=00000000
-> [  299.688205] Internal error: Oops: 5 [#1] SMP ARM
-> [  299.693086] Modules linked in: ip6t_rpfilter ip6t_REJECT
-> nf_reject_ipv6 xt_conntrack ebtable_filter ebtable_nat ebtable_broute
-> bridge stp llc ebtables ip6table_mangle ip6table_security ip6table_nat
-> nf_conntra
-> ck_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_raw ip6table_filter
-> ip6_tables iptable_mangle iptable_security iptable_nat
-> nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack
-> iptable_raw musb_dsps musb_
-> hdrc phy_am335x udc_core phy_generic phy_am335x_control cppi41
-> omap_aes omap_sham omap_hwspinlock hwspinlock_core omap_rng
-> omap_mailbox at24 musb_am335x 8250_omap omap_wdt leds_gpio cpufreq_dt
-> smsc davinci_mdio
-> mmc_block ti_cpsw cpsw_common ptp pps_core cpsw_ale davinci_cpdma
-> omap_hsmmc omap_dma mmc_core i2c_dev
-> [  299.761395] CPU: 0 PID: 1242 Comm: wdctl Not tainted
-> 4.3.0-0.rc7.git0.1.fc24.armv7hl #1
-> [  299.769841] Hardware name: Generic AM33XX (Flattened Device Tree)
-> [  299.776280] task: de505b00 ti: dcf26000 task.ti: dcf26000
-> [  299.782017] PC is at omap_wdt_get_timeleft+0xc/0x20 [omap_wdt]
-> [  299.788205] LR is at watchdog_ioctl+0x3cc/0x42c
-> [  299.793001] pc : [<bf09f138>]    lr : [<c0739c54>]    psr: 600f0013
-> [  299.793001] sp : dcf27f18  ip : 00000003  fp : 7f626bbe
-> [  299.805114] r10: 00000000  r9 : 00000003  r8 : becb1ab8
-> [  299.810634] r7 : dbc0837c  r6 : dbc08318  r5 : becb1ab8  r4 : 00000000
-> [  299.817526] r3 : 00000000  r2 : 00000000  r1 : 8004570a  r0 : dbc08318
-> [  299.824423] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
-> [  299.831958] Control: 10c5387d  Table: 9e35c019  DAC: 00000051
-> [  299.838026] Process wdctl (pid: 1242, stack limit = 0xdcf26220)
-> [  299.844280] Stack: (0xdcf27f18 to 0xdcf28000)
-> [  299.848890] 7f00:
->      becb1ab8 dbf241b8
-> [  299.857541] 7f20: dc823840 8004570a becb1ab8 c03988a4 dcf27f48
-> dcf17100 00000000 de352850
-> [  299.866191] 7f40: dde86ee0 0000570a dc82380b dcf27f3c dbf241b8
-> 00000020 c0df9250 c0df6c48
-> [  299.874840] 7f60: dc823840 8004570a 00000000 dc823840 dc823840
-> 8004570a becb1ab8 00000003
-> [  299.883489] 7f80: 00000000 c03989d4 becb1b74 7f626bad 00000003
-> 00000036 c020fcc4 dcf26000
-> [  299.892137] 7fa0: 00000000 c020fb00 becb1b74 7f626bad 00000003
-> 8004570a becb1ab8 00000001
-> [  299.900786] 7fc0: becb1b74 7f626bad 00000003 00000036 00000001
-> 00000000 7f637eb0 7f626bbe
-> [  299.909434] 7fe0: 7f637f10 becb1a3c 7f623a54 b6ee5e0c a00f0010
-> 00000003 00000000 00000000
-> [  299.918136] [<bf09f138>] (omap_wdt_get_timeleft [omap_wdt]) from
-> [<c0739c54>] (watchdog_ioctl+0x3cc/0x42c)
-> [  299.928365] [<c0739c54>] (watchdog_ioctl) from [<c03988a4>]
-> (do_vfs_ioctl+0x5bc/0x698)
-> [  299.936747] [<c03988a4>] (do_vfs_ioctl) from [<c03989d4>]
-> (SyS_ioctl+0x54/0x7c)
-> [  299.944499] [<c03989d4>] (SyS_ioctl) from [<c020fb00>]
-> (ret_fast_syscall+0x0/0x3c)
-> [  299.952511] Code: e12fff1e e52de004 e8bd4000 e5903060 (e5933088)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
