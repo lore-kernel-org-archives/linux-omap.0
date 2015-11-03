@@ -1,40 +1,42 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] mmc: omap_hsmmc: No need to check DMA channel validity at module remove
-Date: Tue, 3 Nov 2015 13:37:31 +0200
-Message-ID: <1446550651-7977-1-git-send-email-peter.ujfalusi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] dmaengine: edma: fix build without CONFIG_OF
+Date: Tue, 03 Nov 2015 15:00:57 +0100
+Message-ID: <17811472.bY8CqmdEVy@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ulf.hansson@linaro.org, tony@atomide.com, kishon@ti.com
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The driver will not probe without valid DMA channels so no need to check
-if they are valid when the module is removed.
+During the edma rework, a build error was introduced for the
+case that CONFIG_OF is disabled:
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Ulf Hansson <ulf.hansson@linaro.org>
+drivers/built-in.o: In function `edma_tc_set_pm_state':
+:(.text+0x43bf0): undefined reference to `of_find_device_by_node'
+
+As the edma_tc_set_pm_state() function does nothing in case
+we are running without OF, this adds an IS_ENABLED() check
+that turns the function into an empty stub then and avoids the
+link error.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: ca304fa9bb76 ("ARM/dmaengine: edma: Public API to use private struct pointer")
 ---
- drivers/mmc/host/omap_hsmmc.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Found on ARM randconfig builds with today's linux-next
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index f70e52b05648..712c74fd0401 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2262,10 +2262,8 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
- 	pm_runtime_get_sync(host->dev);
- 	mmc_remove_host(host->mmc);
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 31722d436a42..16713a93da10 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -1560,7 +1560,7 @@ static void edma_tc_set_pm_state(struct edma_tc *tc, bool enable)
+ 	struct platform_device *tc_pdev;
+ 	int ret;
  
--	if (host->tx_chan)
--		dma_release_channel(host->tx_chan);
--	if (host->rx_chan)
--		dma_release_channel(host->rx_chan);
-+	dma_release_channel(host->tx_chan);
-+	dma_release_channel(host->rx_chan);
+-	if (!tc)
++	if (!IS_ENABLED(CONFIG_OF) || !tc)
+ 		return;
  
- 	pm_runtime_put_sync(host->dev);
- 	pm_runtime_disable(host->dev);
--- 
-2.6.2
+ 	tc_pdev = of_find_device_by_node(tc->node);
