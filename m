@@ -1,97 +1,61 @@
-From: Lars Poeschel <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>
-Subject: Re: [PATCH] watchdog: omap_wdt: fix null pointer dereference
-Date: Wed, 04 Nov 2015 11:31:02 +0100
-Message-ID: <2593393.lungi1Qs6x@lem-wkst-02>
-References: <1446430820-29252-1-git-send-email-pbrobinson@gmail.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/5] spi: introduce mmap read support for spi flash
+ devices
+Date: Wed, 4 Nov 2015 14:39:15 +0000
+Message-ID: <20151104143915.GI1717@sirena.org.uk>
+References: <1446545174-14193-1-git-send-email-vigneshr@ti.com>
+ <1446545174-14193-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1446430820-29252-1-git-send-email-pbrobinson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Robinson <pbrobinson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="OfrWf2Fun5Ae4m0Y"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1446545174-14193-2-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 04 November 2015 02:20:20, Peter Robinson wrote:
-> Fix issue from two patches overlapping causing a kernel oops
-> 
-> [ 3569.297449] Unable to handle kernel NULL pointer dereference at virtual
-> address 00000088 [ 3569.306272] pgd = dc894000
-> [ 3569.309287] [00000088] *pgd=00000000
-> [ 3569.313104] Internal error: Oops: 5 [#1] SMP ARM
-> [ 3569.317986] Modules linked in: ip6t_rpfilter ip6t_REJECT nf_reject_ipv6
-> xt_conntrack ebtable_filter ebtable_nat ebtable_broute bridge stp llc
-> ebtables ip6table_security ip6table_raw ip6table_nat nf_conntrack_ipv6
-> nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_filter ip6_tables
-> iptable_security iptable_raw iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4
-> nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle musb_dsps cppi41 musb_hdrc
-> phy_am335x udc_core phy_generic phy_am335x_control omap_sham omap_aes
-> omap_rng omap_hwspinlock omap_mailbox hwspinlock_core musb_am335x omap_wdt
-> at24 8250_omap leds_gpio cpufreq_dt smsc davinci_mdio mmc_block ti_cpsw
-> cpsw_common ptp pps_core cpsw_ale davinci_cpdma omap_hsmmc omap_dma
-> mmc_core i2c_dev [ 3569.386293] CPU: 0 PID: 1429 Comm: wdctl Not tainted
-> 4.3.0-0.rc7.git0.1.fc24.armv7hl #1 [ 3569.394740] Hardware name: Generic
-> AM33XX (Flattened Device Tree) [ 3569.401179] task: dbd11a00 ti: dbaac000
-> task.ti: dbaac000
-> [ 3569.406917] PC is at omap_wdt_get_timeleft+0xc/0x20 [omap_wdt]
-> [ 3569.413106] LR is at watchdog_ioctl+0x3cc/0x42c
-> [ 3569.417902] pc : [<bf0ab138>]    lr : [<c0739c54>]    psr: 600f0013
-> [ 3569.417902] sp : dbaadf18  ip : 00000003  fp : 7f5d3bbe
-> [ 3569.430014] r10: 00000000  r9 : 00000003  r8 : bef21ab8
-> [ 3569.435535] r7 : dbbc0f7c  r6 : dbbc0f18  r5 : bef21ab8  r4 : 00000000
-> [ 3569.442427] r3 : 00000000  r2 : 00000000  r1 : 8004570a  r0 : dbbc0f18
-> [ 3569.449323] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment
-> none [ 3569.456858] Control: 10c5387d  Table: 9c894019  DAC: 00000051
-> [ 3569.462927] Process wdctl (pid: 1429, stack limit = 0xdbaac220)
-> [ 3569.469179] Stack: (0xdbaadf18 to 0xdbaae000)
-> [ 3569.473790] df00:                                                      
-> bef21ab8 dbf60e38 [ 3569.482441] df20: dc91b840 8004570a bef21ab8 c03988a4
-> dbaadf48 dc854000 00000000 dd313850 [ 3569.491092] df40: ddf033b8 0000570a
-> dc91b80b dbaadf3c dbf60e38 00000020 c0df9250 c0df6c48 [ 3569.499741] df60:
-> dc91b840 8004570a 00000000 dc91b840 dc91b840 8004570a bef21ab8 00000003 [
-> 3569.508389] df80: 00000000 c03989d4 bef21b74 7f5d3bad 00000003 00000036
-> c020fcc4 dbaac000 [ 3569.517037] dfa0: 00000000 c020fb00 bef21b74 7f5d3bad
-> 00000003 8004570a bef21ab8 00000001 [ 3569.525685] dfc0: bef21b74 7f5d3bad
-> 00000003 00000036 00000001 00000000 7f5e4eb0 7f5d3bbe [ 3569.534334] dfe0:
-> 7f5e4f10 bef21a3c 7f5d0a54 b6e97e0c a00f0010 00000003 00000000 00000000 [
-> 3569.543038] [<bf0ab138>] (omap_wdt_get_timeleft [omap_wdt]) from
-> [<c0739c54>] (watchdog_ioctl+0x3cc/0x42c) [ 3569.553266] [<c0739c54>]
-> (watchdog_ioctl) from [<c03988a4>] (do_vfs_ioctl+0x5bc/0x698) [
-> 3569.561648] [<c03988a4>] (do_vfs_ioctl) from [<c03989d4>]
-> (SyS_ioctl+0x54/0x7c) [ 3569.569400] [<c03989d4>] (SyS_ioctl) from
-> [<c020fb00>] (ret_fast_syscall+0x0/0x3c) [ 3569.577413] Code: e12fff1e
-> e52de004 e8bd4000 e5903060 (e5933088) [ 3569.584089] ---[ end trace
-> cec3039bd3ae610a ]---
-> 
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.2+
-> Cc: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-> Cc: Lars Poeschel <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>
-> Signed-off-by: Peter Robinson <pbrobinson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Peter, thank you for catching this one.
+--OfrWf2Fun5Ae4m0Y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Acked-by: Lars Poeschel <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>
+On Tue, Nov 03, 2015 at 03:36:10PM +0530, Vignesh R wrote:
 
-> ---
->  drivers/watchdog/omap_wdt.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> index d96bee0..6f17c93 100644
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -205,7 +205,7 @@ static int omap_wdt_set_timeout(struct watchdog_device
-> *wdog,
-> 
->  static unsigned int omap_wdt_get_timeleft(struct watchdog_device *wdog)
->  {
-> -	struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +	struct omap_wdt_dev *wdev = to_omap_wdt_dev(wdog);
->  	void __iomem *base = wdev->base;
->  	u32 value;
+> +	}
+> +	mutex_lock(&master->mmap_lock_mutex);
+> +	ret = master->spi_mtd_mmap_read(spi, from, len, retlen, buf,
+> +					read_opcode, addr_width,
+> +					dummy_bytes);
+> +	mutex_unlock(&master->mmap_lock_mutex);
+> +	if (master->auto_runtime_pm)
+> +		pm_runtime_put(master->dev.parent);
 
+It's a bit worrying that this doesn't sync with the message queue except
+via the mutex: this means that we might be out of order with respect to
+any asynchronous transfers that are happening on the device.  I'm not
+sure that this is a practical problem, though there is some risk of
+unfair scheduling that would have to be under extreme load and it might
+make sense to prioritise reads anyway.
+
+--OfrWf2Fun5Ae4m0Y
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWOhiSAAoJECTWi3JdVIfQTRUH/1uWG9cTPuPv1CXknjCrEk6G
+OVAeJ52giZk1ODMqpPShiAn/Juf3zrceIoBtTd76Avd75I0ez05D71T7KgRhLEOG
+ZWnXnsgRnHDxOJ/47pKeqO3tYv5ftylQ93541fJ+RsJq6q5ICUnI1SpC6aNMkt/F
+lEVgVhDW+6bXFU9bxej1O7GD2YNAAd9sqoWNBS0m118wMa/fyRkfmG0FuaUQTtJ+
+2PQHn4T+uKxDzqQtNbRbC05vg8xMsALZx6r1o1Zbih8IKmJ4EzjEpTg0dsMtl96U
+KKYMxXY14Xd0/ejdY7uEJovZyGk75HIe2I8v0bQD4ye9GJdId/ebtKqBIt4r+8g=
+=l/Wm
+-----END PGP SIGNATURE-----
+
+--OfrWf2Fun5Ae4m0Y--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
