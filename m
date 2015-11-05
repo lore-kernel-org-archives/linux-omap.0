@@ -1,64 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Thu, 5 Nov 2015 08:17:56 -0800
-Message-ID: <20151105161756.GG3078@atomide.com>
-References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
- <20150713131902.GH26485@atomide.com>
- <20151012201640.GQ23801@atomide.com>
- <201510122225.12786@pali>
- <20151012204509.GT23801@atomide.com>
- <20151013143746.GJ23104@pali>
- <20151105114041.GC27908@pali>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Thu, 5 Nov 2015 10:36:58 -0600
+Message-ID: <20151105163658.GA28885@rob-hp-laptop>
+References: <1446545174-14193-1-git-send-email-vigneshr@ti.com>
+ <1446545174-14193-5-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151105114041.GC27908@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1446545174-14193-5-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [151105 03:41]:
-> On Tuesday 13 October 2015 16:37:46 Pali Roh=C3=A1r wrote:
-> > On Monday 12 October 2015 13:45:09 Tony Lindgren wrote:
-> > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151012 13:29]:
-> > > > On Monday 12 October 2015 22:16:40 Tony Lindgren wrote:
-> > > > >=20
-> > > > > Pali, any news on posting an updated series with the comments
-> > > > > addressed in this thread? It seems that we all pretty much ag=
-ree
-> > > > > what needs to be done.
-> > > >=20
-> > > > Tony, I'm not really sure what to do. Just wrap 4 and 5 patches=
- into=20
-> > > > CONFIG_KEXEC? Or something more?
-> > >=20
-> > > Well for most part your patches are fine, I think there were some
-> > > minor comments on the series.
-> > >=20
-> > > For the CONFIG_KEXEC dependency, we should just keep the existing
-> > > behavior and keep /proc/atags behind CONFIG_KEXEC. That's all
-> > > I believe :)
-> > >=20
-> > > Regards,
-> > >=20
-> > > Tony
-> > >=20
-> > >=20
-> >=20
-> > Ok. I will add CONFIG_KEXEC into atag patches.
-> >=20
-> > And there is missing documentation for these two new DT properties
-> > (marked as TODO in commit messages). Where to put them?
-> >=20
->=20
-> Tony (or somebody else) ^^^
+On Tue, Nov 03, 2015 at 03:36:13PM +0530, Vignesh R wrote:
+> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
+> update the binding documents for the controller to document this change.
+> 
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 
-How about Documentation/devicetree/bindings/arm/atags.txt?
+You don't really need an example for every possibility, but
 
-Regards,
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Tony
+> ---
+>  Documentation/devicetree/bindings/spi/ti_qspi.txt | 13 +++++++++++++
+>  arch/arm/boot/dts/dra7.dtsi                       |  6 ++++--
+>  2 files changed, 17 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> index 601a360531a5..f05dd631bef1 100644
+> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> @@ -26,3 +26,16 @@ qspi: qspi@4b300000 {
+>  	spi-max-frequency = <25000000>;
+>  	ti,hwmods = "qspi";
+>  };
+> +
+> +For dra7xx:
+> +qspi: qspi@4b300000 {
+> +	compatible = "ti,dra7xxx-qspi";
+> +	reg = <0x4b300000 0x100>, <0x4a002558 0x4>,
+> +	      <0x5c000000 0x4000000>;
+> +	reg-names = "qspi_base", "qspi_ctrlmod",
+> +		    "qspi_mmap";
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +	spi-max-frequency = <48000000>;
+> +	ti,hwmods = "qspi";
+> +};
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index e289c706d27d..13c2f10ec217 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -1108,8 +1108,10 @@
+>  
+>  		qspi: qspi@4b300000 {
+>  			compatible = "ti,dra7xxx-qspi";
+> -			reg = <0x4b300000 0x100>;
+> -			reg-names = "qspi_base";
+> +			reg = <0x4b300000 0x100>, <0x4a002558 0x4>,
+> +			      <0x5c000000 0x4000000>;
+> +			reg-names = "qspi_base", "qspi_ctrlmod",
+> +				    "qspi_mmap";
+>  			#address-cells = <1>;
+>  			#size-cells = <0>;
+>  			ti,hwmods = "qspi";
+> -- 
+> 2.6.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
