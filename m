@@ -1,51 +1,41 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH] Revert "ARM: dts: twl4030: Add iio properties for bci subnode"
-Date: Fri,  6 Nov 2015 17:13:50 +0100
-Message-ID: <1446826430-3705-1-git-send-email-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Sebastian Reichel <sre@kernel.org>, Felipe Balbi <balbi@ti.com>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 3/7] drivers:input:tsc2007: add iio interface to read external ADC input, temperature and raw conversion values
+Date: Fri, 6 Nov 2015 17:22:24 +0100
+Message-ID: <5E2F70F1-DE42-4FF8-8779-FC0D0CB51A07@goldelico.com>
+References: <201511070011.QT9QlGfe%fengguang.wu@intel.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201511070011.QT9QlGfe%fengguang.wu@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-This reverts commit af19161aaed7ff8d1a52b2e517460f2fa0774e32,
-which breaks the omap3 device tree build due to a wrong reference.
 
-I accidently queued this change via the power supply subsystem while
-telling Marek at the same time, that it should go through Tony's tree.
-Following that I did miss Stephen's messages about the build failure in
-linux-next and since he switched to merging an older snapshot nobody
-else noticed the problem in my tree. I didn't notice myself, since I
-did not build any device tree files assuming none have changed by me.
+Am 06.11.2015 um 17:08 schrieb kbuild test robot <lkp@intel.com>:
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- arch/arm/boot/dts/twl4030.dtsi | 2 --
- 1 file changed, 2 deletions(-)
+> Hi Nikolaus,
+> 
+> [auto build test ERROR on input/next]
+> [also build test ERROR on v4.3 next-20151106]
+> 
+> url:    https://github.com/0day-ci/linux/commits/H-Nikolaus-Schaller/drivers-touchscreen-tsc2007-and-ads7846-tsc2046-improvements-use-common-touchscreen-bindings-pre-calibration-spi-fix-and-provide-iio-raw-values/20151106-231936
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/dtor/input.git next
+> config: x86_64-randconfig-s2-11062316 (attached as .config)
+> reproduce:
+>        # save the attached .config to linux build tree
+>        make ARCH=x86_64 
+> 
+> All errors (new ones prefixed by >>):
+> 
+>   drivers/built-in.o: In function `tsc2007_remove':
+>>> tsc2007.c:(.text+0x23a2a6): undefined reference to `iio_device_unregister'
+>   drivers/built-in.o: In function `tsc2007_probe':
+>>> tsc2007.c:(.text+0x23a3bf): undefined reference to `devm_iio_device_alloc'
+>>> tsc2007.c:(.text+0x23a436): undefined reference to `iio_device_register'
 
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index 482b7aa37808..36ae9160b558 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -22,8 +22,6 @@
- 	charger: bci {
- 		compatible = "ti,twl4030-bci";
- 		interrupts = <9>, <2>;
--		io-channels = <&twl4030_madc 11>;
--		io-channel-name = "vac";
- 		bci3v1-supply = <&vusb3v1>;
- 	};
- 
--- 
-2.6.2
+Ok, that is a missing dependency on CONFIG_IIO.
+
+Has been noted for V2.
