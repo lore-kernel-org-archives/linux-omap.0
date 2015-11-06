@@ -1,63 +1,72 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] PCI: dra7xx: mark dra7xx_pcie_msi irq as IRQF_NO_THREAD
-Date: Fri, 6 Nov 2015 09:53:17 +0100
-Message-ID: <563C6A7D.7040503@linutronix.de>
-References: <1446748990-27722-1-git-send-email-grygorii.strashko@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2 5/5] ARM: dts: AM4372: add entry for qspi mmap region
+Date: Fri, 6 Nov 2015 17:51:10 +0530
+Message-ID: <563C9B36.3010107@ti.com>
+References: <1446545174-14193-1-git-send-email-vigneshr@ti.com>
+ <1446545174-14193-6-git-send-email-vigneshr@ti.com>
+ <20151105235124.GA2805@rob-hp-laptop> <878u6b1zgg.fsf@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1446748990-27722-1-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <878u6b1zgg.fsf@saruman.tx.rr.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: tony@atomide.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: Felipe Balbi <balbi@ti.com>, Rob Herring <robh@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/05/2015 07:43 PM, Grygorii Strashko wrote:
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index 6589e7e..31460f4 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -302,8 +302,30 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  		return -EINVAL;
->  	}
->  
-> +	/*
-> +	 * Mark dra7xx_pcie_msi IRQ as IRQF_NO_THREAD
-> +	 * On -RT and if kernel is booting with "threadirqs" cmd line parameter
-> +	 * the dra7xx_pcie_msi_irq_handler() will be forced threaded but,
-> +	 * in the same time, it's IRQ dispatcher and calls generic_handle_irq(),
-> +	 * which, in turn, will be resolved to handle_simple_irq() call.
-> +	 * The handle_simple_irq() expected to be called with IRQ disabled, as
-> +	 * result kernle will display warning:
-> +	 * "irq XXX handler YYY+0x0/0x14 enabled interrupts".
-> +	 *
-> +	 * Current DRA7 PCIe hw configuration supports 32 interrupts,
-> +	 * which cannot change because it's hardwired in silicon, and can assume
-> +	 * that only a few (most of the time it will be exactly ONE) of those
-> +	 * interrupts are pending at the same time. So, It's sane way to dial
-> +	 * with above issue by marking dra7xx_pcie_msi IRQ as IRQF_NO_THREAD.
-> +	 * if some platform will utilize a lot of MSI IRQs and will suffer
-> +	 * form -RT latencies degradation because of that - IRQF_NO_THREAD can
-> +	 * be removed and "Warning Annihilation" W/A can be applied [1]
-> +	 *
-> +	 * [1] https://lkml.org/lkml/2015/11/2/578
 
-I don't think this novel is required. Also a reference to a patch which
-was not accepted is not a smart idea (since people might think they
-will improve their -RT latency by applying it without thinking).
 
-Do you have any *real* numbers where you can say this patch does
-better/worse than what you suggester earlier? I'm simply asking because
-each gpio-irq multiplexing driver does the same thing.
-
-> +	 */
->  	ret = devm_request_irq(&pdev->dev, pp->irq,
-> -			       dra7xx_pcie_msi_irq_handler, IRQF_SHARED,
-> +			       dra7xx_pcie_msi_irq_handler,
-> +			       IRQF_SHARED | IRQF_NO_THREAD,
->  			       "dra7-pcie-msi",	pp);
->  	if (ret) {
->  		dev_err(&pdev->dev, "failed to request irq\n");
+On 11/06/2015 10:44 AM, Felipe Balbi wrote:
 > 
-Sebastian
+> Hi,
+> 
+> Rob Herring <robh@kernel.org> writes:
+>> On Tue, Nov 03, 2015 at 03:36:14PM +0530, Vignesh R wrote:
+>>> Add qspi memory mapped region entries for AM43xx based SoCs. Also,
+>>> update the binding documents for the controller to document this change.
+>>>
+>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>
+>> Acked-by: Rob Herring <robh@kernel.org>
+>>
+>>> ---
+>>>  Documentation/devicetree/bindings/spi/ti_qspi.txt | 5 +++--
+>>>  arch/arm/boot/dts/am4372.dtsi                     | 4 +++-
+>>>  2 files changed, 6 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>>> index f05dd631bef1..05488970060b 100644
+>>> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>>> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>>> @@ -17,9 +17,10 @@ Recommended properties:
+>>>  
+>>>  Example:
+>>>  
+>>> +For am4372:
+>>>  qspi: qspi@4b300000 {
+>>> -	compatible = "ti,dra7xxx-qspi";
+>>> -	reg = <0x47900000 0x100>, <0x30000000 0x3ffffff>;
+>>> +	compatible = "ti,am4372-qspi";
+>>> +	reg = <0x47900000 0x100>, <0x30000000 0x4000000>;
+>>>  	reg-names = "qspi_base", "qspi_mmap";
+>>>  	#address-cells = <1>;
+>>>  	#size-cells = <0>;
+> 
+> and how does the user for this look like ? Don't you need to give this a
+> proper 'ranges' binding ?
+> 
+
+
+There are no other users of qspi_mmap region except ti-qspi driver itself:
+In probe:
+	res_mmap = platform_get_resource_byname(pdev,
+			IORESOURCE_MEM, "qspi_mmap");
+	qspi->mmap_base = devm_ioremap_resource(&pdev->dev, res_mmap);
+
+and for reading from mmap region:
+	memcpy_fromio(buf, qspi->mmap_base + from, len);
+
+-- 
+Regards
+Vignesh
