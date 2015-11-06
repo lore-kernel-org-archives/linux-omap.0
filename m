@@ -1,87 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Linus HEAD build break
-Date: Fri, 6 Nov 2015 11:03:51 -0800
-Message-ID: <20151106190351.GC3218@atomide.com>
-References: <871tc31atk.fsf@saruman.tx.rr.com>
- <87y4ebyznc.fsf@saruman.tx.rr.com>
- <CAAfyv35Dw_8jkoPOJek0Ta6Ve=fQ_xUiJcmxR5_NFfYOU+69Vg@mail.gmail.com>
- <87vb9fyyvn.fsf@saruman.tx.rr.com>
- <20151106145351.GA3218@atomide.com> <20151106153412.GA525@earth>
- <20151106160930.GB525@earth>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] hw_random: omap3-rom-rng: convert timer to delayed work
+Date: Fri, 6 Nov 2015 21:20:52 +0200
+Message-ID: <563CFD94.5030008@ti.com>
+References: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20151106160930.GB525@earth>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Belisko Marek <marek.belisko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [151106 08:09]:
-> Hi,
-> 
-> On Fri, Nov 06, 2015 at 04:34:12PM +0100, Sebastian Reichel wrote:
-> > On Fri, Nov 06, 2015 at 06:53:52AM -0800, Tony Lindgren wrote:
-> > > * Felipe Balbi <balbi@ti.com> [151106 06:41]:
-> > > > Belisko Marek <marek.belisko@gmail.com> writes:
-> > > > > On Fri, Nov 6, 2015 at 3:24 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > > > >> Felipe Balbi <balbi@ti.com> writes:
-> > > > >>> your commit af19161aaed7 ("ARM: dts: twl4030: Add iio properties for bci
-> > > > >>> subnode") breaks build on current linus/master (which current sits in
-> > > > >>
-> > > > >> this commit cannot be found in next. How come it's in linus/master ?
-> > > > > I did post fix but Tony seems doesn't merge it:
-> > > > > https://lkml.org/lkml/2015/10/13/816
-> > > > 
-> > > > looking at that thread, I have no idea how come the old version was
-> > > > merged in the first place. Tony was clear that it broke build and yet
-> > > > this patch has made its way to mainline and it didn't even go through
-> > > > linux-next, which makes the problem worse.
-> > > > 
-> > > > Now we have a bisection point where the tree (well, some DTS files)
-> > > > won't even build. This is quite messy.
-> > > 
-> > > Yes didn't I drop the patch and pointed out it breaks the build?
-> > > 
-> > > Guys, please stop doing this. Do not merge driver code that has
-> > > not been sitting in linux next at least a week. And for the dts
-> > > changes, please make sure you have proper acks.
-> > > 
-> > > And now we have yet another merge window where things unexpectedly
-> > > break during the merge window because of untested driver changes.
-> > > 
-> > > Please repost the fix and I'll ack it and you guys send a new pull
-> > > request to fix it ASAP explaining how it happened.
-> > 
-> > mh for some reason I accidently added it to my next branch. I'm not
-> > sure why, since I did not intend to queue it at all. Sorry for the
-> > mess.
-> > 
-> > I wonder why it has not been in next, though. Checking my next tree,
-> > it should have been there since end of September.
-> 
-> I missed Stephen's messages about the build failure [0] and he
-> switched to using a checkout from 20150925, which is directly before
-> the patch. As a result this patch and all following patches have not
-> been tested in linux-next :(
-> 
-> I will send a revert to you guys in a few minutes, so that I can get
-> your ACK for sending it as pull request to Torvalds.
+On 11/06/2015 12:15 AM, Aaro Koskinen wrote:
+> We cannot put the HW RNG to idle using a timer because we cannot disable
+> clocks from atomic context. Use a delayed work instead.
+>
+> Fixes a warning with CONFIG_DEBUG_MUTEXES on Nokia N900 during boot.
+>
+> Reported-by: Sebastian Reichel <sre@kernel.org>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> ---
+>   drivers/char/hw_random/omap3-rom-rng.c | 11 ++++++-----
+>   1 file changed, 6 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/char/hw_random/omap3-rom-rng.c b/drivers/char/hw_random/omap3-rom-rng.c
+> index a405cdc..58191c6 100644
+> --- a/drivers/char/hw_random/omap3-rom-rng.c
+> +++ b/drivers/char/hw_random/omap3-rom-rng.c
+> @@ -29,11 +29,11 @@
+>   /* param1: ptr, param2: count, param3: flag */
+>   static u32 (*omap3_rom_rng_call)(u32, u32, u32);
+>
+> -static struct timer_list idle_timer;
+> +static struct delayed_work idle_work;
+>   static int rng_idle;
+>   static struct clk *rng_clk;
+>
+> -static void omap3_rom_rng_idle(unsigned long data)
+> +static void omap3_rom_rng_idle(struct work_struct *work)
+>   {
+>   	int r;
+>
+> @@ -51,7 +51,7 @@ static int omap3_rom_rng_get_random(void *buf, unsigned int count)
+>   	u32 r;
+>   	u32 ptr;
+>
+> -	del_timer_sync(&idle_timer);
+> +	cancel_delayed_work_sync(&idle_work);
+>   	if (rng_idle) {
+>   		clk_prepare_enable(rng_clk);
+>   		r = omap3_rom_rng_call(0, 0, RNG_GEN_PRNG_HW_INIT);
+> @@ -65,7 +65,7 @@ static int omap3_rom_rng_get_random(void *buf, unsigned int count)
+>
+>   	ptr = virt_to_phys(buf);
+>   	r = omap3_rom_rng_call(ptr, count, RNG_GEN_HW);
+> -	mod_timer(&idle_timer, jiffies + msecs_to_jiffies(500));
+> +	schedule_delayed_work(&idle_work, msecs_to_jiffies(500));
+>   	if (r != 0)
+>   		return -EINVAL;
+>   	return 0;
+> @@ -102,7 +102,7 @@ static int omap3_rom_rng_probe(struct platform_device *pdev)
+>   		return -EINVAL;
+>   	}
+>
+> -	setup_timer(&idle_timer, omap3_rom_rng_idle, 0);
+> +	INIT_DELAYED_WORK(&idle_work, omap3_rom_rng_idle);
+>   	rng_clk = devm_clk_get(&pdev->dev, "ick");
+>   	if (IS_ERR(rng_clk)) {
+>   		pr_err("unable to get RNG clock\n");
+> @@ -118,6 +118,7 @@ static int omap3_rom_rng_probe(struct platform_device *pdev)
+>
+>   static int omap3_rom_rng_remove(struct platform_device *pdev)
+>   {
+> +	cancel_delayed_work_sync(&idle_work);
+>   	hwrng_unregister(&omap3_rom_rng_ops);
+>   	clk_disable_unprepare(rng_clk);
+>   	return 0;
+>
 
-Sounds good to me.
+Sry, It looks like PM runtime autosuspend might work well here.
+What do you think?
 
-Thanks
-
-Tony
-
-> [0] https://lkml.org/lkml/2015/9/28/844
+-- 
+regards,
+-grygorii
