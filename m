@@ -1,87 +1,101 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] hw_random: omap3-rom-rng: convert timer to delayed work
-Date: Fri, 6 Nov 2015 21:20:52 +0200
-Message-ID: <563CFD94.5030008@ti.com>
-References: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: omap2: board-generic: use omap4_local_timer_init for
+ AM437x
+Date: Fri, 6 Nov 2015 13:38:38 -0600
+Message-ID: <87d1vmyl35.fsf@saruman.tx.rr.com>
+References: <1445375159-22234-1-git-send-email-balbi@ti.com>
+ <563C5F3C.5090900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3591962641759570334=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <563C5F3C.5090900@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <a0131933@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/06/2015 12:15 AM, Aaro Koskinen wrote:
-> We cannot put the HW RNG to idle using a timer because we cannot disable
-> clocks from atomic context. Use a delayed work instead.
->
-> Fixes a warning with CONFIG_DEBUG_MUTEXES on Nokia N900 during boot.
->
-> Reported-by: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->   drivers/char/hw_random/omap3-rom-rng.c | 11 ++++++-----
->   1 file changed, 6 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/char/hw_random/omap3-rom-rng.c b/drivers/char/hw_random/omap3-rom-rng.c
-> index a405cdc..58191c6 100644
-> --- a/drivers/char/hw_random/omap3-rom-rng.c
-> +++ b/drivers/char/hw_random/omap3-rom-rng.c
-> @@ -29,11 +29,11 @@
->   /* param1: ptr, param2: count, param3: flag */
->   static u32 (*omap3_rom_rng_call)(u32, u32, u32);
->
-> -static struct timer_list idle_timer;
-> +static struct delayed_work idle_work;
->   static int rng_idle;
->   static struct clk *rng_clk;
->
-> -static void omap3_rom_rng_idle(unsigned long data)
-> +static void omap3_rom_rng_idle(struct work_struct *work)
->   {
->   	int r;
->
-> @@ -51,7 +51,7 @@ static int omap3_rom_rng_get_random(void *buf, unsigned int count)
->   	u32 r;
->   	u32 ptr;
->
-> -	del_timer_sync(&idle_timer);
-> +	cancel_delayed_work_sync(&idle_work);
->   	if (rng_idle) {
->   		clk_prepare_enable(rng_clk);
->   		r = omap3_rom_rng_call(0, 0, RNG_GEN_PRNG_HW_INIT);
-> @@ -65,7 +65,7 @@ static int omap3_rom_rng_get_random(void *buf, unsigned int count)
->
->   	ptr = virt_to_phys(buf);
->   	r = omap3_rom_rng_call(ptr, count, RNG_GEN_HW);
-> -	mod_timer(&idle_timer, jiffies + msecs_to_jiffies(500));
-> +	schedule_delayed_work(&idle_work, msecs_to_jiffies(500));
->   	if (r != 0)
->   		return -EINVAL;
->   	return 0;
-> @@ -102,7 +102,7 @@ static int omap3_rom_rng_probe(struct platform_device *pdev)
->   		return -EINVAL;
->   	}
->
-> -	setup_timer(&idle_timer, omap3_rom_rng_idle, 0);
-> +	INIT_DELAYED_WORK(&idle_work, omap3_rom_rng_idle);
->   	rng_clk = devm_clk_get(&pdev->dev, "ick");
->   	if (IS_ERR(rng_clk)) {
->   		pr_err("unable to get RNG clock\n");
-> @@ -118,6 +118,7 @@ static int omap3_rom_rng_probe(struct platform_device *pdev)
->
->   static int omap3_rom_rng_remove(struct platform_device *pdev)
->   {
-> +	cancel_delayed_work_sync(&idle_work);
->   	hwrng_unregister(&omap3_rom_rng_ops);
->   	clk_disable_unprepare(rng_clk);
->   	return 0;
->
+--===============3591962641759570334==
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+	protocol="application/pgp-signature"
 
-Sry, It looks like PM runtime autosuspend might work well here.
-What do you think?
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
--- 
-regards,
--grygorii
+
+Hi,
+
+Lokesh Vutla <a0131933@ti.com> writes:
+> On Wednesday 21 October 2015 02:35 AM, Felipe Balbi wrote:
+>> AM437x-based boards, can use omap4_local_timer_init()
+>> just fine. Let's use that instead.
+>
+> This is breaking AM43x-epos board.
+> Today's Linux next: http://pastebin.ubuntu.com/13122620/
+> Reverting this patch: http://pastebin.ubuntu.com/13122621/
+
+seems like the 32k timer isn't ticking. I don't have EPOS around, care
+to confirm if that board has 32k oscillator populated ? If it doesn't,
+then we should probably disable counter32k:
+
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x=
+-epos-evm.dts
+index 86c2dfbe8875..e703e32b6da6 100644
+=2D-- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -792,3 +792,8 @@
+ 	tx-num-evt =3D <32>;
+ 	rx-num-evt =3D <32>;
+ };
++
++/* 32kHz oscillator not populated */
++&counter32k {
++	status =3D "disabled";
++};
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWPQG/AAoJEIaOsuA1yqREV/4P/2JtnQqXxv4fpjqk05CZWWTN
+a1zqcNWT/kQrInVkyPr5rTA9zTA9/PNptgTFQE9Dr0mZ79BReCJuJIaz1VJrtxCx
+fxS/oSzU6V79CuqNu7KrxO1MYyu3w/oTmkS2mMcusUuL+ek5hgdEXROgObqz0CIa
+/j6JpIXvv15mBSU60JmDvIzO86rn4Sl9xalp0cg2Q/R2i5P1pdysysgR9VvBxCBP
+1YPI7uvm2S4OdujcWfPSaBpOvS9hWNFrdq8KnamYiYR1ueHDD08ws27qy/raj2jX
+PR/8sXdRSn2UoSlcemGfW37zhFPBgD3I0VzYTFselpP7SnihGKo/zbiQXKtygtfJ
+ngZkILvxkQn34hkZodMX7NdyL+tyXia7QmKTxCU/tt1rKE1insxORvxWY1pAFN8z
+NxFg/Fc3YkZxNm5EjJz4SXSPDC00Xc0L2d1tolcxIQKCfr89Q9MhC79FaaK8PunO
+BL+sA+YioeU881jNjhvmYZq3MmaZ0u+M1TUqKI5ruPgsHUwloV83xLCvR0HEiq42
+GUn6nqxj5l4lhaM5pKWH5+4hO2TOpqeFob+1/s45/WCGEUIBJ4qcNZHX23xPg1AV
+lt9gZvjblv0GO83xoZH3TjgRIPULJz59zF2ooATwkjO9iqDOWI8RWLMNMDZlXs9v
+xJc7gMGEB9wX4mFMM3Jo
+=G0up
+-----END PGP SIGNATURE-----
+--=-=-=--
+
+
+--===============3591962641759570334==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3591962641759570334==--
