@@ -1,73 +1,71 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [PATCH] Revert "ARM: dts: twl4030: Add iio properties for bci
- subnode"
-Date: Fri, 6 Nov 2015 21:21:30 +0100
-Message-ID: <CAAfyv35kjW+x8+JmLFz0e0LBBpeHBqAU+qj++9aBT1PSiKRYyg@mail.gmail.com>
-References: <1446826430-3705-1-git-send-email-sre@kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [GIT PULL] power supply fix for 4.4
+Date: Fri, 6 Nov 2015 21:29:03 +0100
+Message-ID: <20151106202902.GA13762@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1446826430-3705-1-git-send-email-sre@kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 6, 2015 at 5:13 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> This reverts commit af19161aaed7ff8d1a52b2e517460f2fa0774e32,
-> which breaks the omap3 device tree build due to a wrong reference.
->
-> I accidently queued this change via the power supply subsystem while
-> telling Marek at the same time, that it should go through Tony's tree.
-> Following that I did miss Stephen's messages about the build failure in
-> linux-next and since he switched to merging an older snapshot nobody
-> else noticed the problem in my tree. I didn't notice myself, since I
-> did not build any device tree files assuming none have changed by me.
-Sorry for the mess. But wouldn't be better to use correct fix instead of revert?
->
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> ---
->  arch/arm/boot/dts/twl4030.dtsi | 2 --
->  1 file changed, 2 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-> index 482b7aa37808..36ae9160b558 100644
-> --- a/arch/arm/boot/dts/twl4030.dtsi
-> +++ b/arch/arm/boot/dts/twl4030.dtsi
-> @@ -22,8 +22,6 @@
->         charger: bci {
->                 compatible = "ti,twl4030-bci";
->                 interrupts = <9>, <2>;
-> -               io-channels = <&twl4030_madc 11>;
-> -               io-channel-name = "vac";
->                 bci3v1-supply = <&vusb3v1>;
->         };
->
-> --
-> 2.6.2
->
 
-BR,
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-marek
+Hi Linus,
 
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
+The following changes since commit 3e069adabc9487b5e28065a17e6a228da3412dfd:
 
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input (2015-11-06 11:57:41 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-power-supply.git tags/for-v4.4-important-fix
+
+for you to fetch changes up to 829a7da03fd5f94c3a3ee1f8e22371e81cf73c79:
+
+  Revert "ARM: dts: twl4030: Add iio properties for bci subnode" (2015-11-06 21:17:53 +0100)
+
+----------------------------------------------------------------
+power supply fixes for the v4.4 series
+
+Just a single revert for a patch, that I should not have queued.
+More detailed description is inside the patch. It's totally my
+fault, that this happened, sorry about that :(
+
+----------------------------------------------------------------
+Sebastian Reichel (1):
+      Revert "ARM: dts: twl4030: Add iio properties for bci subnode"
+
+ arch/arm/boot/dts/twl4030.dtsi | 2 --
+ 1 file changed, 2 deletions(-)
+
+-- Sebastian
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJWPQ2OAAoJENju1/PIO/qaJw8P/0QfeNeO0eCSwYdBF1FWtwEw
+uofsPDhDKZh+XoksKguVLtklb2R6TSFTq0qGfRTc0+l9hEEXyp6HJ+rkUVTi6f+n
+CMzx5dXmKwHB3zaCpEl0l8U+yDoLx//8a/ck2nIorh2aIWahpj4innE1SWxnVEXv
+3NnlW5XpGdRaqM0U2oRQjAe31XzoQyvxHawhaAzjyowTla7XsPaTlqK7DnkDwDLM
+XQnbwVtDfrk/URRGlyi+0klI3JIpL7HWpdoSHcfOuq7sWNd7PVIYhMTrsztz4klf
+neTE+5HbRCBfdIPX23ZaciSJNpbjaO4yusSUYIDAXlts8iMWT+n6Gt49LBe5lor7
+smYsyuPMfNdypc5+RG1zupyjHqUvQeZx7ou6AzwdLqd82u2LU/scR8Mik2qiFZRy
+fb6AzTmmNjuspQhpkQbjNtFXkMMOZZt/Aj+f71pxlYZn8mi4mX/yd4xMY0HQZuC4
+g3VK+EELpNTvpYsnB7TN2ERVkfwHmDdNiRy2jNJONiOcTiKsB+MSX/62HxmjmjFh
+KaXHlxUc3+73jnAP4FfD6k3YGOsauweAA0fr8dsvSmDGiNoL75yUQ+H3uI0KPiO3
+ObLd2WKq4n9ei/0BwEcKQVLgzZdI5Uzf4vYkc5TzrDSX9BKjVfCGBuTpCGz2E+cQ
+b7WOJx1vzXClBCs/iD9a
+=LBaA
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
