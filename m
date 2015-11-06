@@ -1,10 +1,12 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Linus HEAD build break
-Date: Fri, 6 Nov 2015 08:06:47 -0600
-Message-ID: <871tc31atk.fsf@saruman.tx.rr.com>
+Subject: Re: Linus HEAD build break
+Date: Fri, 6 Nov 2015 08:24:07 -0600
+Message-ID: <87y4ebyznc.fsf@saruman.tx.rr.com>
+References: <871tc31atk.fsf@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5877006406810223497=="
+Content-Type: multipart/mixed; boundary="===============3078188002589908473=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <871tc31atk.fsf@saruman.tx.rr.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -14,11 +16,11 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marek Belisko <marek@goldelico.com>
+To: Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@kernel.org>
 Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============5877006406810223497==
+--===============3078188002589908473==
 Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
 	protocol="application/pgp-signature"
 
@@ -27,135 +29,57 @@ Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
 
-Hi Marek,
+Hi again,
 
-your commit af19161aaed7 ("ARM: dts: twl4030: Add iio properties for bci
-subnode") breaks build on current linus/master (which current sits in
-d1e41ff11941 Merge tag 'platform-drivers-x86-v4.4-1' of
-git://git.infradead.org/users/dvhart/linux-platform-drivers-x86) for
-anybody including twl4030.dtsi because it refers to a non-existent
-twl4030_madc label. Build output of make V=3D1 dtbs:
+Felipe Balbi <balbi@ti.com> writes:
+> Hi Marek,
+>
+> your commit af19161aaed7 ("ARM: dts: twl4030: Add iio properties for bci
+> subnode") breaks build on current linus/master (which current sits in
 
-<stdin>:1304:2: warning: #warning syscall mlock2 not implemented [-Wcpp]
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
+this commit cannot be found in next. How come it's in linus/master ?
 
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap2430-sdp=
-.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap2430-sdp.dtb] Error 2
-make[2]: *** Waiting for unfinished jobs....
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
+If it had been in next, we'd find out about it a lot sooner and avoid
+the build regression. It seems author didn't build his own patch,
+considering the error is clear. Here's a patch, please merge it or
+provide a better version. Below has been build tested
+(omap2plus_defconfig) and boot tested (am437x SK, am437x IDK, beaglebone
+black) (yeah, I don't have boards which sport MADC around).
 
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3430-sdp=
-.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3430-sdp.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
+8<---------------------------------------------------------------
 
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
+From=207af26f7123bad3e9c9dcfe9dfe9f4ad58e56f7cb Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <balbi@ti.com>
+Date: Fri, 6 Nov 2015 08:14:45 -0600
+Subject: [PATCH] ARM: dts: twl4030: fix Monitoring ADC label
 
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/logicpd-torp=
-edo-37xx-devkit.dtb' failed
-make[2]: *** [arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dtb] Error 2
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-beagle=
-.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-beagle.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
+commit af19161aaed7 ("ARM: dts: twl4030: Add iio
+properties for bci subnode") breaks build of several
+DTS files by referring to a label that doesn't
+exist. Fix it.
 
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-beagle=
--xm-ab.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-beagle-xm-ab.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+=2D--
+ arch/arm/boot/dts/twl4030.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-cm-t35=
-30.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-cm-t3530.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
+diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+index 482b7aa37808..c8197f209efc 100644
+=2D-- a/arch/arm/boot/dts/twl4030.dtsi
++++ b/arch/arm/boot/dts/twl4030.dtsi
+@@ -22,7 +22,7 @@
+ 	charger: bci {
+ 		compatible =3D "ti,twl4030-bci";
+ 		interrupts =3D <9>, <2>;
+=2D		io-channels =3D <&twl4030_madc 11>;
++		io-channels =3D <&twl_madc 11>;
+ 		io-channel-name =3D "vac";
+ 		bci3v1-supply =3D <&vusb3v1>;
+ 	};
+=2D-=20
+2.6.2
 
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-beagle=
--xm.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-beagle-xm.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
 
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-devkit=
-8000.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-devkit8000.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-gta04a=
-4.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-gta04a4.dtb] Error 2
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-gta04a=
-3.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-gta04a3.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR: Input tree has errors, aborting (use -f to force output)
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-evm-37=
-xx.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-evm-37xx.dtb] Error 2
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-evm.dt=
-b' failed
-make[2]: *** [arch/arm/boot/dts/omap3-evm.dtb] Error 2
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-cm-t37=
-30.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-cm-t3730.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR: Input tree has errors, aborting (use -f to force output)
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-gta04a=
-5.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-gta04a5.dtb] Error 2
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-devkit=
-8000-lcd70.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-devkit8000-lcd70.dtb] Error 2
-ERROR (phandle_references): Reference to non-existent node or label "twl403=
-0_madc"
-
-ERROR: Input tree has errors, aborting (use -f to force output)
-scripts/Makefile.lib:293: recipe for target 'arch/arm/boot/dts/omap3-devkit=
-8000-lcd43.dtb' failed
-make[2]: *** [arch/arm/boot/dts/omap3-devkit8000-lcd43.dtb] Error 2
-arch/arm/Makefile:338: recipe for target 'dtbs' failed
-make[1]: *** [dtbs] Error 2
-Makefile:146: recipe for target 'sub-make' failed
-make: *** [sub-make] Error 2
-
-Reverting that commit makes it build again.
 
 =2D-=20
 balbi
@@ -166,24 +90,24 @@ Content-Type: application/pgp-signature; name="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWPLP4AAoJEIaOsuA1yqREONQQAK506vIGJE6fE/ns9qszGJ8S
-IAWm8BhbnvV74g4ajcTXyZah7uw+Er2zOa6V8NaEmJFI9TRSJMOWl7N0ndcAukyi
-4q8C6HD9SwC3C1ycl4T8SJ0JaLjWW0V1r2qYSC5c3yl3EVqbO8lVKJfmawxwWpE2
-Hn4OoDkAC+kd4h/PEI3jJN+zpaCKPAaVwYd8rkOyfjVdJzep9F8l7vvaNyyQxibL
-iwJj0thqO6BzypNU4aFv/mSBnGDdLbYgsXbyxS0pLhBQujntHVec4rCrx650lWKe
-tqcvGiDNtMuJcX7dyQxP6xDJS1lCs3TKd/AP7Lg9sHgEi0zmGSZhVggah1eXVR5m
-6hx0yyOE5KuV1JHNGJXDPsgCh+GXWnaegtSl+BAeR3rbV2ifGb9+lRNarWeDVzlE
-5E6kc3q7aLHztNYKzlqnky6mej2fzoWaC+C7f1t4hAJ7CG8Dx1C6OZ4+x2abDm5e
-rhkHaZqHhjizLVsi3NEUQ75hrkTl/nC9MsyIYvAGrvPdqFdw7o3S2fXARYQxa+RU
-welzP1FJC1CL1obFp2agS5E1cwNjp22Z4ogVJehI62bbSRmjLBhxv/stPzeG3vh9
-kdgwtfh/i3kuJu60d6DR/Vq/ImzN7YCbLyLdv+E2NdjZpdy//wgXGmeTNqNOfS3c
-jP+MP5/P2WJOgdrvsWUW
-=g+rV
+iQIcBAEBAgAGBQJWPLgJAAoJEIaOsuA1yqREL18QAJbs486JHAgO7jaBklN2uL/C
+uOWvIODS1MBWgHp6qg2doIqWn7+/xsTZ0L5wwJrwDxG1Sb3XMO9enk/cIeNXkSRb
+7fSjwgA1/cf+PTDL5ZZ9Ej74dQVojcjzshWgv4gRJySnjDH9vhrbdPjDWcekUdPQ
+dy+DrIQzLWnB0WroUqFPNC4oDrDvdsRkqkDuK6qqGzVH5jY2UxUNxjKD+QIs2Ua1
+UMBUo9AurQMNH3Fhe9BZbst9sR3U82wqRh9LVhWxCktrVlXoRVCWFm1Bk/6pVHQr
+92D1dnA8pmvC/yqmjQICQvLXKxYNdm3D7CpgKMOfq3kMc+dK9a22GvdQNEHqisuh
+Ax1wjqxowtfLiNEsirjdsw+Jam55G61E2hz41eYSnLUI14/gZicr7zCtzc1KoeiE
+F5a8G09z1KREmT5uBa4uJcUtwwOL+/sa3pVQ8Sl+Cikd6tAmMpKAu6Xii66IfeAB
+8orAH6VR/oim8PG1S++d4ImbCItDMnDsFnramFzLclWITc8CQso8Z6MMOQcNY8LD
+D9b5HL2cjDCreaNXWF5dJT1OjOnl3y86BPmbAMX+dqLTp6EMTUahO7RPlATVRFxK
+LlhIS2EhDBYB3qKnJwFs2Z69R9kc19K1IYX9Um0mQM/ssZQz/FhsqlC0eblZanfY
+KEbBoMmXfiyLF0vDdt45
+=3e+w
 -----END PGP SIGNATURE-----
 --=-=-=--
 
 
---===============5877006406810223497==
+--===============3078188002589908473==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -194,4 +118,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============5877006406810223497==--
+--===============3078188002589908473==--
