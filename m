@@ -1,58 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Minimal support for dm814x
-Date: Mon, 9 Nov 2015 07:06:03 -0800
-Message-ID: <20151109150602.GR3199@atomide.com>
-References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 5/7] drivers:input:ads7846(+tsc2046): add new common
+ binding names, pre-calibration and flipping
+Date: Mon, 9 Nov 2015 11:31:09 -0600
+Message-ID: <20151109173109.GA15192@rob-hp-laptop>
+References: <cover.1446822887.git.hns@goldelico.com>
+ <49ae3bab17189684d046212e548d6d637618ee71.1446822887.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Delio Brignoli <dbrignoli@audioscience.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matthijs van Duin <matthijsvanduin@gmail.com>
+In-Reply-To: <49ae3bab17189684d046212e548d6d637618ee71.1446822887.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgoqIERlbGlvIEJyaWdub2xpIDxkYnJpZ25vbGlAYXVkaW9zY2llbmNlLmNvbT4gWzE1MTEw
-NSAwNToxMF06Cj4gSGVsbG8gVG9ueSwKPiAKPiBXZSB1c2UgZG04MTR4IGluIHNvbWUgb2Ygb3Vy
-IHByb2R1Y3RzIHdpdGggYSBrZXJuZWwgYmFzZWQgb24gdmVyc2lvbiAyLjYuMzcgbW9kaWZpZWQg
-YnkgVEkgYW5kIGFyZSBjb25zaWRlcmluZyBtb3ZpbmcgdG8gYSBjdXJyZW50IGtlcm5lbCB2ZXJz
-aW9uLiBJIHJlY2VudGx5IHNhdyB0aGlzIDxodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9waXBl
-cm1haWwvbGludXgtYXJtLWtlcm5lbC8yMDE1LUp1bmUvMzQ4NDQ0Lmh0bWw+IGFuZCBJ4oCZZCBs
-aWtlIHRvIHRyeSBnZXR0aW5nIG91ciBib2FyZCB0byBib290IGFzIGEgZmlyc3Qgc3RlcCBhbmQg
-dGhlbiB0YWtlIGl0IGZyb20gdGhlcmUuCj4gV2UgYWltIGF0IGV2ZW50dWFsbHkgaGF2aW5nIHJl
-bW90ZXByb2Mgd29ya2luZyAoYXQgbGVhc3QgZm9yIHRoZSBEU1ApIGFuZCB0byBwb3J0IGZpeGVz
-L2ZlYXR1cmVzIHdlIGFkZGVkIHRvIG91ciAyLjYuMzcgYmFzZWQgdHJlZSBbMl0uCgpPSyBncmVh
-dC4gT25jZSB5b3UgcG9zdCBzb21lIHBhdGNoZXMsIEknbSBzdXJlIG90aGVyIHBlb3BsZSB3aWxs
-IHN0YXJ0IGhlbHBpbmcKd2l0aCB0aGUgZWZmb3J0IHRvby4KCj4gVGhlIHRlbXBvcmFyeSB0ZXN0
-aW5nIGJyYW5jaCBbMV0gbWVudGlvbmVkIGluIHlvdXIgb3JpZ2luYWwgbWVzc2FnZSBpcyBub3Qg
-bG9uZ2VyIGF2YWlsYWJsZSwgZG9lcyB0aGF0IG1lYW4gSSBjYW4ganVzdCB1c2UgdGhlIG1hc3Rl
-ciBicmFuY2ggb2YgPGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwvZ2l0
-L3RtbGluZC9saW51eC1vbWFwLmdpdD4gZm9yIG15IHRlc3RzPyBXaGljaCB0b29sY2hhaW4gZGlk
-IHlvdSB1c2UgdG8gYnVpbGQgeW91ciB0ZXN0IGtlcm5lbCBmb3IgdGhlIGhwIHQ0MTA/CgpJdCdz
-IG5vdyBtZXJnZWQgdG8gbWFpbmxpbmUgdjQuMywgc28gd2hhdGV2ZXIgaXMgdGhlIGN1cnJlbnQg
-bGF0ZXN0IHRhZ2dlZAptYWlubGluZSBrZXJuZWwgcmVsZWFzZSAodjQuMyBjdXJyZW50bHkpIGlz
-IHRoZSBvbmUgdG8gdXNlIGZyb20gbm93IG9uCm5hdHVhbGx5IDopIFRoZSBQTEwgc3VwcG9ydCBp
-cyBzdGlsbCBtaXNzaW5nLCBzbyBpdCByZWxpZXMgb24gdGhlIGJvb3Rsb2FkZXIKY29uZmlndXJl
-ZCBQTEwgdmFsdWVzIGZvciBub3cuIEknbSBob3BpbmcgdG8gcG9zdCBQTEwgc3VwcG9ydCBwYXRj
-aGVzIG92ZXIKbmV4dCBmZXcgd2Vla3MgYW5kIHRoZW4gd2UgY2FuIGhhdmUgdGhhdCBhbmQgbW9y
-ZSBkZXZpY2VzIHdvcmtpbmcgZm9yIHY0LjUuCgo+IEkgd29uZGVyIGlmIHRoZXJlIGlzIGFueW9u
-ZSBvbiB0aGlzIGxpc3QgYWxyZWFkeSB3b3JraW5nIG9uIGdldHRpbmcgZG04MTR4IGZ1bGx5IHdv
-cmtpbmcgb3IgaW50ZXJlc3RlZCBpbiBjb29wZXJhdGluZyB0b3dhcmRzIHRoaXMgZ29hbC4KClll
-cyBmb3Igc3VyZS4gSSd2ZSBhbHNvIGFkZGVzIGxpbnV4LW9tYXAgbGlzdCB0byBDYy4KClJlZ2Fy
-ZHMsCgpUb255Cgo+IFsxXSA8aHR0cHM6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5l
-bC9naXQvdG1saW5kL2xpbnV4LW9tYXAuZ2l0L2xvZy8/aD10bXAtdGVzdGluZy1kbTgxNHgtMjAx
-NS0wNi0wMz4KPiBbMl0gPGh0dHBzOi8vZ2l0aHViLmNvbS9hdWRpb3NjaWVuY2UvbGludXgtb21h
-cDMvdHJlZS9hc2kxMjMwLXVwc3RyZWFtLXRyYWNraW5nPgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
-bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
-YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Fri, Nov 06, 2015 at 04:14:47PM +0100, H. Nikolaus Schaller wrote:
+> commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
+> introduced common DT bindings for touchscreens [1] and a helper function to
+> parse the DT.
+> 
+> This has been integrated and interpretation of the inversion (flipping)
+> properties for the x and y axis has been added to accommodate any
+> orientation of the touch in relation to the LCD.
+> 
+> By scaling the min/max ADC values to the screen size it is now possible to
+> pre-calibrate the touch so that is (almost) exactly matches the LCD it is
+> glued onto. This allows to well enough operate the touch before a user
+> space calibration can improve the precision.
+> 
+> [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  .../devicetree/bindings/input/ads7846.txt          |  8 ++-
+
+The binding change looks okay, but...
+
+> @@ -1213,7 +1259,7 @@ static const struct ads7846_platform_data *ads7846_probe_dt(struct device *dev)
+>  	of_property_read_u16(node, "ti,vref-mv", &pdata->vref_mv);
+>  	pdata->keep_vref_on = of_property_read_bool(node, "ti,keep-vref-on");
+>  
+> -	pdata->swap_xy = of_property_read_bool(node, "ti,swap-xy");
+> +	pdata->swap_xy = of_property_read_bool(node, "touchscreen-swapped-x-y");
+
+This will break with old dtb's. The driver should look for either 
+property.
+
+Rob
