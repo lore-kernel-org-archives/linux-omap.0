@@ -1,21 +1,21 @@
 From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 5/7] drivers:input:ads7846(+tsc2046): add new common
- binding names, pre-calibration and flipping
-Date: Mon, 9 Nov 2015 11:31:09 -0600
-Message-ID: <20151109173109.GA15192@rob-hp-laptop>
+Subject: Re: [PATCH 1/7] drivers:input:tsc2007: add new common binding names,
+ pre-calibration, flipping and rotation
+Date: Mon, 9 Nov 2015 11:33:27 -0600
+Message-ID: <20151109173327.GA14524@rob-hp-laptop>
 References: <cover.1446822887.git.hns@goldelico.com>
- <49ae3bab17189684d046212e548d6d637618ee71.1446822887.git.hns@goldelico.com>
+ <ad1d3042c80142a59ab883fe17fe950dea734d94.1446822887.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <49ae3bab17189684d046212e548d6d637618ee71.1446822887.git.hns@goldelico.com>
+In-Reply-To: <ad1d3042c80142a59ab883fe17fe950dea734d94.1446822887.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
 Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 06, 2015 at 04:14:47PM +0100, H. Nikolaus Schaller wrote:
+On Fri, Nov 06, 2015 at 04:14:43PM +0100, H. Nikolaus Schaller wrote:
 > commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
 > introduced common DT bindings for touchscreens [1] and a helper function to
 > parse the DT.
@@ -29,22 +29,18 @@ On Fri, Nov 06, 2015 at 04:14:47PM +0100, H. Nikolaus Schaller wrote:
 > glued onto. This allows to well enough operate the touch before a user
 > space calibration can improve the precision.
 > 
+> calculate_pressure has been renamed to calculate_resistance because
+> that is what it is doing.
+> 
 > [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
 > 
 > Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 > ---
->  .../devicetree/bindings/input/ads7846.txt          |  8 ++-
+>  .../bindings/input/touchscreen/tsc2007.txt         |  20 +--
+>  drivers/input/touchscreen/tsc2007.c                | 135 +++++++++++++++++----
+>  include/linux/i2c/tsc2007.h                        |   8 ++
+>  3 files changed, 135 insertions(+), 28 deletions(-)
 
-The binding change looks okay, but...
-
-> @@ -1213,7 +1259,7 @@ static const struct ads7846_platform_data *ads7846_probe_dt(struct device *dev)
->  	of_property_read_u16(node, "ti,vref-mv", &pdata->vref_mv);
->  	pdata->keep_vref_on = of_property_read_bool(node, "ti,keep-vref-on");
->  
-> -	pdata->swap_xy = of_property_read_bool(node, "ti,swap-xy");
-> +	pdata->swap_xy = of_property_read_bool(node, "touchscreen-swapped-x-y");
-
-This will break with old dtb's. The driver should look for either 
-property.
+This one has similar problems with breaking backwards compatibility.
 
 Rob
