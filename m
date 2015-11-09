@@ -1,16 +1,15 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 2/3] dmaengine: ti-dma-crossbar: dra7: Support for
- reserving DMA event ranges
-Date: Mon, 9 Nov 2015 10:28:45 +0200
-Message-ID: <5640593D.3020702@ti.com>
-References: <1446192038-11158-1-git-send-email-peter.ujfalusi@ti.com>
- <1446192038-11158-3-git-send-email-peter.ujfalusi@ti.com>
- <20151106215310.GA20278@rob-hp-laptop>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Revert "ARM: dts: twl4030: Add iio properties for bci
+ subnode"
+Date: Mon, 9 Nov 2015 06:17:17 -0800
+Message-ID: <20151109141716.GD3218@atomide.com>
+References: <1446826430-3705-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151106215310.GA20278@rob-hp-laptop>
+Content-Disposition: inline
+In-Reply-To: <1446826430-3705-1-git-send-email-sre@kernel.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,54 +19,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, vinod.koul@intel.com, r.schwebel@pengutronix.de, nsekhar@ti.com, linux-kernel@vger.kernel.org, tony@atomide.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/06/2015 11:53 PM, Rob Herring wrote:
-> On Fri, Oct 30, 2015 at 10:00:37AM +0200, Peter Ujfalusi wrote:
->> In eDMA the events are directly mapped to a DMA channel (for example DMA
->> event 14 can only be handled by DMA channel 14). If the memcpy is enabled
->> on the eDMA, there is a possibility that the crossbar driver would assign
->> DMA event number already allocated in eDMA for memcpy. Furthermore the
->> eDMA can be shared with DSP in which case the crossbar driver should also
->> avoid mapping xbar events to DSP used event numbers (or channels).
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->>  .../devicetree/bindings/dma/ti-dma-crossbar.txt    |  6 +++
->>  drivers/dma/ti-dma-crossbar.c                      | 47 +++++++++++++++=
-+++++--
->>  2 files changed, 49 insertions(+), 4 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt b=
-/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
->> index b152a75dceae..aead5869a28d 100644
->> --- a/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
->> +++ b/Documentation/devicetree/bindings/dma/ti-dma-crossbar.txt
->> @@ -14,6 +14,10 @@ The DMA controller node need to have the following po=
-roperties:
->>  =
+* Sebastian Reichel <sre@kernel.org> [151106 08:14]:
+> This reverts commit af19161aaed7ff8d1a52b2e517460f2fa0774e32,
+> which breaks the omap3 device tree build due to a wrong reference.
+> 
+> I accidently queued this change via the power supply subsystem while
+> telling Marek at the same time, that it should go through Tony's tree.
+> Following that I did miss Stephen's messages about the build failure in
+> linux-next and since he switched to merging an older snapshot nobody
+> else noticed the problem in my tree. I didn't notice myself, since I
+> did not build any device tree files assuming none have changed by me.
 
->>  Optional properties:
->>  - ti,dma-safe-map: Safe routing value for unused request lines
->> +- ti,reserved-dma-request-ranges: DMA request ranges which should not b=
-e used
->> +		when mapping xbar input to DMA request, they are either
->> +		allocated to be used by for example the DSP or they are used as
->> +		memcpy channels in eDMA.
-> =
+Good to hear you figured out how it happened :)
 
-> How many requests are there? I think I'd rather see this as a mask =
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-> value.
 
-The eDMA on dra7 family have 64 channels. I don't have visibility to custom=
-er
-kernels, but at least 32 channels need be allocated to be used by the DSP.
-This depends on the system design. It could be that only the memcpy channels
-need to be reserved, but in some setups we do need more than a few.
-
--- =
-
-P=E9ter
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> ---
+>  arch/arm/boot/dts/twl4030.dtsi | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+> index 482b7aa37808..36ae9160b558 100644
+> --- a/arch/arm/boot/dts/twl4030.dtsi
+> +++ b/arch/arm/boot/dts/twl4030.dtsi
+> @@ -22,8 +22,6 @@
+>  	charger: bci {
+>  		compatible = "ti,twl4030-bci";
+>  		interrupts = <9>, <2>;
+> -		io-channels = <&twl4030_madc 11>;
+> -		io-channel-name = "vac";
+>  		bci3v1-supply = <&vusb3v1>;
+>  	};
+>  
+> -- 
+> 2.6.2
+> 
