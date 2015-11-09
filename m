@@ -1,15 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Revert "ARM: dts: twl4030: Add iio properties for bci
- subnode"
-Date: Mon, 9 Nov 2015 06:17:17 -0800
-Message-ID: <20151109141716.GD3218@atomide.com>
-References: <1446826430-3705-1-git-send-email-sre@kernel.org>
+Subject: Re: Minimal support for dm814x
+Date: Mon, 9 Nov 2015 07:06:03 -0800
+Message-ID: <20151109150602.GR3199@atomide.com>
+References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1446826430-3705-1-git-send-email-sre@kernel.org>
+In-Reply-To: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,44 +18,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+To: Delio Brignoli <dbrignoli@audioscience.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [151106 08:14]:
-> This reverts commit af19161aaed7ff8d1a52b2e517460f2fa0774e32,
-> which breaks the omap3 device tree build due to a wrong reference.
-> 
-> I accidently queued this change via the power supply subsystem while
-> telling Marek at the same time, that it should go through Tony's tree.
-> Following that I did miss Stephen's messages about the build failure in
-> linux-next and since he switched to merging an older snapshot nobody
-> else noticed the problem in my tree. I didn't notice myself, since I
-> did not build any device tree files assuming none have changed by me.
-
-Good to hear you figured out how it happened :)
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> ---
->  arch/arm/boot/dts/twl4030.dtsi | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-> index 482b7aa37808..36ae9160b558 100644
-> --- a/arch/arm/boot/dts/twl4030.dtsi
-> +++ b/arch/arm/boot/dts/twl4030.dtsi
-> @@ -22,8 +22,6 @@
->  	charger: bci {
->  		compatible = "ti,twl4030-bci";
->  		interrupts = <9>, <2>;
-> -		io-channels = <&twl4030_madc 11>;
-> -		io-channel-name = "vac";
->  		bci3v1-supply = <&vusb3v1>;
->  	};
->  
-> -- 
-> 2.6.2
-> 
+SGksCgoqIERlbGlvIEJyaWdub2xpIDxkYnJpZ25vbGlAYXVkaW9zY2llbmNlLmNvbT4gWzE1MTEw
+NSAwNToxMF06Cj4gSGVsbG8gVG9ueSwKPiAKPiBXZSB1c2UgZG04MTR4IGluIHNvbWUgb2Ygb3Vy
+IHByb2R1Y3RzIHdpdGggYSBrZXJuZWwgYmFzZWQgb24gdmVyc2lvbiAyLjYuMzcgbW9kaWZpZWQg
+YnkgVEkgYW5kIGFyZSBjb25zaWRlcmluZyBtb3ZpbmcgdG8gYSBjdXJyZW50IGtlcm5lbCB2ZXJz
+aW9uLiBJIHJlY2VudGx5IHNhdyB0aGlzIDxodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9waXBl
+cm1haWwvbGludXgtYXJtLWtlcm5lbC8yMDE1LUp1bmUvMzQ4NDQ0Lmh0bWw+IGFuZCBJ4oCZZCBs
+aWtlIHRvIHRyeSBnZXR0aW5nIG91ciBib2FyZCB0byBib290IGFzIGEgZmlyc3Qgc3RlcCBhbmQg
+dGhlbiB0YWtlIGl0IGZyb20gdGhlcmUuCj4gV2UgYWltIGF0IGV2ZW50dWFsbHkgaGF2aW5nIHJl
+bW90ZXByb2Mgd29ya2luZyAoYXQgbGVhc3QgZm9yIHRoZSBEU1ApIGFuZCB0byBwb3J0IGZpeGVz
+L2ZlYXR1cmVzIHdlIGFkZGVkIHRvIG91ciAyLjYuMzcgYmFzZWQgdHJlZSBbMl0uCgpPSyBncmVh
+dC4gT25jZSB5b3UgcG9zdCBzb21lIHBhdGNoZXMsIEknbSBzdXJlIG90aGVyIHBlb3BsZSB3aWxs
+IHN0YXJ0IGhlbHBpbmcKd2l0aCB0aGUgZWZmb3J0IHRvby4KCj4gVGhlIHRlbXBvcmFyeSB0ZXN0
+aW5nIGJyYW5jaCBbMV0gbWVudGlvbmVkIGluIHlvdXIgb3JpZ2luYWwgbWVzc2FnZSBpcyBub3Qg
+bG9uZ2VyIGF2YWlsYWJsZSwgZG9lcyB0aGF0IG1lYW4gSSBjYW4ganVzdCB1c2UgdGhlIG1hc3Rl
+ciBicmFuY2ggb2YgPGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwvZ2l0
+L3RtbGluZC9saW51eC1vbWFwLmdpdD4gZm9yIG15IHRlc3RzPyBXaGljaCB0b29sY2hhaW4gZGlk
+IHlvdSB1c2UgdG8gYnVpbGQgeW91ciB0ZXN0IGtlcm5lbCBmb3IgdGhlIGhwIHQ0MTA/CgpJdCdz
+IG5vdyBtZXJnZWQgdG8gbWFpbmxpbmUgdjQuMywgc28gd2hhdGV2ZXIgaXMgdGhlIGN1cnJlbnQg
+bGF0ZXN0IHRhZ2dlZAptYWlubGluZSBrZXJuZWwgcmVsZWFzZSAodjQuMyBjdXJyZW50bHkpIGlz
+IHRoZSBvbmUgdG8gdXNlIGZyb20gbm93IG9uCm5hdHVhbGx5IDopIFRoZSBQTEwgc3VwcG9ydCBp
+cyBzdGlsbCBtaXNzaW5nLCBzbyBpdCByZWxpZXMgb24gdGhlIGJvb3Rsb2FkZXIKY29uZmlndXJl
+ZCBQTEwgdmFsdWVzIGZvciBub3cuIEknbSBob3BpbmcgdG8gcG9zdCBQTEwgc3VwcG9ydCBwYXRj
+aGVzIG92ZXIKbmV4dCBmZXcgd2Vla3MgYW5kIHRoZW4gd2UgY2FuIGhhdmUgdGhhdCBhbmQgbW9y
+ZSBkZXZpY2VzIHdvcmtpbmcgZm9yIHY0LjUuCgo+IEkgd29uZGVyIGlmIHRoZXJlIGlzIGFueW9u
+ZSBvbiB0aGlzIGxpc3QgYWxyZWFkeSB3b3JraW5nIG9uIGdldHRpbmcgZG04MTR4IGZ1bGx5IHdv
+cmtpbmcgb3IgaW50ZXJlc3RlZCBpbiBjb29wZXJhdGluZyB0b3dhcmRzIHRoaXMgZ29hbC4KClll
+cyBmb3Igc3VyZS4gSSd2ZSBhbHNvIGFkZGVzIGxpbnV4LW9tYXAgbGlzdCB0byBDYy4KClJlZ2Fy
+ZHMsCgpUb255Cgo+IFsxXSA8aHR0cHM6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5l
+bC9naXQvdG1saW5kL2xpbnV4LW9tYXAuZ2l0L2xvZy8/aD10bXAtdGVzdGluZy1kbTgxNHgtMjAx
+NS0wNi0wMz4KPiBbMl0gPGh0dHBzOi8vZ2l0aHViLmNvbS9hdWRpb3NjaWVuY2UvbGludXgtb21h
+cDMvdHJlZS9hc2kxMjMwLXVwc3RyZWFtLXRyYWNraW5nPgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
+bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
+YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
