@@ -1,60 +1,51 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 5/7] drivers:input:ads7846(+tsc2046): add new common binding names, pre-calibration and flipping
-Date: Mon, 9 Nov 2015 18:36:48 +0100
-Message-ID: <C2304EBD-A75D-495A-9A90-5E2082E983B7@goldelico.com>
-References: <cover.1446822887.git.hns@goldelico.com> <49ae3bab17189684d046212e548d6d637618ee71.1446822887.git.hns@goldelico.com> <20151109173109.GA15192@rob-hp-laptop>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151109173109.GA15192@rob-hp-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
+Date: Mon, 09 Nov 2015 19:48:33 +0200
+Message-ID: <10133709.DpTcCTIhJE@avalon>
+References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150914163353.GN4215@atomide.com> <20151012170558.GF23801@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20151012170558.GF23801@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Suman Anna <s-anna@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sakari Ailus <sakari.ailus@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Tony,
 
-Am 09.11.2015 um 18:31 schrieb Rob Herring <robh@kernel.org>:
-
-> On Fri, Nov 06, 2015 at 04:14:47PM +0100, H. Nikolaus Schaller wrote:
->> commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
->> introduced common DT bindings for touchscreens [1] and a helper function to
->> parse the DT.
->> 
->> This has been integrated and interpretation of the inversion (flipping)
->> properties for the x and y axis has been added to accommodate any
->> orientation of the touch in relation to the LCD.
->> 
->> By scaling the min/max ADC values to the screen size it is now possible to
->> pre-calibrate the touch so that is (almost) exactly matches the LCD it is
->> glued onto. This allows to well enough operate the touch before a user
->> space calibration can improve the precision.
->> 
->> [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
->> 
->> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->> ---
->> .../devicetree/bindings/input/ads7846.txt          |  8 ++-
+On Monday 12 October 2015 10:05:59 Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150914 09:37]:
+> > * Suman Anna <s-anna@ti.com> [150914 09:33]:
+> >> On 09/03/2015 05:34 PM, Suman Anna wrote:
+> >>> On 07/16/2015 07:58 AM, Tony Lindgren wrote:
+> >>>> * Laurent Pinchart [150716 05:57]:
+> >>>> The OMAP3 ISP is now fully supported in DT, remove its instantiation
+> >>>>> from C code.
+> >>>> 
+> >>>> Please feel to queue this along with the second patch in this series,
+> >>>> this should not cause any merge conflicts:
+> >>>> 
+> >>>> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>> 
+> >>> Just wondering if you have already queued this, I see the v4l changes
+> >>> in linux-next, but not this patch. Also, can you confirm if this
+> >>> series is making it into 4.3?
+> >> 
+> >> This patch is not in 4.3-rc1, can you pick this up for the next merge
+> >> window? I am gonna send out some additional cleanup patches (removing
+> >> legacy mailbox and iommu pieces) on top on this patch. The second patch
+> >> in this series did make it.
+> > 
+> > OK tagging this one for next, will apply once I'm done with fixes.
 > 
-> The binding change looks okay, but...
-> 
->> @@ -1213,7 +1259,7 @@ static const struct ads7846_platform_data *ads7846_probe_dt(struct device *dev)
->> 	of_property_read_u16(node, "ti,vref-mv", &pdata->vref_mv);
->> 	pdata->keep_vref_on = of_property_read_bool(node, "ti,keep-vref-on");
->> 
->> -	pdata->swap_xy = of_property_read_bool(node, "ti,swap-xy");
->> +	pdata->swap_xy = of_property_read_bool(node, "touchscreen-swapped-x-y");
-> 
-> This will break with old dtb's.
+> Applying into omap-for-v4.4/cleanup finally thanks.
 
-We have a patch for all boards in tree (external dtbs must be modified by their maintainers).
+Is see that the patch is in your master branch but not your for-next branch. 
+Will it make it to v4.4-rc1 ?
 
-> The driver should look for either 
-> property.
+-- 
+Regards,
 
-It is easy to recognize either one.
-
-Noted for V2.
-
-BR and thanks,
-Nikolaus
+Laurent Pinchart
