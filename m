@@ -1,7 +1,7 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v3 3/5] mtd: devices: m25p80: add support for mmap read request
-Date: Tue, 10 Nov 2015 10:59:57 +0530
-Message-ID: <1447133399-25658-4-git-send-email-vigneshr@ti.com>
+Subject: [PATCH v3 5/5] ARM: dts: AM4372: add entry for qspi mmap region
+Date: Tue, 10 Nov 2015 10:59:59 +0530
+Message-ID: <1447133399-25658-6-git-send-email-vigneshr@ti.com>
 References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,32 +12,47 @@ To: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
 Cc: Rob Herring <robh@kernel.org>, Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Certain spi controllers may support memory mapped interface to read from
-m25p80 type flash devices. This interface provides better read
-performance than regular SPI interface.
-Call spi_mtd_mmap_read() interface, if supported, to make use of
-memory-mapped interface.
+Add qspi memory mapped region entries for AM43xx based SoCs. Also,
+update the binding documents for the controller to document this change.
 
 Signed-off-by: Vignesh R <vigneshr@ti.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/mtd/devices/m25p80.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/devicetree/bindings/spi/ti_qspi.txt | 5 +++--
+ arch/arm/boot/dts/am4372.dtsi                     | 4 +++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
-index fe9ceb7b5405..7ef0c5009ead 100644
---- a/drivers/mtd/devices/m25p80.c
-+++ b/drivers/mtd/devices/m25p80.c
-@@ -131,6 +131,11 @@ static int m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
- 	/* convert the dummy cycles to the number of bytes */
- 	dummy /= 8;
+diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+index 334aa3f32cbc..5a1542eda387 100644
+--- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
++++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+@@ -17,9 +17,10 @@ Recommended properties:
  
-+	if (spi_mmap_read_supported(spi))
-+		return spi_mtd_mmap_read(spi, from, len, retlen, buf,
-+					 nor->read_opcode,
-+					 nor->addr_width, dummy);
-+
- 	spi_message_init(&m);
- 	memset(t, 0, (sizeof t));
+ Example:
  
++For am4372:
+ qspi: qspi@4b300000 {
+-	compatible = "ti,dra7xxx-qspi";
+-	reg = <0x47900000 0x100>, <0x30000000 0x3ffffff>;
++	compatible = "ti,am4372-qspi";
++	reg = <0x47900000 0x100>, <0x30000000 0x4000000>;
+ 	reg-names = "qspi_base", "qspi_mmap";
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d83ff9c9701e..e32d164102d1 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -963,7 +963,9 @@
+ 
+ 		qspi: qspi@47900000 {
+ 			compatible = "ti,am4372-qspi";
+-			reg = <0x47900000 0x100>;
++			reg = <0x47900000 0x100>,
++			      <0x30000000 0x4000000>;
++			reg-names = "qspi_base", "qspi_mmap";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "qspi";
 -- 
 2.6.3
