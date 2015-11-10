@@ -1,56 +1,104 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: davinci-mcasp: Fix TDM slot rx/tx mask associations
-Date: Tue, 10 Nov 2015 09:51:47 +0200
-Message-ID: <5641A213.4030508@ti.com>
-References: <1447093159-32294-1-git-send-email-dannenberg@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 12/13] [media] omap3isp: Support for deferred probing when
+ requesting DMA channel
+Date: Tue, 10 Nov 2015 09:56:17 +0200
+Message-ID: <5641A321.2070209@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <1432646768-12532-13-git-send-email-peter.ujfalusi@ti.com>
+ <11319647.puY9n5DpsR@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447093159-32294-1-git-send-email-dannenberg@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Dannenberg <dannenberg@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <11319647.puY9n5DpsR@avalon>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/09/2015 08:19 PM, Andreas Dannenberg wrote:
-> Fixes the associations between the tx_mask and rx_mask and the associ=
-ated
-> playback / capture streams during setting of the TDM slot. With this
-> patch in place it is now possible for example to only populate tx_mas=
-k
-> (leaving rx_mask as 0) for output-only codecs to control the TDM slot=
-(s)
-> the McASP serial port uses for transmit. Before that, this scenario
-> would incorrectly rely on the rx_mask for this.
+Hi Laurent,
+
+On 11/09/2015 09:50 PM, Laurent Pinchart wrote:
+> Hi Peter,
 >=20
-> Signed-off-by: Andreas Dannenberg <dannenberg@ti.com>
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> ---
->  sound/soc/davinci/davinci-mcasp.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Thank you for the patch.
 >=20
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/da=
-vinci-mcasp.c
-> index 4495a40..caa0beb 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -681,8 +681,8 @@ static int davinci_mcasp_set_tdm_slot(struct snd_=
-soc_dai *dai,
->  	}
-> =20
->  	mcasp->tdm_slots =3D slots;
-> -	mcasp->tdm_mask[SNDRV_PCM_STREAM_PLAYBACK] =3D rx_mask;
-> -	mcasp->tdm_mask[SNDRV_PCM_STREAM_CAPTURE] =3D tx_mask;
-> +	mcasp->tdm_mask[SNDRV_PCM_STREAM_PLAYBACK] =3D tx_mask;
-> +	mcasp->tdm_mask[SNDRV_PCM_STREAM_CAPTURE] =3D rx_mask;
->  	mcasp->slot_width =3D slot_width;
-> =20
->  	return davinci_mcasp_set_ch_constraints(mcasp);
+> What happened to this patch series ? It looks like=20
+> dma_request_slave_channel_compat_reason() isn't in mainline, so I can=
+'t apply=20
+> this patch.
 >=20
+> I'll mark this patch as deferred in patchwork, please resubmit it if =
+you=20
+> resubmit the series
 
+The original series - containing this patch - generated a bit of discus=
+sion
+and it seams that I will need to do bigger change in the dmaengine API
+compared to this.
+I think this patch can be dropped as the dmaengine changes will not go =
+in as
+they were.
 
---=20
+(and by the look of it the issue you're trying to fix
+> still exists, so it would be nice if you could get it eventually fixe=
+d).
+
+Yes, the issue still valid for the OMAP/DaVinci driver the series was t=
+ouching.
+
+I will try to send a new series in the coming weeks.
+
+Thanks,
 P=E9ter
+>=20
+> On Tuesday 26 May 2015 16:26:07 Peter Ujfalusi wrote:
+>> Switch to use ma_request_slave_channel_compat_reason() to request th=
+e DMA
+>> channel. Only fall back to pio mode if the error code returned is no=
+t
+>> -EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFE=
+R.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+>> CC: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+>> CC: Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+>> ---
+>>  drivers/media/platform/omap3isp/isphist.c | 12 +++++++++---
+>>  1 file changed, 9 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/omap3isp/isphist.c
+>> b/drivers/media/platform/omap3isp/isphist.c index
+>> 7138b043a4aa..e690ca13af0e 100644
+>> --- a/drivers/media/platform/omap3isp/isphist.c
+>> +++ b/drivers/media/platform/omap3isp/isphist.c
+>> @@ -499,14 +499,20 @@ int omap3isp_hist_init(struct isp_device *isp)
+>>  		if (res)
+>>  			sig =3D res->start;
+>>
+>> -		hist->dma_ch =3D dma_request_slave_channel_compat(mask,
+>> +		hist->dma_ch =3D dma_request_slave_channel_compat_reason(mask,
+>>  				omap_dma_filter_fn, &sig, isp->dev, "hist");
+>> -		if (!hist->dma_ch)
+>> +		if (IS_ERR(hist->dma_ch)) {
+>> +			ret =3D PTR_ERR(hist->dma_ch);
+>> +			if (ret =3D=3D -EPROBE_DEFER)
+>> +				return ret;
+>> +
+>> +			hist->dma_ch =3D NULL;
+>>  			dev_warn(isp->dev,
+>>  				 "hist: DMA channel request failed, using PIO\n");
+>> -		else
+>> +		} else {
+>>  			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
+>>  				dma_chan_name(hist->dma_ch));
+>> +		}
+>>  	}
+>>
+>>  	hist->ops =3D &hist_ops;
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
