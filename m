@@ -1,7 +1,7 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v3 1/5] spi: introduce mmap read support for spi flash devices
-Date: Tue, 10 Nov 2015 10:59:55 +0530
-Message-ID: <1447133399-25658-2-git-send-email-vigneshr@ti.com>
+Subject: [PATCH v3 2/5] spi: spi-ti-qspi: add mmap mode read support
+Date: Tue, 10 Nov 2015 10:59:56 +0530
+Message-ID: <1447133399-25658-3-git-send-email-vigneshr@ti.com>
 References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,152 +21,176 @@ To: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
 Cc: Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-In addition to providing direct access to SPI bus, some spi controller
-hardwares (like ti-qspi) provide special memory mapped port
-to accesses SPI flash devices in order to increase read performance.
-This means the controller can automatically send the SPI signals
-required to read data from the SPI flash device.
-For this, spi controller needs to know flash specific information like
-read command to use, dummy bytes and address width. Once these settings
-are populated in hardware registers, any read accesses to flash's memory
-map region(SoC specific) through memcpy (or mem-to mem DMA copy) will be
-handled by controller hardware. The hardware will automatically generate
-SPI signals required to read data from flash and present it to CPU/DMA.
+ti-qspi controller provides mmap port to read data from SPI flashes.
+mmap port is enabled in QSPI_SPI_SWITCH_REG. ctrl module register may
+also need to be accessed for some SoCs. The QSPI_SPI_SETUP_REGx needs to
+be populated with flash specific information like read opcode, read
+mode(quad, dual, normal), address width and dummy bytes. Once,
+controller is in mmap mode, the whole flash memory is available as a
+memory region at SoC specific address. This region can be accessed using
+normal memcpy() (or mem-to-mem dma copy). The ti-qspi controller hardware
+will internally communicate with SPI flash over SPI bus and get the
+requested data.
 
-Introduce spi_mtd_mmap_read() interface to support memory mapped read
-over SPI flash devices. SPI master drivers can implement this callback to
-support memory mapped read interfaces. m25p80 flash driver and other
-flash drivers can call this to request memory mapped read. The interface
-should only be used MTD flashes and cannot be used with other SPI devices.
+Implement spi_mtd_mmap_read() callback to support mmap read over SPI
+flash devices. With this, the read throughput increases from ~100kB/s to
+~2.5 MB/s.
 
 Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
+
 v3:
- * Remove use of mmap_lock_mutex, use bus_lock_mutex instead.
+ * optimize enable/disable of mmap mode
 
- drivers/spi/spi.c       | 34 ++++++++++++++++++++++++++++++++++
- include/linux/spi/spi.h | 20 ++++++++++++++++++++
- 2 files changed, 54 insertions(+)
+ drivers/spi/spi-ti-qspi.c | 99 +++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 95 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index e2415be209d5..0448d29fefc8 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -1134,6 +1134,7 @@ static void __spi_pump_messages(struct spi_master *master, bool in_kthread)
- 		}
- 	}
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+index 64318fcfacf2..295c11f48440 100644
+--- a/drivers/spi/spi-ti-qspi.c
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -56,6 +56,7 @@ struct ti_qspi {
+ 	u32 dc;
  
-+	mutex_lock(&master->bus_lock_mutex);
- 	trace_spi_message_start(master->cur_msg);
+ 	bool ctrl_mod;
++	bool mmap_enabled;
+ };
  
- 	if (master->prepare_message) {
-@@ -1143,6 +1144,7 @@ static void __spi_pump_messages(struct spi_master *master, bool in_kthread)
- 				"failed to prepare message: %d\n", ret);
- 			master->cur_msg->status = ret;
- 			spi_finalize_current_message(master);
-+			mutex_unlock(&master->bus_lock_mutex);
- 			return;
- 		}
- 		master->cur_msg_prepared = true;
-@@ -1152,6 +1154,7 @@ static void __spi_pump_messages(struct spi_master *master, bool in_kthread)
- 	if (ret) {
- 		master->cur_msg->status = ret;
- 		spi_finalize_current_message(master);
-+		mutex_unlock(&master->bus_lock_mutex);
- 		return;
- 	}
+ #define QSPI_PID			(0x0)
+@@ -65,11 +66,8 @@ struct ti_qspi {
+ #define QSPI_SPI_CMD_REG		(0x48)
+ #define QSPI_SPI_STATUS_REG		(0x4c)
+ #define QSPI_SPI_DATA_REG		(0x50)
+-#define QSPI_SPI_SETUP0_REG		(0x54)
++#define QSPI_SPI_SETUP_REG(n)		((0x54 + 4 * n))
+ #define QSPI_SPI_SWITCH_REG		(0x64)
+-#define QSPI_SPI_SETUP1_REG		(0x58)
+-#define QSPI_SPI_SETUP2_REG		(0x5c)
+-#define QSPI_SPI_SETUP3_REG		(0x60)
+ #define QSPI_SPI_DATA_REG_1		(0x68)
+ #define QSPI_SPI_DATA_REG_2		(0x6c)
+ #define QSPI_SPI_DATA_REG_3		(0x70)
+@@ -109,6 +107,16 @@ struct ti_qspi {
  
-@@ -1159,8 +1162,10 @@ static void __spi_pump_messages(struct spi_master *master, bool in_kthread)
- 	if (ret) {
- 		dev_err(&master->dev,
- 			"failed to transfer one message from queue\n");
-+		mutex_unlock(&master->bus_lock_mutex);
- 		return;
- 	}
-+	mutex_unlock(&master->bus_lock_mutex);
+ #define QSPI_AUTOSUSPEND_TIMEOUT         2000
+ 
++#define MEM_CS_EN(n)			((n + 1) << 8)
++
++#define MM_SWITCH			0x1
++
++#define QSPI_SETUP_RD_NORMAL		(0x0 << 12)
++#define QSPI_SETUP_RD_DUAL		(0x1 << 12)
++#define QSPI_SETUP_RD_QUAD		(0x3 << 12)
++#define QSPI_SETUP_ADDR_SHIFT		8
++#define QSPI_SETUP_DUMMY_SHIFT		10
++
+ static inline unsigned long ti_qspi_read(struct ti_qspi *qspi,
+ 		unsigned long reg)
+ {
+@@ -366,6 +374,84 @@ static int qspi_transfer_msg(struct ti_qspi *qspi, struct spi_transfer *t)
+ 	return 0;
  }
  
- /**
-@@ -2327,6 +2332,35 @@ int spi_async_locked(struct spi_device *spi, struct spi_message *message)
- EXPORT_SYMBOL_GPL(spi_async_locked);
- 
- 
-+int spi_mtd_mmap_read(struct spi_device *spi, loff_t from, size_t len,
-+		      size_t *retlen, u_char *buf, u8 read_opcode,
-+		      u8 addr_width, u8 dummy_bytes)
-+
++static void ti_qspi_enable_memory_map(struct spi_device *spi)
 +{
-+	struct spi_master *master = spi->master;
-+	int ret;
++	struct ti_qspi  *qspi = spi_master_get_devdata(spi->master);
++	u32 val;
 +
-+	if (master->auto_runtime_pm) {
-+		ret = pm_runtime_get_sync(master->dev.parent);
-+		if (ret < 0) {
-+			dev_err(&master->dev, "Failed to power device: %d\n",
-+				ret);
-+			goto err;
-+		}
++	ti_qspi_write(qspi, MM_SWITCH, QSPI_SPI_SWITCH_REG);
++	if (qspi->ctrl_mod) {
++		val = readl(qspi->ctrl_base);
++		val |= MEM_CS_EN(spi->chip_select);
++		writel(val, qspi->ctrl_base);
++		/* dummy readl to ensure bus sync */
++		readl(qspi->ctrl_base);
 +	}
-+	mutex_lock(&master->bus_lock_mutex);
-+	ret = master->spi_mtd_mmap_read(spi, from, len, retlen, buf,
-+					read_opcode, addr_width,
-+					dummy_bytes);
-+	mutex_unlock(&master->bus_lock_mutex);
-+	if (master->auto_runtime_pm)
-+		pm_runtime_put(master->dev.parent);
++	qspi->mmap_enabled = true;
++}
 +
-+err:
++static void ti_qspi_disable_memory_map(struct spi_device *spi)
++{
++	struct ti_qspi  *qspi = spi_master_get_devdata(spi->master);
++	u32 val;
++
++	ti_qspi_write(qspi, 0, QSPI_SPI_SWITCH_REG);
++	if (qspi->ctrl_mod) {
++		val = readl(qspi->ctrl_base);
++		val &= ~MEM_CS_EN(spi->chip_select);
++		writel(val, qspi->ctrl_base);
++	}
++	qspi->mmap_enabled = false;
++}
++
++static void ti_qspi_setup_mmap_read(struct spi_device *spi,
++				    u8 read_opcode, u8 addr_width,
++				    u8 dummy_bytes)
++{
++	struct ti_qspi  *qspi = spi_master_get_devdata(spi->master);
++	u32 mode = spi->mode & (SPI_RX_DUAL | SPI_RX_QUAD);
++	u32 memval = read_opcode;
++
++	switch (mode) {
++	case SPI_RX_QUAD:
++		memval |= QSPI_SETUP_RD_QUAD;
++		break;
++	case SPI_RX_DUAL:
++		memval |= QSPI_SETUP_RD_DUAL;
++		break;
++	default:
++		memval |= QSPI_SETUP_RD_NORMAL;
++		break;
++	}
++	memval |= ((addr_width - 1) << QSPI_SETUP_ADDR_SHIFT |
++		   dummy_bytes << QSPI_SETUP_DUMMY_SHIFT);
++	ti_qspi_write(qspi, memval,
++		      QSPI_SPI_SETUP_REG(spi->chip_select));
++}
++
++static int ti_qspi_spi_mtd_mmap_read(struct  spi_device *spi,
++				     loff_t from, size_t len,
++				     size_t *retlen, u_char *buf,
++				     u8 read_opcode, u8 addr_width,
++				     u8 dummy_bytes)
++{
++	struct ti_qspi *qspi = spi_master_get_devdata(spi->master);
++	int ret = 0;
++
++	mutex_lock(&qspi->list_lock);
++
++	if (!qspi->mmap_enabled)
++		ti_qspi_enable_memory_map(spi);
++	ti_qspi_setup_mmap_read(spi, read_opcode, addr_width,
++				dummy_bytes);
++	memcpy_fromio(buf, qspi->mmap_base + from, len);
++	*retlen = len;
++
++	mutex_unlock(&qspi->list_lock);
++
 +	return ret;
 +}
-+EXPORT_SYMBOL_GPL(spi_mtd_mmap_read);
 +
- /*-------------------------------------------------------------------------*/
+ static int ti_qspi_start_transfer_one(struct spi_master *master,
+ 		struct spi_message *m)
+ {
+@@ -398,6 +484,9 @@ static int ti_qspi_start_transfer_one(struct spi_master *master,
  
- /* Utility methods for SPI master protocol drivers, layered on
-diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
-index cce80e6dc7d1..2f2c431b8917 100644
---- a/include/linux/spi/spi.h
-+++ b/include/linux/spi/spi.h
-@@ -361,6 +361,11 @@ static inline void spi_unregister_driver(struct spi_driver *sdrv)
-  * @handle_err: the subsystem calls the driver to handle an error that occurs
-  *		in the generic implementation of transfer_one_message().
-  * @unprepare_message: undo any work done by prepare_message().
-+ * @spi_mtd_mmap_read: some spi-controller hardwares provide memory.
-+ *                     Flash drivers (like m25p80) can request memory
-+ *                     mapped read via this method. This interface
-+ *                     should only be used by mtd flashes and cannot be
-+ *                     used by other spi devices.
-  * @cs_gpios: Array of GPIOs to use as chip select lines; one per CS
-  *	number. Any individual value may be -ENOENT for CS lines that
-  *	are not GPIOs (driven by the SPI controller itself).
-@@ -507,6 +512,11 @@ struct spi_master {
- 			       struct spi_message *message);
- 	int (*unprepare_message)(struct spi_master *master,
- 				 struct spi_message *message);
-+	int (*spi_mtd_mmap_read)(struct  spi_device *spi,
-+				 loff_t from, size_t len,
-+				 size_t *retlen, u_char *buf,
-+				 u8 read_opcode, u8 addr_width,
-+				 u8 dummy_bytes);
+ 	mutex_lock(&qspi->list_lock);
  
- 	/*
- 	 * These hooks are for drivers that use a generic implementation
-@@ -999,6 +1009,16 @@ static inline ssize_t spi_w8r16be(struct spi_device *spi, u8 cmd)
- 	return be16_to_cpu(result);
- }
- 
-+/* SPI core interface for memory mapped read support */
-+static inline bool spi_mmap_read_supported(struct spi_device *spi)
-+{
-+	return spi->master->spi_mtd_mmap_read ? true : false;
-+}
++	if (qspi->mmap_enabled)
++		ti_qspi_disable_memory_map(spi);
 +
-+int spi_mtd_mmap_read(struct spi_device *spi, loff_t from, size_t len,
-+		      size_t *retlen, u_char *buf, u8 read_opcode,
-+		      u8 addr_width, u8 dummy_bytes);
-+
- /*---------------------------------------------------------------------------*/
+ 	list_for_each_entry(t, &m->transfers, transfer_list) {
+ 		qspi->cmd |= QSPI_WLEN(t->bits_per_word);
  
- /*
+@@ -526,7 +615,9 @@ static int ti_qspi_probe(struct platform_device *pdev)
+ 			ret = PTR_ERR(qspi->mmap_base);
+ 			goto free_master;
+ 		}
++		master->spi_mtd_mmap_read = ti_qspi_spi_mtd_mmap_read;
+ 	}
++	qspi->mmap_enabled = false;
+ 
+ 	qspi->fclk = devm_clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(qspi->fclk)) {
 -- 
 2.6.3
