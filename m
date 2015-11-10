@@ -1,65 +1,43 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 0/5] Add memory mapped read support for ti-qspi
-Date: Tue, 10 Nov 2015 10:59:54 +0530
-Message-ID: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v3 3/5] mtd: devices: m25p80: add support for mmap read request
+Date: Tue, 10 Nov 2015 10:59:57 +0530
+Message-ID: <1447133399-25658-4-git-send-email-vigneshr@ti.com>
+References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh@kernel.org>, Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, Vignesh R <vigneshr@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Certain spi controllers may support memory mapped interface to read from
+m25p80 type flash devices. This interface provides better read
+performance than regular SPI interface.
+Call spi_mtd_mmap_read() interface, if supported, to make use of
+memory-mapped interface.
 
-Changes since v2:
-Remove mmap_lock_mutex.
-Optimize enable/disable of mmap mode.
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/mtd/devices/m25p80.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Changes since v1:
-Introduce API in SPI core that MTD flash driver can call for mmap read
-instead of directly calling spi-master driver callback. This API makes
-sure that SPI core msg queue is locked during mmap transfers.
-v1: https://lkml.org/lkml/2015/9/4/103
-
-
-Cover letter:
-
-This patch series adds support for memory mapped read port of ti-qspi.
-ti-qspi has a special memory mapped port through which SPI flash
-memories can be accessed directly via SoC specific memory region.
-
-First patch adds a method to pass flash specific information like read
-opcode, dummy bytes etc and to request mmap read. Second patch
-implements mmap read method in ti-qspi driver. Patch 3 adapts m25p80 to
-use mmap read method before trying normal SPI transfer. Patch 4 and 5
-add memory map region DT entries for DRA7xx and AM43xx SoCs.
-
-This patch series is based on the discussions here:
-http://www.spinics.net/lists/linux-spi/msg04796.html
-
-Tested on DRA74 EVM and AM437x-SK.
-Read performance increases from ~100kB/s to ~2.5MB/s.
-
-Vignesh R (5):
-  spi: introduce mmap read support for spi flash devices
-  spi: spi-ti-qspi: add mmap mode read support
-  mtd: devices: m25p80: add support for mmap read request
-  ARM: dts: DRA7: add entry for qspi mmap region
-  ARM: dts: AM4372: add entry for qspi mmap region
-
- Documentation/devicetree/bindings/spi/ti_qspi.txt | 19 ++++-
- arch/arm/boot/dts/am4372.dtsi                     |  4 +-
- arch/arm/boot/dts/dra7.dtsi                       |  7 +-
- drivers/mtd/devices/m25p80.c                      |  5 ++
- drivers/spi/spi-ti-qspi.c                         | 99 ++++++++++++++++++++++-
- drivers/spi/spi.c                                 | 34 ++++++++
- include/linux/spi/spi.h                           | 20 +++++
- 7 files changed, 179 insertions(+), 9 deletions(-)
-
+diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
+index fe9ceb7b5405..7ef0c5009ead 100644
+--- a/drivers/mtd/devices/m25p80.c
++++ b/drivers/mtd/devices/m25p80.c
+@@ -131,6 +131,11 @@ static int m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
+ 	/* convert the dummy cycles to the number of bytes */
+ 	dummy /= 8;
+ 
++	if (spi_mmap_read_supported(spi))
++		return spi_mtd_mmap_read(spi, from, len, retlen, buf,
++					 nor->read_opcode,
++					 nor->addr_width, dummy);
++
+ 	spi_message_init(&m);
+ 	memset(t, 0, (sizeof t));
+ 
 -- 
 2.6.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
