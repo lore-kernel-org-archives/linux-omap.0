@@ -1,64 +1,65 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH] ASoC: davinci-mcasp: Fix TDM slot rx/tx
-	mask associations
-Date: Mon, 9 Nov 2015 23:38:38 +0200
-Message-ID: <5641125E.5030804@ti.com>
-References: <1447093159-32294-1-git-send-email-dannenberg@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/5] Add memory mapped read support for ti-qspi
+Date: Tue, 10 Nov 2015 10:59:54 +0530
+Message-ID: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1447093159-32294-1-git-send-email-dannenberg@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Andreas Dannenberg <dannenberg@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Reviewed-by: Jyri Sarha <jsarha@ti.com>
 
-For what little there is to review.
+Changes since v2:
+Remove mmap_lock_mutex.
+Optimize enable/disable of mmap mode.
 
-I only had HW that worked with symmetric masks, so I did not hit this 
-myself. Should have hacked something to codec end to be able to test 
-asymetric masks at McASP end.
+Changes since v1:
+Introduce API in SPI core that MTD flash driver can call for mmap read
+instead of directly calling spi-master driver callback. This API makes
+sure that SPI core msg queue is locked during mmap transfers.
+v1: https://lkml.org/lkml/2015/9/4/103
 
-Thanks,
-Jyri
 
-On 11/09/15 20:19, Andreas Dannenberg wrote:
-> Fixes the associations between the tx_mask and rx_mask and the associated
-> playback / capture streams during setting of the TDM slot. With this
-> patch in place it is now possible for example to only populate tx_mask
-> (leaving rx_mask as 0) for output-only codecs to control the TDM slot(s)
-> the McASP serial port uses for transmit. Before that, this scenario
-> would incorrectly rely on the rx_mask for this.
->
-> Signed-off-by: Andreas Dannenberg <dannenberg@ti.com>
-> ---
->   sound/soc/davinci/davinci-mcasp.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-> index 4495a40..caa0beb 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -681,8 +681,8 @@ static int davinci_mcasp_set_tdm_slot(struct snd_soc_dai *dai,
->   	}
->
->   	mcasp->tdm_slots = slots;
-> -	mcasp->tdm_mask[SNDRV_PCM_STREAM_PLAYBACK] = rx_mask;
-> -	mcasp->tdm_mask[SNDRV_PCM_STREAM_CAPTURE] = tx_mask;
-> +	mcasp->tdm_mask[SNDRV_PCM_STREAM_PLAYBACK] = tx_mask;
-> +	mcasp->tdm_mask[SNDRV_PCM_STREAM_CAPTURE] = rx_mask;
->   	mcasp->slot_width = slot_width;
->
->   	return davinci_mcasp_set_ch_constraints(mcasp);
->
+Cover letter:
+
+This patch series adds support for memory mapped read port of ti-qspi.
+ti-qspi has a special memory mapped port through which SPI flash
+memories can be accessed directly via SoC specific memory region.
+
+First patch adds a method to pass flash specific information like read
+opcode, dummy bytes etc and to request mmap read. Second patch
+implements mmap read method in ti-qspi driver. Patch 3 adapts m25p80 to
+use mmap read method before trying normal SPI transfer. Patch 4 and 5
+add memory map region DT entries for DRA7xx and AM43xx SoCs.
+
+This patch series is based on the discussions here:
+http://www.spinics.net/lists/linux-spi/msg04796.html
+
+Tested on DRA74 EVM and AM437x-SK.
+Read performance increases from ~100kB/s to ~2.5MB/s.
+
+Vignesh R (5):
+  spi: introduce mmap read support for spi flash devices
+  spi: spi-ti-qspi: add mmap mode read support
+  mtd: devices: m25p80: add support for mmap read request
+  ARM: dts: DRA7: add entry for qspi mmap region
+  ARM: dts: AM4372: add entry for qspi mmap region
+
+ Documentation/devicetree/bindings/spi/ti_qspi.txt | 19 ++++-
+ arch/arm/boot/dts/am4372.dtsi                     |  4 +-
+ arch/arm/boot/dts/dra7.dtsi                       |  7 +-
+ drivers/mtd/devices/m25p80.c                      |  5 ++
+ drivers/spi/spi-ti-qspi.c                         | 99 ++++++++++++++++++++++-
+ drivers/spi/spi.c                                 | 34 ++++++++
+ include/linux/spi/spi.h                           | 20 +++++
+ 7 files changed, 179 insertions(+), 9 deletions(-)
+
+-- 
+2.6.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
