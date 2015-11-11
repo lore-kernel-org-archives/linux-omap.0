@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 4/4] dmaengine: omap-dma: Handle cases when the channel is polled for completion
-Date: Wed, 11 Nov 2015 12:37:58 +0200
-Message-ID: <1447238278-15863-5-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 2/4] dmaengine: omap-dma: Clean up the prep_slave_sg sg list walk code
+Date: Wed, 11 Nov 2015 12:37:56 +0200
+Message-ID: <1447238278-15863-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1447238278-15863-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,38 +12,44 @@ To: vinod.koul@intel.com, linux@arm.linux.org.uk
 Cc: tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When a DMA client driver decides that it is not providing callback for
-completion of a transfer (and/or does not set the DMA_PREP_INTERRUPT) but
-it will poll the status of the transfer (in case of short memcpy for
-example) we will not get interrupt for the completion of the transfer and
-will not mark the transaction as done.
-Check the channel enable bit in the CCR when the status is queried and if
-the channel is no longer active, we call the omap_dma_callback() to handle
-the transfer completion.
+The for_each_sg() macro's last parameter is inteded to be used as counter.
+We can use 'i' instead of 'j' within the loop for indexes.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/omap-dma.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/dma/omap-dma.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 4e4642f561f5..f86827ac0c8a 100644
+index 8ed39ce24d46..4afc2c18d451 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -673,8 +673,14 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
- 	struct omap_chan *c = to_omap_dma_chan(chan);
- 	struct virt_dma_desc *vd;
- 	enum dma_status ret;
-+	uint32_t ccr;
- 	unsigned long flags;
+@@ -768,7 +768,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 	struct scatterlist *sgent;
+ 	struct omap_desc *d;
+ 	dma_addr_t dev_addr;
+-	unsigned i, j = 0, es, en, frame_bytes;
++	unsigned i, es, en, frame_bytes;
+ 	u32 burst;
  
-+	ccr = omap_dma_chan_read(c, CCR);
-+	/* The channel is no longer active, handle the completion right away */
-+	if (!(ccr & CCR_ENABLE))
-+		omap_dma_callback(c->dma_ch, 0, c);
-+
- 	ret = dma_cookie_status(chan, cookie, txstate);
- 	if (ret == DMA_COMPLETE || !txstate)
- 		return ret;
+ 	if (dir == DMA_DEV_TO_MEM) {
+@@ -845,13 +845,12 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 	en = burst;
+ 	frame_bytes = es_bytes[es] * en;
+ 	for_each_sg(sgl, sgent, sglen, i) {
+-		d->sg[j].addr = sg_dma_address(sgent);
+-		d->sg[j].en = en;
+-		d->sg[j].fn = sg_dma_len(sgent) / frame_bytes;
+-		j++;
++		d->sg[i].addr = sg_dma_address(sgent);
++		d->sg[i].en = en;
++		d->sg[i].fn = sg_dma_len(sgent) / frame_bytes;
+ 	}
+ 
+-	d->sglen = j;
++	d->sglen = sglen;
+ 
+ 	return vchan_tx_prep(&c->vc, &d->vd, tx_flags);
+ }
 -- 
 2.6.2
