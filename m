@@ -1,29 +1,17 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: DRA7: hwmod: Add data for McASP3
-Date: Wed, 11 Nov 2015 13:31:54 -0600
-Message-ID: <877flos579.fsf@saruman.tx.rr.com>
-References: <1447261631-26362-1-git-send-email-balbi@ti.com>
- <56439641.6070901@ti.com>
+Subject: Re: [PATCH v3 0/3] ARM: OMAP2+ McASP(3) support for DRA7xx family
+Date: Wed, 11 Nov 2015 13:40:54 -0600
+Message-ID: <874mgss4s9.fsf@saruman.tx.rr.com>
+References: <1446191700-11057-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1230779687716855257=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <56439641.6070901@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
-List-Id: linux-omap@vger.kernel.org
-
---===============1230779687716855257==
 Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
 	protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1446191700-11057-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, tony@atomide.com, paul@pwsan.com
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 --=-=-=
 Content-Type: text/plain
@@ -33,21 +21,62 @@ Content-Transfer-Encoding: quoted-printable
 Hi,
 
 Peter Ujfalusi <peter.ujfalusi@ti.com> writes:
-> Felipe,
+> Hi Paul, Tony,
 >
-> On 11/11/2015 07:07 PM, Felipe Balbi wrote:
->> From: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>=20
->> McASP3 is used by default on DRA7x based boards for audio.
+> Changes since v2:
+> - DTS patch added which is needed because of the clock handling changes
 >
-> While this patch works, it is not the correct one(s) to apply.
-> https://lkml.org/lkml/2015/10/30/91
-> is the series which should have been applied to 4.4.
+> Felip Balbi reported that linux-next is broken right now since the DTS pa=
+rt of
+> the earlier series has been applied, but we do not have the mcasp hwmod i=
+n the
+> kernel:
+> ...
+> [    0.181029] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
+> ...
+> [    6.121072] davinci-mcasp 48468000.mcasp: _od_fail_runtime_resume: FIX=
+ME: missing hwmod/omap_dev info
+> [    6.130790] ------------[ cut here ]------------
+> [    6.135643] WARNING: CPU: 0 PID: 244 at drivers/bus/omap_l3_noc.c:147 =
+l3_interrupt_handler+0x220/0x34c()
+> [    6.145576] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3=
+ (Read): Data Access in User mode during Functional access
+> ...
 >
-> Paul acked the series, but for some reason it missed the initial ARM
-> pull for 4.4
+> This is the followup series for the hwmod changes needed to get audio wor=
+king
+> on DRA7xx family based boards.
+> The DTS patches has been applied by Tony from the original series:
+> http://www.spinics.net/lists/linux-omap/msg121473.html
+>
+> I have addressed your comments in the hwmod data and did some research al=
+so
+> regarding to the use of ahclkx as fclk in the original submission.
+> It turned out that McASP _needs_ all clocks to be enabled (fclk, iclk and
+> ahclkx/r) to be able to access registers. The original patch where we han=
+dled
+> the ahclkx as fclk worked, because the fclk clock got enabled in the HW w=
+/o
+> any SW interaction.
+> All in all, the McASP found in DRA7 needs all clocks to be enabled.
+> To satisfy this I have introduced a new flag to hwmod, which means that t=
+he
+> listed optional clocks need to be handled alongside with the fclk clock.
+>
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (3):
+>   ARM: DTS: dra7: Fix McASP3 node regarding to clocks
+>   ARM: OMAP2+: hwmod: Add hwmod flag for HWMOD_OPT_CLKS_NEEDED
+>   ARM: OMAP: DRA7: hwmod: Add data for McASP3
 
-okay, cool. Hopefully Tony will apply shortly.
+I have tested these patches with today's HEAD + rtc 1307 fix. Boots fine
+and I can't see the splat I was seeing with beagle x15.
+
+Tested-by: Felipe Balbi <balbi@ti.com>
+
+logs: http://hastebin.com/ololizojat
 
 =2D-=20
 balbi
@@ -58,32 +87,18 @@ Content-Type: application/pgp-signature; name="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWQ5esAAoJEIaOsuA1yqRE3pQP/iPjURXa8uy7ac9ysBmrtAKQ
-Satavk12JZE9zV4ZMO58rP3JcYPbRjX/7+uVwxE40q43egORM5NBqWyqLvz1mGQ7
-0ypZ9384Kx/sEZXQ+H2E+3irb0lhwGoVS2+sJiyc48w6vRyQcsIkVjlbYSwz7uk+
-0Sf0v7DUtkzJmpJqIVAXn9Q+iM05b4p3R4BZTa0MALRBD+1n6xmTzfTr8M/LIPeO
-RXLkjaoHHNCL+3k+evX91ohjoxN/moS5xZLCbG+irnJS4llaMOC67/OsUHiwJjXh
-GxFxZDHSoQAcaS769CigETNaPV6PjhnfKM1lIh/Ztq7sEcZ0c2OE/3ZaEaLFPWLQ
-SmURS+4fExKaglnwVeuc8X6tZUuJY090DfKVP7ZKE3RM5XMpkL3WMUGKfZ7fNHvt
-UEdnepCjC1wKLnk4YZ+4TpqCc/et2T1sByWooy2h6/KDoQALfzpzzxuicvPlnICM
-1M23mUvqqOMXCJLCCpmf/zFWSauVSC0hH7B05g9TJE54/R0NRqwzJTRNU2JfSo9Z
-yvc+RbwdQmsBw6SH09hv+DmgLQoxjWm6Qfboz4qTeb64D2BsBShF8hvk8hcRRAX/
-uuzKTGR6Y3aLtr3dVYZS0kX38sBnQh93L92ceOsUxAUUqcHJlxAUUKlo8L4An/VW
-lpdrI3efKPwaHFcthjUK
-=rv2X
+iQIcBAEBAgAGBQJWQ5nIAAoJEIaOsuA1yqREBBIP/3Nw1hNVID6wNMyjIQGui8Li
++OrSl2zrL5c9WdrqwViIaPOjOnJq2y9JE4keDlQ+8D+NFeMrK3yk2uevhmrvbFia
+WOYr3WVX6jxCKBCuuO/RzAAB+Yhz3IAYU5BghdPhkUxZGp1HbWxjlVNFY0apIWl2
+hv30E7DERmaWxz8Lqr4GVQpiQDPYpO/cLxHwoCRbdORKGeZaU1dht26xVLIRL6xv
+9jV1uh0B49yvQorooynsgs7iUW92Zj+0ICvVHs5ZVvQK4FIyTv6TdHt4S/eHRMOw
+69iyVP/9kJ1KqpVZroEWn+9G//khihQGsbbkWxHAUuC7TR76M7yBSaGmi5slIpl3
+PZ8GX4n42xYHvVleskXw6jsIp8F9DOCAukcLxXrUDOzD1odm1MYKhQ9DBVFMFC0b
+8ZassNAk66MJ/EaoQc67P3k6f62hHMCgokckKsnMlzwU59cCB8RYX4MwB6c+ccsD
+If4jCrJ93Yb7pUvvXQR/yWtEXlw91opv/n4Nsie6DCjEzkzdgFBNcvNQuIH51QUA
+0ArRNaT6ZlFjzQEOOHlWlYYl6iQkKEuUlvsswPsLos2FYMjqQYG9YcEMNrzt9s04
+w5VQwVBKFum+sjJXNCjrx1pL1EL4rESey5xuNJiJobyU6/N5Z1MF5tknTLo5UPYG
+JBdl4Ok2CwGALA3cCadD
+=5qGi
 -----END PGP SIGNATURE-----
 --=-=-=--
-
-
---===============1230779687716855257==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1230779687716855257==--
