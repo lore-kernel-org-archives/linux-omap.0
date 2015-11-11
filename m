@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/4] dmaengine: omap-dma: Clean up the prep_slave_sg sg list walk code
-Date: Wed, 11 Nov 2015 12:37:56 +0200
-Message-ID: <1447238278-15863-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/4] dmaengine: omap-dma: Correct status reporting for memcpy
+Date: Wed, 11 Nov 2015 12:37:55 +0200
+Message-ID: <1447238278-15863-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1447238278-15863-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,44 +12,28 @@ To: vinod.koul@intel.com, linux@arm.linux.org.uk
 Cc: tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The for_each_sg() macro's last parameter is inteded to be used as counter.
-We can use 'i' instead of 'j' within the loop for indexes.
+During mem copy both src and dst position moves at the same pace. Check the
+dst position for progress reporting.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/dma/omap-dma.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/dma/omap-dma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 8ed39ce24d46..4afc2c18d451 100644
+index 1dfc71c90123..8ed39ce24d46 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -768,7 +768,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 	struct scatterlist *sgent;
- 	struct omap_desc *d;
- 	dma_addr_t dev_addr;
--	unsigned i, j = 0, es, en, frame_bytes;
-+	unsigned i, es, en, frame_bytes;
- 	u32 burst;
+@@ -719,7 +719,7 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
  
- 	if (dir == DMA_DEV_TO_MEM) {
-@@ -845,13 +845,12 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
- 	en = burst;
- 	frame_bytes = es_bytes[es] * en;
- 	for_each_sg(sgl, sgent, sglen, i) {
--		d->sg[j].addr = sg_dma_address(sgent);
--		d->sg[j].en = en;
--		d->sg[j].fn = sg_dma_len(sgent) / frame_bytes;
--		j++;
-+		d->sg[i].addr = sg_dma_address(sgent);
-+		d->sg[i].en = en;
-+		d->sg[i].fn = sg_dma_len(sgent) / frame_bytes;
- 	}
- 
--	d->sglen = j;
-+	d->sglen = sglen;
- 
- 	return vchan_tx_prep(&c->vc, &d->vd, tx_flags);
- }
+ 		if (d->dir == DMA_MEM_TO_DEV)
+ 			pos = omap_dma_get_src_pos(c);
+-		else if (d->dir == DMA_DEV_TO_MEM)
++		else if (d->dir == DMA_DEV_TO_MEM  || d->dir == DMA_MEM_TO_MEM)
+ 			pos = omap_dma_get_dst_pos(c);
+ 		else
+ 			pos = 0;
 -- 
 2.6.2
