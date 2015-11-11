@@ -1,87 +1,58 @@
-From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH 6/6] ARM: OMAP2+: dts: cm-t335: add support for PWM
- backlight
-Date: Wed, 11 Nov 2015 19:33:29 +0200
-Message-ID: <56437BE9.9050003@compulab.co.il>
-References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
- <1445948100-16446-7-git-send-email-uri.mashiach@compulab.co.il>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Minimal support for dm814x
+Date: Wed, 11 Nov 2015 09:40:29 -0800
+Message-ID: <20151111174028.GF3218@atomide.com>
+References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
+ <20151109150602.GR3199@atomide.com>
+ <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
+ <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445948100-16446-7-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, igor.grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Delio Brignoli <dbrignoli@audioscience.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Matthijs van Duin <matthijsvanduin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Gentle ping
-
-On 27/10/15 14:15, Uri Mashiach wrote:
-> From: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
->
-> Add pinmux configuration for ECAP0 pin.
-> Add node for PWM backlight device.
-> Use PWM output from ecap0 as backlight source.
->
-> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Signed-off-by: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> ---
->   arch/arm/boot/dts/am335x-cm-t335.dts | 24 ++++++++++++++++++++++++
->   1 file changed, 24 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am335x-cm-t335.dts b/arch/arm/boot/dts/am335x-cm-t335.dts
-> index 0296d3f..571a453 100644
-> --- a/arch/arm/boot/dts/am335x-cm-t335.dts
-> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
-> @@ -39,6 +39,13 @@
->   		regulator-min-microvolt = <3300000>;
->   		regulator-max-microvolt = <3300000>;
->   	};
-> +
-> +	backlight {
-> +		compatible = "pwm-backlight";
-> +		pwms = <&ecap0 0 50000 0>;
-> +		brightness-levels = <0 51 53 56 62 75 101 152 255>;
-> +		default-brightness-level = <8>;
-> +	};
->   };
->
->   &am33xx_pinmux {
-> @@ -113,6 +120,13 @@
->   		>;
->   	};
->
-> +	ecap0_pins: pinmux_ecap0_pins {
-> +		pinctrl-single,pins = <
-> +			/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
-> +			0x164 0x0
-> +		>;
-> +	};
-> +
->   	cpsw_default: cpsw_default {
->   		pinctrl-single,pins = <
->   			/* Slave 1 */
-> @@ -222,6 +236,16 @@
->   	};
->   };
->
-> +&epwmss0 {
-> +	status = "okay";
-> +
-> +	ecap0: ecap@48300100 {
-> +		status = "okay";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&ecap0_pins>;
-> +	};
-> +};
-> +
->   &gpmc {
->   	status = "okay";
->   	pinctrl-names = "default";
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+KiBEZWxpbyBCcmlnbm9saSA8ZGJyaWdub2xpQGF1ZGlvc2NpZW5jZS5jb20+IFsxNTExMTAgMDI6
+MjRdOgo+IE9uIDEwIE5vdiAyMDE1LCBhdCAwOTo1MCwgTWF0dGhpanMgdmFuIER1aW4gPG1hdHRo
+aWpzdmFuZHVpbkBnbWFpbC5jb20+IHdyb3RlOgo+ID4gT24gOSBOb3ZlbWJlciAyMDE1IGF0IDE2
+OjA2LCBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiB3cm90ZToKPiA+PiBUaGUgUExM
+IHN1cHBvcnQgaXMgc3RpbGwgbWlzc2luZywgc28gaXQgcmVsaWVzIG9uIHRoZSBib290bG9hZGVy
+Cj4gPj4gY29uZmlndXJlZCBQTEwgdmFsdWVzIGZvciBub3cuIEknbSBob3BpbmcgdG8gcG9zdCBQ
+TEwgc3VwcG9ydCBwYXRjaGVzIG92ZXIKPiA+PiBuZXh0IGZldyB3ZWVrcyBhbmQgdGhlbiB3ZSBj
+YW4gaGF2ZSB0aGF0IGFuZCBtb3JlIGRldmljZXMgd29ya2luZyBmb3IgdjQuNS4KPiA+IAo+ID4g
+QWgsIHllcywgY29uZmlndXJpbmcgYSBEUExMLUxKIGlzIGZ1bi4uIGZpZ3VyaW5nIG91dCBob3cg
+dG8gd3JpdGUgdGhlCj4gPiBkZXNpcmVkIHJhdGlvIGFzIE0vKE0yKigxK04pKSB3aGlsZSBzaW11
+bHRhbmVvdXNseSBzYXRpc2Z5aW5nIGFsbAo+ID4gY29uc3RyYWludHMgb24gTSwgTiwgTTIsIHJl
+ZmNsaywgYW5kIGRjby4gOi0pCj4gCj4gWWVzLCBpbmRlZWQuIFdlIGhhdmUgdGhlIGFkZGl0aW9u
+YWwgcmVxdWlyZW1lbnQgb2YgYmVpbmcgYWJsZSB0byBhZGp1c3QgdGhlIGZyZXF1ZW5jeSAoYnkg
+YSByZWxhdGl2ZWx5IHNtYWxsIGFtb3VudCkgd2l0aG91dCBsb3NzIG9mIGxvY2suIFJlY2FsY3Vs
+YXRpbmcgdGhlIERDTyBtb2RlIGFuZCBNLE4sTTIgZnJvbSBzY3JhdGNoIGVhY2ggdGltZSBiYXNl
+ZCBvbiB0aGUgdGFyZ2V0IGZyZXF1ZW5jeSwgbGlrZSB3YXMgZG9uZSBpbiB0aGUgMi42LjM3IGJh
+c2VkIHRyZWUgZnJvbSBUSSB3YXMgbm90IGFjY2VwdGFibGUsIHNvIHdlIHRyeSB0byBjaGFuZ2Ug
+bTIgZmlyc3QgdG8gc2VlIGlmIHdlIGNhbiByZWFjaCB0aGUgdGFyZ2V0IGZyZXF1ZW5jeSBhbmQg
+ZmFsbCBiYWNrIHRvIHJlY2FsY3VsYXRlIHBhcmFtZXRlcnMgZnJvbSBzY3JhdGNoIGlmIHRoYXQg
+ZmFpbHMuCgpXZWxsIHdlIGRvIGZpcnN0IHRyeSB0byBzZXQgdGhlIHJhdGUgdXNpbmcgdGhlIGRp
+dmlkZXIgb25seSBhdCBsZWFzdCBmb3IKZHJpdmVycy9jbGsvdGkvZmFwbGwuYyB1c2VkIG9uIGRt
+ODE2eC4gSSdtIHRoaW5raW5nIGFib3V0IGRvaW5nIGEgc2ltaWxhcgpkcml2ZXIgZm9yIHRoZSBk
+bTgxNHggYWRwbGwgd2hlcmUgd2UgaGF2ZSBhIFBMTCBhbmQgc2VwYXJhdGUgb3V0cHV0IGNsb2Nr
+cwppbiBhIHNpbmdsZSBkcml2ZXIgYXMgdGhlIFBMTCBhbmQgb3V0cHV0IGNvbnRyb2wgcmVnaXN0
+ZXJzIGFyZSBhbGwgbWl4ZWQKaW4uCgo+IEJUVywgYXJlIHlvdSBhd2FyZSBvZiBzZWN0aW9uIDIu
+MS4yIG9mIOKAnFRNUzMyMERNODE0eCBEYVZpbmNpIERpZ2l0YWwgTWVkaWEgUHJvY2Vzc29ycyBT
+aWxpY29uIFJldmlzaW9ucyAzLjAsIDIuMeKAnT8gPGh0dHA6Ly93d3cudGkuY29tL2xpdC9lci9z
+cHJ6MzQzYy9zcHJ6MzQzYy5wZGY+CgpPSyBnb29kIHRvIGtub3cgOikKClRvbnkKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwg
+bWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8v
+bGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
