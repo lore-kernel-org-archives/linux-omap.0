@@ -1,58 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Minimal support for dm814x
-Date: Wed, 11 Nov 2015 09:40:29 -0800
-Message-ID: <20151111174028.GF3218@atomide.com>
-References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
- <20151109150602.GR3199@atomide.com>
- <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
- <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/6] ARM: OMAP2+: dts: cm-t335: initial support
+Date: Wed, 11 Nov 2015 09:50:49 -0800
+Message-ID: <20151111175048.GG3218@atomide.com>
+References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
+ <56437BA1.8030807@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Delio Brignoli <dbrignoli@audioscience.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Matthijs van Duin <matthijsvanduin@gmail.com>
+In-Reply-To: <56437BA1.8030807-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, igor.grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBEZWxpbyBCcmlnbm9saSA8ZGJyaWdub2xpQGF1ZGlvc2NpZW5jZS5jb20+IFsxNTExMTAgMDI6
-MjRdOgo+IE9uIDEwIE5vdiAyMDE1LCBhdCAwOTo1MCwgTWF0dGhpanMgdmFuIER1aW4gPG1hdHRo
-aWpzdmFuZHVpbkBnbWFpbC5jb20+IHdyb3RlOgo+ID4gT24gOSBOb3ZlbWJlciAyMDE1IGF0IDE2
-OjA2LCBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiB3cm90ZToKPiA+PiBUaGUgUExM
-IHN1cHBvcnQgaXMgc3RpbGwgbWlzc2luZywgc28gaXQgcmVsaWVzIG9uIHRoZSBib290bG9hZGVy
-Cj4gPj4gY29uZmlndXJlZCBQTEwgdmFsdWVzIGZvciBub3cuIEknbSBob3BpbmcgdG8gcG9zdCBQ
-TEwgc3VwcG9ydCBwYXRjaGVzIG92ZXIKPiA+PiBuZXh0IGZldyB3ZWVrcyBhbmQgdGhlbiB3ZSBj
-YW4gaGF2ZSB0aGF0IGFuZCBtb3JlIGRldmljZXMgd29ya2luZyBmb3IgdjQuNS4KPiA+IAo+ID4g
-QWgsIHllcywgY29uZmlndXJpbmcgYSBEUExMLUxKIGlzIGZ1bi4uIGZpZ3VyaW5nIG91dCBob3cg
-dG8gd3JpdGUgdGhlCj4gPiBkZXNpcmVkIHJhdGlvIGFzIE0vKE0yKigxK04pKSB3aGlsZSBzaW11
-bHRhbmVvdXNseSBzYXRpc2Z5aW5nIGFsbAo+ID4gY29uc3RyYWludHMgb24gTSwgTiwgTTIsIHJl
-ZmNsaywgYW5kIGRjby4gOi0pCj4gCj4gWWVzLCBpbmRlZWQuIFdlIGhhdmUgdGhlIGFkZGl0aW9u
-YWwgcmVxdWlyZW1lbnQgb2YgYmVpbmcgYWJsZSB0byBhZGp1c3QgdGhlIGZyZXF1ZW5jeSAoYnkg
-YSByZWxhdGl2ZWx5IHNtYWxsIGFtb3VudCkgd2l0aG91dCBsb3NzIG9mIGxvY2suIFJlY2FsY3Vs
-YXRpbmcgdGhlIERDTyBtb2RlIGFuZCBNLE4sTTIgZnJvbSBzY3JhdGNoIGVhY2ggdGltZSBiYXNl
-ZCBvbiB0aGUgdGFyZ2V0IGZyZXF1ZW5jeSwgbGlrZSB3YXMgZG9uZSBpbiB0aGUgMi42LjM3IGJh
-c2VkIHRyZWUgZnJvbSBUSSB3YXMgbm90IGFjY2VwdGFibGUsIHNvIHdlIHRyeSB0byBjaGFuZ2Ug
-bTIgZmlyc3QgdG8gc2VlIGlmIHdlIGNhbiByZWFjaCB0aGUgdGFyZ2V0IGZyZXF1ZW5jeSBhbmQg
-ZmFsbCBiYWNrIHRvIHJlY2FsY3VsYXRlIHBhcmFtZXRlcnMgZnJvbSBzY3JhdGNoIGlmIHRoYXQg
-ZmFpbHMuCgpXZWxsIHdlIGRvIGZpcnN0IHRyeSB0byBzZXQgdGhlIHJhdGUgdXNpbmcgdGhlIGRp
-dmlkZXIgb25seSBhdCBsZWFzdCBmb3IKZHJpdmVycy9jbGsvdGkvZmFwbGwuYyB1c2VkIG9uIGRt
-ODE2eC4gSSdtIHRoaW5raW5nIGFib3V0IGRvaW5nIGEgc2ltaWxhcgpkcml2ZXIgZm9yIHRoZSBk
-bTgxNHggYWRwbGwgd2hlcmUgd2UgaGF2ZSBhIFBMTCBhbmQgc2VwYXJhdGUgb3V0cHV0IGNsb2Nr
-cwppbiBhIHNpbmdsZSBkcml2ZXIgYXMgdGhlIFBMTCBhbmQgb3V0cHV0IGNvbnRyb2wgcmVnaXN0
-ZXJzIGFyZSBhbGwgbWl4ZWQKaW4uCgo+IEJUVywgYXJlIHlvdSBhd2FyZSBvZiBzZWN0aW9uIDIu
-MS4yIG9mIOKAnFRNUzMyMERNODE0eCBEYVZpbmNpIERpZ2l0YWwgTWVkaWEgUHJvY2Vzc29ycyBT
-aWxpY29uIFJldmlzaW9ucyAzLjAsIDIuMeKAnT8gPGh0dHA6Ly93d3cudGkuY29tL2xpdC9lci9z
-cHJ6MzQzYy9zcHJ6MzQzYy5wZGY+CgpPSyBnb29kIHRvIGtub3cgOikKClRvbnkKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwg
-bWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8v
-bGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi,
+
+* Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151111 09:32]:
+> Gentle ping
+
+Well the merge window is ongoing, and I'm not touching anything
+except fixes until they are all out of the way. And after that
+I'll start applying patches for v4.5 merge window, usually by
+-rc2 except when things go wrong and we have regressions with
+the mainline kernel like we did during v4.3-rc cycle.
+
+So for fixes, it's always a good time to send them. The sooner
+we have fixes out of the way after each merge window, the sooner
+I'll start applying new features.
+
+So for new features, between -rc1 and -rc4. We really want to
+have all the new code sit in Linux next for a few weeks before
+each merge window so in general I try to have things ready togo
+by -rc5 for most part and by -rc6 latest.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
