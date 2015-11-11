@@ -1,117 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 3/3] ARM: OMAP: DRA7: hwmod: Add data for McASP3
-Date: Wed, 11 Nov 2015 14:44:29 -0800
-Message-ID: <20151111224428.GJ3218@atomide.com>
-References: <1446191700-11057-1-git-send-email-peter.ujfalusi@ti.com>
- <1446191700-11057-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: DRA7: hwmod: Add data for McASP3
+Date: Wed, 11 Nov 2015 14:45:27 -0800
+Message-ID: <20151111224526.GK3218@atomide.com>
+References: <1447261631-26362-1-git-send-email-balbi@ti.com>
+ <56439641.6070901@ti.com>
+ <alpine.DEB.2.02.1511112022100.24530@utopia.booyaka.com>
+ <20151111214043.GI3218@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1446191700-11057-4-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: paul@pwsan.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+In-Reply-To: <20151111214043.GI3218@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Peter,
+* Tony Lindgren <tony@atomide.com> [151111 13:41]:
+> * Paul Walmsley <paul@pwsan.com> [151111 12:23]:
+> > On Wed, 11 Nov 2015, Peter Ujfalusi wrote:
+> > 
+> > > On 11/11/2015 07:07 PM, Felipe Balbi wrote:
+> > > > From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > > > 
+> > > > McASP3 is used by default on DRA7x based boards for audio.
+> > > 
+> > > While this patch works, it is not the correct one(s) to apply.
+> > > https://lkml.org/lkml/2015/10/30/91
+> > > is the series which should have been applied to 4.4.
+> > > Paul acked the series, but for some reason it missed the initial ARM pull for 4.4
+> > 
+> > It missed it because I was late getting my patches out for 4.4...
+> 
+> OK applying all three as fixes with your ack like you requested
+> in the original thread.
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [151030 00:55]:
-> McASP3 is used by default on DRA7x based boards for audio.
-
-Looks like this one no longer applies cleanly. Can you please
-rebase and test against current mainline?
+Except one of them no longer applies cleanly against the current
+mainline. So waiting until Peter rebases until applying anything.
 
 Regards,
 
 Tony
-
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 56 +++++++++++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 562247bced49..d798ebe218b2 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1298,6 +1298,44 @@ static struct omap_hwmod dra7xx_mcspi4_hwmod = {
->  };
->  
->  /*
-> + * 'mcasp' class
-> + *
-> + */
-> +static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc = {
-> +	.sysc_offs	= 0x0004,
-> +	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	= &omap_hwmod_sysc_type3,
-> +};
-> +
-> +static struct omap_hwmod_class dra7xx_mcasp_hwmod_class = {
-> +	.name	= "mcasp",
-> +	.sysc	= &dra7xx_mcasp_sysc,
-> +};
-> +
-> +/* mcasp3 */
-> +static struct omap_hwmod_opt_clk mcasp3_opt_clks[] = {
-> +	{ .role = "ahclkx", .clk = "mcasp3_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp3_hwmod = {
-> +	.name		= "mcasp3",
-> +	.class		= &dra7xx_mcasp_hwmod_class,
-> +	.clkdm_name	= "l4per2_clkdm",
-> +	.main_clk	= "mcasp3_aux_gfclk_mux",
-> +	.flags		= HWMOD_OPT_CLKS_NEEDED,
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP3_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +	.opt_clks	= mcasp3_opt_clks,
-> +	.opt_clks_cnt	= ARRAY_SIZE(mcasp3_opt_clks),
-> +};
-> +
-> +/*
->   * 'mmc' class
->   *
->   */
-> @@ -2566,6 +2604,22 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* l4_per2 -> mcasp3 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 = {
-> +	.master		= &dra7xx_l4_per2_hwmod,
-> +	.slave		= &dra7xx_mcasp3_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l3_main_1 -> mcasp3 */
-> +static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp3 = {
-> +	.master		= &dra7xx_l3_main_1_hwmod,
-> +	.slave		= &dra7xx_mcasp3_hwmod,
-> +	.clk		= "l3_iclk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_addr_space dra7xx_elm_addrs[] = {
->  	{
->  		.pa_start	= 0x48078000,
-> @@ -3338,6 +3392,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_wkup__dcan1,
->  	&dra7xx_l4_per2__dcan2,
->  	&dra7xx_l4_per2__cpgmac0,
-> +	&dra7xx_l4_per2__mcasp3,
-> +	&dra7xx_l3_main_1__mcasp3,
->  	&dra7xx_gmac__mdio,
->  	&dra7xx_l4_cfg__dma_system,
->  	&dra7xx_l3_main_1__dss,
-> -- 
-> 2.6.1
-> 
