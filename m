@@ -1,95 +1,104 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 0/3] ARM: OMAP2+ McASP(3) support for DRA7xx family
-Date: Wed, 11 Nov 2015 10:01:32 +0200
-Message-ID: <5642F5DC.8030902@ti.com>
-References: <1446191700-11057-1-git-send-email-peter.ujfalusi@ti.com>
- <alpine.DEB.2.02.1510301603530.7580@utopia.booyaka.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 16/16] mmc: host: omap_hsmmc: use
+ "mmc_of_parse_voltage" to get ocr_avail
+Date: Wed, 11 Nov 2015 12:26:01 +0200
+Message-ID: <564317B9.8010502@ti.com>
+References: <1438604801-11823-1-git-send-email-kishon@ti.com>
+ <1438604801-11823-17-git-send-email-kishon@ti.com>
+ <CAPDyKFoctSjBb0aPFNe0cyHe0uoD_DkWooQ-yyTX-P+bGJa_Vw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1510301603530.7580@utopia.booyaka.com>
+In-Reply-To: <CAPDyKFoctSjBb0aPFNe0cyHe0uoD_DkWooQ-yyTX-P+bGJa_Vw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: tony@atomide.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+To: Ulf Hansson <ulf.hansson@linaro.org>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+Hi,
 
-On 10/30/2015 06:11 PM, Paul Walmsley wrote:
-> Hi P=E9ter
->=20
-> On Fri, 30 Oct 2015, Peter Ujfalusi wrote:
->=20
->> Changes since v2:
->> - DTS patch added which is needed because of the clock handling chan=
-ges
+On 25/08/15 17:50, Ulf Hansson wrote:
+> On 3 August 2015 at 14:26, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> From: Roger Quadros <rogerq@ti.com>
 >>
->> Felip Balbi reported that linux-next is broken right now since the D=
-TS part of
->> the earlier series has been applied, but we do not have the mcasp hw=
-mod in the
->> kernel:
->> ...
->> [    0.181029] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
->> ...
->> [    6.121072] davinci-mcasp 48468000.mcasp: _od_fail_runtime_resume=
-: FIXME: missing hwmod/omap_dev info
->> [    6.130790] ------------[ cut here ]------------
->> [    6.135643] WARNING: CPU: 0 PID: 244 at drivers/bus/omap_l3_noc.c=
-:147 l3_interrupt_handler+0x220/0x34c()
->> [    6.145576] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PE=
-R2_P3 (Read): Data Access in User mode during Functional access
->> ...
->>
->> This is the followup series for the hwmod changes needed to get audi=
-o working
->> on DRA7xx family based boards.
->> The DTS patches has been applied by Tony from the original series:
->> http://www.spinics.net/lists/linux-omap/msg121473.html
->>
->> I have addressed your comments in the hwmod data and did some resear=
-ch also
->> regarding to the use of ahclkx as fclk in the original submission.
->> It turned out that McASP _needs_ all clocks to be enabled (fclk, icl=
-k and
->> ahclkx/r) to be able to access registers. The original patch where w=
-e handled
->> the ahclkx as fclk worked, because the fclk clock got enabled in the=
- HW w/o
->> any SW interaction.
->> All in all, the McASP found in DRA7 needs all clocks to be enabled.
->> To satisfy this I have introduced a new flag to hwmod, which means t=
-hat the
->> listed optional clocks need to be handled alongside with the fclk cl=
-ock.
->=20
-> Thanks.  I'm happy with your series and appreciate the indepth=20
-> investigation.  As you probably saw last week, we've hit the limit fo=
-r=20
-> v4.4-rc1:
->=20
-> http://marc.info/?l=3Dlinux-omap&m=3D144564929721826&w=3D2
->=20
-> This is why I haven't done anything with this series at this time. =20
-> Unfortunately I don't have a DRA7xx board, so I can't do any testing.=
- =20
-> But if this series fixes a problem with DRA7xx in linux-next, we shou=
-ld=20
-> definitely merge it.
->=20
-> Tony, if you want to take this now, you can either take it with my ac=
-k, or=20
-> I can send a pull request.  Or, if you'd prefer to take it for v4.4-r=
-c2,=20
-> I can send a pull request after v4.4-rc1.
+>> For platforms that doesn't have explicit regulator control in MMC,
+>> populate voltage-ranges in MMC device tree node and use
+>> mmc_of_parse_voltage to get ocr_avail
+> 
+> I don't like this.
+> 
+> If we are able to fetch the OCR mask via an external regulator, that
+> shall be done.
 
-The ARM soc changes for 4.4 are now pulled in to mainline, including th=
-e
-DRA7/72/X15 audio related DTS changes, but this three patch is not. Thi=
-s means
-that dra7-evm, dra72-evm and bealge-x15 will not boot from mainline.
-Is there a way to push these patches as soon as possible?
+Agreed.
+> 
+> I think the mmc_of_parse_voltage() API and the corresponding DT
+> binding it parses, should be used for those HW when we don't have an
+> external regulator to use. For example if the MMC controller itself
+> somehow controls the voltage levels. Is that really the case for you?
 
-Thanks,
-P=E9ter
+What shall be done if there is no software control of the external regulator
+and it is fixed at a certain voltage?
+
+cheers,
+-roger
+
+> 
+> Kind regards
+> Uffe
+> 
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 ++
+>>  drivers/mmc/host/omap_hsmmc.c                      |    9 ++++++++-
+>>  2 files changed, 10 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>> index 76bf087..2408e87 100644
+>> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+>> @@ -22,6 +22,8 @@ ti,dual-volt: boolean, supports dual voltage cards
+>>  ti,non-removable: non-removable slot (like eMMC)
+>>  ti,needs-special-reset: Requires a special softreset sequence
+>>  ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
+>> +voltage-ranges: Specify the voltage range supported if regulator framework
+>> +isn't enabled.
+>>  dmas: List of DMA specifiers with the controller specific format
+>>  as described in the generic DMA client binding. A tx and rx
+>>  specifier is required.
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 15973f1..d884d8f 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -2184,7 +2184,13 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>                         goto err_irq;
+>>         }
+>>
+>> -       mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
+>> +       if (!mmc_pdata(host)->ocr_mask) {
+>> +               ret = mmc_of_parse_voltage(pdev->dev.of_node, &mmc->ocr_avail);
+>> +               if (ret)
+>> +                       goto err_parse_voltage;
+>> +       } else {
+>> +               mmc->ocr_avail = mmc_pdata(host)->ocr_mask;
+>> +       }
+>>
+>>         omap_hsmmc_disable_irq(host);
+>>
+>> @@ -2224,6 +2230,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>>
+>>  err_slot_name:
+>>         mmc_remove_host(mmc);
+>> +err_parse_voltage:
+>>         omap_hsmmc_reg_put(host);
+>>  err_irq:
+>>         device_init_wakeup(&pdev->dev, false);
+>> --
+>> 1.7.9.5
+>>
