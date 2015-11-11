@@ -1,101 +1,181 @@
-From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 1/5] spi: introduce mmap read support for spi flash
- devices
-Date: Wed, 11 Nov 2015 11:24:41 -0800
-Message-ID: <20151111192441.GG12143@google.com>
-References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
- <1447133399-25658-2-git-send-email-vigneshr@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: DRA7: hwmod: Add data for McASP3
+Date: Wed, 11 Nov 2015 21:25:53 +0200
+Message-ID: <56439641.6070901@ti.com>
+References: <1447261631-26362-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1447133399-25658-2-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1447261631-26362-1-git-send-email-balbi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-In addition to my other comments:
+Felipe,
 
-On Tue, Nov 10, 2015 at 10:59:55AM +0530, Vignesh R wrote:
-> In addition to providing direct access to SPI bus, some spi controller
-> hardwares (like ti-qspi) provide special memory mapped port
-> to accesses SPI flash devices in order to increase read performance.
-> This means the controller can automatically send the SPI signals
-> required to read data from the SPI flash device.
-> For this, spi controller needs to know flash specific information like
-> read command to use, dummy bytes and address width. Once these settings
-> are populated in hardware registers, any read accesses to flash's memory
-> map region(SoC specific) through memcpy (or mem-to mem DMA copy) will be
-> handled by controller hardware. The hardware will automatically generate
-> SPI signals required to read data from flash and present it to CPU/DMA.
-> 
-> Introduce spi_mtd_mmap_read() interface to support memory mapped read
-> over SPI flash devices. SPI master drivers can implement this callback to
-> support memory mapped read interfaces. m25p80 flash driver and other
-> flash drivers can call this to request memory mapped read. The interface
-> should only be used MTD flashes and cannot be used with other SPI devices.
-> 
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+On 11/11/2015 07:07 PM, Felipe Balbi wrote:
+> From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> =
+
+> McASP3 is used by default on DRA7x based boards for audio.
+
+While this patch works, it is not the correct one(s) to apply.
+https://lkml.org/lkml/2015/10/30/91
+is the series which should have been applied to 4.4.
+Paul acked the series, but for some reason it missed the initial ARM pull f=
+or 4.4
+
+-- =
+
+P=E9ter
+
+> =
+
+> This fixes following error with Beagle x15:
+> =
+
+> [    0.402190] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
+> =
+
+> which is followed by a splat:
+> =
+
+> [   11.207663] Unhandled fault: imprecise external abort (0x1406) at 0x00=
+000000
+> [   11.207670] ------------[ cut here ]------------
+> [   11.207683] WARNING: CPU: 0 PID: 272 at /home/balbi/workspace/linux/dr=
+ivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x220/0x34c()
+> [   11.207688] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3=
+ (Read): Data Access in User mode during Functional access
+> [   11.207742] Modules linked in: snd_soc_simple_card(+) omapdss leds_gpi=
+o led_class gpio_fan extcon_usb_gpio cpufreq_dt omap_wdt phy_omap_usb2 snd_=
+soc_davinci_mcasp snd_soc_edma snd_soc_omap snd_soc_tlv320aic3x rtc_omap sn=
+d_soc_core ti_soc_thermal dwc3_omap snd_pcm_dmaengine snd_pcm extcon_palmas=
+ snd_timer extcon snd rtc_palmas rtc_ds1307 tmp102 palmas_pwrbutton thermal=
+_sys soundcore hwmon autofs4
+> [   11.207748] CPU: 0 PID: 272 Comm: systemd-udevd Not tainted 4.3.0-1148=
+2-g3d26f1f5fc82-dirty #27
+> [   11.207751] Hardware name: Generic DRA74X (Flattened Device Tree)
+> [   11.207765] [<c0017c3c>] (unwind_backtrace) from [<c0013f80>] (show_st=
+ack+0x10/0x14)
+> [   11.207772] [<c0013f80>] (show_stack) from [<c034d444>] (dump_stack+0x=
+84/0x9c)
+> [   11.207783] [<c034d444>] (dump_stack) from [<c003cc24>] (warn_slowpath=
+_common+0x78/0xb4)
+> [   11.207790] [<c003cc24>] (warn_slowpath_common) from [<c003cc90>] (war=
+n_slowpath_fmt+0x30/0x40)
+> [   11.207798] [<c003cc90>] (warn_slowpath_fmt) from [<c0379ce0>] (l3_int=
+errupt_handler+0x220/0x34c)
+> [   11.207805] [<c0379ce0>] (l3_interrupt_handler) from [<c009d9c0>] (han=
+dle_irq_event_percpu+0x44/0x1f0)
+> [   11.207811] [<c009d9c0>] (handle_irq_event_percpu) from [<c009dba4>] (=
+handle_irq_event+0x38/0x5c)
+> [   11.207818] [<c009dba4>] (handle_irq_event) from [<c00a0d68>] (handle_=
+fasteoi_irq+0xcc/0x1b0)
+> [   11.207824] [<c00a0d68>] (handle_fasteoi_irq) from [<c009d070>] (gener=
+ic_handle_irq+0x20/0x34)
+> [   11.207829] [<c009d070>] (generic_handle_irq) from [<c009d350>] (__han=
+dle_domain_irq+0x64/0xe0)
+> [   11.207835] [<c009d350>] (__handle_domain_irq) from [<c0009520>] (gic_=
+handle_irq+0x40/0x8c)
+> [   11.207842] [<c0009520>] (gic_handle_irq) from [<c06521b4>] (__irq_usr=
++0x54/0x80)
+> [   11.207846] Exception stack(0xed143fb0 to 0xed143ff8)
+> [   11.207851] 3fa0:                                     7f69b370 7f69b36=
+8 00000370 00000000
+> [   11.207857] 3fc0: b6ddb4e0 7f69b370 00000016 7f69b308 be8db278 be8db2a=
+0 7f68b024 00000001
+> [   11.207863] 3fe0: b6ddb4e0 be8db180 b6d46a47 b6d46a50 60000030 ffffffff
+> [   11.207866] ---[ end trace 7d8de48d1bc8fbac ]---
+> =
+
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 > ---
-...
-> diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
-> index cce80e6dc7d1..2f2c431b8917 100644
-> --- a/include/linux/spi/spi.h
-> +++ b/include/linux/spi/spi.h
-> @@ -361,6 +361,11 @@ static inline void spi_unregister_driver(struct spi_driver *sdrv)
->   * @handle_err: the subsystem calls the driver to handle an error that occurs
->   *		in the generic implementation of transfer_one_message().
->   * @unprepare_message: undo any work done by prepare_message().
-> + * @spi_mtd_mmap_read: some spi-controller hardwares provide memory.
-> + *                     Flash drivers (like m25p80) can request memory
-> + *                     mapped read via this method. This interface
-> + *                     should only be used by mtd flashes and cannot be
-> + *                     used by other spi devices.
->   * @cs_gpios: Array of GPIOs to use as chip select lines; one per CS
->   *	number. Any individual value may be -ENOENT for CS lines that
->   *	are not GPIOs (driven by the SPI controller itself).
-> @@ -507,6 +512,11 @@ struct spi_master {
->  			       struct spi_message *message);
->  	int (*unprepare_message)(struct spi_master *master,
->  				 struct spi_message *message);
-> +	int (*spi_mtd_mmap_read)(struct  spi_device *spi,
-> +				 loff_t from, size_t len,
-> +				 size_t *retlen, u_char *buf,
-> +				 u8 read_opcode, u8 addr_width,
-> +				 u8 dummy_bytes);
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 41 +++++++++++++++++++++++++=
+++++++
+>  1 file changed, 41 insertions(+)
+> =
 
-This is seeming to be a longer and longer list of arguments. I know MTD
-has a bad habit of long argument lists (which then cause a ton of
-unnecessary churn when things need changed in the API), but perhaps we
-can limit the damage to the SPI layer. Perhaps this deserves a struct to
-encapsulate all the flash read arguments? Like:
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-om=
+ap2/omap_hwmod_7xx_data.c
+> index 51d1ecb384bd..b730c582a1f7 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -1298,6 +1298,38 @@ static struct omap_hwmod dra7xx_mcspi4_hwmod =3D {
+>  };
+>  =
 
-struct spi_flash_read_message {
-	loff_t from;
-	size_t len;
-	size_t *retlen;
-	void *buf;
-	u8 read_opcode;
-	u8 addr_width;
-	u8 dummy_bits;
-	// additional fields to describe rx_nbits for opcode/addr/data
-};
+>  /*
+> + * 'mcasp' class
+> + *
+> + */
+> +static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc =3D {
+> +	.sysc_offs	=3D 0x0004,
+> +	.sysc_flags	=3D SYSC_HAS_SIDLEMODE,
+> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields	=3D &omap_hwmod_sysc_type3,
+> +};
+> +
+> +static struct omap_hwmod_class dra7xx_mcasp_hwmod_class =3D {
+> +	.name	=3D "mcasp",
+> +	.sysc	=3D &dra7xx_mcasp_sysc,
+> +};
+> +
+> +/* mcasp3 */
+> +static struct omap_hwmod dra7xx_mcasp3_hwmod =3D {
+> +	.name		=3D "mcasp3",
+> +	.class		=3D &dra7xx_mcasp_hwmod_class,
+> +	.clkdm_name	=3D "l4per2_clkdm",
+> +	.main_clk	=3D "mcasp3_ahclkx_mux",
+> +	.flags		=3D HWMOD_SWSUP_SIDLE,
+> +	.prcm =3D {
+> +		.omap4 =3D {
+> +			.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP3_CLKCTRL_OFFSET,
+> +			.context_offs =3D DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET,
+> +			.modulemode   =3D MODULEMODE_SWCTRL,
+> +		},
+> +	},
+> +};
+> +
+> +/*
+>   * 'mmc' class
+>   *
+>   */
+> @@ -2566,6 +2598,14 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__=
+hdmi =3D {
+>  	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+>  =
 
-struct spi_master {
-	...
-	int (*spi_flash_read)(struct spi_device *spi,
-			      struct spi_flash_message *msg);
-};
-
->  
->  	/*
->  	 * These hooks are for drivers that use a generic implementation
-
-...
-
-Brian
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +/* l4_per2 -> mcasp3 */
+> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 =3D {
+> +	.master		=3D &dra7xx_l4_per2_hwmod,
+> +	.slave		=3D &dra7xx_mcasp3_hwmod,
+> +	.clk		=3D "l3_iclk_div",
+> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+>  /* l4_per1 -> elm */
+>  static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm =3D {
+>  	.master		=3D &dra7xx_l4_per1_hwmod,
+> @@ -3308,6 +3348,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_i=
+fs[] __initdata =3D {
+>  	&dra7xx_l4_wkup__dcan1,
+>  	&dra7xx_l4_per2__dcan2,
+>  	&dra7xx_l4_per2__cpgmac0,
+> +	&dra7xx_l4_per2__mcasp3,
+>  	&dra7xx_gmac__mdio,
+>  	&dra7xx_l4_cfg__dma_system,
+>  	&dra7xx_l3_main_1__dss,
+> =
