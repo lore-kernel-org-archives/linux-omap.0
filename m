@@ -1,69 +1,106 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v3 1/5] spi: introduce mmap read support for spi flash
- devices
-Date: Thu, 12 Nov 2015 10:02:56 +0530
-Message-ID: <56441678.6040504@ti.com>
-References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
- <1447133399-25658-2-git-send-email-vigneshr@ti.com>
- <20151111192441.GG12143@google.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v4 3/3] ARM: OMAP: DRA7: hwmod: Add data for McASP3
+Date: Thu, 12 Nov 2015 09:32:59 +0200
+Message-ID: <1447313579-23873-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1447313579-23873-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151111192441.GG12143@google.com>
+In-Reply-To: <1447313579-23873-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Marek Vasut <marex@denx.de>
+To: tony@atomide.com, paul@pwsan.com
+Cc: balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Brian,
+McASP3 is used by default on DRA7x based boards for audio.
 
-On 11/12/2015 12:54 AM, Brian Norris wrote:
-> In addition to my other comments:
-> 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Paul Walmsley <paul@pwsan.com>
+Tested-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 56 +++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
-[...]
-
->> +	int (*spi_mtd_mmap_read)(struct  spi_device *spi,
->> +				 loff_t from, size_t len,
->> +				 size_t *retlen, u_char *buf,
->> +				 u8 read_opcode, u8 addr_width,
->> +				 u8 dummy_bytes);
-> 
-> This is seeming to be a longer and longer list of arguments. I know MTD
-> has a bad habit of long argument lists (which then cause a ton of
-> unnecessary churn when things need changed in the API), but perhaps we
-> can limit the damage to the SPI layer. Perhaps this deserves a struct to
-> encapsulate all the flash read arguments? Like:
-> 
-> struct spi_flash_read_message {
-> 	loff_t from;
-> 	size_t len;
-> 	size_t *retlen;
-> 	void *buf;
-> 	u8 read_opcode;
-> 	u8 addr_width;
-> 	u8 dummy_bits;
-> 	// additional fields to describe rx_nbits for opcode/addr/data
-> };
-> 
-> struct spi_master {
-> 	...
-> 	int (*spi_flash_read)(struct spi_device *spi,
-> 			      struct spi_flash_message *msg);
-> };
-
-
-Yeah.. I think struct encapsulation helps, this can also be used to pass
-sg lists for dma in future. I will rework the series with your
-suggestion to include nbits for opcode/addr/data.
-Also, will add validation logic (similar to __spi_validate()) to check
-whether master supports dual/quad mode for opcode/addr/data. I am
-planning to add this validation code to spi_flash_read_validate(in place
-of spi_mmap_read_supported())
-Thanks!
-
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 51d1ecb384bd..ee4e04434a94 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1298,6 +1298,44 @@ static struct omap_hwmod dra7xx_mcspi4_hwmod = {
+ };
+ 
+ /*
++ * 'mcasp' class
++ *
++ */
++static struct omap_hwmod_class_sysconfig dra7xx_mcasp_sysc = {
++	.sysc_offs	= 0x0004,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE,
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type3,
++};
++
++static struct omap_hwmod_class dra7xx_mcasp_hwmod_class = {
++	.name	= "mcasp",
++	.sysc	= &dra7xx_mcasp_sysc,
++};
++
++/* mcasp3 */
++static struct omap_hwmod_opt_clk mcasp3_opt_clks[] = {
++	{ .role = "ahclkx", .clk = "mcasp3_ahclkx_mux" },
++};
++
++static struct omap_hwmod dra7xx_mcasp3_hwmod = {
++	.name		= "mcasp3",
++	.class		= &dra7xx_mcasp_hwmod_class,
++	.clkdm_name	= "l4per2_clkdm",
++	.main_clk	= "mcasp3_aux_gfclk_mux",
++	.flags		= HWMOD_OPT_CLKS_NEEDED,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP3_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L4PER2_MCASP3_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.opt_clks	= mcasp3_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(mcasp3_opt_clks),
++};
++
++/*
+  * 'mmc' class
+  *
+  */
+@@ -2566,6 +2604,22 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_per2 -> mcasp3 */
++static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 = {
++	.master		= &dra7xx_l4_per2_hwmod,
++	.slave		= &dra7xx_mcasp3_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3_main_1 -> mcasp3 */
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp3 = {
++	.master		= &dra7xx_l3_main_1_hwmod,
++	.slave		= &dra7xx_mcasp3_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_per1 -> elm */
+ static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm = {
+ 	.master		= &dra7xx_l4_per1_hwmod,
+@@ -3308,6 +3362,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_wkup__dcan1,
+ 	&dra7xx_l4_per2__dcan2,
+ 	&dra7xx_l4_per2__cpgmac0,
++	&dra7xx_l4_per2__mcasp3,
++	&dra7xx_l3_main_1__mcasp3,
+ 	&dra7xx_gmac__mdio,
+ 	&dra7xx_l4_cfg__dma_system,
+ 	&dra7xx_l3_main_1__dss,
 -- 
-Regards
-Vignesh
+2.6.2
