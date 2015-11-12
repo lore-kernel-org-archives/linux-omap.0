@@ -1,64 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] extcon: palmas: add support for using VBUSDET output
-Date: Thu, 12 Nov 2015 11:57:14 -0600
-Message-ID: <1447351034-21150-1-git-send-email-balbi@ti.com>
-References: <1447350781-20649-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 0/3] ARM: OMAP2+ McASP(3) support for DRA7xx family
+Date: Thu, 12 Nov 2015 10:00:27 -0800
+Message-ID: <20151112180027.GP3218@atomide.com>
+References: <1447313579-23873-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447350781-20649-1-git-send-email-balbi@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1447313579-23873-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: paul@pwsan.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-TPS659038 can remux its GPIO_1 as VBUSDET output,
-which can be tied to a SoC GPIO and used as a VBUS
-interrupt.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [151111 23:33]:
+> Hi Tony,
+> 
+> Changes since v3:
+> - rebased on mainline's HEAD
+> - Added Tested-by from Felipe
+> - Added Acked-by from Paul for the hwmod patches
+> 
+> Changes since v2:
+> - DTS patch added which is needed because of the clock handling changes
+> 
+> Felip Balbi reported that linux-next is broken right now since the DTS part of
+> the earlier series has been applied, but we do not have the mcasp hwmod in the
+> kernel:
+> ...
+> [    0.181029] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
+> ...
+> [    6.121072] davinci-mcasp 48468000.mcasp: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
+> [    6.130790] ------------[ cut here ]------------
+> [    6.135643] WARNING: CPU: 0 PID: 244 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x220/0x34c()
+> [    6.145576] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3 (Read): Data Access in User mode during Functional access
 
-Beagle X15 uses that, in fact, and without it, I
-could not get USB peripheral working with that
-board.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/extcon/extcon-palmas.c | 22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+Thanks applying all three into omap-for-v4.4/fixes.
 
-diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
-index 93c30a885740..7985d092c069 100644
---- a/drivers/extcon/extcon-palmas.c
-+++ b/drivers/extcon/extcon-palmas.c
-@@ -296,10 +296,28 @@ static int palmas_usb_probe(struct platform_device *pdev)
- 	}
- 
- 	if (palmas_usb->enable_vbus_detection) {
-+		int irq = platform_get_irq(pdev, 0);
-+
-+		if (irq > 0) {
-+			/* remux GPIO_1 as VBUSDET */
-+			status = palmas_update_bits(palmas, PALMAS_PU_PD_OD_BASE,
-+					PALMAS_PRIMARY_SECONDARY_PAD1,
-+					PALMAS_PRIMARY_SECONDARY_PAD1_GPIO_1_MASK,
-+					(1 << 3));
-+			if (status < 0) {
-+				dev_err(&pdev->dev, "can't remux GPIO1\n");
-+				return status;
-+			}
-+
-+			palmas_usb->vbus_irq = irq;
-+		} else {
-+			irq = regmap_irq_get_virq(palmas->irq_data,
-+					PALMAS_VBUS_IRQ);
-+			palmas_usb->vbus_irq = irq;
-+		}
-+
- 		palmas_usb->vbus_otg_irq = regmap_irq_get_virq(palmas->irq_data,
- 						       PALMAS_VBUS_OTG_IRQ);
--		palmas_usb->vbus_irq = regmap_irq_get_virq(palmas->irq_data,
--							   PALMAS_VBUS_IRQ);
- 		status = devm_request_threaded_irq(palmas_usb->dev,
- 				palmas_usb->vbus_irq, NULL,
- 				palmas_vbus_irq_handler,
--- 
-2.6.2
+Tony
+
+> ...
+> 
+> This is the followup series for the hwmod changes needed to get audio working
+> on DRA7xx family based boards.
+> The DTS patches has been applied by Tony from the original series:
+> http://www.spinics.net/lists/linux-omap/msg121473.html
+> 
+> I have addressed your comments in the hwmod data and did some research also
+> regarding to the use of ahclkx as fclk in the original submission.
+> It turned out that McASP _needs_ all clocks to be enabled (fclk, iclk and
+> ahclkx/r) to be able to access registers. The original patch where we handled
+> the ahclkx as fclk worked, because the fclk clock got enabled in the HW w/o
+> any SW interaction.
+> All in all, the McASP found in DRA7 needs all clocks to be enabled.
+> To satisfy this I have introduced a new flag to hwmod, which means that the
+> listed optional clocks need to be handled alongside with the fclk clock.
+> 
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (3):
+>   ARM: DTS: dra7: Fix McASP3 node regarding to clocks
+>   ARM: OMAP2+: hwmod: Add hwmod flag for HWMOD_OPT_CLKS_NEEDED
+>   ARM: OMAP: DRA7: hwmod: Add data for McASP3
+> 
+>  arch/arm/boot/dts/dra7.dtsi               |  4 +-
+>  arch/arm/mach-omap2/omap_hwmod.c          | 66 +++++++++++++++++--------------
+>  arch/arm/mach-omap2/omap_hwmod.h          |  3 ++
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 56 ++++++++++++++++++++++++++
+>  4 files changed, 97 insertions(+), 32 deletions(-)
+> 
+> -- 
+> 2.6.2
+> 
