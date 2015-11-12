@@ -1,102 +1,230 @@
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: Re: [PATCH v2 2/3] ARM: OMAP2+: remove custom abort handler for t410
-Date: Thu, 12 Nov 2015 14:32:35 +0100
-Message-ID: <1447335155.3101.6.camel@pengutronix.de>
-References: <1444905142-21500-1-git-send-email-l.stach@pengutronix.de>
- <1444905142-21500-3-git-send-email-l.stach@pengutronix.de>
+From: Jisheng Zhang <jszhang@marvell.com>
+Subject: [PATCH] PCI: designware: bail out if host_init failed
+Date: Thu, 12 Nov 2015 21:48:45 +0800
+Message-ID: <1447336125-5010-1-git-send-email-jszhang@marvell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444905142-21500-3-git-send-email-l.stach@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patchwork-lst@pengutronix.de
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: kishon@ti.com, bhelgaas@google.com, jingoohan1@gmail.com, kgene@kernel.org, k.kozlowski@samsung.com, Richard.Zhu@freescale.com, l.stach@pengutronix.de, m-karicheri2@ti.com, minghuan.Lian@freescale.com, mingkai.hu@freescale.com, tie-fei.zang@freescale.com, pratyush.anand@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Jisheng Zhang <jszhang@marvell.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+There's no reason to continue the initialization such as configure
+register, scan root bus etc. if customized host_init() failed. This
+patch tries to check the host_init result, bail out if failed.
 
-can you please take this patch through the OMAP tree for 4.4? The first
-patch in this series went in through Russells tree, so the below code
-now has the possibility to hide a real abort later during boot.
+Signed-off-by: Jisheng Zhang <jszhang@marvell.com>
+---
+ drivers/pci/host/pci-dra7xx.c      |  4 +++-
+ drivers/pci/host/pci-exynos.c      |  4 +++-
+ drivers/pci/host/pci-imx6.c        |  4 +++-
+ drivers/pci/host/pci-keystone.c    |  4 +++-
+ drivers/pci/host/pci-layerscape.c  | 25 ++++++++++++++++---------
+ drivers/pci/host/pcie-designware.c |  7 +++++--
+ drivers/pci/host/pcie-designware.h |  2 +-
+ drivers/pci/host/pcie-spear13xx.c  |  4 +++-
+ 8 files changed, 37 insertions(+), 17 deletions(-)
 
-Regards,
-Lucas
-
-Am Donnerstag, den 15.10.2015, 12:32 +0200 schrieb Lucas Stach:
-> This is not needed anymore. Handling a potentially pending imprecise external
-> abort left behind by the bootloader is now done in a slightly safer way inside
-> the common ARM startup code.
-> 
-> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/pdata-quirks.c | 29 -----------------------------
->  1 file changed, 29 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-> index ea56397599c2..3a2bc2a88db4 100644
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
-> @@ -24,9 +24,6 @@
->  #include <linux/platform_data/iommu-omap.h>
->  #include <linux/platform_data/wkup_m3.h>
->  
-> -#include <asm/siginfo.h>
-> -#include <asm/signal.h>
-> -
->  #include "common.h"
->  #include "common-board-devices.h"
->  #include "dss-common.h"
-> @@ -385,29 +382,6 @@ static void __init omap3_pandora_legacy_init(void)
->  }
->  #endif /* CONFIG_ARCH_OMAP3 */
->  
-> -#ifdef CONFIG_SOC_TI81XX
-> -static int fault_fixed_up;
-> -
-> -static int t410_abort_handler(unsigned long addr, unsigned int fsr,
-> -			      struct pt_regs *regs)
-> -{
-> -	if ((fsr == 0x406 || fsr == 0xc06) && !fault_fixed_up) {
-> -		pr_warn("External imprecise Data abort at addr=%#lx, fsr=%#x ignored.\n",
-> -			addr, fsr);
-> -		fault_fixed_up = 1;
-> -		return 0;
-> -	}
-> -
-> -	return 1;
-> -}
-> -
-> -static void __init t410_abort_init(void)
-> -{
-> -	hook_fault_code(16 + 6, t410_abort_handler, SIGBUS, BUS_OBJERR,
-> -			"imprecise external abort");
-> -}
-> -#endif
-> -
->  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
->  static struct iommu_platform_data omap4_iommu_pdata = {
->  	.reset_name = "mmu_cache",
-> @@ -536,9 +510,6 @@ static struct pdata_init pdata_quirks[] __initdata = {
->  	{ "openpandora,omap3-pandora-600mhz", omap3_pandora_legacy_init, },
->  	{ "openpandora,omap3-pandora-1ghz", omap3_pandora_legacy_init, },
->  #endif
-> -#ifdef CONFIG_SOC_TI81XX
-> -	{ "hp,t410", t410_abort_init, },
-> -#endif
->  #ifdef CONFIG_SOC_OMAP5
->  	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
->  #endif
-
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 8c36880..b3160a1 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -149,7 +149,7 @@ static void dra7xx_pcie_enable_interrupts(struct pcie_port *pp)
+ 				   LEG_EP_INTERRUPTS);
+ }
+ 
+-static void dra7xx_pcie_host_init(struct pcie_port *pp)
++static int dra7xx_pcie_host_init(struct pcie_port *pp)
+ {
+ 	dw_pcie_setup_rc(pp);
+ 
+@@ -162,6 +162,8 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ 	if (IS_ENABLED(CONFIG_PCI_MSI))
+ 		dw_pcie_msi_init(pp);
+ 	dra7xx_pcie_enable_interrupts(pp);
++
++	return 0;
+ }
+ 
+ static struct pcie_host_ops dra7xx_pcie_host_ops = {
+diff --git a/drivers/pci/host/pci-exynos.c b/drivers/pci/host/pci-exynos.c
+index 01095e1..57f370b 100644
+--- a/drivers/pci/host/pci-exynos.c
++++ b/drivers/pci/host/pci-exynos.c
+@@ -481,10 +481,12 @@ static int exynos_pcie_link_up(struct pcie_port *pp)
+ 	return 0;
+ }
+ 
+-static void exynos_pcie_host_init(struct pcie_port *pp)
++static int exynos_pcie_host_init(struct pcie_port *pp)
+ {
+ 	exynos_pcie_establish_link(pp);
+ 	exynos_pcie_enable_interrupts(pp);
++
++	return 0;
+ }
+ 
+ static struct pcie_host_ops exynos_pcie_host_ops = {
+diff --git a/drivers/pci/host/pci-imx6.c b/drivers/pci/host/pci-imx6.c
+index 22e8224..9a46680 100644
+--- a/drivers/pci/host/pci-imx6.c
++++ b/drivers/pci/host/pci-imx6.c
+@@ -425,7 +425,7 @@ static int imx6_pcie_establish_link(struct pcie_port *pp)
+ 	return 0;
+ }
+ 
+-static void imx6_pcie_host_init(struct pcie_port *pp)
++static int imx6_pcie_host_init(struct pcie_port *pp)
+ {
+ 	imx6_pcie_assert_core_reset(pp);
+ 
+@@ -439,6 +439,8 @@ static void imx6_pcie_host_init(struct pcie_port *pp)
+ 
+ 	if (IS_ENABLED(CONFIG_PCI_MSI))
+ 		dw_pcie_msi_init(pp);
++
++	return 0;
+ }
+ 
+ static void imx6_pcie_reset_phy(struct pcie_port *pp)
+diff --git a/drivers/pci/host/pci-keystone.c b/drivers/pci/host/pci-keystone.c
+index 0aa81bd..2604571 100644
+--- a/drivers/pci/host/pci-keystone.c
++++ b/drivers/pci/host/pci-keystone.c
+@@ -250,7 +250,7 @@ static int keystone_pcie_fault(unsigned long addr, unsigned int fsr,
+ 	return 0;
+ }
+ 
+-static void __init ks_pcie_host_init(struct pcie_port *pp)
++static int __init ks_pcie_host_init(struct pcie_port *pp)
+ {
+ 	struct keystone_pcie *ks_pcie = to_keystone_pcie(pp);
+ 	u32 val;
+@@ -277,6 +277,8 @@ static void __init ks_pcie_host_init(struct pcie_port *pp)
+ 	 */
+ 	hook_fault_code(17, keystone_pcie_fault, SIGBUS, 0,
+ 			"Asynchronous external abort");
++
++	return 0;
+ }
+ 
+ static struct pcie_host_ops keystone_pcie_host_ops = {
+diff --git a/drivers/pci/host/pci-layerscape.c b/drivers/pci/host/pci-layerscape.c
+index 3923bed..a6e9070 100644
+--- a/drivers/pci/host/pci-layerscape.c
++++ b/drivers/pci/host/pci-layerscape.c
+@@ -94,8 +94,9 @@ static int ls1021_pcie_link_up(struct pcie_port *pp)
+ 	return 1;
+ }
+ 
+-static void ls1021_pcie_host_init(struct pcie_port *pp)
++static int ls1021_pcie_host_init(struct pcie_port *pp)
+ {
++	int ret;
+ 	struct ls_pcie *pcie = to_ls_pcie(pp);
+ 	u32 val, index[2];
+ 
+@@ -103,15 +104,14 @@ static void ls1021_pcie_host_init(struct pcie_port *pp)
+ 						     "fsl,pcie-scfg");
+ 	if (IS_ERR(pcie->scfg)) {
+ 		dev_err(pp->dev, "No syscfg phandle specified\n");
+-		pcie->scfg = NULL;
+-		return;
++		ret = PTR_ERR(pcie->scfg);
++		goto err;
+ 	}
+ 
+-	if (of_property_read_u32_array(pp->dev->of_node,
+-				       "fsl,pcie-scfg", index, 2)) {
+-		pcie->scfg = NULL;
+-		return;
+-	}
++	ret = of_property_read_u32_array(pp->dev->of_node,
++					 "fsl,pcie-scfg", index, 2);
++	if (ret)
++		goto err;
+ 	pcie->index = index[1];
+ 
+ 	dw_pcie_setup_rc(pp);
+@@ -123,6 +123,11 @@ static void ls1021_pcie_host_init(struct pcie_port *pp)
+ 	val = ioread32(pcie->dbi + PCIE_STRFMR1);
+ 	val &= 0xffff;
+ 	iowrite32(val, pcie->dbi + PCIE_STRFMR1);
++
++	return 0;
++err:
++	pcie->scfg = NULL;
++	return ret;
+ }
+ 
+ static int ls_pcie_link_up(struct pcie_port *pp)
+@@ -140,7 +145,7 @@ static int ls_pcie_link_up(struct pcie_port *pp)
+ 	return 1;
+ }
+ 
+-static void ls_pcie_host_init(struct pcie_port *pp)
++static int ls_pcie_host_init(struct pcie_port *pp)
+ {
+ 	struct ls_pcie *pcie = to_ls_pcie(pp);
+ 
+@@ -148,6 +153,8 @@ static void ls_pcie_host_init(struct pcie_port *pp)
+ 	ls_pcie_fix_class(pcie);
+ 	ls_pcie_clear_multifunction(pcie);
+ 	iowrite32(0, pcie->dbi + PCIE_DBI_RO_WR_EN);
++
++	return 0;
+ }
+ 
+ static int ls_pcie_msi_host_init(struct pcie_port *pp,
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+index 540f077..a80a9ba 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -515,8 +515,11 @@ int dw_pcie_host_init(struct pcie_port *pp)
+ 		}
+ 	}
+ 
+-	if (pp->ops->host_init)
+-		pp->ops->host_init(pp);
++	if (pp->ops->host_init) {
++		ret = pp->ops->host_init(pp);
++		if (ret)
++			return ret;
++	}
+ 
+ 	if (!pp->ops->rd_other_conf)
+ 		dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
+diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+index 2356d29..7b5317f 100644
+--- a/drivers/pci/host/pcie-designware.h
++++ b/drivers/pci/host/pcie-designware.h
+@@ -63,7 +63,7 @@ struct pcie_host_ops {
+ 	int (*wr_other_conf)(struct pcie_port *pp, struct pci_bus *bus,
+ 			unsigned int devfn, int where, int size, u32 val);
+ 	int (*link_up)(struct pcie_port *pp);
+-	void (*host_init)(struct pcie_port *pp);
++	int (*host_init)(struct pcie_port *pp);
+ 	void (*msi_set_irq)(struct pcie_port *pp, int irq);
+ 	void (*msi_clear_irq)(struct pcie_port *pp, int irq);
+ 	phys_addr_t (*get_msi_addr)(struct pcie_port *pp);
+diff --git a/drivers/pci/host/pcie-spear13xx.c b/drivers/pci/host/pcie-spear13xx.c
+index b95b756..50b3b31 100644
+--- a/drivers/pci/host/pcie-spear13xx.c
++++ b/drivers/pci/host/pcie-spear13xx.c
+@@ -256,10 +256,12 @@ static int spear13xx_pcie_link_up(struct pcie_port *pp)
+ 	return 0;
+ }
+ 
+-static void spear13xx_pcie_host_init(struct pcie_port *pp)
++static int spear13xx_pcie_host_init(struct pcie_port *pp)
+ {
+ 	spear13xx_pcie_establish_link(pp);
+ 	spear13xx_pcie_enable_interrupts(pp);
++
++	return 0;
+ }
+ 
+ static struct pcie_host_ops spear13xx_pcie_host_ops = {
 -- 
-Pengutronix e.K.             | Lucas Stach                 |
-Industrial Linux Solutions   | http://www.pengutronix.de/  |
+2.6.2
