@@ -1,52 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: DRA7: hwmod: Add data for McASP3
-Date: Wed, 11 Nov 2015 14:45:27 -0800
-Message-ID: <20151111224526.GK3218@atomide.com>
-References: <1447261631-26362-1-git-send-email-balbi@ti.com>
- <56439641.6070901@ti.com>
- <alpine.DEB.2.02.1511112022100.24530@utopia.booyaka.com>
- <20151111214043.GI3218@atomide.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags"
+ entry
+Date: Wed, 11 Nov 2015 17:10:46 -0800
+Message-ID: <5643E716.9080204@gmail.com>
+References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com> <20150713131902.GH26485@atomide.com> <20151012201640.GQ23801@atomide.com> <201510122225.12786@pali> <20151012204509.GT23801@atomide.com> <20151013143746.GJ23104@pali> <20151105114041.GC27908@pali> <20151105161756.GG3078@atomide.com>
+Reply-To: frowand.list@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20151111214043.GI3218@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151105161756.GG3078@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Cc: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, =?UTF-8?B?QW5kcmVhcyBGw6RyYmVy?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151111 13:41]:
-> * Paul Walmsley <paul@pwsan.com> [151111 12:23]:
-> > On Wed, 11 Nov 2015, Peter Ujfalusi wrote:
-> > 
-> > > On 11/11/2015 07:07 PM, Felipe Balbi wrote:
-> > > > From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > > > 
-> > > > McASP3 is used by default on DRA7x based boards for audio.
-> > > 
-> > > While this patch works, it is not the correct one(s) to apply.
-> > > https://lkml.org/lkml/2015/10/30/91
-> > > is the series which should have been applied to 4.4.
-> > > Paul acked the series, but for some reason it missed the initial ARM pull for 4.4
-> > 
-> > It missed it because I was late getting my patches out for 4.4...
-> 
-> OK applying all three as fixes with your ack like you requested
-> in the original thread.
+Adding devicetree list.
 
-Except one of them no longer applies cleanly against the current
-mainline. So waiting until Peter rebases until applying anything.
+Thread starts at
+http://lists.infradead.org/pipermail/linux-arm-kernel/2015-July/354459.=
+html
 
-Regards,
+On 11/5/2015 8:17 AM, Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151105 03:41]:
+>> On Tuesday 13 October 2015 16:37:46 Pali Roh=C3=A1r wrote:
+>>> On Monday 12 October 2015 13:45:09 Tony Lindgren wrote:
+>>>> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151012 13:29]:
+>>>>> On Monday 12 October 2015 22:16:40 Tony Lindgren wrote:
+>>>>>>
+>>>>>> Pali, any news on posting an updated series with the comments
+>>>>>> addressed in this thread? It seems that we all pretty much agree
+>>>>>> what needs to be done.
 
-Tony
+I'm not real happy with the concept of patches 4 and 5 in this series.
+My concern is that those two patches are using the FDT as a transport
+mechanism for a binary blob (the atags object).
+
+Patches 1 and 2 do follow the spirit of atags_to_fdt() since an
+atags kernel already may set system_rev from an atag.
+
+-Frank
+
+
+>>>>>
+>>>>> Tony, I'm not really sure what to do. Just wrap 4 and 5 patches i=
+nto=20
+>>>>> CONFIG_KEXEC? Or something more?
+>>>>
+>>>> Well for most part your patches are fine, I think there were some
+>>>> minor comments on the series.
+>>>>
+>>>> For the CONFIG_KEXEC dependency, we should just keep the existing
+>>>> behavior and keep /proc/atags behind CONFIG_KEXEC. That's all
+>>>> I believe :)
+>>>>
+>>>> Regards,
+>>>>
+>>>> Tony
+>>>>
+>>>>
+>>>
+>>> Ok. I will add CONFIG_KEXEC into atag patches.
+>>>
+>>> And there is missing documentation for these two new DT properties
+>>> (marked as TODO in commit messages). Where to put them?
+>>>
+>>
+>> Tony (or somebody else) ^^^
+>=20
+> How about Documentation/devicetree/bindings/arm/atags.txt?
+>=20
+> Regards,
+>=20
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>=20
