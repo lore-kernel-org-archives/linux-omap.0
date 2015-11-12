@@ -1,17 +1,14 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: Minimal support for dm814x
-Date: Thu, 12 Nov 2015 10:20:24 +0100
-Message-ID: <CAALWOA_dEtajQBLrXesQ2bRCDf-1Dzg_tJw_=yAmaO=T3=KMZQ@mail.gmail.com>
-References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
- <20151109150602.GR3199@atomide.com>
- <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
- <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
- <20151111174028.GF3218@atomide.com>
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: Re: [PATCH v2 2/3] ARM: OMAP2+: remove custom abort handler for t410
+Date: Thu, 12 Nov 2015 14:32:35 +0100
+Message-ID: <1447335155.3101.6.camel@pengutronix.de>
+References: <1444905142-21500-1-git-send-email-l.stach@pengutronix.de>
+ <1444905142-21500-3-git-send-email-l.stach@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151111174028.GF3218@atomide.com>
+In-Reply-To: <1444905142-21500-3-git-send-email-l.stach@pengutronix.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,41 +19,84 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Delio Brignoli <dbrignoli@audioscience.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patchwork-lst@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On 11 November 2015 at 18:40, Tony Lindgren <tony@atomide.com> wrote:
-> Well we do first try to set the rate using the divider only at least for
-> drivers/clk/ti/fapll.c used on dm816x. I'm thinking about doing a similar
-> driver for the dm814x adpll where we have a PLL and separate output clocks
-> in a single driver as the PLL and output control registers are all mixed in.
+Tony,
 
-Well the output control *is* part of the PLL block. More importantly,
-due to the constraints of DPLL-LJ you may need to consider the
-postdivider and PLL config together to produce the desired output
-frequency.
+can you please take this patch through the OMAP tree for 4.4? The first
+patch in this series went in through Russells tree, so the below code
+now has the possibility to hide a real abort later during boot.
 
-Note BTW that afaik exactly the same two DPLL types are used in nearly
-all TI SoCs (with exception of DM816x, and some enhancements have been
-made in the latest SoCs), but since the PLLs themselves only have
-wires sticking out, the register interface can vary significantly
-between devices. Most of them also wrap a layer of abstraction around
-them, while it seems the DM814x just directly wired all available
-signals into registers, no added sugar.
+Regards,
+Lucas
 
-Another difference is that normally nearly all DPLLs are DPLL-S (aka
-"type A") and often only one is -LJ (aka "type B"), while the
-situation is reversed on the DM814x which has only one instance of
-DPLL-S and 12 instances of DPLL-LJ. Also unusual is that none have
-more than one output divider (no HSDIVIDER blocks present) and only
-two (HDMI and USB) make direct use of the undivided dco clock. This
-means that, with those two exceptions, you do have complete freedom in
-configuring the PLL for the needs of its single output clock.
+Am Donnerstag, den 15.10.2015, 12:32 +0200 schrieb Lucas Stach:
+> This is not needed anymore. Handling a potentially pending imprecise external
+> abort left behind by the bootloader is now done in a slightly safer way inside
+> the common ARM startup code.
+> 
+> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/pdata-quirks.c | 29 -----------------------------
+>  1 file changed, 29 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> index ea56397599c2..3a2bc2a88db4 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -24,9 +24,6 @@
+>  #include <linux/platform_data/iommu-omap.h>
+>  #include <linux/platform_data/wkup_m3.h>
+>  
+> -#include <asm/siginfo.h>
+> -#include <asm/signal.h>
+> -
+>  #include "common.h"
+>  #include "common-board-devices.h"
+>  #include "dss-common.h"
+> @@ -385,29 +382,6 @@ static void __init omap3_pandora_legacy_init(void)
+>  }
+>  #endif /* CONFIG_ARCH_OMAP3 */
+>  
+> -#ifdef CONFIG_SOC_TI81XX
+> -static int fault_fixed_up;
+> -
+> -static int t410_abort_handler(unsigned long addr, unsigned int fsr,
+> -			      struct pt_regs *regs)
+> -{
+> -	if ((fsr == 0x406 || fsr == 0xc06) && !fault_fixed_up) {
+> -		pr_warn("External imprecise Data abort at addr=%#lx, fsr=%#x ignored.\n",
+> -			addr, fsr);
+> -		fault_fixed_up = 1;
+> -		return 0;
+> -	}
+> -
+> -	return 1;
+> -}
+> -
+> -static void __init t410_abort_init(void)
+> -{
+> -	hook_fault_code(16 + 6, t410_abort_handler, SIGBUS, BUS_OBJERR,
+> -			"imprecise external abort");
+> -}
+> -#endif
+> -
+>  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+>  static struct iommu_platform_data omap4_iommu_pdata = {
+>  	.reset_name = "mmu_cache",
+> @@ -536,9 +510,6 @@ static struct pdata_init pdata_quirks[] __initdata = {
+>  	{ "openpandora,omap3-pandora-600mhz", omap3_pandora_legacy_init, },
+>  	{ "openpandora,omap3-pandora-1ghz", omap3_pandora_legacy_init, },
+>  #endif
+> -#ifdef CONFIG_SOC_TI81XX
+> -	{ "hp,t410", t410_abort_init, },
+> -#endif
+>  #ifdef CONFIG_SOC_OMAP5
+>  	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
+>  #endif
 
-It does however also mean you can't really escape dealing with the
-fussiness of DPLL-LJ like you can on other devices (e.g. the am335x
-has only one, which is configured correctly by ROM and can't be
-reconfigured without breaking USB.)
-
-
-Matthijs
+-- 
+Pengutronix e.K.             | Lucas Stach                 |
+Industrial Linux Solutions   | http://www.pengutronix.de/  |
