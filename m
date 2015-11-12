@@ -1,83 +1,62 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] PCI: dra7xx: mark dra7xx_pcie_msi irq as IRQF_NO_THREAD
-Date: Thu, 12 Nov 2015 10:19:24 +0100
-Message-ID: <5644599C.8030905@linutronix.de>
-References: <1446748990-27722-1-git-send-email-grygorii.strashko@ti.com>
- <563C6A7D.7040503@linutronix.de> <563D06BF.5010707@ti.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: Minimal support for dm814x
+Date: Thu, 12 Nov 2015 10:20:24 +0100
+Message-ID: <CAALWOA_dEtajQBLrXesQ2bRCDf-1Dzg_tJw_=yAmaO=T3=KMZQ@mail.gmail.com>
+References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
+ <20151109150602.GR3199@atomide.com>
+ <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
+ <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
+ <20151111174028.GF3218@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <563D06BF.5010707@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, tony@atomide.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151111174028.GF3218@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Delio Brignoli <dbrignoli@audioscience.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/06/2015 08:59 PM, Grygorii Strashko wrote:
-> Hi Sebastian,
+On 11 November 2015 at 18:40, Tony Lindgren <tony@atomide.com> wrote:
+> Well we do first try to set the rate using the divider only at least for
+> drivers/clk/ti/fapll.c used on dm816x. I'm thinking about doing a similar
+> driver for the dm814x adpll where we have a PLL and separate output clocks
+> in a single driver as the PLL and output control registers are all mixed in.
 
-Hi Grygorii,
+Well the output control *is* part of the PLL block. More importantly,
+due to the constraints of DPLL-LJ you may need to consider the
+postdivider and PLL config together to produce the desired output
+frequency.
 
-> - IRQF_NO_THREAD is the first considered option for such kind of issues.
->   But: Now in LKML there are ~60 occurrences of IRQF_NO_THREAD - most of
->   them are used by Arch code. And It's only used by 6 drivers (drivers/*) [Addendum 2].
->   During past year, I've found only two threads related to IRQF_NO_THREAD
->   and, in both cases, IRQF_NO_THREAD was added for arch specific IRQs which
->   can't be threaded (https://lists.ozlabs.org/pipermail/linuxppc-dev/2014-November/122659.html,
->   https://lkml.org/lkml/2015/4/21/404).
+Note BTW that afaik exactly the same two DPLL types are used in nearly
+all TI SoCs (with exception of DM816x, and some enhancements have been
+made in the latest SoCs), but since the PLLs themselves only have
+wires sticking out, the register interface can vary significantly
+between devices. Most of them also wrap a layer of abstraction around
+them, while it seems the DM814x just directly wired all available
+signals into registers, no added sugar.
 
-That powerpc patch you reference is doing the same thing you are doing
-here.
+Another difference is that normally nearly all DPLLs are DPLL-S (aka
+"type A") and often only one is -LJ (aka "type B"), while the
+situation is reversed on the DM814x which has only one instance of
+DPLL-S and 12 instances of DPLL-LJ. Also unusual is that none have
+more than one output divider (no HSDIVIDER blocks present) and only
+two (HDMI and USB) make direct use of the undivided dco clock. This
+means that, with those two exceptions, you do have complete freedom in
+configuring the PLL for the needs of its single output clock.
 
-> - ARM UP system: TI's am437xx SoCs for example.
->    Here everything is started from /drivers/irqchip/irq-gic.c -> gic_handle_irq()
-> 
+It does however also mean you can't really escape dealing with the
+fussiness of DPLL-LJ like you can on other devices (e.g. the am335x
+has only one, which is configured correctly by ROM and can't be
+reconfigured without breaking USB.)
 
-> GIC IRQ handler gic_handle_irq() may process more than one IRQ without leaving HW IRQ mode
-> (during my experiments I saw up to 6 IRQs processed in one cycle).
 
-not only GIC. But then what good does it do if it leaves and returns
-immediately back to the routine?
-
-> As result, It was concluded, that having such current HW/SW and all IRQs forced threaded [1],
-> it will be potentially possible to predict system behavior, because gic_handle_irq() will
-> do the same things for most of processed IRQs.
-> But, once there will be chained [2] or IRQF_NO_THREAD [3] IRQs - complete unpredictability.
-
-I would not go as far as "complete unpredictability". What you do (or
-should do) is testing the system for longer period of time with
-different behavior in order to estimate the worst case.
-You can't predict the system anyway since it is way too complex. Just
-try something that ensures that cyclictest is no longer cache hot and
-see what happens then.
-
-> So, It was selected as goal to have all PPI IRQs (forced) threaded. And if someone
-> will require faster IRQ handling - IRQF_NO_THREAD can be always added, but it will
-> be custom solution then. 
-> 
-> I'd be appreciated for your comments - if above problem is not a problem.
-> Good - IRQF_NO_THREAD forever!
-
-Yes, we try to avoid IRQF_NO_THREAD under all circumstances. However it
-is required for low-level arch code. This includes basically
-everything that is using raw-locks which includes interrupt controller
-(the "real" ones like GIC or cascading like MSI or GPIO).
-Here it is simple - you have a cascading MSI-interrupt controller and
-as such it should be IRQF_NO_THREAD marked.
-The latency spikes in worst case are not huge as explained earlier: The
-only thing your cascading controller is allowed to do is to mark
-interrupt as pending (which is with threaded interrupts just a task
-wakeup).
-And this is not a -RT only problem: it is broken in vanilla linux with
-threaded interrupts as well.
-
-Btw: There is an exception to this rule (as always): If you are on a
-slow/blocking bus then you don't do IRQF_NO_THREAD. A slow bus would be
-a GPIO controller behind an I2C/SPI controller which also acts as an
-interrupt controller. Here you use a threaded-handler +
-handle_nested_irq().
-
-> Thanks.
-
-Sebastian
+Matthijs
