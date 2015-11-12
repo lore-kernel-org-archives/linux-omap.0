@@ -1,94 +1,82 @@
-From: Neil Armstrong <narmstrong@baylibre.com>
-Subject: Re: [PATCH 1/4] arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx
- hwmod data
-Date: Thu, 12 Nov 2015 15:15:49 +0100
-Message-ID: <56449F15.10508@baylibre.com>
-References: <5628A9F2.3010801@baylibre.com>
- <20151024012112.GA3078@atomide.com>
- <CAA3gFWs8-3pqiZR8vYLDWdXwWjUcd9UK23W3dODGTT+FY55E7g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAA3gFWs8-3pqiZR8vYLDWdXwWjUcd9UK23W3dODGTT+FY55E7g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Frode Isaksen <fisaksen@baylibre.com>
+From: Luis Henriques <luis.henriques@canonical.com>
+Subject: [3.16.y-ckt stable] Patch "clk: ti: fix dual-registration of uart4_ick" has been added to staging queue
+Date: Thu, 12 Nov 2015 16:45:25 +0000
+Message-ID: <1447346725-29637-1-git-send-email-luis.henriques@canonical.com>
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@lists.codethink.co.uk, Tero Kristo <t-kristo@ti.com>, Luis Henriques <luis.henriques@canonical.com>, kernel-team@lists.ubuntu.com
 List-Id: linux-omap@vger.kernel.org
 
-On 10/24/2015 12:09 PM, Neil Armstrong wrote:
-> Hi,
-> 
-> 2015-10-24 3:21 GMT+02:00 Tony Lindgren <tony@atomide.com>:
->>
->> Hi,
->>
->> * Neil Armstrong <narmstrong@baylibre.com> [151022 02:19]:
->>> Add missing HWMOD_NO_IDLEST hwmod flag for entries no
->>> having omap4 clkctrl values.
->>
->> Have you checked this is the case both in dm814x and dm816x TRM?
->> Also the documentation may not be complete FYI, might be also
->> worth checking the legacy TI kernel tree to be sure.
->>
->> Regards,
->>
->> Tony
->>
->>> Cc: Brian Hutchinson <b.hutchman@gmail.com>
->>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->>> ---
->>>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 3 +++
->>>  1 file changed, 3 insertions(+)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
->>> index b1288f5..6256052 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
->>> @@ -144,6 +144,7 @@ static struct omap_hwmod dm81xx_l4_ls_hwmod = {
->>>       .name           = "l4_ls",
->>>       .clkdm_name     = "alwon_l3s_clkdm",
->>>       .class          = &l4_hwmod_class,
->>> +     .flags          = HWMOD_NO_IDLEST,
->>>  };
-> In DM814x TRM, the CM_ALWON_L3_SLOW_CLKSTCTRL does not have IDLEST field.
-> Same in DM816x TRM.
-> 
->>>
->>>  /*
->>> @@ -155,6 +156,7 @@ static struct omap_hwmod dm81xx_l4_hs_hwmod = {
->>>       .name           = "l4_hs",
->>>       .clkdm_name     = "alwon_l3_med_clkdm",
->>>       .class          = &l4_hwmod_class,
->>> +     .flags          = HWMOD_NO_IDLEST,
->>>  };
-> In DM814x TRM, the CM_ALWON_L3_MED_CLKSTCTRL does not have IDLEST field.
-> Same in DM816x TRM.
-> 
->>>
->>>  /* L3 slow -> L4 ls peripheral interface running at 125MHz */
->>> @@ -850,6 +852,7 @@ static struct omap_hwmod dm816x_emac0_hwmod = {
->>>       .name           = "emac0",
->>>       .clkdm_name     = "alwon_ethernet_clkdm",
->>>       .class          = &dm816x_emac_hwmod_class,
->>> +     .flags          = HWMOD_NO_IDLEST,
->>>  };
-> In this particular case, the IDLEST is handled in the MDIO hwmod.
-> 
->>>
->>>  static struct omap_hwmod_ocp_if dm81xx_l4_hs__emac0 = {
->>> --
->>> 1.9.1
-> 
-> I'll check the TI tree to be sure...
-> 
-> Regards,
-> Neil
-> 
-Tony,
+This is a note to let you know that I have just added a patch titled
 
-In TI's tree, there is no L3_MED hwmod but the L3_SLOW hwmod has NO_IDLEST flag.
+    clk: ti: fix dual-registration of uart4_ick
 
-Is there any other issue about this patchset ?
+to the linux-3.16.y-queue branch of the 3.16.y-ckt extended stable tree 
+which can be found at:
 
-Neil
+    http://kernel.ubuntu.com/git/ubuntu/linux.git/log/?h=linux-3.16.y-queue
+
+This patch is scheduled to be released in version 3.16.7-ckt20.
+
+If you, or anyone else, feels it should not be added to this tree, please 
+reply to this email.
+
+For more information about the 3.16.y-ckt tree, see
+https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
+
+Thanks.
+-Luis
+
+------
+
+>From 30b9c68b905ec04f247510518022db8faec47292 Mon Sep 17 00:00:00 2001
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Date: Tue, 29 Sep 2015 15:01:08 +0100
+Subject: clk: ti: fix dual-registration of uart4_ick
+
+commit 19e79687de22f23bcfb5e79cce3daba20af228d1 upstream.
+
+On the OMAP AM3517 platform the uart4_ick gets registered
+twice, causing any power management to /dev/ttyO3 to fail
+when trying to wake the device up.
+
+This solves the following oops:
+
+[] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
+[] PC is at serial_omap_pm+0x48/0x15c
+[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+
+Fixes: aafd900cab87 ("CLK: TI: add omap3 clock init file")
+Cc: mturquette@baylibre.com
+Cc: sboyd@codeaurora.org
+Cc: linux-clk@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-kernel@lists.codethink.co.uk
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+---
+ drivers/clk/ti/clk-3xxx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 0d1750a8aea4..088930c3ee4b 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -170,7 +170,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+ 	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
+ 	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+ 	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+-	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+ 	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+ 	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+@@ -313,6 +312,7 @@ static struct ti_dt_clk am35xx_clks[] = {
+ static struct ti_dt_clk omap36xx_clks[] = {
+ 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
+ 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
++	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	{ .node_name = NULL },
+ };
+
