@@ -1,76 +1,85 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] gpio: omap: fix debounce time calculation
-Date: Thu, 12 Nov 2015 12:02:19 -0800
-Message-ID: <5644F04B.6080406@oracle.com>
-References: <1447350640-20347-1-git-send-email-balbi@ti.com>
- <5644D4F5.8070006@ti.com> <87egfvqecr.fsf@saruman.tx.rr.com>
- <5644E85C.8010807@ti.com> <877flnqagp.fsf@saruman.tx.rr.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <877flnqagp.fsf@saruman.tx.rr.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, linux-gpio@vger.kernel.org
+From: Kamal Mostafa <kamal@canonical.com>
+Subject: [3.19.y-ckt stable] Patch "clk: ti: fix dual-registration of uart4_ick" has been added to staging queue
+Date: Thu, 12 Nov 2015 15:13:47 -0800
+Message-ID: <1447370027-28000-1-git-send-email-kamal@canonical.com>
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@lists.codethink.co.uk, Tero Kristo <t-kristo@ti.com>, Kamal Mostafa <kamal@canonical.com>, kernel-team@lists.ubuntu.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/12/2015 11:33 AM, Felipe Balbi wrote:
->
-> Hi,
->
-> Grygorii Strashko <grygorii.strashko@ti.com> writes:
->> On 11/12/2015 08:09 PM, Felipe Balbi wrote:
->>>
->>> Hi,
->>>
->>> Grygorii Strashko <grygorii.strashko@ti.com> writes:
->>>> On 11/12/2015 07:50 PM, Felipe Balbi wrote:
->>>>> According to TRM, debounce is measured in periods of
->>>>> the functional clock of the GPIO IP. This means that
->>>>
->>>>
->>>> What TRM? link pls.
->>>>
->>>> http://www.ti.com/lit/ug/spruhl7d/spruhl7d.pdf
->>>>
->>>> 28.4.1.24 GPIO_DEBOUNCINGTIME Register (offset = 154h) [reset = 0h]
->>>>
->>>> The GPIO_DEBOUNCINGTIME register controls debouncing time (the value is
->>>> global for all ports). The debouncing cell is running with the
->>>> debouncing clock (32 kHz), this register represents the number of the
->>>> clock cycle(s) (31 s long) to be used.
->>>>
->>>> Debouncing Value in 31 microsecond steps.
->>>> Debouncing Value = (DEBOUNCETIME + 1) * 31 microseconds.
->>>
->>> DRA7xx:
->>>
->>> "
->>> 8-bit values specifying the debouncing time. It is n-
->>> periods of the muxed clock, which can come from either
->>> a true 32k oscillator/pad of from the system clock. It
->>> depends on which boot mode is selected. For more
->>> information see Chapter 32, Initialization.
->>> "
->>>
->>
->> See
->> http://www.ti.com/lit/ug/spruhz6d/spruhz6d.pdf
->> 27.4.3 General-Purpose Interface Clock Configuration
->> 27.4.3.1 Clocking
->>
->> This completely unclear. Sry, I think this patch can't be used as is,
->> first of all because of backward compatibility issues.
->
-> yeah, might be. No issues, I'll just go dig older TRMs and trying to
-> figure this one out. Meanwhile, let's let's keep it as is.
->
-Just to be clear, being a common GPIO driver, it can't break
-backward compatibility. So NAK for current patch.
-If needed, please setup different debounce functions based
-on GPIO IP numbers if it makes is efficient/accurate.
+This is a note to let you know that I have just added a patch titled
 
-Regards,
-Santosh
+    clk: ti: fix dual-registration of uart4_ick
+
+to the linux-3.19.y-queue branch of the 3.19.y-ckt extended stable tree 
+which can be found at:
+
+    http://kernel.ubuntu.com/git/ubuntu/linux.git/log/?h=linux-3.19.y-queue
+
+This patch is scheduled to be released in version 3.19.8-ckt10.
+
+If you, or anyone else, feels it should not be added to this tree, please 
+reply to this email.
+
+For more information about the 3.19.y-ckt tree, see
+https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
+
+Thanks.
+-Kamal
+
+------
+
+>From da8f142b680efa5a8b8d746719c08a8486506837 Mon Sep 17 00:00:00 2001
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Date: Tue, 29 Sep 2015 15:01:08 +0100
+Subject: [PATCH 014/120] clk: ti: fix dual-registration of uart4_ick
+
+commit 19e79687de22f23bcfb5e79cce3daba20af228d1 upstream.
+
+On the OMAP AM3517 platform the uart4_ick gets registered
+twice, causing any power management to /dev/ttyO3 to fail
+when trying to wake the device up.
+
+This solves the following oops:
+
+[] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
+[] PC is at serial_omap_pm+0x48/0x15c
+[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+
+Fixes: aafd900cab87 ("CLK: TI: add omap3 clock init file")
+Cc: mturquette@baylibre.com
+Cc: sboyd@codeaurora.org
+Cc: linux-clk@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-kernel@lists.codethink.co.uk
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+---
+ drivers/clk/ti/clk-3xxx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
+index 0d1750a..088930c 100644
+--- a/drivers/clk/ti/clk-3xxx.c
++++ b/drivers/clk/ti/clk-3xxx.c
+@@ -170,7 +170,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
+ 	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
+ 	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
+ 	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
+-	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
+ 	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
+ 	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
+@@ -313,6 +312,7 @@ static struct ti_dt_clk am35xx_clks[] = {
+ static struct ti_dt_clk omap36xx_clks[] = {
+ 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
+ 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
++	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
+ 	{ .node_name = NULL },
+ };
+
+--
+1.9.1
 
