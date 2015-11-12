@@ -1,76 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 0/3] ARM: OMAP2+ McASP(3) support for DRA7xx family
-Date: Thu, 12 Nov 2015 10:00:27 -0800
-Message-ID: <20151112180027.GP3218@atomide.com>
-References: <1447313579-23873-1-git-send-email-peter.ujfalusi@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] gpio: omap: fix debounce time calculation
+Date: Thu, 12 Nov 2015 20:05:41 +0200
+Message-ID: <5644D4F5.8070006@ti.com>
+References: <1447350640-20347-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1447313579-23873-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: paul@pwsan.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1447350640-20347-1-git-send-email-balbi@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [151111 23:33]:
-> Hi Tony,
-> 
-> Changes since v3:
-> - rebased on mainline's HEAD
-> - Added Tested-by from Felipe
-> - Added Acked-by from Paul for the hwmod patches
-> 
-> Changes since v2:
-> - DTS patch added which is needed because of the clock handling changes
-> 
-> Felip Balbi reported that linux-next is broken right now since the DTS part of
-> the earlier series has been applied, but we do not have the mcasp hwmod in the
-> kernel:
-> ...
-> [    0.181029] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
-> ...
-> [    6.121072] davinci-mcasp 48468000.mcasp: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
-> [    6.130790] ------------[ cut here ]------------
-> [    6.135643] WARNING: CPU: 0 PID: 244 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x220/0x34c()
-> [    6.145576] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3 (Read): Data Access in User mode during Functional access
+On 11/12/2015 07:50 PM, Felipe Balbi wrote:
+> According to TRM, debounce is measured in periods of
+> the functional clock of the GPIO IP. This means that
 
 
-Thanks applying all three into omap-for-v4.4/fixes.
+What TRM? link pls.
 
-Tony
+http://www.ti.com/lit/ug/spruhl7d/spruhl7d.pdf
 
-> ...
+28.4.1.24 GPIO_DEBOUNCINGTIME Register (offset = 154h) [reset = 0h]
+
+The GPIO_DEBOUNCINGTIME register controls debouncing time (the value is
+global for all ports). The debouncing cell is running with the
+debouncing clock (32 kHz), this register represents the number of the
+clock cycle(s) (31 s long) to be used.
+
+Debouncing Value in 31 microsecond steps.
+Debouncing Value = (DEBOUNCETIME + 1) * 31 microseconds.
+
+> we should divide by the rate of functional clock.
 > 
-> This is the followup series for the hwmod changes needed to get audio working
-> on DRA7xx family based boards.
-> The DTS patches has been applied by Tony from the original series:
-> http://www.spinics.net/lists/linux-omap/msg121473.html
-> 
-> I have addressed your comments in the hwmod data and did some research also
-> regarding to the use of ahclkx as fclk in the original submission.
-> It turned out that McASP _needs_ all clocks to be enabled (fclk, iclk and
-> ahclkx/r) to be able to access registers. The original patch where we handled
-> the ahclkx as fclk worked, because the fclk clock got enabled in the HW w/o
-> any SW interaction.
-> All in all, the McASP found in DRA7 needs all clocks to be enabled.
-> To satisfy this I have introduced a new flag to hwmod, which means that the
-> listed optional clocks need to be handled alongside with the fclk clock.
-> 
-> Regards,
-> Peter
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 > ---
-> Peter Ujfalusi (3):
->   ARM: DTS: dra7: Fix McASP3 node regarding to clocks
->   ARM: OMAP2+: hwmod: Add hwmod flag for HWMOD_OPT_CLKS_NEEDED
->   ARM: OMAP: DRA7: hwmod: Add data for McASP3
+>   drivers/gpio/gpio-omap.c | 24 +++++++++++++++++-------
+>   1 file changed, 17 insertions(+), 7 deletions(-)
 > 
->  arch/arm/boot/dts/dra7.dtsi               |  4 +-
->  arch/arm/mach-omap2/omap_hwmod.c          | 66 +++++++++++++++++--------------
->  arch/arm/mach-omap2/omap_hwmod.h          |  3 ++
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 56 ++++++++++++++++++++++++++
->  4 files changed, 97 insertions(+), 32 deletions(-)
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 56d2d026e62e..2b29fd195521 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -217,15 +217,29 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+>   	u32			val;
+>   	u32			l;
+>   	bool			enable = !!debounce;
+> +	unsigned long		flags;
+>   
+>   	if (!bank->dbck_flag)
+>   		return;
+>   
+>   	if (enable) {
+> -		debounce = DIV_ROUND_UP(debounce, 31) - 1;
+> +		struct clk	*clk;
+> +		unsigned long	rate;
+> +
+> +		clk = clk_get(bank->dev, "fck");
+> +		if (IS_ERR(clk)) {
+> +			dev_err(bank->dev, "can't get clock\n");
+> +			return;
+> +		}
+> +
+> +		rate = clk_get_rate(clk);
+> +		clk_put(clk);
+> +
+> +		debounce = DIV_ROUND_UP(debounce, rate);
+>   		debounce &= OMAP4_GPIO_DEBOUNCINGTIME_MASK;
+>   	}
+>   
+> +	raw_spin_lock_irqsave(&bank->lock, flags);
+>   	l = BIT(offset);
+>   
+>   	clk_enable(bank->dbck);
+> @@ -256,6 +270,7 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+>   		bank->context.debounce = debounce;
+>   		bank->context.debounce_en = val;
+>   	}
+> +	raw_spin_unlock_irqrestore(&bank->lock, flags);
+>   }
+>   
+>   /**
+> @@ -1002,14 +1017,9 @@ static int omap_gpio_output(struct gpio_chip *chip, unsigned offset, int value)
+>   static int omap_gpio_debounce(struct gpio_chip *chip, unsigned offset,
+>   			      unsigned debounce)
+>   {
+> -	struct gpio_bank *bank;
+> -	unsigned long flags;
+> -
+> -	bank = container_of(chip, struct gpio_bank, chip);
+> +	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+>   
+> -	raw_spin_lock_irqsave(&bank->lock, flags);
+>   	omap2_set_gpio_debounce(bank, offset, debounce);
+> -	raw_spin_unlock_irqrestore(&bank->lock, flags);
+>   
+>   	return 0;
+>   }
 > 
-> -- 
-> 2.6.2
-> 
+
+
+-- 
+regards,
+-grygorii
