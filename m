@@ -1,72 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Minimal support for dm814x
-Date: Thu, 12 Nov 2015 09:41:55 -0800
-Message-ID: <20151112174155.GM3218@atomide.com>
-References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
- <20151109150602.GR3199@atomide.com>
- <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
- <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
- <20151111174028.GF3218@atomide.com>
- <CAALWOA_dEtajQBLrXesQ2bRCDf-1Dzg_tJw_=yAmaO=T3=KMZQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] arm: dts: complete dm816x device tree
+Date: Thu, 12 Nov 2015 09:47:06 -0800
+Message-ID: <20151112174706.GN3218@atomide.com>
+References: <56449D1D.4030803@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAALWOA_dEtajQBLrXesQ2bRCDf-1Dzg_tJw_=yAmaO=T3=KMZQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Delio Brignoli <dbrignoli@audioscience.com>
+In-Reply-To: <56449D1D.4030803@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, fisaksen@baylibre.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [151112 01:21]:
-> On 11 November 2015 at 18:40, Tony Lindgren <tony@atomide.com> wrote:
-> > Well we do first try to set the rate using the divider only at least for
-> > drivers/clk/ti/fapll.c used on dm816x. I'm thinking about doing a similar
-> > driver for the dm814x adpll where we have a PLL and separate output clocks
-> > in a single driver as the PLL and output control registers are all mixed in.
-> 
-> Well the output control *is* part of the PLL block. More importantly,
-> due to the constraints of DPLL-LJ you may need to consider the
-> postdivider and PLL config together to produce the desired output
-> frequency.
+* Neil Armstrong <narmstrong@baylibre.com> [151112 06:08]:
+> In order to fix support for the dm816x platform, add missing bits in
+> the dm816x dtsi and cleanup OCP.
 
-Yup.
-
-> Note BTW that afaik exactly the same two DPLL types are used in nearly
-> all TI SoCs (with exception of DM816x, and some enhancements have been
-> made in the latest SoCs), but since the PLLs themselves only have
-> wires sticking out, the register interface can vary significantly
-> between devices. Most of them also wrap a layer of abstraction around
-> them, while it seems the DM814x just directly wired all available
-> signals into registers, no added sugar.
-> 
-> Another difference is that normally nearly all DPLLs are DPLL-S (aka
-> "type A") and often only one is -LJ (aka "type B"), while the
-> situation is reversed on the DM814x which has only one instance of
-> DPLL-S and 12 instances of DPLL-LJ. Also unusual is that none have
-> more than one output divider (no HSDIVIDER blocks present) and only
-> two (HDMI and USB) make direct use of the undivided dco clock. This
-> means that, with those two exceptions, you do have complete freedom in
-> configuring the PLL for the needs of its single output clock.
-
-OK
-
-> It does however also mean you can't really escape dealing with the
-> fussiness of DPLL-LJ like you can on other devices (e.g. the am335x
-> has only one, which is configured correctly by ROM and can't be
-> reconfigured without breaking USB.)
-
-Does the old TI kernel tree driver correctly handle that?
+Which ones are needed as fixes for the v4.4-rc kernel?
 
 Regards,
 
 Tony
+
+> The last patch adds support for the omap4-hwspinlock.
+> 
+> v2: add ocp hwmod cleanup
+> 
+> Neil Armstrong (5):
+>   arm: dts: add dm816x missing #mbox-cells
+>   arm: dts: add dm816x missing spi DT dma handles
+>   arm: dts: add dm816x pwm property to timers
+>   arm: dts: remove dm816x invalid DT l3_main hwmod
+>   arm: dts: Add omap4-hwspinlock support in dm816x
+> 
+>  arch/arm/boot/dts/dm816x.dtsi | 20 +++++++++++++++++---
+>  1 file changed, 17 insertions(+), 3 deletions(-)
+> 
+> -- 
+> 1.9.1
