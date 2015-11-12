@@ -1,61 +1,64 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/2] arm: beaglex15: fix USB Gadget
-Date: Thu, 12 Nov 2015 11:54:34 -0600
-Message-ID: <87k2pnqf1h.fsf@saruman.tx.rr.com>
+Subject: [PATCH] extcon: palmas: add support for using VBUSDET output
+Date: Thu, 12 Nov 2015 11:57:14 -0600
+Message-ID: <1447351034-21150-1-git-send-email-balbi@ti.com>
 References: <1447350781-20649-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1447350781-20649-1-git-send-email-balbi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+TPS659038 can remux its GPIO_1 as VBUSDET output,
+which can be tied to a SoC GPIO and used as a VBUS
+interrupt.
 
+Beagle X15 uses that, in fact, and without it, I
+could not get USB peripheral working with that
+board.
 
-Hi,
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/extcon/extcon-palmas.c | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-Felipe Balbi <balbi@ti.com> writes:
-> Hi,
->
-> with the following patches I can get USB Gadget working
-> with my beagle x15 with today's Linus' tree.
->
-> regards
->
-> Felipe Balbi (2):
->   arm: boot: dts: beaglex15: Remove ID GPIO
->   arm: boot: beaglex15: pass correct interrupt
-
-actually, one patch missing. Didn't generate it with format-patch. I'll
-send as a reply to this thread.
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWRNJcAAoJEIaOsuA1yqREyOsQAJc7HwemHOBsfI2VesjmKJGU
-UiTpuTwbTZGWX0emvQmGs2zkwEq+EI4IKFGyEjHdlBgMVvKvX1iXcRc3QO7iR/8l
-+otTZbsRd0RG9hirN1kkYTHU1G7S6eyYeXkBiq1PZLfV7zu5V9+IRzZYGPx6sTjH
-MpU32eqA5EHyhtWHs/N14l8fIE104by8+GeVFUPysvAY8bmFkXzMawua642bvzLz
-HqWNmhrquYFHF0LH8mQV/erwXqEls/TcHWD39oRYMiwwIO5fNYTX9gkulYfbgQvD
-LBwyBVceOE+e0ktFW4uYe6zwF3Fx3dgbIozaeUwzFcdEQoXZAx+1XNTCfav5Y0jq
-LZAuKudgj2hMrPhiZxovVJLxDXSzxZKkcvRNP66/x4y2Y0FEN5PHpAq+olg9VXhD
-rHnG//GhT6QDnjQXbL+i4zNh19LVxCqFhCj6mPaht6fcBtL6c4tuDqJ/GIVPyZ4Z
-ZdDDcdU5mR3xwE+F5UNq53euyzGp2BuBCVU9eWV+X/0jfTfgYQy7/uTyIRsoTHuq
-19IwbGpqYTIFzIgbV4h0Q2gULsCKvSWnuEcfF6Tx4jclqo2LM9TXGdTTkOt3UAww
-UAIP0wHHfY5WYul9fIg0/cMgaCJSMamX66NeQYHIivLg8TDDs2U0L1Uh/qER9tzb
-Y1a6nwSvJUmWu9Iaf5fK
-=Zyri
------END PGP SIGNATURE-----
---=-=-=--
+diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+index 93c30a885740..7985d092c069 100644
+--- a/drivers/extcon/extcon-palmas.c
++++ b/drivers/extcon/extcon-palmas.c
+@@ -296,10 +296,28 @@ static int palmas_usb_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (palmas_usb->enable_vbus_detection) {
++		int irq = platform_get_irq(pdev, 0);
++
++		if (irq > 0) {
++			/* remux GPIO_1 as VBUSDET */
++			status = palmas_update_bits(palmas, PALMAS_PU_PD_OD_BASE,
++					PALMAS_PRIMARY_SECONDARY_PAD1,
++					PALMAS_PRIMARY_SECONDARY_PAD1_GPIO_1_MASK,
++					(1 << 3));
++			if (status < 0) {
++				dev_err(&pdev->dev, "can't remux GPIO1\n");
++				return status;
++			}
++
++			palmas_usb->vbus_irq = irq;
++		} else {
++			irq = regmap_irq_get_virq(palmas->irq_data,
++					PALMAS_VBUS_IRQ);
++			palmas_usb->vbus_irq = irq;
++		}
++
+ 		palmas_usb->vbus_otg_irq = regmap_irq_get_virq(palmas->irq_data,
+ 						       PALMAS_VBUS_OTG_IRQ);
+-		palmas_usb->vbus_irq = regmap_irq_get_virq(palmas->irq_data,
+-							   PALMAS_VBUS_IRQ);
+ 		status = devm_request_threaded_irq(palmas_usb->dev,
+ 				palmas_usb->vbus_irq, NULL,
+ 				palmas_vbus_irq_handler,
+-- 
+2.6.2
