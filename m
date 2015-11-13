@@ -1,159 +1,161 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 1/2] drm/atomic: Track drm_plane's active state
-Date: Fri, 13 Nov 2015 17:53:14 +0200
-Message-ID: <31721575aebfdce64636ab06ffc2a25a30621b61.1447428525.git.jsarha@ti.com>
-References: <cover.1447428525.git.jsarha@ti.com>
+From: Cyrille Pitchen <cyrille.pitchen-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 1/5] spi: introduce mmap read support for spi flash
+ devices
+Date: Fri, 13 Nov 2015 17:05:33 +0100
+Message-ID: <56460A4D.30303@atmel.com>
+References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
+ <1447133399-25658-2-git-send-email-vigneshr@ti.com>
+ <20151110232341.GU12143@google.com> <5642E546.3040806@ti.com>
+ <20151111072041.GA13174@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1447428525.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>, laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151111072041.GA13174@localhost>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
+Cc: Michal Suchanek <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-VHJhY2sgZHJtX3BsYW5lJ3MgYWN0aXZlIHN0YXRlIHdpdGggYSBuZXcgYm9vbGVhbiBpbiBzdHJ1
-Y3QKZHJtX3BsYW5lX3N0YXRlLiBUaGUgcGF0Y2ggcmVwbGFjZXMgZHJtX2F0b21pY19wbGFuZV9k
-aXNhYmxpbmcoKSB3aXRoCmRybV9hdG9taWNfaGVscGVyX3VwZGF0ZV9wbGFuZV9zdGF0ZSgpLiBJ
-biBhZGRpdGlvbiB0byBhbGwgdGhlIHNhbWUKdGhpbmdzIHRoZSBkcm1fYXRvbWljX3BsYW5lX2Rp
-c2FibGluZygpIHVzZWQgdG8gZG8gdGhlIG5ldyBmdW5jdGlvbgp1cGRhdGVzIHRoZSBhY3RpdmUt
-ZmxhZyBhbmQgY2FsbHMgYXRvbWljX3VwZGF0ZSgpIG9yIGF0b21pY19kaXNhYmxlKCkKZnJvbSB0
-aGUgcGxhbmUncyBoZWxwZXIgZnVuY3MgYXMgbmVlZGVkLgoKU2lnbmVkLW9mZi1ieTogSnlyaSBT
-YXJoYSA8anNhcmhhQHRpLmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vZHJtX2F0b21pY19oZWxw
-ZXIuYyB8IDYzICsrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0KIGRyaXZlcnMv
-Z3B1L2RybS9kcm1fcGxhbmVfaGVscGVyLmMgIHwgMTAgKy0tLS0tCiBpbmNsdWRlL2RybS9kcm1f
-YXRvbWljX2hlbHBlci5oICAgICB8IDM5ICsrLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiBpbmNsdWRl
-L2RybS9kcm1fY3J0Yy5oICAgICAgICAgICAgICB8ICAyICsrCiA0IGZpbGVzIGNoYW5nZWQsIDUz
-IGluc2VydGlvbnMoKyksIDYxIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1
-L2RybS9kcm1fYXRvbWljX2hlbHBlci5jIGIvZHJpdmVycy9ncHUvZHJtL2RybV9hdG9taWNfaGVs
-cGVyLmMKaW5kZXggYWVjYjVkNi4uZDAzZTJhYyAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJt
-L2RybV9hdG9taWNfaGVscGVyLmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL2RybV9hdG9taWNfaGVs
-cGVyLmMKQEAgLTExOTcsMTUgKzExOTcsNyBAQCB2b2lkIGRybV9hdG9taWNfaGVscGVyX2NvbW1p
-dF9wbGFuZXMoc3RydWN0IGRybV9kZXZpY2UgKmRldiwKIAkJaWYgKCFmdW5jcykKIAkJCWNvbnRp
-bnVlOwogCi0JCS8qCi0JCSAqIFNwZWNpYWwtY2FzZSBkaXNhYmxpbmcgdGhlIHBsYW5lIGlmIGRy
-aXZlcnMgc3VwcG9ydCBpdC4KLQkJICovCi0JCWlmIChkcm1fYXRvbWljX3BsYW5lX2Rpc2FibGlu
-ZyhwbGFuZSwgb2xkX3BsYW5lX3N0YXRlKSAmJgotCQkgICAgZnVuY3MtPmF0b21pY19kaXNhYmxl
-KQotCQkJZnVuY3MtPmF0b21pY19kaXNhYmxlKHBsYW5lLCBvbGRfcGxhbmVfc3RhdGUpOwotCQll
-bHNlIGlmIChwbGFuZS0+c3RhdGUtPmNydGMgfHwKLQkJCSBkcm1fYXRvbWljX3BsYW5lX2Rpc2Fi
-bGluZyhwbGFuZSwgb2xkX3BsYW5lX3N0YXRlKSkKLQkJCWZ1bmNzLT5hdG9taWNfdXBkYXRlKHBs
-YW5lLCBvbGRfcGxhbmVfc3RhdGUpOworCQlkcm1fYXRvbWljX2hlbHBlcl91cGRhdGVfcGxhbmVf
-c3RhdGUocGxhbmUsIG9sZF9wbGFuZV9zdGF0ZSk7CiAJfQogCiAJZm9yX2VhY2hfY3J0Y19pbl9z
-dGF0ZShvbGRfc3RhdGUsIGNydGMsIG9sZF9jcnRjX3N0YXRlLCBpKSB7CkBAIC0xMjY2LDEyICsx
-MjU4LDcgQEAgZHJtX2F0b21pY19oZWxwZXJfY29tbWl0X3BsYW5lc19vbl9jcnRjKHN0cnVjdCBk
-cm1fY3J0Y19zdGF0ZSAqb2xkX2NydGNfc3RhdGUpCiAKIAkJV0FSTl9PTihwbGFuZS0+c3RhdGUt
-PmNydGMgJiYgcGxhbmUtPnN0YXRlLT5jcnRjICE9IGNydGMpOwogCi0JCWlmIChkcm1fYXRvbWlj
-X3BsYW5lX2Rpc2FibGluZyhwbGFuZSwgb2xkX3BsYW5lX3N0YXRlKSAmJgotCQkgICAgcGxhbmVf
-ZnVuY3MtPmF0b21pY19kaXNhYmxlKQotCQkJcGxhbmVfZnVuY3MtPmF0b21pY19kaXNhYmxlKHBs
-YW5lLCBvbGRfcGxhbmVfc3RhdGUpOwotCQllbHNlIGlmIChwbGFuZS0+c3RhdGUtPmNydGMgfHwK
-LQkJCSBkcm1fYXRvbWljX3BsYW5lX2Rpc2FibGluZyhwbGFuZSwgb2xkX3BsYW5lX3N0YXRlKSkK
-LQkJCXBsYW5lX2Z1bmNzLT5hdG9taWNfdXBkYXRlKHBsYW5lLCBvbGRfcGxhbmVfc3RhdGUpOwor
-CQlkcm1fYXRvbWljX2hlbHBlcl91cGRhdGVfcGxhbmVfc3RhdGUocGxhbmUsIG9sZF9wbGFuZV9z
-dGF0ZSk7CiAJfQogCiAJaWYgKGNydGNfZnVuY3MgJiYgY3J0Y19mdW5jcy0+YXRvbWljX2ZsdXNo
-KQpAQCAtMTI3OSw2ICsxMjY2LDUyIEBAIGRybV9hdG9taWNfaGVscGVyX2NvbW1pdF9wbGFuZXNf
-b25fY3J0YyhzdHJ1Y3QgZHJtX2NydGNfc3RhdGUgKm9sZF9jcnRjX3N0YXRlKQogfQogRVhQT1JU
-X1NZTUJPTChkcm1fYXRvbWljX2hlbHBlcl9jb21taXRfcGxhbmVzX29uX2NydGMpOwogCisvKgor
-ICogZHJtX2F0b21pY19oZWxwZXJfdXBkYXRlX3BsYW5lX3N0YXRlIC0gdXBkYXRlIHBsYW5lJ3Mg
-YXRvbWljIHN0YXRlCisgKiBAcGxhbmU6IHBsYW5lIG9iamVjdAorICogQG9sZF9zdGF0ZTogcHJl
-dmlvdXMgYXRvbWljIHN0YXRlCisgKgorICogVXBkYXRlIHBsYW5lJ3MgYXRvbWljIHN0YXRlLCBk
-aXNhYmxlcyBpdCBpZiB0aGF0IGlzIHJlcXVpcmVkLCBhbmQKKyAqIHVwZGF0ZXMgZHJtX3BhbG5l
-c19zdGF0ZSdzIGFjdGl2ZS1mbGFnLiBUaGlzIGFsc28gV0FSTnMgaWYgaXQKKyAqIGRldGVjdHMg
-YW4gaW52YWxpZCBzdGF0ZSAoYm90aCBDUlRDIGFuZCBGQiBuZWVkIHRvIGVpdGhlciBib3RoIGJl
-CisgKiBOVUxMIG9yIGJvdGggYmUgbm9uLU5VTEwpLgorICovCit2b2lkIGRybV9hdG9taWNfaGVs
-cGVyX3VwZGF0ZV9wbGFuZV9zdGF0ZShzdHJ1Y3QgZHJtX3BsYW5lICpwbGFuZSwKKwkJCQkJICBz
-dHJ1Y3QgZHJtX3BsYW5lX3N0YXRlICpvbGRfc3RhdGUpCit7CisJY29uc3Qgc3RydWN0IGRybV9w
-bGFuZV9oZWxwZXJfZnVuY3MgKmZ1bmNzID0gcGxhbmUtPmhlbHBlcl9wcml2YXRlOworCisJLyoK
-KwkgKiBXaGVuIGRpc2FibGluZyBhIHBsYW5lLCBDUlRDIGFuZCBGQiBzaG91bGQgYWx3YXlzIGJl
-IE5VTEwgdG9nZXRoZXIuCisJICogQW55dGhpbmcgZWxzZSBzaG91bGQgYmUgY29uc2lkZXJlZCBh
-IGJ1ZyBpbiB0aGUgYXRvbWljIGNvcmUsIHNvIHdlCisJICogZ2VudGx5IHdhcm4gYWJvdXQgaXQu
-CisJICovCisJV0FSTl9PTigocGxhbmUtPnN0YXRlLT5jcnRjID09IE5VTEwgJiYgcGxhbmUtPnN0
-YXRlLT5mYiAhPSBOVUxMKSB8fAorCQkocGxhbmUtPnN0YXRlLT5jcnRjICE9IE5VTEwgJiYgcGxh
-bmUtPnN0YXRlLT5mYiA9PSBOVUxMKSk7CisKKwlpZiAoIWZ1bmNzKQorCQlyZXR1cm47CisKKwkv
-KgorCSAqIFRoZSBwbGFuZSBuZWVkcyB0byBiZSBhY3RpdmUgb25seSBpZiBpdCBoYXMgYW4gYXNz
-b2NpYXRlZCBDUlRDCisJICogYW5kIHRoZSBDUlRDIGlzIGFjdGl2ZS4gVXNlIGF0b21pY19kaXNh
-YmxlKCkgaWYgYXZhaWxhYmxlLgorCSAqLworCWlmIChwbGFuZS0+c3RhdGUtPmFjdGl2ZSkgewor
-CQlpZiAoIXBsYW5lLT5zdGF0ZS0+Y3J0YyB8fCAhcGxhbmUtPnN0YXRlLT5jcnRjLT5zdGF0ZS0+
-YWN0aXZlKSB7CisJCQlwbGFuZS0+c3RhdGUtPmFjdGl2ZSA9IGZhbHNlOworCQkJaWYgKGZ1bmNz
-LT5hdG9taWNfZGlzYWJsZSkgeworCQkJCWZ1bmNzLT5hdG9taWNfZGlzYWJsZShwbGFuZSwgb2xk
-X3N0YXRlKTsKKwkJCQlyZXR1cm47CisJCQl9CisJCX0KKwkJZnVuY3MtPmF0b21pY191cGRhdGUo
-cGxhbmUsIG9sZF9zdGF0ZSk7CisJfSBlbHNlIGlmIChwbGFuZS0+c3RhdGUtPmNydGMgJiYgcGxh
-bmUtPnN0YXRlLT5jcnRjLT5zdGF0ZS0+YWN0aXZlKSB7CisJCXBsYW5lLT5zdGF0ZS0+YWN0aXZl
-ID0gdHJ1ZTsKKwkJZnVuY3MtPmF0b21pY191cGRhdGUocGxhbmUsIG9sZF9zdGF0ZSk7CisJfQor
-fQorRVhQT1JUX1NZTUJPTChkcm1fYXRvbWljX2hlbHBlcl91cGRhdGVfcGxhbmVfc3RhdGUpOwor
-CiAvKioKICAqIGRybV9hdG9taWNfaGVscGVyX2NsZWFudXBfcGxhbmVzIC0gY2xlYW51cCBwbGFu
-ZSByZXNvdXJjZXMgYWZ0ZXIgY29tbWl0CiAgKiBAZGV2OiBEUk0gZGV2aWNlCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL2dwdS9kcm0vZHJtX3BsYW5lX2hlbHBlci5jIGIvZHJpdmVycy9ncHUvZHJtL2Ry
-bV9wbGFuZV9oZWxwZXIuYwppbmRleCA1ZTVhMDdhLi45MzA1MmRlIDEwMDY0NAotLS0gYS9kcml2
-ZXJzL2dwdS9kcm0vZHJtX3BsYW5lX2hlbHBlci5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9kcm1f
-cGxhbmVfaGVscGVyLmMKQEAgLTQ0MCwxNSArNDQwLDcgQEAgaW50IGRybV9wbGFuZV9oZWxwZXJf
-Y29tbWl0KHN0cnVjdCBkcm1fcGxhbmUgKnBsYW5lLAogCQkJY3J0Y19mdW5jc1tpXS0+YXRvbWlj
-X2JlZ2luKGNydGNbaV0sIGNydGNbaV0tPnN0YXRlKTsKIAl9CiAKLQkvKgotCSAqIERyaXZlcnMg
-bWF5IG9wdGlvbmFsbHkgaW1wbGVtZW50IHRoZSAtPmF0b21pY19kaXNhYmxlIGNhbGxiYWNrLCBz
-bwotCSAqIHNwZWNpYWwtY2FzZSB0aGF0IGhlcmUuCi0JICovCi0JaWYgKGRybV9hdG9taWNfcGxh
-bmVfZGlzYWJsaW5nKHBsYW5lLCBwbGFuZV9zdGF0ZSkgJiYKLQkgICAgcGxhbmVfZnVuY3MtPmF0
-b21pY19kaXNhYmxlKQotCQlwbGFuZV9mdW5jcy0+YXRvbWljX2Rpc2FibGUocGxhbmUsIHBsYW5l
-X3N0YXRlKTsKLQllbHNlCi0JCXBsYW5lX2Z1bmNzLT5hdG9taWNfdXBkYXRlKHBsYW5lLCBwbGFu
-ZV9zdGF0ZSk7CisJZHJtX2F0b21pY19oZWxwZXJfdXBkYXRlX3BsYW5lX3N0YXRlKHBsYW5lLCBw
-bGFuZV9zdGF0ZSk7CiAKIAlmb3IgKGkgPSAwOyBpIDwgMjsgaSsrKSB7CiAJCWlmIChjcnRjX2Z1
-bmNzW2ldICYmIGNydGNfZnVuY3NbaV0tPmF0b21pY19mbHVzaCkKZGlmZiAtLWdpdCBhL2luY2x1
-ZGUvZHJtL2RybV9hdG9taWNfaGVscGVyLmggYi9pbmNsdWRlL2RybS9kcm1fYXRvbWljX2hlbHBl
-ci5oCmluZGV4IDExMjY2ZDE0Li4yZmJkZjVlIDEwMDY0NAotLS0gYS9pbmNsdWRlL2RybS9kcm1f
-YXRvbWljX2hlbHBlci5oCisrKyBiL2luY2x1ZGUvZHJtL2RybV9hdG9taWNfaGVscGVyLmgKQEAg
-LTU5LDYgKzU5LDggQEAgdm9pZCBkcm1fYXRvbWljX2hlbHBlcl9jb21taXRfcGxhbmVzKHN0cnVj
-dCBkcm1fZGV2aWNlICpkZXYsCiB2b2lkIGRybV9hdG9taWNfaGVscGVyX2NsZWFudXBfcGxhbmVz
-KHN0cnVjdCBkcm1fZGV2aWNlICpkZXYsCiAJCQkJICAgICAgc3RydWN0IGRybV9hdG9taWNfc3Rh
-dGUgKm9sZF9zdGF0ZSk7CiB2b2lkIGRybV9hdG9taWNfaGVscGVyX2NvbW1pdF9wbGFuZXNfb25f
-Y3J0YyhzdHJ1Y3QgZHJtX2NydGNfc3RhdGUgKm9sZF9jcnRjX3N0YXRlKTsKK3ZvaWQgZHJtX2F0
-b21pY19oZWxwZXJfdXBkYXRlX3BsYW5lX3N0YXRlKHN0cnVjdCBkcm1fcGxhbmUgKnBsYW5lLAor
-CQkJCQkgIHN0cnVjdCBkcm1fcGxhbmVfc3RhdGUgKm9sZF9zdGF0ZSk7CiAKIHZvaWQgZHJtX2F0
-b21pY19oZWxwZXJfc3dhcF9zdGF0ZShzdHJ1Y3QgZHJtX2RldmljZSAqZGV2LAogCQkJCSAgc3Ry
-dWN0IGRybV9hdG9taWNfc3RhdGUgKnN0YXRlKTsKQEAgLTE0OCw0MSArMTUwLDQgQEAgdm9pZCBk
-cm1fYXRvbWljX2hlbHBlcl9jb25uZWN0b3JfZGVzdHJveV9zdGF0ZShzdHJ1Y3QgZHJtX2Nvbm5l
-Y3RvciAqY29ubmVjdG9yLAogI2RlZmluZSBkcm1fYXRvbWljX2NydGNfc3RhdGVfZm9yX2VhY2hf
-cGxhbmUocGxhbmUsIGNydGNfc3RhdGUpIFwKIAlkcm1fZm9yX2VhY2hfcGxhbmVfbWFzayhwbGFu
-ZSwgKGNydGNfc3RhdGUpLT5zdGF0ZS0+ZGV2LCAoY3J0Y19zdGF0ZSktPnBsYW5lX21hc2spCiAK
-LS8qCi0gKiBkcm1fYXRvbWljX3BsYW5lX2Rpc2FibGluZyAtIGNoZWNrIHdoZXRoZXIgYSBwbGFu
-ZSBpcyBiZWluZyBkaXNhYmxlZAotICogQHBsYW5lOiBwbGFuZSBvYmplY3QKLSAqIEBvbGRfc3Rh
-dGU6IHByZXZpb3VzIGF0b21pYyBzdGF0ZQotICoKLSAqIENoZWNrcyB0aGUgYXRvbWljIHN0YXRl
-IG9mIGEgcGxhbmUgdG8gZGV0ZXJtaW5lIHdoZXRoZXIgaXQncyBiZWluZyBkaXNhYmxlZAotICog
-b3Igbm90LiBUaGlzIGFsc28gV0FSTnMgaWYgaXQgZGV0ZWN0cyBhbiBpbnZhbGlkIHN0YXRlIChi
-b3RoIENSVEMgYW5kIEZCCi0gKiBuZWVkIHRvIGVpdGhlciBib3RoIGJlIE5VTEwgb3IgYm90aCBi
-ZSBub24tTlVMTCkuCi0gKgotICogUkVUVVJOUzoKLSAqIFRydWUgaWYgdGhlIHBsYW5lIGlzIGJl
-aW5nIGRpc2FibGVkLCBmYWxzZSBvdGhlcndpc2UuCi0gKi8KLXN0YXRpYyBpbmxpbmUgYm9vbAot
-ZHJtX2F0b21pY19wbGFuZV9kaXNhYmxpbmcoc3RydWN0IGRybV9wbGFuZSAqcGxhbmUsCi0JCQkg
-ICBzdHJ1Y3QgZHJtX3BsYW5lX3N0YXRlICpvbGRfc3RhdGUpCi17Ci0JLyoKLQkgKiBXaGVuIGRp
-c2FibGluZyBhIHBsYW5lLCBDUlRDIGFuZCBGQiBzaG91bGQgYWx3YXlzIGJlIE5VTEwgdG9nZXRo
-ZXIuCi0JICogQW55dGhpbmcgZWxzZSBzaG91bGQgYmUgY29uc2lkZXJlZCBhIGJ1ZyBpbiB0aGUg
-YXRvbWljIGNvcmUsIHNvIHdlCi0JICogZ2VudGx5IHdhcm4gYWJvdXQgaXQuCi0JICovCi0JV0FS
-Tl9PTigocGxhbmUtPnN0YXRlLT5jcnRjID09IE5VTEwgJiYgcGxhbmUtPnN0YXRlLT5mYiAhPSBO
-VUxMKSB8fAotCQkocGxhbmUtPnN0YXRlLT5jcnRjICE9IE5VTEwgJiYgcGxhbmUtPnN0YXRlLT5m
-YiA9PSBOVUxMKSk7Ci0KLQkvKgotCSAqIFdoZW4gdXNpbmcgdGhlIHRyYW5zaXRpb25hbCBoZWxw
-ZXJzLCBvbGRfc3RhdGUgbWF5IGJlIE5VTEwuIElmIHNvLAotCSAqIHdlIGtub3cgbm90aGluZyBh
-Ym91dCB0aGUgY3VycmVudCBzdGF0ZSBhbmQgaGF2ZSB0byBhc3N1bWUgdGhhdCBpdAotCSAqIG1p
-Z2h0IGJlIGVuYWJsZWQuCi0JICoKLQkgKiBXaGVuIHVzaW5nIHRoZSBhdG9taWMgaGVscGVycywg
-b2xkX3N0YXRlIHdvbid0IGJlIE5VTEwuIFRoZXJlZm9yZQotCSAqIHRoaXMgY2hlY2sgYXNzdW1l
-cyB0aGF0IGVpdGhlciB0aGUgZHJpdmVyIHdpbGwgaGF2ZSByZWNvbnN0cnVjdGVkCi0JICogdGhl
-IGNvcnJlY3Qgc3RhdGUgaW4gLT5yZXNldCgpIG9yIHRoYXQgdGhlIGRyaXZlciB3aWxsIGhhdmUg
-dGFrZW4KLQkgKiBhcHByb3ByaWF0ZSBtZWFzdXJlcyB0byBkaXNhYmxlIGFsbCBwbGFuZXMuCi0J
-ICovCi0JcmV0dXJuICghb2xkX3N0YXRlIHx8IG9sZF9zdGF0ZS0+Y3J0YykgJiYgIXBsYW5lLT5z
-dGF0ZS0+Y3J0YzsKLX0KLQogI2VuZGlmIC8qIERSTV9BVE9NSUNfSEVMUEVSX0hfICovCmRpZmYg
-LS1naXQgYS9pbmNsdWRlL2RybS9kcm1fY3J0Yy5oIGIvaW5jbHVkZS9kcm0vZHJtX2NydGMuaApp
-bmRleCBmYWFlZmY3Li5jNWVlNmI2IDEwMDY0NAotLS0gYS9pbmNsdWRlL2RybS9kcm1fY3J0Yy5o
-CisrKyBiL2luY2x1ZGUvZHJtL2RybV9jcnRjLmgKQEAgLTc2OCw2ICs3NjgsOCBAQCBzdHJ1Y3Qg
-ZHJtX2Nvbm5lY3RvciB7CiBzdHJ1Y3QgZHJtX3BsYW5lX3N0YXRlIHsKIAlzdHJ1Y3QgZHJtX3Bs
-YW5lICpwbGFuZTsKIAorCWJvb2wgYWN0aXZlOworCiAJc3RydWN0IGRybV9jcnRjICpjcnRjOyAg
-IC8qIGRvIG5vdCB3cml0ZSBkaXJlY3RseSwgdXNlIGRybV9hdG9taWNfc2V0X2NydGNfZm9yX3Bs
-YW5lKCkgKi8KIAlzdHJ1Y3QgZHJtX2ZyYW1lYnVmZmVyICpmYjsgIC8qIGRvIG5vdCB3cml0ZSBk
-aXJlY3RseSwgdXNlIGRybV9hdG9taWNfc2V0X2ZiX2Zvcl9wbGFuZSgpICovCiAJc3RydWN0IGZl
-bmNlICpmZW5jZTsKLS0gCjEuOS4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2RyaS1kZXZlbAo=
+Hi Brian,
+
+Le 11/11/2015 08:20, Brian Norris a =E9crit :
+> Hi,
+>=20
+> On Wed, Nov 11, 2015 at 12:20:46PM +0530, R, Vignesh wrote:
+>> On 11/11/2015 4:53 AM, Brian Norris wrote:
+>>> On Tue, Nov 10, 2015 at 10:59:55AM +0530, Vignesh R wrote:
+>>>> diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+>>>> index cce80e6dc7d1..2f2c431b8917 100644Hi
+>>>> --- a/include/linux/spi/spi.h
+>>>> +++ b/include/linux/spi/spi.h
+>>>> @@ -361,6 +361,11 @@ static inline void spi_unregister_driver(stru=
+ct spi_driver *sdrv)
+>>>>   * @handle_err: the subsystem calls the driver to handle an error=
+ that occurs
+>>>>   *		in the generic implementation of transfer_one_message().
+>>>>   * @unprepare_message: undo any work done by prepare_message().
+>>>> + * @spi_mtd_mmap_read: some spi-controller hardwares provide memo=
+ry.
+>>>> + *                     Flash drivers (like m25p80) can request me=
+mory
+>>>> + *                     mapped read via this method. This interfac=
+e
+>>>> + *                     should only be used by mtd flashes and can=
+not be
+>>>> + *                     used by other spi devices.
+>>>>   * @cs_gpios: Array of GPIOs to use as chip select lines; one per=
+ CS
+>>>>   *	number. Any individual value may be -ENOENT for CS lines that
+>>>>   *	are not GPIOs (driven by the SPI controller itself).
+>>>> @@ -507,6 +512,11 @@ struct spi_master {
+>>>>  			       struct spi_message *message);
+>>>>  	int (*unprepare_message)(struct spi_master *master,
+>>>>  				 struct spi_message *message);
+>>>> +	int (*spi_mtd_mmap_read)(struct  spi_device *spi,
+>>>> +				 loff_t from, size_t len,
+>>>> +				 size_t *retlen, u_char *buf,
+>>>> +				 u8 read_opcode, u8 addr_width,
+>>>> +				 u8 dummy_bytes);
+>>>
+>>> Is this API really sufficient? There are actually quite a few other
+>>> flash-related parameters that might be relevant to a controller. I
+>>> presume you happen not hit them because of the particular cases you=
+'re
+>>> using this for right now, but:
+>>>
+>>>  * How many I/O lines are being used? These can vary depending on t=
+he
+>>>    type of flash and the number of I/O lines supported by the contr=
+oller
+>>>    and connected on the board.
+>>>
+>>
+>> This API communicates whatever data is currently communicated via
+>> spi_message through spi_sync/transfer_one interfaces.
+>=20
+> No it doesn't. A spi_message consists of a list of spi_transfer's, an=
+d
+> each spi_transfer has tx_nbits and rx_nbits fields.
+>=20
+>>>  * The previous point can vary across parts of the message. There a=
+re
+>>>    various combinations of 1/2/4 lines used for opcode/address/data=
+=2E We
+>>>    only support a few of those combinations in m25p80 right now, bu=
+t
+>>>    you're not specifying any of that in this API. I guess you're ju=
+st
+>>>    making assumptions? (BTW, I think there are others having proble=
+ms
+>>>    with the difference between different "quad" modes on Micron fla=
+sh; I
+>>>    haven't sorted through all the discussion there.)
+>>>
+>>
+>> How is the spi controller currently being made aware of this via
+>> m25p80_read / spi_sync() interface? AFAIK, mode field of spi_device
+>> struct tell whether to do normal/dual/quad read but there is no info
+>> communicated wrt 1/2/4 opcode/address/data combinations.
+>=20
+> Yes there is. m25p80 fills out spi_transfer::rx_nbits. Currently, we
+> only use this for the data portion, but it's possible to support more
+> lines for the address and opcode portions too, using the rx_nbits for
+> the opcode and address spi_transfer struct(s) (currently, m25p80_read=
+()
+> uses 2 spi_transfers per message, where the first one contains opcode=
+ +
+> address + dummy on a single line, and the second transfer receives th=
+e
+> data on 1, 2, or 4 lines).
+>=20
+
+In September I've sent a series of patches to enhance the support of QS=
+PI flash
+memories. Patch 4 was dedicated to the m25p80 driver and set the
+rx_nbits / tx_nbits fields of spi_transfer struct(s) in order to config=
+ure the
+number of I/O lines independently for the opcode, address and data part=
+s.
+The work was done for m25p80_read() but also for _read_reg(), _write_re=
+g() and
+_write().
+The patched m25p80 driver was then tested with an at25 memory to check =
+non-
+regression.
+
+This series of patches also added 4 enum spi_protocol fields inside str=
+uct
+spi_nor so the spi-nor framework can tell the (Q)SPI controller driver =
+what SPI
+protocol should be use for erase, read, write and register read/write
+operations, depending on the memory manufacturer and the command opcode=
+=2E
+This was done to better support Micron, Spansion and Macronix QSPI memo=
+ries.
+
+I have tested the series with Micron QSPI memories and Atmel QSPI contr=
+oller
+and I guess Marek also tested it on his side with Spansion QSPI memorie=
+s and
+another QSPI controller.
+
+So if it can help other developers to develop QSPI controller drivers, =
+the
+series is still available there:
+
+for the whole series:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/37=
+1170.html
+
+for patch 4 (depends on patch 2 for enum spi_protocol):
+http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/37=
+1173.html
+
+Best Regards,
+
+Cyrille
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
