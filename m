@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 2/8] drivers:input:tsc2007: send pendown and penup only once like ads7846(+tsc2046) driver does
-Date: Fri, 13 Nov 2015 21:35:53 +0100
-Message-ID: <fb7daf0f65e122b62e3149316849a3aeb3c8e5c3.1447446957.git.hns@goldelico.com>
+Subject: [PATCH v2 8/8] DT:omap3+ads7846: use new common touchscreen bindings
+Date: Fri, 13 Nov 2015 21:35:59 +0100
+Message-ID: <df5bd5fdcc2284a7d8e2d5132bc865701a8ca38f.1447446957.git.hns@goldelico.com>
 References: <cover.1447446957.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1447446957.git.hns@goldelico.com>
@@ -12,53 +12,72 @@ To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutl
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-this should reduce unnecessary input events.
+The standard touch screen bindings [1] replace the private ti,swap-xy
+with touchscreen-swaped-x-y. And for the Openpandora we use
+touchscreen-size etc. to match the LCD screen size.
+
+[1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- drivers/input/touchscreen/tsc2007.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi              |  2 +-
+ arch/arm/boot/dts/omap3-pandora-common.dtsi          | 17 +++++++++++++----
+ arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi |  2 +-
+ 3 files changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
-index e0c7173..1a8a79d 100644
---- a/drivers/input/touchscreen/tsc2007.c
-+++ b/drivers/input/touchscreen/tsc2007.c
-@@ -94,6 +94,7 @@ struct tsc2007 {
+diff --git a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
+index d0dd036..01dae66 100644
+--- a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
++++ b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
+@@ -325,7 +325,7 @@
+ 		ti,y-max = /bits/ 16 <3600>;
+ 		ti,x-plate-ohms = /bits/ 16 <80>;
+ 		ti,pressure-max = /bits/ 16 <255>;
+-		ti,swap-xy;
++		touchscreen-swapped-x-y;
  
- 	wait_queue_head_t	wait;
- 	bool			stopped;
-+	bool			pendown;
+ 		linux,wakeup;
+ 	};
+diff --git a/arch/arm/boot/dts/omap3-pandora-common.dtsi b/arch/arm/boot/dts/omap3-pandora-common.dtsi
+index f672a04..9497cc6 100644
+--- a/arch/arm/boot/dts/omap3-pandora-common.dtsi
++++ b/arch/arm/boot/dts/omap3-pandora-common.dtsi
+@@ -696,10 +696,19 @@
+ 		pendown-gpio = <&gpio3 30 0>;
+ 		vcc-supply = <&vaux4>;
  
- 	int			(*get_pendown_state)(struct device *);
- 	void			(*clear_penirq)(void);
-@@ -251,7 +252,10 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
- 			dev_dbg(&ts->client->dev,
- 					"shaped point(%4d,%4d), pressure (%4u)\n",
- 					tc.x, tc.y, rt);
--			input_report_key(input, BTN_TOUCH, 1);
-+			if (!ts->pendown) {
-+				input_report_key(input, BTN_TOUCH, 1);
-+				ts->pendown = true;
-+			}
- 			input_report_abs(input, ABS_X, tc.x);
- 			input_report_abs(input, ABS_Y, tc.y);
- 			input_report_abs(input, ABS_PRESSURE, rt);
-@@ -272,9 +276,13 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
- 
- 	dev_dbg(&ts->client->dev, "UP\n");
- 
--	input_report_key(input, BTN_TOUCH, 0);
--	input_report_abs(input, ABS_PRESSURE, 0);
--	input_sync(input);
-+	if (ts->pendown) {
-+		input_report_key(input, BTN_TOUCH, 0);
-+		input_report_abs(input, ABS_PRESSURE, 0);
-+		input_sync(input);
+-		ti,x-min = /bits/ 16 <0>;
+-		ti,x-max = /bits/ 16 <8000>;
+-		ti,y-min = /bits/ 16 <0>;
+-		ti,y-max = /bits/ 16 <4800>;
++		touchscreen-size-x = <800>;
++		touchscreen-size-y = <480>;
++		touchscreen-max-pressure = <1000>;
++		touchscreen-fuzz-x = <16>;
++		touchscreen-fuzz-y = <16>;
++		touchscreen-fuzz-pressure = <10>;
++		touchscreen-inverted-x;
++		touchscreen-inverted-y;
 +
-+		ts->pendown = false;
-+	}
++		ti,x-min = /bits/ 16 <160>;
++		ti,x-max = /bits/ 16 <3900>;
++		ti,y-min = /bits/ 16 <220>;
++		ti,y-max = /bits/ 16 <3750>;
+ 		ti,x-plate-ohms = /bits/ 16 <40>;
+ 		ti,pressure-max = /bits/ 16 <255>;
  
- 	if (ts->clear_penirq)
- 		ts->clear_penirq();
+diff --git a/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi b/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
+index f4b1a61..c772b76 100644
+--- a/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
++++ b/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
+@@ -65,7 +65,7 @@
+ 		ti,y-max = /bits/ 16 <4800>;
+ 		ti,x-plate-ohms = /bits/ 16 <40>;
+ 		ti,pressure-max = /bits/ 16 <255>;
+-		ti,swap-xy;
++		touchscreen-swapped-x-y;
+ 		linux,wakeup;
+ 	};
+ };
 -- 
 2.5.1
