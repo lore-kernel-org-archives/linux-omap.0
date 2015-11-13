@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 39/39] ARM: dts: omap5-uevm.dts: Use OMAP5_IOPAD pinmux macro
-Date: Fri, 13 Nov 2015 01:54:17 -0300
-Message-ID: <1447390457-1158-40-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 38/39] ARM: dts: omap5-cm-t54: Use OMAP5_IOPAD pinmux macro
+Date: Fri, 13 Nov 2015 01:54:16 -0300
+Message-ID: <1447390457-1158-39-git-send-email-javier@osg.samsung.com>
 References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
@@ -16,24 +16,21 @@ This makes the DTS easier to read since matches the addresses listed
 in the Technical Reference Manual.
 
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
 ---
 
- arch/arm/boot/dts/omap5-uevm.dts | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap5-cm-t54.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 05b1c1ebded8..60b3fbb3bf07 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -40,8 +40,8 @@
- &omap5_pmx_core {
- 	i2c5_pins: pinmux_i2c5_pins {
+diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
+index 3774b37be6c8..0c03dca9ea04 100644
+--- a/arch/arm/boot/dts/omap5-cm-t54.dts
++++ b/arch/arm/boot/dts/omap5-cm-t54.dts
+@@ -175,7 +175,7 @@
+ 
+ 	ads7846_pins: pinmux_ads7846_pins {
  		pinctrl-single,pins = <
--			0x186 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
--			0x188 (PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
-+			OMAP5_IOPAD(0x1c6, PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
-+			OMAP5_IOPAD(0x1c8, PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
+-			0x02 (PIN_INPUT_PULLDOWN | MUX_MODE6)  /* llib_wakereqin.gpio1_wk15 */
++			OMAP5_IOPAD(0x0042, PIN_INPUT_PULLDOWN | MUX_MODE6)  /* llib_wakereqin.gpio1_wk15 */
  		>;
  	};
  };
