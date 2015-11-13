@@ -1,51 +1,57 @@
-From: Jon Hunter <jonathanh@nvidia.com>
-Subject: Re: [BISECTED] v4.3-rc5: OMAP1 boot hang
-Date: Fri, 13 Nov 2015 09:21:08 +0000
-Message-ID: <5645AB84.2070004@nvidia.com>
-References: <20151013073046.GB7588@blackmetal.musicnaut.iki.fi>
- <20151111214444.GF2260@blackmetal.musicnaut.iki.fi>
- <20151113005722.GQ32536@n2100.arm.linux.org.uk>
+From: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] arm: dts: complete dm816x device tree
+Date: Fri, 13 Nov 2015 10:29:17 +0100
+Message-ID: <5645AD6D.8010706@baylibre.com>
+References: <56449D1D.4030803@baylibre.com>
+ <20151112174706.GN3218@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151113005722.GQ32536@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151112174706.GN3218-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Hutchinson <b.hutchman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, fisaksen-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
-On 13/11/15 00:57, Russell King - ARM Linux wrote:
-> On Wed, Nov 11, 2015 at 11:44:44PM +0200, Aaro Koskinen wrote:
->> Hi,
->>
->> Any suggestions how to debug this further? This happens also with v4.3
->> final. Is the CPU_SW_DOMAIN_PAN supposed to work with this CPU?
->>
->> I tried to disable various drivers (e.g. NAND, USB) and it still
->> hangs... And it seems always at the same printk time stamp (roughly at
->> 25 seconds).
+On 11/12/2015 06:47 PM, Tony Lindgren wrote:
+> * Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> [151112 06:08]:
+>> In order to fix support for the dm816x platform, add missing bits in
+>> the dm816x dtsi and cleanup OCP.
 > 
-> No idea what so ever, and I have zero knowledge of this ARM925 thing -
-> never had one, and never seen any specs on it.  The weird thing is
-> that it's not producing any oops dump - I guess the kernel is totally
-> dead and unresponsive.  I'd ask if you have a heartbeat LED, but I'd
-> guess the answer will be that the hardware is too limited.
+> Which ones are needed as fixes for the v4.4-rc kernel?
+> 
+> Regards,
+> 
+> Tony
+> 
+>> The last patch adds support for the omap4-hwspinlock.
+>>
+>> v2: add ocp hwmod cleanup
+>>
+>> Neil Armstrong (5):
+>>   arm: dts: add dm816x missing #mbox-cells
+>>   arm: dts: add dm816x missing spi DT dma handles
+Tony,
 
-Both the 1510 and 5910 had the ARM925T CPU. Probably the best source of
-info is the 5910 documentation [0], specifically the MPU subsystem
-document [1]. Hope this helps.
+The two first are fixes for v4.4-rc.
 
-Jon
+>>   arm: dts: add dm816x pwm property to timers
+>>   arm: dts: remove dm816x invalid DT l3_main hwmod
+>>   arm: dts: Add omap4-hwspinlock support in dm816x
 
-[0] http://www.ti.com/product/OMAP5910/technicaldocuments
-[1] http://www.ti.com/lit/pdf/spru671
+the 3 following can wait.
+
+>>
+>>  arch/arm/boot/dts/dm816x.dtsi | 20 +++++++++++++++++---
+>>  1 file changed, 17 insertions(+), 3 deletions(-)
+>>
+>> -- 
+>> 1.9.1
+
+Thanks,
+Neil
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
