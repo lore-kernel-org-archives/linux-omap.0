@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 8/8] DT:omap3+ads7846: use new common touchscreen bindings
-Date: Fri, 13 Nov 2015 21:35:59 +0100
-Message-ID: <df5bd5fdcc2284a7d8e2d5132bc865701a8ca38f.1447446957.git.hns@goldelico.com>
+Subject: [PATCH v2 7/8] drivers:input:ads7846(+tsc2046): fix spi module table
+Date: Fri, 13 Nov 2015 21:35:58 +0100
+Message-ID: <2d60465c12527c54cabbc2b80ec4ed01b7510168.1447446957.git.hns@goldelico.com>
 References: <cover.1447446957.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1447446957.git.hns@goldelico.com>
@@ -12,72 +12,35 @@ To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutl
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The standard touch screen bindings [1] replace the private ti,swap-xy
-with touchscreen-swaped-x-y. And for the Openpandora we use
-touchscreen-size etc. to match the LCD screen size.
-
-[1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+Fix module table so that the driver is loaded if compiled
+as module and requested by DT.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi              |  2 +-
- arch/arm/boot/dts/omap3-pandora-common.dtsi          | 17 +++++++++++++----
- arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi |  2 +-
- 3 files changed, 15 insertions(+), 6 deletions(-)
+ drivers/input/touchscreen/ads7846.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
-index d0dd036..01dae66 100644
---- a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
-+++ b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
-@@ -325,7 +325,7 @@
- 		ti,y-max = /bits/ 16 <3600>;
- 		ti,x-plate-ohms = /bits/ 16 <80>;
- 		ti,pressure-max = /bits/ 16 <255>;
--		ti,swap-xy;
-+		touchscreen-swapped-x-y;
+diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+index b9896fd..6bedbfa 100644
+--- a/drivers/input/touchscreen/ads7846.c
++++ b/drivers/input/touchscreen/ads7846.c
+@@ -1563,6 +1563,17 @@ static int ads7846_remove(struct spi_device *spi)
+ 	return 0;
+ }
  
- 		linux,wakeup;
- 	};
-diff --git a/arch/arm/boot/dts/omap3-pandora-common.dtsi b/arch/arm/boot/dts/omap3-pandora-common.dtsi
-index f672a04..9497cc6 100644
---- a/arch/arm/boot/dts/omap3-pandora-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-pandora-common.dtsi
-@@ -696,10 +696,19 @@
- 		pendown-gpio = <&gpio3 30 0>;
- 		vcc-supply = <&vaux4>;
- 
--		ti,x-min = /bits/ 16 <0>;
--		ti,x-max = /bits/ 16 <8000>;
--		ti,y-min = /bits/ 16 <0>;
--		ti,y-max = /bits/ 16 <4800>;
-+		touchscreen-size-x = <800>;
-+		touchscreen-size-y = <480>;
-+		touchscreen-max-pressure = <1000>;
-+		touchscreen-fuzz-x = <16>;
-+		touchscreen-fuzz-y = <16>;
-+		touchscreen-fuzz-pressure = <10>;
-+		touchscreen-inverted-x;
-+		touchscreen-inverted-y;
++static const struct spi_device_id ads7846_idtable[] = {
++	{ "tsc2046", 0 },
++	{ "ads7843", 0 },
++	{ "ads7845", 0 },
++	{ "ads7846", 0 },
++	{ "ads7873", 0 },
++	{ }
++};
 +
-+		ti,x-min = /bits/ 16 <160>;
-+		ti,x-max = /bits/ 16 <3900>;
-+		ti,y-min = /bits/ 16 <220>;
-+		ti,y-max = /bits/ 16 <3750>;
- 		ti,x-plate-ohms = /bits/ 16 <40>;
- 		ti,pressure-max = /bits/ 16 <255>;
- 
-diff --git a/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi b/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
-index f4b1a61..c772b76 100644
---- a/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
-+++ b/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
-@@ -65,7 +65,7 @@
- 		ti,y-max = /bits/ 16 <4800>;
- 		ti,x-plate-ohms = /bits/ 16 <40>;
- 		ti,pressure-max = /bits/ 16 <255>;
--		ti,swap-xy;
-+		touchscreen-swapped-x-y;
- 		linux,wakeup;
- 	};
- };
++MODULE_DEVICE_TABLE(spi, ads7846_idtable);
++
+ static struct spi_driver ads7846_driver = {
+ 	.driver = {
+ 		.name	= "ads7846",
 -- 
 2.5.1
