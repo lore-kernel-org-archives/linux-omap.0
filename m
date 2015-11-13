@@ -1,77 +1,60 @@
-From: Igor Grinberg <igor.grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH 1/6] ARM: OMAP2+: dts: cm-t335: add initial support
-Date: Fri, 13 Nov 2015 12:19:19 +0200
-Message-ID: <5645B927.5020001@compulab.co.il>
-References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
- <1445948100-16446-2-git-send-email-uri.mashiach@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445948100-16446-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH 1/2] video:omap2:dss: fix timings for VENC to match what omapdrm expects
+Date: Fri, 13 Nov 2015 11:29:07 +0100
+Message-ID: <20ebf7491377ccba18c734c22ae9f361d7fdc165.1447410544.git.hns@goldelico.com>
+References: <cover.1447410543.git.hns@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1447410543.git.hns@goldelico.com>
+In-Reply-To: <cover.1447410543.git.hns@goldelico.com>
+References: <cover.1447410543.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Airlie <airlied@linux.ie>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, gta04-owner@goldelico.com, notasas@gmail.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Uri,
+Otherwise check_timings fails and we get a "has no modes" message
+from xrandr.
 
-On 10/27/15 14:14, Uri Mashiach wrote:
-> From: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> 
-> Add basic support for CompuLab cm-t335 module based on AM335X SoC.
-> 
-> CM-T335 is a tiny computer-on-module (CoM) / system-on-module (SoM)
-> The module is built around the Texas Instruments Sitara AM3352/4
-> system-on-chip.
-> 
-> The CPU is supplemented with up-to 512MB DDR3 and up-to 1GB of on-board
-> NAND storage, WiFi connected to SPI, Bluetooth, Analog audio, Gigabit
-> Ethernet, CAN bus.
-> 
-> Current patch adds support:
-> UART0 and GPIO LED
-> 
-> Detailed description can be found at the module site:
-> http://www.compulab.co.il/products/computer-on-modules/cm-t335/
+This fix makes the venc assume PAL and NTSC timings that match the
+timings synthetized by copy_timings_drm_to_omap() from omapdrm
+mode settings so that check_timings() succeeds.
 
-[...]
+Tested on: BeagleBoard XM, GTA04 and OpenPandora
 
-> diff --git a/arch/arm/boot/dts/am335x-cm-t335.dts b/arch/arm/boot/dts/am335x-cm-t335.dts
-> new file mode 100644
-> index 0000000..197d5ce
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
-> @@ -0,0 +1,62 @@
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ drivers/video/fbdev/omap2/dss/venc.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-[...]
-
-> +&am33xx_pinmux {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <>;
-> +
-> +	gpio_led_pins: pinmux_gpio_led_pins {
-> +		pinctrl-single,pins = <
-> +			0x88 (PIN_OUTPUT | MUX_MODE7)	/* gpmc_csn3.gpio2_0 */
-> +		>;
-> +	};
-> +
-> +	uart0_pins: pinmux_uart0_pins {
-> +		pinctrl-single,pins = <
-> +			/* uart0_rxd.uart0_rxd */
-> +			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)
-> +			/* uart0_txd.uart0_txd */
-> +			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-
-Can we use AM33XX_IOPAD macro here?
-and may be other patches too?
-
-[...]
-
+diff --git a/drivers/video/fbdev/omap2/dss/venc.c b/drivers/video/fbdev/omap2/dss/venc.c
+index 99ca268..d05a549 100644
+--- a/drivers/video/fbdev/omap2/dss/venc.c
++++ b/drivers/video/fbdev/omap2/dss/venc.c
+@@ -275,6 +275,12 @@ const struct omap_video_timings omap_dss_pal_timings = {
+ 	.vbp		= 41,
+ 
+ 	.interlace	= true,
++
++	.hsync_level = OMAPDSS_SIG_ACTIVE_LOW,
++	.vsync_level = OMAPDSS_SIG_ACTIVE_LOW,
++	.data_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE,
++	.de_level = OMAPDSS_SIG_ACTIVE_HIGH,
++	.sync_pclk_edge = OMAPDSS_DRIVE_SIG_FALLING_EDGE,
+ };
+ EXPORT_SYMBOL(omap_dss_pal_timings);
+ 
+@@ -290,6 +296,12 @@ const struct omap_video_timings omap_dss_ntsc_timings = {
+ 	.vbp		= 31,
+ 
+ 	.interlace	= true,
++
++	.hsync_level = OMAPDSS_SIG_ACTIVE_LOW,
++	.vsync_level = OMAPDSS_SIG_ACTIVE_LOW,
++	.data_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE,
++	.de_level = OMAPDSS_SIG_ACTIVE_HIGH,
++	.sync_pclk_edge = OMAPDSS_DRIVE_SIG_FALLING_EDGE,
+ };
+ EXPORT_SYMBOL(omap_dss_ntsc_timings);
+ 
 -- 
-Regards,
-Igor.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.5.1
