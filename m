@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 38/39] ARM: dts: omap5-cm-t54: Use OMAP5_IOPAD pinmux macro
-Date: Fri, 13 Nov 2015 01:54:16 -0300
-Message-ID: <1447390457-1158-39-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 36/39] ARM: dts: twl6030: Use OMAP4_IOPAD pinmux macro
+Date: Fri, 13 Nov 2015 01:54:14 -0300
+Message-ID: <1447390457-1158-37-git-send-email-javier@osg.samsung.com>
 References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
@@ -18,19 +18,28 @@ in the Technical Reference Manual.
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
 
- arch/arm/boot/dts/omap5-cm-t54.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/twl6030_omap4.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
-index 3774b37be6c8..0c03dca9ea04 100644
---- a/arch/arm/boot/dts/omap5-cm-t54.dts
-+++ b/arch/arm/boot/dts/omap5-cm-t54.dts
-@@ -175,7 +175,7 @@
- 
- 	ads7846_pins: pinmux_ads7846_pins {
+diff --git a/arch/arm/boot/dts/twl6030_omap4.dtsi b/arch/arm/boot/dts/twl6030_omap4.dtsi
+index a4fa5703c42b..e373f59cea9c 100644
+--- a/arch/arm/boot/dts/twl6030_omap4.dtsi
++++ b/arch/arm/boot/dts/twl6030_omap4.dtsi
+@@ -24,7 +24,7 @@
+ &omap4_pmx_wkup {
+ 	twl6030_wkup_pins: pinmux_twl6030_wkup_pins {
  		pinctrl-single,pins = <
--			0x02 (PIN_INPUT_PULLDOWN | MUX_MODE6)  /* llib_wakereqin.gpio1_wk15 */
-+			OMAP5_IOPAD(0x0042, PIN_INPUT_PULLDOWN | MUX_MODE6)  /* llib_wakereqin.gpio1_wk15 */
+-			0x14 (PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
++			OMAP4_IOPAD(0x054, PIN_OUTPUT | MUX_MODE2)		/* fref_clk0_out.sys_drm_msecure */
+ 		>;
+ 	};
+ };
+@@ -32,7 +32,7 @@
+ &omap4_pmx_core {
+ 	twl6030_pins: pinmux_twl6030_pins {
+ 		pinctrl-single,pins = <
+-			0x15e (WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
++			OMAP4_IOPAD(0x19e, WAKEUP_EN | PIN_INPUT_PULLUP | MUX_MODE0)	/* sys_nirq1.sys_nirq1 */
  		>;
  	};
  };
