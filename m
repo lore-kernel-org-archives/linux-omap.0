@@ -1,65 +1,47 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Subject: [PATCH 3.19.y-ckt 049/155] clk: ti: fix dual-registration of uart4_ick
-Date: Thu, 12 Nov 2015 15:16:43 -0800
-Message-ID: <1447370309-357-50-git-send-email-kamal@canonical.com>
-References: <1447370309-357-1-git-send-email-kamal@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447370309-357-1-git-send-email-kamal@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@lists.codethink.co.uk, Ben Dooks <ben.dooks@codethink.co.uk>, Tero Kristo <t-kristo@ti.com>, Kamal Mostafa <kamal@canonical.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [BISECTED] v4.3-rc5: OMAP1 boot hang
+Date: Fri, 13 Nov 2015 00:57:22 +0000
+Message-ID: <20151113005722.GQ32536@n2100.arm.linux.org.uk>
+References: <20151013073046.GB7588@blackmetal.musicnaut.iki.fi>
+ <20151111214444.GF2260@blackmetal.musicnaut.iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20151111214444.GF2260@blackmetal.musicnaut.iki.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-3.19.8-ckt10 -stable review patch.  If anyone has any objections, please let me know.
+On Wed, Nov 11, 2015 at 11:44:44PM +0200, Aaro Koskinen wrote:
+> Hi,
+> 
+> Any suggestions how to debug this further? This happens also with v4.3
+> final. Is the CPU_SW_DOMAIN_PAN supposed to work with this CPU?
+> 
+> I tried to disable various drivers (e.g. NAND, USB) and it still
+> hangs... And it seems always at the same printk time stamp (roughly at
+> 25 seconds).
 
-------------------
+No idea what so ever, and I have zero knowledge of this ARM925 thing -
+never had one, and never seen any specs on it.  The weird thing is
+that it's not producing any oops dump - I guess the kernel is totally
+dead and unresponsive.  I'd ask if you have a heartbeat LED, but I'd
+guess the answer will be that the hardware is too limited.
 
-From: Ben Dooks <ben.dooks@codethink.co.uk>
+Any additional information you can give might help, but I wouldn't hold
+out any hopes...
 
-commit 19e79687de22f23bcfb5e79cce3daba20af228d1 upstream.
-
-On the OMAP AM3517 platform the uart4_ick gets registered
-twice, causing any power management to /dev/ttyO3 to fail
-when trying to wake the device up.
-
-This solves the following oops:
-
-[] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
-[] PC is at serial_omap_pm+0x48/0x15c
-[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
-
-Fixes: aafd900cab87 ("CLK: TI: add omap3 clock init file")
-Cc: mturquette@baylibre.com
-Cc: sboyd@codeaurora.org
-Cc: linux-clk@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
----
- drivers/clk/ti/clk-3xxx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
-index 0d1750a..088930c 100644
---- a/drivers/clk/ti/clk-3xxx.c
-+++ b/drivers/clk/ti/clk-3xxx.c
-@@ -170,7 +170,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
- 	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
- 	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
- 	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
--	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
- 	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
- 	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
- 	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
-@@ -313,6 +312,7 @@ static struct ti_dt_clk am35xx_clks[] = {
- static struct ti_dt_clk omap36xx_clks[] = {
- 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
- 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
-+	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
- 	{ .node_name = NULL },
- };
- 
 -- 
-1.9.1
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
