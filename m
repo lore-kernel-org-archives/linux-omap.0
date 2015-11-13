@@ -1,83 +1,101 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH v3] ARM: dts: am335x-boneblack: Use pinctrl constants and AM33XX_IOPAD macro
-Date: Fri, 13 Nov 2015 10:47:27 -0600
-Message-ID: <1447433247-21395-1-git-send-email-afd@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] clocksource: arm_global_timer: fix suspend resume
+Date: Fri, 13 Nov 2015 18:57:44 +0200
+Message-ID: <56461688.1090809@ti.com>
+References: <1447431951-23713-1-git-send-email-grygorii.strashko@ti.com>
+ <87a8qhq284.fsf@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87a8qhq284.fsf@saruman.tx.rr.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>
+To: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Using constants for pinctrl allows better readability and removes
-redundancy with comments. AM33XX_IOPAD allows us to use part of the
-pinctrl physical address as in the TRM instead of an offset.
+On 11/13/2015 06:43 PM, Felipe Balbi wrote:
+> 
+> Hi,
+> 
+> Grygorii Strashko <grygorii.strashko@ti.com> writes:
+>> Now the System stall is observed on TI AM437x based board
+>> (am437x-gp-evm) during resuming from System suspend when ARM Global
+>> timer is selected as clocksource device - SysRq are working, but
+>> nothing else. The reason of stall is that ARM Global timer loses its
+>> contexts.
+>>
+>> The reason of stall is that ARM Global timer loses its contexts during
+>> System suspend:
+>>     GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
+>>     GT_COUNTERx = 0
+>>
+>> Hence, update ARM Global timer driver to reflect above behaviour
+>> - save GT_CONTROL.TIMER_ENABLE during suspend and restore on resume;
+>> - ensure clocksource and clockevent devices have coresponding flags
+>>    (CLOCK_SOURCE_SUSPEND_NONSTOP and CLOCK_EVT_FEAT_C3STOP) set
+>>    depending on presence of "always-on" DT property.
+>>
+>> CC: Arnd Bergmann <arnd@arndb.de>
+>> Cc: John Stultz <john.stultz@linaro.org>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>>   drivers/clocksource/arm_global_timer.c | 23 +++++++++++++++++++++++
+>>   1 file changed, 23 insertions(+)
+>>
+>> diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
+>> index a2cb6fa..1bbaf64 100644
+>> --- a/drivers/clocksource/arm_global_timer.c
+>> +++ b/drivers/clocksource/arm_global_timer.c
+>> @@ -51,6 +51,8 @@ static void __iomem *gt_base;
+>>   static unsigned long gt_clk_rate;
+>>   static int gt_ppi;
+>>   static struct clock_event_device __percpu *gt_evt;
+>> +static bool gt_always_on;
+>> +static u32 gt_control;
+>>   
+>>   /*
+>>    * To get the value from the Global Timer Counter register proceed as follows:
+>> @@ -168,6 +170,9 @@ static int gt_clockevents_init(struct clock_event_device *clk)
+>>   {
+>>   	int cpu = smp_processor_id();
+>>   
+>> +	if (!gt_always_on)
+>> +		clk->features |= CLOCK_EVT_FEAT_C3STOP;
+>> +
+>>   	clk->name = "arm_global_timer";
+>>   	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
+>>   		CLOCK_EVT_FEAT_PERCPU;
+>> @@ -195,12 +200,25 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
+>>   	return gt_counter_read();
+>>   }
+>>   
+>> +static void gt_suspend(struct clocksource *cs)
+>> +{
+>> +	gt_control = readl(gt_base + GT_CONTROL);
+>> +}
+>> +
+>> +static void gt_resume(struct clocksource *cs)
+>> +{
+>> +	/* enables timer on all the cores */
+>> +	writel(gt_control & GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
+> 
+> do you really need to save context if all you restore is TIMER_ENABLE
+> bit ? seems like you could skip gt_suspend altogether. Is there really a
+> situation where this driver is running and GT isn't enabled ?
 
-Signed-off-by: Andrew F. Davis <afd@ti.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
- arch/arm/boot/dts/am335x-boneblack.dts | 44 +++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+Now It's not. It's always enabled. I did it because .suspend() is called for
+all registered clock sources regardless of their usage. So, potentially
+in the future, at the moment when .suspend() is called it might be disabled
+(for example, .enable/disable() callbacks can be added and, if ARM Global timer
+will not be registered as sched_clock, it will be possible to keep it disabled 
+if not used now).
 
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index eadbba3..55c0e95 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -36,32 +36,32 @@
- &am33xx_pinmux {
- 	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
- 		pinctrl-single,pins = <
--			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
--			0xa0 0x08       /* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xa4 0x08       /* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xa8 0x08       /* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xac 0x08       /* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xb0 0x08       /* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xb4 0x08       /* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xb8 0x08       /* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xbc 0x08       /* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xc0 0x08       /* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xc4 0x08       /* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xc8 0x08       /* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xcc 0x08       /* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xd0 0x08       /* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xd4 0x08       /* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xd8 0x08       /* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xdc 0x08       /* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
--			0xe0 0x00       /* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
--			0xe4 0x00       /* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
--			0xe8 0x00       /* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
--			0xec 0x00       /* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
-+			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
-+			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
-+			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
-+			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
-+			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
-+			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
-+			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
-+			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
-+			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
-+			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
-+			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
-+			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
-+			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
-+			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
-+			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
-+			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
-+			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
-+			AM33XX_IOPAD(0x8e0, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
-+			AM33XX_IOPAD(0x8e4, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
-+			AM33XX_IOPAD(0x8e8, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
-+			AM33XX_IOPAD(0x8ec, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
- 		>;
- 	};
- 	nxp_hdmi_bonelt_off_pins: nxp_hdmi_bonelt_off_pins {
- 		pinctrl-single,pins = <
--			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
-+			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
- 		>;
- 	};
- };
+But It's not essentially now - I can update it and drop save restore. 
+Pls, confirm.
+
 -- 
-1.9.1
+regards,
+-grygorii
