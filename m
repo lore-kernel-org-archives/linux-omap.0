@@ -1,91 +1,101 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/2] [media] include/media: move platform driver headers to a separate dir
-Date: Fri, 13 Nov 2015 22:31:15 +0100
-Message-ID: <4273019.OjrpsKyH2t@wuerfel>
-References: <413d2bb0b813a7e62867de7a94b0ab61e16cb1cb.1447261977.git.mchehab@osg.samsung.com> <4220808.QEkJDXYE1T@wuerfel> <20151113171341.0972ef7a@recife.lan>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2 5/8] drivers:input:ads7846(+tsc2046): add new common
+ binding names, pre-calibration and flipping
+Date: Fri, 13 Nov 2015 23:29:52 +0100
+Message-ID: <20151113222952.GB24590@earth>
+References: <cover.1447446957.git.hns@goldelico.com>
+ <7e66c363a6bacc33a77ca7bd577db24f603c5b1a.1447446957.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20151113171341.0972ef7a@recife.lan>
-Sender: linux-sh-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sergey Lapin <slapin@ossfans.org>, Sekhar Nori <nsekhar@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, "Lad, Prabhakar" <prabhakar.csengg@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Harald Welte <laforge@openezx.org>, devel@driverdev.osuosl.org, Boris BREZILLON <boris.brezillon@free-electrons.com>, openezx-devel@lists.openezx.org, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Vinod Koul <vinod.koul@intel.com>, Magnus Damm <magnus.damm@gmail.com>, Kukjin Kim <kgene@kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>, Alexey
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="4bRzO86E/ozDv8r1"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7e66c363a6bacc33a77ca7bd577db24f603c5b1a.1447446957.git.hns@goldelico.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Haibo Chen <haibo.chen@freescale.com>, Andrey Gelman <andrey.gelman@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>, Aaron Sierra <asierra@xes-inc.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 13 November 2015 17:13:41 Mauro Carvalho Chehab wrote:
-> Em Wed, 11 Nov 2015 21:26:31 +0100
-> Arnd Bergmann <arnd@arndb.de> escreveu:
-> 
 
->  include/media/{ => drv-intf}/cx2341x.h                   | 0
->  include/media/{ => drv-intf}/cx25840.h                   | 0
->  include/media/{ => drv-intf}/exynos-fimc.h               | 0
->  include/media/{ => drv-intf}/msp3400.h                   | 0
->  include/media/{ => drv-intf}/s3c_camif.h                 | 0
->  include/media/{ => drv-intf}/saa7146.h                   | 0
->  include/media/{ => drv-intf}/saa7146_vv.h                | 2 +-
->  include/media/{ => drv-intf}/sh_mobile_ceu.h             | 0
->  include/media/{ => drv-intf}/sh_mobile_csi2.h            | 0
->  include/media/{ => drv-intf}/sh_vou.h                    | 0
->  include/media/{ => drv-intf}/si476x.h                    | 0
->  include/media/{ => drv-intf}/soc_mediabus.h              | 0
->  include/media/{ => drv-intf}/tea575x.h                   | 0
->  include/media/i2c/tw9910.h                               | 2 +-
->  include/media/{ => platform_data}/gpio-ir-recv.h         | 0
->  include/media/{ => platform_data}/ir-rx51.h              | 0
->  include/media/{ => platform_data}/mmp-camera.h           | 0
->  include/media/{ => platform_data}/omap1_camera.h         | 0
->  include/media/{ => platform_data}/omap4iss.h             | 0
->  include/media/{ => platform_data}/s5p_hdmi.h             | 0
->  include/media/{ => platform_data}/si4713.h               | 0
->  include/media/{ => platform_data}/sii9234.h              | 0
->  include/media/{ => platform_data}/smiapp.h               | 0
->  include/media/{ => platform_data}/soc_camera.h           | 0
->  include/media/{ => platform_data}/soc_camera_platform.h  | 2 +-
->  include/media/{ => platform_data}/timb_radio.h           | 0
->  include/media/{ => platform_data}/timb_video.h           | 0
->  sound/pci/es1968.c                                       | 2 +-
->  sound/pci/fm801.c                                        | 2 +-
->  155 files changed, 158 insertions(+), 158 deletions(-)
+--4bRzO86E/ozDv8r1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As Geert said, include/linux/platform_data/media/ would be nicer for
-consistency with other subsystems.
+Hi,
 
-> diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> index ede2bdbb5dd5..44ba1f28bb34 100644
-> --- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> +++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> @@ -33,7 +33,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/leds.h>
->  #include <linux/platform_data/asoc-mx27vis.h>
-> -#include <media/soc_camera.h>
-> +#include <media/platform_data/soc_camera.h>
->  #include <sound/tlv320aic32x4.h>
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
+On Fri, Nov 13, 2015 at 09:35:56PM +0100, H. Nikolaus Schaller wrote:
+> commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
+> introduced common DT bindings for touchscreens [1] and a helper function =
+to
+> parse the DT.
+>=20
+> This has been integrated and interpretation of the inversion (flipping)
+> properties for the x and y axis has been added to accommodate any
+> orientation of the touch in relation to the LCD.
+>=20
+> By scaling the min/max ADC values to the screen size it is now possible to
+> pre-calibrate the touch so that is (almost) exactly matches the LCD it is
+> glued onto. This allows to well enough operate the touch before a user
+> space calibration can improve the precision.
+>=20
+> [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+>=20
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  .../devicetree/bindings/input/ads7846.txt          |  8 ++-
+>  drivers/input/touchscreen/ads7846.c                | 72 ++++++++++++++++=
+++++--
+>  2 files changed, 74 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/input/ads7846.txt b/Docume=
+ntation/devicetree/bindings/input/ads7846.txt
+> index df8b127..ae56355 100644
+> --- a/Documentation/devicetree/bindings/input/ads7846.txt
+> +++ b/Documentation/devicetree/bindings/input/ads7846.txt
+> @@ -26,12 +26,17 @@ Additional required properties:
+> =20
+>  Optional properties:
+> =20
+> +You can optionally specify any of the touchscreen parameters described in
+> +
+> +	Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+> +
+> +This allows to scale, invert or swap coordinates and define the fuzz fac=
+tors.
+> +
+>  	ti,vref-delay-usecs		vref supply delay in usecs, 0 for
+>  					external vref (u16).
+>  	ti,vref-mv			The VREF voltage, in millivolts (u16).
+>  	ti,keep-vref-on			set to keep vref on for differential
+>  					measurements as well
+> -	ti,swap-xy			swap x and y axis
 
-This looks like a mistake: the header contains the string 'platform_data',
-but it is not actually a platform data header file in the sense
-that it defines the interface between platform and driver.
+I guess this should be:
 
-Maybe soc_camera.h is important enough to still leave it as a core
-file in the existing location? Or possibly a separate directory for
-media/soc_camera/*.h
+ti,swap-xy: deprecated name for touchscreen-swapped-x-y
 
-> @@ -24,7 +24,7 @@
->  #include <linux/slab.h>
->  #include <linux/kfifo.h>
->  #include <linux/module.h>
-> -#include <media/cx25840.h>
-> +#include <media/drv-intf/cx25840.h>
->  #include <media/rc-core.h>
->  
->  #include "cx25840-core.h"
+-- Sebastian
 
-For this case, I think the original patch to move it into include/media/i2c
-was more logical as it mirrors the file structure. I was mainly talking
-about the platform_data being different from the rest.
+--4bRzO86E/ozDv8r1
+Content-Type: application/pgp-signature; name="signature.asc"
 
-	Arnd
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJWRmRdAAoJENju1/PIO/qazM0P/2/cCfeZPQrBcMlN1g0zx1Pd
+YLAYu9CKwWAa8aO9ecn11RMm2acm9Yboqd5l5v47+GVnC4gueehMMLhm6ViJklCd
+PCstp+gB8BmMnOHEgCeiSUwvzvOhJG/FdtNDayL2TmfZQMFya2xBE1AKlWJqVl47
++N912tLmmbePRazzsTwNslMjQK8UMG1fe84jhFIv0YJCWeT65VnFkrsKXEFAODev
+6grtf6giRmHcfvPjBOcB7AzUPfrnm0FDU49YzX6ufHkw1jlUQr4zotOZ9Ry93Hnq
+4EUVYwewCf7chtv3pYRFd6+vOcotyoWS5Z/BtkiSxU8ggFN65AloAHFeYfyWwPSR
+x/a6yCCWp3ooP+6mhF2Us2c+EFUhdtuJHWrTCrLU5ySOl4eaLdYaXh4KElpLgOFg
+FXndGxchpSKXcuRK2ecQlNGVK4FmkeyJe0hBN/R+QlJX/JuoK6JT5j0jOEj2GOOZ
+4NIHH2DAvXDiG7hUEzVvckjBnlCxlKhKSZP0/D+NucQ7pCaQSgSG+zFi0yjnFFnB
+kDYnMgTNMLP7ce734uQyu+FVilCSOpwYRnbNf9GMK2PKnUzCpVLXbtf/m28esgTr
+mbUQjzjVb+TOikRyOnRuEYAs5sS2J0ABt4pOtoykRpiNWjeF5TWgiZFyWYrcixA+
+Rmzl08gNcMI2R+x57pIG
+=18pb
+-----END PGP SIGNATURE-----
+
+--4bRzO86E/ozDv8r1--
