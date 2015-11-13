@@ -1,14 +1,16 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [PATCH 2/2] video:omapdrm: make omapdrm assume the tv-out cable
  is always connected
-Date: Fri, 13 Nov 2015 13:46:01 +0200
-Message-ID: <5645CD79.5040107@ti.com>
+Date: Fri, 13 Nov 2015 14:01:04 +0200
+Message-ID: <3973104.FPbEEICOqe@avalon>
 References: <cover.1447410543.git.hns@goldelico.com>
  <5942ddb7ab4f42f207c6c2b54be31a3d9fe3b912.1447410544.git.hns@goldelico.com>
+ <5645CD79.5040107@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1422679744=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <5942ddb7ab4f42f207c6c2b54be31a3d9fe3b912.1447410544.git.hns@goldelico.com>
+In-Reply-To: <5645CD79.5040107@ti.com>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
@@ -18,104 +20,54 @@ List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, gta04-owner@goldelico.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, gta04-owner@goldelico.com, linux-omap@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============1422679744==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="cDe9hCiUgC69x2l7q7tEnpNFnndISqfKu"
-
---cDe9hCiUgC69x2l7q7tEnpNFnndISqfKu
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-
-
-On 13/11/15 12:29, H. Nikolaus Schaller wrote:
-> Include VENC in the set of drivers where it is assimed that the cable
-> is always connected. Like DPI, DSI, DBI and SDI do.
->=20
-> Otherwise, the VENC will return cable status "unknown" and is not enabl=
-ed
-> by the X-server. So there is no video output signal.
->=20
-> Tested on: BeagleBoard XM, GTA04 and OpenPandora
->=20
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  drivers/gpu/drm/omapdrm/omap_connector.c | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm=
-/omapdrm/omap_connector.c
-> index 83f2a91..98ddb5d 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
-> @@ -120,6 +120,7 @@ static enum drm_connector_status omap_connector_det=
-ect(
->  		else
->  			ret =3D connector_status_disconnected;
->  	} else if (dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DPI ||
-> +			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_VENC ||
->  			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DBI ||
->  			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_SDI ||
->  			dssdev->type =3D=3D OMAP_DISPLAY_TYPE_DSI) {
->=20
-
-I have no idea why VENC is not working for you when using
-connector_status_unknown, but I just tested DPI with
-connector_status_unknown (i.e. changed the above func to return unknown
-for DPI), and it works fine with X and X omap driver. And xrandr
-confirms that the connection status is unknown:
-
-# xrandr
-Screen 0: minimum 320 x 200, current 1920 x 1200, maximum 2048 x 2048
-HDMI-1 disconnected (normal left inverted right x axis y axis)
-None-1 unknown connection 1920x1200+0+0 (normal left inverted right x
-axis y axis) 0mm x 0mm
-   1920x1200     60.00*+  60.00 +
-
-Grep also shows that there are many drivers using
-connector_status_unknown, so I'm guessing it should work fine...
-
- Tomi
-
-
---cDe9hCiUgC69x2l7q7tEnpNFnndISqfKu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWRc15AAoJEPo9qoy8lh7197kP/1aC/WADg1ionjO51OGWh9Vz
-2MqYn5x0aBrwN2MSlBJaeGbGy5EVvIv1n9psNOWOMJT0nuSAEzmWnrgfERv1MZ16
-euHEKRCplLi+JmwLcTEPyqKnzCqJ2m6xQBzDinOZOk0QDGBe6n0la9ypOiywbPjV
-qm8G3UAyJsgJqOO4pDTacBhoQxFMEjbpUeu7RIL+B6h8dCG3Gj+b1y3t4kX5/6LI
-6sfbW9kAHopLcvhxoCVESwy4/m4qktCrPfFoPjUik0pOwewD8g21++yNHLAz2tiz
-UuJTAhHFqvZHClbBJFUu7CrPukxA6UQS/Jk2iClOxr50W7jd/NGATOetLl6lr0Bo
-b6YNBz8NyhFZNiUzBk+u9eBGjBavujpYVoDX6j+baQde1/OpoGHY0sD1Ezfov4X/
-Q58mjy/lLa5+XZWMnYHOpsgLWR6U5xk9BJ4X4N+og+5m3PU1+YfJn27tSuYQm7fF
-lC9DViEQIw8IobBmUYCE9MShNt8SHgN4UsehxgWJ7ICYLo4Q/x3JevI+4/FewpJ4
-Ig9YOwdbCXum9LMh6nVGvfhzsaKQHVltohPwJMr5LpYQTotEVK27LWHZdFbXbP6r
-CQTesjG38x6yyTZl1z6D6bXR56TV78/GgPoWBUI/P4Czhx85c+FL67OR3Fb0P79o
-Bmaezf8GtoNqsY+fiT7W
-=6LNj
------END PGP SIGNATURE-----
-
---cDe9hCiUgC69x2l7q7tEnpNFnndISqfKu--
-
---===============1422679744==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
-cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
-
---===============1422679744==--
+T24gRnJpZGF5IDEzIE5vdmVtYmVyIDIwMTUgMTM6NDY6MDEgVG9taSBWYWxrZWluZW4gd3JvdGU6
+Cj4gT24gMTMvMTEvMTUgMTI6MjksIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOgo+ID4gSW5j
+bHVkZSBWRU5DIGluIHRoZSBzZXQgb2YgZHJpdmVycyB3aGVyZSBpdCBpcyBhc3NpbWVkIHRoYXQg
+dGhlIGNhYmxlCj4gPiBpcyBhbHdheXMgY29ubmVjdGVkLiBMaWtlIERQSSwgRFNJLCBEQkkgYW5k
+IFNESSBkby4KPiA+IAo+ID4gT3RoZXJ3aXNlLCB0aGUgVkVOQyB3aWxsIHJldHVybiBjYWJsZSBz
+dGF0dXMgInVua25vd24iIGFuZCBpcyBub3QgZW5hYmxlZAo+ID4gYnkgdGhlIFgtc2VydmVyLiBT
+byB0aGVyZSBpcyBubyB2aWRlbyBvdXRwdXQgc2lnbmFsLgo+ID4gCj4gPiBUZXN0ZWQgb246IEJl
+YWdsZUJvYXJkIFhNLCBHVEEwNCBhbmQgT3BlblBhbmRvcmEKPiA+IAo+ID4gU2lnbmVkLW9mZi1i
+eTogSC4gTmlrb2xhdXMgU2NoYWxsZXIgPGhuc0Bnb2xkZWxpY28uY29tPgo+ID4gLS0tCj4gPiAK
+PiA+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2Nvbm5lY3Rvci5jIHwgMSArCj4gPiAg
+MSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCj4gPiAKPiA+IGRpZmYgLS1naXQgYS9kcml2
+ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2Nvbm5lY3Rvci5jCj4gPiBiL2RyaXZlcnMvZ3B1L2Ry
+bS9vbWFwZHJtL29tYXBfY29ubmVjdG9yLmMgaW5kZXggODNmMmE5MS4uOThkZGI1ZCAxMDA2NDQK
+PiA+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfY29ubmVjdG9yLmMKPiA+ICsr
+KyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfY29ubmVjdG9yLmMKPiA+IEBAIC0xMjAs
+NiArMTIwLDcgQEAgc3RhdGljIGVudW0gZHJtX2Nvbm5lY3Rvcl9zdGF0dXMKPiA+IG9tYXBfY29u
+bmVjdG9yX2RldGVjdCgKPiA+ICAJCWVsc2UKPiA+ICAJCQlyZXQgPSBjb25uZWN0b3Jfc3RhdHVz
+X2Rpc2Nvbm5lY3RlZDsKPiA+ICAJfSBlbHNlIGlmIChkc3NkZXYtPnR5cGUgPT0gT01BUF9ESVNQ
+TEFZX1RZUEVfRFBJIHx8Cj4gPiArCQkJZHNzZGV2LT50eXBlID09IE9NQVBfRElTUExBWV9UWVBF
+X1ZFTkMgfHwKPiA+ICAJCQlkc3NkZXYtPnR5cGUgPT0gT01BUF9ESVNQTEFZX1RZUEVfREJJIHx8
+Cj4gPiAgCQkJZHNzZGV2LT50eXBlID09IE9NQVBfRElTUExBWV9UWVBFX1NESSB8fAo+ID4gIAkJ
+CWRzc2Rldi0+dHlwZSA9PSBPTUFQX0RJU1BMQVlfVFlQRV9EU0kpIHsKPiAKPiBJIGhhdmUgbm8g
+aWRlYSB3aHkgVkVOQyBpcyBub3Qgd29ya2luZyBmb3IgeW91IHdoZW4gdXNpbmcKPiBjb25uZWN0
+b3Jfc3RhdHVzX3Vua25vd24sIGJ1dCBJIGp1c3QgdGVzdGVkIERQSSB3aXRoCj4gY29ubmVjdG9y
+X3N0YXR1c191bmtub3duIChpLmUuIGNoYW5nZWQgdGhlIGFib3ZlIGZ1bmMgdG8gcmV0dXJuIHVu
+a25vd24KPiBmb3IgRFBJKSwgYW5kIGl0IHdvcmtzIGZpbmUgd2l0aCBYIGFuZCBYIG9tYXAgZHJp
+dmVyLiBBbmQgeHJhbmRyCj4gY29uZmlybXMgdGhhdCB0aGUgY29ubmVjdGlvbiBzdGF0dXMgaXMg
+dW5rbm93bjoKPiAKPiAjIHhyYW5kcgo+IFNjcmVlbiAwOiBtaW5pbXVtIDMyMCB4IDIwMCwgY3Vy
+cmVudCAxOTIwIHggMTIwMCwgbWF4aW11bSAyMDQ4IHggMjA0OAo+IEhETUktMSBkaXNjb25uZWN0
+ZWQgKG5vcm1hbCBsZWZ0IGludmVydGVkIHJpZ2h0IHggYXhpcyB5IGF4aXMpCj4gTm9uZS0xIHVu
+a25vd24gY29ubmVjdGlvbiAxOTIweDEyMDArMCswIChub3JtYWwgbGVmdCBpbnZlcnRlZCByaWdo
+dCB4Cj4gYXhpcyB5IGF4aXMpIDBtbSB4IDBtbQo+ICAgIDE5MjB4MTIwMCAgICAgNjAuMDAqKyAg
+NjAuMDAgKwo+IAo+IEdyZXAgYWxzbyBzaG93cyB0aGF0IHRoZXJlIGFyZSBtYW55IGRyaXZlcnMg
+dXNpbmcKPiBjb25uZWN0b3Jfc3RhdHVzX3Vua25vd24sIHNvIEknbSBndWVzc2luZyBpdCBzaG91
+bGQgd29yayBmaW5lLi4uCgpBbmQgYmVzaWRlIGl0J3Mgbm90IHJpZ2h0IHRvIGNvbnNpZGVyIFZF
+TkMgYXMgYWx3YXlzIGNvbm5lY3RlZCwgYXMgaXQgaXNuJ3QuIApUaGUgdW5rbm93biBzdGF0dXMg
+aXMgdGhlcmUgZm9yIGEgcmVhc29uLCB0byBkZXNjcmliZSBjb25uZWN0b3JzIGZvciB3aGljaCB3
+ZSAKY2FuJ3QgZ2V0IGFueSBzdGF0dXMgaW5mb3JtYXRpb24uIFRoZSBzaXR1YXRpb24gaXMgZGlm
+ZmVyZW50IGZvciBEUEksIERCSSwgU0RJIAphbmQgRFNJIGFzIHRob3NlIGFyZSBvbi1ib2FyZCBi
+dXNzZXMgdGhhdCBjb25uZWN0IHRvIGEgbm9uLXJlbW92YWJsZSBwYW5lbCwgc28gCndlIGNhbiBz
+YXkgd2l0aCBhIGdvb2QgY29uZmlkZW5jZSB0aGF0IHRoZSBwYW5lbCBpcyBjb25uZWN0ZWQgKHRo
+ZSBzaXR1YXRpb24gCmNvdWxkIGJlIGNoYW5nZWQgd2l0aCBhIGhhbW1lciBhbmQgYSBjaGlzZWws
+IGJ1dCB0aGF0J3MgdW5saWtlbHkgdG8gaGFwcGVuLCAKaGVuY2UgdGhlIGNvbmZpZGVuY2UpLgoK
+LS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBs
+aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2RyaS1kZXZlbAo=
