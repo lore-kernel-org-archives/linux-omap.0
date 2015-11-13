@@ -1,194 +1,80 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 04/39] ARM: dts: am335x-bone-common: Use AM33XX_IOPAD pinmux macro
-Date: Fri, 13 Nov 2015 01:53:42 -0300
-Message-ID: <1447390457-1158-5-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 01/39] pinctrl: Move am4372 and dra7 macros to the the SoC header files
+Date: Fri, 13 Nov 2015 01:53:39 -0300
+Message-ID: <1447390457-1158-2-git-send-email-javier@osg.samsung.com>
 References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>, linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use the pinmux IOPAD macro to define the register absolute physical
-address instead of the offset from the padconf base address. This
-makes the DTS easier to read since matches the addresses listed in
-the Technical Reference Manual.
+The <dt-bindings/pinctrl/omap.h> header file defines a set of macros
+for different SoCs families that falls under the OMAP sub-arch, that
+allow to define the padconf register physical address instead of the
+register offset from the padconf base.
+
+But the am43xx and dra7xx SoCs families have their own pinctrl header
+file so the DTS using these SoCs aren't able to use the AM4372_IOPAD()
+and DRA7XX_CORE_IOPAD() macros since <dt-bindings/pinctrl/omap.h> is
+not included.
+
+Move the macros to the correct header files so can be used by the DTS.
 
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
 
- arch/arm/boot/dts/am335x-bone-common.dtsi | 104 +++++++++++++++---------------
- 1 file changed, 52 insertions(+), 52 deletions(-)
+ include/dt-bindings/pinctrl/am43xx.h | 6 ++++++
+ include/dt-bindings/pinctrl/dra.h    | 6 ++++++
+ include/dt-bindings/pinctrl/omap.h   | 2 --
+ 3 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 5d370d54bd30..0cc150b87b86 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -67,112 +67,112 @@
+diff --git a/include/dt-bindings/pinctrl/am43xx.h b/include/dt-bindings/pinctrl/am43xx.h
+index 774dc1e843c5..344bd1eb3386 100644
+--- a/include/dt-bindings/pinctrl/am43xx.h
++++ b/include/dt-bindings/pinctrl/am43xx.h
+@@ -31,5 +31,11 @@
+ #define PIN_INPUT_PULLUP	(INPUT_EN | PULL_UP)
+ #define PIN_INPUT_PULLDOWN	(INPUT_EN)
  
- 	user_leds_s0: user_leds_s0 {
- 		pinctrl-single,pins = <
--			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
--			0x58 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
--			0x5c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
--			0x60 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a8.gpio1_24 */
-+			AM33XX_IOPAD(0x854, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a5.gpio1_21 */
-+			AM33XX_IOPAD(0x858, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a6.gpio1_22 */
-+			AM33XX_IOPAD(0x85c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a7.gpio1_23 */
-+			AM33XX_IOPAD(0x860, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gpmc_a8.gpio1_24 */
- 		>;
- 	};
++/*
++ * Macro to allow using the absolute physical address instead of the
++ * padconf registers instead of the offset from padconf base.
++ */
++#define AM4372_IOPAD(pa, val)	(((pa) & 0xffff) - 0x0800) (val)
++
+ #endif
  
- 	i2c0_pins: pinmux_i2c0_pins {
- 		pinctrl-single,pins = <
--			0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
--			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-+			AM33XX_IOPAD(0x988, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+			AM33XX_IOPAD(0x98c, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
- 		>;
- 	};
+diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+index 4379e29f0460..5c75e80915fc 100644
+--- a/include/dt-bindings/pinctrl/dra.h
++++ b/include/dt-bindings/pinctrl/dra.h
+@@ -67,5 +67,11 @@
+ #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
+ #define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
  
- 	i2c2_pins: pinmux_i2c2_pins {
- 		pinctrl-single,pins = <
--			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
--			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
-+			AM33XX_IOPAD(0x978, PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
-+			AM33XX_IOPAD(0x97c, PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
- 		>;
- 	};
++/*
++ * Macro to allow using the absolute physical address instead of the
++ * padconf registers instead of the offset from padconf base.
++ */
++#define DRA7XX_CORE_IOPAD(pa, val)	(((pa) & 0xffff) - 0x3400) (val)
++
+ #endif
  
- 	uart0_pins: pinmux_uart0_pins {
- 		pinctrl-single,pins = <
--			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
--			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-+			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
- 		>;
- 	};
+diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/pinctrl/omap.h
+index 13949259705a..8100de13851c 100644
+--- a/include/dt-bindings/pinctrl/omap.h
++++ b/include/dt-bindings/pinctrl/omap.h
+@@ -63,8 +63,6 @@
+ #define OMAP3_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2a00) (val)
+ #define DM816X_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+ #define AM33XX_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+-#define AM4372_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+-#define DRA7XX_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x3400) (val)
  
- 	clkout2_pin: pinmux_clkout2_pin {
- 		pinctrl-single,pins = <
--			0x1b4 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
-+			AM33XX_IOPAD(0x9b4, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr1.clkout2 */
- 		>;
- 	};
- 
- 	cpsw_default: cpsw_default {
- 		pinctrl-single,pins = <
- 			/* Slave 1 */
--			0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxerr.mii1_rxerr */
--			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txen.mii1_txen */
--			0x118 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxdv.mii1_rxdv */
--			0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd3.mii1_txd3 */
--			0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd2.mii1_txd2 */
--			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd1.mii1_txd1 */
--			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd0.mii1_txd0 */
--			0x12c (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_txclk.mii1_txclk */
--			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxclk.mii1_rxclk */
--			0x134 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd3.mii1_rxd3 */
--			0x138 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd2.mii1_rxd2 */
--			0x13c (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd1.mii1_rxd1 */
--			0x140 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd0.mii1_rxd0 */
-+			AM33XX_IOPAD(0x910, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxerr.mii1_rxerr */
-+			AM33XX_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txen.mii1_txen */
-+			AM33XX_IOPAD(0x918, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxdv.mii1_rxdv */
-+			AM33XX_IOPAD(0x91c, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd3.mii1_txd3 */
-+			AM33XX_IOPAD(0x920, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd2.mii1_txd2 */
-+			AM33XX_IOPAD(0x924, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd1.mii1_txd1 */
-+			AM33XX_IOPAD(0x928, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mii1_txd0.mii1_txd0 */
-+			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_txclk.mii1_txclk */
-+			AM33XX_IOPAD(0x930, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxclk.mii1_rxclk */
-+			AM33XX_IOPAD(0x934, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd3.mii1_rxd3 */
-+			AM33XX_IOPAD(0x938, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd2.mii1_rxd2 */
-+			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd1.mii1_rxd1 */
-+			AM33XX_IOPAD(0x940, PIN_INPUT_PULLUP | MUX_MODE0)	/* mii1_rxd0.mii1_rxd0 */
- 		>;
- 	};
- 
- 	cpsw_sleep: cpsw_sleep {
- 		pinctrl-single,pins = <
- 			/* Slave 1 reset value */
--			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x11c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x120 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x12c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x130 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x134 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x910, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x914, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x91c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x920, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x924, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x928, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE7)
- 		>;
- 	};
- 
- 	davinci_mdio_default: davinci_mdio_default {
- 		pinctrl-single,pins = <
- 			/* MDIO */
--			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
--			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+			AM33XX_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
- 		>;
- 	};
- 
- 	davinci_mdio_sleep: davinci_mdio_sleep {
- 		pinctrl-single,pins = <
- 			/* MDIO reset value */
--			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
--			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x948, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x94c, PIN_INPUT_PULLDOWN | MUX_MODE7)
- 		>;
- 	};
- 
- 	mmc1_pins: pinmux_mmc1_pins {
- 		pinctrl-single,pins = <
--			0x160 (PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
-+			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
- 		>;
- 	};
- 
- 	emmc_pins: pinmux_emmc_pins {
- 		pinctrl-single,pins = <
--			0x80 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
--			0x84 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
--			0x00 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
--			0x04 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
--			0x08 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
--			0x0c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad3.mmc1_dat3 */
--			0x10 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad4.mmc1_dat4 */
--			0x14 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad5.mmc1_dat5 */
--			0x18 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad6.mmc1_dat6 */
--			0x1c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad7.mmc1_dat7 */
-+			AM33XX_IOPAD(0x880, PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
-+			AM33XX_IOPAD(0x884, PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
-+			AM33XX_IOPAD(0x800, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
-+			AM33XX_IOPAD(0x804, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
-+			AM33XX_IOPAD(0x808, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
-+			AM33XX_IOPAD(0x80c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad3.mmc1_dat3 */
-+			AM33XX_IOPAD(0x810, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad4.mmc1_dat4 */
-+			AM33XX_IOPAD(0x814, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad5.mmc1_dat5 */
-+			AM33XX_IOPAD(0x818, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad6.mmc1_dat6 */
-+			AM33XX_IOPAD(0x81c, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad7.mmc1_dat7 */
- 		>;
- 	};
- };
+ /*
+  * Macros to allow using the offset from the padconf physical address
 -- 
 2.4.3
