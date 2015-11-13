@@ -1,118 +1,132 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] clocksource: arm_global_timer: fix suspend resume
-Date: Fri, 13 Nov 2015 10:43:39 -0600
-Message-ID: <87a8qhq284.fsf@saruman.tx.rr.com>
-References: <1447431951-23713-1-git-send-email-grygorii.strashko@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 2/2] video:omapdrm: make omapdrm assume the tv-out cable is always connected
+Date: Fri, 13 Nov 2015 17:45:26 +0100
+Message-ID: <0A7D0C81-AA10-413C-8546-9873B65FE6CE@goldelico.com>
+References: <cover.1447410543.git.hns@goldelico.com> <5942ddb7ab4f42f207c6c2b54be31a3d9fe3b912.1447410544.git.hns@goldelico.com> <5645CD79.5040107@ti.com> <3973104.FPbEEICOqe@avalon>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447431951-23713-1-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <3973104.FPbEEICOqe@avalon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Tony Lindgren <tony@atomide.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: David Airlie <airlied@linux.ie>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, dri-devel@lists.freedesktop.org, LKML <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Here the test results:
 
+Am 13.11.2015 um 13:01 schrieb Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
 
-Hi,
+> On Friday 13 November 2015 13:46:01 Tomi Valkeinen wrote:
+>> On 13/11/15 12:29, H. Nikolaus Schaller wrote:
+>>> Include VENC in the set of drivers where it is assimed that the cable
+>>> is always connected. Like DPI, DSI, DBI and SDI do.
+>>> 
+>>> Otherwise, the VENC will return cable status "unknown" and is not enabled
+>>> by the X-server. So there is no video output signal.
+>>> 
+>>> Tested on: BeagleBoard XM, GTA04 and OpenPandora
+>>> 
+>>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>>> ---
+>>> 
+>>> drivers/gpu/drm/omapdrm/omap_connector.c | 1 +
+>>> 1 file changed, 1 insertion(+)
+>>> 
+>>> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c
+>>> b/drivers/gpu/drm/omapdrm/omap_connector.c index 83f2a91..98ddb5d 100644
+>>> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
+>>> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
+>>> @@ -120,6 +120,7 @@ static enum drm_connector_status
+>>> omap_connector_detect(
+>>> 		else
+>>> 			ret = connector_status_disconnected;
+>>> 	} else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
+>>> +			dssdev->type == OMAP_DISPLAY_TYPE_VENC ||
+>>> 			dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
+>>> 			dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
+>>> 			dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
+>> 
+>> I have no idea why VENC is not working for you when using
+>> connector_status_unknown, but I just tested DPI with
+>> connector_status_unknown (i.e. changed the above func to return unknown
+>> for DPI), and it works fine with X and X omap driver. And xrandr
+>> confirms that the connection status is unknown:
+>> 
+>> # xrandr
+>> Screen 0: minimum 320 x 200, current 1920 x 1200, maximum 2048 x 2048
+>> HDMI-1 disconnected (normal left inverted right x axis y axis)
+>> None-1 unknown connection 1920x1200+0+0 (normal left inverted right x
+>> axis y axis) 0mm x 0mm
+>>   1920x1200     60.00*+  60.00 +
 
-Grygorii Strashko <grygorii.strashko@ti.com> writes:
-> Now the System stall is observed on TI AM437x based board
-> (am437x-gp-evm) during resuming from System suspend when ARM Global
-> timer is selected as clocksource device - SysRq are working, but
-> nothing else. The reason of stall is that ARM Global timer loses its
-> contexts.
->
-> The reason of stall is that ARM Global timer loses its contexts during
-> System suspend:
->    GT_CONTROL.TIMER_ENABLE =3D 0 (unbanked)
->    GT_COUNTERx =3D 0
->
-> Hence, update ARM Global timer driver to reflect above behaviour
-> - save GT_CONTROL.TIMER_ENABLE during suspend and restore on resume;
-> - ensure clocksource and clockevent devices have coresponding flags
->   (CLOCK_SOURCE_SUSPEND_NONSTOP and CLOCK_EVT_FEAT_C3STOP) set
->   depending on presence of "always-on" DT property.
->
-> CC: Arnd Bergmann <arnd@arndb.de>
-> Cc: John Stultz <john.stultz@linaro.org>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
->  drivers/clocksource/arm_global_timer.c | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
->
-> diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource=
-/arm_global_timer.c
-> index a2cb6fa..1bbaf64 100644
-> --- a/drivers/clocksource/arm_global_timer.c
-> +++ b/drivers/clocksource/arm_global_timer.c
-> @@ -51,6 +51,8 @@ static void __iomem *gt_base;
->  static unsigned long gt_clk_rate;
->  static int gt_ppi;
->  static struct clock_event_device __percpu *gt_evt;
-> +static bool gt_always_on;
-> +static u32 gt_control;
->=20=20
->  /*
->   * To get the value from the Global Timer Counter register proceed as fo=
-llows:
-> @@ -168,6 +170,9 @@ static int gt_clockevents_init(struct clock_event_dev=
-ice *clk)
->  {
->  	int cpu =3D smp_processor_id();
->=20=20
-> +	if (!gt_always_on)
-> +		clk->features |=3D CLOCK_EVT_FEAT_C3STOP;
-> +
->  	clk->name =3D "arm_global_timer";
->  	clk->features =3D CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
->  		CLOCK_EVT_FEAT_PERCPU;
-> @@ -195,12 +200,25 @@ static cycle_t gt_clocksource_read(struct clocksour=
-ce *cs)
->  	return gt_counter_read();
->  }
->=20=20
-> +static void gt_suspend(struct clocksource *cs)
-> +{
-> +	gt_control =3D readl(gt_base + GT_CONTROL);
-> +}
-> +
-> +static void gt_resume(struct clocksource *cs)
-> +{
-> +	/* enables timer on all the cores */
-> +	writel(gt_control & GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
+A) with this VENC patch:
 
-do you really need to save context if all you restore is TIMER_ENABLE
-bit ? seems like you could skip gt_suspend altogether. Is there really a
-situation where this driver is running and GT isn't enabled ?
+root@letux:~# xrandr
+Screen 0: minimum 320 x 200, current 720 x 640, maximum 2048 x 2048
+None-1 connected 720x574+0+0 0mm x 0mm
+   720x574i      50.00*+
+None-2 connected 480x640+0+0 0mm x 0mm
+   480x640       65.74*+
+root@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
+enabled
+enabled
+root@letux:~# cat /sys/class/drm/card0-Unknown-*/status 
+connected
+connected
 
-=2D-=20
-balbi
+B) w/o VENC patch (VENC returns returning connector_status_unknown):
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+root@letux:~# xrandr
+Screen 0: minimum 320 x 200, current 480 x 640, maximum 2048 x 2048
+None-1 connected 480x640+0+0 0mm x 0mm
+   480x640       65.74*+
+None-2 unknown connection
+   720x574i      50.00 +
+root@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
+enabled
+disabled
+root@letux:~# cat /sys/class/drm/card0-Unknown-*/status
+connected
+unknown
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+C) with DPI (also) returning connector_status_unknown
 
-iQIcBAEBAgAGBQJWRhM7AAoJEIaOsuA1yqREYMAP/As3r9Vlx2ZxjmsQ14Rfh/5P
-ZdDbsJdFTR+QalJFumHSSgj5a+L3D+8XWVL50jI6iZgIamSisDSY13b6KX+YE1ef
-rDTRf1kqG6cY8dJaHmO+kMzHarxVgXYKDGdsk65YTbCumq4UTN/gUh1hptYqrpMt
-aRjsZFaI0TkiuMuOmytiKzcEJ9ipiwolKHJm0veGYccZ9cbH6z5izYhR+2vrAcu1
-MRPYyjyzSg1QyDGx0Vuty9q7DzUrjKfwxSxBhwTlShwvR0uvD1H00eqjtH2HGWUF
-yjjeehE47NpCImopAkYadj3rH6TCQjyNZ2LUHzL9+CWZOQjorzzZYaN/6hvg/Uqi
-Rkgb6fiMQnAv1AVcVBGzCX2o+mJukGKoj3q/5fGHjC+vRjQRwJZ+xdbQfqrZztPl
-b8gHdwXHiBzbSdZdFy0nDK5UEXcioWX0y1JwoCHFKWrWmoK0AJsY1JaerW1UREjE
-cbxhC4tYitq92GOXfqEIfuFzx4ZUfEQFA5dtJ/YxOdgx+ZeWEVk2IjZwrP9kAqc0
-4WI2o3lWGx0oRGIiQEUvwRIqSwOCOeoMyuDg9UY2p/e75E8ZBOzWM9LVN6fDbl8z
-0eDRmiEhWP5B73Z8Lw2oKwBbHz7GGw2mQnqJCzQL+klGSh4v6Y/Xzfb75JupWvvZ
-t4aPHJB2GUddruyWocrN
-=gioG
------END PGP SIGNATURE-----
---=-=-=--
+root@letux:~# xrandr
+Screen 0: minimum 320 x 200, current 720 x 640, maximum 2048 x 2048
+None-1 unknown connection 720x574+0+0 0mm x 0mm
+   720x574i      50.00*+
+None-2 unknown connection 480x640+0+0 0mm x 0mm
+   480x640       65.74*+
+root@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
+enabled
+enabled
+root@letux:~# cat /sys/class/drm/card0-Unknown-*/status
+unknown
+unknown
+root@letux:~# 
+
+D) VENC patch but DPI returning connector_status_unknown
+
+rroot@letux:~# xrandr
+Screen 0: minimum 320 x 200, current 720 x 574, maximum 2048 x 2048
+None-1 unknown connection
+   480x640       65.74 +
+None-2 connected 720x574+0+0 0mm x 0mm
+   720x574i      50.00*+oot@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
+disabled
+enabled
+root@letux:~# cat /sys/class/drm/card0-Unknown-*/status
+unknown
+connected
+
+In case B) I have no TV out and in case D) I have no LCD.
+
+So it looks as if it works if my LCD and VENC report the same
+connection status. And fails if they differ.
+
+Anyone with an explanation or even vague idea where to search
+for the real bug?
+
+BR and thanks,
+Nikolaus
