@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 35/39] ARM: dts: omap4-sdp-es23plus: Use OMAP4_IOPAD pinmux macro
-Date: Fri, 13 Nov 2015 01:54:13 -0300
-Message-ID: <1447390457-1158-36-git-send-email-javier@osg.samsung.com>
+Subject: [PATCH 39/39] ARM: dts: omap5-uevm.dts: Use OMAP5_IOPAD pinmux macro
+Date: Fri, 13 Nov 2015 01:54:17 -0300
+Message-ID: <1447390457-1158-40-git-send-email-javier@osg.samsung.com>
 References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
@@ -16,26 +16,26 @@ This makes the DTS easier to read since matches the addresses listed
 in the Technical Reference Manual.
 
 Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
 
- arch/arm/boot/dts/omap4-sdp-es23plus.dts | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap5-uevm.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp-es23plus.dts b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
-index aad5dda0f469..b4d19a7ae393 100644
---- a/arch/arm/boot/dts/omap4-sdp-es23plus.dts
-+++ b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
-@@ -10,8 +10,8 @@
- /* SDP boards with 4430 ES2.3+ or 4460 have external pullups on SCL & SDA */
- &dss_hdmi_pins {
- 	pinctrl-single,pins = <
--		0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
--		0x5c (PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
--		0x5e (PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
-+		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
-+		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
-+		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index 05b1c1ebded8..60b3fbb3bf07 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -40,8 +40,8 @@
+ &omap5_pmx_core {
+ 	i2c5_pins: pinmux_i2c5_pins {
+ 		pinctrl-single,pins = <
+-			0x186 (PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
+-			0x188 (PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
++			OMAP5_IOPAD(0x1c6, PIN_INPUT | MUX_MODE0)		/* i2c5_scl */
++			OMAP5_IOPAD(0x1c8, PIN_INPUT | MUX_MODE0)		/* i2c5_sda */
  		>;
+ 	};
  };
 -- 
 2.4.3
