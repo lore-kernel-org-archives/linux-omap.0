@@ -1,63 +1,77 @@
-From: Luis Henriques <luis.henriques@canonical.com>
-Subject: [PATCH 3.16.y-ckt 08/94] clk: ti: fix dual-registration of uart4_ick
-Date: Fri, 13 Nov 2015 10:09:02 +0000
-Message-ID: <1447409428-12178-9-git-send-email-luis.henriques@canonical.com>
-References: <1447409428-12178-1-git-send-email-luis.henriques@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447409428-12178-1-git-send-email-luis.henriques@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@lists.codethink.co.uk, Ben Dooks <ben.dooks@codethink.co.uk>, Tero Kristo <t-kristo@ti.com>, Luis Henriques <luis.henriques@canonical.com>
+From: Igor Grinberg <igor.grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 1/6] ARM: OMAP2+: dts: cm-t335: add initial support
+Date: Fri, 13 Nov 2015 12:19:19 +0200
+Message-ID: <5645B927.5020001@compulab.co.il>
+References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1445948100-16446-2-git-send-email-uri.mashiach@compulab.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1445948100-16446-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-3.16.7-ckt20 -stable review patch.  If anyone has any objections, please let me know.
+Hi Uri,
 
-------------------
+On 10/27/15 14:14, Uri Mashiach wrote:
+> From: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> 
+> Add basic support for CompuLab cm-t335 module based on AM335X SoC.
+> 
+> CM-T335 is a tiny computer-on-module (CoM) / system-on-module (SoM)
+> The module is built around the Texas Instruments Sitara AM3352/4
+> system-on-chip.
+> 
+> The CPU is supplemented with up-to 512MB DDR3 and up-to 1GB of on-board
+> NAND storage, WiFi connected to SPI, Bluetooth, Analog audio, Gigabit
+> Ethernet, CAN bus.
+> 
+> Current patch adds support:
+> UART0 and GPIO LED
+> 
+> Detailed description can be found at the module site:
+> http://www.compulab.co.il/products/computer-on-modules/cm-t335/
 
-From: Ben Dooks <ben.dooks@codethink.co.uk>
+[...]
 
-commit 19e79687de22f23bcfb5e79cce3daba20af228d1 upstream.
+> diff --git a/arch/arm/boot/dts/am335x-cm-t335.dts b/arch/arm/boot/dts/am335x-cm-t335.dts
+> new file mode 100644
+> index 0000000..197d5ce
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
+> @@ -0,0 +1,62 @@
 
-On the OMAP AM3517 platform the uart4_ick gets registered
-twice, causing any power management to /dev/ttyO3 to fail
-when trying to wake the device up.
+[...]
 
-This solves the following oops:
+> +&am33xx_pinmux {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <>;
+> +
+> +	gpio_led_pins: pinmux_gpio_led_pins {
+> +		pinctrl-single,pins = <
+> +			0x88 (PIN_OUTPUT | MUX_MODE7)	/* gpmc_csn3.gpio2_0 */
+> +		>;
+> +	};
+> +
+> +	uart0_pins: pinmux_uart0_pins {
+> +		pinctrl-single,pins = <
+> +			/* uart0_rxd.uart0_rxd */
+> +			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)
+> +			/* uart0_txd.uart0_txd */
+> +			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)
 
-[] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa09e008
-[] PC is at serial_omap_pm+0x48/0x15c
-[] LR is at _raw_spin_unlock_irqrestore+0x30/0x5c
+Can we use AM33XX_IOPAD macro here?
+and may be other patches too?
 
-Fixes: aafd900cab87 ("CLK: TI: add omap3 clock init file")
-Cc: mturquette@baylibre.com
-Cc: sboyd@codeaurora.org
-Cc: linux-clk@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
----
- drivers/clk/ti/clk-3xxx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[...]
 
-diff --git a/drivers/clk/ti/clk-3xxx.c b/drivers/clk/ti/clk-3xxx.c
-index 0d1750a8aea4..088930c3ee4b 100644
---- a/drivers/clk/ti/clk-3xxx.c
-+++ b/drivers/clk/ti/clk-3xxx.c
-@@ -170,7 +170,6 @@ static struct ti_dt_clk omap3xxx_clks[] = {
- 	DT_CLK(NULL, "gpio2_ick", "gpio2_ick"),
- 	DT_CLK(NULL, "wdt3_ick", "wdt3_ick"),
- 	DT_CLK(NULL, "uart3_ick", "uart3_ick"),
--	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
- 	DT_CLK(NULL, "gpt9_ick", "gpt9_ick"),
- 	DT_CLK(NULL, "gpt8_ick", "gpt8_ick"),
- 	DT_CLK(NULL, "gpt7_ick", "gpt7_ick"),
-@@ -313,6 +312,7 @@ static struct ti_dt_clk am35xx_clks[] = {
- static struct ti_dt_clk omap36xx_clks[] = {
- 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
- 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
-+	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
- 	{ .node_name = NULL },
- };
- 
+-- 
+Regards,
+Igor.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
