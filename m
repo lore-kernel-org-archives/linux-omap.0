@@ -1,47 +1,116 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [BISECTED] v4.3-rc5: OMAP1 boot hang
-Date: Fri, 13 Nov 2015 00:57:22 +0000
-Message-ID: <20151113005722.GQ32536@n2100.arm.linux.org.uk>
-References: <20151013073046.GB7588@blackmetal.musicnaut.iki.fi>
- <20151111214444.GF2260@blackmetal.musicnaut.iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20151111214444.GF2260@blackmetal.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 00/39] ARM: dts: Convert OMAP boards to use IOPAD pinmux macros
+Date: Fri, 13 Nov 2015 01:53:38 -0300
+Message-ID: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>, linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, "Andrew F. Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 11, 2015 at 11:44:44PM +0200, Aaro Koskinen wrote:
-> Hi,
-> 
-> Any suggestions how to debug this further? This happens also with v4.3
-> final. Is the CPU_SW_DOMAIN_PAN supposed to work with this CPU?
-> 
-> I tried to disable various drivers (e.g. NAND, USB) and it still
-> hangs... And it seems always at the same printk time stamp (roughly at
-> 25 seconds).
+Hello Tony,
 
-No idea what so ever, and I have zero knowledge of this ARM925 thing -
-never had one, and never seen any specs on it.  The weird thing is
-that it's not producing any oops dump - I guess the kernel is totally
-dead and unresponsive.  I'd ask if you have a heartbeat LED, but I'd
-guess the answer will be that the hardware is too limited.
+This series converts all the remaining OMAP boards that didn't use the
+IOPAD macros to specify the padconf register addresses. The only board
+that I left was arch/arm/boot/dts/am335x-boneblack.dts because Andrew
+already posted a patch for that DTS [0].
 
-Any additional information you can give might help, but I wouldn't hold
-out any hopes...
+I built tested all the DTBs that are build by omap2plus_defconfig and
+the md5 checksum was the same before and after the patches so there's
+no functional change and is only to make the DTS more readable.
+
+Patch #1 should be acked by the pinctrl maintainer and picked through
+the linux-omap tree to maintain bisectability.
+
+[0]: https://lkml.org/lkml/2015/10/24/114
+
+Best regards,
+Javier
+
+
+Javier Martinez Canillas (39):
+  pinctrl: Move am4372 and dra7 macros to the the SoC header files
+  ARM: dts: am335x-baltos-ir5221: Remove leftover pinctrl lines
+  ARM: dts: am335x-baltos-ir5221: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-bone-common: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-bonegreen: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-chiliboard: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-chilisom: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-evm: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-evmsk: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-lxm: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-nano: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-pepper: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-phycore-som: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am335x-wega: Use AM33XX_IOPAD pinmux macro
+  ARM: dts: am3517-craneboard: Use OMAP3_CORE1_IOPAD pinmux macro
+  ARM: dts: am437x-gp-evm: Use AM4372_IOPAD pinmux macro
+  ARM: dts: am437x-idk-evm: Use AM4372_IOPAD pinmux macro
+  ARM: dts: am437x-sk-evm: Use AM4372_IOPAD pinmux macro
+  ARM: dts: am43x-epos-evm: Use AM4372_IOPAD pinmux macro
+  ARM: dts: am57xx-beagle-x15: Use DRA7XX_CORE_IOPAD pinmux macro
+  ARM: dts: dra7-evm: Use DRA7XX_CORE_IOPAD pinmux macro
+  ARM: dts: dra72-evm: Use DRA7XX_CORE_IOPAD pinmux macro
+  ARM: dts: omap3-beagle: Use OMAP3_*_IOPAD pinmux macros
+  ARM: dts: omap3-beagle-xm: Use OMAP3_*_IOPAD pinmux macros
+  ARM: dts: omap3-evm-37xx: Use OMAP3_*_IOPAD pinmux macros
+  ARM: dts: omap3-ldp: Use OMAP3_CORE1_IOPAD pinmux macro
+  ARM: dts: omap3-n900: Use OMAP3_CORE1_IOPAD pinmux macro
+  ARM: dts: omap3-n9: Use OMAP3_CORE1_IOPAD pinmux macro
+  ARM: dts: omap3-zoom3: Use OMAP3_*_IOPAD pinmux macros
+  ARM: dts: twl4030: Use OMAP3_CORE1_IOPAD pinmux macro
+  ARM: dts: omap4-panda-a4: Use OMAP4_IOPAD pinmux macro
+  ARM: dts: omap4-panda-common: Use OMAP4_IOPAD pinmux macro
+  ARM: dts: omap4-panda-es: Use OMAP4_IOPAD pinmux macro
+  ARM: dts: omap4-sdp: Use OMAP4_IOPAD pinmux macro
+  ARM: dts: omap4-sdp-es23plus: Use OMAP4_IOPAD pinmux macro
+  ARM: dts: twl6030: Use OMAP4_IOPAD pinmux macro
+  ARM: dts: omap5-board-common: Use OMAP5_IOPAD pinmux macro
+  ARM: dts: omap5-cm-t54: Use OMAP5_IOPAD pinmux macro
+  ARM: dts: omap5-uevm.dts: Use OMAP5_IOPAD pinmux macro
+
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts | 186 +++++++-------
+ arch/arm/boot/dts/am335x-bone-common.dtsi  | 104 ++++----
+ arch/arm/boot/dts/am335x-bonegreen.dts     |   4 +-
+ arch/arm/boot/dts/am335x-chiliboard.dts    |  20 +-
+ arch/arm/boot/dts/am335x-chilisom.dtsi     |  80 +++---
+ arch/arm/boot/dts/am335x-evm.dts           | 220 ++++++++---------
+ arch/arm/boot/dts/am335x-evmsk.dts         | 278 ++++++++++-----------
+ arch/arm/boot/dts/am335x-lxm.dts           | 120 ++++-----
+ arch/arm/boot/dts/am335x-nano.dts          | 140 +++++------
+ arch/arm/boot/dts/am335x-pepper.dts        | 200 +++++++--------
+ arch/arm/boot/dts/am335x-phycore-som.dtsi  |  60 ++---
+ arch/arm/boot/dts/am335x-wega.dtsi         |  58 ++---
+ arch/arm/boot/dts/am3517-craneboard.dts    |   2 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts        | 380 ++++++++++++++---------------
+ arch/arm/boot/dts/am437x-idk-evm.dts       | 128 +++++-----
+ arch/arm/boot/dts/am437x-sk-evm.dts        | 298 +++++++++++-----------
+ arch/arm/boot/dts/am43x-epos-evm.dts       | 246 +++++++++----------
+ arch/arm/boot/dts/am57xx-beagle-x15.dts    | 198 +++++++--------
+ arch/arm/boot/dts/dra7-evm.dts             | 254 +++++++++----------
+ arch/arm/boot/dts/dra72-evm.dts            | 200 +++++++--------
+ arch/arm/boot/dts/omap3-beagle-xm.dts      |  18 +-
+ arch/arm/boot/dts/omap3-beagle.dts         |  64 ++---
+ arch/arm/boot/dts/omap3-evm-37xx.dts       |  54 ++--
+ arch/arm/boot/dts/omap3-ldp.dts            |  42 ++--
+ arch/arm/boot/dts/omap3-n900.dts           | 106 ++++----
+ arch/arm/boot/dts/omap3-n950-n9.dtsi       |  12 +-
+ arch/arm/boot/dts/omap3-zoom3.dts          |  60 ++---
+ arch/arm/boot/dts/omap4-panda-a4.dts       |   6 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi  | 164 ++++++-------
+ arch/arm/boot/dts/omap4-panda-es.dts       |  10 +-
+ arch/arm/boot/dts/omap4-sdp-es23plus.dts   |   6 +-
+ arch/arm/boot/dts/omap4-sdp.dts            | 110 ++++-----
+ arch/arm/boot/dts/omap5-board-common.dtsi  |  94 +++----
+ arch/arm/boot/dts/omap5-cm-t54.dts         |   2 +-
+ arch/arm/boot/dts/omap5-uevm.dts           |   4 +-
+ arch/arm/boot/dts/twl4030_omap3.dtsi       |   2 +-
+ arch/arm/boot/dts/twl6030_omap4.dtsi       |   4 +-
+ include/dt-bindings/pinctrl/am43xx.h       |   6 +
+ include/dt-bindings/pinctrl/dra.h          |   6 +
+ include/dt-bindings/pinctrl/omap.h         |   2 -
+ 40 files changed, 1977 insertions(+), 1971 deletions(-)
 
 -- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.4.3
+
