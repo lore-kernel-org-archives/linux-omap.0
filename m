@@ -1,132 +1,83 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 2/2] video:omapdrm: make omapdrm assume the tv-out cable is always connected
-Date: Fri, 13 Nov 2015 17:45:26 +0100
-Message-ID: <0A7D0C81-AA10-413C-8546-9873B65FE6CE@goldelico.com>
-References: <cover.1447410543.git.hns@goldelico.com> <5942ddb7ab4f42f207c6c2b54be31a3d9fe3b912.1447410544.git.hns@goldelico.com> <5645CD79.5040107@ti.com> <3973104.FPbEEICOqe@avalon>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: [PATCH v3] ARM: dts: am335x-boneblack: Use pinctrl constants and AM33XX_IOPAD macro
+Date: Fri, 13 Nov 2015 10:47:27 -0600
+Message-ID: <1447433247-21395-1-git-send-email-afd@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3973104.FPbEEICOqe@avalon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: David Airlie <airlied@linux.ie>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, dri-devel@lists.freedesktop.org, LKML <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>
+To: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F. Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Here the test results:
+Using constants for pinctrl allows better readability and removes
+redundancy with comments. AM33XX_IOPAD allows us to use part of the
+pinctrl physical address as in the TRM instead of an offset.
 
-Am 13.11.2015 um 13:01 schrieb Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+Signed-off-by: Andrew F. Davis <afd@ti.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ arch/arm/boot/dts/am335x-boneblack.dts | 44 +++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-> On Friday 13 November 2015 13:46:01 Tomi Valkeinen wrote:
->> On 13/11/15 12:29, H. Nikolaus Schaller wrote:
->>> Include VENC in the set of drivers where it is assimed that the cable
->>> is always connected. Like DPI, DSI, DBI and SDI do.
->>> 
->>> Otherwise, the VENC will return cable status "unknown" and is not enabled
->>> by the X-server. So there is no video output signal.
->>> 
->>> Tested on: BeagleBoard XM, GTA04 and OpenPandora
->>> 
->>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->>> ---
->>> 
->>> drivers/gpu/drm/omapdrm/omap_connector.c | 1 +
->>> 1 file changed, 1 insertion(+)
->>> 
->>> diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c
->>> b/drivers/gpu/drm/omapdrm/omap_connector.c index 83f2a91..98ddb5d 100644
->>> --- a/drivers/gpu/drm/omapdrm/omap_connector.c
->>> +++ b/drivers/gpu/drm/omapdrm/omap_connector.c
->>> @@ -120,6 +120,7 @@ static enum drm_connector_status
->>> omap_connector_detect(
->>> 		else
->>> 			ret = connector_status_disconnected;
->>> 	} else if (dssdev->type == OMAP_DISPLAY_TYPE_DPI ||
->>> +			dssdev->type == OMAP_DISPLAY_TYPE_VENC ||
->>> 			dssdev->type == OMAP_DISPLAY_TYPE_DBI ||
->>> 			dssdev->type == OMAP_DISPLAY_TYPE_SDI ||
->>> 			dssdev->type == OMAP_DISPLAY_TYPE_DSI) {
->> 
->> I have no idea why VENC is not working for you when using
->> connector_status_unknown, but I just tested DPI with
->> connector_status_unknown (i.e. changed the above func to return unknown
->> for DPI), and it works fine with X and X omap driver. And xrandr
->> confirms that the connection status is unknown:
->> 
->> # xrandr
->> Screen 0: minimum 320 x 200, current 1920 x 1200, maximum 2048 x 2048
->> HDMI-1 disconnected (normal left inverted right x axis y axis)
->> None-1 unknown connection 1920x1200+0+0 (normal left inverted right x
->> axis y axis) 0mm x 0mm
->>   1920x1200     60.00*+  60.00 +
-
-A) with this VENC patch:
-
-root@letux:~# xrandr
-Screen 0: minimum 320 x 200, current 720 x 640, maximum 2048 x 2048
-None-1 connected 720x574+0+0 0mm x 0mm
-   720x574i      50.00*+
-None-2 connected 480x640+0+0 0mm x 0mm
-   480x640       65.74*+
-root@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
-enabled
-enabled
-root@letux:~# cat /sys/class/drm/card0-Unknown-*/status 
-connected
-connected
-
-B) w/o VENC patch (VENC returns returning connector_status_unknown):
-
-root@letux:~# xrandr
-Screen 0: minimum 320 x 200, current 480 x 640, maximum 2048 x 2048
-None-1 connected 480x640+0+0 0mm x 0mm
-   480x640       65.74*+
-None-2 unknown connection
-   720x574i      50.00 +
-root@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
-enabled
-disabled
-root@letux:~# cat /sys/class/drm/card0-Unknown-*/status
-connected
-unknown
-
-C) with DPI (also) returning connector_status_unknown
-
-root@letux:~# xrandr
-Screen 0: minimum 320 x 200, current 720 x 640, maximum 2048 x 2048
-None-1 unknown connection 720x574+0+0 0mm x 0mm
-   720x574i      50.00*+
-None-2 unknown connection 480x640+0+0 0mm x 0mm
-   480x640       65.74*+
-root@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
-enabled
-enabled
-root@letux:~# cat /sys/class/drm/card0-Unknown-*/status
-unknown
-unknown
-root@letux:~# 
-
-D) VENC patch but DPI returning connector_status_unknown
-
-rroot@letux:~# xrandr
-Screen 0: minimum 320 x 200, current 720 x 574, maximum 2048 x 2048
-None-1 unknown connection
-   480x640       65.74 +
-None-2 connected 720x574+0+0 0mm x 0mm
-   720x574i      50.00*+oot@letux:~# cat /sys/class/drm/card0-Unknown-*/enabled
-disabled
-enabled
-root@letux:~# cat /sys/class/drm/card0-Unknown-*/status
-unknown
-connected
-
-In case B) I have no TV out and in case D) I have no LCD.
-
-So it looks as if it works if my LCD and VENC report the same
-connection status. And fails if they differ.
-
-Anyone with an explanation or even vague idea where to search
-for the real bug?
-
-BR and thanks,
-Nikolaus
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index eadbba3..55c0e95 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -36,32 +36,32 @@
+ &am33xx_pinmux {
+ 	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+ 		pinctrl-single,pins = <
+-			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
+-			0xa0 0x08       /* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xa4 0x08       /* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xa8 0x08       /* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xac 0x08       /* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xb0 0x08       /* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xb4 0x08       /* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xb8 0x08       /* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xbc 0x08       /* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xc0 0x08       /* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xc4 0x08       /* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xc8 0x08       /* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xcc 0x08       /* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xd0 0x08       /* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xd4 0x08       /* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xd8 0x08       /* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xdc 0x08       /* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
+-			0xe0 0x00       /* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-			0xe4 0x00       /* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-			0xe8 0x00       /* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
+-			0xec 0x00       /* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
++			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
++			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
++			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
++			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
++			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
++			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
++			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
++			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
++			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
++			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
++			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
++			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
++			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
++			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
++			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
++			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
++			AM33XX_IOPAD(0x8e0, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_vsync.lcd_vsync */
++			AM33XX_IOPAD(0x8e4, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_hsync.lcd_hsync */
++			AM33XX_IOPAD(0x8e8, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_pclk.lcd_pclk */
++			AM33XX_IOPAD(0x8ec, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* lcd_ac_bias_en.lcd_ac_bias_en */
+ 		>;
+ 	};
+ 	nxp_hdmi_bonelt_off_pins: nxp_hdmi_bonelt_off_pins {
+ 		pinctrl-single,pins = <
+-			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
++			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* xdma_event_intr0 */
+ 		>;
+ 	};
+ };
+-- 
+1.9.1
