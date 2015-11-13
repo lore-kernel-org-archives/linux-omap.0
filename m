@@ -1,67 +1,101 @@
-From: Mike Looijmans <mike.looijmans@topic.nl>
-Subject: Re: [PATCH v3 1/5] spi: introduce mmap read support for spi flash
- devices
-Date: Fri, 13 Nov 2015 15:06:55 +0100
-Message-ID: <5645EE7F.5040101@topic.nl>
-References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
- <1447133399-25658-2-git-send-email-vigneshr@ti.com>
- <20151110232341.GU12143@google.com> <5642E546.3040806@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx
+ hwmod data
+Date: Fri, 13 Nov 2015 06:41:59 -0800
+Message-ID: <20151113144158.GA2517@atomide.com>
+References: <5628A9F2.3010801@baylibre.com>
+ <20151024012112.GA3078@atomide.com>
+ <CAA3gFWs8-3pqiZR8vYLDWdXwWjUcd9UK23W3dODGTT+FY55E7g@mail.gmail.com>
+ <56449F15.10508@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5642E546.3040806@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "R, Vignesh" <vigneshr@ti.com>, Brian Norris <computersforpeace@gmail.com>
-Cc: devicetree@vger.kernel.org, Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56449F15.10508@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, Frode Isaksen <fisaksen@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-77u/T24gMTEtMTEtMTUgMDc6NTAsIFIsIFZpZ25lc2ggd3JvdGU6Cj4gSGkgQnJhaW4sCj4KPiBP
-biAxMS8xMS8yMDE1IDQ6NTMgQU0sIEJyaWFuIE5vcnJpcyB3cm90ZToKPj4gSGkgVmlnbmVzaCwK
-Li4uCgo+PiBBbHNvLCB0aGlzIEFQSSBkb2Vzbid0IGFjdHVhbGx5IGhhdmUgYW55dGhpbmcgdG8g
-ZG8gd2l0aCBtZW1vcnkgbWFwcGluZy4KPj4gSXQgaGFzIHRvIGRvIHdpdGggdGhlIGRlIGZhY3Rv
-IHN0YW5kYXJkIGZsYXNoIHByb3RvY29sLiBTbyBJIGRvbid0IHRoaW5rCj4+IG1tYXAgYmVsb25n
-cyBpbiB0aGUgbmFtZTsgaXQgc2hvdWxkIGJlIHNvbWV0aGluZyBhYm91dCBmbGFzaC4gKEkga25v
-dyBvZgo+PiBhdCBsZWFzdCBvbmUgb3RoZXIgY29udHJvbGxlciB0aGF0IGNvdWxkIHByb2JhYmx5
-IHVzZSB0aGlzIEFQSSwgZXhjcGV0Cj4+IGl0IGRvZXNuJ3QgdXNlIG1lbW9yeSBtYXBwaW5nIHRv
-IGFjY29tcGxpc2ggdGhlIGFjY2VsZXJhdGVkIGZsYXNoIHJlYWQuKQoKVGhlIFp5bnEgaGFzIGEg
-c2ltaWxhciB3YXkgb2YgYWNjZXNzaW5nIFFTUEkgZmxhc2ggdGhyb3VnaCBhIG1lbW9yeSBtYXAu
-IFRoZSAKbWVtb3J5IHdpbmRvdyBpcyBvbmx5IDE2TUIsIHNvIHNvbWUgZm9ybSBvZiBwYWdpbmcg
-d291bGQgYmUgbmVlZGVkLgoKSXQncyB3aHkgSSBoYXZlIGJlZW4gZm9sbG93aW5nIHRoaXMgdGhy
-ZWFkIHdpdGggZ3JlYXQgaW50ZXJlc3QsIHNpbmNlIHRoZSBRU1BJIApwZXJmb3JtYW5jZSBvbiB0
-aGUgWnlucSBpcyB3YXkgYmVsb3cgd2hhdCBpdCBjb3VsZCBwb3RlbnRpYWxseSBiZS4KCj4gQXMg
-ZmFyIGFzIFRJIFFTUEkgY29udHJvbGxlciBpcyBjb25jZXJuZWQsIHRoZSBhY2NlbGVyYXRlZCBy
-ZWFkIGhhcHBlbnMKPiB2aWEgbW1hcCBwb3J0IHdoZXJlYnkgYSBwcmVkZWZpbmVkIG1lbW9yeSBh
-ZGRyZXNzIHNwYWNlIG9mIFNvQyBpcwo+IGV4cG9zZWQgYXMgUVNQSSBtbWFwIHJlZ2lvbi4gVGhp
-cyByZWdpb24gY2FuIGJlIGFjY2Vzc2VkIGxpa2Ugbm9ybWFsCj4gUkFNKHZpYSBtZW1jcHkoKSkg
-YW5kIHRoZSBRU1BJIGNvbnRyb2xsZXIgaW50ZXJmYWNlIHRha2VzIGNhcmUgb2YKPiBmZXRjaGlu
-ZyBkYXRhIGZyb20gZmxhc2ggb24gU1BJIGJ1cyBhdXRvbWF0aWNhbGx5IGhlbmNlLCBJIG5hbWVk
-IGl0IGFzCj4gYWJvdmUuIEJ1dCwgSSBoYXZlIG5vIGhhcmQgZmVlbGluZ3MgaWYgaXQgbmVlZHMg
-dG8gYmUgZ2VuZXJhbGl6ZWQgdG8KPiBzcGlfbXRkX3JlYWQoKSBvciBzb21ldGhpbmcgZWxzZS4K
-Ckkga25vdyB0aGF0IG9uIHRoZSBaeW5xLCB5b3UgY2FuIGV2ZW4gbGV0IHRoZSBETUEgY29udHJv
-bGxlciBhY2Nlc3MgdGhlIFFTUEkgCmZsYXNoIHZpYSB0aGlzIG1lbW9yeSBtYXBwaW5nLiBUaGUg
-UVNQSSBjb250cm9sbGVyIGl0c2VsZiBkb2Vzbid0IHN1cHBvcnQgYW55IApETUEgYXQgYWxsLgoK
-SWYgc29tZXRoaW5nIHNpbWlsYXIgYXBwbGllcyB0byB0aGUgVEkgcGxhdGZvcm0gKG1vc3Qgb2Yg
-dGhlIFRJIHByb2NzIGhhdmUgCm5pY2UgRE1BIGNvbnRyb2xsZXJzKSBvbmUgY291bGQgZ28gb25l
-IHN0ZXAgZnVydGhlciBhbmQgaW1wbGVtZW50IGEgZ2VuZXJpYyAKRE1BLXRocm91Z2gtbW1hcCBh
-Y2Nlc3MgdG8gUVNQSSBmbGFzaC4KCk1pa2UuCgoKS2luZCByZWdhcmRzLAoKTWlrZSBMb29pam1h
-bnMKU3lzdGVtIEV4cGVydAoKVE9QSUMgRW1iZWRkZWQgUHJvZHVjdHMKRWluZGhvdmVuc2V3ZWcg
-MzItQywgTkwtNTY4MyBLSCBCZXN0ClBvc3RidXMgNDQwLCBOTC01NjgwIEFLIEJlc3QKVGVsZWZv
-b246ICszMSAoMCkgNDk5IDMzIDY5IDc5ClRlbGVmYXg6ICszMSAoMCkgNDk5IDMzIDY5IDcwCkUt
-bWFpbDogbWlrZS5sb29pam1hbnNAdG9waWNwcm9kdWN0cy5jb20KV2Vic2l0ZTogd3d3LnRvcGlj
-cHJvZHVjdHMuY29tCgpQbGVhc2UgY29uc2lkZXIgdGhlIGVudmlyb25tZW50IGJlZm9yZSBwcmlu
-dGluZyB0aGlzIGUtbWFpbAoKVmlzaXQgdXMgYXQgOiBBZXJvc3BhY2UgRWxlY3RyaWNhbCBTeXN0
-ZW1zIEV4cG8gRXVyb3BlIHdoaWNoIHdpbGwgYmUgaGVsZCBmcm9tIDE3LjExLjIwMTUgdGlsbCAx
-OS4xMS4yMDE1LCBGaW5kb3JmZnN0cmFzc2UgMTAxIEJyZW1lbiwgR2VybWFueSwgSGFsbCA1LCBz
-dGFuZCBudW1iZXIgQzY1Cmh0dHA6Ly93d3cuYWVzZXhwby5ldQoKCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
-bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+* Neil Armstrong <narmstrong@baylibre.com> [151112 06:16]:
+> On 10/24/2015 12:09 PM, Neil Armstrong wrote:
+> > Hi,
+> > 
+> > 2015-10-24 3:21 GMT+02:00 Tony Lindgren <tony@atomide.com>:
+> >>
+> >> Hi,
+> >>
+> >> * Neil Armstrong <narmstrong@baylibre.com> [151022 02:19]:
+> >>> Add missing HWMOD_NO_IDLEST hwmod flag for entries no
+> >>> having omap4 clkctrl values.
+> >>
+> >> Have you checked this is the case both in dm814x and dm816x TRM?
+> >> Also the documentation may not be complete FYI, might be also
+> >> worth checking the legacy TI kernel tree to be sure.
+> >>
+> >> Regards,
+> >>
+> >> Tony
+> >>
+> >>> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> >>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> >>> ---
+> >>>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 3 +++
+> >>>  1 file changed, 3 insertions(+)
+> >>>
+> >>> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> >>> index b1288f5..6256052 100644
+> >>> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> >>> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> >>> @@ -144,6 +144,7 @@ static struct omap_hwmod dm81xx_l4_ls_hwmod = {
+> >>>       .name           = "l4_ls",
+> >>>       .clkdm_name     = "alwon_l3s_clkdm",
+> >>>       .class          = &l4_hwmod_class,
+> >>> +     .flags          = HWMOD_NO_IDLEST,
+> >>>  };
+> > In DM814x TRM, the CM_ALWON_L3_SLOW_CLKSTCTRL does not have IDLEST field.
+> > Same in DM816x TRM.
+> > 
+> >>>
+> >>>  /*
+> >>> @@ -155,6 +156,7 @@ static struct omap_hwmod dm81xx_l4_hs_hwmod = {
+> >>>       .name           = "l4_hs",
+> >>>       .clkdm_name     = "alwon_l3_med_clkdm",
+> >>>       .class          = &l4_hwmod_class,
+> >>> +     .flags          = HWMOD_NO_IDLEST,
+> >>>  };
+> > In DM814x TRM, the CM_ALWON_L3_MED_CLKSTCTRL does not have IDLEST field.
+> > Same in DM816x TRM.
+> > 
+> >>>
+> >>>  /* L3 slow -> L4 ls peripheral interface running at 125MHz */
+> >>> @@ -850,6 +852,7 @@ static struct omap_hwmod dm816x_emac0_hwmod = {
+> >>>       .name           = "emac0",
+> >>>       .clkdm_name     = "alwon_ethernet_clkdm",
+> >>>       .class          = &dm816x_emac_hwmod_class,
+> >>> +     .flags          = HWMOD_NO_IDLEST,
+> >>>  };
+> > In this particular case, the IDLEST is handled in the MDIO hwmod.
+> > 
+> >>>
+> >>>  static struct omap_hwmod_ocp_if dm81xx_l4_hs__emac0 = {
+> >>> --
+> >>> 1.9.1
+> > 
+> > I'll check the TI tree to be sure...
+> > 
+> > Regards,
+> > Neil
+> > 
+> Tony,
+> 
+> In TI's tree, there is no L3_MED hwmod but the L3_SLOW hwmod has NO_IDLEST flag.
+> 
+> Is there any other issue about this patchset ?
+
+Thanks for checking. Well one thing, if this is needed as fix, then a
+description of what happens without it would be good to have.
+
+Regards,
+
+Tony
