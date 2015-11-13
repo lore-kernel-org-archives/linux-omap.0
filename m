@@ -1,40 +1,33 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 05/39] ARM: dts: am335x-bonegreen: Use AM33XX_IOPAD pinmux macro
-Date: Fri, 13 Nov 2015 01:53:43 -0300
-Message-ID: <1447390457-1158-6-git-send-email-javier@osg.samsung.com>
-References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: Minimal support for dm814x
+Date: Fri, 13 Nov 2015 08:14:06 +0100
+Message-ID: <CAALWOA9o80rhaqwaa6=XxmNN1FcWzHDXiaqkqFVO81CAMX=04w@mail.gmail.com>
+References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
+ <20151109150602.GR3199@atomide.com>
+ <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
+ <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
+ <20151111174028.GF3218@atomide.com>
+ <CAALWOA_dEtajQBLrXesQ2bRCDf-1Dzg_tJw_=yAmaO=T3=KMZQ@mail.gmail.com>
+ <20151112174155.GM3218@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151112174155.GM3218@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Delio Brignoli <dbrignoli@audioscience.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use the pinmux IOPAD macro to define the register absolute physical
-address instead of the offset from the padconf base address. This
-makes the DTS easier to read since matches the addresses listed in
-the Technical Reference Manual.
+On 12 November 2015 at 18:41, Tony Lindgren <tony@atomide.com> wrote:
+> Does the old TI kernel tree driver correctly handle that?
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
- arch/arm/boot/dts/am335x-bonegreen.dts | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am335x-bonegreen.dts b/arch/arm/boot/dts/am335x-bonegreen.dts
-index 0f65bdaaa583..dce3c8657e04 100644
---- a/arch/arm/boot/dts/am335x-bonegreen.dts
-+++ b/arch/arm/boot/dts/am335x-bonegreen.dts
-@@ -36,8 +36,8 @@
- &am33xx_pinmux {
- 	uart2_pins: uart2_pins {
- 		pinctrl-single,pins = <
--			0x150 (PIN_INPUT | MUX_MODE1)	/* spi0_sclk.uart2_rxd */
--			0x154 (PIN_OUTPUT | MUX_MODE1)	/* spi0_d0.uart2_txd */
-+			AM33XX_IOPAD(0x950, PIN_INPUT | MUX_MODE1)	/* spi0_sclk.uart2_rxd */
-+			AM33XX_IOPAD(0x954, PIN_OUTPUT | MUX_MODE1)	/* spi0_d0.uart2_txd */
- 		>;
- 	};
- };
--- 
-2.4.3
+It seems this is how the old TI kernel handles them: http://goo.gl/3I3OEL
