@@ -1,59 +1,49 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v2 4/8] DT:omap3+tsc2007: use new common touchscreen bindings
-Date: Fri, 13 Nov 2015 21:35:55 +0100
-Message-ID: <96e3a52d6a80c7ac5be5fcfc7b5c0ae4bbec45b4.1447446957.git.hns@goldelico.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v2 6/8] drivers:input:ads7846(+tsc2046): recognise old binding for coordinate flipping
+Date: Fri, 13 Nov 2015 21:35:57 +0100
+Message-ID: <f036e0d2b019ae9463e108f48643c16a80936ddb.1447446957.git.hns@goldelico.com>
 References: <cover.1447446957.git.hns@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1447446957.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-In-Reply-To: <cover.1447446957.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-References: <cover.1447446957.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Haibo Chen <haibo.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Andrey Gelman <andrey.gelman-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Aaron Sierra <asierra-AQeFf1F/bRxBDgjK7y7TUQ@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gta04-owner-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1447446957.git.hns@goldelico.com>
+In-Reply-To: <cover.1447446957.git.hns@goldelico.com>
+References: <cover.1447446957.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Sebastian Reichel <sre@kernel.org>, Haibo Chen <haibo.chen@freescale.com>, Andrey Gelman <andrey.gelman@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>, Aaron Sierra <asierra@xes-inc.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gta04-owner@goldelico.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Tested on: GTA04A4 (Letux2804), Letux3704, Letux7004
+By this patch we still recognise the old binding ti,swap-xy in parallel to
+the common binding touchscreen-swapped-x-y. This keeps compatibility
+to older (out-of-tree) device tree binaries.
 
-Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+We do this in a separate patch so that it can be easily reverted in the
+future to retire the old API. A notice is printed to remind developers
+of using old API.
+
+We also fix the bindings name for all in-tree device tree sources in
+a separate patch.
+
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/input/touchscreen/ads7846.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 7166d88..95fed8e 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -357,10 +357,24 @@
- 	tsc2007@48 {
- 		compatible = "ti,tsc2007";
- 		reg = <0x48>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&penirq_pins>;
- 		interrupt-parent = <&gpio6>;
- 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>; /* GPIO_160 */
--		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
--		ti,x-plate-ohms = <600>;
-+		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;	/* GPIO_160 */
-+		touchscreen-size-x = <480>;
-+		touchscreen-size-y = <640>;
-+		touchscreen-max-pressure = <1000>;
-+		touchscreen-fuzz-x = <2>;
-+		touchscreen-fuzz-y = <2>;
-+		touchscreen-fuzz-pressure = <10>;
-+		touchscreen-inverted-y;
-+		ti,min-x = <0x100>;
-+		ti,max-x = <0xf00>;
-+		ti,min-y = <0x100>;
-+		ti,max-y = <0xf00>;
-+		ti,max-rt = <4096>;
-+		ti,x-plate-ohms = <550>;
- 	};
- };
+diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+index 4525f00..b9896fd 100644
+--- a/drivers/input/touchscreen/ads7846.c
++++ b/drivers/input/touchscreen/ads7846.c
+@@ -1259,7 +1259,11 @@ static const struct ads7846_platform_data *ads7846_probe_dt(struct device *dev)
+ 	of_property_read_u16(node, "ti,vref-mv", &pdata->vref_mv);
+ 	pdata->keep_vref_on = of_property_read_bool(node, "ti,keep-vref-on");
  
+-	pdata->swap_xy = of_property_read_bool(node, "touchscreen-swapped-x-y");
++	pdata->swap_xy = of_property_read_bool(node, "ti,swap-xy");
++	if (pdata->swap_xy)
++		dev_notice(dev, "please update device tree to use touchscreen-swapped-x-y");
++	pdata->swap_xy |= of_property_read_bool(node,
++						"touchscreen-swapped-x-y");
+ 
+ 	of_property_read_u16(node, "ti,settle-delay-usec",
+ 			     &pdata->settle_delay_usecs);
 -- 
 2.5.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
