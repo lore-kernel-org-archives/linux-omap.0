@@ -1,129 +1,84 @@
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH 2/2] [media] include/media: move platform driver headers
- to a separate dir
-Date: Fri, 13 Nov 2015 20:57:28 -0200
-Message-ID: <20151113205728.39c12b7b@recife.lan>
-References: <413d2bb0b813a7e62867de7a94b0ab61e16cb1cb.1447261977.git.mchehab@osg.samsung.com>
-	<4220808.QEkJDXYE1T@wuerfel>
-	<20151113171341.0972ef7a@recife.lan>
-	<4273019.OjrpsKyH2t@wuerfel>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [Gta04-owner] [PATCH 10/13] twl4030_charger: add software
+ controlled linear charging mode.
+Date: Sat, 14 Nov 2015 19:12:16 +0100
+Message-ID: <20151114181216.GB20429@amd>
+References: <20150730001113.4012.18086.stgit@noble>
+ <20150730001124.4012.27784.stgit@noble>
+ <20150915112825.GA10704@amd>
+ <87bncjjesu.fsf@notabene.neil.brown.name>
+ <20151006143407.GA24518@xo-6d-61-c0.localdomain>
+ <20151029172041.2a9cd266@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <4273019.OjrpsKyH2t@wuerfel>
-Sender: linux-sh-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sergey Lapin <slapin@ossfans.org>, Sekhar Nori <nsekhar@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, "Lad, Prabhakar" <prabhakar.csengg@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Harald Welte <laforge@openezx.org>, devel@driverdev.osuosl.org, Boris BREZILLON <boris.brezillon@free-electrons.com>, openezx-devel@lists.openezx.org, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Vinod Koul <vinod.koul@intel.com>, Magnus Damm <magnus.damm@gmail.com>, Kukjin Kim <kgene@kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>Alexey Khoroshilov <k>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151029172041.2a9cd266@kemnade.info>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: List for communicating with real GTA04 owners <gta04-owner@goldelico.com>, Neil Brown <neil@brown.name>, Samuel Ortiz <sameo@linux.intel.com>, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Em Fri, 13 Nov 2015 22:31:15 +0100
-Arnd Bergmann <arnd@arndb.de> escreveu:
+Hi!
 
-> On Friday 13 November 2015 17:13:41 Mauro Carvalho Chehab wrote:
-> > Em Wed, 11 Nov 2015 21:26:31 +0100
-> > Arnd Bergmann <arnd@arndb.de> escreveu:
+> > > Pavel Machek <pavel@ucw.cz> writes:
+> > > > On Thu 2015-07-30 10:11:24, NeilBrown wrote:
+> > > >> 
+> > > >> Add a 'continuous' option for usb charging which enables
+> > > >> the "linear" charging mode of the twl4030.
+> > > >> 
+> > > >> Linear charging does a good job with not-so-reliable power sources.
+> > > >> Auto mode does not work well as it switches off when voltage drops
+> > > >> momentarily.  Care must be taken not to over-charge.
+> > > >
+> > > > Can you explain how the user can "care not to over-charge"?
+> > > 
+> > > The following text reads:
+> > > 
+> > >     It was used with a bike hub dynamo since a year or so. In that case
+> > >     there are automatically charging stops when the cyclist needs a break.
+> > > 
+> > > so: take a break from cycling occasionally.
 > > 
+> > If the charger does not exceed 4.2V, I'd not call it overcharge. (Yes, some clever
+> > chargers actually let the battery drop below 4.2V when charge is done, but...)
+> > 
+> Yes, that is the case. Perhaps it is not to be called overcharge but
+> it is said that lithium battery charging has to stop if in CV mode the
+> current drops too low.  In automatic mode the charger does exactly
+> that.
+> I would not let a battery for days at 4.2V CV.mode although a lot
+> of cheap chargers
+
+Well, I agree that keeping battery at 4.2V constant voltage mode is
+bad, but I'd not call it overcharge. If someone can fix the comment,
+that would be nice.
+
+> > If the charger _does_ exceed 4.2V, then the battery will explode. Don't do that. Don't
+> > offer that to the user.
+> > 
+> > On a related note... I've just killed USB charger by overloading it. They are not protected.
+> > 
+> > I believe your automatically-pull-max-power really should stick to the well-known charging
+> > currents (.5A, 1A, 1.7A), at the very minimum.
+> > 
+> The main reason for the patch was to prevent switching off charging
+> when Vbus drops low. The reason was not to get out extremely much
+> current out of the charger.
+> The electrical characteristics of a  bicycle as a power source are.
+> - the amount of current available changes
+>    - 500mA at around 17km/h
+> - you cannot destroy it by electrically overloading
 > 
-> >  include/media/{ => drv-intf}/cx2341x.h                   | 0
-> >  include/media/{ => drv-intf}/cx25840.h                   | 0
-> >  include/media/{ => drv-intf}/exynos-fimc.h               | 0
-> >  include/media/{ => drv-intf}/msp3400.h                   | 0
-> >  include/media/{ => drv-intf}/s3c_camif.h                 | 0
-> >  include/media/{ => drv-intf}/saa7146.h                   | 0
-> >  include/media/{ => drv-intf}/saa7146_vv.h                | 2 +-
-> >  include/media/{ => drv-intf}/sh_mobile_ceu.h             | 0
-> >  include/media/{ => drv-intf}/sh_mobile_csi2.h            | 0
-> >  include/media/{ => drv-intf}/sh_vou.h                    | 0
-> >  include/media/{ => drv-intf}/si476x.h                    | 0
-> >  include/media/{ => drv-intf}/soc_mediabus.h              | 0
-> >  include/media/{ => drv-intf}/tea575x.h                   | 0
-> >  include/media/i2c/tw9910.h                               | 2 +-
-> >  include/media/{ => platform_data}/gpio-ir-recv.h         | 0
-> >  include/media/{ => platform_data}/ir-rx51.h              | 0
-> >  include/media/{ => platform_data}/mmp-camera.h           | 0
-> >  include/media/{ => platform_data}/omap1_camera.h         | 0
-> >  include/media/{ => platform_data}/omap4iss.h             | 0
-> >  include/media/{ => platform_data}/s5p_hdmi.h             | 0
-> >  include/media/{ => platform_data}/si4713.h               | 0
-> >  include/media/{ => platform_data}/sii9234.h              | 0
-> >  include/media/{ => platform_data}/smiapp.h               | 0
-> >  include/media/{ => platform_data}/soc_camera.h           | 0
-> >  include/media/{ => platform_data}/soc_camera_platform.h  | 2 +-
-> >  include/media/{ => platform_data}/timb_radio.h           | 0
-> >  include/media/{ => platform_data}/timb_video.h           | 0
-> >  sound/pci/es1968.c                                       | 2 +-
-> >  sound/pci/fm801.c                                        | 2 +-
-> >  155 files changed, 158 insertions(+), 158 deletions(-)
-> 
-> As Geert said, include/linux/platform_data/media/ would be nicer for
-> consistency with other subsystems.
+> If the current is set to e.g. 500mA and that linear charging mode is
+> enabled, the battery gets the maximum current available (upto
+> 500mA) regardless of the speed which is often changing.
 
-OK! I have a new series of patches almost ready. I'll be sending it
-tomorrow, after addressing your concerns.
+Yes... I guess that makes sense for you, but I wonder if we should be
+doing this by default. It seems a lot of cheap chargers can be easily
+destroyed if you overload them.
 
-> 
-> > diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> > index ede2bdbb5dd5..44ba1f28bb34 100644
-> > --- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> > +++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> > @@ -33,7 +33,7 @@
-> >  #include <linux/dma-mapping.h>
-> >  #include <linux/leds.h>
-> >  #include <linux/platform_data/asoc-mx27vis.h>
-> > -#include <media/soc_camera.h>
-> > +#include <media/platform_data/soc_camera.h>
-> >  #include <sound/tlv320aic32x4.h>
-> >  #include <asm/mach-types.h>
-> >  #include <asm/mach/arch.h>
-> 
-> This looks like a mistake: the header contains the string 'platform_data',
-> but it is not actually a platform data header file in the sense
-> that it defines the interface between platform and driver.
-> 
-> Maybe soc_camera.h is important enough to still leave it as a core
-> file in the existing location? Or possibly a separate directory for
-> media/soc_camera/*.h
-
-Ok, I'll fix it. 
-
-> 
-> > @@ -24,7 +24,7 @@
-> >  #include <linux/slab.h>
-> >  #include <linux/kfifo.h>
-> >  #include <linux/module.h>
-> > -#include <media/cx25840.h>
-> > +#include <media/drv-intf/cx25840.h>
-> >  #include <media/rc-core.h>
-> >  
-> >  #include "cx25840-core.h"
-> 
-> For this case, I think the original patch to move it into include/media/i2c
-> was more logical as it mirrors the file structure. I was mainly talking
-> about the platform_data being different from the rest.
-
-cx25840 is not (always) an I2C. On most devices, this is actually an IP
-block inside the bridge chipset. 
-
-That's why I didn't include it on patch 1/1. There's one thing to
-notice about that, though: while most of the header is describing
-the driver interface, it does contain one platform_data in the end:
-
-/* pvr150_workaround activates a workaround for a hardware bug that is
-   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
-   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
-   audio autodetect fails on some channels for these models and the workaround
-   is to select the audio standard explicitly. Many thanks to Hauppauge for
-   providing this information.
-   This platform data only needs to be supplied by the ivtv driver. */
-struct cx25840_platform_data {
-	int pvr150_workaround;
-};
-
-While we might split it, I guess it is not worth, specially since
-I don't think we'll see any new driver using it.
-
-Also, this is actually a hack used only by the ivtv driver.
-
-Regards,
-Mauro
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
