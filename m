@@ -1,12 +1,12 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 08/27] sh: nand: make use of mtd_to_nand() where appropriate
-Date: Mon, 16 Nov 2015 14:37:41 +0100
-Message-ID: <1447681080-31232-9-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH 11/27] staging: mt29f_spinand: make use of mtd_to_nand()
+Date: Mon, 16 Nov 2015 14:37:44 +0100
+Message-ID: <1447681080-31232-12-git-send-email-boris.brezillon@free-electrons.com>
 References: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBSNYU6ZAKGQEIHHFWRI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBTNYU6ZAKGQEMBNAFDY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1447681080-31232-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -20,26 +20,34 @@ Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ke
 List-Id: linux-omap@vger.kernel.org
 
 mtd_to_nand() was recently introduced to avoid direct accesses to the
-mtd->priv field. Update all SH specific implementations to use this
-helper.
+mtd->priv field. Use it where appropriate.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- arch/sh/boards/mach-migor/setup.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/mt29f_spinand/mt29f_spinand.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 29b7c0d..8673f91 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -167,7 +167,7 @@ static struct mtd_partition migor_nand_flash_partitions[] = {
- static void migor_nand_flash_cmd_ctl(struct mtd_info *mtd, int cmd,
- 				     unsigned int ctrl)
- {
--	struct nand_chip *chip = mtd->priv;
-+	struct nand_chip *chip = mtd_to_nand(mtd);
+diff --git a/drivers/staging/mt29f_spinand/mt29f_spinand.c b/drivers/staging/mt29f_spinand/mt29f_spinand.c
+index 6536066..8924a96 100644
+--- a/drivers/staging/mt29f_spinand/mt29f_spinand.c
++++ b/drivers/staging/mt29f_spinand/mt29f_spinand.c
+@@ -31,7 +31,7 @@
  
- 	if (cmd == NAND_CMD_NONE)
- 		return;
+ static inline struct spinand_state *mtd_to_state(struct mtd_info *mtd)
+ {
+-	struct nand_chip *chip = (struct nand_chip *)mtd->priv;
++	struct nand_chip *chip = mtd_to_nand(mtd);
+ 	struct spinand_info *info = (struct spinand_info *)chip->priv;
+ 	struct spinand_state *state = (struct spinand_state *)info->priv;
+ 
+@@ -744,7 +744,7 @@ static void spinand_reset(struct spi_device *spi_nand)
+ static void spinand_cmdfunc(struct mtd_info *mtd, unsigned int command,
+ 			    int column, int page)
+ {
+-	struct nand_chip *chip = (struct nand_chip *)mtd->priv;
++	struct nand_chip *chip = mtd_to_nand(mtd);
+ 	struct spinand_info *info = (struct spinand_info *)chip->priv;
+ 	struct spinand_state *state = (struct spinand_state *)info->priv;
+ 
 -- 
 2.1.4
