@@ -1,61 +1,79 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH 06/27] cris: nand: make use of mtd_to_nand() where appropriate
-Date: Mon, 16 Nov 2015 14:37:39 +0100
-Message-ID: <1447681080-31232-7-git-send-email-boris.brezillon@free-electrons.com>
+From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH 20/27] cris: nand: remove useless mtd->priv =
+ chip assignments
+Date: Mon, 16 Nov 2015 14:37:53 +0100
+Message-ID: <1447681080-31232-21-git-send-email-boris.brezillon@free-electrons.com>
 References: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
+Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Stefan Agner <stefan@agner.ch>, linux-sunxi@googlegroups.com, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Boris Brezillon <boris.brezillon@free-electrons.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-samsung-soc@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Josh Wu <josh.wu@atmel.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Wan ZongShun <mcuos.com@gmail.com>, Steven Miao <realmz6@gmail.com>, adi-buildroot-devel@li
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBXNYU6ZAKGQE2T4DRMI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <1447681080-31232-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/linux-sunxi
+Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <http://groups.google.com/group/linux-sunxi/subscribe>
+To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steven Miao <realmz6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>a
 List-Id: linux-omap@vger.kernel.org
 
-mtd_to_nand() was recently introduced to avoid direct accesses to the
-mtd->priv field. Update all CRIS specific implementations to use this
-helper.
+mtd_to_nand_chip() now uses the container_of() approach to transform an
+mtd_info pointer into a nand_chip one. Drop useless mtd->priv
+assignments from NAND controller drivers.
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- arch/cris/arch-v32/drivers/mach-a3/nandflash.c | 2 +-
- arch/cris/arch-v32/drivers/mach-fs/nandflash.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Patch generated with the following coccinelle script:
+
+---8<----
+virtual patch
+
+@@
+struct mtd_info mtd;
+struct mtd_info *mtdptr;
+struct nand_chip *chipptr;
+expression d;
+@@
+(
+-(mtd).priv = (chipptr);
+|
+-(mtdptr)->priv = (chipptr);
+---8<----
+---
+ arch/cris/arch-v32/drivers/mach-a3/nandflash.c | 3 ---
+ arch/cris/arch-v32/drivers/mach-fs/nandflash.c | 3 ---
+ 2 files changed, 6 deletions(-)
 
 diff --git a/arch/cris/arch-v32/drivers/mach-a3/nandflash.c b/arch/cris/arch-v32/drivers/mach-a3/nandflash.c
-index 7fb5212..db953cf 100644
+index ad78b97..2f65261 100644
 --- a/arch/cris/arch-v32/drivers/mach-a3/nandflash.c
 +++ b/arch/cris/arch-v32/drivers/mach-a3/nandflash.c
-@@ -52,7 +52,7 @@ static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
- {
- 	unsigned long flags;
- 	reg_pio_rw_dout dout;
--	struct nand_chip *this = mtd->priv;
-+	struct nand_chip *this = mtd_to_nand(mtd);
+@@ -149,9 +149,6 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
+ 	this = &wrapper->chip;
+ 	crisv32_mtd = nand_to_mtd(&wrapper->chip);
  
- 	local_irq_save(flags);
- 
+-	/* Link the private data with the MTD structure */
+-	crisv32_mtd->priv = this;
+-
+ 	/* Set address of NAND IO lines */
+ 	this->IO_ADDR_R = read_cs;
+ 	this->IO_ADDR_W = write_cs;
 diff --git a/arch/cris/arch-v32/drivers/mach-fs/nandflash.c b/arch/cris/arch-v32/drivers/mach-fs/nandflash.c
-index e032384..22a6467 100644
+index 00a277b..4ab9d4e 100644
 --- a/arch/cris/arch-v32/drivers/mach-fs/nandflash.c
 +++ b/arch/cris/arch-v32/drivers/mach-fs/nandflash.c
-@@ -51,7 +51,7 @@ static void crisv32_hwcontrol(struct mtd_info *mtd, int cmd,
- {
- 	unsigned long flags;
- 	reg_gio_rw_pa_dout dout;
--	struct nand_chip *this = mtd->priv;
-+	struct nand_chip *this = mtd_to_nand(mtd);
+@@ -140,9 +140,6 @@ struct mtd_info *__init crisv32_nand_flash_probe(void)
+ 	bif_cfg.gated_csp1 = regk_bif_core_wr;
+ 	REG_WR(bif_core, regi_bif_core, rw_grp3_cfg, bif_cfg);
  
- 	local_irq_save(flags);
- 
+-	/* Link the private data with the MTD structure */
+-	crisv32_mtd->priv = this;
+-
+ 	/* Set address of NAND IO lines */
+ 	this->IO_ADDR_R = read_cs;
+ 	this->IO_ADDR_W = write_cs;
 -- 
 2.1.4
