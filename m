@@ -1,35 +1,31 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH] clk: ti: dra7: constify clk_hw_omap_ops structure
-Date: Sun, 15 Nov 2015 20:48:14 +0100
-Message-ID: <1447616894-31717-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: kernel-janitors@vger.kernel.org, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH] dmaengine: edma: fix build without CONFIG_OF
+Date: Mon, 16 Nov 2015 09:06:07 +0530
+Message-ID: <20151116033607.GV25173@localhost>
+References: <17811472.bY8CqmdEVy@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <17811472.bY8CqmdEVy@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: dmaengine@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The clk_hw_omap_ops structures are never modified, so declare this one as
-const, like the others.
+On Tue, Nov 03, 2015 at 03:00:57PM +0100, Arnd Bergmann wrote:
+> During the edma rework, a build error was introduced for the
+> case that CONFIG_OF is disabled:
+> 
+> drivers/built-in.o: In function `edma_tc_set_pm_state':
+> :(.text+0x43bf0): undefined reference to `of_find_device_by_node'
+> 
+> As the edma_tc_set_pm_state() function does nothing in case
+> we are running without OF, this adds an IS_ENABLED() check
+> that turns the function into an empty stub then and avoids the
+> link error.
 
-Done with the help of Coccinelle.
+Applied, thanks
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/clk/ti/apll.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index f3eab6e..b336a8c 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -323,7 +323,7 @@ static void omap2_apll_deny_idle(struct clk_hw_omap *clk)
- 	omap2_apll_set_autoidle(clk, OMAP2_APLL_AUTOIDLE_DISABLE);
- }
- 
--static struct clk_hw_omap_ops omap2_apll_hwops = {
-+static const struct clk_hw_omap_ops omap2_apll_hwops = {
- 	.allow_idle	= &omap2_apll_allow_idle,
- 	.deny_idle	= &omap2_apll_deny_idle,
- };
-
+-- 
+~Vinod
