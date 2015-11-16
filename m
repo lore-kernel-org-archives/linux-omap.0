@@ -1,43 +1,67 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH] arm, am335x: add support for the bosch shc board
-Date: Mon, 16 Nov 2015 07:23:13 -0600
-Message-ID: <CAOCHtYjBPxQBCy6LUnj9ZWpJLXQngLZYn0z+=VMsL38QwFrDpA@mail.gmail.com>
-References: <1447661758-5095-1-git-send-email-hs@denx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH 22/27] mtd: nand: simplify nand_dt_init() usage
+Date: Mon, 16 Nov 2015 14:37:55 +0100
+Message-ID: <1447681080-31232-23-git-send-email-boris.brezillon@free-electrons.com>
+References: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447661758-5095-1-git-send-email-hs@denx.de>
+In-Reply-To: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Heiko Schocher <hs@denx.de>
-Cc: linux kernel <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree <devicetree@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Georg.Soffel@bosch-si.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+To: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, Hartley Sweeten <hsweeten@visionengravers.com>, Ryan Mallon <rmallon@gmail.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khalasa@piap.pl>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Alexander Clouter <alex@digriz.org.uk>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Marek Vasut <marek.vasut@gmail.com>, Steven Miao <realmz6@gmail.com>, adi-b
 List-Id: linux-omap@vger.kernel.org
 
-> +
-> +       cpsw_default: cpsw_default {
-> +               pinctrl-single,pins = <
-> +                       /* Slave 1 */
-> +                       0x110 (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-> +                       0x118 (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x11c (PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-> +                       0x120 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-> +                       0x124 (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x128 (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x12c (PIN_INPUT_PULLUP | MUX_MODE0)
-> +                       0x130 (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x134 (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x138 (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x13c (PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +                       0x140 (PIN_INPUT_PULLDOWN | MUX_MODE0)
+nand_dt_init() function requires 3 arguments where it actually needs one
+(dn and mtd can both be retrieved from chip). Drop these parameters.
 
-Please use the AM33XX_IOPAD pinmux macro:
+Testing for dn != NULL inside nand_dt_init() also helps simplifying the
+caller code.
 
-All boards have recently be converted:
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/mtd/nand/nand_base.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-https://www.mail-archive.com/linux-omap@vger.kernel.org/msg121329.html
-
-Regards,
-
+diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_base.c
+index 71cc029..2f75eb1 100644
+--- a/drivers/mtd/nand/nand_base.c
++++ b/drivers/mtd/nand/nand_base.c
+@@ -3937,11 +3937,17 @@ ident_done:
+ 	return type;
+ }
+ 
+-static int nand_dt_init(struct mtd_info *mtd, struct nand_chip *chip,
+-			struct device_node *dn)
++static int nand_dt_init(struct nand_chip *chip)
+ {
++	struct device_node *dn = nand_get_flash_node(chip);
+ 	int ecc_mode, ecc_strength, ecc_step;
+ 
++	if (!dn)
++		return 0;
++
++	/* MTD can automatically handle DT partitions, etc. */
++	mtd_set_of_node(nand_to_mtd(chip), dn);
++
+ 	if (of_get_nand_bus_width(dn) == 16)
+ 		chip->options |= NAND_BUSWIDTH_16;
+ 
+@@ -3989,14 +3995,9 @@ int nand_scan_ident(struct mtd_info *mtd, int maxchips,
+ 	struct nand_flash_dev *type;
+ 	int ret;
+ 
+-	if (nand_get_flash_node(chip)) {
+-		/* MTD can automatically handle DT partitions, etc. */
+-		mtd_set_of_node(mtd, nand_get_flash_node(chip));
+-
+-		ret = nand_dt_init(mtd, chip, nand_get_flash_node(chip));
+-		if (ret)
+-			return ret;
+-	}
++	ret = nand_dt_init(chip);
++	if (ret)
++		return ret;
+ 
+ 	/* Set the default functions */
+ 	nand_set_defaults(chip, chip->options & NAND_BUSWIDTH_16);
 -- 
-Robert Nelson
-https://rcn-ee.com/
+2.1.4
