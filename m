@@ -1,96 +1,45 @@
-From: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
-Subject: [PATCH 0/2] ARM: use const and __initconst for smp_operations (with
- refactoring hisi)
-Date: Sun, 15 Nov 2015 10:39:51 +0900
-Message-ID: <1447551593-22246-1-git-send-email-yamada.masahiro@socionext.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v2 3/3] [media] include/media: move platform_data to
+ linux/platform_data/media
+Date: Mon, 16 Nov 2015 13:28:10 +0100
+Message-ID: <4084946.Zz4s9XrKbs@wuerfel>
+References: <013152dcb3d4eaddd39aa4a37868430567bdc2d6.1447671420.git.mchehab@osg.samsung.com>
+ <b8bd73bedde742571b1ab8a7c0917a732dbf2ca1.1447671420.git.mchehab@osg.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio-0Z03zUJReD5OxF6Tv1QG9Q@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michal
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <b8bd73bedde742571b1ab8a7c0917a732dbf2ca1.1447671420.git.mchehab@osg.samsung.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Heiko Stuebner <heiko@sntech.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, Hans Verkuil <hverkuil@xs4all.nl>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Lee Jones <lee.jones@linaro.org>, devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Vinod Koul <vinod.koul@intel.com>, linux-sh@vger.kernel.org, Kukjin Kim <kgene@kernel.org>, Jiri Slaby <jslaby@suse.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, Tomasz Stanislawski <t.stanislaws@samsung.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Eduardo Valentin <edubezval@gmail.com>, Julia Lawall <Julia.Lawall@lip6.fr>, linux-omap@vger.kernel.org, linux-arm-
 List-Id: linux-omap@vger.kernel.org
 
+On Monday 16 November 2015 09:00:45 Mauro Carvalho Chehab wrote:
+> Let's not mix platform_data headers with the core headers. Instead, let's
+> create a subdir at linux/platform_data and move the headers to that
+> common place, adding it to MAINTAINERS.
+> 
 
-1/2: minor refactoring for mach-hisi
-2/2: use const ... __initconst for smp_operations
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 
-I hope 2/2 will be reviewed by sub-arch maintainers.
-Please issue Acked-by if it is OK.
+I think we can also move some of the existing platform data headers to the same
+place, but that could be a separate patch:
 
-I hope this series will be applied to ARM-SOC.
+$ git grep linux/platform_data drivers/media/
+drivers/media/platform/coda/coda-common.c:#include <linux/platform_data/coda.h>
+drivers/media/platform/soc_camera/mx2_camera.c:#include <linux/platform_data/camera-mx2.h>
+drivers/media/platform/soc_camera/mx3_camera.c:#include <linux/platform_data/camera-mx3.h>
+drivers/media/platform/soc_camera/mx3_camera.c:#include <linux/platform_data/dma-imx.h>
+drivers/media/platform/soc_camera/pxa_camera.c:#include <linux/platform_data/camera-pxa.h>
+drivers/media/platform/soc_camera/rcar_vin.c:#include <linux/platform_data/camera-rcar.h>
 
-
-
-Masahiro Yamada (2):
-  ARM: hisi: do not export smp_operations structures
-  ARM: use const and __initconst for smp_operations
-
- arch/arm/common/mcpm_platsmp.c       | 2 +-
- arch/arm/include/asm/psci.h          | 2 +-
- arch/arm/kernel/psci_smp.c           | 2 +-
- arch/arm/mach-alpine/platsmp.c       | 2 +-
- arch/arm/mach-axxia/platsmp.c        | 2 +-
- arch/arm/mach-bcm/bcm63xx_smp.c      | 2 +-
- arch/arm/mach-bcm/kona_smp.c         | 2 +-
- arch/arm/mach-bcm/platsmp-brcmstb.c  | 2 +-
- arch/arm/mach-berlin/platsmp.c       | 2 +-
- arch/arm/mach-exynos/common.h        | 2 +-
- arch/arm/mach-exynos/platsmp.c       | 2 +-
- arch/arm/mach-hisi/core.h            | 3 ---
- arch/arm/mach-hisi/platmcpm.c        | 2 +-
- arch/arm/mach-hisi/platsmp.c         | 6 +++---
- arch/arm/mach-imx/common.h           | 4 ++--
- arch/arm/mach-imx/platsmp.c          | 4 ++--
- arch/arm/mach-keystone/keystone.h    | 2 +-
- arch/arm/mach-keystone/platsmp.c     | 2 +-
- arch/arm/mach-mediatek/platsmp.c     | 4 ++--
- arch/arm/mach-mvebu/armada-370-xp.h  | 2 +-
- arch/arm/mach-mvebu/platsmp-a9.c     | 4 ++--
- arch/arm/mach-mvebu/platsmp.c        | 2 +-
- arch/arm/mach-omap2/common.h         | 2 +-
- arch/arm/mach-omap2/omap-smp.c       | 2 +-
- arch/arm/mach-prima2/common.h        | 2 +-
- arch/arm/mach-prima2/platsmp.c       | 2 +-
- arch/arm/mach-qcom/platsmp.c         | 6 +++---
- arch/arm/mach-realview/core.h        | 2 +-
- arch/arm/mach-realview/platsmp.c     | 2 +-
- arch/arm/mach-rockchip/platsmp.c     | 2 +-
- arch/arm/mach-shmobile/r8a7779.h     | 2 +-
- arch/arm/mach-shmobile/r8a7790.h     | 2 +-
- arch/arm/mach-shmobile/r8a7791.h     | 2 +-
- arch/arm/mach-shmobile/setup-emev2.c | 2 +-
- arch/arm/mach-shmobile/sh73a0.h      | 2 +-
- arch/arm/mach-shmobile/smp-emev2.c   | 2 +-
- arch/arm/mach-shmobile/smp-r8a7779.c | 2 +-
- arch/arm/mach-shmobile/smp-r8a7790.c | 2 +-
- arch/arm/mach-shmobile/smp-r8a7791.c | 2 +-
- arch/arm/mach-shmobile/smp-sh73a0.c  | 2 +-
- arch/arm/mach-socfpga/platsmp.c      | 4 ++--
- arch/arm/mach-spear/generic.h        | 2 +-
- arch/arm/mach-spear/platsmp.c        | 2 +-
- arch/arm/mach-sti/platsmp.c          | 2 +-
- arch/arm/mach-sti/smp.h              | 2 +-
- arch/arm/mach-sunxi/platsmp.c        | 4 ++--
- arch/arm/mach-tegra/common.h         | 2 +-
- arch/arm/mach-tegra/platsmp.c        | 2 +-
- arch/arm/mach-uniphier/platsmp.c     | 2 +-
- arch/arm/mach-ux500/platsmp.c        | 2 +-
- arch/arm/mach-vexpress/core.h        | 2 +-
- arch/arm/mach-vexpress/platsmp.c     | 2 +-
- arch/arm/mach-zx/platsmp.c           | 2 +-
- arch/arm/mach-zynq/common.h          | 2 +-
- arch/arm/mach-zynq/platsmp.c         | 2 +-
- 55 files changed, 64 insertions(+), 67 deletions(-)
-
--- 
-1.9.1
+	Arnd
