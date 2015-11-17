@@ -1,32 +1,37 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH] hw_random: omap3-rom-rng: convert timer to delayed work
-Date: Tue, 17 Nov 2015 21:36:33 +0800
-Message-ID: <20151117133633.GC8032@gondor.apana.org.au>
-References: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 01/39] pinctrl: Move am4372 and dra7 macros to the the SoC
+ header files
+Date: Tue, 17 Nov 2015 14:47:10 +0100
+Message-ID: <CACRpkdZt2NXD-WzLRcxNuvu9fM6j9GPRjnAungv1jxJvipKYAQ@mail.gmail.com>
+References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
+	<1447390457-1158-2-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Matt Mackall <mpm@selenic.com>, linux-crypto@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1447390457-1158-2-git-send-email-javier@osg.samsung.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 06, 2015 at 12:15:24AM +0200, Aaro Koskinen wrote:
-> We cannot put the HW RNG to idle using a timer because we cannot disable
-> clocks from atomic context. Use a delayed work instead.
-> 
-> Fixes a warning with CONFIG_DEBUG_MUTEXES on Nokia N900 during boot.
-> 
-> Reported-by: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+On Fri, Nov 13, 2015 at 5:53 AM, Javier Martinez Canillas
+<javier@osg.samsung.com> wrote:
 
-Thanks for the patch.  Can you please remove timer.h and include
-workqueue.h instead?
+> The <dt-bindings/pinctrl/omap.h> header file defines a set of macros
+> for different SoCs families that falls under the OMAP sub-arch, that
+> allow to define the padconf register physical address instead of the
+> register offset from the padconf base.
+>
+> But the am43xx and dra7xx SoCs families have their own pinctrl header
+> file so the DTS using these SoCs aren't able to use the AM4372_IOPAD()
+> and DRA7XX_CORE_IOPAD() macros since <dt-bindings/pinctrl/omap.h> is
+> not included.
+>
+> Move the macros to the correct header files so can be used by the DTS.
+>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+I need Tony's ACK on this.
+
+Yours,
+Linus Walleij
