@@ -1,108 +1,49 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH] clk: gpio: Get parent clk names already in of_gpio_clk_setup()
-Date: Tue, 17 Nov 2015 11:56:44 +0200
-Message-ID: <1447754204-24088-1-git-send-email-jsarha@ti.com>
-References: <201511170911.tAH9B0CF031498@arroyo.ext.ti.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH RFC v2 0/2] Disable planes on blanked CRTC and enable on
+ unblank
+Date: Tue, 17 Nov 2015 11:28:56 +0100
+Message-ID: <20151117102856.GS16848@phenom.ffwll.local>
+References: <cover.1447428525.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201511170911.tAH9B0CF031498@arroyo.ext.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Mike Turquette <mturquette@baylibre.com>, sboyd@codeaurora.org, tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>, Sergej Sawazki <ce3a@gmx.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1447428525.git.jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Get parent clk names already in of_gpio_clk_setup() and store the
-names in struct clk_gpio_delayed_register_data. of_clk_get_parent_name()
-can not be called in struct of_clk_provider's get() callback since it
-may make a recursive call to of_clk_get_from_provider() and this in turn
-tries to recursively lock of_clk_mutex.
-
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
-Cc: Sergej Sawazki <ce3a@gmx.de>
----
-Something has changed in Linux mainline so that getting the clk
-parent names in struct of_clk_provider's get() callback does not work
-anymore. This patch should fix the problem.
-
- drivers/clk/clk-gpio.c | 33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/clk/clk-gpio.c b/drivers/clk/clk-gpio.c
-index 10819e2..335322d 100644
---- a/drivers/clk/clk-gpio.c
-+++ b/drivers/clk/clk-gpio.c
-@@ -209,6 +209,8 @@ EXPORT_SYMBOL_GPL(clk_register_gpio_mux);
- 
- struct clk_gpio_delayed_register_data {
- 	const char *gpio_name;
-+	int num_parents;
-+	const char **parent_names;
- 	struct device_node *node;
- 	struct mutex lock;
- 	struct clk *clk;
-@@ -222,8 +224,6 @@ static struct clk *of_clk_gpio_delayed_register_get(
- {
- 	struct clk_gpio_delayed_register_data *data = _data;
- 	struct clk *clk;
--	const char **parent_names;
--	int i, num_parents;
- 	int gpio;
- 	enum of_gpio_flags of_flags;
- 
-@@ -248,26 +248,14 @@ static struct clk *of_clk_gpio_delayed_register_get(
- 		return ERR_PTR(gpio);
- 	}
- 
--	num_parents = of_clk_get_parent_count(data->node);
--
--	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
--	if (!parent_names) {
--		clk = ERR_PTR(-ENOMEM);
--		goto out;
--	}
--
--	for (i = 0; i < num_parents; i++)
--		parent_names[i] = of_clk_get_parent_name(data->node, i);
--
--	clk = data->clk_register_get(data->node->name, parent_names,
--			num_parents, gpio, of_flags & OF_GPIO_ACTIVE_LOW);
-+	clk = data->clk_register_get(data->node->name, data->parent_names,
-+			data->num_parents, gpio, of_flags & OF_GPIO_ACTIVE_LOW);
- 	if (IS_ERR(clk))
- 		goto out;
- 
- 	data->clk = clk;
- out:
- 	mutex_unlock(&data->lock);
--	kfree(parent_names);
- 
- 	return clk;
- }
-@@ -296,11 +284,24 @@ static void __init of_gpio_clk_setup(struct device_node *node,
- 				unsigned gpio, bool active_low))
- {
- 	struct clk_gpio_delayed_register_data *data;
-+	const char **parent_names;
-+	int i, num_parents;
- 
- 	data = kzalloc(sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return;
- 
-+	num_parents = of_clk_get_parent_count(node);
-+
-+	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
-+	if (!parent_names)
-+		return;
-+
-+	for (i = 0; i < num_parents; i++)
-+		parent_names[i] = of_clk_get_parent_name(node, i);
-+
-+	data->num_parents = num_parents;
-+	data->parent_names = parent_names;
- 	data->node = node;
- 	data->gpio_name = gpio_name;
- 	data->clk_register_get = clk_register_get;
--- 
-1.9.1
+T24gRnJpLCBOb3YgMTMsIDIwMTUgYXQgMDU6NTM6MTNQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90
+ZToKPiBTaW5jZSBmaXJzdCBSRkMgdmVyc2lvbjoKPiAtIEFkZGVkICJkcm0vYXRvbWljOiBUcmFj
+ayBkcm1fcGxhbmUncyBhY3RpdmUgc3RhdGUiLXBhdGNoCj4gCj4gV2Ugd291bGQgbmVlZCBzb21l
+dGhpbmcgbGlrZSB0aGlzIHRvIGdldCByaWQgb2ZmIE9NQVBEU1Mgc29tZXdoYXQKPiBtZXNzeSBy
+dW50aW1lX3Jlc3VtZSBjb2RlLiBIb3cgZG9lcyB0aGlzIGxvb2ssIGNvdWxkIHRoaXMgZ2VuZXJp
+Ywo+IHNvbHV0aW9uIGJlIHJlZmluZWQgdG8gYmUgYWNjZXB0YWJsZSBmb3IgbWFpbmxpbmUsIG9y
+IHNob3VsZCB3ZSBzdGFydAo+IGxvb2tpbmcgYSBsb2NhbCBzb2x1dGlvbiB0byBvbWFwZHJtPwoK
+T25lIG1vcmUgY29tbWVudCBiZXNpZGVzIHdoYXQgSSd2ZSB3cml0dGVuIGluIHRoZSBvbGRlciB0
+aHJlYWQ6IFlvdSdyZSBub3QKb24gbGF0ZXN0IGRybS1uZXh0LCB3aGljaCBoYXMgZ2FpbmVkIGFu
+IGFjdGl2ZV9vbmx5IHBhcmFtdGVyIHRvIHRoZSBwbGFuZQpjb21taXQgaGVscGVyLgoKSXQgbWln
+aHQgYmUgYmVzdCB0byBkaXNjdXNzIHRoaXMgdG9waWMgb24gI2RyaS1kZXZlbCBvbiBmcmVlbm9k
+ZSBpcmMgYQpiaXQuCgpDaGVlcnMsIERhbmllbAoKPiAKPiBKeXJpIFNhcmhhICgyKToKPiAgIGRy
+bS9hdG9taWM6IFRyYWNrIGRybV9wbGFuZSdzIGFjdGl2ZSBzdGF0ZQo+ICAgZHJtL2F0b21pYzog
+RGlzYWJsZSBwbGFuZXMgb24gYmxhbmtlZCBDUlRDIGFuZCBlbmFibGUgb24gdW5ibGFuawo+IAo+
+ICBkcml2ZXJzL2dwdS9kcm0vZHJtX2F0b21pY19oZWxwZXIuYyB8IDgyICsrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrLS0tLS0tLS0KPiAgZHJpdmVycy9ncHUvZHJtL2RybV9wbGFuZV9oZWxw
+ZXIuYyAgfCAxMCArLS0tLQo+ICBpbmNsdWRlL2RybS9kcm1fYXRvbWljX2hlbHBlci5oICAgICB8
+IDM5ICstLS0tLS0tLS0tLS0tLS0tLQo+ICBpbmNsdWRlL2RybS9kcm1fY3J0Yy5oICAgICAgICAg
+ICAgICB8ICAyICsKPiAgNCBmaWxlcyBjaGFuZ2VkLCA3MCBpbnNlcnRpb25zKCspLCA2MyBkZWxl
+dGlvbnMoLSkKPiAKPiAtLSAKPiAxLjkuMQo+IAoKLS0gCkRhbmllbCBWZXR0ZXIKU29mdHdhcmUg
+RW5naW5lZXIsIEludGVsIENvcnBvcmF0aW9uCmh0dHA6Ly9ibG9nLmZmd2xsLmNoCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
+IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
