@@ -1,106 +1,36 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH] clk: gpio: Get parent clk names already in of_gpio_clk_setup()
-Date: Tue, 17 Nov 2015 11:10:22 +0200
-Message-ID: <1447751422-23711-1-git-send-email-jsarha@ti.com>
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v2 3/3] [media] include/media: move platform_data to
+ linux/platform_data/media
+Date: Tue, 17 Nov 2015 07:16:56 -0200
+Message-ID: <20151117071656.498013a9@recife.lan>
+References: <013152dcb3d4eaddd39aa4a37868430567bdc2d6.1447671420.git.mchehab@osg.samsung.com>
+	<b8bd73bedde742571b1ab8a7c0917a732dbf2ca1.1447671420.git.mchehab@osg.samsung.com>
+	<4084946.Zz4s9XrKbs@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
-Cc: tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>, Sergej Sawazki <ce3a@gmx.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <4084946.Zz4s9XrKbs@wuerfel>
+Sender: linux-doc-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Jonathan Corbet <corbet@lwn.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Tomasz Stanislawski <t.stanislaws@samsung.com>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Hans Verkuil <hverkuil@xs4all.nl>, Eduardo Valentin <edubezval@gmail.com>, Lee Jones <lee.jones@linaro.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>, Ulf Hansson <ulf.hansson@linaro.org>, Vinod Koul <vinod.koul@intel.com>Kuninori Morimoto <k>
 List-Id: linux-omap@vger.kernel.org
 
-Get parent clk names already in of_gpio_clk_setup() and store the
-names in struct clk_gpio_delayed_register_data. of_clk_get_parent_name()
-can not be called in struct of_clk_provider's get() callback since it
-may make a recursive call to of_clk_get_from_provider() and this in turn
-tries to recursively lock of_clk_mutex.
+Em Mon, 16 Nov 2015 13:28:10 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
-Cc: Sergej Sawazki <ce3a@gmx.de>
----
-Something has changed in Linux mainline so that getting the clk
-parent names in struct of_clk_provider's get() callback does not work
-anymore. This patch should fix the problem.
+> I think we can also move some of the existing platform data headers to the same
+> place, but that could be a separate patch:
+> 
+> $ git grep linux/platform_data drivers/media/
+> drivers/media/platform/coda/coda-common.c:#include <linux/platform_data/coda.h>
+> drivers/media/platform/soc_camera/mx2_camera.c:#include <linux/platform_data/camera-mx2.h>
+> drivers/media/platform/soc_camera/mx3_camera.c:#include <linux/platform_data/camera-mx3.h>
+> drivers/media/platform/soc_camera/mx3_camera.c:#include <linux/platform_data/dma-imx.h>
+> drivers/media/platform/soc_camera/pxa_camera.c:#include <linux/platform_data/camera-pxa.h>
+> drivers/media/platform/soc_camera/rcar_vin.c:#include <linux/platform_data/camera-rcar.h>
 
- drivers/clk/clk-gpio.c | 33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+Fair enough. Just sent a separate patch to address that.
 
-diff --git a/drivers/clk/clk-gpio.c b/drivers/clk/clk-gpio.c
-index 10819e2..335322d 100644
---- a/drivers/clk/clk-gpio.c
-+++ b/drivers/clk/clk-gpio.c
-@@ -209,6 +209,8 @@ EXPORT_SYMBOL_GPL(clk_register_gpio_mux);
- 
- struct clk_gpio_delayed_register_data {
- 	const char *gpio_name;
-+	int num_parents;
-+	const char **parent_names;
- 	struct device_node *node;
- 	struct mutex lock;
- 	struct clk *clk;
-@@ -222,8 +224,6 @@ static struct clk *of_clk_gpio_delayed_register_get(
- {
- 	struct clk_gpio_delayed_register_data *data = _data;
- 	struct clk *clk;
--	const char **parent_names;
--	int i, num_parents;
- 	int gpio;
- 	enum of_gpio_flags of_flags;
- 
-@@ -248,26 +248,14 @@ static struct clk *of_clk_gpio_delayed_register_get(
- 		return ERR_PTR(gpio);
- 	}
- 
--	num_parents = of_clk_get_parent_count(data->node);
--
--	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
--	if (!parent_names) {
--		clk = ERR_PTR(-ENOMEM);
--		goto out;
--	}
--
--	for (i = 0; i < num_parents; i++)
--		parent_names[i] = of_clk_get_parent_name(data->node, i);
--
--	clk = data->clk_register_get(data->node->name, parent_names,
--			num_parents, gpio, of_flags & OF_GPIO_ACTIVE_LOW);
-+	clk = data->clk_register_get(data->node->name, data->parent_names,
-+			data->num_parents, gpio, of_flags & OF_GPIO_ACTIVE_LOW);
- 	if (IS_ERR(clk))
- 		goto out;
- 
- 	data->clk = clk;
- out:
- 	mutex_unlock(&data->lock);
--	kfree(parent_names);
- 
- 	return clk;
- }
-@@ -296,11 +284,24 @@ static void __init of_gpio_clk_setup(struct device_node *node,
- 				unsigned gpio, bool active_low))
- {
- 	struct clk_gpio_delayed_register_data *data;
-+	const char **parent_names;
-+	int i, num_parents;
- 
- 	data = kzalloc(sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return;
- 
-+	num_parents = of_clk_get_parent_count(node);
-+
-+	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
-+	if (!parent_names)
-+		return;
-+
-+	for (i = 0; i < num_parents; i++)
-+		parent_names[i] = of_clk_get_parent_name(node, i);
-+
-+	data->num_parents = num_parents;
-+	data->parent_names = parent_names;
- 	data->node = node;
- 	data->gpio_name = gpio_name;
- 	data->clk_register_get = clk_register_get;
--- 
-1.9.1
+Regards,
+Mauro
