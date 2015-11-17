@@ -1,49 +1,32 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH RFC v2 0/2] Disable planes on blanked CRTC and enable on
- unblank
-Date: Tue, 17 Nov 2015 11:28:56 +0100
-Message-ID: <20151117102856.GS16848@phenom.ffwll.local>
-References: <cover.1447428525.git.jsarha@ti.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH] hw_random: omap3-rom-rng: convert timer to delayed work
+Date: Tue, 17 Nov 2015 21:36:33 +0800
+Message-ID: <20151117133633.GC8032@gondor.apana.org.au>
+References: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1447428525.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org
+In-Reply-To: <1446761724-5191-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Matt Mackall <mpm@selenic.com>, linux-crypto@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBOb3YgMTMsIDIwMTUgYXQgMDU6NTM6MTNQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90
-ZToKPiBTaW5jZSBmaXJzdCBSRkMgdmVyc2lvbjoKPiAtIEFkZGVkICJkcm0vYXRvbWljOiBUcmFj
-ayBkcm1fcGxhbmUncyBhY3RpdmUgc3RhdGUiLXBhdGNoCj4gCj4gV2Ugd291bGQgbmVlZCBzb21l
-dGhpbmcgbGlrZSB0aGlzIHRvIGdldCByaWQgb2ZmIE9NQVBEU1Mgc29tZXdoYXQKPiBtZXNzeSBy
-dW50aW1lX3Jlc3VtZSBjb2RlLiBIb3cgZG9lcyB0aGlzIGxvb2ssIGNvdWxkIHRoaXMgZ2VuZXJp
-Ywo+IHNvbHV0aW9uIGJlIHJlZmluZWQgdG8gYmUgYWNjZXB0YWJsZSBmb3IgbWFpbmxpbmUsIG9y
-IHNob3VsZCB3ZSBzdGFydAo+IGxvb2tpbmcgYSBsb2NhbCBzb2x1dGlvbiB0byBvbWFwZHJtPwoK
-T25lIG1vcmUgY29tbWVudCBiZXNpZGVzIHdoYXQgSSd2ZSB3cml0dGVuIGluIHRoZSBvbGRlciB0
-aHJlYWQ6IFlvdSdyZSBub3QKb24gbGF0ZXN0IGRybS1uZXh0LCB3aGljaCBoYXMgZ2FpbmVkIGFu
-IGFjdGl2ZV9vbmx5IHBhcmFtdGVyIHRvIHRoZSBwbGFuZQpjb21taXQgaGVscGVyLgoKSXQgbWln
-aHQgYmUgYmVzdCB0byBkaXNjdXNzIHRoaXMgdG9waWMgb24gI2RyaS1kZXZlbCBvbiBmcmVlbm9k
-ZSBpcmMgYQpiaXQuCgpDaGVlcnMsIERhbmllbAoKPiAKPiBKeXJpIFNhcmhhICgyKToKPiAgIGRy
-bS9hdG9taWM6IFRyYWNrIGRybV9wbGFuZSdzIGFjdGl2ZSBzdGF0ZQo+ICAgZHJtL2F0b21pYzog
-RGlzYWJsZSBwbGFuZXMgb24gYmxhbmtlZCBDUlRDIGFuZCBlbmFibGUgb24gdW5ibGFuawo+IAo+
-ICBkcml2ZXJzL2dwdS9kcm0vZHJtX2F0b21pY19oZWxwZXIuYyB8IDgyICsrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrLS0tLS0tLS0KPiAgZHJpdmVycy9ncHUvZHJtL2RybV9wbGFuZV9oZWxw
-ZXIuYyAgfCAxMCArLS0tLQo+ICBpbmNsdWRlL2RybS9kcm1fYXRvbWljX2hlbHBlci5oICAgICB8
-IDM5ICstLS0tLS0tLS0tLS0tLS0tLQo+ICBpbmNsdWRlL2RybS9kcm1fY3J0Yy5oICAgICAgICAg
-ICAgICB8ICAyICsKPiAgNCBmaWxlcyBjaGFuZ2VkLCA3MCBpbnNlcnRpb25zKCspLCA2MyBkZWxl
-dGlvbnMoLSkKPiAKPiAtLSAKPiAxLjkuMQo+IAoKLS0gCkRhbmllbCBWZXR0ZXIKU29mdHdhcmUg
-RW5naW5lZXIsIEludGVsIENvcnBvcmF0aW9uCmh0dHA6Ly9ibG9nLmZmd2xsLmNoCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
-IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Fri, Nov 06, 2015 at 12:15:24AM +0200, Aaro Koskinen wrote:
+> We cannot put the HW RNG to idle using a timer because we cannot disable
+> clocks from atomic context. Use a delayed work instead.
+> 
+> Fixes a warning with CONFIG_DEBUG_MUTEXES on Nokia N900 during boot.
+> 
+> Reported-by: Sebastian Reichel <sre@kernel.org>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+Thanks for the patch.  Can you please remove timer.h and include
+workqueue.h instead?
+
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
