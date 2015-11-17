@@ -1,15 +1,16 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 18/27] mtd: nand: update mtd_to_nand()
-Date: Tue, 17 Nov 2015 09:26:16 +0100
-Message-ID: <20151117092616.0e33d2f3@bbrezillon>
+Subject: Re: [PATCH 14/27] mtd: nand: use the mtd instance
+ embedded in struct nand_chip
+Date: Tue, 17 Nov 2015 09:38:36 +0100
+Message-ID: <20151117093836.052c86b5@bbrezillon>
 References: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1447681080-31232-19-git-send-email-boris.brezillon@free-electrons.com>
-	<20151117030353.GZ8456@google.com>
+	<1447681080-31232-15-git-send-email-boris.brezillon@free-electrons.com>
+	<20151117030019.GY8456@google.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBMOJVOZAKGQE7Z3B6QA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <20151117030353.GZ8456-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBEGPVOZAKGQE4YYSGJQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <20151117030019.GY8456-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Archive: <http://groups.google.com/group/linux-sunxi
@@ -17,58 +18,195 @@ Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
  <http://groups.google.com/group/linux-sunxi/subscribe>
-To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
 Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 16 Nov 2015 19:03:53 -0800
+Hi Brian,
+
+On Mon, 16 Nov 2015 19:00:19 -0800
 Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-> On Mon, Nov 16, 2015 at 02:37:51PM +0100, Boris Brezillon wrote:
-> > Now that all drivers are using the mtd instance embedded in the nand_chip
+> Hi Boris,
 > 
-> Do you have a script that verifies this? I thought you did at some
-> point, and it'd be nice to note it, so I can also use it to verify
-> things once it gets applied.
-
-No, didn't write that script, but it should probably look like the one
-I used to remove the mtd field from driver private struct.
-
-> 
-> > struct we can safely update the mtd_to_nand_chip() implementation to use
-> 
-> Nit: s/mtd_to_nand_chip/mtd_to_nand/
-
-Yep, I'll fix that.
-
-> 
-> > the container_of macro instead of returning the content of mtd->priv.
-> > This will allow us to remove mtd->priv = chip assignments done in all
-> > NAND controller drivers.
+> On Mon, Nov 16, 2015 at 02:37:47PM +0100, Boris Brezillon wrote:
+> > struct nand_chip now embeds an mtd device. Patch all drivers to make use
+> > of this mtd instance instead of using the instance embedded in their
+> > private struct or dynamically allocated.
 > > 
 > > Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> > Cc: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
 > > ---
-> >  include/linux/mtd/nand.h | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > Most of those changes were generate with this coccinelle script:
+> > http://code.bulix.org/5vxuih-89429
+> 
+> I appreciate that this patch is mostly autogenerated (a good thing for
+> preventing errors!), but there are some issues that I don't think play
+> out very well stylistically. Hopefully the cocci script can be improved
+> to handle some of this?
+> 
+> I'll try to point out a few snippets below.
+> 
+> Also, in case others are interested in reviewing your cocci script
+> directly, it might be better to paste it inline than to link to it.
+> Given the size of the patch, I don't think people would mind a few dozen
+> extra lines to show how it wsa generated. Or maybe stick some in the
+> cover letter too, if you end up reusing them in several patches.
+
+Sure, I'll paste the script directly in the commit message next time.
+
+> 
+> > ---
+> >  drivers/mtd/nand/ams-delta.c                   | 13 ++--
+> >  drivers/mtd/nand/atmel_nand.c                  | 11 ++-
+> >  drivers/mtd/nand/au1550nd.c                    | 18 ++---
+> >  drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h |  1 -
+> >  drivers/mtd/nand/bcm47xxnflash/main.c          |  7 +-
+> >  drivers/mtd/nand/bcm47xxnflash/ops_bcm4706.c   |  2 +-
+> >  drivers/mtd/nand/bf5xx_nand.c                  | 14 ++--
+> >  drivers/mtd/nand/brcmnand/brcmnand.c           | 11 ++-
+> >  drivers/mtd/nand/cafe_nand.c                   | 10 +--
+> >  drivers/mtd/nand/cmx270_nand.c                 | 11 ++-
+> >  drivers/mtd/nand/cs553x_nand.c                 | 13 ++--
+> >  drivers/mtd/nand/davinci_nand.c                | 25 +++----
+> >  drivers/mtd/nand/denali.c                      | 61 +++++++++--------
+> >  drivers/mtd/nand/denali.h                      |  1 -
+> >  drivers/mtd/nand/diskonchip.c                  | 11 ++-
+> >  drivers/mtd/nand/docg4.c                       | 18 +++--
+> >  drivers/mtd/nand/fsl_elbc_nand.c               | 22 +++---
+> >  drivers/mtd/nand/fsl_ifc_nand.c                | 23 +++----
+> >  drivers/mtd/nand/fsl_upm.c                     | 26 +++----
+> >  drivers/mtd/nand/fsmc_nand.c                   | 59 +++++++++-------
+> >  drivers/mtd/nand/gpio.c                        | 16 ++---
+> >  drivers/mtd/nand/gpmi-nand/gpmi-lib.c          |  2 +-
+> >  drivers/mtd/nand/gpmi-nand/gpmi-nand.c         | 20 +++---
+> >  drivers/mtd/nand/gpmi-nand/gpmi-nand.h         |  1 -
+> >  drivers/mtd/nand/hisi504_nand.c                | 11 ++-
+> >  drivers/mtd/nand/jz4740_nand.c                 |  9 ++-
+> >  drivers/mtd/nand/lpc32xx_mlc.c                 |  7 +-
+> >  drivers/mtd/nand/lpc32xx_slc.c                 |  7 +-
+> >  drivers/mtd/nand/mpc5121_nfc.c                 |  3 +-
+> >  drivers/mtd/nand/mxc_nand.c                    |  5 +-
+> >  drivers/mtd/nand/nandsim.c                     | 12 ++--
+> >  drivers/mtd/nand/ndfc.c                        | 22 +++---
+> >  drivers/mtd/nand/nuc900_nand.c                 | 21 +++---
+> >  drivers/mtd/nand/omap2.c                       | 94 +++++++++++++++-----------
+> >  drivers/mtd/nand/orion_nand.c                  |  4 +-
+> >  drivers/mtd/nand/pasemi_nand.c                 | 14 ++--
+> >  drivers/mtd/nand/plat_nand.c                   | 14 ++--
+> >  drivers/mtd/nand/pxa3xx_nand.c                 | 33 ++++-----
+> 
+> ^^ BTW, this file already has a few conflicts. Sorry :(
+> 
+> I'll try to keep any eye out for things like this once we're close to
+> being able to apply something like this, so I don't merge unnecessary
+> churn. But for now, I hope we can review this series, and it won't be
+> too much work to rebase/resend once the bigger things have been worked
+> out.
+
+No problem, resolving this conflict was pretty easy.
+
+> 
+> >  drivers/mtd/nand/r852.c                        | 34 ++++------
+> >  drivers/mtd/nand/r852.h                        |  1 -
+> >  drivers/mtd/nand/s3c2410.c                     | 19 +++---
+> >  drivers/mtd/nand/sh_flctl.c                    |  8 +--
+> >  drivers/mtd/nand/sharpsl.c                     | 18 ++---
+> >  drivers/mtd/nand/socrates_nand.c               |  5 +-
+> >  drivers/mtd/nand/sunxi_nand.c                  | 13 ++--
+> >  drivers/mtd/nand/tmio_nand.c                   |  7 +-
+> >  drivers/mtd/nand/txx9ndfmc.c                   |  3 +-
+> >  drivers/mtd/nand/vf610_nfc.c                   |  5 +-
+> >  include/linux/mtd/sh_flctl.h                   |  3 +-
+> >  49 files changed, 383 insertions(+), 385 deletions(-)
 > > 
-> > diff --git a/include/linux/mtd/nand.h b/include/linux/mtd/nand.h
-> > index 8ec071e..873646d 100644
-> > --- a/include/linux/mtd/nand.h
-> > +++ b/include/linux/mtd/nand.h
-> > @@ -734,7 +734,7 @@ static inline struct device_node *nand_get_flash_node(struct nand_chip *chip)
+> 
+> ...
+> 
+> > diff --git a/drivers/mtd/nand/atmel_nand.c b/drivers/mtd/nand/atmel_nand.c
+> > index f8aac0a..51748b4 100644
+> > --- a/drivers/mtd/nand/atmel_nand.c
+> > +++ b/drivers/mtd/nand/atmel_nand.c
+> 
+> ...
+> 
+> > @@ -318,7 +317,7 @@ static int nfc_set_sram_bank(struct atmel_nand_host *host, unsigned int bank)
 > >  
-> >  static inline struct nand_chip *mtd_to_nand(struct mtd_info *mtd)
+> >  	if (bank) {
+> >  		/* Only for a 2k-page or lower flash, NFC can handle 2 banks */
+> > -		if (host->mtd.writesize > 2048)
+> > +		if (nand_to_mtd(&host->nand_chip)->writesize > 2048)
+> 
+> (This isn't the worst one, but it just happens to be one of the first.)
+> There are many cases where the typical style would be to declare a new
+> variable at the top of the function, where you perform the
+> macro/function-call to convert from one abstraction to another. Like
+> 
+> static int nfc_set_sram_bank(struct atmel_nand_host *host, unsigned int bank)
+> {
+> 	struct mtd_info *mtd = nand_to_mtd(&hot->nand_chip);
+> 	...
+> 
+> and then use it later. Can that be done very easily?
+> 
+> >  			return -EINVAL;
+> >  		nfc_writel(host->nfc->hsmc_regs, BANK, ATMEL_HSMC_NFC_BANK1);
+> >  	} else {
+> 
+> ...
+
+Honestly, I don't know how to do that with a coccinelle script, and it
+will probably take me more time to find how to do it than addressing
+those problems manually.
+
+Julia, could you give us some hint?
+
+> 
+> > diff --git a/drivers/mtd/nand/au1550nd.c b/drivers/mtd/nand/au1550nd.c
+> > index 73fceb8..7e2a376 100644
+> > --- a/drivers/mtd/nand/au1550nd.c
+> > +++ b/drivers/mtd/nand/au1550nd.c
+> > @@ -23,7 +23,6 @@
+> >  
+> >  
+> >  struct au1550nd_ctx {
+> > -	struct mtd_info info;
+> >  	struct nand_chip chip;
+> >  
+> >  	int cs;
+> > @@ -197,7 +196,8 @@ static void au_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
+> >  
+> >  static void au1550_hwcontrol(struct mtd_info *mtd, int cmd)
 > >  {
-> > -	return mtd->priv;
-> > +	return container_of(mtd, struct nand_chip, mtd);
-> >  }
-> >  
-> >  static inline struct mtd_info *nand_to_mtd(struct nand_chip *chip)
-> > -- 
-> > 2.1.4
-> > 
+> > -	struct au1550nd_ctx *ctx = container_of(mtd, struct au1550nd_ctx, info);
+> > +	struct au1550nd_ctx *ctx = container_of(mtd_to_nand(mtd),
+> > +						struct au1550nd_ctx, chip);
+> >  	struct nand_chip *this = mtd_to_nand(mtd);
+> 
+> This is another good example. It's a little awkward to do this at all
+> (function call within a macro):
+> 
+> 	container_of(mtd_to_nand(mtd), ...);
+> 
+> but that's not unforgiveable. It's a bit worse, though, when followed by
+> assigning the next field to the same thing:
+> 
+> 	 struct nand_chip *this = mtd_to_nand(mtd);
+> 
+> i.e., this would be nicer to see as:
+> 
+> 	struct nand_chip *this = mtd_to_nand(mtd);
+> 	struct au1550nd_ctx *ctx = container_of(this,
+> 						struct au1550nd_ctx, chip);
+> 
+> Again, I'm not sure how best to automate this kind of transformation.
 
+Yes, I noticed all those problems too, but as I said, I don't know how
+to handle them using a coccinelle script.
 
+Best Regards,
+
+Boris
 
 -- 
 Boris Brezillon, Free Electrons
