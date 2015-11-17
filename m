@@ -1,679 +1,122 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] arm, am335x: add support for the bosch shc board
-Date: Tue, 17 Nov 2015 15:29:33 -0600
-Message-ID: <564B9C3D.7070303@ti.com>
-References: <1447748655-2088-1-git-send-email-hs@denx.de>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [BISECTED] v4.4-rc1 GPIO regression on OMAP1
+Date: Tue, 17 Nov 2015 23:42:13 +0200
+Message-ID: <20151117214212.GB18138@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447748655-2088-1-git-send-email-hs-ynQEQJNshbs@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Georg.Soffel-k21M0aUVSxZWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
-On 11/17/2015 02:24 AM, Heiko Schocher wrote:
-> add support for the am335x based shc board.
->
-> UART: 0-2 and 4
-> DRAM: 512 MiB
-> MMC:  OMAP SD/MMC: 0 @ 26 MHz
->        OMAP SD/MMC: 1 @ 26 MHz
-> I2C:  at24 eeprom, pcf8563
-> USB:  USB1 (host)
->
-> Signed-off-by: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>
-> ---
-> The following patches are needed to get all working
-> for the shc board:
-> - disable clkout on pcf8563
->    accepted.
->    http://www.spinics.net/lists/devicetree/msg98542.html
->
-> - leds: leds-gpio: add shutdown function
->    accepted.
->    https://lkml.org/lkml/2015/10/13/169
->
-> - net: phy: smsc: disable energy detect mode
->    accepted
->    [PATCH v2 2/2] net: phy: smsc: disable energy detect mode
->    https://lkml.org/lkml/2015/10/17/2
->    [PATCH v2 1/2] drivers: net: cpsw: add phy-handle parsing
->    https://lkml.org/lkml/2015/10/17/4
->
-> - ARM: OMAP2+: omap_hwmod: Introduce ti,no-init dt property
->    http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/328204.html
->    @Dave: What is the current state of this patch?
->    I have the same problem here on this am335x based board
->
 
-A different approach is being taken for resolving the issue of rtc hwmod 
-on am43x epos evm [1], which is what I was attempting to solve with the 
-patch you have linked. We decided to avoid changing omap_hwmod code and 
-I haven't been pursuing the ti,no-init flag anymore.
+Amstrad E3 computer (OMAP1) boot crashes early with v4.4-rc1. Bisected to:
 
-Regards,
-Dave
+	450fa54cfd66e3dda6eda26256637ee8928af12a is the first bad commit
+	commit 450fa54cfd66e3dda6eda26256637ee8928af12a
+	Author: Grygorii Strashko <grygorii.strashko@ti.com>
+	Date:   Fri Sep 25 12:28:03 2015 -0700
+	
+	    gpio: omap: convert to use generic irq handler
 
-[1] http://www.spinics.net/lists/linux-omap/msg121987.html
+Reverting the commit works (as a quick workaround at least).
 
-> - [PATCH v2] regulator: tps65217: remove tps65217.dtsi file
->    http://www.kernelhub.org/?msg=868907&p=2
->
-> - bootlog and automated tests:
->    http://xeidos.ddns.net/buildbot/waterfall
->
-> Changes in v2:
-> - Use IOPAD pinmux macro as Robert Nelson
->    suggested.
->
->   arch/arm/boot/dts/Makefile       |   3 +-
->   arch/arm/boot/dts/am335x-shc.dts | 577 +++++++++++++++++++++++++++++++++++++++
->   2 files changed, 579 insertions(+), 1 deletion(-)
->   create mode 100644 arch/arm/boot/dts/am335x-shc.dts
->
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 30bbc37..65d750f 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -466,7 +466,8 @@ dtb-$(CONFIG_SOC_AM33XX) += \
->   	am335x-pepper.dtb \
->   	am335x-lxm.dtb \
->   	am335x-chiliboard.dtb \
-> -	am335x-wega-rdk.dtb
-> +	am335x-wega-rdk.dtb \
-> +	am335x-shc.dtb
->   dtb-$(CONFIG_ARCH_OMAP4) += \
->   	omap4-duovero-parlor.dtb \
->   	omap4-panda.dtb \
-> diff --git a/arch/arm/boot/dts/am335x-shc.dts b/arch/arm/boot/dts/am335x-shc.dts
-> new file mode 100644
-> index 0000000..1b5b044
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-shc.dts
-> @@ -0,0 +1,577 @@
-> +/*
-> + * support for the bosch am335x based shc c3 board
-> + *
-> + * Copyright, C) 2015 Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/dts-v1/;
-> +
-> +#include "am33xx.dtsi"
-> +#include <dt-bindings/input/input.h>
-> +
-> +/ {
-> +	model = "Bosch SHC";
-> +	compatible = "ti,am335x-shc", "ti,am335x-bone", "ti,am33xx";
-> +
-> +	aliases {
-> +		mmcblk0 = &mmc1;
-> +		mmcblk1 = &mmc2;
-> +	};
-> +
-> +	cpus {
-> +		cpu@0 {
-> +			/*
-> +			 * To consider voltage drop between PMIC and SoC,
-> +			 * tolerance value is reduced to 2% from 4% and
-> +			 * voltage value is increased as a precaution.
-> +			 */
-> +			operating-points = <
-> +				/* kHz    uV */
-> +				594000  1225000
-> +				294000  1125000
-> +			>;
-> +			voltage-tolerance = <2>; /* 2 percentage */
-> +			cpu0-supply = <&dcdc2_reg>;
-> +		};
-> +	};
-> +
-> +	gpio_keys {
-> +		compatible = "gpio-keys";
-> +
-> +		back_button {
-> +			label = "Back Button";
-> +			gpios = <&gpio1 29 GPIO_ACTIVE_HIGH>;
-> +			linux,code = <KEY_BACK>;
-> +			debounce-interval = <1000>;
-> +			gpio-key,wakeup;
-> +		};
-> +
-> +		front_button {
-> +			label = "Front Button";
-> +			gpios = <&gpio1 25 GPIO_ACTIVE_HIGH>;
-> +			linux,code = <KEY_FRONT>;
-> +			debounce-interval = <1000>;
-> +			gpio-key,wakeup;
-> +		};
-> +	};
-> +
-> +	leds {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&user_leds_s0>;
-> +
-> +		compatible = "gpio-leds";
-> +
-> +		led@1 {
-> +			label = "shc:power:red";
-> +			gpios = <&gpio0 23 GPIO_ACTIVE_HIGH>;
-> +			default-state = "off";
-> +		};
-> +
-> +		led@2 {
-> +			label = "shc:power:bl";
-> +			gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
-> +			linux,default-trigger = "timer";
-> +			default-state = "on";
-> +		};
-> +
-> +		led@3 {
-> +			label = "shc:lan:red";
-> +			gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
-> +			default-state = "off";
-> +		};
-> +
-> +		led@4 {
-> +			label = "shc:lan:bl";
-> +			gpios = <&gpio1 17 GPIO_ACTIVE_HIGH>;
-> +			default-state = "off";
-> +		};
-> +
-> +		led@5 {
-> +			label = "shc:cloud:red";
-> +			gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
-> +			default-state = "off";
-> +		};
-> +
-> +		led@6 {
-> +			label = "shc:cloud:bl";
-> +			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
-> +			default-state = "off";
-> +		};
-> +	};
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x20000000>; /* 512 MB */
-> +	};
-> +
-> +	vmmcsd_fixed: fixedregulator@0 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vmmcsd_fixed";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +	};
-> +};
-> +
-> +&aes {
-> +	status = "okay";
-> +};
-> +
-> +&cppi41dma  {
-> +	status = "okay";
-> +};
-> +
-> +&davinci_mdio {
-> +	pinctrl-names = "default", "sleep";
-> +	pinctrl-0 = <&davinci_mdio_default>;
-> +	pinctrl-1 = <&davinci_mdio_sleep>;
-> +	status = "okay";
-> +
-> +	ethernetphy0: ethernet-phy@0 {
-> +		reg = <0>;
-> +		smsc,disable-energy-detect;
-> +	};
-> +};
-> +
-> +&epwmss1 {
-> +	status = "okay";
-> +
-> +	ehrpwm1: ehrpwm@48302200 {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&ehrpwm1_pins>;
-> +		status = "okay";
-> +	};
-> +};
-> +
-> +&gpio1 {
-> +	hmtc_rst {
-> +		gpio-hog;
-> +		gpios = <24 GPIO_ACTIVE_LOW>;
-> +		output-high;
-> +		line-name = "homematic_reset";
-> +	};
-> +
-> +	hmtc_prog {
-> +		gpio-hog;
-> +		gpios = <27 GPIO_ACTIVE_LOW>;
-> +		output-high;
-> +		line-name = "homematic_program";
-> +	};
-> +};
-> +
-> +&gpio3 {
-> +	zgb_rst {
-> +		gpio-hog;
-> +		gpios = <18 GPIO_ACTIVE_LOW>;
-> +		output-low;
-> +		line-name = "zigbee_reset";
-> +	};
-> +
-> +	zgb_boot {
-> +		gpio-hog;
-> +		gpios = <19 GPIO_ACTIVE_HIGH>;
-> +		output-high;
-> +		line-name = "zigbee_boot";
-> +	};
-> +};
-> +
-> +&i2c0 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c0_pins>;
-> +	status = "okay";
-> +	clock-frequency = <400000>;
-> +
-> +	tps: tps@24 {
-> +		reg = <0x24>;
-> +	};
-> +
-> +	at24@50 {
-> +		compatible = "at24,24c32";
-> +		pagesize = <32>;
-> +		reg = <0x50>;
-> +	};
-> +
-> +	pcf8563@51 {
-> +		compatible = "nxp,pcf8563";
-> +		reg = <0x51>;
-> +	};
-> +};
-> +
-> +&mac {
-> +	pinctrl-names = "default", "sleep";
-> +	pinctrl-0 = <&cpsw_default>;
-> +	pinctrl-1 = <&cpsw_sleep>;
-> +	status = "okay";
-> +	slaves = <1>;
-> +	cpsw_emac0: slave@4a100200  {
-> +		phy_id = <&davinci_mdio>, <0>;
-> +		phy-mode = "mii";
-> +		phy-handle = <&ethernetphy0>;
-> +	};
-> +};
-> +
-> +&mmc1 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mmc1_pins>;
-> +	bus-width = <0x4>;
-> +	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-> +	cd-inverted;
-> +	max-frequency = <26000000>;
-> +	vmmc-supply = <&vmmcsd_fixed>;
-> +	status = "okay";
-> +};
-> +
-> +&mmc2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&emmc_pins>;
-> +	bus-width = <8>;
-> +	max-frequency = <26000000>;
-> +	sd-uhs-sdr25;
-> +	vmmc-supply = <&vmmcsd_fixed>;
-> +	status = "okay";
-> +};
-> +
-> +&mmc3 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mmc3_pins>;
-> +	bus-width = <4>;
-> +	cap-power-off-card;
-> +	max-frequency = <26000000>;
-> +	sd-uhs-sdr25;
-> +	vmmc-supply = <&vmmcsd_fixed>;
-> +	status = "okay";
-> +};
-> +
-> +&rtc {
-> +	ti,no-init;
-> +};
-> +
-> +&sham {
-> +	status = "okay";
-> +};
-> +
-> +&tps {
-> +	compatible = "ti,tps65217";
-> +	ti,pmic-shutdown-controller;
-> +
-> +	regulators {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		dcdc1_reg: regulator@0 {
-> +			reg = <0>;
-> +			regulator-name = "vdds_dpr";
-> +			regulator-compatible = "dcdc1";
-> +			regulator-min-microvolt = <1300000>;
-> +			regulator-max-microvolt = <1450000>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		dcdc2_reg: regulator@1 {
-> +			reg = <1>;
-> +			/*
-> +			 * VDD_MPU voltage limits 0.95V - 1.26V with
-> +			 * +/-4% tolerance
-> +			 */
-> +			regulator-compatible = "dcdc2";
-> +			regulator-name = "vdd_mpu";
-> +			regulator-min-microvolt = <925000>;
-> +			regulator-max-microvolt = <1375000>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +			regulator-ramp-delay = <70000>;
-> +		};
-> +
-> +		dcdc3_reg: regulator@2 {
-> +			reg = <2>;
-> +			/*
-> +			 * VDD_CORE voltage limits 0.95V - 1.1V with
-> +			 * +/-4% tolerance
-> +			 */
-> +			regulator-name = "vdd_core";
-> +			regulator-compatible = "dcdc3";
-> +			regulator-min-microvolt = <925000>;
-> +			regulator-max-microvolt = <1125000>;
-> +			regulator-boot-on;
-> +			regulator-always-on;
-> +		};
-> +
-> +		ldo1_reg: regulator@3 {
-> +			reg = <3>;
-> +			regulator-name = "vio,vrtc,vdds";
-> +			regulator-compatible = "ldo1";
-> +			regulator-min-microvolt = <1000000>;
-> +			regulator-max-microvolt = <1800000>;
-> +			regulator-always-on;
-> +		};
-> +
-> +		ldo2_reg: regulator@4 {
-> +			reg = <4>;
-> +			regulator-name = "vdd_3v3aux";
-> +			regulator-compatible = "ldo2";
-> +			regulator-min-microvolt = <900000>;
-> +			regulator-max-microvolt = <3300000>;
-> +			regulator-always-on;
-> +		};
-> +
-> +		ldo3_reg: regulator@5 {
-> +			reg = <5>;
-> +			regulator-name = "vdd_1v8";
-> +			regulator-compatible = "ldo3";
-> +			regulator-min-microvolt = <900000>;
-> +			regulator-max-microvolt = <1800000>;
-> +			regulator-always-on;
-> +		};
-> +
-> +		ldo4_reg: regulator@6 {
-> +			reg = <6>;
-> +			regulator-name = "vdd_3v3a";
-> +			regulator-compatible = "ldo4";
-> +			regulator-min-microvolt = <1800000>;
-> +			regulator-max-microvolt = <3300000>;
-> +			regulator-always-on;
-> +		};
-> +	};
-> +};
-> +
-> +&uart0 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart0_pins>;
-> +	status = "okay";
-> +};
-> +
-> +&uart1 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart1_pins>;
-> +	status = "okay";
-> +};
-> +
-> +&uart2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart2_pins>;
-> +	status = "okay";
-> +};
-> +
-> +&uart4 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart4_pins>;
-> +	status = "okay";
-> +};
-> +
-> +&usb {
-> +	status = "okay";
-> +};
-> +
-> +&usb_ctrl_mod {
-> +	status = "okay";
-> +};
-> +
-> +&usb1_phy {
-> +	status = "okay";
-> +};
-> +
-> +&usb1 {
-> +	status = "okay";
-> +	dr_mode = "host";
-> +};
-> +
-> +&am33xx_pinmux {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&clkout2_pin>;
-> +
-> +	clkout2_pin: pinmux_clkout2_pin {
-> +		pinctrl-single,pins = <
-> +			/* xdma_event_intr1.clkout2 */
-> +			AM33XX_IOPAD(0x9b4, PIN_INPUT | MUX_MODE6)
-> +		>;
-> +	};
-> +
-> +	cpsw_default: cpsw_default {
-> +		pinctrl-single,pins = <
-> +			/* Slave 1 */
-> +			AM33XX_IOPAD(0x910, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x91c, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x920, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x924, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x928, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLUP | MUX_MODE0)
-> +			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +		>;
-> +	};
-> +
-> +	cpsw_sleep: cpsw_sleep {
-> +		pinctrl-single,pins = <
-> +			/* Slave 1 reset value */
-> +			AM33XX_IOPAD(0x910, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x914, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x91c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x920, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x924, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x928, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +		>;
-> +	};
-> +
-> +	davinci_mdio_default: davinci_mdio_default {
-> +		pinctrl-single,pins = <
-> +			/* mdio_data.mdio_data */
-> +			AM33XX_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)
-> +			/* mdio_clk.mdio_clk */
-> +			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)
-> +		>;
-> +	};
-> +
-> +	davinci_mdio_sleep: davinci_mdio_sleep {
-> +		pinctrl-single,pins = <
-> +			/* MDIO reset value */
-> +			AM33XX_IOPAD(0x948, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x94c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +		>;
-> +	};
-> +
-> +	ehrpwm1_pins: pinmux_ehrpwm1 {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x84c, PIN_OUTPUT | MUX_MODE6) /* gpmc_a3.gpio1_19 */
-> +		>;
-> +	};
-> +
-> +	emmc_pins: pinmux_emmc_pins {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x880, PIN_INPUT | MUX_MODE2)
-> +			AM33XX_IOPAD(0x884, PIN_INPUT_PULLUP | MUX_MODE2)
-> +			AM33XX_IOPAD(0x800, PIN_INPUT_PULLUP | MUX_MODE1)
-> +			AM33XX_IOPAD(0x804, PIN_INPUT_PULLUP | MUX_MODE1)
-> +			AM33XX_IOPAD(0x808, PIN_INPUT_PULLUP | MUX_MODE1)
-> +			AM33XX_IOPAD(0x80c, PIN_INPUT_PULLUP | MUX_MODE1)
-> +			AM33XX_IOPAD(0x810, PIN_INPUT_PULLUP | MUX_MODE1)
-> +			AM33XX_IOPAD(0x814, PIN_INPUT_PULLUP | MUX_MODE1)
-> +			AM33XX_IOPAD(0x818, PIN_INPUT_PULLUP | MUX_MODE1)
-> +			AM33XX_IOPAD(0x81c, PIN_INPUT_PULLUP | MUX_MODE1)
-> +		>;
-> +	};
-> +
-> +	i2c0_pins: pinmux_i2c0_pins {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x988, PIN_INPUT | MUX_MODE0)
-> +			AM33XX_IOPAD(0x98c, PIN_INPUT | MUX_MODE0)
-> +		>;
-> +	};
-> +
-> +	mmc1_pins: pinmux_mmc1_pins {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE5)
-> +		>;
-> +	};
-> +
-> +	mmc3_pins: pinmux_mmc3_pins {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x830, PIN_INPUT | MUX_MODE3)
-> +			AM33XX_IOPAD(0x834, PIN_INPUT | MUX_MODE3)
-> +			AM33XX_IOPAD(0x838, PIN_INPUT | MUX_MODE3)
-> +			AM33XX_IOPAD(0x83c, PIN_INPUT | MUX_MODE3)
-> +			AM33XX_IOPAD(0x888, PIN_INPUT | MUX_MODE3)
-> +			AM33XX_IOPAD(0x88c, PIN_INPUT | MUX_MODE3)
-> +		>;
-> +	};
-> +
-> +	uart0_pins: pinmux_uart0_pins {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x968, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x96c, PIN_OUTPUT | MUX_MODE0)
-> +			AM33XX_IOPAD(0x970, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x974, PIN_OUTPUT | MUX_MODE0)
-> +		>;
-> +	};
-> +
-> +	uart1_pins: pinmux_uart1 {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x978, PIN_INPUT_PULLDOWN | MUX_MODE0)
-> +			AM33XX_IOPAD(0x97C, PIN_OUTPUT | MUX_MODE0)
-> +			AM33XX_IOPAD(0x980, PIN_INPUT | MUX_MODE0)
-> +			AM33XX_IOPAD(0x984, PIN_OUTPUT | MUX_MODE0)
-> +		>;
-> +	};
-> +
-> +	uart2_pins: pinmux_uart2_pins {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x950, PIN_INPUT | MUX_MODE1)
-> +			AM33XX_IOPAD(0x954, PIN_OUTPUT | MUX_MODE1)
-> +		>;
-> +	};
-> +
-> +	uart4_pins: pinmux_uart4_pins {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x870, PIN_INPUT_PULLUP | MUX_MODE6)
-> +			AM33XX_IOPAD(0x874, PIN_OUTPUT_PULLUP | MUX_MODE6)
-> +		>;
-> +	};
-> +
-> +	user_leds_s0: user_leds_s0 {
-> +		pinctrl-single,pins = <
-> +			AM33XX_IOPAD(0x820, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x824, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x828, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x82c, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x840, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x844, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x848, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x850, PIN_OUTPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x854, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x858, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x85c, PIN_OUTPUT_PULLUP | MUX_MODE7)
-> +			AM33XX_IOPAD(0x860, PIN_INPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x864, PIN_INPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x868, PIN_INPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x86c, PIN_INPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x878, PIN_OUTPUT_PULLUP | MUX_MODE7)
-> +			AM33XX_IOPAD(0x87c, PIN_INPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x890, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x894, PIN_INPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x898, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x89c, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8e0, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8e4, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8e8, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x8ec, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x944, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x958, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x95c, PIN_OUTPUT | MUX_MODE7)
-> +			AM33XX_IOPAD(0x964, PIN_OUTPUT_PULLUP | MUX_MODE7)
-> +			AM33XX_IOPAD(0x9a0, PIN_OUTPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x9a4, PIN_OUTPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x9a8, PIN_INPUT_PULLDOWN | MUX_MODE7)
-> +			AM33XX_IOPAD(0x9ac, PIN_INPUT_PULLUP | MUX_MODE7)
-> +		>;
-> +	};
-> +};
->
+The crash log:
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[    0.253612] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[    0.262613] pgd = c0004000
+[    0.265754] [00000000] *pgd=00000000
+[    0.269862] Internal error: Oops: 75 [#1] ARM
+[    0.274734] Modules linked in:
+[    0.278313] CPU: 0 PID: 1 Comm: swapper Not tainted 4.4.0-rc1-e3-los_afe0c+-00002-g25379c0-dirty #1
+[    0.288246] Hardware name: Amstrad E3 (Delta)
+[    0.293146] task: c1836000 ti: c1838000 task.ti: c1838000
+[    0.299155] PC is at irq_gc_mask_set_bit+0x1c/0x60
+[    0.304525] LR is at __irq_do_set_handler+0x118/0x15c
+[    0.310165] pc : [<c004848c>]    lr : [<c0047d4c>]    psr: 600000d3
+[    0.310165] sp : c1839c90  ip : c1862c64  fp : c1839c9c
+[    0.322740] r10: 00000000  r9 : c0411950  r8 : c0411bbc
+[    0.328533] r7 : 00000000  r6 : c185c310  r5 : c00444e8  r4 : c185c300
+[    0.335687] r3 : c1854b50  r2 : 00000000  r1 : 00000000  r0 : c185c310
+[    0.342858] Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+[    0.351153] Control: 0000317f  Table: 10004000  DAC: 00000057
+[    0.357494] Process swapper (pid: 1, stack limit = 0xc1838190)
+[    0.363917] Stack: (0xc1839c90 to 0xc183a000)
+[    0.368837] 9c80:                                     c1839cc4 c1839ca0 c0047d4c c0048480
+[    0.377916] 9ca0: 00000000 00000000 00000050 c185c300 c00444e8 00000000 c1839cec c1839cc8
+[    0.386989] 9cc0: c0047dd4 c0047c44 c0046f40 a0000053 00000050 c00444e8 00000000 00000050
+[    0.396064] 9ce0: c1839d0c c1839cf0 c0047e1c c0047da0 c1862c64 00000050 00000000 00000050
+[    0.405139] 9d00: c1839d24 c1839d10 c01b345c c0047dfc c185cb00 c185c310 c1839d54 c1839d28
+[    0.414214] 9d20: c0049670 c01b3430 c0075888 c0043440 c1854b50 00000001 00000010 00000050
+[    0.423293] 9d40: c185cb00 c0411bbc c1839d7c c1839d58 c0049894 c0049604 00000000 c1862c64
+[    0.432375] 9d60: c1854b50 c1862c64 c0419280 c1862c64 c1839d9c c1839d80 c01b3328 c004980c
+[    0.441456] 9d80: c1862c64 c1862c64 c1862c10 c1854b50 c1839ddc c1839da0 c01b79f4 c01b32d4
+[    0.450530] 9da0: 00000000 00000000 c0411958 c0419294 00000000 c0411950 c0419294 c0411984
+[    0.459605] 9dc0: c0419294 00000000 c03e45e8 00000000 c1839df4 c1839de0 c01fcf58 c01b7708
+[    0.468684] 9de0: c0411950 c045ce30 c1839e1c c1839df8 c01fb668 c01fcf3c c0411950 c0419294
+[    0.477759] 9e00: c0411984 00000000 00000000 c03e45e8 c1839e3c c1839e20 c01fb844 c01fb518
+[    0.486836] 9e20: 00000000 c0419294 c01fb7a4 00000000 c1839e64 c1839e40 c01f9a90 c01fb7b4
+[    0.495913] 9e40: c185434c c185b450 c185b514 c0419294 c185b4e0 c041d9c8 c1839e74 c1839e68
+[    0.504991] 9e60: c01fb078 c01f9a28 c1839e9c c1839e78 c01facf8 c01fb068 c03931d0 c1839e88
+[    0.514069] 9e80: c0419294 c040bb80 c1804960 c03f5a08 c1839eb4 c1839ea0 c01fbdb0 c01fab7c
+[    0.523150] 9ea0: c040bb80 c040bb80 c1839ec4 c1839eb8 c01fcf18 c01fbd40 c1839ed4 c1839ec8
+[    0.532227] 9ec0: c03f5a20 c01fcef0 c1839f4c c1839ed8 c000966c c03f5a18 c1839efc c1839ee8
+[    0.541304] 9ee0: c03e4604 c019b3b4 c03e2700 c1ffcd34 c1839f4c c1839f00 c00314ec c03e45f8
+[    0.550384] 9f00: 00000000 00000000 00000002 00000002 00000000 c03e2024 c038f2fc 00000000
+[    0.559465] 9f20: c1839f4c 00000002 c03ff81c 00000002 c03ff820 0000005e c042ba80 c042ba80
+[    0.568543] 9f40: c1839f94 c1839f50 c03e4e14 c00095f0 00000002 00000002 00000000 c03e45e8
+[    0.577625] 9f60: 9b7bd08b c0406660 ad19cf47 00000000 c0305764 00000000 00000000 00000000
+[    0.586701] 9f80: 00000000 00000000 c1839fac c1839f98 c0305774 c03e4d18 00000000 c0305764
+[    0.595775] 9fa0: 00000000 c1839fb0 c000a440 c0305774 00000000 00000000 00000000 00000000
+[    0.604845] 9fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    0.613916] 9fe0: 00000000 00000000 00000000 00000000 00000013 00000000 faef8a80 f438707c
+[    0.622908] Backtrace: 
+[    0.625894] [<c0048470>] (irq_gc_mask_set_bit) from [<c0047d4c>] (__irq_do_set_handler+0x118/0x15c)
+[    0.635897] [<c0047c34>] (__irq_do_set_handler) from [<c0047dd4>] (__irq_set_handler+0x44/0x5c)
+[    0.645458]  r6:00000000 r5:c00444e8 r4:c185c300
+[    0.650746] [<c0047d90>] (__irq_set_handler) from [<c0047e1c>] (irq_set_chip_and_handler_name+0x30/0x34)
+[    0.661128]  r7:00000050 r6:00000000 r5:c00444e8 r4:00000050
+[    0.667559] [<c0047dec>] (irq_set_chip_and_handler_name) from [<c01b345c>] (gpiochip_irq_map+0x3c/0x8c)
+[    0.677869]  r7:00000050 r6:00000000 r5:00000050 r4:c1862c64
+[    0.684300] [<c01b3420>] (gpiochip_irq_map) from [<c0049670>] (irq_domain_associate+0x7c/0x1c4)
+[    0.693885]  r5:c185c310 r4:c185cb00
+[    0.698072] [<c00495f4>] (irq_domain_associate) from [<c0049894>] (irq_domain_add_simple+0x98/0xc0)
+[    0.708008]  r8:c0411bbc r7:c185cb00 r6:00000050 r5:00000010 r4:00000001
+[    0.715561] [<c00497fc>] (irq_domain_add_simple) from [<c01b3328>] (_gpiochip_irqchip_add+0x64/0x10c)
+[    0.725693]  r7:c1862c64 r6:c0419280 r5:c1862c64 r4:c1854b50
+[    0.732152] [<c01b32c4>] (_gpiochip_irqchip_add) from [<c01b79f4>] (omap_gpio_probe+0x2fc/0x63c)
+[    0.741848]  r5:c1854b50 r4:c1862c10
+[    0.746069] [<c01b76f8>] (omap_gpio_probe) from [<c01fcf58>] (platform_drv_probe+0x2c/0x64)
+[    0.755309]  r10:00000000 r9:c03e45e8 r8:00000000 r7:c0419294 r6:c0411984 r5:c0419294
+[    0.764089]  r4:c0411950
+[    0.767193] [<c01fcf2c>] (platform_drv_probe) from [<c01fb668>] (really_probe+0x160/0x29c)
+[    0.776327]  r5:c045ce30 r4:c0411950
+[    0.780546] [<c01fb508>] (really_probe) from [<c01fb844>] (__driver_attach+0xa0/0xa4)
+[    0.789224]  r9:c03e45e8 r8:00000000 r7:00000000 r6:c0411984 r5:c0419294 r4:c0411950
+[    0.798032] [<c01fb7a4>] (__driver_attach) from [<c01f9a90>] (bus_for_each_dev+0x78/0xa8)
+[    0.807072]  r7:00000000 r6:c01fb7a4 r5:c0419294 r4:00000000
+[    0.813515] [<c01f9a18>] (bus_for_each_dev) from [<c01fb078>] (driver_attach+0x20/0x28)
+[    0.822371]  r6:c041d9c8 r5:c185b4e0 r4:c0419294
+[    0.827710] [<c01fb058>] (driver_attach) from [<c01facf8>] (bus_add_driver+0x18c/0x214)
+[    0.836699] [<c01fab6c>] (bus_add_driver) from [<c01fbdb0>] (driver_register+0x80/0x100)
+[    0.845649]  r7:c03f5a08 r6:c1804960 r5:c040bb80 r4:c0419294
+[    0.852098] [<c01fbd30>] (driver_register) from [<c01fcf18>] (__platform_driver_register+0x38/0x4c)
+[    0.862048]  r5:c040bb80 r4:c040bb80
+[    0.866290] [<c01fcee0>] (__platform_driver_register) from [<c03f5a20>] (omap_gpio_drv_reg+0x18/0x20)
+[    0.876568] [<c03f5a08>] (omap_gpio_drv_reg) from [<c000966c>] (do_one_initcall+0x8c/0x1fc)
+[    0.885889] [<c00095e0>] (do_one_initcall) from [<c03e4e14>] (kernel_init_freeable+0x10c/0x1d0)
+[    0.895458]  r8:c042ba80 r7:c042ba80 r6:0000005e r5:c03ff820 r4:00000002
+[    0.903019] [<c03e4d08>] (kernel_init_freeable) from [<c0305774>] (kernel_init+0x10/0xf4)
+[    0.912062]  r10:00000000 r9:00000000 r8:00000000 r7:00000000 r6:00000000 r5:c0305764
+[    0.920838]  r4:00000000
+[    0.923926] [<c0305764>] (kernel_init) from [<c000a440>] (ret_from_fork+0x14/0x34)
+[    0.932325]  r5:c0305764 r4:00000000
+[    0.936464] Code: e5903010 e590c018 e59310a4 e5902000 (e5910000) 
+[    0.943361] ---[ end trace 6ff0b7ecbf0a5042 ]---
+[    0.948957] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+[    0.948957] 
+[    0.959323] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+
+A.
