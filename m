@@ -1,77 +1,106 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 14/27] mtd: nand: use the mtd instance embedded in struct
- nand_chip
-Date: Tue, 17 Nov 2015 10:05:03 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1511170957100.2455@hadrien>
-References: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
- <1447681080-31232-15-git-send-email-boris.brezillon@free-electrons.com>
- <20151117030019.GY8456@google.com> <20151117093836.052c86b5@bbrezillon>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH] clk: gpio: Get parent clk names already in of_gpio_clk_setup()
+Date: Tue, 17 Nov 2015 11:10:22 +0200
+Message-ID: <1447751422-23711-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20151117093836.052c86b5@bbrezillon>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Stefan Agner <stefan@agner.ch>, linux-sunxi@googlegroups.com, linux-mtd@lists.infradead.org, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-samsung-soc@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Josh Wu <josh.wu@atmel.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Wan ZongShun <mcuos.com@gmail.com>, Steven Miao <realmz6@gmail.com>, adi-buildroot-devel@lists.sourceforge.net, Ha
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+Cc: tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>, Sergej Sawazki <ce3a@gmx.de>
 List-Id: linux-omap@vger.kernel.org
 
-> > (This isn't the worst one, but it just happens to be one of the first.)
-> > There are many cases where the typical style would be to declare a new
-> > variable at the top of the function, where you perform the
-> > macro/function-call to convert from one abstraction to another. Like
-> >
-> > static int nfc_set_sram_bank(struct atmel_nand_host *host, unsigned int bank)
-> > {
-> > 	struct mtd_info *mtd = nand_to_mtd(&hot->nand_chip);
-> > 	...
-> >
-> > and then use it later. Can that be done very easily?
-> >
-> > >  			return -EINVAL;
-> > >  		nfc_writel(host->nfc->hsmc_regs, BANK, ATMEL_HSMC_NFC_BANK1);
-> > >  	} else {
-> >
-> > ...
->
-> Honestly, I don't know how to do that with a coccinelle script, and it
-> will probably take me more time to find how to do it than addressing
-> those problems manually.
->
-> Julia, could you give us some hint?
+Get parent clk names already in of_gpio_clk_setup() and store the
+names in struct clk_gpio_delayed_register_data. of_clk_get_parent_name()
+can not be called in struct of_clk_provider's get() callback since it
+may make a recursive call to of_clk_get_from_provider() and this in turn
+tries to recursively lock of_clk_mutex.
 
-Probably something like the following would be easiest.  You can just run
-it after your other transformations:
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+Cc: Sergej Sawazki <ce3a@gmx.de>
+---
+Something has changed in Linux mainline so that getting the clk
+parent names in struct of_clk_provider's get() callback does not work
+anymore. This patch should fix the problem.
 
-@r exists@
-identifier f;
-expression e;
-@@
+ drivers/clk/clk-gpio.c | 33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
-f(...) { <+...  nand_to_mtd(e) ...+> }
-
-@@
-identifier r.f;
-expression r.e;
-@@
-
-f(...) {
-+ struct mtd_info *mtd = nand_to_mtd(e);
-...
-}
-
-This won't work if there is more than one possible value of e.  If that is
-likely, then I could come up with something more complex.  It also assumes
-that you want to convert all such calls.  If you only want to convert calls
-that occur in a particular context, eg a field reference, then you could
-enhance the pattern inside the <+... ...+> in the first rule.
-
-julia
+diff --git a/drivers/clk/clk-gpio.c b/drivers/clk/clk-gpio.c
+index 10819e2..335322d 100644
+--- a/drivers/clk/clk-gpio.c
++++ b/drivers/clk/clk-gpio.c
+@@ -209,6 +209,8 @@ EXPORT_SYMBOL_GPL(clk_register_gpio_mux);
+ 
+ struct clk_gpio_delayed_register_data {
+ 	const char *gpio_name;
++	int num_parents;
++	const char **parent_names;
+ 	struct device_node *node;
+ 	struct mutex lock;
+ 	struct clk *clk;
+@@ -222,8 +224,6 @@ static struct clk *of_clk_gpio_delayed_register_get(
+ {
+ 	struct clk_gpio_delayed_register_data *data = _data;
+ 	struct clk *clk;
+-	const char **parent_names;
+-	int i, num_parents;
+ 	int gpio;
+ 	enum of_gpio_flags of_flags;
+ 
+@@ -248,26 +248,14 @@ static struct clk *of_clk_gpio_delayed_register_get(
+ 		return ERR_PTR(gpio);
+ 	}
+ 
+-	num_parents = of_clk_get_parent_count(data->node);
+-
+-	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
+-	if (!parent_names) {
+-		clk = ERR_PTR(-ENOMEM);
+-		goto out;
+-	}
+-
+-	for (i = 0; i < num_parents; i++)
+-		parent_names[i] = of_clk_get_parent_name(data->node, i);
+-
+-	clk = data->clk_register_get(data->node->name, parent_names,
+-			num_parents, gpio, of_flags & OF_GPIO_ACTIVE_LOW);
++	clk = data->clk_register_get(data->node->name, data->parent_names,
++			data->num_parents, gpio, of_flags & OF_GPIO_ACTIVE_LOW);
+ 	if (IS_ERR(clk))
+ 		goto out;
+ 
+ 	data->clk = clk;
+ out:
+ 	mutex_unlock(&data->lock);
+-	kfree(parent_names);
+ 
+ 	return clk;
+ }
+@@ -296,11 +284,24 @@ static void __init of_gpio_clk_setup(struct device_node *node,
+ 				unsigned gpio, bool active_low))
+ {
+ 	struct clk_gpio_delayed_register_data *data;
++	const char **parent_names;
++	int i, num_parents;
+ 
+ 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return;
+ 
++	num_parents = of_clk_get_parent_count(node);
++
++	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
++	if (!parent_names)
++		return;
++
++	for (i = 0; i < num_parents; i++)
++		parent_names[i] = of_clk_get_parent_name(node, i);
++
++	data->num_parents = num_parents;
++	data->parent_names = parent_names;
+ 	data->node = node;
+ 	data->gpio_name = gpio_name;
+ 	data->clk_register_get = clk_register_get;
+-- 
+1.9.1
