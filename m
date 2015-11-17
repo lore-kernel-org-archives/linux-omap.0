@@ -1,55 +1,69 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH RFC v2 0/2] Disable planes on blanked CRTC and enable on
- unblank
-Date: Tue, 17 Nov 2015 17:38:35 +0200
-Message-ID: <564B49FB.8020306@ti.com>
-References: <cover.1447428525.git.jsarha@ti.com>
- <20151117102856.GS16848@phenom.ffwll.local>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v3 1/5] spi: introduce mmap read support for spi flash
+ devices
+Date: Tue, 17 Nov 2015 09:48:56 -0800
+Message-ID: <20151117174856.GB8456@google.com>
+References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
+ <1447133399-25658-2-git-send-email-vigneshr@ti.com>
+ <20151110232341.GU12143@google.com>
+ <5642E546.3040806@ti.com>
+ <20151111072041.GA13174@localhost>
+ <56460A4D.30303@atmel.com>
+ <564AC9FD.6090909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20151117102856.GS16848@phenom.ffwll.local>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <564AC9FD.6090909@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Cyrille Pitchen <cyrille.pitchen@atmel.com>, Marek Vasut <marex@denx.de>, Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTEvMTcvMTUgMTI6MjgsIERhbmllbCBWZXR0ZXIgd3JvdGU6Cj4gT24gRnJpLCBOb3YgMTMs
-IDIwMTUgYXQgMDU6NTM6MTNQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90ZToKPj4gU2luY2UgZmly
-c3QgUkZDIHZlcnNpb246Cj4+IC0gQWRkZWQgImRybS9hdG9taWM6IFRyYWNrIGRybV9wbGFuZSdz
-IGFjdGl2ZSBzdGF0ZSItcGF0Y2gKPj4KPj4gV2Ugd291bGQgbmVlZCBzb21ldGhpbmcgbGlrZSB0
-aGlzIHRvIGdldCByaWQgb2ZmIE9NQVBEU1Mgc29tZXdoYXQKPj4gbWVzc3kgcnVudGltZV9yZXN1
-bWUgY29kZS4gSG93IGRvZXMgdGhpcyBsb29rLCBjb3VsZCB0aGlzIGdlbmVyaWMKPj4gc29sdXRp
-b24gYmUgcmVmaW5lZCB0byBiZSBhY2NlcHRhYmxlIGZvciBtYWlubGluZSwgb3Igc2hvdWxkIHdl
-IHN0YXJ0Cj4+IGxvb2tpbmcgYSBsb2NhbCBzb2x1dGlvbiB0byBvbWFwZHJtPwo+Cj4gT25lIG1v
-cmUgY29tbWVudCBiZXNpZGVzIHdoYXQgSSd2ZSB3cml0dGVuIGluIHRoZSBvbGRlciB0aHJlYWQ6
-IFlvdSdyZSBub3QKPiBvbiBsYXRlc3QgZHJtLW5leHQsIHdoaWNoIGhhcyBnYWluZWQgYW4gYWN0
-aXZlX29ubHkgcGFyYW10ZXIgdG8gdGhlIHBsYW5lCj4gY29tbWl0IGhlbHBlci4KPgo+IEl0IG1p
-Z2h0IGJlIGJlc3QgdG8gZGlzY3VzcyB0aGlzIHRvcGljIG9uICNkcmktZGV2ZWwgb24gZnJlZW5v
-ZGUgaXJjIGEKPiBiaXQuCj4KClRoYW5rcyBhIGxvdCBmb3IgeW91IGNvbW1lbnRzIQoKSSBqdXN0
-IHJlYmFzZWQgbXkgc3R1ZmYgb24gdG9wIHRoZSB0aGUgbGF0ZXN0IGRybS1uZXh0LiBJIHRoaW5r
-IEkgbmVlZCAKZGlnZXN0IHlvdXIgZWFybGllciBjb21tZW50cyBhYm91dCBkcm1fYXRvbWljX2Fk
-ZF9hZmZlY3RlZF9wbGFuZXMgZXRjLiBhIApiaXQgYmVmb3JlIEkgY2FuIHRha2UgYWR2YW50YWdl
-IG9mIGFueSBpbnRlcmFjdGl2ZSBjb21tdW5pY2F0aW9uLiBJJ2xsIAp0cnkgdG8gZm9sbG93IHRo
-b3NlIGluc3RydWN0aW9uIGZpcnN0IGFuZCBzZWUgd2hlcmUgaXQgbGVhZHMgbWUuCgpUaGFua3Ms
-Ckp5cmkKCj4gQ2hlZXJzLCBEYW5pZWwKPgo+Pgo+PiBKeXJpIFNhcmhhICgyKToKPj4gICAgZHJt
-L2F0b21pYzogVHJhY2sgZHJtX3BsYW5lJ3MgYWN0aXZlIHN0YXRlCj4+ICAgIGRybS9hdG9taWM6
-IERpc2FibGUgcGxhbmVzIG9uIGJsYW5rZWQgQ1JUQyBhbmQgZW5hYmxlIG9uIHVuYmxhbmsKPj4K
-Pj4gICBkcml2ZXJzL2dwdS9kcm0vZHJtX2F0b21pY19oZWxwZXIuYyB8IDgyICsrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrLS0tLS0tLS0KPj4gICBkcml2ZXJzL2dwdS9kcm0vZHJtX3BsYW5l
-X2hlbHBlci5jICB8IDEwICstLS0tCj4+ICAgaW5jbHVkZS9kcm0vZHJtX2F0b21pY19oZWxwZXIu
-aCAgICAgfCAzOSArLS0tLS0tLS0tLS0tLS0tLS0KPj4gICBpbmNsdWRlL2RybS9kcm1fY3J0Yy5o
-ICAgICAgICAgICAgICB8ICAyICsKPj4gICA0IGZpbGVzIGNoYW5nZWQsIDcwIGluc2VydGlvbnMo
-KyksIDYzIGRlbGV0aW9ucygtKQo+Pgo+PiAtLQo+PiAxLjkuMQo+Pgo+CgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0
-CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9w
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Hi,
+
+On Tue, Nov 17, 2015 at 12:02:29PM +0530, Vignesh R wrote:
+> On 11/13/2015 09:35 PM, Cyrille Pitchen wrote:
+> > 
+> > In September I've sent a series of patches to enhance the support of QSPI flash
+> > memories. Patch 4 was dedicated to the m25p80 driver and set the
+> > rx_nbits / tx_nbits fields of spi_transfer struct(s) in order to configure the
+> > number of I/O lines independently for the opcode, address and data parts.
+> > The work was done for m25p80_read() but also for _read_reg(), _write_reg() and
+> > _write().
+> > The patched m25p80 driver was then tested with an at25 memory to check non-
+> > regression.
+> > 
+> > This series of patches also added 4 enum spi_protocol fields inside struct
+> > spi_nor so the spi-nor framework can tell the (Q)SPI controller driver what SPI
+> > protocol should be use for erase, read, write and register read/write
+> > operations, depending on the memory manufacturer and the command opcode.
+> > This was done to better support Micron, Spansion and Macronix QSPI memories.
+> > 
+> > I have tested the series with Micron QSPI memories and Atmel QSPI controller
+> > and I guess Marek also tested it on his side with Spansion QSPI memories and
+> > another QSPI controller.
+> > 
+> > So if it can help other developers to develop QSPI controller drivers, the
+> > series is still available there:
+> > 
+> > for the whole series:
+> > http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/371170.html
+> > 
+> > for patch 4 (depends on patch 2 for enum spi_protocol):
+> > http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/371173.html
+> > 
+> 
+> Should I rebase my next version on top of above patches by Cyrille or
+> shall I post on top of 4.4-rc1?
+
+I'm sorry to say I really haven't had the time to review that properly.
+I'm also not sure it is a true dependency for your series, as you're
+tackling different pieces of the puzzle. So it's mostly just a conflict,
+not a real direct help.
+
+So unless I'm misunderstanding, I'd suggest submitting MTD stuff against
+the latest l2-mtd.git (or linux-next.git; l2-mtd.git is included there),
+and I'll let you know if conflicts come up that need fixing.
+
+Brian
