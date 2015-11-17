@@ -1,101 +1,204 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2: use correct timer function for AM43XX and
- TI81XX
-Date: Mon, 16 Nov 2015 15:13:55 -0600
-Message-ID: <87egfplka4.fsf@saruman.tx.rr.com>
-References: <4016134.4bReocePei@wuerfel>
+From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 14/27] mtd: nand: use the mtd instance
+ embedded in struct nand_chip
+Date: Mon, 16 Nov 2015 19:00:19 -0800
+Message-ID: <20151117030019.GY8456@google.com>
+References: <1447681080-31232-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1447681080-31232-15-git-send-email-boris.brezillon@free-electrons.com>
+Reply-To: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4313149615516855995=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4016134.4bReocePei@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-sunxi+bncBCZ6PSPVXMNBBR5QVKZAKGQEBJ3YZHY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1447681080-31232-15-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/linux-sunxi
+Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <http://groups.google.com/group/linux-sunxi/subscribe>
+To: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek
 List-Id: linux-omap@vger.kernel.org
 
---===============4313149615516855995==
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
+Hi Boris,
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Mon, Nov 16, 2015 at 02:37:47PM +0100, Boris Brezillon wrote:
+> struct nand_chip now embeds an mtd device. Patch all drivers to make use
+> of this mtd instance instead of using the instance embedded in their
+> private struct or dynamically allocated.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> Cc: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+> ---
+> Most of those changes were generate with this coccinelle script:
+> http://code.bulix.org/5vxuih-89429
 
+I appreciate that this patch is mostly autogenerated (a good thing for
+preventing errors!), but there are some issues that I don't think play
+out very well stylistically. Hopefully the cocci script can be improved
+to handle some of this?
 
-Hi,
+I'll try to point out a few snippets below.
 
-Arnd Bergmann <arnd@arndb.de> writes:
-> AM43XX and TI81XX use omap3_gptimer_timer_init(), but that is only
-> built into the kernel for OMAP3 and AM33XX, otherwise we get:
->
-> arch/arm/mach-omap2/built-in.o:(.arch.info.init+0x124): undefined referen=
-ce to `omap3_gptimer_timer_init'
->
-> This changes the Kconfig logic for building the function to
-> match the callers. Consequently, we no longer need to build
-> the omap3_secure_sync32k_timer_init and omap4_local_timer_init
-> for the platforms that have been moved over to other functions.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Also, in case others are interested in reviewing your cocci script
+directly, it might be better to paste it inline than to link to it.
+Given the size of the patch, I don't think people would mind a few dozen
+extra lines to show how it wsa generated. Or maybe stick some in the
+cover letter too, if you end up reusing them in several patches.
 
-no, AM43xx uses omap4_local_timer_init(), there's already a fix in
-Tony's tree IIRC.
+> ---
+>  drivers/mtd/nand/ams-delta.c                   | 13 ++--
+>  drivers/mtd/nand/atmel_nand.c                  | 11 ++-
+>  drivers/mtd/nand/au1550nd.c                    | 18 ++---
+>  drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h |  1 -
+>  drivers/mtd/nand/bcm47xxnflash/main.c          |  7 +-
+>  drivers/mtd/nand/bcm47xxnflash/ops_bcm4706.c   |  2 +-
+>  drivers/mtd/nand/bf5xx_nand.c                  | 14 ++--
+>  drivers/mtd/nand/brcmnand/brcmnand.c           | 11 ++-
+>  drivers/mtd/nand/cafe_nand.c                   | 10 +--
+>  drivers/mtd/nand/cmx270_nand.c                 | 11 ++-
+>  drivers/mtd/nand/cs553x_nand.c                 | 13 ++--
+>  drivers/mtd/nand/davinci_nand.c                | 25 +++----
+>  drivers/mtd/nand/denali.c                      | 61 +++++++++--------
+>  drivers/mtd/nand/denali.h                      |  1 -
+>  drivers/mtd/nand/diskonchip.c                  | 11 ++-
+>  drivers/mtd/nand/docg4.c                       | 18 +++--
+>  drivers/mtd/nand/fsl_elbc_nand.c               | 22 +++---
+>  drivers/mtd/nand/fsl_ifc_nand.c                | 23 +++----
+>  drivers/mtd/nand/fsl_upm.c                     | 26 +++----
+>  drivers/mtd/nand/fsmc_nand.c                   | 59 +++++++++-------
+>  drivers/mtd/nand/gpio.c                        | 16 ++---
+>  drivers/mtd/nand/gpmi-nand/gpmi-lib.c          |  2 +-
+>  drivers/mtd/nand/gpmi-nand/gpmi-nand.c         | 20 +++---
+>  drivers/mtd/nand/gpmi-nand/gpmi-nand.h         |  1 -
+>  drivers/mtd/nand/hisi504_nand.c                | 11 ++-
+>  drivers/mtd/nand/jz4740_nand.c                 |  9 ++-
+>  drivers/mtd/nand/lpc32xx_mlc.c                 |  7 +-
+>  drivers/mtd/nand/lpc32xx_slc.c                 |  7 +-
+>  drivers/mtd/nand/mpc5121_nfc.c                 |  3 +-
+>  drivers/mtd/nand/mxc_nand.c                    |  5 +-
+>  drivers/mtd/nand/nandsim.c                     | 12 ++--
+>  drivers/mtd/nand/ndfc.c                        | 22 +++---
+>  drivers/mtd/nand/nuc900_nand.c                 | 21 +++---
+>  drivers/mtd/nand/omap2.c                       | 94 +++++++++++++++-----------
+>  drivers/mtd/nand/orion_nand.c                  |  4 +-
+>  drivers/mtd/nand/pasemi_nand.c                 | 14 ++--
+>  drivers/mtd/nand/plat_nand.c                   | 14 ++--
+>  drivers/mtd/nand/pxa3xx_nand.c                 | 33 ++++-----
 
-> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX) || defined(=
-CONFIG_SOC_TI81XX)
+^^ BTW, this file already has a few conflicts. Sorry :(
 
-[...]
+I'll try to keep any eye out for things like this once we're close to
+being able to apply something like this, so I don't merge unnecessary
+churn. But for now, I hope we can review this series, and it won't be
+too much work to rebase/resend once the bigger things have been worked
+out.
 
-> +#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || defined(C=
-ONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
+>  drivers/mtd/nand/r852.c                        | 34 ++++------
+>  drivers/mtd/nand/r852.h                        |  1 -
+>  drivers/mtd/nand/s3c2410.c                     | 19 +++---
+>  drivers/mtd/nand/sh_flctl.c                    |  8 +--
+>  drivers/mtd/nand/sharpsl.c                     | 18 ++---
+>  drivers/mtd/nand/socrates_nand.c               |  5 +-
+>  drivers/mtd/nand/sunxi_nand.c                  | 13 ++--
+>  drivers/mtd/nand/tmio_nand.c                   |  7 +-
+>  drivers/mtd/nand/txx9ndfmc.c                   |  3 +-
+>  drivers/mtd/nand/vf610_nfc.c                   |  5 +-
+>  include/linux/mtd/sh_flctl.h                   |  3 +-
+>  49 files changed, 383 insertions(+), 385 deletions(-)
+> 
 
-someone doesn't like to run checkpatch.pl
+...
 
-care to provide a defconfig which would cause a build error ?
+> diff --git a/drivers/mtd/nand/atmel_nand.c b/drivers/mtd/nand/atmel_nand.c
+> index f8aac0a..51748b4 100644
+> --- a/drivers/mtd/nand/atmel_nand.c
+> +++ b/drivers/mtd/nand/atmel_nand.c
 
-=2D-=20
-balbi
+...
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+> @@ -318,7 +317,7 @@ static int nfc_set_sram_bank(struct atmel_nand_host *host, unsigned int bank)
+>  
+>  	if (bank) {
+>  		/* Only for a 2k-page or lower flash, NFC can handle 2 banks */
+> -		if (host->mtd.writesize > 2048)
+> +		if (nand_to_mtd(&host->nand_chip)->writesize > 2048)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+(This isn't the worst one, but it just happens to be one of the first.)
+There are many cases where the typical style would be to declare a new
+variable at the top of the function, where you perform the
+macro/function-call to convert from one abstraction to another. Like
 
-iQIcBAEBAgAGBQJWSkcTAAoJEIaOsuA1yqREf/QP/0eaQRCWWGjVCGc038ofM6NR
-UcdkPAj0bOLyKhEwyHap/R1Asxoz2b6a13fujBpqRQ5EakUt11D6o1aTluU4wEaM
-yiiN57Re2h3RRB8+TRQ1pFQ/+/WSR6Ehe38Fa5cT17FfRtPkQNM5QpnkRjRXIO4L
-OYBdS9gNRvNU0y07ec9IarH0U0/mNtmJXs21gAnCRd2WtjcOD6oA0TpXSfWTHGln
-712RKMKJ2ntJZgI0w98Oq3EXOzm+NlzKE4MJHEVDlfuMKfxnZdNGYG9ZacpK5gNR
-U0YowE0GRgcOmvduHZRjhrimJmo/xpsuSQuBD6TJqqmNbHw7Z3jmUkOMdOsRAPYV
-oTEu7K2jyW47zSrNfa/FAmgSziER6uTqRURJkTMGkSMAIbgGRH1Rw4X/qzlCrGii
-iW+OcAOGC/+DDtTiXVg8qfINk5vIoD6CPN3t9k0vWm11qUaQFIMvs7t21DfIY69r
-iyitcC23lE2YEUZXigF7+9F9dwpnVnXISP9eKpSv8WXISPXXHqDmcOdm37NHFkXm
-178hiNY6GTj0sKil6zyQgG6iNlZktmGR6EUGTw4NrAf2Ol0KE0bm1LbzmYCzKL9f
-nWwBKRA6WazrB/ACeaM4jke1G7C7hhkIJUtyattJiA/G4DJpAv2LrU5b0MONTdTO
-1uK60m+U4NRrS/KlbOz8
-=6aHe
------END PGP SIGNATURE-----
---=-=-=--
+static int nfc_set_sram_bank(struct atmel_nand_host *host, unsigned int bank)
+{
+	struct mtd_info *mtd = nand_to_mtd(&hot->nand_chip);
+	...
 
+and then use it later. Can that be done very easily?
 
---===============4313149615516855995==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>  			return -EINVAL;
+>  		nfc_writel(host->nfc->hsmc_regs, BANK, ATMEL_HSMC_NFC_BANK1);
+>  	} else {
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+...
 
---===============4313149615516855995==--
+> diff --git a/drivers/mtd/nand/au1550nd.c b/drivers/mtd/nand/au1550nd.c
+> index 73fceb8..7e2a376 100644
+> --- a/drivers/mtd/nand/au1550nd.c
+> +++ b/drivers/mtd/nand/au1550nd.c
+> @@ -23,7 +23,6 @@
+>  
+>  
+>  struct au1550nd_ctx {
+> -	struct mtd_info info;
+>  	struct nand_chip chip;
+>  
+>  	int cs;
+> @@ -197,7 +196,8 @@ static void au_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
+>  
+>  static void au1550_hwcontrol(struct mtd_info *mtd, int cmd)
+>  {
+> -	struct au1550nd_ctx *ctx = container_of(mtd, struct au1550nd_ctx, info);
+> +	struct au1550nd_ctx *ctx = container_of(mtd_to_nand(mtd),
+> +						struct au1550nd_ctx, chip);
+>  	struct nand_chip *this = mtd_to_nand(mtd);
+
+This is another good example. It's a little awkward to do this at all
+(function call within a macro):
+
+	container_of(mtd_to_nand(mtd), ...);
+
+but that's not unforgiveable. It's a bit worse, though, when followed by
+assigning the next field to the same thing:
+
+	 struct nand_chip *this = mtd_to_nand(mtd);
+
+i.e., this would be nicer to see as:
+
+	struct nand_chip *this = mtd_to_nand(mtd);
+	struct au1550nd_ctx *ctx = container_of(this,
+						struct au1550nd_ctx, chip);
+
+Again, I'm not sure how best to automate this kind of transformation.
+
+>  
+>  	switch (cmd) {
+> @@ -267,7 +267,8 @@ static void au1550_select_chip(struct mtd_info *mtd, int chip)
+>   */
+>  static void au1550_command(struct mtd_info *mtd, unsigned command, int column, int page_addr)
+>  {
+> -	struct au1550nd_ctx *ctx = container_of(mtd, struct au1550nd_ctx, info);
+> +	struct au1550nd_ctx *ctx = container_of(mtd_to_nand(mtd),
+> +						struct au1550nd_ctx, chip);
+>  	struct nand_chip *this = mtd_to_nand(mtd);
+
+Same here.
+
+>  	int ce_override = 0, i;
+>  	unsigned long flags = 0;
+
+Snipped the rest, since it's pretty similar comments that apply.
+
+Brian
