@@ -1,69 +1,45 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v3 1/5] spi: introduce mmap read support for spi flash
- devices
-Date: Tue, 17 Nov 2015 09:48:56 -0800
-Message-ID: <20151117174856.GB8456@google.com>
-References: <1447133399-25658-1-git-send-email-vigneshr@ti.com>
- <1447133399-25658-2-git-send-email-vigneshr@ti.com>
- <20151110232341.GU12143@google.com>
- <5642E546.3040806@ti.com>
- <20151111072041.GA13174@localhost>
- <56460A4D.30303@atmel.com>
- <564AC9FD.6090909@ti.com>
+From: Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: use const and __initconst for smp_operations
+ (with refactoring hisi)
+Date: Tue, 17 Nov 2015 09:57:20 -0800
+Message-ID: <20151117175720.GI23979@verge.net.au>
+References: <1447551593-22246-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <564AC9FD.6090909@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Cyrille Pitchen <cyrille.pitchen@atmel.com>, Marek Vasut <marex@denx.de>, Michal Suchanek <hramrach@gmail.com>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1447551593-22246-1-git-send-email-yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Emilio =?utf-8?B?TMOzcGV6?= <emilio-0Z03zUJReD5OxF6Tv1QG9Q@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Wei Xu <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Maxime Ripard <maxime.ri>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tue, Nov 17, 2015 at 12:02:29PM +0530, Vignesh R wrote:
-> On 11/13/2015 09:35 PM, Cyrille Pitchen wrote:
-> > 
-> > In September I've sent a series of patches to enhance the support of QSPI flash
-> > memories. Patch 4 was dedicated to the m25p80 driver and set the
-> > rx_nbits / tx_nbits fields of spi_transfer struct(s) in order to configure the
-> > number of I/O lines independently for the opcode, address and data parts.
-> > The work was done for m25p80_read() but also for _read_reg(), _write_reg() and
-> > _write().
-> > The patched m25p80 driver was then tested with an at25 memory to check non-
-> > regression.
-> > 
-> > This series of patches also added 4 enum spi_protocol fields inside struct
-> > spi_nor so the spi-nor framework can tell the (Q)SPI controller driver what SPI
-> > protocol should be use for erase, read, write and register read/write
-> > operations, depending on the memory manufacturer and the command opcode.
-> > This was done to better support Micron, Spansion and Macronix QSPI memories.
-> > 
-> > I have tested the series with Micron QSPI memories and Atmel QSPI controller
-> > and I guess Marek also tested it on his side with Spansion QSPI memories and
-> > another QSPI controller.
-> > 
-> > So if it can help other developers to develop QSPI controller drivers, the
-> > series is still available there:
-> > 
-> > for the whole series:
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/371170.html
-> > 
-> > for patch 4 (depends on patch 2 for enum spi_protocol):
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/371173.html
-> > 
+On Sun, Nov 15, 2015 at 10:39:51AM +0900, Masahiro Yamada wrote:
 > 
-> Should I rebase my next version on top of above patches by Cyrille or
-> shall I post on top of 4.4-rc1?
+> 1/2: minor refactoring for mach-hisi
+> 2/2: use const ... __initconst for smp_operations
+> 
+> I hope 2/2 will be reviewed by sub-arch maintainers.
+> Please issue Acked-by if it is OK.
+> 
+> I hope this series will be applied to ARM-SOC.
 
-I'm sorry to say I really haven't had the time to review that properly.
-I'm also not sure it is a true dependency for your series, as you're
-tackling different pieces of the puzzle. So it's mostly just a conflict,
-not a real direct help.
+My suggestion is to split this patch up. In its current form
+it seems bound to cause some merge conflicts at some point.
+If you were to submit the mach-shmobile portion as a separate patch
+I would be happy to queue it up.
 
-So unless I'm misunderstanding, I'd suggest submitting MTD stuff against
-the latest l2-mtd.git (or linux-next.git; l2-mtd.git is included there),
-and I'll let you know if conflicts come up that need fixing.
+That aside, I don't have any objections to the mach-shmobile code changes.
+So if you wish to proceed with a large patch then for the mach-shmobile
+portion:
 
-Brian
+Acked-by: Simon Horman <horms+renesas-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>
