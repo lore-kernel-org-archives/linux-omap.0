@@ -1,7 +1,7 @@
-From: Delio Brignoli <dbrignoli@audioscience.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
 Subject: Re: Minimal support for dm814x
-Date: Wed, 18 Nov 2015 09:26:49 +0100
-Message-ID: <D5E377BD-5AAE-4302-B2C3-2B17A00892B5@audioscience.com>
+Date: Wed, 18 Nov 2015 11:01:56 +0100
+Message-ID: <CAALWOA8bEeLtO-QmyiS9H-z2-pToc-HY3HPuTEsmvZ2BSWf75Q@mail.gmail.com>
 References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
  <20151109150602.GR3199@atomide.com>
  <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
@@ -13,11 +13,12 @@ References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
  <CAALWOA-29pK=GbNKhdY=4oJzhnueVxNAPruu9Uacqi5vMJN=OA@mail.gmail.com>
  <20151113145216.GC2517@atomide.com>
  <CAALWOA-PjKW9M3qqxum4OqJ3V3AwKaaEDzA17jdZmgUNNE79Wg@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+ <D5E377BD-5AAE-4302-B2C3-2B17A00892B5@audioscience.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAALWOA-PjKW9M3qqxum4OqJ3V3AwKaaEDzA17jdZmgUNNE79Wg@mail.gmail.com>
+In-Reply-To: <D5E377BD-5AAE-4302-B2C3-2B17A00892B5@audioscience.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -27,26 +28,36 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
+To: Delio Brignoli <dbrignoli@audioscience.com>
 Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 18 Nov 2015, at 06:22, Matthijs van Duin <matthijsvanduin@gmail.com> wro=
-te:
-> The PLL code looks pretty mediocre to me. In particular, they make no
-> effort whatsoever to configure an exact ratio. It seems their
-> algorithm uses whatever pre divider was already programmed,
-
-I believe the implementors assumed the bootloader was setting up the PLL, i=
-ts adjustment may have been an afterthought added in order to support PTP.
-
-> This works in principle, but both minimizing the DCO and (often
-> needlessly) using the fractional multiplier seem like recipes to
-> maximize the clock jitter. Mind you, I don't know how much jitter
-> we=92re talking about here, I don't recall having seen specs about this.
-
-We haven=92t seen any specs either but testing shows that changing DCO mode=
- causes the PLL to lose lock at least temporarily.
-
-=97
-Delio
+T24gMTggTm92ZW1iZXIgMjAxNSBhdCAwOToyNiwgRGVsaW8gQnJpZ25vbGkgPGRicmlnbm9saUBh
+dWRpb3NjaWVuY2UuY29tPiB3cm90ZToKPj4gVGhpcyB3b3JrcyBpbiBwcmluY2lwbGUsIGJ1dCBi
+b3RoIG1pbmltaXppbmcgdGhlIERDTyBhbmQgKG9mdGVuCj4+IG5lZWRsZXNzbHkpIHVzaW5nIHRo
+ZSBmcmFjdGlvbmFsIG11bHRpcGxpZXIgc2VlbSBsaWtlIHJlY2lwZXMgdG8KPj4gbWF4aW1pemUg
+dGhlIGNsb2NrIGppdHRlci4gTWluZCB5b3UsIEkgZG9uJ3Qga25vdyBob3cgbXVjaCBqaXR0ZXIK
+Pj4gd2XigJlyZSB0YWxraW5nIGFib3V0IGhlcmUsIEkgZG9uJ3QgcmVjYWxsIGhhdmluZyBzZWVu
+IHNwZWNzIGFib3V0IHRoaXMuCj4KPiBXZSBoYXZlbuKAmXQgc2VlbiBhbnkgc3BlY3MgZWl0aGVy
+IGJ1dCB0ZXN0aW5nIHNob3dzIHRoYXQgY2hhbmdpbmcgRENPIG1vZGUgY2F1c2VzCj4gdGhlIFBM
+TCB0byBsb3NlIGxvY2sgYXQgbGVhc3QgdGVtcG9yYXJpbHkuCgpMb3NpbmcgbG9jayBvbiByZWNv
+bmZpZ3VyYXRpb24gaXMgZW50aXJlbHkgYSBzZXBhcmF0ZSBtYXR0ZXIgZnJvbQpjbG9jayBqaXR0
+ZXIuIFRoZSBmcmFjdGlvbmFsIG11bHRpcGxpZXIgd29ya3MgYnkgZXNzZW50aWFsbHkgYnkKYWx0
+ZXJuYXRpbmcgYmV0d2VlbiB0aGUgbmVhcmVzdCBpbnRlZ2VyIG11bHRpcGxpZXIgdmFsdWVzLiBU
+aGlzIHdpbGwKYmUgc21vb3RoZWQgb3V0IGJ5IHRoZSBsb29wIGZpbHRlciwgYnV0IGl0J3Mgbm90
+IGdvaW5nIHRvIHZhbmlzaC4KClRvIHB1dCB0aGlzIGluIHBlcnNwZWN0aXZlLCBzb21lIGRvY3Mg
+KEkgY2FuJ3QgaW1tZWRpYXRlbHkgZmluZCB3aGljaApvbmUpIHdhcm5lZCB0aGF0IHdoZW4gdXNp
+bmcgdGhlIGZyYWN0aW9uYWwgbXVsdGlwbGllciBvZiBEUExMUywgaXRzCnZhbHVlIG5lZWRlZCB0
+byBiZSBhdCBsZWFzdCAxMDAgdG8gZW5zdXJlIG1heCAyLjUlIGppdHRlci4gVG8gcHV0IHRoaXMK
+aW4gcGVyc3BlY3RpdmUsIGlmIEkgZ3JhYiB0aGUgZGF0YXNoZWV0IG9mIGFuIGF1ZGlvIERBQyBJ
+IGZpbmQ6CiAgIEFsdGhvdWdoIHRoZSBhcmNoaXRlY3R1cmUgb2YgdGhlIFBDTTQxMDQgaXMgdG9s
+ZXJhbnQgdG8KICAgcGhhc2Ugaml0dGVyIG9uIHRoZSBzeXN0ZW0gY2xvY2ssIGl0IGlzIHJlY29t
+bWVuZGVkIHRoYXQKICAgdGhlIHVzZXIgcHJvdmlkZSBhIGxvdyBqaXR0ZXIgY2xvY2sgKDEwMCBw
+aWNvc2Vjb25kcyBvciBsZXNzKQogICBmb3Igb3B0aW1hbCBwZXJmb3JtYW5jZS4KRm9yIGEgdHlw
+aWNhbCAyNC41NzYgTUh6IGF1ZGlvIHN5c3RlbSBjbG9jayB0aGF0IG1lYW5zIG1heCAwLjI1JQpq
+aXR0ZXIuIFdob29wcyA6UAoKTm93IERQTExMSiB3aWxsIHByZXN1bWFibHkgZG8gYmV0dGVyLCBi
+dXQgd2l0aG91dCBhY3R1YWwgc3BlY3MgdGhlCnNhZmUgb3B0aW9uIGlzIHRvIGF2b2lkIHRoZSBm
+cmFjdGlvbmFsIG11bHRpcGxpZXIgYWx0b2dldGhlci4KCk1hdHRoaWpzCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
+bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
