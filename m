@@ -1,36 +1,88 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-Date: Wed, 18 Nov 2015 15:29:15 +0100
-Message-ID: <6347063.Gd6coh6hX8@wuerfel>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <20150624162401.GP19530@localhost> <564C8966.9080406@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] arm: omap2: Kconfig: select TWD and global timer on
+ AM43xx devices
+Date: Wed, 18 Nov 2015 16:33:37 +0200
+Message-ID: <564C8C41.9080006@ti.com>
+References: <1447351566-2328-1-git-send-email-balbi@ti.com>
+ <5645DC3A.4050504@ti.com> <5645E096.1030600@free.fr>
+ <56461256.5050209@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <564C8966.9080406@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, linux-crypto@vger.kernel.org, linux-spi <linux-spi@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <56461256.5050209@oracle.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: santosh shilimkar <santosh.shilimkar@oracle.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Linux OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Mason <slash.tmp@free.fr>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 18 November 2015 16:21:26 Peter Ujfalusi wrote:
-> 2. non slave channel requests, where only the functionality matters, like
-> memcpy, interleaved, memset, etc.
-> We could have a simple:
-> dma_request_channel(mask);
-> 
-> But looking at the drivers using dmaengine legacy dma_request_channel() API:
-> Some sets DMA_INTERRUPT or DMA_PRIVATE or DMA_SG along with DMA_SLAVE:
-> drivers/misc/carma/carma-fpga.c                 DMA_INTERRUPT|DMA_SLAVE|DMA_SG
-> drivers/misc/carma/carma-fpga-program.c         DMA_MEMCPY|DMA_SLAVE|DMA_SG
-> drivers/media/platform/soc_camera/mx3_camera.c  DMA_SLAVE|DMA_PRIVATE
-> sound/soc/intel/common/sst-firmware.c           DMA_SLAVE|DMA_MEMCPY
-> 
-> as examples.
-> Not sure how valid are these...
+On 11/13/2015 06:39 PM, santosh shilimkar wrote:
+> On 11/13/2015 5:07 AM, Mason wrote:
+>> On 13/11/2015 13:48, Grygorii Strashko wrote:
+>>> On 11/12/2015 08:06 PM, Felipe Balbi wrote:
+>>>> Make sure to tell the kernel that AM437x has
+>>>> TWD and global timers.
+>>>>
+>>>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>>>> ---
+>>>>
+>>>> Hi Tony,
+>>>>
+>>>> now that all dependencies are in place, we can
+>>>> finally enable twd and global_timer for AM437x.
+>>>>
+> Is AM437x SMP SOC ? 
 
-It's usually not much harder to separate out the legacy case from
-the normal dma_request_slave_channel_reason(), so those drivers don't
-really need to use the unified compat API.
+No. But it has ARM TWD and GT
 
-	Arnd
+> Is TWD on AM437x works in low power states ?
+
+No. But TWD, seems, is not a problem here if omap gp timer
+can be used as broadcast device.
+
+> Probably I haven't followed the recent updates, but does
+> the TWD supports C3STOP on UP systems ? The broadcast
+> code was SMP only in past, and TWD use to die in
+> low power state on past OMAP SOCs.
+> 
+> If either of these are still the issue then
+> TWD shouldn't be used.
+> 
+
+Yep. I see the problem with ARM Global timer here if
+CPUIdle is enabled and ARM Global timer is selected as
+clocksource device.
+
+I think, it will be right thing to disable "global_timer"
+and "local_timer" nodes in am437x.dtsi by default - if
+someone would like to use them then those nodes have
+to be enabled explicitly in board file.
+(TWD timer will be enabled on OMAP multi SoC build
+ irrespectively of HAVE_ARM_TWD is selected for am437x or not,
+ because it will be selected for omap4). 
+I've just sent corresponding patch: 
+ http://www.spinics.net/lists/arm-kernel/msg461141.html
+
+Also, probably, it could be reasonable to:
+- make ARM_GLOBAL_TIMER fully selectable option and allow select it from defconfig.
+
+- or - update this patch as below
+-       select ARM_GLOBAL_TIMER
+-       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
++       select ARM_GLOBAL_TIMER if !CPU_IDLE
++       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK if ARM_GLOBAL_TIMER
+
+
+
+Thanks.
+-- 
+regards,
+-grygorii
