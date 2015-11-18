@@ -1,49 +1,87 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce
- dma_request_slave_channel_compat_reason()
-Date: Wed, 18 Nov 2015 21:36:18 +0530
-Message-ID: <20151118160618.GV25173@localhost>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <6358656.jIv3GGCCXu@wuerfel>
- <CAHp75VeZFXp9i_zz7CBkVQVPGQxuzYk9AbWbbbn33r8YX3LCdw@mail.gmail.com>
- <8215351.e99Q2vhQ5T@wuerfel>
+From: santosh shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH] arm: omap2: Kconfig: select TWD and global timer on
+ AM43xx devices
+Date: Wed, 18 Nov 2015 10:01:17 -0800
+Message-ID: <564CBCED.2010906@oracle.com>
+References: <1447351566-2328-1-git-send-email-balbi@ti.com>
+ <5645DC3A.4050504@ti.com> <5645E096.1030600@free.fr>
+ <56461256.5050209@oracle.com> <564C8C41.9080006@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <8215351.e99Q2vhQ5T@wuerfel>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, linux-crypto <linux-crypto@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Dan Williams <dan.j.williams@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <564C8C41.9080006@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Linux OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Mason <slash.tmp@free.fr>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 18, 2015 at 04:51:54PM +0100, Arnd Bergmann wrote:
-> On Wednesday 18 November 2015 17:43:04 Andy Shevchenko wrote:
-> > >
-> > > I assume that the sst-firmware.c case is a mistake, it should just use a
-> > > plain DMA_SLAVE and not DMA_MEMCPY.
-> > 
-> > Other way around.
-> > 
-> 
-> Ok, I see. In that case I guess it also shouldn't call
-> dmaengine_slave_config(), right? I don't think that's valid
-> on a MEMCPY channel.
+On 11/18/2015 6:33 AM, Grygorii Strashko wrote:
+> On 11/13/2015 06:39 PM, santosh shilimkar wrote:
+>> On 11/13/2015 5:07 AM, Mason wrote:
+>>> On 13/11/2015 13:48, Grygorii Strashko wrote:
+>>>> On 11/12/2015 08:06 PM, Felipe Balbi wrote:
+>>>>> Make sure to tell the kernel that AM437x has
+>>>>> TWD and global timers.
+>>>>>
+>>>>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>>>>> ---
+>>>>>
+>>>>> Hi Tony,
+>>>>>
+>>>>> now that all dependencies are in place, we can
+>>>>> finally enable twd and global_timer for AM437x.
+>>>>>
+>> Is AM437x SMP SOC ?
+>
+> No. But it has ARM TWD and GT
+>
+>> Is TWD on AM437x works in low power states ?
+>
+> No. But TWD, seems, is not a problem here if omap gp timer
+> can be used as broadcast device.
+>
+>> Probably I haven't followed the recent updates, but does
+>> the TWD supports C3STOP on UP systems ? The broadcast
+>> code was SMP only in past, and TWD use to die in
+>> low power state on past OMAP SOCs.
+>>
+>> If either of these are still the issue then
+>> TWD shouldn't be used.
+>>
+>
+> Yep. I see the problem with ARM Global timer here if
+> CPUIdle is enabled and ARM Global timer is selected as
+> clocksource device.
+>
+Its expected and well known limitation.
 
-Yes it is not valid. In this case the dma driver should invoke a generic memcpy
-and not need slave parameters, knowing the hw and reason for this (firmware
-download to DSP memory), this doesn't qualify for slave case.
-In fact filter function doesn't need a channel, any channel in this
-controller will be good
-
--- 
-~Vinod
+> I think, it will be right thing to disable "global_timer"
+> and "local_timer" nodes in am437x.dtsi by default - if
+> someone would like to use them then those nodes have
+> to be enabled explicitly in board file.
+> (TWD timer will be enabled on OMAP multi SoC build
+>   irrespectively of HAVE_ARM_TWD is selected for am437x or not,
+>   because it will be selected for omap4).
+> I've just sent corresponding patch:
+>   http://www.spinics.net/lists/arm-kernel/msg461141.html
+>
+> Also, probably, it could be reasonable to:
+> - make ARM_GLOBAL_TIMER fully selectable option and allow select it from defconfig.
+>
+> - or - update this patch as below
+> -       select ARM_GLOBAL_TIMER
+> -       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+> +       select ARM_GLOBAL_TIMER if !CPU_IDLE
+> +       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK if ARM_GLOBAL_TIMER
+>
+>
++1
