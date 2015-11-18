@@ -1,87 +1,47 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] arm: omap2: Kconfig: select TWD and global timer on
- AM43xx devices
-Date: Wed, 18 Nov 2015 10:01:17 -0800
-Message-ID: <564CBCED.2010906@oracle.com>
-References: <1447351566-2328-1-git-send-email-balbi@ti.com>
- <5645DC3A.4050504@ti.com> <5645E096.1030600@free.fr>
- <56461256.5050209@oracle.com> <564C8C41.9080006@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [BISECTED] v4.4-rc1 GPIO regression on OMAP1
+Date: Wed, 18 Nov 2015 20:31:06 +0200
+Message-ID: <20151118183106.GC18138@blackmetal.musicnaut.iki.fi>
+References: <20151117214212.GB18138@blackmetal.musicnaut.iki.fi>
+ <564C75FE.5000303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <564C8C41.9080006@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>, Linux OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Mason <slash.tmp@free.fr>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <564C75FE.5000303@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/18/2015 6:33 AM, Grygorii Strashko wrote:
-> On 11/13/2015 06:39 PM, santosh shilimkar wrote:
->> On 11/13/2015 5:07 AM, Mason wrote:
->>> On 13/11/2015 13:48, Grygorii Strashko wrote:
->>>> On 11/12/2015 08:06 PM, Felipe Balbi wrote:
->>>>> Make sure to tell the kernel that AM437x has
->>>>> TWD and global timers.
->>>>>
->>>>> Signed-off-by: Felipe Balbi <balbi@ti.com>
->>>>> ---
->>>>>
->>>>> Hi Tony,
->>>>>
->>>>> now that all dependencies are in place, we can
->>>>> finally enable twd and global_timer for AM437x.
->>>>>
->> Is AM437x SMP SOC ?
->
-> No. But it has ARM TWD and GT
->
->> Is TWD on AM437x works in low power states ?
->
-> No. But TWD, seems, is not a problem here if omap gp timer
-> can be used as broadcast device.
->
->> Probably I haven't followed the recent updates, but does
->> the TWD supports C3STOP on UP systems ? The broadcast
->> code was SMP only in past, and TWD use to die in
->> low power state on past OMAP SOCs.
->>
->> If either of these are still the issue then
->> TWD shouldn't be used.
->>
->
-> Yep. I see the problem with ARM Global timer here if
-> CPUIdle is enabled and ARM Global timer is selected as
-> clocksource device.
->
-Its expected and well known limitation.
+Hi,
 
-> I think, it will be right thing to disable "global_timer"
-> and "local_timer" nodes in am437x.dtsi by default - if
-> someone would like to use them then those nodes have
-> to be enabled explicitly in board file.
-> (TWD timer will be enabled on OMAP multi SoC build
->   irrespectively of HAVE_ARM_TWD is selected for am437x or not,
->   because it will be selected for omap4).
-> I've just sent corresponding patch:
->   http://www.spinics.net/lists/arm-kernel/msg461141.html
+On Wed, Nov 18, 2015 at 02:58:38PM +0200, Grygorii Strashko wrote:
+> On 11/17/2015 11:42 PM, Aaro Koskinen wrote:
+> >Amstrad E3 computer (OMAP1) boot crashes early with v4.4-rc1. Bisected to:
+> >
+> >	450fa54cfd66e3dda6eda26256637ee8928af12a is the first bad commit
+> >	commit 450fa54cfd66e3dda6eda26256637ee8928af12a
+> >	Author: Grygorii Strashko <grygorii.strashko@ti.com>
+> >	Date:   Fri Sep 25 12:28:03 2015 -0700
+> >	
+> >	    gpio: omap: convert to use generic irq handler
 >
-> Also, probably, it could be reasonable to:
-> - make ARM_GLOBAL_TIMER fully selectable option and allow select it from defconfig.
->
-> - or - update this patch as below
-> -       select ARM_GLOBAL_TIMER
-> -       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
-> +       select ARM_GLOBAL_TIMER if !CPU_IDLE
-> +       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK if ARM_GLOBAL_TIMER
->
->
-+1
+> Could you check pls if below change will solve this issue, pls?
+> 
+> iff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 56d2d02..2905e0d 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1129,7 +1129,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank,
+> struct irq_chip *irqc)
+>         }
+> 
+>         ret = gpiochip_irqchip_add(&bank->chip, irqc,
+> -                                  irq_base, handle_bad_irq,
+> +                                  irq_base, handle_simple_irq,
+>                                    IRQ_TYPE_NONE);
+
+This works!
+
+A.
