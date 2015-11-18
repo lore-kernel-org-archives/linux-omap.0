@@ -1,7 +1,7 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
+From: Delio Brignoli <dbrignoli@audioscience.com>
 Subject: Re: Minimal support for dm814x
-Date: Wed, 18 Nov 2015 11:01:56 +0100
-Message-ID: <CAALWOA8bEeLtO-QmyiS9H-z2-pToc-HY3HPuTEsmvZ2BSWf75Q@mail.gmail.com>
+Date: Wed, 18 Nov 2015 12:09:42 +0100
+Message-ID: <78B56424-A35F-495E-B9AA-1638AC37359D@audioscience.com>
 References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
  <20151109150602.GR3199@atomide.com>
  <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
@@ -14,11 +14,12 @@ References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
  <20151113145216.GC2517@atomide.com>
  <CAALWOA-PjKW9M3qqxum4OqJ3V3AwKaaEDzA17jdZmgUNNE79Wg@mail.gmail.com>
  <D5E377BD-5AAE-4302-B2C3-2B17A00892B5@audioscience.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+ <CAALWOA8bEeLtO-QmyiS9H-z2-pToc-HY3HPuTEsmvZ2BSWf75Q@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <D5E377BD-5AAE-4302-B2C3-2B17A00892B5@audioscience.com>
+In-Reply-To: <CAALWOA8bEeLtO-QmyiS9H-z2-pToc-HY3HPuTEsmvZ2BSWf75Q@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -28,36 +29,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Delio Brignoli <dbrignoli@audioscience.com>
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTggTm92ZW1iZXIgMjAxNSBhdCAwOToyNiwgRGVsaW8gQnJpZ25vbGkgPGRicmlnbm9saUBh
-dWRpb3NjaWVuY2UuY29tPiB3cm90ZToKPj4gVGhpcyB3b3JrcyBpbiBwcmluY2lwbGUsIGJ1dCBi
-b3RoIG1pbmltaXppbmcgdGhlIERDTyBhbmQgKG9mdGVuCj4+IG5lZWRsZXNzbHkpIHVzaW5nIHRo
-ZSBmcmFjdGlvbmFsIG11bHRpcGxpZXIgc2VlbSBsaWtlIHJlY2lwZXMgdG8KPj4gbWF4aW1pemUg
-dGhlIGNsb2NrIGppdHRlci4gTWluZCB5b3UsIEkgZG9uJ3Qga25vdyBob3cgbXVjaCBqaXR0ZXIK
-Pj4gd2XigJlyZSB0YWxraW5nIGFib3V0IGhlcmUsIEkgZG9uJ3QgcmVjYWxsIGhhdmluZyBzZWVu
-IHNwZWNzIGFib3V0IHRoaXMuCj4KPiBXZSBoYXZlbuKAmXQgc2VlbiBhbnkgc3BlY3MgZWl0aGVy
-IGJ1dCB0ZXN0aW5nIHNob3dzIHRoYXQgY2hhbmdpbmcgRENPIG1vZGUgY2F1c2VzCj4gdGhlIFBM
-TCB0byBsb3NlIGxvY2sgYXQgbGVhc3QgdGVtcG9yYXJpbHkuCgpMb3NpbmcgbG9jayBvbiByZWNv
-bmZpZ3VyYXRpb24gaXMgZW50aXJlbHkgYSBzZXBhcmF0ZSBtYXR0ZXIgZnJvbQpjbG9jayBqaXR0
-ZXIuIFRoZSBmcmFjdGlvbmFsIG11bHRpcGxpZXIgd29ya3MgYnkgZXNzZW50aWFsbHkgYnkKYWx0
-ZXJuYXRpbmcgYmV0d2VlbiB0aGUgbmVhcmVzdCBpbnRlZ2VyIG11bHRpcGxpZXIgdmFsdWVzLiBU
-aGlzIHdpbGwKYmUgc21vb3RoZWQgb3V0IGJ5IHRoZSBsb29wIGZpbHRlciwgYnV0IGl0J3Mgbm90
-IGdvaW5nIHRvIHZhbmlzaC4KClRvIHB1dCB0aGlzIGluIHBlcnNwZWN0aXZlLCBzb21lIGRvY3Mg
-KEkgY2FuJ3QgaW1tZWRpYXRlbHkgZmluZCB3aGljaApvbmUpIHdhcm5lZCB0aGF0IHdoZW4gdXNp
-bmcgdGhlIGZyYWN0aW9uYWwgbXVsdGlwbGllciBvZiBEUExMUywgaXRzCnZhbHVlIG5lZWRlZCB0
-byBiZSBhdCBsZWFzdCAxMDAgdG8gZW5zdXJlIG1heCAyLjUlIGppdHRlci4gVG8gcHV0IHRoaXMK
-aW4gcGVyc3BlY3RpdmUsIGlmIEkgZ3JhYiB0aGUgZGF0YXNoZWV0IG9mIGFuIGF1ZGlvIERBQyBJ
-IGZpbmQ6CiAgIEFsdGhvdWdoIHRoZSBhcmNoaXRlY3R1cmUgb2YgdGhlIFBDTTQxMDQgaXMgdG9s
-ZXJhbnQgdG8KICAgcGhhc2Ugaml0dGVyIG9uIHRoZSBzeXN0ZW0gY2xvY2ssIGl0IGlzIHJlY29t
-bWVuZGVkIHRoYXQKICAgdGhlIHVzZXIgcHJvdmlkZSBhIGxvdyBqaXR0ZXIgY2xvY2sgKDEwMCBw
-aWNvc2Vjb25kcyBvciBsZXNzKQogICBmb3Igb3B0aW1hbCBwZXJmb3JtYW5jZS4KRm9yIGEgdHlw
-aWNhbCAyNC41NzYgTUh6IGF1ZGlvIHN5c3RlbSBjbG9jayB0aGF0IG1lYW5zIG1heCAwLjI1JQpq
-aXR0ZXIuIFdob29wcyA6UAoKTm93IERQTExMSiB3aWxsIHByZXN1bWFibHkgZG8gYmV0dGVyLCBi
-dXQgd2l0aG91dCBhY3R1YWwgc3BlY3MgdGhlCnNhZmUgb3B0aW9uIGlzIHRvIGF2b2lkIHRoZSBm
-cmFjdGlvbmFsIG11bHRpcGxpZXIgYWx0b2dldGhlci4KCk1hdHRoaWpzCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
-bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On 18 Nov 2015, at 11:01, Matthijs van Duin <matthijsvanduin@gmail.com> wro=
+te:
+> On 18 November 2015 at 09:26, Delio Brignoli <dbrignoli@audioscience.com>=
+ wrote:
+>>> This works in principle, but both minimizing the DCO and (often
+>>> needlessly) using the fractional multiplier seem like recipes to
+>>> maximize the clock jitter. Mind you, I don't know how much jitter
+>>> we=92re talking about here, I don't recall having seen specs about this.
+>> =
+
+>> We haven=92t seen any specs either but testing shows that changing DCO m=
+ode causes
+>> the PLL to lose lock at least temporarily.
+> =
+
+> Losing lock on reconfiguration is entirely a separate matter from
+> clock jitter.
+
+Sure, I just wanted to report a case in which the implementation you mentio=
+n does something which may be undesirable.
+
+> The fractional multiplier works by essentially by
+> alternating between the nearest integer multiplier values. This will
+> be smoothed out by the loop filter, but it=92s not going to vanish.
+
+[=85]
+
+> Now DPLLLJ will presumably do better, but without actual specs the
+> safe option is to avoid the fractional multiplier altogether.
+
+Still FYI, using adpll_ti814x.c from the linux-omap3 tree from the Arago pr=
+oject (i.e. the one you are talking about) hacked to prefer searching for n=
+eighbouring m2 values to DCO switching works OK for us (i.e. resulting jitt=
+er is low enough for our audio applications).
+
+=97
+Delio
