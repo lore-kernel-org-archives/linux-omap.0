@@ -1,72 +1,42 @@
-From: Delio Brignoli <dbrignoli@audioscience.com>
-Subject: Re: Minimal support for dm814x
-Date: Wed, 18 Nov 2015 12:09:42 +0100
-Message-ID: <78B56424-A35F-495E-B9AA-1638AC37359D@audioscience.com>
-References: <4999BB3D-4BB5-4F7C-96D7-FB687725CDCC@audioscience.com>
- <20151109150602.GR3199@atomide.com>
- <CAALWOA-NUyRYaGbmBZpc6CcFga8_BKPZ9WQTxa3t09bHS_6=qA@mail.gmail.com>
- <7933071D-84FD-4A85-8CD0-CC504CE1D9D1@audioscience.com>
- <20151111174028.GF3218@atomide.com>
- <CAALWOA_dEtajQBLrXesQ2bRCDf-1Dzg_tJw_=yAmaO=T3=KMZQ@mail.gmail.com>
- <20151112174155.GM3218@atomide.com>
- <CAALWOA9o80rhaqwaa6=XxmNN1FcWzHDXiaqkqFVO81CAMX=04w@mail.gmail.com>
- <CAALWOA-29pK=GbNKhdY=4oJzhnueVxNAPruu9Uacqi5vMJN=OA@mail.gmail.com>
- <20151113145216.GC2517@atomide.com>
- <CAALWOA-PjKW9M3qqxum4OqJ3V3AwKaaEDzA17jdZmgUNNE79Wg@mail.gmail.com>
- <D5E377BD-5AAE-4302-B2C3-2B17A00892B5@audioscience.com>
- <CAALWOA8bEeLtO-QmyiS9H-z2-pToc-HY3HPuTEsmvZ2BSWf75Q@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAALWOA8bEeLtO-QmyiS9H-z2-pToc-HY3HPuTEsmvZ2BSWf75Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: use const and __initconst for smp_operations
+Date: Wed, 18 Nov 2015 12:22:43 +0100
+Message-ID: <3065145.pJG8zhbl48@diego>
+References: <1447551593-22246-1-git-send-email-yamada.masahiro@socionext.com>
+ <1447551593-22246-3-git-send-email-yamada.masahiro@socionext.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1447551593-22246-3-git-send-email-yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Emilio =?ISO-8859-1?Q?L=F3pez?= <emilio-0Z03zUJReD5OxF6Tv1QG9Q@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Wei Xu <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Maxime Ripard <maxime.ripard@fr>
 List-Id: linux-omap@vger.kernel.org
 
-On 18 Nov 2015, at 11:01, Matthijs van Duin <matthijsvanduin@gmail.com> wro=
-te:
-> On 18 November 2015 at 09:26, Delio Brignoli <dbrignoli@audioscience.com>=
- wrote:
->>> This works in principle, but both minimizing the DCO and (often
->>> needlessly) using the fractional multiplier seem like recipes to
->>> maximize the clock jitter. Mind you, I don't know how much jitter
->>> we=92re talking about here, I don't recall having seen specs about this.
->> =
+Am Sonntag, 15. November 2015, 10:39:53 schrieb Masahiro Yamada:
+> These smp_operations structures are not over-written, so add "const"
+> qualifier and replace __initdata with __initconst.
+> 
+> Also, add "static" where it is possible.
+> 
+> Signed-off-by: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+> Acked-by: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> Acked-by: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> Acked-by: Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>
+> ---
+> 
 
->> We haven=92t seen any specs either but testing shows that changing DCO m=
-ode causes
->> the PLL to lose lock at least temporarily.
-> =
+>  arch/arm/mach-rockchip/platsmp.c     | 2 +-
 
-> Losing lock on reconfiguration is entirely a separate matter from
-> clock jitter.
+For the Rockchip-part
 
-Sure, I just wanted to report a case in which the implementation you mentio=
-n does something which may be undesirable.
-
-> The fractional multiplier works by essentially by
-> alternating between the nearest integer multiplier values. This will
-> be smoothed out by the loop filter, but it=92s not going to vanish.
-
-[=85]
-
-> Now DPLLLJ will presumably do better, but without actual specs the
-> safe option is to avoid the fractional multiplier altogether.
-
-Still FYI, using adpll_ti814x.c from the linux-omap3 tree from the Arago pr=
-oject (i.e. the one you are talking about) hacked to prefer searching for n=
-eighbouring m2 values to DCO switching works OK for us (i.e. resulting jitt=
-er is low enough for our audio applications).
-
-=97
-Delio
+Acked-by: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
