@@ -1,88 +1,40 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH v2] hw_random: omap3-rom-rng: convert timer to delayed work
-Date: Wed, 18 Nov 2015 21:59:01 +0200
-Message-ID: <1447876741-24114-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH] clk: gpio: Get parent clk names already in
+ of_gpio_clk_setup()
+Date: Wed, 18 Nov 2015 14:19:03 -0800
+Message-ID: <20151118221903.GF32672@codeaurora.org>
+References: <201511170911.tAH9B0CF031498@arroyo.ext.ti.com>
+ <1447754204-24088-1-git-send-email-jsarha@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1447754204-24088-1-git-send-email-jsarha@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@baylibre.com>, tomi.valkeinen@ti.com, Sergej Sawazki <ce3a@gmx.de>
 List-Id: linux-omap@vger.kernel.org
 
-We cannot put the HW RNG to idle using a timer because we cannot disable
-clocks from atomic context. Use a delayed work instead.
+On 11/17, Jyri Sarha wrote:
+> Get parent clk names already in of_gpio_clk_setup() and store the
+> names in struct clk_gpio_delayed_register_data. of_clk_get_parent_name()
+> can not be called in struct of_clk_provider's get() callback since it
+> may make a recursive call to of_clk_get_from_provider() and this in turn
+> tries to recursively lock of_clk_mutex.
+> 
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> Cc: Sergej Sawazki <ce3a@gmx.de>
+> ---
+> Something has changed in Linux mainline so that getting the clk
+> parent names in struct of_clk_provider's get() callback does not work
+> anymore. This patch should fix the problem.
 
-Fixes a warning with CONFIG_DEBUG_MUTEXES on Nokia N900 during boot.
+Something would be commit 0a4807c2f9a4 (clk: Make
+of_clk_get_parent_name() robust with #clock-cells = 1, 2015-10-14)?
 
-Reported-by: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
+The patch looks good. Given that there's one user of this code in
+mainline I'll push this as a fix for v4.4.
 
-	v2: Include workqueue.h instead of timer.h.
-
- drivers/char/hw_random/omap3-rom-rng.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/char/hw_random/omap3-rom-rng.c b/drivers/char/hw_random/omap3-rom-rng.c
-index a405cdc..8da14f1 100644
---- a/drivers/char/hw_random/omap3-rom-rng.c
-+++ b/drivers/char/hw_random/omap3-rom-rng.c
-@@ -17,7 +17,7 @@
- #include <linux/init.h>
- #include <linux/random.h>
- #include <linux/hw_random.h>
--#include <linux/timer.h>
-+#include <linux/workqueue.h>
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/platform_device.h>
-@@ -29,11 +29,11 @@
- /* param1: ptr, param2: count, param3: flag */
- static u32 (*omap3_rom_rng_call)(u32, u32, u32);
- 
--static struct timer_list idle_timer;
-+static struct delayed_work idle_work;
- static int rng_idle;
- static struct clk *rng_clk;
- 
--static void omap3_rom_rng_idle(unsigned long data)
-+static void omap3_rom_rng_idle(struct work_struct *work)
- {
- 	int r;
- 
-@@ -51,7 +51,7 @@ static int omap3_rom_rng_get_random(void *buf, unsigned int count)
- 	u32 r;
- 	u32 ptr;
- 
--	del_timer_sync(&idle_timer);
-+	cancel_delayed_work_sync(&idle_work);
- 	if (rng_idle) {
- 		clk_prepare_enable(rng_clk);
- 		r = omap3_rom_rng_call(0, 0, RNG_GEN_PRNG_HW_INIT);
-@@ -65,7 +65,7 @@ static int omap3_rom_rng_get_random(void *buf, unsigned int count)
- 
- 	ptr = virt_to_phys(buf);
- 	r = omap3_rom_rng_call(ptr, count, RNG_GEN_HW);
--	mod_timer(&idle_timer, jiffies + msecs_to_jiffies(500));
-+	schedule_delayed_work(&idle_work, msecs_to_jiffies(500));
- 	if (r != 0)
- 		return -EINVAL;
- 	return 0;
-@@ -102,7 +102,7 @@ static int omap3_rom_rng_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	setup_timer(&idle_timer, omap3_rom_rng_idle, 0);
-+	INIT_DELAYED_WORK(&idle_work, omap3_rom_rng_idle);
- 	rng_clk = devm_clk_get(&pdev->dev, "ick");
- 	if (IS_ERR(rng_clk)) {
- 		pr_err("unable to get RNG clock\n");
-@@ -118,6 +118,7 @@ static int omap3_rom_rng_probe(struct platform_device *pdev)
- 
- static int omap3_rom_rng_remove(struct platform_device *pdev)
- {
-+	cancel_delayed_work_sync(&idle_work);
- 	hwrng_unregister(&omap3_rom_rng_ops);
- 	clk_disable_unprepare(rng_clk);
- 	return 0;
 -- 
-2.4.0
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
