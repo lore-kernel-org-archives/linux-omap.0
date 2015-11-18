@@ -1,88 +1,67 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] arm: omap2: Kconfig: select TWD and global timer on
- AM43xx devices
-Date: Wed, 18 Nov 2015 16:33:37 +0200
-Message-ID: <564C8C41.9080006@ti.com>
-References: <1447351566-2328-1-git-send-email-balbi@ti.com>
- <5645DC3A.4050504@ti.com> <5645E096.1030600@free.fr>
- <56461256.5050209@oracle.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce
+ dma_request_slave_channel_compat_reason()
+Date: Wed, 18 Nov 2015 16:41:35 +0200
+Message-ID: <564C8E1F.8010501@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <20150624162401.GP19530@localhost> <564C8966.9080406@ti.com>
+ <6347063.Gd6coh6hX8@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <56461256.5050209@oracle.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: santosh shilimkar <santosh.shilimkar@oracle.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>, Linux OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Mason <slash.tmp@free.fr>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6347063.Gd6coh6hX8@wuerfel>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ALSA Development Mailing List <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/13/2015 06:39 PM, santosh shilimkar wrote:
-> On 11/13/2015 5:07 AM, Mason wrote:
->> On 13/11/2015 13:48, Grygorii Strashko wrote:
->>> On 11/12/2015 08:06 PM, Felipe Balbi wrote:
->>>> Make sure to tell the kernel that AM437x has
->>>> TWD and global timers.
->>>>
->>>> Signed-off-by: Felipe Balbi <balbi@ti.com>
->>>> ---
->>>>
->>>> Hi Tony,
->>>>
->>>> now that all dependencies are in place, we can
->>>> finally enable twd and global_timer for AM437x.
->>>>
-> Is AM437x SMP SOC ? 
+On 11/18/2015 04:29 PM, Arnd Bergmann wrote:
+> On Wednesday 18 November 2015 16:21:26 Peter Ujfalusi wrote:
+>> 2. non slave channel requests, where only the functionality matters,=
+ like
+>> memcpy, interleaved, memset, etc.
+>> We could have a simple:
+>> dma_request_channel(mask);
+>>
+>> But looking at the drivers using dmaengine legacy dma_request_channe=
+l() API:
+>> Some sets DMA_INTERRUPT or DMA_PRIVATE or DMA_SG along with DMA_SLAV=
+E:
+>> drivers/misc/carma/carma-fpga.c                 DMA_INTERRUPT|DMA_SL=
+AVE|DMA_SG
+>> drivers/misc/carma/carma-fpga-program.c         DMA_MEMCPY|DMA_SLAVE=
+|DMA_SG
+>> drivers/media/platform/soc_camera/mx3_camera.c  DMA_SLAVE|DMA_PRIVAT=
+E
+>> sound/soc/intel/common/sst-firmware.c           DMA_SLAVE|DMA_MEMCPY
+>>
+>> as examples.
+>> Not sure how valid are these...
+>=20
+> It's usually not much harder to separate out the legacy case from
+> the normal dma_request_slave_channel_reason(), so those drivers don't
+> really need to use the unified compat API.
 
-No. But it has ARM TWD and GT
+The current dma_request_slave_channel()/_reason() is not the 'legacy' A=
+PI.
+Currently there is no way to get the reason why the dma channel request=
+ fails
+when using the _compat() version of the API, which is used by drivers w=
+hich
+can be used in DT or in legacy mode as well. Sure, they all could have =
+local
+if(){}else{} for handling this, but it is not a nice thing.
 
-> Is TWD on AM437x works in low power states ?
+As it was discussed instead of adding the _reason() version for the _co=
+mpat
+call, we should simplify the dmaengine API for getting the channel and =
+at the
+same time we will have ERR_PTR returned instead of NULL.
 
-No. But TWD, seems, is not a problem here if omap gp timer
-can be used as broadcast device.
-
-> Probably I haven't followed the recent updates, but does
-> the TWD supports C3STOP on UP systems ? The broadcast
-> code was SMP only in past, and TWD use to die in
-> low power state on past OMAP SOCs.
-> 
-> If either of these are still the issue then
-> TWD shouldn't be used.
-> 
-
-Yep. I see the problem with ARM Global timer here if
-CPUIdle is enabled and ARM Global timer is selected as
-clocksource device.
-
-I think, it will be right thing to disable "global_timer"
-and "local_timer" nodes in am437x.dtsi by default - if
-someone would like to use them then those nodes have
-to be enabled explicitly in board file.
-(TWD timer will be enabled on OMAP multi SoC build
- irrespectively of HAVE_ARM_TWD is selected for am437x or not,
- because it will be selected for omap4). 
-I've just sent corresponding patch: 
- http://www.spinics.net/lists/arm-kernel/msg461141.html
-
-Also, probably, it could be reasonable to:
-- make ARM_GLOBAL_TIMER fully selectable option and allow select it from defconfig.
-
-- or - update this patch as below
--       select ARM_GLOBAL_TIMER
--       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
-+       select ARM_GLOBAL_TIMER if !CPU_IDLE
-+       select CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK if ARM_GLOBAL_TIMER
-
-
-
-Thanks.
--- 
-regards,
--grygorii
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
