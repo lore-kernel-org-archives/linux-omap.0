@@ -1,30 +1,29 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/2] adding spi alias for qspi
-Date: Thu, 19 Nov 2015 12:31:00 +0530
-Message-ID: <1447916462-1007-1-git-send-email-mugunthanvnm@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH] net: cpsw: Fix ethernet regression for dm814x
+Date: Thu, 19 Nov 2015 12:42:34 +0530
+Message-ID: <564D7662.9020101@ti.com>
+References: <1447896445-6120-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1447896445-6120-1-git-send-email-tony@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Adding missed spi alias for qspi which helps probe the qspi
-device in U-Boot.
+On Thursday 19 November 2015 06:57 AM, Tony Lindgren wrote:
+> Commit b6745f6e4e63 ("drivers: net: cpsw: davinci_emac: move reading mac
+> id to common file") started using of_machine_is_compatible for detecting
+> type but missed at dm8148 causing Ethernet to stop working.
+> 
+> Let's fix the issue by adding handling for dm814x.
+> 
+> Cc: Mugunthan V N <mugunthanvnm@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Mugunthan V N (2):
-  dts: dra7: add spi alias for qspi
-  arm: dts: am4372: add spi alias for qspi
+Acked-by: Mugunthnan V N <mugunthanvnm@ti.com>
 
- arch/arm/boot/dts/am4372.dtsi | 1 +
- arch/arm/boot/dts/dra7.dtsi   | 1 +
- 2 files changed, 2 insertions(+)
-
--- 
-2.6.2.280.g74301d6
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Mugunthan V N
