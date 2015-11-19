@@ -1,40 +1,50 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] clk: gpio: Get parent clk names already in
- of_gpio_clk_setup()
-Date: Wed, 18 Nov 2015 14:19:03 -0800
-Message-ID: <20151118221903.GF32672@codeaurora.org>
-References: <201511170911.tAH9B0CF031498@arroyo.ext.ti.com>
- <1447754204-24088-1-git-send-email-jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/39] pinctrl: Move am4372 and dra7 macros to the the
+ SoC header files
+Date: Wed, 18 Nov 2015 16:23:10 -0800
+Message-ID: <20151119002310.GF2517@atomide.com>
+References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
+ <1447390457-1158-2-git-send-email-javier@osg.samsung.com>
+ <CACRpkdZt2NXD-WzLRcxNuvu9fM6j9GPRjnAungv1jxJvipKYAQ@mail.gmail.com>
+ <564B30B1.4050902@osg.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1447754204-24088-1-git-send-email-jsarha@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@baylibre.com>, tomi.valkeinen@ti.com, Sergej Sawazki <ce3a@gmx.de>
+In-Reply-To: <564B30B1.4050902@osg.samsung.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/17, Jyri Sarha wrote:
-> Get parent clk names already in of_gpio_clk_setup() and store the
-> names in struct clk_gpio_delayed_register_data. of_clk_get_parent_name()
-> can not be called in struct of_clk_provider's get() callback since it
-> may make a recursive call to of_clk_get_from_provider() and this in turn
-> tries to recursively lock of_clk_mutex.
+* Javier Martinez Canillas <javier@osg.samsung.com> [151117 05:51]:
+> Hello Linus,
 > 
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> Cc: Sergej Sawazki <ce3a@gmx.de>
-> ---
-> Something has changed in Linux mainline so that getting the clk
-> parent names in struct of_clk_provider's get() callback does not work
-> anymore. This patch should fix the problem.
+> On 11/17/2015 10:47 AM, Linus Walleij wrote:
+> > On Fri, Nov 13, 2015 at 5:53 AM, Javier Martinez Canillas
+> > <javier@osg.samsung.com> wrote:
+> > 
+> >> The <dt-bindings/pinctrl/omap.h> header file defines a set of macros
+> >> for different SoCs families that falls under the OMAP sub-arch, that
+> >> allow to define the padconf register physical address instead of the
+> >> register offset from the padconf base.
+> >>
+> >> But the am43xx and dra7xx SoCs families have their own pinctrl header
+> >> file so the DTS using these SoCs aren't able to use the AM4372_IOPAD()
+> >> and DRA7XX_CORE_IOPAD() macros since <dt-bindings/pinctrl/omap.h> is
+> >> not included.
+> >>
+> >> Move the macros to the correct header files so can be used by the DTS.
+> >>
+> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > 
+> > I need Tony's ACK on this.
+> >
+> 
+> OK, I believe he was waiting for yours to pick the series though ;)
 
-Something would be commit 0a4807c2f9a4 (clk: Make
-of_clk_get_parent_name() robust with #clock-cells = 1, 2015-10-14)?
+Yeah probably best to keep this series together if you're OK with that.
 
-The patch looks good. Given that there's one user of this code in
-mainline I'll push this as a fix for v4.4.
+Regards,
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Tony
