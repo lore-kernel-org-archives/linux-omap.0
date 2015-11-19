@@ -1,36 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] net: cpsw: Fix ethernet regression for dm814x
-Date: Wed, 18 Nov 2015 17:27:25 -0800
-Message-ID: <1447896445-6120-1-git-send-email-tony@atomide.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/2] arm: dts: am4372: add spi alias for qspi
+Date: Thu, 19 Nov 2015 12:31:02 +0530
+Message-ID: <1447916462-1007-3-git-send-email-mugunthanvnm@ti.com>
+References: <1447916462-1007-1-git-send-email-mugunthanvnm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1447916462-1007-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit b6745f6e4e63 ("drivers: net: cpsw: davinci_emac: move reading mac
-id to common file") started using of_machine_is_compatible for detecting
-type but missed at dm8148 causing Ethernet to stop working.
+Set the alias for qspi to spi0
 
-Let's fix the issue by adding handling for dm814x.
-
-Cc: Mugunthan V N <mugunthanvnm@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 ---
- drivers/net/ethernet/ti/cpsw-common.c | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/am4372.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
---- a/drivers/net/ethernet/ti/cpsw-common.c
-+++ b/drivers/net/ethernet/ti/cpsw-common.c
-@@ -78,6 +78,9 @@ static int cpsw_am33xx_cm_get_macid(struct device *dev, u16 offset, int slave,
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d83ff9c..bb03b80 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -30,6 +30,7 @@
+ 		serial5 = &uart5;
+ 		ethernet0 = &cpsw_emac0;
+ 		ethernet1 = &cpsw_emac1;
++		spi0 = &qspi;
+ 	};
  
- int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr)
- {
-+	if (of_machine_is_compatible("ti,dm8148"))
-+		return cpsw_am33xx_cm_get_macid(dev, 0x630, slave, mac_addr);
-+
- 	if (of_machine_is_compatible("ti,am33xx"))
- 		return cpsw_am33xx_cm_get_macid(dev, 0x630, slave, mac_addr);
- 
+ 	cpus {
 -- 
-2.6.2
+2.6.2.280.g74301d6
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
