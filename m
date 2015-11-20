@@ -1,70 +1,108 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-Date: Fri, 20 Nov 2015 14:48:20 +0100
-Message-ID: <5158930.I1IPZa4jtW@wuerfel>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <6118451.vaLZWOZEF5@wuerfel> <564F1773.9030006@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH v2] clocksource: arm_global_timer: fix suspend resume
+Date: Fri, 20 Nov 2015 15:57:41 +0200
+Message-ID: <1448027861-21472-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <564F1773.9030006-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ALSA Development Mailing List <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 20 November 2015 14:52:03 Peter Ujfalusi wrote:
-> 
-> >> For legacy the filter function is pretty much needed to handle the differences
-> >> between the platforms as not all of them does the filtering in a same way. So
-> >> the first type of map would be feasible IMHO.
-> > 
-> > It certainly makes the transition to a map table much easier.
-> 
-> And the aim anyway is to convert everything to DT, right?
+Now the System stall is observed on TI AM437x based board
+(am437x-gp-evm) during resuming from System suspend when ARM Global
+timer is selected as clocksource device - SysRq are working, but
+nothing else. The reason of stall is that ARM Global timer loses its
+contexts.
 
-We won't be able to do that. Some architectures (avr32 and sh for instance)
-use the dmaengine API but will likely never support DT. On ARM, at
-least sa1100 is in the same category, probably also ep93xx and portions
-of pxa, omap1 and davinci.
+The reason of stall is that ARM Global timer loses its contexts during
+System suspend:
+   GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
+   GT_COUNTERx = 0
 
-> > int dmam_register_platform_map(struct device *dev, dma_filter_fn filter, struct dma_chan_map *map)
-> > {
-> >       struct dma_map_list *list = kmalloc(sizeof(*list), GFP_KERNEL);
-> > 
-> >       if (!list)
-> >               return -ENOMEM;
-> > 
-> >       list->dev = dev;
-> >       list->filter = filter;
-> >       list->map = map;
-> > 
-> >       mutex_lock(&dma_map_mutex);
-> >       list_add(&dma_map_list, &list->node);
-> >       mutex_unlock(&dma_map_mutex);
-> > }
-> > 
-> > Now we can completely remove the dependency on the filter function definition
-> > from platform code and slave drivers.
-> 
-> Sounds feasible for OMAP and daVinci and for others as well. I think 
-> I would go with this if someone asks my opinion 
+Hence, update ARM Global timer driver to reflect above behaviour
+- re-enable ARM Global timer on resume GT_CONTROL.TIMER_ENABLE = 1
+- ensure clocksource and clockevent devices have coresponding flags
+  (CLOCK_SOURCE_SUSPEND_NONSTOP and CLOCK_EVT_FEAT_C3STOP) set
+  depending on presence of "always-on" DT property.
 
-Ok.
+CC: Arnd Bergmann <arnd@arndb.de>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+Changes in v2:
+ - suspend/resume simplified: nothing is stored any more and
+   ARM GT just re-enabled
+Link on v1:
+ https://lkml.org/lkml/2015/11/13/456
 
-> The core change to add the new API + the dma_map support should be pretty
-> straight forward. It can live alongside with the old API and we can phase out
-> the users of the old one.
-> The legacy support would need more time since we need to modify the arch codes
-> and the corresponding DMA drivers to get the map registered, but after that
-> the remaining drivers can be converted to use the new API.
+ drivers/clocksource/arm_global_timer.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Right. It's not urgent and as long as we agree on the overall approach, we can
-always do the platform support first and wait for the following merge window
-before moving over the slave drivers.
-
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
+index a2cb6fa..867e546 100644
+--- a/drivers/clocksource/arm_global_timer.c
++++ b/drivers/clocksource/arm_global_timer.c
+@@ -51,6 +51,7 @@ static void __iomem *gt_base;
+ static unsigned long gt_clk_rate;
+ static int gt_ppi;
+ static struct clock_event_device __percpu *gt_evt;
++static bool gt_always_on;
+ 
+ /*
+  * To get the value from the Global Timer Counter register proceed as follows:
+@@ -168,6 +169,9 @@ static int gt_clockevents_init(struct clock_event_device *clk)
+ {
+ 	int cpu = smp_processor_id();
+ 
++	if (!gt_always_on)
++		clk->features |= CLOCK_EVT_FEAT_C3STOP;
++
+ 	clk->name = "arm_global_timer";
+ 	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
+ 		CLOCK_EVT_FEAT_PERCPU;
+@@ -195,12 +199,19 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
+ 	return gt_counter_read();
+ }
+ 
++static void gt_resume(struct clocksource *cs)
++{
++	/* re-enable timer on resume */
++	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
++}
++
+ static struct clocksource gt_clocksource = {
+ 	.name	= "arm_global_timer",
+ 	.rating	= 300,
+ 	.read	= gt_clocksource_read,
+ 	.mask	= CLOCKSOURCE_MASK(64),
+ 	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
++	.resume = gt_resume,
+ };
+ 
+ #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+@@ -218,6 +229,9 @@ static void __init gt_clocksource_init(void)
+ 	/* enables timer on all the cores */
+ 	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
+ 
++	if (gt_always_on)
++		gt_clocksource.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
++
+ #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+ 	sched_clock_register(gt_sched_clock_read, 64, gt_clk_rate);
+ #endif
+@@ -289,6 +303,8 @@ static void __init global_timer_of_register(struct device_node *np)
+ 		goto out_clk;
+ 	}
+ 
++	gt_always_on = of_property_read_bool(np, "always-on");
++
+ 	err = request_percpu_irq(gt_ppi, gt_clockevent_interrupt,
+ 				 "gt", gt_evt);
+ 	if (err) {
+-- 
+2.6.3
