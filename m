@@ -1,100 +1,112 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: Re: [PATCH v2] clocksource: arm_global_timer: fix suspend resume
-Date: Fri, 20 Nov 2015 11:32:05 -0800
-Message-ID: <CALAqxLVjKaRUYFTXkC2s_ViHTt=bpXyFCYkt9+AW-PSwYnOM8A@mail.gmail.com>
-References: <1448027861-21472-1-git-send-email-grygorii.strashko@ti.com>
-	<564F570C.7030409@oracle.com>
-	<564F67ED.9000905@ti.com>
-	<CALAqxLVLQLaAq7fPwJnyOWP_dXV39Dh+QreecxSVY35wi=N0Og@mail.gmail.com>
-	<564F7447.8000504@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [4.4-rc][PATCH] gpio: omap: drop omap1 mpuio specific
+ irq_mask/unmask callbacks
+Date: Fri, 20 Nov 2015 22:03:28 +0200
+Message-ID: <20151120200328.GI18138@blackmetal.musicnaut.iki.fi>
+References: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <564F7447.8000504@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
 To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: santosh shilimkar <santosh.shilimkar@oracle.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, kernel@stlinux.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, tony@atomide.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 20, 2015 at 11:28 AM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> On 11/20/2015 09:09 PM, John Stultz wrote:
->> On Fri, Nov 20, 2015 at 10:35 AM, Grygorii Strashko
->> <grygorii.strashko@ti.com> wrote:
->>> Hi Santosh,
->>>
->>> On 11/20/2015 07:23 PM, santosh shilimkar wrote:
->>>> + Thomas, Marc
->>>>
->>>> On 11/20/2015 5:57 AM, Grygorii Strashko wrote:
->>>>> Now the System stall is observed on TI AM437x based board
->>>>> (am437x-gp-evm) during resuming from System suspend when ARM Global
->>>>> timer is selected as clocksource device - SysRq are working, but
->>>>> nothing else. The reason of stall is that ARM Global timer loses its
->>>>> contexts.
->>>>>
->>>>> The reason of stall is that ARM Global timer loses its contexts during
->>>>> System suspend:
->>>>>      GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
->>>>>      GT_COUNTERx = 0
->>>>>
->>>>> Hence, update ARM Global timer driver to reflect above behaviour
->>>>> - re-enable ARM Global timer on resume GT_CONTROL.TIMER_ENABLE = 1
->>>>> - ensure clocksource and clockevent devices have coresponding flags
->>>>>     (CLOCK_SOURCE_SUSPEND_NONSTOP and CLOCK_EVT_FEAT_C3STOP) set
->>>>>     depending on presence of "always-on" DT property.
->>>>>
->>>> Something which loses context in low power states can't be
->>>> called "always-on"
->>>
->>> Sry, it's kinda new area for me and I could make mistakes.
->>>
->>> While working on this patch I've:
->>>   - re-used implementation from ARM arch timer
->>> commit 82a5619410d4c4df65c04272db198eca5a867c18
->>> Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>> Date:   Tue Apr 8 10:04:32 2014 +0100
->>>
->>>      clocksource: arch_arm_timer: Fix age-old arch timer C3STOP detection issue
->>>
->>>
->>> - and followed timekeeping.txt:
->>> "Typically the clock source is a monotonic, atomic counter which will provide
->>>   n bits which count from 0 to 2^(n-1) and then wraps around to 0 and start over.
->>> It will ideally NEVER stop ticking as long as the system is running. It
->>> may stop during system suspend."
->>> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>>
->>> And that exactly my use-case: I'd like to use ARM GT as clocksource
->>> and with CPUIdle = n. But System suspend has to be allowed.
->>>
->>>
->>>>
->>>> Also if the clock-soucre can't tick in the low power states
->>>> then that device shouldn't be used as a clock-source.
->>>
->>> Agree. clocksource can't (except with suspend). Have I missed something?
->>
->> I think the point Stantosh is making is that if the clocksource stops
->> in suspend (which is allowed) you should not be setting
->> CLOCK_SOURCE_SUSPEND_NONSTOP (which promises the clocksource doesn't
->> stop in suspend, so it can be used for suspend timing as well).
->>
->
-> Ok. Thanks. I got it now. Adding CLOCK_SOURCE_SUSPEND_NONSTOP is mistake.
->
->> The contradictory part in your patch is that you're also setting the
->> clockevent logic as  CLOCK_EVT_FEAT_C3STOP, which flags that the
->> clockevent hardware might stop in low-power idle states (ie: not
->> suspend, but while the system is running).  Usually hardware that
->> halts in low-power mode (like the apic on some x86 machines) is not
->> also used for timekeeping (instead we use the hpet/acpi there).
->
-> Sry, I've set CLOCK_EVT_FEAT_C3STOP if "always-on" = *false*
+Hi,
 
-You might also consider renaming that value from always_on to
-something more descriptive, given the subtlety of the different states
-here. Maybe instead use a flag called halts_in_idle or something?
+On Fri, Nov 20, 2015 at 03:35:14PM +0200, Grygorii Strashko wrote:
+> Originally OMAP MPUIO GPIO irqchip was implemented using Generic irq
+> chip, but after set of reworks Generic irq chip code was replaced by
+> common OMAP GPIO implementation and finally removed by
+> commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
+> Unfortunately, above commit left .irq_mask/unmask callbacks assigned
+> as below for MPUIO GPIO case:
+> 	irqc->irq_mask = irq_gc_mask_set_bit;
+> 	irqc->irq_unmask = irq_gc_mask_clr_bit;
+> 
+> This now causes boot failure on OMAP1 platforms, after
+> commit 450fa54cfd66 ("gpio: omap: convert to use generic irq handler")
+> which forces these callbacks to be called during GPIO IRQs mapping
+> from gpiochip_irq_map:
+> 
+> Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> pgd = c0004000
+> [00000000] *pgd=00000000
+> Internal error: Oops: 75 [#1] ARM
+> Modules linked in:
+> CPU: 0 PID: 1 Comm: swapper Not tainted 4.4.0-rc1-e3-los_afe0c+-00002-g25379c0-dirty #1
+> Hardware name: Amstrad E3 (Delta)
+> task: c1836000 ti: c1838000 task.ti: c1838000
+> PC is at irq_gc_mask_set_bit+0x1c/0x60
+> LR is at __irq_do_set_handler+0x118/0x15c
+> pc : [<c004848c>]    lr : [<c0047d4c>]    psr: 600000d3
+> sp : c1839c90  ip : c1862c64  fp : c1839c9c
+> r10: 00000000  r9 : c0411950  r8 : c0411bbc
+> r7 : 00000000  r6 : c185c310  r5 : c00444e8  r4 : c185c300
+> r3 : c1854b50  r2 : 00000000  r1 : 00000000  r0 : c185c310
+> Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 0000317f  Table: 10004000  DAC: 00000057
+> Process swapper (pid: 1, stack limit = 0xc1838190)
+> Stack: (0xc1839c90 to 0xc183a000)
+> 
+> [...]
+> 
+> Backtrace:
+> [<c0048470>] (irq_gc_mask_set_bit) from [<c0047d4c>] (__irq_do_set_handler+0x118/0x15c)
+> [<c0047c34>] (__irq_do_set_handler) from [<c0047dd4>] (__irq_set_handler+0x44/0x5c)
+>  r6:00000000 r5:c00444e8 r4:c185c300
+> [<c0047d90>] (__irq_set_handler) from [<c0047e1c>] (irq_set_chip_and_handler_name+0x30/0x34)
+>  r7:00000050 r6:00000000 r5:c00444e8 r4:00000050
+> [<c0047dec>] (irq_set_chip_and_handler_name) from [<c01b345c>] (gpiochip_irq_map+0x3c/0x8c)
+>  r7:00000050 r6:00000000 r5:00000050 r4:c1862c64
+> [<c01b3420>] (gpiochip_irq_map) from [<c0049670>] (irq_domain_associate+0x7c/0x1c4)
+>  r5:c185c310 r4:c185cb00
+> [<c00495f4>] (irq_domain_associate) from [<c0049894>] (irq_domain_add_simple+0x98/0xc0)
+>  r8:c0411bbc r7:c185cb00 r6:00000050 r5:00000010 r4:00000001
+> [<c00497fc>] (irq_domain_add_simple) from [<c01b3328>] (_gpiochip_irqchip_add+0x64/0x10c)
+>  r7:c1862c64 r6:c0419280 r5:c1862c64 r4:c1854b50
+> [<c01b32c4>] (_gpiochip_irqchip_add) from [<c01b79f4>] (omap_gpio_probe+0x2fc/0x63c)
+>  r5:c1854b50 r4:c1862c10
+> [<c01b76f8>] (omap_gpio_probe) from [<c01fcf58>] (platform_drv_probe+0x2c/0x64)
+>  r10:00000000 r9:c03e45e8 r8:00000000 r7:c0419294 r6:c0411984 r5:c0419294
+>  r4:c0411950
+> [<c01fcf2c>] (platform_drv_probe) from [<c01fb668>] (really_probe+0x160/0x29c)
+> 
+> Hence, fix it by remove obsolete callbacks assignment. After this
+> change 	omap_gpio_mask_irq()/omap_gpio_unmask_irq() will be used
+> for MPUIO IRQs masking, but this now happens anyway from
+> omap_gpio_irq_startup/shutdown().
+> 
+> Cc: Tony Lindgren <tony@atomide.com>
+> Fixes: commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts")
+> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-thanks
--john
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+> ---
+>  drivers/gpio/gpio-omap.c | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 56d2d02..f7fbb46 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1122,8 +1122,6 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+>  	/* MPUIO is a bit different, reading IRQ status clears it */
+>  	if (bank->is_mpuio) {
+>  		irqc->irq_ack = dummy_irq_chip.irq_ack;
+> -		irqc->irq_mask = irq_gc_mask_set_bit;
+> -		irqc->irq_unmask = irq_gc_mask_clr_bit;
+>  		if (!bank->regs->wkup_en)
+>  			irqc->irq_set_wake = NULL;
+>  	}
+> -- 
+> 2.6.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
