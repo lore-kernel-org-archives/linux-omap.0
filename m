@@ -1,86 +1,28 @@
-From: Chanwoo Choi <cwchoi00@gmail.com>
-Subject: Re: [PATCH] extcon: palmas: add support for using VBUSDET output
-Date: Sat, 21 Nov 2015 00:05:06 +0900
-Message-ID: <CAGTfZH1LStzFc8O==n8trw232=nqyEmPhrXyE4bgM88oApPsWQ@mail.gmail.com>
-References: <1447350781-20649-1-git-send-email-balbi@ti.com>
- <1447351034-21150-1-git-send-email-balbi@ti.com>
- <564EB0A6.4060407@samsung.com> <564EB332.5090406@samsung.com>
- <87io4wenz5.fsf@saruman.tx.rr.com>
-Reply-To: cw00.choi@samsung.com
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: cpsw: Fix ethernet regression for dm814x
+Date: Fri, 20 Nov 2015 10:47:11 -0500 (EST)
+Message-ID: <20151120.104711.524014130095052102.davem@davemloft.net>
+References: <1447896445-6120-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87io4wenz5.fsf@saruman.tx.rr.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1447896445-6120-1-git-send-email-tony@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-SGkgRmVsaXBlLAoKT24gRnJpLCBOb3YgMjAsIDIwMTUgYXQgMTE6MzcgUE0sIEZlbGlwZSBCYWxi
-aSA8YmFsYmlAdGkuY29tPiB3cm90ZToKPgo+IEhpIENoYW53b28sCj4KPiBDaGFud29vIENob2kg
-PGN3MDAuY2hvaUBzYW1zdW5nLmNvbT4gd3JpdGVzOgo+PiBIaSBGZWxpcGUsCj4+Cj4+IE9uIDIw
-MTXrhYQgMTHsm5QgMjDsnbwgMTQ6MzMsIENoYW53b28gQ2hvaSB3cm90ZToKPj4+IEhpIEZlbGlw
-ZSwKPj4+Cj4+PiBMb29rcyBnb29kIHRvIG1lLiBCdXQgSSBoYXZlIG9uZSBjb21tZW50Lgo+Pj4K
-Pj4+IE9uIDIwMTXrhYQgMTHsm5QgMTPsnbwgMDI6NTcsIEZlbGlwZSBCYWxiaSB3cm90ZToKPj4+
-PiBUUFM2NTkwMzggY2FuIHJlbXV4IGl0cyBHUElPXzEgYXMgVkJVU0RFVCBvdXRwdXQsCj4+Pj4g
-d2hpY2ggY2FuIGJlIHRpZWQgdG8gYSBTb0MgR1BJTyBhbmQgdXNlZCBhcyBhIFZCVVMKPj4+PiBp
-bnRlcnJ1cHQuCj4+Pj4KPj4+PiBCZWFnbGUgWDE1IHVzZXMgdGhhdCwgaW4gZmFjdCwgYW5kIHdp
-dGhvdXQgaXQsIEkKPj4+PiBjb3VsZCBub3QgZ2V0IFVTQiBwZXJpcGhlcmFsIHdvcmtpbmcgd2l0
-aCB0aGF0Cj4+Pj4gYm9hcmQuCj4+Pj4KPj4+PiBTaWduZWQtb2ZmLWJ5OiBGZWxpcGUgQmFsYmkg
-PGJhbGJpQHRpLmNvbT4KPj4+PiAtLS0KPj4+PiAgZHJpdmVycy9leHRjb24vZXh0Y29uLXBhbG1h
-cy5jIHwgMjIgKysrKysrKysrKysrKysrKysrKystLQo+Pj4+ICAxIGZpbGUgY2hhbmdlZCwgMjAg
-aW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKPj4+Pgo+Pj4+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL2V4dGNvbi9leHRjb24tcGFsbWFzLmMgYi9kcml2ZXJzL2V4dGNvbi9leHRjb24tcGFsbWFz
-LmMKPj4+PiBpbmRleCA5M2MzMGE4ODU3NDAuLjc5ODVkMDkyYzA2OSAxMDA2NDQKPj4+PiAtLS0g
-YS9kcml2ZXJzL2V4dGNvbi9leHRjb24tcGFsbWFzLmMKPj4+PiArKysgYi9kcml2ZXJzL2V4dGNv
-bi9leHRjb24tcGFsbWFzLmMKPj4+PiBAQCAtMjk2LDEwICsyOTYsMjggQEAgc3RhdGljIGludCBw
-YWxtYXNfdXNiX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4+Pj4gICAgIH0K
-Pj4+Pgo+Pj4+ICAgICBpZiAocGFsbWFzX3VzYi0+ZW5hYmxlX3ZidXNfZGV0ZWN0aW9uKSB7Cj4+
-Pj4gKyAgICAgICAgICAgaW50IGlycSA9IHBsYXRmb3JtX2dldF9pcnEocGRldiwgMCk7Cj4+Pj4g
-Kwo+Pj4+ICsgICAgICAgICAgIGlmIChpcnEgPiAwKSB7Cj4+Pj4gKyAgICAgICAgICAgICAgICAg
-ICAvKiByZW11eCBHUElPXzEgYXMgVkJVU0RFVCAqLwo+Pj4+ICsgICAgICAgICAgICAgICAgICAg
-c3RhdHVzID0gcGFsbWFzX3VwZGF0ZV9iaXRzKHBhbG1hcywgUEFMTUFTX1BVX1BEX09EX0JBU0Us
-Cj4+Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgUEFMTUFTX1BSSU1BUllf
-U0VDT05EQVJZX1BBRDEsCj4+Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-UEFMTUFTX1BSSU1BUllfU0VDT05EQVJZX1BBRDFfR1BJT18xX01BU0ssCj4+Pj4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgKDEgPDwgMykpOwo+Pj4KPj4+IFBBTE1BU19QUklN
-QVJZX1NFQ09OREFSWV9QQUQxX0dQSU9fMV9TSElGVCBpcyBhcHByb3ByaWF0ZSBpbnN0ZWFkIG9m
-Cj4+PiB1c2luZyAnMycuCj4KPiBnb29kIHBvaW50IDotKQo+Cj4+Pj4gKyAgICAgICAgICAgICAg
-ICAgICBpZiAoc3RhdHVzIDwgMCkgewo+Pj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICBk
-ZXZfZXJyKCZwZGV2LT5kZXYsICJjYW4ndCByZW11eCBHUElPMVxuIik7Cj4+Pj4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHJldHVybiBzdGF0dXM7Cj4+Pj4gKyAgICAgICAgICAgICAgICAg
-ICB9Cj4+Pj4gKwo+Pj4+ICsgICAgICAgICAgICAgICAgICAgcGFsbWFzX3VzYi0+dmJ1c19pcnEg
-PSBpcnE7Cj4+Pj4gKyAgICAgICAgICAgfSBlbHNlIHsKPj4+PiArICAgICAgICAgICAgICAgICAg
-IGlycSA9IHJlZ21hcF9pcnFfZ2V0X3ZpcnEocGFsbWFzLT5pcnFfZGF0YSwKPj4+PiArICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBQQUxNQVNfVkJVU19JUlEpOwo+Pj4+ICsgICAg
-ICAgICAgICAgICAgICAgcGFsbWFzX3VzYi0+dmJ1c19pcnEgPSBpcnE7Cj4+Pj4gKyAgICAgICAg
-ICAgfQo+Pj4+ICsKPj4+PiAgICAgICAgICAgICBwYWxtYXNfdXNiLT52YnVzX290Z19pcnEgPSBy
-ZWdtYXBfaXJxX2dldF92aXJxKHBhbG1hcy0+aXJxX2RhdGEsCj4+Pj4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgUEFMTUFTX1ZCVVNfT1RHX0lSUSk7
-Cj4+Pj4gLSAgICAgICAgICAgcGFsbWFzX3VzYi0+dmJ1c19pcnEgPSByZWdtYXBfaXJxX2dldF92
-aXJxKHBhbG1hcy0+aXJxX2RhdGEsCj4+Pj4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIFBBTE1BU19WQlVTX0lSUSk7Cj4+Pj4gICAgICAgICAg
-ICAgc3RhdHVzID0gZGV2bV9yZXF1ZXN0X3RocmVhZGVkX2lycShwYWxtYXNfdXNiLT5kZXYsCj4+
-Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIHBhbG1hc191c2ItPnZidXNfaXJxLCBOVUxM
-LAo+Pj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwYWxtYXNfdmJ1c19pcnFfaGFuZGxl
-ciwKPj4+Pgo+Pj4KPj4+IFRoYW5rcywKPj4+IENoYW53b28gQ2hvaQo+Pj4gLS0KPj4+IFRvIHVu
-c3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51
-eC1rZXJuZWwiIGluCj4+PiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIu
-a2VybmVsLm9yZwo+Pj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVs
-Lm9yZy9tYWpvcmRvbW8taW5mby5odG1sCj4+PiBQbGVhc2UgcmVhZCB0aGUgRkFRIGF0ICBodHRw
-Oi8vd3d3LnR1eC5vcmcvbGttbC8KPj4+Cj4+Cj4+IElmIHlvdSBhcmUgT0sgYWJvdXQgZm9sbG93
-aW5nIHBhdGNoLCBJJ2xsIGFwcGx5IGl0IG9uIGV4dGNvbiBicmFuY2guCj4KPiB0aGF0J3MgcGVy
-ZmVjdCwgdGhhbmtzIGZvciBmaXhpbmcgaXQgOi0pCgpBcHBsaWVkIGl0LgoKVGhhbmtzLApDaGFu
-d29vIENob2kKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LWFybS1rZXJuZWwK
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 18 Nov 2015 17:27:25 -0800
+
+> Commit b6745f6e4e63 ("drivers: net: cpsw: davinci_emac: move reading mac
+> id to common file") started using of_machine_is_compatible for detecting
+> type but missed at dm8148 causing Ethernet to stop working.
+> 
+> Let's fix the issue by adding handling for dm814x.
+> 
+> Cc: Mugunthan V N <mugunthanvnm@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Applied, thank you.
