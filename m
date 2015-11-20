@@ -1,85 +1,199 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [4.4-rc][PATCH] gpio: omap: drop omap1 mpuio specific
- irq_mask/unmask callbacks
-Date: Fri, 20 Nov 2015 09:25:08 -0800
-Message-ID: <564F5774.2020404@oracle.com>
-References: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
+Date: Fri, 20 Nov 2015 12:21:11 -0600
+Message-ID: <87h9kgcz1k.fsf@saruman.tx.rr.com>
+References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+	protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, tony@atomide.com
-Cc: ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/20/2015 5:35 AM, Grygorii Strashko wrote:
-> Originally OMAP MPUIO GPIO irqchip was implemented using Generic irq
-> chip, but after set of reworks Generic irq chip code was replaced by
-> common OMAP GPIO implementation and finally removed by
-> commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
-> Unfortunately, above commit left .irq_mask/unmask callbacks assigned
-> as below for MPUIO GPIO case:
-> 	irqc->irq_mask = irq_gc_mask_set_bit;
-> 	irqc->irq_unmask = irq_gc_mask_clr_bit;
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+
+Hi,
+
+Grygorii Strashko <grygorii.strashko@ti.com> writes:
+> Since system clocksource is finally selected by Clocksource core at
+> fs_initcall stage during boot there are no reasons to initialize
+> ti_32k_timer at early boot stages. Hence, ti_32k_timer can be
+> converted to use platform device/driver model and its PM can be
+> implemented using PM runtime which is common for OMAP devices.
 >
-> This now causes boot failure on OMAP1 platforms, after
-> commit 450fa54cfd66 ("gpio: omap: convert to use generic irq handler")
-> which forces these callbacks to be called during GPIO IRQs mapping
-> from gpiochip_irq_map:
+> Platform specific initialization code has to be disabled once as
+> ti_32k_timer is converted to platform device - otherwise OMAP platform
+> code will generate boot warnings.
 >
-> Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> pgd = c0004000
-> [00000000] *pgd=00000000
-> Internal error: Oops: 75 [#1] ARM
-> Modules linked in:
-> CPU: 0 PID: 1 Comm: swapper Not tainted 4.4.0-rc1-e3-los_afe0c+-00002-g25379c0-dirty #1
-> Hardware name: Amstrad E3 (Delta)
-> task: c1836000 ti: c1838000 task.ti: c1838000
-> PC is at irq_gc_mask_set_bit+0x1c/0x60
-> LR is at __irq_do_set_handler+0x118/0x15c
-> pc : [<c004848c>]    lr : [<c0047d4c>]    psr: 600000d3
-> sp : c1839c90  ip : c1862c64  fp : c1839c9c
-> r10: 00000000  r9 : c0411950  r8 : c0411bbc
-> r7 : 00000000  r6 : c185c310  r5 : c00444e8  r4 : c185c300
-> r3 : c1854b50  r2 : 00000000  r1 : 00000000  r0 : c185c310
-> Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 0000317f  Table: 10004000  DAC: 00000057
-> Process swapper (pid: 1, stack limit = 0xc1838190)
-> Stack: (0xc1839c90 to 0xc183a000)
->
-> [...]
->
-> Backtrace:
-> [<c0048470>] (irq_gc_mask_set_bit) from [<c0047d4c>] (__irq_do_set_handler+0x118/0x15c)
-> [<c0047c34>] (__irq_do_set_handler) from [<c0047dd4>] (__irq_set_handler+0x44/0x5c)
->   r6:00000000 r5:c00444e8 r4:c185c300
-> [<c0047d90>] (__irq_set_handler) from [<c0047e1c>] (irq_set_chip_and_handler_name+0x30/0x34)
->   r7:00000050 r6:00000000 r5:c00444e8 r4:00000050
-> [<c0047dec>] (irq_set_chip_and_handler_name) from [<c01b345c>] (gpiochip_irq_map+0x3c/0x8c)
->   r7:00000050 r6:00000000 r5:00000050 r4:c1862c64
-> [<c01b3420>] (gpiochip_irq_map) from [<c0049670>] (irq_domain_associate+0x7c/0x1c4)
->   r5:c185c310 r4:c185cb00
-> [<c00495f4>] (irq_domain_associate) from [<c0049894>] (irq_domain_add_simple+0x98/0xc0)
->   r8:c0411bbc r7:c185cb00 r6:00000050 r5:00000010 r4:00000001
-> [<c00497fc>] (irq_domain_add_simple) from [<c01b3328>] (_gpiochip_irqchip_add+0x64/0x10c)
->   r7:c1862c64 r6:c0419280 r5:c1862c64 r4:c1854b50
-> [<c01b32c4>] (_gpiochip_irqchip_add) from [<c01b79f4>] (omap_gpio_probe+0x2fc/0x63c)
->   r5:c1854b50 r4:c1862c10
-> [<c01b76f8>] (omap_gpio_probe) from [<c01fcf58>] (platform_drv_probe+0x2c/0x64)
->   r10:00000000 r9:c03e45e8 r8:00000000 r7:c0419294 r6:c0411984 r5:c0419294
->   r4:c0411950
-> [<c01fcf2c>] (platform_drv_probe) from [<c01fb668>] (really_probe+0x160/0x29c)
->
-> Hence, fix it by remove obsolete callbacks assignment. After this
-> change 	omap_gpio_mask_irq()/omap_gpio_unmask_irq() will be used
-> for MPUIO IRQs masking, but this now happens anyway from
-> omap_gpio_irq_startup/shutdown().
+> After this change, all counter_32k's platform code can be removed
+> once all OMAP boards will be converted to DT.
 >
 > Cc: Tony Lindgren <tony@atomide.com>
-> Fixes: commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts")
-> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Felipe Balbi <balbi@ti.com>
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 > ---
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+>  arch/arm/mach-omap2/timer.c        | 16 +++--------
+>  drivers/clocksource/timer-ti-32k.c | 58 ++++++++++++++++++++++++++++++++=
+------
+>  2 files changed, 53 insertions(+), 21 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index b18ebbe..3bfde44 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -393,23 +393,15 @@ static const struct of_device_id omap_counter_match=
+[] __initconst =3D {
+>  static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+>  {
+>  	int ret;
+> -	struct device_node *np =3D NULL;
+>  	struct omap_hwmod *oh;
+>  	const char *oh_name =3D "counter_32k";
+>=20=20
+>  	/*
+> -	 * If device-tree is present, then search the DT blob
+> -	 * to see if the 32kHz counter is supported.
+> +	 * If device-tree is present, then just exit -
+> +	 * 32kHz clocksource driver will handle it.
+>  	 */
+> -	if (of_have_populated_dt()) {
+> -		np =3D omap_get_timer_dt(omap_counter_match, NULL);
+> -		if (!np)
+> -			return -ENODEV;
+> -
+> -		of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
+> -		if (!oh_name)
+> -			return -ENODEV;
+> -	}
+> +	if (of_have_populated_dt())
+> +		return 0;
+>=20=20
+>  	/*
+>  	 * First check hwmod data is available for sync32k counter
+> diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/tim=
+er-ti-32k.c
+> index 8518d9d..e71496f 100644
+> --- a/drivers/clocksource/timer-ti-32k.c
+> +++ b/drivers/clocksource/timer-ti-32k.c
+> @@ -39,8 +39,11 @@
+>  #include <linux/time.h>
+>  #include <linux/sched_clock.h>
+>  #include <linux/clocksource.h>
+> +#include <linux/module.h>
+>  #include <linux/of.h>
+>  #include <linux/of_address.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+>=20=20
+>  /*
+>   * 32KHz clocksource ... always available, on pretty most chips except
+> @@ -88,15 +91,28 @@ static u64 notrace omap_32k_read_sched_clock(void)
+>  	return ti_32k_read_cycles(&ti_32k_timer.cs);
+>  }
+>=20=20
+> -static void __init ti_32k_timer_init(struct device_node *np)
+> +static const struct of_device_id ti_32k_of_table[] =3D {
+> +	{ .compatible =3D "ti,omap-counter32k" },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(of, ti_32k_of_table);
+> +
+> +static int __init ti_32k_probe(struct platform_device *pdev)
+>  {
+> +	struct device *dev =3D &pdev->dev;
+> +	struct resource *res;
+>  	int ret;
+>=20=20
+> -	ti_32k_timer.base =3D of_iomap(np, 0);
+> -	if (!ti_32k_timer.base) {
+> -		pr_err("Can't ioremap 32k timer base\n");
+> -		return;
+> -	}
+> +	/* Static mapping, never released */
+> +	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	ti_32k_timer.base =3D devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(ti_32k_timer.base))
+> +		return PTR_ERR(ti_32k_timer.base);
+> +
+> +	pm_runtime_enable(dev);
+> +	ret =3D pm_runtime_get_sync(dev);
+> +	if (ret < 0)
+> +		goto probe_err;
+>=20=20
+>  	ti_32k_timer.counter =3D ti_32k_timer.base;
+>=20=20
+> @@ -116,11 +132,35 @@ static void __init ti_32k_timer_init(struct device_=
+node *np)
+>  	ret =3D clocksource_register_hz(&ti_32k_timer.cs, 32768);
+>  	if (ret) {
+>  		pr_err("32k_counter: can't register clocksource\n");
+> -		return;
+> +		goto probe_err;
+>  	}
+>=20=20
+>  	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
+>  	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
+> +	return 0;
+> +
+> +probe_err:
+> +	pm_runtime_put_noidle(dev);
+> +	return ret;
+> +};
+> +
+> +static struct platform_driver ti_32k_driver __initdata =3D {
+> +	.probe		=3D ti_32k_probe,
+> +	.driver		=3D {
+> +		.name	=3D "ti_32k_timer",
+> +		.of_match_table =3D of_match_ptr(ti_32k_of_table),
+> +	}
+> +};
+> +
+> +static int __init ti_32k_init(void)
+> +{
+> +	return platform_driver_register(&ti_32k_driver);
+>  }
+> -CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
+> -		ti_32k_timer_init);
+> +
+> +subsys_initcall(ti_32k_init);
+> +
+> +MODULE_AUTHOR("Paul Mundt");
+> +MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
+> +MODULE_DESCRIPTION("OMAP2 32k Timer");
+> +MODULE_ALIAS("platform:ti_32k_timer");
+> +MODULE_LICENSE("GPL v2");
+
+this will break clksource_of_init(), right ? Eventually, we want that to
+be the only thing called by our .init_time method. I'll leave it to Tony
+to decide, but IMO this is not a good path forward for timers.
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWT2SZAAoJEIaOsuA1yqREoZYP/1I8BqIejJaCncT5UWgXT/W6
+5JG0P6x5YIToeqC8W9E6hJji0Dd8O7/oiFsaDTwMxFPCIs176DF2Ao1IPoJ0leTS
+Q60q8Y2VpLRdnKeviTawDeAGs43RoX5/71ixaOKhTfs1/f+DAc5sQK7rVqaNWI9o
+mRFfybsVUfYvr3F2E72oVreQnhYlIfiwxbJJJLreITigsO/ek2Dw1oi/BhgmrW7m
+ipeOmjx1Qxpk5wwfNflxXy6kpsYSDYMUW+bT1ufoIGkvmZtYVSlRhRx2m4AvMZVY
+SpqMyrMgTojvv7IDLr6ayawdO58aXI/DYPRE4yeny/0MC1HYzMFU3crJMchJXBoz
+T0dgOlTptXFcuRuSuzRT0cTIm54JAIrPWKlvA6xH40MMjwwVgGw6YHn94ptHEnPN
+FPSxJ7qy6BxntJW3Di4OQ4GG+uJFOBf+8/6gcq4rBX487Vr9oVAq2y5BQ69JbbdS
+CwhvKX9ZOfamuayUPOp5t8aLK1uPen1AfsYv9YQBaOF9+PhOPTJDjV3mfvoIR3hp
+dFHAk+f6WJBhoxAVYgV2+Qu7pk2XFFBkdzmS5qvXKa3YO/JJoM5bUG9UB8+EHKf6
+gLoUU+PJJ9s8yqHDRy6IAOcpSDd7DcTuj1RvFCXT9tiQiGbehuOL3mRaJJcDwvd5
+Bfu1esNwQxCWEb5xeXlW
+=OGG7
+-----END PGP SIGNATURE-----
+--=-=-=--
