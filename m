@@ -1,162 +1,132 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH] clocksource: ti-32k: convert to platform device
-Date: Fri, 20 Nov 2015 19:22:09 +0200
-Message-ID: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
+From: santosh shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH v2] clocksource: arm_global_timer: fix suspend resume
+Date: Fri, 20 Nov 2015 09:23:24 -0800
+Message-ID: <564F570C.7030409@oracle.com>
+References: <1448027861-21472-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1448027861-21472-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-Since system clocksource is finally selected by Clocksource core at
-fs_initcall stage during boot there are no reasons to initialize
-ti_32k_timer at early boot stages. Hence, ti_32k_timer can be
-converted to use platform device/driver model and its PM can be
-implemented using PM runtime which is common for OMAP devices.
++ Thomas, Marc
 
-Platform specific initialization code has to be disabled once as
-ti_32k_timer is converted to platform device - otherwise OMAP platform
-code will generate boot warnings.
+On 11/20/2015 5:57 AM, Grygorii Strashko wrote:
+> Now the System stall is observed on TI AM437x based board
+> (am437x-gp-evm) during resuming from System suspend when ARM Global
+> timer is selected as clocksource device - SysRq are working, but
+> nothing else. The reason of stall is that ARM Global timer loses its
+> contexts.
+>
+> The reason of stall is that ARM Global timer loses its contexts during
+> System suspend:
+>     GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
+>     GT_COUNTERx = 0
+>
+> Hence, update ARM Global timer driver to reflect above behaviour
+> - re-enable ARM Global timer on resume GT_CONTROL.TIMER_ENABLE = 1
+> - ensure clocksource and clockevent devices have coresponding flags
+>    (CLOCK_SOURCE_SUSPEND_NONSTOP and CLOCK_EVT_FEAT_C3STOP) set
+>    depending on presence of "always-on" DT property.
+>
+Something which loses context in low power states can't be
+called "always-on"
 
-After this change, all counter_32k's platform code can be removed
-once all OMAP boards will be converted to DT.
+Also if the clock-soucre can't tick in the low power states
+then that device shouldn't be used as a clock-source.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- arch/arm/mach-omap2/timer.c        | 16 +++--------
- drivers/clocksource/timer-ti-32k.c | 58 ++++++++++++++++++++++++++++++=
-++------
- 2 files changed, 53 insertions(+), 21 deletions(-)
+> CC: Arnd Bergmann <arnd@arndb.de>
+> Cc: John Stultz <john.stultz@linaro.org>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+> Changes in v2:
+>   - suspend/resume simplified: nothing is stored any more and
+>     ARM GT just re-enabled
+> Link on v1:
+>   https://lkml.org/lkml/2015/11/13/456
+>
+>   drivers/clocksource/arm_global_timer.c | 16 ++++++++++++++++
+>   1 file changed, 16 insertions(+)
+>
+> diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
+> index a2cb6fa..867e546 100644
+> --- a/drivers/clocksource/arm_global_timer.c
+> +++ b/drivers/clocksource/arm_global_timer.c
+> @@ -51,6 +51,7 @@ static void __iomem *gt_base;
+>   static unsigned long gt_clk_rate;
+>   static int gt_ppi;
+>   static struct clock_event_device __percpu *gt_evt;
+> +static bool gt_always_on;
+>
+>   /*
+>    * To get the value from the Global Timer Counter register proceed as follows:
+> @@ -168,6 +169,9 @@ static int gt_clockevents_init(struct clock_event_device *clk)
+>   {
+>   	int cpu = smp_processor_id();
+>
+> +	if (!gt_always_on)
+> +		clk->features |= CLOCK_EVT_FEAT_C3STOP;
+> +
+>   	clk->name = "arm_global_timer";
+>   	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
+>   		CLOCK_EVT_FEAT_PERCPU;
+> @@ -195,12 +199,19 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
+>   	return gt_counter_read();
+>   }
+>
+> +static void gt_resume(struct clocksource *cs)
+> +{
+> +	/* re-enable timer on resume */
+> +	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
+> +}
+> +
+>   static struct clocksource gt_clocksource = {
+>   	.name	= "arm_global_timer",
+>   	.rating	= 300,
+>   	.read	= gt_clocksource_read,
+>   	.mask	= CLOCKSOURCE_MASK(64),
+>   	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
+> +	.resume = gt_resume,
+>   };
+>
+>   #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+> @@ -218,6 +229,9 @@ static void __init gt_clocksource_init(void)
+>   	/* enables timer on all the cores */
+>   	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
+>
+> +	if (gt_always_on)
+> +		gt_clocksource.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
+> +
+>   #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+>   	sched_clock_register(gt_sched_clock_read, 64, gt_clk_rate);
+>   #endif
+> @@ -289,6 +303,8 @@ static void __init global_timer_of_register(struct device_node *np)
+>   		goto out_clk;
+>   	}
+>
+> +	gt_always_on = of_property_read_bool(np, "always-on");
+> +
+>   	err = request_percpu_irq(gt_ppi, gt_clockevent_interrupt,
+>   				 "gt", gt_evt);
+>   	if (err) {
+>
+Am really confused with this patch. Because 'C3STOP' is a clock-event
+flag which we use for cases where we have back-up broadcast timer which
+continue to tick in low power states.
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index b18ebbe..3bfde44 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -393,23 +393,15 @@ static const struct of_device_id omap_counter_mat=
-ch[] __initconst =3D {
- static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
- {
- 	int ret;
--	struct device_node *np =3D NULL;
- 	struct omap_hwmod *oh;
- 	const char *oh_name =3D "counter_32k";
-=20
- 	/*
--	 * If device-tree is present, then search the DT blob
--	 * to see if the 32kHz counter is supported.
-+	 * If device-tree is present, then just exit -
-+	 * 32kHz clocksource driver will handle it.
- 	 */
--	if (of_have_populated_dt()) {
--		np =3D omap_get_timer_dt(omap_counter_match, NULL);
--		if (!np)
--			return -ENODEV;
--
--		of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
--		if (!oh_name)
--			return -ENODEV;
--	}
-+	if (of_have_populated_dt())
-+		return 0;
-=20
- 	/*
- 	 * First check hwmod data is available for sync32k counter
-diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/t=
-imer-ti-32k.c
-index 8518d9d..e71496f 100644
---- a/drivers/clocksource/timer-ti-32k.c
-+++ b/drivers/clocksource/timer-ti-32k.c
-@@ -39,8 +39,11 @@
- #include <linux/time.h>
- #include <linux/sched_clock.h>
- #include <linux/clocksource.h>
-+#include <linux/module.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-=20
- /*
-  * 32KHz clocksource ... always available, on pretty most chips except
-@@ -88,15 +91,28 @@ static u64 notrace omap_32k_read_sched_clock(void)
- 	return ti_32k_read_cycles(&ti_32k_timer.cs);
- }
-=20
--static void __init ti_32k_timer_init(struct device_node *np)
-+static const struct of_device_id ti_32k_of_table[] =3D {
-+	{ .compatible =3D "ti,omap-counter32k" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, ti_32k_of_table);
-+
-+static int __init ti_32k_probe(struct platform_device *pdev)
- {
-+	struct device *dev =3D &pdev->dev;
-+	struct resource *res;
- 	int ret;
-=20
--	ti_32k_timer.base =3D of_iomap(np, 0);
--	if (!ti_32k_timer.base) {
--		pr_err("Can't ioremap 32k timer base\n");
--		return;
--	}
-+	/* Static mapping, never released */
-+	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	ti_32k_timer.base =3D devm_ioremap_resource(dev, res);
-+	if (IS_ERR(ti_32k_timer.base))
-+		return PTR_ERR(ti_32k_timer.base);
-+
-+	pm_runtime_enable(dev);
-+	ret =3D pm_runtime_get_sync(dev);
-+	if (ret < 0)
-+		goto probe_err;
-=20
- 	ti_32k_timer.counter =3D ti_32k_timer.base;
-=20
-@@ -116,11 +132,35 @@ static void __init ti_32k_timer_init(struct devic=
-e_node *np)
- 	ret =3D clocksource_register_hz(&ti_32k_timer.cs, 32768);
- 	if (ret) {
- 		pr_err("32k_counter: can't register clocksource\n");
--		return;
-+		goto probe_err;
- 	}
-=20
- 	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
- 	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
-+	return 0;
-+
-+probe_err:
-+	pm_runtime_put_noidle(dev);
-+	return ret;
-+};
-+
-+static struct platform_driver ti_32k_driver __initdata =3D {
-+	.probe		=3D ti_32k_probe,
-+	.driver		=3D {
-+		.name	=3D "ti_32k_timer",
-+		.of_match_table =3D of_match_ptr(ti_32k_of_table),
-+	}
-+};
-+
-+static int __init ti_32k_init(void)
-+{
-+	return platform_driver_register(&ti_32k_driver);
- }
--CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
--		ti_32k_timer_init);
-+
-+subsys_initcall(ti_32k_init);
-+
-+MODULE_AUTHOR("Paul Mundt");
-+MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
-+MODULE_DESCRIPTION("OMAP2 32k Timer");
-+MODULE_ALIAS("platform:ti_32k_timer");
-+MODULE_LICENSE("GPL v2");
---=20
-2.6.3
+If the ARM global timer is considered as that device which actually
+doesn't tick then we are doomed. Clocksource device must be *CONTINUOUS*
+and if it is not then its not a viable device to be used as clock-source.
+
+May be am missing the context but this whole patch doesn't make sense
+to me.
+
+Regards,
+Santosh
