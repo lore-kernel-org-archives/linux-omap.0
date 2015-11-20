@@ -1,94 +1,162 @@
-From: Chanwoo Choi <cwchoi00@gmail.com>
-Subject: Re: [PATCH 2/2] arm: boot: beaglex15: pass correct interrupt
-Date: Sat, 21 Nov 2015 01:55:22 +0900
-Message-ID: <CAGTfZH3o_G91qDS6_9tYJHDDAbOWj90rBfCKvi0f-uL0L2PcTA@mail.gmail.com>
-References: <1447350781-20649-1-git-send-email-balbi@ti.com>
-	<1447350781-20649-3-git-send-email-balbi@ti.com>
-	<564EB215.5080209@samsung.com>
-	<564F4D90.4050305@gmail.com>
-Reply-To: cw00.choi@samsung.com
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [RFC PATCH] clocksource: ti-32k: convert to platform device
+Date: Fri, 20 Nov 2015 19:22:09 +0200
+Message-ID: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <564F4D90.4050305@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Since system clocksource is finally selected by Clocksource core at
+fs_initcall stage during boot there are no reasons to initialize
+ti_32k_timer at early boot stages. Hence, ti_32k_timer can be
+converted to use platform device/driver model and its PM can be
+implemented using PM runtime which is common for OMAP devices.
 
-On Sat, Nov 21, 2015 at 1:42 AM, Chanwoo Choi <cwchoi00@gmail.com> wrot=
-e:
-> Hi,
->
-> On 2015. 11. 20. =EC=98=A4=ED=9B=84 2:39, Chanwoo Choi wrote:
->> Hi,
->>
->> On 2015=EB=85=84 11=EC=9B=94 13=EC=9D=BC 02:53, Felipe Balbi wrote:
->>> According to latest schematics [1], GPIO_1/VBUSDET
->>> on TPS659038 is tied to AM57x GPIO4_21. We can use
->>> that as a VBUS interrupt, instead of relying on
->>> PMIC's VBUS interrupts which don't seem to be firing
->>> on x15 at all.
->>>
->>> A follow up patch will add support for using this
->>> GPIO-based interrupt mechanism for notifying about
->>> VBUS.
->>>
->>> [1] https://github.com/beagleboard/beagleboard-x15/blob/master/Beag=
-leBoard-X15_RevA2.pdf
->>>
->>> Signed-off-by: Felipe Balbi <balbi@ti.com>
->>> ---
->>>  arch/arm/boot/dts/am57xx-beagle-x15.dts | 1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boo=
-t/dts/am57xx-beagle-x15.dts
->>> index 6f3a1a7ec5f9..5e47162f7883 100644
->>> --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
->>> +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
->>> @@ -560,6 +560,7 @@
->>>              extcon_usb2: tps659038_usb {
->>>                      compatible =3D "ti,palmas-usb-vid";
->>>                      ti,enable-vbus-detection;
->>> +                    interrupts-extended =3D <&gpio4 21 IRQ_TYPE_ED=
-GE_RISING>;
->
->                         vbus-gpio =3D <&gpio4 21>;
+Platform specific initialization code has to be disabled once as
+ti_32k_timer is converted to platform device - otherwise OMAP platform
+code will generate boot warnings.
 
-I'm sorry. I'm sending the missing email without writing completion.
+After this change, all counter_32k's platform code can be removed
+once all OMAP boards will be converted to DT.
 
-I agree the Felipe's opinion. Just I think that we can use the
-following property
-instead of 'interrupt-extended'. Because I think 'vbus-gpio' is more
-readability than before. The following property mean the attribute of
-GPIO pin as VBUS.
-- vbus-gpio =3D <&gpio4 21>;
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ arch/arm/mach-omap2/timer.c        | 16 +++--------
+ drivers/clocksource/timer-ti-32k.c | 58 ++++++++++++++++++++++++++++++=
+++------
+ 2 files changed, 53 insertions(+), 21 deletions(-)
 
-Thanks,
-Chanwoo Choi
-
->
->>>              };
->>>
->>>      };
->>>
->>
->> I check the schematic file. The GPIO4_21 pin is connected as followi=
-ng:
->> - GPIO_1/VBUSDET -> PMIC_VBUS_DET -> VBUS_DET -> AM5728 GPIO4_21 pin
->>
->> Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
->>
->> Thanks,
->> Chanwoo Choi
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kern=
-el" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index b18ebbe..3bfde44 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -393,23 +393,15 @@ static const struct of_device_id omap_counter_mat=
+ch[] __initconst =3D {
+ static int __init __maybe_unused omap2_sync32k_clocksource_init(void)
+ {
+ 	int ret;
+-	struct device_node *np =3D NULL;
+ 	struct omap_hwmod *oh;
+ 	const char *oh_name =3D "counter_32k";
+=20
+ 	/*
+-	 * If device-tree is present, then search the DT blob
+-	 * to see if the 32kHz counter is supported.
++	 * If device-tree is present, then just exit -
++	 * 32kHz clocksource driver will handle it.
+ 	 */
+-	if (of_have_populated_dt()) {
+-		np =3D omap_get_timer_dt(omap_counter_match, NULL);
+-		if (!np)
+-			return -ENODEV;
+-
+-		of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
+-		if (!oh_name)
+-			return -ENODEV;
+-	}
++	if (of_have_populated_dt())
++		return 0;
+=20
+ 	/*
+ 	 * First check hwmod data is available for sync32k counter
+diff --git a/drivers/clocksource/timer-ti-32k.c b/drivers/clocksource/t=
+imer-ti-32k.c
+index 8518d9d..e71496f 100644
+--- a/drivers/clocksource/timer-ti-32k.c
++++ b/drivers/clocksource/timer-ti-32k.c
+@@ -39,8 +39,11 @@
+ #include <linux/time.h>
+ #include <linux/sched_clock.h>
+ #include <linux/clocksource.h>
++#include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+=20
+ /*
+  * 32KHz clocksource ... always available, on pretty most chips except
+@@ -88,15 +91,28 @@ static u64 notrace omap_32k_read_sched_clock(void)
+ 	return ti_32k_read_cycles(&ti_32k_timer.cs);
+ }
+=20
+-static void __init ti_32k_timer_init(struct device_node *np)
++static const struct of_device_id ti_32k_of_table[] =3D {
++	{ .compatible =3D "ti,omap-counter32k" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, ti_32k_of_table);
++
++static int __init ti_32k_probe(struct platform_device *pdev)
+ {
++	struct device *dev =3D &pdev->dev;
++	struct resource *res;
+ 	int ret;
+=20
+-	ti_32k_timer.base =3D of_iomap(np, 0);
+-	if (!ti_32k_timer.base) {
+-		pr_err("Can't ioremap 32k timer base\n");
+-		return;
+-	}
++	/* Static mapping, never released */
++	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	ti_32k_timer.base =3D devm_ioremap_resource(dev, res);
++	if (IS_ERR(ti_32k_timer.base))
++		return PTR_ERR(ti_32k_timer.base);
++
++	pm_runtime_enable(dev);
++	ret =3D pm_runtime_get_sync(dev);
++	if (ret < 0)
++		goto probe_err;
+=20
+ 	ti_32k_timer.counter =3D ti_32k_timer.base;
+=20
+@@ -116,11 +132,35 @@ static void __init ti_32k_timer_init(struct devic=
+e_node *np)
+ 	ret =3D clocksource_register_hz(&ti_32k_timer.cs, 32768);
+ 	if (ret) {
+ 		pr_err("32k_counter: can't register clocksource\n");
+-		return;
++		goto probe_err;
+ 	}
+=20
+ 	sched_clock_register(omap_32k_read_sched_clock, 32, 32768);
+ 	pr_info("OMAP clocksource: 32k_counter at 32768 Hz\n");
++	return 0;
++
++probe_err:
++	pm_runtime_put_noidle(dev);
++	return ret;
++};
++
++static struct platform_driver ti_32k_driver __initdata =3D {
++	.probe		=3D ti_32k_probe,
++	.driver		=3D {
++		.name	=3D "ti_32k_timer",
++		.of_match_table =3D of_match_ptr(ti_32k_of_table),
++	}
++};
++
++static int __init ti_32k_init(void)
++{
++	return platform_driver_register(&ti_32k_driver);
+ }
+-CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
+-		ti_32k_timer_init);
++
++subsys_initcall(ti_32k_init);
++
++MODULE_AUTHOR("Paul Mundt");
++MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
++MODULE_DESCRIPTION("OMAP2 32k Timer");
++MODULE_ALIAS("platform:ti_32k_timer");
++MODULE_LICENSE("GPL v2");
+--=20
+2.6.3
