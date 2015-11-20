@@ -1,139 +1,57 @@
 From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH] extcon: palmas: add support for using VBUSDET output
-Date: Fri, 20 Nov 2015 14:44:18 +0900
-Message-ID: <564EB332.5090406@samsung.com>
-References: <1447350781-20649-1-git-send-email-balbi@ti.com>
- <1447351034-21150-1-git-send-email-balbi@ti.com> <564EB0A6.4060407@samsung.com>
+Subject: Re: [PATCH 1/1] usb: phy: omap-otg: do not write to unallocated memory
+Date: Fri, 20 Nov 2015 15:02:38 +0900
+Message-ID: <564EB77E.3040000@samsung.com>
+References: <1447976581-12666-1-git-send-email-xypron.glpk@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <564EB0A6.4060407@samsung.com>
+In-reply-to: <1447976581-12666-1-git-send-email-xypron.glpk@gmx.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Heinrich Schuchardt <xypron.glpk@gmx.de>, Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Hi,
 
-On 2015=EB=85=84 11=EC=9B=94 20=EC=9D=BC 14:33, Chanwoo Choi wrote:
-> Hi Felipe,
->=20
-> Looks good to me. But I have one comment.
->=20
-> On 2015=EB=85=84 11=EC=9B=94 13=EC=9D=BC 02:57, Felipe Balbi wrote:
->> TPS659038 can remux its GPIO_1 as VBUSDET output,
->> which can be tied to a SoC GPIO and used as a VBUS
->> interrupt.
->>
->> Beagle X15 uses that, in fact, and without it, I
->> could not get USB peripheral working with that
->> board.
->>
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->> ---
->>  drivers/extcon/extcon-palmas.c | 22 ++++++++++++++++++++--
->>  1 file changed, 20 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-=
-palmas.c
->> index 93c30a885740..7985d092c069 100644
->> --- a/drivers/extcon/extcon-palmas.c
->> +++ b/drivers/extcon/extcon-palmas.c
->> @@ -296,10 +296,28 @@ static int palmas_usb_probe(struct platform_de=
-vice *pdev)
->>  	}
->> =20
->>  	if (palmas_usb->enable_vbus_detection) {
->> +		int irq =3D platform_get_irq(pdev, 0);
->> +
->> +		if (irq > 0) {
->> +			/* remux GPIO_1 as VBUSDET */
->> +			status =3D palmas_update_bits(palmas, PALMAS_PU_PD_OD_BASE,
->> +					PALMAS_PRIMARY_SECONDARY_PAD1,
->> +					PALMAS_PRIMARY_SECONDARY_PAD1_GPIO_1_MASK,
->> +					(1 << 3));
->=20
-> PALMAS_PRIMARY_SECONDARY_PAD1_GPIO_1_SHIFT is appropriate instead of =
-using '3'.
-> Also, I don't recommend the over line 80. The everything else is good
->=20
->=20
->> +			if (status < 0) {
->> +				dev_err(&pdev->dev, "can't remux GPIO1\n");
->> +				return status;
->> +			}
->> +
->> +			palmas_usb->vbus_irq =3D irq;
->> +		} else {
->> +			irq =3D regmap_irq_get_virq(palmas->irq_data,
->> +					PALMAS_VBUS_IRQ);
->> +			palmas_usb->vbus_irq =3D irq;
->> +		}
->> +
->>  		palmas_usb->vbus_otg_irq =3D regmap_irq_get_virq(palmas->irq_data=
-,
->>  						       PALMAS_VBUS_OTG_IRQ);
->> -		palmas_usb->vbus_irq =3D regmap_irq_get_virq(palmas->irq_data,
->> -							   PALMAS_VBUS_IRQ);
->>  		status =3D devm_request_threaded_irq(palmas_usb->dev,
->>  				palmas_usb->vbus_irq, NULL,
->>  				palmas_vbus_irq_handler,
->>
->=20
-> Thanks,
-> Chanwoo Choi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->=20
-
-If you are OK about following patch, I'll apply it on extcon branch.
-
-diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-pal=
-mas.c
-index 93c30a885740..f601370c9466 100644
---- a/drivers/extcon/extcon-palmas.c
-+++ b/drivers/extcon/extcon-palmas.c
-@@ -296,10 +296,29 @@ static int palmas_usb_probe(struct platform_devic=
-e *pdev)
- 	}
-=20
- 	if (palmas_usb->enable_vbus_detection) {
-+		int irq =3D platform_get_irq(pdev, 0);
-+
-+		if (irq > 0) {
-+			/* remux GPIO_1 as VBUSDET */
-+			status =3D palmas_update_bits(palmas,
-+				PALMAS_PU_PD_OD_BASE,
-+				PALMAS_PRIMARY_SECONDARY_PAD1,
-+				PALMAS_PRIMARY_SECONDARY_PAD1_GPIO_1_MASK,
-+				(1 << PALMAS_PRIMARY_SECONDARY_PAD1_GPIO_1_SHIFT));
-+			if (status < 0) {
-+				dev_err(&pdev->dev, "can't remux GPIO1\n");
-+				return status;
-+			}
-+
-+			palmas_usb->vbus_irq =3D irq;
-+		} else {
-+			irq =3D regmap_irq_get_virq(palmas->irq_data,
-+					PALMAS_VBUS_IRQ);
-+			palmas_usb->vbus_irq =3D irq;
-+		}
-+
- 		palmas_usb->vbus_otg_irq =3D regmap_irq_get_virq(palmas->irq_data,
- 						       PALMAS_VBUS_OTG_IRQ);
--		palmas_usb->vbus_irq =3D regmap_irq_get_virq(palmas->irq_data,
--							   PALMAS_VBUS_IRQ);
- 		status =3D devm_request_threaded_irq(palmas_usb->dev,
- 				palmas_usb->vbus_irq, NULL,
- 				palmas_vbus_irq_handler,
---=20
-1.9.1
-
+The same patch was already reviewed and applied on usb.git repository[1=
+]
+[1] https://git.kernel.org/cgit/linux/kernel/git/balbi/usb.git/commit/?=
+h=3Dtesting/fixes&id=3D2c2025b41aeff57963f9ae2dd909fea704c625ab
 
 Thanks,
 Chanwoo Choi
+
+On 2015=EB=85=84 11=EC=9B=94 20=EC=9D=BC 08:43, Heinrich Schuchardt wro=
+te:
+> The current coding writes to memory before allocating it.
+>=20
+> Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+> ---
+>  drivers/usb/phy/phy-omap-otg.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/usb/phy/phy-omap-otg.c b/drivers/usb/phy/phy-oma=
+p-otg.c
+> index 1270906..8bbf121 100644
+> --- a/drivers/usb/phy/phy-omap-otg.c
+> +++ b/drivers/usb/phy/phy-omap-otg.c
+> @@ -105,12 +105,13 @@ static int omap_otg_probe(struct platform_devic=
+e *pdev)
+>  	extcon =3D extcon_get_extcon_dev(config->extcon);
+>  	if (!extcon)
+>  		return -EPROBE_DEFER;
+> -	otg_dev->extcon =3D extcon;
+> =20
+>  	otg_dev =3D devm_kzalloc(&pdev->dev, sizeof(*otg_dev), GFP_KERNEL);
+>  	if (!otg_dev)
+>  		return -ENOMEM;
+> =20
+> +	otg_dev->extcon =3D extcon;
+> +
+>  	otg_dev->base =3D devm_ioremap_resource(&pdev->dev, &pdev->resource=
+[0]);
+>  	if (IS_ERR(otg_dev->base))
+>  		return PTR_ERR(otg_dev->base);
+>=20
