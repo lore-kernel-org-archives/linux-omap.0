@@ -1,132 +1,85 @@
 From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH v2] clocksource: arm_global_timer: fix suspend resume
-Date: Fri, 20 Nov 2015 09:23:24 -0800
-Message-ID: <564F570C.7030409@oracle.com>
-References: <1448027861-21472-1-git-send-email-grygorii.strashko@ti.com>
+Subject: Re: [4.4-rc][PATCH] gpio: omap: drop omap1 mpuio specific
+ irq_mask/unmask callbacks
+Date: Fri, 20 Nov 2015 09:25:08 -0800
+Message-ID: <564F5774.2020404@oracle.com>
+References: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448027861-21472-1-git-send-email-grygorii.strashko@ti.com>
+In-Reply-To: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, tony@atomide.com
+Cc: ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-+ Thomas, Marc
-
-On 11/20/2015 5:57 AM, Grygorii Strashko wrote:
-> Now the System stall is observed on TI AM437x based board
-> (am437x-gp-evm) during resuming from System suspend when ARM Global
-> timer is selected as clocksource device - SysRq are working, but
-> nothing else. The reason of stall is that ARM Global timer loses its
-> contexts.
+On 11/20/2015 5:35 AM, Grygorii Strashko wrote:
+> Originally OMAP MPUIO GPIO irqchip was implemented using Generic irq
+> chip, but after set of reworks Generic irq chip code was replaced by
+> common OMAP GPIO implementation and finally removed by
+> commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
+> Unfortunately, above commit left .irq_mask/unmask callbacks assigned
+> as below for MPUIO GPIO case:
+> 	irqc->irq_mask = irq_gc_mask_set_bit;
+> 	irqc->irq_unmask = irq_gc_mask_clr_bit;
 >
-> The reason of stall is that ARM Global timer loses its contexts during
-> System suspend:
->     GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
->     GT_COUNTERx = 0
+> This now causes boot failure on OMAP1 platforms, after
+> commit 450fa54cfd66 ("gpio: omap: convert to use generic irq handler")
+> which forces these callbacks to be called during GPIO IRQs mapping
+> from gpiochip_irq_map:
 >
-> Hence, update ARM Global timer driver to reflect above behaviour
-> - re-enable ARM Global timer on resume GT_CONTROL.TIMER_ENABLE = 1
-> - ensure clocksource and clockevent devices have coresponding flags
->    (CLOCK_SOURCE_SUSPEND_NONSTOP and CLOCK_EVT_FEAT_C3STOP) set
->    depending on presence of "always-on" DT property.
+> Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> pgd = c0004000
+> [00000000] *pgd=00000000
+> Internal error: Oops: 75 [#1] ARM
+> Modules linked in:
+> CPU: 0 PID: 1 Comm: swapper Not tainted 4.4.0-rc1-e3-los_afe0c+-00002-g25379c0-dirty #1
+> Hardware name: Amstrad E3 (Delta)
+> task: c1836000 ti: c1838000 task.ti: c1838000
+> PC is at irq_gc_mask_set_bit+0x1c/0x60
+> LR is at __irq_do_set_handler+0x118/0x15c
+> pc : [<c004848c>]    lr : [<c0047d4c>]    psr: 600000d3
+> sp : c1839c90  ip : c1862c64  fp : c1839c9c
+> r10: 00000000  r9 : c0411950  r8 : c0411bbc
+> r7 : 00000000  r6 : c185c310  r5 : c00444e8  r4 : c185c300
+> r3 : c1854b50  r2 : 00000000  r1 : 00000000  r0 : c185c310
+> Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 0000317f  Table: 10004000  DAC: 00000057
+> Process swapper (pid: 1, stack limit = 0xc1838190)
+> Stack: (0xc1839c90 to 0xc183a000)
 >
-Something which loses context in low power states can't be
-called "always-on"
-
-Also if the clock-soucre can't tick in the low power states
-then that device shouldn't be used as a clock-source.
-
-> CC: Arnd Bergmann <arnd@arndb.de>
-> Cc: John Stultz <john.stultz@linaro.org>
-> Cc: Felipe Balbi <balbi@ti.com>
+> [...]
+>
+> Backtrace:
+> [<c0048470>] (irq_gc_mask_set_bit) from [<c0047d4c>] (__irq_do_set_handler+0x118/0x15c)
+> [<c0047c34>] (__irq_do_set_handler) from [<c0047dd4>] (__irq_set_handler+0x44/0x5c)
+>   r6:00000000 r5:c00444e8 r4:c185c300
+> [<c0047d90>] (__irq_set_handler) from [<c0047e1c>] (irq_set_chip_and_handler_name+0x30/0x34)
+>   r7:00000050 r6:00000000 r5:c00444e8 r4:00000050
+> [<c0047dec>] (irq_set_chip_and_handler_name) from [<c01b345c>] (gpiochip_irq_map+0x3c/0x8c)
+>   r7:00000050 r6:00000000 r5:00000050 r4:c1862c64
+> [<c01b3420>] (gpiochip_irq_map) from [<c0049670>] (irq_domain_associate+0x7c/0x1c4)
+>   r5:c185c310 r4:c185cb00
+> [<c00495f4>] (irq_domain_associate) from [<c0049894>] (irq_domain_add_simple+0x98/0xc0)
+>   r8:c0411bbc r7:c185cb00 r6:00000050 r5:00000010 r4:00000001
+> [<c00497fc>] (irq_domain_add_simple) from [<c01b3328>] (_gpiochip_irqchip_add+0x64/0x10c)
+>   r7:c1862c64 r6:c0419280 r5:c1862c64 r4:c1854b50
+> [<c01b32c4>] (_gpiochip_irqchip_add) from [<c01b79f4>] (omap_gpio_probe+0x2fc/0x63c)
+>   r5:c1854b50 r4:c1862c10
+> [<c01b76f8>] (omap_gpio_probe) from [<c01fcf58>] (platform_drv_probe+0x2c/0x64)
+>   r10:00000000 r9:c03e45e8 r8:00000000 r7:c0419294 r6:c0411984 r5:c0419294
+>   r4:c0411950
+> [<c01fcf2c>] (platform_drv_probe) from [<c01fb668>] (really_probe+0x160/0x29c)
+>
+> Hence, fix it by remove obsolete callbacks assignment. After this
+> change 	omap_gpio_mask_irq()/omap_gpio_unmask_irq() will be used
+> for MPUIO IRQs masking, but this now happens anyway from
+> omap_gpio_irq_startup/shutdown().
+>
 > Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Fixes: commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts")
+> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 > ---
-> Changes in v2:
->   - suspend/resume simplified: nothing is stored any more and
->     ARM GT just re-enabled
-> Link on v1:
->   https://lkml.org/lkml/2015/11/13/456
->
->   drivers/clocksource/arm_global_timer.c | 16 ++++++++++++++++
->   1 file changed, 16 insertions(+)
->
-> diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
-> index a2cb6fa..867e546 100644
-> --- a/drivers/clocksource/arm_global_timer.c
-> +++ b/drivers/clocksource/arm_global_timer.c
-> @@ -51,6 +51,7 @@ static void __iomem *gt_base;
->   static unsigned long gt_clk_rate;
->   static int gt_ppi;
->   static struct clock_event_device __percpu *gt_evt;
-> +static bool gt_always_on;
->
->   /*
->    * To get the value from the Global Timer Counter register proceed as follows:
-> @@ -168,6 +169,9 @@ static int gt_clockevents_init(struct clock_event_device *clk)
->   {
->   	int cpu = smp_processor_id();
->
-> +	if (!gt_always_on)
-> +		clk->features |= CLOCK_EVT_FEAT_C3STOP;
-> +
->   	clk->name = "arm_global_timer";
->   	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
->   		CLOCK_EVT_FEAT_PERCPU;
-> @@ -195,12 +199,19 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
->   	return gt_counter_read();
->   }
->
-> +static void gt_resume(struct clocksource *cs)
-> +{
-> +	/* re-enable timer on resume */
-> +	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
-> +}
-> +
->   static struct clocksource gt_clocksource = {
->   	.name	= "arm_global_timer",
->   	.rating	= 300,
->   	.read	= gt_clocksource_read,
->   	.mask	= CLOCKSOURCE_MASK(64),
->   	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
-> +	.resume = gt_resume,
->   };
->
->   #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
-> @@ -218,6 +229,9 @@ static void __init gt_clocksource_init(void)
->   	/* enables timer on all the cores */
->   	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
->
-> +	if (gt_always_on)
-> +		gt_clocksource.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
-> +
->   #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
->   	sched_clock_register(gt_sched_clock_read, 64, gt_clk_rate);
->   #endif
-> @@ -289,6 +303,8 @@ static void __init global_timer_of_register(struct device_node *np)
->   		goto out_clk;
->   	}
->
-> +	gt_always_on = of_property_read_bool(np, "always-on");
-> +
->   	err = request_percpu_irq(gt_ppi, gt_clockevent_interrupt,
->   				 "gt", gt_evt);
->   	if (err) {
->
-Am really confused with this patch. Because 'C3STOP' is a clock-event
-flag which we use for cases where we have back-up broadcast timer which
-continue to tick in low power states.
-
-If the ARM global timer is considered as that device which actually
-doesn't tick then we are doomed. Clocksource device must be *CONTINUOUS*
-and if it is not then its not a viable device to be used as clock-source.
-
-May be am missing the context but this whole patch doesn't make sense
-to me.
-
-Regards,
-Santosh
+Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
