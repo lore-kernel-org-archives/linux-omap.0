@@ -1,108 +1,112 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2] clocksource: arm_global_timer: fix suspend resume
-Date: Fri, 20 Nov 2015 15:57:41 +0200
-Message-ID: <1448027861-21472-1-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH v2] PCI: dra7xx: mark dra7xx_pcie_msi irq as IRQF_NO_THREAD
+Date: Fri, 20 Nov 2015 15:59:26 +0200
+Message-ID: <1448027966-21610-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: tony@atomide.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-Now the System stall is observed on TI AM437x based board
-(am437x-gp-evm) during resuming from System suspend when ARM Global
-timer is selected as clocksource device - SysRq are working, but
-nothing else. The reason of stall is that ARM Global timer loses its
-contexts.
+On -RT, TI DRA7 PCIe driver always produces below backtrace when the
+first PCI interrupt is triggered:
 
-The reason of stall is that ARM Global timer loses its contexts during
-System suspend:
-   GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
-   GT_COUNTERx = 0
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 82 at kernel/irq/handle.c:150 handle_irq_event_percpu+0x14c/0x174()
+irq 460 handler irq_default_primary_handler+0x0/0x14 enabled interrupts
+Modules linked in: ahci_platform(+) ti_vip(+) libahci_platform xhci_pci(+) c_can_platform(+)
+libahci xhci_hcd ti_vpe c_can libata v4l2_mem2mem can_dev gpio_keys leds_gpio
+snd_soc_simple_card usbcore spi_ti_qspi videobuf2_core extcon_usb_gpio omap_wdt
+ti_vpdma videobuf2_dma_contig ti_soc_thermal videobuf2_memops dwc3_omap extcon
+rtc_omap ov1063x v4l2_common videodev media snd_soc_tlv320aic3x omap_rng rng_core omap_remoteproc
+CPU: 1 PID: 82 Comm: irq/26-dra7-pci Not tainted 4.1.10-rt10-02638-g6486d7e-dirty #1
+Hardware name: Generic DRA74X (Flattened Device Tree)
+Backtrace:
+[<c0013060>] (dump_backtrace) from [<c0013280>] (show_stack+0x18/0x1c)
+ r7:c07acca0 r6:00000000 r5:c09034e4 r4:00000000
+[<c0013268>] (show_stack) from [<c061ef14>] (dump_stack+0x90/0xac)
+[<c061ee84>] (dump_stack) from [<c00436e4>] (warn_slowpath_common+0x7c/0xb8)
+ r7:c07acca0 r6:00000096 r5:00000009 r4:ee4d3e38
+[<c0043668>] (warn_slowpath_common) from [<c0043758>] (warn_slowpath_fmt+0x38/0x40)
+ r8:ee3fcc00 r7:000001cc r6:00000000 r5:00000002 r4:c07acc78
+[<c0043724>] (warn_slowpath_fmt) from [<c0085fd0>] (handle_irq_event_percpu+0x14c/0x174)
+ r3:000001cc r2:c07acc78
+ r4:ecfcdd80
+[<c0085e84>] (handle_irq_event_percpu) from [<c008607c>] (handle_irq_event+0x84/0xb8)
+ r10:00000001 r9:ee4b59c0 r8:ee1d0900 r7:00000001 r6:00000000 r5:ecfcdd80
+ r4:ee3fcc00
+[<c0085ff8>] (handle_irq_event) from [<c0089240>] (handle_simple_irq+0x90/0x118)
+ r5:ee4a9020 r4:ee3fcc00
+[<c00891b0>] (handle_simple_irq) from [<c0085514>] (generic_handle_irq+0x30/0x44)
+ r5:ee4a9020 r4:000001cc
+[<c00854e4>] (generic_handle_irq) from [<c034a7d4>] (dra7xx_pcie_msi_irq_handler+0x7c/0x8c)
+ r5:ee4a9020 r4:00000001
+[<c034a758>] (dra7xx_pcie_msi_irq_handler) from [<c0086f08>] (irq_forced_thread_fn+0x28/0x5c)
+ r5:ee1d0900 r4:ee4b59c0
+[<c0086ee0>] (irq_forced_thread_fn) from [<c00871dc>] (irq_thread+0x128/0x204)
+ r7:00000001 r6:00000000 r5:ee4d2000 r4:ee4b59e4
+[<c00870b4>] (irq_thread) from [<c005e2fc>] (kthread+0xd4/0xec)
+ r10:00000000 r9:00000000 r8:00000000 r7:c00870b4 r6:ee4b59c0 r5:ee4b5a00
+ r4:00000000
+[<c005e228>] (kthread) from [<c000faa8>] (ret_from_fork+0x14/0x2c)
+ r7:00000000 r6:00000000 r5:c005e228 r4:ee4b5a00
+---[ end trace 0000000000000002 ]---
 
-Hence, update ARM Global timer driver to reflect above behaviour
-- re-enable ARM Global timer on resume GT_CONTROL.TIMER_ENABLE = 1
-- ensure clocksource and clockevent devices have coresponding flags
-  (CLOCK_SOURCE_SUSPEND_NONSTOP and CLOCK_EVT_FEAT_C3STOP) set
-  depending on presence of "always-on" DT property.
+This backtrace is triggered because dra7xx_pcie_msi_irq_handler()
+forced to be threaded by default on -RT but, in the same time, it's
+IRQ dispatcher and calls generic_handle_irq(), which leads to
+handle_simple_irq() call. The handle_simple_irq() expected to be
+called with IRQ disabled.
 
-CC: Arnd Bergmann <arnd@arndb.de>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>
+The same issue will also happen if kernel will boot with "threadirqs"
+cmdline parameter (CONFIG_IRQ_FORCED_THREADING).
+
+As discussed in [1], the current DRA7 PCIe hw configuration supports
+32 interrupts, which cannot change because it's hardwired in silicon,
+this is a single status read and assuming that only a few (most of the
+time it will be exactly ONE) of those interrupts are pending at the
+same time is pretty much a sane assumption. And recommended fix for
+this issue is to request dra7xx_pcie_msi IRQ with IRQF_NO_THREAD flag.
+
+[1] https://lkml.org/lkml/2015/11/3/660
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
 Changes in v2:
- - suspend/resume simplified: nothing is stored any more and
-   ARM GT just re-enabled
+- comment in code truncated
 Link on v1:
- https://lkml.org/lkml/2015/11/13/456
+ https://lkml.org/lkml/2015/11/5/593
+ drivers/pci/host/pci-dra7xx.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
- drivers/clocksource/arm_global_timer.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
-
-diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
-index a2cb6fa..867e546 100644
---- a/drivers/clocksource/arm_global_timer.c
-+++ b/drivers/clocksource/arm_global_timer.c
-@@ -51,6 +51,7 @@ static void __iomem *gt_base;
- static unsigned long gt_clk_rate;
- static int gt_ppi;
- static struct clock_event_device __percpu *gt_evt;
-+static bool gt_always_on;
- 
- /*
-  * To get the value from the Global Timer Counter register proceed as follows:
-@@ -168,6 +169,9 @@ static int gt_clockevents_init(struct clock_event_device *clk)
- {
- 	int cpu = smp_processor_id();
- 
-+	if (!gt_always_on)
-+		clk->features |= CLOCK_EVT_FEAT_C3STOP;
-+
- 	clk->name = "arm_global_timer";
- 	clk->features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT |
- 		CLOCK_EVT_FEAT_PERCPU;
-@@ -195,12 +199,19 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
- 	return gt_counter_read();
- }
- 
-+static void gt_resume(struct clocksource *cs)
-+{
-+	/* re-enable timer on resume */
-+	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
-+}
-+
- static struct clocksource gt_clocksource = {
- 	.name	= "arm_global_timer",
- 	.rating	= 300,
- 	.read	= gt_clocksource_read,
- 	.mask	= CLOCKSOURCE_MASK(64),
- 	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
-+	.resume = gt_resume,
- };
- 
- #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
-@@ -218,6 +229,9 @@ static void __init gt_clocksource_init(void)
- 	/* enables timer on all the cores */
- 	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
- 
-+	if (gt_always_on)
-+		gt_clocksource.flags |= CLOCK_SOURCE_SUSPEND_NONSTOP;
-+
- #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
- 	sched_clock_register(gt_sched_clock_read, 64, gt_clk_rate);
- #endif
-@@ -289,6 +303,8 @@ static void __init global_timer_of_register(struct device_node *np)
- 		goto out_clk;
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 8c36880..0415192 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -301,8 +301,19 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+ 		return -EINVAL;
  	}
  
-+	gt_always_on = of_property_read_bool(np, "always-on");
-+
- 	err = request_percpu_irq(gt_ppi, gt_clockevent_interrupt,
- 				 "gt", gt_evt);
- 	if (err) {
++	/*
++	 * Mark dra7xx_pcie_msi IRQ as IRQF_NO_THREAD
++	 * On -RT and if kernel is booting with "threadirqs" cmd line parameter
++	 * the dra7xx_pcie_msi_irq_handler() will be forced threaded but,
++	 * in the same time, it's IRQ dispatcher and calls generic_handle_irq(),
++	 * which, in turn, will be resolved to handle_simple_irq() call.
++	 * The handle_simple_irq() expected to be called with IRQ disabled, as
++	 * result kernle will display warning:
++	 * "irq XXX handler YYY+0x0/0x14 enabled interrupts".
++	 */
+ 	ret = devm_request_irq(&pdev->dev, pp->irq,
+-			       dra7xx_pcie_msi_irq_handler, IRQF_SHARED,
++			       dra7xx_pcie_msi_irq_handler,
++			       IRQF_SHARED | IRQF_NO_THREAD,
+ 			       "dra7-pcie-msi",	pp);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to request irq\n");
 -- 
 2.6.3
