@@ -1,41 +1,56 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: PCIe regression with DRA7xx in 4.4-rc1
-Date: Tue, 24 Nov 2015 17:31:07 +0530
-Message-ID: <56545183.8000507@ti.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: PCIe regression with DRA7xx in 4.4-rc1
+Date: Tue, 24 Nov 2015 12:08:17 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E162C92FB@lhreml503-mbs>
+References: <56545183.8000507@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <56545183.8000507@ti.com>
+Content-Language: en-US
 Sender: linux-pci-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, james.morse@arm.com, gabriel.fernandez@st.com, Minghuan.Lian@freescale.com, wangzhou1@hisilicon.com, gabriele.paoloni@huawei.com, arnd@arndb.de, bhelgaas@google.com, pratyush.anand@gmail.com, "Nori, Sekhar" <nsekhar@ti.com>, jingoohan1@gmail.com, linux-arm-kernel@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "james.morse@arm.com" <james.morse@arm.com>, "gabriel.fernandez@st.com" <gabriel.fernandez@st.com>, "Minghuan.Lian@freescale.com" <Minghuan.Lian@freescale.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "arnd@arndb.de" <arnd@arndb.de>, "bhelgaas@google.com" <bhelgaas@google.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, "Nori, Sekhar" <nsekhar@ti.com>, "jingoohan1@gmail.com" <jingoohan1@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-I'm seeing a regression with <d1b9cf31252e905ad563b9e863fd4470f6c3dd1c>("PCI:
-designware: Make driver arch-agnostic").
-
-Logs using a SATA PCIe card [1]. The PCIe card enumerates fine but after that I
-observe "ata3.00: qc timeout (cmd 0xec), ata3.00: failed to IDENTIFY (I/O
-error, err_mask=0x4)"
-
-Logs using a Ethenet PCIe card [2]. Again here the PCIe card enumerates fine
-but when I give ifconfig up, it fails.
-
-If I just revert commit <d1b9cf31252e905ad563b9e863fd4470f6c3dd1c>, the PCIe
-cards starts to work fine again
-
-Logs using a SATA PCIe card [3]. Here the KINGSTON SSD gets detected fine.
-Logs using a Ethernet PCIe card [4]. I'm able to do ping tests now.
-
-Actually I'm not able to find any obvious problems with the patch and the irq
-number and the memory resource also looks fine. Any idea what could be the problem?
-
-[1] -> http://pastebin.ubuntu.com/13491456/
-[2] -> http://pastebin.ubuntu.com/13491526/
-
-[3] -> http://pastebin.ubuntu.com/13491658/
-[4] -> http://pastebin.ubuntu.com/13491593/
-
-Thanks
-Kishon
+SGkgS2lzaG9uDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogS2lzaG9u
+IFZpamF5IEFicmFoYW0gSSBbbWFpbHRvOmtpc2hvbkB0aS5jb21dDQo+IFNlbnQ6IDI0IE5vdmVt
+YmVyIDIwMTUgMTI6MDENCj4gVG86IGxpbnV4LXBjaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtl
+cm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBvbWFwQHZnZXIua2VybmVsLm9yZzsgamFt
+ZXMubW9yc2VAYXJtLmNvbTsgZ2FicmllbC5mZXJuYW5kZXpAc3QuY29tOw0KPiBNaW5naHVhbi5M
+aWFuQGZyZWVzY2FsZS5jb207IFdhbmd6aG91IChCKTsgR2FicmllbGUgUGFvbG9uaTsgYXJuZEBh
+cm5kYi5kZTsNCj4gYmhlbGdhYXNAZ29vZ2xlLmNvbTsgcHJhdHl1c2guYW5hbmRAZ21haWwuY29t
+OyBOb3JpLCBTZWtoYXI7DQo+IGppbmdvb2hhbjFAZ21haWwuY29tOyBsaW51eC1hcm0ta2VybmVs
+QGxpc3RzLmluZnJhZGVhZC5vcmcNCj4gU3ViamVjdDogUENJZSByZWdyZXNzaW9uIHdpdGggRFJB
+N3h4IGluIDQuNC1yYzENCj4gDQo+IEhpLA0KPiANCj4gSSdtIHNlZWluZyBhIHJlZ3Jlc3Npb24g
+d2l0aCA8ZDFiOWNmMzEyNTJlOTA1YWQ1NjNiOWU4NjNmZDQ0NzBmNmMzZGQxYz4oIlBDSToNCj4g
+ZGVzaWdud2FyZTogTWFrZSBkcml2ZXIgYXJjaC1hZ25vc3RpYyIpLg0KPiANCj4gTG9ncyB1c2lu
+ZyBhIFNBVEEgUENJZSBjYXJkIFsxXS4gVGhlIFBDSWUgY2FyZCBlbnVtZXJhdGVzIGZpbmUgYnV0
+IGFmdGVyIHRoYXQNCj4gSQ0KPiBvYnNlcnZlICJhdGEzLjAwOiBxYyB0aW1lb3V0IChjbWQgMHhl
+YyksIGF0YTMuMDA6IGZhaWxlZCB0byBJREVOVElGWSAoSS9PDQo+IGVycm9yLCBlcnJfbWFzaz0w
+eDQpIg0KPiANCg0KTWF5IHRoaXMgYmUgcmVsYXRlZCB0byB0aGUgYnVnIGZsYWdnZWQgaW46DQoN
+CltQQVRDSF0gUENJOiBkZXNpZ253YXJlOiByZW1vdmUgd3JvbmcgaW9fYmFzZSBhc3NpZ25tZW50
+DQoNClsuLi5dDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wY2kvaG9zdC9wY2llLWRlc2lnbndhcmUu
+YyBiL2RyaXZlcnMvcGNpL2hvc3QvcGNpZS1kZXNpZ253YXJlLmMNCmluZGV4IDU0MGYwNzdjMzdl
+YS4uMDJhNzQ1MmJkZjIzIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9wY2kvaG9zdC9wY2llLWRlc2ln
+bndhcmUuYw0KKysrIGIvZHJpdmVycy9wY2kvaG9zdC9wY2llLWRlc2lnbndhcmUuYw0KQEAgLTQ0
+MCw3ICs0NDAsNiBAQCBpbnQgZHdfcGNpZV9ob3N0X2luaXQoc3RydWN0IHBjaWVfcG9ydCAqcHAp
+DQogCQkJCQkgcmV0LCBwcC0+aW8pOw0KIAkJCQljb250aW51ZTsNCiAJCQl9DQotCQkJcHAtPmlv
+X2Jhc2UgPSBwcC0+aW8tPnN0YXJ0Ow0KIAkJCWJyZWFrOw0KIAkJY2FzZSBJT1JFU09VUkNFX01F
+TToNCiAJCQlwcC0+bWVtID0gd2luLT5yZXM7DQotLSANCjEuNy45LjUNClsuLi5dDQoNCkNhbiB5
+b3UgdHJ5IHRvIHNlZSBpZiBhcHBseWluZyB0aGUgcGF0Y2ggYWJvdmUgc29sdmVzIHRoZSBpc3N1
+ZT8NCg0KVGhhbmtzDQoNCkdhYg0KDQo+IExvZ3MgdXNpbmcgYSBFdGhlbmV0IFBDSWUgY2FyZCBb
+Ml0uIEFnYWluIGhlcmUgdGhlIFBDSWUgY2FyZCBlbnVtZXJhdGVzIGZpbmUNCj4gYnV0IHdoZW4g
+SSBnaXZlIGlmY29uZmlnIHVwLCBpdCBmYWlscy4NCj4gDQo+IElmIEkganVzdCByZXZlcnQgY29t
+bWl0IDxkMWI5Y2YzMTI1MmU5MDVhZDU2M2I5ZTg2M2ZkNDQ3MGY2YzNkZDFjPiwgdGhlIFBDSWUN
+Cj4gY2FyZHMgc3RhcnRzIHRvIHdvcmsgZmluZSBhZ2Fpbg0KPiANCj4gTG9ncyB1c2luZyBhIFNB
+VEEgUENJZSBjYXJkIFszXS4gSGVyZSB0aGUgS0lOR1NUT04gU1NEIGdldHMgZGV0ZWN0ZWQgZmlu
+ZS4NCj4gTG9ncyB1c2luZyBhIEV0aGVybmV0IFBDSWUgY2FyZCBbNF0uIEknbSBhYmxlIHRvIGRv
+IHBpbmcgdGVzdHMgbm93Lg0KPiANCj4gQWN0dWFsbHkgSSdtIG5vdCBhYmxlIHRvIGZpbmQgYW55
+IG9idmlvdXMgcHJvYmxlbXMgd2l0aCB0aGUgcGF0Y2ggYW5kIHRoZSBpcnENCj4gbnVtYmVyIGFu
+ZCB0aGUgbWVtb3J5IHJlc291cmNlIGFsc28gbG9va3MgZmluZS4gQW55IGlkZWEgd2hhdCBjb3Vs
+ZCBiZSB0aGUNCj4gcHJvYmxlbT8NCj4gDQo+IFsxXSAtPiBodHRwOi8vcGFzdGViaW4udWJ1bnR1
+LmNvbS8xMzQ5MTQ1Ni8NCj4gWzJdIC0+IGh0dHA6Ly9wYXN0ZWJpbi51YnVudHUuY29tLzEzNDkx
+NTI2Lw0KPiANCj4gWzNdIC0+IGh0dHA6Ly9wYXN0ZWJpbi51YnVudHUuY29tLzEzNDkxNjU4Lw0K
+PiBbNF0gLT4gaHR0cDovL3Bhc3RlYmluLnVidW50dS5jb20vMTM0OTE1OTMvDQo+IA0KPiBUaGFu
+a3MNCj4gS2lzaG9uDQo=
