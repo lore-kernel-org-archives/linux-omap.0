@@ -1,40 +1,48 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: drop locking code from mux/divider drivers
-Date: Tue, 24 Nov 2015 11:37:29 +0200
-Message-ID: <56542FD9.9080005@ti.com>
-References: <1443727237-21809-1-git-send-email-grygorii.strashko@ti.com>
- <562AA243.5010504@ti.com>
+Subject: Re: [PATCH v2 2/4] clk: ti816x: Add missing dmtimer clkdev entries
+Date: Tue, 24 Nov 2015 11:37:01 +0200
+Message-ID: <56542FBD.8090404@ti.com>
+References: <56461006.5080309@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <562AA243.5010504@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Michael Turquette <mturquette@baylibre.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56461006.5080309@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-clk@vger.kernel.org, fisaksen@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-On 10/24/2015 12:10 AM, Grygorii Strashko wrote:
-> On 10/01/2015 10:20 PM, Grygorii Strashko wrote:
->> TI's mux and divider clock drivers do not require locking and they do
->> not initialize internal spinlocks. This code was occasionally
->> copy-posted from generic mux/divider drivers. So remove it.
->>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Sekhar Nori <nsekhar@ti.com>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
+On 11/13/2015 06:29 PM, Neil Armstrong wrote:
+> Add missing clkdev dmtimer related entries for dm816x.
+> 32Khz and ext sources were missing.
 >
-> Gentle ping.
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+
+Your own sign-off should be at the top of the list, fixed this locally 
+myself.
 
 Queued for 4.4-rc-fixes, thanks.
 
 -Tero
 
+> ---
+>   drivers/clk/ti/clk-816x.c | 2 ++
+>   1 file changed, 2 insertions(+)
 >
->>   drivers/clk/ti/divider.c | 16 +++-------------
->>   drivers/clk/ti/mux.c     | 15 +++------------
->>   2 files changed, 6 insertions(+), 25 deletions(-)
->>
+> diff --git a/drivers/clk/ti/clk-816x.c b/drivers/clk/ti/clk-816x.c
+> index 1dfad0c..2a5d84f 100644
+> --- a/drivers/clk/ti/clk-816x.c
+> +++ b/drivers/clk/ti/clk-816x.c
+> @@ -20,6 +20,8 @@ static struct ti_dt_clk dm816x_clks[] = {
+>   	DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
+>   	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
+>   	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
+> +	DT_CLK(NULL, "timer_32k_ck", "sysclk18_ck"),
+> +	DT_CLK(NULL, "timer_ext_ck", "tclkin_ck"),
+>   	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
+>   	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
+>   	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
 >
-
