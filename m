@@ -1,42 +1,62 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: DISPC: Remove boolean comparisons
-Date: Tue, 24 Nov 2015 13:35:41 +0200
-Message-ID: <56544B8D.3050700@ti.com>
-References: <1444912178-15989-1-git-send-email-luisbg@osg.samsung.com>
+Subject: Re: [PATCH 1/3] video: omapdss: delete unneeded of_node_put
+Date: Tue, 24 Nov 2015 13:37:58 +0200
+Message-ID: <56544C16.2070209@ti.com>
+References: <1444682596-3065-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1444682596-3065-2-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="MiktKm7JvouoUIqnsPTKfD4PL1pKElAjB"
+	boundary="i65rJa85XKJ06HIM1LqiHGoSgpovkkEQc"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444912178-15989-1-git-send-email-luisbg@osg.samsung.com>
+In-Reply-To: <1444682596-3065-2-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Luis de Bethencourt <luisbg@osg.samsung.com>, linux-kernel@vger.kernel.org
-Cc: plagnioj@jcrosoft.com, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: kernel-janitors@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Andrew Lunn <andrew@lunn.ch>, Bjorn Helgaas <bhelgaas@google.com>, Jason Cooper <jason@lakedaemon.net>
 List-Id: linux-omap@vger.kernel.org
 
---MiktKm7JvouoUIqnsPTKfD4PL1pKElAjB
+--i65rJa85XKJ06HIM1LqiHGoSgpovkkEQc
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
 
 
-On 15/10/15 15:29, Luis de Bethencourt wrote:
-> Boolean tests do not need explicit comparison to true or false.
+On 12/10/15 23:43, Julia Lawall wrote:
+> Device node iterators perform an of_node_put on each iteration, so putt=
+ing
+> an of_node_put before a continue results in a double put.
 >=20
-> Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+> A simplified version of the semantic match that finds this problem is a=
+s
+> follows (http://coccinelle.lip6.fr):
+>=20
+> // <smpl>
+> @@
+> expression root,e;
+> local idexpression child;
+> iterator i;
+> @@
+>=20
+>  i(..., child, ...) {
+>    ... when !=3D of_node_get(child)
+> *  of_node_put(child);
+>    ...
+> *  continue;
+> }
+> // </smpl>
+>=20
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>=20
 > ---
->  drivers/video/fbdev/omap2/dss/dispc-compat.c | 6 +++---
->  drivers/video/fbdev/omap2/dss/dispc.c        | 6 +++---
->  drivers/video/fbdev/omap2/dss/manager.c      | 2 +-
->  3 files changed, 7 insertions(+), 7 deletions(-)
->=20
+>  drivers/video/fbdev/omap2/dss/omapdss-boot-init.c |    4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
 
 Thanks, queued for 4.5.
 
  Tomi
 
 
---MiktKm7JvouoUIqnsPTKfD4PL1pKElAjB
+--i65rJa85XKJ06HIM1LqiHGoSgpovkkEQc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -44,19 +64,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJWVEuNAAoJEPo9qoy8lh71l94P/1UwJOyozQgLPBK0585V34+d
-W5nJ9efwjEANvRZmDOexmbz+66QZj/20x7opHa7dv5Se1+xGdPTzWxiAol7Xo7f/
-+CFWrJz1d4KF9rzlK0njgV+S2fVFCDnEolWcq8Zki8tNiUP+A9KNpxi/uaolGg0Q
-aua8Ny/Fea3U/jwAHQqJTkFTJoKwYdxpQ416AtlAdj+qQJSbQ15LDAyPXYBx/IBa
-9342CVY8F0Bh1ajXWRuDVp5AOy9NutbrZAMf+OR4u6tEgwqsqGl0o1oLG1h1tyGa
-BI848UTfbsh/EYq9hQGUwrlGqowFUBUIN+wl/+GwRrBQzR/d6EFfl+CNzINQpCd/
-ArIpSBuCuYvJCCQYGvqdGL7peYPZvnxzld7iTMwAut7TIEntQjgncXyPDMM8P4r2
-rAc1R3jDdBRv0TINVUlT5fIWFgSLcCDwfoaxfNQ4ptt3coNAa7pg9NZjPHxwz5HS
-U8Df6OmK5BoAt5u73Ti2LinQL5cNq1ckDxhl1T86k11kASkKf0uB3ua8+0MmKr4j
-qxVO1mG40vD6jn9J/VMnop/y+cD+MFIIaswYcctTrJk/CItjilSaFHVZhOdRVgbn
-ve30d7bqX27/I5ZrPcVuiHD+8Mi1gwPiJmusVv58TanujB2eCUiAHsWusyaPXs5y
-1MqkK17tHtmbCq2QAthp
-=KYjM
+iQIcBAEBCAAGBQJWVEwWAAoJEPo9qoy8lh71Al4P/3UXuqJKtWgp6ZbgHMtelyM9
+ABQ3xTdQ9mkANhrwktBJje3OToxEHUyA+2ZFb5HXOwEJCVWVFVmN8GhD0k1M5WTQ
+lWil+In5gOQLoQp2qQH+jv8FjtWjh/S0dGisYVl2sdpCm/aKLam93wL4MVzU7Ube
+hi2zKqbO4vlpVR+4jxe63aJW2CZwirYES8oRXVPwxRJvEEke96T3m5pHq5yl4y1G
+179MY9Bq75zOCYJrDVRel0WO16G394fvmASqaIkoEpU+CVki6j0dk8JAoxRFHlCM
+OW61Xw49DzU244JN2hOcAi4VlzIUbU8r7VXaZnYl9f7Be8j7bi7mPK0gJcoC5IDZ
+016fgWt8lFM+gqXvj2Lk/XJaYy4SLh9XeV11CL6u8eF4zYQOVx0uiqMvKB0P0OlL
+pSIAYjyg5hHSyDuguaTtBotlf9G1bJQpSUmY2xvzNCEB6gm81nRrvXz/DJoWYfpd
+4EPOaxyfFVyTvQCixSdpEemRct/FIyoEkGznIF1LllQRbrTmArrplhdD0gxEvTwJ
+JVPZDSJICCh5PbQ1YVJmrRkJ9qd/xJlBfAFTBOhguCSF0vXVwF8AQjFhtdzV40uu
+nRJryp4jjM2ZBHg5DTVka8N4J350KkRCDPM25t4ci9OPm4eeNofqz0kODXl9wf8w
+SZg/yTXh0kjgaTy/7cJL
+=W9Et
 -----END PGP SIGNATURE-----
 
---MiktKm7JvouoUIqnsPTKfD4PL1pKElAjB--
+--i65rJa85XKJ06HIM1LqiHGoSgpovkkEQc--
