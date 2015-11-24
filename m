@@ -1,7 +1,7 @@
 From: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 05/14] ARM: am437x: cm-t43: dts: add NAND support
-Date: Tue, 24 Nov 2015 15:19:06 +0200
-Message-ID: <1448371155-17307-6-git-send-email-nikita@compulab.co.il>
+Subject: [PATCH 06/14] ARM: am437x: cm-t43: dts: add dual emac support
+Date: Tue, 24 Nov 2015 15:19:07 +0200
+Message-ID: <1448371155-17307-7-git-send-email-nikita@compulab.co.il>
 References: <1448371155-17307-1-git-send-email-nikita@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1448371155-17307-1-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -10,9 +10,10 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-One of the CompuLab cm-t43 configurations comes with on-board NAND flash as
-primary storage. It is partitioned into kernel, dtb, and rootfs partitions.
-Add it to the device tree.
+CM-T43 comes with 2 ethernet ports connected to the cpsw subsystem, which
+has 2 modes of operation: switch mode and dual emac mode.
+Add the relevant muxing and set it up to work in dual emac mode by
+default.
 
 Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -20,103 +21,91 @@ Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 ---
- arch/arm/boot/dts/am437x-cm-t43.dts | 78 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+ arch/arm/boot/dts/am437x-cm-t43.dts | 66 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
-index 0761383..370e4e8 100644
+index 370e4e8..856b2ce 100644
 --- a/arch/arm/boot/dts/am437x-cm-t43.dts
 +++ b/arch/arm/boot/dts/am437x-cm-t43.dts
-@@ -54,6 +54,80 @@
+@@ -73,6 +73,47 @@
+ 			AM4372_IOPAD(0x89c, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
  		>;
  	};
- 
-+	nand_flash_x8: nand_flash_x8 {
++
++	cpsw_default: cpsw_default {
 +		pinctrl-single,pins = <
-+			AM4372_IOPAD(0x800, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x804, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x808, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x80c, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x810, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x814, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x818, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x81c, PIN_INPUT | PULL_DISABLE | MUX_MODE0)
-+			AM4372_IOPAD(0x870, PIN_INPUT_PULLUP  | MUX_MODE0)
-+			AM4372_IOPAD(0x874, PIN_OUTPUT_PULLUP | MUX_MODE0)
-+			AM4372_IOPAD(0x87c, PIN_OUTPUT_PULLUP | MUX_MODE0)
-+			AM4372_IOPAD(0x898, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-+			AM4372_IOPAD(0x894, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-+			AM4372_IOPAD(0x890, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
-+			AM4372_IOPAD(0x89c, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
++			/* Slave 1 */
++			AM4372_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txen.rgmii1_txen */
++			AM4372_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxdv.rgmii1_rxctl */
++			AM4372_IOPAD(0x91c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd3 */
++			AM4372_IOPAD(0x920, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd2 */
++			AM4372_IOPAD(0x924, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd1.rgmii1_txd1 */
++			AM4372_IOPAD(0x928, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txd0.rgmii1_txd0 */
++			AM4372_IOPAD(0x92c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mii1_txclk.rmii1_tclk */
++			AM4372_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxclk.rmii1_rclk */
++			AM4372_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd3 */
++			AM4372_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd2 */
++			AM4372_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd1.rgmii1_rxd1 */
++			AM4372_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mii1_rxd0.rgmii1_rxd0 */
++			AM4372_IOPAD(0xa74, MUX_MODE3)
++			/* Slave 2 */
++			AM4372_IOPAD(0x840, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a0.txen */
++			AM4372_IOPAD(0x844, PIN_INPUT_PULLDOWN  | MUX_MODE2)	/* gpmc_a1.rxctl */
++			AM4372_IOPAD(0x848, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a2.txd3 */
++			AM4372_IOPAD(0x84c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a3.txd2 */
++			AM4372_IOPAD(0x850, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a4.txd1 */
++			AM4372_IOPAD(0x854, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a5.txd0 */
++			AM4372_IOPAD(0x858, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* gpmc_a6.tclk */
++			AM4372_IOPAD(0x85c, PIN_INPUT_PULLDOWN  | MUX_MODE2)	/* gpmc_a7.rclk */
++			AM4372_IOPAD(0x860, PIN_INPUT_PULLDOWN  | MUX_MODE2)	/* gpmc_a8.rxd3 */
++			AM4372_IOPAD(0x864, PIN_INPUT_PULLDOWN  | MUX_MODE2)	/* gpmc_a9.rxd2 */
++			AM4372_IOPAD(0x868, PIN_INPUT_PULLDOWN  | MUX_MODE2)	/* gpmc_a10.rxd1 */
++			AM4372_IOPAD(0x86c, PIN_INPUT_PULLDOWN  | MUX_MODE2)	/* gpmc_a11.rxd0 */
++			AM4372_IOPAD(0xa38, MUX_MODE7)
 +		>;
 +	};
-+};
 +
-+&gpmc {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&nand_flash_x8>;
-+	ranges = <0 0 0x08000000 0x1000000>;
-+	nand@0,0 {
-+		reg = <0 0 0>;
-+		ti,nand-ecc-opt = "bch8";
-+		ti,elm-id = <&elm>;
-+
-+		nand-bus-width = <8>;
-+		gpmc,device-width = <1>;
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <44>;
-+		gpmc,cs-wr-off-ns = <44>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <34>;
-+		gpmc,adv-wr-off-ns = <44>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <40>;
-+		gpmc,oe-on-ns = <0>;
-+		gpmc,oe-off-ns = <54>;
-+		gpmc,access-ns = <64>;
-+		gpmc,rd-cycle-ns = <82>;
-+		gpmc,wr-cycle-ns = <82>;
-+		gpmc,wait-on-read = "true";
-+		gpmc,wait-on-write = "true";
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+
-+		gpmc,wait-pin = <0>;
-+
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		/* MTD partition table */
-+		partition@0 {
-+			label = "kernel";
-+			reg = <0x0 0x00980000>;
-+		};
-+		partition@980000 {
-+			label = "dtb";
-+			reg = <0x00980000 0x00080000>;
-+		};
-+		partition@a00000 {
-+			label = "rootfs";
-+			reg = <0x00a00000 0x0>;
-+		};
++	davinci_mdio_default: davinci_mdio_default {
++		pinctrl-single,pins = <
++			/* MDIO */
++			AM4372_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
++			AM4372_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
++		>;
 +	};
  };
  
- &i2c0 {
-@@ -187,6 +261,10 @@
+ &gpmc {
+@@ -261,6 +302,31 @@
  	};
  };
  
-+&elm {
++&mac {
++	pinctrl-names = "default";
++	pinctrl-0 = <&cpsw_default>;
++	dual_emac = <1>;
 +	status = "okay";
 +};
 +
- &uart0 {
++&davinci_mdio {
++	pinctrl-names = "default";
++	pinctrl-0 = <&davinci_mdio_default>;
++	status = "okay";
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++	phy-mode = "rgmii-txid";
++	dual_emac_res_vlan = <1>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++	phy-mode = "rgmii-txid";
++	dual_emac_res_vlan = <2>;
++};
++
+ &elm {
  	status = "okay";
  };
 -- 
