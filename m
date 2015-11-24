@@ -1,7 +1,7 @@
 From: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 07/14] ARM: am437x: cm-t43: dts: add USB support
-Date: Tue, 24 Nov 2015 15:19:08 +0200
-Message-ID: <1448371155-17307-8-git-send-email-nikita@compulab.co.il>
+Subject: [PATCH 03/14] ARM: am437x: cm-t43: dts: add PMIC support.
+Date: Tue, 24 Nov 2015 15:19:04 +0200
+Message-ID: <1448371155-17307-4-git-send-email-nikita@compulab.co.il>
 References: <1448371155-17307-1-git-send-email-nikita@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1448371155-17307-1-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -10,8 +10,8 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add USB support for CompuLab sbc-t43 single board computer,
-defaulting to host mode.
+Add PMIC support for CompuLab cm-t43 module. For now we keep all regulators
+enabled until this could be refined with power management support.
 
 Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -19,88 +19,91 @@ Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 ---
- arch/arm/boot/dts/am437x-cm-t43.dts  | 30 ++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am437x-sbc-t43.dts | 22 ++++++++++++++++++++++
- 2 files changed, 52 insertions(+)
+ arch/arm/boot/dts/am437x-cm-t43.dts | 64 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
-index 856b2ce..70d5c20 100644
+index a4cd2b8..7ef3971 100644
 --- a/arch/arm/boot/dts/am437x-cm-t43.dts
 +++ b/arch/arm/boot/dts/am437x-cm-t43.dts
-@@ -327,6 +327,36 @@
- 	dual_emac_res_vlan = <2>;
- };
+@@ -52,6 +52,69 @@
+ 	pinctrl-0 = <&i2c0_pins>;
+ 	clock-frequency = <100000>;
  
-+&dwc3_1 {
-+	status = "okay";
-+};
++	tps65218: tps65218@24 {
++		compatible = "ti,tps65218";
++		reg = <0x24>;
++		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
++		interrupt-parent = <&gic>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
 +
-+&usb2_phy1 {
-+	status = "okay";
-+};
++		dcdc1: regulator-dcdc1 {
++			compatible = "ti,tps65218-dcdc1";
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <912000>;
++			regulator-max-microvolt = <1144000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+&usb1 {
-+	dr_mode = "host";
-+	status = "okay";
-+};
++		dcdc2: regulator-dcdc2 {
++			compatible = "ti,tps65218-dcdc2";
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <912000>;
++			regulator-max-microvolt = <1378000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+&dwc3_2 {
-+	status = "okay";
-+};
++		dcdc3: regulator-dcdc3 {
++			compatible = "ti,tps65218-dcdc3";
++			regulator-name = "vdcdc3";
++			regulator-suspend-enable;
++			regulator-min-microvolt = <1500000>;
++			regulator-max-microvolt = <1500000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+&usb2_phy2 {
-+	status = "okay";
-+};
++		dcdc5: regulator-dcdc5 {
++			compatible = "ti,tps65218-dcdc5";
++			regulator-name = "v1_0bat";
++			regulator-min-microvolt = <1000000>;
++			regulator-max-microvolt = <1000000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+&usb2 {
-+	dr_mode = "host";
-+	status = "okay";
-+	interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>,
-+		     <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>,
-+		     <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
-+	interrupt-names = "peripheral", "host", "otg";
-+};
++		dcdc6: regulator-dcdc6 {
++			compatible = "ti,tps65218-dcdc6";
++			regulator-name = "v1_8bat";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
- &elm {
- 	status = "okay";
- };
-diff --git a/arch/arm/boot/dts/am437x-sbc-t43.dts b/arch/arm/boot/dts/am437x-sbc-t43.dts
-index f3cd76b..5d2919e 100644
---- a/arch/arm/boot/dts/am437x-sbc-t43.dts
-+++ b/arch/arm/boot/dts/am437x-sbc-t43.dts
-@@ -36,6 +36,18 @@
- 			AM4372_IOPAD(0x97c, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE3)  /* uart1_rtsn.i2c2_scl */
- 		>;
- 	};
-+
-+	usb2_phy1_default: usb2_phy1_default {
-+		pinctrl-single,pins = <
-+			AM4372_IOPAD(0xac0, DS0_PULL_UP_DOWN_EN | PIN_INPUT_PULLDOWN | MUX_MODE0)
-+		>;
++		ldo1: regulator-ldo1 {
++			compatible = "ti,tps65218-ldo1";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +	};
 +
-+	usb2_phy2_default: usb2_phy2_default {
-+		pinctrl-single,pins = <
-+			AM4372_IOPAD(0xac4, DS0_PULL_UP_DOWN_EN | PIN_INPUT_PULLDOWN | MUX_MODE0)
-+		>;
-+	};
+ 	eeprom_module: at24@50 {
+ 		compatible = "atmel,24c02";
+ 		reg = <0x50>;
+@@ -88,6 +151,7 @@
  };
  
- &i2c1 {
-@@ -55,3 +67,13 @@
- 	pinctrl-0 = <&uart0_pins_default>;
- };
- 
-+&dwc3_1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb2_phy1_default>;
-+};
-+
-+&dwc3_2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb2_phy2_default>;
-+};
-+
+ &cpu {
++	cpu0-supply = <&dcdc2>;
+ 	operating-points = <1000000 1330000>,
+ 			   <800000 1260000>,
+ 			   <720000 1200000>,
 -- 
 1.9.1
 
