@@ -1,51 +1,40 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ti/fapll: fix wrong do_div() usage
-Date: Tue, 24 Nov 2015 11:35:48 +0200
-Message-ID: <56542F74.3080200@ti.com>
-References: <alpine.LFD.2.20.1511032314240.630@knanqh.ubzr>
+Subject: Re: [PATCH] clk: ti: drop locking code from mux/divider drivers
+Date: Tue, 24 Nov 2015 11:37:29 +0200
+Message-ID: <56542FD9.9080005@ti.com>
+References: <1443727237-21809-1-git-send-email-grygorii.strashko@ti.com>
+ <562AA243.5010504@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.20.1511032314240.630@knanqh.ubzr>
+In-Reply-To: <562AA243.5010504@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>, Michael Turquette <mturquette@baylibre.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Michael Turquette <mturquette@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/04/2015 06:17 AM, Nicolas Pitre wrote:
-> do_div() is meant to be used with an unsigned dividend.
+On 10/24/2015 12:10 AM, Grygorii Strashko wrote:
+> On 10/01/2015 10:20 PM, Grygorii Strashko wrote:
+>> TI's mux and divider clock drivers do not require locking and they do
+>> not initialize internal spinlocks. This code was occasionally
+>> copy-posted from generic mux/divider drivers. So remove it.
+>>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Sekhar Nori <nsekhar@ti.com>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
 >
-> Signed-off-by: Nicolas Pitre <nico@linaro.org>
-
-Fixed Subject locally to format "clk: ti: %s".
+> Gentle ping.
 
 Queued for 4.4-rc-fixes, thanks.
 
 -Tero
 
 >
-> diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
-> index f4b2e9888b..66a0d0ed8b 100644
-> --- a/drivers/clk/ti/fapll.c
-> +++ b/drivers/clk/ti/fapll.c
-> @@ -168,7 +168,7 @@ static unsigned long ti_fapll_recalc_rate(struct clk_hw *hw,
->   {
->   	struct fapll_data *fd = to_fapll(hw);
->   	u32 fapll_n, fapll_p, v;
-> -	long long rate;
-> +	u64 rate;
->
->   	if (ti_fapll_clock_is_bypass(fd))
->   		return parent_rate;
-> @@ -314,7 +314,7 @@ static unsigned long ti_fapll_synth_recalc_rate(struct clk_hw *hw,
->   {
->   	struct fapll_synth *synth = to_synth(hw);
->   	u32 synth_div_m;
-> -	long long rate;
-> +	u64 rate;
->
->   	/* The audio_pll_clk1 is hardwired to produce 32.768KiHz clock */
->   	if (!synth->div)
+>>   drivers/clk/ti/divider.c | 16 +++-------------
+>>   drivers/clk/ti/mux.c     | 15 +++------------
+>>   2 files changed, 6 insertions(+), 25 deletions(-)
+>>
 >
 
