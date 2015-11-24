@@ -1,68 +1,110 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: PCIe regression with DRA7xx in 4.4-rc1
-Date: Tue, 24 Nov 2015 18:29:38 +0530
-Message-ID: <56545F3A.6060808@ti.com>
-References: <56545183.8000507@ti.com> <20151124201411.33463709@xhacker>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151124201411.33463709@xhacker>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jisheng Zhang <jszhang@marvell.com>
-Cc: linux-pci@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, james.morse@arm.com, gabriel.fernandez@st.com, Minghuan.Lian@freescale.com, wangzhou1@hisilicon.com, gabriele.paoloni@huawei.com, arnd@arndb.de, bhelgaas@google.com, pratyush.anand@gmail.com, "Nori, Sekhar" <nsekhar@ti.com>, jingoohan1@gmail.com, linux-arm-kernel@lists.infradead.org
+From: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH 07/14] ARM: am437x: cm-t43: dts: add USB support
+Date: Tue, 24 Nov 2015 15:19:08 +0200
+Message-ID: <1448371155-17307-8-git-send-email-nikita@compulab.co.il>
+References: <1448371155-17307-1-git-send-email-nikita@compulab.co.il>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1448371155-17307-1-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Add USB support for CompuLab sbc-t43 single board computer,
+defaulting to host mode.
 
-On Tuesday 24 November 2015 05:44 PM, Jisheng Zhang wrote:
-> 
-> 
-> On Tue, 24 Nov 2015 17:31:07 +0530
-> Kishon Vijay Abraham I wrote:
-> 
->> Hi,
->>
->> I'm seeing a regression with <d1b9cf31252e905ad563b9e863fd4470f6c3dd1c>("PCI:
->> designware: Make driver arch-agnostic").
->>
->> Logs using a SATA PCIe card [1]. The PCIe card enumerates fine but after that I
->> observe "ata3.00: qc timeout (cmd 0xec), ata3.00: failed to IDENTIFY (I/O
->> error, err_mask=0x4)"
->>
->> Logs using a Ethenet PCIe card [2]. Again here the PCIe card enumerates fine
->> but when I give ifconfig up, it fails.
->>
->> If I just revert commit <d1b9cf31252e905ad563b9e863fd4470f6c3dd1c>, the PCIe
->> cards starts to work fine again
-> 
-> FYI, maybe the patch can fix the regression.
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2015-November/387362.html
+Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+---
+ arch/arm/boot/dts/am437x-cm-t43.dts  | 30 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am437x-sbc-t43.dts | 22 ++++++++++++++++++++++
+ 2 files changed, 52 insertions(+)
 
-yes, it fixed.
+diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
+index 856b2ce..70d5c20 100644
+--- a/arch/arm/boot/dts/am437x-cm-t43.dts
++++ b/arch/arm/boot/dts/am437x-cm-t43.dts
+@@ -327,6 +327,36 @@
+ 	dual_emac_res_vlan = <2>;
+ };
+ 
++&dwc3_1 {
++	status = "okay";
++};
++
++&usb2_phy1 {
++	status = "okay";
++};
++
++&usb1 {
++	dr_mode = "host";
++	status = "okay";
++};
++
++&dwc3_2 {
++	status = "okay";
++};
++
++&usb2_phy2 {
++	status = "okay";
++};
++
++&usb2 {
++	dr_mode = "host";
++	status = "okay";
++	interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>,
++		     <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>,
++		     <GIC_SPI 178 IRQ_TYPE_LEVEL_HIGH>;
++	interrupt-names = "peripheral", "host", "otg";
++};
++
+ &elm {
+ 	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/am437x-sbc-t43.dts b/arch/arm/boot/dts/am437x-sbc-t43.dts
+index f3cd76b..5d2919e 100644
+--- a/arch/arm/boot/dts/am437x-sbc-t43.dts
++++ b/arch/arm/boot/dts/am437x-sbc-t43.dts
+@@ -36,6 +36,18 @@
+ 			AM4372_IOPAD(0x97c, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE3)  /* uart1_rtsn.i2c2_scl */
+ 		>;
+ 	};
++
++	usb2_phy1_default: usb2_phy1_default {
++		pinctrl-single,pins = <
++			AM4372_IOPAD(0xac0, DS0_PULL_UP_DOWN_EN | PIN_INPUT_PULLDOWN | MUX_MODE0)
++		>;
++	};
++
++	usb2_phy2_default: usb2_phy2_default {
++		pinctrl-single,pins = <
++			AM4372_IOPAD(0xac4, DS0_PULL_UP_DOWN_EN | PIN_INPUT_PULLDOWN | MUX_MODE0)
++		>;
++	};
+ };
+ 
+ &i2c1 {
+@@ -55,3 +67,13 @@
+ 	pinctrl-0 = <&uart0_pins_default>;
+ };
+ 
++&dwc3_1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&usb2_phy1_default>;
++};
++
++&dwc3_2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&usb2_phy2_default>;
++};
++
+-- 
+1.9.1
 
-Thanks
-Kishon
-
-> 
->>
->> Logs using a SATA PCIe card [3]. Here the KINGSTON SSD gets detected fine.
->> Logs using a Ethernet PCIe card [4]. I'm able to do ping tests now.
->>
->> Actually I'm not able to find any obvious problems with the patch and the irq
->> number and the memory resource also looks fine. Any idea what could be the problem?
->>
->> [1] -> http://pastebin.ubuntu.com/13491456/
->> [2] -> http://pastebin.ubuntu.com/13491526/
->>
->> [3] -> http://pastebin.ubuntu.com/13491658/
->> [4] -> http://pastebin.ubuntu.com/13491593/
->>
->> Thanks
->> Kishon
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
