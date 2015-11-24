@@ -1,7 +1,7 @@
 From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH v2 5/6] ARM: OMAP2+: dts: cm-t335: add support for network device
-Date: Tue, 24 Nov 2015 16:02:12 +0200
-Message-ID: <1448373733-5839-6-git-send-email-uri.mashiach@compulab.co.il>
+Subject: [PATCH v2 4/6] ARM: OMAP2+: dts: cm-t335: add support for MMC
+Date: Tue, 24 Nov 2015 16:02:11 +0200
+Message-ID: <1448373733-5839-5-git-send-email-uri.mashiach@compulab.co.il>
 References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
  <1448373733-5839-1-git-send-email-uri.mashiach@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -13,12 +13,9 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 
-Add pinmux configurations for RGMII1 based CPSW Ethernet pins and
-MDIO pins:
- - default configuration required for module in active state,
- - sleep configuration required for module in inactive state.
-Add mac node with single slave device. Add nodes for davinci_mdio and
-cpsw_emac0.
+Add pinmux configuration for MMC0 pins.
+Add fixed regulator 'vmmc_fixed'.
+Enable MMC0 in 4-bit mode.
 
 Signed-off-by: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -26,112 +23,64 @@ Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
 v1 -> v2: integrate AM33XX_IOPAD macro in pinmux definitions
 
- arch/arm/boot/dts/am335x-cm-t335.dts | 85 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
+ arch/arm/boot/dts/am335x-cm-t335.dts | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-cm-t335.dts b/arch/arm/boot/dts/am335x-cm-t335.dts
-index 0a20256..9be0bfe 100644
+index 431b6dd..0a20256 100644
 --- a/arch/arm/boot/dts/am335x-cm-t335.dts
 +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
-@@ -114,6 +114,71 @@
+@@ -31,6 +31,14 @@
+ 			linux,default-trigger = "heartbeat";
+ 		};
+ 	};
++
++	/* regulator for mmc */
++	vmmc_fixed: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmc_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
+ };
+ 
+ &am33xx_pinmux {
+@@ -105,6 +113,23 @@
+ 			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
  		>;
  	};
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			/* mmc0_dat3.mmc0_dat3 */
++			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)
++			/* mmc0_dat2.mmc0_dat2 */
++			AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0)
++			/* mmc0_dat1.mmc0_dat1 */
++			AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0)
++			/* mmc0_dat0.mmc0_dat0 */
++			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0)
++			/* mmc0_clk.mmc0_clk */
++			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)
++			/* mmc0_cmd.mmc0_cmd */
++			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)
++		>;
++	};
+ };
  
-+	cpsw_default: cpsw_default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			/* mii1_tx_en.rgmii1_tctl */
-+			AM33XX_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_rxdv.rgmii1_rctl */
-+			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_txd3.rgmii1_td3 */
-+			AM33XX_IOPAD(0x91c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_txd2.rgmii1_td2 */
-+			AM33XX_IOPAD(0x920, PIN_OUTPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_txd1.rgmii1_td1 */
-+			AM33XX_IOPAD(0x924, PIN_OUTPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_txd0.rgmii1_td0 */
-+			AM33XX_IOPAD(0x928, PIN_OUTPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_txclk.rgmii1_tclk */
-+			AM33XX_IOPAD(0x92c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_rxclk.rgmii1_rclk */
-+			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_rxd3.rgmii1_rd3 */
-+			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_rxd2.rgmii1_rd2 */
-+			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_rxd1.rgmii1_rd1 */
-+			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE2)
-+			/* mii1_rxd0.rgmii1_rd0 */
-+			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE2)
-+		>;
-+	};
-+
-+	cpsw_sleep: cpsw_sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			AM33XX_IOPAD(0x914, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x918, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x91c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x920, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x924, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x928, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x930, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x934, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x938, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x940, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* mdio_data.mdio_data */
-+			AM33XX_IOPAD(0x948, PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)
-+			/* mdio_clk.mdio_clk */
-+			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE0)
-+		>;
-+	};
-+
-+	davinci_mdio_sleep: davinci_mdio_sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			AM33XX_IOPAD(0x948, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			AM33XX_IOPAD(0x94c, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
- 	mmc1_pins: pinmux_mmc1_pins {
- 		pinctrl-single,pins = <
- 			/* mmc0_dat3.mmc0_dat3 */
-@@ -229,6 +294,26 @@
+ &uart0 {
+@@ -204,3 +229,11 @@
  	status = "okay";
  };
  
-+&mac {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&cpsw_default>;
-+	pinctrl-1 = <&cpsw_sleep>;
-+	slaves = <1>;
++&mmc1 {
 +	status = "okay";
++	vmmc-supply = <&vmmc_fixed>;
++	bus-width = <4>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
 +};
 +
-+&davinci_mdio {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
-+};
-+
-+&cpsw_emac0 {
-+	phy_id = <&davinci_mdio>, <0>;
-+	phy-mode = "rgmii-txid";
-+};
-+
- &mmc1 {
- 	status = "okay";
- 	vmmc-supply = <&vmmc_fixed>;
 -- 
 2.5.0
 
