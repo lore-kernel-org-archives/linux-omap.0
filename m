@@ -1,48 +1,52 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 2/4] clk: ti816x: Add missing dmtimer clkdev entries
-Date: Tue, 24 Nov 2015 11:37:01 +0200
-Message-ID: <56542FBD.8090404@ti.com>
-References: <56461006.5080309@baylibre.com>
+Subject: [GIT PULL] clk: ti: fixes for 4.4-rc
+Date: Tue, 24 Nov 2015 11:38:37 +0200
+Message-ID: <5654301D.8070007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56461006.5080309@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-clk@vger.kernel.org, fisaksen@baylibre.com
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>, Michael Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/13/2015 06:29 PM, Neil Armstrong wrote:
-> Add missing clkdev dmtimer related entries for dm816x.
-> 32Khz and ext sources were missing.
->
-> Cc: Brian Hutchinson <b.hutchman@gmail.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Hi Michael, Stephen,
 
-Your own sign-off should be at the top of the list, fixed this locally 
-myself.
-
-Queued for 4.4-rc-fixes, thanks.
+Here are some TI clock driver fixes for 4.4-rc.
 
 -Tero
 
-> ---
->   drivers/clk/ti/clk-816x.c | 2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/clk/ti/clk-816x.c b/drivers/clk/ti/clk-816x.c
-> index 1dfad0c..2a5d84f 100644
-> --- a/drivers/clk/ti/clk-816x.c
-> +++ b/drivers/clk/ti/clk-816x.c
-> @@ -20,6 +20,8 @@ static struct ti_dt_clk dm816x_clks[] = {
->   	DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
->   	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
->   	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
-> +	DT_CLK(NULL, "timer_32k_ck", "sysclk18_ck"),
-> +	DT_CLK(NULL, "timer_ext_ck", "tclkin_ck"),
->   	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
->   	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
->   	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
->
+================================================================
+
+The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d7130bec:
+
+   Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
+
+are available in the git repository at:
+
+   https://github.com/t-kristo/linux-pm.git for-4.4-rc/ti-clk-fixes
+
+for you to fetch changes up to 167af5ef2cdba14ff14a13c91e5532ed479083d8:
+
+   clk: ti: drop locking code from mux/divider drivers (2015-11-24 
+11:30:27 +0200)
+
+----------------------------------------------------------------
+Grygorii Strashko (1):
+       clk: ti: drop locking code from mux/divider drivers
+
+Neil Armstrong (1):
+       clk: ti816x: Add missing dmtimer clkdev entries
+
+Nicolas Pitre (2):
+       clk: ti: clkt_dpll: fix wrong do_div() usage
+       clk: ti: fapll: fix wrong do_div() usage
+
+  drivers/clk/ti/clk-816x.c  |    2 ++
+  drivers/clk/ti/clkt_dpll.c |    4 ++--
+  drivers/clk/ti/divider.c   |   16 +++-------------
+  drivers/clk/ti/fapll.c     |    4 ++--
+  drivers/clk/ti/mux.c       |   15 +++------------
+  5 files changed, 12 insertions(+), 29 deletions(-)
+
