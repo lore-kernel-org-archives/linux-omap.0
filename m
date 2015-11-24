@@ -1,57 +1,56 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAP: RX-51: fix a typo in log writing
-Date: Mon, 23 Nov 2015 23:32:57 +0200
-Message-ID: <1448314377-28848-1-git-send-email-aaro.koskinen@iki.fi>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 0/3] ARM: OMAP2+ McASP(3) support for DRA7xx family
+Date: Tue, 24 Nov 2015 09:38:23 +0200
+Message-ID: <565413EF.2040003@ti.com>
+References: <1447313579-23873-1-git-send-email-peter.ujfalusi@ti.com>
+ <20151112180027.GP3218@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151112180027.GP3218@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: paul@pwsan.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Fix a typo when registering HW RNG.
+Tony,
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c | 2 +-
- arch/arm/mach-omap2/pdata-quirks.c           | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On 11/12/2015 08:00 PM, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [151111 23:33]:
+>> Hi Tony,
+>>
+>> Changes since v3:
+>> - rebased on mainline's HEAD
+>> - Added Tested-by from Felipe
+>> - Added Acked-by from Paul for the hwmod patches
+>>
+>> Changes since v2:
+>> - DTS patch added which is needed because of the clock handling chan=
+ges
+>>
+>> Felip Balbi reported that linux-next is broken right now since the D=
+TS part of
+>> the earlier series has been applied, but we do not have the mcasp hw=
+mod in the
+>> kernel:
+>> ...
+>> [    0.181029] platform 48468000.mcasp: Cannot lookup hwmod 'mcasp3'
+>> ...
+>> [    6.121072] davinci-mcasp 48468000.mcasp: _od_fail_runtime_resume=
+: FIXME: missing hwmod/omap_dev info
+>> [    6.130790] ------------[ cut here ]------------
+>> [    6.135643] WARNING: CPU: 0 PID: 244 at drivers/bus/omap_l3_noc.c=
+:147 l3_interrupt_handler+0x220/0x34c()
+>> [    6.145576] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PE=
+R2_P3 (Read): Data Access in User mode during Functional access
+>=20
+>=20
+> Thanks applying all three into omap-for-v4.4/fixes.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 14edcd7..ff1520b 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -1257,7 +1257,7 @@ static struct platform_device omap3_rom_rng_device = {
- static void __init rx51_init_omap3_rom_rng(void)
- {
- 	if (omap_type() == OMAP2_DEVICE_TYPE_SEC) {
--		pr_info("RX-51: Registring OMAP3 HWRNG device\n");
-+		pr_info("RX-51: Registering OMAP3 HWRNG device\n");
- 		platform_device_register(&omap3_rom_rng_device);
- 	}
- }
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 1dfe346..35ea6c0 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -268,7 +268,7 @@ static void __init nokia_n900_legacy_init(void)
- 			pr_warn("Thumb binaries may crash randomly without this workaround\n");
- 		}
- 
--		pr_info("RX-51: Registring OMAP3 HWRNG device\n");
-+		pr_info("RX-51: Registering OMAP3 HWRNG device\n");
- 		platform_device_register(&omap3_rom_rng_device);
- 
- 	}
--- 
-2.4.0
+Do you know when these patches are going to be merged to mainline? 4.4-=
+rc2 is
+out, but it does not include them.
+
+--=20
+P=E9ter
