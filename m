@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 13/18] ARM: am57xx: sbc-am57x: dts: add usb vbus pinmux
-Date: Wed, 25 Nov 2015 08:39:45 +0200
-Message-ID: <1448433590-1399-14-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH 08/18] ARM: am57xx: cl-som-am57x: dts: add USB support
+Date: Wed, 25 Nov 2015 08:39:40 +0200
+Message-ID: <1448433590-1399-9-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1448433590-1399-1-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -10,42 +10,37 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-usb1_drvvbus pin is used to Drive-VBUS enable to external charge
-pump/power switch.
-
-Add a pinmux for that pin.
+Add USB support.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
- arch/arm/boot/dts/am57xx-sbc-am57x.dts | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-index 67e7f4a..b92650b 100644
---- a/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-@@ -38,6 +38,12 @@
- 			DRA7XX_CORE_IOPAD(0x3770, PIN_INPUT | MUX_MODE14)	/* mmc1_sdwp.gpio6_28 */
- 		>;
- 	};
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+index a838ea4..eba12a4 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -477,3 +477,19 @@
+ 	pinctrl-0 = <&davinci_mdio_pins_default>;
+ 	pinctrl-1 = <&davinci_mdio_pins_sleep>;
+ };
 +
-+	usb1_pins: pinmux_usb1_pins {
-+		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x3680, PIN_INPUT_SLEW | MUX_MODE0) /* usb1_drvvbus */
-+		>;
-+	};
- };
- 
- &uart3 {
-@@ -60,3 +66,8 @@
- 	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>;
- 	wp-gpios = <&gpio6 28 GPIO_ACTIVE_HIGH>;
- };
++&usb2_phy1 {
++	phy-supply = <&ldousb_reg>;
++};
++
++&usb2_phy2 {
++	phy-supply = <&ldousb_reg>;
++};
 +
 +&usb1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb1_pins>;
++	dr_mode = "host";
++};
++
++&usb2 {
++	dr_mode = "peripheral";
 +};
 -- 
 1.9.1
