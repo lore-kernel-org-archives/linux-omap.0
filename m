@@ -1,56 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/39] pinctrl: Move am4372 and dra7 macros to the the
- SoC header files
-Date: Wed, 25 Nov 2015 10:39:40 -0800
-Message-ID: <20151125183939.GM2517@atomide.com>
-References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
- <1447390457-1158-2-git-send-email-javier@osg.samsung.com>
- <CACRpkdZt2NXD-WzLRcxNuvu9fM6j9GPRjnAungv1jxJvipKYAQ@mail.gmail.com>
- <564B30B1.4050902@osg.samsung.com>
- <20151119002310.GF2517@atomide.com>
+Subject: Re: power states transitions
+Date: Wed, 25 Nov 2015 10:50:15 -0800
+Message-ID: <20151125185014.GN2517@atomide.com>
+References: <CAJ2oMhLmViYf=27nVh_=DBFyQLCcBT+985RTkMiwJZyav7Uiyg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151119002310.GF2517@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+In-Reply-To: <CAJ2oMhLmViYf=27nVh_=DBFyQLCcBT+985RTkMiwJZyav7Uiyg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ran Shalit <ranshalit@gmail.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Linus,
-
-* Tony Lindgren <tony@atomide.com> [151118 16:25]:
-> * Javier Martinez Canillas <javier@osg.samsung.com> [151117 05:51]:
-> > Hello Linus,
-> > 
-> > On 11/17/2015 10:47 AM, Linus Walleij wrote:
-> > > On Fri, Nov 13, 2015 at 5:53 AM, Javier Martinez Canillas
-> > > <javier@osg.samsung.com> wrote:
-> > > 
-> > >> The <dt-bindings/pinctrl/omap.h> header file defines a set of macros
-> > >> for different SoCs families that falls under the OMAP sub-arch, that
-> > >> allow to define the padconf register physical address instead of the
-> > >> register offset from the padconf base.
-> > >>
-> > >> But the am43xx and dra7xx SoCs families have their own pinctrl header
-> > >> file so the DTS using these SoCs aren't able to use the AM4372_IOPAD()
-> > >> and DRA7XX_CORE_IOPAD() macros since <dt-bindings/pinctrl/omap.h> is
-> > >> not included.
-> > >>
-> > >> Move the macros to the correct header files so can be used by the DTS.
-> > >>
-> > >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> > > 
-> > > I need Tony's ACK on this.
-> > >
-> > 
-> > OK, I believe he was waiting for yours to pick the series though ;)
+* Ran Shalit <ranshalit@gmail.com> [151122 07:59]:
+> Hello,
 > 
-> Yeah probably best to keep this series together if you're OK with that.
+> I have stranhe behaviour in which even when there is no activity in
+> serial port, the retention counter is keep incremented all these time,
+> as if the cpu gets in and out of retention periodically.
+> I would expect the cpu to get into retention mode, when there is no
+> activity and stay in that state.
+> What can cause such behaviour ? Is it because some background process ?
 
-Care to ack this one? I'd like to apply this series for v4.5 within next
-few days..
+Sounds like your device is hitting deper idle states during idle. If
+you want to disable that, set the UART autosuspend_delay_ms to -1:
+
+#/bin/bash
+uarts=$(find /sys/class/tty/tty[SO]*/device/power/ -type d)
+for uart in $uarts; do
+        echo -1 > $uart/autosuspend_delay_ms 2>&1
+done
+
+The above will keep the UARTs active blocking any deeper idle
+states. I believe the value has to be -1 instead of 0 to disable
+autoidle.. but please verify yourself.
+
+> My original problem is that the ethernet performance is very low with
+> small windows. I thought that I can control this value by changing
+> sleep_latency parameter in
+> the following array. Yet, it did not help me. I don't know why.
+
+Maybe test if the above script helps with the Ethernet too. If the
+Ethernet controller is on GPMC, it's not blocking deeper idle states
+automatically in hardware. Adding DMA support to the Ethernet driver
+would be a good way to block deeper idle states automatically by
+the Ethernet hardware.
 
 Regards,
 
