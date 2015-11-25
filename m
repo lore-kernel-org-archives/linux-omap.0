@@ -1,121 +1,89 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 11/18] ARM: am57xx: sbc-am57x: dts: add basic board
- support
-Date: Wed, 25 Nov 2015 14:05:59 -0600
-Message-ID: <20151125200559.GE30473@rob-hp-laptop>
-References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
- <1448433590-1399-12-git-send-email-lifshitz@compulab.co.il>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
+ "/chosen/linux,atags" entry
+Date: Wed, 25 Nov 2015 13:03:10 -0800
+Message-ID: <20151125210310.GT2517@atomide.com>
+References: <20150713131902.GH26485@atomide.com>
+ <20151123144545.GD24147@pali>
+ <20151125181644.GI2517@atomide.com>
+ <17134653.86P3dFyQKK@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1448433590-1399-12-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <17134653.86P3dFyQKK@wuerfel>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Laura Abbott <lauraa-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 25, 2015 at 08:39:43AM +0200, Dmitry Lifshitz wrote:
-> SBC-AM57x is a single board computer designed for industrial and
-> embedded applications. It is based on the Texas Instruments Sitara AM57x
-> system-on-chip family. SBC-AM57x is implemented with the CL-SOM-AM57x
-> computer-on-module providing most of the functions, and SB-SOM-AM57x
-> carrier board providing additional peripheral functions and connectors.
-> 
-> https://www.compulab.co.il/products/sbcs/sbc-am57x-ti-am5728-am5718-single-board-computer/
-> 
-> https://www.compulab.co.il/products/computer-on-modules/cl-som-am57x-ti-am5728-am5718-system-on-module/
-> 
-> Add basic board support, including UART3, used as a serial console.
-> 
-> Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+* Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [151125 11:50]:
+> On Wednesday 25 November 2015 10:16:44 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [151123 06:46]:
+> > > On Sunday 22 November 2015 07:51:46 Pavel Machek wrote:
+> > > > On Wed 2015-11-11 17:10:46, Frank Rowand wrote:
+> > > > > Adding devicetree list.
+> > > > >=20
+> > > > > Thread starts at
+> > > > > http://lists.infradead.org/pipermail/linux-arm-kernel/2015-Ju=
+ly/354459.html
+> > > > >=20
+> > > > > On 11/5/2015 8:17 AM, Tony Lindgren wrote:
+> > > > > > * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [151105 03:41]:
+> > > > > >> On Tuesday 13 October 2015 16:37:46 Pali Roh=C3=A1r wrote:
+> > > > > >>> On Monday 12 October 2015 13:45:09 Tony Lindgren wrote:
+> > > > > >>>> * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [151012 13:29]:
+> > > > > >>>>> On Monday 12 October 2015 22:16:40 Tony Lindgren wrote:
+> > > > > >>>>>>
+> > > > > >>>>>> Pali, any news on posting an updated series with the c=
+omments
+> > > > > >>>>>> addressed in this thread? It seems that we all pretty =
+much agree
+> > > > > >>>>>> what needs to be done.
+> > > > >=20
+> > > > > I'm not real happy with the concept of patches 4 and 5 in thi=
+s series.
+> > > > > My concern is that those two patches are using the FDT as a t=
+ransport
+> > > > > mechanism for a binary blob (the atags object).
+> > > >=20
+> > > > Umm. Ok. Do you have alternative proposal that works for everyo=
+ne?
+> > > >=20
+> > > > I mean. This discussion was going for quite a long time, and it=
+ would
+> > > > be nice to have some solution... patch proposal... something.
+> > > >                                                                =
+     Pavel
+> > >=20
+> > > Yes, discussion is going for a long time! So should I spend time =
+for
+> > > adding documentation to my solution (this is last one thing which=
+ is
+> > > missing)? Or my solution is wrong and somebody else will propose =
+new?
+> > > I do not want to spend time on something which will be rejected a=
+nd
+> > > discarded.
+> >=20
+> > At least I don't have better solutions in mind.
+>=20
+> I would be happier if we could restrict this as much as possible to t=
+he
+> boards that need it, as an opt-in. That way it doesn't become an ABI
+> for people that don't already rely in this information. How about
+> adding a check the code adds the linux,atags property to do it
+> only for a whitelist of board numbers?
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Or populate /proc/atags only for the ones that need it from machine
+specific init_early?
 
-> ---
->  .../devicetree/bindings/arm/omap/omap.txt          |  3 ++
->  arch/arm/boot/dts/Makefile                         |  1 +
->  arch/arm/boot/dts/am57xx-sbc-am57x.dts             | 36 ++++++++++++++++++++++
->  3 files changed, 40 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am57xx-sbc-am57x.dts
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index dd53c90..42cdad1 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -159,6 +159,9 @@ Boards:
->  - AM57XX CL-SOM-AM57x
->    compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
->  
-> +- AM57XX SBC-AM57x
-> +  compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
-> +
->  - DRA742 EVM:  Software Development Board for DRA742
->    compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
->  
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 803a020..4c73ab9 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -479,6 +479,7 @@ dtb-$(CONFIG_SOC_OMAP5) += \
->  dtb-$(CONFIG_SOC_DRA7XX) += \
->  	am57xx-beagle-x15.dtb \
->  	am57xx-cl-som-am57x.dtb \
-> +	am57xx-sbc-am57x.dtb \
->  	dra7-evm.dtb \
->  	dra72-evm.dtb
->  dtb-$(CONFIG_ARCH_ORION5X) += \
-> diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-> new file mode 100644
-> index 0000000..804ad72
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-> @@ -0,0 +1,36 @@
-> +/*
-> + * Support for CompuLab SBC-AM57x single board computer
-> + *
-> + * Copyright (C) 2015 CompuLab Ltd. - http://www.compulab.co.il/
-> + * Author: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#include "am57xx-cl-som-am57x.dts"
-> +#include "compulab-sb-som.dtsi"
-> +
-> +/ {
-> +	model = "CompuLab CL-SOM-AM57x on SB-SOM-AM57x";
-> +	compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
-> +};
-> +
-> +&dra7_pmx_core {
-> +	uart3_pins_default: uart3_pins_default {
-> +		pinctrl-single,pins = <
-> +			DRA7XX_CORE_IOPAD(0x37f8, PIN_INPUT_SLEW | MUX_MODE2)	/* uart2_ctsn.uart3_rxd */
-> +			DRA7XX_CORE_IOPAD(0x37fc, PIN_INPUT_SLEW | MUX_MODE1)	/* uart2_rtsn.uart3_txd */
-> +		>;
-> +	};
-> +};
-> +
-> +&uart3 {
-> +	status = "okay";
-> +	interrupts-extended = <&crossbar_mpu GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>,
-> +			      <&dra7_pmx_core 0x3f8>;
-> +
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart3_pins_default>;
-> +};
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
