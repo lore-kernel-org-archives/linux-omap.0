@@ -1,87 +1,171 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v4.4-rc2
-Date: Wed, 25 Nov 2015 14:37:04 -0800
-Message-ID: <20151125223704.GV2517@atomide.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] ARM: OMAP2+: dts: cm-t335: add initial support
+Date: Wed, 25 Nov 2015 16:44:59 -0600
+Message-ID: <20151125224459.GA12408@rob-hp-laptop>
+References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1448373733-5839-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1448373733-5839-2-git-send-email-uri.mashiach@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1448373733-5839-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 1ec218373b8ebda821aec00bb156a9c94fad9cd4:
+On Tue, Nov 24, 2015 at 04:02:08PM +0200, Uri Mashiach wrote:
+> From: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> 
+> Add basic support for CompuLab cm-t335 module based on AM335X SoC.
+> 
+> CM-T335 is a tiny computer-on-module (CoM) / system-on-module (SoM)
+> The module is built around the Texas Instruments Sitara AM3352/4
+> system-on-chip.
+> 
+> The CPU is supplemented with up-to 512MB DDR3 and up-to 1GB of on-board
+> NAND storage, WiFi connected to SPI, Bluetooth, Analog audio, Gigabit
+> Ethernet, CAN bus.
+> 
+> Current patch adds support:
+> UART0 and GPIO LED
+> 
+> Detailed description can be found at the module site:
+> http://www.compulab.co.il/products/computer-on-modules/cm-t335/
+> 
+> Signed-off-by: Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> [uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org: the default RAM amount reduced to
+> 128MB to support also the minimal module configuration]
+> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> ---
+> v1 -> v2: integrate AM33XX_IOPAD macro in pinmux definitions
 
-  Linux 4.4-rc2 (2015-11-22 16:45:59 -0800)
+This macro is exactly the kind we should not be doing in DT files which 
+are ones that expand to multiple cells. But not really much point in 
+doing 1 board differently from the rest, so:
 
-are available in the git repository at:
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.4/fixes-rc2
+Rob
 
-for you to fetch changes up to 918af9f941af9995fcaa7ef1eb67c433a492e2b3:
-
-  ARM: OMAP4+: SMP: use lockless clkdm/pwrdm api in omap4_boot_secondary (2015-11-25 11:03:20 -0800)
-
-----------------------------------------------------------------
-Fixes for omaps for v4.4-rc cycle:
-
-- A series of audio changes for dra7 that missed the merge window but turned
-  out to be necessary to fix a boot time imprecise external abort error and to
-  getaudio working
-
-- Fix l4 related boot time errors for dm81xx
-
-- Use lockless cldm/pwrdm api in omap4_boot_secondary
-
-- Remove t410 custom abort handler that is no longer needed and may
-  hide other critical errors
-
-- Mark cpuidle tracepoints as _rcuidle
-
-- Fix module alias for omap-ocp2scp
-
-----------------------------------------------------------------
-Axel Lin (1):
-      bus: omap-ocp2scp: Fix module alias
-
-Grygorii Strashko (1):
-      ARM: OMAP4+: SMP: use lockless clkdm/pwrdm api in omap4_boot_secondary
-
-Jisheng Zhang (1):
-      ARM: OMAP2+: PM: Denote the cpuidle tracepoints as _rcuidle()
-
-Lucas Stach (1):
-      ARM: OMAP2+: remove custom abort handler for t410
-
-Neil Armstrong (1):
-      arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx hwmod data
-
-Peter Ujfalusi (3):
-      ARM: dts: dra7: Fix McASP3 node regarding to clocks
-      ARM: OMAP2+: hwmod: Add hwmod flag for HWMOD_OPT_CLKS_NEEDED
-      ARM: OMAP: DRA7: hwmod: Add data for McASP3
-
-Tony Lindgren (2):
-      Merge branch 'x15-audio-fixes' into omap-for-v4.4/fixes
-      Merge branch '81xx' into omap-for-v4.4/fixes
-
- arch/arm/boot/dts/dra7.dtsi                |  4 +-
- arch/arm/mach-omap2/omap-smp.c             |  6 +--
- arch/arm/mach-omap2/omap_hwmod.c           | 66 ++++++++++++++++--------------
- arch/arm/mach-omap2/omap_hwmod.h           |  3 ++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 56 +++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c |  3 ++
- arch/arm/mach-omap2/pdata-quirks.c         | 29 -------------
- arch/arm/mach-omap2/pm34xx.c               |  4 +-
- drivers/bus/omap-ocp2scp.c                 |  2 +-
- 9 files changed, 106 insertions(+), 67 deletions(-)
+> 
+>  .../devicetree/bindings/arm/omap/omap.txt          |  3 ++
+>  arch/arm/boot/dts/Makefile                         |  7 +--
+>  arch/arm/boot/dts/am335x-cm-t335.dts               | 63 ++++++++++++++++++++++
+>  3 files changed, 70 insertions(+), 3 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/am335x-cm-t335.dts
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> index 9f4e513..2154f97 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> @@ -138,6 +138,9 @@ Boards:
+>  - AM335X phyBOARD-WEGA: Single Board Computer dev kit
+>    compatible = "phytec,am335x-wega", "phytec,am335x-phycore-som", "ti,am33xx"
+>  
+> +- AM335X CM-T335 : System On Module, built around the Sitara AM3352/4
+> +  compatible = "compulab,cm-t335", "ti,am33xx"
+> +
+>  - OMAP5 EVM : Evaluation Module
+>    compatible = "ti,omap5-evm", "ti,omap5"
+>  
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index bb8fa02..0e011dc 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -446,13 +446,14 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+>  	am335x-base0033.dtb \
+>  	am335x-bone.dtb \
+>  	am335x-boneblack.dtb \
+> -	am335x-sl50.dtb \
+> +	am335x-chiliboard.dtb \
+> +	am335x-cm-t335.dtb \
+>  	am335x-evm.dtb \
+>  	am335x-evmsk.dtb \
+> +	am335x-lxm.dtb \
+>  	am335x-nano.dtb \
+>  	am335x-pepper.dtb \
+> -	am335x-lxm.dtb \
+> -	am335x-chiliboard.dtb \
+> +	am335x-sl50.dtb \
+>  	am335x-wega-rdk.dtb
+>  dtb-$(CONFIG_ARCH_OMAP4) += \
+>  	omap4-duovero-parlor.dtb \
+> diff --git a/arch/arm/boot/dts/am335x-cm-t335.dts b/arch/arm/boot/dts/am335x-cm-t335.dts
+> new file mode 100644
+> index 0000000..719658e
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
+> @@ -0,0 +1,63 @@
+> +/*
+> + * am335x-cm-t335.dts - Device Tree file for Compulab CM-T335
+> + *
+> + * Copyright (C) 2014 - 2015 CompuLab Ltd. - http://www.compulab.co.il/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +/dts-v1/;
+> +
+> +#include "am33xx.dtsi"
+> +
+> +/ {
+> +	model = "CompuLab CM-T335";
+> +	compatible = "compulab,cm-t335", "ti,am33xx";
+> +
+> +	memory {
+> +		device_type = "memory";
+> +		reg = <0x80000000 0x8000000>;	/* 128 MB */
+> +	};
+> +
+> +	leds {
+> +		compatible = "gpio-leds";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&gpio_led_pins>;
+> +		led@0 {
+> +			label = "cm_t335:green";
+> +			gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;	/* gpio2_0 */
+> +			linux,default-trigger = "heartbeat";
+> +		};
+> +	};
+> +};
+> +
+> +&am33xx_pinmux {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <>;
+> +
+> +	gpio_led_pins: pinmux_gpio_led_pins {
+> +		pinctrl-single,pins = <
+> +			/* gpmc_csn3.gpio2_0 */
+> +			AM33XX_IOPAD(0x888, PIN_OUTPUT | MUX_MODE7)
+> +		>;
+> +	};
+> +
+> +	uart0_pins: pinmux_uart0_pins {
+> +		pinctrl-single,pins = <
+> +			/* uart0_rxd.uart0_rxd */
+> +			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)
+> +			/* uart0_txd.uart0_txd */
+> +			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
+> +		>;
+> +	};
+> +};
+> +
+> +&uart0 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&uart0_pins>;
+> +
+> +	status = "okay";
+> +};
+> +
+> -- 
+> 2.5.0
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
