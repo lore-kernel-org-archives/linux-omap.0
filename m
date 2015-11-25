@@ -1,81 +1,99 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] arm: boot: beaglex15: pass correct interrupt
-Date: Wed, 25 Nov 2015 11:01:37 -0800
-Message-ID: <20151125190137.GQ2517@atomide.com>
-References: <1447350781-20649-1-git-send-email-balbi@ti.com>
- <1447350781-20649-3-git-send-email-balbi@ti.com>
- <564EB215.5080209@samsung.com>
- <564F4D90.4050305@gmail.com>
- <CAGTfZH3o_G91qDS6_9tYJHDDAbOWj90rBfCKvi0f-uL0L2PcTA@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP4+: SMP: use lockless clkdm/pwrdm api in
+ omap4_boot_secondary
+Date: Wed, 25 Nov 2015 11:03:37 -0800
+Message-ID: <20151125190336.GR2517@atomide.com>
+References: <1447695533-11460-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAGTfZH3o_G91qDS6_9tYJHDDAbOWj90rBfCKvi0f-uL0L2PcTA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: cw00.choi@samsung.com
-Cc: Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <1447695533-11460-1-git-send-email-grygorii.strashko@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Chanwoo Choi <cwchoi00@gmail.com> [151120 08:56]:
-> Hi,
->=20
-> On Sat, Nov 21, 2015 at 1:42 AM, Chanwoo Choi <cwchoi00@gmail.com> wr=
-ote:
-> > Hi,
-> >
-> > On 2015. 11. 20. =EC=98=A4=ED=9B=84 2:39, Chanwoo Choi wrote:
-> >> Hi,
-> >>
-> >> On 2015=EB=85=84 11=EC=9B=94 13=EC=9D=BC 02:53, Felipe Balbi wrote=
-:
-> >>> According to latest schematics [1], GPIO_1/VBUSDET
-> >>> on TPS659038 is tied to AM57x GPIO4_21. We can use
-> >>> that as a VBUS interrupt, instead of relying on
-> >>> PMIC's VBUS interrupts which don't seem to be firing
-> >>> on x15 at all.
-> >>>
-> >>> A follow up patch will add support for using this
-> >>> GPIO-based interrupt mechanism for notifying about
-> >>> VBUS.
-> >>>
-> >>> [1] https://github.com/beagleboard/beagleboard-x15/blob/master/Be=
-agleBoard-X15_RevA2.pdf
-> >>>
-> >>> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >>> ---
-> >>>  arch/arm/boot/dts/am57xx-beagle-x15.dts | 1 +
-> >>>  1 file changed, 1 insertion(+)
-> >>>
-> >>> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/b=
-oot/dts/am57xx-beagle-x15.dts
-> >>> index 6f3a1a7ec5f9..5e47162f7883 100644
-> >>> --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-> >>> +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-> >>> @@ -560,6 +560,7 @@
-> >>>              extcon_usb2: tps659038_usb {
-> >>>                      compatible =3D "ti,palmas-usb-vid";
-> >>>                      ti,enable-vbus-detection;
-> >>> +                    interrupts-extended =3D <&gpio4 21 IRQ_TYPE_=
-EDGE_RISING>;
-> >
-> >                         vbus-gpio =3D <&gpio4 21>;
->=20
-> I'm sorry. I'm sending the missing email without writing completion.
->=20
-> I agree the Felipe's opinion. Just I think that we can use the
-> following property
-> instead of 'interrupt-extended'. Because I think 'vbus-gpio' is more
-> readability than before. The following property mean the attribute of
-> GPIO pin as VBUS.
-> - vbus-gpio =3D <&gpio4 21>;
+* Grygorii Strashko <grygorii.strashko@ti.com> [151116 09:39]:
+> OMAP CPU hotplug uses cpu1's clocks and power domains for CPU1 wake up
+> from low power states (or turn on CPU1). This part of code is also
+> part of system suspend (disable_nonboot_cpus()).
+> >From other side, cpu1's clocks and power domains are used by CPUIdle. All above
+> functionality is mutually exclusive and, therefore, lockless clkdm/pwrdm api
+> can be used in omap4_boot_secondary().
+> 
+> This fixes below back-trace on -RT which is triggered by
+> pwrdm_lock/unlock():
+> 
+> BUG: sleeping function called from invalid context at kernel/locking/rtmutex.c:917
+>  in_atomic(): 1, irqs_disabled(): 0, pid: 118, name: sh
+>  9 locks held by sh/118:
+>   #0:  (sb_writers#4){.+.+.+}, at: [<c0144a6c>] vfs_write+0x13c/0x164
+>   #1:  (&of->mutex){+.+.+.}, at: [<c01b4c70>] kernfs_fop_write+0x48/0x19c
+>   #2:  (s_active#24){.+.+.+}, at: [<c01b4c78>] kernfs_fop_write+0x50/0x19c
+>   #3:  (device_hotplug_lock){+.+.+.}, at: [<c03cbff0>] lock_device_hotplug_sysfs+0xc/0x4c
+>   #4:  (&dev->mutex){......}, at: [<c03cd284>] device_online+0x14/0x88
+>   #5:  (cpu_add_remove_lock){+.+.+.}, at: [<c003af90>] cpu_up+0x50/0x1a0
+>   #6:  (cpu_hotplug.lock){++++++}, at: [<c003ae48>] cpu_hotplug_begin+0x0/0xc4
+>   #7:  (cpu_hotplug.lock#2){+.+.+.}, at: [<c003aec0>] cpu_hotplug_begin+0x78/0xc4
+>   #8:  (boot_lock){+.+...}, at: [<c002b254>] omap4_boot_secondary+0x1c/0x178
+>  Preemption disabled at:[<  (null)>]   (null)
+> 
+>  CPU: 0 PID: 118 Comm: sh Not tainted 4.1.12-rt11-01998-gb4a62c3-dirty #137
+>  Hardware name: Generic DRA74X (Flattened Device Tree)
+>  [<c0017574>] (unwind_backtrace) from [<c0013be8>] (show_stack+0x10/0x14)
+>  [<c0013be8>] (show_stack) from [<c05a8670>] (dump_stack+0x80/0x94)
+>  [<c05a8670>] (dump_stack) from [<c05ad158>] (rt_spin_lock+0x24/0x54)
+>  [<c05ad158>] (rt_spin_lock) from [<c0030dac>] (clkdm_wakeup+0x10/0x2c)
+>  [<c0030dac>] (clkdm_wakeup) from [<c002b2c0>] (omap4_boot_secondary+0x88/0x178)
+>  [<c002b2c0>] (omap4_boot_secondary) from [<c0015d00>] (__cpu_up+0xc4/0x164)
+>  [<c0015d00>] (__cpu_up) from [<c003b09c>] (cpu_up+0x15c/0x1a0)
+>  [<c003b09c>] (cpu_up) from [<c03cd2d4>] (device_online+0x64/0x88)
+>  [<c03cd2d4>] (device_online) from [<c03cd360>] (online_store+0x68/0x74)
+>  [<c03cd360>] (online_store) from [<c01b4ce0>] (kernfs_fop_write+0xb8/0x19c)
+>  [<c01b4ce0>] (kernfs_fop_write) from [<c0144124>] (__vfs_write+0x20/0xd8)
+>  [<c0144124>] (__vfs_write) from [<c01449c0>] (vfs_write+0x90/0x164)
+>  [<c01449c0>] (vfs_write) from [<c01451e4>] (SyS_write+0x44/0x9c)
+>  [<c01451e4>] (SyS_write) from [<c0010240>] (ret_fast_syscall+0x0/0x54)
+>  CPU1: smp_ops.cpu_die() returned, trying to resuscitate
+> 
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Hmm OK not applying the first two patches yet then as it seems changes
-are needed. Felipe can you please repost the missing ones after you guy=
-s
-have figured out which dts changes are needed?
-
-Regards,
+Applying into omap-for-v4.4/fixes thanks.
 
 Tony
+
+> ---
+>  arch/arm/mach-omap2/omap-smp.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+> index 5305ec7..79e1f87 100644
+> --- a/arch/arm/mach-omap2/omap-smp.c
+> +++ b/arch/arm/mach-omap2/omap-smp.c
+> @@ -143,9 +143,9 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+>  		 * Ensure that CPU power state is set to ON to avoid CPU
+>  		 * powerdomain transition on wfi
+>  		 */
+> -		clkdm_wakeup(cpu1_clkdm);
+> -		omap_set_pwrdm_state(cpu1_pwrdm, PWRDM_POWER_ON);
+> -		clkdm_allow_idle(cpu1_clkdm);
+> +		clkdm_wakeup_nolock(cpu1_clkdm);
+> +		pwrdm_set_next_pwrst(cpu1_pwrdm, PWRDM_POWER_ON);
+> +		clkdm_allow_idle_nolock(cpu1_clkdm);
+>  
+>  		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
+>  			while (gic_dist_disabled()) {
+> -- 
+> 2.6.3
+> 
