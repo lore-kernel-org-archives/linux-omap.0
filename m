@@ -1,75 +1,87 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags" entry
-Date: Wed, 25 Nov 2015 23:00:59 +0100
-Message-ID: <201511252300.59976@pali>
-References: <20150713131902.GH26485@atomide.com> <201511252244.28797@pali> <17689711.DsQsCiDFAN@wuerfel>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes against v4.4-rc2
+Date: Wed, 25 Nov 2015 14:37:04 -0800
+Message-ID: <20151125223704.GV2517@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart724251494.rz7WDksilK";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <17689711.DsQsCiDFAN@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Frank Rowand <frowand.list@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Andreas =?utf-8?q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart724251494.rz7WDksilK
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit 1ec218373b8ebda821aec00bb156a9c94fad9cd4:
 
-On Wednesday 25 November 2015 22:51:00 Arnd Bergmann wrote:
-> On Wednesday 25 November 2015 22:44:28 Pali Roh=C3=A1r wrote:
-> > Arnd, my question about proper solution reminds... Proprietary
-> > bootloader which cannot be replaced (e.g. it is signed or do
-> > unknown magic) provides information to booted kernel via custom
-> > specific ATAGs fields. How userspace could properly read those
-> > custom information from bootloader?
->=20
-> The typical solution for nonstandard bootloaders is to have a boot
-> wrapper like the one from
-> https://github.com/zonque/pxa-impedance-matcher that translates
-> whatever information we have at the bootloader level into DT
-> properties.
->=20
+  Linux 4.4-rc2 (2015-11-22 16:45:59 -0800)
 
-Ok. So there is no better solution. With some hacks we can use U-Boot as=20
-3rd stage bootloader. But this is not useful for debugging or=20
-developing...
+are available in the git repository at:
 
-Ideal "wrapper" solution would be to compile wrapper and linux zImage=20
-and then glue them together to one binary. Something like internal linux=20
-uncompress code which translate atags to dt.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.4/fixes-rc2
 
-> As I understand, the reason we are not doing that here is that we
-> also have proprietary user space that we can't fix to look in a
-> different place, i.e. the interface is between the bootloader and
-> some user binary, not bootloader to kernel.
->=20
+for you to fetch changes up to 918af9f941af9995fcaa7ef1eb67c433a492e2b3:
 
-Yes, proprietary/closed applications are problems which we cannot fix=20
-(without rewriting them).
+  ARM: OMAP4+: SMP: use lockless clkdm/pwrdm api in omap4_boot_secondary (2015-11-25 11:03:20 -0800)
 
-New applications could use new "proper" interface. But without that=20
-interface we cannot do that.
+----------------------------------------------------------------
+Fixes for omaps for v4.4-rc cycle:
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+- A series of audio changes for dra7 that missed the merge window but turned
+  out to be necessary to fix a boot time imprecise external abort error and to
+  getaudio working
 
---nextPart724251494.rz7WDksilK
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+- Fix l4 related boot time errors for dm81xx
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+- Use lockless cldm/pwrdm api in omap4_boot_secondary
 
-iEYEABECAAYFAlZWL5sACgkQi/DJPQPkQ1KN9ACgqFuY1Bltbq3pNCRXmHYto6go
-5BAAni99JGn/sd8QiaEv/jGPEKzxcB77
-=mEtj
------END PGP SIGNATURE-----
+- Remove t410 custom abort handler that is no longer needed and may
+  hide other critical errors
 
---nextPart724251494.rz7WDksilK--
+- Mark cpuidle tracepoints as _rcuidle
+
+- Fix module alias for omap-ocp2scp
+
+----------------------------------------------------------------
+Axel Lin (1):
+      bus: omap-ocp2scp: Fix module alias
+
+Grygorii Strashko (1):
+      ARM: OMAP4+: SMP: use lockless clkdm/pwrdm api in omap4_boot_secondary
+
+Jisheng Zhang (1):
+      ARM: OMAP2+: PM: Denote the cpuidle tracepoints as _rcuidle()
+
+Lucas Stach (1):
+      ARM: OMAP2+: remove custom abort handler for t410
+
+Neil Armstrong (1):
+      arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx hwmod data
+
+Peter Ujfalusi (3):
+      ARM: dts: dra7: Fix McASP3 node regarding to clocks
+      ARM: OMAP2+: hwmod: Add hwmod flag for HWMOD_OPT_CLKS_NEEDED
+      ARM: OMAP: DRA7: hwmod: Add data for McASP3
+
+Tony Lindgren (2):
+      Merge branch 'x15-audio-fixes' into omap-for-v4.4/fixes
+      Merge branch '81xx' into omap-for-v4.4/fixes
+
+ arch/arm/boot/dts/dra7.dtsi                |  4 +-
+ arch/arm/mach-omap2/omap-smp.c             |  6 +--
+ arch/arm/mach-omap2/omap_hwmod.c           | 66 ++++++++++++++++--------------
+ arch/arm/mach-omap2/omap_hwmod.h           |  3 ++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 56 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c |  3 ++
+ arch/arm/mach-omap2/pdata-quirks.c         | 29 -------------
+ arch/arm/mach-omap2/pm34xx.c               |  4 +-
+ drivers/bus/omap-ocp2scp.c                 |  2 +-
+ 9 files changed, 106 insertions(+), 67 deletions(-)
