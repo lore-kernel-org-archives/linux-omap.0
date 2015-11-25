@@ -1,52 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: power states transitions
-Date: Wed, 25 Nov 2015 10:50:15 -0800
-Message-ID: <20151125185014.GN2517@atomide.com>
-References: <CAJ2oMhLmViYf=27nVh_=DBFyQLCcBT+985RTkMiwJZyav7Uiyg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx
+ hwmod data
+Date: Wed, 25 Nov 2015 10:55:20 -0800
+Message-ID: <20151125185520.GO2517@atomide.com>
+References: <56461001.3050707@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ2oMhLmViYf=27nVh_=DBFyQLCcBT+985RTkMiwJZyav7Uiyg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ran Shalit <ranshalit@gmail.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org
+In-Reply-To: <56461001.3050707@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, fisaksen@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ran Shalit <ranshalit@gmail.com> [151122 07:59]:
-> Hello,
+* Neil Armstrong <narmstrong@baylibre.com> [151113 08:30]:
+> Add missing HWMOD_NO_IDLEST hwmod flag for entries not
+> having omap4 clkctrl values.
+> The emac0 hwmod flag fixes the davinci_emac driver probe
+> since the return of pm_resume() call is now checked.
 > 
-> I have stranhe behaviour in which even when there is no activity in
-> serial port, the retention counter is keep incremented all these time,
-> as if the cpu gets in and out of retention periodically.
-> I would expect the cpu to get into retention mode, when there is no
-> activity and stay in that state.
-> What can cause such behaviour ? Is it because some background process ?
+> This solves the following boot errors :
+> [    0.121429] omap_hwmod: l4_ls: _wait_target_ready failed: -16
+> [    0.121441] omap_hwmod: l4_ls: cannot be enabled for reset (3)
+> [    0.124342] omap_hwmod: l4_hs: _wait_target_ready failed: -16
+> [    0.124352] omap_hwmod: l4_hs: cannot be enabled for reset (3)
+> [    1.967228] omap_hwmod: emac0: _wait_target_ready failed: -16
+> 
+> Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 
-Sounds like your device is hitting deper idle states during idle. If
-you want to disable that, set the UART autosuspend_delay_ms to -1:
-
-#/bin/bash
-uarts=$(find /sys/class/tty/tty[SO]*/device/power/ -type d)
-for uart in $uarts; do
-        echo -1 > $uart/autosuspend_delay_ms 2>&1
-done
-
-The above will keep the UARTs active blocking any deeper idle
-states. I believe the value has to be -1 instead of 0 to disable
-autoidle.. but please verify yourself.
-
-> My original problem is that the ethernet performance is very low with
-> small windows. I thought that I can control this value by changing
-> sleep_latency parameter in
-> the following array. Yet, it did not help me. I don't know why.
-
-Maybe test if the above script helps with the Ethernet too. If the
-Ethernet controller is on GPMC, it's not blocking deeper idle states
-automatically in hardware. Adding DMA support to the Ethernet driver
-would be a good way to block deeper idle states automatically by
-the Ethernet hardware.
-
-Regards,
+Thanks for checking the TI tree also in addition to the docs,
+applying this one into omap-for-v4.4/fixes.
 
 Tony
+
+
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> index b1288f5..6256052 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> @@ -144,6 +144,7 @@ static struct omap_hwmod dm81xx_l4_ls_hwmod = {
+>  	.name		= "l4_ls",
+>  	.clkdm_name	= "alwon_l3s_clkdm",
+>  	.class		= &l4_hwmod_class,
+> +	.flags		= HWMOD_NO_IDLEST,
+>  };
+> 
+>  /*
+> @@ -155,6 +156,7 @@ static struct omap_hwmod dm81xx_l4_hs_hwmod = {
+>  	.name		= "l4_hs",
+>  	.clkdm_name	= "alwon_l3_med_clkdm",
+>  	.class		= &l4_hwmod_class,
+> +	.flags		= HWMOD_NO_IDLEST,
+>  };
+> 
+>  /* L3 slow -> L4 ls peripheral interface running at 125MHz */
+> @@ -850,6 +852,7 @@ static struct omap_hwmod dm816x_emac0_hwmod = {
+>  	.name		= "emac0",
+>  	.clkdm_name	= "alwon_ethernet_clkdm",
+>  	.class		= &dm816x_emac_hwmod_class,
+> +	.flags		= HWMOD_NO_IDLEST,
+>  };
+> 
+>  static struct omap_hwmod_ocp_if dm81xx_l4_hs__emac0 = {
+> -- 
+> 1.9.1
+> 
