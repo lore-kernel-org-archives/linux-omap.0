@@ -1,48 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: am35xx memory management issues
-Date: Wed, 25 Nov 2015 10:37:09 -0800
-Message-ID: <20151125183709.GL2517@atomide.com>
-References: <5644AD53.3020303@nomovok.com> <20151112170659.GL3218@atomide.com>
- <5645E026.9010002@nomovok.com> <56546CAD.4060007@nomovok.com>
+Subject: Re: [PATCH 01/39] pinctrl: Move am4372 and dra7 macros to the the
+ SoC header files
+Date: Wed, 25 Nov 2015 10:39:40 -0800
+Message-ID: <20151125183939.GM2517@atomide.com>
+References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
+ <1447390457-1158-2-git-send-email-javier@osg.samsung.com>
+ <CACRpkdZt2NXD-WzLRcxNuvu9fM6j9GPRjnAungv1jxJvipKYAQ@mail.gmail.com>
+ <564B30B1.4050902@osg.samsung.com>
+ <20151119002310.GF2517@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56546CAD.4060007@nomovok.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Markku =?utf-8?Q?Ahvenj=C3=A4rvi?= <markku.ahvenjarvi@nomovok.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20151119002310.GF2517@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBNYXJra3UgQWh2ZW5qw6RydmkgPG1hcmtrdS5haHZlbmphcnZpQG5vbW92b2suY29tPiBbMTUx
-MTI0IDA1OjU3XToKPiBPbiAxMy4xMS4yMDE1IDE1OjA1LCBNYXJra3UgQWh2ZW5qw6Rydmkgd3Jv
-dGU6Cj4gPiBPbiAxMi4xMS4yMDE1IDE5OjA2LCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4+Cj4g
-Pj4gQWxzbyBwbGVhc2UgY2hlY2sgaWYgbGVhdmluZyBvdXQgQ09ORklHX1NNUF9PTl9VUCBhZmZl
-Y3RzIHRoaW5ncy4KPiA+IAo+ID4gQWxyaWdodCwgd2lsbCBkby4KPiAKPiBXZSd2ZSBiZWVuIHRl
-c3Rpbmcgb21hcDJwbHVzIGRlZmNvbmZpZyB3aXRob3V0IG90aGVyIG9tYXBzIGFuZCB3aXRob3V0
-IENPTkZJR19TTVBfT05fVVAuIFNvIGZhciB3ZSBoYXZlbid0IHNlZW4gYW55IHBhbmljcywgYnV0
-IEkndmUgaGFkIG9ubHkgYSBmZXcgdW5pdHMgdGVzdGluZyBpdC4KCk9LCgo+IE1lYW53aGlsZSB3
-ZSd2ZSBiZWVuIHRlc3Rpbmcgb3VyIGN1c3RvbSBib2FyZCB3aXRoIGEgY29uZmlndXJhdGlvbiB0
-aGF0IGlzIHF1aXRlIGNsb3NlIHRvIG9tYXAycGx1cywgaW5jbHVkaW5nIG90aGVyIG9tYXBzIGFu
-ZCBDT05GSUdfU01QX09OX1VQLiBXZSd2ZSBoYWQgY291cGxlIG9mIHBhbmljcywgc28gaXQgc2Vl
-bXMgdGhhdCB0aGVzZSBkb2Vzbid0IGFmZmVjdCB0aGUgcHJvYmxlbS4gV2UgaGFkIDE1IHVuaXRz
-IHJ1bm5pbmcgc3RyZXNzLW5nIGFuZCBpdCB0b29rIH44IGRheXMgdW50aWwgd2Ugc2F3IGZpcnN0
-IHBhbmljLCBzbyBpZiBvbWFwMnBsdXMgaXMgYWZmZWN0ZWQgaXQgaXMgcXVpdGUgcmFyZS4KCkht
-bSBzbyB0byBjb25maXJtLi4gSXMgb21hcDJwbHVzX2RlZmNvbmZpZyBzdGFibGUgb24gYWxsIGJv
-YXJkcyBpbmNsdWRpbmcgeW91ciBjdXN0b20KYm9hcmQ/Cgo+IEFueSBvdGhlciBzdWdnZXN0aW9u
-cz8KCk1heWJlIHByb3ZpZGUgb3V0cHV0IG9mIHdoYXQgY2hhbmdlcyBtYWtlIHRoZSBwcm9ibGVt
-IGhhcHBlbiB3aXRoIHlvdXIgY3VzdG9tCi5jb25maWcgaWYgeW91IGhhdmUgbm90IGFscmVhZHkg
-ZG9uZToKCiQgbWFrZSBzYXZlZGVmY29uZmlnCiQgY3AgZGVmY29uZmlnIGFyY2gvYXJtL2NvbmZp
-Z3Mvb21hcDJwbHVzX2RlZmNvbmZpZwokIGdpdCBkaWZmCgpSZWdhcmRzLAoKVG9ueQoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5l
-bCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
-Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Linus,
+
+* Tony Lindgren <tony@atomide.com> [151118 16:25]:
+> * Javier Martinez Canillas <javier@osg.samsung.com> [151117 05:51]:
+> > Hello Linus,
+> > 
+> > On 11/17/2015 10:47 AM, Linus Walleij wrote:
+> > > On Fri, Nov 13, 2015 at 5:53 AM, Javier Martinez Canillas
+> > > <javier@osg.samsung.com> wrote:
+> > > 
+> > >> The <dt-bindings/pinctrl/omap.h> header file defines a set of macros
+> > >> for different SoCs families that falls under the OMAP sub-arch, that
+> > >> allow to define the padconf register physical address instead of the
+> > >> register offset from the padconf base.
+> > >>
+> > >> But the am43xx and dra7xx SoCs families have their own pinctrl header
+> > >> file so the DTS using these SoCs aren't able to use the AM4372_IOPAD()
+> > >> and DRA7XX_CORE_IOPAD() macros since <dt-bindings/pinctrl/omap.h> is
+> > >> not included.
+> > >>
+> > >> Move the macros to the correct header files so can be used by the DTS.
+> > >>
+> > >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > > 
+> > > I need Tony's ACK on this.
+> > >
+> > 
+> > OK, I believe he was waiting for yours to pick the series though ;)
+> 
+> Yeah probably best to keep this series together if you're OK with that.
+
+Care to ack this one? I'd like to apply this series for v4.5 within next
+few days..
+
+Regards,
+
+Tony
