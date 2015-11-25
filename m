@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 10/18] ARM: am57xx: cl-som-am57x: dts: add analog audio support
-Date: Wed, 25 Nov 2015 08:39:42 +0200
-Message-ID: <1448433590-1399-11-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH 09/18] ARM: am57xx: cl-som-am57x: dts: add touchscreen support
+Date: Wed, 25 Nov 2015 08:39:41 +0200
+Message-ID: <1448433590-1399-10-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1448433590-1399-1-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -10,114 +10,83 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add analog audio DT nodes:
-
-1. simple-audio-card node
-2. wm8731 codec node
-3. MCASP3 pinmux
+Add ADS7846 touchscreen support.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 67 +++++++++++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 44 +++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-index 1830d4f..f7bec0d 100644
+index eba12a4..1830d4f 100644
 --- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
 +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-@@ -50,6 +50,33 @@
+@@ -43,6 +43,13 @@
  		regulator-min-microvolt = <3300000>;
  		regulator-max-microvolt = <3300000>;
  	};
 +
-+	sound0: sound@0 {
-+		compatible = "simple-audio-card";
-+		simple-audio-card,name = "CL-SOM-AM57x-Sound-Card";
-+		simple-audio-card,format = "i2s";
-+		simple-audio-card,bitclock-master = <&dailink0_master>;
-+		simple-audio-card,frame-master = <&dailink0_master>;
-+		simple-audio-card,widgets =
-+					"Headphone", "Headphone Jack",
-+					"Microphone", "Microphone Jack",
-+					"Line", "Line Jack";
-+		simple-audio-card,routing =
-+					"Headphone Jack", "RHPOUT",
-+					"Headphone Jack", "LHPOUT",
-+					"LLINEIN", "Line Jack",
-+					"MICIN", "Mic Bias",
-+					"Mic Bias", "Microphone Jack";
-+
-+		dailink0_master: simple-audio-card,cpu {
-+			sound-dai = <&mcasp3>;
-+		};
-+
-+		simple-audio-card,codec {
-+			sound-dai = <&wm8731>;
-+			system-clock-frequency = <12000000>;
-+		};
++	ads7846reg: fixedregulator-ads7846-reg {
++		compatible = "regulator-fixed";
++		regulator-name = "ads7846-reg";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
 +	};
  };
  
  &dra7_pmx_core {
-@@ -196,6 +223,24 @@
- 			DRA7XX_CORE_IOPAD(0x3464, PIN_INPUT_PULLDOWN | MUX_MODE14) /* gpmc_a9.gpio1_31 */
+@@ -183,6 +190,12 @@
+ 			DRA7XX_CORE_IOPAD(0x3640, PIN_INPUT | MUX_MODE15)
  		>;
  	};
 +
-+	mcasp3_pins_default: mcasp3_pins_default {
++	ads7846_pins: pinmux_ads7846_pins {
 +		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x3724, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcasp3_aclkx.mcasp3_aclkx */
-+			DRA7XX_CORE_IOPAD(0x3728, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcasp3_fsx.mcasp3_fsx */
-+			DRA7XX_CORE_IOPAD(0x372c, PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* mcasp3_axr0.mcasp3_axr0 */
-+			DRA7XX_CORE_IOPAD(0x3730, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcasp3_axr1.mcasp3_axr1 */
-+		>;
-+	};
-+
-+	mcasp3_pins_sleep: mcasp3_pins_sleep {
-+		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x3724, PIN_INPUT | MUX_MODE15)
-+			DRA7XX_CORE_IOPAD(0x3728, PIN_INPUT | MUX_MODE15)
-+			DRA7XX_CORE_IOPAD(0x372c, PIN_INPUT | MUX_MODE15)
-+			DRA7XX_CORE_IOPAD(0x3730, PIN_INPUT | MUX_MODE15)
++			DRA7XX_CORE_IOPAD(0x3464, PIN_INPUT_PULLDOWN | MUX_MODE14) /* gpmc_a9.gpio1_31 */
 +		>;
 +	};
  };
  
  &i2c1 {
-@@ -420,6 +465,13 @@
- 		reg = <0x50>;
- 		pagesize = <16>;
+@@ -450,6 +463,37 @@
+ 			reg = <0x100000 0x0>;
+ 		};
  	};
 +
-+	wm8731: wm8731@1a {
-+		#sound-dai-cells = <0>;
-+		compatible = "wlf,wm8731";
-+		reg = <0x1a>;
-+		status = "okay";
++	/* touch controller */
++	ads7846@0 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&ads7846_pins>;
++
++		compatible = "ti,ads7846";
++		vcc-supply = <&ads7846reg>;
++
++		reg = <1>;                              /* CS1 */
++		spi-max-frequency = <1500000>;
++
++		interrupt-parent = <&gpio1>;
++		interrupts = <31 0>;
++		pendown-gpio = <&gpio1 31 0>;
++
++
++		ti,x-min = /bits/ 16 <0x0>;
++		ti,x-max = /bits/ 16 <0x0fff>;
++		ti,y-min = /bits/ 16 <0x0>;
++		ti,y-max = /bits/ 16 <0x0fff>;
++
++		ti,x-plate-ohms = /bits/ 16 <180>;
++		ti,pressure-max = /bits/ 16 <255>;
++
++		ti,debounce-max = /bits/ 16 <30>;
++		ti,debounce-tol = /bits/ 16 <10>;
++		ti,debounce-rep = /bits/ 16 <1>;
++
++		linux,wakeup;
 +	};
  };
  
- &mmc2 {
-@@ -537,3 +589,18 @@
- &usb2 {
- 	dr_mode = "peripheral";
- };
-+
-+&mcasp3 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&mcasp3_pins_default>;
-+	pinctrl-1 = <&mcasp3_pins_sleep>;
-+	status = "okay";
-+
-+	op-mode = <0>;	/* MCASP_IIS_MODE */
-+	tdm-slots = <2>;
-+	/* 4 serializers */
-+	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
-+		1 2 0 0
-+	>;
-+};
+ &mac {
 -- 
 1.9.1
 
