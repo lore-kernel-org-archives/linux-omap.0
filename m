@@ -1,35 +1,273 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags" entry
-Date: Wed, 25 Nov 2015 22:29:53 +0100
-Message-ID: <3245119.krc4KB3uae@wuerfel>
-References: <20150713131902.GH26485@atomide.com> <17134653.86P3dFyQKK@wuerfel> <20151125210310.GT2517@atomide.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 01/18] ARM: am57xx: cl-som-am57x: dts: add basic module
+ support
+Date: Wed, 25 Nov 2015 15:36:18 -0600
+Message-ID: <565629D2.2010401@ti.com>
+References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
+ <1448433590-1399-2-git-send-email-lifshitz@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151125210310.GT2517@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, Frank Rowand <frowand.list@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1448433590-1399-2-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 25 November 2015 13:03:10 Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [151125 11:50]:
-> > On Wednesday 25 November 2015 10:16:44 Tony Lindgren wrote:
-> > > At least I don't have better solutions in mind.
-> > 
-> > I would be happier if we could restrict this as much as possible to the
-> > boards that need it, as an opt-in. That way it doesn't become an ABI
-> > for people that don't already rely in this information. How about
-> > adding a check the code adds the linux,atags property to do it
-> > only for a whitelist of board numbers?
-> 
-> Or populate /proc/atags only for the ones that need it from machine
-> specific init_early?
+On 11/25/2015 12:39 AM, Dmitry Lifshitz wrote:
+[...]
 
-That would also address my main concern about /proc/atags, but still
-leave the atags in /proc/device-tree/chosen/linux,atags, and it would
-be bad if someone who currently uses /proc/atags changes their code
-to use the other file instead of finding a proper solution.
+> diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+> new file mode 100644
+> index 0000000..b11d7da
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+[...]
 
-	Arnd
+> +/ {
+> +	model = "CompuLab CL-SOM-AM57x";
+> +	compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
+> +
+> +	memory {
+> +		device_type = "memory";
+> +		reg = <0x80000000 0x20000000>; /* 512 MB - minimal configuration */
+
+I think if you like to enable LPAE, the format might look a little
+different..
+
+> +	};
+> +
+> +	leds {
+> +		compatible = "gpio-leds";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&leds_pins_default>;
+> +
+> +		led@0 {
+> +			label = "cl-som-am57x:green";
+> +			gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+> +			linux,default-trigger = "heartbeat";
+> +			default-state = "off";
+> +		};
+> +	};
+> +};
+> +
+> +&dra7_pmx_core {
+> +	leds_pins_default: leds_pins_default {
+> +		pinctrl-single,pins = <
+> +			DRA7XX_CORE_IOPAD(0x347c, PIN_OUTPUT | MUX_MODE14)	/* gpmc_a15.gpio2_5 */
+> +		>;
+> +	};
+> +
+> +	i2c1_pins_default: i2c1_pins_default {
+> +		pinctrl-single,pins = <
+> +			DRA7XX_CORE_IOPAD(0x3800, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda.sda */
+> +			DRA7XX_CORE_IOPAD(0x3804, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl.scl */
+> +		>;
+> +	};
+> +
+> +	tps659038_pins_default: tps659038_pins_default {
+> +		pinctrl-single,pins = <
+> +			DRA7XX_CORE_IOPAD(0x3818, PIN_INPUT_PULLUP | MUX_MODE14) /* wakeup0.gpio1_0 */
+> +		>;
+> +	};
+
+Generic comment: As per requirements of the SoC -> all pinctrl must be
+done in bootloader. this was a recommendation that came in too late
+for TI platforms that got introduced in upstream, but that cleanup
+should eventually take place as well.
+
+> +};
+> +
+> +&i2c1 {
+> +	status = "okay";
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&i2c1_pins_default>;
+> +	clock-frequency = <400000>;
+> +
+> +	tps659038: tps659038@58 {
+> +		compatible = "ti,tps659038";
+> +		reg = <0x58>;
+> +		interrupt-parent = <&gpio1>;
+> +		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+
+Also See: https://patchwork.kernel.org/patch/7596541/ ->
+Documentation/devicetree/bindings/i2c/i2c.txt -> since you seem to
+have a PMIC with power button, you might be able to get wakeup source
+also there.
+
+> +
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&tps659038_pins_default>;
+> +
+> +		#interrupt-cells = <2>;
+> +		interrupt-controller;
+> +
+> +		ti,system-power-controller;
+
+Assuming powerhold signal and BOOT0,1 is proper here, else poweroff
+will never work.
+
+> +
+> +		tps659038_pmic {
+> +			compatible = "ti,tps659038-pmic";
+> +
+> +			regulators {
+> +				smps12_reg: smps12 {
+> +					/* VDD_MPU */
+> +					regulator-name = "smps12";
+> +					regulator-min-microvolt = < 850000>;
+> +					regulator-max-microvolt = <1250000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				smps3_reg: smps3 {
+> +					/* VDD_DDR */
+> +					regulator-name = "smps3";
+> +					regulator-min-microvolt = <1500000>;
+> +					regulator-max-microvolt = <1500000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				smps45_reg: smps45 {
+> +					/* VDD_DSPEVE */
+> +					regulator-name = "smps45";
+> +					regulator-min-microvolt = < 850000>;
+> +					regulator-max-microvolt = <1160000>;
+
+1.25v if you want to support OPP_HIGH. as per latest data sheet.
+
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				smps6_reg: smps6 {
+> +					/* VDD_GPU */
+> +					regulator-name = "smps6";
+> +					regulator-min-microvolt = < 850000>;
+> +					regulator-max-microvolt = <1160000>;
+
+1.25v if you want to support OPP_HIGH. as per latest data sheet.
+
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				smps7_reg: smps7 {
+> +					/* VDD_CORE */
+> +					regulator-name = "smps7";
+> +					regulator-min-microvolt = < 850000>;
+> +					regulator-max-microvolt = <1160000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				smps8_reg: smps8 {
+> +					/* VDD_IVA */
+> +					regulator-name = "smps8";
+> +					regulator-min-microvolt = < 850000>;
+> +					regulator-max-microvolt = <1160000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				smps9_reg: smps9 {
+> +					/* PMIC_3V3 */
+> +					regulator-name = "smps9";
+> +					regulator-min-microvolt = <3300000>;
+> +					regulator-max-microvolt = <3300000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +
+> +				ldo1_reg: ldo1 {
+> +					/* VDD_SD / VDDSHV8  */
+> +					regulator-name = "ldo1";
+> +					regulator-min-microvolt = <1800000>;
+> +					regulator-max-microvolt = <3300000>;
+
+for eventual UHS mode support, it is recommended to keep VDD_SD
+separate from VDDSHV8. many of TI evms also suffer from this issue :(
+
+> +					regulator-boot-on;
+> +					regulator-always-on;
+> +				};
+> +
+> +				ldo2_reg: ldo2 {
+> +					/* VDD_1V8 */
+> +					regulator-name = "ldo2";
+> +					regulator-min-microvolt = <1800000>;
+> +					regulator-max-microvolt = <1800000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				ldo3_reg: ldo3 {
+> +					/* VDDA_1V8_PHYA */
+> +					regulator-name = "ldo3";
+> +					regulator-min-microvolt = <1800000>;
+> +					regulator-max-microvolt = <1800000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				ldo4_reg: ldo4 {
+> +					/* VDDA_1V8_PHYB */
+> +					regulator-name = "ldo4";
+> +					regulator-min-microvolt = <1800000>;
+> +					regulator-max-microvolt = <1800000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+
+Happy to see this is already split up. you might want to document
+which PHYs are supplied by PHYA/B in comments for future reference
+instead of having to dig through schematics to figure that out..
+
+> +
+> +				ldo9_reg: ldo9 {
+> +					/* VDD_RTC */
+> +					regulator-name = "ldo9";
+> +					regulator-min-microvolt = <1050000>;
+> +					regulator-max-microvolt = <1050000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+as per data sheet:
+"VD_RTC can optionally be tied to VD_CORE and operate at the VD_CORE
+AVS voltages."
+
+I assume that is not the case here.
+
+> +				};
+> +
+> +				ldoln_reg: ldoln {
+> +					/* VDDA_1V8_PLL */
+> +					regulator-name = "ldoln";
+> +					regulator-min-microvolt = <1800000>;
+> +					regulator-max-microvolt = <1800000>;
+> +					regulator-always-on;
+> +					regulator-boot-on;
+> +				};
+> +
+> +				ldousb_reg: ldousb {
+> +					/* VDDA_3V_USB: VDDA_USBHS33 */
+> +					regulator-name = "ldousb";
+> +					regulator-min-microvolt = <3300000>;
+> +					regulator-max-microvolt = <3300000>;
+> +					regulator-boot-on;
+
+All SoC VDDAs must be always-on.
+
+[...]
+
+
+-- 
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
