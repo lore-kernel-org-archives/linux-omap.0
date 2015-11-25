@@ -1,99 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4+: SMP: use lockless clkdm/pwrdm api in
- omap4_boot_secondary
-Date: Wed, 25 Nov 2015 11:03:37 -0800
-Message-ID: <20151125190336.GR2517@atomide.com>
-References: <1447695533-11460-1-git-send-email-grygorii.strashko@ti.com>
+From: Ran Shalit <ranshalit@gmail.com>
+Subject: Re: power states transitions
+Date: Wed, 25 Nov 2015 21:48:30 +0200
+Message-ID: <CAJ2oMhKayCodLD_M+K07A3EvaGb=rAmcNWNcmYUeq=eRbcP-vQ@mail.gmail.com>
+References: <CAJ2oMhLmViYf=27nVh_=DBFyQLCcBT+985RTkMiwJZyav7Uiyg@mail.gmail.com>
+	<20151125185014.GN2517@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1447695533-11460-1-git-send-email-grygorii.strashko@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20151125185014.GN2517@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [151116 09:39]:
-> OMAP CPU hotplug uses cpu1's clocks and power domains for CPU1 wake up
-> from low power states (or turn on CPU1). This part of code is also
-> part of system suspend (disable_nonboot_cpus()).
-> >From other side, cpu1's clocks and power domains are used by CPUIdle. All above
-> functionality is mutually exclusive and, therefore, lockless clkdm/pwrdm api
-> can be used in omap4_boot_secondary().
-> 
-> This fixes below back-trace on -RT which is triggered by
-> pwrdm_lock/unlock():
-> 
-> BUG: sleeping function called from invalid context at kernel/locking/rtmutex.c:917
->  in_atomic(): 1, irqs_disabled(): 0, pid: 118, name: sh
->  9 locks held by sh/118:
->   #0:  (sb_writers#4){.+.+.+}, at: [<c0144a6c>] vfs_write+0x13c/0x164
->   #1:  (&of->mutex){+.+.+.}, at: [<c01b4c70>] kernfs_fop_write+0x48/0x19c
->   #2:  (s_active#24){.+.+.+}, at: [<c01b4c78>] kernfs_fop_write+0x50/0x19c
->   #3:  (device_hotplug_lock){+.+.+.}, at: [<c03cbff0>] lock_device_hotplug_sysfs+0xc/0x4c
->   #4:  (&dev->mutex){......}, at: [<c03cd284>] device_online+0x14/0x88
->   #5:  (cpu_add_remove_lock){+.+.+.}, at: [<c003af90>] cpu_up+0x50/0x1a0
->   #6:  (cpu_hotplug.lock){++++++}, at: [<c003ae48>] cpu_hotplug_begin+0x0/0xc4
->   #7:  (cpu_hotplug.lock#2){+.+.+.}, at: [<c003aec0>] cpu_hotplug_begin+0x78/0xc4
->   #8:  (boot_lock){+.+...}, at: [<c002b254>] omap4_boot_secondary+0x1c/0x178
->  Preemption disabled at:[<  (null)>]   (null)
-> 
->  CPU: 0 PID: 118 Comm: sh Not tainted 4.1.12-rt11-01998-gb4a62c3-dirty #137
->  Hardware name: Generic DRA74X (Flattened Device Tree)
->  [<c0017574>] (unwind_backtrace) from [<c0013be8>] (show_stack+0x10/0x14)
->  [<c0013be8>] (show_stack) from [<c05a8670>] (dump_stack+0x80/0x94)
->  [<c05a8670>] (dump_stack) from [<c05ad158>] (rt_spin_lock+0x24/0x54)
->  [<c05ad158>] (rt_spin_lock) from [<c0030dac>] (clkdm_wakeup+0x10/0x2c)
->  [<c0030dac>] (clkdm_wakeup) from [<c002b2c0>] (omap4_boot_secondary+0x88/0x178)
->  [<c002b2c0>] (omap4_boot_secondary) from [<c0015d00>] (__cpu_up+0xc4/0x164)
->  [<c0015d00>] (__cpu_up) from [<c003b09c>] (cpu_up+0x15c/0x1a0)
->  [<c003b09c>] (cpu_up) from [<c03cd2d4>] (device_online+0x64/0x88)
->  [<c03cd2d4>] (device_online) from [<c03cd360>] (online_store+0x68/0x74)
->  [<c03cd360>] (online_store) from [<c01b4ce0>] (kernfs_fop_write+0xb8/0x19c)
->  [<c01b4ce0>] (kernfs_fop_write) from [<c0144124>] (__vfs_write+0x20/0xd8)
->  [<c0144124>] (__vfs_write) from [<c01449c0>] (vfs_write+0x90/0x164)
->  [<c01449c0>] (vfs_write) from [<c01451e4>] (SyS_write+0x44/0x9c)
->  [<c01451e4>] (SyS_write) from [<c0010240>] (ret_fast_syscall+0x0/0x54)
->  CPU1: smp_ops.cpu_die() returned, trying to resuscitate
-> 
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+On Wed, Nov 25, 2015 at 8:50 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Ran Shalit <ranshalit@gmail.com> [151122 07:59]:
+>> Hello,
+>>
+>> I have stranhe behaviour in which even when there is no activity in
+>> serial port, the retention counter is keep incremented all these time,
+>> as if the cpu gets in and out of retention periodically.
+>> I would expect the cpu to get into retention mode, when there is no
+>> activity and stay in that state.
+>> What can cause such behaviour ? Is it because some background process ?
+>
+> Sounds like your device is hitting deper idle states during idle. If
+> you want to disable that, set the UART autosuspend_delay_ms to -1:
+>
+> #/bin/bash
+> uarts=$(find /sys/class/tty/tty[SO]*/device/power/ -type d)
+> for uart in $uarts; do
+>         echo -1 > $uart/autosuspend_delay_ms 2>&1
+> done
+>
+> The above will keep the UARTs active blocking any deeper idle
+> states. I believe the value has to be -1 instead of 0 to disable
+> autoidle.. but please verify yourself.
+>
+>> My original problem is that the ethernet performance is very low with
+>> small windows. I thought that I can control this value by changing
+>> sleep_latency parameter in
+>> the following array. Yet, it did not help me. I don't know why.
+>
+> Maybe test if the above script helps with the Ethernet too. If the
+> Ethernet controller is on GPMC, it's not blocking deeper idle states
+> automatically in hardware. Adding DMA support to the Ethernet driver
+> would be a good way to block deeper idle states automatically by
+> the Ethernet hardware.
+>
 
-Applying into omap-for-v4.4/fixes thanks.
+Hi Tony,
 
-Tony
+We actually want the deeper state, but not in the price of performance...
+So I thought of these possibilities:
+1. configure the sleep state to check activity for a longer time than
+micro seconds (several seconds). If there is non activity in that long
+period, only than will move to retention. I am not sure if there is
+such configuration parameter . Maybe one of the following parameters
+can be configured for this option ?
 
-> ---
->  arch/arm/mach-omap2/omap-smp.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-> index 5305ec7..79e1f87 100644
-> --- a/arch/arm/mach-omap2/omap-smp.c
-> +++ b/arch/arm/mach-omap2/omap-smp.c
-> @@ -143,9 +143,9 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
->  		 * Ensure that CPU power state is set to ON to avoid CPU
->  		 * powerdomain transition on wfi
->  		 */
-> -		clkdm_wakeup(cpu1_clkdm);
-> -		omap_set_pwrdm_state(cpu1_pwrdm, PWRDM_POWER_ON);
-> -		clkdm_allow_idle(cpu1_clkdm);
-> +		clkdm_wakeup_nolock(cpu1_clkdm);
-> +		pwrdm_set_next_pwrst(cpu1_pwrdm, PWRDM_POWER_ON);
-> +		clkdm_allow_idle_nolock(cpu1_clkdm);
->  
->  		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
->  			while (gic_dist_disabled()) {
-> -- 
-> 2.6.3
-> 
+46 struct cpuidle_params {
+ 47         u32 exit_latency;       /* exit_latency = sleep + wake-up
+latencies */
+ 48         u32 target_residency;
+ 49         u8 valid;               /* validates the C-state */
+ 50 };
+
+2. Another option can be to write a kernel module which check if there
+is ethernet activity for X seconds, if there is none - it will enable
+power management , otherwise - it will disable the power management.
+
+These maybe can solve the ethernet issue, but I still not sure why
+there is constantly incrementation in the retention state, as if it
+enter and leave the state all periodically. Is it becuase some
+task/thread/process in the system (I guess it can be a kernel process
+actually) ?
+
+Regards,
+Ran
