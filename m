@@ -1,136 +1,102 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 01/14] ARM: am437x: cm-t43: dts: add basic support for
- sbc-t43
-Date: Wed, 25 Nov 2015 17:03:00 -0600
-Message-ID: <20151125230300.GA23057@rob-hp-laptop>
-References: <1448371155-17307-1-git-send-email-nikita@compulab.co.il>
- <1448371155-17307-2-git-send-email-nikita@compulab.co.il>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags"
+ entry
+Date: Wed, 25 Nov 2015 20:19:21 -0800
+Message-ID: <56568849.5080103@gmail.com>
+References: <20150713131902.GH26485@atomide.com> <20151123144545.GD24147@pali> <20151125181644.GI2517@atomide.com> <17134653.86P3dFyQKK@wuerfel> <20151125210310.GT2517@atomide.com>
+Reply-To: frowand.list@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1448371155-17307-2-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151125210310.GT2517@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, =?UTF-8?B?QW5kcmVhcyBGw6RyYmVy?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 24, 2015 at 03:19:02PM +0200, Nikita Kiryanov wrote:
-> Add basic support for SBC-T43: a CM-T43 based single board computer.
-> CM-T43 is an AM437x based System-on-Module designed to serve as a building
-> block in embedded applications. SBC-T43 is composed of CM-T43 module on
-> top of the SB-SOM-T43 baseboard.
-> Basic support includes UART, GPIO, and I2C.
-> 
-> Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+On 11/25/2015 1:03 PM, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [151125 11:50]:
+>> On Wednesday 25 November 2015 10:16:44 Tony Lindgren wrote:
+>>> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151123 06:46]:
+>>>> On Sunday 22 November 2015 07:51:46 Pavel Machek wrote:
+>>>>> On Wed 2015-11-11 17:10:46, Frank Rowand wrote:
+>>>>>> Adding devicetree list.
+>>>>>>
+>>>>>> Thread starts at
+>>>>>> http://lists.infradead.org/pipermail/linux-arm-kernel/2015-July/=
+354459.html
+>>>>>>
+>>>>>> On 11/5/2015 8:17 AM, Tony Lindgren wrote:
+>>>>>>> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151105 03:41]:
+>>>>>>>> On Tuesday 13 October 2015 16:37:46 Pali Roh=C3=A1r wrote:
+>>>>>>>>> On Monday 12 October 2015 13:45:09 Tony Lindgren wrote:
+>>>>>>>>>> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151012 13:29]:
+>>>>>>>>>>> On Monday 12 October 2015 22:16:40 Tony Lindgren wrote:
+>>>>>>>>>>>>
+>>>>>>>>>>>> Pali, any news on posting an updated series with the comme=
+nts
+>>>>>>>>>>>> addressed in this thread? It seems that we all pretty much=
+ agree
+>>>>>>>>>>>> what needs to be done.
+>>>>>>
+>>>>>> I'm not real happy with the concept of patches 4 and 5 in this s=
+eries.
+>>>>>> My concern is that those two patches are using the FDT as a tran=
+sport
+>>>>>> mechanism for a binary blob (the atags object).
+>>>>>
+>>>>> Umm. Ok. Do you have alternative proposal that works for everyone=
+?
+>>>>>
+>>>>> I mean. This discussion was going for quite a long time, and it w=
+ould
+>>>>> be nice to have some solution... patch proposal... something.
+>>>>>                                                                  =
+   Pavel
+>>>>
+>>>> Yes, discussion is going for a long time! So should I spend time f=
+or
+>>>> adding documentation to my solution (this is last one thing which =
+is
+>>>> missing)? Or my solution is wrong and somebody else will propose n=
+ew?
+>>>> I do not want to spend time on something which will be rejected an=
+d
+>>>> discarded.
+>>>
+>>> At least I don't have better solutions in mind.
+>>
+>> I would be happier if we could restrict this as much as possible to =
+the
+>> boards that need it, as an opt-in. That way it doesn't become an ABI
 
-Some minor nits below, otherwise:
+The feature (in whatever form it takes) should be definitely be highly
+restricted and marked as deprecated.
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> for people that don't already rely in this information. How about
+>> adding a check the code adds the linux,atags property to do it
+>> only for a whitelist of board numbers?
+>=20
+> Or populate /proc/atags only for the ones that need it from machine
+> specific init_early?
 
-> ---
->  .../devicetree/bindings/arm/omap/omap.txt          |  6 ++
->  arch/arm/boot/dts/Makefile                         |  6 +-
->  arch/arm/boot/dts/am437x-cm-t43.dts                | 90 ++++++++++++++++++++++
->  arch/arm/boot/dts/am437x-sbc-t43.dts               | 57 ++++++++++++++
->  4 files changed, 157 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/boot/dts/am437x-cm-t43.dts
->  create mode 100644 arch/arm/boot/dts/am437x-sbc-t43.dts
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index 9f4e513..da84372 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -141,6 +141,12 @@ Boards:
->  - OMAP5 EVM : Evaluation Module
->    compatible = "ti,omap5-evm", "ti,omap5"
->  
-> +- AM437x CM-T43
-> +  compatible = "compulab,am437x-cm-t43", "ti,am4372", "ti,am43"
-> +
-> +- AM437x SBC-T43
-> +  compatible = "compulab,am437x-sbc-t43","compulab,am437x-cm-t43","ti,am4372","ti,am43"
-                                            ^
-spaces
+This is circling back to the first comment from Russell King where
+he suggested a legacy file for the N900 which calls save_atags():
 
-> +
->  - AM43x EPOS EVM
->    compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
->  
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 30bbc37..dc3b9af 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -478,9 +478,11 @@ dtb-$(CONFIG_ARCH_OMAP4) += \
->  	omap4-var-stk-om44.dtb
->  dtb-$(CONFIG_SOC_AM43XX) += \
->  	am43x-epos-evm.dtb \
-> -	am437x-sk-evm.dtb \
-> +	am437x-cm-t43.dtb \
-> +	am437x-gp-evm.dtb \
->  	am437x-idk-evm.dtb \
-> -	am437x-gp-evm.dtb
-> +	am437x-sbc-t43.dtb \
-> +	am437x-sk-evm.dtb
->  dtb-$(CONFIG_SOC_OMAP5) += \
->  	omap5-cm-t54.dtb \
->  	omap5-igep0050.dtb \
-> diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
-> new file mode 100644
-> index 0000000..69887c4
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am437x-cm-t43.dts
-> @@ -0,0 +1,90 @@
-> +/*
-> + * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +/dts-v1/;
-> +
-> +#include <dt-bindings/pinctrl/am43xx.h>
-> +#include <dt-bindings/gpio/gpio.h>
-> +#include <dt-bindings/interrupt-controller/irq.h>
-> +#include "am4372.dtsi"
-> +
-> +/ {
-> +	model = "CompuLab CM-T43";
-> +	compatible = "compulab,am437x-cm-t43","ti,am4372","ti,am43";
-                                              ^
-space
+    Are the ATAGs at a fixed address on the N900?  Can that be handled =
+in
+    some kind of legacy file for the N900 which calls save_atags() on i=
+t, so
+    we don't end up introducing yet more stuff that we have to maintain=
+ into
+    the distant future?  If not, what about copying a known working ata=
+g
+    structure into a legacy file for the N900?
 
-[...]
+It seems to me that patches 1, 2, 4, and 5 could be replaced by this
+approach.
 
-> diff --git a/arch/arm/boot/dts/am437x-sbc-t43.dts b/arch/arm/boot/dts/am437x-sbc-t43.dts
-> new file mode 100644
-> index 0000000..f3cd76b
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am437x-sbc-t43.dts
-> @@ -0,0 +1,57 @@
-> +/*
-> + * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include "am437x-cm-t43.dts"
-> +
-> +/ {
-> +	model = "CompuLab CM-T43 on SB-SOM-T43";
-> +	compatible = "compulab,am437x-sbc-t43","compulab,am437x-cm-t43","ti,am4372","ti,am43";
+Regards,
 
-spaces
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=46rank
