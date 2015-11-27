@@ -1,86 +1,46 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
-Date: Fri, 27 Nov 2015 22:10:26 +0200
-Message-ID: <5658B8B2.5030505@ti.com>
-References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
- <87h9kgcz1k.fsf@saruman.tx.rr.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags" entry
+Date: Fri, 27 Nov 2015 22:06:20 +0100
+Message-ID: <11537945.4HX4Y84tjV@wuerfel>
+References: <20150713131902.GH26485@atomide.com> <20151127132722.GA30871@n2100.arm.linux.org.uk> <20151127195148.GB30871@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87h9kgcz1k.fsf@saruman.tx.rr.com>
+In-Reply-To: <20151127195148.GB30871@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Rob Herring <robherring2@gmail.com>, Pavel Machek <pavel@ucw.cz>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+On Friday 27 November 2015 19:51:48 Russell King - ARM Linux wrote:
+> On Fri, Nov 27, 2015 at 01:27:23PM +0000, Russell King - ARM Linux wrote:
+> > It is possible to redirect any program to open any other file.  You can
+> > do it via a LD preload, and intercepting the open(), and possibly the
+> > read() calls if you want to do something more fancy.  The down-side is
+> > that you have to arrange for the preloaded object to be used by the
+> > linker, and the additional overhead it places on the intercepted
+> > functions.
+> 
+> Another idea if people don't like the preload idea.
+> 
+> We could create a zero-sized /proc/atags, and then use a bind mount in
+> userspace to bind some other file containing the required information
+> on top.  That could even be the atag blob from /sys/firmware/whatever.
+> The N700 (or whatever platform needs it) could be responsible for
+> creating the zero-sized /proc/atags so that we don't have it everywhere.
 
-On 11/20/2015 08:21 PM, Felipe Balbi wrote:
-> Grygorii Strashko <grygorii.strashko@ti.com> writes:
->> Since system clocksource is finally selected by Clocksource core at
->> fs_initcall stage during boot there are no reasons to initialize
->> ti_32k_timer at early boot stages. Hence, ti_32k_timer can be
->> converted to use platform device/driver model and its PM can be
->> implemented using PM runtime which is common for OMAP devices.
->>
->> Platform specific initialization code has to be disabled once as
->> ti_32k_timer is converted to platform device - otherwise OMAP platfo=
-rm
->> code will generate boot warnings.
->>
->> After this change, all counter_32k's platform code can be removed
->> once all OMAP boards will be converted to DT.
->>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Felipe Balbi <balbi@ti.com>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> ---
+I don't mind creating the /proc/atags compatibility hack from the kernel
+for a DT based N700 kernel, as long as we limit it as much as we can
+to the machines that need it. Leaving a board file for the N700 in place
+that contains the procfs code (and not much more) seems reasonable
+here, as we are talking about a board specific hack and the whole point
+appears to be running unmodified user space.
 
-[...]
+Regarding how to get the data into the kernel in the first place, my
+preferred choice would still be to have an intermediate bootloader
+such as pxa-impedance-matcher, but I won't complain if others are
+happy enough about putting it into the ATAGS compat code we already
+have, as long as it's limited to the boards we know need it.
 
->> +
->> +static struct platform_driver ti_32k_driver __initdata =3D {
->> +	.probe		=3D ti_32k_probe,
->> +	.driver		=3D {
->> +		.name	=3D "ti_32k_timer",
->> +		.of_match_table =3D of_match_ptr(ti_32k_of_table),
->> +	}
->> +};
->> +
->> +static int __init ti_32k_init(void)
->> +{
->> +	return platform_driver_register(&ti_32k_driver);
->>   }
->> -CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
->> -		ti_32k_timer_init);
->> +
->> +subsys_initcall(ti_32k_init);
->> +
->> +MODULE_AUTHOR("Paul Mundt");
->> +MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
->> +MODULE_DESCRIPTION("OMAP2 32k Timer");
->> +MODULE_ALIAS("platform:ti_32k_timer");
->> +MODULE_LICENSE("GPL v2");
->=20
-> this will break clksource_of_init(), right ? Eventually, we want that=
- to
-> be the only thing called by our .init_time method. I'll leave it to T=
-ony
-> to decide, but IMO this is not a good path forward for timers.
->=20
-
-Yeh :(.  I did additional tests, and, unfortunately, this can't be used=
- as is.
-But not because of clocksource_of_init() which will just produce boot w=
-arning.
-It can't be done because of sched_clock_register() which is expected to=
- be
-called during early boot time only and with disabled IRQs.
-
-It was so tempting to try :)
-Thanks for your comment.
-
---=20
-regards,
--grygorii
+	Arnd
