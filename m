@@ -1,90 +1,68 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Fri, 27 Nov 2015 09:52:05 +0100
-Message-ID: <CAOf5uw==sROkdOU-mEEE2iqBECkX5XcqY_2kNxc1ZJFW+j7niw@mail.gmail.com>
-References: <20150713131902.GH26485@atomide.com>
-	<20151123144545.GD24147@pali>
-	<20151125181644.GI2517@atomide.com>
-	<17134653.86P3dFyQKK@wuerfel>
-	<20151125210310.GT2517@atomide.com>
-	<56568849.5080103@gmail.com>
-	<20151126090739.GD14190@pali>
-	<20151126203930.GW2517@atomide.com>
-	<20151127083833.GA430@pali>
-	<CAOf5uwn_3gY=xE8gBS2hZ-O4ZBZruxYRN8a_hO0bqCHy-yA2Gg@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC 3/6] dmaengine: core: Introduce new,
+ universal API to request a channel
+Date: Fri, 27 Nov 2015 12:00:10 +0100
+Message-ID: <24788322.ynD35Kf0xi@wuerfel>
+References: <1448612982-28141-1-git-send-email-peter.ujfalusi@ti.com>
+ <1448612982-28141-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOf5uwn_3gY=xE8gBS2hZ-O4ZBZruxYRN8a_hO0bqCHy-yA2Gg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Frank Rowand <frowand.list@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, =?UTF-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1448612982-28141-4-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: vinod.koul@intel.com, nsekhar@ti.com, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+On Friday 27 November 2015 10:29:39 Peter Ujfalusi wrote:
+> struct dma_chan *dma_request_chan(struct device *dev, const char *name,
+> 				  const dma_cap_mask_t *mask);
+> To request a slave channel. The mask parameter is optional and it is used
+> to check if the received channel's capabilities can satisfy the requested
+> mask. The dma_request_chan() will try to find the channel via DT, ACPI or
+> in case if the kernel booted in non DT/ACPI mode it will use a filter
+> lookup table and retrieves the RESOURCE_DMA from the requester's device.
+> This legacy mode needs changes in platform code, in dmaengine drivers and
+> finally the dmaengine user drivers can be converted:
 
-On Fri, Nov 27, 2015 at 9:44 AM, Michael Trimarchi
-<michael@amarulasolutions.com> wrote:
-> Hi
->
-> On Fri, Nov 27, 2015 at 9:38 AM, Pali Roh=C3=A1r <pali.rohar@gmail.co=
-m> wrote:
->> On Thursday 26 November 2015 12:39:30 Tony Lindgren wrote:
->>> Just to explore options.. How about make a minimal device driver th=
-at
->>> just loads the atags blob from /lib/firmware and then shows it in
->>> /proc/atags? Of course some checking on the atags should be done by
->>> the driver..
->>
->> And who can dynamically create that blob file in /lib/firmware? If
->> kernel does not export those atags (somehow) from bootloader, then
->> userspace is not able to create that blob... cyclic problem.
->>
->
-> Are those atags from bootloader fix or they change device by device. =
-If they
-> are fixed they can be included in some firmware and get from the disk=
-=2E
->
+I think we should not introduce the mask parameter at all. In the rare
+case that we actually need to pass a mask other than DMA_SLAVE today,
+we should be able to encode that in the data we pass to the filter
+function.
 
-Sorry, miss the second part of email ;)
+> RESOURCE_DMA needs to be added to the platform devices with names
+> 
+> For each dmaengine driver a string array listing the devices handled by the
+> given DMA driver:
+> 
+> static char *da8xx_edma0_devices[] = {
+> 	"davinci-mcasp.0",
+> 	"da830-mmc.0",
+> };
+> 
+> This information is going to be needed by the dmaengine driver, so
+> modification to the platform_data is needed, and the driver map should be
+> added to the pdata of the DMA driver:
 
-Michael
+However, a lot of drivers definitely need to pass a data pointer for
+each device. I see that you currently rely on the IORESOURCE_DMA
+method that a couple of platforms use today, but I think it would
+be backwards to do it that way for the platforms that require passing
+more than an integer number today.
 
-> Michael
->
->> So no, problem is that bootloader provides via custom atags dynamic
->> information like: boot reason (how was device started, by rtc alarm?=
- by
->> reboot? by usb charger? by power button?), boot mode (should be ente=
-r
->> into firmware update mode?, is this normal boot mode?), ... and thos=
-e
->> information are needed for some proprietary software (e.g. firmware
->> upgrade/flash) but also by any other open source applications (based=
- on
->> usb charger we enter different runlevel -- for just only charging
->> device).
->>
->> --
->> Pali Roh=C3=A1r
->> pali.rohar@gmail.com
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Having a pointer as the filter function argument is intentional and I'd
+prefer to change the platforms that currently use IORESOURCE_DMA (davinci,
+pxa, omap1, blackfin, alchemy) to stop doing it instead, and return
+IORESOURCE_DMA to its original meaning that was limited to ISAPNP style
+devices not using the dmaengine API.
 
-
-
---=20
-| Michael Nazzareno Trimarchi                     Amarula Solutions BV =
-|
-| COO  -  Founder                                      Cruquiuskade 47 =
-|
-| +31(0)851119172                                 Amsterdam 1018 AM NL =
-|
-|                  [`as] http://www.amarulasolutions.com               =
-|
+	Arnd
