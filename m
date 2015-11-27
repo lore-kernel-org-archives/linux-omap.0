@@ -1,35 +1,47 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Thu, 26 Nov 2015 23:12:38 +0200
-Message-ID: <565775C6.8070500@gmail.com>
-References: <20150713131902.GH26485@atomide.com> <20151123144545.GD24147@pali>
- <20151125181644.GI2517@atomide.com> <17134653.86P3dFyQKK@wuerfel>
- <20151125210310.GT2517@atomide.com> <56568849.5080103@gmail.com>
- <20151126090739.GD14190@pali> <20151126203930.GW2517@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: dra72-evm: Mark uart1 rxd as wakeup capable
+Date: Thu, 26 Nov 2015 23:02:22 -0600
+Message-ID: <5657E3DE.5000107@ti.com>
+References: <1448526686-3998-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151126203930.GW2517@atomide.com>
+In-Reply-To: <1448526686-3998-1-git-send-email-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: Frank Rowand <frowand.list@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Sebastian Reichel <sre@debian.org>, =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On 11/26/2015 02:31 AM, Vignesh R wrote:
+> Uart1 rxd  is wakeup capable on DRA72 EVM. Hence, mark rxd line as
+> wakeup capable. This is similar to commit 66b0436977e2c ("ARM: dts:
+> dra7-evm: Mark uart1 rxd as wakeup capable") for DRA74 EVM.
+> 
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  arch/arm/boot/dts/dra72-evm.dts | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+> index d6104d5f0c01..8bf36b0b3c33 100644
+> --- a/arch/arm/boot/dts/dra72-evm.dts
+> +++ b/arch/arm/boot/dts/dra72-evm.dts
+> @@ -478,6 +478,8 @@
+>  
+>  &uart1 {
+>  	status = "okay";
+> +	interrupts-extended = <&crossbar_mpu GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
+> +			      <&dra7_pmx_core 0x3e0>;
+>  };
+>  
+>  &elm {
+> 
+
+Acked-by: Nishanth Menon <nm@ti.com>
 
 
-On 26.11.2015 22:39, Tony Lindgren wrote:
 
-> Just to explore options.. How about make a minimal device driver that
-> just loads the atags blob from /lib/firmware and then shows it in
-> /proc/atags? Of course some checking on the atags should be done by
-> the driver..
->
-
-What is the chance for such a driver to be accepted upstream? As IIRC 
-the current situation is because similar driver was rejected. Might be 
-wrong as well, it was about 2-3 years ago.
-
+-- 
 Regards,
-Ivo
+Nishanth Menon
