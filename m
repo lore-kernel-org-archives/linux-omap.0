@@ -1,8 +1,8 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
  "/chosen/linux,atags" entry
-Date: Fri, 27 Nov 2015 13:27:23 +0000
-Message-ID: <20151127132722.GA30871@n2100.arm.linux.org.uk>
+Date: Fri, 27 Nov 2015 06:51:32 -0800
+Message-ID: <20151127145131.GX2517@atomide.com>
 References: <20150713131902.GH26485@atomide.com>
  <20151123144545.GD24147@pali>
  <20151125181644.GI2517@atomide.com>
@@ -10,92 +10,45 @@ References: <20150713131902.GH26485@atomide.com>
  <20151125210310.GT2517@atomide.com>
  <56568849.5080103@gmail.com>
  <20151126090739.GD14190@pali>
+ <20151126203930.GW2517@atomide.com>
+ <20151127083833.GA430@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151126090739.GD14190@pali>
+In-Reply-To: <20151127083833.GA430@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Frank Rowand <frowand.list@gmail.com>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Frank Rowand <frowand.list@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 26, 2015 at 10:07:39AM +0100, Pali Roh=E1r wrote:
-> On Wednesday 25 November 2015 20:19:21 Frank Rowand wrote:
-> > > Or populate /proc/atags only for the ones that need it from machi=
-ne
-> > > specific init_early?
-> >=20
-> > This is circling back to the first comment from Russell King where
-> > he suggested a legacy file for the N900 which calls save_atags():
-> >=20
-> >     Are the ATAGs at a fixed address on the N900?  Can that be hand=
-led in
-> >     some kind of legacy file for the N900 which calls save_atags() =
-on it, so
-> >     we don't end up introducing yet more stuff that we have to main=
-tain into
-> >     the distant future?  If not, what about copying a known working=
- atag
-> >     structure into a legacy file for the N900?
-> >=20
-> > It seems to me that patches 1, 2, 4, and 5 could be replaced by thi=
-s
-> > approach.
->=20
-> Hi Frank, in this case I will ask my question again: It is possible t=
-o
-> read atags from that legacy file. And if yes how? I was not thinking
-> about this approach because somebody in past wrote that this is not
-> possible...
-
-It is possible to redirect any program to open any other file.  You can
-do it via a LD preload, and intercepting the open(), and possibly the
-read() calls if you want to do something more fancy.  The down-side is
-that you have to arrange for the preloaded object to be used by the
-linker, and the additional overhead it places on the intercepted
-functions.
-
-Eg,
-
-openatags.c:
-
-#define open libc_open
-#include <fcntl.h>
-#undef open
-#include <string.h>
-
-int open(const char *pathname, int flags, mode_t mode)
-{
-        static int (*old_open)(const char *pathname, int flags, mode_t =
-mode);
-
-        if (strcmp(pathname, "/proc/atags") =3D=3D 0)
-		pathname =3D "/tmp/my-atags";
-
-        if (!old_open)
-                old_open =3D dlsym(RTLD_NEXT, "open");
-
-        return old_open(pathname, flags, mode);
-}
-
-Build the above (untested) with:
-gcc -O2 -o openatags.o -c openatags.c
-gcc -shared -o openatags.so openatags.o -ldl
-
-Now, when running one of these programs, you can test it with:
-LD_PRELOAD=3Dopenatags.so /name/of/program
-
-You could also list the full pathname to openatags.so in /etc/ld.so.pre=
-load,
-but test it first, because it will always be used by the linker in that
-case, and you wouldn't want normal commands to misbehave.
-
-Note that putting it in /etc/ld.so.preload will also have the effect th=
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [151127 00:39]:
+> On Thursday 26 November 2015 12:39:30 Tony Lindgren wrote:
+> > Just to explore options.. How about make a minimal device driver th=
 at
-cat /proc/atags will also get redirected to /tmp/my-atags too.
+> > just loads the atags blob from /lib/firmware and then shows it in
+> > /proc/atags? Of course some checking on the atags should be done by
+> > the driver..
+>=20
+> And who can dynamically create that blob file in /lib/firmware? If
+> kernel does not export those atags (somehow) from bootloader, then
+> userspace is not able to create that blob... cyclic problem.
+>=20
+> So no, problem is that bootloader provides via custom atags dynamic
+> information like: boot reason (how was device started, by rtc alarm? =
+by
+> reboot? by usb charger? by power button?), boot mode (should be enter
+> into firmware update mode?, is this normal boot mode?), ... and those
+> information are needed for some proprietary software (e.g. firmware
+> upgrade/flash) but also by any other open source applications (based =
+on
+> usb charger we enter different runlevel -- for just only charging
+> device).
 
---=20
-=46TTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+OK if the ATAGs are not static then naturally we can't create the blobs
+then.
+
+Regards,
+
+Tony
