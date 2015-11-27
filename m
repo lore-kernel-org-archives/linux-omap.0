@@ -1,54 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Fri, 27 Nov 2015 06:51:32 -0800
-Message-ID: <20151127145131.GX2517@atomide.com>
-References: <20150713131902.GH26485@atomide.com>
- <20151123144545.GD24147@pali>
- <20151125181644.GI2517@atomide.com>
- <17134653.86P3dFyQKK@wuerfel>
- <20151125210310.GT2517@atomide.com>
- <56568849.5080103@gmail.com>
- <20151126090739.GD14190@pali>
- <20151126203930.GW2517@atomide.com>
- <20151127083833.GA430@pali>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: [4.4-rc][PATCH] ARM: dts: am4372: fix clock source for arm twd and global timers
+Date: Fri, 27 Nov 2015 21:44:28 +0200
+Message-ID: <1448653468-24908-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151127083833.GA430@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Frank Rowand <frowand.list@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Pavel Machek <pavel@ucw.cz>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [151127 00:39]:
-> On Thursday 26 November 2015 12:39:30 Tony Lindgren wrote:
-> > Just to explore options.. How about make a minimal device driver th=
-at
-> > just loads the atags blob from /lib/firmware and then shows it in
-> > /proc/atags? Of course some checking on the atags should be done by
-> > the driver..
->=20
-> And who can dynamically create that blob file in /lib/firmware? If
-> kernel does not export those atags (somehow) from bootloader, then
-> userspace is not able to create that blob... cyclic problem.
->=20
-> So no, problem is that bootloader provides via custom atags dynamic
-> information like: boot reason (how was device started, by rtc alarm? =
-by
-> reboot? by usb charger? by power button?), boot mode (should be enter
-> into firmware update mode?, is this normal boot mode?), ... and those
-> information are needed for some proprietary software (e.g. firmware
-> upgrade/flash) but also by any other open source applications (based =
-on
-> usb charger we enter different runlevel -- for just only charging
-> device).
+ARM TWD and Global timer are clocked by PERIPHCLK which is MPU_CLK/2.
+But now they are clocked by dpll_mpu_m2_ck == MPU_CLK and, as result.
+Timekeeping core misbehaves. For example, execution of command
+"sleep 5" will take 10 sec instead of 5.
 
-OK if the ATAGs are not static then naturally we can't create the blobs
-then.
+Hence, fix it by adding mpu_periphclk ("fixed-factor-clock") and use
+it for clocking ARM TWD and Global timer (same way as on OMAP4).
 
-Regards,
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Fixes:commit 8cbd4c2f6a99 ("arm: boot: dts: am4372: add ARM timers and SCU nodes")
+Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am4372.dtsi        | 4 ++--
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 8 ++++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-Tony
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d83ff9c..de8791a 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -74,7 +74,7 @@
+ 		reg = <0x48240200 0x100>;
+ 		interrupts = <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>;
+ 		interrupt-parent = <&gic>;
+-		clocks = <&dpll_mpu_m2_ck>;
++		clocks = <&mpu_periphclk>;
+ 	};
+ 
+ 	local_timer: timer@48240600 {
+@@ -82,7 +82,7 @@
+ 		reg = <0x48240600 0x100>;
+ 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>;
+ 		interrupt-parent = <&gic>;
+-		clocks = <&dpll_mpu_m2_ck>;
++		clocks = <&mpu_periphclk>;
+ 	};
+ 
+ 	l2-cache-controller@48242000 {
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index cc88728..2ff58b1 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -259,6 +259,14 @@
+ 		ti,invert-autoidle-bit;
+ 	};
+ 
++	mpu_periphclk: mpu_periphclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_mpu_ck>;
++		clock-mult = <1>;
++		clock-div = <2>;
++	};
++
+ 	dpll_ddr_ck: dpll_ddr_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-clock";
+-- 
+2.6.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
