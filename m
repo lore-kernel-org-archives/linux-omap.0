@@ -1,81 +1,46 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v3] clocksource: arm_global_timer: fix suspend resume
-Date: Fri, 27 Nov 2015 21:47:04 +0200
-Message-ID: <1448653624-25006-1-git-send-email-grygorii.strashko@ti.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
+ "/chosen/linux,atags" entry
+Date: Fri, 27 Nov 2015 19:51:48 +0000
+Message-ID: <20151127195148.GB30871@n2100.arm.linux.org.uk>
+References: <20150713131902.GH26485@atomide.com>
+ <20151123144545.GD24147@pali>
+ <20151125181644.GI2517@atomide.com>
+ <17134653.86P3dFyQKK@wuerfel>
+ <20151125210310.GT2517@atomide.com>
+ <56568849.5080103@gmail.com>
+ <20151126090739.GD14190@pali>
+ <20151127132722.GA30871@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, kernel@stlinux.com, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, John Stultz <john.stultz@linaro.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151127132722.GA30871-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laura Abbott <lauraa-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Now the System stall is observed on TI AM437x based board
-(am437x-gp-evm) during resuming from System suspend when ARM Global
-timer is selected as clocksource device (CPUIdle not enabled) - SysRq are working,
-but nothing else.
+On Fri, Nov 27, 2015 at 01:27:23PM +0000, Russell King - ARM Linux wrote:
+> It is possible to redirect any program to open any other file.  You can
+> do it via a LD preload, and intercepting the open(), and possibly the
+> read() calls if you want to do something more fancy.  The down-side is
+> that you have to arrange for the preloaded object to be used by the
+> linker, and the additional overhead it places on the intercepted
+> functions.
 
-The reason of stall is that ARM Global timer loses its contexts during
-System suspend:
-   GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
-   GT_COUNTERx = 0
+Another idea if people don't like the preload idea.
 
-Hence, update ARM Global timer driver to reflect above behaviour
-- re-enable ARM Global timer on resume GT_CONTROL.TIMER_ENABLE = 1.
+We could create a zero-sized /proc/atags, and then use a bind mount in
+userspace to bind some other file containing the required information
+on top.  That could even be the atag blob from /sys/firmware/whatever.
+The N700 (or whatever platform needs it) could be responsible for
+creating the zero-sized /proc/atags so that we don't have it everywhere.
 
-CC: Arnd Bergmann <arnd@arndb.de>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
-Changes in v3:
- - dropped all DT specific code
-Changes in v2:
- - suspend/resume simplified: nothing is stored any more and
-   ARM GT just re-enabled
-Link on v2:
- https://lkml.org/lkml/2015/11/20/355
-Link on v1:
- https://lkml.org/lkml/2015/11/13/456
-
- drivers/clocksource/arm_global_timer.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
-index a2cb6fa..10d1417 100644
---- a/drivers/clocksource/arm_global_timer.c
-+++ b/drivers/clocksource/arm_global_timer.c
-@@ -195,12 +195,19 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
- 	return gt_counter_read();
- }
- 
-+static void gt_resume(struct clocksource *cs)
-+{
-+	/* re-enable timer on resume */
-+	writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
-+}
-+
- static struct clocksource gt_clocksource = {
- 	.name	= "arm_global_timer",
- 	.rating	= 300,
- 	.read	= gt_clocksource_read,
- 	.mask	= CLOCKSOURCE_MASK(64),
- 	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
-+	.resume = gt_resume,
- };
- 
- #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
 -- 
-2.6.3
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
