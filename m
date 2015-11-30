@@ -1,47 +1,92 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 1/6] ARM: OMAP2+: dts: cm-t335: add initial support
-Date: Mon, 30 Nov 2015 11:51:23 -0800
-Message-ID: <20151130195123.GP2517@atomide.com>
-References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
- <1448373733-5839-1-git-send-email-uri.mashiach@compulab.co.il>
- <1448373733-5839-2-git-send-email-uri.mashiach@compulab.co.il>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Mon, 30 Nov 2015 11:54:49 -0800
+Message-ID: <20151130195449.GI64635@google.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+ <20151026212346.GJ13239@google.com>
+ <562F45BF.8020205@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1448373733-5839-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <562F45BF.8020205@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151124 06:03]:
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
-...
+Hi Roger,
 
-> +&uart0 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart0_pins>;
-> +
-> +	status = "okay";
-> +};
-> +
+On Tue, Oct 27, 2015 at 11:37:03AM +0200, Roger Quadros wrote:
+> On 26/10/15 23:23, Brian Norris wrote:
+> > I'm not too familiar with OMAP platforms, and I might have missed out on
+> > prior discussions/context, so please forgive if I'm asking silly or old
+> > questions here.
+> 
+> No worries at all.
+> 
+> > 
+> > On Fri, Sep 18, 2015 at 05:53:22PM +0300, Roger Quadros wrote:
+> >> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
+> >> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
+> >> This causes performance increase when using prefetch-irq mode.
+> >> 30% increase in read, 17% increase in write in prefetch-irq mode.
+> > 
+> > Have you pinpointed the exact causes for the performance increase, or
+> > can you give an educated guess? AIUI, you're reducing the number of
+> > interrupts needed for NAND prefetch mode, but you're also removing a bit
+> > of abstraction and implementing hooks that look awfully like the
+> > existing abstractions:
+> > 
+> > +       int (*nand_irq_enable)(enum gpmc_nand_irq irq);
+> > +       int (*nand_irq_disable)(enum gpmc_nand_irq irq);
+> > +       void (*nand_irq_clear)(enum gpmc_nand_irq irq);
+> > +       u32 (*nand_irq_status)(void);
+> > 
+> > That's not really a problem if there's a good reason for them (brcmnand
+> > implements similar hooks because of quirks in the implementation of
+> > interrupts across various BRCM SoCs, and it's not worth writing irqchip
+> > drivers for those cases). I'm mainly curious for an explanation.
+> 
+> I have both implementations with me. My guess is that the 20% performance
+> gain is due to absence of irqchip/irqdomain translation code.
+> I haven't investigated further though.
 
-FYI, the extra line break at the end of the file causes whitespace
-warnings when applying. And fixing that causes extra hassles with
-applying the other patches in the series as the patches won't apply..
-So for the next time, you may want to check that ;)
+I don't have much context for whether this makes sense or not. According
+to your tests, you're getting ~800K interrupts over ~15 seconds. So
+should you start noticing performance hits due to abstraction at 53K
+interrupts per second?
 
-Also, the subject line should be "ARM: dts: ..." for the dts changes
-so the git log loooks unified for all the ARM SoCs.
+But anyway, I'm not sure that completely answered my question. My
+question was whether you were removing the irqchip code solely for
+performance reasons, or are there others?
 
-Anyways, I've fixed up those locally and applying into omap-for-v4.5/dt.
+> Another concern I have is that I'm not using any locking around
+> gpmc_nand_irq_enable/disable(). Could this pose problems in multiple NAND
+> use cases? My understanding is that it should not as the controller access
+> is serialized between multiple NAND chips.
 
-Regards,
+Right, if you're touching just a NAND interrupt, and it's only used by a
+single instance of this NAND controller, then the NAND controller
+serialization code will handle this for you.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> However I do need to add some locking as the GPMC_IRQENABLE register is shared
+> between NAND and GPMC driver.
+> 
+> NOTE: We are not using prefetch-irq mode for any of the OMAP boards because
+> of lesser performance than prefetch-polled mode. So if the less performance
+> for an unused mode is a lesser concern compared to cleaner code then
+> I can resend this with the irqdomain implementation.
+> 
+> Below are performance logs of irqdomain vs hooks.
+> 
+> --
+> cheers,
+> -roger
+> 
+> test logs.
+
+[snip]
+
+Brian
