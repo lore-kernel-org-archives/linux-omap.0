@@ -1,79 +1,92 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v4] clocksource: arm_global_timer: fix suspend resume
-Date: Mon, 30 Nov 2015 20:25:12 +0200
-Message-ID: <1448907912-15512-1-git-send-email-grygorii.strashko@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: execute initcall to reserve SRAM for I688
+ only on OMAP4
+Date: Mon, 30 Nov 2015 20:27:33 +0200
+Message-ID: <565C9515.1040600@ti.com>
+References: <1447673117-32719-1-git-send-email-l.stach@pengutronix.de>
+ <5649CB16.2030706@ti.com> <1448904431.8275.36.camel@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1448904431.8275.36.camel@pengutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lucas Stach <l.stach@pengutronix.de>, Tony Lindgren <tony@atomide.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, patchwork-lst@pengutronix.de, kernel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now the System stall is observed on TI AM437x based board
-(am437x-gp-evm) during resuming from System suspend when ARM Global
-timer is selected as clocksource device (CPUIdle not enabled) - SysRq are working,
-but nothing else.
+On 11/30/2015 07:27 PM, Lucas Stach wrote:
+> Am Montag, den 16.11.2015, 14:24 +0200 schrieb Grygorii Strashko:
+>> On 11/16/2015 01:25 PM, Lucas Stach wrote:
+>>> omap_interconnect_sync() is the only user of the SRAM scratch area
+>>> allocated in the omap4_sram_init initcall. The interconnect sync is
+>>> used exclusively in the OMAP4 specific WFI implementation, so there
+>>> is no point in allocating the SRAM scratch on other SoC types.
+>>>
+>>> Bail out of the initcall if the kernel is not running on OMAP4 to
+>>> avoid a confusing warning about being unable to allocate the SRAM
+>>> needed for I688 handling.
+>>>
+>>> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+>>> Tested-by: Bastian Stender <bst@pengutronix.de>
+>>> ---
+>>>    arch/arm/mach-omap2/omap4-common.c | 3 +++
+>>>    1 file changed, 3 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>>> index 949696b6f17b..6db393a30a28 100644
+>>> --- a/arch/arm/mach-omap2/omap4-common.c
+>>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>>> @@ -131,6 +131,9 @@ static int __init omap4_sram_init(void)
+>>>    	struct device_node *np;
+>>>    	struct gen_pool *sram_pool;
+>>>    
+>>> +	if (!cpu_is_omap44xx())
+>>> +		return 0;
+>>
+>> This one affects on am43xx also
+>>
+> So you are saying this erratum is also present on AM43xx? I wasn't able
+> to deduce this from the information provided by Richard Woodruff.
+> 
 
-The reason of stall is that ARM Global timer loses its contexts during
-System suspend:
-   GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
-   GT_COUNTERx = 0
+"..SOCs using similar chassis components of OMAP4430 time are impacted..."
+"..But AM335x should be immune from this particular issue..."
 
-Hence, update ARM Global timer driver to reflect above behaviour
-- re-enable ARM Global timer on resume (GT_CONTROL.TIMER_ENABLE = 1)
-  if not enabled.
+Advisory 11 Asynchronous Bridge Corruption
+http://www.ti.com/lit/er/sprz408b/sprz408b.pdf
 
-CC: Arnd Bergmann <arnd@arndb.de>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Reviewed-by: Santosh Shilimkar <ssantosh@kernel.org>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
-Changes in v4:
- - check current timer's state before enabling.
-Changes in v3:
- - dropped all DT specific code
-Changes in v2:
- - suspend/resume simplified: nothing is stored any more and
-   ARM GT just re-enabled
-Links on prev versions:
-v3: https://lkml.org/lkml/2015/11/27/402
-v2: https://lkml.org/lkml/2015/11/20/355
-v1: https://lkml.org/lkml/2015/11/13/456
 
- drivers/clocksource/arm_global_timer.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
-index a2cb6fa..817a787 100644
---- a/drivers/clocksource/arm_global_timer.c
-+++ b/drivers/clocksource/arm_global_timer.c
-@@ -195,12 +195,23 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
- 	return gt_counter_read();
- }
- 
-+static void gt_resume(struct clocksource *cs)
-+{
-+	unsigned long ctrl;
-+
-+	ctrl = readl(gt_base + GT_CONTROL);
-+	if (!(ctrl & GT_CONTROL_TIMER_ENABLE))
-+		/* re-enable timer on resume */
-+		writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
-+}
-+
- static struct clocksource gt_clocksource = {
- 	.name	= "arm_global_timer",
- 	.rating	= 300,
- 	.read	= gt_clocksource_read,
- 	.mask	= CLOCKSOURCE_MASK(64),
- 	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
-+	.resume = gt_resume,
- };
- 
- #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+>>
+>>> +
+>>>    	np = of_find_compatible_node(NULL, NULL, "ti,omap4-mpu");
+>>>    	if (!np)
+>>>    		pr_warn("%s:Unable to allocate sram needed to handle errata I688\n",
+>>
+>> Since all OMAP4+ platforms are now DT based why can't we just return from here silently?
+>>
+> If we are unable to allocate the SRAM needed to work around I688 this is
+> a real error on platforms that expose this erratum, so silently bailing
+> out at this point may obscure a real issue.
+> 
+
+SRAM is not allocated here - It's just check to understand do we need it or not
+in case of multiplatform build where CONFIG_OMAP_INTERCONNECT_BARRIER will be selected most
+probably.
+
+And if "ti,omap4-mpu" was not found - it just means that this, particular, platform
+is not affected by i688 errata.
+If someone misses corresponding node in DT - we can't do nothing :)
+
 -- 
-2.6.3
+regards,
+-grygorii
