@@ -1,245 +1,137 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 2/5] spi: spi-ti-qspi: add mmap mode read support
-Date: Mon, 30 Nov 2015 16:35:46 -0600
-Message-ID: <87lh9f15fh.fsf@saruman.tx.rr.com>
-References: <1448860515-28336-1-git-send-email-vigneshr@ti.com> <1448860515-28336-3-git-send-email-vigneshr@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 0/7] ARM: make mach/*.h headers more local
+Date: Tue,  1 Dec 2015 00:00:51 +0100
+Message-ID: <1448924458-3279040-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
-	protocol="application/pgp-signature"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1448860515-28336-3-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Wan ZongShun <mcuos.com@gmail.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>, Greg Ungerer <gerg@uclinux.org>, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I've already posted the mach-pxa cleanup along the same lines,
+here is another bunch of patches. I'd like to put them into
+the next/multiplatform branch in arm-soc.
 
+They come from an old script of mine to look for headers that
+are not used by drivers, and I've done thousands of randconfig
+builds with them applied, so I'm rather sure that they are all
+harmless.
 
-Hi,
+Arnd Bergmann (7):
+  ARM: omap1: make headers more local
+  ARM: ks8695: make headers more local
+  ARM: davinci: make headers more local
+  ARM: iop13xx: make headers more local
+  ARM: w90x900: make headers more local
+  ARM: mvebu: remove unused mach/gpio.h
+  ARM: netx: remove unused mach/param.h
 
-Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> writes:
-> ti-qspi controller provides mmap port to read data from SPI flashes.
-> mmap port is enabled in QSPI_SPI_SWITCH_REG. ctrl module register may
-> also need to be accessed for some SoCs. The QSPI_SPI_SETUP_REGx needs to
-> be populated with flash specific information like read opcode, read
-> mode(quad, dual, normal), address width and dummy bytes. Once,
-> controller is in mmap mode, the whole flash memory is available as a
-> memory region at SoC specific address. This region can be accessed using
-> normal memcpy() (or mem-to-mem dma copy). The ti-qspi controller hardware
-> will internally communicate with SPI flash over SPI bus and get the
-> requested data.
->
-> Implement spi_flash_read() callback to support mmap read over SPI
-> flash devices. With this, the read throughput increases from ~100kB/s to
-> ~2.5 MB/s.
->
-> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> ---
->
->  drivers/spi/spi-ti-qspi.c | 101 ++++++++++++++++++++++++++++++++++++++++=
-++----
->  1 file changed, 94 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-> index 64318fcfacf2..cd4e63f45e65 100644
-> --- a/drivers/spi/spi-ti-qspi.c
-> +++ b/drivers/spi/spi-ti-qspi.c
-> @@ -56,6 +56,7 @@ struct ti_qspi {
->  	u32 dc;
->=20=20
->  	bool ctrl_mod;
-> +	bool mmap_enabled;
->  };
->=20=20
->  #define QSPI_PID			(0x0)
-> @@ -65,11 +66,8 @@ struct ti_qspi {
->  #define QSPI_SPI_CMD_REG		(0x48)
->  #define QSPI_SPI_STATUS_REG		(0x4c)
->  #define QSPI_SPI_DATA_REG		(0x50)
-> -#define QSPI_SPI_SETUP0_REG		(0x54)
-> +#define QSPI_SPI_SETUP_REG(n)		((0x54 + 4 * n))
->  #define QSPI_SPI_SWITCH_REG		(0x64)
-> -#define QSPI_SPI_SETUP1_REG		(0x58)
-> -#define QSPI_SPI_SETUP2_REG		(0x5c)
-> -#define QSPI_SPI_SETUP3_REG		(0x60)
->  #define QSPI_SPI_DATA_REG_1		(0x68)
->  #define QSPI_SPI_DATA_REG_2		(0x6c)
->  #define QSPI_SPI_DATA_REG_3		(0x70)
-> @@ -109,6 +107,16 @@ struct ti_qspi {
->=20=20
->  #define QSPI_AUTOSUSPEND_TIMEOUT         2000
->=20=20
-> +#define MEM_CS_EN(n)			((n + 1) << 8)
-> +
-> +#define MM_SWITCH			0x1
-> +
-> +#define QSPI_SETUP_RD_NORMAL		(0x0 << 12)
-> +#define QSPI_SETUP_RD_DUAL		(0x1 << 12)
-> +#define QSPI_SETUP_RD_QUAD		(0x3 << 12)
-> +#define QSPI_SETUP_ADDR_SHIFT		8
-> +#define QSPI_SETUP_DUMMY_SHIFT		10
-> +
->  static inline unsigned long ti_qspi_read(struct ti_qspi *qspi,
->  		unsigned long reg)
->  {
-> @@ -366,6 +374,78 @@ static int qspi_transfer_msg(struct ti_qspi *qspi, s=
-truct spi_transfer *t)
->  	return 0;
->  }
->=20=20
-> +static void ti_qspi_enable_memory_map(struct spi_device *spi)
-> +{
-> +	struct ti_qspi  *qspi =3D spi_master_get_devdata(spi->master);
-> +	u32 val;
-> +
-> +	ti_qspi_write(qspi, MM_SWITCH, QSPI_SPI_SWITCH_REG);
-> +	if (qspi->ctrl_mod) {
-> +		val =3D readl(qspi->ctrl_base);
-> +		val |=3D MEM_CS_EN(spi->chip_select);
-> +		writel(val, qspi->ctrl_base);
-> +		/* dummy readl to ensure bus sync */
-> +		readl(qspi->ctrl_base);
-> +	}
-> +	qspi->mmap_enabled =3D true;
-> +}
-> +
-> +static void ti_qspi_disable_memory_map(struct spi_device *spi)
-> +{
-> +	struct ti_qspi  *qspi =3D spi_master_get_devdata(spi->master);
-> +	u32 val;
-> +
-> +	ti_qspi_write(qspi, 0, QSPI_SPI_SWITCH_REG);
-> +	if (qspi->ctrl_mod) {
-> +		val =3D readl(qspi->ctrl_base);
-> +		val &=3D ~MEM_CS_EN(spi->chip_select);
-> +		writel(val, qspi->ctrl_base);
-> +	}
-> +	qspi->mmap_enabled =3D false;
-> +}
-> +
-> +static void ti_qspi_setup_mmap_read(struct spi_device *spi,
-> +				    struct spi_flash_read_message *msg)
-> +{
-> +	struct ti_qspi  *qspi =3D spi_master_get_devdata(spi->master);
-> +	u32 memval =3D msg->read_opcode;
-> +
-> +	switch (msg->data_nbits) {
-> +	case SPI_NBITS_QUAD:
-> +		memval |=3D QSPI_SETUP_RD_QUAD;
-> +		break;
-> +	case SPI_NBITS_DUAL:
-> +		memval |=3D QSPI_SETUP_RD_DUAL;
-> +		break;
-> +	default:
-> +		memval |=3D QSPI_SETUP_RD_NORMAL;
-> +		break;
-> +	}
-> +	memval |=3D ((msg->addr_width - 1) << QSPI_SETUP_ADDR_SHIFT |
-> +		   msg->dummy_bytes << QSPI_SETUP_DUMMY_SHIFT);
-> +	ti_qspi_write(qspi, memval,
-> +		      QSPI_SPI_SETUP_REG(spi->chip_select));
-> +}
-> +
-> +static int ti_qspi_spi_flash_read(struct  spi_device *spi,
-> +				  struct spi_flash_read_message *msg)
-> +{
-> +	struct ti_qspi *qspi =3D spi_master_get_devdata(spi->master);
-> +	int ret =3D 0;
-> +
-> +	mutex_lock(&qspi->list_lock);
-> +
-> +	if (!qspi->mmap_enabled)
-> +		ti_qspi_enable_memory_map(spi);
-> +	ti_qspi_setup_mmap_read(spi, msg);
-> +	memcpy_fromio(msg->buf, qspi->mmap_base + msg->from, msg->len);
-> +	msg->retlen =3D msg->len;
+ arch/arm/mach-davinci/board-da830-evm.c            |  2 +-
+ arch/arm/mach-davinci/board-da850-evm.c            |  4 +-
+ arch/arm/mach-davinci/board-mityomapl138.c         |  2 +-
+ arch/arm/mach-davinci/board-omapl138-hawk.c        |  2 +-
+ arch/arm/mach-davinci/clock.c                      |  2 +-
+ arch/arm/mach-davinci/cp_intc.c                    |  2 +-
+ arch/arm/mach-davinci/{include/mach => }/cp_intc.h |  0
+ arch/arm/mach-davinci/cpuidle.c                    |  4 +-
+ arch/arm/mach-davinci/{include/mach => }/cpuidle.h |  0
+ arch/arm/mach-davinci/da830.c                      |  2 +-
+ arch/arm/mach-davinci/da850.c                      |  2 +-
+ arch/arm/mach-davinci/da8xx-dt.c                   |  2 +-
+ arch/arm/mach-davinci/{include/mach => }/ddr2.h    |  0
+ arch/arm/mach-davinci/devices-da8xx.c              |  4 +-
+ arch/arm/mach-davinci/dm355.c                      |  2 +-
+ arch/arm/mach-davinci/dm365.c                      |  2 +-
+ arch/arm/mach-davinci/dm644x.c                     |  2 +-
+ arch/arm/mach-davinci/dm646x.c                     |  2 +-
+ arch/arm/mach-davinci/pm.c                         |  2 +-
+ arch/arm/mach-davinci/psc.c                        |  2 +-
+ arch/arm/mach-davinci/{include/mach => }/psc.h     |  0
+ arch/arm/mach-davinci/sleep.S                      |  4 +-
+ arch/arm/mach-davinci/sram.c                       |  2 +-
+ arch/arm/mach-davinci/{include/mach => }/sram.h    |  0
+ arch/arm/mach-iop13xx/include/mach/pci.h           | 57 ---------------------
+ arch/arm/mach-iop13xx/iq81340mc.c                  |  2 +-
+ arch/arm/mach-iop13xx/iq81340sc.c                  |  2 +-
+ arch/arm/mach-iop13xx/irq.c                        |  2 +-
+ arch/arm/mach-iop13xx/{include/mach => }/msi.h     |  0
+ arch/arm/mach-iop13xx/pci.c                        |  2 +-
+ arch/arm/mach-iop13xx/pci.h                        | 58 ++++++++++++++++++++++
+ arch/arm/mach-ks8695/board-acs5k.c                 |  2 +-
+ arch/arm/mach-ks8695/board-dsm320.c                |  2 +-
+ arch/arm/mach-ks8695/board-micrel.c                |  2 +-
+ arch/arm/mach-ks8695/board-og.c                    |  2 +-
+ arch/arm/mach-ks8695/board-sg.c                    |  2 +-
+ arch/arm/mach-ks8695/cpu.c                         |  2 +-
+ arch/arm/mach-ks8695/devices.c                     |  6 +--
+ arch/arm/mach-ks8695/{include/mach => }/devices.h  |  0
+ arch/arm/mach-ks8695/pci.c                         |  4 +-
+ .../arm/mach-ks8695/{include/mach => }/regs-hpna.h |  0
+ arch/arm/mach-ks8695/{include/mach => }/regs-lan.h |  0
+ arch/arm/mach-ks8695/{include/mach => }/regs-mem.h |  0
+ arch/arm/mach-ks8695/{include/mach => }/regs-pci.h |  0
+ arch/arm/mach-ks8695/{include/mach => }/regs-sys.h |  0
+ arch/arm/mach-ks8695/{include/mach => }/regs-wan.h |  0
+ arch/arm/mach-mvebu/include/mach/gpio.h            |  1 -
+ arch/arm/mach-netx/include/mach/param.h            | 18 -------
+ arch/arm/mach-omap1/board-ams-delta.c              |  2 +-
+ arch/arm/mach-omap1/board-fsample.c                |  2 +-
+ arch/arm/mach-omap1/board-h2.c                     |  2 +-
+ arch/arm/mach-omap1/board-h3.c                     |  2 +-
+ arch/arm/mach-omap1/board-innovator.c              |  2 +-
+ arch/arm/mach-omap1/board-osk.c                    |  2 +-
+ arch/arm/mach-omap1/board-palmte.c                 |  2 +-
+ arch/arm/mach-omap1/board-palmtt.c                 |  2 +-
+ arch/arm/mach-omap1/board-palmz71.c                |  2 +-
+ arch/arm/mach-omap1/board-perseus2.c               |  2 +-
+ arch/arm/mach-omap1/board-sx1-mmc.c                |  2 +-
+ arch/arm/mach-omap1/board-sx1.c                    |  4 +-
+ arch/arm/mach-omap1/{include/mach => }/board-sx1.h |  0
+ arch/arm/mach-omap1/{include/mach => }/camera.h    |  0
+ arch/arm/mach-omap1/devices.c                      |  2 +-
+ arch/arm/mach-omap1/flash.c                        |  2 +-
+ arch/arm/mach-omap1/{include/mach => }/flash.h     |  0
+ arch/arm/mach-w90x900/cpu.c                        |  4 +-
+ .../arm/mach-w90x900/{include/mach => }/regs-ebi.h |  0
+ .../arm/mach-w90x900/{include/mach => }/regs-gcr.h |  0
+ .../mach-w90x900/{include/mach => }/regs-timer.h   |  0
+ .../arm/mach-w90x900/{include/mach => }/regs-usb.h |  0
+ arch/arm/mach-w90x900/time.c                       |  2 +-
+ 71 files changed, 114 insertions(+), 132 deletions(-)
+ rename arch/arm/mach-davinci/{include/mach => }/cp_intc.h (100%)
+ rename arch/arm/mach-davinci/{include/mach => }/cpuidle.h (100%)
+ rename arch/arm/mach-davinci/{include/mach => }/ddr2.h (100%)
+ rename arch/arm/mach-davinci/{include/mach => }/psc.h (100%)
+ rename arch/arm/mach-davinci/{include/mach => }/sram.h (100%)
+ delete mode 100644 arch/arm/mach-iop13xx/include/mach/pci.h
+ rename arch/arm/mach-iop13xx/{include/mach => }/msi.h (100%)
+ rename arch/arm/mach-ks8695/{include/mach => }/devices.h (100%)
+ rename arch/arm/mach-ks8695/{include/mach => }/regs-hpna.h (100%)
+ rename arch/arm/mach-ks8695/{include/mach => }/regs-lan.h (100%)
+ rename arch/arm/mach-ks8695/{include/mach => }/regs-mem.h (100%)
+ rename arch/arm/mach-ks8695/{include/mach => }/regs-pci.h (100%)
+ rename arch/arm/mach-ks8695/{include/mach => }/regs-sys.h (100%)
+ rename arch/arm/mach-ks8695/{include/mach => }/regs-wan.h (100%)
+ delete mode 100644 arch/arm/mach-mvebu/include/mach/gpio.h
+ delete mode 100644 arch/arm/mach-netx/include/mach/param.h
+ rename arch/arm/mach-omap1/{include/mach => }/board-sx1.h (100%)
+ rename arch/arm/mach-omap1/{include/mach => }/camera.h (100%)
+ rename arch/arm/mach-omap1/{include/mach => }/flash.h (100%)
+ rename arch/arm/mach-w90x900/{include/mach => }/regs-ebi.h (100%)
+ rename arch/arm/mach-w90x900/{include/mach => }/regs-gcr.h (100%)
+ rename arch/arm/mach-w90x900/{include/mach => }/regs-timer.h (100%)
+ rename arch/arm/mach-w90x900/{include/mach => }/regs-usb.h (100%)
 
-the way I have always expected this to work was that spi controller
-would setup the mmap region (using ranges?) and pass the base address to
-the SPI NOR flash instead, so that could call standard
-write[bwl]/read[bwl] functions.
-
-I mean, when we're dealing with AXI, AHB, PCI, OCP, whatever we
-completely ignore these details, why should SPI be different ? If it's
-memory mapped, the SW view of the thing is a piece of memory and that
-should be accessible with standard {read,write}[bwl]() calls.
-
-I really think $subject is not a good way forward because it gives too
-much responsibility to the SPI controller driver; note that this driver
-is the one actually accessing the memory map region, instead of simply
-setting it up and passing it along.
-
-So the way I see it, the DTS should be like so:
-
-qspi@XYZ {
-         reg =3D <XYZ foo>;
-         [...]
-         ranges =3D <0 0 0x30000000 $size>;
-
-         flash@0,0 {
-                   compatible =3D "mp2580";
-                   reg =3D <0 0 $flash_size>;
-         };
-};
-
-
-if you have more than one device sitting on this SPI bus using different
-chip selects, that's easy too, just change your ranges property:
-
-qspi@XYZ {
-         reg =3D <XYZ foo>;
-         [...]
-         ranges =3D <0 0 0x30000000 0x1000
-                   1 0 0x30001000 0x1000
-                   2 0 0x30002000 0x1000>;
-
-         flash@0,0 {
-                 [...]
-         };
-
-         flash@1,0 {
-                   [...]
-         };
-
-         flash@2,0 {
-                   [...]
-	};
-};
-
-and so on. From ti-qspi perspective, you should just setup the memory
-map and from mp25p80 you would check if your reg property pointed to an
-address that looks like memory, then ioremap it and use tradicional
-{read,write}[bwl]() accessors. Any reasons why that wasn't done the way
-pointed out above ?
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWXM9DAAoJEIaOsuA1yqREuPUP+gN7XxDmE+p77RQF5l5kBcJ6
-lny5AzPGx/u59M+HeOyi0SnZ2MsZNrP5PQCjWQ8Y/0QLUjB5CalZUoGTImwygbVp
-C9N34yfP/WlaVQQdFJ7ByN9VIRZBw7bnW5hxxINrVuzYU5eTzNWA9pnPrPR0dSff
-TQz9YckaLvQM3FqBozlOEr6vJ3iWOL9lxp+mgPvLRR0atWl4umDZGbc/+023PfUu
-nkgSunCevIp5kuOYPghNy+uYCO0SdKpf1WYn1TlD3LhU/geESunzikw+V2Bcfi9Y
-ASSafUXCYIBljBQ2/cggllWsuRZH5piVCpLc+jT2pxvGe/sSaNCndJqH9YhLNmBy
-6vL/ZPsms9E6f8TC+2pHf/DhH+/EY1yJ9ogp1LEj3cz4rdb4WcS+0qXaDb8tzBVh
-iuYtwreG+b4y4l8kEMJ2wvgq/QTVl2bPQ618b7X85BT6TUTCbs7uL1orWjGk/aiq
-TmPGOj4T2UUJpVdqemPMTBjC8XbrnHfeIENOAk6jgl1PyKXcQyMukrDdKTi+hxyv
-kTqfBJDy2aQLnfnMnHcmb87ueIuE/ciOBHIA6Th4qjvC+F4JrVsh13GdA2EBCkwc
-sU10a6vVtbEjpSamHpMJ829mCN1152UEZ9W1vIAXw+O99Io7Ug9IB509bQb++K4K
-1qpqCbXpMk8xBTdqXZ8B
-=Ia4h
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.1.0.rc2
