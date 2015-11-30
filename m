@@ -1,109 +1,62 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH] clk: ti: omap5+: dpll: implement errata i810
-Date: Mon, 30 Nov 2015 16:43:25 +0200
-Message-ID: <1448894605-30097-1-git-send-email-t-kristo@ti.com>
+From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH v2 04/18] ARM: am57xx: cl-som-am57x: dts: add EEPROM
+ support
+Date: Mon, 30 Nov 2015 16:44:50 +0200
+Message-ID: <565C60E2.5060002@compulab.co.il>
+References: <1448433590-1399-5-git-send-email-lifshitz@compulab.co.il>
+ <1448894037-1337-1-git-send-email-lifshitz@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1448894037-1337-1-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Errata i810 states that DPLL controller can get stuck while transitioning
-to a power saving state, while its M/N ratio is being re-programmed.
+On 11/30/15 16:33, Dmitry Lifshitz wrote:
+> On-board EEPROM chip is used for storing a board production
+> info.
+> 
+> Add module EEPROM support (over I2C4 bus).
+> 
+> Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 
-As a workaround, before re-programming the M/N ratio, SW has to ensure
-the DPLL cannot start an idle state transition. SW can disable DPLL
-idling by setting the DPLL AUTO_DPLL_MODE=0 or keeping a clock request
-active by setting a dependent clock domain in SW_WKUP.
+Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 
-This errata impacts OMAP5 and DRA7 chips, so enable the errata for these.
+> ---
+> 
+>   v2:
+> 
+>    * Fix EEPROM chip model
+> 
+>  arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+> index 9f15dda..695f250 100644
+> --- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+> +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+> @@ -290,6 +290,12 @@
+>  		compatible = "emmicro,em3027";
+>  		reg = <0x56>;
+>  	};
+> +
+> +	eeprom_module: atmel@50 {
+> +		compatible = "atmel,24c08";
+> +		reg = <0x50>;
+> +		pagesize = <16>;
+> +	};
+>  };
+>  
+>  
+> 
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/clock.c |    4 ++++
- drivers/clk/ti/dpll3xxx.c   |   25 ++++++++++++++++++++++++-
- include/linux/clk/ti.h      |    1 +
- 3 files changed, 29 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index acb60ed..d058125 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -225,5 +225,9 @@ void __init ti_clk_init_features(void)
- 	if (omap_rev() == OMAP3430_REV_ES1_0)
- 		features.flags |= TI_CLK_DPLL4_DENY_REPROGRAM;
- 
-+	/* Errata I810 for omap5 / dra7 */
-+	if (soc_is_omap54xx() || soc_is_dra7xx())
-+		features.flags |= TI_CLK_ERRATA_I810;
-+
- 	ti_clk_setup_features(&features);
- }
-diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-index f4dec00..1c30038 100644
---- a/drivers/clk/ti/dpll3xxx.c
-+++ b/drivers/clk/ti/dpll3xxx.c
-@@ -305,8 +305,9 @@ static void _lookup_sddiv(struct clk_hw_omap *clk, u8 *sd_div, u16 m, u8 n)
- static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
- {
- 	struct dpll_data *dd = clk->dpll_data;
--	u8 dco, sd_div;
-+	u8 dco, sd_div, ai = 0;
- 	u32 v;
-+	bool errata_i810;
- 
- 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
- 	_omap3_noncore_dpll_bypass(clk);
-@@ -350,6 +351,25 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
- 		v |= sd_div << __ffs(dd->sddiv_mask);
- 	}
- 
-+	/*
-+	 * Errata i810 - DPLL controller can get stuck while transitioning
-+	 * to a power saving state. Software must ensure the DPLL can not
-+	 * transition to a low power state while changing M/N values.
-+	 * Easiest way to accomplish this is to prevent DPLL autoidle
-+	 * before doing the M/N re-program.
-+	 */
-+	errata_i810 = ti_clk_get_features()->flags & TI_CLK_ERRATA_I810;
-+
-+	if (errata_i810) {
-+		ai = omap3_dpll_autoidle_read(clk);
-+		if (ai) {
-+			omap3_dpll_deny_idle(clk);
-+
-+			/* OCP barrier */
-+			omap3_dpll_autoidle_read(clk);
-+		}
-+	}
-+
- 	ti_clk_ll_ops->clk_writel(v, dd->mult_div1_reg);
- 
- 	/* Set 4X multiplier and low-power mode */
-@@ -379,6 +399,9 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
- 
- 	_omap3_noncore_dpll_lock(clk);
- 
-+	if (errata_i810 && ai)
-+		omap3_dpll_allow_idle(clk);
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 223be69..75205df 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -286,6 +286,7 @@ struct ti_clk_features {
- #define TI_CLK_DPLL_HAS_FREQSEL			BIT(0)
- #define TI_CLK_DPLL4_DENY_REPROGRAM		BIT(1)
- #define TI_CLK_DISABLE_CLKDM_CONTROL		BIT(2)
-+#define TI_CLK_ERRATA_I810			BIT(3)
- 
- void ti_clk_setup_features(struct ti_clk_features *features);
- const struct ti_clk_features *ti_clk_get_features(void);
 -- 
-1.7.9.5
-
+Regards,
+Igor.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
