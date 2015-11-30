@@ -1,45 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/2] Initcall changes for omaps
-Date: Mon, 30 Nov 2015 08:26:27 -0800
-Message-ID: <1448900789-4034-1-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH v2] arm, am335x: add support for the bosch shc board
+Date: Mon, 30 Nov 2015 08:34:30 -0800
+Message-ID: <20151130163429.GB2517@atomide.com>
+References: <1447748655-2088-1-git-send-email-hs@denx.de>
+ <564B9C3D.7070303@ti.com>
+ <564C35D0.8060609@denx.de>
+ <565BF1D5.8020708@denx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <565BF1D5.8020708@denx.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Heiko Schocher <hs@denx.de>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Robert Nelson <robertcnelson@gmail.com>, devicetree@vger.kernel.org, Georg.Soffel@bosch-si.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Heiko Schocher <hs@denx.de> [151129 22:51]:
+> Hello all,
+> 
+> Am 18.11.2015 um 09:24 schrieb Heiko Schocher:
+> >Hello Dave,
+> >
+> >Am 17.11.2015 um 22:29 schrieb Dave Gerlach:
+> >>Hi,
+> >>On 11/17/2015 02:24 AM, Heiko Schocher wrote:
+> >>>add support for the am335x based shc board.
+> >>>
+> >>>UART: 0-2 and 4
+> >>>DRAM: 512 MiB
+> >>>MMC:  OMAP SD/MMC: 0 @ 26 MHz
+> >>>       OMAP SD/MMC: 1 @ 26 MHz
+> >>>I2C:  at24 eeprom, pcf8563
+> >>>USB:  USB1 (host)
+> >>>
+> >>>Signed-off-by: Heiko Schocher <hs@denx.de>
+> >>>---
+> >>>The following patches are needed to get all working
+> >>>for the shc board:
+> >>>- disable clkout on pcf8563
+> >>>   accepted.
+> >>>   http://www.spinics.net/lists/devicetree/msg98542.html
+> >>>
+> >>>- leds: leds-gpio: add shutdown function
+> >>>   accepted.
+> >>>   https://lkml.org/lkml/2015/10/13/169
+> >>>
+> >>>- net: phy: smsc: disable energy detect mode
+> >>>   accepted
+> >>>   [PATCH v2 2/2] net: phy: smsc: disable energy detect mode
+> >>>   https://lkml.org/lkml/2015/10/17/2
+> >>>   [PATCH v2 1/2] drivers: net: cpsw: add phy-handle parsing
+> >>>   https://lkml.org/lkml/2015/10/17/4
+> >>>
+> >>>- ARM: OMAP2+: omap_hwmod: Introduce ti,no-init dt property
+> >>>   http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/328204.html
+> >>>   @Dave: What is the current state of this patch?
+> >>>   I have the same problem here on this am335x based board
+> >>>
+> >>
+> >>A different approach is being taken for resolving the issue of rtc hwmod on am43x epos evm [1],
+> >>which is what I was attempting to solve with the patch you have linked. We decided to avoid changing
+> >>omap_hwmod code and I haven't been pursuing the ti,no-init flag anymore.
+> >
+> >Maybe I overlook something, but I cannot see, how [1] solves the RTC
+> >hwmod problem on am335x SoC based boards. Not all boards have this problem,
+> >so the RTC hwmod cannot be disabled for all am335x boards ...
+> >
+> >It must be somehow configurable for boards ... I have am335x boards
+> >which use the rtc from the SoC
+> 
+> gentle ping ...
+> 
+> No more comments on this patch? Is it Ok for mainline or are
+> there more issues?
 
-Here are some initcall changes to initialize things a bit later.
-This make it easier to make timers into drivers and allows us
-to make most of the clocks into regular device drivers.
-
-Regards,
+Looks OK to me, hoping to start applying the dts changes for v4.5 this
+week.
 
 Tony
 
-
-Tony Lindgren (2):
-  ARM: OMAP2+: Initialize timers later with late_time_init
-  ARM: OMAP2+: Change core_initcall levels to postcore_initcall
-
- arch/arm/mach-omap2/omap2-restart.c |  2 +-
- arch/arm/mach-omap2/omap_device.c   |  2 +-
- arch/arm/mach-omap2/omap_hwmod.c    |  2 +-
- arch/arm/mach-omap2/serial.c        |  2 +-
- arch/arm/mach-omap2/timer.c         | 46 ++++++++++++++++++++++++++++++++-----
- 5 files changed, 44 insertions(+), 10 deletions(-)
-
--- 
-2.6.2
+> >>[1] http://www.spinics.net/lists/linux-omap/msg121987.html
