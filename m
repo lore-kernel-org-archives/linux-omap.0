@@ -1,14 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Incomplete DM814x support in 4.3
-Date: Mon, 30 Nov 2015 15:03:14 -0800
-Message-ID: <20151130230314.GM23396@atomide.com>
-References: <564C7AF5.9070209@linutronix.de>
+Subject: Re: [PATCH 1/7] ARM: omap1: make headers more local
+Date: Mon, 30 Nov 2015 15:04:46 -0800
+Message-ID: <20151130230445.GN23396@atomide.com>
+References: <1448924458-3279040-1-git-send-email-arnd@arndb.de>
+ <1448924458-3279040-2-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <564C7AF5.9070209@linutronix.de>
+In-Reply-To: <1448924458-3279040-2-git-send-email-arnd@arndb.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,66 +19,39 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Philipp Rosenberger <ilu@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Wan ZongShun <mcuos.com@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, Greg Ungerer <gerg@uclinux.org>, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-Adding linux-omap to Cc.
-
-* Philipp Rosenberger <ilu@linutronix.de> [151118 05:20]:
-> Hi,
+* Arnd Bergmann <arnd@arndb.de> [151130 15:02]:
+> Some header files are never included outside of a mach-omap1
+> directory and do not need to be made visible in include/mach,
+> so let's just move them all down one level.
 > 
-> I have seen with pleasure that some support for DM814x was integrated to the kernel. But it seems incomplete I get various errors when I try to boot the kernel on a DM814x/AM387x based board.
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/arm/mach-omap1/board-ams-delta.c              | 2 +-
+>  arch/arm/mach-omap1/board-fsample.c                | 2 +-
+>  arch/arm/mach-omap1/board-h2.c                     | 2 +-
+>  arch/arm/mach-omap1/board-h3.c                     | 2 +-
+>  arch/arm/mach-omap1/board-innovator.c              | 2 +-
+>  arch/arm/mach-omap1/board-osk.c                    | 2 +-
+>  arch/arm/mach-omap1/board-palmte.c                 | 2 +-
+>  arch/arm/mach-omap1/board-palmtt.c                 | 2 +-
+>  arch/arm/mach-omap1/board-palmz71.c                | 2 +-
+>  arch/arm/mach-omap1/board-perseus2.c               | 2 +-
+>  arch/arm/mach-omap1/board-sx1-mmc.c                | 2 +-
+>  arch/arm/mach-omap1/board-sx1.c                    | 4 ++--
+>  arch/arm/mach-omap1/{include/mach => }/board-sx1.h | 0
+>  arch/arm/mach-omap1/{include/mach => }/camera.h    | 0
+>  arch/arm/mach-omap1/devices.c                      | 2 +-
+>  arch/arm/mach-omap1/flash.c                        | 2 +-
+>  arch/arm/mach-omap1/{include/mach => }/flash.h     | 0
+>  17 files changed, 15 insertions(+), 15 deletions(-)
+>  rename arch/arm/mach-omap1/{include/mach => }/board-sx1.h (100%)
+>  rename arch/arm/mach-omap1/{include/mach => }/camera.h (100%)
+>  rename arch/arm/mach-omap1/{include/mach => }/flash.h (100%)
 
-Sorry for the delay in replying. Current dm8148 support is based on the
-bootloader clocks right now so YMMW. I fixed up the basic support for
-dm8148 on hp t410 and that is bootable to NFSroot with mainline.
+Looks good to me:
 
-I'll try to post some patches soon for adding the clock driver and more devices.
-So far I have GPIOs, Ethernet, USB and MMC working.. Also on dm8148-evm.
-
-I still need to clean up things a bit, hoping to be able to post this week at
-some point.
-
-> End in the end it panics with this:
-> [    0.379442] platform ocp: Cannot lookup hwmod 'l3_main'
-> [    0.387920] platform 48032000.gpio: Cannot lookup hwmod 'gpio1'
-> [    0.394638] omap_gpio 48032000.gpio: Could not get gpio dbck. Disable debounce
-> [    0.402220] omap_gpio 48032000.gpio: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
-> [    0.411448] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa032034
-
-Yup this is what I'm seeing too on dm8148-evm after I got one. It's because of
-the missing clocks.
-
-> I searched for 'l3_main' in the hwmods for dm814x but it is not defined in there.
-
-I think I have fixed up that one too.. Need to check :)
-
-> I didn't find a driver in the tree which is compatible with "ti,dm814-pllss" so no driver for pll handling.
-
-I have an initial driver coming up for that.. Heh it also works as a loadable
-module on hp t410 :)
-
-> Is there some work in progress to bring the missing parts into the kernel?
-
-Yes, best to coordinate the effort on linux-omap and linux-arm-kernel lists.
-
-FYI, I have these pieces coming up this week:
-
-- Few fixes for for the clock muxes for system timers
-
-- Basic clock driver for dm8148 ADPLLs, still in read-only mode for the PLLs
-
-- DTS + hwmod support for GPIOs, MMC and MUSB
-
-- Minimal board support for j5eco-evm
-
-Then the PWM support done for dm816x should also work on others, and I belive
-people are working on getting the DSP supported but don't know the current
-status. Maybe somebody can reply on that?
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
