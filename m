@@ -1,86 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] arm: plat-omap: Add PWM dmtimer platform data quirks
-Date: Mon, 30 Nov 2015 10:37:07 -0800
-Message-ID: <20151130183707.GK2517@atomide.com>
-References: <56374592.4060201@baylibre.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] ARM: dts: DRA7: Add timer12 node
+Date: Mon, 30 Nov 2015 10:58:50 -0800
+Message-ID: <20151130185849.GL2517@atomide.com>
+References: <1444087704-1429-1-git-send-email-s-anna@ti.com>
+ <1444087704-1429-4-git-send-email-s-anna@ti.com>
+ <87y4fgesbz.fsf@saruman.tx.rr.com>
+ <20151006075209.GH23801@atomide.com>
+ <5613F09C.1050809@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pwm-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56374592.4060201@baylibre.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+In-Reply-To: <5613F09C.1050809-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Neil Armstrong <narmstrong@baylibre.com> [151102 03:14]:
-> In order to set the currently platform dependent dmtimer
-> functions pointers as platform data for the pwm-omap-dmtimer
-> platform driver, add it to plat-omap auxdata_lookup table.
+* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [151006 09:06]:
+> On 10/06/2015 02:52 AM, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [151005 17:51]:
+> >>
+> >> according to Tony we should avoid using status at all for in-SoC
+> >> devices.
+> >>
+> >> Tony, can you confirm I understood you correctly ?
+> > 
+> > Yes. With status = "disabled" kernel completely ignores the
+> > device and struct device is not created at all even with the
+> > device being there. In general we're better off trying to
+> > probe the device and idle it.
+> > 
+> > The only time we really want to mark something with
+> > status = "disabled" is if some coprocessor firmware is
+> > using that device and the kernel should not touch it at
+> > all.
 > 
-> Suggested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> Not always, since some of the PM clocking logic depends on the state
+> machine variables within the kernel.
+> 
+> We are also using this to deal with paper-spins (atleast in the DRA7
+> case) and the DTS include model, wherein certain instances may not be
+> present on all variations of the SoC, and enabled specifically on the
+> instances that matter. Obviously, it could be done the other way too,
+> but as far as what Nishanth mentioned sometime back, we are following
+> the former for DRA7.
+> 
+> In anycase, the status property on the Timer12 node can be removed, it
+> doesn't fall into the above category, and we are fixing it up properly
+> on HS devices in the kernel.
 
-Actually this one will need to wait for Thierry to merge the driver
-first because of the dependency to the platform_data. Please resend
-this one separately once the driver hits the mainline tree.
+Yeah please remove the status property, that can be set to disabled
+in the HS board specific file.
 
-Regards,
+Applying the first two patches into omap-for-v4.5/soc thanks.
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/pdata-quirks.c | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-> index ea56397..647dec5 100644
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
-> @@ -23,6 +23,8 @@
->  #include <linux/platform_data/pinctrl-single.h>
->  #include <linux/platform_data/iommu-omap.h>
->  #include <linux/platform_data/wkup_m3.h>
-> +#include <linux/platform_data/pwm_omap_dmtimer.h>
-> +#include <plat/dmtimer.h>
-> 
->  #include <asm/siginfo.h>
->  #include <asm/signal.h>
-> @@ -453,6 +455,24 @@ void omap_auxdata_legacy_init(struct device *dev)
->  	dev->platform_data = &twl_gpio_auxdata;
->  }
-> 
-> +/* Dual mode timer PWM callbacks platdata */
-> +#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
-> +struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
-> +	.request_by_node = omap_dm_timer_request_by_node,
-> +	.free = omap_dm_timer_free,
-> +	.enable = omap_dm_timer_enable,
-> +	.disable = omap_dm_timer_disable,
-> +	.get_fclk = omap_dm_timer_get_fclk,
-> +	.start = omap_dm_timer_start,
-> +	.stop = omap_dm_timer_stop,
-> +	.set_load = omap_dm_timer_set_load,
-> +	.set_match = omap_dm_timer_set_match,
-> +	.set_pwm = omap_dm_timer_set_pwm,
-> +	.set_prescaler = omap_dm_timer_set_prescaler,
-> +	.write_counter = omap_dm_timer_write_counter,
-> +};
-> +#endif
-> +
->  /*
->   * Few boards still need auxdata populated before we populate
->   * the dev entries in of_platform_populate().
-> @@ -506,6 +526,9 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
->  	OF_DEV_AUXDATA("ti,am4372-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
->  		       &wkup_m3_data),
->  #endif
-> +#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
-> +	OF_DEV_AUXDATA("ti,omap-dmtimer-pwm", 0, NULL, &pwm_dmtimer_pdata),
-> +#endif
->  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
->  	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
->  		       &omap4_iommu_pdata),
-> -- 
-> 1.9.1
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
