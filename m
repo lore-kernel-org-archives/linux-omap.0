@@ -1,163 +1,109 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RFC v02 02/15] dmaengine: core: Move and merge the code paths
- using private_candidate
-Date: Mon, 30 Nov 2015 16:42:33 +0200
-Message-ID: <CAHp75VdbV3C8h8V8M=dKpTov70rPvmxuXCr5Kh=Ns3y+ZGnkhQ@mail.gmail.com>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
-	<1448891145-10766-3-git-send-email-peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] clk: ti: omap5+: dpll: implement errata i810
+Date: Mon, 30 Nov 2015 16:43:25 +0200
+Message-ID: <1448894605-30097-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448891145-10766-3-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, linux-spi <linux-spi@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, tony@atomide.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 30, 2015 at 3:45 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> Channel matching with private_candidate() is used in two paths, the error
-> checking is slightly different in them and they are duplicating code also.
-> Move the code under dma_get_channel() to provide consistent execution and
-> going to allow us to reuse this mode of channel lookup later.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/dma/dmaengine.c | 81 +++++++++++++++++++++++++------------------------
->  1 file changed, 42 insertions(+), 39 deletions(-)
->
-> diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-> index 52c3eee48e2e..1249165fb4b2 100644
-> --- a/drivers/dma/dmaengine.c
-> +++ b/drivers/dma/dmaengine.c
-> @@ -549,6 +549,42 @@ static struct dma_chan *private_candidate(const dma_cap_mask_t *mask,
->         return NULL;
->  }
->
-> +static struct dma_chan *dma_get_channel(struct dma_device *device,
+Errata i810 states that DPLL controller can get stuck while transitioning
+to a power saving state, while its M/N ratio is being re-programmed.
 
-Naming scheme inside dmaengine.c looks like a mess.
+As a workaround, before re-programming the M/N ratio, SW has to ensure
+the DPLL cannot start an idle state transition. SW can disable DPLL
+idling by setting the DPLL AUTO_DPLL_MODE=0 or keeping a clock request
+active by setting a dependent clock domain in SW_WKUP.
 
-Since it's static function that utilizes private_candidate() may I
-propose the name like find_candidate() ?
+This errata impacts OMAP5 and DRA7 chips, so enable the errata for these.
 
-> +                                       const dma_cap_mask_t *mask,
-> +                                       dma_filter_fn fn, void *fn_param)
-> +{
-> +       struct dma_chan *chan = private_candidate(mask, device, fn, fn_param);
-> +       int err;
-> +
-> +       if (chan) {
-> +               /* Found a suitable channel, try to grab, prep, and return it.
-> +                * We first set DMA_PRIVATE to disable balance_ref_count as this
-> +                * channel will not be published in the general-purpose
-> +                * allocator
-> +                */
-> +               dma_cap_set(DMA_PRIVATE, device->cap_mask);
-> +               device->privatecnt++;
-> +               err = dma_chan_get(chan);
-> +
-> +               if (err) {
-> +                       if (err == -ENODEV) {
-> +                               pr_debug("%s: %s module removed\n", __func__,
-> +                                        dma_chan_name(chan));
-> +                               list_del_rcu(&device->global_node);
-> +                       } else
-> +                               pr_debug("%s: failed to get %s: (%d)\n",
-> +                                        __func__, dma_chan_name(chan), err);
-> +
-> +                       if (--device->privatecnt == 0)
-> +                               dma_cap_clear(DMA_PRIVATE, device->cap_mask);
-> +
-> +                       chan = ERR_PTR(err);
-> +               }
-> +       }
-> +
-> +       return chan ? chan : ERR_PTR(-EPROBE_DEFER);
-> +}
-> +
->  /**
->   * dma_get_slave_channel - try to get specific channel exclusively
->   * @chan: target channel
-> @@ -587,7 +623,6 @@ struct dma_chan *dma_get_any_slave_channel(struct dma_device *device)
->  {
->         dma_cap_mask_t mask;
->         struct dma_chan *chan;
-> -       int err;
->
->         dma_cap_zero(mask);
->         dma_cap_set(DMA_SLAVE, mask);
-> @@ -595,23 +630,11 @@ struct dma_chan *dma_get_any_slave_channel(struct dma_device *device)
->         /* lock against __dma_request_channel */
->         mutex_lock(&dma_list_mutex);
->
-> -       chan = private_candidate(&mask, device, NULL, NULL);
-> -       if (chan) {
-> -               dma_cap_set(DMA_PRIVATE, device->cap_mask);
-> -               device->privatecnt++;
-> -               err = dma_chan_get(chan);
-> -               if (err) {
-> -                       pr_debug("%s: failed to get %s: (%d)\n",
-> -                               __func__, dma_chan_name(chan), err);
-> -                       chan = NULL;
-> -                       if (--device->privatecnt == 0)
-> -                               dma_cap_clear(DMA_PRIVATE, device->cap_mask);
-> -               }
-> -       }
-> +       chan = dma_get_channel(device, &mask, NULL, NULL);
->
->         mutex_unlock(&dma_list_mutex);
->
-> -       return chan;
-> +       return IS_ERR(chan) ? NULL : chan;
->  }
->  EXPORT_SYMBOL_GPL(dma_get_any_slave_channel);
->
-> @@ -628,35 +651,15 @@ struct dma_chan *__dma_request_channel(const dma_cap_mask_t *mask,
->  {
->         struct dma_device *device, *_d;
->         struct dma_chan *chan = NULL;
-> -       int err;
->
->         /* Find a channel */
->         mutex_lock(&dma_list_mutex);
->         list_for_each_entry_safe(device, _d, &dma_device_list, global_node) {
-> -               chan = private_candidate(mask, device, fn, fn_param);
-> -               if (chan) {
-> -                       /* Found a suitable channel, try to grab, prep, and
-> -                        * return it.  We first set DMA_PRIVATE to disable
-> -                        * balance_ref_count as this channel will not be
-> -                        * published in the general-purpose allocator
-> -                        */
-> -                       dma_cap_set(DMA_PRIVATE, device->cap_mask);
-> -                       device->privatecnt++;
-> -                       err = dma_chan_get(chan);
-> +               chan = dma_get_channel(device, mask, fn, fn_param);
-> +               if (!IS_ERR(chan))
-> +                       break;
->
-> -                       if (err == -ENODEV) {
-> -                               pr_debug("%s: %s module removed\n",
-> -                                        __func__, dma_chan_name(chan));
-> -                               list_del_rcu(&device->global_node);
-> -                       } else if (err)
-> -                               pr_debug("%s: failed to get %s: (%d)\n",
-> -                                        __func__, dma_chan_name(chan), err);
-> -                       else
-> -                               break;
-> -                       if (--device->privatecnt == 0)
-> -                               dma_cap_clear(DMA_PRIVATE, device->cap_mask);
-> -                       chan = NULL;
-> -               }
-> +               chan = NULL;
->         }
->         mutex_unlock(&dma_list_mutex);
->
-> --
-> 2.6.3
->
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/clock.c |    4 ++++
+ drivers/clk/ti/dpll3xxx.c   |   25 ++++++++++++++++++++++++-
+ include/linux/clk/ti.h      |    1 +
+ 3 files changed, 29 insertions(+), 1 deletion(-)
 
-
-
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index acb60ed..d058125 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -225,5 +225,9 @@ void __init ti_clk_init_features(void)
+ 	if (omap_rev() == OMAP3430_REV_ES1_0)
+ 		features.flags |= TI_CLK_DPLL4_DENY_REPROGRAM;
+ 
++	/* Errata I810 for omap5 / dra7 */
++	if (soc_is_omap54xx() || soc_is_dra7xx())
++		features.flags |= TI_CLK_ERRATA_I810;
++
+ 	ti_clk_setup_features(&features);
+ }
+diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
+index f4dec00..1c30038 100644
+--- a/drivers/clk/ti/dpll3xxx.c
++++ b/drivers/clk/ti/dpll3xxx.c
+@@ -305,8 +305,9 @@ static void _lookup_sddiv(struct clk_hw_omap *clk, u8 *sd_div, u16 m, u8 n)
+ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
+ {
+ 	struct dpll_data *dd = clk->dpll_data;
+-	u8 dco, sd_div;
++	u8 dco, sd_div, ai = 0;
+ 	u32 v;
++	bool errata_i810;
+ 
+ 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+ 	_omap3_noncore_dpll_bypass(clk);
+@@ -350,6 +351,25 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
+ 		v |= sd_div << __ffs(dd->sddiv_mask);
+ 	}
+ 
++	/*
++	 * Errata i810 - DPLL controller can get stuck while transitioning
++	 * to a power saving state. Software must ensure the DPLL can not
++	 * transition to a low power state while changing M/N values.
++	 * Easiest way to accomplish this is to prevent DPLL autoidle
++	 * before doing the M/N re-program.
++	 */
++	errata_i810 = ti_clk_get_features()->flags & TI_CLK_ERRATA_I810;
++
++	if (errata_i810) {
++		ai = omap3_dpll_autoidle_read(clk);
++		if (ai) {
++			omap3_dpll_deny_idle(clk);
++
++			/* OCP barrier */
++			omap3_dpll_autoidle_read(clk);
++		}
++	}
++
+ 	ti_clk_ll_ops->clk_writel(v, dd->mult_div1_reg);
+ 
+ 	/* Set 4X multiplier and low-power mode */
+@@ -379,6 +399,9 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
+ 
+ 	_omap3_noncore_dpll_lock(clk);
+ 
++	if (errata_i810 && ai)
++		omap3_dpll_allow_idle(clk);
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 223be69..75205df 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -286,6 +286,7 @@ struct ti_clk_features {
+ #define TI_CLK_DPLL_HAS_FREQSEL			BIT(0)
+ #define TI_CLK_DPLL4_DENY_REPROGRAM		BIT(1)
+ #define TI_CLK_DISABLE_CLKDM_CONTROL		BIT(2)
++#define TI_CLK_ERRATA_I810			BIT(3)
+ 
+ void ti_clk_setup_features(struct ti_clk_features *features);
+ const struct ti_clk_features *ti_clk_get_features(void);
 -- 
-With Best Regards,
-Andy Shevchenko
+1.7.9.5
+
