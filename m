@@ -1,58 +1,82 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 01/18] ARM: am57xx: cl-som-am57x: dts: add basic module
- support
-Date: Mon, 30 Nov 2015 09:55:37 -0600
-Message-ID: <20151130155537.GA11704@rob-hp-laptop>
-References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
- <1448433590-1399-2-git-send-email-lifshitz@compulab.co.il>
- <565629D2.2010401@ti.com>
- <565AEB19.4050107@compulab.co.il>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: [4.4-rc][PATCH v2] ARM: dts: am4372: fix clock source for arm twd and global timers
+Date: Mon, 30 Nov 2015 17:56:38 +0200
+Message-ID: <1448898998-32749-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <565AEB19.4050107-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Nov 29, 2015 at 02:10:01PM +0200, Dmitry Lifshitz wrote:
-> Hi Nishanth,
-> 
-> Thank you for the provided feedback.
-> 
-> On 11/25/2015 11:36 PM, Nishanth Menon wrote:
-> >On 11/25/2015 12:39 AM, Dmitry Lifshitz wrote:
-> >[...]
-> >
-> >>diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> >>new file mode 100644
-> >>index 0000000..b11d7da
-> >>--- /dev/null
-> >>+++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> >[...]
-> >
-> >>+/ {
-> >>+	model = "CompuLab CL-SOM-AM57x";
-> >>+	compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
-> >>+
-> >>+	memory {
-> >>+		device_type = "memory";
-> >>+		reg = <0x80000000 0x20000000>; /* 512 MB - minimal configuration */
-> >
-> >I think if you like to enable LPAE, the format might look a little
-> >different..
-> >
-> 
-> We would like to have a basic HW support in the mainline. It might be
-> enhanced later, once we get to work on LPAE stuff.
+ARM TWD and Global timer are clocked by PERIPHCLK which is MPU_CLK/2.
+But now they are clocked by dpll_mpu_m2_ck == MPU_CLK and, as result.
+Timekeeping core misbehaves. For example, execution of command
+"sleep 5" will take 10 sec instead of 5.
 
-I think what is meant here is the cell sizes should be 2 instead of 1. 
-You can do that independent of LPAE support. I would expect the base SOC 
-dtsi file to set the cell sizes correctly though.
+Hence, fix it by adding mpu_periphclk ("fixed-factor-clock") and use
+it for clocking ARM TWD and Global timer (same way as on OMAP4).
 
-Rob
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Fixes:commit 8cbd4c2f6a99 ("arm: boot: dts: am4372: add ARM timers and SCU nodes")
+Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+---
+Changes in v2:
+ - fix: mpu_periphclk should be clocked from dpll_mpu_m2_ck instead of
+   dpll_mpu_ck.
+link on v1:
+ http://www.spinics.net/lists/arm-kernel/msg463898.html
+
+ arch/arm/boot/dts/am4372.dtsi        | 4 ++--
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 8 ++++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index d83ff9c..de8791a 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -74,7 +74,7 @@
+ 		reg = <0x48240200 0x100>;
+ 		interrupts = <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>;
+ 		interrupt-parent = <&gic>;
+-		clocks = <&dpll_mpu_m2_ck>;
++		clocks = <&mpu_periphclk>;
+ 	};
+ 
+ 	local_timer: timer@48240600 {
+@@ -82,7 +82,7 @@
+ 		reg = <0x48240600 0x100>;
+ 		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>;
+ 		interrupt-parent = <&gic>;
+-		clocks = <&dpll_mpu_m2_ck>;
++		clocks = <&mpu_periphclk>;
+ 	};
+ 
+ 	l2-cache-controller@48242000 {
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index cc88728..a38af2b 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -259,6 +259,14 @@
+ 		ti,invert-autoidle-bit;
+ 	};
+ 
++	mpu_periphclk: mpu_periphclk {
++		#clock-cells = <0>;
++		compatible = "fixed-factor-clock";
++		clocks = <&dpll_mpu_m2_ck>;
++		clock-mult = <1>;
++		clock-div = <2>;
++	};
++
+ 	dpll_ddr_ck: dpll_ddr_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,am3-dpll-clock";
+-- 
+2.6.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
