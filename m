@@ -1,7 +1,7 @@
 From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 3/5] mtd: devices: m25p80: add support for mmap read request
-Date: Mon, 30 Nov 2015 10:45:13 +0530
-Message-ID: <1448860515-28336-4-git-send-email-vigneshr@ti.com>
+Subject: [PATCH v4 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Mon, 30 Nov 2015 10:45:14 +0530
+Message-ID: <1448860515-28336-5-git-send-email-vigneshr@ti.com>
 References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,52 +12,59 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <
 Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Certain spi controllers may provide accelerated interface to read from
-m25p80 type flash devices. This interface provides better read
-performance than regular SPI interface.
-Call spi_flash_read(), if supported, to make use of such interface.
+Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
+update the binding documents for the controller to document this change.
 
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 ---
 
-v4: 
- * Use spi_flash_read_message struct to pass args.
- * support passing of opcode/addr/data nbits.
+v4: No changes.
 
- drivers/mtd/devices/m25p80.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ Documentation/devicetree/bindings/spi/ti_qspi.txt | 14 ++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi                       |  7 +++++--
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
-index fe9ceb7b5405..00094a668c62 100644
---- a/drivers/mtd/devices/m25p80.c
-+++ b/drivers/mtd/devices/m25p80.c
-@@ -131,6 +131,26 @@ static int m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
- 	/* convert the dummy cycles to the number of bytes */
- 	dummy /= 8;
+diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+index 601a360531a5..334aa3f32cbc 100644
+--- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
++++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+@@ -26,3 +26,17 @@ qspi: qspi@4b300000 {
+ 	spi-max-frequency = <25000000>;
+ 	ti,hwmods = "qspi";
+ };
++
++For dra7xx:
++qspi: qspi@4b300000 {
++	compatible = "ti,dra7xxx-qspi";
++	reg = <0x4b300000 0x100>,
++	      <0x5c000000 0x4000000>,
++	      <0x4a002558 0x4>;
++	reg-names = "qspi_base", "qspi_mmap",
++		    "qspi_ctrlmod";
++	#address-cells = <1>;
++	#size-cells = <0>;
++	spi-max-frequency = <48000000>;
++	ti,hwmods = "qspi";
++};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index fe99231cbde5..debe7523643d 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1153,8 +1153,11 @@
  
-+	if (spi_flash_read_supported(spi)) {
-+		struct spi_flash_read_message msg;
-+		int ret;
-+
-+		msg.buf = buf;
-+		msg.from = from;
-+		msg.len = len;
-+		msg.read_opcode = nor->read_opcode;
-+		msg.addr_width = nor->addr_width;
-+		msg.dummy_bytes = dummy;
-+		/* TODO: Support other combinations */
-+		msg.opcode_nbits = SPI_NBITS_SINGLE;
-+		msg.addr_nbits = SPI_NBITS_SINGLE;
-+		msg.data_nbits = m25p80_rx_nbits(nor);
-+
-+		ret = spi_flash_read(spi, &msg);
-+		*retlen = msg.retlen;
-+		return ret;
-+	}
-+
- 	spi_message_init(&m);
- 	memset(t, 0, (sizeof t));
- 
+ 		qspi: qspi@4b300000 {
+ 			compatible = "ti,dra7xxx-qspi";
+-			reg = <0x4b300000 0x100>;
+-			reg-names = "qspi_base";
++			reg = <0x4b300000 0x100>,
++			      <0x5c000000 0x4000000>,
++			      <0x4a002558 0x4>;
++			reg-names = "qspi_base", "qspi_mmap",
++				    "qspi_ctrlmod";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "qspi";
 -- 
 2.6.3
 
