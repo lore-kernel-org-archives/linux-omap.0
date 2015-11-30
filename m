@@ -1,125 +1,41 @@
 From: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH 12/14] ARM: sb-som: dts: introduce SB-SOM baseboard
-Date: Mon, 30 Nov 2015 17:32:46 +0200
-Message-ID: <20151130153246.GA17574@skynet>
+Subject: Re: [PATCH 01/14] ARM: am437x: cm-t43: dts: add basic support for
+ sbc-t43
+Date: Mon, 30 Nov 2015 17:33:43 +0200
+Message-ID: <20151130153343.GB17574@skynet>
 References: <1448371155-17307-1-git-send-email-nikita@compulab.co.il>
- <1448371155-17307-13-git-send-email-nikita@compulab.co.il>
- <20151125225734.GA17604@rob-hp-laptop>
+ <1448371155-17307-2-git-send-email-nikita@compulab.co.il>
+ <20151125230300.GA23057@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151125225734.GA17604@rob-hp-laptop>
+In-Reply-To: <20151125230300.GA23057@rob-hp-laptop>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 25, 2015 at 04:57:34PM -0600, Rob Herring wrote:
-> On Tue, Nov 24, 2015 at 03:19:13PM +0200, Nikita Kiryanov wrote:
-> > CompuLab SB-SOM baseboard is a carrier board for multiple arm-based SoMs.
-> > It currently supports (with minor adjustments to assembly) CM-T43, CM-T54,
-> > and CM-QS600 modules. It is a building block in the SBC-T43 single board
-> > computer, which consists of cm-t43 on top of sb-som-t43.
+On Wed, Nov 25, 2015 at 05:03:00PM -0600, Rob Herring wrote:
+> On Tue, Nov 24, 2015 at 03:19:02PM +0200, Nikita Kiryanov wrote:
+> > Add basic support for SBC-T43: a CM-T43 based single board computer.
+> > CM-T43 is an AM437x based System-on-Module designed to serve as a building
+> > block in embedded applications. SBC-T43 is composed of CM-T43 module on
+> > top of the SB-SOM-T43 baseboard.
+> > Basic support includes UART, GPIO, and I2C.
 > > 
 > > Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 > > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > > Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 > > Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 > > Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
-> > ---
-> >  .../devicetree/bindings/arm/compulab-boards.txt    |  5 +++
-> >  .../bindings/display/panel/startek,startek-kd050c  |  4 +++
 > 
-> .txt please.
+> Some minor nits below, otherwise:
+> 
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>
 
-Right, will V2..
-
-> 
-> >  .../devicetree/bindings/vendor-prefixes.txt        |  1 +
-> >  arch/arm/boot/dts/compulab-sb-som.dtsi             | 42 ++++++++++++++++++++++
-> >  4 files changed, 52 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/arm/compulab-boards.txt
-> >  create mode 100644 Documentation/devicetree/bindings/display/panel/startek,startek-kd050c
-> >  create mode 100644 arch/arm/boot/dts/compulab-sb-som.dtsi
-> > 
-> > diff --git a/Documentation/devicetree/bindings/arm/compulab-boards.txt b/Documentation/devicetree/bindings/arm/compulab-boards.txt
-> > new file mode 100644
-> > index 0000000..3e742a5
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/arm/compulab-boards.txt
-> > @@ -0,0 +1,5 @@
-> > +CompuLab SB-SOM is a multi-module baseboard capable of carrying CM-T43, CM-T54,
-> > +and QS-600 modules with minor modifications to the SB-SOM assembly.
-> 
-> All these modules have compatible strings?
-
-Yes, although they are currently undocumented. QS-600 should be CM-QS600
-though.. Will fix in V2.
-
-> 
-> > +
-> > +Required root node properties:
-> > +    - compatible = should be "compulab,sb-som"
-> > diff --git a/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c
-> > new file mode 100644
-> > index 0000000..70cd8d1
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c
-> > @@ -0,0 +1,4 @@
-> > +Startek Electronic Technology Co. KD050C 5.0" WVGA TFT LCD panel
-> > +
-> > +Required properties:
-> > +- compatible: should be "startek,startek-kd050c"
-> > diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> > index 55df1d4..409b134 100644
-> > --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> > +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> > @@ -218,6 +218,7 @@ sony	Sony Corporation
-> >  spansion	Spansion Inc.
-> >  sprd	Spreadtrum Communications Inc.
-> >  st	STMicroelectronics
-> > +startek	Startek
-> >  ste	ST-Ericsson
-> >  stericsson	ST-Ericsson
-> >  synology	Synology, Inc.
-> > diff --git a/arch/arm/boot/dts/compulab-sb-som.dtsi b/arch/arm/boot/dts/compulab-sb-som.dtsi
-> > new file mode 100644
-> > index 0000000..402a143
-> > --- /dev/null
-> > +++ b/arch/arm/boot/dts/compulab-sb-som.dtsi
-> > @@ -0,0 +1,42 @@
-> > +/*
-> > + * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +/ {
-> > +	model = "CompuLab SB-SOM";
-> > +	compatible = "compulab,sb-som";
-> 
-> I would expect this to have a more specific.
-
-SB-SOM supports multiple modules. This device tree aggregates what is
-common to all possible module-baseboard combinations, which is why the
-compatible string is generic.
-
-> 
-> > +	lcd0: display {
-> > +		compatible = "startek,startek-kd050c", "panel-dpi";
-> > +		label = "lcd";
-> 
-> This isn't documented, nor do I think it is needed.
-
-It is documented in Documentation/devicetree/bindings/display/panel/panel-dpi.txt
-You're correct about it being optional though.
-
-> 
-> Rob
-> 
+V2 coming up.
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
