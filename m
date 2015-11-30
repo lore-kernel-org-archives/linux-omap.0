@@ -1,34 +1,51 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] regulator: tps65217: remove tps65217.dtsi file
-Date: Mon, 30 Nov 2015 13:15:08 -0800
-Message-ID: <20151130211507.GQ2517@atomide.com>
-References: <1445949397-22745-1-git-send-email-hs@denx.de>
- <20151112140122.GA1076@rob-hp-laptop>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: dts: omap4: Add elm node
+Date: Mon, 30 Nov 2015 13:17:38 -0800
+Message-ID: <20151130211738.GR2517@atomide.com>
+References: <1446066137-11527-1-git-send-email-fcooper@ti.com>
+ <1446066137-11527-2-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151112140122.GA1076@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Georg.Soffel-k21M0aUVSxZWk0Htik3J/w@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mark Jackson <mpfj-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>
+In-Reply-To: <1446066137-11527-2-git-send-email-fcooper@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, rogerq@ti.com, nm@ti.com, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [151112 06:02]:
-> On Tue, Oct 27, 2015 at 01:36:36PM +0100, Heiko Schocher wrote:
-> > remove tps65217.dtsi and adapt all boards, which
-> > used it.
-> > 
-> > Signed-off-by: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>
-> > Tested-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> > Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+* Franklin S Cooper Jr <fcooper@ti.com> [151028 14:02]:
+> Add device tree entry for the error location module.
 > 
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 
-Applying into omap-for-v4.5/dt thanks.
+Applying this one into omap-for-v4.5/dt thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+>  arch/arm/boot/dts/omap4.dtsi | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 5a206c1..a40eb23 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -348,6 +348,14 @@
+>  			#interrupt-cells = <2>;
+>  		};
+>  
+> +		elm: elm@48078000 {
+> +			compatible = "ti,am3352-elm";
+> +			reg = <0x48078000 0x2000>;
+> +			interrupts = <4>;
+> +			ti,hwmods = "elm";
+> +			status = "disabled";
+> +		};
+> +
+>  		gpmc: gpmc@50000000 {
+>  			compatible = "ti,omap4430-gpmc";
+>  			reg = <0x50000000 0x1000>;
+> -- 
+> 2.6.1
+> 
