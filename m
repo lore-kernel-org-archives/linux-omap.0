@@ -1,62 +1,255 @@
-From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH v2 04/18] ARM: am57xx: cl-som-am57x: dts: add EEPROM
- support
-Date: Mon, 30 Nov 2015 16:44:50 +0200
-Message-ID: <565C60E2.5060002@compulab.co.il>
-References: <1448433590-1399-5-git-send-email-lifshitz@compulab.co.il>
- <1448894037-1337-1-git-send-email-lifshitz@compulab.co.il>
+From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC v02 03/15] dmaengine: core: Introduce new, universal API to
+ request a channel
+Date: Mon, 30 Nov 2015 16:51:44 +0200
+Message-ID: <CAHp75VeTe6hcnuqHNv=GX8pZJmde0H-AjZpxMHq=f5YfOL5hSA@mail.gmail.com>
+References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
+	<1448891145-10766-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1448894037-1337-1-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1448891145-10766-4-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dmaengine <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/30/15 16:33, Dmitry Lifshitz wrote:
-> On-board EEPROM chip is used for storing a board production
-> info.
-> 
-> Add module EEPROM support (over I2C4 bus).
-> 
-> Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-
-Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-
+On Mon, Nov 30, 2015 at 3:45 PM, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> wrote:
+> The two API function can cover most, if not all current APIs used to
+> request a channel. With minimal effort dmaengine drivers, platforms and
+> dmaengine user drivers can be converted to use the two function.
+>
+> struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+>
+> To request any channel matching with the requested capabilities, can be
+> used to request channel for memcpy, memset, xor, etc where no hardware
+> synchronization is needed.
+>
+> struct dma_chan *dma_request_chan(struct device *dev, const char *name);
+> To request a slave channel. The dma_request_chan() will try to find the
+> channel via DT, ACPI or in case if the kernel booted in non DT/ACPI mode
+> it will use a filter lookup table and retrieves the needed information from
+> the dma_filter_map provided by the DMA drivers.
+> This legacy mode needs changes in platform code, in dmaengine drivers and
+> finally the dmaengine user drivers can be converted:
+>
+> For each dmaengine driver an array of DMA device, slave and the parameter
+> for the filter function needs to be added:
+>
+> static struct dma_filter_map da830_edma_map[] = {
+>         DMA_FILTER_ENTRY("davinci-mcasp.0", "rx", EDMA_CTLR_CHAN(0, 0)),
+>         DMA_FILTER_ENTRY("davinci-mcasp.0", "tx", EDMA_CTLR_CHAN(0, 1)),
+>         DMA_FILTER_ENTRY("davinci-mcasp.1", "rx", EDMA_CTLR_CHAN(0, 2)),
+>         DMA_FILTER_ENTRY("davinci-mcasp.1", "tx", EDMA_CTLR_CHAN(0, 3)),
+>         DMA_FILTER_ENTRY("davinci-mcasp.2", "rx", EDMA_CTLR_CHAN(0, 4)),
+>         DMA_FILTER_ENTRY("davinci-mcasp.2", "tx", EDMA_CTLR_CHAN(0, 5)),
+>         DMA_FILTER_ENTRY("spi_davinci.0", "rx", EDMA_CTLR_CHAN(0, 14)),
+>         DMA_FILTER_ENTRY("spi_davinci.0", "tx", EDMA_CTLR_CHAN(0, 15)),
+>         DMA_FILTER_ENTRY("da830-mmc.0", "rx", EDMA_CTLR_CHAN(0, 16)),
+>         DMA_FILTER_ENTRY("da830-mmc.0", "tx", EDMA_CTLR_CHAN(0, 17)),
+>         DMA_FILTER_ENTRY("spi_davinci.1", "rx", EDMA_CTLR_CHAN(0, 18)),
+>         DMA_FILTER_ENTRY("spi_davinci.1", "tx", EDMA_CTLR_CHAN(0, 19)),
+> };
+>
+> This information is going to be needed by the dmaengine driver, so
+> modification to the platform_data is needed, and the driver map should be
+> added to the pdata of the DMA driver:
+>
+> da8xx_edma0_pdata.filter_map = da830_edma_map;
+> da8xx_edma0_pdata.filtercnt = ARRAY_SIZE(da830_edma_map);
+>
+> The DMA driver then needs to convigure the needed device -> filter_fn
+> mapping before it registers with dma_async_device_register() :
+>
+> if (info->filter_map) {
+>         ecc->dma_slave.filter_map.map = info->filter_map;
+>         ecc->dma_slave.filter_map.mapcnt = info->filtercnt;
+>         ecc->dma_slave.filter_map.filter_fn = edma_filter_for_map;
+> }
+>
+> When neither DT or ACPI lookup is available the dma_request_chan() will
+> try to match the requester's device name with the filter_map's list of
+> device names, when a match found it will use the information from the
+> dma_filter_map to get the channel with the dma_get_channel() internal
+> function.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 > ---
-> 
->   v2:
-> 
->    * Fix EEPROM chip model
-> 
->  arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> index 9f15dda..695f250 100644
-> --- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> @@ -290,6 +290,12 @@
->  		compatible = "emmicro,em3027";
->  		reg = <0x56>;
->  	};
+>  drivers/dma/dmaengine.c   | 76 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/dmaengine.h | 31 +++++++++++++++++++
+>  2 files changed, 107 insertions(+)
+>
+> diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+> index 1249165fb4b2..bd774adff697 100644
+> --- a/drivers/dma/dmaengine.c
+> +++ b/drivers/dma/dmaengine.c
+> @@ -43,6 +43,7 @@
+>
+>  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+>
+> +#include <linux/platform_device.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+> @@ -715,6 +716,81 @@ struct dma_chan *dma_request_slave_channel(struct device *dev,
+>  }
+>  EXPORT_SYMBOL_GPL(dma_request_slave_channel);
+>
+> +static struct dma_filter_map *dma_filter_match(struct dma_device *device,
+> +                                              const char *name,
+> +                                              struct device *dev)
+> +{
+> +       struct dma_filter_map *map_found = NULL;
+> +       int i;
 > +
-> +	eeprom_module: atmel@50 {
-> +		compatible = "atmel,24c08";
-> +		reg = <0x50>;
-> +		pagesize = <16>;
-> +	};
+> +       if (!device->filter_map.mapcnt)
+> +               return NULL;
+> +
+> +       for (i = 0; i < device->filter_map.mapcnt; i++) {
+> +               struct dma_filter_map *map = &device->filter_map.map[i];
+> +
+> +               if (!strcmp(map->devname, dev_name(dev)) &&
+> +                   !strcmp(map->slave, name)) {
+> +                       map_found = map;
+> +                       break;
+> +               }
+> +       }
+> +
+> +       return map_found;
+> +}
+> +
+> +struct dma_chan *dma_request_chan(struct device *dev, const char *name)
+> +{
+> +       struct dma_device *device, *_d;
+> +       struct dma_chan *chan = NULL;
+> +
+> +       /* If device-tree is present get slave info from here */
+> +       if (dev->of_node)
+> +               chan = of_dma_request_slave_channel(dev->of_node, name);
+> +
+> +       /* If device was enumerated by ACPI get slave info from here */
+> +       if (ACPI_HANDLE(dev) && !chan)
+
+The preferable way is to use
+has_acpi_companion() instead of ACPI_HANDLE().
+
+> +               chan = acpi_dma_request_slave_chan_by_name(dev, name);
+> +
+> +       if (chan)
+> +               return chan;
+> +
+> +       /* Try to find the channel via the DMA filter map(s) */
+> +       mutex_lock(&dma_list_mutex);
+> +       list_for_each_entry_safe(device, _d, &dma_device_list, global_node) {
+> +               struct dma_filter_map *map = dma_filter_match(device, name,
+> +                                                             dev);
+> +
+> +               if (!map)
+> +                       continue;
+> +
+> +               chan = dma_get_channel(device, NULL,
+> +                                      device->filter_map.filter_fn,
+> +                                      map->param);
+> +               if (!IS_ERR(chan))
+> +                       break;
+> +       }
+> +       mutex_unlock(&dma_list_mutex);
+> +
+> +       return chan ? chan : ERR_PTR(-EPROBE_DEFER);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_request_chan);
+> +
+> +struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask)
+> +{
+> +       struct dma_chan *chan;
+> +
+> +       if (!mask)
+> +               return ERR_PTR(-ENODEV);
+> +
+> +       chan = __dma_request_channel(mask, NULL, NULL);
+> +       if (!chan)
+> +               chan = ERR_PTR(-ENODEV);
+> +
+> +       return chan;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_request_chan_by_mask);
+> +
+>  void dma_release_channel(struct dma_chan *chan)
+>  {
+>         mutex_lock(&dma_list_mutex);
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> index a2b7c2071cf4..f7b06ff982c8 100644
+> --- a/include/linux/dmaengine.h
+> +++ b/include/linux/dmaengine.h
+> @@ -606,6 +606,24 @@ enum dmaengine_alignment {
+>         DMAENGINE_ALIGN_64_BYTES = 6,
 >  };
->  
->  
-> 
+>
+> +struct dma_filter_map {
+> +        char *devname;
+> +        char *slave;
+> +        void *param;
+> +};
+> +#define DMA_FILTER_ENTRY(_devname, _slave, _param)     \
+> +       {                                               \
+> +               .devname = _devname,                    \
+> +               .slave = _slave,                        \
+> +               .param = (void*)_param,                 \
+> +       }
+> +
+> +struct dma_filter {
+> +        dma_filter_fn filter_fn;
+> +        int mapcnt;
+> +        struct dma_filter_map *map;
+> +};
+> +
+>  /**
+>   * struct dma_device - info on the entity supplying DMA services
+>   * @chancnt: how many DMA channels are supported
+> @@ -669,6 +687,7 @@ struct dma_device {
+>         unsigned int privatecnt;
+>         struct list_head channels;
+>         struct list_head global_node;
+> +       struct dma_filter filter_map;
+>         dma_cap_mask_t  cap_mask;
+>         unsigned short max_xor;
+>         unsigned short max_pq;
+> @@ -1235,6 +1254,10 @@ struct dma_chan *__dma_request_channel(const dma_cap_mask_t *mask,
+>  struct dma_chan *dma_request_slave_channel_reason(struct device *dev,
+>                                                   const char *name);
+>  struct dma_chan *dma_request_slave_channel(struct device *dev, const char *name);
+> +
+> +struct dma_chan *dma_request_chan(struct device *dev, const char *name);
+> +struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+> +
+>  void dma_release_channel(struct dma_chan *chan);
+>  int dma_get_slave_caps(struct dma_chan *chan, struct dma_slave_caps *caps);
+>  #else
+> @@ -1268,6 +1291,14 @@ static inline struct dma_chan *dma_request_slave_channel(struct device *dev,
+>  {
+>         return NULL;
+>  }
+> +static inline struct dma_chan *dma_request_chan(struct device *dev)
+> +{
+> +       return ERR_PTR(-ENODEV);
+> +}
+> +static inline struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask)
+> +{
+> +       return ERR_PTR(-ENODEV);
+> +}
+>  static inline void dma_release_channel(struct dma_chan *chan)
+>  {
+>  }
+> --
+> 2.6.3
+>
+
+
 
 -- 
-Regards,
-Igor.
+With Best Regards,
+Andy Shevchenko
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
