@@ -1,34 +1,47 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] clk: ti: omap5+: dpll: implement errata i810
-Date: Mon, 30 Nov 2015 11:35:38 -0800
-Message-ID: <20151130193538.GJ11298@codeaurora.org>
-References: <1448894605-30097-1-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] ARM: OMAP2+: dts: cm-t335: add initial support
+Date: Mon, 30 Nov 2015 11:51:23 -0800
+Message-ID: <20151130195123.GP2517@atomide.com>
+References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1448373733-5839-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1448373733-5839-2-git-send-email-uri.mashiach@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1448894605-30097-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1448373733-5839-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/30, Tero Kristo wrote:
-> Errata i810 states that DPLL controller can get stuck while transitioning
-> to a power saving state, while its M/N ratio is being re-programmed.
-> 
-> As a workaround, before re-programming the M/N ratio, SW has to ensure
-> the DPLL cannot start an idle state transition. SW can disable DPLL
-> idling by setting the DPLL AUTO_DPLL_MODE=0 or keeping a clock request
-> active by setting a dependent clock domain in SW_WKUP.
-> 
-> This errata impacts OMAP5 and DRA7 chips, so enable the errata for these.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
+* Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151124 06:03]:
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
+...
 
-Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+> +&uart0 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&uart0_pins>;
+> +
+> +	status = "okay";
+> +};
+> +
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+FYI, the extra line break at the end of the file causes whitespace
+warnings when applying. And fixing that causes extra hassles with
+applying the other patches in the series as the patches won't apply..
+So for the next time, you may want to check that ;)
+
+Also, the subject line should be "ARM: dts: ..." for the dts changes
+so the git log loooks unified for all the ARM SoCs.
+
+Anyways, I've fixed up those locally and applying into omap-for-v4.5/dt.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
