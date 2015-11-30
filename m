@@ -1,92 +1,43 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Mon, 30 Nov 2015 11:54:49 -0800
-Message-ID: <20151130195449.GI64635@google.com>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
- <20151026212346.GJ13239@google.com>
- <562F45BF.8020205@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [GIT PULL] clk: ti: fixes for 4.4-rc
+Date: Mon, 30 Nov 2015 12:34:37 -0800
+Message-ID: <20151130203437.GN11298@codeaurora.org>
+References: <5654301D.8070007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <562F45BF.8020205@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <5654301D.8070007@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Michael Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
-
-On Tue, Oct 27, 2015 at 11:37:03AM +0200, Roger Quadros wrote:
-> On 26/10/15 23:23, Brian Norris wrote:
-> > I'm not too familiar with OMAP platforms, and I might have missed out on
-> > prior discussions/context, so please forgive if I'm asking silly or old
-> > questions here.
+On 11/24, Tero Kristo wrote:
+> Hi Michael, Stephen,
 > 
-> No worries at all.
+> Here are some TI clock driver fixes for 4.4-rc.
 > 
-> > 
-> > On Fri, Sep 18, 2015 at 05:53:22PM +0300, Roger Quadros wrote:
-> >> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
-> >> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
-> >> This causes performance increase when using prefetch-irq mode.
-> >> 30% increase in read, 17% increase in write in prefetch-irq mode.
-> > 
-> > Have you pinpointed the exact causes for the performance increase, or
-> > can you give an educated guess? AIUI, you're reducing the number of
-> > interrupts needed for NAND prefetch mode, but you're also removing a bit
-> > of abstraction and implementing hooks that look awfully like the
-> > existing abstractions:
-> > 
-> > +       int (*nand_irq_enable)(enum gpmc_nand_irq irq);
-> > +       int (*nand_irq_disable)(enum gpmc_nand_irq irq);
-> > +       void (*nand_irq_clear)(enum gpmc_nand_irq irq);
-> > +       u32 (*nand_irq_status)(void);
-> > 
-> > That's not really a problem if there's a good reason for them (brcmnand
-> > implements similar hooks because of quirks in the implementation of
-> > interrupts across various BRCM SoCs, and it's not worth writing irqchip
-> > drivers for those cases). I'm mainly curious for an explanation.
+> -Tero
 > 
-> I have both implementations with me. My guess is that the 20% performance
-> gain is due to absence of irqchip/irqdomain translation code.
-> I haven't investigated further though.
-
-I don't have much context for whether this makes sense or not. According
-to your tests, you're getting ~800K interrupts over ~15 seconds. So
-should you start noticing performance hits due to abstraction at 53K
-interrupts per second?
-
-But anyway, I'm not sure that completely answered my question. My
-question was whether you were removing the irqchip code solely for
-performance reasons, or are there others?
-
-> Another concern I have is that I'm not using any locking around
-> gpmc_nand_irq_enable/disable(). Could this pose problems in multiple NAND
-> use cases? My understanding is that it should not as the controller access
-> is serialized between multiple NAND chips.
-
-Right, if you're touching just a NAND interrupt, and it's only used by a
-single instance of this NAND controller, then the NAND controller
-serialization code will handle this for you.
-
-> However I do need to add some locking as the GPMC_IRQENABLE register is shared
-> between NAND and GPMC driver.
+> ================================================================
 > 
-> NOTE: We are not using prefetch-irq mode for any of the OMAP boards because
-> of lesser performance than prefetch-polled mode. So if the less performance
-> for an unused mode is a lesser concern compared to cleaner code then
-> I can resend this with the irqdomain implementation.
+> The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d7130bec:
 > 
-> Below are performance logs of irqdomain vs hooks.
+>   Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
 > 
-> --
-> cheers,
-> -roger
+> are available in the git repository at:
 > 
-> test logs.
+>   https://github.com/t-kristo/linux-pm.git for-4.4-rc/ti-clk-fixes
+> 
+> for you to fetch changes up to 167af5ef2cdba14ff14a13c91e5532ed479083d8:
+> 
+>   clk: ti: drop locking code from mux/divider drivers (2015-11-24
+> 11:30:27 +0200)
+> 
 
-[snip]
+Thanks. Pulled into clk-fixes.
 
-Brian
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
