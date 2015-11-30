@@ -1,46 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/5] arm: dts: complete dm816x device tree
-Date: Mon, 30 Nov 2015 10:22:40 -0800
-Message-ID: <20151130182240.GI2517@atomide.com>
-References: <56449D1D.4030803@baylibre.com>
- <20151112174706.GN3218@atomide.com>
- <5645AD6D.8010706@baylibre.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH v4] clocksource: arm_global_timer: fix suspend resume
+Date: Mon, 30 Nov 2015 20:25:12 +0200
+Message-ID: <1448907912-15512-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5645AD6D.8010706@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, fisaksen@baylibre.com, devicetree@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-omap@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Arnd Bergmann <arnd@arndb.de>, John Stultz <john.stultz@linaro.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Neil Armstrong <narmstrong@baylibre.com> [151113 01:30]:
-> On 11/12/2015 06:47 PM, Tony Lindgren wrote:
-> > * Neil Armstrong <narmstrong@baylibre.com> [151112 06:08]:
-> >> In order to fix support for the dm816x platform, add missing bits in
-> >> the dm816x dtsi and cleanup OCP.
-> > 
-> > Which ones are needed as fixes for the v4.4-rc kernel?
-> > 
-> > Regards,
-> > 
-> > Tony
-> > 
-> >> The last patch adds support for the omap4-hwspinlock.
-> >>
-> >> v2: add ocp hwmod cleanup
-> >>
-> >> Neil Armstrong (5):
-> >>   arm: dts: add dm816x missing #mbox-cells
-> >>   arm: dts: add dm816x missing spi DT dma handles
-> Tony,
-> 
-> The two first are fixes for v4.4-rc.
+Now the System stall is observed on TI AM437x based board
+(am437x-gp-evm) during resuming from System suspend when ARM Global
+timer is selected as clocksource device (CPUIdle not enabled) - SysRq are working,
+but nothing else.
 
-OK applying first two into omap-for-v4.4/fixes, the rest
-into omap-for-v4.5/dt.
+The reason of stall is that ARM Global timer loses its contexts during
+System suspend:
+   GT_CONTROL.TIMER_ENABLE = 0 (unbanked)
+   GT_COUNTERx = 0
 
-Regards,
+Hence, update ARM Global timer driver to reflect above behaviour
+- re-enable ARM Global timer on resume (GT_CONTROL.TIMER_ENABLE = 1)
+  if not enabled.
 
-Tony
+CC: Arnd Bergmann <arnd@arndb.de>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Reviewed-by: Santosh Shilimkar <ssantosh@kernel.org>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+Changes in v4:
+ - check current timer's state before enabling.
+Changes in v3:
+ - dropped all DT specific code
+Changes in v2:
+ - suspend/resume simplified: nothing is stored any more and
+   ARM GT just re-enabled
+Links on prev versions:
+v3: https://lkml.org/lkml/2015/11/27/402
+v2: https://lkml.org/lkml/2015/11/20/355
+v1: https://lkml.org/lkml/2015/11/13/456
+
+ drivers/clocksource/arm_global_timer.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/clocksource/arm_global_timer.c b/drivers/clocksource/arm_global_timer.c
+index a2cb6fa..817a787 100644
+--- a/drivers/clocksource/arm_global_timer.c
++++ b/drivers/clocksource/arm_global_timer.c
+@@ -195,12 +195,23 @@ static cycle_t gt_clocksource_read(struct clocksource *cs)
+ 	return gt_counter_read();
+ }
+ 
++static void gt_resume(struct clocksource *cs)
++{
++	unsigned long ctrl;
++
++	ctrl = readl(gt_base + GT_CONTROL);
++	if (!(ctrl & GT_CONTROL_TIMER_ENABLE))
++		/* re-enable timer on resume */
++		writel(GT_CONTROL_TIMER_ENABLE, gt_base + GT_CONTROL);
++}
++
+ static struct clocksource gt_clocksource = {
+ 	.name	= "arm_global_timer",
+ 	.rating	= 300,
+ 	.read	= gt_clocksource_read,
+ 	.mask	= CLOCKSOURCE_MASK(64),
+ 	.flags	= CLOCK_SOURCE_IS_CONTINUOUS,
++	.resume = gt_resume,
+ };
+ 
+ #ifdef CONFIG_CLKSRC_ARM_GLOBAL_TIMER_SCHED_CLOCK
+-- 
+2.6.3
