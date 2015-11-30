@@ -1,107 +1,112 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Mon, 30 Nov 2015 11:09:42 -0500 (EST)
-Message-ID: <alpine.LFD.2.20.1511301041090.22569@knanqh.ubzr>
-References: <20150713131902.GH26485@atomide.com> <20151129180939.GE30871@n2100.arm.linux.org.uk> <alpine.LFD.2.20.1511291902100.22569@knanqh.ubzr> <201511300115.12478@pali> <20151130152352.GY2517@atomide.com> <20151130153933.GD29576@pali>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 2/2] ARM: OMAP2+: Change core_initcall levels to
+ postcore_initcall
+Date: Mon, 30 Nov 2015 08:26:29 -0800
+Message-ID: <1448900789-4034-3-git-send-email-tony@atomide.com>
+References: <1448900789-4034-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323328-715320669-1448899783=:22569"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151130153933.GD29576@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Laura Abbott <lauraa@codeaurora.org>, Sebastian Reichel <sre@debian.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Rob Herring <robherring2@gmail.com>, Pavel Machek <pavel@ucw.cz>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, =?ISO-8859-15?Q?Andreas_F=E4rber?= <afaerber@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1448900789-4034-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+We want to be able to probe a few selected device drivers before hwmod
+code populates the clocks in omap_hwmod_setup_all(). This allows us to
+convert most of the clock drivers into regular device drivers.
 
---8323328-715320669-1448899783=:22569
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+We only need a few minimal clock drivers early for the system timers to
+select between the 32KiHz clock and the high frequency oscillator.
 
-On Mon, 30 Nov 2015, Pali Rohár wrote:
+With these changes, initializing the clock drivers can be just done at
+core_initcall time with something like:
 
-> On Monday 30 November 2015 07:23:53 Tony Lindgren wrote:
-> > * Pali Rohár <pali.rohar@gmail.com> [151129 16:16]:
-> > > On Monday 30 November 2015 01:09:17 Nicolas Pitre wrote:
-> > > > On Sun, 29 Nov 2015, Russell King - ARM Linux wrote:
-> > > > > On Sat, Nov 28, 2015 at 12:34:23PM -0500, Nicolas Pitre wrote:
-> > > > > > Good. And Arnd likes the idea too. So we might be converging at
-> > > > > > last which is a good thing.
-> > > > > 
-> > > > > I disagree with the idea that there is convergence.  There might be
-> > > > > convergence towards an idea, but... Here's a mail extract, from
-> > > > > July 7th, from earlier in this very thread:
-> > > > > 
-> > > > > Pali:
-> > > > > > Me:
-> > > > > > > Are the ATAGs at a fixed address on the N900?
-> > > > > > 
-> > > > > > Yes, in board-rx51.c is:
-> > > > > > 
-> > > > > > .atag_offset    = 0x100
-> > > > > > 
-> > > > > > and Nokia Bootloader (proprietary) store them to that address.
-> > > > > > 
-> > > > > > > Can that be handled in
-> > > > > > > some kind of legacy file for the N900 which calls save_atags()
-> > > > > > > on it, so we don't end up introducing yet more stuff that we
-> > > > > > > have to maintain into the distant future?  If not, what about
-> > > > > > > copying a known working atag structure into a legacy file for
-> > > > > > > the N900?
-> > > > > > 
-> > > > > > I already asked question if it is possible to read ATAGs from DT
-> > > > > > booted kernel. And somebody (do not remember who) wrote to ML,
-> > > > > > that it is not possible and it can be done in that uncompress
-> > > > > > code.
-> > > > 
-> > > > Who is that somebody? If ever it happened to be me then objection is
-> > > > withdrawn. Otherwise that somebody should come forth and speak up
-> > > > again.
-> > > > 
-> > > 
-> > > ... do not remember ... this discussion were in more email threads and 
-> > > takes more then one year... sorry but my memory is not excellent
-> > 
-> > Yes this certainly seems like the best solution. I think we got into
-> > the atags-to-dt track as some of the atags are already being translated.
-> > 
-> > In this case there's no need to translate them AFAIK. You can just
-> > parse them and have them available for the user space. So as long as
-> > nothing trashes the atags at the atag_offset, you should be able to
-> > call a function to parse them in the n900 specific init_machine.
-> > 
-> > Regards,
-> > 
-> > Tony
-> 
-> In arch/arm/kernel/setup.c is function setup_arch() and it calls:
-> 
->   mdesc = setup_machine_fdt(__atags_pointer);
->   if (!mdesc)
->       mdesc = setup_machine_tags(__atags_pointer, __machine_arch_type);
-> 
-> So it looks like that on atags address is stored either atags structure
-> or DT structure... so it is truth kernel uncompress code put DT blob to
-> same offset where is expected atags structure?
+np = of_find_node_by_name(NULL, "plls");
+if (np)
+	of_platform_populate(np, NULL, NULL, NULL);
 
-No.  It doesn't put it anywhere. Those functions read DT/ATAGs from the 
-passed address.  But you know this address won't be the one you want for 
-the legacy ATAGs.
+And then these clocks will be available for the interconnect code to use.
 
-What you should do is to add a init_early hook to your mdesc structure 
-and retrieve your ATAGs from there directly at PAGE_OFFSET + 0x100.
+Having most of the clock drivers being regular device drivers allows
+us to use the nice things like devm_* functions and dev_err and dev_dbg.
+As an extra bonus, this also allows us to develop the clock drivers for
+new SoCs as loadable modules initially for cases where we can boot up
+the system based on the bootloader configured clocks.
 
-Now I suspect paging_init() marks the point where the ATAGs will be 
-overwritten.  To prevent this, you might have to add an additional tweak 
-in arm_mm_memblock_reserve() similar to the one already present for 
-CONFIG_SA1111. Something like:
+To do this, let's change the core_initcalls to postcore_initcall under
+mach-omap2.
 
-	memblock_reserve(PHYS_OFFSET, PAGE_SIZE);
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/omap2-restart.c | 2 +-
+ arch/arm/mach-omap2/omap_device.c   | 2 +-
+ arch/arm/mach-omap2/omap_hwmod.c    | 2 +-
+ arch/arm/mach-omap2/serial.c        | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-And later on you can return that page back to the system.
-
-
-Nicolas
---8323328-715320669-1448899783=:22569--
+diff --git a/arch/arm/mach-omap2/omap2-restart.c b/arch/arm/mach-omap2/omap2-restart.c
+index d937b2e..497269d 100644
+--- a/arch/arm/mach-omap2/omap2-restart.c
++++ b/arch/arm/mach-omap2/omap2-restart.c
+@@ -62,4 +62,4 @@ static int __init omap2xxx_common_look_up_clks_for_reset(void)
+ 
+ 	return 0;
+ }
+-omap_core_initcall(omap2xxx_common_look_up_clks_for_reset);
++omap_postcore_initcall(omap2xxx_common_look_up_clks_for_reset);
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 72ebc4c..3750ed1 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -869,7 +869,7 @@ static int __init omap_device_init(void)
+ 	bus_register_notifier(&platform_bus_type, &platform_nb);
+ 	return 0;
+ }
+-omap_core_initcall(omap_device_init);
++omap_postcore_initcall(omap_device_init);
+ 
+ /**
+  * omap_device_late_idle - idle devices without drivers
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index cc8a987..49d5376 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -3307,7 +3307,7 @@ static int __init omap_hwmod_setup_all(void)
+ 
+ 	return 0;
+ }
+-omap_core_initcall(omap_hwmod_setup_all);
++omap_postcore_initcall(omap_hwmod_setup_all);
+ 
+ /**
+  * omap_hwmod_enable - enable an omap_hwmod
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 5fb50fe..f164c6b 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -213,7 +213,7 @@ static int __init omap_serial_early_init(void)
+ 
+ 	return 0;
+ }
+-omap_core_initcall(omap_serial_early_init);
++omap_postcore_initcall(omap_serial_early_init);
+ 
+ /**
+  * omap_serial_init_port() - initialize single serial port
+-- 
+2.6.2
