@@ -1,43 +1,34 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [GIT PULL] clk: ti: fixes for 4.4-rc
-Date: Mon, 30 Nov 2015 12:34:37 -0800
-Message-ID: <20151130203437.GN11298@codeaurora.org>
-References: <5654301D.8070007@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] regulator: tps65217: remove tps65217.dtsi file
+Date: Mon, 30 Nov 2015 13:15:08 -0800
+Message-ID: <20151130211507.GQ2517@atomide.com>
+References: <1445949397-22745-1-git-send-email-hs@denx.de>
+ <20151112140122.GA1076@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5654301D.8070007@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+In-Reply-To: <20151112140122.GA1076@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Georg.Soffel-k21M0aUVSxZWk0Htik3J/w@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mark Jackson <mpfj-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/24, Tero Kristo wrote:
-> Hi Michael, Stephen,
+* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [151112 06:02]:
+> On Tue, Oct 27, 2015 at 01:36:36PM +0100, Heiko Schocher wrote:
+> > remove tps65217.dtsi and adapt all boards, which
+> > used it.
+> > 
+> > Signed-off-by: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>
+> > Tested-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> > Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > 
-> Here are some TI clock driver fixes for 4.4-rc.
-> 
-> -Tero
-> 
-> ================================================================
-> 
-> The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d7130bec:
-> 
->   Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
-> 
-> are available in the git repository at:
-> 
->   https://github.com/t-kristo/linux-pm.git for-4.4-rc/ti-clk-fixes
-> 
-> for you to fetch changes up to 167af5ef2cdba14ff14a13c91e5532ed479083d8:
-> 
->   clk: ti: drop locking code from mux/divider drivers (2015-11-24
-> 11:30:27 +0200)
-> 
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Thanks. Pulled into clk-fixes.
+Applying into omap-for-v4.5/dt thanks.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
