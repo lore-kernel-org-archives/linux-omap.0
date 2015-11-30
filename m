@@ -1,109 +1,78 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Mon, 30 Nov 2015 16:39:33 +0100
-Message-ID: <20151130153933.GD29576@pali>
-References: <20150713131902.GH26485@atomide.com>
- <20151129180939.GE30871@n2100.arm.linux.org.uk>
- <alpine.LFD.2.20.1511291902100.22569@knanqh.ubzr>
- <201511300115.12478@pali>
- <20151130152352.GY2517@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC v02 03/15] dmaengine: core: Introduce new, universal API to
+ request a channel
+Date: Mon, 30 Nov 2015 07:51:42 -0800
+Message-ID: <20151130155142.GZ2517@atomide.com>
+References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
+ <1448891145-10766-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151130152352.GY2517-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laura Abbott <lauraa-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <1448891145-10766-4-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 30 November 2015 07:23:53 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [151129 16:16]:
-> > On Monday 30 November 2015 01:09:17 Nicolas Pitre wrote:
-> > > On Sun, 29 Nov 2015, Russell King - ARM Linux wrote:
-> > > > On Sat, Nov 28, 2015 at 12:34:23PM -0500, Nicolas Pitre wrote:
-> > > > > Good. And Arnd likes the idea too. So we might be converging =
-at
-> > > > > last which is a good thing.
-> > > >=20
-> > > > I disagree with the idea that there is convergence.  There migh=
-t be
-> > > > convergence towards an idea, but... Here's a mail extract, from
-> > > > July 7th, from earlier in this very thread:
-> > > >=20
-> > > > Pali:
-> > > > > Me:
-> > > > > > Are the ATAGs at a fixed address on the N900?
-> > > > >=20
-> > > > > Yes, in board-rx51.c is:
-> > > > >=20
-> > > > > .atag_offset    =3D 0x100
-> > > > >=20
-> > > > > and Nokia Bootloader (proprietary) store them to that address=
-=2E
-> > > > >=20
-> > > > > > Can that be handled in
-> > > > > > some kind of legacy file for the N900 which calls save_atag=
-s()
-> > > > > > on it, so we don't end up introducing yet more stuff that w=
-e
-> > > > > > have to maintain into the distant future?  If not, what abo=
-ut
-> > > > > > copying a known working atag structure into a legacy file f=
-or
-> > > > > > the N900?
-> > > > >=20
-> > > > > I already asked question if it is possible to read ATAGs from=
- DT
-> > > > > booted kernel. And somebody (do not remember who) wrote to ML=
-,
-> > > > > that it is not possible and it can be done in that uncompress
-> > > > > code.
-> > >=20
-> > > Who is that somebody? If ever it happened to be me then objection=
- is
-> > > withdrawn. Otherwise that somebody should come forth and speak up
-> > > again.
-> > >=20
-> >=20
-> > ... do not remember ... this discussion were in more email threads =
-and=20
-> > takes more then one year... sorry but my memory is not excellent
->=20
-> Yes this certainly seems like the best solution. I think we got into
-> the atags-to-dt track as some of the atags are already being translat=
-ed.
->=20
-> In this case there's no need to translate them AFAIK. You can just
-> parse them and have them available for the user space. So as long as
-> nothing trashes the atags at the atag_offset, you should be able to
-> call a function to parse them in the n900 specific init_machine.
->=20
-> Regards,
->=20
-> Tony
+Hi,
 
-In arch/arm/kernel/setup.c is function setup_arch() and it calls:
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151130 05:49]:
+> 
+> For each dmaengine driver an array of DMA device, slave and the parameter
+> for the filter function needs to be added:
+> 
+> static struct dma_filter_map da830_edma_map[] = {
+> 	DMA_FILTER_ENTRY("davinci-mcasp.0", "rx", EDMA_CTLR_CHAN(0, 0)),
+> 	DMA_FILTER_ENTRY("davinci-mcasp.0", "tx", EDMA_CTLR_CHAN(0, 1)),
+> 	DMA_FILTER_ENTRY("davinci-mcasp.1", "rx", EDMA_CTLR_CHAN(0, 2)),
+> 	DMA_FILTER_ENTRY("davinci-mcasp.1", "tx", EDMA_CTLR_CHAN(0, 3)),
+> 	DMA_FILTER_ENTRY("davinci-mcasp.2", "rx", EDMA_CTLR_CHAN(0, 4)),
+> 	DMA_FILTER_ENTRY("davinci-mcasp.2", "tx", EDMA_CTLR_CHAN(0, 5)),
+> 	DMA_FILTER_ENTRY("spi_davinci.0", "rx", EDMA_CTLR_CHAN(0, 14)),
+> 	DMA_FILTER_ENTRY("spi_davinci.0", "tx", EDMA_CTLR_CHAN(0, 15)),
+> 	DMA_FILTER_ENTRY("da830-mmc.0", "rx", EDMA_CTLR_CHAN(0, 16)),
+> 	DMA_FILTER_ENTRY("da830-mmc.0", "tx", EDMA_CTLR_CHAN(0, 17)),
+> 	DMA_FILTER_ENTRY("spi_davinci.1", "rx", EDMA_CTLR_CHAN(0, 18)),
+> 	DMA_FILTER_ENTRY("spi_davinci.1", "tx", EDMA_CTLR_CHAN(0, 19)),
+> };
 
-  mdesc =3D setup_machine_fdt(__atags_pointer);
-  if (!mdesc)
-      mdesc =3D setup_machine_tags(__atags_pointer, __machine_arch_type=
-);
+FYI, if the EDMA_CTRL_CHAN above is just the evtmux registers, those
+can be handled with the pinctrl framework. It seems that would allow
+leaving out some of the built-in look up data, and have the mux parts
+handled by a proper device driver. Below is a sample from the dm81xx
+platform for reference.
 
-So it looks like that on atags address is stored either atags structure
-or DT structure... so it is truth kernel uncompress code put DT blob to
-same offset where is expected atags structure? If yes, then this is
-probably reason why atags cannot be read from booted DT kernel. Can
-somebody with deep knowledge of DT/atags and uncompress code verify thi=
-s?
+SoC dtsi file:
 
---=20
-Pali Roh=C3=A1r
-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+evtmux: pinmux@f90 {
+	compatible = "pinctrl-single";
+	reg = <0xf90 0x40>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-single,register-width = <8>;
+	pinctrl-single,function-mask = <0x1f>;
+};
+
+Board specific dts file:
+
+&evtmux {
+	sd2_edma_pins: pinmux_sd2_edma_pins {
+	pinctrl-single,pins = <
+		8 1     /* use SDTXEVT1 for EDMA instead of MCASP0TX */
+		9 2     /* use SDRXEVT1 for EDMA instead of MCASP0RX */
+		>;
+	};
+};
+
+Dynamic muxing of these channels can be done too using the pinctrl
+framework named modes, but probably is not a good idea in the case of
+SD card and MaASP in case something goes wrong :)
+
+Regards,
+
+Tony
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
