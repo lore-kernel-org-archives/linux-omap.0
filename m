@@ -1,51 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Mon, 30 Nov 2015 09:26:19 -0800
-Message-ID: <20151130172619.GF2517@atomide.com>
-References: <20151006100000.GN23801@atomide.com>
- <56139CE9.8020002@ti.com>
- <5613A256.8000105@ti.com>
- <20151006110134.GO23801@atomide.com>
- <5613ABEF.9000904@ti.com>
- <20151016212510.GF24370@atomide.com>
- <562496DB.4050803@ti.com>
- <56274D69.1090402@ti.com>
- <20151021152028.GO3078@atomide.com>
- <5629DD1F.60506@ti.com>
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: Re: [PATCH] ARM: OMAP4: execute initcall to reserve SRAM for I688
+ only on OMAP4
+Date: Mon, 30 Nov 2015 18:27:11 +0100
+Message-ID: <1448904431.8275.36.camel@pengutronix.de>
+References: <1447673117-32719-1-git-send-email-l.stach@pengutronix.de>
+ <5649CB16.2030706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5629DD1F.60506@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, computersforpeace@gmail.com, dwmw2@infradead.org, fcooper@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5649CB16.2030706@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, patchwork-lst@pengutronix.de, kernel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [151023 00:09]:
-> On 21/10/15 18:20, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq@ti.com> [151021 01:31]:
-> >>
-> >> I couldn't run randconfig beyond few iterations as it keeps failing
-> >> everywhere. How do we limit the randconfig options to OMAP only
-> >> platforms?
+Am Montag, den 16.11.2015, 14:24 +0200 schrieb Grygorii Strashko:
+> On 11/16/2015 01:25 PM, Lucas Stach wrote:
+> > omap_interconnect_sync() is the only user of the SRAM scratch area
+> > allocated in the omap4_sram_init initcall. The interconnect sync is
+> > used exclusively in the OMAP4 specific WFI implementation, so there
+> > is no point in allocating the SRAM scratch on other SoC types.
 > > 
-> > You can use Felipe's scripts from github.
+> > Bail out of the initcall if the kernel is not running on OMAP4 to
+> > avoid a confusing warning about being unable to allocate the SRAM
+> > needed for I688 handling.
+> > 
+> > Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+> > Tested-by: Bastian Stender <bst@pengutronix.de>
+> > ---
+> >   arch/arm/mach-omap2/omap4-common.c | 3 +++
+> >   1 file changed, 3 insertions(+)
+> > 
+> > diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> > index 949696b6f17b..6db393a30a28 100644
+> > --- a/arch/arm/mach-omap2/omap4-common.c
+> > +++ b/arch/arm/mach-omap2/omap4-common.c
+> > @@ -131,6 +131,9 @@ static int __init omap4_sram_init(void)
+> >   	struct device_node *np;
+> >   	struct gen_pool *sram_pool;
+> >   
+> > +	if (!cpu_is_omap44xx())
+> > +		return 0;
 > 
-> Thanks. I used his scripts and ran 10 randconfigs per platform.
-> Didn't find any issues with this series.
+> This one affects on am43xx also
 > 
-> How can we proceed?
-> Patches are on https://github.com/rogerq/linux/commits/for-v4.4/gpmc-v4
+So you are saying this erratum is also present on AM43xx? I wasn't able
+to deduce this from the information provided by Richard Woodruff.
 
-Sorry for the delay on this one. I suggest you get this series into
-linux next and then we can merge it for v4.5 via arm-soc as long as
-the pending comments are addressed. As far as I'm concerned, feel free
-to add for the whole series:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> > +
+> >   	np = of_find_compatible_node(NULL, NULL, "ti,omap4-mpu");
+> >   	if (!np)
+> >   		pr_warn("%s:Unable to allocate sram needed to handle errata I688\n",
+> 
+> Since all OMAP4+ platforms are now DT based why can't we just return from here silently?
+> 
+If we are unable to allocate the SRAM needed to work around I688 this is
+a real error on platforms that expose this erratum, so silently bailing
+out at this point may obscure a real issue.
 
 Regards,
+Lucas
 
-Tony
+-- 
+Pengutronix e.K.             | Lucas Stach                 |
+Industrial Linux Solutions   | http://www.pengutronix.de/  |
