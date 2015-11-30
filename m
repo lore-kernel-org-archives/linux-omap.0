@@ -1,83 +1,126 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Mon, 30 Nov 2015 07:23:53 -0800
-Message-ID: <20151130152352.GY2517@atomide.com>
-References: <20150713131902.GH26485@atomide.com>
- <20151129180939.GE30871@n2100.arm.linux.org.uk>
- <alpine.LFD.2.20.1511291902100.22569@knanqh.ubzr>
- <201511300115.12478@pali>
+From: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 12/14] ARM: sb-som: dts: introduce SB-SOM baseboard
+Date: Mon, 30 Nov 2015 17:32:46 +0200
+Message-ID: <20151130153246.GA17574@skynet>
+References: <1448371155-17307-1-git-send-email-nikita@compulab.co.il>
+ <1448371155-17307-13-git-send-email-nikita@compulab.co.il>
+ <20151125225734.GA17604@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <201511300115.12478@pali>
+In-Reply-To: <20151125225734.GA17604@rob-hp-laptop>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laura Abbott <lauraa-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [151129 16:16]:
-> On Monday 30 November 2015 01:09:17 Nicolas Pitre wrote:
-> > On Sun, 29 Nov 2015, Russell King - ARM Linux wrote:
-> > > On Sat, Nov 28, 2015 at 12:34:23PM -0500, Nicolas Pitre wrote:
-> > > > Good. And Arnd likes the idea too. So we might be converging at
-> > > > last which is a good thing.
-> > >=20
-> > > I disagree with the idea that there is convergence.  There might =
-be
-> > > convergence towards an idea, but... Here's a mail extract, from
-> > > July 7th, from earlier in this very thread:
-> > >=20
-> > > Pali:
-> > > > Me:
-> > > > > Are the ATAGs at a fixed address on the N900?
-> > > >=20
-> > > > Yes, in board-rx51.c is:
-> > > >=20
-> > > > .atag_offset    =3D 0x100
-> > > >=20
-> > > > and Nokia Bootloader (proprietary) store them to that address.
-> > > >=20
-> > > > > Can that be handled in
-> > > > > some kind of legacy file for the N900 which calls save_atags(=
-)
-> > > > > on it, so we don't end up introducing yet more stuff that we
-> > > > > have to maintain into the distant future?  If not, what about
-> > > > > copying a known working atag structure into a legacy file for
-> > > > > the N900?
-> > > >=20
-> > > > I already asked question if it is possible to read ATAGs from D=
-T
-> > > > booted kernel. And somebody (do not remember who) wrote to ML,
-> > > > that it is not possible and it can be done in that uncompress
-> > > > code.
-> >=20
-> > Who is that somebody? If ever it happened to be me then objection i=
-s
-> > withdrawn. Otherwise that somebody should come forth and speak up
-> > again.
-> >=20
->=20
-> ... do not remember ... this discussion were in more email threads an=
-d=20
-> takes more then one year... sorry but my memory is not excellent
+On Wed, Nov 25, 2015 at 04:57:34PM -0600, Rob Herring wrote:
+> On Tue, Nov 24, 2015 at 03:19:13PM +0200, Nikita Kiryanov wrote:
+> > CompuLab SB-SOM baseboard is a carrier board for multiple arm-based SoMs.
+> > It currently supports (with minor adjustments to assembly) CM-T43, CM-T54,
+> > and CM-QS600 modules. It is a building block in the SBC-T43 single board
+> > computer, which consists of cm-t43 on top of sb-som-t43.
+> > 
+> > Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> > Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> > Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+> > ---
+> >  .../devicetree/bindings/arm/compulab-boards.txt    |  5 +++
+> >  .../bindings/display/panel/startek,startek-kd050c  |  4 +++
+> 
+> .txt please.
 
-Yes this certainly seems like the best solution. I think we got into
-the atags-to-dt track as some of the atags are already being translated=
-=2E
+Right, will V2..
 
-In this case there's no need to translate them AFAIK. You can just
-parse them and have them available for the user space. So as long as
-nothing trashes the atags at the atag_offset, you should be able to
-call a function to parse them in the n900 specific init_machine.
+> 
+> >  .../devicetree/bindings/vendor-prefixes.txt        |  1 +
+> >  arch/arm/boot/dts/compulab-sb-som.dtsi             | 42 ++++++++++++++++++++++
+> >  4 files changed, 52 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/arm/compulab-boards.txt
+> >  create mode 100644 Documentation/devicetree/bindings/display/panel/startek,startek-kd050c
+> >  create mode 100644 arch/arm/boot/dts/compulab-sb-som.dtsi
+> > 
+> > diff --git a/Documentation/devicetree/bindings/arm/compulab-boards.txt b/Documentation/devicetree/bindings/arm/compulab-boards.txt
+> > new file mode 100644
+> > index 0000000..3e742a5
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/arm/compulab-boards.txt
+> > @@ -0,0 +1,5 @@
+> > +CompuLab SB-SOM is a multi-module baseboard capable of carrying CM-T43, CM-T54,
+> > +and QS-600 modules with minor modifications to the SB-SOM assembly.
+> 
+> All these modules have compatible strings?
 
-Regards,
+Yes, although they are currently undocumented. QS-600 should be CM-QS600
+though.. Will fix in V2.
 
-Tony
+> 
+> > +
+> > +Required root node properties:
+> > +    - compatible = should be "compulab,sb-som"
+> > diff --git a/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c
+> > new file mode 100644
+> > index 0000000..70cd8d1
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c
+> > @@ -0,0 +1,4 @@
+> > +Startek Electronic Technology Co. KD050C 5.0" WVGA TFT LCD panel
+> > +
+> > +Required properties:
+> > +- compatible: should be "startek,startek-kd050c"
+> > diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+> > index 55df1d4..409b134 100644
+> > --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
+> > +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+> > @@ -218,6 +218,7 @@ sony	Sony Corporation
+> >  spansion	Spansion Inc.
+> >  sprd	Spreadtrum Communications Inc.
+> >  st	STMicroelectronics
+> > +startek	Startek
+> >  ste	ST-Ericsson
+> >  stericsson	ST-Ericsson
+> >  synology	Synology, Inc.
+> > diff --git a/arch/arm/boot/dts/compulab-sb-som.dtsi b/arch/arm/boot/dts/compulab-sb-som.dtsi
+> > new file mode 100644
+> > index 0000000..402a143
+> > --- /dev/null
+> > +++ b/arch/arm/boot/dts/compulab-sb-som.dtsi
+> > @@ -0,0 +1,42 @@
+> > +/*
+> > + * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +/ {
+> > +	model = "CompuLab SB-SOM";
+> > +	compatible = "compulab,sb-som";
+> 
+> I would expect this to have a more specific.
+
+SB-SOM supports multiple modules. This device tree aggregates what is
+common to all possible module-baseboard combinations, which is why the
+compatible string is generic.
+
+> 
+> > +	lcd0: display {
+> > +		compatible = "startek,startek-kd050c", "panel-dpi";
+> > +		label = "lcd";
+> 
+> This isn't documented, nor do I think it is needed.
+
+It is documented in Documentation/devicetree/bindings/display/panel/panel-dpi.txt
+You're correct about it being optional though.
+
+> 
+> Rob
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
