@@ -1,105 +1,89 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [4.4-rc][PATCH] ARM: dts: am4372: fix clock source for arm twd
- and global timers
-Date: Mon, 30 Nov 2015 13:53:50 +0200
-Message-ID: <565C38CE.1070907@ti.com>
-References: <1448653468-24908-1-git-send-email-grygorii.strashko@ti.com>
- <565C0814.3000001@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [4.4-rc][PATCH] gpio: omap: drop omap1 mpuio specific
+ irq_mask/unmask callbacks
+Date: Mon, 30 Nov 2015 13:51:15 +0100
+Message-ID: <CACRpkdZPSCPi+hvRsb9o+OzA2X+Va4=pMsy-1zKJEPexh53UaQ@mail.gmail.com>
+References: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <565C0814.3000001-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Alexandre Courbot <gnurou@gmail.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/30/2015 10:25 AM, Tero Kristo wrote:
-> On 11/27/2015 09:44 PM, Grygorii Strashko wrote:
->> ARM TWD and Global timer are clocked by PERIPHCLK which is MPU_CLK/2.
->> But now they are clocked by dpll_mpu_m2_ck == MPU_CLK and, as result.
->> Timekeeping core misbehaves. For example, execution of command
->> "sleep 5" will take 10 sec instead of 5.
->>
->> Hence, fix it by adding mpu_periphclk ("fixed-factor-clock") and use
->> it for clocking ARM TWD and Global timer (same way as on OMAP4).
->>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
->> Fixes:commit 8cbd4c2f6a99 ("arm: boot: dts: am4372: add ARM timers and
->> SCU nodes")
->> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/boot/dts/am4372.dtsi        | 4 ++--
->>   arch/arm/boot/dts/am43xx-clocks.dtsi | 8 ++++++++
->>   2 files changed, 10 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/am4372.dtsi
->> b/arch/arm/boot/dts/am4372.dtsi
->> index d83ff9c..de8791a 100644
->> --- a/arch/arm/boot/dts/am4372.dtsi
->> +++ b/arch/arm/boot/dts/am4372.dtsi
->> @@ -74,7 +74,7 @@
->>           reg = <0x48240200 0x100>;
->>           interrupts = <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>;
->>           interrupt-parent = <&gic>;
->> -        clocks = <&dpll_mpu_m2_ck>;
->> +        clocks = <&mpu_periphclk>;
->>       };
->>
->>       local_timer: timer@48240600 {
->> @@ -82,7 +82,7 @@
->>           reg = <0x48240600 0x100>;
->>           interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>;
->>           interrupt-parent = <&gic>;
->> -        clocks = <&dpll_mpu_m2_ck>;
->> +        clocks = <&mpu_periphclk>;
->>       };
->>
->>       l2-cache-controller@48242000 {
->> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi
->> b/arch/arm/boot/dts/am43xx-clocks.dtsi
->> index cc88728..2ff58b1 100644
->> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
->> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
->> @@ -259,6 +259,14 @@
->>           ti,invert-autoidle-bit;
->>       };
->>
->> +    mpu_periphclk: mpu_periphclk {
->> +        #clock-cells = <0>;
->> +        compatible = "fixed-factor-clock";
->> +        clocks = <&dpll_mpu_ck>;
+On Fri, Nov 20, 2015 at 2:35 PM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
+
+> Originally OMAP MPUIO GPIO irqchip was implemented using Generic irq
+> chip, but after set of reworks Generic irq chip code was replaced by
+> common OMAP GPIO implementation and finally removed by
+> commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
+> Unfortunately, above commit left .irq_mask/unmask callbacks assigned
+> as below for MPUIO GPIO case:
+>         irqc->irq_mask = irq_gc_mask_set_bit;
+>         irqc->irq_unmask = irq_gc_mask_clr_bit;
 >
-> I don't think this is correct, ARM core is fed dpll_mpu_m2_ck, where the
-> divisor value can potentially differ from 1. If you feed this clock
-> directly from dpll_mpu_ck, you bypass this divisor.
-
-Sry. My mistake. I'll update it to use dpll_mpu_m2_ck.
-
+> This now causes boot failure on OMAP1 platforms, after
+> commit 450fa54cfd66 ("gpio: omap: convert to use generic irq handler")
+> which forces these callbacks to be called during GPIO IRQs mapping
+> from gpiochip_irq_map:
 >
-> Did you check what is the impact of cpufreq on the ARM TWD/timers?
-
-TWD is cpufreq friendly, ARM GT is not.
-
-
->> +        clock-mult = <1>;
->> +        clock-div = <2>;
->> +    };
->> +
->>       dpll_ddr_ck: dpll_ddr_ck {
->>           #clock-cells = <0>;
->>           compatible = "ti,am3-dpll-clock";
->>
+> Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> pgd = c0004000
+> [00000000] *pgd=00000000
+> Internal error: Oops: 75 [#1] ARM
+> Modules linked in:
+> CPU: 0 PID: 1 Comm: swapper Not tainted 4.4.0-rc1-e3-los_afe0c+-00002-g25379c0-dirty #1
+> Hardware name: Amstrad E3 (Delta)
+> task: c1836000 ti: c1838000 task.ti: c1838000
+> PC is at irq_gc_mask_set_bit+0x1c/0x60
+> LR is at __irq_do_set_handler+0x118/0x15c
+> pc : [<c004848c>]    lr : [<c0047d4c>]    psr: 600000d3
+> sp : c1839c90  ip : c1862c64  fp : c1839c9c
+> r10: 00000000  r9 : c0411950  r8 : c0411bbc
+> r7 : 00000000  r6 : c185c310  r5 : c00444e8  r4 : c185c300
+> r3 : c1854b50  r2 : 00000000  r1 : 00000000  r0 : c185c310
+> Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 0000317f  Table: 10004000  DAC: 00000057
+> Process swapper (pid: 1, stack limit = 0xc1838190)
+> Stack: (0xc1839c90 to 0xc183a000)
 >
+> [...]
+>
+> Backtrace:
+> [<c0048470>] (irq_gc_mask_set_bit) from [<c0047d4c>] (__irq_do_set_handler+0x118/0x15c)
+> [<c0047c34>] (__irq_do_set_handler) from [<c0047dd4>] (__irq_set_handler+0x44/0x5c)
+>  r6:00000000 r5:c00444e8 r4:c185c300
+> [<c0047d90>] (__irq_set_handler) from [<c0047e1c>] (irq_set_chip_and_handler_name+0x30/0x34)
+>  r7:00000050 r6:00000000 r5:c00444e8 r4:00000050
+> [<c0047dec>] (irq_set_chip_and_handler_name) from [<c01b345c>] (gpiochip_irq_map+0x3c/0x8c)
+>  r7:00000050 r6:00000000 r5:00000050 r4:c1862c64
+> [<c01b3420>] (gpiochip_irq_map) from [<c0049670>] (irq_domain_associate+0x7c/0x1c4)
+>  r5:c185c310 r4:c185cb00
+> [<c00495f4>] (irq_domain_associate) from [<c0049894>] (irq_domain_add_simple+0x98/0xc0)
+>  r8:c0411bbc r7:c185cb00 r6:00000050 r5:00000010 r4:00000001
+> [<c00497fc>] (irq_domain_add_simple) from [<c01b3328>] (_gpiochip_irqchip_add+0x64/0x10c)
+>  r7:c1862c64 r6:c0419280 r5:c1862c64 r4:c1854b50
+> [<c01b32c4>] (_gpiochip_irqchip_add) from [<c01b79f4>] (omap_gpio_probe+0x2fc/0x63c)
+>  r5:c1854b50 r4:c1862c10
+> [<c01b76f8>] (omap_gpio_probe) from [<c01fcf58>] (platform_drv_probe+0x2c/0x64)
+>  r10:00000000 r9:c03e45e8 r8:00000000 r7:c0419294 r6:c0411984 r5:c0419294
+>  r4:c0411950
+> [<c01fcf2c>] (platform_drv_probe) from [<c01fb668>] (really_probe+0x160/0x29c)
+>
+> Hence, fix it by remove obsolete callbacks assignment. After this
+> change  omap_gpio_mask_irq()/omap_gpio_unmask_irq() will be used
+> for MPUIO IRQs masking, but this now happens anyway from
+> omap_gpio_irq_startup/shutdown().
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Fixes: commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts")
+> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
+Patch applied for fixes.
 
--- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
