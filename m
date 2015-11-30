@@ -1,48 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/39] ARM: dts: Convert OMAP boards to use IOPAD pinmux
- macros
-Date: Mon, 30 Nov 2015 08:49:26 -0800
-Message-ID: <20151130164925.GD2517@atomide.com>
-References: <1447390457-1158-1-git-send-email-javier@osg.samsung.com>
- <20151113144742.GB2517@atomide.com>
- <564A0681.6010205@ti.com>
+Subject: Re: [PATCH 01/17] ARM: OMAP2+: PRM: add support for reset controller
+Date: Mon, 30 Nov 2015 09:09:22 -0800
+Message-ID: <20151130170922.GE2517@atomide.com>
+References: <1443104818-993-1-git-send-email-t-kristo@ti.com>
+ <1443104818-993-2-git-send-email-t-kristo@ti.com>
+ <20151006120606.GP23801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <564A0681.6010205@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+In-Reply-To: <20151006120606.GP23801@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Andrew F. Davis <afd@ti.com> [151116 08:39]:
-> On 11/13/2015 08:47 AM, Tony Lindgren wrote:
-> >* Javier Martinez Canillas <javier@osg.samsung.com> [151112 20:55]:
-> >>Hello Tony,
-> >>
-> >>This series converts all the remaining OMAP boards that didn't use the
-> >>IOPAD macros to specify the padconf register addresses. The only board
-> >>that I left was arch/arm/boot/dts/am335x-boneblack.dts because Andrew
-> >>already posted a patch for that DTS [0].
-> >>
-> >>I built tested all the DTBs that are build by omap2plus_defconfig and
-> >>the md5 checksum was the same before and after the patches so there's
-> >>no functional change and is only to make the DTS more readable.
-> >
-> >Yes great. Being able to compare the register against the documentation
-> >helps quite a bit. I plan on applying this series before anything else
-> >after -rc1 as it may require other patches to be rebased.
-> >
-> >>Patch #1 should be acked by the pinctrl maintainer and picked through
-> >>the linux-omap tree to maintain bisectability.
-> >>
-> >>[0]: https://lkml.org/lkml/2015/10/24/114
-> >
+* Tony Lindgren <tony@atomide.com> [151006 05:12]:
+> * Tero Kristo <t-kristo@ti.com> [150924 07:30]:
+> > PRM driver now supports reset controller for the defined reset lines.
+> > Reset configurations are provided through device tree. Later, functionality
+> > like hwmod and system reboot will be changed to use the generic framework.
 > 
-> v3 of my little contribution also out when you pull:
-> https://lkml.org/lkml/2015/11/13/480
+> This approach seems good to me in general. This should have the related
+> reset driver documentation too for the binding though.
 
-Applying that one too into omap-for-v4.5/dt thanks.
+Also, with the initcall changes I just posted, it seems this can become
+just a regular device driver that gets initialized at core_initcall level.
+
+Regards,
 
 Tony
