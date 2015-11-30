@@ -1,61 +1,89 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v4 5/5] ARM: dts: AM4372: add entry for qspi mmap region
-Date: Mon, 30 Nov 2015 10:45:15 +0530
-Message-ID: <1448860515-28336-6-git-send-email-vigneshr@ti.com>
-References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
+From: Heiko Schocher <hs@denx.de>
+Subject: Re: [PATCH v2] arm, am335x: add support for the bosch shc board
+Date: Mon, 30 Nov 2015 07:51:01 +0100
+Message-ID: <565BF1D5.8020708@denx.de>
+References: <1447748655-2088-1-git-send-email-hs@denx.de>
+ <564B9C3D.7070303@ti.com> <564C35D0.8060609@denx.de>
+Reply-To: hs@denx.de
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
+In-Reply-To: <564C35D0.8060609@denx.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, hramrach@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Robert Nelson <robertcnelson@gmail.com>, devicetree@vger.kernel.org, Georg.Soffel@bosch-si.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add qspi memory mapped region entries for AM43xx based SoCs. Also,
-update the binding documents for the controller to document this change.
+Hello all,
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
+Am 18.11.2015 um 09:24 schrieb Heiko Schocher:
+> Hello Dave,
+>
+> Am 17.11.2015 um 22:29 schrieb Dave Gerlach:
+>> Hi,
+>> On 11/17/2015 02:24 AM, Heiko Schocher wrote:
+>>> add support for the am335x based shc board.
+>>>
+>>> UART: 0-2 and 4
+>>> DRAM: 512 MiB
+>>> MMC:  OMAP SD/MMC: 0 @ 26 MHz
+>>>        OMAP SD/MMC: 1 @ 26 MHz
+>>> I2C:  at24 eeprom, pcf8563
+>>> USB:  USB1 (host)
+>>>
+>>> Signed-off-by: Heiko Schocher <hs@denx.de>
+>>> ---
+>>> The following patches are needed to get all working
+>>> for the shc board:
+>>> - disable clkout on pcf8563
+>>>    accepted.
+>>>    http://www.spinics.net/lists/devicetree/msg98542.html
+>>>
+>>> - leds: leds-gpio: add shutdown function
+>>>    accepted.
+>>>    https://lkml.org/lkml/2015/10/13/169
+>>>
+>>> - net: phy: smsc: disable energy detect mode
+>>>    accepted
+>>>    [PATCH v2 2/2] net: phy: smsc: disable energy detect mode
+>>>    https://lkml.org/lkml/2015/10/17/2
+>>>    [PATCH v2 1/2] drivers: net: cpsw: add phy-handle parsing
+>>>    https://lkml.org/lkml/2015/10/17/4
+>>>
+>>> - ARM: OMAP2+: omap_hwmod: Introduce ti,no-init dt property
+>>>    http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/328204.html
+>>>    @Dave: What is the current state of this patch?
+>>>    I have the same problem here on this am335x based board
+>>>
+>>
+>> A different approach is being taken for resolving the issue of rtc hwmod on am43x epos evm [1],
+>> which is what I was attempting to solve with the patch you have linked. We decided to avoid changing
+>> omap_hwmod code and I haven't been pursuing the ti,no-init flag anymore.
+>
+> Maybe I overlook something, but I cannot see, how [1] solves the RTC
+> hwmod problem on am335x SoC based boards. Not all boards have this problem,
+> so the RTC hwmod cannot be disabled for all am335x boards ...
+>
+> It must be somehow configurable for boards ... I have am335x boards
+> which use the rtc from the SoC
 
-v4: No changes.
+gentle ping ...
 
- Documentation/devicetree/bindings/spi/ti_qspi.txt | 5 +++--
- arch/arm/boot/dts/am4372.dtsi                     | 4 +++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+No more comments on this patch? Is it Ok for mainline or are
+there more issues?
 
-diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-index 334aa3f32cbc..5a1542eda387 100644
---- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
-+++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-@@ -17,9 +17,10 @@ Recommended properties:
- 
- Example:
- 
-+For am4372:
- qspi: qspi@4b300000 {
--	compatible = "ti,dra7xxx-qspi";
--	reg = <0x47900000 0x100>, <0x30000000 0x3ffffff>;
-+	compatible = "ti,am4372-qspi";
-+	reg = <0x47900000 0x100>, <0x30000000 0x4000000>;
- 	reg-names = "qspi_base", "qspi_mmap";
- 	#address-cells = <1>;
- 	#size-cells = <0>;
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index d83ff9c9701e..e32d164102d1 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -963,7 +963,9 @@
- 
- 		qspi: qspi@47900000 {
- 			compatible = "ti,am4372-qspi";
--			reg = <0x47900000 0x100>;
-+			reg = <0x47900000 0x100>,
-+			      <0x30000000 0x4000000>;
-+			reg-names = "qspi_base", "qspi_mmap";
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "qspi";
+bye,
+Heiko
+>
+>> Regards,
+>> Dave
+>>
+>> [1] http://www.spinics.net/lists/linux-omap/msg121987.html
+>
+> bye,
+> Heiko
+
 -- 
-2.6.3
+DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
