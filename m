@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: Change core_initcall levels to
- postcore_initcall
-Date: Mon, 30 Nov 2015 08:26:29 -0800
-Message-ID: <1448900789-4034-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 1/2] ARM: OMAP2+: Initialize timers later with late_time_init
+Date: Mon, 30 Nov 2015 08:26:28 -0800
+Message-ID: <1448900789-4034-2-git-send-email-tony@atomide.com>
 References: <1448900789-4034-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,30 +21,14 @@ To: linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We want to be able to probe a few selected device drivers before hwmod
-code populates the clocks in omap_hwmod_setup_all(). This allows us to
-convert most of the clock drivers into regular device drivers.
+We don't need timers right away and initializing them later gives us few
+nice things like interrupts and kmalloc. As the timers have a dependency
+to the clock framework, we're better off initializing things later rather
+than early if things go wrong. And this allows us to make the mux clock
+driver needed for system timers into early_platform drivers.
 
-We only need a few minimal clock drivers early for the system timers to
-select between the 32KiHz clock and the high frequency oscillator.
-
-With these changes, initializing the clock drivers can be just done at
-core_initcall time with something like:
-
-np = of_find_node_by_name(NULL, "plls");
-if (np)
-	of_platform_populate(np, NULL, NULL, NULL);
-
-And then these clocks will be available for the interconnect code to use.
-
-Having most of the clock drivers being regular device drivers allows
-us to use the nice things like devm_* functions and dev_err and dev_dbg.
-As an extra bonus, this also allows us to develop the clock drivers for
-new SoCs as loadable modules initially for cases where we can boot up
-the system based on the bootloader configured clocks.
-
-To do this, let's change the core_initcalls to postcore_initcall under
-mach-omap2.
+Note that smp_prepare_cpus() will get called later on during the init so
+we just need to local_irq_enable/disable for clocksource_probe().
 
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Grygorii Strashko <grygorii.strashko@ti.com>
@@ -53,60 +36,113 @@ Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap2-restart.c | 2 +-
- arch/arm/mach-omap2/omap_device.c   | 2 +-
- arch/arm/mach-omap2/omap_hwmod.c    | 2 +-
- arch/arm/mach-omap2/serial.c        | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/timer.c | 46 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 40 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap2-restart.c b/arch/arm/mach-omap2/omap2-restart.c
-index d937b2e..497269d 100644
---- a/arch/arm/mach-omap2/omap2-restart.c
-+++ b/arch/arm/mach-omap2/omap2-restart.c
-@@ -62,4 +62,4 @@ static int __init omap2xxx_common_look_up_clks_for_reset(void)
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index b18ebbe..68bf482 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -478,36 +478,56 @@ static void __init __omap_sync32k_timer_init(int clkev_nr, const char *clkev_src
+ 	omap2_gp_clockevent_init(clkev_nr, clkev_src, clkev_prop);
  
- 	return 0;
+ 	/* Enable the use of clocksource="gp_timer" kernel parameter */
++	local_irq_disable();
+ 	if (use_gptimer_clksrc || gptimer)
+ 		omap2_gptimer_clocksource_init(clksrc_nr, clksrc_src,
+ 						clksrc_prop);
+ 	else
+ 		omap2_sync32k_clocksource_init();
++	local_irq_enable();
  }
--omap_core_initcall(omap2xxx_common_look_up_clks_for_reset);
-+omap_postcore_initcall(omap2xxx_common_look_up_clks_for_reset);
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 72ebc4c..3750ed1 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -869,7 +869,7 @@ static int __init omap_device_init(void)
- 	bus_register_notifier(&platform_bus_type, &platform_nb);
- 	return 0;
+ 
+-void __init omap_init_time(void)
++static void __init omap_init_time_late(void)
+ {
+ 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
+ 			2, "timer_sys_ck", NULL, false);
+ 
+-	if (of_have_populated_dt())
++	if (of_have_populated_dt()) {
++		local_irq_disable();
+ 		clocksource_probe();
++		local_irq_enable();
++	}
++}
++
++void __init omap_init_time(void)
++{
++	late_time_init = omap_init_time_late;
  }
--omap_core_initcall(omap_device_init);
-+omap_postcore_initcall(omap_device_init);
  
- /**
-  * omap_device_late_idle - idle devices without drivers
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index cc8a987..49d5376 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3307,7 +3307,7 @@ static int __init omap_hwmod_setup_all(void)
- 
- 	return 0;
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
+-void __init omap3_secure_sync32k_timer_init(void)
++static void __init omap3_secure_sync32k_timer_late_init(void)
+ {
+ 	__omap_sync32k_timer_init(12, "secure_32k_fck", "ti,timer-secure",
+ 			2, "timer_sys_ck", NULL, false);
  }
--omap_core_initcall(omap_hwmod_setup_all);
-+omap_postcore_initcall(omap_hwmod_setup_all);
++
++void __init omap3_secure_sync32k_timer_init(void)
++{
++	late_time_init = omap3_secure_sync32k_timer_late_init;
++}
+ #endif /* CONFIG_ARCH_OMAP3 */
  
- /**
-  * omap_hwmod_enable - enable an omap_hwmod
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 5fb50fe..f164c6b 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -213,7 +213,7 @@ static int __init omap_serial_early_init(void)
- 
- 	return 0;
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM33XX)
+-void __init omap3_gptimer_timer_init(void)
++static void __init omap3_gptimer_late_init(void)
+ {
+ 	__omap_sync32k_timer_init(2, "timer_sys_ck", NULL,
+ 			1, "timer_sys_ck", "ti,timer-alwon", true);
  }
--omap_core_initcall(omap_serial_early_init);
-+omap_postcore_initcall(omap_serial_early_init);
++
++void __init omap3_gptimer_timer_init(void)
++{
++	late_time_init = omap3_gptimer_late_init;
++}
+ #endif
  
- /**
-  * omap_serial_init_port() - initialize single serial port
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) ||		\
+@@ -518,10 +538,17 @@ static void __init omap4_sync32k_timer_init(void)
+ 			2, "sys_clkin_ck", NULL, false);
+ }
+ 
+-void __init omap4_local_timer_init(void)
++static void __init omap4_local_timer_late_init(void)
+ {
+ 	omap4_sync32k_timer_init();
++	local_irq_disable();
+ 	clocksource_probe();
++	local_irq_enable();
++}
++
++void __init omap4_local_timer_init(void)
++{
++	late_time_init = omap4_local_timer_late_init;
+ }
+ #endif
+ 
+@@ -640,12 +667,19 @@ sysclk1_based:
+ #endif
+ }
+ 
+-void __init omap5_realtime_timer_init(void)
++static void __init omap5_realtime_timer_late_init(void)
+ {
+ 	omap4_sync32k_timer_init();
+ 	realtime_counter_init();
+ 
++	local_irq_disable();
+ 	clocksource_probe();
++	local_irq_enable();
++}
++
++void __init omap5_realtime_timer_init(void)
++{
++	late_time_init = omap5_realtime_timer_late_init;
+ }
+ #endif /* CONFIG_SOC_OMAP5 || CONFIG_SOC_DRA7XX */
+ 
 -- 
 2.6.2
