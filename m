@@ -1,62 +1,117 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: omap4: hwmod: Remove elm address space from
- hwmod data
-Date: Mon, 30 Nov 2015 13:19:13 -0800
-Message-ID: <20151130211912.GS2517@atomide.com>
-References: <1446066137-11527-1-git-send-email-fcooper@ti.com>
- <1446066137-11527-3-git-send-email-fcooper@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] arm, am335x: add support for the bosch shc board
+Date: Mon, 30 Nov 2015 13:41:30 -0800
+Message-ID: <20151130214130.GA23396@atomide.com>
+References: <1447748655-2088-1-git-send-email-hs@denx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1446066137-11527-3-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, rogerq@ti.com, nm@ti.com, lokeshvutla@ti.com
+In-Reply-To: <1447748655-2088-1-git-send-email-hs-ynQEQJNshbs@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Georg.Soffel-k21M0aUVSxZWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Franklin S Cooper Jr <fcooper@ti.com> [151028 14:02]:
-> ELM address information is provided by device tree. No longer need
-> to include this information within hwmod.
-> 
-> This patch has only been boot tested.
-> 
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+* Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org> [151117 00:25]:
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am335x-shc.dts
+> +&tps {
+> +	compatible = "ti,tps65217";
+> +	ti,pmic-shutdown-controller;
+> +
+> +	regulators {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		dcdc1_reg: regulator@0 {
+> +			reg = <0>;
+> +			regulator-name = "vdds_dpr";
+> +			regulator-compatible = "dcdc1";
+> +			regulator-min-microvolt = <1300000>;
+> +			regulator-max-microvolt = <1450000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		dcdc2_reg: regulator@1 {
+> +			reg = <1>;
+> +			/*
+> +			 * VDD_MPU voltage limits 0.95V - 1.26V with
+> +			 * +/-4% tolerance
+> +			 */
+> +			regulator-compatible = "dcdc2";
+> +			regulator-name = "vdd_mpu";
+> +			regulator-min-microvolt = <925000>;
+> +			regulator-max-microvolt = <1375000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +			regulator-ramp-delay = <70000>;
+> +		};
+> +
+> +		dcdc3_reg: regulator@2 {
+> +			reg = <2>;
+> +			/*
+> +			 * VDD_CORE voltage limits 0.95V - 1.1V with
+> +			 * +/-4% tolerance
+> +			 */
+> +			regulator-name = "vdd_core";
+> +			regulator-compatible = "dcdc3";
+> +			regulator-min-microvolt = <925000>;
+> +			regulator-max-microvolt = <1125000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		ldo1_reg: regulator@3 {
+> +			reg = <3>;
+> +			regulator-name = "vio,vrtc,vdds";
+> +			regulator-compatible = "ldo1";
+> +			regulator-min-microvolt = <1000000>;
+> +			regulator-max-microvolt = <1800000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		ldo2_reg: regulator@4 {
+> +			reg = <4>;
+> +			regulator-name = "vdd_3v3aux";
+> +			regulator-compatible = "ldo2";
+> +			regulator-min-microvolt = <900000>;
+> +			regulator-max-microvolt = <3300000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		ldo3_reg: regulator@5 {
+> +			reg = <5>;
+> +			regulator-name = "vdd_1v8";
+> +			regulator-compatible = "ldo3";
+> +			regulator-min-microvolt = <900000>;
+> +			regulator-max-microvolt = <1800000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		ldo4_reg: regulator@6 {
+> +			reg = <6>;
+> +			regulator-name = "vdd_3v3a";
+> +			regulator-compatible = "ldo4";
+> +			regulator-min-microvolt = <1800000>;
+> +			regulator-max-microvolt = <3300000>;
+> +			regulator-always-on;
+> +		};
+> +	};
+> +};
 
-And this one seems safe for me to apply into omap-for-v4.5/soc thanks.
+Applying this into omap-for-v4.5/dt.. But I'm getting concerned about this
+"regulator-always-on" stuff and having multiple copies of the same thing.
+
+I think we should have a common am33xx-tps65217.dtsi file that has the
+regulators defined at one place and other then include it. And they are
+controllable AFAIK..
+
+Regards,
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 10 ----------
->  1 file changed, 10 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 43eebf2..8f13f4a 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -3915,21 +3915,11 @@ static struct omap_hwmod_ocp_if omap44xx_l4_per__dss_venc = {
->  	.user		= OCP_USER_MPU,
->  };
->  
-> -static struct omap_hwmod_addr_space omap44xx_elm_addrs[] = {
-> -	{
-> -		.pa_start	= 0x48078000,
-> -		.pa_end		= 0x48078fff,
-> -		.flags		= ADDR_TYPE_RT
-> -	},
-> -	{ }
-> -};
-> -
->  /* l4_per -> elm */
->  static struct omap_hwmod_ocp_if omap44xx_l4_per__elm = {
->  	.master		= &omap44xx_l4_per_hwmod,
->  	.slave		= &omap44xx_elm_hwmod,
->  	.clk		= "l4_div_ck",
-> -	.addr		= omap44xx_elm_addrs,
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> -- 
-> 2.6.1
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
