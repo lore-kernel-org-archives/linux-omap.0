@@ -1,89 +1,151 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [4.4-rc][PATCH] gpio: omap: drop omap1 mpuio specific
- irq_mask/unmask callbacks
-Date: Mon, 30 Nov 2015 13:51:15 +0100
-Message-ID: <CACRpkdZPSCPi+hvRsb9o+OzA2X+Va4=pMsy-1zKJEPexh53UaQ@mail.gmail.com>
-References: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
+From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 01/18] ARM: am57xx: cl-som-am57x: dts: add basic module
+ support
+Date: Mon, 30 Nov 2015 15:29:56 +0200
+Message-ID: <565C4F54.50405@compulab.co.il>
+References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il> <1448433590-1399-2-git-send-email-lifshitz@compulab.co.il> <565629D2.2010401@ti.com> <565AEB19.4050107@compulab.co.il> <565B307E.2000203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1448026514-21294-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Alexandre Courbot <gnurou@gmail.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <565B307E.2000203-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 20, 2015 at 2:35 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
+On 11/29/2015 07:06 PM, Nishanth Menon wrote:
+> On 11/29/2015 06:10 AM, Dmitry Lifshitz wrote:
+> [...]
+>>>> +    };
+>>>> +
+>>>> +    leds {
+>>>> +        compatible = "gpio-leds";
+>>>> +        pinctrl-names = "default";
+>>>> +        pinctrl-0 = <&leds_pins_default>;
+>>>> +
+>>>> +        led@0 {
+>>>> +            label = "cl-som-am57x:green";
+>>>> +            gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+>>>> +            linux,default-trigger = "heartbeat";
+>>>> +            default-state = "off";
+>>>> +        };
+>>>> +    };
+>>>> +};
+>>>> +
+>>>> +&dra7_pmx_core {
+>>>> +    leds_pins_default: leds_pins_default {
+>>>> +        pinctrl-single,pins = <
+>>>> +            DRA7XX_CORE_IOPAD(0x347c, PIN_OUTPUT | MUX_MODE14)    /*
+>>>> gpmc_a15.gpio2_5 */
+>>>> +        >;
+>>>> +    };
+>>>> +
+>>>> +    i2c1_pins_default: i2c1_pins_default {
+>>>> +        pinctrl-single,pins = <
+>>>> +            DRA7XX_CORE_IOPAD(0x3800, PIN_INPUT_PULLUP |
+>>>> MUX_MODE0)    /* i2c1_sda.sda */
+>>>> +            DRA7XX_CORE_IOPAD(0x3804, PIN_INPUT_PULLUP |
+>>>> MUX_MODE0)    /* i2c1_scl.scl */
+>>>> +        >;
+>>>> +    };
+>>>> +
+>>>> +    tps659038_pins_default: tps659038_pins_default {
+>>>> +        pinctrl-single,pins = <
+>>>> +            DRA7XX_CORE_IOPAD(0x3818, PIN_INPUT_PULLUP | MUX_MODE14)
+>>>> /* wakeup0.gpio1_0 */
+>>>> +        >;
+>>>> +    };
+>>>
+>>> Generic comment: As per requirements of the SoC -> all pinctrl must be
+>>> done in bootloader. this was a recommendation that came in too late
+>>> for TI platforms that got introduced in upstream, but that cleanup
+>>> should eventually take place as well.
+>>>
+>>
+>> Please, could you provide a reference to those recommendations.
+>> Do you mean pinctrl for PMIC pins only?
+>
+> You might want to ask your TI support contact for IODelay
+> recommendations. TRM mentions that pinmuxing must be performed under IO
+> isolation. There are silicon constraints in DRA7/AM57xx family, which
+> were not present previously.
+>
 
-> Originally OMAP MPUIO GPIO irqchip was implemented using Generic irq
-> chip, but after set of reworks Generic irq chip code was replaced by
-> common OMAP GPIO implementation and finally removed by
-> commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts").
-> Unfortunately, above commit left .irq_mask/unmask callbacks assigned
-> as below for MPUIO GPIO case:
->         irqc->irq_mask = irq_gc_mask_set_bit;
->         irqc->irq_unmask = irq_gc_mask_clr_bit;
+Ok. I understand. This might take time...
+Since we'd like to have this in for 4.5, what would you recommend?
+Should I drop the muxes from this patch set? All the muxes?
+Or should we merge this (as it works correctly) in our tests and check
+on this later after investigation with TI?
+
+Also, in theory, there might be pins shared between two or more
+different functionalities and remuxed during runtime.
+Can this kind of thing be supported on AM57x?
+
+>>>> +    tps659038: tps659038@58 {
+>>>> +        compatible = "ti,tps659038";
+>>>> +        reg = <0x58>;
+>>>> +        interrupt-parent = <&gpio1>;
+>>>> +        interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+>>>
+>>> Also See: https://patchwork.kernel.org/patch/7596541/ ->
+>>> Documentation/devicetree/bindings/i2c/i2c.txt -> since you seem to
+>>> have a PMIC with power button, you might be able to get wakeup source
+>>> also there.
+>>>
+>>
+>> Do you mean just adding "wakeup-source" property?
+>>
+>> According to Documentation/devicetree/bindings/i2c/i2c.txt the primary
+>> interrupt will be used as wakeup interrupt.
 >
-> This now causes boot failure on OMAP1 platforms, after
-> commit 450fa54cfd66 ("gpio: omap: convert to use generic irq handler")
-> which forces these callbacks to be called during GPIO IRQs mapping
-> from gpiochip_irq_map:
+> I think you might have to describe a "wakeup" interrupt -> which will be
+> similar in description to the one you used to describe uart wakeup
+> capability.
+
+Ok. Thanks!
+Well, we are not there yet.
+I think it would be better to work this out when I will work on the
+suspend/resume.
+
 >
-> Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> pgd = c0004000
-> [00000000] *pgd=00000000
-> Internal error: Oops: 75 [#1] ARM
-> Modules linked in:
-> CPU: 0 PID: 1 Comm: swapper Not tainted 4.4.0-rc1-e3-los_afe0c+-00002-g25379c0-dirty #1
-> Hardware name: Amstrad E3 (Delta)
-> task: c1836000 ti: c1838000 task.ti: c1838000
-> PC is at irq_gc_mask_set_bit+0x1c/0x60
-> LR is at __irq_do_set_handler+0x118/0x15c
-> pc : [<c004848c>]    lr : [<c0047d4c>]    psr: 600000d3
-> sp : c1839c90  ip : c1862c64  fp : c1839c9c
-> r10: 00000000  r9 : c0411950  r8 : c0411bbc
-> r7 : 00000000  r6 : c185c310  r5 : c00444e8  r4 : c185c300
-> r3 : c1854b50  r2 : 00000000  r1 : 00000000  r0 : c185c310
-> Flags: nZCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 0000317f  Table: 10004000  DAC: 00000057
-> Process swapper (pid: 1, stack limit = 0xc1838190)
-> Stack: (0xc1839c90 to 0xc183a000)
+> [..]
+>
+>>>> +        pinctrl-names = "default";
+>>>> +        pinctrl-0 = <&tps659038_pins_default>;
+>>>> +
+>>>> +        #interrupt-cells = <2>;
+>>>> +        interrupt-controller;
+>>>> +
+>>>> +        ti,system-power-controller;
+>>>
+>>> Assuming powerhold signal and BOOT0,1 is proper here, else poweroff
+>>> will never work.
+>>>
+>>
+>> Please, could you provide more details regarding this issue.
+>
+> well,  if poweroff command does not completely power off your board, you
+> may want to investigate further. overall, the better circuit
+> configuration is the X15 configuration:
+> https://github.com/beagleboard/beagleboard-x15/blob/master/BeagleBoard-X15_RevA2.pdf
+> Pay close attention to the PMIC GPIO_&/POWERHOLD signal. Also notice the
+> extra reset circuit involved.
+>
+> Again, a topic that you should probably discuss with your TI support
+> contact person.
+
+Ok. Thanks for the explanation! Indeed it does not currently work.
+I will forward your comments to the h/w designer.
+
 >
 > [...]
 >
-> Backtrace:
-> [<c0048470>] (irq_gc_mask_set_bit) from [<c0047d4c>] (__irq_do_set_handler+0x118/0x15c)
-> [<c0047c34>] (__irq_do_set_handler) from [<c0047dd4>] (__irq_set_handler+0x44/0x5c)
->  r6:00000000 r5:c00444e8 r4:c185c300
-> [<c0047d90>] (__irq_set_handler) from [<c0047e1c>] (irq_set_chip_and_handler_name+0x30/0x34)
->  r7:00000050 r6:00000000 r5:c00444e8 r4:00000050
-> [<c0047dec>] (irq_set_chip_and_handler_name) from [<c01b345c>] (gpiochip_irq_map+0x3c/0x8c)
->  r7:00000050 r6:00000000 r5:00000050 r4:c1862c64
-> [<c01b3420>] (gpiochip_irq_map) from [<c0049670>] (irq_domain_associate+0x7c/0x1c4)
->  r5:c185c310 r4:c185cb00
-> [<c00495f4>] (irq_domain_associate) from [<c0049894>] (irq_domain_add_simple+0x98/0xc0)
->  r8:c0411bbc r7:c185cb00 r6:00000050 r5:00000010 r4:00000001
-> [<c00497fc>] (irq_domain_add_simple) from [<c01b3328>] (_gpiochip_irqchip_add+0x64/0x10c)
->  r7:c1862c64 r6:c0419280 r5:c1862c64 r4:c1854b50
-> [<c01b32c4>] (_gpiochip_irqchip_add) from [<c01b79f4>] (omap_gpio_probe+0x2fc/0x63c)
->  r5:c1854b50 r4:c1862c10
-> [<c01b76f8>] (omap_gpio_probe) from [<c01fcf58>] (platform_drv_probe+0x2c/0x64)
->  r10:00000000 r9:c03e45e8 r8:00000000 r7:c0419294 r6:c0411984 r5:c0419294
->  r4:c0411950
-> [<c01fcf2c>] (platform_drv_probe) from [<c01fb668>] (really_probe+0x160/0x29c)
->
-> Hence, fix it by remove obsolete callbacks assignment. After this
-> change  omap_gpio_mask_irq()/omap_gpio_unmask_irq() will be used
-> for MPUIO IRQs masking, but this now happens anyway from
-> omap_gpio_irq_startup/shutdown().
->
-> Cc: Tony Lindgren <tony@atomide.com>
-> Fixes: commit d2d05c65c40e ("gpio: omap: Fix regression for MPUIO interrupts")
-> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Patch applied for fixes.
+Regards,
 
-Yours,
-Linus Walleij
+Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
