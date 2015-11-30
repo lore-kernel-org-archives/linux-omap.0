@@ -1,78 +1,60 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC v02 03/15] dmaengine: core: Introduce new, universal API to
- request a channel
-Date: Mon, 30 Nov 2015 07:51:42 -0800
-Message-ID: <20151130155142.GZ2517@atomide.com>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
- <1448891145-10766-4-git-send-email-peter.ujfalusi@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 01/18] ARM: am57xx: cl-som-am57x: dts: add basic module
+ support
+Date: Mon, 30 Nov 2015 09:55:37 -0600
+Message-ID: <20151130155537.GA11704@rob-hp-laptop>
+References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
+ <1448433590-1399-2-git-send-email-lifshitz@compulab.co.il>
+ <565629D2.2010401@ti.com>
+ <565AEB19.4050107@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1448891145-10766-4-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <565AEB19.4050107-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151130 05:49]:
+On Sun, Nov 29, 2015 at 02:10:01PM +0200, Dmitry Lifshitz wrote:
+> Hi Nishanth,
 > 
-> For each dmaengine driver an array of DMA device, slave and the parameter
-> for the filter function needs to be added:
+> Thank you for the provided feedback.
 > 
-> static struct dma_filter_map da830_edma_map[] = {
-> 	DMA_FILTER_ENTRY("davinci-mcasp.0", "rx", EDMA_CTLR_CHAN(0, 0)),
-> 	DMA_FILTER_ENTRY("davinci-mcasp.0", "tx", EDMA_CTLR_CHAN(0, 1)),
-> 	DMA_FILTER_ENTRY("davinci-mcasp.1", "rx", EDMA_CTLR_CHAN(0, 2)),
-> 	DMA_FILTER_ENTRY("davinci-mcasp.1", "tx", EDMA_CTLR_CHAN(0, 3)),
-> 	DMA_FILTER_ENTRY("davinci-mcasp.2", "rx", EDMA_CTLR_CHAN(0, 4)),
-> 	DMA_FILTER_ENTRY("davinci-mcasp.2", "tx", EDMA_CTLR_CHAN(0, 5)),
-> 	DMA_FILTER_ENTRY("spi_davinci.0", "rx", EDMA_CTLR_CHAN(0, 14)),
-> 	DMA_FILTER_ENTRY("spi_davinci.0", "tx", EDMA_CTLR_CHAN(0, 15)),
-> 	DMA_FILTER_ENTRY("da830-mmc.0", "rx", EDMA_CTLR_CHAN(0, 16)),
-> 	DMA_FILTER_ENTRY("da830-mmc.0", "tx", EDMA_CTLR_CHAN(0, 17)),
-> 	DMA_FILTER_ENTRY("spi_davinci.1", "rx", EDMA_CTLR_CHAN(0, 18)),
-> 	DMA_FILTER_ENTRY("spi_davinci.1", "tx", EDMA_CTLR_CHAN(0, 19)),
-> };
+> On 11/25/2015 11:36 PM, Nishanth Menon wrote:
+> >On 11/25/2015 12:39 AM, Dmitry Lifshitz wrote:
+> >[...]
+> >
+> >>diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+> >>new file mode 100644
+> >>index 0000000..b11d7da
+> >>--- /dev/null
+> >>+++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+> >[...]
+> >
+> >>+/ {
+> >>+	model = "CompuLab CL-SOM-AM57x";
+> >>+	compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
+> >>+
+> >>+	memory {
+> >>+		device_type = "memory";
+> >>+		reg = <0x80000000 0x20000000>; /* 512 MB - minimal configuration */
+> >
+> >I think if you like to enable LPAE, the format might look a little
+> >different..
+> >
+> 
+> We would like to have a basic HW support in the mainline. It might be
+> enhanced later, once we get to work on LPAE stuff.
 
-FYI, if the EDMA_CTRL_CHAN above is just the evtmux registers, those
-can be handled with the pinctrl framework. It seems that would allow
-leaving out some of the built-in look up data, and have the mux parts
-handled by a proper device driver. Below is a sample from the dm81xx
-platform for reference.
+I think what is meant here is the cell sizes should be 2 instead of 1. 
+You can do that independent of LPAE support. I would expect the base SOC 
+dtsi file to set the cell sizes correctly though.
 
-SoC dtsi file:
+Rob
 
-evtmux: pinmux@f90 {
-	compatible = "pinctrl-single";
-	reg = <0xf90 0x40>;
-	#address-cells = <1>;
-	#size-cells = <0>;
-	pinctrl-single,register-width = <8>;
-	pinctrl-single,function-mask = <0x1f>;
-};
-
-Board specific dts file:
-
-&evtmux {
-	sd2_edma_pins: pinmux_sd2_edma_pins {
-	pinctrl-single,pins = <
-		8 1     /* use SDTXEVT1 for EDMA instead of MCASP0TX */
-		9 2     /* use SDRXEVT1 for EDMA instead of MCASP0RX */
-		>;
-	};
-};
-
-Dynamic muxing of these channels can be done too using the pinctrl
-framework named modes, but probably is not a good idea in the case of
-SD card and MaASP in case something goes wrong :)
-
-Regards,
-
-Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
