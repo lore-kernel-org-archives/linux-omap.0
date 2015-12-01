@@ -1,59 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
-Date: Tue, 1 Dec 2015 08:07:08 -0800
-Message-ID: <20151201160707.GQ23396@atomide.com>
-References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
- <87h9kgcz1k.fsf@saruman.tx.rr.com>
- <5658B8B2.5030505@ti.com>
- <20151130162815.GA2517@atomide.com>
- <565DB7F7.4020702@ti.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [PATCH] reset: Introduce static inline dummy function when CONFIG_RESET_CONTROLLER
+Date: Tue, 01 Dec 2015 10:07:45 -0600
+Message-ID: <565DC5D1.2080809@gmail.com>
+References: <201512012339.srrujPao%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <565DB7F7.4020702@ti.com>
+In-Reply-To: <201512012339.srrujPao%fengguang.wu@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, kbuild-all@01.org, Philipp Zabel <p.zabel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [151201 07:09]:
-> On 11/30/2015 06:28 PM, Tony Lindgren wrote:
-> > 
-> > We should be able to make this into an early_platform_device and just
-> > have it depend on the source clock muxes. See the omap initcall changes
-> > patches I just posted.
-> > 
+On 12/01/2015 09:56 AM, kbuild test robot wrote:
+> Hi Nishanth,
 > 
-> Sry, may be I've missed smth, but how early_platform_device will help us
-> to get rid of platform code - We'd still need to power on manually 
-> early_platform_device's from platform code :( through hwmod.
+> [auto build test ERROR on v4.4-rc3]
+> [also build test ERROR on next-20151127]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Nishanth-Menon/reset-Introduce-static-inline-dummy-function-when-CONFIG_RESET_CONTROLLER/20151201-233708
+> config: i386-randconfig-n0-201548 (attached as .config)
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386 
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    In file included from drivers/reset/core.c:18:0:
+>>> include/linux/reset-controller.h:1:0: error: unterminated #ifndef
+>     #ifndef _LINUX_RESET_CONTROLLER_H_
+>     ^
 
-Having minimal platform code early is not a problem. The problem is that
-our early code is not minimal.
+Uggh.. thanks kbot... :).. my bad.. last minute whitespace editscan end
+up deleting #endifs  :(
 
-For the system timers, we should only initialize the mux clocks needed
-early to select between 32k and hf oscillator source. This needs to be done
-using the clock framework, but we don't need the other clocks initialized
-early.
+While at it, will fix $subject as well.
 
-The system timers we're using should be in the alwon power domain, if they
-are not, then we should change the timers around so we're using only timers
-in the alwon domain for system timers. Typically at least gpt1 and 12 are
-always powered. That allows us to leave out the hwmod dependency for system
-timers.
-
-Or am I forgetting some other dependency with our system timers?
-
-> The main reason why I've tried this is because clocksource will be really selected
-> only at fs_initcall time - and at that time we have no restriction for using platform
-> devices, Pm runtime APIs, etc. (exception/blocker is sched_clock :().
-
-Right. But it seems we can leave out quite a bit of the dependencies
-for system timers. We already have gptimer probe not touching the system
-timers later on and can use shared gptimer functions after the clock
-muxing is done.
-
+-- 
 Regards,
-
-Tony
+Nishanth Menon
