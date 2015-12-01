@@ -1,206 +1,110 @@
-From: Greg Ungerer <gerg@uclinux.org>
-Subject: Re: [PATCH 2/7] ARM: ks8695: make headers more local
-Date: Tue, 1 Dec 2015 10:59:39 +1000
-Message-ID: <565CF0FB.9030303@uclinux.org>
-References: <1448924458-3279040-1-git-send-email-arnd@arndb.de>
- <1448924458-3279040-3-git-send-email-arnd@arndb.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] hwmon: (tmp102) Force wait for conversion time for the first valid data
+Date: Mon, 30 Nov 2015 22:25:55 -0600
+Message-ID: <1448943955-2385-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1448924458-3279040-3-git-send-email-arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Jason Cooper <jason@lakedaemon.net>, Wan ZongShun <mcuos.com@gmail.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, beagleboard-x15@googlegroups.com, Nishanth Menon <nm@ti.com>, Eduardo Valentin <edubezval@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
+TMP102 works based on conversions done periodically. However, as per
+the TMP102 data sheet[1] the first conversion is triggered immediately
+after we program the configuration register. The temperature data
+registers do not reflect proper data until the first conversion is
+complete (in our case HZ/4).
 
-On 01/12/15 09:00, Arnd Bergmann wrote:
-> Some header files are never included outside of a mach-ks8695
-> directory and do not need to be made visible in include/mach,
-> so let's just move them all down one level.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+The driver currently sets the last_update to be jiffies - HZ, just
+after the configuration is complete. When tmp102 driver registers
+with the thermal framework, it immediately tries to read the sensor
+temperature data. This takes place even before the conversion on the
+TMP102 is complete and results in an invalid temperature read.
 
-Looks good, thanks.
+Depending on the value read, this may cause thermal framework to
+assume that a critical temperature event has occurred and attempts to
+shutdown the system.
 
-Acked-by: Greg Ungerer <gerg@uclinux.org>
+Instead of causing an invalid mid-conversion value to be read
+erroneously, we mark the last_update to be in-line with the current
+jiffies. This allows the tmp102_update_device function to skip update
+until the required conversion time is complete. Further, we ensure to
+return -EAGAIN result instead of returning spurious temperature (such
+as 0C) values to the caller to prevent any wrong decisions made with
+such values.
 
-Regards
-Greg
+A simpler alternative approach could be to sleep in the probe for the
+duration required, but that will result in latency that is undesirable
+that can delay boot sequence un-necessarily.
 
+[1] http://www.ti.com/lit/ds/symlink/tmp102.pdf
 
+Cc: Eduardo Valentin <edubezval@gmail.com>
+Reported-by: Aparna Balasubramanian <aparnab@ti.com>
+Reported-by: Elvita Lobo <elvita@ti.com>
+Reported-by: Yan Liu <yan-liu@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-> ---
->  arch/arm/mach-ks8695/board-acs5k.c                  | 2 +-
->  arch/arm/mach-ks8695/board-dsm320.c                 | 2 +-
->  arch/arm/mach-ks8695/board-micrel.c                 | 2 +-
->  arch/arm/mach-ks8695/board-og.c                     | 2 +-
->  arch/arm/mach-ks8695/board-sg.c                     | 2 +-
->  arch/arm/mach-ks8695/cpu.c                          | 2 +-
->  arch/arm/mach-ks8695/devices.c                      | 6 +++---
->  arch/arm/mach-ks8695/{include/mach => }/devices.h   | 0
->  arch/arm/mach-ks8695/pci.c                          | 4 ++--
->  arch/arm/mach-ks8695/{include/mach => }/regs-hpna.h | 0
->  arch/arm/mach-ks8695/{include/mach => }/regs-lan.h  | 0
->  arch/arm/mach-ks8695/{include/mach => }/regs-mem.h  | 0
->  arch/arm/mach-ks8695/{include/mach => }/regs-pci.h  | 0
->  arch/arm/mach-ks8695/{include/mach => }/regs-sys.h  | 0
->  arch/arm/mach-ks8695/{include/mach => }/regs-wan.h  | 0
->  15 files changed, 11 insertions(+), 11 deletions(-)
->  rename arch/arm/mach-ks8695/{include/mach => }/devices.h (100%)
->  rename arch/arm/mach-ks8695/{include/mach => }/regs-hpna.h (100%)
->  rename arch/arm/mach-ks8695/{include/mach => }/regs-lan.h (100%)
->  rename arch/arm/mach-ks8695/{include/mach => }/regs-mem.h (100%)
->  rename arch/arm/mach-ks8695/{include/mach => }/regs-pci.h (100%)
->  rename arch/arm/mach-ks8695/{include/mach => }/regs-sys.h (100%)
->  rename arch/arm/mach-ks8695/{include/mach => }/regs-wan.h (100%)
-> 
-> diff --git a/arch/arm/mach-ks8695/board-acs5k.c b/arch/arm/mach-ks8695/board-acs5k.c
-> index 9f9c0441a917..e4d709c8ed32 100644
-> --- a/arch/arm/mach-ks8695/board-acs5k.c
-> +++ b/arch/arm/mach-ks8695/board-acs5k.c
-> @@ -33,7 +33,7 @@
->  #include <asm/mach/map.h>
->  #include <asm/mach/irq.h>
->  
-> -#include <mach/devices.h>
-> +#include "devices.h"
->  #include <mach/gpio-ks8695.h>
->  
->  #include "generic.h"
-> diff --git a/arch/arm/mach-ks8695/board-dsm320.c b/arch/arm/mach-ks8695/board-dsm320.c
-> index d37c218c3584..13537e9c5485 100644
-> --- a/arch/arm/mach-ks8695/board-dsm320.c
-> +++ b/arch/arm/mach-ks8695/board-dsm320.c
-> @@ -28,7 +28,7 @@
->  #include <asm/mach/map.h>
->  #include <asm/mach/irq.h>
->  
-> -#include <mach/devices.h>
-> +#include "devices.h"
->  #include <mach/gpio-ks8695.h>
->  
->  #include "generic.h"
-> diff --git a/arch/arm/mach-ks8695/board-micrel.c b/arch/arm/mach-ks8695/board-micrel.c
-> index 3acbdfd31391..69cfb9935fc1 100644
-> --- a/arch/arm/mach-ks8695/board-micrel.c
-> +++ b/arch/arm/mach-ks8695/board-micrel.c
-> @@ -19,7 +19,7 @@
->  #include <asm/mach/irq.h>
->  
->  #include <mach/gpio-ks8695.h>
-> -#include <mach/devices.h>
-> +#include "devices.h"
->  
->  #include "generic.h"
->  
-> diff --git a/arch/arm/mach-ks8695/board-og.c b/arch/arm/mach-ks8695/board-og.c
-> index f2658168eeff..1f4f2f4f25bb 100644
-> --- a/arch/arm/mach-ks8695/board-og.c
-> +++ b/arch/arm/mach-ks8695/board-og.c
-> @@ -18,7 +18,7 @@
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
->  #include <asm/mach/map.h>
-> -#include <mach/devices.h>
-> +#include "devices.h"
->  #include <mach/regs-gpio.h>
->  #include <mach/gpio-ks8695.h>
->  #include "generic.h"
-> diff --git a/arch/arm/mach-ks8695/board-sg.c b/arch/arm/mach-ks8695/board-sg.c
-> index fdf2352d2cf8..46e455c3821b 100644
-> --- a/arch/arm/mach-ks8695/board-sg.c
-> +++ b/arch/arm/mach-ks8695/board-sg.c
-> @@ -16,7 +16,7 @@
->  #include <linux/mtd/partitions.h>
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
-> -#include <mach/devices.h>
-> +#include "devices.h"
->  #include "generic.h"
->  
->  /*
-> diff --git a/arch/arm/mach-ks8695/cpu.c b/arch/arm/mach-ks8695/cpu.c
-> index ddb24222918e..474a050da85b 100644
-> --- a/arch/arm/mach-ks8695/cpu.c
-> +++ b/arch/arm/mach-ks8695/cpu.c
-> @@ -30,7 +30,7 @@
->  #include <asm/mach/arch.h>
->  #include <asm/mach/map.h>
->  
-> -#include <mach/regs-sys.h>
-> +#include "regs-sys.h"
->  #include <mach/regs-misc.h>
->  
->  
-> diff --git a/arch/arm/mach-ks8695/devices.c b/arch/arm/mach-ks8695/devices.c
-> index 47399bc3c024..61cf20beb45f 100644
-> --- a/arch/arm/mach-ks8695/devices.c
-> +++ b/arch/arm/mach-ks8695/devices.c
-> @@ -24,9 +24,9 @@
->  #include <linux/platform_device.h>
->  
->  #include <mach/irqs.h>
-> -#include <mach/regs-wan.h>
-> -#include <mach/regs-lan.h>
-> -#include <mach/regs-hpna.h>
-> +#include "regs-wan.h"
-> +#include "regs-lan.h"
-> +#include "regs-hpna.h"
->  #include <mach/regs-switch.h>
->  #include <mach/regs-misc.h>
->  
-> diff --git a/arch/arm/mach-ks8695/include/mach/devices.h b/arch/arm/mach-ks8695/devices.h
-> similarity index 100%
-> rename from arch/arm/mach-ks8695/include/mach/devices.h
-> rename to arch/arm/mach-ks8695/devices.h
-> diff --git a/arch/arm/mach-ks8695/pci.c b/arch/arm/mach-ks8695/pci.c
-> index c1bc4c3716ed..577a35f75c8a 100644
-> --- a/arch/arm/mach-ks8695/pci.c
-> +++ b/arch/arm/mach-ks8695/pci.c
-> @@ -33,8 +33,8 @@
->  #include <asm/mach/pci.h>
->  #include <mach/hardware.h>
->  
-> -#include <mach/devices.h>
-> -#include <mach/regs-pci.h>
-> +#include "devices.h"
-> +#include "regs-pci.h"
->  
->  
->  static int pci_dbg;
-> diff --git a/arch/arm/mach-ks8695/include/mach/regs-hpna.h b/arch/arm/mach-ks8695/regs-hpna.h
-> similarity index 100%
-> rename from arch/arm/mach-ks8695/include/mach/regs-hpna.h
-> rename to arch/arm/mach-ks8695/regs-hpna.h
-> diff --git a/arch/arm/mach-ks8695/include/mach/regs-lan.h b/arch/arm/mach-ks8695/regs-lan.h
-> similarity index 100%
-> rename from arch/arm/mach-ks8695/include/mach/regs-lan.h
-> rename to arch/arm/mach-ks8695/regs-lan.h
-> diff --git a/arch/arm/mach-ks8695/include/mach/regs-mem.h b/arch/arm/mach-ks8695/regs-mem.h
-> similarity index 100%
-> rename from arch/arm/mach-ks8695/include/mach/regs-mem.h
-> rename to arch/arm/mach-ks8695/regs-mem.h
-> diff --git a/arch/arm/mach-ks8695/include/mach/regs-pci.h b/arch/arm/mach-ks8695/regs-pci.h
-> similarity index 100%
-> rename from arch/arm/mach-ks8695/include/mach/regs-pci.h
-> rename to arch/arm/mach-ks8695/regs-pci.h
-> diff --git a/arch/arm/mach-ks8695/include/mach/regs-sys.h b/arch/arm/mach-ks8695/regs-sys.h
-> similarity index 100%
-> rename from arch/arm/mach-ks8695/include/mach/regs-sys.h
-> rename to arch/arm/mach-ks8695/regs-sys.h
-> diff --git a/arch/arm/mach-ks8695/include/mach/regs-wan.h b/arch/arm/mach-ks8695/regs-wan.h
-> similarity index 100%
-> rename from arch/arm/mach-ks8695/include/mach/regs-wan.h
-> rename to arch/arm/mach-ks8695/regs-wan.h
-> 
+Example case (from Beagleboard-x15 using an older kernel revision):
+	http://pastebin.ubuntu.com/13591711/
+Notice the thermal shutdown trigger:
+	thermal thermal_zone3: critical temperature reached(108 C),shutting down
+
+ drivers/hwmon/tmp102.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+index 65482624ea2c..145f69108f23 100644
+--- a/drivers/hwmon/tmp102.c
++++ b/drivers/hwmon/tmp102.c
+@@ -50,6 +50,9 @@
+ #define	TMP102_TLOW_REG			0x02
+ #define	TMP102_THIGH_REG		0x03
+ 
++/* TMP102 range is -55 to 150C -> we use -128 as a default invalid value */
++#define TMP102_NOTREADY			-128
++
+ struct tmp102 {
+ 	struct i2c_client *client;
+ 	struct device *hwmon_dev;
+@@ -102,6 +105,12 @@ static int tmp102_read_temp(void *dev, int *temp)
+ {
+ 	struct tmp102 *tmp102 = tmp102_update_device(dev);
+ 
++	/* Is it too early even to return a conversion? */
++	if (tmp102->temp[0] == TMP102_NOTREADY) {
++		dev_dbg(dev, "%s: Conversion not ready yet..\n", __func__);
++		return -EAGAIN;
++	}
++
+ 	*temp = tmp102->temp[0];
+ 
+ 	return 0;
+@@ -114,6 +123,10 @@ static ssize_t tmp102_show_temp(struct device *dev,
+ 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
+ 	struct tmp102 *tmp102 = tmp102_update_device(dev);
+ 
++	/* Is it too early even to return a read? */
++	if (tmp102->temp[sda->index] == TMP102_NOTREADY)
++		return -EAGAIN;
++
+ 	return sprintf(buf, "%d\n", tmp102->temp[sda->index]);
+ }
+ 
+@@ -207,7 +220,11 @@ static int tmp102_probe(struct i2c_client *client,
+ 		status = -ENODEV;
+ 		goto fail_restore_config;
+ 	}
+-	tmp102->last_update = jiffies - HZ;
++	tmp102->last_update = jiffies;
++	/* Mark that we are not ready with data until conversion is complete */
++	tmp102->temp[0] = TMP102_NOTREADY;
++	tmp102->temp[1] = TMP102_NOTREADY;
++	tmp102->temp[2] = TMP102_NOTREADY;
+ 	mutex_init(&tmp102->lock);
+ 
+ 	hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
+-- 
+2.6.2.402.g2635c2b
