@@ -1,106 +1,84 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
-Date: Tue, 1 Dec 2015 17:08:39 +0200
-Message-ID: <565DB7F7.4020702@ti.com>
-References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
- <87h9kgcz1k.fsf@saruman.tx.rr.com> <5658B8B2.5030505@ti.com>
- <20151130162815.GA2517@atomide.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] hwmon: (tmp102) Force wait for conversion time for the
+ first valid data
+Date: Tue, 1 Dec 2015 07:09:57 -0800
+Message-ID: <565DB845.4050709@roeck-us.net>
+References: <1448943955-2385-1-git-send-email-nm@ti.com>
+ <565D3513.7050905@roeck-us.net> <565DA504.4060600@ti.com>
+ <20151201142152.GA10891@ogun.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151130162815.GA2517@atomide.com>
+In-Reply-To: <20151201142152.GA10891@ogun.home>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Jean Delvare <jdelvare@suse.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, beagleboard-x15@googlegroups.com, Eduardo Valentin <edubezval@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On 12/01/2015 06:21 AM, Nishanth Menon wrote:
+[ ... ]
 
-On 11/30/2015 06:28 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [151127 12:11]:
->> On 11/20/2015 08:21 PM, Felipe Balbi wrote:
->>> Grygorii Strashko <grygorii.strashko@ti.com> writes:
->>>> Since system clocksource is finally selected by Clocksource core a=
-t
->>>> fs_initcall stage during boot there are no reasons to initialize
->>>> ti_32k_timer at early boot stages. Hence, ti_32k_timer can be
->>>> converted to use platform device/driver model and its PM can be
->>>> implemented using PM runtime which is common for OMAP devices.
->>>>
->>>> Platform specific initialization code has to be disabled once as
->>>> ti_32k_timer is converted to platform device - otherwise OMAP plat=
-form
->>>> code will generate boot warnings.
->>>>
->>>> After this change, all counter_32k's platform code can be removed
->>>> once all OMAP boards will be converted to DT.
->>>>
->>>> Cc: Tony Lindgren <tony@atomide.com>
->>>> Cc: Felipe Balbi <balbi@ti.com>
->>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>>> ---
->>
->> [...]
->>
->>>> +
->>>> +static struct platform_driver ti_32k_driver __initdata =3D {
->>>> +	.probe		=3D ti_32k_probe,
->>>> +	.driver		=3D {
->>>> +		.name	=3D "ti_32k_timer",
->>>> +		.of_match_table =3D of_match_ptr(ti_32k_of_table),
->>>> +	}
->>>> +};
->>>> +
->>>> +static int __init ti_32k_init(void)
->>>> +{
->>>> +	return platform_driver_register(&ti_32k_driver);
->>>>    }
->>>> -CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
->>>> -		ti_32k_timer_init);
->>>> +
->>>> +subsys_initcall(ti_32k_init);
->>>> +
->>>> +MODULE_AUTHOR("Paul Mundt");
->>>> +MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
->>>> +MODULE_DESCRIPTION("OMAP2 32k Timer");
->>>> +MODULE_ALIAS("platform:ti_32k_timer");
->>>> +MODULE_LICENSE("GPL v2");
->>>
->>> this will break clksource_of_init(), right ? Eventually, we want th=
-at to
->>> be the only thing called by our .init_time method. I'll leave it to=
- Tony
->>> to decide, but IMO this is not a good path forward for timers.
->>>
->>
->> Yeh :(.  I did additional tests, and, unfortunately, this can't be u=
-sed as is.
->> But not because of clocksource_of_init() which will just produce boo=
-t warning.
->> It can't be done because of sched_clock_register() which is expected=
- to be
->> called during early boot time only and with disabled IRQs.
->>
->> It was so tempting to try :)
->=20
-> We should be able to make this into an early_platform_device and just
-> have it depend on the source clock muxes. See the omap initcall chang=
-es
-> patches I just posted.
->=20
+>
+> Hint about how the patch will look like:
 
-Sry, may be I've missed smth, but how early_platform_device will help u=
-s
-to get rid of platform code - We'd still need to power on manually=20
-early_platform_device's from platform code :( through hwmod.
+Looks ok (and better).
 
-The main reason why I've tried this is because clocksource will be real=
-ly selected
-only at fs_initcall time - and at that time we have no restriction for =
-using platform
-devices, Pm runtime APIs, etc. (exception/blocker is sched_clock :().
+Guenter
 
---=20
-regards,
--grygorii
+> diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+> index 65482624ea2c..5289aa0980a8 100644
+> --- a/drivers/hwmon/tmp102.c
+> +++ b/drivers/hwmon/tmp102.c
+> @@ -58,6 +58,7 @@ struct tmp102 {
+>   	u16 config_orig;
+>   	unsigned long last_update;
+>   	int temp[3];
+> +	bool first_time;
+>   };
+>
+>   /* convert left adjusted 13-bit TMP102 register value to milliCelsius */
+> @@ -93,6 +94,7 @@ static struct tmp102 *tmp102_update_device(struct device *dev)
+>   				tmp102->temp[i] = tmp102_reg_to_mC(status);
+>   		}
+>   		tmp102->last_update = jiffies;
+> +		tmp102->first_time = false;
+>   	}
+>   	mutex_unlock(&tmp102->lock);
+>   	return tmp102;
+> @@ -102,6 +104,12 @@ static int tmp102_read_temp(void *dev, int *temp)
+>   {
+>   	struct tmp102 *tmp102 = tmp102_update_device(dev);
+>
+> +	/* Is it too early even to return a conversion? */
+> +	if (tmp102->first_time) {
+> +		dev_dbg(dev, "%s: Conversion not ready yet..\n", __func__);
+> +		return -EAGAIN;
+> +	}
+> +
+>   	*temp = tmp102->temp[0];
+>
+>   	return 0;
+> @@ -114,6 +122,10 @@ static ssize_t tmp102_show_temp(struct device *dev,
+>   	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
+>   	struct tmp102 *tmp102 = tmp102_update_device(dev);
+>
+> +	/* Is it too early even to return a read? */
+> +	if (tmp102->first_time)
+> +		return -EAGAIN;
+> +
+>   	return sprintf(buf, "%d\n", tmp102->temp[sda->index]);
+>   }
+>
+> @@ -207,7 +219,9 @@ static int tmp102_probe(struct i2c_client *client,
+>   		status = -ENODEV;
+>   		goto fail_restore_config;
+>   	}
+> -	tmp102->last_update = jiffies - HZ;
+> +	tmp102->last_update = jiffies;
+> +	/* Mark that we are not ready with data until conversion is complete */
+> +	tmp102->first_time = true;
+>   	mutex_init(&tmp102->lock);
+>
+>   	hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
+>
