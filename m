@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V2 17/19] ARM: dts: am57xx: compulab-sb-som: add HDMI connector
-Date: Tue,  1 Dec 2015 20:03:19 +0200
-Message-ID: <1448993001-19495-18-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH 19/19] ARM: dts: am57xx: cl-som-am57x: skip resetting ETH PHYs
+Date: Tue,  1 Dec 2015 20:03:21 +0200
+Message-ID: <1448993001-19495-20-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
  <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,39 +11,36 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add HDMI connector node without a valid input endpoint.
+ETH PHYs setup on CL-SOM-AM57X is established in U-Boot along with
+bringing them out of reset. This is done by toggling GPIOs belonging
+to GPIO2/3 controllers on AM57xx.
 
-CompuLab SB-SOM is a carrier board, hence the endpoint
-should be added in the board DT with a valid HDMI output.
+Skip resetting ETH PHYs, by adding "ti,no-reset-on-init" to GPIO2/3
+controllers DT nodes.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-  v2:
-
-   * No fuctional changes
-   * Reformat subject
-
- arch/arm/boot/dts/compulab-sb-som.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/arch/arm/boot/dts/compulab-sb-som.dtsi b/arch/arm/boot/dts/compulab-sb-som.dtsi
-index 402a143..93d7e23 100644
---- a/arch/arm/boot/dts/compulab-sb-som.dtsi
-+++ b/arch/arm/boot/dts/compulab-sb-som.dtsi
-@@ -39,4 +39,11 @@
- 			pixelclk-active = <1>;
- 		};
- 	};
-+
-+	hdmi_conn: connector@0 {
-+		compatible = "hdmi-connector";
-+		label = "hdmi";
-+
-+		type = "a";
-+	};
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+index b2c4451..c538826 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -605,3 +605,13 @@
+ 		1 2 0 0
+ 	>;
  };
++
++&gpio3 {
++	status = "okay";
++	ti,no-reset-on-init;
++};
++
++&gpio2 {
++	status = "okay";
++	ti,no-reset-on-init;
++};
 -- 
 1.9.1
 
