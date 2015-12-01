@@ -1,62 +1,64 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [RFC v02 01/15] dmaengine: core: Allow NULL mask pointer in
- __dma_device_satisfies_mask()
-Date: Tue, 1 Dec 2015 22:36:47 +0530
-Message-ID: <20151201170647.GB1696@localhost>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
- <1448891145-10766-2-git-send-email-peter.ujfalusi@ti.com>
- <CAHp75VfY=NU4MG7q1w=oYdTiTr0dqtNTQU3UkEaL=tXPJADH5Q@mail.gmail.com>
- <565D6CB1.8030808@ti.com>
- <CAHp75Vfk_GAANRYdbHNxtCy-Ni18FppsKhPPX1X84v1Zu6JXvw@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
+Date: Tue, 1 Dec 2015 19:12:26 +0200
+Message-ID: <565DD4FA.3000308@ti.com>
+References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
+ <87h9kgcz1k.fsf@saruman.tx.rr.com> <5658B8B2.5030505@ti.com>
+ <20151130162815.GA2517@atomide.com> <565DB7F7.4020702@ti.com>
+ <20151201160707.GQ23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHp75Vfk_GAANRYdbHNxtCy-Ni18FppsKhPPX1X84v1Zu6JXvw@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, linux-spi <linux-spi@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151201160707.GQ23396@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 01, 2015 at 02:58:35PM +0200, Andy Shevchenko wrote:
-> On Tue, Dec 1, 2015 at 11:47 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> > On 11/30/2015 04:35 PM, Andy Shevchenko wrote:
-> >> On Mon, Nov 30, 2015 at 3:45 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> >>> Treat as true condition the case when the mask is NULL.
-> >>
-> >> What do you think about setting some default (all "on") mask when mask
-> >> is not supplied?
-> >
-> > Probably rephrasing the commit message to say that when the mask is NULL it
-> > means that the caller does not care about the capabilities of the dma device
-> > thus return with true in such a case.
-> >
-> > We could also drop this patch and in private_candidate() :
-> >
-> > -       if (!__dma_device_satisfies_mask(dev, mask)) {
-> > +       if (mask && !__dma_device_satisfies_mask(dev, mask)) {
-> >                 pr_debug("%s: wrong capabilities\n", __func__);
-> >                 return NULL;
-> >         }
-> 
-> Between patch and above proposal I would choose the latter one.
+On 12/01/2015 06:07 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [151201 07:09]:
+>> On 11/30/2015 06:28 PM, Tony Lindgren wrote:
+>>>
+>>> We should be able to make this into an early_platform_device and just
+>>> have it depend on the source clock muxes. See the omap initcall changes
+>>> patches I just posted.
+>>>
+>>
+>> Sry, may be I've missed smth, but how early_platform_device will help us
+>> to get rid of platform code - We'd still need to power on manually
+>> early_platform_device's from platform code :( through hwmod.
+>
+> Having minimal platform code early is not a problem. The problem is that
+> our early code is not minimal.
+>
+> For the system timers, we should only initialize the mux clocks needed
+> early to select between 32k and hf oscillator source. This needs to be done
+> using the clock framework, but we don't need the other clocks initialized
+> early.
+>
+> The system timers we're using should be in the alwon power domain, if they
+> are not, then we should change the timers around so we're using only timers
+> in the alwon domain for system timers. Typically at least gpt1 and 12 are
+> always powered. That allows us to leave out the hwmod dependency for system
+> timers.
+>
+> Or am I forgetting some other dependency with our system timers?
 
-Sounds better to me as well
+both counter32 and GP timer have to be enabled through sysc registers.
+They are in "Force idle" state after reset.
 
-> 
-> >> I don't know for sure but there might be cases when you don't want
-> >> literally *any* channel to satisfy.
-> >
-> > Or set DMA_SLAVE only in dma_request_chan()? What happens if we have cases
-> > when we are able to request channel for memcpy via dma_request_chan()
-> > (dedicated memcpy channel/DMA engine?) in that case we will have the SLAVE
-> > set, but not MEMCPY, or any other variation we do not know yet?
-> 
-> Frankly, have no idea.
+>
+>> The main reason why I've tried this is because clocksource will be really selected
+>> only at fs_initcall time - and at that time we have no restriction for using platform
+>> devices, Pm runtime APIs, etc. (exception/blocker is sched_clock :().
+>
+> Right. But it seems we can leave out quite a bit of the dependencies
+> for system timers. We already have gptimer probe not touching the system
+> timers later on and can use shared gptimer functions after the clock
+> muxing is done.
 
-In slave cases I know that some controllers support memcpy but they are not
-generic memcpy as they cannot be used for system memcpy but for 'special'
-memcpy. So this can be used for memcpy as well
 
 -- 
-~Vinod
+regards,
+-grygorii
