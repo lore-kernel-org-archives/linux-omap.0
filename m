@@ -1,61 +1,44 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH V2] hwmon: (tmp102) Force wait for conversion time for
- the first valid data
-Date: Tue, 1 Dec 2015 13:06:24 -0800
-Message-ID: <20151201210624.GA9177@roeck-us.net>
-References: <1448943955-2385-1-git-send-email-nm@ti.com>
- <1448986221-6190-1-git-send-email-nm@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: use const and __initconst for smp_operations
+ (with refactoring hisi)
+Date: Tue, 01 Dec 2015 22:21:05 +0100
+Message-ID: <2210426.UqpEyfenBv@wuerfel>
+References: <1447551593-22246-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1448986221-6190-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Jean Delvare <jdelvare@suse.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, beagleboard-x15@googlegroups.com, Eduardo Valentin <edubezval@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1447551593-22246-1-git-send-email-yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Patrice Chotard <patrice.chotard-qxv4g6HH51o@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Emilio =?ISO-8859-1?Q?L=F3pez?= <emilio-0Z03zUJReD5OxF6Tv1QG9Q@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Wei Xu <xuwei5@h>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 01, 2015 at 10:10:21AM -0600, Nishanth Menon wrote:
-> TMP102 works based on conversions done periodically. However, as per
-> the TMP102 data sheet[1] the first conversion is triggered immediately
-> after we program the configuration register. The temperature data
-> registers do not reflect proper data until the first conversion is
-> complete (in our case HZ/4).
+On Sunday 15 November 2015 10:39:51 Masahiro Yamada wrote:
+> 1/2: minor refactoring for mach-hisi
+> 2/2: use const ... __initconst for smp_operations
 > 
-> The driver currently sets the last_update to be jiffies - HZ, just
-> after the configuration is complete. When TMP102 driver registers
-> with the thermal framework, it immediately tries to read the sensor
-> temperature data. This takes place even before the conversion on the
-> TMP102 is complete and results in an invalid temperature read.
+> I hope 2/2 will be reviewed by sub-arch maintainers.
+> Please issue Acked-by if it is OK.
 > 
-> Depending on the value read, this may cause thermal framework to
-> assume that a critical temperature event has occurred and attempts to
-> shutdown the system.
+> I hope this series will be applied to ARM-SOC.
 > 
-> Instead of causing an invalid mid-conversion value to be read
-> erroneously, we mark the last_update to be in-line with the current
-> jiffies. This allows the tmp102_update_device function to skip update
-> until the required conversion time is complete. Further, we ensure to
-> return -EAGAIN result instead of returning spurious temperature (such
-> as 0C) values to the caller to prevent any wrong decisions made with
-> such values. NOTE: this allows the read functions not to be blocking
-> and allows the callers to make the decision if they would like to
-> block or try again later. At least the current user(thermal) seems to
-> handle this by retrying later.
 > 
-> A simpler alternative approach could be to sleep in the probe for the
-> duration required, but that will result in latency that is undesirable
-> and delay boot sequence un-necessarily.
 > 
-> [1] http://www.ti.com/lit/ds/symlink/tmp102.pdf
+> Masahiro Yamada (2):
+>   ARM: hisi: do not export smp_operations structures
+>   ARM: use const and __initconst for smp_operations
 > 
-> Cc: Eduardo Valentin <edubezval@gmail.com>
-> Reported-by: Aparna Balasubramanian <aparnab@ti.com>
-> Reported-by: Elvita Lobo <elvita@ti.com>
-> Reported-by: Yan Liu <yan-liu@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> 
 
-Applied.
+Applied to next/cleanup with the 17 Acks, thanks!
 
-Thanks,
-Guenter
+	Arnd
