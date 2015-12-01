@@ -1,7 +1,7 @@
 From: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V2 12/14] ARM: dts: sb-som: introduce SB-SOM baseboard
-Date: Tue,  1 Dec 2015 15:55:07 +0200
-Message-ID: <1448978109-5614-13-git-send-email-nikita@compulab.co.il>
+Subject: [PATCH V2 03/14] ARM: dts: am437x: cm-t43: add PMIC support.
+Date: Tue,  1 Dec 2015 15:54:58 +0200
+Message-ID: <1448978109-5614-4-git-send-email-nikita@compulab.co.il>
 References: <1448978109-5614-1-git-send-email-nikita@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1448978109-5614-1-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -10,10 +10,8 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-CompuLab SB-SOM baseboard is a carrier board for multiple arm-based SoMs.
-It currently supports (with minor adjustments to assembly) CM-T43, CM-T54,
-and CM-QS600 modules. It is a building block in the SBC-T43 single board
-computer, which consists of cm-t43 on top of sb-som-t43.
+Add PMIC support for CompuLab cm-t43 module. For now we keep all regulators
+enabled until this could be refined with power management support.
 
 Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -26,99 +24,93 @@ Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 ---
 Changes in V2:
-	- Renamed file startek,startek-kd050c to startek,startek-kd050c.txt.
-	- s/QS-600/CM-QS600 in file compulab-boards.txt
+	- No changes.
 
- .../devicetree/bindings/arm/compulab-boards.txt    |  5 +++
- .../display/panel/startek,startek-kd050c.txt       |  4 +++
- .../devicetree/bindings/vendor-prefixes.txt        |  1 +
- arch/arm/boot/dts/compulab-sb-som.dtsi             | 42 ++++++++++++++++++++++
- 4 files changed, 52 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/arm/compulab-boards.txt
- create mode 100644 Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
- create mode 100644 arch/arm/boot/dts/compulab-sb-som.dtsi
+ arch/arm/boot/dts/am437x-cm-t43.dts | 64 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/arm/compulab-boards.txt b/Documentation/devicetree/bindings/arm/compulab-boards.txt
-new file mode 100644
-index 0000000..71172d5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/compulab-boards.txt
-@@ -0,0 +1,5 @@
-+CompuLab SB-SOM is a multi-module baseboard capable of carrying CM-T43, CM-T54,
-+and CM-QS600 modules with minor modifications to the SB-SOM assembly.
+diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
+index ce33b41..27b748a 100644
+--- a/arch/arm/boot/dts/am437x-cm-t43.dts
++++ b/arch/arm/boot/dts/am437x-cm-t43.dts
+@@ -52,6 +52,69 @@
+ 	pinctrl-0 = <&i2c0_pins>;
+ 	clock-frequency = <100000>;
+ 
++	tps65218: tps65218@24 {
++		compatible = "ti,tps65218";
++		reg = <0x24>;
++		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
++		interrupt-parent = <&gic>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
 +
-+Required root node properties:
-+    - compatible = should be "compulab,sb-som"
-diff --git a/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
-new file mode 100644
-index 0000000..70cd8d1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
-@@ -0,0 +1,4 @@
-+Startek Electronic Technology Co. KD050C 5.0" WVGA TFT LCD panel
++		dcdc1: regulator-dcdc1 {
++			compatible = "ti,tps65218-dcdc1";
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <912000>;
++			regulator-max-microvolt = <1144000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+Required properties:
-+- compatible: should be "startek,startek-kd050c"
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index 55df1d4..409b134 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -218,6 +218,7 @@ sony	Sony Corporation
- spansion	Spansion Inc.
- sprd	Spreadtrum Communications Inc.
- st	STMicroelectronics
-+startek	Startek
- ste	ST-Ericsson
- stericsson	ST-Ericsson
- synology	Synology, Inc.
-diff --git a/arch/arm/boot/dts/compulab-sb-som.dtsi b/arch/arm/boot/dts/compulab-sb-som.dtsi
-new file mode 100644
-index 0000000..402a143
---- /dev/null
-+++ b/arch/arm/boot/dts/compulab-sb-som.dtsi
-@@ -0,0 +1,42 @@
-+/*
-+ * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++		dcdc2: regulator-dcdc2 {
++			compatible = "ti,tps65218-dcdc2";
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <912000>;
++			regulator-max-microvolt = <1378000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+/ {
-+	model = "CompuLab SB-SOM";
-+	compatible = "compulab,sb-som";
++		dcdc3: regulator-dcdc3 {
++			compatible = "ti,tps65218-dcdc3";
++			regulator-name = "vdcdc3";
++			regulator-suspend-enable;
++			regulator-min-microvolt = <1500000>;
++			regulator-max-microvolt = <1500000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+	vsb_3v3: fixedregulator-v3_3 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vsb_3v3";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		regulator-always-on;
-+		enable-active-high;
-+	};
++		dcdc5: regulator-dcdc5 {
++			compatible = "ti,tps65218-dcdc5";
++			regulator-name = "v1_0bat";
++			regulator-min-microvolt = <1000000>;
++			regulator-max-microvolt = <1000000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+	lcd0: display {
-+		compatible = "startek,startek-kd050c", "panel-dpi";
-+		label = "lcd";
++		dcdc6: regulator-dcdc6 {
++			compatible = "ti,tps65218-dcdc6";
++			regulator-name = "v1_8bat";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
 +
-+		panel-timing {
-+			clock-frequency = <33000000>;
-+			hactive = <800>;
-+			vactive = <480>;
-+			hfront-porch = <40>;
-+			hback-porch = <40>;
-+			hsync-len = <43>;
-+			vback-porch = <29>;
-+			vfront-porch = <13>;
-+			vsync-len = <3>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			de-active = <1>;
-+			pixelclk-active = <1>;
++		ldo1: regulator-ldo1 {
++			compatible = "ti,tps65218-ldo1";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-boot-on;
++			regulator-always-on;
 +		};
 +	};
-+};
++
+ 	eeprom_module: at24@50 {
+ 		compatible = "atmel,24c02";
+ 		reg = <0x50>;
+@@ -88,6 +151,7 @@
+ };
+ 
+ &cpu {
++	cpu0-supply = <&dcdc2>;
+ 	operating-points = <1000000 1330000>,
+ 			   <800000 1260000>,
+ 			   <720000 1200000>,
 -- 
 1.9.1
 
