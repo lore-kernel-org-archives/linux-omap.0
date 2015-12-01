@@ -1,64 +1,108 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
-Date: Tue, 1 Dec 2015 19:12:26 +0200
-Message-ID: <565DD4FA.3000308@ti.com>
-References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
- <87h9kgcz1k.fsf@saruman.tx.rr.com> <5658B8B2.5030505@ti.com>
- <20151130162815.GA2517@atomide.com> <565DB7F7.4020702@ti.com>
- <20151201160707.GQ23396@atomide.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [RFC v02 04/15] dmaengine: edma: Add support for DMA filter
+ mapping to slave devices
+Date: Tue, 1 Dec 2015 22:52:12 +0530
+Message-ID: <20151201172212.GC1696@localhost>
+References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
+ <1448891145-10766-5-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151201160707.GQ23396@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1448891145-10766-5-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: arnd@arndb.de, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, nsekhar@ti.com, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/01/2015 06:07 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [151201 07:09]:
->> On 11/30/2015 06:28 PM, Tony Lindgren wrote:
->>>
->>> We should be able to make this into an early_platform_device and just
->>> have it depend on the source clock muxes. See the omap initcall changes
->>> patches I just posted.
->>>
->>
->> Sry, may be I've missed smth, but how early_platform_device will help us
->> to get rid of platform code - We'd still need to power on manually
->> early_platform_device's from platform code :( through hwmod.
->
-> Having minimal platform code early is not a problem. The problem is that
-> our early code is not minimal.
->
-> For the system timers, we should only initialize the mux clocks needed
-> early to select between 32k and hf oscillator source. This needs to be done
-> using the clock framework, but we don't need the other clocks initialized
-> early.
->
-> The system timers we're using should be in the alwon power domain, if they
-> are not, then we should change the timers around so we're using only timers
-> in the alwon domain for system timers. Typically at least gpt1 and 12 are
-> always powered. That allows us to leave out the hwmod dependency for system
-> timers.
->
-> Or am I forgetting some other dependency with our system timers?
+On Mon, Nov 30, 2015 at 03:45:34PM +0200, Peter Ujfalusi wrote:
+> Add support for providing device to filter_fn mapping so client drivers
+> can switch to use the dma_request_chan() API.
 
-both counter32 and GP timer have to be enabled through sysc registers.
-They are in "Force idle" state after reset.
+Any reason why we dont want to go with DT based only for edma here?
 
->
->> The main reason why I've tried this is because clocksource will be really selected
->> only at fs_initcall time - and at that time we have no restriction for using platform
->> devices, Pm runtime APIs, etc. (exception/blocker is sched_clock :().
->
-> Right. But it seems we can leave out quite a bit of the dependencies
-> for system timers. We already have gptimer probe not touching the system
-> timers later on and can use shared gptimer functions after the clock
-> muxing is done.
-
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/dma/edma.c                 | 24 ++++++++++++++++++++++++
+>  include/linux/platform_data/edma.h |  5 +++++
+>  2 files changed, 29 insertions(+)
+> 
+> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+> index 0675e268d577..386f8c9bd606 100644
+> --- a/drivers/dma/edma.c
+> +++ b/drivers/dma/edma.c
+> @@ -2098,6 +2098,8 @@ static struct dma_chan *of_edma_xlate(struct of_phandle_args *dma_spec,
+>  }
+>  #endif
+>  
+> +static bool edma_filter_for_map(struct dma_chan *chan, void *param);
+> +
+>  static int edma_probe(struct platform_device *pdev)
+>  {
+>  	struct edma_soc_info	*info = pdev->dev.platform_data;
+> @@ -2297,6 +2299,12 @@ static int edma_probe(struct platform_device *pdev)
+>  		edma_set_chmap(&ecc->slave_chans[i], ecc->dummy_slot);
+>  	}
+>  
+> +	if (info->filter_map) {
+> +		ecc->dma_slave.filter_map.map = info->filter_map;
+> +		ecc->dma_slave.filter_map.mapcnt = info->filtercnt;
+> +		ecc->dma_slave.filter_map.filter_fn = edma_filter_for_map;
+> +	}
+> +
+>  	ret = dma_async_device_register(&ecc->dma_slave);
+>  	if (ret) {
+>  		dev_err(dev, "slave ddev registration failed (%d)\n", ret);
+> @@ -2428,6 +2436,22 @@ bool edma_filter_fn(struct dma_chan *chan, void *param)
+>  }
+>  EXPORT_SYMBOL(edma_filter_fn);
+>  
+> +static bool edma_filter_for_map(struct dma_chan *chan, void *param)
+> +{
+> +	bool match = false;
+> +
+> +	if (chan->device->dev->driver == &edma_driver.driver) {
+> +		struct edma_chan *echan = to_edma_chan(chan);
+> +		unsigned ch_req = (unsigned)param;
+> +		if (ch_req == echan->ch_num) {
+> +			/* The channel is going to be used as HW synchronized */
+> +			echan->hw_triggered = true;
+> +			match = true;
+> +		}
+> +	}
+> +	return match;
+> +}
+> +
+>  static int edma_init(void)
+>  {
+>  	int ret;
+> diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
+> index e2878baeb90e..117a36d63840 100644
+> --- a/include/linux/platform_data/edma.h
+> +++ b/include/linux/platform_data/edma.h
+> @@ -59,6 +59,8 @@ struct edma_rsv_info {
+>  	const s16	(*rsv_slots)[2];
+>  };
+>  
+> +struct dma_filter_map;
+> +
+>  /* platform_data for EDMA driver */
+>  struct edma_soc_info {
+>  	/*
+> @@ -76,6 +78,9 @@ struct edma_soc_info {
+>  
+>  	s8	(*queue_priority_mapping)[2];
+>  	const s16	(*xbar_chans)[2];
+> +
+> +	struct dma_filter_map *filter_map;
+> +	int filtercnt;
+>  };
+>  
+>  #endif
+> -- 
+> 2.6.3
+> 
 
 -- 
-regards,
--grygorii
+~Vinod
