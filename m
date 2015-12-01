@@ -1,138 +1,122 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v4 2/5] spi: spi-ti-qspi: add mmap mode read support
-Date: Tue, 1 Dec 2015 13:14:33 +0530
-Message-ID: <565D4FE1.50704@ti.com>
-References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
- <1448860515-28336-3-git-send-email-vigneshr@ti.com>
- <87lh9f15fh.fsf@saruman.tx.rr.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC v02 03/15] dmaengine: core: Introduce new, universal API to
+ request a channel
+Date: Tue, 1 Dec 2015 10:13:20 +0200
+Message-ID: <565D56A0.2090204@ti.com>
+References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
+ <1448891145-10766-4-git-send-email-peter.ujfalusi@ti.com>
+ <20151130155142.GZ2517@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87lh9f15fh.fsf@saruman.tx.rr.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, "hramrach@gmail.com" <hramrach@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151130155142.GZ2517@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arnd@arndb.de, vinod.koul@intel.com, linux-mmc@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, andy.shevchenko@gmail.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
-
-On 12/01/2015 04:05 AM, Balbi, Felipe wrote:
-> 
+On 11/30/2015 05:51 PM, Tony Lindgren wrote:
 > Hi,
-> 
-> Vignesh R <vigneshr@ti.com> writes:
-[...]
->> +}
->> +
->> +static int ti_qspi_spi_flash_read(struct  spi_device *spi,
->> +				  struct spi_flash_read_message *msg)
->> +{
->> +	struct ti_qspi *qspi = spi_master_get_devdata(spi->master);
->> +	int ret = 0;
->> +
->> +	mutex_lock(&qspi->list_lock);
->> +
->> +	if (!qspi->mmap_enabled)
->> +		ti_qspi_enable_memory_map(spi);
->> +	ti_qspi_setup_mmap_read(spi, msg);
->> +	memcpy_fromio(msg->buf, qspi->mmap_base + msg->from, msg->len);
->> +	msg->retlen = msg->len;
-> 
-> the way I have always expected this to work was that spi controller
-> would setup the mmap region (using ranges?) and pass the base address to
-> the SPI NOR flash instead, so that could call standard
-> write[bwl]/read[bwl] functions.
-> 
-> I mean, when we're dealing with AXI, AHB, PCI, OCP, whatever we
-> completely ignore these details, why should SPI be different ? If it's
-> memory mapped, the SW view of the thing is a piece of memory and that
-> should be accessible with standard {read,write}[bwl]() calls.
-> 
+> =
 
-This is just an acceleration provided to improve flash read speeds.
-Whenever there is an access to QSPI memory map region, there is a
-SFI_MM_IF block in QSPI IP that generates SPI bus signals in order fetch
-the data from flash. This SFI_MM_IF must first be configured with flash
-specific information like read opcode, read mode, dummy bytes etc (which
-may vary from flash to flash), by writing to QSPI_SPI_SETUP*_REG also,
-SFI_MM_IF needs to be selected by writing to QSPI_SPI_SWITCH_REG.
-IMO, there has to be a call from spi-nor to ti-qspi before using
-standard {read,write}[bwl]() calls for populating flash info, power mgmt
-and locking SPI bus.
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [151130 05:49]:
+>>
+>> For each dmaengine driver an array of DMA device, slave and the parameter
+>> for the filter function needs to be added:
+>>
+>> static struct dma_filter_map da830_edma_map[] =3D {
+>> 	DMA_FILTER_ENTRY("davinci-mcasp.0", "rx", EDMA_CTLR_CHAN(0, 0)),
+>> 	DMA_FILTER_ENTRY("davinci-mcasp.0", "tx", EDMA_CTLR_CHAN(0, 1)),
+>> 	DMA_FILTER_ENTRY("davinci-mcasp.1", "rx", EDMA_CTLR_CHAN(0, 2)),
+>> 	DMA_FILTER_ENTRY("davinci-mcasp.1", "tx", EDMA_CTLR_CHAN(0, 3)),
+>> 	DMA_FILTER_ENTRY("davinci-mcasp.2", "rx", EDMA_CTLR_CHAN(0, 4)),
+>> 	DMA_FILTER_ENTRY("davinci-mcasp.2", "tx", EDMA_CTLR_CHAN(0, 5)),
+>> 	DMA_FILTER_ENTRY("spi_davinci.0", "rx", EDMA_CTLR_CHAN(0, 14)),
+>> 	DMA_FILTER_ENTRY("spi_davinci.0", "tx", EDMA_CTLR_CHAN(0, 15)),
+>> 	DMA_FILTER_ENTRY("da830-mmc.0", "rx", EDMA_CTLR_CHAN(0, 16)),
+>> 	DMA_FILTER_ENTRY("da830-mmc.0", "tx", EDMA_CTLR_CHAN(0, 17)),
+>> 	DMA_FILTER_ENTRY("spi_davinci.1", "rx", EDMA_CTLR_CHAN(0, 18)),
+>> 	DMA_FILTER_ENTRY("spi_davinci.1", "tx", EDMA_CTLR_CHAN(0, 19)),
+>> };
+> =
 
-> I really think $subject is not a good way forward because it gives too
-> much responsibility to the SPI controller driver; note that this driver
-> is the one actually accessing the memory map region, instead of simply
-> setting it up and passing it along.
-> 
+> FYI, if the EDMA_CTRL_CHAN above is just the evtmux registers
 
-How would you propose to setup mmap transfers while taking care of SPI
-bus locking and passing of flash info to ti-qspi?
+No, they are not. They are the eDMA event numbers. I used the EDMA_CTRL_CHA=
+N()
+macro for all board files to have uniform look for the data. The first
+parameter means the eDMA instance number while the second is the event numb=
+er
+on that eDMA. Since most devices have only one eDMA, we have 0 as eDMA id in
+most cases.
+The eventmux, or crossbar is different thing and we have several versions of
+the event crossbar or mux used.
 
+> those
+> can be handled with the pinctrl framework. It seems that would allow
+> leaving out some of the built-in look up data, and have the mux parts
+> handled by a proper device driver. Below is a sample from the dm81xx
+> platform for reference.
+> =
 
-> So the way I see it, the DTS should be like so:
-> 
-> qspi@XYZ {
->          reg = <XYZ foo>;
->          [...]
->          ranges = <0 0 0x30000000 $size>;
-> 
->          flash@0,0 {
->                    compatible = "mp2580";
->                    reg = <0 0 $flash_size>;
->          };
+> SoC dtsi file:
+> =
+
+> evtmux: pinmux@f90 {
+> 	compatible =3D "pinctrl-single";
+> 	reg =3D <0xf90 0x40>;
+> 	#address-cells =3D <1>;
+> 	#size-cells =3D <0>;
+> 	pinctrl-single,register-width =3D <8>;
+> 	pinctrl-single,function-mask =3D <0x1f>;
 > };
-> 
-> 
-> if you have more than one device sitting on this SPI bus using different
-> chip selects, that's easy too, just change your ranges property:
-> 
-> qspi@XYZ {
->          reg = <XYZ foo>;
->          [...]
->          ranges = <0 0 0x30000000 0x1000
->                    1 0 0x30001000 0x1000
->                    2 0 0x30002000 0x1000>;
-> 
->          flash@0,0 {
->                  [...]
->          };
-> 
->          flash@1,0 {
->                    [...]
->          };
-> 
->          flash@2,0 {
->                    [...]
+> =
+
+> Board specific dts file:
+> =
+
+> &evtmux {
+> 	sd2_edma_pins: pinmux_sd2_edma_pins {
+> 	pinctrl-single,pins =3D <
+> 		8 1     /* use SDTXEVT1 for EDMA instead of MCASP0TX */
+> 		9 2     /* use SDRXEVT1 for EDMA instead of MCASP0RX */
+> 		>;
 > 	};
 > };
-> 
 
-No, even if there are multiple slaves, all slaves map to the same start
-address (0x30000000 in above example). Based on the chip-select line
-that is asserted (selected by writing to a particular CTRL_MODULE
-register field), the corresponding slave responds. Different slaves
-cannot be mapped to different address ranges inside mmap address space.
-The ranges property will always be the same for all slaves and all
-chip-selects.
+I see. The dm81xx basically am33xx/am43xx?
 
-> and so on. From ti-qspi perspective, you should just setup the memory
-> map and from mp25p80 you would check if your reg property pointed to an
-> address that looks like memory, then ioremap it and use tradicional
-> {read,write}[bwl]() accessors. Any reasons why that wasn't done the way
-> pointed out above ?
-> 
+Actually I would prefer to use the dmaengine's event router framework and we
+do have support for the am33xx/am43xx type of crossbar already implemented.
+I'm going to resend the DTS series for am33xx/am43xx to convert them to use
+the new DT bindings along with the dma event router support:
+https://www.mail-archive.com/linux-omap%40vger.kernel.org/msg120828.html
 
-There might be a SPI controller that provides accelerated interface for
-SPI flash read not as a memory mapping but some-other way. Brian Norris
-has pointed out that there is at least one other controller which
-provides such acceleration w/o memory mapping[1] May be Brian can
-explain that better?
+> Dynamic muxing of these channels can be done too using the pinctrl
+> framework named modes, but probably is not a good idea in the case of
+> SD card and MaASP in case something goes wrong :)
 
+In theory it can be done, but in practice it is not possible. It is up to t=
+he
+board design decision to select which DMA event is not needed to be used in
+default mode and that one can be used to route the crossbar hidden request =
+to it.
+Just imaging: playing audio from MMC (in the example you have), audio needs
+constant DMA, so the MMC would never get DMA request, also the drivers tend=
+ to
+request the DMA channel in their probe/init and hold to it as long as they =
+are
+loaded...
 
-[1]https://lkml.org/lkml/2015/11/10/618
+-- =
 
--- 
-Regards
-Vignesh
+P=E9ter
