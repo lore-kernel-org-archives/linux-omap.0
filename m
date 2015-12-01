@@ -1,115 +1,55 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v2 13/25] mtd: nand: update the documentation to
- reflect framework changes
-Date: Tue,  1 Dec 2015 12:03:10 +0100
-Message-ID: <1448967802-25796-14-git-send-email-boris.brezillon@free-electrons.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH v2 08/25] staging: mt29f_spinand: make use of mtd_to_nand()
+Date: Tue,  1 Dec 2015 12:03:05 +0100
+Message-ID: <1448967802-25796-9-git-send-email-boris.brezillon@free-electrons.com>
 References: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBEX56WZAKGQEQOKLHRA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <1448967802-25796-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/linux-sunxi
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/linux-sunxi/subscribe>
-To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steven Miao <realmz6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>a
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Stefan Agner <stefan@agner.ch>, linux-sunxi@googlegroups.com, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Boris Brezillon <boris.brezillon@free-electrons.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-samsung-soc@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Josh Wu <josh.wu@atmel.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Wan ZongShun <mcuos.com@gmail.com>, Steven Miao <realmz6@gmail.com>, adi-buildroot-devel@li
 List-Id: linux-omap@vger.kernel.org
 
-The MTD device is now directly embedded in the nand_chip struct. Update the
-mtdnand documentation to mention this aspect and fix the different
-examples.
+mtd_to_nand() was recently introduced to avoid direct accesses to the
+mtd->priv field. Use it where appropriate.
 
-Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 ---
- Documentation/DocBook/mtdnand.tmpl | 31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ drivers/staging/mt29f_spinand/mt29f_spinand.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/mtdnand.tmpl b/Documentation/DocBook/mtdnand.tmpl
-index 403a7ab..b442921 100644
---- a/Documentation/DocBook/mtdnand.tmpl
-+++ b/Documentation/DocBook/mtdnand.tmpl
-@@ -162,12 +162,15 @@
- 	<sect1 id="Basic_defines">
- 		<title>Basic defines</title>
- 		<para>
--			At least you have to provide a mtd structure and
--			a storage for the ioremap'ed chip address.
--			You can allocate the mtd structure using kmalloc
--			or you can allocate it statically.
--			In case of static allocation you have to allocate
--			a nand_chip structure too.
-+			At least you have to provide a nand_chip structure
-+			and a storage for the ioremap'ed chip address.
-+			You can allocate the nand_chip structure using
-+			kmalloc or you can allocate it statically.
-+			The NAND chip structure embeds an mtd structure
-+			which will be registered to the MTD subsystem.
-+			You can extract a pointer to the mtd structure
-+			from a nand_chip pointer using the nand_to_mtd()
-+			helper.
- 		</para>
- 		<para>
- 			Kmalloc based example
-@@ -180,7 +183,6 @@ static void __iomem *baseaddr;
- 			Static example
- 		</para>
- 		<programlisting>
--static struct mtd_info board_mtd;
- static struct nand_chip board_chip;
- static void __iomem *baseaddr;
- 		</programlisting>
-@@ -274,13 +276,15 @@ static int __init board_init (void)
- 	int err = 0;
+diff --git a/drivers/staging/mt29f_spinand/mt29f_spinand.c b/drivers/staging/mt29f_spinand/mt29f_spinand.c
+index 6536066..8924a96 100644
+--- a/drivers/staging/mt29f_spinand/mt29f_spinand.c
++++ b/drivers/staging/mt29f_spinand/mt29f_spinand.c
+@@ -31,7 +31,7 @@
  
- 	/* Allocate memory for MTD device structure and private data */
--	board_mtd = kzalloc(sizeof(struct mtd_info) + sizeof(struct nand_chip), GFP_KERNEL);
--	if (!board_mtd) {
-+	this = kzalloc(sizeof(struct nand_chip), GFP_KERNEL);
-+	if (!this) {
- 		printk ("Unable to allocate NAND MTD device structure.\n");
- 		err = -ENOMEM;
- 		goto out;
- 	}
+ static inline struct spinand_state *mtd_to_state(struct mtd_info *mtd)
+ {
+-	struct nand_chip *chip = (struct nand_chip *)mtd->priv;
++	struct nand_chip *chip = mtd_to_nand(mtd);
+ 	struct spinand_info *info = (struct spinand_info *)chip->priv;
+ 	struct spinand_state *state = (struct spinand_state *)info->priv;
  
-+	board_mtd = nand_to_mtd(this);
-+
- 	/* map physical address */
- 	baseaddr = ioremap(CHIP_PHYSICAL_ADDRESS, 1024);
- 	if (!baseaddr) {
-@@ -289,11 +293,6 @@ static int __init board_init (void)
- 		goto out_mtd;
- 	}
+@@ -744,7 +744,7 @@ static void spinand_reset(struct spi_device *spi_nand)
+ static void spinand_cmdfunc(struct mtd_info *mtd, unsigned int command,
+ 			    int column, int page)
+ {
+-	struct nand_chip *chip = (struct nand_chip *)mtd->priv;
++	struct nand_chip *chip = mtd_to_nand(mtd);
+ 	struct spinand_info *info = (struct spinand_info *)chip->priv;
+ 	struct spinand_state *state = (struct spinand_state *)info->priv;
  
--	/* Get pointer to private data */
--	this = (struct nand_chip *) ();
--	/* Link the private data with the MTD structure */
--	board_mtd->priv = this;
--
- 	/* Set address of NAND IO lines */
- 	this->IO_ADDR_R = baseaddr;
- 	this->IO_ADDR_W = baseaddr;
-@@ -317,7 +316,7 @@ static int __init board_init (void)
- out_ior:
- 	iounmap(baseaddr);
- out_mtd:
--	kfree (board_mtd);
-+	kfree (this);
- out:
- 	return err;
- }
-@@ -343,7 +342,7 @@ static void __exit board_cleanup (void)
- 	iounmap(baseaddr);
- 	
- 	/* Free the MTD device structure */
--	kfree (board_mtd);
-+	kfree (mtd_to_nand(board_mtd));
- }
- module_exit(board_cleanup);
- #endif
 -- 
 2.1.4
