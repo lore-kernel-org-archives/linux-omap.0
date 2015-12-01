@@ -1,149 +1,138 @@
-From: Heiko Schocher <hs@denx.de>
-Subject: Re: [PATCH v2] arm, am335x: add support for the bosch shc board
-Date: Tue, 1 Dec 2015 07:09:27 +0100
-Message-ID: <565D3997.9060905@denx.de>
-References: <1447748655-2088-1-git-send-email-hs@denx.de>
- <20151130214130.GA23396@atomide.com> <565D2DF9.2010806@denx.de>
- <20151201055333.GO23396@atomide.com>
-Reply-To: hs@denx.de
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v4 2/5] spi: spi-ti-qspi: add mmap mode read support
+Date: Tue, 1 Dec 2015 13:14:33 +0530
+Message-ID: <565D4FE1.50704@ti.com>
+References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
+ <1448860515-28336-3-git-send-email-vigneshr@ti.com>
+ <87lh9f15fh.fsf@saruman.tx.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151201055333.GO23396@atomide.com>
+In-Reply-To: <87lh9f15fh.fsf@saruman.tx.rr.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Robert Nelson <robertcnelson@gmail.com>, devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Georg.Soffel@bosch-si.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>
+To: "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, "hramrach@gmail.com" <hramrach@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Tony,
+Hi Felipe,
 
-Am 01.12.2015 um 06:53 schrieb Tony Lindgren:
-> * Heiko Schocher <hs@denx.de> [151130 21:21]:
->> Hello Tony,
->>
->> Am 30.11.2015 um 22:41 schrieb Tony Lindgren:
->>> * Heiko Schocher <hs@denx.de> [151117 00:25]:
->>>> --- /dev/null
->>>> +++ b/arch/arm/boot/dts/am335x-shc.dts
->>>> +&tps {
->>>> +	compatible = "ti,tps65217";
->>>> +	ti,pmic-shutdown-controller;
->>>> +
->>>> +	regulators {
->>>> +		#address-cells = <1>;
->>>> +		#size-cells = <0>;
->>>> +
->>>> +		dcdc1_reg: regulator@0 {
->>>> +			reg = <0>;
->>>> +			regulator-name = "vdds_dpr";
->>>> +			regulator-compatible = "dcdc1";
->>>> +			regulator-min-microvolt = <1300000>;
->>>> +			regulator-max-microvolt = <1450000>;
->>>> +			regulator-boot-on;
->>>> +			regulator-always-on;
->>>> +		};
->>>> +
->>>> +		dcdc2_reg: regulator@1 {
->>>> +			reg = <1>;
->>>> +			/*
->>>> +			 * VDD_MPU voltage limits 0.95V - 1.26V with
->>>> +			 * +/-4% tolerance
->>>> +			 */
->>>> +			regulator-compatible = "dcdc2";
->>>> +			regulator-name = "vdd_mpu";
->>>> +			regulator-min-microvolt = <925000>;
->>>> +			regulator-max-microvolt = <1375000>;
->>>> +			regulator-boot-on;
->>>> +			regulator-always-on;
->>>> +			regulator-ramp-delay = <70000>;
->>>> +		};
->>>> +
->>>> +		dcdc3_reg: regulator@2 {
->>>> +			reg = <2>;
->>>> +			/*
->>>> +			 * VDD_CORE voltage limits 0.95V - 1.1V with
->>>> +			 * +/-4% tolerance
->>>> +			 */
->>>> +			regulator-name = "vdd_core";
->>>> +			regulator-compatible = "dcdc3";
->>>> +			regulator-min-microvolt = <925000>;
->>>> +			regulator-max-microvolt = <1125000>;
->>>> +			regulator-boot-on;
->>>> +			regulator-always-on;
->>>> +		};
->>>> +
->>>> +		ldo1_reg: regulator@3 {
->>>> +			reg = <3>;
->>>> +			regulator-name = "vio,vrtc,vdds";
->>>> +			regulator-compatible = "ldo1";
->>>> +			regulator-min-microvolt = <1000000>;
->>>> +			regulator-max-microvolt = <1800000>;
->>>> +			regulator-always-on;
->>>> +		};
->>>> +
->>>> +		ldo2_reg: regulator@4 {
->>>> +			reg = <4>;
->>>> +			regulator-name = "vdd_3v3aux";
->>>> +			regulator-compatible = "ldo2";
->>>> +			regulator-min-microvolt = <900000>;
->>>> +			regulator-max-microvolt = <3300000>;
->>>> +			regulator-always-on;
->>>> +		};
->>>> +
->>>> +		ldo3_reg: regulator@5 {
->>>> +			reg = <5>;
->>>> +			regulator-name = "vdd_1v8";
->>>> +			regulator-compatible = "ldo3";
->>>> +			regulator-min-microvolt = <900000>;
->>>> +			regulator-max-microvolt = <1800000>;
->>>> +			regulator-always-on;
->>>> +		};
->>>> +
->>>> +		ldo4_reg: regulator@6 {
->>>> +			reg = <6>;
->>>> +			regulator-name = "vdd_3v3a";
->>>> +			regulator-compatible = "ldo4";
->>>> +			regulator-min-microvolt = <1800000>;
->>>> +			regulator-max-microvolt = <3300000>;
->>>> +			regulator-always-on;
->>>> +		};
->>>> +	};
->>>> +};
->>>
->>> Applying this into omap-for-v4.5/dt.. But I'm getting concerned about this
->>> "regulator-always-on" stuff and having multiple copies of the same thing.
->>>
->>> I think we should have a common am33xx-tps65217.dtsi file that has the
->>> regulators defined at one place and other then include it. And they are
->>> controllable AFAIK..
->>
->> Hmm... Mark Brown (added to Cc) suggested to move this regulator nodes
->> into the board DT file and remove such files [1].
->
-> Hmm it was probably the name of that file causing confusion as it was not
-> am33xx specific. If we have many board variants using almost the same exact
-> regulators and configuration it totally makes sense to have a shared dtsi
-> file for them :)
+On 12/01/2015 04:05 AM, Balbi, Felipe wrote:
+> 
+> Hi,
+> 
+> Vignesh R <vigneshr@ti.com> writes:
+[...]
+>> +}
+>> +
+>> +static int ti_qspi_spi_flash_read(struct  spi_device *spi,
+>> +				  struct spi_flash_read_message *msg)
+>> +{
+>> +	struct ti_qspi *qspi = spi_master_get_devdata(spi->master);
+>> +	int ret = 0;
+>> +
+>> +	mutex_lock(&qspi->list_lock);
+>> +
+>> +	if (!qspi->mmap_enabled)
+>> +		ti_qspi_enable_memory_map(spi);
+>> +	ti_qspi_setup_mmap_read(spi, msg);
+>> +	memcpy_fromio(msg->buf, qspi->mmap_base + msg->from, msg->len);
+>> +	msg->retlen = msg->len;
+> 
+> the way I have always expected this to work was that spi controller
+> would setup the mmap region (using ranges?) and pass the base address to
+> the SPI NOR flash instead, so that could call standard
+> write[bwl]/read[bwl] functions.
+> 
+> I mean, when we're dealing with AXI, AHB, PCI, OCP, whatever we
+> completely ignore these details, why should SPI be different ? If it's
+> memory mapped, the SW view of the thing is a piece of memory and that
+> should be accessible with standard {read,write}[bwl]() calls.
+> 
 
-Ack.
+This is just an acceleration provided to improve flash read speeds.
+Whenever there is an access to QSPI memory map region, there is a
+SFI_MM_IF block in QSPI IP that generates SPI bus signals in order fetch
+the data from flash. This SFI_MM_IF must first be configured with flash
+specific information like read opcode, read mode, dummy bytes etc (which
+may vary from flash to flash), by writing to QSPI_SPI_SETUP*_REG also,
+SFI_MM_IF needs to be selected by writing to QSPI_SPI_SWITCH_REG.
+IMO, there has to be a call from spi-nor to ti-qspi before using
+standard {read,write}[bwl]() calls for populating flash info, power mgmt
+and locking SPI bus.
 
-> It may actually be better to have it as am33xx-common.dtsi and I bet that
-> covers quite a few am33xx boards for the basic shared functionality.
+> I really think $subject is not a good way forward because it gives too
+> much responsibility to the SPI controller driver; note that this driver
+> is the one actually accessing the memory map region, instead of simply
+> setting it up and passing it along.
+> 
 
-I try to find some time to make such a patch...
+How would you propose to setup mmap transfers while taking care of SPI
+bus locking and passing of flash info to ti-qspi?
 
-bye,
-Heiko
->
-> Regards,
->
-> Tony
->
->
->> [1] https://lkml.org/lkml/2015/10/21/581
->
+
+> So the way I see it, the DTS should be like so:
+> 
+> qspi@XYZ {
+>          reg = <XYZ foo>;
+>          [...]
+>          ranges = <0 0 0x30000000 $size>;
+> 
+>          flash@0,0 {
+>                    compatible = "mp2580";
+>                    reg = <0 0 $flash_size>;
+>          };
+> };
+> 
+> 
+> if you have more than one device sitting on this SPI bus using different
+> chip selects, that's easy too, just change your ranges property:
+> 
+> qspi@XYZ {
+>          reg = <XYZ foo>;
+>          [...]
+>          ranges = <0 0 0x30000000 0x1000
+>                    1 0 0x30001000 0x1000
+>                    2 0 0x30002000 0x1000>;
+> 
+>          flash@0,0 {
+>                  [...]
+>          };
+> 
+>          flash@1,0 {
+>                    [...]
+>          };
+> 
+>          flash@2,0 {
+>                    [...]
+> 	};
+> };
+> 
+
+No, even if there are multiple slaves, all slaves map to the same start
+address (0x30000000 in above example). Based on the chip-select line
+that is asserted (selected by writing to a particular CTRL_MODULE
+register field), the corresponding slave responds. Different slaves
+cannot be mapped to different address ranges inside mmap address space.
+The ranges property will always be the same for all slaves and all
+chip-selects.
+
+> and so on. From ti-qspi perspective, you should just setup the memory
+> map and from mp25p80 you would check if your reg property pointed to an
+> address that looks like memory, then ioremap it and use tradicional
+> {read,write}[bwl]() accessors. Any reasons why that wasn't done the way
+> pointed out above ?
+> 
+
+There might be a SPI controller that provides accelerated interface for
+SPI flash read not as a memory mapping but some-other way. Brian Norris
+has pointed out that there is at least one other controller which
+provides such acceleration w/o memory mapping[1] May be Brian can
+explain that better?
+
+
+[1]https://lkml.org/lkml/2015/11/10/618
 
 -- 
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+Regards
+Vignesh
