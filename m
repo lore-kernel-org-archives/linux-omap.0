@@ -1,52 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/10] ARM: dts: Fix dm814x entries for pllss and prcm
-Date: Tue,  1 Dec 2015 15:38:20 -0800
-Message-ID: <1449013103-23238-8-git-send-email-tony@atomide.com>
+Subject: [PATCH 03/10] ARM: OMAP2+: Add DPPLS clock manager for dm814x
+Date: Tue,  1 Dec 2015 15:38:16 -0800
+Message-ID: <1449013103-23238-4-git-send-email-tony@atomide.com>
 References: <1449013103-23238-1-git-send-email-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1449013103-23238-1-git-send-email-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Otherwise drivers under pllss and prcm won't probe properly.
+On dm814x we have some clocks at DPLLS and some at PRCM. Let's add a new
+omap_prcm_init_data entry for the DPLLS so we can initalize timer clocks
+early.
 
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dm814x.dtsi | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/prm_common.c | 6 ++++++
+ include/linux/clk/ti.h           | 1 +
+ 2 files changed, 7 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
-index 7988b42..5c8de19 100644
---- a/arch/arm/boot/dts/dm814x.dtsi
-+++ b/arch/arm/boot/dts/dm814x.dtsi
-@@ -215,7 +215,10 @@
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 3fc2cbe..55acc76 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -662,6 +662,11 @@ static struct omap_prcm_init_data am3_prm_data __initdata = {
+ 	.index = TI_CLKM_PRM,
+ 	.init = am33xx_prm_init,
+ };
++
++static struct omap_prcm_init_data dm814_pllss_data __initdata = {
++	.index = TI_CLKM_PLLSS,
++	.init = am33xx_prm_init,
++};
+ #endif
  
- 			prcm: prcm@180000 {
- 				compatible = "ti,dm814-prcm", "simple-bus";
--				reg = <0x180000 0x4000>;
-+				reg = <0x180000 0x2000>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges = <0 0x180000 0x2000>;
+ #ifdef CONFIG_ARCH_OMAP4
+@@ -715,6 +720,7 @@ static const struct of_device_id const omap_prcm_dt_match_table[] __initconst =
+ #endif
+ #ifdef CONFIG_SOC_TI81XX
+ 	{ .compatible = "ti,dm814-prcm", .data = &am3_prm_data },
++	{ .compatible = "ti,dm814-pllss", .data = &dm814_pllss_data },
+ 	{ .compatible = "ti,dm816-prcm", .data = &am3_prm_data },
+ #endif
+ #ifdef CONFIG_ARCH_OMAP2
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 223be69..57663c1 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -195,6 +195,7 @@ enum {
+ 	TI_CLKM_PRM,
+ 	TI_CLKM_SCRM,
+ 	TI_CLKM_CTRL,
++	TI_CLKM_PLLSS,
+ 	CLK_MAX_MEMMAPS
+ };
  
- 				prcm_clocks: clocks {
- 					#address-cells = <1>;
-@@ -226,9 +229,13 @@
- 				};
- 			};
- 
-+			/* See TRM PLL_SUBSYS_BASE and "PLLSS Registers" */
- 			pllss: pllss@1c5000 {
- 				compatible = "ti,dm814-pllss", "simple-bus";
--				reg = <0x1c5000 0x2000>;
-+				reg = <0x1c5000 0x1000>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges = <0 0x1c5000 0x1000>;
- 
- 				pllss_clocks: clocks {
- 					#address-cells = <1>;
 -- 
 2.6.2
