@@ -1,7 +1,7 @@
 From: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V2 13/14] ARM: dts: am437x: cm-t43: add support for mmc1
-Date: Tue,  1 Dec 2015 15:55:08 +0200
-Message-ID: <1448978109-5614-14-git-send-email-nikita@compulab.co.il>
+Subject: [PATCH V2 12/14] ARM: dts: sb-som: introduce SB-SOM baseboard
+Date: Tue,  1 Dec 2015 15:55:07 +0200
+Message-ID: <1448978109-5614-13-git-send-email-nikita@compulab.co.il>
 References: <1448978109-5614-1-git-send-email-nikita@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1448978109-5614-1-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -10,8 +10,10 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On SBC-T43 the mmc1 interface is connected to an SD-Card slot.
-Add the necessary muxing and configuration to the device tree.
+CompuLab SB-SOM baseboard is a carrier board for multiple arm-based SoMs.
+It currently supports (with minor adjustments to assembly) CM-T43, CM-T54,
+and CM-QS600 modules. It is a building block in the SBC-T43 single board
+computer, which consists of cm-t43 on top of sb-som-t43.
 
 Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -24,60 +26,99 @@ Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 ---
 Changes in V2:
-	- No changes.
+	- Renamed file startek,startek-kd050c to startek,startek-kd050c.txt.
+	- s/QS-600/CM-QS600 in file compulab-boards.txt
 
- arch/arm/boot/dts/am437x-sbc-t43.dts | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ .../devicetree/bindings/arm/compulab-boards.txt    |  5 +++
+ .../display/panel/startek,startek-kd050c.txt       |  4 +++
+ .../devicetree/bindings/vendor-prefixes.txt        |  1 +
+ arch/arm/boot/dts/compulab-sb-som.dtsi             | 42 ++++++++++++++++++++++
+ 4 files changed, 52 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/compulab-boards.txt
+ create mode 100644 Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
+ create mode 100644 arch/arm/boot/dts/compulab-sb-som.dtsi
 
-diff --git a/arch/arm/boot/dts/am437x-sbc-t43.dts b/arch/arm/boot/dts/am437x-sbc-t43.dts
-index 46b2831..6b51151 100644
---- a/arch/arm/boot/dts/am437x-sbc-t43.dts
-+++ b/arch/arm/boot/dts/am437x-sbc-t43.dts
-@@ -7,6 +7,7 @@
-  */
- 
- #include "am437x-cm-t43.dts"
-+#include "compulab-sb-som.dtsi"
- 
- / {
- 	model = "CompuLab CM-T43 on SB-SOM-T43";
-@@ -14,6 +15,19 @@
- };
- 
- &am43xx_pinmux {
-+	mmc1_pins: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			AM4372_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc0_clk.mmc0_clk */
-+			AM4372_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc0_cmd.mmc0_cmd */
-+			AM4372_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc0_dat0.mmc0_dat0 */
-+			AM4372_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc0_dat1.mmc0_dat1 */
-+			AM4372_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc0_dat2.mmc0_dat2 */
-+			AM4372_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0) /* mmc0_dat3.mmc0_dat3 */
-+			AM4372_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
-+			AM4372_IOPAD(0x964, PIN_INPUT | MUX_MODE7) /* ecap0_in_pwm0_out.gpio0_7 */
-+		>;
+diff --git a/Documentation/devicetree/bindings/arm/compulab-boards.txt b/Documentation/devicetree/bindings/arm/compulab-boards.txt
+new file mode 100644
+index 0000000..71172d5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/compulab-boards.txt
+@@ -0,0 +1,5 @@
++CompuLab SB-SOM is a multi-module baseboard capable of carrying CM-T43, CM-T54,
++and CM-QS600 modules with minor modifications to the SB-SOM assembly.
++
++Required root node properties:
++    - compatible = should be "compulab,sb-som"
+diff --git a/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
+new file mode 100644
+index 0000000..70cd8d1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
+@@ -0,0 +1,4 @@
++Startek Electronic Technology Co. KD050C 5.0" WVGA TFT LCD panel
++
++Required properties:
++- compatible: should be "startek,startek-kd050c"
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 55df1d4..409b134 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -218,6 +218,7 @@ sony	Sony Corporation
+ spansion	Spansion Inc.
+ sprd	Spreadtrum Communications Inc.
+ st	STMicroelectronics
++startek	Startek
+ ste	ST-Ericsson
+ stericsson	ST-Ericsson
+ synology	Synology, Inc.
+diff --git a/arch/arm/boot/dts/compulab-sb-som.dtsi b/arch/arm/boot/dts/compulab-sb-som.dtsi
+new file mode 100644
+index 0000000..402a143
+--- /dev/null
++++ b/arch/arm/boot/dts/compulab-sb-som.dtsi
+@@ -0,0 +1,42 @@
++/*
++ * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/ {
++	model = "CompuLab SB-SOM";
++	compatible = "compulab,sb-som";
++
++	vsb_3v3: fixedregulator-v3_3 {
++		compatible = "regulator-fixed";
++		regulator-name = "vsb_3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-always-on;
++		enable-active-high;
 +	};
 +
- 	uart0_pins_default: uart0_pins_default {
- 		pinctrl-single,pins = <
- 			AM4372_IOPAD(0x968, DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE0)
-@@ -75,6 +89,16 @@
- 	pinctrl-0 = <&i2c2_pins>;
- };
- 
-+&mmc1 {
-+	status = "okay";
-+	bus-width = <4>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+	vmmc-supply = <&vsb_3v3>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	wp-gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
-+};
++	lcd0: display {
++		compatible = "startek,startek-kd050c", "panel-dpi";
++		label = "lcd";
 +
- &uart0 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&uart0_pins_default>;
++		panel-timing {
++			clock-frequency = <33000000>;
++			hactive = <800>;
++			vactive = <480>;
++			hfront-porch = <40>;
++			hback-porch = <40>;
++			hsync-len = <43>;
++			vback-porch = <29>;
++			vfront-porch = <13>;
++			vsync-len = <3>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++		};
++	};
++};
 -- 
 1.9.1
 
