@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V2 16/19] ARM: dts: am57xx: sbc-am57x: add LCD support
-Date: Tue,  1 Dec 2015 20:03:18 +0200
-Message-ID: <1448993001-19495-17-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH V3 04/19] ARM: dts: am57xx: cl-som-am57x: add EEPROM support
+Date: Tue,  1 Dec 2015 20:03:06 +0200
+Message-ID: <1448993001-19495-5-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
  <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,83 +11,43 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Startek-kd050c 800x480 LCD panel timings are described in
-compulab-sb-som.dtsi.
+On-board EEPROM chip is used for storing a board production
+info.
 
-Add appropriate DT endpoints to connect DPI output and LCD.
+Add module EEPROM support (over I2C4 bus).
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
+
+  v3: 
+ 
+   * No fuctional changes 
+   * Reformat subject 
 
   v2:
 
-   * No fuctional changes
-   * Reformat subject
+   * Fix EEPROM chip model
 
- arch/arm/boot/dts/am57xx-sbc-am57x.dts | 38 ++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-index edce6c6..8e4c0fd 100644
---- a/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-@@ -15,6 +15,10 @@
- / {
- 	model = "CompuLab CL-SOM-AM57x on SB-SOM-AM57x";
- 	compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+index 2074fd4..1badfa9 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -261,6 +261,12 @@
+ 		compatible = "emmicro,em3027";
+ 		reg = <0x56>;
+ 	};
 +
-+	aliases {
-+		display0 = &lcd0;
++	eeprom_module: atmel@50 {
++		compatible = "atmel,24c08";
++		reg = <0x50>;
++		pagesize = <16>;
 +	};
  };
  
- &dra7_pmx_core {
-@@ -50,6 +54,12 @@
- 			DRA7XX_CORE_IOPAD(0x36b8, PIN_INPUT| MUX_MODE10)	/* mcasp1_axr1.i2c5_scl */
- 		>;
- 	};
-+
-+	lcd_pins_default: lcd_pins_default {
-+		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x3564, PIN_OUTPUT | MUX_MODE14)      /* vin2a_vsync0.gpio4_0 */
-+		>;
-+	};
- };
- 
- &uart3 {
-@@ -97,3 +107,31 @@
- 		#gpio-cells = <2>;
- 	};
- };
-+
-+&dss {
-+	status = "ok";
-+
-+	vdda_video-supply = <&ldoln_reg>;
-+
-+	port {
-+		dpi_lcd_out: endpoint@0 {
-+			remote-endpoint = <&lcd_in>;
-+			data-lines = <24>;
-+		};
-+	};
-+};
-+
-+&lcd0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&lcd_pins_default>;
-+
-+	enable-gpios = <&pca9555 14 GPIO_ACTIVE_HIGH
-+			&gpio4 0 GPIO_ACTIVE_HIGH>;
-+
-+	port {
-+		lcd_in: endpoint {
-+			remote-endpoint = <&dpi_lcd_out>;
-+			data-lines = <24>;
-+		};
-+	};
-+};
+ &cpu0 {
 -- 
 1.9.1
 
