@@ -1,184 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/10] ARM: dts: Fix some mux and divider clocks to get dm814x-evm booting
-Date: Tue,  1 Dec 2015 15:38:21 -0800
-Message-ID: <1449013103-23238-9-git-send-email-tony@atomide.com>
+Subject: [PATCH 05/10] ARM: OMAP2+: Disable GPIO softreset for dm81xx
+Date: Tue,  1 Dec 2015 15:38:18 -0800
+Message-ID: <1449013103-23238-6-git-send-email-tony@atomide.com>
 References: <1449013103-23238-1-git-send-email-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1449013103-23238-1-git-send-email-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>
+Cc: Paul Walmsley <paul@pwsan.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Although we have hp t410 booting, I noticed that dm814x-evm does not boot
-after I got one. This is because we don't have the clocks yet configured
-properly. Let's start configuring proper clocks starting with the system
-timers and clocks that work with existing mux and divider clock drivers.
+Looks like GPIO softreset status bit on both dm8168 and dm8148
+is broken and only goes high initially. After writing to sysc
+softreset bit, the resetdone bit never goes high again.
 
-Note that the oscillator speed register is different from am335x, dm814x
-has only one bit that shows the BTMODE[6] at CONTROL_STATUS[21].
+I noticed this as GPIOs are enabled from u-boot at least on t410.
+And this can be tested easliy with the following commands in u-boot:
 
-Also note that this only gets the system timers working with the defined
-clocks. The PLL clocks are still missing and and the devices may or may
-not work depending on what the bootloader has enabled.
+# mw.l 0x4818155c 0x2
+# md.l 0x48032114 1
+48032114: 00000001    ....
+# mw.l 0x48032010 0x2
+# md.l 0x48032114 1
+48032114: 00000000    ....
 
+Looks like the GPIO module is functional even with the resetdone
+bit down.
+
+Let's just tag the GPIOs for dm81xx with HWMOD_INIT_NO_RESET.
+
+Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dm814x-clocks.dtsi | 109 +++++++++++++++++++++++++----------
- 1 file changed, 79 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dm814x-clocks.dtsi b/arch/arm/boot/dts/dm814x-clocks.dtsi
-index ef1e8e7..2600158 100644
---- a/arch/arm/boot/dts/dm814x-clocks.dtsi
-+++ b/arch/arm/boot/dts/dm814x-clocks.dtsi
-@@ -4,25 +4,74 @@
-  * published by the Free Software Foundation.
-  */
- 
-+&pllss_clocks {
-+	timer1_fck: timer1_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sysclk18_ck &aud_clkin0_ck &aud_clkin1_ck
-+			  &aud_clkin2_ck &devosc_ck &auxosc_ck &tclkin_ck>;
-+		ti,bit-shift = <3>;
-+		reg = <0x2e0>;
-+	};
-+
-+	timer2_fck: timer2_fck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sysclk18_ck &aud_clkin0_ck &aud_clkin1_ck
-+			  &aud_clkin2_ck &devosc_ck &auxosc_ck &tclkin_ck>;
-+		ti,bit-shift = <6>;
-+		reg = <0x2e0>;
-+	};
-+
-+	sysclk18_ck: sysclk18_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&rtcosc_ck>, <&rtcdivider_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x02f0>;
-+	};
-+};
-+
- &scm_clocks {
-+	devosc_ck: devosc_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&virt_20000000_ck>, <&virt_19200000_ck>;
-+		ti,bit-shift = <21>;
-+		reg = <0x0040>;
-+	};
- 
--	tclkin_ck: tclkin_ck {
-+	/* Optional auxosc, 20 - 30 MHz range, assume 27 MHz by default */
-+	auxosc_ck: auxosc_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <27000000>;
-+	};
-+
-+	/* Optional 32768Hz crystal or clock on RTCOSC pins */
-+	rtcosc_ck: rtcosc_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
- 		clock-frequency = <32768>;
- 	};
- 
--	devosc_ck: devosc_ck {
-+	/* Optional external clock on TCLKIN pin, set rate in baord dts file */
-+	tclkin_ck: tclkin_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <0>;
-+	};
-+
-+	virt_20000000_ck: virt_20000000_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
- 		clock-frequency = <20000000>;
- 	};
- 
--	/* Optional auxosc, 20 - 30 MHz range, assume 27 MHz by default */
--	auxosc_ck: auxosc_ck {
-+	virt_19200000_ck: virt_19200000_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
--		clock-frequency = <27000000>;
-+		clock-frequency = <19200000>;
- 	};
- 
- 	mpu_ck: mpu_ck {
-@@ -49,12 +98,6 @@
- 		clock-frequency = <48000000>;
- 	};
- 
--	sysclk18_ck: sysclk18_ck {
--		#clock-cells = <0>;
--		compatible = "fixed-clock";
--		clock-frequency = <32768>;
--	};
--
-         cpsw_125mhz_gclk: cpsw_125mhz_gclk {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
-@@ -69,7 +112,31 @@
- 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+index 1b96cdf..440fd6c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+@@ -432,6 +432,7 @@ static struct omap_hwmod_ocp_if dm81xx_l4_ls__elm = {
+ 	.user		= OCP_USER_MPU,
  };
  
--&pllss_clocks {
-+&prcm_clocks {
-+	osc_src_ck: osc_src_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&devosc_ck>;
-+		clock-mult = <1>;
-+		clock-div = <1>;
-+	};
-+
-+	mpu_clksrc_ck: mpu_clksrc_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&devosc_ck>, <&rtcdivider_ck>;
-+		ti,bit-shift = <0>;
-+		reg = <0x0040>;
-+	};
-+
-+	/* Fixed divider clock 0.0016384 * devosc */
-+	rtcdivider_ck: rtcdivider_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&devosc_ck>;
-+		clock-mult = <128>;
-+		clock-div = <78125>;
-+	};
- 
- 	aud_clkin0_ck: aud_clkin0_ck {
- 		#clock-cells = <0>;
-@@ -88,22 +155,4 @@
- 		compatible = "fixed-clock";
- 		clock-frequency = <20000000>;
- 	};
--
--	timer1_mux_ck: timer1_mux_ck {
--		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&sysclk18_ck &aud_clkin0_ck &aud_clkin1_ck
--			  &aud_clkin2_ck &devosc_ck &auxosc_ck &tclkin_ck>;
--		ti,bit-shift = <3>;
--		reg = <0x2e0>;
--	};
--
--	timer2_mux_ck: timer2_mux_ck {
--		#clock-cells = <0>;
--		compatible = "ti,mux-clock";
--		clocks = <&sysclk18_ck &aud_clkin0_ck &aud_clkin1_ck
--			  &aud_clkin2_ck &devosc_ck &auxosc_ck &tclkin_ck>;
--		ti,bit-shift = <6>;
--		reg = <0x2e0>;
--	};
- };
++/* On dm81xx RESETDONE bit seems to never goes high again after SOFTRESET */
+ static struct omap_hwmod_class_sysconfig dm81xx_gpio_sysc = {
+ 	.rev_offs	= 0x0000,
+ 	.sysc_offs	= 0x0010,
+@@ -463,6 +464,7 @@ static struct omap_hwmod dm81xx_gpio1_hwmod = {
+ 	.name		= "gpio1",
+ 	.clkdm_name	= "alwon_l3s_clkdm",
+ 	.class		= &dm81xx_gpio_hwmod_class,
++	.flags		= HWMOD_INIT_NO_RESET,
+ 	.main_clk	= "sysclk6_ck",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -490,6 +492,7 @@ static struct omap_hwmod dm81xx_gpio2_hwmod = {
+ 	.clkdm_name	= "alwon_l3s_clkdm",
+ 	.class		= &dm81xx_gpio_hwmod_class,
+ 	.main_clk	= "sysclk6_ck",
++	.flags		= HWMOD_INIT_NO_RESET,
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = DM81XX_CM_ALWON_GPIO_1_CLKCTRL,
 -- 
 2.6.2
