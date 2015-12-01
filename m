@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V3 06/19] ARM: dts: am57xx: cl-som-am57x: add spi-flash support
-Date: Tue,  1 Dec 2015 20:03:08 +0200
-Message-ID: <1448993001-19495-7-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH V2 09/19] ARM: dts: am57xx: cl-som-am57x: add touchscreen support
+Date: Tue,  1 Dec 2015 20:03:11 +0200
+Message-ID: <1448993001-19495-10-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
  <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,82 +11,89 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On-board spi-flash chip is used as a main boot device.
-Add spi-flash chip support (over QSPI bus).
+Add ADS7846 touchscreen support.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
-  v3:
 
-   * Modify "compatible" property to match a proper flash driver
-   * Drop RX/TX bus with properties
+  v2:
+
+   * No fuctional changes
    * Reformat subject
 
-  v2: 
-
-   * Add "spi-max-frequency" property for &qspi node.
-
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 42 +++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 44 +++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-index ef94845..f7e163a 100644
+index c603136..a75c382 100644
 --- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
 +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-@@ -93,6 +93,17 @@
- 			DRA7XX_CORE_IOPAD(0x3498, PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
+@@ -43,6 +43,13 @@
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
+ 	};
++
++	ads7846reg: fixedregulator-ads7846-reg {
++		compatible = "regulator-fixed";
++		regulator-name = "ads7846-reg";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
+ };
+ 
+ &dra7_pmx_core {
+@@ -183,6 +190,12 @@
+ 			DRA7XX_CORE_IOPAD(0x3594, PIN_INPUT | MUX_MODE15)
  		>;
  	};
 +
-+	qspi1_pins: pinmux_qspi1_pins {
++	ads7846_pins: pinmux_ads7846_pins {
 +		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x3474, PIN_INPUT | MUX_MODE1)	/* gpmc_a13.qspi1_rtclk */
-+			DRA7XX_CORE_IOPAD(0x3480, PIN_INPUT | MUX_MODE1)	/* gpmc_a16.qspi1_d0 */
-+			DRA7XX_CORE_IOPAD(0x3484, PIN_INPUT | MUX_MODE1)	/* gpmc_a17.qspi1_d1 */
-+			DRA7XX_CORE_IOPAD(0x3488, PIN_INPUT | MUX_MODE1)	/* qpmc_a18.qspi1_sclk */
-+			DRA7XX_CORE_IOPAD(0x34b8, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_cs2.qspi1_cs0 */
-+			DRA7XX_CORE_IOPAD(0x34bc, PIN_INPUT_PULLUP | MUX_MODE1)	/* gpmc_cs3.qspi1_cs1 */
++			DRA7XX_CORE_IOPAD(0x3464, PIN_INPUT_PULLDOWN | MUX_MODE14) /* gpmc_a9.gpio1_31 */
 +		>;
 +	};
  };
  
  &i2c1 {
-@@ -331,3 +342,34 @@
- 	ti,non-removable;
- 	cap-mmc-dual-data-rate;
- };
+@@ -451,6 +464,37 @@
+ 			reg = <0x100000 0x0>;
+ 		};
+ 	};
 +
-+&qspi {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&qspi1_pins>;
++	/* touch controller */
++	ads7846@0 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&ads7846_pins>;
 +
-+	spi-max-frequency = <20000000>;
++		compatible = "ti,ads7846";
++		vcc-supply = <&ads7846reg>;
 +
-+	spi_flash: spi_flash@0 {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		compatible = "spansion,m25p80", "jedec,spi-nor";
-+		reg = <0>;				/* CS0 */
-+		spi-max-frequency = <20000000>;
++		reg = <1>;                              /* CS1 */
++		spi-max-frequency = <1500000>;
 +
-+		partition@0 {
-+			label = "uboot";
-+			reg = <0x0 0xc0000>;
-+		};
++		interrupt-parent = <&gpio1>;
++		interrupts = <31 0>;
++		pendown-gpio = <&gpio1 31 0>;
 +
-+		partition@c0000 {
-+			label = "uboot environment";
-+			reg = <0xc0000 0x40000>;
-+		};
 +
-+		partition@100000 {
-+			label = "reserved";
-+			reg = <0x100000 0x0>;
-+		};
++		ti,x-min = /bits/ 16 <0x0>;
++		ti,x-max = /bits/ 16 <0x0fff>;
++		ti,y-min = /bits/ 16 <0x0>;
++		ti,y-max = /bits/ 16 <0x0fff>;
++
++		ti,x-plate-ohms = /bits/ 16 <180>;
++		ti,pressure-max = /bits/ 16 <255>;
++
++		ti,debounce-max = /bits/ 16 <30>;
++		ti,debounce-tol = /bits/ 16 <10>;
++		ti,debounce-rep = /bits/ 16 <1>;
++
++		linux,wakeup;
 +	};
-+};
+ };
+ 
+ &mac {
 -- 
 1.9.1
 
