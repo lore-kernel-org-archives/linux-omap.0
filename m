@@ -1,103 +1,120 @@
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: Re: [PATCH] ARM: OMAP4: execute initcall to reserve SRAM for I688
- only on OMAP4
-Date: Tue, 01 Dec 2015 12:16:14 +0100
-Message-ID: <1448968574.8275.45.camel@pengutronix.de>
-References: <1447673117-32719-1-git-send-email-l.stach@pengutronix.de>
- <5649CB16.2030706@ti.com> <1448904431.8275.36.camel@pengutronix.de>
- <565C9515.1040600@ti.com>
+From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v2 11/25] coccinelle: nand: detect and
+ correct drivers embedding an mtd_info object
+Date: Tue, 1 Dec 2015 13:27:45 +0100
+Message-ID: <20151201132745.2bc1e294@bbrezillon>
+References: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1448967802-25796-12-git-send-email-boris.brezillon@free-electrons.com>
+	<alpine.DEB.2.10.1512011207580.2736@hadrien>
+Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <565C9515.1040600@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, patchwork-lst@pengutronix.de, kernel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBRFE62ZAKGQEDUZI2LA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.10.1512011207580.2736@hadrien>
+List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/linux-sunxi
+Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <http://groups.google.com/group/linux-sunxi/subscribe>
+To: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert
 List-Id: linux-omap@vger.kernel.org
 
-Am Montag, den 30.11.2015, 20:27 +0200 schrieb Grygorii Strashko:
-> On 11/30/2015 07:27 PM, Lucas Stach wrote:
-> > Am Montag, den 16.11.2015, 14:24 +0200 schrieb Grygorii Strashko:
-> >> On 11/16/2015 01:25 PM, Lucas Stach wrote:
-> >>> omap_interconnect_sync() is the only user of the SRAM scratch area
-> >>> allocated in the omap4_sram_init initcall. The interconnect sync is
-> >>> used exclusively in the OMAP4 specific WFI implementation, so there
-> >>> is no point in allocating the SRAM scratch on other SoC types.
-> >>>
-> >>> Bail out of the initcall if the kernel is not running on OMAP4 to
-> >>> avoid a confusing warning about being unable to allocate the SRAM
-> >>> needed for I688 handling.
-> >>>
-> >>> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-> >>> Tested-by: Bastian Stender <bst@pengutronix.de>
-> >>> ---
-> >>>    arch/arm/mach-omap2/omap4-common.c | 3 +++
-> >>>    1 file changed, 3 insertions(+)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> >>> index 949696b6f17b..6db393a30a28 100644
-> >>> --- a/arch/arm/mach-omap2/omap4-common.c
-> >>> +++ b/arch/arm/mach-omap2/omap4-common.c
-> >>> @@ -131,6 +131,9 @@ static int __init omap4_sram_init(void)
-> >>>    	struct device_node *np;
-> >>>    	struct gen_pool *sram_pool;
-> >>>    
-> >>> +	if (!cpu_is_omap44xx())
-> >>> +		return 0;
-> >>
-> >> This one affects on am43xx also
-> >>
-> > So you are saying this erratum is also present on AM43xx? I wasn't able
-> > to deduce this from the information provided by Richard Woodruff.
-> > 
-> 
-> "..SOCs using similar chassis components of OMAP4430 time are impacted..."
-> "..But AM335x should be immune from this particular issue..."
-> 
-> Advisory 11 Asynchronous Bridge Corruption
-> http://www.ti.com/lit/er/sprz408b/sprz408b.pdf
-> 
-> 
-Thanks for the link, it makes things a lot more clear.
-> 
-> >>
-> >>> +
-> >>>    	np = of_find_compatible_node(NULL, NULL, "ti,omap4-mpu");
-> >>>    	if (!np)
-> >>>    		pr_warn("%s:Unable to allocate sram needed to handle errata I688\n",
-> >>
-> >> Since all OMAP4+ platforms are now DT based why can't we just return from here silently?
-> >>
-> > If we are unable to allocate the SRAM needed to work around I688 this is
-> > a real error on platforms that expose this erratum, so silently bailing
-> > out at this point may obscure a real issue.
-> > 
-> 
-> SRAM is not allocated here - It's just check to understand do we need it or not
-> in case of multiplatform build where CONFIG_OMAP_INTERCONNECT_BARRIER will be selected most
-> probably.
-> 
-> And if "ti,omap4-mpu" was not found - it just means that this, particular, platform
-> is not affected by i688 errata.
-> If someone misses corresponding node in DT - we can't do nothing :)
-> 
-Okay, so the above document says that AM43xx is affected by the erratum,
-but the am4372.dtsi doesn't contain a "ti,omap4-mpu" node, so the
-workaround will not be applied. If we silence the warning, we now have a
-system that will be prone to data corruption without ever warning the
-user about it. This is surely not what anyone wants.
+Hi,
 
-Regards,
-Lucas
+On Tue, 1 Dec 2015 12:17:44 +0100 (CET)
+Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org> wrote:
+
+> 
+> 
+> On Tue, 1 Dec 2015, Boris Brezillon wrote:
+> 
+> > Add nand-priv-no-mtd.cocci to detect and correct NAND controller drivers
+> > directly embedding an mtd_info struct in their private struct.
+> >
+> > Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> > Cc: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+> > ---
+> > Hi Julia,
+> >
+> > Not sure this is the correct way to detect and fix offending drivers,
+> > but I get some warnings when launching coccicheck in org or report mode:
+> >
+> > "warning: fix2: inherited metavariable __chipfield not used in the -, +,
+> > or context code"
+> >
+> > Note that I don't get those warnings when running in patch mode.
+> >
+> > Any idea (feel free to propose a better solution to detect and fix those
+> > offending drivers)?
+> 
+> Hi,
+> 
+> Is this code generated with sgen?  If so, could you send me the original
+> semantic patch?
+
+Nope, it's been hand written, which might explain the warnings :-/.
+Didn't know about sgen, I thought those scripts were all hand written.
+
+> 
+> Another thing that is immediately apparent is that you have <... ...> on
+> the outside of one of the rules.  This should never be needed.
+> 
+> The warning suggests that your org and report versions are not doing as
+> much as the patch version.  If you have used sgen to generate the semantic
+> patch then that would be strange.  If you have hand written the whole
+> thing, then maybe you could simplify it to just do the patch version, and
+> then I can check it and run sgen on it to make a complete version.
+
+Sure, here it is:
+
+--->8---
+virtual patch
+
+@fix1@
+identifier __chipfield, __mtdfield;
+type __type;
+@@
+(
+	__type {
+		...
+		struct nand_chip __chipfield;
+		...
+-		struct mtd_info __mtdfield;
+		...
+	};
+|
+	__type {
+		...
+-		struct mtd_info __mtdfield;
+		...
+		struct nand_chip __chipfield;
+		...
+	};
+)
+
+@fix2 depends on fix1@
+identifier fix1.__chipfield, fix1.__mtdfield;
+identifier __subfield;
+type fix1.__type;
+__type *__priv;
+@@
+(
+-	__priv->__mtdfield.__subfield
++	nand_to_mtd(&__priv->__chipfield)->__subfield
+|
+-	&(__priv->__mtdfield)
++	nand_to_mtd(&__priv->__chipfield)
+)
+--->8---
+
+Thanks,
+
+Boris
+
 -- 
-Pengutronix e.K.             | Lucas Stach                 |
-Industrial Linux Solutions   | http://www.pengutronix.de/  |
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
