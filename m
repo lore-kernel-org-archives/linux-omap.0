@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V2 18/19] ARM: dts: am57xx: sbc-am57x: add HDMI support
-Date: Tue,  1 Dec 2015 20:03:20 +0200
-Message-ID: <1448993001-19495-19-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH V2 10/19] ARM: dts: am57xx: cl-som-am57x: add analog audio support
+Date: Tue,  1 Dec 2015 20:03:12 +0200
+Message-ID: <1448993001-19495-11-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
  <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,7 +11,11 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add HDMI video output support.
+Add analog audio DT nodes:
+
+1. simple-audio-card node
+2. wm8731 codec node
+3. MCASP3 pinmux
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
@@ -19,75 +23,107 @@ Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 
   v2:
 
-   * Fix HDMI lanes polarity
+   * No fuctional changes
    * Reformat subject
 
- arch/arm/boot/dts/am57xx-sbc-am57x.dts | 42 ++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 67 +++++++++++++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-index 8e4c0fd..77bb8e1 100644
---- a/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-@@ -18,6 +18,7 @@
- 
- 	aliases {
- 		display0 = &lcd0;
-+		display1 = &hdmi;
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+index a75c382..b2c4451 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -50,6 +50,33 @@
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
  	};
++
++	sound0: sound@0 {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "CL-SOM-AM57x-Sound-Card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,bitclock-master = <&dailink0_master>;
++		simple-audio-card,frame-master = <&dailink0_master>;
++		simple-audio-card,widgets =
++					"Headphone", "Headphone Jack",
++					"Microphone", "Microphone Jack",
++					"Line", "Line Jack";
++		simple-audio-card,routing =
++					"Headphone Jack", "RHPOUT",
++					"Headphone Jack", "LHPOUT",
++					"LLINEIN", "Line Jack",
++					"MICIN", "Mic Bias",
++					"Mic Bias", "Microphone Jack";
++
++		dailink0_master: simple-audio-card,cpu {
++			sound-dai = <&mcasp3>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&wm8731>;
++			system-clock-frequency = <12000000>;
++		};
++	};
  };
  
-@@ -60,6 +61,19 @@
- 			DRA7XX_CORE_IOPAD(0x3564, PIN_OUTPUT | MUX_MODE14)      /* vin2a_vsync0.gpio4_0 */
+ &dra7_pmx_core {
+@@ -196,6 +223,24 @@
+ 			DRA7XX_CORE_IOPAD(0x3464, PIN_INPUT_PULLDOWN | MUX_MODE14) /* gpmc_a9.gpio1_31 */
  		>;
  	};
 +
-+	hdmi_pins: pinmux_hdmi_pins {
++	mcasp3_pins_default: mcasp3_pins_default {
 +		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x3808, PIN_INPUT | MUX_MODE1)	/* i2c2_sda.hdmi1_ddc_scl */
-+			DRA7XX_CORE_IOPAD(0x380c, PIN_INPUT | MUX_MODE1)	/* i2c2_scl.hdmi1_ddc_sda */
++			DRA7XX_CORE_IOPAD(0x3724, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcasp3_aclkx.mcasp3_aclkx */
++			DRA7XX_CORE_IOPAD(0x3728, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcasp3_fsx.mcasp3_fsx */
++			DRA7XX_CORE_IOPAD(0x372c, PIN_OUTPUT_PULLDOWN | MUX_MODE0) /* mcasp3_axr0.mcasp3_axr0 */
++			DRA7XX_CORE_IOPAD(0x3730, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcasp3_axr1.mcasp3_axr1 */
 +		>;
 +	};
 +
-+	hdmi_conn_pins: pinmux_hdmi_conn_pins {
++	mcasp3_pins_sleep: mcasp3_pins_sleep {
 +		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x37b8, PIN_INPUT | MUX_MODE14)	/* spi1_cs2.gpio7_12 */
++			DRA7XX_CORE_IOPAD(0x3724, PIN_INPUT | MUX_MODE15)
++			DRA7XX_CORE_IOPAD(0x3728, PIN_INPUT | MUX_MODE15)
++			DRA7XX_CORE_IOPAD(0x372c, PIN_INPUT | MUX_MODE15)
++			DRA7XX_CORE_IOPAD(0x3730, PIN_INPUT | MUX_MODE15)
 +		>;
 +	};
  };
  
- &uart3 {
-@@ -135,3 +149,31 @@
- 		};
+ &i2c1 {
+@@ -392,6 +437,13 @@
+ 		reg = <0x50>;
+ 		pagesize = <16>;
  	};
++
++	wm8731: wm8731@1a {
++		#sound-dai-cells = <0>;
++		compatible = "wlf,wm8731";
++		reg = <0x1a>;
++		status = "okay";
++	};
+ };
+ 
+ &cpu0 {
+@@ -538,3 +590,18 @@
+ &usb2 {
+ 	dr_mode = "peripheral";
  };
 +
-+&hdmi {
-+	status = "ok";
-+	vdda-supply = <&ldo4_reg>;
++&mcasp3 {
++	#sound-dai-cells = <0>;
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&mcasp3_pins_default>;
++	pinctrl-1 = <&mcasp3_pins_sleep>;
++	status = "okay";
 +
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hdmi_pins>;
-+
-+	port {
-+		hdmi_out: endpoint {
-+			remote-endpoint = <&hdmi_connector_in>;
-+			lanes = <1 0 3 2 5 4 7 6>;
-+		};
-+	};
-+};
-+
-+&hdmi_conn {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hdmi_conn_pins>;
-+
-+	hpd-gpios = <&gpio7 12 GPIO_ACTIVE_HIGH>;
-+
-+	port {
-+		hdmi_connector_in: endpoint {
-+			remote-endpoint = <&hdmi_out>;
-+		};
-+	};
++	op-mode = <0>;	/* MCASP_IIS_MODE */
++	tdm-slots = <2>;
++	/* 4 serializers */
++	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
++		1 2 0 0
++	>;
 +};
 -- 
 1.9.1
