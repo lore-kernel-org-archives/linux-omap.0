@@ -1,69 +1,139 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] phy: twl4030-usb: Fix unbalanced pm_runtime_enable on module reload
-Date: Mon, 30 Nov 2015 21:39:54 -0800
-Message-ID: <1448948394-32078-3-git-send-email-tony@atomide.com>
-References: <1448948394-32078-1-git-send-email-tony@atomide.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] hwmon: (tmp102) Force wait for conversion time for the
+ first valid data
+Date: Mon, 30 Nov 2015 21:50:11 -0800
+Message-ID: <565D3513.7050905@roeck-us.net>
+References: <1448943955-2385-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448948394-32078-1-git-send-email-tony@atomide.com>
+In-Reply-To: <1448943955-2385-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bin Liu <b-liu@ti.com>, Felipe Balbi <balbi@ti.com>, NeilBrown <neil@brown.name>
+To: Nishanth Menon <nm@ti.com>, Jean Delvare <jdelvare@suse.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, beagleboard-x15@googlegroups.com, Eduardo Valentin <edubezval@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-If we reload phy-twl4030-usb, we get a warning about unbalanced
-pm_runtime_enable. Let's fix the issue and also fix idling of the
-device on unload before we attempt to shut it down.
+On 11/30/2015 08:25 PM, Nishanth Menon wrote:
+> TMP102 works based on conversions done periodically. However, as per
+> the TMP102 data sheet[1] the first conversion is triggered immediately
+> after we program the configuration register. The temperature data
+> registers do not reflect proper data until the first conversion is
+> complete (in our case HZ/4).
+>
+> The driver currently sets the last_update to be jiffies - HZ, just
+> after the configuration is complete. When tmp102 driver registers
+> with the thermal framework, it immediately tries to read the sensor
+> temperature data. This takes place even before the conversion on the
+> TMP102 is complete and results in an invalid temperature read.
+>
+> Depending on the value read, this may cause thermal framework to
+> assume that a critical temperature event has occurred and attempts to
+> shutdown the system.
+>
+> Instead of causing an invalid mid-conversion value to be read
+> erroneously, we mark the last_update to be in-line with the current
+> jiffies. This allows the tmp102_update_device function to skip update
+> until the required conversion time is complete. Further, we ensure to
+> return -EAGAIN result instead of returning spurious temperature (such
+> as 0C) values to the caller to prevent any wrong decisions made with
+> such values.
+>
+> A simpler alternative approach could be to sleep in the probe for the
+> duration required, but that will result in latency that is undesirable
+> that can delay boot sequence un-necessarily.
+>
+A really simpler solution would be to mark when the device is ready
+to be accessed in the probe function, and go to sleep for the remaining time
+in the update function if necessary. This would not affect the probe function,
+avoid the somewhat awkward -EAGAIN, avoid overloading the value cache, and only
+sleep if necessary and as long as needed.
 
-If we don't properly idle the PHY before shutting it down on removal,
-the twl4030 ends up consuming about 62mW of extra power compared to
-running idle with the module loaded.
+> [1] http://www.ti.com/lit/ds/symlink/tmp102.pdf
+>
+> Cc: Eduardo Valentin <edubezval@gmail.com>
+> Reported-by: Aparna Balasubramanian <aparnab@ti.com>
+> Reported-by: Elvita Lobo <elvita@ti.com>
+> Reported-by: Yan Liu <yan-liu@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>
+> Example case (from Beagleboard-x15 using an older kernel revision):
+> 	http://pastebin.ubuntu.com/13591711/
+> Notice the thermal shutdown trigger:
+> 	thermal thermal_zone3: critical temperature reached(108 C),shutting down
+>
+>   drivers/hwmon/tmp102.c | 19 ++++++++++++++++++-
+>   1 file changed, 18 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+> index 65482624ea2c..145f69108f23 100644
+> --- a/drivers/hwmon/tmp102.c
+> +++ b/drivers/hwmon/tmp102.c
+> @@ -50,6 +50,9 @@
+>   #define	TMP102_TLOW_REG			0x02
+>   #define	TMP102_THIGH_REG		0x03
+>
+> +/* TMP102 range is -55 to 150C -> we use -128 as a default invalid value */
+> +#define TMP102_NOTREADY			-128
+> +
 
-Cc: Bin Liu <b-liu@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: NeilBrown <neil@brown.name>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/phy/phy-twl4030-usb.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+This is a bit misleading, and also not correct, since the temperature is stored in
+milli-degrees C, so a value of -128 reflects -0.128 degreees C. While that value
+will not be seen in practice, it is still not a good idea to use it for this purpose.
 
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 79870c4..f96065a 100644
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -715,6 +715,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	pm_runtime_use_autosuspend(&pdev->dev);
- 	pm_runtime_set_autosuspend_delay(&pdev->dev, 2000);
- 	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
- 
- 	/* Our job is to use irqs and status from the power module
- 	 * to keep the transceiver disabled when nothing's connected.
-@@ -758,6 +759,13 @@ static int twl4030_usb_remove(struct platform_device *pdev)
- 	/* set transceiver mode to power on defaults */
- 	twl4030_usb_set_mode(twl, -1);
- 
-+	/* idle ulpi before powering off */
-+	if (cable_present(twl->linkstat))
-+		pm_runtime_put_noidle(twl->dev);
-+	pm_runtime_mark_last_busy(twl->dev);
-+	pm_runtime_put_sync_suspend(twl->dev);
-+	pm_runtime_disable(twl->dev);
-+
- 	/* autogate 60MHz ULPI clock,
- 	 * clear dpll clock request for i2c access,
- 	 * disable 32KHz
-@@ -772,11 +780,6 @@ static int twl4030_usb_remove(struct platform_device *pdev)
- 	/* disable complete OTG block */
- 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
- 
--	if (cable_present(twl->linkstat))
--		pm_runtime_put_noidle(twl->dev);
--	pm_runtime_mark_last_busy(twl->dev);
--	pm_runtime_put(twl->dev);
--
- 	return 0;
- }
- 
--- 
-2.6.2
+Even though the chip temperature range is -55 .. 150 C, that doesn't mean
+it never returns a value outside that range, for example if nothing is connected
+to an external sensor or if something is broken.
+
+You should use a value outside the value range, ie outside
+[-128,000 .. 127,999 ] to detect the "not ready" condition.
+
+>   struct tmp102 {
+>   	struct i2c_client *client;
+>   	struct device *hwmon_dev;
+> @@ -102,6 +105,12 @@ static int tmp102_read_temp(void *dev, int *temp)
+>   {
+>   	struct tmp102 *tmp102 = tmp102_update_device(dev);
+>
+> +	/* Is it too early even to return a conversion? */
+> +	if (tmp102->temp[0] == TMP102_NOTREADY) {
+> +		dev_dbg(dev, "%s: Conversion not ready yet..\n", __func__);
+> +		return -EAGAIN;
+
+Does this cause a hard loop in the calling code, or will the thermal code
+delay before it reads again ?
+
+If it causes a hard loop, it may be better to go to sleep if needed
+when reading the data, as suggested above.
+
+> +	}
+> +
+>   	*temp = tmp102->temp[0];
+>
+>   	return 0;
+> @@ -114,6 +123,10 @@ static ssize_t tmp102_show_temp(struct device *dev,
+>   	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
+>   	struct tmp102 *tmp102 = tmp102_update_device(dev);
+>
+> +	/* Is it too early even to return a read? */
+> +	if (tmp102->temp[sda->index] == TMP102_NOTREADY)
+> +		return -EAGAIN;
+> +
+>   	return sprintf(buf, "%d\n", tmp102->temp[sda->index]);
+>   }
+>
+> @@ -207,7 +220,11 @@ static int tmp102_probe(struct i2c_client *client,
+>   		status = -ENODEV;
+>   		goto fail_restore_config;
+>   	}
+> -	tmp102->last_update = jiffies - HZ;
+> +	tmp102->last_update = jiffies;
+> +	/* Mark that we are not ready with data until conversion is complete */
+> +	tmp102->temp[0] = TMP102_NOTREADY;
+> +	tmp102->temp[1] = TMP102_NOTREADY;
+> +	tmp102->temp[2] = TMP102_NOTREADY;
+>   	mutex_init(&tmp102->lock);
+>
+>   	hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
+>
