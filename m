@@ -1,36 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
-Date: Tue, 1 Dec 2015 09:24:46 -0800
-Message-ID: <20151201172445.GV23396@atomide.com>
-References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
- <87h9kgcz1k.fsf@saruman.tx.rr.com>
- <5658B8B2.5030505@ti.com>
- <20151130162815.GA2517@atomide.com>
- <565DB7F7.4020702@ti.com>
- <20151201160707.GQ23396@atomide.com>
- <565DD4FA.3000308@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <565DD4FA.3000308@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH V3 15/19] ARM: dts: am57xx: sbc-am57x: add GPIO expander support
+Date: Tue,  1 Dec 2015 20:03:17 +0200
+Message-ID: <1448993001-19495-16-git-send-email-lifshitz@compulab.co.il>
+References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
+ <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1448993001-19495-1-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [151201 09:13]:
-> On 12/01/2015 06:07 PM, Tony Lindgren wrote:
-> >
-> >Or am I forgetting some other dependency with our system timers?
-> 
-> both counter32 and GP timer have to be enabled through sysc registers.
-> They are in "Force idle" state after reset.
+Add PCA9555 GPIO expander support (over I2C5 bus).
 
-That's fine, those are within the timer address space. I'd rather
-leave out the hwmod dependency from the system timers at the cost
-of a system timer specific minimal init function.
+Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+---
 
-Regards,
+  v3:
 
-Tony
+   * No fuctional changes
+   * Reformat subject
+
+  v2:
+
+   * Fixed patch subject/description
+
+ arch/arm/boot/dts/am57xx-sbc-am57x.dts | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+index a3588ba..edce6c6 100644
+--- a/arch/arm/boot/dts/am57xx-sbc-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+@@ -89,4 +89,11 @@
+ 		reg = <0x50>;
+ 		pagesize = <16>;
+ 	};
++
++	pca9555: pca9555@20 {
++		compatible = "nxp,pca9555";
++		reg = <0x20>;
++		gpio-controller;
++		#gpio-cells = <2>;
++	};
+ };
+-- 
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
