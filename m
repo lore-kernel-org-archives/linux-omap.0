@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v2 05/25] sh: nand: make use of mtd_to_nand()
- where appropriate
-Date: Tue,  1 Dec 2015 12:03:02 +0100
-Message-ID: <1448967802-25796-6-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v2 02/25] blackfin: nand: make use of
+ mtd_to_nand() where appropriate
+Date: Tue,  1 Dec 2015 12:02:59 +0100
+Message-ID: <1448967802-25796-3-git-send-email-boris.brezillon@free-electrons.com>
 References: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBBX56WZAKGQEYATBBYY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBAX56WZAKGQE5HK7PEA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1448967802-25796-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -21,24 +21,38 @@ Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ke
 List-Id: linux-omap@vger.kernel.org
 
 mtd_to_nand() was recently introduced to avoid direct accesses to the
-mtd->priv field. Update all SH specific implementations to use this
-helper.
+mtd->priv field. Update all blackfin specific implementations to use
+this helper.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- arch/sh/boards/mach-migor/setup.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/blackfin/mach-bf537/boards/stamp.c   | 2 +-
+ arch/blackfin/mach-bf561/boards/acvilon.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 29b7c0d..8673f91 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -167,7 +167,7 @@ static struct mtd_partition migor_nand_flash_partitions[] = {
- static void migor_nand_flash_cmd_ctl(struct mtd_info *mtd, int cmd,
- 				     unsigned int ctrl)
+diff --git a/arch/blackfin/mach-bf537/boards/stamp.c b/arch/blackfin/mach-bf537/boards/stamp.c
+index 88a19fc..c181543 100644
+--- a/arch/blackfin/mach-bf537/boards/stamp.c
++++ b/arch/blackfin/mach-bf537/boards/stamp.c
+@@ -404,7 +404,7 @@ static struct mtd_partition bfin_plat_nand_partitions[] = {
+ #define BFIN_NAND_PLAT_ALE 1
+ static void bfin_plat_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
  {
--	struct nand_chip *chip = mtd->priv;
-+	struct nand_chip *chip = mtd_to_nand(mtd);
+-	struct nand_chip *this = mtd->priv;
++	struct nand_chip *this = mtd_to_nand(mtd);
+ 
+ 	if (cmd == NAND_CMD_NONE)
+ 		return;
+diff --git a/arch/blackfin/mach-bf561/boards/acvilon.c b/arch/blackfin/mach-bf561/boards/acvilon.c
+index 6ab9515..37f8f25 100644
+--- a/arch/blackfin/mach-bf561/boards/acvilon.c
++++ b/arch/blackfin/mach-bf561/boards/acvilon.c
+@@ -267,7 +267,7 @@ static struct mtd_partition bfin_plat_nand_partitions[] = {
+ static void bfin_plat_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
+ 				    unsigned int ctrl)
+ {
+-	struct nand_chip *this = mtd->priv;
++	struct nand_chip *this = mtd_to_nand(mtd);
  
  	if (cmd == NAND_CMD_NONE)
  		return;
