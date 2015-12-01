@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V2 08/19] ARM: dts: am57xx: cl-som-am57x: add USB support
-Date: Tue,  1 Dec 2015 20:03:10 +0200
-Message-ID: <1448993001-19495-9-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH V2 18/19] ARM: dts: am57xx: sbc-am57x: add HDMI support
+Date: Tue,  1 Dec 2015 20:03:20 +0200
+Message-ID: <1448993001-19495-19-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
  <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,42 +11,83 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add USB support.
+Add HDMI video output support.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
+
   v2:
 
-   * No fuctional changes
+   * Fix HDMI lanes polarity
    * Reformat subject
 
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ arch/arm/boot/dts/am57xx-sbc-am57x.dts | 42 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-index fe4baba..c603136 100644
---- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-@@ -478,3 +478,19 @@
- 	pinctrl-0 = <&davinci_mdio_pins_default>;
- 	pinctrl-1 = <&davinci_mdio_pins_sleep>;
+diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+index 8e4c0fd..77bb8e1 100644
+--- a/arch/arm/boot/dts/am57xx-sbc-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+@@ -18,6 +18,7 @@
+ 
+ 	aliases {
+ 		display0 = &lcd0;
++		display1 = &hdmi;
+ 	};
+ };
+ 
+@@ -60,6 +61,19 @@
+ 			DRA7XX_CORE_IOPAD(0x3564, PIN_OUTPUT | MUX_MODE14)      /* vin2a_vsync0.gpio4_0 */
+ 		>;
+ 	};
++
++	hdmi_pins: pinmux_hdmi_pins {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x3808, PIN_INPUT | MUX_MODE1)	/* i2c2_sda.hdmi1_ddc_scl */
++			DRA7XX_CORE_IOPAD(0x380c, PIN_INPUT | MUX_MODE1)	/* i2c2_scl.hdmi1_ddc_sda */
++		>;
++	};
++
++	hdmi_conn_pins: pinmux_hdmi_conn_pins {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x37b8, PIN_INPUT | MUX_MODE14)	/* spi1_cs2.gpio7_12 */
++		>;
++	};
+ };
+ 
+ &uart3 {
+@@ -135,3 +149,31 @@
+ 		};
+ 	};
  };
 +
-+&usb2_phy1 {
-+	phy-supply = <&ldousb_reg>;
++&hdmi {
++	status = "ok";
++	vdda-supply = <&ldo4_reg>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&hdmi_pins>;
++
++	port {
++		hdmi_out: endpoint {
++			remote-endpoint = <&hdmi_connector_in>;
++			lanes = <1 0 3 2 5 4 7 6>;
++		};
++	};
 +};
 +
-+&usb2_phy2 {
-+	phy-supply = <&ldousb_reg>;
-+};
++&hdmi_conn {
++	pinctrl-names = "default";
++	pinctrl-0 = <&hdmi_conn_pins>;
 +
-+&usb1 {
-+	dr_mode = "host";
-+};
++	hpd-gpios = <&gpio7 12 GPIO_ACTIVE_HIGH>;
 +
-+&usb2 {
-+	dr_mode = "peripheral";
++	port {
++		hdmi_connector_in: endpoint {
++			remote-endpoint = <&hdmi_out>;
++		};
++	};
 +};
 -- 
 1.9.1
