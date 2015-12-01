@@ -1,88 +1,149 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC v02 00/15] dmaengine: New 'universal' API for requesting
- channel
-Date: Tue, 1 Dec 2015 15:45:32 +0200
-Message-ID: <565DA47C.4000308@ti.com>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
- <CAHp75VcC5uwGTp_N13q5P8MPtkhy0DFytDaXGrnoiHfnoEo8ng@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] hwmon: (tmp102) Force wait for conversion
+ time for the first valid data
+Date: Tue, 1 Dec 2015 07:47:48 -0600
+Message-ID: <565DA504.4060600@ti.com>
+References: <1448943955-2385-1-git-send-email-nm@ti.com>
+	<565D3513.7050905@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VcC5uwGTp_N13q5P8MPtkhy0DFytDaXGrnoiHfnoEo8ng@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, linux-spi <linux-spi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <lm-sensors-bounces@lm-sensors.org>
+In-Reply-To: <565D3513.7050905@roeck-us.net>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/options/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors/>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, beagleboard-x15@googlegroups.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/30/2015 04:32 PM, Andy Shevchenko wrote:
->> Andy: I did looked at the unified device properties, but I decided t=
-o not to use
->> it as I don't see it to fit well and most of the legacy board files =
-are using
->> resources to specify at least their memory regions so adding the DMA=
- resource
->> to them would be more inline with the rest of the code.
->=20
-> We could return back to this in the future, still we have to amend
-> built-in device properties (there is a patch series already in the
-> wild).
+Hi Guenter,
 
-I believe we could have similar dmaengine 'infra' for the built-in devi=
-ce
-properties as we have now for DT and ACPI. I need to dig deeper to get =
-full
-understanding on the device properties, but from a quick view it looks =
-to me
-that it could replace the direct OF and ACPI property handing in a unif=
-ied
-API. I might be totally mistaken here ;)
+Thanks for the detailed review..
 
->> static struct dma_filter_map da830_edma_map[] =3D {
->>         DMA_FILTER_ENTRY("davinci-mcasp.0", "rx", EDMA_CTLR_CHAN(0, =
-0)),
->>         DMA_FILTER_ENTRY("davinci-mcasp.0", "tx", EDMA_CTLR_CHAN(0, =
-1)),
->>         DMA_FILTER_ENTRY("davinci-mcasp.1", "rx", EDMA_CTLR_CHAN(0, =
-2)),
->>         DMA_FILTER_ENTRY("davinci-mcasp.1", "tx", EDMA_CTLR_CHAN(0, =
-3)),
->>         DMA_FILTER_ENTRY("davinci-mcasp.2", "rx", EDMA_CTLR_CHAN(0, =
-4)),
->>         DMA_FILTER_ENTRY("davinci-mcasp.2", "tx", EDMA_CTLR_CHAN(0, =
-5)),
->>         DMA_FILTER_ENTRY("spi_davinci.0", "rx", EDMA_CTLR_CHAN(0, 14=
-)),
->>         DMA_FILTER_ENTRY("spi_davinci.0", "tx", EDMA_CTLR_CHAN(0, 15=
-)),
->>         DMA_FILTER_ENTRY("da830-mmc.0", "rx", EDMA_CTLR_CHAN(0, 16))=
-,
->>         DMA_FILTER_ENTRY("da830-mmc.0", "tx", EDMA_CTLR_CHAN(0, 17))=
-,
->>         DMA_FILTER_ENTRY("spi_davinci.1", "rx", EDMA_CTLR_CHAN(0, 18=
-)),
->>         DMA_FILTER_ENTRY("spi_davinci.1", "tx", EDMA_CTLR_CHAN(0, 19=
-)),
->=20
-> Does this ".2" and so prevent driver to use auto ID for platform devi=
-ces?
+On 11/30/2015 11:50 PM, Guenter Roeck wrote:
+> On 11/30/2015 08:25 PM, Nishanth Menon wrote:
+[...]
 
-Yes, as all the infra around the traditional board files with platform_=
-device
-creation does. Ideally we could have 'phandle' pointing from this table=
- to the
-device in question (or other way around), but I'm not aware of anything=
- we can
-use.
-Auto ID did not really worked for us since the driver does need to know=
- their
-ID in some cases, or we need to be able to be sure that for example McA=
-SP1 is
-handled as davinci-mcasp.1
-We have clocks and other dependencies where the device name or device I=
-D need
-to be predictable.
-It is different in DT cases, but we are talking about legacy things.
+>>
+>> A simpler alternative approach could be to sleep in the probe for the
+>> duration required, but that will result in latency that is undesirable
+>> that can delay boot sequence un-necessarily.
+>>
+> A really simpler solution would be to mark when the device is ready
+> to be accessed in the probe function, and go to sleep for the remaining
+> time
+> in the update function if necessary. This would not affect the probe
+> function,
+> avoid the somewhat awkward -EAGAIN, avoid overloading the value cache,
+> and only
+> sleep if necessary and as long as needed.
 
---=20
-P=C3=A9ter
+We already have that logic in a different form:
+We use last_update to know when to go read the temperature value. Until
+the conversion time has elapsed, we keep providing previously cached
+value. Trouble is the first time read before conversion time is complete:
+
+On sleep during update:
+unfortunately, forcing the delay in update for the first time:
+a) Will also cause the latency in the thermal_zone_device_check which
+triggers right after tmp102_probe->thermal_zone_of_sensor_register
+b) -EAGAIN is used by other hwmon drivers such as
+drivers/hwmon/adt7470.c, drivers/hwmon/ltc4245.c, drivers/hwmon/sht15.c,
+drivers/hwmon/tc74.c, drivers/hwmon/via-cputemp.c in similar ways when
+data cannot be provided back.
+
+Overriding the temp value to indicate first time read:
+I can setup a bool in struct tmp102 instead -> but that serves the same
+purpose as what we did with override, except increase 1 char footprint -
+though I agree, it might be a little more readable.
+
+> 
+>> [1] http://www.ti.com/lit/ds/symlink/tmp102.pdf
+>>
+>> Cc: Eduardo Valentin <edubezval@gmail.com>
+>> Reported-by: Aparna Balasubramanian <aparnab@ti.com>
+>> Reported-by: Elvita Lobo <elvita@ti.com>
+>> Reported-by: Yan Liu <yan-liu@ti.com>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+>>
+>> Example case (from Beagleboard-x15 using an older kernel revision):
+>>     http://pastebin.ubuntu.com/13591711/
+>> Notice the thermal shutdown trigger:
+>>     thermal thermal_zone3: critical temperature reached(108
+>> C),shutting down
+>>
+>>   drivers/hwmon/tmp102.c | 19 ++++++++++++++++++-
+>>   1 file changed, 18 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+>> index 65482624ea2c..145f69108f23 100644
+>> --- a/drivers/hwmon/tmp102.c
+>> +++ b/drivers/hwmon/tmp102.c
+>> @@ -50,6 +50,9 @@
+>>   #define    TMP102_TLOW_REG            0x02
+>>   #define    TMP102_THIGH_REG        0x03
+>>
+>> +/* TMP102 range is -55 to 150C -> we use -128 as a default invalid
+>> value */
+>> +#define TMP102_NOTREADY            -128
+>> +
+> 
+> This is a bit misleading, and also not correct, since the temperature is
+> stored in
+> milli-degrees C, so a value of -128 reflects -0.128 degreees C. While
+> that value
+> will not be seen in practice, it is still not a good idea to use it for
+> this purpose.
+> 
+> Even though the chip temperature range is -55 .. 150 C, that doesn't mean
+> it never returns a value outside that range, for example if nothing is
+> connected
+> to an external sensor or if something is broken.
+> 
+> You should use a value outside the value range, ie outside
+> [-128,000 .. 127,999 ] to detect the "not ready" condition.
+
+
+That is true.. I will just drop this and introduce a bool in tmp102 instead.
+
+>>   struct tmp102 {
+>>       struct i2c_client *client;
+>>       struct device *hwmon_dev;
+>> @@ -102,6 +105,12 @@ static int tmp102_read_temp(void *dev, int *temp)
+>>   {
+>>       struct tmp102 *tmp102 = tmp102_update_device(dev);
+>>
+>> +    /* Is it too early even to return a conversion? */
+>> +    if (tmp102->temp[0] == TMP102_NOTREADY) {
+>> +        dev_dbg(dev, "%s: Conversion not ready yet..\n", __func__);
+>> +        return -EAGAIN;
+> 
+> Does this cause a hard loop in the calling code, or will the thermal code
+> delay before it reads again ?
+> 
+> If it causes a hard loop, it may be better to go to sleep if needed
+> when reading the data, as suggested above.
+
+Thermal framework is capable of handling -EAGAIN without a hard loop
+around this (it just seems to reschedule around the polling interval and
+comes back to check if data is ready).
+
+If you are ok with the above, then I will send a v2 introducing a bool
+to setup a flag for first_time read, but will leave the -EAGAIN alone.
+
+-- 
+Regards,
+Nishanth Menon
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
