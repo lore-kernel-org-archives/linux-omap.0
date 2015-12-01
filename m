@@ -1,37 +1,61 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC v02 04/15] dmaengine: edma: Add support for DMA filter
- mapping to slave devices
-Date: Tue, 01 Dec 2015 21:20:28 +0100
-Message-ID: <1589780.JL62pLTh05@wuerfel>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
- <1448891145-10766-5-git-send-email-peter.ujfalusi@ti.com>
- <20151201172212.GC1696@localhost>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH V2] hwmon: (tmp102) Force wait for conversion time for
+ the first valid data
+Date: Tue, 1 Dec 2015 13:06:24 -0800
+Message-ID: <20151201210624.GA9177@roeck-us.net>
+References: <1448943955-2385-1-git-send-email-nm@ti.com>
+ <1448986221-6190-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151201172212.GC1696@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: nsekhar@ti.com, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, andy.shevchenko@gmail.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1448986221-6190-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Jean Delvare <jdelvare@suse.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, beagleboard-x15@googlegroups.com, Eduardo Valentin <edubezval@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 01 December 2015 22:52:12 Vinod Koul wrote:
-> On Mon, Nov 30, 2015 at 03:45:34PM +0200, Peter Ujfalusi wrote:
-> > Add support for providing device to filter_fn mapping so client drivers
-> > can switch to use the dma_request_chan() API.
+On Tue, Dec 01, 2015 at 10:10:21AM -0600, Nishanth Menon wrote:
+> TMP102 works based on conversions done periodically. However, as per
+> the TMP102 data sheet[1] the first conversion is triggered immediately
+> after we program the configuration register. The temperature data
+> registers do not reflect proper data until the first conversion is
+> complete (in our case HZ/4).
 > 
-> Any reason why we dont want to go with DT based only for edma here?
+> The driver currently sets the last_update to be jiffies - HZ, just
+> after the configuration is complete. When TMP102 driver registers
+> with the thermal framework, it immediately tries to read the sensor
+> temperature data. This takes place even before the conversion on the
+> TMP102 is complete and results in an invalid temperature read.
+> 
+> Depending on the value read, this may cause thermal framework to
+> assume that a critical temperature event has occurred and attempts to
+> shutdown the system.
+> 
+> Instead of causing an invalid mid-conversion value to be read
+> erroneously, we mark the last_update to be in-line with the current
+> jiffies. This allows the tmp102_update_device function to skip update
+> until the required conversion time is complete. Further, we ensure to
+> return -EAGAIN result instead of returning spurious temperature (such
+> as 0C) values to the caller to prevent any wrong decisions made with
+> such values. NOTE: this allows the read functions not to be blocking
+> and allows the callers to make the decision if they would like to
+> block or try again later. At least the current user(thermal) seems to
+> handle this by retrying later.
+> 
+> A simpler alternative approach could be to sleep in the probe for the
+> duration required, but that will result in latency that is undesirable
+> and delay boot sequence un-necessarily.
+> 
+> [1] http://www.ti.com/lit/ds/symlink/tmp102.pdf
+> 
+> Cc: Eduardo Valentin <edubezval@gmail.com>
+> Reported-by: Aparna Balasubramanian <aparnab@ti.com>
+> Reported-by: Elvita Lobo <elvita@ti.com>
+> Reported-by: Yan Liu <yan-liu@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-I think the OMAP2 based platforms using edma are all DT-only, but mach-davinci
-would need a lot of work for that.
+Applied.
 
-	Arnd
+Thanks,
+Guenter
