@@ -1,60 +1,62 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 01/18] ARM: am57xx: cl-som-am57x: dts: add basic
- module support
-Date: Tue, 1 Dec 2015 09:03:01 -0800
-Message-ID: <20151201170301.GU23396@atomide.com>
-References: <1448433590-1399-2-git-send-email-lifshitz@compulab.co.il>
- <1448893551-676-1-git-send-email-lifshitz@compulab.co.il>
- <20151130215415.GE23396@atomide.com>
- <565DC9CC.1070000@compulab.co.il>
- <20151201164317.GS23396@atomide.com>
- <565DCF34.8070001@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [RFC v02 01/15] dmaengine: core: Allow NULL mask pointer in
+ __dma_device_satisfies_mask()
+Date: Tue, 1 Dec 2015 22:36:47 +0530
+Message-ID: <20151201170647.GB1696@localhost>
+References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
+ <1448891145-10766-2-git-send-email-peter.ujfalusi@ti.com>
+ <CAHp75VfY=NU4MG7q1w=oYdTiTr0dqtNTQU3UkEaL=tXPJADH5Q@mail.gmail.com>
+ <565D6CB1.8030808@ti.com>
+ <CAHp75Vfk_GAANRYdbHNxtCy-Ni18FppsKhPPX1X84v1Zu6JXvw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <565DCF34.8070001-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+In-Reply-To: <CAHp75Vfk_GAANRYdbHNxtCy-Ni18FppsKhPPX1X84v1Zu6JXvw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, linux-spi <linux-spi@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [151201 08:48]:
-> On 12/01/2015 10:43 AM, Tony Lindgren wrote:
-> > * Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151201 08:26]:
+On Tue, Dec 01, 2015 at 02:58:35PM +0200, Andy Shevchenko wrote:
+> On Tue, Dec 1, 2015 at 11:47 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> > On 11/30/2015 04:35 PM, Andy Shevchenko wrote:
+> >> On Mon, Nov 30, 2015 at 3:45 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> >>> Treat as true condition the case when the mask is NULL.
 > >>
-> >> It might looks the same set of regulators for multiple boards,
-> >> but it is not. Each board may apply its own regulators usage scheme, and
-> >> this is our case (as compared to am57xx-beagle-x15.dts).
-> >>
-> >> For the best of my knowledge, it used to be in a common *.dtsi file (at
-> >> least in early OMAP5 DT support in TI kernel tree), but then I found that
-> >> PMIC registration had been moved to the boards DT files.
-> > 
-> > Have you actually looked at how much of the implementation is same across
-> > the omap5 boards? My guess is that a whole lot is same.. See for example
-> > omap5-board-common.dtsi.
+> >> What do you think about setting some default (all "on") mask when mask
+> >> is not supplied?
+> >
+> > Probably rephrasing the commit message to say that when the mask is NULL it
+> > means that the caller does not care about the capabilities of the dma device
+> > thus return with true in such a case.
+> >
+> > We could also drop this patch and in private_candidate() :
+> >
+> > -       if (!__dma_device_satisfies_mask(dev, mask)) {
+> > +       if (mask && !__dma_device_satisfies_mask(dev, mask)) {
+> >                 pr_debug("%s: wrong capabilities\n", __func__);
+> >                 return NULL;
+> >         }
 > 
-> Unfortunately with DRA7 / AM57xx:
-> at least 2 different PMICs -> DRA74/DRA72 evms.
-> even across similar PMIC usage, different voltage rail usage accross
-> evms: DRA74evm, x15/GPEVM, AM571x-IDK/AM572x-IDK -> they are not
-> necessarily compatible.
+> Between patch and above proposal I would choose the latter one.
+
+Sounds better to me as well
+
 > 
-> Example: some of them have Ganged voltage rail, others dont - few others
-> are mixed. if you are trying to get common regulator usage -> it is
-> kinda pretty hard given the freedom board designers are being given by
-> TI.. OMAP5 was more controlled in terms of what specific configuration
-> the board designers had to follow. that is no longer the case for
-> DRA7/AM57 platforms. just my 2 cents here.
+> >> I don't know for sure but there might be cases when you don't want
+> >> literally *any* channel to satisfy.
+> >
+> > Or set DMA_SLAVE only in dma_request_chan()? What happens if we have cases
+> > when we are able to request channel for memcpy via dma_request_chan()
+> > (dedicated memcpy channel/DMA engine?) in that case we will have the SLAVE
+> > set, but not MEMCPY, or any other variation we do not know yet?
+> 
+> Frankly, have no idea.
 
-OK thanks for checking. Best to wait a bit on that then until we have
-more common patterns.
+In slave cases I know that some controllers support memcpy but they are not
+generic memcpy as they cannot be used for system memcpy but for 'special'
+memcpy. So this can be used for memcpy as well
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+~Vinod
