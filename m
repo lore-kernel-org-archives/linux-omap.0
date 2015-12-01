@@ -1,94 +1,125 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v4 4/5] ARM: dts: DRA7: add entry for qspi mmap region
-Date: Tue, 1 Dec 2015 10:15:26 +0530
-Message-ID: <565D25E6.4070206@ti.com>
-References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
- <1448860515-28336-5-git-send-email-vigneshr@ti.com>
- <20151130223408.GJ23396@atomide.com>
+From: Heiko Schocher <hs@denx.de>
+Subject: Re: [PATCH v2] arm, am335x: add support for the bosch shc board
+Date: Tue, 1 Dec 2015 06:19:53 +0100
+Message-ID: <565D2DF9.2010806@denx.de>
+References: <1447748655-2088-1-git-send-email-hs@denx.de>
+ <20151130214130.GA23396@atomide.com>
+Reply-To: hs@denx.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151130223408.GJ23396@atomide.com>
+In-Reply-To: <20151130214130.GA23396@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, hramrach@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Robert Nelson <robertcnelson@gmail.com>, devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Georg.Soffel@bosch-si.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hello Tony,
 
-
-On 12/01/2015 04:04 AM, Tony Lindgren wrote:
-> * Vignesh R <vigneshr@ti.com> [151129 21:16]:
->> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
->> update the binding documents for the controller to document this change.
->>
->> Acked-by: Rob Herring <robh@kernel.org>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ...
->> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
->> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
->> @@ -26,3 +26,17 @@ qspi: qspi@4b300000 {
->>  	spi-max-frequency = <25000000>;
->>  	ti,hwmods = "qspi";
->>  };
+Am 30.11.2015 um 22:41 schrieb Tony Lindgren:
+> * Heiko Schocher <hs@denx.de> [151117 00:25]:
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/am335x-shc.dts
+>> +&tps {
+>> +	compatible = "ti,tps65217";
+>> +	ti,pmic-shutdown-controller;
 >> +
->> +For dra7xx:
->> +qspi: qspi@4b300000 {
->> +	compatible = "ti,dra7xxx-qspi";
->> +	reg = <0x4b300000 0x100>,
->> +	      <0x5c000000 0x4000000>,
->> +	      <0x4a002558 0x4>;
->> +	reg-names = "qspi_base", "qspi_mmap",
->> +		    "qspi_ctrlmod";
->> +	#address-cells = <1>;
->> +	#size-cells = <0>;
->> +	spi-max-frequency = <48000000>;
->> +	ti,hwmods = "qspi";
+>> +	regulators {
+>> +		#address-cells = <1>;
+>> +		#size-cells = <0>;
+>> +
+>> +		dcdc1_reg: regulator@0 {
+>> +			reg = <0>;
+>> +			regulator-name = "vdds_dpr";
+>> +			regulator-compatible = "dcdc1";
+>> +			regulator-min-microvolt = <1300000>;
+>> +			regulator-max-microvolt = <1450000>;
+>> +			regulator-boot-on;
+>> +			regulator-always-on;
+>> +		};
+>> +
+>> +		dcdc2_reg: regulator@1 {
+>> +			reg = <1>;
+>> +			/*
+>> +			 * VDD_MPU voltage limits 0.95V - 1.26V with
+>> +			 * +/-4% tolerance
+>> +			 */
+>> +			regulator-compatible = "dcdc2";
+>> +			regulator-name = "vdd_mpu";
+>> +			regulator-min-microvolt = <925000>;
+>> +			regulator-max-microvolt = <1375000>;
+>> +			regulator-boot-on;
+>> +			regulator-always-on;
+>> +			regulator-ramp-delay = <70000>;
+>> +		};
+>> +
+>> +		dcdc3_reg: regulator@2 {
+>> +			reg = <2>;
+>> +			/*
+>> +			 * VDD_CORE voltage limits 0.95V - 1.1V with
+>> +			 * +/-4% tolerance
+>> +			 */
+>> +			regulator-name = "vdd_core";
+>> +			regulator-compatible = "dcdc3";
+>> +			regulator-min-microvolt = <925000>;
+>> +			regulator-max-microvolt = <1125000>;
+>> +			regulator-boot-on;
+>> +			regulator-always-on;
+>> +		};
+>> +
+>> +		ldo1_reg: regulator@3 {
+>> +			reg = <3>;
+>> +			regulator-name = "vio,vrtc,vdds";
+>> +			regulator-compatible = "ldo1";
+>> +			regulator-min-microvolt = <1000000>;
+>> +			regulator-max-microvolt = <1800000>;
+>> +			regulator-always-on;
+>> +		};
+>> +
+>> +		ldo2_reg: regulator@4 {
+>> +			reg = <4>;
+>> +			regulator-name = "vdd_3v3aux";
+>> +			regulator-compatible = "ldo2";
+>> +			regulator-min-microvolt = <900000>;
+>> +			regulator-max-microvolt = <3300000>;
+>> +			regulator-always-on;
+>> +		};
+>> +
+>> +		ldo3_reg: regulator@5 {
+>> +			reg = <5>;
+>> +			regulator-name = "vdd_1v8";
+>> +			regulator-compatible = "ldo3";
+>> +			regulator-min-microvolt = <900000>;
+>> +			regulator-max-microvolt = <1800000>;
+>> +			regulator-always-on;
+>> +		};
+>> +
+>> +		ldo4_reg: regulator@6 {
+>> +			reg = <6>;
+>> +			regulator-name = "vdd_3v3a";
+>> +			regulator-compatible = "ldo4";
+>> +			regulator-min-microvolt = <1800000>;
+>> +			regulator-max-microvolt = <3300000>;
+>> +			regulator-always-on;
+>> +		};
+>> +	};
 >> +};
-> 
-> Actually none of the IO areas above are within the same interconnect target:
-> 
-> 0x4b300000  QSPI0 address space in L3 main interconnect
-> 0x5c000000  QSPI1 address space in L3 main interconnect
+>
+> Applying this into omap-for-v4.5/dt.. But I'm getting concerned about this
+> "regulator-always-on" stuff and having multiple copies of the same thing.
+>
+> I think we should have a common am33xx-tps65217.dtsi file that has the
+> regulators defined at one place and other then include it. And they are
+> controllable AFAIK..
 
+Hmm... Mark Brown (added to Cc) suggested to move this regulator nodes
+into the board DT file and remove such files [1].
 
-First address range (configuration port: 0x4b300000) corresponds to QSPI
-registers space. These registers alone are sufficient for generic SPI
-communication (serial flash as well as non-flash SPI devices).
+bye,
+Heiko
 
-In order to speed up SPI flash reads SFI_MM_IF(SPI memory mapped
-interface) is provided by QSPI IP. This _cannot_ be used with non-flash
-devices.
-The second address range (0x5c000000) corresponds to memory-mapped
-region of SFI_MM_IF, through which SPI flash memories can be read as if
-though they were RAM addresses (i.e using readl/memcpy). The SFI_MM_IF
-block that takes care of communicating over SPI bus and getting the data
-from flash device.
-But SFI_MM_IF block needs to know some flash specific information(such
-as read opcode, address bytes, dummy bytes, mode). This information must
-first be populated in QSPI_SPI_SETUP*_REG(0x4B300054-60) before
-accessing SFI_MM_IF address range via readl.
-Both addresses space belong to same instance of the driver, one
-corresponds to register space and other is memory-mapped region.
-Therefore both regions are claimed by the same driver.
-
-> 0x4a002558  CTRL_CORE_CONTROL_IO_2 in System Control Module (SCM) in L4_CFG
-> 
-> The first two address spaces should be two separate instances of this driver.
-
-Not actually two instances.
-
-> The CTRL_CORE_CONTROL_IO_2 needs seems like a shared clock register that
-> needs to be accessed using the clock framework most likely.
-> 
-
-Not shared clock.
-The CTRL_CORE_CONTROL_IO_2[10:8] QSPI_MEMMAPPED_CS bit fields provides a
-functionality for remapping the previously described address space which
-starts at 0x5C000000 L3_MAIN address to one of the four supported chip
-selects.
-How about using syscon to access CTRL_CORE_CONTROL_IO_2?
-
+[1] https://lkml.org/lkml/2015/10/21/581
 -- 
-Regards
-Vignesh
+DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
