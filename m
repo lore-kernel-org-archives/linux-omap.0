@@ -1,88 +1,54 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH v2 21/25] mtd: nand: kill the chip->flash_node field
-Date: Tue,  1 Dec 2015 12:03:18 +0100
-Message-ID: <1448967802-25796-22-git-send-email-boris.brezillon@free-electrons.com>
+From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH v2 23/25] ARM: make use of nand_set/get_controller_data()
+ helpers
+Date: Tue,  1 Dec 2015 12:03:20 +0100
+Message-ID: <1448967802-25796-24-git-send-email-boris.brezillon@free-electrons.com>
 References: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
+Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Stefan Agner <stefan@agner.ch>, linux-sunxi@googlegroups.com, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Boris Brezillon <boris.brezillon@free-electrons.com>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-samsung-soc@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Josh Wu <josh.wu@atmel.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Wan ZongShun <mcuos.com@gmail.com>, Steven Miao <realmz6@gmail.com>, adi-buildroot-devel@li
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBNX56WZAKGQE654IMWI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <1448967802-25796-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/linux-sunxi
+Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <http://groups.google.com/group/linux-sunxi/subscribe>
+To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steven Miao <realmz6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>a
 List-Id: linux-omap@vger.kernel.org
 
-Now that the nand_chip struct directly embeds an mtd_info struct we can
-get rid of the ->flash_node field and forward set/get_flash_node requests
-to the MTD layer.
+New helpers have been added to avoid directly accessing chip->field. Use
+them where appropriate.
 
-As a side effect, we no longer need the mtd_set_of_node() call done in
-nand_dt_init().
-
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/nand_base.c | 3 ---
- include/linux/mtd/nand.h     | 7 ++-----
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ arch/arm/mach-ixp4xx/ixdp425-setup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_base.c
-index ae3fd2a..8bb8ebd6 100644
---- a/drivers/mtd/nand/nand_base.c
-+++ b/drivers/mtd/nand/nand_base.c
-@@ -3945,9 +3945,6 @@ static int nand_dt_init(struct nand_chip *chip)
- 	if (!dn)
- 		return 0;
- 
--	/* MTD can automatically handle DT partitions, etc. */
--	mtd_set_of_node(nand_to_mtd(chip), dn);
--
- 	if (of_get_nand_bus_width(dn) == 16)
- 		chip->options |= NAND_BUSWIDTH_16;
- 
-diff --git a/include/linux/mtd/nand.h b/include/linux/mtd/nand.h
-index 873646d..f12efe1 100644
---- a/include/linux/mtd/nand.h
-+++ b/include/linux/mtd/nand.h
-@@ -545,7 +545,6 @@ struct nand_buffers {
-  *			flash device
-  * @IO_ADDR_W:		[BOARDSPECIFIC] address to write the 8 I/O lines of the
-  *			flash device.
-- * @flash_node:		[BOARDSPECIFIC] device node describing this instance
-  * @read_byte:		[REPLACEABLE] read one byte from the chip
-  * @read_word:		[REPLACEABLE] read one word from the chip
-  * @write_byte:		[REPLACEABLE] write a single byte to the chip on the
-@@ -645,8 +644,6 @@ struct nand_chip {
- 	void __iomem *IO_ADDR_R;
- 	void __iomem *IO_ADDR_W;
- 
--	struct device_node *flash_node;
--
- 	uint8_t (*read_byte)(struct mtd_info *mtd);
- 	u16 (*read_word)(struct mtd_info *mtd);
- 	void (*write_byte)(struct mtd_info *mtd, uint8_t byte);
-@@ -724,12 +721,12 @@ struct nand_chip {
- static inline void nand_set_flash_node(struct nand_chip *chip,
- 				       struct device_node *np)
+diff --git a/arch/arm/mach-ixp4xx/ixdp425-setup.c b/arch/arm/mach-ixp4xx/ixdp425-setup.c
+index 333b0f9..508c2d7 100644
+--- a/arch/arm/mach-ixp4xx/ixdp425-setup.c
++++ b/arch/arm/mach-ixp4xx/ixdp425-setup.c
+@@ -77,7 +77,7 @@ static void
+ ixdp425_flash_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
  {
--	chip->flash_node = np;
-+	mtd_set_of_node(&chip->mtd, np);
- }
+ 	struct nand_chip *this = mtd_to_nand(mtd);
+-	int offset = (int)this->priv;
++	int offset = (int)nand_get_controller_data(this);
  
- static inline struct device_node *nand_get_flash_node(struct nand_chip *chip)
- {
--	return chip->flash_node;
-+	return mtd_get_of_node(&chip->mtd);
- }
+ 	if (ctrl & NAND_CTRL_CHANGE) {
+ 		if (ctrl & NAND_NCE) {
+@@ -88,7 +88,7 @@ ixdp425_flash_nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
  
- static inline struct nand_chip *mtd_to_nand(struct mtd_info *mtd)
+ 		offset = (ctrl & NAND_CLE) ? IXDP425_NAND_CMD_BYTE : 0;
+ 		offset |= (ctrl & NAND_ALE) ? IXDP425_NAND_ADDR_BYTE : 0;
+-		this->priv = (void *)offset;
++		nand_set_controller_data(this, (void *)offset);
+ 	}
+ 
+ 	if (cmd != NAND_CMD_NONE)
 -- 
 2.1.4
