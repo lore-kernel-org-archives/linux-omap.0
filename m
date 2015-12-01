@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 19/19] ARM: dts: am57xx: cl-som-am57x: skip resetting ETH PHYs
-Date: Tue,  1 Dec 2015 20:03:21 +0200
-Message-ID: <1448993001-19495-20-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH V2 16/19] ARM: dts: am57xx: sbc-am57x: add LCD support
+Date: Tue,  1 Dec 2015 20:03:18 +0200
+Message-ID: <1448993001-19495-17-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
  <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,35 +11,82 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-ETH PHYs setup on CL-SOM-AM57X is established in U-Boot along with
-bringing them out of reset. This is done by toggling GPIOs belonging
-to GPIO2/3 controllers on AM57xx.
+Startek-kd050c 800x480 LCD panel timings are described in
+compulab-sb-som.dtsi.
 
-Skip resetting ETH PHYs, by adding "ti,no-reset-on-init" to GPIO2/3
-controllers DT nodes.
+Add appropriate DT endpoints to connect DPI output and LCD.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 10 ++++++++++
- 1 file changed, 10 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-index b2c4451..c538826 100644
---- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-@@ -605,3 +605,13 @@
- 		1 2 0 0
- 	>;
+  v2:
+
+   * No fuctional changes
+   * Reformat subject
+
+ arch/arm/boot/dts/am57xx-sbc-am57x.dts | 38 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+index edce6c6..8e4c0fd 100644
+--- a/arch/arm/boot/dts/am57xx-sbc-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+@@ -15,6 +15,10 @@
+ / {
+ 	model = "CompuLab CL-SOM-AM57x on SB-SOM-AM57x";
+ 	compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
++
++	aliases {
++		display0 = &lcd0;
++	};
+ };
+ 
+ &dra7_pmx_core {
+@@ -50,6 +54,12 @@
+ 			DRA7XX_CORE_IOPAD(0x36b8, PIN_INPUT| MUX_MODE10)	/* mcasp1_axr1.i2c5_scl */
+ 		>;
+ 	};
++
++	lcd_pins_default: lcd_pins_default {
++		pinctrl-single,pins = <
++			DRA7XX_CORE_IOPAD(0x3564, PIN_OUTPUT | MUX_MODE14)      /* vin2a_vsync0.gpio4_0 */
++		>;
++	};
+ };
+ 
+ &uart3 {
+@@ -97,3 +107,31 @@
+ 		#gpio-cells = <2>;
+ 	};
  };
 +
-+&gpio3 {
-+	status = "okay";
-+	ti,no-reset-on-init;
++&dss {
++	status = "ok";
++
++	vdda_video-supply = <&ldoln_reg>;
++
++	port {
++		dpi_lcd_out: endpoint@0 {
++			remote-endpoint = <&lcd_in>;
++			data-lines = <24>;
++		};
++	};
 +};
 +
-+&gpio2 {
-+	status = "okay";
-+	ti,no-reset-on-init;
++&lcd0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&lcd_pins_default>;
++
++	enable-gpios = <&pca9555 14 GPIO_ACTIVE_HIGH
++			&gpio4 0 GPIO_ACTIVE_HIGH>;
++
++	port {
++		lcd_in: endpoint {
++			remote-endpoint = <&dpi_lcd_out>;
++			data-lines = <24>;
++		};
++	};
 +};
 -- 
 1.9.1
