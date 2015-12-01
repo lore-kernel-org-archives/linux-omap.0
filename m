@@ -1,186 +1,53 @@
-From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH v2 01/18] ARM: am57xx: cl-som-am57x: dts: add basic module
- support
-Date: Tue, 01 Dec 2015 18:24:44 +0200
-Message-ID: <565DC9CC.1070000@compulab.co.il>
-References: <1448433590-1399-2-git-send-email-lifshitz@compulab.co.il> <1448893551-676-1-git-send-email-lifshitz@compulab.co.il> <20151130215415.GE23396@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V2] reset: Introduce static inline dummy function when CONFIG_RESET_CONTROLLER is not set
+Date: Tue, 1 Dec 2015 10:38:33 -0600
+Message-ID: <1448987913-17770-1-git-send-email-nm@ti.com>
+References: <1448984088-31904-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151130215415.GE23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1448984088-31904-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+When CONFIG_RESET_CONTROLLER is not defined (example COMPILE_TEST),
+provide a dummy static inline implementation.
 
-On 11/30/2015 11:54 PM, Tony Lindgren wrote:
-> * Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151130 06:27]:
->> +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
->> +		tps659038_pmic {
->> +			compatible = "ti,tps659038-pmic";
->> +
->> +			regulators {
->> +				smps12_reg: smps12 {
->> +					/* VDD_MPU */
->> +					regulator-name = "smps12";
->> +					regulator-min-microvolt = < 850000>;
->> +					regulator-max-microvolt = <1250000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				smps3_reg: smps3 {
->> +					/* VDD_DDR */
->> +					regulator-name = "smps3";
->> +					regulator-min-microvolt = <1500000>;
->> +					regulator-max-microvolt = <1500000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				smps45_reg: smps45 {
->> +					/* VDD_DSPEVE */
->> +					regulator-name = "smps45";
->> +					regulator-min-microvolt = < 850000>;
->> +					regulator-max-microvolt = <1250000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				smps6_reg: smps6 {
->> +					/* VDD_GPU */
->> +					regulator-name = "smps6";
->> +					regulator-min-microvolt = < 850000>;
->> +					regulator-max-microvolt = <1250000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				smps7_reg: smps7 {
->> +					/* VDD_CORE */
->> +					regulator-name = "smps7";
->> +					regulator-min-microvolt = < 850000>;
->> +					regulator-max-microvolt = <1160000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				smps8_reg: smps8 {
->> +					/* VDD_IVA */
->> +					regulator-name = "smps8";
->> +					regulator-min-microvolt = < 850000>;
->> +					regulator-max-microvolt = <1250000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				smps9_reg: smps9 {
->> +					/* PMIC_3V3 */
->> +					regulator-name = "smps9";
->> +					regulator-min-microvolt = <3300000>;
->> +					regulator-max-microvolt = <3300000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +
->> +				ldo1_reg: ldo1 {
->> +					/* VDD_SD / VDDSHV8  */
->> +					regulator-name = "ldo1";
->> +					regulator-min-microvolt = <1800000>;
->> +					regulator-max-microvolt = <3300000>;
->> +					regulator-boot-on;
->> +					regulator-always-on;
->> +				};
->> +
->> +				ldo2_reg: ldo2 {
->> +					/* VDD_1V8 */
->> +					regulator-name = "ldo2";
->> +					regulator-min-microvolt = <1800000>;
->> +					regulator-max-microvolt = <1800000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				ldo3_reg: ldo3 {
->> +					/* VDDA_1V8_PHYA - supplies VDDA_SATA, VDDA_USB1/2/3 */
->> +					regulator-name = "ldo3";
->> +					regulator-min-microvolt = <1800000>;
->> +					regulator-max-microvolt = <1800000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				ldo4_reg: ldo4 {
->> +					/* VDDA_1V8_PHYB - supplies VDDA_HDMI, VDDA_PCIE/0/1 */
->> +					regulator-name = "ldo4";
->> +					regulator-min-microvolt = <1800000>;
->> +					regulator-max-microvolt = <1800000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				ldo9_reg: ldo9 {
->> +					/* VDD_RTC */
->> +					regulator-name = "ldo9";
->> +					regulator-min-microvolt = <1050000>;
->> +					regulator-max-microvolt = <1050000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				ldoln_reg: ldoln {
->> +					/* VDDA_1V8_PLL */
->> +					regulator-name = "ldoln";
->> +					regulator-min-microvolt = <1800000>;
->> +					regulator-max-microvolt = <1800000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				ldousb_reg: ldousb {
->> +					/* VDDA_3V_USB: VDDA_USBHS33 */
->> +					regulator-name = "ldousb";
->> +					regulator-min-microvolt = <3300000>;
->> +					regulator-max-microvolt = <3300000>;
->> +					regulator-always-on;
->> +					regulator-boot-on;
->> +				};
->> +
->> +				/* regen1 not used */
->> +			};
->> +		};
->
-> Can you please put these into dra7-tps659038-common.dtsi so we don't have
-> multiple copies of it? Then make other boards include that..
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-It might looks the same set of regulators for multiple boards,
-but it is not. Each board may apply its own regulators usage scheme, and 
-this is our case (as compared to am57xx-beagle-x15.dts).
+V2: Thanks to kbot, I realized i messed up the patch -> hopefully, this revision
+has better luck.
 
-For the best of my knowledge, it used to be in a common *.dtsi file (at 
-least in early OMAP5 DT support in TI kernel tree), but then I found 
-that PMIC registration had been moved to the boards DT files.
+V1: https://patchwork.kernel.org/patch/7738191/
 
-> That allows to set them up as real controllable regulators instead of all
-> this silly "regulator-always-on" stuff that has been going on since omap4 :)
->
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+ include/linux/reset-controller.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-Regards,
-
-Dmitry
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/reset-controller.h b/include/linux/reset-controller.h
+index ce6b962ffed4..e294565540db 100644
+--- a/include/linux/reset-controller.h
++++ b/include/linux/reset-controller.h
+@@ -48,7 +48,18 @@ struct reset_controller_dev {
+ 	unsigned int nr_resets;
+ };
+ 
++#if IS_ENABLED(CONFIG_RESET_CONTROLLER)
+ int reset_controller_register(struct reset_controller_dev *rcdev);
+ void reset_controller_unregister(struct reset_controller_dev *rcdev);
++#else
++static inline int reset_controller_register(struct reset_controller_dev *r)
++{
++	return -EINVAL;
++}
++
++static inline void reset_controller_unregister(struct reset_controller_dev *r)
++{
++}
++#endif	/* IS_ENABLED(CONFIG_RESET_CONTROLLER) */
+ 
+ #endif
+-- 
+2.6.2.402.g2635c2b
