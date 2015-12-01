@@ -1,7 +1,7 @@
 From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH V2 14/19] ARM: dts: am57xx: sbc-am57x: add EEPROM support
-Date: Tue,  1 Dec 2015 20:03:16 +0200
-Message-ID: <1448993001-19495-15-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH V2 11/19] ARM: dts: am57xx: sbc-am57x: add basic board support
+Date: Tue,  1 Dec 2015 20:03:13 +0200
+Message-ID: <1448993001-19495-12-git-send-email-lifshitz@compulab.co.il>
 References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
  <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,11 +11,20 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 Cc: Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On-board EEPROM chip is used for storing a board production info.
+SBC-AM57x is a single board computer designed for industrial and
+embedded applications. It is based on the Texas Instruments Sitara AM57x
+system-on-chip family. SBC-AM57x is implemented with the CL-SOM-AM57x
+computer-on-module providing most of the functions, and SB-SOM-AM57x
+carrier board providing additional peripheral functions and connectors.
 
-Add carrier board EEPROM support (over I2C5 bus).
+https://www.compulab.co.il/products/sbcs/sbc-am57x-ti-am5728-am5718-single-board-computer/
+
+https://www.compulab.co.il/products/computer-on-modules/cl-som-am57x-ti-am5728-am5718-system-on-module/
+
+Add basic board support, including UART3, used as a serial console.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 ---
 
   v2:
@@ -23,43 +32,79 @@ Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org
    * No fuctional changes
    * Reformat subject
 
- arch/arm/boot/dts/am57xx-sbc-am57x.dts | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ .../devicetree/bindings/arm/omap/omap.txt          |  3 ++
+ arch/arm/boot/dts/Makefile                         |  1 +
+ arch/arm/boot/dts/am57xx-sbc-am57x.dts             | 36 ++++++++++++++++++++++
+ 3 files changed, 40 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am57xx-sbc-am57x.dts
 
-diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-index 17a1972..a3588ba 100644
---- a/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
-@@ -43,6 +43,13 @@
- 			DRA7XX_CORE_IOPAD(0x3680, PIN_INPUT_SLEW | MUX_MODE0) /* usb1_drvvbus */
- 		>;
- 	};
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index dd53c90..42cdad1 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -159,6 +159,9 @@ Boards:
+ - AM57XX CL-SOM-AM57x
+   compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
+ 
++- AM57XX SBC-AM57x
++  compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
 +
-+	i2c5_pins_default: i2c5_pins_default {
+ - DRA742 EVM:  Software Development Board for DRA742
+   compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
+ 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 803a020..4c73ab9 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -479,6 +479,7 @@ dtb-$(CONFIG_SOC_OMAP5) += \
+ dtb-$(CONFIG_SOC_DRA7XX) += \
+ 	am57xx-beagle-x15.dtb \
+ 	am57xx-cl-som-am57x.dtb \
++	am57xx-sbc-am57x.dtb \
+ 	dra7-evm.dtb \
+ 	dra72-evm.dtb
+ dtb-$(CONFIG_ARCH_ORION5X) += \
+diff --git a/arch/arm/boot/dts/am57xx-sbc-am57x.dts b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+new file mode 100644
+index 0000000..804ad72
+--- /dev/null
++++ b/arch/arm/boot/dts/am57xx-sbc-am57x.dts
+@@ -0,0 +1,36 @@
++/*
++ * Support for CompuLab SBC-AM57x single board computer
++ *
++ * Copyright (C) 2015 CompuLab Ltd. - http://www.compulab.co.il/
++ * Author: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#include "am57xx-cl-som-am57x.dts"
++#include "compulab-sb-som.dtsi"
++
++/ {
++	model = "CompuLab CL-SOM-AM57x on SB-SOM-AM57x";
++	compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
++};
++
++&dra7_pmx_core {
++	uart3_pins_default: uart3_pins_default {
 +		pinctrl-single,pins = <
-+			DRA7XX_CORE_IOPAD(0x36b4, PIN_INPUT| MUX_MODE10)	/* mcasp1_axr0.i2c5_sda */
-+			DRA7XX_CORE_IOPAD(0x36b8, PIN_INPUT| MUX_MODE10)	/* mcasp1_axr1.i2c5_scl */
++			DRA7XX_CORE_IOPAD(0x37f8, PIN_INPUT_SLEW | MUX_MODE2)	/* uart2_ctsn.uart3_rxd */
++			DRA7XX_CORE_IOPAD(0x37fc, PIN_INPUT_SLEW | MUX_MODE1)	/* uart2_rtsn.uart3_txd */
 +		>;
 +	};
- };
- 
- &uart3 {
-@@ -70,3 +77,16 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&usb1_pins>;
- };
++};
 +
-+&i2c5 {
++&uart3 {
 +	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c5_pins_default>;
-+	clock-frequency = <400000>;
++	interrupts-extended = <&crossbar_mpu GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>,
++			      <&dra7_pmx_core 0x3f8>;
 +
-+	eeprom_base: atmel@50 {
-+		compatible = "atmel,24c08";
-+		reg = <0x50>;
-+		pagesize = <16>;
-+	};
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins_default>;
 +};
 -- 
 1.9.1
