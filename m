@@ -1,110 +1,94 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] hwmon: (tmp102) Force wait for conversion time for the first valid data
-Date: Mon, 30 Nov 2015 22:25:55 -0600
-Message-ID: <1448943955-2385-1-git-send-email-nm@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v4 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Tue, 1 Dec 2015 10:15:26 +0530
+Message-ID: <565D25E6.4070206@ti.com>
+References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
+ <1448860515-28336-5-git-send-email-vigneshr@ti.com>
+ <20151130223408.GJ23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151130223408.GJ23396@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, beagleboard-x15@googlegroups.com, Nishanth Menon <nm@ti.com>, Eduardo Valentin <edubezval@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, hramrach@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-TMP102 works based on conversions done periodically. However, as per
-the TMP102 data sheet[1] the first conversion is triggered immediately
-after we program the configuration register. The temperature data
-registers do not reflect proper data until the first conversion is
-complete (in our case HZ/4).
 
-The driver currently sets the last_update to be jiffies - HZ, just
-after the configuration is complete. When tmp102 driver registers
-with the thermal framework, it immediately tries to read the sensor
-temperature data. This takes place even before the conversion on the
-TMP102 is complete and results in an invalid temperature read.
 
-Depending on the value read, this may cause thermal framework to
-assume that a critical temperature event has occurred and attempts to
-shutdown the system.
+On 12/01/2015 04:04 AM, Tony Lindgren wrote:
+> * Vignesh R <vigneshr@ti.com> [151129 21:16]:
+>> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
+>> update the binding documents for the controller to document this change.
+>>
+>> Acked-by: Rob Herring <robh@kernel.org>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ...
+>> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+>> @@ -26,3 +26,17 @@ qspi: qspi@4b300000 {
+>>  	spi-max-frequency = <25000000>;
+>>  	ti,hwmods = "qspi";
+>>  };
+>> +
+>> +For dra7xx:
+>> +qspi: qspi@4b300000 {
+>> +	compatible = "ti,dra7xxx-qspi";
+>> +	reg = <0x4b300000 0x100>,
+>> +	      <0x5c000000 0x4000000>,
+>> +	      <0x4a002558 0x4>;
+>> +	reg-names = "qspi_base", "qspi_mmap",
+>> +		    "qspi_ctrlmod";
+>> +	#address-cells = <1>;
+>> +	#size-cells = <0>;
+>> +	spi-max-frequency = <48000000>;
+>> +	ti,hwmods = "qspi";
+>> +};
+> 
+> Actually none of the IO areas above are within the same interconnect target:
+> 
+> 0x4b300000  QSPI0 address space in L3 main interconnect
+> 0x5c000000  QSPI1 address space in L3 main interconnect
 
-Instead of causing an invalid mid-conversion value to be read
-erroneously, we mark the last_update to be in-line with the current
-jiffies. This allows the tmp102_update_device function to skip update
-until the required conversion time is complete. Further, we ensure to
-return -EAGAIN result instead of returning spurious temperature (such
-as 0C) values to the caller to prevent any wrong decisions made with
-such values.
 
-A simpler alternative approach could be to sleep in the probe for the
-duration required, but that will result in latency that is undesirable
-that can delay boot sequence un-necessarily.
+First address range (configuration port: 0x4b300000) corresponds to QSPI
+registers space. These registers alone are sufficient for generic SPI
+communication (serial flash as well as non-flash SPI devices).
 
-[1] http://www.ti.com/lit/ds/symlink/tmp102.pdf
+In order to speed up SPI flash reads SFI_MM_IF(SPI memory mapped
+interface) is provided by QSPI IP. This _cannot_ be used with non-flash
+devices.
+The second address range (0x5c000000) corresponds to memory-mapped
+region of SFI_MM_IF, through which SPI flash memories can be read as if
+though they were RAM addresses (i.e using readl/memcpy). The SFI_MM_IF
+block that takes care of communicating over SPI bus and getting the data
+from flash device.
+But SFI_MM_IF block needs to know some flash specific information(such
+as read opcode, address bytes, dummy bytes, mode). This information must
+first be populated in QSPI_SPI_SETUP*_REG(0x4B300054-60) before
+accessing SFI_MM_IF address range via readl.
+Both addresses space belong to same instance of the driver, one
+corresponds to register space and other is memory-mapped region.
+Therefore both regions are claimed by the same driver.
 
-Cc: Eduardo Valentin <edubezval@gmail.com>
-Reported-by: Aparna Balasubramanian <aparnab@ti.com>
-Reported-by: Elvita Lobo <elvita@ti.com>
-Reported-by: Yan Liu <yan-liu@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+> 0x4a002558  CTRL_CORE_CONTROL_IO_2 in System Control Module (SCM) in L4_CFG
+> 
+> The first two address spaces should be two separate instances of this driver.
 
-Example case (from Beagleboard-x15 using an older kernel revision):
-	http://pastebin.ubuntu.com/13591711/
-Notice the thermal shutdown trigger:
-	thermal thermal_zone3: critical temperature reached(108 C),shutting down
+Not actually two instances.
 
- drivers/hwmon/tmp102.c | 19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+> The CTRL_CORE_CONTROL_IO_2 needs seems like a shared clock register that
+> needs to be accessed using the clock framework most likely.
+> 
 
-diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
-index 65482624ea2c..145f69108f23 100644
---- a/drivers/hwmon/tmp102.c
-+++ b/drivers/hwmon/tmp102.c
-@@ -50,6 +50,9 @@
- #define	TMP102_TLOW_REG			0x02
- #define	TMP102_THIGH_REG		0x03
- 
-+/* TMP102 range is -55 to 150C -> we use -128 as a default invalid value */
-+#define TMP102_NOTREADY			-128
-+
- struct tmp102 {
- 	struct i2c_client *client;
- 	struct device *hwmon_dev;
-@@ -102,6 +105,12 @@ static int tmp102_read_temp(void *dev, int *temp)
- {
- 	struct tmp102 *tmp102 = tmp102_update_device(dev);
- 
-+	/* Is it too early even to return a conversion? */
-+	if (tmp102->temp[0] == TMP102_NOTREADY) {
-+		dev_dbg(dev, "%s: Conversion not ready yet..\n", __func__);
-+		return -EAGAIN;
-+	}
-+
- 	*temp = tmp102->temp[0];
- 
- 	return 0;
-@@ -114,6 +123,10 @@ static ssize_t tmp102_show_temp(struct device *dev,
- 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
- 	struct tmp102 *tmp102 = tmp102_update_device(dev);
- 
-+	/* Is it too early even to return a read? */
-+	if (tmp102->temp[sda->index] == TMP102_NOTREADY)
-+		return -EAGAIN;
-+
- 	return sprintf(buf, "%d\n", tmp102->temp[sda->index]);
- }
- 
-@@ -207,7 +220,11 @@ static int tmp102_probe(struct i2c_client *client,
- 		status = -ENODEV;
- 		goto fail_restore_config;
- 	}
--	tmp102->last_update = jiffies - HZ;
-+	tmp102->last_update = jiffies;
-+	/* Mark that we are not ready with data until conversion is complete */
-+	tmp102->temp[0] = TMP102_NOTREADY;
-+	tmp102->temp[1] = TMP102_NOTREADY;
-+	tmp102->temp[2] = TMP102_NOTREADY;
- 	mutex_init(&tmp102->lock);
- 
- 	hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
+Not shared clock.
+The CTRL_CORE_CONTROL_IO_2[10:8] QSPI_MEMMAPPED_CS bit fields provides a
+functionality for remapping the previously described address space which
+starts at 0x5C000000 L3_MAIN address to one of the four supported chip
+selects.
+How about using syscon to access CTRL_CORE_CONTROL_IO_2?
+
 -- 
-2.6.2.402.g2635c2b
+Regards
+Vignesh
