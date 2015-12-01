@@ -1,86 +1,106 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Tue, 1 Dec 2015 16:41:16 +0200
-Message-ID: <565DB18C.7040505@ti.com>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
- <20151026212346.GJ13239@google.com> <562F45BF.8020205@ti.com>
- <20151130195449.GI64635@google.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [RFC PATCH] clocksource: ti-32k: convert to platform device
+Date: Tue, 1 Dec 2015 17:08:39 +0200
+Message-ID: <565DB7F7.4020702@ti.com>
+References: <1448040129-23869-1-git-send-email-grygorii.strashko@ti.com>
+ <87h9kgcz1k.fsf@saruman.tx.rr.com> <5658B8B2.5030505@ti.com>
+ <20151130162815.GA2517@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151130195449.GI64635@google.com>
+In-Reply-To: <20151130162815.GA2517@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux@arm.linux.org.uk, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Brian,
+Hi Tony,
 
-On 30/11/15 21:54, Brian Norris wrote:
-> Hi Roger,
-> 
-> On Tue, Oct 27, 2015 at 11:37:03AM +0200, Roger Quadros wrote:
->> On 26/10/15 23:23, Brian Norris wrote:
->>> I'm not too familiar with OMAP platforms, and I might have missed out on
->>> prior discussions/context, so please forgive if I'm asking silly or old
->>> questions here.
+On 11/30/2015 06:28 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [151127 12:11]:
+>> On 11/20/2015 08:21 PM, Felipe Balbi wrote:
+>>> Grygorii Strashko <grygorii.strashko@ti.com> writes:
+>>>> Since system clocksource is finally selected by Clocksource core a=
+t
+>>>> fs_initcall stage during boot there are no reasons to initialize
+>>>> ti_32k_timer at early boot stages. Hence, ti_32k_timer can be
+>>>> converted to use platform device/driver model and its PM can be
+>>>> implemented using PM runtime which is common for OMAP devices.
+>>>>
+>>>> Platform specific initialization code has to be disabled once as
+>>>> ti_32k_timer is converted to platform device - otherwise OMAP plat=
+form
+>>>> code will generate boot warnings.
+>>>>
+>>>> After this change, all counter_32k's platform code can be removed
+>>>> once all OMAP boards will be converted to DT.
+>>>>
+>>>> Cc: Tony Lindgren <tony@atomide.com>
+>>>> Cc: Felipe Balbi <balbi@ti.com>
+>>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>>> ---
 >>
->> No worries at all.
+>> [...]
 >>
+>>>> +
+>>>> +static struct platform_driver ti_32k_driver __initdata =3D {
+>>>> +	.probe		=3D ti_32k_probe,
+>>>> +	.driver		=3D {
+>>>> +		.name	=3D "ti_32k_timer",
+>>>> +		.of_match_table =3D of_match_ptr(ti_32k_of_table),
+>>>> +	}
+>>>> +};
+>>>> +
+>>>> +static int __init ti_32k_init(void)
+>>>> +{
+>>>> +	return platform_driver_register(&ti_32k_driver);
+>>>>    }
+>>>> -CLOCKSOURCE_OF_DECLARE(ti_32k_timer, "ti,omap-counter32k",
+>>>> -		ti_32k_timer_init);
+>>>> +
+>>>> +subsys_initcall(ti_32k_init);
+>>>> +
+>>>> +MODULE_AUTHOR("Paul Mundt");
+>>>> +MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
+>>>> +MODULE_DESCRIPTION("OMAP2 32k Timer");
+>>>> +MODULE_ALIAS("platform:ti_32k_timer");
+>>>> +MODULE_LICENSE("GPL v2");
 >>>
->>> On Fri, Sep 18, 2015 at 05:53:22PM +0300, Roger Quadros wrote:
->>>> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
->>>> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
->>>> This causes performance increase when using prefetch-irq mode.
->>>> 30% increase in read, 17% increase in write in prefetch-irq mode.
+>>> this will break clksource_of_init(), right ? Eventually, we want th=
+at to
+>>> be the only thing called by our .init_time method. I'll leave it to=
+ Tony
+>>> to decide, but IMO this is not a good path forward for timers.
 >>>
->>> Have you pinpointed the exact causes for the performance increase, or
->>> can you give an educated guess? AIUI, you're reducing the number of
->>> interrupts needed for NAND prefetch mode, but you're also removing a bit
->>> of abstraction and implementing hooks that look awfully like the
->>> existing abstractions:
->>>
->>> +       int (*nand_irq_enable)(enum gpmc_nand_irq irq);
->>> +       int (*nand_irq_disable)(enum gpmc_nand_irq irq);
->>> +       void (*nand_irq_clear)(enum gpmc_nand_irq irq);
->>> +       u32 (*nand_irq_status)(void);
->>>
->>> That's not really a problem if there's a good reason for them (brcmnand
->>> implements similar hooks because of quirks in the implementation of
->>> interrupts across various BRCM SoCs, and it's not worth writing irqchip
->>> drivers for those cases). I'm mainly curious for an explanation.
 >>
->> I have both implementations with me. My guess is that the 20% performance
->> gain is due to absence of irqchip/irqdomain translation code.
->> I haven't investigated further though.
-> 
-> I don't have much context for whether this makes sense or not. According
-> to your tests, you're getting ~800K interrupts over ~15 seconds. So
-> should you start noticing performance hits due to abstraction at 53K
-> interrupts per second?
+>> Yeh :(.  I did additional tests, and, unfortunately, this can't be u=
+sed as is.
+>> But not because of clocksource_of_init() which will just produce boo=
+t warning.
+>> It can't be done because of sched_clock_register() which is expected=
+ to be
+>> called during early boot time only and with disabled IRQs.
+>>
+>> It was so tempting to try :)
+>=20
+> We should be able to make this into an early_platform_device and just
+> have it depend on the source clock muxes. See the omap initcall chang=
+es
+> patches I just posted.
+>=20
 
-Yes, this was my understanding.
+Sry, may be I've missed smth, but how early_platform_device will help u=
+s
+to get rid of platform code - We'd still need to power on manually=20
+early_platform_device's from platform code :( through hwmod.
 
-> 
-> But anyway, I'm not sure that completely answered my question. My
-> question was whether you were removing the irqchip code solely for
-> performance reasons, or are there others?
+The main reason why I've tried this is because clocksource will be real=
+ly selected
+only at fs_initcall time - and at that time we have no restriction for =
+using platform
+devices, Pm runtime APIs, etc. (exception/blocker is sched_clock :().
 
-Yes. Only for performance reasons.
-
-> 
->> Another concern I have is that I'm not using any locking around
->> gpmc_nand_irq_enable/disable(). Could this pose problems in multiple NAND
->> use cases? My understanding is that it should not as the controller access
->> is serialized between multiple NAND chips.
-> 
-> Right, if you're touching just a NAND interrupt, and it's only used by a
-> single instance of this NAND controller, then the NAND controller
-> serialization code will handle this for you.
-
-OK.
-
-cheers,
--roger
+--=20
+regards,
+-grygorii
