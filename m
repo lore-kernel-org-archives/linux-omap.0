@@ -1,377 +1,86 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V3 01/19] ARM: dts: am57xx: cl-som-am57x: add basic
- module support
-Date: Wed, 2 Dec 2015 09:23:26 -0600
-Message-ID: <20151202152326.GA16775@rob-hp-laptop>
-References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
- <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
- <1448993001-19495-2-git-send-email-lifshitz@compulab.co.il>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 10/10] ARM: dts: Fix dm814x pinctrl address and mask
+Date: Wed, 2 Dec 2015 08:09:56 -0800
+Message-ID: <20151202160955.GD23396@atomide.com>
+References: <1449013103-23238-1-git-send-email-tony@atomide.com>
+ <1449013103-23238-11-git-send-email-tony@atomide.com>
+ <CAALWOA9LtWxFmKB_My7cv4KODBEmyPm=dUb=tPuap79fm7FkxA@mail.gmail.com>
+ <20151202004623.GX23396@atomide.com>
+ <CAALWOA8J5xJaa2jSoY3RJ2iGNAcAypbWsC3+9YTNMFZPY2r5pA@mail.gmail.com>
+ <20151202012200.GZ23396@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1448993001-19495-2-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Toni Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20151202012200.GZ23396@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 01, 2015 at 08:03:03PM +0200, Dmitry Lifshitz wrote:
-> Add support for CompuLab CM-SOM-AM57X board.
+* Tony Lindgren <tony@atomide.com> [151201 17:23]:
+> * Matthijs van Duin <matthijsvanduin@gmail.com> [151201 17:15]:
+> > On 2 December 2015 at 01:46, Tony Lindgren <tony@atomide.com> wrote:
+> > > Ouch. We should probably have separate PIN_INPUT_3V3 and PIN_OUTPUT_3V3
+> > > dts macros that ensure that?
+> > 
+> > Can't we just keep bit 18 out of the function mask? The bootloader
+> > should already have made sure all pins have bit 18 set (and bit 19 set
+> > to correct values after ROM mucked them up, see advisory 2.1.88), so
+> > all that needs to be done is avoid touching them.
 > 
-> CL-SOM-AM57x is a miniature System-on-Module (SoM) based on
-> TI Sitara AM57x ARM Cortex-A15 System-on-Chip family.
+> Sounds good to me. And people who really want to override the mask can
+> do it in the board specifc dts file.
 > 
-> https://www.compulab.co.il/products/computer-on-modules/cl-som-am57x-ti-am5728-am5718-system-on-module/
+> > Are the power savings from disabling unnecessary inputs significant
+> > enough to spend any headache on it?
 > 
-> Add basic DT support for standalone module (without a carrier board):
-> 
-> * Memory configuration
-> * Heartbeat led
-> * I2C1 and I2C4
-> * PMIC
-> * SATA
-> 
-> Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> Only for some battery powered devices, not in this case for sure.
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+And here's an updated version of this patch.
 
-> ---
->  v3:
->  
->    * Move PMIC to I2C4
->    * Reformat subject
->  
->  v2: 
-> 
->    * Fixed voltages (for OPP_HIGH) for VDD_GPU, VDD_IVA, VDD_DSPEVE
->    * Added comments for VDDA_1V8_PHYA/B
->    * Add "regulator-always-on" property for ldousb_reg 
-> 
->  .../devicetree/bindings/arm/omap/omap.txt          |   3 +
->  arch/arm/boot/dts/Makefile                         |   3 +-
->  arch/arm/boot/dts/am57xx-cl-som-am57x.dts          | 274 +++++++++++++++++++++
->  3 files changed, 279 insertions(+), 1 deletion(-)
->  create mode 100644 arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index da84372..dd53c90 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -156,6 +156,9 @@ Boards:
->  - AM437x SK EVM: AM437x StarterKit Evaluation Module
->    compatible = "ti,am437x-sk-evm", "ti,am4372", "ti,am43"
->  
-> +- AM57XX CL-SOM-AM57x
-> +  compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
-> +
->  - DRA742 EVM:  Software Development Board for DRA742
->    compatible = "ti,dra7-evm", "ti,dra742", "ti,dra74", "ti,dra7"
->  
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 5492a24..803a020 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -477,8 +477,9 @@ dtb-$(CONFIG_SOC_OMAP5) += \
->  	omap5-sbc-t54.dtb \
->  	omap5-uevm.dtb
->  dtb-$(CONFIG_SOC_DRA7XX) += \
-> -	dra7-evm.dtb \
->  	am57xx-beagle-x15.dtb \
-> +	am57xx-cl-som-am57x.dtb \
-> +	dra7-evm.dtb \
->  	dra72-evm.dtb
->  dtb-$(CONFIG_ARCH_ORION5X) += \
->  	orion5x-lacie-d2-network.dtb \
-> diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> new file mode 100644
-> index 0000000..087d62e
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> @@ -0,0 +1,274 @@
-> +/*
-> + * Support for CompuLab CL-SOM-AM57x System-on-Module
-> + *
-> + * Copyright (C) 2015 CompuLab Ltd. - http://www.compulab.co.il/
-> + * Author: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +/dts-v1/;
-> +
-> +#include <dt-bindings/gpio/gpio.h>
-> +#include <dt-bindings/interrupt-controller/irq.h>
-> +#include "dra74x.dtsi"
-> +
-> +/ {
-> +	model = "CompuLab CL-SOM-AM57x";
-> +	compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x20000000>; /* 512 MB - minimal configuration */
-> +	};
-> +
-> +	leds {
-> +		compatible = "gpio-leds";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&leds_pins_default>;
-> +
-> +		led@0 {
-> +			label = "cl-som-am57x:green";
-> +			gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
-> +			linux,default-trigger = "heartbeat";
-> +			default-state = "off";
-> +		};
-> +	};
-> +};
-> +
-> +&dra7_pmx_core {
-> +	leds_pins_default: leds_pins_default {
-> +		pinctrl-single,pins = <
-> +			DRA7XX_CORE_IOPAD(0x347c, PIN_OUTPUT | MUX_MODE14)	/* gpmc_a15.gpio2_5 */
-> +		>;
-> +	};
-> +
-> +	i2c1_pins_default: i2c1_pins_default {
-> +		pinctrl-single,pins = <
-> +			DRA7XX_CORE_IOPAD(0x3800, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda.sda */
-> +			DRA7XX_CORE_IOPAD(0x3804, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl.scl */
-> +		>;
-> +	};
-> +
-> +	i2c4_pins_default: i2c4_pins_default {
-> +		pinctrl-single,pins = <
-> +			DRA7XX_CORE_IOPAD(0x36ac, PIN_INPUT| MUX_MODE10)	/* mcasp1_acl.i2c4_sda */
-> +			DRA7XX_CORE_IOPAD(0x36b0, PIN_INPUT| MUX_MODE10)	/* mcasp1_fsr.i2c4_scl */
-> +		>;
-> +	};
-> +
-> +	tps659038_pins_default: tps659038_pins_default {
-> +		pinctrl-single,pins = <
-> +			DRA7XX_CORE_IOPAD(0x3818, PIN_INPUT_PULLUP | MUX_MODE14) /* wakeup0.gpio1_0 */
-> +		>;
-> +	};
-> +};
-> +
-> +&i2c1 {
-> +	status = "okay";
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c1_pins_default>;
-> +	clock-frequency = <400000>;
-> +};
-> +
-> +&i2c4 {
-> +	status = "okay";
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c4_pins_default>;
-> +	clock-frequency = <400000>;
-> +
-> +	tps659038: tps659038@58 {
-> +		compatible = "ti,tps659038";
-> +		reg = <0x58>;
-> +		interrupt-parent = <&gpio1>;
-> +		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
-> +
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&tps659038_pins_default>;
-> +
-> +		#interrupt-cells = <2>;
-> +		interrupt-controller;
-> +
-> +		ti,system-power-controller;
-> +
-> +		tps659038_pmic {
-> +			compatible = "ti,tps659038-pmic";
-> +
-> +			regulators {
-> +				smps12_reg: smps12 {
-> +					/* VDD_MPU */
-> +					regulator-name = "smps12";
-> +					regulator-min-microvolt = < 850000>;
-> +					regulator-max-microvolt = <1250000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps3_reg: smps3 {
-> +					/* VDD_DDR */
-> +					regulator-name = "smps3";
-> +					regulator-min-microvolt = <1500000>;
-> +					regulator-max-microvolt = <1500000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps45_reg: smps45 {
-> +					/* VDD_DSPEVE */
-> +					regulator-name = "smps45";
-> +					regulator-min-microvolt = < 850000>;
-> +					regulator-max-microvolt = <1250000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps6_reg: smps6 {
-> +					/* VDD_GPU */
-> +					regulator-name = "smps6";
-> +					regulator-min-microvolt = < 850000>;
-> +					regulator-max-microvolt = <1250000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps7_reg: smps7 {
-> +					/* VDD_CORE */
-> +					regulator-name = "smps7";
-> +					regulator-min-microvolt = < 850000>;
-> +					regulator-max-microvolt = <1160000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps8_reg: smps8 {
-> +					/* VDD_IVA */
-> +					regulator-name = "smps8";
-> +					regulator-min-microvolt = < 850000>;
-> +					regulator-max-microvolt = <1250000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				smps9_reg: smps9 {
-> +					/* PMIC_3V3 */
-> +					regulator-name = "smps9";
-> +					regulator-min-microvolt = <3300000>;
-> +					regulator-max-microvolt = <3300000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +
-> +				ldo1_reg: ldo1 {
-> +					/* VDD_SD / VDDSHV8  */
-> +					regulator-name = "ldo1";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <3300000>;
-> +					regulator-boot-on;
-> +					regulator-always-on;
-> +				};
-> +
-> +				ldo2_reg: ldo2 {
-> +					/* VDD_1V8 */
-> +					regulator-name = "ldo2";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo3_reg: ldo3 {
-> +					/* VDDA_1V8_PHYA - supplies VDDA_SATA, VDDA_USB1/2/3 */
-> +					regulator-name = "ldo3";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo4_reg: ldo4 {
-> +					/* VDDA_1V8_PHYB - supplies VDDA_HDMI, VDDA_PCIE/0/1 */
-> +					regulator-name = "ldo4";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldo9_reg: ldo9 {
-> +					/* VDD_RTC */
-> +					regulator-name = "ldo9";
-> +					regulator-min-microvolt = <1050000>;
-> +					regulator-max-microvolt = <1050000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldoln_reg: ldoln {
-> +					/* VDDA_1V8_PLL */
-> +					regulator-name = "ldoln";
-> +					regulator-min-microvolt = <1800000>;
-> +					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				ldousb_reg: ldousb {
-> +					/* VDDA_3V_USB: VDDA_USBHS33 */
-> +					regulator-name = "ldousb";
-> +					regulator-min-microvolt = <3300000>;
-> +					regulator-max-microvolt = <3300000>;
-> +					regulator-always-on;
-> +					regulator-boot-on;
-> +				};
-> +
-> +				/* regen1 not used */
-> +			};
-> +		};
-> +
-> +		tps659038_pwr_button: tps659038_pwr_button {
-> +			compatible = "ti,palmas-pwrbutton";
-> +			interrupt-parent = <&tps659038>;
-> +			interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
-> +			wakeup-source;
-> +			ti,palmas-long-press-seconds = <12>;
-> +		};
-> +
-> +		tps659038_gpio: tps659038_gpio {
-> +			compatible = "ti,palmas-gpio";
-> +			gpio-controller;
-> +			#gpio-cells = <2>;
-> +		};
-> +	};
-> +};
-> +
-> +&cpu0 {
-> +	cpu0-supply = <&smps12_reg>;
-> +	voltage-tolerance = <1>;
-> +};
-> +
-> +&sata {
-> +	status = "okay";
-> +};
-> +
-> +&mailbox5 {
-> +	status = "okay";
-> +	mbox_ipu1_ipc3x: mbox_ipu1_ipc3x {
-> +		status = "okay";
-> +	};
-> +	mbox_dsp1_ipc3x: mbox_dsp1_ipc3x {
-> +		status = "okay";
-> +	};
-> +};
-> +
-> +&mailbox6 {
-> +	status = "okay";
-> +	mbox_ipu2_ipc3x: mbox_ipu2_ipc3x {
-> +		status = "okay";
-> +	};
-> +	mbox_dsp2_ipc3x: mbox_dsp2_ipc3x {
-> +		status = "okay";
-> +	};
-> +};
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
+
+8< ----------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 1 Dec 2015 15:04:38 -0800
+Subject: [PATCH] ARM: dts: Fix dm814x pinctrl address and mask
+
+Otherwise pinctrl won't work. Because of silicon errata for some dm814x
+versions, let's also keep bit 18 out of the function-mask and rely on
+the bootloader configuration for bit 18  as suggested by
+Matthijs van Duin <matthijsvanduin@gmail.com>.
+
+Devices with that need to use bit 18 can override the function-mask in
+the board specific dts file if really needed.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -205,13 +205,21 @@
+ 					};
+ 				};
+ 
++				/*
++				 * Note that silicon revision 2.1 and older
++				 * require input enabled (bit 18 set) for all
++				 * 3.3V I/Os to avoid cumulative hardware damage.
++				 * For more info, see errata advisory 2.1.87.
++				 * We leave bit 18 out of function-mask and rely
++				 * on the bootloader for it.
++				 */
+ 				pincntl: pinmux@800 {
+ 					compatible = "pinctrl-single";
+-					reg = <0x800 0xc38>;
++					reg = <0x800 0x438>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
+ 					pinctrl-single,register-width = <32>;
+-					pinctrl-single,function-mask = <0x300ff>;
++					pinctrl-single,function-mask = <0x307ff>;
+ 				};
+ 			};
+ 
