@@ -1,73 +1,54 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4 1/5] spi: introduce accelerated read support for spi
- flash devices
-Date: Wed, 2 Dec 2015 19:41:25 +0000
-Message-ID: <20151202194125.GL1929@sirena.org.uk>
-References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
- <1448860515-28336-2-git-send-email-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Wed, 2 Dec 2015 12:05:06 -0800
+Message-ID: <20151202200506.GF23396@atomide.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+ <20151026212346.GJ13239@google.com>
+ <562F45BF.8020205@ti.com>
+ <20151130195449.GI64635@google.com>
+ <565DB18C.7040505@ti.com>
+ <20151202032643.GF64635@google.com>
+ <565E7DAC.7060401@ti.com>
+ <20151202150317.GC23396@atomide.com>
+ <20151202181330.GG64635@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6700869830520781660=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1448860515-28336-2-git-send-email-vigneshr@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: devicetree@vger.kernel.org, hramrach@gmail.com, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, Brian Norris <computersforpeace@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151202181330.GG64635@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: Roger Quadros <rogerq@ti.com>, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
+* Brian Norris <computersforpeace@gmail.com> [151202 10:14]:
+> On Wed, Dec 02, 2015 at 07:03:17AM -0800, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq@ti.com> [151201 21:13]:
+> > > On 02/12/15 08:56, Brian Norris wrote:
+> > > > 
+> > > > I'll take another pass over your patch set, but if things are looking
+> > > > better, how do you expect to merge this? There are significant portions
+> > > > that touch at least 2 or 3 different subsystem trees, AFAICT.
+> > > 
+> > > Tony could create an immutable branch with all the dts and memory changes.
+> > > You could base the mtd changes on top of that?
+> > 
+> > If we all agree on that it will be immutable Roger can set up the branch
+> > with our acks and we can all merge it in as needed. I believe v4.4-rc1
+> > should work as a base for us all?
+> 
+> There are oustanding comments about the NAND ready/busy GPIO naming in
+> patch 18, which I'd like addressed. I'll re-review the rest before the
+> end of the day (West Coast U.S.A.). I'm not sure my acks are worth much
+> beyond the MTD stuff.
 
---===============6700869830520781660==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="/bs84jhnE1DqD3f3"
-Content-Disposition: inline
+OK, I'm happy with the gpmc related parts.
 
+> Regarding branches, 4.4-rc1 is fine with me.
 
---/bs84jhnE1DqD3f3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+OK
 
-On Mon, Nov 30, 2015 at 10:45:11AM +0530, Vignesh R wrote:
-> In addition to providing direct access to SPI bus, some spi controller
-> hardwares (like ti-qspi) provide special port (like memory mapped port)
-> that are optimized to improve SPI flash read performance.
+Thanks,
 
-I'm reasonably OK with this from the SPI side but I'd really like to see
-people working on MTD say that this makes sense.
-
---/bs84jhnE1DqD3f3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWX0lkAAoJECTWi3JdVIfQbBsH/i+LzrX/mNNWMO2Q8w2kJhx5
-nwO6kUbQ+a4yvvd3YPcsrjAHB2s8cLUNnvxqGrYmu1By8TTW6icaxjxyTV+q0L4C
-xEwYBM63BTG0qjpc+7uBwPQ9bDpDAU6uNDz3XD5zg4GxHffzkQSOKIMzpcCNnXv6
-nqmU+cYVUAtkpC3UbJsFuXFyWynJgZ6sEBxMfhC/+80Ua4l4cVYtDXdDAiypKVC5
-of9zgQt7bCSYyn3jLJpERnfn/ZUhVCxcb1eDmJuV+Jko7O3vg8SQ8mK+2ifrS1xK
-oBhsZ4ZCj4ldptHi+/z15+L99IQB3iW4bFVaKIwwcOju329G1oUvs66hD07PcYw=
-=ym/f
------END PGP SIGNATURE-----
-
---/bs84jhnE1DqD3f3--
-
-
---===============6700869830520781660==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============6700869830520781660==--
+Tony
