@@ -1,96 +1,66 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 17/25] mtd: nand: remove useless
- mtd->priv = chip assignments
-Date: Wed, 2 Dec 2015 09:53:40 +0100
-Message-ID: <20151202095340.2f84e80f@bbrezillon>
-References: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
-	<1448967802-25796-18-git-send-email-boris.brezillon@free-electrons.com>
-	<20151201221747.GB64635@google.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC v02 03/15] dmaengine: core: Introduce new, universal API to
+ request a channel
+Date: Wed, 2 Dec 2015 12:00:42 +0200
+Message-ID: <565EC14A.6020502@ti.com>
+References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
+ <1448891145-10766-4-git-send-email-peter.ujfalusi@ti.com>
+ <20151130155142.GZ2517@atomide.com> <565D56A0.2090204@ti.com>
+ <20151201170031.GT23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBFXD7KZAKGQE4XKKCUA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <20151201221747.GB64635-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/linux-sunxi
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/linux-sunxi/subscribe>
-To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151201170031.GT23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Brian,
-
-On Tue, 1 Dec 2015 14:17:47 -0800
-Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-
-> On Tue, Dec 01, 2015 at 12:03:14PM +0100, Boris Brezillon wrote:
-> > mtd_to_nand() now uses the container_of() approach to transform an
-> > mtd_info pointer into a nand_chip one. Drop useless mtd->priv
-> > assignments from NAND controller drivers.
-> >=20
-> > Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-> > ---
-> > Patch generated with the following coccinelle script:
-> >=20
-> > ---8<----
-> > virtual patch
-> >=20
-> > @@
-> > struct mtd_info m;
-> > struct mtd_info *mp;
-> > struct nand_chip *c;
-> > @@
-> > (
-> > -(m).priv =3D c;
-> > |
-> > -(mp)->priv =3D c;
-> > |
-> > -(mp)->priv =3D (void *)c;
-> > )
-> > ---8<----
-> > ---
+On 12/01/2015 07:00 PM, Tony Lindgren wrote:
+>> I see. The dm81xx basically am33xx/am43xx?
 >=20
-> ...
+> Yeah similar to am33xx with different clocks and with a bunch of acce=
+lerators.
 >=20
-> > diff --git a/drivers/mtd/nand/s3c2410.c b/drivers/mtd/nand/s3c2410.c
-> > index 3f29734..ed4184c 100644
-> > --- a/drivers/mtd/nand/s3c2410.c
-> > +++ b/drivers/mtd/nand/s3c2410.c
-> > @@ -834,7 +834,6 @@ static void s3c2410_nand_init_chip(struct s3c2410_n=
-and_info *info,
-> >  	chip->IO_ADDR_R =3D chip->IO_ADDR_W;
-> > =20
-> >  	nmtd->info	   =3D info;
-> > -	mtd->priv	   =3D chip;
+>> Actually I would prefer to use the dmaengine's event router framewor=
+k and we
+>> do have support for the am33xx/am43xx type of crossbar already imple=
+mented.
+>> I'm going to resend the DTS series for am33xx/am43xx to convert them=
+ to use
+>> the new DT bindings along with the dma event router support:
+>> https://www.mail-archive.com/linux-omap%40vger.kernel.org/msg120828.=
+html
 >=20
-> After this one, we have:
+> OK yes a dmaengine event router works too when available. Good to see
+> them as separate driver instances now :) Are only the dts changes mis=
+sing
+> now?
 >=20
-> drivers/mtd/nand/s3c2410.c: In function =E2=80=98s3c2410_nand_init_chip=
-=E2=80=99:
-> drivers/mtd/nand/s3c2410.c:791:19: warning: unused variable =E2=80=98mtd=
-=E2=80=99 [-Wunused-variable]
+> FYI, when we have separate interconnect driver instances, we don't wa=
+nt to
+> and cannot tweak registers outside the interconnect instance because =
+of them
+> being in separate clock and/or power domains :p
 
-I fixed all the warnings/errors you pointed in patch 12 and 17 and
-resent a v3 only for those patches to avoid annoying all recipients
-again. Let me know if you want me to resend the whole patchset.
+What does this mean in practice? We can not touch these registers? The =
+DMA
+crossbar is a separate driver from the eDMA driver.
 
-Best Regards,
+> In any case, it seems there's no harm using pinctrl for evtmux on dm8=
+1xx
+> until the event router is available. It's currently only needed on th=
+e
+> t410 emmc that I'm aware of :)
 
-Boris
+The AM33xx/AM43xx DMA crossbar support is in 4.4 already:
+42dbdcc6bf96 dmaengine: ti-dma-crossbar: Add support for crossbar on AM=
+33xx/AM43xx
 
 --=20
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---=20
-You received this message because you are subscribed to the Google Groups "=
-linux-sunxi" group.
-To unsubscribe from this group and stop receiving emails from it, send an e=
-mail to linux-sunxi+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
