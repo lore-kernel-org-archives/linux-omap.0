@@ -1,57 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/10] ARM: OMAP2+: Disable GPIO softreset for dm81xx
-Date: Tue, 1 Dec 2015 17:38:05 -0800
-Message-ID: <20151202013805.GA23396@atomide.com>
-References: <1449013103-23238-1-git-send-email-tony@atomide.com>
- <1449013103-23238-6-git-send-email-tony@atomide.com>
- <CAALWOA-Cy7MUUE-6i7sovSQLj8g86E1gZu06+45oB20QGGQweA@mail.gmail.com>
- <20151202004136.GW23396@atomide.com>
- <20151202005430.GY23396@atomide.com>
+From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Tue, 1 Dec 2015 19:26:43 -0800
+Message-ID: <20151202032643.GF64635@google.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+ <20151026212346.GJ13239@google.com>
+ <562F45BF.8020205@ti.com>
+ <20151130195449.GI64635@google.com>
+ <565DB18C.7040505@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151202005430.GY23396@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Paul Walmsley <paul@pwsan.com>
+In-Reply-To: <565DB18C.7040505-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151201 16:56]:
-> * Tony Lindgren <tony@atomide.com> [151201 16:42]:
-> > * Matthijs van Duin <matthijsvanduin@gmail.com> [151201 16:11]:
-> > > On 2 December 2015 at 00:38, Tony Lindgren <tony@atomide.com> wrote:
-> > > > Looks like GPIO softreset status bit on both dm8168 and dm8148
-> > > > is broken and only goes high initially. After writing to sysc
-> > > > softreset bit, the resetdone bit never goes high again.
-> > > 
-> > > The resetdone bit works fine, but it needs all clocks active to come
-> > > up. You're neglecting to enable the debounce clock to the GPIO module:
-> > > 
-> > > > # mw.l 0x4818155c 0x2
-> > > 
-> > > That should write 0x102 instead.
+Hi Roger,
+
+On Tue, Dec 01, 2015 at 04:41:16PM +0200, Roger Quadros wrote:
+> On 30/11/15 21:54, Brian Norris wrote:
+> > On Tue, Oct 27, 2015 at 11:37:03AM +0200, Roger Quadros wrote:
+> >> On 26/10/15 23:23, Brian Norris wrote:
+> >>> On Fri, Sep 18, 2015 at 05:53:22PM +0300, Roger Quadros wrote:
+> >>>> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
+> >>>> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
+> >>>> This causes performance increase when using prefetch-irq mode.
+> >>>> 30% increase in read, 17% increase in write in prefetch-irq mode.
+> >>>
+> >>> Have you pinpointed the exact causes for the performance increase, or
+> >>> can you give an educated guess? AIUI, you're reducing the number of
+> >>> interrupts needed for NAND prefetch mode, but you're also removing a bit
+> >>> of abstraction and implementing hooks that look awfully like the
+> >>> existing abstractions:
+> >>>
+> >>> +       int (*nand_irq_enable)(enum gpmc_nand_irq irq);
+> >>> +       int (*nand_irq_disable)(enum gpmc_nand_irq irq);
+> >>> +       void (*nand_irq_clear)(enum gpmc_nand_irq irq);
+> >>> +       u32 (*nand_irq_status)(void);
+> >>>
+> >>> That's not really a problem if there's a good reason for them (brcmnand
+> >>> implements similar hooks because of quirks in the implementation of
+> >>> interrupts across various BRCM SoCs, and it's not worth writing irqchip
+> >>> drivers for those cases). I'm mainly curious for an explanation.
+> >>
+> >> I have both implementations with me. My guess is that the 20% performance
+> >> gain is due to absence of irqchip/irqdomain translation code.
+> >> I haven't investigated further though.
 > > 
-> > It seems to work only once based on what I've seen :) If you try it
-> > after it's powered it never works. Could be I'm doing something wrong
-> > of course..
-> > 
-> > > You can disable the debounce clock after resetting the module if you
-> > > don't need it, though I doubt there's any significant power savings
-> > > there. (More likely it exists as a separate bit to allow it to stay
-> > > enabled even if the module isn't, for wakeup on debounced inputs.)
-> > 
-> > Hmm I tried setting HWMOD_CONTROL_OPT_CLKS_IN_RESET flag like we
-> > have for many SoCs to enable also sysclk18_ck but no luck. I can
-> > recheck that.
+> > I don't have much context for whether this makes sense or not. According
+> > to your tests, you're getting ~800K interrupts over ~15 seconds. So
+> > should you start noticing performance hits due to abstraction at 53K
+> > interrupts per second?
 > 
-> You're right with 0x102 it works, need to debug further.
+> Yes, this was my understanding.
 
-Looks like also am33xx has opt clocks gate bit 18. Probably the best
-way to deal with this in the long run is to set up the clkctrl and
-optfclken as gate clocks with the clock framework. This is also needed
-as we have some devices sharing a single clkctrl register.
+Am I computing wrong, or is that a pretty insane rate of interrupts?
 
-Regards,
+> > But anyway, I'm not sure that completely answered my question. My
+> > question was whether you were removing the irqchip code solely for
+> > performance reasons, or are there others?
+> 
+> Yes. Only for performance reasons.
 
-Tony
+Hmm, that's not my favorite answer. I'd prefer that more analysis was
+done here before scrapping irqchip...
+
+But maybe that's not too bad. It seems like your patch set overall is a
+net positive for disentangling some of arch/ and drivers/.
+
+I'll take another pass over your patch set, but if things are looking
+better, how do you expect to merge this? There are significant portions
+that touch at least 2 or 3 different subsystem trees, AFAICT.
+
+Brian
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
