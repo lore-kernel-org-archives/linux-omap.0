@@ -1,44 +1,73 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Wed, 2 Dec 2015 10:43:30 -0800
-Message-ID: <20151202184330.GH64635@google.com>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
- <20151026212346.GJ13239@google.com>
- <562F45BF.8020205@ti.com>
- <20151130195449.GI64635@google.com>
- <565DB18C.7040505@ti.com>
- <20151202032643.GF64635@google.com>
- <565E7DAC.7060401@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4 1/5] spi: introduce accelerated read support for spi
+ flash devices
+Date: Wed, 2 Dec 2015 19:41:25 +0000
+Message-ID: <20151202194125.GL1929@sirena.org.uk>
+References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
+ <1448860515-28336-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <565E7DAC.7060401@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6700869830520781660=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1448860515-28336-2-git-send-email-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: devicetree@vger.kernel.org, hramrach@gmail.com, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, Brian Norris <computersforpeace@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
 
-On Wed, Dec 02, 2015 at 10:42:12AM +0530, Roger Quadros wrote:
-> On 02/12/15 08:56, Brian Norris wrote:
-> > On Tue, Dec 01, 2015 at 04:41:16PM +0200, Roger Quadros wrote:
-> >> On 30/11/15 21:54, Brian Norris wrote:
-> >>> But anyway, I'm not sure that completely answered my question. My
-> >>> question was whether you were removing the irqchip code solely for
-> >>> performance reasons, or are there others?
-> >>
-> >> Yes. Only for performance reasons.
-> > 
-> > Hmm, that's not my favorite answer. I'd prefer that more analysis was
-> > done here before scrapping irqchip...
-> 
-> I agree. We could retain the irqchip model till we have more satisfying
-> analysis.
+--===============6700869830520781660==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="/bs84jhnE1DqD3f3"
+Content-Disposition: inline
 
-I won't insist, though if it's not too ugly/horrible to do so, I think
-that would make sense. I'll leave it as your call.
 
-Brian
+--/bs84jhnE1DqD3f3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Nov 30, 2015 at 10:45:11AM +0530, Vignesh R wrote:
+> In addition to providing direct access to SPI bus, some spi controller
+> hardwares (like ti-qspi) provide special port (like memory mapped port)
+> that are optimized to improve SPI flash read performance.
+
+I'm reasonably OK with this from the SPI side but I'd really like to see
+people working on MTD say that this makes sense.
+
+--/bs84jhnE1DqD3f3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWX0lkAAoJECTWi3JdVIfQbBsH/i+LzrX/mNNWMO2Q8w2kJhx5
+nwO6kUbQ+a4yvvd3YPcsrjAHB2s8cLUNnvxqGrYmu1By8TTW6icaxjxyTV+q0L4C
+xEwYBM63BTG0qjpc+7uBwPQ9bDpDAU6uNDz3XD5zg4GxHffzkQSOKIMzpcCNnXv6
+nqmU+cYVUAtkpC3UbJsFuXFyWynJgZ6sEBxMfhC/+80Ua4l4cVYtDXdDAiypKVC5
+of9zgQt7bCSYyn3jLJpERnfn/ZUhVCxcb1eDmJuV+Jko7O3vg8SQ8mK+2ifrS1xK
+oBhsZ4ZCj4ldptHi+/z15+L99IQB3iW4bFVaKIwwcOju329G1oUvs66hD07PcYw=
+=ym/f
+-----END PGP SIGNATURE-----
+
+--/bs84jhnE1DqD3f3--
+
+
+--===============6700869830520781660==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6700869830520781660==--
