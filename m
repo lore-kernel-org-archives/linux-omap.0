@@ -1,45 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 10/10] ARM: dts: Fix dm814x pinctrl address and mask
-Date: Wed, 2 Dec 2015 08:13:31 -0800
-Message-ID: <20151202161331.GE23396@atomide.com>
-References: <1449013103-23238-1-git-send-email-tony@atomide.com>
- <1449013103-23238-11-git-send-email-tony@atomide.com>
- <CAALWOA9LtWxFmKB_My7cv4KODBEmyPm=dUb=tPuap79fm7FkxA@mail.gmail.com>
- <20151202004623.GX23396@atomide.com>
- <CAALWOA_=k=Z4m=1fC4jXJf9-a33OQuhHoEYJ7B8dXR9e4eF9fA@mail.gmail.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Wed, 2 Dec 2015 10:13:30 -0800
+Message-ID: <20151202181330.GG64635@google.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+ <20151026212346.GJ13239@google.com>
+ <562F45BF.8020205@ti.com>
+ <20151130195449.GI64635@google.com>
+ <565DB18C.7040505@ti.com>
+ <20151202032643.GF64635@google.com>
+ <565E7DAC.7060401@ti.com>
+ <20151202150317.GC23396@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAALWOA_=k=Z4m=1fC4jXJf9-a33OQuhHoEYJ7B8dXR9e4eF9fA@mail.gmail.com>
+In-Reply-To: <20151202150317.GC23396@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Matthijs van Duin <matthijsvanduin@gmail.com> [151201 17:23]:
-> On 2 December 2015 at 01:46, Tony Lindgren <tony@atomide.com> wrote:
-> > We should probably have separate PIN_INPUT_3V3 and PIN_OUTPUT_3V3
-> > dts macros that ensure that?
+On Wed, Dec 02, 2015 at 07:03:17AM -0800, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [151201 21:13]:
+> > On 02/12/15 08:56, Brian Norris wrote:
+> > > 
+> > > I'll take another pass over your patch set, but if things are looking
+> > > better, how do you expect to merge this? There are significant portions
+> > > that touch at least 2 or 3 different subsystem trees, AFAICT.
+> > 
+> > Tony could create an immutable branch with all the dts and memory changes.
+> > You could base the mtd changes on top of that?
 > 
-> I'm in general no fan of such macros: it feels really awkward to have
-> to make that distinction in dts when doing pin config.
-> 
-> Note that if you're feeling really enthausiastic about putting in
-> effort to allow inputs to be disabled while staying clear of the
-> erratum, I think you can detect at runtime which I/O supplies are 3.3V
-> by inspecting this register:
-> 
-> #define CTRL_CQDETECT_STATUS    0x48140e00
+> If we all agree on that it will be immutable Roger can set up the branch
+> with our acks and we can all merge it in as needed. I believe v4.4-rc1
+> should work as a base for us all?
 
-OK and if really needed needed the SoC revision information can be
-passed to pinctrl-singl.c in it's platform_data that we already have
-in addition to the dts configuration. And then pinctrl-single.c could
-modify the mask based on IO voltage and SoC revision.
+There are oustanding comments about the NAND ready/busy GPIO naming in
+patch 18, which I'd like addressed. I'll re-review the rest before the
+end of the day (West Coast U.S.A.). I'm not sure my acks are worth much
+beyond the MTD stuff.
 
-I think we're already covered as the boards can override the pinctrl
-function-mask in the board specific dts file if really needed :)
+Regarding branches, 4.4-rc1 is fine with me.
 
 Regards,
-
-Tony
+Brian
