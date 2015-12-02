@@ -1,50 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/10] ARM: OMAP2+: Disable GPIO softreset for dm81xx
-Date: Tue, 1 Dec 2015 16:54:30 -0800
-Message-ID: <20151202005430.GY23396@atomide.com>
+From: Matthijs van Duin <matthijsvanduin@gmail.com>
+Subject: Re: [PATCH 10/10] ARM: dts: Fix dm814x pinctrl address and mask
+Date: Wed, 2 Dec 2015 02:14:11 +0100
+Message-ID: <CAALWOA8J5xJaa2jSoY3RJ2iGNAcAypbWsC3+9YTNMFZPY2r5pA@mail.gmail.com>
 References: <1449013103-23238-1-git-send-email-tony@atomide.com>
- <1449013103-23238-6-git-send-email-tony@atomide.com>
- <CAALWOA-Cy7MUUE-6i7sovSQLj8g86E1gZu06+45oB20QGGQweA@mail.gmail.com>
- <20151202004136.GW23396@atomide.com>
+ <1449013103-23238-11-git-send-email-tony@atomide.com> <CAALWOA9LtWxFmKB_My7cv4KODBEmyPm=dUb=tPuap79fm7FkxA@mail.gmail.com>
+ <20151202004623.GX23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151202004136.GW23396@atomide.com>
+In-Reply-To: <20151202004623.GX23396@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151201 16:42]:
-> * Matthijs van Duin <matthijsvanduin@gmail.com> [151201 16:11]:
-> > On 2 December 2015 at 00:38, Tony Lindgren <tony@atomide.com> wrote:
-> > > Looks like GPIO softreset status bit on both dm8168 and dm8148
-> > > is broken and only goes high initially. After writing to sysc
-> > > softreset bit, the resetdone bit never goes high again.
-> > 
-> > The resetdone bit works fine, but it needs all clocks active to come
-> > up. You're neglecting to enable the debounce clock to the GPIO module:
-> > 
-> > > # mw.l 0x4818155c 0x2
-> > 
-> > That should write 0x102 instead.
-> 
-> It seems to work only once based on what I've seen :) If you try it
-> after it's powered it never works. Could be I'm doing something wrong
-> of course..
-> 
-> > You can disable the debounce clock after resetting the module if you
-> > don't need it, though I doubt there's any significant power savings
-> > there. (More likely it exists as a separate bit to allow it to stay
-> > enabled even if the module isn't, for wakeup on debounced inputs.)
-> 
-> Hmm I tried setting HWMOD_CONTROL_OPT_CLKS_IN_RESET flag like we
-> have for many SoCs to enable also sysclk18_ck but no luck. I can
-> recheck that.
+On 2 December 2015 at 01:46, Tony Lindgren <tony@atomide.com> wrote:
+> Ouch. We should probably have separate PIN_INPUT_3V3 and PIN_OUTPUT_3V3
+> dts macros that ensure that?
 
-You're right with 0x102 it works, need to debug further.
+Can't we just keep bit 18 out of the function mask? The bootloader
+should already have made sure all pins have bit 18 set (and bit 19 set
+to correct values after ROM mucked them up, see advisory 2.1.88), so
+all that needs to be done is avoid touching them.
 
-Thanks,
+Are the power savings from disabling unnecessary inputs significant
+enough to spend any headache on it?
 
-Tony
+Matthijs
