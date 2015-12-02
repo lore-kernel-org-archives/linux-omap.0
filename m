@@ -1,64 +1,43 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC v02 03/15] dmaengine: core: Introduce new, universal API to
- request a channel
-Date: Wed, 2 Dec 2015 07:00:05 -0800
-Message-ID: <20151202150005.GB23396@atomide.com>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
- <1448891145-10766-4-git-send-email-peter.ujfalusi@ti.com>
- <20151130155142.GZ2517@atomide.com>
- <565D56A0.2090204@ti.com>
- <20151201170031.GT23396@atomide.com>
- <565EC14A.6020502@ti.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Wed, 2 Dec 2015 07:03:17 -0800
+Message-ID: <20151202150317.GC23396@atomide.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+ <20151026212346.GJ13239@google.com>
+ <562F45BF.8020205@ti.com>
+ <20151130195449.GI64635@google.com>
+ <565DB18C.7040505@ti.com>
+ <20151202032643.GF64635@google.com>
+ <565E7DAC.7060401@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <565EC14A.6020502-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <565E7DAC.7060401-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151202 02:01]:
-> On 12/01/2015 07:00 PM, Tony Lindgren wrote:
-> >> I see. The dm81xx basically am33xx/am43xx?
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [151201 21:13]:
+> On 02/12/15 08:56, Brian Norris wrote:
 > > 
-> > Yeah similar to am33xx with different clocks and with a bunch of accelerators.
-> > 
-> >> Actually I would prefer to use the dmaengine's event router framework and we
-> >> do have support for the am33xx/am43xx type of crossbar already implemented.
-> >> I'm going to resend the DTS series for am33xx/am43xx to convert them to use
-> >> the new DT bindings along with the dma event router support:
-> >> https://www.mail-archive.com/linux-omap%40vger.kernel.org/msg120828.html
-> > 
-> > OK yes a dmaengine event router works too when available. Good to see
-> > them as separate driver instances now :) Are only the dts changes missing
-> > now?
-> > 
-> > FYI, when we have separate interconnect driver instances, we don't want to
-> > and cannot tweak registers outside the interconnect instance because of them
-> > being in separate clock and/or power domains :p
+> > I'll take another pass over your patch set, but if things are looking
+> > better, how do you expect to merge this? There are significant portions
+> > that touch at least 2 or 3 different subsystem trees, AFAICT.
 > 
-> What does this mean in practice? We can not touch these registers? The DMA
-> crossbar is a separate driver from the eDMA driver.
+> Tony could create an immutable branch with all the dts and memory changes.
+> You could base the mtd changes on top of that?
 
-Seem like it should not affect DMA crossbar as it's a separate driver.
+If we all agree on that it will be immutable Roger can set up the branch
+with our acks and we can all merge it in as needed. I believe v4.4-rc1
+should work as a base for us all?
 
-What I meant is we need a separate driver for clocks, pinctrl, regulators,
-PHY, crossbar or syscon to use the SCM registers from drivers sitting on a
-L4 interonnect.
-
-> > In any case, it seems there's no harm using pinctrl for evtmux on dm81xx
-> > until the event router is available. It's currently only needed on the
-> > t410 emmc that I'm aware of :)
-> 
-> The AM33xx/AM43xx DMA crossbar support is in 4.4 already:
-> 42dbdcc6bf96 dmaengine: ti-dma-crossbar: Add support for crossbar on AM33xx/AM43xx
-
-OK great.
+Regards,
 
 Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
