@@ -1,113 +1,97 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [RFC v02 00/15] dmaengine: New 'universal' API for requesting
- channel
-Date: Wed, 2 Dec 2015 10:22:09 +0530
-Message-ID: <20151202045209.GB1854@localhost>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
- <20151201165954.GA1696@localhost>
- <3124382.EhiMyQGKTA@wuerfel>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Wed, 2 Dec 2015 10:42:12 +0530
+Message-ID: <565E7DAC.7060401@ti.com>
+References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
+ <20151026212346.GJ13239@google.com> <562F45BF.8020205@ti.com>
+ <20151130195449.GI64635@google.com> <565DB18C.7040505@ti.com>
+ <20151202032643.GF64635@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3124382.EhiMyQGKTA@wuerfel>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, nsekhar@ti.com, linux-spi@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151202032643.GF64635@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 01, 2015 at 09:17:06PM +0100, Arnd Bergmann wrote:
-> On Tuesday 01 December 2015 22:29:54 Vinod Koul wrote:
-> > On Mon, Nov 30, 2015 at 03:45:30PM +0200, Peter Ujfalusi wrote:
-> > > channel via DT, ACPI or in case if the kernel booted in non DT/ACPI mode
-> > > it will use a filter lookup table and retrieves the needed information from
-> > > the dma_filter_map provided by the DMA drivers.
-> > 
-> > That sounds right, for the third case would the arch, driver or someone else
-> > configure this?
-> 
-> The typical case is for the configuration to be defined in arch or platform
-> code and passed down to the dmaengine driver.
-> 
-> I just noticed that the text above (and probably the code too) should
-> be changed so we always fall back to this. There are cases where the
-> platform is booted with DT in principle, but the DMA engine does not
-> (yet) use DT and still wants to be converted. I think we can easily
-> handle that case by always trying this if the other methods fail.
+Brian,
 
-I agree that this makes sense, not just for DT cases but ACPI as well
+On 02/12/15 08:56, Brian Norris wrote:
+> Hi Roger,
+> 
+> On Tue, Dec 01, 2015 at 04:41:16PM +0200, Roger Quadros wrote:
+>> On 30/11/15 21:54, Brian Norris wrote:
+>>> On Tue, Oct 27, 2015 at 11:37:03AM +0200, Roger Quadros wrote:
+>>>> On 26/10/15 23:23, Brian Norris wrote:
+>>>>> On Fri, Sep 18, 2015 at 05:53:22PM +0300, Roger Quadros wrote:
+>>>>>> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
+>>>>>> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
+>>>>>> This causes performance increase when using prefetch-irq mode.
+>>>>>> 30% increase in read, 17% increase in write in prefetch-irq mode.
+>>>>>
+>>>>> Have you pinpointed the exact causes for the performance increase, or
+>>>>> can you give an educated guess? AIUI, you're reducing the number of
+>>>>> interrupts needed for NAND prefetch mode, but you're also removing a bit
+>>>>> of abstraction and implementing hooks that look awfully like the
+>>>>> existing abstractions:
+>>>>>
+>>>>> +       int (*nand_irq_enable)(enum gpmc_nand_irq irq);
+>>>>> +       int (*nand_irq_disable)(enum gpmc_nand_irq irq);
+>>>>> +       void (*nand_irq_clear)(enum gpmc_nand_irq irq);
+>>>>> +       u32 (*nand_irq_status)(void);
+>>>>>
+>>>>> That's not really a problem if there's a good reason for them (brcmnand
+>>>>> implements similar hooks because of quirks in the implementation of
+>>>>> interrupts across various BRCM SoCs, and it's not worth writing irqchip
+>>>>> drivers for those cases). I'm mainly curious for an explanation.
+>>>>
+>>>> I have both implementations with me. My guess is that the 20% performance
+>>>> gain is due to absence of irqchip/irqdomain translation code.
+>>>> I haven't investigated further though.
+>>>
+>>> I don't have much context for whether this makes sense or not. According
+>>> to your tests, you're getting ~800K interrupts over ~15 seconds. So
+>>> should you start noticing performance hits due to abstraction at 53K
+>>> interrupts per second?
+>>
+>> Yes, this was my understanding.
+> 
+> Am I computing wrong, or is that a pretty insane rate of interrupts?
+
+I don't have the test board with me right now and so can't tell you
+for sure if the mtd tests took 15 seconds or more.
+
+I can try it out on a different board that I have and let you know
+for sure about how many interrupts we get per second.
+> 
+>>> But anyway, I'm not sure that completely answered my question. My
+>>> question was whether you were removing the irqchip code solely for
+>>> performance reasons, or are there others?
+>>
+>> Yes. Only for performance reasons.
+> 
+> Hmm, that's not my favorite answer. I'd prefer that more analysis was
+> done here before scrapping irqchip...
+
+I agree. We could retain the irqchip model till we have more satisfying
+analysis.
 
 > 
-> > > This legacy mode needs changes in platform code, in dmaengine drivers and
-> > > finally the dmaengine user drivers can be converted:
-> > 
-> > Are you marking the current APIs as dericated in the end of this series
-> 
-> I think we practically stopped marking things as deprecated in general.
-> Per Linus decree, whenever we want to get rid of something, we should
-> instead change all users in tree and then remove the API, expecting
-> driver maintainers to do something just because you marked it as deprecated
-> often doesn't work.
+> But maybe that's not too bad. It seems like your patch set overall is a
+> net positive for disentangling some of arch/ and drivers/.
 
-Yes but while we do conversion we don't know if new users get added which use
-old API..
+:)
 
 > 
-> I can help out converting a few platforms, maybe one interface at a time.
+> I'll take another pass over your patch set, but if things are looking
+> better, how do you expect to merge this? There are significant portions
+> that touch at least 2 or 3 different subsystem trees, AFAICT.
 
-Great yes we all will have to chip in and start removing these, i will try
-doing few after new year
+Tony could create an immutable branch with all the dts and memory changes.
+You could base the mtd changes on top of that?
 
-Am sure Andy can chip in as well :)
-
-> This is what I see:
-> 
-> arnd@wuerfel:~/arm-soc$ for i in dma_request_slave_channel_reason dma_request_slave_channel dma_request_slave_channel_compat dma_request_channel  ; do echo `git grep -wl $i drivers/  | grep -v drivers/dma | wc -l`\      $i ; done
-> 14      dma_request_slave_channel_reason
-> 27      dma_request_slave_channel
-> 25      dma_request_slave_channel_compat
-> 34      dma_request_channel
-> 
-> I would probably leave the users of dma_request_channel() while converting
-> the others, as that is still used by all the platforms that don't use any DT
-> support.
-> 
-> Changing dma_request_slave_channel_reason and dma_request_slave_channel is
-> trivial, we can probably use coccinelle for that, as it does not require
-> any platform changes. That brings us to the users of
-> dma_request_slave_channel_compat, which currently includes these files:
-> 
-> $ git grep -wl dma_request_slave_channel_compat drivers/ata/pata_pxa.c
-> drivers/crypto/atmel-aes.c
-> drivers/crypto/atmel-sha.c
-> drivers/crypto/atmel-tdes.c
-> drivers/crypto/omap-aes.c
-> drivers/crypto/omap-des.c
-> drivers/crypto/omap-sham.c
-> drivers/media/platform/omap3isp/isphist.c
-> drivers/mmc/host/davinci_mmc.c
-> drivers/mmc/host/omap.c
-> drivers/mmc/host/omap_hsmmc.c
-> drivers/mmc/host/pxamci.c
-> drivers/mmc/host/s3cmci.c
-> drivers/mmc/host/tmio_mmc_dma.c
-> drivers/mtd/nand/pxa3xx_nand.c
-> drivers/net/ethernet/smsc/smc91x.c
-> drivers/net/irda/pxaficp_ir.c
-> drivers/spi/spi-omap2-mcspi.c
-> drivers/spi/spi-pxa2xx-dma.c
-> drivers/spi/spi-rspi.c
-> drivers/spi/spi-s3c64xx.c
-> drivers/spi/spi-sh-msiof.c
-> drivers/tty/serial/8250/8250_dma.c
-> drivers/tty/serial/samsung.c
-> drivers/tty/serial/sh-sci.c
-> include/linux/dmaengine.h
-> 
-> In other words: arch/avr32 and arch/sh along with omap1, omap2, davinci, pxa, and s3c
-> in terms of ARM platforms.
-> 
-> 	Arnd
-
--- 
-~Vinod
+cheers,
+-roger
