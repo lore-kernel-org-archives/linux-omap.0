@@ -1,41 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC v02 04/15] dmaengine: edma: Add support for DMA filter
- mapping to slave devices
-Date: Wed, 2 Dec 2015 12:02:14 +0200
-Message-ID: <565EC1A6.3090806@ti.com>
-References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
- <1448891145-10766-5-git-send-email-peter.ujfalusi@ti.com>
- <20151201172212.GC1696@localhost> <1589780.JL62pLTh05@wuerfel>
- <20151202043730.GA1854@localhost>
+From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] ARM: OMAP2+: dts: cm-t335: add initial support
+Date: Wed, 2 Dec 2015 12:44:01 +0200
+Message-ID: <565ECB71.4090205@compulab.co.il>
+References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1448373733-5839-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1448373733-5839-2-git-send-email-uri.mashiach@compulab.co.il>
+ <20151130195123.GP2517@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151202043730.GA1854@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, nsekhar@ti.com, linux-spi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151130195123.GP2517-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/02/2015 06:37 AM, Vinod Koul wrote:
-> On Tue, Dec 01, 2015 at 09:20:28PM +0100, Arnd Bergmann wrote:
->> On Tuesday 01 December 2015 22:52:12 Vinod Koul wrote:
->>> On Mon, Nov 30, 2015 at 03:45:34PM +0200, Peter Ujfalusi wrote:
->>>> Add support for providing device to filter_fn mapping so client dr=
-ivers
->>>> can switch to use the dma_request_chan() API.
->>>
->>> Any reason why we dont want to go with DT based only for edma here?
->>
->> I think the OMAP2 based platforms using edma are all DT-only, but ma=
-ch-davinci
->> would need a lot of work for that.
->=20
-> Okay sound fine then
+Hi Tony,
 
-Yes, daVinci is mostly board file based and the problem is that those d=
-evices
-are hard to find to do the conversion to DT.
+On 11/30/2015 09:51 PM, Tony Lindgren wrote:
+> * Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151124 06:03]:
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
+> ...
+>
+>> +&uart0 {
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 = <&uart0_pins>;
+>> +
+>> +	status = "okay";
+>> +};
+>> +
+>
+> FYI, the extra line break at the end of the file causes whitespace
+> warnings when applying. And fixing that causes extra hassles with
+> applying the other patches in the series as the patches won't apply..
+> So for the next time, you may want to check that ;)
 
---=20
-P=E9ter
+Yes, I will definitely do that.
+
+>
+> Also, the subject line should be "ARM: dts: ..." for the dts changes
+> so the git log loooks unified for all the ARM SoCs.
+
+Got it. Thanks!
+
+>
+> Anyways, I've fixed up those locally and applying into omap-for-v4.5/dt.
+>
+
+Thank you Tony!
+
+-- 
+Regards,
+Uri.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
