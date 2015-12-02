@@ -1,60 +1,86 @@
-From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH v2 1/6] ARM: OMAP2+: dts: cm-t335: add initial support
-Date: Wed, 2 Dec 2015 12:44:01 +0200
-Message-ID: <565ECB71.4090205@compulab.co.il>
-References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
- <1448373733-5839-1-git-send-email-uri.mashiach@compulab.co.il>
- <1448373733-5839-2-git-send-email-uri.mashiach@compulab.co.il>
- <20151130195123.GP2517@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC v02 00/15] dmaengine: New 'universal' API for requesting
+ channel
+Date: Wed, 2 Dec 2015 12:51:43 +0200
+Message-ID: <565ECD3F.3070500@ti.com>
+References: <1448891145-10766-1-git-send-email-peter.ujfalusi@ti.com>
+ <CAHp75VcC5uwGTp_N13q5P8MPtkhy0DFytDaXGrnoiHfnoEo8ng@mail.gmail.com>
+ <565DA47C.4000308@ti.com> <103520159.g0xhtFsXUi@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151130195123.GP2517-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <103520159.g0xhtFsXUi@wuerfel>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Vinod Koul <vinod.koul@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, linux-spi <linux-spi@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On 12/01/2015 04:24 PM, Arnd Bergmann wrote:
+> On Tuesday 01 December 2015 15:45:32 Peter Ujfalusi wrote:
+>>>> static struct dma_filter_map da830_edma_map[] =3D {
+>>>>         DMA_FILTER_ENTRY("davinci-mcasp.0", "rx", EDMA_CTLR_CHAN(0=
+, 0)),
+>>>>         DMA_FILTER_ENTRY("davinci-mcasp.0", "tx", EDMA_CTLR_CHAN(0=
+, 1)),
+>>>>         DMA_FILTER_ENTRY("davinci-mcasp.1", "rx", EDMA_CTLR_CHAN(0=
+, 2)),
+>>>>         DMA_FILTER_ENTRY("davinci-mcasp.1", "tx", EDMA_CTLR_CHAN(0=
+, 3)),
+>>>>         DMA_FILTER_ENTRY("davinci-mcasp.2", "rx", EDMA_CTLR_CHAN(0=
+, 4)),
+>>>>         DMA_FILTER_ENTRY("davinci-mcasp.2", "tx", EDMA_CTLR_CHAN(0=
+, 5)),
+>>>>         DMA_FILTER_ENTRY("spi_davinci.0", "rx", EDMA_CTLR_CHAN(0, =
+14)),
+>>>>         DMA_FILTER_ENTRY("spi_davinci.0", "tx", EDMA_CTLR_CHAN(0, =
+15)),
+>>>>         DMA_FILTER_ENTRY("da830-mmc.0", "rx", EDMA_CTLR_CHAN(0, 16=
+)),
+>>>>         DMA_FILTER_ENTRY("da830-mmc.0", "tx", EDMA_CTLR_CHAN(0, 17=
+)),
+>>>>         DMA_FILTER_ENTRY("spi_davinci.1", "rx", EDMA_CTLR_CHAN(0, =
+18)),
+>>>>         DMA_FILTER_ENTRY("spi_davinci.1", "tx", EDMA_CTLR_CHAN(0, =
+19)),
+>>>
+>>> Does this ".2" and so prevent driver to use auto ID for platform de=
+vices?
+>>
+>> Yes, as all the infra around the traditional board files with platfo=
+rm_device
+>> creation does. Ideally we could have 'phandle' pointing from this ta=
+ble to the
+>> device in question (or other way around), but I'm not aware of anyth=
+ing we can
+>> use.
+>=20
+> I was thinking that we could use a pointer to the device structure, b=
+ut
+> if you have that, you can also just read the name from it.
 
-On 11/30/2015 09:51 PM, Tony Lindgren wrote:
-> * Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151124 06:03]:
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/am335x-cm-t335.dts
-> ...
->
->> +&uart0 {
->> +	pinctrl-names = "default";
->> +	pinctrl-0 = <&uart0_pins>;
->> +
->> +	status = "okay";
->> +};
->> +
->
-> FYI, the extra line break at the end of the file causes whitespace
-> warnings when applying. And fixing that causes extra hassles with
-> applying the other patches in the series as the patches won't apply..
-> So for the next time, you may want to check that ;)
+Hrm to have pdev pointer instead of the devname string? In the core we =
+could
+get the pdev from the caller's device with to_platform_device(dev) and =
+simply
+compare the pointers...
 
-Yes, I will definitely do that.
+One of the issue I see (in mach-davinci and mach-omap1/2) is that the p=
+devs
+are scattered around in the c files so gathering the pointers to a plac=
+e where
+we can see them to be able to use it in the dma_filter_map is not going=
+ to be
+light weight task.
+=46urthermore we have the omap_hwmod for OMAP2+ which creates the actua=
+l pdevs
+and resources from the omap_hwmod data structures so getting out the DM=
+A event
+numbers there is not going to be easy either...
 
->
-> Also, the subject line should be "ARM: dts: ..." for the dts changes
-> so the git log loooks unified for all the ARM SoCs.
+I'll hold back the RFC v3 to see if we should switch to pdev pointer or=
+ stay
+with the devname strings here.
 
-Got it. Thanks!
-
->
-> Anyways, I've fixed up those locally and applying into omap-for-v4.5/dt.
->
-
-Thank you Tony!
-
--- 
-Regards,
-Uri.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+P=E9ter
