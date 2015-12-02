@@ -1,31 +1,57 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH 10/10] ARM: dts: Fix dm814x pinctrl address and mask
-Date: Wed, 2 Dec 2015 02:21:59 +0100
-Message-ID: <CAALWOA_=k=Z4m=1fC4jXJf9-a33OQuhHoEYJ7B8dXR9e4eF9fA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/10] ARM: OMAP2+: Disable GPIO softreset for dm81xx
+Date: Tue, 1 Dec 2015 17:38:05 -0800
+Message-ID: <20151202013805.GA23396@atomide.com>
 References: <1449013103-23238-1-git-send-email-tony@atomide.com>
- <1449013103-23238-11-git-send-email-tony@atomide.com> <CAALWOA9LtWxFmKB_My7cv4KODBEmyPm=dUb=tPuap79fm7FkxA@mail.gmail.com>
- <20151202004623.GX23396@atomide.com>
+ <1449013103-23238-6-git-send-email-tony@atomide.com>
+ <CAALWOA-Cy7MUUE-6i7sovSQLj8g86E1gZu06+45oB20QGGQweA@mail.gmail.com>
+ <20151202004136.GW23396@atomide.com>
+ <20151202005430.GY23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151202004623.GX23396@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20151202005430.GY23396@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>
+To: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: lkml <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 2 December 2015 at 01:46, Tony Lindgren <tony@atomide.com> wrote:
-> We should probably have separate PIN_INPUT_3V3 and PIN_OUTPUT_3V3
-> dts macros that ensure that?
+* Tony Lindgren <tony@atomide.com> [151201 16:56]:
+> * Tony Lindgren <tony@atomide.com> [151201 16:42]:
+> > * Matthijs van Duin <matthijsvanduin@gmail.com> [151201 16:11]:
+> > > On 2 December 2015 at 00:38, Tony Lindgren <tony@atomide.com> wrote:
+> > > > Looks like GPIO softreset status bit on both dm8168 and dm8148
+> > > > is broken and only goes high initially. After writing to sysc
+> > > > softreset bit, the resetdone bit never goes high again.
+> > > 
+> > > The resetdone bit works fine, but it needs all clocks active to come
+> > > up. You're neglecting to enable the debounce clock to the GPIO module:
+> > > 
+> > > > # mw.l 0x4818155c 0x2
+> > > 
+> > > That should write 0x102 instead.
+> > 
+> > It seems to work only once based on what I've seen :) If you try it
+> > after it's powered it never works. Could be I'm doing something wrong
+> > of course..
+> > 
+> > > You can disable the debounce clock after resetting the module if you
+> > > don't need it, though I doubt there's any significant power savings
+> > > there. (More likely it exists as a separate bit to allow it to stay
+> > > enabled even if the module isn't, for wakeup on debounced inputs.)
+> > 
+> > Hmm I tried setting HWMOD_CONTROL_OPT_CLKS_IN_RESET flag like we
+> > have for many SoCs to enable also sysclk18_ck but no luck. I can
+> > recheck that.
+> 
+> You're right with 0x102 it works, need to debug further.
 
-I'm in general no fan of such macros: it feels really awkward to have
-to make that distinction in dts when doing pin config.
+Looks like also am33xx has opt clocks gate bit 18. Probably the best
+way to deal with this in the long run is to set up the clkctrl and
+optfclken as gate clocks with the clock framework. This is also needed
+as we have some devices sharing a single clkctrl register.
 
-Note that if you're feeling really enthausiastic about putting in
-effort to allow inputs to be disabled while staying clear of the
-erratum, I think you can detect at runtime which I/O supplies are 3.3V
-by inspecting this register:
+Regards,
 
-#define CTRL_CQDETECT_STATUS    0x48140e00
-
-Matthijs
+Tony
