@@ -1,128 +1,169 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 00/27] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Thu, 3 Dec 2015 14:31:37 +0530
-Message-ID: <566004F1.2040806@ti.com>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
- <20151203050905.GE120110@google.com> <565FDC4E.4000200@ti.com>
- <20151203062206.GB16368@brian-ubuntu>
+From: Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Subject: Re: [PATCH v4 3/5] mtd: devices: m25p80: add support for mmap read
+ request
+Date: Thu, 3 Dec 2015 10:42:19 +0100
+Message-ID: <56600E7B.8010208@atmel.com>
+References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
+ <1448860515-28336-4-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151203062206.GB16368@brian-ubuntu>
+In-Reply-To: <1448860515-28336-4-git-send-email-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>, tony@atomide.com
-Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>, Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, hramrach@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Vasut <marex@denx.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/12/15 11:52, Brian Norris wrote:
-> Hi,
-> 
-> On Thu, Dec 03, 2015 at 11:38:14AM +0530, Roger Quadros wrote:
->> On 03/12/15 10:39, Brian Norris wrote:
->>> On Fri, Sep 18, 2015 at 05:53:22PM +0300, Roger Quadros wrote:
->>>> We do a couple of things in this series which result in
->>>> cleaner device tree implementation, faster perfomance and
->>>> multi-platform support. As an added bonus we get new GPI/Interrupt pins
->>>> for use in the system.
->>>>
->>>> - Establish a custom interface between NAND and GPMC driver. This is
->>>> needed because all of the NAND registers sit in the GPMC register space.
->>>> Some bits like NAND IRQ are even shared with GPMC.
->>>>
->>>> - Remove NAND IRQ handling from omap-gpmc driver, share the GPMC IRQ
->>>> with the omap2-nand driver and handle NAND IRQ events in the NAND driver.
->>>> This causes performance increase when using prefetch-irq mode.
->>>> 30% increase in read, 17% increase in write in prefetch-irq mode.
->>>>
->>>> - Clean up device tree support so that omap-gpmc IP and the omap2 NAND
->>>> driver can be used on non-OMAP platforms. e.g. Keystone.
->>>>
->>>> - Implement GPIOCHIP + IRQCHIP for the GPMC WAITPINS. SoCs can contain
->>>> 2 to 4 of these and most of them would be unused otherwise. It also
->>>> allows a cleaner implementation of NAND Ready pin status for the NAND driver.
->>>>
->>>> - Implement GPIOlib based NAND ready pin checking for OMAP NAND driver.
->>>>
->>>> This series is available at
->>>> git@github.com:rogerq/linux.git
->>>> in branch
->>>> for-v4.4/gpmc-v3
->>>>
->>>> cheers,
->>>> -roger
->>>>
->>>> Changelog:
->>>> v3:
->>>> -Fixed and tested NAND using legacy boot on omap3-beagle.
->>>> -Support rising and falling edge interrupts on WAITpins.
->>>> -Update DT node of all gpmc users.
->>>
->>> The MTD stuff looks mostly good to me know. I've made all my comments
->>> for now, but I'm not sure how you're going to end up rebasing/splitting
->>> and what you're going to do with the irqchip removal, so I'll refrain
->>> from ack's for now. Hopefully I can either ack or merge v4.
->>
->> I'll retain the irqchip model for now and send a v4 with all comments
->> addressed and better subsystem wise patch split.
->>
->>>
->>> I brought it up on one other patch, but it's not really clear to me what
->>> the split is on board file vs. device tree handling, since you seem to
->>> have a combination of both (i.e., platform data that passes along device
->>> nodes). What's the plan on that?
->>
->> Platform data no longer passes device nodes. We're either true device tree
->> or plain legacy. The deprecated fields are no longer used once the series is
->> applied.
-> 
-> Well, they're still sorta used (you assign info->of_node =
-> pdata->of_node, for instance). As dicussed in the other thread, I think
-> we can avoid the deprecation part and just kill the fields though, and
-> that would make things clearer.
-> 
->>> And of course, there's the question of how exactly to merge this, given
->>> the:
->>> (1) conflicts already existing in the MTD dev tree
->>
->> I'll rebase the series on top of MTD dev tree.
-> 
-> OK. FWIW, we so far only need to base them on commit a61ae81a1907 ("mtd:
-> nand: drop unnecessary partition parser data"). Maybe when queueing up a
-> branch, that'd be the best starting point for Tony, so he doesn't need
-> to have all of MTD's stuff in his tree too? I can set up a signed tag or
-> something, if that would be helpful.
-> 
-> But for sending patches, the latest l2-mtd.git is fine too.
-> 
->>> (2) this touches several trees, often in the same patch and
->>
->> I'll try my best to split the patches but not sure if this could be 100%
->> clean split without functional breakage.
->>
->>> (3) even if the patches were split out a little better into MTD and
->>>     non-MTD stuff, I think there would still be dependencies such that
->>>     we'd need at least 1 (probably 2) cross merges to get it all
->>>     straight
->>
->> That is correct.
->> Is it OK if functionality breaks if for example only MTD changes are considered?
-> 
-> I think I may have misunderstood the branch proposal. If Tony queues up:
-> 
->   l2-mtd.git (or just up to commit a61ae81a1907)
->   +
->   your patches
-> 
-> and I pull that back into l2-mtd.git as well, then we don't need to
-> worry about patches that touch multiple "trees". Just do whatever makes
-> things clearest, including disregarding some of my comments along the
-> line of (3).
+Hi Vignesh,
 
-Tony,
+Le 30/11/2015 06:15, Vignesh R a =E9crit :
+> Certain spi controllers may provide accelerated interface to read fro=
+m
+> m25p80 type flash devices. This interface provides better read
+> performance than regular SPI interface.
+> Call spi_flash_read(), if supported, to make use of such interface.
+>=20
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>=20
+> v4:=20
+>  * Use spi_flash_read_message struct to pass args.
+>  * support passing of opcode/addr/data nbits.
+>=20
+>  drivers/mtd/devices/m25p80.c | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+>=20
+> diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p8=
+0.c
+> index fe9ceb7b5405..00094a668c62 100644
+> --- a/drivers/mtd/devices/m25p80.c
+> +++ b/drivers/mtd/devices/m25p80.c
+> @@ -131,6 +131,26 @@ static int m25p80_read(struct spi_nor *nor, loff=
+_t from, size_t len,
+>  	/* convert the dummy cycles to the number of bytes */
+>  	dummy /=3D 8;
+> =20
+> +	if (spi_flash_read_supported(spi)) {
+> +		struct spi_flash_read_message msg;
+> +		int ret;
+> +
+> +		msg.buf =3D buf;
+> +		msg.from =3D from;
+> +		msg.len =3D len;
+> +		msg.read_opcode =3D nor->read_opcode;
+> +		msg.addr_width =3D nor->addr_width;
+> +		msg.dummy_bytes =3D dummy;
+> +		/* TODO: Support other combinations */
+> +		msg.opcode_nbits =3D SPI_NBITS_SINGLE;
+> +		msg.addr_nbits =3D SPI_NBITS_SINGLE;
+> +		msg.data_nbits =3D m25p80_rx_nbits(nor);
 
-Are you fine with this?
+I wanted to let you know that the support of other SPI protocols has al=
+ready
+been implemented by this series:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/37=
+1170.html
 
-cheers,
--roger
+patches 2 & 3 handle the probing of the (Q)SPI memory in spi_nor_scan()=
+ and
+select the right protocols for register read/write, memory read, memory=
+ write,
+and memory erase operations. The choice is done according to both the m=
+emory
+and SPI controller capabilities.
+
+patch 4 updates the m25p80 driver to take advantage of the bandwidth in=
+crease
+allowed by QSPI protocols. For instance, the Atmel QSPI controller, lik=
+e TI
+one, maps the SPI NOR memory to the system bus. Yesterday I ran mtd_spe=
+edtest
+to compare Fast Read 1-1-1 (0x0b) and Fast Read 1-1-4 (0x6b). The SPI c=
+lock
+frequency was limited to 83MHz. The QSPI memory is a Micron n25q128a13.
+
+I only had to change the mode argument of spi_nor_scan() from SPI_NOR_Q=
+UAD to
+SPI_NOR_FAST in the atmel_quadspi driver (based on fsl-quadspi driver f=
+rom
+=46reescale since Atmel's driver also uses the system bus mapping for m=
+emory
+write operations) to force the spi-nor framework to choose the SPI 1-1-=
+1
+protocol instead of the SPI-1-1-4.
+
+1 - Fast Read 1-1-1
+
+mtd_speedtest: testing eraseblock write speed
+mtd_speedtest: eraseblock read speed is 9319 KiB/s
+[...]
+mtd_speedtest: testing page read speed
+mtd_speedtest: page read speed is 6649 KiB/s
+[...]
+mtd_speedtest: testing 2 page read speed
+mtd_speedtest: 2 page read speed is 7757 KiB/s
+
+2 - Fast Read 1-1-4
+
+mtd_speedtest: testing eraseblock read speed
+mtd_speedtest: eraseblock read speed is 30117 KiB/s
+[...]
+mtd_speedtest: testing page read speed
+mtd_speedtest: page read speed is 13096 KiB/s
+[...]
+mtd_speedtest: testing 2 page read speed
+mtd_speedtest: 2 page read speed is 18224 KiB/s
+
+So the performance improvements are:
+eraseblock read speed (65536 bytes) : +223%
+page read speed (512 bytes)         :  +97%
+2 page read speed (1024 bytes)      : +135%
+
+
+That's why I believe that you could take advantage of these performance
+improvements in the TI (Q)SPI controller driver.
+
+
+Also please note that you may have to add in the struct spi_flash_read_=
+message
+two other fields for the number of option/mode cycles and their value.
+Option/mode cycles are sent between the address and dummy cycles. They =
+are
+used by some memory manufacturers such as Spansion, Micron and Macronix=
+ to
+enter/leave their continuous read mode.
+So if uninitialized dummy cycles are interpreted by the QSPI memory as
+option/mode cycles, depending on the actual value, the memory may enter=
+ by
+mistake in continuous mode. Once in continuous mode, the command op cod=
+e byte
+must not be sent and is not expected by the memory: the memory implicit=
+ly uses
+the read op code sent in the SPI message which triggered the memory to =
+enter
+continuous read mode. Next SPI messages start from the address cycles u=
+ntil
+the right option/mode cycles are sent to leave the continuous read mode=
+=2E
+
+Currently the mtd layer doesn't use this feature but it should be aware=
+ of it.
+That's why I believe we'll have to address this point in spi_nor_scan()=
+ and the
+"regular" m25p80() sooner or later.
+
+> +
+> +		ret =3D spi_flash_read(spi, &msg);
+> +		*retlen =3D msg.retlen;
+> +		return ret;
+> +	}
+> +
+>  	spi_message_init(&m);
+>  	memset(t, 0, (sizeof t));
+> =20
+>=20
+
+Best regards,
+
+Cyrille
