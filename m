@@ -1,69 +1,67 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [4.4-rc][PATCH] ARM: dts: am4372: disable arm twd and global
- timer's nodes
-Date: Thu, 3 Dec 2015 20:20:13 +0200
-Message-ID: <566087DD.2040006@ti.com>
-References: <1447855315-419-1-git-send-email-grygorii.strashko@ti.com>
- <20151118141537.GC10644@leverpostej> <564C9ACF.6040107@ti.com>
- <20151203163311.GP23396@atomide.com> <20151203163708.GR23396@atomide.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH 0/2] ARM: dts: Use MMC pwrseq instead regulators for IGEP
+ WiFi init
+Date: Thu, 3 Dec 2015 15:28:49 -0300
+Message-ID: <566089E1.7050805@osg.samsung.com>
+References: <1449165729-993-1-git-send-email-javier@osg.samsung.com>
+ <20151203181624.GW23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151203163708.GR23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: slash.tmp-GANU6spQydw@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151203181624.GW23396@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/03/2015 06:37 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [151203 08:34]:
+Hello Tony,
+
+On 12/03/2015 03:16 PM, Tony Lindgren wrote:
+> * Javier Martinez Canillas <javier@osg.samsung.com> [151203 10:03]:
+>> Hello,
 >>
->> It seems we should apply this as a fix unless somebody has better ideas.
+>> This series converts the IGEPv2 (IGEP0020) and IGEP COM Module (IGEP0030)
+>> Device Tree to use the MMC power sequence provider to initialize the SDIO
+>> WiFi chip instead of using fake fixed regulators to just toggle the Reset
+>> and Power pins in the chip.
+>>
+>> The patches were tested on an DM3730 IGEPv2 board but the IGEP COM Module
+>> is the same with regard to the SDIO WiFi so it should be safe to land too.
+>>
+>> The IGEPv2 Rev.F and the IGEP COM Module Rev.G DTS were not converted due
+>> using a different WiFi chip (wlcore instead of libertas) than the one in
+>> the board I've access to test so I preferred to leave those untouched.
 > 
-> Actually I think the fix for now is "[4.4-rc][PATCH v2] ARM: dts: am4372: fix
-> clock source for arm twd and global timers" until PM starts working?
+> Do you have some solution for the start-up latency issue?
+>
+
+No, I don't and that's one of the reasons why I didn't want to touch the
+DTS that have the wlcore chip.
+
+The omap3-igep0020-rev-f.dts and omap3-igep0030-rev-g.dts don't have a
+startup-delay-us property in the regulator for the WLAN_EN pin as is
+the case for the IGEPv5 DTS but I don't know if those DTS are just wrong.
+
+The DTS for the igep0020 and igep0030 that have the libertas chip,
+did have a startup-delay-us for the WIFI_PDN but using the GPIOs
+for RESET_N_W and WIFI_PDN in the mmc-pwrseq-simple reset-gpios is
+enough to make the SDIO chip reset, be enumerated and WiFi to work
+correctly so I don't know if that is really needed or is just a bad
+description in the DTS.
+
+Since is working for the boards with the libertas chip, I preferred
+to remove the DTS hack but left the boards with wlcore chip since
+you said the startup-delay-us is needed there (but probably we should
+add to the regulators in the boards that don't have it then).
+
+> Regards,
+> 
+> Tony
 > 
 
-Yes. if no PM it should work, but PM patches are on the fly for Am43.
-
-But, again, main reason I've posted this patch is that I do not see the
-way how to enable/disable or limit functionality of these timer by using 
-Kconfig options in case of Muliplatform builds :( (or by boot parameters).
-
-Example 1 (this is how 4.4 kernel is working):
-1) OMAP4 has ARM TWD timer and properly supports it, so in Kconfig we have
-"select HAVE_ARM_TWD" and corresponding "local-timer" is defined in DT.
-AM437x has ARM TWD timer, but does not support it yet, so corresponding "local-timer"
-defined in DT and in Kconfig HAVE_ARM_TWD is not selected.
-(patch http://www.spinics.net/lists/arm-kernel/msg459649.html
- is not merged yet)
-
-Result: ARM TWD timer will be enabled on AM437x !? :(
-
-Example 2:
-ARM Global timer can't be used as clocksource device if CPUFreq is enabled
-(this is not supported even by Timekeeping core now).
-
-So, there are two options:
-1) update selection for config SOC_AM43XX
-+ select ARM_GLOBAL_TIMER if !CPU_FREQ
-2) updated ARM GT driver and don't register clocksource device if CPUFreq is enabled
-
-Both options will not work:
-1) ARM_GLOBAL_TIMER will be selected if any other SoC in multiplatform build
-will select ARM_GLOBAL_TIMER
-2) clocksource device will never be registered if at least one SoC will
-select CPU_FREQ. And this might break SoC which expect it to be registered,
-because CPU_FREQ is not enabled on these SoCs (no CPUFreq drivers registered).
-
-So, as alternative to this patch, ARM timers nodes can be disabled in
-platform DTS files, but then all platform DTS files will need to be updated.
-
+Best regards,
 -- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
