@@ -1,76 +1,49 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 1/2] ARM: dts: omap3-igep0020: Use MMC pwrseq to init SDIO WiFi
-Date: Thu,  3 Dec 2015 15:02:08 -0300
-Message-ID: <1449165729-993-2-git-send-email-javier@osg.samsung.com>
-References: <1449165729-993-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449165729-993-1-git-send-email-javier@osg.samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@osg.samsung.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [4.4-rc][PATCH v2] ARM: dts: am4372: fix clock source for arm twd
+ and global timers
+Date: Thu, 3 Dec 2015 20:04:46 +0200
+Message-ID: <5660843E.3000801@ti.com>
+References: <1448898998-32749-1-git-send-email-grygorii.strashko@ti.com>
+ <20151203163551.GQ23396@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151203163551.GQ23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: t-kristo-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-When the WiFi support was added to the IGEP0020 board, the MMC subsystem
-did not provide a mechanism to define power sequence providers. So a DT
-hack was used to toggle the WiFi chip reset and power down pins by using
-fake fixed regulators whose enable GPIO was the GPIOs connected to these
-pins.
+On 12/03/2015 06:35 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [151130 07:58]:
+>> ARM TWD and Global timer are clocked by PERIPHCLK which is MPU_CLK/2.
+>> But now they are clocked by dpll_mpu_m2_ck == MPU_CLK and, as result.
+>> Timekeeping core misbehaves. For example, execution of command
+>> "sleep 5" will take 10 sec instead of 5.
+>>
+>> Hence, fix it by adding mpu_periphclk ("fixed-factor-clock") and use
+>> it for clocking ARM TWD and Global timer (same way as on OMAP4).
+>>
+>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+>> Fixes:commit 8cbd4c2f6a99 ("arm: boot: dts: am4372: add ARM timers and SCU nodes")
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+> 
+> Is this fix alone enough or do you still need to disable other the ARM
+> timers in the board specific dts file?
+> 
 
-But now the simple MMC power sequence provider can be used for this and
-the workaround removed.
+This one is independent and it's required for -rc, because ARM TWD timer will be selected
+now for am43xx even if http://www.spinics.net/lists/arm-kernel/msg459649.html
+is not merged yet ;) in case of omap2plus_defconfig build.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
 
- arch/arm/boot/dts/omap3-igep0020.dts | 24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-index 3835e1569c29..33d6b4ead092 100644
---- a/arch/arm/boot/dts/omap3-igep0020.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020.dts
-@@ -15,25 +15,17 @@
- 	model = "IGEPv2 Rev. C (TI OMAP AM/DM37x)";
- 	compatible = "isee,omap3-igep0020", "ti,omap36xx", "ti,omap3";
- 
--	/* Regulator to trigger the WIFI_PDN signal of the Wifi module */
--	lbee1usjyc_pdn: lbee1usjyc_pdn {
-+	vmmcsdio_fixed: fixedregulator-mmcsdio {
- 		compatible = "regulator-fixed";
--		regulator-name = "regulator-lbee1usjyc-pdn";
-+		regulator-name = "vmmcsdio_fixed";
- 		regulator-min-microvolt = <3300000>;
- 		regulator-max-microvolt = <3300000>;
--		gpio = <&gpio5 10 GPIO_ACTIVE_HIGH>;	/* gpio_138 - WIFI_PDN */
--		startup-delay-us = <10000>;
--		enable-active-high;
- 	};
- 
--	/* Regulator to trigger the RESET_N_W signal of the Wifi module */
--	lbee1usjyc_reset_n_w: lbee1usjyc_reset_n_w {
--		compatible = "regulator-fixed";
--		regulator-name = "regulator-lbee1usjyc-reset-n-w";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--		gpio = <&gpio5 11 GPIO_ACTIVE_HIGH>;	/* gpio_139 - RESET_N_W */
--		enable-active-high;
-+	mmc2_pwrseq: mmc2_pwrseq {
-+		compatible = "mmc-pwrseq-simple";
-+		reset-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>,	/* gpio_139 - RESET_N_W */
-+			      <&gpio5 10 GPIO_ACTIVE_LOW>;	/* gpio_138 - WIFI_PDN */
- 	};
- };
- 
-@@ -51,8 +43,8 @@
- &mmc2 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc2_pins &lbee1usjyc_pins>;
--	vmmc-supply = <&lbee1usjyc_pdn>;
--	vmmc_aux-supply = <&lbee1usjyc_reset_n_w>;
-+	vmmc-supply = <&vmmcsdio_fixed>;
-+	mmc-pwrseq = <&mmc2_pwrseq>;
- 	bus-width = <4>;
- 	non-removable;
- };
 -- 
-2.4.3
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
