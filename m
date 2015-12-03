@@ -1,81 +1,55 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 2/2] pinctrl: single: remove misuse of IRQF_NO_SUSPEND
- flag
-Date: Thu, 3 Dec 2015 18:59:08 +0000
-Message-ID: <566090FC.1020502@arm.com>
-References: <1448644860-29323-1-git-send-email-sudeep.holla@arm.com>
- <1448644860-29323-2-git-send-email-sudeep.holla@arm.com>
- <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
- <20151203181337.GV23396@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/10] Patches to get dm814x-evm booting to NFSroot
+Date: Thu, 3 Dec 2015 11:21:27 -0800
+Message-ID: <20151203192127.GX23396@atomide.com>
+References: <1449013103-23238-1-git-send-email-tony@atomide.com>
+ <5660872E.8080603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151203181337.GV23396@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <5660872E.8080603@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
+* Grygorii Strashko <grygorii.strashko@ti.com> [151203 10:18]:
+> On 12/02/2015 01:38 AM, Tony Lindgren wrote:
+> 
+> > Tony Lindgren (10):
+> >    ARM: OMAP2+: Fix timer entries for dm814x
+> >    clk: ti: Add few dm814x clock aliases
+> >    ARM: OMAP2+: Add DPPLS clock manager for dm814x
+> >    ARM: OMAP2+: Enable GPIO for dm814x
+> >    ARM: OMAP2+: Disable GPIO softreset for dm81xx
+> >    ARM: OMAP2+: Remove useless check for legacy booting for dm814x
+> >    ARM: dts: Fix dm814x entries for pllss and prcm
+> >    ARM: dts: Fix some mux and divider clocks to get dm814x-evm booting
+> >    ARM: dts: Fix dm8148 control modules ranges
+> >    ARM: dts: Fix dm814x pinctrl address and mask
+> 
+> I'm worry a bit, if you will apply this series in its current order
+> - it will break git bisect.
+> Patch one "ARM: OMAP2+: Fix timer entries for dm814x" will use timerX_fck, but those
+> clocks will be added by patches 2 "clk: ti: Add few dm814x clock aliases"
+> and 8 "ARM: dts: Fix some mux and divider clocks to get dm814x-evm booting"
 
+Yeah you have a point there. I was hoping to separate them to dts and soc
+related patches but clearly that's not possible.
 
-On 03/12/15 18:13, Tony Lindgren wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [151201 06:07]:
->> On Fri, Nov 27, 2015 at 6:21 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->>
->>> From: Sudeep Holla <Sudeep.Holla@arm.com>
->>>
->>> The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
->>> be left enabled so as to allow them to work as expected during the
->>> suspend-resume cycle, but doesn't guarantee that it will wake the system
->>> from a suspended state, enable_irq_wake is recommended to be used for
->>> the wakeup.
->>>
->>> This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
->>> irq_set_irq_wake instead.
->>>
->>> Cc: Linus Walleij <linus.walleij@linaro.org>
->>> Cc: linux-gpio@vger.kernel.org
->>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->>
->> I need Tony's ACK on this as well.
->
-> At least on omaps, this controller is always powered and we never want to
-> suspend it as it handles wake-up events for all the IO pins. And that
-> usecase sounds exactly like what you're describing above.
->
+We can keep t410 limping along just fine with this order:
 
-Understood, but I assume this is a generic driver that can be used by
-any pinmux.
+ARM: dts: Fix dm814x entries for pllss and prcm
+clk: ti: Add few dm814x clock aliases
+ARM: OMAP2+: Add DPPLS clock manager for dm814x
+ARM: dts: Fix some mux and divider clocks to get dm814x-evm booting
+ARM: OMAP2+: Fix timer entries for dm814x
+ARM: dts: Fix dm8148 control modules ranges
+ARM: dts: Fix dm814x pinctrl address and mask
+ARM: OMAP2+: Enable GPIO for dm814x
+ARM: OMAP2+: Remove useless check for legacy booting for dm814x
 
-> I don't quite follow what your suggested alternative for an interrupt
-> controller is?
->
-
-Why can't we use enable_irq_wake even for parent/interrupt controller as
-they can be considered as parent wakeup irq. I agree the interrupt
-controller may not be powered down, but still it's part of wakeup and
-the irq core needs to identify that. By just marking IRQF_NO_SUSPEND,
-you are saying that you can handle interrupt in the suspend path but not
-informing that it's a wakeup interrupt.
-
-With this change, the wakeup handler (including the parent handler) is
-called when it's safe as the irq core maintains the state machine.
-
-> At least we need to have the alternative patched in with this chage before
-> just removing IRQF_NO_SUSPEND.
->
-
-I have added irq_set_irq_wake(pcs_soc->irq, state) in pcs_irq_set_wake
-which ensures it's marked for wakeup.
-
-> The enable_irq_wake is naturally used for the consumer drivers of this
-> interrupt controller and actually mostly done automatically now with the
-> dev_pm_set_dedicated_wake_irq.
->
-
-Agreed, no doubt on that.
-
--- 
 Regards,
-Sudeep
+
+Tony
