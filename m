@@ -1,140 +1,138 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 12/14] ARM: dts: sb-som: introduce SB-SOM baseboard
-Date: Thu, 3 Dec 2015 08:24:08 -0600
-Message-ID: <20151203142408.GA24844@rob-hp-laptop>
-References: <1448978109-5614-1-git-send-email-nikita@compulab.co.il>
- <1448978109-5614-13-git-send-email-nikita@compulab.co.il>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/4] dmaengine: New 'universal' API for requesting channel
+Date: Thu, 3 Dec 2015 16:33:08 +0200
+Message-ID: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1448978109-5614-13-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: vinod.koul@intel.com, arnd@arndb.de, andy.shevchenko@gmail.com
+Cc: tony@atomide.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 01, 2015 at 03:55:07PM +0200, Nikita Kiryanov wrote:
-> CompuLab SB-SOM baseboard is a carrier board for multiple arm-based SoMs.
-> It currently supports (with minor adjustments to assembly) CM-T43, CM-T54,
-> and CM-QS600 modules. It is a building block in the SBC-T43 single board
-> computer, which consists of cm-t43 on top of sb-som-t43.
-> 
-> Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>
-> Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
+Hi,
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Changes since RFC v03:
+- No longer RFC
+- Dropped the arch/arm/mcah-davinci and daVinci MMC and SPI patches so we don't
+  have inter subsystem issues.
+- Comments from Andy to patch no 3 has been addressed with the exception of
+  moving code over to device_property
+- 'struct dma_filter_map' renamed as 'struct dma_slave_map'
+- Code documentation added
 
-> ---
-> Changes in V2:
-> 	- Renamed file startek,startek-kd050c to startek,startek-kd050c.txt.
-> 	- s/QS-600/CM-QS600 in file compulab-boards.txt
-> 
->  .../devicetree/bindings/arm/compulab-boards.txt    |  5 +++
->  .../display/panel/startek,startek-kd050c.txt       |  4 +++
->  .../devicetree/bindings/vendor-prefixes.txt        |  1 +
->  arch/arm/boot/dts/compulab-sb-som.dtsi             | 42 ++++++++++++++++++++++
->  4 files changed, 52 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/arm/compulab-boards.txt
->  create mode 100644 Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
->  create mode 100644 arch/arm/boot/dts/compulab-sb-som.dtsi
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/compulab-boards.txt b/Documentation/devicetree/bindings/arm/compulab-boards.txt
-> new file mode 100644
-> index 0000000..71172d5
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/arm/compulab-boards.txt
-> @@ -0,0 +1,5 @@
-> +CompuLab SB-SOM is a multi-module baseboard capable of carrying CM-T43, CM-T54,
-> +and CM-QS600 modules with minor modifications to the SB-SOM assembly.
-> +
-> +Required root node properties:
-> +    - compatible = should be "compulab,sb-som"
-> diff --git a/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
-> new file mode 100644
-> index 0000000..70cd8d1
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
-> @@ -0,0 +1,4 @@
-> +Startek Electronic Technology Co. KD050C 5.0" WVGA TFT LCD panel
-> +
-> +Required properties:
-> +- compatible: should be "startek,startek-kd050c"
-> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> index 55df1d4..409b134 100644
-> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> @@ -218,6 +218,7 @@ sony	Sony Corporation
->  spansion	Spansion Inc.
->  sprd	Spreadtrum Communications Inc.
->  st	STMicroelectronics
-> +startek	Startek
->  ste	ST-Ericsson
->  stericsson	ST-Ericsson
->  synology	Synology, Inc.
-> diff --git a/arch/arm/boot/dts/compulab-sb-som.dtsi b/arch/arm/boot/dts/compulab-sb-som.dtsi
-> new file mode 100644
-> index 0000000..402a143
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/compulab-sb-som.dtsi
-> @@ -0,0 +1,42 @@
-> +/*
-> + * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +/ {
-> +	model = "CompuLab SB-SOM";
-> +	compatible = "compulab,sb-som";
-> +
-> +	vsb_3v3: fixedregulator-v3_3 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vsb_3v3";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		regulator-always-on;
-> +		enable-active-high;
-> +	};
-> +
-> +	lcd0: display {
-> +		compatible = "startek,startek-kd050c", "panel-dpi";
-> +		label = "lcd";
-> +
-> +		panel-timing {
-> +			clock-frequency = <33000000>;
-> +			hactive = <800>;
-> +			vactive = <480>;
-> +			hfront-porch = <40>;
-> +			hback-porch = <40>;
-> +			hsync-len = <43>;
-> +			vback-porch = <29>;
-> +			vfront-porch = <13>;
-> +			vsync-len = <3>;
-> +			hsync-active = <0>;
-> +			vsync-active = <0>;
-> +			de-active = <1>;
-> +			pixelclk-active = <1>;
-> +		};
-> +	};
-> +};
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes since RFC v02:
+- Using has_acpi_companion() instead ACPI_HANDLE()
+- mask matching change within private_candidate()
+- Fallback in dma_request_chan() when DT/ACPI lookup fails.
+- Rename dma_get_channel() -> find_candidate()
+- Arch code changes as suggested by Arnd
+- Some documentation updated, more need to be done.
+
+Changes since RFC v01:
+- dma_request_chan(); lost the mask parameter
+- The new API does not rely on RESOURCE_DMA, instead the dma_slave_map table
+  will be used to provide the needed information to the filter function in
+  legacy mode
+- Extended the example patches to convert most of daVinci to use the new API to
+  request the DMA channels.
+
+As it has been discussed in the following thread:
+http://www.gossamer-threads.com/lists/linux/kernel/2181487#2181487
+
+With this series I have taken a path which would result two new API, which can
+be used to convert most of the current users already and with some work all
+users might be able to move to this set.
+With this set the filter_fn used for legacy (non DT/ACPI) channel request is no
+longer needed to be exported to client drivers since the selection of the
+correct filter_fn will be done in the core.
+
+So, the first proposal is to have:
+
+struct dma_chan *dma_request_chan(struct device *dev, const char *name);
+struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+
+The dma_request_chan_by_mask() is to request any channel matching with the
+requested capabilities, can be used to request channel for memcpy, memset, xor,
+etc where no hardware synchronization is needed.
+
+The dma_request_chan() is to request a slave channel. The dma_request_chan()
+will try to find the channel via DT, ACPI or in case if the kernel booted in non
+DT/ACPI mode it will use a filter lookup table and retrieves the needed
+information from the dma_slave_map provided by the DMA drivers.
+This legacy mode needs changes in platform code, in dmaengine drivers and
+finally the dmaengine user drivers can be converted:
+
+For each dmaengine driver an array of DMA device, slave and the parameter
+for the filter function needs to be added:
+
+static const struct dma_slave_map da830_edma_map[] = {
+	{ "davinci-mcasp.0", "rx", EDMA_FILTER_PARAM(0, 0) },
+	{ "davinci-mcasp.0", "tx", EDMA_FILTER_PARAM(0, 1) },
+	{ "davinci-mcasp.1", "rx", EDMA_FILTER_PARAM(0, 2) },
+	{ "davinci-mcasp.1", "tx", EDMA_FILTER_PARAM(0, 3) },
+	{ "davinci-mcasp.2", "rx", EDMA_FILTER_PARAM(0, 4) },
+	{ "davinci-mcasp.2", "tx", EDMA_FILTER_PARAM(0, 5) },
+	{ "spi_davinci.0", "rx", EDMA_FILTER_PARAM(0, 14) },
+	{ "spi_davinci.0", "tx", EDMA_FILTER_PARAM(0, 15) },
+	{ "da830-mmc.0", "rx", EDMA_FILTER_PARAM(0, 16) },
+	{ "da830-mmc.0", "tx", EDMA_FILTER_PARAM(0, 17) },
+	{ "spi_davinci.1", "rx", EDMA_FILTER_PARAM(0, 18) },
+	{ "spi_davinci.1", "tx", EDMA_FILTER_PARAM(0, 19) },
+};
+
+This information is going to be used by the dmaengine driver, so
+modification to the platform_data is needed, and the driver map should be
+added to the pdata of the DMA driver:
+
+da8xx_edma0_pdata.slave_map = da830_edma_map;
+da8xx_edma0_pdata.slavecnt = ARRAY_SIZE(da830_edma_map);
+
+The DMA driver then needs to configure the needed device -> filter_fn
+mapping before it registers with dma_async_device_register() :
+
+if (info->slave_map) {
+	ecc->dma_slave.filter_map.map = info->slave_map;
+	ecc->dma_slave.filter_map.mapcnt = info->slavecnt;
+	ecc->dma_slave.filter_map.filter_fn = edma_filter_fn;
+}
+
+When neither DT or ACPI lookup is available the dma_request_chan() will
+try to match the requester's device name with the filter_map's list of
+device names, when a match found it will use the information from the
+dma_slave_map to get the channel with the dma_get_channel() internal
+function.
+
+Tested on OMAP-L138 (dm850) EVM, with updtaed patches from RFC v03 [1].
+Both legacy and DT boot works fine.
+
+[1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122016.html
+
+Regards,
+Peter
+---
+Peter Ujfalusi (4):
+  dmaengine: core: Skip mask matching when it is not provided to
+    private_candidate
+  dmaengine: core: Move and merge the code paths using private_candidate
+  dmaengine: core: Introduce new, universal API to request a channel
+  dmaengine: edma: Add support for DMA filter mapping to slave devices
+
+ Documentation/dmaengine/client.txt |  23 ++---
+ drivers/dma/dmaengine.c            | 177 ++++++++++++++++++++++++++++---------
+ drivers/dma/edma.c                 |   6 ++
+ include/linux/dmaengine.h          |  42 +++++++++
+ include/linux/platform_data/edma.h |   7 ++
+ 5 files changed, 198 insertions(+), 57 deletions(-)
+
+-- 
+2.6.3
