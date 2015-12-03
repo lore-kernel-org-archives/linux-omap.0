@@ -1,55 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: single: remove misuse of IRQF_NO_SUSPEND
- flag
-Date: Thu, 3 Dec 2015 10:13:38 -0800
-Message-ID: <20151203181337.GV23396@atomide.com>
-References: <1448644860-29323-1-git-send-email-sudeep.holla@arm.com>
- <1448644860-29323-2-git-send-email-sudeep.holla@arm.com>
- <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: dts: Use MMC pwrseq instead regulators for IGEP
+ WiFi init
+Date: Thu, 3 Dec 2015 10:16:24 -0800
+Message-ID: <20151203181624.GW23396@atomide.com>
+References: <1449165729-993-1-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+In-Reply-To: <1449165729-993-1-git-send-email-javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [151201 06:07]:
-> On Fri, Nov 27, 2015 at 6:21 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+* Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org> [151203 10:03]:
+> Hello,
 > 
-> > From: Sudeep Holla <Sudeep.Holla@arm.com>
-> >
-> > The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
-> > be left enabled so as to allow them to work as expected during the
-> > suspend-resume cycle, but doesn't guarantee that it will wake the system
-> > from a suspended state, enable_irq_wake is recommended to be used for
-> > the wakeup.
-> >
-> > This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
-> > irq_set_irq_wake instead.
-> >
-> > Cc: Linus Walleij <linus.walleij@linaro.org>
-> > Cc: linux-gpio@vger.kernel.org
-> > Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> This series converts the IGEPv2 (IGEP0020) and IGEP COM Module (IGEP0030)
+> Device Tree to use the MMC power sequence provider to initialize the SDIO
+> WiFi chip instead of using fake fixed regulators to just toggle the Reset
+> and Power pins in the chip.
 > 
-> I need Tony's ACK on this as well.
+> The patches were tested on an DM3730 IGEPv2 board but the IGEP COM Module
+> is the same with regard to the SDIO WiFi so it should be safe to land too.
+> 
+> The IGEPv2 Rev.F and the IGEP COM Module Rev.G DTS were not converted due
+> using a different WiFi chip (wlcore instead of libertas) than the one in
+> the board I've access to test so I preferred to leave those untouched.
 
-At least on omaps, this controller is always powered and we never want to
-suspend it as it handles wake-up events for all the IO pins. And that
-usecase sounds exactly like what you're describing above.
-
-I don't quite follow what your suggested alternative for an interrupt
-controller is?
-
-At least we need to have the alternative patched in with this chage before
-just removing IRQF_NO_SUSPEND.
-
-The enable_irq_wake is naturally used for the consumer drivers of this
-interrupt controller and actually mostly done automatically now with the
-dev_pm_set_dedicated_wake_irq.
+Do you have some solution for the start-up latency issue?
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
