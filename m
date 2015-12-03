@@ -1,73 +1,55 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Change core_initcall levels to
- postcore_initcall
-Date: Thu, 3 Dec 2015 20:08:24 +0200
-Message-ID: <56608518.7060406@ti.com>
-References: <1448900789-4034-1-git-send-email-tony@atomide.com>
- <1448900789-4034-3-git-send-email-tony@atomide.com>
- <20151203160014.GL23396@atomide.com> <56606F20.9050805@ti.com>
- <20151203164113.GS23396@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] pinctrl: single: remove misuse of IRQF_NO_SUSPEND
+ flag
+Date: Thu, 3 Dec 2015 10:13:38 -0800
+Message-ID: <20151203181337.GV23396@atomide.com>
+References: <1448644860-29323-1-git-send-email-sudeep.holla@arm.com>
+ <1448644860-29323-2-git-send-email-sudeep.holla@arm.com>
+ <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151203164113.GS23396@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/03/2015 06:41 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [151203 08:35]:
->> On 12/03/2015 06:00 PM, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [151130 08:29]:
->>>> We want to be able to probe a few selected device drivers before hwmod
->>>> code populates the clocks in omap_hwmod_setup_all(). This allows us to
->>>> convert most of the clock drivers into regular device drivers.
->>
->> if understand things right, ti clks now will be populated and initialized
->> from
->> __omap_sync32k_timer_init
->>   - omap_clk_init()
->>     - ..
->>     - of_clk_init()
->>     - ..
->>     - omap_clk_soc_init()
->>
->> and __omap_sync32k_timer_init(), in turn, will be called from:
->> arch/arm/kernel/time.c
->>   - time_init()
->> 	machine_desc->init_time();
->> (without your patch 1).
+* Linus Walleij <linus.walleij@linaro.org> [151201 06:07]:
+> On Fri, Nov 27, 2015 at 6:21 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
 > 
-> Yes that's the current approach, but we can do better. We only need the following
-> clocks for system timers at that point:
+> > From: Sudeep Holla <Sudeep.Holla@arm.com>
+> >
+> > The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+> > be left enabled so as to allow them to work as expected during the
+> > suspend-resume cycle, but doesn't guarantee that it will wake the system
+> > from a suspended state, enable_irq_wake is recommended to be used for
+> > the wakeup.
+> >
+> > This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+> > irq_set_irq_wake instead.
+> >
+> > Cc: Linus Walleij <linus.walleij@linaro.org>
+> > Cc: linux-gpio@vger.kernel.org
+> > Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 > 
-> - mux clocks to select between the 32k and hf oscillator source
-> 
-> - clkctrl driver to gate the ocp clock
-> 
-> All the other clocks can be initialized at core_initcall time with this change.
-> 
->> So, I don't see real dependency here between clk initialization and hwmods :(
-> 
-> You don't because it's only implemented so far for the dm814x ADPLL clock :)
-> 
-> That I posted as "[PATCH 0/2] Clock driver for dm814x ADPLL". Note how it's
-> just a regular device driver that also works as loadable module on boards that
-> have all the necessary clocks enabled already by the bootloader.
-> 
+> I need Tony's ACK on this as well.
 
-Ah. Thanks. I see it now.
+At least on omaps, this controller is always powered and we never want to
+suspend it as it handles wake-up events for all the IO pins. And that
+usecase sounds exactly like what you're describing above.
 
--- 
-regards,
--grygorii
+I don't quite follow what your suggested alternative for an interrupt
+controller is?
+
+At least we need to have the alternative patched in with this chage before
+just removing IRQF_NO_SUSPEND.
+
+The enable_irq_wake is naturally used for the consumer drivers of this
+interrupt controller and actually mostly done automatically now with the
+dev_pm_set_dedicated_wake_irq.
+
+Regards,
+
+Tony
