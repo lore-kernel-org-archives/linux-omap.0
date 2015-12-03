@@ -1,62 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: single: remove misuse of IRQF_NO_SUSPEND
- flag
-Date: Thu, 3 Dec 2015 13:40:14 -0800
-Message-ID: <20151203214013.GB23396@atomide.com>
-References: <1448644860-29323-1-git-send-email-sudeep.holla@arm.com>
- <1448644860-29323-2-git-send-email-sudeep.holla@arm.com>
- <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
- <20151203181337.GV23396@atomide.com>
- <566090FC.1020502@arm.com>
+Subject: [PATCH 1/3] ARM: OMAP2+: Fix SoC detection for dra62x j5-eco
+Date: Thu,  3 Dec 2015 15:11:38 -0800
+Message-ID: <1449184300-15693-2-git-send-email-tony@atomide.com>
+References: <1449184300-15693-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <566090FC.1020502@arm.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1449184300-15693-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sudeep Holla <sudeep.holla@arm.com> [151203 11:00]:
-> On 03/12/15 18:13, Tony Lindgren wrote:
-> >At least on omaps, this controller is always powered and we never want to
-> >suspend it as it handles wake-up events for all the IO pins. And that
-> >usecase sounds exactly like what you're describing above.
-> >
-> 
-> Understood, but I assume this is a generic driver that can be used by
-> any pinmux.
+We can boot dra62x j5-eco using the dm814x code as the clocks and
+devices are mapped in the device tree. The dra62x is also known
+as jacinto 5.
 
-Right no question about that, but we need to keep things working. I just
-pasted the output to this thread what happens coming back up from suspend.
+We may want to add separate soc_is macros for dra62x if needed,
+but this gets us to the point where we can boot dra62x with just
+dts changes.
 
-> >I don't quite follow what your suggested alternative for an interrupt
-> >controller is?
-> 
-> Why can't we use enable_irq_wake even for parent/interrupt controller as
-> they can be considered as parent wakeup irq. I agree the interrupt
-> controller may not be powered down, but still it's part of wakeup and
-> the irq core needs to identify that. By just marking IRQF_NO_SUSPEND,
-> you are saying that you can handle interrupt in the suspend path but not
-> informing that it's a wakeup interrupt.
-> 
-> With this change, the wakeup handler (including the parent handler) is
-> called when it's safe as the irq core maintains the state machine.
+Let's also print out the unknown hawkeye register to make things
+a bit easier for new SoC variants.
 
-Maybe paste a suggested patch and I can try it. I guess you mean call
-that from pinctrl-single.c.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/id.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-> >At least we need to have the alternative patched in with this chage before
-> >just removing IRQF_NO_SUSPEND.
-> >
-> 
-> I have added irq_set_irq_wake(pcs_soc->irq, state) in pcs_irq_set_wake
-> which ensures it's marked for wakeup.
-
-Hmm well see the error I pasted in this thread, maybe that provides
-more clues.
-
-Regards,
-
-Tony
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 8a2ae82..d85c249 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -488,6 +488,7 @@ void __init omap3xxx_check_revision(void)
+ 		}
+ 		break;
+ 	case 0xb8f2:
++	case 0xb968:
+ 		switch (rev) {
+ 		case 0:
+ 		/* FALLTHROUGH */
+@@ -511,7 +512,8 @@ void __init omap3xxx_check_revision(void)
+ 		/* Unknown default to latest silicon rev as default */
+ 		omap_revision = OMAP3630_REV_ES1_2;
+ 		cpu_rev = "1.2";
+-		pr_warn("Warning: unknown chip type; assuming OMAP3630ES1.2\n");
++		pr_warn("Warning: unknown chip type: hawkeye %04x, assuming OMAP3630ES1.2\n",
++			hawkeye);
+ 	}
+ 	sprintf(soc_rev, "ES%s", cpu_rev);
+ }
+-- 
+2.6.2
