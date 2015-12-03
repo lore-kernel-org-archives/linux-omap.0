@@ -1,57 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Change core_initcall levels to
- postcore_initcall
-Date: Thu, 3 Dec 2015 08:00:14 -0800
-Message-ID: <20151203160014.GL23396@atomide.com>
-References: <1448900789-4034-1-git-send-email-tony@atomide.com>
- <1448900789-4034-3-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH 1/2] clk: ti: Add support for dm814x ADPLL
+Date: Thu, 3 Dec 2015 08:07:13 -0800
+Message-ID: <20151203160712.GM23396@atomide.com>
+References: <1449106504-7645-1-git-send-email-tony@atomide.com>
+ <1449106504-7645-2-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1448900789-4034-3-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1449106504-7645-2-git-send-email-tony@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151130 08:29]:
-> We want to be able to probe a few selected device drivers before hwmod
-> code populates the clocks in omap_hwmod_setup_all(). This allows us to
-> convert most of the clock drivers into regular device drivers.
+* Tony Lindgren <tony@atomide.com> [151202 17:36]:
+> On dm814x we have 13 ADPLLs with 3 to 4 outputs on each. The
+> ADPLLs have several dividers and muxes controlled by a shared
+> control register for each PLL.
 > 
-> We only need a few minimal clock drivers early for the system timers to
-> select between the 32KiHz clock and the high frequency oscillator.
+> Note that for the clocks to work as device drivers for booting on
+> dm814x, this patch depends on "ARM: OMAP2+: Change core_initcall
+> levels to postcore_initcall".
 > 
-> With these changes, initializing the clock drivers can be just done at
-> core_initcall time with something like:
-> 
-> np = of_find_node_by_name(NULL, "plls");
-> if (np)
-> 	of_platform_populate(np, NULL, NULL, NULL);
-> 
-> And then these clocks will be available for the interconnect code to use.
-> 
-> Having most of the clock drivers being regular device drivers allows
-> us to use the nice things like devm_* functions and dev_err and dev_dbg.
-> As an extra bonus, this also allows us to develop the clock drivers for
-> new SoCs as loadable modules initially for cases where we can boot up
-> the system based on the bootloader configured clocks.
-> 
-> To do this, let's change the core_initcalls to postcore_initcall under
-> mach-omap2.
+> Also note that this patch does not implement clk_set_rate,
+> that will be posted later on when available.
 
-FYI I'm applying this one into omap-for-v4.5/soc today, the first patch
-in this series needs more work as discussed.
+Mike & Stephen, after review, can we have this patch alone in an
+immutable branch against v4.4-rc1 that I can merge in too?
+
+Also, the dts changes I need to queue separately FYI to avoid merge
+conflicts.
 
 Regards,
 
