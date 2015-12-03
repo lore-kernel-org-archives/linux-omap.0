@@ -1,67 +1,76 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH 0/2] ARM: dts: Use MMC pwrseq instead regulators for IGEP
- WiFi init
-Date: Thu, 3 Dec 2015 15:28:49 -0300
-Message-ID: <566089E1.7050805@osg.samsung.com>
-References: <1449165729-993-1-git-send-email-javier@osg.samsung.com>
- <20151203181624.GW23396@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/2] pinctrl: single: remove misuse of IRQF_NO_SUSPEND
+ flag
+Date: Thu, 3 Dec 2015 20:35:30 +0200
+Message-ID: <56608B72.1040101@ti.com>
+References: <1448644860-29323-1-git-send-email-sudeep.holla@arm.com>
+ <1448644860-29323-2-git-send-email-sudeep.holla@arm.com>
+ <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
+ <20151203181337.GV23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151203181624.GW23396@atomide.com>
+In-Reply-To: <20151203181337.GV23396@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@gmail.com>
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Tony,
-
-On 12/03/2015 03:16 PM, Tony Lindgren wrote:
-> * Javier Martinez Canillas <javier@osg.samsung.com> [151203 10:03]:
->> Hello,
+On 12/03/2015 08:13 PM, Tony Lindgren wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [151201 06:07]:
+>> On Fri, Nov 27, 2015 at 6:21 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
 >>
->> This series converts the IGEPv2 (IGEP0020) and IGEP COM Module (IGEP0030)
->> Device Tree to use the MMC power sequence provider to initialize the SDIO
->> WiFi chip instead of using fake fixed regulators to just toggle the Reset
->> and Power pins in the chip.
+>>> From: Sudeep Holla <Sudeep.Holla@arm.com>
+>>>
+>>> The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+>>> be left enabled so as to allow them to work as expected during the
+>>> suspend-resume cycle, but doesn't guarantee that it will wake the system
+>>> from a suspended state, enable_irq_wake is recommended to be used for
+>>> the wakeup.
+>>>
+>>> This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+>>> irq_set_irq_wake instead.
+>>>
+>>> Cc: Linus Walleij <linus.walleij@linaro.org>
+>>> Cc: linux-gpio@vger.kernel.org
+>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 >>
->> The patches were tested on an DM3730 IGEPv2 board but the IGEP COM Module
->> is the same with regard to the SDIO WiFi so it should be safe to land too.
->>
->> The IGEPv2 Rev.F and the IGEP COM Module Rev.G DTS were not converted due
->> using a different WiFi chip (wlcore instead of libertas) than the one in
->> the board I've access to test so I preferred to leave those untouched.
+>> I need Tony's ACK on this as well.
 > 
-> Do you have some solution for the start-up latency issue?
->
-
-No, I don't and that's one of the reasons why I didn't want to touch the
-DTS that have the wlcore chip.
-
-The omap3-igep0020-rev-f.dts and omap3-igep0030-rev-g.dts don't have a
-startup-delay-us property in the regulator for the WLAN_EN pin as is
-the case for the IGEPv5 DTS but I don't know if those DTS are just wrong.
-
-The DTS for the igep0020 and igep0030 that have the libertas chip,
-did have a startup-delay-us for the WIFI_PDN but using the GPIOs
-for RESET_N_W and WIFI_PDN in the mmc-pwrseq-simple reset-gpios is
-enough to make the SDIO chip reset, be enumerated and WiFi to work
-correctly so I don't know if that is really needed or is just a bad
-description in the DTS.
-
-Since is working for the boards with the libertas chip, I preferred
-to remove the DTS hack but left the boards with wlcore chip since
-you said the startup-delay-us is needed there (but probably we should
-add to the regulators in the boards that don't have it then).
-
-> Regards,
+> At least on omaps, this controller is always powered and we never want to
+> suspend it as it handles wake-up events for all the IO pins. And that
+> usecase sounds exactly like what you're describing above.
 > 
-> Tony
+> I don't quite follow what your suggested alternative for an interrupt
+> controller is?
+> 
+> At least we need to have the alternative patched in with this chage before
+> just removing IRQF_NO_SUSPEND.
+> 
+> The enable_irq_wake is naturally used for the consumer drivers of this
+> interrupt controller and actually mostly done automatically now with the
+> dev_pm_set_dedicated_wake_irq.
 > 
 
-Best regards,
+I think, this patch should not break our wake-up functionality.
+It will just change the moment when pcs_irq_handler() will be called:
+
+before this change:
+- suspend_enter()
+  ....
+  - arch_suspend_enable_irqs();
+    - ^ right here
+
+after this change:
+- suspend_enter()
+  ....
+  dpm_resume_noirq()
+  - resume_device_irqs()
+    ^ here
+
+Correct? And as for me this is more safe.
+
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+regards,
+-grygorii
