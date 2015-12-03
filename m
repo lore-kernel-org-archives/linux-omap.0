@@ -1,43 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 3/4] dmaengine: core: Introduce new, universal API to request a channel
-Date: Thu, 03 Dec 2015 16:45:38 +0100
-Message-ID: <4696298.Uj40YldTVN@wuerfel>
-References: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com> <6922343.04ZpTXZq7O@wuerfel> <566062E7.2020705@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 4/4] dmaengine: edma: Add support for DMA filter mapping
+ to slave devices
+Date: Thu, 3 Dec 2015 17:46:18 +0200
+Message-ID: <566063CA.20500@ti.com>
+References: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
+ <1449153192-9082-5-git-send-email-peter.ujfalusi@ti.com>
+ <2675730.x1sS4Fa4y8@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <566062E7.2020705@ti.com>
+In-Reply-To: <2675730.x1sS4Fa4y8@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>
 Cc: vinod.koul@intel.com, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 03 December 2015 17:42:31 Peter Ujfalusi wrote:
-> > 
-> >> +       if (chan) {
-> >> +               /* Valid channel found */
-> >> +               if (!IS_ERR(chan) || PTR_ERR(chan) == -EPROBE_DEFER)
-> >> +                       return chan;
-> >> +
-> >> +               pr_warn("%s: %s DMA request failed, falling back to legacy\n",
-> >> +                       __func__, dev->of_node ? "OF" : "ACPI");
-> >> +       }
-> > 
-> > Maybe print the error code as well?
-> 
-> Or remove the print altogether?
-> In a healthy system we will either get the channel or the EPROBE_DEFER, in
-> case of the platforms where the DT lookup does not work we expect errors and
-> it is 'normal'.
-> I think if we fail via DT/ACPI and we fail with legacy also then the client
-> driver will say something about it anyways, or deal with it as it see fits.
-> 
+On 12/03/2015 05:38 PM, Arnd Bergmann wrote:
+> On Thursday 03 December 2015 16:33:12 Peter Ujfalusi wrote:
+>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+>> index 0675e268d577..46b305ea0d21 100644
+>> --- a/drivers/dma/edma.c
+>> +++ b/drivers/dma/edma.c
+>> @@ -2297,6 +2297,12 @@ static int edma_probe(struct platform_device =
+*pdev)
+>>                 edma_set_chmap(&ecc->slave_chans[i], ecc->dummy_slot=
+);
+>>         }
+>> =20
+>> +       if (info->slave_map) {
+>> +               ecc->dma_slave.filter_map.map =3D info->slave_map;
+>> +               ecc->dma_slave.filter_map.mapcnt =3D info->slavecnt;
+>> +               ecc->dma_slave.filter_map.filter_fn =3D edma_filter_=
+fn;
+>> +       }
+>> +
+>>
+>=20
+> Just a minor comment here: I think all three assignments can be done
+> unconditionally.
 
-Right, that works too. It took me a while to figure out that we only get
-there on systems that have ACPI or DT enabled for a particular device,
-but where the normal method failed, rather than also systems with traditional
-board files. Without the pr_warn, I would not have needed to think about
-this ;-)
+True.
 
-	Arnd
+> As I mentioned before, I'd also remove 'struct dma_filter'
+> and put the three members in struct dma_device directly. In fact, the
+> filter function can go with the other function pointers for consisten=
+cy.
+
+I just like to keep things in one place ;)
+I don't have strong stand on keeping the intermediate 'struct dma_filte=
+r'
+Let's hear from Vinod regarding to this
+
+--=20
+P=E9ter
