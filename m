@@ -1,11 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/4] dmaengine: New 'universal' API for requesting channel
-Date: Thu, 3 Dec 2015 16:33:08 +0200
-Message-ID: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 2/4] dmaengine: core: Move and merge the code paths using
+ private_candidate
+Date: Thu, 3 Dec 2015 16:33:10 +0200
+Message-ID: <1449153192-9082-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,120 +22,136 @@ To: vinod.koul@intel.com, arnd@arndb.de, andy.shevchenko@gmail.com
 Cc: tony@atomide.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Channel matching with private_candidate() is used in two paths, the error
+checking is slightly different in them and they are duplicating code also.
+Move the code under find_candidate() to provide consistent execution and
+going to allow us to reuse this mode of channel lookup later.
 
-Changes since RFC v03:
-- No longer RFC
-- Dropped the arch/arm/mcah-davinci and daVinci MMC and SPI patches so we don't
-  have inter subsystem issues.
-- Comments from Andy to patch no 3 has been addressed with the exception of
-  moving code over to device_property
-- 'struct dma_filter_map' renamed as 'struct dma_slave_map'
-- Code documentation added
-
-Changes since RFC v02:
-- Using has_acpi_companion() instead ACPI_HANDLE()
-- mask matching change within private_candidate()
-- Fallback in dma_request_chan() when DT/ACPI lookup fails.
-- Rename dma_get_channel() -> find_candidate()
-- Arch code changes as suggested by Arnd
-- Some documentation updated, more need to be done.
-
-Changes since RFC v01:
-- dma_request_chan(); lost the mask parameter
-- The new API does not rely on RESOURCE_DMA, instead the dma_slave_map table
-  will be used to provide the needed information to the filter function in
-  legacy mode
-- Extended the example patches to convert most of daVinci to use the new API to
-  request the DMA channels.
-
-As it has been discussed in the following thread:
-http://www.gossamer-threads.com/lists/linux/kernel/2181487#2181487
-
-With this series I have taken a path which would result two new API, which can
-be used to convert most of the current users already and with some work all
-users might be able to move to this set.
-With this set the filter_fn used for legacy (non DT/ACPI) channel request is no
-longer needed to be exported to client drivers since the selection of the
-correct filter_fn will be done in the core.
-
-So, the first proposal is to have:
-
-struct dma_chan *dma_request_chan(struct device *dev, const char *name);
-struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
-
-The dma_request_chan_by_mask() is to request any channel matching with the
-requested capabilities, can be used to request channel for memcpy, memset, xor,
-etc where no hardware synchronization is needed.
-
-The dma_request_chan() is to request a slave channel. The dma_request_chan()
-will try to find the channel via DT, ACPI or in case if the kernel booted in non
-DT/ACPI mode it will use a filter lookup table and retrieves the needed
-information from the dma_slave_map provided by the DMA drivers.
-This legacy mode needs changes in platform code, in dmaengine drivers and
-finally the dmaengine user drivers can be converted:
-
-For each dmaengine driver an array of DMA device, slave and the parameter
-for the filter function needs to be added:
-
-static const struct dma_slave_map da830_edma_map[] = {
-	{ "davinci-mcasp.0", "rx", EDMA_FILTER_PARAM(0, 0) },
-	{ "davinci-mcasp.0", "tx", EDMA_FILTER_PARAM(0, 1) },
-	{ "davinci-mcasp.1", "rx", EDMA_FILTER_PARAM(0, 2) },
-	{ "davinci-mcasp.1", "tx", EDMA_FILTER_PARAM(0, 3) },
-	{ "davinci-mcasp.2", "rx", EDMA_FILTER_PARAM(0, 4) },
-	{ "davinci-mcasp.2", "tx", EDMA_FILTER_PARAM(0, 5) },
-	{ "spi_davinci.0", "rx", EDMA_FILTER_PARAM(0, 14) },
-	{ "spi_davinci.0", "tx", EDMA_FILTER_PARAM(0, 15) },
-	{ "da830-mmc.0", "rx", EDMA_FILTER_PARAM(0, 16) },
-	{ "da830-mmc.0", "tx", EDMA_FILTER_PARAM(0, 17) },
-	{ "spi_davinci.1", "rx", EDMA_FILTER_PARAM(0, 18) },
-	{ "spi_davinci.1", "tx", EDMA_FILTER_PARAM(0, 19) },
-};
-
-This information is going to be used by the dmaengine driver, so
-modification to the platform_data is needed, and the driver map should be
-added to the pdata of the DMA driver:
-
-da8xx_edma0_pdata.slave_map = da830_edma_map;
-da8xx_edma0_pdata.slavecnt = ARRAY_SIZE(da830_edma_map);
-
-The DMA driver then needs to configure the needed device -> filter_fn
-mapping before it registers with dma_async_device_register() :
-
-if (info->slave_map) {
-	ecc->dma_slave.filter_map.map = info->slave_map;
-	ecc->dma_slave.filter_map.mapcnt = info->slavecnt;
-	ecc->dma_slave.filter_map.filter_fn = edma_filter_fn;
-}
-
-When neither DT or ACPI lookup is available the dma_request_chan() will
-try to match the requester's device name with the filter_map's list of
-device names, when a match found it will use the information from the
-dma_slave_map to get the channel with the dma_get_channel() internal
-function.
-
-Tested on OMAP-L138 (dm850) EVM, with updtaed patches from RFC v03 [1].
-Both legacy and DT boot works fine.
-
-[1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122016.html
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (4):
-  dmaengine: core: Skip mask matching when it is not provided to
-    private_candidate
-  dmaengine: core: Move and merge the code paths using private_candidate
-  dmaengine: core: Introduce new, universal API to request a channel
-  dmaengine: edma: Add support for DMA filter mapping to slave devices
+ drivers/dma/dmaengine.c | 81 +++++++++++++++++++++++++------------------------
+ 1 file changed, 42 insertions(+), 39 deletions(-)
 
- Documentation/dmaengine/client.txt |  23 ++---
- drivers/dma/dmaengine.c            | 177 ++++++++++++++++++++++++++++---------
- drivers/dma/edma.c                 |   6 ++
- include/linux/dmaengine.h          |  42 +++++++++
- include/linux/platform_data/edma.h |   7 ++
- 5 files changed, 198 insertions(+), 57 deletions(-)
-
+diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+index 6311e1fc80be..ea9d66982d40 100644
+--- a/drivers/dma/dmaengine.c
++++ b/drivers/dma/dmaengine.c
+@@ -546,6 +546,42 @@ static struct dma_chan *private_candidate(const dma_cap_mask_t *mask,
+ 	return NULL;
+ }
+ 
++static struct dma_chan *find_candidate(struct dma_device *device,
++				       const dma_cap_mask_t *mask,
++				       dma_filter_fn fn, void *fn_param)
++{
++	struct dma_chan *chan = private_candidate(mask, device, fn, fn_param);
++	int err;
++
++	if (chan) {
++		/* Found a suitable channel, try to grab, prep, and return it.
++		 * We first set DMA_PRIVATE to disable balance_ref_count as this
++		 * channel will not be published in the general-purpose
++		 * allocator
++		 */
++		dma_cap_set(DMA_PRIVATE, device->cap_mask);
++		device->privatecnt++;
++		err = dma_chan_get(chan);
++
++		if (err) {
++			if (err == -ENODEV) {
++				pr_debug("%s: %s module removed\n", __func__,
++					 dma_chan_name(chan));
++				list_del_rcu(&device->global_node);
++			} else
++				pr_debug("%s: failed to get %s: (%d)\n",
++					 __func__, dma_chan_name(chan), err);
++
++			if (--device->privatecnt == 0)
++				dma_cap_clear(DMA_PRIVATE, device->cap_mask);
++
++			chan = ERR_PTR(err);
++		}
++	}
++
++	return chan ? chan : ERR_PTR(-EPROBE_DEFER);
++}
++
+ /**
+  * dma_get_slave_channel - try to get specific channel exclusively
+  * @chan: target channel
+@@ -584,7 +620,6 @@ struct dma_chan *dma_get_any_slave_channel(struct dma_device *device)
+ {
+ 	dma_cap_mask_t mask;
+ 	struct dma_chan *chan;
+-	int err;
+ 
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
+@@ -592,23 +627,11 @@ struct dma_chan *dma_get_any_slave_channel(struct dma_device *device)
+ 	/* lock against __dma_request_channel */
+ 	mutex_lock(&dma_list_mutex);
+ 
+-	chan = private_candidate(&mask, device, NULL, NULL);
+-	if (chan) {
+-		dma_cap_set(DMA_PRIVATE, device->cap_mask);
+-		device->privatecnt++;
+-		err = dma_chan_get(chan);
+-		if (err) {
+-			pr_debug("%s: failed to get %s: (%d)\n",
+-				__func__, dma_chan_name(chan), err);
+-			chan = NULL;
+-			if (--device->privatecnt == 0)
+-				dma_cap_clear(DMA_PRIVATE, device->cap_mask);
+-		}
+-	}
++	chan = find_candidate(device, &mask, NULL, NULL);
+ 
+ 	mutex_unlock(&dma_list_mutex);
+ 
+-	return chan;
++	return IS_ERR(chan) ? NULL : chan;
+ }
+ EXPORT_SYMBOL_GPL(dma_get_any_slave_channel);
+ 
+@@ -625,35 +648,15 @@ struct dma_chan *__dma_request_channel(const dma_cap_mask_t *mask,
+ {
+ 	struct dma_device *device, *_d;
+ 	struct dma_chan *chan = NULL;
+-	int err;
+ 
+ 	/* Find a channel */
+ 	mutex_lock(&dma_list_mutex);
+ 	list_for_each_entry_safe(device, _d, &dma_device_list, global_node) {
+-		chan = private_candidate(mask, device, fn, fn_param);
+-		if (chan) {
+-			/* Found a suitable channel, try to grab, prep, and
+-			 * return it.  We first set DMA_PRIVATE to disable
+-			 * balance_ref_count as this channel will not be
+-			 * published in the general-purpose allocator
+-			 */
+-			dma_cap_set(DMA_PRIVATE, device->cap_mask);
+-			device->privatecnt++;
+-			err = dma_chan_get(chan);
++		chan = find_candidate(device, mask, fn, fn_param);
++		if (!IS_ERR(chan))
++			break;
+ 
+-			if (err == -ENODEV) {
+-				pr_debug("%s: %s module removed\n",
+-					 __func__, dma_chan_name(chan));
+-				list_del_rcu(&device->global_node);
+-			} else if (err)
+-				pr_debug("%s: failed to get %s: (%d)\n",
+-					 __func__, dma_chan_name(chan), err);
+-			else
+-				break;
+-			if (--device->privatecnt == 0)
+-				dma_cap_clear(DMA_PRIVATE, device->cap_mask);
+-			chan = NULL;
+-		}
++		chan = NULL;
+ 	}
+ 	mutex_unlock(&dma_list_mutex);
+ 
 -- 
 2.6.3
