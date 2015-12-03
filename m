@@ -1,182 +1,111 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v4 3/5] mtd: devices: m25p80: add support for mmap read
- request
-Date: Thu, 3 Dec 2015 16:53:40 +0530
-Message-ID: <5660263C.8020406@ti.com>
-References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
- <1448860515-28336-4-git-send-email-vigneshr@ti.com>
- <56600E7B.8010208@atmel.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] irqchip: omap-intc: fix spurious irq handling
+Date: Thu, 3 Dec 2015 16:58:41 +0530
+Message-ID: <56602769.9050708@ti.com>
+References: <3d433cfeeb93366cadbb1668ebeac2e8006b0fd5.1445247844.git.nsekhar@ti.com>
+ <20151019145039.GA21839@atomide.com> <5625DD9F.6010106@ti.com>
+ <876122c7vd.fsf@linutronix.de> <20151020145255.GB3078@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56600E7B.8010208@atmel.com>
+In-Reply-To: <20151020145255.GB3078@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Cyrille Pitchen <cyrille.pitchen@atmel.com>, Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, hramrach@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Vasut <marex@denx.de>
+To: Tony Lindgren <tony@atomide.com>, John Ogness <john.ogness@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Tony,
 
-On 12/03/2015 03:12 PM, Cyrille Pitchen wrote:
-> Hi Vignesh,
->=20
-> Le 30/11/2015 06:15, Vignesh R a =E9crit :
->> Certain spi controllers may provide accelerated interface to read fr=
-om
->> m25p80 type flash devices. This interface provides better read
->> performance than regular SPI interface.
->> Call spi_flash_read(), if supported, to make use of such interface.
+On Tuesday 20 October 2015 08:22 PM, Tony Lindgren wrote:
+> * John Ogness <john.ogness@linutronix.de> [151020 00:33]:
+>> On 2015-10-20, Sekhar Nori <nsekhar@ti.com> wrote:
+>>>> Do you know what really is causing the spurious interrupts in your
+>>>> case?
+>>>
+>>> No, not yet.
 >>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
+>> According to the TRM this is normal behavior if conditions that might
+>> affect priority are changed during priority sorting.
 >>
->> v4:=20
->>  * Use spi_flash_read_message struct to pass args.
->>  * support passing of opcode/addr/data nbits.
+>>     6.2.5 ARM A8 INTC Spurious Interrupt Handling
 >>
->>  drivers/mtd/devices/m25p80.c | 20 ++++++++++++++++++++
->>  1 file changed, 20 insertions(+)
+>>     The spurious flag indicates whether the result of the sorting (a
+>>     window of 10 INTC functional clock cycles after the interrupt
+>>     assertion) is invalid. The sorting is invalid if:
 >>
->> diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p=
-80.c
->> index fe9ceb7b5405..00094a668c62 100644
->> --- a/drivers/mtd/devices/m25p80.c
->> +++ b/drivers/mtd/devices/m25p80.c
->> @@ -131,6 +131,26 @@ static int m25p80_read(struct spi_nor *nor, lof=
-f_t from, size_t len,
->>  	/* convert the dummy cycles to the number of bytes */
->>  	dummy /=3D 8;
->> =20
->> +	if (spi_flash_read_supported(spi)) {
->> +		struct spi_flash_read_message msg;
->> +		int ret;
->> +
->> +		msg.buf =3D buf;
->> +		msg.from =3D from;
->> +		msg.len =3D len;
->> +		msg.read_opcode =3D nor->read_opcode;
->> +		msg.addr_width =3D nor->addr_width;
->> +		msg.dummy_bytes =3D dummy;
->> +		/* TODO: Support other combinations */
->> +		msg.opcode_nbits =3D SPI_NBITS_SINGLE;
->> +		msg.addr_nbits =3D SPI_NBITS_SINGLE;
->> +		msg.data_nbits =3D m25p80_rx_nbits(nor);
->=20
-> I wanted to let you know that the support of other SPI protocols has =
-already
-> been implemented by this series:
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2015-September/=
-371170.html
->=20
-> patches 2 & 3 handle the probing of the (Q)SPI memory in spi_nor_scan=
-() and
-> select the right protocols for register read/write, memory read, memo=
-ry write,
-> and memory erase operations. The choice is done according to both the=
- memory
-> and SPI controller capabilities.
->=20
-> patch 4 updates the m25p80 driver to take advantage of the bandwidth =
-increase
-> allowed by QSPI protocols. For instance, the Atmel QSPI controller, l=
-ike TI
-> one, maps the SPI NOR memory to the system bus. Yesterday I ran mtd_s=
-peedtest
-> to compare Fast Read 1-1-1 (0x0b) and Fast Read 1-1-4 (0x6b). The SPI=
- clock
-> frequency was limited to 83MHz. The QSPI memory is a Micron n25q128a1=
-3.
->=20
-> I only had to change the mode argument of spi_nor_scan() from SPI_NOR=
-_QUAD to
-> SPI_NOR_FAST in the atmel_quadspi driver (based on fsl-quadspi driver=
- from
-> Freescale since Atmel's driver also uses the system bus mapping for m=
-emory
-> write operations) to force the spi-nor framework to choose the SPI 1-=
-1-1
-> protocol instead of the SPI-1-1-4.
->=20
-> 1 - Fast Read 1-1-1
->=20
-> mtd_speedtest: testing eraseblock write speed
-> mtd_speedtest: eraseblock read speed is 9319 KiB/s
-> [...]
-> mtd_speedtest: testing page read speed
-> mtd_speedtest: page read speed is 6649 KiB/s
-> [...]
-> mtd_speedtest: testing 2 page read speed
-> mtd_speedtest: 2 page read speed is 7757 KiB/s
->=20
-> 2 - Fast Read 1-1-4
->=20
-> mtd_speedtest: testing eraseblock read speed
-> mtd_speedtest: eraseblock read speed is 30117 KiB/s
-> [...]
-> mtd_speedtest: testing page read speed
-> mtd_speedtest: page read speed is 13096 KiB/s
-> [...]
-> mtd_speedtest: testing 2 page read speed
-> mtd_speedtest: 2 page read speed is 18224 KiB/s
->=20
-> So the performance improvements are:
-> eraseblock read speed (65536 bytes) : +223%
-> page read speed (512 bytes)         :  +97%
-> 2 page read speed (1024 bytes)      : +135%
->=20
->=20
-> That's why I believe that you could take advantage of these performan=
-ce
-> improvements in the TI (Q)SPI controller driver.
->=20
+>>     - The interrupt that triggered the sorting is no longer active
+>>       during the sorting.
+>>
+>>     - A change in the mask has affected the result during the sorting
+>>       time.
+>>
+>>>> In all the cases I've seen, the spurious interrupts were caused by a
+>>>> missing flush of posted write acking the IRQ at the device driver.
+>>>> for the _previously triggered_ INTC interrupt.
+>>>>
+>>>> If you have a reproducable case, I suggest you test that by printing
+>>>> out the previous interrupt to check if that makes sense. And then see
+>>>> if adding the missing read back to that interrupt handler fixes the
+>>>> issue.
+>>>
+>>> Okay, thats good to know. Thanks for the hints and history of your debug
+>>> on OMAP3. The issue is not easily reproducible in my case. But if I try
+>>> hard enough, I can get hit it though. So I can surely try your hints.
+>>
+>> I can reproduce the situation very easily. After running a test for a
+>> few minutes and printing out the previous interrupt, I have the
+>> following list. These are the irq numbers seen by the handler before the
+>> spurious interrupt triggered.
+>>
+>>     INT12 - EDMACOMPINT - TPCC (EDMA)
+>>     INT41 - 3PGSWRXINT0 - CPSW (Ethernet)
+>>     INT42 - 3PGSWTXINT0 - CPSW (Ethernet)
+>>     INT68 - TINT2       - DMTIMER2
+>>     INT72 - UART0INT    - UART0
+>>
+>> From this I do not think we can put the blame on any single driver. I
+>> trigger this situation very easily by putting a load of 7,000+
+>> interrupts per second on the system. This means we have 70,000 INTC
+>> clock cycles per second where a change in the interrupt priority
+>> conditions would cause the priority sorting to become invalid and thus
+>> cause the spurious interrupt.
+>>
+>> I'm not sure if we can/should do anything more than Sekhar's patch of
+>> acknowledging the spurious interrupt so the priority sorting algorithm
+>> can run again.
+> 
+> OK thanks for testing. My guess from the above list would be EDMA
+> or CPSW missing a flush of posted write. Maybe try adding a readback
+> of the related device revision register after acking the interrupt into
+> TPCC interrupt handler and CPSW interrupt handler(s)?
 
-Well, I based my patches on linux-next as per Brian's suggestion. If
-patches to support other flash protocol modes are accepted, I would be
-happy to rebase and make use of other modes. It would just be the matte=
-r
-of populating msg.{opcode/addr}_n_bits correctly.
+I could get back to debugging this only now. I have converted
+__raw_writel to writel() and also added readback from the same register
+in both EDMA and CPSW drivers. But I am still able to reproduce the
+spurious irq reports.
 
+> The timer2 and uart0 seem to be false positives here naturally.
 
->=20
-> Also please note that you may have to add in the struct spi_flash_rea=
-d_message
-> two other fields for the number of option/mode cycles and their value=
-=2E
-> Option/mode cycles are sent between the address and dummy cycles. The=
-y are
-> used by some memory manufacturers such as Spansion, Micron and Macron=
-ix to
-> enter/leave their continuous read mode.
-> So if uninitialized dummy cycles are interpreted by the QSPI memory a=
-s
-> option/mode cycles, depending on the actual value, the memory may ent=
-er by
-> mistake in continuous mode. Once in continuous mode, the command op c=
-ode byte
-> must not be sent and is not expected by the memory: the memory implic=
-itly uses
-> the read op code sent in the SPI message which triggered the memory t=
-o enter
-> continuous read mode. Next SPI messages start from the address cycles=
- until
-> the right option/mode cycles are sent to leave the continuous read mo=
-de.
->=20
-> Currently the mtd layer doesn't use this feature but it should be awa=
-re of it.
-> That's why I believe we'll have to address this point in spi_nor_scan=
-() and the
-> "regular" m25p80() sooner or later.
->=20
+I also added readback in 8250 driver. I haven't touched the timer
+driver, but I guess if that driver had an issue, it should have come out
+much earlier.
 
-Above feature can be added incrementally over this series, (as and when
-m25p80 is updated) moreover ti-qspi controller does not support
-option/mode cycles in memory-mapped mode, so I wont be able to test thi=
-s
-feature anyway.
+I also saw that sometimes previous irq was the TI LCDC interrupt. Added
+readback there too. Did not help.
 
+> I would not yet rule out the "previous interrupt" theory until you have
+> tried that. We really want to know the root cause of the issue, just
+> printing out spurious interrupt does not fix the problem :)
 
---=20
-Regards
-Vignesh
+While we cannot rule out a software issue completely, the description in
+TRM around spurious interrupts suggests it can happen even with no role
+of software.
+
+May I suggest we go ahead and add this patch to the kernel after
+addressing Thomas's comment? At least it will prevent kernel from
+locking up with flood of prints when a spurious irq happens and allows
+easier debug by others too.
+
+Thanks,
+Sekhar
