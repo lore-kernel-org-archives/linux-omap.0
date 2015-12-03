@@ -1,111 +1,140 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH] irqchip: omap-intc: fix spurious irq handling
-Date: Thu, 3 Dec 2015 16:58:41 +0530
-Message-ID: <56602769.9050708@ti.com>
-References: <3d433cfeeb93366cadbb1668ebeac2e8006b0fd5.1445247844.git.nsekhar@ti.com>
- <20151019145039.GA21839@atomide.com> <5625DD9F.6010106@ti.com>
- <876122c7vd.fsf@linutronix.de> <20151020145255.GB3078@atomide.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V2 12/14] ARM: dts: sb-som: introduce SB-SOM baseboard
+Date: Thu, 3 Dec 2015 08:24:08 -0600
+Message-ID: <20151203142408.GA24844@rob-hp-laptop>
+References: <1448978109-5614-1-git-send-email-nikita@compulab.co.il>
+ <1448978109-5614-13-git-send-email-nikita@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151020145255.GB3078@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, John Ogness <john.ogness@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1448978109-5614-13-git-send-email-nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Tuesday 20 October 2015 08:22 PM, Tony Lindgren wrote:
-> * John Ogness <john.ogness@linutronix.de> [151020 00:33]:
->> On 2015-10-20, Sekhar Nori <nsekhar@ti.com> wrote:
->>>> Do you know what really is causing the spurious interrupts in your
->>>> case?
->>>
->>> No, not yet.
->>
->> According to the TRM this is normal behavior if conditions that might
->> affect priority are changed during priority sorting.
->>
->>     6.2.5 ARM A8 INTC Spurious Interrupt Handling
->>
->>     The spurious flag indicates whether the result of the sorting (a
->>     window of 10 INTC functional clock cycles after the interrupt
->>     assertion) is invalid. The sorting is invalid if:
->>
->>     - The interrupt that triggered the sorting is no longer active
->>       during the sorting.
->>
->>     - A change in the mask has affected the result during the sorting
->>       time.
->>
->>>> In all the cases I've seen, the spurious interrupts were caused by a
->>>> missing flush of posted write acking the IRQ at the device driver.
->>>> for the _previously triggered_ INTC interrupt.
->>>>
->>>> If you have a reproducable case, I suggest you test that by printing
->>>> out the previous interrupt to check if that makes sense. And then see
->>>> if adding the missing read back to that interrupt handler fixes the
->>>> issue.
->>>
->>> Okay, thats good to know. Thanks for the hints and history of your debug
->>> on OMAP3. The issue is not easily reproducible in my case. But if I try
->>> hard enough, I can get hit it though. So I can surely try your hints.
->>
->> I can reproduce the situation very easily. After running a test for a
->> few minutes and printing out the previous interrupt, I have the
->> following list. These are the irq numbers seen by the handler before the
->> spurious interrupt triggered.
->>
->>     INT12 - EDMACOMPINT - TPCC (EDMA)
->>     INT41 - 3PGSWRXINT0 - CPSW (Ethernet)
->>     INT42 - 3PGSWTXINT0 - CPSW (Ethernet)
->>     INT68 - TINT2       - DMTIMER2
->>     INT72 - UART0INT    - UART0
->>
->> From this I do not think we can put the blame on any single driver. I
->> trigger this situation very easily by putting a load of 7,000+
->> interrupts per second on the system. This means we have 70,000 INTC
->> clock cycles per second where a change in the interrupt priority
->> conditions would cause the priority sorting to become invalid and thus
->> cause the spurious interrupt.
->>
->> I'm not sure if we can/should do anything more than Sekhar's patch of
->> acknowledging the spurious interrupt so the priority sorting algorithm
->> can run again.
+On Tue, Dec 01, 2015 at 03:55:07PM +0200, Nikita Kiryanov wrote:
+> CompuLab SB-SOM baseboard is a carrier board for multiple arm-based SoMs.
+> It currently supports (with minor adjustments to assembly) CM-T43, CM-T54,
+> and CM-QS600 modules. It is a building block in the SBC-T43 single board
+> computer, which consists of cm-t43 on top of sb-som-t43.
 > 
-> OK thanks for testing. My guess from the above list would be EDMA
-> or CPSW missing a flush of posted write. Maybe try adding a readback
-> of the related device revision register after acking the interrupt into
-> TPCC interrupt handler and CPSW interrupt handler(s)?
+> Signed-off-by: Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+> Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>
+> Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> Cc: Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>
 
-I could get back to debugging this only now. I have converted
-__raw_writel to writel() and also added readback from the same register
-in both EDMA and CPSW drivers. But I am still able to reproduce the
-spurious irq reports.
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-> The timer2 and uart0 seem to be false positives here naturally.
-
-I also added readback in 8250 driver. I haven't touched the timer
-driver, but I guess if that driver had an issue, it should have come out
-much earlier.
-
-I also saw that sometimes previous irq was the TI LCDC interrupt. Added
-readback there too. Did not help.
-
-> I would not yet rule out the "previous interrupt" theory until you have
-> tried that. We really want to know the root cause of the issue, just
-> printing out spurious interrupt does not fix the problem :)
-
-While we cannot rule out a software issue completely, the description in
-TRM around spurious interrupts suggests it can happen even with no role
-of software.
-
-May I suggest we go ahead and add this patch to the kernel after
-addressing Thomas's comment? At least it will prevent kernel from
-locking up with flood of prints when a spurious irq happens and allows
-easier debug by others too.
-
-Thanks,
-Sekhar
+> ---
+> Changes in V2:
+> 	- Renamed file startek,startek-kd050c to startek,startek-kd050c.txt.
+> 	- s/QS-600/CM-QS600 in file compulab-boards.txt
+> 
+>  .../devicetree/bindings/arm/compulab-boards.txt    |  5 +++
+>  .../display/panel/startek,startek-kd050c.txt       |  4 +++
+>  .../devicetree/bindings/vendor-prefixes.txt        |  1 +
+>  arch/arm/boot/dts/compulab-sb-som.dtsi             | 42 ++++++++++++++++++++++
+>  4 files changed, 52 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/compulab-boards.txt
+>  create mode 100644 Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
+>  create mode 100644 arch/arm/boot/dts/compulab-sb-som.dtsi
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/compulab-boards.txt b/Documentation/devicetree/bindings/arm/compulab-boards.txt
+> new file mode 100644
+> index 0000000..71172d5
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/compulab-boards.txt
+> @@ -0,0 +1,5 @@
+> +CompuLab SB-SOM is a multi-module baseboard capable of carrying CM-T43, CM-T54,
+> +and CM-QS600 modules with minor modifications to the SB-SOM assembly.
+> +
+> +Required root node properties:
+> +    - compatible = should be "compulab,sb-som"
+> diff --git a/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
+> new file mode 100644
+> index 0000000..70cd8d1
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/display/panel/startek,startek-kd050c.txt
+> @@ -0,0 +1,4 @@
+> +Startek Electronic Technology Co. KD050C 5.0" WVGA TFT LCD panel
+> +
+> +Required properties:
+> +- compatible: should be "startek,startek-kd050c"
+> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+> index 55df1d4..409b134 100644
+> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
+> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+> @@ -218,6 +218,7 @@ sony	Sony Corporation
+>  spansion	Spansion Inc.
+>  sprd	Spreadtrum Communications Inc.
+>  st	STMicroelectronics
+> +startek	Startek
+>  ste	ST-Ericsson
+>  stericsson	ST-Ericsson
+>  synology	Synology, Inc.
+> diff --git a/arch/arm/boot/dts/compulab-sb-som.dtsi b/arch/arm/boot/dts/compulab-sb-som.dtsi
+> new file mode 100644
+> index 0000000..402a143
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/compulab-sb-som.dtsi
+> @@ -0,0 +1,42 @@
+> +/*
+> + * Copyright (C) 2015 CompuLab, Ltd. - http://www.compulab.co.il/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +/ {
+> +	model = "CompuLab SB-SOM";
+> +	compatible = "compulab,sb-som";
+> +
+> +	vsb_3v3: fixedregulator-v3_3 {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "vsb_3v3";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +		regulator-always-on;
+> +		enable-active-high;
+> +	};
+> +
+> +	lcd0: display {
+> +		compatible = "startek,startek-kd050c", "panel-dpi";
+> +		label = "lcd";
+> +
+> +		panel-timing {
+> +			clock-frequency = <33000000>;
+> +			hactive = <800>;
+> +			vactive = <480>;
+> +			hfront-porch = <40>;
+> +			hback-porch = <40>;
+> +			hsync-len = <43>;
+> +			vback-porch = <29>;
+> +			vfront-porch = <13>;
+> +			vsync-len = <3>;
+> +			hsync-active = <0>;
+> +			vsync-active = <0>;
+> +			de-active = <1>;
+> +			pixelclk-active = <1>;
+> +		};
+> +	};
+> +};
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
