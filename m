@@ -1,40 +1,88 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/2] ARM: dts: Use MMC pwrseq instead regulators for IGEP
- WiFi init
-Date: Thu, 3 Dec 2015 10:16:24 -0800
-Message-ID: <20151203181624.GW23396@atomide.com>
-References: <1449165729-993-1-git-send-email-javier@osg.samsung.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 00/10] Patches to get dm814x-evm booting to NFSroot
+Date: Thu, 3 Dec 2015 20:17:18 +0200
+Message-ID: <5660872E.8080603@ti.com>
+References: <1449013103-23238-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1449165729-993-1-git-send-email-javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449013103-23238-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org> [151203 10:03]:
-> Hello,
+On 12/02/2015 01:38 AM, Tony Lindgren wrote:
+> Hi all,
 > 
-> This series converts the IGEPv2 (IGEP0020) and IGEP COM Module (IGEP0030)
-> Device Tree to use the MMC power sequence provider to initialize the SDIO
-> WiFi chip instead of using fake fixed regulators to just toggle the Reset
-> and Power pins in the chip.
+> Here are some fixes for v4.5 merge window to get dm814x-evm booting.
+> While hp t410 boots based on the bootloader clocks, dm814x-evm needs
+> more things configured. Especially the clock dts entries were all
+> wrong and just happened to be harmless on hp t410.
 > 
-> The patches were tested on an DM3730 IGEPv2 board but the IGEP COM Module
-> is the same with regard to the SDIO WiFi so it should be safe to land too.
+> To boot, you probably want to use v4.4-rc3 because of commit 29f5b34ca1a1
+> ("arm: omap2+: add missing HWMOD_NO_IDLEST in 81xx hwmod data") and also
+> manually apply commit 0db19b850468 ("net: cpsw: Fix ethernet regression
+> for dm814x") from Linux next.
 > 
-> The IGEPv2 Rev.F and the IGEP COM Module Rev.G DTS were not converted due
-> using a different WiFi chip (wlcore instead of libertas) than the one in
-> the board I've access to test so I preferred to leave those untouched.
+> I have more changes coming up after this series after I clean them
+> up a bit. Here's a brief status update for people:
+> 
+> What's working after this series on dm814x-evm and hp t410:
+> 
+> - Timers
+> 
+> - Serial
+> 
+> - Ethernet
+> 
+> - DMA
+> 
+> - I2C (only tested so far with i2cdetect -r 0)
+> 
+> - GPIO (only tested with additional MMC patches for card detect)
+> 
+> I have the following additional patches coming soonish:
+> 
+> - Basic ADPLL clock driver
+> 
+> - MMC support
+> 
+> - USB support
+> 
+> - Minimal j5eco-evm support
+> 
+> Should work with just configuration:
+> 
+> - [PATCH 0/3] pwm: omap: Add PWM support using dual-mode timers
+> 
+> I'm not working on any of the accelerators or graphics FYI. If somebody
+> has patches coming for those please notify on the linux-omap and
+> linux-arm-kernel mailings lists so we can avoid duplicate work.
+> 
 
-Do you have some solution for the start-up latency issue?
+> Tony Lindgren (10):
+>    ARM: OMAP2+: Fix timer entries for dm814x
+>    clk: ti: Add few dm814x clock aliases
+>    ARM: OMAP2+: Add DPPLS clock manager for dm814x
+>    ARM: OMAP2+: Enable GPIO for dm814x
+>    ARM: OMAP2+: Disable GPIO softreset for dm81xx
+>    ARM: OMAP2+: Remove useless check for legacy booting for dm814x
+>    ARM: dts: Fix dm814x entries for pllss and prcm
+>    ARM: dts: Fix some mux and divider clocks to get dm814x-evm booting
+>    ARM: dts: Fix dm8148 control modules ranges
+>    ARM: dts: Fix dm814x pinctrl address and mask
 
-Regards,
+I'm worry a bit, if you will apply this series in its current order
+- it will break git bisect.
+Patch one "ARM: OMAP2+: Fix timer entries for dm814x" will use timerX_fck, but those
+clocks will be added by patches 2 "clk: ti: Add few dm814x clock aliases"
+and 8 "ARM: dts: Fix some mux and divider clocks to get dm814x-evm booting"
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+regards,
+-grygorii
