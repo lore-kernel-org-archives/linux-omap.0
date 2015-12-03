@@ -1,308 +1,73 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 3/4] dmaengine: core: Introduce new, universal API to request a channel
-Date: Thu, 3 Dec 2015 16:33:11 +0200
-Message-ID: <1449153192-9082-4-git-send-email-peter.ujfalusi@ti.com>
-References: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] irqchip: omap-intc: fix spurious irq handling
+Date: Thu, 3 Dec 2015 07:02:22 -0800
+Message-ID: <20151203150222.GH23396@atomide.com>
+References: <3d433cfeeb93366cadbb1668ebeac2e8006b0fd5.1445247844.git.nsekhar@ti.com>
+ <20151019145039.GA21839@atomide.com>
+ <5625DD9F.6010106@ti.com>
+ <876122c7vd.fsf@linutronix.de>
+ <20151020145255.GB3078@atomide.com>
+ <56602769.9050708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
+Content-Disposition: inline
+In-Reply-To: <56602769.9050708@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, arnd@arndb.de, andy.shevchenko@gmail.com
-Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: John Ogness <john.ogness@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The two API function can cover most, if not all current APIs used to
-request a channel. With minimal effort dmaengine drivers, platforms and
-dmaengine user drivers can be converted to use the two function.
+* Sekhar Nori <nsekhar@ti.com> [151203 03:29]:
+> On Tuesday 20 October 2015 08:22 PM, Tony Lindgren wrote:
+> > 
+> > OK thanks for testing. My guess from the above list would be EDMA
+> > or CPSW missing a flush of posted write. Maybe try adding a readback
+> > of the related device revision register after acking the interrupt into
+> > TPCC interrupt handler and CPSW interrupt handler(s)?
+> 
+> I could get back to debugging this only now. I have converted
+> __raw_writel to writel() and also added readback from the same register
+> in both EDMA and CPSW drivers. But I am still able to reproduce the
+> spurious irq reports.
+> 
+> > The timer2 and uart0 seem to be false positives here naturally.
+> 
+> I also added readback in 8250 driver. I haven't touched the timer
+> driver, but I guess if that driver had an issue, it should have come out
+> much earlier.
+> 
+> I also saw that sometimes previous irq was the TI LCDC interrupt. Added
+> readback there too. Did not help.
 
-struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+OK strange, so far all the ones we've seen have been fixable that way.
 
-To request any channel matching with the requested capabilities, can be
-used to request channel for memcpy, memset, xor, etc where no hardware
-synchronization is needed.
+> > I would not yet rule out the "previous interrupt" theory until you have
+> > tried that. We really want to know the root cause of the issue, just
+> > printing out spurious interrupt does not fix the problem :)
+> 
+> While we cannot rule out a software issue completely, the description in
+> TRM around spurious interrupts suggests it can happen even with no role
+> of software.
 
-struct dma_chan *dma_request_chan(struct device *dev, const char *name);
-To request a slave channel. The dma_request_chan() will try to find the
-channel via DT, ACPI or in case if the kernel booted in non DT/ACPI mode
-it will use a filter lookup table and retrieves the needed information from
-the dma_slave_map provided by the DMA drivers.
-This legacy mode needs changes in platform code, in dmaengine drivers and
-finally the dmaengine user drivers can be converted:
+Yes maybe we more than one reason for them.
 
-For each dmaengine driver an array of DMA device, slave and the parameter
-for the filter function needs to be added:
+> May I suggest we go ahead and add this patch to the kernel after
+> addressing Thomas's comment? At least it will prevent kernel from
+> locking up with flood of prints when a spurious irq happens and allows
+> easier debug by others too.
 
-static const struct dma_slave_map da830_edma_map[] = {
-	{ "davinci-mcasp.0", "rx", EDMA_FILTER_PARAM(0, 0) },
-	{ "davinci-mcasp.0", "tx", EDMA_FILTER_PARAM(0, 1) },
-	{ "davinci-mcasp.1", "rx", EDMA_FILTER_PARAM(0, 2) },
-	{ "davinci-mcasp.1", "tx", EDMA_FILTER_PARAM(0, 3) },
-	{ "davinci-mcasp.2", "rx", EDMA_FILTER_PARAM(0, 4) },
-	{ "davinci-mcasp.2", "tx", EDMA_FILTER_PARAM(0, 5) },
-	{ "spi_davinci.0", "rx", EDMA_FILTER_PARAM(0, 14) },
-	{ "spi_davinci.0", "tx", EDMA_FILTER_PARAM(0, 15) },
-	{ "da830-mmc.0", "rx", EDMA_FILTER_PARAM(0, 16) },
-	{ "da830-mmc.0", "tx", EDMA_FILTER_PARAM(0, 17) },
-	{ "spi_davinci.1", "rx", EDMA_FILTER_PARAM(0, 18) },
-	{ "spi_davinci.1", "tx", EDMA_FILTER_PARAM(0, 19) },
-};
+Yes we should naturally fix up the kernel locking.
 
-This information is going to be needed by the dmaengine driver, so
-modification to the platform_data is needed, and the driver map should be
-added to the pdata of the DMA driver:
+Please also add something like "enable debug for more information"
+to the warning. And then print out the current and previous interrupt
+if DEBUG is enabled. And in the comments mention that often the spurious
+interrupts has been fixed by adding a flush of the posted write to the
+previous interrupt handler in the device driver.
 
-da8xx_edma0_pdata.slave_map = da830_edma_map;
-da8xx_edma0_pdata.slavecnt = ARRAY_SIZE(da830_edma_map);
+Also, do you have a reproducable test case with mainline kernel I
+could add to my collection of shell scripts?
 
-The DMA driver then needs to configure the needed device -> filter_fn
-mapping before it registers with dma_async_device_register() :
+Regards,
 
-if (info->slave_map) {
-	ecc->dma_slave.filter_map.map = info->slave_map;
-	ecc->dma_slave.filter_map.mapcnt = info->slavecnt;
-	ecc->dma_slave.filter_map.filter_fn = edma_filter_fn;
-}
-
-When neither DT or ACPI lookup is available the dma_request_chan() will
-try to match the requester's device name with the filter_map's list of
-device names, when a match found it will use the information from the
-dma_slave_map to get the channel with the dma_get_channel() internal
-function.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- Documentation/dmaengine/client.txt | 23 +++-------
- drivers/dma/dmaengine.c            | 94 ++++++++++++++++++++++++++++++++++++++
- include/linux/dmaengine.h          | 42 +++++++++++++++++
- 3 files changed, 142 insertions(+), 17 deletions(-)
-
-diff --git a/Documentation/dmaengine/client.txt b/Documentation/dmaengine/client.txt
-index d9f9f461102a..9e33189745f0 100644
---- a/Documentation/dmaengine/client.txt
-+++ b/Documentation/dmaengine/client.txt
-@@ -22,25 +22,14 @@ The slave DMA usage consists of following steps:
-    Channel allocation is slightly different in the slave DMA context,
-    client drivers typically need a channel from a particular DMA
-    controller only and even in some cases a specific channel is desired.
--   To request a channel dma_request_channel() API is used.
-+   To request a channel dma_request_chan() API is used.
- 
-    Interface:
--	struct dma_chan *dma_request_channel(dma_cap_mask_t mask,
--			dma_filter_fn filter_fn,
--			void *filter_param);
--   where dma_filter_fn is defined as:
--	typedef bool (*dma_filter_fn)(struct dma_chan *chan, void *filter_param);
--
--   The 'filter_fn' parameter is optional, but highly recommended for
--   slave and cyclic channels as they typically need to obtain a specific
--   DMA channel.
--
--   When the optional 'filter_fn' parameter is NULL, dma_request_channel()
--   simply returns the first channel that satisfies the capability mask.
--
--   Otherwise, the 'filter_fn' routine will be called once for each free
--   channel which has a capability in 'mask'.  'filter_fn' is expected to
--   return 'true' when the desired DMA channel is found.
-+	struct dma_chan *dma_request_chan(struct device *dev, const char *name);
-+
-+   Which will find and return the 'name' DMA channel associated with the 'dev'
-+   device. The association is done via DT, ACPI or board file based
-+   dma_slave_map matching table.
- 
-    A channel allocated via this interface is exclusive to the caller,
-    until dma_release_channel() is called.
-diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
-index ea9d66982d40..fee4912d64d6 100644
---- a/drivers/dma/dmaengine.c
-+++ b/drivers/dma/dmaengine.c
-@@ -43,6 +43,7 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/init.h>
- #include <linux/module.h>
-@@ -712,6 +713,99 @@ struct dma_chan *dma_request_slave_channel(struct device *dev,
- }
- EXPORT_SYMBOL_GPL(dma_request_slave_channel);
- 
-+const static struct dma_slave_map *dma_filter_match(struct dma_device *device,
-+					       const char *name,
-+					       struct device *dev)
-+{
-+	int i;
-+
-+	if (!device->filter_map.mapcnt)
-+		return NULL;
-+
-+	for (i = 0; i < device->filter_map.mapcnt; i++) {
-+		const struct dma_slave_map *map = &device->filter_map.map[i];
-+
-+		if (!strcmp(map->devname, dev_name(dev)) &&
-+		    !strcmp(map->slave, name))
-+			return map;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * dma_request_chan - try to allocate an exclusive slave channel
-+ * @dev:	pointer to client device structure
-+ * @name:	slave channel name
-+ *
-+ * Returns pointer to appropriate DMA channel on success or an error pointer.
-+ */
-+struct dma_chan *dma_request_chan(struct device *dev, const char *name)
-+{
-+	struct dma_device *d, *_d;
-+	struct dma_chan *chan = NULL;
-+
-+	/* If device-tree is present get slave info from here */
-+	if (dev->of_node)
-+		chan = of_dma_request_slave_channel(dev->of_node, name);
-+
-+	/* If device was enumerated by ACPI get slave info from here */
-+	if (has_acpi_companion(dev) && !chan)
-+		chan = acpi_dma_request_slave_chan_by_name(dev, name);
-+
-+	if (chan) {
-+		/* Valid channel found */
-+		if (!IS_ERR(chan) || PTR_ERR(chan) == -EPROBE_DEFER)
-+			return chan;
-+
-+		pr_warn("%s: %s DMA request failed, falling back to legacy\n",
-+			__func__, dev->of_node ? "OF" : "ACPI");
-+	}
-+
-+	/* Try to find the channel via the DMA filter map(s) */
-+	mutex_lock(&dma_list_mutex);
-+	list_for_each_entry_safe(d, _d, &dma_device_list, global_node) {
-+		dma_cap_mask_t mask;
-+		const struct dma_slave_map *map = dma_filter_match(d, name, dev);
-+
-+		if (!map)
-+			continue;
-+
-+		dma_cap_zero(mask);
-+		dma_cap_set(DMA_SLAVE, mask);
-+
-+		chan = find_candidate(d, &mask, d->filter_map.filter_fn,
-+				      map->param);
-+		if (!IS_ERR(chan))
-+			break;
-+	}
-+	mutex_unlock(&dma_list_mutex);
-+
-+	return chan ? chan : ERR_PTR(-EPROBE_DEFER);
-+}
-+EXPORT_SYMBOL_GPL(dma_request_chan);
-+
-+/**
-+ * dma_request_chan_by_mask - allocate a channel satisfying certain capabilities
-+ * @mask: capabilities that the channel must satisfy
-+ *
-+ * Returns pointer to appropriate DMA channel on success or an error pointer.
-+ */
-+struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask)
-+{
-+	struct dma_chan *chan;
-+
-+	if (!mask)
-+		return ERR_PTR(-ENODEV);
-+
-+	chan = __dma_request_channel(mask, NULL, NULL);
-+	if (!chan)
-+		chan = ERR_PTR(-ENODEV);
-+
-+	return chan;
-+}
-+EXPORT_SYMBOL_GPL(dma_request_chan_by_mask);
-+
- void dma_release_channel(struct dma_chan *chan)
- {
- 	mutex_lock(&dma_list_mutex);
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index a2b7c2071cf4..1c3997461ae7 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -607,11 +607,38 @@ enum dmaengine_alignment {
- };
- 
- /**
-+ * struct dma_slave_map - associates slave device and it's slave channel with
-+ * parameter to be used by a filter function
-+ * @devname: name of the device
-+ * @slave: slave channel name
-+ * @param: opaque parameter to pass to struct dma_filter.filter_fn
-+ */
-+struct dma_slave_map {
-+        const char *devname;
-+        const char *slave;
-+        void *param;
-+};
-+
-+/**
-+ * struct dma_filter - information for slave device/channel to filter_fn/param
-+ * mapping
-+ * @filter_fn: filter function callback
-+ * @mapcnt: number of slave device/channel in the map
-+ * @map: array of channel to filter mapping data
-+ */
-+struct dma_filter {
-+        dma_filter_fn filter_fn;
-+        int mapcnt;
-+        const struct dma_slave_map *map;
-+};
-+
-+/**
-  * struct dma_device - info on the entity supplying DMA services
-  * @chancnt: how many DMA channels are supported
-  * @privatecnt: how many DMA channels are requested by dma_request_channel
-  * @channels: the list of struct dma_chan
-  * @global_node: list_head for global dma_device_list
-+ * @filter_map: information for device/slave to filter function/param mapping
-  * @cap_mask: one or more dma_capability flags
-  * @max_xor: maximum number of xor sources, 0 if no capability
-  * @max_pq: maximum number of PQ sources and PQ-continue capability
-@@ -669,6 +696,7 @@ struct dma_device {
- 	unsigned int privatecnt;
- 	struct list_head channels;
- 	struct list_head global_node;
-+	struct dma_filter filter_map;
- 	dma_cap_mask_t  cap_mask;
- 	unsigned short max_xor;
- 	unsigned short max_pq;
-@@ -1235,6 +1263,10 @@ struct dma_chan *__dma_request_channel(const dma_cap_mask_t *mask,
- struct dma_chan *dma_request_slave_channel_reason(struct device *dev,
- 						  const char *name);
- struct dma_chan *dma_request_slave_channel(struct device *dev, const char *name);
-+
-+struct dma_chan *dma_request_chan(struct device *dev, const char *name);
-+struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
-+
- void dma_release_channel(struct dma_chan *chan);
- int dma_get_slave_caps(struct dma_chan *chan, struct dma_slave_caps *caps);
- #else
-@@ -1268,6 +1300,16 @@ static inline struct dma_chan *dma_request_slave_channel(struct device *dev,
- {
- 	return NULL;
- }
-+static inline struct dma_chan *dma_request_chan(struct device *dev,
-+						const char *name)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+static inline struct dma_chan *dma_request_chan_by_mask(
-+						const dma_cap_mask_t *mask)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
- static inline void dma_release_channel(struct dma_chan *chan)
- {
- }
--- 
-2.6.3
+Tony
