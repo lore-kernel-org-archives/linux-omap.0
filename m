@@ -1,48 +1,94 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH V3 01/19] ARM: dts: am57xx: cl-som-am57x: add basic
- module support
-Date: Thu, 3 Dec 2015 08:20:37 -0800
-Message-ID: <20151203162037.GO23396@atomide.com>
-References: <1448433590-1399-1-git-send-email-lifshitz@compulab.co.il>
- <1448993001-19495-1-git-send-email-lifshitz@compulab.co.il>
- <1448993001-19495-2-git-send-email-lifshitz@compulab.co.il>
- <20151202152326.GA16775@rob-hp-laptop>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH 3/4] dmaengine: core: Introduce new, universal API to
+ request a channel
+Date: Thu, 3 Dec 2015 18:30:04 +0200
+Message-ID: <CAHp75VdeZBuxTd1rCFDLf9iXuhPidOejF-Ki=nqAqAvSmx99xA@mail.gmail.com>
+References: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
+	<1449153192-9082-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151202152326.GA16775@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Nikita Kiryanov <nikita-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449153192-9082-4-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [151202 07:24]:
-> On Tue, Dec 01, 2015 at 08:03:03PM +0200, Dmitry Lifshitz wrote:
-> > Add support for CompuLab CM-SOM-AM57X board.
-> > 
-> > CL-SOM-AM57x is a miniature System-on-Module (SoM) based on
-> > TI Sitara AM57x ARM Cortex-A15 System-on-Chip family.
-> > 
-> > https://www.compulab.co.il/products/computer-on-modules/cl-som-am57x-ti-am5728-am5718-system-on-module/
-> > 
-> > Add basic DT support for standalone module (without a carrier board):
-> > 
-> > * Memory configuration
-> > * Heartbeat led
-> > * I2C1 and I2C4
-> > * PMIC
-> > * SATA
-> > 
-> > Signed-off-by: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> > Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> 
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+On Thu, Dec 3, 2015 at 4:33 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> The two API function can cover most, if not all current APIs used to
+> request a channel. With minimal effort dmaengine drivers, platforms and
+> dmaengine user drivers can be converted to use the two function.
+>
+> struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+>
+> To request any channel matching with the requested capabilities, can be
+> used to request channel for memcpy, memset, xor, etc where no hardware
+> synchronization is needed.
+>
+> struct dma_chan *dma_request_chan(struct device *dev, const char *name);
+> To request a slave channel. The dma_request_chan() will try to find the
+> channel via DT, ACPI or in case if the kernel booted in non DT/ACPI mode
+> it will use a filter lookup table and retrieves the needed information from
+> the dma_slave_map provided by the DMA drivers.
+> This legacy mode needs changes in platform code, in dmaengine drivers and
+> finally the dmaengine user drivers can be converted:
+>
+> For each dmaengine driver an array of DMA device, slave and the parameter
+> for the filter function needs to be added:
+>
+> static const struct dma_slave_map da830_edma_map[] = {
+>         { "davinci-mcasp.0", "rx", EDMA_FILTER_PARAM(0, 0) },
+>         { "davinci-mcasp.0", "tx", EDMA_FILTER_PARAM(0, 1) },
+>         { "davinci-mcasp.1", "rx", EDMA_FILTER_PARAM(0, 2) },
+>         { "davinci-mcasp.1", "tx", EDMA_FILTER_PARAM(0, 3) },
+>         { "davinci-mcasp.2", "rx", EDMA_FILTER_PARAM(0, 4) },
+>         { "davinci-mcasp.2", "tx", EDMA_FILTER_PARAM(0, 5) },
+>         { "spi_davinci.0", "rx", EDMA_FILTER_PARAM(0, 14) },
+>         { "spi_davinci.0", "tx", EDMA_FILTER_PARAM(0, 15) },
+>         { "da830-mmc.0", "rx", EDMA_FILTER_PARAM(0, 16) },
+>         { "da830-mmc.0", "tx", EDMA_FILTER_PARAM(0, 17) },
+>         { "spi_davinci.1", "rx", EDMA_FILTER_PARAM(0, 18) },
+>         { "spi_davinci.1", "tx", EDMA_FILTER_PARAM(0, 19) },
+> };
+>
+> This information is going to be needed by the dmaengine driver, so
+> modification to the platform_data is needed, and the driver map should be
+> added to the pdata of the DMA driver:
+>
+> da8xx_edma0_pdata.slave_map = da830_edma_map;
+> da8xx_edma0_pdata.slavecnt = ARRAY_SIZE(da830_edma_map);
+>
+> The DMA driver then needs to configure the needed device -> filter_fn
+> mapping before it registers with dma_async_device_register() :
+>
+> if (info->slave_map) {
+>         ecc->dma_slave.filter_map.map = info->slave_map;
+>         ecc->dma_slave.filter_map.mapcnt = info->slavecnt;
+>         ecc->dma_slave.filter_map.filter_fn = edma_filter_fn;
 
-Applying the whole series into omap-for-v4.5/dt thanks.
+One nitpick here.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think filter_map.filter_fn naming is duplicate.
+
+What about
+
+dma_device
+  .filter -> filter data (or .filter_data)
+    .map -> mappings
+    .map_count -> # of entries in mappings
+    .fn -> filter function
+
+What do you think?
+
+> }
+>
+> When neither DT or ACPI lookup is available the dma_request_chan() will
+> try to match the requester's device name with the filter_map's list of
+> device names, when a match found it will use the information from the
+> dma_slave_map to get the channel with the dma_get_channel() internal
+> function.
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
