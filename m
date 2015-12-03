@@ -1,89 +1,95 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 0/4] dmaengine: New 'universal' API for requesting channel
-Date: Thu, 3 Dec 2015 18:32:20 +0200
-Message-ID: <CAHp75VeLvxwc910ZM-X1_sfZhmf+05CXMuHkMdhVZVHrEmTrDQ@mail.gmail.com>
-References: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [4.4-rc][PATCH] ARM: dts: am4372: disable arm twd and global
+ timer's nodes
+Date: Thu, 3 Dec 2015 08:33:11 -0800
+Message-ID: <20151203163311.GP23396@atomide.com>
+References: <1447855315-419-1-git-send-email-grygorii.strashko@ti.com>
+ <20151118141537.GC10644@leverpostej>
+ <564C9ACF.6040107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <564C9ACF.6040107-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, slash.tmp-GANU6spQydw@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 3, 2015 at 4:33 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> Hi,
+* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [151118 07:36]:
+> Hi Mark,
+> 
+> On 11/18/2015 04:15 PM, Mark Rutland wrote:
+> > On Wed, Nov 18, 2015 at 04:01:55PM +0200, Grygorii Strashko wrote:
+> >> Keep ARM TWD and Global timer's nodes disabled by default - if someone
+> >> would like to use them then those nodes have to be enabled explicitly
+> >> in board file.
+> >>
+> >> The reason for this change is:
+> >> - ARM TWD is not always-on timer on am437x and it will stop in low
+> >>    CPUIdle states and, therefore, broadcast timer has to configured
+> >>    properly if CPU_IDLE=y.
+> >> - ARM Global timer is not always-on timer on am437x and it can't be
+> >>    used as clocksource device if CPU_IDLE=y.
+> > 
+> > I don't understand. What timer do you use in the absence of a TWD, and
+> > if it is better why is it not used even if TWD is present?
+> 
+> OMAP GP timer as clockevent device
+> "ti,omap-counter32k" as clocksource
+> both are in wakeup (always-on) PM domain.
+> 
+> I see some problems with selecting clocksource/event device (but may be I'm mistaken):
+> - Current clock event will be selected using "rating" field in clock_event_device
+>   structure and now ARM TWD has higer value (350) vs OMAP GP timer (300),
+>   so ARM TWD will be always selected if it's present. 
+> - we have to force all am437x user to use kernel cmdline parameter "clocksource="
+>   if ARM Global timer is present, but shouldn't be used. But even in this case,
+>   it will be selected as sched_clock.
 
-> As it has been discussed in the following thread:
-> http://www.gossamer-threads.com/lists/linux/kernel/2181487#2181487
->
-> With this series I have taken a path which would result two new API, which can
-> be used to convert most of the current users already and with some work all
-> users might be able to move to this set.
-> With this set the filter_fn used for legacy (non DT/ACPI) channel request is no
-> longer needed to be exported to client drivers since the selection of the
-> correct filter_fn will be done in the core.
->
-> So, the first proposal is to have:
->
-> struct dma_chan *dma_request_chan(struct device *dev, const char *name);
-> struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
->
-> The dma_request_chan_by_mask() is to request any channel matching with the
-> requested capabilities, can be used to request channel for memcpy, memset, xor,
-> etc where no hardware synchronization is needed.
->
-> The dma_request_chan() is to request a slave channel. The dma_request_chan()
-> will try to find the channel via DT, ACPI or in case if the kernel booted in non
-> DT/ACPI mode it will use a filter lookup table and retrieves the needed
-> information from the dma_slave_map provided by the DMA drivers.
-> This legacy mode needs changes in platform code, in dmaengine drivers and
-> finally the dmaengine user drivers can be converted:
->
-> For each dmaengine driver an array of DMA device, slave and the parameter
-> for the filter function needs to be added:
->
-> static const struct dma_slave_map da830_edma_map[] = {
->         { "davinci-mcasp.0", "rx", EDMA_FILTER_PARAM(0, 0) },
->         { "davinci-mcasp.0", "tx", EDMA_FILTER_PARAM(0, 1) },
->         { "davinci-mcasp.1", "rx", EDMA_FILTER_PARAM(0, 2) },
->         { "davinci-mcasp.1", "tx", EDMA_FILTER_PARAM(0, 3) },
->         { "davinci-mcasp.2", "rx", EDMA_FILTER_PARAM(0, 4) },
->         { "davinci-mcasp.2", "tx", EDMA_FILTER_PARAM(0, 5) },
->         { "spi_davinci.0", "rx", EDMA_FILTER_PARAM(0, 14) },
->         { "spi_davinci.0", "tx", EDMA_FILTER_PARAM(0, 15) },
->         { "da830-mmc.0", "rx", EDMA_FILTER_PARAM(0, 16) },
->         { "da830-mmc.0", "tx", EDMA_FILTER_PARAM(0, 17) },
->         { "spi_davinci.1", "rx", EDMA_FILTER_PARAM(0, 18) },
->         { "spi_davinci.1", "tx", EDMA_FILTER_PARAM(0, 19) },
-> };
->
-> This information is going to be used by the dmaengine driver, so
-> modification to the platform_data is needed, and the driver map should be
-> added to the pdata of the DMA driver:
->
-> da8xx_edma0_pdata.slave_map = da830_edma_map;
-> da8xx_edma0_pdata.slavecnt = ARRAY_SIZE(da830_edma_map);
->
-> The DMA driver then needs to configure the needed device -> filter_fn
-> mapping before it registers with dma_async_device_register() :
->
-> if (info->slave_map) {
->         ecc->dma_slave.filter_map.map = info->slave_map;
->         ecc->dma_slave.filter_map.mapcnt = info->slavecnt;
->         ecc->dma_slave.filter_map.filter_fn = edma_filter_fn;
-> }
->
-> When neither DT or ACPI lookup is available the dma_request_chan() will
-> try to match the requester's device name with the filter_map's list of
-> device names, when a match found it will use the information from the
-> dma_slave_map to get the channel with the dma_get_channel() internal
-> function.
+Yeah makes sense to me. Eventually when I get my clocksource switch patches
+updated this problem will go away and we can use a local timer clocksource
+during runtime and slower always on timer during idle like we already do
+for clockevents.
 
-For patches 1-3 with regard to comment on 3:
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> We can see benefits from using these timers when Power mangement is not the case,
+> for example on -RT kernel where CPUIdle is not the target.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Yes we really want to use local timers for RT during runtime.
+
+> By this change, and taking into account discovered issues, I want to make people,
+> who would like to use these timers on AM437x based boards, responsible for such
+> decision with assumption that they know what they are doing.
+> And this is simplest way I found to disable those timers without modifying kernel.
+> 
+> > 
+> >> - ARM Global timer driver doesn't support CPUfreq now.
+> > 
+> > Surely that should be fixed in the driver (e.g. make it fail to probe if
+> > CPUfreq is present)? It's broken for any other users too...
+> 
+> May be.
+
+I think it's only broken for users who have PM entering deeper idle states
+where the ARM core is powered off.
+
+The selection of the timer needs to be done in the board specific dts file as we
+already have cases where RT works but PM does not and should use the local timer,
+and we have boards where PM works and we must use the always on timer.
+
+> Also, there is additional issue with ARM global timer which I've not
+> mentioned here, because I sent the fix for it already (in progress):
+> https://lkml.org/lkml/2015/11/13/456
+> 
+> and there is ongoing discussion:
+> http://www.spinics.net/lists/arm-kernel/msg459649.html
+
+It seems we should apply this as a fix unless somebody has better ideas.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
