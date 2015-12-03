@@ -1,49 +1,73 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [4.4-rc][PATCH v2] ARM: dts: am4372: fix clock source for arm twd
- and global timers
-Date: Thu, 3 Dec 2015 20:04:46 +0200
-Message-ID: <5660843E.3000801@ti.com>
-References: <1448898998-32749-1-git-send-email-grygorii.strashko@ti.com>
- <20151203163551.GQ23396@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: Change core_initcall levels to
+ postcore_initcall
+Date: Thu, 3 Dec 2015 20:08:24 +0200
+Message-ID: <56608518.7060406@ti.com>
+References: <1448900789-4034-1-git-send-email-tony@atomide.com>
+ <1448900789-4034-3-git-send-email-tony@atomide.com>
+ <20151203160014.GL23396@atomide.com> <56606F20.9050805@ti.com>
+ <20151203164113.GS23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151203163551.GQ23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: t-kristo-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151203164113.GS23396@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/03/2015 06:35 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [151130 07:58]:
->> ARM TWD and Global timer are clocked by PERIPHCLK which is MPU_CLK/2.
->> But now they are clocked by dpll_mpu_m2_ck == MPU_CLK and, as result.
->> Timekeeping core misbehaves. For example, execution of command
->> "sleep 5" will take 10 sec instead of 5.
+On 12/03/2015 06:41 PM, Tony Lindgren wrote:
+> * Grygorii Strashko <grygorii.strashko@ti.com> [151203 08:35]:
+>> On 12/03/2015 06:00 PM, Tony Lindgren wrote:
+>>> * Tony Lindgren <tony@atomide.com> [151130 08:29]:
+>>>> We want to be able to probe a few selected device drivers before hwmod
+>>>> code populates the clocks in omap_hwmod_setup_all(). This allows us to
+>>>> convert most of the clock drivers into regular device drivers.
 >>
->> Hence, fix it by adding mpu_periphclk ("fixed-factor-clock") and use
->> it for clocking ARM TWD and Global timer (same way as on OMAP4).
+>> if understand things right, ti clks now will be populated and initialized
+>> from
+>> __omap_sync32k_timer_init
+>>   - omap_clk_init()
+>>     - ..
+>>     - of_clk_init()
+>>     - ..
+>>     - omap_clk_soc_init()
 >>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
->> Fixes:commit 8cbd4c2f6a99 ("arm: boot: dts: am4372: add ARM timers and SCU nodes")
->> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+>> and __omap_sync32k_timer_init(), in turn, will be called from:
+>> arch/arm/kernel/time.c
+>>   - time_init()
+>> 	machine_desc->init_time();
+>> (without your patch 1).
 > 
-> Is this fix alone enough or do you still need to disable other the ARM
-> timers in the board specific dts file?
+> Yes that's the current approach, but we can do better. We only need the following
+> clocks for system timers at that point:
+> 
+> - mux clocks to select between the 32k and hf oscillator source
+> 
+> - clkctrl driver to gate the ocp clock
+> 
+> All the other clocks can be initialized at core_initcall time with this change.
+> 
+>> So, I don't see real dependency here between clk initialization and hwmods :(
+> 
+> You don't because it's only implemented so far for the dm814x ADPLL clock :)
+> 
+> That I posted as "[PATCH 0/2] Clock driver for dm814x ADPLL". Note how it's
+> just a regular device driver that also works as loadable module on boards that
+> have all the necessary clocks enabled already by the bootloader.
 > 
 
-This one is independent and it's required for -rc, because ARM TWD timer will be selected
-now for am43xx even if http://www.spinics.net/lists/arm-kernel/msg459649.html
-is not merged yet ;) in case of omap2plus_defconfig build.
-
+Ah. Thanks. I see it now.
 
 -- 
 regards,
 -grygorii
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
