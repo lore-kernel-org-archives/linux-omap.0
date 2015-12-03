@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] ARM: dts: Add clocks for dm814x ADPLL
-Date: Wed,  2 Dec 2015 17:35:04 -0800
-Message-ID: <1449106504-7645-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 1/2] clk: ti: Add support for dm814x ADPLL
+Date: Wed,  2 Dec 2015 17:35:03 -0800
+Message-ID: <1449106504-7645-2-git-send-email-tony@atomide.com>
 References: <1449106504-7645-1-git-send-email-tony@atomide.com>
 Return-path: <linux-clk-owner@vger.kernel.org>
 In-Reply-To: <1449106504-7645-1-git-send-email-tony@atomide.com>
@@ -10,29 +10,55 @@ To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.
 Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-These use the standard clock bindings and now we can make some
-of the fixed clocks into real clocks.
+On dm814x we have 13 ADPLLs with 3 to 4 outputs on each. The
+ADPLLs have several dividers and muxes controlled by a shared
+control register for each PLL.
+
+Note that for the clocks to work as device drivers for booting on
+dm814x, this patch depends on "ARM: OMAP2+: Change core_initcall
+levels to postcore_initcall".
+
+Also note that this patch does not implement clk_set_rate,
+that will be posted later on when available.
 
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dm814x-clocks.dtsi | 256 ++++++++++++++++++++++++++++++-----
- 1 file changed, 225 insertions(+), 31 deletions(-)
+ .../devicetree/bindings/clock/ti/adpll.txt         |   42 +
+ drivers/clk/Kconfig                                |    1 +
+ drivers/clk/ti/Kconfig                             |    6 +
+ drivers/clk/ti/Makefile                            |    2 +
+ drivers/clk/ti/adpll.c                             | 1027 ++++++++++++++++++++
+ drivers/clk/ti/clk-814x.c                          |   53 +
+ 6 files changed, 1131 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/adpll.txt
+ create mode 100644 drivers/clk/ti/Kconfig
+ create mode 100644 drivers/clk/ti/adpll.c
 
-diff --git a/arch/arm/boot/dts/dm814x-clocks.dtsi b/arch/arm/boot/dts/dm814x-clocks.dtsi
-index 2600158..84fbfb1 100644
---- a/arch/arm/boot/dts/dm814x-clocks.dtsi
-+++ b/arch/arm/boot/dts/dm814x-clocks.dtsi
-@@ -4,6 +4,170 @@
-  * published by the Free Software Foundation.
-  */
- 
-+&pllss {
-+	/*
-+	 * See TRM "2.6.10 Connected outputso DPLLS" and
-+	 * "2.6.11 Connected Outputs of DPLLJ". Only clkout is
-+	 * connected except for hdmi and usb.
-+	 */
+diff --git a/Documentation/devicetree/bindings/clock/ti/adpll.txt b/Documentation/devicetree/bindings/clock/ti/adpll.txt
+new file mode 100644
+index 0000000..8098583
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti/adpll.txt
+@@ -0,0 +1,42 @@
++Binding for Texas Instruments FAPLL clock.
++
++Binding status: Unstable - ABI compatibility may be broken in the future
++
++This binding uses the common clock binding[1]. It assumes a
++register-mapped ADPLL with two to three selectable input clocks
++and three to four children..
++
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++
++Required properties:
++- compatible : shall be one of "ti,dm814-adpll-s-clock" or
++  "ti,dm814-adpll-j-clock" depending on the type of the ADPLL
++- #clock-cells : from common clock binding; shall be set to 0.
++- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
++- reg : address and length of the register set for controlling the FAPLL.
++
++Examples:
 +	adpll_mpu_ck: adpll@40 {
 +		#clock-cells = <1>;
 +		compatible = "ti,dm814-adpll-s-clock";
@@ -57,256 +83,1151 @@ index 2600158..84fbfb1 100644
 +				     "481c5080.adpll.clkout",
 +				     "481c5080.adpll.clkoutldo";
 +	};
+diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
+index c3e3a02f..c0c9868 100644
+--- a/drivers/clk/Kconfig
++++ b/drivers/clk/Kconfig
+@@ -190,6 +190,7 @@ config COMMON_CLK_CDCE706
+ 
+ source "drivers/clk/bcm/Kconfig"
+ source "drivers/clk/hisilicon/Kconfig"
++source "drivers/clk/ti/Kconfig"
+ source "drivers/clk/qcom/Kconfig"
+ 
+ endmenu
+diff --git a/drivers/clk/ti/Kconfig b/drivers/clk/ti/Kconfig
+new file mode 100644
+index 0000000..a9d5474
+--- /dev/null
++++ b/drivers/clk/ti/Kconfig
+@@ -0,0 +1,6 @@
++config COMMON_CLK_TI_ADPLL
++	tristate "Clock driver for dm814x ADPLL"
++	depends on ARCH_OMAP2PLUS
++	default y if SOC_TI81XX
++	---help---
++	  ADPLL clock driver for the dm814x SoC using common clock framework.
+diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
+index d4ac960..dfe91d7 100644
+--- a/drivers/clk/ti/Makefile
++++ b/drivers/clk/ti/Makefile
+@@ -18,3 +18,5 @@ obj-$(CONFIG_SOC_AM43XX)		+= $(clk-common) dpll3xxx.o clk-43xx.o
+ ifdef CONFIG_ATAGS
+ obj-$(CONFIG_ARCH_OMAP3)                += clk-3xxx-legacy.o
+ endif
 +
-+	adpll_sgx_ck: adpll@b0 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0xb0 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c50b0.adpll.clkdcoldo",
-+				     "481c50b0.adpll.clkout",
-+				     "481c50b0.adpll.clkoutldo";
-+	};
++obj-$(CONFIG_COMMON_CLK_TI_ADPLL)	+= adpll.o
+diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
+new file mode 100644
+index 0000000..12252b9
+--- /dev/null
++++ b/drivers/clk/ti/adpll.c
+@@ -0,0 +1,1027 @@
++/*
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
 +
-+	adpll_hdvic_ck: adpll@e0 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0xe0 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c50e0.adpll.clkdcoldo",
-+				     "481c50e0.adpll.clkout",
-+				     "481c50e0.adpll.clkoutldo";
-+	};
++#include <linux/clk.h>
++#include <linux/clkdev.h>
++#include <linux/clk-provider.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/math64.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
 +
-+	adpll_l3_ck: adpll@110 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x110 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c5110.adpll.clkdcoldo",
-+				     "481c5110.adpll.clkout",
-+				     "481c5110.adpll.clkoutldo";
-+	};
++#define ADPLL_PLLSS_MMR_LOCK_OFFSET	0x00	/* Managed by MPPULL */
++#define ADPLL_PLLSS_MMR_LOCK_ENABLED	0x1f125B64
++#define ADPLL_PLLSS_MMR_UNLOCK_MAGIC	0x1eda4c3d
 +
-+	adpll_isp_ck: adpll@140 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x140 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c5140.adpll.clkdcoldo",
-+				     "481c5140.adpll.clkout",
-+				     "481c5140.adpll.clkoutldo";
-+	};
++#define ADPLL_PWRCTRL_OFFSET		0x00
++#define ADPLL_PWRCTRL_PONIN		5
++#define ADPLL_PWRCTRL_PGOODIN		4
++#define ADPLL_PWRCTRL_RET		3
++#define ADPLL_PWRCTRL_ISORET		2
++#define ADPLL_PWRCTRL_ISOSCAN		1
++#define ADPLL_PWRCTRL_OFFMODE		0
 +
-+	adpll_dss_ck: adpll@170 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x170 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c5170.adpll.clkdcoldo",
-+				     "481c5170.adpll.clkout",
-+				     "481c5170.adpll.clkoutldo";
-+	};
++#define ADPLL_CLKCTRL_OFFSET		0x04
++#define ADPLL_CLKCTRL_CLKDCOLDOEN	29
++#define ADPLL_CLKCTRL_IDLE		23
++#define ADPLL_CLKCTRL_CLKOUTEN		20
++#define ADPLL_CLKINPHIFSEL_DPLLS	19	/* REVISIT: which bit? */
++#define ADPLL_CLKCTRL_CLKOUTLDOEN_DPLLJ	19
++#define ADPLL_CLKCTRL_ULOWCLKEN		18
++#define ADPLL_CLKCTRL_CLKDCOLDOPWDNZ	17
++#define ADPLL_CLKCTRL_M2PWDNZ		16
++#define ADPLL_CLKCTRL_M3PWDNZ_DPLLS	15
++#define ADPLL_CLKCTRL_LOWCURRSTDBY_DPLLS 13
++#define ADPLL_CLKCTRL_LPMODE_DPLLS	12
++#define ADPLL_CLKCTRL_REGM4XEN_DPLLS	10
++#define ADPLL_CLKCTRL_SELFREQDCO_DPLLJ	10
++#define ADPLL_SELFREQDCO_DPLLJ_MASK	(0x7 << ADPLL_CLKCTRL_SELFREQDCO_DPLLJ)
++#define ADPLL_CLKCTRL_TINITZ		0
 +
-+	adpll_video0_ck: adpll@1a0 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x1a0 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c51a0.adpll.clkdcoldo",
-+				     "481c51a0.adpll.clkout",
-+				     "481c51a0.adpll.clkoutldo";
-+	};
++#define ADPLL_TENABLE_OFFSET		0x08
++#define ADPLL_TENABLE_TENABLE		0
 +
-+	adpll_video1_ck: adpll@1d0 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x1d0 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c51d0.adpll.clkdcoldo",
-+				     "481c51d0.adpll.clkout",
-+				     "481c51d0.adpll.clkoutldo";
-+	};
++#define ADPLL_TENABLEDIV_OFFSET		0x8c
++#define ADPLL_TENABLEDIV_TENABLEDIV	0
 +
-+	adpll_hdmi_ck: adpll@200 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x200 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c5200.adpll.clkdcoldo",
-+				     "481c5200.adpll.clkout",
-+				     "481c5200.adpll.clkoutldo";
-+	};
++#define ADPLL_M2NDIV_OFFSET		0x10
++#define ADPLL_M2NDIV_M2			16
++#define ADPLL_M2NDIV_M2_DPLLS_WIDTH	5
++#define ADPLL_M2NDIV_M2_DPLLJ_WIDTH	7
++#define ADPLL_M2NDIV_M2_DPLLS_MASK	(0x1f << ADPLL_M2NDIV_M2)
++#define ADPLL_M2NDIV_M2_DPLLJ_MASK	(0x7f << ADPLL_M2NDIV_M2)
++#define ADPLL_M2NDIV_N			0
++#define ADPLL_M2NDIV_N_DPLLS_MASK	0x7f
++#define ADPLL_M2NDIV_N_DPLLJ_MASK	0xff
 +
-+	adpll_audio_ck: adpll@230 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x230 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c5230.adpll.clkdcoldo",
-+				     "481c5230.adpll.clkout",
-+				     "481c5230.adpll.clkoutldo";
-+	};
++#define ADPLL_MN2DIV_OFFSET		0x14
++#define ADPLL_MN2DIV_N2			16
++#define ADPLL_MN2DIV_N2_DPLLS_MASK	(0x1f << ADPLL_MN2DIV_N2)
++#define ADPLL_MN2DIV_N2_DPLLJ_MASK	(0xf << ADPLL_MN2DIV_N2)
++#define ADPLL_MN2DIV_M			0
++#define ADPLL_MN2DIV_M_MASK		0xfff
 +
-+	adpll_usb_ck: adpll@260 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x260 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c5260.adpll.clkdcoldo",
-+				     "481c5260.adpll.clkout",
-+				     "481c5260.adpll.clkoutldo";
-+	};
++#define ADPLL_FRACDIV_OFFSET		0x18
++#define ADPLL_FRACDIV_REGSD		24
++#define ADPLL_FRACDIV_REGSD_MASK	(0xff << ADPLL_FRACDIV_REGSD)
++#define ADPLL_FRACDIV_FRACTIONALM	0
++#define ADPLL_FRACDIV_FRACTIONALM_MASK	0x3ffff
 +
-+	adpll_ddr_ck: adpll@290 {
-+		#clock-cells = <1>;
-+		compatible = "ti,dm814-adpll-j-clock";
-+		reg = <0x290 0x30>;
-+		clocks = <&devosc_ck &devosc_ck>;
-+		clock-names = "clkinp", "clkinpulow";
-+		clock-indices = <0>, <1>, <2>;
-+		clock-output-names = "481c5290.adpll.clkdcoldo",
-+				     "481c5290.adpll.clkout",
-+				     "481c5290.adpll.clkoutldo";
-+	};
++#define ADPLL_BWCTRL_OFFSET		0x1c
++#define ADPLL_BWCTRL_BWCONTROL		1
++#define ADPLL_BWCTRL_BWCONTROL_MASK	(0x3 << ADPLL_BWCTRL_BWCONTROL)
++#define ADPLL_BWCTRL_BW_INCR_DECRZ	0
++
++#define ADPLL_RESERVED_OFFSET		0x20
++
++#define ADPLL_STATUS_OFFSET		0x24
++#define ADPLL_STATUS_PONOUT		31
++#define ADPLL_STATUS_PGOODOUT		30
++#define ADPLL_STATUS_LDOPWDN		29
++#define ADPLL_STATUS_RECAL_BSTATUS3	28
++#define ADPLL_STATUS_RECAL_OPPIN	27
++#define ADPLL_STATUS_PHASELOCK		10
++#define ADPLL_STATUS_FREQLOCK		9
++#define ADPLL_STATUS_BYPASSACK		8
++#define ADPLL_STATUS_LOSSREF		6
++#define ADPLL_STATUS_CLKOUTENACK	5
++#define ADPLL_STATUS_LOCK2		4
++#define ADPLL_STATUS_M2CHANGEACK	3
++#define ADPLL_STATUS_HIGHJITTER		1
++#define ADPLL_STATUS_BYPASS		0
++#define ADPLL_STATUS_PREPARED_MASK	(BIT(ADPLL_STATUS_PHASELOCK) | \
++					 BIT(ADPLL_STATUS_FREQLOCK))
++
++#define ADPLL_M3DIV_OFFSET		0x28	/* Only on MPUPLL */
++#define ADPLL_M3DIV_M3			0
++#define ADPLL_M3DIV_M3_WIDTH		5
++#define ADPLL_M3DIV_M3_MASK		0x1f
++
++#define ADPLL_RAMPCTRL_OFFSET		0x2c	/* Only on MPUPLL */
++#define ADPLL_RAMPCTRL_CLKRAMPLEVEL	19
++#define ADPLL_RAMPCTRL_CLKRAMPLEVEL_MASK (0x3 << ADPLL_RAMPCTRL_CLKRAMPLEVEL)
++#define ADPLL_RAMPCTRL_CLKRAMPRATE	16
++#define ADPLL_RAMPCTRL_CLKRAMPRATE_MASK	(0x7 << ADPLL_RAMPCTRL_CLKRAMPRATE)
++#define ADPLL_RAMPCTRL_RELOCK_RAMP_EN	0
++
++#define MAX_ADPLL_INPUTS		3
++#define MAX_ADPLL_OUTPUTS		4
++#define ADPLL_MAX_RETRIES		5
++
++#define to_dco(_hw)	container_of(_hw, struct ti_adpll_dco_data, hw)
++#define to_adpll(_hw)	container_of(_hw, struct ti_adpll_data, dco)
++#define to_clkout(_hw)	container_of(_hw, struct ti_adpll_clkout_data, hw)
++
++enum ti_adpll_clocks {
++	TI_ADPLL_DCO,
++	TI_ADPLL_DCO_GATE,
++	TI_ADPLL_N2,
++	TI_ADPLL_M2,
++	TI_ADPLL_M2_GATE,
++	TI_ADPLL_ULOW,
++	TI_ADPLL_HIF,
++	TI_ADPLL_DIV2,
++	TI_ADPLL_CLKOUT,
++	TI_ADPLL_CLKOUT2,
++	TI_ADPLL_M3,
 +};
 +
- &pllss_clocks {
- 	timer1_fck: timer1_fck {
- 		#clock-cells = <0>;
-@@ -23,6 +187,24 @@
- 		reg = <0x2e0>;
- 	};
++#define TI_ADPLL_NR_CLOCKS	(TI_ADPLL_M3 + 1)
++
++enum ti_adpll_inputs {
++	TI_ADPLL_CLKINP,
++	TI_ADPLL_CLKINPULOW,
++	TI_ADPLL_CLKINPHIF,
++};
++
++enum ti_adpll_s_outputs {
++	TI_ADPLLS_DCOCLKLDO,
++	TI_ADPLLS_CLKOUT,
++	TI_ADPLLS_CLKOUTX2,
++	TI_ADPLLS_CLKOUTHIF,
++};
++
++enum ti_adpll_j_outputs {
++	TI_ADPLLJ_CLKDCOLDO,
++	TI_ADPLLJ_CLKOUT,
++	TI_ADPLLJ_CLKOUTLDO,
++};
++
++struct ti_adpll_platform_data {
++	const bool is_type_s;
++	const int nr_max_inputs;
++	const int nr_max_outputs;
++	const int output_index;
++	const u32 m2ndiv_n_mask;
++	const u32 mn2div_n2_mask;
++};
++
++struct ti_adpll_clock {
++	struct clk *clk;
++	struct clk_lookup *cl;
++	void (*unregister)(struct clk *clk);
++};
++
++struct ti_adpll_dco_data {
++	struct clk_hw hw;
++};
++
++struct ti_adpll_clkout_data {
++	struct ti_adpll_data *adpll;
++	struct clk_gate gate;
++	struct clk_hw hw;
++};
++
++struct ti_adpll_data {
++	struct device *dev;
++	const struct ti_adpll_platform_data *c;
++	struct device_node *np;
++	unsigned long pa;
++	void __iomem *base;
++	void __iomem *mmr_lock;	/* Managed by MPUPLL */
++	void __iomem *pwrctrl;
++	void __iomem *clkctrl;
++	void __iomem *tenable;
++	void __iomem *tenablediv;
++	void __iomem *m2ndiv;
++	void __iomem *mn2div;
++	void __iomem *fracdiv;
++	void __iomem *bwctrl;
++	void __iomem *status;
++	void __iomem *m3div;
++	void __iomem *rampctrl;
++	spinlock_t lock;	/* For ADPLL shared register access */
++	const char *parent_names[MAX_ADPLL_INPUTS];
++	struct clk *parent_clocks[MAX_ADPLL_INPUTS];
++	struct ti_adpll_clock *clocks;
++	struct clk_onecell_data outputs;
++	struct ti_adpll_dco_data dco;
++};
++
++static const char *ti_adpll_clk_get_name(struct ti_adpll_data *d,
++					 int output_index,
++					 const char *postfix)
++{
++	const char *name;
++	int err;
++
++	if (output_index >= 0) {
++		err = of_property_read_string_index(d->np,
++						    "clock-output-names",
++						    output_index,
++						    &name);
++		if (err)
++			return NULL;
++	} else {
++		const char *base_name = "adpll";
++		char *buf;
++
++		buf = devm_kzalloc(d->dev, 8 + 1 + strlen(base_name) + 1 +
++				    strlen(postfix), GFP_KERNEL);
++		if (!buf)
++			return NULL;
++		sprintf(buf, "%08lx.%s.%s", d->pa, base_name, postfix);
++		name = buf;
++	}
++
++	return name;
++}
++
++static int ti_adpll_setup_clock(struct ti_adpll_data *d, struct clk *clock,
++				int index, int output_index, const char *name,
++				void (*unregister)(struct clk *clk))
++{
++	struct clk_lookup *cl;
++
++	d->clocks[index].clk = clock;
++	d->clocks[index].unregister = unregister;
++
++	if (output_index < 0)
++		return 0;
++
++	/* Released with kfree() by clkdev_drop() */
++	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
++	if (!cl)
++		return -ENOMEM;
++
++	/* Use clkdev_add, clk_register_clkdev limits length to MAX_CON_ID */
++	cl->con_id = name;
++	cl->clk = clock;
++	cl->clk_hw = __clk_get_hw(clock);
++	clkdev_add(cl);
++	d->clocks[index].cl = cl;
++
++	d->outputs.clks[output_index] = clock;
++	d->outputs.clk_num++;
++
++	return 0;
++}
++
++static int ti_adpll_init_divider(struct ti_adpll_data *d,
++				 enum ti_adpll_clocks index,
++				 int output_index, char *name,
++				 struct clk *parent_clock,
++				 void __iomem *reg,
++				 u8 shift, u8 width,
++				 u8 clk_divider_flags)
++{
++	const char *child_name;
++	const char *parent_name;
++	struct clk *clock;
++
++	child_name = ti_adpll_clk_get_name(d, output_index, name);
++	if (!child_name)
++		return -EINVAL;
++
++	parent_name = __clk_get_name(parent_clock);
++	clock = clk_register_divider(d->dev, child_name, parent_name, 0,
++				     reg, shift, width, clk_divider_flags,
++				     &d->lock);
++	if (IS_ERR(clock)) {
++		dev_err(d->dev, "failed to register divider %s: %li\n",
++			name, PTR_ERR(clock));
++		return PTR_ERR(clock);
++	}
++
++	return ti_adpll_setup_clock(d, clock, index, output_index, child_name,
++				    clk_unregister_divider);
++}
++
++static int ti_adpll_init_mux(struct ti_adpll_data *d,
++			     enum ti_adpll_clocks index,
++			     char *name, struct clk *clk0,
++			     struct clk *clk1,
++			     void __iomem *reg,
++			     u8 shift)
++{
++	const char *child_name;
++	const char *parents[2];
++	struct clk *clock;
++
++	child_name = ti_adpll_clk_get_name(d, -ENODEV, name);
++	if (!child_name)
++		return -ENOMEM;
++	parents[0] = __clk_get_name(clk0);
++	parents[1] = __clk_get_name(clk1);
++	clock = clk_register_mux(d->dev, child_name, parents, 2, 0,
++				 reg, shift, 1, 0, &d->lock);
++	if (IS_ERR(clock)) {
++		dev_err(d->dev, "failed to register mux %s: %li\n",
++			name, PTR_ERR(clock));
++		return PTR_ERR(clock);
++	}
++
++	return ti_adpll_setup_clock(d, clock, index, -ENODEV, child_name,
++				    clk_unregister_mux);
++}
++
++static int ti_adpll_init_gate(struct ti_adpll_data *d,
++			      enum ti_adpll_clocks index,
++			      int output_index, char *name,
++			      struct clk *parent_clock,
++			      void __iomem *reg,
++			      u8 bit_idx,
++			      u8 clk_gate_flags)
++{
++	const char *child_name;
++	const char *parent_name;
++	struct clk *clock;
++
++	child_name = ti_adpll_clk_get_name(d, output_index, name);
++	if (!child_name)
++		return -EINVAL;
++
++	parent_name = __clk_get_name(parent_clock);
++	clock = clk_register_gate(d->dev, child_name, parent_name, 0,
++				  reg, bit_idx, clk_gate_flags,
++				  &d->lock);
++	if (IS_ERR(clock)) {
++		dev_err(d->dev, "failed to register gate %s: %li\n",
++			name, PTR_ERR(clock));
++		return PTR_ERR(clock);
++	}
++
++	return ti_adpll_setup_clock(d, clock, index, output_index, child_name,
++				    clk_unregister_gate);
++}
++
++static int ti_adpll_init_fixed_factor(struct ti_adpll_data *d,
++				      enum ti_adpll_clocks index,
++				      char *name,
++				      struct clk *parent_clock,
++				      unsigned int mult,
++				      unsigned int div)
++{
++	const char *child_name;
++	const char *parent_name;
++	struct clk *clock;
++
++	child_name = ti_adpll_clk_get_name(d, -ENODEV, name);
++	if (!child_name)
++		return -ENOMEM;
++
++	parent_name = __clk_get_name(parent_clock);
++	clock = clk_register_fixed_factor(d->dev, child_name, parent_name,
++					  0, mult, div);
++	if (IS_ERR(clock))
++		return PTR_ERR(clock);
++
++	return ti_adpll_setup_clock(d, clock, index, -ENODEV, child_name,
++				    clk_unregister);
++}
++
++static bool ti_adpll_clock_is_bypass(struct ti_adpll_data *d)
++{
++	unsigned long flags;
++	u32 v;
++
++	spin_lock_irqsave(&d->lock, flags);
++	v = readl_relaxed(d->status);
++	spin_unlock_irqrestore(&d->lock, flags);
++
++	return v & BIT(ADPLL_STATUS_BYPASS);
++}
++
++static void ti_adpll_set_bypass(struct ti_adpll_data *d)
++{
++	unsigned long flags;
++	u32 v;
++
++	spin_lock_irqsave(&d->lock, flags);
++	v = readl_relaxed(d->clkctrl);
++	v |= BIT(ADPLL_CLKCTRL_IDLE);
++	writel_relaxed(v, d->clkctrl);
++	spin_unlock_irqrestore(&d->lock, flags);
++}
++
++static void ti_adpll_clear_bypass(struct ti_adpll_data *d)
++{
++	unsigned long flags;
++	u32 v;
++
++	spin_lock_irqsave(&d->lock, flags);
++	v = readl_relaxed(d->clkctrl);
++	v &= ~BIT(ADPLL_CLKCTRL_IDLE);
++	writel_relaxed(v, d->clkctrl);
++	spin_unlock_irqrestore(&d->lock, flags);
++}
++
++static int ti_adpll_wait_lock(struct ti_adpll_data *d)
++{
++	int retries = ADPLL_MAX_RETRIES;
++
++	while (ti_adpll_clock_is_bypass(d)) {
++		if (retries-- <= 0) {
++			dev_err(d->dev, "failed to lock\n");
++			return -ETIMEDOUT;
++		}
++		usleep_range(200, 300);
++	}
++
++	return 0;
++}
++
++static int ti_adpll_prepare(struct clk_hw *hw)
++{
++	struct ti_adpll_dco_data *dco = to_dco(hw);
++	struct ti_adpll_data *d = to_adpll(dco);
++
++	ti_adpll_clear_bypass(d);
++	ti_adpll_wait_lock(d);
++
++	return 0;
++}
++
++static void ti_adpll_unprepare(struct clk_hw *hw)
++{
++	struct ti_adpll_dco_data *dco = to_dco(hw);
++	struct ti_adpll_data *d = to_adpll(dco);
++
++	ti_adpll_set_bypass(d);
++}
++
++static int ti_adpll_is_prepared(struct clk_hw *hw)
++{
++	struct ti_adpll_dco_data *dco = to_dco(hw);
++	struct ti_adpll_data *d = to_adpll(dco);
++
++	u32 v = readl_relaxed(d->status);
++
++	return (v & ADPLL_STATUS_PREPARED_MASK) == ADPLL_STATUS_PREPARED_MASK;
++}
++
++static unsigned long ti_adpll_recalc_rate(struct clk_hw *hw,
++					  unsigned long parent_rate)
++{
++	struct ti_adpll_dco_data *dco = to_dco(hw);
++	struct ti_adpll_data *d = to_adpll(dco);
++	u32 n, int_m, frac_m, v;
++	long long rate, divider;
++	unsigned long flags;
++
++	if (ti_adpll_clock_is_bypass(d))
++		return clk_get_rate(d->clocks[TI_ADPLL_N2].clk);
++
++	spin_lock_irqsave(&d->lock, flags);
++
++	/* PLL pre-divider N */
++	v = readl_relaxed(d->m2ndiv);
++	n = v & d->c->m2ndiv_n_mask;
++	n >>= __ffs(d->c->m2ndiv_n_mask);
++	n += 1;
++
++	/* PLL bypass divider N2 and freedback integer multiplier M */
++	v = readl_relaxed(d->mn2div);
++	int_m = v & ADPLL_MN2DIV_M_MASK;
++	int_m >>= __ffs(ADPLL_MN2DIV_M_MASK);
++
++	/* PLL feedback fractional multiplier */
++	v = readl_relaxed(d->fracdiv);
++	frac_m = v & ADPLL_FRACDIV_FRACTIONALM_MASK;
++	frac_m >>= __ffs(ADPLL_FRACDIV_FRACTIONALM_MASK);
++	frac_m += 1;
++
++	spin_unlock_irqrestore(&d->lock, flags);
++
++	rate = (int_m << 18) + frac_m;
++	rate *= parent_rate;
++	divider = (n << 18);
++	do_div(rate, divider);
++
++	if (d->c->is_type_s) {
++		v = readl_relaxed(d->clkctrl);
++		if (v & BIT(ADPLL_CLKCTRL_REGM4XEN_DPLLS))
++			rate *= 4;
++		rate *= 2;
++	}
++
++	return rate;
++}
++
++static u8 ti_adpll_get_parent(struct clk_hw *hw)
++{
++	struct ti_adpll_dco_data *dco = to_dco(hw);
++	struct ti_adpll_data *d = to_adpll(dco);
++
++	if (ti_adpll_clock_is_bypass(d))
++		return 1;
++
++	return 0;
++}
++
++static struct clk_ops ti_adpll_ops = {
++	.prepare = ti_adpll_prepare,
++	.unprepare = ti_adpll_unprepare,
++	.is_prepared = ti_adpll_is_prepared,
++	.recalc_rate = ti_adpll_recalc_rate,
++	.get_parent = ti_adpll_get_parent,
++};
++
++static int ti_adpll_init_dco(struct ti_adpll_data *d)
++{
++	struct clk_init_data init;
++	struct clk *clock;
++	const char *postfix;
++	int width, err;
++
++	d->outputs.clks = devm_kzalloc(d->dev, sizeof(struct clk *) *
++				       MAX_ADPLL_OUTPUTS,
++				       GFP_KERNEL);
++	if (!d->outputs.clks)
++		return -ENOMEM;
++
++	if (d->c->output_index < 0)
++		postfix = "dco";
++	else
++		postfix = NULL;
++
++	init.name = ti_adpll_clk_get_name(d, d->c->output_index, postfix);
++	if (!init.name)
++		return -EINVAL;
++
++	init.parent_names = d->parent_names;
++	init.num_parents = d->c->nr_max_inputs;
++	init.ops = &ti_adpll_ops;
++	d->dco.hw.init = &init;
++
++	if (d->c->is_type_s)
++		width = 5;
++	else
++		width = 4;
++
++	/* Internal input clock divider N2 */
++	err = ti_adpll_init_divider(d, TI_ADPLL_N2, -ENODEV, "n2",
++				    d->parent_clocks[TI_ADPLL_CLKINP],
++				    d->mn2div, ADPLL_MN2DIV_N2, width, 0);
++	if (err)
++		return err;
++
++	clock = devm_clk_register(d->dev, &d->dco.hw);
++	if (IS_ERR(clock))
++		return PTR_ERR(clock);
++
++	return ti_adpll_setup_clock(d, clock, TI_ADPLL_DCO, d->c->output_index,
++				    init.name, NULL);
++}
++
++static int ti_adpll_clkout_enable(struct clk_hw *hw)
++{
++	struct ti_adpll_clkout_data *co = to_clkout(hw);
++	struct clk_hw *gate_hw = &co->gate.hw;
++
++	__clk_hw_set_clk(gate_hw, hw);
++
++	return clk_gate_ops.enable(gate_hw);
++}
++
++static void ti_adpll_clkout_disable(struct clk_hw *hw)
++{
++	struct ti_adpll_clkout_data *co = to_clkout(hw);
++	struct clk_hw *gate_hw = &co->gate.hw;
++
++	__clk_hw_set_clk(gate_hw, hw);
++	clk_gate_ops.disable(gate_hw);
++}
++
++static int ti_adpll_clkout_is_enabled(struct clk_hw *hw)
++{
++	struct ti_adpll_clkout_data *co = to_clkout(hw);
++	struct clk_hw *gate_hw = &co->gate.hw;
++
++	__clk_hw_set_clk(gate_hw, hw);
++
++	return clk_gate_ops.is_enabled(gate_hw);
++}
++
++static u8 ti_adpll_clkout_get_parent(struct clk_hw *hw)
++{
++	struct ti_adpll_clkout_data *co = to_clkout(hw);
++	struct ti_adpll_data *d = co->adpll;
++
++	return ti_adpll_clock_is_bypass(d);
++}
++
++static int ti_adpll_clkout_set_parent(struct clk_hw *hw, u8 index)
++{
++	struct ti_adpll_clkout_data *co = to_clkout(hw);
++	struct ti_adpll_data *d = co->adpll;
++
++	return ti_adpll_clock_is_bypass(d) == index;
++}
++
++static int ti_adpll_init_clkout(struct ti_adpll_data *d,
++				enum ti_adpll_clocks index,
++				int output_index, int gate_bit,
++				char *name, struct clk *clk0,
++				struct clk *clk1)
++{
++	struct ti_adpll_clkout_data *co;
++	struct clk_init_data init;
++	struct clk_ops *ops;
++	const char *parent_names[2];
++	const char *child_name;
++	struct clk *clock;
++	int err;
++
++	co = devm_kzalloc(d->dev, sizeof(*co), GFP_KERNEL);
++	if (!co)
++		return -ENOMEM;
++	co->adpll = d;
++
++	err = of_property_read_string_index(d->np,
++					    "clock-output-names",
++					    output_index,
++					    &child_name);
++	if (err)
++		return err;
++
++	ops = devm_kzalloc(d->dev, sizeof(*ops), GFP_KERNEL);
++	if (!ops)
++		return -ENOMEM;
++
++	init.name = child_name;
++	init.ops = ops;
++	init.flags = CLK_IS_BASIC;
++	co->hw.init = &init;
++	parent_names[0] = __clk_get_name(clk0);
++	parent_names[1] = __clk_get_name(clk1);
++	init.parent_names = parent_names;
++	init.num_parents = 2;
++
++	ops->get_parent = ti_adpll_clkout_get_parent;
++	ops->set_parent = ti_adpll_clkout_set_parent;
++	ops->determine_rate = __clk_mux_determine_rate;
++	if (gate_bit) {
++		co->gate.lock = &d->lock;
++		co->gate.reg = d->clkctrl;
++		co->gate.bit_idx = gate_bit;
++		ops->enable = ti_adpll_clkout_enable;
++		ops->disable = ti_adpll_clkout_disable;
++		ops->is_enabled = ti_adpll_clkout_is_enabled;
++	}
++
++	clock = devm_clk_register(d->dev, &co->hw);
++	if (IS_ERR(clock)) {
++		dev_err(d->dev, "failed to register output %s: %li\n",
++			name, PTR_ERR(clock));
++		return PTR_ERR(clock);
++	}
++
++	return ti_adpll_setup_clock(d, clock, index, output_index, child_name,
++				    NULL);
++}
++
++static int ti_adpll_init_children_dplls(struct ti_adpll_data *d)
++{
++	int err;
++
++	if (!d->c->is_type_s)
++		return 0;
++
++	/* Internal mux, sources from divider N2 or clkinpulow */
++	err = ti_adpll_init_mux(d, TI_ADPLL_ULOW, "ulow",
++				d->clocks[TI_ADPLL_N2].clk,
++				d->parent_clocks[TI_ADPLL_CLKINPULOW],
++				d->clkctrl, ADPLL_CLKCTRL_ULOWCLKEN);
++	if (err)
++		return err;
++
++	/* Internal divider M2, sources DCO */
++	err = ti_adpll_init_divider(d, TI_ADPLL_M2, -ENODEV, "m2",
++				    d->clocks[TI_ADPLL_DCO].clk, d->m2ndiv,
++				    ADPLL_M2NDIV_M2,
++				    ADPLL_M2NDIV_M2_DPLLS_WIDTH,
++				    CLK_DIVIDER_ONE_BASED);
++	if (err)
++		return err;
++
++	/* Internal fixed divider, after M2 before clkout */
++	err = ti_adpll_init_fixed_factor(d, TI_ADPLL_DIV2, "div2",
++					 d->clocks[TI_ADPLL_M2].clk,
++					 1, 2);
++	if (err)
++		return err;
++
++	/* Output clkout with a mux and gate, sources from div2 or ulow */
++	err = ti_adpll_init_clkout(d, TI_ADPLL_CLKOUT, TI_ADPLLS_CLKOUT,
++				   ADPLL_CLKCTRL_CLKOUTEN, "clkout",
++				   d->clocks[TI_ADPLL_DIV2].clk,
++				   d->clocks[TI_ADPLL_ULOW].clk);
++	if (err)
++		return err;
++
++	/* Output clkoutx2 with a mux and gate, sources from M2 or ulow */
++	err = ti_adpll_init_clkout(d, TI_ADPLL_CLKOUT2, TI_ADPLLS_CLKOUTX2, 0,
++				   "clkout2", d->clocks[TI_ADPLL_M2].clk,
++				   d->clocks[TI_ADPLL_ULOW].clk);
++	if (err)
++		return err;
++
++	/* Internal mux, sources sources from DCO and clkinphf */
++	if (d->parent_clocks[TI_ADPLL_CLKINPHIF]) {
++		err = ti_adpll_init_mux(d, TI_ADPLL_HIF, "hif",
++					d->clocks[TI_ADPLL_DCO].clk,
++					d->parent_clocks[TI_ADPLL_CLKINPHIF],
++					d->clkctrl, ADPLL_CLKINPHIFSEL_DPLLS);
++		if (err)
++			return err;
++	}
++
++	/* Output clkouthif with a divider M3, sources from hif */
++	err = ti_adpll_init_divider(d, TI_ADPLL_M3, TI_ADPLLS_CLKOUTHIF, "m3",
++				    d->clocks[TI_ADPLL_HIF].clk,
++				    d->m3div, ADPLL_M3DIV_M3,
++				    ADPLL_M3DIV_M3_WIDTH,
++				    CLK_DIVIDER_ONE_BASED);
++	if (err)
++		return err;
++
++	/* Output clock dcoclkldo is the DCO */
++
++	return 0;
++}
++
++static int ti_adpll_init_children_dpllj(struct ti_adpll_data *d)
++{
++	int err;
++
++	if (d->c->is_type_s)
++		return 0;
++
++	/* Output clkdcoldo, gated output of DCO */
++	err = ti_adpll_init_gate(d, TI_ADPLL_DCO_GATE, TI_ADPLLJ_CLKDCOLDO,
++				 "clkdcoldo", d->clocks[TI_ADPLL_DCO].clk,
++				 d->clkctrl, ADPLL_CLKCTRL_CLKDCOLDOEN, 0);
++	if (err)
++		return err;
++
++	/* Internal divider M2, sources from DCO */
++	err = ti_adpll_init_divider(d, TI_ADPLL_M2, -ENODEV,
++				    "m2", d->clocks[TI_ADPLL_DCO].clk,
++				    d->m2ndiv, ADPLL_M2NDIV_M2,
++				    ADPLL_M2NDIV_M2_DPLLJ_WIDTH,
++				    CLK_DIVIDER_ONE_BASED);
++	if (err)
++		return err;
++
++	/* Output clkoutldo, gated output of M2 */
++	err = ti_adpll_init_gate(d, TI_ADPLL_M2_GATE, TI_ADPLLJ_CLKOUTLDO,
++				 "clkoutldo", d->clocks[TI_ADPLL_M2].clk,
++				 d->clkctrl, ADPLL_CLKCTRL_CLKOUTLDOEN_DPLLJ,
++				 0);
++	if (err)
++		return err;
++
++	/* Internal mux, sources from divider N2 or clkinpulow */
++	err = ti_adpll_init_mux(d, TI_ADPLL_ULOW, "ulow",
++				d->clocks[TI_ADPLL_N2].clk,
++				d->parent_clocks[TI_ADPLL_CLKINPULOW],
++				d->clkctrl, ADPLL_CLKCTRL_ULOWCLKEN);
++	if (err)
++		return err;
++
++	/* Output clkout clkout, sources M2 or ulow */
++	err = ti_adpll_init_clkout(d, TI_ADPLL_CLKOUT, TI_ADPLLS_CLKOUT,
++				   ADPLL_CLKCTRL_CLKOUTEN, "clkout",
++				   d->clocks[TI_ADPLL_M2].clk,
++				   d->clocks[TI_ADPLL_ULOW].clk);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++static void ti_adpll_free_resources(struct ti_adpll_data *d)
++{
++	int i;
++
++	for (i = TI_ADPLL_M3; i >= 0; i--) {
++		struct ti_adpll_clock *ac = &d->clocks[i];
++
++		if (!ac || IS_ERR_OR_NULL(ac->clk))
++			continue;
++		if (ac->cl)
++			clkdev_drop(ac->cl);
++		if (ac->unregister)
++			ac->unregister(ac->clk);
++	}
++}
++
++/* MPU PLL manages the lock register for all PLLs */
++static void ti_adpll_unlock_all(void __iomem *reg)
++{
++	u32 v;
++
++	v = readl_relaxed(reg);
++	if (v == ADPLL_PLLSS_MMR_LOCK_ENABLED)
++		writel_relaxed(ADPLL_PLLSS_MMR_UNLOCK_MAGIC, reg);
++}
++
++static int ti_adpll_init_registers(struct ti_adpll_data *d)
++{
++	int register_offset = 0;
++
++	if (d->c->is_type_s) {
++		register_offset = 8;
++		d->mmr_lock = d->base + ADPLL_PLLSS_MMR_LOCK_OFFSET;
++		ti_adpll_unlock_all(d->mmr_lock);
++	}
++
++	d->pwrctrl = d->base + register_offset + ADPLL_PWRCTRL_OFFSET;
++	d->clkctrl = d->base + register_offset + ADPLL_CLKCTRL_OFFSET;
++	d->tenable = d->base + register_offset + ADPLL_TENABLE_OFFSET;
++	d->tenablediv = d->base + register_offset + ADPLL_TENABLEDIV_OFFSET;
++	d->m2ndiv = d->base + register_offset + ADPLL_M2NDIV_OFFSET;
++	d->mn2div = d->base + register_offset + ADPLL_MN2DIV_OFFSET;
++	d->fracdiv = d->base + register_offset + ADPLL_FRACDIV_OFFSET;
++	d->bwctrl = d->base + register_offset + ADPLL_BWCTRL_OFFSET;
++	d->status = d->base + register_offset + ADPLL_STATUS_OFFSET;
++	d->m3div = d->base + register_offset + ADPLL_M3DIV_OFFSET;
++	d->rampctrl = d->base + register_offset + ADPLL_RAMPCTRL_OFFSET;
++
++	return 0;
++}
++
++static int ti_adpll_init_inputs(struct ti_adpll_data *d)
++{
++	const char *error = "need at least %i inputs";
++	struct clk *clock;
++	int nr_inputs;
++
++	nr_inputs = of_clk_get_parent_count(d->np);
++	if (nr_inputs < d->c->nr_max_inputs) {
++		dev_err(d->dev, error, nr_inputs);
++		return -EINVAL;
++	}
++	of_clk_parent_fill(d->np, d->parent_names, nr_inputs);
++
++	clock = devm_clk_get(d->dev, d->parent_names[0]);
++	if (IS_ERR(clock)) {
++		dev_err(d->dev, "could not get clkinp\n");
++		return PTR_ERR(clock);
++	}
++	d->parent_clocks[TI_ADPLL_CLKINP] = clock;
++
++	clock = devm_clk_get(d->dev, d->parent_names[1]);
++	if (IS_ERR(clock)) {
++		dev_err(d->dev, "could not get clkinpulow clock\n");
++		return PTR_ERR(clock);
++	}
++	d->parent_clocks[TI_ADPLL_CLKINPULOW] = clock;
++
++	if (d->c->is_type_s) {
++		clock =  devm_clk_get(d->dev, d->parent_names[2]);
++		if (IS_ERR(clock)) {
++			dev_err(d->dev, "could not get clkinphif clock\n");
++			return PTR_ERR(clock);
++		}
++		d->parent_clocks[TI_ADPLL_CLKINPHIF] = clock;
++	}
++
++	return 0;
++}
++
++static const struct ti_adpll_platform_data ti_adpll_type_s = {
++	.is_type_s = true,
++	.nr_max_inputs = MAX_ADPLL_INPUTS,
++	.nr_max_outputs = MAX_ADPLL_OUTPUTS,
++	.output_index = TI_ADPLLS_DCOCLKLDO,
++	.m2ndiv_n_mask = ADPLL_M2NDIV_N_DPLLS_MASK,
++	.mn2div_n2_mask = ADPLL_MN2DIV_N2_DPLLS_MASK,
++};
++
++static const struct ti_adpll_platform_data ti_adpll_type_j = {
++	.is_type_s = false,
++	.nr_max_inputs = MAX_ADPLL_INPUTS - 1,
++	.nr_max_outputs = MAX_ADPLL_OUTPUTS - 1,
++	.output_index = -EINVAL,
++	.m2ndiv_n_mask = ADPLL_M2NDIV_N_DPLLJ_MASK,
++	.mn2div_n2_mask = ADPLL_MN2DIV_N2_DPLLJ_MASK,
++};
++
++static const struct of_device_id ti_adpll_match[] = {
++	{ .compatible = "ti,dm814-adpll-s-clock", &ti_adpll_type_s },
++	{ .compatible = "ti,dm814-adpll-j-clock", &ti_adpll_type_j },
++	{},
++};
++MODULE_DEVICE_TABLE(of, ti_adpll_match);
++
++static int ti_adpll_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct device *dev = &pdev->dev;
++	const struct of_device_id *match;
++	const struct ti_adpll_platform_data *pdata;
++	struct ti_adpll_data *d;
++	struct resource *res;
++	int err;
++
++	match = of_match_device(ti_adpll_match, dev);
++	if (match)
++		pdata = match->data;
++	else
++		return -ENODEV;
++
++	d = devm_kzalloc(dev, sizeof(*d), GFP_KERNEL);
++	if (!d)
++		return -ENOMEM;
++	d->dev = dev;
++	d->np = node;
++	d->c = pdata;
++	dev_set_drvdata(d->dev, d);
++	spin_lock_init(&d->lock);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++	d->pa = res->start;
++
++	d->base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(d->base)) {
++		dev_err(dev, "could not get IO base: %li\n", PTR_ERR(d->base));
++		return PTR_ERR(d->base);
++	}
++
++	err = ti_adpll_init_registers(d);
++	if (err)
++		return err;
++
++	err = ti_adpll_init_inputs(d);
++	if (err)
++		return err;
++
++	d->clocks = devm_kzalloc(d->dev, sizeof(struct ti_adpll_clock) *
++				 TI_ADPLL_NR_CLOCKS,
++				 GFP_KERNEL);
++	if (!d->clocks)
++		goto free;
++
++	err = ti_adpll_init_dco(d);
++	if (err) {
++		dev_err(dev, "could not register dco: %i\n", err);
++		goto free;
++	}
++
++	err = ti_adpll_init_children_dplls(d);
++	if (err)
++		goto free;
++	err = ti_adpll_init_children_dpllj(d);
++	if (err)
++		goto free;
++
++	err = of_clk_add_provider(d->np, of_clk_src_onecell_get, &d->outputs);
++	if (err)
++		goto free;
++
++	return 0;
++
++free:
++	WARN_ON(1);
++	ti_adpll_free_resources(d);
++
++	return err;
++}
++
++static int ti_adpll_remove(struct platform_device *pdev)
++{
++	struct ti_adpll_data *d = dev_get_drvdata(&pdev->dev);
++
++	ti_adpll_free_resources(d);
++
++	return 0;
++}
++
++static struct platform_driver ti_adpll_driver = {
++	.driver = {
++		.name = "ti-adpll",
++		.of_match_table = ti_adpll_match,
++	},
++	.probe = ti_adpll_probe,
++	.remove = ti_adpll_remove,
++};
++
++static int __init ti_adpll_init(void)
++{
++	return platform_driver_register(&ti_adpll_driver);
++}
++core_initcall(ti_adpll_init);
++
++static void __exit ti_adpll_exit(void)
++{
++	platform_driver_unregister(&ti_adpll_driver);
++}
++module_exit(ti_adpll_exit);
++
++MODULE_DESCRIPTION("Clock driver for dm814x ADPLL");
++MODULE_ALIAS("platform:dm814-adpll-clock");
++MODULE_AUTHOR("Tony LIndgren <tony@atomide.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/clk/ti/clk-814x.c b/drivers/clk/ti/clk-814x.c
+index 9e85fcc..ec95734 100644
+--- a/drivers/clk/ti/clk-814x.c
++++ b/drivers/clk/ti/clk-814x.c
+@@ -5,8 +5,10 @@
+  */
  
-+	/* CPTS_RFT_CLK in RMII_REFCLK_SRC, usually sourced from auiod */
-+	cpsw_cpts_rft_clk: cpsw_cpts_rft_clk {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&adpll_video0_ck 1
-+			  &adpll_video1_ck 1
-+			  &adpll_audio_ck 1>;
-+		ti,bit-shift = <1>;
-+		reg = <0x2e8>;
-+	};
-+
-+	/* REVISIT: Set up with a proper mux using RMII_REFCLK_SRC */
-+	cpsw_125mhz_gclk: cpsw_125mhz_gclk {
-+		#clock-cells = <0>;
-+		compatible = "fixed-clock";
-+		clock-frequency = <125000000>;
-+	};
-+
- 	sysclk18_ck: sysclk18_ck {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
-@@ -79,37 +261,6 @@
- 		compatible = "fixed-clock";
- 		clock-frequency = <1000000000>;
- 	};
--
--	sysclk4_ck: sysclk4_ck {
--		#clock-cells = <0>;
--		compatible = "fixed-clock";
--		clock-frequency = <222000000>;
--	};
--
--	sysclk6_ck: sysclk6_ck {
--		#clock-cells = <0>;
--		compatible = "fixed-clock";
--		clock-frequency = <100000000>;
--	};
--
--	sysclk10_ck: sysclk10_ck {
--		#clock-cells = <0>;
--		compatible = "fixed-clock";
--		clock-frequency = <48000000>;
--	};
--
--        cpsw_125mhz_gclk: cpsw_125mhz_gclk {
--		#clock-cells = <0>;
--		compatible = "fixed-clock";
--		clock-frequency = <125000000>;
--	};
--
--	cpsw_cpts_rft_clk: cpsw_cpts_rft_clk {
--		#clock-cells = <0>;
--		compatible = "fixed-clock";
--		clock-frequency = <250000000>;
--	};
--
+ #include <linux/kernel.h>
++#include <linux/clk.h>
+ #include <linux/clk-provider.h>
+ #include <linux/clk/ti.h>
++#include <linux/of_platform.h>
+ 
+ #include "clock.h"
+ 
+@@ -27,11 +29,62 @@ static struct ti_dt_clk dm814_clks[] = {
+ 	{ .node_name = NULL },
  };
  
- &prcm_clocks {
-@@ -138,6 +289,49 @@
- 		clock-div = <78125>;
- 	};
++static bool timer_clocks_initialized;
++
++int __init dm814x_adpll_early_init(void)
++{
++	struct device_node *np;
++
++	if (!timer_clocks_initialized)
++		return -ENODEV;
++
++	np = of_find_node_by_name(NULL, "pllss");
++	if (!np) {
++		pr_err("Could not find node for plls\n");
++		return -ENODEV;
++	}
++
++	of_platform_populate(np, NULL, NULL, NULL);
++
++	return 0;
++}
++core_initcall(dm814x_adpll_early_init);
++
++static const char * const init_clocks[] = {
++	"481c5040.adpll.clkout",	/* MPU */
++	"481c5290.adpll.clkout",	/* DDR */
++};
++
++int __init dm814x_adpll_enable_init_clocks(void)
++{
++	int i, err;
++
++	if (!timer_clocks_initialized)
++		return -ENODEV;
++
++	for (i = 0; i < ARRAY_SIZE(init_clocks); i++) {
++		struct clk *clock;
++
++		clock = clk_get(NULL, init_clocks[i]);
++		if (WARN(IS_ERR(clock), "could not find init clock %s\n",
++			 init_clocks[i]))
++			continue;
++		err = clk_prepare_enable(clock);
++		if (WARN(err, "could not enable init clock %s\n",
++			 init_clocks[i]))
++			continue;
++	}
++
++	return 0;
++}
++postcore_initcall(dm814x_adpll_enable_init_clocks);
++
+ int __init dm814x_dt_clk_init(void)
+ {
+ 	ti_dt_clocks_register(dm814_clks);
+ 	omap2_clk_disable_autoidle_all();
+ 	omap2_clk_enable_init_clocks(NULL, 0);
++	timer_clocks_initialized = true;
  
-+	/* L4_HS 220 MHz*/
-+	sysclk4_ck: sysclk4_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,fixed-factor-clock";
-+		clocks = <&adpll_l3_ck 1>;
-+		ti,clock-mult = <1>;
-+		ti,clock-div = <1>;
-+	};
-+
-+	/* L4_FWCFG */
-+	sysclk5_ck: sysclk5_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,fixed-factor-clock";
-+		clocks = <&adpll_l3_ck 1>;
-+		ti,clock-mult = <1>;
-+		ti,clock-div = <2>;
-+	};
-+
-+	/* L4_LS 110 MHz */
-+	sysclk6_ck: sysclk6_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,fixed-factor-clock";
-+		clocks = <&adpll_l3_ck 1>;
-+		ti,clock-mult = <1>;
-+		ti,clock-div = <2>;
-+	};
-+
-+	sysclk8_ck: sysclk8_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,fixed-factor-clock";
-+		clocks = <&adpll_usb_ck 1>;
-+		ti,clock-mult = <1>;
-+		ti,clock-div = <1>;
-+	};
-+
-+	sysclk10_ck: sysclk10_ck {
-+		compatible = "ti,divider-clock";
-+		reg = <0x324>;
-+		ti,max-div = <7>;
-+		#clock-cells = <0>;
-+		clocks = <&adpll_usb_ck 1>;
-+	};
-+
- 	aud_clkin0_ck: aud_clkin0_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
+ 	return 0;
+ }
 -- 
 2.6.2
 
