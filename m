@@ -1,132 +1,236 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v3 18/27] mtd: nand: omap2: Implement NAND ready using
- gpiolib
-Date: Thu, 3 Dec 2015 09:41:46 +0100
-Message-ID: <20151203094146.41eba882@bbrezillon>
-References: <1442588029-13769-1-git-send-email-rogerq@ti.com>
-	<1442588029-13769-19-git-send-email-rogerq@ti.com>
-	<20151026204900.GI13239@google.com>
-	<20151027092832.4d7bb114@bbrezillon>
-	<20151203044544.GC120110@google.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 00/13] USB: OTG/DRD Core functionality
+Date: Thu, 3 Dec 2015 14:24:10 +0530
+Message-ID: <56600332.30708@ti.com>
+References: <1440422484-4737-1-git-send-email-rogerq@ti.com>
+ <20151203081951.GA18533@shlinux2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151203044544.GC120110@google.com>
+In-Reply-To: <20151203081951.GA18533@shlinux2>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Alex Smith <alex.smith@imgtec.com>, Harvey Hunt <harvey.hunt@imgtec.com>
+To: Peter Chen <peter.chen@freescale.com>
+Cc: stern@rowland.harvard.edu, balbi@ti.com, gregkh@linuxfoundation.org, dan.j.williams@intel.com, jun.li@freescale.com, mathias.nyman@linux.intel.com, tony@atomide.com, Joao.Pinto@synopsys.com, abrestic@chromium.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Brian,
+Peter,
 
-On Wed, 2 Dec 2015 20:45:44 -0800
-Brian Norris <computersforpeace@gmail.com> wrote:
-
-> (to be clear, this branch of discussion isn't directly regarding the TI
-> changes; we can handle any generic handling afterward, as long as we get
-> the DT binding right now)
+On 03/12/15 13:49, Peter Chen wrote:
+> On Mon, Aug 24, 2015 at 04:21:11PM +0300, Roger Quadros wrote:
+>> Hi,
+>>
+>> This series centralizes OTG/Dual-role functionality in the kernel.
+>> As of now I've got Dual-role functionality working pretty reliably on
+>> dra7-evm and am437x-gp-evm.
+>>
+>> DWC3 controller and platform related patches will be sent separately.
+>>
+>> Series is based on Greg's usb-next tree.
 > 
-> On Tue, Oct 27, 2015 at 09:28:32AM +0100, Boris Brezillon wrote:
-> > On Mon, 26 Oct 2015 13:49:00 -0700
-> > Brian Norris <computersforpeace@gmail.com> wrote:
-> > > On Fri, Sep 18, 2015 at 05:53:40PM +0300, Roger Quadros wrote:
-> > > > @@ -1782,7 +1780,9 @@ static int omap_nand_probe(struct platform_device *pdev)
-> > > >  		info->reg = pdata->reg;
-> > > >  		info->of_node = pdata->of_node;
-> > > >  		info->ecc_opt = pdata->ecc_opt;
-> > > > -		info->dev_ready	= pdata->dev_ready;
-> > > > +		if (pdata->dev_ready)
-> > > > +			dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
-> > > > +
-> > > >  		info->xfer_type = pdata->xfer_type;
-> > > >  		info->devsize = pdata->devsize;
-> > > >  		info->elm_of_node = pdata->elm_of_node;
-> > > > @@ -1815,6 +1815,13 @@ static int omap_nand_probe(struct platform_device *pdev)
-> > > >  	nand_chip->IO_ADDR_W = nand_chip->IO_ADDR_R;
-> > > >  	nand_chip->cmd_ctrl  = omap_hwcontrol;
-> > > >  
-> > > > +	info->ready_gpiod = devm_gpiod_get_optional(&pdev->dev, "ready",
-> > > > +						    GPIOD_IN);
-> > > 
-> > > Others have been looking at using GPIOs for the ready/busy pin too. At a
-> > > minimum, we need an updated DT binding doc for this, since I see you're
-> > > adding this via device tree in a later patch (I don't see any DT binding
-> > > patch for this; but I could just be overlooking it). It'd also be great
-> > > if this support was moved to nand_dt_init() so other platforms can
-> > > benefit, but I won't require that.
-> > 
-> > Actually I started to work on a generic solution parsing the DT and
-> > creating CS, WP and RB gpios when they are provided, but I think it's a
-> > bit more complicated than just moving the rb-gpios parsing into
-> > nand_dt_init().
-> > First you'll need something to store your gpio_desc pointers, which
-> > means you'll have to allocate a table of gpio_desc pointers (or a table
-> > of struct embedding a gpio_desc pointer).
+> Hi Roger,
 > 
-> I'm not sure what you mean by table. It seems like we would just have a
-> few gpio_desc pointers in struct nand_chip, no?
+> Will you go on for this patch set?
 
-Nope, because a single nand_chip can use several CS and R/B lines,
-hence the gpio_desc array.
+Yes, but I can only work on this from Feb onwards.
 
+cheers,
+-roger
 > 
-> > The other blocking point is that when nand_scan_ident() is called, the
-> > caller is supposed to have filled the ->dev_ready() or ->waitfunc()
-> > fields, and to choose how to implement it he may need to know
-> > which kind of RB handler should be used (this is the case in the sunxi
-> > driver, where the user can either use a GPIO or native R/B pin directly
-> > connected to the controller).
+> Peter
+>>
+>> Changelog:
+>> ---------
+>> v4:
+>> - Added DT support for tying otg-controller to host and gadget
+>>  controllers. For DT we no longer have the constraint that
+>>  OTG controller needs to be parent of host and gadget. They can be
+>>  tied together using the "otg-controller" property.
+>> - Relax the requirement for DT case that otg controller must register before
+>>  host/gadget. We maintain a wait list of host/gadget devices
+>>  waiting on the otg controller.
+>> - Use a single struct usb_otg for otg data.
+>> - Don't override host/gadget start/stop APIs. Let the controller
+>>  drivers do what they want as they know best. Helper API is provided
+>>  for controller start/stop that controller driver can use.
+>> - Introduce struct usb_otg_config to pass the otg capabilities,
+>>  otg ops and otg timer timeouts during otg controller registration.
+>> - rebased on Greg's usb.git/usb-next
+>>
+>> v3:
+>> - all otg related definations now in otg.h
+>> - single kernel config USB_OTG to enable OTG core and FSM.
+>> - resolved symbol dependency issues.
+>> - use dev_vdbg instead of VDBG() in usb-otg-fsm.c
+>> - rebased on v4.2-rc1
+>>
+>> v2:
+>> - Use add/remove_hcd() instead of start/stop_hcd() to enable/disable
+>>  the host controller
+>> - added dual-role-device (DRD) state machine which is a much simpler
+>>  mode of operation when compared to OTG. Here we don't support fancy
+>>  OTG features like HNP, SRP, on the fly role-swap. The mode of operation
+>>  is determined based on ID pin (cable type) and the role doesn't change
+>>  till the cable type changes.
+>>
+>> Why?:
+>> ----
+>>
+>> Most of the OTG drivers have been dealing with the OTG state machine
+>> themselves and there is a scope for code re-use. This has been
+>> partly addressed by the usb/common/usb-otg-fsm.c but it still
+>> leaves the instantiation of the state machine and OTG timers
+>> to the controller drivers. We re-use usb-otg-fsm.c but
+>> go one step further by instantiating the state machine and timers
+>> thus making it easier for drivers to implement OTG functionality.
+>>
+>> Newer OTG cores support standard host interface (e.g. xHCI) so
+>> host and gadget functionality are no longer closely knit like older
+>> cores. There needs to be a way to co-ordinate the operation of the
+>> host and gadget in OTG mode. i.e. to stop and start them from a
+>> central location. This central location should be the USB OTG core.
+>>
+>> Host and gadget controllers might be sharing resources and can't
+>> be always running. One has to be stopped for the other to run.
+>> This can't be done as of now and can be done from the OTG core.
+>>
+>> What?:
+>> -----
+>>
+>> The OTG core instantiates the OTG/DRD Finite State Machine
+>> per OTG controller and manages starting/stopping the
+>> host and gadget controllers based on the bus state.
+>>     
+>> It provides APIs for the following
+>>     
+>> - Registering an OTG capable controller
+>> struct otg_fsm *usb_otg_register(struct device *dev,
+>>                                  struct usb_otg_config *config);
+>>
+>> int usb_otg_unregister(struct device *dev);
+>>
+>> - Registering Host controllers to OTG core (used by hcd-core)
+>> int usb_otg_register_hcd(struct usb_hcd *hcd, unsigned int irqnum,
+>>                          unsigned long irqflags, struct otg_hcd_ops *ops);
+>> int usb_otg_unregister_hcd(struct usb_hcd *hcd);
+>>
+>>
+>> - Registering Gadget controllers to OTG core (used by udc-core)
+>> int usb_otg_register_gadget(struct usb_gadget *gadget,
+>>                             struct otg_gadget_ops *ops);
+>> int usb_otg_unregister_gadget(struct usb_gadget *gadget);
+>>
+>>
+>> - Providing inputs to and kicking the OTG state machine
+>> void usb_otg_sync_inputs(struct otg_fsm *fsm);
+>> int usb_otg_kick_fsm(struct device *hcd_gcd_device);
+>>
+>> - Getting controller device structure from OTG state machine instance
+>> struct device *usb_otg_fsm_to_dev(struct otg_fsm *fsm);
+>>
+>> 'struct otg_fsm' is the interface to the OTG state machine.
+>> It contains inputs to the fsm, status of the fsm and operations
+>> for the OTG controller driver.
+>>
+>> - Helper APIs for starting/stopping host/gadget controllers
+>> int usb_otg_start_host(struct otg_fsm *fsm, int on);
+>> int usb_otg_start_gadget(struct otg_fsm *fsm, int on);
+>>
+>> Usage model:
+>> -----------
+>>
+>> - The OTG core needs to know what host and gadget controllers are
+>> linked to the OTG controller. For DT boots we can provide that
+>> information by adding "otg-controller" property to the host and
+>> gadget controller nodes that points to the right otg controller.
+>> For legacy boot we assume that OTG controller is the parent
+>> of the host and gadget controllers. For DT if "otg-controller"
+>> property is not present then parent child relationship constraint
+>> applies.
+>>
+>> - The OTG controller driver must call usb_otg_register() to register
+>> itself with the OTG core. It must also provide the required
+>> OTG configuration, fsm operations and timer timeouts (optional)
+>> via struct usb_otg_config. The fsm operations will be called
+>> depending on the OTG bus state.
+>>
+>> - The host/gadget core stacks are modified to inform the OTG core
+>> whenever a new host/gadget device is added. The OTG core then
+>> checks if the host/gadget is part of the OTG controller and if yes
+>> then prevents the host/gadget from starting till both host and
+>> gadget are registered, OTG state machine is running and the
+>> USB bus state is appropriate to start host/gadget.
+>> For this, APIs have been added to host/gadget stacks to start/stop
+>> the controllers from the OTG core.
+>> For DT boots, If the OTG controller hasn't yet been registered
+>> while the host/gadget are added, the OTG core will hold it in a wait list
+>> and register them when the OTG controller registers.
+>>
+>> - No modification is needed for the host/gadget controller drivers.
+>> They must ensure that their start/stop methods can be called repeatedly
+>> and any shared resources between host & gadget are properly managed.
+>> The OTG core ensures that both are not started simultaneously.
+>>
+>> - The OTG core instantiates one OTG state machine per OTG controller
+>> and the necessary OTG timers to manage OTG state timeouts.
+>> If none of the otg features are set during usb_otg_register() then it
+>> instanciates a DRD (dual-role device) state machine instead.
+>> The state machine is started when both host & gadget register and
+>> stopped when either of them unregisters. The controllers are started
+>> and stopped depending on bus state.
+>>
+>> - During the lifetime of the OTG state machine, inputs can be
+>> provided to it by modifying the appropriate members of 'struct otg_fsm'
+>> and calling usb_otg_sync_inputs(). This is typically done by the
+>> OTG controller driver that called usb_otg_register().
+>>
+>> --
+>> cheers,
+>> -roger
+>>
+>> Roger Quadros (13):
+>>   usb: otg-fsm: Add documentation for struct otg_fsm
+>>   usb: otg-fsm: support multiple instances
+>>   usb: otg-fsm: Prevent build warning "VDBG" redefined
+>>   otg-fsm: move usb_bus_start_enum into otg-fsm->ops
+>>   usb: hcd.h: Add OTG to HCD interface
+>>   usb: gadget.h: Add OTG to gadget interface
+>>   usb: otg: add OTG core
+>>   usb: doc: dt-binding: Add otg-controller property
+>>   usb: chipidea: move from CONFIG_USB_OTG_FSM to CONFIG_USB_OTG
+>>   usb: hcd: Adapt to OTG core
+>>   usb: core: hub: Notify OTG fsm when A device sets b_hnp_enable
+>>   usb: gadget: udc: adapt to OTG core
+>>   usb: otg: Add dual-role device (DRD) support
+>>
+>>  Documentation/devicetree/bindings/usb/generic.txt |    5 +
+>>  Documentation/usb/chipidea.txt                    |    2 +-
+>>  MAINTAINERS                                       |    4 +-
+>>  drivers/usb/Kconfig                               |    2 +-
+>>  drivers/usb/Makefile                              |    1 +
+>>  drivers/usb/chipidea/Makefile                     |    2 +-
+>>  drivers/usb/chipidea/ci.h                         |    2 +-
+>>  drivers/usb/chipidea/otg_fsm.c                    |    1 +
+>>  drivers/usb/chipidea/otg_fsm.h                    |    2 +-
+>>  drivers/usb/common/Makefile                       |    3 +-
+>>  drivers/usb/common/usb-otg-fsm.c                  |   26 +-
+>>  drivers/usb/common/usb-otg.c                      | 1223 +++++++++++++++++++++
+>>  drivers/usb/common/usb-otg.h                      |   71 ++
+>>  drivers/usb/core/Kconfig                          |   11 +-
+>>  drivers/usb/core/hcd.c                            |   55 +-
+>>  drivers/usb/core/hub.c                            |   10 +-
+>>  drivers/usb/gadget/udc/udc-core.c                 |  124 ++-
+>>  drivers/usb/phy/Kconfig                           |    2 +-
+>>  drivers/usb/phy/phy-fsl-usb.c                     |    3 +
+>>  include/linux/usb/gadget.h                        |   14 +
+>>  include/linux/usb/hcd.h                           |   14 +
+>>  include/linux/usb/otg-fsm.h                       |  116 +-
+>>  include/linux/usb/otg.h                           |  191 +++-
+>>  23 files changed, 1808 insertions(+), 76 deletions(-)
+>>  create mode 100644 drivers/usb/common/usb-otg.c
+>>  create mode 100644 drivers/usb/common/usb-otg.h
+>>
+>> -- 
+>> 2.1.4
+>>
 > 
-> Right, I was thinking about this one.
-> 
-> > All this makes me think that maybe nand_dt_init() should be called
-> > separately or in a different helper (nand_init() ?) taking care of the
-> > basic nand_chip initializations/allocations without interacting with
-> > the NAND itself.
-> 
-> Yeah, I feel like there have been other good reasons for something like
-> this before, and we just have worked around them so far. Maybe something
-> more like the alloc/add split in many other subsystems? e.g.,
-> platform_device_{alloc,add}, spi_{alloc,add}_device. Now we might want
-> nand_alloc()?
-> 
-> On a slight tangent, it seems silly that nand_scan_tail() doesn't
-> register the MTD, but nand_release() unregisters it. That shouldn't be.
-
-Yep, that's one of the things we should address too.
-
-> 
-> > Another solution would be to add an ->init() function to nand_chip
-> > and call it after the generic initialization has been done (but before
-> > NAND chip detection). This way the NAND controller driver could adapt
-> > some fields and parse controller specific properties.
-> 
-> That could work too, I guess.
-
-Hm, all these suggestions have been made before I started my
-nand_controller/nand_chip separation work, and I think we can get
-something way simpler if we switch to a model where the core
-implements most of the initialization steps (including parsing of
-generic DT properties) and ask the controller to do its specific
-initialization (as is done in the SPI subsystem for example).
-
-If you want to have an idea of where I'm heading to, you can have a
-look at the last commits in this branch [1]. The generic DT parsing is
-not yet automated but it could easily be places here [2], so that when
-controller->ops->add() is called everything is in place and the driver
-can overload the default behavior with its own implementation.
-
-Any objection to this approach?
-
-Best Regards,
-
-Boris
-
-[1]https://github.com/bbrezillon/linux-sunxi/commits/nand/layering-rework
-[2]https://github.com/bbrezillon/linux-sunxi/blob/nand/layering-rework/drivers/mtd/nand/nand_base.c#L4025
-
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
