@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/6] ARM: dts: Add usb support for hp t410
-Date: Fri,  4 Dec 2015 15:31:08 -0800
-Message-ID: <1449271869-7614-6-git-send-email-tony@atomide.com>
+Subject: [PATCH 6/6] ARM: dts: Add usb support for j5-eco evm
+Date: Fri,  4 Dec 2015 15:31:09 -0800
+Message-ID: <1449271869-7614-7-git-send-email-tony@atomide.com>
 References: <1449271869-7614-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,38 +21,20 @@ To: linux-omap@vger.kernel.org
 Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add usb support for hp t410 and a fixed regulator for the hub power.
+Add usb support for j5-eco evm.
 
 Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dm8148-t410.dts | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ arch/arm/boot/dts/dra62x-j5eco-evm.dts | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dm8148-t410.dts b/arch/arm/boot/dts/dm8148-t410.dts
-index d1927a7..5d4313f 100644
---- a/arch/arm/boot/dts/dm8148-t410.dts
-+++ b/arch/arm/boot/dts/dm8148-t410.dts
-@@ -16,6 +16,17 @@
- 		reg = <0x80000000 0x40000000>;	/* 1 GB */
- 	};
- 
-+	/* gpio9 seems to control USB VBUS regulator and/or hub power */
-+	usb_power: regulator@9 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "usb_power";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		gpio = <&gpio1 9 GPIO_ACTIVE_HIGH>;
-+		enable-active-high;
-+		regulator-always-on;
-+	};
-+
- 	vmmcsd_fixed: fixedregulator@0 {
- 		compatible = "regulator-fixed";
- 		regulator-name = "vmmcsd_fixed";
-@@ -60,4 +71,28 @@
- 			DM814X_IOPAD(0x0920, PIN_INPUT | 40)	/* SD2_SDCD */
+diff --git a/arch/arm/boot/dts/dra62x-j5eco-evm.dts b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
+index 97ac839..7900806 100644
+--- a/arch/arm/boot/dts/dra62x-j5eco-evm.dts
++++ b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
+@@ -56,4 +56,25 @@
+ 			DM814X_IOPAD(0x093C, PIN_INPUT_PULLUP |  0x80)	/* GP1[6] */
  			>;
  	};
 +
@@ -61,24 +43,21 @@ index d1927a7..5d4313f 100644
 +			DM814X_IOPAD(0x0c34, PIN_OUTPUT | 0x1)	/* USB0_DRVVBUS */
 +			>;
 +	};
-+
-+	usb1_pins: pinmux_usb1_pins {
-+		pinctrl-single,pins = <
-+			DM814X_IOPAD(0x0834, PIN_OUTPUT | 0x80)	/* USB1_DRVVBUS */
-+			>;
-+	};
 +};
 +
++/* USB0_ID pin state: SW10[1] = 0 cable detection, SW10[1] = 1 ID grounded */
 +&usb0 {
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&usb0_pins>;
-+	dr_mode = "host";
++	dr_mode = "otg";
++};
++
++&usb1_phy {
++	status = "disabled";
 +};
 +
 +&usb1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb1_pins>;
-+	dr_mode = "host";
++	status = "disabled";
  };
 -- 
 2.6.2
