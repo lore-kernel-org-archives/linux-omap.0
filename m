@@ -1,149 +1,84 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/2] pinctrl: single: remove misuse of IRQF_NO_SUSPEND
- flag
-Date: Fri, 4 Dec 2015 17:59:29 +0200
-Message-ID: <5661B861.7010203@ti.com>
-References: <1448644860-29323-1-git-send-email-sudeep.holla@arm.com>
- <1448644860-29323-2-git-send-email-sudeep.holla@arm.com>
- <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
- <20151203181337.GV23396@atomide.com> <56608B72.1040101@ti.com>
- <20151203213715.GA23396@atomide.com> <56616E74.9000604@ti.com>
- <20151204153504.GF23396@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 7/7] ARM: dts: Enable emmc on hp t410
+Date: Fri, 4 Dec 2015 08:00:38 -0800
+Message-ID: <20151204160038.GI23396@atomide.com>
+References: <1449192335-10137-1-git-send-email-tony@atomide.com>
+ <1449192335-10137-8-git-send-email-tony@atomide.com>
+ <56615AF9.5000208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20151204153504.GF23396@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <56615AF9.5000208@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/04/2015 05:35 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [151204 02:45]:
->> On 12/03/2015 11:37 PM, Tony Lindgren wrote:
->>> * Grygorii Strashko <grygorii.strashko@ti.com> [151203 10:36]:
->>>>
->>>> I think, this patch should not break our wake-up functionality.
->>>> It will just change the moment when pcs_irq_handler() will be called:
->>>>
->>>> before this change:
->>>> - suspend_enter()
->>>>    ....
->>>>    - arch_suspend_enable_irqs();
->>>>      - ^ right here
->>>>
->>>> after this change:
->>>> - suspend_enter()
->>>>    ....
->>>>    dpm_resume_noirq()
->>>>    - resume_device_irqs()
->>>>      ^ here
->>>>
->>>> Correct? And as for me this is more safe.
->>>
->>> I think there's more to it though. With both applied, it produces this on
->>> coming back up from suspend:
->>>
->>> PM: noirq resume of devices complete after 18.127 msecs
->>> ------------[ cut here ]------------
->>> WARNING: CPU: 0 PID: 123 at kernel/irq/manage.c:605 irq_set_irq_wake+0xbc/0xfc()
->>> Unbalanced IRQ 375 wake disable
->>> Modules linked in: ledtrig_default_on leds_gpio led_class rtc_twl twl4030_wdt
->>> CPU: 0 PID: 123 Comm: bash Tainted: G        W       4.4.0-rc3-dirty #2682
->>> Hardware name: Generic OMAP36xx (Flattened Device Tree)
->>> [<c0017df0>] (unwind_backtrace) from [<c0014084>] (show_stack+0x10/0x14)
->>> <c0014084>] (show_stack) from [<c03492d0>] (dump_stack+0x84/0x9c)
->>> [<c03492d0>] (dump_stack) from [<c003ca2c>] (warn_slowpath_common+0x7c/0xb8)
->>> [<c003ca2c>] (warn_slowpath_common) from [<c003ca98>] (warn_slowpath_fmt+0x30/0x40)
->>> [<c003ca98>] (warn_slowpath_fmt) from [<c009b66c>] (irq_set_irq_wake+0xbc/0xfc)
->>> [<c009b66c>] (irq_set_irq_wake) from [<c03f0f1c>] (device_wakeup_disarm_wake_irqs+0x70/0x12c)
->>> [<c03f0f1c>] (device_wakeup_disarm_wake_irqs) from [<c03ee4ac>] (dpm_resume_noirq+0x20c/0x2e4)
->>> [<c03ee4ac>] (dpm_resume_noirq) from [<c0095e94>] (suspend_devices_and_enter+0x1e4/0x6bc)
->>> [<c0095e94>] (suspend_devices_and_enter) from [<c00966c4>] (pm_suspend+0x358/0x4b8)
->>> [<c00966c4>] (pm_suspend) from [<c0094fdc>] (state_store+0x64/0xb8)
->>> [<c0094fdc>] (state_store) from [<c034b46c>] (kobj_attr_store+0x14/0x20)
->>> [<c034b46c>] (kobj_attr_store) from [<c01ea4d8>] (sysfs_kf_write+0x4c/0x50)
->>> [<c01ea4d8>] (sysfs_kf_write) from [<c01e9afc>] (kernfs_fop_write+0xbc/0x1cc)
->>> [<c01e9afc>] (kernfs_fop_write) from [<c0171c7c>] (__vfs_write+0x24/0xd8)
->>> [<c0171c7c>] (__vfs_write) from [<c0172520>] (vfs_write+0x94/0x154)
->>> [<c0172520>] (vfs_write) from [<c0172d1c>] (SyS_write+0x40/0x94)
->>> [<c0172d1c>] (SyS_write) from [<c000f760>] (ret_fast_syscall+0x0/0x1c)
->>> ---[ end trace 321b51565e161bee ]---
->>>
->>> And these both need to be applied together when we have a fix for the above
->>> as otherwise we'll get the lock recursion Sudeep mentioned in patch 2/2.
->>>
->>
->> Most probably below diff will fix above issue:
->>
->> diff --git a/arch/arm/mach-omap2/prm_common.c
->> b/arch/arm/mach-omap2/prm_common.c
->> index 3fc2cbe..69cde67 100644
->> --- a/arch/arm/mach-omap2/prm_common.c
->> +++ b/arch/arm/mach-omap2/prm_common.c
->> @@ -338,6 +338,7 @@ int omap_prcm_register_chain_handler(struct
->> omap_prcm_irq_setup *irq_setup)
->>                  ct->chip.irq_ack = irq_gc_ack_set_bit;
->>                  ct->chip.irq_mask = irq_gc_mask_clr_bit;
->>                  ct->chip.irq_unmask = irq_gc_mask_set_bit;
->> +               ct->chip.flags = IRQCHIP_SKIP_SET_WAKE;
->>
->>                  ct->regs.ack = irq_setup->ack + i * 4;
->>                  ct->regs.mask = irq_setup->mask + i * 4;
->>
->>
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [151204 01:21]:
+> On 12/04/2015 03:25 AM, Tony Lindgren wrote:
+> > There's a 2GB emmc on hp t410 that's wired to the sd_2 interface.
+> > Note that we also need to configure the evtmux using edma_xbar for
+> > edma channels.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > 
-> That fixes the warning on resume, but adds a new one during init:
+> One question inlined for the mmc3, other than that:
+> Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > 
-> ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 1 at kernel/irq/pm.c:51 irq_pm_install_action+0x9c/0xec()
-> Modules linked in:
-> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.4.0-rc3-00001-g6a5e5ec #2694
-> Hardware name: Generic OMAP36xx (Flattened Device Tree)
-> [<c0017df0>] (unwind_backtrace) from [<c0014084>] (show_stack+0x10/0x14)
-> [<c0014084>] (show_stack) from [<c03492f0>] (dump_stack+0x84/0x9c)
-> [<c03492f0>] (dump_stack) from [<c003ca34>] (warn_slowpath_common+0x7c/0xb8)
-> [<c003ca34>] (warn_slowpath_common) from [<c003cb0c>] (warn_slowpath_null+0x1c/0x24)
-> [<c003cb0c>] (warn_slowpath_null) from [<c00a27d8>] (irq_pm_install_action+0x9c/0xec)
-> [<c00a27d8>] (irq_pm_install_action) from [<c009ccb0>] (__setup_irq+0x434/0x5e0)
-> [<c009ccb0>] (__setup_irq) from [<c009cfb0>] (request_threaded_irq+0xc4/0x15c)
-> [<c009cfb0>] (request_threaded_irq) from [<c08c25e8>] (omap3_pm_init+0x10c/0x400)
-> [<c08c25e8>] (omap3_pm_init) from [<c08bc66c>] (omap3_init_late+0xc/0x14)
-> [<c08bc66c>] (omap3_init_late) from [<c08b5820>] (init_machine_late+0x1c/0x90)
-> [<c08b5820>] (init_machine_late) from [<c0009804>] (do_one_initcall+0x80/0x1e0)
-> [<c0009804>] (do_one_initcall) from [<c08b2ec4>] (kernel_init_freeable+0x218/0x2e8)
-> [<c08b2ec4>] (kernel_init_freeable) from [<c064584c>] (kernel_init+0x8/0xec)
-> [<c064584c>] (kernel_init) from [<c000f7f0>] (ret_from_fork+0x14/0x24)
-> ---[ end trace 81093452bf564522 ]---
+> > ---
+> >  arch/arm/boot/dts/dm8148-t410.dts | 35 +++++++++++++++++++++++++++++++++++
+> >  1 file changed, 35 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/dm8148-t410.dts b/arch/arm/boot/dts/dm8148-t410.dts
+> > index 79838dd..d1927a7 100644
+> > --- a/arch/arm/boot/dts/dm8148-t410.dts
+> > +++ b/arch/arm/boot/dts/dm8148-t410.dts
+> > @@ -15,6 +15,13 @@
+> >  		device_type = "memory";
+> >  		reg = <0x80000000 0x40000000>;	/* 1 GB */
+> >  	};
+> > +
+> > +	vmmcsd_fixed: fixedregulator@0 {
+> > +		compatible = "regulator-fixed";
+> > +		regulator-name = "vmmcsd_fixed";
+> > +		regulator-min-microvolt = <3300000>;
+> > +		regulator-max-microvolt = <3300000>;
+> > +	};
+> >  };
+> >  
+> >  &cpsw_emac0 {
+> > @@ -26,3 +33,31 @@
+> >  	phy_id = <&davinci_mdio>, <1>;
+> >  	phy-mode = "rgmii";
+> >  };
+> > +
+> > +&mmc3 {
+> > +	pinctrl-names = "default";
+> > +	pinctrl-0 = <&sd2_pins>;
+> > +	vmmc-supply = <&vmmcsd_fixed>;
+> > +	bus-width = <8>;
+> > +	dmas = <&edma_xbar 8 0 1	/* use SDTXEVT1 instead of MCASP0TX */
+> > +		&edma_xbar 9 0 2>;	/* use SDRXEVT1 instead of MCASP0RX */
+> > +	dma-names = "tx", "rx";
 > 
+> Do you happened to know how the audio is connected on the board?
+> The DM814x-EVM seams to be using McASP2 with aic3106 so it is possible that HP
+> copied the design from there...
 
-Sorry, I can't test it right now :(
-Potential fix below:
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2dbd378..4e56fd9 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -481,7 +481,7 @@ int __init omap3_pm_init(void)
- 
-        /* IO interrupt is shared with mux code */
-        ret = request_irq(omap_prcm_event_to_irq("io"),
--               _prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
-+               _prcm_int_handle_io, IRQF_SHARED, "pm_io",
-                omap3_pm_init);
-        enable_irq(omap_prcm_event_to_irq("io"));
- 
-@@ -489,6 +489,7 @@ int __init omap3_pm_init(void)
-                pr_err("pm: Failed to request pm_io irq\n");
-                goto err2;
-        }
-+       enable_irq_wake(omap_prcm_event_to_irq("io"));
- 
-        ret = pwrdm_for_each(pwrdms_setup, NULL);
-        if (ret) {
+I grepped the sources for it and these are the evtmux channels the original
+code is using. So maybe they have some different audio setup, the hacks in the
+original board file mention "hdmi-dai".
 
+Regards,
 
-
--- 
-regards,
--grygorii
+Tony
