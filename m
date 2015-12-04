@@ -1,40 +1,47 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: Fix SoC detection for dra62x j5-eco
-Date: Fri, 4 Dec 2015 03:43:10 +0100
-Message-ID: <CAALWOA-VmW6rqhL20y65+eNz2ujV=V8+X+f652X=g5LUytvNcQ@mail.gmail.com>
-References: <1449184300-15693-1-git-send-email-tony@atomide.com>
- <1449184300-15693-2-git-send-email-tony@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 13/14] ARM: DTS: am33xx: Use the new DT bindings for
+ the eDMA3
+Date: Fri, 4 Dec 2015 10:32:12 +0200
+Message-ID: <56614F8C.9080106@ti.com>
+References: <1444979892-31626-1-git-send-email-peter.ujfalusi@ti.com>
+ <1444979892-31626-14-git-send-email-peter.ujfalusi@ti.com>
+ <20151204005440.GE23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1449184300-15693-2-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151204005440.GE23396@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Delio Brignoli <dbrignoli@audioscience.com>, Philipp Rosenberger <ilu@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Brian Hutchinson <b.hutchman@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: vinod.koul@intel.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, devicetree@vger.kernel.org, r.schwebel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On 4 December 2015 at 00:11, Tony Lindgren <tony@atomide.com> wrote:
-> We can boot dra62x j5-eco using the dm814x code as the clocks and
-> devices are mapped in the device tree. The dra62x is also known
-> as jacinto 5.
+On 12/04/2015 02:54 AM, Tony Lindgren wrote:
+> Hi Peter,
+>=20
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [151016 00:23]:
+>=20
+> I noticed something while changing dm81xx to use the edma_xbar..
+>=20
+>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>> +
+>> +		edma_xbar: dma-router@44e10f90 {
+>> +			compatible =3D "ti,am335x-edma-crossbar";
+>> +			reg =3D <0x44e10f90 0x40>;
+>> +
+>> +			#dma-cells =3D <3>;
+>> +			dma-requests =3D <32>;
+>> +
+>> +			dma-masters =3D <&edma>;
+>>  		};
+>=20
+> The edma_xbar should now be just a child at offset 0xf90 under the
+> scm: scm@210000. Can you please check the other patches too?
 
-I'm pretty sure the "eco" in the name isn't optional. As far as I know:
-jacinto 5 = dra65x ~ dm814x
-jacinto 5 eco = dra62x ~ dm811x
-jacinto 5 entry = dra61x/60x ~ am335x
+Thanks Tony,
 
-Here ~ means equivalence modulo efuse bits.
+I'll make sure they are in the correct place when resending them.
 
-My knowledge of TI's automotive processors is limited however, as is
-public documentation, so perhaps someone from TI can ack or nak this.
-
-Matthijs
+--=20
+P=C3=A9ter
