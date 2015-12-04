@@ -1,15 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/7] ARM: dts: Update edma bindings on dm814x to use
- edma_xbar
-Date: Fri, 4 Dec 2015 11:18:07 +0200
-Message-ID: <56615A4F.3080207@ti.com>
+Subject: Re: [PATCH 7/7] ARM: dts: Enable emmc on hp t410
+Date: Fri, 4 Dec 2015 11:20:57 +0200
+Message-ID: <56615AF9.5000208@ti.com>
 References: <1449192335-10137-1-git-send-email-tony@atomide.com>
- <1449192335-10137-3-git-send-email-tony@atomide.com>
+ <1449192335-10137-8-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1449192335-10137-3-git-send-email-tony@atomide.com>
+In-Reply-To: <1449192335-10137-8-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,145 +23,80 @@ Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Neil Armstrong <narmstrong@ba
 List-Id: linux-omap@vger.kernel.org
 
 On 12/04/2015 03:25 AM, Tony Lindgren wrote:
-> The edma is the same as on am33xx, except it has four tptc
-> instances. And we need the edma_xbar for at least mmc3, so
-> let's use the edma_xbar and the new binding as suggested by
-> Peter Ujfalusi <peter.ujfalusi@ti.com>.
+> There's a 2GB emmc on hp t410 that's wired to the sd_2 interface.
+> Note that we also need to configure the evtmux using edma_xbar for
+> edma channels.
 > =
 
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 
+One question inlined for the mmc3, other than that:
 Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
 > ---
->  arch/arm/boot/dts/dm814x.dtsi | 68 ++++++++++++++++++++++++++++++++++++-=
-------
->  1 file changed, 58 insertions(+), 10 deletions(-)
+>  arch/arm/boot/dts/dm8148-t410.dts | 35 +++++++++++++++++++++++++++++++++=
+++
+>  1 file changed, 35 insertions(+)
 > =
 
-> diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
-> index ca92346..9d81980e 100644
-> --- a/arch/arm/boot/dts/dm814x.dtsi
-> +++ b/arch/arm/boot/dts/dm814x.dtsi
-> @@ -126,8 +126,8 @@
->  				interrupts =3D <65>;
->  				ti,spi-num-cs =3D <4>;
->  				ti,hwmods =3D "mcspi1";
-> -				dmas =3D <&edma 16 &edma 17
-> -					&edma 18 &edma 19>;
-> +				dmas =3D <&edma 16 0 &edma 17 0
-> +					&edma 18 0 &edma 19 0>;
->  				dma-names =3D "tx0", "rx0", "tx1", "rx1";
->  			};
+> diff --git a/arch/arm/boot/dts/dm8148-t410.dts b/arch/arm/boot/dts/dm8148=
+-t410.dts
+> index 79838dd..d1927a7 100644
+> --- a/arch/arm/boot/dts/dm8148-t410.dts
+> +++ b/arch/arm/boot/dts/dm8148-t410.dts
+> @@ -15,6 +15,13 @@
+>  		device_type =3D "memory";
+>  		reg =3D <0x80000000 0x40000000>;	/* 1 GB */
+>  	};
+> +
+> +	vmmcsd_fixed: fixedregulator@0 {
+> +		compatible =3D "regulator-fixed";
+> +		regulator-name =3D "vmmcsd_fixed";
+> +		regulator-min-microvolt =3D <3300000>;
+> +		regulator-max-microvolt =3D <3300000>;
+> +	};
+>  };
 >  =
 
-> @@ -145,7 +145,7 @@
->  				reg =3D <0x20000 0x2000>;
->  				clock-frequency =3D <48000000>;
->  				interrupts =3D <72>;
-> -				dmas =3D <&edma 26 &edma 27>;
-> +				dmas =3D <&edma 26 0 &edma 27 0>;
->  				dma-names =3D "tx", "rx";
->  			};
->  =
+>  &cpsw_emac0 {
+> @@ -26,3 +33,31 @@
+>  	phy_id =3D <&davinci_mdio>, <1>;
+>  	phy-mode =3D "rgmii";
+>  };
+> +
+> +&mmc3 {
+> +	pinctrl-names =3D "default";
+> +	pinctrl-0 =3D <&sd2_pins>;
+> +	vmmc-supply =3D <&vmmcsd_fixed>;
+> +	bus-width =3D <8>;
+> +	dmas =3D <&edma_xbar 8 0 1	/* use SDTXEVT1 instead of MCASP0TX */
+> +		&edma_xbar 9 0 2>;	/* use SDRXEVT1 instead of MCASP0RX */
+> +	dma-names =3D "tx", "rx";
 
-> @@ -155,7 +155,7 @@
->  				reg =3D <0x22000 0x2000>;
->  				clock-frequency =3D <48000000>;
->  				interrupts =3D <73>;
-> -				dmas =3D <&edma 28 &edma 29>;
-> +				dmas =3D <&edma 28 0 &edma 29 0>;
->  				dma-names =3D "tx", "rx";
->  			};
->  =
+Do you happened to know how the audio is connected on the board?
+The DM814x-EVM seams to be using McASP2 with aic3106 so it is possible that=
+ HP
+copied the design from there...
 
-> @@ -165,7 +165,7 @@
->  				reg =3D <0x24000 0x2000>;
->  				clock-frequency =3D <48000000>;
->  				interrupts =3D <74>;
-> -				dmas =3D <&edma 30 &edma 31>;
-> +				dmas =3D <&edma 30 0 &edma 31 0>;
->  				dma-names =3D "tx", "rx";
->  			};
->  =
-
-> @@ -205,6 +205,14 @@
->  					};
->  				};
->  =
-
-> +				edma_xbar: dma-router@f90 {
-> +					compatible =3D "ti,am335x-edma-crossbar";
-> +					reg =3D <0xf90 0x40>;
-> +					#dma-cells =3D <3>;
-> +					dma-requests =3D <32>;
-> +					dma-masters =3D <&edma>;
-> +				};
+> +};
 > +
->  				/*
->  				 * Note that silicon revision 2.1 and older
->  				 * require input enabled (bit 18 set) for all
-> @@ -272,12 +280,52 @@
->  		};
->  =
-
->  		edma: edma@49000000 {
-> -			compatible =3D "ti,edma3";
-> -			ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";
-> -			reg =3D	<0x49000000 0x10000>,
-> -				<0x44e10f90 0x40>;
-> +			compatible =3D "ti,edma3-tpcc";
-> +			ti,hwmods =3D "tpcc";
-> +			reg =3D	<0x49000000 0x10000>;
-> +			reg-names =3D "edma3_cc";
->  			interrupts =3D <12 13 14>;
-> -			#dma-cells =3D <1>;
-> +			interrupt-names =3D "edma3_ccint", "emda3_mperr",
-> +					  "edma3_ccerrint";
-> +			dma-requests =3D <64>;
-> +			#dma-cells =3D <2>;
-> +
-> +			ti,tptcs =3D <&edma_tptc0 7>, <&edma_tptc1 5>,
-> +				   <&edma_tptc2 3>, <&edma_tptc3 0>;
-> +
-> +			ti,edma-memcpy-channels =3D /bits/ 16 <20 21>;
-> +		};
-> +
-> +		edma_tptc0: tptc@49800000 {
-> +			compatible =3D "ti,edma3-tptc";
-> +			ti,hwmods =3D "tptc0";
-> +			reg =3D	<0x49800000 0x100000>;
-> +			interrupts =3D <112>;
-> +			interrupt-names =3D "edma3_tcerrint";
-> +		};
-> +
-> +		edma_tptc1: tptc@49900000 {
-> +			compatible =3D "ti,edma3-tptc";
-> +			ti,hwmods =3D "tptc1";
-> +			reg =3D	<0x49900000 0x100000>;
-> +			interrupts =3D <113>;
-> +			interrupt-names =3D "edma3_tcerrint";
-> +		};
-> +
-> +		edma_tptc2: tptc@49a00000 {
-> +			compatible =3D "ti,edma3-tptc";
-> +			ti,hwmods =3D "tptc2";
-> +			reg =3D	<0x49a00000 0x100000>;
-> +			interrupts =3D <114>;
-> +			interrupt-names =3D "edma3_tcerrint";
-> +		};
-> +
-> +		edma_tptc3: tptc@49b00000 {
-> +			compatible =3D "ti,edma3-tptc";
-> +			ti,hwmods =3D "tptc3";
-> +			reg =3D	<0x49b00000 0x100000>;
-> +			interrupts =3D <115>;
-> +			interrupt-names =3D "edma3_tcerrint";
->  		};
->  =
-
->  		/* See TRM "Table 1-318. L4HS Instance Summary" */
+> +&pincntl {
+> +	sd2_pins: pinmux_sd2_pins {
+> +		pinctrl-single,pins =3D <
+> +			DM814X_IOPAD(0x09c0, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[7] */
+> +			DM814X_IOPAD(0x09c4, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[6] */
+> +			DM814X_IOPAD(0x09c8, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[5] */
+> +			DM814X_IOPAD(0x09cc, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[4] */
+> +			DM814X_IOPAD(0x09d0, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[3] */
+> +			DM814X_IOPAD(0x09d4, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[2] */
+> +			DM814X_IOPAD(0x09d8, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[1] */
+> +			DM814X_IOPAD(0x09dc, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[0] */
+> +			DM814X_IOPAD(0x09e0, PIN_INPUT | 0x1)		/* SD2_CLK */
+> +			DM814X_IOPAD(0x09f4, PIN_INPUT_PULLUP | 0x2)	/* SD2_CMD */
+> +			DM814X_IOPAD(0x0920, PIN_INPUT | 40)	/* SD2_SDCD */
+> +			>;
+> +	};
+> +};
 > =
 
 
