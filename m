@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/7] ARM: dts: Add mmc support for dra62x j5-eco evm
-Date: Thu,  3 Dec 2015 17:25:34 -0800
-Message-ID: <1449192335-10137-7-git-send-email-tony@atomide.com>
+Subject: [PATCH 7/7] ARM: dts: Enable emmc on hp t410
+Date: Thu,  3 Dec 2015 17:25:35 -0800
+Message-ID: <1449192335-10137-8-git-send-email-tony@atomide.com>
 References: <1449192335-10137-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,24 +21,24 @@ To: linux-omap@vger.kernel.org
 Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-There's mmc interface on j5-eco evm that's wired to the
-sd_1 interface.
+There's a 2GB emmc on hp t410 that's wired to the sd_2 interface.
+Note that we also need to configure the evtmux using edma_xbar for
+edma channels.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dra62x-j5eco-evm.dts | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ arch/arm/boot/dts/dm8148-t410.dts | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra62x-j5eco-evm.dts b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-index 49a05d2..97ac839 100644
---- a/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-+++ b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-@@ -15,6 +15,14 @@
+diff --git a/arch/arm/boot/dts/dm8148-t410.dts b/arch/arm/boot/dts/dm8148-t410.dts
+index 79838dd..d1927a7 100644
+--- a/arch/arm/boot/dts/dm8148-t410.dts
++++ b/arch/arm/boot/dts/dm8148-t410.dts
+@@ -15,6 +15,13 @@
  		device_type = "memory";
  		reg = <0x80000000 0x40000000>;	/* 1 GB */
  	};
 +
-+	/* MIC94060YC6 controlled by SD1_POW pin */
 +	vmmcsd_fixed: fixedregulator@0 {
 +		compatible = "regulator-fixed";
 +		regulator-name = "vmmcsd_fixed";
@@ -48,30 +48,35 @@ index 49a05d2..97ac839 100644
  };
  
  &cpsw_emac0 {
-@@ -26,3 +34,26 @@
+@@ -26,3 +33,31 @@
  	phy_id = <&davinci_mdio>, <1>;
  	phy-mode = "rgmii";
  };
 +
-+&mmc2 {
++&mmc3 {
 +	pinctrl-names = "default";
-+	pinctrl-0 = <&sd1_pins>;
++	pinctrl-0 = <&sd2_pins>;
 +	vmmc-supply = <&vmmcsd_fixed>;
-+	bus-width = <4>;
-+	cd-gpios = <&gpio2 6 GPIO_ACTIVE_LOW>;
++	bus-width = <8>;
++	dmas = <&edma_xbar 8 0 1	/* use SDTXEVT1 instead of MCASP0TX */
++		&edma_xbar 9 0 2>;	/* use SDRXEVT1 instead of MCASP0RX */
++	dma-names = "tx", "rx";
 +};
 +
 +&pincntl {
-+	sd1_pins: pinmux_sd1_pins {
++	sd2_pins: pinmux_sd2_pins {
 +		pinctrl-single,pins = <
-+			DM814X_IOPAD(0x0800, PIN_INPUT | 0x1)	/* SD1_CLK */
-+			DM814X_IOPAD(0x0804, PIN_INPUT_PULLUP |  0x1)	/* SD1_CMD */
-+			DM814X_IOPAD(0x0808, PIN_INPUT_PULLUP |  0x1)	/* SD1_DAT[0] */
-+			DM814X_IOPAD(0x080c, PIN_INPUT_PULLUP |  0x1)	/* SD1_DAT[1] */
-+			DM814X_IOPAD(0x0810, PIN_INPUT_PULLUP |  0x1)	/* SD1_DAT[2] */
-+			DM814X_IOPAD(0x0814, PIN_INPUT_PULLUP |  0x1)	/* SD1_DAT[3] */
-+			DM814X_IOPAD(0x0924, PIN_OUTPUT |  0x40)	/* SD1_POW */
-+			DM814X_IOPAD(0x093C, PIN_INPUT_PULLUP |  0x80)	/* GP1[6] */
++			DM814X_IOPAD(0x09c0, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[7] */
++			DM814X_IOPAD(0x09c4, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[6] */
++			DM814X_IOPAD(0x09c8, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[5] */
++			DM814X_IOPAD(0x09cc, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[4] */
++			DM814X_IOPAD(0x09d0, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[3] */
++			DM814X_IOPAD(0x09d4, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[2] */
++			DM814X_IOPAD(0x09d8, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[1] */
++			DM814X_IOPAD(0x09dc, PIN_INPUT_PULLUP | 0x1)	/* SD2_DAT[0] */
++			DM814X_IOPAD(0x09e0, PIN_INPUT | 0x1)		/* SD2_CLK */
++			DM814X_IOPAD(0x09f4, PIN_INPUT_PULLUP | 0x2)	/* SD2_CMD */
++			DM814X_IOPAD(0x0920, PIN_INPUT | 40)	/* SD2_SDCD */
 +			>;
 +	};
 +};
