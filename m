@@ -1,84 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/7] ARM: dts: Enable emmc on hp t410
-Date: Fri, 4 Dec 2015 08:00:38 -0800
-Message-ID: <20151204160038.GI23396@atomide.com>
-References: <1449192335-10137-1-git-send-email-tony@atomide.com>
- <1449192335-10137-8-git-send-email-tony@atomide.com>
- <56615AF9.5000208@ti.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH 2/2] pinctrl: single: remove misuse of IRQF_NO_SUSPEND
+ flag
+Date: Fri, 4 Dec 2015 16:11:06 +0000
+Message-ID: <5661BB1A.6020709@arm.com>
+References: <1448644860-29323-1-git-send-email-sudeep.holla@arm.com>
+ <1448644860-29323-2-git-send-email-sudeep.holla@arm.com>
+ <CACRpkdYy1fPAm5r0GxXxzgZA7RsqJ6ZtPtNzd1bzrfkME_j09g@mail.gmail.com>
+ <20151203181337.GV23396@atomide.com> <56608B72.1040101@ti.com>
+ <20151203213715.GA23396@atomide.com> <56616E74.9000604@ti.com>
+ <20151204153504.GF23396@atomide.com> <5661B861.7010203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <56615AF9.5000208@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5661B861.7010203@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [151204 01:21]:
-> On 12/04/2015 03:25 AM, Tony Lindgren wrote:
-> > There's a 2GB emmc on hp t410 that's wired to the sd_2 interface.
-> > Note that we also need to configure the evtmux using edma_xbar for
-> > edma channels.
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> One question inlined for the mmc3, other than that:
-> Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> 
-> > ---
-> >  arch/arm/boot/dts/dm8148-t410.dts | 35 +++++++++++++++++++++++++++++++++++
-> >  1 file changed, 35 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/dm8148-t410.dts b/arch/arm/boot/dts/dm8148-t410.dts
-> > index 79838dd..d1927a7 100644
-> > --- a/arch/arm/boot/dts/dm8148-t410.dts
-> > +++ b/arch/arm/boot/dts/dm8148-t410.dts
-> > @@ -15,6 +15,13 @@
-> >  		device_type = "memory";
-> >  		reg = <0x80000000 0x40000000>;	/* 1 GB */
-> >  	};
-> > +
-> > +	vmmcsd_fixed: fixedregulator@0 {
-> > +		compatible = "regulator-fixed";
-> > +		regulator-name = "vmmcsd_fixed";
-> > +		regulator-min-microvolt = <3300000>;
-> > +		regulator-max-microvolt = <3300000>;
-> > +	};
-> >  };
-> >  
-> >  &cpsw_emac0 {
-> > @@ -26,3 +33,31 @@
-> >  	phy_id = <&davinci_mdio>, <1>;
-> >  	phy-mode = "rgmii";
-> >  };
-> > +
-> > +&mmc3 {
-> > +	pinctrl-names = "default";
-> > +	pinctrl-0 = <&sd2_pins>;
-> > +	vmmc-supply = <&vmmcsd_fixed>;
-> > +	bus-width = <8>;
-> > +	dmas = <&edma_xbar 8 0 1	/* use SDTXEVT1 instead of MCASP0TX */
-> > +		&edma_xbar 9 0 2>;	/* use SDRXEVT1 instead of MCASP0RX */
-> > +	dma-names = "tx", "rx";
-> 
-> Do you happened to know how the audio is connected on the board?
-> The DM814x-EVM seams to be using McASP2 with aic3106 so it is possible that HP
-> copied the design from there...
 
-I grepped the sources for it and these are the evtmux channels the original
-code is using. So maybe they have some different audio setup, the hacks in the
-original board file mention "hdmi-dai".
 
+On 04/12/15 15:59, Grygorii Strashko wrote:
+>
+> Sorry, I can't test it right now :(
+> Potential fix below:
+
+I had posted similar patch a while ago which Tony rejected.
+I might have made a mistake of not putting them together, though they
+were part of the same series[1], patch 12 and 16
+
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 2dbd378..4e56fd9 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -481,7 +481,7 @@ int __init omap3_pm_init(void)
+>
+>          /* IO interrupt is shared with mux code */
+>          ret = request_irq(omap_prcm_event_to_irq("io"),
+> -               _prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
+> +               _prcm_int_handle_io, IRQF_SHARED, "pm_io",
+>                  omap3_pm_init);
+>          enable_irq(omap_prcm_event_to_irq("io"));
+>
+> @@ -489,6 +489,7 @@ int __init omap3_pm_init(void)
+>                  pr_err("pm: Failed to request pm_io irq\n");
+>                  goto err2;
+>          }
+> +       enable_irq_wake(omap_prcm_event_to_irq("io"));
+>
+>          ret = pwrdm_for_each(pwrdms_setup, NULL);
+>          if (ret) {
+>
+>
+>
+
+[1] http://lkml.iu.edu/hypermail/linux/kernel/1509.2/03937.html
+-- 
 Regards,
-
-Tony
+Sudeep
