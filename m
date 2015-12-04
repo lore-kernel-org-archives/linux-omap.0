@@ -1,61 +1,66 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-Date: Fri, 4 Dec 2015 13:51:15 -0800
-Message-ID: <20151204215115.GP23396@atomide.com>
-References: <1449225915-28879-1-git-send-email-peter.ujfalusi@ti.com>
- <87wpsunn82.fsf@saruman.tx.rr.com>
- <20151204184706.GO23396@atomide.com>
- <5617214.abxPrpfVaF@wuerfel>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 4/6] ARM: dts: Add usb support for dm814x-evm
+Date: Fri,  4 Dec 2015 15:31:07 -0800
+Message-ID: <1449271869-7614-5-git-send-email-tony@atomide.com>
+References: <1449271869-7614-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5617214.abxPrpfVaF@wuerfel>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1449271869-7614-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [151204 13:38]:
-> On Friday 04 December 2015 10:47:07 Tony Lindgren wrote:
-> > > Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> writes:
-> > > > @@ -174,12 +182,44 @@
-> > > >             };
-> > > >  
-> > > >             edma: edma@49000000 {
-> > > > -                   compatible = "ti,edma3";
-> > > > -                   ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> > > > -                   reg =   <0x49000000 0x10000>,
-> > > > -                           <0x44e10f90 0x40>;
-> > > > +                   compatible = "ti,edma3-tpcc";
-> > > > +                   ti,hwmods = "tpcc";
-> > > > +                   reg =   <0x49000000 0x10000>;
-> > > > +                   reg-names = "edma3_cc";
-> > > >                     interrupts = <12 13 14>;
-> > > > -                   #dma-cells = <1>;
-> > > > +                   interrupt-names = "edma3_ccint", "emda3_mperr",
-> > > > +                                     "edma3_ccerrint";
-> > > > +                   dma-requests = <64>;
-> > > > +                   #dma-cells = <2>;
-> > > > +
-> > > > +                   ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
-> > > > +                              <&edma_tptc2 0>;
-> > > > +
-> > > > +                   ti,edma-memcpy-channels = /bits/ 16 <20 21>;
-> > > 
-> > > can you explain this property here ? Are you setting bits 20 and 21 on a
-> > > 16-bit field ?
-> > 
-> > I think it's an arry of u16 dma channels.. But could it be just /bits/ 8
-> > instead of /bits/ 16?
-> > 
-> 
-> Please just drop the /bits/ 16 and use normal cells.
+Add usb support for dm814x-evm
 
-Yeah agreed, makes things less confusing for sure :)
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/dm8148-evm.dts | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/dm8148-evm.dts b/arch/arm/boot/dts/dm8148-evm.dts
+index 08d01c3..e070862 100644
+--- a/arch/arm/boot/dts/dm8148-evm.dts
++++ b/arch/arm/boot/dts/dm8148-evm.dts
+@@ -56,4 +56,28 @@
+ 			DM814X_IOPAD(0x093C, PIN_INPUT_PULLUP |  0x80)	/* GP1[6] */
+ 			>;
+ 	};
++
++	usb0_pins: pinmux_usb0_pins {
++		pinctrl-single,pins = <
++			DM814X_IOPAD(0x0c34, PIN_OUTPUT | 0x1)	/* USB0_DRVVBUS */
++			>;
++	};
++
++	usb1_pins: pinmux_usb1_pins {
++		pinctrl-single,pins = <
++			DM814X_IOPAD(0x0834, PIN_OUTPUT | 0x80)	/* USB1_DRVVBUS */
++			>;
++	};
++};
++
++&usb0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&usb0_pins>;
++	dr_mode = "host";
++};
++
++&usb1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&usb1_pins>;
++	dr_mode = "host";
+ };
+-- 
+2.6.2
