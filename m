@@ -1,63 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/6] ARM: dts: Add usb support for j5-eco evm
-Date: Fri,  4 Dec 2015 15:31:09 -0800
-Message-ID: <1449271869-7614-7-git-send-email-tony@atomide.com>
-References: <1449271869-7614-1-git-send-email-tony@atomide.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 0/4] dmaengine: omap-dma: transfer start and short memcpy
+ improvement
+Date: Sat, 5 Dec 2015 13:37:00 +0530
+Message-ID: <20151205080700.GK1854@localhost>
+References: <1447238278-15863-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1449271869-7614-1-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Felipe Balbi <balbi@ti.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1447238278-15863-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add usb support for j5-eco evm.
+On Wed, Nov 11, 2015 at 12:37:54PM +0200, Peter Ujfalusi wrote:
+> Hi,
+> 
+> The first two patch is trivial fix.
+> The third (remove the tasklet use for starting the transfer):
+> I had been wondering about this for a while and now I was able to spend some
+> time to look at this in more detail.
+> In 'normal' operation I have never seen the tasklet to start more then one
+> transfer even when pushing I/O based workloads on the board. However when I run
+> the DMAtest module I can see that the tasklet executes about 15 transfers.
+> When the tasklet use has been removed, everything worked as well as before but
+> the throughput of MMC/SD and memcpy increased slightly:
+> 
+> dd if=/dev/mmcblk0 of=/dev/null bs=64k count=24000
+> ~16.5 MB/s -> ~16.6 MB/s
+> 
+> echo 6553 > /sys/module/dmatest/parameters/test_buf_size
+> echo 2000 > /sys/module/dmatest/parameters/timeout
+> echo 5000 > /sys/module/dmatest/parameters/iterations
+> ~585 KB/s -> ~638 KB/s
+> 
+> It worth mentioning that _with_ the tasklet starting the transfers I managed to
+> hit a situation once when for some reason the memcpy tests were started to time
+> out. This happend with memcpy, iozone, dd and grep -R blabla /usr/ running at
+> the same time.
+> 
+> The last patch is to correct the behaviour of omap-dma when short memcpy is used
+> by a client and the client is not using completion, but polling for the end of
+> the transfer.
 
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/dra62x-j5eco-evm.dts | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+Applied, thanks
 
-diff --git a/arch/arm/boot/dts/dra62x-j5eco-evm.dts b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-index 97ac839..7900806 100644
---- a/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-+++ b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-@@ -56,4 +56,25 @@
- 			DM814X_IOPAD(0x093C, PIN_INPUT_PULLUP |  0x80)	/* GP1[6] */
- 			>;
- 	};
-+
-+	usb0_pins: pinmux_usb0_pins {
-+		pinctrl-single,pins = <
-+			DM814X_IOPAD(0x0c34, PIN_OUTPUT | 0x1)	/* USB0_DRVVBUS */
-+			>;
-+	};
-+};
-+
-+/* USB0_ID pin state: SW10[1] = 0 cable detection, SW10[1] = 1 ID grounded */
-+&usb0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb0_pins>;
-+	dr_mode = "otg";
-+};
-+
-+&usb1_phy {
-+	status = "disabled";
-+};
-+
-+&usb1 {
-+	status = "disabled";
- };
 -- 
-2.6.2
+~Vinod
