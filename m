@@ -1,70 +1,78 @@
-From: "zhaoxiu.zeng" <zhaoxiu.zeng@gmail.com>
-Subject: Re: [PATCH 04/10] omap_hwspinlock: Replace "hweight_long(i & 0xf) !=
- 1" with "!is_power_of_2(i & 0xf)"
-Date: Mon, 7 Dec 2015 23:03:30 +0800
-Message-ID: <56659FC2.1070906@gmail.com>
-References: <1449398006-14450-1-git-send-email-zhaoxiu.zeng@gmail.com>
- <CAK=WgbZGX5zCjDbesh2sNToH3zi10K=ggGKyLgDcXga-FZSLjw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [patch] OMAPDSS: DSS: fix a warning message
+Date: Mon, 7 Dec 2015 17:39:28 +0200
+Message-ID: <5665A830.7030201@ti.com>
+References: <20151204131458.GA12792@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbZGX5zCjDbesh2sNToH3zi10K=ggGKyLgDcXga-FZSLjw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20151204131458.GA12792@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-=E5=9C=A8 2015/12/7 19:08, Ohad Ben-Cohen =E5=86=99=E9=81=93:
-> Hi,
->=20
-> On Sun, Dec 6, 2015 at 12:33 PM, Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com=
-> wrote:
->>
->> From: Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
->>
->> Signed-off-by: Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
->=20
-> Please explain why do you think we should make this change.
+--avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-is_power_of_2 is simple, and faster than "hweightN(x) =3D=3D 1" on most=
- architectures.
-And the "& 0xf" operation is unnecessary, we will check whether or not =
-greater than 8 behind.
 
+
+On 04/12/15 15:14, Dan Carpenter wrote:
+> The WARN() macro has to take a condition.  The current code will just
+> print the stack trace and the function name instead of the intended
+> warning message.
 >=20
-> Btw, the original code used is_power_of_2, but we thought hweight is
-> more explicit so it was adopted.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 >=20
-> Thanks,
-> Ohad.
+> diff --git a/drivers/video/fbdev/omap2/dss/dss.h b/drivers/video/fbdev/=
+omap2/dss/dss.h
+> index 2406bcd..da3a85a 100644
+> --- a/drivers/video/fbdev/omap2/dss/dss.h
+> +++ b/drivers/video/fbdev/omap2/dss/dss.h
+> @@ -343,7 +343,8 @@ u8 dsi_get_pixel_size(enum omap_dss_dsi_pixel_forma=
+t fmt);
+>  #else
+>  static inline u8 dsi_get_pixel_size(enum omap_dss_dsi_pixel_format fmt=
+)
+>  {
+> -	WARN("%s: DSI not compiled in, returning pixel_size as 0\n", __func__=
+);
+> +	WARN(1, "%s: DSI not compiled in, returning pixel_size as 0\n",
+> +	     __func__);
+>  	return 0;
+>  }
+>  #endif
 >=20
 
----
- drivers/hwspinlock/omap_hwspinlock.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Thanks, queued for 4.5.
 
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/=
-omap_hwspinlock.c
-index ad2f8ca..1848a4c 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -29,6 +29,7 @@
- #include <linux/hwspinlock.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
-+#include <linux/log2.h>
-=20
- #include "hwspinlock_internal.h"
-=20
-@@ -125,7 +126,7 @@ static int omap_hwspinlock_probe(struct platform_de=
-vice *pdev)
- 		goto iounmap_base;
-=20
- 	/* one of the four lsb's must be set, and nothing else */
--	if (hweight_long(i & 0xf) !=3D 1 || i > 8) {
-+	if (!is_power_of_2(i) || i > 8) {
- 		ret =3D -EINVAL;
- 		goto iounmap_base;
- 	}
---=20
+ Tomi
+
+
+--avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWZagwAAoJEPo9qoy8lh71O5sQAJc+QbjCw0dOFWmG/WHYuis+
+igpSLzJh5BGkJTkdukCmW5BFK1tFH91p3L6mLhrDGc00d7mRmBX6Adea4l48UtSg
+7nN0jtg8YMHsMF4sGPZ6eNd7j2hcRhj4JuCsLGvnShqPI7juk5JycY81hpEe6NIk
+pWbWJ0aVSc1w7O8zSr5zsJPtYTPI6z/NvVXz57UQstYFp/Rj73tmHrU7pVJxFLKG
+82XQ3DZdp6L/sfVFaXXyVKPIzBklqUJnL2n2C8x00DqLTWBqO4rrj02GdvkxTWfR
+CVL9tu/nHLYiDaIkV9NwI21BHTlGeHeTTs1aQoTUDJJ5z2xCtUNpsPGy1jR+uQAw
+Ftw19xdwnTUVXQv252YOJdHNBt4dvmIPPAvHKftsXStqDYK0YjQPF+iUjocmgh2g
+nGDIv0/mHyZwpM6jfKEhE0BVCthHBk2/WCofucbv8fALroBEHBPjcWPTC1SM8t4u
+qLXffX2TNeTeqVUdD3ht19TfucqYT7ljoUg9vktuj1Ay9VJz6NWsKxdWHTdUBrNM
+temHA5l1yzk/2Ka1IjSl+rXiP78IW2TShhFttHJlESh/3UtuymX0mpEE7+6elUnP
+1Kiw6EsliOxCvrBr+/YD1CE7Mv5Hu9cc++VntjVqR1/mxcqn9mAstkBgRn2oCNuC
+p9ObztLd6SaDPjt5bqCX
+=Pe7h
+-----END PGP SIGNATURE-----
+
+--avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T--
