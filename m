@@ -1,78 +1,51 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [patch] OMAPDSS: DSS: fix a warning message
-Date: Mon, 7 Dec 2015 17:39:28 +0200
-Message-ID: <5665A830.7030201@ti.com>
-References: <20151204131458.GA12792@mwanda>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/2] usb: musb: core: Fix handling of the phy
+ notifications
+Date: Mon, 7 Dec 2015 07:56:47 -0800
+Message-ID: <20151207155647.GQ23396@atomide.com>
+References: <1448948233-31804-1-git-send-email-tony@atomide.com>
+ <1448948233-31804-2-git-send-email-tony@atomide.com>
+ <56652F15.4040007@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20151204131458.GA12792@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56652F15.4040007-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [151206 23:03]:
+> On Tuesday 01 December 2015 11:07 AM, Tony Lindgren wrote:
+> > We currently can't unload omap2430 MUSB platform glue driver module and
+> > this cause issues for fixing the MUSB code further. The reason we can't
+> > remove omap2430 is because it uses the PHY functions and also exports the
+> > omap_musb_mailbox function that some PHY drivers are using.
+> > 
+> > Let's fix the issue by exporting a more generic musb_mailbox function
+> > from the MUSB core and allow platform glue layers to register phy_callback
+> > function as needed.
+> > 
+> > And now we can now also get rid of the include/linux/musb-omap.h.
+> > 
+> > Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+> > Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> > Cc: NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>
+> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> Reviewed-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> > 
+> > Probably best that Felipe merges this patch via the USB tree after
+> > comments if that works for Kishon? I have another two fixes for the
+> 
+> That should be okay.
 
+OK thanks!
 
-
-On 04/12/15 15:14, Dan Carpenter wrote:
-> The WARN() macro has to take a condition.  The current code will just
-> print the stack trace and the function name instead of the intended
-> warning message.
->=20
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->=20
-> diff --git a/drivers/video/fbdev/omap2/dss/dss.h b/drivers/video/fbdev/=
-omap2/dss/dss.h
-> index 2406bcd..da3a85a 100644
-> --- a/drivers/video/fbdev/omap2/dss/dss.h
-> +++ b/drivers/video/fbdev/omap2/dss/dss.h
-> @@ -343,7 +343,8 @@ u8 dsi_get_pixel_size(enum omap_dss_dsi_pixel_forma=
-t fmt);
->  #else
->  static inline u8 dsi_get_pixel_size(enum omap_dss_dsi_pixel_format fmt=
-)
->  {
-> -	WARN("%s: DSI not compiled in, returning pixel_size as 0\n", __func__=
-);
-> +	WARN(1, "%s: DSI not compiled in, returning pixel_size as 0\n",
-> +	     __func__);
->  	return 0;
->  }
->  #endif
->=20
-
-Thanks, queued for 4.5.
-
- Tomi
-
-
---avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWZagwAAoJEPo9qoy8lh71O5sQAJc+QbjCw0dOFWmG/WHYuis+
-igpSLzJh5BGkJTkdukCmW5BFK1tFH91p3L6mLhrDGc00d7mRmBX6Adea4l48UtSg
-7nN0jtg8YMHsMF4sGPZ6eNd7j2hcRhj4JuCsLGvnShqPI7juk5JycY81hpEe6NIk
-pWbWJ0aVSc1w7O8zSr5zsJPtYTPI6z/NvVXz57UQstYFp/Rj73tmHrU7pVJxFLKG
-82XQ3DZdp6L/sfVFaXXyVKPIzBklqUJnL2n2C8x00DqLTWBqO4rrj02GdvkxTWfR
-CVL9tu/nHLYiDaIkV9NwI21BHTlGeHeTTs1aQoTUDJJ5z2xCtUNpsPGy1jR+uQAw
-Ftw19xdwnTUVXQv252YOJdHNBt4dvmIPPAvHKftsXStqDYK0YjQPF+iUjocmgh2g
-nGDIv0/mHyZwpM6jfKEhE0BVCthHBk2/WCofucbv8fALroBEHBPjcWPTC1SM8t4u
-qLXffX2TNeTeqVUdD3ht19TfucqYT7ljoUg9vktuj1Ay9VJz6NWsKxdWHTdUBrNM
-temHA5l1yzk/2Ka1IjSl+rXiP78IW2TShhFttHJlESh/3UtuymX0mpEE7+6elUnP
-1Kiw6EsliOxCvrBr+/YD1CE7Mv5Hu9cc++VntjVqR1/mxcqn9mAstkBgRn2oCNuC
-p9ObztLd6SaDPjt5bqCX
-=Pe7h
------END PGP SIGNATURE-----
-
---avLNdaKKQjiHN3xGdPNIu6SNnClK9hN1T--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
