@@ -1,98 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 4/4] dmaengine: edma: Add support for DMA filter mapping
- to slave devices
-Date: Tue, 8 Dec 2015 15:15:31 +0200
-Message-ID: <5666D7F3.4000708@ti.com>
-References: <1449153192-9082-1-git-send-email-peter.ujfalusi@ti.com>
- <1449153192-9082-5-git-send-email-peter.ujfalusi@ti.com>
- <2675730.x1sS4Fa4y8@wuerfel> <566063CA.20500@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] mmc: pwrseq_simple: Fix regression with optional GPIOs
+Date: Tue, 8 Dec 2015 14:17:44 +0100
+Message-ID: <CAPDyKFrVQ_4u9rYN41w8y+uZwgxSCHZzpPRUTa5RswTkapOFTQ@mail.gmail.com>
+References: <1449528845-25189-1-git-send-email-tony@atomide.com>
+	<CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
+	<20151208003213.GU23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <566063CA.20500@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: vinod.koul@intel.com, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20151208003213.GU23396@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/03/2015 05:46 PM, Peter Ujfalusi wrote:
-> On 12/03/2015 05:38 PM, Arnd Bergmann wrote:
->> On Thursday 03 December 2015 16:33:12 Peter Ujfalusi wrote:
->>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
->>> index 0675e268d577..46b305ea0d21 100644
->>> --- a/drivers/dma/edma.c
->>> +++ b/drivers/dma/edma.c
->>> @@ -2297,6 +2297,12 @@ static int edma_probe(struct platform_device=
- *pdev)
->>>                 edma_set_chmap(&ecc->slave_chans[i], ecc->dummy_slo=
-t);
->>>         }
->>> =20
->>> +       if (info->slave_map) {
->>> +               ecc->dma_slave.filter_map.map =3D info->slave_map;
->>> +               ecc->dma_slave.filter_map.mapcnt =3D info->slavecnt=
-;
->>> +               ecc->dma_slave.filter_map.filter_fn =3D edma_filter=
-_fn;
->>> +       }
->>> +
->>>
+On 8 December 2015 at 01:32, Tony Lindgren <tony@atomide.com> wrote:
+> * Ulf Hansson <ulf.hansson@linaro.org> [151207 16:20]:
+>> +Linus
 >>
->> Just a minor comment here: I think all three assignments can be done
->> unconditionally.
->=20
-> True.
->=20
->> As I mentioned before, I'd also remove 'struct dma_filter'
->> and put the three members in struct dma_device directly. In fact, th=
-e
->> filter function can go with the other function pointers for consiste=
-ncy.
->=20
-> I just like to keep things in one place ;)
-> I don't have strong stand on keeping the intermediate 'struct dma_fil=
-ter'
-> Let's hear from Vinod regarding to this
+>> On 7 December 2015 at 23:54, Tony Lindgren <tony@atomide.com> wrote:
+>> > Commit ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
+>> > changed the handling MMC power sequence so GPIOs no longer are optional.
+>> >
+>> > This broke SDIO WLAN at least for omap5 that can't yet use the reset GPIOs
+>> > with pwrseq_simple as a wait is needed after enabling the SDIO device.
+>>
+>> Can you elaborate on this. Did it break omap5 or not? :-)
+>
+> Yes it broke WLAN for omap5 that I just got fixed.. It only uses the clocks
+> art of the pwrseq currently because of the delay needed.
+>
+>> Also, I am interested to know more about the waiting period you need.
+>> I assume that's because of the HW's characteristic?
+>
+> At least TI wl12xx and Marvell 8787 need a delay after enabling the the WLAN.
+>
+>> Why can't we have that being described in DT and then make
+>> pwrseq_simple *wait* if needed?
+>
+> We can, but I'm thinking that we might be better off adding support for
+> regulators to pwrseq. Both TI wl12xx and Marvell 8787 get power from the
+> battery, and probably have an integrated regulator.
 
+Sounds very reasonable! Perhaps some of the delays can be handled
+within the context of the regulator then!?
 
-One remaining design issue is on how and where to place the filter rela=
-ted
-variables/pointers:
+>
+> Also, the delay and the power up sequencey can be more complicated than what
+> we currently support. In the 8787 case, pdn pin needs to be asserted for 300ms
+> after power pins are stable and while reset is held high.
 
-Keep it separated as it was in the RFC and v01 series:
+I am for sure open to extend pwrseq_simple, please go ahead!
 
-struct dma_slave_map {
-        const char *devname;
-        const char *slave;
-        void *param;
-};
+The initial version provided a proof of concept and the
+infrastructure. I expect and want people to extend it to suit their
+HWs.
 
-struct dma_filter {
-        dma_filter_fn fn;
-        int mapcnt;
-        const struct dma_slave_map *map;
-};
+If we at some point find that pwrseq_simple starts to become too
+complex, we may add another pwrseq type with a corresponding new
+compatible string.
 
+[...]
 
-struct dma_device {
-	...
-	struct dma_filter filter;
-	...
-};
-
-Or to have them under the dma_device directly:
-
-struct dma_device {
-	...
-	int filter_mapcnt;
-	const struct dma_slave_map *filter_map;
-	...
-	dma_filter_fn filter_fn;
-	...
-};
-
-Vinod: what is your preference for this?
-
-Thanks,
-P=E9ter
+Kind regards
+Uffe
