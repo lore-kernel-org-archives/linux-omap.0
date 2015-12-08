@@ -1,38 +1,29 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-Date: Tue, 8 Dec 2015 09:43:13 +0200
-Message-ID: <56668A11.3000408@ti.com>
-References: <1449225915-28879-1-git-send-email-peter.ujfalusi@ti.com>
- <20151208001943.GT23396@atomide.com>
+From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: Re: [PATCH v2 18/25] cris: nand: remove useless mtd->priv = chip
+ assignments
+Date: Tue, 8 Dec 2015 09:32:24 +0100
+Message-ID: <20151208083224.GO22903@axis.com>
+References: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1448967802-25796-19-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151208001943.GT23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1448967802-25796-19-git-send-email-boris.brezillon@free-electrons.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, Hartley Sweeten <hsweeten@visionengravers.com>, Ryan Mallon <rmallon@gmail.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khalasa@piap.pl>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Alexander Clouter <alex@digriz.org.uk>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ro
 List-Id: linux-omap@vger.kernel.org
 
-On 12/08/2015 02:19 AM, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151204 02:46]:
->> +
->> +			ti,tptcs =3D <&edma_tptc0 7>, <&edma_tptc1 5>,
->> +				   <&edma_tptc2 0>;
->> +
->> +			ti,edma-memcpy-channels =3D /bits/ 16 <20 21>;
->=20
-> Is this safe to change to just ti,edma-memcpy-channels =3D <20 21> as
-> suggested by Arnd?
+On Tue, Dec 01, 2015 at 12:03:15PM +0100, Boris Brezillon wrote:
+> mtd_to_nand() now uses the container_of() approach to transform an
+> mtd_info pointer into a nand_chip one. Drop useless mtd->priv
+> assignments from NAND controller drivers.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 
-The binding document for the eDMA and the driver also needs update to b=
-e able
-to handle this change.
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+/^JN - Jesper Nilsson
+-- 
+               Jesper Nilsson -- jesper.nilsson@axis.com
