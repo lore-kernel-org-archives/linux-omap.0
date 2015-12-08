@@ -1,60 +1,90 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH] ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-Date: Tue, 08 Dec 2015 11:25:11 +0100
-Message-ID: <2433527.Up3lk3Mgej@wuerfel>
-References: <1449225915-28879-1-git-send-email-peter.ujfalusi@ti.com> <4387766.cHF7OBX0cm@wuerfel> <5666AF51.9080306@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH v2] irqchip: omap-intc: add support for spurious irq handling
+Date: Tue, 8 Dec 2015 16:32:25 +0530
+Message-ID: <0958510b69cf679fef64ccf535b1cdc43c5ffccc.1449572109.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5666AF51.9080306-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: John Ogness <john.ogness@linutronix.de>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 08 December 2015 12:22:09 Peter Ujfalusi wrote:
-> On 12/08/2015 11:51 AM, Arnd Bergmann wrote:
-> > On Tuesday 08 December 2015 09:42:26 Peter Ujfalusi wrote:
-> >> On 12/04/2015 11:51 PM, Tony Lindgren wrote:
-> >>>>
-> >>>> Please just drop the /bits/ 16 and use normal cells.
-> >>>
-> >>> Yeah agreed, makes things less confusing for sure 
-> >>
-> >> 4.4 will be the first kernel where we will have the new eDMA bindings. I have
-> >> chosen to use 16bit array for specifying the channels used for memcpy
-> >> (ti,edma-memcpy-channels) and for the reserving paRAM slots
-> >> (ti,edma-reserved-slot-ranges). As of now we have maximum of 64 channels and
-> >> 512 paRAM slots. 16bit is more than enough to store this information and it
-> >> even gives us enough room if ever in the future these numbers are going to
-> >> increase (which  they are not).
-> >>
-> >> But in order to change them to 32bit the driver needs to be changed as well.
-> >> Currently we do not have drivers (in 4.4) using the new bindings, 4.4 is not
-> >> yet out, so it might be possible to change the binding document and the driver
-> >> to use 32bit arrays. The driver internally uses 16bit type for these which I'm
-> >> not going to change, but the code parsing the DT needs to be adjusted for the
-> >> new data type.
-> >>
-> >> If Vinod is willing to take update for the DT binding of eDMA for 4.4-rc, I
-> >> can cook up the patch(es) to do so.
-> > 
-> > I hadn't realized that it was already in 4.4-rc. The change should be trivial
-> > enough though, so I'd still do it. If Vinod would rather not change it now,
-> > it's not overly important though.
-> 
-> But this change must be done before we have actual users of these properties,
-> which is the am33xx, am437x and the da850 conversion series I have sent recently.
-> We might want to have this changed for 4.4 since it is going to be an LTS
-> release...
+Under some conditions, irq sorting procedure used
+by INTC can go wrong resulting in a spurious irq
+getting reported.
 
-Yes, that's what I meant: We either get the patch into 4.4 by creating a
-branch for Vinod to pull with this change, and base all other changes in your
-4.5 series on the same branch, or we don't change it at all.
+If this condition is not handled, it results in
+endless stream of:
 
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    unexpected IRQ trap at vector 00
+
+messages from ack_bad_irq()
+
+Handle the spurious interrupt condition in omap-intc
+driver to prevent this.
+
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+v2: increment error irq counter, use pr_err_once,
+    add a comment on tips to debug spurious irq
+    condition.
+
+This patch results in a checkpatch warning about
+extern definition of irq_err_count, but looks like
+thats the prevalent method of accessing that counter.
+
+ drivers/irqchip/irq-omap-intc.c | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index 8587d0f8d8c0..639708de5529 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -47,6 +47,7 @@
+ #define INTC_ILR0		0x0100
+ 
+ #define ACTIVEIRQ_MASK		0x7f	/* omap2/3 active interrupt bits */
++#define SPURIOUSIRQ_MASK	(0x1ffffff << 7)
+ #define INTCPS_NR_ILR_REGS	128
+ #define INTCPS_NR_MIR_REGS	4
+ 
+@@ -330,11 +331,35 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
+ static asmlinkage void __exception_irq_entry
+ omap_intc_handle_irq(struct pt_regs *regs)
+ {
++	extern unsigned long irq_err_count;
+ 	u32 irqnr;
+ 
+ 	irqnr = intc_readl(INTC_SIR);
++
++	/*
++	 * A spurious IRQ can result if interrupt that triggered the
++	 * sorting is no longer active during the sorting (10 INTC
++	 * functional clock cycles after interrupt assertion). Or a
++	 * change in interrupt mask affected the result during sorting
++	 * time. There is no special handling required except ignoring
++	 * the SIR register value just read and retrying.
++	 * See section 6.2.5 of AM335x TRM Literature Number: SPRUH73K
++	 *
++	 * Many a times, a spurious interrupt situation has been fixed
++	 * by adding a flush for the posted write acking the IRQ in
++	 * the device driver. Typically, this is going be the device
++	 * driver whose interrupt was handled just before the spurious
++	 * IRQ occurred. Pay attention to those device drivers if you
++	 * run into hitting the spurious IRQ condition below.
++	 */
++	if ((irqnr & SPURIOUSIRQ_MASK) == SPURIOUSIRQ_MASK) {
++		pr_err_once("%s: spurious irq!\n", __func__);
++		irq_err_count++;
++		omap_ack_irq(NULL);
++		return;
++	}
++
+ 	irqnr &= ACTIVEIRQ_MASK;
+-	WARN_ONCE(!irqnr, "Spurious IRQ ?\n");
+ 	handle_domain_irq(domain, irqnr, regs);
+ }
+ 
+-- 
+2.6.3
