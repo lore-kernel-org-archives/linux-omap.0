@@ -1,102 +1,81 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Lucas Stach <l.stach@pengutronix.de>
 Subject: Re: [PATCH v2] PCI: dra7xx: mark dra7xx_pcie_msi irq as
  IRQF_NO_THREAD
-Date: Tue, 8 Dec 2015 10:05:56 +0100
-Message-ID: <20151208090555.GA19438@linutronix.de>
+Date: Tue, 08 Dec 2015 10:23:50 +0100
+Message-ID: <1449566630.3118.10.camel@pengutronix.de>
 References: <1448027966-21610-1-git-send-email-grygorii.strashko@ti.com>
- <20151204184619.GD20125@localhost>
+	 <20151204184619.GD20125@localhost> <5662042A.3090809@ti.com>
+	 <20151208033300.GA1255@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151204184619.GD20125@localhost>
+In-Reply-To: <20151208033300.GA1255@localhost>
 Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, tony@atomide.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, tony@atomide.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu@freescale.com>, Pratyush Anand <pratyush.anand@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Bjorn Helgaas | 2015-12-04 12:46:19 [-0600]:
+Hi Bjorn,
 
->The backtrace might be OK (maybe slightly overkill), but all the
->stack addresses are certainly irrelevant and distracting.  We only
->need enough to recognize the problem.  I don't think the modules list
->is relevant either.
+Am Montag, den 07.12.2015, 21:33 -0600 schrieb Bjorn Helgaas:
+> [+cc Jingoo (exynos), Richard, Lucas (imx6), Pratyush (spear13xx)]
+> 
+> On Fri, Dec 04, 2015 at 11:22:50PM +0200, Grygorii Strashko wrote:
+> > On 12/04/2015 08:46 PM, Bjorn Helgaas wrote:
+> > > Hi Grygorii,
+[...]
+> > >>   
+> > >> +	/*
+> > >> +	 * Mark dra7xx_pcie_msi IRQ as IRQF_NO_THREAD
+> > >> +	 * On -RT and if kernel is booting with "threadirqs" cmd line parameter
+> > >> +	 * the dra7xx_pcie_msi_irq_handler() will be forced threaded but,
+> > >> +	 * in the same time, it's IRQ dispatcher and calls generic_handle_irq(),
+> > >> +	 * which, in turn, will be resolved to handle_simple_irq() call.
+> > >> +	 * The handle_simple_irq() expected to be called with IRQ disabled, as
+> > >> +	 * result kernle will display warning:
+> > >> +	 * "irq XXX handler YYY+0x0/0x14 enabled interrupts".
+> > >> +	 */
+> > >>   	ret = devm_request_irq(&pdev->dev, pp->irq,
+> > >> -			       dra7xx_pcie_msi_irq_handler, IRQF_SHARED,
+> > >> +			       dra7xx_pcie_msi_irq_handler,
+> > >> +			       IRQF_SHARED | IRQF_NO_THREAD,
+> > >>   			       "dra7-pcie-msi",	pp);
+> > > 
+> > > There's similar code in exynos_add_pcie_port(), imx6_add_pcie_port(),
+> > > and spear13xx_add_pcie_port().  Do they need similar changes?  If not,
+> > > why not?
+> > > 
+> > > I see your discussion about DRA7 hardware design, but my impression is
+> > > that this problem affects anybody who calls dw_handle_msi_irq() from a
+> > > handler registered with IRQF_SHARED.
+> > 
+> > Issue fixed by this patch is not related to IRQF_SHARED. 
+> > It will happen on -RT or if kernel will boot with "threadirqs" cmd line parameter
+> > - in both cases these PCI IRQ handlers will be forced to be threaded and,
+> > as result, generic_handle_irq() will produce above backtrace.
+> > 
+> > Personally, I don't have strong opinion about "should similar change be applied
+> > to other PCI drivers or not?" And I think, that owners of those driver should
+> > make such decision.
+> 
+> If the same issue affects several drivers, I'd like to see them all
+> handle it the same way.  Otherwise, somebody coming along later will
+> wonder why they're different, and there won't be a good answer.
+> 
+> I cc'd the other maintainers to see what they think.
+> 
+Yes, this should absolutely be changed in all drivers, based on the DW
+core. There were some patches for this already, but apparently they have
+not been applied, because some review feedback wasn't taken care of.
 
-I would shorten it to the bare minimum. Also the patch description
-itself could be truncated to the required bits=E2=80=A6
+I have a patch titled "PCI: designware: Mark the msi cascade handler
+IRQF_NO_THREAD" in my inbox that did this, and I still think it's the
+right thing to do.
 
->> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dr=
-a7xx.c
->> index 8c36880..0415192 100644
->> --- a/drivers/pci/host/pci-dra7xx.c
->> +++ b/drivers/pci/host/pci-dra7xx.c
->> @@ -301,8 +301,19 @@ static int __init dra7xx_add_pcie_port(struct d=
-ra7xx_pcie *dra7xx,
->>  		return -EINVAL;
->>  	}
->> =20
->> +	/*
->> +	 * Mark dra7xx_pcie_msi IRQ as IRQF_NO_THREAD
->> +	 * On -RT and if kernel is booting with "threadirqs" cmd line para=
-meter
->> +	 * the dra7xx_pcie_msi_irq_handler() will be forced threaded but,
->> +	 * in the same time, it's IRQ dispatcher and calls generic_handle_=
-irq(),
->> +	 * which, in turn, will be resolved to handle_simple_irq() call.
->> +	 * The handle_simple_irq() expected to be called with IRQ disabled=
-, as
->> +	 * result kernle will display warning:
->> +	 * "irq XXX handler YYY+0x0/0x14 enabled interrupts".
->> +	 */
+Regards,
+Lucas
 
-=E2=80=A6not to mention this piece. d7ce4377494a ("powerpc/fsl_msi: mar=
-k the msi
-cascade handler IRQF_NO_THREAD") fixes the same bug in arch/ppc so they
-bypassed you fixing it.
-
->>  	ret =3D devm_request_irq(&pdev->dev, pp->irq,
->> -			       dra7xx_pcie_msi_irq_handler, IRQF_SHARED,
->> +			       dra7xx_pcie_msi_irq_handler,
->> +			       IRQF_SHARED | IRQF_NO_THREAD,
->>  			       "dra7-pcie-msi",	pp);
->
->There's similar code in exynos_add_pcie_port(), imx6_add_pcie_port(),
->and spear13xx_add_pcie_port().  Do they need similar changes?  If not,
->why not?
-
-You are right. The request for the handler exynos_pcie_msi_irq_handler(=
-),
-imx6_pcie_msi_handler() and spear13xx_pcie_irq_handler() needs same
-treatment.
-Additionally we have:
-
-arch/mips/pci/msi-octeon.c: if (request_irq(OCTEON_IRQ_PCI_MSI0, octeon=
-_msi_interrupt0,
-arch/sparc/kernel/pci_msi.c:    err =3D request_irq(irq, sparc64_msiq_i=
-nterrupt, 0,
-drivers/pci/host/pci-tegra.c:   err =3D request_irq(msi->irq, tegra_pci=
-e_msi_irq, 0,
-drivers/pci/host/pcie-rcar.c:   err =3D devm_request_irq(&pdev->dev, ms=
-i->irq1, rcar_pcie_msi_irq,
-drivers/pci/host/pcie-rcar.c:   err =3D devm_request_irq(&pdev->dev, ms=
-i->irq2, rcar_pcie_msi_irq,
-drivers/pci/host/pcie-xilinx.c: err =3D devm_request_irq(dev, port->irq=
-, xilinx_pcie_intr_handler,
-
-which require the same kind of fix=E2=80=A6
-
->I see your discussion about DRA7 hardware design, but my impression is
->that this problem affects anybody who calls dw_handle_msi_irq() from a
->handler registered with IRQF_SHARED.
-
-=E2=80=A6 brecause all of them invoke generic_handle_irq() from the req=
-usted
-handler. generic_handle_irq grabs raw_locks and this needs to run in
-raw-irq context.
-IRQF_SHARED could probably go away. The IRQ is mostlikely exclusive
-assigned in each SoC for MSI interrupt demux.
-
->Bjorn
-
-Sebastian
+-- 
+Pengutronix e.K.             | Lucas Stach                 |
+Industrial Linux Solutions   | http://www.pengutronix.de/  |
