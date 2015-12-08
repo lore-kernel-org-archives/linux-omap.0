@@ -1,72 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: pwrseq_simple: Fix regression with optional GPIOs
-Date: Tue, 8 Dec 2015 07:57:29 -0800
-Message-ID: <20151208155728.GW23396@atomide.com>
-References: <1449528845-25189-1-git-send-email-tony@atomide.com>
- <CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
- <20151208003213.GU23396@atomide.com>
- <CAPDyKFrVQ_4u9rYN41w8y+uZwgxSCHZzpPRUTa5RswTkapOFTQ@mail.gmail.com>
+Subject: Re: [PATCH 02/10] clk: ti: Add few dm814x clock aliases
+Date: Tue, 8 Dec 2015 08:57:33 -0800
+Message-ID: <20151208165732.GY23396@atomide.com>
+References: <1449013103-23238-1-git-send-email-tony@atomide.com>
+ <1449013103-23238-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAPDyKFrVQ_4u9rYN41w8y+uZwgxSCHZzpPRUTa5RswTkapOFTQ@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
+In-Reply-To: <1449013103-23238-3-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [151208 05:18]:
-> On 8 December 2015 at 01:32, Tony Lindgren <tony@atomide.com> wrote:
-> > * Ulf Hansson <ulf.hansson@linaro.org> [151207 16:20]:
-> >> +Linus
-> >>
-> >> On 7 December 2015 at 23:54, Tony Lindgren <tony@atomide.com> wrote:
-> >> > Commit ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
-> >> > changed the handling MMC power sequence so GPIOs no longer are optional.
-> >> >
-> >> > This broke SDIO WLAN at least for omap5 that can't yet use the reset GPIOs
-> >> > with pwrseq_simple as a wait is needed after enabling the SDIO device.
-> >>
-> >> Can you elaborate on this. Did it break omap5 or not? :-)
-> >
-> > Yes it broke WLAN for omap5 that I just got fixed.. It only uses the clocks
-> > art of the pwrseq currently because of the delay needed.
-> >
-> >> Also, I am interested to know more about the waiting period you need.
-> >> I assume that's because of the HW's characteristic?
-> >
-> > At least TI wl12xx and Marvell 8787 need a delay after enabling the the WLAN.
-> >
-> >> Why can't we have that being described in DT and then make
-> >> pwrseq_simple *wait* if needed?
-> >
-> > We can, but I'm thinking that we might be better off adding support for
-> > regulators to pwrseq. Both TI wl12xx and Marvell 8787 get power from the
-> > battery, and probably have an integrated regulator.
+* Tony Lindgren <tony@atomide.com> [151201 15:43]:
+> The timer clock aliases are needed early on dm814x. Let's also
+> add the aliases for the interconnects and MMC.
 > 
-> Sounds very reasonable! Perhaps some of the delays can be handled
-> within the context of the regulator then!?
+> Cc: Michael Turquette <mturquette@baylibre.com>
+> Cc: Stephen Boyd <sboyd@codeaurora.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Yes that's in the regulator binding. As long as the pwrseq code can sleep
-there's no problem with that.
-
-> > Also, the delay and the power up sequencey can be more complicated than what
-> > we currently support. In the 8787 case, pdn pin needs to be asserted for 300ms
-> > after power pins are stable and while reset is held high.
-> 
-> I am for sure open to extend pwrseq_simple, please go ahead!
-> 
-> The initial version provided a proof of concept and the
-> infrastructure. I expect and want people to extend it to suit their
-> HWs.
-> 
-> If we at some point find that pwrseq_simple starts to become too
-> complex, we may add another pwrseq type with a corresponding new
-> compatible string.
-
-Yeah OK I'll take a look when I get a chance.
+Anybody from the clock department care to ack this one? I'd like to
+get this series into Linux next as it fixes some some issues.
 
 Regards,
 
 Tony
+
+
+>  drivers/clk/ti/clk-814x.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/clk/ti/clk-814x.c b/drivers/clk/ti/clk-814x.c
+> index e172920..9e85fcc 100644
+> --- a/drivers/clk/ti/clk-814x.c
+> +++ b/drivers/clk/ti/clk-814x.c
+> @@ -14,10 +14,14 @@ static struct ti_dt_clk dm814_clks[] = {
+>  	DT_CLK(NULL, "devosc_ck", "devosc_ck"),
+>  	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
+>  	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
+> +	DT_CLK(NULL, "sysclk5_ck", "sysclk5_ck"),
+>  	DT_CLK(NULL, "sysclk6_ck", "sysclk6_ck"),
+> +	DT_CLK(NULL, "sysclk8_ck", "sysclk8_ck"),
+>  	DT_CLK(NULL, "sysclk10_ck", "sysclk10_ck"),
+>  	DT_CLK(NULL, "sysclk18_ck", "sysclk18_ck"),
+>  	DT_CLK(NULL, "timer_sys_ck", "devosc_ck"),
+> +	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
+> +	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
+>  	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
+>  	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
+>  	{ .node_name = NULL },
+> -- 
+> 2.6.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
