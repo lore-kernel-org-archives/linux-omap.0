@@ -1,62 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/10] clk: ti: Add few dm814x clock aliases
-Date: Tue, 8 Dec 2015 08:57:33 -0800
-Message-ID: <20151208165732.GY23396@atomide.com>
-References: <1449013103-23238-1-git-send-email-tony@atomide.com>
- <1449013103-23238-3-git-send-email-tony@atomide.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [4.4-rc][PATCH v2] ARM: dts: am4372: fix clock source for arm twd
+ and global timers
+Date: Tue, 8 Dec 2015 19:41:39 +0200
+Message-ID: <56671653.4030002@ti.com>
+References: <1448898998-32749-1-git-send-email-grygorii.strashko@ti.com>
+ <20151203163551.GQ23396@atomide.com> <5660843E.3000801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1449013103-23238-3-git-send-email-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5660843E.3000801-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, t-kristo-l0cyMroinI0@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151201 15:43]:
-> The timer clock aliases are needed early on dm814x. Let's also
-> add the aliases for the interconnects and MMC.
-> 
-> Cc: Michael Turquette <mturquette@baylibre.com>
-> Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi Tony, Felipe, Tero,
+On 12/03/2015 08:04 PM, Grygorii Strashko wrote:
+> On 12/03/2015 06:35 PM, Tony Lindgren wrote:
+>> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [151130 07:58]:
+>>> ARM TWD and Global timer are clocked by PERIPHCLK which is MPU_CLK/2.
+>>> But now they are clocked by dpll_mpu_m2_ck == MPU_CLK and, as result.
+>>> Timekeeping core misbehaves. For example, execution of command
+>>> "sleep 5" will take 10 sec instead of 5.
+>>>
+>>> Hence, fix it by adding mpu_periphclk ("fixed-factor-clock") and use
+>>> it for clocking ARM TWD and Global timer (same way as on OMAP4).
+>>>
+>>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>>> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>>> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+>>> Fixes:commit 8cbd4c2f6a99 ("arm: boot: dts: am4372: add ARM timers and SCU nodes")
+>>> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+>>
+>> Is this fix alone enough or do you still need to disable other the ARM
+>> timers in the board specific dts file?
+>>
+>
+> This one is independent and it's required for -rc, because ARM TWD timer will be selected
+> now for am43xx even if http://www.spinics.net/lists/arm-kernel/msg459649.html
+> is not merged yet ;) in case of omap2plus_defconfig build.
+>
+>
 
-Anybody from the clock department care to ack this one? I'd like to
-get this series into Linux next as it fixes some some issues.
+Are there any comments objection?
+Could this patch be merged as part of -rc cycle?
 
-Regards,
-
-Tony
-
-
->  drivers/clk/ti/clk-814x.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/clk/ti/clk-814x.c b/drivers/clk/ti/clk-814x.c
-> index e172920..9e85fcc 100644
-> --- a/drivers/clk/ti/clk-814x.c
-> +++ b/drivers/clk/ti/clk-814x.c
-> @@ -14,10 +14,14 @@ static struct ti_dt_clk dm814_clks[] = {
->  	DT_CLK(NULL, "devosc_ck", "devosc_ck"),
->  	DT_CLK(NULL, "mpu_ck", "mpu_ck"),
->  	DT_CLK(NULL, "sysclk4_ck", "sysclk4_ck"),
-> +	DT_CLK(NULL, "sysclk5_ck", "sysclk5_ck"),
->  	DT_CLK(NULL, "sysclk6_ck", "sysclk6_ck"),
-> +	DT_CLK(NULL, "sysclk8_ck", "sysclk8_ck"),
->  	DT_CLK(NULL, "sysclk10_ck", "sysclk10_ck"),
->  	DT_CLK(NULL, "sysclk18_ck", "sysclk18_ck"),
->  	DT_CLK(NULL, "timer_sys_ck", "devosc_ck"),
-> +	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
-> +	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
->  	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
->  	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
->  	{ .node_name = NULL },
-> -- 
-> 2.6.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
