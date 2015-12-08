@@ -1,32 +1,60 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-Date: Mon, 7 Dec 2015 16:19:43 -0800
-Message-ID: <20151208001943.GT23396@atomide.com>
-References: <1449225915-28879-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mmc: pwrseq_simple: Fix regression with optional GPIOs
+Date: Mon, 7 Dec 2015 16:32:13 -0800
+Message-ID: <20151208003213.GU23396@atomide.com>
+References: <1449528845-25189-1-git-send-email-tony@atomide.com>
+ <CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1449225915-28879-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151204 02:46]:
-> +
-> +			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
-> +				   <&edma_tptc2 0>;
-> +
-> +			ti,edma-memcpy-channels = /bits/ 16 <20 21>;
+* Ulf Hansson <ulf.hansson@linaro.org> [151207 16:20]:
+> +Linus
+> 
+> On 7 December 2015 at 23:54, Tony Lindgren <tony@atomide.com> wrote:
+> > Commit ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
+> > changed the handling MMC power sequence so GPIOs no longer are optional.
+> >
+> > This broke SDIO WLAN at least for omap5 that can't yet use the reset GPIOs
+> > with pwrseq_simple as a wait is needed after enabling the SDIO device.
+> 
+> Can you elaborate on this. Did it break omap5 or not? :-)
 
-Is this safe to change to just ti,edma-memcpy-channels = <20 21> as
-suggested by Arnd?
+Yes it broke WLAN for omap5 that I just got fixed.. It only uses the clocks
+art of the pwrseq currently because of the delay needed.
 
-Regards,
+> Also, I am interested to know more about the waiting period you need.
+> I assume that's because of the HW's characteristic?
+
+At least TI wl12xx and Marvell 8787 need a delay after enabling the the WLAN.
+
+> Why can't we have that being described in DT and then make
+> pwrseq_simple *wait* if needed?
+
+We can, but I'm thinking that we might be better off adding support for
+regulators to pwrseq. Both TI wl12xx and Marvell 8787 get power from the
+battery, and probably have an integrated regulator.
+
+Also, the delay and the power up sequencey can be more complicated than what
+we currently support. In the 8787 case, pdn pin needs to be asserted for 300ms
+after power pins are stable and while reset is held high.
+
+> > Let's fix the problem by allocating the GPIO values array during init
+> > depending on the optional GPIOs found.
+> 
+> Certainly it shall be optional! I wonder how I could let that patch
+> slip through, my bad!
+
+OK good to hear :)
+
+> Thanks for fixing this!
+
+No problem, thanks,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
