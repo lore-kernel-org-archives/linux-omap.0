@@ -1,91 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] mmc: pwrseq_simple: Fix regression with optional GPIOs
-Date: Mon,  7 Dec 2015 14:54:05 -0800
-Message-ID: <1449528845-25189-1-git-send-email-tony@atomide.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@osg.samsung.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: dts: Use MMC pwrseq instead regulators for IGEP
+ WiFi init
+Date: Mon, 7 Dec 2015 16:14:06 -0800
+Message-ID: <20151208001406.GS23396@atomide.com>
+References: <1449165729-993-1-git-send-email-javier@osg.samsung.com>
+ <20151203181624.GW23396@atomide.com>
+ <566089E1.7050805@osg.samsung.com>
+ <20151203192719.GZ23396@atomide.com>
+ <CAFqH_536_sG7fju=u39aMKmzXt8KDCxU1-dFM03H060zbh5qxw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAFqH_536_sG7fju=u39aMKmzXt8KDCxU1-dFM03H060zbh5qxw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, =?utf-8?Q?Agust=C3=AD?= Fontquerni i Gorchs <afontquerni-VIneJrwqLopBDgjK7y7TUQ@public.gmane.org>, Pau Pajuel <ppajuel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
-changed the handling MMC power sequence so GPIOs no longer are optional.
+* Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [151204 06:40]:
+> 2015-12-03 20:27 GMT+01:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+> > * Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org> [151203 10:29]:
+> >
+> >> Since is working for the boards with the libertas chip, I preferred
+> >> to remove the DTS hack but left the boards with wlcore chip since
+> >> you said the startup-delay-us is needed there (but probably we should
+> >> add to the regulators in the boards that don't have it then).
+> >
+> > OK
+> 
+> I guess will be interesting cc'ing the ISEE people. Added Agusti and Pau.
 
-This broke SDIO WLAN at least for omap5 that can't yet use the reset GPIOs
-with pwrseq_simple as a wait is needed after enabling the SDIO device.
+Applying these both into omap-for-v4.5/dt thanks.
 
-Let's fix the problem by allocating the GPIO values array during init
-depending on the optional GPIOs found.
-
-Note that depending on the board specific configuration, some of the GPIOs
-can be permanently set up with pulls, so we want to keep pwrseq_simple
-GPIOs optional.
-
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mmc/core/pwrseq_simple.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
-
---- a/drivers/mmc/core/pwrseq_simple.c
-+++ b/drivers/mmc/core/pwrseq_simple.c
-@@ -24,6 +24,7 @@ struct mmc_pwrseq_simple {
- 	bool clk_enabled;
- 	struct clk *ext_clk;
- 	struct gpio_descs *reset_gpios;
-+	int *values;
- };
- 
- static void mmc_pwrseq_simple_set_gpios_value(struct mmc_pwrseq_simple *pwrseq,
-@@ -31,13 +32,15 @@ static void mmc_pwrseq_simple_set_gpios_value(struct mmc_pwrseq_simple *pwrseq,
- {
- 	int i;
- 	struct gpio_descs *reset_gpios = pwrseq->reset_gpios;
--	int values[reset_gpios->ndescs];
-+
-+	if (!reset_gpios || !reset_gpios->ndescs)
-+		return;
- 
- 	for (i = 0; i < reset_gpios->ndescs; i++)
--		values[i] = value;
-+		pwrseq->values[i] = value;
- 
- 	gpiod_set_array_value_cansleep(reset_gpios->ndescs, reset_gpios->desc,
--				       values);
-+				       pwrseq->values);
- }
- 
- static void mmc_pwrseq_simple_pre_power_on(struct mmc_host *host)
-@@ -84,6 +87,7 @@ static void mmc_pwrseq_simple_free(struct mmc_host *host)
- 	if (!IS_ERR(pwrseq->ext_clk))
- 		clk_put(pwrseq->ext_clk);
- 
-+	kfree(pwrseq->values);
- 	kfree(pwrseq);
- }
- 
-@@ -111,12 +115,20 @@ struct mmc_pwrseq *mmc_pwrseq_simple_alloc(struct mmc_host *host,
- 		goto free;
- 	}
- 
--	pwrseq->reset_gpios = gpiod_get_array(dev, "reset", GPIOD_OUT_HIGH);
-+	pwrseq->reset_gpios = gpiod_get_array_optional(dev, "reset",
-+						       GPIOD_OUT_HIGH);
- 	if (IS_ERR(pwrseq->reset_gpios)) {
- 		ret = PTR_ERR(pwrseq->reset_gpios);
- 		goto clk_put;
- 	}
- 
-+	if (pwrseq->reset_gpios && pwrseq->reset_gpios->ndescs) {
-+		pwrseq->values = kzalloc(pwrseq->reset_gpios->ndescs *
-+					 sizeof(int), GFP_KERNEL);
-+		if (!pwrseq->values)
-+			goto clk_put;
-+	}
-+
- 	pwrseq->pwrseq.ops = &mmc_pwrseq_simple_ops;
- 
- 	return &pwrseq->pwrseq;
--- 
-2.6.2
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
