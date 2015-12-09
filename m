@@ -1,117 +1,61 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH for 4.4 2/2] dmaengine: edma: DT: Change reserved slot
- array from 16bit to 32bit type
-Date: Wed, 9 Dec 2015 14:08:10 -0600
-Message-ID: <20151209200810.GA28037@rob-hp-laptop>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH for 4.4 0/2] DT/dmaengine: edma: Convert 16bit arrays to
+ 32bit
+Date: Wed, 9 Dec 2015 12:12:27 -0800
+Message-ID: <20151209201226.GB23396@atomide.com>
 References: <1449649091-9848-1-git-send-email-peter.ujfalusi@ti.com>
- <1449649091-9848-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1449649091-9848-3-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, arnd@arndb.de, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, balbi@ti.com, linux-kernel@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <1449649091-9848-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 09, 2015 at 10:18:11AM +0200, Peter Ujfalusi wrote:
-> This change makes the DT file to be easier to read since the reserved slots
-> array does not need the '/bits/ 16' to be specified, which might confuse
-> some people.
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151209 00:19]:
+> Hi,
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-This too should have info on why you are breaking compatibility.
-
-Acked-by: Rob Herring <robh@kernel.org>
-
-> ---
->  Documentation/devicetree/bindings/dma/ti-edma.txt |  5 ++--
->  drivers/dma/edma.c                                | 31 ++++++++++++++++++-----
->  2 files changed, 27 insertions(+), 9 deletions(-)
+> Based on the discussion regarding to (convert am33xx to use the new eDMA
+> bindings):
+> https://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg122117.html
 > 
-> diff --git a/Documentation/devicetree/bindings/dma/ti-edma.txt b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> index ae8b8f1d6e69..079b42a81d7c 100644
-> --- a/Documentation/devicetree/bindings/dma/ti-edma.txt
-> +++ b/Documentation/devicetree/bindings/dma/ti-edma.txt
-> @@ -56,9 +56,8 @@ edma: edma@49000000 {
->  
->  	/* Channel 20 and 21 is allocated for memcpy */
->  	ti,edma-memcpy-channels = <20 21>;
-> -	/* The following PaRAM slots are reserved: 35-45 and 100-110 */
-> -	ti,edma-reserved-slot-ranges = /bits/ 16 <35 10>,
-> -				       /bits/ 16 <100 10>;
-> +	/* The following PaRAM slots are reserved: 35-44 and 100-109 */
-> +	ti,edma-reserved-slot-ranges = <35 10>, <100 10>;
->  };
->  
->  edma_tptc0: tptc@49800000 {
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index 89fc17f3a6ff..a0f217349c07 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -2015,31 +2015,50 @@ static struct edma_soc_info *edma_setup_info_from_dt(struct device *dev,
->  				&sz);
->  	if (prop) {
->  		const char pname[] = "ti,edma-reserved-slot-ranges";
-> +		u32 (*tmp)[2];
->  		s16 (*rsv_slots)[2];
-> -		size_t nelm = sz / sizeof(*rsv_slots);
-> +		size_t nelm = sz / sizeof(*tmp);
->  		struct edma_rsv_info *rsv_info;
-> +		int i;
->  
->  		if (!nelm)
->  			return info;
->  
-> +		tmp = kcalloc(nelm, sizeof(*tmp), GFP_KERNEL);
-> +		if (!tmp)
-> +			return ERR_PTR(-ENOMEM);
-> +
->  		rsv_info = devm_kzalloc(dev, sizeof(*rsv_info), GFP_KERNEL);
-> -		if (!rsv_info)
-> +		if (!rsv_info) {
-> +			kfree(tmp);
->  			return ERR_PTR(-ENOMEM);
-> +		}
->  
->  		rsv_slots = devm_kcalloc(dev, nelm + 1, sizeof(*rsv_slots),
->  					 GFP_KERNEL);
-> -		if (!rsv_slots)
-> +		if (!rsv_slots) {
-> +			kfree(tmp);
->  			return ERR_PTR(-ENOMEM);
-> +		}
->  
-> -		ret = of_property_read_u16_array(dev->of_node, pname,
-> -						 (u16 *)rsv_slots, nelm * 2);
-> -		if (ret)
-> +		ret = of_property_read_u32_array(dev->of_node, pname,
-> +						 (u32 *)tmp, nelm * 2);
-> +		if (ret) {
-> +			kfree(tmp);
->  			return ERR_PTR(ret);
-> +		}
->  
-> +		for (i = 0; i < nelm; i++) {
-> +			rsv_slots[i][0] = tmp[i][0];
-> +			rsv_slots[i][1] = tmp[i][1];
-> +		}
->  		rsv_slots[nelm][0] = -1;
->  		rsv_slots[nelm][1] = -1;
-> +
->  		info->rsv = rsv_info;
->  		info->rsv->rsv_slots = (const s16 (*)[2])rsv_slots;
-> +
-> +		kfree(tmp);
->  	}
->  
->  	return info;
-> -- 
-> 2.6.3
+> This two patch will convert the new eDMA binding to not use 16bit arrays for
+> memcpy channel selection and for marking slots reserved.
+> The '/bits/ 16' seams to be causing confusion so it is probably better to just
+> use standard type for the arrays.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The new bindings for the eDMA is introduced for 4.4 and we do not have users of
+> it, which means that we can still change it w/o the risk of breaking anything
+> and we do not need to maintain the compatibility with 16bit arrays.
+> 
+> The changes in the eDMA driver is local to the DT parsing and should not
+> conflict with other changes (like the filter function mapping support). Hrm,
+> there might be trivial conflict in the include/linux/platform_data/edma.h with
+> the "dmaengine 'universal' API".
+> 
+> Tony, Arnd, Vinod: Can you agree on the practicalities on how these patches are
+> going to be handled? I would like to send the updated am33xx/am437x conversion
+> for 4.5 based on these changes.
+
+Yes this should go into v4.4 as discussed, otherwise it will be a mess.
+For both, please feel free to add:
+
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+I suggest Vinod sets up an immutable branch against v4.4-rc1 with just these
+two patches. Then it can get merged into whichever branch needs it, I
+certainly will need it as most of my v4.5 branches are v4.4-rc1 or -rc2
+based.
+
+Then the immutable branch can be merged into v4.4 by Vinod or Arnd.
+
+Regards,
+
+Tony
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
