@@ -1,156 +1,132 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 00/25] mtd: nand: refactor the NAND
- subsystem (part 1)
-Date: Wed, 9 Dec 2015 09:15:18 +0100
-Message-ID: <20151209091518.18e2203d@bbrezillon>
-References: <1448967802-25796-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20151209003624.GU120110@google.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] video:omap2:dss: fix timings for VENC to match what
+ omapdrm expects
+Date: Wed, 9 Dec 2015 10:18:24 +0200
+Message-ID: <5667E3D0.8010600@ti.com>
+References: <cover.1447410543.git.hns@goldelico.com>
+ <20ebf7491377ccba18c734c22ae9f361d7fdc165.1447410544.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBJGGT6ZQKGQEDMWQ5KY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <20151209003624.GU120110-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/linux-sunxi
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/linux-sunxi/subscribe>
-To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek
+Content-Type: multipart/mixed; boundary="===============1026028239=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20ebf7491377ccba18c734c22ae9f361d7fdc165.1447410544.git.hns@goldelico.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, gta04-owner@goldelico.com, linux-omap@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Brian,
+--===============1026028239==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="J4USkrRLJBgfQAPV34EcVW4HnN5Dip2tm"
 
-On Tue, 8 Dec 2015 16:36:24 -0800
-Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+--J4USkrRLJBgfQAPV34EcVW4HnN5Dip2tm
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> Hi,
-> 
-> On Tue, Dec 01, 2015 at 12:02:57PM +0100, Boris Brezillon wrote:
-> > Hello,
-> > 
-> > This huge series aims at clarifying the relationship between the mtd and
-> > nand_chip structures and hiding NAND framework internals to NAND
-> > controller drivers.
-> > 
-> > The first part of the series provide an mtd_to_nand() helper to hide the
-> > way mtd and nand_chip are linked together.
-> > 
-> > The second part of the series embeds the mtd structure into the nand_chip
-> > one so that NAND controller drivers don't have to bother allocating the
-> > MTD device and linking it with the NAND chip.
-> > 
-> > The last part of the series hides accesses to the chip->priv field behind
-> > two helper functions.
-> > 
-> > This allows removal of some of the boilerplate code done in all NAND
-> > controller drivers, but most importantly, it unifies a bit the way NAND
-> > chip structures are instantiated (even though we still have two different
-> > kinds of drivers: those embedding the nand_chip struct into their private
-> > nand chip representation, and those allocating two different structures
-> > and linking them together with the chip->priv field).
-> > 
-> > As said in the title, this refactoring is only the first step. I plan to
-> > rework the NAND controller / NAND chip separation for pretty much the same
-> > reasons: clarifying the separation between the two concepts, and getting
-> > rid of more boilerplate code in NAND controller drivers.
-> > 
-> > Stay tuned ;-).
-> > 
-> > Best Regards,
-> > 
-> > Boris
-> > 
-> > Changes since v1:
-> > - dropped already applied patches
-> > - fixed some typos
-> > - manually fixed some modifications omitted by the coccinelle scripts
-> > - manually reworked modifactions done by coccinelle scripts to improve
-> >   readability and fix coding style issues
-> > 
-> > Boris Brezillon (25):
-> >   ARM: nand: make use of mtd_to_nand() where appropriate
-> 
-> I've sent this (+ the introduction of mtd_to_nand()) in a pull request
-> to arm-soc, as well as to l2-mtd.git.
-> 
-> >   blackfin: nand: make use of mtd_to_nand() where appropriate
-> >   cris: nand: make use of mtd_to_nand() where appropriate
-> >   mips: nand: make use of mtd_to_nand() where appropriate
-> 
-> I've based these on v4.4-rc1 and brought them into l2-mtd.git, in case
-> any arch/{blackfin,cris,mips}/ people want to pull them in too.
-> 
-> >   sh: nand: make use of mtd_to_nand() where appropriate
-> >   mtd: nand: make use of mtd_to_nand() in NAND core code
-> >   mtd: nand: make use of mtd_to_nand() in NAND drivers
-> >   staging: mt29f_spinand: make use of mtd_to_nand()
-> >   mtd: nand: embed an mtd_info structure into nand_chip
-> >   mtd: nand: add nand_to_mtd() helper
-> 
-> Pulled the rest up to here into l2-mtd.git.
 
-Okay, thanks.
+On 13/11/15 12:29, H. Nikolaus Schaller wrote:
+> Otherwise check_timings fails and we get a "has no modes" message
+> from xrandr.
+>=20
+> This fix makes the venc assume PAL and NTSC timings that match the
+> timings synthetized by copy_timings_drm_to_omap() from omapdrm
+> mode settings so that check_timings() succeeds.
+>=20
+> Tested on: BeagleBoard XM, GTA04 and OpenPandora
+>=20
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  drivers/video/fbdev/omap2/dss/venc.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 
-> 
-> >   coccinelle: nand: detect and correct drivers embedding an mtd_info
-> >     object
-> 
-> I believe Julia had comments on this. That probably would go through the
-> kbuild tree in the end anyway (?).
+I've picked this up.
 
-Julia proposed to generate this script using sgen, so I guess this will
-come later through a different tree.
+With this patch and the one below I can get tv-out working on my very old=
 
-> 
-> >   mtd: nand: use the mtd instance embedded in struct nand_chip
-> 
-> There's still at least one problem in this patch (commented on the
-> patch). It touches a lot of drivers, so any extra review would be great.
+beagleboard, and it seems to work with X also. It doesn't start automatic=
+ally
+as the connection state is unknown, but doing "xrandr --output None-1 --a=
+uto"
+was all I needed to enable it.
 
-Yep, I think I'll resend the series and split the modification so that
-you can pick changes independently (as you suggested a few days ago).
+ Tomi
 
-Anyway, reviews from other people would be much appreciated. As I said,
-most of changes have been automated with coccinelle, but some of them
-have been made manually done, and this is the case for all drivers using
-the following pattern:
+=46rom a4274600a5a67256b91266b0d2624b9c9028909b Mon Sep 17 00:00:00 2001
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date: Tue, 8 Dec 2015 18:32:14 +0200
+Subject: [PATCH] drm/omap: fix fbdev pix format to support all platforms
 
-var = kzalloc(sizeof(struct mtd_info) +
-	      sizeof(struct nand_chip) + ... ,...);
+omap_fbdev always creates a framebuffer with ARGB8888 pixel format. On
+OMAP3 we have VIDEO1 overlay that does not support ARGB8888, and on
+OMAP2 none of the overlays support ARGB888.
 
-because I failed to find a pattern common enough to match the cases I
-had, and manually fixing them was easier for me...
+This patch changes the omap_fbdev's fb to XRGB8888, which is supported
+by all platforms.
 
-> 
-> >   mtd: nand: update the documentation to reflect framework changes
-> >   staging: mt29f_spinand: use the mtd instance embedded in struct
-> >     nand_chip
-> >   cris: nand: use the mtd instance embedded in struct nand_chip
-> >   mtd: nand: update mtd_to_nand()
-> >   mtd: nand: remove useless mtd->priv = chip assignments
-> >   cris: nand: remove useless mtd->priv = chip assignments
-> >   staging: mt29f_spinand: remove useless mtd->priv = chip assignment
-> >   mtd: nand: simplify nand_dt_init() usage
-> >   mtd: nand: kill the chip->flash_node field
-> >   mtd: nand: add helpers to access ->priv
-> >   ARM: make use of nand_set/get_controller_data() helpers
-> >   mtd: nand: make use of nand_set/get_controller_data() helpers
-> >   staging: mt29f_spinand: make use of nand_set/get_controller_data()
-> >     helpers
-> 
-> All the rest look good to me. I'll wait until I get a good copy of patch
-> 12 before taking them.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Sure.
+diff --git a/drivers/gpu/drm/omapdrm/omap_fbdev.c b/drivers/gpu/drm/omapd=
+rm/omap_fbdev.c
+index b8e4cdec28c3..24f92bea39c7 100644
+--- a/drivers/gpu/drm/omapdrm/omap_fbdev.c
++++ b/drivers/gpu/drm/omapdrm/omap_fbdev.c
+@@ -112,11 +112,8 @@ static int omap_fbdev_create(struct drm_fb_helper *h=
+elper,
+ 	dma_addr_t paddr;
+ 	int ret;
+=20
+-	/* only doing ARGB32 since this is what is needed to alpha-blend
+-	 * with video overlays:
+-	 */
+ 	sizes->surface_bpp =3D 32;
+-	sizes->surface_depth =3D 32;
++	sizes->surface_depth =3D 24;
+=20
+ 	DBG("create fbdev: %dx%d@%d (%dx%d)", sizes->surface_width,
+ 			sizes->surface_height, sizes->surface_bpp,
 
-Thanks,
 
-Boris
+--J4USkrRLJBgfQAPV34EcVW4HnN5Dip2tm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWZ+PQAAoJEPo9qoy8lh71P+cQAK2ySelo8MKVj744Rq9b6fOL
+K454NlLn768yH2hTosgIRzh5Q9WS59OkkSEBfiUlBq6rO09VN+cU7zTN2WfT76+l
+KfQ7qemZnIlB4YE6hXgi2iW5aQjLdKoqS8+ejVXDjmhwLnTmlMl2eZ0sObK1rtW2
+ct0pgPYU7Y4Kil9qHsdz6+AMEMRqAk3APOswpZCp7DmeSCAQ1hvzuMWPIPcbBJDS
+QjO7NCufRIQf8JLqjI5r50ykvKihvgljPrfWdZY45hHX1WPcO7dYbC8UBeoMx9M6
+Q6oGcW23XWUsBvd8f5oehKyqjdqUVH6bTTHesnFVOQokPGba48SUSZ727312gol5
+yVrKYsMr+pyxe1WcR5kA4mLE/59y13SxI8+Zc6EITvuwIkO1tzJZyMGlEVAZYi+U
+va/dLG2XwxxYkfU7ph8EsKU2sziWij+u2PqMQSIJoiKoKL9kPU01ilQVP3luzWou
+AcJj0VvP7QWWxxJRiEH6bQV9aCkMeoYkB132RHRGzKVQTdFf7sFLnMo40WEE+dZu
+poaz+aMMTMNOL3ARbW+hU2wtjy+mZNvTZAlogi72S/biFUXDAgFxE8gc47BqreQy
+t0dAGi6aivoDU+iOh7RYCE+PIpGa3ISE4aGLc+Y2/H18vnBjqIBEJvhk0qc2fWlZ
+c3Iyf9io0O1ddhq+1sra
+=7IDv
+-----END PGP SIGNATURE-----
+
+--J4USkrRLJBgfQAPV34EcVW4HnN5Dip2tm--
+
+--===============1026028239==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
+cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+
+--===============1026028239==--
