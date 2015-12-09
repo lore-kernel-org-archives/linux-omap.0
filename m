@@ -1,52 +1,54 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH for 4.4 0/2] DT/dmaengine: edma: Convert 16bit arrays to 32bit
-Date: Wed, 09 Dec 2015 10:00:13 +0100
-Message-ID: <7691711.qMGLSkELz4@wuerfel>
-References: <1449649091-9848-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [GIT PULL for 4.4] DT/dmaengine: edma: Update for the new bindings
+Date: Wed, 9 Dec 2015 13:10:18 +0200
+Message-ID: <56680C1A.3050009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449649091-9848-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, vinod.koul@intel.com, tony@atomide.com, devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 09 December 2015 10:18:09 Peter Ujfalusi wrote:
-> Hi,
-> 
-> Based on the discussion regarding to (convert am33xx to use the new eDMA
-> bindings):
-> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122117.html
-> 
-> This two patch will convert the new eDMA binding to not use 16bit arrays for
-> memcpy channel selection and for marking slots reserved.
-> The '/bits/ 16' seams to be causing confusion so it is probably better to just
-> use standard type for the arrays.
-> 
-> The new bindings for the eDMA is introduced for 4.4 and we do not have users of
-> it, which means that we can still change it w/o the risk of breaking anything
-> and we do not need to maintain the compatibility with 16bit arrays.
-> 
-> The changes in the eDMA driver is local to the DT parsing and should not
-> conflict with other changes (like the filter function mapping support). Hrm,
-> there might be trivial conflict in the include/linux/platform_data/edma.h with
-> the "dmaengine 'universal' API".
+Hi Arnd, Vinod,
 
-Both patches
+As Arnd suggested, the two patch from the following series:
+https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122201.html
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+plus Acked-by from Arnd is available for pull if you prefer that way.
 
-> Tony, Arnd, Vinod: Can you agree on the practicalities on how these patches are
-> going to be handled? I would like to send the updated am33xx/am437x conversion
-> for 4.5 based on these changes.
 
-I'd suggest you send a pull request with these two patches on top of 4.4-rc1,
-and then either Vinod or I send it to Linus, and you base your other changes
-on top of the same branch.
+Regards,
+P=C3=A9ter
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d713=
+0bec:
 
-I think Vinod's tree is slightly more fitting for the 4.4 merge, but if he
-prefers me to take them instead, I will.
+  Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
 
-	Arnd
+are available in the git repository at:
+
+  https://github.com/omap-audio/linux-audio.git for-4.4/peter/edma_bind=
+ing_update
+
+for you to fetch changes up to af9089852e0ecd6ae7336992d29b04d7d82b404a=
+:
+
+  dmaengine: edma: DT: Change reserved slot array from 16bit to 32bit t=
+ype (2015-12-09 11:56:56 +0200)
+
+----------------------------------------------------------------
+Peter Ujfalusi (2):
+      dmaengine: edma: DT: Change memcpy channel array from 16bit to 32=
+bit type
+      dmaengine: edma: DT: Change reserved slot array from 16bit to 32b=
+it type
+
+ Documentation/devicetree/bindings/dma/ti-edma.txt | 10 ++++------
+ drivers/dma/edma.c                                | 53 +++++++++++++++=
+++++++++++++++++++++------------------
+ include/linux/platform_data/edma.h                |  2 +-
+ 3 files changed, 40 insertions(+), 25 deletions(-)
