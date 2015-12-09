@@ -1,72 +1,52 @@
-From: Pratyush Anand <pratyush.anand@gmail.com>
-Subject: Re: [PATCH v2] PCI: dra7xx: mark dra7xx_pcie_msi irq as IRQF_NO_THREAD
-Date: Wed, 9 Dec 2015 10:19:34 +0530
-Message-ID: <CAHM4w1=52JGcO=fHjoxoubnV=NEGM63MhbQUzHQWX8rxoV6jYg@mail.gmail.com>
-References: <1448027966-21610-1-git-send-email-grygorii.strashko@ti.com>
-	<20151204184619.GD20125@localhost>
-	<5662042A.3090809@ti.com>
-	<20151208033300.GA1255@localhost>
-	<1449566630.3118.10.camel@pengutronix.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 02/10] clk: ti: Add few dm814x clock aliases
+Date: Wed, 9 Dec 2015 09:51:19 +0200
+Message-ID: <5667DD77.2000900@ti.com>
+References: <1449013103-23238-1-git-send-email-tony@atomide.com>
+ <1449013103-23238-3-git-send-email-tony@atomide.com>
+ <20151208165732.GY23396@atomide.com> <56672ED0.4050405@ti.com>
+ <20151208201136.GZ23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1449566630.3118.10.camel@pengutronix.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lucas Stach <l.stach@pengutronix.de>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, tony@atomide.com, nsekhar@ti.com, linux-omap@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <Richard.Zhu@freescale.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151208201136.GZ23396@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Michael Turquette <mturquette@baylibre.com>, Delio Brignoli <dbrignoli@audioscience.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, Philipp Rosenberger <ilu@linutronix.de>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 8, 2015 at 2:53 PM, Lucas Stach <l.stach@pengutronix.de> wrote:
-> Hi Bjorn,
+On 12/08/2015 10:11 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [151208 11:25]:
+>> On 12/08/2015 06:57 PM, Tony Lindgren wrote:
+>>>
+>>> Anybody from the clock department care to ack this one?
+>>
+>> Sorry been rather busy lately...
+>>
+>>> I'd like to
+>>> get this series into Linux next as it fixes some some issues.
+>>
+>> Yeah looks good to me, don't have access to dm814x so can't test.
+>>
+>> Acked-by: Tero Kristo <t-kristo@ti.com>
 >
-> Am Montag, den 07.12.2015, 21:33 -0600 schrieb Bjorn Helgaas:
->> [+cc Jingoo (exynos), Richard, Lucas (imx6), Pratyush (spear13xx)]
->>
->> On Fri, Dec 04, 2015 at 11:22:50PM +0200, Grygorii Strashko wrote:
->> > On 12/04/2015 08:46 PM, Bjorn Helgaas wrote:
->> > > Hi Grygorii,
-> [...]
->> > >>
->> > >> +        /*
->> > >> +         * Mark dra7xx_pcie_msi IRQ as IRQF_NO_THREAD
->> > >> +         * On -RT and if kernel is booting with "threadirqs" cmd line parameter
->> > >> +         * the dra7xx_pcie_msi_irq_handler() will be forced threaded but,
->> > >> +         * in the same time, it's IRQ dispatcher and calls generic_handle_irq(),
->> > >> +         * which, in turn, will be resolved to handle_simple_irq() call.
->> > >> +         * The handle_simple_irq() expected to be called with IRQ disabled, as
->> > >> +         * result kernle will display warning:
->> > >> +         * "irq XXX handler YYY+0x0/0x14 enabled interrupts".
->> > >> +         */
->> > >>          ret = devm_request_irq(&pdev->dev, pp->irq,
->> > >> -                               dra7xx_pcie_msi_irq_handler, IRQF_SHARED,
->> > >> +                               dra7xx_pcie_msi_irq_handler,
->> > >> +                               IRQF_SHARED | IRQF_NO_THREAD,
->> > >>                                 "dra7-pcie-msi", pp);
->> > >
->> > > There's similar code in exynos_add_pcie_port(), imx6_add_pcie_port(),
->> > > and spear13xx_add_pcie_port().  Do they need similar changes?  If not,
->> > > why not?
->> > >
->> > > I see your discussion about DRA7 hardware design, but my impression is
->> > > that this problem affects anybody who calls dw_handle_msi_irq() from a
->> > > handler registered with IRQF_SHARED.
->> >
->> > Issue fixed by this patch is not related to IRQF_SHARED.
->> > It will happen on -RT or if kernel will boot with "threadirqs" cmd line parameter
->> > - in both cases these PCI IRQ handlers will be forced to be threaded and,
->> > as result, generic_handle_irq() will produce above backtrace.
->> >
->> > Personally, I don't have strong opinion about "should similar change be applied
->> > to other PCI drivers or not?" And I think, that owners of those driver should
->> > make such decision.
->>
->> If the same issue affects several drivers, I'd like to see them all
->> handle it the same way.  Otherwise, somebody coming along later will
->> wonder why they're different, and there won't be a good answer.
->>
->> I cc'd the other maintainers to see what they think.
->>
+> Thanks.
+>
+>> Are you planning to push this via omap tree if this is critical for you?
+>
+> Yes this series needs to be merged in certain order to keep t410
+> booting. Should not conflict with anything else AFAIK.
 
-I too agree with the change for SPEAr13xx as well.
+Ok at least I am fine with that. The dm81xx clock alias file is pretty 
+independent of anything else.
 
-~Pratyush
+-Tero
