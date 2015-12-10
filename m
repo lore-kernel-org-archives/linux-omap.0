@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 22/58] mtd: nand: gpio: use the mtd instance
+Subject: [PATCH v4 23/58] mtd: nand: gpmi: use the mtd instance
  embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:06 +0100
-Message-ID: <1449734442-18672-23-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:07 +0100
+Message-ID: <1449734442-18672-24-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBUPDUSZQKGQE23Z4ULA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBWPDUSZQKGQEW34HQ4Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,77 +66,133 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/gpio.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/mtd/nand/gpmi-nand/gpmi-lib.c  |  2 +-
+ drivers/mtd/nand/gpmi-nand/gpmi-nand.c | 23 +++++++++++------------
+ drivers/mtd/nand/gpmi-nand/gpmi-nand.h |  1 -
+ 3 files changed, 12 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/mtd/nand/gpio.c b/drivers/mtd/nand/gpio.c
-index d57a07a..99dd74c 100644
---- a/drivers/mtd/nand/gpio.c
-+++ b/drivers/mtd/nand/gpio.c
-@@ -35,12 +35,14 @@
- 
- struct gpiomtd {
- 	void __iomem		*io_sync;
--	struct mtd_info		mtd_info;
- 	struct nand_chip	nand_chip;
- 	struct gpio_nand_platdata plat;
- };
- 
--#define gpio_nand_getpriv(x) container_of(x, struct gpiomtd, mtd_info)
-+static inline struct gpiomtd *gpio_nand_getpriv(struct mtd_info *mtd)
-+{
-+	return container_of(mtd_to_nand(mtd), struct gpiomtd, nand_chip);
-+}
- 
- 
- #ifdef CONFIG_ARM
-@@ -195,7 +197,7 @@ static int gpio_nand_remove(struct platform_device *pdev)
+diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-lib.c b/drivers/mtd/nand/gpmi-nand/gpmi-lib.c
+index 43fa16b..0f68a99 100644
+--- a/drivers/mtd/nand/gpmi-nand/gpmi-lib.c
++++ b/drivers/mtd/nand/gpmi-nand/gpmi-lib.c
+@@ -919,7 +919,7 @@ static int enable_edo_mode(struct gpmi_nand_data *this, int mode)
  {
- 	struct gpiomtd *gpiomtd = platform_get_drvdata(pdev);
- 
--	nand_release(&gpiomtd->mtd_info);
-+	nand_release(nand_to_mtd(&gpiomtd->nand_chip));
- 
- 	if (gpio_is_valid(gpiomtd->plat.gpio_nwp))
- 		gpio_set_value(gpiomtd->plat.gpio_nwp, 0);
-@@ -208,6 +210,7 @@ static int gpio_nand_probe(struct platform_device *pdev)
+ 	struct resources  *r = &this->resources;
+ 	struct nand_chip *nand = &this->nand;
+-	struct mtd_info	 *mtd = &this->mtd;
++	struct mtd_info	 *mtd = nand_to_mtd(nand);
+ 	uint8_t *feature;
+ 	unsigned long rate;
+ 	int ret;
+diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
+index 802adb0..38b07c7 100644
+--- a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
++++ b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
+@@ -107,7 +107,7 @@ static irqreturn_t bch_irq(int irq, void *cookie)
+ static inline int get_ecc_strength(struct gpmi_nand_data *this)
  {
- 	struct gpiomtd *gpiomtd;
- 	struct nand_chip *chip;
-+	struct mtd_info *mtd;
- 	struct resource *res;
- 	int ret = 0;
+ 	struct bch_geometry *geo = &this->bch_geometry;
+-	struct mtd_info	*mtd = &this->mtd;
++	struct mtd_info	*mtd = nand_to_mtd(&this->nand);
+ 	int ecc_strength;
  
-@@ -274,24 +277,24 @@ static int gpio_nand_probe(struct platform_device *pdev)
- 	chip->chip_delay	= gpiomtd->plat.chip_delay;
- 	chip->cmd_ctrl		= gpio_nand_cmd_ctrl;
+ 	ecc_strength = ((mtd->oobsize - geo->metadata_size) * 8)
+@@ -139,8 +139,8 @@ static inline bool gpmi_check_ecc(struct gpmi_nand_data *this)
+ static bool set_geometry_by_ecc_info(struct gpmi_nand_data *this)
+ {
+ 	struct bch_geometry *geo = &this->bch_geometry;
+-	struct mtd_info *mtd = &this->mtd;
+-	struct nand_chip *chip = mtd_to_nand(mtd);
++	struct nand_chip *chip = &this->nand;
++	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	struct nand_oobfree *of = gpmi_hw_ecclayout.oobfree;
+ 	unsigned int block_mark_bit_offset;
  
--	gpiomtd->mtd_info.priv	= chip;
--	gpiomtd->mtd_info.dev.parent = &pdev->dev;
-+	mtd			= nand_to_mtd(chip);
-+	mtd->priv		= chip;
-+	mtd->dev.parent		= &pdev->dev;
+@@ -257,7 +257,7 @@ static bool set_geometry_by_ecc_info(struct gpmi_nand_data *this)
+ static int legacy_set_geometry(struct gpmi_nand_data *this)
+ {
+ 	struct bch_geometry *geo = &this->bch_geometry;
+-	struct mtd_info *mtd = &this->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&this->nand);
+ 	unsigned int metadata_size;
+ 	unsigned int status_size;
+ 	unsigned int block_mark_bit_offset;
+@@ -804,7 +804,7 @@ static int gpmi_alloc_dma_buffer(struct gpmi_nand_data *this)
+ {
+ 	struct bch_geometry *geo = &this->bch_geometry;
+ 	struct device *dev = this->dev;
+-	struct mtd_info *mtd = &this->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&this->nand);
  
- 	platform_set_drvdata(pdev, gpiomtd);
+ 	/* [1] Allocate a command buffer. PAGE_SIZE is enough. */
+ 	this->cmd_buffer = kzalloc(PAGE_SIZE, GFP_DMA | GFP_KERNEL);
+@@ -1600,8 +1600,8 @@ static int mx23_check_transcription_stamp(struct gpmi_nand_data *this)
+ {
+ 	struct boot_rom_geometry *rom_geo = &this->rom_geometry;
+ 	struct device *dev = this->dev;
+-	struct mtd_info *mtd = &this->mtd;
+ 	struct nand_chip *chip = &this->nand;
++	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	unsigned int search_area_size_in_strides;
+ 	unsigned int stride;
+ 	unsigned int page;
+@@ -1655,8 +1655,8 @@ static int mx23_write_transcription_stamp(struct gpmi_nand_data *this)
+ {
+ 	struct device *dev = this->dev;
+ 	struct boot_rom_geometry *rom_geo = &this->rom_geometry;
+-	struct mtd_info *mtd = &this->mtd;
+ 	struct nand_chip *chip = &this->nand;
++	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	unsigned int block_size_in_pages;
+ 	unsigned int search_area_size_in_strides;
+ 	unsigned int search_area_size_in_pages;
+@@ -1735,7 +1735,7 @@ static int mx23_boot_init(struct gpmi_nand_data  *this)
+ {
+ 	struct device *dev = this->dev;
+ 	struct nand_chip *chip = &this->nand;
+-	struct mtd_info *mtd = &this->mtd;
++	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	unsigned int block_count;
+ 	unsigned int block;
+ 	int     chipnr;
+@@ -1831,14 +1831,13 @@ static int gpmi_set_geometry(struct gpmi_nand_data *this)
  
- 	if (gpio_is_valid(gpiomtd->plat.gpio_nwp))
- 		gpio_direction_output(gpiomtd->plat.gpio_nwp, 1);
+ static void gpmi_nand_exit(struct gpmi_nand_data *this)
+ {
+-	nand_release(&this->mtd);
++	nand_release(nand_to_mtd(&this->nand));
+ 	gpmi_free_dma_buffer(this);
+ }
  
--	if (nand_scan(&gpiomtd->mtd_info, 1)) {
-+	if (nand_scan(mtd, 1)) {
- 		ret = -ENXIO;
- 		goto err_wp;
- 	}
+ static int gpmi_init_last(struct gpmi_nand_data *this)
+ {
+-	struct mtd_info *mtd = &this->mtd;
+-	struct nand_chip *chip = mtd_to_nand(mtd);
++	struct nand_chip *chip = &this->nand;
+ 	struct nand_ecc_ctrl *ecc = &chip->ecc;
+ 	struct bch_geometry *bch_geo = &this->bch_geometry;
+ 	int ret;
+@@ -1886,8 +1885,8 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
  
- 	if (gpiomtd->plat.adjust_parts)
--		gpiomtd->plat.adjust_parts(&gpiomtd->plat,
--					   gpiomtd->mtd_info.size);
-+		gpiomtd->plat.adjust_parts(&gpiomtd->plat, mtd->size);
+ static int gpmi_nand_init(struct gpmi_nand_data *this)
+ {
+-	struct mtd_info  *mtd = &this->mtd;
+ 	struct nand_chip *chip = &this->nand;
++	struct mtd_info  *mtd = nand_to_mtd(chip);
+ 	int ret;
  
--	ret = mtd_device_register(&gpiomtd->mtd_info, gpiomtd->plat.parts,
-+	ret = mtd_device_register(mtd, gpiomtd->plat.parts,
- 				  gpiomtd->plat.num_parts);
- 	if (!ret)
- 		return 0;
+ 	/* init current chip */
+diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-nand.h b/drivers/mtd/nand/gpmi-nand/gpmi-nand.h
+index 544062f..4e49a1f 100644
+--- a/drivers/mtd/nand/gpmi-nand/gpmi-nand.h
++++ b/drivers/mtd/nand/gpmi-nand/gpmi-nand.h
+@@ -160,7 +160,6 @@ struct gpmi_nand_data {
+ 
+ 	/* MTD / NAND */
+ 	struct nand_chip	nand;
+-	struct mtd_info		mtd;
+ 
+ 	/* General-use Variables */
+ 	int			current_chip;
 -- 
 2.1.4
