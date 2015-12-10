@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 21/58] mtd: nand: fsmc: use the mtd instance
+Subject: [PATCH v4 22/58] mtd: nand: gpio: use the mtd instance
  embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:05 +0100
-Message-ID: <1449734442-18672-22-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:06 +0100
+Message-ID: <1449734442-18672-23-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBR7DUSZQKGQE6EQQ7GI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBUPDUSZQKGQE23Z4ULA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,101 +66,77 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/fsmc_nand.c | 22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/mtd/nand/gpio.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mtd/nand/fsmc_nand.c b/drivers/mtd/nand/fsmc_nand.c
-index 499fc59..4c68e7a 100644
---- a/drivers/mtd/nand/fsmc_nand.c
-+++ b/drivers/mtd/nand/fsmc_nand.c
-@@ -299,7 +299,6 @@ static struct fsmc_eccplace fsmc_ecc4_sp_place = {
-  */
- struct fsmc_nand_data {
- 	u32			pid;
--	struct mtd_info		mtd;
- 	struct nand_chip	nand;
- 	struct mtd_partition	*partitions;
- 	unsigned int		nr_partitions;
-@@ -328,7 +327,7 @@ struct fsmc_nand_data {
+diff --git a/drivers/mtd/nand/gpio.c b/drivers/mtd/nand/gpio.c
+index d57a07a..99dd74c 100644
+--- a/drivers/mtd/nand/gpio.c
++++ b/drivers/mtd/nand/gpio.c
+@@ -35,12 +35,14 @@
  
- static inline struct fsmc_nand_data *mtd_to_fsmc(struct mtd_info *mtd)
+ struct gpiomtd {
+ 	void __iomem		*io_sync;
+-	struct mtd_info		mtd_info;
+ 	struct nand_chip	nand_chip;
+ 	struct gpio_nand_platdata plat;
+ };
+ 
+-#define gpio_nand_getpriv(x) container_of(x, struct gpiomtd, mtd_info)
++static inline struct gpiomtd *gpio_nand_getpriv(struct mtd_info *mtd)
++{
++	return container_of(mtd_to_nand(mtd), struct gpiomtd, nand_chip);
++}
+ 
+ 
+ #ifdef CONFIG_ARM
+@@ -195,7 +197,7 @@ static int gpio_nand_remove(struct platform_device *pdev)
  {
--	return container_of(mtd, struct fsmc_nand_data, mtd);
-+	return container_of(mtd_to_nand(mtd), struct fsmc_nand_data, nand);
- }
+ 	struct gpiomtd *gpiomtd = platform_get_drvdata(pdev);
  
- /* Assert CS signal based on chipnr */
-@@ -1008,13 +1007,13 @@ static int __init fsmc_nand_probe(struct platform_device *pdev)
- 		init_completion(&host->dma_access_complete);
+-	nand_release(&gpiomtd->mtd_info);
++	nand_release(nand_to_mtd(&gpiomtd->nand_chip));
  
- 	/* Link all private pointers */
--	mtd = &host->mtd;
-+	mtd = nand_to_mtd(&host->nand);
- 	nand = &host->nand;
- 	mtd->priv = nand;
- 	nand->priv = host;
- 	nand_set_flash_node(nand, np);
+ 	if (gpio_is_valid(gpiomtd->plat.gpio_nwp))
+ 		gpio_set_value(gpiomtd->plat.gpio_nwp, 0);
+@@ -208,6 +210,7 @@ static int gpio_nand_probe(struct platform_device *pdev)
+ {
+ 	struct gpiomtd *gpiomtd;
+ 	struct nand_chip *chip;
++	struct mtd_info *mtd;
+ 	struct resource *res;
+ 	int ret = 0;
  
--	host->mtd.dev.parent = &pdev->dev;
-+	mtd->dev.parent = &pdev->dev;
- 	nand->IO_ADDR_R = host->data_va;
- 	nand->IO_ADDR_W = host->data_va;
- 	nand->cmd_ctrl = fsmc_cmd_ctrl;
-@@ -1077,14 +1076,14 @@ static int __init fsmc_nand_probe(struct platform_device *pdev)
- 	/*
- 	 * Scan to find existence of the device
- 	 */
--	if (nand_scan_ident(&host->mtd, 1, NULL)) {
-+	if (nand_scan_ident(mtd, 1, NULL)) {
+@@ -274,24 +277,24 @@ static int gpio_nand_probe(struct platform_device *pdev)
+ 	chip->chip_delay	= gpiomtd->plat.chip_delay;
+ 	chip->cmd_ctrl		= gpio_nand_cmd_ctrl;
+ 
+-	gpiomtd->mtd_info.priv	= chip;
+-	gpiomtd->mtd_info.dev.parent = &pdev->dev;
++	mtd			= nand_to_mtd(chip);
++	mtd->priv		= chip;
++	mtd->dev.parent		= &pdev->dev;
+ 
+ 	platform_set_drvdata(pdev, gpiomtd);
+ 
+ 	if (gpio_is_valid(gpiomtd->plat.gpio_nwp))
+ 		gpio_direction_output(gpiomtd->plat.gpio_nwp, 1);
+ 
+-	if (nand_scan(&gpiomtd->mtd_info, 1)) {
++	if (nand_scan(mtd, 1)) {
  		ret = -ENXIO;
- 		dev_err(&pdev->dev, "No NAND Device found!\n");
- 		goto err_scan_ident;
+ 		goto err_wp;
  	}
  
- 	if (AMBA_REV_BITS(host->pid) >= 8) {
--		switch (host->mtd.oobsize) {
-+		switch (mtd->oobsize) {
- 		case 16:
- 			nand->ecc.layout = &fsmc_ecc4_16_layout;
- 			host->ecc_place = &fsmc_ecc4_sp_place;
-@@ -1135,7 +1134,7 @@ static int __init fsmc_nand_probe(struct platform_device *pdev)
- 		 * generated later in nand_bch_init() later.
- 		 */
- 		if (nand->ecc.mode != NAND_ECC_SOFT_BCH) {
--			switch (host->mtd.oobsize) {
-+			switch (mtd->oobsize) {
- 			case 16:
- 				nand->ecc.layout = &fsmc_ecc1_16_layout;
- 				break;
-@@ -1156,7 +1155,7 @@ static int __init fsmc_nand_probe(struct platform_device *pdev)
- 	}
+ 	if (gpiomtd->plat.adjust_parts)
+-		gpiomtd->plat.adjust_parts(&gpiomtd->plat,
+-					   gpiomtd->mtd_info.size);
++		gpiomtd->plat.adjust_parts(&gpiomtd->plat, mtd->size);
  
- 	/* Second stage of scan to fill MTD data-structures */
--	if (nand_scan_tail(&host->mtd)) {
-+	if (nand_scan_tail(mtd)) {
- 		ret = -ENXIO;
- 		goto err_probe;
- 	}
-@@ -1171,9 +1170,8 @@ static int __init fsmc_nand_probe(struct platform_device *pdev)
- 	/*
- 	 * Check for partition info passed
- 	 */
--	host->mtd.name = "nand";
--	ret = mtd_device_register(&host->mtd, host->partitions,
--				  host->nr_partitions);
-+	mtd->name = "nand";
-+	ret = mtd_device_register(mtd, host->partitions, host->nr_partitions);
- 	if (ret)
- 		goto err_probe;
- 
-@@ -1203,7 +1201,7 @@ static int fsmc_nand_remove(struct platform_device *pdev)
- 	struct fsmc_nand_data *host = platform_get_drvdata(pdev);
- 
- 	if (host) {
--		nand_release(&host->mtd);
-+		nand_release(nand_to_mtd(&host->nand));
- 
- 		if (host->mode == USE_DMA_ACCESS) {
- 			dma_release_channel(host->write_dma_chan);
+-	ret = mtd_device_register(&gpiomtd->mtd_info, gpiomtd->plat.parts,
++	ret = mtd_device_register(mtd, gpiomtd->plat.parts,
+ 				  gpiomtd->plat.num_parts);
+ 	if (!ret)
+ 		return 0;
 -- 
 2.1.4
