@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 18/58] mtd: nand: fsl_elbc: use the mtd
+Subject: [PATCH v4 20/58] mtd: nand: fsl_upm: use the mtd
  instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:02 +0100
-Message-ID: <1449734442-18672-19-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:04 +0100
+Message-ID: <1449734442-18672-21-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBFXDUSZQKGQECNHNY4A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBJHDUSZQKGQEDYZRRZA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,96 +66,103 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/fsl_elbc_nand.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ drivers/mtd/nand/fsl_upm.c | 29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/mtd/nand/fsl_elbc_nand.c b/drivers/mtd/nand/fsl_elbc_nand.c
-index ad6d5da..7bde76a 100644
---- a/drivers/mtd/nand/fsl_elbc_nand.c
-+++ b/drivers/mtd/nand/fsl_elbc_nand.c
-@@ -48,7 +48,6 @@
- /* mtd information per set */
+diff --git a/drivers/mtd/nand/fsl_upm.c b/drivers/mtd/nand/fsl_upm.c
+index 68ec128..0379adc 100644
+--- a/drivers/mtd/nand/fsl_upm.c
++++ b/drivers/mtd/nand/fsl_upm.c
+@@ -31,7 +31,6 @@
  
- struct fsl_elbc_mtd {
+ struct fsl_upm_nand {
+ 	struct device *dev;
 -	struct mtd_info mtd;
  	struct nand_chip chip;
- 	struct fsl_lbc_ctrl *ctrl;
+ 	int last_ctrl;
+ 	struct mtd_partition *parts;
+@@ -49,7 +48,8 @@ struct fsl_upm_nand {
  
-@@ -742,12 +741,13 @@ static int fsl_elbc_chip_init(struct fsl_elbc_mtd *priv)
- 	struct fsl_lbc_regs __iomem *lbc = ctrl->regs;
- 	struct fsl_elbc_fcm_ctrl *elbc_fcm_ctrl = ctrl->nand;
- 	struct nand_chip *chip = &priv->chip;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
- 
- 	dev_dbg(priv->dev, "eLBC Set Information for bank %d\n", priv->bank);
- 
- 	/* Fill in fsl_elbc_mtd structure */
--	priv->mtd.priv = chip;
--	priv->mtd.dev.parent = priv->dev;
-+	mtd->priv = chip;
-+	mtd->dev.parent = priv->dev;
- 	nand_set_flash_node(chip, priv->dev->of_node);
- 
- 	/* set timeout to maximum */
-@@ -798,9 +798,11 @@ static int fsl_elbc_chip_init(struct fsl_elbc_mtd *priv)
- static int fsl_elbc_chip_remove(struct fsl_elbc_mtd *priv)
+ static inline struct fsl_upm_nand *to_fsl_upm_nand(struct mtd_info *mtdinfo)
  {
- 	struct fsl_elbc_fcm_ctrl *elbc_fcm_ctrl = priv->ctrl->nand;
--	nand_release(&priv->mtd);
-+	struct mtd_info *mtd = nand_to_mtd(&priv->chip);
+-	return container_of(mtdinfo, struct fsl_upm_nand, mtd);
++	return container_of(mtd_to_nand(mtdinfo), struct fsl_upm_nand,
++			    chip);
+ }
  
--	kfree(priv->mtd.name);
-+	nand_release(mtd);
-+
-+	kfree(mtd->name);
+ static int fun_chip_ready(struct mtd_info *mtd)
+@@ -66,9 +66,10 @@ static int fun_chip_ready(struct mtd_info *mtd)
+ static void fun_wait_rnb(struct fsl_upm_nand *fun)
+ {
+ 	if (fun->rnb_gpio[fun->mchip_number] >= 0) {
++		struct mtd_info *mtd = nand_to_mtd(&fun->chip);
+ 		int cnt = 1000000;
  
- 	if (priv->vbase)
- 		iounmap(priv->vbase);
-@@ -824,6 +826,7 @@ static int fsl_elbc_nand_probe(struct platform_device *pdev)
- 	int bank;
- 	struct device *dev;
- 	struct device_node *node = pdev->dev.of_node;
-+	struct mtd_info *mtd;
+-		while (--cnt && !fun_chip_ready(&fun->mtd))
++		while (--cnt && !fun_chip_ready(mtd))
+ 			cpu_relax();
+ 		if (!cnt)
+ 			dev_err(fun->dev, "tired waiting for RNB\n");
+@@ -157,6 +158,7 @@ static int fun_chip_init(struct fsl_upm_nand *fun,
+ 			 const struct device_node *upm_np,
+ 			 const struct resource *io_res)
+ {
++	struct mtd_info *mtd = nand_to_mtd(&fun->chip);
+ 	int ret;
+ 	struct device_node *flash_np;
  
- 	if (!fsl_lbc_ctrl_dev || !fsl_lbc_ctrl_dev->regs)
+@@ -174,30 +176,30 @@ static int fun_chip_init(struct fsl_upm_nand *fun,
+ 	if (fun->rnb_gpio[0] >= 0)
+ 		fun->chip.dev_ready = fun_chip_ready;
+ 
+-	fun->mtd.priv = &fun->chip;
+-	fun->mtd.dev.parent = fun->dev;
++	mtd->priv = &fun->chip;
++	mtd->dev.parent = fun->dev;
+ 
+ 	flash_np = of_get_next_child(upm_np, NULL);
+ 	if (!flash_np)
  		return -ENODEV;
-@@ -886,8 +889,9 @@ static int fsl_elbc_nand_probe(struct platform_device *pdev)
- 		goto err;
- 	}
  
--	priv->mtd.name = kasprintf(GFP_KERNEL, "%llx.flash", (u64)res.start);
--	if (!priv->mtd.name) {
-+	mtd = nand_to_mtd(&priv->chip);
-+	mtd->name = kasprintf(GFP_KERNEL, "%llx.flash", (u64)res.start);
-+	if (!nand_to_mtd(&priv->chip)->name) {
+ 	nand_set_flash_node(&fun->chip, flash_np);
+-	fun->mtd.name = kasprintf(GFP_KERNEL, "0x%llx.%s", (u64)io_res->start,
+-				  flash_np->name);
+-	if (!fun->mtd.name) {
++	mtd->name = kasprintf(GFP_KERNEL, "0x%llx.%s", (u64)io_res->start,
++			      flash_np->name);
++	if (!mtd->name) {
  		ret = -ENOMEM;
  		goto err;
  	}
-@@ -896,21 +900,21 @@ static int fsl_elbc_nand_probe(struct platform_device *pdev)
+ 
+-	ret = nand_scan(&fun->mtd, fun->mchip_count);
++	ret = nand_scan(mtd, fun->mchip_count);
  	if (ret)
  		goto err;
  
--	ret = nand_scan_ident(&priv->mtd, 1, NULL);
-+	ret = nand_scan_ident(mtd, 1, NULL);
+-	ret = mtd_device_register(&fun->mtd, NULL, 0);
++	ret = mtd_device_register(mtd, NULL, 0);
+ err:
+ 	of_node_put(flash_np);
  	if (ret)
- 		goto err;
+-		kfree(fun->mtd.name);
++		kfree(mtd->name);
+ 	return ret;
+ }
  
--	ret = fsl_elbc_chip_init_tail(&priv->mtd);
-+	ret = fsl_elbc_chip_init_tail(mtd);
- 	if (ret)
- 		goto err;
+@@ -321,10 +323,11 @@ err1:
+ static int fun_remove(struct platform_device *ofdev)
+ {
+ 	struct fsl_upm_nand *fun = dev_get_drvdata(&ofdev->dev);
++	struct mtd_info *mtd = nand_to_mtd(&fun->chip);
+ 	int i;
  
--	ret = nand_scan_tail(&priv->mtd);
-+	ret = nand_scan_tail(mtd);
- 	if (ret)
- 		goto err;
+-	nand_release(&fun->mtd);
+-	kfree(fun->mtd.name);
++	nand_release(mtd);
++	kfree(mtd->name);
  
- 	/* First look for RedBoot table or partitions on the command
- 	 * line, these take precedence over device tree information */
--	mtd_device_parse_register(&priv->mtd, part_probe_types, NULL,
-+	mtd_device_parse_register(mtd, part_probe_types, NULL,
- 				  NULL, 0);
- 
- 	printk(KERN_INFO "eLBC NAND device at 0x%llx, bank %d\n",
+ 	for (i = 0; i < fun->mchip_count; i++) {
+ 		if (fun->rnb_gpio[i] < 0)
 -- 
 2.1.4
