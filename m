@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 42/58] mtd: nand: sunxi: use the mtd instance
+Subject: [PATCH v4 43/58] mtd: nand: tmio: use the mtd instance
  embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:26 +0100
-Message-ID: <1449734442-18672-43-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:27 +0100
+Message-ID: <1449734442-18672-44-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB5PFUSZQKGQE3RIBYJA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB6XFUSZQKGQEYE26G5I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,62 +66,51 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/sunxi_nand.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/mtd/nand/tmio_nand.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
-index 4ecd486..c29d659 100644
---- a/drivers/mtd/nand/sunxi_nand.c
-+++ b/drivers/mtd/nand/sunxi_nand.c
-@@ -234,7 +234,6 @@ struct sunxi_nand_hw_ecc {
- struct sunxi_nand_chip {
- 	struct list_head node;
- 	struct nand_chip nand;
+diff --git a/drivers/mtd/nand/tmio_nand.c b/drivers/mtd/nand/tmio_nand.c
+index 6d0cbe9..e7b82e1 100644
+--- a/drivers/mtd/nand/tmio_nand.c
++++ b/drivers/mtd/nand/tmio_nand.c
+@@ -103,7 +103,6 @@
+ /*--------------------------------------------------------------------------*/
+ 
+ struct tmio_nand {
 -	struct mtd_info mtd;
- 	unsigned long clk_rate;
- 	u32 timing_cfg;
- 	u32 timing_ctl;
-@@ -991,6 +990,7 @@ static int sunxi_nand_chip_set_timings(struct sunxi_nand_chip *chip,
- static int sunxi_nand_chip_init_timings(struct sunxi_nand_chip *chip,
- 					struct device_node *np)
+ 	struct nand_chip chip;
+ 
+ 	struct platform_device *dev;
+@@ -119,7 +118,10 @@ struct tmio_nand {
+ 	unsigned read_good:1;
+ };
+ 
+-#define mtd_to_tmio(m)			container_of(m, struct tmio_nand, mtd)
++static inline struct tmio_nand *mtd_to_tmio(struct mtd_info *mtd)
++{
++	return container_of(mtd_to_nand(mtd), struct tmio_nand, chip);
++}
+ 
+ 
+ /*--------------------------------------------------------------------------*/
+@@ -378,8 +380,8 @@ static int tmio_probe(struct platform_device *dev)
+ 	tmio->dev = dev;
+ 
+ 	platform_set_drvdata(dev, tmio);
+-	mtd = &tmio->mtd;
+ 	nand_chip = &tmio->chip;
++	mtd = nand_to_mtd(nand_chip);
+ 	mtd->priv = nand_chip;
+ 	mtd->name = "tmio-nand";
+ 	mtd->dev.parent = &dev->dev;
+@@ -456,7 +458,7 @@ static int tmio_remove(struct platform_device *dev)
  {
-+	struct mtd_info *mtd = nand_to_mtd(&chip->nand);
- 	const struct nand_sdr_timings *timings;
- 	int ret;
- 	int mode;
-@@ -1008,12 +1008,11 @@ static int sunxi_nand_chip_init_timings(struct sunxi_nand_chip *chip,
+ 	struct tmio_nand *tmio = platform_get_drvdata(dev);
  
- 		feature[0] = mode;
- 		for (i = 0; i < chip->nsels; i++) {
--			chip->nand.select_chip(&chip->mtd, i);
--			ret = chip->nand.onfi_set_features(&chip->mtd,
--						&chip->nand,
-+			chip->nand.select_chip(mtd, i);
-+			ret = chip->nand.onfi_set_features(mtd,	&chip->nand,
- 						ONFI_FEATURE_ADDR_TIMING_MODE,
- 						feature);
--			chip->nand.select_chip(&chip->mtd, -1);
-+			chip->nand.select_chip(mtd, -1);
- 			if (ret)
- 				return ret;
- 		}
-@@ -1336,7 +1335,7 @@ static int sunxi_nand_chip_init(struct device *dev, struct sunxi_nfc *nfc,
- 	nand->write_buf = sunxi_nfc_write_buf;
- 	nand->read_byte = sunxi_nfc_read_byte;
- 
--	mtd = &chip->mtd;
-+	mtd = nand_to_mtd(nand);
- 	mtd->dev.parent = dev;
- 	mtd->priv = nand;
- 
-@@ -1407,7 +1406,7 @@ static void sunxi_nand_chips_cleanup(struct sunxi_nfc *nfc)
- 	while (!list_empty(&nfc->chips)) {
- 		chip = list_first_entry(&nfc->chips, struct sunxi_nand_chip,
- 					node);
--		nand_release(&chip->mtd);
-+		nand_release(nand_to_mtd(&chip->nand));
- 		sunxi_nand_ecc_cleanup(&chip->nand.ecc);
- 		list_del(&chip->node);
- 	}
+-	nand_release(&tmio->mtd);
++	nand_release(nand_to_mtd(&tmio->chip));
+ 	tmio_hw_stop(dev, tmio);
+ 	return 0;
+ }
 -- 
 2.1.4
