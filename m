@@ -1,52 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/10] clk: ti: Add few dm814x clock aliases
-Date: Wed, 9 Dec 2015 16:56:09 -0800
-Message-ID: <20151210005609.GE23396@atomide.com>
-References: <1449013103-23238-1-git-send-email-tony@atomide.com>
- <1449013103-23238-3-git-send-email-tony@atomide.com>
- <20151208165732.GY23396@atomide.com>
- <56672ED0.4050405@ti.com>
- <20151208201136.GZ23396@atomide.com>
- <5667DD77.2000900@ti.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [PATCH 004/182] gpio: generic: factor into gpio_chip struct
+Date: Thu, 10 Dec 2015 11:19:58 +0900
+Message-ID: <5668E14E.8010302@samsung.com>
+References: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5667DD77.2000900@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-reply-to: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Johan Hovold <johan@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>, Michael Welling <mwelling@ieee.org>, Markus Pargmann <mpa@pengutronix.de>, Anton Vorontsov <anton@enomsg.org>
+Cc: arm@kernel.org, Lee Jones <lee.jones@linaro.org>, Alexander Shiyan <shc_work@mail.ru>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Kukjin Kim <kgene@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Gregory Fong <gregory.0xf0@gmail.com>, Brian Norris <computersforpeace@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Olof Johansson <olof@lixom.net>, Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>, Rabin Vincent <rabin@rab.in>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [151208 23:50]:
-> On 12/08/2015 10:11 PM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [151208 11:25]:
-> >>On 12/08/2015 06:57 PM, Tony Lindgren wrote:
-> >>>
-> >>>Anybody from the clock department care to ack this one?
-> >>
-> >>Sorry been rather busy lately...
-> >>
-> >>>I'd like to
-> >>>get this series into Linux next as it fixes some some issues.
-> >>
-> >>Yeah looks good to me, don't have access to dm814x so can't test.
-> >>
-> >>Acked-by: Tero Kristo <t-kristo@ti.com>
-> >
-> >Thanks.
-> >
-> >>Are you planning to push this via omap tree if this is critical for you?
-> >
-> >Yes this series needs to be merged in certain order to keep t410
-> >booting. Should not conflict with anything else AFAIK.
+On 09.12.2015 22:12, Linus Walleij wrote:
+> The separate struct bgpio_chip has been a pain to handle, both
+> by being confusingly similar in name to struct gpio_chip and
+> for being contained inside a struct so that struct gpio_chip
+> is contained in a struct contained in a struct, making several
+> steps of dereferencing necessary.
 > 
-> Ok at least I am fine with that. The dm81xx clock alias file is pretty
-> independent of anything else.
+> Make things simpler: include the fields directly into
+> <linux/gpio/driver.h>, #ifdef:ed for CONFIG_GENERIC_GPIO, and
+> get rid of the <linux/basic_mmio_gpio.h> altogether. Prefix
+> some of the member variables with bgpio_* and add proper
+> kerneldoc while we're at it.
+> 
+> Modify all users to handle the change and use a struct
+> gpio_chip directly. And while we're at it: replace all
+> container_of() dereferencing by gpiochip_get_data() and
+> registering the gpio_chip with gpiochip_add_data().
+> 
+> Cc: arm@kernel.org
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Alexander Shiyan <shc_work@mail.ru>
+> Cc: Shawn Guo <shawnguo@kernel.org>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: Gregory Fong <gregory.0xf0@gmail.com>
+> Cc: Brian Norris <computersforpeace@gmail.com>
+> Cc: Florian Fainelli <f.fainelli@gmail.com>
+> Cc: Liviu Dudau <liviu.dudau@arm.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+> Cc: Olof Johansson <olof@lixom.net>
+> Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> Cc: Rabin Vincent <rabin@rab.in>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: bcm-kernel-feedback-list@broadcom.com
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> ---
+> ARM SoC folks and Lee: it would be great if you could
+> ACK the few lines hitting arch/arm/* and drivers/mfd/* in this
+> so I can take it through the GPIO tree.
+> ---
+>  arch/arm/mach-clps711x/board-autcpu12.c |   2 +-
+>  arch/arm/mach-clps711x/board-p720t.c    |   2 +-
+>  arch/arm/mach-imx/mach-mx21ads.c        |   2 +-
+>  arch/arm/mach-omap1/board-ams-delta.c   |   2 +-
+>  arch/arm/mach-s3c64xx/mach-crag6410.c   |   2 +-
 
-Pushing this series except for the GPIO reset change into
-omap-for-v4.5/81xx-fixes.
+For s3c64xx:
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-Regards,
+Best regards,
+Krzysztof
 
-Tony
