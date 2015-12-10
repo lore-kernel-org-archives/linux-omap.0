@@ -1,49 +1,52 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [4.4-rc][PATCH v2] ARM: dts: am4372: fix clock source for arm
- twd and global timers
-Date: Wed, 9 Dec 2015 16:47:02 -0800
-Message-ID: <20151210004702.GD23396@atomide.com>
-References: <1448898998-32749-1-git-send-email-grygorii.strashko@ti.com>
- <87wpsolsvo.fsf@saruman.tx.rr.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/10] clk: ti: Add few dm814x clock aliases
+Date: Wed, 9 Dec 2015 16:56:09 -0800
+Message-ID: <20151210005609.GE23396@atomide.com>
+References: <1449013103-23238-1-git-send-email-tony@atomide.com>
+ <1449013103-23238-3-git-send-email-tony@atomide.com>
+ <20151208165732.GY23396@atomide.com>
+ <56672ED0.4050405@ti.com>
+ <20151208201136.GZ23396@atomide.com>
+ <5667DD77.2000900@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87wpsolsvo.fsf-HgARHv6XitJaoMGHk7MhZQC/G2K4zDHf@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, t-kristo-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <5667DD77.2000900@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [151208 10:05]:
-> 
-> Hi,
-> 
-> Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
-> > ARM TWD and Global timer are clocked by PERIPHCLK which is MPU_CLK/2.
-> > But now they are clocked by dpll_mpu_m2_ck == MPU_CLK and, as result.
-> > Timekeeping core misbehaves. For example, execution of command
-> > "sleep 5" will take 10 sec instead of 5.
+* Tero Kristo <t-kristo@ti.com> [151208 23:50]:
+> On 12/08/2015 10:11 PM, Tony Lindgren wrote:
+> >* Tero Kristo <t-kristo@ti.com> [151208 11:25]:
+> >>On 12/08/2015 06:57 PM, Tony Lindgren wrote:
+> >>>
+> >>>Anybody from the clock department care to ack this one?
+> >>
+> >>Sorry been rather busy lately...
+> >>
+> >>>I'd like to
+> >>>get this series into Linux next as it fixes some some issues.
+> >>
+> >>Yeah looks good to me, don't have access to dm814x so can't test.
+> >>
+> >>Acked-by: Tero Kristo <t-kristo@ti.com>
 > >
-> > Hence, fix it by adding mpu_periphclk ("fixed-factor-clock") and use
-> > it for clocking ARM TWD and Global timer (same way as on OMAP4).
+> >Thanks.
 > >
-> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> > Fixes:commit 8cbd4c2f6a99 ("arm: boot: dts: am4372: add ARM timers and SCU nodes")
-> > Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+> >>Are you planning to push this via omap tree if this is critical for you?
+> >
+> >Yes this series needs to be merged in certain order to keep t410
+> >booting. Should not conflict with anything else AFAIK.
 > 
-> this seems to be the best fix for this problem, yeah.
-> 
-> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Ok at least I am fine with that. The dm81xx clock alias file is pretty
+> independent of anything else.
 
-OK applying into omap-for-v4.4/fixes thanks.
+Pushing this series except for the GPIO reset change into
+omap-for-v4.5/81xx-fixes.
+
+Regards,
 
 Tony
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
