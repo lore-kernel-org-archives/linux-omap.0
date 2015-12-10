@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 35/58] mtd: nand: plat: use the mtd instance
- embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:19 +0100
-Message-ID: <1449734442-18672-36-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 36/58] mtd: nand: pxa3xx: use the mtd
+ instance embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:20 +0100
+Message-ID: <1449734442-18672-37-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBJHFUSZQKGQE4VTBD5Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBJXFUSZQKGQEZL7DZXY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -24,116 +24,113 @@ struct nand_chip now embeds an mtd device. Make use of this mtd instance.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
-Changes generated with the following coccinelle script
+ drivers/mtd/nand/pxa3xx_nand.c | 33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
---->8---
-virtual patch
-
-@fix1@
-identifier __chipfield, __mtdfield;
-type __type;
-@@
-(
-	__type {
-		...
-		struct nand_chip __chipfield;
-		...
--		struct mtd_info __mtdfield;
-		...
-	};
-|
-	__type {
-		...
--		struct mtd_info __mtdfield;
-		...
-		struct nand_chip __chipfield;
-		...
-	};
-)
-
-@fix2 depends on fix1@
-identifier fix1.__chipfield, fix1.__mtdfield;
-identifier __subfield;
-type fix1.__type;
-__type *__priv;
-@@
-(
--	__priv->__mtdfield.__subfield
-+	nand_to_mtd(&__priv->__chipfield)->__subfield
-|
--	&(__priv->__mtdfield)
-+	nand_to_mtd(&__priv->__chipfield)
-)
---->8---
----
- drivers/mtd/nand/plat_nand.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/mtd/nand/plat_nand.c b/drivers/mtd/nand/plat_nand.c
-index 06ac6c6..796eb7d 100644
---- a/drivers/mtd/nand/plat_nand.c
-+++ b/drivers/mtd/nand/plat_nand.c
-@@ -20,7 +20,6 @@
+diff --git a/drivers/mtd/nand/pxa3xx_nand.c b/drivers/mtd/nand/pxa3xx_nand.c
+index dc39a98..c4d5788 100644
+--- a/drivers/mtd/nand/pxa3xx_nand.c
++++ b/drivers/mtd/nand/pxa3xx_nand.c
+@@ -167,7 +167,6 @@ enum pxa3xx_nand_variant {
  
- struct plat_nand_data {
+ struct pxa3xx_nand_host {
  	struct nand_chip	chip;
--	struct mtd_info		mtd;
- 	void __iomem		*io_base;
- };
+-	struct mtd_info         *mtd;
+ 	void			*info_data;
  
-@@ -31,6 +30,7 @@ static int plat_nand_probe(struct platform_device *pdev)
+ 	/* page size of attached chip */
+@@ -450,14 +449,15 @@ static int pxa3xx_nand_init_timings_compat(struct pxa3xx_nand_host *host,
+ 	struct nand_chip *chip = &host->chip;
+ 	struct pxa3xx_nand_info *info = host->info_data;
+ 	const struct pxa3xx_nand_flash *f = NULL;
++	struct mtd_info *mtd = nand_to_mtd(&host->chip);
+ 	int i, id, ntypes;
+ 
+ 	ntypes = ARRAY_SIZE(builtin_flash_types);
+ 
+-	chip->cmdfunc(host->mtd, NAND_CMD_READID, 0x00, -1);
++	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
+ 
+-	id = chip->read_byte(host->mtd);
+-	id |= chip->read_byte(host->mtd) << 0x8;
++	id = chip->read_byte(mtd);
++	id |= chip->read_byte(mtd) << 0x8;
+ 
+ 	for (i = 0; i < ntypes; i++) {
+ 		f = &builtin_flash_types[i];
+@@ -890,7 +890,7 @@ static void set_command_address(struct pxa3xx_nand_info *info,
+ static void prepare_start_command(struct pxa3xx_nand_info *info, int command)
  {
- 	struct platform_nand_data *pdata = dev_get_platdata(&pdev->dev);
- 	struct plat_nand_data *data;
-+	struct mtd_info *mtd;
- 	struct resource *res;
- 	const char **part_types;
- 	int err = 0;
-@@ -58,8 +58,9 @@ static int plat_nand_probe(struct platform_device *pdev)
+ 	struct pxa3xx_nand_host *host = info->host[info->cs];
+-	struct mtd_info *mtd = host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->chip);
  
- 	data->chip.priv = &data;
- 	nand_set_flash_node(&data->chip, pdev->dev.of_node);
--	data->mtd.priv = &data->chip;
--	data->mtd.dev.parent = &pdev->dev;
-+	mtd = nand_to_mtd(&data->chip);
-+	mtd->priv = &data->chip;
-+	mtd->dev.parent = &pdev->dev;
+ 	/* reset data and oob column point to handle data */
+ 	info->buf_start		= 0;
+@@ -943,7 +943,7 @@ static int prepare_set_command(struct pxa3xx_nand_info *info, int command,
+ 	struct mtd_info *mtd;
  
- 	data->chip.IO_ADDR_R = data->io_base;
- 	data->chip.IO_ADDR_W = data->io_base;
-@@ -87,21 +88,21 @@ static int plat_nand_probe(struct platform_device *pdev)
- 	}
+ 	host = info->host[info->cs];
+-	mtd = host->mtd;
++	mtd = nand_to_mtd(&host->chip);
+ 	addr_cycle = 0;
+ 	exec_cmd = 1;
  
- 	/* Scan to find existence of the device */
--	if (nand_scan(&data->mtd, pdata->chip.nr_chips)) {
-+	if (nand_scan(mtd, pdata->chip.nr_chips)) {
- 		err = -ENXIO;
- 		goto out;
- 	}
+@@ -1415,8 +1415,8 @@ static int pxa3xx_nand_config_ident(struct pxa3xx_nand_info *info)
+ static void pxa3xx_nand_config_tail(struct pxa3xx_nand_info *info)
+ {
+ 	struct pxa3xx_nand_host *host = info->host[info->cs];
+-	struct mtd_info *mtd = host->mtd;
+-	struct nand_chip *chip = mtd_to_nand(mtd);
++	struct nand_chip *chip = &host->chip;
++	struct mtd_info *mtd = nand_to_mtd(chip);
  
- 	part_types = pdata->chip.part_probe_types;
+ 	info->reg_ndcr |= (host->col_addr_cycles == 2) ? NDCR_RA_START : 0;
+ 	info->reg_ndcr |= (chip->page_shift == 6) ? NDCR_PG_PER_BLK : 0;
+@@ -1693,19 +1693,20 @@ static int alloc_nand_resource(struct platform_device *pdev)
+ 	pdata = dev_get_platdata(&pdev->dev);
+ 	if (pdata->num_cs <= 0)
+ 		return -ENODEV;
+-	info = devm_kzalloc(&pdev->dev, sizeof(*info) + (sizeof(*mtd) +
+-			    sizeof(*host)) * pdata->num_cs, GFP_KERNEL);
++	info = devm_kzalloc(&pdev->dev,
++			    sizeof(*info) + sizeof(*host) * pdata->num_cs,
++			    GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
  
--	err = mtd_device_parse_register(&data->mtd, part_types, NULL,
-+	err = mtd_device_parse_register(mtd, part_types, NULL,
- 					pdata->chip.partitions,
- 					pdata->chip.nr_partitions);
+ 	info->pdev = pdev;
+ 	info->variant = pxa3xx_nand_get_variant(pdev);
+ 	for (cs = 0; cs < pdata->num_cs; cs++) {
+-		mtd = (void *)&info[1] + (sizeof(*mtd) + sizeof(*host)) * cs;
+-		chip = (struct nand_chip *)(&mtd[1]);
+-		host = (struct pxa3xx_nand_host *)chip;
++		host = (void *)&info[1] + sizeof(*host) * cs;
++		chip = &host->chip;
++		chip->priv = host;
++		mtd = nand_to_mtd(chip);
+ 		info->host[cs] = host;
+-		host->mtd = mtd;
+ 		host->cs = cs;
+ 		host->info_data = info;
+ 		mtd->priv = chip;
+@@ -1833,7 +1834,7 @@ static int pxa3xx_nand_remove(struct platform_device *pdev)
+ 	clk_disable_unprepare(info->clk);
  
- 	if (!err)
- 		return err;
+ 	for (cs = 0; cs < pdata->num_cs; cs++)
+-		nand_release(info->host[cs]->mtd);
++		nand_release(nand_to_mtd(&info->host[cs]->chip));
+ 	return 0;
+ }
  
--	nand_release(&data->mtd);
-+	nand_release(mtd);
- out:
- 	if (pdata->ctrl.remove)
- 		pdata->ctrl.remove(pdev);
-@@ -116,7 +117,7 @@ static int plat_nand_remove(struct platform_device *pdev)
- 	struct plat_nand_data *data = platform_get_drvdata(pdev);
- 	struct platform_nand_data *pdata = dev_get_platdata(&pdev->dev);
+@@ -1904,7 +1905,7 @@ static int pxa3xx_nand_probe(struct platform_device *pdev)
+ 	info = platform_get_drvdata(pdev);
+ 	probe_success = 0;
+ 	for (cs = 0; cs < pdata->num_cs; cs++) {
+-		struct mtd_info *mtd = info->host[cs]->mtd;
++		struct mtd_info *mtd = nand_to_mtd(&info->host[cs]->chip);
  
--	nand_release(&data->mtd);
-+	nand_release(nand_to_mtd(&data->chip));
- 	if (pdata->ctrl.remove)
- 		pdata->ctrl.remove(pdev);
- 
+ 		/*
+ 		 * The mtd name matches the one used in 'mtdparts' kernel
 -- 
 2.1.4
