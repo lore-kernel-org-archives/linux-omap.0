@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 25/58] mtd: nand: jz4740: use the mtd
+Subject: [PATCH v4 26/58] mtd: nand: lpc32xx: use the mtd
  instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:09 +0100
-Message-ID: <1449734442-18672-26-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:10 +0100
+Message-ID: <1449734442-18672-27-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB3PDUSZQKGQEVF6B5WY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBC7EUSZQKGQEYCF2C5A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,58 +66,89 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/jz4740_nand.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/mtd/nand/lpc32xx_mlc.c | 7 +++----
+ drivers/mtd/nand/lpc32xx_slc.c | 7 +++----
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mtd/nand/jz4740_nand.c b/drivers/mtd/nand/jz4740_nand.c
-index 5a06fba..03239a5 100644
---- a/drivers/mtd/nand/jz4740_nand.c
-+++ b/drivers/mtd/nand/jz4740_nand.c
-@@ -59,7 +59,6 @@
- #define JZ_NAND_MEM_ADDR_OFFSET 0x10000
+diff --git a/drivers/mtd/nand/lpc32xx_mlc.c b/drivers/mtd/nand/lpc32xx_mlc.c
+index 3738856..3400b3f 100644
+--- a/drivers/mtd/nand/lpc32xx_mlc.c
++++ b/drivers/mtd/nand/lpc32xx_mlc.c
+@@ -173,7 +173,6 @@ struct lpc32xx_nand_host {
+ 	struct nand_chip	nand_chip;
+ 	struct lpc32xx_mlc_platform_data *pdata;
+ 	struct clk		*clk;
+-	struct mtd_info		mtd;
+ 	void __iomem		*io_base;
+ 	int			irq;
+ 	struct lpc32xx_nand_cfg_mlc	*ncfg;
+@@ -566,7 +565,7 @@ static void lpc32xx_ecc_enable(struct mtd_info *mtd, int mode)
  
- struct jz_nand {
--	struct mtd_info mtd;
- 	struct nand_chip chip;
- 	void __iomem *base;
- 	struct resource *mem;
-@@ -76,7 +75,7 @@ struct jz_nand {
- 
- static inline struct jz_nand *mtd_to_jz_nand(struct mtd_info *mtd)
+ static int lpc32xx_dma_setup(struct lpc32xx_nand_host *host)
  {
--	return container_of(mtd, struct jz_nand, mtd);
-+	return container_of(mtd_to_nand(mtd), struct jz_nand, chip);
- }
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->nand_chip);
+ 	dma_cap_mask_t mask;
  
- static void jz_nand_select_chip(struct mtd_info *mtd, int chipnr)
-@@ -334,8 +333,8 @@ static int jz_nand_detect_bank(struct platform_device *pdev,
- 	char gpio_name[9];
- 	char res_name[6];
- 	uint32_t ctrl;
--	struct mtd_info *mtd = &nand->mtd;
- 	struct nand_chip *chip = &nand->chip;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	if (!host->pdata || !host->pdata->dma_filter) {
+@@ -660,8 +659,8 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
+ 	
+ 	host->io_base_phy = rc->start;
  
- 	/* Request GPIO port. */
- 	gpio = JZ_GPIO_MEM_CS0 + bank - 1;
-@@ -432,8 +431,8 @@ static int jz_nand_probe(struct platform_device *pdev)
- 		goto err_iounmap_mmio;
- 	}
+-	mtd = &host->mtd;
+ 	nand_chip = &host->nand_chip;
++	mtd = nand_to_mtd(nand_chip);
+ 	if (pdev->dev.of_node)
+ 		host->ncfg = lpc32xx_parse_dt(&pdev->dev);
+ 	if (!host->ncfg) {
+@@ -814,7 +813,7 @@ err_exit1:
+ static int lpc32xx_nand_remove(struct platform_device *pdev)
+ {
+ 	struct lpc32xx_nand_host *host = platform_get_drvdata(pdev);
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->nand_chip);
  
--	mtd		= &nand->mtd;
- 	chip		= &nand->chip;
-+	mtd		= nand_to_mtd(chip);
- 	mtd->priv	= chip;
- 	mtd->dev.parent = &pdev->dev;
- 	mtd->name	= "jz4740-nand";
-@@ -543,7 +542,7 @@ static int jz_nand_remove(struct platform_device *pdev)
- 	struct jz_nand *nand = platform_get_drvdata(pdev);
- 	size_t i;
+ 	nand_release(mtd);
+ 	free_irq(host->irq, host);
+diff --git a/drivers/mtd/nand/lpc32xx_slc.c b/drivers/mtd/nand/lpc32xx_slc.c
+index fcd9fac..61b2961 100644
+--- a/drivers/mtd/nand/lpc32xx_slc.c
++++ b/drivers/mtd/nand/lpc32xx_slc.c
+@@ -204,7 +204,6 @@ struct lpc32xx_nand_host {
+ 	struct nand_chip	nand_chip;
+ 	struct lpc32xx_slc_platform_data *pdata;
+ 	struct clk		*clk;
+-	struct mtd_info		mtd;
+ 	void __iomem		*io_base;
+ 	struct lpc32xx_nand_cfg_slc *ncfg;
  
--	nand_release(&nand->mtd);
-+	nand_release(nand_to_mtd(&nand->chip));
+@@ -703,7 +702,7 @@ static int lpc32xx_nand_write_page_raw_syndrome(struct mtd_info *mtd,
  
- 	/* Deassert and disable all chips */
- 	writel(0, nand->base + JZ_REG_NAND_CTRL);
+ static int lpc32xx_nand_dma_setup(struct lpc32xx_nand_host *host)
+ {
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->nand_chip);
+ 	dma_cap_mask_t mask;
+ 
+ 	if (!host->pdata || !host->pdata->dma_filter) {
+@@ -799,8 +798,8 @@ static int lpc32xx_nand_probe(struct platform_device *pdev)
+ 
+ 	host->pdata = dev_get_platdata(&pdev->dev);
+ 
+-	mtd = &host->mtd;
+ 	chip = &host->nand_chip;
++	mtd = nand_to_mtd(chip);
+ 	chip->priv = host;
+ 	nand_set_flash_node(chip, pdev->dev.of_node);
+ 	mtd->priv = chip;
+@@ -932,7 +931,7 @@ static int lpc32xx_nand_remove(struct platform_device *pdev)
+ {
+ 	uint32_t tmp;
+ 	struct lpc32xx_nand_host *host = platform_get_drvdata(pdev);
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->nand_chip);
+ 
+ 	nand_release(mtd);
+ 	dma_release_channel(host->dma_chan);
 -- 
 2.1.4
