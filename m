@@ -1,66 +1,71 @@
 From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for 4.4 0/2] DT/dmaengine: edma: Convert 16bit arrays to
- 32bit
-Date: Thu, 10 Dec 2015 08:34:10 +0530
-Message-ID: <20151210030410.GG1854@localhost>
-References: <1449649091-9848-1-git-send-email-peter.ujfalusi@ti.com>
- <20151209201226.GB23396@atomide.com>
+Subject: Re: [GIT PULL for 4.4] DT/dmaengine: edma: Update for the new
+ bindings
+Date: Thu, 10 Dec 2015 08:45:09 +0530
+Message-ID: <20151210031509.GI1854@localhost>
+References: <56680C1A.3050009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151209201226.GB23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <56680C1A.3050009-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 09, 2015 at 12:12:27PM -0800, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151209 00:19]:
-> > Hi,
-> > 
-> > Based on the discussion regarding to (convert am33xx to use the new eDMA
-> > bindings):
-> > https://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg122117.html
-> > 
-> > This two patch will convert the new eDMA binding to not use 16bit arrays for
-> > memcpy channel selection and for marking slots reserved.
-> > The '/bits/ 16' seams to be causing confusion so it is probably better to just
-> > use standard type for the arrays.
-> > 
-> > The new bindings for the eDMA is introduced for 4.4 and we do not have users of
-> > it, which means that we can still change it w/o the risk of breaking anything
-> > and we do not need to maintain the compatibility with 16bit arrays.
-> > 
-> > The changes in the eDMA driver is local to the DT parsing and should not
-> > conflict with other changes (like the filter function mapping support). Hrm,
-> > there might be trivial conflict in the include/linux/platform_data/edma.h with
-> > the "dmaengine 'universal' API".
-> > 
-> > Tony, Arnd, Vinod: Can you agree on the practicalities on how these patches are
-> > going to be handled? I would like to send the updated am33xx/am437x conversion
-> > for 4.5 based on these changes.
-> 
-> Yes this should go into v4.4 as discussed, otherwise it will be a mess.
-> For both, please feel free to add:
-> 
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> 
-> I suggest Vinod sets up an immutable branch against v4.4-rc1 with just these
-> two patches. Then it can get merged into whichever branch needs it, I
-> certainly will need it as most of my v4.5 branches are v4.4-rc1 or -rc2
-> based.
-> 
-> Then the immutable branch can be merged into v4.4 by Vinod or Arnd.
+On Wed, Dec 09, 2015 at 01:10:18PM +0200, Peter Ujfalusi wrote:
+> Hi Arnd, Vinod,
+>=20
+> As Arnd suggested, the two patch from the following series:
+> https://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg122201.htm=
+l
+>=20
+> plus Acked-by from Arnd is available for pull if you prefer that way.
 
-Applied to fix/edma. This is based on -rc1 and will not rebase.
+Sorry saw this after I pushed out the fixes/edma..
 
-I am merging this to my fixes and will send to Linus in couple of days
+>=20
+>=20
+> Regards,
+> P=E9ter
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d7=
+130bec:
+>=20
+>   Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
+>=20
+> are available in the git repository at:
+>=20
+>   https://github.com/omap-audio/linux-audio.git for-4.4/peter/edma_bi=
+nding_update
+>=20
+> for you to fetch changes up to af9089852e0ecd6ae7336992d29b04d7d82b40=
+4a:
+>=20
+>   dmaengine: edma: DT: Change reserved slot array from 16bit to 32bit=
+ type (2015-12-09 11:56:56 +0200)
+>=20
+> ----------------------------------------------------------------
+> Peter Ujfalusi (2):
+>       dmaengine: edma: DT: Change memcpy channel array from 16bit to =
+32bit type
+>       dmaengine: edma: DT: Change reserved slot array from 16bit to 3=
+2bit type
+>=20
+>  Documentation/devicetree/bindings/dma/ti-edma.txt | 10 ++++------
+>  drivers/dma/edma.c                                | 53 +++++++++++++=
+++++++++++++++++++++++------------------
+>  include/linux/platform_data/edma.h                |  2 +-
+>  3 files changed, 40 insertions(+), 25 deletions(-)
 
-Thanks
--- 
+--=20
 ~Vinod
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
