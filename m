@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 36/58] mtd: nand: pxa3xx: use the mtd
- instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:20 +0100
-Message-ID: <1449734442-18672-37-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 37/58] mtd: nand: r852: use the mtd instance
+ embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:21 +0100
+Message-ID: <1449734442-18672-38-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBJXFUSZQKGQEZL7DZXY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBLXFUSZQKGQEUJR6D2Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -24,113 +24,109 @@ struct nand_chip now embeds an mtd device. Make use of this mtd instance.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/pxa3xx_nand.c | 33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ drivers/mtd/nand/r852.c | 34 +++++++++++++++-------------------
+ drivers/mtd/nand/r852.h |  1 -
+ 2 files changed, 15 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/mtd/nand/pxa3xx_nand.c b/drivers/mtd/nand/pxa3xx_nand.c
-index dc39a98..c4d5788 100644
---- a/drivers/mtd/nand/pxa3xx_nand.c
-+++ b/drivers/mtd/nand/pxa3xx_nand.c
-@@ -167,7 +167,6 @@ enum pxa3xx_nand_variant {
- 
- struct pxa3xx_nand_host {
- 	struct nand_chip	chip;
--	struct mtd_info         *mtd;
- 	void			*info_data;
- 
- 	/* page size of attached chip */
-@@ -450,14 +449,15 @@ static int pxa3xx_nand_init_timings_compat(struct pxa3xx_nand_host *host,
- 	struct nand_chip *chip = &host->chip;
- 	struct pxa3xx_nand_info *info = host->info_data;
- 	const struct pxa3xx_nand_flash *f = NULL;
-+	struct mtd_info *mtd = nand_to_mtd(&host->chip);
- 	int i, id, ntypes;
- 
- 	ntypes = ARRAY_SIZE(builtin_flash_types);
- 
--	chip->cmdfunc(host->mtd, NAND_CMD_READID, 0x00, -1);
-+	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
- 
--	id = chip->read_byte(host->mtd);
--	id |= chip->read_byte(host->mtd) << 0x8;
-+	id = chip->read_byte(mtd);
-+	id |= chip->read_byte(mtd) << 0x8;
- 
- 	for (i = 0; i < ntypes; i++) {
- 		f = &builtin_flash_types[i];
-@@ -890,7 +890,7 @@ static void set_command_address(struct pxa3xx_nand_info *info,
- static void prepare_start_command(struct pxa3xx_nand_info *info, int command)
+diff --git a/drivers/mtd/nand/r852.c b/drivers/mtd/nand/r852.c
+index ca05b20..1ac8ef2 100644
+--- a/drivers/mtd/nand/r852.c
++++ b/drivers/mtd/nand/r852.c
+@@ -634,25 +634,22 @@ static void r852_update_media_status(struct r852_device *dev)
+  */
+ static int r852_register_nand_device(struct r852_device *dev)
  {
- 	struct pxa3xx_nand_host *host = info->host[info->cs];
--	struct mtd_info *mtd = host->mtd;
-+	struct mtd_info *mtd = nand_to_mtd(&host->chip);
+-	dev->mtd = kzalloc(sizeof(struct mtd_info), GFP_KERNEL);
+-
+-	if (!dev->mtd)
+-		goto error1;
++	struct mtd_info *mtd = nand_to_mtd(dev->chip);
  
- 	/* reset data and oob column point to handle data */
- 	info->buf_start		= 0;
-@@ -943,7 +943,7 @@ static int prepare_set_command(struct pxa3xx_nand_info *info, int command,
- 	struct mtd_info *mtd;
+ 	WARN_ON(dev->card_registred);
  
- 	host = info->host[info->cs];
--	mtd = host->mtd;
-+	mtd = nand_to_mtd(&host->chip);
- 	addr_cycle = 0;
- 	exec_cmd = 1;
+-	dev->mtd->priv = dev->chip;
+-	dev->mtd->dev.parent = &dev->pci_dev->dev;
++	mtd->priv = dev->chip;
++	mtd->dev.parent = &dev->pci_dev->dev;
  
-@@ -1415,8 +1415,8 @@ static int pxa3xx_nand_config_ident(struct pxa3xx_nand_info *info)
- static void pxa3xx_nand_config_tail(struct pxa3xx_nand_info *info)
- {
- 	struct pxa3xx_nand_host *host = info->host[info->cs];
--	struct mtd_info *mtd = host->mtd;
--	struct nand_chip *chip = mtd_to_nand(mtd);
-+	struct nand_chip *chip = &host->chip;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	if (dev->readonly)
+ 		dev->chip->options |= NAND_ROM;
  
- 	info->reg_ndcr |= (host->col_addr_cycles == 2) ? NDCR_RA_START : 0;
- 	info->reg_ndcr |= (chip->page_shift == 6) ? NDCR_PG_PER_BLK : 0;
-@@ -1693,19 +1693,20 @@ static int alloc_nand_resource(struct platform_device *pdev)
- 	pdata = dev_get_platdata(&pdev->dev);
- 	if (pdata->num_cs <= 0)
- 		return -ENODEV;
--	info = devm_kzalloc(&pdev->dev, sizeof(*info) + (sizeof(*mtd) +
--			    sizeof(*host)) * pdata->num_cs, GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev,
-+			    sizeof(*info) + sizeof(*host) * pdata->num_cs,
-+			    GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
+ 	r852_engine_enable(dev);
  
- 	info->pdev = pdev;
- 	info->variant = pxa3xx_nand_get_variant(pdev);
- 	for (cs = 0; cs < pdata->num_cs; cs++) {
--		mtd = (void *)&info[1] + (sizeof(*mtd) + sizeof(*host)) * cs;
--		chip = (struct nand_chip *)(&mtd[1]);
--		host = (struct pxa3xx_nand_host *)chip;
-+		host = (void *)&info[1] + sizeof(*host) * cs;
-+		chip = &host->chip;
-+		chip->priv = host;
-+		mtd = nand_to_mtd(chip);
- 		info->host[cs] = host;
--		host->mtd = mtd;
- 		host->cs = cs;
- 		host->info_data = info;
- 		mtd->priv = chip;
-@@ -1833,7 +1834,7 @@ static int pxa3xx_nand_remove(struct platform_device *pdev)
- 	clk_disable_unprepare(info->clk);
+-	if (sm_register_device(dev->mtd, dev->sm))
+-		goto error2;
++	if (sm_register_device(mtd, dev->sm))
++		goto error1;
  
- 	for (cs = 0; cs < pdata->num_cs; cs++)
--		nand_release(info->host[cs]->mtd);
-+		nand_release(nand_to_mtd(&info->host[cs]->chip));
+-	if (device_create_file(&dev->mtd->dev, &dev_attr_media_type)) {
++	if (device_create_file(&mtd->dev, &dev_attr_media_type)) {
+ 		message("can't create media type sysfs attribute");
+ 		goto error3;
+ 	}
+@@ -660,9 +657,7 @@ static int r852_register_nand_device(struct r852_device *dev)
+ 	dev->card_registred = 1;
  	return 0;
+ error3:
+-	nand_release(dev->mtd);
+-error2:
+-	kfree(dev->mtd);
++	nand_release(mtd);
+ error1:
+ 	/* Force card redetect */
+ 	dev->card_detected = 0;
+@@ -675,15 +670,15 @@ error1:
+ 
+ static void r852_unregister_nand_device(struct r852_device *dev)
+ {
++	struct mtd_info *mtd = nand_to_mtd(dev->chip);
++
+ 	if (!dev->card_registred)
+ 		return;
+ 
+-	device_remove_file(&dev->mtd->dev, &dev_attr_media_type);
+-	nand_release(dev->mtd);
++	device_remove_file(&mtd->dev, &dev_attr_media_type);
++	nand_release(mtd);
+ 	r852_engine_disable(dev);
+ 	dev->card_registred = 0;
+-	kfree(dev->mtd);
+-	dev->mtd = NULL;
  }
  
-@@ -1904,7 +1905,7 @@ static int pxa3xx_nand_probe(struct platform_device *pdev)
- 	info = platform_get_drvdata(pdev);
- 	probe_success = 0;
- 	for (cs = 0; cs < pdata->num_cs; cs++) {
--		struct mtd_info *mtd = info->host[cs]->mtd;
-+		struct mtd_info *mtd = nand_to_mtd(&info->host[cs]->chip);
+ /* Card state updater */
+@@ -1031,6 +1026,7 @@ static int r852_suspend(struct device *device)
+ static int r852_resume(struct device *device)
+ {
+ 	struct r852_device *dev = pci_get_drvdata(to_pci_dev(device));
++	struct mtd_info *mtd = nand_to_mtd(dev->chip);
  
- 		/*
- 		 * The mtd name matches the one used in 'mtdparts' kernel
+ 	r852_disable_irqs(dev);
+ 	r852_card_update_present(dev);
+@@ -1050,9 +1046,9 @@ static int r852_resume(struct device *device)
+ 	/* Otherwise, initialize the card */
+ 	if (dev->card_registred) {
+ 		r852_engine_enable(dev);
+-		dev->chip->select_chip(dev->mtd, 0);
+-		dev->chip->cmdfunc(dev->mtd, NAND_CMD_RESET, -1, -1);
+-		dev->chip->select_chip(dev->mtd, -1);
++		dev->chip->select_chip(mtd, 0);
++		dev->chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
++		dev->chip->select_chip(mtd, -1);
+ 	}
+ 
+ 	/* Program card detection IRQ */
+diff --git a/drivers/mtd/nand/r852.h b/drivers/mtd/nand/r852.h
+index e6a21d9..d042ddb 100644
+--- a/drivers/mtd/nand/r852.h
++++ b/drivers/mtd/nand/r852.h
+@@ -108,7 +108,6 @@
+ 
+ struct r852_device {
+ 	void __iomem *mmio;		/* mmio */
+-	struct mtd_info *mtd;		/* mtd backpointer */
+ 	struct nand_chip *chip;		/* nand chip backpointer */
+ 	struct pci_dev *pci_dev;	/* pci backpointer */
+ 
 -- 
 2.1.4
