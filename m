@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 44/58] mtd: nand: txx9ndfmc: use the mtd
- instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:28 +0100
-Message-ID: <1449734442-18672-45-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 45/58] mtd: nand: vf610: use the mtd instance
+ embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:29 +0100
+Message-ID: <1449734442-18672-46-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB77FUSZQKGQEV4Q7UVQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBBHGUSZQKGQECVE7WXQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,29 +66,42 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/txx9ndfmc.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/mtd/nand/vf610_nfc.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mtd/nand/txx9ndfmc.c b/drivers/mtd/nand/txx9ndfmc.c
-index ff9afb1..da7fcbd 100644
---- a/drivers/mtd/nand/txx9ndfmc.c
-+++ b/drivers/mtd/nand/txx9ndfmc.c
-@@ -63,7 +63,6 @@
- struct txx9ndfmc_priv {
- 	struct platform_device *dev;
- 	struct nand_chip chip;
--	struct mtd_info mtd;
- 	int cs;
- 	const char *mtdname;
+diff --git a/drivers/mtd/nand/vf610_nfc.c b/drivers/mtd/nand/vf610_nfc.c
+index 1c86c6b..1bbb93a 100644
+--- a/drivers/mtd/nand/vf610_nfc.c
++++ b/drivers/mtd/nand/vf610_nfc.c
+@@ -156,7 +156,6 @@ enum vf610_nfc_variant {
  };
-@@ -322,7 +321,7 @@ static int __init txx9ndfmc_probe(struct platform_device *dev)
- 		if (!txx9_priv)
- 			continue;
- 		chip = &txx9_priv->chip;
--		mtd = &txx9_priv->mtd;
-+		mtd = nand_to_mtd(chip);
- 		mtd->dev.parent = &dev->dev;
  
- 		mtd->priv = chip;
+ struct vf610_nfc {
+-	struct mtd_info mtd;
+ 	struct nand_chip chip;
+ 	struct device *dev;
+ 	void __iomem *regs;
+@@ -171,7 +170,10 @@ struct vf610_nfc {
+ 	u32 ecc_mode;
+ };
+ 
+-#define mtd_to_nfc(_mtd) container_of(_mtd, struct vf610_nfc, mtd)
++static inline struct vf610_nfc *mtd_to_nfc(struct mtd_info *mtd)
++{
++	return container_of(mtd_to_nand(mtd), struct vf610_nfc, chip);
++}
+ 
+ static struct nand_ecclayout vf610_nfc_ecc45 = {
+ 	.eccbytes = 45,
+@@ -674,8 +676,8 @@ static int vf610_nfc_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	nfc->dev = &pdev->dev;
+-	mtd = &nfc->mtd;
+ 	chip = &nfc->chip;
++	mtd = nand_to_mtd(chip);
+ 
+ 	mtd->priv = chip;
+ 	mtd->owner = THIS_MODULE;
 -- 
 2.1.4
