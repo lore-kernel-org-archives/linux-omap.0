@@ -1,60 +1,81 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] clk: ti: dra7: fix kernel boot with arg 'clocksource=gp_timer'
-Date: Thu, 10 Dec 2015 19:03:45 +0200
-Message-ID: <1449767025-2438-1-git-send-email-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v4 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Thu, 10 Dec 2015 09:44:08 -0800
+Message-ID: <20151210174407.GF23396@atomide.com>
+References: <1448860515-28336-1-git-send-email-vigneshr@ti.com>
+ <1448860515-28336-5-git-send-email-vigneshr@ti.com>
+ <20151130223408.GJ23396@atomide.com>
+ <565D25E6.4070206@ti.com>
+ <20151201163950.GR23396@atomide.com>
+ <566017A8.5040106@ti.com>
+ <566907D7.6040003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: t-kristo@ti.com, Michael Turquette <mturquette@baylibre.com>
-Cc: nsekhar@ti.com, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Stephen Boyd <sboyd@codeaurora.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <566907D7.6040003-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP Platform code provides possibility to select GP Timer as
-default clocksource instead of counter_32K by using bootcmd parameter
-'clocksource', but the system will crash during early boot when this
-option is used on dra7 or omap5 platforms, because it will hit BUG()
-statement:
+* Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> [151209 21:05]:
+> 
+> 
+> On 12/03/2015 03:51 PM, Vignesh R wrote:
+> > 
+> > 
+> > On 12/01/2015 10:09 PM, Tony Lindgren wrote:
+> >> * Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> [151130 20:46]:
+> >>> On 12/01/2015 04:04 AM, Tony Lindgren wrote:
+> >>>>
+> ...
+> >>
+> >> OK. They are both on L3 main so that won't cause any issues for separate
+> >> interconnect driver instances. As they are still separate targets flushing
+> >> a posted write to one area will not flush anything to the other.
+> >>
+> > 
+> > I didn't quite understand what you meant by interconnect driver instance.
+> > qspi_base and qspi_mmap region are tightly bound to each other and both
+> > needs to be accessed by ti-qspi driver (though different targets).
+> > Besides qspi_mmap region is only used to read data, there will not be
+> > any write accesses to this target. Are you saying this binding is not
+> > viable?
+> > 
+> 
+> As I stated above qspi_base and qspi_mmap region are tightly bound,
+> there is no way to use qspi_mmap region w/o accessing qspi_base. So I am
+> planning to keep them as it is. I will move qspi_ctrlmod to use syscon.
+> Something like:
+> 
+> qspi: qspi@4b300000 {
+>        compatible = "ti,dra7xxx-qspi";
+>        reg = <0x4b300000 0x100>,
+>              <0x5c000000 0x4000000>,
+>        reg-names = "qspi_base", "qspi_mmap";
+>        syscon-chipselects = <&scm_conf 0x558>;
+>        #address-cells = <1>;
+>        #size-cells = <0>;
+>        spi-max-frequency = <48000000>;
+>        ti,hwmods = "qspi";
+> };
+> 
+> Do you think this is not viable in future?
 
- omap2_gptimer_clocksource_init
-  ->BUG_ON(res);
+That's OK, they are on the same interconnect instance. And with the
+syscon you're not directly tinkering with the SCM registers. So
+yeah, that should work in the long run too.
 
-This happens because clk_dev alias "sys_clkin_ck" is not registered.
-Hence, fix it by adding missing "sys_clkin_ck" clk_dev aliases
-definitions for omap5 and dra7.
+The absolute addresses will get changed to just offsets from the
+interconnect target. But if you use the Linux standard functions like
+platform_get_resource_byname + devm_request_mem_region + devm_ioremap
+then no changes are needed to your driver later on.
 
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/clk/ti/clk-54xx.c | 1 +
- drivers/clk/ti/clk-7xx.c  | 1 +
- 2 files changed, 2 insertions(+)
+Thanks,
 
-diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
-index 59ce2fa..294bc03 100644
---- a/drivers/clk/ti/clk-54xx.c
-+++ b/drivers/clk/ti/clk-54xx.c
-@@ -210,6 +210,7 @@ static struct ti_dt_clk omap54xx_clks[] = {
- 	DT_CLK("usbhs_omap", "usbtll_fck", "dummy_ck"),
- 	DT_CLK("omap_wdt", "ick", "dummy_ck"),
- 	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
-+	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin"),
- 	DT_CLK("4ae18000.timer", "timer_sys_ck", "sys_clkin"),
- 	DT_CLK("48032000.timer", "timer_sys_ck", "sys_clkin"),
- 	DT_CLK("48034000.timer", "timer_sys_ck", "sys_clkin"),
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index a911d7d..87a87b5 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -289,6 +289,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
- 	DT_CLK("usbhs_omap", "usbtll_fck", "dummy_ck"),
- 	DT_CLK("omap_wdt", "ick", "dummy_ck"),
- 	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
-+	DT_CLK(NULL, "sys_clkin_ck", "timer_sys_clk_div"),
- 	DT_CLK("4ae18000.timer", "timer_sys_ck", "timer_sys_clk_div"),
- 	DT_CLK("48032000.timer", "timer_sys_ck", "timer_sys_clk_div"),
- 	DT_CLK("48034000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--- 
-2.6.4
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
