@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 16/58] mtd: nand: diskonchip: use the mtd
- instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:00 +0100
-Message-ID: <1449734442-18672-17-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 17/58] mtd: nand: docg4: use the mtd instance
+ embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:01 +0100
+Message-ID: <1449734442-18672-18-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBBXDUSZQKGQE65PPBXQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBFHDUSZQKGQEPP5AMZA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -24,51 +24,64 @@ struct nand_chip now embeds an mtd device. Make use of this mtd instance.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/diskonchip.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/mtd/nand/docg4.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/mtd/nand/diskonchip.c b/drivers/mtd/nand/diskonchip.c
-index 5f7bcc8..fff7a4a 100644
---- a/drivers/mtd/nand/diskonchip.c
-+++ b/drivers/mtd/nand/diskonchip.c
-@@ -1556,15 +1556,15 @@ static int __init doc_probe(unsigned long physadr)
+diff --git a/drivers/mtd/nand/docg4.c b/drivers/mtd/nand/docg4.c
+index da93d7f..cb6efad 100644
+--- a/drivers/mtd/nand/docg4.c
++++ b/drivers/mtd/nand/docg4.c
+@@ -1305,14 +1305,14 @@ static int __init probe_docg4(struct platform_device *pdev)
+ 		return -EIO;
+ 	}
  
- 	printk(KERN_NOTICE "DiskOnChip found at 0x%lx\n", physadr);
- 
--	len = sizeof(struct mtd_info) +
--	    sizeof(struct nand_chip) + sizeof(struct doc_priv) + (2 * sizeof(struct nand_bbt_descr));
+-	len = sizeof(struct mtd_info) + sizeof(struct nand_chip) +
+-		sizeof(struct docg4_priv);
 -	mtd = kzalloc(len, GFP_KERNEL);
--	if (!mtd) {
-+	len = sizeof(struct nand_chip) + sizeof(struct doc_priv) +
-+	      (2 * sizeof(struct nand_bbt_descr));
+-	if (mtd == NULL) {
++	len = sizeof(struct nand_chip) + sizeof(struct docg4_priv);
 +	nand = kzalloc(len, GFP_KERNEL);
-+	if (!nand) {
- 		ret = -ENOMEM;
- 		goto fail;
++	if (nand == NULL) {
+ 		retval = -ENOMEM;
+-		goto fail;
++		goto fail_unmap;
  	}
+-	nand = (struct nand_chip *) (mtd + 1);
++
++	mtd = nand_to_mtd(nand);
+ 	doc = (struct docg4_priv *) (nand + 1);
+ 	mtd->priv = nand;
+ 	nand->priv = doc;
+@@ -1354,16 +1354,17 @@ static int __init probe_docg4(struct platform_device *pdev)
+ 	return 0;
  
--	nand			= (struct nand_chip *) (mtd + 1);
-+	mtd			= nand_to_mtd(nand);
- 	doc			= (struct doc_priv *) (nand + 1);
- 	nand->bbt_td		= (struct nand_bbt_descr *) (doc + 1);
- 	nand->bbt_md		= nand->bbt_td + 1;
-@@ -1615,7 +1615,7 @@ static int __init doc_probe(unsigned long physadr)
- 		   haven't yet added it.  This is handled without incident by
- 		   mtd_device_unregister, as far as I can tell. */
- 		nand_release(mtd);
+  fail:
+-	iounmap(virtadr);
+-	if (mtd) {
++	if (nand) {
+ 		/* re-declarations avoid compiler warning */
+-		struct nand_chip *nand = mtd_to_nand(mtd);
+ 		struct docg4_priv *doc = nand->priv;
+ 		nand_release(mtd); /* deletes partitions and mtd devices */
+ 		free_bch(doc->bch);
 -		kfree(mtd);
 +		kfree(nand);
- 		goto fail;
  	}
  
-@@ -1650,7 +1650,7 @@ static void release_nanddoc(void)
- 		nand_release(mtd);
- 		iounmap(doc->virtadr);
- 		release_mem_region(doc->physadr, DOC_IOREMAP_LEN);
--		kfree(mtd);
-+		kfree(nand);
- 	}
++fail_unmap:
++	iounmap(virtadr);
++
+ 	return retval;
  }
  
+@@ -1372,7 +1373,7 @@ static int __exit cleanup_docg4(struct platform_device *pdev)
+ 	struct docg4_priv *doc = platform_get_drvdata(pdev);
+ 	nand_release(doc->mtd);
+ 	free_bch(doc->bch);
+-	kfree(doc->mtd);
++	kfree(mtd_to_nand(doc->mtd));
+ 	iounmap(doc->virtadr);
+ 	return 0;
+ }
 -- 
 2.1.4
