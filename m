@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 07/58] mtd: nand: au1550nd: use the mtd
- instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 08:59:51 +0100
-Message-ID: <1449734442-18672-8-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 06/58] mtd: nand: atmel: use the mtd instance
+ embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 08:59:50 +0100
+Message-ID: <1449734442-18672-7-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBUHCUSZQKGQELB3YSXY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBT7CUSZQKGQELGUXYRI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,87 +66,71 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/au1550nd.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ drivers/mtd/nand/atmel_nand.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/mtd/nand/au1550nd.c b/drivers/mtd/nand/au1550nd.c
-index 73fceb8..280e5b6 100644
---- a/drivers/mtd/nand/au1550nd.c
-+++ b/drivers/mtd/nand/au1550nd.c
-@@ -23,7 +23,6 @@
+diff --git a/drivers/mtd/nand/atmel_nand.c b/drivers/mtd/nand/atmel_nand.c
+index edd191a..9ba2831 100644
+--- a/drivers/mtd/nand/atmel_nand.c
++++ b/drivers/mtd/nand/atmel_nand.c
+@@ -116,7 +116,6 @@ static struct atmel_nfc	nand_nfc;
  
+ struct atmel_nand_host {
+ 	struct nand_chip	nand_chip;
+-	struct mtd_info		mtd;
+ 	void __iomem		*io_base;
+ 	dma_addr_t		io_phys;
+ 	struct atmel_nand_data	board;
+@@ -317,8 +316,10 @@ static int nfc_set_sram_bank(struct atmel_nand_host *host, unsigned int bank)
+ 		return -EINVAL;
  
- struct au1550nd_ctx {
--	struct mtd_info info;
- 	struct nand_chip chip;
- 
- 	int cs;
-@@ -197,8 +196,9 @@ static void au_read_buf16(struct mtd_info *mtd, u_char *buf, int len)
- 
- static void au1550_hwcontrol(struct mtd_info *mtd, int cmd)
+ 	if (bank) {
++		struct mtd_info *mtd = nand_to_mtd(&host->nand_chip);
++
+ 		/* Only for a 2k-page or lower flash, NFC can handle 2 banks */
+-		if (host->mtd.writesize > 2048)
++		if (mtd->writesize > 2048)
+ 			return -EINVAL;
+ 		nfc_writel(host->nfc->hsmc_regs, BANK, ATMEL_HSMC_NFC_BANK1);
+ 	} else {
+@@ -1159,8 +1160,8 @@ static uint16_t *create_lookup_table(struct device *dev, int sector_size)
+ static int atmel_pmecc_nand_init_params(struct platform_device *pdev,
+ 					 struct atmel_nand_host *host)
  {
--	struct au1550nd_ctx *ctx = container_of(mtd, struct au1550nd_ctx, info);
- 	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct au1550nd_ctx *ctx = container_of(this, struct au1550nd_ctx,
-+						chip);
- 
- 	switch (cmd) {
- 
-@@ -267,8 +267,9 @@ static void au1550_select_chip(struct mtd_info *mtd, int chip)
-  */
- static void au1550_command(struct mtd_info *mtd, unsigned command, int column, int page_addr)
+-	struct mtd_info *mtd = &host->mtd;
+ 	struct nand_chip *nand_chip = &host->nand_chip;
++	struct mtd_info *mtd = nand_to_mtd(nand_chip);
+ 	struct resource *regs, *regs_pmerr, *regs_rom;
+ 	uint16_t *galois_table;
+ 	int cap, sector_size, err_no;
+@@ -1586,8 +1587,8 @@ static int atmel_of_init_port(struct atmel_nand_host *host,
+ static int atmel_hw_nand_init_params(struct platform_device *pdev,
+ 					 struct atmel_nand_host *host)
  {
--	struct au1550nd_ctx *ctx = container_of(mtd, struct au1550nd_ctx, info);
- 	struct nand_chip *this = mtd_to_nand(mtd);
-+	struct au1550nd_ctx *ctx = container_of(this, struct au1550nd_ctx,
-+						chip);
- 	int ce_override = 0, i;
- 	unsigned long flags = 0;
+-	struct mtd_info *mtd = &host->mtd;
+ 	struct nand_chip *nand_chip = &host->nand_chip;
++	struct mtd_info *mtd = nand_to_mtd(nand_chip);
+ 	struct resource		*regs;
  
-@@ -405,6 +406,7 @@ static int au1550nd_probe(struct platform_device *pdev)
- 	struct au1550nd_platdata *pd;
- 	struct au1550nd_ctx *ctx;
- 	struct nand_chip *this;
-+	struct mtd_info *mtd;
- 	struct resource *r;
- 	int ret, cs;
- 
-@@ -438,8 +440,9 @@ static int au1550nd_probe(struct platform_device *pdev)
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+@@ -2112,8 +2113,8 @@ static int atmel_nand_probe(struct platform_device *pdev)
  	}
+ 	host->io_phys = (dma_addr_t)mem->start;
  
- 	this = &ctx->chip;
--	ctx->info.priv = this;
--	ctx->info.dev.parent = &pdev->dev;
-+	mtd = nand_to_mtd(this);
-+	mtd->priv = this;
-+	mtd->dev.parent = &pdev->dev;
+-	mtd = &host->mtd;
+ 	nand_chip = &host->nand_chip;
++	mtd = nand_to_mtd(nand_chip);
+ 	host->dev = &pdev->dev;
+ 	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
+ 		nand_set_flash_node(nand_chip, pdev->dev.of_node);
+@@ -2283,7 +2284,7 @@ err_nand_ioremap:
+ static int atmel_nand_remove(struct platform_device *pdev)
+ {
+ 	struct atmel_nand_host *host = platform_get_drvdata(pdev);
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->nand_chip);
  
- 	/* figure out which CS# r->start belongs to */
- 	cs = find_nand_cs(r->start);
-@@ -467,13 +470,13 @@ static int au1550nd_probe(struct platform_device *pdev)
- 	this->write_buf = (pd->devwidth) ? au_write_buf16 : au_write_buf;
- 	this->read_buf = (pd->devwidth) ? au_read_buf16 : au_read_buf;
+ 	nand_release(mtd);
  
--	ret = nand_scan(&ctx->info, 1);
-+	ret = nand_scan(mtd, 1);
- 	if (ret) {
- 		dev_err(&pdev->dev, "NAND scan failed with %d\n", ret);
- 		goto out3;
- 	}
- 
--	mtd_device_register(&ctx->info, pd->parts, pd->num_parts);
-+	mtd_device_register(mtd, pd->parts, pd->num_parts);
- 
- 	platform_set_drvdata(pdev, ctx);
- 
-@@ -493,7 +496,7 @@ static int au1550nd_remove(struct platform_device *pdev)
- 	struct au1550nd_ctx *ctx = platform_get_drvdata(pdev);
- 	struct resource *r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 
--	nand_release(&ctx->info);
-+	nand_release(nand_to_mtd(&ctx->chip));
- 	iounmap(ctx->base);
- 	release_mem_region(r->start, 0x1000);
- 	kfree(ctx);
 -- 
 2.1.4
