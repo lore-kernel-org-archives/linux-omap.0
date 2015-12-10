@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 37/58] mtd: nand: r852: use the mtd instance
- embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:21 +0100
-Message-ID: <1449734442-18672-38-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 38/58] mtd: nand: s3c2410: use the mtd
+ instance embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:22 +0100
+Message-ID: <1449734442-18672-39-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBLXFUSZQKGQEUJR6D2Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBOHFUSZQKGQEXTY5ZLY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -24,109 +24,137 @@ struct nand_chip now embeds an mtd device. Make use of this mtd instance.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/r852.c | 34 +++++++++++++++-------------------
- drivers/mtd/nand/r852.h |  1 -
- 2 files changed, 15 insertions(+), 20 deletions(-)
+Changes generated with the following coccinelle script
 
-diff --git a/drivers/mtd/nand/r852.c b/drivers/mtd/nand/r852.c
-index ca05b20..1ac8ef2 100644
---- a/drivers/mtd/nand/r852.c
-+++ b/drivers/mtd/nand/r852.c
-@@ -634,25 +634,22 @@ static void r852_update_media_status(struct r852_device *dev)
-  */
- static int r852_register_nand_device(struct r852_device *dev)
+--->8---
+virtual patch
+
+@fix1@
+identifier __chipfield, __mtdfield;
+type __type;
+@@
+(
+	__type {
+		...
+		struct nand_chip __chipfield;
+		...
+-		struct mtd_info __mtdfield;
+		...
+	};
+|
+	__type {
+		...
+-		struct mtd_info __mtdfield;
+		...
+		struct nand_chip __chipfield;
+		...
+	};
+)
+
+@fix2 depends on fix1@
+identifier fix1.__chipfield, fix1.__mtdfield;
+identifier __subfield;
+type fix1.__type;
+__type *__priv;
+@@
+(
+-	__priv->__mtdfield.__subfield
++	nand_to_mtd(&__priv->__chipfield)->__subfield
+|
+-	&(__priv->__mtdfield)
++	nand_to_mtd(&__priv->__chipfield)
+)
+--->8---
+---
+ drivers/mtd/nand/s3c2410.c | 23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/mtd/nand/s3c2410.c b/drivers/mtd/nand/s3c2410.c
+index e658b29..c074a49 100644
+--- a/drivers/mtd/nand/s3c2410.c
++++ b/drivers/mtd/nand/s3c2410.c
+@@ -104,7 +104,6 @@ struct s3c2410_nand_info;
+  * @scan_res: The result from calling nand_scan_ident().
+ */
+ struct s3c2410_nand_mtd {
+-	struct mtd_info			mtd;
+ 	struct nand_chip		chip;
+ 	struct s3c2410_nand_set		*set;
+ 	struct s3c2410_nand_info	*info;
+@@ -168,7 +167,8 @@ struct s3c2410_nand_info {
+ 
+ static struct s3c2410_nand_mtd *s3c2410_nand_mtd_toours(struct mtd_info *mtd)
  {
--	dev->mtd = kzalloc(sizeof(struct mtd_info), GFP_KERNEL);
--
--	if (!dev->mtd)
--		goto error1;
-+	struct mtd_info *mtd = nand_to_mtd(dev->chip);
- 
- 	WARN_ON(dev->card_registred);
- 
--	dev->mtd->priv = dev->chip;
--	dev->mtd->dev.parent = &dev->pci_dev->dev;
-+	mtd->priv = dev->chip;
-+	mtd->dev.parent = &dev->pci_dev->dev;
- 
- 	if (dev->readonly)
- 		dev->chip->options |= NAND_ROM;
- 
- 	r852_engine_enable(dev);
- 
--	if (sm_register_device(dev->mtd, dev->sm))
--		goto error2;
-+	if (sm_register_device(mtd, dev->sm))
-+		goto error1;
- 
--	if (device_create_file(&dev->mtd->dev, &dev_attr_media_type)) {
-+	if (device_create_file(&mtd->dev, &dev_attr_media_type)) {
- 		message("can't create media type sysfs attribute");
- 		goto error3;
- 	}
-@@ -660,9 +657,7 @@ static int r852_register_nand_device(struct r852_device *dev)
- 	dev->card_registred = 1;
- 	return 0;
- error3:
--	nand_release(dev->mtd);
--error2:
--	kfree(dev->mtd);
-+	nand_release(mtd);
- error1:
- 	/* Force card redetect */
- 	dev->card_detected = 0;
-@@ -675,15 +670,15 @@ error1:
- 
- static void r852_unregister_nand_device(struct r852_device *dev)
- {
-+	struct mtd_info *mtd = nand_to_mtd(dev->chip);
-+
- 	if (!dev->card_registred)
- 		return;
- 
--	device_remove_file(&dev->mtd->dev, &dev_attr_media_type);
--	nand_release(dev->mtd);
-+	device_remove_file(&mtd->dev, &dev_attr_media_type);
-+	nand_release(mtd);
- 	r852_engine_disable(dev);
- 	dev->card_registred = 0;
--	kfree(dev->mtd);
--	dev->mtd = NULL;
+-	return container_of(mtd, struct s3c2410_nand_mtd, mtd);
++	return container_of(mtd_to_nand(mtd), struct s3c2410_nand_mtd,
++			    chip);
  }
  
- /* Card state updater */
-@@ -1031,6 +1026,7 @@ static int r852_suspend(struct device *device)
- static int r852_resume(struct device *device)
- {
- 	struct r852_device *dev = pci_get_drvdata(to_pci_dev(device));
-+	struct mtd_info *mtd = nand_to_mtd(dev->chip);
+ static struct s3c2410_nand_info *s3c2410_nand_mtd_toinfo(struct mtd_info *mtd)
+@@ -745,7 +745,7 @@ static int s3c24xx_nand_remove(struct platform_device *pdev)
  
- 	r852_disable_irqs(dev);
- 	r852_card_update_present(dev);
-@@ -1050,9 +1046,9 @@ static int r852_resume(struct device *device)
- 	/* Otherwise, initialize the card */
- 	if (dev->card_registred) {
- 		r852_engine_enable(dev);
--		dev->chip->select_chip(dev->mtd, 0);
--		dev->chip->cmdfunc(dev->mtd, NAND_CMD_RESET, -1, -1);
--		dev->chip->select_chip(dev->mtd, -1);
-+		dev->chip->select_chip(mtd, 0);
-+		dev->chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
-+		dev->chip->select_chip(mtd, -1);
+ 		for (mtdno = 0; mtdno < info->mtd_count; mtdno++, ptr++) {
+ 			pr_debug("releasing mtd %d (%p)\n", mtdno, ptr);
+-			nand_release(&ptr->mtd);
++			nand_release(nand_to_mtd(&ptr->chip));
+ 		}
  	}
  
- 	/* Program card detection IRQ */
-diff --git a/drivers/mtd/nand/r852.h b/drivers/mtd/nand/r852.h
-index e6a21d9..d042ddb 100644
---- a/drivers/mtd/nand/r852.h
-+++ b/drivers/mtd/nand/r852.h
-@@ -108,7 +108,6 @@
+@@ -762,9 +762,11 @@ static int s3c2410_nand_add_partition(struct s3c2410_nand_info *info,
+ 				      struct s3c2410_nand_set *set)
+ {
+ 	if (set) {
+-		mtd->mtd.name = set->name;
++		struct mtd_info *mtdinfo = nand_to_mtd(&mtd->chip);
  
- struct r852_device {
- 	void __iomem *mmio;		/* mmio */
--	struct mtd_info *mtd;		/* mtd backpointer */
- 	struct nand_chip *chip;		/* nand chip backpointer */
- 	struct pci_dev *pci_dev;	/* pci backpointer */
+-		return mtd_device_parse_register(&mtd->mtd, NULL, NULL,
++		mtdinfo->name = set->name;
++
++		return mtd_device_parse_register(mtdinfo, NULL, NULL,
+ 					 set->partitions, set->nr_partitions);
+ 	}
+ 
+@@ -786,6 +788,7 @@ static void s3c2410_nand_init_chip(struct s3c2410_nand_info *info,
+ 				   struct s3c2410_nand_set *set)
+ {
+ 	struct nand_chip *chip = &nmtd->chip;
++	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	void __iomem *regs = info->regs;
+ 
+ 	chip->write_buf    = s3c2410_nand_write_buf;
+@@ -831,7 +834,7 @@ static void s3c2410_nand_init_chip(struct s3c2410_nand_info *info,
+ 	chip->IO_ADDR_R = chip->IO_ADDR_W;
+ 
+ 	nmtd->info	   = info;
+-	nmtd->mtd.priv	   = chip;
++	mtd->priv	   = chip;
+ 	nmtd->set	   = set;
+ 
+ #ifdef CONFIG_MTD_NAND_S3C2410_HWECC
+@@ -1012,19 +1015,21 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
+ 	nmtd = info->mtds;
+ 
+ 	for (setno = 0; setno < nr_sets; setno++, nmtd++) {
++		struct mtd_info *mtd = nand_to_mtd(&nmtd->chip);
++
+ 		pr_debug("initialising set %d (%p, info %p)\n",
+ 			 setno, nmtd, info);
+ 
+-		nmtd->mtd.dev.parent = &pdev->dev;
++		mtd->dev.parent = &pdev->dev;
+ 		s3c2410_nand_init_chip(info, nmtd, sets);
+ 
+-		nmtd->scan_res = nand_scan_ident(&nmtd->mtd,
++		nmtd->scan_res = nand_scan_ident(mtd,
+ 						 (sets) ? sets->nr_chips : 1,
+ 						 NULL);
+ 
+ 		if (nmtd->scan_res == 0) {
+ 			s3c2410_nand_update_chip(info, nmtd);
+-			nand_scan_tail(&nmtd->mtd);
++			nand_scan_tail(mtd);
+ 			s3c2410_nand_add_partition(info, nmtd, sets);
+ 		}
  
 -- 
 2.1.4
