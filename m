@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 34/58] mtd: nand: pasemi: use the mtd
- instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:18 +0100
-Message-ID: <1449734442-18672-35-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 35/58] mtd: nand: plat: use the mtd instance
+ embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:19 +0100
+Message-ID: <1449734442-18672-36-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBGHFUSZQKGQESZ6BDJQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBJHFUSZQKGQE4VTBD5Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -24,51 +24,116 @@ struct nand_chip now embeds an mtd device. Make use of this mtd instance.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
- drivers/mtd/nand/pasemi_nand.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+Changes generated with the following coccinelle script
 
-diff --git a/drivers/mtd/nand/pasemi_nand.c b/drivers/mtd/nand/pasemi_nand.c
-index 0ececac..4dd2985 100644
---- a/drivers/mtd/nand/pasemi_nand.c
-+++ b/drivers/mtd/nand/pasemi_nand.c
-@@ -110,17 +110,15 @@ static int pasemi_nand_probe(struct platform_device *ofdev)
- 	pr_debug("pasemi_nand at %pR\n", &res);
+--->8---
+virtual patch
+
+@fix1@
+identifier __chipfield, __mtdfield;
+type __type;
+@@
+(
+	__type {
+		...
+		struct nand_chip __chipfield;
+		...
+-		struct mtd_info __mtdfield;
+		...
+	};
+|
+	__type {
+		...
+-		struct mtd_info __mtdfield;
+		...
+		struct nand_chip __chipfield;
+		...
+	};
+)
+
+@fix2 depends on fix1@
+identifier fix1.__chipfield, fix1.__mtdfield;
+identifier __subfield;
+type fix1.__type;
+__type *__priv;
+@@
+(
+-	__priv->__mtdfield.__subfield
++	nand_to_mtd(&__priv->__chipfield)->__subfield
+|
+-	&(__priv->__mtdfield)
++	nand_to_mtd(&__priv->__chipfield)
+)
+--->8---
+---
+ drivers/mtd/nand/plat_nand.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/mtd/nand/plat_nand.c b/drivers/mtd/nand/plat_nand.c
+index 06ac6c6..796eb7d 100644
+--- a/drivers/mtd/nand/plat_nand.c
++++ b/drivers/mtd/nand/plat_nand.c
+@@ -20,7 +20,6 @@
  
- 	/* Allocate memory for MTD device structure and private data */
--	pasemi_nand_mtd = kzalloc(sizeof(struct mtd_info) +
--				  sizeof(struct nand_chip), GFP_KERNEL);
--	if (!pasemi_nand_mtd) {
-+	chip = kzalloc(sizeof(struct nand_chip), GFP_KERNEL);
-+	if (!chip) {
- 		printk(KERN_WARNING
- 		       "Unable to allocate PASEMI NAND MTD device structure\n");
- 		err = -ENOMEM;
+ struct plat_nand_data {
+ 	struct nand_chip	chip;
+-	struct mtd_info		mtd;
+ 	void __iomem		*io_base;
+ };
+ 
+@@ -31,6 +30,7 @@ static int plat_nand_probe(struct platform_device *pdev)
+ {
+ 	struct platform_nand_data *pdata = dev_get_platdata(&pdev->dev);
+ 	struct plat_nand_data *data;
++	struct mtd_info *mtd;
+ 	struct resource *res;
+ 	const char **part_types;
+ 	int err = 0;
+@@ -58,8 +58,9 @@ static int plat_nand_probe(struct platform_device *pdev)
+ 
+ 	data->chip.priv = &data;
+ 	nand_set_flash_node(&data->chip, pdev->dev.of_node);
+-	data->mtd.priv = &data->chip;
+-	data->mtd.dev.parent = &pdev->dev;
++	mtd = nand_to_mtd(&data->chip);
++	mtd->priv = &data->chip;
++	mtd->dev.parent = &pdev->dev;
+ 
+ 	data->chip.IO_ADDR_R = data->io_base;
+ 	data->chip.IO_ADDR_W = data->io_base;
+@@ -87,21 +88,21 @@ static int plat_nand_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* Scan to find existence of the device */
+-	if (nand_scan(&data->mtd, pdata->chip.nr_chips)) {
++	if (nand_scan(mtd, pdata->chip.nr_chips)) {
+ 		err = -ENXIO;
  		goto out;
  	}
  
--	/* Get pointer to private data */
--	chip = (struct nand_chip *)&pasemi_nand_mtd[1];
-+	pasemi_nand_mtd = nand_to_mtd(chip);
+ 	part_types = pdata->chip.part_probe_types;
  
- 	/* Link the private data with the MTD structure */
- 	pasemi_nand_mtd->priv = chip;
-@@ -180,7 +178,7 @@ static int pasemi_nand_probe(struct platform_device *ofdev)
-  out_ior:
- 	iounmap(chip->IO_ADDR_R);
-  out_mtd:
--	kfree(pasemi_nand_mtd);
-+	kfree(chip);
-  out:
- 	return err;
- }
-@@ -202,7 +200,7 @@ static int pasemi_nand_remove(struct platform_device *ofdev)
- 	iounmap(chip->IO_ADDR_R);
+-	err = mtd_device_parse_register(&data->mtd, part_types, NULL,
++	err = mtd_device_parse_register(mtd, part_types, NULL,
+ 					pdata->chip.partitions,
+ 					pdata->chip.nr_partitions);
  
- 	/* Free the MTD device structure */
--	kfree(pasemi_nand_mtd);
-+	kfree(chip);
+ 	if (!err)
+ 		return err;
  
- 	pasemi_nand_mtd = NULL;
+-	nand_release(&data->mtd);
++	nand_release(mtd);
+ out:
+ 	if (pdata->ctrl.remove)
+ 		pdata->ctrl.remove(pdev);
+@@ -116,7 +117,7 @@ static int plat_nand_remove(struct platform_device *pdev)
+ 	struct plat_nand_data *data = platform_get_drvdata(pdev);
+ 	struct platform_nand_data *pdata = dev_get_platdata(&pdev->dev);
+ 
+-	nand_release(&data->mtd);
++	nand_release(nand_to_mtd(&data->chip));
+ 	if (pdata->ctrl.remove)
+ 		pdata->ctrl.remove(pdev);
  
 -- 
 2.1.4
