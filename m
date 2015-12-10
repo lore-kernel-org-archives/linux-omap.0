@@ -1,63 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl:Convert the composition of
- devm_request_mem_region and devm_ioremap to a single call
-Date: Thu, 10 Dec 2015 14:31:42 -0800
-Message-ID: <20151210223142.GH23396@atomide.com>
-References: <1446191478-22714-1-git-send-email-sanjeev_sharma@mentor.com>
- <CACRpkdZFhseQDbXvJg1CP3+WRsw_dPivx0w8730-9FV3fwjUGQ@mail.gmail.com>
- <20151203214415.GC23396@atomide.com>
- <CACRpkdZFw=tbRmh1_qUeRvVKokMqYd35FEO+NPbp+=gwSE6yDA@mail.gmail.com>
+Subject: [GIT PULL] omap fixes against v4.4-rc4
+Date: Thu, 10 Dec 2015 15:39:08 -0800
+Message-ID: <20151210233907.GI23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdZFw=tbRmh1_qUeRvVKokMqYd35FEO+NPbp+=gwSE6yDA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Sanjeev Sharma <sanjeev_sharma@mentor.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [151210 10:18]:
-> On Thu, Dec 3, 2015 at 10:44 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Linus Walleij <linus.walleij@linaro.org> [151030 12:54]:
-> >> Please run posts like this by the maintainers. Tony Lindgren is one
-> >> user, Haojian is another.
-> >
-> > I think we need to add ourselves to MAINTAINERS for this driver,
-> > otherwise we'll keep on missing emails.
-> 
-> Good idea! Patches accepted.
+The following changes since commit 31ade3b83e1821da5fbb2f11b5b3d4ab2ec39db8:
 
-How about this one below?
+  Linux 4.4-rc3 (2015-11-29 18:58:26 -0800)
 
-Regards,
+are available in the git repository at:
 
-Tony
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.4/fixes-rc4
 
-8< -----------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 10 Dec 2015 14:27:32 -0800
-Subject: [PATCH] MAINTAINERS: pinctrl: Add maintainers for pinctrl-single
+for you to fetch changes up to 14054fb1da099fd89208b8b319a00e0b902c7645:
 
-Otherwise we keep missing patches related to this driver.
+  ARM: dts: am4372: fix clock source for arm twd and global timers (2015-12-09 16:46:25 -0800)
 
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+----------------------------------------------------------------
+Few fixes for omaps for v4.4-rc cycle:
 
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8379,6 +8379,14 @@ L:	linux-samsung-soc@vger.kernel.org (moderated for non-subscribers)
- S:	Maintained
- F:	drivers/pinctrl/samsung/
- 
-+PIN CONTROLLER - SINGLE
-+M:	Tony Lindgren <tony@atomide.com>
-+M:	Haojian Zhuang <haojian.zhuang@linaro.org>
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-+L:	linux-omap@vger.kernel.org
-+S:	Maintained
-+F:	drivers/pinctrl/pinctrl-single.c
-+
- PIN CONTROLLER - ST SPEAR
- M:	Viresh Kumar <vireshk@kernel.org>
- L:	spear-devel@list.st.com
+- Fix clock source for ARM TWD and global timers on am437x
+
+- Always select REGULATOR_FIXED_VOLTAGE for omap2+ instead of
+  when MACH_OMAP3_PANDORA is selected
+
+- Fix SPI DMA handles for dm816x as only some were mapped
+
+- Fix up mbox cells for dm816x to make mailbox usable
+
+----------------------------------------------------------------
+Grygorii Strashko (2):
+      ARM: OMAP2+: enable REGULATOR_FIXED_VOLTAGE
+      ARM: dts: am4372: fix clock source for arm twd and global timers
+
+Neil Armstrong (2):
+      ARM: dts: add dm816x missing #mbox-cells
+      ARM: dts: add dm816x missing spi DT dma handles
+
+ arch/arm/boot/dts/am4372.dtsi        | 4 ++--
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 8 ++++++++
+ arch/arm/boot/dts/dm816x.dtsi        | 8 ++++++--
+ arch/arm/mach-omap2/Kconfig          | 2 +-
+ 4 files changed, 17 insertions(+), 5 deletions(-)
