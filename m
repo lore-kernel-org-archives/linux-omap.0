@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 40/58] mtd: nand: sharpsl: use the mtd
+Subject: [PATCH v4 41/58] mtd: nand: socrates: use the mtd
  instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:24 +0100
-Message-ID: <1449734442-18672-41-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:25 +0100
+Message-ID: <1449734442-18672-42-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBRXFUSZQKGQEV24W5DA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB3HFUSZQKGQE2ZT6BBA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,86 +66,39 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/sharpsl.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ drivers/mtd/nand/socrates_nand.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mtd/nand/sharpsl.c b/drivers/mtd/nand/sharpsl.c
-index 84129e5..4b649fb 100644
---- a/drivers/mtd/nand/sharpsl.c
-+++ b/drivers/mtd/nand/sharpsl.c
-@@ -29,13 +29,15 @@
- #include <asm/mach-types.h>
+diff --git a/drivers/mtd/nand/socrates_nand.c b/drivers/mtd/nand/socrates_nand.c
+index 2dfb1e0..c0ca0fd 100644
+--- a/drivers/mtd/nand/socrates_nand.c
++++ b/drivers/mtd/nand/socrates_nand.c
+@@ -30,7 +30,6 @@
  
- struct sharpsl_nand {
+ struct socrates_nand_host {
+ 	struct nand_chip	nand_chip;
 -	struct mtd_info		mtd;
- 	struct nand_chip	chip;
- 
- 	void __iomem		*io;
+ 	void __iomem		*io_base;
+ 	struct device		*dev;
  };
+@@ -159,8 +158,8 @@ static int socrates_nand_probe(struct platform_device *ofdev)
+ 		return -EIO;
+ 	}
  
--#define mtd_to_sharpsl(_mtd)	container_of(_mtd, struct sharpsl_nand, mtd)
-+static inline struct sharpsl_nand *mtd_to_sharpsl(struct mtd_info *mtd)
-+{
-+	return container_of(mtd_to_nand(mtd), struct sharpsl_nand, chip);
-+}
+-	mtd = &host->mtd;
+ 	nand_chip = &host->nand_chip;
++	mtd = nand_to_mtd(nand_chip);
+ 	host->dev = &ofdev->dev;
  
- /* register offset */
- #define ECCLPLB		0x00	/* line parity 7 - 0 bit */
-@@ -109,6 +111,7 @@ static int sharpsl_nand_calculate_ecc(struct mtd_info *mtd, const u_char * dat,
- static int sharpsl_nand_probe(struct platform_device *pdev)
+ 	nand_chip->priv = host;		/* link the private data structures */
+@@ -216,7 +215,7 @@ out:
+ static int socrates_nand_remove(struct platform_device *ofdev)
  {
- 	struct nand_chip *this;
-+	struct mtd_info *mtd;
- 	struct resource *r;
- 	int err = 0;
- 	struct sharpsl_nand *sharpsl;
-@@ -143,8 +146,9 @@ static int sharpsl_nand_probe(struct platform_device *pdev)
- 	this = (struct nand_chip *)(&sharpsl->chip);
+ 	struct socrates_nand_host *host = dev_get_drvdata(&ofdev->dev);
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->chip);
  
- 	/* Link the private data with the MTD structure */
--	sharpsl->mtd.priv = this;
--	sharpsl->mtd.dev.parent = &pdev->dev;
-+	mtd = nand_to_mtd(this);
-+	mtd->priv = this;
-+	mtd->dev.parent = &pdev->dev;
- 
- 	platform_set_drvdata(pdev, sharpsl);
- 
-@@ -173,14 +177,14 @@ static int sharpsl_nand_probe(struct platform_device *pdev)
- 	this->ecc.correct = nand_correct_data;
- 
- 	/* Scan to find existence of the device */
--	err = nand_scan(&sharpsl->mtd, 1);
-+	err = nand_scan(mtd, 1);
- 	if (err)
- 		goto err_scan;
- 
- 	/* Register the partitions */
--	sharpsl->mtd.name = "sharpsl-nand";
-+	mtd->name = "sharpsl-nand";
- 
--	err = mtd_device_parse_register(&sharpsl->mtd, NULL, NULL,
-+	err = mtd_device_parse_register(mtd, NULL, NULL,
- 					data->partitions, data->nr_partitions);
- 	if (err)
- 		goto err_add;
-@@ -189,7 +193,7 @@ static int sharpsl_nand_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_add:
--	nand_release(&sharpsl->mtd);
-+	nand_release(mtd);
- 
- err_scan:
- 	iounmap(sharpsl->io);
-@@ -207,7 +211,7 @@ static int sharpsl_nand_remove(struct platform_device *pdev)
- 	struct sharpsl_nand *sharpsl = platform_get_drvdata(pdev);
- 
- 	/* Release resources, unregister device */
--	nand_release(&sharpsl->mtd);
-+	nand_release(nand_to_mtd(&sharpsl->chip));
- 
- 	iounmap(sharpsl->io);
+ 	nand_release(mtd);
  
 -- 
 2.1.4
