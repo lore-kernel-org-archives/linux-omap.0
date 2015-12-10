@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 28/58] mtd: nand: mxc: use the mtd instance
- embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:12 +0100
-Message-ID: <1449734442-18672-29-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 29/58] mtd: nand: nandsim: use the mtd
+ instance embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:13 +0100
+Message-ID: <1449734442-18672-30-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBJHEUSZQKGQEJQ5C7MA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBP7EUSZQKGQEOCRGW5Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -24,80 +24,48 @@ struct nand_chip now embeds an mtd device. Make use of this mtd instance.
 
 Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 ---
-Changes generated with the following coccinelle script
+ drivers/mtd/nand/nandsim.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---->8---
-virtual patch
-
-@fix1@
-identifier __chipfield, __mtdfield;
-type __type;
-@@
-(
-	__type {
-		...
-		struct nand_chip __chipfield;
-		...
--		struct mtd_info __mtdfield;
-		...
-	};
-|
-	__type {
-		...
--		struct mtd_info __mtdfield;
-		...
-		struct nand_chip __chipfield;
-		...
-	};
-)
-
-@fix2 depends on fix1@
-identifier fix1.__chipfield, fix1.__mtdfield;
-identifier __subfield;
-type fix1.__type;
-__type *__priv;
-@@
-(
--	__priv->__mtdfield.__subfield
-+	nand_to_mtd(&__priv->__chipfield)->__subfield
-|
--	&(__priv->__mtdfield)
-+	nand_to_mtd(&__priv->__chipfield)
-)
---->8---
----
- drivers/mtd/nand/mxc_nand.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/mtd/nand/mxc_nand.c b/drivers/mtd/nand/mxc_nand.c
-index b291258..9dd71af 100644
---- a/drivers/mtd/nand/mxc_nand.c
-+++ b/drivers/mtd/nand/mxc_nand.c
-@@ -173,7 +173,6 @@ struct mxc_nand_devtype_data {
- };
+diff --git a/drivers/mtd/nand/nandsim.c b/drivers/mtd/nand/nandsim.c
+index eb2a567..442eeaf 100644
+--- a/drivers/mtd/nand/nandsim.c
++++ b/drivers/mtd/nand/nandsim.c
+@@ -2236,13 +2236,13 @@ static int __init ns_init_module(void)
+ 	}
  
- struct mxc_nand_host {
--	struct mtd_info		mtd;
- 	struct nand_chip	nand;
- 	struct device		*dev;
+ 	/* Allocate and initialize mtd_info, nand_chip and nandsim structures */
+-	nsmtd = kzalloc(sizeof(struct mtd_info) + sizeof(struct nand_chip)
+-				+ sizeof(struct nandsim), GFP_KERNEL);
+-	if (!nsmtd) {
++	chip = kzalloc(sizeof(struct nand_chip) + sizeof(struct nandsim),
++		       GFP_KERNEL);
++	if (!chip) {
+ 		NS_ERR("unable to allocate core structures.\n");
+ 		return -ENOMEM;
+ 	}
+-	chip        = (struct nand_chip *)(nsmtd + 1);
++	nsmtd       = nand_to_mtd(chip);
+         nsmtd->priv = (void *)chip;
+ 	nand        = (struct nandsim *)(chip + 1);
+ 	chip->priv  = (void *)nand;
+@@ -2392,7 +2392,7 @@ err_exit:
+ 	for (i = 0;i < ARRAY_SIZE(nand->partitions); ++i)
+ 		kfree(nand->partitions[i].name);
+ error:
+-	kfree(nsmtd);
++	kfree(chip);
+ 	free_lists();
  
-@@ -1514,7 +1513,7 @@ static int mxcnd_probe(struct platform_device *pdev)
- 	host->dev = &pdev->dev;
- 	/* structures must be linked */
- 	this = &host->nand;
--	mtd = &host->mtd;
-+	mtd = nand_to_mtd(this);
- 	mtd->priv = this;
- 	mtd->dev.parent = &pdev->dev;
- 	mtd->name = DRIVER_NAME;
-@@ -1702,7 +1701,7 @@ static int mxcnd_remove(struct platform_device *pdev)
- {
- 	struct mxc_nand_host *host = platform_get_drvdata(pdev);
- 
--	nand_release(&host->mtd);
-+	nand_release(nand_to_mtd(&host->nand));
- 	if (host->clk_act)
- 		clk_disable_unprepare(host->clk);
+ 	return retval;
+@@ -2413,7 +2413,7 @@ static void __exit ns_cleanup_module(void)
+ 	nand_release(nsmtd); /* Unregister driver */
+ 	for (i = 0;i < ARRAY_SIZE(ns->partitions); ++i)
+ 		kfree(ns->partitions[i].name);
+-	kfree(nsmtd);        /* Free other structures */
++	kfree(mtd_to_nand(nsmtd));        /* Free other structures */
+ 	free_lists();
+ }
  
 -- 
 2.1.4
