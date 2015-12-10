@@ -1,81 +1,100 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 58/58] staging: mt29f_spinand: make use of
- nand_set/get_controller_data() helpers
-Date: Thu, 10 Dec 2015 09:00:42 +0100
-Message-ID: <1449734442-18672-59-git-send-email-boris.brezillon@free-electrons.com>
-References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 004/182] gpio: generic: factor into gpio_chip struct
+Date: Thu, 10 Dec 2015 08:06:32 +0000
+Message-ID: <20151210080632.GC17876@x1>
+References: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBG7HUSZQKGQE6SVKJNA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/linux-sunxi
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/linux-sunxi/subscribe>
-To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steven Miao <realmz6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>a
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-gpio@vger.kernel.org, Johan Hovold <johan@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>, Michael Welling <mwelling@ieee.org>, Markus Pargmann <mpa@pengutronix.de>, Anton Vorontsov <anton@enomsg.org>, arm@kernel.org, Alexander Shiyan <shc_work@mail.ru>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Alexandre Courbot <gnurou@gmail.com>, Gregory Fong <gregory.0xf0@gmail.com>, Brian Norris <computersforpeace@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Olof Johansson <olof@lixom.net>, Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>, Rabin Vincent <rab>
 List-Id: linux-omap@vger.kernel.org
 
-New helpers have been added to avoid directly accessing chip->field. Use
-them where appropriate.
+On Wed, 09 Dec 2015, Linus Walleij wrote:
 
-Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
----
- drivers/staging/mt29f_spinand/mt29f_spinand.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+> The separate struct bgpio_chip has been a pain to handle, both
+> by being confusingly similar in name to struct gpio_chip and
+> for being contained inside a struct so that struct gpio_chip
+> is contained in a struct contained in a struct, making several
+> steps of dereferencing necessary.
+>=20
+> Make things simpler: include the fields directly into
+> <linux/gpio/driver.h>, #ifdef:ed for CONFIG_GENERIC_GPIO, and
+> get rid of the <linux/basic_mmio_gpio.h> altogether. Prefix
+> some of the member variables with bgpio_* and add proper
+> kerneldoc while we're at it.
+>=20
+> Modify all users to handle the change and use a struct
+> gpio_chip directly. And while we're at it: replace all
+> container_of() dereferencing by gpiochip_get_data() and
+> registering the gpio_chip with gpiochip_add_data().
+>=20
+> Cc: arm@kernel.org
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Alexander Shiyan <shc_work@mail.ru>
+> Cc: Shawn Guo <shawnguo@kernel.org>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: Gregory Fong <gregory.0xf0@gmail.com>
+> Cc: Brian Norris <computersforpeace@gmail.com>
+> Cc: Florian Fainelli <f.fainelli@gmail.com>
+> Cc: Liviu Dudau <liviu.dudau@arm.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+> Cc: Olof Johansson <olof@lixom.net>
+> Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> Cc: Rabin Vincent <rabin@rab.in>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: bcm-kernel-feedback-list@broadcom.com
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> ---
+> ARM SoC folks and Lee: it would be great if you could
+> ACK the few lines hitting arch/arm/* and drivers/mfd/* in this
+> so I can take it through the GPIO tree.
+> ---
+>  arch/arm/mach-clps711x/board-autcpu12.c |   2 +-
+>  arch/arm/mach-clps711x/board-p720t.c    |   2 +-
+>  arch/arm/mach-imx/mach-mx21ads.c        |   2 +-
+>  arch/arm/mach-omap1/board-ams-delta.c   |   2 +-
+>  arch/arm/mach-s3c64xx/mach-crag6410.c   |   2 +-
+>  drivers/gpio/gpio-74xx-mmio.c           |  37 ++--
+>  drivers/gpio/gpio-brcmstb.c             |  80 ++++-----
+>  drivers/gpio/gpio-clps711x.c            |  28 +--
+>  drivers/gpio/gpio-dwapb.c               |  92 +++++-----
+>  drivers/gpio/gpio-ep93xx.c              |  25 +--
+>  drivers/gpio/gpio-etraxfs.c             |  49 +++---
+>  drivers/gpio/gpio-ge.c                  |  24 +--
+>  drivers/gpio/gpio-generic.c             | 292 +++++++++++++++-------=
+----------
+>  drivers/gpio/gpio-grgpio.c              |  73 ++++----
+>  drivers/gpio/gpio-moxart.c              |  29 ++--
+>  drivers/gpio/gpio-mxc.c                 |  27 ++-
+>  drivers/gpio/gpio-mxs.c                 |  33 ++--
+>  drivers/gpio/gpio-sodaville.c           |  13 +-
+>  drivers/gpio/gpio-xgene-sb.c            |  40 ++---
+>  drivers/mfd/vexpress-sysreg.c           |   8 +-
 
-diff --git a/drivers/staging/mt29f_spinand/mt29f_spinand.c b/drivers/staging/mt29f_spinand/mt29f_spinand.c
-index b7d429d..197d112 100644
---- a/drivers/staging/mt29f_spinand/mt29f_spinand.c
-+++ b/drivers/staging/mt29f_spinand/mt29f_spinand.c
-@@ -32,7 +32,7 @@
- static inline struct spinand_state *mtd_to_state(struct mtd_info *mtd)
- {
- 	struct nand_chip *chip = mtd_to_nand(mtd);
--	struct spinand_info *info = (struct spinand_info *)chip->priv;
-+	struct spinand_info *info = nand_get_controller_data(chip);
- 	struct spinand_state *state = (struct spinand_state *)info->priv;
- 
- 	return state;
-@@ -633,7 +633,7 @@ static int spinand_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
- 	u8 *p = buf;
- 	int eccsize = chip->ecc.size;
- 	int eccsteps = chip->ecc.steps;
--	struct spinand_info *info = (struct spinand_info *)chip->priv;
-+	struct spinand_info *info = nand_get_controller_data(chip);
- 
- 	enable_read_hw_ecc = 1;
- 
-@@ -679,7 +679,7 @@ static u8 spinand_read_byte(struct mtd_info *mtd)
- 
- static int spinand_wait(struct mtd_info *mtd, struct nand_chip *chip)
- {
--	struct spinand_info *info = (struct spinand_info *)chip->priv;
-+	struct spinand_info *info = nand_get_controller_data(chip);
- 
- 	unsigned long timeo = jiffies;
- 	int retval, state = chip->state;
-@@ -745,7 +745,7 @@ static void spinand_cmdfunc(struct mtd_info *mtd, unsigned int command,
- 			    int column, int page)
- {
- 	struct nand_chip *chip = mtd_to_nand(mtd);
--	struct spinand_info *info = (struct spinand_info *)chip->priv;
-+	struct spinand_info *info = nand_get_controller_data(chip);
- 	struct spinand_state *state = (struct spinand_state *)info->priv;
- 
- 	switch (command) {
-@@ -894,7 +894,7 @@ static int spinand_probe(struct spi_device *spi_nand)
- #endif
- 
- 	nand_set_flash_node(chip, spi_nand->dev.of_node);
--	chip->priv	= info;
-+	nand_set_controller_data(chip, info);
- 	chip->read_buf	= spinand_read_buf;
- 	chip->write_buf	= spinand_write_buf;
- 	chip->read_byte	= spinand_read_byte;
--- 
-2.1.4
+Acked-by: Lee Jones <lee.jones@linaro.org>
+
+>  include/linux/basic_mmio_gpio.h         |  80 ---------
+>  include/linux/gpio/driver.h             |  54 ++++++
+>  22 files changed, 442 insertions(+), 552 deletions(-)
+>  delete mode 100644 include/linux/basic_mmio_gpio.h
+
+[...]
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
