@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 23/58] mtd: nand: gpmi: use the mtd instance
- embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:07 +0100
-Message-ID: <1449734442-18672-24-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 24/58] mtd: nand: hisi504: use the mtd
+ instance embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:08 +0100
+Message-ID: <1449734442-18672-25-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBWPDUSZQKGQEW34HQ4Q-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBY7DUSZQKGQESLXT6XQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,133 +66,67 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/gpmi-nand/gpmi-lib.c  |  2 +-
- drivers/mtd/nand/gpmi-nand/gpmi-nand.c | 23 +++++++++++------------
- drivers/mtd/nand/gpmi-nand/gpmi-nand.h |  1 -
- 3 files changed, 12 insertions(+), 14 deletions(-)
+ drivers/mtd/nand/hisi504_nand.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-lib.c b/drivers/mtd/nand/gpmi-nand/gpmi-lib.c
-index 43fa16b..0f68a99 100644
---- a/drivers/mtd/nand/gpmi-nand/gpmi-lib.c
-+++ b/drivers/mtd/nand/gpmi-nand/gpmi-lib.c
-@@ -919,7 +919,7 @@ static int enable_edo_mode(struct gpmi_nand_data *this, int mode)
- {
- 	struct resources  *r = &this->resources;
- 	struct nand_chip *nand = &this->nand;
--	struct mtd_info	 *mtd = &this->mtd;
-+	struct mtd_info	 *mtd = nand_to_mtd(nand);
- 	uint8_t *feature;
- 	unsigned long rate;
- 	int ret;
-diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
-index 802adb0..38b07c7 100644
---- a/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
-+++ b/drivers/mtd/nand/gpmi-nand/gpmi-nand.c
-@@ -107,7 +107,7 @@ static irqreturn_t bch_irq(int irq, void *cookie)
- static inline int get_ecc_strength(struct gpmi_nand_data *this)
- {
- 	struct bch_geometry *geo = &this->bch_geometry;
--	struct mtd_info	*mtd = &this->mtd;
-+	struct mtd_info	*mtd = nand_to_mtd(&this->nand);
- 	int ecc_strength;
+diff --git a/drivers/mtd/nand/hisi504_nand.c b/drivers/mtd/nand/hisi504_nand.c
+index 6358d4a..6e6e482 100644
+--- a/drivers/mtd/nand/hisi504_nand.c
++++ b/drivers/mtd/nand/hisi504_nand.c
+@@ -134,7 +134,6 @@
  
- 	ecc_strength = ((mtd->oobsize - geo->metadata_size) * 8)
-@@ -139,8 +139,8 @@ static inline bool gpmi_check_ecc(struct gpmi_nand_data *this)
- static bool set_geometry_by_ecc_info(struct gpmi_nand_data *this)
- {
- 	struct bch_geometry *geo = &this->bch_geometry;
--	struct mtd_info *mtd = &this->mtd;
--	struct nand_chip *chip = mtd_to_nand(mtd);
-+	struct nand_chip *chip = &this->nand;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
- 	struct nand_oobfree *of = gpmi_hw_ecclayout.oobfree;
- 	unsigned int block_mark_bit_offset;
- 
-@@ -257,7 +257,7 @@ static bool set_geometry_by_ecc_info(struct gpmi_nand_data *this)
- static int legacy_set_geometry(struct gpmi_nand_data *this)
- {
- 	struct bch_geometry *geo = &this->bch_geometry;
--	struct mtd_info *mtd = &this->mtd;
-+	struct mtd_info *mtd = nand_to_mtd(&this->nand);
- 	unsigned int metadata_size;
- 	unsigned int status_size;
- 	unsigned int block_mark_bit_offset;
-@@ -804,7 +804,7 @@ static int gpmi_alloc_dma_buffer(struct gpmi_nand_data *this)
- {
- 	struct bch_geometry *geo = &this->bch_geometry;
- 	struct device *dev = this->dev;
--	struct mtd_info *mtd = &this->mtd;
-+	struct mtd_info *mtd = nand_to_mtd(&this->nand);
- 
- 	/* [1] Allocate a command buffer. PAGE_SIZE is enough. */
- 	this->cmd_buffer = kzalloc(PAGE_SIZE, GFP_DMA | GFP_KERNEL);
-@@ -1600,8 +1600,8 @@ static int mx23_check_transcription_stamp(struct gpmi_nand_data *this)
- {
- 	struct boot_rom_geometry *rom_geo = &this->rom_geometry;
- 	struct device *dev = this->dev;
--	struct mtd_info *mtd = &this->mtd;
- 	struct nand_chip *chip = &this->nand;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
- 	unsigned int search_area_size_in_strides;
- 	unsigned int stride;
- 	unsigned int page;
-@@ -1655,8 +1655,8 @@ static int mx23_write_transcription_stamp(struct gpmi_nand_data *this)
- {
- 	struct device *dev = this->dev;
- 	struct boot_rom_geometry *rom_geo = &this->rom_geometry;
--	struct mtd_info *mtd = &this->mtd;
- 	struct nand_chip *chip = &this->nand;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
- 	unsigned int block_size_in_pages;
- 	unsigned int search_area_size_in_strides;
- 	unsigned int search_area_size_in_pages;
-@@ -1735,7 +1735,7 @@ static int mx23_boot_init(struct gpmi_nand_data  *this)
- {
- 	struct device *dev = this->dev;
- 	struct nand_chip *chip = &this->nand;
--	struct mtd_info *mtd = &this->mtd;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
- 	unsigned int block_count;
- 	unsigned int block;
- 	int     chipnr;
-@@ -1831,14 +1831,13 @@ static int gpmi_set_geometry(struct gpmi_nand_data *this)
- 
- static void gpmi_nand_exit(struct gpmi_nand_data *this)
- {
--	nand_release(&this->mtd);
-+	nand_release(nand_to_mtd(&this->nand));
- 	gpmi_free_dma_buffer(this);
- }
- 
- static int gpmi_init_last(struct gpmi_nand_data *this)
- {
--	struct mtd_info *mtd = &this->mtd;
--	struct nand_chip *chip = mtd_to_nand(mtd);
-+	struct nand_chip *chip = &this->nand;
- 	struct nand_ecc_ctrl *ecc = &chip->ecc;
- 	struct bch_geometry *bch_geo = &this->bch_geometry;
- 	int ret;
-@@ -1886,8 +1885,8 @@ static int gpmi_init_last(struct gpmi_nand_data *this)
- 
- static int gpmi_nand_init(struct gpmi_nand_data *this)
- {
--	struct mtd_info  *mtd = &this->mtd;
- 	struct nand_chip *chip = &this->nand;
-+	struct mtd_info  *mtd = nand_to_mtd(chip);
- 	int ret;
- 
- 	/* init current chip */
-diff --git a/drivers/mtd/nand/gpmi-nand/gpmi-nand.h b/drivers/mtd/nand/gpmi-nand/gpmi-nand.h
-index 544062f..4e49a1f 100644
---- a/drivers/mtd/nand/gpmi-nand/gpmi-nand.h
-+++ b/drivers/mtd/nand/gpmi-nand/gpmi-nand.h
-@@ -160,7 +160,6 @@ struct gpmi_nand_data {
- 
- 	/* MTD / NAND */
- 	struct nand_chip	nand;
+ struct hinfc_host {
+ 	struct nand_chip	chip;
 -	struct mtd_info		mtd;
+ 	struct device		*dev;
+ 	void __iomem		*iobase;
+ 	void __iomem		*mmio;
+@@ -189,8 +188,8 @@ static void wait_controller_finished(struct hinfc_host *host)
  
- 	/* General-use Variables */
- 	int			current_chip;
+ static void hisi_nfc_dma_transfer(struct hinfc_host *host, int todev)
+ {
+-	struct mtd_info	*mtd = &host->mtd;
+-	struct nand_chip *chip = mtd_to_nand(mtd);
++	struct nand_chip *chip = &host->chip;
++	struct mtd_info	*mtd = nand_to_mtd(chip);
+ 	unsigned long val;
+ 	int ret;
+ 
+@@ -262,7 +261,7 @@ static int hisi_nfc_send_cmd_pageprog(struct hinfc_host *host)
+ 
+ static int hisi_nfc_send_cmd_readstart(struct hinfc_host *host)
+ {
+-	struct mtd_info	*mtd = &host->mtd;
++	struct mtd_info	*mtd = nand_to_mtd(&host->chip);
+ 
+ 	if ((host->addr_value[0] == host->cache_addr_value[0]) &&
+ 	    (host->addr_value[1] == host->cache_addr_value[1]))
+@@ -643,7 +642,7 @@ static int hisi_nfc_ecc_probe(struct hinfc_host *host)
+ 	int size, strength, ecc_bits;
+ 	struct device *dev = host->dev;
+ 	struct nand_chip *chip = &host->chip;
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(chip);
+ 	struct device_node *np = host->dev->of_node;
+ 
+ 	size = of_get_nand_ecc_step_size(np);
+@@ -712,7 +711,7 @@ static int hisi_nfc_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, host);
+ 	chip = &host->chip;
+-	mtd  = &host->mtd;
++	mtd  = nand_to_mtd(chip);
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+@@ -822,7 +821,7 @@ err_res:
+ static int hisi_nfc_remove(struct platform_device *pdev)
+ {
+ 	struct hinfc_host *host = platform_get_drvdata(pdev);
+-	struct mtd_info *mtd = &host->mtd;
++	struct mtd_info *mtd = nand_to_mtd(&host->chip);
+ 
+ 	nand_release(mtd);
+ 
 -- 
 2.1.4
