@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 39/58] mtd: nand: sh_flctl: use the mtd
+Subject: [PATCH v4 40/58] mtd: nand: sharpsl: use the mtd
  instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:23 +0100
-Message-ID: <1449734442-18672-40-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:24 +0100
+Message-ID: <1449734442-18672-41-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBPHFUSZQKGQELMHGIEA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBRXFUSZQKGQEV24W5DA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,69 +66,86 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/sh_flctl.c  | 8 ++++----
- include/linux/mtd/sh_flctl.h | 3 +--
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/mtd/nand/sharpsl.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mtd/nand/sh_flctl.c b/drivers/mtd/nand/sh_flctl.c
-index 57dc525..0ec4b04 100644
---- a/drivers/mtd/nand/sh_flctl.c
-+++ b/drivers/mtd/nand/sh_flctl.c
-@@ -607,13 +607,13 @@ static void execmd_read_page_sector(struct mtd_info *mtd, int page_addr)
- 		case FL_REPAIRABLE:
- 			dev_info(&flctl->pdev->dev,
- 				"applied ecc on page 0x%x", page_addr);
--			flctl->mtd.ecc_stats.corrected++;
-+			mtd->ecc_stats.corrected++;
- 			break;
- 		case FL_ERROR:
- 			dev_warn(&flctl->pdev->dev,
- 				"page 0x%x contains corrupted data\n",
- 				page_addr);
--			flctl->mtd.ecc_stats.failed++;
-+			mtd->ecc_stats.failed++;
- 			break;
- 		default:
- 			;
-@@ -1120,8 +1120,8 @@ static int flctl_probe(struct platform_device *pdev)
- 	}
+diff --git a/drivers/mtd/nand/sharpsl.c b/drivers/mtd/nand/sharpsl.c
+index 84129e5..4b649fb 100644
+--- a/drivers/mtd/nand/sharpsl.c
++++ b/drivers/mtd/nand/sharpsl.c
+@@ -29,13 +29,15 @@
+ #include <asm/mach-types.h>
  
- 	platform_set_drvdata(pdev, flctl);
--	flctl_mtd = &flctl->mtd;
- 	nand = &flctl->chip;
-+	flctl_mtd = nand_to_mtd(nand);
- 	nand_set_flash_node(nand, pdev->dev.of_node);
- 	flctl_mtd->priv = nand;
- 	flctl_mtd->dev.parent = &pdev->dev;
-@@ -1178,7 +1178,7 @@ static int flctl_remove(struct platform_device *pdev)
- 	struct sh_flctl *flctl = platform_get_drvdata(pdev);
- 
- 	flctl_release_dma(flctl);
--	nand_release(&flctl->mtd);
-+	nand_release(nand_to_mtd(&flctl->chip));
- 	pm_runtime_disable(&pdev->dev);
- 
- 	return 0;
-diff --git a/include/linux/mtd/sh_flctl.h b/include/linux/mtd/sh_flctl.h
-index 1c28f88..76e3e88 100644
---- a/include/linux/mtd/sh_flctl.h
-+++ b/include/linux/mtd/sh_flctl.h
-@@ -143,7 +143,6 @@ enum flctl_ecc_res_t {
- struct dma_chan;
- 
- struct sh_flctl {
+ struct sharpsl_nand {
 -	struct mtd_info		mtd;
  	struct nand_chip	chip;
- 	struct platform_device	*pdev;
- 	struct dev_pm_qos_request pm_qos;
-@@ -186,7 +185,7 @@ struct sh_flctl_platform_data {
  
- static inline struct sh_flctl *mtd_to_flctl(struct mtd_info *mtdinfo)
+ 	void __iomem		*io;
+ };
+ 
+-#define mtd_to_sharpsl(_mtd)	container_of(_mtd, struct sharpsl_nand, mtd)
++static inline struct sharpsl_nand *mtd_to_sharpsl(struct mtd_info *mtd)
++{
++	return container_of(mtd_to_nand(mtd), struct sharpsl_nand, chip);
++}
+ 
+ /* register offset */
+ #define ECCLPLB		0x00	/* line parity 7 - 0 bit */
+@@ -109,6 +111,7 @@ static int sharpsl_nand_calculate_ecc(struct mtd_info *mtd, const u_char * dat,
+ static int sharpsl_nand_probe(struct platform_device *pdev)
  {
--	return container_of(mtdinfo, struct sh_flctl, mtd);
-+	return container_of(mtd_to_nand(mtdinfo), struct sh_flctl, chip);
- }
+ 	struct nand_chip *this;
++	struct mtd_info *mtd;
+ 	struct resource *r;
+ 	int err = 0;
+ 	struct sharpsl_nand *sharpsl;
+@@ -143,8 +146,9 @@ static int sharpsl_nand_probe(struct platform_device *pdev)
+ 	this = (struct nand_chip *)(&sharpsl->chip);
  
- #endif	/* __SH_FLCTL_H__ */
+ 	/* Link the private data with the MTD structure */
+-	sharpsl->mtd.priv = this;
+-	sharpsl->mtd.dev.parent = &pdev->dev;
++	mtd = nand_to_mtd(this);
++	mtd->priv = this;
++	mtd->dev.parent = &pdev->dev;
+ 
+ 	platform_set_drvdata(pdev, sharpsl);
+ 
+@@ -173,14 +177,14 @@ static int sharpsl_nand_probe(struct platform_device *pdev)
+ 	this->ecc.correct = nand_correct_data;
+ 
+ 	/* Scan to find existence of the device */
+-	err = nand_scan(&sharpsl->mtd, 1);
++	err = nand_scan(mtd, 1);
+ 	if (err)
+ 		goto err_scan;
+ 
+ 	/* Register the partitions */
+-	sharpsl->mtd.name = "sharpsl-nand";
++	mtd->name = "sharpsl-nand";
+ 
+-	err = mtd_device_parse_register(&sharpsl->mtd, NULL, NULL,
++	err = mtd_device_parse_register(mtd, NULL, NULL,
+ 					data->partitions, data->nr_partitions);
+ 	if (err)
+ 		goto err_add;
+@@ -189,7 +193,7 @@ static int sharpsl_nand_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_add:
+-	nand_release(&sharpsl->mtd);
++	nand_release(mtd);
+ 
+ err_scan:
+ 	iounmap(sharpsl->io);
+@@ -207,7 +211,7 @@ static int sharpsl_nand_remove(struct platform_device *pdev)
+ 	struct sharpsl_nand *sharpsl = platform_get_drvdata(pdev);
+ 
+ 	/* Release resources, unregister device */
+-	nand_release(&sharpsl->mtd);
++	nand_release(nand_to_mtd(&sharpsl->chip));
+ 
+ 	iounmap(sharpsl->io);
+ 
 -- 
 2.1.4
