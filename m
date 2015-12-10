@@ -1,8 +1,8 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 09/58] mtd: nand: bf5xx: use the mtd instance
- embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 08:59:53 +0100
-Message-ID: <1449734442-18672-10-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 08/58] mtd: nand: bcm47xx: use the mtd
+ instance embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 08:59:52 +0100
+Message-ID: <1449734442-18672-9-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
@@ -66,73 +66,68 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/bf5xx_nand.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h | 1 -
+ drivers/mtd/nand/bcm47xxnflash/main.c          | 8 +++++---
+ drivers/mtd/nand/bcm47xxnflash/ops_bcm4706.c   | 2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/mtd/nand/bf5xx_nand.c b/drivers/mtd/nand/bf5xx_nand.c
-index d9da5ed..928d599 100644
---- a/drivers/mtd/nand/bf5xx_nand.c
-+++ b/drivers/mtd/nand/bf5xx_nand.c
-@@ -142,7 +142,6 @@ static struct nand_ecclayout bootrom_ecclayout = {
- struct bf5xx_nand_info {
- 	/* mtd info */
- 	struct nand_hw_control		controller;
--	struct mtd_info			mtd;
- 	struct nand_chip		chip;
+diff --git a/drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h b/drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h
+index c005a62..8ea7571 100644
+--- a/drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h
++++ b/drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h
+@@ -12,7 +12,6 @@ struct bcm47xxnflash {
+ 	struct bcma_drv_cc *cc;
  
- 	/* platform info */
-@@ -160,7 +159,8 @@ struct bf5xx_nand_info {
-  */
- static struct bf5xx_nand_info *mtd_to_nand_info(struct mtd_info *mtd)
+ 	struct nand_chip nand_chip;
+-	struct mtd_info mtd;
+ 
+ 	unsigned curr_command;
+ 	int curr_page_addr;
+diff --git a/drivers/mtd/nand/bcm47xxnflash/main.c b/drivers/mtd/nand/bcm47xxnflash/main.c
+index 9ba0c0f..4711ca2b 100644
+--- a/drivers/mtd/nand/bcm47xxnflash/main.c
++++ b/drivers/mtd/nand/bcm47xxnflash/main.c
+@@ -27,6 +27,7 @@ static int bcm47xxnflash_probe(struct platform_device *pdev)
  {
--	return container_of(mtd, struct bf5xx_nand_info, mtd);
-+	return container_of(mtd_to_nand(mtd), struct bf5xx_nand_info,
-+			    chip);
- }
+ 	struct bcma_nflash *nflash = dev_get_platdata(&pdev->dev);
+ 	struct bcm47xxnflash *b47n;
++	struct mtd_info *mtd;
+ 	int err = 0;
  
- static struct bf5xx_nand_info *to_nand_info(struct platform_device *pdev)
-@@ -660,7 +660,7 @@ static int bf5xx_nand_hw_init(struct bf5xx_nand_info *info)
-  */
- static int bf5xx_nand_add_partition(struct bf5xx_nand_info *info)
- {
--	struct mtd_info *mtd = &info->mtd;
-+	struct mtd_info *mtd = nand_to_mtd(&info->chip);
- 	struct mtd_partition *parts = info->platform->partitions;
- 	int nr = info->platform->nr_partitions;
+ 	b47n = devm_kzalloc(&pdev->dev, sizeof(*b47n), GFP_KERNEL);
+@@ -34,8 +35,9 @@ static int bcm47xxnflash_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  
-@@ -675,7 +675,7 @@ static int bf5xx_nand_remove(struct platform_device *pdev)
- 	 * and their partitions, then go through freeing the
- 	 * resources used
- 	 */
--	nand_release(&info->mtd);
-+	nand_release(nand_to_mtd(&info->chip));
+ 	b47n->nand_chip.priv = b47n;
+-	b47n->mtd.dev.parent = &pdev->dev;
+-	b47n->mtd.priv = &b47n->nand_chip; /* Required */
++	mtd = nand_to_mtd(&b47n->nand_chip);
++	mtd->dev.parent = &pdev->dev;
++	mtd->priv = &b47n->nand_chip; /* Required */
+ 	b47n->cc = container_of(nflash, struct bcma_drv_cc, nflash);
  
- 	peripheral_free_list(bfin_nfc_pin_req);
- 	bf5xx_nand_dma_remove(info);
-@@ -756,6 +756,7 @@ static int bf5xx_nand_probe(struct platform_device *pdev)
+ 	if (b47n->cc->core->bus->chipinfo.id == BCMA_CHIP_ID_BCM4706) {
+@@ -49,7 +51,7 @@ static int bcm47xxnflash_probe(struct platform_device *pdev)
+ 		return err;
+ 	}
  
- 	/* initialise chip data struct */
- 	chip = &info->chip;
-+	mtd = nand_to_mtd(&info->chip);
+-	err = mtd_device_parse_register(&b47n->mtd, probes, NULL, NULL, 0);
++	err = mtd_device_parse_register(mtd, probes, NULL, NULL, 0);
+ 	if (err) {
+ 		pr_err("Failed to register MTD device: %d\n", err);
+ 		return err;
+diff --git a/drivers/mtd/nand/bcm47xxnflash/ops_bcm4706.c b/drivers/mtd/nand/bcm47xxnflash/ops_bcm4706.c
+index e5b2e48..6524780 100644
+--- a/drivers/mtd/nand/bcm47xxnflash/ops_bcm4706.c
++++ b/drivers/mtd/nand/bcm47xxnflash/ops_bcm4706.c
+@@ -421,7 +421,7 @@ int bcm47xxnflash_ops_bcm4706_init(struct bcm47xxnflash *b47n)
+ 			(w4 << 24 | w3 << 18 | w2 << 12 | w1 << 6 | w0));
  
- 	if (plat->data_width)
- 		chip->options |= NAND_BUSWIDTH_16;
-@@ -772,7 +773,7 @@ static int bf5xx_nand_probe(struct platform_device *pdev)
- 	chip->cmd_ctrl     = bf5xx_nand_hwcontrol;
- 	chip->dev_ready    = bf5xx_nand_devready;
- 
--	chip->priv	   = &info->mtd;
-+	chip->priv	   = mtd;
- 	chip->controller   = &info->controller;
- 
- 	chip->IO_ADDR_R    = (void __iomem *) NFC_READ;
-@@ -781,7 +782,6 @@ static int bf5xx_nand_probe(struct platform_device *pdev)
- 	chip->chip_delay   = 0;
- 
- 	/* initialise mtd info data struct */
--	mtd 		= &info->mtd;
- 	mtd->priv	= chip;
- 	mtd->dev.parent = &pdev->dev;
- 
+ 	/* Scan NAND */
+-	err = nand_scan(&b47n->mtd, 1);
++	err = nand_scan(nand_to_mtd(&b47n->nand_chip), 1);
+ 	if (err) {
+ 		pr_err("Could not scan NAND flash: %d\n", err);
+ 		goto exit;
 -- 
 2.1.4
