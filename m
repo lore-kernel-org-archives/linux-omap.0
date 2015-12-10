@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 43/58] mtd: nand: tmio: use the mtd instance
- embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:27 +0100
-Message-ID: <1449734442-18672-44-git-send-email-boris.brezillon@free-electrons.com>
+Subject: [PATCH v4 44/58] mtd: nand: txx9ndfmc: use the mtd
+ instance embedded in struct nand_chip
+Date: Thu, 10 Dec 2015 09:00:28 +0100
+Message-ID: <1449734442-18672-45-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB6XFUSZQKGQEYE26G5I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBB77FUSZQKGQEV4Q7UVQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,51 +66,29 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/tmio_nand.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/mtd/nand/txx9ndfmc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/mtd/nand/tmio_nand.c b/drivers/mtd/nand/tmio_nand.c
-index 6d0cbe9..e7b82e1 100644
---- a/drivers/mtd/nand/tmio_nand.c
-+++ b/drivers/mtd/nand/tmio_nand.c
-@@ -103,7 +103,6 @@
- /*--------------------------------------------------------------------------*/
- 
- struct tmio_nand {
--	struct mtd_info mtd;
- 	struct nand_chip chip;
- 
+diff --git a/drivers/mtd/nand/txx9ndfmc.c b/drivers/mtd/nand/txx9ndfmc.c
+index ff9afb1..da7fcbd 100644
+--- a/drivers/mtd/nand/txx9ndfmc.c
++++ b/drivers/mtd/nand/txx9ndfmc.c
+@@ -63,7 +63,6 @@
+ struct txx9ndfmc_priv {
  	struct platform_device *dev;
-@@ -119,7 +118,10 @@ struct tmio_nand {
- 	unsigned read_good:1;
+ 	struct nand_chip chip;
+-	struct mtd_info mtd;
+ 	int cs;
+ 	const char *mtdname;
  };
+@@ -322,7 +321,7 @@ static int __init txx9ndfmc_probe(struct platform_device *dev)
+ 		if (!txx9_priv)
+ 			continue;
+ 		chip = &txx9_priv->chip;
+-		mtd = &txx9_priv->mtd;
++		mtd = nand_to_mtd(chip);
+ 		mtd->dev.parent = &dev->dev;
  
--#define mtd_to_tmio(m)			container_of(m, struct tmio_nand, mtd)
-+static inline struct tmio_nand *mtd_to_tmio(struct mtd_info *mtd)
-+{
-+	return container_of(mtd_to_nand(mtd), struct tmio_nand, chip);
-+}
- 
- 
- /*--------------------------------------------------------------------------*/
-@@ -378,8 +380,8 @@ static int tmio_probe(struct platform_device *dev)
- 	tmio->dev = dev;
- 
- 	platform_set_drvdata(dev, tmio);
--	mtd = &tmio->mtd;
- 	nand_chip = &tmio->chip;
-+	mtd = nand_to_mtd(nand_chip);
- 	mtd->priv = nand_chip;
- 	mtd->name = "tmio-nand";
- 	mtd->dev.parent = &dev->dev;
-@@ -456,7 +458,7 @@ static int tmio_remove(struct platform_device *dev)
- {
- 	struct tmio_nand *tmio = platform_get_drvdata(dev);
- 
--	nand_release(&tmio->mtd);
-+	nand_release(nand_to_mtd(&tmio->chip));
- 	tmio_hw_stop(dev, tmio);
- 	return 0;
- }
+ 		mtd->priv = chip;
 -- 
 2.1.4
