@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 19/58] mtd: nand: fsl_ifc: use the mtd
+Subject: [PATCH v4 18/58] mtd: nand: fsl_elbc: use the mtd
  instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:03 +0100
-Message-ID: <1449734442-18672-20-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:02 +0100
+Message-ID: <1449734442-18672-19-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBGPDUSZQKGQES2ZWKQY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBFXDUSZQKGQECNHNY4A-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,41 +66,41 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/fsl_ifc_nand.c | 28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ drivers/mtd/nand/fsl_elbc_nand.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/mtd/nand/fsl_ifc_nand.c b/drivers/mtd/nand/fsl_ifc_nand.c
-index 3136842..3f5654f 100644
---- a/drivers/mtd/nand/fsl_ifc_nand.c
-+++ b/drivers/mtd/nand/fsl_ifc_nand.c
-@@ -40,7 +40,6 @@ struct fsl_ifc_ctrl;
- 
+diff --git a/drivers/mtd/nand/fsl_elbc_nand.c b/drivers/mtd/nand/fsl_elbc_nand.c
+index ad6d5da..7bde76a 100644
+--- a/drivers/mtd/nand/fsl_elbc_nand.c
++++ b/drivers/mtd/nand/fsl_elbc_nand.c
+@@ -48,7 +48,6 @@
  /* mtd information per set */
- struct fsl_ifc_mtd {
+ 
+ struct fsl_elbc_mtd {
 -	struct mtd_info mtd;
  	struct nand_chip chip;
- 	struct fsl_ifc_ctrl *ctrl;
+ 	struct fsl_lbc_ctrl *ctrl;
  
-@@ -877,12 +876,13 @@ static int fsl_ifc_chip_init(struct fsl_ifc_mtd *priv)
- 	struct fsl_ifc_ctrl *ctrl = priv->ctrl;
- 	struct fsl_ifc_regs __iomem *ifc = ctrl->regs;
+@@ -742,12 +741,13 @@ static int fsl_elbc_chip_init(struct fsl_elbc_mtd *priv)
+ 	struct fsl_lbc_regs __iomem *lbc = ctrl->regs;
+ 	struct fsl_elbc_fcm_ctrl *elbc_fcm_ctrl = ctrl->nand;
  	struct nand_chip *chip = &priv->chip;
-+	struct mtd_info *mtd = nand_to_mtd(&priv->chip);
- 	struct nand_ecclayout *layout;
- 	u32 csor;
++	struct mtd_info *mtd = nand_to_mtd(chip);
  
- 	/* Fill in fsl_ifc_mtd structure */
+ 	dev_dbg(priv->dev, "eLBC Set Information for bank %d\n", priv->bank);
+ 
+ 	/* Fill in fsl_elbc_mtd structure */
 -	priv->mtd.priv = chip;
 -	priv->mtd.dev.parent = priv->dev;
 +	mtd->priv = chip;
 +	mtd->dev.parent = priv->dev;
  	nand_set_flash_node(chip, priv->dev->of_node);
  
- 	/* fill in nand_chip structure */
-@@ -994,9 +994,11 @@ static int fsl_ifc_chip_init(struct fsl_ifc_mtd *priv)
- 
- static int fsl_ifc_chip_remove(struct fsl_ifc_mtd *priv)
+ 	/* set timeout to maximum */
+@@ -798,9 +798,11 @@ static int fsl_elbc_chip_init(struct fsl_elbc_mtd *priv)
+ static int fsl_elbc_chip_remove(struct fsl_elbc_mtd *priv)
  {
+ 	struct fsl_elbc_fcm_ctrl *elbc_fcm_ctrl = priv->ctrl->nand;
 -	nand_release(&priv->mtd);
 +	struct mtd_info *mtd = nand_to_mtd(&priv->chip);
  
@@ -111,28 +111,27 @@ index 3136842..3f5654f 100644
  
  	if (priv->vbase)
  		iounmap(priv->vbase);
-@@ -1031,6 +1033,7 @@ static int fsl_ifc_nand_probe(struct platform_device *dev)
- 	int ret;
+@@ -824,6 +826,7 @@ static int fsl_elbc_nand_probe(struct platform_device *pdev)
  	int bank;
- 	struct device_node *node = dev->dev.of_node;
+ 	struct device *dev;
+ 	struct device_node *node = pdev->dev.of_node;
 +	struct mtd_info *mtd;
  
- 	if (!fsl_ifc_ctrl_dev || !fsl_ifc_ctrl_dev->regs)
+ 	if (!fsl_lbc_ctrl_dev || !fsl_lbc_ctrl_dev->regs)
  		return -ENODEV;
-@@ -1103,8 +1106,10 @@ static int fsl_ifc_nand_probe(struct platform_device *dev)
- 		  IFC_NAND_EVTER_INTR_FTOERIR_EN |
- 		  IFC_NAND_EVTER_INTR_WPERIR_EN,
- 		  &ifc->ifc_nand.nand_evter_intr_en);
+@@ -886,8 +889,9 @@ static int fsl_elbc_nand_probe(struct platform_device *pdev)
+ 		goto err;
+ 	}
+ 
 -	priv->mtd.name = kasprintf(GFP_KERNEL, "%llx.flash", (u64)res.start);
 -	if (!priv->mtd.name) {
-+
 +	mtd = nand_to_mtd(&priv->chip);
 +	mtd->name = kasprintf(GFP_KERNEL, "%llx.flash", (u64)res.start);
-+	if (!mtd->name) {
++	if (!nand_to_mtd(&priv->chip)->name) {
  		ret = -ENOMEM;
  		goto err;
  	}
-@@ -1113,22 +1118,21 @@ static int fsl_ifc_nand_probe(struct platform_device *dev)
+@@ -896,21 +900,21 @@ static int fsl_elbc_nand_probe(struct platform_device *pdev)
  	if (ret)
  		goto err;
  
@@ -141,8 +140,8 @@ index 3136842..3f5654f 100644
  	if (ret)
  		goto err;
  
--	ret = fsl_ifc_chip_init_tail(&priv->mtd);
-+	ret = fsl_ifc_chip_init_tail(mtd);
+-	ret = fsl_elbc_chip_init_tail(&priv->mtd);
++	ret = fsl_elbc_chip_init_tail(mtd);
  	if (ret)
  		goto err;
  
@@ -154,10 +153,9 @@ index 3136842..3f5654f 100644
  	/* First look for RedBoot table or partitions on the command
  	 * line, these take precedence over device tree information */
 -	mtd_device_parse_register(&priv->mtd, part_probe_types, NULL,
--						NULL, 0);
-+	mtd_device_parse_register(mtd, part_probe_types, NULL, NULL, 0);
++	mtd_device_parse_register(mtd, part_probe_types, NULL,
+ 				  NULL, 0);
  
- 	dev_info(priv->dev, "IFC NAND device at 0x%llx, bank %d\n",
- 		 (unsigned long long)res.start, priv->bank);
+ 	printk(KERN_INFO "eLBC NAND device at 0x%llx, bank %d\n",
 -- 
 2.1.4
