@@ -1,74 +1,66 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [PATCH 004/182] gpio: generic: factor into gpio_chip struct
-Date: Thu, 10 Dec 2015 11:19:58 +0900
-Message-ID: <5668E14E.8010302@samsung.com>
-References: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for 4.4 0/2] DT/dmaengine: edma: Convert 16bit arrays to
+ 32bit
+Date: Thu, 10 Dec 2015 08:34:10 +0530
+Message-ID: <20151210030410.GG1854@localhost>
+References: <1449649091-9848-1-git-send-email-peter.ujfalusi@ti.com>
+ <20151209201226.GB23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-reply-to: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Johan Hovold <johan@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>, Michael Welling <mwelling@ieee.org>, Markus Pargmann <mpa@pengutronix.de>, Anton Vorontsov <anton@enomsg.org>
-Cc: arm@kernel.org, Lee Jones <lee.jones@linaro.org>, Alexander Shiyan <shc_work@mail.ru>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Kukjin Kim <kgene@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Gregory Fong <gregory.0xf0@gmail.com>, Brian Norris <computersforpeace@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Olof Johansson <olof@lixom.net>, Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>, Rabin Vincent <rabin@rab.in>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20151209201226.GB23396-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, arnd-r2nGTMty4D4@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09.12.2015 22:12, Linus Walleij wrote:
-> The separate struct bgpio_chip has been a pain to handle, both
-> by being confusingly similar in name to struct gpio_chip and
-> for being contained inside a struct so that struct gpio_chip
-> is contained in a struct contained in a struct, making several
-> steps of dereferencing necessary.
+On Wed, Dec 09, 2015 at 12:12:27PM -0800, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151209 00:19]:
+> > Hi,
+> > 
+> > Based on the discussion regarding to (convert am33xx to use the new eDMA
+> > bindings):
+> > https://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg122117.html
+> > 
+> > This two patch will convert the new eDMA binding to not use 16bit arrays for
+> > memcpy channel selection and for marking slots reserved.
+> > The '/bits/ 16' seams to be causing confusion so it is probably better to just
+> > use standard type for the arrays.
+> > 
+> > The new bindings for the eDMA is introduced for 4.4 and we do not have users of
+> > it, which means that we can still change it w/o the risk of breaking anything
+> > and we do not need to maintain the compatibility with 16bit arrays.
+> > 
+> > The changes in the eDMA driver is local to the DT parsing and should not
+> > conflict with other changes (like the filter function mapping support). Hrm,
+> > there might be trivial conflict in the include/linux/platform_data/edma.h with
+> > the "dmaengine 'universal' API".
+> > 
+> > Tony, Arnd, Vinod: Can you agree on the practicalities on how these patches are
+> > going to be handled? I would like to send the updated am33xx/am437x conversion
+> > for 4.5 based on these changes.
 > 
-> Make things simpler: include the fields directly into
-> <linux/gpio/driver.h>, #ifdef:ed for CONFIG_GENERIC_GPIO, and
-> get rid of the <linux/basic_mmio_gpio.h> altogether. Prefix
-> some of the member variables with bgpio_* and add proper
-> kerneldoc while we're at it.
+> Yes this should go into v4.4 as discussed, otherwise it will be a mess.
+> For both, please feel free to add:
 > 
-> Modify all users to handle the change and use a struct
-> gpio_chip directly. And while we're at it: replace all
-> container_of() dereferencing by gpiochip_get_data() and
-> registering the gpio_chip with gpiochip_add_data().
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > 
-> Cc: arm@kernel.org
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Alexander Shiyan <shc_work@mail.ru>
-> Cc: Shawn Guo <shawnguo@kernel.org>
-> Cc: Sascha Hauer <kernel@pengutronix.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kukjin Kim <kgene@kernel.org>
-> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> Cc: Alexandre Courbot <gnurou@gmail.com>
-> Cc: Gregory Fong <gregory.0xf0@gmail.com>
-> Cc: Brian Norris <computersforpeace@gmail.com>
-> Cc: Florian Fainelli <f.fainelli@gmail.com>
-> Cc: Liviu Dudau <liviu.dudau@arm.com>
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-> Cc: Olof Johansson <olof@lixom.net>
-> Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-> Cc: Rabin Vincent <rabin@rab.in>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Cc: bcm-kernel-feedback-list@broadcom.com
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
-> ARM SoC folks and Lee: it would be great if you could
-> ACK the few lines hitting arch/arm/* and drivers/mfd/* in this
-> so I can take it through the GPIO tree.
-> ---
->  arch/arm/mach-clps711x/board-autcpu12.c |   2 +-
->  arch/arm/mach-clps711x/board-p720t.c    |   2 +-
->  arch/arm/mach-imx/mach-mx21ads.c        |   2 +-
->  arch/arm/mach-omap1/board-ams-delta.c   |   2 +-
->  arch/arm/mach-s3c64xx/mach-crag6410.c   |   2 +-
+> I suggest Vinod sets up an immutable branch against v4.4-rc1 with just these
+> two patches. Then it can get merged into whichever branch needs it, I
+> certainly will need it as most of my v4.5 branches are v4.4-rc1 or -rc2
+> based.
+> 
+> Then the immutable branch can be merged into v4.4 by Vinod or Arnd.
 
-For s3c64xx:
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Applied to fix/edma. This is based on -rc1 and will not rebase.
 
-Best regards,
-Krzysztof
+I am merging this to my fixes and will send to Linus in couple of days
 
+Thanks
+-- 
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
