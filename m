@@ -1,13 +1,13 @@
 From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH v4 38/58] mtd: nand: s3c2410: use the mtd
+Subject: [PATCH v4 39/58] mtd: nand: sh_flctl: use the mtd
  instance embedded in struct nand_chip
-Date: Thu, 10 Dec 2015 09:00:22 +0100
-Message-ID: <1449734442-18672-39-git-send-email-boris.brezillon@free-electrons.com>
+Date: Thu, 10 Dec 2015 09:00:23 +0100
+Message-ID: <1449734442-18672-40-git-send-email-boris.brezillon@free-electrons.com>
 References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
 Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBOHFUSZQKGQEXTY5ZLY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBPHFUSZQKGQELMHGIEA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 In-Reply-To: <1449734442-18672-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
@@ -66,95 +66,69 @@ __type *__priv;
 )
 --->8---
 ---
- drivers/mtd/nand/s3c2410.c | 23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ drivers/mtd/nand/sh_flctl.c  | 8 ++++----
+ include/linux/mtd/sh_flctl.h | 3 +--
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/mtd/nand/s3c2410.c b/drivers/mtd/nand/s3c2410.c
-index e658b29..c074a49 100644
---- a/drivers/mtd/nand/s3c2410.c
-+++ b/drivers/mtd/nand/s3c2410.c
-@@ -104,7 +104,6 @@ struct s3c2410_nand_info;
-  * @scan_res: The result from calling nand_scan_ident().
- */
- struct s3c2410_nand_mtd {
--	struct mtd_info			mtd;
- 	struct nand_chip		chip;
- 	struct s3c2410_nand_set		*set;
- 	struct s3c2410_nand_info	*info;
-@@ -168,7 +167,8 @@ struct s3c2410_nand_info {
+diff --git a/drivers/mtd/nand/sh_flctl.c b/drivers/mtd/nand/sh_flctl.c
+index 57dc525..0ec4b04 100644
+--- a/drivers/mtd/nand/sh_flctl.c
++++ b/drivers/mtd/nand/sh_flctl.c
+@@ -607,13 +607,13 @@ static void execmd_read_page_sector(struct mtd_info *mtd, int page_addr)
+ 		case FL_REPAIRABLE:
+ 			dev_info(&flctl->pdev->dev,
+ 				"applied ecc on page 0x%x", page_addr);
+-			flctl->mtd.ecc_stats.corrected++;
++			mtd->ecc_stats.corrected++;
+ 			break;
+ 		case FL_ERROR:
+ 			dev_warn(&flctl->pdev->dev,
+ 				"page 0x%x contains corrupted data\n",
+ 				page_addr);
+-			flctl->mtd.ecc_stats.failed++;
++			mtd->ecc_stats.failed++;
+ 			break;
+ 		default:
+ 			;
+@@ -1120,8 +1120,8 @@ static int flctl_probe(struct platform_device *pdev)
+ 	}
  
- static struct s3c2410_nand_mtd *s3c2410_nand_mtd_toours(struct mtd_info *mtd)
+ 	platform_set_drvdata(pdev, flctl);
+-	flctl_mtd = &flctl->mtd;
+ 	nand = &flctl->chip;
++	flctl_mtd = nand_to_mtd(nand);
+ 	nand_set_flash_node(nand, pdev->dev.of_node);
+ 	flctl_mtd->priv = nand;
+ 	flctl_mtd->dev.parent = &pdev->dev;
+@@ -1178,7 +1178,7 @@ static int flctl_remove(struct platform_device *pdev)
+ 	struct sh_flctl *flctl = platform_get_drvdata(pdev);
+ 
+ 	flctl_release_dma(flctl);
+-	nand_release(&flctl->mtd);
++	nand_release(nand_to_mtd(&flctl->chip));
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+diff --git a/include/linux/mtd/sh_flctl.h b/include/linux/mtd/sh_flctl.h
+index 1c28f88..76e3e88 100644
+--- a/include/linux/mtd/sh_flctl.h
++++ b/include/linux/mtd/sh_flctl.h
+@@ -143,7 +143,6 @@ enum flctl_ecc_res_t {
+ struct dma_chan;
+ 
+ struct sh_flctl {
+-	struct mtd_info		mtd;
+ 	struct nand_chip	chip;
+ 	struct platform_device	*pdev;
+ 	struct dev_pm_qos_request pm_qos;
+@@ -186,7 +185,7 @@ struct sh_flctl_platform_data {
+ 
+ static inline struct sh_flctl *mtd_to_flctl(struct mtd_info *mtdinfo)
  {
--	return container_of(mtd, struct s3c2410_nand_mtd, mtd);
-+	return container_of(mtd_to_nand(mtd), struct s3c2410_nand_mtd,
-+			    chip);
+-	return container_of(mtdinfo, struct sh_flctl, mtd);
++	return container_of(mtd_to_nand(mtdinfo), struct sh_flctl, chip);
  }
  
- static struct s3c2410_nand_info *s3c2410_nand_mtd_toinfo(struct mtd_info *mtd)
-@@ -745,7 +745,7 @@ static int s3c24xx_nand_remove(struct platform_device *pdev)
- 
- 		for (mtdno = 0; mtdno < info->mtd_count; mtdno++, ptr++) {
- 			pr_debug("releasing mtd %d (%p)\n", mtdno, ptr);
--			nand_release(&ptr->mtd);
-+			nand_release(nand_to_mtd(&ptr->chip));
- 		}
- 	}
- 
-@@ -762,9 +762,11 @@ static int s3c2410_nand_add_partition(struct s3c2410_nand_info *info,
- 				      struct s3c2410_nand_set *set)
- {
- 	if (set) {
--		mtd->mtd.name = set->name;
-+		struct mtd_info *mtdinfo = nand_to_mtd(&mtd->chip);
- 
--		return mtd_device_parse_register(&mtd->mtd, NULL, NULL,
-+		mtdinfo->name = set->name;
-+
-+		return mtd_device_parse_register(mtdinfo, NULL, NULL,
- 					 set->partitions, set->nr_partitions);
- 	}
- 
-@@ -786,6 +788,7 @@ static void s3c2410_nand_init_chip(struct s3c2410_nand_info *info,
- 				   struct s3c2410_nand_set *set)
- {
- 	struct nand_chip *chip = &nmtd->chip;
-+	struct mtd_info *mtd = nand_to_mtd(chip);
- 	void __iomem *regs = info->regs;
- 
- 	chip->write_buf    = s3c2410_nand_write_buf;
-@@ -831,7 +834,7 @@ static void s3c2410_nand_init_chip(struct s3c2410_nand_info *info,
- 	chip->IO_ADDR_R = chip->IO_ADDR_W;
- 
- 	nmtd->info	   = info;
--	nmtd->mtd.priv	   = chip;
-+	mtd->priv	   = chip;
- 	nmtd->set	   = set;
- 
- #ifdef CONFIG_MTD_NAND_S3C2410_HWECC
-@@ -1012,19 +1015,21 @@ static int s3c24xx_nand_probe(struct platform_device *pdev)
- 	nmtd = info->mtds;
- 
- 	for (setno = 0; setno < nr_sets; setno++, nmtd++) {
-+		struct mtd_info *mtd = nand_to_mtd(&nmtd->chip);
-+
- 		pr_debug("initialising set %d (%p, info %p)\n",
- 			 setno, nmtd, info);
- 
--		nmtd->mtd.dev.parent = &pdev->dev;
-+		mtd->dev.parent = &pdev->dev;
- 		s3c2410_nand_init_chip(info, nmtd, sets);
- 
--		nmtd->scan_res = nand_scan_ident(&nmtd->mtd,
-+		nmtd->scan_res = nand_scan_ident(mtd,
- 						 (sets) ? sets->nr_chips : 1,
- 						 NULL);
- 
- 		if (nmtd->scan_res == 0) {
- 			s3c2410_nand_update_chip(info, nmtd);
--			nand_scan_tail(&nmtd->mtd);
-+			nand_scan_tail(mtd);
- 			s3c2410_nand_add_partition(info, nmtd, sets);
- 		}
- 
+ #endif	/* __SH_FLCTL_H__ */
 -- 
 2.1.4
