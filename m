@@ -1,66 +1,50 @@
-From: Dinh Nguyen <dinh.linux@gmail.com>
-Subject: Re: [PATCH v5 01/58] mtd: nand: denali: add missing nand_release()
- call in denali_remove()
-Date: Fri, 11 Dec 2015 10:50:21 -0600
-Message-ID: <CADhT+wcNFxD6Zv9w8W0sontVWa6zOkHjyK42Tw=Y_1X2XCTZfQ@mail.gmail.com>
-References: <1449734442-18672-2-git-send-email-boris.brezillon@free-electrons.com>
-	<1449842554-29898-1-git-send-email-boris.brezillon@free-electrons.com>
-	<20151211161008.056a0f47@bbrezillon>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] clk: ti: omap5+: dpll: implement errata i810
+Date: Fri, 11 Dec 2015 08:55:49 -0800
+Message-ID: <20151211165549.GN23396@atomide.com>
+References: <1448894605-30097-1-git-send-email-t-kristo@ti.com>
+ <20151203164817.GT23396@atomide.com>
+ <566A8CB7.4050701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20151211161008.056a0f47@bbrezillon>
-Sender: linux-doc-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Stefan Agner <stefan@agner.ch>, linux-sunxi@googlegroups.com, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-samsung-soc@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electr>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <566A8CB7.4050701@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Boris,
+* Tero Kristo <t-kristo@ti.com> [151211 00:42]:
+> On 12/03/2015 06:48 PM, Tony Lindgren wrote:
+> >* Tero Kristo <t-kristo@ti.com> [151130 06:44]:
+> >>+	/*
+> >>+	 * Errata i810 - DPLL controller can get stuck while transitioning
+> >>+	 * to a power saving state. Software must ensure the DPLL can not
+> >>+	 * transition to a low power state while changing M/N values.
+> >>+	 * Easiest way to accomplish this is to prevent DPLL autoidle
+> >>+	 * before doing the M/N re-program.
+> >>+	 */
+> >>+	errata_i810 = ti_clk_get_features()->flags & TI_CLK_ERRATA_I810;
+> >>+
+> >>+	if (errata_i810) {
+> >>+		ai = omap3_dpll_autoidle_read(clk);
+> >>+		if (ai) {
+> >>+			omap3_dpll_deny_idle(clk);
+> >>+
+> >>+			/* OCP barrier */
+> >>+			omap3_dpll_autoidle_read(clk);
+> >>+		}
+> >>+	}
+> >
+> >Should we just do this unconditionally? It seems like disabling the
+> >autoidle always before reprogramming is a good idea.
+> 
+> Well, that is a few extra register accesses, but given the DPLL
+> re-programming is a slow operation it probably does not matter. Let me spin
+> a new version of this patch, it will avoid the need for the errata flag
+> also.
 
-On Fri, Dec 11, 2015 at 9:10 AM, Boris Brezillon
-<boris.brezillon@free-electrons.com> wrote:
-> + Dinh (who made commit 2a0a288ec258)
->
-> Also added back the Fixes tag.
->
-> On Fri, 11 Dec 2015 15:02:34 +0100
-> Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
->
->> Unregister the NAND device from the NAND subsystem when removing a denali
->> NAND controller, otherwise the MTD attached to the NAND device is still
->> exposed by the MTD layer, and accesses to this device will likely crash
->> the system.
->>
->> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
->
-> Fixes: 2a0a288ec258 ("mtd: denali: split the generic driver and PCI layer")
->
->> ---
->> Changes since v4:
->> - remove Cc stable and fixes tags
->> - calculate the dma buffer size before calling nand_release()
->>
->>  drivers/mtd/nand/denali.c | 6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/mtd/nand/denali.c b/drivers/mtd/nand/denali.c
->> index 67eb2be..fdfea05 100644
->> --- a/drivers/mtd/nand/denali.c
->> +++ b/drivers/mtd/nand/denali.c
->> @@ -1622,9 +1622,11 @@ EXPORT_SYMBOL(denali_init);
->>  /* driver exit point */
->>  void denali_remove(struct denali_nand_info *denali)
->>  {
->> +     int bufsize = denali->mtd.writesize + denali->mtd.oobsize;
->> +
->> +     nand_release(&denali->mtd);
->>       denali_irq_cleanup(denali->irq, denali);
->> -     dma_unmap_single(denali->dev, denali->buf.dma_buf,
->> -                      denali->mtd.writesize + denali->mtd.oobsize,
->> +     dma_unmap_single(denali->dev, denali->buf.dma_buf, bufsize,
->>                        DMA_BIDIRECTIONAL);
+OK thanks,
 
-Not sure what is the need to add bufsize here, but the commit message
-doesn't reflect the change.
-
-Dinh
+Tony
