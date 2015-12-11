@@ -1,47 +1,31 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: omap5+: dpll: implement errata i810
-Date: Fri, 11 Dec 2015 10:43:35 +0200
-Message-ID: <566A8CB7.4050701@ti.com>
-References: <1448894605-30097-1-git-send-email-t-kristo@ti.com>
- <20151203164817.GT23396@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/2] ARM: OMAP1/2+: DO not create omap-pcm-audio device
+Date: Fri, 11 Dec 2015 14:50:18 +0200
+Message-ID: <1449838220-24309-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20151203164817.GT23396@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/03/2015 06:48 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [151130 06:44]:
->> +	/*
->> +	 * Errata i810 - DPLL controller can get stuck while transitioning
->> +	 * to a power saving state. Software must ensure the DPLL can not
->> +	 * transition to a low power state while changing M/N values.
->> +	 * Easiest way to accomplish this is to prevent DPLL autoidle
->> +	 * before doing the M/N re-program.
->> +	 */
->> +	errata_i810 = ti_clk_get_features()->flags & TI_CLK_ERRATA_I810;
->> +
->> +	if (errata_i810) {
->> +		ai = omap3_dpll_autoidle_read(clk);
->> +		if (ai) {
->> +			omap3_dpll_deny_idle(clk);
->> +
->> +			/* OCP barrier */
->> +			omap3_dpll_autoidle_read(clk);
->> +		}
->> +	}
->
-> Should we just do this unconditionally? It seems like disabling the
-> autoidle always before reprogramming is a good idea.
+Hi,
 
-Well, that is a few extra register accesses, but given the DPLL 
-re-programming is a slow operation it probably does not matter. Let me 
-spin a new version of this patch, it will avoid the need for the errata 
-flag also.
+The ASoC omap-pcm has been converted to be non platform device a long time ago,
+so it is no longer needed to create the device for it since there will be no
+driver to be loaded for it.
 
--Tero
+Regards,
+Peter
+---
+Peter Ujfalusi (2):
+  ARM: OMAP1: Remove device creation for omap-pcm-audio
+  ARM: OMAP2+: Remove device creation for omap-pcm-audio
 
+ arch/arm/mach-omap1/devices.c | 19 -------------------
+ arch/arm/mach-omap2/devices.c | 25 ++++---------------------
+ 2 files changed, 4 insertions(+), 40 deletions(-)
+
+-- 
+2.6.4
