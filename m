@@ -1,109 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH v2] clk: ti: Add support for dm814x ADPLL
-Date: Fri, 11 Dec 2015 07:48:54 -0800
-Message-ID: <20151211154854.GK23396@atomide.com>
+Date: Fri, 11 Dec 2015 08:03:54 -0800
+Message-ID: <20151211160353.GL23396@atomide.com>
 References: <1449800792-5551-1-git-send-email-tony@atomide.com>
- <20151211135237.GG30871@n2100.arm.linux.org.uk>
+ <566A7F52.4020801@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151211135237.GG30871@n2100.arm.linux.org.uk>
+In-Reply-To: <566A7F52.4020801@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Philipp Rosenberger <ilu@linutronix.de>, Brian Hutchinson <b.hutchman@gmail.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [151211 05:53]:
-> On Thu, Dec 10, 2015 at 06:26:32PM -0800, Tony Lindgren wrote:
-> > +	/* Released with kfree() by clkdev_drop() */
-> > +	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
-> > +	if (!cl)
-> > +		return -ENOMEM;
-> > +
-> > +	/* Use clkdev_add, clk_register_clkdev limits length to MAX_CON_ID */
-> > +	cl->con_id = name;
-> > +	cl->clk = clock;
-> > +	cl->clk_hw = __clk_get_hw(clock);
-> > +	clkdev_add(cl);
-> > +	d->clocks[index].cl = cl;
+* Tero Kristo <t-kristo@ti.com> [151210 23:45]:
+> On 12/11/2015 04:26 AM, Tony Lindgren wrote:
 > 
-> NAK.  I've no idea why you're open-coding the clkdev internals (which
-> seems to have been a historical habbit in OMAP code.)  Please stop
-> doing this.
->
-> You are provided with clkdev_alloc() which will allocate the structure
-> and initialise it for you, and clkdev_add() which will add the allocated
-> and initialised struct to the list of lookups.  Everything you're doing
-> above can be done with clkdev_alloc() + clkdev_add() which have been
-> there for a _very_ long time.  They're even documented (thanks for
-> providing me with more proof that documentation is nothing but a waste
-> of time. :))
+> Looks mostly good to me, added some minor comments inline below. Sorry again
+> for latencies in my replies.
 
-I tried, but I was seeing mysterious silent failures for some clocks.
+No problme, thanks for looking.
 
-> Even better is clkdev_create() which eliminates the two step clkdev_alloc()
-> and clkdev_add() process.
+> >+static bool ti_adpll_clock_is_bypass(struct ti_adpll_data *d)
+> >+{
+> >+	unsigned long flags;
+> >+	u32 v;
+> >+
+> >+	spin_lock_irqsave(&d->lock, flags);
+> >+	v = readl_relaxed(d->status);
+> >+	spin_unlock_irqrestore(&d->lock, flags);
 > 
-> So, the whole of the above can be reduced down to:
+> What do you need the lock for in here?
+
+Yeah seems pointless, will remove.
+
+> >+static int ti_adpll_clkout_set_parent(struct clk_hw *hw, u8 index)
+> >+{
+> >+	struct ti_adpll_clkout_data *co = to_clkout(hw);
+> >+	struct ti_adpll_data *d = co->adpll;
+> >+
+> >+	return ti_adpll_clock_is_bypass(d) == index;
+
+Hmm yeah that seems broken. I need to check what all really goes
+to bypass mode with ulowclken signal.
+
+> What is the point of this? It doesn't seem to set anything.
+
+> >+	/* Internal mux, sources sources from DCO and clkinphf */
 > 
-> 	cl = clkdev_create(clock, name, NULL);
-> 	if (!cl)
-> 		return -ENOMEM;
+> Double "sources" in comment?
 > 
+> >+	/* Output clkout clkout, sources M2 or ulow */
+> 
+> Double "clkout" in comment?
 
-There's a problem with MAX_CON_ID 16 hardcoded allocated name length.
+Oops will fix.
 
-In this case I have 13 instances of plls with 3 - 4 outputs each and I'd
-like to use "481c5040.adpll.clkout" style naming starting with the instance
-address. Also "adpll5.clkdcoldo" style naming would work,
+> >+	d->pwrctrl = d->base + register_offset + ADPLL_PWRCTRL_OFFSET;
+> >+	d->clkctrl = d->base + register_offset + ADPLL_CLKCTRL_OFFSET;
+> >+	d->tenable = d->base + register_offset + ADPLL_TENABLE_OFFSET;
+> >+	d->tenablediv = d->base + register_offset + ADPLL_TENABLEDIV_OFFSET;
+> >+	d->m2ndiv = d->base + register_offset + ADPLL_M2NDIV_OFFSET;
+> >+	d->mn2div = d->base + register_offset + ADPLL_MN2DIV_OFFSET;
+> >+	d->fracdiv = d->base + register_offset + ADPLL_FRACDIV_OFFSET;
+> >+	d->bwctrl = d->base + register_offset + ADPLL_BWCTRL_OFFSET;
+> >+	d->status = d->base + register_offset + ADPLL_STATUS_OFFSET;
+> >+	d->m3div = d->base + register_offset + ADPLL_M3DIV_OFFSET;
+> >+	d->rampctrl = d->base + register_offset + ADPLL_RAMPCTRL_OFFSET;
+> 
+> Do you need the individual pointers to each of these registers within the
+> struct? Seems the offsets are pretty static so could just use d->base +
+> offset + MAGIC calculation where used.
+> 
+> Most of these registers are not used for anything either at the moment it
+> seems.
 
-Below is a patch we should probably apply as a band aid to produce a proper
-warning.
+Well I guess I was initially thinking that we can set up separate instances
+for the children and don't need locking for the registers.. But all of them
+really share the clkctl register so that did not work out.
 
-Naturally we don't want to allocate longer names for all the clocks.. And
-we already do have some const names coming from device tree we could use.
-
-What if we optionally allow passing a name to clkdev and add some flag
-that tells clkdev code not to attempt to free it? Or do you have better
-ideas in mind to fix the issue?
+Yeah I can change these to use offsets no problem.
 
 Regards,
 
 Tony
-
-8< ----------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 11 Dec 2015 07:28:36 -0800
-Subject: [PATCH] clkdev: Make silent failures of clk_get() produce a proper
- warning
-
-Otherwise we can see mysterious failures with some clocks where
-the name is longer than MAX_CON_ID 16. This can easily happen with
-clock names coming from device tree for example in the form of
-"481c5040.adpll.clkout" or "adpll1.clkdcoldo".
-
-Let's make things a bit easier to debug by adding a warning for
-the clock name. Note that we don't want to error out here as the
-string matching still probably does the right thing for most
-clocks.
-
-Also note that we should also remove the hardcoded name allocation
-in clkdev by adding functions that allow passing a name to clkdev
-optionally.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/clk/clkdev.c
-+++ b/drivers/clk/clkdev.c
-@@ -256,6 +256,10 @@ vclkdev_alloc(struct clk_hw *hw, const char *con_id, const char *dev_fmt,
- {
- 	struct clk_lookup_alloc *cla;
- 
-+	if (strlen(con_id) > MAX_CON_ID)
-+		pr_warn("%s length of %s > %i, clock lookup can fail\n",
-+			__func__, con_id, MAX_CON_ID);
-+
- 	cla = __clkdev_alloc(sizeof(*cla));
- 	if (!cla)
- 		return NULL;
