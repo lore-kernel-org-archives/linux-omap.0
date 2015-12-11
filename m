@@ -1,70 +1,71 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v5 01/58] mtd: nand: denali: add missing
- nand_release() call in denali_remove()
-Date: Fri, 11 Dec 2015 16:10:08 +0100
-Message-ID: <20151211161008.056a0f47@bbrezillon>
-References: <1449734442-18672-2-git-send-email-boris.brezillon@free-electrons.com>
-	<1449842554-29898-1-git-send-email-boris.brezillon@free-electrons.com>
-Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v4 01/58] mtd: nand: denali: add missing nand_release()
+ call in denali_remove()
+Date: Fri, 11 Dec 2015 16:15:35 +0100
+Message-ID: <20151211161535.60a96ec2@bbrezillon>
+References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1449734442-18672-2-git-send-email-boris.brezillon@free-electrons.com>
+ <20151211004008.GQ144338@google.com>
+ <20151211145320.1560fac3@bbrezillon> <20151211143947.GL5284@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBUWOVOZQKGQEGAMSJFQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <1449842554-29898-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/linux-sunxi
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/linux-sunxi/subscribe>
-To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steven Miao <realmz6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mikael
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20151211143947.GL5284@mwanda>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Stefan Agner <stefan@agner.ch>, linux-sunxi@googlegroups.com, linux-mtd@lists.infradead.org, Shawn Guo <shawnguo@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, Jason Cooper <jason@lakedaemon.net>, devel@driverdev.osuosl.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-samsung-soc@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Alexander Clouter <alex@digriz.org.uk>, Wan ZongShun <mcuos.com@gmail.com>, Steven Miao <realmz6@gmail.com>, adi-buildroot-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-+ Dinh (who made commit 2a0a288ec258)
+Hi Dan,
 
-Also added back the Fixes tag.
+On Fri, 11 Dec 2015 17:39:47 +0300
+Dan Carpenter <dan.carpenter@oracle.com> wrote:
 
-On Fri, 11 Dec 2015 15:02:34 +0100
-Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> wrote:
-
-> Unregister the NAND device from the NAND subsystem when removing a denali
-> NAND controller, otherwise the MTD attached to the NAND device is still
-> exposed by the MTD layer, and accesses to this device will likely crash
-> the system.
+> On Fri, Dec 11, 2015 at 02:53:20PM +0100, Boris Brezillon wrote:
+> > Hi Brian,
+> > 
+> > On Thu, 10 Dec 2015 16:40:08 -0800
+> > Brian Norris <computersforpeace@gmail.com> wrote:
+> > 
+> > > On Thu, Dec 10, 2015 at 08:59:45AM +0100, Boris Brezillon wrote:
+> > > > Unregister the NAND device from the NAND subsystem when removing a denali
+> > > > NAND controller, otherwise the MTD attached to the NAND device is still
+> > > > exposed by the MTD layer, and accesses to this device will likely crash
+> > > > the system.
+> > > > 
+> > > > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > > > Cc: <stable@vger.kernel.org> #3.8+
+> > > 
+> > > Does this follow these rules, from
+> > > Documentation/stable_kernel_rules.txt?
+> > > 
+> > >  - It must be obviously correct and tested.
+> > > 
+> > >  - It must fix a real bug that bothers people (not a, "This could be a
+> > >    problem..." type thing).
+> > 
+> > As you wish, I'll remove those Cc and Fixes tags, or just drop the
+> > patch if you think it's useless...
 > 
-> Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> The fixes tag is a separate thing from CCing stable.  It's useful on by
+> itself.  I always put the person who wrote the original patch in the To:
+> header so they can review and comment if I have made a mistake.
 
-Fixes: 2a0a288ec258 ("mtd: denali: split the generic driver and PCI layer")
+Noted. I added back the Fixes tag and added Dinh Nguyen (the commit
+author) in the loop.
 
-> ---
-> Changes since v4:
-> - remove Cc stable and fixes tags
-> - calculate the dma buffer size before calling nand_release()
-> 
->  drivers/mtd/nand/denali.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mtd/nand/denali.c b/drivers/mtd/nand/denali.c
-> index 67eb2be..fdfea05 100644
-> --- a/drivers/mtd/nand/denali.c
-> +++ b/drivers/mtd/nand/denali.c
-> @@ -1622,9 +1622,11 @@ EXPORT_SYMBOL(denali_init);
->  /* driver exit point */
->  void denali_remove(struct denali_nand_info *denali)
->  {
-> +	int bufsize = denali->mtd.writesize + denali->mtd.oobsize;
-> +
-> +	nand_release(&denali->mtd);
->  	denali_irq_cleanup(denali->irq, denali);
-> -	dma_unmap_single(denali->dev, denali->buf.dma_buf,
-> -			 denali->mtd.writesize + denali->mtd.oobsize,
-> +	dma_unmap_single(denali->dev, denali->buf.dma_buf, bufsize,
->  			 DMA_BIDIRECTIONAL);
->  }
->  EXPORT_SYMBOL(denali_remove);
+Thanks,
 
-
+Boris
 
 -- 
 Boris Brezillon, Free Electrons
