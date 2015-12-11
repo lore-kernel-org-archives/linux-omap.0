@@ -1,60 +1,84 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH v4 01/58] mtd: nand: denali: add missing nand_release()
- call in denali_remove()
-Date: Fri, 11 Dec 2015 17:39:47 +0300
-Message-ID: <20151211143947.GL5284@mwanda>
-References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
- <1449734442-18672-2-git-send-email-boris.brezillon@free-electrons.com>
- <20151211004008.GQ144338@google.com>
- <20151211145320.1560fac3@bbrezillon>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v5 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Fri, 11 Dec 2015 09:09:35 -0600
+Message-ID: <20151211150935.GA15654@rob-hp-laptop>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-5-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151211145320.1560fac3@bbrezillon>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Stefan Agner <stefan@agner.ch>, linux-sunxi@googlegroups.com, linux-mtd@lists.infradead.org, Shawn Guo <shawnguo@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, Jason Cooper <jason@lakedaemon.net>, devel@driverdev.osuosl.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-samsung-soc@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Marek Vasut <marek.vasut@gmail.com>, Chen-Yu Tsai <wens@csie.org>, Kukjin Kim <kgene@kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Alexander Clouter <alex@digriz.org.uk>, Wan ZongShun <mcuos.com@gmail.com>, Steven Miao <realmz6@gmail.com>, adi-buildroot-devel@lists.sourceforge.net
+In-Reply-To: <1449807000-6457-5-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>, Russell King <linux@arm.linux.org.uk>, hramrach@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 11, 2015 at 02:53:20PM +0100, Boris Brezillon wrote:
-> Hi Brian,
+On Fri, Dec 11, 2015 at 09:39:59AM +0530, Vignesh R wrote:
+> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
+> update the binding documents for the controller to document this change.
 > 
-> On Thu, 10 Dec 2015 16:40:08 -0800
-> Brian Norris <computersforpeace@gmail.com> wrote:
-> 
-> > On Thu, Dec 10, 2015 at 08:59:45AM +0100, Boris Brezillon wrote:
-> > > Unregister the NAND device from the NAND subsystem when removing a denali
-> > > NAND controller, otherwise the MTD attached to the NAND device is still
-> > > exposed by the MTD layer, and accesses to this device will likely crash
-> > > the system.
-> > > 
-> > > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> > > Cc: <stable@vger.kernel.org> #3.8+
-> > 
-> > Does this follow these rules, from
-> > Documentation/stable_kernel_rules.txt?
-> > 
-> >  - It must be obviously correct and tested.
-> > 
-> >  - It must fix a real bug that bothers people (not a, "This could be a
-> >    problem..." type thing).
-> 
-> As you wish, I'll remove those Cc and Fixes tags, or just drop the
-> patch if you think it's useless...
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 
-The fixes tag is a separate thing from CCing stable.  It's useful on by
-itself.  I always put the person who wrote the original patch in the To:
-header so they can review and comment if I have made a mistake.
+Acked-by: Rob Herring <robh@kernel.org>
 
-regards,
-dan carpenter
+> ---
+> 
+> v5: use syscon to access scm register.
+> 
+>  Documentation/devicetree/bindings/spi/ti_qspi.txt | 17 +++++++++++++++++
+>  arch/arm/boot/dts/dra7.dtsi                       |  6 ++++--
+>  2 files changed, 21 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> index 601a360531a5..809c3f334316 100644
+> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+> @@ -15,6 +15,10 @@ Recommended properties:
+>  - spi-max-frequency: Definition as per
+>                       Documentation/devicetree/bindings/spi/spi-bus.txt
+>  
+> +Optional properties:
+> +- syscon-chipselects: Handle to system control region contains QSPI
+> +		      chipselect register and offset of that register.
+> +
+>  Example:
+>  
+>  qspi: qspi@4b300000 {
+> @@ -26,3 +30,16 @@ qspi: qspi@4b300000 {
+>  	spi-max-frequency = <25000000>;
+>  	ti,hwmods = "qspi";
+>  };
+> +
+> +For dra7xx:
+> +qspi: qspi@4b300000 {
+> +	compatible = "ti,dra7xxx-qspi";
+> +	reg = <0x4b300000 0x100>,
+> +	      <0x5c000000 0x4000000>,
+> +	reg-names = "qspi_base", "qspi_mmap";
+> +	syscon-chipselects = <&scm_conf 0x558>;
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +	spi-max-frequency = <48000000>;
+> +	ti,hwmods = "qspi";
+> +};
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index fe99231cbde5..be91c7781c07 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -1153,8 +1153,10 @@
+>  
+>  		qspi: qspi@4b300000 {
+>  			compatible = "ti,dra7xxx-qspi";
+> -			reg = <0x4b300000 0x100>;
+> -			reg-names = "qspi_base";
+> +			reg = <0x4b300000 0x100>,
+> +			      <0x5c000000 0x4000000>;
+> +			reg-names = "qspi_base", "qspi_mmap";
+> +			syscon-chipselects = <&scm_conf 0x558>;
+>  			#address-cells = <1>;
+>  			#size-cells = <0>;
+>  			ti,hwmods = "qspi";
+> -- 
+> 2.6.3
+> 
