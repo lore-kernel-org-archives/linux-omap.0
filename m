@@ -1,84 +1,72 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v5 4/5] ARM: dts: DRA7: add entry for qspi mmap region
-Date: Fri, 11 Dec 2015 09:09:35 -0600
-Message-ID: <20151211150935.GA15654@rob-hp-laptop>
-References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
- <1449807000-6457-5-git-send-email-vigneshr@ti.com>
+From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v5 01/58] mtd: nand: denali: add missing
+ nand_release() call in denali_remove()
+Date: Fri, 11 Dec 2015 16:10:08 +0100
+Message-ID: <20151211161008.056a0f47@bbrezillon>
+References: <1449734442-18672-2-git-send-email-boris.brezillon@free-electrons.com>
+	<1449842554-29898-1-git-send-email-boris.brezillon@free-electrons.com>
+Reply-To: boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1449807000-6457-5-git-send-email-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>, Russell King <linux@arm.linux.org.uk>, hramrach@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-sunxi+bncBCIPJ6FA2QLBBUWOVOZQKGQEGAMSJFQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <1449842554-29898-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/linux-sunxi
+Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <http://groups.google.com/group/linux-sunxi/subscribe>
+To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steven Miao <realmz6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mikael
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 11, 2015 at 09:39:59AM +0530, Vignesh R wrote:
-> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
-> update the binding documents for the controller to document this change.
-> 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
++ Dinh (who made commit 2a0a288ec258)
 
-Acked-by: Rob Herring <robh@kernel.org>
+Also added back the Fixes tag.
+
+On Fri, 11 Dec 2015 15:02:34 +0100
+Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> wrote:
+
+> Unregister the NAND device from the NAND subsystem when removing a denali
+> NAND controller, otherwise the MTD attached to the NAND device is still
+> exposed by the MTD layer, and accesses to this device will likely crash
+> the system.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+
+Fixes: 2a0a288ec258 ("mtd: denali: split the generic driver and PCI layer")
 
 > ---
+> Changes since v4:
+> - remove Cc stable and fixes tags
+> - calculate the dma buffer size before calling nand_release()
 > 
-> v5: use syscon to access scm register.
+>  drivers/mtd/nand/denali.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 > 
->  Documentation/devicetree/bindings/spi/ti_qspi.txt | 17 +++++++++++++++++
->  arch/arm/boot/dts/dra7.dtsi                       |  6 ++++--
->  2 files changed, 21 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-> index 601a360531a5..809c3f334316 100644
-> --- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
-> +++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-> @@ -15,6 +15,10 @@ Recommended properties:
->  - spi-max-frequency: Definition as per
->                       Documentation/devicetree/bindings/spi/spi-bus.txt
->  
-> +Optional properties:
-> +- syscon-chipselects: Handle to system control region contains QSPI
-> +		      chipselect register and offset of that register.
+> diff --git a/drivers/mtd/nand/denali.c b/drivers/mtd/nand/denali.c
+> index 67eb2be..fdfea05 100644
+> --- a/drivers/mtd/nand/denali.c
+> +++ b/drivers/mtd/nand/denali.c
+> @@ -1622,9 +1622,11 @@ EXPORT_SYMBOL(denali_init);
+>  /* driver exit point */
+>  void denali_remove(struct denali_nand_info *denali)
+>  {
+> +	int bufsize = denali->mtd.writesize + denali->mtd.oobsize;
 > +
->  Example:
->  
->  qspi: qspi@4b300000 {
-> @@ -26,3 +30,16 @@ qspi: qspi@4b300000 {
->  	spi-max-frequency = <25000000>;
->  	ti,hwmods = "qspi";
->  };
-> +
-> +For dra7xx:
-> +qspi: qspi@4b300000 {
-> +	compatible = "ti,dra7xxx-qspi";
-> +	reg = <0x4b300000 0x100>,
-> +	      <0x5c000000 0x4000000>,
-> +	reg-names = "qspi_base", "qspi_mmap";
-> +	syscon-chipselects = <&scm_conf 0x558>;
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
-> +	spi-max-frequency = <48000000>;
-> +	ti,hwmods = "qspi";
-> +};
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index fe99231cbde5..be91c7781c07 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -1153,8 +1153,10 @@
->  
->  		qspi: qspi@4b300000 {
->  			compatible = "ti,dra7xxx-qspi";
-> -			reg = <0x4b300000 0x100>;
-> -			reg-names = "qspi_base";
-> +			reg = <0x4b300000 0x100>,
-> +			      <0x5c000000 0x4000000>;
-> +			reg-names = "qspi_base", "qspi_mmap";
-> +			syscon-chipselects = <&scm_conf 0x558>;
->  			#address-cells = <1>;
->  			#size-cells = <0>;
->  			ti,hwmods = "qspi";
-> -- 
-> 2.6.3
-> 
+> +	nand_release(&denali->mtd);
+>  	denali_irq_cleanup(denali->irq, denali);
+> -	dma_unmap_single(denali->dev, denali->buf.dma_buf,
+> -			 denali->mtd.writesize + denali->mtd.oobsize,
+> +	dma_unmap_single(denali->dev, denali->buf.dma_buf, bufsize,
+>  			 DMA_BIDIRECTIONAL);
+>  }
+>  EXPORT_SYMBOL(denali_remove);
+
+
+
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
