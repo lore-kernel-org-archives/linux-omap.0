@@ -1,79 +1,51 @@
-From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 01/58] mtd: nand: denali: add missing
- nand_release() call in denali_remove()
-Date: Fri, 11 Dec 2015 14:11:43 -0800
-Message-ID: <20151211221143.GR144338@google.com>
-References: <1449734442-18672-1-git-send-email-boris.brezillon@free-electrons.com>
- <1449734442-18672-2-git-send-email-boris.brezillon@free-electrons.com>
- <20151211004008.GQ144338@google.com>
- <20151211230305.506e2071@bbrezillon>
-Reply-To: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH] mtd: omap_elm: print interrupt resource using %pr
+Date: Fri, 11 Dec 2015 17:10:56 -0800
+Message-ID: <20151212011056.GA144873@google.com>
+References: <2101351.RbJOfbsbGX@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sunxi+bncBCZ6PSPVXMNBBJEUVWZQKGQEOLORYVI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151211230305.506e2071@bbrezillon>
-List-Post: <http://groups.google.com/group/linux-sunxi/post>, <mailto:linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:linux-sunxi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/linux-sunxi
-Sender: linux-sunxi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/linux-sunxi/subscribe>, <mailto:linux-sunxi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1076902468213+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/linux-sunxi/subscribe>
-To: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, Ryan Mallon <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Gregory CLEMENT <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Marek
+In-Reply-To: <2101351.RbJOfbsbGX@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>, Roger Quadros <rogerq@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Boris,
+Hi Arnd,
 
-On Fri, Dec 11, 2015 at 11:03:05PM +0100, Boris Brezillon wrote:
-> On Thu, 10 Dec 2015 16:40:08 -0800
-> Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > On Thu, Dec 10, 2015 at 08:59:45AM +0100, Boris Brezillon wrote:
-> > > Unregister the NAND device from the NAND subsystem when removing a denali
-> > > NAND controller, otherwise the MTD attached to the NAND device is still
-> > > exposed by the MTD layer, and accesses to this device will likely crash
-> > > the system.
-> > > 
-> > > Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-> > > Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #3.8+
-> > 
-> > Does this follow these rules, from
-> > Documentation/stable_kernel_rules.txt?
-> > 
-> >  - It must be obviously correct and tested.
-> > 
-> >  - It must fix a real bug that bothers people (not a, "This could be a
-> >    problem..." type thing).
+On Tue, Dec 08, 2015 at 04:39:45PM +0100, Arnd Bergmann wrote:
+> When CONFIG_LPAE is set on ARM, resource_size_t is 64-bit wide
+> and we get a warning about an incorrect format string for printing
+> the interrupt number in elm_probe:
 > 
-> Sorry to bring the "stable or not stable (that is the question :-))"
-> debate back, but after thinking a bit more about the implications of
-> this missing nand_release() call, I think it is worth backporting the
-> fix to all stable kernels.
-> The reason is, it can potentially introduce a security hole, because if
-> the mtd device is not unregister but the underlying mtd object is freed
-> and the kernel reuses the same memory region for a different object,
-> the MTD layer will possibly call one of the mtd->_method() function,
-> and this field might point to another completely different function.
+> drivers/mtd/nand/omap_elm.c: In function 'elm_probe':
+> drivers/mtd/nand/omap_elm.c:417:23: warning: format '%i' expects argument of type 'int', but argument 3 has type 'resource_size_t {aka long long unsigned int}' [-Wformat=]
 > 
-> You'll say that denali devices are probably never removed and this is
-> the reason why people have never seen this problem before, which would
-> be a good reason to not bother backporting the patch.
-> But, given that the driver can be compiled as a module (the user can
-> possibly load/unload it, which will in turn create/destroy the
-> NAND/MTD device), and that the denali controller can be exposed through
-> a PCI bus (which, AFAIK is hotpluggable), I really think this fix
-> should be sent to stable.
+> This patch avoids the type mismatch by printing the interrupt as
+> a resource using the %pr format string.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/mtd/nand/omap_elm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mtd/nand/omap_elm.c b/drivers/mtd/nand/omap_elm.c
+> index 235ec7992b4c..11f174b07217 100644
+> --- a/drivers/mtd/nand/omap_elm.c
+> +++ b/drivers/mtd/nand/omap_elm.c
+> @@ -414,7 +414,7 @@ static int elm_probe(struct platform_device *pdev)
+>  	ret = devm_request_irq(&pdev->dev, irq->start, elm_isr, 0,
+>  			pdev->name, info);
+>  	if (ret) {
+> -		dev_err(&pdev->dev, "failure requesting irq %i\n", irq->start);
+> +		dev_err(&pdev->dev, "failure requesting %pr\n", &irq);
 
-That's all well and good, but still nobody has told me they've tested
-this.
+drivers/mtd/nand/omap_elm.c:417 elm_probe() error: '%pr' expects argument of type struct resource *, but argument 3 has type 'struct resource**' [smatch]
 
-I've pushed your v5 (+ comments, + ack) to l2-mtd.git. If it gets
-testing and this request is made again at that point, we can easily send
-it to stable after it hits Linus' tree. See option 2 in
-Documentation/stable_kernel_rules.txt. You can even send the email
-yourself, just CC me and anyone else relevant. I'll ack it if it's been
-tested.
+>  		return ret;
+>  	}
+>  
 
-Regards,
 Brian
