@@ -1,47 +1,89 @@
-From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 3/5] ARM: dts: cm-t335: add support for I2C GPIO expander
-Date: Sun, 13 Dec 2015 10:55:37 +0200
-Message-ID: <1449996939-13901-4-git-send-email-uri.mashiach@compulab.co.il>
-References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
- <1449996939-13901-1-git-send-email-uri.mashiach@compulab.co.il>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449996939-13901-1-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 1/2] video:omap2:dss: fix timings for VENC to match what omapdrm expects
+Date: Sun, 13 Dec 2015 19:41:24 +0100
+Message-ID: <5BB301DB-5429-422E-B672-E7A508441C45@goldelico.com>
+References: <cover.1447410543.git.hns@goldelico.com> <20ebf7491377ccba18c734c22ae9f361d7fdc165.1447410544.git.hns@goldelico.com> <5667E3D0.8010600@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5667E3D0.8010600@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, gta04-owner@goldelico.com, notasas@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-The I2C GPIO expander (PCA9555) adds 16 GPIOs to the module.
+Hi Tomi,
 
-Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
----
- arch/arm/boot/dts/am335x-sbc-t335.dts | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Am 09.12.2015 um 09:18 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
 
-diff --git a/arch/arm/boot/dts/am335x-sbc-t335.dts b/arch/arm/boot/dts/am335x-sbc-t335.dts
-index 9e98445..4a5177e 100644
---- a/arch/arm/boot/dts/am335x-sbc-t335.dts
-+++ b/arch/arm/boot/dts/am335x-sbc-t335.dts
-@@ -14,3 +14,14 @@
- 	model = "CompuLab CM-T335 on SB-T335";
- 	compatible = "compulab,sbc-t335", "compulab,cm-t335", "ti,am33xx";
- };
-+
-+&i2c0 {
-+	/* GPIO extender */
-+	gpio_ext: pca9555@26 {
-+		compatible = "nxp,pca9555";
-+		pinctrl-names = "default";
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+		reg = <0x26>;
-+	};
-+};
--- 
-2.5.0
+> 
+> On 13/11/15 12:29, H. Nikolaus Schaller wrote:
+>> Otherwise check_timings fails and we get a "has no modes" message
+>> from xrandr.
+>> 
+>> This fix makes the venc assume PAL and NTSC timings that match the
+>> timings synthetized by copy_timings_drm_to_omap() from omapdrm
+>> mode settings so that check_timings() succeeds.
+>> 
+>> Tested on: BeagleBoard XM, GTA04 and OpenPandora
+>> 
+>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>> ---
+>> drivers/video/fbdev/omap2/dss/venc.c | 12 ++++++++++++
+>> 1 file changed, 12 insertions(+)
+> 
+> I've picked this up.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks!
+
+> 
+> With this patch and the one below I can get tv-out working on my very old
+> beagleboard, and it seems to work with X also. It doesn't start automatically
+> as the connection state is unknown, but doing "xrandr --output None-1 --auto"
+> was all I needed to enable it.
+
+Great that you did find the real reason of the problem.
+
+I have tested it on the GTA04 and it also works.
+
+Will the patches arrive in 4.5?
+
+So thanks a lot,
+Nikolaus
+
+> 
+> Tomi
+> 
+> From a4274600a5a67256b91266b0d2624b9c9028909b Mon Sep 17 00:00:00 2001
+> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date: Tue, 8 Dec 2015 18:32:14 +0200
+> Subject: [PATCH] drm/omap: fix fbdev pix format to support all platforms
+> 
+> omap_fbdev always creates a framebuffer with ARGB8888 pixel format. On
+> OMAP3 we have VIDEO1 overlay that does not support ARGB8888, and on
+> OMAP2 none of the overlays support ARGB888.
+> 
+> This patch changes the omap_fbdev's fb to XRGB8888, which is supported
+> by all platforms.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> 
+> diff --git a/drivers/gpu/drm/omapdrm/omap_fbdev.c b/drivers/gpu/drm/omapdrm/omap_fbdev.c
+> index b8e4cdec28c3..24f92bea39c7 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_fbdev.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_fbdev.c
+> @@ -112,11 +112,8 @@ static int omap_fbdev_create(struct drm_fb_helper *helper,
+> 	dma_addr_t paddr;
+> 	int ret;
+> 
+> -	/* only doing ARGB32 since this is what is needed to alpha-blend
+> -	 * with video overlays:
+> -	 */
+> 	sizes->surface_bpp = 32;
+> -	sizes->surface_depth = 32;
+> +	sizes->surface_depth = 24;
+> 
+> 	DBG("create fbdev: %dx%d@%d (%dx%d)", sizes->surface_width,
+> 			sizes->surface_height, sizes->surface_bpp,
+> 
