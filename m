@@ -1,99 +1,38 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH 00/10] drivers/pci: avoid module_init in non-modular host/pci*
-Date: Sat, 12 Dec 2015 20:41:47 -0500
-Message-ID: <1449970917-12633-1-git-send-email-paul.gortmaker@windriver.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, linux-pci@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Simon Horman <horms@verge.net.au>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Richard Zhu <Richard.Zhu@freescale.com>, rfi@lists.rocketboards.org, Ley Foon Tan <lftan@altera.com>, Bjorn Helgaas <bhelgaas@google.com>, Lucas Stach <l.stach@pengutronix.de>
+From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH 0/5] ARM: dts: cm-t335: add peripheral support
+Date: Sun, 13 Dec 2015 10:55:34 +0200
+Message-ID: <1449996939-13901-1-git-send-email-uri.mashiach@compulab.co.il>
+References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1445948100-16446-1-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-VGhpcyBzZXJpZXMgb2YgY29tbWl0cyBpcyBhIHNsaWNlIG9mIGEgbGFyZ2VyIHByb2plY3QgdG8g
-ZW5zdXJlCnBlb3BsZSBkb24ndCBoYXZlIGRlYWQgY29kZSBmb3IgbW9kdWxlIHJlbW92YWwgaW4g
-bm9uLW1vZHVsYXIKZHJpdmVycy4gIE92ZXJhbGwgdGhlcmUgd2FzIHJvdWdobHkgNWsgbGluZXMg
-b2YgZGVhZCBjb2RlIGluIHRoZQprZXJuZWwgZHVlIHRvIHRoaXMuICBTbyBmYXIgd2UndmUgZml4
-ZWQgc2V2ZXJhbCBhcmVhcywgbGlrZSB0dHksCng4NiwgbmV0LCBldGMuIGFuZCB3ZSBjb250aW51
-ZSB0byB3b3JrIG9uIG90aGVyIGFyZWFzLgoKVGhlcmUgYXJlIHNldmVyYWwgcmVhc29ucyB0byBu
-b3QgdXNlIG1vZHVsZV9pbml0IGZvciBjb2RlIHRoYXQgY2FuCm5ldmVyIGJlIGJ1aWx0IGFzIGEg
-bW9kdWxlLCBidXQgdGhlIGJpZyBvbmVzIGFyZToKCiAoMSkgaXQgaXMgZWFzeSB0byBhY2NpZGVu
-dGFsbHkgY29kZSB1cCB1bnVzZWQgbW9kdWxlX2V4aXQgYW5kIHJlbW92ZSBjb2RlCiAoMikgaXQg
-Y2FuIGJlIG1pc2xlYWRpbmcgd2hlbiByZWFkaW5nIHRoZSBzb3VyY2UsIHRoaW5raW5nIGl0IGNh
-biBiZQogICAgICBtb2R1bGFyIHdoZW4gdGhlIE1ha2VmaWxlIGFuZC9vciBLY29uZmlnIHByb2hp
-Yml0IGl0CiAoMykgaXQgcmVxdWlyZXMgdGhlIGluY2x1ZGUgb2YgdGhlIG1vZHVsZS5oIGhlYWRl
-ciBmaWxlIHdoaWNoIGluIHR1cm4KICAgICBpbmNsdWRlcyBuZWFybHkgZXZlcnl0aGluZyBlbHNl
-LgoKSGVyZSB3ZSBjb252ZXJ0IHNvbWUgbW9kdWxlX2luaXQoKSBjYWxscyBpbnRvIGRldmljZV9p
-bml0Y2FsbCgpIGFuZCBkZWxldGUKYW55IG1vZHVsZV9leGl0IGFuZCByZW1vdmUgY29kZSB0aGF0
-IGdldHMgb3JwaGFuZWQgaW4gdGhlIHByb2Nlc3MsIGZvcgphbiBvdmVyYWxsIG5ldCBjb2RlIHJl
-ZHVjdGlvbiwgd2hpY2ggaXMgYWx3YXlzIHdlbGNvbWUuCgpUaGUgdXNlIG9mIGRldmljZV9pbml0
-Y2FsbCBlbnN1cmVzIHRoYXQgdGhlIGluaXQgZnVuY3Rpb24gb3JkZXJpbmcKcmVtYWlucyB1bmNo
-YW5nZWQsIGJ1dCBvbmUgY291bGQgYXJndWUgdGhhdCBQQ0kgaG9zdCBjb2RlIG1pZ2h0IGJlIG1v
-cmUKYXBwcm9wcmlhdGUgdG8gYmUgaGFuZGxlZCB1bmRlciBzdWJzeXNfaW5pdGNhbGwuICBGb3J0
-dW5hdGVseSB3ZSBjYW4KcmV2aXNpdCBtYWtpbmcgdGhpcyBleHRyYSBjaGFuZ2UgYXQgYSBsYXRl
-ciBkYXRlIGlmIGRlc2lyZWQ7IGl0IGRvZXMKbm90IG5lZWQgdG8gaGFwcGVuIG5vdywgYW5kIHdl
-IHJlZHVjZSB0aGUgcmlzayBvZiBpbnRyb2R1Y2luZwpyZWdyZXNzaW9ucyBhdCB0aGlzIHBvaW50
-IGluIHRpbWUgYnkgc2VwYXJhdGluZyB0aGUgdHdvIGNoYW5nZXMuCgpPdmVyIGhhbGYgb2YgdGhl
-IGRyaXZlcnMgY2hhbmdlZCBoZXJlIGFscmVhZHkgZXhwbGljaXRseSBkaXNhbGxvd2VkIGFueQp1
-bmJpbmQgb3BlcmF0aW9ucy4gIEZvciB0aGUgcmVzdCB3ZSBtYWtlIHRoZW0gdGhlIHNhbWUsIHNp
-bmNlIHRoZXJlIGlzCm5vdCByZWFsbHkgYW55IHNlbnNpYmxlIHVzZSBjYXNlIHRvIHVuYmluZCBh
-bnkgYnVpbHQtaW4gYnVzIHN1cHBvcnQgdGhhdApJIGNhbiB0aGluayBvZi4KCkkgaGF2ZSBtb3Jl
-ICJhdm9pZCBtb2R1bGUgdXNhZ2UgaW4gbm9uLW1vZHVsYXIgY29kZSIgY2xlYW51cHMgZm9yIHRo
-ZQpQQ0kgc3Vic3lzdGVtLCBidXQgdGhlc2UgYWxsIGhhdmUgYSBjb21tb24gdGhlbWUgYW5kIGl0
-IG1ha2VzIGZvciBhCm1vcmUgbWFpbnRhaW5lciBmcmllbmRseSBzZXJpZXMgc2l6ZSB0byBqdXN0
-IGFzayB0byBkaWdlc3QgdGhlc2UgMXN0LgoKVGVzdGluZyB3YXMgZG9uZSBvbiBsaW51eC1uZXh0
-LCB1c2luZyBhbiBBUkNIPWFybSBhbGxtb2Rjb25maWcgYW5kIHRoZW4KZXhwbGljaXRseSBidWls
-ZGluZyB0aGUgZmlsZXMgY2hhbmdlZCBpbiB0aGlzIHNlcmllcy4gIElmIGRlc2lyZWQsIEkKY2Fu
-IHByb3ZpZGUgYSB2NC40LXJjNCBiYXNlZCBicmFuY2ggZm9yIG1lcmdpbmcgdnMgZS1tYWlsIHBy
-b2Nlc3NpbmcsCnNpbmNlIEkgZG9uJ3QgdGhpbmsgdGhlIHVuZGVybHlpbmcgYmFzZWxpbmUgaXMg
-b3Zlcmx5IGltcG9ydGFudCBmb3IKdGhpcyAobGFyZ2VseSB0cml2aWFsKSBzZXJpZXMgb2YgcGF0
-Y2hlcy4KClBhdWwuCi0tLQoKQ2M6IEFsZXhhbmRyZSBDb3VyYm90IDxnbnVyb3VAZ21haWwuY29t
-PgpDYzogQmpvcm4gSGVsZ2FhcyA8YmhlbGdhYXNAZ29vZ2xlLmNvbT4KQ2M6IEphc29uIENvb3Bl
-ciA8amFzb25AbGFrZWRhZW1vbi5uZXQ+CkNjOiBLaXNob24gVmlqYXkgQWJyYWhhbSBJIDxraXNo
-b25AdGkuY29tPgpDYzogTGV5IEZvb24gVGFuIDxsZnRhbkBhbHRlcmEuY29tPgpDYzogTHVjYXMg
-U3RhY2ggPGwuc3RhY2hAcGVuZ3V0cm9uaXguZGU+CkNjOiBNaWNoYWwgU2ltZWsgPG1pY2hhbC5z
-aW1la0B4aWxpbnguY29tPgpDYzogTXVyYWxpIEthcmljaGVyaSA8bS1rYXJpY2hlcmkyQHRpLmNv
-bT4KQ2M6IFByYXR5dXNoIEFuYW5kIDxwcmF0eXVzaC5hbmFuZEBnbWFpbC5jb20+CkNjOiBSaWNo
-YXJkIFpodSA8UmljaGFyZC5aaHVAZnJlZXNjYWxlLmNvbT4KQ2M6IFNpbW9uIEhvcm1hbiA8aG9y
-bXNAdmVyZ2UubmV0LmF1PgpDYzogIlPDtnJlbiBCcmlua21hbm4iIDxzb3Jlbi5icmlua21hbm5A
-eGlsaW54LmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+CkNj
-OiBUaGllcnJ5IFJlZGluZyA8dGhpZXJyeS5yZWRpbmdAZ21haWwuY29tPgpDYzogVGhvbWFzIFBl
-dGF6em9uaSA8dGhvbWFzLnBldGF6em9uaUBmcmVlLWVsZWN0cm9ucy5jb20+CgpDYzogbGludXgt
-YXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVs
-Lm9yZwpDYzogbGludXgtcGNpQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtc2hAdmdlci5rZXJu
-ZWwub3JnCkNjOiBsaW51eC10ZWdyYUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IHJmaUBsaXN0cy5yb2Nr
-ZXRib2FyZHMub3JnCgpQYXVsIEdvcnRtYWtlciAoMTApOgogIGRyaXZlcnMvcGNpOiBtYWtlIGhv
-c3QvcGNpLWlteDYuYyBkcml2ZXIgZXhwbGljaXRseSBub24tbW9kdWxhcgogIGRyaXZlcnMvcGNp
-OiBtYWtlIGhvc3QvcGNpZS1zcGVhcjEzeHguYyBkcml2ZXIgZXhwbGljaXRseSBub24tbW9kdWxh
-cgogIGRyaXZlcnMvcGNpOiBtYWtlIGhvc3QvcGNpLW12ZWJ1LmMgZXhwbGljaXRseSBub24tbW9k
-dWxhcgogIGRyaXZlcnMvcGNpOiBtYWtlIGhvc3QvcGNpLWRyYTd4eC5jIGV4cGxpY2l0bHkgbm9u
-LW1vZHVsYXIKICBkcml2ZXJzL3BjaTogbWFrZSBob3N0L3BjaS1yY2FyLWdlbjIuYyBleHBsaWNp
-dGx5IG5vbi1tb2R1bGFyCiAgZHJpdmVycy9wY2k6IG1ha2UgaG9zdC9wY2ktdGVncmEuYyBleHBs
-aWNpdGx5IG5vbi1tb2R1bGFyCiAgZHJpdmVycy9wY2k6IG1ha2UgaG9zdC9wY2llLXJjYXIuYyBl
-eHBsaWNpdGx5IG5vbi1tb2R1bGFyCiAgZHJpdmVycy9wY2k6IG1ha2UgaG9zdC9wY2llLXhpbGlu
-eC5jIGV4cGxpY2l0bHkgbm9uLW1vZHVsYXIKICBkcml2ZXJzL3BjaTogbWFrZSBob3N0L3BjaS1r
-ZXlzdG9uZS5jIGV4cGxpY2l0bHkgbm9uLW1vZHVsYXIKICBkcml2ZXJzL3BjaTogbWFrZSBob3N0
-L3BjaWUtYWx0ZXJhLmMgZXhwbGljaXRseSBub24tbW9kdWxhcgoKIGRyaXZlcnMvcGNpL2hvc3Qv
-cGNpLWRyYTd4eC5jICAgICB8IDMxICsrKy0tLS0tLS0tLS0tLS0tLS0tLS0tCiBkcml2ZXJzL3Bj
-aS9ob3N0L3BjaS1pbXg2LmMgICAgICAgfCAxMiArKystLS0tLS0KIGRyaXZlcnMvcGNpL2hvc3Qv
-cGNpLWtleXN0b25lLmMgICB8IDIxICsrKy0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvcGNpL2hvc3Qv
-cGNpLW12ZWJ1LmMgICAgICB8IDExICsrKy0tLS0tCiBkcml2ZXJzL3BjaS9ob3N0L3BjaS1yY2Fy
-LWdlbjIuYyAgfCAxMiArKystLS0tLS0KIGRyaXZlcnMvcGNpL2hvc3QvcGNpLXRlZ3JhLmMgICAg
-ICB8IDExICsrKy0tLS0tCiBkcml2ZXJzL3BjaS9ob3N0L3BjaWUtYWx0ZXJhLmMgICAgfCAxMiAr
-KysrLS0tLS0KIGRyaXZlcnMvcGNpL2hvc3QvcGNpZS1yY2FyLmMgICAgICB8IDExICsrKy0tLS0t
-CiBkcml2ZXJzL3BjaS9ob3N0L3BjaWUtc3BlYXIxM3h4LmMgfCAxMCArKystLS0tLQogZHJpdmVy
-cy9wY2kvaG9zdC9wY2llLXhpbGlueC5jICAgIHwgNTMgKystLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tCiAxMCBmaWxlcyBjaGFuZ2VkLCAzNSBpbnNlcnRpb25zKCspLCAxNDkg
-ZGVsZXRpb25zKC0pCgotLSAKMi42LjEKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Add support for the following CM-T335 module peripherals:
+USB, I2C controller, LCD/DVI, bluetooth
+
+Ilya Ledvich (1):
+  ARM: dts: cm-t335: add support for USB0
+
+Uri Mashiach (4):
+  ARM: dts: cm-t335: add support for SBC-T335
+  ARM: dts: cm-t335: add support for I2C GPIO expander
+  ARM: dts: cm-t335: add support for DVI/LCD
+  ARM: dts: cm-t335: add support for bluetooth
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-cm-t335.dts               |  51 ++++-
+ arch/arm/boot/dts/am335x-sbc-t335.dts              | 219 +++++++++++++++++++++
+ 4 files changed, 273 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am335x-sbc-t335.dts
+
+-- 
+2.5.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
