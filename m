@@ -1,80 +1,111 @@
-From: Markus Brunner <systemprogrammierung.brunner@gmail.com>
-Subject: Re: [PATCH] drivers: net: cpsw: fix RMII/RGMII mode when used with fixed-link PHY
-Date: Sat, 12 Dec 2015 16:44:19 +0100
-Message-ID: <6416396.ZOturxhSar@localhost>
-References: <20151209223115.6c5a400f.drivshin.allworx@gmail.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH 04/10] drivers/pci: make host/pci-dra7xx.c explicitly non-modular
+Date: Sat, 12 Dec 2015 20:41:51 -0500
+Message-ID: <1449970917-12633-5-git-send-email-paul.gortmaker@windriver.com>
+References: <1449970917-12633-1-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20151209223115.6c5a400f.drivshin.allworx@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Pascal Speck <kernel@iktek.de>, Daniel Trautmann <dtrautmann@ibhsoftec-sps.de>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449970917-12633-1-git-send-email-paul.gortmaker@windriver.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 09 December 2015 22:31:15 David Rivshin wrote:
-...
-> This patch was originally developed in parallel with 1f71e8c96fc6 to
-> accomplish the same goal. When I replaced this patch with 1f71e8c96fc6,
-> I found that it did not work on my hardware (which uses RGMII), so I
-> am submitting this patch now as a bugfix. 
+The Kconfig currently controlling compilation of this code is:
 
-Your patch works fine on my board, which uses MII and dual_emac with a fixed_phy and a real one. 
+drivers/pci/host/Kconfig:config PCI_DRA7XX
+drivers/pci/host/Kconfig:       bool "TI DRA7xx PCIe controller"
 
-> Besides fixing the bug mentioned in the commit log, there are a few other
-> differences to note:
->  * If both "phy_id" and a "fixed-link" subnode are present this patch will
->    use the "phy_id" property. This should preserve current behavior with
->    existing devicetrees that might incorrectly have both. This motivates
->    the biggest difference in code organization from 1f71e8c96fc6.
->  * Some error messages have been tweaked to reflect the slightly changed
->    meanings of the checks.
+...meaning that it currently is not being built as a module by anyone.
 
-I wanted to keep changes small and didn't spend too much thinking about already broken devicetrees. 
-Since my patch is quite new, I don't see any problems with subtle changes like that. However you should update the documentation as well. 
+Lets remove the modular code that is essentially orphaned, so that
+when reading the driver there is no doubt it is builtin-only.
 
->  * of_node_get() is called on slave_node before passing the result to
->    of_phy_find_device(). This increments the reference count, which I
->    believe is correct for this situation, but I'm not certain of that.
-I think you are right. At least most other drivers calling of_phy_register_fixed_link(), call of_node_get afterwards. 
-I can't remember where I got my "inspiration" for the patch. I made it almost a year ago and now 3 other guys tinker with the same feature? What a coincidence ;-)
+We explicitly disallow a driver unbind, since that doesn't have a
+sensible use case anyway, and it allows us to drop the ".remove"
+code for non-modular drivers.
 
->  * Uses the phy_device's 'addr' instead of 'phy_id' field when constructing
->    slave_data->phy_id. Pascal Speck separately came to the same conclusion
->    in another patch [1].
-Clearly an improvement.
->  * [2] pointed out that the 'lenp' sanity check was wrong, and since this
->    patch re-arranged that check anyways I incorporated that fix as well.
-> Although the last three items could be fixed separately, it seemed like that
-> would be unnecessary churn since those same lines were already touched in
-> this patch. Let me know if its preferred to fix them separately.
-> 
-> This patch is also very similar to one Daniel Trautmann submitted [3], with
-> the biggest difference being that Daniel's patch uses the new priv->phy_node
-> field and of_node_get(). While this seems like a better path overall it
-> does not work if more than once CPSW slave is used, due to struct cpsw_priv
-> being shared with all the slaves. I am under the impression that phy_node
-> should really be in struct cpsw_slave instead, but I will leave that for
-> another patch.
-A lot of people will need both slaves.
-...
-> (Side note: This is my first patch submission, and any feedback on things
-> to do differently in the future would be appreciated.)
+Since module_platform_driver() uses the same init level priority as
+builtin_platform_driver() the init ordering remains unchanged with
+this commit.
 
-> 
->  drivers/net/ethernet/ti/cpsw.c | 65
-> +++++++++++++++++++++++++----------------- 1 file changed, 39
-> insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 48b92c9..ba8d086 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -26,6 +26,7 @@
->  #include <linux/netdevice.h>
->  #include <linux/net_tstamp.h>
->  #include <linux/phy.h>
-> +#include <linux/phy_fixed.h>
+We don't replace module.h with init.h since the file already has that.
 
-The prototypes for of_*_fixed_link are in linux/of_mdio.h, which is already included.
+Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+
+We also delete the MODULE_LICENSE tag etc. since all that information
+is already contained at the top of the file in the comments.
+
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ drivers/pci/host/pci-dra7xx.c | 31 +++----------------------------
+ 1 file changed, 3 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 8c3688046c02..3769b7654c5d 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -16,7 +16,7 @@
+ #include <linux/irq.h>
+ #include <linux/irqdomain.h>
+ #include <linux/kernel.h>
+-#include <linux/module.h>
++#include <linux/init.h>
+ #include <linux/of_gpio.h>
+ #include <linux/pci.h>
+ #include <linux/phy/phy.h>
+@@ -451,25 +451,6 @@ err_phy:
+ 	return ret;
+ }
+ 
+-static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
+-{
+-	struct dra7xx_pcie *dra7xx = platform_get_drvdata(pdev);
+-	struct pcie_port *pp = &dra7xx->pp;
+-	struct device *dev = &pdev->dev;
+-	int count = dra7xx->phy_count;
+-
+-	if (pp->irq_domain)
+-		irq_domain_remove(pp->irq_domain);
+-	pm_runtime_put(dev);
+-	pm_runtime_disable(dev);
+-	while (count--) {
+-		phy_power_off(dra7xx->phy[count]);
+-		phy_exit(dra7xx->phy[count]);
+-	}
+-
+-	return 0;
+-}
+-
+ #ifdef CONFIG_PM_SLEEP
+ static int dra7xx_pcie_suspend(struct device *dev)
+ {
+@@ -553,19 +534,13 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+ 	{ .compatible = "ti,dra7-pcie", },
+ 	{},
+ };
+-MODULE_DEVICE_TABLE(of, of_dra7xx_pcie_match);
+ 
+ static struct platform_driver dra7xx_pcie_driver = {
+-	.remove		= __exit_p(dra7xx_pcie_remove),
+ 	.driver = {
+ 		.name	= "dra7-pcie",
+ 		.of_match_table = of_dra7xx_pcie_match,
++		.suppress_bind_attrs = true,
+ 		.pm	= &dra7xx_pcie_pm_ops,
+ 	},
+ };
+-
+-module_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
+-
+-MODULE_AUTHOR("Kishon Vijay Abraham I <kishon@ti.com>");
+-MODULE_DESCRIPTION("TI PCIe controller driver");
+-MODULE_LICENSE("GPL v2");
++builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
+-- 
+2.6.1
