@@ -1,71 +1,32 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH V02 4/5] dmaengine: edma: Add support for DMA filter mapping to slave devices
-Date: Mon, 14 Dec 2015 13:22:19 +0200
-Message-ID: <1450092140-31602-5-git-send-email-peter.ujfalusi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V02 0/5] dmaengine: New 'universal' API for requesting channel
+Date: Mon, 14 Dec 2015 12:32:23 +0100
+Message-ID: <1533685.J1X7ETnh7U@wuerfel>
 References: <1450092140-31602-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1450092140-31602-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, arnd@arndb.de, andy.shevchenko@gmail.com
-Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Add support for providing device to filter_fn mapping so client drivers
-can switch to use the dma_request_chan() API.
+On Monday 14 December 2015 13:22:15 Peter Ujfalusi wrote:
+> 
+> Changes since v1:
+> - Added Reviewed-by from Andy for patch 1-2, I decided to not add the reviewed-by
+>   to patch 3 due to the changes since v1
+> - patch for omap-dma to support passing the filter setup to the core
+> - dma_request_slave_channel_reason() remeved and it is now defines as
+>   dma_request_chan()
+> - Print of warning removed when DT or ACPI lookup fails and we are going to
+>   Fallback to legacy lookup
+> - members of struct dma_filter has been revised for simplicity.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/edma.c                 | 4 ++++
- include/linux/platform_data/edma.h | 7 +++++++
- 2 files changed, 11 insertions(+)
+Whole series
 
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 16fe773fb846..2e8acde6b134 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -2314,6 +2314,10 @@ static int edma_probe(struct platform_device *pdev)
- 		edma_set_chmap(&ecc->slave_chans[i], ecc->dummy_slot);
- 	}
- 
-+	ecc->dma_slave.filter.map = info->slave_map;
-+	ecc->dma_slave.filter.mapcnt = info->slavecnt;
-+	ecc->dma_slave.filter.fn = edma_filter_fn;
-+
- 	ret = dma_async_device_register(&ecc->dma_slave);
- 	if (ret) {
- 		dev_err(dev, "slave ddev registration failed (%d)\n", ret);
-diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
-index 4299f4ba03bd..0a533f94438f 100644
---- a/include/linux/platform_data/edma.h
-+++ b/include/linux/platform_data/edma.h
-@@ -53,12 +53,16 @@ enum dma_event_q {
- #define EDMA_CTLR(i)			((i) >> 16)
- #define EDMA_CHAN_SLOT(i)		((i) & 0xffff)
- 
-+#define EDMA_FILTER_PARAM(ctlr, chan)	((int[]) { EDMA_CTLR_CHAN(ctlr, chan) })
-+
- struct edma_rsv_info {
- 
- 	const s16	(*rsv_chans)[2];
- 	const s16	(*rsv_slots)[2];
- };
- 
-+struct dma_slave_map;
-+
- /* platform_data for EDMA driver */
- struct edma_soc_info {
- 	/*
-@@ -76,6 +80,9 @@ struct edma_soc_info {
- 
- 	s8	(*queue_priority_mapping)[2];
- 	const s16	(*xbar_chans)[2];
-+
-+	const struct dma_slave_map *slave_map;
-+	int slavecnt;
- };
- 
- #endif
--- 
-2.6.4
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+
+Looks all great to me now.
