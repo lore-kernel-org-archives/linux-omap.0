@@ -1,91 +1,69 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/5] ARM: dts: cm-t335: add support for SBC-T335
-Date: Sun, 13 Dec 2015 19:25:06 -0600
-Message-ID: <20151214012506.GA11251@rob-hp-laptop>
-References: <1445948100-16446-1-git-send-email-uri.mashiach@compulab.co.il>
- <1449996939-13901-1-git-send-email-uri.mashiach@compulab.co.il>
- <1449996939-13901-3-git-send-email-uri.mashiach@compulab.co.il>
+From: Gregory Fong <gregory.0xf0@gmail.com>
+Subject: Re: [PATCH 004/182] gpio: generic: factor into gpio_chip struct
+Date: Sun, 13 Dec 2015 18:35:15 -0800
+Message-ID: <CADtm3G5ZBHaCXHOH6960C0Ki6Pq3NMw9TtjTeqBjWPpYMfZZGA@mail.gmail.com>
+References: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1449996939-13901-3-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ilya Ledvich <ilya-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1449666760-29876-1-git-send-email-linus.walleij@linaro.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-gpio@vger.kernel.org, Johan Hovold <johan@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>, Michael Welling <mwelling@ieee.org>, Markus Pargmann <mpa@pengutronix.de>, Anton Vorontsov <anton@enomsg.org>, arm@kernel.org, Lee Jones <lee.jones@linaro.org>, Alexander Shiyan <shc_work@mail.ru>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Alexandre Courbot <gnurou@gmail.com>, Brian Norris <computersforpeace@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Olof Johansson <olof@lixom.net>, Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>, Rabin Vincent <rabin@ra>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Dec 13, 2015 at 10:55:36AM +0200, Uri Mashiach wrote:
-> Add basic support for the SBC-T335.
-> 
-> CompuLab SBC-T335 is a single baseboard computer.
-> The SBC-T335 is based on the Texas Instruments Cortex-A8 Sitara AM3354
-> SoC.
-> 
-> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
+On Wed, Dec 9, 2015 at 5:12 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+> The separate struct bgpio_chip has been a pain to handle, both
+> by being confusingly similar in name to struct gpio_chip and
+> for being contained inside a struct so that struct gpio_chip
+> is contained in a struct contained in a struct, making several
+> steps of dereferencing necessary.
+>
+> Make things simpler: include the fields directly into
+> <linux/gpio/driver.h>, #ifdef:ed for CONFIG_GENERIC_GPIO, and
+> get rid of the <linux/basic_mmio_gpio.h> altogether. Prefix
+> some of the member variables with bgpio_* and add proper
+> kerneldoc while we're at it.
+>
+> Modify all users to handle the change and use a struct
+> gpio_chip directly. And while we're at it: replace all
+> container_of() dereferencing by gpiochip_get_data() and
+> registering the gpio_chip with gpiochip_add_data().
+>
+> Cc: arm@kernel.org
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Alexander Shiyan <shc_work@mail.ru>
+> Cc: Shawn Guo <shawnguo@kernel.org>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: Gregory Fong <gregory.0xf0@gmail.com>
+> Cc: Brian Norris <computersforpeace@gmail.com>
+> Cc: Florian Fainelli <f.fainelli@gmail.com>
+> Cc: Liviu Dudau <liviu.dudau@arm.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+> Cc: Olof Johansson <olof@lixom.net>
+> Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> Cc: Rabin Vincent <rabin@rab.in>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: bcm-kernel-feedback-list@broadcom.com
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 > ---
->  Documentation/devicetree/bindings/arm/omap/omap.txt |  3 +++
->  arch/arm/boot/dts/Makefile                          |  1 +
->  arch/arm/boot/dts/am335x-sbc-t335.dts               | 16 ++++++++++++++++
->  3 files changed, 20 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am335x-sbc-t335.dts
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index 2154f97..358e87e 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -141,6 +141,9 @@ Boards:
->  - AM335X CM-T335 : System On Module, built around the Sitara AM3352/4
->    compatible = "compulab,cm-t335", "ti,am33xx"
->  
-> +- AM335X SBC-T335 : single board computer, built around the Sitara AM3352/4
-> +  compatible = "compulab,sbc-t335", "compulab,cm-t335", "ti,am33xx"
-> +
->  - OMAP5 EVM : Evaluation Module
->    compatible = "ti,omap5-evm", "ti,omap5"
->  
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 15411bc..d82ea97 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -466,6 +466,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
->  	am335x-lxm.dtb \
->  	am335x-nano.dtb \
->  	am335x-pepper.dtb \
-> +	am335x-sbc-t335.dtb \
->  	am335x-sl50.dtb \
->  	am335x-wega-rdk.dtb
->  dtb-$(CONFIG_ARCH_OMAP4) += \
-> diff --git a/arch/arm/boot/dts/am335x-sbc-t335.dts b/arch/arm/boot/dts/am335x-sbc-t335.dts
-> new file mode 100644
-> index 0000000..9e98445
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am335x-sbc-t335.dts
-> @@ -0,0 +1,16 @@
-> +/*
-> + * am335x-sbc-t335.dts - Device Tree file for Compulab SBC-T335
-> + *
-> + * Copyright (C) 2014 - 2015 CompuLab Ltd. - http://www.compulab.co.il/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include "am335x-cm-t335.dts"
-> +
-> +/ {
-> +	model = "CompuLab CM-T335 on SB-T335";
-> +	compatible = "compulab,sbc-t335", "compulab,cm-t335", "ti,am33xx";
-> +};
-> -- 
-> 2.5.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ARM SoC folks and Lee: it would be great if you could
+> ACK the few lines hitting arch/arm/* and drivers/mfd/* in this
+> so I can take it through the GPIO tree.
+> ---
+
+[...]
+
+>  drivers/gpio/gpio-brcmstb.c             |  80 ++++-----
+
+For brcmstb:
+
+Acked-by: Gregory Fong <gregory.0xf0@gmail.com>
