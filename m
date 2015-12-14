@@ -1,37 +1,64 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 00/10] drivers/pci: avoid module_init in non-modular host/pci*
-Date: Mon, 14 Dec 2015 11:27:02 +0100
-Message-ID: <3302340.SIljl1qYTl@wuerfel>
-References: <1449970917-12633-1-git-send-email-paul.gortmaker@windriver.com> <CAFiDJ5-Y8afg5kDRQLK1pain-k1kPQAn3vhWrVkB1ADPRHvx+A@mail.gmail.com> <20151214091940.GA15126@ulmo.nvidia.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH V02 5/5] dmaengine: omap-dma: Add support for DMA filter mapping to slave devices
+Date: Mon, 14 Dec 2015 13:22:20 +0200
+Message-ID: <1450092140-31602-6-git-send-email-peter.ujfalusi@ti.com>
+References: <1450092140-31602-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151214091940.GA15126@ulmo.nvidia.com>
+In-Reply-To: <1450092140-31602-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Ley Foon Tan <lftan@altera.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Paul Gortmaker <paul.gortmaker@windriver.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, =?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Simon Horman <horms@verge.net.au>, linux-tegra@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Richard
+To: vinod.koul@intel.com, arnd@arndb.de, andy.shevchenko@gmail.com
+Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 14 December 2015 10:19:40 Thierry Reding wrote:
-> > PCIe host driver that use fixup (DECLARE_PCI_FIXUP_*) can't use tristate.
-> > Fixup region is in kernel region and this region if not updated when
-> > loading a module.
-> 
-> Interesting, I hadn't thought about that. I suppose this means that the
-> module will end up containing an unused section with the fixup code. It
-> might be useful to add a way for that to trigger a warning at build
-> time.
-> 
-> Perhaps to fix this a mechanism could be introduced to add a table of
-> fixups to a host controller driver and that will get applied to all
-> children of the bridge. It could be problematic to cover all of the
-> different fixup stages, though.
-> 
+Add support for providing device to filter_fn mapping so client drivers
+can switch to use the dma_request_chan() API.
 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/omap-dma.c   | 4 ++++
+ include/linux/omap-dma.h | 6 ++++++
+ 2 files changed, 10 insertions(+)
 
-I think a lot of the fixups shouldn't really be there in the first place,
-they are about stuff that we can fix up in the probe function, or that should
-be fixed up in the probe function with some appropriate core support added.
-
-	Arnd
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index f86827ac0c8a..9794b073d7d7 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -1153,6 +1153,10 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 			return rc;
+ 	}
+ 
++	od->ddev.filter.map = od->plat->slave_map;
++	od->ddev.filter.mapcnt = od->plat->slavecnt;
++	od->ddev.filter.fn = omap_dma_filter_fn;
++
+ 	rc = dma_async_device_register(&od->ddev);
+ 	if (rc) {
+ 		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
+diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+index 88fa8af2b937..1d99b61adc65 100644
+--- a/include/linux/omap-dma.h
++++ b/include/linux/omap-dma.h
+@@ -267,6 +267,9 @@ struct omap_dma_reg {
+ 	u8	type;
+ };
+ 
++#define SDMA_FILTER_PARAM(hw_req)	((int[]) { (hw_req) })
++struct dma_slave_map;
++
+ /* System DMA platform data structure */
+ struct omap_system_dma_plat_info {
+ 	const struct omap_dma_reg *reg_map;
+@@ -278,6 +281,9 @@ struct omap_system_dma_plat_info {
+ 	void (*clear_dma)(int lch);
+ 	void (*dma_write)(u32 val, int reg, int lch);
+ 	u32 (*dma_read)(int reg, int lch);
++
++	const struct dma_slave_map *slave_map;
++	int slavecnt;
+ };
+ 
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+-- 
+2.6.4
