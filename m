@@ -1,191 +1,147 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 1/9] phy: ti-pipe3: introduce local struct device* in probe
-Date: Tue, 15 Dec 2015 14:46:00 +0530
-Message-ID: <1450170968-11282-2-git-send-email-kishon@ti.com>
-References: <1450170968-11282-1-git-send-email-kishon@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
+ "/chosen/linux,atags" entry
+Date: Tue, 15 Dec 2015 10:33:25 +0100
+Message-ID: <20151215093325.GK13531@pali>
+References: <20150713131902.GH26485@atomide.com>
+ <20151129180939.GE30871@n2100.arm.linux.org.uk>
+ <alpine.LFD.2.20.1511291902100.22569@knanqh.ubzr>
+ <201511300115.12478@pali>
+ <20151130152352.GY2517@atomide.com>
+ <20151130153933.GD29576@pali>
+ <alpine.LFD.2.20.1511301041090.22569@knanqh.ubzr>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1450170968-11282-1-git-send-email-kishon@ti.com>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.20.1511301041090.22569@knanqh.ubzr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Laura Abbott <lauraa@codeaurora.org>, Sebastian Reichel <sre@debian.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Rob Herring <robherring2@gmail.com>, Pavel Machek <pavel@ucw.cz>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Introduce local struct device pointer in
-probe and replace using &pdev->dev/phy->dev with the local
-device pointer. This is in preparation to split ti_pipe3_probe
-and add separate functions for getting mem resource, getting
-sysctrl and getting clocks.
+On Monday 30 November 2015 11:09:42 Nicolas Pitre wrote:
+> On Mon, 30 Nov 2015, Pali Roh=C3=A1r wrote:
+>=20
+> > On Monday 30 November 2015 07:23:53 Tony Lindgren wrote:
+> > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [151129 16:16]:
+> > > > On Monday 30 November 2015 01:09:17 Nicolas Pitre wrote:
+> > > > > On Sun, 29 Nov 2015, Russell King - ARM Linux wrote:
+> > > > > > On Sat, Nov 28, 2015 at 12:34:23PM -0500, Nicolas Pitre wro=
+te:
+> > > > > > > Good. And Arnd likes the idea too. So we might be converg=
+ing at
+> > > > > > > last which is a good thing.
+> > > > > >=20
+> > > > > > I disagree with the idea that there is convergence.  There =
+might be
+> > > > > > convergence towards an idea, but... Here's a mail extract, =
+from
+> > > > > > July 7th, from earlier in this very thread:
+> > > > > >=20
+> > > > > > Pali:
+> > > > > > > Me:
+> > > > > > > > Are the ATAGs at a fixed address on the N900?
+> > > > > > >=20
+> > > > > > > Yes, in board-rx51.c is:
+> > > > > > >=20
+> > > > > > > .atag_offset    =3D 0x100
+> > > > > > >=20
+> > > > > > > and Nokia Bootloader (proprietary) store them to that add=
+ress.
+> > > > > > >=20
+> > > > > > > > Can that be handled in
+> > > > > > > > some kind of legacy file for the N900 which calls save_=
+atags()
+> > > > > > > > on it, so we don't end up introducing yet more stuff th=
+at we
+> > > > > > > > have to maintain into the distant future?  If not, what=
+ about
+> > > > > > > > copying a known working atag structure into a legacy fi=
+le for
+> > > > > > > > the N900?
+> > > > > > >=20
+> > > > > > > I already asked question if it is possible to read ATAGs =
+from DT
+> > > > > > > booted kernel. And somebody (do not remember who) wrote t=
+o ML,
+> > > > > > > that it is not possible and it can be done in that uncomp=
+ress
+> > > > > > > code.
+> > > > >=20
+> > > > > Who is that somebody? If ever it happened to be me then objec=
+tion is
+> > > > > withdrawn. Otherwise that somebody should come forth and spea=
+k up
+> > > > > again.
+> > > > >=20
+> > > >=20
+> > > > ... do not remember ... this discussion were in more email thre=
+ads and=20
+> > > > takes more then one year... sorry but my memory is not excellen=
+t
+> > >=20
+> > > Yes this certainly seems like the best solution. I think we got i=
+nto
+> > > the atags-to-dt track as some of the atags are already being tran=
+slated.
+> > >=20
+> > > In this case there's no need to translate them AFAIK. You can jus=
+t
+> > > parse them and have them available for the user space. So as long=
+ as
+> > > nothing trashes the atags at the atag_offset, you should be able =
+to
+> > > call a function to parse them in the n900 specific init_machine.
+> > >=20
+> > > Regards,
+> > >=20
+> > > Tony
+> >=20
+> > In arch/arm/kernel/setup.c is function setup_arch() and it calls:
+> >=20
+> >   mdesc =3D setup_machine_fdt(__atags_pointer);
+> >   if (!mdesc)
+> >       mdesc =3D setup_machine_tags(__atags_pointer, __machine_arch_=
+type);
+> >=20
+> > So it looks like that on atags address is stored either atags struc=
+ture
+> > or DT structure... so it is truth kernel uncompress code put DT blo=
+b to
+> > same offset where is expected atags structure?
+>=20
+> No.  It doesn't put it anywhere. Those functions read DT/ATAGs from t=
+he=20
+> passed address.  But you know this address won't be the one you want =
+for=20
+> the legacy ATAGs.
+>=20
+> What you should do is to add a init_early hook to your mdesc structur=
+e=20
+> and retrieve your ATAGs from there directly at PAGE_OFFSET + 0x100.
+>=20
+> Now I suspect paging_init() marks the point where the ATAGs will be=20
+> overwritten.  To prevent this, you might have to add an additional tw=
+eak=20
+> in arm_mm_memblock_reserve() similar to the one already present for=20
+> CONFIG_SA1111. Something like:
+>=20
+> 	memblock_reserve(PHYS_OFFSET, PAGE_SIZE);
+>=20
+> And later on you can return that page back to the system.
+>=20
+>=20
+> Nicolas
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/phy/phy-ti-pipe3.c |   54 ++++++++++++++++++++++----------------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+So am I understand correctly that solution would be to hack
+arch/arm/mm/mmu.c to not overwrite page at PHYS_OFFSET?
 
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index 93bc112..c511105 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -319,40 +319,41 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 	struct platform_device *control_pdev;
- 	const struct of_device_id *match;
- 	struct clk *clk;
-+	struct device *dev = &pdev->dev;
- 
--	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
-+	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
- 	if (!phy)
- 		return -ENOMEM;
- 
--	phy->dev		= &pdev->dev;
-+	phy->dev		= dev;
- 
- 	if (!of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
--		match = of_match_device(ti_pipe3_id_table, &pdev->dev);
-+		match = of_match_device(ti_pipe3_id_table, dev);
- 		if (!match)
- 			return -EINVAL;
- 
- 		phy->dpll_map = (struct pipe3_dpll_map *)match->data;
- 		if (!phy->dpll_map) {
--			dev_err(&pdev->dev, "no DPLL data\n");
-+			dev_err(dev, "no DPLL data\n");
- 			return -EINVAL;
- 		}
- 
- 		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
- 						   "pll_ctrl");
--		phy->pll_ctrl_base = devm_ioremap_resource(&pdev->dev, res);
-+		phy->pll_ctrl_base = devm_ioremap_resource(dev, res);
- 		if (IS_ERR(phy->pll_ctrl_base))
- 			return PTR_ERR(phy->pll_ctrl_base);
- 
--		phy->sys_clk = devm_clk_get(phy->dev, "sysclk");
-+		phy->sys_clk = devm_clk_get(dev, "sysclk");
- 		if (IS_ERR(phy->sys_clk)) {
--			dev_err(&pdev->dev, "unable to get sysclk\n");
-+			dev_err(dev, "unable to get sysclk\n");
- 			return -EINVAL;
- 		}
- 	}
- 
--	phy->refclk = devm_clk_get(phy->dev, "refclk");
-+	phy->refclk = devm_clk_get(dev, "refclk");
- 	if (IS_ERR(phy->refclk)) {
--		dev_err(&pdev->dev, "unable to get refclk\n");
-+		dev_err(dev, "unable to get refclk\n");
- 		/* older DTBs have missing refclk in SATA PHY
- 		 * so don't bail out in case of SATA PHY.
- 		 */
-@@ -361,9 +362,9 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 	}
- 
- 	if (!of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
--		phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
-+		phy->wkupclk = devm_clk_get(dev, "wkupclk");
- 		if (IS_ERR(phy->wkupclk)) {
--			dev_err(&pdev->dev, "unable to get wkupclk\n");
-+			dev_err(dev, "unable to get wkupclk\n");
- 			return PTR_ERR(phy->wkupclk);
- 		}
- 	} else {
-@@ -371,14 +372,14 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 		phy->dpll_reset_syscon = syscon_regmap_lookup_by_phandle(node,
- 							"syscon-pllreset");
- 		if (IS_ERR(phy->dpll_reset_syscon)) {
--			dev_info(&pdev->dev,
-+			dev_info(dev,
- 				 "can't get syscon-pllreset, sata dpll won't idle\n");
- 			phy->dpll_reset_syscon = NULL;
- 		} else {
- 			if (of_property_read_u32_index(node,
- 						       "syscon-pllreset", 1,
- 						       &phy->dpll_reset_reg)) {
--				dev_err(&pdev->dev,
-+				dev_err(dev,
- 					"couldn't get pllreset reg. offset\n");
- 				return -EINVAL;
- 			}
-@@ -387,30 +388,30 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 
- 	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
- 
--		clk = devm_clk_get(phy->dev, "dpll_ref");
-+		clk = devm_clk_get(dev, "dpll_ref");
- 		if (IS_ERR(clk)) {
--			dev_err(&pdev->dev, "unable to get dpll ref clk\n");
-+			dev_err(dev, "unable to get dpll ref clk\n");
- 			return PTR_ERR(clk);
- 		}
- 		clk_set_rate(clk, 1500000000);
- 
--		clk = devm_clk_get(phy->dev, "dpll_ref_m2");
-+		clk = devm_clk_get(dev, "dpll_ref_m2");
- 		if (IS_ERR(clk)) {
--			dev_err(&pdev->dev, "unable to get dpll ref m2 clk\n");
-+			dev_err(dev, "unable to get dpll ref m2 clk\n");
- 			return PTR_ERR(clk);
- 		}
- 		clk_set_rate(clk, 100000000);
- 
--		clk = devm_clk_get(phy->dev, "phy-div");
-+		clk = devm_clk_get(dev, "phy-div");
- 		if (IS_ERR(clk)) {
--			dev_err(&pdev->dev, "unable to get phy-div clk\n");
-+			dev_err(dev, "unable to get phy-div clk\n");
- 			return PTR_ERR(clk);
- 		}
- 		clk_set_rate(clk, 100000000);
- 
--		phy->div_clk = devm_clk_get(phy->dev, "div-clk");
-+		phy->div_clk = devm_clk_get(dev, "div-clk");
- 		if (IS_ERR(phy->div_clk)) {
--			dev_err(&pdev->dev, "unable to get div-clk\n");
-+			dev_err(dev, "unable to get div-clk\n");
- 			return PTR_ERR(phy->div_clk);
- 		}
- 	} else {
-@@ -419,13 +420,13 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 
- 	control_node = of_parse_phandle(node, "ctrl-module", 0);
- 	if (!control_node) {
--		dev_err(&pdev->dev, "Failed to get control device phandle\n");
-+		dev_err(dev, "Failed to get control device phandle\n");
- 		return -EINVAL;
- 	}
- 
- 	control_pdev = of_find_device_by_node(control_node);
- 	if (!control_pdev) {
--		dev_err(&pdev->dev, "Failed to get control device\n");
-+		dev_err(dev, "Failed to get control device\n");
- 		return -EINVAL;
- 	}
- 
-@@ -434,7 +435,7 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 	omap_control_phy_power(phy->control_dev, 0);
- 
- 	platform_set_drvdata(pdev, phy);
--	pm_runtime_enable(phy->dev);
-+	pm_runtime_enable(dev);
- 
- 	/*
- 	 * Prevent auto-disable of refclk for SATA PHY due to Errata i783
-@@ -446,13 +447,12 @@ static int ti_pipe3_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	generic_phy = devm_phy_create(phy->dev, NULL, &ops);
-+	generic_phy = devm_phy_create(dev, NULL, &ops);
- 	if (IS_ERR(generic_phy))
- 		return PTR_ERR(generic_phy);
- 
- 	phy_set_drvdata(generic_phy, phy);
--	phy_provider = devm_of_phy_provider_register(phy->dev,
--			of_phy_simple_xlate);
-+	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
- 	if (IS_ERR(phy_provider))
- 		return PTR_ERR(phy_provider);
- 
--- 
-1.7.9.5
+And should be this just when when we detect Nokia N900 in DT? Or for al=
+l
+OMAP2 boards? Or all ARM boards?
+
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
