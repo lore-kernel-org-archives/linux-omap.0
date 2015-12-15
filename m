@@ -1,78 +1,101 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 0/9] phy: use syscon framework APIs to set ctrl mod reg
-Date: Tue, 15 Dec 2015 14:45:59 +0530
-Message-ID: <1450170968-11282-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 4/9] phy: ti-pipe3: move mem resource initialization to a separate function
+Date: Tue, 15 Dec 2015 14:46:03 +0530
+Message-ID: <1450170968-11282-5-git-send-email-kishon@ti.com>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kishon-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1450170968-11282-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kishon@ti.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-This series is basically to deprecate using phy-omap-control and use
-syscon APIs to program the control module registers.
+No functional change. Moved mem resource initialization done in
+probe to a separate function as part of cleaning up
+ti_pipe3_probe.
 
-Changes from v2:
-No changes.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/phy/phy-ti-pipe3.c |   52 ++++++++++++++++++++++++++++----------------
+ 1 file changed, 33 insertions(+), 19 deletions(-)
 
-Changes from v1:
-*) cleanup ti_pipe3_probe in multiple steps
-*) other minor cleanups
-
-Changes from [1] in PHY patches include
-*) cleanup ti_pipe3_probe
-*) have mask, power_on and power_off values in usb_phy_data for
-   omap-usb2 phy
-
-The patches have been pushed to
-	git://git.ti.com/linux-phy/linux-phy.git syscon
-
-[1] -> https://lkml.org/lkml/2015/6/23/189
-
-All the testing was done both before applying the dt patches and after
-applying the dt patches (dt patches will be posted shortly).
-
-Logs with SYSCON DT
-
-DRA72 EVM : http://pastebin.ubuntu.com/14025205/
-DRA7 EVM  : http://pastebin.ubuntu.com/14025212/
-AM43XX EVM: http://pastebin.ubuntu.com/14025222/
-OMAP5 UEVM: http://pastebin.ubuntu.com/14025228/
-
-Logs without SYSCON DT
-
-DRA72 EVM : http://pastebin.ubuntu.com/14025233/
-DRA7 EVM  : http://pastebin.ubuntu.com/14025238/
-AM43XX EVM: http://pastebin.ubuntu.com/14025329/
-OMAP5 UEVM: http://pastebin.ubuntu.com/14025248/
-
-The config I used: http://pastebin.ubuntu.com/14025336/
-
-Kishon Vijay Abraham I (9):
-  phy: ti-pipe3: introduce local struct device* in probe
-  phy: ti-pipe3: move clk initialization to a separate function
-  phy: ti-pipe3: move sysctrl initialization to a separate function
-  phy: ti-pipe3: move mem resource initialization to a separate
-    function
-  phy: ti-pipe3: use ti_pipe3_power_off to power off the PHY during
-    probe
-  phy: ti-pipe3: use *syscon* framework API to power on/off the PHY
-  phy: ti-pipe3: use *syscon* framework API to set PCS value of the PHY
-  phy: omap-usb2: use omap_usb_power_off to power off the PHY during
-    probe
-  phy: omap-usb2: use *syscon* framework API to power on/off the PHY
-
- Documentation/devicetree/bindings/phy/ti-phy.txt |   20 +-
- drivers/phy/phy-omap-usb2.c                      |   96 +++++--
- drivers/phy/phy-ti-pipe3.c                       |  304 ++++++++++++++++------
- include/linux/phy/omap_usb.h                     |   23 ++
- 4 files changed, 340 insertions(+), 103 deletions(-)
-
+diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
+index 3154da0..1991efd 100644
+--- a/drivers/phy/phy-ti-pipe3.c
++++ b/drivers/phy/phy-ti-pipe3.c
+@@ -418,14 +418,42 @@ static int ti_pipe3_get_sysctrl(struct ti_pipe3 *phy)
+ 	return 0;
+ }
+ 
++static int ti_pipe3_get_pll_base(struct ti_pipe3 *phy)
++{
++	struct resource *res;
++	const struct of_device_id *match;
++	struct device *dev = phy->dev;
++	struct device_node *node = dev->of_node;
++	struct platform_device *pdev = to_platform_device(dev);
++
++	if (of_device_is_compatible(node, "ti,phy-pipe3-pcie"))
++		return 0;
++
++	match = of_match_device(ti_pipe3_id_table, dev);
++	if (!match)
++		return -EINVAL;
++
++	phy->dpll_map = (struct pipe3_dpll_map *)match->data;
++	if (!phy->dpll_map) {
++		dev_err(dev, "no DPLL data\n");
++		return -EINVAL;
++	}
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
++					   "pll_ctrl");
++	phy->pll_ctrl_base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(phy->pll_ctrl_base))
++		return PTR_ERR(phy->pll_ctrl_base);
++
++	return 0;
++}
++
+ static int ti_pipe3_probe(struct platform_device *pdev)
+ {
+ 	struct ti_pipe3 *phy;
+ 	struct phy *generic_phy;
+ 	struct phy_provider *phy_provider;
+-	struct resource *res;
+ 	struct device_node *node = pdev->dev.of_node;
+-	const struct of_device_id *match;
+ 	struct device *dev = &pdev->dev;
+ 	int ret;
+ 
+@@ -435,23 +463,9 @@ static int ti_pipe3_probe(struct platform_device *pdev)
+ 
+ 	phy->dev		= dev;
+ 
+-	if (!of_device_is_compatible(node, "ti,phy-pipe3-pcie")) {
+-		match = of_match_device(ti_pipe3_id_table, dev);
+-		if (!match)
+-			return -EINVAL;
+-
+-		phy->dpll_map = (struct pipe3_dpll_map *)match->data;
+-		if (!phy->dpll_map) {
+-			dev_err(dev, "no DPLL data\n");
+-			return -EINVAL;
+-		}
+-
+-		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+-						   "pll_ctrl");
+-		phy->pll_ctrl_base = devm_ioremap_resource(dev, res);
+-		if (IS_ERR(phy->pll_ctrl_base))
+-			return PTR_ERR(phy->pll_ctrl_base);
+-	}
++	ret = ti_pipe3_get_pll_base(phy);
++	if (ret)
++		return ret;
+ 
+ 	ret = ti_pipe3_get_sysctrl(phy);
+ 	if (ret)
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
