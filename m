@@ -1,66 +1,65 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT "/chosen/linux,atags" entry
-Date: Tue, 15 Dec 2015 12:04:35 +0100
-Message-ID: <1684644.M9TF75k3RB@wuerfel>
-References: <20150713131902.GH26485@atomide.com> <alpine.LFD.2.20.1511301041090.22569@knanqh.ubzr> <20151215093325.GK13531@pali>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] phy: use syscon framework APIs to set ctrl mod reg
+Date: Tue, 15 Dec 2015 16:44:41 +0530
+Message-ID: <566FF621.2040307@ti.com>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
+ <725110094.6UkMkcy8u7@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151215093325.GK13531@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Laura Abbott <lauraa@codeaurora.org>, Sebastian Reichel <sre@debian.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Rob Herring <robherring2@gmail.com>, Pavel Machek <pavel@ucw.cz>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber@suse.de>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <725110094.6UkMkcy8u7@wuerfel>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 15 December 2015 10:33:25 Pali Roh=E1r wrote:
-> On Monday 30 November 2015 11:09:42 Nicolas Pitre wrote:
-> > On Mon, 30 Nov 2015, Pali Roh=E1r wrote:
-> > > On Monday 30 November 2015 07:23:53 Tony Lindgren wrote:
-> > > > * Pali Roh=E1r <pali.rohar@gmail.com> [151129 16:16]:
-> > > > > On Monday 30 November 2015 01:09:17 Nicolas Pitre wrote:
-> > > > > > On Sun, 29 Nov 2015, Russell King - ARM Linux wrote:
-> > > In arch/arm/kernel/setup.c is function setup_arch() and it calls:
-> > >=20
-> > >   mdesc =3D setup_machine_fdt(__atags_pointer);
-> > >   if (!mdesc)
-> > >       mdesc =3D setup_machine_tags(__atags_pointer, __machine_arc=
-h_type);
-> > >=20
-> > > So it looks like that on atags address is stored either atags str=
-ucture
-> > > or DT structure... so it is truth kernel uncompress code put DT b=
-lob to
-> > > same offset where is expected atags structure?
-> >=20
-> > No.  It doesn't put it anywhere. Those functions read DT/ATAGs from=
- the=20
-> > passed address.  But you know this address won't be the one you wan=
-t for=20
-> > the legacy ATAGs.
-> >=20
-> > What you should do is to add a init_early hook to your mdesc struct=
-ure=20
-> > and retrieve your ATAGs from there directly at PAGE_OFFSET + 0x100.
-> >=20
-> > Now I suspect paging_init() marks the point where the ATAGs will be=
-=20
-> > overwritten.  To prevent this, you might have to add an additional =
-tweak=20
-> > in arm_mm_memblock_reserve() similar to the one already present for=
-=20
-> > CONFIG_SA1111. Something like:
-> >=20
-> >       memblock_reserve(PHYS_OFFSET, PAGE_SIZE);
-> >=20
-> > And later on you can return that page back to the system.
-> >=20
->=20
-> So am I understand correctly that solution would be to hack
-> arch/arm/mm/mmu.c to not overwrite page at PHYS_OFFSET?
+Hi Arnd,
 
-I would think we can just copy the data from PAGE_OFFSET + 0x100
-to a some other page from your init_early hook. IIRC you can't use
-kmalloc there, but memblock_alloc() should work.
+On Tuesday 15 December 2015 04:26 PM, Arnd Bergmann wrote:
+> On Tuesday 15 December 2015 14:45:59 Kishon Vijay Abraham I wrote:
+>> This series is basically to deprecate using phy-omap-control and use
+>> syscon APIs to program the control module registers.
+>>
+>> Changes from v2:
+>> No changes.
+>>
+>> Changes from v1:
+>> *) cleanup ti_pipe3_probe in multiple steps
+>> *) other minor cleanups
+>>
+>> Changes from [1] in PHY patches include
+>> *) cleanup ti_pipe3_probe
+>> *) have mask, power_on and power_off values in usb_phy_data for
+>>    omap-usb2 phy
+>>
+>> The patches have been pushed to
+>>         git://git.ti.com/linux-phy/linux-phy.git syscon
+>>
+>> [1] -> https://lkml.org/lkml/2015/6/23/189
+>>
+>> All the testing was done both before applying the dt patches and after
+>> applying the dt patches (dt patches will be posted shortly).
+>>
+> 
+> Can you explain here what the conversion is good for? Why do you
+> prefer the syscon mapping over a high-level driver in this case?
 
-	Arnd
+phy-omap-control driver was added when there was no proper
+infrastructure for doing control module initializations. The
+phy-omap-control driver is not an 'actual' PHY driver and it
+was just a hack to do PHY related control module initializations.
+phy-omap-control is also getting unmanageable with the number of
+platforms each having number of modules (like USB, SATA, PCIe),
+using the same driver for control module initializations.
+
+Now with SYSCON framework being added to the kernel, phy-omap-control
+shouldn't be needed and it also provides a uniform API across all the
+modules to program the control module.
+
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
