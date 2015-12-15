@@ -1,49 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 5/5] arm: boot: store ATAGs structure into DT
- "/chosen/linux,atags" entry
-Date: Tue, 15 Dec 2015 12:20:38 +0000
-Message-ID: <20151215122038.GI30871@n2100.arm.linux.org.uk>
-References: <20150713131902.GH26485@atomide.com>
- <20151129180939.GE30871@n2100.arm.linux.org.uk>
- <alpine.LFD.2.20.1511291902100.22569@knanqh.ubzr>
- <201511300115.12478@pali>
- <20151130152352.GY2517@atomide.com>
- <20151130153933.GD29576@pali>
- <alpine.LFD.2.20.1511301041090.22569@knanqh.ubzr>
- <20151215093325.GK13531@pali>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 0/9] phy: use syscon framework APIs to set ctrl mod reg
+Date: Tue, 15 Dec 2015 18:16:56 +0530
+Message-ID: <56700BC0.7020007@ti.com>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
+ <725110094.6UkMkcy8u7@wuerfel> <566FF621.2040307@ti.com>
+ <11176831.mhgJlIuj0S@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151215093325.GK13531@pali>
+In-Reply-To: <11176831.mhgJlIuj0S@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Laura Abbott <lauraa@codeaurora.org>, Sebastian Reichel <sre@debian.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Rob Herring <robherring2@gmail.com>, Pavel Machek <pavel@ucw.cz>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 15, 2015 at 10:33:25AM +0100, Pali Roh=E1r wrote:
-> So am I understand correctly that solution would be to hack
-> arch/arm/mm/mmu.c to not overwrite page at PHYS_OFFSET?
+Hi,
 
-That's completely unnecessary: there are enough platform hooks to cope
-with whatever the platform requires.
+On Tuesday 15 December 2015 05:25 PM, Arnd Bergmann wrote:
+> On Tuesday 15 December 2015 16:44:41 Kishon Vijay Abraham I wrote:
+>> Hi Arnd,
+>>
+>> On Tuesday 15 December 2015 04:26 PM, Arnd Bergmann wrote:
+>>> On Tuesday 15 December 2015 14:45:59 Kishon Vijay Abraham I wrote:
+>>>> This series is basically to deprecate using phy-omap-control and use
+>>>> syscon APIs to program the control module registers.
+>>>>
+>>>> Changes from v2:
+>>>> No changes.
+>>>>
+>>>> Changes from v1:
+>>>> *) cleanup ti_pipe3_probe in multiple steps
+>>>> *) other minor cleanups
+>>>>
+>>>> Changes from [1] in PHY patches include
+>>>> *) cleanup ti_pipe3_probe
+>>>> *) have mask, power_on and power_off values in usb_phy_data for
+>>>>    omap-usb2 phy
+>>>>
+>>>> The patches have been pushed to
+>>>>         git://git.ti.com/linux-phy/linux-phy.git syscon
+>>>>
+>>>> [1] -> https://lkml.org/lkml/2015/6/23/189
+>>>>
+>>>> All the testing was done both before applying the dt patches and after
+>>>> applying the dt patches (dt patches will be posted shortly).
+>>>>
+>>>
+>>> Can you explain here what the conversion is good for? Why do you
+>>> prefer the syscon mapping over a high-level driver in this case?
+>>
+>> phy-omap-control driver was added when there was no proper
+>> infrastructure for doing control module initializations. The
+>> phy-omap-control driver is not an 'actual' PHY driver and it
+>> was just a hack to do PHY related control module initializations.
+>> phy-omap-control is also getting unmanageable with the number of
+>> platforms each having number of modules (like USB, SATA, PCIe),
+>> using the same driver for control module initializations.
+>>
+>> Now with SYSCON framework being added to the kernel, phy-omap-control
+>> shouldn't be needed and it also provides a uniform API across all the
+>> modules to program the control module.
+> 
+> Ok, so the "phy-control" devices were really just a few registers of
+> a system controller device that does a lot of other things as well, right?
 
-If you want to reserve the memory, then you have the ->reserve callback=
-,
-where you can call:
+right.
+> 
+> Can you put your description above into the cover-letter for the series,
+> and the merge commit?
 
-	memblock_reserve(PHYS_OFFSET, PAGE_SIZE);
+Sure.
 
-if you wish to prevent the first page being overwritten.  You're then
-responsible for freeing this page later in the boot sequence, or you
-could just keep it around and refer to the atags in that page directly.
-
-You could also just save_atags() in there, with a comment saying that
-this is a work-around for N900 which needs the ATAGs saved, and this
-is allowed in ->reserve as a special exception.
-
---=20
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-=46TTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Thanks
+Kishon
