@@ -1,39 +1,44 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 3/4] ARM: dts: dra7: Use "ti,dra7x-usb2-phy2" compatible string for USB2 PHY2
-Date: Tue, 15 Dec 2015 15:09:05 +0530
-Message-ID: <1450172346-11890-4-git-send-email-kishon@ti.com>
-References: <1450172346-11890-1-git-send-email-kishon@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v3 0/9] phy: use syscon framework APIs to set ctrl mod reg
+Date: Tue, 15 Dec 2015 11:56:34 +0100
+Message-ID: <725110094.6UkMkcy8u7@wuerfel>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1450172346-11890-1-git-send-email-kishon@ti.com>
+In-Reply-To: <1450170968-11282-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
-Cc: bcousson@baylibre.com, kishon@ti.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, rogerq@ti.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, t-kristo@ti.com
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The USB2 PHY2 has a different register map compared to USB2 PHY1
-to power on/off the PHY. In order to handle it, use the new compatible
-string "ti,dra7x-usb2-phy2" for the second instance of USB2 PHY.
+On Tuesday 15 December 2015 14:45:59 Kishon Vijay Abraham I wrote:
+> This series is basically to deprecate using phy-omap-control and use
+> syscon APIs to program the control module registers.
+> 
+> Changes from v2:
+> No changes.
+> 
+> Changes from v1:
+> *) cleanup ti_pipe3_probe in multiple steps
+> *) other minor cleanups
+> 
+> Changes from [1] in PHY patches include
+> *) cleanup ti_pipe3_probe
+> *) have mask, power_on and power_off values in usb_phy_data for
+>    omap-usb2 phy
+> 
+> The patches have been pushed to
+>         git://git.ti.com/linux-phy/linux-phy.git syscon
+> 
+> [1] -> https://lkml.org/lkml/2015/6/23/189
+> 
+> All the testing was done both before applying the dt patches and after
+> applying the dt patches (dt patches will be posted shortly).
+> 
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Can you explain here what the conversion is good for? Why do you
+prefer the syscon mapping over a high-level driver in this case?
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 156d735..41545f9 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1299,7 +1299,8 @@
- 			};
- 
- 			usb2_phy2: phy@4a085000 {
--				compatible = "ti,omap-usb2";
-+				compatible = "ti,dra7x-usb2-phy2",
-+					     "ti,omap-usb2";
- 				reg = <0x4a085000 0x400>;
- 				ctrl-module = <&omap_control_usb2phy2>;
- 				clocks = <&usb_phy2_always_on_clk32k>,
--- 
-1.7.9.5
+	Arnd
