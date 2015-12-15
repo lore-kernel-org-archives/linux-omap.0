@@ -1,70 +1,74 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2] irqchip: omap-intc: add support for spurious irq
- handling
-Date: Tue, 15 Dec 2015 19:57:13 +0530
-Message-ID: <56702341.50309@ti.com>
-References: <0958510b69cf679fef64ccf535b1cdc43c5ffccc.1449572109.git.nsekhar@ti.com>
- <87mvtlm4ts.fsf@saruman.tx.rr.com> <56699762.1030501@ti.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: Re: [PATCH 00/10] drivers/pci: avoid module_init in non-modular
+ host/pci*
+Date: Tue, 15 Dec 2015 10:16:24 -0500
+Message-ID: <20151215151624.GB2772@windriver.com>
+References: <1449970917-12633-1-git-send-email-paul.gortmaker@windriver.com>
+ <CAFiDJ5-Y8afg5kDRQLK1pain-k1kPQAn3vhWrVkB1ADPRHvx+A@mail.gmail.com>
+ <20151214091940.GA15126@ulmo.nvidia.com>
+ <3302340.SIljl1qYTl@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56699762.1030501@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: John Ogness <john.ogness@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <3302340.SIljl1qYTl@wuerfel>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux-sh list <linux-sh@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Rocketboard Maillist <rfi@lists.rocketboards.org>, linux-tegra@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Simon Horman <horms@verge.net.au>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Richard Zhu <Richard.Zhu@>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 10 December 2015 08:46 PM, Sekhar Nori wrote:
-> Hi Felipe,
-> 
-> On Tuesday 08 December 2015 07:15 PM, Felipe Balbi wrote:
->> Sekhar Nori <nsekhar@ti.com> writes:
-> 
->>> +	/*
->>> +	 * A spurious IRQ can result if interrupt that triggered the
->>> +	 * sorting is no longer active during the sorting (10 INTC
->>> +	 * functional clock cycles after interrupt assertion). Or a
->>> +	 * change in interrupt mask affected the result during sorting
->>> +	 * time. There is no special handling required except ignoring
->>> +	 * the SIR register value just read and retrying.
->>> +	 * See section 6.2.5 of AM335x TRM Literature Number: SPRUH73K
->>> +	 *
->>> +	 * Many a times, a spurious interrupt situation has been fixed
->>> +	 * by adding a flush for the posted write acking the IRQ in
->>> +	 * the device driver. Typically, this is going be the device
->>> +	 * driver whose interrupt was handled just before the spurious
->>> +	 * IRQ occurred. Pay attention to those device drivers if you
->>> +	 * run into hitting the spurious IRQ condition below.
->>> +	 */
->>> +	if ((irqnr & SPURIOUSIRQ_MASK) == SPURIOUSIRQ_MASK) {
->>
->> sounds like unlikely() wouldn't hurt here.
-> 
-> I can add, but looks like it does not make a big difference. See below.
-> 
->>
->>> +		pr_err_once("%s: spurious irq!\n", __func__);
->>> +		irq_err_count++;
->>> +		omap_ack_irq(NULL);
->>> +		return;
->>> +	}
->>> +
->>>  	irqnr &= ACTIVEIRQ_MASK;
->>> -	WARN_ONCE(!irqnr, "Spurious IRQ ?\n");
->>>  	handle_domain_irq(domain, irqnr, regs);
->>
->> care to run kernel function profiler against omap_intc_handle_irq()
->> before and after this patch ?
-> 
-> Before this patch I see average running time time of 34us. That
-> increases to 37.8us after this patch. With unlikely() the number I got
-> was 37.4us. So the benefit with unlikely() is in the noise range.
-> 
-> This was using AM335x EVM at 720 MHz.
+[Re: [PATCH 00/10] drivers/pci: avoid module_init in non-modular host/pci*] On 14/12/2015 (Mon 11:27) Arnd Bergmann wrote:
 
-Just sent a v3 with unlikely() and profiling information added to commit
-message.
+> On Monday 14 December 2015 10:19:40 Thierry Reding wrote:
+> > > PCIe host driver that use fixup (DECLARE_PCI_FIXUP_*) can't use tristate.
+> > > Fixup region is in kernel region and this region if not updated when
+> > > loading a module.
+> > 
+> > Interesting, I hadn't thought about that. I suppose this means that the
+> > module will end up containing an unused section with the fixup code. It
+> > might be useful to add a way for that to trigger a warning at build
+> > time.
+> > 
+> > Perhaps to fix this a mechanism could be introduced to add a table of
+> > fixups to a host controller driver and that will get applied to all
+> > children of the bridge. It could be problematic to cover all of the
+> > different fixup stages, though.
+> > 
+> 
+> 
+> I think a lot of the fixups shouldn't really be there in the first place,
+> they are about stuff that we can fix up in the probe function, or that should
+> be fixed up in the probe function with some appropriate core support added.
 
-Thanks,
-Sekhar
+So, the feedback on this is a bit all over the map, leaving me unsure
+what to do next.  And is the choice we make on a per board/bsp basis or
+ideally across all platforms?  I see the choices as:
+
+1) do nothing; which IMHO is least desirable as it leaves the code
+misrepresenting itself as modular; one of the key issues I wanted to fix
+
+2) use the patches I've sent ; then as they are genuinely made modular,
+the person doing so essentially "patch -R" or reverts the change as
+step one.  This has the advantage of solving the "we'll get to it
+someday" issue if someday never comes.
+
+3) make them all tristate;  beat it with a stick until it compiles [M]
+and modposts -- leaving the fixups and functional testing to people with
+the boards and low level knowledge to make it _work_ as a module.  The
+downside here is the code is still kind of misrepresenting itself as
+modularly functional -- a ban of unloading might mitigate that some.
+
+Paul.
+--
+
+> 
+> 	Arnd
