@@ -1,74 +1,55 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: Re: [PATCH 00/10] drivers/pci: avoid module_init in non-modular
- host/pci*
-Date: Tue, 15 Dec 2015 10:16:24 -0500
-Message-ID: <20151215151624.GB2772@windriver.com>
-References: <1449970917-12633-1-git-send-email-paul.gortmaker@windriver.com>
- <CAFiDJ5-Y8afg5kDRQLK1pain-k1kPQAn3vhWrVkB1ADPRHvx+A@mail.gmail.com>
- <20151214091940.GA15126@ulmo.nvidia.com>
- <3302340.SIljl1qYTl@wuerfel>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] phy: use syscon framework APIs to set ctrl mod reg
+Date: Tue, 15 Dec 2015 07:26:59 -0800
+Message-ID: <20151215152659.GQ23396@atomide.com>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
+ <725110094.6UkMkcy8u7@wuerfel>
+ <566FF621.2040307@ti.com>
+ <11176831.mhgJlIuj0S@wuerfel>
+ <56700BC0.7020007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3302340.SIljl1qYTl@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linux-sh list <linux-sh@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, Rocketboard Maillist <rfi@lists.rocketboards.org>, linux-tegra@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Pratyush Anand <pratyush.anand@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Kishon Vijay Abraham I <kishon@ti.com>, Murali Karicheri <m-karicheri2@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Simon Horman <horms@verge.net.au>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Richard Zhu <Richard.Zhu@>
+In-Reply-To: <56700BC0.7020007-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-[Re: [PATCH 00/10] drivers/pci: avoid module_init in non-modular host/pci*] On 14/12/2015 (Mon 11:27) Arnd Bergmann wrote:
-
-> On Monday 14 December 2015 10:19:40 Thierry Reding wrote:
-> > > PCIe host driver that use fixup (DECLARE_PCI_FIXUP_*) can't use tristate.
-> > > Fixup region is in kernel region and this region if not updated when
-> > > loading a module.
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [151215 04:47]:
+> On Tuesday 15 December 2015 05:25 PM, Arnd Bergmann wrote:
+> >>>
+> >>> Can you explain here what the conversion is good for? Why do you
+> >>> prefer the syscon mapping over a high-level driver in this case?
+> >>
+> >> phy-omap-control driver was added when there was no proper
+> >> infrastructure for doing control module initializations. The
+> >> phy-omap-control driver is not an 'actual' PHY driver and it
+> >> was just a hack to do PHY related control module initializations.
+> >> phy-omap-control is also getting unmanageable with the number of
+> >> platforms each having number of modules (like USB, SATA, PCIe),
+> >> using the same driver for control module initializations.
+> >>
+> >> Now with SYSCON framework being added to the kernel, phy-omap-control
+> >> shouldn't be needed and it also provides a uniform API across all the
+> >> modules to program the control module.
 > > 
-> > Interesting, I hadn't thought about that. I suppose this means that the
-> > module will end up containing an unused section with the fixup code. It
-> > might be useful to add a way for that to trigger a warning at build
-> > time.
-> > 
-> > Perhaps to fix this a mechanism could be introduced to add a table of
-> > fixups to a host controller driver and that will get applied to all
-> > children of the bridge. It could be problematic to cover all of the
-> > different fixup stages, though.
-> > 
+> > Ok, so the "phy-control" devices were really just a few registers of
+> > a system controller device that does a lot of other things as well, right?
 > 
-> 
-> I think a lot of the fixups shouldn't really be there in the first place,
-> they are about stuff that we can fix up in the probe function, or that should
-> be fixed up in the probe function with some appropriate core support added.
+> right.
+> > 
+> > Can you put your description above into the cover-letter for the series,
+> > and the merge commit?
 
-So, the feedback on this is a bit all over the map, leaving me unsure
-what to do next.  And is the choice we make on a per board/bsp basis or
-ideally across all platforms?  I see the choices as:
+Just to confirm.. Seems like this series keeps USB working and the dts
+changes can be done later after the driver changes have been merged?
 
-1) do nothing; which IMHO is least desirable as it leaves the code
-misrepresenting itself as modular; one of the key issues I wanted to fix
+Regards,
 
-2) use the patches I've sent ; then as they are genuinely made modular,
-the person doing so essentially "patch -R" or reverts the change as
-step one.  This has the advantage of solving the "we'll get to it
-someday" issue if someday never comes.
-
-3) make them all tristate;  beat it with a stick until it compiles [M]
-and modposts -- leaving the fixups and functional testing to people with
-the boards and low level knowledge to make it _work_ as a module.  The
-downside here is the code is still kind of misrepresenting itself as
-modularly functional -- a ban of unloading might mitigate that some.
-
-Paul.
+Tony
 --
-
-> 
-> 	Arnd
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
