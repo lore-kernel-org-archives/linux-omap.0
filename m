@@ -1,82 +1,48 @@
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Subject: Re: [PATCH] drivers: net: cpsw: fix RMII/RGMII mode when used with
- fixed-link PHY
-Date: Thu, 17 Dec 2015 00:04:09 -0500
-Message-ID: <20151217000409.27615e57.drivshin.allworx@gmail.com>
-References: <20151209223115.6c5a400f.drivshin.allworx@gmail.com>
-	<6416396.ZOturxhSar@localhost>
-	<20151214130446.1e14fbb8.drivshin.allworx@gmail.com>
-	<1741588.Ve76Z1ZI87@localhost>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v02 0/2] ARM: DTS: am33xx/am437x: Use the new eDMA bindings
+Date: Thu, 17 Dec 2015 15:33:35 +0200
+Message-ID: <1450359217-3038-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1741588.Ve76Z1ZI87@localhost>
-Sender: netdev-owner@vger.kernel.org
-To: Markus Brunner <systemprogrammierung.brunner@gmail.com>
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Pascal Speck <kernel@iktek.de>, Daniel Trautmann <dtrautmann@ibhsoftec-sps.de>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: arnd@arndb.de, tony@atomide.com
+Cc: nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, vinod.koul@intel.com, balbi@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 16 Dec 2015 07:39:16 +0100
-Markus Brunner <systemprogrammierung.brunner@gmail.com> wrote:
+Hi,
 
-> On Monday 14 December 2015 13:04:46 David Rivshin wrote:
-> > On Sat, 12 Dec 2015 16:44:19 +0100
-> ...
-> > > Your patch works fine on my board, which uses MII and dual_emac
-> > > with a fixed_phy and a real one.
-> > 
-> > Thanks for checking. The only dual_emac board I have available is
-> > the EVMSK, which has two real PHYs. I'm not sure of the usual
-> > etiquette (and Google was  unhelpful), should I add a Tested-by on
-> > the next version?
-> > 
-> Yes you can. Documentation/SubmittingPatches has some notes about it.
+Changes since v1:
+- Updated to use the non 16bit arrays [1]
+- send the two patch as a series
 
-Thanks, I didn't want to throw it on without permission. Although due 
-to the non-trivial change I mention below, I figured that the previous 
-testing wasn't totally valid anymore anyways, so I left it off the v2 
-emails.
+[1]
+As it has been discussed earlier:
+https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122117.html
 
-> > > I wanted to keep changes small and didn't spend too much thinking
-> > > about already broken devicetrees. Since my patch is quite new, I
-> > 
-> > I'm honestly not sure it's an important consideration myself. Most
-> > patches I've seen in this area for this or other drivers do not take
-> > such behavior into account (e.g. the phy-handle parsing that went in
-> > to cpsw in 4.3).
-> > I would generally feel more comfortable with such a behavior tweak
-> > (minor as it is) before 4.4 is released, to avoid ping-ponging the
-> > behavior. But given how far along the cycle is, I'm not sure about
-> > the chances of that.
-> 
-> Well I don't think compatibility for flawed DTs is such a high
-> priority, especially if it is that unlikely that there are some
-> affected. Keep the focus on the other _real_ problems you have
-> encountered and fix those like you see fit. 
+the DT bindings has been changes compared to what we had in 4.4-rc1: the arrays
+now don't have the 16bit type.
+The changes are now merged to mainline and Vinod provided us a branch:
 
-Since there's been no indication from anyone that being nice to such
-broken DTs is desired, I decided to drop that aspect of the patch and 
-leave the current 4.4-rc1..5 behavior. This also made it much more 
-reasonable to chop up the patch into smaller pieces, which I think will 
-be easier to review.
+git://git.infradead.org/users/vkoul/slave-dma.git fix/edma
 
-> > > don't see any problems with subtle changes like that. However you
-> > > should update the documentation as well.
-> > 
-> > Your patch already updated .../bindings/net/cpsw.txt, which this
-> > patch left alone. Are you referring to some other documentation,
-> > or do you think I should update the binding documentation to state
-> > that phy_id takes precedence over fixed-link? I figured that such
-> > devicetrees were still officially malformed, so I thought the
-> > existing text was appropriate.
-> 
-> "Either the properties phy_id and phy-mode, or the sub-node
-> fixed-link can be specified" One flaw of my patch was to ignore the
-> phy-mode for a fixed link. Do not mention the precedence of the
-> phy_id, because it is an undefined behavior. Your patch should change
-> it to: "Either the property phy_id, or the sub-node fixed-link can be
-> specified"
+Which is based on 4.4-rc1 and only contains the two patch for changing the eDMA
+bindings.
 
-Thanks for pointing that out. For some reason my brain skipped over the 
-"and phy-mode" part. Fixed in v2.
+Regards,
+Peter
+---
+
+Peter Ujfalusi (2):
+  ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
+  ARM: DTS: am437x: Use the new DT bindings for the eDMA3
+
+ arch/arm/boot/dts/am335x-evm.dts    |  9 +---
+ arch/arm/boot/dts/am335x-pepper.dts | 11 +----
+ arch/arm/boot/dts/am33xx.dtsi       | 94 ++++++++++++++++++++++++++-----------
+ arch/arm/boot/dts/am4372.dtsi       | 80 +++++++++++++++++++++++--------
+ arch/arm/boot/dts/am437x-gp-evm.dts |  9 +---
+ 5 files changed, 133 insertions(+), 70 deletions(-)
+
+-- 
+2.6.4
