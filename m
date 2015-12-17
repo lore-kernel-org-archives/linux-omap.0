@@ -1,35 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] clk: ti: omap5+: dpll: implement errata i810
-Date: Wed, 16 Dec 2015 09:16:50 -0800
-Message-ID: <20151216171650.GS23396@atomide.com>
-References: <1450256530-10251-1-git-send-email-t-kristo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450256530-10251-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: [PATCH v2 0/3] drivers: net: cpsw: Fix bugs in fixed-link PHY DT parsing
+Date: Wed, 16 Dec 2015 23:02:08 -0500
+Message-ID: <cover.1450309613.git.drivshin@allworx.com>
+References: <20151209223115.6c5a400f.drivshin.allworx@gmail.com> <1741588.Ve76Z1ZI87@localhost>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Mugunthan V N <mugunthanvnm@ti.com>, Pascal Speck <kernel@iktek.de>, Daniel Trautmann <dtrautmann@ibhsoftec-sps.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [151216 01:00]:
-> Errata i810 states that DPLL controller can get stuck while transitioning
-> to a power saving state, while its M/N ratio is being re-programmed.
-> 
-> As a workaround, before re-programming the M/N ratio, SW has to ensure
-> the DPLL cannot start an idle state transition. SW can disable DPLL
-> idling by setting the DPLL AUTO_DPLL_MODE=0 or keeping a clock request
-> active by setting a dependent clock domain in SW_WKUP.
-> 
-> This errata is known to impact OMAP5 and DRA7 chips, but lets enable it
-> unconditionally to avoid any potential problems with earlier generation
-> SoCs also.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-> v2: made the fix to be applied unconditionally on all OMAP3+ SoCs
+Commit 1f71e8c96fc654724723ce987e0a8b2aeb81746d ("drivers: net: cpsw:
+Add support for fixed-link PHY") added initial fixed-link PHY support
+for CPSW, but missed a few considerations.
 
-Thanks looks good to me now:
+This series is based on the tip of the net tree. The first two patches
+fix user-visible errors in different hardware configurations. The third
+patch is for an internal reference counting issue. They are logically
+independent changes, but in the same function, so must be applied in
+order to apply cleanly.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+The first patch was originally submitted by Pascal Speck on December 4,
+but was not picked up by patchwork. I suspect that is because the patch
+was mangled by the mailer. I fixed the mangling and am including it in
+this series, as I believe it is the correct change.
+
+I have tested on the following hardware configurations:
+ - (EVMSK) dual emac with two real MDIO-connected phys using RGMII-TXID
+ - single emac with fixed-link using RGMII
+Testing of other CPSW emac configurations that folks may have would
+be appreciated.
+
+
+Changes from v1 [1]:
+ - Split into 3 smaller patches.
+ - Maintain 1f71e8c96fc6's preference for fixed-link over phy_id if
+   they are both (incorrectly) specified in the slave node.
+ - Update binding documentation to no longer say that phy_mode is also
+   mutually exclusive with fixed-link.
+ - Dropped unnecessary include of phy_fixed.h.
+
+[1] https://patchwork.ozlabs.org/patch/554989/
+
+David Rivshin (2):
+  drivers: net: cpsw: fix RMII/RGMII mode when used with fixed-link PHY
+  drivers: net: cpsw: increment reference count on fixed-link PHY node
+
+Pascal Speck (Iktek) (1):
+  ethernet:ti:cpsw: fix phy identification with multiple slaves on
+    fixed-phy
+
+ Documentation/devicetree/bindings/net/cpsw.txt |  6 +--
+ drivers/net/ethernet/ti/cpsw.c                 | 53 +++++++++++++++-----------
+ 2 files changed, 34 insertions(+), 25 deletions(-)
+
+--
+2.5.0
