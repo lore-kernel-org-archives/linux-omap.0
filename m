@@ -1,276 +1,99 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v02 1/2] ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-Date: Thu, 17 Dec 2015 15:33:36 +0200
-Message-ID: <1450359217-3038-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1450359217-3038-1-git-send-email-peter.ujfalusi@ti.com>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Subject: Re: [PATCH 2/3] pwm: Add PWM driver for OMAP using dual-mode timers
+Date: Thu, 17 Dec 2015 15:00:35 +0100
+Message-ID: <5672C003.3010105@baylibre.com>
+References: <5637458D.60106@baylibre.com> <20151216162747.GL28947@ulmo>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1450359217-3038-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: arnd@arndb.de, tony@atomide.com
-Cc: nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, vinod.koul@intel.com, balbi@ti.com, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="skRRp6HvOUA7oj8nRgPhWMh4N6UqKD7dg"
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <20151216162747.GL28947@ulmo>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Switch to use the ti,edma3-tpcc and ti,edma3-tptc binding for the eDMA3 and
-enable the DMA even crossbar with ti,am335x-edma-crossbar.
-With the new bindings boards can customize and tweak the DMA channel
-priority to match their needs. With the new binding the memcpy is safe
-to be used since with the old binding it was not possible for a driver
-to know which channel is allowed to be used as non HW triggered channel.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--skRRp6HvOUA7oj8nRgPhWMh4N6UqKD7dg
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/boot/dts/am335x-evm.dts    |  9 +---
- arch/arm/boot/dts/am335x-pepper.dts | 11 +----
- arch/arm/boot/dts/am33xx.dtsi       | 94 ++++++++++++++++++++++++++-----------
- 3 files changed, 71 insertions(+), 43 deletions(-)
+Hi Thierry,
+On 12/16/2015 05:27 PM, Thierry Reding wrote:
+> I've applied this with some coding style bikeshedding applied. Also I
+> think there's a timer leak in the probe function:
+Indeed, the coding style had some root for ameliorations ! Thanks !
+I also missed this timer leak, thanks for the fix.
+>
+>> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmt=
+imer.c
+> [...]
+>> +static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>> +{
+> [...]
+>> +	dm_timer =3D pdata->request_by_node(timer);
+>> +	if (!dm_timer)
+>> +		return -EPROBE_DEFER;
+>
+> dm_timer holds the requested timer now.
+>
+>> +
+>> +	omap =3D devm_kzalloc(&pdev->dev, sizeof(*omap), GFP_KERNEL);
+>> +	if (!omap)
+>> +		return -ENOMEM;
+>
+> But it's not released when this allocation fails...
+>
+>> +
+>> +	omap->pdata =3D pdata;
+>> +	omap->dm_timer =3D dm_timer;
+>> +	omap->dm_timer_pdev =3D of_find_device_by_node(timer);
+>> +	if (!omap->dm_timer_pdev) {
+>> +		dev_err(&pdev->dev, "Unable to find timer pdev\n");
+>> +		return -EINVAL;
+>> +	}
+>
+> ... nor when this lookup fails. I've taken the liberty of adding two
+> calls to omap->pdata->free(dm_timer) to these error paths.
+Perfect !
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 4caf074063fe..a55072fb6646 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -743,8 +743,8 @@
- &mmc3 {
- 	/* these are on the crossbar and are outlined in the
- 	   xbar-event-map element */
--	dmas = <&edma 12
--		&edma 13>;
-+	dmas = <&edma_xbar 12 0 1
-+		&edma_xbar 13 0 2>;
- 	dma-names = "tx", "rx";
- 	status = "okay";
- 	vmmc-supply = <&wlan_en_reg>;
-@@ -766,11 +766,6 @@
- 	};
- };
- 
--&edma {
--	ti,edma-xbar-event-map = /bits/ 16 <1 12
--					    2 13>;
--};
--
- &sham {
- 	status = "okay";
- };
-diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index 9cb77a120319..4dd4f71498e5 100644
---- a/arch/arm/boot/dts/am335x-pepper.dts
-+++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -339,13 +339,6 @@
- 	ti,non-removable;
- };
- 
--&edma {
--	/* Map eDMA MMC2 Events from Crossbar */
--	ti,edma-xbar-event-map = /bits/ 16 <1 12
--                                            2 13>;
--};
--
--
- &mmc3 {
- 	/* Wifi & Bluetooth on MMC #3 */
- 	status = "okay";
-@@ -354,8 +347,8 @@
- 	vmmmc-supply = <&v3v3c_reg>;
- 	bus-width = <4>;
- 	ti,non-removable;
--	dmas = <&edma 12
--		&edma 13>;
-+	dmas = <&edma_xbar 12 0 1
-+		&edma_xbar 13 0 2>;
- 	dma-names = "tx", "rx";
- };
- 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9b8861891bf0..04885f9f959e 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -161,6 +161,14 @@
- 					mboxes = <&mailbox &mbox_wkupm3>;
- 				};
- 
-+				edma_xbar: dma-router@f90 {
-+					compatible = "ti,am335x-edma-crossbar";
-+					reg = <0xf90 0x40>;
-+					#dma-cells = <3>;
-+					dma-requests = <32>;
-+					dma-masters = <&edma>;
-+				};
-+
- 				scm_clockdomains: clockdomains {
- 				};
- 			};
-@@ -174,12 +182,44 @@
- 		};
- 
- 		edma: edma@49000000 {
--			compatible = "ti,edma3";
--			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
--			reg =	<0x49000000 0x10000>,
--				<0x44e10f90 0x40>;
-+			compatible = "ti,edma3-tpcc";
-+			ti,hwmods = "tpcc";
-+			reg =	<0x49000000 0x10000>;
-+			reg-names = "edma3_cc";
- 			interrupts = <12 13 14>;
--			#dma-cells = <1>;
-+			interrupt-names = "edma3_ccint", "emda3_mperr",
-+					  "edma3_ccerrint";
-+			dma-requests = <64>;
-+			#dma-cells = <2>;
-+
-+			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
-+				   <&edma_tptc2 0>;
-+
-+			ti,edma-memcpy-channels = <20 21>;
-+		};
-+
-+		edma_tptc0: tptc@49800000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc0";
-+			reg =	<0x49800000 0x100000>;
-+			interrupts = <112>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
-+
-+		edma_tptc1: tptc@49900000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc1";
-+			reg =	<0x49900000 0x100000>;
-+			interrupts = <113>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
-+
-+		edma_tptc2: tptc@49a00000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc2";
-+			reg =	<0x49a00000 0x100000>;
-+			interrupts = <114>;
-+			interrupt-names = "edma3_tcerrint";
- 		};
- 
- 		gpio0: gpio@44e07000 {
-@@ -233,7 +273,7 @@
- 			reg = <0x44e09000 0x2000>;
- 			interrupts = <72>;
- 			status = "disabled";
--			dmas = <&edma 26>, <&edma 27>;
-+			dmas = <&edma 26 0>, <&edma 27 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -244,7 +284,7 @@
- 			reg = <0x48022000 0x2000>;
- 			interrupts = <73>;
- 			status = "disabled";
--			dmas = <&edma 28>, <&edma 29>;
-+			dmas = <&edma 28 0>, <&edma 29 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -255,7 +295,7 @@
- 			reg = <0x48024000 0x2000>;
- 			interrupts = <74>;
- 			status = "disabled";
--			dmas = <&edma 30>, <&edma 31>;
-+			dmas = <&edma 30 0>, <&edma 31 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -322,8 +362,8 @@
- 			ti,dual-volt;
- 			ti,needs-special-reset;
- 			ti,needs-special-hs-handling;
--			dmas = <&edma 24
--				&edma 25>;
-+			dmas = <&edma_xbar 24 0 0
-+				&edma_xbar 25 0 0>;
- 			dma-names = "tx", "rx";
- 			interrupts = <64>;
- 			interrupt-parent = <&intc>;
-@@ -335,8 +375,8 @@
- 			compatible = "ti,omap4-hsmmc";
- 			ti,hwmods = "mmc2";
- 			ti,needs-special-reset;
--			dmas = <&edma 2
--				&edma 3>;
-+			dmas = <&edma 2 0
-+				&edma 3 0>;
- 			dma-names = "tx", "rx";
- 			interrupts = <28>;
- 			interrupt-parent = <&intc>;
-@@ -474,10 +514,10 @@
- 			interrupts = <65>;
- 			ti,spi-num-cs = <2>;
- 			ti,hwmods = "spi0";
--			dmas = <&edma 16
--				&edma 17
--				&edma 18
--				&edma 19>;
-+			dmas = <&edma 16 0
-+				&edma 17 0
-+				&edma 18 0
-+				&edma 19 0>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
-@@ -490,10 +530,10 @@
- 			interrupts = <125>;
- 			ti,spi-num-cs = <2>;
- 			ti,hwmods = "spi1";
--			dmas = <&edma 42
--				&edma 43
--				&edma 44
--				&edma 45>;
-+			dmas = <&edma 42 0
-+				&edma 43 0
-+				&edma 44 0
-+				&edma 45 0>;
- 			dma-names = "tx0", "rx0", "tx1", "rx1";
- 			status = "disabled";
- 		};
-@@ -833,7 +873,7 @@
- 			ti,hwmods = "sham";
- 			reg = <0x53100000 0x200>;
- 			interrupts = <109>;
--			dmas = <&edma 36>;
-+			dmas = <&edma 36 0>;
- 			dma-names = "rx";
- 		};
- 
-@@ -842,8 +882,8 @@
- 			ti,hwmods = "aes";
- 			reg = <0x53500000 0xa0>;
- 			interrupts = <103>;
--			dmas = <&edma 6>,
--			       <&edma 5>;
-+			dmas = <&edma 6 0>,
-+			       <&edma 5 0>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -856,8 +896,8 @@
- 			interrupts = <80>, <81>;
- 			interrupt-names = "tx", "rx";
- 			status = "disabled";
--			dmas = <&edma 8>,
--				<&edma 9>;
-+			dmas = <&edma 8 2>,
-+				<&edma 9 2>;
- 			dma-names = "tx", "rx";
- 		};
- 
-@@ -870,8 +910,8 @@
- 			interrupts = <82>, <83>;
- 			interrupt-names = "tx", "rx";
- 			status = "disabled";
--			dmas = <&edma 10>,
--				<&edma 11>;
-+			dmas = <&edma 10 2>,
-+				<&edma 11 2>;
- 			dma-names = "tx", "rx";
- 		};
- 
--- 
-2.6.4
+> Please take a look at what's in the pwm/for-next branch to see if it
+> still works correctly.
+I had a look against my original patch and it should be ok, I will still =
+hook it up back
+on the real HW in case we forgot something.
+
+> Thanks,
+> Thierry
+>
+
+Thanks !
+Neil
+
+
+
+--skRRp6HvOUA7oj8nRgPhWMh4N6UqKD7dg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWcsAHAAoJEHfc29rIyEnRCngQAK8Oh43D3mYiq94hEhOZsKVY
+ZWvgrQGt2Lj+/OHy4Z08ljOQokNyFnjm5BPws3CBIql7D/1rj+VXDoQN37u5kNzg
+2yf5BTD77Dxr5zJhouIsfn7RKEELA2uUwCXS7qWLa0oRRJH80/CKMsNq0tRTER/e
+DkVNYaDZDFwUoWdqwYhtF5mhtPeogHQcs5Dy6e1VlnrETSTJZyP4u4/oGxiMY0Qn
+c+3X2h39IOb6FLlEDQzTdX/W6HpMmf0ADh9VEBHFn6yd5AXi9ex/47Udx0As5YWf
+SfZ/nxCGzQfijPq99rz175MguwypblTxNt6kJ9VDZOj0ludl3dVY4Z2hcNhtWHpe
+tLbRlZMdHpOrP+RLxxXjxBXSglknLCDzkaUaYPLwFHPPDymLwlxAOUwtcP3Y6Vsw
+WwybshrOnHG8QKMtCKbnK/VH41+7LP4qf4mVNaC096dbFQ4JPCKbTPOSd13o9Mph
+0DeVLb2CJGthXiFKkY9OotT9TWRl5gjvaTZxqMJKS0PSpliwruhnnSFBeGh5Xqhl
+yZSRCsYGKOdjzCYzlHF/jw75qzuTMJJMUMkPwvhyOb5RQaAZZOyqEmyx3qrKMszS
+Jrlo4ITBn7kw6DPxT8Ny2YHhtxqrmG2s3EHc3647SHLmvxj7eaDmFwZCRAoqJcHn
+S5l794WuWuDSiy7Z+P1y
+=RShq
+-----END PGP SIGNATURE-----
+
+--skRRp6HvOUA7oj8nRgPhWMh4N6UqKD7dg--
