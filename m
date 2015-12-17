@@ -1,25 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP1/2+: DO not create omap-pcm-audio device
-Date: Thu, 17 Dec 2015 10:36:28 -0800
-Message-ID: <20151217183627.GA23396@atomide.com>
-References: <1449838220-24309-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v5 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Thu, 17 Dec 2015 10:45:58 -0800
+Message-ID: <20151217184557.GC23396@atomide.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-5-git-send-email-vigneshr@ti.com>
+ <20151211150935.GA15654@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1449838220-24309-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20151211150935.GA15654@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [151211 04:51]:
-> Hi,
+* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [151211 07:10]:
+> On Fri, Dec 11, 2015 at 09:39:59AM +0530, Vignesh R wrote:
+> > Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
+> > update the binding documents for the controller to document this change.
+> > 
+> > Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 > 
-> The ASoC omap-pcm has been converted to be non platform device a long time ago,
-> so it is no longer needed to create the device for it since there will be no
-> driver to be loaded for it.
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-OK, applying into omap-for-v4.5/soc-v2 thanks.
+Vignes, are patches 4 and 5 safe to apply separately already or
+do things break if we do that?
+
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
