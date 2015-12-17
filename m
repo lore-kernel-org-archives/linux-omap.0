@@ -1,46 +1,48 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v02 0/2] ARM: DTS: am33xx/am437x: Use the new eDMA
- bindings
-Date: Thu, 17 Dec 2015 09:48:44 -0800
-Message-ID: <20151217174844.GT23396@atomide.com>
-References: <1450359217-3038-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 09/19] ARM: dts: am335x: replace gpio-key,wakeup with
+ wakeup-source property
+Date: Thu, 17 Dec 2015 09:58:13 -0800
+Message-ID: <20151217175812.GU23396@atomide.com>
+References: <1445422216-29375-1-git-send-email-sudeep.holla@arm.com>
+ <1445422216-29375-10-git-send-email-sudeep.holla@arm.com>
+ <567040E7.7060308@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1450359217-3038-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <567040E7.7060308-5wv7dgnIgG8@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: arnd-r2nGTMty4D4@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [151217 05:33]:
-> Hi,
-> 
-> Changes since v1:
-> - Updated to use the non 16bit arrays [1]
-> - send the two patch as a series
-> 
-> [1]
-> As it has been discussed earlier:
-> https://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg122117.html
-> 
-> the DT bindings has been changes compared to what we had in 4.4-rc1: the arrays
-> now don't have the 16bit type.
-> The changes are now merged to mainline and Vinod provided us a branch:
-> 
-> git://git.infradead.org/users/vkoul/slave-dma.git fix/edma
-> 
-> Which is based on 4.4-rc1 and only contains the two patch for changing the eDMA
-> bindings.
+* Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org> [151215 08:33]:
+>=20
+>=20
+> On 21/10/15 11:10, Sudeep Holla wrote:
+> >Though the keyboard driver for GPIO buttons(gpio-keys) will continue=
+ to
+> >check for/support the legacy "gpio-key,wakeup" boolean property to
+> >enable gpio buttons as wakeup source, "wakeup-source" is the new
+> >standard binding.
+> >
+> >This patch replaces the legacy "gpio-key,wakeup" with the unified
+> >"wakeup-source" property in order to avoid any futher copy-paste
+> >duplication.
+> >
+> >Cc: "Beno=C3=AEt Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> >Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>=20
+> Ping, do you prefer taking via your tree or should I send to armsoc
+> directly ?
 
-Great, I'll merge the fix/edma also into omap-for-v4.5/dt and apply
-your two patches.
-
-Regards,
+Sorry I did not realized you're waiting for me to pick this one,
+applying into omap-for-v4.5/dt thanks.
 
 Tony
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
