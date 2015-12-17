@@ -1,36 +1,29 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 4/5] ARM: dts: DRA7: add entry for qspi mmap region
-Date: Thu, 17 Dec 2015 10:45:58 -0800
-Message-ID: <20151217184557.GC23396@atomide.com>
-References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
- <1449807000-6457-5-git-send-email-vigneshr@ti.com>
- <20151211150935.GA15654@rob-hp-laptop>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 0/3] drivers: net: cpsw: Fix bugs in fixed-link PHY
+ DT parsing
+Date: Thu, 17 Dec 2015 15:45:08 -0500 (EST)
+Message-ID: <20151217.154508.505711333985621252.davem@davemloft.net>
+References: <20151209223115.6c5a400f.drivshin.allworx@gmail.com>
+	<1741588.Ve76Z1ZI87@localhost>
+	<cover.1450309613.git.drivshin@allworx.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151211150935.GA15654@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1450309613.git.drivshin@allworx.com>
+Sender: netdev-owner@vger.kernel.org
+To: drivshin.allworx@gmail.com
+Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, systemprogrammierung.brunner@gmail.com, mugunthanvnm@ti.com, kernel@iktek.de, dtrautmann@ibhsoftec-sps.de
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [151211 07:10]:
-> On Fri, Dec 11, 2015 at 09:39:59AM +0530, Vignesh R wrote:
-> > Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
-> > update the binding documents for the controller to document this change.
-> > 
-> > Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> 
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Date: Wed, 16 Dec 2015 23:02:08 -0500
 
-Vignes, are patches 4 and 5 safe to apply separately already or
-do things break if we do that?
+> I have tested on the following hardware configurations:
+>  - (EVMSK) dual emac with two real MDIO-connected phys using RGMII-TXID
+>  - single emac with fixed-link using RGMII
+> Testing of other CPSW emac configurations that folks may have would
+> be appreciated.
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm going to wait until some others give some feedback and testing
+results on this one, thanks.
