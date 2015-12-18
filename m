@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC 9/9] clk: ti: omap4: update clock aliases to reflect new module clocks
-Date: Fri, 18 Dec 2015 15:59:01 +0200
-Message-ID: <1450447141-29936-10-git-send-email-t-kristo@ti.com>
+Subject: [RFC 1/9] ARM: OMAP2+: omap_device: create clock alias purely from DT data
+Date: Fri, 18 Dec 2015 15:58:53 +0200
+Message-ID: <1450447141-29936-2-git-send-email-t-kristo@ti.com>
 References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,37 @@ To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mtu
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The clock data in DT has been updated, and the clock aliases must be
-updated to match.
+This avoids the need to add most of the clock aliases under
+drivers/clk/ti/clk-xyz.c files.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk-44xx.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/omap_device.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-index 7a8b51b..81cd26e 100644
---- a/drivers/clk/ti/clk-44xx.c
-+++ b/drivers/clk/ti/clk-44xx.c
-@@ -164,17 +164,17 @@ static struct ti_dt_clk omap44xx_clks[] = {
- 	DT_CLK(NULL, "smartreflex_core_fck", "smartreflex_core_fck"),
- 	DT_CLK(NULL, "smartreflex_iva_fck", "smartreflex_iva_fck"),
- 	DT_CLK(NULL, "smartreflex_mpu_fck", "smartreflex_mpu_fck"),
--	DT_CLK(NULL, "dmt1_clk_mux", "dmt1_clk_mux"),
--	DT_CLK(NULL, "cm2_dm10_mux", "cm2_dm10_mux"),
--	DT_CLK(NULL, "cm2_dm11_mux", "cm2_dm11_mux"),
--	DT_CLK(NULL, "cm2_dm2_mux", "cm2_dm2_mux"),
--	DT_CLK(NULL, "cm2_dm3_mux", "cm2_dm3_mux"),
--	DT_CLK(NULL, "cm2_dm4_mux", "cm2_dm4_mux"),
--	DT_CLK(NULL, "timer5_sync_mux", "timer5_sync_mux"),
--	DT_CLK(NULL, "timer6_sync_mux", "timer6_sync_mux"),
--	DT_CLK(NULL, "timer7_sync_mux", "timer7_sync_mux"),
--	DT_CLK(NULL, "timer8_sync_mux", "timer8_sync_mux"),
--	DT_CLK(NULL, "cm2_dm9_mux", "cm2_dm9_mux"),
-+	DT_CLK(NULL, "timer1_mod_ck", "timer1_mod_ck"),
-+	DT_CLK(NULL, "timer10_mod_ck", "timer10_mod_ck"),
-+	DT_CLK(NULL, "timer11_mod_ck", "timer11_mod_ck"),
-+	DT_CLK(NULL, "timer2_mod_ck", "timer2_mod_ck"),
-+	DT_CLK(NULL, "timer3_mod_ck", "timer3_mod_ck"),
-+	DT_CLK(NULL, "timer4_mod_ck", "timer4_mod_ck"),
-+	DT_CLK(NULL, "timer5_mod_ck", "timer5_mod_ck"),
-+	DT_CLK(NULL, "timer6_mod_ck", "timer6_mod_ck"),
-+	DT_CLK(NULL, "timer7_mod_ck", "timer7_mod_ck"),
-+	DT_CLK(NULL, "timer8_mod_ck", "timer8_mod_ck"),
-+	DT_CLK(NULL, "timer9_mod_ck", "timer9_mod_ck"),
- 	DT_CLK(NULL, "usb_host_fs_fck", "usb_host_fs_fck"),
- 	DT_CLK("usbhs_omap", "fs_fck", "usb_host_fs_fck"),
- 	DT_CLK(NULL, "utmi_p1_gfclk", "utmi_p1_gfclk"),
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 72ebc4c..3389ce7 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -62,6 +62,18 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		return;
+ 	}
+ 
++	r = clk_get_sys(NULL, clk_name);
++
++	if (IS_ERR(r) && of_have_populated_dt()) {
++		struct of_phandle_args clkspec;
++
++		clkspec.np = of_find_node_by_name(NULL, clk_name);
++
++		r = of_clk_get_from_provider(&clkspec);
++
++		clk_register_clkdev(r, clk_name, NULL);
++	}
++
+ 	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
+ 	if (rc) {
+ 		if (rc == -ENODEV || rc == -ENOMEM)
 -- 
 1.7.9.5
 
