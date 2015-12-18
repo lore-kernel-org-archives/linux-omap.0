@@ -1,47 +1,52 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH v2] mtd: omap_elm: print interrupt resource using %pr
-Date: Fri, 18 Dec 2015 14:15:17 +0100
-Message-ID: <2327550.1yLrRnIh7I@wuerfel>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v02 0/2] ARM: DTS: am33xx/am437x: Use the new eDMA
+ bindings
+Date: Fri, 18 Dec 2015 05:46:57 -0800
+Message-ID: <20151218134657.GE23396@atomide.com>
+References: <1450359217-3038-1-git-send-email-peter.ujfalusi@ti.com>
+ <20151217174844.GT23396@atomide.com>
+ <20151218051801.GR1854@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151218051801.GR1854@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, arnd@arndb.de, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When CONFIG_LPAE is set on ARM, resource_size_t is 64-bit wide
-and we get a warning about an incorrect format string for printing
-the interrupt number in elm_probe:
+* Vinod Koul <vinod.koul@intel.com> [151217 21:14]:
+> On Thu, Dec 17, 2015 at 09:48:44AM -0800, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [151217 05:33]:
+> > > Hi,
+> > > 
+> > > Changes since v1:
+> > > - Updated to use the non 16bit arrays [1]
+> > > - send the two patch as a series
+> > > 
+> > > [1]
+> > > As it has been discussed earlier:
+> > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122117.html
+> > > 
+> > > the DT bindings has been changes compared to what we had in 4.4-rc1: the arrays
+> > > now don't have the 16bit type.
+> > > The changes are now merged to mainline and Vinod provided us a branch:
+> > > 
+> > > git://git.infradead.org/users/vkoul/slave-dma.git fix/edma
+> > > 
+> > > Which is based on 4.4-rc1 and only contains the two patch for changing the eDMA
+> > > bindings.
+> > 
+> > Great, I'll merge the fix/edma also into omap-for-v4.5/dt and apply
+> > your two patches.
+> 
+> FWIW, fix/edma is in Linu's tree now and should be in -rc6
 
-drivers/mtd/nand/omap_elm.c: In function 'elm_probe':
-drivers/mtd/nand/omap_elm.c:417:23: warning: format '%i' expects argument of type 'int', but argument 3 has type 'resource_size_t {aka long long unsigned int}' [-Wformat=]
+Yes that's great, but now I can keep my branches at early -rc's
+and that leaves out the need of late -rc backmerges to the
+whole arm soc tree.
 
-This patch avoids the type mismatch by printing the interrupt as
-a resource using the %pr format string.
+Regards,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-v2: pass correct pointer
-
-diff --git a/drivers/mtd/nand/omap_elm.c b/drivers/mtd/nand/omap_elm.c
-index 235ec7992b4c..a3f32f939cc1 100644
---- a/drivers/mtd/nand/omap_elm.c
-+++ b/drivers/mtd/nand/omap_elm.c
-@@ -414,7 +414,7 @@ static int elm_probe(struct platform_device *pdev)
- 	ret = devm_request_irq(&pdev->dev, irq->start, elm_isr, 0,
- 			pdev->name, info);
- 	if (ret) {
--		dev_err(&pdev->dev, "failure requesting irq %i\n", irq->start);
-+		dev_err(&pdev->dev, "failure requesting %pr\n", irq);
- 		return ret;
- 	}
+Tony
