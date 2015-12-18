@@ -1,29 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 0/3] drivers: net: cpsw: Fix bugs in fixed-link PHY
- DT parsing
-Date: Thu, 17 Dec 2015 15:45:08 -0500 (EST)
-Message-ID: <20151217.154508.505711333985621252.davem@davemloft.net>
-References: <20151209223115.6c5a400f.drivshin.allworx@gmail.com>
-	<1741588.Ve76Z1ZI87@localhost>
-	<cover.1450309613.git.drivshin@allworx.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v02 0/2] ARM: DTS: am33xx/am437x: Use the new eDMA
+ bindings
+Date: Fri, 18 Dec 2015 10:48:02 +0530
+Message-ID: <20151218051801.GR1854@localhost>
+References: <1450359217-3038-1-git-send-email-peter.ujfalusi@ti.com>
+ <20151217174844.GT23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1450309613.git.drivshin@allworx.com>
-Sender: netdev-owner@vger.kernel.org
-To: drivshin.allworx@gmail.com
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, systemprogrammierung.brunner@gmail.com, mugunthanvnm@ti.com, kernel@iktek.de, dtrautmann@ibhsoftec-sps.de
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151217174844.GT23396@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, arnd@arndb.de, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Date: Wed, 16 Dec 2015 23:02:08 -0500
+On Thu, Dec 17, 2015 at 09:48:44AM -0800, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [151217 05:33]:
+> > Hi,
+> > 
+> > Changes since v1:
+> > - Updated to use the non 16bit arrays [1]
+> > - send the two patch as a series
+> > 
+> > [1]
+> > As it has been discussed earlier:
+> > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122117.html
+> > 
+> > the DT bindings has been changes compared to what we had in 4.4-rc1: the arrays
+> > now don't have the 16bit type.
+> > The changes are now merged to mainline and Vinod provided us a branch:
+> > 
+> > git://git.infradead.org/users/vkoul/slave-dma.git fix/edma
+> > 
+> > Which is based on 4.4-rc1 and only contains the two patch for changing the eDMA
+> > bindings.
+> 
+> Great, I'll merge the fix/edma also into omap-for-v4.5/dt and apply
+> your two patches.
 
-> I have tested on the following hardware configurations:
->  - (EVMSK) dual emac with two real MDIO-connected phys using RGMII-TXID
->  - single emac with fixed-link using RGMII
-> Testing of other CPSW emac configurations that folks may have would
-> be appreciated.
+FWIW, fix/edma is in Linu's tree now and should be in -rc6
 
-I'm going to wait until some others give some feedback and testing
-results on this one, thanks.
+Thanks
+-- 
+~Vinod
