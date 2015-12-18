@@ -1,80 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP display kconfig options changing
-Date: Fri, 18 Dec 2015 08:05:14 -0800
-Message-ID: <20151218160514.GK23396@atomide.com>
-References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
- <56741FA9.3080607@ti.com>
+Subject: Re: [PATCH] mmc: pwrseq_simple: Fix regression with optional GPIOs
+Date: Fri, 18 Dec 2015 08:14:06 -0800
+Message-ID: <20151218161406.GL23396@atomide.com>
+References: <1449528845-25189-1-git-send-email-tony@atomide.com>
+ <CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56741FA9.3080607@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [151218 07:01]:
+* Ulf Hansson <ulf.hansson@linaro.org> [151207 16:20]:
+> +Linus
 > 
+> On 7 December 2015 at 23:54, Tony Lindgren <tony@atomide.com> wrote:
+> > Commit ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
+> > changed the handling MMC power sequence so GPIOs no longer are optional.
+> >
+> > This broke SDIO WLAN at least for omap5 that can't yet use the reset GPIOs
+> > with pwrseq_simple as a wait is needed after enabling the SDIO device.
 > 
-> On 18/12/15 15:53, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [151218 00:55]:
-> >> Hi Tony,
-> >>
-> >> I've just pushed a patch series to fbdev for-next branch which makes the
-> >> OMAP DRM and FB drivers independent of each other. This requires
-> >> changing the related Kconfig options.
-> > 
-> > OK
-> 
-> Note that nothing has changed with omapfb and omapdrm as such. The only
-> (visible) change is the needed Kconfig options.
+> Can you elaborate on this. Did it break omap5 or not? :-)
 
-OK
-
-> >> What should I do with omap2plus_defconfig?
-> >>
-> >> At the moment omap2plus_defconfig enables the omapfb driver and panels
-> >> as modules. Should I change it to do the same with the new code? Or
-> >> should I change it to use omapdrm, which is the better maintained and
-> >> developed driver (although no one has probably tried omapdrm on omap2)?
-> > 
-> > I'm all for changing omap2plus_defconfnig to use omapdrm.
-> > 
-> > Do you have a link to a page we can point people to for instructions
-> > for what needs to be changed to get things working with omapdrm?
-> 
-> Are you referring to Kconfig options? Or userspace?
-
-Well sounds like both need updating :)
-
-> But no, I don't have links to either.
-
-So change the Kconfig options and then deal with the flood
-of angry emails? :) I think we need instructions..
-
-> For the Kconfig options, it's pretty similar to omapfb. After the
-> patches I'm pushing, one needs to enable DRM, DRM_OMAP, and then the
-> individual panel/encoder drivers (as for omapfb).
-> 
-> > For omap2, I can try to peek into my rack for n800.
-> 
-> There were a few fixes sent a few days ago which are needed for OMAP2/3.
-> I think both are now in Linus' tree.
-
-OK I guess we have to wait your patches then to give it
-a try.
+Ulf, is this patch queued for v4.4 as a regression fix? I don't see it
+in Linux next or mainline trees?
 
 Regards,
 
