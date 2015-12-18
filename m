@@ -1,56 +1,91 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [RFC 3/9] clk: ti: remove un-used definitions from public clk_hw_omap
- struct
-Date: Fri, 18 Dec 2015 15:58:55 +0200
-Message-ID: <1450447141-29936-4-git-send-email-t-kristo@ti.com>
+Subject: [RFC 5/9] dt-bindings: clk: ti: Document module clock type
+Date: Fri, 18 Dec 2015 15:58:57 +0200
+Message-ID: <1450447141-29936-6-git-send-email-t-kristo@ti.com>
 References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
 In-Reply-To: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-clk-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@codeaurora.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Clksel support has been deprecated a while back, so remove these from
-the struct also.
+Document the new TI module clock type, which is intended to replace the
+internal clock control handling within omap_hwmod. Module clock is
+effectively a gate clock controlling both interface and functional
+clocks for a single hardware IP block.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- include/linux/clk/ti.h |    4 ----
- 1 file changed, 4 deletions(-)
+ .../devicetree/bindings/clock/ti/module.txt        |   57 ++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/module.txt
 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 223be69..ec5613a 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -127,8 +127,6 @@ struct clk_hw_omap_ops {
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-- * @clksel: for clksel clks, pointer to struct clksel for this clock
-  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-  * @clkdm_name: clockdomain name that this clock is contained in
-  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-@@ -143,8 +141,6 @@ struct clk_hw_omap {
- 	u8			enable_bit;
- 	u8			flags;
- 	void __iomem		*clksel_reg;
--	u32			clksel_mask;
--	const struct clksel	*clksel;
- 	struct dpll_data	*dpll_data;
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
+diff --git a/Documentation/devicetree/bindings/clock/ti/module.txt b/Documentation/devicetree/bindings/clock/ti/module.txt
+new file mode 100644
+index 0000000..a5f70f2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti/module.txt
+@@ -0,0 +1,57 @@
++Binding for Texas Instruments module clock.
++
++Binding status: Unstable - ABI compatibility may be broken in the future
++
++This binding uses the common clock binding[1]. This clock is
++quite much similar to the basic gate-clock [2], however, internally
++it controls an OMAP module clock, which effectively handles
++both interface and functional clocks for a single module. In some
++cases, support for mux clock [3] is composited to the same clock node,
++currently only needed for proper support of timer module clocks.
++
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++[2] Documentation/devicetree/bindings/clock/ti/gate.txt
++[3] Documentation/devicetree/bindings/clock/ti/mux.txt
++
++Required properties:
++- compatible : shall be one of:
++  "ti,omap4-mod-clock" - basic module clock, no gating supported
++  "ti,omap4-hw-mod-clock" - module clock with hardware gating support
++  "ti,omap4-sw-mod-clock" - module clock with software forced gating support
++  "ti,omap4-mux-mod-clock" - composite clock with mux and module clocks, no
++			     gating supported
++  "ti,omap4-hw-mux-mod-clock" - composite clock with mux and module clocks,
++				with hardware gating
++  "ti,omap4-sw-mux-mod-clock" - composite clock with mux and module clocks,
++				with software forced gating
++
++- #clock-cells : from common clock binding; shall be set to 0
++- clocks : link to phandle of parent clock(s)
++- reg : offset for register controlling adjustable gate and optional mux
++
++Optional properties:
++- ti,bit-shift : bit shift for programming the clock mux, only needed for
++		 the nodes of the mux variant
++
++Examples:
++	timer6_mod_ck: timer6_mod_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mux-mod-clock";
++		reg = <0x0570>;
++		clocks = <&syc_clk_div_ck>, <&sys_32k_ck>;
++		ti,bit-shift = <24>;
++	};
++
++	i2c1_mod_ck: i2c1_mod_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-sw-mod-clock";
++		reg = <0x14a0>;
++		clocks = <&func_96m_fclk>;
++	};
++
++	hsi_mod_ck: hsi_mod_ck {
++		#clock-cells = <0>;
++		compatible = "ti,omap4-hw-mod-clock";
++		reg = <0x1338>;
++		clocks = <&hsi_fck>;
++	};
 -- 
 1.7.9.5
+
