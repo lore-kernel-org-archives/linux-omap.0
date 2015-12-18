@@ -1,97 +1,44 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP display kconfig options changing
-Date: Fri, 18 Dec 2015 18:14:19 +0200
-Message-ID: <567430DB.4000507@ti.com>
-References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
- <56741FA9.3080607@ti.com> <20151218160514.GK23396@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v5 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Fri, 18 Dec 2015 08:42:00 -0800
+Message-ID: <20151218164200.GM23396@atomide.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-5-git-send-email-vigneshr@ti.com>
+ <20151211150935.GA15654@rob-hp-laptop>
+ <20151217184557.GC23396@atomide.com>
+ <56739EB4.6040804@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1410187079347486633=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151218160514.GK23396@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56739EB4.6040804-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============1410187079347486633==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="eUrFAKxpt8AOTCMPGXPkMN1QKDAl2Pq2b"
+* Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> [151217 21:51]:
+> 
+> 
+> On 12/18/2015 12:15 AM, Tony Lindgren wrote:
+> > * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [151211 07:10]:
+> >> On Fri, Dec 11, 2015 at 09:39:59AM +0530, Vignesh R wrote:
+> >>> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
+> >>> update the binding documents for the controller to document this change.
+> >>>
+> >>> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> >>
+> >> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > 
+> > Vignes, are patches 4 and 5 safe to apply separately already or
+> > do things break if we do that?
+> 
+> Yes, 4 and 5 can be applied separately w/o driver changes.
 
---eUrFAKxpt8AOTCMPGXPkMN1QKDAl2Pq2b
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+OK picking 4 and 5 into omap-for-v4.5/dt thanks.
 
-On 18/12/15 18:05, Tony Lindgren wrote:
-
->> Are you referring to Kconfig options? Or userspace?
->=20
-> Well sounds like both need updating :)
-
-Depends... For simple fb apps, omapdrm works fine, and X with the
-standard fbdev driver should work with omapdrm too.
-
-But if the userspace is using any omapfb specific apps, then yes, update
-is necessary.
-
->> But no, I don't have links to either.
->=20
-> So change the Kconfig options and then deal with the flood
-> of angry emails? :) I think we need instructions..
-
-Ok. I think it's then best that I just update the defconfig to enable
-omapfb as modules, as it is currently.
-
-We can look again at changing the default to omapdrm after we've tested
-it on OMAP2 too, and we have a better idea what the user needs to take
-care of.
-
- Tomi
-
-
---eUrFAKxpt8AOTCMPGXPkMN1QKDAl2Pq2b
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWdDDbAAoJEPo9qoy8lh71XDoP/3qYGAIDKRSd1CkZpH3yQYxk
-FG6H3x7QPxYuU9hvEiyWUY0MLhbB4IW8A5JP5z9Iyv/yBqsnwn307alnETn4M2d4
-NtMT7JWIqGgpBKJUeIoS9XHcwsu6JtBsbdpwtVM7XJOuhNiTVUfrjVz0+a9+Ahwg
-tjYmQYnf6jOYRrO9JBlmy55o1mgC5NOCS9+UGFK6oJwgdEDcTffz9JgY4LLG1bzR
-ou6GMbqoK85wSmfpEuZCaLSgjjPXW40Bv7+oFy0MqKCL6Sqm8vt85ruOiO4o0x2Y
-+bAR/KisJ7Zwaeqi+JH8Mjk3MhVFJNCCJ4TTJnrhNsRCtsT5IpeBrpSAI9HcHMZd
-tFHg0eCqvKVuDOG5d4xbbXAM2SeeTkXc2n2aod09ZHVWiHoyZzOpAs2FwnrwVrNk
-MSD1HxfUXZNm+J7rhQRl82tMYWZYUHRNLSfKeT6Gga7mOenV6sn4TA/gd/Rk+m0X
-nNpL5Va8bCYjHKku4fHx5xD9JkcTU7tRXRNJjjfQUBvmxMQLKvQvPzmGAonuST+6
-FutwqgP7dSbPi1eivd6G4M9AM1gJDKe0ylr1iEewAEyvq4Wqh/CBSZgAnxVW9FFQ
-UwZD96dYFlTeqvawLSQCliFbfkM5JyyvKMTRnCZnbbZgMYk6KwU10d644WB5MbY2
-hieV6oJF6+L+NSidTtbS
-=A2ZJ
------END PGP SIGNATURE-----
-
---eUrFAKxpt8AOTCMPGXPkMN1QKDAl2Pq2b--
-
-
---===============1410187079347486633==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1410187079347486633==--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
