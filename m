@@ -1,70 +1,66 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: OMAP display kconfig options changing
-Date: Fri, 18 Dec 2015 08:03:35 -0600
-Message-ID: <CAHCN7xJnHac+50TFSZ-+4Hqq9Of1HA6fTtnPxKUMCq_j5_UqgQ@mail.gmail.com>
-References: <5673CA0D.4000706@ti.com>
-	<20151218135342.GF23396@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 7/9] ARM: dts: omap4: add hwmod module clocks
+Date: Fri, 18 Dec 2015 07:06:33 -0800
+Message-ID: <20151218150633.GG23396@atomide.com>
+References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
+ <1450447141-29936-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20151218135342.GF23396@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1450447141-29936-8-git-send-email-t-kristo@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Tomi,
+* Tero Kristo <t-kristo@ti.com> [151218 05:57]:
+> +	mmu_dsp_mod_ck: mmu_dsp_mod_ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,omap4-hw-mod-clock";
+> +		reg = <0x0420>;
+> +		clocks = <&dpll_iva_m4x2_ck>;
+> +	};
+> +
+> +	dsp_mod_ck: dsp_mod_ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,omap4-hw-mod-clock";
+> +		reg = <0x0420>;
+> +		clocks = <&dpll_iva_m4x2_ck>;
+> +	};
 
-I'd like to also test the LogicPD Torpedo which has been using the FB
-drivers until this point. I just pushed some LCD info for inclusion in
-4.5, but if I need to make changes, I'd like to do that sooner than
-later.  Any insturctions would be helpful.  Will this impact people
-who use the SGX drivers?
+In general we should get rid of the overlapping reg entries
+for clocks. That's a separate patch series for sure.. But I
+think it can be done simply with something like this probably
+for all of them (totally untested):
 
+	mux_div_gate_ck: clk@420 {
+		#clock-cells = <1>;
+		compatible = "ti,mux-divider-gate";
+		clock-indices = <0>, <1>;
+		clock-output-names = "mux", "div", "gate";
+		reg = <0x420 0x4>;
+		foo_mux_ck: clock@0 {
+			reg = <0>;
+			compatible = "ti,mux-clock";
+		};
+		foo_div_ck: clock@8 {
+			reg = <8>;
+			compatible = "ti,divider-clock";
+			ti,max-div = <31>;
+		};
+		foo_gate_ck: clock@16 {
+			reg = <16>;
+			compatible = "ti,gate-clock";
+			clocks = <&mux_source_ck>;
+		};
+	};
 
-Thanks
+Then the output can be referenced with the standard clock binding
+index. For example to use the mux clock:
 
-adam
+clocks = <&mux_div_gate_ck 0>;
 
-On Fri, Dec 18, 2015 at 7:53 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi,
->
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [151218 00:55]:
->> Hi Tony,
->>
->> I've just pushed a patch series to fbdev for-next branch which makes the
->> OMAP DRM and FB drivers independent of each other. This requires
->> changing the related Kconfig options.
->
-> OK
->
->> What should I do with omap2plus_defconfig?
->>
->> At the moment omap2plus_defconfig enables the omapfb driver and panels
->> as modules. Should I change it to do the same with the new code? Or
->> should I change it to use omapdrm, which is the better maintained and
->> developed driver (although no one has probably tried omapdrm on omap2)?
->
-> I'm all for changing omap2plus_defconfnig to use omapdrm.
->
-> Do you have a link to a page we can point people to for instructions
-> for what needs to be changed to get things working with omapdrm?
->
-> For omap2, I can try to peek into my rack for n800.
->
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
