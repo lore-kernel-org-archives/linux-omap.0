@@ -1,83 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: OMAP display kconfig options changing
-Date: Fri, 18 Dec 2015 10:55:41 +0200
-Message-ID: <5673CA0D.4000706@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 0/9] phy: use syscon framework APIs to set ctrl mod reg
+Date: Fri, 18 Dec 2015 15:46:21 +0530
+Message-ID: <5673DCF5.1050603@ti.com>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
+ <725110094.6UkMkcy8u7@wuerfel> <566FF621.2040307@ti.com>
+ <11176831.mhgJlIuj0S@wuerfel> <56700BC0.7020007@ti.com>
+ <20151215152659.GQ23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3244151952824490033=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151215152659.GQ23396@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---===============3244151952824490033==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="mVm7wi6KcOOnrm6nnx64kDth7glXLVijq"
+Hi,
 
---mVm7wi6KcOOnrm6nnx64kDth7glXLVijq
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 15 December 2015 08:56 PM, Tony Lindgren wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [151215 04:47]:
+>> On Tuesday 15 December 2015 05:25 PM, Arnd Bergmann wrote:
+>>>>>
+>>>>> Can you explain here what the conversion is good for? Why do you
+>>>>> prefer the syscon mapping over a high-level driver in this case?
+>>>>
+>>>> phy-omap-control driver was added when there was no proper
+>>>> infrastructure for doing control module initializations. The
+>>>> phy-omap-control driver is not an 'actual' PHY driver and it
+>>>> was just a hack to do PHY related control module initializations.
+>>>> phy-omap-control is also getting unmanageable with the number of
+>>>> platforms each having number of modules (like USB, SATA, PCIe),
+>>>> using the same driver for control module initializations.
+>>>>
+>>>> Now with SYSCON framework being added to the kernel, phy-omap-control
+>>>> shouldn't be needed and it also provides a uniform API across all the
+>>>> modules to program the control module.
+>>>
+>>> Ok, so the "phy-control" devices were really just a few registers of
+>>> a system controller device that does a lot of other things as well, right?
+>>
+>> right.
+>>>
+>>> Can you put your description above into the cover-letter for the series,
+>>> and the merge commit?
+> 
+> Just to confirm.. Seems like this series keeps USB working and the dts
+> changes can be done later after the driver changes have been merged?
 
-Hi Tony,
+that's right Tony. Will merge this series by tomorrow if I don't get any review
+comments.
 
-I've just pushed a patch series to fbdev for-next branch which makes the
-OMAP DRM and FB drivers independent of each other. This requires
-changing the related Kconfig options.
-
-What should I do with omap2plus_defconfig?
-
-At the moment omap2plus_defconfig enables the omapfb driver and panels
-as modules. Should I change it to do the same with the new code? Or
-should I change it to use omapdrm, which is the better maintained and
-developed driver (although no one has probably tried omapdrm on omap2)?
-
- Tomi
-
-
---mVm7wi6KcOOnrm6nnx64kDth7glXLVijq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWc8oOAAoJEPo9qoy8lh71bv4P/32rIkFsJ5j9l73SvNPHn7vX
-3ZRekH3oXUlbItCBfGnHx4FZzhP6JOT3SaMn1GHTi1i8pKXoz+lcZ/yBddSndndY
-dq545vEshgv/SaiwGa38Onawwe5z55ZAjzPO7FjyNN2ly2i56rXM3it1mvX5P17F
-rYeiXHkwfgIwm/hU95sEzakjAAKSCf/mhsaOh1HGu2r8uth2aV7xovL2EocVmvi4
-FnxqJy1ZwNuolAkKjA1+77mngB2a+ktUKfiLFXHXlanbz2lGxtkw0WEwNlG4ZXL9
-Tsjvbt2FFKH0Hqtcih1ebrpevV+j+2iASIlWHZmSH1NmBalkrh36swHoG+ihck7S
-fGW02Q9h7bFhNddSqNIhoPmVKalwynrvWXNKtd6XnapHk5Ujs5uQRuvzCnpV7PKn
-j7v0R2U37VRq7E7AMpPfABeWxbn8UeQgQdTBcjHoviLrJVZXIle8Ia9/fqeFVAmn
-JARhd7JpbQ9IVPZI9BqGlOX2wmnpjz9GPTkmoIsLYa4DUe049pqVSlkVe5FSBhyW
-I0E8mhFciLq3s7/9I060q4stcqd3vIV5gSxxg5tiVSL0t0I/jH65jqMF6R2iIyxx
-425+WrJTMpMnuzu/P24rAKbVCouZQCc9YG3RIzIVOc+v+e4Yq80gCV6UCzESa7dr
-GyOG8gf4WzxVZe65NquH
-=t/vA
------END PGP SIGNATURE-----
-
---mVm7wi6KcOOnrm6nnx64kDth7glXLVijq--
-
-
---===============3244151952824490033==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============3244151952824490033==--
+Thanks
+Kishon
+> 
+> Regards,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
