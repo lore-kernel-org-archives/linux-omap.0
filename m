@@ -1,46 +1,29 @@
 From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v02 0/2] ARM: DTS: am33xx/am437x: Use the new eDMA
- bindings
-Date: Fri, 18 Dec 2015 10:48:02 +0530
-Message-ID: <20151218051801.GR1854@localhost>
-References: <1450359217-3038-1-git-send-email-peter.ujfalusi@ti.com>
- <20151217174844.GT23396@atomide.com>
+Subject: Re: [PATCH] dmaengine: edma: Add probe callback to edma_tptc_driver
+Date: Fri, 18 Dec 2015 11:03:41 +0530
+Message-ID: <20151218053341.GT1854@localhost>
+References: <1450271945-15263-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151217174844.GT23396@atomide.com>
+In-Reply-To: <1450271945-15263-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, arnd@arndb.de, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dmaengine@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 17, 2015 at 09:48:44AM -0800, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [151217 05:33]:
-> > Hi,
-> > 
-> > Changes since v1:
-> > - Updated to use the non 16bit arrays [1]
-> > - send the two patch as a series
-> > 
-> > [1]
-> > As it has been discussed earlier:
-> > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg122117.html
-> > 
-> > the DT bindings has been changes compared to what we had in 4.4-rc1: the arrays
-> > now don't have the 16bit type.
-> > The changes are now merged to mainline and Vinod provided us a branch:
-> > 
-> > git://git.infradead.org/users/vkoul/slave-dma.git fix/edma
-> > 
-> > Which is based on 4.4-rc1 and only contains the two patch for changing the eDMA
-> > bindings.
+On Wed, Dec 16, 2015 at 03:19:05PM +0200, Peter Ujfalusi wrote:
+> Due to changes in device and platform code drivers w/o probe will fail to
+> load. This means that the devices for eDMA TPTCs are goign to be without
+> driver and omap hwmod code will turn them off after the kernel finished
+> loading:
+> [    3.015900] platform 49800000.tptc: omap_device_late_idle: enabled but no driver.  Idling
+> [    3.024671] platform 49a00000.tptc: omap_device_late_idle: enabled but no driver.  Idling
 > 
-> Great, I'll merge the fix/edma also into omap-for-v4.5/dt and apply
-> your two patches.
+> This will prevent eDMA to work since the TPTCs are not enabled.
 
-FWIW, fix/edma is in Linu's tree now and should be in -rc6
+Applied, thanks
 
-Thanks
 -- 
 ~Vinod
