@@ -1,35 +1,37 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH V03 0/5] dmaengine: New 'universal' API for requesting
- channel
-Date: Fri, 18 Dec 2015 11:19:09 +0530
-Message-ID: <20151218054908.GV1854@localhost>
-References: <1450126062-8063-1-git-send-email-peter.ujfalusi@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v5 4/5] ARM: dts: DRA7: add entry for qspi mmap region
+Date: Fri, 18 Dec 2015 11:20:44 +0530
+Message-ID: <56739EB4.6040804@ti.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-5-git-send-email-vigneshr@ti.com>
+ <20151211150935.GA15654@rob-hp-laptop> <20151217184557.GC23396@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450126062-8063-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <20151217184557.GC23396@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: arnd@arndb.de, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>
+Cc: Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>, Russell King <linux@arm.linux.org.uk>, "hramrach@gmail.com" <hramrach@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 14, 2015 at 10:47:37PM +0200, Peter Ujfalusi wrote:
-> Hi,
-> 
-> As it has been discussed in the following thread:
-> http://www.gossamer-threads.com/lists/linux/kernel/2181487#2181487
-> 
-> With this series I have taken a path which would result two new API, which can
-> be used to convert most of the current users already and with some work all
-> users might be able to move to this set.
-> With this set the filter_fn used for legacy (non DT/ACPI) channel request is no
-> longer needed to be exported to client drivers since the selection of the
-> correct filter_fn will be done in the core.
 
-Applied now,
 
-Thanks for this rework, much appreciated :-)
+On 12/18/2015 12:15 AM, Tony Lindgren wrote:
+> * Rob Herring <robh@kernel.org> [151211 07:10]:
+>> On Fri, Dec 11, 2015 at 09:39:59AM +0530, Vignesh R wrote:
+>>> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
+>>> update the binding documents for the controller to document this change.
+>>>
+>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>
+>> Acked-by: Rob Herring <robh@kernel.org>
+> 
+> Vignes, are patches 4 and 5 safe to apply separately already or
+> do things break if we do that?
+
+Yes, 4 and 5 can be applied separately w/o driver changes.
 
 -- 
-~Vinod
+Regards
+Vignesh
