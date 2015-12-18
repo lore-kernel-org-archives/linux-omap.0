@@ -1,64 +1,43 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 0/9] phy: use syscon framework APIs to set ctrl mod reg
-Date: Fri, 18 Dec 2015 15:46:21 +0530
-Message-ID: <5673DCF5.1050603@ti.com>
-References: <1450170968-11282-1-git-send-email-kishon@ti.com>
- <725110094.6UkMkcy8u7@wuerfel> <566FF621.2040307@ti.com>
- <11176831.mhgJlIuj0S@wuerfel> <56700BC0.7020007@ti.com>
- <20151215152659.GQ23396@atomide.com>
+From: Daniel Trautmann <dtrautmann@ibhsoftec.com>
+Subject: Re: [PATCH v2 0/3] drivers: net: cpsw: Fix bugs in fixed-link PHY DT
+ parsing
+Date: Fri, 18 Dec 2015 11:20:21 +0100
+Message-ID: <20151218102020.GA1703@dt-ub1404lts.ENTWDOM.local>
+References: <20151209223115.6c5a400f.drivshin.allworx@gmail.com>
+ <1741588.Ve76Z1ZI87@localhost>
+ <cover.1450309613.git.drivshin@allworx.com>
+ <20151217.154508.505711333985621252.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151215152659.GQ23396@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, t-kristo@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20151217.154508.505711333985621252.davem@davemloft.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: David Miller <davem@davemloft.net>
+Cc: mugunthanvnm@ti.com, dtrautmann@ibhsoftec-sps.de, systemprogrammierung.brunner@gmail.com, netdev@vger.kernel.org, kernel@iktek.de, linux-omap@vger.kernel.org, drivshin.allworx@gmail.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Dec 17, 2015 at 03:45:08PM -0500, David Miller wrote:
+> From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+> Date: Wed, 16 Dec 2015 23:02:08 -0500
+> 
+> > I have tested on the following hardware configurations:
+> >  - (EVMSK) dual emac with two real MDIO-connected phys using RGMII-TXID
+> >  - single emac with fixed-link using RGMII
+> > Testing of other CPSW emac configurations that folks may have would
+> > be appreciated.
+> 
+> I'm going to wait until some others give some feedback and testing
+> results on this one, thanks.
 
-On Tuesday 15 December 2015 08:56 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [151215 04:47]:
->> On Tuesday 15 December 2015 05:25 PM, Arnd Bergmann wrote:
->>>>>
->>>>> Can you explain here what the conversion is good for? Why do you
->>>>> prefer the syscon mapping over a high-level driver in this case?
->>>>
->>>> phy-omap-control driver was added when there was no proper
->>>> infrastructure for doing control module initializations. The
->>>> phy-omap-control driver is not an 'actual' PHY driver and it
->>>> was just a hack to do PHY related control module initializations.
->>>> phy-omap-control is also getting unmanageable with the number of
->>>> platforms each having number of modules (like USB, SATA, PCIe),
->>>> using the same driver for control module initializations.
->>>>
->>>> Now with SYSCON framework being added to the kernel, phy-omap-control
->>>> shouldn't be needed and it also provides a uniform API across all the
->>>> modules to program the control module.
->>>
->>> Ok, so the "phy-control" devices were really just a few registers of
->>> a system controller device that does a lot of other things as well, right?
->>
->> right.
->>>
->>> Can you put your description above into the cover-letter for the series,
->>> and the merge commit?
-> 
-> Just to confirm.. Seems like this series keeps USB working and the dts
-> changes can be done later after the driver changes have been merged?
-
-that's right Tony. Will merge this series by tomorrow if I don't get any review
-comments.
-
-Thanks
-Kishon
-> 
-> Regards,
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I can confirm that this patch is working on the following hardware setup:
+ - single emac using MII connected with fixed-link to Micrel KSZ8895 Switch
