@@ -1,43 +1,63 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 4/5] ARM: dts: DRA7: add entry for qspi mmap region
-Date: Fri, 18 Dec 2015 08:42:00 -0800
-Message-ID: <20151218164200.GM23396@atomide.com>
-References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
- <1449807000-6457-5-git-send-email-vigneshr@ti.com>
- <20151211150935.GA15654@rob-hp-laptop>
- <20151217184557.GC23396@atomide.com>
- <56739EB4.6040804@ti.com>
+From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] mtd: nand: Fix support for NAND DMA prefetch
+Date: Fri, 18 Dec 2015 10:04:34 -0800
+Message-ID: <20151218180434.GJ10460@google.com>
+References: <1444930648-19313-1-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56739EB4.6040804-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1444930648-19313-1-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org> [151217 21:51]:
+On Thu, Oct 15, 2015 at 12:37:23PM -0500, Franklin S Cooper Jr wrote:
+> NAND DMA prefetch has been broken for awhile and seems to have only
+> worked for SDMA based devices
 > 
+> This patchset fixes DMA prefetch to work on both EDMA and SDMA devices
 > 
-> On 12/18/2015 12:15 AM, Tony Lindgren wrote:
-> > * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [151211 07:10]:
-> >> On Fri, Dec 11, 2015 at 09:39:59AM +0530, Vignesh R wrote:
-> >>> Add qspi memory mapped region entries for DRA7xx based SoCs. Also,
-> >>> update the binding documents for the controller to document this change.
-> >>>
-> >>> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> >>
-> >> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > 
-> > Vignes, are patches 4 and 5 safe to apply separately already or
-> > do things break if we do that?
+> Test on:
+> am335x gp evm
+> am437x gp evm
+> am37x gp evm
 > 
-> Yes, 4 and 5 can be applied separately w/o driver changes.
+> This patchset depends on Roger Quadros recent v4 GPMC/NAND patchset
+> https://github.com/rogerq/linux.git
+> branch: for-v4.4/gpmc-v4
 
-OK picking 4 and 5 into omap-for-v4.5/dt thanks.
+In what way does this depend on the other series? Can any of this be
+taken without it? If not, then perhaps it'd be good if Roger can roll
+this into his series? Just throwing out ideas. If you want to wait on
+Roger's series, that's fine.
 
-Tony
+FWIW, the MTD stuff all looks OK to me:
+
+Acked-by: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+> Franklin S Cooper Jr (5):
+>   mtd: nand: omap2: Support parsing dma channel information from DT
+>   mtd: nand: omap2: Start dma request before enabling prefetch
+>   mtd: nand: omap2: Fix high memory dma prefetch transfer
+>   ARM: dts: am437x/am33xx/omap/dm816x: Add gpmc dma channel
+>   ARM: OMAP2+: Update GPMC and NAND DT binding documentation
+> 
+>  .../bindings/memory-controllers/omap-gpmc.txt      |  7 +++++-
+>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 ++
+>  arch/arm/boot/dts/am33xx.dtsi                      |  2 ++
+>  arch/arm/boot/dts/am4372.dtsi                      |  2 ++
+>  arch/arm/boot/dts/dm816x.dtsi                      |  2 ++
+>  arch/arm/boot/dts/omap3.dtsi                       |  2 ++
+>  arch/arm/boot/dts/omap4.dtsi                       |  2 ++
+>  arch/arm/boot/dts/omap5.dtsi                       |  2 ++
+>  drivers/mtd/nand/omap2.c                           | 27 +++++++++-------------
+>  9 files changed, 31 insertions(+), 17 deletions(-)
+> 
+> -- 
+> 2.6.1
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
