@@ -1,64 +1,232 @@
-From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/5] mtd: nand: Fix support for NAND DMA prefetch
-Date: Fri, 18 Dec 2015 10:04:34 -0800
-Message-ID: <20151218180434.GJ10460@google.com>
-References: <1444930648-19313-1-git-send-email-fcooper@ti.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH] mtd: onenand: omap2: Simplify the DMA setup for various
+ paths
+Date: Fri, 18 Dec 2015 10:11:11 -0800
+Message-ID: <20151218181111.GK10460@google.com>
+References: <1450086572-15224-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1444930648-19313-1-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+In-Reply-To: <1450086572-15224-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: kyungmin.park@samsung.com, dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 15, 2015 at 12:37:23PM -0500, Franklin S Cooper Jr wrote:
-> NAND DMA prefetch has been broken for awhile and seems to have only
-> worked for SDMA based devices
+On Mon, Dec 14, 2015 at 11:49:32AM +0200, Peter Ujfalusi wrote:
+> We have 4 functions containing almost identical DMA setup code. Create one
+> function which can set up the DMA for both read and write and use this in
+> place for the setup code in the driver.
+> The new function will use wait_for_completion_timeout() and it will figure
+> out the best data_type to be used for the transfer instead of hardwiring
+> 32 or 16 bit data.
 > 
-> This patchset fixes DMA prefetch to work on both EDMA and SDMA devices
-> 
-> Test on:
-> am335x gp evm
-> am437x gp evm
-> am37x gp evm
-> 
-> This patchset depends on Roger Quadros recent v4 GPMC/NAND patchset
-> https://github.com/rogerq/linux.git
-> branch: for-v4.4/gpmc-v4
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-In what way does this depend on the other series? Can any of this be
-taken without it? If not, then perhaps it'd be good if Roger can roll
-this into his series? Just throwing out ideas. If you want to wait on
-Roger's series, that's fine.
+Does anyone use this driver? I've seen practically zero activity on the
+entire OneNAND codebase in the last few years, and I presumed it was
+essentially dead.
 
-FWIW, the MTD stuff all looks OK to me:
+If it's not dead, I'd like to know some contingency of people who are
+willing to actually maintain (or at least review) this stuff.
 
-Acked-by: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Kyungmin, are you still out there? Or Tony, do you know of any users for
+this?
 
-> Franklin S Cooper Jr (5):
->   mtd: nand: omap2: Support parsing dma channel information from DT
->   mtd: nand: omap2: Start dma request before enabling prefetch
->   mtd: nand: omap2: Fix high memory dma prefetch transfer
->   ARM: dts: am437x/am33xx/omap/dm816x: Add gpmc dma channel
->   ARM: OMAP2+: Update GPMC and NAND DT binding documentation
+Peter, are you actually using this, or are you just refactoring for the
+fun of it?
+
+Brian
+
+> ---
+>  drivers/mtd/onenand/omap2.c | 106 ++++++++++++++++++--------------------------
+>  1 file changed, 42 insertions(+), 64 deletions(-)
 > 
->  .../bindings/memory-controllers/omap-gpmc.txt      |  7 +++++-
->  .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 ++
->  arch/arm/boot/dts/am33xx.dtsi                      |  2 ++
->  arch/arm/boot/dts/am4372.dtsi                      |  2 ++
->  arch/arm/boot/dts/dm816x.dtsi                      |  2 ++
->  arch/arm/boot/dts/omap3.dtsi                       |  2 ++
->  arch/arm/boot/dts/omap4.dtsi                       |  2 ++
->  arch/arm/boot/dts/omap5.dtsi                       |  2 ++
->  drivers/mtd/nand/omap2.c                           | 27 +++++++++-------------
->  9 files changed, 31 insertions(+), 17 deletions(-)
-> 
+> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> index 0aacf125938b..58576c9babb0 100644
+> --- a/drivers/mtd/onenand/omap2.c
+> +++ b/drivers/mtd/onenand/omap2.c
+> @@ -291,6 +291,30 @@ static inline int omap2_onenand_bufferram_offset(struct mtd_info *mtd, int area)
+>  	return 0;
+>  }
+>  
+> +static inline int omap2_onenand_dma_transfer(struct omap2_onenand *c,
+> +					     dma_addr_t src, dma_addr_t dst,
+> +					     size_t count)
+> +{
+> +	int data_type = __ffs((src | dst | count));
+> +
+> +	if (data_type > OMAP_DMA_DATA_TYPE_S32)
+> +		data_type = OMAP_DMA_DATA_TYPE_S32;
+> +
+> +	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> +				     count / BIT(data_type), 1, 0, 0, 0);
+> +	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> +				src, 0, 0);
+> +	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> +				 dst, 0, 0);
+> +
+> +	reinit_completion(&c->dma_done);
+> +	omap_start_dma(c->dma_channel);
+> +	if (wait_for_completion_timeout(&c->dma_done, msecs_to_jiffies(20)))
+> +		return -ETIMEDOUT;
+> +
+> +	return 0;
+> +}
+> +
+>  #if defined(CONFIG_ARCH_OMAP3) || defined(MULTI_OMAP2)
+>  
+>  static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> @@ -301,10 +325,9 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+>  	int bram_offset;
+> -	unsigned long timeout;
+>  	void *buf = (void *)buffer;
+>  	size_t xtra;
+> -	volatile unsigned *done;
+> +	int ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+> @@ -341,25 +364,10 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  		goto out_copy;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> -				     count >> 2, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -
+> -	timeout = jiffies + msecs_to_jiffies(20);
+> -	done = &c->dma_done.done;
+> -	while (time_before(jiffies, timeout))
+> -		if (*done)
+> -			break;
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+>  
+> -	if (!*done) {
+> +	if (ret) {
+>  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+>  		goto out_copy;
+>  	}
+> @@ -379,9 +387,8 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+>  	int bram_offset;
+> -	unsigned long timeout;
+>  	void *buf = (void *)buffer;
+> -	volatile unsigned *done;
+> +	int ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+> @@ -412,25 +419,10 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  		return -1;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> -				     count >> 2, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -
+> -	timeout = jiffies + msecs_to_jiffies(20);
+> -	done = &c->dma_done.done;
+> -	while (time_before(jiffies, timeout))
+> -		if (*done)
+> -			break;
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+>  
+> -	if (!*done) {
+> +	if (ret) {
+>  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+>  		goto out_copy;
+>  	}
+> @@ -469,7 +461,7 @@ static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+> -	int bram_offset;
+> +	int bram_offset, ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	/* DMA is not used.  Revisit PM requirements before enabling it. */
+> @@ -491,20 +483,13 @@ static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  		return -1;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> -				     count / 4, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -	wait_for_completion(&c->dma_done);
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+>  
+> -	return 0;
+> +	if (ret)
+> +		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+> +
+> +	return ret;
+>  }
+>  
+>  static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> @@ -514,7 +499,7 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+> -	int bram_offset;
+> +	int bram_offset, ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	/* DMA is not used.  Revisit PM requirements before enabling it. */
+> @@ -536,20 +521,13 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  		return -1;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S16,
+> -				     count / 2, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -	wait_for_completion(&c->dma_done);
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+>  
+> -	return 0;
+> +	if (ret)
+> +		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+> +
+> +	return ret;
+>  }
+>  
+>  #else
 > -- 
-> 2.6.1
+> 2.6.4
 > 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
