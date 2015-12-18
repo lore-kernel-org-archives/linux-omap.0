@@ -1,43 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 0/3] drivers: net: cpsw: Fix bugs in fixed-link PHY
- DT parsing
-Date: Fri, 18 Dec 2015 14:46:36 -0500 (EST)
-Message-ID: <20151218.144636.771957142710802303.davem@davemloft.net>
-References: <20151209223115.6c5a400f.drivshin.allworx@gmail.com>
-	<1741588.Ve76Z1ZI87@localhost>
-	<cover.1450309613.git.drivshin@allworx.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] mtd: onenand: omap2: Simplify the DMA setup for various
+ paths
+Date: Fri, 18 Dec 2015 21:48:09 +0200
+Message-ID: <567462F9.1010703@ti.com>
+References: <1450086572-15224-1-git-send-email-peter.ujfalusi@ti.com>
+ <20151218181111.GK10460@google.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1450309613.git.drivshin@allworx.com>
-Sender: netdev-owner@vger.kernel.org
-To: drivshin.allworx@gmail.com
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, systemprogrammierung.brunner@gmail.com, mugunthanvnm@ti.com, kernel@iktek.de, dtrautmann@ibhsoftec-sps.de
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151218181111.GK10460@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: kyungmin.park@samsung.com, dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Date: Wed, 16 Dec 2015 23:02:08 -0500
+On 12/18/2015 08:11 PM, Brian Norris wrote:
+> On Mon, Dec 14, 2015 at 11:49:32AM +0200, Peter Ujfalusi wrote:
+>> We have 4 functions containing almost identical DMA setup code. Crea=
+te one
+>> function which can set up the DMA for both read and write and use th=
+is in
+>> place for the setup code in the driver.
+>> The new function will use wait_for_completion_timeout() and it will =
+figure
+>> out the best data_type to be used for the transfer instead of hardwi=
+ring
+>> 32 or 16 bit data.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>=20
+> Does anyone use this driver? I've seen practically zero activity on t=
+he
+> entire OneNAND codebase in the last few years, and I presumed it was
+> essentially dead.
+>=20
+> If it's not dead, I'd like to know some contingency of people who are
+> willing to actually maintain (or at least review) this stuff.
+>=20
+> Kyungmin, are you still out there? Or Tony, do you know of any users =
+for
+> this?
+>=20
+> Peter, are you actually using this, or are you just refactoring for t=
+he
+> fun of it?
 
-> Commit 1f71e8c96fc654724723ce987e0a8b2aeb81746d ("drivers: net: cpsw:
-> Add support for fixed-link PHY") added initial fixed-link PHY support
-> for CPSW, but missed a few considerations.
-> 
-> This series is based on the tip of the net tree. The first two patches
-> fix user-visible errors in different hardware configurations. The third
-> patch is for an internal reference counting issue. They are logically
-> independent changes, but in the same function, so must be applied in
-> order to apply cleanly.
-> 
-> The first patch was originally submitted by Pascal Speck on December 4,
-> but was not picked up by patchwork. I suspect that is because the patch
-> was mangled by the mailer. I fixed the mangling and am including it in
-> this series, as I believe it is the correct change.
-> 
-> I have tested on the following hardware configurations:
->  - (EVMSK) dual emac with two real MDIO-connected phys using RGMII-TXID
->  - single emac with fixed-link using RGMII
-> Testing of other CPSW emac configurations that folks may have would
-> be appreciated.
+Not really for fun, but I want to get rid of all legacy/direct sDMA use=
+ so at
+the end we will have omap_start_dma() visible in two files:
+arch/arm/plat-omap/dma.c
+drivers/dma/omap-dma.c
 
-Series applied, thanks David.
+from there it will be possible to get rid of the plat-omap code. This o=
+nenand
+driver was the first in the 'git grep omap_start_dma' result ;)
+
+--=20
+P=E9ter
