@@ -1,91 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 6/9] clk: ti: add support for omap4 module clocks
-Date: Fri, 18 Dec 2015 07:36:06 -0800
-Message-ID: <20151218153606.GJ23396@atomide.com>
-References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
- <1450447141-29936-7-git-send-email-t-kristo@ti.com>
+Subject: Re: OMAP display kconfig options changing
+Date: Fri, 18 Dec 2015 08:05:14 -0800
+Message-ID: <20151218160514.GK23396@atomide.com>
+References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
+ <56741FA9.3080607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1450447141-29936-7-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <56741FA9.3080607@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [151218 05:57]:
-> Previously, hwmod core has been used for controlling the hwmod level
-> clocks. This has certain drawbacks, like being unable to share the
-> clocks for multiple users, missing usecounting and generally being
-> totally incompatible with common clock framework.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [151218 07:01]:
 > 
-> Add support for new clock type under the TI clock driver, which will
-> be used to convert all the existing hwmod clocks to. This helps to
-> get rid of the clock related hwmod data from kernel and instead
-> parsing this from DT.
+> 
+> On 18/12/15 15:53, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [151218 00:55]:
+> >> Hi Tony,
+> >>
+> >> I've just pushed a patch series to fbdev for-next branch which makes the
+> >> OMAP DRM and FB drivers independent of each other. This requires
+> >> changing the related Kconfig options.
+> > 
+> > OK
+> 
+> Note that nothing has changed with omapfb and omapdrm as such. The only
+> (visible) change is the needed Kconfig options.
 
-Good to see this happening, few comments on what I've noticed so
-far that should be considered.
+OK
 
-We should be able to do a generic "ti,mux-div-gate" clock and use
-it for the clkctrl too I think. See the suggested binding elsewhere
-in this thread. That would also work for the clkout register at least.
-Maybe the "ti,mux-div-gate" clock needs a separate clkctrl type
-compatible to know it needs to sleep to wait for the status bit.
+> >> What should I do with omap2plus_defconfig?
+> >>
+> >> At the moment omap2plus_defconfig enables the omapfb driver and panels
+> >> as modules. Should I change it to do the same with the new code? Or
+> >> should I change it to use omapdrm, which is the better maintained and
+> >> developed driver (although no one has probably tried omapdrm on omap2)?
+> > 
+> > I'm all for changing omap2plus_defconfnig to use omapdrm.
+> > 
+> > Do you have a link to a page we can point people to for instructions
+> > for what needs to be changed to get things working with omapdrm?
+> 
+> Are you referring to Kconfig options? Or userspace?
 
-Also, we already know these clkctrl register do have multiple clocks,
-like the GPIO debounce and dividers for debugss clock. And we want
-to get rid of the overlapping reg entries.
+Well sounds like both need updating :)
 
-> +static int _omap4_hwmod_clk_enable(struct clk_hw *hw)
-> +{
-> +	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-> +	u32 val;
-> +	int timeout = 0;
-> +	int ret;
-> +
-> +	if (!clk->enable_bit)
-> +		return 0;
-> +
-> +	if (clk->clkdm) {
-> +		ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
-> +		if (ret) {
-> +			WARN(1,
-> +			     "%s: could not enable %s's clockdomain %s: %d\n",
-> +			     __func__, clk_hw_get_name(hw),
-> +			     clk->clkdm_name, ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-> +
-> +	val &= ~OMAP4_MODULEMODE_MASK;
-> +	val |= clk->enable_bit;
-> +
-> +	ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
-> +
-> +	/* Wait until module is enabled */
-> +	while (!_omap4_is_ready(val)) {
-> +		udelay(1);
-> +		timeout++;
-> +		if (timeout > OMAP4_MAX_MODULE_READY_TIME) {
-> +			pr_err("%s: failed to enable\n", clk_hw_get_name(hw));
-> +			return -EBUSY;
-> +		}
-> +		val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-> +	}
-> +
-> +	return 0;
-> +}
+> But no, I don't have links to either.
 
-Clocks that need to wait to lock need to be set up with clk_prepare
-instead of clk_enable as pointed out by TGLX recently. Also see the
-"[PATCH] clk: ti: Fix FAPLL udelay in clk_enable with clk_prepare".
+So change the Kconfig options and then deal with the flood
+of angry emails? :) I think we need instructions..
 
-Not sure what all needs to be fixed in the hwmod code for that to
-happen and PM to work, but that probably needs to be done first.
+> For the Kconfig options, it's pretty similar to omapfb. After the
+> patches I'm pushing, one needs to enable DRM, DRM_OMAP, and then the
+> individual panel/encoder drivers (as for omapfb).
+> 
+> > For omap2, I can try to peek into my rack for n800.
+> 
+> There were a few fixes sent a few days ago which are needed for OMAP2/3.
+> I think both are now in Linus' tree.
+
+OK I guess we have to wait your patches then to give it
+a try.
 
 Regards,
 
