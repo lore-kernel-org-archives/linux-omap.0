@@ -1,54 +1,47 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 0/4] add NULL test
-Date: Sun, 20 Dec 2015 12:15:49 +0100
-Message-ID: <1450610153-7746-1-git-send-email-Julia.Lawall@lip6.fr>
+Subject: [PATCH 2/4] ASoC: omap-hdmi-audio: add NULL test
+Date: Sun, 20 Dec 2015 12:15:51 +0100
+Message-ID: <1450610153-7746-3-git-send-email-Julia.Lawall@lip6.fr>
+References: <1450610153-7746-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1450610153-7746-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-s390@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: kernel-janitors@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add NULL tests on various calls to kzalloc and devm_kzalloc.
+Add NULL test on call to devm_kzalloc.
 
-The semantic match that finds these problems is as follows:
+The semantic match that finds this problem is as follows:
 (http://coccinelle.lip6.fr/)
 
 // <smpl>
 @@
-expression x,y;
+expression x;
 identifier fld;
 @@
 
-(
-x = \(vmalloc\|kmalloc\|kzalloc\|kcalloc\|kmem_cache_alloc\|krealloc\|
-        kmemdup\|kstrdup\|
-	devm_kzalloc\|devm_kmalloc\|devm_kcalloc\|devm_kasprintf\|
-	kmalloc_array\)(...,<+... __GFP_NOFAIL ...+>,...);
-|
-* x = \(vmalloc\|kmalloc\|kzalloc\|kcalloc\|kmem_cache_alloc\|krealloc\|
-        kmemdup\|kstrdup\|
-	devm_kzalloc\|devm_kmalloc\|devm_kcalloc\|devm_kasprintf\|
-	kmalloc_array\)(...);
-)
-  ... when != (x) == NULL
-      when != (x) != NULL
-      when != (x) == 0
-      when != (x) != 0
-      when != x = y
-(
+* x = devm_kzalloc(...);
+  ... when != x == NULL
   x->fld
-|
-  *x
-|
-  x[...]
-)
 // </smpl>
 
----
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
- drivers/s390/char/con3215.c                 |    2 ++
- drivers/s390/char/raw3270.c                 |    2 ++
- sound/soc/fsl/imx-pcm-dma.c                 |    2 ++
- sound/soc/intel/baytrail/sst-baytrail-pcm.c |    2 ++
- sound/soc/omap/omap-hdmi-audio.c            |    2 ++
- 5 files changed, 10 insertions(+)
+---
+ sound/soc/omap/omap-hdmi-audio.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
+index 584b237..f83cc2b 100644
+--- a/sound/soc/omap/omap-hdmi-audio.c
++++ b/sound/soc/omap/omap-hdmi-audio.c
+@@ -368,6 +368,8 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
+ 	card->owner = THIS_MODULE;
+ 	card->dai_link =
+ 		devm_kzalloc(dev, sizeof(*(card->dai_link)), GFP_KERNEL);
++	if (!card->dai_link)
++		return -ENOMEM;
+ 	card->dai_link->name = card->name;
+ 	card->dai_link->stream_name = card->name;
+ 	card->dai_link->cpu_dai_name = dev_name(ad->dssdev);
