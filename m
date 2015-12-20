@@ -1,47 +1,54 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH v2 1/3] devicetree/bindings: add reset-gpios and vcc-supply for panel-dpi
-Date: Sun, 20 Dec 2015 12:13:20 +0100
-Message-ID: <1450610002-10531-2-git-send-email-u.kleine-koenig@pengutronix.de>
-References: <1450610002-10531-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450610002-10531-1-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>
-Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 0/4] add NULL test
+Date: Sun, 20 Dec 2015 12:15:49 +0100
+Message-ID: <1450610153-7746-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-s390@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Some displays have a reset input and/or need a regulator to function
-properly. Allow to specify them for panel-dpi devices.
+Add NULL tests on various calls to kzalloc and devm_kzalloc.
 
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+The semantic match that finds these problems is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression x,y;
+identifier fld;
+@@
+
+(
+x = \(vmalloc\|kmalloc\|kzalloc\|kcalloc\|kmem_cache_alloc\|krealloc\|
+        kmemdup\|kstrdup\|
+	devm_kzalloc\|devm_kmalloc\|devm_kcalloc\|devm_kasprintf\|
+	kmalloc_array\)(...,<+... __GFP_NOFAIL ...+>,...);
+|
+* x = \(vmalloc\|kmalloc\|kzalloc\|kcalloc\|kmem_cache_alloc\|krealloc\|
+        kmemdup\|kstrdup\|
+	devm_kzalloc\|devm_kmalloc\|devm_kcalloc\|devm_kasprintf\|
+	kmalloc_array\)(...);
+)
+  ... when != (x) == NULL
+      when != (x) != NULL
+      when != (x) == 0
+      when != (x) != 0
+      when != x = y
+(
+  x->fld
+|
+  *x
+|
+  x[...]
+)
+// </smpl>
+
 ---
- Documentation/devicetree/bindings/display/panel/panel-dpi.txt | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/display/panel/panel-dpi.=
-txt b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
-index 216c894d4f99..b52ac52757df 100644
---- a/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
-+++ b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
-@@ -7,6 +7,8 @@ Required properties:
- Optional properties:
- - label: a symbolic name for the panel
- - enable-gpios: panel enable gpio
-+- reset-gpios: GPIO to control the RESET pin
-+- vcc-supply: phandle of regulator that will be used to enable power t=
-o the display
-=20
- Required nodes:
- - "panel-timing" containing video timings
---=20
-2.6.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/s390/char/con3215.c                 |    2 ++
+ drivers/s390/char/raw3270.c                 |    2 ++
+ sound/soc/fsl/imx-pcm-dma.c                 |    2 ++
+ sound/soc/intel/baytrail/sst-baytrail-pcm.c |    2 ++
+ sound/soc/omap/omap-hdmi-audio.c            |    2 ++
+ 5 files changed, 10 insertions(+)
