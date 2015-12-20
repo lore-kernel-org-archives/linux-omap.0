@@ -1,43 +1,125 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v3 9/9] phy: omap-usb2: use *syscon* framework API to
- power on/off the PHY
-Date: Sat, 19 Dec 2015 21:39:01 -0600
-Message-ID: <20151220033901.GI9883@rob-hp-laptop>
-References: <1450170968-11282-1-git-send-email-kishon@ti.com>
- <1450170968-11282-10-git-send-email-kishon@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH 4/5] fbdev: omap2: panel-dpi: allow specification of a
+ reset gpio
+Date: Sun, 20 Dec 2015 11:33:33 +0100
+Message-ID: <20151220103333.GF28361@pengutronix.de>
+References: <1449753107-11410-1-git-send-email-uwe@kleine-koenig.org>
+ <1449753107-11410-4-git-send-email-uwe@kleine-koenig.org>
+ <5671A0E2.7000909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1450170968-11282-10-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
+In-Reply-To: <5671A0E2.7000909-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 15, 2015 at 02:46:08PM +0530, Kishon Vijay Abraham I wrote:
-> Deprecate using phy-omap-control driver to power on/off the PHY,
-> and use *syscon* framework to do the same. This handles
-> powering on/off the PHY for the USB2 PHYs used in various TI SoCs.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  Documentation/devicetree/bindings/phy/ti-phy.txt |    8 +-
->  drivers/phy/phy-omap-usb2.c                      |   94 ++++++++++++++++++----
->  include/linux/phy/omap_usb.h                     |   23 ++++++
->  3 files changed, 107 insertions(+), 18 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> index 49e5b0c..a3b3945 100644
-> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-> @@ -31,6 +31,8 @@ OMAP USB2 PHY
->  
->  Required properties:
->   - compatible: Should be "ti,omap-usb2"
-> +	       Should be "ti,dra7x-usb2-phy2" for the 2nd instance of USB2 PHY
-> +	       in DRA7x
+[Cc +=3D devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org]
 
-The 2nd instance is different somehow?
+Hello Tomi,
 
-Rob
+On Wed, Dec 16, 2015 at 07:35:30PM +0200, Tomi Valkeinen wrote:
+>=20
+> On 10/12/15 15:11, Uwe Kleine-K=F6nig wrote:
+> > From: Uwe Kleine-K=F6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> >=20
+> > Some displays have a reset input. To assert that the display is
+> > functional the reset gpio must be deasserted.
+> >=20
+> > Teach the driver to get and drive such a gpio accordingly.
+> >=20
+> > Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> > ---
+> >  Documentation/devicetree/bindings/video/panel-dpi.txt | 1 +
+> >  drivers/video/fbdev/omap2/displays-new/panel-dpi.c    | 7 +++++++
+> >  2 files changed, 8 insertions(+)
+>=20
+> DT changes should be posted to devicetree-u79uwXL29TaiAVqoAR/hOA@public.gmane.org And, I thi=
+nk,
+> the binding document changes are usually as a separate patch.
+
+Right for devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, but separate patches for bindings
+is news to me. Anyhow, I can split this off if you prefer.
+
+> > diff --git a/Documentation/devicetree/bindings/video/panel-dpi.txt =
+b/Documentation/devicetree/bindings/video/panel-dpi.txt
+> > index a40180b05bab..1a1d8f6f884f 100644
+> > --- a/Documentation/devicetree/bindings/video/panel-dpi.txt
+> > +++ b/Documentation/devicetree/bindings/video/panel-dpi.txt
+> > @@ -7,6 +7,7 @@ Required properties:
+> >  Optional properties:
+> >  - label: a symbolic name for the panel
+> >  - enable-gpios: panel enable gpio
+> > +- reset-gpios: GPIO to control the RESET pin
+> > =20
+> >  Required nodes:
+> >  - "panel-timing" containing video timings
+> > diff --git a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c b/d=
+rivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> > index 1216341a0d19..7e2f9e0813dc 100644
+> > --- a/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> > +++ b/drivers/video/fbdev/omap2/displays-new/panel-dpi.c
+> > @@ -32,6 +32,7 @@ struct panel_drv_data {
+> >  	int backlight_gpio;
+> > =20
+> >  	struct gpio_desc *enable_gpio;
+> > +	struct gpio_desc *reset_gpio;
+> >  };
+> > =20
+> >  #define to_panel_data(p) container_of(p, struct panel_drv_data, ds=
+sdev)
+> > @@ -83,6 +84,7 @@ static int panel_dpi_enable(struct omap_dss_devic=
+e *dssdev)
+> >  	if (r)
+> >  		return r;
+> > =20
+> > +	gpiod_set_value_cansleep(ddata->reset_gpio, 0);
+> >  	gpiod_set_value_cansleep(ddata->enable_gpio, 1);
+> > =20
+> >  	if (gpio_is_valid(ddata->backlight_gpio))
+> > @@ -211,6 +213,11 @@ static int panel_dpi_probe_of(struct platform_=
+device *pdev)
+> >  	if (IS_ERR(ddata->enable_gpio))
+> >  		return PTR_ERR(ddata->enable_gpio);
+> > =20
+> > +	ddata->reset_gpio =3D devm_gpiod_get_optional(&pdev->dev,
+> > +						    "reset", GPIOD_OUT_HIGH);
+> > +	if (IS_ERR(ddata->reset_gpio))
+> > +		return PTR_ERR(ddata->reset_gpio);
+> > +
+> >  	ddata->backlight_gpio =3D -ENOENT;
+> > =20
+> >  	r =3D of_get_display_timing(node, "panel-timing", &timing);
+> >=20
+>=20
+> This looks a bit odd to me. This only ever sets the reset gpio to 0, =
+on
+> panel enable. If we never toggle the reset, it could be set to 0 at
+> probe time, right?
+>=20
+> Reset is a bit tricky. I've seen panels where you have to have only a
+> short reset pulse (reset high, wait a short time, reset low). If you
+> leave the reset high, the panel draws extra power.
+>=20
+> So I think the best we can do in a generic way is just to ensure the
+> reset is not asserted.
+
+Good idea, will implement this in v2.
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
