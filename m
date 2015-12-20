@@ -1,37 +1,76 @@
-From: Vladimir Zapolskiy <vz-ChpfBGZJDbMAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] arm: dts: am335x-pepper: fix typo in vmmc-supply property name
-Date: Sun, 20 Dec 2015 04:26:55 +0200
-Message-ID: <1450578415-29388-1-git-send-email-vz@mleia.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Ash Charles <ashcharles-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v3 6/9] phy: ti-pipe3: use *syscon* framework API to
+ power on/off the PHY
+Date: Sat, 19 Dec 2015 21:38:37 -0600
+Message-ID: <20151220033836.GG9883@rob-hp-laptop>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
+ <1450170968-11282-7-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1450170968-11282-7-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Trivial fix of a typo, vmmc-supply should be the right property name.
+On Tue, Dec 15, 2015 at 02:46:05PM +0530, Kishon Vijay Abraham I wrote:
+> Deprecate using phy-omap-control driver to power on/off the PHY and
+> use *syscon* framework to do the same.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  Documentation/devicetree/bindings/phy/ti-phy.txt |   10 ++-
+>  drivers/phy/phy-ti-pipe3.c                       |   90 ++++++++++++++++++----
+>  2 files changed, 85 insertions(+), 15 deletions(-)
 
-Signed-off-by: Vladimir Zapolskiy <vz-ChpfBGZJDbMAvxtiuMwx3w@public.gmane.org>
----
- arch/arm/boot/dts/am335x-pepper.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+For the binding:
 
-diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index 7106114..a137487 100644
---- a/arch/arm/boot/dts/am335x-pepper.dts
-+++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -351,7 +351,7 @@
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&wireless_pins>;
--	vmmmc-supply = <&v3v3c_reg>;
-+	vmmc-supply = <&v3v3c_reg>;
- 	bus-width = <4>;
- 	ti,non-removable;
- 	dmas = <&edma 12
--- 
-2.1.4
+Acked-by: Rob Herring <robh@kernel.org>
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One comment on the driver though.
+
+[...]
+
+> --- a/drivers/phy/phy-ti-pipe3.c
+> +++ b/drivers/phy/phy-ti-pipe3.c
+
+[...]
+
+> @@ -144,18 +155,53 @@ static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy);
+>  
+>  static int ti_pipe3_power_off(struct phy *x)
+>  {
+> +	u32 val;
+> +	int ret;
+>  	struct ti_pipe3 *phy = phy_get_drvdata(x);
+>  
+> -	omap_control_phy_power(phy->control_dev, 0);
+> +	if (phy->phy_power_syscon) {
+
+Writing this as:
+
+if (!phy->phy_power_syscon) {
+	...
+	return 0;
+}
+
+//regmap code
+
+
+will make it simpler to remove the deprecated code later.
+
+
+> +		val = PIPE3_PHY_TX_RX_POWEROFF <<
+> +			PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT;
+> +
+> +		ret = regmap_update_bits(phy->phy_power_syscon, phy->power_reg,
+> +					 PIPE3_PHY_PWRCTL_CLK_CMD_MASK, val);
+> +		if (ret < 0)
+> +			return ret;
+> +	} else {
+> +		omap_control_phy_power(phy->control_dev, 0);
+> +	}
+>  
+>  	return 0;
