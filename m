@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 3/4] ARM: dts: dra7: Use "ti,dra7x-usb2-phy2" compatible string for USB2 PHY2
-Date: Mon, 21 Dec 2015 14:39:31 +0530
-Message-ID: <1450688972-16760-4-git-send-email-kishon@ti.com>
+Subject: [PATCH v4 1/4] ARM: dts: dra7: Add dt node for the sycon pcie
+Date: Mon, 21 Dec 2015 14:39:29 +0530
+Message-ID: <1450688972-16760-2-git-send-email-kishon@ti.com>
 References: <1450688972-16760-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,28 +12,29 @@ To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, inux-arm-kernel@li
 Cc: kishon@ti.com, linux@arm.linux.org.uk, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The USB2 PHY2 has a different register map compared to USB2 PHY1
-to power on/off the PHY. In order to handle it, use the new compatible
-string "ti,dra7x-usb2-phy2" for the second instance of USB2 PHY.
+Add new device tree node for the control module register space where
+PCIe registers are present.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7.dtsi |    5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 41a3d35..7d35b94 100644
+index fe99231..9ab7b6a 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1299,7 +1299,8 @@
+@@ -155,6 +155,11 @@
+ 					compatible = "syscon";
+ 					reg = <0x1c04 0x0020>;
+ 				};
++
++				scm_conf_pcie: scm_conf@1c24 {
++					compatible = "syscon";
++					reg = <0x1c24 0x0024>;
++				};
  			};
  
- 			usb2_phy2: phy@4a085000 {
--				compatible = "ti,omap-usb2";
-+				compatible = "ti,dra7x-usb2-phy2",
-+					     "ti,omap-usb2";
- 				reg = <0x4a085000 0x400>;
- 				ctrl-module = <&omap_control_usb2phy2>;
- 				clocks = <&usb_phy2_always_on_clk32k>,
+ 			cm_core_aon: cm_core_aon@5000 {
 -- 
 1.7.9.5
