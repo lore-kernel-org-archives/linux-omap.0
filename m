@@ -1,85 +1,44 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 6/9] phy: ti-pipe3: use *syscon* framework API to power
- on/off the PHY
-Date: Mon, 21 Dec 2015 14:06:27 +0530
-Message-ID: <5677BA0B.4090002@ti.com>
-References: <1450170968-11282-1-git-send-email-kishon@ti.com>
- <1450170968-11282-7-git-send-email-kishon@ti.com>
- <20151220033836.GG9883@rob-hp-laptop>
+From: Milo Kim <milo.kim@ti.com>
+Subject: [PATCH] irqchip: omap-intc: Remove duplicate setup for IRQ chip type handler
+Date: Mon, 21 Dec 2015 17:53:14 +0900
+Message-ID: <1450687994-12580-1-git-send-email-milo.kim@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151220033836.GG9883@rob-hp-laptop>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
+To: tony@atomide.com, tglx@linutronix.de
+Cc: Milo Kim <milo.kim@ti.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Some OMAP interrupt controllers use generic level detection, so
+handle_level_irq() is used as the chip type handler.
+Allocated IRQ chip type handler doesn't need to set it again because
+irq_alloc_domain_generic_chips() has already registered it.
 
-On Sunday 20 December 2015 09:08 AM, Rob Herring wrote:
-> On Tue, Dec 15, 2015 at 02:46:05PM +0530, Kishon Vijay Abraham I wrote:
->> Deprecate using phy-omap-control driver to power on/off the PHY and
->> use *syscon* framework to do the same.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  Documentation/devicetree/bindings/phy/ti-phy.txt |   10 ++-
->>  drivers/phy/phy-ti-pipe3.c                       |   90 ++++++++++++++++++----
->>  2 files changed, 85 insertions(+), 15 deletions(-)
-> 
-> For the binding:
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
-> 
-> One comment on the driver though.
-> 
-> [...]
-> 
->> --- a/drivers/phy/phy-ti-pipe3.c
->> +++ b/drivers/phy/phy-ti-pipe3.c
-> 
-> [...]
-> 
->> @@ -144,18 +155,53 @@ static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy);
->>  
->>  static int ti_pipe3_power_off(struct phy *x)
->>  {
->> +	u32 val;
->> +	int ret;
->>  	struct ti_pipe3 *phy = phy_get_drvdata(x);
->>  
->> -	omap_control_phy_power(phy->control_dev, 0);
->> +	if (phy->phy_power_syscon) {
-> 
-> Writing this as:
-> 
-> if (!phy->phy_power_syscon) {
-> 	...
-> 	return 0;
-> }
-> 
-> //regmap code
-> 
-> 
-> will make it simpler to remove the deprecated code later.
+Tested with BeagleBoneBlack Rev C.
 
-hmm.. I will make this change in all the applicable patches.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Milo Kim <milo.kim@ti.com>
+---
+ drivers/irqchip/irq-omap-intc.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Thanks
-Kishon
-> 
-> 
->> +		val = PIPE3_PHY_TX_RX_POWEROFF <<
->> +			PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT;
->> +
->> +		ret = regmap_update_bits(phy->phy_power_syscon, phy->power_reg,
->> +					 PIPE3_PHY_PWRCTL_CLK_CMD_MASK, val);
->> +		if (ret < 0)
->> +			return ret;
->> +	} else {
->> +		omap_control_phy_power(phy->control_dev, 0);
->> +	}
->>  
->>  	return 0;
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index 8587d0f..ed25175 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -207,7 +207,6 @@ static int __init omap_alloc_gc_of(struct irq_domain *d, void __iomem *base)
+ 		ct = gc->chip_types;
+ 
+ 		ct->type = IRQ_TYPE_LEVEL_MASK;
+-		ct->handler = handle_level_irq;
+ 
+ 		ct->chip.irq_ack = omap_mask_ack_irq;
+ 		ct->chip.irq_mask = irq_gc_mask_disable_reg;
+-- 
+1.9.1
