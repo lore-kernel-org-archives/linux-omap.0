@@ -1,12 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] few minor omap fixes against v4.4-rc6
-Date: Mon, 21 Dec 2015 12:54:19 -0800
-Message-ID: <20151221205418.GD2793@atomide.com>
+Subject: [GIT PULL 1/4] omap soc changes for v4.5 merge window
+Date: Mon, 21 Dec 2015 13:06:34 -0800
+Message-ID: <33851.128727156$1450732058@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,85 +19,80 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 14054fb1da099fd89208b8b319a00e0b902c7645:
+The following changes since commit 1ec218373b8ebda821aec00bb156a9c94fad9cd4:
 
-  ARM: dts: am4372: fix clock source for arm twd and global timers (2015-12-09 16:46:25 -0800)
+  Linux 4.4-rc2 (2015-11-22 16:45:59 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.4/fixes-rc6
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/soc-initcall
 
-for you to fetch changes up to 0b4d6972d7b052b23d33ff9bdbb52958664fbb26:
+for you to fetch changes up to f2e6a0a913b53f5af87c7e9a783ceae5bb4ae2c4:
 
-  ARM: dts: Fix UART wakeirq for omap4 duovero parlor (2015-12-18 16:43:22 -0800)
-
-----------------------------------------------------------------
-Few fixes for omaps to allow am437x only builds to boot properly with
-CPU_IDLE and ARM TWD timer. This is probably a common configuration setup
-for people making products with these SoCs so let's make sure it works.
-
-Also a wakeirq fix for duovero parlor making my life a bit easier as that
-allows me to run basic PM regression tests on it.
-
-It would be nice to have these in v4.4, but if it gets too late for that
-because of the holidays, it is not super critical if these get merged for
-v4.5.
+  ARM: OMAP2+: Remove device creation for omap-pcm-audio (2015-12-17 10:34:41 -0800)
 
 ----------------------------------------------------------------
-Felipe Balbi (1):
-      ARM: OMAP2+: AM43xx: select ARM TWD timer
+SoC changes for omaps for v4.5 merge window. The main change here is to
+change the omap initcall levels a bit to initialize things later to allow
+early device drivers at core_initcall level. This makes things easier
+for us as most clocks can be made into regular device drivers except for
+a few early clocks needed to initialize system timers. I wanted to have
+these changes sit in Linux next for a few weeks before sending out a pull
+request, and so far now issues have showed up.
 
-Grygorii Strashko (1):
-      ARM: OMAP2+: am43xx: enable GENERIC_CLOCKEVENTS_BROADCAST
+The other changes in this series are timer changes for making use of the
+new PWM driver, and timer changes to support more high security SoCs.
+Also few minor improvments for module autoidle settings for ti81xx spinbox
+and dra7 debug on uart4 in hwmod code. The rest is pretty much just removal
+of platform data for SoCs that are all device tree only nowadays.
 
-Tony Lindgren (1):
-      ARM: dts: Fix UART wakeirq for omap4 duovero parlor
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      ARM: OMAP: RX-51: fix a typo in log writing
 
- arch/arm/boot/dts/omap4-duovero-parlor.dts | 4 ++++
- arch/arm/mach-omap2/Kconfig                | 2 ++
- arch/arm/mach-omap2/timer.c                | 6 ++++++
- 3 files changed, 12 insertions(+)
+Franklin S Cooper Jr (1):
+      ARM: omap4: hwmod: Remove elm address space from hwmod data
 
----
-diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
-index 1a78f01..b75f7b2 100644
---- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
-+++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
-@@ -189,3 +189,7 @@
- 	};
- };
- 
-+&uart3 {
-+	interrupts-extended = <&wakeupgen GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART3_RX>;
-+};
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 4b4371d..0517f0c 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -65,6 +65,8 @@ config SOC_AM43XX
- 	select MACH_OMAP_GENERIC
- 	select MIGHT_HAVE_CACHE_L2X0
- 	select HAVE_ARM_SCU
-+	select GENERIC_CLOCKEVENTS_BROADCAST
-+	select HAVE_ARM_TWD
- 
- config SOC_DRA7XX
- 	bool "TI DRA7XX"
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index b18ebbe..f86692d 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -320,6 +320,12 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 	return r;
- }
- 
-+#if !defined(CONFIG_SMP) && defined(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
-+void tick_broadcast(const struct cpumask *mask)
-+{
-+}
-+#endif
-+
- static void __init omap2_gp_clockevent_init(int gptimer_id,
- 						const char *fck_source,
- 						const char *property)
+J.D. Schroeder (1):
+      ARM: DRA7: hwmod: Enable DEBUG_LL for UART4
+
+Neil Armstrong (3):
+      ARM: OMAP: dmtimer: Add clock source from DT
+      ARM: OMAP: add DT support for ti,dm816-timer
+      ARM: OMAP2+: Add hwmod spinbox support for dm816x
+
+Peter Ujfalusi (2):
+      ARM: OMAP1: Remove device creation for omap-pcm-audio
+      ARM: OMAP2+: Remove device creation for omap-pcm-audio
+
+Suman Anna (6):
+      ARM: OMAP2+: Remove legacy device instantiation of IOMMUs
+      ARM: OMAP3: hwmod data: Remove legacy IOMMU data
+      ARM: OMAP4: hwmod data: Remove legacy IOMMU attr and addrs
+      ARM: OMAP2+: Remove omap_mmu_dev_attr structure
+      ARM: OMAP: dmtimer: check for fixed timers during config
+      ARM: OMAP2+: timer: Remove secure timer for DRA7xx HS devices
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Change core_initcall levels to postcore_initcall
+      Merge branch 'omap-for-v4.5/initcall' into omap-for-v4.5/soc-v2
+
+ arch/arm/mach-omap1/devices.c                | 19 --------
+ arch/arm/mach-omap2/Makefile                 |  2 -
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  2 +-
+ arch/arm/mach-omap2/devices.c                | 25 ++---------
+ arch/arm/mach-omap2/omap-iommu.c             | 66 ----------------------------
+ arch/arm/mach-omap2/omap2-restart.c          |  2 +-
+ arch/arm/mach-omap2/omap_device.c            |  2 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   | 42 ------------------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   | 41 -----------------
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c    |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c   | 35 +++++++++++++++
+ arch/arm/mach-omap2/pdata-quirks.c           |  2 +-
+ arch/arm/mach-omap2/serial.c                 |  2 +-
+ arch/arm/mach-omap2/timer.c                  |  6 +--
+ arch/arm/plat-omap/dmtimer.c                 | 42 +++++++++++++++++-
+ include/linux/platform_data/iommu-omap.h     |  9 ----
+ 17 files changed, 90 insertions(+), 211 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/omap-iommu.c
