@@ -1,38 +1,85 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] mtd: onenand: omap2: Simplify the DMA setup for various
- paths
-Date: Mon, 21 Dec 2015 10:09:37 +0200
-Message-ID: <5677B3C1.9070500@ti.com>
-References: <1450086572-15224-1-git-send-email-peter.ujfalusi@ti.com>
- <20151218181111.GK10460@google.com> <20151218183948.GO23396@atomide.com>
- <20151219133049.GA1611@darkstar.musicnaut.iki.fi>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 6/9] phy: ti-pipe3: use *syscon* framework API to power
+ on/off the PHY
+Date: Mon, 21 Dec 2015 14:06:27 +0530
+Message-ID: <5677BA0B.4090002@ti.com>
+References: <1450170968-11282-1-git-send-email-kishon@ti.com>
+ <1450170968-11282-7-git-send-email-kishon@ti.com>
+ <20151220033836.GG9883@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151219133049.GA1611@darkstar.musicnaut.iki.fi>
+In-Reply-To: <20151220033836.GG9883@rob-hp-laptop>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, kyungmin.park@samsung.com, dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+To: Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rogerq@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-usb@vger.kernel.org, tony@atomide.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 12/19/2015 03:30 PM, Aaro Koskinen wrote:
-> Probably DMA support is not that critical. Looks like with DT boot it=
-'s
-> not even possible to enable it at the moment.
+Hi
 
-I think by adding 'dma-channel' property is there to enable the DMA mod=
-e via DT.
+On Sunday 20 December 2015 09:08 AM, Rob Herring wrote:
+> On Tue, Dec 15, 2015 at 02:46:05PM +0530, Kishon Vijay Abraham I wrote:
+>> Deprecate using phy-omap-control driver to power on/off the PHY and
+>> use *syscon* framework to do the same.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/phy/ti-phy.txt |   10 ++-
+>>  drivers/phy/phy-ti-pipe3.c                       |   90 ++++++++++++++++++----
+>>  2 files changed, 85 insertions(+), 15 deletions(-)
+> 
+> For the binding:
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
+> 
+> One comment on the driver though.
+> 
+> [...]
+> 
+>> --- a/drivers/phy/phy-ti-pipe3.c
+>> +++ b/drivers/phy/phy-ti-pipe3.c
+> 
+> [...]
+> 
+>> @@ -144,18 +155,53 @@ static void ti_pipe3_disable_clocks(struct ti_pipe3 *phy);
+>>  
+>>  static int ti_pipe3_power_off(struct phy *x)
+>>  {
+>> +	u32 val;
+>> +	int ret;
+>>  	struct ti_pipe3 *phy = phy_get_drvdata(x);
+>>  
+>> -	omap_control_phy_power(phy->control_dev, 0);
+>> +	if (phy->phy_power_syscon) {
+> 
+> Writing this as:
+> 
+> if (!phy->phy_power_syscon) {
+> 	...
+> 	return 0;
+> }
+> 
+> //regmap code
+> 
+> 
+> will make it simpler to remove the deprecated code later.
 
-As for stripping out the DMA support: I'm fine with that if no one obje=
-cts,
-but in the header of the file we have:
- *  Author: Jarkko Lavinen <jarkko.lavinen@nokia.com> and Juha Yrj=F6l=E4
- *  IRQ and DMA support written by Timo Teras
+hmm.. I will make this change in all the applicable patches.
 
-So I believe the DMA and IRQ code was a big stunt itself to receive it'=
-s own
-line there...
-
---=20
-P=E9ter
+Thanks
+Kishon
+> 
+> 
+>> +		val = PIPE3_PHY_TX_RX_POWEROFF <<
+>> +			PIPE3_PHY_PWRCTL_CLK_CMD_SHIFT;
+>> +
+>> +		ret = regmap_update_bits(phy->phy_power_syscon, phy->power_reg,
+>> +					 PIPE3_PHY_PWRCTL_CLK_CMD_MASK, val);
+>> +		if (ret < 0)
+>> +			return ret;
+>> +	} else {
+>> +		omap_control_phy_power(phy->control_dev, 0);
+>> +	}
+>>  
+>>  	return 0;
