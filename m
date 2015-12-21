@@ -1,98 +1,91 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] OMAPDSS: fix omapfb build error due missing feat functions declaration
-Date: Mon, 21 Dec 2015 15:26:24 -0300
-Message-ID: <1450722384-4606-1-git-send-email-javier@osg.samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@osg.samsung.com>, linux-fbdev@vger.kernel.org, Dave Airlie <airlied@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: am43xx: enable
+ GENERIC_CLOCKEVENTS_BROADCAST
+Date: Mon, 21 Dec 2015 11:13:41 -0800
+Message-ID: <20151221191341.GC2793@atomide.com>
+References: <1450125246-17249-1-git-send-email-grygorii.strashko@ti.com>
+ <1450125246-17249-2-git-send-email-grygorii.strashko@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1450125246-17249-2-git-send-email-grygorii.strashko@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The omapfb is failing to build in -next due missing declarations for
-dss_feat_get_supported_displays() and dss_feat_get_supported_outputs():
+* Grygorii Strashko <grygorii.strashko@ti.com> [151214 12:35]:
+> System will misbehave in the following case:
+> - AM43XX only build (UP);
+> - CONFIG_CPU_IDLE=y
+> - ARM TWD timer enabled and selected as clockevent device.
+> 
+> In the above case, It's expected that broadcast timer will be used as
+> backup timer when CPUIdle will put MPU in low power states where ARM
+> TWD will stop and lose its context. But, the CONFIG_SMP might not be
+> selected when kernel is built for AM43XX SoC only and, as result,
+> GENERIC_CLOCKEVENTS_BROADCAST option will not be selected also. This
+> will break CPUIdle and System will stuck in low power states.
+> 
+> Hence, fix it by selecting GENERIC_CLOCKEVENTS_BROADCAST option for
+> AM43XX SoCs always and add empty tick_broadcast() function
+> implementation - no need to send any IPI on UP. After this change
+> timer1 will be selected as broadcast timer the same way as for SMP,
+> and CPUIdle will work properly.
 
- CC [M]  drivers/video/fbdev/omap2//omapfb/dss/dss.o
-drivers/video/fbdev/omap2//omapfb/dss/dss.c: In function 'dss_save_context':
-drivers/video/fbdev/omap2//omapfb/dss/dss.c:144:2: error: implicit declaration of function 'dss_feat_get_supported_displays' [-Werror=implicit-function-declaration]
+I've applied both of these into omap-for-v4.4/fixes because of the
+description above.
 
-Add the declaration for these functions in the dss_features.h header
-file to fix this compile error.
+Regards,
 
-Also, remove the functions export since are not used outside the driver.
+Tony
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
----
-
-Hello Tomi,
-
-This seems to be caused by a wrong order in which some commits from
-the omapdss tree [0] were merged, or rather a wrong base used for
-the dss-drm-merge (4.4.0-rc4) and the for-next (4.4.0-rc5) branches.
-
-The problem is that commit 2ea164a9af9c ("drm/omap: move omapdss &
-displays under omapdrm") moves the dss_features.h header from the
-drivers/video/fbdev/omap2/dss/ dir to drivers/gpu/drm/omapdrm}/dss.
-
-And then commit 8b987a111b1a ("omapfb: copy omapdss & displays for
-omapfb" copies the hader from the omapdrm dir to the omapfb one.
-
-Now, since commit 66c78ddd7a2e ("OMAPDSS: make a two dss feat funcs
-internal to omapdss") is the one that moves the function declaration
-from the public include/video/omapdss.h header to the internal one,
-this means that git will be smart enough to identify that the header
-that was drivers/video/fbdev/omap2/dss/dss_features.h now is the one
-in the omapdrm directory but that means that the omapfb files won't
-get the changes since the move & copy happened before.
-
-This happens AFAIU because dss-drm-merge having an older base so the
-patches in for-next are rebased on top of dss-drm-merge when merging.
-
-The issue can easily be avoided by first merging the patch that does
-the feat funcs declaration move and then merging the ones that do the
-per driver omapdss refactoring.
-
-But I'm posting this patch anyways in case you can't redo your branches
-and need a fix to apply on top of your current for-next.
-
-[0]: git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git
-
-Best regards,
-Javier
-
- drivers/video/fbdev/omap2/omapfb/dss/dss_features.c | 2 --
- drivers/video/fbdev/omap2/omapfb/dss/dss_features.h | 3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss_features.c b/drivers/video/fbdev/omap2/omapfb/dss/dss_features.c
-index b0b6dfd657bf..a2e26b8d6ded 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dss_features.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dss_features.c
-@@ -844,13 +844,11 @@ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel
- {
- 	return omap_current_dss_features->supported_displays[channel];
- }
--EXPORT_SYMBOL(dss_feat_get_supported_displays);
- 
- enum omap_dss_output_id dss_feat_get_supported_outputs(enum omap_channel channel)
- {
- 	return omap_current_dss_features->supported_outputs[channel];
- }
--EXPORT_SYMBOL(dss_feat_get_supported_outputs);
- 
- enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane)
- {
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss_features.h b/drivers/video/fbdev/omap2/omapfb/dss/dss_features.h
-index 100f7a2d0638..4474ebff8607 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dss_features.h
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dss_features.h
-@@ -102,4 +102,7 @@ bool dss_feat_rotation_type_supported(enum omap_dss_rotation_type rot_type);
- bool dss_has_feature(enum dss_feat_id id);
- void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end);
- void dss_features_init(enum omapdss_version version);
-+
-+enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel);
-+enum omap_dss_output_id dss_feat_get_supported_outputs(enum omap_channel channel);
- #endif
--- 
-2.4.3
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig | 1 +
+>  arch/arm/mach-omap2/timer.c | 6 ++++++
+>  2 files changed, 7 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 4b4371d..32a0086 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -65,6 +65,7 @@ config SOC_AM43XX
+>  	select MACH_OMAP_GENERIC
+>  	select MIGHT_HAVE_CACHE_L2X0
+>  	select HAVE_ARM_SCU
+> +	select GENERIC_CLOCKEVENTS_BROADCAST
+>  
+>  config SOC_DRA7XX
+>  	bool "TI DRA7XX"
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 3bfde44..f34a809 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -320,6 +320,12 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  	return r;
+>  }
+>  
+> +#if !defined(CONFIG_SMP) && defined(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
+> +void tick_broadcast(const struct cpumask *mask)
+> +{
+> +}
+> +#endif
+> +
+>  static void __init omap2_gp_clockevent_init(int gptimer_id,
+>  						const char *fck_source,
+>  						const char *property)
+> -- 
+> 2.6.4
+> 
