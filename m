@@ -1,126 +1,89 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/4] omap device tree changes for v4.5, part 2
-Date: Mon, 21 Dec 2015 13:06:37 -0800
-Message-ID: <39927.8870587752$1450732118@news.gmane.org>
-References: <pull-1450731519-787330>
+Subject: Re: [PATCH v3] clk: ti: Add support for dm814x ADPLL
+Date: Mon, 21 Dec 2015 15:55:12 -0800
+Message-ID: <20151221235512.GE2793@atomide.com>
+References: <1450213344-31369-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1450731519-787330>
-In-Reply-To: <pull-1450731519-787330>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1450213344-31369-1-git-send-email-tony@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 89c6f2e5ab7a0499c6bcb25d281977ada205765d:
+* Tony Lindgren <tony@atomide.com> [151215 13:02]:
+> On dm814x we have 13 ADPLLs with 3 to 4 outputs on each. The
+> ADPLLs have several dividers and muxes controlled by a shared
+> control register for each PLL.
+> 
+> Note that for the clocks to work as device drivers for booting on
+> dm814x, this patch depends on "ARM: OMAP2+: Change core_initcall
+> levels to postcore_initcall".
+> 
+> Also note that this patch does not implement clk_set_rate for the
+> PLL, that will be posted later on when available.
+> 
+> Cc: Michael Turquette <mturquette@baylibre.com>
+> Cc: Stephen Boyd <sboyd@codeaurora.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> Changes from v2 to v3 are listed below, hopefully I addressed everybody's
+> comments,please check and let me know if I missed something.
 
-  ARM: dts: omap3-igep0030: Use MMC pwrseq to init SDIO WiFi (2015-12-07 16:11:43 -0800)
+Everybody OK with this version as no more comments?
 
-are available in the git repository at:
+I found a few issues that are worth merging while testing:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/dt-pt2
+- We want to create the clkdev entry for all clocks, not just outputs
+- ti_adpll_wait_lock loops did not do the right thing
+- We want to use CLK_GET_RATE_NOCACHE in ti_adpll_init_dco
 
-for you to fetch changes up to 6c95771f8c71cd4dd6ed7ab84a3aea7d509d7704:
+Diff against v3 below for reference, will also send out v4 separately.
 
-  ARM: OMAP2+: LogicPD Torpedo: Add Touchscreen Support (2015-12-21 11:10:40 -0800)
+Regards,
 
-----------------------------------------------------------------
-Second set of omap device tree changes for v4.5 merge window. This series
-updates the EDMA bindings based on the various fixes to split EDMA into
-separate independent devices. It also adds support for more devices on the
-CompuLab cm-t335 and LogicPD Torpedo boards, and enables the new bindings
-for qspi for am437x and dra7. There are also few dra7 regulator fixes, and
-change of gpoi-key,wakeup to wakeup-source.
+Tony
 
-These depend on commit ae0add740cd0 ("dmaengine: edma: DT: Change reserved
-slot array from 16bit to 32bit type") already merged into mainline.
-
-----------------------------------------------------------------
-Adam Ford (4):
-      ARM: OMAP2+: LogicPD Torpedo: Add LCD Type 15 Support
-      ARM: OMAP2+: LogicPD Torpedo + Wireless: Add Bluetooth
-      ARM: OMAP2+: LogicPD Torpedo: Revert Duplicative Entries
-      ARM: OMAP2+: LogicPD Torpedo: Add Touchscreen Support
-
-Ilya Ledvich (1):
-      ARM: dts: cm-t335: add support for USB0
-
-Keerthy (2):
-      ARM: dts: DRA72-EVM: Add regulator-allow-bypass property for ldo1 and ldo2
-      ARM: dts: DRA7-EVM: Add regulator-allow-bypass property for ldo9
-
-Peter Ujfalusi (4):
-      dmaengine: edma: DT: Change memcpy channel array from 16bit to 32bit type
-      dmaengine: edma: DT: Change reserved slot array from 16bit to 32bit type
-      ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-      ARM: DTS: am437x: Use the new DT bindings for the eDMA3
-
-Sudeep Holla (2):
-      ARM: dts: am335x: replace gpio-key,wakeup with wakeup-source property
-      ARM: dts: omap: replace legacy *,wakeup property with wakeup-source
-
-Tony Lindgren (1):
-      Merge commit 'ae0add740cd06169cd124f9aaa6eceb11e5b3060' into omap-for-v4.5/dt
-
-Uri Mashiach (4):
-      ARM: dts: cm-t335: add support for SBC-T335
-      ARM: dts: cm-t335: add support for I2C GPIO expander
-      ARM: dts: cm-t335: add support for DVI/LCD
-      ARM: dts: cm-t335: add support for bluetooth
-
-Vignesh R (2):
-      ARM: dts: DRA7: add entry for qspi mmap region
-      ARM: dts: AM4372: add entry for qspi mmap region
-
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +
- Documentation/devicetree/bindings/dma/ti-edma.txt  |  10 +-
- Documentation/devicetree/bindings/spi/ti_qspi.txt  |  22 ++-
- arch/arm/boot/dts/Makefile                         |   1 +
- arch/arm/boot/dts/am335x-cm-t335.dts               |  51 ++++-
- arch/arm/boot/dts/am335x-evm.dts                   |  13 +-
- arch/arm/boot/dts/am335x-evmsk.dts                 |   2 +-
- arch/arm/boot/dts/am335x-pepper.dts                |  17 +-
- arch/arm/boot/dts/am335x-sbc-t335.dts              | 219 +++++++++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi                      |  94 ++++++---
- arch/arm/boot/dts/am4372.dtsi                      |  84 ++++++--
- arch/arm/boot/dts/am437x-gp-evm.dts                |   9 +-
- arch/arm/boot/dts/dra7-evm.dts                     |   1 +
- arch/arm/boot/dts/dra7.dtsi                        |   6 +-
- arch/arm/boot/dts/dra72-evm.dts                    |   2 +
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts  | 145 ++++++++++++--
- arch/arm/boot/dts/omap3-beagle-xm.dts              |   2 +-
- arch/arm/boot/dts/omap3-beagle.dts                 |   2 +-
- arch/arm/boot/dts/omap3-cm-t3x.dtsi                |   2 +-
- arch/arm/boot/dts/omap3-devkit8000-common.dtsi     |   2 +-
- arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi |   2 +-
- arch/arm/boot/dts/omap3-gta04.dtsi                 |   2 +-
- arch/arm/boot/dts/omap3-ldp.dts                    |  18 +-
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   2 +-
- arch/arm/boot/dts/omap3-n900.dts                   |  10 +-
- arch/arm/boot/dts/omap3-overo-alto35-common.dtsi   |   2 +-
- .../boot/dts/omap3-overo-chestnut43-common.dtsi    |   4 +-
- arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi    |   2 +-
- arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi    |   2 +-
- arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi |   4 +-
- arch/arm/boot/dts/omap3-overo-palo35-common.dtsi   |   4 +-
- arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   |   4 +-
- arch/arm/boot/dts/omap3-pandora-common.dtsi        |  34 ++--
- .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   2 +-
- arch/arm/boot/dts/omap4-duovero-parlor.dts         |   2 +-
- arch/arm/boot/dts/omap4-var-om44customboard.dtsi   |   2 +-
- arch/arm/boot/dts/omap5-cm-t54.dts                 |   2 +-
- arch/arm/mach-omap2/pdata-quirks.c                 |  24 ++-
- drivers/dma/edma.c                                 |  53 +++--
- include/linux/platform_data/edma.h                 |   2 +-
- 40 files changed, 689 insertions(+), 175 deletions(-)
- create mode 100644 arch/arm/boot/dts/am335x-sbc-t335.dts
+8< ---------------------
+--- a/drivers/clk/ti/adpll.c
++++ b/drivers/clk/ti/adpll.c
+@@ -228,9 +228,6 @@ static int ti_adpll_setup_clock(struct ti_adpll_data *d, struct clk *clock,
+ 	d->clocks[index].clk = clock;
+ 	d->clocks[index].unregister = unregister;
+ 
+-	if (output_index < 0)
+-		return 0;
+-
+ 	/* Separate con_id in format "pll040dcoclkldo" to fit MAX_CON_ID */
+ 	postfix = strrchr(name, '.');
+ 	if (strlen(postfix) > 1) {
+@@ -246,6 +243,9 @@ static int ti_adpll_setup_clock(struct ti_adpll_data *d, struct clk *clock,
+ 		dev_warn(d->dev, "no con_id for clock %s\n", name);
+ 	}
+ 
++	if (output_index < 0)
++		return 0;
++
+ 	d->outputs.clks[output_index] = clock;
+ 	d->outputs.clk_num++;
+ 
+@@ -418,7 +418,7 @@ static int ti_adpll_wait_lock(struct ti_adpll_data *d)
+ 		if (ti_adpll_is_locked(d))
+ 			return 0;
+ 		usleep_range(200, 300);
+-	} while (retries-- <= 0);
++	} while (retries--);
+ 
+ 	dev_err(d->dev, "pll failed to lock\n");
+ 	return -ETIMEDOUT;
+@@ -527,6 +527,7 @@ static int ti_adpll_init_dco(struct ti_adpll_data *d)
+ 	init.parent_names = d->parent_names;
+ 	init.num_parents = d->c->nr_max_inputs;
+ 	init.ops = &ti_adpll_ops;
++	init.flags = CLK_GET_RATE_NOCACHE;
+ 	d->dco.hw.init = &init;
+ 
+ 	if (d->c->is_type_s)
