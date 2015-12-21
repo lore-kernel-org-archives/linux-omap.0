@@ -1,13 +1,11 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v5 0/5] Add memory mapped read support for ti-qspi
-Date: Mon, 21 Dec 2015 17:33:02 +0530
-Message-ID: <5677EA76.6000108@ti.com>
-References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP2+: Fix randconfig build warning for dm814_pllss_data
+Date: Mon, 21 Dec 2015 10:19:47 -0800
+Message-ID: <1450721987-24936-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,71 +15,23 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, hramrach@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 12/11/2015 09:39 AM, Vignesh R wrote:
-> Changes since v4:
-> Use syscon to access system control module register in ti-qspi driver.
-> 
-> Changes since v3:
-> Rework to introduce spi_flash_read_message struct.
-> Support different opcode/addr/data formats as per Brian's suggestion
-> here: https://lkml.org/lkml/2015/11/11/454
-> 
-
-Gentle Ping on the series...
-
-
-> Changes since v2:
-> Remove mmap_lock_mutex.
-> Optimize enable/disable of mmap mode.
-> 
-> Changes since v1:
-> Introduce API in SPI core that MTD flash driver can call for mmap read
-> instead of directly calling spi-master driver callback. This API makes
-> sure that SPI core msg queue is locked during mmap transfers.
-> v1: https://lkml.org/lkml/2015/9/4/103
-> 
-> 
-> Cover letter:
-> 
-> This patch series adds support for memory mapped read port of ti-qspi.
-> ti-qspi has a special memory mapped port through which SPI flash
-> memories can be accessed directly via SoC specific memory region.
-> 
-> First patch adds a method to pass flash specific information like read
-> opcode, dummy bytes etc and to request mmap read. Second patch
-> implements mmap read method in ti-qspi driver. Patch 3 adapts m25p80 to
-> use mmap read method before trying normal SPI transfer. Patch 4 and 5
-> add memory map region DT entries for DRA7xx and AM43xx SoCs.
-> 
-> This patch series is based on the discussions here:
-> http://www.spinics.net/lists/linux-spi/msg04796.html
-> 
-> Tested on DRA74 EVM and AM437x-SK.
-> Read performance increases from ~100kB/s to ~2.5MB/s.
-> 
-> Vignesh R (5):
->   spi: introduce accelerated read support for spi flash devices
->   spi: spi-ti-qspi: add mmap mode read support
->   mtd: devices: m25p80: add support for mmap read request
->   ARM: dts: DRA7: add entry for qspi mmap region
->   ARM: dts: AM4372: add entry for qspi mmap region
-> 
->  Documentation/devicetree/bindings/spi/ti_qspi.txt |  22 +++-
->  arch/arm/boot/dts/am4372.dtsi                     |   4 +-
->  arch/arm/boot/dts/dra7.dtsi                       |   6 +-
->  drivers/mtd/devices/m25p80.c                      |  20 ++++
->  drivers/spi/spi-ti-qspi.c                         | 139 +++++++++++++++++-----
->  drivers/spi/spi.c                                 |  45 +++++++
->  include/linux/spi/spi.h                           |  41 +++++++
->  7 files changed, 243 insertions(+), 34 deletions(-)
-> 
-
--- 
-Regards
-Vignesh
+Rml4IHdhcm5pbmcgZm9yIGFyY2gvYXJtL21hY2gtb21hcDIvcHJtX2NvbW1vbi5jOjY2NjozNTog
+d2FybmluZzoK4oCYZG04MTRfcGxsc3NfZGF0YeKAmSBkZWZpbmVkIGJ1dCBub3QgdXNlZCBbLVd1
+bnVzZWQtdmFyaWFibGVdIi4KClRoaXMgY2FuIGhhcHBlbiBpZiBDT05GSUdfU09DX1RJODFYWCBp
+cyBub3Qgc2VsZWN0ZWQuCgpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21p
+ZGUuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvcHJtX2NvbW1vbi5jIHwgMiArKwogMSBm
+aWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKQoKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9w
+cm1fY29tbW9uLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wcm1fY29tbW9uLmMKQEAgLTY2
+Miw3ICs2NjIsOSBAQCBzdGF0aWMgc3RydWN0IG9tYXBfcHJjbV9pbml0X2RhdGEgYW0zX3BybV9k
+YXRhIF9faW5pdGRhdGEgPSB7CiAJLmluZGV4ID0gVElfQ0xLTV9QUk0sCiAJLmluaXQgPSBhbTMz
+eHhfcHJtX2luaXQsCiB9OworI2VuZGlmCiAKKyNpZmRlZiBDT05GSUdfU09DX1RJODFYWAogc3Rh
+dGljIHN0cnVjdCBvbWFwX3ByY21faW5pdF9kYXRhIGRtODE0X3BsbHNzX2RhdGEgX19pbml0ZGF0
+YSA9IHsKIAkuaW5kZXggPSBUSV9DTEtNX1BMTFNTLAogCS5pbml0ID0gYW0zM3h4X3BybV9pbml0
+LAotLSAKMi42LjIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3Rz
+LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1hcm0ta2VybmVsCg==
