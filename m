@@ -1,8 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/4] omap changes for ti81xx devices and minimal dra62x
- j5eco-evm support
-Date: Mon, 21 Dec 2015 13:06:35 -0800
-Message-ID: <39211.4389491782$1450732086@news.gmane.org>
+Subject: [GIT PULL 4/4] omap device tree changes for v4.5, part 2
+Date: Mon, 21 Dec 2015 13:06:37 -0800
+Message-ID: <39927.8870587752$1450732118@news.gmane.org>
 References: <pull-1450731519-787330>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,85 +22,105 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit d893656e61040f3ff7b5f72a986052a348f3c94e:
+The following changes since commit 89c6f2e5ab7a0499c6bcb25d281977ada205765d:
 
-  ARM: OMAP2+: Remove useless check for legacy booting for dm814x (2015-12-09 16:53:46 -0800)
+  ARM: dts: omap3-igep0030: Use MMC pwrseq to init SDIO WiFi (2015-12-07 16:11:43 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/81xx-devices
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/dt-pt2
 
-for you to fetch changes up to 8f2cf92a912ca7173d29c045d225588c9630ed94:
+for you to fetch changes up to 6c95771f8c71cd4dd6ed7ab84a3aea7d509d7704:
 
-  ARM: dts: Add usb support for j5-eco evm (2015-12-21 10:43:29 -0800)
-
-----------------------------------------------------------------
-Now with dm814x support fixed up enough where we can make use of some clocks,
-we can adds some more basic devices for dm814x. And we can also add minimal
-support for dra62x j5eco-evm that is another ti81xx variant related to dm814x.
-
-I would have rather merged this series toghether with the ADPLL clock driver,
-and was waiting for that to get merged before sending out these patches. But
-the ADPLL clock driver can be merged separately, and at least dm814x-evm,
-dra62x-j5eco-evm, and t410 all boot with this series alone. So let's merge
-these patches separately as that allows people to do development on these
-platforms for other device drivers using the mainline kernel.
-
-Note that this series depends on the earlier 81xx-fixes and omap initcall
-changes. It also depends on the DMA commit ae0add740cd0 that's already in
-mainline. As this series is mostly DTS changes with a few related hwmod
-changes, it's probably best merged along with the other DTS changes.
+  ARM: OMAP2+: LogicPD Torpedo: Add Touchscreen Support (2015-12-21 11:10:40 -0800)
 
 ----------------------------------------------------------------
-Peter Ujfalusi (2):
+Second set of omap device tree changes for v4.5 merge window. This series
+updates the EDMA bindings based on the various fixes to split EDMA into
+separate independent devices. It also adds support for more devices on the
+CompuLab cm-t335 and LogicPD Torpedo boards, and enables the new bindings
+for qspi for am437x and dra7. There are also few dra7 regulator fixes, and
+change of gpoi-key,wakeup to wakeup-source.
+
+These depend on commit ae0add740cd0 ("dmaengine: edma: DT: Change reserved
+slot array from 16bit to 32bit type") already merged into mainline.
+
+----------------------------------------------------------------
+Adam Ford (4):
+      ARM: OMAP2+: LogicPD Torpedo: Add LCD Type 15 Support
+      ARM: OMAP2+: LogicPD Torpedo + Wireless: Add Bluetooth
+      ARM: OMAP2+: LogicPD Torpedo: Revert Duplicative Entries
+      ARM: OMAP2+: LogicPD Torpedo: Add Touchscreen Support
+
+Ilya Ledvich (1):
+      ARM: dts: cm-t335: add support for USB0
+
+Keerthy (2):
+      ARM: dts: DRA72-EVM: Add regulator-allow-bypass property for ldo1 and ldo2
+      ARM: dts: DRA7-EVM: Add regulator-allow-bypass property for ldo9
+
+Peter Ujfalusi (4):
       dmaengine: edma: DT: Change memcpy channel array from 16bit to 32bit type
       dmaengine: edma: DT: Change reserved slot array from 16bit to 32bit type
+      ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
+      ARM: DTS: am437x: Use the new DT bindings for the eDMA3
 
-Tony Lindgren (19):
-      ARM: OMAP2+: Change core_initcall levels to postcore_initcall
-      ARM: OMAP2+: Fix randconfig build warning for dm814_pllss_data
-      Merge branch 'omap-for-v4.5/initcall'; commit 'ae0add740cd06169cd124f9aaa6eceb11e5b3060' into omap-for-v4.5/81xx-fixes
-      ARM: OMAP2+: Fix SoC detection for dra62x j5-eco
-      ARM: dts: Add basic support for dra62x j5-eco SoC
-      ARM: dts: Add minimal dra62x j5-eco evm support
-      ARM: dts: Add pinctrl macros for dm814x
-      ARM: dts: Update edma bindings on dm814x to use edma_xbar
-      ARM: OMAP2+: Add mmc hwmod entries for dm814x
-      ARM: dts: Add mmc device entries for dm814x
-      ARM: dts: Add mmc support for dm8148-evm
-      ARM: dts: Add mmc support for dra62x j5-eco evm
-      ARM: dts: Enable emmc on hp t410
-      ARM: OMAP2+: Update 81xx clock and power domains for default, active and sgx
-      ARM: OMAP2+: Add support for dm814x and dra62x usb
-      ARM: dts: Add usb support for dm814x and dra62x
-      ARM: dts: Add usb support for dm814x-evm
-      ARM: dts: Add usb support for hp t410
-      ARM: dts: Add usb support for j5-eco evm
+Sudeep Holla (2):
+      ARM: dts: am335x: replace gpio-key,wakeup with wakeup-source property
+      ARM: dts: omap: replace legacy *,wakeup property with wakeup-source
 
- Documentation/devicetree/bindings/dma/ti-edma.txt |  10 +-
- arch/arm/boot/dts/Makefile                        |   3 +-
- arch/arm/boot/dts/dm8148-evm.dts                  |  55 ++++++
- arch/arm/boot/dts/dm8148-t410.dts                 |  70 +++++++
- arch/arm/boot/dts/dm814x.dtsi                     | 226 ++++++++++++++++++++--
- arch/arm/boot/dts/dra62x-clocks.dtsi              |  23 +++
- arch/arm/boot/dts/dra62x-j5eco-evm.dts            |  80 ++++++++
- arch/arm/boot/dts/dra62x.dtsi                     |  23 +++
- arch/arm/mach-omap2/clockdomains81xx_data.c       |  29 +--
- arch/arm/mach-omap2/cm81xx.h                      |   6 +-
- arch/arm/mach-omap2/id.c                          |   4 +-
- arch/arm/mach-omap2/omap2-restart.c               |   2 +-
- arch/arm/mach-omap2/omap_device.c                 |   2 +-
- arch/arm/mach-omap2/omap_hwmod.c                  |   2 +-
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c        | 131 +++++++++++--
- arch/arm/mach-omap2/powerdomains3xxx_data.c       |  10 +-
- arch/arm/mach-omap2/prm_common.c                  |   2 +
- arch/arm/mach-omap2/serial.c                      |   2 +-
- drivers/dma/edma.c                                |  53 +++--
- include/dt-bindings/pinctrl/dm814x.h              |  48 +++++
- include/dt-bindings/pinctrl/omap.h                |   1 +
- include/linux/platform_data/edma.h                |   2 +-
- 22 files changed, 702 insertions(+), 82 deletions(-)
- create mode 100644 arch/arm/boot/dts/dra62x-clocks.dtsi
- create mode 100644 arch/arm/boot/dts/dra62x-j5eco-evm.dts
- create mode 100644 arch/arm/boot/dts/dra62x.dtsi
- create mode 100644 include/dt-bindings/pinctrl/dm814x.h
+Tony Lindgren (1):
+      Merge commit 'ae0add740cd06169cd124f9aaa6eceb11e5b3060' into omap-for-v4.5/dt
+
+Uri Mashiach (4):
+      ARM: dts: cm-t335: add support for SBC-T335
+      ARM: dts: cm-t335: add support for I2C GPIO expander
+      ARM: dts: cm-t335: add support for DVI/LCD
+      ARM: dts: cm-t335: add support for bluetooth
+
+Vignesh R (2):
+      ARM: dts: DRA7: add entry for qspi mmap region
+      ARM: dts: AM4372: add entry for qspi mmap region
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ Documentation/devicetree/bindings/dma/ti-edma.txt  |  10 +-
+ Documentation/devicetree/bindings/spi/ti_qspi.txt  |  22 ++-
+ arch/arm/boot/dts/Makefile                         |   1 +
+ arch/arm/boot/dts/am335x-cm-t335.dts               |  51 ++++-
+ arch/arm/boot/dts/am335x-evm.dts                   |  13 +-
+ arch/arm/boot/dts/am335x-evmsk.dts                 |   2 +-
+ arch/arm/boot/dts/am335x-pepper.dts                |  17 +-
+ arch/arm/boot/dts/am335x-sbc-t335.dts              | 219 +++++++++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |  94 ++++++---
+ arch/arm/boot/dts/am4372.dtsi                      |  84 ++++++--
+ arch/arm/boot/dts/am437x-gp-evm.dts                |   9 +-
+ arch/arm/boot/dts/dra7-evm.dts                     |   1 +
+ arch/arm/boot/dts/dra7.dtsi                        |   6 +-
+ arch/arm/boot/dts/dra72-evm.dts                    |   2 +
+ arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts  | 145 ++++++++++++--
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |   2 +-
+ arch/arm/boot/dts/omap3-beagle.dts                 |   2 +-
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi                |   2 +-
+ arch/arm/boot/dts/omap3-devkit8000-common.dtsi     |   2 +-
+ arch/arm/boot/dts/omap3-devkit8000-lcd-common.dtsi |   2 +-
+ arch/arm/boot/dts/omap3-gta04.dtsi                 |   2 +-
+ arch/arm/boot/dts/omap3-ldp.dts                    |  18 +-
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   2 +-
+ arch/arm/boot/dts/omap3-n900.dts                   |  10 +-
+ arch/arm/boot/dts/omap3-overo-alto35-common.dtsi   |   2 +-
+ .../boot/dts/omap3-overo-chestnut43-common.dtsi    |   4 +-
+ arch/arm/boot/dts/omap3-overo-common-lcd35.dtsi    |   2 +-
+ arch/arm/boot/dts/omap3-overo-common-lcd43.dtsi    |   2 +-
+ arch/arm/boot/dts/omap3-overo-gallop43-common.dtsi |   4 +-
+ arch/arm/boot/dts/omap3-overo-palo35-common.dtsi   |   4 +-
+ arch/arm/boot/dts/omap3-overo-palo43-common.dtsi   |   4 +-
+ arch/arm/boot/dts/omap3-pandora-common.dtsi        |  34 ++--
+ .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   2 +-
+ arch/arm/boot/dts/omap4-duovero-parlor.dts         |   2 +-
+ arch/arm/boot/dts/omap4-var-om44customboard.dtsi   |   2 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts                 |   2 +-
+ arch/arm/mach-omap2/pdata-quirks.c                 |  24 ++-
+ drivers/dma/edma.c                                 |  53 +++--
+ include/linux/platform_data/edma.h                 |   2 +-
+ 40 files changed, 689 insertions(+), 175 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-sbc-t335.dts
