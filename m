@@ -1,92 +1,78 @@
-From: Michael Turquette <mturquette@baylibre.com>
-Subject: Re: [PATCH v4] clk: ti: Add support for dm814x ADPLL
-Date: Tue, 22 Dec 2015 12:56:04 -0800
-Message-ID: <20151222205604.GA14912@quark.deferred.io>
-References: <1450798030-23680-1-git-send-email-tony@atomide.com>
- <5679B2D6.4050102@ti.com>
- <20151222203224.GG2793@atomide.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: OMAP display kconfig options changing
+Date: Tue, 22 Dec 2015 18:18:30 -0300
+Message-ID: <CABxcv==VKi5jJ7=tEBe5fiPUpqpmaBd7C=t+_JohdXLA7eMR2Q@mail.gmail.com>
+References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
+ <56741FA9.3080607@ti.com> <20151218160514.GK23396@atomide.com>
+ <567430DB.4000507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151222203224.GG2793@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <567430DB.4000507@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/22, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [151222 12:28]:
-> > On 12/22/2015 05:27 PM, Tony Lindgren wrote:
-> > >On dm814x we have 13 ADPLLs with 3 to 4 outputs on each. The
-> > >ADPLLs have several dividers and muxes controlled by a shared
-> > >control register for each PLL.
-> > >
-> > >Note that for the clocks to work as device drivers for booting on
-> > >dm814x, this patch depends on "ARM: OMAP2+: Change core_initcall
-> > >levels to postcore_initcall".
-> > >
-> > >Also note that this patch does not implement clk_set_rate for the
-> > >PLL, that will be posted later on when available.
-> > >
-> > >Cc: Michael Turquette <mturquette@baylibre.com>
-> > >Cc: Stephen Boyd <sboyd@codeaurora.org>
-> > >Cc: Tero Kristo <t-kristo@ti.com>
-> > >Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > >---
-> > >
-> > >If no more comments, Tero can you please apply into an immutable
-> > >branch against v4.4-rc1 that I can merge in too?
-> > >
-> > >Changes since v3:
-> > >
-> > >- We want to create the clkdev entry for all clocks, not just outputs
-> > >- ti_adpll_wait_lock loops did not do the right thing
-> > >- We want to use CLK_GET_RATE_NOCACHE in ti_adpll_init_dco
-> > 
-> > I have just one comment below still, once that is addressed:
-> > 
-> > Conditionally-acked-by: Tero Kristo <t-kristo@ti.com>
-> > 
-> > Stephen / Michael, can you pick this up for next merge? I don't have
-> > anything else coming for the window this time, and I am probably going to be
-> > on vacation just nicely to not be able to push anything anyway.
-> 
-> Also, I managed to remove the dependency to the dts changes. So there's
-> no longer any need to set up an immutable branch for this patch.
+Hello Tomi,
 
-Can you split the binding description into a separate patch and send it
-to the dt mailing list? Feel free to add my Ack to it.
+On Fri, Dec 18, 2015 at 1:14 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 18/12/15 18:05, Tony Lindgren wrote:
+>
+>>> Are you referring to Kconfig options? Or userspace?
+>>
+>> Well sounds like both need updating :)
+>
+> Depends... For simple fb apps, omapdrm works fine, and X with the
+> standard fbdev driver should work with omapdrm too.
+>
 
-Stephen and I are trying to not take that stuff anymore.
+It does, I just tested omapdrm + X with the fbdev DDX and I was able
+to start X and the xfce4 wm.
 
-Regards,
-Mike
+I just needed to enable DRM_FBDEV_EMULATION in omap2plus_defconfig to
+have fbdev emulation over DRM.
 
-> 
-> > <snip>
-> > 
-> > >+
-> > >+/* Warn if clkout or clkoutx2 try to set unavailable parent */
-> > >+static int ti_adpll_clkout_set_parent(struct clk_hw *hw, u8 index)
-> > >+{
-> > >+	struct ti_adpll_clkout_data *co = to_clkout(hw);
-> > >+	struct ti_adpll_data *d = co->adpll;
-> > >+
-> > >+	if (ti_adpll_clock_is_bypass(d) != index)
-> > >+		return -EAGAIN;
-> > >+
-> > 
-> > I think this part is still somewhat weird. You are not doing anything useful
-> > in this function, so do you need to implement it at all? Just returning
-> > -EINVAL always might work also. EAGAIN is wrong return value anyway as it
-> > can pretty much never succeed.
-> 
-> OK thanks sounds good to me, I'll check it this after lunch.
-> 
-> Also noticed the do_div should be div64_u64 so v5 coming later
-> today.
-> 
-> Regards,
-> 
-> Tony
+> But if the userspace is using any omapfb specific apps, then yes, update
+> is necessary.
+>
+
+Yes but these people should have a migration plan anyways since omapfb
+(and fbdev in general) is going away right?
+
+>>> But no, I don't have links to either.
+>>
+>> So change the Kconfig options and then deal with the flood
+>> of angry emails? :) I think we need instructions..
+>
+> Ok. I think it's then best that I just update the defconfig to enable
+> omapfb as modules, as it is currently.
+>
+
+In that case I think you should squash the defconfig changes with
+commit ("70ba4e05531f omapfb/displays: change CONFIG_DISPLAY_* to
+CONFIG_FB_OMAP2_*") to maintain bisectability.
+
+Alternatively, the current panel and encoders Kconfig symbols could
+remain for omapfb since that's the current ones used in
+omap2plus_defconfig where omapfb is the default and have new Kconfig
+symbols for omapdrm (i.e: CONFIG_DRM_OMAP_ENCODER_TFP410).
+
+> We can look again at changing the default to omapdrm after we've tested
+> it on OMAP2 too, and we have a better idea what the user needs to take
+> care of.
+>
+>  Tomi
+>
+
+Best regards,
+Javier
