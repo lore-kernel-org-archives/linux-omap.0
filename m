@@ -1,89 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] clk: ti: Add support for dm814x ADPLL
-Date: Mon, 21 Dec 2015 15:55:12 -0800
-Message-ID: <20151221235512.GE2793@atomide.com>
-References: <1450213344-31369-1-git-send-email-tony@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: fix omapfb build error due missing feat
+ functions declaration
+Date: Tue, 22 Dec 2015 09:50:21 +0200
+Message-ID: <567900BD.6070907@ti.com>
+References: <1450722384-4606-1-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450213344-31369-1-git-send-email-tony@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="EBoS8Lof5KcgKnx2sB56BAwk496S2SwlO"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1450722384-4606-1-git-send-email-javier@osg.samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@osg.samsung.com>, linux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-fbdev@vger.kernel.org, Dave Airlie <airlied@gmail.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Rob Clark <robdclark@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [151215 13:02]:
-> On dm814x we have 13 ADPLLs with 3 to 4 outputs on each. The
-> ADPLLs have several dividers and muxes controlled by a shared
-> control register for each PLL.
-> 
-> Note that for the clocks to work as device drivers for booting on
-> dm814x, this patch depends on "ARM: OMAP2+: Change core_initcall
-> levels to postcore_initcall".
-> 
-> Also note that this patch does not implement clk_set_rate for the
-> PLL, that will be posted later on when available.
-> 
-> Cc: Michael Turquette <mturquette@baylibre.com>
-> Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> Changes from v2 to v3 are listed below, hopefully I addressed everybody's
-> comments,please check and let me know if I missed something.
+--EBoS8Lof5KcgKnx2sB56BAwk496S2SwlO
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Everybody OK with this version as no more comments?
+Hi Javier,
 
-I found a few issues that are worth merging while testing:
+On 21/12/15 20:26, Javier Martinez Canillas wrote:
+> The omapfb is failing to build in -next due missing declarations for
+> dss_feat_get_supported_displays() and dss_feat_get_supported_outputs():=
 
-- We want to create the clkdev entry for all clocks, not just outputs
-- ti_adpll_wait_lock loops did not do the right thing
-- We want to use CLK_GET_RATE_NOCACHE in ti_adpll_init_dco
+>=20
+>  CC [M]  drivers/video/fbdev/omap2//omapfb/dss/dss.o
+> drivers/video/fbdev/omap2//omapfb/dss/dss.c: In function 'dss_save_cont=
+ext':
+> drivers/video/fbdev/omap2//omapfb/dss/dss.c:144:2: error: implicit decl=
+aration of function 'dss_feat_get_supported_displays' [-Werror=3Dimplicit=
+-function-declaration]
+>=20
+> Add the declaration for these functions in the dss_features.h header
+> file to fix this compile error.
+>=20
+> Also, remove the functions export since are not used outside the driver=
+=2E
 
-Diff against v3 below for reference, will also send out v4 separately.
+Thanks!
 
-Regards,
+Yep, I messed that up. I thought I had tested it, but apparently I only
+tested the final for-next only for omapdrm, which does compile and work.
 
-Tony
+omapdss.h is the the only file still shared between omapdrm and omapfb
+after the copy-omapdss-series (I'll work on omapdss.h later), and of
+course there was a change to omapdss.h which broke the build.
 
-8< ---------------------
---- a/drivers/clk/ti/adpll.c
-+++ b/drivers/clk/ti/adpll.c
-@@ -228,9 +228,6 @@ static int ti_adpll_setup_clock(struct ti_adpll_data *d, struct clk *clock,
- 	d->clocks[index].clk = clock;
- 	d->clocks[index].unregister = unregister;
- 
--	if (output_index < 0)
--		return 0;
--
- 	/* Separate con_id in format "pll040dcoclkldo" to fit MAX_CON_ID */
- 	postfix = strrchr(name, '.');
- 	if (strlen(postfix) > 1) {
-@@ -246,6 +243,9 @@ static int ti_adpll_setup_clock(struct ti_adpll_data *d, struct clk *clock,
- 		dev_warn(d->dev, "no con_id for clock %s\n", name);
- 	}
- 
-+	if (output_index < 0)
-+		return 0;
-+
- 	d->outputs.clks[output_index] = clock;
- 	d->outputs.clk_num++;
- 
-@@ -418,7 +418,7 @@ static int ti_adpll_wait_lock(struct ti_adpll_data *d)
- 		if (ti_adpll_is_locked(d))
- 			return 0;
- 		usleep_range(200, 300);
--	} while (retries-- <= 0);
-+	} while (retries--);
- 
- 	dev_err(d->dev, "pll failed to lock\n");
- 	return -ETIMEDOUT;
-@@ -527,6 +527,7 @@ static int ti_adpll_init_dco(struct ti_adpll_data *d)
- 	init.parent_names = d->parent_names;
- 	init.num_parents = d->c->nr_max_inputs;
- 	init.ops = &ti_adpll_ops;
-+	init.flags = CLK_GET_RATE_NOCACHE;
- 	d->dco.hw.init = &init;
- 
- 	if (d->c->is_type_s)
+So I rebased the copy-omapdss-series on top of the rest of the omapdss
+patches, and updated the "omapfb: copy omapdss & displays for omapfb" to
+make a fresh copy of omapdss for omapfb. I think it's better to update
+the series, rather than applying fixes for already confusing series.
+
+I've pushed new version to my for-next branch.
+
+ Tomi
+
+
+--EBoS8Lof5KcgKnx2sB56BAwk496S2SwlO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWeQC+AAoJEPo9qoy8lh71CfYP/A+1xLqxUAVYcGwTlceZP7nK
++E4y/81UP8pW5VS6UkXNgqUkkPVBgBFAN7flEWh1eN24budXL13UiYojOu6ny6C/
+qLC/ywtuLEo17GJ2yzl9HiBE4EZvBLdyyS9BLJoPY8zJK5hcGpDV0lZyr1+lVc0I
+JgMbwJsBwFyxEBlIiHEphmADy2cSSge5nCTF8gUtcJw6RyORCNiY/1IkhPKuC2Jg
+RUuqBS+7Vzlf3Py5B6yXpGZFOlXj5w3t+zE7V2cgYCYpcJg+Y8e0cN/yUw9A6ydx
+XOXgP8uo3lZx51+2TthZNhhHjeWPMBee5HAMHuHqYaC3lVZ/CM5jiDf53Y0D5kCC
+24TVjfG516Ro//F6RjbIgNLQBFjAw0i6W42gXxmWSKRlpR6bo2QpIkxUjOIIfg/H
+oQkISSHdFou+DpbyzqzDfMjUpy9b83gOLSji0+X60JHQ5rS3JGcwnjMTVEDFz+Dr
+tetxNoJfw9tk1KZvOgOZg96WijXnHUr428TOFjuntbSyCqWmA1FNpYXNws85TJE6
+gxjNuqQVBXqO7P7y+6kgKZHRvAcBohMGfxnFvtApmvzygk4NHOCv5RPAfB+qBxgp
+EOeSJebK/177cFDIVq3fww5mYti5TgiLksnHRJqoaZCQGYH5sJg03lPZSWlR2we3
+NqqzbzX/I3Z0qCphIp7i
+=wzOn
+-----END PGP SIGNATURE-----
+
+--EBoS8Lof5KcgKnx2sB56BAwk496S2SwlO--
