@@ -1,15 +1,15 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 4/4] omap device tree changes for v4.5, part 2
-Date: Tue, 22 Dec 2015 14:55:32 -0800
-Message-ID: <20151222225532.GK30172@localhost>
+Subject: Re: [GIT PULL 3/4] omap wakeup-m3 driver for v4.5 merge window
+Date: Tue, 22 Dec 2015 14:54:20 -0800
+Message-ID: <20151222225420.GJ30172@localhost>
 References: <pull-1450731519-787330>
- <56786a00.aa93420a.2d595.ffffdbebSMTPIN_ADDED_BROKEN@mx.google.com>
+ <567869fb.0295420a.956c9.ffff92e1SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <56786a00.aa93420a.2d595.ffffdbebSMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <567869fb.0295420a.956c9.ffff92e1SMTPIN_ADDED_BROKEN@mx.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,31 +23,28 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 21, 2015 at 01:06:37PM -0800, Tony Lindgren wrote:
-> The following changes since commit 89c6f2e5ab7a0499c6bcb25d281977ada205765d:
+On Mon, Dec 21, 2015 at 01:06:36PM -0800, Tony Lindgren wrote:
+> The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d7130bec:
 > 
->   ARM: dts: omap3-igep0030: Use MMC pwrseq to init SDIO WiFi (2015-12-07 16:11:43 -0800)
+>   Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/dt-pt2
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/wakeup-m3
 > 
-> for you to fetch changes up to 6c95771f8c71cd4dd6ed7ab84a3aea7d509d7704:
+> for you to fetch changes up to cdd5de500b2c90d5181ebc963826019a0a4234ba:
 > 
->   ARM: OMAP2+: LogicPD Torpedo: Add Touchscreen Support (2015-12-21 11:10:40 -0800)
+>   soc: ti: Add wkup_m3_ipc driver (2015-12-03 07:24:29 -0800)
 > 
 > ----------------------------------------------------------------
-> Second set of omap device tree changes for v4.5 merge window. This series
-> updates the EDMA bindings based on the various fixes to split EDMA into
-> separate independent devices. It also adds support for more devices on the
-> CompuLab cm-t335 and LogicPD Torpedo boards, and enables the new bindings
-> for qspi for am437x and dra7. There are also few dra7 regulator fixes, and
-> change of gpoi-key,wakeup to wakeup-source.
+> TI wakeup M3 IPC device driver for v4.5 merge window. This driver will
+> eventually allow am33xx and am437x to support PM with their Cortex-M3
+> power management processor.
 > 
-> These depend on commit ae0add740cd0 ("dmaengine: edma: DT: Change reserved
-> slot array from 16bit to 32bit type") already merged into mainline.
+> This driver has been waiting to get merged for quite a while but has
+> had dependencies to the remoteproc that are now out of the way.
 
-Thanks, merged.
+Merged, thanks.
 
 
 -Olof
