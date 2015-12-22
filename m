@@ -1,57 +1,378 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 9/9] phy: omap-usb2: use *syscon* framework API to
- power on/off the PHY
-Date: Tue, 22 Dec 2015 12:19:14 -0600
-Message-ID: <CAL_JsqKEfUihk6kO+_KukNPGz4ZwT4S6v+coYqL+ZdQHpe5WSg@mail.gmail.com>
-References: <1450170968-11282-1-git-send-email-kishon@ti.com>
- <1450170968-11282-10-git-send-email-kishon@ti.com> <20151220033901.GI9883@rob-hp-laptop>
- <56769A1F.3060607@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: Add clocks for dm814x ADPLL
+Date: Tue, 22 Dec 2015 22:10:41 +0200
+Message-ID: <5679AE41.2080409@ti.com>
+References: <1450799607-9334-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56769A1F.3060607-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux USB List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1450799607-9334-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Dec 20, 2015 at 6:07 AM, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
-> Hi Rob,
+On 12/22/2015 05:53 PM, Tony Lindgren wrote:
+> These use the standard clock bindings and now we can make some
+> of the fixed clocks into real clocks.
 >
-> On Sunday 20 December 2015 09:09 AM, Rob Herring wrote:
->> On Tue, Dec 15, 2015 at 02:46:08PM +0530, Kishon Vijay Abraham I wrote:
->>> Deprecate using phy-omap-control driver to power on/off the PHY,
->>> and use *syscon* framework to do the same. This handles
->>> powering on/off the PHY for the USB2 PHYs used in various TI SoCs.
->>>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>> ---
->>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    8 +-
->>>  drivers/phy/phy-omap-usb2.c                      |   94 ++++++++++++++++++----
->>>  include/linux/phy/omap_usb.h                     |   23 ++++++
->>>  3 files changed, 107 insertions(+), 18 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>> index 49e5b0c..a3b3945 100644
->>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>> @@ -31,6 +31,8 @@ OMAP USB2 PHY
->>>
->>>  Required properties:
->>>   - compatible: Should be "ti,omap-usb2"
->>> +           Should be "ti,dra7x-usb2-phy2" for the 2nd instance of USB2 PHY
->>> +           in DRA7x
->>
->> The 2nd instance is different somehow?
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> Changes since v1:
 >
-> yeah, the bit fields are slightly different.
+> - Updated for changed clock names for "dcoclkldo"
+> - Merged in the dra62x changes
+>
+> ---
+>   arch/arm/boot/dts/dm814x-clocks.dtsi | 256 ++++++++++++++++++++++++++++++-----
+>   arch/arm/boot/dts/dra62x-clocks.dtsi |  26 ++++
+>   2 files changed, 251 insertions(+), 31 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/dm814x-clocks.dtsi b/arch/arm/boot/dts/dm814x-clocks.dtsi
+> index e0ea6a9..b75ca91 100644
+> --- a/arch/arm/boot/dts/dm814x-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dm814x-clocks.dtsi
+> @@ -4,6 +4,170 @@
+>    * published by the Free Software Foundation.
+>    */
+>
+> +&pllss {
+> +	/*
+> +	 * See TRM "2.6.10 Connected outputso DPLLS" and
+> +	 * "2.6.11 Connected Outputs of DPLLJ". Only clkout is
+> +	 * connected except for hdmi and usb.
+> +	 */
+> +	adpll_mpu_ck: adpll@40 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-s-clock";
+> +		reg = <0x40 0x40>;
+> +		clocks = <&devosc_ck &devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow", "clkinphif";
+> +		clock-indices = <0>, <1>, <2>, <3>;
+> +		clock-output-names = "481c5040.adpll.dcoclkldo",
+> +				     "481c5040.adpll.clkout",
+> +				     "481c5040.adpll.clkoutx2",
+> +				     "481c5040.adpll.clkouthif";
 
-Okay,
+Discussed this offline, but looks like most of the clock output names 
+can probably be generated runtime, as they seem duplicate across adplls? 
+Including the address component.
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Based on the offline discussion though:
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tero Kristo <t-kristo@ti.com>
+
+-Tero
+
+
+> +	};
+> +
+> +	adpll_dsp_ck: adpll@80 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x80 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5080.adpll.dcoclkldo",
+> +				     "481c5080.adpll.clkout",
+> +				     "481c5080.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_sgx_ck: adpll@b0 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0xb0 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c50b0.adpll.dcoclkldo",
+> +				     "481c50b0.adpll.clkout",
+> +				     "481c50b0.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_hdvic_ck: adpll@e0 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0xe0 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c50e0.adpll.dcoclkldo",
+> +				     "481c50e0.adpll.clkout",
+> +				     "481c50e0.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_l3_ck: adpll@110 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x110 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5110.adpll.dcoclkldo",
+> +				     "481c5110.adpll.clkout",
+> +				     "481c5110.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_isp_ck: adpll@140 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x140 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5140.adpll.dcoclkldo",
+> +				     "481c5140.adpll.clkout",
+> +				     "481c5140.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_dss_ck: adpll@170 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x170 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5170.adpll.dcoclkldo",
+> +				     "481c5170.adpll.clkout",
+> +				     "481c5170.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_video0_ck: adpll@1a0 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x1a0 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c51a0.adpll.dcoclkldo",
+> +				     "481c51a0.adpll.clkout",
+> +				     "481c51a0.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_video1_ck: adpll@1d0 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x1d0 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c51d0.adpll.dcoclkldo",
+> +				     "481c51d0.adpll.clkout",
+> +				     "481c51d0.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_hdmi_ck: adpll@200 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x200 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5200.adpll.dcoclkldo",
+> +				     "481c5200.adpll.clkout",
+> +				     "481c5200.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_audio_ck: adpll@230 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x230 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5230.adpll.dcoclkldo",
+> +				     "481c5230.adpll.clkout",
+> +				     "481c5230.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_usb_ck: adpll@260 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x260 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5260.adpll.dcoclkldo",
+> +				     "481c5260.adpll.clkout",
+> +				     "481c5260.adpll.clkoutldo";
+> +	};
+> +
+> +	adpll_ddr_ck: adpll@290 {
+> +		#clock-cells = <1>;
+> +		compatible = "ti,dm814-adpll-lj-clock";
+> +		reg = <0x290 0x30>;
+> +		clocks = <&devosc_ck &devosc_ck>;
+> +		clock-names = "clkinp", "clkinpulow";
+> +		clock-indices = <0>, <1>, <2>;
+> +		clock-output-names = "481c5290.adpll.dcoclkldo",
+> +				     "481c5290.adpll.clkout",
+> +				     "481c5290.adpll.clkoutldo";
+> +	};
+> +};
+> +
+>   &pllss_clocks {
+>   	timer1_fck: timer1_fck {
+>   		#clock-cells = <0>;
+> @@ -23,6 +187,24 @@
+>   		reg = <0x2e0>;
+>   	};
+>
+> +	/* CPTS_RFT_CLK in RMII_REFCLK_SRC, usually sourced from auiod */
+> +	cpsw_cpts_rft_clk: cpsw_cpts_rft_clk {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,mux-clock";
+> +		clocks = <&adpll_video0_ck 1
+> +			  &adpll_video1_ck 1
+> +			  &adpll_audio_ck 1>;
+> +		ti,bit-shift = <1>;
+> +		reg = <0x2e8>;
+> +	};
+> +
+> +	/* REVISIT: Set up with a proper mux using RMII_REFCLK_SRC */
+> +	cpsw_125mhz_gclk: cpsw_125mhz_gclk {
+> +		#clock-cells = <0>;
+> +		compatible = "fixed-clock";
+> +		clock-frequency = <125000000>;
+> +	};
+> +
+>   	sysclk18_ck: sysclk18_ck {
+>   		#clock-cells = <0>;
+>   		compatible = "ti,mux-clock";
+> @@ -79,37 +261,6 @@
+>   		compatible = "fixed-clock";
+>   		clock-frequency = <1000000000>;
+>   	};
+> -
+> -	sysclk4_ck: sysclk4_ck {
+> -		#clock-cells = <0>;
+> -		compatible = "fixed-clock";
+> -		clock-frequency = <222000000>;
+> -	};
+> -
+> -	sysclk6_ck: sysclk6_ck {
+> -		#clock-cells = <0>;
+> -		compatible = "fixed-clock";
+> -		clock-frequency = <100000000>;
+> -	};
+> -
+> -	sysclk10_ck: sysclk10_ck {
+> -		#clock-cells = <0>;
+> -		compatible = "fixed-clock";
+> -		clock-frequency = <48000000>;
+> -	};
+> -
+> -        cpsw_125mhz_gclk: cpsw_125mhz_gclk {
+> -		#clock-cells = <0>;
+> -		compatible = "fixed-clock";
+> -		clock-frequency = <125000000>;
+> -	};
+> -
+> -	cpsw_cpts_rft_clk: cpsw_cpts_rft_clk {
+> -		#clock-cells = <0>;
+> -		compatible = "fixed-clock";
+> -		clock-frequency = <250000000>;
+> -	};
+> -
+>   };
+>
+>   &prcm_clocks {
+> @@ -138,6 +289,49 @@
+>   		clock-div = <78125>;
+>   	};
+>
+> +	/* L4_HS 220 MHz*/
+> +	sysclk4_ck: sysclk4_ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,fixed-factor-clock";
+> +		clocks = <&adpll_l3_ck 1>;
+> +		ti,clock-mult = <1>;
+> +		ti,clock-div = <1>;
+> +	};
+> +
+> +	/* L4_FWCFG */
+> +	sysclk5_ck: sysclk5_ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,fixed-factor-clock";
+> +		clocks = <&adpll_l3_ck 1>;
+> +		ti,clock-mult = <1>;
+> +		ti,clock-div = <2>;
+> +	};
+> +
+> +	/* L4_LS 110 MHz */
+> +	sysclk6_ck: sysclk6_ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,fixed-factor-clock";
+> +		clocks = <&adpll_l3_ck 1>;
+> +		ti,clock-mult = <1>;
+> +		ti,clock-div = <2>;
+> +	};
+> +
+> +	sysclk8_ck: sysclk8_ck {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,fixed-factor-clock";
+> +		clocks = <&adpll_usb_ck 1>;
+> +		ti,clock-mult = <1>;
+> +		ti,clock-div = <1>;
+> +	};
+> +
+> +	sysclk10_ck: sysclk10_ck {
+> +		compatible = "ti,divider-clock";
+> +		reg = <0x324>;
+> +		ti,max-div = <7>;
+> +		#clock-cells = <0>;
+> +		clocks = <&adpll_usb_ck 1>;
+> +	};
+> +
+>   	aud_clkin0_ck: aud_clkin0_ck {
+>   		#clock-cells = <0>;
+>   		compatible = "fixed-clock";
+> diff --git a/arch/arm/boot/dts/dra62x-clocks.dtsi b/arch/arm/boot/dts/dra62x-clocks.dtsi
+> index 6f98dc8..0e49741 100644
+> --- a/arch/arm/boot/dts/dra62x-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra62x-clocks.dtsi
+> @@ -6,6 +6,32 @@
+>
+>   #include "dm814x-clocks.dtsi"
+>
+> +/* Compared to dm814x, dra62x does not have hdic, l3 or dss PLLs */
+> +&adpll_hdvic_ck {
+> +	status = "disabled";
+> +};
+> +
+> +&adpll_l3_ck {
+> +	status = "disabled";
+> +};
+> +
+> +&adpll_dss_ck {
+> +	status = "disabled";
+> +};
+> +
+> +/* Compared to dm814x, dra62x has interconnect clocks on isp PLL */
+> +&sysclk4_ck {
+> +	clocks = <&adpll_isp_ck 1>;
+> +};
+> +
+> +&sysclk5_ck {
+> +	clocks = <&adpll_isp_ck 1>;
+> +};
+> +
+> +&sysclk6_ck {
+> +	clocks = <&adpll_isp_ck 1>;
+> +};
+> +
+>   /*
+>    * Compared to dm814x, dra62x has different shifts and more mux options.
+>    * Please add the extra options for ysclk_14 and 16 if really needed.
+>
