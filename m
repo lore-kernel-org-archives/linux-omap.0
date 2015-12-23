@@ -1,59 +1,73 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/3] ARM: dts: am335x-evm: add shared transport device
- tree bindings
-Date: Wed, 23 Dec 2015 10:21:33 -0800
-Message-ID: <20151223182132.GO2793@atomide.com>
-References: <1450870253-8694-1-git-send-email-eyalr@ti.com>
- <1450870253-8694-2-git-send-email-eyalr@ti.com>
- <8665E2433BC68541A24DFFCA87B70F5B23759A6B@DFRE01.ent.ti.com>
- <20151223181945.GN2793@atomide.com>
+From: Markus Brunner <systemprogrammierung.brunner@gmail.com>
+Subject: Re: [PATCH 0/3] drivers: net: cpsw: phy-handle fixes
+Date: Wed, 23 Dec 2015 19:35:37 +0100
+Message-ID: <2375419.xULY4PYlNl@localhost>
+References: <1450830994-5450-1-git-send-email-drivshin.allworx@gmail.com> <20151223.120425.2005941258192616350.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151223181945.GN2793-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "pawel.moll-5wv7dgnIgG8@public.gmane.org" <pawel.moll-5wv7dgnIgG8@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20151223.120425.2005941258192616350.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: drivshin.allworx@gmail.com, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, hs@denx.de, mugunthanvnm@ti.com, kernel@iktek.de, dtrautmann@ibhsoftec-sps.de
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [151223 10:19]:
-> * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [151223 03:40]:
-> > The shared Shared Transport (ST) software enables BT and GPS protocols
-> > or software components to interact with their respective cores over
-> > single physical port.
-> > Add the uart and enable pin device tree bindings
-> ...
-> > --- a/arch/arm/boot/dts/am335x-evm.dts
-> > +++ b/arch/arm/boot/dts/am335x-evm.dts
-> > @@ -160,6 +160,18 @@
-> >  			system-clock-frequency = <12000000>;
-> >  		};
-> >  	};
-> > +
-> > +	kim {
-> > +		compatible = "kim";
-> > +		nshutdown-gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
-> > +		serial-device = <&uart1>;
-> > +		flow_cntrl = <1>;
-> > +		baud_rate = <3000000>;
-> > +	};
-> > +
-> > +	btwilink {
-> > +		compatible = "btwilink";
-> > +	};
-> >  };
+On Wednesday 23 December 2015 12:04:25 David Miller wrote:
+> From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+> Date: Tue, 22 Dec 2015 19:36:31 -0500
 > 
-> I think this "kim" binding got dropped.. We need some sane binding and
-> solution for it.
+> > Testing by anyone who has real hardware using phy-handle or dual_emac
+> > with fixed-link would be appreciated.
+> 
+> I'm going to wait for such testing before applying this series.
+> 
+> Thanks.
 
-Oh sorry, this is a new binding you've done :) Nice good to see this
-get fixed.
+Successfully tested the following 3 configurations.
+1. emac0 with phy_id and emac1 with fixed phy
+2. emac0 with phy-handle and emac1 with fixed phy
+3. emac0 with fixed phy and emac1 with fixed phy
 
-Regards,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Below are the affected DT nodes, with one cpsw_emac0 node choosen for each 
+test.
+
+&cpsw_emac0 {
+	phy_id = <&davinci_mdio>, <5>;
+	phy-mode = "mii";
+	dual_emac_res_vlan = <4093>;
+};
+
+&cpsw_emac0 {
+	phy-mode = "mii";
+	dual_emac_res_vlan = <4093>;
+	phy-handle = <&phy0>;
+};
+
+&cpsw_emac0 {
+	phy-mode = "mii";
+	dual_emac_res_vlan = <4093>;
+	fixed-link {
+		speed = <100>;
+		full-duplex;
+	};
+};
+
+&cpsw_emac1 {
+	dual_emac_res_vlan = <4094>;
+	phy-mode = "mii";
+	fixed-link {
+		speed = <100>;
+		full-duplex;
+	};
+};
+
+&davinci_mdio {
+	status = "okay";
+	phy0: ethernet-phy@0 {
+		reg = <5>;
+	};
+};
+
+ps: I don't have access to the board for the next 2 weeks.
