@@ -1,83 +1,58 @@
-From: Paul Kocialkowski <contact@paulk.fr>
-Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Wed, 23 Dec 2015 13:52:45 +0100
-Message-ID: <1450875165.2648.7.camel@collins>
-References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
-	 <1450868319-20513-5-git-send-email-contact@paulk.fr>
-	 <20151223115632.GS16023@sirena.org.uk>
+From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 1/3] wlcore/wl12xx: spi: fix NULL pointer dereference
+ (Oops)
+Date: Wed, 23 Dec 2015 16:11:21 +0200
+Message-ID: <567AAB89.4010101@compulab.co.il>
+References: <1450859744-9948-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1450859744-9948-2-git-send-email-uri.mashiach@compulab.co.il>
+ <567A7287.3010205@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-XLQwfScQ/NojBFJkcsRx"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151223115632.GS16023@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Milo Kim <milo.kim@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <567A7287.3010205-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Grygorii,
 
---=-XLQwfScQ/NojBFJkcsRx
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 12/23/2015 12:08 PM, Grygorii Strashko wrote:
+> On 12/23/2015 10:35 AM, Uri Mashiach wrote:
+>> The power function uses a consumer regulator access to update the WiFi
+>> enable GPIO value.
+>>
+>> Fix the below Oops when trying to modprobe wlcore_spi.
+>> The oops occurs because the wl1271_power_{off,on}()
+>> function doesn't check the power() function pointer.
+>>
+>> [   23.401447] Unable to handle kernel NULL pointer dereference at
+>> virtual address 00000000
+>> [   23.409954] pgd = c0004000
+>> [   23.412922] [00000000] *pgd=00000000
+>> [   23.416693] Internal error: Oops: 80000007 [#1] SMP ARM
+>> [   23.422168] Modules linked in: wl12xx wlcore mac80211 cfg80211
+>> musb_dsps musb_hdrc usbcore usb_common snd_soc_simple_card evdev joydev
+>> omap_rng wlcore_spi snd_soc_tlv320aic23_i2c rng_core snd_soc_tlv320aic23
+>> c_can_platform c_can can_dev snd_soc_davinci_mcasp snd_soc_edma
+>> snd_soc_omap omap_wdt musb_am335x cpufreq_dt thermal_sys hwmon
+>> [   23.453253] CPU: 0 PID: 36 Comm: kworker/0:2 Not tainted
+>> 4.2.0-00002-g951efee-dirty #233
+>> [   23.461720] Hardware name: Generic AM33XX (Flattened Device Tree)
+>> [   23.468123] Workqueue: events request_firmware_work_func
+>> [   23.473690] task: de32efc0 ti: de4ee000 task.ti: de4ee000
+>> [   23.479341] PC is at 0x0
+>> [   23.482112] LR is at wl12xx_set_power_on+0x28/0x124 [wlcore]
+>
+> Why can't you just add proper check in wl1271_power_on/wl1271_power_off() instead?
+>
 
-Le mercredi 23 d=C3=A9cembre 2015 =C3=A0 11:56 +0000, Mark Brown a =C3=A9cr=
-it :
-> On Wed, Dec 23, 2015 at 11:58:37AM +0100, Paul Kocialkowski wrote:
->=20
-> > +	gpio =3D lp->pdata->enable_gpio;
-> > +	if (!gpio_is_valid(gpio))
-> > +		return 0;
-> > +
-> > +	/* Always set enable GPIO high. */
-> > +	ret =3D devm_gpio_request_one(lp->dev, gpio, GPIOF_OUT_INIT_HIGH, "LP=
-872X EN");
-> > +	if (ret) {
-> > +		dev_err(lp->dev, "gpio request err: %d\n", ret);
-> > +		return ret;
-> > +	}
->=20
-> This isn't really adding support for the enable GPIO as the changelog
-> suggests, it's requesting but not managing the GPIO.  Since there is
-> core support for manging enable GPIOs this seems especially silly,
-> please tell the core about the GPIO and then it will work at runtime
-> too.
+Will be done in v2.
 
-You're right, I had clearly overlooked this, thanks for pointing it out.
-Will send v2 using GPIO handling from core.
-
---=20
-Paul Kocialkowski, Replicant developer
-
-Replicant is a fully free Android distribution running on several
-devices, a free software mobile operating system putting the emphasis on
-freedom and privacy/security.
-
-Website: https://www.replicant.us/
-Blog: https://blog.replicant.us/
-Wiki/tracker/forums: https://redmine.replicant.us/
-
-
---=-XLQwfScQ/NojBFJkcsRx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAABAgAGBQJWepkeAAoJEIT9weqP7pUMuDsP/0alAJgTvGF6ghwMJLMhulJy
-dhAUXr302bxZPMmFpjAir42dLv617bgfNzLmLH30MGgtpb25e8sOvnJJQZz+MRRH
-Rgr/yhLOnWn/gLSvwEiTx/AywrG5/dgTQvS0xnzr6A6XY5HoIuaDReHuVXIhrJDK
-tekMct8IpzlalU3ttUGsvBfoSwbW3J7n6+O0A3LNzxYxa7Hl0FQaXOQzE4ijbuJ9
-f+Wf6lamk9HC5bdqFpEXFqq+SjPHIEGK86BGbl2Qwn7uf3sMEKI3NK96QnonumQl
-Kztl4LX9CY9N0n6zjLv10gxpsbWi8pXa8D9yOUilI/hsrW0PwpGBJySVH1HaWUdl
-+Gy3XF10ge8B1cU0QateqMVM3DkF+JcQpJM23QmShWCRfM27EgR1cyRmkjqXyxVp
-XzAZF5JCf9DoIlqbqGt4RBeC8O8wwU9mHwYiT9018+33QRMpTHYgSns+5B0lZ/EH
-JV5DXnrxgYu3eTO768eUHhcAcBbGAAcxGGtTuhYsuyDXei86VzSCDrEHNeWWjRs6
-+MwSLHY67thAyxGyA1hVM+HghG8wILcd15ju2kNsJ2wySICwfJ2vzE387S3Rhk+i
-233vWPDO7eXVS4EsN/XQGqBVdM6r78MSssshycKyZAhJGt7qw8BuyMeSzvRKTRLJ
-72yADobRhcbAfr9cFcTx
-=BqzR
------END PGP SIGNATURE-----
-
---=-XLQwfScQ/NojBFJkcsRx--
+Thanks,
+Uri
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
