@@ -1,47 +1,216 @@
 From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] wlcore/wl12xx: spi: fix NULL pointer dereference
- (Oops)
-Date: Wed, 23 Dec 2015 12:08:07 +0200
-Message-ID: <567A7287.3010205@ti.com>
+Subject: Re: [PATCH 2/3] wlcore/wl12xx: spi: add device tree support
+Date: Wed, 23 Dec 2015 12:25:57 +0200
+Message-ID: <567A76B5.70605@ti.com>
 References: <1450859744-9948-1-git-send-email-uri.mashiach@compulab.co.il>
- <1450859744-9948-2-git-send-email-uri.mashiach@compulab.co.il>
+ <1450859744-9948-3-git-send-email-uri.mashiach@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450859744-9948-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <1450859744-9948-3-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 On 12/23/2015 10:35 AM, Uri Mashiach wrote:
-> The power function uses a consumer regulator access to update the WiFi
-> enable GPIO value.
+> Add DT support for the wl1271 SPI WiFi.
 > 
-> Fix the below Oops when trying to modprobe wlcore_spi.
-> The oops occurs because the wl1271_power_{off,on}()
-> function doesn't check the power() function pointer.
+> Add documentation file for the wl1271 SPI WiFi.
 > 
-> [   23.401447] Unable to handle kernel NULL pointer dereference at
-> virtual address 00000000
-> [   23.409954] pgd = c0004000
-> [   23.412922] [00000000] *pgd=00000000
-> [   23.416693] Internal error: Oops: 80000007 [#1] SMP ARM
-> [   23.422168] Modules linked in: wl12xx wlcore mac80211 cfg80211
-> musb_dsps musb_hdrc usbcore usb_common snd_soc_simple_card evdev joydev
-> omap_rng wlcore_spi snd_soc_tlv320aic23_i2c rng_core snd_soc_tlv320aic23
-> c_can_platform c_can can_dev snd_soc_davinci_mcasp snd_soc_edma
-> snd_soc_omap omap_wdt musb_am335x cpufreq_dt thermal_sys hwmon
-> [   23.453253] CPU: 0 PID: 36 Comm: kworker/0:2 Not tainted
-> 4.2.0-00002-g951efee-dirty #233
-> [   23.461720] Hardware name: Generic AM33XX (Flattened Device Tree)
-> [   23.468123] Workqueue: events request_firmware_work_func
-> [   23.473690] task: de32efc0 ti: de4ee000 task.ti: de4ee000
-> [   23.479341] PC is at 0x0
-> [   23.482112] LR is at wl12xx_set_power_on+0x28/0x124 [wlcore]
+> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> ---
+>   .../bindings/net/wireless/ti,wlcore,spi.txt        | 35 +++++++++++
+>   drivers/net/wireless/ti/wlcore/spi.c               | 67 +++++++++++++++++++---
+>   2 files changed, 95 insertions(+), 7 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt b/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+> new file mode 100644
+> index 0000000..a3e7eb7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+> @@ -0,0 +1,35 @@
+> +* Texas Instruments wl1271 wireless lan controller
+> +
+> +The wl1271 chip can be connected via SPI or via SDIO. This
+> +document describes the binding for the SPI connected chip.
+> +
+> +Required properties:
+> +- compatible :          Should be "ti,wl1271"
+> +- reg :                 Chip select address of device
+> +- spi-max-frequency :   Maximum SPI clocking speed of device in Hz
+> +- ref-clock-frequency : Reference clock frequency
+> +- interrupts :          Should contain interrupt line and trigger type
 
-Why can't you just add proper check in wl1271_power_on/wl1271_power_off() instead?
+It's good to describe here number of IRQ lines your device have and IRQ types (edge/level) 
+
+> +- interrupt-parent :    Should be the phandle for the interrupt controller
+interrupt-parent is not required (also interrupts-extended can be used)
+
+> +                        that services interrupts for this device
+> +- vwlan-supply :        Point the node of the regulator that controls the wl1271 chip WLAN_EN pin
+
+Pls, use gpio if this is required just to toggle WLAN_EN pin.
+
+[ti,] power-gpio or en-gpio
+
+
+> +
+> +Optional properties:
+> +- clock-xtal :          boolean, clock is generated from XTAL
+> +
+> +- Please consult Documentation/devicetree/bindings/spi/spi-bus.txt
+> +  for optional SPI connection related properties,just
+> +
+> +Examples:
+> +
+> +&spi1 {
+> +	wl1271@1 {
+> +		compatible = "ti,wl1271";
+> +
+> +		reg = <1>;
+> +		spi-max-frequency = <48000000>;
+> +		clock-xtal;
+> +		interrupt-parent = <&gpio3>;
+> +		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>;
+> +		wifi-supply = <&wifi_fixed>;
+> +	};
+> +};
+> diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
+> index d3a4bcb..7281f5a 100644
+> --- a/drivers/net/wireless/ti/wlcore/spi.c
+> +++ b/drivers/net/wireless/ti/wlcore/spi.c
+> @@ -30,6 +30,7 @@
+>   #include <linux/spi/spi.h>
+>   #include <linux/wl12xx.h>
+>   #include <linux/platform_device.h>
+> +#include <linux/of_irq.h>
+>   #include <linux/regulator/consumer.h>
+>   
+>   #include "wlcore.h"
+> @@ -357,6 +358,54 @@ static struct wl1271_if_operations spi_ops = {
+>   	.set_block_size = NULL,
+>   };
+>   
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id wlcore_spi_of_match_table[] = {
+> +	{ .compatible = "ti,wl1271" },
+> +	{ }
+> +};
+> +
+> +/**
+> + * wlcore_probe_of - DT node parsing.
+> + * @spi: SPI slave device parameters.
+> + * @res: resource parameters.
+> + * @glue: wl12xx SPI bus to slave device glue parameters.
+> + * @pdev_data: wlcore device parameters
+> + */
+> +static int wlcore_probe_of(struct spi_device *spi, struct resource *res,
+> +			   struct wl12xx_spi_glue *glue,
+> +			   struct wlcore_platdev_data *pdev_data)
+> +{
+> +	struct device_node *dt_node = spi->dev.of_node;
+> +	int ret;
+> +
+> +	ret = of_irq_to_resource(dt_node, 0, &res[0]);
+> +	if (spi->irq != ret) {
+> +		dev_err(glue->dev, "can't get interrupt resource\n");
+> +		return -EINVAL;
+> +	}
+
+SPI core will parse IRQ for you (see below)
+
+> +
+> +	if (of_find_property(dt_node, "clock-xtal", NULL))
+> +		pdev_data->ref_clock_xtal = true;
+> +
+> +	ret = of_property_read_u32(dt_node, "ref-clock-frequency",
+> +				   &pdev_data->ref_clock_freq);
+> +	if (IS_ERR_VALUE(ret)) {
+> +		dev_err(glue->dev,
+> +			"can't get reference clock frequency (%d)\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +#else /* CONFIG_OF */
+> +static int wlcore_probe_of(struct spi_device *spi, struct resource *res,
+> +			   struct wl12xx_spi_glue *glue,
+> +			   struct wlcore_platdev_data *pdev_data)
+> +{
+> +	return -ENODATA;
+> +}
+> +#endif /* CONFIG_OF */
+> +
+>   static int wl1271_probe(struct spi_device *spi)
+>   {
+>   	struct wl12xx_spi_glue *glue;
+> @@ -365,8 +414,7 @@ static int wl1271_probe(struct spi_device *spi)
+>   	int ret;
+>   
+>   	memset(&pdev_data, 0x00, sizeof(pdev_data));
+> -
+> -	/* TODO: add DT parsing when needed */
+> +	memset(res, 0x00, sizeof(res));
+>   
+>   	pdev_data.if_ops = &spi_ops;
+>   
+> @@ -390,6 +438,13 @@ static int wl1271_probe(struct spi_device *spi)
+>   		return PTR_ERR(glue->reg);
+>   	}
+>   
+> +	ret = wlcore_probe_of(spi, &res[0], glue, &pdev_data);
+> +	if (IS_ERR_VALUE(ret)) {
+> +		dev_err(glue->dev,
+> +			"can't get device tree parameters (%d)\n", ret);
+> +		return ret;
+
+So, wl1271_probe will fail always if CONFIG_OF=n. Right?
+
+
+> +	}
+> +
+>   	ret = spi_setup(spi);
+>   	if (ret < 0) {
+>   		dev_err(glue->dev, "spi_setup failed\n");
+> @@ -404,10 +459,6 @@ static int wl1271_probe(struct spi_device *spi)
+>   
+>   	glue->core->dev.parent = &spi->dev;
+>   
+> -	memset(res, 0x00, sizeof(res));
+> -
+> -	res[0].start = spi->irq;
+> -	res[0].flags = IORESOURCE_IRQ;
+>   	res[0].name = "irq";
+
+Above code might be left unchaenged.
+
+
+>   
+>   	ret = platform_device_add_resources(glue->core, res, ARRAY_SIZE(res));
+> @@ -445,10 +496,12 @@ static int wl1271_remove(struct spi_device *spi)
+>   	return 0;
+>   }
+>   
+> -
+>   static struct spi_driver wl1271_spi_driver = {
+>   	.driver = {
+>   		.name		= "wl1271_spi",
+> +#ifdef CONFIG_OF
+> +		.of_match_table = of_match_ptr(wlcore_spi_of_match_table),
+> +#endif /* CONFIG_OF */
+
+These ifdefs are not needed - see of_match_ptr() definition
+
+>   	},
+>   
+>   	.probe		= wl1271_probe,
+> 
+
 
 -- 
 regards,
