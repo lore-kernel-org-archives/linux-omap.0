@@ -1,82 +1,61 @@
-From: Paul Kocialkowski <contact@paulk.fr>
-Subject: Re: [PATCH 3/6] regulator: lp872x: Remove warning about invalid DVS
- GPIO
-Date: Wed, 23 Dec 2015 12:50:20 +0100
-Message-ID: <1450871420.2648.6.camel@collins>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
+Date: Wed, 23 Dec 2015 11:56:32 +0000
+Message-ID: <20151223115632.GS16023@sirena.org.uk>
 References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
-	 <1450868319-20513-4-git-send-email-contact@paulk.fr>
-	 <20151223114126.GR16023@sirena.org.uk>
+ <1450868319-20513-5-git-send-email-contact@paulk.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-oolTt1t7jRVfbHQ2ejdm"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151223114126.GR16023@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Milo Kim <milo.kim@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="vEk28Nl/eckWL8CC"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1450868319-20513-5-git-send-email-contact-W9ppeneeCTY@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---=-oolTt1t7jRVfbHQ2ejdm
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+--vEk28Nl/eckWL8CC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Le mercredi 23 d=C3=A9cembre 2015 =C3=A0 11:41 +0000, Mark Brown a =C3=A9cr=
-it :
-> On Wed, Dec 23, 2015 at 11:58:36AM +0100, Paul Kocialkowski wrote:
-> > Some devices don't hook the DVS pin to a GPIO but to ground or VCC.
-> > In those cases, it is not a problem to have no DVS GPIO.
->=20
-> I would expect the driver at least needs to know how the pins or
-> strapped, or otherwise have configuration for ignoring the input on the
-> pins.  This just deletes the warnings, it doesn't have any handling for
-> this case that I can see.
+On Wed, Dec 23, 2015 at 11:58:37AM +0100, Paul Kocialkowski wrote:
 
-When the DVS GPIO is invalid, lp872x_init_dvs jumps to the
-set_default_dvs_mode label, which instructs the chip not to use the DVS
-pin at all and do it all in software instead (by clearing the
-LP8720_EXT_DVS_M bit in the LP872X_GENERAL_CFG register).
+> +	gpio = lp->pdata->enable_gpio;
+> +	if (!gpio_is_valid(gpio))
+> +		return 0;
+> +
+> +	/* Always set enable GPIO high. */
+> +	ret = devm_gpio_request_one(lp->dev, gpio, GPIOF_OUT_INIT_HIGH, "LP872X EN");
+> +	if (ret) {
+> +		dev_err(lp->dev, "gpio request err: %d\n", ret);
+> +		return ret;
+> +	}
 
-That is reflected later in the code, when setting the bucks (the DVS pin
-only applies to the bucks) by checking for the LP8720_EXT_DVS_M bit on
-the LP872X_GENERAL_CFG register (in lp872x_select_buck_vout_addr) to
-decide whether to use software or hardware DVS selection.
+This isn't really adding support for the enable GPIO as the changelog
+suggests, it's requesting but not managing the GPIO.  Since there is
+core support for manging enable GPIOs this seems especially silly,
+please tell the core about the GPIO and then it will work at runtime
+too.
 
-As far as I understood, everything goes well when the GPIO is invalid.
-
---=20
-Paul Kocialkowski, Replicant developer
-
-Replicant is a fully free Android distribution running on several
-devices, a free software mobile operating system putting the emphasis on
-freedom and privacy/security.
-
-Website: https://www.replicant.us/
-Blog: https://blog.replicant.us/
-Wiki/tracker/forums: https://redmine.replicant.us/
-
-
---=-oolTt1t7jRVfbHQ2ejdm
+--vEk28Nl/eckWL8CC
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAABAgAGBQJWeop8AAoJEIT9weqP7pUMFsIP/AvE8icTZDs8OExqYU5s8kUG
-hgIbJyCGDnunYxzjoOcZTz77gBC0sCu9mg+LAdYIDhbdnWsrPToeqdES6ulC4gr3
-mtY5Sf70EfJKuZE+LFaJRORrQQhtyVBq7uCanA4NdDB0wpUsAwE3gUiEnV2V5XEx
-Gpy/Ba8BhOwvw3grPxogUKUhcCbl4nf7cvJfug6CMQcS0xnJp4LulFqbm0HC0zTU
-5U7HITXA3HO68CvCN3jo8rD91KwiNDraxOtcN/3nJD+pwiU15iM4OTkUum+ArRaF
-vzrYS15wbQSMdfzMJkIohn7PBucBGK3NoX3JKLDkBGjT57ET9UDYH/QbB+woFkx2
-OigGju70buSZhReql9Q3dMr5PisztPTFDYa+iReGJ8ve1L/FRJPuAnDd58nrZrpj
-BmX8MEQ5V66LZOTLOQtbPEyBlpVV6Y7xsjVIW1fGWhfGHaQXziouJb7beTPXvyqy
-Rt0b6AELeVX9GZc2Vb/8/cUCZ+FKK321W2ErKPlsNXmV/2E+e6rrWDDJDhA87UVx
-BraRgBxjVfac+19bVATI3YV7m4fAHLfFl2yB2TvAq0JV6j2UZkYciSKQS7U/apih
-RzOoSk9RuEVYRu7btzOVufyMn5xaU5EyJ/5QIzPCX5z7ewkEWfha4Su0X5gIabrK
-+BlyUrijrpbcZ0PgTJzP
-=/rge
+iQEcBAEBCAAGBQJWeovvAAoJECTWi3JdVIfQ7UMIAIb3vSgxdrjCknsOEp7PlNYc
+2yFA5tIjYndDjzIncdOngvJL1pxUYBseJSHQMMBqOqXRT3B+IVgMwGKO2KudTMeb
+E74/Qy4A1vkYN/bbkUr9iF2yga1sVm8l3upS2Vb1Z0OHFZuiwU0CMdR0NdFltyPC
+nfAsZ4AFazs6OShOWwvPDkYn0J0wA04TOYG2JG5Gf/3NB8yNT9FjqHr+n8en+Nud
+7Y4sSbgPc7nXai/DZiyur4yYs1dQKPFLNSuASfqfDPsi3n0kEKUZW+3XmQl6UHes
+vjpQ/5uIqIYi4UUBTVqO8tL2iGRJf8dzADEWtQqhlDV5M6Fo9mWTVuTHcFwVhes=
+=b6j0
 -----END PGP SIGNATURE-----
 
---=-oolTt1t7jRVfbHQ2ejdm--
+--vEk28Nl/eckWL8CC--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
