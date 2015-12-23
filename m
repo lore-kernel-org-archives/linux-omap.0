@@ -1,60 +1,125 @@
-From: Michael Turquette <mturquette@baylibre.com>
-Subject: Re: [PATCHv2] clk: ti: omap5+: dpll: implement errata i810
-Date: Tue, 22 Dec 2015 16:37:25 -0800
-Message-ID: <20151223003725.GB14912@quark.deferred.io>
-References: <1450256530-10251-1-git-send-email-t-kristo@ti.com>
- <20151216171650.GS23396@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20151216171650.GS23396@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: [PATCH 2/3] drivers: net: cpsw: fix error messages when using phy-handle DT property
+Date: Tue, 22 Dec 2015 19:36:33 -0500
+Message-ID: <1450830994-5450-3-git-send-email-drivshin.allworx@gmail.com>
+References: <1450830994-5450-1-git-send-email-drivshin.allworx@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1450830994-5450-1-git-send-email-drivshin.allworx@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, David Miller <davem@davemloft.net>, Heiko Schocher <hs@denx.de>, Mugunthan V N <mugunthanvnm@ti.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Pascal Speck <kernel@iktek.de>, Daniel Trautmann <dtrautmann@ibhsoftec-sps.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tero,
+From: David Rivshin <drivshin@allworx.com>
 
-On 12/16, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [151216 01:00]:
-> > Errata i810 states that DPLL controller can get stuck while transitioning
-> > to a power saving state, while its M/N ratio is being re-programmed.
-> > 
-> > As a workaround, before re-programming the M/N ratio, SW has to ensure
-> > the DPLL cannot start an idle state transition. SW can disable DPLL
-> > idling by setting the DPLL AUTO_DPLL_MODE=0 or keeping a clock request
-> > active by setting a dependent clock domain in SW_WKUP.
-> > 
-> > This errata is known to impact OMAP5 and DRA7 chips, but lets enable it
-> > unconditionally to avoid any potential problems with earlier generation
-> > SoCs also.
-> > 
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > ---
-> > v2: made the fix to be applied unconditionally on all OMAP3+ SoCs
-> 
-> Thanks looks good to me now:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+The phy-handle, phy_id, and fixed-link properties are mutually exclusive,
+and only one need be specified. However if phy-handle was specified, an
+error message would complain about the lack of phy_id or fixed-link.
 
-Patch looks good to me too.
+Also, if phy-handle was specified and the subsequent of_phy_connect()
+failed, the error message still referenced slaved->data->phy_id, which
+would be empty. Instead, use the name of the device_node as a useful
+identifier.
 
-Stephen and I were discussing clk pull requests, more specifically how
-to vet the contents of them. So we came up with the idea to add our acks
-to patches that we take into our tree, but that we expect to get batched
-up into a pull request. To that end:
+Fixes: 9e42f715264f ("drivers: net: cpsw: add phy-handle parsing")
+Signed-off-by: David Rivshin <drivshin@allworx.com>
+---
+This would require some adjustments to backport to 4.3-stable due to
+other changes in this area. Let me know if you want a version of this
+against v4.3.3.
 
-Acked-by: Michael Turquette <mturquette@baylibre.com>
+ Documentation/devicetree/bindings/net/cpsw.txt |  4 ++--
+ drivers/net/ethernet/ti/cpsw.c                 | 17 +++++++++++++----
+ 2 files changed, 15 insertions(+), 6 deletions(-)
 
-Regards,
-Mike
+diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+index 28a4781..3033c0f 100644
+--- a/Documentation/devicetree/bindings/net/cpsw.txt
++++ b/Documentation/devicetree/bindings/net/cpsw.txt
+@@ -46,16 +46,16 @@ Optional properties:
+ - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
+ - mac-address		: See ethernet.txt file in the same directory
+ - phy_id		: Specifies slave phy id
+ - phy-handle		: See ethernet.txt file in the same directory
+ 
+ Slave sub-nodes:
+ - fixed-link		: See fixed-link.txt file in the same directory
+-			  Either the property phy_id, or the sub-node
+-			  fixed-link can be specified
++
++Note: Exactly one of phy_id, phy-handle, or fixed-link must be specified.
+ 
+ Note: "ti,hwmods" field is used to fetch the base address and irq
+ resources from TI, omap hwmod data base during device registration.
+ Future plan is to migrate hwmod data base contents into device tree
+ blob so that, all the required data will be used from device tree dts
+ file.
+ 
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 8ad0ed8..f9029e7 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1150,16 +1150,19 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ 	if (slave->data->phy_node)
+ 		slave->phy = of_phy_connect(priv->ndev, slave->data->phy_node,
+ 				 &cpsw_adjust_link, 0, slave->data->phy_if);
+ 	else
+ 		slave->phy = phy_connect(priv->ndev, slave->data->phy_id,
+ 				 &cpsw_adjust_link, slave->data->phy_if);
+ 	if (IS_ERR(slave->phy)) {
+-		dev_err(priv->dev, "phy %s not found on slave %d\n",
+-			slave->data->phy_id, slave->slave_num);
++		dev_err(priv->dev, "phy \"%s\" not found on slave %d\n",
++			slave->data->phy_node ?
++				slave->data->phy_node->full_name :
++				slave->data->phy_id,
++			slave->slave_num);
+ 		slave->phy = NULL;
+ 	} else {
+ 		dev_info(priv->dev, "phy found : id is : 0x%x\n",
+ 			 slave->phy->phy_id);
+ 		phy_start(slave->phy);
+ 
+ 		/* Configure GMII_SEL register */
+@@ -2030,15 +2033,19 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 		/* This is no slave child node, continue */
+ 		if (strcmp(slave_node->name, "slave"))
+ 			continue;
+ 
+ 		slave_data->phy_node = of_parse_phandle(slave_node,
+ 							"phy-handle", 0);
+ 		parp = of_get_property(slave_node, "phy_id", &lenp);
+-		if (of_phy_is_fixed_link(slave_node)) {
++		if (slave_data->phy_node) {
++			dev_dbg(&pdev->dev,
++				"slave[%d] using phy-handle=\"%s\"\n",
++				i, slave_data->phy_node->full_name);
++		} else if (of_phy_is_fixed_link(slave_node)) {
+ 			struct device_node *phy_node;
+ 			struct phy_device *phy_dev;
+ 
+ 			/* In the case of a fixed PHY, the DT node associated
+ 			 * to the PHY is the Ethernet MAC DT node.
+ 			 */
+ 			ret = of_phy_register_fixed_link(slave_node);
+@@ -2066,15 +2073,17 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 			if (!mdio) {
+ 				dev_err(&pdev->dev, "Missing mdio platform device\n");
+ 				return -EINVAL;
+ 			}
+ 			snprintf(slave_data->phy_id, sizeof(slave_data->phy_id),
+ 				 PHY_ID_FMT, mdio->name, phyid);
+ 		} else {
+-			dev_err(&pdev->dev, "No slave[%d] phy_id or fixed-link property\n", i);
++			dev_err(&pdev->dev,
++				"No slave[%d] phy_id, phy-handle, or fixed-link property\n",
++				i);
+ 			goto no_phy_slave;
+ 		}
+ 		slave_data->phy_if = of_get_phy_mode(slave_node);
+ 		if (slave_data->phy_if < 0) {
+ 			dev_err(&pdev->dev, "Missing or malformed slave[%d] phy-mode property\n",
+ 				i);
+ 			return slave_data->phy_if;
+-- 
+2.5.0
