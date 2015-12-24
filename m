@@ -1,7 +1,7 @@
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH 2/3] ARM: ATAGS: Fix declaration of function save_atags
-Date: Thu, 24 Dec 2015 16:00:57 +0200
-Message-ID: <1450965658-2675-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH 3/3] OMAP: RX51: save ATAGS data in the early boot stage
+Date: Thu, 24 Dec 2015 16:00:58 +0200
+Message-ID: <1450965658-2675-4-git-send-email-ivo.g.dimitrov.75@gmail.com>
 References: <1450965658-2675-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1450965658-2675-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
@@ -10,28 +10,46 @@ To: linux@arm.linux.org.uk, tony@atomide.com, nicolas.pitre@linaro.org, arnd@arn
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-In file atags_proc.c function save_atags() expect const argument, but in
-atags.h file is declarated as non const. Fix declaration in atags.h file to
-match what is expected.
+Nokia N900 (RX51) legacy userspace needs various ATAGS passed by the
+bootloader (boot reason, device serial, boot mode, various GPIO swithes,
+etc). Save that data early enough in the boot process, so it can be
+exported later in /proc/atags
 
 Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- arch/arm/include/asm/atags.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-generic.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/atags.h b/arch/arm/include/asm/atags.h
-index ec4164d..2dfc30f 100644
---- a/arch/arm/include/asm/atags.h
-+++ b/arch/arm/include/asm/atags.h
-@@ -1,7 +1,7 @@
- #ifdef CONFIG_ATAGS_PROC
--extern void save_atags(struct tag *tags);
-+extern void save_atags(const struct tag *tags);
- #else
--static inline void save_atags(struct tag *tags) { }
-+static inline void save_atags(const struct tag *tags) { }
- #endif
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 04a56cc..594eefe 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -17,6 +17,7 @@
+ #include <linux/irqdomain.h>
  
- void convert_to_tag_list(struct tag *tags);
+ #include <asm/mach/arch.h>
++#include <asm/atags.h>
+ 
+ #include "common.h"
+ 
+@@ -76,8 +77,17 @@ static const char *const n900_boards_compat[] __initconst = {
+ 	NULL,
+ };
+ 
++/* Legacy userspace on Nokia N900 needs ATAGS exported in /proc/atags,
++ * save them while the data is still there
++ */
++static void __init rx51_reserve(void)
++{
++	save_atags((const struct tag *)(PAGE_OFFSET + 0x100));
++	omap_reserve();
++}
++
+ DT_MACHINE_START(OMAP3_N900_DT, "Nokia RX-51 board")
+-	.reserve	= omap_reserve,
++	.reserve	= rx51_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= omap3430_init_early,
+ 	.init_machine	= omap_generic_init,
 -- 
 1.9.1
