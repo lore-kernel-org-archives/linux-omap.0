@@ -1,70 +1,53 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] wlcore/wl12xx: spi: add power operation function
-Date: Thu, 24 Dec 2015 18:32:59 +0200
-Message-ID: <567C1E3B.3020404@ti.com>
-References: <1450971335-15961-1-git-send-email-uri.mashiach@compulab.co.il>
- <1450971335-15961-2-git-send-email-uri.mashiach@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450971335-15961-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH 1/2] ARM: ATAGS: move save_atags() to include/asm arch/arm/include/asm/setup.h
+Date: Thu, 24 Dec 2015 18:37:55 +0200
+Message-ID: <1450975076-7411-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20151224153536.GJ30871@n2100.arm.linux.org.uk>
+ <1450975076-7411-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1450975076-7411-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux@arm.linux.org.uk, tony@atomide.com, nicolas.pitre@linaro.org, arnd@arndb.de, pali.rohar@gmail.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/24/2015 05:35 PM, Uri Mashiach wrote:
-> The power function uses a consumer regulator access to update the WiFi
-> enable GPIO value.
->
-> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> ---
-> v1 -> v2: oops fix was removed to a separate fix.
->
->   drivers/net/wireless/ti/wlcore/spi.c | 37 ++++++++++++++++++++++++++++++++++++
->   1 file changed, 37 insertions(+)
->
-> diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
->
+So it can be used by code outside arch/arm/kernel/. Fix save_atags()
+declaration to match its definition while at it.
 
-[...]
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ arch/arm/include/asm/setup.h | 6 ++++++
+ arch/arm/kernel/atags.h      | 6 ------
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-> +
->   static struct wl1271_if_operations spi_ops = {
->   	.read		= wl12xx_spi_raw_read,
->   	.write		= wl12xx_spi_raw_write,
->   	.reset		= wl12xx_spi_reset,
->   	.init		= wl12xx_spi_init,
-> +	.power		= wl12xx_spi_set_power,
->   	.set_block_size = NULL,
->   };
->
-> @@ -353,6 +384,12 @@ static int wl1271_probe(struct spi_device *spi)
->   	 * comes from the board-peripherals file */
->   	spi->bits_per_word = 32;
->
-> +	glue->reg = devm_regulator_get(&spi->dev, "vwlan");
-> +	if (IS_ERR(glue->reg)) {
-
-It will be more correct to handle -EPROBE_DEFER here also. Like:
-  		if (PTR_ERR(glue->reg) == -EPROBE_DEFER)
-			return PTR_ERR(glue->reg);
-
-> +		dev_err(glue->dev, "can't get regulator\n");
-> +		return PTR_ERR(glue->reg);
-> +	}
-> +
->   	ret = spi_setup(spi);
->   	if (ret < 0) {
->   		dev_err(glue->dev, "spi_setup failed\n");
->
-
-
+diff --git a/arch/arm/include/asm/setup.h b/arch/arm/include/asm/setup.h
+index e0adb9f..3613d7e 100644
+--- a/arch/arm/include/asm/setup.h
++++ b/arch/arm/include/asm/setup.h
+@@ -25,4 +25,10 @@ extern int arm_add_memory(u64 start, u64 size);
+ extern void early_print(const char *str, ...);
+ extern void dump_machine_table(void);
+ 
++#ifdef CONFIG_ATAGS_PROC
++extern void save_atags(const struct tag *tags);
++#else
++static inline void save_atags(const struct tag *tags) { }
++#endif
++
+ #endif
+diff --git a/arch/arm/kernel/atags.h b/arch/arm/kernel/atags.h
+index ec4164d..edfa226 100644
+--- a/arch/arm/kernel/atags.h
++++ b/arch/arm/kernel/atags.h
+@@ -1,9 +1,3 @@
+-#ifdef CONFIG_ATAGS_PROC
+-extern void save_atags(struct tag *tags);
+-#else
+-static inline void save_atags(struct tag *tags) { }
+-#endif
+-
+ void convert_to_tag_list(struct tag *tags);
+ 
+ #ifdef CONFIG_ATAGS
 -- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.9.1
