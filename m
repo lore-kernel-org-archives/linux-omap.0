@@ -1,92 +1,102 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Thu, 24 Dec 2015 19:35:38 +0000
-Message-ID: <20151224193538.GJ579@sirena.org.uk>
+From: Paul Kocialkowski <contact@paulk.fr>
+Subject: Re: [PATCH 5/6] ARM: LG Optimus Black (P970) codename sniper
+ support, with basic features
+Date: Thu, 24 Dec 2015 20:38:24 +0100
+Message-ID: <1450985904.11913.6.camel@collins>
 References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
- <1450868319-20513-5-git-send-email-contact@paulk.fr>
- <20151223115632.GS16023@sirena.org.uk>
- <1450980773.11913.3.camel@collins>
+	 <1450868319-20513-6-git-send-email-contact@paulk.fr>
+	 <20151223154455.GL2793@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7845735744481694062=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1450980773.11913.3.camel@collins>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Kocialkowski <contact@paulk.fr>
-Cc: Mark Rutland <mark.rutland@arm.com>, Milo Kim <milo.kim@ti.com>, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-pUW7c45xG4jNl1s7T6r8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151223154455.GL2793@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Milo Kim <milo.kim@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============7845735744481694062==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="va4/JQ6j8/8uipEp"
-Content-Disposition: inline
-
-
---va4/JQ6j8/8uipEp
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--=-pUW7c45xG4jNl1s7T6r8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 24, 2015 at 07:12:53PM +0100, Paul Kocialkowski wrote:
-> Le mercredi 23 d=E9cembre 2015 =E0 11:56 +0000, Mark Brown a =E9crit :
+Hi,
 
-> > This isn't really adding support for the enable GPIO as the changelog
-> > suggests, it's requesting but not managing the GPIO.  Since there is
-> > core support for manging enable GPIOs this seems especially silly,
-> > please tell the core about the GPIO and then it will work at runtime
-> > too.
+Le mercredi 23 d=C3=A9cembre 2015 =C3=A0 07:44 -0800, Tony Lindgren a =C3=
+=A9crit :
+> * Paul Kocialkowski <contact@paulk.fr> [151223 03:00]:
+> > +&gpio1 {
+> > +	ti,no-reset-on-init;
+> > +};
+> > +
+> > +&gpio2 {
+> > +	ti,no-reset-on-init;
+> > +};
+> > +
+> > +&gpio3 {
+> > +	ti,no-reset-on-init;
+> > +};
+> > +
+> > +&gpio4 {
+> > +	ti,no-reset-on-init;
+> > +};
+> > +
+> > +&gpio5 {
+> > +	ti,no-reset-on-init;
+> > +};
+> > +
+> > +&gpio6 {
+> > +	ti,no-reset-on-init;
+> > +};
+>=20
+> Care to try to narrow down exactly which GPIO(s) need to be preserved?
+> Chances are this will unnecessarily block deeper idle states in hardware
+> otherwise.
+>=20
+> My guess is that the GPIO pins that need to be preserved if any are in
+> the GPIO bank 1 as that's always powered..
 
-> It looks like the core bindings for GPIO can only be used instead of the
-> rdev->desc->ops->enable callback, not jointly, which doesn't fit my use
-> case, where both the GPIO and register write have to be used to enable
-> regulators.
+Well, I actually need to keep the GPIOs handling backlight control,
+buttons LEDs and the micro USB connector muxing (which can be set to
+UART or USB). Those are spread accross gpio2, gpio5 and gpio6, so I'll
+only enable these in v2.
 
-> I think it would be worth making it possible to use both in core, since
-> that situation is probably shared with other regulators. I suggest the
-> following diff (that would be split into a separate patch in v2 of this
-> series):
+Thanks for the review!
 
-No, that's broken - the whole point with using a GPIO for enable control
-on a lot of devices is that it is much faster than doing a register
-write.  What I would expect to happen in this case is that when
-initialsing the GPIO we set the register to enabled and then only manage
-the GPIO at runtime.
+--=20
+Paul Kocialkowski, Replicant developer
 
---va4/JQ6j8/8uipEp
+Replicant is a fully free Android distribution running on several
+devices, a free software mobile operating system putting the emphasis on
+freedom and privacy/security.
+
+Website: https://www.replicant.us/
+Blog: https://blog.replicant.us/
+Wiki/tracker/forums: https://redmine.replicant.us/
+
+
+--=-pUW7c45xG4jNl1s7T6r8
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQEcBAEBCAAGBQJWfEkIAAoJECTWi3JdVIfQ3AsH/jeYLGM1bJ/BheObxioiiFmz
-ErauD/7BFjliYshyg37vN036iB8W1/bsw606ibtuylAJpG3ruWe0ygzoLCnANBux
-KudQw1GiBdVGf4aaqXMR9yl3dZzvER9xNYoglBAu5k9CiJg19LWgzjmnPbMJz8cD
-T+eRY9xZ/czrcqrYpBgU746fRRVmGrjNWeFh7SUSAsfcRVG84ZZBwm9zBC0mqBf7
-M4eLq4/Lc+XT2fYsE9D/hsWREAPqCPVN2sHuxRDHK87032HOz9ZJhuk+FW/DXWoz
-SSryF/KVeODQa5TeEwcj/ovKehytNr6tNf+kmHnmfQDIYXRImLJqzxst3eXv5Rw=
-=3L9B
+iQIcBAABAgAGBQJWfEmwAAoJEIT9weqP7pUMhsQQAIrcImYefbG3Bf/0neGywEci
+Use2gd/2/LWskk5uUlNevQ3Gn7ZmlAPl6ileL7iq+scT1QX5NOZ6saLfLCnu8wpg
+S4pqtKttnrIHN0xICVcc/BbTM005OiQEKnf8fEWRUbqdZptNISfi5yBJmB1aYkBo
+NSzGZWn1s+72OuQv6dQhquULeLKGdBLQ6pQOwDfseUdtKeEZXkdL58zK9R9JY+QZ
+nXEaJ1XaR49QbMIjl1qjx5sgJ/C4T9g2OhmmuhLesTI3+DZfsvtTPMtLODQzZB33
+mERqA6Iqr9t/uiv3iYckQ0v2jkK2HcQymBA7eqgBLEFxMphDEJSw7rayFnPZrAWi
+fQowXlSo/gH+IyQvYhn0s+4cHCVdM2WgNs0qA+qg9UYA+nE0uIYxwmmA6/GMx3uC
+QVJ2VtbjAli8i1Lce9aGEYmL4PCXYUZY3CPvNRVoLlekzxyvGrZcvXZ2+z/lDMq2
+vAmdeSWa3duY1OjyLK6rqY/V7K9tns3TQ0pqxNjF+YrH4GOMI3EnxyODAw9n6iNq
+DQ1hMdGrdmknnOrB1V527aNpBTu6c19zyN6kCaWd72aButh1K3IYKuZZz06XE3SH
+3//PlirpjIw1WOl4/971GM0qeICXg7uiwdaIaCsO1iM5aQKQGUJ1EisK0b4zEdHa
+F8l16xRooZaWgDF/riD2
+=7eXU
 -----END PGP SIGNATURE-----
 
---va4/JQ6j8/8uipEp--
-
-
---===============7845735744481694062==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============7845735744481694062==--
+--=-pUW7c45xG4jNl1s7T6r8--
