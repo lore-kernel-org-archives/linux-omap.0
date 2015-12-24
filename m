@@ -1,182 +1,230 @@
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Subject: Re: [PATCH 0/3] drivers: net: cpsw: phy-handle fixes
-Date: Wed, 23 Dec 2015 20:18:16 -0500
-Message-ID: <20151223201816.1a4bd0f6.drivshin.allworx@gmail.com>
-References: <1450830994-5450-1-git-send-email-drivshin.allworx@gmail.com>
-	<CABr+WT=oDpp56jouAD57UM8_38geD1MMizZcDnx14maf2ohpCw@mail.gmail.com>
-	<20151223165454.6e4d5950.drivshin.allworx@gmail.com>
-	<CABr+WTm=Oo16=qB6dyO6ZhUUz0307ROi=o270Rac2R4W5-usjg@mail.gmail.com>
+From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 2/3] wlcore/wl12xx: spi: add device tree support
+Date: Thu, 24 Dec 2015 09:41:34 +0200
+Message-ID: <567BA1AE.4010606@compulab.co.il>
+References: <1450859744-9948-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1450859744-9948-3-git-send-email-uri.mashiach@compulab.co.il>
+ <567A76B5.70605@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CABr+WTm=Oo16=qB6dyO6ZhUUz0307ROi=o270Rac2R4W5-usjg@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Nicolas Chauvet <kwizart@gmail.com>
-Cc: netdev@vger.kernel.org, Markus Brunner <systemprogrammierung.brunner@gmail.com>, devicetree@vger.kernel.org, Daniel Trautmann <dtrautmann@ibhsoftec-sps.de>, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Pascal Speck <kernel@iktek.de>, Heiko Schocher <hs@denx.de>, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <567A76B5.70605-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 24 Dec 2015 00:34:49 +0100
-Nicolas Chauvet <kwizart@gmail.com> wrote:
+Hi Grygorii,
 
-> 2015-12-23 22:54 GMT+01:00 David Rivshin (Allworx) <
-> drivshin.allworx@gmail.com>:
-> 
-> > On Wed, 23 Dec 2015 22:20:58 +0100
-> > Nicolas Chauvet <kwizart@gmail.com> wrote:
-> >
-> > > 2015-12-23 1:36 GMT+01:00 David Rivshin (Allworx) <
-> > > drivshin.allworx@gmail.com>:
-> > >
-> > > > From: David Rivshin <drivshin@allworx.com>
-> > > >
-> > > > This series is based on the tip of the net tree.
-> > > >
-> > > > The first patch fixes a bug that makes dual_emac mode break if
-> > > > either slave uses the phy-handle property in the devicetree.
-> > > >
-> > > > The second patch fixes some cosmetic problems with error
-> > > > messages, and also makes the binding documentation more
-> > > > explicit.
-> > > >
-> > > > The third patch cleans up the fixed-link case to work like
-> > > > the now-fixed phy-handle case.
-> > > >
-> > > > I have tested on the following hardware configurations:
-> > > >  - (EVMSK) dual emac, phy_id property in both slaves
-> > > >  - (BeagleBoneBlack) single emac, phy_id property
-> > > >  - (custom) single emac, fixed-link subnode
-> > > > Note that I don't have a board which would uses a phy-handle
-> > > > property, though I have used hacked devicetrees to exercise the
-> > > > code paths. Testing by anyone who has real hardware using
-> > > > phy-handle or dual_emac with fixed-link would be appreciated.
-> > > >
-> > > > David Rivshin (3):
-> > > >   drivers: net: cpsw: fix parsing of phy-handle DT property in
-> > > > dual_emac config
-> > > >   drivers: net: cpsw: fix error messages when using phy-handle
-> > > > DT property
-> > > >   drivers: net: cpsw: use of_phy_connect() in fixed-link case
-> > > >
-> > > >  Documentation/devicetree/bindings/net/cpsw.txt |  4 +--
-> > > >  drivers/net/ethernet/ti/cpsw.c                 | 40
-> > > > +++++++++++++-------------
-> > > >  drivers/net/ethernet/ti/cpsw.h                 |  1 +
-> > > >  3 files changed, 23 insertions(+), 22 deletions(-)
-> > > >
-> > > >
-> > > This serie failed with me on dm8418 hp-t410 on top of linux-next
-> > > from today whereas the same patch level and same methods without
-> > > this serie is working fine.
-> > > I wasn't able to ping anything on a minimal rootfs with static ip
-> > > set from cmdline from kernel.
-> > >
-> > > Sorry for  the lack of details, feel free to add me to any other
-> > > revision of the patch if any.
-> > > I will be able to do more testing next month.
-> >
-> > (Sorry for the duplicate, doing a reply-all this time. Not sure why
-> > it looked like a non-list email the first time)
-> >
-> My bad, I've replied twice, but only last on-list.
-> 
-> 
-> > Thanks for testing. I found the dm8148-t410.dts devicetree in the
-> > kernel source, and it uses the phy_id for both slaves, just like the
-> > EVMSK board I tested. So I can't think of an obvious reason for the
-> > problem.
-> > Would you be able to send the 'dmesg' log from right after bootup?
-> > I'm hoping there is an error message in there with some clue.
-> >
-> here is the full dmesg output with this serie applied to linux-next:
-> http://ur1.ca/ocvs6
-> 
-> [    2.281524] davinci_mdio 4a100800.mdio: davinci mdio revision 1.6
-> [    2.287909] davinci_mdio 4a100800.mdio: detected phy mask fffffffe
-> [    2.302663] Atheros 8031 ethernet 4a100800.mdio:00: GPIO lookup for
-> consumer reset
-> [    2.302686] Atheros 8031 ethernet 4a100800.mdio:00: using lookup
-> tables for GPIO lookup
-> [    2.302732] Atheros 8031 ethernet 4a100800.mdio:00: lookup for GPIO
-> reset failed
-> [    2.302860] libphy: 4a100800.mdio: probed
-> [    2.307063] davinci_mdio 4a100800.mdio: phy[0]: device
-> 4a100800.mdio:00, driver Atheros 8031 ethernet
-> [    2.317945] cpsw 4a100000.ethernet: Detected MACID =
-> 00:18:32:60:8e:38
-> 
-> * 19:06 < nchauvet> btw with this dmesg, I've tried to apply this
-> serie: http://marc.info/?l=linux-omap&m=145032865615589&w=2, but it
-> doesn't seem to work for me (I cannot ping my gateway anymore)
+On 12/23/2015 12:25 PM, Grygorii Strashko wrote:
+> On 12/23/2015 10:35 AM, Uri Mashiach wrote:
+>> Add DT support for the wl1271 SPI WiFi.
+>>
+>> Add documentation file for the wl1271 SPI WiFi.
+>>
+>> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+>> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+>> ---
+>>    .../bindings/net/wireless/ti,wlcore,spi.txt        | 35 +++++++++++
+>>    drivers/net/wireless/ti/wlcore/spi.c               | 67 +++++++++++++++++++---
+>>    2 files changed, 95 insertions(+), 7 deletions(-)
+>>    create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt b/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+>> new file mode 100644
+>> index 0000000..a3e7eb7
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+>> @@ -0,0 +1,35 @@
+>> +* Texas Instruments wl1271 wireless lan controller
+>> +
+>> +The wl1271 chip can be connected via SPI or via SDIO. This
+>> +document describes the binding for the SPI connected chip.
+>> +
+>> +Required properties:
+>> +- compatible :          Should be "ti,wl1271"
+>> +- reg :                 Chip select address of device
+>> +- spi-max-frequency :   Maximum SPI clocking speed of device in Hz
+>> +- ref-clock-frequency : Reference clock frequency
+>> +- interrupts :          Should contain interrupt line and trigger type
+>
+> It's good to describe here number of IRQ lines your device have and IRQ types (edge/level)
+>
+>> +- interrupt-parent :    Should be the phandle for the interrupt controller
+> interrupt-parent is not required (also interrupts-extended can be used)
+>
+>> +                        that services interrupts for this device
+>> +- vwlan-supply :        Point the node of the regulator that controls the wl1271 chip WLAN_EN pin
+>
+> Pls, use gpio if this is required just to toggle WLAN_EN pin.
+>
+> [ti,] power-gpio or en-gpio
+>
+>
+>> +
+>> +Optional properties:
+>> +- clock-xtal :          boolean, clock is generated from XTAL
+>> +
+>> +- Please consult Documentation/devicetree/bindings/spi/spi-bus.txt
+>> +  for optional SPI connection related properties,just
+>> +
+>> +Examples:
+>> +
+>> +&spi1 {
+>> +	wl1271@1 {
+>> +		compatible = "ti,wl1271";
+>> +
+>> +		reg = <1>;
+>> +		spi-max-frequency = <48000000>;
+>> +		clock-xtal;
+>> +		interrupt-parent = <&gpio3>;
+>> +		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>;
+>> +		wifi-supply = <&wifi_fixed>;
+>> +	};
+>> +};
+>> diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
+>> index d3a4bcb..7281f5a 100644
+>> --- a/drivers/net/wireless/ti/wlcore/spi.c
+>> +++ b/drivers/net/wireless/ti/wlcore/spi.c
+>> @@ -30,6 +30,7 @@
+>>    #include <linux/spi/spi.h>
+>>    #include <linux/wl12xx.h>
+>>    #include <linux/platform_device.h>
+>> +#include <linux/of_irq.h>
+>>    #include <linux/regulator/consumer.h>
+>>
+>>    #include "wlcore.h"
+>> @@ -357,6 +358,54 @@ static struct wl1271_if_operations spi_ops = {
+>>    	.set_block_size = NULL,
+>>    };
+>>
+>> +#ifdef CONFIG_OF
+>> +static const struct of_device_id wlcore_spi_of_match_table[] = {
+>> +	{ .compatible = "ti,wl1271" },
+>> +	{ }
+>> +};
+>> +
+>> +/**
+>> + * wlcore_probe_of - DT node parsing.
+>> + * @spi: SPI slave device parameters.
+>> + * @res: resource parameters.
+>> + * @glue: wl12xx SPI bus to slave device glue parameters.
+>> + * @pdev_data: wlcore device parameters
+>> + */
+>> +static int wlcore_probe_of(struct spi_device *spi, struct resource *res,
+>> +			   struct wl12xx_spi_glue *glue,
+>> +			   struct wlcore_platdev_data *pdev_data)
+>> +{
+>> +	struct device_node *dt_node = spi->dev.of_node;
+>> +	int ret;
+>> +
+>> +	ret = of_irq_to_resource(dt_node, 0, &res[0]);
+>> +	if (spi->irq != ret) {
+>> +		dev_err(glue->dev, "can't get interrupt resource\n");
+>> +		return -EINVAL;
+>> +	}
+>
+> SPI core will parse IRQ for you (see below)
+>
 
-That particular email was about a v1 patch, which was then replaced
-by a 3-patch series for v2:
-http://marc.info/?l=linux-netdev&m=145032497014944&w=2
-That is already in linux-next, and below you show that you have it.
+The IRQ type should be stored in res[0].flags.
+Is there an alternative to of_irq_to_resource() for getting the IRQ type?
 
-> So I've remembered that I've double checked the Ethernet wire, but I
-> agree it can also be another random issue.
+>> +
+>> +	if (of_find_property(dt_node, "clock-xtal", NULL))
+>> +		pdev_data->ref_clock_xtal = true;
+>> +
+>> +	ret = of_property_read_u32(dt_node, "ref-clock-frequency",
+>> +				   &pdev_data->ref_clock_freq);
+>> +	if (IS_ERR_VALUE(ret)) {
+>> +		dev_err(glue->dev,
+>> +			"can't get reference clock frequency (%d)\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +#else /* CONFIG_OF */
+>> +static int wlcore_probe_of(struct spi_device *spi, struct resource *res,
+>> +			   struct wl12xx_spi_glue *glue,
+>> +			   struct wlcore_platdev_data *pdev_data)
+>> +{
+>> +	return -ENODATA;
+>> +}
+>> +#endif /* CONFIG_OF */
+>> +
+>>    static int wl1271_probe(struct spi_device *spi)
+>>    {
+>>    	struct wl12xx_spi_glue *glue;
+>> @@ -365,8 +414,7 @@ static int wl1271_probe(struct spi_device *spi)
+>>    	int ret;
+>>
+>>    	memset(&pdev_data, 0x00, sizeof(pdev_data));
+>> -
+>> -	/* TODO: add DT parsing when needed */
+>> +	memset(res, 0x00, sizeof(res));
+>>
+>>    	pdev_data.if_ops = &spi_ops;
+>>
+>> @@ -390,6 +438,13 @@ static int wl1271_probe(struct spi_device *spi)
+>>    		return PTR_ERR(glue->reg);
+>>    	}
+>>
+>> +	ret = wlcore_probe_of(spi, &res[0], glue, &pdev_data);
+>> +	if (IS_ERR_VALUE(ret)) {
+>> +		dev_err(glue->dev,
+>> +			"can't get device tree parameters (%d)\n", ret);
+>> +		return ret;
+>
+> So, wl1271_probe will fail always if CONFIG_OF=n. Right?
+>
+>
+>> +	}
+>> +
+>>    	ret = spi_setup(spi);
+>>    	if (ret < 0) {
+>>    		dev_err(glue->dev, "spi_setup failed\n");
+>> @@ -404,10 +459,6 @@ static int wl1271_probe(struct spi_device *spi)
+>>
+>>    	glue->core->dev.parent = &spi->dev;
+>>
+>> -	memset(res, 0x00, sizeof(res));
+>> -
+>> -	res[0].start = spi->irq;
+>> -	res[0].flags = IORESOURCE_IRQ;
+>>    	res[0].name = "irq";
+>
+> Above code might be left unchaenged.
+>
+>
+>>
+>>    	ret = platform_device_add_resources(glue->core, res, ARRAY_SIZE(res));
+>> @@ -445,10 +496,12 @@ static int wl1271_remove(struct spi_device *spi)
+>>    	return 0;
+>>    }
+>>
+>> -
+>>    static struct spi_driver wl1271_spi_driver = {
+>>    	.driver = {
+>>    		.name		= "wl1271_spi",
+>> +#ifdef CONFIG_OF
+>> +		.of_match_table = of_match_ptr(wlcore_spi_of_match_table),
+>> +#endif /* CONFIG_OF */
+>
+> These ifdefs are not needed - see of_match_ptr() definition
+>
+>>    	},
+>>
+>>    	.probe		= wl1271_probe,
+>>
+>
+>
 
-If it works without this series, but fails with it, that is strong
-evidence that something in this series either is a bug or exposes
-one.
-
-> > Just to verify, is your linux-next tree up-to-date? This series
-> > needs to be applied is based on another recent series of 3 patches
-> > to cpsw.c. Although I doubt it would apply cleanly at all without
-> > those.
-> 
-> From my linux-next base, related to cpsw, I have:
-> git log --oneline cpsw*
-> a6b257c Merge remote-tracking branch 'net-next/master'
-> dfc0a6d drivers: net: cpsw: increment reference count on fixed-link
-> PHY node 
-> f1eea5c drivers: net: cpsw: fix RMII/RGMII mode when used
-> with fixed-link PHY
-> 1873c58 ethernet:ti:cpsw: fix phy identification with multiple slaves
-> on fixed-phy
-> f188b95 Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net
-> 0db19b8 net: cpsw: Fix ethernet regression for dm814
-> 
-> Theses patches don't lead to any issue on the t410 device.
-
-Thanks for verifying. 1873c58, f1eea5, and cdfc0a6d are the previous
-patches I referred to.
-
-> Comparing a dmesg output where the driver work: it doesn't show any
-> difference from the quoted lines:
-> http://paste.fedoraproject.org/304248/45086839/
-
-Thanks for the additional info. I also don't see any red flags in the 
-dmesg output. 
-
-When I looked closer at the dm8148-t410 devicetree, I see that it's 
-actually more like the BeagleBones than an EVMSK. It specifies two 
-slaves, but is not in dual_emac mode. Other than using RGMII mode 
-instead of MII, the emac configuration in the DT looks the same to
-me. Further, your dmesg shows there is only one actual PHY, same as
-a BeagleBone. I assume that's historical, as specifying slaves=<1> 
-used to crash (fixed by 1973db0df7c3b in v4.2).
-
-Despite the similarities, I have been unable to reproduce a failure 
-on a BeagleBone-Black running linux-next plus this series. Things
-that I've checked in dmesg output look similar to yours, so I'm 
-currently out of ideas I can check myself. If I could ask you for
-some more assistance in debugging:
-
-Are you using the devicetree from the linux-next source, or is it 
-modified? If it's modified, can you send it?
-
-Could you check the phy_interface mode used? I know that being wrong
-would generate such symptoms. Quickest way to check that (and related
-bits) is probably:
-   grep -H . /sys/bus/mdio_bus/devices/*/phy*
-Based on the devicetree in the kernel source and your dmesg output, 
-I expect there to be a single PHY with phy_interface=rgmii and
-phy_id=0x4dd074. If any of those aspects don't match what sysfs 
-reports, then that's likely to be the cause.
-
-Failing that, I would next try to apply the 3 patches in this series
-one at a time (or bisect them) to identify the specific culprit. 
-
-Thanks.
+-- 
+Thanks,
+Uri
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
