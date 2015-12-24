@@ -1,66 +1,54 @@
-From: Paul Kocialkowski <contact@paulk.fr>
+From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
 Subject: Re: [PATCH 5/6] ARM: LG Optimus Black (P970) codename sniper
  support, with basic features
-Date: Thu, 24 Dec 2015 20:38:24 +0100
-Message-ID: <1450985904.11913.6.camel@collins>
+Date: Thu, 24 Dec 2015 20:38:52 +0100
+Message-ID: <1450985932.11913.7.camel@collins>
 References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
 	 <1450868319-20513-6-git-send-email-contact@paulk.fr>
-	 <20151223154455.GL2793@atomide.com>
+	 <CABxcv=moAUEPo8sq5KhuLZChrQtwjF1aBeNvV1i8HvUnwDXMZA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-pUW7c45xG4jNl1s7T6r8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151223154455.GL2793@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Milo Kim <milo.kim@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+	boundary="=-VbzVbSVAUd6+5BOmtzcV"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CABxcv=moAUEPo8sq5KhuLZChrQtwjF1aBeNvV1i8HvUnwDXMZA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Cc: Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---=-pUW7c45xG4jNl1s7T6r8
+--=-VbzVbSVAUd6+5BOmtzcV
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-Le mercredi 23 d=C3=A9cembre 2015 =C3=A0 07:44 -0800, Tony Lindgren a =C3=
-=A9crit :
-> * Paul Kocialkowski <contact@paulk.fr> [151223 03:00]:
-> > +&gpio1 {
-> > +	ti,no-reset-on-init;
-> > +};
-> > +
-> > +&gpio2 {
-> > +	ti,no-reset-on-init;
-> > +};
-> > +
-> > +&gpio3 {
-> > +	ti,no-reset-on-init;
-> > +};
-> > +
-> > +&gpio4 {
-> > +	ti,no-reset-on-init;
-> > +};
-> > +
-> > +&gpio5 {
-> > +	ti,no-reset-on-init;
-> > +};
-> > +
-> > +&gpio6 {
-> > +	ti,no-reset-on-init;
-> > +};
+Le mercredi 23 d=C3=A9cembre 2015 =C3=A0 13:03 -0300, Javier Martinez Canil=
+las a
+=C3=A9crit :
+> Hello Paul,
 >=20
-> Care to try to narrow down exactly which GPIO(s) need to be preserved?
-> Chances are this will unnecessarily block deeper idle states in hardware
-> otherwise.
+> [snip]
 >=20
-> My guess is that the GPIO pins that need to be preserved if any are in
-> the GPIO bank 1 as that's always powered..
+> > +
+> > +&omap3_pmx_core {
+> > +       pinctrl-names =3D "default";
+> > +
+> > +       uart3_pins: pinmux_uart3_pins {
+> > +               pinctrl-single,pins =3D <
+> > +                       0x16e (PIN_INPUT | MUX_MODE0)           /* uart=
+3_rx_irrx */
+> > +                       0x170 (PIN_OUTPUT | MUX_MODE0)          /* uart=
+3_tx_irtx */
+> > +               >;
+>=20
+> Could you please use the IOPAD mux macros from
+> include/dt-bindings/pinctrl/omap.h instead?
+>=20
+> We just did a massive cleanup on the OMAP DTS to use them instead of
+> an offset from the padconf registers.
 
-Well, I actually need to keep the GPIOs handling backlight control,
-buttons LEDs and the micro USB connector muxing (which can be set to
-UART or USB). Those are spread accross gpio2, gpio5 and gpio6, so I'll
-only enable these in v2.
+Sure thing, will do in v2.
 
 Thanks for the review!
 
@@ -76,7 +64,7 @@ Blog: https://blog.replicant.us/
 Wiki/tracker/forums: https://redmine.replicant.us/
 
 
---=-pUW7c45xG4jNl1s7T6r8
+--=-VbzVbSVAUd6+5BOmtzcV
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -84,19 +72,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAABAgAGBQJWfEmwAAoJEIT9weqP7pUMhsQQAIrcImYefbG3Bf/0neGywEci
-Use2gd/2/LWskk5uUlNevQ3Gn7ZmlAPl6ileL7iq+scT1QX5NOZ6saLfLCnu8wpg
-S4pqtKttnrIHN0xICVcc/BbTM005OiQEKnf8fEWRUbqdZptNISfi5yBJmB1aYkBo
-NSzGZWn1s+72OuQv6dQhquULeLKGdBLQ6pQOwDfseUdtKeEZXkdL58zK9R9JY+QZ
-nXEaJ1XaR49QbMIjl1qjx5sgJ/C4T9g2OhmmuhLesTI3+DZfsvtTPMtLODQzZB33
-mERqA6Iqr9t/uiv3iYckQ0v2jkK2HcQymBA7eqgBLEFxMphDEJSw7rayFnPZrAWi
-fQowXlSo/gH+IyQvYhn0s+4cHCVdM2WgNs0qA+qg9UYA+nE0uIYxwmmA6/GMx3uC
-QVJ2VtbjAli8i1Lce9aGEYmL4PCXYUZY3CPvNRVoLlekzxyvGrZcvXZ2+z/lDMq2
-vAmdeSWa3duY1OjyLK6rqY/V7K9tns3TQ0pqxNjF+YrH4GOMI3EnxyODAw9n6iNq
-DQ1hMdGrdmknnOrB1V527aNpBTu6c19zyN6kCaWd72aButh1K3IYKuZZz06XE3SH
-3//PlirpjIw1WOl4/971GM0qeICXg7uiwdaIaCsO1iM5aQKQGUJ1EisK0b4zEdHa
-F8l16xRooZaWgDF/riD2
-=7eXU
+iQIcBAABAgAGBQJWfEnMAAoJEIT9weqP7pUMmQUP/j936e/+tpkQZVBukaO3FtP6
+ijWEFHesx3fCWX5gy28hMVKicQZPciqAMNOzLpkUQauK5O7tWIFr2acU90B7nzP0
+pBavhwQakkfGt3fDBzFF95wBmi1oGhnKshaclGyCO/qD1GcjNHOJv5BDLy0BXQLh
+R8gwBn5Pj0RdEYhN5/+9v2OxJq7ymzwy4k2EvOI8/9qfbYacpoFM1HTd81voO0Mu
+7CzBbEOItl8U2OsjmYcwOKFDnK2f3xrERkLQa+JfSLnC9tnnenyjizfArCTkxYwE
+aWMXyHEmYk+LKPPqTzSxIi/C4xaC+924+xNbTUjxH61yXiKF8RlRmfETB4fMs3CK
+msuv7MvKr32bA5wiatI1+jAJhgkl33NKbkKvCPd6Wihv9Q0o17QjkU48gRhz63wi
+BBjnZFw7Fri5v+8hSWFHDKFoVVZM0KZuG3GWDbZgx0FwBUgzOtSmC09oslrXOOU+
+U8K2t1H6PNVEjTVcD1dmqOZHhbl4xbwaNemhZP4EtcNH8Lxe/UJJQaDbGJXKbPnk
+8gTsnW33GIncym5noI9HkYKxqcVnD6TSnBR/tPYXp/6QgHBX1P9Ak+6nHjchwlqY
+qEJHuJGrQMe5eY1SOk9nJ6+FH/wKEINqWk7K9zO1ZhLXx619WrcufCsyjJtLLnGt
+U8IMep7T0r5Ymhjljpq0
+=Mfvc
 -----END PGP SIGNATURE-----
 
---=-pUW7c45xG4jNl1s7T6r8--
+--=-VbzVbSVAUd6+5BOmtzcV--
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
