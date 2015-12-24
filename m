@@ -1,27 +1,24 @@
 From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Subject: Re: [PATCH v2 2/3] wlcore/wl12xx: spi: add device tree support
-Date: Thu, 24 Dec 2015 19:21:48 +0200
-Message-ID: <567C29AC.10006@compulab.co.il>
+Date: Thu, 24 Dec 2015 19:24:17 +0200
+Message-ID: <567C2A41.1030207@compulab.co.il>
 References: <1450971335-15961-1-git-send-email-uri.mashiach@compulab.co.il>
  <1450971335-15961-3-git-send-email-uri.mashiach@compulab.co.il>
- <CABxcv=nS_RSXotJXqjY4QR3zDgM5iviC=YVwhjG=408znW1hiQ@mail.gmail.com>
+ <567C1E19.1090500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABxcv=nS_RSXotJXqjY4QR3zDgM5iviC=YVwhjG=408znW1hiQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <567C1E19.1090500-l0cyMroinI0@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Javier,
+Hi Grygorii,
 
-On 12/24/2015 06:25 PM, Javier Martinez Canillas wrote:
-> Hello Uri,
->
-> On Thu, Dec 24, 2015 at 12:35 PM, Uri Mashiach
-> <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
+On 12/24/2015 06:32 PM, Grygorii Strashko wrote:
+> On 12/24/2015 05:35 PM, Uri Mashiach wrote:
 >> Add DT support for the wl1271 SPI WiFi.
 >>
 >> Add documentation file for the wl1271 SPI WiFi.
@@ -30,14 +27,14 @@ On 12/24/2015 06:25 PM, Javier Martinez Canillas wrote:
 >> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 >> ---
 >> v1 -> v2: update interrupt documentation.
->>            replace interrupts and interrupt-parent with interrupts-extended.
->>            IRQ parameters retrieved from spi_device instead of DT.
->>            remove redundant #ifdef CONFIG_OF
+>>             replace interrupts and interrupt-parent with interrupts-extended.
+>> 	  IRQ parameters retrieved from spi_device instead of DT.
+>> 	  remove redundant #ifdef CONFIG_OF
 >>
->>   .../bindings/net/wireless/ti,wlcore,spi.txt        | 34 +++++++++++++
->>   drivers/net/wireless/ti/wlcore/spi.c               | 55 ++++++++++++++++++++--
->>   2 files changed, 85 insertions(+), 4 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+>>    .../bindings/net/wireless/ti,wlcore,spi.txt        | 34 +++++++++++++
+>>    drivers/net/wireless/ti/wlcore/spi.c               | 55 ++++++++++++++++++++--
+>>    2 files changed, 85 insertions(+), 4 deletions(-)
+>>    create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
 >>
 >> diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt b/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
 >> new file mode 100644
@@ -68,44 +65,38 @@ On 12/24/2015 06:25 PM, Javier Martinez Canillas wrote:
 >> +Examples:
 >> +
 >> +&spi1 {
->> +       wl1271@1 {
->> +               compatible = "ti,wl1271";
+>> +	wl1271@1 {
+>> +		compatible = "ti,wl1271";
 >> +
->> +               reg = <1>;
->> +               spi-max-frequency = <48000000>;
->> +               clock-xtal;
->> +               ref-clock-frequency = <38400000>;
->> +               interrupts-extended = <&gpio3 8 IRQ_TYPE_LEVEL_HIGH>;
->> +               vwlan-supply = <&vwlan_fixed>;
->> +       };
+>> +		reg = <1>;
+>> +		spi-max-frequency = <48000000>;
+>> +		clock-xtal;
+>> +		ref-clock-frequency = <38400000>;
+>> +		interrupts-extended = <&gpio3 8 IRQ_TYPE_LEVEL_HIGH>;
+>> +		vwlan-supply = <&vwlan_fixed>;
+>> +	};
 >> +};
 >> diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
 >> index d3a4bcb..e9e8d54 100644
 >> --- a/drivers/net/wireless/ti/wlcore/spi.c
 >> +++ b/drivers/net/wireless/ti/wlcore/spi.c
 >> @@ -30,6 +30,7 @@
->>   #include <linux/spi/spi.h>
->>   #include <linux/wl12xx.h>
->>   #include <linux/platform_device.h>
+>>    #include <linux/spi/spi.h>
+>>    #include <linux/wl12xx.h>
+>>    #include <linux/platform_device.h>
 >> +#include <linux/of_irq.h>
->>   #include <linux/regulator/consumer.h>
+>>    #include <linux/regulator/consumer.h>
 >>
->>   #include "wlcore.h"
+>>    #include "wlcore.h"
 >> @@ -357,6 +358,46 @@ static struct wl1271_if_operations spi_ops = {
->>          .set_block_size = NULL,
->>   };
+>>    	.set_block_size = NULL,
+>>    };
 >>
 >> +#ifdef CONFIG_OF
 >> +static const struct of_device_id wlcore_spi_of_match_table[] = {
->> +       { .compatible = "ti,wl1271" },
->> +       { }
+>> +	{ .compatible = "ti,wl1271" },
+>> +	{ }
 >> +};
->
-> Could you please add a MODULE_DEVICE_TABLE(of, wlcore_spi_of_match_table) here?
->
-
-Will be added in v3.
-
 >> +
 >> +/**
 >> + * wlcore_probe_of - DT node parsing.
@@ -115,45 +106,101 @@ Will be added in v3.
 >> + * @pdev_data: wlcore device parameters
 >> + */
 >> +static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
->> +                          struct wlcore_platdev_data *pdev_data)
+>> +			   struct wlcore_platdev_data *pdev_data)
 >> +{
->> +       struct device_node *dt_node = spi->dev.of_node;
->> +       int ret;
+>> +	struct device_node *dt_node = spi->dev.of_node;
+>> +	int ret;
 >> +
->> +       if (of_find_property(dt_node, "clock-xtal", NULL))
->> +               pdev_data->ref_clock_xtal = true;
+>> +	if (of_find_property(dt_node, "clock-xtal", NULL))
+>> +		pdev_data->ref_clock_xtal = true;
 >> +
->> +       ret = of_property_read_u32(dt_node, "ref-clock-frequency",
->> +                                  &pdev_data->ref_clock_freq);
->> +       if (IS_ERR_VALUE(ret)) {
->> +               dev_err(glue->dev,
->> +                       "can't get reference clock frequency (%d)\n", ret);
->> +               return ret;
->> +       }
+>> +	ret = of_property_read_u32(dt_node, "ref-clock-frequency",
+>> +				   &pdev_data->ref_clock_freq);
+>> +	if (IS_ERR_VALUE(ret)) {
+>> +		dev_err(glue->dev,
+>> +			"can't get reference clock frequency (%d)\n", ret);
+>> +		return ret;
+>> +	}
 >> +
->> +       return 0;
+>> +	return 0;
 >> +}
 >> +#else /* CONFIG_OF */
 >> +static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
->> +                          struct wlcore_platdev_data *pdev_data)
+>> +			   struct wlcore_platdev_data *pdev_data)
 >> +{
->> +       return -ENODATA;
+>> +	return -ENODATA;
 >> +}
 >> +#endif /* CONFIG_OF */
->> +
 >
-> I don't understand what's the point of making the driver to be built
-> with !CONFIG_OF if the probe function is going to fail anyways. If
-> this driver really need then is better to remove the ifdefery and make
-> the Kconfig symbol to depend on OF.
+> My question for your v1 was related to all above ifdefs.
+> If CONFIG_OF=n is not going to be supported then all this ifdefs
+> can be dropped and proper dependency can be added to Kconfig instead.
 >
 
 Will be done in v3.
 
-> Best regards,
-> Javier
+>> +
+>>    static int wl1271_probe(struct spi_device *spi)
+>>    {
+>>    	struct wl12xx_spi_glue *glue;
+>> @@ -366,8 +407,6 @@ static int wl1271_probe(struct spi_device *spi)
+>>
+>>    	memset(&pdev_data, 0x00, sizeof(pdev_data));
+>>
+>> -	/* TODO: add DT parsing when needed */
+>> -
+>>    	pdev_data.if_ops = &spi_ops;
+>>
+>>    	glue = devm_kzalloc(&spi->dev, sizeof(*glue), GFP_KERNEL);
+>> @@ -390,6 +429,13 @@ static int wl1271_probe(struct spi_device *spi)
+>>    		return PTR_ERR(glue->reg);
+>>    	}
+>>
+>> +	ret = wlcore_probe_of(spi, glue, &pdev_data);
+>> +	if (IS_ERR_VALUE(ret)) {
+>> +		dev_err(glue->dev,
+>> +			"can't get device tree parameters (%d)\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>>    	ret = spi_setup(spi);
+>>    	if (ret < 0) {
+>>    		dev_err(glue->dev, "spi_setup failed\n");
+>> @@ -407,7 +453,8 @@ static int wl1271_probe(struct spi_device *spi)
+>>    	memset(res, 0x00, sizeof(res));
+>>
+>>    	res[0].start = spi->irq;
+>> -	res[0].flags = IORESOURCE_IRQ;
+>> +	res[0].flags = IORESOURCE_IRQ |
+>> +			irqd_get_trigger_type(irq_get_irq_data(spi->irq));
+>
+>
+> irq_get_trigger_type()?
 >
 
+Will be replaced in v3.
+
+>>    	res[0].name = "irq";
+>>
+>>    	ret = platform_device_add_resources(glue->core, res, ARRAY_SIZE(res));
+>> @@ -445,10 +492,10 @@ static int wl1271_remove(struct spi_device *spi)
+>>    	return 0;
+>>    }
+>>
+>> -
+>>    static struct spi_driver wl1271_spi_driver = {
+>>    	.driver = {
+>>    		.name		= "wl1271_spi",
+>> +		.of_match_table = of_match_ptr(wlcore_spi_of_match_table),
+>>    	},
+>>
+>>    	.probe		= wl1271_probe,
+>>
+>
+> Sorry for delayed replay.
+>
+
+-- 
 Thanks,
 Uri
 --
