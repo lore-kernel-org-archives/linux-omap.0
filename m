@@ -1,43 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] OMAP: RX51: save ATAGS data in the early boot stage
-Date: Thu, 24 Dec 2015 10:56:05 -0800
-Message-ID: <20151224185604.GU2793@atomide.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: ATAGS: move save_atags() to include/asm
+ arch/arm/include/asm/setup.h
+Date: Thu, 24 Dec 2015 21:02:41 +0200
+Message-ID: <567C4151.2090003@gmail.com>
 References: <20151224153536.GJ30871@n2100.arm.linux.org.uk>
  <1450975076-7411-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1450975076-7411-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <201512241849.11704@pali>
+ <1450975076-7411-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <201512241848.17946@pali> <20151224185319.GT2793@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201512241849.11704@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux@arm.linux.org.uk, nicolas.pitre@linaro.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151224185319.GT2793@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: nicolas.pitre@linaro.org, linux@arm.linux.org.uk, arnd@arndb.de, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [151224 09:49]:
-> On Thursday 24 December 2015 17:37:56 Ivaylo Dimitrov wrote:
-> > Nokia N900 (RX51) legacy userspace needs various ATAGS passed by th=
-e
-> > bootloader (boot reason, device serial, boot mode, various GPIO
-> > swithes, etc). Save that data early enough in the boot process, so
-> > it can be exported later in /proc/atags
-> >=20
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
->=20
-> Working fine in qemu.
->=20
-> Tested-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-
-Maybe update the description to say "This fixes a regression with
-device tree based booting compared to legacy booting for n900 to
-make the n900 legacy user space to also work with device tree based
-booting".
-
-It would be nice to get these two in as fixes after -rc1 assuming
-people have no objections to it. So please upload this one also
-into Russell's patch system after no more comments:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+CgpPbiAyNC4xMi4yMDE1IDIwOjUzLCBUb255IExpbmRncmVuIHdyb3RlOgo+ICogUGFsaSBSb2jD
+oXIgPHBhbGkucm9oYXJAZ21haWwuY29tPiBbMTUxMjI0IDA5OjQ4XToKPj4gT24gVGh1cnNkYXkg
+MjQgRGVjZW1iZXIgMjAxNSAxNzozNzo1NSBJdmF5bG8gRGltaXRyb3Ygd3JvdGU6Cj4+PiBTbyBp
+dCBjYW4gYmUgdXNlZCBieSBjb2RlIG91dHNpZGUgYXJjaC9hcm0va2VybmVsLy4gRml4IHNhdmVf
+YXRhZ3MoKQo+Pj4gZGVjbGFyYXRpb24gdG8gbWF0Y2ggaXRzIGRlZmluaXRpb24gd2hpbGUgYXQg
+aXQuCj4+Pgo+Pj4gU2lnbmVkLW9mZi1ieTogSXZheWxvIERpbWl0cm92IDxpdm8uZy5kaW1pdHJv
+di43NUBnbWFpbC5jb20+Cj4+Cj4+IFRlc3RlZC1ieTogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJA
+Z21haWwuY29tPgo+Cj4gTmljZSwgcGxlYXNlIHVwbG9hZCBib3RoIHRvIFJ1c3NlbGwncyBwYXRj
+aCBzeXN0ZW0gYWZ0ZXIgbm8KPiBtb3JlIGNvbW1lbnRzOgo+Cj4gQWNrZWQtYnk6IFRvbnkgTGlu
+ZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4KCkhpIFRvbnksCgpDb3VsZCB5b3UgZWxhYm9yYXRl
+IG9uIHRoYXQgcGF0Y2ggc3lzdGVtPyBXaGVyZSBpdCBpcyBhbmQgZG8gSSBuZWVkIHNvbWUgCnNw
+ZWNpYWwgYWNjb3VudC9hY2Nlc3M/CgpSZWdhcmRzLApJdm8KCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0
+CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFk
+ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
