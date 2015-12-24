@@ -1,56 +1,63 @@
-From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Subject: Re: [PATCH 5/6] ARM: LG Optimus Black (P970) codename sniper
- support, with basic features
-Date: Thu, 24 Dec 2015 20:38:52 +0100
-Message-ID: <1450985932.11913.7.camel@collins>
+From: Paul Kocialkowski <contact@paulk.fr>
+Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
+Date: Thu, 24 Dec 2015 21:05:38 +0100
+Message-ID: <1450987538.11913.12.camel@collins>
 References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
-	 <1450868319-20513-6-git-send-email-contact@paulk.fr>
-	 <CABxcv=moAUEPo8sq5KhuLZChrQtwjF1aBeNvV1i8HvUnwDXMZA@mail.gmail.com>
+	 <1450868319-20513-5-git-send-email-contact@paulk.fr>
+	 <20151223115632.GS16023@sirena.org.uk> <1450980773.11913.3.camel@collins>
+	 <20151224193538.GJ579@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-VbzVbSVAUd6+5BOmtzcV"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABxcv=moAUEPo8sq5KhuLZChrQtwjF1aBeNvV1i8HvUnwDXMZA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
-Cc: Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+	boundary="=-N3GvhIiv6cmwpW1WG0S+"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151224193538.GJ579@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Milo Kim <milo.kim@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---=-VbzVbSVAUd6+5BOmtzcV
+--=-N3GvhIiv6cmwpW1WG0S+
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Le jeudi 24 d=C3=A9cembre 2015 =C3=A0 19:35 +0000, Mark Brown a =C3=A9crit =
+:
+> On Thu, Dec 24, 2015 at 07:12:53PM +0100, Paul Kocialkowski wrote:
+> > Le mercredi 23 d=C3=A9cembre 2015 =C3=A0 11:56 +0000, Mark Brown a =C3=
+=A9crit :
+>=20
+> > > This isn't really adding support for the enable GPIO as the changelog
+> > > suggests, it's requesting but not managing the GPIO.  Since there is
+> > > core support for manging enable GPIOs this seems especially silly,
+> > > please tell the core about the GPIO and then it will work at runtime
+> > > too.
+>=20
+> > It looks like the core bindings for GPIO can only be used instead of th=
+e
+> > rdev->desc->ops->enable callback, not jointly, which doesn't fit my use
+> > case, where both the GPIO and register write have to be used to enable
+> > regulators.
+>=20
+> > I think it would be worth making it possible to use both in core, since
+> > that situation is probably shared with other regulators. I suggest the
+> > following diff (that would be split into a separate patch in v2 of this
+> > series):
+>=20
+> No, that's broken - the whole point with using a GPIO for enable control
+> on a lot of devices is that it is much faster than doing a register
+> write.  What I would expect to happen in this case is that when
+> initialsing the GPIO we set the register to enabled and then only manage
+> the GPIO at runtime.
 
-Le mercredi 23 d=C3=A9cembre 2015 =C3=A0 13:03 -0300, Javier Martinez Canil=
-las a
-=C3=A9crit :
-> Hello Paul,
->=20
-> [snip]
->=20
-> > +
-> > +&omap3_pmx_core {
-> > +       pinctrl-names =3D "default";
-> > +
-> > +       uart3_pins: pinmux_uart3_pins {
-> > +               pinctrl-single,pins =3D <
-> > +                       0x16e (PIN_INPUT | MUX_MODE0)           /* uart=
-3_rx_irrx */
-> > +                       0x170 (PIN_OUTPUT | MUX_MODE0)          /* uart=
-3_tx_irtx */
-> > +               >;
->=20
-> Could you please use the IOPAD mux macros from
-> include/dt-bindings/pinctrl/omap.h instead?
->=20
-> We just did a massive cleanup on the OMAP DTS to use them instead of
-> an offset from the padconf registers.
+That GPIO is shared with all regulators that the chip provides, so doing
+things this way certainly won't work if we don't want all the regulators
+powered at all times: in that case, the GPIO has precedence over the
+regulator-specific registers.
 
-Sure thing, will do in v2.
-
-Thanks for the review!
+Doing things the other way round would work and I suppose that chips
+that can use a GPIO over registers just wouldn't register any
+ops->enable callback in their description.
 
 --=20
 Paul Kocialkowski, Replicant developer
@@ -64,7 +71,7 @@ Blog: https://blog.replicant.us/
 Wiki/tracker/forums: https://redmine.replicant.us/
 
 
---=-VbzVbSVAUd6+5BOmtzcV
+--=-N3GvhIiv6cmwpW1WG0S+
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -72,24 +79,19 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAABAgAGBQJWfEnMAAoJEIT9weqP7pUMmQUP/j936e/+tpkQZVBukaO3FtP6
-ijWEFHesx3fCWX5gy28hMVKicQZPciqAMNOzLpkUQauK5O7tWIFr2acU90B7nzP0
-pBavhwQakkfGt3fDBzFF95wBmi1oGhnKshaclGyCO/qD1GcjNHOJv5BDLy0BXQLh
-R8gwBn5Pj0RdEYhN5/+9v2OxJq7ymzwy4k2EvOI8/9qfbYacpoFM1HTd81voO0Mu
-7CzBbEOItl8U2OsjmYcwOKFDnK2f3xrERkLQa+JfSLnC9tnnenyjizfArCTkxYwE
-aWMXyHEmYk+LKPPqTzSxIi/C4xaC+924+xNbTUjxH61yXiKF8RlRmfETB4fMs3CK
-msuv7MvKr32bA5wiatI1+jAJhgkl33NKbkKvCPd6Wihv9Q0o17QjkU48gRhz63wi
-BBjnZFw7Fri5v+8hSWFHDKFoVVZM0KZuG3GWDbZgx0FwBUgzOtSmC09oslrXOOU+
-U8K2t1H6PNVEjTVcD1dmqOZHhbl4xbwaNemhZP4EtcNH8Lxe/UJJQaDbGJXKbPnk
-8gTsnW33GIncym5noI9HkYKxqcVnD6TSnBR/tPYXp/6QgHBX1P9Ak+6nHjchwlqY
-qEJHuJGrQMe5eY1SOk9nJ6+FH/wKEINqWk7K9zO1ZhLXx619WrcufCsyjJtLLnGt
-U8IMep7T0r5Ymhjljpq0
-=Mfvc
+iQIcBAABAgAGBQJWfFASAAoJEIT9weqP7pUMFc4P/jFu8UBpuvfNRPidsc0T2ZMb
+PTVzJuIkARzmF5wTv/bm9lWsolcMfgr9fQqhyiOIXapw1Fk0Pm7GMmlL+dFUrX0S
+nQr6l8ATuoRy9M8CQZ9V+fgCngEGKTxdSxO+Vmx42mjjMjyZfif7zc54PqzWGqhC
+bPfGsGFJ4j/RiBniuWhHJNRxnjxzgdXdUlTg689r4FDY3cIenpl3toLqxY2vQ4K3
+zHiVZQyyF2zAXyTqct2FFKkyDtKtFUdhMDmO43Nw8DrR0pO9GJSmjADpiYMdB8Lb
+/8rrWiir8rht6l7S8DKQstAAudZfsxB+YNuS70alIad6fFYy6DvjFTo0lRMiguwu
+LNZwcogcAfMLom3nUIx7SEc2BKgsLX54FY/LqRztJX/qd/ZN/dy0+CQ2+DBlgqYX
+Qb3IYrsHyB22CE+I9JC3flcNr1eHHQqg9IfuhTrUymJhelRq0FSNcBWLd2JjmtAz
+Qyi47S+RIotAmz+B2W0fE472WV8bOd5GM3QQcO38uvtXgzWyxkgiOutSekaRFj/5
+1YXhxfY5JWd8Gsp0IzCjX6iwI3xVnL1k4UwXzg3Ma3KZJ0jQgrte7PdtUs0b4J0k
+XdvVbz7oAXiIXcDJrKeFyK5bcxEPqI5/sAc0y9JOUBr8Y1z+dNuREo8k7mYC93/l
+TfiQfJ9qbLe52wECgJ2U
+=bSXJ
 -----END PGP SIGNATURE-----
 
---=-VbzVbSVAUd6+5BOmtzcV--
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-N3GvhIiv6cmwpW1WG0S+--
