@@ -1,15 +1,15 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 1/5] arm: devtree: Set system_rev from DT "/revision"
-Date: Thu, 24 Dec 2015 20:02:37 +0100
-Message-ID: <20151224190237.GA17343@pali>
-References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com>
- <1436214373-12969-2-git-send-email-pali.rohar@gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
+Date: Thu, 24 Dec 2015 19:35:38 +0000
+Message-ID: <20151224193538.GJ579@sirena.org.uk>
+References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
+ <1450868319-20513-5-git-send-email-contact@paulk.fr>
+ <20151223115632.GS16023@sirena.org.uk>
+ <1450980773.11913.3.camel@collins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============7845735744481694062=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1436214373-12969-2-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <1450980773.11913.3.camel@collins>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,56 +19,74 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <linux@arm.linux.org.uk>, Laura Abbott <lauraa@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robherring2@gmail.com>, Will Deacon <will.deacon@arm.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@debian.org>, Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Kocialkowski <contact@paulk.fr>
+Cc: Mark Rutland <mark.rutland@arm.com>, Milo Kim <milo.kim@ti.com>, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uZGF5IDA2IEp1bHkgMjAxNSAyMjoyNjowOSBQYWxpIFJvaMOhciB3cm90ZToKPiBXaXRo
-IHRoaXMgcGF0Y2ggIi9yZXZpc2lvbiIgRFQgZW50cnkgaXMgdXNlZCB0byBzZXQgZ2xvYmFsIHN5
-c3RlbV9yZXYKPiB2YXJpYWJsZS4gRFQgIi9yZXZpc2lvbiIgaXMgZXhwZWN0ZWQgdG8gYmUgdTMy
-IG51bWVyaWMgdmFsdWUuCj4gCj4gVE9ETzogYWRkIGRvY3VtZW50YXRpb24KPiAKPiBTaWduZWQt
-b2ZmLWJ5OiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+Cj4gLS0tCj4gIGFyY2gv
-YXJtL2tlcm5lbC9kZXZ0cmVlLmMgfCAgIDEyICsrKysrKysrKystLQo+ICAxIGZpbGUgY2hhbmdl
-ZCwgMTAgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvYXJj
-aC9hcm0va2VybmVsL2RldnRyZWUuYyBiL2FyY2gvYXJtL2tlcm5lbC9kZXZ0cmVlLmMKPiBpbmRl
-eCAxMWM1NGRlLi43ZDgyNzQ5IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2tlcm5lbC9kZXZ0cmVl
-LmMKPiArKysgYi9hcmNoL2FybS9rZXJuZWwvZGV2dHJlZS5jCj4gQEAgLTE5LDYgKzE5LDcgQEAK
-PiAgI2luY2x1ZGUgPGxpbnV4L29mX2lycS5oPgo+ICAjaW5jbHVkZSA8bGludXgvb2ZfcGxhdGZv
-cm0uaD4KPiAgI2luY2x1ZGUgPGxpbnV4L3NtcC5oPgo+ICsjaW5jbHVkZSA8bGludXgvbGliZmR0
-X2Vudi5oPgo+ICAKPiAgI2luY2x1ZGUgPGFzbS9jcHV0eXBlLmg+Cj4gICNpbmNsdWRlIDxhc20v
-c2V0dXAuaD4KPiBAQCAtMjYsNiArMjcsNyBAQAo+ICAjaW5jbHVkZSA8YXNtL3NtcF9wbGF0Lmg+
-Cj4gICNpbmNsdWRlIDxhc20vbWFjaC9hcmNoLmg+Cj4gICNpbmNsdWRlIDxhc20vbWFjaC10eXBl
-cy5oPgo+ICsjaW5jbHVkZSA8YXNtL3N5c3RlbV9pbmZvLmg+Cj4gIAo+ICAKPiAgI2lmZGVmIENP
-TkZJR19TTVAKPiBAQCAtMjA0LDYgKzIwNiw4IEBAIHN0YXRpYyBjb25zdCB2b2lkICogX19pbml0
-IGFyY2hfZ2V0X25leHRfbWFjaChjb25zdCBjaGFyICpjb25zdCAqKm1hdGNoKQo+ICBjb25zdCBz
-dHJ1Y3QgbWFjaGluZV9kZXNjICogX19pbml0IHNldHVwX21hY2hpbmVfZmR0KHVuc2lnbmVkIGlu
-dCBkdF9waHlzKQo+ICB7Cj4gIAljb25zdCBzdHJ1Y3QgbWFjaGluZV9kZXNjICptZGVzYywgKm1k
-ZXNjX2Jlc3QgPSBOVUxMOwo+ICsJdW5zaWduZWQgbG9uZyBkdF9yb290Owo+ICsJY29uc3QgdTMy
-ICpyZXY7Cj4gIAo+ICAjaWZkZWYgQ09ORklHX0FSQ0hfTVVMVElQTEFURk9STQo+ICAJRFRfTUFD
-SElORV9TVEFSVChHRU5FUklDX0RULCAiR2VuZXJpYyBEVCBiYXNlZCBzeXN0ZW0iKQo+IEBAIC0y
-MTUsMTcgKzIxOSwxNiBAQCBjb25zdCBzdHJ1Y3QgbWFjaGluZV9kZXNjICogX19pbml0IHNldHVw
-X21hY2hpbmVfZmR0KHVuc2lnbmVkIGludCBkdF9waHlzKQo+ICAJaWYgKCFkdF9waHlzIHx8ICFl
-YXJseV9pbml0X2R0X3ZlcmlmeShwaHlzX3RvX3ZpcnQoZHRfcGh5cykpKQo+ICAJCXJldHVybiBO
-VUxMOwo+ICAKPiArCWR0X3Jvb3QgPSBvZl9nZXRfZmxhdF9kdF9yb290KCk7Cj4gIAltZGVzYyA9
-IG9mX2ZsYXRfZHRfbWF0Y2hfbWFjaGluZShtZGVzY19iZXN0LCBhcmNoX2dldF9uZXh0X21hY2gp
-Owo+ICAKPiAgCWlmICghbWRlc2MpIHsKPiAgCQljb25zdCBjaGFyICpwcm9wOwo+ICAJCWludCBz
-aXplOwo+IC0JCXVuc2lnbmVkIGxvbmcgZHRfcm9vdDsKPiAgCj4gIAkJZWFybHlfcHJpbnQoIlxu
-RXJyb3I6IHVucmVjb2duaXplZC91bnN1cHBvcnRlZCAiCj4gIAkJCSAgICAiZGV2aWNlIHRyZWUg
-Y29tcGF0aWJsZSBsaXN0OlxuWyAiKTsKPiAgCj4gLQkJZHRfcm9vdCA9IG9mX2dldF9mbGF0X2R0
-X3Jvb3QoKTsKPiAgCQlwcm9wID0gb2ZfZ2V0X2ZsYXRfZHRfcHJvcChkdF9yb290LCAiY29tcGF0
-aWJsZSIsICZzaXplKTsKPiAgCQl3aGlsZSAoc2l6ZSA+IDApIHsKPiAgCQkJZWFybHlfcHJpbnQo
-IiclcycgIiwgcHJvcCk7Cj4gQEAgLTI0Niw1ICsyNDksMTAgQEAgY29uc3Qgc3RydWN0IG1hY2hp
-bmVfZGVzYyAqIF9faW5pdCBzZXR1cF9tYWNoaW5lX2ZkdCh1bnNpZ25lZCBpbnQgZHRfcGh5cykK
-PiAgCS8qIENoYW5nZSBtYWNoaW5lIG51bWJlciB0byBtYXRjaCB0aGUgbWRlc2Mgd2UncmUgdXNp
-bmcgKi8KPiAgCV9fbWFjaGluZV9hcmNoX3R5cGUgPSBtZGVzYy0+bnI7Cj4gIAo+ICsJLyogU2V0
-IHN5c3RlbSByZXZpc2lvbiBmcm9tIERUICovCj4gKwlyZXYgPSBvZl9nZXRfZmxhdF9kdF9wcm9w
-KGR0X3Jvb3QsICJyZXZpc2lvbiIsIE5VTEwpOwo+ICsJaWYgKHJldikKPiArCQlzeXN0ZW1fcmV2
-ID0gZmR0MzJfdG9fY3B1KCpyZXYpOwo+ICsKPiAgCXJldHVybiBtZGVzYzsKPiAgfQoKVGhpcyBw
-YXRjaCBhbmQgc2Vjb25kIG9uZSAod2l0aCBzdWJqZWN0ICJbUEFUQ0ggMi81XSBhcm06IGJvb3Q6
-IGNvbnZlcnQKQVRBR19SRVZJU0lPTiB0byBEVCAiL3JldmlzaW9uIiBlbnRyeSIpIGFyZSBzdGls
-bCBuZWVkZWQuCgpBcmUgdGhlcmUgYW55IG9iamVjdGlvbnMgZm9yIHRoZW0/IElmIG5vdCwgSSB3
-aWxsIGFkZCBtaXNzaW5nIERUCmRvY3VtZW50YXRpb24gYW5kIHdpbGwgcmVzZW5kIHRoZW0uCgot
-LSAKUGFsaSBSb2jDoXIKcGFsaS5yb2hhckBnbWFpbC5jb20KCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0
-CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFk
-ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+
+--===============7845735744481694062==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="va4/JQ6j8/8uipEp"
+Content-Disposition: inline
+
+
+--va4/JQ6j8/8uipEp
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Dec 24, 2015 at 07:12:53PM +0100, Paul Kocialkowski wrote:
+> Le mercredi 23 d=E9cembre 2015 =E0 11:56 +0000, Mark Brown a =E9crit :
+
+> > This isn't really adding support for the enable GPIO as the changelog
+> > suggests, it's requesting but not managing the GPIO.  Since there is
+> > core support for manging enable GPIOs this seems especially silly,
+> > please tell the core about the GPIO and then it will work at runtime
+> > too.
+
+> It looks like the core bindings for GPIO can only be used instead of the
+> rdev->desc->ops->enable callback, not jointly, which doesn't fit my use
+> case, where both the GPIO and register write have to be used to enable
+> regulators.
+
+> I think it would be worth making it possible to use both in core, since
+> that situation is probably shared with other regulators. I suggest the
+> following diff (that would be split into a separate patch in v2 of this
+> series):
+
+No, that's broken - the whole point with using a GPIO for enable control
+on a lot of devices is that it is much faster than doing a register
+write.  What I would expect to happen in this case is that when
+initialsing the GPIO we set the register to enabled and then only manage
+the GPIO at runtime.
+
+--va4/JQ6j8/8uipEp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWfEkIAAoJECTWi3JdVIfQ3AsH/jeYLGM1bJ/BheObxioiiFmz
+ErauD/7BFjliYshyg37vN036iB8W1/bsw606ibtuylAJpG3ruWe0ygzoLCnANBux
+KudQw1GiBdVGf4aaqXMR9yl3dZzvER9xNYoglBAu5k9CiJg19LWgzjmnPbMJz8cD
+T+eRY9xZ/czrcqrYpBgU746fRRVmGrjNWeFh7SUSAsfcRVG84ZZBwm9zBC0mqBf7
+M4eLq4/Lc+XT2fYsE9D/hsWREAPqCPVN2sHuxRDHK87032HOz9ZJhuk+FW/DXWoz
+SSryF/KVeODQa5TeEwcj/ovKehytNr6tNf+kmHnmfQDIYXRImLJqzxst3eXv5Rw=
+=3L9B
+-----END PGP SIGNATURE-----
+
+--va4/JQ6j8/8uipEp--
+
+
+--===============7845735744481694062==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7845735744481694062==--
