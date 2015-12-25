@@ -1,60 +1,45 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: Add support for slot-name property in DT
-Date: Fri, 25 Dec 2015 13:53:11 +0100
-Message-ID: <201512251353.11491@pali>
-References: <1431724489-32359-1-git-send-email-pali.rohar@gmail.com> <20150518150607.GD10274@atomide.com> <2362824.FKNGrYsB7j@wuerfel>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH v2] ARM: OMAPFB: panel-sony-acx565akm: fix missing mutex
+ unlocks
+Date: Fri, 25 Dec 2015 15:29:23 +0200
+Message-ID: <567D44B3.6090309@gmail.com>
+References: <52C956E9.2030008@gmail.com>
+ <1388927585-5640-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <52CFD1ED.7010302@ti.com> <52D1113C.8020807@gmail.com>
+ <52D3BE08.9040508@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart8592971.2ZbaNmpTsc";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2362824.FKNGrYsB7j@wuerfel>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52D3BE08.9040508@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart8592971.2ZbaNmpTsc
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Monday 18 May 2015 17:07:57 Arnd Bergmann wrote:
-> On Monday 18 May 2015 08:06:07 Tony Lindgren wrote:
-> > * Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [150515 14:26]:
-> > > On Friday 15 May 2015 23:22:37 Pali Roh=C3=A1r wrote:
-> > If setting up the generic binding is expected to take a while,
-> > you can naturally pass it in pdata while waiting for the generic
-> > binding to get merged.
->=20
-> Yes, good idea. So the n900 machine can use auxdata to pass this for
-> the time being, while the binding and generic implementation is
-> being worked out.
->=20
-> 	Arnd
+Hi Tomi,
 
-Ok, so what is needed to finish this patch series?
+On 13.01.2014 12:20, Tomi Valkeinen wrote:
+> On 2014-01-11 11:39, Ivaylo Dimitrov wrote:
+>
+>> The patch does not apply cleanly on top of rc7, however I applied it by
+>> hand. So far it seems it fixes the issue brought by
+>> c37dd677988ca50bc8bc60ab5ab053720583c168, though I didn't test if
+>> mutex_lock/mutex_unlock are complementary in every code path (at least
+>> not explicitly, I guess maemo is doing it for us anyway :) ).
+>
+> Ok, thanks.
+>
+>> So, shall I send a patch incorporating your code changes, or you will do
+>> it?
+>
+> I can handle it.
+>
+>   Tomi
+>
+>
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+I still don't see those fixes in mainline, shall I send a patch?
 
---nextPart8592971.2ZbaNmpTsc
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlZ9PDcACgkQi/DJPQPkQ1JDLACfbI4geGNv33TQdImxefL5NyNt
-ek0An2LSIE8rkI10wbqDz7t5sbTgWIbW
-=BQDU
------END PGP SIGNATURE-----
-
---nextPart8592971.2ZbaNmpTsc--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ivo
