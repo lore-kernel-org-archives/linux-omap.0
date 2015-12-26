@@ -1,80 +1,28 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 3/7] omapfb: fix error return code
-Date: Sat, 26 Dec 2015 16:28:42 +0100
-Message-ID: <1451143726-28195-4-git-send-email-Julia.Lawall@lip6.fr>
-References: <1451143726-28195-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <1451143726-28195-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: kernel-janitors@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ARM: dts: n900: Include adp1653 device
+Date: Sat, 26 Dec 2015 19:35:04 +0100
+Message-ID: <20151226183504.GB31847@amd>
+References: <1451086812-3729-1-git-send-email-pali.rohar@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1451086812-3729-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Return a negative error code on failure.
+On Sat 2015-12-26 00:40:12, Pali Roh=E1r wrote:
+> This patch adds adp1653 device into n900 DT structure. DT support in
+> adp1653 driver is there since v4.2-rc1 version.
+>=20
+> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-// <smpl>
-@@
-identifier ret; expression e1,e2;
-@@
-(
-if (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c |   12 +++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c b/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
-index 677e254..fc4cfa9 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
-@@ -241,22 +241,28 @@ static int tpd_probe(struct platform_device *pdev)
- 
- 	gpio = devm_gpiod_get_index_optional(&pdev->dev, NULL, 0,
- 		GPIOD_OUT_LOW);
--	if (IS_ERR(gpio))
-+	if (IS_ERR(gpio)) {
-+		r = PTR_ERR(gpio);
- 		goto err_gpio;
-+	}
- 
- 	ddata->ct_cp_hpd_gpio = gpio;
- 
- 	gpio = devm_gpiod_get_index_optional(&pdev->dev, NULL, 1,
- 		GPIOD_OUT_LOW);
--	if (IS_ERR(gpio))
-+	if (IS_ERR(gpio)) {
-+		r = PTR_ERR(gpio);
- 		goto err_gpio;
-+	}
- 
- 	ddata->ls_oe_gpio = gpio;
- 
- 	gpio = devm_gpiod_get_index(&pdev->dev, NULL, 2,
- 		GPIOD_IN);
--	if (IS_ERR(gpio))
-+	if (IS_ERR(gpio)) {
-+		r = PTR_ERR(gpio);
- 		goto err_gpio;
-+	}
- 
- 	ddata->hpd_gpio = gpio;
- 
-
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
