@@ -1,182 +1,80 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 0/7] fix error return code
-Date: Sat, 26 Dec 2015 16:28:39 +0100
-Message-ID: <1451143726-28195-1-git-send-email-Julia.Lawall@lip6.fr>
+Subject: [PATCH 3/7] omapfb: fix error return code
+Date: Sat, 26 Dec 2015 16:28:42 +0100
+Message-ID: <1451143726-28195-4-git-send-email-Julia.Lawall@lip6.fr>
+References: <1451143726-28195-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <1451143726-28195-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: kernel-janitors-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: kernel-janitors@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The complate semantic patch that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+Return a negative error code on failure.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
 // <smpl>
-@ok exists@
-identifier f,ret,i;
-expression e;
-constant c;
 @@
-
-// identify a function that returns a negative return value at least once.
-f(...) {
-... when any
-(
-return -c@i;
-|
-ret = -c@i;
-... when != ret = e
-return ret;
-|
-if (ret < 0) { ... return ret; }
-)
-... when any
-}
-
-@r exists@
-identifier ret,ok.f,fn;
-expression e1,e2,e3,e4,e5,e6,x;
-statement S,S1;
-position p1,p2,p3;
+identifier ret; expression e1,e2;
 @@
-
-// identify a case where the return variable is set to a non-negative value
-// and then returned in error-handling code
-f(...) {
-... when any
 (
-if@p1 (\(ret < 0\|ret != 0\))
+if (\(ret < 0\|ret != 0\))
  { ... return ret; }
 |
-ret@p1 = 0
+ret = 0
 )
-... when != \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\)
+... when != ret = e1
     when != &ret
-    when any
-(
- if (<+... ret = e5 ...+>) S1
-|
- if (<+... &ret ...+>) S1
-|
-if@p2(<+...x = fn(...)...+>)
- {
-  ... when != ret = e6
-      when forall
- return@p3 ret;
-}
-|
-break;
-|
-x = fn(...)
-... when != \(ret = e4\|ret++\|ret--\|ret+=e4\|ret-=e4\)
-    when != &ret
-(
- if (<+... ret = e3 ...+>) S
-|
- if (<+... &ret ...+>) S
-|
-if@p2(<+...\(x != 0\|x < 0\|x == NULL\|IS_ERR(x)\)...+>)
- {
+*if(...)
+{
   ... when != ret = e2
       when forall
- return@p3 ret;
+ return ret;
 }
-)
-)
-... when any
-}
-
-@printer depends on r@
-position p;
-identifier ok.f,pr;
-constant char [] c;
-@@
-
-f(...) { <...pr@p(...,c,...)...> }
-
-@bad0 exists@
-identifier r.ret,ok.f,g != {ERR_PTR,IS_ERR};
-position p != printer.p;
-@@
-
-f(...) { ... when any
-g@p(...,ret,...)
-... when any
- }
-
-@bad depends on !bad0 exists@
-position r.p1,r.p2;
-statement S1,S2;
-identifier r.ret;
-expression e1;
-@@
-
-// ignore the above if there is some path where the variable is set to
-// something else
-(
-if@p1 (\(ret < 0\|ret != 0\)) S1
-|
-ret@p1 = 0
-)
-... when any
- \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\|&ret\)
-... when any
-if@p2(...) S2
-
-@bad1 depends on !bad0 && !bad exists@
-position r.p2;
-statement S2;
-identifier r.ret;
-expression e1;
-constant c;
-@@
-
-ret = -c
-... when != \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\)
-    when != &ret
-    when any
-if@p2(...) S2
-
-@bad2 depends on !bad0 && !bad && !bad1 exists@
-position r.p1,r.p2;
-identifier r.ret;
-expression e1;
-statement S2;
-constant c;
-@@
-
-// likewise ignore it if there has been an intervening return
-ret@p1 = 0
-... when != if (...) { ... ret = e1 ... return ret; }
-    when != if (...) { ... return -c; }
-    when any
-if@p2(...) S2
-
-@script:python depends on !bad0 && !bad && !bad1 && !bad2@
-p1 << r.p1;
-p2 << r.p2;
-p3 << r.p3;
-@@
-
-cocci.print_main("",p1)
-cocci.print_secs("",p2)
-cocci.print_secs("",p3)
 // </smpl>
 
----
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
- drivers/block/rsxx/core.c                                     |    1 
- drivers/block/umem.c                                          |    5 +++-
- drivers/cdrom/gdrom.c                                         |    8 +++++-
- drivers/net/ethernet/ti/cpsw.c                                |    8 +++++-
- drivers/soc/ti/knav_qmss_queue.c                              |    1 
- drivers/soc/ti/wkup_m3_ipc.c                                  |    1 
- drivers/usb/gadget/legacy/acm_ms.c                            |    4 ++-
- drivers/usb/gadget/legacy/audio.c                             |    4 ++-
- drivers/usb/gadget/legacy/cdc2.c                              |    4 ++-
- drivers/usb/gadget/legacy/ether.c                             |    4 ++-
- drivers/usb/gadget/legacy/hid.c                               |    4 ++-
- drivers/usb/gadget/legacy/mass_storage.c                      |    4 ++-
- drivers/usb/gadget/legacy/ncm.c                               |    4 ++-
+---
  drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c |   12 +++++++---
- 14 files changed, 49 insertions(+), 15 deletions(-)
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c b/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
+index 677e254..fc4cfa9 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c
+@@ -241,22 +241,28 @@ static int tpd_probe(struct platform_device *pdev)
+ 
+ 	gpio = devm_gpiod_get_index_optional(&pdev->dev, NULL, 0,
+ 		GPIOD_OUT_LOW);
+-	if (IS_ERR(gpio))
++	if (IS_ERR(gpio)) {
++		r = PTR_ERR(gpio);
+ 		goto err_gpio;
++	}
+ 
+ 	ddata->ct_cp_hpd_gpio = gpio;
+ 
+ 	gpio = devm_gpiod_get_index_optional(&pdev->dev, NULL, 1,
+ 		GPIOD_OUT_LOW);
+-	if (IS_ERR(gpio))
++	if (IS_ERR(gpio)) {
++		r = PTR_ERR(gpio);
+ 		goto err_gpio;
++	}
+ 
+ 	ddata->ls_oe_gpio = gpio;
+ 
+ 	gpio = devm_gpiod_get_index(&pdev->dev, NULL, 2,
+ 		GPIOD_IN);
+-	if (IS_ERR(gpio))
++	if (IS_ERR(gpio)) {
++		r = PTR_ERR(gpio);
+ 		goto err_gpio;
++	}
+ 
+ 	ddata->hpd_gpio = gpio;
+ 
+
