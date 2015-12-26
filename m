@@ -1,56 +1,182 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ARM: dts: n900: Include adp1653 device
-Date: Sat, 26 Dec 2015 00:40:12 +0100
-Message-ID: <1451086812-3729-1-git-send-email-pali.rohar@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 0/7] fix error return code
+Date: Sat, 26 Dec 2015 16:28:39 +0100
+Message-ID: <1451143726-28195-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds adp1653 device into n900 DT structure. DT support in
-adp1653 driver is there since v4.2-rc1 version.
+The complate semantic patch that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+// <smpl>
+@ok exists@
+identifier f,ret,i;
+expression e;
+constant c;
+@@
+
+// identify a function that returns a negative return value at least once.
+f(...) {
+... when any
+(
+return -c@i;
+|
+ret = -c@i;
+... when != ret = e
+return ret;
+|
+if (ret < 0) { ... return ret; }
+)
+... when any
+}
+
+@r exists@
+identifier ret,ok.f,fn;
+expression e1,e2,e3,e4,e5,e6,x;
+statement S,S1;
+position p1,p2,p3;
+@@
+
+// identify a case where the return variable is set to a non-negative value
+// and then returned in error-handling code
+f(...) {
+... when any
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\)
+    when != &ret
+    when any
+(
+ if (<+... ret = e5 ...+>) S1
+|
+ if (<+... &ret ...+>) S1
+|
+if@p2(<+...x = fn(...)...+>)
+ {
+  ... when != ret = e6
+      when forall
+ return@p3 ret;
+}
+|
+break;
+|
+x = fn(...)
+... when != \(ret = e4\|ret++\|ret--\|ret+=e4\|ret-=e4\)
+    when != &ret
+(
+ if (<+... ret = e3 ...+>) S
+|
+ if (<+... &ret ...+>) S
+|
+if@p2(<+...\(x != 0\|x < 0\|x == NULL\|IS_ERR(x)\)...+>)
+ {
+  ... when != ret = e2
+      when forall
+ return@p3 ret;
+}
+)
+)
+... when any
+}
+
+@printer depends on r@
+position p;
+identifier ok.f,pr;
+constant char [] c;
+@@
+
+f(...) { <...pr@p(...,c,...)...> }
+
+@bad0 exists@
+identifier r.ret,ok.f,g != {ERR_PTR,IS_ERR};
+position p != printer.p;
+@@
+
+f(...) { ... when any
+g@p(...,ret,...)
+... when any
+ }
+
+@bad depends on !bad0 exists@
+position r.p1,r.p2;
+statement S1,S2;
+identifier r.ret;
+expression e1;
+@@
+
+// ignore the above if there is some path where the variable is set to
+// something else
+(
+if@p1 (\(ret < 0\|ret != 0\)) S1
+|
+ret@p1 = 0
+)
+... when any
+ \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\|&ret\)
+... when any
+if@p2(...) S2
+
+@bad1 depends on !bad0 && !bad exists@
+position r.p2;
+statement S2;
+identifier r.ret;
+expression e1;
+constant c;
+@@
+
+ret = -c
+... when != \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\)
+    when != &ret
+    when any
+if@p2(...) S2
+
+@bad2 depends on !bad0 && !bad && !bad1 exists@
+position r.p1,r.p2;
+identifier r.ret;
+expression e1;
+statement S2;
+constant c;
+@@
+
+// likewise ignore it if there has been an intervening return
+ret@p1 = 0
+... when != if (...) { ... ret = e1 ... return ret; }
+    when != if (...) { ... return -c; }
+    when any
+if@p2(...) S2
+
+@script:python depends on !bad0 && !bad && !bad1 && !bad2@
+p1 << r.p1;
+p2 << r.p2;
+p3 << r.p3;
+@@
+
+cocci.print_main("",p1)
+cocci.print_secs("",p2)
+cocci.print_secs("",p3)
+// </smpl>
+
 ---
- arch/arm/boot/dts/omap3-n900.dts |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3=
--n900.dts
-index 5f5e0f3..ba93642 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -522,6 +522,21 @@
- 		amstaos,cover-comp-gain =3D <16>;
- 	};
-=20
-+	adp1653: led-controller@30 {
-+		compatible =3D "adi,adp1653";
-+		reg =3D <0x30>;
-+		enable-gpios =3D <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-+
-+		flash {
-+			flash-timeout-us =3D <500000>;
-+			flash-max-microamp =3D <320000>;
-+			led-max-microamp =3D <50000>;
-+		};
-+		indicator {
-+			led-max-microamp =3D <17500>;
-+		};
-+	};
-+
- 	lp5523: lp5523@32 {
- 		compatible =3D "national,lp5523";
- 		reg =3D <0x32>;
---=20
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/block/rsxx/core.c                                     |    1 
+ drivers/block/umem.c                                          |    5 +++-
+ drivers/cdrom/gdrom.c                                         |    8 +++++-
+ drivers/net/ethernet/ti/cpsw.c                                |    8 +++++-
+ drivers/soc/ti/knav_qmss_queue.c                              |    1 
+ drivers/soc/ti/wkup_m3_ipc.c                                  |    1 
+ drivers/usb/gadget/legacy/acm_ms.c                            |    4 ++-
+ drivers/usb/gadget/legacy/audio.c                             |    4 ++-
+ drivers/usb/gadget/legacy/cdc2.c                              |    4 ++-
+ drivers/usb/gadget/legacy/ether.c                             |    4 ++-
+ drivers/usb/gadget/legacy/hid.c                               |    4 ++-
+ drivers/usb/gadget/legacy/mass_storage.c                      |    4 ++-
+ drivers/usb/gadget/legacy/ncm.c                               |    4 ++-
+ drivers/video/fbdev/omap2/omapfb/displays/encoder-tpd12s015.c |   12 +++++++---
+ 14 files changed, 49 insertions(+), 15 deletions(-)
