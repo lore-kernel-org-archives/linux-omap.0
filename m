@@ -1,296 +1,116 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH v3 00/23] Unrestricted media entity ID range support
-Date: Mon, 28 Dec 2015 00:06:26 -0300
-Message-ID: <5680A732.1010601@osg.samsung.com>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
- <20151216140301.GO17128@valkosipuli.retiisi.org.uk>
- <20151223103242.44deaea4@recife.lan> <26879584.9P9vDMYfPM@avalon>
+From: Dave Young <dyoung@redhat.com>
+Subject: Re: bbb kexec bug: Unhandled fault external abort on non-linefetch
+ (0x1028) at 0xfa1ac140
+Date: Mon, 28 Dec 2015 15:18:09 +0800
+Message-ID: <20151228071809.GA20621@dhcp-128-65.nay.redhat.com>
+References: <20151227073840.GC23608@dhcp-128-65.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <26879584.9P9vDMYfPM@avalon>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org, hverkuil@xs4all.nl, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20151227073840.GC23608@dhcp-128-65.nay.redhat.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: will.deacon@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Laurent,
+Ccing more people.
 
-On 12/27/2015 02:11 PM, Laurent Pinchart wrote:
-> Hi Mauro,
+On 12/27/15 at 03:38pm, Dave Young wrote:
+> Hi,
 > 
-> On Wednesday 23 December 2015 10:32:42 Mauro Carvalho Chehab wrote:
->> Em Wed, 16 Dec 2015 16:03:01 +0200 Sakari Ailus escreveu:
->>> On Wed, Dec 16, 2015 at 03:32:15PM +0200, Sakari Ailus wrote:
->>>> This is the third version of the unrestricted media entity ID range
->>>> support set. I've taken Mauro's comments into account and fixed a number
->>>> of bugs as well (omap3isp memory leak and omap4iss stream start).
->>>
->>> Javier: Mauro told me you might have OMAP4 hardware. Would you be able to
->>> test the OMAP4 ISS with these patches?
->>>
->>> Thanks.
->>
->> Sakari,
->>
->> Testing with OMAP4 is not possible. The driver is broken: it doesn't
->> support DT, and the required pdata definition is missing.
+> Here is what I get when I test kdump on Beagle bone black:
 > 
-> What do you mean by missing ? struct iss_platform_data is defined in 
-> include/media/omap4iss.h.
->
-
-That's true but at the very least the omap4iss hwmod is broken in mainline
-as you mentioned in the linux-media thread that Mauro shared below.
-
-I think what Mauro meant is that there isn't an omap4 board supported in
-mainline that makes use of the iss platform data structures. So testing the
-driver in a popular omap4 board such as the pandaboard isn't possible without
-adding plumbing board code. And even in that case, the driver fails to probe
-due a missing iss_fck clock as Mauro mentioned in his boot log below as well.
-
-I know is not a requirement for a driver to have mainline users but without
-DT bindings, using this driver will not be possible sooner rather than later
-once the mach-omap2 pdata-quirks.c workaround is removed from mainline since
-the omap4 board files were deleted almost 3 years ago (3.11 according to git).
- 
->> Both Javier and I tried to fix it in the last couple days, in order to test
->> it with a PandaBoard. We came with the enclosed patch, but it is still
->> incomplete. Based on what's written on this e-mail:
->> 	 https://www.mail-archive.com/linux-media@vger.kernel.org/msg89247.html
->>
->> It seems that this is an already known issue.
->>
->> So, I'm considering this driver as BROKEN. Not much sense on doing any
->> tests on it, while this doesn't get fixed.
->>
->> Regards,
->> Mauro
->>
->> PS.: With the enclosed patch, I got this error:
->> 	[    0.267639] platform omap4iss: failed to claim resource 2
->>
->> But, even if I comment out the platform code that returns this error,
->> there are still other missing things:
->> 	[    7.131622] omap4iss omap4iss: Unable to get iss_fck clock info
->> 	[    7.137878] omap4iss omap4iss: Unable to get clocks
->>
->> ---
->>
->> ARM: add a pdata quirks for OMAP4 panda camera
->>
->> This is a hack to make it to believe that the pandaboard
->> has a camera.
->>
->>
->> diff --git a/arch/arm/mach-omap2/pdata-quirks.c
->> b/arch/arm/mach-omap2/pdata-quirks.c index 1dfe34654c43..998bb6936dc0
->> 100644
->> --- a/arch/arm/mach-omap2/pdata-quirks.c
->> +++ b/arch/arm/mach-omap2/pdata-quirks.c
->> @@ -36,6 +36,8 @@
->>  #include "soc.h"
->>  #include "hsmmc.h"
->>
->> +#include "../../../drivers/staging/media/omap4iss/iss.h"
->> +
->>  struct pdata_init {
->>  	const char *compatible;
->>  	void (*fn)(void);
->> @@ -408,6 +410,124 @@ static void __init t410_abort_init(void)
->>  }
->>  #endif
->>
->> +#ifdef CONFIG_ARCH_OMAP4
->> +
->> +static struct resource panda_iss_resource[] = {
->> +	{
->> +		.start = 0x52000000,
->> +		.end = 0x52000000 + 0x100,
->> +		.name = "top",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001000,
->> +		.end = 0x52001000 + 0x170,
->> +		.name = "csi2_a_regs1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001170,
->> +		.end = 0x52001170 + 0x020,
->> +		.name = "camerarx_core1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001400,
->> +		.end = 0x52001400 + 0x170,
->> +		.name = "csi2_b_regs1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001570,
->> +		.end = 0x52001570 + 0x020,
->> +		.name = "camerarx_core2",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52002000,
->> +		.end = 0x52002000 + 0x200,
->> +		.name = "bte",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52010000,
->> +		.end = 0x52010000 + 0x0a0,
->> +		.name = "isp_sys1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52010400,
->> +		.end = 0x52010400 + 0x400,
->> +		.name = "isp_resizer",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52010800,
->> +		.end = 0x52010800 + 0x800,
->> +		.name = "isp_ipipe",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52011000,
->> +		.end = 0x52011000 + 0x200,
->> +		.name = "isp_isif",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52011200,
->> +		.end = 0x52011200 + 0x080,
->> +		.name = "isp_ipipeif",
->> +		.flags = IORESOURCE_MEM,
->> +	}
->> +};
->> +
->> +static struct i2c_board_info panda_camera_i2c_device = {
->> +	I2C_BOARD_INFO("smia", 0x10),
->> +};
->> +
->> +static struct iss_subdev_i2c_board_info panda_camera_subdevs[] = {
->> +	{
->> +		.board_info = &panda_camera_i2c_device,
->> +		.i2c_adapter_id = 3,
->> +	},
->> +};
->> +
->> +static struct iss_v4l2_subdevs_group iss_subdevs[] = {
->> +	{
->> +		.subdevs = panda_camera_subdevs,
->> +		.interface = ISS_INTERFACE_CSI2A_PHY1,
->> +		.bus = {
->> +			.csi2 = {
->> +				.lanecfg = {
->> +					.clk = {
->> +						.pol = 0,
->> +						.pos = 2,
->> +					},
->> +					.data[0] = {
->> +						.pol = 0,
->> +						.pos = 1,
->> +					},
->> +					.data[1] = {
->> +						.pol = 0,
->> +						.pos = 3,
->> +					},
->> +				},
->> +			} },
->> +	},
->> +	{ /* sentinel */ },
->> +};
->> +
->> +static struct iss_platform_data iss_pdata = {
->> +	.subdevs = iss_subdevs,
->> +};
->> +
->> +static struct platform_device omap4iss_device = {
->> +	.name           = "omap4iss",
->> +	.id             = -1,
->> +	.dev = {
->> +		.platform_data = &iss_pdata,
->> +	},
->> +	.num_resources  = ARRAY_SIZE(panda_iss_resource),
->> +	.resource       = panda_iss_resource,
->> +};
->> +
->> +static void __init omap4_panda_legacy_init(void)
->> +{
->> +	platform_device_register(&omap4iss_device);
->> +}
->> +
->> +#endif /* CONFIG_ARCH_OMAP4 */
->> +
->>  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
->>  static struct iommu_platform_data omap4_iommu_pdata = {
->>  	.reset_name = "mmu_cache",
->> @@ -539,6 +659,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
->>  #ifdef CONFIG_SOC_TI81XX
->>  	{ "hp,t410", t410_abort_init, },
->>  #endif
->> +#ifdef CONFIG_ARCH_OMAP4
->> +	{ "ti,omap4-panda", omap4_panda_legacy_init, },
->> +#endif
->>  #ifdef CONFIG_SOC_OMAP5
->>  	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
->>  #endif
->>
->> diff --git a/drivers/staging/media/omap4iss/iss.c
->> b/drivers/staging/media/omap4iss/iss.c index 30b473cfb020..b528cacda17b
->> 100644
->> --- a/drivers/staging/media/omap4iss/iss.c
->> +++ b/drivers/staging/media/omap4iss/iss.c
->> @@ -1412,6 +1412,9 @@ static int iss_probe(struct platform_device *pdev)
->>  	unsigned int i;
->>  	int ret;
->>
->> +
->> +printk("%s: pdata=%p\n", __func__, pdata);
->> +
->>  	if (!pdata)
->>  		return -EINVAL;
->>
->> @@ -1437,24 +1440,33 @@ static int iss_probe(struct platform_device *pdev)
->>  	iss->syscon = syscon_regmap_lookup_by_compatible("syscon");
->>  	if (IS_ERR(iss->syscon)) {
->>  		ret = PTR_ERR(iss->syscon);
->> +		dev_err(iss->dev, "Unable to find syscon");
->>  		goto error;
->>  	}
->>
->>  	/* Clocks */
->>  	ret = iss_map_mem_resource(pdev, iss, OMAP4_ISS_MEM_TOP);
->> -	if (ret < 0)
->> +	if (ret < 0) {
->> +		dev_err(iss->dev, "Unable to map memory resource\n");
->>  		goto error;
->> +	}
->>
->>  	ret = iss_get_clocks(iss);
->> -	if (ret < 0)
->> +	if (ret < 0) {
->> +		dev_err(iss->dev, "Unable to get clocks\n");
->>  		goto error;
->> +	}
->>
->> -	if (!omap4iss_get(iss))
->> +	if (!omap4iss_get(iss)) {
->> +		dev_err(iss->dev, "Failed to acquire ISS resource\n");
->>  		goto error;
->> +	}
->>
->>  	ret = iss_reset(iss);
->> -	if (ret < 0)
->> +	if (ret < 0) {
->> +		dev_err(iss->dev, "Unable to reset ISS\n");
->>  		goto error_iss;
->> +	}
->>
->>  	iss->revision = iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION);
->>  	dev_info(iss->dev, "Revision %08x found\n", iss->revision);
+> Added a printk line at the begin of function omap_gpio_rmw:
+> printk("########## %lx, %x, %x\n", base, reg, mask);
 > 
-
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+> Any hints how to fix it? I tried call the machine_kexec_mask_interrupts
+> at runtime kernel also panics so it may not limit to kdump case.
+> 
+> [   66.340168] ########## fa1ac000, 140, 1
+> [   66.344456] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa1ac140
+> [   66.352142] pgd = dd9f0000
+> [   66.354856] [fa1ac140] *pgd=48011452(bad)
+> [   66.358896] Internal error: : 1028 [#2] SMP THUMB2
+> [   66.363703] Modules linked in: ti_cpsw cpsw_ale cpsw_common omap_hwspinlock hwspinlock_core ir_lirc_codec lirc_dev ir_xmp_decoder is
+> [   66.391072] CPU: 0 PID: 402 Comm: bash Not tainted 4.4.0-rc6+ #80
+> [   66.397190] Hardware name: Generic AM33XX (Flattened Device Tree)
+> [   66.403307] task: df51d240 ti: ddc38000 task.ti: ddc38000
+> [   66.408731] PC is at omap_set_gpio_triggering+0x86/0x23c
+> [   66.414065] LR is at omap_set_gpio_triggering+0x87/0x23c
+> [   66.419398] pc : [<c01f2276>]    lr : [<c01f2277>]    psr: a00e01b3
+> [   66.419398] sp : ddc39c30  ip : 0000001f  fp : c021e550
+> [   66.430923] r10: 00000002  r9 : c021e554  r8 : 00000001
+> [   66.436168] r7 : fa1ac000  r6 : 00000000  r5 : df0d4a10  r4 : fa1ac140
+> [   66.442721] r3 : 00000001  r2 : 00000007  r1 : 00000000  r0 : 00000020
+> [   66.449276] Flags: NzCv  IRQs off  FIQs on  Mode SVC_32  ISA Thumb  Segment none
+> [   66.456701] Control: 50c5387d  Table: 9d9f0019  DAC: 00000051
+> [   66.462469] Process bash (pid: 402, stack limit = 0xddc38218)
+> [   66.468237] Stack: (0xddc39c30 to 0xddc3a000)
+> [   66.472612] 9c20:                                     df0d4a10 df0d4a64 00000000 a00e0193
+> [   66.480827] 9c40: 0000000b c021e554 00000002 c01f2551 c01f2529 df0d7700 0000005a df0d7890
+> [   66.489041] 9c60: c06f3530 c0012f35 ddc39c78 c0768f04 ddc39c80 ddc39e58 200e0113 c00803fd
+> [   66.497256] 9c80: 00000063 df93647c 1f26a000 00000000 00000001 00000063 00000007 c0702e3c
+> [   66.505471] 9ca0: 00000000 ddc38000 00000000 7f70d614 00000030 ddc39ea8 c021e54b c021e54c
+> [   66.513686] 9cc0: 600e0033 ffffffff c0730644 c06d86f4 ddc39e58 c0010f51 ddc38218 0000000b
+> [   66.521901] 9ce0: 600e0113 200e0113 00000020 ddc38000 bf000000 00000004 38000000 20653466
+> [   66.530116] 9d00: 61663566 37396620 33322064 28203030 63313037 64622029 00203031 df78b5c4
+> [   66.538331] 9d20: 00000031 c005f8df c05f3de0 ddc39d4c 0000000a 00000000 ddc39e58 00000805
+> [   66.546546] 9d40: df78b580 df78b580 c076c724 df78b5c4 00000031 c001bc23 00000000 c0412e11
+> [   66.554761] 9d60: c06cd6dc 00000000 00000000 c006021b c005f36e 00010000 00000800 00000000
+> [   66.562976] 9d80: c0755f44 c041250d 00000000 c06d8a0c 00000805 00000000 ddc39e8c ddc39e58
+> [   66.571191] 9da0: c06d8a5c 00000000 7f70d614 c00091ff 00000000 00000001 00000e65 00000406
+> [   66.579405] 9dc0: 00000000 00000406 600e0013 c0412165 00000406 c005f1c3 0000000f 0a2f88ba
+> [   66.587620] 9de0: 0000000f c0753f28 c07335f8 c0753308 600e0013 c06f3408 00000000 00000001
+> [   66.595834] 9e00: df936478 00000001 1f26a000 1f26a000 200e0013 c005f00b 00000001 0000000f
+> [   66.604049] 9e20: 00000001 c005f665 dfd4c668 c041215b 9b34a83f c00b49b9 00000000 c021e54c
+> [   66.612265] 9e40: 600e0033 ffffffff ddc39e8c 00000000 ddc38000 c041247b 00000063 df93647c
+> [   66.620480] 9e60: 1f26a000 00000000 00000001 00000063 00000007 c0702e3c 00000000 ddc38000
+> [   66.628696] 9e80: 00000000 7f70d614 00000030 ddc39ea8 c021e54b c021e54c 600e0033 ffffffff
+> [   66.636910] 9ea0: 00000051 c021e54b c06f349c c021e8b5 00000055 00000002 00000051 00000001
+> [   66.645125] 9ec0: 00000000 df26d7c0 ddc38000 c021ec79 ddc39f88 c021ec35 00000000 c010695f
+> [   66.653340] 9ee0: df241200 c010691d c0423f80 ddc39f88 00000002 c00ca6a3 c06d8a7c 00000000
+> [   66.661556] 9f00: be9ac93c c00091ff 00000400 c0019001 b6f7a000 00001000 df78b580 00000002
+> [   66.669770] 9f20: dec84c38 df241200 00000000 c00cab05 00000073 c00b82f7 000b6f7a be9ac380
+> [   66.677985] 9f40: df241200 00000002 b6f7a000 ddc39f88 00000002 00000000 7f70d614 c00cacd7
+> [   66.686200] 9f60: 00000000 00000000 be9ac93c df241200 df241200 00000000 00000000 00000002
+> [   66.694415] 9f80: ddc38000 c00cb313 00000000 00000000 00000002 b6f7a000 b6ee2d60 00000004
+> [   66.702630] 9fa0: c000df84 c000ddc1 00000002 b6f7a000 00000001 b6f7a000 00000002 00000000
+> [   66.710845] 9fc0: 00000002 b6f7a000 b6ee2d60 00000004 00000002 00000000 7f72cd94 7f70d614
+> [   66.719060] 9fe0: 00000000 be9ac8fc b6dfcae4 b6e60690 600e0010 00000001 00000000 00000000
+> [   66.727278] [<c01f2276>] (omap_set_gpio_triggering) from [<c01f2551>] (omap_gpio_mask_irq+0x29/0x34)
+> [   66.736457] [<c01f2551>] (omap_gpio_mask_irq) from [<c0012f35>] (machine_crash_shutdown+0xb9/0x104)
+> [   66.745551] [<c0012f35>] (machine_crash_shutdown) from [<c00803fd>] (crash_kexec+0x35/0x68)
+> [   66.753942] [<c00803fd>] (crash_kexec) from [<c0010f51>] (die+0x1b9/0x390)
+> [   66.760859] [<c0010f51>] (die) from [<c001bc23>] (__do_kernel_fault.part.0+0x4f/0x1cc)
+> [   66.768824] [<c001bc23>] (__do_kernel_fault.part.0) from [<c0412e11>] (do_page_fault+0x155/0x29c)
+> [   66.777740] [<c0412e11>] (do_page_fault) from [<c00091ff>] (do_DataAbort+0x2f/0x88)
+> [   66.785432] [<c00091ff>] (do_DataAbort) from [<c041247b>] (__dabt_svc+0x3b/0x80)
+> [   66.792858] Exception stack(0xddc39e58 to 0xddc39ea0)
+> [   66.797929] 9e40:                                                       00000063 df93647c
+> [   66.806144] 9e60: 1f26a000 00000000 00000001 00000063 00000007 c0702e3c 00000000 ddc38000
+> [   66.814359] 9e80: 00000000 7f70d614 00000030 ddc39ea8 c021e54b c021e54c 600e0033 ffffffff
+> [   66.822575] [<c041247b>] (__dabt_svc) from [<c021e54c>] (sysrq_handle_crash+0x18/0x1c)
+> [   66.830530] [<c021e54c>] (sysrq_handle_crash) from [<c021e8b5>] (__handle_sysrq+0x79/0x10c)
+> [   66.838919] [<c021e8b5>] (__handle_sysrq) from [<c021ec79>] (write_sysrq_trigger+0x45/0x50)
+> [   66.847310] [<c021ec79>] (write_sysrq_trigger) from [<c010695f>] (proc_reg_write+0x43/0x68)
+> [   66.855700] [<c010695f>] (proc_reg_write) from [<c00ca6a3>] (__vfs_write+0xf/0x8c)
+> [   66.863304] [<c00ca6a3>] (__vfs_write) from [<c00cacd7>] (vfs_write+0x5f/0x128)
+> [   66.870646] [<c00cacd7>] (vfs_write) from [<c00cb313>] (SyS_write+0x2b/0x68)
+> [   66.877729] [<c00cb313>] (SyS_write) from [<c000ddc1>] (ret_fast_syscall+0x1/0x4c)
+> [   66.885332] Code: 443c 4643 f6a9 f9a1 (6823) 0732 
+> [   66.890145] ---[ end trace 5a39094ece4dc200 ]---
+> [   66.894782] Kernel panic - not syncing: Fatal exception
+> [   66.900033] ---[ end Kernel panic - not syncing: Fatal exception
+> 
+> Thanks
+> Dave
