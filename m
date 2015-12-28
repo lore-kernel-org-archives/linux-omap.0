@@ -1,52 +1,66 @@
 From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: am4372: fix irq type for arm twd and global timer
-Date: Mon, 28 Dec 2015 15:52:04 +0200
-Message-ID: <1451310724-29454-1-git-send-email-grygorii.strashko@ti.com>
+Subject: [PATCH] ARM: dts: am437x: pixcir_tangoc: use correct flags for irq types
+Date: Mon, 28 Dec 2015 15:52:39 +0200
+Message-ID: <1451310759-29536-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-As per ARM documentation
-PPI(0) ID27 - global timer interrupt is rising-edge sensitive.
-PPI(2) ID29 - twd interrupt is rising-edge sensitive.
+Now IRQs for Pixcir Tangoc touchscreen are defined using
+IRQ_TYPE_NONE in am437x-gp-evm.dts and am43x-epos-evm.dts wich
+do not correspond HW.
 
-and the same is proved by GIC distributor register value
-GIC_DIST_CONFIG(0xC04) = 0x7DC00000.
+Hence, update am437x-gp-evm.dts and am43x-epos-evm.dts files
+and use correct flag IRQ_TYPE_EDGE_FALLING for irq types.
 
-Hence, set IRQ triggering type to IRQ_TYPE_EDGE_RISING
-for ARM TWD and Global timers.
+While here, remove duplicated irq declaration for pixcir_ts@5c node
+in am437x-gp-evm.dts.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am4372.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 4 +---
+ arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index de8791a..dfa1a29 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -72,7 +72,7 @@
- 	global_timer: timer@48240200 {
- 		compatible = "arm,cortex-a9-global-timer";
- 		reg = <0x48240200 0x100>;
--		interrupts = <GIC_PPI 11 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupts = <GIC_PPI 11 IRQ_TYPE_EDGE_RISING>;
- 		interrupt-parent = <&gic>;
- 		clocks = <&mpu_periphclk>;
- 	};
-@@ -80,7 +80,7 @@
- 	local_timer: timer@48240600 {
- 		compatible = "arm,cortex-a9-twd-timer";
- 		reg = <0x48240600 0x100>;
--		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupts = <GIC_PPI 13 IRQ_TYPE_EDGE_RISING>;
- 		interrupt-parent = <&gic>;
- 		clocks = <&mpu_periphclk>;
- 	};
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index d2450ab..fc4c371 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -590,8 +590,6 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pixcir_ts_pins>;
+ 		reg = <0x5c>;
+-		interrupt-parent = <&gpio3>;
+-		interrupts = <22 0>;
+ 
+ 		attb-gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
+ 
+@@ -599,7 +597,7 @@
+ 		 * 0x264 represents the offset of padconf register of
+ 		 * gpio3_22 from am43xx_pinmux base.
+ 		 */
+-		interrupts-extended = <&gpio3 22 IRQ_TYPE_NONE>,
++		interrupts-extended = <&gpio3 22 IRQ_TYPE_EDGE_FALLING>,
+ 				      <&am43xx_pinmux 0x264>;
+ 		interrupt-names = "tsc", "wakeup";
+ 
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 47954ed..29c6580 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -491,7 +491,7 @@
+ 		pinctrl-0 = <&pixcir_ts_pins>;
+ 		reg = <0x5c>;
+ 		interrupt-parent = <&gpio1>;
+-		interrupts = <17 0>;
++		interrupts = <17 IRQ_TYPE_EDGE_FALLING>;
+ 
+ 		attb-gpio = <&gpio1 17 GPIO_ACTIVE_HIGH>;
+ 
 -- 
 2.6.4
 
