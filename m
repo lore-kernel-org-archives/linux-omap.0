@@ -1,80 +1,136 @@
-From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] wlcore/wl12xx: spi: add power operation function
-Date: Sun, 27 Dec 2015 19:14:32 +0200
-Message-ID: <56801C78.9040102@compulab.co.il>
-References: <1450971335-15961-1-git-send-email-uri.mashiach@compulab.co.il>
- <1450971335-15961-2-git-send-email-uri.mashiach@compulab.co.il>
- <567C1E3B.3020404@ti.com>
+From: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
+Date: Mon, 28 Dec 2015 09:34:38 +0900
+Message-ID: <5680839E.4080800@ti.com>
+References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
+ <1450868319-20513-5-git-send-email-contact@paulk.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <567C1E3B.3020404-l0cyMroinI0@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1450868319-20513-5-git-send-email-contact-W9ppeneeCTY@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Grygorii,
+Hi Paul,
 
-On 12/24/2015 06:32 PM, Grygorii Strashko wrote:
-> On 12/24/2015 05:35 PM, Uri Mashiach wrote:
->> The power function uses a consumer regulator access to update the WiFi
->> enable GPIO value.
->>
->> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
->> ---
->> v1 -> v2: oops fix was removed to a separate fix.
->>
->>   drivers/net/wireless/ti/wlcore/spi.c | 37
->> ++++++++++++++++++++++++++++++++++++
->>   1 file changed, 37 insertions(+)
->>
->> diff --git a/drivers/net/wireless/ti/wlcore/spi.c
->> b/drivers/net/wireless/ti/wlcore/spi.c
->>
->
-> [...]
->
->> +
->>   static struct wl1271_if_operations spi_ops = {
->>       .read        = wl12xx_spi_raw_read,
->>       .write        = wl12xx_spi_raw_write,
->>       .reset        = wl12xx_spi_reset,
->>       .init        = wl12xx_spi_init,
->> +    .power        = wl12xx_spi_set_power,
->>       .set_block_size = NULL,
->>   };
->>
->> @@ -353,6 +384,12 @@ static int wl1271_probe(struct spi_device *spi)
->>        * comes from the board-peripherals file */
->>       spi->bits_per_word = 32;
->>
->> +    glue->reg = devm_regulator_get(&spi->dev, "vwlan");
->> +    if (IS_ERR(glue->reg)) {
->
-> It will be more correct to handle -EPROBE_DEFER here also. Like:
->           if (PTR_ERR(glue->reg) == -EPROBE_DEFER)
->              return PTR_ERR(glue->reg);
->
+Thanks for the patches. Please see my comments below.
 
-It seems that the IS_ERR(glue->reg) condition covers the EPROBE_DEFER case.
+On 23/12/15 19:58, Paul Kocialkowski wrote:
+> LP872x regulators are made active via the EN pin, which might be hooked to a
+> GPIO. This adds support for driving the GPIO high when the driver is in use.
 
->> +        dev_err(glue->dev, "can't get regulator\n");
->> +        return PTR_ERR(glue->reg);
->> +    }
->> +
->>       ret = spi_setup(spi);
->>       if (ret < 0) {
->>           dev_err(glue->dev, "spi_setup failed\n");
->>
->
->
+EN pin is used for enabling HW logic like I2C block. It's not regulator 
+enable pin. Please check the block diagram in the datasheet.
 
--- 
-Thanks,
-Uri
+All regulators of LP8720 and LP8725 are controlled through I2C 
+registers. Additionally, LP8725 provides external pin control for LDO3 
+and BUCK2. In this case, you can use 'regulator_config.ena_gpio' when a 
+regulator is registered.
+
+>
+> Signed-off-by: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+> ---
+>   .../devicetree/bindings/regulator/lp872x.txt       |  1 +
+>   drivers/regulator/lp872x.c                         | 33 ++++++++++++++++++++--
+>   include/linux/regulator/lp872x.h                   |  2 ++
+>   3 files changed, 33 insertions(+), 3 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/regulator/lp872x.txt b/Documentation/devicetree/bindings/regulator/lp872x.txt
+> index 7818318..0559c25 100644
+> --- a/Documentation/devicetree/bindings/regulator/lp872x.txt
+> +++ b/Documentation/devicetree/bindings/regulator/lp872x.txt
+> @@ -28,6 +28,7 @@ Optional properties:
+>     - ti,dvs-gpio: GPIO specifier for external DVS pin control of LP872x devices.
+>     - ti,dvs-vsel: DVS selector. 0 = SEL_V1, 1 = SEL_V2.
+>     - ti,dvs-state: initial DVS pin state. 0 = DVS_LOW, 1 = DVS_HIGH.
+> +  - ti,enable-gpio: GPIO specifier for EN pin control of LP872x devices.
+
+Please use general property, "enable-gpios" instead of "ti,enable-gpio".
+
+>
+>     Sub nodes for regulator_init_data
+>       LP8720 has maximum 6 nodes. (child name: ldo1 ~ 5 and buck)
+> diff --git a/drivers/regulator/lp872x.c b/drivers/regulator/lp872x.c
+> index 21c49d8..c8855f3 100644
+> --- a/drivers/regulator/lp872x.c
+> +++ b/drivers/regulator/lp872x.c
+> @@ -726,6 +726,27 @@ static struct regulator_desc lp8725_regulator_desc[] = {
+>   	},
+>   };
+>
+> +static int lp872x_init_enable(struct lp872x *lp)
+
+lp872x_enable_hw() would be better.
+
+> +{
+> +	int ret, gpio;
+> +
+> +	if (!lp->pdata)
+> +		return -EINVAL;
+> +
+> +	gpio = lp->pdata->enable_gpio;
+> +	if (!gpio_is_valid(gpio))
+> +		return 0;
+> +
+> +	/* Always set enable GPIO high. */
+> +	ret = devm_gpio_request_one(lp->dev, gpio, GPIOF_OUT_INIT_HIGH, "LP872X EN");
+> +	if (ret) {
+> +		dev_err(lp->dev, "gpio request err: %d\n", ret);
+> +		return ret;
+> +	}
+
+LP8720 device needs max 200usec for startup time.
+LP8725 also requires enable time about 30ms.
+Please use usleep_range() after EN pin control.
+
+> +
+> +	return 0;
+> +}
+> +
+>   static int lp872x_init_dvs(struct lp872x *lp)
+>   {
+>   	int ret, gpio;
+> @@ -763,14 +784,18 @@ static int lp872x_config(struct lp872x *lp)
+>   	int ret;
+>
+>   	if (!pdata || !pdata->update_config)
+> -		goto init_dvs;
+> +		goto init_dvs_enable;
+>
+>   	ret = lp872x_write_byte(lp, LP872X_GENERAL_CFG, pdata->general_config);
+>   	if (ret)
+>   		return ret;
+>
+> -init_dvs:
+> -	return lp872x_init_dvs(lp);
+> +init_dvs_enable:
+> +	ret = lp872x_init_dvs(lp);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return lp872x_init_enable(lp);
+>   }
+
+Logic should be enabled prior to DVS configuration. And please call 
+lp872x_enable_hw() in _probe().
+
+>
+>   static struct regulator_init_data
+> @@ -875,6 +900,8 @@ static struct lp872x_platform_data
+>   	of_property_read_u8(np, "ti,dvs-state", &dvs_state);
+>   	pdata->dvs->init_state = dvs_state ? DVS_HIGH : DVS_LOW;
+>
+> +	pdata->enable_gpio = of_get_named_gpio(np, "ti,enable-gpio", 0);
+> +
+
+Please replace "ti,enable-gpio" with "enable-gpios".
+
+Best regards,
+Milo
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
