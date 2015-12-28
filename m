@@ -1,41 +1,96 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: Add support for slot-name property in DT
-Date: Mon, 28 Dec 2015 15:14:50 +0100
-Message-ID: <1600826.3aUcPX7Ju6@wuerfel>
-References: <1431724489-32359-1-git-send-email-pali.rohar@gmail.com> <2362824.FKNGrYsB7j@wuerfel> <201512251353.11491@pali>
+From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] wlcore/wl12xx: spi: add power operation function
+Date: Mon, 28 Dec 2015 16:16:05 +0200
+Message-ID: <56814425.7000601@compulab.co.il>
+References: <1450971335-15961-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1450971335-15961-2-git-send-email-uri.mashiach@compulab.co.il>
+ <567C1E3B.3020404@ti.com> <56801C78.9040102@compulab.co.il>
+ <5681241F.1060603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <201512251353.11491@pali>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5681241F.1060603-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 25 December 2015 13:53:11 Pali Roh=E1r wrote:
-> On Monday 18 May 2015 17:07:57 Arnd Bergmann wrote:
-> > On Monday 18 May 2015 08:06:07 Tony Lindgren wrote:
-> > > * Arnd Bergmann <arnd@arndb.de> [150515 14:26]:
-> > > > On Friday 15 May 2015 23:22:37 Pali Roh=E1r wrote:
-> > > If setting up the generic binding is expected to take a while,
-> > > you can naturally pass it in pdata while waiting for the generic
-> > > binding to get merged.
-> >=20
-> > Yes, good idea. So the n900 machine can use auxdata to pass this fo=
-r
-> > the time being, while the binding and generic implementation is
-> > being worked out.
-> >=20
->=20
-> Ok, so what is needed to finish this patch series?
+Hi Grygorii,
 
-I don't know where we are at this point. Has either the auxdata approac=
-h
-or the generic binding been worked on at all?
+On 12/28/2015 01:59 PM, Grygorii Strashko wrote:
+> On 12/27/2015 07:14 PM, Uri Mashiach wrote:
+>> Hello Grygorii,
+>>
+>> On 12/24/2015 06:32 PM, Grygorii Strashko wrote:
+>>> On 12/24/2015 05:35 PM, Uri Mashiach wrote:
+>>>> The power function uses a consumer regulator access to update the WiFi
+>>>> enable GPIO value.
+>>>>
+>>>> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+>>>> ---
+>>>> v1 -> v2: oops fix was removed to a separate fix.
+>>>>
+>>>>    drivers/net/wireless/ti/wlcore/spi.c | 37
+>>>> ++++++++++++++++++++++++++++++++++++
+>>>>    1 file changed, 37 insertions(+)
+>>>>
+>>>> diff --git a/drivers/net/wireless/ti/wlcore/spi.c
+>>>> b/drivers/net/wireless/ti/wlcore/spi.c
+>>>>
+>>>
+>>> [...]
+>>>
+>>>> +
+>>>>    static struct wl1271_if_operations spi_ops = {
+>>>>        .read        = wl12xx_spi_raw_read,
+>>>>        .write        = wl12xx_spi_raw_write,
+>>>>        .reset        = wl12xx_spi_reset,
+>>>>        .init        = wl12xx_spi_init,
+>>>> +    .power        = wl12xx_spi_set_power,
+>>>>        .set_block_size = NULL,
+>>>>    };
+>>>>
+>>>> @@ -353,6 +384,12 @@ static int wl1271_probe(struct spi_device *spi)
+>>>>         * comes from the board-peripherals file */
+>>>>        spi->bits_per_word = 32;
+>>>>
+>>>> +    glue->reg = devm_regulator_get(&spi->dev, "vwlan");
+>>>> +    if (IS_ERR(glue->reg)) {
+>>>
+>>> It will be more correct to handle -EPROBE_DEFER here also. Like:
+>>>            if (PTR_ERR(glue->reg) == -EPROBE_DEFER)
+>>>               return PTR_ERR(glue->reg);
+>>>
+>>
+>> It seems that the IS_ERR(glue->reg) condition covers the EPROBE_DEFER case.
+>
+> True. But this is not an error and it's common practice do not print
+> any log messages in this case from driver :)
+>
 
-If not, please try to get the auxdata variant to work, it should not be=
- hard
-at all because there is no dependency on a generic binding.
+Sorry, already posted v3.
+Will be in v4.
 
-	Arnd
+>>
+>>>> +        dev_err(glue->dev, "can't get regulator\n");
+>>>> +        return PTR_ERR(glue->reg);
+>>>> +    }
+>>>> +
+>>>>        ret = spi_setup(spi);
+>>>>        if (ret < 0) {
+>>>>            dev_err(glue->dev, "spi_setup failed\n");
+>>>>
+>>>
+>>>
+>>
+>
+>
+
+-- 
+Thanks,
+Uri
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
