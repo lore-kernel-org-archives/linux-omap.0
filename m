@@ -1,123 +1,75 @@
-From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH v3 3/3] wlcore/wl12xx: spi: add wifi support to cm-t335
-Date: Mon, 28 Dec 2015 14:02:19 +0200
-Message-ID: <1451304139-10899-4-git-send-email-uri.mashiach@compulab.co.il>
-References: <1451304139-10899-1-git-send-email-uri.mashiach@compulab.co.il>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1451304139-10899-1-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: bbb kexec bug: Unhandled fault external abort on non-linefetch
+ (0x1028) at 0xfa1ac140
+Date: Mon, 28 Dec 2015 14:15:58 +0200
+Message-ID: <568127FE.3010001@ti.com>
+References: <20151227073840.GC23608@dhcp-128-65.nay.redhat.com>
+ <20151228071809.GA20621@dhcp-128-65.nay.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20151228071809.GA20621@dhcp-128-65.nay.redhat.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Young <dyoung@redhat.com>, linux-omap@vger.kernel.org
+Cc: will.deacon@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Device tree modifications:
-- Pinmux for SPI0 and WiFi GPIOs.
-- SPI0 node with wlcore as a child node.
+On 12/28/2015 09:18 AM, Dave Young wrote:
+> On 12/27/15 at 03:38pm, Dave Young wrote:
+>> Here is what I get when I test kdump on Beagle bone black:
+>>
+>> Added a printk line at the begin of function omap_gpio_rmw:
+>> printk("########## %lx, %x, %x\n", base, reg, mask);
+>>
+>> Any hints how to fix it? I tried call the machine_kexec_mask_interrupts
+>> at runtime kernel also panics so it may not limit to kdump case.
+>>
+>> [   66.340168] ########## fa1ac000, 140, 1
+>> [   66.344456] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa1ac140
+>> [   66.352142] pgd = dd9f0000
 
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Acked-by: Igor Grinberg <grinberg-lB3UumIvzKrRNpEZXGUFxA@public.gmane.org>
----
-v1 -> v2: Replace interrupts and interrupt-parent with interrupts-extended.
-v2 -> v3: Move the pinctrl-0 = <&wifi_pins> to the wlcore node.
+[...]
 
-arch/arm/boot/dts/am335x-cm-t335.dts | 54 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+>> [   66.727278] [<c01f2276>] (omap_set_gpio_triggering) from [<c01f2551>] (omap_gpio_mask_irq+0x29/0x34)
 
-diff --git a/arch/arm/boot/dts/am335x-cm-t335.dts b/arch/arm/boot/dts/am335x-cm-t335.dts
-index 42e9b66..b700940 100644
---- a/arch/arm/boot/dts/am335x-cm-t335.dts
-+++ b/arch/arm/boot/dts/am335x-cm-t335.dts
-@@ -11,6 +11,7 @@
- /dts-v1/;
- 
- #include "am33xx.dtsi"
-+#include <dt-bindings/interrupt-controller/irq.h>
- 
- / {
- 	model = "CompuLab CM-T335";
-@@ -40,6 +41,15 @@
- 		regulator-max-microvolt = <3300000>;
- 	};
- 
-+	/* Regulator for WiFi */
-+	vwlan_fixed: fixedregulator@2 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vwlan_fixed";
-+		gpio = <&gpio0 20 GPIO_ACTIVE_HIGH>; /* gpio0_20 */
-+		enable-active-high;
-+		regulator-boot-off;
-+	};
-+
- 	backlight {
- 		compatible = "pwm-backlight";
- 		pwms = <&ecap0 0 50000 0>;
-@@ -223,6 +233,21 @@
- 		>;
- 	};
- 
-+	spi0_pins: pinmux_spi0_pins {
-+		pinctrl-single,pins = <
-+			/* spi0_sclk.spi0_sclk */
-+			AM33XX_IOPAD(0x950, PIN_INPUT | MUX_MODE0)
-+			/* spi0_d0.spi0_d0 */
-+			AM33XX_IOPAD(0x954, PIN_OUTPUT_PULLUP | MUX_MODE0)
-+			/* spi0_d1.spi0_d1 */
-+			AM33XX_IOPAD(0x958, PIN_INPUT | MUX_MODE0)
-+			/* spi0_cs0.spi0_cs0 */
-+			AM33XX_IOPAD(0x95C, PIN_OUTPUT | MUX_MODE0)
-+			/* spi0_cs1.spi0_cs1 */
-+			AM33XX_IOPAD(0x960, PIN_OUTPUT | MUX_MODE0)
-+		>;
-+	};
-+
- 	/* wl1271 bluetooth */
- 	bluetooth_pins: pinmux_bluetooth_pins {
- 		pinctrl-single,pins = <
-@@ -230,6 +255,16 @@
- 			AM33XX_IOPAD(0x9b0, PIN_OUTPUT_PULLUP | MUX_MODE7)
- 		>;
- 	};
-+
-+	/* wl1271 WiFi */
-+	wifi_pins: pinmux_wifi_pins {
-+		pinctrl-single,pins = <
-+			/* EMU1.gpio3_8 - WiFi IRQ */
-+			AM33XX_IOPAD(0x9e8, PIN_INPUT_PULLUP | MUX_MODE7)
-+			/* XDMA_EVENT_INTR1.gpio0_20 - WiFi enable */
-+			AM33XX_IOPAD(0x9b4, PIN_OUTPUT | MUX_MODE7)
-+		>;
-+	};
- };
- 
- &uart0 {
-@@ -394,3 +429,22 @@ status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
- };
-+
-+&spi0 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&spi0_pins>;
-+	ti,pindir-d0-out-d1-in = <1>;
-+	/* WLS1271 WiFi */
-+	wlcore: wlcore@1 {
-+		compatible = "ti,wl1271";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&wifi_pins>;
-+		reg = <1>;
-+		spi-max-frequency = <48000000>;
-+		clock-xtal;
-+		ref-clock-frequency = <38400000>;
-+		interrupts-extended = <&gpio3 8 IRQ_TYPE_LEVEL_HIGH>;
-+		vwlan-supply = <&vwlan_fixed>;
-+	};
-+};
+Usually such back-trace means that you are trying to access HW
+which is disabled (powered off) already. Or this HW IP has never been enabled.
+
+>> [   66.736457] [<c01f2551>] (omap_gpio_mask_irq) from [<c0012f35>] (machine_crash_shutdown+0xb9/0x104)
+>> [   66.745551] [<c0012f35>] (machine_crash_shutdown) from [<c00803fd>] (crash_kexec+0x35/0x68)
+>> [   66.753942] [<c00803fd>] (crash_kexec) from [<c0010f51>] (die+0x1b9/0x390)
+>> [   66.760859] [<c0010f51>] (die) from [<c001bc23>] (__do_kernel_fault.part.0+0x4f/0x1cc)
+>> [   66.768824] [<c001bc23>] (__do_kernel_fault.part.0) from [<c0412e11>] (do_page_fault+0x155/0x29c)
+>> [   66.777740] [<c0412e11>] (do_page_fault) from [<c00091ff>] (do_DataAbort+0x2f/0x88)
+>> [   66.785432] [<c00091ff>] (do_DataAbort) from [<c041247b>] (__dabt_svc+0x3b/0x80)
+>> [   66.792858] Exception stack(0xddc39e58 to 0xddc39ea0)
+>> [   66.797929] 9e40:                                                       00000063 df93647c
+>> [   66.806144] 9e60: 1f26a000 00000000 00000001 00000063 00000007 c0702e3c 00000000 ddc38000
+>> [   66.814359] 9e80: 00000000 7f70d614 00000030 ddc39ea8 c021e54b c021e54c 600e0033 ffffffff
+>> [   66.822575] [<c041247b>] (__dabt_svc) from [<c021e54c>] (sysrq_handle_crash+0x18/0x1c)
+>> [   66.830530] [<c021e54c>] (sysrq_handle_crash) from [<c021e8b5>] (__handle_sysrq+0x79/0x10c)
+>> [   66.838919] [<c021e8b5>] (__handle_sysrq) from [<c021ec79>] (write_sysrq_trigger+0x45/0x50)
+>> [   66.847310] [<c021ec79>] (write_sysrq_trigger) from [<c010695f>] (proc_reg_write+0x43/0x68)
+>> [   66.855700] [<c010695f>] (proc_reg_write) from [<c00ca6a3>] (__vfs_write+0xf/0x8c)
+>> [   66.863304] [<c00ca6a3>] (__vfs_write) from [<c00cacd7>] (vfs_write+0x5f/0x128)
+>> [   66.870646] [<c00cacd7>] (vfs_write) from [<c00cb313>] (SyS_write+0x2b/0x68)
+>> [   66.877729] [<c00cb313>] (SyS_write) from [<c000ddc1>] (ret_fast_syscall+0x1/0x4c)
+>> [   66.885332] Code: 443c 4643 f6a9 f9a1 (6823) 0732
+>> [   66.890145] ---[ end trace 5a39094ece4dc200 ]---
+>> [   66.894782] Kernel panic - not syncing: Fatal exception
+>> [   66.900033] ---[ end Kernel panic - not syncing: Fatal exception
+>>
+
+
 -- 
-2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
