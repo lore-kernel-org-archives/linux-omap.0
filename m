@@ -1,52 +1,29 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: pwrseq_simple: Fix regression with optional GPIOs
-Date: Mon, 28 Dec 2015 13:18:11 +0100
-Message-ID: <CAPDyKFpUWyZj99upK8Q_vNtwpZ67q3pD1229qG4yQ6+OmtCBUQ@mail.gmail.com>
-References: <1449528845-25189-1-git-send-email-tony@atomide.com>
-	<CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
-	<20151218161406.GL23396@atomide.com>
-	<CAPDyKFr8e6wDxkGwnOwijQiOgF7oq6gCoHmqbubv6oSbpYbwqg@mail.gmail.com>
-	<20151218223156.GP23396@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20151218223156.GP23396@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
+From: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/2] ti-gpmc: Add support for AAD timings
+Date: Mon, 28 Dec 2015 14:39:19 +0100
+Message-ID: <1451309961-7247-1-git-send-email-narmstrong@baylibre.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Robert ABEL <rabel-Ejy783gw450hGw5VS8l+XCM2BslAju9D@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 18 December 2015 at 23:31, Tony Lindgren <tony@atomide.com> wrote:
-> * Ulf Hansson <ulf.hansson@linaro.org> [151218 14:20]:
->> On 18 December 2015 at 17:14, Tony Lindgren <tony@atomide.com> wrote:
->> > * Ulf Hansson <ulf.hansson@linaro.org> [151207 16:20]:
->> >> +Linus
->> >>
->> >> On 7 December 2015 at 23:54, Tony Lindgren <tony@atomide.com> wrote:
->> >> > Commit ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
->> >> > changed the handling MMC power sequence so GPIOs no longer are optional.
->> >> >
->> >> > This broke SDIO WLAN at least for omap5 that can't yet use the reset GPIOs
->> >> > with pwrseq_simple as a wait is needed after enabling the SDIO device.
->> >>
->> >> Can you elaborate on this. Did it break omap5 or not? :-)
->> >
->> > Ulf, is this patch queued for v4.4 as a regression fix? I don't see it
->> > in Linux next or mainline trees?
->>
->> Ohh, I guess there where some misunderstanding. I made a bunch of
->> comments on your patch as well, so I have been expecting a new
->> version.
->
-> Well this $subject patch was intended as a regression fix for v4.4-rc cycle.
-> All the other things discussed are not fixes but new features instead.
->
->> Sorry if that was unclear!
->
-> I think this patch should be still fine as is, care to take a look again?
+This serie add support for the GPMC Advanced AAD timings on hardware supporting
+the feature like the AM335x and DM816X.
 
-No, the patch have issues that needs to be fixed.
-http://www.spinics.net/lists/linux-mmc/msg34399.html
+Neil Armstrong (2):
+  memory: omap-gpmc: Add support for AAD timings
+  dt-bindings: bus: ti-gpmc: Add AAD timings properties
 
-Kind regards
-Uffe
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt |  5 ++++
+ drivers/memory/omap-gpmc.c                        | 30 +++++++++++++++++++++++
+ include/linux/omap-gpmc.h                         |  5 ++++
+ 3 files changed, 40 insertions(+)
+
+-- 
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
