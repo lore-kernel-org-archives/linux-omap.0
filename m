@@ -1,70 +1,41 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: am437x: pixcir_tangoc: use correct flags for irq types
-Date: Mon, 28 Dec 2015 15:52:39 +0200
-Message-ID: <1451310759-29536-1-git-send-email-grygorii.strashko@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: Add support for slot-name property in DT
+Date: Mon, 28 Dec 2015 15:14:50 +0100
+Message-ID: <1600826.3aUcPX7Ju6@wuerfel>
+References: <1431724489-32359-1-git-send-email-pali.rohar@gmail.com> <2362824.FKNGrYsB7j@wuerfel> <201512251353.11491@pali>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <201512251353.11491@pali>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Now IRQs for Pixcir Tangoc touchscreen are defined using
-IRQ_TYPE_NONE in am437x-gp-evm.dts and am43x-epos-evm.dts wich
-do not correspond HW.
+On Friday 25 December 2015 13:53:11 Pali Roh=E1r wrote:
+> On Monday 18 May 2015 17:07:57 Arnd Bergmann wrote:
+> > On Monday 18 May 2015 08:06:07 Tony Lindgren wrote:
+> > > * Arnd Bergmann <arnd@arndb.de> [150515 14:26]:
+> > > > On Friday 15 May 2015 23:22:37 Pali Roh=E1r wrote:
+> > > If setting up the generic binding is expected to take a while,
+> > > you can naturally pass it in pdata while waiting for the generic
+> > > binding to get merged.
+> >=20
+> > Yes, good idea. So the n900 machine can use auxdata to pass this fo=
+r
+> > the time being, while the binding and generic implementation is
+> > being worked out.
+> >=20
+>=20
+> Ok, so what is needed to finish this patch series?
 
-Hence, update am437x-gp-evm.dts and am43x-epos-evm.dts files
-and use correct flag IRQ_TYPE_EDGE_FALLING for irq types.
+I don't know where we are at this point. Has either the auxdata approac=
+h
+or the generic binding been worked on at all?
 
-While here, remove duplicated irq declaration for pixcir_ts@5c node
-in am437x-gp-evm.dts.
+If not, please try to get the auxdata variant to work, it should not be=
+ hard
+at all because there is no dependency on a generic binding.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am437x-gp-evm.dts  | 4 +---
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
- 2 files changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index d2450ab..fc4c371 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -590,8 +590,6 @@
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&pixcir_ts_pins>;
- 		reg = <0x5c>;
--		interrupt-parent = <&gpio3>;
--		interrupts = <22 0>;
- 
- 		attb-gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
- 
-@@ -599,7 +597,7 @@
- 		 * 0x264 represents the offset of padconf register of
- 		 * gpio3_22 from am43xx_pinmux base.
- 		 */
--		interrupts-extended = <&gpio3 22 IRQ_TYPE_NONE>,
-+		interrupts-extended = <&gpio3 22 IRQ_TYPE_EDGE_FALLING>,
- 				      <&am43xx_pinmux 0x264>;
- 		interrupt-names = "tsc", "wakeup";
- 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 47954ed..29c6580 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -491,7 +491,7 @@
- 		pinctrl-0 = <&pixcir_ts_pins>;
- 		reg = <0x5c>;
- 		interrupt-parent = <&gpio1>;
--		interrupts = <17 0>;
-+		interrupts = <17 IRQ_TYPE_EDGE_FALLING>;
- 
- 		attb-gpio = <&gpio1 17 GPIO_ACTIVE_HIGH>;
- 
--- 
-2.6.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
