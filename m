@@ -1,56 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: pwrseq_simple: Fix regression with optional GPIOs
-Date: Mon, 28 Dec 2015 13:28:02 -0800
-Message-ID: <20151228212802.GA6414@atomide.com>
-References: <1449528845-25189-1-git-send-email-tony@atomide.com>
- <CAPDyKFpxiOJJdh-nLXjxv3DYJnW3RAf_9aqMfds46=-oqPd5ng@mail.gmail.com>
- <20151218161406.GL23396@atomide.com>
- <CAPDyKFr8e6wDxkGwnOwijQiOgF7oq6gCoHmqbubv6oSbpYbwqg@mail.gmail.com>
- <20151218223156.GP23396@atomide.com>
- <CAPDyKFpUWyZj99upK8Q_vNtwpZ67q3pD1229qG4yQ6+OmtCBUQ@mail.gmail.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 1/5] arm: devtree: Set system_rev from DT "/revision"
+Date: Mon, 28 Dec 2015 23:27:17 +0100
+Message-ID: <50067860.qzAxcgo8L4@wuerfel>
+References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com> <20151224190237.GA17343@pali> <5681A322.2090204@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPDyKFpUWyZj99upK8Q_vNtwpZ67q3pD1229qG4yQ6+OmtCBUQ@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-spec-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5681A322.2090204-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-spec-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laura Abbott <lauraa-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devicetree Spec List <devicetree-spec-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andreas =?ISO-8859-1?Q?F=E4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [151228 04:18]:
-> On 18 December 2015 at 23:31, Tony Lindgren <tony@atomide.com> wrote:
-> > * Ulf Hansson <ulf.hansson@linaro.org> [151218 14:20]:
-> >> On 18 December 2015 at 17:14, Tony Lindgren <tony@atomide.com> wrote:
-> >> > * Ulf Hansson <ulf.hansson@linaro.org> [151207 16:20]:
-> >> >> +Linus
-> >> >>
-> >> >> On 7 December 2015 at 23:54, Tony Lindgren <tony@atomide.com> wrote:
-> >> >> > Commit ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
-> >> >> > changed the handling MMC power sequence so GPIOs no longer are optional.
-> >> >> >
-> >> >> > This broke SDIO WLAN at least for omap5 that can't yet use the reset GPIOs
-> >> >> > with pwrseq_simple as a wait is needed after enabling the SDIO device.
-> >> >>
-> >> >> Can you elaborate on this. Did it break omap5 or not? :-)
-> >> >
-> >> > Ulf, is this patch queued for v4.4 as a regression fix? I don't see it
-> >> > in Linux next or mainline trees?
-> >>
-> >> Ohh, I guess there where some misunderstanding. I made a bunch of
-> >> comments on your patch as well, so I have been expecting a new
-> >> version.
-> >
-> > Well this $subject patch was intended as a regression fix for v4.4-rc cycle.
-> > All the other things discussed are not fixes but new features instead.
-> >
-> >> Sorry if that was unclear!
-> >
-> > I think this patch should be still fine as is, care to take a look again?
+On Monday 28 December 2015 13:01:22 Frank Rowand wrote:
 > 
-> No, the patch have issues that needs to be fixed.
-> http://www.spinics.net/lists/linux-mmc/msg34399.html
+> Patch 2/5 copies the value from ATAG_REVISION into the fdt "/revision"
+> property.
+> 
+> If the use of /revision is limited to being a location to hold an ATAG
+> value to pass to the global variable system_rev, then it would make
+> sense to just copy directly from the ATAG value into system_rev in the
+> same board file where you are copying the ATAGs.
 
-Oh sorry, somehow I did not notice those comments earlier, will take a look.
+Agreed. That would be simpler, and avoid a situation where someone relies
+on the /revision property in DT to be set from the atags compat code
+(preventing an upgrade to a newer bootloader), or on the system_rev variable
+to be the same across multiple boot loaders, in the absence of other
+kernel code setting it.
 
-Tony
+	Arnd
