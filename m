@@ -1,86 +1,31 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] wlcore/wl12xx: spi: add power operation function
-Date: Mon, 28 Dec 2015 13:59:27 +0200
-Message-ID: <5681241F.1060603@ti.com>
-References: <1450971335-15961-1-git-send-email-uri.mashiach@compulab.co.il>
- <1450971335-15961-2-git-send-email-uri.mashiach@compulab.co.il>
- <567C1E3B.3020404@ti.com> <56801C78.9040102@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH v3 0/3] wlcore/wl12xx: spi: add wifi support to cm-t335
+Date: Mon, 28 Dec 2015 14:02:16 +0200
+Message-ID: <1451304139-10899-1-git-send-email-uri.mashiach@compulab.co.il>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56801C78.9040102-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/27/2015 07:14 PM, Uri Mashiach wrote:
-> Hello Grygorii,
-> 
-> On 12/24/2015 06:32 PM, Grygorii Strashko wrote:
->> On 12/24/2015 05:35 PM, Uri Mashiach wrote:
->>> The power function uses a consumer regulator access to update the WiFi
->>> enable GPIO value.
->>>
->>> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
->>> ---
->>> v1 -> v2: oops fix was removed to a separate fix.
->>>
->>>   drivers/net/wireless/ti/wlcore/spi.c | 37
->>> ++++++++++++++++++++++++++++++++++++
->>>   1 file changed, 37 insertions(+)
->>>
->>> diff --git a/drivers/net/wireless/ti/wlcore/spi.c
->>> b/drivers/net/wireless/ti/wlcore/spi.c
->>>
->>
->> [...]
->>
->>> +
->>>   static struct wl1271_if_operations spi_ops = {
->>>       .read        = wl12xx_spi_raw_read,
->>>       .write        = wl12xx_spi_raw_write,
->>>       .reset        = wl12xx_spi_reset,
->>>       .init        = wl12xx_spi_init,
->>> +    .power        = wl12xx_spi_set_power,
->>>       .set_block_size = NULL,
->>>   };
->>>
->>> @@ -353,6 +384,12 @@ static int wl1271_probe(struct spi_device *spi)
->>>        * comes from the board-peripherals file */
->>>       spi->bits_per_word = 32;
->>>
->>> +    glue->reg = devm_regulator_get(&spi->dev, "vwlan");
->>> +    if (IS_ERR(glue->reg)) {
->>
->> It will be more correct to handle -EPROBE_DEFER here also. Like:
->>           if (PTR_ERR(glue->reg) == -EPROBE_DEFER)
->>              return PTR_ERR(glue->reg);
->>
-> 
-> It seems that the IS_ERR(glue->reg) condition covers the EPROBE_DEFER case.
+Add DT support for WLS1271 SPI driver.
+Add power operation function to the WLS1271 SPI driver.
 
-True. But this is not an error and it's common practice do not print
-any log messages in this case from driver :)
+Uri Mashiach (3):
+  wlcore/wl12xx: spi: add power operation function
+  wlcore/wl12xx: spi: add device tree support
+  wlcore/wl12xx: spi: add wifi support to cm-t335
 
-> 
->>> +        dev_err(glue->dev, "can't get regulator\n");
->>> +        return PTR_ERR(glue->reg);
->>> +    }
->>> +
->>>       ret = spi_setup(spi);
->>>       if (ret < 0) {
->>>           dev_err(glue->dev, "spi_setup failed\n");
->>>
->>
->>
-> 
-
+ .../bindings/net/wireless/ti,wlcore,spi.txt        | 34 +++++++++
+ arch/arm/boot/dts/am335x-cm-t335.dts               | 54 ++++++++++++++
+ drivers/net/wireless/ti/wlcore/Kconfig             |  2 +-
+ drivers/net/wireless/ti/wlcore/spi.c               | 84 ++++++++++++++++++++--
+ 4 files changed, 169 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
 
 -- 
-regards,
--grygorii
+2.5.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
