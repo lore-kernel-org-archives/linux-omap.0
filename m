@@ -1,143 +1,112 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH] thermal: Schedule a backup thermal shutdown workqueue
- after a known period of time to tackle failed poweroff
-Date: Mon, 28 Dec 2015 11:41:00 -0600
-Message-ID: <5681742C.8050805@ti.com>
-References: <1450676778-7840-1-git-send-email-j-keerthy@ti.com>
+From: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/5] arm: devtree: Set system_rev from DT "/revision"
+Date: Mon, 28 Dec 2015 13:01:22 -0800
+Message-ID: <5681A322.2090204@gmail.com>
+References: <1436214373-12969-1-git-send-email-pali.rohar@gmail.com> <1436214373-12969-2-git-send-email-pali.rohar@gmail.com> <20151224190237.GA17343@pali>
+Reply-To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1450676778-7840-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, rui.zhang@intel.com, edubezval@gmail.com
-Cc: linux-omap@vger.kernel.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-spec-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151224190237.GA17343@pali>
+Sender: devicetree-spec-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Laura Abbott <lauraa-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?B?QW5kcmVhcyBGw6RyYmVy?= <afaerber-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Devicetree Spec List <devicetree-spec-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/20/2015 11:46 PM, Keerthy wrote:
+Adding devicetree-spec, and commenting below.
 
-+linux-pm.
+On 12/24/2015 11:02 AM, Pali Roh=C3=A1r wrote:
+> On Monday 06 July 2015 22:26:09 Pali Roh=C3=A1r wrote:
+>> With this patch "/revision" DT entry is used to set global system_re=
+v
+>> variable. DT "/revision" is expected to be u32 numeric value.
+>>
+>> TODO: add documentation
+>>
+>> Signed-off-by: Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  arch/arm/kernel/devtree.c |   12 ++++++++++--
+>>  1 file changed, 10 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/kernel/devtree.c b/arch/arm/kernel/devtree.c
+>> index 11c54de..7d82749 100644
+>> --- a/arch/arm/kernel/devtree.c
+>> +++ b/arch/arm/kernel/devtree.c
+>> @@ -19,6 +19,7 @@
+>>  #include <linux/of_irq.h>
+>>  #include <linux/of_platform.h>
+>>  #include <linux/smp.h>
+>> +#include <linux/libfdt_env.h>
+>> =20
+>>  #include <asm/cputype.h>
+>>  #include <asm/setup.h>
+>> @@ -26,6 +27,7 @@
+>>  #include <asm/smp_plat.h>
+>>  #include <asm/mach/arch.h>
+>>  #include <asm/mach-types.h>
+>> +#include <asm/system_info.h>
+>> =20
+>> =20
+>>  #ifdef CONFIG_SMP
+>> @@ -204,6 +206,8 @@ static const void * __init arch_get_next_mach(co=
+nst char *const **match)
+>>  const struct machine_desc * __init setup_machine_fdt(unsigned int d=
+t_phys)
+>>  {
+>>  	const struct machine_desc *mdesc, *mdesc_best =3D NULL;
+>> +	unsigned long dt_root;
+>> +	const u32 *rev;
+>> =20
+>>  #ifdef CONFIG_ARCH_MULTIPLATFORM
+>>  	DT_MACHINE_START(GENERIC_DT, "Generic DT based system")
+>> @@ -215,17 +219,16 @@ const struct machine_desc * __init setup_machi=
+ne_fdt(unsigned int dt_phys)
+>>  	if (!dt_phys || !early_init_dt_verify(phys_to_virt(dt_phys)))
+>>  		return NULL;
+>> =20
+>> +	dt_root =3D of_get_flat_dt_root();
+>>  	mdesc =3D of_flat_dt_match_machine(mdesc_best, arch_get_next_mach)=
+;
+>> =20
+>>  	if (!mdesc) {
+>>  		const char *prop;
+>>  		int size;
+>> -		unsigned long dt_root;
+>> =20
+>>  		early_print("\nError: unrecognized/unsupported "
+>>  			    "device tree compatible list:\n[ ");
+>> =20
+>> -		dt_root =3D of_get_flat_dt_root();
+>>  		prop =3D of_get_flat_dt_prop(dt_root, "compatible", &size);
+>>  		while (size > 0) {
+>>  			early_print("'%s' ", prop);
+>> @@ -246,5 +249,10 @@ const struct machine_desc * __init setup_machin=
+e_fdt(unsigned int dt_phys)
+>>  	/* Change machine number to match the mdesc we're using */
+>>  	__machine_arch_type =3D mdesc->nr;
+>> =20
+>> +	/* Set system revision from DT */
+>> +	rev =3D of_get_flat_dt_prop(dt_root, "revision", NULL);
+>> +	if (rev)
+>> +		system_rev =3D fdt32_to_cpu(*rev);
+>> +
+>>  	return mdesc;
+>>  }
+>=20
+> This patch and second one (with subject "[PATCH 2/5] arm: boot: conve=
+rt
+> ATAG_REVISION to DT "/revision" entry") are still needed.
+>=20
+> Are there any objections for them? If not, I will add missing DT
+> documentation and will resend them.
 
-> In few rare conditions like during boot up the orderly_poweroff
-> function might not be able to complete fully leaving the device
-> running at dangerously high temperatures. Hence adding a backup
-> workqueue to act after a known period of time and poweroff the device.
-> 
+Patch 2/5 copies the value from ATAG_REVISION into the fdt "/revision"
+property.
 
+If the use of /revision is limited to being a location to hold an ATAG
+value to pass to the global variable system_rev, then it would make
+sense to just copy directly from the ATAG value into system_rev in the
+same board file where you are copying the ATAGs.
 
-> Suggested-by: Nishanth Menon <nm@ti.com>
-> Reported-by: Nishanth Menon <nm@ti.com>
-
-The specific case I hit was a critical temperature event as soon as
-the hwmon device was probed (the driver tmp102 was a kernel module).
-
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  drivers/thermal/Kconfig        |  9 +++++++++
->  drivers/thermal/thermal_core.c | 26 ++++++++++++++++++++++++++
->  2 files changed, 35 insertions(+)
-> 
-> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-> index 8cc4ac6..25584ee 100644
-> --- a/drivers/thermal/Kconfig
-> +++ b/drivers/thermal/Kconfig
-> @@ -92,6 +92,15 @@ config THERMAL_DEFAULT_GOV_POWER_ALLOCATOR
->  
->  endchoice
->  
-> +config THERMAL_BKUP_SHUTDOWN_DELAY_MS
-> +        int "Thermal shutdown  backup delay in milli-seconds"
-> +        depends on THERMAL
-> +        default "5000"
-> +        ---help---
-> +        The number of milliseconds to delay after orderly_poweroff call.
-
-Probably needs a rephrase.
-
-> +
-> +        Default: 5000 (5 seconds)
-> +
->  config THERMAL_GOV_FAIR_SHARE
->  	bool "Fair-share thermal governor"
->  	help
-> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-> index d9e525c..b793857 100644
-> --- a/drivers/thermal/thermal_core.c
-> +++ b/drivers/thermal/thermal_core.c
-> @@ -61,6 +61,12 @@ static DEFINE_MUTEX(thermal_governor_lock);
->  
->  static struct thermal_governor *def_governor;
->  
-> +#ifdef CONFIG_THERMAL_BKUP_SHUTDOWN_DELAY_MS
-> +#define BKUP_SHUTDOWN_DELAY CONFIG_THERMAL_BKUP_SHUTDOWN_DELAY_MS
-> +#else
-> +#define BKUP_SHUTDOWN_DELAY 5000
-> +#endif
-> +
-
-I am not sure if this #ifdeffery is even needed.
-
-
-Eduardo, Rui: If this is not the suggested technique, maybe you guys
-could suggest how we could handle a case where userspace might be
-hungup due to some reason and a case where a critical temperature
-event in the middle of device probe was triggered?
-
-Obviously, we'd like to take into consideration userspace latencies as
-well- but that is very specific to fs being run.. not really a simple
-problem, IMHO..
-
->  static struct thermal_governor *__find_governor(const char *name)
->  {
->  	struct thermal_governor *pos;
-> @@ -423,6 +429,18 @@ static void handle_non_critical_trips(struct thermal_zone_device *tz,
->  		       def_governor->throttle(tz, trip);
->  }
->  
-> +static void bkup_shutdown_func(struct work_struct *unused);
-> +static DECLARE_DELAYED_WORK(bkup_shutdown_work, bkup_shutdown_func);
-> +
-> +static void bkup_shutdown_func(struct work_struct *work)
-> +{
-> +	pr_warn("Orderly_poweroff has failed! Attempting kernel_power_off\n");
-> +	kernel_power_off();
-> +
-> +	pr_warn("kernel_power_off has failed! Attempting emergency_restart\n");
-> +	emergency_restart();
-
-I think documentation is necessary that we are hoping for bootloader
-to be able to detect and halt as needed -> risk here obviously is an
-infinite reboot loop :( .
-
-
-> +}
-> +
->  static void handle_critical_trips(struct thermal_zone_device *tz,
->  				int trip, enum thermal_trip_type trip_type)
->  {
-> @@ -443,6 +461,14 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
->  		dev_emerg(&tz->device,
->  			  "critical temperature reached(%d C),shutting down\n",
->  			  tz->temperature / 1000);
-> +		/**
-
-needs to be kernel doc style?
-
-> +		 * This is a backup option to shutdown the
-> +		 * system in case orderly_poweroff
-> +		 * fails
-Maybe adjust to 80char?
-
-> +		 */
-> +		schedule_delayed_work(&bkup_shutdown_work,
-> +				      msecs_to_jiffies(BKUP_SHUTDOWN_DELAY));
-> +
->  		orderly_poweroff(true);
->  	}
->  }
-> 
-
-
--- 
-Regards,
-Nishanth Menon
+-Frank
