@@ -1,60 +1,87 @@
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH v3 00/23] Unrestricted media entity ID range support
-Date: Mon, 28 Dec 2015 08:05:29 -0200
-Message-ID: <20151228080529.4bc9f076@recife.lan>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-	<20151216140301.GO17128@valkosipuli.retiisi.org.uk>
-	<20151223103242.44deaea4@recife.lan>
-	<26879584.9P9vDMYfPM@avalon>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] wlcore/wl12xx: spi: add power operation function
+Date: Mon, 28 Dec 2015 13:59:27 +0200
+Message-ID: <5681241F.1060603@ti.com>
+References: <1450971335-15961-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1450971335-15961-2-git-send-email-uri.mashiach@compulab.co.il>
+ <567C1E3B.3020404@ti.com> <56801C78.9040102@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <26879584.9P9vDMYfPM@avalon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org, javier@osg.samsung.com, hverkuil@xs4all.nl, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56801C78.9040102-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Em Sun, 27 Dec 2015 19:11:36 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-
-> Hi Mauro,
+On 12/27/2015 07:14 PM, Uri Mashiach wrote:
+> Hello Grygorii,
 > 
-> On Wednesday 23 December 2015 10:32:42 Mauro Carvalho Chehab wrote:
-> > Em Wed, 16 Dec 2015 16:03:01 +0200 Sakari Ailus escreveu:
-> > > On Wed, Dec 16, 2015 at 03:32:15PM +0200, Sakari Ailus wrote:
-> > > > This is the third version of the unrestricted media entity ID range
-> > > > support set. I've taken Mauro's comments into account and fixed a number
-> > > > of bugs as well (omap3isp memory leak and omap4iss stream start).
-> > > 
-> > > Javier: Mauro told me you might have OMAP4 hardware. Would you be able to
-> > > test the OMAP4 ISS with these patches?
-> > > 
-> > > Thanks.
-> > 
-> > Sakari,
-> > 
-> > Testing with OMAP4 is not possible. The driver is broken: it doesn't
-> > support DT, and the required pdata definition is missing.
+> On 12/24/2015 06:32 PM, Grygorii Strashko wrote:
+>> On 12/24/2015 05:35 PM, Uri Mashiach wrote:
+>>> The power function uses a consumer regulator access to update the WiFi
+>>> enable GPIO value.
+>>>
+>>> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+>>> ---
+>>> v1 -> v2: oops fix was removed to a separate fix.
+>>>
+>>>   drivers/net/wireless/ti/wlcore/spi.c | 37
+>>> ++++++++++++++++++++++++++++++++++++
+>>>   1 file changed, 37 insertions(+)
+>>>
+>>> diff --git a/drivers/net/wireless/ti/wlcore/spi.c
+>>> b/drivers/net/wireless/ti/wlcore/spi.c
+>>>
+>>
+>> [...]
+>>
+>>> +
+>>>   static struct wl1271_if_operations spi_ops = {
+>>>       .read        = wl12xx_spi_raw_read,
+>>>       .write        = wl12xx_spi_raw_write,
+>>>       .reset        = wl12xx_spi_reset,
+>>>       .init        = wl12xx_spi_init,
+>>> +    .power        = wl12xx_spi_set_power,
+>>>       .set_block_size = NULL,
+>>>   };
+>>>
+>>> @@ -353,6 +384,12 @@ static int wl1271_probe(struct spi_device *spi)
+>>>        * comes from the board-peripherals file */
+>>>       spi->bits_per_word = 32;
+>>>
+>>> +    glue->reg = devm_regulator_get(&spi->dev, "vwlan");
+>>> +    if (IS_ERR(glue->reg)) {
+>>
+>> It will be more correct to handle -EPROBE_DEFER here also. Like:
+>>           if (PTR_ERR(glue->reg) == -EPROBE_DEFER)
+>>              return PTR_ERR(glue->reg);
+>>
 > 
-> What do you mean by missing ? struct iss_platform_data is defined in 
-> include/media/omap4iss.h.
+> It seems that the IS_ERR(glue->reg) condition covers the EPROBE_DEFER case.
+
+True. But this is not an error and it's common practice do not print
+any log messages in this case from driver :)
+
+> 
+>>> +        dev_err(glue->dev, "can't get regulator\n");
+>>> +        return PTR_ERR(glue->reg);
+>>> +    }
+>>> +
+>>>       ret = spi_setup(spi);
+>>>       if (ret < 0) {
+>>>           dev_err(glue->dev, "spi_setup failed\n");
+>>>
+>>
+>>
 > 
 
-As this driver is not DT, the platform data has to be part of the Kernel
-tree for the driver to work. However, there are no board-specific data nor
-any documentation about how to do that inside the Kernel tree. 
-That means  that this driver won't work without some OOT patch.
 
-So, on its current state, it is broken. It should either be
-converted to DT and have the needed board definitions added to the
-existing dts files or be removed.
-
-Another possible approach would be to have a patch like the one
-Javier and I tried to craft by adding the needed platform data
-into arch/arm/mach-omap2/pdata-quirks.c, but I guess it is better
-to just use DT instead.
-
-Regards,
-Mauro
+-- 
+regards,
+-grygorii
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
