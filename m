@@ -1,162 +1,151 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP display kconfig options changing
-Date: Tue, 29 Dec 2015 12:23:58 +0200
-Message-ID: <56825F3E.5070602@ti.com>
-References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
- <56741FA9.3080607@ti.com> <20151218160514.GK23396@atomide.com>
- <567430DB.4000507@ti.com>
- <CABxcv==VKi5jJ7=tEBe5fiPUpqpmaBd7C=t+_JohdXLA7eMR2Q@mail.gmail.com>
+From: Paul Kocialkowski <contact@paulk.fr>
+Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
+Date: Tue, 29 Dec 2015 12:13:33 +0100
+Message-ID: <1451387613.18148.9.camel@collins>
+References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
+	 <1450868319-20513-5-git-send-email-contact@paulk.fr>
+	 <20151223115632.GS16023@sirena.org.uk> <568088B4.6090207@ti.com>
+	 <1451342963.14631.13.camel@collins> <5681D7A8.2030101@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8916737297943615776=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CABxcv==VKi5jJ7=tEBe5fiPUpqpmaBd7C=t+_JohdXLA7eMR2Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-2aky9ghUYWvIG7lIr6Mc"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5681D7A8.2030101@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Milo Kim <milo.kim@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============8916737297943615776==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU"
 
---8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU
-Content-Type: text/plain; charset=utf-8
+--=-2aky9ghUYWvIG7lIr6Mc
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Javier, Tony,
+Hi Milo,
 
-On 22/12/15 23:18, Javier Martinez Canillas wrote:
-
->> But if the userspace is using any omapfb specific apps, then yes, upda=
-te
->> is necessary.
->>
+Le mardi 29 d=C3=A9cembre 2015 =C3=A0 09:45 +0900, Milo Kim a =C3=A9crit :
+> Hi Paul,
 >=20
-> Yes but these people should have a migration plan anyways since omapfb
-> (and fbdev in general) is going away right?
-
-Well, I would guess most people don't know/care about that.
-
->> Ok. I think it's then best that I just update the defconfig to enable
->> omapfb as modules, as it is currently.
->>
+> On 29/12/15 07:49, Paul Kocialkowski wrote:
+> > Hi Milo, thanks for the review,
+> >
+> > Le lundi 28 d=C3=A9cembre 2015 =C3=A0 09:56 +0900, Milo Kim a =C3=A9cri=
+t :
+> >> Hi Paul,
+> >>
+> >> On 23/12/15 20:56, Mark Brown wrote:
+> >>> On Wed, Dec 23, 2015 at 11:58:37AM +0100, Paul Kocialkowski wrote:
+> >>>
+> >>>> +	gpio =3D lp->pdata->enable_gpio;
+> >>>> +	if (!gpio_is_valid(gpio))
+> >>>> +		return 0;
+> >>>> +
+> >>>> +	/* Always set enable GPIO high. */
+> >>>> +	ret =3D devm_gpio_request_one(lp->dev, gpio, GPIOF_OUT_INIT_HIGH, =
+"LP872X EN");
+> >>>> +	if (ret) {
+> >>>> +		dev_err(lp->dev, "gpio request err: %d\n", ret);
+> >>>> +		return ret;
+> >>>> +	}
+> >>>
+> >>> This isn't really adding support for the enable GPIO as the changelog
+> >>> suggests, it's requesting but not managing the GPIO.  Since there is
+> >>> core support for manging enable GPIOs this seems especially silly,
+> >>> please tell the core about the GPIO and then it will work at runtime
+> >>> too.
+> >>>
+> >>
+> >> With reference to my previous mail, external GPIOs for LDO3 and BUCK2 =
+in
+> >> LP8725 can be specified through regulator_config.ena_gpio. BUCK2 only
+> >> can be controlled by external pin when CONFIG pin is grounded.
+> >>
+> >> Please see the description at page 5 of the datasheet.
+> >>
+> >> 	http://www.ti.com/lit/ds/symlink/lp8725.pdf
+> >
+> > After reading the datasheets thoroughly, it seems to me that for the
+> > lp8720, the EN pin is used to enable the regulators output, which is a
+> > good fit for the core regulator GPIO framework, as there is no reason t=
+o
+> > keep it on when no regulator is in use. The serial interface is already
+> > available when EN=3D0 and regulators can be configured in that state. T=
+he
+> > lp8725 seems seems to behave the same when CONFIG=3D0 (the datasheet
+> > clearly states: "CONFIG=3D0: EN=3D1 turns on outputs or standby mode if
+> > EN=3D0"). On the other hand, it is indeed used as a power-on pin when
+> > CONFIG=3D1.
 >=20
-> In that case I think you should squash the defconfig changes with
-> commit ("70ba4e05531f omapfb/displays: change CONFIG_DISPLAY_* to
-> CONFIG_FB_OMAP2_*") to maintain bisectability.
+> I think it's different use case. LP8720/5 are designed for system PMU,=
+=20
+> so some regulators are enabled by default after the device is on. EN pin=
+=20
+> is used for turning on/off the chip. This pin does not control regulator=
+=20
+> outputs directly. It's separate functional block in the silicon.
 
-Here's the diff to change the defconfig to enable the same items as befor=
-e:
+Well, I really don't understand why the EN pin would turn on/off the
+chip. All it does it enable the regulators outputs (by entering IDLE
+mode), the serial block is already available in STANDBY state.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig
-b/arch/arm/configs/omap2plus_defconfig
-index c5e1943e5427..b9581f1f0536 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -290,24 +290,23 @@ CONFIG_FB=3Dy
- CONFIG_FIRMWARE_EDID=3Dy
- CONFIG_FB_MODE_HELPERS=3Dy
- CONFIG_FB_TILEBLITTING=3Dy
--CONFIG_OMAP2_DSS=3Dm
--CONFIG_OMAP5_DSS_HDMI=3Dy
--CONFIG_OMAP2_DSS_SDI=3Dy
--CONFIG_OMAP2_DSS_DSI=3Dy
-+CONFIG_FB_OMAP5_DSS_HDMI=3Dy
-+CONFIG_FB_OMAP2_DSS_SDI=3Dy
-+CONFIG_FB_OMAP2_DSS_DSI=3Dy
- CONFIG_FB_OMAP2=3Dm
--CONFIG_DISPLAY_ENCODER_TFP410=3Dm
--CONFIG_DISPLAY_ENCODER_TPD12S015=3Dm
--CONFIG_DISPLAY_CONNECTOR_DVI=3Dm
--CONFIG_DISPLAY_CONNECTOR_HDMI=3Dm
--CONFIG_DISPLAY_CONNECTOR_ANALOG_TV=3Dm
--CONFIG_DISPLAY_PANEL_DPI=3Dm
--CONFIG_DISPLAY_PANEL_DSI_CM=3Dm
--CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=3Dm
--CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02=3Dm
--CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01=3Dm
--CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1=3Dm
--CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1=3Dm
--CONFIG_DISPLAY_PANEL_NEC_NL8048HL11=3Dm
-+CONFIG_FB_OMAP2_ENCODER_TFP410=3Dm
-+CONFIG_FB_OMAP2_ENCODER_TPD12S015=3Dm
-+CONFIG_FB_OMAP2_CONNECTOR_DVI=3Dm
-+CONFIG_FB_OMAP2_CONNECTOR_HDMI=3Dm
-+CONFIG_FB_OMAP2_CONNECTOR_ANALOG_TV=3Dm
-+CONFIG_FB_OMAP2_PANEL_DPI=3Dm
-+CONFIG_FB_OMAP2_PANEL_DSI_CM=3Dm
-+CONFIG_FB_OMAP2_PANEL_SONY_ACX565AKM=3Dm
-+CONFIG_FB_OMAP2_PANEL_LGPHILIPS_LB035Q02=3Dm
-+CONFIG_FB_OMAP2_PANEL_SHARP_LS037V7DW01=3Dm
-+CONFIG_FB_OMAP2_PANEL_TPO_TD028TTEC1=3Dm
-+CONFIG_FB_OMAP2_PANEL_TPO_TD043MTEA1=3Dm
-+CONFIG_FB_OMAP2_PANEL_NEC_NL8048HL11=3Dm
- CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
- CONFIG_LCD_CLASS_DEVICE=3Dy
- CONFIG_LCD_PLATFORM=3Dy
+If we want some regulators enabled at boot, the best thing to do seems
+to be to request the GPIO with the GPIOF_INIT_HIGH flag, as done in e.g.
+the max8952 regulator driver:
 
-Tony, the diff above looks like something that's safe to merge via fbdev
-tree. The context contains only display related configs. Is it ok if I
-squash the above change to my series to keep bisectability?
+	if (pdata->reg_data->constraints.boot_on)
+		config.ena_gpio_flags |=3D GPIOF_OUT_INIT_HIGH;
 
-> Alternatively, the current panel and encoders Kconfig symbols could
-> remain for omapfb since that's the current ones used in
-> omap2plus_defconfig where omapfb is the default and have new Kconfig
-> symbols for omapdrm (i.e: CONFIG_DRM_OMAP_ENCODER_TFP410).
+> On the other hand, 'ena_gpio' is used for each regulator control itself.
+> For example, WM8994 has two LDOs which are controlled by external pins.=
+=20
+> LDOs are enabled/disabled through LDO1ENA and LDO2ENA pins. In this=20
+> case, 'ena_gpio' is used.
 
-I want to change the config symbols, as the current ones are too generic
-(e.g. CONFIG_DISPLAY_PANEL_DPI doesn't mention OMAP anywhere). I think
-this is a good time to change them for omapfb. But this is probably a
-good time to change them for omapdrm also, so I think I'll add that chang=
-e.
+Of course, but the ena_gpio feature is also a good fit for a global
+enable pin, as the GPIO can be shared by multiple regulators of the same
+chip, which is what we have here.
 
- Tomi
+In my opinion, using the ena_gpio feature is a good fit, as we don't
+need to keep the EN pin high when no regulator is used.
+
+> 	http://www.cirrus.com/en/pubs/proDatasheet/WM8994_v4.4.pdf
+> 	(please refer to page 224 and 225)
+
+Cheers,
+
+--=20
+Paul Kocialkowski, Replicant developer
+
+Replicant is a fully free Android distribution running on several
+devices, a free software mobile operating system putting the emphasis on
+freedom and privacy/security.
+
+Website: https://www.replicant.us/
+Blog: https://blog.replicant.us/
+Wiki/tracker/forums: https://redmine.replicant.us/
 
 
---8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU
+--=-2aky9ghUYWvIG7lIr6Mc
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJWgl8+AAoJEPo9qoy8lh71lwAP/1K0IhT/t12uvmozC1hvmFAN
-XfG2Y0fBmGyeNQkFxdu19Lf2hC0yUrqapRZHiUZvxjO+5dREbvDL4E8g7PhNAoQ6
-eh8bhYR5OI3YNc0dnvDlPCQfj9WMLiwk7XgPAP4c1o7Y7RZQpvz167P1Ur+7ezrW
-epJyjaDwt6Tjz4xXgp7PM/lY89AVX7JVBB7rheMI3GTea8ofGan9+WrlMqmT7j8X
-wENbIC0HqZvec1eIxqgwBrxO/aBjqg5Ca+i7hvr94wwH+nXLfnrT/i0WME2sKYuX
-xCncazZuF21+3qJK7UMYeP//5M2kvgAcSN6QwYFp+IDMbDSAGe8jHfojecQ2O+dr
-wllru1bAXyubZCOTS1EkMy/qqZ0BZHu1zr8qmYz148TCpuluEOvHa2AVkLueaObB
-Ya0qtm9I3ayIbLhTzpqyYundvooQa4iSMcLZrrWcoHVI6End93/K6+dXOOGUHvOT
-yqL6Aewrbi0+V0zx3P8bgYUWGtv7hf11XcVZrQQpmO1SQHAeRsdV1PRnDdGQrSdu
-sPQUyGUE7JT7HWxIeKUr9b2MWo3L71QnK+hxn1gSyODTNok8TSd4xW+GOrut9LZi
-SUp4r6Z0yTSKEwe6x0gWbB4Uhtv+1iEJY9PObvDvhwoi9ISiJWLRuJam6Bq6nQBw
-xZeEIXgDhQNa8jJvaIf5
-=yND0
+iQIcBAABAgAGBQJWgmrdAAoJEIT9weqP7pUMUREP/0KgxQUKwYB7rWXofHsrFu3B
+XPU/Ouc/7bFz2YPmvcWP8S4ZYt5zfOEDVfTdy8eH0ylh712iZlPNq6kkKgKHNuvg
+cNqk8ehCvtl7imHzaIzqsw7zbEDOm6mdDWssPTwBJhb6X5E4lfo9v+wG4tMtPj2c
+tO9qTUxxX2r5IWfOSrjXS2dZGe8apDgFI3gu3+uVUjNaLX5Uj7KO7ffjwHx2KpfC
+73yjP8p7C1YNU5VNqcH/dsZ25bgWnp+68mtrFPnFBxoT9Tpiz+08Dl3AYWWqnYBR
+50wEnoAVHQ0fRL0H/XMqHjL8MM4XA6U8Qtbk71+3nuik73n8RtWpipsC76w9J/qq
+Fv15Yxyx2P1wiiSwjJG85KRC+tauyWAlvga895qMmcDF9qXA71T5qQdLRa2tj14z
+oOh83NfUfHDdu2Kx+WKM3XP2Nq3EgUQmsOBX6UWeFnmoxalt/FEeM8aTxCLejPcz
+mFWzXTG8Up/xmChLaze5tQ4gyNP67rEZCw/JCFCyM3N8vO/Jb5KfcMpk/z6uOEAl
+s+3xpzH1QRvLKRPf7MLgDWrTincRTKbk+2Ye0ie6RDT63wqXWpPnPMGyrPGsZ1hJ
+4lw/d/AXidHw2T6PtVkQ8mKOTuaNrT5HTiKlATrkgoYZFh/pr9RjSvIZqUR9+T3g
+nBJ7SOJuidBhYOUw7RHZ
+=cT7m
 -----END PGP SIGNATURE-----
 
---8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU--
-
-
---===============8916737297943615776==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============8916737297943615776==--
+--=-2aky9ghUYWvIG7lIr6Mc--
