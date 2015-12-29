@@ -1,73 +1,63 @@
-From: Milo Kim <milo.kim@ti.com>
-Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Tue, 29 Dec 2015 09:45:28 +0900
-Message-ID: <5681D7A8.2030101@ti.com>
-References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
- <1450868319-20513-5-git-send-email-contact@paulk.fr>
- <20151223115632.GS16023@sirena.org.uk> <568088B4.6090207@ti.com>
- <1451342963.14631.13.camel@collins>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1451342963.14631.13.camel@collins>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Kocialkowski <contact@paulk.fr>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Yong Li <sdliyong@gmail.com>
+Subject: [PATCH] ARM: OMAP2+: allow DEBUG_UNCOMPRESS for OMAP2+
+Date: Tue, 29 Dec 2015 12:09:19 +0800
+Message-ID: <1451362159-27910-1-git-send-email-sdliyong@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: sdliyong@gmail.com, linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgUGF1bCwKCk9uIDI5LzEyLzE1IDA3OjQ5LCBQYXVsIEtvY2lhbGtvd3NraSB3cm90ZToKPiBI
-aSBNaWxvLCB0aGFua3MgZm9yIHRoZSByZXZpZXcsCj4KPiBMZSBsdW5kaSAyOCBkw6ljZW1icmUg
-MjAxNSDDoCAwOTo1NiArMDkwMCwgTWlsbyBLaW0gYSDDqWNyaXQgOgo+PiBIaSBQYXVsLAo+Pgo+
-PiBPbiAyMy8xMi8xNSAyMDo1NiwgTWFyayBCcm93biB3cm90ZToKPj4+IE9uIFdlZCwgRGVjIDIz
-LCAyMDE1IGF0IDExOjU4OjM3QU0gKzAxMDAsIFBhdWwgS29jaWFsa293c2tpIHdyb3RlOgo+Pj4K
-Pj4+PiArCWdwaW8gPSBscC0+cGRhdGEtPmVuYWJsZV9ncGlvOwo+Pj4+ICsJaWYgKCFncGlvX2lz
-X3ZhbGlkKGdwaW8pKQo+Pj4+ICsJCXJldHVybiAwOwo+Pj4+ICsKPj4+PiArCS8qIEFsd2F5cyBz
-ZXQgZW5hYmxlIEdQSU8gaGlnaC4gKi8KPj4+PiArCXJldCA9IGRldm1fZ3Bpb19yZXF1ZXN0X29u
-ZShscC0+ZGV2LCBncGlvLCBHUElPRl9PVVRfSU5JVF9ISUdILCAiTFA4NzJYIEVOIik7Cj4+Pj4g
-KwlpZiAocmV0KSB7Cj4+Pj4gKwkJZGV2X2VycihscC0+ZGV2LCAiZ3BpbyByZXF1ZXN0IGVycjog
-JWRcbiIsIHJldCk7Cj4+Pj4gKwkJcmV0dXJuIHJldDsKPj4+PiArCX0KPj4+Cj4+PiBUaGlzIGlz
-bid0IHJlYWxseSBhZGRpbmcgc3VwcG9ydCBmb3IgdGhlIGVuYWJsZSBHUElPIGFzIHRoZSBjaGFu
-Z2Vsb2cKPj4+IHN1Z2dlc3RzLCBpdCdzIHJlcXVlc3RpbmcgYnV0IG5vdCBtYW5hZ2luZyB0aGUg
-R1BJTy4gIFNpbmNlIHRoZXJlIGlzCj4+PiBjb3JlIHN1cHBvcnQgZm9yIG1hbmdpbmcgZW5hYmxl
-IEdQSU9zIHRoaXMgc2VlbXMgZXNwZWNpYWxseSBzaWxseSwKPj4+IHBsZWFzZSB0ZWxsIHRoZSBj
-b3JlIGFib3V0IHRoZSBHUElPIGFuZCB0aGVuIGl0IHdpbGwgd29yayBhdCBydW50aW1lCj4+PiB0
-b28uCj4+Pgo+Pgo+PiBXaXRoIHJlZmVyZW5jZSB0byBteSBwcmV2aW91cyBtYWlsLCBleHRlcm5h
-bCBHUElPcyBmb3IgTERPMyBhbmQgQlVDSzIgaW4KPj4gTFA4NzI1IGNhbiBiZSBzcGVjaWZpZWQg
-dGhyb3VnaCByZWd1bGF0b3JfY29uZmlnLmVuYV9ncGlvLiBCVUNLMiBvbmx5Cj4+IGNhbiBiZSBj
-b250cm9sbGVkIGJ5IGV4dGVybmFsIHBpbiB3aGVuIENPTkZJRyBwaW4gaXMgZ3JvdW5kZWQuCj4+
-Cj4+IFBsZWFzZSBzZWUgdGhlIGRlc2NyaXB0aW9uIGF0IHBhZ2UgNSBvZiB0aGUgZGF0YXNoZWV0
-Lgo+Pgo+PiAJaHR0cDovL3d3dy50aS5jb20vbGl0L2RzL3N5bWxpbmsvbHA4NzI1LnBkZgo+Cj4g
-QWZ0ZXIgcmVhZGluZyB0aGUgZGF0YXNoZWV0cyB0aG9yb3VnaGx5LCBpdCBzZWVtcyB0byBtZSB0
-aGF0IGZvciB0aGUKPiBscDg3MjAsIHRoZSBFTiBwaW4gaXMgdXNlZCB0byBlbmFibGUgdGhlIHJl
-Z3VsYXRvcnMgb3V0cHV0LCB3aGljaCBpcyBhCj4gZ29vZCBmaXQgZm9yIHRoZSBjb3JlIHJlZ3Vs
-YXRvciBHUElPIGZyYW1ld29yaywgYXMgdGhlcmUgaXMgbm8gcmVhc29uIHRvCj4ga2VlcCBpdCBv
-biB3aGVuIG5vIHJlZ3VsYXRvciBpcyBpbiB1c2UuIFRoZSBzZXJpYWwgaW50ZXJmYWNlIGlzIGFs
-cmVhZHkKPiBhdmFpbGFibGUgd2hlbiBFTj0wIGFuZCByZWd1bGF0b3JzIGNhbiBiZSBjb25maWd1
-cmVkIGluIHRoYXQgc3RhdGUuIFRoZQo+IGxwODcyNSBzZWVtcyBzZWVtcyB0byBiZWhhdmUgdGhl
-IHNhbWUgd2hlbiBDT05GSUc9MCAodGhlIGRhdGFzaGVldAo+IGNsZWFybHkgc3RhdGVzOiAiQ09O
-RklHPTA6IEVOPTEgdHVybnMgb24gb3V0cHV0cyBvciBzdGFuZGJ5IG1vZGUgaWYKPiBFTj0wIiku
-IE9uIHRoZSBvdGhlciBoYW5kLCBpdCBpcyBpbmRlZWQgdXNlZCBhcyBhIHBvd2VyLW9uIHBpbiB3
-aGVuCj4gQ09ORklHPTEuCgpJIHRoaW5rIGl0J3MgZGlmZmVyZW50IHVzZSBjYXNlLiBMUDg3MjAv
-NSBhcmUgZGVzaWduZWQgZm9yIHN5c3RlbSBQTVUsIApzbyBzb21lIHJlZ3VsYXRvcnMgYXJlIGVu
-YWJsZWQgYnkgZGVmYXVsdCBhZnRlciB0aGUgZGV2aWNlIGlzIG9uLiBFTiBwaW4gCmlzIHVzZWQg
-Zm9yIHR1cm5pbmcgb24vb2ZmIHRoZSBjaGlwLiBUaGlzIHBpbiBkb2VzIG5vdCBjb250cm9sIHJl
-Z3VsYXRvciAKb3V0cHV0cyBkaXJlY3RseS4gSXQncyBzZXBhcmF0ZSBmdW5jdGlvbmFsIGJsb2Nr
-IGluIHRoZSBzaWxpY29uLgoKT24gdGhlIG90aGVyIGhhbmQsICdlbmFfZ3BpbycgaXMgdXNlZCBm
-b3IgZWFjaCByZWd1bGF0b3IgY29udHJvbCBpdHNlbGYuCkZvciBleGFtcGxlLCBXTTg5OTQgaGFz
-IHR3byBMRE9zIHdoaWNoIGFyZSBjb250cm9sbGVkIGJ5IGV4dGVybmFsIHBpbnMuIApMRE9zIGFy
-ZSBlbmFibGVkL2Rpc2FibGVkIHRocm91Z2ggTERPMUVOQSBhbmQgTERPMkVOQSBwaW5zLiBJbiB0
-aGlzIApjYXNlLCAnZW5hX2dwaW8nIGlzIHVzZWQuCgoJaHR0cDovL3d3dy5jaXJydXMuY29tL2Vu
-L3B1YnMvcHJvRGF0YXNoZWV0L1dNODk5NF92NC40LnBkZgoJKHBsZWFzZSByZWZlciB0byBwYWdl
-IDIyNCBhbmQgMjI1KQoKQmVzdCByZWdhcmRzLApNaWxvCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
-aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
-ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Based on the below
+commit ae3c99a26c60 ("ARM: 7806/1: allow DEBUG_UNCOMPRESS for Tegra"),
+change the .data section to .text section,
+to enable DEBUG_UNCOMPRESS for OMAP2+ platforms
+Tested okay using BeagleBone Black
+
+Signed-off-by: Yong Li <sdliyong@gmail.com>
+---
+ arch/arm/Kconfig.debug             |  2 +-
+ arch/arm/include/debug/omap2plus.S | 13 ++++++++++---
+ 2 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+index 259c0ca..e5ae36a 100644
+--- a/arch/arm/Kconfig.debug
++++ b/arch/arm/Kconfig.debug
+@@ -1596,7 +1596,7 @@ config DEBUG_UART_8250_FLOW_CONTROL
+ config DEBUG_UNCOMPRESS
+ 	bool
+ 	depends on ARCH_MULTIPLATFORM || PLAT_SAMSUNG || ARM_SINGLE_ARMV7M
+-	default y if DEBUG_LL && !DEBUG_OMAP2PLUS_UART && \
++	default y if DEBUG_LL && (!DEBUG_OMAP2PLUS_UART || !ZBOOT_ROM) && \
+ 		     (!DEBUG_TEGRA_UART || !ZBOOT_ROM)
+ 	help
+ 	  This option influences the normal decompressor output for
+diff --git a/arch/arm/include/debug/omap2plus.S b/arch/arm/include/debug/omap2plus.S
+index 6d867ae..12421f9 100644
+--- a/arch/arm/include/debug/omap2plus.S
++++ b/arch/arm/include/debug/omap2plus.S
+@@ -58,11 +58,18 @@
+ 
+ #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
+ 
++#if defined(ZIMAGE)
++	omap_uart_phys:	.word	0
++	omap_uart_virt:	.word	0
++	omap_uart_lsr:	.word	0
++#else
++
+ 		.pushsection .data
+-omap_uart_phys:	.word	0
+-omap_uart_virt:	.word	0
+-omap_uart_lsr:	.word	0
++	omap_uart_phys:	.word	0
++	omap_uart_virt:	.word	0
++	omap_uart_lsr:	.word	0
+ 		.popsection
++#endif
+ 
+ 		.macro	addruart, rp, rv, tmp
+ 
+-- 
+2.1.4
