@@ -1,123 +1,73 @@
-From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+From: Milo Kim <milo.kim@ti.com>
 Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Mon, 28 Dec 2015 23:49:23 +0100
-Message-ID: <1451342963.14631.13.camel@collins>
+Date: Tue, 29 Dec 2015 09:45:28 +0900
+Message-ID: <5681D7A8.2030101@ti.com>
 References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
-	 <1450868319-20513-5-git-send-email-contact@paulk.fr>
-	 <20151223115632.GS16023@sirena.org.uk> <568088B4.6090207@ti.com>
+ <1450868319-20513-5-git-send-email-contact@paulk.fr>
+ <20151223115632.GS16023@sirena.org.uk> <568088B4.6090207@ti.com>
+ <1451342963.14631.13.camel@collins>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-ymqSXsFJFD9yQXOqJbge"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <568088B4.6090207-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1451342963.14631.13.camel@collins>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Kocialkowski <contact@paulk.fr>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
---=-ymqSXsFJFD9yQXOqJbge
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi Milo, thanks for the review,
-
-Le lundi 28 d=C3=A9cembre 2015 =C3=A0 09:56 +0900, Milo Kim a =C3=A9crit :
-> Hi Paul,
->=20
-> On 23/12/15 20:56, Mark Brown wrote:
-> > On Wed, Dec 23, 2015 at 11:58:37AM +0100, Paul Kocialkowski wrote:
-> >
-> >> +	gpio =3D lp->pdata->enable_gpio;
-> >> +	if (!gpio_is_valid(gpio))
-> >> +		return 0;
-> >> +
-> >> +	/* Always set enable GPIO high. */
-> >> +	ret =3D devm_gpio_request_one(lp->dev, gpio, GPIOF_OUT_INIT_HIGH, "L=
-P872X EN");
-> >> +	if (ret) {
-> >> +		dev_err(lp->dev, "gpio request err: %d\n", ret);
-> >> +		return ret;
-> >> +	}
-> >
-> > This isn't really adding support for the enable GPIO as the changelog
-> > suggests, it's requesting but not managing the GPIO.  Since there is
-> > core support for manging enable GPIOs this seems especially silly,
-> > please tell the core about the GPIO and then it will work at runtime
-> > too.
-> >
->=20
-> With reference to my previous mail, external GPIOs for LDO3 and BUCK2 in=
-=20
-> LP8725 can be specified through regulator_config.ena_gpio. BUCK2 only=20
-> can be controlled by external pin when CONFIG pin is grounded.
->=20
-> Please see the description at page 5 of the datasheet.
->=20
-> 	http://www.ti.com/lit/ds/symlink/lp8725.pdf
-
-After reading the datasheets thoroughly, it seems to me that for the
-lp8720, the EN pin is used to enable the regulators output, which is a
-good fit for the core regulator GPIO framework, as there is no reason to
-keep it on when no regulator is in use. The serial interface is already
-available when EN=3D0 and regulators can be configured in that state. The
-lp8725 seems seems to behave the same when CONFIG=3D0 (the datasheet
-clearly states: "CONFIG=3D0: EN=3D1 turns on outputs or standby mode if
-EN=3D0"). On the other hand, it is indeed used as a power-on pin when
-CONFIG=3D1.
-
-Since my intent here is to cover the lp8720 use case, I suggest that we
-implement this using the core regulator GPIO framework (I have patches
-ready for that) and leave out the case where CONFIG=3D1, which could be
-dealt with later by providing that piece of information via platform
-data (and devicetree) and then either use the regulator GPIO framework
-(when CONFIG=3D0 and default) or register the GPIO within the driver and
-keep it on at all times (when CONFIG=3D1).
-
-I could most certainly implement that behaviour, but I'd rather leave it
-to someone else (or at least the testing) since I don't have any lp8725
-to play with.
-
-What do you think?
-
---=20
-Paul Kocialkowski, Replicant developer
-
-Replicant is a fully free Android distribution running on several
-devices, a free software mobile operating system putting the emphasis on
-freedom and privacy/security.
-
-Website: https://www.replicant.us/
-Blog: https://blog.replicant.us/
-Wiki/tracker/forums: https://redmine.replicant.us/
-
-
---=-ymqSXsFJFD9yQXOqJbge
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAABAgAGBQJWgbxzAAoJEIT9weqP7pUMW4YP/jCZmqRO+WONkjiP1EobL7eO
-E73h0LSxtG+LEUgKF84J/ywDEzkl4IWF1L3G3CbDLeVVvhrQNZ4Dmwk3Hnv8Uvbp
-z3Zwy/F8IIsj8m7+zalZ4L/X2jxCTzC2cTskgk1xF7anKL0IeTwQUAgPT2/rFsOK
-+9BOT2ATV6hmesKSkKqksPZUa4yZybPxzpwpz/jKQFR8TpjiwPb1eK7itMjUoyiz
-VJ3YOg3tdLEIX2ncr++0t5/49hhHKdn2Kc2HPvh8z3+PeUqQ0HKCt0qc1arqT7VA
-J88XZZwy8canKUZVoLPouP8wSfWaZObfQatHtEm5en+8ij2e1TUOHXUs1qjDoKIN
-aD2hpYsW6VvcExujO0TFMgspGmVqtyGdWWjG6XKjKOjj/vTu3uJOlqngYmKETsT3
-dpJYbPbaghRFVdjiQd5o6sk4fZ7ZdfDSzpwEThDHu4W4J4fSEO6lfMzfTuiIeLIG
-ocMOaDuUxlFfikAoeG5BA/vQp9rkTfm2s9rEJgli1C5SdmnKaP9Qb0Zy606tApRu
-L3WR6S8O4LV3ses+66I/j1Kqo6c+BxGhE1JPIKH980CfheBoX3AYesADpGeGBbYz
-1V4vUnESToKZqsrjqaAQozF7ezsansRrwUDesHBCG2TlZNDQz4p9k48Q09tkrX5e
-fBXxbybRWTB/hGfCvdSL
-=tJGs
------END PGP SIGNATURE-----
-
---=-ymqSXsFJFD9yQXOqJbge--
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUGF1bCwKCk9uIDI5LzEyLzE1IDA3OjQ5LCBQYXVsIEtvY2lhbGtvd3NraSB3cm90ZToKPiBI
+aSBNaWxvLCB0aGFua3MgZm9yIHRoZSByZXZpZXcsCj4KPiBMZSBsdW5kaSAyOCBkw6ljZW1icmUg
+MjAxNSDDoCAwOTo1NiArMDkwMCwgTWlsbyBLaW0gYSDDqWNyaXQgOgo+PiBIaSBQYXVsLAo+Pgo+
+PiBPbiAyMy8xMi8xNSAyMDo1NiwgTWFyayBCcm93biB3cm90ZToKPj4+IE9uIFdlZCwgRGVjIDIz
+LCAyMDE1IGF0IDExOjU4OjM3QU0gKzAxMDAsIFBhdWwgS29jaWFsa293c2tpIHdyb3RlOgo+Pj4K
+Pj4+PiArCWdwaW8gPSBscC0+cGRhdGEtPmVuYWJsZV9ncGlvOwo+Pj4+ICsJaWYgKCFncGlvX2lz
+X3ZhbGlkKGdwaW8pKQo+Pj4+ICsJCXJldHVybiAwOwo+Pj4+ICsKPj4+PiArCS8qIEFsd2F5cyBz
+ZXQgZW5hYmxlIEdQSU8gaGlnaC4gKi8KPj4+PiArCXJldCA9IGRldm1fZ3Bpb19yZXF1ZXN0X29u
+ZShscC0+ZGV2LCBncGlvLCBHUElPRl9PVVRfSU5JVF9ISUdILCAiTFA4NzJYIEVOIik7Cj4+Pj4g
+KwlpZiAocmV0KSB7Cj4+Pj4gKwkJZGV2X2VycihscC0+ZGV2LCAiZ3BpbyByZXF1ZXN0IGVycjog
+JWRcbiIsIHJldCk7Cj4+Pj4gKwkJcmV0dXJuIHJldDsKPj4+PiArCX0KPj4+Cj4+PiBUaGlzIGlz
+bid0IHJlYWxseSBhZGRpbmcgc3VwcG9ydCBmb3IgdGhlIGVuYWJsZSBHUElPIGFzIHRoZSBjaGFu
+Z2Vsb2cKPj4+IHN1Z2dlc3RzLCBpdCdzIHJlcXVlc3RpbmcgYnV0IG5vdCBtYW5hZ2luZyB0aGUg
+R1BJTy4gIFNpbmNlIHRoZXJlIGlzCj4+PiBjb3JlIHN1cHBvcnQgZm9yIG1hbmdpbmcgZW5hYmxl
+IEdQSU9zIHRoaXMgc2VlbXMgZXNwZWNpYWxseSBzaWxseSwKPj4+IHBsZWFzZSB0ZWxsIHRoZSBj
+b3JlIGFib3V0IHRoZSBHUElPIGFuZCB0aGVuIGl0IHdpbGwgd29yayBhdCBydW50aW1lCj4+PiB0
+b28uCj4+Pgo+Pgo+PiBXaXRoIHJlZmVyZW5jZSB0byBteSBwcmV2aW91cyBtYWlsLCBleHRlcm5h
+bCBHUElPcyBmb3IgTERPMyBhbmQgQlVDSzIgaW4KPj4gTFA4NzI1IGNhbiBiZSBzcGVjaWZpZWQg
+dGhyb3VnaCByZWd1bGF0b3JfY29uZmlnLmVuYV9ncGlvLiBCVUNLMiBvbmx5Cj4+IGNhbiBiZSBj
+b250cm9sbGVkIGJ5IGV4dGVybmFsIHBpbiB3aGVuIENPTkZJRyBwaW4gaXMgZ3JvdW5kZWQuCj4+
+Cj4+IFBsZWFzZSBzZWUgdGhlIGRlc2NyaXB0aW9uIGF0IHBhZ2UgNSBvZiB0aGUgZGF0YXNoZWV0
+Lgo+Pgo+PiAJaHR0cDovL3d3dy50aS5jb20vbGl0L2RzL3N5bWxpbmsvbHA4NzI1LnBkZgo+Cj4g
+QWZ0ZXIgcmVhZGluZyB0aGUgZGF0YXNoZWV0cyB0aG9yb3VnaGx5LCBpdCBzZWVtcyB0byBtZSB0
+aGF0IGZvciB0aGUKPiBscDg3MjAsIHRoZSBFTiBwaW4gaXMgdXNlZCB0byBlbmFibGUgdGhlIHJl
+Z3VsYXRvcnMgb3V0cHV0LCB3aGljaCBpcyBhCj4gZ29vZCBmaXQgZm9yIHRoZSBjb3JlIHJlZ3Vs
+YXRvciBHUElPIGZyYW1ld29yaywgYXMgdGhlcmUgaXMgbm8gcmVhc29uIHRvCj4ga2VlcCBpdCBv
+biB3aGVuIG5vIHJlZ3VsYXRvciBpcyBpbiB1c2UuIFRoZSBzZXJpYWwgaW50ZXJmYWNlIGlzIGFs
+cmVhZHkKPiBhdmFpbGFibGUgd2hlbiBFTj0wIGFuZCByZWd1bGF0b3JzIGNhbiBiZSBjb25maWd1
+cmVkIGluIHRoYXQgc3RhdGUuIFRoZQo+IGxwODcyNSBzZWVtcyBzZWVtcyB0byBiZWhhdmUgdGhl
+IHNhbWUgd2hlbiBDT05GSUc9MCAodGhlIGRhdGFzaGVldAo+IGNsZWFybHkgc3RhdGVzOiAiQ09O
+RklHPTA6IEVOPTEgdHVybnMgb24gb3V0cHV0cyBvciBzdGFuZGJ5IG1vZGUgaWYKPiBFTj0wIiku
+IE9uIHRoZSBvdGhlciBoYW5kLCBpdCBpcyBpbmRlZWQgdXNlZCBhcyBhIHBvd2VyLW9uIHBpbiB3
+aGVuCj4gQ09ORklHPTEuCgpJIHRoaW5rIGl0J3MgZGlmZmVyZW50IHVzZSBjYXNlLiBMUDg3MjAv
+NSBhcmUgZGVzaWduZWQgZm9yIHN5c3RlbSBQTVUsIApzbyBzb21lIHJlZ3VsYXRvcnMgYXJlIGVu
+YWJsZWQgYnkgZGVmYXVsdCBhZnRlciB0aGUgZGV2aWNlIGlzIG9uLiBFTiBwaW4gCmlzIHVzZWQg
+Zm9yIHR1cm5pbmcgb24vb2ZmIHRoZSBjaGlwLiBUaGlzIHBpbiBkb2VzIG5vdCBjb250cm9sIHJl
+Z3VsYXRvciAKb3V0cHV0cyBkaXJlY3RseS4gSXQncyBzZXBhcmF0ZSBmdW5jdGlvbmFsIGJsb2Nr
+IGluIHRoZSBzaWxpY29uLgoKT24gdGhlIG90aGVyIGhhbmQsICdlbmFfZ3BpbycgaXMgdXNlZCBm
+b3IgZWFjaCByZWd1bGF0b3IgY29udHJvbCBpdHNlbGYuCkZvciBleGFtcGxlLCBXTTg5OTQgaGFz
+IHR3byBMRE9zIHdoaWNoIGFyZSBjb250cm9sbGVkIGJ5IGV4dGVybmFsIHBpbnMuIApMRE9zIGFy
+ZSBlbmFibGVkL2Rpc2FibGVkIHRocm91Z2ggTERPMUVOQSBhbmQgTERPMkVOQSBwaW5zLiBJbiB0
+aGlzIApjYXNlLCAnZW5hX2dwaW8nIGlzIHVzZWQuCgoJaHR0cDovL3d3dy5jaXJydXMuY29tL2Vu
+L3B1YnMvcHJvRGF0YXNoZWV0L1dNODk5NF92NC40LnBkZgoJKHBsZWFzZSByZWZlciB0byBwYWdl
+IDIyNCBhbmQgMjI1KQoKQmVzdCByZWdhcmRzLApNaWxvCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
