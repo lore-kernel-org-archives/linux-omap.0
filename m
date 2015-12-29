@@ -1,161 +1,162 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [RFC PATCH] thermal: Schedule a backup thermal shutdown workqueue
- after a known period of time to tackle failed poweroff
-Date: Tue, 29 Dec 2015 14:46:49 +0530
-Message-ID: <56824F81.7000202@ti.com>
-References: <1450676778-7840-1-git-send-email-j-keerthy@ti.com>
- <5681742C.8050805@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP display kconfig options changing
+Date: Tue, 29 Dec 2015 12:23:58 +0200
+Message-ID: <56825F3E.5070602@ti.com>
+References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
+ <56741FA9.3080607@ti.com> <20151218160514.GK23396@atomide.com>
+ <567430DB.4000507@ti.com>
+ <CABxcv==VKi5jJ7=tEBe5fiPUpqpmaBd7C=t+_JohdXLA7eMR2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <5681742C.8050805@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Keerthy <j-keerthy@ti.com>, rui.zhang@intel.com, edubezval@gmail.com
-Cc: linux-omap@vger.kernel.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============8916737297943615776=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CABxcv==VKi5jJ7=tEBe5fiPUpqpmaBd7C=t+_JohdXLA7eMR2Q@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+--===============8916737297943615776==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU"
 
-On Monday 28 December 2015 11:11 PM, Nishanth Menon wrote:
-> On 12/20/2015 11:46 PM, Keerthy wrote:
->
-> +linux-pm.
+--8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for looping!
+Hi Javier, Tony,
 
->
->> In few rare conditions like during boot up the orderly_poweroff
->> function might not be able to complete fully leaving the device
->> running at dangerously high temperatures. Hence adding a backup
->> workqueue to act after a known period of time and poweroff the device.
+On 22/12/15 23:18, Javier Martinez Canillas wrote:
+
+>> But if the userspace is using any omapfb specific apps, then yes, upda=
+te
+>> is necessary.
 >>
->
->
->> Suggested-by: Nishanth Menon <nm@ti.com>
->> Reported-by: Nishanth Menon <nm@ti.com>
->
-> The specific case I hit was a critical temperature event as soon as
-> the hwmon device was probed (the driver tmp102 was a kernel module).
->
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   drivers/thermal/Kconfig        |  9 +++++++++
->>   drivers/thermal/thermal_core.c | 26 ++++++++++++++++++++++++++
->>   2 files changed, 35 insertions(+)
+>=20
+> Yes but these people should have a migration plan anyways since omapfb
+> (and fbdev in general) is going away right?
+
+Well, I would guess most people don't know/care about that.
+
+>> Ok. I think it's then best that I just update the defconfig to enable
+>> omapfb as modules, as it is currently.
 >>
->> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
->> index 8cc4ac6..25584ee 100644
->> --- a/drivers/thermal/Kconfig
->> +++ b/drivers/thermal/Kconfig
->> @@ -92,6 +92,15 @@ config THERMAL_DEFAULT_GOV_POWER_ALLOCATOR
->>
->>   endchoice
->>
->> +config THERMAL_BKUP_SHUTDOWN_DELAY_MS
->> +        int "Thermal shutdown  backup delay in milli-seconds"
->> +        depends on THERMAL
->> +        default "5000"
->> +        ---help---
->> +        The number of milliseconds to delay after orderly_poweroff call.
->
-> Probably needs a rephrase.
+>=20
+> In that case I think you should squash the defconfig changes with
+> commit ("70ba4e05531f omapfb/displays: change CONFIG_DISPLAY_* to
+> CONFIG_FB_OMAP2_*") to maintain bisectability.
 
-Delay in milliseconds before the backup thermal shutdown is triggered.
+Here's the diff to change the defconfig to enable the same items as befor=
+e:
 
->
->> +
->> +        Default: 5000 (5 seconds)
->> +
->>   config THERMAL_GOV_FAIR_SHARE
->>   	bool "Fair-share thermal governor"
->>   	help
->> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
->> index d9e525c..b793857 100644
->> --- a/drivers/thermal/thermal_core.c
->> +++ b/drivers/thermal/thermal_core.c
->> @@ -61,6 +61,12 @@ static DEFINE_MUTEX(thermal_governor_lock);
->>
->>   static struct thermal_governor *def_governor;
->>
->> +#ifdef CONFIG_THERMAL_BKUP_SHUTDOWN_DELAY_MS
->> +#define BKUP_SHUTDOWN_DELAY CONFIG_THERMAL_BKUP_SHUTDOWN_DELAY_MS
->> +#else
->> +#define BKUP_SHUTDOWN_DELAY 5000
->> +#endif
->> +
->
-> I am not sure if this #ifdeffery is even needed.
->
->
-> Eduardo, Rui: If this is not the suggested technique, maybe you guys
-> could suggest how we could handle a case where userspace might be
-> hungup due to some reason and a case where a critical temperature
-> event in the middle of device probe was triggered?
->
-> Obviously, we'd like to take into consideration userspace latencies as
-> well- but that is very specific to fs being run.. not really a simple
-> problem, IMHO..
->
->>   static struct thermal_governor *__find_governor(const char *name)
->>   {
->>   	struct thermal_governor *pos;
->> @@ -423,6 +429,18 @@ static void handle_non_critical_trips(struct thermal_zone_device *tz,
->>   		       def_governor->throttle(tz, trip);
->>   }
->>
->> +static void bkup_shutdown_func(struct work_struct *unused);
->> +static DECLARE_DELAYED_WORK(bkup_shutdown_work, bkup_shutdown_func);
->> +
->> +static void bkup_shutdown_func(struct work_struct *work)
->> +{
->> +	pr_warn("Orderly_poweroff has failed! Attempting kernel_power_off\n");
->> +	kernel_power_off();
->> +
->> +	pr_warn("kernel_power_off has failed! Attempting emergency_restart\n");
->> +	emergency_restart();
->
-> I think documentation is necessary that we are hoping for bootloader
-> to be able to detect and halt as needed -> risk here obviously is an
-> infinite reboot loop :( .
+diff --git a/arch/arm/configs/omap2plus_defconfig
+b/arch/arm/configs/omap2plus_defconfig
+index c5e1943e5427..b9581f1f0536 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -290,24 +290,23 @@ CONFIG_FB=3Dy
+ CONFIG_FIRMWARE_EDID=3Dy
+ CONFIG_FB_MODE_HELPERS=3Dy
+ CONFIG_FB_TILEBLITTING=3Dy
+-CONFIG_OMAP2_DSS=3Dm
+-CONFIG_OMAP5_DSS_HDMI=3Dy
+-CONFIG_OMAP2_DSS_SDI=3Dy
+-CONFIG_OMAP2_DSS_DSI=3Dy
++CONFIG_FB_OMAP5_DSS_HDMI=3Dy
++CONFIG_FB_OMAP2_DSS_SDI=3Dy
++CONFIG_FB_OMAP2_DSS_DSI=3Dy
+ CONFIG_FB_OMAP2=3Dm
+-CONFIG_DISPLAY_ENCODER_TFP410=3Dm
+-CONFIG_DISPLAY_ENCODER_TPD12S015=3Dm
+-CONFIG_DISPLAY_CONNECTOR_DVI=3Dm
+-CONFIG_DISPLAY_CONNECTOR_HDMI=3Dm
+-CONFIG_DISPLAY_CONNECTOR_ANALOG_TV=3Dm
+-CONFIG_DISPLAY_PANEL_DPI=3Dm
+-CONFIG_DISPLAY_PANEL_DSI_CM=3Dm
+-CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=3Dm
+-CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02=3Dm
+-CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01=3Dm
+-CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1=3Dm
+-CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1=3Dm
+-CONFIG_DISPLAY_PANEL_NEC_NL8048HL11=3Dm
++CONFIG_FB_OMAP2_ENCODER_TFP410=3Dm
++CONFIG_FB_OMAP2_ENCODER_TPD12S015=3Dm
++CONFIG_FB_OMAP2_CONNECTOR_DVI=3Dm
++CONFIG_FB_OMAP2_CONNECTOR_HDMI=3Dm
++CONFIG_FB_OMAP2_CONNECTOR_ANALOG_TV=3Dm
++CONFIG_FB_OMAP2_PANEL_DPI=3Dm
++CONFIG_FB_OMAP2_PANEL_DSI_CM=3Dm
++CONFIG_FB_OMAP2_PANEL_SONY_ACX565AKM=3Dm
++CONFIG_FB_OMAP2_PANEL_LGPHILIPS_LB035Q02=3Dm
++CONFIG_FB_OMAP2_PANEL_SHARP_LS037V7DW01=3Dm
++CONFIG_FB_OMAP2_PANEL_TPO_TD028TTEC1=3Dm
++CONFIG_FB_OMAP2_PANEL_TPO_TD043MTEA1=3Dm
++CONFIG_FB_OMAP2_PANEL_NEC_NL8048HL11=3Dm
+ CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
+ CONFIG_LCD_CLASS_DEVICE=3Dy
+ CONFIG_LCD_PLATFORM=3Dy
 
-Agreed.
+Tony, the diff above looks like something that's safe to merge via fbdev
+tree. The context contains only display related configs. Is it ok if I
+squash the above change to my series to keep bisectability?
 
->
->
->> +}
->> +
->>   static void handle_critical_trips(struct thermal_zone_device *tz,
->>   				int trip, enum thermal_trip_type trip_type)
->>   {
->> @@ -443,6 +461,14 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
->>   		dev_emerg(&tz->device,
->>   			  "critical temperature reached(%d C),shutting down\n",
->>   			  tz->temperature / 1000);
->> +		/**
->
-> needs to be kernel doc style?
->
->> +		 * This is a backup option to shutdown the
->> +		 * system in case orderly_poweroff
->> +		 * fails
-> Maybe adjust to 80char?
+> Alternatively, the current panel and encoders Kconfig symbols could
+> remain for omapfb since that's the current ones used in
+> omap2plus_defconfig where omapfb is the default and have new Kconfig
+> symbols for omapdrm (i.e: CONFIG_DRM_OMAP_ENCODER_TFP410).
 
-Okay.
+I want to change the config symbols, as the current ones are too generic
+(e.g. CONFIG_DISPLAY_PANEL_DPI doesn't mention OMAP anywhere). I think
+this is a good time to change them for omapfb. But this is probably a
+good time to change them for omapdrm also, so I think I'll add that chang=
+e.
 
->
->> +		 */
->> +		schedule_delayed_work(&bkup_shutdown_work,
->> +				      msecs_to_jiffies(BKUP_SHUTDOWN_DELAY));
->> +
->>   		orderly_poweroff(true);
->>   	}
->>   }
->>
->
->
+ Tomi
 
-I will wait for Eduardo/Rui's inputs before posting the next version.
 
-Best Regards,
-Keerthy
+--8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWgl8+AAoJEPo9qoy8lh71lwAP/1K0IhT/t12uvmozC1hvmFAN
+XfG2Y0fBmGyeNQkFxdu19Lf2hC0yUrqapRZHiUZvxjO+5dREbvDL4E8g7PhNAoQ6
+eh8bhYR5OI3YNc0dnvDlPCQfj9WMLiwk7XgPAP4c1o7Y7RZQpvz167P1Ur+7ezrW
+epJyjaDwt6Tjz4xXgp7PM/lY89AVX7JVBB7rheMI3GTea8ofGan9+WrlMqmT7j8X
+wENbIC0HqZvec1eIxqgwBrxO/aBjqg5Ca+i7hvr94wwH+nXLfnrT/i0WME2sKYuX
+xCncazZuF21+3qJK7UMYeP//5M2kvgAcSN6QwYFp+IDMbDSAGe8jHfojecQ2O+dr
+wllru1bAXyubZCOTS1EkMy/qqZ0BZHu1zr8qmYz148TCpuluEOvHa2AVkLueaObB
+Ya0qtm9I3ayIbLhTzpqyYundvooQa4iSMcLZrrWcoHVI6End93/K6+dXOOGUHvOT
+yqL6Aewrbi0+V0zx3P8bgYUWGtv7hf11XcVZrQQpmO1SQHAeRsdV1PRnDdGQrSdu
+sPQUyGUE7JT7HWxIeKUr9b2MWo3L71QnK+hxn1gSyODTNok8TSd4xW+GOrut9LZi
+SUp4r6Z0yTSKEwe6x0gWbB4Uhtv+1iEJY9PObvDvhwoi9ISiJWLRuJam6Bq6nQBw
+xZeEIXgDhQNa8jJvaIf5
+=yND0
+-----END PGP SIGNATURE-----
+
+--8mk3jNSRMklVsOWVlwWsdJqQvwXvvw7hU--
+
+
+--===============8916737297943615776==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8916737297943615776==--
