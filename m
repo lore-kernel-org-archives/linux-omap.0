@@ -1,88 +1,123 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] mfd: twl-core: One function call less in add_numbered_child()
- after error detection
-Date: Tue, 29 Dec 2015 19:34:16 +0100
-Message-ID: <5682D228.7070902@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/3] ti-st: use device handles and add device tree binding
+Date: Tue, 29 Dec 2015 12:35:34 -0600
+Message-ID: <20151229183534.GM12450@rob-hp-laptop>
+References: <1450870253-8694-1-git-send-email-eyalr@ti.com>
+ <8665E2433BC68541A24DFFCA87B70F5B23759A5B@DFRE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <8665E2433BC68541A24DFFCA87B70F5B23759A5B-1tpBd5JUCm6IQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "pawel.moll-5wv7dgnIgG8@public.gmane.org" <pawel.moll-5wv7dgnIgG8@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Dec 2015 19:29:08 +0100
+On Wed, Dec 23, 2015 at 11:38:29AM +0000, Reizer, Eyal wrote:
+> - Add support for getting the platform data which includes the uart
+>   used and gpio pin used for enable from device tree.
+>=20
+> - Fix the implementation for using device handle for the uart and
+>   gpiod for the enable pin, instead of device name (as string) used
+>   for the uart and pio number which are both bad practice.
+>=20
+> Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/misc/ti-st.txt |   42 ++++++
+>  arch/arm/mach-omap2/pdata-quirks.c               |   16 ++-
+>  drivers/misc/ti-st/st_kim.c                      |  159 ++++++++++++=
+++++------
+>  drivers/misc/ti-st/st_ll.c                       |   16 ++-
+>  include/linux/ti_wilink_st.h                     |   13 +-
 
-The platform_device_put() function was called in one case by the
-add_numbered_child() function during error handling even if the passed
-variable "pdev" contained a null pointer.
+I'd suggest you look at commit c0bd1b9e58959c5 (Revert "ti-st: add=20
+device tree support") first.
 
-Implementation details could be improved by the adjustment of jump targets
-according to the Linux coding style convention.
+>  5 files changed, 190 insertions(+), 56 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/misc/ti-st.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/misc/ti-st.txt b/Docum=
+entation/devicetree/bindings/misc/ti-st.txt
+> new file mode 100644
+> index 0000000..4490da6
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/misc/ti-st.txt
+> @@ -0,0 +1,42 @@
+> +TI Wilink 6/7/8 (wl12xx/wl18xx) Shared transport driver
 
-This issue was detected by using the Coccinelle software.
+Bindings shouldn't be describing drivers...
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/mfd/twl-core.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+> +
+> +TI=E2=80=99s Wireless Connectivity chips support Bluetooth (BT), WiF=
+i, and GPS
+> +technology cores in a single die.
+> +
+> +Such a multi-core combo chip will be interfaced to the application p=
+rocessor
+> +using a single physical port (like UART).
+> +
+> +Shared Transport (ST) software enables BT and GPS protocols or softw=
+are
+> +components to interact with their respective cores over single physi=
+cal port.
+> +ST uses logical channels, over physical transport, to communicate wi=
+th
+> +individual cores.
+> +
+> +Logical channels 1, 2, 3, and 4 are used for BT packets, channel 8 f=
+or FM,
+> +channel 9 for GPS and channels 30, 31, 32, and 33 are used for Chip =
+Power
+> +Management (PM).
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 831696e..0d9350c 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -625,7 +625,7 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
- 	if (!pdev) {
- 		dev_dbg(&twl->client->dev, "can't alloc dev\n");
- 		status = -ENOMEM;
--		goto err;
-+		goto report_failure;
- 	}
- 
- 	pdev->dev.parent = &twl->client->dev;
-@@ -634,7 +634,7 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
- 		status = platform_device_add_data(pdev, pdata, pdata_len);
- 		if (status < 0) {
- 			dev_dbg(&pdev->dev, "can't add platform_data\n");
--			goto err;
-+			goto put_device;
- 		}
- 	}
- 
-@@ -647,21 +647,20 @@ add_numbered_child(unsigned mod_no, const char *name, int num,
- 		status = platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
- 		if (status < 0) {
- 			dev_dbg(&pdev->dev, "can't add irqs\n");
--			goto err;
-+			goto put_device;
- 		}
- 	}
- 
- 	status = platform_device_add(pdev);
--	if (status == 0)
-+	if (!status) {
- 		device_init_wakeup(&pdev->dev, can_wakeup);
--
--err:
--	if (status < 0) {
--		platform_device_put(pdev);
--		dev_err(&twl->client->dev, "can't add %s dev\n", name);
--		return ERR_PTR(status);
-+		return &pdev->dev;
- 	}
--	return &pdev->dev;
-+put_device:
-+	platform_device_put(pdev);
-+report_failure:
-+	dev_err(&twl->client->dev, "can't add %s dev\n", name);
-+	return ERR_PTR(status);
- }
- 
- static inline struct device *add_child(unsigned mod_no, const char *name,
--- 
-2.6.3
+All this is irrelevant for a binding.=20
 
+> +
+> +This node provides properties for passing parameters to the ti share=
+d
+> +transport driver.
+> +
+> +Required properties:
+> + - compatible: should be the following:
+> +    * "kim" - ti-st parameters
+
+Who is kim? Certainly not a description of a h/w block.
+
+> +
+> +Optional properties:
+> + - nshutdown-gpios : specifies attributes for gpio ping used for ena=
+bling
+> +	the bluetooth,gps and FM sub systems
+> + - serial-device : the phandle for the phisical uart used for intera=
+cting
+> + 	with the wilink device
+
+There have been multiple discussions on serial slave devices recently.=20
+I'm not going to accept any device binding without a common uart slave=20
+device binding first.
+
+> + - flow_cntrl : Indicates if uart flow control is used
+> + - flow_cntrl : uart baud rate in BPS
+
+Typo here, but these should be part of a common serial slave binding.
+
+Don't use '_' in property names.
+
+> +
+> +Example:
+> +
+> +kim {
+> +	compatible =3D "kim";
+> +	nshutdown-gpios =3D <&gpio3 21 GPIO_ACTIVE_HIGH>;
+> +	serial-device =3D <&uart1>;
+> +	flow_cntrl =3D <1>;
+> +	flow_cntrl =3D <3000000>;
+> +};
+> +
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
