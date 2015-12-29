@@ -1,44 +1,102 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Tue, 29 Dec 2015 14:02:44 -0600
-Message-ID: <20151229200244.GA27426@rob-hp-laptop>
-References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
- <1450868319-20513-5-git-send-email-contact@paulk.fr>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Routable IRQs
+Date: Tue, 29 Dec 2015 14:11:08 -0600
+Message-ID: <878u4dj9r7.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1450868319-20513-5-git-send-email-contact-W9ppeneeCTY@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+	protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 23, 2015 at 11:58:37AM +0100, Paul Kocialkowski wrote:
-> LP872x regulators are made active via the EN pin, which might be hooked to a
-> GPIO. This adds support for driving the GPIO high when the driver is in use.
-> 
-> Signed-off-by: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-> ---
->  .../devicetree/bindings/regulator/lp872x.txt       |  1 +
->  drivers/regulator/lp872x.c                         | 33 ++++++++++++++++++++--
->  include/linux/regulator/lp872x.h                   |  2 ++
->  3 files changed, 33 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/regulator/lp872x.txt b/Documentation/devicetree/bindings/regulator/lp872x.txt
-> index 7818318..0559c25 100644
-> --- a/Documentation/devicetree/bindings/regulator/lp872x.txt
-> +++ b/Documentation/devicetree/bindings/regulator/lp872x.txt
-> @@ -28,6 +28,7 @@ Optional properties:
->    - ti,dvs-gpio: GPIO specifier for external DVS pin control of LP872x devices.
->    - ti,dvs-vsel: DVS selector. 0 = SEL_V1, 1 = SEL_V2.
->    - ti,dvs-state: initial DVS pin state. 0 = DVS_LOW, 1 = DVS_HIGH.
-> +  - ti,enable-gpio: GPIO specifier for EN pin control of LP872x devices.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Should be "-gpios" instead of "-gpio".
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Thomas & Jason,
+
+I'm dealing with an interesting situation which I'm wondering if Linux
+already support for.
+
+Basically, in some TI SoCs we have what's referred to as Programmable
+Real-Time Unit SubSystem (PRUSS). That's essentially a really simple,
+low latency, single cycle architecture which is pretty darn good for bit
+banging peripherals (ETH, SPI, I2C, UART, etc). It's very predicatable
+because every instruction takes 5ns and interrupts don't cause
+exceptions, they just get registered.
+
+Anyway, the interesting part is that PRUSS has 64 events (on current
+incarnations at least) and PRUSS has 10 physical IRQ lines to the ARM
+land. Each of these 64 events can be routed to any of these 10 IRQ
+lines. This might not be very useful on UP (AM335x & AM437x) other than
+the fact that soft-IP drivers running on Linux would need to guarantee
+they are the ones who should handle the IRQ. However, on SMP (AM57xx) we
+could have real tangible benefits by means of IRQ affinity, etc.
+
+So, the question is, what is there in IRQ subsystem today for routable
+IRQ support ?
+
+If a Diagram helps here's a simple one. Note that I'm not showing
+details on the PRUSS side, but that side can also map events pretty much
+any way it wants.
+
+ .--------------------.             .--------------------.
+ |      HOST CPU      |             |       PRUSS        |
+ |--------------------|             |--------------------|
+ |                    |             |                    |
+ |               irq0 |<-.----------|evt0                |
+ |                    |  |          |                    |
+ |               irq1 |  |  .-------|evt1                |
+ |                    |  |  |       |                    |
+ |               irq2 |  '----------|evt2                |
+ |                    |     |       |                    |
+ |               irq3 |     |       |                    |
+ |                    |     |       |                    |
+ |               irq4 |     |       | .                  |
+ |                    |     |       |                    |
+ |               irq5 |     |       | .                  |
+ |                    |     |       |                    |
+ |               irq6 |     |       | .                  |
+ |                    |     |       |                    |
+ |               irq7 |<----'       |                    |
+ |                    |             |                    |
+ |               irq8 |             |                    |
+ |                    |             |                    |
+ |               irq9 |<------------|evtN                |
+ '--------------------'             '--------------------'
+
+Given this setup, what I want to do, is let soft-IP drivers running on
+linux rely on standard *request_*irq() calls and DTS descrition. But I'm
+still considering how/if we should describe the routing itself or just
+go round-robin (i.o.w. irq0 -> evt0, irq1 -> evt1, ..., irq9 -> evt9,
+irq0 -> evt10, ...).
+
+Thoughts ?
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWgujdAAoJEIaOsuA1yqRECIgP/0YmgvMEvPLR+hFgHHgeQk9o
+C0AqsGqGO6T37xgl0dkiBCS42cbZzv74D4BYcH8Ta/cl7OCWSU8e1pDnXOYiVuxh
+2d3ikmO+wC1MHwbREpsdrUaH/6CHDHDj9QakpUvLhQ19LEFZQr8mLS5uH1mQIqIG
+Mgl7cNfC+n0wf/LQbhFLJyLtgXVbdxWFMW9/JEwrlvTySUxZuA8DiqpqUWE0VP9o
+bUDaTPVcd27deivsogh97D4tLBorHT3VlqRqEuy8wPxLFhwY8BUyi/sOaZst303t
+amqRdg+0rJshpYRE0Orau3nrXBfmoHb0PvOPkb/izTaK3HLPDoabpziZhjLnuhJ+
+pqTfnBnrLZXUKSYztn7I2Z+JjgOhT+Jy1UeNEyOcsPvVuEi63amdTsExBhWsVQWn
+4zbfIK5eAjEb6Ulk0Y65eOJILA1/hR1xCb75WI6kSHYtrf9yvxl98rrL0hXuat2/
+pDj+7YOEgG28+tLwy69b0JDoV6UETXBwoiQqprsH0fAsw06QFikJfmJtOEVrPPDO
+NnZxgnkxkXWrnETbZHACW7Ikyw89XouAR9WwyYBqtBhtIU/yxU/7CrPIVBGdu+TX
+1MypVpXWsEZ30LoQ4fzstf8yZg+gzhxkQOEaGahp/liuKXtnYTjR178MjlGQ0Z6X
+6TV2AY1O6ObSZ5UQmgtS
+=Jmmh
+-----END PGP SIGNATURE-----
+--=-=-=--
