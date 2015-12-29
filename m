@@ -1,41 +1,58 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 2/3] drivers: net: cpsw: fix error messages when using
- phy-handle DT property
-Date: Tue, 29 Dec 2015 14:30:34 -0600
-Message-ID: <20151229203034.GA18528@rob-hp-laptop>
-References: <1450830994-5450-1-git-send-email-drivshin.allworx@gmail.com>
- <1450830994-5450-3-git-send-email-drivshin.allworx@gmail.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] devicetree/bindings: add reset-gpios and
+ vcc-supply for panel-dpi
+Date: Tue, 29 Dec 2015 14:54:58 -0600
+Message-ID: <20151229205458.GA31241@rob-hp-laptop>
+References: <1450610002-10531-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1450610002-10531-2-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1450830994-5450-3-git-send-email-drivshin.allworx@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, David Miller <davem@davemloft.net>, Heiko Schocher <hs@denx.de>, Mugunthan V N <mugunthanvnm@ti.com>, Markus Brunner <systemprogrammierung.brunner@gmail.com>, Pascal Speck <kernel@iktek.de>, Daniel Trautmann <dtrautmann@ibhsoftec-sps.de>
+In-Reply-To: <1450610002-10531-2-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 22, 2015 at 07:36:33PM -0500, David Rivshin (Allworx) wrote:
-> From: David Rivshin <drivshin@allworx.com>
-> 
-> The phy-handle, phy_id, and fixed-link properties are mutually exclusive,
-> and only one need be specified. However if phy-handle was specified, an
-> error message would complain about the lack of phy_id or fixed-link.
-> 
-> Also, if phy-handle was specified and the subsequent of_phy_connect()
-> failed, the error message still referenced slaved->data->phy_id, which
-> would be empty. Instead, use the name of the device_node as a useful
-> identifier.
-> 
-> Fixes: 9e42f715264f ("drivers: net: cpsw: add phy-handle parsing")
-> Signed-off-by: David Rivshin <drivshin@allworx.com>
+On Sun, Dec 20, 2015 at 12:13:20PM +0100, Uwe Kleine-K=F6nig wrote:
+> Some displays have a reset input and/or need a regulator to function
+> properly. Allow to specify them for panel-dpi devices.
+>=20
+> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 > ---
-> This would require some adjustments to backport to 4.3-stable due to
-> other changes in this area. Let me know if you want a version of this
-> against v4.3.3.
-> 
->  Documentation/devicetree/bindings/net/cpsw.txt |  4 ++--
+>  Documentation/devicetree/bindings/display/panel/panel-dpi.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/display/panel/panel-dp=
+i.txt b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
+> index 216c894d4f99..b52ac52757df 100644
+> --- a/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
+> +++ b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
+> @@ -7,6 +7,8 @@ Required properties:
+>  Optional properties:
+>  - label: a symbolic name for the panel
+>  - enable-gpios: panel enable gpio
+> +- reset-gpios: GPIO to control the RESET pin
 
-For the binding:
+The problem with this in a generic binding is what if the panel has=20
+ordering requirements like enable gpio has to be inactive when reset=20
+is deasserted?
 
-Acked-by: Rob Herring <robh@kernel.org>
+> +- vcc-supply: phandle of regulator that will be used to enable power=
+ to the display
+
+What if there are 2 supplies?
+
+While there are limits to what can be described here, I'm okay with=20
+allowing these, so:
+
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
