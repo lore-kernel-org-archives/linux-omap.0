@@ -1,58 +1,82 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Wed, 30 Dec 2015 16:33:07 +0000
-Message-ID: <20151230163307.GW16023@sirena.org.uk>
-References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
- <1450868319-20513-5-git-send-email-contact@paulk.fr>
- <20151223115632.GS16023@sirena.org.uk>
- <568088B4.6090207@ti.com>
- <1451342963.14631.13.camel@collins>
- <5681D7A8.2030101@ti.com>
- <1451387613.18148.9.camel@collins>
- <568323B7.7080101@ti.com>
- <1451464521.2531.4.camel@collins>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: Routable IRQs
+Date: Wed, 30 Dec 2015 19:17:05 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1512301903450.28591@nanos>
+References: <878u4dj9r7.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="UTjKcilERHWBCdCp"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1451464521.2531.4.camel@collins>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Cc: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <878u4dj9r7.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Jason Cooper <jason@lakedaemon.net>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Felipe,
 
---UTjKcilERHWBCdCp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Tue, 29 Dec 2015, Felipe Balbi wrote:
+> Anyway, the interesting part is that PRUSS has 64 events (on current
+> incarnations at least) and PRUSS has 10 physical IRQ lines to the ARM
+> land. Each of these 64 events can be routed to any of these 10 IRQ
+> lines. This might not be very useful on UP (AM335x & AM437x) other than
+> the fact that soft-IP drivers running on Linux would need to guarantee
+> they are the ones who should handle the IRQ. However, on SMP (AM57xx) we
+> could have real tangible benefits by means of IRQ affinity, etc.
+> 
+> So, the question is, what is there in IRQ subsystem today for routable
+> IRQ support ?
+> 
+> If a Diagram helps here's a simple one. Note that I'm not showing
+> details on the PRUSS side, but that side can also map events pretty much
+> any way it wants.
+> 
+>  .--------------------.             .--------------------.
+>  |      HOST CPU      |             |       PRUSS        |
+>  |--------------------|             |--------------------|
+>  |                    |             |                    |
+>  |               irq0 |<-.----------|evt0                |
+>  |                    |  |          |                    |
+>  |               irq1 |  |  .-------|evt1                |
+>  |                    |  |  |       |                    |
+>  |               irq2 |  '----------|evt2                |
+>  |                    |     |       |                    |
+>  |               irq3 |     |       |                    |
+>  |                    |     |       |                    |
+>  |               irq4 |     |       | .                  |
+>  |                    |     |       |                    |
+>  |               irq5 |     |       | .                  |
+>  |                    |     |       |                    |
+>  |               irq6 |     |       | .                  |
+>  |                    |     |       |                    |
+>  |               irq7 |<----'       |                    |
+>  |                    |             |                    |
+>  |               irq8 |             |                    |
+>  |                    |             |                    |
+>  |               irq9 |<------------|evtN                |
+>  '--------------------'             '--------------------'
+> 
+> Given this setup, what I want to do, is let soft-IP drivers running on
+> linux rely on standard *request_*irq() calls and DTS descrition. But I'm
+> still considering how/if we should describe the routing itself or just
+> go round-robin (i.o.w. irq0 -> evt0, irq1 -> evt1, ..., irq9 -> evt9,
+> irq0 -> evt10, ...).
+> 
+> Thoughts ?
 
-On Wed, Dec 30, 2015 at 09:35:21AM +0100, Paul Kocialkowski wrote:
+I have a few questions:
 
-> In my opinion, it would be more elegant to adapt the core regulator
-> framework to first enable the GPIO and then call the regulator enable
-> ops callback instead of handling the GPIO in the driver.
+ - Is there a "mapping" block between PRUSS and the host interrupt controller
+   or is this "mapping" block part of PRUSS?
 
-Why would we want to actively manage both things at runtime?  It's more
-work, what do we gain from it?
+ - We all know how well shared interrupts work. Is there a point of supporting
+   64 interrupts when you only have 10 irq lines available?
 
---UTjKcilERHWBCdCp
-Content-Type: application/pgp-signature; name="signature.asc"
+ - I assume that the PRUSS interrupt mapping is more or less a question of the
+   firmware implementation. So you either have a fixed association in the
+   firmware which is reflected in the DT description of the IP block or you
+   need an interface to tell the PRUSS firmware which event it should map to
+   which irq line. Is there actually a value in doing the latter?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Thanks,
 
-iQEcBAEBCAAGBQJWhAdCAAoJECTWi3JdVIfQQmYH/jsIV1f+vwmsJYUCVshMxwso
-+W4sZ+0R9otbA3HQMt1pvQyF8UUaQMk0WatGhbCF88EzOXgO2GCPIcBw1pi7q7mA
-oUmdbXeHyd4OrTfKi/OOGqlk6kIlrp8i2PHOF3ubOdXvLQHJ3r8JYWufDFpLDaT3
-c1FfGW+pC7whF+nixEeoPIJvqvBUCFNA9rTN0jqfS667IqVrztoXACrEkqsHrMtt
-zV09Cs80t4Ez6W16F2klnh41nntt+Wp9x0FrV2HzIIJzeHz6uwFwabkOi4D8kjhA
-abIIVVO4nmNiv8kanwP/CblT50iMKre3z366m3jZNxoZtBDQwG7+ZnGjNA8ZB4k=
-=eFvT
------END PGP SIGNATURE-----
-
---UTjKcilERHWBCdCp--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	tglx
