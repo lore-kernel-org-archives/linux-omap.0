@@ -1,32 +1,180 @@
 From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH v4 0/3] wlcore/wl12xx: spi: add wifi support to cm-t335
-Date: Wed, 30 Dec 2015 15:35:30 +0200
-Message-ID: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: [PATCH v4 2/3] wlcore/wl12xx: spi: add device tree support
+Date: Wed, 30 Dec 2015 15:35:32 +0200
+Message-ID: <1451482533-8624-3-git-send-email-uri.mashiach@compulab.co.il>
+References: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1451482533-8624-1-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add DT support for WLS1271 SPI driver.
-Add power operation function to the WLS1271 SPI driver.
+Add DT support for the wl1271 SPI WiFi.
 
-Uri Mashiach (3):
-  wlcore/wl12xx: spi: add power operation function
-  wlcore/wl12xx: spi: add device tree support
-  wlcore/wl12xx: spi: add wifi support to cm-t335
+Add documentation file for the wl1271 SPI WiFi.
 
- .../bindings/net/wireless/ti,wlcore,spi.txt        | 36 +++++++++
- arch/arm/boot/dts/am335x-cm-t335.dts               | 55 ++++++++++++++
+Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+v1 -> v2: update interrupt documentation.
+          replace interrupts and interrupt-parent with interrupts-extended.
+	  IRQ parameters retrieved from spi_device instead of DT.
+	  remove redundant #ifdef CONFIG_OF
+v2 -> v3: Add MODULE_DEVICE_TABLE.
+          Remove #ifdef CONFIG_OF.
+	  Make the Kconfig symbol to depend on OF.
+	  Replace irqd_get_trigger_type() with irq_get_trigger_type().
+v3 -> v4: replace interrupts-extended with interrupts and interrupt-parent. (revert v2 modification).
+          According to Rob Herring and Documentation/devicetree/bindings/interrupt-controller/interrupts.txt,
+	  interrupts-extended should only be used when a device has multiple interrupt parents.
+
+ .../bindings/net/wireless/ti,wlcore,spi.txt        | 36 +++++++++++++++++
  drivers/net/wireless/ti/wlcore/Kconfig             |  2 +-
- drivers/net/wireless/ti/wlcore/spi.c               | 86 +++++++++++++++++++++-
- 4 files changed, 174 insertions(+), 5 deletions(-)
+ drivers/net/wireless/ti/wlcore/spi.c               | 47 ++++++++++++++++++++--
+ 3 files changed, 80 insertions(+), 5 deletions(-)
  create mode 100644 Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
 
--- 
-2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt b/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+new file mode 100644
+index 0000000..9180724
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/wireless/ti,wlcore,spi.txt
+@@ -0,0 +1,36 @@
++* Texas Instruments wl1271 wireless lan controller
++
++The wl1271 chip can be connected via SPI or via SDIO. This
++document describes the binding for the SPI connected chip.
++
++Required properties:
++- compatible :          Should be "ti,wl1271"
++- reg :                 Chip select address of device
++- spi-max-frequency :   Maximum SPI clocking speed of device in Hz
++- ref-clock-frequency : Reference clock frequency
++- interrupt-parent, interrupts :
++                        Should contain parameters for 1 interrupt line.
++                        Interrupt parameters: parent, line number, type.
++- vwlan-supply :        Point the node of the regulator that powers/enable the wl1271 chip
++
++Optional properties:
++- clock-xtal :          boolean, clock is generated from XTAL
++
++- Please consult Documentation/devicetree/bindings/spi/spi-bus.txt
++  for optional SPI connection related properties,
++
++Examples:
++
++&spi1 {
++	wl1271@1 {
++		compatible = "ti,wl1271";
++
++		reg = <1>;
++		spi-max-frequency = <48000000>;
++		clock-xtal;
++		ref-clock-frequency = <38400000>;
++		interrupt-parent = <&gpio3>;
++		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>;
++		vwlan-supply = <&vwlan_fixed>;
++	};
++};
+diff --git a/drivers/net/wireless/ti/wlcore/Kconfig b/drivers/net/wireless/ti/wlcore/Kconfig
+index 7c09954..5918080 100644
+--- a/drivers/net/wireless/ti/wlcore/Kconfig
++++ b/drivers/net/wireless/ti/wlcore/Kconfig
+@@ -13,7 +13,7 @@ config WLCORE
+ 
+ config WLCORE_SPI
+ 	tristate "TI wlcore SPI support"
+-	depends on WLCORE && SPI_MASTER
++	depends on WLCORE && SPI_MASTER && OF
+ 	select CRC7
+ 	---help---
+ 	  This module adds support for the SPI interface of adapters using
+diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
+index dec1512..020ac1a 100644
+--- a/drivers/net/wireless/ti/wlcore/spi.c
++++ b/drivers/net/wireless/ti/wlcore/spi.c
+@@ -30,6 +30,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/wl12xx.h>
+ #include <linux/platform_device.h>
++#include <linux/of_irq.h>
+ #include <linux/regulator/consumer.h>
+ 
+ #include "wlcore.h"
+@@ -357,6 +358,39 @@ static struct wl1271_if_operations spi_ops = {
+ 	.set_block_size = NULL,
+ };
+ 
++static const struct of_device_id wlcore_spi_of_match_table[] = {
++	{ .compatible = "ti,wl1271" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, wlcore_spi_of_match_table);
++
++/**
++ * wlcore_probe_of - DT node parsing.
++ * @spi: SPI slave device parameters.
++ * @res: resource parameters.
++ * @glue: wl12xx SPI bus to slave device glue parameters.
++ * @pdev_data: wlcore device parameters
++ */
++static int wlcore_probe_of(struct spi_device *spi, struct wl12xx_spi_glue *glue,
++			   struct wlcore_platdev_data *pdev_data)
++{
++	struct device_node *dt_node = spi->dev.of_node;
++	int ret;
++
++	if (of_find_property(dt_node, "clock-xtal", NULL))
++		pdev_data->ref_clock_xtal = true;
++
++	ret = of_property_read_u32(dt_node, "ref-clock-frequency",
++				   &pdev_data->ref_clock_freq);
++	if (IS_ERR_VALUE(ret)) {
++		dev_err(glue->dev,
++			"can't get reference clock frequency (%d)\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
+ static int wl1271_probe(struct spi_device *spi)
+ {
+ 	struct wl12xx_spi_glue *glue;
+@@ -366,8 +400,6 @@ static int wl1271_probe(struct spi_device *spi)
+ 
+ 	memset(&pdev_data, 0x00, sizeof(pdev_data));
+ 
+-	/* TODO: add DT parsing when needed */
+-
+ 	pdev_data.if_ops = &spi_ops;
+ 
+ 	glue = devm_kzalloc(&spi->dev, sizeof(*glue), GFP_KERNEL);
+@@ -392,6 +424,13 @@ static int wl1271_probe(struct spi_device *spi)
+ 		return PTR_ERR(glue->reg);
+ 	}
+ 
++	ret = wlcore_probe_of(spi, glue, &pdev_data);
++	if (IS_ERR_VALUE(ret)) {
++		dev_err(glue->dev,
++			"can't get device tree parameters (%d)\n", ret);
++		return ret;
++	}
++
+ 	ret = spi_setup(spi);
+ 	if (ret < 0) {
+ 		dev_err(glue->dev, "spi_setup failed\n");
+@@ -409,7 +448,7 @@ static int wl1271_probe(struct spi_device *spi)
+ 	memset(res, 0x00, sizeof(res));
+ 
+ 	res[0].start = spi->irq;
+-	res[0].flags = IORESOURCE_IRQ;
++	res[0].flags = IORESOURCE_IRQ | irq_get_trigger_type(spi->irq);
+ 	res[0].name = "irq";
+ 
+ 	ret = platform_device_add_resources(glue->core, res, ARRAY_SIZE(res));
+@@ -447,10 +486,10 @@ static int wl1271_remove(struct spi_device *spi)
+ 	return 0;
+ }
+ 
