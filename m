@@ -1,87 +1,134 @@
-From: Paul Kocialkowski <contact@paulk.fr>
-Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Wed, 30 Dec 2015 19:37:19 +0100
-Message-ID: <1451500639.14341.6.camel@collins>
-References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
-	 <1450868319-20513-5-git-send-email-contact@paulk.fr>
-	 <20151223115632.GS16023@sirena.org.uk> <568088B4.6090207@ti.com>
-	 <1451342963.14631.13.camel@collins> <5681D7A8.2030101@ti.com>
-	 <1451387613.18148.9.camel@collins> <568323B7.7080101@ti.com>
-	 <1451464521.2531.4.camel@collins> <20151230163307.GW16023@sirena.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Routable IRQs
+Date: Wed, 30 Dec 2015 12:41:37 -0600
+Message-ID: <87ziwrixsu.fsf@ti.com>
+References: <878u4dj9r7.fsf@ti.com> <alpine.DEB.2.11.1512301903450.28591@nanos>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-LSx1ZIlV1MMhc/8HbKM5"
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+	protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151230163307.GW16023@sirena.org.uk>
+In-Reply-To: <alpine.DEB.2.11.1512301903450.28591@nanos>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Milo Kim <milo.kim@ti.com>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Cooper <jason@lakedaemon.net>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-
---=-LSx1ZIlV1MMhc/8HbKM5
-Content-Type: text/plain; charset="UTF-8"
+--=-=-=
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-Le mercredi 30 d=C3=A9cembre 2015 =C3=A0 16:33 +0000, Mark Brown a =C3=A9cr=
-it :
-> On Wed, Dec 30, 2015 at 09:35:21AM +0100, Paul Kocialkowski wrote:
->=20
-> > In my opinion, it would be more elegant to adapt the core regulator
-> > framework to first enable the GPIO and then call the regulator enable
-> > ops callback instead of handling the GPIO in the driver.
->=20
-> Why would we want to actively manage both things at runtime?  It's more
-> work, what do we gain from it?
 
-Well, I figured that it would be best to disable the EN pin when we're
-not using any of the regulators, since that allows the chip to enter
-standby mode (and thus consume less power).
+Hi Thomas,
 
-Implementing that logic in the driver seems very redundant when we're
-one step away from doing it with the core regulator framework.
-It is also likely that in the future, other chips will use and need to
-handle a global enable pin for the same purpose, while allowing
-regulator configuration and enable via registers.
+Thomas Gleixner <tglx@linutronix.de> writes:
+> On Tue, 29 Dec 2015, Felipe Balbi wrote:
+>> Anyway, the interesting part is that PRUSS has 64 events (on current
+>> incarnations at least) and PRUSS has 10 physical IRQ lines to the ARM
+>> land. Each of these 64 events can be routed to any of these 10 IRQ
+>> lines. This might not be very useful on UP (AM335x & AM437x) other than
+>> the fact that soft-IP drivers running on Linux would need to guarantee
+>> they are the ones who should handle the IRQ. However, on SMP (AM57xx) we
+>> could have real tangible benefits by means of IRQ affinity, etc.
+>>=20
+>> So, the question is, what is there in IRQ subsystem today for routable
+>> IRQ support ?
+>>=20
+>> If a Diagram helps here's a simple one. Note that I'm not showing
+>> details on the PRUSS side, but that side can also map events pretty much
+>> any way it wants.
+>>=20
+>>  .--------------------.             .--------------------.
+>>  |      HOST CPU      |             |       PRUSS        |
+>>  |--------------------|             |--------------------|
+>>  |                    |             |                    |
+>>  |               irq0 |<-.----------|evt0                |
+>>  |                    |  |          |                    |
+>>  |               irq1 |  |  .-------|evt1                |
+>>  |                    |  |  |       |                    |
+>>  |               irq2 |  '----------|evt2                |
+>>  |                    |     |       |                    |
+>>  |               irq3 |     |       |                    |
+>>  |                    |     |       |                    |
+>>  |               irq4 |     |       | .                  |
+>>  |                    |     |       |                    |
+>>  |               irq5 |     |       | .                  |
+>>  |                    |     |       |                    |
+>>  |               irq6 |     |       | .                  |
+>>  |                    |     |       |                    |
+>>  |               irq7 |<----'       |                    |
+>>  |                    |             |                    |
+>>  |               irq8 |             |                    |
+>>  |                    |             |                    |
+>>  |               irq9 |<------------|evtN                |
+>>  '--------------------'             '--------------------'
+>>=20
+>> Given this setup, what I want to do, is let soft-IP drivers running on
+>> linux rely on standard *request_*irq() calls and DTS descrition. But I'm
+>> still considering how/if we should describe the routing itself or just
+>> go round-robin (i.o.w. irq0 -> evt0, irq1 -> evt1, ..., irq9 -> evt9,
+>> irq0 -> evt10, ...).
+>>=20
+>> Thoughts ?
+>
+> I have a few questions:
+>
+>  - Is there a "mapping" block between PRUSS and the host interrupt contro=
+ller
+>    or is this "mapping" block part of PRUSS?
 
-It also doesn't hurt regulators that only use a GPIO for enable.
+The description in TRM is a bit "poor", but from what I can gather, the
+mapping is done on an interrupt controller inside the PRUSS. However,
+Linux is the one who's got the driver for that INTC (well, Linux will be
+the one with the soft ethernet/uart/whatever IP to talk to). All of its
+(INTC's) registers are memory mapped to the ARM side.
 
-The diff to do this is very minimal, I already have a patch ready, that
-I could send if there is a chance for it to get through.
+>  - We all know how well shared interrupts work. Is there a point of suppo=
+rting
+>    64 interrupts when you only have 10 irq lines available?
 
---=20
-Paul Kocialkowski, Replicant developer
+I'm looking at these 64 events more like MSI kind of events. It's just
+that the events themselves can be routed to any of the 10 available HW
+IRQ lines.
 
-Replicant is a fully free Android distribution running on several
-devices, a free software mobile operating system putting the emphasis on
-freedom and privacy/security.
+>  - I assume that the PRUSS interrupt mapping is more or less a question o=
+f the
+>    firmware implementation. So you either have a fixed association in the
+>    firmware which is reflected in the DT description of the IP block or y=
+ou
+>    need an interface to tell the PRUSS firmware which event it should map=
+ to
+>    which irq line. Is there actually a value in doing the latter?
 
-Website: https://www.replicant.us/
-Blog: https://blog.replicant.us/
-Wiki/tracker/forums: https://redmine.replicant.us/
+right, I'd say the mapping is pretty static. Unless Suman has some extra
+information which I don't. I guess the question was really to see if
+there was an easy way for doing this so we don't have to mess with DTS
+for every other FW and their neighbor.
 
+Chances are (or at least I'm speculating) in most cases we won't use
+more than 10 events anyway (Suman ?) so we might not run into any
+troubles.
 
---=-LSx1ZIlV1MMhc/8HbKM5
+=2D-=20
+balbi
+
+--=-=-=
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAABAgAGBQJWhCRfAAoJEIT9weqP7pUM8DYQAJyNvHDw0gfikZ2+He8Q5cL9
-E4fDdmCAOKphHK9j/WAYwuIGticmCn7ea2DsNFQbdbY55T5irS+BSvh93+HRCSTs
-PrFD7Y3oZm7vsyXqmClSinMDqA3BZN1JMNmLxKK9L0/h9y6Ya+O5CfYx2YR+nqMN
-QITCfQAJjTkSvIVu7HhjmCDmxmLQu19CMq57vNOMj8/ClftvHKLeNjhyJdanu9gw
-aaneqz2qB81XQFESkCzdvfIujbt7xbYcGUMCB4oo4Et5fZ1Teb+4t8e4or05keO2
-iYG/pxny6kEcRW1RFpdr4SBr3MHrdT4ApfbcOA6JNBo9xkPeP8J1aQVj3Jr1fTDo
-8lN5a2c7Xi7dicgSA1tp9Y5GL9Sy32OIMwLmgakpQmk5+Z79EkCUpLZyy1kmGeGt
-V2qw+MTgNVMgGCMAVlT9YS/7nn+c4LLuHsxE/aaUpW3IGLE0s7qBG7zCP9i+2cT9
-P24qhJ73pk56wVze1EXKGfeCL/q4RFLNrowwF2Ur/RHXjhKXSM8pqpsbWWhRnLj5
-jWOgaAHyGtyfxLhpJfgXZsPhIALoqoiEB/O/t3pYIcCMExJwZP8hJvty7enevHFm
-5YTF1bB3e+VgptaZ/WkwUL7MF/QljghKGUvnB+hyxGToaJl4q3Hs6AZfsxyOFQBq
-nrxXznyXhsYFtdjDImiS
-=aKaA
+iQIcBAEBAgAGBQJWhCVhAAoJEIaOsuA1yqRERGUP/2MA/+ybo+2nWISpUr3RWu/A
+W7nVkk9XHjWyIkru2JCfFedsLvu6e994hPD6ah24CNodYdlL86c6SBqOod6bhbzQ
+5ajCDuZI5EWtKt/PpGwCr7GUyF51MhQ5s3P6bT+4GUyfvFIuNAha9o+Hz6Zh+C3G
+2vFu51SVzHHt453Nk0DSm6xuH1mNpwBprlUwo23cDrj9YKoJgBIuMAr7qa5Gy6a8
+7s9T1XFrj8XkzbiJfDx4NRD8w4lMhoHopAmZ+eOLfaXcQlDqniD62+ZmQLdqJQL4
+eCx1v8u+DZ3ChC7P8O8cVTUfAHVcDfZAbf32nuKPddvvD3lA9ZIjU1kGNDafjjm7
+CPVqLnyeCpHuhfWht4ef2a5Xtv/Xz9viIUFqK7rQuKTzTYWAl2nbh0EtT/nLvQte
+hQPEnH6KBvCpaFjAzFKygg4m4PoswTEP1+Ln9J3bGQvbHNYuRXfBM6pHfYJSKmev
+btxnW4RcWtK8CMmdaAwkPe/0ywT762Ly8hHZdBUlq3jsuVEfiqoGlxWNrfZSpE0B
+1S/rmsdyDhCqp7+1440ael7NxEyTVGTbrZAtwq8nWPkOPLWXmFkFvMzOr8d7uuqD
+30ZEiSk6cjKdc3Lc91sYQY88xT746Mo4AFEv4bMBkyeMVbhEUuO4FpPfvjsItsmj
+cFY6qD+DzlPtWup23G9A
+=Wany
 -----END PGP SIGNATURE-----
-
---=-LSx1ZIlV1MMhc/8HbKM5--
+--=-=-=--
