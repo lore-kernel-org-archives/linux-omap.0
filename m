@@ -1,82 +1,99 @@
-From: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap3: Include missing bandgap data for
- ti-soc-thermal driver
-Date: Thu, 31 Dec 2015 09:38:45 -0800
-Message-ID: <20151231173844.GD11863@localhost.localdomain>
-References: <1451086345-3340-1-git-send-email-pali.rohar@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH] thermal: Schedule a backup thermal shutdown workqueue
+ after a known period of time to tackle failed poweroff
+Date: Thu, 31 Dec 2015 11:47:57 -0600
+Message-ID: <56856A4D.7090804@ti.com>
+References: <1450676778-7840-1-git-send-email-j-keerthy@ti.com>
+ <5681742C.8050805@ti.com> <56824F81.7000202@ti.com>
+ <20151231172906.GB11863@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1451086345-3340-1-git-send-email-pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20151231172906.GB11863@localhost.localdomain>
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, Keerthy <a0393675@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>, rui.zhang@intel.com, linux-omap@vger.kernel.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+On 12/31/2015 11:29 AM, Eduardo Valentin wrote:
+> can we have a shorter title?
+> 
+> On Tue, Dec 29, 2015 at 02:46:49PM +0530, Keerthy wrote:
+>> Hi Nishanth,
+>>
+> 
+> <cut> 
+>>>
+>>> I am not sure if this #ifdeffery is even needed.
+>>>
+>>>
+>>> Eduardo, Rui: If this is not the suggested technique, maybe you guys
+>>> could suggest how we could handle a case where userspace might be
+>>> hungup due to some reason and a case where a critical temperature
+>>> event in the middle of device probe was triggered?
+> 
+> Orderly power off is supposed to take care of this. Looking at the code,
+> it will force a shutdown in case execution of userland command fails:
+> 
+> static int __orderly_poweroff(bool force)
+> {
+>         int ret;
+> 
+>         ret = run_cmd(poweroff_cmd);
+> 
+>         if (ret && force) {
+>                 pr_warn("Failed to start orderly shutdown: forcing the issue\n");
+> 
+>                 /*
+>                  * I guess this should try to kick off some daemon to sync and
+>                  * poweroff asap.  Or not even bother syncing if we're doing an
+>                  * emergency shutdown?
+>                  */
+>                 emergency_sync();
+>                 kernel_power_off();
+>         }
 
-On Sat, Dec 26, 2015 at 12:32:25AM +0100, Pali Roh=E1r wrote:
-> Driver for omap3 with documentation is there since v4.4-rc1.
->=20
-> Signed-off-by: Pali Roh=E1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Yes, it will *IF* userspace fails. the condition that I had tracked
+was before identifying the following fix[1] - Example fail is here[2]
+
+In this case, tmp102 is setup for X15 as [3] - and built as a module.
+as the kernel startsup filesystem and starts a modprobe of all modules
+via udev rules, the probe of tmp102 detects (falsely) a critical
+temperature condition. Shutdown attempt in the middle of driver probe
+is always a tricky business.
+
+As we look at the log in [2], Line  472
+> thermal thermal_zone3: critical temperature reached(108 C),shutting down
+We have userspace trigger for shutdown taking place.
+
+Line 495: INIT: Sending processes the TERM signal
+
+userspace starts shutting down services. (but note that probe for
+other devices were either in progress or queued up to complete)..
+
+at line 647 - we are in a weird place -> sysrq shows that system is
+idled and userspace is shutdown and system is still active.
 
 
-> ---
->  arch/arm/boot/dts/omap34xx.dtsi |    5 +++++
->  arch/arm/boot/dts/omap36xx.dtsi |    5 +++++
->  2 files changed, 10 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap=
-34xx.dtsi
-> index 4f6b2d5..c3f488f 100644
-> --- a/arch/arm/boot/dts/omap34xx.dtsi
-> +++ b/arch/arm/boot/dts/omap34xx.dtsi
-> @@ -54,6 +54,11 @@
->  				#size-cells =3D <0>;
->  			};
->  		};
-> +
-> +		bandgap {
-> +			reg =3D <0x48002524 0x4>;
-> +			compatible =3D "ti,omap34xx-bandgap";
-> +		};
->  	};
->  };
-> =20
-> diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap=
-36xx.dtsi
-> index 86253de..00f98c1 100644
-> --- a/arch/arm/boot/dts/omap36xx.dtsi
-> +++ b/arch/arm/boot/dts/omap36xx.dtsi
-> @@ -86,6 +86,11 @@
->  				#size-cells =3D <0>;
->  			};
->  		};
-> +
-> +		bandgap {
-> +			reg =3D <0x48002524 0x4>;
-> +			compatible =3D "ti,omap36xx-bandgap";
+In this case, we entered the case thanks to a driver bug, but if this
+situation was a real world temperature scenario, then we'd probably in
+an overtemp scenario, then device damage could take place OR something
+much worse.
 
-Can you please already add on both cases
+The only alternative is to run a parallel thread in case userspace
+fails to complete the job in some given period of time - due to what
+ever be the condition triggering the problem.
 
-#thermal-sensor-cells =3D <0>;
-?
+I hope this explains the problem.
 
-This way we can already use them to define thermal zones. Of course,
-that alone won't add the thermal zones. A separated patch would be
-needed to add the thermal zone for OMAP3.
+[1]
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=00917b5c55aeb01322d5ab51af8c025b82959224
+[2] http://pastebin.ubuntu.com/14326688/
 
-> +		};
->  	};
->  };
-> =20
-> --=20
-> 1.7.9.5
->=20
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[3]
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/am57xx-beagle-x15.dts#n738
+
+-- 
+Regards,
+Nishanth Menon
