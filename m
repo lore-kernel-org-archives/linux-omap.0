@@ -1,99 +1,90 @@
-From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Thu, 31 Dec 2015 22:59:06 +0100
-Message-ID: <1451599146.9673.2.camel@collins>
-References: <1450868319-20513-5-git-send-email-contact@paulk.fr>
-	 <20151223115632.GS16023@sirena.org.uk> <568088B4.6090207@ti.com>
-	 <1451342963.14631.13.camel@collins> <5681D7A8.2030101@ti.com>
-	 <1451387613.18148.9.camel@collins> <568323B7.7080101@ti.com>
-	 <1451464521.2531.4.camel@collins> <20151230163307.GW16023@sirena.org.uk>
-	 <1451500639.14341.6.camel@collins> <20151231214007.GC16023@sirena.org.uk>
+Date: Thu, 31 Dec 2015 22:14:07 +0000
+Message-ID: <20151231221407.GF16023@sirena.org.uk>
+References: <568088B4.6090207@ti.com> <1451342963.14631.13.camel@collins>
+ <5681D7A8.2030101@ti.com> <1451387613.18148.9.camel@collins>
+ <568323B7.7080101@ti.com> <1451464521.2531.4.camel@collins>
+ <20151230163307.GW16023@sirena.org.uk>
+ <1451500639.14341.6.camel@collins>
+ <20151231214007.GC16023@sirena.org.uk>
+ <1451599146.9673.2.camel@collins>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-dRPTgQ8omuT0YBCYRKe7"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151231214007.GC16023-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============4369672345729596225=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1451599146.9673.2.camel@collins>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Kocialkowski <contact@paulk.fr>
+Cc: Mark Rutland <mark.rutland@arm.com>, Milo Kim <milo.kim@ti.com>, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
---=-dRPTgQ8omuT0YBCYRKe7
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+--===============4369672345729596225==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="iBipwI8N6cjWJAiJ"
+Content-Disposition: inline
 
-Le jeudi 31 d=C3=A9cembre 2015 =C3=A0 21:40 +0000, Mark Brown a =C3=A9crit =
-:
-> On Wed, Dec 30, 2015 at 07:37:19PM +0100, Paul Kocialkowski wrote:
-> > Le mercredi 30 d=C3=A9cembre 2015 =C3=A0 16:33 +0000, Mark Brown a =C3=
-=A9crit :
-> > > On Wed, Dec 30, 2015 at 09:35:21AM +0100, Paul Kocialkowski wrote:
->=20
-> > > > In my opinion, it would be more elegant to adapt the core regulator
-> > > > framework to first enable the GPIO and then call the regulator enab=
-le
-> > > > ops callback instead of handling the GPIO in the driver.
->=20
-> > > Why would we want to actively manage both things at runtime?  It's mo=
-re
-> > > work, what do we gain from it?
->=20
-> > Well, I figured that it would be best to disable the EN pin when we're
-> > not using any of the regulators, since that allows the chip to enter
-> > standby mode (and thus consume less power).
->=20
-> This doesn't sound like it's anything to do with the regulators, that's
-> a chip wide power management function which should be implemented via
-> runtime PM if there's any value in implementing it at all (if the device
-> is a primary PMIC normally this would be handled by the CPU core when it
-> enters low power state without any software).  It's not something we
-> should be considering on a per regulator basis since it's at the chip
-> level and on a per regulator basis it's not doing anything useful for
-> the reasons above.
 
-I understand, thanks for pointing this out. Well, for my use case, there
-is no use in disabling the chip at any point as it powers the external
-mmc.
+--iBipwI8N6cjWJAiJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Would you agree to have the enable pin handled directly (and by that, I
-mean enabled once, when requested, as I first suggested in the patchset)
-in the driver then?
+On Thu, Dec 31, 2015 at 10:59:06PM +0100, Paul Kocialkowski wrote:
 
-> > It also doesn't hurt regulators that only use a GPIO for enable.
->=20
-> It causes problems for any device with an optional GPIO,  it means that
-> we end up mantaining both GPIO and register which as I've said a couple
-> of times now defeats the point of having the GPIO.
+> I understand, thanks for pointing this out. Well, for my use case, there
+> is no use in disabling the chip at any point as it powers the external
+> mmc.
 
-Fair enough.
+Presumably someone might decide not to use the MMC in some case (perhaps
+only mounting it when explicitly needed in order to save power for
+example, or the MMC subsystem might figure out a way to power down an
+idle MMC block device).
 
---=-dRPTgQ8omuT0YBCYRKe7
+> Would you agree to have the enable pin handled directly (and by that, I
+> mean enabled once, when requested, as I first suggested in the patchset)
+> in the driver then?
+
+That's probably fine, or do it via runtime PM (the framework is fairly
+simple to use, I'll probably go add support in the core for it in the
+next day or two as this seems like a sensible use case).  I can't
+remember if this device is a MFD or not and I'm just on my way out the
+door.
+
+--iBipwI8N6cjWJAiJ
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAABAgAGBQJWhaUqAAoJEIT9weqP7pUMPuQQAJyIfhnq14kq0vePG2tf/BAF
-qVEtMbaE7a6k2yuhh8RE4KKKC5FVIKXKYQI+LbvLXhBiZ+qCQD4ZIGsOpCGHpuSj
-5iW7BunQKzH2USuSr8prphHarS7Gns1Vv/AA28uJBlNPf74Z/mcpsuh+5vD8vZrW
-5YMWPfxedm95TPbP8Zh0R3RgGlRP9fdNvw4jAkJKquI325jdCwl5Vq8VIKUOlb6D
-NekkJoxa163Jn8KqqwR6rswCVGewOj/Yq9UpCGg446+Rlbnb89bwH/yHKOTDYWyf
-XgHNsdNgAMLIh7rMAGXuDMrWWZYebxgJSe4knt/sRMS73Qhca32P6//Bog+n/wEq
-sIfNJ6W1f1PklWf2ZmqaUvPJMvgN7JE/jn/MzesATN6XU5UocwcDxoN3A56IIuB0
-V+XK1kwe4KrHsmnwyL4Jn86nB1vrad2t3r5PtufH49A1qdICzMzgiSkDsh0xLFS5
-u5I/mGbxzQN6NrLxklHDz9czZggmIFDdg0Z/dY/v29fBKu5HogVV+EaUwugwyfHo
-gbD7FMNrvlpC95MqKvjsWUMWI3/KtBx5BAzYLFNbrEdfivcRZsU8DR0i424iNL2P
-tVCso+wLJS3BsWqTRmSWWIN20IllEu7gqucBJfS6V8RMYETybv6NNkm+RsJ/WwQS
-cTrRW1pXEEZ4TPgGYGFA
-=TJVG
+iQEcBAEBCAAGBQJWhaivAAoJECTWi3JdVIfQBTwH/0c97iPmjv0ncNLyJswoLHqH
+RR8JvifjbS7jtarqTON7EfCHu2P4ChZKCEsTUpph5h5T95lQUj6Z8BGscgCUlkXG
+TB2sxJzf+8kQecbleQmbXYG6FjyK4s0oK8Dm0f/m3m5LdRXoosMSy11gJ6eLrGmI
+ydei7K8T1YZU7tEdDSV4qB1iRaKLl3YDD7Pd/UUk6GVq7SIJXbzO+U43R8t9GnI4
+KYw6R92LgbkKBN6MFKCHdzNeooxhIiwF2lIiiccJTAIvIGnNoFzbxkFapK+nvWhn
+cisUfBnWxAkEAmlImyX2xwygNON56NOvmdHYqKnbs1jV2ybG60qJLfxhv80BzXw=
+=Yj1A
 -----END PGP SIGNATURE-----
 
---=-dRPTgQ8omuT0YBCYRKe7--
+--iBipwI8N6cjWJAiJ--
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--===============4369672345729596225==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============4369672345729596225==--
