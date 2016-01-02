@@ -1,79 +1,74 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: Add support for slot-name property in DT
-Date: Sat, 2 Jan 2016 16:22:03 +0100
-Message-ID: <201601021622.03763@pali>
-References: <1431724489-32359-1-git-send-email-pali.rohar@gmail.com> <201512281554.35277@pali> <4500962.b9ypZOL9bV@wuerfel>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Nokia N900: Broken lirc ir-rx51 driver
+Date: Sat, 2 Jan 2016 09:06:57 -0800
+Message-ID: <20160102170657.GB12622@atomide.com>
+References: <201601021545.35201@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2951603.i4bZoqKfT1";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4500962.b9ypZOL9bV@wuerfel>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201601021545.35201@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart2951603.i4bZoqKfT1
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Monday 28 December 2015 15:55:28 Arnd Bergmann wrote:
-> On Monday 28 December 2015 15:54:35 Pali Roh=C3=A1r wrote:
-> > On Monday 28 December 2015 15:41:01 Arnd Bergmann wrote:
-> > > On Monday 28 December 2015 15:28:48 Pali Roh=C3=A1r wrote:
-> > > > On Monday 28 December 2015 15:14:50 Arnd Bergmann wrote:
-> > > > > On Friday 25 December 2015 13:53:11 Pali Roh=C3=A1r wrote:
-> > > > > > On Monday 18 May 2015 17:07:57 Arnd Bergmann wrote:
-> > > > > > > On Monday 18 May 2015 08:06:07 Tony Lindgren wrote:
-> > > > > > > > * Arnd Bergmann <arnd@arndb.de> [150515 14:26]:
-> > > > > > > > > On Friday 15 May 2015 23:22:37 Pali Roh=C3=A1r wrote:
-> > > > > > > > If setting up the generic binding is expected to take a
-> > > > > > > > while, you can naturally pass it in pdata while waiting
-> > > > > > > > for the generic binding to get merged.
-> > > > > > >=20
-> > > > > > > Yes, good idea. So the n900 machine can use auxdata to
-> > > > > > > pass this for the time being, while the binding and
-> > > > > > > generic implementation is being worked out.
-> > > > > >=20
-> > > > > > Ok, so what is needed to finish this patch series?
-> > > > >=20
-> > > > > I don't know where we are at this point. Has either the
-> > > > > auxdata approach or the generic binding been worked on at
-> > > > > all?
-> > > >=20
-> > > > What are auxdata data?
-> > >=20
-> > > I mean you can add the platform data to the omap_auxdata_lookup[]
-> > > table for this board.
-> >=20
-> > But can I mix data from omap3-n900.dts and omap_auxdata_lookup[]?
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160102 06:46]:
+> --- a/drivers/media/rc/ir-rx51.c
+> +++ b/drivers/media/rc/ir-rx51.c
+> @@ -25,9 +25,9 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/sched.h>
+>  #include <linux/wait.h>
+> +#include <linux/clk.h>
+> =20
+> -#include <plat/dmtimer.h>
+> -#include <plat/clock.h>
+> +#include "../../../arch/arm/plat-omap/include/plat/dmtimer.h"
+
+Well we don't want to export the dmtimer functions to drivers..But
+we now have the PWM driver that can be already used for most of the
+ir-rx51.c.
+
+>  #include <media/lirc.h>
+>  #include <media/lirc_dev.h>
+> @@ -208,7 +208,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *=
+lirc_rx51)
+>  	}
+> =20
+>  	clk_fclk =3D omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
+> -	lirc_rx51->fclk_khz =3D clk_fclk->rate / 1000;
+> +	lirc_rx51->fclk_khz =3D clk_get_rate(clk_fclk) / 1000;
+> =20
+>  	return 0;
+> =20
 >=20
-> Yes.
->=20
-> 	Arnd
+> So Tony, you are author of that commit (a62a6e98c3) which broke ir-rx=
+51
+> module for Nokia N900. Do you know how to fix this driver for upstrea=
+m
+> kernel? It would be great to have driver working and not to have it i=
+n
+> this dead state...
 
-Hm... looks like it is not possible. omap_hsmmc driver ignores any=20
-supplied platform data if there are device tree data. So array=20
-omap_auxdata_lookup[] does not help.
+Yup please take a look at thread "[PATCH 0/3] pwm: omap: Add PWM suppor=
+t
+using dual-mode timers". Chances are we still need to set up the dmtime=
+r
+code to provide also irqchip functions. That way ir-rx51.c can just do
+request_irq on the selected dmtimer for interrupts.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+> Also platform data for this driver are only in legacy board code.
+> Support in DTS is missing, so driver (after fixing above problem) can=
+not
+> be used on DT booted kernel.
 
---nextPart2951603.i4bZoqKfT1
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Yeah those parts should be already doable with the PWM timer code AFAIK=
+=2E
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Regards,
 
-iEYEABECAAYFAlaH6xsACgkQi/DJPQPkQ1LB9wCgjTVc5XphW0DxLCgEuG14Wkz2
-JxIAoKiN10sMo0tB8WwFntSqbnwxm/E8
-=Ev+j
------END PGP SIGNATURE-----
-
---nextPart2951603.i4bZoqKfT1--
+Tony
