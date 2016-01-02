@@ -1,73 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900: Broken lirc ir-rx51 driver
-Date: Sat, 2 Jan 2016 09:06:57 -0800
-Message-ID: <20160102170657.GB12622@atomide.com>
-References: <201601021545.35201@pali>
+Subject: Re: Nokia N900: twl4030-power different data in DTS and board code
+Date: Sat, 2 Jan 2016 09:14:31 -0800
+Message-ID: <20160102171430.GC12622@atomide.com>
+References: <201601021513.32814@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201601021545.35201@pali>
+In-Reply-To: <201601021513.32814@pali>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machel <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Nishanth Menon <nm@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160102 06:46]:
-> --- a/drivers/media/rc/ir-rx51.c
-> +++ b/drivers/media/rc/ir-rx51.c
-> @@ -25,9 +25,9 @@
->  #include <linux/platform_device.h>
->  #include <linux/sched.h>
->  #include <linux/wait.h>
-> +#include <linux/clk.h>
-> =20
-> -#include <plat/dmtimer.h>
-> -#include <plat/clock.h>
-> +#include "../../../arch/arm/plat-omap/include/plat/dmtimer.h"
-
-Well we don't want to export the dmtimer functions to drivers..But
-we now have the PWM driver that can be already used for most of the
-ir-rx51.c.
-
->  #include <media/lirc.h>
->  #include <media/lirc_dev.h>
-> @@ -208,7 +208,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *=
-lirc_rx51)
->  	}
-> =20
->  	clk_fclk =3D omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
-> -	lirc_rx51->fclk_khz =3D clk_fclk->rate / 1000;
-> +	lirc_rx51->fclk_khz =3D clk_get_rate(clk_fclk) / 1000;
-> =20
->  	return 0;
-> =20
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160102 06:14]:
+> Hello,
 >=20
-> So Tony, you are author of that commit (a62a6e98c3) which broke ir-rx=
-51
-> module for Nokia N900. Do you know how to fix this driver for upstrea=
-m
-> kernel? It would be great to have driver working and not to have it i=
-n
-> this dead state...
+> now I'm looking at differences between legacy board code and DTS file
+> for Nokia N900 and I see some inconsistency for twl4030-power driver.
+>=20
+> In board code are defined more twl4030 power scripts which override
+> defaults defined in twl4030-power code. See:
+>=20
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/=
+arch/arm/mach-omap2/board-rx51-peripherals.c#n790
+>=20
+> Next in DTS file is defined just "compatible" keyword, but no custom
+> scripts, see:
+>=20
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/=
+arch/arm/boot/dts/omap3-n900.dts#n416
+>=20
+> And the last in DTS file is defined line:
+>=20
+> compatible =3D "ti,twl4030-power-n900"=20
+>=20
+> which is not in twl4030-power driver itself, see:
+>=20
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/=
+drivers/mfd/twl4030-power.c#n851
+>=20
+> So all this stuff looks like some errors when board code was ported t=
+o
+> DTS. Tony, can you look at this at all?
 
-Yup please take a look at thread "[PATCH 0/3] pwm: omap: Add PWM suppor=
-t
-using dual-mode timers". Chances are we still need to set up the dmtime=
-r
-code to provide also irqchip functions. That way ir-rx51.c can just do
-request_irq on the selected dmtimer for interrupts.
+AFAIK it should work fine with the generic "ti,twl4030-power-idle-osc-o=
+ff".
+This means reboot works and regulators are cut off during off mode.
 
-> Also platform data for this driver are only in legacy board code.
-> Support in DTS is missing, so driver (after fixing above problem) can=
-not
-> be used on DT booted kernel.
+The n900 specific code was based on something before the TI generic val=
+ues
+were available I think. And the last time I looked at it I came to the
+conclusion the n900 specific code is no better.
 
-Yeah those parts should be already doable with the PWM timer code AFAIK=
-=2E
+Or did I miss something? Are you seeing some issues with PM with dts ba=
+sed
+code?
+
+We can certainly add it to twl4030-power if it provides something that
+the "ti,twl4030-power-idle-osc-off" does not.
 
 Regards,
 
