@@ -1,63 +1,100 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] mmc: omap_hsmmc: Add support for slot-name property in DT
-Date: Sun, 03 Jan 2016 00:17:40 +0100
-Message-ID: <5286117.vKOl7qiBNG@wuerfel>
-References: <1431724489-32359-1-git-send-email-pali.rohar@gmail.com> <9361696.ohU1ACX8N1@wuerfel> <201601030003.54168@pali>
+From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
+Date: Sun, 03 Jan 2016 11:19:26 +0100
+Message-ID: <1451816366.3428.4.camel@collins>
+References: <568088B4.6090207@ti.com> <1451342963.14631.13.camel@collins>
+	 <5681D7A8.2030101@ti.com> <1451387613.18148.9.camel@collins>
+	 <568323B7.7080101@ti.com> <1451464521.2531.4.camel@collins>
+	 <20151230163307.GW16023@sirena.org.uk> <1451500639.14341.6.camel@collins>
+	 <20151231214007.GC16023@sirena.org.uk> <1451599146.9673.2.camel@collins>
+	 <20151231221407.GF16023@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201601030003.54168@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-Ebdf2CMHbKlKpNAmectL"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151231221407.GF16023-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sunday 03 January 2016 00:03:54 Pali Roh=E1r wrote:
-> On Saturday 02 January 2016 23:57:47 Arnd Bergmann wrote:
-> > On Saturday 02 January 2016 16:22:03 Pali Roh=E1r wrote:
-> > > On Monday 28 December 2015 15:55:28 Arnd Bergmann wrote:
-> > > > On Monday 28 December 2015 15:54:35 Pali Roh=E1r wrote:
-> > > > > > I mean you can add the platform data to the
-> > > > > > omap_auxdata_lookup[] table for this board.
-> > > > >=20
-> > > > > But can I mix data from omap3-n900.dts and
-> > > > > omap_auxdata_lookup[]?
-> > >=20
-> > > Hm... looks like it is not possible. omap_hsmmc driver ignores an=
-y
-> > > supplied platform data if there are device tree data. So array
-> > > omap_auxdata_lookup[] does not help.
-> >=20
-> > Obviously you need to the driver to work with that setting. Maybe
-> > something as simple as
-> >=20
-> > diff --git a/drivers/mmc/host/omap_hsmmc.c
-> > b/drivers/mmc/host/omap_hsmmc.c index e06b1881b6a1..4fa35fc84b8b
-> > 100644
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > @@ -2006,7 +2006,7 @@ static int omap_hsmmc_probe(struct
-> > platform_device *pdev) void __iomem *base;
-> >=20
-> >       match =3D of_match_device(of_match_ptr(omap_mmc_of_match),
-> > &pdev->dev); -        if (match) {
-> > +     if (!pdata && match) {
-> >               pdata =3D of_get_hsmmc_pdata(&pdev->dev);
-> >=20
-> >               if (IS_ERR(pdata))
-> >=20
->=20
-> But in this case I must copy mmc definition from omap3-n900.dts file=20
-> back to board code to omap_auxdata_lookup[]. And mmc definitions in=20
-> omap3-n900.dts will be ignored. This is step back.
->=20
-> Mixing mmc definitions from DTS file together with omap_auxdata_looku=
-p[]=20
-> just will not work.
 
-As I said earlier, if you prefer to avoid the auxdata hack, you are
-also welcome to work on support for named slots in the MMC core code,
-it will just be more work and will take time to get consensus on.
+--=-Ebdf2CMHbKlKpNAmectL
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-	Arnd
+Le jeudi 31 d=C3=A9cembre 2015 =C3=A0 22:14 +0000, Mark Brown a =C3=A9crit =
+:
+> On Thu, Dec 31, 2015 at 10:59:06PM +0100, Paul Kocialkowski wrote:
+>=20
+> > I understand, thanks for pointing this out. Well, for my use case, ther=
+e
+> > is no use in disabling the chip at any point as it powers the external
+> > mmc.
+>=20
+> Presumably someone might decide not to use the MMC in some case (perhaps
+> only mounting it when explicitly needed in order to save power for
+> example, or the MMC subsystem might figure out a way to power down an
+> idle MMC block device).
+
+Makes sense, I'll keep that in mind.
+
+> > Would you agree to have the enable pin handled directly (and by that, I
+> > mean enabled once, when requested, as I first suggested in the patchset=
+)
+> > in the driver then?
+>=20
+> That's probably fine, or do it via runtime PM (the framework is fairly
+> simple to use, I'll probably go add support in the core for it in the
+> next day or two as this seems like a sensible use case).  I can't
+> remember if this device is a MFD or not and I'm just on my way out the
+> door.
+
+Runtime PM seems like a good fit (though I hadn't heard about it before:
+you can guess I'm fairly new to kernel development), please let me know
+whether you end up implementing it so I can try to handle the GPIO this
+way.
+
+Thanks!
+
+--=20
+Paul Kocialkowski, Replicant developer
+
+Replicant is a fully free Android distribution running on several
+devices, a free software mobile operating system putting the emphasis on
+freedom and privacy/security.
+
+Website: https://www.replicant.us/
+Blog: https://blog.replicant.us/
+Wiki/tracker/forums: https://redmine.replicant.us/
+
+
+--=-Ebdf2CMHbKlKpNAmectL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAABAgAGBQJWiPWuAAoJEIT9weqP7pUMRN8P/2d9llXdsSJWu5YyqNxMZj/k
+IPbrOWs34ZdMMAdmeRnqIDjuZxGL5j6KjpnjPnjAPLJjLxiBYEQgBbIOYp+rBERX
+mNDUED/nKafPL70X87nDFPBztImimC/QVHSoxc9uua5Ojl/RdcJd1vs/7/ofTA7m
+xxqNqTdXn38yKkJF0LBJIUesKikXf3d+fsHKHVAlxY/gAxsmoAcwEdXMGq2LB/Kz
+cWptA1lhGLe3I0uuPqC04DjVhu77lGMrkfNP0xHzf8cgbeWMDeBuZfxid2r260Y+
+gb5TlfsRodCDR9o9oD6ZokYC3B+j0ijBRVbD7x9Ck4L0xwkv7AanbMBm0G6+24iq
+cBHMDHfTy39TNiLt4JvaWgR251MBeNyMSwjk7pMdru/95KnnLMHS/bfTT4PWj3vQ
+XMAUoWX+6wbilQLsL76LqdEcsfL4hrCpJ7Ilar58JCU0nWgvKaaIjEo8WJOzw0XA
+0F6ffgBbJV7zob7wVB6FwfXGLq2VXSf9Xrzq5FZWhPzOYDRwN/BoUPAmdRjCJR20
+kLcTAtwrwoozm4iJ0B3BNbfzsgWJPtyyKTc/1NblJBuh+ffKT4GE9C7yMJ4fMh3c
+Vvb0ufij8o6m+350460fG54PAYvY8jdHrWKM3TSFd2BdkCotEWwhZmzKRoh2taAb
+b4XW9nHqogSNq8MnvvVf
+=jY/K
+-----END PGP SIGNATURE-----
+
+--=-Ebdf2CMHbKlKpNAmectL--
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
