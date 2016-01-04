@@ -1,100 +1,91 @@
-From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Sun, 03 Jan 2016 11:19:26 +0100
-Message-ID: <1451816366.3428.4.camel@collins>
-References: <568088B4.6090207@ti.com> <1451342963.14631.13.camel@collins>
-	 <5681D7A8.2030101@ti.com> <1451387613.18148.9.camel@collins>
-	 <568323B7.7080101@ti.com> <1451464521.2531.4.camel@collins>
-	 <20151230163307.GW16023@sirena.org.uk> <1451500639.14341.6.camel@collins>
-	 <20151231214007.GC16023@sirena.org.uk> <1451599146.9673.2.camel@collins>
-	 <20151231221407.GF16023@sirena.org.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RFC 6/9] clk: ti: add support for omap4 module clocks
+Date: Mon, 4 Jan 2016 09:36:05 +0200
+Message-ID: <568A20E5.6040005@ti.com>
+References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
+ <1450447141-29936-7-git-send-email-t-kristo@ti.com>
+ <20160101054815.21738.79820@quark.deferred.io>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Ebdf2CMHbKlKpNAmectL"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151231221407.GF16023-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20160101054815.21738.79820@quark.deferred.io>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, sboyd@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 01/01/2016 07:48 AM, Michael Turquette wrote:
+> Hi Tero,
+>
+> Quoting Tero Kristo (2015-12-18 05:58:58)
+>> Previously, hwmod core has been used for controlling the hwmod level
+>> clocks. This has certain drawbacks, like being unable to share the
+>> clocks for multiple users, missing usecounting and generally being
+>> totally incompatible with common clock framework.
+>>
+>> Add support for new clock type under the TI clock driver, which will
+>> be used to convert all the existing hwmdo clocks to. This helps to
+>> get rid of the clock related hwmod data from kernel and instead
+>> parsing this from DT.
+>
+> I'm really happy to see this series. Looks pretty good to me.
+>
+>> +static int _omap4_hwmod_clk_enable(struct clk_hw *hw)
+>> +{
+>> +       struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+>> +       u32 val;
+>> +       int timeout = 0;
+>> +       int ret;
+>> +
+>> +       if (!clk->enable_bit)
+>> +               return 0;
+>> +
+>> +       if (clk->clkdm) {
+>> +               ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
+>> +               if (ret) {
+>> +                       WARN(1,
+>> +                            "%s: could not enable %s's clockdomain %s: %d\n",
+>> +                            __func__, clk_hw_get_name(hw),
+>> +                            clk->clkdm_name, ret);
+>> +                       return ret;
+>> +               }
+>> +       }
+>> +
+>> +       val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
+>> +
+>> +       val &= ~OMAP4_MODULEMODE_MASK;
+>> +       val |= clk->enable_bit;
+>> +
+>> +       ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
+>> +
+>> +       /* Wait until module is enabled */
+>> +       while (!_omap4_is_ready(val)) {
+>> +               udelay(1);
+>
+> This should really be a .prepare callback if you plan to keep the delays
+> in there.
 
---=-Ebdf2CMHbKlKpNAmectL
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+If this is changed to a .prepare, then all OMAP power management is 
+effectively ruined as all clocks are going to be enabled all the time. 
+hwmod core doesn't support .prepare/.enable at the moment that well, and 
+changing that is going to be a big burden (educated guess, haven't 
+checked this yet)... The call chain that comes here is:
 
-Le jeudi 31 d=C3=A9cembre 2015 =C3=A0 22:14 +0000, Mark Brown a =C3=A9crit =
-:
-> On Thu, Dec 31, 2015 at 10:59:06PM +0100, Paul Kocialkowski wrote:
->=20
-> > I understand, thanks for pointing this out. Well, for my use case, ther=
-e
-> > is no use in disabling the chip at any point as it powers the external
-> > mmc.
->=20
-> Presumably someone might decide not to use the MMC in some case (perhaps
-> only mounting it when explicitly needed in order to save power for
-> example, or the MMC subsystem might figure out a way to power down an
-> idle MMC block device).
+device driver -> pm_runtime -> hwmod_core -> hwmod_clk_enable / disable.
 
-Makes sense, I'll keep that in mind.
+The delay within this function should usually be pretty short, just to 
+wait that the module comes up from idle.
 
-> > Would you agree to have the enable pin handled directly (and by that, I
-> > mean enabled once, when requested, as I first suggested in the patchset=
-)
-> > in the driver then?
->=20
-> That's probably fine, or do it via runtime PM (the framework is fairly
-> simple to use, I'll probably go add support in the core for it in the
-> next day or two as this seems like a sensible use case).  I can't
-> remember if this device is a MFD or not and I'm just on my way out the
-> door.
+I recall the discussions regarding the udelays within clk_enable/disable 
+calls, but what is the preferred approach then? Typically 
+clk_enable/disable just becomes a NOP if it is not allowed to wait for 
+hardware to complete transitioning before exiting the function.
 
-Runtime PM seems like a good fit (though I hadn't heard about it before:
-you can guess I'm fairly new to kernel development), please let me know
-whether you end up implementing it so I can try to handle the GPIO this
-way.
+-Tero
 
-Thanks!
+>
+> Regards,
+> Mike
+>
 
---=20
-Paul Kocialkowski, Replicant developer
-
-Replicant is a fully free Android distribution running on several
-devices, a free software mobile operating system putting the emphasis on
-freedom and privacy/security.
-
-Website: https://www.replicant.us/
-Blog: https://blog.replicant.us/
-Wiki/tracker/forums: https://redmine.replicant.us/
-
-
---=-Ebdf2CMHbKlKpNAmectL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAABAgAGBQJWiPWuAAoJEIT9weqP7pUMRN8P/2d9llXdsSJWu5YyqNxMZj/k
-IPbrOWs34ZdMMAdmeRnqIDjuZxGL5j6KjpnjPnjAPLJjLxiBYEQgBbIOYp+rBERX
-mNDUED/nKafPL70X87nDFPBztImimC/QVHSoxc9uua5Ojl/RdcJd1vs/7/ofTA7m
-xxqNqTdXn38yKkJF0LBJIUesKikXf3d+fsHKHVAlxY/gAxsmoAcwEdXMGq2LB/Kz
-cWptA1lhGLe3I0uuPqC04DjVhu77lGMrkfNP0xHzf8cgbeWMDeBuZfxid2r260Y+
-gb5TlfsRodCDR9o9oD6ZokYC3B+j0ijBRVbD7x9Ck4L0xwkv7AanbMBm0G6+24iq
-cBHMDHfTy39TNiLt4JvaWgR251MBeNyMSwjk7pMdru/95KnnLMHS/bfTT4PWj3vQ
-XMAUoWX+6wbilQLsL76LqdEcsfL4hrCpJ7Ilar58JCU0nWgvKaaIjEo8WJOzw0XA
-0F6ffgBbJV7zob7wVB6FwfXGLq2VXSf9Xrzq5FZWhPzOYDRwN/BoUPAmdRjCJR20
-kLcTAtwrwoozm4iJ0B3BNbfzsgWJPtyyKTc/1NblJBuh+ffKT4GE9C7yMJ4fMh3c
-Vvb0ufij8o6m+350460fG54PAYvY8jdHrWKM3TSFd2BdkCotEWwhZmzKRoh2taAb
-b4XW9nHqogSNq8MnvvVf
-=jY/K
------END PGP SIGNATURE-----
-
---=-Ebdf2CMHbKlKpNAmectL--
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
