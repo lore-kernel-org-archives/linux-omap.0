@@ -1,56 +1,126 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH] ARM: omapfb: Add early framebuffer memory allocator
-Date: Mon, 4 Jan 2016 15:04:17 +0200
-Message-ID: <568A6DD1.5050700@gmail.com>
-References: <52A062A0.3070005@ti.com>
- <1388013159-3036-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <201601011301.27415@pali> <568A5970.2000201@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RFC 6/9] clk: ti: add support for omap4 module clocks
+Date: Mon, 4 Jan 2016 15:27:57 +0200
+Message-ID: <568A735D.2060309@ti.com>
+References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
+ <1450447141-29936-7-git-send-email-t-kristo@ti.com>
+ <20160101054815.21738.79820@quark.deferred.io> <568A20E5.6040005@ti.com>
+ <CAMuHMdUZMUSYC1XHydVQHRibWtHw2=T-7nXe=5Pf4UCcb=mKTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <568A5970.2000201@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <CAMuHMdUZMUSYC1XHydVQHRibWtHw2=T-7nXe=5Pf4UCcb=mKTQ@mail.gmail.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michael Turquette <mturquette@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tomi,
-
-On  4.01.2016 13:37, Tomi Valkeinen wrote:
+On 01/04/2016 12:21 PM, Geert Uytterhoeven wrote:
+> Hi Tero,
 >
-> We probably need exactly the same for omapdrm, as omapfb is on the way
-> to being deprecated. And sounds to me that we probably need similar for
-> other devices which try to do large allocations (camera? video decoders?).
+> On Mon, Jan 4, 2016 at 8:36 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>> On 01/01/2016 07:48 AM, Michael Turquette wrote:
+>>> Quoting Tero Kristo (2015-12-18 05:58:58)
+>>>> +static int _omap4_hwmod_clk_enable(struct clk_hw *hw)
+>>>> +{
+>>>> +       struct clk_hw_omap *clk =3D to_clk_hw_omap(hw);
+>>>> +       u32 val;
+>>>> +       int timeout =3D 0;
+>>>> +       int ret;
+>>>> +
+>>>> +       if (!clk->enable_bit)
+>>>> +               return 0;
+>>>> +
+>>>> +       if (clk->clkdm) {
+>>>> +               ret =3D ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm=
+,
+>>>> hw->clk);
+>>>> +               if (ret) {
+>>>> +                       WARN(1,
+>>>> +                            "%s: could not enable %s's clockdomai=
+n %s:
+>>>> %d\n",
+>>>> +                            __func__, clk_hw_get_name(hw),
+>>>> +                            clk->clkdm_name, ret);
+>>>> +                       return ret;
+>>>> +               }
+>>>> +       }
+>>>> +
+>>>> +       val =3D ti_clk_ll_ops->clk_readl(clk->enable_reg);
+>>>> +
+>>>> +       val &=3D ~OMAP4_MODULEMODE_MASK;
+>>>> +       val |=3D clk->enable_bit;
+>>>> +
+>>>> +       ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
+>>>> +
+>>>> +       /* Wait until module is enabled */
+>>>> +       while (!_omap4_is_ready(val)) {
+>>>> +               udelay(1);
+>>>
+>>> This should really be a .prepare callback if you plan to keep the d=
+elays
+>>> in there.
+>>
+>> If this is changed to a .prepare, then all OMAP power management is
+>> effectively ruined as all clocks are going to be enabled all the tim=
+e. hwmod
+>> core doesn't support .prepare/.enable at the moment that well, and c=
+hanging
+>> that is going to be a big burden (educated guess, haven't checked th=
+is
+>> yet)... The call chain that comes here is:
+>>
+>> device driver -> pm_runtime -> hwmod_core -> hwmod_clk_enable / disa=
+ble.
+>>
+>> The delay within this function should usually be pretty short, just =
+to wait
+>> that the module comes up from idle.
+>
+> Does it take multiple =C2=B5s? Perhaps even one =C2=B5s is much longe=
+r than needed?
+>
+>> I recall the discussions regarding the udelays within clk_enable/dis=
+able
+>> calls, but what is the preferred approach then? Typically clk_enable=
+/disable
+>> just becomes a NOP if it is not allowed to wait for hardware to comp=
+lete
+>> transitioning before exiting the function.
+>
+> FWIW, there are small loops with just a cpu_relax() in various clock =
+drivers
+> under drivers/clk/shmobile/.
+
+Just did a quick profiling round, and the clk_enable/disable delay loop=
+s=20
+take anything from 0...1500ns, most typically consuming some 400-600ns.=
+=20
+So, based on this, dropping the udelay and adding cpu_relax instead=20
+looks like a good change. I just verified that changing the udelay to=20
+cpu_relax works fine also, I just need to change the bail-out period to=
+=20
+be something sane.
+
+-Tero
+
+
+
+>
+> Gr{oetje,eeting}s,
+>
+>                          Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linu=
+x-m68k.org
+>
+> In personal conversations with technical people, I call myself a hack=
+er. But
+> when I'm talking to journalists I just say "programmer" or something =
+like that.
+>                                  -- Linus Torvalds
 >
 
-Re omapdrm - I guess it wouldn't be hard for omapdrm to use the same 
-preallocated memory, when/if it is needed. Though I know nothing about 
-omapdrm, so can't really tell.
-
-If not mistaken, camera driver uses sg lists. DSP needs such a memory, 
-but anyway it(driver) was removed from mainline, with no signs/hope to 
-be returned anytime soon.
-
-> So I really think this should be somehow be a general option for any device.
->
-
-Then maybe add the relevant people in CC, so we to start some kind of 
-discussion. But until such a general option exists, I think it makes 
-sense to apply the $subject patch, we can easily fix it to use whatever 
-general purpose API might the discussion come up with. As it is now, 
-omapfb simply cannot be used to play any video with sane resolution 
-(without preallocated memory that is), unless this is the only thing the 
-device does. And even then it is not assured.
-
-> I also wonder if CMA can be improved to not need anything like this? If
-> you just increase the CMA area, won't that increase the chances CMA will
-> work?
->
-
-The short answer is no, at least not with the CMA code currently 
-upstream. A kind of a long answer could be found on 
-http://marc.info/?l=linux-mm&m=141571797202006&w=2
-
-Regards,
-Ivo
