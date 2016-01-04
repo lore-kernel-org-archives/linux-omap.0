@@ -1,59 +1,85 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900: twl4030-power different data in DTS and board code
-Date: Mon, 4 Jan 2016 08:50:39 -0800
-Message-ID: <20160104165039.GB12777@atomide.com>
-References: <201601021513.32814@pali>
- <20160102171430.GC12622@atomide.com>
- <201601022239.27379@pali>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Mon, 4 Jan 2016 09:02:06 -0800
+Message-ID: <20160104170206.GC12777@atomide.com>
+References: <1432156863-19695-1-git-send-email-tony@atomide.com>
+ <1432156863-19695-3-git-send-email-tony@atomide.com>
+ <568662FC.9050206@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <201601022239.27379@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machel <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Nishanth Menon <nm@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <568662FC.9050206@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160102 13:39]:
-> On Saturday 02 January 2016 18:14:31 Tony Lindgren wrote:
->=20
-> > The n900 specific code was based on something before the TI generic
-> > values were available I think. And the last time I looked at it I
-> > came to the conclusion the n900 specific code is no better.
->=20
-> Hm... if generic values are better, why old values are still there (i=
-n=20
-> board n900 code)?
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160101 03:29]:
+> Hi Tony,
+> 
+> On 21.05.2015 00:21, Tony Lindgren wrote:
+> >We support decoding the bootloader values if DEBUG is defined.
+> >But we also need to change the struct omap_hwmod flags to have
+> >HWMOD_INIT_NO_RESET to avoid the GPMC being reset during the
+> >boot. Otherwise just the default timings will be displayed
+> >instead of the bootloader configured timings.
+> >
+> >This also allows us to clean up the various GPMC related
+> >hwmod flags. For debugging, we only need HWMOD_INIT_NO_RESET,
+> >and HWMOD_INIT_NO_IDLE is not needed.
+> >
+> >Cc: Brian Hutchinson <b.hutchman@gmail.com>
+> >Cc: Paul Walmsley <paul@pwsan.com>
+> >Cc: Roger Quadros <rogerq@ti.com>
+> >Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >---
+> >  arch/arm/mach-omap2/omap_hwmod.h                        |  6 ++++++
+> >  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c      | 12 ++----------
+> >  arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  3 ++-
+> >  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c              | 12 ++----------
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c              | 11 ++---------
+> >  arch/arm/mach-omap2/omap_hwmod_7xx_data.c               |  4 ++--
+> >  arch/arm/mach-omap2/omap_hwmod_81xx_data.c              |  2 ++
+> >  drivers/memory/Kconfig                                  |  8 ++++++++
+> >  drivers/memory/omap-gpmc.c                              |  6 +++---
+> >  9 files changed, 29 insertions(+), 35 deletions(-)
+> >
+> 
+> 1. Happy new year :)
 
-We never had PM working in a generic way for the legacy booting but
-relied on board specific configuration instead for the ones that did
-work. Probably not worth changing the board-*.c file configuration
-unless you want to test that the new generic settings work.
+Same to you :)
 
-> > Or did I miss something? Are you seeing some issues with PM with dt=
-s
-> > based code?
->=20
-> I'm just asking why we have different code for DST and board...
+> 2. It was a while I tested upstream on N900 but I had some spare time during
+> the holidays to play, so I tried to boot 4.4-rc6 with Maemo 5. To my
+> surprise, after that try, Maemo 5 rootfs, which is located on onenand became
+> irreversibly corrupted. I bisected the tree to the $subject commit and after
+> restoring HWMOD_INIT_NO_RESET in omap3xxx_gpmc_hwmod flags, the problem was
+> solved. It seems that GPMC is either incorrectly or incompletely setup by
+> the kernel, leading to failed onenand reads/writes and whatnot.
+> Unfortunately, what I have here is a release device, so I am unable to
+> capture any logs through the serial port. BTW keep in mind that rootfs
+> corruption happens as soon as a boot is attempted, even after a freshly
+> flashed rootfs.
 
-OK. Yeah no reason beyond somebody taking the time to verify that the
-generic settings work on n900 in legacy booting mode :)
+Oh crap, sorry to hear that :(
 
-> > We can certainly add it to twl4030-power if it provides something
-> > that the "ti,twl4030-power-idle-osc-off" does not.
->=20
-> But do we need 'compatible =3D "ti,twl4030-power-n900"' specification=
- in=20
-> omap3-n900.dts file at all?
+Care to boot with CONFIG_OMAP_GPMC_DEBUG=y and post the gpmc related dmesg
+output? The dmesg timings with CONFIG_OMAP_GPMC_DEBUG enabled should be
+compared against omap3-n900.dts gpmc timings. And if you don't see the whole
+dmesg after booting, you may need to also increase CONFIG_LOG_BUF_SHIFT.
+Meanwhile, I'll try to also produce it here.
 
-Well that generally done to allow adding support for the board specific
-configuration if needed with a fallback to the generic configuration.
-That's used quite a bit, for example boards typically set the compatibl=
-e
-to the specific board but still end up booting with a generic one
-sucha as "ti,omap3".
+Chances are we have bad or incomplete timings in the n900 :(
 
 Regards,
 
