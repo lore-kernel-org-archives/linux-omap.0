@@ -1,56 +1,69 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC 6/9] clk: ti: add support for omap4 module clocks
-Date: Mon, 4 Jan 2016 21:15:36 +0200
-Message-ID: <568AC4D8.2060509@ti.com>
-References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
- <1450447141-29936-7-git-send-email-t-kristo@ti.com>
- <20160101054815.21738.79820@quark.deferred.io> <568A20E5.6040005@ti.com>
- <CAMuHMdUZMUSYC1XHydVQHRibWtHw2=T-7nXe=5Pf4UCcb=mKTQ@mail.gmail.com>
- <568A735D.2060309@ti.com> <20160104144221.GA5783@n2100.arm.linux.org.uk>
- <20160104162853.GA12777@atomide.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Tue, 5 Jan 2016 00:34:12 +0100
+Message-ID: <201601050034.12810@pali>
+References: <201507251228.27128@pali> <55BFB77C.6000208@bitmer.com> <55C0638F.30000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart1907339.mtUAciBVlV";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20160104162853.GA12777@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55C0638F.30000@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/04/2016 06:37 PM, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [160104 06:43]:
->> On Mon, Jan 04, 2016 at 03:27:57PM +0200, Tero Kristo wrote:
->>> On 01/04/2016 12:21 PM, Geert Uytterhoeven wrote:
->>>> FWIW, there are small loops with just a cpu_relax() in various clock drivers
->>>> under drivers/clk/shmobile/.
->>>
->>> Just did a quick profiling round, and the clk_enable/disable delay loops
->>> take anything from 0...1500ns, most typically consuming some 400-600ns. So,
->>> based on this, dropping the udelay and adding cpu_relax instead looks like a
->>> good change. I just verified that changing the udelay to cpu_relax works
->>> fine also, I just need to change the bail-out period to be something sane.
->>
->> Was that profiling done with lockdep/lock debugging enabled or disabled?
+--nextPart1907339.mtUAciBVlV
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-omap2plus_defconfig, so lockdep was enabled. The profiling was done 
-around the while {} block though, which should not have any locks within 
-it (except for the SCM clocks, which may explain some of the higher 
-latency numbers seen.)
+On Tuesday 04 August 2015 09:02:39 Peter Ujfalusi wrote:
+> On 08/03/2015 09:48 PM, Jarkko Nikula wrote:
+> > It is well possible that some regression got introduced to
+> > TPA6130A2 I2C communication over the years without nobody than you
+> > now notices. We used to do QA back in Meego N900 days but that was
+> > pre 3.x kernels.
+>=20
+> No major changes has been done to the tpa driver during the past
+> years... I wanted to do some updates, like moving it to regmap, but
+> as you said, n900 is the only user (and n9) and I do not feel
+> comfortable to hack on a device where I do not have serial
+> console... And I'm using the n900 time to time also.
+>=20
+> >> So maybe something similar? Kernel expects that some PM or
+> >> regulator parts are initialized, but they are only sometimes?
+> >> Just speculation...
+> >=20
+> > I'm thinking the same. I could figure SCL could be stuck low if TPA
+> > or some other chip connected to the same I2C bus is without power
+> > and is pulling I2C signals down.
+>=20
+> What would happen with the SCL stuck on i2c.2 bus if you remove the
+> tpa driver from the kernel? If you remove the other drivers for the
+> devices on i2c.2?
 
-> And also the thing to check from the hw folks is what all do these clkctrl
-> bits really control. If they group together the OCP clock and an extra
-> functional clock for some devices the delays could be larger.
+Hi Peter and Jarkko! Do you have some code samples for testing? Or=20
+something else which I can test? This problem is still reproducible on=20
+more N900 devices and I would like to see it fixed.
 
-Does it matter really? The latencies are only imposed to the device in 
-question, and lets face it, the same latencies are there already with 
-the hwmod implementation. This series moves the implementation under 
-clock driver with as less modifications as possible to avoid any problems.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-> In general, I think we need to get rid of pm_runtime_irq_safe usage to
-> allow clocks to sleep properly. The other option is to allow toggling
-> pm_runtime_irq_safe but that probably gets super messy.
+--nextPart1907339.mtUAciBVlV
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-That is something not to be done with this set though.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
--Tero
+iEYEABECAAYFAlaLAXQACgkQi/DJPQPkQ1KHTgCgwqp1CmhZXTVWk1hrngJUp9Vq
+PsMAoLxcu/yZTqKg8IxvN4MN29ElES2O
+=jWRJ
+-----END PGP SIGNATURE-----
+
+--nextPart1907339.mtUAciBVlV--
