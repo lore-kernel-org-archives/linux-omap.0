@@ -1,45 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 6/9] clk: ti: add support for omap4 module clocks
-Date: Mon, 4 Jan 2016 08:37:41 -0800
-Message-ID: <20160104162853.GA12777@atomide.com>
-References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
- <1450447141-29936-7-git-send-email-t-kristo@ti.com>
- <20160101054815.21738.79820@quark.deferred.io>
- <568A20E5.6040005@ti.com>
- <CAMuHMdUZMUSYC1XHydVQHRibWtHw2=T-7nXe=5Pf4UCcb=mKTQ@mail.gmail.com>
- <568A735D.2060309@ti.com>
- <20160104144221.GA5783@n2100.arm.linux.org.uk>
+Subject: Re: Nokia N900: twl4030-power different data in DTS and board code
+Date: Mon, 4 Jan 2016 08:50:39 -0800
+Message-ID: <20160104165039.GB12777@atomide.com>
+References: <201601021513.32814@pali>
+ <20160102171430.GC12622@atomide.com>
+ <201601022239.27379@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160104144221.GA5783@n2100.arm.linux.org.uk>
-Sender: linux-clk-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tero Kristo <t-kristo@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <201601022239.27379@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machel <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Nishanth Menon <nm@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [160104 06:43]:
-> On Mon, Jan 04, 2016 at 03:27:57PM +0200, Tero Kristo wrote:
-> > On 01/04/2016 12:21 PM, Geert Uytterhoeven wrote:
-> > >FWIW, there are small loops with just a cpu_relax() in various clock drivers
-> > >under drivers/clk/shmobile/.
-> > 
-> > Just did a quick profiling round, and the clk_enable/disable delay loops
-> > take anything from 0...1500ns, most typically consuming some 400-600ns. So,
-> > based on this, dropping the udelay and adding cpu_relax instead looks like a
-> > good change. I just verified that changing the udelay to cpu_relax works
-> > fine also, I just need to change the bail-out period to be something sane.
-> 
-> Was that profiling done with lockdep/lock debugging enabled or disabled?
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160102 13:39]:
+> On Saturday 02 January 2016 18:14:31 Tony Lindgren wrote:
+>=20
+> > The n900 specific code was based on something before the TI generic
+> > values were available I think. And the last time I looked at it I
+> > came to the conclusion the n900 specific code is no better.
+>=20
+> Hm... if generic values are better, why old values are still there (i=
+n=20
+> board n900 code)?
 
-And also the thing to check from the hw folks is what all do these clkctrl
-bits really control. If they group together the OCP clock and an extra
-functional clock for some devices the delays could be larger.
+We never had PM working in a generic way for the legacy booting but
+relied on board specific configuration instead for the ones that did
+work. Probably not worth changing the board-*.c file configuration
+unless you want to test that the new generic settings work.
 
-In general, I think we need to get rid of pm_runtime_irq_safe usage to
-allow clocks to sleep properly. The other option is to allow toggling
-pm_runtime_irq_safe but that probably gets super messy.
+> > Or did I miss something? Are you seeing some issues with PM with dt=
+s
+> > based code?
+>=20
+> I'm just asking why we have different code for DST and board...
+
+OK. Yeah no reason beyond somebody taking the time to verify that the
+generic settings work on n900 in legacy booting mode :)
+
+> > We can certainly add it to twl4030-power if it provides something
+> > that the "ti,twl4030-power-idle-osc-off" does not.
+>=20
+> But do we need 'compatible =3D "ti,twl4030-power-n900"' specification=
+ in=20
+> omap3-n900.dts file at all?
+
+Well that generally done to allow adding support for the board specific
+configuration if needed with a fallback to the generic configuration.
+That's used quite a bit, for example boards typically set the compatibl=
+e
+to the specific board but still end up booting with a generic one
+sucha as "ti,omap3".
 
 Regards,
 
