@@ -1,43 +1,29 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH 3/3] ARM: dts: twl6030: add gpadc
-Date: Tue,  5 Jan 2016 13:01:39 +0100
-Message-ID: <7752d08788d29e68bf529611d4a776a79dcfeee1.1451995297.git.hns@goldelico.com>
-References: <cover.1451995297.git.hns@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1451995297.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-In-Reply-To: <cover.1451995297.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-References: <cover.1451995297.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH 0/3] Enable twl603x-GPADC for some OMAP4/OMAP5 boards and Palmas-RTC for OMAP5
+Date: Tue,  5 Jan 2016 13:01:36 +0100
+Message-ID: <cover.1451995297.git.hns@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, marek@goldelico.com, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-tested on Pandaboard ES.
+This patch series adds DT nodes for:
 
-Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
----
- arch/arm/boot/dts/twl6030.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+twl6030-gpadc for omap4 based boards (Pandaboard ES)
+twl6037-gpadc for omap5 based boards (OMAP5 EVM)
+twl6037-rtc for omap5 based boards (OMAP5 EVM)
 
-diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-index 55eb35f..98e444d 100644
---- a/arch/arm/boot/dts/twl6030.dtsi
-+++ b/arch/arm/boot/dts/twl6030.dtsi
-@@ -99,4 +99,10 @@
- 		compatible = "ti,twl6030-pwmled";
- 		#pwm-cells = <2>;
- 	};
-+
-+	adc {
-+		compatible = "ti,twl6030-gpadc";
-+		interrupts = <3>;
-+		#io-channel-cells = <1>;
-+	};
- };
+
+H. Nikolaus Schaller (3):
+  ARM: dts: omap5-board-common: enable rtc and charging of backup
+    battery
+  ARM: dts: omap5-board-common: enable iio gpadc for Palmas
+  ARM: dts: twl6030: add gpadc
+
+ arch/arm/boot/dts/omap5-board-common.dtsi | 18 ++++++++++++++++++
+ arch/arm/boot/dts/twl6030.dtsi            |  6 ++++++
+ 2 files changed, 24 insertions(+)
+
 -- 
 2.5.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
