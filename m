@@ -1,120 +1,35 @@
-From: Michael Turquette <mturquette@baylibre.com>
-Subject: Re: [RFC 6/9] clk: ti: add support for omap4 module clocks
-Date: Mon, 04 Jan 2016 17:29:54 -0800
-Message-ID: <20160105012954.15239.57130@quark.deferred.io>
-References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
- <1450447141-29936-7-git-send-email-t-kristo@ti.com>
- <20160101054815.21738.79820@quark.deferred.io> <568A20E5.6040005@ti.com>
+From: Derek Basehore <dbasehore@chromium.org>
+Subject: Re: Re: [PATCH v11 0/4] Allow USB devices to remain
+ runtime-suspended when sleeping
+Date: Mon, 4 Jan 2016 18:27:18 -0800
+Message-ID: <20160105021052.GA32392@google.com>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+ <2496228.i2Z9PmMBtz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <568A20E5.6040005@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, sboyd@codeaurora.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2496228.i2Z9PmMBtz@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Len Brown <len.brown@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, martyn.welch@collabora.co.uk, linux-pm@vger.kernel.org, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, djkurtz@chromium.org
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Tero Kristo (2016-01-03 23:36:05)
-> On 01/01/2016 07:48 AM, Michael Turquette wrote:
-> > Hi Tero,
-> >
-> > Quoting Tero Kristo (2015-12-18 05:58:58)
-> >> Previously, hwmod core has been used for controlling the hwmod level
-> >> clocks. This has certain drawbacks, like being unable to share the
-> >> clocks for multiple users, missing usecounting and generally being
-> >> totally incompatible with common clock framework.
-> >>
-> >> Add support for new clock type under the TI clock driver, which will
-> >> be used to convert all the existing hwmdo clocks to. This helps to
-> >> get rid of the clock related hwmod data from kernel and instead
-> >> parsing this from DT.
-> >
-> > I'm really happy to see this series. Looks pretty good to me.
-> >
-> >> +static int _omap4_hwmod_clk_enable(struct clk_hw *hw)
-> >> +{
-> >> +       struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-> >> +       u32 val;
-> >> +       int timeout = 0;
-> >> +       int ret;
-> >> +
-> >> +       if (!clk->enable_bit)
-> >> +               return 0;
-> >> +
-> >> +       if (clk->clkdm) {
-> >> +               ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
-> >> +               if (ret) {
-> >> +                       WARN(1,
-> >> +                            "%s: could not enable %s's clockdomain %s: %d\n",
-> >> +                            __func__, clk_hw_get_name(hw),
-> >> +                            clk->clkdm_name, ret);
-> >> +                       return ret;
-> >> +               }
-> >> +       }
-> >> +
-> >> +       val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
-> >> +
-> >> +       val &= ~OMAP4_MODULEMODE_MASK;
-> >> +       val |= clk->enable_bit;
-> >> +
-> >> +       ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
-> >> +
-> >> +       /* Wait until module is enabled */
-> >> +       while (!_omap4_is_ready(val)) {
-> >> +               udelay(1);
-> >
-> > This should really be a .prepare callback if you plan to keep the delays
-> > in there.
+On Mon, Nov 02, 2015 at 02:50:40AM +0100, Rafael J. Wysocki wrote:
 > 
-> If this is changed to a .prepare, then all OMAP power management is 
-> effectively ruined as all clocks are going to be enabled all the time. 
-
-Let's not ruin system PM.
-
-> hwmod core doesn't support .prepare/.enable at the moment that well, and 
-> changing that is going to be a big burden (educated guess, haven't 
-> checked this yet)... The call chain that comes here is:
+> I've queued up this series for the second half of the v4.4 merge window.
 > 
-> device driver -> pm_runtime -> hwmod_core -> hwmod_clk_enable / disable.
-
-Right, and for calls to pm_runtime_get/put from process context it
-should result in a call to clk_prepare_enable/clk_disable_unprepare. I
-guess that change is hugely invasive from your statements above?
-
+> Thanks,
+> Rafael
 > 
-> The delay within this function should usually be pretty short, just to 
-> wait that the module comes up from idle.
 > 
-> I recall the discussions regarding the udelays within clk_enable/disable 
-> calls, but what is the preferred approach then?
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-There are many cases where a clk only provides .{un}prepare ops and does
-NOT provide any .{en,dis}able ops.
+What's the status of this patch series? I haven't seen the patches
+posted for v4.4, plus there's the issue that Dan found that needs to be
+addressed.
 
-> Typically 
-> clk_enable/disable just becomes a NOP
-
-Yes, it becomes a NOP (though it is critical that drivers with knowledge
-of this do not try to skip the step of calling clk_enable).
-
-> if it is not allowed to wait for 
-> hardware to complete transitioning before exiting the function.
-
-The clk.h api clearly states that clk_prepare must be called and
-complete before calling clk_enable. So if a clk only provides a .prepare
-with delays but no .enable, and a consumer driver complies with that api
-rule then we're guaranteed to have a toggling line when clk_enable
-returns.
-
-Regards,
-Mike
-
-> 
-> -Tero
-> 
-> >
-> > Regards,
-> > Mike
-> >
-> 
+Is there a new revision of the patch series being worked on?
