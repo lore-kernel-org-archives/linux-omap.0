@@ -1,109 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Tue, 5 Jan 2016 14:49:29 -0800
-Message-ID: <20160105224929.GF12777@atomide.com>
-References: <1432156863-19695-1-git-send-email-tony@atomide.com>
- <568662FC.9050206@gmail.com> <20160104170206.GC12777@atomide.com>
- <201601041834.56056@pali> <20160104174001.GD12777@atomide.com>
- <568AC0F9.2010304@gmail.com> <20160105041356.GE12777@atomide.com>
- <20160105084947.GG22661@pali>
+From: "dbasehore ." <dbasehore@chromium.org>
+Subject: Re: [PATCH v11 0/4] Allow USB devices to remain runtime-suspended
+ when sleeping
+Date: Tue, 5 Jan 2016 15:38:25 -0800
+Message-ID: <CAGAzgsrdw8pmntQYrLbWsFzO7epp7JX84FN2Y-KkuZOfA18gmg@mail.gmail.com>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+	<2496228.i2Z9PmMBtz@vostro.rjw.lan>
+	<20160105021052.GA32392@google.com>
+	<1791136.5K3qHuXCRE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160105084947.GG22661@pali>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1791136.5K3qHuXCRE@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Len Brown <len.brown@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, martyn.welch@collabora.co.uk, Linux-pm mailing list <linux-pm@vger.kernel.org>, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>, Daniel Kurtz <djkurtz@chromium.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNjAxMDUgMDA6NTBdOgo+IE9u
-IE1vbmRheSAwNCBKYW51YXJ5IDIwMTYgMjA6MTM6NTYgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+
-ICogSXZheWxvIERpbWl0cm92IDxpdm8uZy5kaW1pdHJvdi43NUBnbWFpbC5jb20+IFsxNjAxMDQg
-MTA6NTldOgo+ID4gPiBIaSwKPiA+ID4gCj4gPiA+IE9uICA0LjAxLjIwMTYgMTk6NDAsIFRvbnkg
-TGluZGdyZW4gd3JvdGU6Cj4gPiA+ID4+T24gTW9uZGF5IDA0IEphbnVhcnkgMjAxNiAxODowMjow
-NiBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gPiA+Pj4+ID5DYXJlIHRvIGJvb3Qgd2l0aCBDT05G
-SUdfT01BUF9HUE1DX0RFQlVHPXkgYW5kIHBvc3QgdGhlIGdwbWMgcmVsYXRlZAo+ID4gPiA+Pj4+
-ID5kbWVzZyBvdXRwdXQ/Cj4gPiA+IAo+ID4gPiBIZXJlIGl0IGlzLCBpbmNsdWRpbmcgdGhlIHBy
-ZS1ncG1jIGxvZywga2VlcCBpbiBtaW5kIHRoaXMgaXMgd2l0aCByZXN0b3JlZAo+ID4gPiBIV01P
-RF9JTklUX05PX1JFU0VUIGZsYWcgc28gcm9vdGZzIGlzIGZ1bmN0aW9uYWwgYW5kIEkgY2FuIGdl
-dCBkbWVzZyBvdXRwdXQKPiA+ID4gZnJvbSB0aGUgc3lzbG9nLiBEb24ndCBrbm93IGlmIGl0IGlz
-IGhlbHBmdWwgOikuIEFsc28sIHRoaXMgZGV2aWNlIGhhcwo+ID4gPiBOdW1vbnl4IG9uZW5hbmQg
-KEhXIHJldi4gMjIwNCksIHVubGlrZSBtb3N0IG9mIHRoZSBvdGhlcnMgd2hpY2ggaGF2ZSBTYW1z
-dW5nCj4gPiA+IG9uZW5hbmQgKEhXIHJldi4gMjEwMSBldGMpLCBubyBpZGVhIGlmIGl0IGlzIHJl
-bGV2YW50Lgo+ID4gCj4gPiBUaGFua3MuIEkgZ290IHRoZSBwcm9ibGVtIHJlcHJvZHVjZWQgaGVy
-ZSB0b28uCj4gPiAKPiA+IFsgICAgMS45MTU1NTddIGdwbWMgY3MwIGFmdGVyIGdwbWNfY3Nfc2V0
-X3RpbWluZ3M6Cj4gPiBbICAgIDEuOTIwNDEwXSBjczAgR1BNQ19DU19DT05GSUcxOiAweGZiMDAx
-MjAxCj4gPiAKPiA+IExvb2tzIGxpa2UgaW4gdGhlIGZhaWxpbmcgY2FzZSB0aGUgY2xvY2sgcmF0
-ZXMgYXJlIG5vdCBwcm9wZXJseQo+ID4gY2FsY3VsYXRlZCBpbiBHUE1DIGFuZCBHUE1DRkNMS0RJ
-VklERVIgaXMgc2V0IHdyb25nIGluCj4gPiBHUE1DX0NTX0NPTkZJRzEuIE5lZWQgdG8gbG9vayBh
-dCBpdCBtb3JlIHRvIGZpZ3VyZSBvdXQgd2hhdCdzIHRoZQo+ID4gYmVzdCB3YXkgdG8gZml4IHRo
-aXMuCj4gPiAKPiA+IFJlZ2FyZHMsCj4gPiAKPiA+IFRvbnkKPiAKPiBIbS4uLiBNYXliZSB0aGlz
-IHByb2JsZW0gaXMgaW4gVS1Cb290IHRvbz8KClllYWggbWF5YmUuIExvb2tzIGxpa2Ugd2UgbmVl
-ZCBzeW5jIHdyaXRlIGJpdCBzZXQgYWxzbyBmb3IgYXN5bmMKdGltaW5ncyBmb3Igb21hcDJfb25l
-bmFuZF9zZXRfYXN5bmNfbW9kZSgpIHRvIHdvcmsgdG8gZGV0ZWN0IHRoZQpvbmVuYW5kIHJhdGUg
-Zm9yIHN5bmMgbW9kZSA6KQoKU3VnZ2VzdGVkIGZpeCBiZWxvdywgcGxlYXNlIHRlc3QgYW5kIHJl
-cGx5IHdpdGggeW91ciBUZXN0ZWQtYnkncyBpZgppdCBzb2x2ZXMgdGhlIHByb2JsZW0gc28gd2Ug
-bWF5IHN0aWxsIGJlIGFibGUgdG8gZ2V0IHRoaXMgaW50byB2NC40LgoKUmVnYXJkcywKClRvbnkK
-Cjg8IC0tLS0tLS0tLS0tLS0tLQpGcm9tOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29t
-PgpEYXRlOiBUdWUsIDUgSmFuIDIwMTYgMTI6MDQ6MjAgLTA4MDAKU3ViamVjdDogW1BBVENIXSBB
-Uk06IE9NQVAyKzogRml4IG9uZW5hbmQgcmF0ZSBkZXRlY3Rpb24gdG8gYXZvaWQgZmlsZXN5c3Rl
-bQogY29ycnVwdGlvbgoKQ29tbWl0IDYzYWE5NDViMTAxMyAoIm1lbW9yeTogb21hcC1ncG1jOiBB
-ZGQgS2NvbmZpZyBvcHRpb24gZm9yIGRlYnVnIikKdW5pZmllZCB0aGUgR1BNQyBkZWJ1ZyBmb3Ig
-dGhlIFNvQ3Mgd2l0aCBHUE1DLiBUaGUgY29tbWl0IGFsc28gbGVmdApvdXQgdGhlIG9wdGlvbiBm
-b3IgSFdNT0RfSU5JVF9OT19SRVNFVCBhcyB3ZSBub3cgcmVxdWlyZSBwcm9wZXIgdGltaW5ncwpm
-b3IgR1BNQyB0byBiZSBhYmxlIHRvIHJlbWFwIEdQTUMgZGV2aWNlcyBvdXQgb2YgYWRkcmVzcyAw
-LgoKVW5mb3J0dW5hdGVseSBvbiA5MDAsIG9uZW5hbmQgbm93IG9ubHkgcGFydGlhbGx5IHdvcmtz
-IHdpdGggdGhlIGRldmljZQp0cmVlIHByb3ZpZGVkIHRpbWluZ3MuIEl0IHdvcmtzIGVub3VnaCB0
-byBnZXQgZGV0ZWN0ZWQgYnV0IHRoZSBjbG9jawpyYXRlIHN1cHBvcnRlZCBieSB0aGUgb25lbmFu
-ZCBjaGlwIGdldHMgbWlzZGV0ZWN0ZWQuIFRoaXMgaW4gdHVybiBjYXVzZXMKdGhlIEdQTUMgdGlt
-aW5ncyB0byBiZSBtaXNjYWxjdWxhdGVkIGFuZCB0aGlzIGxlYWRzIGludG8gZmlsZSBzeXN0ZW0K
-Y29ycnVwdGlvbiBvbiBuOTAwLgoKTG9va3MgbGlrZSBvbmVuYW5kIG5lZWRzIENTX0NPTkZJRzEg
-Yml0IDI3IFdSSVRFVFlQRSBzZXQgZm9yIGZvciBzeW5jCndyaXRlLiBUaGlzIGlzIG5lZWRlZCBh
-bHNvIGZvciBhc3luYyB0aW1pbmdzIHdoZW4gd2Ugd3JpdGUgdG8gb25lbmFuZAp3aXRoIG9tYXAy
-X29uZW5hbmRfc2V0X2FzeW5jX21vZGUoKS4gV2l0aG91dCBzeW5jIHdyaXRlIGJpdCBzZXQsIHRo
-ZQphc3luYyByZWFkIGZvciB0aGUgb25lbmFuZCBPTkVOQU5EX1JFR19WRVJTSU9OX0lEIHdpbGwg
-cmV0dXJuIDB4ZmZmLgoKTGV0J3MgZXhpdCB3aXRoIGFuIGVycm9yIGlmIG9uZW5hbmQgcmF0ZSBp
-cyBub3QgZGV0ZWN0ZWQuIEFuZCBsZXQncwpyZW1vdmUgdGhlIGV4dHJhIGNhbGwgdG8gb21hcDJf
-b25lbmFuZF9zZXRfYXN5bmNfbW9kZSgpIGFzIHdlIG9ubHkKbmVlZCB0byBkbyB0aGlzIG9uY2Ug
-YXQgdGhlIGVuZCBvZiBvbWFwMl9vbmVuYW5kX3NldHVwX2FzeW5jKCkuCgpSZXBvcnRlZC1ieTog
-SXZheWxvIERpbWl0cm92IDxpdm8uZy5kaW1pdHJvdi43NUBnbWFpbC5jb20+ClNpZ25lZC1vZmYt
-Ynk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CgotLS0gYS9hcmNoL2FybS9tYWNo
-LW9tYXAyL2dwbWMtb25lbmFuZC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy1vbmVu
-YW5kLmMKQEAgLTE0OSw4ICsxNDksOCBAQCBzdGF0aWMgaW50IG9tYXAyX29uZW5hbmRfZ2V0X2Zy
-ZXEoc3RydWN0IG9tYXBfb25lbmFuZF9wbGF0Zm9ybV9kYXRhICpjZmcsCiAJCWZyZXEgPSAxMDQ7
-CiAJCWJyZWFrOwogCWRlZmF1bHQ6Ci0JCWZyZXEgPSA1NDsKLQkJYnJlYWs7CisJCXByX2Vycigi
-b25lbmFuZCByYXRlIG5vdCBkZXRlY3RlZCwgYmFkIEdQTUMgYXN5bmMgdGltaW5ncz9cbiIpOwor
-CQlmcmVxID0gMDsKIAl9CiAKIAlyZXR1cm4gZnJlcTsKQEAgLTI3MSw2ICsyNzEsMTEgQEAgc3Rh
-dGljIGludCBvbWFwMl9vbmVuYW5kX3NldHVwX2FzeW5jKHZvaWQgX19pb21lbSAqb25lbmFuZF9i
-YXNlKQogCXN0cnVjdCBncG1jX3RpbWluZ3MgdDsKIAlpbnQgcmV0OwogCisJLyoKKwkgKiBOb3Rl
-IHRoYXQgd2UgbmVlZCB0byBrZWVwIHN5bmNfd3JpdGUgc2V0IGZvciB0aGUgY2FsbCB0bworCSAq
-IG9tYXAyX29uZW5hbmRfc2V0X2FzeW5jX21vZGUoKSB0byB3b3JrIHRvIGRldGVjdCB0aGUgb25l
-bmFuZAorCSAqIHN1cHBvcnRlZCBjbG9jayByYXRlIGZvciB0aGUgc3luYyB0aW1pbmdzLgorCSAq
-LwogCWlmIChncG1jX29uZW5hbmRfZGF0YS0+b2Zfbm9kZSkgewogCQlncG1jX3JlYWRfc2V0dGlu
-Z3NfZHQoZ3BtY19vbmVuYW5kX2RhdGEtPm9mX25vZGUsCiAJCQkJICAgICAgJm9uZW5hbmRfYXN5
-bmMpOwpAQCAtMjgxLDEyICsyODYsOSBAQCBzdGF0aWMgaW50IG9tYXAyX29uZW5hbmRfc2V0dXBf
-YXN5bmModm9pZCBfX2lvbWVtICpvbmVuYW5kX2Jhc2UpCiAJCQllbHNlCiAJCQkJZ3BtY19vbmVu
-YW5kX2RhdGEtPmZsYWdzIHw9IE9ORU5BTkRfU1lOQ19SRUFEOwogCQkJb25lbmFuZF9hc3luYy5z
-eW5jX3JlYWQgPSBmYWxzZTsKLQkJCW9uZW5hbmRfYXN5bmMuc3luY193cml0ZSA9IGZhbHNlOwog
-CQl9CiAJfQogCi0Jb21hcDJfb25lbmFuZF9zZXRfYXN5bmNfbW9kZShvbmVuYW5kX2Jhc2UpOwot
-CiAJb21hcDJfb25lbmFuZF9jYWxjX2FzeW5jX3RpbWluZ3MoJnQpOwogCiAJcmV0ID0gZ3BtY19j
-c19wcm9ncmFtX3NldHRpbmdzKGdwbWNfb25lbmFuZF9kYXRhLT5jcywgJm9uZW5hbmRfYXN5bmMp
-OwpAQCAtMzEwLDYgKzMxMiw4IEBAIHN0YXRpYyBpbnQgb21hcDJfb25lbmFuZF9zZXR1cF9zeW5j
-KHZvaWQgX19pb21lbSAqb25lbmFuZF9iYXNlLCBpbnQgKmZyZXFfcHRyKQogCWlmICghZnJlcSkg
-ewogCQkvKiBWZXJ5IGZpcnN0IGNhbGwgZnJlcSBpcyBub3Qga25vd24gKi8KIAkJZnJlcSA9IG9t
-YXAyX29uZW5hbmRfZ2V0X2ZyZXEoZ3BtY19vbmVuYW5kX2RhdGEsIG9uZW5hbmRfYmFzZSk7CisJ
-CWlmICghZnJlcSkKKwkJCXJldHVybiAtRU5PREVWOwogCQlzZXRfb25lbmFuZF9jZmcob25lbmFu
-ZF9iYXNlKTsKIAl9CiAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Tue, Jan 5, 2016 at 4:48 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, January 04, 2016 06:27:18 PM Derek Basehore wrote:
+>> On Mon, Nov 02, 2015 at 02:50:40AM +0100, Rafael J. Wysocki wrote:
+>> >
+>> > I've queued up this series for the second half of the v4.4 merge window.
+>> >
+>> > Thanks,
+>> > Rafael
+>> >
+>> >
+>> > _______________________________________________
+>> > linux-arm-kernel mailing list
+>> > linux-arm-kernel@lists.infradead.org
+>> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>
+>> What's the status of this patch series? I haven't seen the patches
+>> posted for v4.4, plus there's the issue that Dan found that needs to be
+>> addressed.
+>>
+>> Is there a new revision of the patch series being worked on?
+>
+> Tomeu is not working on one AFAICS, but I may just revive his series.
+>
+> Do you have a pointer to the Dan's report?
+>
+> Thanks,
+> Rafael
+>
+
+It was a reply to the second patch in the series. Here's a link to it
+https://lkml.org/lkml/2015/11/10/107
