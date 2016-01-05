@@ -1,54 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Mon, 4 Jan 2016 20:13:56 -0800
-Message-ID: <20160105041356.GE12777@atomide.com>
-References: <1432156863-19695-1-git-send-email-tony@atomide.com>
- <568662FC.9050206@gmail.com> <20160104170206.GC12777@atomide.com>
- <201601041834.56056@pali> <20160104174001.GD12777@atomide.com>
- <568AC0F9.2010304@gmail.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v5 0/5] Add memory mapped read support for ti-qspi
+Date: Tue, 5 Jan 2016 10:50:42 +0530
+Message-ID: <568B52AA.4070900@ti.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <568AC0F9.2010304@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Mark Brown <broonie@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, hramrach@gmail.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160104 10:59]:
-> Hi,
+Hi Brian,
+
+On 12/11/2015 09:39 AM, Vignesh R wrote:
+> Changes since v4:
+> Use syscon to access system control module register in ti-qspi driver.
 > 
-> On  4.01.2016 19:40, Tony Lindgren wrote:
-> >>On Monday 04 January 2016 18:02:06 Tony Lindgren wrote:
-> >>>> >Care to boot with CONFIG_OMAP_GPMC_DEBUG=y and post the gpmc related
-> >>>> >dmesg output?
+
+Gentle ping...
+Are you ok with MTD side changes of this patch series?
+
+> Changes since v3:
+> Rework to introduce spi_flash_read_message struct.
+> Support different opcode/addr/data formats as per Brian's suggestion
+> here: https://lkml.org/lkml/2015/11/11/454
 > 
-> Here it is, including the pre-gpmc log, keep in mind this is with restored
-> HWMOD_INIT_NO_RESET flag so rootfs is functional and I can get dmesg output
-> from the syslog. Don't know if it is helpful :). Also, this device has
-> Numonyx onenand (HW rev. 2204), unlike most of the others which have Samsung
-> onenand (HW rev. 2101 etc), no idea if it is relevant.
+> Changes since v2:
+> Remove mmap_lock_mutex.
+> Optimize enable/disable of mmap mode.
+> 
+> Changes since v1:
+> Introduce API in SPI core that MTD flash driver can call for mmap read
+> instead of directly calling spi-master driver callback. This API makes
+> sure that SPI core msg queue is locked during mmap transfers.
+> v1: https://lkml.org/lkml/2015/9/4/103
+> 
+> 
+> Cover letter:
+> 
+> This patch series adds support for memory mapped read port of ti-qspi.
+> ti-qspi has a special memory mapped port through which SPI flash
+> memories can be accessed directly via SoC specific memory region.
+> 
+> First patch adds a method to pass flash specific information like read
+> opcode, dummy bytes etc and to request mmap read. Second patch
+> implements mmap read method in ti-qspi driver. Patch 3 adapts m25p80 to
+> use mmap read method before trying normal SPI transfer. Patch 4 and 5
+> add memory map region DT entries for DRA7xx and AM43xx SoCs.
+> 
+> This patch series is based on the discussions here:
+> http://www.spinics.net/lists/linux-spi/msg04796.html
+> 
+> Tested on DRA74 EVM and AM437x-SK.
+> Read performance increases from ~100kB/s to ~2.5MB/s.
+> 
+> Vignesh R (5):
+>   spi: introduce accelerated read support for spi flash devices
+>   spi: spi-ti-qspi: add mmap mode read support
+>   mtd: devices: m25p80: add support for mmap read request
+>   ARM: dts: DRA7: add entry for qspi mmap region
+>   ARM: dts: AM4372: add entry for qspi mmap region
+> 
+>  Documentation/devicetree/bindings/spi/ti_qspi.txt |  22 +++-
+>  arch/arm/boot/dts/am4372.dtsi                     |   4 +-
+>  arch/arm/boot/dts/dra7.dtsi                       |   6 +-
+>  drivers/mtd/devices/m25p80.c                      |  20 ++++
+>  drivers/spi/spi-ti-qspi.c                         | 139 +++++++++++++++++-----
+>  drivers/spi/spi.c                                 |  45 +++++++
+>  include/linux/spi/spi.h                           |  41 +++++++
+>  7 files changed, 243 insertions(+), 34 deletions(-)
+> 
 
-Thanks. I got the problem reproduced here too.
-
-[    1.915557] gpmc cs0 after gpmc_cs_set_timings:
-[    1.920410] cs0 GPMC_CS_CONFIG1: 0xfb001201
-
-Looks like in the failing case the clock rates are not properly
-calculated in GPMC and GPMCFCLKDIVIDER is set wrong in
-GPMC_CS_CONFIG1. Need to look at it more to figure out what's the
-best way to fix this.
-
-Regards,
-
-Tony
+-- 
+Regards
+Vignesh
