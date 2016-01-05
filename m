@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging of backup battery
-Date: Tue,  5 Jan 2016 13:01:37 +0100
-Message-ID: <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com>
+Subject: [PATCH 2/3] ARM: dts: omap5-board-common: enable iio gpadc for Palmas
+Date: Tue,  5 Jan 2016 13:01:38 +0100
+Message-ID: <597ffe6d0b9178ae2901949dc33c5ae27b1bdedd.1451995297.git.hns@goldelico.com>
 References: <cover.1451995297.git.hns@goldelico.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1451995297.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
@@ -16,23 +16,25 @@ tested on OMP5432 EVM
 
 Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- arch/arm/boot/dts/omap5-board-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/boot/dts/omap5-board-common.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-index 5cf76a1..30c0d3b 100644
+index 30c0d3b..56429ce 100644
 --- a/arch/arm/boot/dts/omap5-board-common.dtsi
 +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -358,6 +358,14 @@
- 			#clock-cells = <0>;
+@@ -366,6 +366,16 @@
+ 			ti,backup-battery-charge-high-current;
  		};
  
-+		rtc {
-+			compatible = "ti,palmas-rtc";
-+			interrupt-parent = <&palmas>;
-+			interrupts = <8 IRQ_TYPE_NONE>;
-+			ti,backup-battery-chargeable;
-+			ti,backup-battery-charge-high-current;
++		gpadc {
++			compatible = "ti,palmas-gpadc";
++			interrupts = <18 0
++				      16 0
++				      17 0>;
++			#io-channel-cells = <1>;
++			ti,channel0-current-microamp = <5>;
++			ti,channel3-current-microamp = <10>;
 +		};
 +
  		palmas_pmic {
