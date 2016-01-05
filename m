@@ -1,72 +1,120 @@
 From: Michael Turquette <mturquette@baylibre.com>
 Subject: Re: [RFC 6/9] clk: ti: add support for omap4 module clocks
-Date: Mon, 04 Jan 2016 17:23:00 -0800
-Message-ID: <20160105012300.15239.77012@quark.deferred.io>
+Date: Mon, 04 Jan 2016 17:29:54 -0800
+Message-ID: <20160105012954.15239.57130@quark.deferred.io>
 References: <1450447141-29936-1-git-send-email-t-kristo@ti.com>
  <1450447141-29936-7-git-send-email-t-kristo@ti.com>
  <20160101054815.21738.79820@quark.deferred.io> <568A20E5.6040005@ti.com>
- <CAMuHMdUZMUSYC1XHydVQHRibWtHw2=T-7nXe=5Pf4UCcb=mKTQ@mail.gmail.com>
- <568A735D.2060309@ti.com> <20160104144221.GA5783@n2100.arm.linux.org.uk>
- <20160104162853.GA12777@atomide.com> <568AC4D8.2060509@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <568AC4D8.2060509@ti.com>
+In-Reply-To: <568A20E5.6040005@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Stephen Boyd <sboyd@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, tony@atomide.com, sboyd@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Tero Kristo (2016-01-04 11:15:36)
-> On 01/04/2016 06:37 PM, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [160104 06:43]:
-> >> On Mon, Jan 04, 2016 at 03:27:57PM +0200, Tero Kristo wrote:
-> >>> On 01/04/2016 12:21 PM, Geert Uytterhoeven wrote:
-> >>>> FWIW, there are small loops with just a cpu_relax() in various clock drivers
-> >>>> under drivers/clk/shmobile/.
-> >>>
-> >>> Just did a quick profiling round, and the clk_enable/disable delay loops
-> >>> take anything from 0...1500ns, most typically consuming some 400-600ns. So,
-> >>> based on this, dropping the udelay and adding cpu_relax instead looks like a
-> >>> good change. I just verified that changing the udelay to cpu_relax works
-> >>> fine also, I just need to change the bail-out period to be something sane.
+Quoting Tero Kristo (2016-01-03 23:36:05)
+> On 01/01/2016 07:48 AM, Michael Turquette wrote:
+> > Hi Tero,
+> >
+> > Quoting Tero Kristo (2015-12-18 05:58:58)
+> >> Previously, hwmod core has been used for controlling the hwmod level
+> >> clocks. This has certain drawbacks, like being unable to share the
+> >> clocks for multiple users, missing usecounting and generally being
+> >> totally incompatible with common clock framework.
 > >>
-> >> Was that profiling done with lockdep/lock debugging enabled or disabled?
+> >> Add support for new clock type under the TI clock driver, which will
+> >> be used to convert all the existing hwmdo clocks to. This helps to
+> >> get rid of the clock related hwmod data from kernel and instead
+> >> parsing this from DT.
+> >
+> > I'm really happy to see this series. Looks pretty good to me.
+> >
+> >> +static int _omap4_hwmod_clk_enable(struct clk_hw *hw)
+> >> +{
+> >> +       struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+> >> +       u32 val;
+> >> +       int timeout = 0;
+> >> +       int ret;
+> >> +
+> >> +       if (!clk->enable_bit)
+> >> +               return 0;
+> >> +
+> >> +       if (clk->clkdm) {
+> >> +               ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
+> >> +               if (ret) {
+> >> +                       WARN(1,
+> >> +                            "%s: could not enable %s's clockdomain %s: %d\n",
+> >> +                            __func__, clk_hw_get_name(hw),
+> >> +                            clk->clkdm_name, ret);
+> >> +                       return ret;
+> >> +               }
+> >> +       }
+> >> +
+> >> +       val = ti_clk_ll_ops->clk_readl(clk->enable_reg);
+> >> +
+> >> +       val &= ~OMAP4_MODULEMODE_MASK;
+> >> +       val |= clk->enable_bit;
+> >> +
+> >> +       ti_clk_ll_ops->clk_writel(val, clk->enable_reg);
+> >> +
+> >> +       /* Wait until module is enabled */
+> >> +       while (!_omap4_is_ready(val)) {
+> >> +               udelay(1);
+> >
+> > This should really be a .prepare callback if you plan to keep the delays
+> > in there.
 > 
-> omap2plus_defconfig, so lockdep was enabled. The profiling was done 
-> around the while {} block though, which should not have any locks within 
-> it (except for the SCM clocks, which may explain some of the higher 
-> latency numbers seen.)
+> If this is changed to a .prepare, then all OMAP power management is 
+> effectively ruined as all clocks are going to be enabled all the time. 
+
+Let's not ruin system PM.
+
+> hwmod core doesn't support .prepare/.enable at the moment that well, and 
+> changing that is going to be a big burden (educated guess, haven't 
+> checked this yet)... The call chain that comes here is:
 > 
-> > And also the thing to check from the hw folks is what all do these clkctrl
-> > bits really control. If they group together the OCP clock and an extra
-> > functional clock for some devices the delays could be larger.
+> device driver -> pm_runtime -> hwmod_core -> hwmod_clk_enable / disable.
+
+Right, and for calls to pm_runtime_get/put from process context it
+should result in a call to clk_prepare_enable/clk_disable_unprepare. I
+guess that change is hugely invasive from your statements above?
+
 > 
-> Does it matter really? The latencies are only imposed to the device in 
-> question, and lets face it, the same latencies are there already with 
-> the hwmod implementation. This series moves the implementation under 
-> clock driver with as less modifications as possible to avoid any problems.
+> The delay within this function should usually be pretty short, just to 
+> wait that the module comes up from idle.
+> 
+> I recall the discussions regarding the udelays within clk_enable/disable 
+> calls, but what is the preferred approach then?
 
-So long as we can all convince ourselves that the flaw is not a flaw
-then I'm OK with it. No bugs were ever introduced that way ;-)
+There are many cases where a clk only provides .{un}prepare ops and does
+NOT provide any .{en,dis}able ops.
 
-But in fairness, we've had these delays in the .enable callbacks for a
-while, so this patch does not introduce the regression. Furthermore it
-does clean up some code that needs more work, and I don't want to delay
-that.
+> Typically 
+> clk_enable/disable just becomes a NOP
 
-I won't NACK the patch due to the delays, but it would be nice to
-revisit it some day.
+Yes, it becomes a NOP (though it is critical that drivers with knowledge
+of this do not try to skip the step of calling clk_enable).
+
+> if it is not allowed to wait for 
+> hardware to complete transitioning before exiting the function.
+
+The clk.h api clearly states that clk_prepare must be called and
+complete before calling clk_enable. So if a clk only provides a .prepare
+with delays but no .enable, and a consumer driver complies with that api
+rule then we're guaranteed to have a toggling line when clk_enable
+returns.
 
 Regards,
 Mike
 
 > 
-> > In general, I think we need to get rid of pm_runtime_irq_safe usage to
-> > allow clocks to sleep properly. The other option is to allow toggling
-> > pm_runtime_irq_safe but that probably gets super messy.
-> 
-> That is something not to be done with this set though.
-> 
 > -Tero
+> 
+> >
+> > Regards,
+> > Mike
+> >
+> 
