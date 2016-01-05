@@ -1,49 +1,54 @@
-From: "dbasehore ." <dbasehore@chromium.org>
-Subject: Re: [PATCH v11 0/4] Allow USB devices to remain runtime-suspended
- when sleeping
-Date: Tue, 5 Jan 2016 15:38:25 -0800
-Message-ID: <CAGAzgsrdw8pmntQYrLbWsFzO7epp7JX84FN2Y-KkuZOfA18gmg@mail.gmail.com>
-References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
-	<2496228.i2Z9PmMBtz@vostro.rjw.lan>
-	<20160105021052.GA32392@google.com>
-	<1791136.5K3qHuXCRE@vostro.rjw.lan>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging
+ of backup battery
+Date: Tue, 5 Jan 2016 17:40:01 -0600
+Message-ID: <568C5451.8070709@ti.com>
+References: <cover.1451995297.git.hns@goldelico.com>
+ <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1791136.5K3qHuXCRE@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Len Brown <len.brown@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, martyn.welch@collabora.co.uk, Linux-pm mailing list <linux-pm@vger.kernel.org>, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>, Daniel Kurtz <djkurtz@chromium.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, marek@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 5, 2016 at 4:48 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Monday, January 04, 2016 06:27:18 PM Derek Basehore wrote:
->> On Mon, Nov 02, 2015 at 02:50:40AM +0100, Rafael J. Wysocki wrote:
->> >
->> > I've queued up this series for the second half of the v4.4 merge window.
->> >
->> > Thanks,
->> > Rafael
->> >
->> >
->> > _______________________________________________
->> > linux-arm-kernel mailing list
->> > linux-arm-kernel@lists.infradead.org
->> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>
->> What's the status of this patch series? I haven't seen the patches
->> posted for v4.4, plus there's the issue that Dan found that needs to be
->> addressed.
->>
->> Is there a new revision of the patch series being worked on?
->
-> Tomeu is not working on one AFAICS, but I may just revive his series.
->
-> Do you have a pointer to the Dan's report?
->
-> Thanks,
-> Rafael
->
+On 01/05/2016 06:01 AM, H. Nikolaus Schaller wrote:
+> tested on OMP5432 EVM
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  arch/arm/boot/dts/omap5-board-common.dtsi | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+> index 5cf76a1..30c0d3b 100644
+> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
+> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+> @@ -358,6 +358,14 @@
+>  			#clock-cells = <0>;
+>  		};
+>  
+> +		rtc {
+> +			compatible = "ti,palmas-rtc";
+> +			interrupt-parent = <&palmas>;
+> +			interrupts = <8 IRQ_TYPE_NONE>;
 
-It was a reply to the second patch in the series. Here's a link to it
-https://lkml.org/lkml/2015/11/10/107
+IRQ_TYPE_NONE is not correct here -> it should have some polarity - if
+it had none, there'd be no interrupt, right?
+
+> +			ti,backup-battery-chargeable;
+> +			ti,backup-battery-charge-high-current;
+> +		};
+> +
+>  		palmas_pmic {
+>  			compatible = "ti,palmas-pmic";
+>  			interrupt-parent = <&palmas>;
+> 
+
+
+-- 
+Regards,
+Nishanth Menon
