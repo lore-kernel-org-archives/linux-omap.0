@@ -1,33 +1,56 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] phy: ti-pipe3: configure usb3 phy to be used as pcie
- phy
-Date: Wed, 6 Jan 2016 07:28:35 -0600
-Message-ID: <20160106132835.GA20318@rob-hp-laptop>
-References: <1452077948-26232-1-git-send-email-kishon@ti.com>
- <1452077948-26232-3-git-send-email-kishon@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 2/2] pci: host: pci-dra7xx: Enable x2 mode support
+Date: Wed, 6 Jan 2016 08:13:24 -0600
+Message-ID: <20160106141324.GA24713@rob-hp-laptop>
+References: <1452077393-25880-1-git-send-email-kishon@ti.com>
+ <1452077393-25880-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1452077948-26232-3-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+In-Reply-To: <1452077393-25880-3-git-send-email-kishon@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 06, 2016 at 04:29:08PM +0530, Kishon Vijay Abraham I wrote:
-> DRA72 uses USB3 PHY for the 2nd lane of PCIE. The configuration
-> required to make USB3 PHY used for the 2nd lane of PCIe is done
-> here.
+On Wed, Jan 06, 2016 at 04:19:53PM +0530, Kishon Vijay Abraham I wrote:
+> Perform syscon configurations to get x2 mode to working in DRA74x and
+> DRA72x. Also add a new compatible string to dfferentiate
+> DRA72x and DRA74x, since b1c0 mask is different for both these platforms.
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  Documentation/devicetree/bindings/phy/ti-phy.txt |    2 ++
->  drivers/phy/phy-ti-pipe3.c                       |   30 +++++++++++++++++++++-
->  2 files changed, 31 insertions(+), 1 deletion(-)
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |    8 ++-
+>  drivers/pci/host/pci-dra7xx.c                    |   81 +++++++++++++++++++++-
+>  2 files changed, 86 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> index 60e2516..0b10e84 100644
+> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> @@ -1,7 +1,9 @@
+>  TI PCI Controllers
+>  
+>  PCIe Designware Controller
+> - - compatible: Should be "ti,dra7-pcie""
+> + - compatible: "ti,dra7-pcie" is deprecated
+> +	       Should be "ti,dra746-pcie" for DRA74x
+> +	       Should be "ti,dra726-pcie" for DRA72x
+>   - reg : Two register ranges as listed in the reg-names property
+>   - reg-names : The first entry must be "ti-conf" for the TI specific registers
+>  	       The second entry must be "rc-dbics" for the designware pcie
+> @@ -14,6 +16,10 @@ PCIe Designware Controller
+>  	       where <X> is the instance number of the pcie from the HW spec.
+>   - interrupts : Two interrupt entries must be specified. The first one is for
+>  		main interrupt line and the second for MSI interrupt line.
+> + - syscon-lane-conf : phandle/offset pair. Phandle to the system control module and the
+> +   register offset to specify 1 lane or 2 lane.
+> + - syscon-lane-sel : phandle/offset pair. Phandle to the system control module and the
+> +   register offset to specify lane selection.
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+These should have a ti prefix.
+
+>   - #address-cells,
+>     #size-cells,
+>     #interrupt-cells,
