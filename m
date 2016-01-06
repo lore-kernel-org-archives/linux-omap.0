@@ -1,55 +1,41 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and
- charging of backup battery
-Date: Tue, 5 Jan 2016 17:00:12 -0800
-Message-ID: <20160106010011.GG12777@atomide.com>
-References: <cover.1451995297.git.hns@goldelico.com>
- <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com>
- <568C5451.8070709@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Nokia N900: Broken lirc ir-rx51 driver
+Date: Tue, 5 Jan 2016 17:12:50 -0800
+Message-ID: <20160106011249.GH12777@atomide.com>
+References: <201601021545.35201@pali>
+ <20160102170657.GB12622@atomide.com>
+ <20160105101841.GI22661@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <568C5451.8070709-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
+In-Reply-To: <20160105101841.GI22661@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machel <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160105 15:40]:
-> On 01/05/2016 06:01 AM, H. Nikolaus Schaller wrote:
-> > tested on OMP5432 EVM
-> > 
-> > Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> > ---
-> >  arch/arm/boot/dts/omap5-board-common.dtsi | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
-> > index 5cf76a1..30c0d3b 100644
-> > --- a/arch/arm/boot/dts/omap5-board-common.dtsi
-> > +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-> > @@ -358,6 +358,14 @@
-> >  			#clock-cells = <0>;
-> >  		};
-> >  
-> > +		rtc {
-> > +			compatible = "ti,palmas-rtc";
-> > +			interrupt-parent = <&palmas>;
-> > +			interrupts = <8 IRQ_TYPE_NONE>;
-> 
-> IRQ_TYPE_NONE is not correct here -> it should have some polarity - if
-> it had none, there'd be no interrupt, right?
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160105 02:19]:
+> On Saturday 02 January 2016 09:06:57 Tony Lindgren wrote:
+> >
+> > Yup please take a look at thread "[PATCH 0/3] pwm: omap: Add PWM su=
+pport
+> > using dual-mode timers". Chances are we still need to set up the dm=
+timer
+> > code to provide also irqchip functions. That way ir-rx51.c can just=
+ do
+> > request_irq on the selected dmtimer for interrupts.
+>=20
+> No I see that patch from that thread uses dmtimer.h from plat-omap. S=
+o
+> it is really OK?
 
-Also I'm not seeing just zeroes coming from RTC after typing hwclock
-on omap5-uevm. It's working on x15 though.
-
-Nikolaus, is hwclock command working for you on omap5-uevm?
+It's using the header to populate the platform data in mach-omap2 so
+that's fine. But we do not want to directly expose the dmtimer function=
+s
+to device drivers as they are not Linux generic at this point.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
