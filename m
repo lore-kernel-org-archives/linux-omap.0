@@ -1,73 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Wed, 6 Jan 2016 08:44:00 -0800
-Message-ID: <20160106164400.GJ12777@atomide.com>
-References: <568662FC.9050206@gmail.com> <20160104170206.GC12777@atomide.com>
- <201601041834.56056@pali> <20160104174001.GD12777@atomide.com>
- <568AC0F9.2010304@gmail.com> <20160105041356.GE12777@atomide.com>
- <20160105084947.GG22661@pali> <20160105224929.GF12777@atomide.com>
- <568CD697.9060800@gmail.com> <20160106090543.GC11364@pali>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160106090543.GC11364@pali>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging of backup battery
+Date: Wed, 6 Jan 2016 17:47:33 +0100
+Message-ID: <2AC46952-3758-458A-B0A5-1794C207BD4C@goldelico.com>
+References: <cover.1451995297.git.hns@goldelico.com> <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com> <568C5451.8070709@ti.com> <20160106010011.GG12777@atomide.com> <8FE6954B-6411-4593-9CE5-717A469A6AA8@goldelico.com> <20160106164136.GI12777@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160106164136.GI12777@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-KiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNjAxMDYgMDE6MDZdOgo+IE9u
-IFdlZG5lc2RheSAwNiBKYW51YXJ5IDIwMTYgMTA6NTU6NTEgSXZheWxvIERpbWl0cm92IHdyb3Rl
-Ogo+ID4gT24gIDYuMDEuMjAxNiAwMDo0OSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ID4KPiA+
-ID5TdWdnZXN0ZWQgZml4IGJlbG93LCBwbGVhc2UgdGVzdCBhbmQgcmVwbHkgd2l0aCB5b3VyIFRl
-c3RlZC1ieSdzIGlmCj4gPiA+aXQgc29sdmVzIHRoZSBwcm9ibGVtIHNvIHdlIG1heSBzdGlsbCBi
-ZSBhYmxlIHRvIGdldCB0aGlzIGludG8gdjQuNC4KPiA+ID4KPiA+ID44PCAtLS0tLS0tLS0tLS0t
-LS0KPiA+ID5Gcm9tOiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgo+ID4gPkRhdGU6
-IFR1ZSwgNSBKYW4gMjAxNiAxMjowNDoyMCAtMDgwMAo+ID4gPlN1YmplY3Q6IFtQQVRDSF0gQVJN
-OiBPTUFQMis6IEZpeCBvbmVuYW5kIHJhdGUgZGV0ZWN0aW9uIHRvIGF2b2lkIGZpbGVzeXN0ZW0K
-PiA+ID4gIGNvcnJ1cHRpb24KPiA+ID4KPiA+ID5Db21taXQgNjNhYTk0NWIxMDEzICgibWVtb3J5
-OiBvbWFwLWdwbWM6IEFkZCBLY29uZmlnIG9wdGlvbiBmb3IgZGVidWciKQo+ID4gPnVuaWZpZWQg
-dGhlIEdQTUMgZGVidWcgZm9yIHRoZSBTb0NzIHdpdGggR1BNQy4gVGhlIGNvbW1pdCBhbHNvIGxl
-ZnQKPiA+ID5vdXQgdGhlIG9wdGlvbiBmb3IgSFdNT0RfSU5JVF9OT19SRVNFVCBhcyB3ZSBub3cg
-cmVxdWlyZSBwcm9wZXIgdGltaW5ncwo+ID4gPmZvciBHUE1DIHRvIGJlIGFibGUgdG8gcmVtYXAg
-R1BNQyBkZXZpY2VzIG91dCBvZiBhZGRyZXNzIDAuCj4gPiA+Cj4gPiA+VW5mb3J0dW5hdGVseSBv
-biA5MDAsIG9uZW5hbmQgbm93IG9ubHkgcGFydGlhbGx5IHdvcmtzIHdpdGggdGhlIGRldmljZQo+
-ID4gPnRyZWUgcHJvdmlkZWQgdGltaW5ncy4gSXQgd29ya3MgZW5vdWdoIHRvIGdldCBkZXRlY3Rl
-ZCBidXQgdGhlIGNsb2NrCj4gPiA+cmF0ZSBzdXBwb3J0ZWQgYnkgdGhlIG9uZW5hbmQgY2hpcCBn
-ZXRzIG1pc2RldGVjdGVkLiBUaGlzIGluIHR1cm4gY2F1c2VzCj4gPiA+dGhlIEdQTUMgdGltaW5n
-cyB0byBiZSBtaXNjYWxjdWxhdGVkIGFuZCB0aGlzIGxlYWRzIGludG8gZmlsZSBzeXN0ZW0KPiA+
-ID5jb3JydXB0aW9uIG9uIG45MDAuCj4gPiA+Cj4gPiA+TG9va3MgbGlrZSBvbmVuYW5kIG5lZWRz
-IENTX0NPTkZJRzEgYml0IDI3IFdSSVRFVFlQRSBzZXQgZm9yIGZvciBzeW5jCj4gPiA+d3JpdGUu
-IFRoaXMgaXMgbmVlZGVkIGFsc28gZm9yIGFzeW5jIHRpbWluZ3Mgd2hlbiB3ZSB3cml0ZSB0byBv
-bmVuYW5kCj4gPiA+d2l0aCBvbWFwMl9vbmVuYW5kX3NldF9hc3luY19tb2RlKCkuIFdpdGhvdXQg
-c3luYyB3cml0ZSBiaXQgc2V0LCB0aGUKPiA+ID5hc3luYyByZWFkIGZvciB0aGUgb25lbmFuZCBP
-TkVOQU5EX1JFR19WRVJTSU9OX0lEIHdpbGwgcmV0dXJuIDB4ZmZmLgo+ID4gPgo+ID4gPkxldCdz
-IGV4aXQgd2l0aCBhbiBlcnJvciBpZiBvbmVuYW5kIHJhdGUgaXMgbm90IGRldGVjdGVkLiBBbmQg
-bGV0J3MKPiA+ID5yZW1vdmUgdGhlIGV4dHJhIGNhbGwgdG8gb21hcDJfb25lbmFuZF9zZXRfYXN5
-bmNfbW9kZSgpIGFzIHdlIG9ubHkKPiA+ID5uZWVkIHRvIGRvIHRoaXMgb25jZSBhdCB0aGUgZW5k
-IG9mIG9tYXAyX29uZW5hbmRfc2V0dXBfYXN5bmMoKS4KPiA+ID4KPiA+ID5SZXBvcnRlZC1ieTog
-SXZheWxvIERpbWl0cm92IDxpdm8uZy5kaW1pdHJvdi43NUBnbWFpbC5jb20+Cj4gPiA+U2lnbmVk
-LW9mZi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiA+ID4KPiA+ID4tLS0g
-YS9hcmNoL2FybS9tYWNoLW9tYXAyL2dwbWMtb25lbmFuZC5jCj4gPiA+KysrIGIvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9ncG1jLW9uZW5hbmQuYwo+ID4gCj4gPiBCZWxsb3cgaXMgZ3BtYyBkbWVzZyBv
-dXRwdXQgd2l0aCB0aGF0IGZpeC4gSSBhbHNvIGRpc2FibGVkCj4gPiBDT05GSUdfT01BUF9HUE1D
-X0RFQlVHIGFuZCBhbSBzdGlsbCBhYmxlIHRvIGJvb3QgdG8gbWFlbW8gd2l0aCBubyBvYnZpb3Vz
-Cj4gPiBwcm9ibGVtcy4KPiA+IAo+ID4gU28sIHNlZW1zIHRoYXQgZml4ZXMgdGhlIHByb2JsZW0s
-IGZlZWwgZnJlZSB0byAgYWRkOgo+ID4gCj4gPiBUZXN0ZWQtYnk6IEl2YXlsbyBEaW1pdHJvdiA8
-aXZvLmcuZGltaXRyb3YuNzVAZ21haWwuY29tPgo+IAo+IEdyZWF0ISBUaGFuayB5b3UgZm9yIGZp
-eGluZyBhbmQgdGVzdGluZyB0aGlzIHByb2JsZW0hCgpHb29kIHRvIGhlYXIgaXQgZml4ZXMgdGhl
-IGlzc3VlLiBJJ2xsIHdhaXQgdG8gaGVhciBmcm9tIEFhcm8gYmVmb3JlCmNvbW1pdHRpbmcuCgpS
-ZWdhcmRzLAoKVG9ueQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0
-cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtYXJtLWtlcm5lbAo=
+Hi Tony,
+
+Am 06.01.2016 um 17:41 schrieb Tony Lindgren <tony@atomide.com>:
+
+> Hi,
+> 
+> * H. Nikolaus Schaller <hns@goldelico.com> [160106 00:12]:
+>> Am 06.01.2016 um 02:00 schrieb Tony Lindgren <tony@atomide.com>:
+>>> 
+>>> Also I'm not seeing just zeroes coming from RTC after typing hwclock
+>>> on omap5-uevm. It's working on x15 though.
+>>> 
+>>> Nikolaus, is hwclock command working for you on omap5-uevm?
+>> 
+>> Well, yes and no. It appears it *was* working when tested last time
+>> (we sometimes have months of delay for submitting patches upstream).
+>> 
+>> I have found an SD image with 4.3-rc6 with this patch in the dtb and
+>> there it works. With 4.4-rc8 it does not work. hwclock command hangs for
+>> 10 seconds (I guess some timeout).
+>> 
+>> I have checked the dtb and in both cases it is interrupts = <8 0>;
+>> 
+>> xxd /sys/firmware/devicetree/base/ocp/i2c@48070000/palmas@48/rtc/interrupts
+>> 0000000: 0000 0008 0000 0000
+>> 
+>> So I think something has changed in the rtc driver or somewhere else.
+> 
+> I just gave it a try on v4.3-rc6 with omap5-uevm.dts patched for
+> RTC, and I still don't have hwclock working with RTC.
+> 
+> It seems you have some additional patches there that make it work?
+
+Hm. Not that I am aware of. We just did add the rtc nodes but did not
+touch palmas drivers (except adding the gpadc of this patch series).
+
+> 
+> I guess it could also be a bootloader change if it's a different
+> SD image that works for you.
+
+Yes, it is using a 2 years old U-Boot instead 2015.10 compiled from
+source. I will try to find out if it makes a difference.
+
+BR,
+Nikolaus
