@@ -1,106 +1,40 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/2] pci: host: pci-dra7xx: use "num-lanes" property to find phy count
-Date: Wed, 6 Jan 2016 16:19:52 +0530
-Message-ID: <1452077393-25880-2-git-send-email-kishon@ti.com>
-References: <1452077393-25880-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/2] DRA72/DRA74: Add 2 lane support
+Date: Wed, 6 Jan 2016 16:19:51 +0530
+Message-ID: <1452077393-25880-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1452077393-25880-1-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-use "num-lanes" property to find phy count instead of the number
-phy-names property.
+Add driver modifications in pci-dra7xx to get x2 mode working in
+DRA72 and DRA74. Certain modifications is needed in PHY driver also
+which will be sent as a separate series.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- drivers/pci/host/pci-dra7xx.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+Certain board modifications has to be done in order to test
+x2 mode in dra72-evm.
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 5963adc..05bbeee 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -70,7 +70,7 @@
- struct dra7xx_pcie {
- 	void __iomem		*base;
- 	struct phy		**phy;
--	int			phy_count;
-+	int			lanes;
- 	struct device		*dev;
- 	struct pcie_port	pp;
- };
-@@ -364,7 +364,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	int ret;
- 	int irq;
- 	int i;
--	int phy_count;
-+	u32 lanes;
- 	struct phy **phy;
- 	void __iomem *base;
- 	struct resource *res;
-@@ -402,17 +402,16 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (!base)
- 		return -ENOMEM;
- 
--	phy_count = of_property_count_strings(np, "phy-names");
--	if (phy_count < 0) {
--		dev_err(dev, "unable to find the strings\n");
--		return phy_count;
-+	if (of_property_read_u32(np, "num-lanes", &lanes)) {
-+		dev_err(dev, "Failed to parse the number of lanes\n");
-+		return -EINVAL;
- 	}
- 
--	phy = devm_kzalloc(dev, sizeof(*phy) * phy_count, GFP_KERNEL);
-+	phy = devm_kzalloc(dev, sizeof(*phy) * lanes, GFP_KERNEL);
- 	if (!phy)
- 		return -ENOMEM;
- 
--	for (i = 0; i < phy_count; i++) {
-+	for (i = 0; i < lanes; i++) {
- 		snprintf(name, sizeof(name), "pcie-phy%d", i);
- 		phy[i] = devm_phy_get(dev, name);
- 		if (IS_ERR(phy[i]))
-@@ -432,7 +431,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	dra7xx->base = base;
- 	dra7xx->phy = phy;
- 	dra7xx->dev = dev;
--	dra7xx->phy_count = phy_count;
-+	dra7xx->lanes = lanes;
- 
- 	pm_runtime_enable(dev);
- 	ret = pm_runtime_get_sync(dev);
-@@ -489,7 +488,7 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
- 	struct dra7xx_pcie *dra7xx = platform_get_drvdata(pdev);
- 	struct pcie_port *pp = &dra7xx->pp;
- 	struct device *dev = &pdev->dev;
--	int count = dra7xx->phy_count;
-+	int count = dra7xx->lanes;
- 
- 	if (pp->irq_domain)
- 		irq_domain_remove(pp->irq_domain);
-@@ -535,7 +534,7 @@ static int dra7xx_pcie_resume(struct device *dev)
- static int dra7xx_pcie_suspend_noirq(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
--	int count = dra7xx->phy_count;
-+	int count = dra7xx->lanes;
- 
- 	while (count--) {
- 		phy_power_off(dra7xx->phy[count]);
-@@ -548,7 +547,7 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
- static int dra7xx_pcie_resume_noirq(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
--	int phy_count = dra7xx->phy_count;
-+	int phy_count = dra7xx->lanes;
- 	int ret;
- 	int i;
- 
+These patches were created on pci next.
+
+Changes from RFC:
+*) .b1co_mode_sel_mask is now set with the correct value.
+*) cleanup the patch
+
+Kishon Vijay Abraham I (2):
+  pci: host: pci-dra7xx: use "num-lanes" property to find phy count
+  pci: host: pci-dra7xx: Enable x2 mode support
+
+ Documentation/devicetree/bindings/pci/ti-pci.txt |    8 +-
+ drivers/pci/host/pci-dra7xx.c                    |  104 +++++++++++++++++++---
+ 2 files changed, 97 insertions(+), 15 deletions(-)
+
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
