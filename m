@@ -1,56 +1,69 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 2/2] pci: host: pci-dra7xx: Enable x2 mode support
-Date: Wed, 6 Jan 2016 08:13:24 -0600
-Message-ID: <20160106141324.GA24713@rob-hp-laptop>
-References: <1452077393-25880-1-git-send-email-kishon@ti.com>
- <1452077393-25880-3-git-send-email-kishon@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging
+ of backup battery
+Date: Wed, 6 Jan 2016 08:36:07 -0600
+Message-ID: <568D2657.6050400@ti.com>
+References: <cover.1451995297.git.hns@goldelico.com>
+ <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com>
+ <568C5451.8070709@ti.com>
+ <B2CEA92E-5F60-43C1-8265-F7C66FBD90D6@goldelico.com>
+ <568CCCA2.4040004@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1452077393-25880-3-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <568CCCA2.4040004@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laxman Dewangan <ldewangan@nvidia.com>, "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 06, 2016 at 04:19:53PM +0530, Kishon Vijay Abraham I wrote:
-> Perform syscon configurations to get x2 mode to working in DRA74x and
-> DRA72x. Also add a new compatible string to dfferentiate
-> DRA72x and DRA74x, since b1c0 mask is different for both these platforms.
+On 01/06/2016 02:13 AM, Laxman Dewangan wrote:
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  Documentation/devicetree/bindings/pci/ti-pci.txt |    8 ++-
->  drivers/pci/host/pci-dra7xx.c                    |   81 +++++++++++++++++++++-
->  2 files changed, 86 insertions(+), 3 deletions(-)
+> On Wednesday 06 January 2016 01:12 PM, H. Nikolaus Schaller wrote:
+>> Hi,
+>>
+>> Am 06.01.2016 um 00:40 schrieb Nishanth Menon <nm@ti.com>:
+>>
+>>> On 01/05/2016 06:01 AM, H. Nikolaus Schaller wrote:
+>>>> +        rtc {
+>>>> +            compatible = "ti,palmas-rtc";
+>>>> +            interrupt-parent = <&palmas>;
+>>>> +            interrupts = <8 IRQ_TYPE_NONE>;
+>>> IRQ_TYPE_NONE is not correct here -> it should have some polarity - if
+>>> it had none, there'd be no interrupt, right?
+>> Well, it just translates IRQ_TYPE_NONE through
+>>
+>> Linux/include/dt-bindings/interrupt-controller/irq.h
+>>
+>> to
+>>
+>> interrupts = <8 0>;
+>>
+>> which is given as an example in
+>>
+>> Documentation//devicetree/bindings/rtc/rtc-palmas.txt
+>>
+>> Since I don't know anything about the rtc driver beyond the bindings
+>> documentation I assume it is correct...
+>> I have added Laxman Dewangan because he introduced this interrupts =
+>> <8 0>;
+>>
 > 
-> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> index 60e2516..0b10e84 100644
-> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> @@ -1,7 +1,9 @@
->  TI PCI Controllers
->  
->  PCIe Designware Controller
-> - - compatible: Should be "ti,dra7-pcie""
-> + - compatible: "ti,dra7-pcie" is deprecated
-> +	       Should be "ti,dra746-pcie" for DRA74x
-> +	       Should be "ti,dra726-pcie" for DRA72x
->   - reg : Two register ranges as listed in the reg-names property
->   - reg-names : The first entry must be "ti-conf" for the TI specific registers
->  	       The second entry must be "rc-dbics" for the designware pcie
-> @@ -14,6 +16,10 @@ PCIe Designware Controller
->  	       where <X> is the instance number of the pcie from the HW spec.
->   - interrupts : Two interrupt entries must be specified. The first one is for
->  		main interrupt line and the second for MSI interrupt line.
-> + - syscon-lane-conf : phandle/offset pair. Phandle to the system control module and the
-> +   register offset to specify 1 lane or 2 lane.
-> + - syscon-lane-sel : phandle/offset pair. Phandle to the system control module and the
-> +   register offset to specify lane selection.
+> As this is for palmas interrupt controller, it does not use the second
+> field for interrupt from RTC.
+> So there is no really any polarity. It can be set to 0.
+> 
+> The second argument will be used for GPIOs mainly. However, support need
+> to be added on GPIO driver for rising/falling configuration.
 
-These should have a ti prefix.
 
->   - #address-cells,
->     #size-cells,
->     #interrupt-cells,
+Device tree represents the hardware - not to reflect how the driver
+works. if the driver is wrong, fix it. the interrupt polarity needs to
+be described in DT. based on palmas like designs, you should probably
+use IRQ_TYPE_EDGE_FALLING because that is the default signaling inside
+the SoC as it reaches Secondary interrupt handlers(SIH) registers.
+
+-- 
+Regards,
+Nishanth Menon
