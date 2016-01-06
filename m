@@ -1,76 +1,113 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and
- charging of backup battery
-Date: Wed, 6 Jan 2016 09:09:25 -0800
-Message-ID: <20160106170925.GK12777@atomide.com>
-References: <cover.1451995297.git.hns@goldelico.com>
- <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com>
- <568C5451.8070709@ti.com>
- <20160106010011.GG12777@atomide.com>
- <8FE6954B-6411-4593-9CE5-717A469A6AA8@goldelico.com>
- <20160106164136.GI12777@atomide.com>
- <2AC46952-3758-458A-B0A5-1794C207BD4C@goldelico.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Wed, 6 Jan 2016 19:36:24 +0200
+Message-ID: <20160106173624.GG1587@darkstar.musicnaut.iki.fi>
+References: <1432156863-19695-1-git-send-email-tony@atomide.com>
+ <568662FC.9050206@gmail.com> <20160104170206.GC12777@atomide.com>
+ <201601041834.56056@pali> <20160104174001.GD12777@atomide.com>
+ <568AC0F9.2010304@gmail.com> <20160105041356.GE12777@atomide.com>
+ <20160105084947.GG22661@pali> <20160105224929.GF12777@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <2AC46952-3758-458A-B0A5-1794C207BD4C-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <20160105224929.GF12777@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [160106 08:48]:
-> Hi Tony,
+Hi,
+
+On Tue, Jan 05, 2016 at 02:49:29PM -0800, Tony Lindgren wrote:
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Tue, 5 Jan 2016 12:04:20 -0800
+> Subject: [PATCH] ARM: OMAP2+: Fix onenand rate detection to avoid filesystem
+>  corruption
 > 
-> Am 06.01.2016 um 17:41 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+> Commit 63aa945b1013 ("memory: omap-gpmc: Add Kconfig option for debug")
+> unified the GPMC debug for the SoCs with GPMC. The commit also left
+> out the option for HWMOD_INIT_NO_RESET as we now require proper timings
+> for GPMC to be able to remap GPMC devices out of address 0.
 > 
-> > Hi,
-> > 
-> > * H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [160106 00:12]:
-> >> Am 06.01.2016 um 02:00 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
-> >>> 
-> >>> Also I'm not seeing just zeroes coming from RTC after typing hwclock
-> >>> on omap5-uevm. It's working on x15 though.
-> >>> 
-> >>> Nikolaus, is hwclock command working for you on omap5-uevm?
-> >> 
-> >> Well, yes and no. It appears it *was* working when tested last time
-> >> (we sometimes have months of delay for submitting patches upstream).
-> >> 
-> >> I have found an SD image with 4.3-rc6 with this patch in the dtb and
-> >> there it works. With 4.4-rc8 it does not work. hwclock command hangs for
-> >> 10 seconds (I guess some timeout).
-> >> 
-> >> I have checked the dtb and in both cases it is interrupts = <8 0>;
-> >> 
-> >> xxd /sys/firmware/devicetree/base/ocp/i2c@48070000/palmas@48/rtc/interrupts
-> >> 0000000: 0000 0008 0000 0000
-> >> 
-> >> So I think something has changed in the rtc driver or somewhere else.
-> > 
-> > I just gave it a try on v4.3-rc6 with omap5-uevm.dts patched for
-> > RTC, and I still don't have hwclock working with RTC.
-> > 
-> > It seems you have some additional patches there that make it work?
+> Unfortunately on 900, onenand now only partially works with the device
+> tree provided timings. It works enough to get detected but the clock
+> rate supported by the onenand chip gets misdetected. This in turn causes
+> the GPMC timings to be miscalculated and this leads into file system
+> corruption on n900.
 > 
-> Hm. Not that I am aware of. We just did add the rtc nodes but did not
-> touch palmas drivers (except adding the gpadc of this patch series).
-
-OK
-
-> > I guess it could also be a bootloader change if it's a different
-> > SD image that works for you.
+> Looks like onenand needs CS_CONFIG1 bit 27 WRITETYPE set for for sync
+> write. This is needed also for async timings when we write to onenand
+> with omap2_onenand_set_async_mode(). Without sync write bit set, the
+> async read for the onenand ONENAND_REG_VERSION_ID will return 0xfff.
 > 
-> Yes, it is using a 2 years old U-Boot instead 2015.10 compiled from
-> source. I will try to find out if it makes a difference.
+> Let's exit with an error if onenand rate is not detected. And let's
+> remove the extra call to omap2_onenand_set_async_mode() as we only
+> need to do this once at the end of omap2_onenand_setup_async().
+> 
+> Reported-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-OK. It could be also some .config change with something built-in?
+This fixes also the detection issue on N950. Also tested the patch
+with N810.
 
-Regards,
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A.
+
+> --- a/arch/arm/mach-omap2/gpmc-onenand.c
+> +++ b/arch/arm/mach-omap2/gpmc-onenand.c
+> @@ -149,8 +149,8 @@ static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
+>  		freq = 104;
+>  		break;
+>  	default:
+> -		freq = 54;
+> -		break;
+> +		pr_err("onenand rate not detected, bad GPMC async timings?\n");
+> +		freq = 0;
+>  	}
+>  
+>  	return freq;
+> @@ -271,6 +271,11 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+>  	struct gpmc_timings t;
+>  	int ret;
+>  
+> +	/*
+> +	 * Note that we need to keep sync_write set for the call to
+> +	 * omap2_onenand_set_async_mode() to work to detect the onenand
+> +	 * supported clock rate for the sync timings.
+> +	 */
+>  	if (gpmc_onenand_data->of_node) {
+>  		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
+>  				      &onenand_async);
+> @@ -281,12 +286,9 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+>  			else
+>  				gpmc_onenand_data->flags |= ONENAND_SYNC_READ;
+>  			onenand_async.sync_read = false;
+> -			onenand_async.sync_write = false;
+>  		}
+>  	}
+>  
+> -	omap2_onenand_set_async_mode(onenand_base);
+> -
+>  	omap2_onenand_calc_async_timings(&t);
+>  
+>  	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_async);
+> @@ -310,6 +312,8 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+>  	if (!freq) {
+>  		/* Very first call freq is not known */
+>  		freq = omap2_onenand_get_freq(gpmc_onenand_data, onenand_base);
+> +		if (!freq)
+> +			return -ENODEV;
+>  		set_onenand_cfg(onenand_base);
+>  	}
+>  
