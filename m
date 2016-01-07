@@ -1,54 +1,43 @@
-From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH v4 3/3] wlcore/wl12xx: spi: add wifi support to cm-t335
-Date: Thu, 7 Jan 2016 13:20:28 +0200
-Message-ID: <568E49FC.3090808@compulab.co.il>
-References: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>
- <1451482533-8624-4-git-send-email-uri.mashiach@compulab.co.il>
- <87io35lq2p.fsf@kamboji.qca.qualcomm.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia N900: u-SD card in v4.2+
+Date: Thu, 7 Jan 2016 12:34:09 +0100
+Message-ID: <20160107113408.GA26618@amd>
+References: <20160106204627.GA21477@amd>
+ <568DFA4B.7030308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87io35lq2p.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <568DFA4B.7030308@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kalle Valo,
+Hi!
 
-On 01/07/2016 11:02 AM, Kalle Valo wrote:
-> Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> writes:
->
->> Device tree modifications:
->> - Pinmux for SPI0 and WiFi GPIOs.
->> - SPI0 node with wlcore as a child node.
->>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
->> ---
->> v1 -> v2: Replace interrupts and interrupt-parent with interrupts-extended.
->> v2 -> v3: Move the pinctrl-0 = <&wifi_pins> to the wlcore node.
->> v3 -> v4: replace interrupts-extended with interrupts and interrupt-parent. (revert v2 modification).
->>            According to Rob Herring and Documentation/devicetree/bindings/interrupt-controller/interrupts.txt,
->> 	  interrupts-extended should only be used when a device has multiple interrupt parents.
->>
->>   arch/arm/boot/dts/am335x-cm-t335.dts | 55 ++++++++++++++++++++++++++++++++++++
->>   1 file changed, 55 insertions(+)
->
-> To what tree should this patch go? My wireless-drivers-next tree doesn't
-> even have this file.
+> On Thursday 07 January 2016 02:16 AM, Pavel Machek wrote:
+> > Hi!
+> > 
+> > In v4.1, both internal MMC and u-SD cards work ok.
+> > 
+> > In v4.2, only the internal MMC is detected. In v4.3, not even internal
+> > MMC works. In v4.4, only the internal MMC is detected.
+> > 
+> > Does it work for you? Any patches?
+> 
+> I don't have Nokia N900 to check this, but can you share your config and kernel
+> logs? Check if CONFIG_REGULATOR_PBIAS is present in your config.
+> CONFIG_REGULATOR_PBIAS is now mandatory for all omap3+ SoCs to work.
 
-Should be applied into omap-for-v4.x/dt
+I enabled CONFIG_REGULATOR_PBIAS and both MMCs now work.
 
->
-> https://patchwork.kernel.org/patch/7933441/
->
+I wonder if we should add some selects, so that users updating from
+old kernels don't break their system?
 
--- 
 Thanks,
-Uri
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+									
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
