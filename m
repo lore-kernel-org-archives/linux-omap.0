@@ -1,51 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dra7xx pci driver broken on dra7xx-evm
-Date: Thu, 7 Jan 2016 13:59:47 -0800
-Message-ID: <20160107215946.GP12777@atomide.com>
-References: <20160106214518.GA6106@localhost.localdomain>
- <568DF4FE.5010704@ti.com> <568ED7FA.4000508@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <568ED7FA.4000508@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Richard Cochran <richardcochran@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, Tero Kristo <t-kristo@ti.com>, "Murphy,
- Dan" <dmurphy@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] mfd: tps65010: fix init when the driver is built-in
+Date: Fri,  8 Jan 2016 00:29:33 +0200
+Message-ID: <1452205773-21962-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [160107 13:26]:
-> On 01/06/2016 11:17 PM, Kishon Vijay Abraham I wrote:
-> > Hi,
-> 
-> + Tero, Tony and linux-omap
-> 
-> > 
-> > On Thursday 07 January 2016 03:15 AM, Richard Cochran wrote:
-> >>
-> >> The dra7xx-evm box freezes hard at the very first PCI bus access, the
-> >> call to in dra7xx_pcie_readl() in dra7xx_pcie_probe().
-> >>
-> >> The out-of-tree 3.14.53 TI driver performs a reset via platform data,
-> >> calling omap_device_assert_hardreset() by hook and crook.
-> 
-> Yeah, this is the only feasible way and not break multi-arch atm until a
-> reset framework is in place. We have couple of drivers (omap_iommu and
-> wkup_m3_rproc) following this approach.
+tps65010 driver's initcall cannot succeed when the driver is built-in,
+because it expects that the I2C probe is completed at initcall time;
+this cannot happen as MFD is initialized before I2C. Also on systems
+where the chip is not present there is unnecessary 30 ms delay during
+the boot.
 
-Sounds like doing reset with platform data is the way to go until the
-reset controller works.
+Instead of waiting for probe to finish, just register the I2C device.
+If some boards need retry mechanism for startup glitches, that should be
+done in the actual probe function. Also move the driver banner message
+to the probe function, and make it print the chip model being probed.
 
-Regards,
+The patch allows to use tps65010 again with OMAP1 (where it's required
+to be built-in) and enables e.g. USB and LED functionality on OMAP5912 OSK.
 
-Tony
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ drivers/mfd/tps65010.c | 23 +++--------------------
+ 1 file changed, 3 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/mfd/tps65010.c b/drivers/mfd/tps65010.c
+index 448f0a1..450c358 100644
+--- a/drivers/mfd/tps65010.c
++++ b/drivers/mfd/tps65010.c
+@@ -541,6 +541,8 @@ static int tps65010_probe(struct i2c_client *client,
+ 	int			status;
+ 	struct tps65010_board	*board = dev_get_platdata(&client->dev);
+ 
++	pr_info("%s: chip model %s\n", DRIVER_NAME, id->name);
++
+ 	if (the_tps) {
+ 		dev_dbg(&client->dev, "only one tps6501x chip allowed\n");
+ 		return -ENODEV;
+@@ -1059,26 +1061,7 @@ EXPORT_SYMBOL(tps65013_set_low_pwr);
+ 
+ static int __init tps_init(void)
+ {
+-	u32	tries = 3;
+-	int	status = -ENODEV;
+-
+-	printk(KERN_INFO "%s: version %s\n", DRIVER_NAME, DRIVER_VERSION);
+-
+-	/* some boards have startup glitches */
+-	while (tries--) {
+-		status = i2c_add_driver(&tps65010_driver);
+-		if (the_tps)
+-			break;
+-		i2c_del_driver(&tps65010_driver);
+-		if (!tries) {
+-			printk(KERN_ERR "%s: no chip?\n", DRIVER_NAME);
+-			return -ENODEV;
+-		}
+-		pr_debug("%s: re-probe ...\n", DRIVER_NAME);
+-		msleep(10);
+-	}
+-
+-	return status;
++	return i2c_add_driver(&tps65010_driver);
+ }
+ /* NOTE:  this MUST be initialized before the other parts of the system
+  * that rely on it ... but after the i2c bus on which this relies.
+-- 
+2.4.0
