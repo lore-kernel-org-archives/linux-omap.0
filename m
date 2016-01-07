@@ -1,72 +1,107 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] mfd: tps65010: fix init when the driver is built-in
-Date: Fri,  8 Jan 2016 00:29:33 +0200
-Message-ID: <1452205773-21962-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] OMAP: Add keypad driver
+Date: Thu, 7 Jan 2016 15:22:28 -0800
+Message-ID: <20160107232228.GA20533@dtor-ws>
+References: <20160107093751.GD27186@mwanda>
+ <CAKdAkRSic46XAhuXO6fijBTWMaRJPqRNPx6MwTv=Pgoo6JL=hQ@mail.gmail.com>
+ <20160107201316.GF12600@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160107201316.GF12600@atomide.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Komal Shah <komal_shah802003@yahoo.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-tps65010 driver's initcall cannot succeed when the driver is built-in,
-because it expects that the I2C probe is completed at initcall time;
-this cannot happen as MFD is initialized before I2C. Also on systems
-where the chip is not present there is unnecessary 30 ms delay during
-the boot.
+On Thu, Jan 07, 2016 at 12:13:17PM -0800, Tony Lindgren wrote:
+> Hi,
+> 
+> * Dmitry Torokhov <dmitry.torokhov@gmail.com> [160107 10:54]:
+> > On Thu, Jan 7, 2016 at 1:37 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> > > Hello file (standard input) matches,
+> > >
+> > > The patch ad4e09b16ad3: "[PATCH] OMAP: Add keypad driver", leads to the
+> > > following static checker warning:
+> > >
+> > >         drivers/input/keyboard/omap-keypad.c:158 omap_kp_tasklet()
+> > >         warn: 'keycodes[]' is never negative.
+> > 
+> > It looks like you are not resolving commits correctly, the original
+> > submission did not have this issue.
+> > 
+> > >
+> > > drivers/input/keyboard/omap-keypad.c
+> ...
+> > >    152  #ifdef NEW_BOARD_LEARNING_MODE
+> > >    153                          printk(KERN_INFO "omap-keypad: key %d-%d %s\n", col,
+> > >    154                                 row, (new_state[col] & (1 << row)) ?
+> > >    155                                 "pressed" : "released");
+> > >    156  #else
+> > >    157                          key = keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
+> > >    158                          if (key < 0) {
+> > >                                     ^^^^^^^
+> > > Never true.  Not sure what was intended.
+> > 
+> > It looks like this check was broken by
+> > da1f026b532ce944d74461497dc6d8c16456466e (Keyboard: omap-keypad: use
+> > matrix_keypad.h). Previously the driver would expect a list of known
+> > keys and would scan it and return -1 if key was not found. Now we have
+> > 2 options:
+> > 
+> > 1. Simply remove the check
+> > 2. Change the condition to "if (key == KEY_RESERVED)"
+> > 
+> > I do not really have preference. Tony?
+> 
+> Sounds like the check is not needed if it has not been used for
+> past five years, so my preference is option #1 then.
 
-Instead of waiting for probe to finish, just register the I2C device.
-If some boards need retry mechanism for startup glitches, that should be
-done in the actual probe function. Also move the driver banner message
-to the probe function, and make it print the chip model being probed.
+OK, how about the below then?
 
-The patch allows to use tps65010 again with OMAP1 (where it's required
-to be built-in) and enables e.g. USB and LED functionality on OMAP5912 OSK.
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- drivers/mfd/tps65010.c | 23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/mfd/tps65010.c b/drivers/mfd/tps65010.c
-index 448f0a1..450c358 100644
---- a/drivers/mfd/tps65010.c
-+++ b/drivers/mfd/tps65010.c
-@@ -541,6 +541,8 @@ static int tps65010_probe(struct i2c_client *client,
- 	int			status;
- 	struct tps65010_board	*board = dev_get_platdata(&client->dev);
- 
-+	pr_info("%s: chip model %s\n", DRIVER_NAME, id->name);
-+
- 	if (the_tps) {
- 		dev_dbg(&client->dev, "only one tps6501x chip allowed\n");
- 		return -ENODEV;
-@@ -1059,26 +1061,7 @@ EXPORT_SYMBOL(tps65013_set_low_pwr);
- 
- static int __init tps_init(void)
- {
--	u32	tries = 3;
--	int	status = -ENODEV;
--
--	printk(KERN_INFO "%s: version %s\n", DRIVER_NAME, DRIVER_VERSION);
--
--	/* some boards have startup glitches */
--	while (tries--) {
--		status = i2c_add_driver(&tps65010_driver);
--		if (the_tps)
--			break;
--		i2c_del_driver(&tps65010_driver);
--		if (!tries) {
--			printk(KERN_ERR "%s: no chip?\n", DRIVER_NAME);
--			return -ENODEV;
--		}
--		pr_debug("%s: re-probe ...\n", DRIVER_NAME);
--		msleep(10);
--	}
--
--	return status;
-+	return i2c_add_driver(&tps65010_driver);
- }
- /* NOTE:  this MUST be initialized before the other parts of the system
-  * that rely on it ... but after the i2c bus on which this relies.
 -- 
-2.4.0
+Dmitry
+
+
+Input: omap-keypad - remove dead check
+
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+
+Commit da1f026b532ce944d74461497dc6d8c16456466e ("Keyboard: omap-keypad:
+use matrix_keypad.h") switched the driver to use matrix keypad
+infrastructure, which made array of keycodes to be unsigned short, and
+caused the test for negativity never trigger. This leads to the following
+static checker warning:
+
+	drivers/input/keyboard/omap-keypad.c:158 omap_kp_tasklet()
+	warn: 'keycodes[]' is never negative.
+
+Given that we did not care about this check for a few years already let's
+simply remove it.
+
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/input/keyboard/omap-keypad.c |    8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
+index 75ad666..e0d72c8 100644
+--- a/drivers/input/keyboard/omap-keypad.c
++++ b/drivers/input/keyboard/omap-keypad.c
+@@ -155,14 +155,6 @@ static void omap_kp_tasklet(unsigned long data)
+ 			       "pressed" : "released");
+ #else
+ 			key = keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
+-			if (key < 0) {
+-				printk(KERN_WARNING
+-				      "omap-keypad: Spurious key event %d-%d\n",
+-				       col, row);
+-				/* We scan again after a couple of seconds */
+-				spurious = 1;
+-				continue;
+-			}
+ 
+ 			if (!(kp_cur_group == (key & GROUP_MASK) ||
+ 			      kp_cur_group == -1))
