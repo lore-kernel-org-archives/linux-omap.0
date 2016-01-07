@@ -1,59 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] DRA72/DRA74: Add 2 lane support
-Date: Thu, 7 Jan 2016 10:13:20 -0800
-Message-ID: <20160107181320.GO12777@atomide.com>
-References: <1452077393-25880-1-git-send-email-kishon@ti.com>
- <20160107174126.GB14105@localhost>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] input: touchscreen: ti_am335x_tsc: Fix HWPEN interrupt
+ handling
+Date: Thu, 7 Jan 2016 11:14:00 -0800
+Message-ID: <20160107191400.GC12332@dtor-ws>
+References: <1442334489-3645-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160107174126.GB14105@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Richard Cochran <richardcochran@gmail.com>
+In-Reply-To: <1442334489-3645-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Bjorn Helgaas <helgaas@kernel.org> [160107 09:42]:
-> [+cc Richard]
+On Tue, Sep 15, 2015 at 11:28:09AM -0500, Dave Gerlach wrote:
+> Remove write to REG_IRQCLR and REG_IRQWAKEUP in interrupt handler for
+> IRQENB_HW_PEN as the resume handler should and does clear REG_IRQWAKEUP.
+> IRQENB_HW_PEN bit is set in irqclr so that all interrupts get cleared
+> later so let IRQENB_HW_PEN be cleared by that.
 > 
-> Hi Kishon,
+> Without this patch wakeup events from TSC_ADC do not work because pending
+> interrupts in TSC_ADC were causing HW_PEN interrupt, needed for wake from
+> suspend modes, to get disabled immediately by IRQ handler after being
+> enabled and preventing wake from happening.
 > 
-> On Wed, Jan 06, 2016 at 04:19:51PM +0530, Kishon Vijay Abraham I wrote:
-> > Add driver modifications in pci-dra7xx to get x2 mode working in
-> > DRA72 and DRA74. Certain modifications is needed in PHY driver also
-> > which will be sent as a separate series.
-> > 
-> > Certain board modifications has to be done in order to test
-> > x2 mode in dra72-evm.
-> > 
-> > These patches were created on pci next.
-> > 
-> > Changes from RFC:
-> > *) .b1co_mode_sel_mask is now set with the correct value.
-> > *) cleanup the patch
-> > 
-> > Kishon Vijay Abraham I (2):
-> >   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
-> >   pci: host: pci-dra7xx: Enable x2 mode support
-> > 
-> >  Documentation/devicetree/bindings/pci/ti-pci.txt |    8 +-
-> >  drivers/pci/host/pci-dra7xx.c                    |  104 +++++++++++++++++++---
-> >  2 files changed, 97 insertions(+), 15 deletions(-)
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+
+Applied, thank you.
+
+> ---
+>  drivers/input/touchscreen/ti_am335x_tsc.c | 2 --
+>  1 file changed, 2 deletions(-)
 > 
-> Apparently dra7xx in mainline doesn't work [1].  Until that's
-> resolved, I'm going to ignore dra7xx patches.
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> index 191a1b8..a21a07c 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -273,8 +273,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+>  	status = titsc_readl(ts_dev, REG_RAWIRQSTATUS);
+>  	if (status & IRQENB_HW_PEN) {
+>  		ts_dev->pen_down = true;
+> -		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
+> -		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
+>  		irqclr |= IRQENB_HW_PEN;
+>  	}
+>  
+> -- 
+> 2.4.6
+> 
 
-Agreed. Guys, please do the development _and_ testing on the mainline
-kernel. We do have the mainline kernel usable for probably a few
-tens of omap SoC variants. If you have issues using dra7 with mainline,
-please fix those issues ASAP.
-
-Ideally of course please also use the device you're working on to
-send out the patches :)
-
-Regards,
-
-Tony
-
-> [1] http://lkml.kernel.org/r/20160106214518.GA6106@localhost.localdomain
+-- 
+Dmitry
