@@ -1,54 +1,61 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] input: touchscreen: ti_am335x_tsc: Fix HWPEN interrupt
- handling
-Date: Thu, 7 Jan 2016 11:14:00 -0800
-Message-ID: <20160107191400.GC12332@dtor-ws>
-References: <1442334489-3645-1-git-send-email-d-gerlach@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: Add keypad driver
+Date: Thu, 7 Jan 2016 12:13:17 -0800
+Message-ID: <20160107201316.GF12600@atomide.com>
+References: <20160107093751.GD27186@mwanda>
+ <CAKdAkRSic46XAhuXO6fijBTWMaRJPqRNPx6MwTv=Pgoo6JL=hQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1442334489-3645-1-git-send-email-d-gerlach@ti.com>
+In-Reply-To: <CAKdAkRSic46XAhuXO6fijBTWMaRJPqRNPx6MwTv=Pgoo6JL=hQ@mail.gmail.com>
 Sender: linux-input-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, Sekhar Nori <nsekhar@ti.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Komal Shah <komal_shah802003@yahoo.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 15, 2015 at 11:28:09AM -0500, Dave Gerlach wrote:
-> Remove write to REG_IRQCLR and REG_IRQWAKEUP in interrupt handler for
-> IRQENB_HW_PEN as the resume handler should and does clear REG_IRQWAKEUP.
-> IRQENB_HW_PEN bit is set in irqclr so that all interrupts get cleared
-> later so let IRQENB_HW_PEN be cleared by that.
-> 
-> Without this patch wakeup events from TSC_ADC do not work because pending
-> interrupts in TSC_ADC were causing HW_PEN interrupt, needed for wake from
-> suspend modes, to get disabled immediately by IRQ handler after being
-> enabled and preventing wake from happening.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+Hi,
 
-Applied, thank you.
-
-> ---
->  drivers/input/touchscreen/ti_am335x_tsc.c | 2 --
->  1 file changed, 2 deletions(-)
+* Dmitry Torokhov <dmitry.torokhov@gmail.com> [160107 10:54]:
+> On Thu, Jan 7, 2016 at 1:37 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> > Hello file (standard input) matches,
+> >
+> > The patch ad4e09b16ad3: "[PATCH] OMAP: Add keypad driver", leads to the
+> > following static checker warning:
+> >
+> >         drivers/input/keyboard/omap-keypad.c:158 omap_kp_tasklet()
+> >         warn: 'keycodes[]' is never negative.
 > 
-> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-> index 191a1b8..a21a07c 100644
-> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> @@ -273,8 +273,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
->  	status = titsc_readl(ts_dev, REG_RAWIRQSTATUS);
->  	if (status & IRQENB_HW_PEN) {
->  		ts_dev->pen_down = true;
-> -		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
-> -		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
->  		irqclr |= IRQENB_HW_PEN;
->  	}
->  
-> -- 
-> 2.4.6
+> It looks like you are not resolving commits correctly, the original
+> submission did not have this issue.
 > 
+> >
+> > drivers/input/keyboard/omap-keypad.c
+...
+> >    152  #ifdef NEW_BOARD_LEARNING_MODE
+> >    153                          printk(KERN_INFO "omap-keypad: key %d-%d %s\n", col,
+> >    154                                 row, (new_state[col] & (1 << row)) ?
+> >    155                                 "pressed" : "released");
+> >    156  #else
+> >    157                          key = keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
+> >    158                          if (key < 0) {
+> >                                     ^^^^^^^
+> > Never true.  Not sure what was intended.
+> 
+> It looks like this check was broken by
+> da1f026b532ce944d74461497dc6d8c16456466e (Keyboard: omap-keypad: use
+> matrix_keypad.h). Previously the driver would expect a list of known
+> keys and would scan it and return -1 if key was not found. Now we have
+> 2 options:
+> 
+> 1. Simply remove the check
+> 2. Change the condition to "if (key == KEY_RESERVED)"
+> 
+> I do not really have preference. Tony?
 
--- 
-Dmitry
+Sounds like the check is not needed if it has not been used for
+past five years, so my preference is option #1 then.
+
+Regards,
+
+Tony
