@@ -1,14 +1,18 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] urgent onenand file system corruption fix for n900
-Date: Fri, 8 Jan 2016 09:01:38 -0800
-Message-ID: <20160108170138.GU12777@atomide.com>
-References: <20160108163250.GT12777@atomide.com> <9046751.uROfOxQcxi@wuerfel>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Fri, 8 Jan 2016 09:04:46 -0800
+Message-ID: <20160108170445.GV12777@atomide.com>
+References: <20160105224929.GF12777@atomide.com> <20160106174039.GA14271@earth>
+ <20160106174713.GL12777@atomide.com> <568D5669.4040801@gmail.com>
+ <20160106182650.GM12777@atomide.com> <568D5F54.7040900@gmail.com>
+ <20160107180700.GN12777@atomide.com> <568EDC8D.7070205@gmail.com>
+ <20160108022619.GS12777@atomide.com> <20160108075636.GM11364@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <9046751.uROfOxQcxi@wuerfel>
+In-Reply-To: <20160108075636.GM11364@pali>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,34 +22,32 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [160108 08:50]:
-> On Friday 08 January 2016 08:32:50 Tony Lindgren wrote:
-> > Last minute urgent pull request to prevent file system corruption
-> > on Nokia N900.
-> > 
-> > Looks like we have a GPMC bus timing bug that has gone unnoticed
-> > because of bootloader configured registers until few days ago. We
-> > are not detecting the onenand clock rate properly unless we have
-> > CONFIG_OMAP_GPMC_DEBUG set and this causes onenand corruption
-> > that can be easily be reproduced.
-> > 
-> > There seems to be also an additional bug still lurking around for
-> > onenand corruption. But that is still being investigated and
-> > it does not seem to be GPMC timings related.
-> > 
-> > Meanwhile, it would be good to get this fix into v4.4 to prevent
-> > wrong timings from corrupting onenand.
-> > 
-> 
-> Pulled into fixes, thanks.
-> 
-> I'll try to get the fixes pull request out tonight, there are a
-> small number of other fixes.
-
-Great thanks!
-
-Tony
+KiBQYWxpIFJvaMOhciA8cGFsaS5yb2hhckBnbWFpbC5jb20+IFsxNjAxMDcgMjM6NTddOgo+IE9u
+IFRodXJzZGF5IDA3IEphbnVhcnkgMjAxNiAxODoyNjoyMCBUb255IExpbmRncmVuIHdyb3RlOgo+
+ID4gPiBUaGUgcHJvYmxlbSBpcyB0aGF0IGJldHdlZW4gTk9MTyBhbmQga2VybmVsIHRoZXJlIGlz
+IHUtYm9vdC4gQW5kIGV2ZW4gaWYgSQo+ID4gPiBhbSBhbG1vc3Qgc3VyZSBpdCBkb2Vzbid0IHRv
+dWNoIG9uZW5hbmQgY29uZmlncywgSSBjYW4ndCBiZSBhYnNvbHV0ZWx5IHN1cmUuCj4gPiA+IFNv
+IHRob3NlIHRpbWluZ3MgYXJlIG5vdCAxMDAlIHJlbGlhYmxlIElNTywgdGhvdWdoIGNsb3NlIHRv
+IHRoYXQuCj4gPiAKPiA+IEhtbSB5ZXMgSSdtIG9ubHkgYm9vdGluZyB3aXRoIHUtYm9vdCBoZXJl
+IGFzIG15IGRldmljZSBzaXRzIGluIG15IHJhY2suCj4gCj4gVS1ib290IHRyeSB0byBjb25maWd1
+cmUgTjkwMCBkZXZpY2Ugc2ltaWxhciBsaWtlIChzb21lIG9sZGVyIHZlcnNpb24gb2YpCj4gbGlu
+dXgga2VybmVsLiBTbyB0ZXN0aW5nIHRoZXNlIGJ1Z3Mgc2hvdWxkIGJlIGRvbmUgYWxzbyBkaXJl
+Y3RseSBmcm9tCj4gTk9MTyB3aXRob3V0IFUtYm9vdC4KCk9LCgo+IEJ0dywgaWYgeW91IGhhdmUg
+dXNiIGNvbm5lY3Rpb24gdG8geW91ciBkZXZpY2UgaW4geW91ciByYWNrLCB5b3UgY2FuIHVzZQo+
+IDB4RkZGRiB0b29sIChvcGVuIHNvdXJjZSkgd2hpY2ggY2FuIHNlbmQga2VybmVsIGltYWdlIHRv
+IE5PTE8gd2hpY2ggd2lsbAo+IGJvb3QgaXQgd2l0aG91dCBmbGFzaGluZyBOQU5ELgo+IAo+IGh0
+dHBzOi8vZ2l0aHViLmNvbS9wYWxpLzB4RkZGRgo+IAo+IE9yaWdpbmFsIE5va2lhIGZsYXNoZXIt
+My41IGNvdWxkIHN1cHBvcnQgYWxzbyBzZXJpYWwgY29ubmVjdGlvbiAobm90Cj4gb25seSB1c2Ip
+LCBidXQgZG8gbm90IGtub3cuIEkgaGF2ZSBuZXZlciB1c2VkIHNlcmlhbCBjb25uZWN0b3Igb24g
+bXkKPiBOOTAwLCBzbyBJIGRvIG5vdCBrbm93IGFuZCB0aGlzIGlzIHJlYXNvbiB3aHkgYWxzbyAw
+eEZGRkYgaGFzIG5vIHNlcmlhbAo+IHN1cHBvcnQuLi4KCll1cCBJJ20gdXNpbmcgMHhGRkZGIGZv
+ciBsb2FkaW5nIGltYWdlcyBvbiA3NzAgYW5kIG44MDAgaGVyZS4gV2VsbCBvbmNlCkkgZ2V0IG15
+IHJhY2sgcHV0IHRvZ2V0aGVyIGFnYWluIG92ZXIgbmV4dCBmZXcgZGF5cy4uCgpSZWdhcmRzLAoK
+VE9ueQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
+dXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRl
+YWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+YXJtLWtlcm5lbAo=
