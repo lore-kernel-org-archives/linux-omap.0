@@ -1,18 +1,18 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Thu, 7 Jan 2016 18:26:20 -0800
-Message-ID: <20160108022619.GS12777@atomide.com>
+Date: Fri, 8 Jan 2016 07:13:58 +0200
+Message-ID: <568F4596.8020206@gmail.com>
 References: <20160105041356.GE12777@atomide.com> <20160105084947.GG22661@pali>
  <20160105224929.GF12777@atomide.com> <20160106174039.GA14271@earth>
  <20160106174713.GL12777@atomide.com> <568D5669.4040801@gmail.com>
  <20160106182650.GM12777@atomide.com> <568D5F54.7040900@gmail.com>
  <20160107180700.GN12777@atomide.com> <568EDC8D.7070205@gmail.com>
+ <20160108022619.GS12777@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <568EDC8D.7070205@gmail.com>
+In-Reply-To: <20160108022619.GS12777@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,47 +22,58 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160107 13:46]:
-> On  7.01.2016 20:07, Tony Lindgren wrote:
-> 
-> >>>Also, do things now work reliably for you with CONFIG_OMAP_GPMC_DEBUG
-> >>>enabled? Or does that also produce corruption after few reboots?
-> 
-> I'll make further experiments as I am a bit lost what and when happens. What
-> is for sure is that corruptions occurs immediately after boot without your
-> patch and with CONFIG_OMAP_GPMC_DEBUG disabled. So maybe there is another
-> problem in ubfs or mtd driver.
+Hi
 
-Yes it seems there's some other issue too. Maybe you can run git bisect
-again and carry the fix along as an extra patch?
+On  8.01.2016 04:26, Tony Lindgren wrote:
+>
+> Yes it seems there's some other issue too. Maybe you can run git bisect
+> again and carry the fix along as an extra patch?
+>
 
-> Already did, every reflash and install of upstream kernel compatible SW
-> takes me about 3 hours I'd rather spend on something else :). Though it
-> seems that reboot issue happens no matter if CONFIG_OMAP_GPMC_DEBUG is
-> enabled or not.
+No sane way to bisect, I don't really know what triggers the issue. 
+Neither it is triggered regularly. It might happen on the first reboot 
+or on the tenth, or ... And it looks like the problems happens sometimes 
+on oops too. Not to say that it seems I should have fully booted 
+userspace (so there is enough pressure on the ubi/mdt/nand subsystems), 
+which is impossible with upstream without some n900 specific patches :(
 
-OK then it really seems like we do have another bug lurking around.
-Maybe you can figure out an easier way to reproduce it?
+Maybe we can get some ideas on what and where to look from ubifs people? 
+Though I don't know whom to cc, feel free to help :)
 
-> The problem is that between NOLO and kernel there is u-boot. And even if I
-> am almost sure it doesn't touch onenand configs, I can't be absolutely sure.
-> So those timings are not 100% reliable IMO, though close to that.
+My best bet aiui, is comparing what nokia omap1 kernel does vs upstream. 
+Or looking at the commit log in ubi/mtd/onenand - who knows, I might get 
+lucky once again the same way as with that phonet oops in 
+__netif_receive_skb_core.
 
-Hmm yes I'm only booting with u-boot here as my device sits in my rack.
+>
+> OK then it really seems like we do have another bug lurking around.
 
-> I'll play a bit more with printing the values with both
-> CONFIG_OMAP_GPMC_DEBUG enabled and disabled and whatever I can think of,
-> including dumping cs0 config from u-boot, nokia kernel and/or REing NOLO
-> onenand init (already did that for N9 DDR timings, shouldn't be that hard
-> for N900 GPMC). Will keep you informed on the progress. In the meanwhile I
-> think your patch should make it as without it onenand is unusable.
+:nod:
 
-OK will push it out then.
+> Maybe you can figure out an easier way to reproduce it?
+>
 
-Regards,
+I doubt, but who knows.
 
-Tony
+>> The problem is that between NOLO and kernel there is u-boot. And even if I
+>> am almost sure it doesn't touch onenand configs, I can't be absolutely sure.
+>> So those timings are not 100% reliable IMO, though close to that.
+>
+> Hmm yes I'm only booting with u-boot here as my device sits in my rack.
+>
+
+I booted the device via flasher with initrd from the so-called rescueos 
+(https://n900.quitesimple.org/rescueOS/rescueOS-1.2/) - it provides 
+shell with tons of useful tools if your device is in bootloop etc. CS0 
+registers were the same as with u-boot, so it is not that one.
+
+>
+> OK will push it out then.
+>
+
+Thanks,
+Ivo
