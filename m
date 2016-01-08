@@ -1,116 +1,49 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] OMAP: Add keypad driver
-Date: Thu, 7 Jan 2016 22:38:49 -0800
-Message-ID: <20160108063849.GA22781@dtor-ws>
-References: <20160107093751.GD27186@mwanda>
- <20160107201316.GF12600@atomide.com>
- <20160107232228.GA20533@dtor-ws>
- <2618759.QX3pTDJjW3@acer>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Fri, 8 Jan 2016 08:56:36 +0100
+Message-ID: <20160108075636.GM11364@pali>
+References: <20160105084947.GG22661@pali> <20160105224929.GF12777@atomide.com>
+ <20160106174039.GA14271@earth> <20160106174713.GL12777@atomide.com>
+ <568D5669.4040801@gmail.com> <20160106182650.GM12777@atomide.com>
+ <568D5F54.7040900@gmail.com> <20160107180700.GN12777@atomide.com>
+ <568EDC8D.7070205@gmail.com> <20160108022619.GS12777@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <2618759.QX3pTDJjW3@acer>
-Sender: linux-input-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Dan Carpenter <dan.carpenter@oracle.com>, Komal Shah <komal_shah802003@yahoo.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
+In-Reply-To: <20160108022619.GS12777@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 08, 2016 at 02:41:00AM +0100, Janusz Krzysztofik wrote:
-> On Thu, 7 Jan 2016 15:22:28 Dmitry Torokhov wrote:
-> > On Thu, Jan 07, 2016 at 12:13:17PM -0800, Tony Lindgren wrote:
-> > > * Dmitry Torokhov <dmitry.torokhov@gmail.com> [160107 10:54]:
-> > > > On Thu, Jan 7, 2016 at 1:37 AM, Dan Carpenter 
-> <dan.carpenter@oracle.com> wrote:
-> > > > ...
-> > > > >    157                          key = 
-> keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
-> > > > >    158                          if (key < 0) {
-> > > > >                                     ^^^^^^^
-> > > > > Never true.  Not sure what was intended.
-> > > > 
-> > > > It looks like this check was broken by
-> > > > da1f026b532ce944d74461497dc6d8c16456466e (Keyboard: omap-keypad: 
-> use
-> > > > matrix_keypad.h). Previously the driver would expect a list of 
-> known
-> > > > keys and would scan it and return -1 if key was not found. Now we 
-> have
-> > > > 2 options:
-> > > > 
-> > > > 1. Simply remove the check
-> > > > 2. Change the condition to "if (key == KEY_RESERVED)"
-> > > > 
-> > > > I do not really have preference. Tony?
-> > > 
-> > > Sounds like the check is not needed if it has not been used for
-> > > past five years, so my preference is option #1 then.
-> > 
-> > OK, how about the below then?
-> > 
-> > --
-> > Dmitry
-> > 
-> > 
-> > Input: omap-keypad - remove dead check
-> > 
-> > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > 
-> > Commit da1f026b532ce944d74461497dc6d8c16456466e ("Keyboard:
-> > omap-keypad: use matrix_keypad.h") switched the driver to use matrix
-> > keypad infrastructure, which made array of keycodes to be unsigned
-> > short, and caused the test for negativity never trigger. This leads
-> > to the following> 
-> > static checker warning:
-> >         drivers/input/keyboard/omap-keypad.c:158 omap_kp_tasklet()
-> >         warn: 'keycodes[]' is never negative.
-> > 
-> > Given that we did not care about this check for a few years already
-> > let's simply remove it.
-> > 
-> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > ---
-> > 
-> >  drivers/input/keyboard/omap-keypad.c |    8 --------
-> >  1 file changed, 8 deletions(-)
-> > 
-> > diff --git a/drivers/input/keyboard/omap-keypad.c
-> > b/drivers/input/keyboard/omap-keypad.c index 75ad666..e0d72c8 100644
-> > --- a/drivers/input/keyboard/omap-keypad.c
-> > +++ b/drivers/input/keyboard/omap-keypad.c
-> > @@ -155,14 +155,6 @@ static void omap_kp_tasklet(unsigned long data) 
-> >                                "pressed" : "released");  
-> >  #else  
-> >                         key = keycodes[MATRIX_SCAN_CODE(row, col, 
-> row_shift)]; 
-> > -                       if (key < 0) {
-> > -                               printk(KERN_WARNING
-> > -                                     "omap-keypad: Spurious key event 
-> %d-%d\n",
-> > -                                      col, row);
-> > -                               /* We scan again after a couple of 
-> seconds */
-> > -                               spurious = 1;
-> 
-> Hi,
-> 
-> That code was written before I played with it so I'm not really sure 
-> about its purpose, but it looks to me like something intended as a 
-> debouncer.
-> 
-> Since that was the only place where the spurious variable could be 
-> modified, I think we should also remove the now unreachable code that 
-> manipulates delay based on spurious value several lines below, as well 
-> as declaration and initialization of spurious at the beginning of 
-> omap_kp_tasklet().
-
-Yeah, now that I look at it this driver needs some love. The probing is
-racy, remove is incomplete, etc.
-
-Do any of you guys have hardware that uses it?
-
-Thanks.
-
--- 
-Dmitry
+T24gVGh1cnNkYXkgMDcgSmFudWFyeSAyMDE2IDE4OjI2OjIwIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cj4gPiBUaGUgcHJvYmxlbSBpcyB0aGF0IGJldHdlZW4gTk9MTyBhbmQga2VybmVsIHRoZXJlIGlz
+IHUtYm9vdC4gQW5kIGV2ZW4gaWYgSQo+ID4gYW0gYWxtb3N0IHN1cmUgaXQgZG9lc24ndCB0b3Vj
+aCBvbmVuYW5kIGNvbmZpZ3MsIEkgY2FuJ3QgYmUgYWJzb2x1dGVseSBzdXJlLgo+ID4gU28gdGhv
+c2UgdGltaW5ncyBhcmUgbm90IDEwMCUgcmVsaWFibGUgSU1PLCB0aG91Z2ggY2xvc2UgdG8gdGhh
+dC4KPiAKPiBIbW0geWVzIEknbSBvbmx5IGJvb3Rpbmcgd2l0aCB1LWJvb3QgaGVyZSBhcyBteSBk
+ZXZpY2Ugc2l0cyBpbiBteSByYWNrLgoKVS1ib290IHRyeSB0byBjb25maWd1cmUgTjkwMCBkZXZp
+Y2Ugc2ltaWxhciBsaWtlIChzb21lIG9sZGVyIHZlcnNpb24gb2YpCmxpbnV4IGtlcm5lbC4gU28g
+dGVzdGluZyB0aGVzZSBidWdzIHNob3VsZCBiZSBkb25lIGFsc28gZGlyZWN0bHkgZnJvbQpOT0xP
+IHdpdGhvdXQgVS1ib290LgoKQnR3LCBpZiB5b3UgaGF2ZSB1c2IgY29ubmVjdGlvbiB0byB5b3Vy
+IGRldmljZSBpbiB5b3VyIHJhY2ssIHlvdSBjYW4gdXNlCjB4RkZGRiB0b29sIChvcGVuIHNvdXJj
+ZSkgd2hpY2ggY2FuIHNlbmQga2VybmVsIGltYWdlIHRvIE5PTE8gd2hpY2ggd2lsbApib290IGl0
+IHdpdGhvdXQgZmxhc2hpbmcgTkFORC4KCmh0dHBzOi8vZ2l0aHViLmNvbS9wYWxpLzB4RkZGRgoK
+T3JpZ2luYWwgTm9raWEgZmxhc2hlci0zLjUgY291bGQgc3VwcG9ydCBhbHNvIHNlcmlhbCBjb25u
+ZWN0aW9uIChub3QKb25seSB1c2IpLCBidXQgZG8gbm90IGtub3cuIEkgaGF2ZSBuZXZlciB1c2Vk
+IHNlcmlhbCBjb25uZWN0b3Igb24gbXkKTjkwMCwgc28gSSBkbyBub3Qga25vdyBhbmQgdGhpcyBp
+cyByZWFzb24gd2h5IGFsc28gMHhGRkZGIGhhcyBubyBzZXJpYWwKc3VwcG9ydC4uLgoKLS0gClBh
+bGkgUm9ow6FyCnBhbGkucm9oYXJAZ21haWwuY29tCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
+cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
