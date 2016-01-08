@@ -1,519 +1,104 @@
-From: Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>
-Subject: [PATCH v2] clk: move the common clock's to_clk_*(_hw) macros to
- clk-provider.h
-Date: Fri,  8 Jan 2016 23:51:46 +0800
-Message-ID: <704f6d5aa50acc4723f6756c217a865641d927fe.1452267334.git.geliangtang@163.com>
-References: <568F9960.9040209@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] urgent onenand file system corruption fix for n900
+Date: Fri, 8 Jan 2016 08:32:50 -0800
+Message-ID: <20160108163250.GT12777@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <568F9960.9040209-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Joachim Eastwood <manabian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-to_clk_*(_hw) macros have been repeatedly defined in many places.
-This patch moves all the to_clk_*(_hw) definitions in the common
-clock framework to public header clk-provider.h, and drop the local
-definitions.
+The following changes since commit 0b4d6972d7b052b23d33ff9bdbb52958664fbb26:
 
-Signed-off-by: Geliang Tang <geliangtang-9Onoh4P/yGk@public.gmane.org>
----
-Changes in v2:
- - fix typos in the commit log.
----
- drivers/clk/clk-composite.c          |  2 --
- drivers/clk/clk-divider.c            |  2 --
- drivers/clk/clk-fixed-factor.c       |  2 --
- drivers/clk/clk-fixed-rate.c         |  2 --
- drivers/clk/clk-fractional-divider.c |  2 --
- drivers/clk/clk-gate.c               |  2 --
- drivers/clk/clk-gpio.c               |  2 --
- drivers/clk/clk-multiplier.c         |  2 --
- drivers/clk/clk-mux.c                |  2 --
- drivers/clk/imx/clk-busy.c           |  4 ++--
- drivers/clk/imx/clk-fixup-div.c      |  5 ++---
- drivers/clk/imx/clk-fixup-mux.c      |  2 --
- drivers/clk/imx/clk-gate-exclusive.c |  2 +-
- drivers/clk/mediatek/clk-gate.c      |  8 ++++----
- drivers/clk/mediatek/clk-gate.h      |  2 +-
- drivers/clk/mvebu/common.c           |  2 --
- drivers/clk/mvebu/kirkwood.c         |  2 --
- drivers/clk/mxs/clk-div.c            |  2 +-
- drivers/clk/nxp/clk-lpc18xx-ccu.c    |  2 --
- drivers/clk/st/clkgen-mux.c          |  9 ++++-----
- drivers/clk/ti/composite.c           |  2 --
- drivers/clk/ti/divider.c             |  2 --
- drivers/clk/ti/gate.c                |  2 --
- drivers/clk/ti/mux.c                 |  2 --
- include/linux/clk-provider.h         | 18 ++++++++++++++++++
- 25 files changed, 33 insertions(+), 51 deletions(-)
+  ARM: dts: Fix UART wakeirq for omap4 duovero parlor (2015-12-18 16:43:22 -0800)
 
-diff --git a/drivers/clk/clk-composite.c b/drivers/clk/clk-composite.c
-index 4735de0..1f903e1f8 100644
---- a/drivers/clk/clk-composite.c
-+++ b/drivers/clk/clk-composite.c
-@@ -19,8 +19,6 @@
- #include <linux/err.h>
- #include <linux/slab.h>
- 
--#define to_clk_composite(_hw) container_of(_hw, struct clk_composite, hw)
--
- static u8 clk_composite_get_parent(struct clk_hw *hw)
- {
- 	struct clk_composite *composite = to_clk_composite(hw);
-diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-index ded3ff4..c8bea2b 100644
---- a/drivers/clk/clk-divider.c
-+++ b/drivers/clk/clk-divider.c
-@@ -28,8 +28,6 @@
-  * parent - fixed parent.  No clk_set_parent support
-  */
- 
--#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
--
- #define div_mask(width)	((1 << (width)) - 1)
- 
- static unsigned int _get_table_maxdiv(const struct clk_div_table *table,
-diff --git a/drivers/clk/clk-fixed-factor.c b/drivers/clk/clk-fixed-factor.c
-index 83de57a..f0ddf37 100644
---- a/drivers/clk/clk-fixed-factor.c
-+++ b/drivers/clk/clk-fixed-factor.c
-@@ -23,8 +23,6 @@
-  * parent - fixed parent.  No clk_set_parent support
-  */
- 
--#define to_clk_fixed_factor(_hw) container_of(_hw, struct clk_fixed_factor, hw)
--
- static unsigned long clk_factor_recalc_rate(struct clk_hw *hw,
- 		unsigned long parent_rate)
- {
-diff --git a/drivers/clk/clk-fixed-rate.c b/drivers/clk/clk-fixed-rate.c
-index f85ec8d..e156beb 100644
---- a/drivers/clk/clk-fixed-rate.c
-+++ b/drivers/clk/clk-fixed-rate.c
-@@ -26,8 +26,6 @@
-  * parent - fixed parent.  No clk_set_parent support
-  */
- 
--#define to_clk_fixed_rate(_hw) container_of(_hw, struct clk_fixed_rate, hw)
--
- static unsigned long clk_fixed_rate_recalc_rate(struct clk_hw *hw,
- 		unsigned long parent_rate)
- {
-diff --git a/drivers/clk/clk-fractional-divider.c b/drivers/clk/clk-fractional-divider.c
-index 5c4955e..1abcd76 100644
---- a/drivers/clk/clk-fractional-divider.c
-+++ b/drivers/clk/clk-fractional-divider.c
-@@ -16,8 +16,6 @@
- #include <linux/slab.h>
- #include <linux/rational.h>
- 
--#define to_clk_fd(_hw) container_of(_hw, struct clk_fractional_divider, hw)
--
- static unsigned long clk_fd_recalc_rate(struct clk_hw *hw,
- 					unsigned long parent_rate)
- {
-diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
-index de0b322..d0d8ec8 100644
---- a/drivers/clk/clk-gate.c
-+++ b/drivers/clk/clk-gate.c
-@@ -26,8 +26,6 @@
-  * parent - fixed parent.  No clk_set_parent support
-  */
- 
--#define to_clk_gate(_hw) container_of(_hw, struct clk_gate, hw)
--
- /*
-  * It works on following logic:
-  *
-diff --git a/drivers/clk/clk-gpio.c b/drivers/clk/clk-gpio.c
-index 19fed65..cbbea29 100644
---- a/drivers/clk/clk-gpio.c
-+++ b/drivers/clk/clk-gpio.c
-@@ -31,8 +31,6 @@
-  * parent - fixed parent.  No clk_set_parent support
-  */
- 
--#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
--
- static int clk_gpio_gate_enable(struct clk_hw *hw)
- {
- 	struct clk_gpio *clk = to_clk_gpio(hw);
-diff --git a/drivers/clk/clk-multiplier.c b/drivers/clk/clk-multiplier.c
-index fe78065..9e449c7 100644
---- a/drivers/clk/clk-multiplier.c
-+++ b/drivers/clk/clk-multiplier.c
-@@ -14,8 +14,6 @@
- #include <linux/of.h>
- #include <linux/slab.h>
- 
--#define to_clk_multiplier(_hw) container_of(_hw, struct clk_multiplier, hw)
--
- static unsigned long __get_mult(struct clk_multiplier *mult,
- 				unsigned long rate,
- 				unsigned long parent_rate)
-diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
-index 5ed03c8..252188f 100644
---- a/drivers/clk/clk-mux.c
-+++ b/drivers/clk/clk-mux.c
-@@ -26,8 +26,6 @@
-  * parent - parent is adjustable through clk_set_parent
-  */
- 
--#define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
--
- static u8 clk_mux_get_parent(struct clk_hw *hw)
- {
- 	struct clk_mux *mux = to_clk_mux(hw);
-diff --git a/drivers/clk/imx/clk-busy.c b/drivers/clk/imx/clk-busy.c
-index 4bb1bc4..5cc9959 100644
---- a/drivers/clk/imx/clk-busy.c
-+++ b/drivers/clk/imx/clk-busy.c
-@@ -38,7 +38,7 @@ struct clk_busy_divider {
- 
- static inline struct clk_busy_divider *to_clk_busy_divider(struct clk_hw *hw)
- {
--	struct clk_divider *div = container_of(hw, struct clk_divider, hw);
-+	struct clk_divider *div = to_clk_divider(hw);
- 
- 	return container_of(div, struct clk_busy_divider, div);
- }
-@@ -123,7 +123,7 @@ struct clk_busy_mux {
- 
- static inline struct clk_busy_mux *to_clk_busy_mux(struct clk_hw *hw)
- {
--	struct clk_mux *mux = container_of(hw, struct clk_mux, hw);
-+	struct clk_mux *mux = to_clk_mux(hw);
- 
- 	return container_of(mux, struct clk_busy_mux, mux);
- }
-diff --git a/drivers/clk/imx/clk-fixup-div.c b/drivers/clk/imx/clk-fixup-div.c
-index 21db020..ce572273 100644
---- a/drivers/clk/imx/clk-fixup-div.c
-+++ b/drivers/clk/imx/clk-fixup-div.c
-@@ -15,7 +15,6 @@
- #include <linux/slab.h>
- #include "clk.h"
- 
--#define to_clk_div(_hw) container_of(_hw, struct clk_divider, hw)
- #define div_mask(d)	((1 << (d->width)) - 1)
- 
- /**
-@@ -35,7 +34,7 @@ struct clk_fixup_div {
- 
- static inline struct clk_fixup_div *to_clk_fixup_div(struct clk_hw *hw)
- {
--	struct clk_divider *divider = to_clk_div(hw);
-+	struct clk_divider *divider = to_clk_divider(hw);
- 
- 	return container_of(divider, struct clk_fixup_div, divider);
- }
-@@ -60,7 +59,7 @@ static int clk_fixup_div_set_rate(struct clk_hw *hw, unsigned long rate,
- 			    unsigned long parent_rate)
- {
- 	struct clk_fixup_div *fixup_div = to_clk_fixup_div(hw);
--	struct clk_divider *div = to_clk_div(hw);
-+	struct clk_divider *div = to_clk_divider(hw);
- 	unsigned int divider, value;
- 	unsigned long flags = 0;
- 	u32 val;
-diff --git a/drivers/clk/imx/clk-fixup-mux.c b/drivers/clk/imx/clk-fixup-mux.c
-index 0d40b35..c9b327e 100644
---- a/drivers/clk/imx/clk-fixup-mux.c
-+++ b/drivers/clk/imx/clk-fixup-mux.c
-@@ -15,8 +15,6 @@
- #include <linux/slab.h>
- #include "clk.h"
- 
--#define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
--
- /**
-  * struct clk_fixup_mux - imx integer fixup multiplexer clock
-  * @mux: the parent class
-diff --git a/drivers/clk/imx/clk-gate-exclusive.c b/drivers/clk/imx/clk-gate-exclusive.c
-index c12f5f2..3bd9dee 100644
---- a/drivers/clk/imx/clk-gate-exclusive.c
-+++ b/drivers/clk/imx/clk-gate-exclusive.c
-@@ -31,7 +31,7 @@ struct clk_gate_exclusive {
- 
- static int clk_gate_exclusive_enable(struct clk_hw *hw)
- {
--	struct clk_gate *gate = container_of(hw, struct clk_gate, hw);
-+	struct clk_gate *gate = to_clk_gate(hw);
- 	struct clk_gate_exclusive *exgate = container_of(gate,
- 					struct clk_gate_exclusive, gate);
- 	u32 val = readl(gate->reg);
-diff --git a/drivers/clk/mediatek/clk-gate.c b/drivers/clk/mediatek/clk-gate.c
-index 576bdb7..2a76901 100644
---- a/drivers/clk/mediatek/clk-gate.c
-+++ b/drivers/clk/mediatek/clk-gate.c
-@@ -25,7 +25,7 @@
- 
- static int mtk_cg_bit_is_cleared(struct clk_hw *hw)
- {
--	struct mtk_clk_gate *cg = to_clk_gate(hw);
-+	struct mtk_clk_gate *cg = to_mtk_clk_gate(hw);
- 	u32 val;
- 
- 	regmap_read(cg->regmap, cg->sta_ofs, &val);
-@@ -37,7 +37,7 @@ static int mtk_cg_bit_is_cleared(struct clk_hw *hw)
- 
- static int mtk_cg_bit_is_set(struct clk_hw *hw)
- {
--	struct mtk_clk_gate *cg = to_clk_gate(hw);
-+	struct mtk_clk_gate *cg = to_mtk_clk_gate(hw);
- 	u32 val;
- 
- 	regmap_read(cg->regmap, cg->sta_ofs, &val);
-@@ -49,14 +49,14 @@ static int mtk_cg_bit_is_set(struct clk_hw *hw)
- 
- static void mtk_cg_set_bit(struct clk_hw *hw)
- {
--	struct mtk_clk_gate *cg = to_clk_gate(hw);
-+	struct mtk_clk_gate *cg = to_mtk_clk_gate(hw);
- 
- 	regmap_write(cg->regmap, cg->set_ofs, BIT(cg->bit));
- }
- 
- static void mtk_cg_clr_bit(struct clk_hw *hw)
- {
--	struct mtk_clk_gate *cg = to_clk_gate(hw);
-+	struct mtk_clk_gate *cg = to_mtk_clk_gate(hw);
- 
- 	regmap_write(cg->regmap, cg->clr_ofs, BIT(cg->bit));
- }
-diff --git a/drivers/clk/mediatek/clk-gate.h b/drivers/clk/mediatek/clk-gate.h
-index 11e25c9..b182160 100644
---- a/drivers/clk/mediatek/clk-gate.h
-+++ b/drivers/clk/mediatek/clk-gate.h
-@@ -29,7 +29,7 @@ struct mtk_clk_gate {
- 	u8		bit;
- };
- 
--static inline struct mtk_clk_gate *to_clk_gate(struct clk_hw *hw)
-+static inline struct mtk_clk_gate *to_mtk_clk_gate(struct clk_hw *hw)
- {
- 	return container_of(hw, struct mtk_clk_gate, hw);
- }
-diff --git a/drivers/clk/mvebu/common.c b/drivers/clk/mvebu/common.c
-index 28aac67..daa6ebd 100644
---- a/drivers/clk/mvebu/common.c
-+++ b/drivers/clk/mvebu/common.c
-@@ -199,8 +199,6 @@ struct clk_gating_ctrl {
- 	u32 saved_reg;
- };
- 
--#define to_clk_gate(_hw) container_of(_hw, struct clk_gate, hw)
--
- static struct clk_gating_ctrl *ctrl;
- 
- static struct clk *clk_gating_get_src(
-diff --git a/drivers/clk/mvebu/kirkwood.c b/drivers/clk/mvebu/kirkwood.c
-index 99550f2..a2a8d61 100644
---- a/drivers/clk/mvebu/kirkwood.c
-+++ b/drivers/clk/mvebu/kirkwood.c
-@@ -256,8 +256,6 @@ static const struct clk_muxing_soc_desc kirkwood_mux_desc[] __initconst = {
- 		11, 1, 0 },
- };
- 
--#define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
--
- static struct clk *clk_muxing_get_src(
- 	struct of_phandle_args *clkspec, void *data)
- {
-diff --git a/drivers/clk/mxs/clk-div.c b/drivers/clk/mxs/clk-div.c
-index 049ee27..f75e989 100644
---- a/drivers/clk/mxs/clk-div.c
-+++ b/drivers/clk/mxs/clk-div.c
-@@ -33,7 +33,7 @@ struct clk_div {
- 
- static inline struct clk_div *to_clk_div(struct clk_hw *hw)
- {
--	struct clk_divider *divider = container_of(hw, struct clk_divider, hw);
-+	struct clk_divider *divider = to_clk_divider(hw);
- 
- 	return container_of(divider, struct clk_div, divider);
- }
-diff --git a/drivers/clk/nxp/clk-lpc18xx-ccu.c b/drivers/clk/nxp/clk-lpc18xx-ccu.c
-index 13aabbb..08ab3c5 100644
---- a/drivers/clk/nxp/clk-lpc18xx-ccu.c
-+++ b/drivers/clk/nxp/clk-lpc18xx-ccu.c
-@@ -28,8 +28,6 @@
- #define CCU_BRANCH_IS_BUS	BIT(0)
- #define CCU_BRANCH_HAVE_DIV2	BIT(1)
- 
--#define to_clk_gate(_hw) container_of(_hw, struct clk_gate, hw)
--
- struct lpc18xx_branch_clk_data {
- 	const char **name;
- 	int num;
-diff --git a/drivers/clk/st/clkgen-mux.c b/drivers/clk/st/clkgen-mux.c
-index 5dc5ce2..0d9a74b 100644
---- a/drivers/clk/st/clkgen-mux.c
-+++ b/drivers/clk/st/clkgen-mux.c
-@@ -822,11 +822,10 @@ err:
- 		if (!clk_data->clks[i])
- 			continue;
- 
--		composite = container_of(__clk_get_hw(clk_data->clks[i]),
--					 struct clk_composite, hw);
--		kfree(container_of(composite->gate_hw, struct clk_gate, hw));
--		kfree(container_of(composite->rate_hw, struct clk_divider, hw));
--		kfree(container_of(composite->mux_hw, struct clk_mux, hw));
-+		composite = to_clk_composite(__clk_get_hw(clk_data->clks[i]));
-+		kfree(to_clk_gate(composite->gate_hw));
-+		kfree(to_clk_divider(composite->rate_hw));
-+		kfree(to_clk_mux(composite->mux_hw));
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.4/onenand-corruption
+
+for you to fetch changes up to e7b11dc7b77bfce0a351230a5feeadc1d0bba997:
+
+  ARM: OMAP2+: Fix onenand rate detection to avoid filesystem corruption (2016-01-06 09:21:09 -0800)
+
+----------------------------------------------------------------
+Last minute urgent pull request to prevent file system corruption
+on Nokia N900.
+
+Looks like we have a GPMC bus timing bug that has gone unnoticed
+because of bootloader configured registers until few days ago. We
+are not detecting the onenand clock rate properly unless we have
+CONFIG_OMAP_GPMC_DEBUG set and this causes onenand corruption
+that can be easily be reproduced.
+
+There seems to be also an additional bug still lurking around for
+onenand corruption. But that is still being investigated and
+it does not seem to be GPMC timings related.
+
+Meanwhile, it would be good to get this fix into v4.4 to prevent
+wrong timings from corrupting onenand.
+
+----------------------------------------------------------------
+Tony Lindgren (1):
+      ARM: OMAP2+: Fix onenand rate detection to avoid filesystem corruption
+
+ arch/arm/mach-omap2/gpmc-onenand.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -149,8 +149,8 @@ static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
+ 		freq = 104;
+ 		break;
+ 	default:
+-		freq = 54;
+-		break;
++		pr_err("onenand rate not detected, bad GPMC async timings?\n");
++		freq = 0;
  	}
  
- 	kfree(clk_data->clks);
-diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index dbef218..43345c4 100644
---- a/drivers/clk/ti/composite.c
-+++ b/drivers/clk/ti/composite.c
-@@ -28,8 +28,6 @@
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
+ 	return freq;
+@@ -271,6 +271,11 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 	struct gpmc_timings t;
+ 	int ret;
  
--#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
++	/*
++	 * Note that we need to keep sync_write set for the call to
++	 * omap2_onenand_set_async_mode() to work to detect the onenand
++	 * supported clock rate for the sync timings.
++	 */
+ 	if (gpmc_onenand_data->of_node) {
+ 		gpmc_read_settings_dt(gpmc_onenand_data->of_node,
+ 				      &onenand_async);
+@@ -281,12 +286,9 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+ 			else
+ 				gpmc_onenand_data->flags |= ONENAND_SYNC_READ;
+ 			onenand_async.sync_read = false;
+-			onenand_async.sync_write = false;
+ 		}
+ 	}
+ 
+-	omap2_onenand_set_async_mode(onenand_base);
 -
- static unsigned long ti_composite_recalc_rate(struct clk_hw *hw,
- 					      unsigned long parent_rate)
- {
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index df25583..b4e5de1 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -26,8 +26,6 @@
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
+ 	omap2_onenand_calc_async_timings(&t);
  
--#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
--
- #define div_mask(d)	((1 << ((d)->width)) - 1)
- 
- static unsigned int _get_table_maxdiv(const struct clk_div_table *table)
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-index 5429d35..bc05f27 100644
---- a/drivers/clk/ti/gate.c
-+++ b/drivers/clk/ti/gate.c
-@@ -24,8 +24,6 @@
- 
- #include "clock.h"
- 
--#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
--
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
- 
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index dab9ba8..618ded9 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -26,8 +26,6 @@
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
- 
--#define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
--
- static u8 ti_clk_mux_get_parent(struct clk_hw *hw)
- {
- 	struct clk_mux *mux = to_clk_mux(hw);
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 1143e38..ad1d69c 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -276,6 +276,8 @@ struct clk_fixed_rate {
- 	u8		flags;
- };
- 
-+#define to_clk_fixed_rate(_hw) container_of(_hw, struct clk_fixed_rate, hw)
-+
- extern const struct clk_ops clk_fixed_rate_ops;
- struct clk *clk_register_fixed_rate(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
-@@ -314,6 +316,8 @@ struct clk_gate {
- 	spinlock_t	*lock;
- };
- 
-+#define to_clk_gate(_hw) container_of(_hw, struct clk_gate, hw)
-+
- #define CLK_GATE_SET_TO_DISABLE		BIT(0)
- #define CLK_GATE_HIWORD_MASK		BIT(1)
- 
-@@ -376,6 +380,8 @@ struct clk_divider {
- 	spinlock_t	*lock;
- };
- 
-+#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
-+
- #define CLK_DIVIDER_ONE_BASED		BIT(0)
- #define CLK_DIVIDER_POWER_OF_TWO	BIT(1)
- #define CLK_DIVIDER_ALLOW_ZERO		BIT(2)
-@@ -440,6 +446,8 @@ struct clk_mux {
- 	spinlock_t	*lock;
- };
- 
-+#define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
-+
- #define CLK_MUX_INDEX_ONE		BIT(0)
- #define CLK_MUX_INDEX_BIT		BIT(1)
- #define CLK_MUX_HIWORD_MASK		BIT(2)
-@@ -483,6 +491,8 @@ struct clk_fixed_factor {
- 	unsigned int	div;
- };
- 
-+#define to_clk_fixed_factor(_hw) container_of(_hw, struct clk_fixed_factor, hw)
-+
- extern const struct clk_ops clk_fixed_factor_ops;
- struct clk *clk_register_fixed_factor(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
-@@ -514,6 +524,8 @@ struct clk_fractional_divider {
- 	spinlock_t	*lock;
- };
- 
-+#define to_clk_fd(_hw) container_of(_hw, struct clk_fractional_divider, hw)
-+
- extern const struct clk_ops clk_fractional_divider_ops;
- struct clk *clk_register_fractional_divider(struct device *dev,
- 		const char *name, const char *parent_name, unsigned long flags,
-@@ -550,6 +562,8 @@ struct clk_multiplier {
- 	spinlock_t	*lock;
- };
- 
-+#define to_clk_multiplier(_hw) container_of(_hw, struct clk_multiplier, hw)
-+
- #define CLK_MULTIPLIER_ZERO_BYPASS		BIT(0)
- #define CLK_MULTIPLIER_ROUND_CLOSEST	BIT(1)
- 
-@@ -579,6 +593,8 @@ struct clk_composite {
- 	const struct clk_ops	*gate_ops;
- };
- 
-+#define to_clk_composite(_hw) container_of(_hw, struct clk_composite, hw)
-+
- struct clk *clk_register_composite(struct device *dev, const char *name,
- 		const char * const *parent_names, int num_parents,
- 		struct clk_hw *mux_hw, const struct clk_ops *mux_ops,
-@@ -601,6 +617,8 @@ struct clk_gpio {
- 	struct gpio_desc *gpiod;
- };
- 
-+#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
-+
- extern const struct clk_ops clk_gpio_gate_ops;
- struct clk *clk_register_gpio_gate(struct device *dev, const char *name,
- 		const char *parent_name, unsigned gpio, bool active_low,
--- 
-2.5.0
+ 	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_async);
+@@ -310,6 +312,8 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
+ 	if (!freq) {
+ 		/* Very first call freq is not known */
+ 		freq = omap2_onenand_get_freq(gpmc_onenand_data, onenand_base);
++		if (!freq)
++			return -ENODEV;
+ 		set_onenand_cfg(onenand_base);
+ 	}
