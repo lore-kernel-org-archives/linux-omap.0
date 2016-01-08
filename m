@@ -1,54 +1,116 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: dra7xx pci driver broken on dra7xx-evm
-Date: Fri, 8 Jan 2016 11:37:09 +0530
-Message-ID: <568F520D.9050807@ti.com>
-References: <20160106214518.GA6106@localhost.localdomain>
- <568DF4FE.5010704@ti.com> <568ED7FA.4000508@ti.com>
- <20160107215946.GP12777@atomide.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] OMAP: Add keypad driver
+Date: Thu, 7 Jan 2016 22:38:49 -0800
+Message-ID: <20160108063849.GA22781@dtor-ws>
+References: <20160107093751.GD27186@mwanda>
+ <20160107201316.GF12600@atomide.com>
+ <20160107232228.GA20533@dtor-ws>
+ <2618759.QX3pTDJjW3@acer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160107215946.GP12777@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>
-Cc: Richard Cochran <richardcochran@gmail.com>, Tero Kristo <t-kristo@ti.com>, "Murphy, Dan" <dmurphy@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2618759.QX3pTDJjW3@acer>
+Sender: linux-input-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Dan Carpenter <dan.carpenter@oracle.com>, Komal Shah <komal_shah802003@yahoo.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Friday 08 January 2016 03:29 AM, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [160107 13:26]:
->> On 01/06/2016 11:17 PM, Kishon Vijay Abraham I wrote:
->>> Hi,
->>
->> + Tero, Tony and linux-omap
->>
->>>
->>> On Thursday 07 January 2016 03:15 AM, Richard Cochran wrote:
->>>>
->>>> The dra7xx-evm box freezes hard at the very first PCI bus access, the
->>>> call to in dra7xx_pcie_readl() in dra7xx_pcie_probe().
->>>>
->>>> The out-of-tree 3.14.53 TI driver performs a reset via platform data,
->>>> calling omap_device_assert_hardreset() by hook and crook.
->>
->> Yeah, this is the only feasible way and not break multi-arch atm until a
->> reset framework is in place. We have couple of drivers (omap_iommu and
->> wkup_m3_rproc) following this approach.
+On Fri, Jan 08, 2016 at 02:41:00AM +0100, Janusz Krzysztofik wrote:
+> On Thu, 7 Jan 2016 15:22:28 Dmitry Torokhov wrote:
+> > On Thu, Jan 07, 2016 at 12:13:17PM -0800, Tony Lindgren wrote:
+> > > * Dmitry Torokhov <dmitry.torokhov@gmail.com> [160107 10:54]:
+> > > > On Thu, Jan 7, 2016 at 1:37 AM, Dan Carpenter 
+> <dan.carpenter@oracle.com> wrote:
+> > > > ...
+> > > > >    157                          key = 
+> keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
+> > > > >    158                          if (key < 0) {
+> > > > >                                     ^^^^^^^
+> > > > > Never true.  Not sure what was intended.
+> > > > 
+> > > > It looks like this check was broken by
+> > > > da1f026b532ce944d74461497dc6d8c16456466e (Keyboard: omap-keypad: 
+> use
+> > > > matrix_keypad.h). Previously the driver would expect a list of 
+> known
+> > > > keys and would scan it and return -1 if key was not found. Now we 
+> have
+> > > > 2 options:
+> > > > 
+> > > > 1. Simply remove the check
+> > > > 2. Change the condition to "if (key == KEY_RESERVED)"
+> > > > 
+> > > > I do not really have preference. Tony?
+> > > 
+> > > Sounds like the check is not needed if it has not been used for
+> > > past five years, so my preference is option #1 then.
+> > 
+> > OK, how about the below then?
+> > 
+> > --
+> > Dmitry
+> > 
+> > 
+> > Input: omap-keypad - remove dead check
+> > 
+> > From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > 
+> > Commit da1f026b532ce944d74461497dc6d8c16456466e ("Keyboard:
+> > omap-keypad: use matrix_keypad.h") switched the driver to use matrix
+> > keypad infrastructure, which made array of keycodes to be unsigned
+> > short, and caused the test for negativity never trigger. This leads
+> > to the following> 
+> > static checker warning:
+> >         drivers/input/keyboard/omap-keypad.c:158 omap_kp_tasklet()
+> >         warn: 'keycodes[]' is never negative.
+> > 
+> > Given that we did not care about this check for a few years already
+> > let's simply remove it.
+> > 
+> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > ---
+> > 
+> >  drivers/input/keyboard/omap-keypad.c |    8 --------
+> >  1 file changed, 8 deletions(-)
+> > 
+> > diff --git a/drivers/input/keyboard/omap-keypad.c
+> > b/drivers/input/keyboard/omap-keypad.c index 75ad666..e0d72c8 100644
+> > --- a/drivers/input/keyboard/omap-keypad.c
+> > +++ b/drivers/input/keyboard/omap-keypad.c
+> > @@ -155,14 +155,6 @@ static void omap_kp_tasklet(unsigned long data) 
+> >                                "pressed" : "released");  
+> >  #else  
+> >                         key = keycodes[MATRIX_SCAN_CODE(row, col, 
+> row_shift)]; 
+> > -                       if (key < 0) {
+> > -                               printk(KERN_WARNING
+> > -                                     "omap-keypad: Spurious key event 
+> %d-%d\n",
+> > -                                      col, row);
+> > -                               /* We scan again after a couple of 
+> seconds */
+> > -                               spurious = 1;
 > 
-> Sounds like doing reset with platform data is the way to go until the
-> reset controller works.
+> Hi,
+> 
+> That code was written before I played with it so I'm not really sure 
+> about its purpose, but it looks to me like something intended as a 
+> debouncer.
+> 
+> Since that was the only place where the spurious variable could be 
+> modified, I think we should also remove the now unreachable code that 
+> manipulates delay based on spurious value several lines below, as well 
+> as declaration and initialization of spurious at the beginning of 
+> omap_kp_tasklet().
 
-All right. I'll post the patch to do reset using platform data.
+Yeah, now that I look at it this driver needs some love. The probing is
+racy, remove is incomplete, etc.
 
-Thanks
-Kishon
+Do any of you guys have hardware that uses it?
+
+Thanks.
+
+-- 
+Dmitry
