@@ -1,70 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Fri, 8 Jan 2016 09:10:14 -0800
-Message-ID: <20160108171013.GW12777@atomide.com>
-References: <20160105224929.GF12777@atomide.com> <20160106174039.GA14271@earth>
- <20160106174713.GL12777@atomide.com> <568D5669.4040801@gmail.com>
- <20160106182650.GM12777@atomide.com> <568D5F54.7040900@gmail.com>
- <20160107180700.GN12777@atomide.com> <568EDC8D.7070205@gmail.com>
- <20160108022619.GS12777@atomide.com> <568F4596.8020206@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <568F4596.8020206@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging of backup battery
+Date: Fri, 8 Jan 2016 18:49:31 +0100
+Message-ID: <66F37918-EA7F-4D83-8B5F-A6B5C0CD7623@goldelico.com>
+References: <cover.1451995297.git.hns@goldelico.com> <b4a6fe205cbb1a9eddc4e5f63fa05d299641313d.1451995297.git.hns@goldelico.com> <568C5451.8070709@ti.com> <20160106010011.GG12777@atomide.com> <8FE6954B-6411-4593-9CE5-717A469A6AA8@goldelico.com> <20160106164136.GI12777@atomide.com> <2AC46952-3758-458A-B0A5-1794C207BD4C@goldelico.com> <20160106170925.GK12777@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160106170925.GK12777@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160107 21:14]:
-> Hi
+Tony,
+it is strange. It now works under unknown conditions - without any obvoius change.
+
+Am 06.01.2016 um 18:09 schrieb Tony Lindgren <tony@atomide.com>:
+
+> * H. Nikolaus Schaller <hns@goldelico.com> [160106 08:48]:
+>> Hi Tony,
+>> 
+>> Am 06.01.2016 um 17:41 schrieb Tony Lindgren <tony@atomide.com>:
+>> 
+>>> Hi,
+>>> 
+>>> * H. Nikolaus Schaller <hns@goldelico.com> [160106 00:12]:
+>>>> Am 06.01.2016 um 02:00 schrieb Tony Lindgren <tony@atomide.com>:
+>>>>> 
+>>>>> Also I'm not seeing just zeroes coming from RTC after typing hwclock
+>>>>> on omap5-uevm. It's working on x15 though.
+>>>>> 
+>>>>> Nikolaus, is hwclock command working for you on omap5-uevm?
+>>>> 
+>>>> Well, yes and no. It appears it *was* working when tested last time
+>>>> (we sometimes have months of delay for submitting patches upstream).
+>>>> 
+>>>> I have found an SD image with 4.3-rc6 with this patch in the dtb and
+>>>> there it works. With 4.4-rc8 it does not work. hwclock command hangs for
+>>>> 10 seconds (I guess some timeout).
+>>>> 
+>>>> I have checked the dtb and in both cases it is interrupts = <8 0>;
+>>>> 
+>>>> xxd /sys/firmware/devicetree/base/ocp/i2c@48070000/palmas@48/rtc/interrupts
+>>>> 0000000: 0000 0008 0000 0000
+>>>> 
+>>>> So I think something has changed in the rtc driver or somewhere else.
+>>> 
+>>> I just gave it a try on v4.3-rc6 with omap5-uevm.dts patched for
+>>> RTC, and I still don't have hwclock working with RTC.
+>>> 
+>>> It seems you have some additional patches there that make it work?
+>> 
+>> Hm. Not that I am aware of. We just did add the rtc nodes but did not
+>> touch palmas drivers (except adding the gpadc of this patch series).
 > 
-> On  8.01.2016 04:26, Tony Lindgren wrote:
-> >
-> >Yes it seems there's some other issue too. Maybe you can run git bisect
-> >again and carry the fix along as an extra patch?
+> OK
 > 
-> No sane way to bisect, I don't really know what triggers the issue. Neither
-> it is triggered regularly. It might happen on the first reboot or on the
-> tenth, or ... And it looks like the problems happens sometimes on oops too.
-> Not to say that it seems I should have fully booted userspace (so there is
-> enough pressure on the ubi/mdt/nand subsystems), which is impossible with
-> upstream without some n900 specific patches :(
-
-Hmm OK. Can you check if disabling deeper idle states helps?
-
-Just set the UART timeouts to -1. You may also want to disable off mode
-with echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode.
-
-If it happens during booting, chances are idle is not even hit though.
-
-> Maybe we can get some ideas on what and where to look from ubifs people?
-> Though I don't know whom to cc, feel free to help :)
+>>> I guess it could also be a bootloader change if it's a different
+>>> SD image that works for you.
+>> 
+>> Yes, it is using a 2 years old U-Boot instead 2015.10 compiled from
+>> source. I will try to find out if it makes a difference.
 > 
-> My best bet aiui, is comparing what nokia omap1 kernel does vs upstream. Or
-> looking at the commit log in ubi/mtd/onenand - who knows, I might get lucky
-> once again the same way as with that phonet oops in
-> __netif_receive_skb_core.
+> OK. It could be also some .config change with something built-in?
 
-Well maybe we now have error messages that actually make sense?
+I have compared /proc/config.gz from both systems and /sys/firmware/fdt
+with no significant and obvious change.
 
-> >OK then it really seems like we do have another bug lurking around.
-> 
-> :nod:
+Then I booted the 4.4-rc8 again and this time it worked.
 
-I've sent out the pull request and Arnd pulled the fix into arm-soc
-so we should have it merged for v4.4 FYI.
+To verify, I have checked out linux-next this morning, cherry-picked this palmas
+rtc patch, compiled with omap2plus defconfig, and used the omap5-uevm.dtb. And
+hwclock works after doing a modprobe rtc_palmas.
 
-Regards,
+Then I did the same with official v4.4-rc8 and hwclock hangs. And now our
+4.4-rc8 production kernel hangs again as well. Even if I use the
+DTB from the 4.3 kernel.
 
-Tony
+So I think it is something which is unstable in 4.4-rc8 that is (probably) fixed in
+linux-next and unrelated to this DT patch.
+
+But I have no hint or idea what it is.
+
+BR,
+Nikolaus
