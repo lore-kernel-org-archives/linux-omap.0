@@ -1,66 +1,108 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 00/10] drivers/pci: avoid module_init in non-modular
- host/pci*
-Date: Fri, 8 Jan 2016 14:31:02 -0600
-Message-ID: <20160108203102.GH5354@localhost>
-References: <1449970917-12633-1-git-send-email-paul.gortmaker@windriver.com>
- <CAFiDJ5-Y8afg5kDRQLK1pain-k1kPQAn3vhWrVkB1ADPRHvx+A@mail.gmail.com>
- <20151214091940.GA15126@ulmo.nvidia.com>
- <3302340.SIljl1qYTl@wuerfel>
- <20151215151624.GB2772@windriver.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v12 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Sat, 09 Jan 2016 00:33:58 +0100
+Message-ID: <2332373.7EgmNivg4W@vostro.rjw.lan>
+References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20151215151624.GB2772-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ley Foon Tan <lftan-EIB2kfCEclfQT0dZR+AlfA@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-sh list <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pratyush Anand <pratyush.anand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Murali Karicheri <m-karicheri2-l0cyMroinI0@public.gmane.org>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Thomas Petazzoni <thomas.petazzoni@fr>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 15, 2015 at 10:16:24AM -0500, Paul Gortmaker wrote:
-> [Re: [PATCH 00/10] drivers/pci: avoid module_init in non-modular host/pci*] On 14/12/2015 (Mon 11:27) Arnd Bergmann wrote:
+On Thursday, January 07, 2016 04:46:11 PM Tomeu Vizoso wrote:
+> Hi,
 > 
-> > On Monday 14 December 2015 10:19:40 Thierry Reding wrote:
-> > > > PCIe host driver that use fixup (DECLARE_PCI_FIXUP_*) can't use tristate.
-> > > > Fixup region is in kernel region and this region if not updated when
-> > > > loading a module.
-> > > 
-> > > Interesting, I hadn't thought about that. I suppose this means that the
-> > > module will end up containing an unused section with the fixup code. It
-> > > might be useful to add a way for that to trigger a warning at build
-> > > time.
-> > > 
-> > > Perhaps to fix this a mechanism could be introduced to add a table of
-> > > fixups to a host controller driver and that will get applied to all
-> > > children of the bridge. It could be problematic to cover all of the
-> > > different fixup stages, though.
-> > 
-> > I think a lot of the fixups shouldn't really be there in the first place,
-> > they are about stuff that we can fix up in the probe function, or that should
-> > be fixed up in the probe function with some appropriate core support added.
+> this is v12 of an attempt to make it easier for devices to remain in
+> runtime PM when the system goes to sleep, mainly to reduce the time
+> spent resuming devices.
 > 
-> So, the feedback on this is a bit all over the map, leaving me unsure
-> what to do next.  And is the choice we make on a per board/bsp basis or
-> ideally across all platforms?  I see the choices as:
+> For this, we interpret the absence of all PM callback implementations as
+> it being safe to do direct_complete, so their ancestors aren't prevented
+> from remaining runtime-suspended.
 > 
-> 1) do nothing; which IMHO is least desirable as it leaves the code
-> misrepresenting itself as modular; one of the key issues I wanted to fix
+> Additionally, the prepare() callback of USB devices will return 1 if
+> runtime PM is enabled and the current wakeup settings are correct.
 > 
-> 2) use the patches I've sent ; then as they are genuinely made modular,
-> the person doing so essentially "patch -R" or reverts the change as
-> step one.  This has the advantage of solving the "we'll get to it
-> someday" issue if someday never comes.
+> With these changes, a uvcvideo device (for example) stays in runtime
+> suspend when the system goes to sleep and is left in that state when the
+> system resumes, not delaying it unnecessarily.
 > 
-> 3) make them all tristate;  beat it with a stick until it compiles [M]
-> and modposts -- leaving the fixups and functional testing to people with
-> the boards and low level knowledge to make it _work_ as a module.  The
-> downside here is the code is still kind of misrepresenting itself as
-> modularly functional -- a ban of unloading might mitigate that some.
+> Thanks,
+> 
+> Tomeu
+> 
+> Changes in v12:
+> - Include linux/pm_domain.h in vga_switcheroo.c for dev_pm_domain_set()
+> 
+> Changes in v11:
+> - Move calls to dev_pm_domain_set() out from &dev->power.lock as that
+>   isn't needed for dev->pm_domain.
+> 
+> Changes in v10:
+> - Remove superfluous call to pm_runtime_enabled() as suggested by Alan
+> 
+> Changes in v9:
+> - Add docs noting the need for the device lock to be held before calling
+>   device_is_bound()
+> - Add docs noting the need for the device lock to be held before calling
+>   dev_pm_domain_set()
+> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
+> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
+>   follow with the naming convention of existing API.
+> - Re-add calling to device_pm_check_callbacks from device registration
+>   and when updating the PM domain of a device.
+> 
+> Changes in v8:
+> - Add device_is_bound()
+> - Add dev_pm_domain_set() and update code to use it
+> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
+> - Call device_check_pm_callbacks only after a device is bound or unbound
+> 
+> Changes in v7:
+> - Reduce indentation by adding a label in device_prepare()
+> 
+> Changes in v6:
+> - Add stub for !CONFIG_PM.
+> - Move implementation of device_check_pm_callbacks to power/main.c as it
+>   doesn't belong to CONFIG_PM_SLEEP.
+> - Take dev->power.lock before modifying flag.
+> 
+> Changes in v5:
+> - Check for all dev_pm_ops instances associated to a device, updating a
+>   no_pm_callbacks flag at the times when that could change.
+> 
+> Tomeu Vizoso (4):
+>   device core: add device_is_bound()
+>   PM / Domains: add setter for dev.pm_domain
+>   PM / sleep: Go direct_complete if driver has no callbacks
+>   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+> 
+>  arch/arm/mach-omap2/omap_device.c |  7 ++++---
+>  drivers/acpi/acpi_lpss.c          |  5 ++++-
+>  drivers/acpi/device_pm.c          |  5 +++--
+>  drivers/base/dd.c                 | 21 +++++++++++++++++++--
+>  drivers/base/power/clock_ops.c    |  5 +++--
+>  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
+>  drivers/base/power/domain.c       |  8 ++++++--
+>  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/base/power/power.h        |  3 +++
+>  drivers/gpu/vga/vga_switcheroo.c  | 11 ++++++-----
+>  drivers/misc/mei/pci-me.c         |  5 +++--
+>  drivers/misc/mei/pci-txe.c        |  5 +++--
+>  drivers/usb/core/port.c           |  6 ++++++
+>  drivers/usb/core/usb.c            |  8 +++++++-
+>  include/linux/device.h            |  2 ++
+>  include/linux/pm.h                |  1 +
+>  include/linux/pm_domain.h         |  3 +++
+>  17 files changed, 132 insertions(+), 22 deletions(-)
 
-I'd like to preserve the mind-set that host controller drivers are
-*expected* to be modular, even if we aren't there yet.  I guess that
-means I'm in favor of option 3, at least for drivers that don't use
-fixups.
+Series applied, thanks!
 
-Bjorn
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
