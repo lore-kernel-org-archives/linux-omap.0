@@ -1,107 +1,48 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] OMAP: Add keypad driver
-Date: Thu, 7 Jan 2016 15:22:28 -0800
-Message-ID: <20160107232228.GA20533@dtor-ws>
-References: <20160107093751.GD27186@mwanda>
- <CAKdAkRSic46XAhuXO6fijBTWMaRJPqRNPx6MwTv=Pgoo6JL=hQ@mail.gmail.com>
- <20160107201316.GF12600@atomide.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
+Date: Fri, 08 Jan 2016 01:20:08 +0100
+Message-ID: <1638223.v1Ed2MLOOC@vostro.rjw.lan>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+ <CAGS+omBMJXOgsd2x9agtt7yi-y+EPgHWSTr7B3JqbN9Hg_2W5A@mail.gmail.com>
+ <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160107201316.GF12600@atomide.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Komal Shah <komal_shah802003@yahoo.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, dri-devel <dri-devel@lists.freedesktop.org>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 07, 2016 at 12:13:17PM -0800, Tony Lindgren wrote:
-> Hi,
-> 
-> * Dmitry Torokhov <dmitry.torokhov@gmail.com> [160107 10:54]:
-> > On Thu, Jan 7, 2016 at 1:37 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> > > Hello file (standard input) matches,
-> > >
-> > > The patch ad4e09b16ad3: "[PATCH] OMAP: Add keypad driver", leads to the
-> > > following static checker warning:
-> > >
-> > >         drivers/input/keyboard/omap-keypad.c:158 omap_kp_tasklet()
-> > >         warn: 'keycodes[]' is never negative.
-> > 
-> > It looks like you are not resolving commits correctly, the original
-> > submission did not have this issue.
-> > 
-> > >
-> > > drivers/input/keyboard/omap-keypad.c
-> ...
-> > >    152  #ifdef NEW_BOARD_LEARNING_MODE
-> > >    153                          printk(KERN_INFO "omap-keypad: key %d-%d %s\n", col,
-> > >    154                                 row, (new_state[col] & (1 << row)) ?
-> > >    155                                 "pressed" : "released");
-> > >    156  #else
-> > >    157                          key = keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
-> > >    158                          if (key < 0) {
-> > >                                     ^^^^^^^
-> > > Never true.  Not sure what was intended.
-> > 
-> > It looks like this check was broken by
-> > da1f026b532ce944d74461497dc6d8c16456466e (Keyboard: omap-keypad: use
-> > matrix_keypad.h). Previously the driver would expect a list of known
-> > keys and would scan it and return -1 if key was not found. Now we have
-> > 2 options:
-> > 
-> > 1. Simply remove the check
-> > 2. Change the condition to "if (key == KEY_RESERVED)"
-> > 
-> > I do not really have preference. Tony?
-> 
-> Sounds like the check is not needed if it has not been used for
-> past five years, so my preference is option #1 then.
-
-OK, how about the below then?
-
--- 
-Dmitry
-
-
-Input: omap-keypad - remove dead check
-
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-
-Commit da1f026b532ce944d74461497dc6d8c16456466e ("Keyboard: omap-keypad:
-use matrix_keypad.h") switched the driver to use matrix keypad
-infrastructure, which made array of keycodes to be unsigned short, and
-caused the test for negativity never trigger. This leads to the following
-static checker warning:
-
-	drivers/input/keyboard/omap-keypad.c:158 omap_kp_tasklet()
-	warn: 'keycodes[]' is never negative.
-
-Given that we did not care about this check for a few years already let's
-simply remove it.
-
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- drivers/input/keyboard/omap-keypad.c |    8 --------
- 1 file changed, 8 deletions(-)
-
-diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
-index 75ad666..e0d72c8 100644
---- a/drivers/input/keyboard/omap-keypad.c
-+++ b/drivers/input/keyboard/omap-keypad.c
-@@ -155,14 +155,6 @@ static void omap_kp_tasklet(unsigned long data)
- 			       "pressed" : "released");
- #else
- 			key = keycodes[MATRIX_SCAN_CODE(row, col, row_shift)];
--			if (key < 0) {
--				printk(KERN_WARNING
--				      "omap-keypad: Spurious key event %d-%d\n",
--				       col, row);
--				/* We scan again after a couple of seconds */
--				spurious = 1;
--				continue;
--			}
- 
- 			if (!(kp_cur_group == (key & GROUP_MASK) ||
- 			      kp_cur_group == -1))
+T24gVGh1cnNkYXksIEphbnVhcnkgMDcsIDIwMTYgMDM6NDc6MDEgUE0gVG9tZXUgVml6b3NvIHdy
+b3RlOgo+IE9uIDEwIE5vdmVtYmVyIDIwMTUgYXQgMTA6MzMsIERhbmllbCBLdXJ0eiA8ZGprdXJ0
+ekBjaHJvbWl1bS5vcmc+IHdyb3RlOgo+IFtzbmlwXQo+ID4KPiA+IFRoZSBwcm9ibGVtIGFwcGVh
+cnMgdG8gYmUgdGhhdDoKPiA+ICAgKiBPbiBib290LCBwbGF0Zm9ybV9kcnZfcHJvYmUoKSBjYWxs
+cyBkZXZfcG1fZG9tYWluX2F0dGFjaCgpIGJlZm9yZQo+ID4gZHJ2LT5wcm9iZSgpOyB0aHVzLCBp
+dCBjYWxscyBkZXZfcG1fZG9tYWluX2F0dGFjaCgpIHdoaWxlIHRoZSBkZXZpY2UKPiA+IGlzIHVu
+Ym91bmQuCj4gPgo+ID4gICogSG93ZXZlciwgZm9yIGEgcGxhdGZvcm1fZGV2aWNlLCB0aGUgcmVi
+b290IHBhdGggY2FsbHMKPiA+IGRldmljZV9zaHV0ZG93bigpLCBidXQgbm90IF9fZGV2aWNlX3Jl
+bGVhc2VfZHJpdmVyKCk6Cj4gPiBkZXZpY2Vfc2h1dGRvd24oKQo+ID4gICBkZXYtPmRyaXZlci0+
+c2h1dGRvd24gPT4gcGxhdGZvcm1fZHJ2X3NodXRkb3duKCkKPiA+ICAgICBkZXZfcG1fZG9tYWlu
+X2RldGFjaCgpCj4gPiAgICAgICAgZGV2LT5wbV9kb21haW4tPmRldGFjaCgpID0+IGdlbnBkX2Rl
+dl9wbV9kZXRhY2goKQo+ID4gICAgICAgICAgcG1fZ2VucGRfcmVtb3ZlX2RldmljZSgpCj4gPiAg
+ICAgICAgICAgICBkZXZfcG1fZG9tYWluX3NldChkZXYsIE5VTEwpOwo+ID4KPiA+IFNvLCBmb3Ig
+YSBwbGF0Zm9ybV9kZXZpY2UgaW4gYSBnZW5wZCBwb3dlciBkb21haW4gd2l0aCAuc2h1dGRvd24K
+PiA+IGluc3RhbGxlZCwgcGxhdGZvcm1fZHJ2X3NodXRkb3duKCkgY2FsbHMgZGV2X3BtX2RvbWFp
+bl9kZXRhY2goKSB3aGlsZQo+ID4gdGhlIGRldmljZSBpcyBzdGlsbCBib3VuZCwgd2hpY2ggdHJp
+Z2dlcnMgdGhlIFdBUk4oKS4KPiAKPiBIaSBSYWZhZWwsIEFsYW4gYW5kIFVsZiwKPiAKPiBkbyB5
+b3UgaGF2ZSBhbnkgc3VnZ2VzdGlvbiBhYm91dCB0aGlzPyBJIGRvbid0IHJlYWxseSB1bmRlcnN0
+YW5kIHdoeQo+IHRoZSBkZXZpY2UgaXMgZGV0YWNoZWQgZnJvbSB0aGUgZG9tYWluIG9uIHNodXRk
+b3duLgoKV2VsbCwgdGhpcyBsb29rcyBsaWtlIGEgYnVnIHRvIG1lLgoKVGhhbmtzLApSYWZhZWwK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
+bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
