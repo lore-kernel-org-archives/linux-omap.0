@@ -1,64 +1,112 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 2/3] wlcore/wl12xx: spi: add device tree support
-Date: Sat, 9 Jan 2016 03:56:46 +0100
-Message-ID: <20160109025645.GB3644@earth>
-References: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>
- <1451482533-8624-3-git-send-email-uri.mashiach@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="JYK4vJDZwFMowpUq"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1451482533-8624-3-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH] ARM: dts: N950: Add wlan support
+Date: Sat,  9 Jan 2016 04:19:34 +0100
+Message-ID: <1452309574-12921-1-git-send-email-sre@kernel.org>
+References: <1451482533-8624-4-git-send-email-uri.mashiach@compulab.co.il>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1451482533-8624-4-git-send-email-uri.mashiach@compulab.co.il>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Add support for the wl1271 wlan chip. As far as I can see N9 uses the
+same chip with the same enable and irq gpio, but they use the mmc
+interface instead of the spi interface.
 
---JYK4vJDZwFMowpUq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
 Hi,
 
-On Wed, Dec 30, 2015 at 03:35:32PM +0200, Uri Mashiach wrote:
-> Add DT support for the wl1271 SPI WiFi.
->=20
-> Add documentation file for the wl1271 SPI WiFi.
->=20
-> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+I got working Wifi on Nokia N950 with this patch and the following
+patches from Uri Mashiach (using 4.4-rc8 as base):
 
-[On Nokia N950]
-Tested-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ * wlcore/wl12xx: spi: add power operation function
+ * wlcore/wl12xx: spi: add device tree support
+ * wlcore/wl12xx: spi: fix oops on firmware load
 
 -- Sebastian
+---
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 15 +++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts     | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+)
 
---JYK4vJDZwFMowpUq
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWkHbtAAoJENju1/PIO/qaOVUP/22LRoow0CfyHeClLu0gKtJN
-DnLO8VuTl9D0AAhPaIuySD4omhMEd6zp9BrStjgmgXI7fBHiwQ1w/x7PMm8e8SlF
-QrIIfTlrRubXkDVJ8K2gk7xAyW19npWlK8LMxpMxUVvbtfqXeoalPAiTgXkiCJyB
-V9l94z8B+R6CBdYI3+z0yaqUopFDPJDbBhA++vbWgLNTm82OWZzousKdN5dlRR/p
-d+666/+e+wKGgl+oRR2XfSCymEG6N8pmV5l6U7aHIKoUdOF8BXTH1Bsmlc+abnhR
-iTA9cuj1S62t0kTNDEPzDcgnlNK1pVoVIYNpWf+m2BJwO+1GP3xQ7tADD0myHW68
-ZaYpxaNhNmBFeUbfwgoXx8vsBhQGbL6bepvdUV2B0IFioB9rhRBhmDUTqkjutKXT
-g58sd5L5pXewK4wR2UV8O2TUAKgQS2sCR6Sj088fYyKqIuA98aEktzCGv04AFbyn
-roft+rUjeuvo9xvS1pWmfwqKTsid5mACTCF1PZyK8zQgXYeY560wMam42cUUYG+b
-oRpXOs2Y/39fxCo1iV90gqLX+9nsUj8GdzOJ1rh02fUAo9+fG6CXgwJvoRqyGjhh
-0YxY1vMnjmlJCfIBoSbPNOicEoMFwcuTF0umCEibA5g4f9wQz8d1VNHlIa/YVCQC
-Elq6n+QE/oAW7qljkpe8
-=pLCw
------END PGP SIGNATURE-----
-
---JYK4vJDZwFMowpUq--
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index e9ee1df0e467..655deb99010a 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -31,6 +31,14 @@
+ 		startup-delay-us = <150>;
+ 		enable-active-high;
+ 	};
++
++	vwlan_fixed: fixedregulator@2 {
++		compatible = "regulator-fixed";
++		regulator-name = "VWLAN";
++		gpio = <&gpio2 3 GPIO_ACTIVE_HIGH>; /* gpio 35 */
++		enable-active-high;
++		regulator-boot-off;
++	};
+ };
+ 
+ &omap3_pmx_core {
+@@ -44,6 +52,13 @@
+ 			0x132 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat3 */
+ 		>;
+ 	};
++
++	wlan_pins: pinmux_wlan_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x207c, PIN_OUTPUT | MUX_MODE4) /* gpio 35 - wlan enable */
++			OMAP3_CORE1_IOPAD(0x208a, PIN_INPUT | MUX_MODE4) /* gpio 42 - wlan irq */
++		>;
++	};
+ };
+ 
+ &i2c1 {
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 0885b34d5d7d..e5967262f28b 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -17,6 +17,17 @@
+ 	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
+ };
+ 
++&omap3_pmx_core {
++	spi4_pins: pinmux_spi4_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x218c, PIN_INPUT_PULLDOWN | MUX_MODE1) /* mcspi4_clk */
++			OMAP3_CORE1_IOPAD(0x2190, PIN_OUTPUT | MUX_MODE1) /* mcspi4_simo */
++			OMAP3_CORE1_IOPAD(0x2192, PIN_INPUT_PULLDOWN | MUX_MODE1) /* mcspi4_somi */
++			OMAP3_CORE1_IOPAD(0x2196, PIN_OUTPUT | MUX_MODE1) /* mcspi4_cs0 */
++		>;
++	};
++};
++
+ &i2c2 {
+ 	smia_1: camera@10 {
+ 		compatible = "nokia,smia";
+@@ -53,3 +64,21 @@
+ 		};
+ 	};
+ };
++
++&mcspi4 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi4_pins>;
++
++	wlcore: wlcore@0 {
++		compatible = "ti,wl1271";
++		pinctrl-names = "default";
++		pinctrl-0 = <&wlan_pins>;
++		reg = <0>;
++		spi-max-frequency = <48000000>;
++		clock-xtal;
++		ref-clock-frequency = <38400000>;
++		interrupts-extended = <&gpio2 10 IRQ_TYPE_LEVEL_HIGH>; /* gpio 42 */
++		vwlan-supply = <&vwlan_fixed>;
++	};
++};
+-- 
+2.6.4
