@@ -1,108 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v12 0/4] Allow USB devices to remain runtime-suspended when sleeping
-Date: Sat, 09 Jan 2016 00:33:58 +0100
-Message-ID: <2332373.7EgmNivg4W@vostro.rjw.lan>
-References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Sat, 9 Jan 2016 02:23:26 +0200
+Message-ID: <569052FE.1040008@gmail.com>
+References: <20160105224929.GF12777@atomide.com>
+ <20160106174039.GA14271@earth> <20160106174713.GL12777@atomide.com>
+ <568D5669.4040801@gmail.com> <20160106182650.GM12777@atomide.com>
+ <568D5F54.7040900@gmail.com> <20160107180700.GN12777@atomide.com>
+ <568EDC8D.7070205@gmail.com> <20160108022619.GS12777@atomide.com>
+ <568F4596.8020206@gmail.com> <20160108075913.GN11364@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160108075913.GN11364@pali>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday, January 07, 2016 04:46:11 PM Tomeu Vizoso wrote:
-> Hi,
-> 
-> this is v12 of an attempt to make it easier for devices to remain in
-> runtime PM when the system goes to sleep, mainly to reduce the time
-> spent resuming devices.
-> 
-> For this, we interpret the absence of all PM callback implementations as
-> it being safe to do direct_complete, so their ancestors aren't prevented
-> from remaining runtime-suspended.
-> 
-> Additionally, the prepare() callback of USB devices will return 1 if
-> runtime PM is enabled and the current wakeup settings are correct.
-> 
-> With these changes, a uvcvideo device (for example) stays in runtime
-> suspend when the system goes to sleep and is left in that state when the
-> system resumes, not delaying it unnecessarily.
-> 
-> Thanks,
-> 
-> Tomeu
-> 
-> Changes in v12:
-> - Include linux/pm_domain.h in vga_switcheroo.c for dev_pm_domain_set()
-> 
-> Changes in v11:
-> - Move calls to dev_pm_domain_set() out from &dev->power.lock as that
->   isn't needed for dev->pm_domain.
-> 
-> Changes in v10:
-> - Remove superfluous call to pm_runtime_enabled() as suggested by Alan
-> 
-> Changes in v9:
-> - Add docs noting the need for the device lock to be held before calling
->   device_is_bound()
-> - Add docs noting the need for the device lock to be held before calling
->   dev_pm_domain_set()
-> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
-> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
->   follow with the naming convention of existing API.
-> - Re-add calling to device_pm_check_callbacks from device registration
->   and when updating the PM domain of a device.
-> 
-> Changes in v8:
-> - Add device_is_bound()
-> - Add dev_pm_domain_set() and update code to use it
-> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
-> - Call device_check_pm_callbacks only after a device is bound or unbound
-> 
-> Changes in v7:
-> - Reduce indentation by adding a label in device_prepare()
-> 
-> Changes in v6:
-> - Add stub for !CONFIG_PM.
-> - Move implementation of device_check_pm_callbacks to power/main.c as it
->   doesn't belong to CONFIG_PM_SLEEP.
-> - Take dev->power.lock before modifying flag.
-> 
-> Changes in v5:
-> - Check for all dev_pm_ops instances associated to a device, updating a
->   no_pm_callbacks flag at the times when that could change.
-> 
-> Tomeu Vizoso (4):
->   device core: add device_is_bound()
->   PM / Domains: add setter for dev.pm_domain
->   PM / sleep: Go direct_complete if driver has no callbacks
->   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
-> 
->  arch/arm/mach-omap2/omap_device.c |  7 ++++---
->  drivers/acpi/acpi_lpss.c          |  5 ++++-
->  drivers/acpi/device_pm.c          |  5 +++--
->  drivers/base/dd.c                 | 21 +++++++++++++++++++--
->  drivers/base/power/clock_ops.c    |  5 +++--
->  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
->  drivers/base/power/domain.c       |  8 ++++++--
->  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
->  drivers/base/power/power.h        |  3 +++
->  drivers/gpu/vga/vga_switcheroo.c  | 11 ++++++-----
->  drivers/misc/mei/pci-me.c         |  5 +++--
->  drivers/misc/mei/pci-txe.c        |  5 +++--
->  drivers/usb/core/port.c           |  6 ++++++
->  drivers/usb/core/usb.c            |  8 +++++++-
->  include/linux/device.h            |  2 ++
->  include/linux/pm.h                |  1 +
->  include/linux/pm_domain.h         |  3 +++
->  17 files changed, 132 insertions(+), 22 deletions(-)
-
-Series applied, thanks!
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+SGksCgpPbiAgOC4wMS4yMDE2IDA5OjU5LCBQYWxpIFJvaMOhciB3cm90ZToKPiBPbiBGcmlkYXkg
+MDggSmFudWFyeSAyMDE2IDA3OjEzOjU4IEl2YXlsbyBEaW1pdHJvdiB3cm90ZToKPj4gQW5kIGl0
+IGxvb2tzIGxpa2UgdGhlIHByb2JsZW1zIGhhcHBlbnMgc29tZXRpbWVzIG9uIG9vcHMgdG9vLgo+
+Cj4gSW4gbGludXgtbjkwMCB0cmVlIGlzIGVuYWJsZWQgbXRkb29wcyBkcml2ZXIgd2hpY2ggc3Rv
+cmUgb29wcyB0bwo+IHNwZWNpZmllZCBNVEQgZGV2aWNlLiBTbyBtYXliZSB0aGlzIGFjY2VzcyBj
+YXVzZSBpdD8KPgoKVGhlIGtleSB3b3JkIGhlcmUgaXMgInNvbWV0aW1lcyIuIGkuZSBzb21ldGlt
+ZXMgaXQgaGFwZW5zIG9uIG5vcm1hbCAKcmVib290LCBzb21ldGltZXMgaXQgaGFwcGVucyBvbiBv
+b3BzLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
+dXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRl
+YWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+YXJtLWtlcm5lbAo=
