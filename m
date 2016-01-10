@@ -1,61 +1,42 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: /sys/class/power_supply/bq27200-0/capacity changed meaning
- between 4.1 and 4.4?
-Date: Sun, 10 Jan 2016 09:06:34 +0100
-Message-ID: <20160110080621.GA3929@amd>
-References: <20160109230709.GA30551@amd>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 0/3] dra7xx: get pcie working in mainline
+Date: Sun, 10 Jan 2016 21:11:25 +0530
+Message-ID: <1452440488-28398-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160109230709.GA30551@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
-Cc: a.hajda@samsung.com, afd@ti.com, giometti@linux.it
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
+Cc: Russell King <linux@arm.linux.org.uk>, nsekhar@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+This series adds pdata-quirk mechanism to reset PCIe as a temporary
+fix till reset controller driver is added in mainline.
 
-> Did /sys/class/power_supply/bq27200-0/capacity change meaning between
-> 4.1 and 4.4?
-> 
-> It used to report battery capacity remaining in percent.
-> 
-> Not sure what it reports now, but ain't in percent....
+Without this series, a stall is observed if pci dra7xx driver
+is enabled.
 
-> The patch does not compile, but I should be sleeping, not trying to
-> understand crazy code. Whoever wrote it, please fix it. Maybe you can
-> just do
+Kishon Vijay Abraham I (3):
+  ARM: DRA7: hwmod: Add reset data for PCIe
+  HACK: ARM: DRA7: add pdata-quirks to do reset of PCIe
+  HACK: pci: dra7xx: use pdata callbacks to perform reset
 
-...and more crazy code :-(.
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   15 ++++++++++++++
+ arch/arm/mach-omap2/pdata-quirks.c        |   11 ++++++++++
+ arch/arm/mach-omap2/prm7xx.h              |    1 +
+ drivers/pci/host/pci-dra7xx.c             |   32 +++++++++++++++++++++++++++++
+ include/linux/platform_data/pci-dra7xx.h  |   22 ++++++++++++++++++++
+ 5 files changed, 81 insertions(+)
+ create mode 100644 include/linux/platform_data/pci-dra7xx.h
 
-        cache.flags = bq27xxx_read(di, BQ27XXX_REG_FLAGS, has_singe_flag);
-		if ((cache.flags & 0xff) == 0xff)
-		                cache.flags = -1; /* read error */
-				        /* WTF? bq27xxx returns -ERRNO
-        on error, we mask some bits off it, and then make it -1... */
-	
-
-...and one crazy optimalization...
-
-        if (memcmp(&di->cache, &cache, sizeof(cache)) != 0)
-	                di->cache = cache;
-
-...are we playing obfuscated C code contest, yet?
-
-        case POWER_SUPPLY_PROP_PRESENT:
-	                val->intval = di->cache.flags < 0 ? 0 : 1;
-
-...to decidegree C?
-                if (ret == 0)
-		   	        pval->intval -= 2731; /* convert decidegree k to c */
-
-as read takes enum, make it enum like this?
-static inline int bq27xxx_read(struct bq27xxx_device_info *di, enum bq27xxx_reg_index reg_index,
-		                         bool single)
-					 
-
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.9.5
