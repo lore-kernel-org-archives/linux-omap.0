@@ -1,7 +1,7 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.4-rc1
-Date: Sun, 10 Jan 2016 04:24:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1601100423580.21890@utopia.booyaka.com>
+Subject: OMAP baseline test results for v4.4-rc2
+Date: Sun, 10 Jan 2016 04:25:34 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1601100425160.21890@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,10 +20,10 @@ Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
 
-Here are some basic OMAP test results for Linux v4.4-rc1.
+Here are some basic OMAP test results for Linux v4.4-rc2.
 Logs and other details at:
 
-    http://www.pwsan.com/omap/testlogs/test_v4.4-rc1/20151219210752/
+    http://www.pwsan.com/omap/testlogs/test_v4.4-rc2/20151220150332/
 
 
 Test summary
@@ -72,39 +72,30 @@ Build warnings from toolchain: uImage+dtb:
     (none)
 
 Build warnings from toolchain: zImage:
-    FAIL (13/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_allnoconfig,
+    FAIL ( 3/17): rmk_omap3430_ldp_allnoconfig,
 		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
 Boot to userspace:
-    FAIL ( 1/18): 2430sdp
-    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
-    Pass (14/18): 2420n800, am335xbonelt, am335xbone, 4430es2panda,
-		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
-		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
-		  cmt3517, 5430es2uevm, 2420n800
+    FAIL ( 1/17): 2430sdp
+    skip ( 3/17): 5912osk, 3517evm, 5430es2sbct54
+    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  2420n800
 
 Kernel warnings during boot to userspace:
-    FAIL ( 2/18): 4430es2panda, cmt3517
+    FAIL ( 2/17): 4430es2panda, cmt3517
 
 PM: chip retention via suspend:
-    FAIL ( 7/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  3730es12beaglexm, 2430sdp, 5430es2uevm
-    Pass ( 4/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
 
 PM: chip retention via dynamic idle:
-    FAIL ( 9/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  3530es3beagle, 3530es31beagle, 3730es12beaglexm,
-		  2430sdp, 5430es2uevm
-    Pass ( 2/11): 4460pandaes, 3730beaglexm
+    FAIL ( 8/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm
+    Pass ( 3/11): 4460pandaes, 3730beaglexm, 3730es12beaglexm
 
 PM: chip off (except CORE, due to errata) via suspend:
     Pass ( 1/ 1): 3730beaglexm
@@ -113,15 +104,15 @@ PM: chip off (except CORE, due to errata) via dynamic idle:
     Pass ( 1/ 1): 3730beaglexm
 
 PM: chip off via suspend:
-    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3730es12beaglexm
-    Pass ( 1/ 4): 3530es31beagle
+    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
+    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
 
 PM: chip off via dynamic idle:
-    FAIL ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
+    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
+    Pass ( 1/ 4): 3730es12beaglexm
 
 Kernel warnings during PM test:
-    FAIL ( 1/18): 4430es2panda
+    FAIL ( 1/17): 4430es2panda
 
 Obsolete Kconfig symbols:
     FAIL ( 3/20): omap1_defconfig, omap2plus_defconfig,
@@ -129,42 +120,31 @@ Obsolete Kconfig symbols:
 
 
 vmlinux object size
-(delta in bytes from test_v4.3 (6a13feb9c82803e2b815eca72fa7a9f5561d7861)):
+(delta in bytes from test_v4.4-rc1 (8005c49d9aea74d382f474ce11afbbc7d7130bec)):
    text     data      bss    total  kernel
- +20795     +440        0   +21235  omap1_defconfig
- +20981    +2200      +32   +23213  omap1_defconfig_1510innovator_only
- +26133    +2304      +32   +28469  omap1_defconfig_5912osk_only
-+260890   +38768     +384  +300042  multi_v7_defconfig
- +63373    +6128      +56   +69557  omap2plus_defconfig
- +65843    +6128      +40   +72011  omap2plus_defconfig_2430sdp_only
- +70053    +6456     +120   +76629  omap2plus_defconfig_am33xx_only
- +74386    +6680     +120   +81186  omap2plus_defconfig_am43xx_only
- +63373    +6192      +56   +69621  omap2plus_defconfig_cpupm
- +69710    +6640     +184   +76534  omap2plus_defconfig_dra7xx_only
- +18888    +1424     +220   +20532  omap2plus_defconfig_n800_multi_omap2xxx
- +17032    +1344       -4   +18372  omap2plus_defconfig_n800_only_a
- +63311    +6064      +56   +69431  omap2plus_defconfig_no_pm
- +74578    +6648      +56   +81282  omap2plus_defconfig_omap2_4_only
- +68686    +6648     +120   +75454  omap2plus_defconfig_omap3_4_only
- +74658    +6808      +56   +81522  omap2plus_defconfig_omap5_only
-  +6100     +476     -696    +5880  rmk_omap3430_ldp_allnoconfig
-  +7668    +2224      -88    +9804  rmk_omap3430_ldp_oldconfig
-  +8352     +668    -1400    +7620  rmk_omap4430_sdp_allnoconfig
- +15875    +2232      -64   +18043  rmk_omap4430_sdp_oldconfig
+   +735        0        0     +735  omap1_defconfig
+   +735        0        0     +735  omap1_defconfig_1510innovator_only
+   +735        0        0     +735  omap1_defconfig_5912osk_only
+  +1895     +384        0    +2279  multi_v7_defconfig
+  +1171     +128        0    +1299  omap2plus_defconfig
+  +1415        0        0    +1415  omap2plus_defconfig_2430sdp_only
+  +1063        0        0    +1063  omap2plus_defconfig_am33xx_only
+  +1239     +128        0    +1367  omap2plus_defconfig_am43xx_only
+  +5267     +128        0    +5395  omap2plus_defconfig_cpupm
+  +1303     +128        0    +1431  omap2plus_defconfig_dra7xx_only
+   +319        0        0     +319  omap2plus_defconfig_n800_multi_omap2xxx
+   +355        0        0     +355  omap2plus_defconfig_n800_only_a
+  +5203     +128        0    +5331  omap2plus_defconfig_no_pm
+  +1171     +128        0    +1299  omap2plus_defconfig_omap2_4_only
+  +1235     +128        0    +1363  omap2plus_defconfig_omap3_4_only
+  +1239     +128        0    +1367  omap2plus_defconfig_omap5_only
+   +488        0      +20     +508  rmk_omap3430_ldp_allnoconfig
+   +947        0        0     +947  rmk_omap3430_ldp_oldconfig
+   +708     +192       +8     +908  rmk_omap4430_sdp_allnoconfig
+  +1495     +128        0    +1623  rmk_omap4430_sdp_oldconfig
 
 Boot-time memory difference
-(delta in bytes from test_v4.3 (6a13feb9c82803e2b815eca72fa7a9f5561d7861))
+(delta in bytes from test_v4.4-rc1 (8005c49d9aea74d382f474ce11afbbc7d7130bec))
   avail  rsrvd   high  freed  board          kconfig
-   -20k    20k      .      .  2420n800       omap2plus_defconfig_n800_only_a
-   -68k    68k      .      .  2430sdp        omap2plus_defconfig
-   -68k    68k      .     4k  3530es31beagle omap2plus_defconfig
-   -68k    68k      .     4k  3530es3beagle  omap2plus_defconfig
-   -68k    68k      .     4k  3730beaglexm   omap2plus_defconfig
-   -68k    68k      .     4k  3730es12beaglexmomap2plus_defconfig
-   -68k    68k      .     4k  37xxevm        omap2plus_defconfig
-   -68k    68k      .     4k  4430es2panda   omap2plus_defconfig
-   -60k    60k -8192k     4k  4460pandaes    omap2plus_defconfig
-   -60k    60k -8192k     4k  4460varsomom   omap2plus_defconfig
-   -68k    68k -8192k     4k  5430es2uevm    omap2plus_defconfig
-   -68k    68k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
-   -68k    68k      .     4k  am335xbonelt   omap2plus_defconfig
+      .      .      .    -4k  2420n800       omap2plus_defconfig_n800_only_a
+    -8k     8k      .     4k  am335xbone     omap2plus_defconfig_am33xx_only
