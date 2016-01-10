@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 2/3] HACK: ARM: DRA7: add pdata-quirks to do reset of PCIe
-Date: Sun, 10 Jan 2016 21:11:27 +0530
-Message-ID: <1452440488-28398-3-git-send-email-kishon@ti.com>
+Subject: [PATCH 3/3] HACK: pci: dra7xx: use pdata callbacks to perform reset
+Date: Sun, 10 Jan 2016 21:11:28 +0530
+Message-ID: <1452440488-28398-4-git-send-email-kishon@ti.com>
 References: <1452440488-28398-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,81 +21,75 @@ To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richa
 Cc: Russell King <linux@arm.linux.org.uk>, nsekhar@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Use pdata-quirks to reset PCIe IP. This is to be used until
-a drivers/reset/ interface is available for this purpose.
+Use platform populated reset assert and deassert
+callbacks to perform reset of PCIe.
+
+Use these callbacks until a reset interface using drivers/reset
+is available for the purpose.
 
 Reviewed-by: Suman Anna <s-anna@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- arch/arm/mach-omap2/pdata-quirks.c       |   11 +++++++++++
- include/linux/platform_data/pci-dra7xx.h |   22 ++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
- create mode 100644 include/linux/platform_data/pci-dra7xx.h
+ drivers/pci/host/pci-dra7xx.c |   32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 5814477..f5a65fe 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -23,6 +23,7 @@
- #include <linux/platform_data/pinctrl-single.h>
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/wkup_m3.h>
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 8c36880..049083d 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -25,6 +25,8 @@
+ #include <linux/resource.h>
+ #include <linux/types.h>
+ 
 +#include <linux/platform_data/pci-dra7xx.h>
++
+ #include "pcie-designware.h"
  
- #include "common.h"
- #include "common-board-devices.h"
-@@ -404,6 +405,14 @@ static void __init omap5_uevm_legacy_init(void)
+ /* PCIe controller wrapper DRA7XX configuration registers */
+@@ -329,6 +331,32 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+ 	return 0;
  }
- #endif
  
-+#ifdef CONFIG_SOC_DRA7XX
-+static struct pci_dra7xx_platform_data dra7xx_pci_pdata = {
-+	.reset_name = "pcie",
-+	.assert_reset = omap_device_assert_hardreset,
-+	.deassert_reset = omap_device_deassert_hardreset,
-+};
-+#endif
++static int dra7xx_pcie_reset(struct platform_device *pdev)
++{
++	int ret;
++	struct device *dev = &pdev->dev;
++	struct pci_dra7xx_platform_data *pdata = pdev->dev.platform_data;
 +
- static struct pcs_pdata pcs_pdata;
++	if (!(pdata && pdata->deassert_reset && pdata->assert_reset)) {
++		dev_err(dev, "platform data for reset not found!\n");
++		return -EINVAL;
++	}
++
++	ret = pdata->assert_reset(pdev, pdata->reset_name);
++	if (ret) {
++		dev_err(dev, "assert_reset failed: %d\n", ret);
++		return ret;
++	}
++
++	ret = pdata->deassert_reset(pdev, pdata->reset_name);
++	if (ret) {
++		dev_err(dev, "deassert_reset failed: %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
+ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ {
+ 	u32 reg;
+@@ -347,6 +375,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	enum of_gpio_flags flags;
+ 	unsigned long gpio_flags;
  
- void omap_pcs_legacy_init(int irq, void (*rearm)(void))
-@@ -474,6 +483,8 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- #endif
- #ifdef CONFIG_SOC_DRA7XX
- 	OF_DEV_AUXDATA("ti,dra7-padconf", 0x4a003400, "4a003400.pinmux", &pcs_pdata),
-+	OF_DEV_AUXDATA("ti,dra7-pcie", 0x51000000, "51000000.pcie", &dra7xx_pci_pdata),
-+	OF_DEV_AUXDATA("ti,dra7-pcie", 0x51800000, "51800000.pcie", &dra7xx_pci_pdata),
- #endif
- #ifdef CONFIG_SOC_AM43XX
- 	OF_DEV_AUXDATA("ti,am437-padconf", 0x44e10800, "44e10800.pinmux", &pcs_pdata),
-diff --git a/include/linux/platform_data/pci-dra7xx.h b/include/linux/platform_data/pci-dra7xx.h
-new file mode 100644
-index 0000000..792c8ed
---- /dev/null
-+++ b/include/linux/platform_data/pci-dra7xx.h
-@@ -0,0 +1,22 @@
-+/*
-+ * pcie-dra7xx - Platform data for PCIe controller
-+ *
-+ * Copyright (C) 2016 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Authors: Kishon Vijay Abraham I <kishon@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++	ret = dra7xx_pcie_reset(pdev);
++	if (ret)
++		return ret;
 +
-+#ifndef __PCI_DRA7XX_H
-+#define __PCI_DRA7XX_H
-+
-+struct pci_dra7xx_platform_data {
-+	const char *reset_name;
-+
-+	int (*assert_reset)(struct platform_device *pdev, const char *name);
-+	int (*deassert_reset)(struct platform_device *pdev, const char *name);
-+};
-+#endif /* __PCI_DRA7XX_H */
+ 	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
+ 	if (!dra7xx)
+ 		return -ENOMEM;
 -- 
 1.7.9.5
