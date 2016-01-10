@@ -1,95 +1,72 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 3/3] HACK: pci: dra7xx: use pdata callbacks to perform reset
-Date: Sun, 10 Jan 2016 21:11:28 +0530
-Message-ID: <1452440488-28398-4-git-send-email-kishon@ti.com>
-References: <1452440488-28398-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1452440488-28398-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
-Cc: Russell King <linux@arm.linux.org.uk>, nsekhar@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH] ARM: dts: omap3-n900: Allow gpio keys to be disabled
+Date: Sun, 10 Jan 2016 19:46:30 +0200
+Message-ID: <1452447990-22775-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use platform populated reset assert and deassert
-callbacks to perform reset of PCIe.
+Add linux,can-disable; to all gpios exported from gpio-keys driver, so
+userspace can disable them
 
-Use these callbacks until a reset interface using drivers/reset
-is available for the purpose.
-
-Reviewed-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 8c36880..049083d 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -25,6 +25,8 @@
- #include <linux/resource.h>
- #include <linux/types.h>
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 8ea924c..b58e8a0 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -68,6 +68,7 @@
+ 			linux,input-type = <EV_SW>;
+ 			linux,code = <SW_CAMERA_LENS_COVER>;
+ 			gpio-key,wakeup;
++			linux,can-disable;
+ 		};
  
-+#include <linux/platform_data/pci-dra7xx.h>
-+
- #include "pcie-designware.h"
+ 		camera_focus {
+@@ -75,6 +76,7 @@
+ 			gpios = <&gpio3 4 GPIO_ACTIVE_LOW>; /* 68 */
+ 			linux,code = <KEY_CAMERA_FOCUS>;
+ 			gpio-key,wakeup;
++			linux,can-disable;
+ 		};
  
- /* PCIe controller wrapper DRA7XX configuration registers */
-@@ -329,6 +331,32 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	return 0;
- }
+ 		camera_capture {
+@@ -82,6 +84,7 @@
+ 			gpios = <&gpio3 5 GPIO_ACTIVE_LOW>; /* 69 */
+ 			linux,code = <KEY_CAMERA>;
+ 			gpio-key,wakeup;
++			linux,can-disable;
+ 		};
  
-+static int dra7xx_pcie_reset(struct platform_device *pdev)
-+{
-+	int ret;
-+	struct device *dev = &pdev->dev;
-+	struct pci_dra7xx_platform_data *pdata = pdev->dev.platform_data;
-+
-+	if (!(pdata && pdata->deassert_reset && pdata->assert_reset)) {
-+		dev_err(dev, "platform data for reset not found!\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = pdata->assert_reset(pdev, pdata->reset_name);
-+	if (ret) {
-+		dev_err(dev, "assert_reset failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = pdata->deassert_reset(pdev, pdata->reset_name);
-+	if (ret) {
-+		dev_err(dev, "deassert_reset failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- {
- 	u32 reg;
-@@ -347,6 +375,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	enum of_gpio_flags flags;
- 	unsigned long gpio_flags;
+ 		lock_button {
+@@ -89,6 +92,7 @@
+ 			gpios = <&gpio4 17 GPIO_ACTIVE_LOW>; /* 113 */
+ 			linux,code = <KEY_SCREENLOCK>;
+ 			gpio-key,wakeup;
++			linux,can-disable;
+ 		};
  
-+	ret = dra7xx_pcie_reset(pdev);
-+	if (ret)
-+		return ret;
-+
- 	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
- 	if (!dra7xx)
- 		return -ENOMEM;
+ 		keypad_slide {
+@@ -97,6 +101,7 @@
+ 			linux,input-type = <EV_SW>;
+ 			linux,code = <SW_KEYPAD_SLIDE>;
+ 			gpio-key,wakeup;
++			linux,can-disable;
+ 		};
+ 
+ 		proximity_sensor {
+@@ -104,6 +109,7 @@
+ 			gpios = <&gpio3 25 GPIO_ACTIVE_HIGH>; /* 89 */
+ 			linux,input-type = <EV_SW>;
+ 			linux,code = <SW_FRONT_PROXIMITY>;
++			linux,can-disable;
+ 		};
+ 	};
+ 
 -- 
-1.7.9.5
+1.9.1
