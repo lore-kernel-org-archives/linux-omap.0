@@ -1,268 +1,165 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: /sys/class/power_supply/bq27200-0/capacity changed meaning between
- 4.1 and 4.4?
-Date: Sun, 10 Jan 2016 00:07:09 +0100
-Message-ID: <20160109230709.GA30551@amd>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.3
+Date: Sun, 10 Jan 2016 04:23:27 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1601100421510.21890@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
-Cc: a.hajda@samsung.com, afd@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
 
-Did /sys/class/power_supply/bq27200-0/capacity change meaning between
-4.1 and 4.4?
+Here are some basic OMAP test results for Linux v4.3.
+Logs and other details at:
 
-It used to report battery capacity remaining in percent.
-
-Not sure what it reports now, but ain't in percent....
-
-pavel@n900:/my/tui/ofone$ cat
-/sys/class/power_supply/bq27200-0/capacity
-7497
-pavel@n900:/my/tui/ofone$ uname -a
-Linux n900 4.4.0-rc8-omap3-149467-g69aafd8-dirty #114 PREEMPT Sat Jan
-9 21:44:00 CET 2016 armv7l GNU/Linux
-pavel@n900:/my/tui/ofone$
-
-And power_supply_class.txt says:
-
-~ ~ ~ ~ ~ ~ ~  Charge/Energy/Capacity - how to not confuse  ~ ~ ~ ~ ~
-~ ~
-~
-~
-~ Because both "charge" (=B5Ah) and "energy" (=B5Wh) represents "capaci=
-ty"
-~
-~ of battery, this class distinguish these terms. Don't mix them!
-~
-~
-~
-~ CHARGE_* attributes represents capacity in =B5Ah only.
-~
-~ ENERGY_* attributes represents capacity in =B5Wh only.
-~
-~ CAPACITY attribute represents capacity in *percents*, from 0 to
-100.  ~
-
---- hmm. So that seems to be a mistake.
-
-pavel@n900:/my/tui/ofone$ cat /sys/class/power_supply/bq27200-0/capacit=
-y
-7497
-pavel@n900:/my/tui/ofone$ cat /sys/class/power_supply/bq27200-0/capacit=
-y
-16713
-pavel@n900:/my/tui/ofone$ cat /sys/class/power_supply/bq27200-0/capacit=
-y
-25162
-
-Converting them to hex gives rather strange values.
-
-Hmm. .... what is this? Git blames Andrew F. Davis. The first part of
-code suggests whole cache needs to be initialized... but the second
-part of the code only initializes cache.time_to_empty (for example)
-conditionaly.
-
-Are you sure?
-
-                if (has_ci_flag && (cache.flags & BQ27000_FLAG_CI)) {
-                        dev_info(di->dev, "battery is not calibrated! i=
-gnoring capacity values\n");
-                        cache.capacity =3D -ENODATA;
-                        cache.energy =3D -ENODATA;
-                        cache.time_to_empty =3D -ENODATA;
-                        cache.time_to_empty_avg =3D -ENODATA;
-                        cache.time_to_full =3D -ENODATA;
-                        cache.charge_full =3D -ENODATA;
-                        cache.health =3D -ENODATA;
-                } else {
-                        if (di->regs[BQ27XXX_REG_TTE] !=3D INVALID_REG_=
-ADDR)
-                                cache.time_to_empty =3D bq27xxx_battery=
-_read_time(di, BQ27XXX_REG_TTE);
-                        if (di->regs[BQ27XXX_REG_TTECP] !=3D INVALID_RE=
-G_ADDR)
-                                cache.time_to_empty_avg =3D bq27xxx_bat=
-tery_read_time(di, BQ27XXX_REG_TT\
-ECP);
-                        if (di->regs[BQ27XXX_REG_TTF] !=3D INVALID_REG_=
-ADDR)
-                                cache.time_to_full =3D bq27xxx_battery_=
-read_time(di, BQ27XXX_REG_TTF);
-                        cache.charge_full =3D bq27xxx_battery_read_fcc(=
-di);
-                        cache.capacity =3D bq27xxx_battery_read_soc(di)=
-;
-                        if (di->regs[BQ27XXX_REG_AE] !=3D INVALID_REG_A=
-DDR)
-                                cache.energy =3D bq27xxx_battery_read_e=
-nergy(di);
-                        cache.health =3D bq27xxx_battery_read_health(di=
-);
-                }
-
-But that does not explain the wrong capacity..
-
--static inline int bq27xxx_read(struct bq27xxx_device_info *di, u8  reg=
-,
-+static inline int bq27xxx_read(struct bq27xxx_device_info *di, int  re=
-g_index,
-                                bool single)
-				 {
+    http://www.pwsan.com/omap/testlogs/test_v4.3/20151213172753/
 
 
-This is pretty anti-social function now has completely different
-meaning, yet same name and compatible enough not to catch mistakes.
+Test summary
+------------
 
-And sure enough:
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-static int bq27xxx_battery_read_charge(struct bq27xxx_device_info *di,u=
-8 reg)
-{
-        int charge;
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
-        charge =3D bq27xxx_read(di, reg, false);
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Build warnings from toolchain: uImage:
+    (none)
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL (10/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only
+
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 3/17): 5912osk, 3517evm, 5430es2sbct54
+    Pass (13/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 2/17): 4430es2panda, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 1/ 4): 37xxevm
+    Pass ( 3/ 4): 3530es3beagle, 3530es31beagle, 3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 1/17): 4430es2panda
+
+Obsolete Kconfig symbols:
+    FAIL ( 2/20): omap2plus_defconfig, multi_v7_defconfig
 
 
-The internal functions already check for non-existent registers. We
-can kill the debug prints and reuse that... its better than not
-initializing half the struct.
+vmlinux object size
+(delta in bytes from test_v4.3-rc7 (32b88194f71d6ae7768a29f87fbba454728273ee)):
+   text     data      bss    total  kernel
+   +198    -4064     -136    -4002  omap1_defconfig
+   +198    -3968     -136    -3906  omap1_defconfig_1510innovator_only
+   +198    -4064     -168    -4034  omap1_defconfig_5912osk_only
+  -2074    -4244     -512    -6830  multi_v7_defconfig
+   +750    -4536     -576    -4362  omap2plus_defconfig
+   +554    -4096     -160    -3702  omap2plus_defconfig_2430sdp_only
+   +730    -4536     -640    -4446  omap2plus_defconfig_am33xx_only
+   +794    -4536     -640    -4382  omap2plus_defconfig_am43xx_only
+   +754    -4600     -640    -4486  omap2plus_defconfig_cpupm
+   +794    -4568     -640    -4414  omap2plus_defconfig_dra7xx_only
+   +176    -3968     -104    -3896  omap2plus_defconfig_n800_multi_omap2xxx
+   +144    -4032     -104    -3992  omap2plus_defconfig_n800_only_a
+   +690    -4408     -576    -4294  omap2plus_defconfig_no_pm
+   +814    -4504     -576    -4266  omap2plus_defconfig_omap2_4_only
+   +790    -4504     -576    -4290  omap2plus_defconfig_omap3_4_only
+   +794    -4528     -576    -4310  omap2plus_defconfig_omap5_only
+   -136    -4000      +36    -4100  rmk_omap3430_ldp_allnoconfig
+  -3462    -4224     -324    -8010  rmk_omap3430_ldp_oldconfig
+    -40    -3936      -28    -4004  rmk_omap4430_sdp_allnoconfig
+   +558    -4312     -512    -4266  rmk_omap4430_sdp_oldconfig
 
-The types should in bq27xxx_battery_read_time should be certainly
-fixed like the patch below suggests.
-
-The patch does not compile, but I should be sleeping, not trying to
-understand crazy code. Whoever wrote it, please fix it. Maybe you can
-just do
-
-                        cache.capacity =3D -ENODATA;
-                        cache.energy =3D -ENODATA;
-                        cache.time_to_empty =3D -ENODATA;
-                        cache.time_to_empty_avg =3D -ENODATA;
-                        cache.time_to_full =3D -ENODATA;
-                        cache.charge_full =3D -ENODATA;
-                        cache.health =3D -ENODATA;
-
-undonditionaly so that half of file does not need updating.=20
-
-
-									Pavel
-
-diff --git a/drivers/power/bq27xxx_battery.c b/drivers/power/bq27xxx_ba=
-ttery.c
-index 880233c..e9f26f5 100644
---- a/drivers/power/bq27xxx_battery.c
-+++ b/drivers/power/bq27xxx_battery.c
-@@ -483,11 +483,11 @@ static int bq27xxx_battery_read_soc(struct bq27xx=
-x_device_info *di)
-  * Return a battery charge value in =B5Ah
-  * Or < 0 if something fails.
-  */
--static int bq27xxx_battery_read_charge(struct bq27xxx_device_info *di,=
- u8 reg)
-+static int bq27xxx_battery_read_charge(struct bq27xxx_device_info *di,=
- int reg_index)
- {
- 	int charge;
-=20
--	charge =3D bq27xxx_read(di, reg, false);
-+	charge =3D bq27xxx_read(di, reg_index, false);
- 	if (charge < 0) {
- 		dev_dbg(di->dev, "error reading charge register %02x: %d\n",
- 			reg, charge);
-@@ -561,7 +561,6 @@ static int bq27xxx_battery_read_energy(struct bq27x=
-xx_device_info *di)
-=20
- 	ae =3D bq27xxx_read(di, BQ27XXX_REG_AE, false);
- 	if (ae < 0) {
--		dev_dbg(di->dev, "error reading available energy\n");
- 		return ae;
- 	}
-=20
-@@ -602,8 +601,6 @@ static int bq27xxx_battery_read_cyct(struct bq27xxx=
-_device_info *di)
- 	int cyct;
-=20
- 	cyct =3D bq27xxx_read(di, BQ27XXX_REG_CYCT, false);
--	if (cyct < 0)
--		dev_err(di->dev, "error reading cycle count total\n");
-=20
- 	return cyct;
- }
-@@ -612,14 +609,12 @@ static int bq27xxx_battery_read_cyct(struct bq27x=
-xx_device_info *di)
-  * Read a time register.
-  * Return < 0 if something fails.
-  */
--static int bq27xxx_battery_read_time(struct bq27xxx_device_info *di, u=
-8 reg)
-+static int bq27xxx_battery_read_time(struct bq27xxx_device_info *di, i=
-nt reg_index)
- {
- 	int tval;
-=20
--	tval =3D bq27xxx_read(di, reg, false);
-+	tval =3D bq27xxx_read(di, reg_index, false);
- 	if (tval < 0) {
--		dev_dbg(di->dev, "error reading time register %02x: %d\n",
--			reg, tval);
- 		return tval;
- 	}
-=20
-@@ -639,8 +634,6 @@ static int bq27xxx_battery_read_pwr_avg(struct bq27=
-xxx_device_info *di)
-=20
- 	tval =3D bq27xxx_read(di, BQ27XXX_REG_AP, false);
- 	if (tval < 0) {
--		dev_err(di->dev, "error reading average power register  %02x: %d\n",
--			BQ27XXX_REG_AP, tval);
- 		return tval;
- 	}
-=20
-@@ -731,22 +724,16 @@ static void bq27xxx_battery_update(struct bq27xxx=
-_device_info *di)
- 			cache.charge_full =3D -ENODATA;
- 			cache.health =3D -ENODATA;
- 		} else {
--			if (di->regs[BQ27XXX_REG_TTE] !=3D INVALID_REG_ADDR)
--				cache.time_to_empty =3D bq27xxx_battery_read_time(di, BQ27XXX_REG_=
-TTE);
--			if (di->regs[BQ27XXX_REG_TTECP] !=3D INVALID_REG_ADDR)
--				cache.time_to_empty_avg =3D bq27xxx_battery_read_time(di, BQ27XXX_=
-REG_TTECP);
--			if (di->regs[BQ27XXX_REG_TTF] !=3D INVALID_REG_ADDR)
--				cache.time_to_full =3D bq27xxx_battery_read_time(di, BQ27XXX_REG_T=
-TF);
-+			cache.time_to_empty =3D bq27xxx_battery_read_time(di, BQ27XXX_REG_T=
-TE);
-+			cache.time_to_empty_avg =3D bq27xxx_battery_read_time(di, BQ27XXX_R=
-EG_TTECP);
-+			cache.time_to_full =3D bq27xxx_battery_read_time(di, BQ27XXX_REG_TT=
-=46);
- 			cache.charge_full =3D bq27xxx_battery_read_fcc(di);
- 			cache.capacity =3D bq27xxx_battery_read_soc(di);
--			if (di->regs[BQ27XXX_REG_AE] !=3D INVALID_REG_ADDR)
--				cache.energy =3D bq27xxx_battery_read_energy(di);
-+			cache.energy =3D bq27xxx_battery_read_energy(di);
- 			cache.health =3D bq27xxx_battery_read_health(di);
- 		}
--		if (di->regs[BQ27XXX_REG_CYCT] !=3D INVALID_REG_ADDR)
--			cache.cycle_count =3D bq27xxx_battery_read_cyct(di);
--		if (di->regs[BQ27XXX_REG_AP] !=3D INVALID_REG_ADDR)
--			cache.power_avg =3D bq27xxx_battery_read_pwr_avg(di);
-+		cache.cycle_count =3D bq27xxx_battery_read_cyct(di);
-+		cache.power_avg =3D bq27xxx_battery_read_pwr_avg(di);
-=20
- 		/* We only have to read charge design full once */
- 		if (di->charge_design_full <=3D 0)
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Boot-time memory difference
+(delta in bytes from test_v4.3-rc7 (32b88194f71d6ae7768a29f87fbba454728273ee))
+  avail  rsrvd   high  freed  board          kconfig
+     4k    -4k      .      .  2420n800       omap2plus_defconfig_n800_only_a
+     8k    -8k      .      .  2430sdp        omap2plus_defconfig
+    12k   -12k      .    -8k  3530es31beagle omap2plus_defconfig
+    12k   -12k      .    -8k  3530es3beagle  omap2plus_defconfig
+    12k   -12k      .    -8k  3730beaglexm   omap2plus_defconfig
+    12k   -12k      .    -8k  3730es12beaglexmomap2plus_defconfig
+     8k    -8k      .    -8k  37xxevm        omap2plus_defconfig
+     8k    -8k      .    -8k  4430es2panda   omap2plus_defconfig
+     8k    -8k      .    -8k  4460pandaes    omap2plus_defconfig
+     8k    -8k      .    -8k  4460varsomom   omap2plus_defconfig
+     8k    -8k      .    -8k  5430es2uevm    omap2plus_defconfig
+     8k    -8k      .    -8k  am335xbonelt   omap2plus_defconfig
