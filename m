@@ -1,97 +1,67 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: tps65010: fix init when the driver is built-in
-Date: Mon, 11 Jan 2016 05:49:48 +0000
-Message-ID: <20160111054948.GJ3331@x1>
-References: <1452205773-21962-1-git-send-email-aaro.koskinen@iki.fi>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 0/2] DRA72/DRA74: Add 2 lane support
+Date: Mon, 11 Jan 2016 13:39:02 +0530
+Message-ID: <5693631E.2050807@ti.com>
+References: <1452077393-25880-1-git-send-email-kishon@ti.com>
+ <20160107174126.GB14105@localhost> <20160107181320.GO12777@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1452205773-21962-1-git-send-email-aaro.koskinen@iki.fi>
+In-Reply-To: <20160107181320.GO12777@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Richard Cochran <richardcochran@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 08 Jan 2016, Aaro Koskinen wrote:
+Hi Tony,
 
-> tps65010 driver's initcall cannot succeed when the driver is built-in=
-,
-> because it expects that the I2C probe is completed at initcall time;
-> this cannot happen as MFD is initialized before I2C. Also on systems
-> where the chip is not present there is unnecessary 30 ms delay during
-> the boot.
->=20
-> Instead of waiting for probe to finish, just register the I2C device.
-> If some boards need retry mechanism for startup glitches, that should=
- be
-> done in the actual probe function. Also move the driver banner messag=
-e
-> to the probe function, and make it print the chip model being probed.
->=20
-> The patch allows to use tps65010 again with OMAP1 (where it's require=
-d
-> to be built-in) and enables e.g. USB and LED functionality on OMAP591=
-2 OSK.
->=20
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  drivers/mfd/tps65010.c | 23 +++--------------------
->  1 file changed, 3 insertions(+), 20 deletions(-)
->=20
-> diff --git a/drivers/mfd/tps65010.c b/drivers/mfd/tps65010.c
-> index 448f0a1..450c358 100644
-> --- a/drivers/mfd/tps65010.c
-> +++ b/drivers/mfd/tps65010.c
-> @@ -541,6 +541,8 @@ static int tps65010_probe(struct i2c_client *clie=
-nt,
->  	int			status;
->  	struct tps65010_board	*board =3D dev_get_platdata(&client->dev);
-> =20
-> +	pr_info("%s: chip model %s\n", DRIVER_NAME, id->name);
-> +
+On Thursday 07 January 2016 11:43 PM, Tony Lindgren wrote:
+> * Bjorn Helgaas <helgaas@kernel.org> [160107 09:42]:
+>> [+cc Richard]
+>>
+>> Hi Kishon,
+>>
+>> On Wed, Jan 06, 2016 at 04:19:51PM +0530, Kishon Vijay Abraham I wrote:
+>>> Add driver modifications in pci-dra7xx to get x2 mode working in
+>>> DRA72 and DRA74. Certain modifications is needed in PHY driver also
+>>> which will be sent as a separate series.
+>>>
+>>> Certain board modifications has to be done in order to test
+>>> x2 mode in dra72-evm.
+>>>
+>>> These patches were created on pci next.
+>>>
+>>> Changes from RFC:
+>>> *) .b1co_mode_sel_mask is now set with the correct value.
+>>> *) cleanup the patch
+>>>
+>>> Kishon Vijay Abraham I (2):
+>>>   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
+>>>   pci: host: pci-dra7xx: Enable x2 mode support
+>>>
+>>>  Documentation/devicetree/bindings/pci/ti-pci.txt |    8 +-
+>>>  drivers/pci/host/pci-dra7xx.c                    |  104 +++++++++++++++++++---
+>>>  2 files changed, 97 insertions(+), 15 deletions(-)
+>>
+>> Apparently dra7xx in mainline doesn't work [1].  Until that's
+>> resolved, I'm going to ignore dra7xx patches.
+> 
+> Agreed. Guys, please do the development _and_ testing on the mainline
+> kernel. We do have the mainline kernel usable for probably a few
+> tens of omap SoC variants. If you have issues using dra7 with mainline,
+> please fix those issues ASAP.
 
-Why are you hand-rolling your own prints?  Use dev_*() instead.
+Here Bjorn meant pci-dra7xx is broken in mainline and not the dra7xx boot
+as such. (which is due to the absence of reset controller driver).
+All the patches to pci-dra7xx were tested on mainline kernel (having
+out-of-tree reset patches since the reset controller driver is not merged).
+> 
+> Ideally of course please also use the device you're working on to
+> send out the patches :)
 
-Besides, this print looks pretty useless, so best to omit it
-completely.
+dra7x is the only device that use this pci driver and all the patches to
+pci-dra7xx have been tested on both dra7 and dra72 boards.
 
->  	if (the_tps) {
->  		dev_dbg(&client->dev, "only one tps6501x chip allowed\n");
->  		return -ENODEV;
-> @@ -1059,26 +1061,7 @@ EXPORT_SYMBOL(tps65013_set_low_pwr);
-> =20
->  static int __init tps_init(void)
->  {
-> -	u32	tries =3D 3;
-> -	int	status =3D -ENODEV;
-> -
-> -	printk(KERN_INFO "%s: version %s\n", DRIVER_NAME, DRIVER_VERSION);
-> -
-> -	/* some boards have startup glitches */
-> -	while (tries--) {
-> -		status =3D i2c_add_driver(&tps65010_driver);
-> -		if (the_tps)
-> -			break;
-> -		i2c_del_driver(&tps65010_driver);
-> -		if (!tries) {
-> -			printk(KERN_ERR "%s: no chip?\n", DRIVER_NAME);
-> -			return -ENODEV;
-> -		}
-> -		pr_debug("%s: re-probe ...\n", DRIVER_NAME);
-> -		msleep(10);
-> -	}
-> -
-> -	return status;
-> +	return i2c_add_driver(&tps65010_driver);
->  }
->  /* NOTE:  this MUST be initialized before the other parts of the sys=
-tem
->   * that rely on it ... but after the i2c bus on which this relies.
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+Thanks
+Kishon
