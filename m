@@ -1,24 +1,46 @@
-From: Fabio Estevam <festevam@gmail.com>
-Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Mon, 11 Jan 2016 12:52:36 -0200
-Message-ID: <CAOMZO5CuUede4=bvnx6+Fz6H1OSNaWpfm1ehNYyW9j5bCOODmg@mail.gmail.com>
-References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
-	<CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
-	<CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
-	<2574144.OjYZBRkjZl@vostro.rjw.lan>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 0/3] dra7xx: get pcie working in mainline
+Date: Mon, 11 Jan 2016 11:12:35 -0600
+Message-ID: <5693E283.3090000@ti.com>
+References: <1452440488-28398-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <2574144.OjYZBRkjZl@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Daniel Kurtz <djkurtz@chromium.org>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1452440488-28398-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 11, 2016 at 12:45 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+Hi Kishon,
 
-> OK, so does the appended patch help?
+On 01/10/2016 09:41 AM, Kishon Vijay Abraham I wrote:
+> This series adds pdata-quirk mechanism to reset PCIe as a temporary
+> fix till reset controller driver is added in mainline.
+> 
+> Without this series, a stall is observed if pci dra7xx driver
+> is enabled.
+> 
+> Kishon Vijay Abraham I (3):
+>   ARM: DRA7: hwmod: Add reset data for PCIe
+>   HACK: ARM: DRA7: add pdata-quirks to do reset of PCIe
+>   HACK: pci: dra7xx: use pdata callbacks to perform reset
 
-Yes, thanks. I do not see the warnings after 'reboot' with your patch applied:
+Please drop the HACK: tag from the commit headers, that was an internal
+convention/choice made by Sekhar, and we had our differences there as it
+is. On the same note, my internal Reviewed-by also mean nothing as they
+were done against a different kernel.
 
-Tested-by: Fabio Estevam <fabio.estevam@nxp.com>
+regards
+Suman
+
+> 
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   15 ++++++++++++++
+>  arch/arm/mach-omap2/pdata-quirks.c        |   11 ++++++++++
+>  arch/arm/mach-omap2/prm7xx.h              |    1 +
+>  drivers/pci/host/pci-dra7xx.c             |   32 +++++++++++++++++++++++++++++
+>  include/linux/platform_data/pci-dra7xx.h  |   22 ++++++++++++++++++++
+>  5 files changed, 81 insertions(+)
+>  create mode 100644 include/linux/platform_data/pci-dra7xx.h
+> 
