@@ -1,15 +1,14 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy mailbox device
- instantiation
-Date: Mon, 11 Jan 2016 17:22:30 -0600
-Message-ID: <56943936.4020003@ti.com>
-References: <1442273833-25013-1-git-send-email-s-anna@ti.com>
- <1442273833-25013-2-git-send-email-s-anna@ti.com> <562918D7.6020202@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: omap2plus_defconfig: enable SPLIT and DWARF4
+Date: Mon, 11 Jan 2016 15:34:39 -0800
+Message-ID: <20160111233438.GB12777@atomide.com>
+References: <1452547572-23515-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <562918D7.6020202@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1452547572-23515-1-git-send-email-balbi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,34 +18,24 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On 10/22/2015 12:11 PM, Suman Anna wrote:
-> Hi Tony,
+* Felipe Balbi <balbi@ti.com> [160111 13:26]:
+> CONFIG_DEBUG_INFO_SPLIT will split debug info on
+> .dwo files. This will generate a smaller vmlinux and
+> smaller .ko modules, which will be easier to ship on
+> certain products.
 > 
-> On 09/14/2015 06:37 PM, Suman Anna wrote:
->> The legacy-style mailbox device creation is supported currently
->> only for OMAP3, as all other SoCs are DT-boot only. Even on this
->> SoC, there are no client drivers that utilize these mailbox devices.
->> So, clean up the legacy-style mailbox device instantiation logic.
->> The mailbox devices are already present and supported for the DT
->> boot on OMAP3.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->>  arch/arm/mach-omap2/devices.c | 28 ----------------------------
->>  1 file changed, 28 deletions(-)
->>
-> 
-> Ping, can you pick up this patch for your cleanup branch? FYI, Paul is
-> queueing Patch 2.
+> CONFIG_DEBUG_INFO_DWARF4 will generate debug info in
+> DWARF4 format, which ends up being larger, but
+> improves the probability of resolving variables in
+> optmized code.
 
-Just checking your staged branches and linux-next, looks like this was
-missed. Let me know if you want me to repost this patch.
+Nice, this makes my initramfs go down from about 17MB
+to 4.7 MB :)
 
-regards
-Suman
+Regards,
+
+Tony
