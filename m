@@ -1,51 +1,48 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: omap2plus_defconfig: enable SPLIT and DWARF4
-Date: Mon, 11 Jan 2016 15:26:12 -0600
-Message-ID: <1452547572-23515-1-git-send-email-balbi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: /sys/class/power_supply/bq27200-0/capacity changed meaning
+ between 4.1 and 4.4?
+Date: Mon, 11 Jan 2016 22:42:47 +0100
+Message-ID: <20160111214247.GA9735@amd>
+References: <20160109230709.GA30551@amd>
+ <5693BB75.70409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5693BB75.70409@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, a.hajda@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-CONFIG_DEBUG_INFO_SPLIT will split debug info on
-.dwo files. This will generate a smaller vmlinux and
-smaller .ko modules, which will be easier to ship on
-certain products.
+Hi!
 
-CONFIG_DEBUG_INFO_DWARF4 will generate debug info in
-DWARF4 format, which ends up being larger, but
-improves the probability of resolving variables in
-optmized code.
+> >Did /sys/class/power_supply/bq27200-0/capacity change meaning between
+> >4.1 and 4.4?
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/configs/omap2plus_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+> There was a resent overhaul of this driver and a lot of code is
+> vestigial as you have seen. I've been meaning to continue
+> cleaning it up, my next step would probably to bring up regmap
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index c5e1943e5427..0b3e471a4262 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -449,6 +449,8 @@ CONFIG_NLS_CODEPAGE_437=y
- CONFIG_NLS_ISO8859_1=y
- CONFIG_PRINTK_TIME=y
- CONFIG_DEBUG_INFO=y
-+CONFIG_DEBUG_INFO_SPLIT=y
-+CONFIG_DEBUG_INFO_DWARF4=y
- CONFIG_MAGIC_SYSRQ=y
- CONFIG_SCHEDSTATS=y
- CONFIG_TIMER_STATS=y
+Ok, 1wire is probably reasonable approach. But we have an regression
+between 4.1 and 4.4, and to debug it is probably by reading code.
+
+I can't prove you caused the regression, but you basically rewrote the
+driver, so it should be easier for you to spot the bug.
+
+n900 has this variant:
+
+      	 bq27200: bq27200@55 {
+	                 compatible = "ti,bq27200";
+ 			 reg = <0x55>;
+ 	};
+
+Will you try?
+
+If not, tell me, and I can do it, but it will involve a lot of swaring...
+
+Thanks,
+									Pavel
 -- 
-2.7.0
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
