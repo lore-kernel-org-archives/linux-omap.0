@@ -1,91 +1,24 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: /sys/class/power_supply/bq27200-0/capacity changed meaning
- between 4.1 and 4.4?
-Date: Mon, 11 Jan 2016 08:44:59 -0600
-Message-ID: <5693BFEB.3020500@ti.com>
-References: <20160109230709.GA30551@amd> <20160110080621.GA3929@amd>
+From: Fabio Estevam <festevam@gmail.com>
+Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
+Date: Mon, 11 Jan 2016 12:52:36 -0200
+Message-ID: <CAOMZO5CuUede4=bvnx6+Fz6H1OSNaWpfm1ehNYyW9j5bCOODmg@mail.gmail.com>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+	<CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
+	<CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
+	<2574144.OjYZBRkjZl@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160110080621.GA3929@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
-Cc: a.hajda@samsung.com, giometti@linux.it
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <2574144.OjYZBRkjZl@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Daniel Kurtz <djkurtz@chromium.org>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/10/2016 02:06 AM, Pavel Machek wrote:
-> Hi!
->
->> Did /sys/class/power_supply/bq27200-0/capacity change meaning between
->> 4.1 and 4.4?
->>
->> It used to report battery capacity remaining in percent.
->>
->> Not sure what it reports now, but ain't in percent....
->
->> The patch does not compile, but I should be sleeping, not trying to
->> understand crazy code. Whoever wrote it, please fix it. Maybe you can
->> just do
->
-> ...and more crazy code :-(.
->
->          cache.flags = bq27xxx_read(di, BQ27XXX_REG_FLAGS, has_singe_flag);
-> 		if ((cache.flags & 0xff) == 0xff)
-> 		                cache.flags = -1; /* read error */
-> 				        /* WTF? bq27xxx returns -ERRNO
->          on error, we mask some bits off it, and then make it -1... */
-> 	
+On Mon, Jan 11, 2016 at 12:45 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 
-This is probably left over from when the driver was 1wire only, which seems
-to fail by just reading back all ones. Not sure why the -1 though?
+> OK, so does the appended patch help?
 
->
-> ...and one crazy optimalization...
->
->          if (memcmp(&di->cache, &cache, sizeof(cache)) != 0)
-> 	                di->cache = cache;
->
+Yes, thanks. I do not see the warnings after 'reboot' with your patch applied:
 
-Hmmm, I think the lines above it:
-
-	if (di->cache.capacity != cache.capacity)
-		power_supply_changed(di->bat);
-
-were at one point rolled into this as so:
-
-	if (memcmp(&di->cache, &cache, sizeof(cache)) != 0) {
-		di->cache = cache;
-		power_supply_changed(di->bat);
-	}
-
-Otherwise that isn't an optimization, it probably takes more
-time comparing than just doing the copy every time...
-
-> ...are we playing obfuscated C code contest, yet?
->
->          case POWER_SUPPLY_PROP_PRESENT:
-> 	                val->intval = di->cache.flags < 0 ? 0 : 1;
->
-> ...to decidegree C?
->                  if (ret == 0)
-> 		   	        pval->intval -= 2731; /* convert decidegree k to c */
->
-> as read takes enum, make it enum like this?
-> static inline int bq27xxx_read(struct bq27xxx_device_info *di, enum bq27xxx_reg_index reg_index,
-> 		                         bool single)
-> 					
-
-ACK
-
->
-> 									Pavel
->
+Tested-by: Fabio Estevam <fabio.estevam@nxp.com>
