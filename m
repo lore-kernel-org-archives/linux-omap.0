@@ -1,98 +1,120 @@
-From: Fabio Estevam <festevam@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Mon, 11 Jan 2016 12:35:28 -0200
-Message-ID: <CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
-References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
- <1445956731-6304-3-git-send-email-tomeu.vizoso@collabora.com>
- <CAGS+omBMJXOgsd2x9agtt7yi-y+EPgHWSTr7B3JqbN9Hg_2W5A@mail.gmail.com>
- <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
+Date: Mon, 11 Jan 2016 15:45:09 +0100
+Message-ID: <2574144.OjYZBRkjZl@vostro.rjw.lan>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com> <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com> <CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, dri-devel <dri-devel@lists.freedesktop.org>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Daniel Kurtz <djkurtz@chromium.org>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBKYW4gNywgMjAxNiBhdCAxMjo0NyBQTSwgVG9tZXUgVml6b3NvCjx0b21ldS52aXpv
-c29AY29sbGFib3JhLmNvbT4gd3JvdGU6Cj4gT24gMTAgTm92ZW1iZXIgMjAxNSBhdCAxMDozMywg
-RGFuaWVsIEt1cnR6IDxkamt1cnR6QGNocm9taXVtLm9yZz4gd3JvdGU6Cj4gW3NuaXBdCj4+Cj4+
-IFRoZSBwcm9ibGVtIGFwcGVhcnMgdG8gYmUgdGhhdDoKPj4gICAqIE9uIGJvb3QsIHBsYXRmb3Jt
-X2Rydl9wcm9iZSgpIGNhbGxzIGRldl9wbV9kb21haW5fYXR0YWNoKCkgYmVmb3JlCj4+IGRydi0+
-cHJvYmUoKTsgdGh1cywgaXQgY2FsbHMgZGV2X3BtX2RvbWFpbl9hdHRhY2goKSB3aGlsZSB0aGUg
-ZGV2aWNlCj4+IGlzIHVuYm91bmQuCj4+Cj4+ICAqIEhvd2V2ZXIsIGZvciBhIHBsYXRmb3JtX2Rl
-dmljZSwgdGhlIHJlYm9vdCBwYXRoIGNhbGxzCj4+IGRldmljZV9zaHV0ZG93bigpLCBidXQgbm90
-IF9fZGV2aWNlX3JlbGVhc2VfZHJpdmVyKCk6Cj4+IGRldmljZV9zaHV0ZG93bigpCj4+ICAgZGV2
-LT5kcml2ZXItPnNodXRkb3duID0+IHBsYXRmb3JtX2Rydl9zaHV0ZG93bigpCj4+ICAgICBkZXZf
-cG1fZG9tYWluX2RldGFjaCgpCj4+ICAgICAgICBkZXYtPnBtX2RvbWFpbi0+ZGV0YWNoKCkgPT4g
-Z2VucGRfZGV2X3BtX2RldGFjaCgpCj4+ICAgICAgICAgIHBtX2dlbnBkX3JlbW92ZV9kZXZpY2Uo
-KQo+PiAgICAgICAgICAgICBkZXZfcG1fZG9tYWluX3NldChkZXYsIE5VTEwpOwo+Pgo+PiBTbywg
-Zm9yIGEgcGxhdGZvcm1fZGV2aWNlIGluIGEgZ2VucGQgcG93ZXIgZG9tYWluIHdpdGggLnNodXRk
-b3duCj4+IGluc3RhbGxlZCwgcGxhdGZvcm1fZHJ2X3NodXRkb3duKCkgY2FsbHMgZGV2X3BtX2Rv
-bWFpbl9kZXRhY2goKSB3aGlsZQo+PiB0aGUgZGV2aWNlIGlzIHN0aWxsIGJvdW5kLCB3aGljaCB0
-cmlnZ2VycyB0aGUgV0FSTigpLgo+Cj4gSGkgUmFmYWVsLCBBbGFuIGFuZCBVbGYsCj4KPiBkbyB5
-b3UgaGF2ZSBhbnkgc3VnZ2VzdGlvbiBhYm91dCB0aGlzPyBJIGRvbid0IHJlYWxseSB1bmRlcnN0
-YW5kIHdoeQo+IHRoZSBkZXZpY2UgaXMgZGV0YWNoZWQgZnJvbSB0aGUgZG9tYWluIG9uIHNodXRk
-b3duLgoKSSBhbSBydW5uaW5nIGxpbnV4LW5leHQgYW5kIHRoaXMgY29tbWl0IGNhdXNlcyB0aGUg
-c2FtZSBwcm9ibGVtIGZvciBtZQpvbiBhIG14NiBhZnRlciBydW5uaW5nIGEgJ3JlYm9vdCcgY29t
-bWFuZDoKClJlcXVlc3Rpbmcgc3lzdGVtIHJlYm9vdApbICAgMTUuMDU4NzgyXSAtLS0tLS0tLS0t
-LS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KWyAgIDE1LjA2MzQ1OV0gV0FSTklORzogQ1BVOiAz
-IFBJRDogMTEyMiBhdApkcml2ZXJzL2Jhc2UvcG93ZXIvY29tbW9uLmM6MTUwIGRldl9wbV9kb21h
-aW5fc2V0KzB4NGMvMHg1OCgpClsgICAxNS4wNzI4MzhdIFBNIGRvbWFpbnMgY2FuIG9ubHkgYmUg
-Y2hhbmdlZCBmb3IgdW5ib3VuZCBkZXZpY2VzClsgICAxNS4wNzg3MzVdIE1vZHVsZXMgbGlua2Vk
-IGluOgpbICAgMTUuMDgxODQ5XSBDUFU6IDMgUElEOiAxMTIyIENvbW06IGluaXQgTm90IHRhaW50
-ZWQKNC40LjAtcmM4LW5leHQtMjAxNjAxMTEtZGlydHkgIzIwNwpbICAgMTUuMDg5ODI2XSBIYXJk
-d2FyZSBuYW1lOiBGcmVlc2NhbGUgaS5NWDYgUXVhZC9EdWFsTGl0ZSAoRGV2aWNlIFRyZWUpClsg
-ICAxNS4wOTYzNzVdIEJhY2t0cmFjZToKWyAgIDE1LjA5ODk0MV0gWzxjMDAxMzZkOD5dIChkdW1w
-X2JhY2t0cmFjZSkgZnJvbSBbPGMwMDEzODc0Pl0KKHNob3dfc3RhY2srMHgxOC8weDFjKQpbICAg
-MTUuMTA2NTMyXSAgcjY6MDAwMDAwOTYgcjU6MDAwMDAwMDAgcjQ6MDAwMDAwMDAgcjM6MDAwMDAw
-MDAKWyAgIDE1LjExMjM5MF0gWzxjMDAxMzg1Yz5dIChzaG93X3N0YWNrKSBmcm9tIFs8YzAyZGU4
-OWM+XQooZHVtcF9zdGFjaysweDg4LzB4YTQpClsgICAxNS4xMTk3MDhdIFs8YzAyZGU4MTQ+XSAo
-ZHVtcF9zdGFjaykgZnJvbSBbPGMwMDJiY2FjPl0KKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4ODAv
-MHhiYykKWyAgIDE1LjEyNzg2MF0gIHI1OmMwM2RhODEwIHI0OmVlNjNiZDY4ClsgICAxNS4xMzE1
-MzNdIFs8YzAwMmJjMmM+XSAod2Fybl9zbG93cGF0aF9jb21tb24pIGZyb20gWzxjMDAyYmQ4Yz5d
-Cih3YXJuX3Nsb3dwYXRoX2ZtdCsweDM4LzB4NDApClsgICAxNS4xNDAyOTJdICByODplZWEwMWRi
-MCByNzpjMGIwZjg3YyByNjplZWEwMWQ4MCByNTowMDAwMDAwMCByNDplZjE4MTQxMApbICAgMTUu
-MTQ3MTY1XSBbPGMwMDJiZDU4Pl0gKHdhcm5fc2xvd3BhdGhfZm10KSBmcm9tIFs8YzAzZGE4MTA+
-XQooZGV2X3BtX2RvbWFpbl9zZXQrMHg0Yy8weDU4KQpbICAgMTUuMTU1NjYxXSAgcjM6YzBiMGY3
-ZjAgcjI6YzA5ZTgyZGMKWyAgIDE1LjE1OTM3M10gWzxjMDNkYTdjND5dIChkZXZfcG1fZG9tYWlu
-X3NldCkgZnJvbSBbPGMwM2U0ZTVjPl0KKGdlbnBkX2ZyZWVfZGV2X2RhdGErMHgyMC8weDUwKQpb
-ICAgMTUuMTY4MDY1XSAgcjU6ZWYxODE0YTAgcjQ6ZWYxODE0MTAKWyAgIDE1LjE3MTczN10gWzxj
-MDNlNGUzYz5dIChnZW5wZF9mcmVlX2Rldl9kYXRhKSBmcm9tIFs8YzAzZTVmZTQ+XQoocG1fZ2Vu
-cGRfcmVtb3ZlX2RldmljZSsweGI0LzB4ZTApClsgICAxNS4xODA4NDJdICByNjplZjE4MTQxMCBy
-NTplZWEwMWQ4MCByNDpjMGIwZjdmMCByMzowMDAwMDAwMApbICAgMTUuMTg2NjQ0XSBbPGMwM2U1
-ZjMwPl0gKHBtX2dlbnBkX3JlbW92ZV9kZXZpY2UpIGZyb20gWzxjMDNlNjA0MD5dCihnZW5wZF9k
-ZXZfcG1fZGV0YWNoKzB4MzAvMHhhYykKWyAgIDE1LjE5NTc0M10gIHI4OmMwYjBmN2YwIHI3OmMx
-Mzc5NzM0IHI2OjAwMDAwMDAxIHI1OmMwYjIwOWM0CnI0OmVmMTgxNDEwIHIzOjAwMDAwMDAwClsg
-ICAxNS4yMDM2OTRdIFs8YzAzZTYwMTA+XSAoZ2VucGRfZGV2X3BtX2RldGFjaCkgZnJvbSBbPGMw
-M2RhN2MwPl0KKGRldl9wbV9kb21haW5fZGV0YWNoKzB4MjgvMHgyYykKWyAgIDE1LjIxMjYyMV0g
-IHIxMDplZjE4MTQ0NCByODpjMGI2ZjU2MCByNzpjMTM3OTczNCByNjplZjE4MTQxMApyNTplZjE3
-M2MxMCByNDplZjE4MTQxMApbICAgMTUuMjIwNjgzXSBbPGMwM2RhNzk4Pl0gKGRldl9wbV9kb21h
-aW5fZGV0YWNoKSBmcm9tIFs8YzAzZDNlYTA+XQoocGxhdGZvcm1fZHJ2X3NodXRkb3duKzB4MzQv
-MHgzOCkKWyAgIDE1LjIyOTgxN10gWzxjMDNkM2U2Yz5dIChwbGF0Zm9ybV9kcnZfc2h1dGRvd24p
-IGZyb20gWzxjMDNkMDViMD5dCihkZXZpY2Vfc2h1dGRvd24rMHgzYy8weDE5NCkKWyAgIDE1LjIz
-ODU3OV0gIHI0OmVmMTgxNDFjIHIzOmMwM2QzZTZjClsgICAxNS4yNDIyNTldIFs8YzAzZDA1NzQ+
-XSAoZGV2aWNlX3NodXRkb3duKSBmcm9tIFs8YzAwNGQ1MWM+XQooa2VybmVsX3Jlc3RhcnRfcHJl
-cGFyZSsweDM0LzB4NDApClsgICAxNS4yNTEwMjFdICByMTA6MDAwMDAwMDAgcjg6YzAwMTAwNDQg
-cjc6MDAwMDAwMDAgcjY6YzBiMTIwY2MKcjU6NDMyMWZlZGMgcjQ6MDAwMDAwMDAKWyAgIDE1LjI1
-OTA2NV0gWzxjMDA0ZDRlOD5dIChrZXJuZWxfcmVzdGFydF9wcmVwYXJlKSBmcm9tIFs8YzAwNGQ3
-MjQ+XQooa2VybmVsX3Jlc3RhcnQrMHgxNC8weDU4KQpbICAgMTUuMjY3NzYwXSBbPGMwMDRkNzEw
-Pl0gKGtlcm5lbF9yZXN0YXJ0KSBmcm9tIFs8YzAwNGQ5NDg+XQooU3lTX3JlYm9vdCsweDE4Yy8w
-eDFlNCkKWyAgIDE1LjI3NTUyNl0gIHI0OjAxMjM0NTY3IHIzOjAxMjM0NTY3ClsgICAxNS4yNzky
-NDJdIFs8YzAwNGQ3YmM+XSAoU3lTX3JlYm9vdCkgZnJvbSBbPGMwMDBmZWEwPl0KKHJldF9mYXN0
-X3N5c2NhbGwrMHgwLzB4MWMpClsgICAxNS4yODY5MjBdICByNzowMDAwMDA1OCByNjowMDAwMDAw
-MCByNTowMDAwMDAwMCByNDowMDAwMDAwMApbICAgMTUuMjkyNzU0XSAtLS1bIGVuZCB0cmFjZSAz
-YjQxOWQzY2JiMzY3YTExIF0tLS0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
-cmktZGV2ZWwK
+On Monday, January 11, 2016 12:35:28 PM Fabio Estevam wrote:
+> On Thu, Jan 7, 2016 at 12:47 PM, Tomeu Vizoso
+> <tomeu.vizoso@collabora.com> wrote:
+> > On 10 November 2015 at 10:33, Daniel Kurtz <djkurtz@chromium.org> wrote:
+> > [snip]
+> >>
+> >> The problem appears to be that:
+> >>   * On boot, platform_drv_probe() calls dev_pm_domain_attach() before
+> >> drv->probe(); thus, it calls dev_pm_domain_attach() while the device
+> >> is unbound.
+> >>
+> >>  * However, for a platform_device, the reboot path calls
+> >> device_shutdown(), but not __device_release_driver():
+> >> device_shutdown()
+> >>   dev->driver->shutdown => platform_drv_shutdown()
+> >>     dev_pm_domain_detach()
+> >>        dev->pm_domain->detach() => genpd_dev_pm_detach()
+> >>          pm_genpd_remove_device()
+> >>             dev_pm_domain_set(dev, NULL);
+> >>
+> >> So, for a platform_device in a genpd power domain with .shutdown
+> >> installed, platform_drv_shutdown() calls dev_pm_domain_detach() while
+> >> the device is still bound, which triggers the WARN().
+> >
+> > Hi Rafael, Alan and Ulf,
+> >
+> > do you have any suggestion about this? I don't really understand why
+> > the device is detached from the domain on shutdown.
+> 
+> I am running linux-next and this commit causes the same problem for me
+> on a mx6 after running a 'reboot' command:
+> 
+> Requesting system reboot
+> [   15.058782] ------------[ cut here ]------------
+> [   15.063459] WARNING: CPU: 3 PID: 1122 at
+> drivers/base/power/common.c:150 dev_pm_domain_set+0x4c/0x58()
+> [   15.072838] PM domains can only be changed for unbound devices
+> [   15.078735] Modules linked in:
+> [   15.081849] CPU: 3 PID: 1122 Comm: init Not tainted
+> 4.4.0-rc8-next-20160111-dirty #207
+> [   15.089826] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
+> [   15.096375] Backtrace:
+> [   15.098941] [<c00136d8>] (dump_backtrace) from [<c0013874>]
+> (show_stack+0x18/0x1c)
+> [   15.106532]  r6:00000096 r5:00000000 r4:00000000 r3:00000000
+> [   15.112390] [<c001385c>] (show_stack) from [<c02de89c>]
+> (dump_stack+0x88/0xa4)
+> [   15.119708] [<c02de814>] (dump_stack) from [<c002bcac>]
+> (warn_slowpath_common+0x80/0xbc)
+> [   15.127860]  r5:c03da810 r4:ee63bd68
+> [   15.131533] [<c002bc2c>] (warn_slowpath_common) from [<c002bd8c>]
+> (warn_slowpath_fmt+0x38/0x40)
+> [   15.140292]  r8:eea01db0 r7:c0b0f87c r6:eea01d80 r5:00000000 r4:ef181410
+> [   15.147165] [<c002bd58>] (warn_slowpath_fmt) from [<c03da810>]
+> (dev_pm_domain_set+0x4c/0x58)
+> [   15.155661]  r3:c0b0f7f0 r2:c09e82dc
+> [   15.159373] [<c03da7c4>] (dev_pm_domain_set) from [<c03e4e5c>]
+> (genpd_free_dev_data+0x20/0x50)
+> [   15.168065]  r5:ef1814a0 r4:ef181410
+> [   15.171737] [<c03e4e3c>] (genpd_free_dev_data) from [<c03e5fe4>]
+> (pm_genpd_remove_device+0xb4/0xe0)
+> [   15.180842]  r6:ef181410 r5:eea01d80 r4:c0b0f7f0 r3:00000000
+> [   15.186644] [<c03e5f30>] (pm_genpd_remove_device) from [<c03e6040>]
+> (genpd_dev_pm_detach+0x30/0xac)
+> [   15.195743]  r8:c0b0f7f0 r7:c1379734 r6:00000001 r5:c0b209c4
+> r4:ef181410 r3:00000000
+> [   15.203694] [<c03e6010>] (genpd_dev_pm_detach) from [<c03da7c0>]
+> (dev_pm_domain_detach+0x28/0x2c)
+> [   15.212621]  r10:ef181444 r8:c0b6f560 r7:c1379734 r6:ef181410
+> r5:ef173c10 r4:ef181410
+> [   15.220683] [<c03da798>] (dev_pm_domain_detach) from [<c03d3ea0>]
+> (platform_drv_shutdown+0x34/0x38)
+> [   15.229817] [<c03d3e6c>] (platform_drv_shutdown) from [<c03d05b0>]
+> (device_shutdown+0x3c/0x194)
+
+OK, so does the appended patch help?
+
+Rafael
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: [PATCH] platform: Do not detach from PM domains on shutdown
+
+Shutdown is carried out when the driver is still bound to the
+device, so it is incorrect to detach it from a PM domain (if any)
+at this point.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/platform.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+Index: linux-pm/drivers/base/platform.c
+===================================================================
+--- linux-pm.orig/drivers/base/platform.c
++++ linux-pm/drivers/base/platform.c
+@@ -577,7 +577,6 @@ static void platform_drv_shutdown(struct
+ 
+ 	if (drv->shutdown)
+ 		drv->shutdown(dev);
+-	dev_pm_domain_detach(_dev, true);
+ }
+ 
+ /**
+
