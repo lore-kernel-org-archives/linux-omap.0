@@ -1,282 +1,98 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: /sys/class/power_supply/bq27200-0/capacity changed meaning
- between 4.1 and 4.4?
-Date: Mon, 11 Jan 2016 08:25:57 -0600
-Message-ID: <5693BB75.70409@ti.com>
-References: <20160109230709.GA30551@amd>
+From: Fabio Estevam <festevam@gmail.com>
+Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
+Date: Mon, 11 Jan 2016 12:35:28 -0200
+Message-ID: <CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1445956731-6304-3-git-send-email-tomeu.vizoso@collabora.com>
+ <CAGS+omBMJXOgsd2x9agtt7yi-y+EPgHWSTr7B3JqbN9Hg_2W5A@mail.gmail.com>
+ <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160109230709.GA30551@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
-Cc: a.hajda@samsung.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, dri-devel <dri-devel@lists.freedesktop.org>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/09/2016 05:07 PM, Pavel Machek wrote:
-> Hi!
->
-> Did /sys/class/power_supply/bq27200-0/capacity change meaning between
-> 4.1 and 4.4?
->
-> It used to report battery capacity remaining in percent.
->
-> Not sure what it reports now, but ain't in percent....
->
-> pavel@n900:/my/tui/ofone$ cat
-> /sys/class/power_supply/bq27200-0/capacity
-> 7497
-> pavel@n900:/my/tui/ofone$ uname -a
-> Linux n900 4.4.0-rc8-omap3-149467-g69aafd8-dirty #114 PREEMPT Sat Jan
-> 9 21:44:00 CET 2016 armv7l GNU/Linux
-> pavel@n900:/my/tui/ofone$
->
-> And power_supply_class.txt says:
->
-> ~ ~ ~ ~ ~ ~ ~  Charge/Energy/Capacity - how to not confuse  ~ ~ ~ ~ ~
-> ~ ~
-> ~
-> ~
-> ~ Because both "charge" (=B5Ah) and "energy" (=B5Wh) represents "capa=
-city"
-> ~
-> ~ of battery, this class distinguish these terms. Don't mix them!
-> ~
-> ~
-> ~
-> ~ CHARGE_* attributes represents capacity in =B5Ah only.
-> ~
-> ~ ENERGY_* attributes represents capacity in =B5Wh only.
-> ~
-> ~ CAPACITY attribute represents capacity in *percents*, from 0 to
-> 100.  ~
->
-> --- hmm. So that seems to be a mistake.
->
-> pavel@n900:/my/tui/ofone$ cat /sys/class/power_supply/bq27200-0/capac=
-ity
-> 7497
-> pavel@n900:/my/tui/ofone$ cat /sys/class/power_supply/bq27200-0/capac=
-ity
-> 16713
-> pavel@n900:/my/tui/ofone$ cat /sys/class/power_supply/bq27200-0/capac=
-ity
-> 25162
->
-> Converting them to hex gives rather strange values.
->
-> Hmm. .... what is this? Git blames Andrew F. Davis.The first part of
-> code suggests whole cache needs to be initialized... but the second
-> part of the code only initializes cache.time_to_empty (for example)
-> conditionaly.
->
-> Are you sure?
->
->                  if (has_ci_flag && (cache.flags & BQ27000_FLAG_CI)) =
-{
->                          dev_info(di->dev, "battery is not calibrated=
-! ignoring capacity values\n");
->                          cache.capacity =3D -ENODATA;
->                          cache.energy =3D -ENODATA;
->                          cache.time_to_empty =3D -ENODATA;
->                          cache.time_to_empty_avg =3D -ENODATA;
->                          cache.time_to_full =3D -ENODATA;
->                          cache.charge_full =3D -ENODATA;
->                          cache.health =3D -ENODATA;
->                  } else {
->                          if (di->regs[BQ27XXX_REG_TTE] !=3D INVALID_R=
-EG_ADDR)
->                                  cache.time_to_empty =3D bq27xxx_batt=
-ery_read_time(di, BQ27XXX_REG_TTE);
->                          if (di->regs[BQ27XXX_REG_TTECP] !=3D INVALID=
-_REG_ADDR)
->                                  cache.time_to_empty_avg =3D bq27xxx_=
-battery_read_time(di, BQ27XXX_REG_TT\
-> ECP);
->                          if (di->regs[BQ27XXX_REG_TTF] !=3D INVALID_R=
-EG_ADDR)
->                                  cache.time_to_full =3D bq27xxx_batte=
-ry_read_time(di, BQ27XXX_REG_TTF);
->                          cache.charge_full =3D bq27xxx_battery_read_f=
-cc(di);
->                          cache.capacity =3D bq27xxx_battery_read_soc(=
-di);
->                          if (di->regs[BQ27XXX_REG_AE] !=3D INVALID_RE=
-G_ADDR)
->                                  cache.energy =3D bq27xxx_battery_rea=
-d_energy(di);
->                          cache.health =3D bq27xxx_battery_read_health=
-(di);
->                  }
->
-> But that does not explain the wrong capacity..
->
-> -static inline int bq27xxx_read(struct bq27xxx_device_info *di, u8  r=
-eg,
-> +static inline int bq27xxx_read(struct bq27xxx_device_info *di, int  =
-reg_index,
->                                  bool single)
-> 				 {
->
->
-> This is pretty anti-social function now has completely different
-> meaning, yet same name and compatible enough not to catch mistakes.
->
-> And sure enough:
->
-> static int bq27xxx_battery_read_charge(struct bq27xxx_device_info *di=
-,u8 reg)
-> {
->          int charge;
->
->          charge =3D bq27xxx_read(di, reg, false);
->
->
-> The internal functions already check for non-existent registers. We
-> can kill the debug prints and reuse that... its better than not
-> initializing half the struct.
->
-> The types should in bq27xxx_battery_read_time should be certainly
-> fixed like the patch below suggests.
->
-> The patch does not compile, but I should be sleeping, not trying to
-> understand crazy code. Whoever wrote it, please fix it. Maybe you can
-> just do
->
->                          cache.capacity =3D -ENODATA;
->                          cache.energy =3D -ENODATA;
->                          cache.time_to_empty =3D -ENODATA;
->                          cache.time_to_empty_avg =3D -ENODATA;
->                          cache.time_to_full =3D -ENODATA;
->                          cache.charge_full =3D -ENODATA;
->                          cache.health =3D -ENODATA;
->
-> undonditionaly so that half of file does not need updating.
->
->
-> 									Pavel
->
-> diff --git a/drivers/power/bq27xxx_battery.c b/drivers/power/bq27xxx_=
-battery.c
-> index 880233c..e9f26f5 100644
-> --- a/drivers/power/bq27xxx_battery.c
-> +++ b/drivers/power/bq27xxx_battery.c
-> @@ -483,11 +483,11 @@ static int bq27xxx_battery_read_soc(struct bq27=
-xxx_device_info *di)
->    * Return a battery charge value in =B5Ah
->    * Or < 0 if something fails.
->    */
-> -static int bq27xxx_battery_read_charge(struct bq27xxx_device_info *d=
-i, u8 reg)
-> +static int bq27xxx_battery_read_charge(struct bq27xxx_device_info *d=
-i, int reg_index)
->   {
->   	int charge;
->
-> -	charge =3D bq27xxx_read(di, reg, false);
-> +	charge =3D bq27xxx_read(di, reg_index, false);
->   	if (charge < 0) {
->   		dev_dbg(di->dev, "error reading charge register %02x: %d\n",
->   			reg, charge);
-> @@ -561,7 +561,6 @@ static int bq27xxx_battery_read_energy(struct bq2=
-7xxx_device_info *di)
->
->   	ae =3D bq27xxx_read(di, BQ27XXX_REG_AE, false);
->   	if (ae < 0) {
-> -		dev_dbg(di->dev, "error reading available energy\n");
->   		return ae;
->   	}
->
-> @@ -602,8 +601,6 @@ static int bq27xxx_battery_read_cyct(struct bq27x=
-xx_device_info *di)
->   	int cyct;
->
->   	cyct =3D bq27xxx_read(di, BQ27XXX_REG_CYCT, false);
-> -	if (cyct < 0)
-> -		dev_err(di->dev, "error reading cycle count total\n");
->
->   	return cyct;
->   }
-> @@ -612,14 +609,12 @@ static int bq27xxx_battery_read_cyct(struct bq2=
-7xxx_device_info *di)
->    * Read a time register.
->    * Return < 0 if something fails.
->    */
-> -static int bq27xxx_battery_read_time(struct bq27xxx_device_info *di,=
- u8 reg)
-> +static int bq27xxx_battery_read_time(struct bq27xxx_device_info *di,=
- int reg_index)
->   {
->   	int tval;
->
-> -	tval =3D bq27xxx_read(di, reg, false);
-> +	tval =3D bq27xxx_read(di, reg_index, false);
->   	if (tval < 0) {
-> -		dev_dbg(di->dev, "error reading time register %02x: %d\n",
-> -			reg, tval);
->   		return tval;
->   	}
->
-> @@ -639,8 +634,6 @@ static int bq27xxx_battery_read_pwr_avg(struct bq=
-27xxx_device_info *di)
->
->   	tval =3D bq27xxx_read(di, BQ27XXX_REG_AP, false);
->   	if (tval < 0) {
-> -		dev_err(di->dev, "error reading average power register  %02x: %d\n=
-",
-> -			BQ27XXX_REG_AP, tval);
->   		return tval;
->   	}
->
-> @@ -731,22 +724,16 @@ static void bq27xxx_battery_update(struct bq27x=
-xx_device_info *di)
->   			cache.charge_full =3D -ENODATA;
->   			cache.health =3D -ENODATA;
->   		} else {
-> -			if (di->regs[BQ27XXX_REG_TTE] !=3D INVALID_REG_ADDR)
-> -				cache.time_to_empty =3D bq27xxx_battery_read_time(di, BQ27XXX_RE=
-G_TTE);
-> -			if (di->regs[BQ27XXX_REG_TTECP] !=3D INVALID_REG_ADDR)
-> -				cache.time_to_empty_avg =3D bq27xxx_battery_read_time(di, BQ27XX=
-X_REG_TTECP);
-> -			if (di->regs[BQ27XXX_REG_TTF] !=3D INVALID_REG_ADDR)
-> -				cache.time_to_full =3D bq27xxx_battery_read_time(di, BQ27XXX_REG=
-_TTF);
-> +			cache.time_to_empty =3D bq27xxx_battery_read_time(di, BQ27XXX_REG=
-_TTE);
-> +			cache.time_to_empty_avg =3D bq27xxx_battery_read_time(di, BQ27XXX=
-_REG_TTECP);
-> +			cache.time_to_full =3D bq27xxx_battery_read_time(di, BQ27XXX_REG_=
-TTF);
->   			cache.charge_full =3D bq27xxx_battery_read_fcc(di);
->   			cache.capacity =3D bq27xxx_battery_read_soc(di);
-> -			if (di->regs[BQ27XXX_REG_AE] !=3D INVALID_REG_ADDR)
-> -				cache.energy =3D bq27xxx_battery_read_energy(di);
-> +			cache.energy =3D bq27xxx_battery_read_energy(di);
->   			cache.health =3D bq27xxx_battery_read_health(di);
->   		}
-> -		if (di->regs[BQ27XXX_REG_CYCT] !=3D INVALID_REG_ADDR)
-> -			cache.cycle_count =3D bq27xxx_battery_read_cyct(di);
-> -		if (di->regs[BQ27XXX_REG_AP] !=3D INVALID_REG_ADDR)
-> -			cache.power_avg =3D bq27xxx_battery_read_pwr_avg(di);
-> +		cache.cycle_count =3D bq27xxx_battery_read_cyct(di);
-> +		cache.power_avg =3D bq27xxx_battery_read_pwr_avg(di);
->
->   		/* We only have to read charge design full once */
->   		if (di->charge_design_full <=3D 0)
->
-
-There was a resent overhaul of this driver and a lot of code is
-vestigial as you have seen. I've been meaning to continue
-cleaning it up, my next step would probably to bring up regmap
-on the 1wire bus, so that we could cut out a whole bunch of this
-stuff by using its built-in caching instead of this attempt at
-rolling our own.
-
-Beyond this, I see no immediate problems with these suggested
-changes, although attempting to call a function to read a value
-when that associated register is invalid doesn't make much
-sense ether, maybe clearing the cache to start would work better?
-Or maybe even just trashing the whole caching thing.
+T24gVGh1LCBKYW4gNywgMjAxNiBhdCAxMjo0NyBQTSwgVG9tZXUgVml6b3NvCjx0b21ldS52aXpv
+c29AY29sbGFib3JhLmNvbT4gd3JvdGU6Cj4gT24gMTAgTm92ZW1iZXIgMjAxNSBhdCAxMDozMywg
+RGFuaWVsIEt1cnR6IDxkamt1cnR6QGNocm9taXVtLm9yZz4gd3JvdGU6Cj4gW3NuaXBdCj4+Cj4+
+IFRoZSBwcm9ibGVtIGFwcGVhcnMgdG8gYmUgdGhhdDoKPj4gICAqIE9uIGJvb3QsIHBsYXRmb3Jt
+X2Rydl9wcm9iZSgpIGNhbGxzIGRldl9wbV9kb21haW5fYXR0YWNoKCkgYmVmb3JlCj4+IGRydi0+
+cHJvYmUoKTsgdGh1cywgaXQgY2FsbHMgZGV2X3BtX2RvbWFpbl9hdHRhY2goKSB3aGlsZSB0aGUg
+ZGV2aWNlCj4+IGlzIHVuYm91bmQuCj4+Cj4+ICAqIEhvd2V2ZXIsIGZvciBhIHBsYXRmb3JtX2Rl
+dmljZSwgdGhlIHJlYm9vdCBwYXRoIGNhbGxzCj4+IGRldmljZV9zaHV0ZG93bigpLCBidXQgbm90
+IF9fZGV2aWNlX3JlbGVhc2VfZHJpdmVyKCk6Cj4+IGRldmljZV9zaHV0ZG93bigpCj4+ICAgZGV2
+LT5kcml2ZXItPnNodXRkb3duID0+IHBsYXRmb3JtX2Rydl9zaHV0ZG93bigpCj4+ICAgICBkZXZf
+cG1fZG9tYWluX2RldGFjaCgpCj4+ICAgICAgICBkZXYtPnBtX2RvbWFpbi0+ZGV0YWNoKCkgPT4g
+Z2VucGRfZGV2X3BtX2RldGFjaCgpCj4+ICAgICAgICAgIHBtX2dlbnBkX3JlbW92ZV9kZXZpY2Uo
+KQo+PiAgICAgICAgICAgICBkZXZfcG1fZG9tYWluX3NldChkZXYsIE5VTEwpOwo+Pgo+PiBTbywg
+Zm9yIGEgcGxhdGZvcm1fZGV2aWNlIGluIGEgZ2VucGQgcG93ZXIgZG9tYWluIHdpdGggLnNodXRk
+b3duCj4+IGluc3RhbGxlZCwgcGxhdGZvcm1fZHJ2X3NodXRkb3duKCkgY2FsbHMgZGV2X3BtX2Rv
+bWFpbl9kZXRhY2goKSB3aGlsZQo+PiB0aGUgZGV2aWNlIGlzIHN0aWxsIGJvdW5kLCB3aGljaCB0
+cmlnZ2VycyB0aGUgV0FSTigpLgo+Cj4gSGkgUmFmYWVsLCBBbGFuIGFuZCBVbGYsCj4KPiBkbyB5
+b3UgaGF2ZSBhbnkgc3VnZ2VzdGlvbiBhYm91dCB0aGlzPyBJIGRvbid0IHJlYWxseSB1bmRlcnN0
+YW5kIHdoeQo+IHRoZSBkZXZpY2UgaXMgZGV0YWNoZWQgZnJvbSB0aGUgZG9tYWluIG9uIHNodXRk
+b3duLgoKSSBhbSBydW5uaW5nIGxpbnV4LW5leHQgYW5kIHRoaXMgY29tbWl0IGNhdXNlcyB0aGUg
+c2FtZSBwcm9ibGVtIGZvciBtZQpvbiBhIG14NiBhZnRlciBydW5uaW5nIGEgJ3JlYm9vdCcgY29t
+bWFuZDoKClJlcXVlc3Rpbmcgc3lzdGVtIHJlYm9vdApbICAgMTUuMDU4NzgyXSAtLS0tLS0tLS0t
+LS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KWyAgIDE1LjA2MzQ1OV0gV0FSTklORzogQ1BVOiAz
+IFBJRDogMTEyMiBhdApkcml2ZXJzL2Jhc2UvcG93ZXIvY29tbW9uLmM6MTUwIGRldl9wbV9kb21h
+aW5fc2V0KzB4NGMvMHg1OCgpClsgICAxNS4wNzI4MzhdIFBNIGRvbWFpbnMgY2FuIG9ubHkgYmUg
+Y2hhbmdlZCBmb3IgdW5ib3VuZCBkZXZpY2VzClsgICAxNS4wNzg3MzVdIE1vZHVsZXMgbGlua2Vk
+IGluOgpbICAgMTUuMDgxODQ5XSBDUFU6IDMgUElEOiAxMTIyIENvbW06IGluaXQgTm90IHRhaW50
+ZWQKNC40LjAtcmM4LW5leHQtMjAxNjAxMTEtZGlydHkgIzIwNwpbICAgMTUuMDg5ODI2XSBIYXJk
+d2FyZSBuYW1lOiBGcmVlc2NhbGUgaS5NWDYgUXVhZC9EdWFsTGl0ZSAoRGV2aWNlIFRyZWUpClsg
+ICAxNS4wOTYzNzVdIEJhY2t0cmFjZToKWyAgIDE1LjA5ODk0MV0gWzxjMDAxMzZkOD5dIChkdW1w
+X2JhY2t0cmFjZSkgZnJvbSBbPGMwMDEzODc0Pl0KKHNob3dfc3RhY2srMHgxOC8weDFjKQpbICAg
+MTUuMTA2NTMyXSAgcjY6MDAwMDAwOTYgcjU6MDAwMDAwMDAgcjQ6MDAwMDAwMDAgcjM6MDAwMDAw
+MDAKWyAgIDE1LjExMjM5MF0gWzxjMDAxMzg1Yz5dIChzaG93X3N0YWNrKSBmcm9tIFs8YzAyZGU4
+OWM+XQooZHVtcF9zdGFjaysweDg4LzB4YTQpClsgICAxNS4xMTk3MDhdIFs8YzAyZGU4MTQ+XSAo
+ZHVtcF9zdGFjaykgZnJvbSBbPGMwMDJiY2FjPl0KKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4ODAv
+MHhiYykKWyAgIDE1LjEyNzg2MF0gIHI1OmMwM2RhODEwIHI0OmVlNjNiZDY4ClsgICAxNS4xMzE1
+MzNdIFs8YzAwMmJjMmM+XSAod2Fybl9zbG93cGF0aF9jb21tb24pIGZyb20gWzxjMDAyYmQ4Yz5d
+Cih3YXJuX3Nsb3dwYXRoX2ZtdCsweDM4LzB4NDApClsgICAxNS4xNDAyOTJdICByODplZWEwMWRi
+MCByNzpjMGIwZjg3YyByNjplZWEwMWQ4MCByNTowMDAwMDAwMCByNDplZjE4MTQxMApbICAgMTUu
+MTQ3MTY1XSBbPGMwMDJiZDU4Pl0gKHdhcm5fc2xvd3BhdGhfZm10KSBmcm9tIFs8YzAzZGE4MTA+
+XQooZGV2X3BtX2RvbWFpbl9zZXQrMHg0Yy8weDU4KQpbICAgMTUuMTU1NjYxXSAgcjM6YzBiMGY3
+ZjAgcjI6YzA5ZTgyZGMKWyAgIDE1LjE1OTM3M10gWzxjMDNkYTdjND5dIChkZXZfcG1fZG9tYWlu
+X3NldCkgZnJvbSBbPGMwM2U0ZTVjPl0KKGdlbnBkX2ZyZWVfZGV2X2RhdGErMHgyMC8weDUwKQpb
+ICAgMTUuMTY4MDY1XSAgcjU6ZWYxODE0YTAgcjQ6ZWYxODE0MTAKWyAgIDE1LjE3MTczN10gWzxj
+MDNlNGUzYz5dIChnZW5wZF9mcmVlX2Rldl9kYXRhKSBmcm9tIFs8YzAzZTVmZTQ+XQoocG1fZ2Vu
+cGRfcmVtb3ZlX2RldmljZSsweGI0LzB4ZTApClsgICAxNS4xODA4NDJdICByNjplZjE4MTQxMCBy
+NTplZWEwMWQ4MCByNDpjMGIwZjdmMCByMzowMDAwMDAwMApbICAgMTUuMTg2NjQ0XSBbPGMwM2U1
+ZjMwPl0gKHBtX2dlbnBkX3JlbW92ZV9kZXZpY2UpIGZyb20gWzxjMDNlNjA0MD5dCihnZW5wZF9k
+ZXZfcG1fZGV0YWNoKzB4MzAvMHhhYykKWyAgIDE1LjE5NTc0M10gIHI4OmMwYjBmN2YwIHI3OmMx
+Mzc5NzM0IHI2OjAwMDAwMDAxIHI1OmMwYjIwOWM0CnI0OmVmMTgxNDEwIHIzOjAwMDAwMDAwClsg
+ICAxNS4yMDM2OTRdIFs8YzAzZTYwMTA+XSAoZ2VucGRfZGV2X3BtX2RldGFjaCkgZnJvbSBbPGMw
+M2RhN2MwPl0KKGRldl9wbV9kb21haW5fZGV0YWNoKzB4MjgvMHgyYykKWyAgIDE1LjIxMjYyMV0g
+IHIxMDplZjE4MTQ0NCByODpjMGI2ZjU2MCByNzpjMTM3OTczNCByNjplZjE4MTQxMApyNTplZjE3
+M2MxMCByNDplZjE4MTQxMApbICAgMTUuMjIwNjgzXSBbPGMwM2RhNzk4Pl0gKGRldl9wbV9kb21h
+aW5fZGV0YWNoKSBmcm9tIFs8YzAzZDNlYTA+XQoocGxhdGZvcm1fZHJ2X3NodXRkb3duKzB4MzQv
+MHgzOCkKWyAgIDE1LjIyOTgxN10gWzxjMDNkM2U2Yz5dIChwbGF0Zm9ybV9kcnZfc2h1dGRvd24p
+IGZyb20gWzxjMDNkMDViMD5dCihkZXZpY2Vfc2h1dGRvd24rMHgzYy8weDE5NCkKWyAgIDE1LjIz
+ODU3OV0gIHI0OmVmMTgxNDFjIHIzOmMwM2QzZTZjClsgICAxNS4yNDIyNTldIFs8YzAzZDA1NzQ+
+XSAoZGV2aWNlX3NodXRkb3duKSBmcm9tIFs8YzAwNGQ1MWM+XQooa2VybmVsX3Jlc3RhcnRfcHJl
+cGFyZSsweDM0LzB4NDApClsgICAxNS4yNTEwMjFdICByMTA6MDAwMDAwMDAgcjg6YzAwMTAwNDQg
+cjc6MDAwMDAwMDAgcjY6YzBiMTIwY2MKcjU6NDMyMWZlZGMgcjQ6MDAwMDAwMDAKWyAgIDE1LjI1
+OTA2NV0gWzxjMDA0ZDRlOD5dIChrZXJuZWxfcmVzdGFydF9wcmVwYXJlKSBmcm9tIFs8YzAwNGQ3
+MjQ+XQooa2VybmVsX3Jlc3RhcnQrMHgxNC8weDU4KQpbICAgMTUuMjY3NzYwXSBbPGMwMDRkNzEw
+Pl0gKGtlcm5lbF9yZXN0YXJ0KSBmcm9tIFs8YzAwNGQ5NDg+XQooU3lTX3JlYm9vdCsweDE4Yy8w
+eDFlNCkKWyAgIDE1LjI3NTUyNl0gIHI0OjAxMjM0NTY3IHIzOjAxMjM0NTY3ClsgICAxNS4yNzky
+NDJdIFs8YzAwNGQ3YmM+XSAoU3lTX3JlYm9vdCkgZnJvbSBbPGMwMDBmZWEwPl0KKHJldF9mYXN0
+X3N5c2NhbGwrMHgwLzB4MWMpClsgICAxNS4yODY5MjBdICByNzowMDAwMDA1OCByNjowMDAwMDAw
+MCByNTowMDAwMDAwMCByNDowMDAwMDAwMApbICAgMTUuMjkyNzU0XSAtLS1bIGVuZCB0cmFjZSAz
+YjQxOWQzY2JiMzY3YTExIF0tLS0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
+cmktZGV2ZWwK
