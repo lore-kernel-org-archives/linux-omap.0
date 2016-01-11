@@ -1,41 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap2plus_defconfig: enable SPLIT and DWARF4
-Date: Mon, 11 Jan 2016 15:34:39 -0800
-Message-ID: <20160111233438.GB12777@atomide.com>
-References: <1452547572-23515-1-git-send-email-balbi@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: arm qemu boot failures in -next due to 'PM / Domains: add setter
+ for dev.pm_domain'
+Date: Mon, 11 Jan 2016 15:39:39 -0800
+Message-ID: <56943D3B.8010600@roeck-us.net>
+References: <5693EB8A.40802@roeck-us.net> <20160111185459.GZ12777@atomide.com>
+ <20160111200450.GA16902@roeck-us.net> <7302125.veLBHLkdLG@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1452547572-23515-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7302125.veLBHLkdLG@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tony Lindgren <tony@atomide.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [160111 13:26]:
-> CONFIG_DEBUG_INFO_SPLIT will split debug info on
-> .dwo files. This will generate a smaller vmlinux and
-> smaller .ko modules, which will be easier to ship on
-> certain products.
-> 
-> CONFIG_DEBUG_INFO_DWARF4 will generate debug info in
-> DWARF4 format, which ends up being larger, but
-> improves the probability of resolving variables in
-> optmized code.
+On 01/11/2016 02:49 PM, Rafael J. Wysocki wrote:
+> On Monday, January 11, 2016 12:04:50 PM Guenter Roeck wrote:
+>> On Mon, Jan 11, 2016 at 10:55:00AM -0800, Tony Lindgren wrote:
+>>> * Guenter Roeck <linux@roeck-us.net> [160111 09:51]:
+>>>> Hi,
+>>>>
+>>>> I see 6 out of 24 arm qemu tests failing in next-20160111. Bisect points
+>>>> to commit 989561de9b51 ("PM / Domains: add setter for dev.pm_domain").
+>>>> Failures are silent - there is no output on the console.
+>>>> Affected tests are
+>>>>
+>>>> arm:beagle:multi_v7_defconfig:omap3-beagle
+>>>> arm:beaglexm:multi_v7_defconfig:omap3-beagle-xm
+>>>> arm:overo:multi_v7_defconfig:omap3-overo-tobi
+>>>> arm:beagle:omap2plus_defconfig:omap3-beagle
+>>>> arm:beaglexm:omap2plus_defconfig:omap3-beagle-xm
+>>>> arm:overo:omap2plus_defconfig:omap3-overo-tobi
+>>>>
+>>>> For details please see the 'next' column at http://server.roeck-us.net:8010/builders.
+>>>>
+>>>> Reverting the offending commit fixes the problems.
+>>>>
+>>>> Please let me know if there is anything I can do to help tracking down the problem.
+>>>
+>>> The following fixes the booting, but I wonder if it's a
+>>
+>> Yes, it does.
+>>
+>> Tested-by: Guenter Roeck <linux@roeck-us.net>
+>>
+>>> proper fix?
+>>>
+>> That I don't know.
+>
+> If I'm not mistaken, what happens is that device_is_bound() tries to
+> dereference dev->p which is NULL.  If that's the case, the appended one
+> should help too.
+>
+> Can you please check?
+>
+> ---
+>   drivers/base/dd.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> Index: linux-pm/drivers/base/dd.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/dd.c
+> +++ linux-pm/drivers/base/dd.c
+> @@ -234,7 +234,7 @@ late_initcall(deferred_probe_initcall);
+>    */
+>   bool device_is_bound(struct device *dev)
+>   {
+> -	return klist_node_attached(&dev->p->knode_driver);
+> +	return dev->p && klist_node_attached(&dev->p->knode_driver);
 
-Nice, this makes my initramfs go down from about 17MB
-to 4.7 MB :)
+Yes, that fixes the problem as well.
 
-Regards,
-
-Tony
+Guenter
