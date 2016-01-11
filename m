@@ -1,67 +1,117 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 0/2] DRA72/DRA74: Add 2 lane support
-Date: Mon, 11 Jan 2016 13:39:02 +0530
-Message-ID: <5693631E.2050807@ti.com>
-References: <1452077393-25880-1-git-send-email-kishon@ti.com>
- <20160107174126.GB14105@localhost> <20160107181320.GO12777@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: twl-core: One function call less in
+ add_numbered_child() after error detection
+Date: Mon, 11 Jan 2016 08:29:22 +0000
+Message-ID: <20160111082922.GB14104@x1>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <5682D228.7070902@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160107181320.GO12777@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Richard Cochran <richardcochran@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5682D228.7070902@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On Tue, 29 Dec 2015, SF Markus Elfring wrote:
 
-On Thursday 07 January 2016 11:43 PM, Tony Lindgren wrote:
-> * Bjorn Helgaas <helgaas@kernel.org> [160107 09:42]:
->> [+cc Richard]
->>
->> Hi Kishon,
->>
->> On Wed, Jan 06, 2016 at 04:19:51PM +0530, Kishon Vijay Abraham I wrote:
->>> Add driver modifications in pci-dra7xx to get x2 mode working in
->>> DRA72 and DRA74. Certain modifications is needed in PHY driver also
->>> which will be sent as a separate series.
->>>
->>> Certain board modifications has to be done in order to test
->>> x2 mode in dra72-evm.
->>>
->>> These patches were created on pci next.
->>>
->>> Changes from RFC:
->>> *) .b1co_mode_sel_mask is now set with the correct value.
->>> *) cleanup the patch
->>>
->>> Kishon Vijay Abraham I (2):
->>>   pci: host: pci-dra7xx: use "num-lanes" property to find phy count
->>>   pci: host: pci-dra7xx: Enable x2 mode support
->>>
->>>  Documentation/devicetree/bindings/pci/ti-pci.txt |    8 +-
->>>  drivers/pci/host/pci-dra7xx.c                    |  104 +++++++++++++++++++---
->>>  2 files changed, 97 insertions(+), 15 deletions(-)
->>
->> Apparently dra7xx in mainline doesn't work [1].  Until that's
->> resolved, I'm going to ignore dra7xx patches.
-> 
-> Agreed. Guys, please do the development _and_ testing on the mainline
-> kernel. We do have the mainline kernel usable for probably a few
-> tens of omap SoC variants. If you have issues using dra7 with mainline,
-> please fix those issues ASAP.
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Tue, 29 Dec 2015 19:29:08 +0100
+>=20
+> The platform_device_put() function was called in one case by the
+> add_numbered_child() function during error handling even if the passe=
+d
+> variable "pdev" contained a null pointer.
+>=20
+> Implementation details could be improved by the adjustment of jump ta=
+rgets
+> according to the Linux coding style convention.
+>=20
+> This issue was detected by using the Coccinelle software.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/mfd/twl-core.c | 21 ++++++++++-----------
+>  1 file changed, 10 insertions(+), 11 deletions(-)
+>=20
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 831696e..0d9350c 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -625,7 +625,7 @@ add_numbered_child(unsigned mod_no, const char *n=
+ame, int num,
+>  	if (!pdev) {
+>  		dev_dbg(&twl->client->dev, "can't alloc dev\n");
 
-Here Bjorn meant pci-dra7xx is broken in mainline and not the dra7xx boot
-as such. (which is due to the absence of reset controller driver).
-All the patches to pci-dra7xx were tested on mainline kernel (having
-out-of-tree reset patches since the reset controller driver is not merged).
-> 
-> Ideally of course please also use the device you're working on to
-> send out the patches :)
+Change this to be dev_err()
 
-dra7x is the only device that use this pci driver and all the patches to
-pci-dra7xx have been tested on both dra7 and dra72 boards.
+>  		status =3D -ENOMEM;
+> -		goto err;
+> +		goto report_failure;
 
-Thanks
-Kishon
+=2E.. and just return status from here.
+
+>  	}
+> =20
+>  	pdev->dev.parent =3D &twl->client->dev;
+> @@ -634,7 +634,7 @@ add_numbered_child(unsigned mod_no, const char *n=
+ame, int num,
+>  		status =3D platform_device_add_data(pdev, pdata, pdata_len);
+>  		if (status < 0) {
+>  			dev_dbg(&pdev->dev, "can't add platform_data\n");
+> -			goto err;
+> +			goto put_device;
+>  		}
+>  	}
+> =20
+> @@ -647,21 +647,20 @@ add_numbered_child(unsigned mod_no, const char =
+*name, int num,
+>  		status =3D platform_device_add_resources(pdev, r, irq1 ? 2 : 1);
+>  		if (status < 0) {
+>  			dev_dbg(&pdev->dev, "can't add irqs\n");
+> -			goto err;
+> +			goto put_device;
+>  		}
+>  	}
+> =20
+>  	status =3D platform_device_add(pdev);
+> -	if (status =3D=3D 0)
+> +	if (!status) {
+
+You've changed the way you handle errors from this point.  To be more
+consistent it would be better if you checked for status, then jump to
+put_device in the case of a failure, as you do above.
+
+>  		device_init_wakeup(&pdev->dev, can_wakeup);
+> -
+> -err:
+> -	if (status < 0) {
+> -		platform_device_put(pdev);
+> -		dev_err(&twl->client->dev, "can't add %s dev\n", name);
+> -		return ERR_PTR(status);
+> +		return &pdev->dev;
+>  	}
+> -	return &pdev->dev;
+> +put_device:
+> +	platform_device_put(pdev);
+> +report_failure:
+> +	dev_err(&twl->client->dev, "can't add %s dev\n", name);
+> +	return ERR_PTR(status);
+>  }
+> =20
+>  static inline struct device *add_child(unsigned mod_no, const char *=
+name,
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe kernel-janito=
+rs" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
