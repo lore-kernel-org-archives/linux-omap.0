@@ -1,106 +1,81 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and
- charging of backup battery
-Date: Mon, 11 Jan 2016 16:09:17 -0800
-Message-ID: <20160112000917.GC12777@atomide.com>
-References: <8FE6954B-6411-4593-9CE5-717A469A6AA8@goldelico.com>
- <20160106164136.GI12777@atomide.com>
- <2AC46952-3758-458A-B0A5-1794C207BD4C@goldelico.com>
- <20160106170925.GK12777@atomide.com>
- <66F37918-EA7F-4D83-8B5F-A6B5C0CD7623@goldelico.com>
- <20160108181551.GX12777@atomide.com>
- <832803EE-E4CB-46B1-BF39-2DC0BB695A5D@goldelico.com>
- <20160108190457.GY12777@atomide.com>
- <CCB763BE-5D1F-4A53-BF9A-C12C08A6EFC4@goldelico.com>
- <20160111202421.GA12777@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: arm qemu boot failures in -next due to 'PM / Domains: add setter
+ for dev.pm_domain'
+Date: Mon, 11 Jan 2016 16:15:32 -0800
+Message-ID: <20160112001532.GD12777@atomide.com>
+References: <5693EB8A.40802@roeck-us.net>
+ <20160111185459.GZ12777@atomide.com>
+ <20160111200450.GA16902@roeck-us.net>
+ <7302125.veLBHLkdLG@vostro.rjw.lan>
+ <56943D3B.8010600@roeck-us.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160111202421.GA12777-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, =?utf-8?Q?Gra=C5=BEvydas?= Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <56943D3B.8010600@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160111 12:27]:
+* Guenter Roeck <linux@roeck-us.net> [160111 15:40]:
+> On 01/11/2016 02:49 PM, Rafael J. Wysocki wrote:
+> >On Monday, January 11, 2016 12:04:50 PM Guenter Roeck wrote:
+> >>On Mon, Jan 11, 2016 at 10:55:00AM -0800, Tony Lindgren wrote:
+> >>>* Guenter Roeck <linux@roeck-us.net> [160111 09:51]:
+> >>>>Hi,
+> >>>>
+> >>>>I see 6 out of 24 arm qemu tests failing in next-20160111. Bisect points
+> >>>>to commit 989561de9b51 ("PM / Domains: add setter for dev.pm_domain").
+> >>>>Failures are silent - there is no output on the console.
+> >>>>Affected tests are
+> >>>>
+> >>>>arm:beagle:multi_v7_defconfig:omap3-beagle
+> >>>>arm:beaglexm:multi_v7_defconfig:omap3-beagle-xm
+> >>>>arm:overo:multi_v7_defconfig:omap3-overo-tobi
+> >>>>arm:beagle:omap2plus_defconfig:omap3-beagle
+> >>>>arm:beaglexm:omap2plus_defconfig:omap3-beagle-xm
+> >>>>arm:overo:omap2plus_defconfig:omap3-overo-tobi
+> >>>>
+> >>>>For details please see the 'next' column at http://server.roeck-us.net:8010/builders.
+> >>>>
+> >>>>Reverting the offending commit fixes the problems.
+> >>>>
+> >>>>Please let me know if there is anything I can do to help tracking down the problem.
+> >>>
+> >>>The following fixes the booting, but I wonder if it's a
+> >>
+> >>Yes, it does.
+> >>
+> >>Tested-by: Guenter Roeck <linux@roeck-us.net>
+> >>
+> >>>proper fix?
+> >>>
+> >>That I don't know.
+> >
+> >If I'm not mistaken, what happens is that device_is_bound() tries to
+> >dereference dev->p which is NULL.  If that's the case, the appended one
+> >should help too.
+> >
+> >Can you please check?
+> >
+> >---
+> >  drivers/base/dd.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> >Index: linux-pm/drivers/base/dd.c
+> >===================================================================
+> >--- linux-pm.orig/drivers/base/dd.c
+> >+++ linux-pm/drivers/base/dd.c
+> >@@ -234,7 +234,7 @@ late_initcall(deferred_probe_initcall);
+> >   */
+> >  bool device_is_bound(struct device *dev)
+> >  {
+> >-	return klist_node_attached(&dev->p->knode_driver);
+> >+	return dev->p && klist_node_attached(&dev->p->knode_driver);
 > 
-> OK so the issue is that the twl msecure pin should be high to enable
-> the RTC registers. We used to have that code with platform_data, but
-> no longer have it with device tree based booting. I'll send a patch
-> for that.
-> 
-> Curiously setting jumper j5 on beagle-x15 that controls what used to
-> be the msecure and now is powerhold, does the opposite.. The
-> device boots automatically but RTC is stopped?
+> Yes, that fixes the problem as well.
 
-And here's a fix the issue for omap5. Beagle-x15 needs to be
-investigated more.
+Yeah works for me too:
 
-Care to test it with your RTC enabling patch?
-
-Regards,
-
-Tony
-
-8< ---------------
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Mon, 11 Jan 2016 14:35:24 -0800
-Subject: [PATCH] ARM: dts: Fix omap5 PMIC control lines for RTC writes
-
-The palmas PMIC has some control lines that need to be muxed properly
-for things to work. The sys_nirq pin is used for interrupts, and msecure
-pin is used for enabling writes to some PMIC registers.
-
-Without these pins configured properly things can fail in mysterious
-ways. For example, we can't update the RTC registers on palmas PMIC
-unless the msecure pin is configured. And this is probably the reason
-why we had RTC missing from the omap5 dts file.
-
-According to "OMAP5430 ES2.0 Data Manual [Public] VErsion A (Rev. F)"
-swps052f.pdf, mux mode 1 is for sys_drm_msecure so there's no need to
-configure it as a GPIO pin.
-
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -213,6 +213,12 @@
- 		>;
- 	};
- 
-+	palmas_msecure_pins: palmas_msecure_pins {
-+		pinctrl-single,pins = <
-+			OMAP5_IOPAD(0x180, PIN_OUTPUT | MUX_MODE1) /* gpio8_234.sys_drm_msecure */
-+		>;
-+	};
-+
- 	usbhost_pins: pinmux_usbhost_pins {
- 		pinctrl-single,pins = <
- 			0x84 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_strobe */
-@@ -278,6 +284,12 @@
- 			&usbhost_wkup_pins
- 	>;
- 
-+	palmas_sys_nirq_pins: pinmux_palmas_sys_nirq_pins {
-+		pinctrl-single,pins = <
-+			OMAP5_IOPAD(0x068, PIN_INPUT_PULLUP | MUX_MODE0) /* sys_nirq1 */
-+		>;
-+	};
-+
- 	usbhost_wkup_pins: pinmux_usbhost_wkup_pins {
- 		pinctrl-single,pins = <
- 			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out, USB hub clk */
-@@ -345,6 +357,8 @@
- 		interrupt-controller;
- 		#interrupt-cells = <2>;
- 		ti,system-power-controller;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&palmas_sys_nirq_pins &palmas_msecure_pins>;
- 
- 		extcon_usb3: palmas_usb {
- 			compatible = "ti,palmas-usb-vid";
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested-by: Tony Lindgren <tony@atomide.com>
