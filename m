@@ -1,89 +1,95 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: arm qemu boot failures in -next due to 'PM / Domains: add setter
- for dev.pm_domain'
-Date: Tue, 12 Jan 2016 01:24:28 +0100
-Message-ID: <CAJZ5v0gvvXkj16Ac_dWnx4ew+Y7biaR54HCsyHkqo_f9PPPmAQ@mail.gmail.com>
-References: <5693EB8A.40802@roeck-us.net>
-	<20160111185459.GZ12777@atomide.com>
-	<20160111200450.GA16902@roeck-us.net>
-	<7302125.veLBHLkdLG@vostro.rjw.lan>
-	<56943D3B.8010600@roeck-us.net>
-	<20160112001532.GD12777@atomide.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [OOPS] In __netif_receive_skb_core
+Date: Tue, 12 Jan 2016 02:51:06 +0200
+Message-ID: <56944DFA.4050002@gmail.com>
+References: <568EA671.7000502@gmail.com> <56929985.3020502@gmail.com>
+ <1452457610.16445.13.camel@edumazet-glaptop2.roam.corp.google.com>
+ <5694188F.80907@gmail.com>
+ <CAO7SqHA9dNUDG+pYJoQvipE_ErM4Bgo0_o9er_OLxZLDgNVJ8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160112001532.GD12777@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAO7SqHA9dNUDG+pYJoQvipE_ErM4Bgo0_o9er_OLxZLDgNVJ8Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salam Noureddine <noureddine@arista.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, "David S. Miller" <davem@davemloft.net>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 12, 2016 at 1:15 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Guenter Roeck <linux@roeck-us.net> [160111 15:40]:
->> On 01/11/2016 02:49 PM, Rafael J. Wysocki wrote:
->> >On Monday, January 11, 2016 12:04:50 PM Guenter Roeck wrote:
->> >>On Mon, Jan 11, 2016 at 10:55:00AM -0800, Tony Lindgren wrote:
->> >>>* Guenter Roeck <linux@roeck-us.net> [160111 09:51]:
->> >>>>Hi,
->> >>>>
->> >>>>I see 6 out of 24 arm qemu tests failing in next-20160111. Bisect points
->> >>>>to commit 989561de9b51 ("PM / Domains: add setter for dev.pm_domain").
->> >>>>Failures are silent - there is no output on the console.
->> >>>>Affected tests are
->> >>>>
->> >>>>arm:beagle:multi_v7_defconfig:omap3-beagle
->> >>>>arm:beaglexm:multi_v7_defconfig:omap3-beagle-xm
->> >>>>arm:overo:multi_v7_defconfig:omap3-overo-tobi
->> >>>>arm:beagle:omap2plus_defconfig:omap3-beagle
->> >>>>arm:beaglexm:omap2plus_defconfig:omap3-beagle-xm
->> >>>>arm:overo:omap2plus_defconfig:omap3-overo-tobi
->> >>>>
->> >>>>For details please see the 'next' column at http://server.roeck-us.net:8010/builders.
->> >>>>
->> >>>>Reverting the offending commit fixes the problems.
->> >>>>
->> >>>>Please let me know if there is anything I can do to help tracking down the problem.
->> >>>
->> >>>The following fixes the booting, but I wonder if it's a
->> >>
->> >>Yes, it does.
->> >>
->> >>Tested-by: Guenter Roeck <linux@roeck-us.net>
->> >>
->> >>>proper fix?
->> >>>
->> >>That I don't know.
->> >
->> >If I'm not mistaken, what happens is that device_is_bound() tries to
->> >dereference dev->p which is NULL.  If that's the case, the appended one
->> >should help too.
->> >
->> >Can you please check?
->> >
->> >---
->> >  drivers/base/dd.c |    2 +-
->> >  1 file changed, 1 insertion(+), 1 deletion(-)
->> >
->> >Index: linux-pm/drivers/base/dd.c
->> >===================================================================
->> >--- linux-pm.orig/drivers/base/dd.c
->> >+++ linux-pm/drivers/base/dd.c
->> >@@ -234,7 +234,7 @@ late_initcall(deferred_probe_initcall);
->> >   */
->> >  bool device_is_bound(struct device *dev)
->> >  {
->> >-    return klist_node_attached(&dev->p->knode_driver);
->> >+    return dev->p && klist_node_attached(&dev->p->knode_driver);
->>
->> Yes, that fixes the problem as well.
->
-> Yeah works for me too:
->
-> Tested-by: Tony Lindgren <tony@atomide.com>
 
-OK, thanks!
 
-I'll add a changelog to this one and queue it up then.
+On 12.01.2016 00:11, Salam Noureddine wrote:
+> Would you be able to disassemble your kernel so we could tell where
+> the null pointer dereference happens?
+>
+
+Sure, but wouldn't it be better to provide the object file containing 
+the debug symbols as well?
+
+Otherwise, the null pointer dereference happens somewhere in:
+
+(gdb) l *__netif_receive_skb_core+0x7c0
+0x1318 is in __netif_receive_skb_core (include/linux/compiler.h:218).
+213	})
+214	
+215	static __always_inline
+216	void __read_once_size(const volatile void *p, void *res, int size)
+217	{
+218		__READ_ONCE_SIZE;
+219	}
+220	
+221	#ifdef CONFIG_KASAN
+222	/*
+
+(gdb) l *__netif_receive_skb_core+0x7bc
+0x1314 is in __netif_receive_skb_core (net/core/dev.c:3934).
+3929		}
+3930	
+3931		deliver_ptype_list_skb(skb, &pt_prev, orig_dev, type,
+3932				       &orig_dev->ptype_specific);
+3933	
+3934		if (unlikely(skb->dev != orig_dev)) {
+3935			deliver_ptype_list_skb(skb, &pt_prev, orig_dev, type,
+3936					       &skb->dev->ptype_specific);
+3937		}
+3938	
+
+(gdb) l *__netif_receive_skb_core+0x7c4
+0x131c is in __netif_receive_skb_core (net/core/dev.c:3935).
+3930	
+3931		deliver_ptype_list_skb(skb, &pt_prev, orig_dev, type,
+3932				       &orig_dev->ptype_specific);
+3933	
+3934		if (unlikely(skb->dev != orig_dev)) {
+3935			deliver_ptype_list_skb(skb, &pt_prev, orig_dev, type,
+3936					       &skb->dev->ptype_specific);
+3937		}
+3938	
+3939		if (pt_prev) {
+
+
+0x00001300 <+1960>:	cmp	r10, r3
+0x00001304 <+1964>:	bne	0x1284 <__netif_receive_skb_core+1836>
+0x00001308 <+1968>:	ldr	r4, [sp, #12]
+0x0000130c <+1972>:	ldr	r3, [r4, #20]
+0x00001310 <+1976>:	cmp	r3, r6
+0x00001314 <+1980>:	beq	0x13b0 <__netif_receive_skb_core+2136>
+
+0x00001318 <+1984>:	ldr	r5, [r3, #92]	; 0x5c   <-FAULT
+
+r3 seems to be skb->dev
+
+0x0000131c <+1988>:	add	r10, r3, #92	; 0x5c
+0x00001320 <+1992>:	add	r8, r4, #180	; 0xb4
+0x00001324 <+1996>:	sub	r5, r5, #20
+0x00001328 <+2000>:	b	0x13a4 <__netif_receive_skb_core+2124>
+0x0000132c <+2004>:	ldrh	r3, [r5]
+0x00001330 <+2008>:	cmp	r3, r7
+
+
+I put some additional printks around that code, and it turned out that 
+skb->dev is null, so "if (unlikely(skb->dev != orig_dev))" succeeds, but 
+"&skb->dev->ptype_specific" oopses.
 
 Thanks,
-Rafael
+Ivo
