@@ -1,8 +1,8 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: /sys/class/power_supply/bq27200-0/capacity changed meaning
  between 4.1 and 4.4?
-Date: Wed, 13 Jan 2016 11:32:41 +0100
-Message-ID: <20160113103241.GH11560@pali>
+Date: Wed, 13 Jan 2016 12:01:38 +0100
+Message-ID: <20160113110138.GA27129@amd>
 References: <20160109230709.GA30551@amd>
  <5693BB75.70409@ti.com>
  <20160111214247.GA9735@amd>
@@ -12,18 +12,18 @@ References: <20160109230709.GA30551@amd>
  <20160113084424.GC11560@pali>
  <20160113102613.GA28729@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20160113102613.GA28729@earth>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, "Andrew F. Davis" <afd@ti.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, a.hajda@samsung.com
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, "Andrew F. Davis" <afd@ti.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, a.hajda@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 13 January 2016 11:26:13 Sebastian Reichel wrote:
-> On Wed, Jan 13, 2016 at 09:44:24AM +0100, Pali Roh=C3=A1r wrote:
+On Wed 2016-01-13 11:26:13, Sebastian Reichel wrote:
+> On Wed, Jan 13, 2016 at 09:44:24AM +0100, Pali Roh=E1r wrote:
 > > On Tuesday 12 January 2016 22:53:52 Pavel Machek wrote:
 > > > Hi!
 > > >=20
@@ -60,10 +60,7 @@ ne
 focus=3D69714
 > > http://thread.gmane.org/gmane.linux.power-management.general/69716/=
 focus=3D2110580
-
-Hm... It looks like Pavel's patch is subset of this 3rd patch as it fix
-function bq27xxx_battery_read_soc()
-
+> >=20
 > > Sebastian, please take them and ideally send to stable@ for backpor=
 ting.
 >=20
@@ -71,10 +68,17 @@ ting.
 > tagged with a 'Fixes: <sha1> ("title")' tag, so please always
 > include it in your commit messages, if possible :)
 
-I have not sent those patches, but OK. In that email thread you can fin=
-d
-sha1 commit id which broke it.
+Heh, sorry about that, but I don't know what it fixed. I guess git
+blame would tell us.=20
 
+Anyway,
+http://thread.gmane.org/gmane.linux.power-management.general/69716/focu=
+s=3D2110580
+fixed an regression in 4.4 kernel, and did not get to 4.4, which is
+rather sad :-(.
+
+									Pavel
 --=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
