@@ -1,55 +1,57 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging
- of backup battery
-Date: Wed, 13 Jan 2016 16:32:55 -0600
-Message-ID: <5696D097.3040208@gmail.com>
-References: <001346CD-CF31-4FEF-B406-B89EEBDFA063@goldelico.com>
- <56966558.1070608@ti.com> <569669C5.2070200@ti.com>
- <20160113164856.GF12777@atomide.com> <5696896F.4090309@ti.com>
- <20160113180006.GJ12777@atomide.com>
- <2B99611A-5D2E-4D17-A17D-0150516109FD@goldelico.com>
- <56969800.5010206@ti.com>
- <D6479E92-4226-4B07-95F3-C0DF092B827C@goldelico.com>
- <5696A002.6050402@ti.com> <20160113194032.GL12777@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
+Date: Wed, 13 Jan 2016 15:22:31 -0800
+Message-ID: <20160113232230.GQ12600@atomide.com>
+References: <20151224072926.GE29642@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160113194032.GL12777@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, =?UTF-8?Q?Gra=c5=bevydas_Ignotas?= <notasas@gmail.com>, Keerthy <j-keerthy@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20151224072926.GE29642@mwanda>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/13/2016 01:40 PM, Tony Lindgren wrote:
-
-> Anyways, considering what's been discussed, after the minimal RTC fix
-> we could also add code to allow the TWL driver optionally configure the
-> GPIO. This way the TWL driver could also check the GPIO state in case
-> some out-of-our-control mystery software goes tweak the msecure pin
-> state.
-
-I dont even know how that will work:
-If you are using MSECURE as it is intended to be, then you'd mux it to
-msecure, which means that GPIO read is just a waste of time - you dont
-even mux it to external world. Now, some SoCs like DRA7 has input lines
-always connected. even assuming this is for such a case:
-a) when you are running linux, you are already in nonsecure - it needs
-no read of MSECURE GPIO to figure that out.
-b)  when you are in secure world, Linux wont be running either.
-
-Reading from GPIO is just misguided in my opinion. firewalls are not
-reconfigured, and muxes are usually done a single time.
-
- Or the RTC driver could just check that the bits really change
-> after= writing them. Then we would at least know things are not working
-> right for the TWL related RTC drivers.
-
-that is reasonable to check, but just a overhead - anyways, just
-isolated to palmas-rtc.. fail reason maynot always be issues with
-MSECURE mux.. it could be very well be 32k clk fail etc.. but yeah -
-that might give a hint that there is an issue..
-
--- 
-Regards,
-Nishanth Menon
+SGksCgoqIERhbiBDYXJwZW50ZXIgPGRhbi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4gWzE1MTIyMyAy
+MzoyOV06Cj4gWyBJdCdzIHdlaXJkIHRoYXQgSSdtIGp1c3Qgbm93IGdldHRpbmcgdGhpcyB3YXJu
+aW5nIGZyb20gMjAxNC4uLiAgT2gKPiB3ZWxsLCBsb29rcyBsZWdpdC4gLWRhbiBdCgpTb3JyeSBm
+b3IgdGhlIGRlbGF5IG9uIHRoaXMgb25lLCBnb3QgZGlzdHJhY3RlZCBmZXcgdGltZXMgd2l0aApv
+dGhlciBidWdzIHRvIGRlYWwgd2l0aC4gVGhpcyBzZWVtcyBsaWtlIGEgdmFsaWQgd2FybmluZyB5
+ZWFoLgoKVG9taSwgZG8gd2UgcmVhbGx5IG5lZWQgdHdvIGNvcGllcyBvZiB0aGUgdGhlIHNhbWUg
+cGFuZWxzCmZpbGVzIGluIGtlcm5lbD8KCkZvciBleGFtcGxlOgoKJCBmaW5kIC4gLW5hbWUgcGFu
+ZWwtc2hhcnAtbHMwMzd2N2R3MDEuYwouL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rpc3BsYXlz
+L3BhbmVsLXNoYXJwLWxzMDM3djdkdzAxLmMKLi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29t
+YXBmYi9kaXNwbGF5cy9wYW5lbC1zaGFycC1sczAzN3Y3ZHcwMS5jCgo+IFRoZSBwYXRjaCA5NTIy
+ZjlmZTg2Zjk6ICJPTUFQRFNTOiBwYW5lbC1zaGFycC1sczAzN3Y3ZHcwMTogdXBkYXRlIHRvCj4g
+dXNlIGdwaW9kIiBmcm9tIEFwciAyOCwgMjAxNCwgbGVhZHMgdG8gdGhlIGZvbGxvd2luZyBzdGF0
+aWMgY2hlY2tlcgo+IHdhcm5pbmc6Cj4gCj4gCWRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rpc3Bs
+YXlzL3BhbmVsLXNoYXJwLWxzMDM3djdkdzAxLmM6MjEzIHNoYXJwX2xzX2dldF9ncGlvKCkKPiAJ
+d2FybjogJ2dkJyBpc24ndCBhbiBFUlJfUFRSCj4gCj4gZHJpdmVycy9ncHUvZHJtL29tYXBkcm0v
+ZGlzcGxheXMvcGFuZWwtc2hhcnAtbHMwMzd2N2R3MDEuYwo+ICAgIDIwMCAgc3RhdGljIGludCBz
+aGFycF9sc19nZXRfZ3BpbyhzdHJ1Y3QgZGV2aWNlICpkZXYsIGludCBncGlvLCB1bnNpZ25lZCBs
+b25nIGZsYWdzLAo+ICAgIDIwMSAgICAgICAgICAgICAgICAgICAgY2hhciAqZGVzYywgc3RydWN0
+IGdwaW9fZGVzYyAqKmdwaW9kKQo+ICAgIDIwMiAgewo+ICAgIDIwMyAgICAgICAgICBzdHJ1Y3Qg
+Z3Bpb19kZXNjICpnZDsKPiAgICAyMDQgICAgICAgICAgaW50IHI7Cj4gICAgMjA1ICAKPiAgICAy
+MDYgICAgICAgICAgKmdwaW9kID0gTlVMTDsKPiAgICAyMDcgIAo+ICAgIDIwOCAgICAgICAgICBy
+ID0gZGV2bV9ncGlvX3JlcXVlc3Rfb25lKGRldiwgZ3BpbywgZmxhZ3MsIGRlc2MpOwo+ICAgIDIw
+OSAgICAgICAgICBpZiAocikKPiAgICAyMTAgICAgICAgICAgICAgICAgICByZXR1cm4gciA9PSAt
+RU5PRU5UID8gMCA6IHI7Cj4gICAgMjExICAKPiAgICAyMTIgICAgICAgICAgZ2QgPSBncGlvX3Rv
+X2Rlc2MoZ3Bpbyk7Cj4gICAgMjEzICAgICAgICAgIGlmIChJU19FUlIoZ2QpKQo+ICAgIDIxNCAg
+ICAgICAgICAgICAgICAgIHJldHVybiBQVFJfRVJSKGdkKSA9PSAtRU5PRU5UID8gMCA6IFBUUl9F
+UlIoZ2QpOwo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBeXl5eXl5eXl5eXl5eXl5e
+Xl5eXl5eCj4gZ2QgY2FuIGJlIGFuIEVSUl9QVFIgaWYgZ3Bpb190b19kZXNjIGlzIGRlZmluZWQg
+b3V0IGJ1dCBpdCdzIG5ldmVyCj4gLUVOT0VOVC4KClNlZW1zIGxpa2Ugd2UgY2FuIGp1c3QgcmVt
+b3ZlIHRoZSBjaGVjayBmb3IgLUVOT0VOVCBoZXJlLgoKUmdhcmRzLAoKVG9ueQpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
+aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNr
+dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
