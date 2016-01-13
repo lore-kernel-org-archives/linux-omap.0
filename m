@@ -1,35 +1,91 @@
-From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCH v4 3/3] wlcore/wl12xx: spi: add wifi support to cm-t335
-Date: Wed, 13 Jan 2016 08:09:10 +0200
-Message-ID: <5695EA06.5020801@compulab.co.il>
-References: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>
- <1451482533-8624-4-git-send-email-uri.mashiach@compulab.co.il>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 2/3] ARM: DRA7: add pdata-quirks to do reset of PCIe
+Date: Wed, 13 Jan 2016 12:17:45 +0530
+Message-ID: <1452667666-17533-3-git-send-email-kishon@ti.com>
+References: <1452667666-17533-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1451482533-8624-4-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1452667666-17533-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
+Cc: Russell King <linux@arm.linux.org.uk>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Use pdata-quirks to reset PCIe IP. This is to be used until
+a drivers/reset/ interface is available for this purpose.
 
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/mach-omap2/pdata-quirks.c       |   11 +++++++++++
+ include/linux/platform_data/pci-dra7xx.h |   22 ++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
+ create mode 100644 include/linux/platform_data/pci-dra7xx.h
 
-On 12/30/15 15:35, Uri Mashiach wrote:
-> Device tree modifications:
-> - Pinmux for SPI0 and WiFi GPIOs.
-> - SPI0 node with wlcore as a child node.
-> 
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-
-Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 5814477..f5a65fe 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -23,6 +23,7 @@
+ #include <linux/platform_data/pinctrl-single.h>
+ #include <linux/platform_data/iommu-omap.h>
+ #include <linux/platform_data/wkup_m3.h>
++#include <linux/platform_data/pci-dra7xx.h>
+ 
+ #include "common.h"
+ #include "common-board-devices.h"
+@@ -404,6 +405,14 @@ static void __init omap5_uevm_legacy_init(void)
+ }
+ #endif
+ 
++#ifdef CONFIG_SOC_DRA7XX
++static struct pci_dra7xx_platform_data dra7xx_pci_pdata = {
++	.reset_name = "pcie",
++	.assert_reset = omap_device_assert_hardreset,
++	.deassert_reset = omap_device_deassert_hardreset,
++};
++#endif
++
+ static struct pcs_pdata pcs_pdata;
+ 
+ void omap_pcs_legacy_init(int irq, void (*rearm)(void))
+@@ -474,6 +483,8 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ #endif
+ #ifdef CONFIG_SOC_DRA7XX
+ 	OF_DEV_AUXDATA("ti,dra7-padconf", 0x4a003400, "4a003400.pinmux", &pcs_pdata),
++	OF_DEV_AUXDATA("ti,dra7-pcie", 0x51000000, "51000000.pcie", &dra7xx_pci_pdata),
++	OF_DEV_AUXDATA("ti,dra7-pcie", 0x51800000, "51800000.pcie", &dra7xx_pci_pdata),
+ #endif
+ #ifdef CONFIG_SOC_AM43XX
+ 	OF_DEV_AUXDATA("ti,am437-padconf", 0x44e10800, "44e10800.pinmux", &pcs_pdata),
+diff --git a/include/linux/platform_data/pci-dra7xx.h b/include/linux/platform_data/pci-dra7xx.h
+new file mode 100644
+index 0000000..792c8ed
+--- /dev/null
++++ b/include/linux/platform_data/pci-dra7xx.h
+@@ -0,0 +1,22 @@
++/*
++ * pcie-dra7xx - Platform data for PCIe controller
++ *
++ * Copyright (C) 2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * Authors: Kishon Vijay Abraham I <kishon@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __PCI_DRA7XX_H
++#define __PCI_DRA7XX_H
++
++struct pci_dra7xx_platform_data {
++	const char *reset_name;
++
++	int (*assert_reset)(struct platform_device *pdev, const char *name);
++	int (*deassert_reset)(struct platform_device *pdev, const char *name);
++};
++#endif /* __PCI_DRA7XX_H */
 -- 
-Regards,
-Igor.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.5
