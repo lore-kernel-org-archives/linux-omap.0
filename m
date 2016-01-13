@@ -1,96 +1,98 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Wed, 13 Jan 2016 11:51:34 -0600
-Message-ID: <56968EA6.2060408@ti.com>
-References: <1452667666-17533-1-git-send-email-kishon@ti.com>
- <1452667666-17533-4-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and
+ charging of backup battery
+Date: Wed, 13 Jan 2016 10:00:07 -0800
+Message-ID: <20160113180006.GJ12777@atomide.com>
+References: <CCB763BE-5D1F-4A53-BF9A-C12C08A6EFC4@goldelico.com>
+ <20160111202421.GA12777@atomide.com>
+ <20160112000917.GC12777@atomide.com>
+ <417BBA32-A7DC-40CD-8A6B-EA910B1C9C13@goldelico.com>
+ <E4C8F6CA-37C1-406F-9804-46055253BED9@goldelico.com>
+ <001346CD-CF31-4FEF-B406-B89EEBDFA063@goldelico.com>
+ <56966558.1070608@ti.com>
+ <569669C5.2070200@ti.com>
+ <20160113164856.GF12777@atomide.com>
+ <5696896F.4090309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1452667666-17533-4-git-send-email-kishon@ti.com>
+Content-Disposition: inline
+In-Reply-To: <5696896F.4090309@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+To: Nishanth Menon <nm@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Laxman Dewangan <ldewangan@nvidia.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, =?utf-8?Q?Gra=C5=BEvydas?= Ignotas <notasas@gmail.com>, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/13/2016 12:47 AM, Kishon Vijay Abraham I wrote:
-> Use platform populated reset assert and deassert
-> callbacks to perform reset of PCIe.
+* Nishanth Menon <nm@ti.com> [160113 09:30]:
+> On 01/13/2016 10:48 AM, Tony Lindgren wrote:
+> > 
+> > So if we start changing things to GPIO mode, we really need some
+> > further explanations and neeed to handle the GPIO pin properly in
+> > the TWL driver. And it should be done in a separate patch for all
+> > of the TWL SoCs.
 > 
-> Use these callbacks until a reset interface using drivers/reset
-> is available for the purpose.
+> That does not make sense to me. The original intent of MSECURE is to use
+> PMIC control (in specific certain usecases - which are no longer
+> relevant) in trustzone or equivalent secure processor modes. when such a
+> mode is not planned on being used, you just tell PMIC that it is always
+> in secure mode. In fact, there was discussion internally that MSECURE
+> should never even have been connected to SoC if the SoC was GP SoC - but
+> ofcourse, the want to have a consistent reference schematics for evms
+> (since EVMs have HS/Non-HS parts) trumped such talk.
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  drivers/pci/host/pci-dra7xx.c |   32 ++++++++++++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
+> trying to split this up into further steps adds 0 additional
+> functionality - what is the pmic driver supposed to do with the GPIO even?
 > 
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index 8c36880..049083d 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -25,6 +25,8 @@
->  #include <linux/resource.h>
->  #include <linux/types.h>
->  
-> +#include <linux/platform_data/pci-dra7xx.h>
-> +
->  #include "pcie-designware.h"
->  
->  /* PCIe controller wrapper DRA7XX configuration registers */
-> @@ -329,6 +331,32 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  	return 0;
->  }
->  
-> +static int dra7xx_pcie_reset(struct platform_device *pdev)
-> +{
-> +	int ret;
-> +	struct device *dev = &pdev->dev;
-> +	struct pci_dra7xx_platform_data *pdata = pdev->dev.platform_data;
-> +
-> +	if (!(pdata && pdata->deassert_reset && pdata->assert_reset)) {
-> +		dev_err(dev, "platform data for reset not found!\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = pdata->assert_reset(pdev, pdata->reset_name);
-> +	if (ret) {
-> +		dev_err(dev, "assert_reset failed: %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	ret = pdata->deassert_reset(pdev, pdata->reset_name);
-> +	if (ret) {
-> +		dev_err(dev, "deassert_reset failed: %d\n", ret);
-> +		return ret;
-> +	}
+> in *real* HS product devices, in fact, the register space is really
+> firewalled out
 
-The only comment I have on this is the symmetry (assert_reset invocation
-in driver remove). If you install and remove the module once, then the
-reset stays deasserted. On Power-On-Reset, the resets by default will be
-in asserted state.
+Right, OK here we are finally getting some answers to the "why" part :)
 
-regards
-SUman
+And I also have few more "why" question in mind. If this change from
+msecure to GPIO muxing is so important.
 
-> +
-> +	return 0;
-> +}
-> +
->  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  {
->  	u32 reg;
-> @@ -347,6 +375,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	enum of_gpio_flags flags;
->  	unsigned long gpio_flags;
->  
-> +	ret = dra7xx_pcie_reset(pdev);
-> +	if (ret)
-> +		return ret;
-> +
->  	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
->  	if (!dra7xx)
->  		return -ENOMEM;
+Why it was never fixed in the mainline kernel for omap4 and omap5 and
+it was just sitting in various TI trees?
+
+And it sounds like any kind of muxing on HS devices here for this
+pin will oops the device?
+
+> The last TI product kernel tree that seriously focussed on OMAP5/OMAP4
+> was
+> http://git.omapzoom.org/?p=kernel/omap.git;a=shortlog;h=refs/heads/p-linux-omap-3.4
+> things changed definitions (in terms of descope) since then.. but
+> anyways.. thought I'd just pitch it out here.
 > 
+> sevm: - this board got scrapped
+> http://git.omapzoom.org/?p=kernel/omap.git;a=blob;f=arch/arm/mach-omap2/board-omap5evm.c;h=bd8d71d75cc3da921856bb2004230e4cd6505328;hb=refs/heads/p-linux-omap-3.4#l1097
+> 
+> omap5-panda is the omap5uevm/evm now:
+> http://git.omapzoom.org/?p=kernel/omap.git;a=blob;f=arch/arm/mach-omap2/board-omap5panda.c;h=6113bc0e04625a1bd794b3f169581c67ad3b42ff;hb=refs/heads/p-linux-omap-3.4#l816
+
+OK
+
+> > I don't have anything against adding GPIO handling to the TWL driver
+> > so it can be optionally specified. But that's clearly a separate patch
+> 
+> TWL/TPS driver will need no change in the proposal I made with "gpio
+> hog" mechanism (Documentation/devicetree/bindings/gpio/gpio.txt -
+> gpio-hog property) - just a dt change for the right configuration.
+
+OK. So are we sure the TWL driver will never have to toggle this pin?
+
+Again, that's another "why" that I have no clue about and that is not
+documented anywhere.
+
+> > and should be done by somebody who knows more about the issue and has
+> > a test case needing the GPIO logic for this pin.
+> 
+> Since my explanation does not seem to suffice, alright - we can wait for
+> the right person, then.
+
+Sorry don't take it personally. I'm just trying to make sense of the
+"why do we need to do this change?" part. Especially if I need to make
+the change and write the commit log.
+
+Regards,
+
+Tony
