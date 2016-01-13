@@ -1,106 +1,85 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging
- of backup battery
-Date: Wed, 13 Jan 2016 13:05:38 -0600
-Message-ID: <5696A002.6050402@ti.com>
-References: <CCB763BE-5D1F-4A53-BF9A-C12C08A6EFC4@goldelico.com>
- <20160111202421.GA12777@atomide.com> <20160112000917.GC12777@atomide.com>
- <417BBA32-A7DC-40CD-8A6B-EA910B1C9C13@goldelico.com>
- <E4C8F6CA-37C1-406F-9804-46055253BED9@goldelico.com>
- <001346CD-CF31-4FEF-B406-B89EEBDFA063@goldelico.com>
- <56966558.1070608@ti.com> <569669C5.2070200@ti.com>
- <20160113164856.GF12777@atomide.com> <5696896F.4090309@ti.com>
- <20160113180006.GJ12777@atomide.com>
- <2B99611A-5D2E-4D17-A17D-0150516109FD@goldelico.com>
- <56969800.5010206@ti.com>
- <D6479E92-4226-4B07-95F3-C0DF092B827C@goldelico.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia N900: u-SD card in v4.2+
+Date: Wed, 13 Jan 2016 20:12:40 +0100
+Message-ID: <20160113191240.GA10717@amd>
+References: <20160106204627.GA21477@amd>
+ <568DFA4B.7030308@ti.com>
+ <20160107113408.GA26618@amd>
+ <201601092344.44641@pali>
+ <56936A77.9070803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <D6479E92-4226-4B07-95F3-C0DF092B827C@goldelico.com>
+Content-Disposition: inline
+In-Reply-To: <56936A77.9070803@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, =?UTF-8?Q?Gra=c5=bevydas_Ignotas?= <notasas@gmail.com>, Keerthy <j-keerthy@ti.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, tony@atomide.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 01/13/2016 12:44 PM, H. Nikolaus Schaller wrote:
+On Mon 2016-01-11 14:10:23, Kishon Vijay Abraham I wrote:
+> Hi,
 >=20
-> Am 13.01.2016 um 19:31 schrieb Nishanth Menon <nm@ti.com>:
+> On Sunday 10 January 2016 04:14 AM, Pali Roh=E1r wrote:
+> > On Thursday 07 January 2016 12:34:09 Pavel Machek wrote:
+> >> Hi!
+> >>
+> >>> On Thursday 07 January 2016 02:16 AM, Pavel Machek wrote:
+> >>>> Hi!
+> >>>>
+> >>>> In v4.1, both internal MMC and u-SD cards work ok.
+> >>>>
+> >>>> In v4.2, only the internal MMC is detected. In v4.3, not even
+> >>>> internal MMC works. In v4.4, only the internal MMC is detected.
+> >>>>
+> >>>> Does it work for you? Any patches?
+> >>>
+> >>> I don't have Nokia N900 to check this, but can you share your
+> >>> config and kernel logs? Check if CONFIG_REGULATOR_PBIAS is presen=
+t
+> >>> in your config. CONFIG_REGULATOR_PBIAS is now mandatory for all
+> >>> omap3+ SoCs to work.
+> >>
+> >> I enabled CONFIG_REGULATOR_PBIAS and both MMCs now work.
+> >>
+> >> I wonder if we should add some selects, so that users updating fro=
+m
+> >> old kernels don't break their system?
+> >=20
+> > Please add these selects. I had CONFIG_REGULATOR_PBIAS disabled too=
+,=20
+> > because I just updated defconfig from older kernel version.
 >=20
->> On 01/13/2016 12:08 PM, H. Nikolaus Schaller wrote:
->> [...]
->>
->>>> OK. So are we sure the TWL driver will never have to toggle this p=
-in?
->>>
->>> After studying the Palmas TRM it appears that this pin just should =
-be "high"
->>> to be able to write to RTC and some scratchpad register. If the Pal=
-mas OTP
->>> is programmed to use gpio7 as msecure input.
->>
->> Thanks for digging it up. we dont use the scratchpad, but in some ca=
-ses
->> where SoC cold reset is involved, those registers may store addition=
-al
->> information.
->=20
-> I remember a similar thing from omap3-twl4030 where the boot source i=
-s stored
-> so that a warm reboot searches there. But I don#t know if the OMPAP5 =
-Boot ROM
-> is using that.
->=20
+> 'select' is generally not recommended since it selects a config witho=
+ut
+> caring for the dependency. With adding 'depends on', MMC won't be ena=
+bled and
+> will end up in the same problem.
 
-I believe that nonsense of OMAP ROM accessing PMIC stopped with OMAP3. =
-I
-dont believe OMAP4 or any later generation processors does any PMIC
-access anymore - they instead make assumptions about specific voltage
-levels they will work on (So called OPP_BOOT) instead of assuming
-specific PMIC they will work with..
+Well... it really should "depend on". Not ideal, but you'll likely
+realize what went on.
 
->>> Since the scratchpad is not used we can permanently enable msecure.=
- Which
->>> means that we must somehow get the driving output to be "1".
->>>
->>> This can be either done by
->>> * a gpio with pull-up - switched to input mode as I proposed, or
->>
->> I think you intended to suggest to do a mux to gpio with just pinmux
->> pull?
->=20
-> Yes.
->=20
->> The internal pull on padconf is very weak
->> - for typical needs like
->> these, it is rather suggested to stick with real GPIO drive to preve=
-nt
->> conditions like noise interference(for example).
->=20
->=20
-> well, on OMAP5 pull up/down are astonishingly strong :)
-> 100-250=B5A. Which translated roughly to 7 .. 18 kOhm @ 1.8V logic.
-> So a noise source must be coupled by an impedance in the 1 kOhm range=
-=2E
-> This is quite rare. So I would not worry about that.
->=20
+Silently compiling known-bad kernel is ... well.. bad.
 
-Interesting. I did not know that, and have'nt dug at people to confirm
-that either :).
+> Tony has already added a Documentation noting that CONFIG_REGULATOR_P=
+BIAS
+> should be enabled for MMCs to work.
+> commit d8e1f5ed11a39a68da00f05000466c4f6db4456e
+> Author: Tony Lindgren <tony@atomide.com>
+> Date:   Mon Oct 12 16:19:54 2015 -0700
+>=20
+>     Documentation: ARM: List new omap MMC requirements
+>=20
+> Maybe we should also make the error message a little more verbose to =
+tell the
+> user that CONFIG_REGULATOR_PBIAS be selected?
 
-An internal feedback I got some time back on AM57 (not OMAP5) - context
-was that we were discussing if an external pull up resistor was needed
-for a GPIO button:
-"Internal pull-ups are relatively weak (ranging to 100kOhm or higher)
-and are good for avoiding higher leakage due to floating input level,
-and may not be sufficient for valid logic 1/0 depending on what else is
-connected on the board.  If a signal must absolutely be pulled to a
-valid logic 1 or 0 for system functionality, then an external pull
-should be used."
+That would help.
 
-Anyways... will let Tony decide where he wants to go on this..
-
+As would #error if we recognize broken config.
+									Pavel
 --=20
-Regards,
-Nishanth Menon
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
