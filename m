@@ -1,85 +1,95 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Wed, 13 Jan 2016 12:17:46 +0530
-Message-ID: <1452667666-17533-4-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 1/3] ARM: DRA7: hwmod: Add reset data for PCIe
+Date: Wed, 13 Jan 2016 12:17:44 +0530
+Message-ID: <1452667666-17533-2-git-send-email-kishon@ti.com>
 References: <1452667666-17533-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1452667666-17533-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
-Cc: Russell King <linux@arm.linux.org.uk>, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
+Cc: Russell King <linux@arm.linux.org.uk>, nsekhar@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Use platform populated reset assert and deassert
-callbacks to perform reset of PCIe.
-
-Use these callbacks until a reset interface using drivers/reset
-is available for the purpose.
+Add PCIe reset data to PCIe hwmods on DRA7x.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/pci/host/pci-dra7xx.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   15 +++++++++++++++
+ arch/arm/mach-omap2/prm7xx.h              |    1 +
+ 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 8c36880..049083d 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -25,6 +25,8 @@
- #include <linux/resource.h>
- #include <linux/types.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index ee4e044..1281deb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1532,14 +1532,21 @@ static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
+ };
  
-+#include <linux/platform_data/pci-dra7xx.h>
+ /* pcie1 */
++static struct omap_hwmod_rst_info dra7xx_pciess1_resets[] = {
++	{ .name = "pcie", .rst_shift = 0 },
++};
 +
- #include "pcie-designware.h"
+ static struct omap_hwmod dra7xx_pciess1_hwmod = {
+ 	.name		= "pcie1",
+ 	.class		= &dra7xx_pciess_hwmod_class,
+ 	.clkdm_name	= "pcie_clkdm",
++	.rst_lines	= dra7xx_pciess1_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_pciess1_resets),
+ 	.main_clk	= "l4_root_clk_div",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
++			.rstctrl_offs = DRA7XX_RM_L3INIT_PCIESS_RSTCTRL_OFFSET,
+ 			.context_offs = DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
+ 			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+@@ -1547,14 +1554,22 @@ static struct omap_hwmod dra7xx_pciess1_hwmod = {
+ };
  
- /* PCIe controller wrapper DRA7XX configuration registers */
-@@ -329,6 +331,32 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	return 0;
- }
- 
-+static int dra7xx_pcie_reset(struct platform_device *pdev)
-+{
-+	int ret;
-+	struct device *dev = &pdev->dev;
-+	struct pci_dra7xx_platform_data *pdata = pdev->dev.platform_data;
+ /* pcie2 */
++static struct omap_hwmod_rst_info dra7xx_pciess2_resets[] = {
++	{ .name = "pcie", .rst_shift = 1 },
++};
 +
-+	if (!(pdata && pdata->deassert_reset && pdata->assert_reset)) {
-+		dev_err(dev, "platform data for reset not found!\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = pdata->assert_reset(pdev, pdata->reset_name);
-+	if (ret) {
-+		dev_err(dev, "assert_reset failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = pdata->deassert_reset(pdev, pdata->reset_name);
-+	if (ret) {
-+		dev_err(dev, "deassert_reset failed: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- {
- 	u32 reg;
-@@ -347,6 +375,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	enum of_gpio_flags flags;
- 	unsigned long gpio_flags;
- 
-+	ret = dra7xx_pcie_reset(pdev);
-+	if (ret)
-+		return ret;
-+
- 	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
- 	if (!dra7xx)
- 		return -ENOMEM;
++/* pcie2 */
+ static struct omap_hwmod dra7xx_pciess2_hwmod = {
+ 	.name		= "pcie2",
+ 	.class		= &dra7xx_pciess_hwmod_class,
+ 	.clkdm_name	= "pcie_clkdm",
++	.rst_lines	= dra7xx_pciess2_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_pciess2_resets),
+ 	.main_clk	= "l4_root_clk_div",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET,
++			.rstctrl_offs = DRA7XX_RM_L3INIT_PCIESS_RSTCTRL_OFFSET,
+ 			.context_offs = DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET,
+ 			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+diff --git a/arch/arm/mach-omap2/prm7xx.h b/arch/arm/mach-omap2/prm7xx.h
+index cc1e6a2..294deed 100644
+--- a/arch/arm/mach-omap2/prm7xx.h
++++ b/arch/arm/mach-omap2/prm7xx.h
+@@ -360,6 +360,7 @@
+ /* PRM.L3INIT_PRM register offsets */
+ #define DRA7XX_PM_L3INIT_PWRSTCTRL_OFFSET			0x0000
+ #define DRA7XX_PM_L3INIT_PWRSTST_OFFSET				0x0004
++#define DRA7XX_RM_L3INIT_PCIESS_RSTCTRL_OFFSET			0x0010
+ #define DRA7XX_PM_L3INIT_MMC1_WKDEP_OFFSET			0x0028
+ #define DRA7XX_RM_L3INIT_MMC1_CONTEXT_OFFSET			0x002c
+ #define DRA7XX_PM_L3INIT_MMC2_WKDEP_OFFSET			0x0030
 -- 
 1.7.9.5
