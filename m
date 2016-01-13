@@ -1,54 +1,63 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and
- charging of backup battery
-Date: Tue, 12 Jan 2016 14:13:19 -0800
-Message-ID: <20160112221319.GE12777@atomide.com>
-References: <66F37918-EA7F-4D83-8B5F-A6B5C0CD7623@goldelico.com>
- <20160108181551.GX12777@atomide.com>
- <832803EE-E4CB-46B1-BF39-2DC0BB695A5D@goldelico.com>
- <20160108190457.GY12777@atomide.com>
- <CCB763BE-5D1F-4A53-BF9A-C12C08A6EFC4@goldelico.com>
- <20160111202421.GA12777@atomide.com>
- <20160112000917.GC12777@atomide.com>
- <417BBA32-A7DC-40CD-8A6B-EA910B1C9C13@goldelico.com>
- <E4C8F6CA-37C1-406F-9804-46055253BED9@goldelico.com>
- <5695722B.90202@ti.com>
+From: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH v4 3/3] wlcore/wl12xx: spi: add wifi support to cm-t335
+Date: Wed, 13 Jan 2016 08:00:34 +0200
+Message-ID: <5695E802.7050909@compulab.co.il>
+References: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>
+ <1451482533-8624-4-git-send-email-uri.mashiach@compulab.co.il>
+ <87io35lq2p.fsf@kamboji.qca.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5695722B.90202-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, =?utf-8?Q?Gra=C5=BEvydas?= Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87io35lq2p.fsf-HodKDYzPHsUD5k0oWYwrnHL1okKdlPRT@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160112 13:38]:
-> On 01/12/2016 03:27 PM, H. Nikolaus Schaller wrote:
-> >> Am 12.01.2016 um 01:09 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
-> >>> Care to test it with your RTC enabling patch?
-> >>
-> >> yes, I will test asap.
-> >>
-> >> Reminds me on some issues we did have with msecure and twl4030 rtc some years ago.
-> > 
-> > Ok, works for me on OMAP5432EVM.
-> > 
-> > Thanks for spotting the issue.
+Hi Kalle Valo,
 
-OK thanks.
+On 01/07/16 11:02, Kalle Valo wrote:
+> Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> writes:
+> 
+>> Device tree modifications:
+>> - Pinmux for SPI0 and WiFi GPIOs.
+>> - SPI0 node with wlcore as a child node.
+>>
+>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+>> ---
 
-> http://pastebin.ubuntu.com/14480852/
-> Works for me as well ( https://patchwork.kernel.org/patch/7954341/ +
-> http://pastebin.ubuntu.com/14480852/)
+Uri, please document the dependencies next time. Thanks!
 
-OK thanks for testing, will apply both to omap-for-v4.5/fixes to get RTC
-working on omap5.
+>> v1 -> v2: Replace interrupts and interrupt-parent with interrupts-extended.
+>> v2 -> v3: Move the pinctrl-0 = <&wifi_pins> to the wlcore node.
+>> v3 -> v4: replace interrupts-extended with interrupts and interrupt-parent. (revert v2 modification).
+>>           According to Rob Herring and Documentation/devicetree/bindings/interrupt-controller/interrupts.txt,
+>> 	  interrupts-extended should only be used when a device has multiple interrupt parents.
+>>
+>>  arch/arm/boot/dts/am335x-cm-t335.dts | 55 ++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 55 insertions(+)
+> 
+> To what tree should this patch go? My wireless-drivers-next tree doesn't
+> even have this file.
 
+Right. It will hit the mainline during this merge window through Tony's and
+arm-soc trees.
+
+Do you think it will be sensible if you take 1/3 and 2/3 patches and Tony
+will take the 3/3 (there is no code dependency between first two and the last one),
+or we can just wait till arm-soc hits the mainline, so you will have the
+needed code?
+
+> 
+> https://patchwork.kernel.org/patch/7933441/
+> 
+
+-- 
 Regards,
-
-Tony
+Igor.
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
