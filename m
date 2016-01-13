@@ -1,95 +1,81 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 1/3] ARM: DRA7: hwmod: Add reset data for PCIe
-Date: Wed, 13 Jan 2016 12:17:44 +0530
-Message-ID: <1452667666-17533-2-git-send-email-kishon@ti.com>
-References: <1452667666-17533-1-git-send-email-kishon@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: /sys/class/power_supply/bq27200-0/capacity changed meaning
+ between 4.1 and 4.4?
+Date: Wed, 13 Jan 2016 09:44:24 +0100
+Message-ID: <20160113084424.GC11560@pali>
+References: <20160109230709.GA30551@amd>
+ <5693BB75.70409@ti.com>
+ <20160111214247.GA9735@amd>
+ <56942344.9070609@ti.com>
+ <56951A2C.9010602@ti.com>
+ <20160112215352.GA5248@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1452667666-17533-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
-Cc: Russell King <linux@arm.linux.org.uk>, nsekhar@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160112215352.GA5248@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Andrew F. Davis" <afd@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, a.hajda@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Add PCIe reset data to PCIe hwmods on DRA7x.
+On Tuesday 12 January 2016 22:53:52 Pavel Machek wrote:
+> Hi!
+>=20
+> > >>If not, tell me, and I can do it, but it will involve a lot of sw=
+aring...
+> > >
+> > >I'll give it a look over.
+> >=20
+> > OK, I'm still looking for a test setup, but this was definitely a p=
+roblem,
+> > could you give this a try?:
+>=20
+> Well, search no more. I tested it and seems to work ok. There's one
+> more blank line in the source, so I had to apply patch by hand.
+>=20
+> Tested-by: Pavel Machek <pavel@ucw.cz>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Reported-by: Pavel Machek <pavel@ucw.cz>
+> Cc: stable@vger.kernel.org
+>=20
+> ? :-).
+>=20
+> And... thanks!
+> 									Pavel
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   15 +++++++++++++++
- arch/arm/mach-omap2/prm7xx.h              |    1 +
- 2 files changed, 16 insertions(+)
+There are more pending fixes for bq27xxx... Maybe your is duplicate?
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index ee4e044..1281deb 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1532,14 +1532,21 @@ static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
- };
- 
- /* pcie1 */
-+static struct omap_hwmod_rst_info dra7xx_pciess1_resets[] = {
-+	{ .name = "pcie", .rst_shift = 0 },
-+};
-+
- static struct omap_hwmod dra7xx_pciess1_hwmod = {
- 	.name		= "pcie1",
- 	.class		= &dra7xx_pciess_hwmod_class,
- 	.clkdm_name	= "pcie_clkdm",
-+	.rst_lines	= dra7xx_pciess1_resets,
-+	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_pciess1_resets),
- 	.main_clk	= "l4_root_clk_div",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
-+			.rstctrl_offs = DRA7XX_RM_L3INIT_PCIESS_RSTCTRL_OFFSET,
- 			.context_offs = DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
-@@ -1547,14 +1554,22 @@ static struct omap_hwmod dra7xx_pciess1_hwmod = {
- };
- 
- /* pcie2 */
-+static struct omap_hwmod_rst_info dra7xx_pciess2_resets[] = {
-+	{ .name = "pcie", .rst_shift = 1 },
-+};
-+
-+/* pcie2 */
- static struct omap_hwmod dra7xx_pciess2_hwmod = {
- 	.name		= "pcie2",
- 	.class		= &dra7xx_pciess_hwmod_class,
- 	.clkdm_name	= "pcie_clkdm",
-+	.rst_lines	= dra7xx_pciess2_resets,
-+	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_pciess2_resets),
- 	.main_clk	= "l4_root_clk_div",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET,
-+			.rstctrl_offs = DRA7XX_RM_L3INIT_PCIESS_RSTCTRL_OFFSET,
- 			.context_offs = DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET,
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
-diff --git a/arch/arm/mach-omap2/prm7xx.h b/arch/arm/mach-omap2/prm7xx.h
-index cc1e6a2..294deed 100644
---- a/arch/arm/mach-omap2/prm7xx.h
-+++ b/arch/arm/mach-omap2/prm7xx.h
-@@ -360,6 +360,7 @@
- /* PRM.L3INIT_PRM register offsets */
- #define DRA7XX_PM_L3INIT_PWRSTCTRL_OFFSET			0x0000
- #define DRA7XX_PM_L3INIT_PWRSTST_OFFSET				0x0004
-+#define DRA7XX_RM_L3INIT_PCIESS_RSTCTRL_OFFSET			0x0010
- #define DRA7XX_PM_L3INIT_MMC1_WKDEP_OFFSET			0x0028
- #define DRA7XX_RM_L3INIT_MMC1_CONTEXT_OFFSET			0x002c
- #define DRA7XX_PM_L3INIT_MMC2_WKDEP_OFFSET			0x0030
--- 
-1.7.9.5
+http://thread.gmane.org/gmane.linux.power-management.general/70090
+http://thread.gmane.org/gmane.linux.power-management.general/69716/focu=
+s=3D69714
+http://thread.gmane.org/gmane.linux.power-management.general/69716/focu=
+s=3D2110580
+
+Sebastian, please take them and ideally send to stable@ for backporting=
+=2E
+
+>=20
+> > diff --git a/drivers/power/bq27xxx_battery.c b/drivers/power/bq27xx=
+x_battery.c
+> > index 880233c..4fec3cf 100644
+> > --- a/drivers/power/bq27xxx_battery.c
+> > +++ b/drivers/power/bq27xxx_battery.c
+> > @@ -470,8 +470,9 @@ static inline int bq27xxx_read(struct bq27xxx_d=
+evice_info *di, int reg_index,
+> >  static int bq27xxx_battery_read_soc(struct bq27xxx_device_info *di=
+)
+> >  {
+> >  	int soc;
+> > +	bool single =3D di->chip =3D=3D BQ27000 || di->chip =3D=3D BQ2701=
+0;
+> > -	soc =3D bq27xxx_read(di, BQ27XXX_REG_SOC, false);
+> > +	soc =3D bq27xxx_read(di, BQ27XXX_REG_SOC, single);
+> >  	if (soc < 0)
+> >  		dev_dbg(di->dev, "error reading State-of-Charge\n");
+>=20
+
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
