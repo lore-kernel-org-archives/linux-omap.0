@@ -1,24 +1,53 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH] dmaengine: edma: Fix paRAM slot allocation for entry
- channel 0
-Date: Wed, 13 Jan 2016 19:09:51 +0530
-Message-ID: <20160113133951.GG11130@localhost>
-References: <1452501481-5543-1-git-send-email-peter.ujfalusi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v3] PCI: hosts: mark pcie/pci (msi) irq cascade handler
+ as IRQF_NO_THREAD
+Date: Wed, 13 Jan 2016 14:39:04 +0100
+Message-ID: <20160113133904.GD29964@linutronix.de>
+References: <1449775100-30877-1-git-send-email-grygorii.strashko@ti.com>
+ <20160106221827.GD16231@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1452501481-5543-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, tony@atomide.com
+In-Reply-To: <20160106221827.GD16231@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, tony@atomide.com, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Jingoo Han <jingoohan1@gmail.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Richard Zhu <Richard.Zhu@freescale.com>, Lucas Stach <l.stach@pengutronix.de>, Thierry Reding <thierry.reding@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, Alexandre Courbot <gnurou@gmail.com>, Simon Horman <horms@verge.net.au>, Pratyush Anand <pratyush.anand@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 11, 2016 at 10:38:01AM +0200, Peter Ujfalusi wrote:
-> edma_alloc_slot was not checking the channel mapping support existence when
-> slot 0 has been requested (used as entry slot for channel/event 0).
+* Bjorn Helgaas | 2016-01-06 16:18:27 [-0600]:
 
-Applied, thanks
+>Hi Bjorn,
 
--- 
-~Vinod
+>> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+>> index 8c36880..0415192 100644
+>> --- a/drivers/pci/host/pci-dra7xx.c
+>> +++ b/drivers/pci/host/pci-dra7xx.c
+>> @@ -301,8 +301,19 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+>>  		return -EINVAL;
+>>  	}
+>>  
+>> +	/*
+>> +	 * Mark dra7xx_pcie_msi IRQ as IRQF_NO_THREAD
+>> +	 * On -RT and if kernel is booting with "threadirqs" cmd line parameter
+>> +	 * the dra7xx_pcie_msi_irq_handler() will be forced threaded but,
+>> +	 * in the same time, it's IRQ dispatcher and calls generic_handle_irq(),
+>> +	 * which, in turn, will be resolved to handle_simple_irq() call.
+>> +	 * The handle_simple_irq() expected to be called with IRQ disabled, as
+>> +	 * result kernle will display warning:
+>> +	 * "irq XXX handler YYY+0x0/0x14 enabled interrupts".
+>> +	 */
+
+could you _please_ remove this coment? This kind of comment (if at all)
+should be part of the commit message (which is the case more or less).
+
+>>  	ret = devm_request_irq(&pdev->dev, pp->irq,
+>> -			       dra7xx_pcie_msi_irq_handler, IRQF_SHARED,
+>> +			       dra7xx_pcie_msi_irq_handler,
+>> +			       IRQF_SHARED | IRQF_NO_THREAD,
+>>  			       "dra7-pcie-msi",	pp);
+>>  	if (ret) {
+>>  		dev_err(&pdev->dev, "failed to request irq\n");
+>> diff --git a/drivers/pci/host/pci-exynos.c b/drivers/pci/host/pci-exynos.c
+
+Sebastian
