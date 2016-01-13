@@ -1,81 +1,141 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: /sys/class/power_supply/bq27200-0/capacity changed meaning
- between 4.1 and 4.4?
-Date: Wed, 13 Jan 2016 09:44:24 +0100
-Message-ID: <20160113084424.GC11560@pali>
-References: <20160109230709.GA30551@amd>
- <5693BB75.70409@ti.com>
- <20160111214247.GA9735@amd>
- <56942344.9070609@ti.com>
- <56951A2C.9010602@ti.com>
- <20160112215352.GA5248@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging of backup battery
+Date: Wed, 13 Jan 2016 11:25:38 +0100
+Message-ID: <001346CD-CF31-4FEF-B406-B89EEBDFA063@goldelico.com>
+References: <8FE6954B-6411-4593-9CE5-717A469A6AA8@goldelico.com> <20160106164136.GI12777@atomide.com> <2AC46952-3758-458A-B0A5-1794C207BD4C@goldelico.com> <20160106170925.GK12777@atomide.com> <66F37918-EA7F-4D83-8B5F-A6B5C0CD7623@goldelico.com> <20160108181551.GX12777@atomide.com> <832803EE-E4CB-46B1-BF39-2DC0BB695A5D@goldelico.com> <20160108190457.GY12777@atomide.com> <CCB763BE-5D1F-4A53-BF9A-C12C08A6EFC4@goldelico.com> <20160111202421.GA12777@atomide.com> <20160112000917.GC12777@atomide.com> <417BBA32-A7DC-40CD-8A6B-EA910B1C9C13@goldelico.com> <E4C8F6CA-37C1-406F-9804-46055253BED9@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160112215352.GA5248@amd>
+In-Reply-To: <E4C8F6CA-37C1-406F-9804-46055253BED9@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Andrew F. Davis" <afd@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, a.hajda@samsung.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>, Nishanth Menon <nm@ti.com>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, =?windows-1252?Q?Gra=9Evydas_Ignotas?= <notasas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 12 January 2016 22:53:52 Pavel Machek wrote:
-> Hi!
->=20
-> > >>If not, tell me, and I can do it, but it will involve a lot of sw=
-aring...
-> > >
-> > >I'll give it a look over.
-> >=20
-> > OK, I'm still looking for a test setup, but this was definitely a p=
-roblem,
-> > could you give this a try?:
->=20
-> Well, search no more. I tested it and seems to work ok. There's one
-> more blank line in the source, so I had to apply patch by hand.
->=20
-> Tested-by: Pavel Machek <pavel@ucw.cz>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reported-by: Pavel Machek <pavel@ucw.cz>
-> Cc: stable@vger.kernel.org
->=20
-> ? :-).
->=20
-> And... thanks!
-> 									Pavel
+Hi Tony,
 
-There are more pending fixes for bq27xxx... Maybe your is duplicate?
+Am 12.01.2016 um 22:27 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
 
-http://thread.gmane.org/gmane.linux.power-management.general/70090
-http://thread.gmane.org/gmane.linux.power-management.general/69716/focu=
-s=3D69714
-http://thread.gmane.org/gmane.linux.power-management.general/69716/focu=
-s=3D2110580
+> Hi Tony,
+> 
+> Am 12.01.2016 um 14:30 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+> 
+>> Hi Tony,
+>> 
+>> Am 12.01.2016 um 01:09 schrieb Tony Lindgren <tony@atomide.com>:
+>> 
+>>> * Tony Lindgren <tony@atomide.com> [160111 12:27]:
+>>>> 
+>>>> OK so the issue is that the twl msecure pin should be high to enable
+>>>> the RTC registers. We used to have that code with platform_data, but
+>>>> no longer have it with device tree based booting. I'll send a patch
+>>>> for that.
+>>>> 
+>>>> Curiously setting jumper j5 on beagle-x15 that controls what used to
+>>>> be the msecure and now is powerhold, does the opposite.. The
+>>>> device boots automatically but RTC is stopped?
+>>> 
+>>> And here's a fix the issue for omap5. Beagle-x15 needs to be
+>>> investigated more.
+>>> 
+>>> Care to test it with your RTC enabling patch?
+>> 
+>> yes, I will test asap.
+>> 
+>> Reminds me on some issues we did have with msecure and twl4030 rtc some years ago.
+> 
+> Ok, works for me on OMAP5432EVM.
 
-Sebastian, please take them and ideally send to stable@ for backporting=
-=2E
+Yes, it works, but I didn't look into the code yet.
 
->=20
-> > diff --git a/drivers/power/bq27xxx_battery.c b/drivers/power/bq27xx=
-x_battery.c
-> > index 880233c..4fec3cf 100644
-> > --- a/drivers/power/bq27xxx_battery.c
-> > +++ b/drivers/power/bq27xxx_battery.c
-> > @@ -470,8 +470,9 @@ static inline int bq27xxx_read(struct bq27xxx_d=
-evice_info *di, int reg_index,
-> >  static int bq27xxx_battery_read_soc(struct bq27xxx_device_info *di=
-)
-> >  {
-> >  	int soc;
-> > +	bool single =3D di->chip =3D=3D BQ27000 || di->chip =3D=3D BQ2701=
-0;
-> > -	soc =3D bq27xxx_read(di, BQ27XXX_REG_SOC, false);
-> > +	soc =3D bq27xxx_read(di, BQ27XXX_REG_SOC, single);
-> >  	if (soc < 0)
-> >  		dev_dbg(di->dev, "error reading State-of-Charge\n");
->=20
+> 
+> Thanks for spotting the issue.
+> 
+>> 
+>> BR,
+>> Nikolaus
+>> 
+>>> 
+>>> Regards,
+>>> 
+>>> Tony
+>>> 
+>>> 8< ---------------
+>>> From: Tony Lindgren <tony@atomide.com>
+>>> Date: Mon, 11 Jan 2016 14:35:24 -0800
+>>> Subject: [PATCH] ARM: dts: Fix omap5 PMIC control lines for RTC writes
+>>> 
+>>> The palmas PMIC has some control lines that need to be muxed properly
+>>> for things to work. The sys_nirq pin is used for interrupts, and msecure
+>>> pin is used for enabling writes to some PMIC registers.
+>>> 
+>>> Without these pins configured properly things can fail in mysterious
+>>> ways. For example, we can't update the RTC registers on palmas PMIC
+>>> unless the msecure pin is configured. And this is probably the reason
+>>> why we had RTC missing from the omap5 dts file.
+>>> 
+>>> According to "OMAP5430 ES2.0 Data Manual [Public] VErsion A (Rev. F)"
+>>> swps052f.pdf, mux mode 1 is for sys_drm_msecure so there's no need to
+>>> configure it as a GPIO pin.
+>>> 
+>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>>> 
+>>> --- a/arch/arm/boot/dts/omap5-board-common.dtsi
+>>> +++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+>>> @@ -213,6 +213,12 @@
+>>> 		>;
+>>> 	};
+>>> 
+>>> +	palmas_msecure_pins: palmas_msecure_pins {
+>>> +		pinctrl-single,pins = <
+>>> +			OMAP5_IOPAD(0x180, PIN_OUTPUT | MUX_MODE1) /* gpio8_234.sys_drm_msecure */
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+I wonder now what MODE1 is.
+
+In my OMAP5 TRM (Version "Y" - may be too old) the MODE1 is tagged as "reserved".
+
+Maybe "reserved" happens to output a "1" on OMAP5 and a "0" on the X15?
+
+And as far as I am aware there is no "driver" for some MSECURE module (but I don't know the details of MSECURE control by software).
+
+This one
+
+>>> 		OMAP5_IOPAD(0x180, PIN_INPUT _PULLUP | MUX_MODE6) /* gpio8_234 used for sys_drm_msecure */
+
+
+works for me on the OMAP5 EVM as well.
+
+BR,
+Nikolaus
+
+>>> +		>;
+>>> +	};
+>>> +
+>>> 	usbhost_pins: pinmux_usbhost_pins {
+>>> 		pinctrl-single,pins = <
+>>> 			0x84 (PIN_INPUT | MUX_MODE0) /* usbb2_hsic_strobe */
+>>> @@ -278,6 +284,12 @@
+>>> 			&usbhost_wkup_pins
+>>> 	>;
+>>> 
+>>> +	palmas_sys_nirq_pins: pinmux_palmas_sys_nirq_pins {
+>>> +		pinctrl-single,pins = <
+>>> +			OMAP5_IOPAD(0x068, PIN_INPUT_PULLUP | MUX_MODE0) /* sys_nirq1 */
+>>> +		>;
+>>> +	};
+>>> +
+>>> 	usbhost_wkup_pins: pinmux_usbhost_wkup_pins {
+>>> 		pinctrl-single,pins = <
+>>> 			0x1A (PIN_OUTPUT | MUX_MODE0) /* fref_clk1_out, USB hub clk */
+>>> @@ -345,6 +357,8 @@
+>>> 		interrupt-controller;
+>>> 		#interrupt-cells = <2>;
+>>> 		ti,system-power-controller;
+>>> +		pinctrl-names = "default";
+>>> +		pinctrl-0 = <&palmas_sys_nirq_pins &palmas_msecure_pins>;
+>>> 
+>>> 		extcon_usb3: palmas_usb {
+>>> 			compatible = "ti,palmas-usb-vid";
+>> 
+> 
