@@ -1,82 +1,53 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2] reboot: Backup orderly_poweroff
-Date: Thu, 14 Jan 2016 10:05:21 +0100
-Message-ID: <20160114090520.GA4351@gmail.com>
-References: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
+From: Arend van Spriel <arend@broadcom.com>
+Subject: Re: [PATCH v4 3/3] wlcore/wl12xx: spi: add wifi support to cm-t335
+Date: Thu, 14 Jan 2016 10:08:24 +0100
+Message-ID: <56976588.3060707@broadcom.com>
+References: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>	<1451482533-8624-4-git-send-email-uri.mashiach@compulab.co.il>	<87io35lq2p.fsf@kamboji.qca.qualcomm.com>	<5695E802.7050909@compulab.co.il>
+ <20160113172712.GI12777@atomide.com>
+ <87wprcbpyr.fsf@kamboji.qca.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-kernel@vger.kernel.org, edubezval@gmail.com, grygorii.strashko@ti.com, nm@ti.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, joel@jms.id.au, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org, peterz@infradead.org, dyoung@redhat.com, josh@joshtriplett.org, mpe@ellerman.id.au, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87wprcbpyr.fsf@kamboji.qca.qualcomm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kalle Valo <kvalo@codeaurora.org>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, linux-wireless@vger.kernel.org, Uri Mashiach <uri.mashiach@compulab.co.il>, Rob Herring <robh+dt@kernel.org>, Eliad Peller <eliad@wizery.com>, Igor Grinberg <grinberg@compulab.co.il>, bcousson@baylibre.com, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 01/14/2016 08:05 AM, Kalle Valo wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+>
+>>>>>   arch/arm/boot/dts/am335x-cm-t335.dts | 55 ++++++++++++++++++++++++++++++++++++
+>>>>>   1 file changed, 55 insertions(+)
+>>>>
+>>>> To what tree should this patch go? My wireless-drivers-next tree doesn't
+>>>> even have this file.
+>>>
+>>> Right. It will hit the mainline during this merge window through Tony's and
+>>> arm-soc trees.
+>>>
+>>> Do you think it will be sensible if you take 1/3 and 2/3 patches and Tony
+>>> will take the 3/3 (there is no code dependency between first two and the last one),
+>>> or we can just wait till arm-soc hits the mainline, so you will have the
+>>> needed code?
+>>
+>> Yeah I'll pick the dts changes separately after the merge window as
+>> there is no dependency to the driver changes.
+>
+> Ok, I'll then take patches 1 and 2 once the merge window opens.
 
-* Keerthy <j-keerthy@ti.com> wrote:
+I guess it is semantics, but the merge window is open right now so you 
+probably mean to say after the merge window closes, ie. when 4.5-rc1 is 
+ready.
 
-> orderly_poweroff is triggered when a graceful shutdown
-> of system is desired. This may be used in many critical states of the
-> kernel such as when subsystems detects conditions such as critical
-> temperature conditions. However, in certain conditions in system
-> boot up sequences like those in the middle of driver probes being
-> initiated, userspace will be unable to power off the system in a clean
-> manner and leaves the system in a critical state. In cases like these,
-> the /sbin/poweroff will return success (having forked off to attempt
-> powering off the system. However, the system overall will fail to
-> completely poweroff (since other modules will be probed) and the system
-> is still functional with no userspace (since that would have shut itself
-> off).
-> 
-> However, there is no clean way of detecting such failure of userspace
-> powering off the system. In such scenarios, it is necessary for a backup
-> workqueue to be able to force a shutdown of the system when orderly
-> shutdown is not successful after a configurable time period.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Suggested-by: Eduardo Valentin <edubezval@gmail.com> 
-> Reported-by: Nishanth Menon <nm@ti.com>
-> ---
-> Links to previous discussion can be found here:
-> 
-> http://www.spinics.net/lists/linux-omap/msg124925.html
-> 
-> Boot tested on DRA7.
-> 
-> changes in v2:
-> 
-> 	* Changed #ifdef to #if CONFIG_SHUTDOWN_BACKUP_DELAY_MS
-> 
->  arch/Kconfig    |  7 +++++++
->  kernel/reboot.c | 23 ++++++++++++++++++-----
->  2 files changed, 25 insertions(+), 5 deletions(-)
-> 
-> Index: linux/arch/Kconfig
-> ===================================================================
-> --- linux.orig/arch/Kconfig	2016-01-11 15:26:07.732173131 +0530
-> +++ linux/arch/Kconfig	2016-01-11 15:26:07.728173205 +0530
-> @@ -37,6 +37,18 @@
->  	def_bool y
->  	depends on PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !PPC64
->  
-> +config SHUTDOWN_BACKUP_DELAY_MS
-> +	int "Backup shutdown delay in milli-seconds"
-> +	default 0
-> +	help
-> +	  The number of milliseconds to delay before backup workqueue
-> +	  executes attempting to poweroff the system after the
-> +	  orderly_poweroff function has failed to complete.
-> +
-> +	  If set to 0, the backup workqueue is not active. The value
-> +	  should be conservatively configured based on userspace latencies
-> +	  expected for a given system.
-
-I don't really understand this. In what circumstances can a reboot fail?
-
-I think that is what should be fixed: a reboot should never fail, instead of 
-introducing some sort of fragile timeout based method.
-
-Thanks,
-
-	Ingo
+Regards,
+Arend
