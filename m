@@ -1,29 +1,69 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] ti-st: use device handles and add device tree binding
-Date: Thu, 14 Jan 2016 09:07:46 -0800
-Message-ID: <20160114170746.GO12777@atomide.com>
-References: <1450870253-8694-1-git-send-email-eyalr@ti.com>
- <8665E2433BC68541A24DFFCA87B70F5B23769B75@DFRE01.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] mmc: host: omap_hsmmc: add a verbose print to enable
+ CONFIG_REGULATOR_PBIAS
+Date: Thu, 14 Jan 2016 17:25:49 +0000
+Message-ID: <20160114172549.GC5783@n2100.arm.linux.org.uk>
+References: <1452762920-2588-1-git-send-email-kishon@ti.com>
+ <20160114120706.GA12774@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8665E2433BC68541A24DFFCA87B70F5B23769B75-1tpBd5JUCm6IQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "pawel.moll-5wv7dgnIgG8@public.gmane.org" <pawel.moll-5wv7dgnIgG8@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+In-Reply-To: <20160114120706.GA12774@earth>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, ivo.g.dimitrov.75@gmail.com, aaro.koskinen@iki.fi, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, khilman@kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, NeilBrown <neilb@suse.de>, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [160114 06:23]:
-> Ping on this patchset
+On Thu, Jan 14, 2016 at 01:07:06PM +0100, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Thu, Jan 14, 2016 at 02:45:20PM +0530, Kishon Vijay Abraham I wrote:
+> > Since v4.3+, CONFIG_REGULATOR_PBIAS should be enabled (for platforms that
+> > have PBIAS regulator) in order for MMC1 to work.
+> > 
+> > Add a more verbose print to help enable CONFIG_REGULATOR_PBIAS for users
+> > using a olddefconfig or a custom .config.
+> > 
+> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > ---
+> >  drivers/mmc/host/omap_hsmmc.c |    5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> > index 7fb0753..7086bd6 100644
+> > --- a/drivers/mmc/host/omap_hsmmc.c
+> > +++ b/drivers/mmc/host/omap_hsmmc.c
+> > @@ -503,8 +503,11 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+> >  	host->pbias = devm_regulator_get_optional(host->dev, "pbias");
+> >  	if (IS_ERR(host->pbias)) {
+> >  		ret = PTR_ERR(host->pbias);
+> > -		if ((ret != -ENODEV) && host->dev->of_node)
+> > +		if ((ret != -ENODEV) && host->dev->of_node) {
+> > +			dev_err(host->dev,
+> > +			"SD card detect fail? enable CONFIG_REGULATOR_PBIAS\n");
+> >  			return ret;
+> > +		}
+> >  		dev_dbg(host->dev, "unable to get pbias regulator %ld\n",
+> >  			PTR_ERR(host->pbias));
+> >  		host->pbias = NULL;
+> 
+> 
+> Is there a good reason against adding "depends on REGULATOR_PBIAS"
+> to MMC_OMAP_HS?
 
-I think there are several comments pending from Rob as
-a reply to this thread on December 29th?
+There are very good reasons not to do this: that will result in
+configurations where MMC_OMAP_HS was set but without REGULATOR_PBIAS
+ending up with MMC_OMAP_HS being disabled.  That doesn't help the
+root problem, which is "why has the kernel boot regressed for my
+previous working configuration?"
 
-Regards,
+The solution proposed here adds a message to the boot which points
+out fair and square what needs to be done to rectify the boot
+failure.  Adding a dependency just brings up the question "where
+has my MMC driver gone?"
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
