@@ -1,38 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: host: omap_hsmmc: add a verbose print to enable
- CONFIG_REGULATOR_PBIAS
-Date: Thu, 14 Jan 2016 08:49:51 -0800
-Message-ID: <20160114164950.GN12777@atomide.com>
-References: <1452762920-2588-1-git-send-email-kishon@ti.com>
- <20160114120706.GA12774@earth>
- <569796EE.7030506@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/3] ti-st: use device handles and add device tree binding
+Date: Thu, 14 Jan 2016 09:07:46 -0800
+Message-ID: <20160114170746.GO12777@atomide.com>
+References: <1450870253-8694-1-git-send-email-eyalr@ti.com>
+ <8665E2433BC68541A24DFFCA87B70F5B23769B75@DFRE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <569796EE.7030506@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, pali.rohar@gmail.com, pavel@ucw.cz, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, NeilBrown <neilb@suse.de>, linux-mmc@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <8665E2433BC68541A24DFFCA87B70F5B23769B75-1tpBd5JUCm6IQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "pawel.moll-5wv7dgnIgG8@public.gmane.org" <pawel.moll-5wv7dgnIgG8@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [160114 04:39]:
-> On Thursday 14 January 2016 05:37 PM, Sebastian Reichel wrote:
-> > 
-> > Is there a good reason against adding "depends on REGULATOR_PBIAS"
-> > to MMC_OMAP_HS? I guess it's required for most systems and the regulator
-> > driver is just 250 loc. I am aware, that this will disable the
-> > hsmmc driver for 'make oldconfig', but I guess that will be noticed
-> > in a similar way your warning is noticed.
-> 
-> hmm.. only MMC1 requires PBIAS so I'm not sure if it's okay to add depends on
-> REGULATOR_PBIAS for the HSMMC driver as such. And as you said it'll also
-> disable the hsmmc driver if oldconfig is used. But do we get a warning?
+* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [160114 06:23]:
+> Ping on this patchset
 
-Adding depends there is a bit wrong, many designs are not using MMC1
-but use eMMC on the other controllers instead. I think the runtime
-warning is best we can do here to keep things modular.
+I think there are several comments pending from Rob as
+a reply to this thread on December 29th?
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
