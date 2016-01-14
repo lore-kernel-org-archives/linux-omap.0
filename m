@@ -1,83 +1,82 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Thu, 14 Jan 2016 14:07:49 +0530
-Message-ID: <56975E5D.50603@ti.com>
-References: <1452667666-17533-1-git-send-email-kishon@ti.com>
- <1452667666-17533-4-git-send-email-kishon@ti.com> <56968EA6.2060408@ti.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v2] reboot: Backup orderly_poweroff
+Date: Thu, 14 Jan 2016 10:05:21 +0100
+Message-ID: <20160114090520.GA4351@gmail.com>
+References: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56968EA6.2060408@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-kernel@vger.kernel.org, edubezval@gmail.com, grygorii.strashko@ti.com, nm@ti.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, joel@jms.id.au, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org, peterz@infradead.org, dyoung@redhat.com, josh@joshtriplett.org, mpe@ellerman.id.au, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Suman,
 
-On Wednesday 13 January 2016 11:21 PM, Suman Anna wrote:
-> On 01/13/2016 12:47 AM, Kishon Vijay Abraham I wrote:
->> Use platform populated reset assert and deassert
->> callbacks to perform reset of PCIe.
->>
->> Use these callbacks until a reset interface using drivers/reset
->> is available for the purpose.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> ---
->>  drivers/pci/host/pci-dra7xx.c |   32 ++++++++++++++++++++++++++++++++
->>  1 file changed, 32 insertions(+)
->>
->> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
->> index 8c36880..049083d 100644
->> --- a/drivers/pci/host/pci-dra7xx.c
->> +++ b/drivers/pci/host/pci-dra7xx.c
->> @@ -25,6 +25,8 @@
->>  #include <linux/resource.h>
->>  #include <linux/types.h>
->>  
->> +#include <linux/platform_data/pci-dra7xx.h>
->> +
->>  #include "pcie-designware.h"
->>  
->>  /* PCIe controller wrapper DRA7XX configuration registers */
->> @@ -329,6 +331,32 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->>  	return 0;
->>  }
->>  
->> +static int dra7xx_pcie_reset(struct platform_device *pdev)
->> +{
->> +	int ret;
->> +	struct device *dev = &pdev->dev;
->> +	struct pci_dra7xx_platform_data *pdata = pdev->dev.platform_data;
->> +
->> +	if (!(pdata && pdata->deassert_reset && pdata->assert_reset)) {
->> +		dev_err(dev, "platform data for reset not found!\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	ret = pdata->assert_reset(pdev, pdata->reset_name);
->> +	if (ret) {
->> +		dev_err(dev, "assert_reset failed: %d\n", ret);
->> +		return ret;
->> +	}
->> +
->> +	ret = pdata->deassert_reset(pdev, pdata->reset_name);
->> +	if (ret) {
->> +		dev_err(dev, "deassert_reset failed: %d\n", ret);
->> +		return ret;
->> +	}
+* Keerthy <j-keerthy@ti.com> wrote:
+
+> orderly_poweroff is triggered when a graceful shutdown
+> of system is desired. This may be used in many critical states of the
+> kernel such as when subsystems detects conditions such as critical
+> temperature conditions. However, in certain conditions in system
+> boot up sequences like those in the middle of driver probes being
+> initiated, userspace will be unable to power off the system in a clean
+> manner and leaves the system in a critical state. In cases like these,
+> the /sbin/poweroff will return success (having forked off to attempt
+> powering off the system. However, the system overall will fail to
+> completely poweroff (since other modules will be probed) and the system
+> is still functional with no userspace (since that would have shut itself
+> off).
 > 
-> The only comment I have on this is the symmetry (assert_reset invocation
-> in driver remove). If you install and remove the module once, then the
-> reset stays deasserted. On Power-On-Reset, the resets by default will be
-> in asserted state.
+> However, there is no clean way of detecting such failure of userspace
+> powering off the system. In such scenarios, it is necessary for a backup
+> workqueue to be able to force a shutdown of the system when orderly
+> shutdown is not successful after a configurable time period.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Suggested-by: Eduardo Valentin <edubezval@gmail.com> 
+> Reported-by: Nishanth Menon <nm@ti.com>
+> ---
+> Links to previous discussion can be found here:
+> 
+> http://www.spinics.net/lists/linux-omap/msg124925.html
+> 
+> Boot tested on DRA7.
+> 
+> changes in v2:
+> 
+> 	* Changed #ifdef to #if CONFIG_SHUTDOWN_BACKUP_DELAY_MS
+> 
+>  arch/Kconfig    |  7 +++++++
+>  kernel/reboot.c | 23 ++++++++++++++++++-----
+>  2 files changed, 25 insertions(+), 5 deletions(-)
+> 
+> Index: linux/arch/Kconfig
+> ===================================================================
+> --- linux.orig/arch/Kconfig	2016-01-11 15:26:07.732173131 +0530
+> +++ linux/arch/Kconfig	2016-01-11 15:26:07.728173205 +0530
+> @@ -37,6 +37,18 @@
+>  	def_bool y
+>  	depends on PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !PPC64
+>  
+> +config SHUTDOWN_BACKUP_DELAY_MS
+> +	int "Backup shutdown delay in milli-seconds"
+> +	default 0
+> +	help
+> +	  The number of milliseconds to delay before backup workqueue
+> +	  executes attempting to poweroff the system after the
+> +	  orderly_poweroff function has failed to complete.
+> +
+> +	  If set to 0, the backup workqueue is not active. The value
+> +	  should be conservatively configured based on userspace latencies
+> +	  expected for a given system.
 
-hmm.. not sure of the benefits of leaving the reset lines de-asserted during
-remove. The idea is irrespective of the initial sate or power-on state, during
-probe the driver should assert and de-assert the reset lines.
+I don't really understand this. In what circumstances can a reboot fail?
 
-Thanks
-Kishon
+I think that is what should be fixed: a reboot should never fail, instead of 
+introducing some sort of fragile timeout based method.
+
+Thanks,
+
+	Ingo
