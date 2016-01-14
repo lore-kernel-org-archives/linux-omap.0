@@ -1,57 +1,27 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAPDSS: panel-sharp-ls037v7dw01: update to use gpiod
-Date: Wed, 13 Jan 2016 15:22:31 -0800
-Message-ID: <20160113232230.GQ12600@atomide.com>
-References: <20151224072926.GE29642@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20151224072926.GE29642@mwanda>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+From: "Thang Q. Nguyen" <tqnguyen@apm.com>
+Subject: [PATCH v1 0/2] usb:dwc3: Enable USB DWC3 support for 64-bit system
+Date: Thu, 14 Jan 2016 12:08:43 +0700
+Message-ID: <1452748125-31639-1-git-send-email-tqnguyen@apm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org
+Cc: Thang Nguyen <tqnguyen@apm.com>, Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches@apm.com
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgoqIERhbiBDYXJwZW50ZXIgPGRhbi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4gWzE1MTIyMyAy
-MzoyOV06Cj4gWyBJdCdzIHdlaXJkIHRoYXQgSSdtIGp1c3Qgbm93IGdldHRpbmcgdGhpcyB3YXJu
-aW5nIGZyb20gMjAxNC4uLiAgT2gKPiB3ZWxsLCBsb29rcyBsZWdpdC4gLWRhbiBdCgpTb3JyeSBm
-b3IgdGhlIGRlbGF5IG9uIHRoaXMgb25lLCBnb3QgZGlzdHJhY3RlZCBmZXcgdGltZXMgd2l0aApv
-dGhlciBidWdzIHRvIGRlYWwgd2l0aC4gVGhpcyBzZWVtcyBsaWtlIGEgdmFsaWQgd2FybmluZyB5
-ZWFoLgoKVG9taSwgZG8gd2UgcmVhbGx5IG5lZWQgdHdvIGNvcGllcyBvZiB0aGUgdGhlIHNhbWUg
-cGFuZWxzCmZpbGVzIGluIGtlcm5lbD8KCkZvciBleGFtcGxlOgoKJCBmaW5kIC4gLW5hbWUgcGFu
-ZWwtc2hhcnAtbHMwMzd2N2R3MDEuYwouL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rpc3BsYXlz
-L3BhbmVsLXNoYXJwLWxzMDM3djdkdzAxLmMKLi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29t
-YXBmYi9kaXNwbGF5cy9wYW5lbC1zaGFycC1sczAzN3Y3ZHcwMS5jCgo+IFRoZSBwYXRjaCA5NTIy
-ZjlmZTg2Zjk6ICJPTUFQRFNTOiBwYW5lbC1zaGFycC1sczAzN3Y3ZHcwMTogdXBkYXRlIHRvCj4g
-dXNlIGdwaW9kIiBmcm9tIEFwciAyOCwgMjAxNCwgbGVhZHMgdG8gdGhlIGZvbGxvd2luZyBzdGF0
-aWMgY2hlY2tlcgo+IHdhcm5pbmc6Cj4gCj4gCWRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rpc3Bs
-YXlzL3BhbmVsLXNoYXJwLWxzMDM3djdkdzAxLmM6MjEzIHNoYXJwX2xzX2dldF9ncGlvKCkKPiAJ
-d2FybjogJ2dkJyBpc24ndCBhbiBFUlJfUFRSCj4gCj4gZHJpdmVycy9ncHUvZHJtL29tYXBkcm0v
-ZGlzcGxheXMvcGFuZWwtc2hhcnAtbHMwMzd2N2R3MDEuYwo+ICAgIDIwMCAgc3RhdGljIGludCBz
-aGFycF9sc19nZXRfZ3BpbyhzdHJ1Y3QgZGV2aWNlICpkZXYsIGludCBncGlvLCB1bnNpZ25lZCBs
-b25nIGZsYWdzLAo+ICAgIDIwMSAgICAgICAgICAgICAgICAgICAgY2hhciAqZGVzYywgc3RydWN0
-IGdwaW9fZGVzYyAqKmdwaW9kKQo+ICAgIDIwMiAgewo+ICAgIDIwMyAgICAgICAgICBzdHJ1Y3Qg
-Z3Bpb19kZXNjICpnZDsKPiAgICAyMDQgICAgICAgICAgaW50IHI7Cj4gICAgMjA1ICAKPiAgICAy
-MDYgICAgICAgICAgKmdwaW9kID0gTlVMTDsKPiAgICAyMDcgIAo+ICAgIDIwOCAgICAgICAgICBy
-ID0gZGV2bV9ncGlvX3JlcXVlc3Rfb25lKGRldiwgZ3BpbywgZmxhZ3MsIGRlc2MpOwo+ICAgIDIw
-OSAgICAgICAgICBpZiAocikKPiAgICAyMTAgICAgICAgICAgICAgICAgICByZXR1cm4gciA9PSAt
-RU5PRU5UID8gMCA6IHI7Cj4gICAgMjExICAKPiAgICAyMTIgICAgICAgICAgZ2QgPSBncGlvX3Rv
-X2Rlc2MoZ3Bpbyk7Cj4gICAgMjEzICAgICAgICAgIGlmIChJU19FUlIoZ2QpKQo+ICAgIDIxNCAg
-ICAgICAgICAgICAgICAgIHJldHVybiBQVFJfRVJSKGdkKSA9PSAtRU5PRU5UID8gMCA6IFBUUl9F
-UlIoZ2QpOwo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBeXl5eXl5eXl5eXl5eXl5e
-Xl5eXl5eCj4gZ2QgY2FuIGJlIGFuIEVSUl9QVFIgaWYgZ3Bpb190b19kZXNjIGlzIGRlZmluZWQg
-b3V0IGJ1dCBpdCdzIG5ldmVyCj4gLUVOT0VOVC4KClNlZW1zIGxpa2Ugd2UgY2FuIGp1c3QgcmVt
-b3ZlIHRoZSBjaGVjayBmb3IgLUVOT0VOVCBoZXJlLgoKUmdhcmRzLAoKVG9ueQpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
-aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNr
-dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+When CONFIG_DMA_CMA is not set, the coherent mask is not set.
+These patches enable the USB DWC3 driver to set the coherent mask
+correctly by first set coherent DMA mask to 64-bit. If this
+failed, attempt again with 32-bit.
+In addition, pass the archdata to the xhci-hcd child so that
+xhci-hcd can configure DMA operations correctly.
+
+Thang Q. Nguyen (2):
+  usb:dwc3: Enable support for 64-bit system
+  usb:dwc3: pass arch data to xhci-hcd child
+
+ drivers/usb/dwc3/core.c | 15 +++++++++++++++
+ drivers/usb/dwc3/host.c |  1 +
+ 2 files changed, 16 insertions(+)
+
+-- 
+2.2.0
