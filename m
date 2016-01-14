@@ -1,96 +1,59 @@
 From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2] reboot: Backup orderly_poweroff
-Date: Thu, 14 Jan 2016 14:48:36 +0530
-Message-ID: <569767EC.2010704@ti.com>
-References: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
- <20160114090520.GA4351@gmail.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap5-board-common: enable rtc and charging
+ of backup battery
+Date: Thu, 14 Jan 2016 15:31:53 +0530
+Message-ID: <56977211.8070206@ti.com>
+References: <001346CD-CF31-4FEF-B406-B89EEBDFA063@goldelico.com>
+ <56966558.1070608@ti.com> <569669C5.2070200@ti.com>
+ <20160113164856.GF12777@atomide.com> <5696896F.4090309@ti.com>
+ <20160113180006.GJ12777@atomide.com>
+ <2B99611A-5D2E-4D17-A17D-0150516109FD@goldelico.com>
+ <56969800.5010206@ti.com>
+ <D6479E92-4226-4B07-95F3-C0DF092B827C@goldelico.com>
+ <5696A002.6050402@ti.com> <20160113194032.GL12777@atomide.com>
+ <5696D097.3040208@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160114090520.GA4351@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>, Keerthy <j-keerthy@ti.com>
-Cc: linux-kernel@vger.kernel.org, edubezval@gmail.com, grygorii.strashko@ti.com, nm@ti.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, joel@jms.id.au, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org, peterz@infradead.org, dyoung@redhat.com, josh@joshtriplett.org, mpe@ellerman.id.au, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5696D097.3040208@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <menon.nishanth@gmail.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, =?UTF-8?Q?Gra=c5=bevydas_Ignotas?= <notasas@gmail.com>, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ingo,
 
-On Thursday 14 January 2016 02:35 PM, Ingo Molnar wrote:
->
-> * Keerthy <j-keerthy@ti.com> wrote:
->
->> orderly_poweroff is triggered when a graceful shutdown
->> of system is desired. This may be used in many critical states of the
->> kernel such as when subsystems detects conditions such as critical
->> temperature conditions. However, in certain conditions in system
->> boot up sequences like those in the middle of driver probes being
->> initiated, userspace will be unable to power off the system in a clean
->> manner and leaves the system in a critical state. In cases like these,
->> the /sbin/poweroff will return success (having forked off to attempt
->> powering off the system. However, the system overall will fail to
->> completely poweroff (since other modules will be probed) and the system
->> is still functional with no userspace (since that would have shut itself
->> off).
->>
->> However, there is no clean way of detecting such failure of userspace
->> powering off the system. In such scenarios, it is necessary for a backup
->> workqueue to be able to force a shutdown of the system when orderly
->> shutdown is not successful after a configurable time period.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> Suggested-by: Eduardo Valentin <edubezval@gmail.com>
->> Reported-by: Nishanth Menon <nm@ti.com>
->> ---
->> Links to previous discussion can be found here:
->>
->> http://www.spinics.net/lists/linux-omap/msg124925.html
->>
->> Boot tested on DRA7.
->>
->> changes in v2:
->>
->> 	* Changed #ifdef to #if CONFIG_SHUTDOWN_BACKUP_DELAY_MS
->>
->>   arch/Kconfig    |  7 +++++++
->>   kernel/reboot.c | 23 ++++++++++++++++++-----
->>   2 files changed, 25 insertions(+), 5 deletions(-)
->>
->> Index: linux/arch/Kconfig
->> ===================================================================
->> --- linux.orig/arch/Kconfig	2016-01-11 15:26:07.732173131 +0530
->> +++ linux/arch/Kconfig	2016-01-11 15:26:07.728173205 +0530
->> @@ -37,6 +37,18 @@
->>   	def_bool y
->>   	depends on PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !PPC64
->>
->> +config SHUTDOWN_BACKUP_DELAY_MS
->> +	int "Backup shutdown delay in milli-seconds"
->> +	default 0
->> +	help
->> +	  The number of milliseconds to delay before backup workqueue
->> +	  executes attempting to poweroff the system after the
->> +	  orderly_poweroff function has failed to complete.
->> +
->> +	  If set to 0, the backup workqueue is not active. The value
->> +	  should be conservatively configured based on userspace latencies
->> +	  expected for a given system.
->
-> I don't really understand this. In what circumstances can a reboot fail?
->
-> I think that is what should be fixed: a reboot should never fail, instead of
-> introducing some sort of fragile timeout based method.
 
-Here is the complete description of the scenario which was reported by 
-Nishanth who encountered the issue. The link has bootlogs and 
-description of the exact case which led to this patch.
+On Thursday 14 January 2016 04:02 AM, Nishanth Menon wrote:
+> On 01/13/2016 01:40 PM, Tony Lindgren wrote:
+>
+>> Anyways, considering what's been discussed, after the minimal RTC fix
+>> we could also add code to allow the TWL driver optionally configure the
+>> GPIO. This way the TWL driver could also check the GPIO state in case
+>> some out-of-our-control mystery software goes tweak the msecure pin
+>> state.
+>
+> I dont even know how that will work:
+> If you are using MSECURE as it is intended to be, then you'd mux it to
+> msecure, which means that GPIO read is just a waste of time - you dont
+> even mux it to external world. Now, some SoCs like DRA7 has input lines
+> always connected. even assuming this is for such a case:
+> a) when you are running linux, you are already in nonsecure - it needs
+> no read of MSECURE GPIO to figure that out.
+> b)  when you are in secure world, Linux wont be running either.
+>
+> Reading from GPIO is just misguided in my opinion. firewalls are not
+> reconfigured, and muxes are usually done a single time.
+>
+>   Or the RTC driver could just check that the bits really change
+>> after= writing them. Then we would at least know things are not working
+>> right for the TWL related RTC drivers.
+>
+> that is reasonable to check, but just a overhead - anyways, just
+> isolated to palmas-rtc.. fail reason maynot always be issues with
+> MSECURE mux.. it could be very well be 32k clk fail etc.. but yeah -
+> that might give a hint that there is an issue..
+>
 
-http://www.spinics.net/lists/linux-omap/msg124923.html
-
-Regards,
-Keerthy
->
-> Thanks,
->
-> 	Ingo
->
+IIRC without configuring the mux mode of gpio234 to msecure mode we were 
+unable to write to the rtc registers. Hence configured it one time at boot.
