@@ -1,96 +1,95 @@
-From: Liviu.Dudau@arm.com
-Subject: Re: [PATCH RFC] drm/i2c: tda998x: Only set atomic funcs if bound to
- atomic drm driver
-Date: Fri, 15 Jan 2016 14:09:55 +0000
-Message-ID: <20160115140954.GI13633@e106497-lin.cambridge.arm.com>
-References: <1452862526-32176-1-git-send-email-jsarha@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2] reboot: Backup orderly_poweroff
+Date: Fri, 15 Jan 2016 14:12:17 +0000
+Message-ID: <20160115141217.GF5783@n2100.arm.linux.org.uk>
+References: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
+ <20160114090520.GA4351@gmail.com>
+ <569767EC.2010704@ti.com>
+ <20160114100913.GB15857@gmail.com>
+ <56977BA7.702@ti.com>
+ <20160114112354.GA17869@gmail.com>
+ <20160114132527.575e0f20@lxorguk.ukuu.org.uk>
+ <20160115101459.GB23349@gmail.com>
+ <5698F420.2010500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1452862526-32176-1-git-send-email-jsarha@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: rmk+kernel@arm.linux.org.uk, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+In-Reply-To: <5698F420.2010500@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, nm@ti.com, Keerthy <a0393675@ti.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-pm@vger.kernel.org, peterz@infradead.org, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, josh@joshtriplett.org, edubezval@gmail.com, joel@jms.id.au, mpe@ellerman.id.au, akpm@linux-foundation.org, linux-omap@vger.kernel.org, dyoung@redhat.com, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBKYW4gMTUsIDIwMTYgYXQgMDI6NTU6MjZQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90
-ZToKPiBPbmx5IHNldCBhdG9taWMgY29ubmVjdG9yIGNhbGxiYWNrcyBpZiB0aGUgdGRhOTk4eCBk
-cml2ZXIgaXMgYm91bmQgdG8KPiBhIGRybSBkcml2ZXIgdGhhdCBzdXBwb3J0cyBhdG9taWMgbW9k
-ZXNldHRpbmcuIEF0IGxlYXN0Cj4gZHJtX2NydGNfaGVscGVyX3NldF9jb25maWcoKSBjYWxscyBj
-b25uZWN0b3JzIGRwbXMgY2FsbGJhY2sgd2l0aG91dAo+IGtub3dpbmcgdGhhdCBpdCBtYXkgYXNz
-dW1lIGF0b21pYyBtb2Rlc2V0IHN1cHBvcnQuIENhbGxpbmcKPiBkcm1fYXRvbWljX2hlbHBlcl9j
-b25uZWN0b3JfZHBtcygpIGNhdXNlcyBhIGNyYXNoIHdpdGggYSBkcml2ZXIgdGhhdAo+IGRvZXMg
-bm90IGhhdmUgYXRvbWljIHN0YXRlIGluaXRpYWxpemVkLgoKSGkgSnlyaSwKCj4gCj4gRml4ZXMg
-Y29tbWl0IDk3MzZlOTg4ZDMyOCAoImRybS9pMmM6IHRkYTk5OHg6IEFkZCBzdXBwb3J0IGZvciBh
-dG9taWMKPiBtb2Rlc2V0dGluZyIpLgoKRmlyc3QsIHNvcnJ5IGZvciB0aGUgYnJlYWthZ2UsIEkg
-ZGlkIG5vdCBoYWQgYW55IG90aGVyIGJvYXJkIHRvIHRlc3QgdGhlCmNoYW5nZSBvbi4KCj4gCj4g
-U2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNvbT4KPiAtLS0KPiBJIGFtIG5v
-dCBzdXJlIGlmIHRoaXMgaXMgdGhlIGJlc3Qgd2F5IHRvIGZpeCB0aGUgaXNzdWUsIGJ1dCBhZnRl
-cgo+IDk3MzZlOTg4ZDMyOCBCZWFnbGVib25lLUJsYWNrIEhETUkgaXMgdG90YWxseSBicm9rZW4g
-YW5kIHRoaXMgZml4ZXMKPiB0aGUgaXNzdWUuIEkgYW0gY3VycmVudGx5IHdvcmtpbmcgb24gYXRv
-bWljIG1vZGVzZXR0aW5nIGZvciB0aWxjZGMsCj4gYnV0IHRoZXJlIGlzIG5vIHdheSBpdCBtYWtl
-cyBpdCB0byA0LjUgcmVsZWFzZS4KClllcywgSSdtIG5vdCBhIGJpZyBmYW4gb2YgdGhlIGNoYW5n
-ZSBlaXRoZXIuIEkgd291bGQndmUgdGhvdWdodCB0aGF0CnlvdSBvbmx5IG5lZWQgdG8gdXBkYXRl
-IHRoZSAuZHBtcyBwb2ludGVyLCBhbGwgb3RoZXIgaG9va3MgYWRkZWQgYXJlCnNwZWNpZmljIHRv
-IGF0b21pYyBvcGVyYXRpb25zIChyaWdodD8pLiBXb3VsZCBpdCBub3QgYmUgc2ltcGxlciB0byBo
-YXZlCmEgdGRhOTk4eF9jb25uZWN0b3JfZHBtcygpIGZ1bmN0aW9uIHRoYXQgY2FsbHMgdGhlIGFw
-cHJvcHJpYXRlIC5kcG1zCmZ1bmN0aW9uIGJhc2VkIG9uIHRoZSBmZWF0dXJlIGNoZWNrPwoKQmVz
-dCByZWdhcmRzLApMaXZpdQoKPiAKPiBCZXN0IHJlZ2FyZHMsCj4gSnlyaQo+IAo+ICBkcml2ZXJz
-L2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMgfCAxNyArKysrKysrKysrKysrKystLQo+ICAxIGZp
-bGUgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jIGIvZHJpdmVycy9ncHUvZHJt
-L2kyYy90ZGE5OTh4X2Rydi5jCj4gaW5kZXggMDEyZDM2ZC4uNjdkMTQwOCAxMDA2NDQKPiAtLS0g
-YS9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMKPiArKysgYi9kcml2ZXJzL2dwdS9k
-cm0vaTJjL3RkYTk5OHhfZHJ2LmMKPiBAQCAtMTM4Miw3ICsxMzgyLDcgQEAgc3RhdGljIHZvaWQg
-dGRhOTk4eF9jb25uZWN0b3JfZGVzdHJveShzdHJ1Y3QgZHJtX2Nvbm5lY3RvciAqY29ubmVjdG9y
-KQo+ICAJZHJtX2Nvbm5lY3Rvcl9jbGVhbnVwKGNvbm5lY3Rvcik7Cj4gIH0KPiAgCj4gLXN0YXRp
-YyBjb25zdCBzdHJ1Y3QgZHJtX2Nvbm5lY3Rvcl9mdW5jcyB0ZGE5OTh4X2Nvbm5lY3Rvcl9mdW5j
-cyA9IHsKPiArc3RhdGljIGNvbnN0IHN0cnVjdCBkcm1fY29ubmVjdG9yX2Z1bmNzIHRkYTk5OHhf
-Y29ubmVjdG9yX2F0b21pY19mdW5jcyA9IHsKPiAgCS5kcG1zID0gZHJtX2F0b21pY19oZWxwZXJf
-Y29ubmVjdG9yX2RwbXMsCj4gIAkucmVzZXQgPSBkcm1fYXRvbWljX2hlbHBlcl9jb25uZWN0b3Jf
-cmVzZXQsCj4gIAkuZmlsbF9tb2RlcyA9IGRybV9oZWxwZXJfcHJvYmVfc2luZ2xlX2Nvbm5lY3Rv
-cl9tb2RlcywKPiBAQCAtMTM5MiwxNSArMTM5MiwyOCBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGRy
-bV9jb25uZWN0b3JfZnVuY3MgdGRhOTk4eF9jb25uZWN0b3JfZnVuY3MgPSB7Cj4gIAkuYXRvbWlj
-X2Rlc3Ryb3lfc3RhdGUgPSBkcm1fYXRvbWljX2hlbHBlcl9jb25uZWN0b3JfZGVzdHJveV9zdGF0
-ZSwKPiAgfTsKPiAgCj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgZHJtX2Nvbm5lY3Rvcl9mdW5jcyB0
-ZGE5OTh4X2Nvbm5lY3Rvcl9mdW5jcyA9IHsKPiArCS5kcG1zID0gZHJtX2hlbHBlcl9jb25uZWN0
-b3JfZHBtcywKPiArCS5maWxsX21vZGVzID0gZHJtX2hlbHBlcl9wcm9iZV9zaW5nbGVfY29ubmVj
-dG9yX21vZGVzLAo+ICsJLmRldGVjdCA9IHRkYTk5OHhfY29ubmVjdG9yX2RldGVjdCwKPiArCS5k
-ZXN0cm95ID0gdGRhOTk4eF9jb25uZWN0b3JfZGVzdHJveSwKPiArfTsKPiArCj4gIHN0YXRpYyBp
-bnQgdGRhOTk4eF9iaW5kKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZSAqbWFzdGVy
-LCB2b2lkICpkYXRhKQo+ICB7Cj4gIAlzdHJ1Y3QgdGRhOTk4eF9lbmNvZGVyX3BhcmFtcyAqcGFy
-YW1zID0gZGV2LT5wbGF0Zm9ybV9kYXRhOwo+ICAJc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9
-IHRvX2kyY19jbGllbnQoZGV2KTsKPiAgCXN0cnVjdCBkcm1fZGV2aWNlICpkcm0gPSBkYXRhOwo+
-ICAJc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdjsKPiArCWNvbnN0IHN0cnVjdCBkcm1fY29ubmVj
-dG9yX2Z1bmNzICpjb25uZWN0b3JfZnVuY3M7Cj4gIAl1MzIgY3J0Y3MgPSAwOwo+ICAJaW50IHJl
-dDsKPiAgCj4gKwlpZiAoZHJtX2NvcmVfY2hlY2tfZmVhdHVyZShkcm0sIERSSVZFUl9BVE9NSUMp
-KQo+ICsJCWNvbm5lY3Rvcl9mdW5jcyA9ICZ0ZGE5OTh4X2Nvbm5lY3Rvcl9hdG9taWNfZnVuY3M7
-Cj4gKwllbHNlCj4gKwkJY29ubmVjdG9yX2Z1bmNzID0gJnRkYTk5OHhfY29ubmVjdG9yX2Z1bmNz
-Owo+ICsKPiAgCXByaXYgPSBkZXZtX2t6YWxsb2MoZGV2LCBzaXplb2YoKnByaXYpLCBHRlBfS0VS
-TkVMKTsKPiAgCWlmICghcHJpdikKPiAgCQlyZXR1cm4gLUVOT01FTTsKPiBAQCAtMTQzNyw3ICsx
-NDUwLDcgQEAgc3RhdGljIGludCB0ZGE5OTh4X2JpbmQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1
-Y3QgZGV2aWNlICptYXN0ZXIsIHZvaWQgKmRhdGEpCj4gIAlkcm1fY29ubmVjdG9yX2hlbHBlcl9h
-ZGQoJnByaXYtPmNvbm5lY3RvciwKPiAgCQkJCSAmdGRhOTk4eF9jb25uZWN0b3JfaGVscGVyX2Z1
-bmNzKTsKPiAgCXJldCA9IGRybV9jb25uZWN0b3JfaW5pdChkcm0sICZwcml2LT5jb25uZWN0b3Is
-Cj4gLQkJCQkgJnRkYTk5OHhfY29ubmVjdG9yX2Z1bmNzLAo+ICsJCQkJIGNvbm5lY3Rvcl9mdW5j
-cywKPiAgCQkJCSBEUk1fTU9ERV9DT05ORUNUT1JfSERNSUEpOwo+ICAJaWYgKHJldCkKPiAgCQln
-b3RvIGVycl9jb25uZWN0b3I7Cj4gLS0gCj4gMS45LjEKPiAKPiBfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IGRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKPiBk
-cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4gaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9w
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAoKLS0gCj09PT09PT09PT09PT09PT09PT09
-CnwgSSB3b3VsZCBsaWtlIHRvIHwKfCBmaXggdGhlIHdvcmxkLCAgfAp8IGJ1dCB0aGV5J3JlIG5v
-dCB8CnwgZ2l2aW5nIG1lIHRoZSAgIHwKIFwgc291cmNlIGNvZGUhICAvCiAgLS0tLS0tLS0tLS0t
-LS0tCiAgICDCr1xfKOODhClfL8KvCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
-ZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-ZHJpLWRldmVsCg==
+On Fri, Jan 15, 2016 at 03:29:04PM +0200, Grygorii Strashko wrote:
+> Seems ARM doesn't have endless loop implemented in machine_power_off() - so,
+> not too much chances for Watchdog to fire.
+> void machine_power_off(void)
+> {
+> 	local_irq_disable();
+> 	smp_send_stop();
+> 
+> 	if (pm_power_off)
+> 		pm_power_off();
+> 
+> 	--- endless loop ?
+> 	--- or restart ?
+> }
+> [and even if it will be there - 20-30sec is usual timeout for Watchdog
+> and this enough time to burn the system in case of thermal emergency
+> poweroff :(]
+
+I covered this in my reply to Ingo yesterday.  The result is that a
+failed or unimplemented call drops through to do_exit(0) on behalf of
+the calling process, terminating that process.  However, as I said
+in that same email, I don't think you're getting anywhere near this
+code.
+
+> That's true - original log [1] has 
+> Nov 30 11:19:22 [    5.942769] thermal thermal_zone3: critical temperature reached(108 C),shutting down
+> [...]
+> Nov 30 11:19:24 [    7.387900] ahci 4a140000.sata: flags: 64bit ncq sntf stag pm led clo only pmp pio slum part ccc apst 
+> Nov 30 11:19:24 INIT: Switching to runlevel: 0
+> Nov 30 11:19:24 INIT: Sending processes the TERM signal
+> 
+> and there are no
+> [  220.004522] reboot: Power down
+
+Right, so things are stuck in userspace, which means the system is still
+in an active runnable state.
+
+As I mentioned (again) in my email, the issue appears to be that the 'rc'
+script is stuck waiting on a FIFO.
+
+The init daemon is trying to do an orderly shutdown.  As part of that,
+it's executing the 'rc' script, which in systems I've seen, runs through
+a set of scripts in the /etc/rc?.d directory in order, which normally
+bring up or take down services and perform other sequenced actions.
+
+If this script hangs (as it seems to be doing) it won't get to running
+/sbin/poweroff or similar, and that means machine_power_off() won't be
+called.
+
+> In general, this kind of use case can be simulated using SysRq on any arch
+> - [3.290034] Freeing unused kernel memory: 492K (c0a67000 - c0ae2000)
+>   INIT: version 2.88 booting
+>   Starting udev
+> ^^ The issue most probably might happens when system in the process of
+> loading modules
+> So, once modules loading process is started - fire Sysrq "poweroff(o)"
+
+This suggests it could be a udev issue - but without knowing what's
+happening inside sysvinit's scripts, it's hard to know for certain.
+Adding some debug to the 'rc' script (make sure it works without
+rebooting or changing the run level, or have a way of restoring the
+file if it fails to boot) so that it's possible to see what it's doing
+may be a good idea - the simplest approach may be to just add
+
+set -x
+
+towards the top of the file - which will make it very noisy.
+
+-- 
+RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
