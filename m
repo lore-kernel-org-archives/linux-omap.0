@@ -1,45 +1,74 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2] reboot: Backup orderly_poweroff
-Date: Fri, 15 Jan 2016 11:14:59 +0100
-Message-ID: <20160115101459.GB23349@gmail.com>
-References: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
- <20160114090520.GA4351@gmail.com>
- <569767EC.2010704@ti.com>
- <20160114100913.GB15857@gmail.com>
- <56977BA7.702@ti.com>
- <20160114112354.GA17869@gmail.com>
- <20160114132527.575e0f20@lxorguk.ukuu.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] drm: omap dss: add missing includes
+Date: Fri, 15 Jan 2016 11:52:54 +0100
+Message-ID: <6010313.rYeAixWRHJ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160114132527.575e0f20@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Keerthy <a0393675@ti.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, edubezval@gmail.com, grygorii.strashko@ti.com, nm@ti.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, joel@jms.id.au, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org, peterz@infradead.org, dyoung@redhat.com, josh@joshtriplett.org, mpe@ellerman.id.au, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Dave Airlie <airlied@gmail.com>
+Cc: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-* One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> wrote:
-
-> > If kernel_power_off() is called then the system should power off. No ifs and 
-> > whens.
-> 
-> Even if it doesn't the watchdog should kill it. 
-> 
-> That is broken on some platforms on the watchdog side as the
-> watchdog shuts down during our power off callbacks - because the system
-> firmware is too stupid to reset the watchdog as it powers back up (so
-> keeps rebooting).
-> 
-> If you watchdog and firmware function properly you shouldn't even have to
-> care if you crash during the kernel power off.
-
-That's a good point as well - if the system is 'stuck' for some notion of stuck, 
-then watchdog drivers can help.
-
-Here it's unclear whether user-space even called the sys_reboot() system call.
-
-Thanks,
-
-	Ingo
+VGhlIG9tYXBkcm0gZHNzIGRyaXZlciBjdXJyZW50bHkgZmFpbHMgdG8gYnVpbGQgaW4gc29tZSBj
+b25maWd1cmF0aW9ucyB3aGVuCnRoZSBwaW5jdHJsIGFuZCBzZXFfcHJpbnQgZGVjbGFyYXRpb25z
+IGFyZSBub3QgdmlzaWJsZToKCm9tYXBkcm0vZHNzL2Rzcy5jOjEyNjg6MjogZXJyb3I6IGltcGxp
+Y2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdwaW5jdHJsX3BtX3NlbGVjdF9zbGVlcF9zdGF0
+ZScgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCm9tYXBkcm0vZHNzL2Rz
+cy5jOjEyNzc6MjogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdwaW5j
+dHJsX3BtX3NlbGVjdF9kZWZhdWx0X3N0YXRlJyBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1k
+ZWNsYXJhdGlvbl0Kb21hcGRybS9kc3MvaGRtaV93cC5jOjI2OjI6IGVycm9yOiBpbXBsaWNpdCBk
+ZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnc2VxX3ByaW50ZicgWy1XZXJyb3I9aW1wbGljaXQtZnVu
+Y3Rpb24tZGVjbGFyYXRpb25dCm9tYXBkcm0vZHNzL2hkbWlfcGxsLmM6MzA6MjogZXJyb3I6IGlt
+cGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uICdzZXFfcHJpbnRmJyBbLVdlcnJvcj1pbXBs
+aWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0Kb21hcGRybS9kc3MvaGRtaV9waHkuYzozNDoyOiBl
+cnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ3NlcV9wcmludGYnIFstV2Vy
+cm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQoKVGhpcyBhZGRzIHRoZSBhcHByb3By
+aWF0ZSBpbmNsdWRlIHN0YXRlbWVudHMuCgpTaWduZWQtb2ZmLWJ5OiBBcm5kIEJlcmdtYW5uIDxh
+cm5kQGFybmRiLmRlPgpGaXhlczogOTk2MGFhN2NiNThjICgiZHJtL29tYXA6IG1vdmUgb21hcGRz
+cyAmIGRpc3BsYXlzIHVuZGVyIG9tYXBkcm0iKQotLS0KRm91bmQgb24gQVJNIHJhbmRjb25maWcg
+YnVpbGRzLiBJIGFzc3VtZSB0aGVyZSBhcmUgYWxzbyBjb25maWd1cmF0aW9ucyBpbiB3aGljaCB0
+aGlzIGlzCm5vdCBuZWVkZWQgYmVjYXVzZSB0aGUgaGVhZGVycyBnZXQgaW5jbHVkZWQgdGhyb3Vn
+aCBvdGhlciBoZWFkZXJzLCBhbmQgSSBoYXZlIG5vdAppbnZlc3RpZ2F0ZWQgZXhhY3RseSB3aGF0
+IG9wdGlvbnMgY2F1c2UgdGhpcyBhcyB0aGUgZml4IHNlZW1zIG9idmlvdXMgYW5kIGhhcm1sZXNz
+LgoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc3MuYyBiL2RyaXZl
+cnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc3MuYwppbmRleCBmOTVmZjMxOWU2OGUuLjgzOWIxYjZi
+ZGJlNCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2Rzcy5jCisrKyBi
+L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc3MuYwpAQCAtMzcsNiArMzcsNyBAQAogI2lu
+Y2x1ZGUgPGxpbnV4L21mZC9zeXNjb24uaD4KICNpbmNsdWRlIDxsaW51eC9yZWdtYXAuaD4KICNp
+bmNsdWRlIDxsaW51eC9vZi5oPgorI2luY2x1ZGUgPGxpbnV4L3BpbmN0cmwvY29uc3VtZXIuaD4K
+ICNpbmNsdWRlIDxsaW51eC9yZWd1bGF0b3IvY29uc3VtZXIuaD4KICNpbmNsdWRlIDxsaW51eC9z
+dXNwZW5kLmg+CiAjaW5jbHVkZSA8bGludXgvY29tcG9uZW50Lmg+CmRpZmYgLS1naXQgYS9kcml2
+ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaV9waHkuYyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFw
+ZHJtL2Rzcy9oZG1pX3BoeS5jCmluZGV4IDFmNWQxOWMxMTljZS4uYTg3MjcyMWEwM2EyIDEwMDY0
+NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaV9waHkuYworKysgYi9kcml2
+ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaV9waHkuYwpAQCAtMTMsNiArMTMsOCBAQAogI2lu
+Y2x1ZGUgPGxpbnV4L2lvLmg+CiAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+CiAj
+aW5jbHVkZSA8bGludXgvc2xhYi5oPgorI2luY2x1ZGUgPGxpbnV4L3NlcV9maWxlLmg+CisKICNp
+bmNsdWRlIDx2aWRlby9vbWFwZHNzLmg+CiAKICNpbmNsdWRlICJkc3MuaCIKZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pX3BsbC5jIGIvZHJpdmVycy9ncHUvZHJt
+L29tYXBkcm0vZHNzL2hkbWlfcGxsLmMKaW5kZXggMDZlMjNhN2M0MzJjLi5mMTAxNWU4YjgyNjcg
+MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pX3BsbC5jCisrKyBi
+L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pX3BsbC5jCkBAIC0xNiw2ICsxNiw3IEBA
+CiAjaW5jbHVkZSA8bGludXgvaW8uaD4KICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2Uu
+aD4KICNpbmNsdWRlIDxsaW51eC9jbGsuaD4KKyNpbmNsdWRlIDxsaW51eC9zZXFfZmlsZS5oPgog
+CiAjaW5jbHVkZSA8dmlkZW8vb21hcGRzcy5oPgogCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9k
+cm0vb21hcGRybS9kc3MvaGRtaV93cC5jIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2hk
+bWlfd3AuYwppbmRleCA3YzU0NGJjNTZmYjUuLjc1M2FjMzA1ZDMyYSAxMDA2NDQKLS0tIGEvZHJp
+dmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2hkbWlfd3AuYworKysgYi9kcml2ZXJzL2dwdS9kcm0v
+b21hcGRybS9kc3MvaGRtaV93cC5jCkBAIC0xNCw2ICsxNCw3IEBACiAjaW5jbHVkZSA8bGludXgv
+ZXJyLmg+CiAjaW5jbHVkZSA8bGludXgvaW8uaD4KICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9k
+ZXZpY2UuaD4KKyNpbmNsdWRlIDxsaW51eC9zZXFfZmlsZS5oPgogI2luY2x1ZGUgPHZpZGVvL29t
+YXBkc3MuaD4KIAogI2luY2x1ZGUgImRzcy5oIgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kcmktZGV2ZWwK
