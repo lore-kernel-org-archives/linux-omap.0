@@ -1,45 +1,88 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] mmc: host: omap_hsmmc: add a verbose print to enable
- CONFIG_REGULATOR_PBIAS
-Date: Fri, 15 Jan 2016 09:14:21 +0000
-Message-ID: <20160115091421.GD5783@n2100.arm.linux.org.uk>
-References: <1452762920-2588-1-git-send-email-kishon@ti.com>
- <20160114120706.GA12774@earth>
- <20160114172549.GC5783@n2100.arm.linux.org.uk>
- <20160114224025.GA26988@earth>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v2] reboot: Backup orderly_poweroff
+Date: Fri, 15 Jan 2016 11:13:12 +0100
+Message-ID: <20160115101312.GA23349@gmail.com>
+References: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
+ <20160114090520.GA4351@gmail.com>
+ <569767EC.2010704@ti.com>
+ <20160114100913.GB15857@gmail.com>
+ <56977BA7.702@ti.com>
+ <20160114112354.GA17869@gmail.com>
+ <20160114142227.GB5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160114224025.GA26988@earth>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, ivo.g.dimitrov.75@gmail.com, aaro.koskinen@iki.fi, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, khilman@kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, NeilBrown <neilb@suse.de>, pavel@ucw.cz, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20160114142227.GB5783@n2100.arm.linux.org.uk>
+Sender: linux-pm-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Keerthy <a0393675@ti.com>, nm@ti.com, grygorii.strashko@ti.com, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-pm@vger.kernel.org, peterz@infradead.org, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, josh@joshtriplett.org, edubezval@gmail.com, joel@jms.id.au, mpe@ellerman.id.au, akpm@linux-foundation.org, linux-omap@vger.kernel.org, dyoung@redhat.com, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 14, 2016 at 11:40:25PM +0100, Sebastian Reichel wrote:
-> On Thu, Jan 14, 2016 at 05:25:49PM +0000, Russell King - ARM Linux wrote:
-> > There are very good reasons not to do this: that will result in
-> > configurations where MMC_OMAP_HS was set but without REGULATOR_PBIAS
-> > ending up with MMC_OMAP_HS being disabled.  That doesn't help the
-> > root problem, which is "why has the kernel boot regressed for my
-> > previous working configuration?"
+
+* Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+
+> On Thu, Jan 14, 2016 at 12:23:54PM +0100, Ingo Molnar wrote:
+> > * Keerthy <a0393675@ti.com> wrote:
+> > > I tried to simulate the issue.
+> > > 
+> > > In the probe function of drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> > > ti_bandgap_probe i call
+> > > 
+> > > orderly_poweroff(true);
+> > > 
+> > > This is while driver probes are still on going. I observe that
+> > > ret = run_cmd(poweroff_cmd);
+> > > 
+> > > ret is a non-zero value and we enter the if condition:
+> > > 
+> > > Even after the
+> > > 
+> > > emergency_sync();
+> > > kernel_power_off();
+> > > 
+> > > calls
+> > > 
+> > > the console remained active in weird state.
 > > 
-> > The solution proposed here adds a message to the boot which points
-> > out fair and square what needs to be done to rectify the boot
-> > failure.  Adding a dependency just brings up the question "where
-> > has my MMC driver gone?"
+> > Now _that_ is clearly an architecture bug that should not be papered over ...
 > 
-> The best thing would be to have no regression. Just printing a
-> message means I have to build another kernel. But more importantly
-> the message may not be visible by the user - e.g. if the display has
-> not yet been initialized.
+> No, it's not an architecture bug - it's a platform bug. [...]
 
-I agree in principle, but that's not possible here (see Tony's mails
-on why the PBIAS stuff needs to be optional.)  I'd agree with changing
-the Kconfig if PBIAS were a hard and fast requirement, but it isn't.
+It's an 'architecture bug' in Linux kernel speak: all stuff that is traditionally 
+under arch/*. The 'arch' in that directory name derives from 'architecture'.
 
--- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+kernel_power_off() is a traditionally architecture level (not core kernel level 
+and not driver level) code.
+
+> [...] The ARM architecture has no standard way to control CPU reset or system 
+> power, all that is up to the platform.
+
+... and platform code is typically part of arch/ as well.
+
+FYI, you are making an unnecessarily obtuse argument by insisting on the 
+architecture != platform triviality and you also injected an uncalled for 
+patronizing tone into this discussion by pretending that I don't know that 
+distinction. It's sad.
+
+> > If kernel_power_off() is called then the system should power off. No ifs and 
+> > whens.
+> 
+> There definitely are ifs and whens.  Only if the platform has support, and when 
+> that support works.
+
+And that is precisely what I meant: in a correctly working kernel, with correctly 
+working hardware, in a correctly working universe, the core kernel expects 
+kernel_power_off() to never 'fail'.
+
+As the name suggests.
+
+Yes, bugs in user-space, kernel-space, hardware and designed buggy hardware might 
+prevent a reboot - as usual.
+
+I.e. I NAK this patch from a core kernel perspective, we don't add such 
+workarounds without a lot more information about why it's the right thing to do.
+
+Thanks,
+
+	Ingo
