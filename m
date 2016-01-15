@@ -1,39 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2] reboot: Backup orderly_poweroff
-Date: Fri, 15 Jan 2016 11:05:17 +0000
-Message-ID: <20160115110517.GE5783@n2100.arm.linux.org.uk>
-References: <1452688405-15087-1-git-send-email-j-keerthy@ti.com>
- <20160114090520.GA4351@gmail.com>
- <569767EC.2010704@ti.com>
- <20160114100913.GB15857@gmail.com>
- <56977BA7.702@ti.com>
- <20160114112354.GA17869@gmail.com>
- <20160114142227.GB5783@n2100.arm.linux.org.uk>
- <20160115101312.GA23349@gmail.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC] drm/i2c: tda998x: Only set atomic funcs if bound to
+ atomic drm driver
+Date: Fri, 15 Jan 2016 14:55:26 +0200
+Message-ID: <1452862526-32176-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160115101312.GA23349@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Keerthy <a0393675@ti.com>, nm@ti.com, grygorii.strashko@ti.com, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-pm@vger.kernel.org, peterz@infradead.org, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, josh@joshtriplett.org, edubezval@gmail.com, joel@jms.id.au, mpe@ellerman.id.au, akpm@linux-foundation.org, linux-omap@vger.kernel.org, dyoung@redhat.com, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org
+Cc: rmk+kernel@arm.linux.org.uk, tomi.valkeinen@ti.com, Liviu.Dudau@arm.com, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 15, 2016 at 11:13:12AM +0100, Ingo Molnar wrote:
-> FYI, you are making an unnecessarily obtuse argument by insisting on the 
-> architecture != platform triviality and you also injected an uncalled for 
-> patronizing tone into this discussion by pretending that I don't know that 
-> distinction. It's sad.
-
-I was trying to be helpful, but your attitude seems to always one of
-finding some way to turn a reasonable discussion into an ad hominem
-attack.  You've just proven that you're totally impossible to work
-with.
-
-I won't make the mistake of replying to one of your messages again.
-
--- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+T25seSBzZXQgYXRvbWljIGNvbm5lY3RvciBjYWxsYmFja3MgaWYgdGhlIHRkYTk5OHggZHJpdmVy
+IGlzIGJvdW5kIHRvCmEgZHJtIGRyaXZlciB0aGF0IHN1cHBvcnRzIGF0b21pYyBtb2Rlc2V0dGlu
+Zy4gQXQgbGVhc3QKZHJtX2NydGNfaGVscGVyX3NldF9jb25maWcoKSBjYWxscyBjb25uZWN0b3Jz
+IGRwbXMgY2FsbGJhY2sgd2l0aG91dAprbm93aW5nIHRoYXQgaXQgbWF5IGFzc3VtZSBhdG9taWMg
+bW9kZXNldCBzdXBwb3J0LiBDYWxsaW5nCmRybV9hdG9taWNfaGVscGVyX2Nvbm5lY3Rvcl9kcG1z
+KCkgY2F1c2VzIGEgY3Jhc2ggd2l0aCBhIGRyaXZlciB0aGF0CmRvZXMgbm90IGhhdmUgYXRvbWlj
+IHN0YXRlIGluaXRpYWxpemVkLgoKRml4ZXMgY29tbWl0IDk3MzZlOTg4ZDMyOCAoImRybS9pMmM6
+IHRkYTk5OHg6IEFkZCBzdXBwb3J0IGZvciBhdG9taWMKbW9kZXNldHRpbmciKS4KClNpZ25lZC1v
+ZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQpJIGFtIG5vdCBzdXJlIGlmIHRo
+aXMgaXMgdGhlIGJlc3Qgd2F5IHRvIGZpeCB0aGUgaXNzdWUsIGJ1dCBhZnRlcgo5NzM2ZTk4OGQz
+MjggQmVhZ2xlYm9uZS1CbGFjayBIRE1JIGlzIHRvdGFsbHkgYnJva2VuIGFuZCB0aGlzIGZpeGVz
+CnRoZSBpc3N1ZS4gSSBhbSBjdXJyZW50bHkgd29ya2luZyBvbiBhdG9taWMgbW9kZXNldHRpbmcg
+Zm9yIHRpbGNkYywKYnV0IHRoZXJlIGlzIG5vIHdheSBpdCBtYWtlcyBpdCB0byA0LjUgcmVsZWFz
+ZS4KCkJlc3QgcmVnYXJkcywKSnlyaQoKIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYu
+YyB8IDE3ICsrKysrKysrKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygr
+KSwgMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5
+OHhfZHJ2LmMgYi9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMKaW5kZXggMDEyZDM2
+ZC4uNjdkMTQwOCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5j
+CisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwpAQCAtMTM4Miw3ICsxMzgy
+LDcgQEAgc3RhdGljIHZvaWQgdGRhOTk4eF9jb25uZWN0b3JfZGVzdHJveShzdHJ1Y3QgZHJtX2Nv
+bm5lY3RvciAqY29ubmVjdG9yKQogCWRybV9jb25uZWN0b3JfY2xlYW51cChjb25uZWN0b3IpOwog
+fQogCi1zdGF0aWMgY29uc3Qgc3RydWN0IGRybV9jb25uZWN0b3JfZnVuY3MgdGRhOTk4eF9jb25u
+ZWN0b3JfZnVuY3MgPSB7CitzdGF0aWMgY29uc3Qgc3RydWN0IGRybV9jb25uZWN0b3JfZnVuY3Mg
+dGRhOTk4eF9jb25uZWN0b3JfYXRvbWljX2Z1bmNzID0gewogCS5kcG1zID0gZHJtX2F0b21pY19o
+ZWxwZXJfY29ubmVjdG9yX2RwbXMsCiAJLnJlc2V0ID0gZHJtX2F0b21pY19oZWxwZXJfY29ubmVj
+dG9yX3Jlc2V0LAogCS5maWxsX21vZGVzID0gZHJtX2hlbHBlcl9wcm9iZV9zaW5nbGVfY29ubmVj
+dG9yX21vZGVzLApAQCAtMTM5MiwxNSArMTM5MiwyOCBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGRy
+bV9jb25uZWN0b3JfZnVuY3MgdGRhOTk4eF9jb25uZWN0b3JfZnVuY3MgPSB7CiAJLmF0b21pY19k
+ZXN0cm95X3N0YXRlID0gZHJtX2F0b21pY19oZWxwZXJfY29ubmVjdG9yX2Rlc3Ryb3lfc3RhdGUs
+CiB9OwogCitzdGF0aWMgY29uc3Qgc3RydWN0IGRybV9jb25uZWN0b3JfZnVuY3MgdGRhOTk4eF9j
+b25uZWN0b3JfZnVuY3MgPSB7CisJLmRwbXMgPSBkcm1faGVscGVyX2Nvbm5lY3Rvcl9kcG1zLAor
+CS5maWxsX21vZGVzID0gZHJtX2hlbHBlcl9wcm9iZV9zaW5nbGVfY29ubmVjdG9yX21vZGVzLAor
+CS5kZXRlY3QgPSB0ZGE5OTh4X2Nvbm5lY3Rvcl9kZXRlY3QsCisJLmRlc3Ryb3kgPSB0ZGE5OTh4
+X2Nvbm5lY3Rvcl9kZXN0cm95LAorfTsKKwogc3RhdGljIGludCB0ZGE5OTh4X2JpbmQoc3RydWN0
+IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlICptYXN0ZXIsIHZvaWQgKmRhdGEpCiB7CiAJc3Ry
+dWN0IHRkYTk5OHhfZW5jb2Rlcl9wYXJhbXMgKnBhcmFtcyA9IGRldi0+cGxhdGZvcm1fZGF0YTsK
+IAlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYpOwogCXN0cnVj
+dCBkcm1fZGV2aWNlICpkcm0gPSBkYXRhOwogCXN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXY7CisJ
+Y29uc3Qgc3RydWN0IGRybV9jb25uZWN0b3JfZnVuY3MgKmNvbm5lY3Rvcl9mdW5jczsKIAl1MzIg
+Y3J0Y3MgPSAwOwogCWludCByZXQ7CiAKKwlpZiAoZHJtX2NvcmVfY2hlY2tfZmVhdHVyZShkcm0s
+IERSSVZFUl9BVE9NSUMpKQorCQljb25uZWN0b3JfZnVuY3MgPSAmdGRhOTk4eF9jb25uZWN0b3Jf
+YXRvbWljX2Z1bmNzOworCWVsc2UKKwkJY29ubmVjdG9yX2Z1bmNzID0gJnRkYTk5OHhfY29ubmVj
+dG9yX2Z1bmNzOworCiAJcHJpdiA9IGRldm1fa3phbGxvYyhkZXYsIHNpemVvZigqcHJpdiksIEdG
+UF9LRVJORUwpOwogCWlmICghcHJpdikKIAkJcmV0dXJuIC1FTk9NRU07CkBAIC0xNDM3LDcgKzE0
+NTAsNyBAQCBzdGF0aWMgaW50IHRkYTk5OHhfYmluZChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
+dCBkZXZpY2UgKm1hc3Rlciwgdm9pZCAqZGF0YSkKIAlkcm1fY29ubmVjdG9yX2hlbHBlcl9hZGQo
+JnByaXYtPmNvbm5lY3RvciwKIAkJCQkgJnRkYTk5OHhfY29ubmVjdG9yX2hlbHBlcl9mdW5jcyk7
+CiAJcmV0ID0gZHJtX2Nvbm5lY3Rvcl9pbml0KGRybSwgJnByaXYtPmNvbm5lY3RvciwKLQkJCQkg
+JnRkYTk5OHhfY29ubmVjdG9yX2Z1bmNzLAorCQkJCSBjb25uZWN0b3JfZnVuY3MsCiAJCQkJIERS
+TV9NT0RFX0NPTk5FQ1RPUl9IRE1JQSk7CiAJaWYgKHJldCkKIAkJZ290byBlcnJfY29ubmVjdG9y
+OwotLSAKMS45LjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+ZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Cg==
