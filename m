@@ -1,92 +1,90 @@
-From: Felipe Balbi <balbi@kernel.org>
+From: "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>
 Subject: Re: [PATCH v1 1/2] usb:dwc3: Enable support for 64-bit system
-Date: Fri, 15 Jan 2016 21:28:47 -0600
-Message-ID: <8760yu6w40.fsf@ti.com>
-References: <1452748125-31639-1-git-send-email-tqnguyen@apm.com> <1452748125-31639-2-git-send-email-tqnguyen@apm.com> <87h9ig9n88.fsf@ti.com> <CAKrQpStmh6NHY_eUTgU0op-cuuWRUutuVHLVXGN6YhCvzh70Cw@mail.gmail.com>
+Date: Sat, 16 Jan 2016 11:00:31 +0700
+Message-ID: <CAKrQpStE56vGFFJ0_Jj9FHQLcSmx7Tk7UbMLk8qf6aP9t+jjKA@mail.gmail.com>
+References: <1452748125-31639-1-git-send-email-tqnguyen@apm.com>
+	<1452748125-31639-2-git-send-email-tqnguyen@apm.com>
+	<87h9ig9n88.fsf@ti.com>
+	<CAKrQpStmh6NHY_eUTgU0op-cuuWRUutuVHLVXGN6YhCvzh70Cw@mail.gmail.com>
+	<8760yu6w40.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKrQpStmh6NHY_eUTgU0op-cuuWRUutuVHLVXGN6YhCvzh70Cw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Thang Q. Nguyen" <tqnguyen@apm.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org, Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches@apm.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8760yu6w40.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, patches-qTEPVZfXA3Y@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi Balbi,
+Thanks for your review and feedback.
+I will remove WARN_ON() as in your feedback. I will wait some days to
+see if any more comments before sending out an updated patch.
 
-
-Hi,
-
-"Thang Q. Nguyen" <tqnguyen@apm.com> writes:
-> Hi Balbi,
+Thanks,
+Thang Q. Nguyen
+On Sat, Jan 16, 2016 at 10:28 AM, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 >
-> On Thu, Jan 14, 2016 at 10:47 PM, Felipe Balbi <balbi@kernel.org> wrote:
->>
->>
->> Hi,
->>
->> "Thang Q. Nguyen" <tqnguyen@apm.com> writes:
->> > Add 64-bit DMA operation support to the USB DWC3 driver.
->> > First attempt to set the coherent DMA mask for 64-bit DMA.
->> > If that failed, attempt again with 32-bit DMA.
->> >
->> > Signed-off-by: Thang Q. Nguyen <tqnguyen@apm.com>
->> > ---
->> >  drivers/usb/dwc3/core.c | 15 +++++++++++++++
->> >  1 file changed, 15 insertions(+)
->> >
->> > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> > index 22b47973..9818d6b 100644
->> > --- a/drivers/usb/dwc3/core.c
->> > +++ b/drivers/usb/dwc3/core.c
->> > @@ -829,6 +829,21 @@ static int dwc3_probe(struct platform_device *pde=
-v)
->> >       dwc->mem =3D mem;
->> >       dwc->dev =3D dev;
->> >
->> > +     /* Try to set 64-bit DMA first */
->> > +     if (WARN_ON(!pdev->dev.dma_mask))
->>
->> why the WARN_ON() ?
+> Hi,
 >
-> In my opinion, pdev->dev.dma_mask is expected to be set correctly. And
+> "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org> writes:
+>> Hi Balbi,
+>>
+>> On Thu, Jan 14, 2016 at 10:47 PM, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>>
+>>>
+>>> Hi,
+>>>
+>>> "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org> writes:
+>>> > Add 64-bit DMA operation support to the USB DWC3 driver.
+>>> > First attempt to set the coherent DMA mask for 64-bit DMA.
+>>> > If that failed, attempt again with 32-bit DMA.
+>>> >
+>>> > Signed-off-by: Thang Q. Nguyen <tqnguyen-qTEPVZfXA3Y@public.gmane.org>
+>>> > ---
+>>> >  drivers/usb/dwc3/core.c | 15 +++++++++++++++
+>>> >  1 file changed, 15 insertions(+)
+>>> >
+>>> > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>>> > index 22b47973..9818d6b 100644
+>>> > --- a/drivers/usb/dwc3/core.c
+>>> > +++ b/drivers/usb/dwc3/core.c
+>>> > @@ -829,6 +829,21 @@ static int dwc3_probe(struct platform_device *pdev)
+>>> >       dwc->mem = mem;
+>>> >       dwc->dev = dev;
+>>> >
+>>> > +     /* Try to set 64-bit DMA first */
+>>> > +     if (WARN_ON(!pdev->dev.dma_mask))
+>>>
+>>> why the WARN_ON() ?
+>>
+>> In my opinion, pdev->dev.dma_mask is expected to be set correctly. And
+>
+> sure is, but a WARN_ON() will print out a stack dump, which looks
+> scary. Besides, if it's not set you're already fixing the problem.
+>
+>> the issue happen just in case of DT boot and CONFIG_DMA_CMA=n, the
+>> pdev->dev.dma_mask value is not set. So, I set WARN_ON there to notify
+>
+> why isn't it set ?
+>
+>> that we expect pdev->dev.dma_mask set but not.
+>
+> why don't you fix that case, instead ?
+>
+> --
+> balbi
 
-sure is, but a WARN_ON() will print out a stack dump, which looks
-scary. Besides, if it's not set you're already fixing the problem.
 
-> the issue happen just in case of DT boot and CONFIG_DMA_CMA=3Dn, the
-> pdev->dev.dma_mask value is not set. So, I set WARN_ON there to notify
 
-why isn't it set ?
+-- 
 
-> that we expect pdev->dev.dma_mask set but not.
+Thang Q. Nguyen    | Staff SW Eng.
 
-why don't you fix that case, instead ?
+C: +849.7684.7606 | O: +848.3770.0640
 
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWmbjwAAoJEIaOsuA1yqREVd8P/jAflPR4ebKzte/qxfPFRBrX
-4av5KwbVSAeGtgK2DRSckPBl9hDodBTa8soD56NAoaZujvO+y/EPI2ei8jkyo4kQ
-eD1FkN9THslx3aR+3oLLPzm8xTeDPP/hZmQMXoy26QHg/fcrePC0fCC/IEqsUjN0
-ZoDL7xhjOwZ4/tkXmVvbd8uuhvOwmFmJjocGYDXWFEHCeF832QzGSNJmOv9mIt5W
-XsBsZcR3Rz+cquD5+JUvF08wnob+lKzGH+8dS4fBcNaqXpyjwY8aKGVnY2KhOFo/
-2tDK37pfNuU2tYdA3VaUg1AIPwQ/4HJJ9NQBBTzyrL+aXYop8D5XP1Xqez2ULv+J
-PX5SlA7pmO9j27ywK6eFQobZzyNPxH0JB2715sewLImHKtb7gs449IZ22WjcpO8Y
-rNXDEAZvEglgbl3bJMDJrUYMlVLsXIR+YkTXW8lRXjFomxTkssD+YQL5MHliOgmn
-n4uMqGHyp36pBl3BtlEwA8v5brS4G8IPWFAOVhto0dccFEWd/9EyoeatmmP2b0PF
-rW1Mdkjl/HvXTx/O+MxKV/oDWlFLkBVi8B2O9TX0J/LBu1eWITm9Cf03gueCHLcd
-YIMZIHjst+zLgtAVYLmU6nYrjX7g3pX3SQIjWhZrJH7lpzdVtS7VW7roqrBqYzd3
-HhwoBxWoKSUK0APxrx1A
-=ihXc
------END PGP SIGNATURE-----
---=-=-=--
+F: +848.3770.0641  | tqnguyen-qTEPVZfXA3Y@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
