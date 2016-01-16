@@ -1,62 +1,35 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH] drm/i2c: tda998x: Choose between atomic or non atomic dpms
- helper
-Date: Sat, 16 Jan 2016 22:17:54 +0200
-Message-ID: <1452975474-17058-1-git-send-email-jsarha@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Nokia N900: annoying yellow LED while battery is charging (and some
+ progress with free userspace)
+Date: Sun, 17 Jan 2016 00:22:22 +0100
+Message-ID: <20160116232222.GB10962@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org
-Cc: Liviu.Dudau@arm.com, Jyri Sarha <jsarha@ti.com>, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Q2hvb3NlIGJldHdlZW4gYXRvbWljIG9yIG5vbiBhdG9taWMgY29ubmVjdG9yIGRwbXMgaGVscGVy
-LiBJZiB0ZGE5OTh4CmlzIGNvbm5lY3RlZCB0byBhIGRybSBkcml2ZXIgdGhhdCBkb2VzIG5vdCBz
-dXBwb3J0IGF0b21pYyBtb2Rlc2V0CmNhbGxpbmcgZHJtX2F0b21pY19oZWxwZXJfY29ubmVjdG9y
-X2RwbXMoKSBjYXVzZXMgYSBjcmFzaCB3aGVuIHRoZQpjb25uZWN0b3JzIGF0b21pYyBzdGF0ZSBp
-cyBub3QgaW5pdGlhbGl6ZWQuIFRoZSBwYXRjaCBpbXBsZW1lbnRzIGEKZHJpdmVyIHNwZWNpZmlj
-IGNvbm5lY3RvciBkcG1zIGhlbHBlciB0aGF0IGNhbGxzCmRybV9hdG9taWNfaGVscGVyX2Nvbm5l
-Y3Rvcl9kcG1zKCkgaWYgZHJpdmVyIHN1cHBvcnRzIERSSVZFUl9BVE9NSUMKYW5kIG90aGVyd2lz
-ZSBpdCBjYWxscyB0aGUgbGVnYWN5IGRybV9oZWxwZXJfY29ubmVjdG9yX2RwbXMoKS4KCkZpeGVz
-IGNvbW1pdCA5NzM2ZTk4OGQzMjggKCJkcm0vaTJjOiB0ZGE5OTh4OiBBZGQgc3VwcG9ydCBmb3Ig
-YXRvbWljCm1vZGVzZXR0aW5nIikuCgpTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2FyaGFA
-dGkuY29tPgotLS0KCk9rLCBzbyB0aGlzIGlzIHRoZSBzZWNvbmQgYXBwcm9hY2ggdG8gc29sdmUg
-dGhpcyBpc3N1ZS4gVGhlIGZpcnN0CmF0dGVtcHQgY2FuIGJlIGZvdW5kIGhlcmUgWzFdIHdpdGgg
-dGhlIGZvbGxvdyBmcm9tIExpdml1IER1ZGF1IHRoYXQKc3VnZ2VzdGVkIHRoaXMgYXBwcm9hY2gu
-IAoKSXQganVzdCBtYWtlcyBtZSB3b25kZXIgaWYgZHJtX2F0b21pY19oZWxwZXJfY29ubmVjdG9y
-X2RwbXMoKSBzaG91bGQKY2FsbCB0aGUgbGVnYWN5IGNhbGxiYWNrIGF1dG9tYXRpY2FsbHkgaWYg
-RFJJVkVSX0FUT01JQyBpcyBub3Qgc2V0IG9yCmF0IGxlYXN0IGJhaWwgb3V0IGdyYWNlZnVsbHkg
-d2l0aCBhbiBlcnJvciBtZXNzYWdlLiBUaGVuIGFnYWluIGl0IG1heQpiZSBvdmVya2lsbCBpZiB0
-aGUgdGRhOTk4eCBpcyB0aGUgb25seSBkcml2ZXIgdGhhdCBuZWVkIHRvIHN1cHBvcnQKYm90aCBz
-aXR1YXRpb25zLgoKQmVzdCByZWdhcmRzLApKeXJpCgpbMV0gaHR0cDovL3d3dy5zcGluaWNzLm5l
-dC9saXN0cy9kcmktZGV2ZWwvbXNnOTg1MTQuaHRtbAoKIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRh
-OTk4eF9kcnYuYyB8IDEwICsrKysrKysrKy0KIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMo
-KyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5
-OHhfZHJ2LmMgYi9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMKaW5kZXggMDEyZDM2
-ZC4uYmI3ZDUwNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5j
-CisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwpAQCAtMTM4Miw4ICsxMzgy
-LDE2IEBAIHN0YXRpYyB2b2lkIHRkYTk5OHhfY29ubmVjdG9yX2Rlc3Ryb3koc3RydWN0IGRybV9j
-b25uZWN0b3IgKmNvbm5lY3RvcikKIAlkcm1fY29ubmVjdG9yX2NsZWFudXAoY29ubmVjdG9yKTsK
-IH0KIAorc3RhdGljIGludCB0ZGE5OTh4X2Nvbm5lY3Rvcl9kcG1zKHN0cnVjdCBkcm1fY29ubmVj
-dG9yICpjb25uZWN0b3IsIGludCBtb2RlKQoreworCWlmIChkcm1fY29yZV9jaGVja19mZWF0dXJl
-KGNvbm5lY3Rvci0+ZGV2LCBEUklWRVJfQVRPTUlDKSkKKwkJcmV0dXJuIGRybV9hdG9taWNfaGVs
-cGVyX2Nvbm5lY3Rvcl9kcG1zKGNvbm5lY3RvciwgbW9kZSk7CisJZWxzZQorCQlyZXR1cm4gZHJt
-X2hlbHBlcl9jb25uZWN0b3JfZHBtcyhjb25uZWN0b3IsIG1vZGUpOworfQorCiBzdGF0aWMgY29u
-c3Qgc3RydWN0IGRybV9jb25uZWN0b3JfZnVuY3MgdGRhOTk4eF9jb25uZWN0b3JfZnVuY3MgPSB7
-Ci0JLmRwbXMgPSBkcm1fYXRvbWljX2hlbHBlcl9jb25uZWN0b3JfZHBtcywKKwkuZHBtcyA9IHRk
-YTk5OHhfY29ubmVjdG9yX2RwbXMsCiAJLnJlc2V0ID0gZHJtX2F0b21pY19oZWxwZXJfY29ubmVj
-dG9yX3Jlc2V0LAogCS5maWxsX21vZGVzID0gZHJtX2hlbHBlcl9wcm9iZV9zaW5nbGVfY29ubmVj
-dG9yX21vZGVzLAogCS5kZXRlY3QgPSB0ZGE5OTh4X2Nvbm5lY3Rvcl9kZXRlY3QsCi0tIAoxLjku
-MQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
-dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Hi!
+
+While battery is charging, 3 color LED produces yellow light.. at
+quite high intensity, which makes screen unpleasant to look at (with
+4.4 kernel).
+
+I'm pretty sure original Maemo did not try to blind me.
+
+It looks like CHRG_IND signal goes from charger to LEDs, and BOOT_MODE
+pin may be involved.
+
+Any idea how to get rid of the light?
+
+(And yes, I have some progress; tui project on gitlab now contains
+enough to do voice calls with Debian+Ofono+pulseaudio+cmtspeech
+utility. Audio latency is bit high, but it is already somehow usable.)
+
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
