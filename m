@@ -1,33 +1,88 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH RESEND] omap_hdq: fix usecount handling
-Date: Sat, 16 Jan 2016 13:48:50 +0100
-Message-ID: <1452948530-10639-1-git-send-email-andreas@kemnade.info>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Evgeniy Polyakov <zbr@ioremap.net>, hns@goldelico.com, Fabian Frederick <fabf@skynet.be>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH RFC] drm/i2c: tda998x: Only set atomic funcs if bound to
+ atomic drm driver
+Date: Sat, 16 Jan 2016 21:55:16 +0200
+Message-ID: <569AA024.4080009@ti.com>
+References: <1452862526-32176-1-git-send-email-jsarha@ti.com>
+ <20160115140954.GI13633@e106497-lin.cambridge.arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20160115140954.GI13633@e106497-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Liviu.Dudau@arm.com
+Cc: rmk+kernel@arm.linux.org.uk, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-hdq_usecount was set to zero after a successful read, so
-omap_hdq_put could not properly free resources which leads
-e.g. to increasing usecounts in lsmod output
-
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- drivers/w1/masters/omap_hdq.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-index 0e2f43b..a2eec97 100644
---- a/drivers/w1/masters/omap_hdq.c
-+++ b/drivers/w1/masters/omap_hdq.c
-@@ -618,7 +618,6 @@ static u8 omap_w1_read_byte(void *_hdq)
- 
- 	hdq_disable_interrupt(hdq_data, OMAP_HDQ_CTRL_STATUS,
- 			      ~OMAP_HDQ_CTRL_STATUS_INTERRUPTMASK);
--	hdq_data->hdq_usecount = 0;
- 
- 	/* Write followed by a read, release the module */
- 	if (hdq_data->init_trans) {
--- 
-2.1.4
+T24gMDEvMTUvMTYgMTY6MDksIExpdml1LkR1ZGF1QGFybS5jb20gd3JvdGU6Cj4gT24gRnJpLCBK
+YW4gMTUsIDIwMTYgYXQgMDI6NTU6MjZQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90ZToKPj4gSSBh
+bSBub3Qgc3VyZSBpZiB0aGlzIGlzIHRoZSBiZXN0IHdheSB0byBmaXggdGhlIGlzc3VlLCBidXQg
+YWZ0ZXIKPj4gOTczNmU5ODhkMzI4IEJlYWdsZWJvbmUtQmxhY2sgSERNSSBpcyB0b3RhbGx5IGJy
+b2tlbiBhbmQgdGhpcyBmaXhlcwo+PiB0aGUgaXNzdWUuIEkgYW0gY3VycmVudGx5IHdvcmtpbmcg
+b24gYXRvbWljIG1vZGVzZXR0aW5nIGZvciB0aWxjZGMsCj4+IGJ1dCB0aGVyZSBpcyBubyB3YXkg
+aXQgbWFrZXMgaXQgdG8gNC41IHJlbGVhc2UuCj4KPiBZZXMsIEknbSBub3QgYSBiaWcgZmFuIG9m
+IHRoZSBjaGFuZ2UgZWl0aGVyLiBJIHdvdWxkJ3ZlIHRob3VnaHQgdGhhdAo+IHlvdSBvbmx5IG5l
+ZWQgdG8gdXBkYXRlIHRoZSAuZHBtcyBwb2ludGVyLCBhbGwgb3RoZXIgaG9va3MgYWRkZWQgYXJl
+Cj4gc3BlY2lmaWMgdG8gYXRvbWljIG9wZXJhdGlvbnMgKHJpZ2h0PykuIFdvdWxkIGl0IG5vdCBi
+ZSBzaW1wbGVyIHRvIGhhdmUKPiBhIHRkYTk5OHhfY29ubmVjdG9yX2RwbXMoKSBmdW5jdGlvbiB0
+aGF0IGNhbGxzIHRoZSBhcHByb3ByaWF0ZSAuZHBtcwo+IGZ1bmN0aW9uIGJhc2VkIG9uIHRoZSBm
+ZWF0dXJlIGNoZWNrPwo+CgpPaCB5ZXMsIHRoYXQgc291bmQgbGlrZSBhIGJldHRlciBpZGVhLCBi
+dXQgc2kgYW5kIGFwcGVhcnMgdG8gd29yayB0b28uIApJJ2xsIHNlbmQgYW5vdGhlciBwYXRjaCBz
+b29uLiBUaGFua3MuCgpCZXN0IHJlZ2FyZHMsCkp5cmkKCj4gQmVzdCByZWdhcmRzLAo+IExpdml1
+Cj4KPj4KPj4gQmVzdCByZWdhcmRzLAo+PiBKeXJpCj4+Cj4+ICAgZHJpdmVycy9ncHUvZHJtL2ky
+Yy90ZGE5OTh4X2Rydi5jIHwgMTcgKysrKysrKysrKysrKysrLS0KPj4gICAxIGZpbGUgY2hhbmdl
+ZCwgMTUgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRh
+OTk4eF9kcnYuYwo+PiBpbmRleCAwMTJkMzZkLi42N2QxNDA4IDEwMDY0NAo+PiAtLS0gYS9kcml2
+ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMKPj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL2ky
+Yy90ZGE5OTh4X2Rydi5jCj4+IEBAIC0xMzgyLDcgKzEzODIsNyBAQCBzdGF0aWMgdm9pZCB0ZGE5
+OTh4X2Nvbm5lY3Rvcl9kZXN0cm95KHN0cnVjdCBkcm1fY29ubmVjdG9yICpjb25uZWN0b3IpCj4+
+ICAgCWRybV9jb25uZWN0b3JfY2xlYW51cChjb25uZWN0b3IpOwo+PiAgIH0KPj4KPj4gLXN0YXRp
+YyBjb25zdCBzdHJ1Y3QgZHJtX2Nvbm5lY3Rvcl9mdW5jcyB0ZGE5OTh4X2Nvbm5lY3Rvcl9mdW5j
+cyA9IHsKPj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgZHJtX2Nvbm5lY3Rvcl9mdW5jcyB0ZGE5OTh4
+X2Nvbm5lY3Rvcl9hdG9taWNfZnVuY3MgPSB7Cj4+ICAgCS5kcG1zID0gZHJtX2F0b21pY19oZWxw
+ZXJfY29ubmVjdG9yX2RwbXMsCj4+ICAgCS5yZXNldCA9IGRybV9hdG9taWNfaGVscGVyX2Nvbm5l
+Y3Rvcl9yZXNldCwKPj4gICAJLmZpbGxfbW9kZXMgPSBkcm1faGVscGVyX3Byb2JlX3NpbmdsZV9j
+b25uZWN0b3JfbW9kZXMsCj4+IEBAIC0xMzkyLDE1ICsxMzkyLDI4IEBAIHN0YXRpYyBjb25zdCBz
+dHJ1Y3QgZHJtX2Nvbm5lY3Rvcl9mdW5jcyB0ZGE5OTh4X2Nvbm5lY3Rvcl9mdW5jcyA9IHsKPj4g
+ICAJLmF0b21pY19kZXN0cm95X3N0YXRlID0gZHJtX2F0b21pY19oZWxwZXJfY29ubmVjdG9yX2Rl
+c3Ryb3lfc3RhdGUsCj4+ICAgfTsKPj4KPj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgZHJtX2Nvbm5l
+Y3Rvcl9mdW5jcyB0ZGE5OTh4X2Nvbm5lY3Rvcl9mdW5jcyA9IHsKPj4gKwkuZHBtcyA9IGRybV9o
+ZWxwZXJfY29ubmVjdG9yX2RwbXMsCj4+ICsJLmZpbGxfbW9kZXMgPSBkcm1faGVscGVyX3Byb2Jl
+X3NpbmdsZV9jb25uZWN0b3JfbW9kZXMsCj4+ICsJLmRldGVjdCA9IHRkYTk5OHhfY29ubmVjdG9y
+X2RldGVjdCwKPj4gKwkuZGVzdHJveSA9IHRkYTk5OHhfY29ubmVjdG9yX2Rlc3Ryb3ksbWFrZVs0
+XTogKioqIFtkcml2ZXJzL2cKPj4gK307Cj4+ICsKPj4gICBzdGF0aWMgaW50IHRkYTk5OHhfYmlu
+ZChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2UgKm1hc3Rlciwgdm9pZCAqZGF0YSkK
+Pj4gICB7Cj4+ICAgCXN0cnVjdCB0ZGE5OTh4X2VuY29kZXJfcGFyYW1zICpwYXJhbXMgPSBkZXYt
+PnBsYXRmb3JtX2RhdGE7Cj4+ICAgCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNf
+Y2xpZW50KGRldik7Cj4+ICAgCXN0cnVjdCBkcm1fZGV2aWNlICpkcm0gPSBkYXRhOwo+PiAgIAlz
+dHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2Owo+PiArCWNvbnN0IHN0cnVjdCBkcm1fY29ubmVjdG9y
+X2Z1bmNzICpjb25uZWN0b3JfZnVuY3M7Cj4+ICAgCXUzMiBjcnRjcyA9IDA7Cj4+ICAgCWludCBy
+ZXQ7Cj4+ICAgbWFrZVs0XTogKioqIFtkcml2ZXJzL2cKPj4gKwlpZiAoZHJtX2NvcmVfY2hlY2tf
+ZmVhdHVyZShkcm0sIERSSVZFUl9BVE9NSUMpKQo+PiArCQljb25uZWN0b3JfZnVuY3MgPSAmdGRh
+OTk4eF9jb25uZWN0b3JfYXRvbWljX2Z1bmNzOwo+PiArCWVsc2UKPj4gKwkJY29ubmVjdG9yX2Z1
+bmNzID0gJnRkYTk5OHhfY29ubmVjdG9yX2Z1bmNzOwo+PiArCj4+ICAgCXByaXYgPSBkZXZtX2t6
+YWxsb2MoZGV2LCBzaXplb2YoKnByaXYpLCBHRlBfS0VSTkVMKTsKPj4gICAJaWYgKCFwcml2KQo+
+PiAgIAkJcmV0dXJuIC1FTk9NRU07Cj4+IEBAIC0xNDM3LDcgKzE0NTAsNyBAQCBzdGF0aWMgaW50
+IHRkYTk5OHhfYmluZChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2UgKm1hc3Rlciwg
+dm9pZCAqZGF0YSkKPj4gICAJZHJtX2Nvbm5lY3Rvcl9oZWxwZXJfYWRkKCZwcml2LT5jb25uZWN0
+b3IsCj4+ICAgCQkJCSAmdGRhOTk4eF9jb25uZWN0b3JfaGVscGVyX2Z1bmNzKTsKPj4gICAJcmV0
+ID0gZHJtX2Nvbm5lY3Rvcl9pbml0KGRybSwgJnByaXYtPmNvbm5lY3RvciwKPj4gLQkJCQkgJnRk
+YTk5OHhfY29ubmVjdG9yX2Z1bmNzLAo+PiArCQkJCSBjb25uZWN0b3JfZnVuY3MsCj4+ICAgCQkJ
+CSBEUk1fTU9ERV9DT05ORUNUT1JfSERNSUEpOwo+PiAgIAlpZiAocmV0KQo+PiAgIAkJZ290byBl
+cnJfY29ubmVjdG9yOwo+PiAtLQo+PiAxLjkuMQo+Pgo+PiBfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwo+PiBkcmktZGV2ZWwgbWFpbGluZyBsaXN0Cj4+IGRy
+aS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPj4gaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9w
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo+CgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
+bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
