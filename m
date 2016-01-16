@@ -1,92 +1,92 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Fri, 15 Jan 2016 16:09:05 -0800
-Message-ID: <20160116000905.GB19432@atomide.com>
-References: <20160115224839.GA19432@atomide.com>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH v1 1/2] usb:dwc3: Enable support for 64-bit system
+Date: Fri, 15 Jan 2016 21:28:47 -0600
+Message-ID: <8760yu6w40.fsf@ti.com>
+References: <1452748125-31639-1-git-send-email-tqnguyen@apm.com> <1452748125-31639-2-git-send-email-tqnguyen@apm.com> <87h9ig9n88.fsf@ti.com> <CAKrQpStmh6NHY_eUTgU0op-cuuWRUutuVHLVXGN6YhCvzh70Cw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160115224839.GA19432-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAKrQpStmh6NHY_eUTgU0op-cuuWRUutuVHLVXGN6YhCvzh70Cw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Thang Q. Nguyen" <tqnguyen@apm.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org, Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches@apm.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160115 14:49]:
-> 
-> I'm seeing rmmod of the UDC driver cause a warning and then reboot
-> hangs the system. This happens at least with v4.4, and I've reproduced
-> it with dwc3 and musb so it seems to be generic.
-> Error on reboot after rmmod $udc_module:
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Here's what CONFIG_DEBUG_KOBJECT gives for the reboot hang. At address
-ee79b1c0 we have 'gadget' and that's the null kobject at the WARNING.
 
-Regards,
+Hi,
 
-Tony
+"Thang Q. Nguyen" <tqnguyen@apm.com> writes:
+> Hi Balbi,
+>
+> On Thu, Jan 14, 2016 at 10:47 PM, Felipe Balbi <balbi@kernel.org> wrote:
+>>
+>>
+>> Hi,
+>>
+>> "Thang Q. Nguyen" <tqnguyen@apm.com> writes:
+>> > Add 64-bit DMA operation support to the USB DWC3 driver.
+>> > First attempt to set the coherent DMA mask for 64-bit DMA.
+>> > If that failed, attempt again with 32-bit DMA.
+>> >
+>> > Signed-off-by: Thang Q. Nguyen <tqnguyen@apm.com>
+>> > ---
+>> >  drivers/usb/dwc3/core.c | 15 +++++++++++++++
+>> >  1 file changed, 15 insertions(+)
+>> >
+>> > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> > index 22b47973..9818d6b 100644
+>> > --- a/drivers/usb/dwc3/core.c
+>> > +++ b/drivers/usb/dwc3/core.c
+>> > @@ -829,6 +829,21 @@ static int dwc3_probe(struct platform_device *pde=
+v)
+>> >       dwc->mem =3D mem;
+>> >       dwc->dev =3D dev;
+>> >
+>> > +     /* Try to set 64-bit DMA first */
+>> > +     if (WARN_ON(!pdev->dev.dma_mask))
+>>
+>> why the WARN_ON() ?
+>
+> In my opinion, pdev->dev.dma_mask is expected to be set correctly. And
 
-...
-udc 4a030000.dwc3: releasing '4a030000.dwc3'
-kobject: '4a030000.dwc3': free name
-kobject: 'gadget' (ee79b1c0): kobject_uevent_env
-kobject: 'gadget' (ee79b1c0): kobject_uevent_env: filter function caused the event to drop!
-kobject: 'dwc3' (ee76e040): kobject_cleanup, parent ee0edb68
-kobject: 'dwc3' (ee76e040): auto cleanup 'remove' event
-...
+sure is, but a WARN_ON() will print out a stack dump, which looks
+scary. Besides, if it's not set you're already fixing the problem.
 
-Broadcast message from root@armhf (ttyO2) (Fri Jan 15 23:49:15 2016):
+> the issue happen just in case of DT boot and CONFIG_DMA_CMA=3Dn, the
+> pdev->dev.dma_mask value is not set. So, I set WARN_ON there to notify
 
-The system is going down for reboot NOW!
-...
- restart.
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 1949 at lib/kobject.c:597 kobject_get+0x70/0xb0()
-kobject: '(null)' (ee79b1c0): is not initialized, yet kobject_get() is being called.
-Modules linked in: usb_f_rndis usb_f_ecm bluetooth leds_gpio led_class cpufreq_dt ti_soc_thermal omap4_keypad thermal_sys omap_wdt matrix_keymap evdev hwmon snd_soc_omap_mcbsp wlcore_sdio wl18xx wl12xx wlcore mac80211 cfg80211 omapfb connector_hdmi encoder_tpd12s015 omapdss cfbimgblt cfbfillrect cfbcopyarea gpio_pca953x hid_generic usbhid smsc95xx smsc75xx usbnet usb_f_acm u_ether usb_f_mass_storage usb_f_serial u_serial xhci_plat_hcd xhci_hcd dwc3_omap ohci_omap3 ohci_hcd ehci_omap ehci_hcd phy_omap_usb2 libcomposite udc_core usbcore usb_common snd_soc_omap_abe_twl6040 snd_soc_omap_mcpdm snd_soc_twl6040 snd_soc_omap snd_soc_core snd_pcm_dmaengine snd_pcm snd_timer snd soundcore rtc_ds1307 rtc_palmas rtc_twl palmas_pwrbutton extcon_palmas extcon clk_palmas [last unloaded: dwc3]
-CPU: 0 PID: 1949 Comm: reboot Not tainted 4.4.0-00009-g37797bf #231
-Hardware name: Generic OMAP5 (Flattened Device Tree)
-[<c0017c08>] (unwind_backtrace) from [<c0013f60>] (show_stack+0x10/0x14)
-[<c0013f60>] (show_stack) from [<c034cbe0>] (dump_stack+0x84/0x9c)
-[<c034cbe0>] (dump_stack) from [<c003cb64>] (warn_slowpath_common+0x78/0xb4)
-[<c003cb64>] (warn_slowpath_common) from [<c003cbd0>] (warn_slowpath_fmt+0x30/0x40)
-[<c003cbd0>] (warn_slowpath_fmt) from [<c034f1d0>] (kobject_get+0x70/0xb0)
-[<c034f1d0>] (kobject_get) from [<c03e4b04>] (device_shutdown+0x84/0x1bc)
-[<c03e4b04>] (device_shutdown) from [<c005f9a8>] (kernel_restart+0xc/0x50)
-[<c005f9a8>] (kernel_restart) from [<c005fc70>] (SyS_reboot+0x138/0x1f4)
-[<c005fc70>] (SyS_reboot) from [<c000f740>] (ret_fast_syscall+0x0/0x1c)
----[ end trace 3ccd9ca0c720ba01 ]---
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 1949 at include/linux/kref.h:46 kobject_get+0x90/0xb0()
-Modules linked in: usb_f_rndis usb_f_ecm bluetooth leds_gpio led_class cpufreq_dt ti_soc_thermal omap4_keypad thermal_sys omap_wdt matrix_keymap evdev hwmon snd_soc_omap_mcbsp wlcore_sdio wl18xx wl12xx wlcore mac80211 cfg80211 omapfb connector_hdmi encoder_tpd12s015 omapdss cfbimgblt cfbfillrect cfbcopyarea gpio_pca953x hid_generic usbhid smsc95xx smsc75xx usbnet usb_f_acm u_ether usb_f_mass_storage usb_f_serial u_serial xhci_plat_hcd xhci_hcd dwc3_omap ohci_omap3 ohci_hcd ehci_omap ehci_hcd phy_omap_usb2 libcomposite udc_core usbcore usb_common snd_soc_omap_abe_twl6040 snd_soc_omap_mcpdm snd_soc_twl6040 snd_soc_omap snd_soc_core snd_pcm_dmaengine snd_pcm snd_timer snd soundcore rtc_ds1307 rtc_palmas rtc_twl palmas_pwrbutton extcon_palmas extcon clk_palmas [last unloaded: dwc3]
-CPU: 0 PID: 1949 Comm: reboot Tainted: G        W       4.4.0-00009-g37797bf #231
-Hardware name: Generic OMAP5 (Flattened Device Tree)
-[<c0017c08>] (unwind_backtrace) from [<c0013f60>] (show_stack+0x10/0x14)
-[<c0013f60>] (show_stack) from [<c034cbe0>] (dump_stack+0x84/0x9c)
-[<c034cbe0>] (dump_stack) from [<c003cb64>] (warn_slowpath_common+0x78/0xb4)
-[<c003cb64>] (warn_slowpath_common) from [<c003cc3c>] (warn_slowpath_null+0x1c/0x24)
-[<c003cc3c>] (warn_slowpath_null) from [<c034f1f0>] (kobject_get+0x90/0xb0)
-[<c034f1f0>] (kobject_get) from [<c03e4b04>] (device_shutdown+0x84/0x1bc)
-[<c03e4b04>] (device_shutdown) from [<c005f9a8>] (kernel_restart+0xc/0x50)
-[<c005f9a8>] (kernel_restart) from [<c005fc70>] (SyS_reboot+0x138/0x1f4)
-[<c005fc70>] (SyS_reboot) from [<c000f740>] (ret_fast_syscall+0x0/0x1c)
----[ end trace 3ccd9ca0c720ba02 ]---
-INFO: trying to register non-static key.
-the code is fine but needs lockdep annotation.
-turning off the locking correctness validator.
-CPU: 0 PID: 1949 Comm: reboot Tainted: G        W       4.4.0-00009-g37797bf #231
-Hardware name: Generic OMAP5 (Flattened Device Tree)
-[<c0017c08>] (unwind_backtrace) from [<c0013f60>] (show_stack+0x10/0x14)
-[<c0013f60>] (show_stack) from [<c034cbe0>] (dump_stack+0x84/0x9c)
-[<c034cbe0>] (dump_stack) from [<c0092524>] (__lock_acquire+0x13b0/0x148c)
-[<c0092524>] (__lock_acquire) from [<c0092e80>] (lock_acquire+0xac/0x12c)
-[<c0092e80>] (lock_acquire) from [<c064f680>] (mutex_lock_nested+0x38/0x3c8)
-[<c064f680>] (mutex_lock_nested) from [<c03e4b4c>] (device_shutdown+0xcc/0x1bc)
-[<c03e4b4c>] (device_shutdown) from [<c005f9a8>] (kernel_restart+0xc/0x50)
-[<c005f9a8>] (kernel_restart) from [<c005fc70>] (SyS_reboot+0x138/0x1f4)
-[<c005fc70>] (SyS_reboot) from [<c000f740>] (ret_fast_syscall+0x0/0x1c)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+why isn't it set ?
+
+> that we expect pdev->dev.dma_mask set but not.
+
+why don't you fix that case, instead ?
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWmbjwAAoJEIaOsuA1yqREVd8P/jAflPR4ebKzte/qxfPFRBrX
+4av5KwbVSAeGtgK2DRSckPBl9hDodBTa8soD56NAoaZujvO+y/EPI2ei8jkyo4kQ
+eD1FkN9THslx3aR+3oLLPzm8xTeDPP/hZmQMXoy26QHg/fcrePC0fCC/IEqsUjN0
+ZoDL7xhjOwZ4/tkXmVvbd8uuhvOwmFmJjocGYDXWFEHCeF832QzGSNJmOv9mIt5W
+XsBsZcR3Rz+cquD5+JUvF08wnob+lKzGH+8dS4fBcNaqXpyjwY8aKGVnY2KhOFo/
+2tDK37pfNuU2tYdA3VaUg1AIPwQ/4HJJ9NQBBTzyrL+aXYop8D5XP1Xqez2ULv+J
+PX5SlA7pmO9j27ywK6eFQobZzyNPxH0JB2715sewLImHKtb7gs449IZ22WjcpO8Y
+rNXDEAZvEglgbl3bJMDJrUYMlVLsXIR+YkTXW8lRXjFomxTkssD+YQL5MHliOgmn
+n4uMqGHyp36pBl3BtlEwA8v5brS4G8IPWFAOVhto0dccFEWd/9EyoeatmmP2b0PF
+rW1Mdkjl/HvXTx/O+MxKV/oDWlFLkBVi8B2O9TX0J/LBu1eWITm9Cf03gueCHLcd
+YIMZIHjst+zLgtAVYLmU6nYrjX7g3pX3SQIjWhZrJH7lpzdVtS7VW7roqrBqYzd3
+HhwoBxWoKSUK0APxrx1A
+=ihXc
+-----END PGP SIGNATURE-----
+--=-=-=--
