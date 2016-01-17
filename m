@@ -1,68 +1,72 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 2/5] ARM: dts: OMAP3-N950-N9: Enable SSI module
-Date: Sun, 17 Jan 2016 16:49:06 +0100
-Message-ID: <1453045749-22642-3-git-send-email-sre@kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 3/5] HSI: nokia-modem: add n950 and n9 support
+Date: Sun, 17 Jan 2016 16:49:07 +0100
+Message-ID: <1453045749-22642-4-git-send-email-sre@kernel.org>
 References: <1453045749-22642-1-git-send-email-sre@kernel.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1453045749-22642-1-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1453045749-22642-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The Nokia N950 and Nokia N9 have a modem attached to their
-first ssi port. This change adds all necessary information
-to initialize the SSI module, but does not yet add the
-modem information.
+The Nokia N950 and Nokia N9 also have a SSI connected
+modem, which use the same protocols as the Nokia N900,
+but with slightly other GPIO setup and increased link
+speed (96000 kbps instead of 55000 kbps).
 
-Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Since it's unclear, if the N950 and the N9 use exactly
+the same modem, each of them gets their own compatible
+string.
+
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ Documentation/devicetree/bindings/hsi/nokia-modem.txt | 12 +++++++-----
+ drivers/hsi/clients/nokia-modem.c                     |  2 ++
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index e9ee1df0e467..95893003c67d 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -44,6 +44,19 @@
- 			0x132 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat3 */
- 		>;
- 	};
-+
-+	ssi_pins: pinmux_ssi_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x217c, PIN_OUTPUT | MUX_MODE1)            /* ssi1_dat_tx */
-+			OMAP3_CORE1_IOPAD(0x217e, PIN_OUTPUT | MUX_MODE1)            /* ssi1_flag_tx */
-+			OMAP3_CORE1_IOPAD(0x2180, PIN_INPUT_PULLUP | MUX_MODE1)      /* ssi1_rdy_tx */
-+			OMAP3_CORE1_IOPAD(0x2182, PIN_INPUT | WAKEUP_EN | MUX_MODE4) /* ssi1_wake_tx (cawake) */
-+			OMAP3_CORE1_IOPAD(0x2184, PIN_INPUT | MUX_MODE1)             /* ssi1_dat_rx */
-+			OMAP3_CORE1_IOPAD(0x2186, PIN_INPUT | MUX_MODE1)             /* ssi1_flag_rx */
-+			OMAP3_CORE1_IOPAD(0x2188, PIN_OUTPUT | MUX_MODE1)            /* ssi1_rdy_rx */
-+			OMAP3_CORE1_IOPAD(0x218a, PIN_OUTPUT | MUX_MODE1)            /* ssi1_wake */
-+		>;
-+	};
- };
+diff --git a/Documentation/devicetree/bindings/hsi/nokia-modem.txt b/Documentation/devicetree/bindings/hsi/nokia-modem.txt
+index 8a979780452b..53de1d9d0b95 100644
+--- a/Documentation/devicetree/bindings/hsi/nokia-modem.txt
++++ b/Documentation/devicetree/bindings/hsi/nokia-modem.txt
+@@ -7,6 +7,8 @@ properties are needed by the Nokia modem HSI client:
+ Required properties:
+ - compatible:		Should be one of
+       "nokia,n900-modem"
++      "nokia,n950-modem"
++      "nokia,n9-modem"
+ - hsi-channel-names:	Should contain the following strings
+       "mcsaab-control"
+       "speech-control"
+@@ -15,11 +17,11 @@ Required properties:
+ - gpios:		Should provide a GPIO handler for each GPIO listed in
+                         gpio-names
+ - gpio-names:		Should contain the following strings
+-      "cmt_apeslpx"
+-      "cmt_rst_rq"
+-      "cmt_en"
+-      "cmt_rst"
+-      "cmt_bsi"
++      "cmt_apeslpx" (for n900, n950, n9)
++      "cmt_rst_rq"  (for n900, n950, n9)
++      "cmt_en"      (for n900, n950, n9)
++      "cmt_rst"     (for n900)
++      "cmt_bsi"     (for n900)
+ - interrupts:		Should be IRQ handle for modem's reset indication
  
- &i2c1 {
-@@ -191,3 +204,14 @@
- 		};
- 	};
+ Example:
+diff --git a/drivers/hsi/clients/nokia-modem.c b/drivers/hsi/clients/nokia-modem.c
+index 7f82c911ad74..c000780d931f 100644
+--- a/drivers/hsi/clients/nokia-modem.c
++++ b/drivers/hsi/clients/nokia-modem.c
+@@ -281,6 +281,8 @@ static int nokia_modem_remove(struct device *dev)
+ #ifdef CONFIG_OF
+ static const struct of_device_id nokia_modem_of_match[] = {
+ 	{ .compatible = "nokia,n900-modem", },
++	{ .compatible = "nokia,n950-modem", },
++	{ .compatible = "nokia,n9-modem", },
+ 	{},
  };
-+
-+&ssi_port1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&ssi_pins>;
-+
-+	ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
-+};
-+
-+&ssi_port2 {
-+	status = "disabled";
-+};
+ MODULE_DEVICE_TABLE(of, nokia_modem_of_match);
 -- 
 2.7.0.rc3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
