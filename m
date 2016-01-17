@@ -1,110 +1,60 @@
-From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/3] ti-st: use device handles and add device tree
- binding
-Date: Sun, 17 Jan 2016 07:57:01 +0000
-Message-ID: <8665E2433BC68541A24DFFCA87B70F5B2376B680@DFRE01.ent.ti.com>
-References: <1450870253-8694-1-git-send-email-eyalr@ti.com>
- <8665E2433BC68541A24DFFCA87B70F5B23759A5B@DFRE01.ent.ti.com>
- <20151229183534.GM12450@rob-hp-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 0/5] Nokia N950 modem support
+Date: Sun, 17 Jan 2016 16:49:04 +0100
+Message-ID: <1453045749-22642-1-git-send-email-sre@kernel.org>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151229183534.GM12450@rob-hp-laptop>
-Content-Language: en-US
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "pawel.moll-5wv7dgnIgG8@public.gmane.org" <pawel.moll-5wv7dgnIgG8@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-U29ycnkgZm9yIHRoZSBkZWxheWVkIHJlc3BvbnNlLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2Fn
-ZS0tLS0tDQo+IEZyb206IFJvYiBIZXJyaW5nIFttYWlsdG86cm9iaEBrZXJuZWwub3JnXQ0KPiBT
-ZW50OiBUdWVzZGF5LCBEZWNlbWJlciAyOSwgMjAxNSA4OjM2IFBNDQo+IFRvOiBSZWl6ZXIsIEV5
-YWwNCj4gQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnOyBsaW51eC1vbWFwQHZnZXIua2Vy
-bmVsLm9yZzsgbGludXgtYXJtLQ0KPiBrZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgcGF3ZWwu
-bW9sbEBhcm0uY29tOyBtYXJrLnJ1dGxhbmRAYXJtLmNvbTsNCj4gaWpjK2RldmljZXRyZWVAaGVs
-bGlvbi5vcmcudWs7IGdhbGFrQGNvZGVhdXJvcmEub3JnOyB0b255QGF0b21pZGUuY29tOw0KPiBs
-aW51eEBhcm0ubGludXgub3JnLnVrDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMS8zXSB0aS1zdDog
-dXNlIGRldmljZSBoYW5kbGVzIGFuZCBhZGQgZGV2aWNlIHRyZWUgYmluZGluZw0KPiANCj4gT24g
-V2VkLCBEZWMgMjMsIDIwMTUgYXQgMTE6Mzg6MjlBTSArMDAwMCwgUmVpemVyLCBFeWFsIHdyb3Rl
-Og0KPiA+IC0gQWRkIHN1cHBvcnQgZm9yIGdldHRpbmcgdGhlIHBsYXRmb3JtIGRhdGEgd2hpY2gg
-aW5jbHVkZXMgdGhlIHVhcnQNCj4gPiAgIHVzZWQgYW5kIGdwaW8gcGluIHVzZWQgZm9yIGVuYWJs
-ZSBmcm9tIGRldmljZSB0cmVlLg0KPiA+DQo+ID4gLSBGaXggdGhlIGltcGxlbWVudGF0aW9uIGZv
-ciB1c2luZyBkZXZpY2UgaGFuZGxlIGZvciB0aGUgdWFydCBhbmQNCj4gPiAgIGdwaW9kIGZvciB0
-aGUgZW5hYmxlIHBpbiwgaW5zdGVhZCBvZiBkZXZpY2UgbmFtZSAoYXMgc3RyaW5nKSB1c2VkDQo+
-ID4gICBmb3IgdGhlIHVhcnQgYW5kIHBpbyBudW1iZXIgd2hpY2ggYXJlIGJvdGggYmFkIHByYWN0
-aWNlLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogRXlhbCBSZWl6ZXIgPGV5YWxyQHRpLmNvbT4N
-Cj4gPiAtLS0NCj4gPiAgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21pc2MvdGkt
-c3QudHh0IHwgICA0MiArKysrKysNCj4gPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9wZGF0YS1xdWly
-a3MuYyAgICAgICAgICAgICAgIHwgICAxNiArKy0NCj4gPiAgZHJpdmVycy9taXNjL3RpLXN0L3N0
-X2tpbS5jICAgICAgICAgICAgICAgICAgICAgIHwgIDE1OSArKysrKysrKysrKysrKysrLS0tLS0t
-DQo+ID4gIGRyaXZlcnMvbWlzYy90aS1zdC9zdF9sbC5jICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgMTYgKystDQo+ID4gIGluY2x1ZGUvbGludXgvdGlfd2lsaW5rX3N0LmggICAgICAgICAgICAg
-ICAgICAgICB8ICAgMTMgKy0NCj4gDQo+IEknZCBzdWdnZXN0IHlvdSBsb29rIGF0IGNvbW1pdCBj
-MGJkMWI5ZTU4OTU5YzUgKFJldmVydCAidGktc3Q6IGFkZCBkZXZpY2UNCj4gdHJlZSBzdXBwb3J0
-IikgZmlyc3QuDQo+IA0KPiA+ICA1IGZpbGVzIGNoYW5nZWQsIDE5MCBpbnNlcnRpb25zKCspLCA1
-NiBkZWxldGlvbnMoLSkgIGNyZWF0ZSBtb2RlDQo+ID4gMTAwNjQ0IERvY3VtZW50YXRpb24vZGV2
-aWNldHJlZS9iaW5kaW5ncy9taXNjL3RpLXN0LnR4dA0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL0Rv
-Y3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9taXNjL3RpLXN0LnR4dA0KPiA+IGIvRG9j
-dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21pc2MvdGktc3QudHh0DQo+ID4gbmV3IGZp
-bGUgbW9kZSAxMDA2NDQNCj4gPiBpbmRleCAwMDAwMDAwLi40NDkwZGE2DQo+ID4gLS0tIC9kZXYv
-bnVsbA0KPiA+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9taXNjL3Rp
-LXN0LnR4dA0KPiA+IEBAIC0wLDAgKzEsNDIgQEANCj4gPiArVEkgV2lsaW5rIDYvNy84ICh3bDEy
-eHgvd2wxOHh4KSBTaGFyZWQgdHJhbnNwb3J0IGRyaXZlcg0KPiANCj4gQmluZGluZ3Mgc2hvdWxk
-bid0IGJlIGRlc2NyaWJpbmcgZHJpdmVycy4uLg0KPiANCg0KT0ssIHVuZGVyc3Rvb2QNCg0KPiA+
-ICsNCj4gPiArVEnigJlzIFdpcmVsZXNzIENvbm5lY3Rpdml0eSBjaGlwcyBzdXBwb3J0IEJsdWV0
-b290aCAoQlQpLCBXaUZpLCBhbmQNCj4gPiArR1BTIHRlY2hub2xvZ3kgY29yZXMgaW4gYSBzaW5n
-bGUgZGllLg0KPiA+ICsNCj4gPiArU3VjaCBhIG11bHRpLWNvcmUgY29tYm8gY2hpcCB3aWxsIGJl
-IGludGVyZmFjZWQgdG8gdGhlIGFwcGxpY2F0aW9uDQo+ID4gK3Byb2Nlc3NvciB1c2luZyBhIHNp
-bmdsZSBwaHlzaWNhbCBwb3J0IChsaWtlIFVBUlQpLg0KPiA+ICsNCj4gPiArU2hhcmVkIFRyYW5z
-cG9ydCAoU1QpIHNvZnR3YXJlIGVuYWJsZXMgQlQgYW5kIEdQUyBwcm90b2NvbHMgb3INCj4gPiAr
-c29mdHdhcmUgY29tcG9uZW50cyB0byBpbnRlcmFjdCB3aXRoIHRoZWlyIHJlc3BlY3RpdmUgY29y
-ZXMgb3ZlciBzaW5nbGUNCj4gcGh5c2ljYWwgcG9ydC4NCj4gPiArU1QgdXNlcyBsb2dpY2FsIGNo
-YW5uZWxzLCBvdmVyIHBoeXNpY2FsIHRyYW5zcG9ydCwgdG8gY29tbXVuaWNhdGUNCj4gPiArd2l0
-aCBpbmRpdmlkdWFsIGNvcmVzLg0KPiA+ICsNCj4gPiArTG9naWNhbCBjaGFubmVscyAxLCAyLCAz
-LCBhbmQgNCBhcmUgdXNlZCBmb3IgQlQgcGFja2V0cywgY2hhbm5lbCA4DQo+ID4gK2ZvciBGTSwg
-Y2hhbm5lbCA5IGZvciBHUFMgYW5kIGNoYW5uZWxzIDMwLCAzMSwgMzIsIGFuZCAzMyBhcmUgdXNl
-ZA0KPiA+ICtmb3IgQ2hpcCBQb3dlciBNYW5hZ2VtZW50IChQTSkuDQo+IA0KPiBBbGwgdGhpcyBp
-cyBpcnJlbGV2YW50IGZvciBhIGJpbmRpbmcuDQo+IA0KDQpPSywgdW5kZXJzdG9vZA0KDQo+ID4g
-Kw0KPiA+ICtUaGlzIG5vZGUgcHJvdmlkZXMgcHJvcGVydGllcyBmb3IgcGFzc2luZyBwYXJhbWV0
-ZXJzIHRvIHRoZSB0aSBzaGFyZWQNCj4gPiArdHJhbnNwb3J0IGRyaXZlci4NCj4gPiArDQo+ID4g
-K1JlcXVpcmVkIHByb3BlcnRpZXM6DQo+ID4gKyAtIGNvbXBhdGlibGU6IHNob3VsZCBiZSB0aGUg
-Zm9sbG93aW5nOg0KPiA+ICsgICAgKiAia2ltIiAtIHRpLXN0IHBhcmFtZXRlcnMNCj4gDQo+IFdo
-byBpcyBraW0/IENlcnRhaW5seSBub3QgYSBkZXNjcmlwdGlvbiBvZiBhIGgvdyBibG9jay4NCg0K
-Tm90IHN1cmUgYWJvdXQgdGhlIG9yaWdpbiBvZiB0aGlzIG5hbWUgYnV0IGFjY29yZGluZyB0byB0
-aGUgZm9sbG93aW5nIGxpbms6DQpodHRwOi8vcHJvY2Vzc29ycy53aWtpLnRpLmNvbS9pbmRleC5w
-aHAvU2hhcmVkX1RyYW5zcG9ydF9Ecml2ZXINCktJTSBpcyAiS2VybmVsIEluaXRpYWxpemF0aW9u
-IE1hbmFnZXIiIHRoYXQgZW5hYmxlcyBjb21tdW5pY2F0aW9uIHdpdGggQlQgYW5kIEdQUyBjb3Jl
-cy4NCg0KPiANCj4gPiArDQo+ID4gK09wdGlvbmFsIHByb3BlcnRpZXM6DQo+ID4gKyAtIG5zaHV0
-ZG93bi1ncGlvcyA6IHNwZWNpZmllcyBhdHRyaWJ1dGVzIGZvciBncGlvIHBpbmcgdXNlZCBmb3Ig
-ZW5hYmxpbmcNCj4gPiArCXRoZSBibHVldG9vdGgsZ3BzIGFuZCBGTSBzdWIgc3lzdGVtcw0KPiA+
-ICsgLSBzZXJpYWwtZGV2aWNlIDogdGhlIHBoYW5kbGUgZm9yIHRoZSBwaGlzaWNhbCB1YXJ0IHVz
-ZWQgZm9yIGludGVyYWN0aW5nDQo+ID4gKyAJd2l0aCB0aGUgd2lsaW5rIGRldmljZQ0KPiANCj4g
-VGhlcmUgaGF2ZSBiZWVuIG11bHRpcGxlIGRpc2N1c3Npb25zIG9uIHNlcmlhbCBzbGF2ZSBkZXZp
-Y2VzIHJlY2VudGx5Lg0KPiBJJ20gbm90IGdvaW5nIHRvIGFjY2VwdCBhbnkgZGV2aWNlIGJpbmRp
-bmcgd2l0aG91dCBhIGNvbW1vbiB1YXJ0IHNsYXZlDQo+IGRldmljZSBiaW5kaW5nIGZpcnN0Lg0K
-PiANCg0KUGVyaGFwcyBJIGFtIHJlYWRpbmcgaXQgd3JvbmcgYnV0IEkgdGhpbmsgdGhpcyBpcyBh
-IGRpZmZlcmVudCBkaXNjdXNzaW9uLg0KVGhlIHNoYXJlZCB0cmFuc3BvcnQgZHJpdmVyIGlzIGFs
-cmVhZHkgaW4gdGhlIGtlcm5lbCBmb3IgcHJldHR5IGxvbmcgdGltZS4gDQpBRkFJSyB0aGUgb3Jp
-Z2luYWwgYXV0aG9yIGlzIG5vdCBhcm91bmQgdG8gbWFpbnRhaW4gaXQuDQpDdXJyZW50bHkgaXQg
-aXMgdXNlbGVzcyAgYXMgbm8gYmluZGluZ3MgZXhpc3QgZm9yIGl0IGFuZCBhbGwgY3VzdG9tZXJz
-IEkgaGF2ZSBzZWVuIHVzaW5nIHRpX3N0IHRoYXQgdXBncmFkZSANCnRvIG5ld2VyIGtlcm5lbHMg
-aGF2ZSBicm9rZW4gc3VwcG9ydCBhbmQgaGF2ZSB0byBtYW51YWxseSBwYXRjaCB0aGUga2VybmVs
-IGZvciBhZGRpbmcgYmluZGluZ3MgZm9yIGl0Lg0KDQpIYXZpbmcgYSBuZXcgdWFydCBzbGF2ZSBk
-ZXZpY2UgdGhhdCBtYXkgcHJvdmlkZSBzaW1pbGFyIGZ1bmN0aW9uYWxpdHkgaXMgYSBkaWZmZXJl
-bnQgZGlzY3Vzc2lvbiBhcyBpdCB3b3VsZCANCnJlcXVpcmUgYSB0b3RhbCBkaWZmZXJlbnQgaW1w
-bGVtZW50YXRpb24uDQpCdXQgd2hhdCBkbyB3ZSBkbyBub3cgd2l0aCB0aGUgaW1wbGVtZW50YXRp
-b24gdGhhdCBpcyBhbHJlYWR5IHRoZXJlLiANCkRvbid0IHdlIHdhbnQgaXQgdG8gd29yayBhbmQg
-YXQgbGVhc3QgaGF2ZSB3b3JraW5nIGJpbmRpbmdzIGZvciBpdD8NCg0KPiA+ICsgLSBmbG93X2Nu
-dHJsIDogSW5kaWNhdGVzIGlmIHVhcnQgZmxvdyBjb250cm9sIGlzIHVzZWQNCj4gPiArIC0gZmxv
-d19jbnRybCA6IHVhcnQgYmF1ZCByYXRlIGluIEJQUw0KPiANCj4gVHlwbyBoZXJlLCBidXQgdGhl
-c2Ugc2hvdWxkIGJlIHBhcnQgb2YgYSBjb21tb24gc2VyaWFsIHNsYXZlIGJpbmRpbmcuDQo+IA0K
-PiBEb24ndCB1c2UgJ18nIGluIHByb3BlcnR5IG5hbWVzLg0KPiANCg0KV2lsbCBmaXggdGhpcw0K
-DQo+ID4gKw0KPiA+ICtFeGFtcGxlOg0KPiA+ICsNCj4gPiAra2ltIHsNCj4gPiArCWNvbXBhdGli
-bGUgPSAia2ltIjsNCj4gPiArCW5zaHV0ZG93bi1ncGlvcyA9IDwmZ3BpbzMgMjEgR1BJT19BQ1RJ
-VkVfSElHSD47DQo+ID4gKwlzZXJpYWwtZGV2aWNlID0gPCZ1YXJ0MT47DQo+ID4gKwlmbG93X2Nu
-dHJsID0gPDE+Ow0KPiA+ICsJZmxvd19jbnRybCA9IDwzMDAwMDAwPjsNCj4gPiArfTsNCj4gPiAr
-DQoNCkJlc3QgUmVnYXJkcywNCkV5YWwNCg==
+Hi,
+
+This patchset adds support for the N950 modem. Afterwards it can be
+used with ofono in the same way, that the N900's modem can be used [0].
+
+In addition to the kernel patchset, ofono must be modified slightly, though.
+The cbs interface from the N950 modem seems to be broken resulting in modem
+reset. The below ofono patch is enough to get it running for the N950.
+
+[0] https://lkml.org/lkml/2014/5/10/167
+
+-- Sebastian
+
+diff --git a/plugins/n900.c b/plugins/n900.c
+index 44e2e75df3d9..1454d010cb2c 100644
+--- a/plugins/n900.c
++++ b/plugins/n900.c
+@@ -507,7 +507,7 @@ static void n900_post_online(struct ofono_modem *modem)
+ 
+ 	ofono_netreg_create(modem, 0, "isimodem", isi->modem);
+ 	ofono_sms_create(modem, 0, "isimodem", isi->modem);
+-	ofono_cbs_create(modem, 0, "isimodem", isi->modem);
++	//ofono_cbs_create(modem, 0, "isimodem", isi->modem);
+ 	ofono_ussd_create(modem, 0, "isimodem", isi->modem);
+ 	ofono_call_settings_create(modem, 0, "isimodem", isi->modem);
+ 	ofono_call_barring_create(modem, 0, "isimodem", isi->modem);
+---
+
+Sebastian Reichel (5):
+  ARM: OMAP2+: hwmod data: Add SSI data for omap36xx
+  ARM: dts: OMAP3-N950-N9: Enable SSI module
+  HSI: nokia-modem: add n950 and n9 support
+  HSI: ssi-protocol: Use handshake logic from n950
+  ARM: dts: OMAP3-N950-N9: Enable modem
+
+ .../devicetree/bindings/hsi/nokia-modem.txt        | 12 ++--
+ arch/arm/boot/dts/omap3-n9.dts                     |  4 ++
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               | 64 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts                   |  4 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 13 +++--
+ drivers/hsi/clients/nokia-modem.c                  |  2 +
+ drivers/hsi/clients/ssi_protocol.c                 | 16 ++----
+ 7 files changed, 93 insertions(+), 22 deletions(-)
+
+-- 
+2.7.0.rc3
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
