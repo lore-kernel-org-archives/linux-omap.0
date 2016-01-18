@@ -1,95 +1,77 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 4/5] HSI: ssi-protocol: Use handshake logic from n950
-Date: Sun, 17 Jan 2016 16:49:08 +0100
-Message-ID: <1453045749-22642-5-git-send-email-sre@kernel.org>
-References: <1453045749-22642-1-git-send-email-sre@kernel.org>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v3 2/3] ARM: DRA7: add pdata-quirks to do reset of PCIe
+Date: Mon, 18 Jan 2016 14:42:55 +0530
+Message-ID: <569CAC97.3030703@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-3-git-send-email-kishon@ti.com> <56994640.3090704@ti.com>
+ <20160115192224.GD3904@atomide.com> <56994B72.2@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453045749-22642-1-git-send-email-sre@kernel.org>
+In-Reply-To: <56994B72.2@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When using the ssi-protocol driver with the Nokia N950, the
-following error is thrown during modem powered up sequence.
+On Saturday 16 January 2016 01:11 AM, Suman Anna wrote:
+> On 01/15/2016 01:22 PM, Tony Lindgren wrote:
+>> * Suman Anna <s-anna@ti.com> [160115 11:20]:
+>>> On 01/14/2016 08:11 AM, Kishon Vijay Abraham I wrote:
+>>>> Create platform data for PCIe and populate it with function
+>>>> pointers to perform assert and deassert of PCIe reset lines.
+>>>> The PCIe driver can use the callbacks provided here to
+>>>> reset the PCIe.
+>>>> This will be removed once the reset contoller driver is
+>>>> available to reset PCIe.
+>> ...
+>>
+>>>> +/**
+>>>> + * struct pci_dra7xx_platform_data - platform data specific to pci in dra7xx
+>>>> + * @reset_name: name of the reset line
+>>>> + * @assert_reset: callback for performing assert reset operation
+>>>> + * @deassert_reset: callback for performing deassert reset operation
+>>>> + */
+>>>> +struct pci_dra7xx_platform_data {
+>>>> +	const char *reset_name;
+>>>> +
+>>>> +	int (*assert_reset)(struct platform_device *pdev, const char *name);
+>>>> +	int (*deassert_reset)(struct platform_device *pdev, const char *name);
+>>>> +};
+>>
+>> I doubt this platform_data is dra7 specific. I believe it's
+>> the same PCI controller that has been in the omap variants for
+>> years?
+> 
+> AFAIK, this only applies to DRA7. Sekhar/Kishon can confirm. I did take
+> a quick look at OMAP3/4/5 TRMs, and didn't find any. Neither did a grep
+> on current hwmod files other than DRA7. There's a DM81xx related PCI
+> clock domain, but don't see any corresponding driver/device for the same.
 
-[13852.274993]  port0: SSI error: 0x01
-[13852.279205] ssi-protocol ssi-protocol: RX error detected
-[13852.284820] ssi-protocol ssi-protocol: Main state: 1
-[13852.290069] ssi-protocol ssi-protocol: Recv state: 0
-[13852.295288] ssi-protocol ssi-protocol: Send state: 0
-[13852.300537] ssi-protocol ssi-protocol: CMT Offline
-[13852.305603] ssi-protocol ssi-protocol: Wake test 1
-[13852.310638] ssi-protocol ssi-protocol: Data RX id: 0
-[13852.315887] ssi-protocol ssi-protocol: Data TX id: 0
-[13856.001464] ssi-protocol ssi-protocol: Watchdog trigerred
-[13856.007293] ssi-protocol ssi-protocol: Main state: 1
-[13856.012542] ssi-protocol ssi-protocol: Recv state: 0
-[13856.017761] ssi-protocol ssi-protocol: Send state: 0
-[13856.023010] ssi-protocol ssi-protocol: CMT Offline
-[13856.028045] ssi-protocol ssi-protocol: Wake test 0
-[13856.033111] ssi-protocol ssi-protocol: Data RX id: 0
-[13856.038330] ssi-protocol ssi-protocol: Data TX id: 0
+Like Suman, I do not know of any TI SoC that came off the OMAP mobile
+business that has PCIe.
 
-This patch fixes the issue by using the handshake setup from
-the Nokia N950 kernel. The new handshake sequence also works
-with the N900, so there is no need to differentiate between
-both modems.
+DM81xx has a PCIe (but no mainline driver). Both DM81xx and DRA7x use a
+designware core. But, the glue layer (which is the subject of interest
+here), is completely different. I looked at the DM81xx driver in TI
+kernel[1] to confirm this.
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- drivers/hsi/clients/ssi_protocol.c | 16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+I remember talking to Kishon about similarities between the DM81xx and
+DRA7x PCIe subsystem and remember that he too mentioned that they are
+quite different.
 
-diff --git a/drivers/hsi/clients/ssi_protocol.c b/drivers/hsi/clients/ssi_protocol.c
-index a38af68cf326..6595d2091268 100644
---- a/drivers/hsi/clients/ssi_protocol.c
-+++ b/drivers/hsi/clients/ssi_protocol.c
-@@ -521,13 +521,7 @@ static void ssip_start_rx(struct hsi_client *cl)
- 	 * high transition. Therefore we need to ignore the sencond UP event.
- 	 */
- 	if ((ssi->main_state != ACTIVE) || (ssi->recv_state == RECV_READY)) {
--		if (ssi->main_state == INIT) {
--			ssi->main_state = HANDSHAKE;
--			spin_unlock(&ssi->lock);
--			ssip_send_bootinfo_req_cmd(cl);
--		} else {
--			spin_unlock(&ssi->lock);
--		}
-+		spin_unlock(&ssi->lock);
- 		return;
- 	}
- 	ssip_set_rxstate(ssi, RECV_READY);
-@@ -671,6 +665,7 @@ static void ssip_rx_bootinforeq(struct hsi_client *cl, u32 cmd)
- 		ssip_error(cl);
- 		/* Fall through */
- 	case INIT:
-+	case HANDSHAKE:
- 		spin_lock(&ssi->lock);
- 		ssi->main_state = HANDSHAKE;
- 		if (!ssi->waketest) {
-@@ -688,9 +683,6 @@ static void ssip_rx_bootinforeq(struct hsi_client *cl, u32 cmd)
- 		msg->complete = ssip_release_cmd;
- 		hsi_async_write(cl, msg);
- 		break;
--	case HANDSHAKE:
--		/* Ignore */
--		break;
- 	default:
- 		dev_dbg(&cl->device, "Wrong state M(%d)\n", ssi->main_state);
- 		break;
-@@ -939,9 +931,11 @@ static int ssip_pn_open(struct net_device *dev)
- 		ssi->waketest = 1;
- 		ssi_waketest(cl, 1); /* FIXME: To be removed */
- 	}
--	ssi->main_state = INIT;
-+	ssi->main_state = HANDSHAKE;
- 	spin_unlock_bh(&ssi->lock);
- 
-+	ssip_send_bootinfo_req_cmd(cl);
-+
- 	return 0;
- }
- 
--- 
-2.7.0.rc3
+For an IP like PCIeSS, its quite difficult to come-up with unique names
+without using the name of the platform they first appeared in. Anyway,
+the driver is already called "pci-dra7xx", so I guess there is no harm
+in having that name in platform data as well. That in itself should not
+preclude its use on other platforms later (although I agree having a
+generic name would be ideal).
+
+Thanks,
+Sekhar
+
+PS: Kishon is out-of-office till the end of the month
+
+[1]
+http://arago-project.org/git/projects/?p=linux-omap3.git;a=blob;f=arch/arm/mach-omap2/pcie-ti81xx.c;h=05ae4f1df85a35e91a770435c50777a31de4f1ca;hb=4f1fb3bea4cc381c76e8e439f8af393c1a698dfc#l70
