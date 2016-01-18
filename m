@@ -1,50 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] drm/i2c: tda998x: Choose between atomic or non atomic
- dpms helper
-Date: Mon, 18 Jan 2016 11:15:05 +0000
-Message-ID: <20160118111504.GG5783@n2100.arm.linux.org.uk>
-References: <1452975474-17058-1-git-send-email-jsarha@ti.com>
- <20160118095226.GK13633@e106497-lin.cambridge.arm.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Mon, 18 Jan 2016 08:16:14 -0800
+Message-ID: <20160118161613.GC19432@atomide.com>
+References: <20160115224839.GA19432@atomide.com>
+ <569A1E32.1020502@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160118095226.GK13633@e106497-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Liviu.Dudau@arm.com
-Cc: dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>, linux-omap@vger.kernel.org
+In-Reply-To: <569A1E32.1020502-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBKYW4gMTgsIDIwMTYgYXQgMDk6NTI6MjdBTSArMDAwMCwgTGl2aXUuRHVkYXVAYXJt
-LmNvbSB3cm90ZToKPiBPbiBTYXQsIEphbiAxNiwgMjAxNiBhdCAxMDoxNzo1NFBNICswMjAwLCBK
-eXJpIFNhcmhhIHdyb3RlOgo+ID4gSXQganVzdCBtYWtlcyBtZSB3b25kZXIgaWYgZHJtX2F0b21p
-Y19oZWxwZXJfY29ubmVjdG9yX2RwbXMoKSBzaG91bGQKPiA+IGNhbGwgdGhlIGxlZ2FjeSBjYWxs
-YmFjayBhdXRvbWF0aWNhbGx5IGlmIERSSVZFUl9BVE9NSUMgaXMgbm90IHNldCBvcgo+ID4gYXQg
-bGVhc3QgYmFpbCBvdXQgZ3JhY2VmdWxseSB3aXRoIGFuIGVycm9yIG1lc3NhZ2UuIFRoZW4gYWdh
-aW4gaXQgbWF5Cj4gPiBiZSBvdmVya2lsbCBpZiB0aGUgdGRhOTk4eCBpcyB0aGUgb25seSBkcml2
-ZXIgdGhhdCBuZWVkIHRvIHN1cHBvcnQKPiA+IGJvdGggc2l0dWF0aW9ucy4KPiAKPiBJIHdvdWxk
-IGd1ZXNzIHRoYXQgaW4gZ2VuZXJhbCBpdCBtYWtlcyBzZW5zZSBmb3IgdGhlIGNvcmUgY29kZSB0
-byBkbyB3aGF0Cj4geW91IHN1Z2dlc3QsIGJ1dCB0aGUgaWRlYSBpcyB0byB0cnkgdG8gZW5jb3Vy
-YWdlIHRoZSBkcml2ZXJzIHRvIGNvbnZlcnQKPiB0byBhdG9taWMgb3BzIHJhdGhlciB0aGFuIGdp
-dmUgdGhlbSB0b28gbWFueSBjcnV0Y2hlcy4gQW5kIHRoZSB0ZGE5OTh4IHdpbGwKPiBuZWVkIHRo
-aXMgZm9yIGEgc2hvcnQgcGVyaW9kIG9mIHRpbWUgdW50aWwgdGlsY2RjIGNvbnZlcnRzIGFzIHdl
-bGwuCgpJdCdzIG5vdCBqdXN0IHRpbGNkYyB0aGF0IHRoaXMgZHJpdmVyIGlzIHVzZWQgYnkuCgpJ
-IGhhdmUgbm8gcGxhbnMgYXQgcHJlc2VudCB0byBjb252ZXJ0IGFybWFkYSB0byBhdG9taWMgbW9k
-ZSBzZXR0aW5nLAphbHRob3VnaCBJIG9jY2FzaW9uYWxseSBwdXNoIGl0IChJIGhvcGUpIHRvd2Fy
-ZHMgdGhhdCBnb2FsLiAgVGhpcwppc24ndCBnb2luZyB0byBoYXBwZW4gcXVpY2tseSwgYmVjYXVz
-ZSBJJ3ZlIG90aGVyIGFyZWFzIHRoYXQgbmVlZAp3b3JrIHRvby4KCi0tIApSTUsncyBQYXRjaCBz
-eXN0ZW06IGh0dHA6Ly93d3cuYXJtLmxpbnV4Lm9yZy51ay9kZXZlbG9wZXIvcGF0Y2hlcy8KRlRU
-QyBicm9hZGJhbmQgZm9yIDAuOG1pbGUgbGluZTogY3VycmVudGx5IGF0IDkuNk1icHMgZG93biA0
-MDBrYnBzIHVwCmFjY29yZGluZyB0byBzcGVlZHRlc3QubmV0LgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
-ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+* Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160116 02:41]:
+> Hi,
+> 
+> On 16.01.2016 00:48, Tony Lindgren wrote:
+> >Hi all,
+> >
+> >Looks like there's some issue with the USB gadgets and configfs.
+> >
+> >I'm seeing rmmod of the UDC driver cause a warning and then reboot
+> >hangs the system. This happens at least with v4.4, and I've reproduced
+> >it with dwc3 and musb so it seems to be generic.
+> >
+> 
+> Having configfs is not needed, disabling usb gadgets (#
+> CONFIG_USB_MUSB_GADGET is not set) seems to solved at least poweroff hang
+> issue on N900. Also, g_nokia is not a module in the config I use, so I guess
+> the problem is not related whether gadgets are modular or not. Unfortunately
+> I was not able to test reboot, as rootfs became corrupted after the first
+> poweroff :( . So it looks like my theory that onenand corruption on N900 is
+> because poweroff/reboot hangs is wrong.
+
+Oh OK so this is the same reboot bug you mentioned earlier. And yes
+this $subject bug should not be related to the n900 legacy userspace
+onenand corruption you're seeing.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
