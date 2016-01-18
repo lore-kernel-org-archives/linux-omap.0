@@ -1,77 +1,78 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3 2/3] ARM: DRA7: add pdata-quirks to do reset of PCIe
-Date: Mon, 18 Jan 2016 14:42:55 +0530
-Message-ID: <569CAC97.3030703@ti.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com>
- <1452780672-14339-3-git-send-email-kishon@ti.com> <56994640.3090704@ti.com>
- <20160115192224.GD3904@atomide.com> <56994B72.2@ti.com>
+From: Liviu.Dudau@arm.com
+Subject: Re: [PATCH] drm/i2c: tda998x: Choose between atomic or non atomic
+ dpms helper
+Date: Mon, 18 Jan 2016 09:52:27 +0000
+Message-ID: <20160118095226.GK13633@e106497-lin.cambridge.arm.com>
+References: <1452975474-17058-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56994B72.2@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1452975474-17058-1-git-send-email-jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: dri-devel@lists.freedesktop.org, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 16 January 2016 01:11 AM, Suman Anna wrote:
-> On 01/15/2016 01:22 PM, Tony Lindgren wrote:
->> * Suman Anna <s-anna@ti.com> [160115 11:20]:
->>> On 01/14/2016 08:11 AM, Kishon Vijay Abraham I wrote:
->>>> Create platform data for PCIe and populate it with function
->>>> pointers to perform assert and deassert of PCIe reset lines.
->>>> The PCIe driver can use the callbacks provided here to
->>>> reset the PCIe.
->>>> This will be removed once the reset contoller driver is
->>>> available to reset PCIe.
->> ...
->>
->>>> +/**
->>>> + * struct pci_dra7xx_platform_data - platform data specific to pci in dra7xx
->>>> + * @reset_name: name of the reset line
->>>> + * @assert_reset: callback for performing assert reset operation
->>>> + * @deassert_reset: callback for performing deassert reset operation
->>>> + */
->>>> +struct pci_dra7xx_platform_data {
->>>> +	const char *reset_name;
->>>> +
->>>> +	int (*assert_reset)(struct platform_device *pdev, const char *name);
->>>> +	int (*deassert_reset)(struct platform_device *pdev, const char *name);
->>>> +};
->>
->> I doubt this platform_data is dra7 specific. I believe it's
->> the same PCI controller that has been in the omap variants for
->> years?
-> 
-> AFAIK, this only applies to DRA7. Sekhar/Kishon can confirm. I did take
-> a quick look at OMAP3/4/5 TRMs, and didn't find any. Neither did a grep
-> on current hwmod files other than DRA7. There's a DM81xx related PCI
-> clock domain, but don't see any corresponding driver/device for the same.
-
-Like Suman, I do not know of any TI SoC that came off the OMAP mobile
-business that has PCIe.
-
-DM81xx has a PCIe (but no mainline driver). Both DM81xx and DRA7x use a
-designware core. But, the glue layer (which is the subject of interest
-here), is completely different. I looked at the DM81xx driver in TI
-kernel[1] to confirm this.
-
-I remember talking to Kishon about similarities between the DM81xx and
-DRA7x PCIe subsystem and remember that he too mentioned that they are
-quite different.
-
-For an IP like PCIeSS, its quite difficult to come-up with unique names
-without using the name of the platform they first appeared in. Anyway,
-the driver is already called "pci-dra7xx", so I guess there is no harm
-in having that name in platform data as well. That in itself should not
-preclude its use on other platforms later (although I agree having a
-generic name would be ideal).
-
-Thanks,
-Sekhar
-
-PS: Kishon is out-of-office till the end of the month
-
-[1]
-http://arago-project.org/git/projects/?p=linux-omap3.git;a=blob;f=arch/arm/mach-omap2/pcie-ti81xx.c;h=05ae4f1df85a35e91a770435c50777a31de4f1ca;hb=4f1fb3bea4cc381c76e8e439f8af393c1a698dfc#l70
+T24gU2F0LCBKYW4gMTYsIDIwMTYgYXQgMTA6MTc6NTRQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90
+ZToKPiBDaG9vc2UgYmV0d2VlbiBhdG9taWMgb3Igbm9uIGF0b21pYyBjb25uZWN0b3IgZHBtcyBo
+ZWxwZXIuIElmIHRkYTk5OHgKPiBpcyBjb25uZWN0ZWQgdG8gYSBkcm0gZHJpdmVyIHRoYXQgZG9l
+cyBub3Qgc3VwcG9ydCBhdG9taWMgbW9kZXNldAo+IGNhbGxpbmcgZHJtX2F0b21pY19oZWxwZXJf
+Y29ubmVjdG9yX2RwbXMoKSBjYXVzZXMgYSBjcmFzaCB3aGVuIHRoZQo+IGNvbm5lY3RvcnMgYXRv
+bWljIHN0YXRlIGlzIG5vdCBpbml0aWFsaXplZC4gVGhlIHBhdGNoIGltcGxlbWVudHMgYQo+IGRy
+aXZlciBzcGVjaWZpYyBjb25uZWN0b3IgZHBtcyBoZWxwZXIgdGhhdCBjYWxscwo+IGRybV9hdG9t
+aWNfaGVscGVyX2Nvbm5lY3Rvcl9kcG1zKCkgaWYgZHJpdmVyIHN1cHBvcnRzIERSSVZFUl9BVE9N
+SUMKPiBhbmQgb3RoZXJ3aXNlIGl0IGNhbGxzIHRoZSBsZWdhY3kgZHJtX2hlbHBlcl9jb25uZWN0
+b3JfZHBtcygpLgo+IAo+IEZpeGVzIGNvbW1pdCA5NzM2ZTk4OGQzMjggKCJkcm0vaTJjOiB0ZGE5
+OTh4OiBBZGQgc3VwcG9ydCBmb3IgYXRvbWljCj4gbW9kZXNldHRpbmciKS4KPiAKPiBTaWduZWQt
+b2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgoKTG9va3MgbXVjaCBjbGVhbmVyIHRv
+IG1lLgoKQWNrZWQtYnk6IExpdml1IER1ZGF1IDxMaXZpdS5EdWRhdUBhcm0uY29tPgoKPiAtLS0K
+PiAKPiBPaywgc28gdGhpcyBpcyB0aGUgc2Vjb25kIGFwcHJvYWNoIHRvIHNvbHZlIHRoaXMgaXNz
+dWUuIFRoZSBmaXJzdAo+IGF0dGVtcHQgY2FuIGJlIGZvdW5kIGhlcmUgWzFdIHdpdGggdGhlIGZv
+bGxvdyBmcm9tIExpdml1IER1ZGF1IHRoYXQKPiBzdWdnZXN0ZWQgdGhpcyBhcHByb2FjaC4gCj4g
+Cj4gSXQganVzdCBtYWtlcyBtZSB3b25kZXIgaWYgZHJtX2F0b21pY19oZWxwZXJfY29ubmVjdG9y
+X2RwbXMoKSBzaG91bGQKPiBjYWxsIHRoZSBsZWdhY3kgY2FsbGJhY2sgYXV0b21hdGljYWxseSBp
+ZiBEUklWRVJfQVRPTUlDIGlzIG5vdCBzZXQgb3IKPiBhdCBsZWFzdCBiYWlsIG91dCBncmFjZWZ1
+bGx5IHdpdGggYW4gZXJyb3IgbWVzc2FnZS4gVGhlbiBhZ2FpbiBpdCBtYXkKPiBiZSBvdmVya2ls
+bCBpZiB0aGUgdGRhOTk4eCBpcyB0aGUgb25seSBkcml2ZXIgdGhhdCBuZWVkIHRvIHN1cHBvcnQK
+PiBib3RoIHNpdHVhdGlvbnMuCgpJIHdvdWxkIGd1ZXNzIHRoYXQgaW4gZ2VuZXJhbCBpdCBtYWtl
+cyBzZW5zZSBmb3IgdGhlIGNvcmUgY29kZSB0byBkbyB3aGF0CnlvdSBzdWdnZXN0LCBidXQgdGhl
+IGlkZWEgaXMgdG8gdHJ5IHRvIGVuY291cmFnZSB0aGUgZHJpdmVycyB0byBjb252ZXJ0CnRvIGF0
+b21pYyBvcHMgcmF0aGVyIHRoYW4gZ2l2ZSB0aGVtIHRvbyBtYW55IGNydXRjaGVzLiBBbmQgdGhl
+IHRkYTk5OHggd2lsbApuZWVkIHRoaXMgZm9yIGEgc2hvcnQgcGVyaW9kIG9mIHRpbWUgdW50aWwg
+dGlsY2RjIGNvbnZlcnRzIGFzIHdlbGwuCgpCZXN0IHJlZ2FyZHMsCkxpdml1Cgo+IAo+IEJlc3Qg
+cmVnYXJkcywKPiBKeXJpCj4gCj4gWzFdIGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvZHJp
+LWRldmVsL21zZzk4NTE0Lmh0bWwKPiAKPiAgZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Ry
+di5jIHwgMTAgKysrKysrKysrLQo+ICAxIGZpbGUgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCAx
+IGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4
+eF9kcnYuYyBiL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwo+IGluZGV4IDAxMmQz
+NmQuLmJiN2Q1MDcgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Ry
+di5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jCj4gQEAgLTEzODIs
+OCArMTM4MiwxNiBAQCBzdGF0aWMgdm9pZCB0ZGE5OTh4X2Nvbm5lY3Rvcl9kZXN0cm95KHN0cnVj
+dCBkcm1fY29ubmVjdG9yICpjb25uZWN0b3IpCj4gIAlkcm1fY29ubmVjdG9yX2NsZWFudXAoY29u
+bmVjdG9yKTsKPiAgfQo+ICAKPiArc3RhdGljIGludCB0ZGE5OTh4X2Nvbm5lY3Rvcl9kcG1zKHN0
+cnVjdCBkcm1fY29ubmVjdG9yICpjb25uZWN0b3IsIGludCBtb2RlKQo+ICt7Cj4gKwlpZiAoZHJt
+X2NvcmVfY2hlY2tfZmVhdHVyZShjb25uZWN0b3ItPmRldiwgRFJJVkVSX0FUT01JQykpCj4gKwkJ
+cmV0dXJuIGRybV9hdG9taWNfaGVscGVyX2Nvbm5lY3Rvcl9kcG1zKGNvbm5lY3RvciwgbW9kZSk7
+Cj4gKwllbHNlCj4gKwkJcmV0dXJuIGRybV9oZWxwZXJfY29ubmVjdG9yX2RwbXMoY29ubmVjdG9y
+LCBtb2RlKTsKPiArfQo+ICsKPiAgc3RhdGljIGNvbnN0IHN0cnVjdCBkcm1fY29ubmVjdG9yX2Z1
+bmNzIHRkYTk5OHhfY29ubmVjdG9yX2Z1bmNzID0gewo+IC0JLmRwbXMgPSBkcm1fYXRvbWljX2hl
+bHBlcl9jb25uZWN0b3JfZHBtcywKPiArCS5kcG1zID0gdGRhOTk4eF9jb25uZWN0b3JfZHBtcywK
+PiAgCS5yZXNldCA9IGRybV9hdG9taWNfaGVscGVyX2Nvbm5lY3Rvcl9yZXNldCwKPiAgCS5maWxs
+X21vZGVzID0gZHJtX2hlbHBlcl9wcm9iZV9zaW5nbGVfY29ubmVjdG9yX21vZGVzLAo+ICAJLmRl
+dGVjdCA9IHRkYTk5OHhfY29ubmVjdG9yX2RldGVjdCwKPiAtLSAKPiAxLjkuMQo+IAoKLS0gCj09
+PT09PT09PT09PT09PT09PT09CnwgSSB3b3VsZCBsaWtlIHRvIHwKfCBmaXggdGhlIHdvcmxkLCAg
+fAp8IGJ1dCB0aGV5J3JlIG5vdCB8CnwgZ2l2aW5nIG1lIHRoZSAgIHwKIFwgc291cmNlIGNvZGUh
+ICAvCiAgLS0tLS0tLS0tLS0tLS0tCiAgICDCr1xfKOODhClfL8KvCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
+LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
