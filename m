@@ -1,68 +1,56 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 3/5] ARM: OMAP2+: Fix save_secure_ram_context for rodata
-Date: Tue, 19 Jan 2016 21:45:51 +0300
-Message-ID: <569E845F.7080001@cogentembedded.com>
-References: <1453225734-16993-1-git-send-email-tony@atomide.com>
- <1453225734-16993-4-git-send-email-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Nokia N900: musb is in wrong state after boot
+Date: Tue, 19 Jan 2016 12:33:15 -0800
+Message-ID: <20160119203314.GE19432@atomide.com>
+References: <201601091616.04193@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1453225734-16993-4-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>, Kees Cook <keescook@chromium.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <menon.nishanth@gmail.com>, Laura Abbott <labbott@redhat.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <201601091616.04193@pali>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi,
 
-On 01/19/2016 08:48 PM, Tony Lindgren wrote:
+* Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160109 07:16]:
+> Hello,
+>=20
+> when I boot 4.4.0-rc7+ kernel compiled with g_nokia into zImage on No=
+kia=20
+> N900 into userspace then usb gadget (g_nokia) does not work. Notebook=
+,=20
+> connected on other side does not see any usb device... Connecting and=
+=20
+> disconnecting cable does not change anything, still not work.
+>=20
+> But if I run this command
+> $ echo peripheral > /sys/bus/platform/devices/musb-hdrc.0.auto/mode=20
 
-> We don't want to write to .text and we can move save_secure_ram_context
-> into .data as it all gets copied into SRAM anyways.
->
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Laura Abbott <labbott@redhat.com>
-> Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-> Cc: Nishanth Menon <menon.nishanth@gmail.com>
-> Cc: Richard Woodruff <r-woodruff2@ti.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->   arch/arm/mach-omap2/sleep34xx.S | 10 ++++++++--
->   1 file changed, 8 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index f7c7bf8..042e4fb 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -93,8 +93,12 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
->   	ldmfd	sp!, {pc}	@ restore regs and return
->   ENDPROC(enable_omap3630_toggle_l2_on_restore)
->
-> -	.text
-> -/* Function to call rom code to save secure ram context */
-> +/*
-> + * Function to call rom code to save secure ram context, This gets
+=00
+>=20
+> then gadget starts working. Other side see usb device and can use it.=
+=20
+> Also connecting and disconnecting usb cable working fine. After=20
+> connecting it again, usb device OK.
 
-    s/,/./?
+N900 had the PHY interrupt wired to the bq chip instead of twl4030, rig=
+ht?
 
-> + * relocated to SRAM, so it can be all in .data section. Otherwise
-> + * we need to initialize api_params separately.
-> + */
-> +	.data
->   	.align	3
->   ENTRY(save_secure_ram_context)
->   	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
-[...]
+You can fix this issue similar to phy-twl4030-usb.c. In function
+twl4030_phy_power_on() we call schedule_delayed_work() that checks
+the state of the ID pin on boot up.
 
-MBR, Sergei
+I think that's only needed for the i2c based PHY's with MUSB, with
+the others the USB driver has a better idea of the current state.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
