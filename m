@@ -1,66 +1,27 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH 0/5] omap assembly fixes for CONFIG_DEBUG_RODATA
-Date: Tue, 19 Jan 2016 10:12:07 -0800
-Message-ID: <CAGXu5j+K8SjkdrhBKgXFHmkm0GDsDRJYRwfa4h6jCXPmCFr9UQ@mail.gmail.com>
-References: <1453225734-16993-1-git-send-email-tony@atomide.com>
+From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH RESEND] omap_hdq: fix usecount handling
+Date: Tue, 19 Jan 2016 10:13:04 -0800
+Message-ID: <20160119181304.GC10487@kroah.com>
+References: <1452948530-10639-1-git-send-email-andreas@kemnade.info>
+ <59381453221508@web14g.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1453225734-16993-1-git-send-email-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <menon.nishanth@gmail.com>, linux-omap@vger.kernel.org, Laura Abbott <labbott@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <59381453221508@web14g.yandex.ru>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Andreas Kemnade <andreas@kemnade.info>, "hns@goldelico.com" <hns@goldelico.com>, Fabian Frederick <fabf@skynet.be>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 19, 2016 at 9:48 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi all,
->
-> Here are read-only data fixes for omaps discovered few weeks ago
-> with "[PATCH v2] ARM: mm: flip priority of CONFIG_DEBUG_RODATA"
-> that caused issues during deeper idle states on omaps [0].
->
-> Please review and test if possible. I'd like to merge these fixes
-> during v4.5-rc cycle to remove these blockers for making it possible
-> to have CONFIG_DEBUG_RODATA enabled by default.
+On Tue, Jan 19, 2016 at 07:38:28PM +0300, Evgeniy Polyakov wrote:
+> Hi Andreas
+> 
+> >From w1 perspective this doesn't break things :)
+> Greg, please pull it into your tree if no one objects.
+> 
+> Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
 
-Yay! :) Thanks for working on this.
+Thanks, will do after 4.5-rc1 is out.
 
--Kees
-
->
-> Regards,
->
-> Tony
->
->
-> [0] https://lkml.org/lkml/2015/12/2/908
->
-> Tony Lindgren (5):
->   ARM: OMAP2+: Fix wait_dll_lock_timed for rodata
->   ARM: OMAP2+: Fix l2dis_3630 for rodata
->   ARM: OMAP2+: Fix save_secure_ram_context for rodata
->   ARM: OMAP2+: Fix l2_inv_api_params for rodata
->   ARM: OMAP2+: Fix ppa_zero_params and ppa_por_params for rodata
->
->  arch/arm/mach-omap2/sleep34xx.S | 60 ++++++++++++++++++++---------------------
->  arch/arm/mach-omap2/sleep44xx.S | 25 +++++++++++------
->  2 files changed, 47 insertions(+), 38 deletions(-)
->
-> --
-> 2.7.0.rc3
->
-
-
-
--- 
-Kees Cook
-Chrome OS & Brillo Security
+greg k-h
