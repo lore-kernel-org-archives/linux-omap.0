@@ -1,16 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/5] ARM: OMAP2+: Fix l2dis_3630 for rodata
-Date: Tue, 19 Jan 2016 10:40:46 -0800
-Message-ID: <20160119184046.GD19432@atomide.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 3/5] ARM: OMAP2+: Fix save_secure_ram_context for rodata
+Date: Tue, 19 Jan 2016 21:45:51 +0300
+Message-ID: <569E845F.7080001@cogentembedded.com>
 References: <1453225734-16993-1-git-send-email-tony@atomide.com>
- <1453225734-16993-3-git-send-email-tony@atomide.com>
- <alpine.LFD.2.20.1601191305370.7882@knanqh.ubzr>
+ <1453225734-16993-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.20.1601191305370.7882@knanqh.ubzr>
+In-Reply-To: <1453225734-16993-4-git-send-email-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,48 +18,51 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>, Kees Cook <keescook@chromium.org>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Nishanth Menon <menon.nishanth@gmail.com>, Laura Abbott <labbott@redhat.com>, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>, Kees Cook <keescook@chromium.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <menon.nishanth@gmail.com>, Laura Abbott <labbott@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nicolas Pitre <nicolas.pitre@linaro.org> [160119 10:10]:
-> On Tue, 19 Jan 2016, Tony Lindgren wrote:
-> > --- a/arch/arm/mach-omap2/sleep34xx.S
-> > +++ b/arch/arm/mach-omap2/sleep34xx.S
-> > @@ -86,7 +86,9 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
-> >  	stmfd	sp!, {lr}	@ save registers on stack
-> >  	/* Setup so that we will disable and enable l2 */
-> >  	mov	r1, #0x1
-> > -	adrl	r2, l2dis_3630	@ may be too distant for plain adr
-> > +	adrl	r3, l2dis_3630_offset	@ may be too distant for plain adr
-> > +	ldr	r2, [r3]
-> > +	add	r2, r2, r3
-> >  	str	r1, [r2]
-> 
-> You could combine the add with the following str:
+Hello.
 
-OK.
+On 01/19/2016 08:48 PM, Tony Lindgren wrote:
 
-> 	str	r1, [r2, r3]
-> 
-> >  	ldmfd	sp!, {pc}	@ restore regs and return
-> >  ENDPROC(enable_omap3630_toggle_l2_on_restore)
-> > @@ -415,7 +417,9 @@ ENTRY(omap3_restore)
-> >  	cmp	r2, #0x0	@ Check if target power state was OFF or RET
-> >  	bne	logic_l1_restore
-> >  
-> > -	ldr	r0, l2dis_3630
-> > +	adr	r1, l2dis_3630_offset
-> > +	ldr	r0, [r1]
-> > +	add	r0, r0, r1
-> >  	cmp	r0, #0x1	@ should we disable L2 on 3630?
-> 
-> This looks wrong. You're testing the first bit of the address for 
-> l2dis_3630 rather than its content.
+> We don't want to write to .text and we can move save_secure_ram_context
+> into .data as it all gets copied into SRAM anyways.
+>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: Laura Abbott <labbott@redhat.com>
+> Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+> Cc: Nishanth Menon <menon.nishanth@gmail.com>
+> Cc: Richard Woodruff <r-woodruff2@ti.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   arch/arm/mach-omap2/sleep34xx.S | 10 ++++++++--
+>   1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> index f7c7bf8..042e4fb 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -93,8 +93,12 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
+>   	ldmfd	sp!, {pc}	@ restore regs and return
+>   ENDPROC(enable_omap3630_toggle_l2_on_restore)
+>
+> -	.text
+> -/* Function to call rom code to save secure ram context */
+> +/*
+> + * Function to call rom code to save secure ram context, This gets
 
-Ugh yup a ldr missing missing there. Will check the whole series
-and repost. Thanks for checking!
+    s/,/./?
 
-Regards,
+> + * relocated to SRAM, so it can be all in .data section. Otherwise
+> + * we need to initialize api_params separately.
+> + */
+> +	.data
+>   	.align	3
+>   ENTRY(save_secure_ram_context)
+>   	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+[...]
 
-Tony
+MBR, Sergei
