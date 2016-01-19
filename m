@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/5] ARM: OMAP2+: Fix wait_dll_lock_timed for rodata
-Date: Tue, 19 Jan 2016 09:48:50 -0800
-Message-ID: <1453225734-16993-2-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/5] ARM: OMAP2+: Fix save_secure_ram_context for rodata
+Date: Tue, 19 Jan 2016 09:48:52 -0800
+Message-ID: <1453225734-16993-4-git-send-email-tony@atomide.com>
 References: <1453225734-16993-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,12 +21,8 @@ To: linux-omap@vger.kernel.org
 Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>, Kees Cook <keescook@chromium.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <menon.nishanth@gmail.com>, Laura Abbott <labbott@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We don't want to be writing to .text so it can be set rodata.
-Fix error "Unable to handle kernel paging request at virtual address
-c012396c" in wait_dll_lock_timed if CONFIG_DEBUG_RODATA is selected.
-
-As these counters are for debugging only and unused, we can just
-remove them.
+We don't want to write to .text and we can move save_secure_ram_context
+into .data as it all gets copied into SRAM anyways.
 
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Laura Abbott <labbott@redhat.com>
@@ -37,63 +33,36 @@ Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/sleep34xx.S | 22 ----------------------
- 1 file changed, 22 deletions(-)
+ arch/arm/mach-omap2/sleep34xx.S | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index eafd120..787cfda 100644
+index f7c7bf8..042e4fb 100644
 --- a/arch/arm/mach-omap2/sleep34xx.S
 +++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -289,12 +289,6 @@ wait_sdrc_ready:
- 	bic	r5, r5, #0x40
- 	str	r5, [r4]
+@@ -93,8 +93,12 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
+ 	ldmfd	sp!, {pc}	@ restore regs and return
+ ENDPROC(enable_omap3630_toggle_l2_on_restore)
  
--/*
-- * PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
-- * base instead.
-- * Be careful not to clobber r7 when maintaing this code.
-- */
--
- is_dll_in_lock_mode:
- 	/* Is dll in lock mode? */
- 	ldr	r4, sdrc_dlla_ctrl
-@@ -302,11 +296,7 @@ is_dll_in_lock_mode:
- 	tst	r5, #0x4
- 	bne	exit_nonoff_modes	@ Return if locked
- 	/* wait till dll locks */
--	adr	r7, kick_counter
- wait_dll_lock_timed:
--	ldr	r4, wait_dll_lock_counter
--	add	r4, r4, #1
--	str	r4, [r7, #wait_dll_lock_counter - kick_counter]
- 	ldr	r4, sdrc_dlla_status
- 	/* Wait 20uS for lock */
- 	mov	r6, #8
-@@ -330,9 +320,6 @@ kick_dll:
- 	orr	r6, r6, #(1<<3)		@ enable dll
- 	str	r6, [r4]
- 	dsb
--	ldr	r4, kick_counter
--	add	r4, r4, #1
--	str	r4, [r7]		@ kick_counter
- 	b	wait_dll_lock_timed
+-	.text
+-/* Function to call rom code to save secure ram context */
++/*
++ * Function to call rom code to save secure ram context, This gets
++ * relocated to SRAM, so it can be all in .data section. Otherwise
++ * we need to initialize api_params separately.
++ */
++	.data
+ 	.align	3
+ ENTRY(save_secure_ram_context)
+ 	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+@@ -128,6 +132,8 @@ ENDPROC(save_secure_ram_context)
+ ENTRY(save_secure_ram_context_sz)
+ 	.word	. - save_secure_ram_context
  
- exit_nonoff_modes:
-@@ -360,15 +347,6 @@ sdrc_dlla_status:
- 	.word	SDRC_DLLA_STATUS_V
- sdrc_dlla_ctrl:
- 	.word	SDRC_DLLA_CTRL_V
--	/*
--	 * When exporting to userspace while the counters are in SRAM,
--	 * these 2 words need to be at the end to facilitate retrival!
--	 */
--kick_counter:
--	.word	0
--wait_dll_lock_counter:
--	.word	0
--
- ENTRY(omap3_do_wfi_sz)
- 	.word	. - omap3_do_wfi
- 
++	.text
++
+ /*
+  * ======================
+  * == Idle entry point ==
 -- 
 2.7.0.rc3
