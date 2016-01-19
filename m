@@ -1,79 +1,43 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: USB Ethernet gadget on Nokia n900
-Date: Tue, 19 Jan 2016 21:58:19 +0100
-Message-ID: <201601192158.19810@pali>
-References: <20141019090107.GA19132@amd> <20150707074626.GB12087@pali> <20150707114658.GT10705@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/5] ARM: OMAP2+: Fix save_secure_ram_context for rodata
+Date: Tue, 19 Jan 2016 13:57:45 -0800
+Message-ID: <20160119215745.GF19432@atomide.com>
+References: <1453225734-16993-1-git-send-email-tony@atomide.com>
+ <1453225734-16993-4-git-send-email-tony@atomide.com>
+ <569E845F.7080001@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart12545671.5BqvCB9oVH";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150707114658.GT10705@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <569E845F.7080001@cogentembedded.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>, Kees Cook <keescook@chromium.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <menon.nishanth@gmail.com>, linux-omap@vger.kernel.org, Laura Abbott <labbott@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart12545671.5BqvCB9oVH
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [160119 10:46]:
+> >--- a/arch/arm/mach-omap2/sleep34xx.S
+> >+++ b/arch/arm/mach-omap2/sleep34xx.S
+> >@@ -93,8 +93,12 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
+> >  	ldmfd	sp!, {pc}	@ restore regs and return
+> >  ENDPROC(enable_omap3630_toggle_l2_on_restore)
+> >
+> >-	.text
+> >-/* Function to call rom code to save secure ram context */
+> >+/*
+> >+ * Function to call rom code to save secure ram context, This gets
+> 
+>    s/,/./?
 
-On Tuesday 07 July 2015 13:46:59 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150707 00:48]:
-> > On Monday 06 July 2015 06:53:18 Tony Lindgren wrote:
-> > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [150706 06:27]:
-> > > > On Tuesday 28 October 2014 23:26:41 Tony Lindgren wrote:
-> > > > > * Pavel Machek <pavel@ucw.cz> [141028 15:22]:
-> > > > > > On Tue 2014-10-28 23:04:50, Pavel Machek wrote:
-> > > > > > > Networking now works against 3.17-based kernel. Thanks!
-> > > > > >=20
-> > > > > > It works on 3.18-rc1 kernel, too. (I had to hand-modify
-> > > > > > patch to apply to 3.17, no changes needed for 3.18-rc1.)
-> > > > > >=20
-> > > > > > Tested-by: Pavel Machek <pavel@ucw.cz>
-> > > > >=20
-> > > > > Whatever we decice to do to fix this regression, it should
-> > > > > probably be backported to at least v3.16 stable for distro
-> > > > > use, maybe earlier too. I'd assume this is broken on
-> > > > > multiple platforms currently.
-> > > >=20
-> > > > it looks like this patch was not included into any kernel
-> > > > version... I'm still using it on top of 4.x kernels. Are you
-> > > > going to send this patch into upstream? Or do you have another
-> > > > fix for this problem?
-> > >=20
-> > > I think Felipe mentioned a better built-in gether fix that's been
-> > > reviewed on linux-usb list.
-> >=20
-> > Do you have link to that email thread? Or was Felipe's fix already
-> > merged into mainline kernel?
->=20
-> Sorry I don't have a link, maybe Felipe can point you to the right
-> patch.
->=20
-> Regards,
->=20
-> Tony
+Will fix thanks.
 
-=46elipe, ping
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart12545671.5BqvCB9oVH
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlaeo2sACgkQi/DJPQPkQ1JIoACfQ1p8eSvCWf5s0ti26c3GaxoZ
-dh4An1/RwYhtrsVY48PQAtnV71zXQBr8
-=8yV6
------END PGP SIGNATURE-----
-
---nextPart12545671.5BqvCB9oVH--
+Tony
