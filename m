@@ -1,50 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: pwrseq_simple: Make reset-gpios optional to match
- doc
-Date: Tue, 19 Jan 2016 18:34:34 -0800
-Message-ID: <20160120023433.GG19432@atomide.com>
-References: <20160108090726.13066.66125.stgit@localhost>
- <CABxcv=mYRG0rikgtY-fPj_BFhY8hgn_LYjcxEeY14rZD-BHpfg@mail.gmail.com>
+From: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH 0/3] ARM: dts: cm-t335: add peripherals - part 2
+Date: Wed, 20 Jan 2016 09:40:25 +0200
+Message-ID: <569F39E9.2070506@compulab.co.il>
+References: <1451475695-26921-1-git-send-email-uri.mashiach@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CABxcv=mYRG0rikgtY-fPj_BFhY8hgn_LYjcxEeY14rZD-BHpfg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Martin Fuzzey <mfuzzey@parkeon.com>, Ulf Hansson <ulf.hansson@linaro.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1451475695-26921-1-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Gentle ping
 
-* Javier Martinez Canillas <javier@dowhile0.org> [160108 08:42]:
-> On Fri, Jan 8, 2016 at 6:07 AM, Martin Fuzzey <mfuzzey@parkeon.com> wrote:
-> > The DT binding doc says reset-gpios is an optional property but the code
-> > currently bails out if it is omitted.
-> >
-> > Make the code match the documentation.
-...
-> Tony already posted a fix for this before [0] but got some feedback so
-> is likely to post a v2 soon.
+On 12/30/2015 01:41 PM, Uri Mashiach wrote:
+> Add support for the following peripherals:
+> - CAN BUS
+> - Touchscreen
+> - Audio
+>
+> Uri Mashiach (3):
+>    ARM: dts: cm-t335: Add support for CAN bus
+>    ARM: dts: cm-t335: add touchscreen support
+>    ARM: dts: cm-t335: add audio support
+>
+>   arch/arm/boot/dts/am335x-cm-t335.dts | 116 +++++++++++++++++++++++++++++++++++
+>   1 file changed, 116 insertions(+)
+>
 
-Hmm I think my patch would end up looking pretty much like Martin's
-patch after fixing the comments. Based on what I understood, Ulf
-wants to keep pwrseq_simple, well, simple as discussed in [0].
-
-It also seems Ulf also wants to leave out the allocation, and does
-want to add any deeper knowledge of the state of the GPIOs in
-pwrse-simple. Instead, we can do device specific pwrseq for things
-like Marvell 8787 and so on.
-
-Ulf may have more comments, but $subject patch fixes the issue
-I'm seeing with wl12xx on omap5 devices:
-
-Tested-by: Tony Lindgren <tony@atomide.com>
-
-Probably should be tagged Cc: stable # v4.4 when applied.
-
+-- 
 Regards,
-
-Tony
-
-> [0]: http://www.spinics.net/lists/linux-mmc/msg34398.html
+Uri
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
