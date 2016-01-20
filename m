@@ -1,54 +1,38 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/2] regulator: ltc3589: make IRQ optional
-Date: Wed, 20 Jan 2016 16:42:58 +0000
-Message-ID: <20160120164258.GF6588@sirena.org.uk>
-References: <1453292992-1788-1-git-send-email-LW@KARO-electronics.de>
- <1453292992-1788-2-git-send-email-LW@KARO-electronics.de>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 3/5] HSI: nokia-modem: add n950 and n9 support
+Date: Wed, 20 Jan 2016 10:49:19 -0600
+Message-ID: <20160120164919.GA29749@rob-hp-laptop>
+References: <1453045749-22642-1-git-send-email-sre@kernel.org>
+ <1453045749-22642-4-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="VOikT1vHjjoKyvem"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1453292992-1788-2-git-send-email-LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lothar =?iso-8859-1?Q?Wa=DFmann?= <LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1453045749-22642-4-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Sun, Jan 17, 2016 at 04:49:07PM +0100, Sebastian Reichel wrote:
+> The Nokia N950 and Nokia N9 also have a SSI connected
+> modem, which use the same protocols as the Nokia N900,
+> but with slightly other GPIO setup and increased link
 
---VOikT1vHjjoKyvem
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+"slightly other" does not make sense.
 
-On Wed, Jan 20, 2016 at 01:29:51PM +0100, Lothar Wa=DFmann wrote:
+> speed (96000 kbps instead of 55000 kbps).
+> 
+> Since it's unclear, if the N950 and the N9 use exactly
+> the same modem, each of them gets their own compatible
+> string.
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> ---
+>  Documentation/devicetree/bindings/hsi/nokia-modem.txt | 12 +++++++-----
+>  drivers/hsi/clients/nokia-modem.c                     |  2 ++
+>  2 files changed, 9 insertions(+), 5 deletions(-)
 
-> This pin is used as IRQ pin for the LTC3589 PMIC on the Ka-Ro
-> electronics TX48 module. Make the IRQ optional in the driver and use a
-> polling routine instead if no IRQ is specified in DT.
-> Otherwise the driver will continuously generate interrupts and make
-> the system unusable.
+Otherwise,
 
-How will the driver generate interrupts if there is no interrupt
-physically present in the system?
-
---VOikT1vHjjoKyvem
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWn7kSAAoJECTWi3JdVIfQ2GUH/jJjoPYBYMdaMnSOAAm+llB1
-KKXWr7LaaNd6oizz/5y8Wcuht9bdPbLdx5xBPswzNA8QZoV4gpOtEPeAvdMjX12k
-2AofyEo+4W4MYB8jL0hvLF9CUSPbXCT3PN8iJNBF9rXgcYitBkY0FLWzE5JlqIYY
-Vnm7udv+loOS8ujr+TWiYQtp5+H8mfO6fdHINw0XvVsgJEgRlUWM9hHBqbndA5td
-o8r4CmGuXTCUzN0ONaIMCz+mIZ6qHxqA72kwgvZMxJGpnbDbIUBiiswaSxrY9IWJ
-oF0kcp/wI9hkqng6c7nhxoko1xEBn4bRwsMV971UfzZB0HEDBKcSOLP81/dx45M=
-=+65I
------END PGP SIGNATURE-----
-
---VOikT1vHjjoKyvem--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Rob Herring <robh@kernel.org>
