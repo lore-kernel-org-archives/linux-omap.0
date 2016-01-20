@@ -1,44 +1,54 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH 2/2] ARM: dts: am33xx: add support for Ka-Ro electronics
- TX48-7020 module
-Date: Wed, 20 Jan 2016 10:32:45 -0600
-Message-ID: <CAOCHtYhHiQmueqdxcvA48iC64eqq+Ey2gKNuwZjxaMYKeWPB-Q@mail.gmail.com>
-References: <1453292992-1788-1-git-send-email-LW@KARO-electronics.de> <1453292992-1788-3-git-send-email-LW@KARO-electronics.de>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/2] regulator: ltc3589: make IRQ optional
+Date: Wed, 20 Jan 2016 16:42:58 +0000
+Message-ID: <20160120164258.GF6588@sirena.org.uk>
+References: <1453292992-1788-1-git-send-email-LW@KARO-electronics.de>
+ <1453292992-1788-2-git-send-email-LW@KARO-electronics.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453292992-1788-3-git-send-email-LW@KARO-electronics.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Lothar_Wa=C3=9Fmann?= <LW@karo-electronics.de>
-Cc: =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="VOikT1vHjjoKyvem"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1453292992-1788-2-git-send-email-LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lothar =?iso-8859-1?Q?Wa=DFmann?= <LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-> +
-> +&am33xx_pinmux {
-> +       cpsw_default: cpsw_default {
-> +               pinctrl-single,pins = <
-> +                       /* Slave 1 */
-> +                       0x10c (PIN_INPUT_PULLDOWN | MUX_MODE1)  /* mii1_crs.rmii1_crs_dv */
-> +                       0x110 (PIN_INPUT_PULLDOWN | MUX_MODE1)  /* mii1_rxerr.rmii1_rxerr */
-> +                       0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii1_txen.rmii1_txen */
-> +                       0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii1_txd1.rmii1_txd1 */
-> +                       0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* mii1_txd0.rmii1_txd0 */
-> +                       0x13c (PIN_INPUT_PULLDOWN | MUX_MODE1)  /* mii1_rxd1.rmii1_rxd1 */
-> +                       0x140 (PIN_INPUT_PULLDOWN | MUX_MODE1)  /* mii1_rxd0.rmii1_rxd0 */
-> +                       0x144 (PIN_INPUT | SLEWCTRL_FAST | MUX_MODE0)   /* rmii1_ref_clk.rmii1_refclk */
-> +                       0x1e4 (PIN_INPUT_PULLUP | MUX_MODE7)    /* emu0.gpio3_7 */
-> +                       0x1e8 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* emu1.gpio3_8 */
 
-please go thru and convert these all to use the AM33XX_IOPAD macro..
+--VOikT1vHjjoKyvem
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-All the boards have been converted for the 4.5.0-rc0 merge..
+On Wed, Jan 20, 2016 at 01:29:51PM +0100, Lothar Wa=DFmann wrote:
 
-example:
+> This pin is used as IRQ pin for the LTC3589 PMIC on the Ka-Ro
+> electronics TX48 module. Make the IRQ optional in the driver and use a
+> polling routine instead if no IRQ is specified in DT.
+> Otherwise the driver will continuously generate interrupts and make
+> the system unusable.
 
-https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/commit/?h=for-next&id=df10eadfce3510c2814e95d9f3d2d5d2c64eb26b
+How will the driver generate interrupts if there is no interrupt
+physically present in the system?
 
-Regards,
+--VOikT1vHjjoKyvem
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-Robert Nelson
-https://rcn-ee.com/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWn7kSAAoJECTWi3JdVIfQ2GUH/jJjoPYBYMdaMnSOAAm+llB1
+KKXWr7LaaNd6oizz/5y8Wcuht9bdPbLdx5xBPswzNA8QZoV4gpOtEPeAvdMjX12k
+2AofyEo+4W4MYB8jL0hvLF9CUSPbXCT3PN8iJNBF9rXgcYitBkY0FLWzE5JlqIYY
+Vnm7udv+loOS8ujr+TWiYQtp5+H8mfO6fdHINw0XvVsgJEgRlUWM9hHBqbndA5td
+o8r4CmGuXTCUzN0ONaIMCz+mIZ6qHxqA72kwgvZMxJGpnbDbIUBiiswaSxrY9IWJ
+oF0kcp/wI9hkqng6c7nhxoko1xEBn4bRwsMV971UfzZB0HEDBKcSOLP81/dx45M=
+=+65I
+-----END PGP SIGNATURE-----
+
+--VOikT1vHjjoKyvem--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
