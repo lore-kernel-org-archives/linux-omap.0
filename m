@@ -1,64 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Thu, 21 Jan 2016 11:21:13 -0800
-Message-ID: <20160121192113.GM19432@atomide.com>
-References: <201601091616.04193@pali>
- <2300247.VhtcKLq8UC@saturn>
- <20160121174146.GK19432@atomide.com>
- <3690314.8jDXSUDcRZ@saturn>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH v2 0/5] omap assembly fixes for CONFIG_DEBUG_RODATA
+Date: Thu, 21 Jan 2016 14:26:00 -0500 (EST)
+Message-ID: <alpine.LFD.2.20.1601211424241.2140@knanqh.ubzr>
+References: <1453403527-21308-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3690314.8jDXSUDcRZ@saturn>
-Sender: linux-kernel-owner@vger.kernel.org
-To: joerg Reisenweber <joerg@openmoko.org>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1453403527-21308-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Russell King <linux@arm.linux.org.uk>, Kees Cook <keescook@chromium.org>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Laura Abbott <labbott@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* joerg Reisenweber <joerg@openmoko.org> [160121 10:45]:
-> On Thu 21 January 2016 09:41:46 Tony Lindgren wrote:
-> > Then for supporting the USB host mode.. We should add regulator support
-> > to the USB PHY driver so if the ID pin is grounded, the PHY driver enables
-> > the VBUS regulator. That too seems to need some coordination between the
-> > drivers/phy/phy-twl4030-usb.c and 1707 driver if the ID pin interrupt is
-> > only detected in drivers/phy/phy-twl4030-usb.c.
+On Thu, 21 Jan 2016, Tony Lindgren wrote:
+
+> Hi all,
+>  
+> Here are read-only data fixes for omaps discovered few weeks ago
+> with "[PATCH v2] ARM: mm: flip priority of CONFIG_DEBUG_RODATA"
+> that caused issues during deeper idle states on omaps [0].
+>  
+> Please review and test if possible. I'd like to merge these fixes
+> during v4.5-rc cycle to remove these blockers for making it possible
+> to have CONFIG_DEBUG_RODATA enabled by default.
+>  
+> Regards,
+
+For the series:
+
+Acked-by: Nicolas Pitre <nico@linaro.org>
+
+> Tony
 > 
-> Note that, while this is probably a good thing to do, it needs to be 
-> sufficiently loose coupling to allow user to 'intercept' this VBOOS regulator 
-> enabling and instead allow device charging while in externally powered 
-> hostmode. There's even a spec for this in USB-docs-foo iirc, something along a 
-> certain resistor value on ID to GND - alas I guess the twl4030 is not capable 
-> to detect such sophisticated signaling, and anyway it's always desirable to 
-> allow user to manually override the VBOOST and enable VBUS-charging while in 
-> hostmode.
-
-OK, I think this is what's happening with the Motorola LapDock BTW. It
-always feeds the VBUS, well most of the time. Do you have some pointer
-to the "certain resistor value on ID to GND" spec? Is it maybe part of
-the carkit related parts of the USB spec?
-
-> On N900 the situation is even more complex since the 1707 doesn't support 
-> genuine ID detection, neither does it support emulated ID grounding. And 
-> there's no other method than a ID=GND message from PHY to musb core to make 
-> the musb core state engine transfer into proper hostmode. Thus my H-E-N 
-> hostmode botch abuses debug flags to force the musb core into a "emulated" 
-> hostmode and this mode doesn't support USB speed detection. Thus speed 
-> settings are forced onto musb core and PHY by software, and the musb core 
-> speed bits are only effective before session enabled. 
-> Bottom line: you need VBUS to try and negotiate speed with the attached device 
-> in hostmode, but to actually set this speed you detected by software means, 
-> you need to disable and discharge VBUS again, or musb core won't care about 
-> the speed you set. To be utterly clear: unconditional enabling of VBUS in 
-> ID=GND won't work.
->
-> This is quite complex and it's questionable if it could get handled reasonably  
-> in kernel space. *Very* N900 specific niche solution, I'd not think it's suited 
-> for upstreaming.
-
-Yeah OK. I think we should be able to support the aux VBUS regulator part
-with mainline kernel though.
-
-Regards,
-
-Tony
+> Changes since v1:
+> 
+> - Fix missing ldr in patch 2/5 as Noticed by Nicolas Pitre. This
+>   had gone unnoticed as the code just happened to work on omap36xx
+>   without actually toggling the L2 cache. And patches 4 and 5 are setting
+>   the address, not the value unlike patch 2/5. I've added some comments
+>   to patch 2/5 too.
+> 
+> - Fix a typo noticed by Sergei Shtylyov in patch 3/5.
+> 
+> [0] https://lkml.org/lkml/2015/12/2/908
+> 
+> Tony Lindgren (5):
+>   ARM: OMAP2+: Fix wait_dll_lock_timed for rodata
+>   ARM: OMAP2+: Fix l2dis_3630 for rodata
+>   ARM: OMAP2+: Fix save_secure_ram_context for rodata
+>   ARM: OMAP2+: Fix l2_inv_api_params for rodata
+>   ARM: OMAP2+: Fix ppa_zero_params and ppa_por_params for rodata
+> 
+>  arch/arm/mach-omap2/sleep34xx.S | 61 ++++++++++++++++++++---------------------
+>  arch/arm/mach-omap2/sleep44xx.S | 25 +++++++++++------
+>  2 files changed, 47 insertions(+), 39 deletions(-)
+> 
+> -- 
+> 2.7.0.rc3
+> 
+> 
