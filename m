@@ -1,69 +1,64 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: 4.5-rc0: n900 battery charging reverts to 100mA, indicator turns
- back on
-Date: Thu, 21 Jan 2016 20:15:25 +0100
-Message-ID: <20160121191525.GA26215@earth>
-References: <20160121184234.GA17679@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Nokia N900: musb is in wrong state after boot
+Date: Thu, 21 Jan 2016 11:21:13 -0800
+Message-ID: <20160121192113.GM19432@atomide.com>
+References: <201601091616.04193@pali>
+ <2300247.VhtcKLq8UC@saturn>
+ <20160121174146.GK19432@atomide.com>
+ <3690314.8jDXSUDcRZ@saturn>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160121184234.GA17679@amd>
+In-Reply-To: <3690314.8jDXSUDcRZ@saturn>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: joerg Reisenweber <joerg@openmoko.org>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+* joerg Reisenweber <joerg@openmoko.org> [160121 10:45]:
+> On Thu 21 January 2016 09:41:46 Tony Lindgren wrote:
+> > Then for supporting the USB host mode.. We should add regulator support
+> > to the USB PHY driver so if the ID pin is grounded, the PHY driver enables
+> > the VBUS regulator. That too seems to need some coordination between the
+> > drivers/phy/phy-twl4030-usb.c and 1707 driver if the ID pin interrupt is
+> > only detected in drivers/phy/phy-twl4030-usb.c.
+> 
+> Note that, while this is probably a good thing to do, it needs to be 
+> sufficiently loose coupling to allow user to 'intercept' this VBOOS regulator 
+> enabling and instead allow device charging while in externally powered 
+> hostmode. There's even a spec for this in USB-docs-foo iirc, something along a 
+> certain resistor value on ID to GND - alas I guess the twl4030 is not capable 
+> to detect such sophisticated signaling, and anyway it's always desirable to 
+> allow user to manually override the VBOOST and enable VBUS-charging while in 
+> hostmode.
 
---45Z9DzgjV8m4Oswq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK, I think this is what's happening with the Motorola LapDock BTW. It
+always feeds the VBUS, well most of the time. Do you have some pointer
+to the "certain resistor value on ID to GND" spec? Is it maybe part of
+the carkit related parts of the USB spec?
 
-Hi,
+> On N900 the situation is even more complex since the 1707 doesn't support 
+> genuine ID detection, neither does it support emulated ID grounding. And 
+> there's no other method than a ID=GND message from PHY to musb core to make 
+> the musb core state engine transfer into proper hostmode. Thus my H-E-N 
+> hostmode botch abuses debug flags to force the musb core into a "emulated" 
+> hostmode and this mode doesn't support USB speed detection. Thus speed 
+> settings are forced onto musb core and PHY by software, and the musb core 
+> speed bits are only effective before session enabled. 
+> Bottom line: you need VBUS to try and negotiate speed with the attached device 
+> in hostmode, but to actually set this speed you detected by software means, 
+> you need to disable and discharge VBUS again, or musb core won't care about 
+> the speed you set. To be utterly clear: unconditional enabling of VBUS in 
+> ID=GND won't work.
+>
+> This is quite complex and it's questionable if it could get handled reasonably  
+> in kernel space. *Very* N900 specific niche solution, I'd not think it's suited 
+> for upstreaming.
 
-On Thu, Jan 21, 2016 at 07:42:34PM +0100, Pavel Machek wrote:
-> In 4.4, n900 battery charging works. If indicator is turned off, it
-> stays off, and if I select 1.8A charge, it sticks. (There may be
-> problems after system suspend and resume. But normal operation seems
-> to be pretty reliable).
->=20
-> In 4.5-rc0 (7fdec82af6a9e190e53d07a1463d2a9ac49a8750) battery charging
-> works for few hours. But then indicator (yellow light on 3color LED)
-> turns back on, and if I ask for 1.8A charge, it goes back to .1A,
-> discharging battery.
->=20
-> Any ideas?
+Yeah OK. I think we should be able to support the aux VBUS regulator part
+with mainline kernel though.
 
-Maybe a side-effect of isp1704 driver actually doing what was
-intended, which is is 88025632515a ("power: isp1704_charger: Fix
-isp1704_write()").
+Regards,
 
-P.S.: No need to Cc me two times and when you update your
-script/contacts, please use sre@kernel.org :)
-
--- Sebastian
-
---45Z9DzgjV8m4Oswq
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWoS5KAAoJENju1/PIO/qa2mYP/35tOXZISHxdHVXIQgcJ4UGn
-+AjmwsTTlH8MoeQk6292f9RyPyE+2r5yDZdDvOVIPFYFzfzz9iSBzrI4qCo8G6Mj
-AAjN5L4Uew1ol1jKbQi5nYDyzhU4WAjVYZN9Eh6u/lKTNZC6EuFrhyqpfOkHoD3z
-cQGL4V7tOIPBgSyIOR9NFZEu2mP39h9u/PvK9k/4OUkfnMiIAS9/iTuyaQu8M/XU
-WdNcJuRw8ebhmS7NdJ24XoMUp6j0Zp2E3l0jLOj+P0ntfupTohI9YsK3cqNmGI1F
-a26cAxxBywvdxywYezNdDaEIKcLJW+dhTeKJN5/2VV2VwvKHVl/+VgKobAZ2y4is
-jP9DabCLF8zH/CNUhdRGA46HRRpbjgv+1+ZoLpRerXFecyOWHwWtE59+xb0Ewqzq
-wv4RLvYwYoratAUfcL4VLN1DUW9xz8owcyWbVPpHurA3Id6wzHI9tM26xXDHt2TK
-I6rHuJFdlsv7s1xVNned8AEw0QD+jYfx9ZoMRiUPOmybWtqYSI8rZrmJpoz5znLY
-d1jyfkHxteDU6Pd2P//QBvW+cJgCtlsz7YX3GR/q/43BOXD/HncCAa4cGvNrph07
-Hmshpo3PrajYt442/Dw810xtZSS9SzGcATV/QBNgXhcwb+xc86GiiQJ9hVdY5ZcL
-GA017VnDVIuINmf7xzvq
-=9vwZ
------END PGP SIGNATURE-----
-
---45Z9DzgjV8m4Oswq--
+Tony
