@@ -1,92 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP display kconfig options changing
-Date: Thu, 21 Jan 2016 13:51:17 -0800
-Message-ID: <20160121215116.GO19432@atomide.com>
-References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
- <56741FA9.3080607@ti.com> <20151218160514.GK23396@atomide.com>
- <567430DB.4000507@ti.com>
- <CABxcv==VKi5jJ7=tEBe5fiPUpqpmaBd7C=t+_JohdXLA7eMR2Q@mail.gmail.com>
- <56825F3E.5070602@ti.com>
- <CABxcv=n7kgHEq7yrAet2AZuQ15dzvcRMA3o-dE8r2ywdB_=+=w@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 4/4] ARM: dts: AM4372: Add the wkup_m3_ipc node
+Date: Thu, 21 Jan 2016 13:55:49 -0800
+Message-ID: <20160121215549.GP19432@atomide.com>
+References: <1437167284-25659-1-git-send-email-d-gerlach@ti.com>
+ <1437167284-25659-5-git-send-email-d-gerlach@ti.com>
+ <20150805103155.GB16878@atomide.com>
+ <569D486B.6080000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CABxcv=n7kgHEq7yrAet2AZuQ15dzvcRMA3o-dE8r2ywdB_=+=w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <569D486B.6080000-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier@dowhile0.org> [151229 04:14]:
-> On Tue, Dec 29, 2015 at 7:23 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >> In that case I think you should squash the defconfig changes with
-> >> commit ("70ba4e05531f omapfb/displays: change CONFIG_DISPLAY_* to
-> >> CONFIG_FB_OMAP2_*") to maintain bisectability.
+* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [160118 12:18]:
+> Hi Tony,
+> On 08/05/2015 05:31 AM, Tony Lindgren wrote:
+> >* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [150717 14:10]:
+> >>From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> >>
+> >>Add the Wakeup M3 IPC device node for the wkup_m3_ipc driver on
+> >>AM4372 SoC. This node uses the IPC registers, part of the Control
+> >>Module, and is therefore added as a child of the scm node.
 > >
-> > Here's the diff to change the defconfig to enable the same items as before:
+> >Applying the last two patches in this series into omap-for-v4.3/dt
+> >thanks.
 > >
-> > diff --git a/arch/arm/configs/omap2plus_defconfig
-> > b/arch/arm/configs/omap2plus_defconfig
-> > index c5e1943e5427..b9581f1f0536 100644
-> > --- a/arch/arm/configs/omap2plus_defconfig
-> > +++ b/arch/arm/configs/omap2plus_defconfig
-> > @@ -290,24 +290,23 @@ CONFIG_FB=y
-> >  CONFIG_FIRMWARE_EDID=y
-> >  CONFIG_FB_MODE_HELPERS=y
-> >  CONFIG_FB_TILEBLITTING=y
-> > -CONFIG_OMAP2_DSS=m
-> > -CONFIG_OMAP5_DSS_HDMI=y
-> > -CONFIG_OMAP2_DSS_SDI=y
-> > -CONFIG_OMAP2_DSS_DSI=y
-> > +CONFIG_FB_OMAP5_DSS_HDMI=y
-> > +CONFIG_FB_OMAP2_DSS_SDI=y
-> > +CONFIG_FB_OMAP2_DSS_DSI=y
-> >  CONFIG_FB_OMAP2=m
-> > -CONFIG_DISPLAY_ENCODER_TFP410=m
-> > -CONFIG_DISPLAY_ENCODER_TPD12S015=m
-> > -CONFIG_DISPLAY_CONNECTOR_DVI=m
-> > -CONFIG_DISPLAY_CONNECTOR_HDMI=m
-> > -CONFIG_DISPLAY_CONNECTOR_ANALOG_TV=m
-> > -CONFIG_DISPLAY_PANEL_DPI=m
-> > -CONFIG_DISPLAY_PANEL_DSI_CM=m
-> > -CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=m
-> > -CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02=m
-> > -CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01=m
-> > -CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1=m
-> > -CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1=m
-> > -CONFIG_DISPLAY_PANEL_NEC_NL8048HL11=m
-> > +CONFIG_FB_OMAP2_ENCODER_TFP410=m
-> > +CONFIG_FB_OMAP2_ENCODER_TPD12S015=m
-> > +CONFIG_FB_OMAP2_CONNECTOR_DVI=m
-> > +CONFIG_FB_OMAP2_CONNECTOR_HDMI=m
-> > +CONFIG_FB_OMAP2_CONNECTOR_ANALOG_TV=m
-> > +CONFIG_FB_OMAP2_PANEL_DPI=m
-> > +CONFIG_FB_OMAP2_PANEL_DSI_CM=m
-> > +CONFIG_FB_OMAP2_PANEL_SONY_ACX565AKM=m
-> > +CONFIG_FB_OMAP2_PANEL_LGPHILIPS_LB035Q02=m
-> > +CONFIG_FB_OMAP2_PANEL_SHARP_LS037V7DW01=m
-> > +CONFIG_FB_OMAP2_PANEL_TPO_TD028TTEC1=m
-> > +CONFIG_FB_OMAP2_PANEL_TPO_TD043MTEA1=m
-> > +CONFIG_FB_OMAP2_PANEL_NEC_NL8048HL11=m
-> >  CONFIG_BACKLIGHT_LCD_SUPPORT=y
-> >  CONFIG_LCD_CLASS_DEVICE=y
-> >  CONFIG_LCD_PLATFORM=y
-> >
+> >Probably the send-no-irq quirk you can do in the driver based
+> >on the compatible flag like I suggested in the related mailbox
+> >thread so not applying those until that's been discussed.
 > 
-> Cool, that's what I changed to test omapfb as well. I can't test your
-> diff right now but looks correct to me.
+> Now that this compatible flag for the mbox driver has been accepted here:
+> 8e3c5952144f ("mailbox/omap: Add ti,mbox-send-noirq quirk to fix AM33xx CPU
+> Idle") can the first two patches in this series get picked up. I tested
+> applying to v4.4 and they still apply cleanly.
 
-Sorry Tomi, I only now noticed this. Yes please feel free to queue
-with your other patches (or as a fix):
+OK applying into omap-for-v4.5/fixes thanks.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
