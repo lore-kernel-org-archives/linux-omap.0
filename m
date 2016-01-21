@@ -1,48 +1,43 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 4.5-rc0: n900 battery charging reverts to 100mA, indicator turns
- back on
-Date: Thu, 21 Jan 2016 20:41:26 +0100
-Message-ID: <20160121194126.GB13448@amd>
-References: <20160121184234.GA17679@amd>
- <20160121191525.GA26215@earth>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Nokia N900: musb is in wrong state after boot
+Date: Thu, 21 Jan 2016 12:30:13 -0800
+Message-ID: <20160121203012.GN19432@atomide.com>
+References: <201601091616.04193@pali>
+ <3690314.8jDXSUDcRZ@saturn>
+ <20160121192113.GM19432@atomide.com>
+ <8629381.KDSn8v3DtH@saturn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160121191525.GA26215@earth>
+In-Reply-To: <8629381.KDSn8v3DtH@saturn>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: joerg Reisenweber <joerg@openmoko.org>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu 2016-01-21 20:15:25, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Thu, Jan 21, 2016 at 07:42:34PM +0100, Pavel Machek wrote:
-> > In 4.4, n900 battery charging works. If indicator is turned off, it
-> > stays off, and if I select 1.8A charge, it sticks. (There may be
-> > problems after system suspend and resume. But normal operation seems
-> > to be pretty reliable).
-> > 
-> > In 4.5-rc0 (7fdec82af6a9e190e53d07a1463d2a9ac49a8750) battery charging
-> > works for few hours. But then indicator (yellow light on 3color LED)
-> > turns back on, and if I ask for 1.8A charge, it goes back to .1A,
-> > discharging battery.
-> > 
-> > Any ideas?
-> 
-> Maybe a side-effect of isp1704 driver actually doing what was
-> intended, which is is 88025632515a ("power: isp1704_charger: Fix
-> isp1704_write()").
+* joerg Reisenweber <joerg@openmoko.org> [160121 11:35]:
+> On Thu 21 January 2016 11:21:13 Tony Lindgren wrote:
+> > Do you have some pointer
+> > to the "certain resistor value on ID to GND" spec? Is it maybe part=
+ of
+> > the carkit related parts of the USB spec?
+>=20
+> ""Three additional ID pin states are defined[4] at the nominal resist=
+ance=20
+> values of 124 k=CE=A9, 68 k=CE=A9, and 36.5 k=CE=A9, with respect to =
+the ground pin. These=20
+> permit the device to work with USB Accessory Charger Adapters that al=
+lows the=20
+> OTG device to be attached to both a charger and another device simult=
+aneously.
+> [6]""
+> https://en.wikipedia.org/wiki/USB_On-The-Go#OTG_micro_plugs
 
-Hmm. It looks like 7fdec82af6a does not yet contain 88025632515a. Let
-me try to add that fix, instead...
+OK thanks. So it's the "accessory charger" part of the
+battery charging specification 1.1.
 
-> P.S.: No need to Cc me two times and when you update your
-> script/contacts, please use sre@kernel.org :)
+Regards,
 
-Address book updated :-).
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Tony
