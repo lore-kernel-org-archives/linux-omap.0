@@ -1,40 +1,34 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: [PATCH] ARM: dts: n900: Include adp1653 device
-Date: Thu, 21 Jan 2016 10:03:06 +0000
-Message-ID: <20160121100306.GI5783@n2100.arm.linux.org.uk>
+Date: Thu, 21 Jan 2016 11:18:28 +0100
+Message-ID: <20160121101828.GA7411@amd>
 References: <1451086812-3729-1-git-send-email-pali.rohar@gmail.com>
  <20160121091241.GS7192@pali>
  <20160121092909.GH5783@n2100.arm.linux.org.uk>
- <20160121095004.GW7192@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160121095004.GW7192@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20160121092909.GH5783-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 21, 2016 at 10:50:04AM +0100, Pali Roh=E1r wrote:
-> Ok, but for whole month I do not see any response that somebody take
-> this patch into some queue or tree. Which could means that patch was
-> either ignored or is living somewhere and could be lost.
+On Thu 2016-01-21 09:29:10, Russell King - ARM Linux wrote:
+> The merge window is open, which is when development code that was merged
+> in good time prior to the merge window is sent upstream to Linus.  Linux
+> maintainers may choose not to merge new code into their tree to avoid
+> disrupting the utility of linux-next until the merge window has
+> closed.
 
-You sent it the day after Christmas day, when people were most likely
-on their Christmas break doing family stuff, and there was only one
-week after the traditional Christmas/New year break before the merge
-window opened.
-
-So, discounting Christmas and the merge window, your patch has only
-been around for one week - a week where maintainers would have been
-stabilising their tree(s) in preparation for the merge window opening.
-
-Please be patient; the merge window closes this Sunday, and I suspect
-"normal service" will be resumed shortly thereafter.
-
---=20
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-=46TTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Support for new hardware is normally allowed after -rc1.
+									Pavel
+									
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
