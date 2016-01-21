@@ -1,97 +1,90 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH V2] mmc: pwrseq_simple: Make reset-gpios optional to match doc
-Date: Thu, 21 Jan 2016 14:23:38 +0100
-Message-ID: <CAPDyKFq0O_Xt=R5=7SVKKiYS8YozXUM+5S8ukzmz8vo4BJmLOg@mail.gmail.com>
-References: <20160120150803.32073.63845.stgit@localhost>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/2] regulator: ltc3589: make IRQ optional
+Date: Thu, 21 Jan 2016 16:26:46 +0000
+Message-ID: <20160121162646.GK6588@sirena.org.uk>
+References: <1453292992-1788-1-git-send-email-LW@KARO-electronics.de>
+ <1453292992-1788-2-git-send-email-LW@KARO-electronics.de>
+ <20160120164258.GF6588@sirena.org.uk>
+ <20160121080524.27af489f@ipc1.ka-ro>
+ <20160121102015.GI6588@sirena.org.uk>
+ <20160121112611.34e17cb2@ipc1.ka-ro>
+ <20160121111115.GJ6588@sirena.org.uk>
+ <20160121123311.5346e40d@ipc1.ka-ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20160120150803.32073.63845.stgit@localhost>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Martin Fuzzey <mfuzzey@parkeon.com>
-Cc: Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="eJpN0D5W9Nffl1c7"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160121123311.5346e40d-VjFSrY7JcPWvSplVBqRQBQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lothar =?iso-8859-1?Q?Wa=DFmann?= <LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 20 January 2016 at 16:08, Martin Fuzzey <mfuzzey@parkeon.com> wrote:
-> The DT binding doc says reset-gpios is an optional property but the code
-> currently bails out if it is omitted.
->
-> This is a regression since it breaks previously working device trees.
-> Fix it by restoring the original documented behaviour.
->
-> Fixes: ce037275861e ("mmc: pwrseq_simple: use GPIO descriptors array API")
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Martin Fuzzey <mfuzzey@parkeon.com>
 
-Thanks, applied for fixes!
+--eJpN0D5W9Nffl1c7
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Kind regards
-Uffe
+On Thu, Jan 21, 2016 at 12:33:11PM +0100, Lothar Wa=DFmann wrote:
+> > On Thu, Jan 21, 2016 at 11:26:11AM +0100, Lothar Wa=DFmann wrote:
+> > > > On Thu, Jan 21, 2016 at 08:05:24AM +0100, Lothar Wa=DFmann wrote:
+> > > > > > On Wed, Jan 20, 2016 at 01:29:51PM +0100, Lothar Wa=DFmann wrot=
+e:
 
->
-> ---
-> V2:
-> Fix review comments by Ulf Hansson:
->     * Handle -ENOSYS case when CONFIG_GPIOLIB not selected
->       This causes checkpatch to complain with
->            "WARNING: ENOSYS means 'invalid syscall nr' and nothing else"
->       but I guess that's ok here.
->     * Update patch description to make it clear this is a regression fix
->     * Add Fixes tag
->
-> Add Tested-by tag from Tony Lingdren
-> ---
->  drivers/mmc/core/pwrseq_simple.c |   22 ++++++++++++++--------
->  1 file changed, 14 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/mmc/core/pwrseq_simple.c b/drivers/mmc/core/pwrseq_simple.c
-> index d10538b..96f45ca 100644
-> --- a/drivers/mmc/core/pwrseq_simple.c
-> +++ b/drivers/mmc/core/pwrseq_simple.c
-> @@ -29,15 +29,18 @@ struct mmc_pwrseq_simple {
->  static void mmc_pwrseq_simple_set_gpios_value(struct mmc_pwrseq_simple *pwrseq,
->                                               int value)
->  {
-> -       int i;
->         struct gpio_descs *reset_gpios = pwrseq->reset_gpios;
-> -       int values[reset_gpios->ndescs];
->
-> -       for (i = 0; i < reset_gpios->ndescs; i++)
-> -               values[i] = value;
-> +       if (!IS_ERR(reset_gpios)) {
-> +               int i;
-> +               int values[reset_gpios->ndescs];
->
-> -       gpiod_set_array_value_cansleep(reset_gpios->ndescs, reset_gpios->desc,
-> -                                      values);
-> +               for (i = 0; i < reset_gpios->ndescs; i++)
-> +                       values[i] = value;
-> +
-> +               gpiod_set_array_value_cansleep(
-> +                       reset_gpios->ndescs, reset_gpios->desc, values);
-> +       }
->  }
->
->  static void mmc_pwrseq_simple_pre_power_on(struct mmc_host *host)
-> @@ -79,7 +82,8 @@ static void mmc_pwrseq_simple_free(struct mmc_host *host)
->         struct mmc_pwrseq_simple *pwrseq = container_of(host->pwrseq,
->                                         struct mmc_pwrseq_simple, pwrseq);
->
-> -       gpiod_put_array(pwrseq->reset_gpios);
-> +       if (!IS_ERR(pwrseq->reset_gpios))
-> +               gpiod_put_array(pwrseq->reset_gpios);
->
->         if (!IS_ERR(pwrseq->ext_clk))
->                 clk_put(pwrseq->ext_clk);
-> @@ -112,7 +116,9 @@ struct mmc_pwrseq *mmc_pwrseq_simple_alloc(struct mmc_host *host,
->         }
->
->         pwrseq->reset_gpios = gpiod_get_array(dev, "reset", GPIOD_OUT_HIGH);
-> -       if (IS_ERR(pwrseq->reset_gpios)) {
-> +       if (IS_ERR(pwrseq->reset_gpios) &&
-> +           PTR_ERR(pwrseq->reset_gpios) != -ENOENT &&
-> +           PTR_ERR(pwrseq->reset_gpios) != -ENOSYS) {
->                 ret = PTR_ERR(pwrseq->reset_gpios);
->                 goto clk_put;
->         }
->
+> > > > > > > This pin is used as IRQ pin for the LTC3589 PMIC on the Ka-Ro
+> > > > > > > electronics TX48 module. Make the IRQ optional in the driver =
+and use a
+> > > > > > > polling routine instead if no IRQ is specified in DT.
+> > > > > > > Otherwise the driver will continuously generate interrupts an=
+d make
+> > > > > > > the system unusable.
+
+> It won't. That's the whole purpose of this patch.
+> I'm afraid, I don't quite understand what you want to say...
+
+Your commit message (quoted above) claims that without this patch if no
+interrupt is supplied then the unsupplied interrupt will somehow be left
+screaming and make the system unusable.  This doesn't make sense, if
+there is no interrupt there is nothing to scream.
+
+> Without this patch there will be a constantly active interrupt, which
+> will stall the system because the nNMI interrupt (on the EXTINTn pin) is
+> level triggered.
+> Since the polarity of the interrupt input is fixed, there is no way to
+> use it in our HW.
+
+So, contrary to what you've been saying, the interrupt is actually
+connected (and worse, connected to a NMI) but apparently not described
+in DT.  Why is it sensible to make the driver poll (which will affect
+all systems using this device, even those that don't care) and not just
+describe the interrupt in DT so it can be handled promptly in the normal
+fashion?  Presumably this will run into serious problems if the
+interrupt actually fires at runtime since the NMI will scream, it's not
+clear to me how the poll will manage to run successfully in that case.
+
+This really feels like a very system specific workaround which is
+attempting to address things in the wrong place and coming up with
+something very non-obvious as a result.
+
+--eJpN0D5W9Nffl1c7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWoQbFAAoJECTWi3JdVIfQQQUH/Amafmd4EIoMHLytpYVzneH9
+pk6d9qXm/PVEzN3tUpWNvO88Inu2itimAl/VADnwlQJlH5yQKWGpXIe33DrsAxCN
+7A1gKmH6bNWttCEUzDH1mYVDEmkiE5bb5iOUHXwaj/RVgBwt4ZMfcBg/pfaI63CZ
+F/VP/TKS5yZpyf8HvM1dN30zMl8S6eSAlzxehhi/oCMb5z7l9t6J4H1XA0ftIpO7
+JOsmPhqcgypCSQQz7IQKFyy9IfcUkNuc+DZOLFX9Q7yuJreOdo8STkcZERtc5wSK
+N6fGD5rEtcatU+YNilOJ720GiOFsW4rL5dtIgJyQfZAr5hYgyWNji1SGhp1YSnY=
+=3Q/K
+-----END PGP SIGNATURE-----
+
+--eJpN0D5W9Nffl1c7--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
