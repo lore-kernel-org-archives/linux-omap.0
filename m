@@ -1,81 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: omap2plus_defconfig: Enable ARM_KERNMEM_PERMS and few
- loadable modules
-Date: Thu, 21 Jan 2016 13:01:17 -0800
-Message-ID: <1453410077-17024-1-git-send-email-tony@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: 4.5-rc0: n900 battery charging reverts to 100mA, indicator turns
+ back on
+Date: Thu, 21 Jan 2016 22:14:48 +0100
+Message-ID: <20160121211447.GA4984@earth>
+References: <20160121184234.GA17679@amd>
+ <20160121191525.GA26215@earth>
+ <20160121194126.GB13448@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160121194126.GB13448@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-With recent omap assembly fixes for CONFIG_DEBUG_RODATA, we can
-now use DEBUG_RODATA. Let's enable ARM_KERNMEM_PERMS so that
-DEBUG_RODATA gets selected by default. This way we can make sure
-any related issues are caught early.
 
-And while testing things on various devices, I noticed we're
-missing few loadable modules to make things more usable:
+--Dxnq1zWXvFF0Q93v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-- USB Ethernet for smsc75xx, we only have smsc97xx right now
+Hi,
 
-- Basic USB serial drivers for things like ftdi and pl2303 ports
+On Thu, Jan 21, 2016 at 08:41:26PM +0100, Pavel Machek wrote:
+> Hmm. It looks like 7fdec82af6a does not yet contain 88025632515a. Let
+> me try to add that fix, instead...
 
-- Blinking leds with pca963x
+Right, your checkout does not contain the power supply
+pull request. I think it's unlikely, that the patch will
+fix your issue.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap2plus_defconfig | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Since there are no other power supply changes between 4.4 and your
+checkout, the next most likely candidate is the usb tree (which has
+been merged before the commit you mentioned).
 
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -50,6 +50,7 @@ CONFIG_SOC_AM33XX=y
- CONFIG_SOC_AM43XX=y
- CONFIG_SOC_DRA7XX=y
- CONFIG_ARM_THUMBEE=y
-+CONFIG_ARM_KERNMEM_PERMS=y
- CONFIG_ARM_ERRATA_411920=y
- CONFIG_ARM_ERRATA_430973=y
- CONFIG_SMP=y
-@@ -177,6 +178,7 @@ CONFIG_TI_CPTS=y
- CONFIG_AT803X_PHY=y
- CONFIG_SMSC_PHY=y
- CONFIG_USB_USBNET=m
-+CONFIG_USB_NET_SMSC75XX=m
- CONFIG_USB_NET_SMSC95XX=m
- CONFIG_USB_ALI_M5632=y
- CONFIG_USB_AN2720=y
-@@ -354,6 +356,11 @@ CONFIG_USB_MUSB_DSPS=m
- CONFIG_USB_INVENTRA_DMA=y
- CONFIG_USB_TI_CPPI41_DMA=y
- CONFIG_USB_DWC3=m
-+CONFIG_USB_SERIAL=m
-+CONFIG_USB_SERIAL_GENERIC=y
-+CONFIG_USB_SERIAL_SIMPLE=m
-+CONFIG_USB_SERIAL_FTDI_SIO=m
-+CONFIG_USB_SERIAL_PL2303=m
- CONFIG_USB_TEST=m
- CONFIG_AM335X_PHY_USB=y
- CONFIG_USB_GADGET=m
-@@ -387,6 +394,7 @@ CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=m
- CONFIG_LEDS_GPIO=m
- CONFIG_LEDS_PWM=m
-+CONFIG_LEDS_PCA963X=m
- CONFIG_LEDS_TRIGGERS=y
- CONFIG_LEDS_TRIGGER_TIMER=m
- CONFIG_LEDS_TRIGGER_ONESHOT=m
--- 
-2.7.0.rc3
+> > P.S.: No need to Cc me two times and when you update your
+> > script/contacts, please use sre@kernel.org :)
+>=20
+> Address book updated :-)
+
+Thanks.
+
+-- Sebastian
+
+--Dxnq1zWXvFF0Q93v
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJWoUpDAAoJENju1/PIO/qaH+gQAIpymGPD2EwFjWju3TZ8y0rs
+CsdX0Z5hBgkH2LIhciJNvSatdiggzD0I4/q566oHu8gZ0zx4yV+BvGt7m715fqZx
+mtWmusjbZb7jAd4vJ8KxOK3pKzWyOebMINZ4KsPCKlu2FECog1wrAgKGBs7Niex6
+U3OI1o6tDxkmmUzouK7NpZo26hi6VPip5tt0M3lEaKfteNZLfxlfCQGSy5dVBc2V
+GbBkOPJ4Kt9u4vsiczBG33KKJMJOFXQabjuNUm64iC6SgmBs6kdp44GyzY8ADjMF
+YNHHw2t0O44oV6XgxfIzWwDfLD5Ihmn0vKuaySBurK6DxSm/t1IlV28+p3Ac2tRu
+eFbAamK2biS1LsH6gpx5ifdOHq812H/dizxRd2A7Ky63wPjs4dlH5hCSYonpuePK
+w4g/2Cb/L3+5gC2gqAyePN7Y4i/hAakgwGJlauNAIFu/ugLll+jBnTeVdjY+1Z3E
+wpQ+ObemS1kd/Bm/dFTOkm41LtI60VcleQTflbJGto5e/YoTYhD7LddZ4hocNGFo
+T7Y5lyD1IyuC9MdUPF5oDUMEqqtRkW4Sw/QJQmQAOa0Yl7J9WEG+LRssZaBKlR1y
+sDNsf+mApVI8h+fWDmZrxFD/l5lkREhGWjQadmOC9OywpFlt2Kv3c7aLA0V6vFnY
+XnrGz4pQPXnlhwB2B52J
+=kenH
+-----END PGP SIGNATURE-----
+
+--Dxnq1zWXvFF0Q93v--
