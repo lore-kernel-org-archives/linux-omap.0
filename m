@@ -1,126 +1,75 @@
-From: joerg Reisenweber <joerg@openmoko.org>
-Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Thu, 21 Jan 2016 11:29:29 +0100
-Message-ID: <2300247.VhtcKLq8UC@saturn>
-References: <201601091616.04193@pali> <20160119203314.GE19432@atomide.com> <20160121084007.GN7192@pali>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/2] regulator: ltc3589: make IRQ optional
+Date: Thu, 21 Jan 2016 11:11:15 +0000
+Message-ID: <20160121111115.GJ6588@sirena.org.uk>
+References: <1453292992-1788-1-git-send-email-LW@KARO-electronics.de>
+ <1453292992-1788-2-git-send-email-LW@KARO-electronics.de>
+ <20160120164258.GF6588@sirena.org.uk>
+ <20160121080524.27af489f@ipc1.ka-ro>
+ <20160121102015.GI6588@sirena.org.uk>
+ <20160121112611.34e17cb2@ipc1.ka-ro>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2797680.kLfJyEMsdb"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160121084007.GN7192@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="qb+6gLdVH5itmOEb"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160121112611.34e17cb2-VjFSrY7JcPWvSplVBqRQBQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lothar =?iso-8859-1?Q?Wa=DFmann?= <LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---nextPart2797680.kLfJyEMsdb
+--qb+6gLdVH5itmOEb
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
 
-On Thu 21 January 2016 09:40:07 Pali Roh=E1r wrote:
-> On Tuesday 19 January 2016 12:33:15 Tony Lindgren wrote:
-> > Hi,
-> >=20
-> > * Pali Roh=E1r <pali.rohar@gmail.com> [160109 07:16]:
-> > > Hello,
-> > >=20
-> > > when I boot 4.4.0-rc7+ kernel compiled with g_nokia into zImage o=
-n Nokia
-> > > N900 into userspace then usb gadget (g_nokia) does not work. Note=
-book,
-> > > connected on other side does not see any usb device... Connecting=
- and
-> > > disconnecting cable does not change anything, still not work.
-> > >=20
-> > > But if I run this command
-> > > $ echo peripheral > /sys/bus/platform/devices/musb-hdrc.0.auto/mo=
-de
-> > >=20
-> > >=20
-> > > then gadget starts working. Other side see usb device and can use=
- it.
-> > > Also connecting and disconnecting usb cable working fine. After
-> > > connecting it again, usb device OK.
-> >=20
-> > N900 had the PHY interrupt wired to the bq chip instead of twl4030,=
- right?
+On Thu, Jan 21, 2016 at 11:26:11AM +0100, Lothar Wa=DFmann wrote:
+> > On Thu, Jan 21, 2016 at 08:05:24AM +0100, Lothar Wa=DFmann wrote:
+> > > > On Wed, Jan 20, 2016 at 01:29:51PM +0100, Lothar Wa=DFmann wrote:
 
-which interrupt? I'll try to answer based on assumptions: 1707 PHY conn=
-ects to=20
-bq24150 charger via CHRG_DET signal.
-I guess you're talking about the VBUS detection which is done in twl403=
-0 VBUS-
-pin R8.
+> > > > > This pin is used as IRQ pin for the LTC3589 PMIC on the Ka-Ro
+> > > > > electronics TX48 module. Make the IRQ optional in the driver and =
+use a
+> > > > > polling routine instead if no IRQ is specified in DT.
+> > > > > Otherwise the driver will continuously generate interrupts and ma=
+ke
+> > > > > the system unusable.
 
->=20
-> I do not know now. I tried to find it in N900 schemantics, but do not=
+> > > > How will the driver generate interrupts if there is no interrupt
+> > > > physically present in the system?
 
-> see it.
->=20
-> CCing Joerg, do you know?
->=20
-> > You can fix this issue similar to phy-twl4030-usb.c. In function
-> > twl4030_phy_power_on() we call schedule_delayed_work() that checks
-> > the state of the ID pin on boot up.
->=20
-> I looked at that code, but do not see what and how can be fixed :-(
->=20
-> > I think that's only needed for the i2c based PHY's with MUSB, with
-> > the others the USB driver has a better idea of the current state.
-> >=20
-> > Regards,
-> >=20
-> > Tony
+> > > It's using timer interrupts to poll the LTC3589 state.
 
+> > I know that is what your patch does, my question is why you say in your
+> > commit log that "Otherwise the driver will continuously generate
+> > interrupts and make the system unusable".
 
-N900 PHY (1707) is connected to musb core via ULPI=20
-(https://www.mentor.com/products/ip/usb/usb20otg/phy_interfaces), it ha=
-s no=20
-I2C interface and no other IRQ than what's implemented in (normally pow=
-ered-
-down?) ULPI already.
-I guess the problem in this case is along the USB VBUS and ID pin A/B O=
-TG=20
-detection: the USB jack's ID pin is _not_ connected to the PHY in N900 =
-but=20
-rather is connected to TWL4030 aka GAIA ID pin R11 which afaik is part =
-of the=20
-otherwise unused (except VBUS detection?) PHY in TWL4030.=20
-It seems to me the actually used PHY 1707 does not support ID, neither =
-does it=20
-support a dedicated IRQ line for VBUS.
+> Because the interrupt is level triggered and the polarity of the
+> EXTINT pin is inverted, the interrupt will be constantly active when
+> the IRQ pin of the LTC3589 is inactive.
 
-Generally musb-core and buses should be suspended/off by default, for e=
-nergy=20
-conservation reasons (seemingly ~40mA on Vbatt!), and only get enabled =
-when=20
-twl4030 detects +5V on VBUS (also before my hostmode botch tries to tal=
-k to=20
-the musb core debug registers which needs to happen before VBUS gets ap=
-plied)
+So, to repeat my original question, how will that generate interrupts if
+there is no interrupt physically present in the system?
 
-cheers
-jOERG
-=2D-=20
-()  ascii ribbon campaign
-/\ =20
-against html e-mail - against proprietary attachments
-http://www.georgedillon.com/web/html_email_is_evil.shtml         =20
-http://www.nonhtmlmail.org/campaign.html
-http://www.georgedillon.com/web/html_email_is_evil_still.shtml   =20
-http://www.gerstbach.at/2004/ascii/ (German)
-
---nextPart2797680.kLfJyEMsdb
+--qb+6gLdVH5itmOEb
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v2
 
-iEYEABECAAYFAlagsxEACgkQ7Xtwhpk1UgwRpgCdHZoIoATnYAd/NOS4hdrSvtLi
-JuoAn0Hrmc8YfxqKGnJXMAqlguRr9oR9
-=8Z0+
+iQEcBAEBCAAGBQJWoLzSAAoJECTWi3JdVIfQJWUH/0kdI/s2MwYDzQXwZm+kxQ1u
+WeDpAM6O7jupQgg050TXcVq7aP4+0zl4tNEZT7/jB+eUDf3Xt6tNPgcIKcml7TyV
+q3HXshTUGhTtg8qw6WzfFAv3f3QZNR0EX2RUQ8LcTGusJWalfBQHlpw/7dZr/ykY
+jG8hanmJZMkuyVBnCJeqqu3zzwdQF09zRLyXdx5mahS2fisEx9zqcf2WCO3qt9su
+jgTakmLvzVTdCcmdE6QxWIaR5tcTGtdWYu8xwuLrDUS8/I4BMJsj9/LHdhuHd8uN
+ZgX36s8SEXA01yBDcBwG0rc33lsDBhlkXx88VW2SfM+KdU3laxfsdcqe+Rtvl8c=
+=kI6C
 -----END PGP SIGNATURE-----
 
---nextPart2797680.kLfJyEMsdb--
+--qb+6gLdVH5itmOEb--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
