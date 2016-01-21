@@ -1,43 +1,81 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Thu, 21 Jan 2016 12:30:13 -0800
-Message-ID: <20160121203012.GN19432@atomide.com>
-References: <201601091616.04193@pali>
- <3690314.8jDXSUDcRZ@saturn>
- <20160121192113.GM19432@atomide.com>
- <8629381.KDSn8v3DtH@saturn>
+Subject: [PATCH] ARM: omap2plus_defconfig: Enable ARM_KERNMEM_PERMS and few
+ loadable modules
+Date: Thu, 21 Jan 2016 13:01:17 -0800
+Message-ID: <1453410077-17024-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <8629381.KDSn8v3DtH@saturn>
-Sender: linux-kernel-owner@vger.kernel.org
-To: joerg Reisenweber <joerg@openmoko.org>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* joerg Reisenweber <joerg@openmoko.org> [160121 11:35]:
-> On Thu 21 January 2016 11:21:13 Tony Lindgren wrote:
-> > Do you have some pointer
-> > to the "certain resistor value on ID to GND" spec? Is it maybe part=
- of
-> > the carkit related parts of the USB spec?
->=20
-> ""Three additional ID pin states are defined[4] at the nominal resist=
-ance=20
-> values of 124 k=CE=A9, 68 k=CE=A9, and 36.5 k=CE=A9, with respect to =
-the ground pin. These=20
-> permit the device to work with USB Accessory Charger Adapters that al=
-lows the=20
-> OTG device to be attached to both a charger and another device simult=
-aneously.
-> [6]""
-> https://en.wikipedia.org/wiki/USB_On-The-Go#OTG_micro_plugs
+With recent omap assembly fixes for CONFIG_DEBUG_RODATA, we can
+now use DEBUG_RODATA. Let's enable ARM_KERNMEM_PERMS so that
+DEBUG_RODATA gets selected by default. This way we can make sure
+any related issues are caught early.
 
-OK thanks. So it's the "accessory charger" part of the
-battery charging specification 1.1.
+And while testing things on various devices, I noticed we're
+missing few loadable modules to make things more usable:
 
-Regards,
+- USB Ethernet for smsc75xx, we only have smsc97xx right now
 
-Tony
+- Basic USB serial drivers for things like ftdi and pl2303 ports
+
+- Blinking leds with pca963x
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -50,6 +50,7 @@ CONFIG_SOC_AM33XX=y
+ CONFIG_SOC_AM43XX=y
+ CONFIG_SOC_DRA7XX=y
+ CONFIG_ARM_THUMBEE=y
++CONFIG_ARM_KERNMEM_PERMS=y
+ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_ARM_ERRATA_430973=y
+ CONFIG_SMP=y
+@@ -177,6 +178,7 @@ CONFIG_TI_CPTS=y
+ CONFIG_AT803X_PHY=y
+ CONFIG_SMSC_PHY=y
+ CONFIG_USB_USBNET=m
++CONFIG_USB_NET_SMSC75XX=m
+ CONFIG_USB_NET_SMSC95XX=m
+ CONFIG_USB_ALI_M5632=y
+ CONFIG_USB_AN2720=y
+@@ -354,6 +356,11 @@ CONFIG_USB_MUSB_DSPS=m
+ CONFIG_USB_INVENTRA_DMA=y
+ CONFIG_USB_TI_CPPI41_DMA=y
+ CONFIG_USB_DWC3=m
++CONFIG_USB_SERIAL=m
++CONFIG_USB_SERIAL_GENERIC=y
++CONFIG_USB_SERIAL_SIMPLE=m
++CONFIG_USB_SERIAL_FTDI_SIO=m
++CONFIG_USB_SERIAL_PL2303=m
+ CONFIG_USB_TEST=m
+ CONFIG_AM335X_PHY_USB=y
+ CONFIG_USB_GADGET=m
+@@ -387,6 +394,7 @@ CONFIG_NEW_LEDS=y
+ CONFIG_LEDS_CLASS=m
+ CONFIG_LEDS_GPIO=m
+ CONFIG_LEDS_PWM=m
++CONFIG_LEDS_PCA963X=m
+ CONFIG_LEDS_TRIGGERS=y
+ CONFIG_LEDS_TRIGGER_TIMER=m
+ CONFIG_LEDS_TRIGGER_ONESHOT=m
+-- 
+2.7.0.rc3
