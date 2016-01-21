@@ -1,70 +1,92 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: 4.5-rc0: n900 battery charging reverts to 100mA, indicator turns
- back on
-Date: Thu, 21 Jan 2016 22:14:48 +0100
-Message-ID: <20160121211447.GA4984@earth>
-References: <20160121184234.GA17679@amd>
- <20160121191525.GA26215@earth>
- <20160121194126.GB13448@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP display kconfig options changing
+Date: Thu, 21 Jan 2016 13:51:17 -0800
+Message-ID: <20160121215116.GO19432@atomide.com>
+References: <5673CA0D.4000706@ti.com> <20151218135342.GF23396@atomide.com>
+ <56741FA9.3080607@ti.com> <20151218160514.GK23396@atomide.com>
+ <567430DB.4000507@ti.com>
+ <CABxcv==VKi5jJ7=tEBe5fiPUpqpmaBd7C=t+_JohdXLA7eMR2Q@mail.gmail.com>
+ <56825F3E.5070602@ti.com>
+ <CABxcv=n7kgHEq7yrAet2AZuQ15dzvcRMA3o-dE8r2ywdB_=+=w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20160121194126.GB13448@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+In-Reply-To: <CABxcv=n7kgHEq7yrAet2AZuQ15dzvcRMA3o-dE8r2ywdB_=+=w@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Javier Martinez Canillas <javier@dowhile0.org> [151229 04:14]:
+> On Tue, Dec 29, 2015 at 7:23 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> >> In that case I think you should squash the defconfig changes with
+> >> commit ("70ba4e05531f omapfb/displays: change CONFIG_DISPLAY_* to
+> >> CONFIG_FB_OMAP2_*") to maintain bisectability.
+> >
+> > Here's the diff to change the defconfig to enable the same items as before:
+> >
+> > diff --git a/arch/arm/configs/omap2plus_defconfig
+> > b/arch/arm/configs/omap2plus_defconfig
+> > index c5e1943e5427..b9581f1f0536 100644
+> > --- a/arch/arm/configs/omap2plus_defconfig
+> > +++ b/arch/arm/configs/omap2plus_defconfig
+> > @@ -290,24 +290,23 @@ CONFIG_FB=y
+> >  CONFIG_FIRMWARE_EDID=y
+> >  CONFIG_FB_MODE_HELPERS=y
+> >  CONFIG_FB_TILEBLITTING=y
+> > -CONFIG_OMAP2_DSS=m
+> > -CONFIG_OMAP5_DSS_HDMI=y
+> > -CONFIG_OMAP2_DSS_SDI=y
+> > -CONFIG_OMAP2_DSS_DSI=y
+> > +CONFIG_FB_OMAP5_DSS_HDMI=y
+> > +CONFIG_FB_OMAP2_DSS_SDI=y
+> > +CONFIG_FB_OMAP2_DSS_DSI=y
+> >  CONFIG_FB_OMAP2=m
+> > -CONFIG_DISPLAY_ENCODER_TFP410=m
+> > -CONFIG_DISPLAY_ENCODER_TPD12S015=m
+> > -CONFIG_DISPLAY_CONNECTOR_DVI=m
+> > -CONFIG_DISPLAY_CONNECTOR_HDMI=m
+> > -CONFIG_DISPLAY_CONNECTOR_ANALOG_TV=m
+> > -CONFIG_DISPLAY_PANEL_DPI=m
+> > -CONFIG_DISPLAY_PANEL_DSI_CM=m
+> > -CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=m
+> > -CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02=m
+> > -CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01=m
+> > -CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1=m
+> > -CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1=m
+> > -CONFIG_DISPLAY_PANEL_NEC_NL8048HL11=m
+> > +CONFIG_FB_OMAP2_ENCODER_TFP410=m
+> > +CONFIG_FB_OMAP2_ENCODER_TPD12S015=m
+> > +CONFIG_FB_OMAP2_CONNECTOR_DVI=m
+> > +CONFIG_FB_OMAP2_CONNECTOR_HDMI=m
+> > +CONFIG_FB_OMAP2_CONNECTOR_ANALOG_TV=m
+> > +CONFIG_FB_OMAP2_PANEL_DPI=m
+> > +CONFIG_FB_OMAP2_PANEL_DSI_CM=m
+> > +CONFIG_FB_OMAP2_PANEL_SONY_ACX565AKM=m
+> > +CONFIG_FB_OMAP2_PANEL_LGPHILIPS_LB035Q02=m
+> > +CONFIG_FB_OMAP2_PANEL_SHARP_LS037V7DW01=m
+> > +CONFIG_FB_OMAP2_PANEL_TPO_TD028TTEC1=m
+> > +CONFIG_FB_OMAP2_PANEL_TPO_TD043MTEA1=m
+> > +CONFIG_FB_OMAP2_PANEL_NEC_NL8048HL11=m
+> >  CONFIG_BACKLIGHT_LCD_SUPPORT=y
+> >  CONFIG_LCD_CLASS_DEVICE=y
+> >  CONFIG_LCD_PLATFORM=y
+> >
+> 
+> Cool, that's what I changed to test omapfb as well. I can't test your
+> diff right now but looks correct to me.
 
---Dxnq1zWXvFF0Q93v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sorry Tomi, I only now noticed this. Yes please feel free to queue
+with your other patches (or as a fix):
 
-Hi,
-
-On Thu, Jan 21, 2016 at 08:41:26PM +0100, Pavel Machek wrote:
-> Hmm. It looks like 7fdec82af6a does not yet contain 88025632515a. Let
-> me try to add that fix, instead...
-
-Right, your checkout does not contain the power supply
-pull request. I think it's unlikely, that the patch will
-fix your issue.
-
-Since there are no other power supply changes between 4.4 and your
-checkout, the next most likely candidate is the usb tree (which has
-been merged before the commit you mentioned).
-
-> > P.S.: No need to Cc me two times and when you update your
-> > script/contacts, please use sre@kernel.org :)
->=20
-> Address book updated :-)
-
-Thanks.
-
--- Sebastian
-
---Dxnq1zWXvFF0Q93v
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWoUpDAAoJENju1/PIO/qaH+gQAIpymGPD2EwFjWju3TZ8y0rs
-CsdX0Z5hBgkH2LIhciJNvSatdiggzD0I4/q566oHu8gZ0zx4yV+BvGt7m715fqZx
-mtWmusjbZb7jAd4vJ8KxOK3pKzWyOebMINZ4KsPCKlu2FECog1wrAgKGBs7Niex6
-U3OI1o6tDxkmmUzouK7NpZo26hi6VPip5tt0M3lEaKfteNZLfxlfCQGSy5dVBc2V
-GbBkOPJ4Kt9u4vsiczBG33KKJMJOFXQabjuNUm64iC6SgmBs6kdp44GyzY8ADjMF
-YNHHw2t0O44oV6XgxfIzWwDfLD5Ihmn0vKuaySBurK6DxSm/t1IlV28+p3Ac2tRu
-eFbAamK2biS1LsH6gpx5ifdOHq812H/dizxRd2A7Ky63wPjs4dlH5hCSYonpuePK
-w4g/2Cb/L3+5gC2gqAyePN7Y4i/hAakgwGJlauNAIFu/ugLll+jBnTeVdjY+1Z3E
-wpQ+ObemS1kd/Bm/dFTOkm41LtI60VcleQTflbJGto5e/YoTYhD7LddZ4hocNGFo
-T7Y5lyD1IyuC9MdUPF5oDUMEqqtRkW4Sw/QJQmQAOa0Yl7J9WEG+LRssZaBKlR1y
-sDNsf+mApVI8h+fWDmZrxFD/l5lkREhGWjQadmOC9OywpFlt2Kv3c7aLA0V6vFnY
-XnrGz4pQPXnlhwB2B52J
-=kenH
------END PGP SIGNATURE-----
-
---Dxnq1zWXvFF0Q93v--
+Acked-by: Tony Lindgren <tony@atomide.com>
