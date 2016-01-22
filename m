@@ -1,80 +1,54 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2] regulator: ltc3589: make IRQ optional
-Date: Fri, 22 Jan 2016 16:26:10 +0000
-Message-ID: <20160122162610.GZ6588@sirena.org.uk>
-References: <1453292992-1788-1-git-send-email-LW@KARO-electronics.de>
- <1453292992-1788-2-git-send-email-LW@KARO-electronics.de>
- <20160120164258.GF6588@sirena.org.uk>
- <20160121080524.27af489f@ipc1.ka-ro>
- <20160121102015.GI6588@sirena.org.uk>
- <20160121112611.34e17cb2@ipc1.ka-ro>
- <20160121111115.GJ6588@sirena.org.uk>
- <20160121123311.5346e40d@ipc1.ka-ro>
- <20160121162646.GK6588@sirena.org.uk>
- <20160122064145.36b7f2b4@ipc1.ka-ro>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: USB gadgets with configfs hang reboot
+Date: Fri, 22 Jan 2016 10:28:41 -0800
+Message-ID: <20160122182840.GS19432@atomide.com>
+References: <20160115224839.GA19432@atomide.com>
+ <56A205E4.6050305@samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="S0bejtPoMQWM2IlW"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160122064145.36b7f2b4@ipc1.ka-ro>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lothar =?iso-8859-1?Q?Wa=DFmann?= <LW@KARO-electronics.de>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <56A205E4.6050305-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> [160122 02:36]:
+> Hi Tony,
+> 
+> W dniu 15.01.2016 o 23:48, Tony Lindgren pisze:
+> >Hi all,
+> >
+> >Looks like there's some issue with the USB gadgets and configfs.
+> >
+> >I'm seeing rmmod of the UDC driver cause a warning and then reboot
+> >hangs the system. This happens at least with v4.4, and I've reproduced
+> >it with dwc3 and musb so it seems to be generic.
+> >
+> 
+> I can't reproduce your problem on 4.4-rc4 nor on 4.4 release
+> with the script you provided
+>
+> I'm using Odroid XU3, which has dwc3.
 
---S0bejtPoMQWM2IlW
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Well thanks for trying. Probably the difference is that
+dwc3-exynos.c remove is calling platform_device_unregister()
+while dwc3-omap.c remove is calling of_platform_depopulate()?
 
-On Fri, Jan 22, 2016 at 06:41:45AM +0100, Lothar Wa=DFmann wrote:
-> > On Thu, Jan 21, 2016 at 12:33:11PM +0100, Lothar Wa=DFmann wrote:
+> >	mkdir functions/ecm.0
+> >	ln -s functions/acm.0 configs/c.1
+> 
+> I assume you meant ecm.0 here and in the next line.
+> 
+> >	ln -s functions/acm.0 configs/c.2
 
-> > Your commit message (quoted above) claims that without this patch if no
-> > interrupt is supplied then the unsupplied interrupt will somehow be left
-> > screaming and make the system unusable.  This doesn't make sense, if
-> > there is no interrupt there is nothing to scream.
+OK, yes you're right. That does not affect the outcome though.
 
-> "Otherwise" meant the case where the IRQ is specified in DT as is
-> currently required to get the driver loaded at all.
+Regards,
 
-> > So, contrary to what you've been saying, the interrupt is actually
-> > connected (and worse, connected to a NMI) but apparently not described
-> > in DT.  Why is it sensible to make the driver poll (which will affect
-> > all systems using this device, even those that don't care) and not just
-> > describe the interrupt in DT so it can be handled promptly in the normal
-> > fashion?  Presumably this will run into serious problems if the
-> > interrupt actually fires at runtime since the NMI will scream, it's not
-> > clear to me how the poll will manage to run successfully in that case.
-
-> Currently the driver won't even load without an IRQ specified in DT.
-> My patch makes it possible to use the driver without requiring an IRQ!
-
-You're not just making the interrupt optional, you are also implementing
-polling support.  That's really unusual and there's no clear reason for
-it, your changelog seems to claim that it is needed to make the system
-work but that seems at best very surprising and would need a more
-detailed changelog.
-
-You at least need to provide an understandable changelog, though it
-seems it is more likely that there is a more sensible way of dealing
-with this.
-
---S0bejtPoMQWM2IlW
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWolghAAoJECTWi3JdVIfQ+bQH/0YgPkrUJsUzKwNBtYiNRKJX
-V3ObffcF0e7/ppDLWuD4XzTPnsIEAaQIQi2mZ8RNtH4IhcQF2KK46ys2LBvbrAQi
-o33QRzc/GHpxe160VEYkiaou1pX9xuNlRpJt8hcL++yeyNuiyEbs6/eTBMlGHAox
-wq8Kb35kbHY7MkZ42D4k7TDWN1DRwZtc9gDCgJPefWdQhDikOrcnxzn2mL5qQ8vW
-UPNPSFcMiArmX3iikOTDJ9JOOF0U4pfM20bxyTm3HO7VjXdHwle/ZpcqugNhGjg5
-a7lodZ1Nvfgh/Hxukc2QSwq/WLGLRV1pUVTzwcWtUMHHN4WCFI9w5o99ZC96DQM=
-=sWYC
------END PGP SIGNATURE-----
-
---S0bejtPoMQWM2IlW--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
