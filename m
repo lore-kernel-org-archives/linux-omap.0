@@ -1,140 +1,82 @@
-From: Andrzej Pietrasiewicz <andrzej.p-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: USB gadgets with configfs hang reboot
-Date: Fri, 22 Jan 2016 11:35:16 +0100
-Message-ID: <56A205E4.6050305@samsung.com>
-References: <20160115224839.GA19432@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20160115224839.GA19432-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Robert Baldyga <r.baldyga-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Subject: [PATCH repost] arm: plat-omap: Add PWM dmtimer platform data quirks
+Date: Fri, 22 Jan 2016 17:15:51 +0100
+Message-ID: <1453479351-21825-1-git-send-email-narmstrong@baylibre.com>
+References: <20151130183707.GK2517@atomide.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <20151130183707.GK2517@atomide.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: thierry.reding@gmail.com, tony@atomide.com, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+In order to set the currently platform dependent dmtimer
+functions pointers as platform data for the pwm-omap-dmtimer
+platform driver, add it to plat-omap auxdata_lookup table.
 
-W dniu 15.01.2016 o 23:48, Tony Lindgren pisze:
-> Hi all,
->
-> Looks like there's some issue with the USB gadgets and configfs.
->
-> I'm seeing rmmod of the UDC driver cause a warning and then reboot
-> hangs the system. This happens at least with v4.4, and I've reproduced
-> it with dwc3 and musb so it seems to be generic.
->
+Suggested-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ arch/arm/mach-omap2/pdata-quirks.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-I can't reproduce your problem on 4.4-rc4 nor on 4.4 release
-with the script you provided
+Tony, Thierry,
 
-I'm using Odroid XU3, which has dwc3.
+The previous patches are now upstream, here is a repost of the patch re-tested
+against mainline.
 
-> I think Felipe is offline for next few days, but anyways here are
-> the error messages and a shells script to reproduce the issue.
->
-> Cheers,
->
-> Tony
+Ref: http://lkml.kernel.org/r/56374592.4060201@baylibre.com 
+Patchset: http://lkml.kernel.org/r/5620ED2C.1090107@baylibre.com
 
-<snip>
+Neil
 
->
-> Test script to reproduce the problem, need to uncomment the reboot part:
->
-> 8< --------------------
-> #!/bin/bash
->
-> # Change for your UDC controller
-> udc_module=dwc3-omap
-> udc_name=4a030000.dwc3
-
-for me these are:
-
-udc_module=dwc3-exynos
-udc_name=12400000.dwc3
-
->
-> #
-> # Calling this and then doing rmmod $udc_module
-> # followed by reboot seems to produce the follow:
-> # WARNING: CPU: 1 PID: 1617 at lib/debugobjects.c:263
-> #
-> start_usb_gadgets() {
-> 	vendor=0x1d6b
-> 	product=0x0106
-> 	file=$1
->
-> 	mount -t configfs none /sys/kernel/config
-> 	mkdir /sys/kernel/config/usb_gadget/g1
-> 	old_pwd=$(pwd)
-> 	cd /sys/kernel/config/usb_gadget/g1
->
-> 	echo $product > idProduct
-> 	echo $vendor > idVendor
-> 	mkdir strings/0x409
-> 	echo 123456789 > strings/0x409/serialnumber
-> 	echo foo > strings/0x409/manufacturer
-> 	echo "Multi Gadget" > strings/0x409/product
->
-> 	mkdir configs/c.1
-> 	echo 120 > configs/c.1/MaxPower
-> 	mkdir configs/c.1/strings/0x409
-> 	echo "Conf 1" > configs/c.1/strings/0x409/configuration
->
-> 	mkdir configs/c.2
-> 	echo 500 > configs/c.2/MaxPower
-> 	mkdir configs/c.2/strings/0x409
-> 	echo "Conf 2" > configs/c.2/strings/0x409/configuration
->
-> 	mkdir functions/mass_storage.0
-> 	echo $file > functions/mass_storage.0/lun.0/file
-> 	ln -s functions/mass_storage.0 configs/c.1
-> 	ln -s functions/mass_storage.0 configs/c.2
->
-> 	# Not configuring further here just produces
-> 	# WARNING: CPU: 1 PID: 1609 at lib/debugobjects.c:263
->
-> 	mkdir functions/acm.0
-> 	ln -s functions/acm.0 configs/c.1
-> 	ln -s functions/acm.0 configs/c.2
->
-> 	mkdir functions/ecm.0
-> 	ln -s functions/acm.0 configs/c.1
-
-I assume you meant ecm.0 here and in the next line.
-
-> 	ln -s functions/acm.0 configs/c.2
->
-> 	# Adding rndis seems to cause alignment trap or some
-> 	# random oops on reboot after rmmod $udc_module
-> 	mkdir functions/rndis.0
-> 	ln -s functions/rndis.0 configs/c.1
-> 	ln -s functions/rndis.0 configs/c.2
->
-> 	echo $udc_name > /sys/kernel/config/usb_gadget/g1/UDC
-> 	cd $old_pwd
-> }
->
-> function rmmod_and_shutdown() {
-> 	rmmod $udc_module
-> 	reboot
-> }
->
-> modprobe $udc_module
->
-> start_usb_gadgets ""
->
-> # uncomment this to reproduce bug
-> # rmmod_and_shutdown
-
-I have it uncommented, no problems.
-
-But before I run this script I need to modprobe libcomposite,
-though.
-
-AP
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index e781e4f..a935d28 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -23,6 +23,8 @@
+ #include <linux/platform_data/pinctrl-single.h>
+ #include <linux/platform_data/iommu-omap.h>
+ #include <linux/platform_data/wkup_m3.h>
++#include <linux/platform_data/pwm_omap_dmtimer.h>
++#include <plat/dmtimer.h>
+ 
+ #include "common.h"
+ #include "common-board-devices.h"
+@@ -449,6 +451,24 @@ void omap_auxdata_legacy_init(struct device *dev)
+ 	dev->platform_data = &twl_gpio_auxdata;
+ }
+ 
++/* Dual mode timer PWM callbacks platdata */
++#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
++struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
++	.request_by_node = omap_dm_timer_request_by_node,
++	.free = omap_dm_timer_free,
++	.enable = omap_dm_timer_enable,
++	.disable = omap_dm_timer_disable,
++	.get_fclk = omap_dm_timer_get_fclk,
++	.start = omap_dm_timer_start,
++	.stop = omap_dm_timer_stop,
++	.set_load = omap_dm_timer_set_load,
++	.set_match = omap_dm_timer_set_match,
++	.set_pwm = omap_dm_timer_set_pwm,
++	.set_prescaler = omap_dm_timer_set_prescaler,
++	.write_counter = omap_dm_timer_write_counter,
++};
++#endif
++
+ /*
+  * Few boards still need auxdata populated before we populate
+  * the dev entries in of_platform_populate().
+@@ -502,6 +522,9 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ 	OF_DEV_AUXDATA("ti,am4372-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
+ 		       &wkup_m3_data),
+ #endif
++#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
++	OF_DEV_AUXDATA("ti,omap-dmtimer-pwm", 0, NULL, &pwm_dmtimer_pdata),
++#endif
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+ 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
+ 		       &omap4_iommu_pdata),
+-- 
+1.9.1
