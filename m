@@ -1,65 +1,42 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: Missing OMAP PM layer
-Date: Mon, 25 Jan 2016 18:24:13 +0100
-Message-ID: <201601251824.13711@pali>
-References: <201601242123.58871@pali> <20160125163442.GU19432@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH repost] arm: plat-omap: Add PWM dmtimer platform data
+ quirks
+Date: Mon, 25 Jan 2016 10:08:30 -0800
+Message-ID: <20160125180829.GV19432@atomide.com>
+References: <20151130183707.GK2517@atomide.com>
+ <1453479351-21825-1-git-send-email-narmstrong@baylibre.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1703238.IzMAliVeLd";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160125163442.GU19432@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <1453479351-21825-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: thierry.reding@gmail.com, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1703238.IzMAliVeLd
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Neil Armstrong <narmstrong@baylibre.com> [160122 08:16]:
+> In order to set the currently platform dependent dmtimer
+> functions pointers as platform data for the pwm-omap-dmtimer
+> platform driver, add it to plat-omap auxdata_lookup table.
+> 
+> Suggested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  arch/arm/mach-omap2/pdata-quirks.c | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
+> 
+> Tony, Thierry,
+> 
+> The previous patches are now upstream, here is a repost of the patch re-tested
+> against mainline.
+> 
+> Ref: http://lkml.kernel.org/r/56374592.4060201@baylibre.com 
+> Patchset: http://lkml.kernel.org/r/5620ED2C.1090107@baylibre.com
 
-On Monday 25 January 2016 17:34:42 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160124 12:24]:
-> > Hello,
-> >=20
-> > make menuconfig allows me to choose "OMAP PM layer selection" and
-> > the only one option is CONFIG_OMAP_PM_NOOP "No-op/debug PM layer".
-> >=20
-> > What does it mean? Power manager is noop?
-> >=20
-> > I see that it has only two corresponding files in mainline kernel:
-> > arch/arm/mach-omap2/omap-pm.h
-> > arch/arm/mach-omap2/omap-pm-noop.c
-> >=20
-> > Nokia's kernels (for N900 and N950) had also:
-> > arch/arm/mach-omap2/omap-pm-srf.c
-> >=20
-> > Can somebody explain it what happened with omap power management?
-> >=20
-> > Looks like that omap-pm.h provides some API, but the only
-> > implementation is noop which do nothing.
->=20
-> I believe none of that is needed any longer in mainline.
+OK great. I'll add this into omap-for-v4.5/fixes so we get the
+PWM driver working.
 
-Ok, and what was that omap-pm? Do you know what Nokia omap-pm-srf.c do?
+Regards,
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1703238.IzMAliVeLd
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlamWj0ACgkQi/DJPQPkQ1KvpgCfeGV+eS/aBqL30x2A7noZvjb8
-+UgAoMz941EImT1215HrOT0LoQng8gWV
-=iOBK
------END PGP SIGNATURE-----
-
---nextPart1703238.IzMAliVeLd--
+Tony
