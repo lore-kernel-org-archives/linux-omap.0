@@ -1,113 +1,101 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 19/22] thermal: Fix dependencies for !HAS_IOMEM
-	archs
-Date: Mon, 25 Jan 2016 23:24:18 +0100
-Message-ID: <1453760661-1444-20-git-send-email-richard@nod.at>
-References: <1453760661-1444-1-git-send-email-richard@nod.at>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
+Date: Mon, 25 Jan 2016 14:50:20 -0800
+Message-ID: <20160125225019.GY19432@atomide.com>
+References: <20160123121022.GB12497@amd>
+ <20160125163332.GT19432@atomide.com>
+ <20160125222317.GA7059@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <user-mode-linux-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <1453760661-1444-1-git-send-email-richard@nod.at>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/user-mode-linux-devel>,
-	<mailto:user-mode-linux-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=user-mode-linux-devel>
-List-Post: <mailto:user-mode-linux-devel@lists.sourceforge.net>
-List-Help: <mailto:user-mode-linux-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/user-mode-linux-devel>,
-	<mailto:user-mode-linux-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: user-mode-linux-devel-bounces@lists.sourceforge.net
-To: linux-kernel@vger.kernel.org
-Cc: user-mode-linux-devel@lists.sourceforge.net, linux-pm@vger.kernel.org, Richard Weinberger <richard@nod.at>, Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160125222317.GA7059@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-Not every arch has io memory.
-So, unbreak the build by fixing the dependencies.
+* Pavel Machek <pavel@ucw.cz> [160125 14:24]:
+> Hi!
+> 
+> First, thanks for the help!
+> 
+> > > So far, the LEDs stubbornly stay on :-(. Machine is booted off
+> > > sd-card, and I'm connected to it over wifi. GSM is active, X is
+> > > running.
+> > 
+> > If LEDs stay on, you're not entering deeper idle states.
+> 
+> Yes... Strange thing is, I'm not entering deeper idle states, and it still breaks my wifi ;-).
+> 
+> > > 64 bytes from 192.168.43.15: icmp_seq=427 ttl=64 time=178 ms
+> > 
+> > Latencies of several hundred ms are expected when hitting off
+> > mode during idle as the latency for power off the system during
+> > idle is long. It could also be that there's a wakeirq config
+> > missing somewhere. Does the WLAN have a separate GPIO irq?
+> 
+> Fair enough.
+> 
+>         wl1251_pins: pinmux_wl1251 {
+> 		     		   pinctrl-single,pins = < 0x0ce (PIN_OUTPUT | MUX_MODE4)
+> 		     		   /* gpio 87 => w\ l1251 enable */
+> 				                           0x05a (PIN_INPUT | MUX_MODE4)
+> 		     		   /* gpio 42 => w\ l1251 irq */
+> 				                   >;
+>  };
+> 
+> Aha. wl1251 is on the spi bus, too.
+> 
+> &mcspi4 {
+>         pinctrl-names = "default";
+> 	        pinctrl-0 = <&mcspi4_pins>;
+> 
+>         wl1251@0 {
+> 	...
+> 	                interrupt-parent = <&gpio2>;
+> 			                interrupts = <10 IRQ_TYPE_NONE>; /* gpio line 42 */
+>         };
+> 
+> And yes, it has a GPIO irq -- irq 42. What should be configured to
+> make gpio 42 wake the system from deep idle?
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
----
- drivers/thermal/Kconfig                | 7 +++++++
- drivers/thermal/ti-soc-thermal/Kconfig | 1 +
- 2 files changed, 8 insertions(+)
+We should do dev_pm_set_dedicated_wake_irq() on the pin related
+to gpio42 in the WLAN driver. That way the pinctrl interrupt will
+wake up the system and the GPIO interrupt should show up as it
+presumably is a level interrupt. The interrupt probably should be
+requested by wlcore as the SDIO chips also can have a GPIO interrupt.
+That's the interrupts-extended entries we already have for 8250 and
+MMC etc.
 
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 8cc4ac6..8876c7e 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -178,6 +178,7 @@ config THERMAL_EMULATION
- config HISI_THERMAL
- 	tristate "Hisilicon thermal driver"
- 	depends on (ARCH_HISI && CPU_THERMAL && OF) || COMPILE_TEST
-+	depends on HAS_IOMEM
- 	help
- 	  Enable this to plug hisilicon's thermal sensor driver into the Linux
- 	  thermal framework. cpufreq is used as the cooling device to throttle
-@@ -198,6 +199,7 @@ config SPEAR_THERMAL
- 	bool "SPEAr thermal sensor driver"
- 	depends on PLAT_SPEAR || COMPILE_TEST
- 	depends on OF
-+	depends on HAS_IOMEM
- 	help
- 	  Enable this to plug the SPEAr thermal sensor driver into the Linux
- 	  thermal framework.
-@@ -206,6 +208,7 @@ config ROCKCHIP_THERMAL
- 	tristate "Rockchip thermal driver"
- 	depends on ARCH_ROCKCHIP || COMPILE_TEST
- 	depends on RESET_CONTROLLER
-+	depends on HAS_IOMEM
- 	help
- 	  Rockchip thermal driver provides support for Temperature sensor
- 	  ADC (TS-ADC) found on Rockchip SoCs. It supports one critical
-@@ -224,6 +227,7 @@ config KIRKWOOD_THERMAL
- 	tristate "Temperature sensor on Marvell Kirkwood SoCs"
- 	depends on MACH_KIRKWOOD || COMPILE_TEST
- 	depends on OF
-+	depends on HAS_IOMEM
- 	help
- 	  Support for the Kirkwood thermal sensor driver into the Linux thermal
- 	  framework. Only kirkwood 88F6282 and 88F6283 have this sensor.
-@@ -232,6 +236,7 @@ config DOVE_THERMAL
- 	tristate "Temperature sensor on Marvell Dove SoCs"
- 	depends on ARCH_DOVE || MACH_DOVE || COMPILE_TEST
- 	depends on OF
-+	depends on HAS_IOMEM
- 	help
- 	  Support for the Dove thermal sensor driver in the Linux thermal
- 	  framework.
-@@ -250,6 +255,7 @@ config ARMADA_THERMAL
- 	tristate "Armada 370/XP thermal management"
- 	depends on ARCH_MVEBU || COMPILE_TEST
- 	depends on OF
-+	depends on HAS_IOMEM
- 	help
- 	  Enable this option if you want to have support for thermal management
- 	  controller present in Armada 370 and Armada XP SoC.
-@@ -372,6 +378,7 @@ endmenu
- 
- menu "Samsung thermal drivers"
- depends on ARCH_EXYNOS || COMPILE_TEST
-+depends on HAS_IOMEM
- source "drivers/thermal/samsung/Kconfig"
- endmenu
- 
-diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-index ea8283f..283d794 100644
---- a/drivers/thermal/ti-soc-thermal/Kconfig
-+++ b/drivers/thermal/ti-soc-thermal/Kconfig
-@@ -1,5 +1,6 @@
- config TI_SOC_THERMAL
- 	tristate "Texas Instruments SoCs temperature sensor driver"
-+	depends on HAS_IOMEM
- 	help
- 	  If you say yes here you get support for the Texas Instruments
- 	  OMAP4460+ on die bandgap temperature sensor support. The register
--- 
-1.8.4.5
+> > The workaround for now is to mux those pins permanently with
+> > PIN_INPUT_PULLUP | MUX_MODE7 to keep them high using the
+> > internal pull. So in this case, maybe give a try for adding
+> > a pinctrl entry for tsc2005 for gpio104 to have it always
+> > in PIN_INPUT_PULLUP | MUX_MODE7.
+> 
+> So the glitches on the GPIOs reset the tsc2005, even when it should be
+> operational? That would explain stuff.
 
+Yeah.
 
-------------------------------------------------------------------------------
-Site24x7 APM Insight: Get Deep Visibility into Application Performance
-APM + Mobile APM + RUM: Monitor 3 App instances at just $35/Month
-Monitor end-to-end web transactions and take corrective actions now
-Troubleshoot faster and improve end-user experience. Signup Now!
-http://pubads.g.doubleclick.net/gampad/clk?id=267308311&iu=/4140
+> I'll try to figure out the pinmux stuff. ... but I guess touchscreen
+> is not really usable with screen off.
+
+Could still wake up the system I guess if configured.
+
+> > Typically you need at least USB disconnected and LCD blanked
+> > to start hitting the deeper idle states :)
+> 
+> Right. So I was able to get SD-card to work, so USB was disconnected,
+> but I was watching power consumption figures in a GTK window... on a
+> LCD. Ok. I guess I can monitor the power consumption over the wlan.
+
+Yeah in the long run initramfs + ssh over WLAN is probably the best
+to develop with if you don't have a serial console wired up. That
+allows hitting idle states with mosh at least working OK as long as
+the WLAN wakeirq works properly.
+
+Regards,
+
+Tony
