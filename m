@@ -1,101 +1,130 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Mon, 25 Jan 2016 14:50:20 -0800
-Message-ID: <20160125225019.GY19432@atomide.com>
-References: <20160123121022.GB12497@amd>
- <20160125163332.GT19432@atomide.com>
- <20160125222317.GA7059@amd>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v4.4
+Date: Tue, 26 Jan 2016 07:14:32 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1601260713340.4443@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160125222317.GA7059@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [160125 14:24]:
-> Hi!
-> 
-> First, thanks for the help!
-> 
-> > > So far, the LEDs stubbornly stay on :-(. Machine is booted off
-> > > sd-card, and I'm connected to it over wifi. GSM is active, X is
-> > > running.
-> > 
-> > If LEDs stay on, you're not entering deeper idle states.
-> 
-> Yes... Strange thing is, I'm not entering deeper idle states, and it still breaks my wifi ;-).
-> 
-> > > 64 bytes from 192.168.43.15: icmp_seq=427 ttl=64 time=178 ms
-> > 
-> > Latencies of several hundred ms are expected when hitting off
-> > mode during idle as the latency for power off the system during
-> > idle is long. It could also be that there's a wakeirq config
-> > missing somewhere. Does the WLAN have a separate GPIO irq?
-> 
-> Fair enough.
-> 
->         wl1251_pins: pinmux_wl1251 {
-> 		     		   pinctrl-single,pins = < 0x0ce (PIN_OUTPUT | MUX_MODE4)
-> 		     		   /* gpio 87 => w\ l1251 enable */
-> 				                           0x05a (PIN_INPUT | MUX_MODE4)
-> 		     		   /* gpio 42 => w\ l1251 irq */
-> 				                   >;
->  };
-> 
-> Aha. wl1251 is on the spi bus, too.
-> 
-> &mcspi4 {
->         pinctrl-names = "default";
-> 	        pinctrl-0 = <&mcspi4_pins>;
-> 
->         wl1251@0 {
-> 	...
-> 	                interrupt-parent = <&gpio2>;
-> 			                interrupts = <10 IRQ_TYPE_NONE>; /* gpio line 42 */
->         };
-> 
-> And yes, it has a GPIO irq -- irq 42. What should be configured to
-> make gpio 42 wake the system from deep idle?
 
-We should do dev_pm_set_dedicated_wake_irq() on the pin related
-to gpio42 in the WLAN driver. That way the pinctrl interrupt will
-wake up the system and the GPIO interrupt should show up as it
-presumably is a level interrupt. The interrupt probably should be
-requested by wlcore as the SDIO chips also can have a GPIO interrupt.
-That's the interrupts-extended entries we already have for 8250 and
-MMC etc.
+Here are some basic OMAP test results for Linux v4.4.
+Logs and other details at:
 
-> > The workaround for now is to mux those pins permanently with
-> > PIN_INPUT_PULLUP | MUX_MODE7 to keep them high using the
-> > internal pull. So in this case, maybe give a try for adding
-> > a pinctrl entry for tsc2005 for gpio104 to have it always
-> > in PIN_INPUT_PULLUP | MUX_MODE7.
-> 
-> So the glitches on the GPIOs reset the tsc2005, even when it should be
-> operational? That would explain stuff.
+    http://www.pwsan.com/omap/testlogs/test_v4.4/20160125123016/
 
-Yeah.
 
-> I'll try to figure out the pinmux stuff. ... but I guess touchscreen
-> is not really usable with screen off.
+Test summary
+------------
 
-Could still wake up the system I guess if configured.
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-> > Typically you need at least USB disconnected and LCD blanked
-> > to start hitting the deeper idle states :)
-> 
-> Right. So I was able to get SD-card to work, so USB was disconnected,
-> but I was watching power consumption figures in a GTK window... on a
-> LCD. Ok. I guess I can monitor the power consumption over the wlan.
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
-Yeah in the long run initramfs + ssh over WLAN is probably the best
-to develop with if you don't have a serial console wired up. That
-allows hitting idle states with mosh at least working OK as long as
-the WLAN wakeirq works properly.
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
-Regards,
+Build warnings from toolchain: uImage:
+    FAIL ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-Tony
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL ( 3/17): rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Boot to userspace:
+    FAIL ( 1/18): 2430sdp
+    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
+    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
+		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
+		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
+		  cmt3517, 5430es2uevm, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 2/18): 4430es2panda, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  2430sdp, 5430es2uevm
+    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 8/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
+		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm
+    Pass ( 3/11): 4460pandaes, 3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
+    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
+    Pass ( 1/ 4): 3730es12beaglexm
+
+Kernel warnings during PM test:
+    FAIL ( 1/18): 4430es2panda
+
+Obsolete Kconfig symbols:
+    FAIL ( 3/20): omap1_defconfig, omap2plus_defconfig,
+		  multi_v7_defconfig
+
+
+
+Boot-time memory difference
+(delta in bytes from test_v4.4-rc8 (168309855a7d1e16db751e9c647119fe2d2dc878))
+  avail  rsrvd   high  freed  board          kconfig
+ -1003504k -45072k -245760k  -452k  am437xsk       omap2plus_defconfig
+
+
+An AM437x Starter Kit board has been added to the testbed.  Special thanks 
+to TI for donating the board.
