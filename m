@@ -1,34 +1,38 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: hwmod data: Add SSI data for omap36xx
-Date: Wed, 27 Jan 2016 00:12:13 +0200
-Message-ID: <20160126221213.GH15550@darkstar.musicnaut.iki.fi>
-References: <1453045749-22642-1-git-send-email-sre@kernel.org>
- <1453045749-22642-2-git-send-email-sre@kernel.org>
- <20160126220738.GG15550@darkstar.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
+Date: Tue, 26 Jan 2016 14:48:05 -0800
+Message-ID: <20160126224804.GB19432@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160126220738.GG15550@darkstar.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Kevin Hilman <khilman@baylibre.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Wed, Jan 27, 2016 at 12:07:38AM +0200, Aaro Koskinen wrote:
-> On Sun, Jan 17, 2016 at 04:49:05PM +0100, Sebastian Reichel wrote:
-> > This patch enables Synchronous Serial Interface (SSI)
-> > hwmod support for OMAP36xx SoCs (used by Nokia N950/N9).
-> > 
-> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> 
-> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Looks like commit 5de85b9d57ab ("PM / runtime: Re-init runtime
+PM states at probe error and driver unbind") broke PM on at least
+omap3. It seems we now need to additionally also call
+pm_runtime_dont_use_autosuspend() to get things working again?
 
-This applies to whole series (1/5). I was able to use gprs data connection
-to connect to internet with N950 + v4.5-rc1 + these patches.
+The following fixes idling on omap3, but I'm wondering if we
+should do something in pm_runtime_reinit() instead?
 
-Thanks,
+Regards,
 
-A.
+Tony
+
+8< ---------------------
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2232,6 +2232,7 @@ err_irq:
+ 		dma_release_channel(host->tx_chan);
+ 	if (host->rx_chan)
+ 		dma_release_channel(host->rx_chan);
++	pm_runtime_dont_use_autosuspend(host->dev);
+ 	pm_runtime_put_sync(host->dev);
+ 	pm_runtime_disable(host->dev);
+ 	if (host->dbclk)
