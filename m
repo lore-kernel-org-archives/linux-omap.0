@@ -1,49 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Tue, 26 Jan 2016 09:25:28 -0800
-Message-ID: <20160126172527.GY3500@atomide.com>
-References: <20160123121022.GB12497@amd>
- <20160125163332.GT19432@atomide.com>
- <20160126140010.GA29723@amd>
+Subject: Re: Nokia N900: musb is in wrong state after boot
+Date: Tue, 26 Jan 2016 09:26:32 -0800
+Message-ID: <20160126172631.GZ19432@atomide.com>
+References: <201601091616.04193@pali>
+ <3690314.8jDXSUDcRZ@saturn>
+ <20160121192113.GM19432@atomide.com>
+ <8629381.KDSn8v3DtH@saturn>
+ <20160121203012.GN19432@atomide.com>
+ <20160126143450.GG25796@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160126140010.GA29723@amd>
+In-Reply-To: <20160126143450.GG25796@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: joerg Reisenweber <joerg@openmoko.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [160126 06:01]:
-> 
-> It seems like I have rather lot of blocking bits:
-> 
-> 00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160126 06:35]:
+> On Thursday 21 January 2016 12:30:13 Tony Lindgren wrote:
+> > * joerg Reisenweber <joerg@openmoko.org> [160121 11:35]:
+> > > On Thu 21 January 2016 11:21:13 Tony Lindgren wrote:
+> > > > Do you have some pointer
+> > > > to the "certain resistor value on ID to GND" spec? Is it maybe =
+part of
+> > > > the carkit related parts of the USB spec?
+> > >=20
+> > > ""Three additional ID pin states are defined[4] at the nominal re=
+sistance=20
+> > > values of 124 k=CE=A9, 68 k=CE=A9, and 36.5 k=CE=A9, with respect=
+ to the ground pin. These=20
+> > > permit the device to work with USB Accessory Charger Adapters tha=
+t allows the=20
+> > > OTG device to be attached to both a charger and another device si=
+multaneously.
+> > > [6]""
+> > > https://en.wikipedia.org/wiki/USB_On-The-Go#OTG_micro_plugs
+> >=20
+> > OK thanks. So it's the "accessory charger" part of the
+> > battery charging specification 1.1.
+>=20
+> So, Tony, do you have some idea what needs to be changed and how to f=
+ix
+> peripheral mode after boot on Nokia N900?
 
-Looks like most of these are for GPIO banks, that's OK those get saved
-and restored in the idle loop.
+No, I'm waiting to hear an educated guess from Felipe on this one.
 
-Here bit 18 UART4 is a mystery though.. It's uart4 on 36xx but reserved
-on 34xx. I do have that too on my n900, but it's hitting off mode with
-v4.4.
+> First I would like to have fully working peripheral mode on Nokia N90=
+0
+> and then we can try to hack host mode (if possible).
+>=20
+> But peripheral mode is a must due to development, because it provides
+> usb network or usb tty.
 
-> ffdffe8d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200072
-> 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> 
-> cm_idlest1_core changes periodicall often, to 00218072. The rest seems
-> constant.
-
-For cm_idlest1_core 42 is the answer.. Here you have bits 4 and 5
-blocking which is for OTG and it's PHY. That's a known issue with
-musb and setting pm_runtime_irq_safe() on the MUSB parent.
-
-If you do rmmod omap2430 and phy-twl4030usb chances are the LEDs will
-start going off assuming the McSPI bit goes low with WLAN idling.
-
-Looks like we have some regression with v4.5-rc1 where n900 is not
-hitting deeper idle states though. I'll run git bisect between
-v4.4..v4.5-rc1.
+Totally.
 
 Regards,
 
