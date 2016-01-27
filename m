@@ -1,122 +1,65 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: edma: Remove dynamic TPTC power management feature
-Date: Wed, 27 Jan 2016 11:11:46 +0200
-Message-ID: <1453885906-17652-1-git-send-email-peter.ujfalusi@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] ARM: dts: n900: Include adp1653 device
+Date: Wed, 27 Jan 2016 11:02:37 +0100
+Message-ID: <20160127100237.GH25796@pali>
+References: <1451086812-3729-1-git-send-email-pali.rohar@gmail.com>
+ <20160121091241.GS7192@pali>
+ <20160121092909.GH5783@n2100.arm.linux.org.uk>
+ <20160121101828.GA7411@amd>
+ <20160121163857.GH19432@atomide.com>
+ <20160121165408.GJ5783@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: tony@atomide.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160121165408.GJ5783@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The dynamic or on demand pm_runtime does not work correctly on am335x and
-am437x due to interference with hwmod.
-Fall back using the pm_runtime usage as it was in the old driver stack,
-meaning that at probe time call pm_runtime_enable() and
-pm_runtime_get_sync() for the TPTCs as well.
+On Thursday 21 January 2016 16:54:08 Russell King - ARM Linux wrote:
+> On Thu, Jan 21, 2016 at 08:38:57AM -0800, Tony Lindgren wrote:
+> > * Pavel Machek <pavel@ucw.cz> [160121 02:19]:
+> > > On Thu 2016-01-21 09:29:10, Russell King - ARM Linux wrote:
+> > > > The merge window is open, which is when development code that w=
+as merged
+> > > > in good time prior to the merge window is sent upstream to Linu=
+s.  Linux
+> > > > maintainers may choose not to merge new code into their tree to=
+ avoid
+> > > > disrupting the utility of linux-next until the merge window has
+> > > > closed.
+> > >=20
+> > > Support for new hardware is normally allowed after -rc1.
+> >=20
+> > Yeah most maintainers avoid looking at new code until -rc1. Or unti=
+l
+> > regresssions are out of the way. So patience please. Fixes are
+> > welcome any time though.
+>=20
+> Indeed.  However, unlike Pavel's comment, many maintainers choose not
+> to merge code for new hardware until the merge window - it's very rar=
+e
+> that support for new hardware is merged during the -rc phase.
+>=20
+> If it were otherwise, I would've been able to get the Hummingboard 2
+> DTS patches in, or the etnaviv team would've been able to get the
+> Etnaviv GPU DRM driver in during the 4.4-rc cycle, or the Dove PMU
+> driver, or... etc.
+>=20
+> Practically, new code waits for merge windows, because no one wants
+> to de-stabilise the progression of the -rc series with new code, and
+> Linus wants to see -rc merges fairly quiet and be mostly bug fixes
+> so he can feel good about a final release around -rc6 to -rc7 time.
+>=20
 
-Fixes: 1be5336bc7ba ("dmaengine: edma: New device tree binding")
+In my opinion this patch is not support for new hardware. It just add
+missing DT definition for one specific board for HW which was added to
+linux kernel in v4.2-rc1 version. For me it looks like that needed DT
+definition was forgotten...
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Reported-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/dma/edma.c | 38 +++-----------------------------------
- 1 file changed, 3 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index d92d65549406..c1b052f7b68c 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -1560,32 +1560,6 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
--static void edma_tc_set_pm_state(struct edma_tc *tc, bool enable)
--{
--	struct platform_device *tc_pdev;
--	int ret;
--
--	if (!IS_ENABLED(CONFIG_OF) || !tc)
--		return;
--
--	tc_pdev = of_find_device_by_node(tc->node);
--	if (!tc_pdev) {
--		pr_err("%s: TPTC device is not found\n", __func__);
--		return;
--	}
--	if (!pm_runtime_enabled(&tc_pdev->dev))
--		pm_runtime_enable(&tc_pdev->dev);
--
--	if (enable)
--		ret = pm_runtime_get_sync(&tc_pdev->dev);
--	else
--		ret = pm_runtime_put_sync(&tc_pdev->dev);
--
--	if (ret < 0)
--		pr_err("%s: pm_runtime_%s_sync() failed for %s\n", __func__,
--		       enable ? "get" : "put", dev_name(&tc_pdev->dev));
--}
--
- /* Alloc channel resources */
- static int edma_alloc_chan_resources(struct dma_chan *chan)
- {
-@@ -1622,8 +1596,6 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
- 		EDMA_CHAN_SLOT(echan->ch_num), chan->chan_id,
- 		echan->hw_triggered ? "HW" : "SW");
- 
--	edma_tc_set_pm_state(echan->tc, true);
--
- 	return 0;
- 
- err_slot:
-@@ -1660,7 +1632,6 @@ static void edma_free_chan_resources(struct dma_chan *chan)
- 		echan->alloced = false;
- 	}
- 
--	edma_tc_set_pm_state(echan->tc, false);
- 	echan->tc = NULL;
- 	echan->hw_triggered = false;
- 
-@@ -2369,10 +2340,8 @@ static int edma_pm_suspend(struct device *dev)
- 	int i;
- 
- 	for (i = 0; i < ecc->num_channels; i++) {
--		if (echan[i].alloced) {
-+		if (echan[i].alloced)
- 			edma_setup_interrupt(&echan[i], false);
--			edma_tc_set_pm_state(echan[i].tc, false);
--		}
- 	}
- 
- 	return 0;
-@@ -2402,8 +2371,6 @@ static int edma_pm_resume(struct device *dev)
- 
- 			/* Set up channel -> slot mapping for the entry slot */
- 			edma_set_chmap(&echan[i], echan[i].slot[0]);
--
--			edma_tc_set_pm_state(echan[i].tc, true);
- 		}
- 	}
- 
-@@ -2427,7 +2394,8 @@ static struct platform_driver edma_driver = {
- 
- static int edma_tptc_probe(struct platform_device *pdev)
- {
--	return 0;
-+	pm_runtime_enable(&pdev->dev);
-+	return pm_runtime_get_sync(&pdev->dev);
- }
- 
- static struct platform_driver edma_tptc_driver = {
--- 
-2.7.0
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
