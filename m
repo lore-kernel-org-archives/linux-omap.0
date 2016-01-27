@@ -1,84 +1,81 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Wed, 27 Jan 2016 12:16:17 -0600
-Message-ID: <56A90971.4020409@ti.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com>
- <1452780672-14339-4-git-send-email-kishon@ti.com>
- <20160127173104.GQ19432@atomide.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3: Include missing bandgap data for
+ ti-soc-thermal driver
+Date: Wed, 27 Jan 2016 19:19:50 +0100
+Message-ID: <20160127181950.GB17794@earth>
+References: <1451086345-3340-1-git-send-email-pali.rohar@gmail.com>
+ <20160121094718.GV7192@pali>
+ <20160121171500.GI19432@atomide.com>
+ <20160127100447.GI25796@pali>
+ <20160127160945.GI19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160127173104.GQ19432@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="GRPZ8SYKNexpdSJ7"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160127160945.GI19432-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
 
-On 01/27/2016 11:31 AM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [160114 06:12]:
->> Use assert/deassert callbacks populated in the platform data to
->> to perform reset of PCIe.
->>
->> Use these callbacks until a reset controller driver is
->> is available in the kernel to reset PCIe.
-> ...
-> 
->> --- a/drivers/pci/host/pci-dra7xx.c
->> +++ b/drivers/pci/host/pci-dra7xx.c
->> @@ -347,6 +404,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>  	enum of_gpio_flags flags;
->>  	unsigned long gpio_flags;
->>  
->> +	ret = dra7xx_pcie_reset(pdev);
->> +	if (ret)
->> +		return ret;
->> +
->>  	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
->>  	if (!dra7xx)
->>  		return -ENOMEM;
-> 
-> With the hwmod data properly configured the reset already happens
-> for the device by the bus driver, the hwmod code in this case?
-> 
->> @@ -457,6 +518,7 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
->>  	struct pcie_port *pp = &dra7xx->pp;
->>  	struct device *dev = &pdev->dev;
->>  	int count = dra7xx->phy_count;
->> +	int ret;
->>  
->>  	if (pp->irq_domain)
->>  		irq_domain_remove(pp->irq_domain);
->> @@ -467,6 +529,10 @@ static int __exit dra7xx_pcie_remove(struct platform_device *pdev)
->>  		phy_exit(dra7xx->phy[count]);
->>  	}
->>  
->> +	ret = dra7xx_pcie_assert_reset(pdev);
->> +	if (ret < 0)
->> +		return ret;
->> +
->>  	return 0;
->>  }
-> 
-> Why do you need another reset here? Can't you just implement PM runtime
-> in the driver and do the usual pm_runtime_put_sync followed by
-> pm_runtime_disable?
+--GRPZ8SYKNexpdSJ7
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The omap_hwmod_enable/disable code does not deal with hardresets (PRCM
-reset lines) and so the pm_runtime_get_sync/put_sync only end up dealing
-with clocks, and we need to invoke the reset functions separately.
-Modules with softresets in SYSCONFIG are ok, as they are dealt with
-properly.
+Hi,
 
-> Basically I'm wondering how come we need these platform data callbacks
-> at all.
+On Wed, Jan 27, 2016 at 08:09:46AM -0800, Tony Lindgren wrote:
+> * Pali Roh=E1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160127 02:05]:
+> > On Thursday 21 January 2016 09:15:01 Tony Lindgren wrote:
+> > > * Pali Roh=E1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160121 01:48]:
+> > > > On Saturday 26 December 2015 00:32:25 Pali Roh=E1r wrote:
+> > > > > Driver for omap3 with documentation is there since v4.4-rc1.
+> > > ...
+> > >=20
+> > > > PING! Who can take this patch?
+> > >=20
+> > > Sounds like /me, but after -rc1 when any possible regressions
+> > > are out of the way :)
+> >=20
+> > Great! Just to note that 4.5-rc1 is out.
+> >=20
+> > I just do not want to see this patch lost...
+>=20
+> So is this critical to have as a fix since it's thermal related?
 
-The hardresets are controlled through the
-omap_device_assert(deassert)_hardreset functions, and since these are
-limited to mach-omap2, we are invoking them through platform data callbacks.
+According to somebody from TI, who previously took part in the patch
+discussion, the thermal sensors of omap3 are to imprecise to be used
+for thermal decisions. The driver "just" informs userspace about the
+temperatures.
 
+-- Sebastian
 
-regards
-Suman
+--GRPZ8SYKNexpdSJ7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJWqQpFAAoJENju1/PIO/qaOeIQAISWWfk94fgLkGlplM0FllIY
+p0jqcUq9R+AfQsKqiVyE7swQ5wwyv2HZqPGRSIRpQX+lAGeEhg4h1+7oGkBVPBOi
+tEtAwS6qryniIvolP34mkINRE552LOTYClYDqI4QDLJ/cmtlj2wZC8gJGdMgklWO
+WCaNvRDdJrdMnowOdD4TegzxBvFqelcOfQCG27tIllTksRY61TzaK8wpgqahF3NF
+pSF3meYb5gpaIIX4o1Ig43tgRxblyz6Jt43d7Q/ZPflWmmP9Jy4EKxjWSpxY6jlg
+Ix7Nr+PffzSM295JPaJXSPPtEB5zDWXdEBUKafNtqKfpojIPA6ywYeuAqEjGRgIs
+w76JsM/THba+or1SY2dUj8lxG+LwnfKZsztihoKbn3Eckks1kWezPAA83Xd9clzk
+I9/WEj4s/PRlcW2IQDQEXX+lfwRMUY9sCqqsUTio6okPZNdaeml5PrHBSWM1bPXV
+WQmO8dK5lWOLg1u6XSWFE93ELZRfw5pW8hoao/57H+L4AMHZjCz+KSVhbEKRLwy4
+OA3o/HJ5qHh+YKD9/Y5qe+DworFZUgFhmJtP0lU2WD50vU1rWcUBleNlUIcHv+/s
+m/LJrjqM2FIkXZtXfaPpbWEytguqXm8dmdhGIuGKIX1BMxBf3wvBh9ectWwSzjT6
+Lu8GDLqxXxfzIHKhN/AW
+=FYF4
+-----END PGP SIGNATURE-----
+
+--GRPZ8SYKNexpdSJ7--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
