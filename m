@@ -1,65 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
-Date: Wed, 27 Jan 2016 23:51:32 +0100
-Message-ID: <1490733.Lnn2KRpEYo@vostro.rjw.lan>
-References: <20160126224804.GB19432@atomide.com> <2779316.34ov6YOQgv@vostro.rjw.lan> <CAPDyKFo-itpp1JUVANSFNiyhKcv1XLUqx1GwRk532LaT+ija0g@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Wed, 27 Jan 2016 17:16:07 -0600
+Message-ID: <56A94FB7.6020903@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFo-itpp1JUVANSFNiyhKcv1XLUqx1GwRk532LaT+ija0g@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160127185649.GV19432@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, January 27, 2016 09:17:45 AM Ulf Hansson wrote:
-> On 27 January 2016 at 08:54, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Tuesday, January 26, 2016 03:52:23 PM Tony Lindgren wrote:
-> >> * Rafael J. Wysocki <rafael@kernel.org> [160126 15:38]:
-> >> > On Wed, Jan 27, 2016 at 12:22 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > > * Rafael J. Wysocki <rafael@kernel.org> [160126 15:15]:
-> >> > >> On Tue, Jan 26, 2016 at 11:48 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > >> > Hi,
-> >> > >> >
-> >> > >> > Looks like commit 5de85b9d57ab ("PM / runtime: Re-init runtime
-> >> > >> > PM states at probe error and driver unbind") broke PM on at least
-> >> > >> > omap3. It seems we now need to additionally also call
-> >> > >> > pm_runtime_dont_use_autosuspend() to get things working again?
-> >> > >> >
-> >> > >> > The following fixes idling on omap3, but I'm wondering if we
-> >> > >> > should do something in pm_runtime_reinit() instead?
-> >> > >>
-> >> > >> Well, does it actually help if you add
-> >> > >> pm_runtime_dont_use_autosuspend(dev) to pm_runtime_reinit()?
-> >> > >
-> >> > > No adding it to pm_runtime_reinit() does not help.
-> >> >
-> >> > Yes, I realized that it wouldn't help only after sending the previous
-> >> > message, sorry about that.
-> >> >
-> >> > The reason why it helps in the driver code seems to be that
-> >> > autosuspend_delay happens to be negative, so update_autosuspend()
-> >> > decrements the usage counter that would have stayed incremented
-> >> > otherwise.  Or at least that's the only way it can help I see ATM.
-> >>
-> >> Oh OK.
-> >>
-> >> > > Looks like we have RPM_ACTIVE set in pm_runtime_reinit() if that
-> >> > > gives any clues.
-> >> >
-> >> > It looks like pm_runtime_reinit() should clear the usage counter too.
-> >>
-> >> Yeah if we do this when !pm_runtime_enabled(dev) it seems it's
-> >> safe to pretty much reset everything?
-> >
-> > Not only safe, but also a good idea apparently. :-)
+On 01/27/2016 12:56 PM, Tony Lindgren wrote:
+> * Suman Anna <s-anna@ti.com> [160127 10:17]:
+>> On 01/27/2016 11:31 AM, Tony Lindgren wrote:
+>>> Why do you need another reset here? Can't you just implement PM runtime
+>>> in the driver and do the usual pm_runtime_put_sync followed by
+>>> pm_runtime_disable?
+>>
+>> The omap_hwmod_enable/disable code does not deal with hardresets (PRCM
+>> reset lines) and so the pm_runtime_get_sync/put_sync only end up dealing
+>> with clocks, and we need to invoke the reset functions separately.
+>> Modules with softresets in SYSCONFIG are ok, as they are dealt with
+>> properly.
 > 
-> I happy to send a patch, extending pm_runtime_reinit() with some more
-> data to be reset.
+> Hmm _reset() in omap_hwmod.c has this to call _assert_hardreset:
+> 
+> 	if (oh->class->reset) {
+> 		r = oh->class->reset(oh);
+> 	} else {
+> 		if (oh->rst_lines_cnt > 0) {
+> 			for (i = 0; i < oh->rst_lines_cnt; i++)
+> 				_assert_hardreset(oh, oh->rst_lines[i].name);
+> 			return 0;
+> 		} else {
+> 			r = _ocp_softreset(oh);
+> 			if (r == -ENOENT)
+> 				r = 0;
+> 		}
+> 	}
 
-Please do.
+Right, hwmod code does the initial reset.
 
-Thanks,
-Rafael
+> Care to explain what exactly the problem with the hwmod code not doing
+> the reset on init?
 
+And we only need to deassert the reset in probe. Technically, we don't
+need to assert first and deassert in probe, and that was a design choice
+made by Kishon.
+
+> And why do you need to do another reset in dra7xx_pcie_remove()?
+
+Primarily to restore the reset state back to what it was after the
+driver remove gets called. We cannot call deassert twice without calling
+a assert in between. Kishon had originally added the assert and deassert
+only in probe, but nothing in remove, they ought to be deassert in probe
+and assert in remove to match initial hardware state, and to also make
+it work across multiple probe/remove.
+
+>>> Basically I'm wondering how come we need these platform data callbacks
+>>> at all.
+>>
+>> The hardresets are controlled through the
+>> omap_device_assert(deassert)_hardreset functions, and since these are
+>> limited to mach-omap2, we are invoking them through platform data callbacks.
+> 
+> Right.. But I'm wondering about the why you need to do this in the
+> driver at all part :)
+
+The initial reset at init time is okay, but hwmod _enable() bails out if
+the resets lines are asserted. This was a change made long time back, I
+believe to deal with the problems around the DSP enabling sequences. As
+such, pm_runtime_get_sync() and put_sync() do not deassert and assert
+the resets.
+
+regards
+Suman
