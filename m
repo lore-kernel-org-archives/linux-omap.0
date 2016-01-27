@@ -1,48 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] arm: beaglex15: fix USB Gadget
-Date: Wed, 27 Jan 2016 09:01:00 -0800
-Message-ID: <20160127170059.GM19432@atomide.com>
-References: <1451436947-22163-1-git-send-email-cw00.choi@samsung.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/6] ARM: dts: am57xx: cl-som-am57x: set of non critical
+ DT fixes
+Date: Wed, 27 Jan 2016 09:20:54 -0800
+Message-ID: <20160127172054.GO19432@atomide.com>
+References: <1451482745-1820-1-git-send-email-lifshitz@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1451436947-22163-1-git-send-email-cw00.choi@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: robh+dt@kernel.org, lee.jones@linaro.org, balbi@ti.com, rogerq@ti.com, kishon@ti.com, george.cherian@ti.com, myungjoo.ham@samsung.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1451482745-1820-1-git-send-email-lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Chanwoo Choi <cw00.choi@samsung.com> [151229 16:56]:
-> This patchset make the extcon-palmas.c more generic style and then send v2
-> patchset. I add the Felipe comment of v1 patchset as following:
-> But, I have not test on real board because I don't have it.
-> Just, I modify this patchset based on v1 patchset[1] from Felipe Balbi.
+* Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [151230 05:39]:
+> This pacth set apply a set of non critical DT fixes for CompuLab CL-SOM-AM57x SoM
 > 
-> - Felipe comment of this patchset:
-> "Hi,
-> 
-> with the following patches I can get USB Gadget working
-> with my beagle x15 with today's Linus' tree.
-> 
-> regards".
-> 
-> [1] https://lkml.org/lkml/2015/11/12/508
-> 
-> Changes from v1:
-> (https://lkml.org/lkml/2015/11/12/508)
-> - Refactoring the extcon-palmas.c driver with more generic style to support
->   the VBUS gpio pin.
-> - Use the 'vbus-gpio' property instead of 'interrupts-extended']
-> 
-> Felipe Balbi (3):
->   extcon: palmas: Add the support for VBUS detection by using GPIO
->   arm: boot: dts: beaglex15: Remove ID GPIO
->   arm: boot: beaglex15: pass correct interrupt
+> * Improve Eth functionality
+> * Pinmux fix for several devices
+> * Improve SPI flash access
+> * Set USB2 in HOST mode to enable connection of keyboard/mouse on eval board
 
-Please feel free to queue these minor dts changes along with the
-extcon changes. Usually the subject starts with "ARM: dts:" though.
+Applying all into omap-for-v4.5/fixes thanks.
 
-Anyways for the last two patches in the series:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
