@@ -1,37 +1,64 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v4 3/3] wlcore/wl12xx: spi: add wifi support to cm-t335
-Date: Wed, 27 Jan 2016 10:41:01 -0800
-Message-ID: <20160127184101.GU19432@atomide.com>
-References: <1451482533-8624-1-git-send-email-uri.mashiach@compulab.co.il>
- <1451482533-8624-4-git-send-email-uri.mashiach@compulab.co.il>
- <5695EA06.5020801@compulab.co.il>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Wed, 27 Jan 2016 10:56:49 -0800
+Message-ID: <20160127185649.GV19432@atomide.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com>
+ <56A90971.4020409@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5695EA06.5020801-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <56A90971.4020409@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> [160112 22:09]:
+* Suman Anna <s-anna@ti.com> [160127 10:17]:
+> On 01/27/2016 11:31 AM, Tony Lindgren wrote:
+> > Why do you need another reset here? Can't you just implement PM runtime
+> > in the driver and do the usual pm_runtime_put_sync followed by
+> > pm_runtime_disable?
 > 
-> 
-> On 12/30/15 15:35, Uri Mashiach wrote:
-> > Device tree modifications:
-> > - Pinmux for SPI0 and WiFi GPIOs.
-> > - SPI0 node with wlcore as a child node.
-> > 
-> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-> 
-> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> The omap_hwmod_enable/disable code does not deal with hardresets (PRCM
+> reset lines) and so the pm_runtime_get_sync/put_sync only end up dealing
+> with clocks, and we need to invoke the reset functions separately.
+> Modules with softresets in SYSCONFIG are ok, as they are dealt with
+> properly.
 
-Applying into omap-for-v4.6/dt thanks.
+Hmm _reset() in omap_hwmod.c has this to call _assert_hardreset:
+
+	if (oh->class->reset) {
+		r = oh->class->reset(oh);
+	} else {
+		if (oh->rst_lines_cnt > 0) {
+			for (i = 0; i < oh->rst_lines_cnt; i++)
+				_assert_hardreset(oh, oh->rst_lines[i].name);
+			return 0;
+		} else {
+			r = _ocp_softreset(oh);
+			if (r == -ENOENT)
+				r = 0;
+		}
+	}
+
+Care to explain what exactly the problem with the hwmod code not doing
+the reset on init?
+
+And why do you need to do another reset in dra7xx_pcie_remove()?
+
+> > Basically I'm wondering how come we need these platform data callbacks
+> > at all.
+> 
+> The hardresets are controlled through the
+> omap_device_assert(deassert)_hardreset functions, and since these are
+> limited to mach-omap2, we are invoking them through platform data callbacks.
+
+Right.. But I'm wondering about the why you need to do this in the
+driver at all part :)
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
