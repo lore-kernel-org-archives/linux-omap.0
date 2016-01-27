@@ -1,83 +1,60 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Wed, 27 Jan 2016 17:16:07 -0600
-Message-ID: <56A94FB7.6020903@ti.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com>
- <1452780672-14339-4-git-send-email-kishon@ti.com>
- <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
- <20160127185649.GV19432@atomide.com>
+From: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3-n900: Allow gpio keys to be disabled
+Date: Thu, 28 Jan 2016 00:47:47 +0100
+Message-ID: <20160127234746.GA3227@earth>
+References: <1452447990-22775-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160127185649.GV19432@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1452447990-22775-1-git-send-email-ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/27/2016 12:56 PM, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [160127 10:17]:
->> On 01/27/2016 11:31 AM, Tony Lindgren wrote:
->>> Why do you need another reset here? Can't you just implement PM runtime
->>> in the driver and do the usual pm_runtime_put_sync followed by
->>> pm_runtime_disable?
->>
->> The omap_hwmod_enable/disable code does not deal with hardresets (PRCM
->> reset lines) and so the pm_runtime_get_sync/put_sync only end up dealing
->> with clocks, and we need to invoke the reset functions separately.
->> Modules with softresets in SYSCONFIG are ok, as they are dealt with
->> properly.
-> 
-> Hmm _reset() in omap_hwmod.c has this to call _assert_hardreset:
-> 
-> 	if (oh->class->reset) {
-> 		r = oh->class->reset(oh);
-> 	} else {
-> 		if (oh->rst_lines_cnt > 0) {
-> 			for (i = 0; i < oh->rst_lines_cnt; i++)
-> 				_assert_hardreset(oh, oh->rst_lines[i].name);
-> 			return 0;
-> 		} else {
-> 			r = _ocp_softreset(oh);
-> 			if (r == -ENOENT)
-> 				r = 0;
-> 		}
-> 	}
 
-Right, hwmod code does the initial reset.
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Care to explain what exactly the problem with the hwmod code not doing
-> the reset on init?
+Hi,
 
-And we only need to deassert the reset in probe. Technically, we don't
-need to assert first and deassert in probe, and that was a design choice
-made by Kishon.
+On Sun, Jan 10, 2016 at 07:46:30PM +0200, Ivaylo Dimitrov wrote:
+> Add linux,can-disable; to all gpios exported from gpio-keys driver, so
+> userspace can disable them
+>=20
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-> And why do you need to do another reset in dra7xx_pcie_remove()?
+Acked-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Primarily to restore the reset state back to what it was after the
-driver remove gets called. We cannot call deassert twice without calling
-a assert in between. Kishon had originally added the assert and deassert
-only in probe, but nothing in remove, they ought to be deassert in probe
-and assert in remove to match initial hardware state, and to also make
-it work across multiple probe/remove.
+-- Sebastian
 
->>> Basically I'm wondering how come we need these platform data callbacks
->>> at all.
->>
->> The hardresets are controlled through the
->> omap_device_assert(deassert)_hardreset functions, and since these are
->> limited to mach-omap2, we are invoking them through platform data callbacks.
-> 
-> Right.. But I'm wondering about the why you need to do this in the
-> driver at all part :)
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
 
-The initial reset at init time is okay, but hwmod _enable() bails out if
-the resets lines are asserted. This was a change made long time back, I
-believe to deal with the problems around the DSP enabling sequences. As
-such, pm_runtime_get_sync() and put_sync() do not deassert and assert
-the resets.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-regards
-Suman
+iQIcBAEBCgAGBQJWqVcfAAoJENju1/PIO/qaq7QP/1lOwaikOGHBLccVJd7EApmE
+qr/YQJM9fI0nikPCW3p65Q5UV6zv3WU0gzlKWDYNqYJmYFbqPT1fRpWCjU6FYdzo
+bPBiUz48DvkQaDCbJvKU5gPnIVwQim/5iBs0DBzNNhIVpEXJEuE1DOP8335J16l7
+dUIpBKhMVAuSydHKJOBvSxNuaNn8jozT2r3FpbQTl1rBWg/e/bclJ8gd6xuLort8
+sHCaNqM1ct0aTSX/kC2yPsxe5JaY8/wGDmUqbeqLWoA1WXlN1ZkxgfJMw8ZafnsE
+HGNVYYK3VroE8OQJhwS1sWrE4kzcyGDmQqaH8p9GZaS2YWWAdOs288Ej3vZtKlRn
+JHQmj/J3f6mwLiy5gEq8qKgVGh6tgf5KceVbxwFNO+sh7Zmqbt5FcAntmpbtuuDa
+RUvD6SsNHX0ejIy8PdnbldaRRJCZ/djmT/DRDL0LlPDDmVk3CgfoAcBT6L7fEMqa
+LpULXgOM+gm8YYGjV/4R4AUs7yH5F53ad2d5SLDG4MnIMbbW40X/yCAQVN/sH+SV
+DhHhT5hflq87Xm/L/YJ8WauRcznoa7MXFSPsERLlDCzPWztnaaXEkUkTzigzuGfq
+JAWWtKrdk4UgypUCS8WfnQr0fzfV/F+em23bb2sKQew6JtgaqAKkgihuRNSrwdyC
+A40tXD1JaqbaxP6TjM+g
+=a1az
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
