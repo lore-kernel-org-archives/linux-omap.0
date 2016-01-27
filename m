@@ -1,29 +1,29 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am4372: fix irq type for arm twd and global
- timer
-Date: Wed, 27 Jan 2016 08:47:37 -0800
-Message-ID: <20160127164737.GK19432@atomide.com>
-References: <1451310724-29454-1-git-send-email-grygorii.strashko@ti.com>
+Subject: Re: [PATCH] ARM: dts: am437x: pixcir_tangoc: use correct flags for
+ irq types
+Date: Wed, 27 Jan 2016 08:56:41 -0800
+Message-ID: <20160127165641.GL19432@atomide.com>
+References: <1451310759-29536-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1451310724-29454-1-git-send-email-grygorii.strashko-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1451310759-29536-1-git-send-email-grygorii.strashko-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [151228 05:52]:
-> As per ARM documentation
-> PPI(0) ID27 - global timer interrupt is rising-edge sensitive.
-> PPI(2) ID29 - twd interrupt is rising-edge sensitive.
+* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [151228 05:53]:
+> Now IRQs for Pixcir Tangoc touchscreen are defined using
+> IRQ_TYPE_NONE in am437x-gp-evm.dts and am43x-epos-evm.dts wich
+> do not correspond HW.
 > 
-> and the same is proved by GIC distributor register value
-> GIC_DIST_CONFIG(0xC04) = 0x7DC00000.
+> Hence, update am437x-gp-evm.dts and am43x-epos-evm.dts files
+> and use correct flag IRQ_TYPE_EDGE_FALLING for irq types.
 > 
-> Hence, set IRQ triggering type to IRQ_TYPE_EDGE_RISING
-> for ARM TWD and Global timers.
+> While here, remove duplicated irq declaration for pixcir_ts@5c node
+> in am437x-gp-evm.dts.
 
 Applying into omap-for-v4.5/fixes thanks.
 
