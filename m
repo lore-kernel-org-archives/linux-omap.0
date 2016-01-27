@@ -1,65 +1,122 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
-Date: Wed, 27 Jan 2016 09:17:45 +0100
-Message-ID: <CAPDyKFo-itpp1JUVANSFNiyhKcv1XLUqx1GwRk532LaT+ija0g@mail.gmail.com>
-References: <20160126224804.GB19432@atomide.com>
-	<CAJZ5v0gTRvyWHVmYNb8Q1QZzhVhokXo541+48mFyDRYv7Hi-Uw@mail.gmail.com>
-	<20160126235222.GF19432@atomide.com>
-	<2779316.34ov6YOQgv@vostro.rjw.lan>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: edma: Remove dynamic TPTC power management feature
+Date: Wed, 27 Jan 2016 11:11:46 +0200
+Message-ID: <1453885906-17652-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2779316.34ov6YOQgv@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: tony@atomide.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 27 January 2016 at 08:54, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, January 26, 2016 03:52:23 PM Tony Lindgren wrote:
->> * Rafael J. Wysocki <rafael@kernel.org> [160126 15:38]:
->> > On Wed, Jan 27, 2016 at 12:22 AM, Tony Lindgren <tony@atomide.com> wrote:
->> > > * Rafael J. Wysocki <rafael@kernel.org> [160126 15:15]:
->> > >> On Tue, Jan 26, 2016 at 11:48 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > >> > Hi,
->> > >> >
->> > >> > Looks like commit 5de85b9d57ab ("PM / runtime: Re-init runtime
->> > >> > PM states at probe error and driver unbind") broke PM on at least
->> > >> > omap3. It seems we now need to additionally also call
->> > >> > pm_runtime_dont_use_autosuspend() to get things working again?
->> > >> >
->> > >> > The following fixes idling on omap3, but I'm wondering if we
->> > >> > should do something in pm_runtime_reinit() instead?
->> > >>
->> > >> Well, does it actually help if you add
->> > >> pm_runtime_dont_use_autosuspend(dev) to pm_runtime_reinit()?
->> > >
->> > > No adding it to pm_runtime_reinit() does not help.
->> >
->> > Yes, I realized that it wouldn't help only after sending the previous
->> > message, sorry about that.
->> >
->> > The reason why it helps in the driver code seems to be that
->> > autosuspend_delay happens to be negative, so update_autosuspend()
->> > decrements the usage counter that would have stayed incremented
->> > otherwise.  Or at least that's the only way it can help I see ATM.
->>
->> Oh OK.
->>
->> > > Looks like we have RPM_ACTIVE set in pm_runtime_reinit() if that
->> > > gives any clues.
->> >
->> > It looks like pm_runtime_reinit() should clear the usage counter too.
->>
->> Yeah if we do this when !pm_runtime_enabled(dev) it seems it's
->> safe to pretty much reset everything?
->
-> Not only safe, but also a good idea apparently. :-)
+The dynamic or on demand pm_runtime does not work correctly on am335x and
+am437x due to interference with hwmod.
+Fall back using the pm_runtime usage as it was in the old driver stack,
+meaning that at probe time call pm_runtime_enable() and
+pm_runtime_get_sync() for the TPTCs as well.
 
-I happy to send a patch, extending pm_runtime_reinit() with some more
-data to be reset.
+Fixes: 1be5336bc7ba ("dmaengine: edma: New device tree binding")
 
-Or, you or Tony intend to send a patch?
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Reported-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/dma/edma.c | 38 +++-----------------------------------
+ 1 file changed, 3 insertions(+), 35 deletions(-)
 
-Kind regards
-Uffe
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index d92d65549406..c1b052f7b68c 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -1560,32 +1560,6 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static void edma_tc_set_pm_state(struct edma_tc *tc, bool enable)
+-{
+-	struct platform_device *tc_pdev;
+-	int ret;
+-
+-	if (!IS_ENABLED(CONFIG_OF) || !tc)
+-		return;
+-
+-	tc_pdev = of_find_device_by_node(tc->node);
+-	if (!tc_pdev) {
+-		pr_err("%s: TPTC device is not found\n", __func__);
+-		return;
+-	}
+-	if (!pm_runtime_enabled(&tc_pdev->dev))
+-		pm_runtime_enable(&tc_pdev->dev);
+-
+-	if (enable)
+-		ret = pm_runtime_get_sync(&tc_pdev->dev);
+-	else
+-		ret = pm_runtime_put_sync(&tc_pdev->dev);
+-
+-	if (ret < 0)
+-		pr_err("%s: pm_runtime_%s_sync() failed for %s\n", __func__,
+-		       enable ? "get" : "put", dev_name(&tc_pdev->dev));
+-}
+-
+ /* Alloc channel resources */
+ static int edma_alloc_chan_resources(struct dma_chan *chan)
+ {
+@@ -1622,8 +1596,6 @@ static int edma_alloc_chan_resources(struct dma_chan *chan)
+ 		EDMA_CHAN_SLOT(echan->ch_num), chan->chan_id,
+ 		echan->hw_triggered ? "HW" : "SW");
+ 
+-	edma_tc_set_pm_state(echan->tc, true);
+-
+ 	return 0;
+ 
+ err_slot:
+@@ -1660,7 +1632,6 @@ static void edma_free_chan_resources(struct dma_chan *chan)
+ 		echan->alloced = false;
+ 	}
+ 
+-	edma_tc_set_pm_state(echan->tc, false);
+ 	echan->tc = NULL;
+ 	echan->hw_triggered = false;
+ 
+@@ -2369,10 +2340,8 @@ static int edma_pm_suspend(struct device *dev)
+ 	int i;
+ 
+ 	for (i = 0; i < ecc->num_channels; i++) {
+-		if (echan[i].alloced) {
++		if (echan[i].alloced)
+ 			edma_setup_interrupt(&echan[i], false);
+-			edma_tc_set_pm_state(echan[i].tc, false);
+-		}
+ 	}
+ 
+ 	return 0;
+@@ -2402,8 +2371,6 @@ static int edma_pm_resume(struct device *dev)
+ 
+ 			/* Set up channel -> slot mapping for the entry slot */
+ 			edma_set_chmap(&echan[i], echan[i].slot[0]);
+-
+-			edma_tc_set_pm_state(echan[i].tc, true);
+ 		}
+ 	}
+ 
+@@ -2427,7 +2394,8 @@ static struct platform_driver edma_driver = {
+ 
+ static int edma_tptc_probe(struct platform_device *pdev)
+ {
+-	return 0;
++	pm_runtime_enable(&pdev->dev);
++	return pm_runtime_get_sync(&pdev->dev);
+ }
+ 
+ static struct platform_driver edma_tptc_driver = {
+-- 
+2.7.0
