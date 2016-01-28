@@ -1,129 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v4.5-rc1
-Date: Thu, 28 Jan 2016 09:55:41 -0800
-Message-ID: <20160128175540.GG19432@atomide.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Thu, 28 Jan 2016 10:31:56 -0800
+Message-ID: <20160128183156.GH19432@atomide.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com>
+ <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com>
+ <56A94FB7.6020903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <56A94FB7.6020903@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
+* Suman Anna <s-anna@ti.com> [160127 15:17]:
+> On 01/27/2016 12:56 PM, Tony Lindgren wrote:
+> > * Suman Anna <s-anna@ti.com> [160127 10:17]:
+> >> On 01/27/2016 11:31 AM, Tony Lindgren wrote:
+> >>> Why do you need another reset here? Can't you just implement PM runtime
+> >>> in the driver and do the usual pm_runtime_put_sync followed by
+> >>> pm_runtime_disable?
+> >>
+> >> The omap_hwmod_enable/disable code does not deal with hardresets (PRCM
+> >> reset lines) and so the pm_runtime_get_sync/put_sync only end up dealing
+> >> with clocks, and we need to invoke the reset functions separately.
+> >> Modules with softresets in SYSCONFIG are ok, as they are dealt with
+> >> properly.
+> > 
+> > Hmm _reset() in omap_hwmod.c has this to call _assert_hardreset:
+> > 
+> > 	if (oh->class->reset) {
+> > 		r = oh->class->reset(oh);
+> > 	} else {
+> > 		if (oh->rst_lines_cnt > 0) {
+> > 			for (i = 0; i < oh->rst_lines_cnt; i++)
+> > 				_assert_hardreset(oh, oh->rst_lines[i].name);
+> > 			return 0;
+> > 		} else {
+> > 			r = _ocp_softreset(oh);
+> > 			if (r == -ENOENT)
+> > 				r = 0;
+> > 		}
+> > 	}
+> 
+> Right, hwmod code does the initial reset.
+> 
+> > Care to explain what exactly the problem with the hwmod code not doing
+> > the reset on init?
+> 
+> And we only need to deassert the reset in probe. Technically, we don't
+> need to assert first and deassert in probe, and that was a design choice
+> made by Kishon.
 
-  Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
+OK so if hwmod code has already done the reset, then why would you need
+to deassert reset in the device driver probe?
 
-are available in the git repository at:
+> > And why do you need to do another reset in dra7xx_pcie_remove()?
+> 
+> Primarily to restore the reset state back to what it was after the
+> driver remove gets called. We cannot call deassert twice without calling
+> a assert in between. Kishon had originally added the assert and deassert
+> only in probe, but nothing in remove, they ought to be deassert in probe
+> and assert in remove to match initial hardware state, and to also make
+> it work across multiple probe/remove.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/fixes-rc1
+I don't understand this part either.. Usually you just power up and init
+the registers to a sane state in a device driver probe and on exit just
+power down the device.
 
-for you to fetch changes up to ab342c77fa60a30fce4d4228f88fd1b7bf566055:
+> >>> Basically I'm wondering how come we need these platform data callbacks
+> >>> at all.
+> >>
+> >> The hardresets are controlled through the
+> >> omap_device_assert(deassert)_hardreset functions, and since these are
+> >> limited to mach-omap2, we are invoking them through platform data callbacks.
+> > 
+> > Right.. But I'm wondering about the why you need to do this in the
+> > driver at all part :)
+> 
+> The initial reset at init time is okay, but hwmod _enable() bails out if
+> the resets lines are asserted. This was a change made long time back, I
+> believe to deal with the problems around the DSP enabling sequences. As
+> such, pm_runtime_get_sync() and put_sync() do not deassert and assert
+> the resets.
 
-  ARM: dts: am57xx: sbc-am57x: correct Eth PHY settings (2016-01-27 09:19:31 -0800)
+OK if the hwmod code does not deassert reset lines properly on enable,
+then that sounds like a bug that should be fixed instead of adding
+device specific work arounds.
 
-----------------------------------------------------------------
-Fixes for omaps with the most intrusive stuff being read-only data
-assembly fixes, the other things are mostly board related:
+Sorry to keep dragging this on a bit longer, but I think we need to
+hear Paul's comments on this one.
 
-- A series of omap assembly code fixes to fix issues with rodata with
-  ARM_KERNMEM_PERMS enabled. We had several places writing to rodata,
-  which is bad. The fix in most cases is to load the value from data
-  section using a pointer. Let's also enable ARM_KERNMEM_PERMS so
-  DEBUG_RODATA gets selected by default. And while testing things,
-  I also added few more loadable driver modules to the defconfig that
-  I seem to need quite often.
+Regards,
 
-- Fix a long standing omap5 RTC mystery and enable RTC where we need
-  to ensure the SoC msecure pin is high so we can write to the RTC
-  registers.
-
-- Fix irq types for am437x
-
-- A series of minor dts fixes for sbc-am57x and cl-som-am57x
-
-- Fixes for torpedo dts to make WLAN behave and to remove a duplicate
-  i2c rate entry
-
-This series also includes few minor changes that are not stricly
-fixes, but would be good to get in during the early -rc cycle:
-
-- Remove legacy mailbox platform data that is no longer needed
-
-- Add the pdata-quirks needed for the new pwm-omap-dmtimer so
-  people can use it
-
-- Enable ti,mbox-send-noirq that's needed by wkup_m3 driver
-
-- Enable SPLIT and DWARF4 in omap2plus_defconfig as it makes the
-  initramfs quite a bit smaller
-
-----------------------------------------------------------------
-Adam Ford (2):
-      ARM: dts: Fix wl12xx missing clocks that cause hangs
-      ARM: dts: LogicPD Torpedo: Revert Duplicative Entries
-
-Dave Gerlach (1):
-      ARM: dts: AM33xx: Add ti,mbox-send-noirq to wkup_m3 mailbox
-
-Dmitry Lifshitz (6):
-      ARM: dts: am57xx: sbc-am57x: fix SB-SOM EEPROM I2C address
-      ARM: dts: am57xx: cl-som-am57x: set HOST mode for USB2
-      ARM: dts: am57xx: cl-som-am57x: update SPI Flash frequency
-      ARM: dts: am57xx: sbc-am57x: fix UART3 pinmux
-      ARM: dts: am57xx: cl-som-am57x: fix CPSW EMAC pinmux
-      ARM: dts: am57xx: sbc-am57x: correct Eth PHY settings
-
-Felipe Balbi (1):
-      ARM: omap2plus_defconfig: enable SPLIT and DWARF4
-
-Grygorii Strashko (2):
-      ARM: dts: am4372: fix irq type for arm twd and global timer
-      ARM: dts: am437x: pixcir_tangoc: use correct flags for irq types
-
-H. Nikolaus Schaller (1):
-      ARM: dts: omap5-board-common: enable rtc and charging of backup battery
-
-Keerthy (1):
-      ARM: dts: AM4372: Add ti,mbox-send-noirq to wkup_m3 mailbox
-
-Neil Armstrong (1):
-      ARM: OMAP: Add PWM dmtimer platform data quirks
-
-Suman Anna (1):
-      ARM: OMAP2+: Remove legacy mailbox device instantiation
-
-Tony Lindgren (8):
-      ARM: dts: Fix omap5 PMIC control lines for RTC writes
-      ARM: OMAP2+: Fix wait_dll_lock_timed for rodata
-      ARM: OMAP2+: Fix l2dis_3630 for rodata
-      ARM: OMAP2+: Fix save_secure_ram_context for rodata
-      ARM: OMAP2+: Fix l2_inv_api_params for rodata
-      ARM: OMAP2+: Fix ppa_zero_params and ppa_por_params for rodata
-      ARM: omap2plus_defconfig: Enable ARM_KERNMEM_PERMS and few loadable modules
-      Merge branch 'enable-devices' into omap-for-v4.5/fixes
-
- arch/arm/boot/dts/am33xx.dtsi              |  1 +
- arch/arm/boot/dts/am4372.dtsi              |  5 ++-
- arch/arm/boot/dts/am437x-gp-evm.dts        |  4 +-
- arch/arm/boot/dts/am43x-epos-evm.dts       |  2 +-
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts  | 12 +++---
- arch/arm/boot/dts/am57xx-sbc-am57x.dts     |  8 ++--
- arch/arm/boot/dts/logicpd-torpedo-som.dtsi |  9 +----
- arch/arm/boot/dts/omap5-board-common.dtsi  | 33 ++++++++++++++++
- arch/arm/configs/omap2plus_defconfig       | 10 +++++
- arch/arm/mach-omap2/devices.c              | 28 --------------
- arch/arm/mach-omap2/pdata-quirks.c         | 23 +++++++++++
- arch/arm/mach-omap2/sleep34xx.S            | 61 +++++++++++++++---------------
- arch/arm/mach-omap2/sleep44xx.S            | 25 ++++++++----
- 13 files changed, 130 insertions(+), 91 deletions(-)
+Tony
