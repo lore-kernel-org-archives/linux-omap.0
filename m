@@ -1,70 +1,70 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 0/5] Nokia N950 modem support
-Date: Thu, 28 Jan 2016 18:04:31 +0100
-Message-ID: <20160128170431.GD17038@earth>
-References: <1453045749-22642-1-git-send-email-sre@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] dmaengine: edma: Remove dynamic TPTC power management
+ feature
+Date: Thu, 28 Jan 2016 09:11:46 -0800
+Message-ID: <20160128171146.GC19432@atomide.com>
+References: <1453885906-17652-1-git-send-email-peter.ujfalusi@ti.com>
+ <20160127155422.GH19432@atomide.com> <56A9D8C2.7000401@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="rz+pwK2yUstbofK6"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1453045749-22642-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <56A9D8C2.7000401@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, dmaengine@vger.kernel.org, dan.j.williams@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [160128 01:01]:
+> On 01/27/2016 05:54 PM, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [160127 01:12]:
+> >> The dynamic or on demand pm_runtime does not work correctly on am335x and
+> >> am437x due to interference with hwmod.
+> > 
+> > Hmm care expand a bit what is the problem with this "interference"?
+> 
+> The idea was to enable/power on only the TPTCs which is actually in use and
+> leave the unused ones off. Which is is nice and all, but...
+> The original implementation did the pm_runtime calls for the tptcs from the
+> edma tpcc driver instance and the main issue was that I did the pm_runtime
+> calls in the edma-tpcc pm callbacks as well.
+> Since omap hwmod/device also handles pm_runtime on behalf of the drivers we
+> got nasty issues, kernel crash, warnings on suspend/resume.
+> 
+> Then I did implemented the on demand power management in a totally different
+> way, still keeping only tptcs enabled which is in use.
+> In this way all the omap hwmod/device incoherency was gone and things looked
+> fine, but it turned out that on second suspend we are not able to wake up the
+> board.
+> I and Tero debugged this a bit and it turns out that we need to kepp all tptcs
+> enabled and powered, otherwise the HW will not going to be able to complete
+> the transition, breaking suspend/resume.
 
---rz+pwK2yUstbofK6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Probably you only need to keep the tptcs being used enabled though? They
+should be completely independent otherwise?
 
-Hi,
+> With pm_runtime_enable() + get_sync() on all tptcs we can suspend and resume
+> w/o problems and they will be disabled/enabled by omap hwmod/device code,
+> following nicely the power state of the system.
+> 
+> As a note: I did tried the suspend/resume with the old code with dra7, but it
+> turned out that on dra7 SW has no control over the tptc power state, it
+> follows the system in HW.
+> 
+> In short: The implementation was flawed and even if the implementation is
+> correct the HW will lock up if we do on demand tptc power management.
 
-On Sun, Jan 17, 2016 at 04:49:04PM +0100, Sebastian Reichel wrote:
-> This patchset adds support for the N950 modem.
->
-> [...]
+OK interesting.
 
-All of the patches are more or less mergable independent
-of each other, so I suggest the following merging scheme:
+Regards,
 
-> Sebastian Reichel (5):
->   ARM: OMAP2+: hwmod data: Add SSI data for omap36xx
-
-This one should go in via Paul Walmsley.
-
->   HSI: nokia-modem: add n950 and n9 support
->   HSI: ssi-protocol: Use handshake logic from n950
-
-I already took those via the HSI tree.
-
->   ARM: dts: OMAP3-N950-N9: Enable SSI module
->   ARM: dts: OMAP3-N950-N9: Enable modem
-
-The DTS changes can go in via Tony's tree.
-
--- Sebastian
-
---rz+pwK2yUstbofK6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWqkocAAoJENju1/PIO/qaQpwP/0JozBxrrskmxO1Mk0M6Lz6O
-QUXAog0LL/r+SVXWvRtc+A1CcEGtU//2mjcoeML4i1bIfyEp9s9VsYKl+ov9Rbk+
-MxmROD9gAdIXthA7kk7wQtTnAdsqFoaR/+uhcdlRJUIHvOPS8ypelt6iJcIvOBoj
-x85Nt0TbK2L6gYBeKaXIlSDqGq3mHNiw6AyaksVt6zXLTI5zgCscH6go9nDvk9by
-n/8lAPW4v+ggyd1MulNq+spJ1s7Uyt+qAsFsye9t6Y98/+Aj10ZuHOq8Su/5+19H
-MWLN4K+ub6mb/X8xtdAV4wl+BgV2Cd3zijqwUV0FFvIAI9d41Ha7awK7GAqxZFPm
-jlcipe4mn1VnaF6l4+ERfaEcHv/Ye/B8m1uUA9/fcdpS4i2hDMseVQ5d4QC2MQs/
-Nlutueqg2z3LPVtH3iMdTkrTcbJ/+lmekoaHdF7vOjoVsp2VZDEVrkbEJukHFlcV
-+490V1BFcshnP2ubmcub5D6Y00xdzp+caF1Bz/qaksdDrLtaA4RbtnJnD812LbrA
-x5BoNn/mhv/3Mzl2VpPBSiHqGVdBFiZL1RyX8a1CIhK2NhhEY6T/69BOhNOmmsyZ
-R+NZp2wH37ROLh4IRw4T/wMSAUOY9nC6BNz2xxtIiCfoR9s8X/oSQf+6IXGrQxMy
-OKNPsfx8q6EhdN/wV2gT
-=hsBs
------END PGP SIGNATURE-----
-
---rz+pwK2yUstbofK6--
+Tony
