@@ -1,124 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
- v4.5-rc1
-Date: Thu, 28 Jan 2016 08:58:10 -0800
-Message-ID: <20160128165810.GA19432@atomide.com>
-References: <20160126224804.GB19432@atomide.com>
- <CAJZ5v0i79X5JjOZiu4cOZ0Esd5BxAvutF8d17asDzq9ECcML-g@mail.gmail.com>
- <20160126232212.GE19432@atomide.com>
- <CAJZ5v0gTRvyWHVmYNb8Q1QZzhVhokXo541+48mFyDRYv7Hi-Uw@mail.gmail.com>
- <20160126235222.GF19432@atomide.com>
- <CAPDyKFqD6Y6HcgVds_oWBZ8L7Kdh2VX_WZCGApf-1a_6GHCQ5g@mail.gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 0/5] Nokia N950 modem support
+Date: Thu, 28 Jan 2016 18:04:31 +0100
+Message-ID: <20160128170431.GD17038@earth>
+References: <1453045749-22642-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="rz+pwK2yUstbofK6"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAPDyKFqD6Y6HcgVds_oWBZ8L7Kdh2VX_WZCGApf-1a_6GHCQ5g@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <1453045749-22642-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+
+
+--rz+pwK2yUstbofK6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 Hi,
 
-* Ulf Hansson <ulf.hansson@linaro.org> [160128 06:30]:
-> On 27 January 2016 at 00:52, Tony Lindgren <tony@atomide.com> wrote:
-> > * Rafael J. Wysocki <rafael@kernel.org> [160126 15:38]:
-> >> On Wed, Jan 27, 2016 at 12:22 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > * Rafael J. Wysocki <rafael@kernel.org> [160126 15:15]:
-> >> >> On Tue, Jan 26, 2016 at 11:48 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >> >> > Hi,
-> >> >> >
-> >> >> > Looks like commit 5de85b9d57ab ("PM / runtime: Re-init runtime
-> >> >> > PM states at probe error and driver unbind") broke PM on at least
-> 
-> I need to understand the issue here in a bit more detail, could you
-> please try to fill out some of my gaps!?
-> 
-> In *what way* did it break PM?
-
-The MMC hardware will not get idled properly any longer blocking any
-deeper idle states.
-
-> Did the driver not probe successfully the second try? If so, what happened.
-
-It probes fine after a -EPROBE_DEFER on the vmmc i2c regulator.
-But the PM runtime usecounts are wrong.
-
-> >> >> > omap3. It seems we now need to additionally also call
-> >> >> > pm_runtime_dont_use_autosuspend() to get things working again?
-> >> >> >
-> >> >> > The following fixes idling on omap3, but I'm wondering if we
-> >> >> > should do something in pm_runtime_reinit() instead?
-> 
-> I understand this as the second (or third, forth, whatever) probing
-> attempt actually succeeds, right!?
-
-Right.
-
-> Is the issue you are seeing, that the device never becomes runtime
-> suspended due to commit 5de85b9d57ab ("PM / runtime: Re-init runtime
-> PM states at probe error and driver unbind")?
-
-Correct.
-
-> >> > Looks like we have RPM_ACTIVE set in pm_runtime_reinit() if that
-> >> > gives any clues.
-> 
-> That's a good clue. Although, there could be several reasons to why.
-> 
-> Rafael has pointed out one valid potential case, but I want to be sure
-> that's really what happening here.
-> 
-> *If* the problem is that the device doesn't becomes runtime suspended,
-> that will anyway be prevented as long as the autosuspend_delay has
-> been set to a negative value. That's why I wonder whether this really
-> is the case here.
-
-That seems to be the case here. In device driver probe, commenting out
-pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY)
-also makes things work again.
-
-So one of the failing cases seems to be:
-
-1. Device driver probe sets pm_runtime_set_autosuspend_delay()
-
-2. Device driver probe initially fails with -EPROBE_DEFER
-
-3. PM runtime usecounts get messed up
-
-> For omap3, I assume there's a PM domain (the so called hwmod) being
-> attached to the omap_hsmmc device at device registration point!?
-
-Correct. It uses the notifiers like bus code does in general.
-
-FYI, most SoCs don't have hardware based autoidle signaling between
-the interconnect and the interconnect targets. So the hwmod code is
-still needed until we have converted it into a proper interconnect +
-module target drivers.
-
-> In that path depending on a specific hwmod flag, the device will be
-> given the an initial *active* runtime PM status, via invoking
-> pm_runtime_set_active().
+On Sun, Jan 17, 2016 at 04:49:04PM +0100, Sebastian Reichel wrote:
+> This patchset adds support for the N950 modem.
 >
-> *If* that's the case, it affects the probing sequence, as the
-> pm_runtime_get_sync() won't trigger the ->runtime_resume() callbacks
-> to be invoked in the first probe attempt.
+> [...]
 
-It has worked since pm runtime. And it works with MMC as as a loadable
-module just fine when no -EPROBE_DEFER happens.
+All of the patches are more or less mergable independent
+of each other, so I suggest the following merging scheme:
 
-> Moreover, according to the data I received in this regression report
-> so far, it seems like probing the second time has *always* been done
-> with the device in runtime PM active state. Could that be the reason
-> to why it "happens" to work?
+> Sebastian Reichel (5):
+>   ARM: OMAP2+: hwmod data: Add SSI data for omap36xx
 
-Not correct. I think that speculation is not related to the $subject
-regression at all.
+This one should go in via Paul Walmsley.
 
-BTW, do you have some hardware to test with that has PM runtime
-implemnted and actually working with mainline kernel?
+>   HSI: nokia-modem: add n950 and n9 support
+>   HSI: ssi-protocol: Use handshake logic from n950
 
-Regards,
+I already took those via the HSI tree.
 
-Tony
+>   ARM: dts: OMAP3-N950-N9: Enable SSI module
+>   ARM: dts: OMAP3-N950-N9: Enable modem
+
+The DTS changes can go in via Tony's tree.
+
+-- Sebastian
+
+--rz+pwK2yUstbofK6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJWqkocAAoJENju1/PIO/qaQpwP/0JozBxrrskmxO1Mk0M6Lz6O
+QUXAog0LL/r+SVXWvRtc+A1CcEGtU//2mjcoeML4i1bIfyEp9s9VsYKl+ov9Rbk+
+MxmROD9gAdIXthA7kk7wQtTnAdsqFoaR/+uhcdlRJUIHvOPS8ypelt6iJcIvOBoj
+x85Nt0TbK2L6gYBeKaXIlSDqGq3mHNiw6AyaksVt6zXLTI5zgCscH6go9nDvk9by
+n/8lAPW4v+ggyd1MulNq+spJ1s7Uyt+qAsFsye9t6Y98/+Aj10ZuHOq8Su/5+19H
+MWLN4K+ub6mb/X8xtdAV4wl+BgV2Cd3zijqwUV0FFvIAI9d41Ha7awK7GAqxZFPm
+jlcipe4mn1VnaF6l4+ERfaEcHv/Ye/B8m1uUA9/fcdpS4i2hDMseVQ5d4QC2MQs/
+Nlutueqg2z3LPVtH3iMdTkrTcbJ/+lmekoaHdF7vOjoVsp2VZDEVrkbEJukHFlcV
++490V1BFcshnP2ubmcub5D6Y00xdzp+caF1Bz/qaksdDrLtaA4RbtnJnD812LbrA
+x5BoNn/mhv/3Mzl2VpPBSiHqGVdBFiZL1RyX8a1CIhK2NhhEY6T/69BOhNOmmsyZ
+R+NZp2wH37ROLh4IRw4T/wMSAUOY9nC6BNz2xxtIiCfoR9s8X/oSQf+6IXGrQxMy
+OKNPsfx8q6EhdN/wV2gT
+=hsBs
+-----END PGP SIGNATURE-----
+
+--rz+pwK2yUstbofK6--
