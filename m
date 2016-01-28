@@ -1,56 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] clk: ti: omap3+: dpll: use non-locking version of
- clk_get_rate
-Date: Thu, 28 Jan 2016 09:22:16 -0800
-Message-ID: <20160128172215.GD19432@atomide.com>
-References: <1453981067-8618-1-git-send-email-t-kristo@ti.com>
- <56A9FED1.3090903@ti.com>
+Subject: Re: [PATCH 6/7] usb: musb: use %pad format string from dma_addr_t
+Date: Thu, 28 Jan 2016 09:50:37 -0800
+Message-ID: <20160128175036.GF19432@atomide.com>
+References: <1453997722-3489596-1-git-send-email-arnd@arndb.de>
+ <1453998206-3490016-1-git-send-email-arnd@arndb.de>
+ <1453998206-3490016-2-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56A9FED1.3090903@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1453998206-3490016-2-git-send-email-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Felipe Balbi <balbi@kernel.org>, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Robert Jarzmik <robert.jarzmik@free.fr>, Haojian Zhuang <haojian.zhuang@gmail.com>, Daniel Mack <daniel@zonque.org>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khalasa@piap.pl>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [160128 03:44]:
-> On 01/28/2016 01:37 PM, Tero Kristo wrote:
-> >As the code in this file is being executed within irq context in some
-> >cases, we must avoid the clk_get_rate which uses mutex internally.
-> >Switch the code to use clk_hw_get_rate instead which is non-locking.
-> >
-> >Signed-off-by: Tero Kristo <t-kristo@ti.com>
+* Arnd Bergmann <arnd@arndb.de> [160128 08:26]:
+> The musb driver prints DMA addresses in a few places, using the
+> 0x%x format string. This is wrong on 64-bit architectures (which
+> need %lx) and 32-bit ARM with CONFIG_LPAE set (which needs
+> %llx), otherwise we print the wrong data, as gcc warns:
 > 
-> Ooops, sorry. Sent wrong version (read: old) of this patch, please ignore
-> this one. Will re-send the correct version in a bit.
-
-I think this is still needed as a fix for -rc cycle with cc: stable
-as otherwise we have omap4 and 5 hang if PM runtime is enabled before
-a suspend/resume cycle?
-
-Regards,
-
-Tony
-
-
-> >  drivers/clk/ti/dpll3xxx.c |    3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> >diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-> >index f4dec00..7ed24bc 100644
-> >--- a/drivers/clk/ti/dpll3xxx.c
-> >+++ b/drivers/clk/ti/dpll3xxx.c
-> >@@ -437,7 +437,8 @@ int omap3_noncore_dpll_enable(struct clk_hw *hw)
-> >
-> >  	parent = clk_hw_get_parent(hw);
-> >
-> >-	if (clk_hw_get_rate(hw) == clk_get_rate(dd->clk_bypass)) {
-> >+	if (clk_hw_get_rate(hw) ==
-> >+	    clk_hw_get_rate(__clk_get_hw(dd->clk_bypass))) {
-> >  		WARN_ON(parent != __clk_get_hw(dd->clk_bypass));
-> >  		r = _omap3_noncore_dpll_bypass(clk);
-> >  	} else {
-> >
+> musb/musbhsdma.c: In function 'configure_channel':
+> musb/musbhsdma.c:120:53: error: format '%x' expects argument of type 'unsigned int', but argument 6 has type 'dma_addr_t {aka long long unsigned int}' [-Werror=format=]
+>   dev_dbg(musb->controller, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
+> musb/musbhsdma.c: In function 'dma_channel_program':
+> musb/musbhsdma.c:155:53: error: format '%x' expects argument of type 'unsigned int', but argument 7 has type 'dma_addr_t {aka long long unsigned int}' [-Werror=format=]
+>   dev_dbg(musb->controller, "ep%d-%s pkt_sz %d, dma_addr 0x%x length %d, mode %d\n",
+> musb/tusb6010_omap.c: In function 'tusb_omap_dma_program':
+> musb/tusb6010_omap.c:313:53: error: format '%x' expects argument of type 'unsigned int', but argument 7 has type 'dma_addr_t {aka long long unsigned int}' [-Werror=format=]
+>   dev_dbg(musb->controller, "ep%i %s dma ch%i dma: %08x len: %u(%u) packet_sz: %i(%i)\n",
 > 
+> This uses the %pad format string, which prints a dma_addr_t that
+> gets passed by reference, which works for all combinations.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+Looks good to me:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
