@@ -1,68 +1,33 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 0/2] reboot: Introduce emergency_poweroff function
-Date: Fri, 29 Jan 2016 07:15:20 +0530
-Message-ID: <56AAC430.3070107@ti.com>
-References: <1453986389-15887-1-git-send-email-j-keerthy@ti.com>
- <20160128132447.6b8bec2c@lxorguk.ukuu.org.uk>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [v4,1/3] wlcore/wl12xx: spi: add power operation function
+Date: Fri, 29 Jan 2016 09:11:05 +0000 (UTC)
+Message-ID: <20160129091105.668A2604A2@smtp.codeaurora.org>
+References: <1451482533-8624-2-git-send-email-uri.mashiach@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160128132447.6b8bec2c@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Keerthy <j-keerthy@ti.com>
-Cc: linux-kernel@vger.kernel.org, oleg@redhat.com, toshi.kani@hp.com, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, nm@ti.com, grygorii.strashko@ti.com, mingo@kernel.org, josh@joshtriplett.org, rui.zhang@intel.com, edubezval@gmail.com
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1451482533-8624-2-git-send-email-uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Eliad Peller <eliad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Alan,
 
-On Thursday 28 January 2016 06:54 PM, One Thousand Gnomes wrote:
-> On Thu, 28 Jan 2016 18:36:27 +0530
-> Keerthy <j-keerthy@ti.com> wrote:
->
->> The series introduces a new function emergency_poweroff which shuts
->> down the system after a configurable period of time. emergency_poweroff
->> is appropriate in case of thermal shutdown scenario.
->
-> That depends upon the system.
->
-> If your hardware has its own built in thermal reset protection then it
-> will merely make things worse by causing unneeded crashes.
->
-> If your device doesn't have protection then you have bigger problems
-> because a kernel crash or spin in interrupt space could easily mean that
-> the thermal thermals but doesn't ever run any delayed work. On those that
-> have a watchdog as well it should be using the hardware watchdog for
-> protection not relying upon schedule_delayed_work to get work done.
->
-> So IMHO this should get a resounding NAK as it stands. For most systems
-> it's a backward change, for most of those that need more protection it
-> doesn't look the right answer.
->
-> In particular if you need to be sure the box goes off *right now* you
-> don't want to schedule work because there are so many ways that it might
-> never execute the work when the box is failing.
+> The power function uses a consumer regulator access to update the WiFi
+> enable GPIO value.
+> 
+> Signed-off-by: Uri Mashiach <uri.mashiach-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+> Tested-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Reviewed-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+> Acked-by: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
 
-Scheduling work was done to give a configurable delay before powering 
-off. I get your point that it might never get scheduled when things go 
-wrong.
+Thanks, 2 patches applied to wireless-drivers-next.git:
 
->
-> Do your devices actually *really* need this, are you saying that someone
-> who roots the device can disable this code and physically destroy the
-> product ? If they do then I'd much rather see thermal_core call
-> thermal_poweroff(), and define that on a platform basis - so for x86 it
-> would be orderly_poweroff(), for your platform it might well be a
-> function that right that instant bangs the registers to force power off,
-> devices with watchdogs might write the watchdog with a 5 second timer and
-> then try and do an orderly_poweroff and so forth.
+4c1ce07bcf62 wlcore/wl12xx: spi: add power operation function
+04654c386145 wlcore/wl12xx: spi: add device tree support
 
-Thanks for the feedback. I apologize for Ccing the wrong list. I removed 
-it from the thread.
-
-Regards,
-Keerthy
-
->
-> Alan
->
+Kalle Valo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
