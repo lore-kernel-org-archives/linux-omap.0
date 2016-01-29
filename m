@@ -1,70 +1,105 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
 Subject: Re: [PATCH v12 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Fri, 29 Jan 2016 17:51:49 +0200
-Message-ID: <CAHp75VdWPUZ8F5rsGn3M1e5Pgpcg1CErBej9PE_3+ZPke5CDFA@mail.gmail.com>
+Date: Fri, 29 Jan 2016 18:35:49 +0200
+Message-ID: <CAHp75Vf9TS-AxJALQjiwNjMCT8ct5SBanYzrEsV9aj=DsUw-OA@mail.gmail.com>
 References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
-	<1452181575-9206-3-git-send-email-tomeu.vizoso@collabora.com>
-	<CAHp75VdZMtm0_USuX2tiFO+O2QK8Wa+A9FDKZ=JqqGwr0SWi0g@mail.gmail.com>
+ <1452181575-9206-3-git-send-email-tomeu.vizoso@collabora.com>
+ <CAHp75VdZMtm0_USuX2tiFO+O2QK8Wa+A9FDKZ=JqqGwr0SWi0g@mail.gmail.com>
+ <CAHp75VdWPUZ8F5rsGn3M1e5Pgpcg1CErBej9PE_3+ZPke5CDFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VdZMtm0_USuX2tiFO+O2QK8Wa+A9FDKZ=JqqGwr0SWi0g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAHp75VdWPUZ8F5rsGn3M1e5Pgpcg1CErBej9PE_3+ZPke5CDFA@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Len Brown <lenb@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, dri-devel@lists.freedesktop.org, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 29, 2016 at 5:38 PM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Thu, Jan 7, 2016 at 5:46 PM, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
->> Adds a function that sets the pointer to dev_pm_domain in struct device
->> and that warns if the device has already finished probing. The reason
->> why we want to enforce that is because in the general case that can
->> cause problems and also that we can simplify code quite a bit if we can
->> always assume that.
->>
->> This patch also changes all current code that directly sets the
->> dev.pm_domain pointer.
->
->
->> --- a/drivers/acpi/acpi_lpss.c
->> +++ b/drivers/acpi/acpi_lpss.c
->
->> @@ -875,13 +876,14 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
->>
->>         switch (action) {
->>         case BUS_NOTIFY_BIND_DRIVER:
->> -               pdev->dev.pm_domain = &acpi_lpss_pm_domain;
->> +               dev_pm_domain_set(&pdev->dev, &acpi_lpss_pm_domain);
->>                 break;
->>         case BUS_NOTIFY_DRIVER_NOT_BOUND:
->>         case BUS_NOTIFY_UNBOUND_DRIVER:
->>                 pdev->dev.pm_domain = NULL;
->
-> Missed?
->
->>                 break;
->>         case BUS_NOTIFY_ADD_DEVICE:
->> +               dev_pm_domain_set(&pdev->dev, &acpi_lpss_pm_domain);
->>                 if (pdata->dev_desc->flags & LPSS_LTR)
->>                         return sysfs_create_group(&pdev->dev.kobj,
->>                                                   &lpss_attr_group);
->> @@ -889,6 +891,7 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
->>         case BUS_NOTIFY_DEL_DEVICE:
->>                 if (pdata->dev_desc->flags & LPSS_LTR)
->>                         sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
->> +               dev_pm_domain_set(&pdev->dev, NULL);
->>                 break;
->>         default:
->>                 break;
->
-> This looks wrong. I didn't test yet, but I have concerns here. Why did
-> you add those calls?
-
-
-Okay, for first glance it seems working on Intel Braswell. But can
-yoyu point me out what was going on before this patch?
-
--- 
-With Best Regards,
-Andy Shevchenko
+T24gRnJpLCBKYW4gMjksIDIwMTYgYXQgNTo1MSBQTSwgQW5keSBTaGV2Y2hlbmtvCjxhbmR5LnNo
+ZXZjaGVua29AZ21haWwuY29tPiB3cm90ZToKPiBPbiBGcmksIEphbiAyOSwgMjAxNiBhdCA1OjM4
+IFBNLCBBbmR5IFNoZXZjaGVua28KPiA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4gd3JvdGU6
+Cj4+IE9uIFRodSwgSmFuIDcsIDIwMTYgYXQgNTo0NiBQTSwgVG9tZXUgVml6b3NvIDx0b21ldS52
+aXpvc29AY29sbGFib3JhLmNvbT4gd3JvdGU6Cj4+PiBBZGRzIGEgZnVuY3Rpb24gdGhhdCBzZXRz
+IHRoZSBwb2ludGVyIHRvIGRldl9wbV9kb21haW4gaW4gc3RydWN0IGRldmljZQo+Pj4gYW5kIHRo
+YXQgd2FybnMgaWYgdGhlIGRldmljZSBoYXMgYWxyZWFkeSBmaW5pc2hlZCBwcm9iaW5nLiBUaGUg
+cmVhc29uCj4+PiB3aHkgd2Ugd2FudCB0byBlbmZvcmNlIHRoYXQgaXMgYmVjYXVzZSBpbiB0aGUg
+Z2VuZXJhbCBjYXNlIHRoYXQgY2FuCj4+PiBjYXVzZSBwcm9ibGVtcyBhbmQgYWxzbyB0aGF0IHdl
+IGNhbiBzaW1wbGlmeSBjb2RlIHF1aXRlIGEgYml0IGlmIHdlIGNhbgo+Pj4gYWx3YXlzIGFzc3Vt
+ZSB0aGF0Lgo+Pj4KPj4+IFRoaXMgcGF0Y2ggYWxzbyBjaGFuZ2VzIGFsbCBjdXJyZW50IGNvZGUg
+dGhhdCBkaXJlY3RseSBzZXRzIHRoZQo+Pj4gZGV2LnBtX2RvbWFpbiBwb2ludGVyLgo+Pgo+Pgo+
+Pj4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfbHBzcy5jCj4+PiArKysgYi9kcml2ZXJzL2FjcGkv
+YWNwaV9scHNzLmMKPj4KPj4+IEBAIC04NzUsMTMgKzg3NiwxNCBAQCBzdGF0aWMgaW50IGFjcGlf
+bHBzc19wbGF0Zm9ybV9ub3RpZnkoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpuYiwKPj4+Cj4+PiAg
+ICAgICAgIHN3aXRjaCAoYWN0aW9uKSB7Cj4+PiAgICAgICAgIGNhc2UgQlVTX05PVElGWV9CSU5E
+X0RSSVZFUjoKPj4+IC0gICAgICAgICAgICAgICBwZGV2LT5kZXYucG1fZG9tYWluID0gJmFjcGlf
+bHBzc19wbV9kb21haW47Cj4+PiArICAgICAgICAgICAgICAgZGV2X3BtX2RvbWFpbl9zZXQoJnBk
+ZXYtPmRldiwgJmFjcGlfbHBzc19wbV9kb21haW4pOwo+Pj4gICAgICAgICAgICAgICAgIGJyZWFr
+Owo+Pj4gICAgICAgICBjYXNlIEJVU19OT1RJRllfRFJJVkVSX05PVF9CT1VORDoKPj4+ICAgICAg
+ICAgY2FzZSBCVVNfTk9USUZZX1VOQk9VTkRfRFJJVkVSOgo+Pj4gICAgICAgICAgICAgICAgIHBk
+ZXYtPmRldi5wbV9kb21haW4gPSBOVUxMOwo+Pgo+PiBNaXNzZWQ/Cj4+Cj4+PiAgICAgICAgICAg
+ICAgICAgYnJlYWs7Cj4+PiAgICAgICAgIGNhc2UgQlVTX05PVElGWV9BRERfREVWSUNFOgo+Pj4g
+KyAgICAgICAgICAgICAgIGRldl9wbV9kb21haW5fc2V0KCZwZGV2LT5kZXYsICZhY3BpX2xwc3Nf
+cG1fZG9tYWluKTsKPj4+ICAgICAgICAgICAgICAgICBpZiAocGRhdGEtPmRldl9kZXNjLT5mbGFn
+cyAmIExQU1NfTFRSKQo+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHN5c2ZzX2Ny
+ZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosCj4+PiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICZscHNzX2F0dHJfZ3JvdXApOwo+Pj4gQEAgLTg4OSw2
+ICs4OTEsNyBAQCBzdGF0aWMgaW50IGFjcGlfbHBzc19wbGF0Zm9ybV9ub3RpZnkoc3RydWN0IG5v
+dGlmaWVyX2Jsb2NrICpuYiwKPj4+ICAgICAgICAgY2FzZSBCVVNfTk9USUZZX0RFTF9ERVZJQ0U6
+Cj4+PiAgICAgICAgICAgICAgICAgaWYgKHBkYXRhLT5kZXZfZGVzYy0+ZmxhZ3MgJiBMUFNTX0xU
+UikKPj4+ICAgICAgICAgICAgICAgICAgICAgICAgIHN5c2ZzX3JlbW92ZV9ncm91cCgmcGRldi0+
+ZGV2LmtvYmosICZscHNzX2F0dHJfZ3JvdXApOwo+Pj4gKyAgICAgICAgICAgICAgIGRldl9wbV9k
+b21haW5fc2V0KCZwZGV2LT5kZXYsIE5VTEwpOwo+Pj4gICAgICAgICAgICAgICAgIGJyZWFrOwo+
+Pj4gICAgICAgICBkZWZhdWx0Ogo+Pj4gICAgICAgICAgICAgICAgIGJyZWFrOwo+Pgo+PiBUaGlz
+IGxvb2tzIHdyb25nLiBJIGRpZG4ndCB0ZXN0IHlldCwgYnV0IEkgaGF2ZSBjb25jZXJucyBoZXJl
+LiBXaHkgZGlkCj4+IHlvdSBhZGQgdGhvc2UgY2FsbHM/Cj4KPgo+IE9rYXksIGZvciBmaXJzdCBn
+bGFuY2UgaXQgc2VlbXMgd29ya2luZyBvbiBJbnRlbCBCcmFzd2VsbC4KCk9uZSBtb3JlIHRlc3Qg
+dW52ZWlscyB0aGlzIG9uZQoKIyBtb2Rwcm9iZSAtciBzZGhjaS1hY3BpClsgMTI4OS45MDk0NDFd
+IC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLQpbIDEyODkuOTE4MjA1XSBXQVJO
+SU5HOiBDUFU6IDEgUElEOiA0Mzc0IGF0Ci9ob21lL2FuZHkvcHJqL2xpbnV4LW90Yy9kcml2ZXJz
+L2Jhc2UvcG93ZXIvY29tbW9uLmM6MTUwCmRldl9wbV9kb21haW5fc2V0KzB4NTEvMHg2MCgpClsg
+MTI4OS45MzQ2ODFdIFBNIGRvbWFpbnMgY2FuIG9ubHkgYmUgY2hhbmdlZCBmb3IgdW5ib3VuZCBk
+ZXZpY2VzClsgMTI4OS45NDQ4NDNdIE1vZHVsZXMgbGlua2VkIGluOiBzZGhjaV9hY3BpKC0pIHNk
+aGNpIG1tY19jb3JlCmxlZF9jbGFzcyBbbGFzdCB1bmxvYWRlZDogZHdfZG1hY19jb3JlXQpbIDEy
+ODkuOTU4ODAyXSBDUFU6IDEgUElEOiA0Mzc0IENvbW06IG1vZHByb2JlIE5vdCB0YWludGVkIDQu
+NS4wLXJjMSsgIzMKWyAxMjg5Ljk2OTczNl0gIGZmZmZmZmZmODFjMzgzMzAgZmZmZjg4MDA3YmI1
+M2QxOCBmZmZmZmZmZjgxMzMxNjJmCmZmZmY4ODAwN2JiNTNkNjAKWyAxMjg5Ljk4MTg0NF0gIGZm
+ZmY4ODAwN2JiNTNkNTAgZmZmZmZmZmY4MTA1Y2QxMiBmZmZmODgwMTdhMDA3NDEwCjAwMDAwMDAw
+MDAwMDAwMDAKWyAxMjg5Ljk5Mzk5Nl0gIDAwMDAwMDAwMDAwMDAwMDEgMDAwMDAwMDAwMDAwMDA4
+MCAwMDAwMDAwMDAwMDAwMDAwCmZmZmY4ODAwN2JiNTNkYjAKWyAxMjkwLjAwNjEyM10gQ2FsbCBU
+cmFjZToKWyAxMjkwLjAxMjYwMF0gIFs8ZmZmZmZmZmY4MTMzMTYyZj5dIGR1bXBfc3RhY2srMHg0
+NC8weDU1ClsgMTI5MC4wMjIwNTJdICBbPGZmZmZmZmZmODEwNWNkMTI+XSB3YXJuX3Nsb3dwYXRo
+X2NvbW1vbisweDgyLzB4YzAKWyAxMjkwLjAzMjQ2Ml0gIFs8ZmZmZmZmZmY4MTA1Y2Q5Yz5dIHdh
+cm5fc2xvd3BhdGhfZm10KzB4NGMvMHg1MApbIDEyOTAuMDQyNTg5XSAgWzxmZmZmZmZmZjgxNDg2
+N2MxPl0gZGV2X3BtX2RvbWFpbl9zZXQrMHg1MS8weDYwClsgMTI5MC4wNTI2OTVdICBbPGZmZmZm
+ZmZmODEzYTYyYTk+XSBhY3BpX2Rldl9wbV9kZXRhY2grMHgzZi8weDg0ClsgMTI5MC4wNjI5MTBd
+ICBbPGZmZmZmZmZmODE0ODY3NDc+XSBkZXZfcG1fZG9tYWluX2RldGFjaCsweDI3LzB4MzAKWyAx
+MjkwLjA3MzI5NF0gIFs8ZmZmZmZmZmY4MTQ4MDE4OD5dIHBsYXRmb3JtX2Rydl9yZW1vdmUrMHgz
+OC8weDQwClsgMTI5MC4wODM1ODVdICBbPGZmZmZmZmZmODE0N2RhNTE+XSBfX2RldmljZV9yZWxl
+YXNlX2RyaXZlcisweGExLzB4MTYwClsgMTI5MC4wOTQzMzVdICBbPGZmZmZmZmZmODE0N2U1YTY+
+XSBkcml2ZXJfZGV0YWNoKzB4YTYvMHhiMApbIDEyOTAuMTA0MDA5XSAgWzxmZmZmZmZmZjgxNDdk
+NDM1Pl0gYnVzX3JlbW92ZV9kcml2ZXIrMHg1NS8weGQwClsgMTI5MC4xMTQwNTNdICBbPGZmZmZm
+ZmZmODE0N2VjY2M+XSBkcml2ZXJfdW5yZWdpc3RlcisweDJjLzB4NTAKWyAxMjkwLjEyNDA3Nl0g
+IFs8ZmZmZmZmZmY4MTQ4MDIzMj5dIHBsYXRmb3JtX2RyaXZlcl91bnJlZ2lzdGVyKzB4MTIvMHgy
+MApbIDEyOTAuMTM0OTU3XSAgWzxmZmZmZmZmZmEwMDM2ODFjPl0gc2RoY2lfYWNwaV9kcml2ZXJf
+ZXhpdCsweDEwLzB4MTIKW3NkaGNpX2FjcGldClsgMTI5MC4xNDY3MzBdICBbPGZmZmZmZmZmODEw
+Y2UwZTk+XSBTeVNfZGVsZXRlX21vZHVsZSsweDE5OS8weDI0MApbIDEyOTAuMTU2OTA3XSAgWzxm
+ZmZmZmZmZjgxMDAyMTliPl0gPyBleGl0X3RvX3VzZXJtb2RlX2xvb3ArMHg4Yi8weDkwClsgMTI5
+MC4xNjc0NzhdICBbPGZmZmZmZmZmODEwMDJiODM+XSBkb19zeXNjYWxsXzMyX2lycXNfb2ZmKzB4
+NTMvMHhhMApbIDEyOTAuMTc3OTQ5XSAgWzxmZmZmZmZmZjgxOGI3ZjlhPl0gZW50cnlfSU5UODBf
+Y29tcGF0KzB4MmEvMHg0MApbIDEyOTAuMTg3OTg2XSAtLS1bIGVuZCB0cmFjZSBhODM1MWMwNTA2
+ZWUyMzliIF0tLS0KWyAxMjkwLjIxMzg1NV0gbW1jMDogY2FyZCAwMDAxIHJlbW92ZWQKCldoaWNo
+IGZ1bmN0aW9uIGlzIGd1aWx0eT8KCj4gQnV0IGNhbgo+IHlveXUgcG9pbnQgbWUgb3V0IHdoYXQg
+d2FzIGdvaW5nIG9uIGJlZm9yZSB0aGlzIHBhdGNoPwoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApB
+bmR5IFNoZXZjaGVua28KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
+ZWwK
