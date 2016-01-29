@@ -1,60 +1,68 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2] mmc: omap_hsmmc: don't print uninitialized variables
-Date: Fri, 29 Jan 2016 12:40:32 +0100
-Message-ID: <CAPDyKFoto2BLyxfko6VX8CZC99LBhJiM1POJOC_Sk=UxnrWcLQ@mail.gmail.com>
-References: <3411189.gO0215GrNM@wuerfel>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v12 2/4] PM / Domains: add setter for dev.pm_domain
+Date: Fri, 29 Jan 2016 17:38:12 +0200
+Message-ID: <CAHp75VdZMtm0_USuX2tiFO+O2QK8Wa+A9FDKZ=JqqGwr0SWi0g@mail.gmail.com>
+References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
+	<1452181575-9206-3-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3411189.gO0215GrNM@wuerfel>
+In-Reply-To: <1452181575-9206-3-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>, Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Len Brown <lenb@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 26 January 2016 at 16:26, Arnd Bergmann <arnd@arndb.de> wrote:
-> When DT based probing is used but the DMA request fails, the
-> driver will print uninitialized stack data from the rx_req
-> and tx_req variables, as indicated by this warning:
+On Thu, Jan 7, 2016 at 5:46 PM, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
+> Adds a function that sets the pointer to dev_pm_domain in struct device
+> and that warns if the device has already finished probing. The reason
+> why we want to enforce that is because in the general case that can
+> cause problems and also that we can simplify code quite a bit if we can
+> always assume that.
 >
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_probe':
-> drivers/mmc/host/omap_hsmmc.c:2162:3: warning: 'rx_req' may be used uninitialized in this function [-Wmaybe-uninitialized]
->    dev_err(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel %u\n", rx_req);
->
-> This removes the DMA request line number from the warning, which
-> is the easiest solution and won't hurt us any more as we are
-> planning to remove the legacy code path anyway.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> This patch also changes all current code that directly sets the
+> dev.pm_domain pointer.
 
-Thanks, applied for next!
 
-Kind regards
-Uffe
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
 
-> ---
-> A simpler patch as v1 with the same result, as suggested by Peter Ujfalusi.
+> @@ -875,13 +876,14 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
 >
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index b6639ea0bf18..87f0d840a166 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2159,7 +2159,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                                                  &rx_req, &pdev->dev, "rx");
->
->         if (!host->rx_chan) {
-> -               dev_err(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel %u\n", rx_req);
-> +               dev_err(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel\n");
->                 ret = -ENXIO;
->                 goto err_irq;
->         }
-> @@ -2169,7 +2169,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                                                  &tx_req, &pdev->dev, "tx");
->
->         if (!host->tx_chan) {
-> -               dev_err(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel %u\n", tx_req);
-> +               dev_err(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel\n");
->                 ret = -ENXIO;
->                 goto err_irq;
->         }
->
+>         switch (action) {
+>         case BUS_NOTIFY_BIND_DRIVER:
+> -               pdev->dev.pm_domain = &acpi_lpss_pm_domain;
+> +               dev_pm_domain_set(&pdev->dev, &acpi_lpss_pm_domain);
+>                 break;
+>         case BUS_NOTIFY_DRIVER_NOT_BOUND:
+>         case BUS_NOTIFY_UNBOUND_DRIVER:
+>                 pdev->dev.pm_domain = NULL;
+
+Missed?
+
+>                 break;
+>         case BUS_NOTIFY_ADD_DEVICE:
+> +               dev_pm_domain_set(&pdev->dev, &acpi_lpss_pm_domain);
+>                 if (pdata->dev_desc->flags & LPSS_LTR)
+>                         return sysfs_create_group(&pdev->dev.kobj,
+>                                                   &lpss_attr_group);
+> @@ -889,6 +891,7 @@ static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>         case BUS_NOTIFY_DEL_DEVICE:
+>                 if (pdata->dev_desc->flags & LPSS_LTR)
+>                         sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
+> +               dev_pm_domain_set(&pdev->dev, NULL);
+>                 break;
+>         default:
+>                 break;
+
+This looks wrong. I didn't test yet, but I have concerns here. Why did
+you add those calls?
+
+Have you been aware about the commit b5f88dd1d6ef ("Revert "ACPI /
+LPSS: allow to use specific PM domain during ->probe()") ?
+
+Sorry for being too late with this.
+
+-- 
+With Best Regards,
+Andy Shevchenko
