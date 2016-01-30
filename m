@@ -1,49 +1,50 @@
-From: Neil Armstrong <narmstrong@baylibre.com>
-Subject: Re: [PATCH 0/4] pwm: omap-dmtimer: fix period/duty_cycle calculation
-Date: Sat, 30 Jan 2016 15:52:12 +0100
-Message-ID: <CAA3gFWsc6YxEvaFW2MJ2D-xBZqEzLOJne9AHZ6zBK3h3THy0CA@mail.gmail.com>
-References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
+Date: Sat, 30 Jan 2016 21:02:45 +0100
+Message-ID: <20160130200244.GA30429@amd>
+References: <20160123121022.GB12497@amd>
+ <20160125163332.GT19432@atomide.com>
+ <20160126140010.GA29723@amd>
+ <20160126172527.GY3500@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Cc: linux-pwm@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160126172527.GY3500@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-2016-01-30 5:26 GMT+01:00 David Rivshin (Allworx) <drivshin.allworx@gmail.com>:
-> From: David Rivshin <drivshin@allworx.com>
->
-> When using a short PWM period (approaching the min of 2/clk_rate),
-> pwm-omap-dmtimer does not produce accurate results. In the worst case a
-> requested period of 2/clk_rate would result in a real period of 4/clk_rate
-> instead. This is a series includes a fix for that problem, as well as
-> other related improvements, and is based on the current linux-pwm/for-next
-> tip.
->
-> I have tested on a Sitara AM335x platform, using a scope to verify the
-> output with a variety of periods and duty cycles. This includes a PWM
-> rate up clk_rate/2 with 50% duty cycle (e.g. generating fclk/2) with
-> both 32768Hz and 24MHz fclks. I do not have an OMAP4 board to test with,
-> although appropriate sections in the the reference manuals appear
-> substantially the same, so I believe the changes are equally correct
-> there.
->
-> Note that the OMAP4 TRMs do effectively state that the maximum PWM
-> rate is clk_rate/4, so at very fast PWM rates the behavior may not be
-> as reliable as I observed with Sitara. Although I suspect that it's
-> the same module and will also work, at least under some circumstances.
-> If anyone with OMAP4 hardware and a scope is so inclined, I would be
-> curious to know the results.
+Hi!
 
-Hi David,
+> > ffdffe8d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200072
+> > 0000000d 48004a28 (fa004a28) cm_idlest3_core
+> > 
+> > cm_idlest1_core changes periodicall often, to 00218072. The rest seems
+> > constant.
+> 
+> For cm_idlest1_core 42 is the answer.. Here you have bits 4 and 5
+> blocking which is for OTG and it's PHY. That's a known issue with
+> musb and setting pm_runtime_irq_safe() on the MUSB parent.
+> 
+> If you do rmmod omap2430 and phy-twl4030usb chances are the LEDs will
+> start going off assuming the McSPI bit goes low with WLAN idling.
 
-Thanks for the work, it seems all good, I'll test them on my side the
-next days, but this work needed to be done for sure !
+Ok, so I tried to compile kernel without omap2430/phy-twl4030usb
+. That did not help. So I thought, ok, maybe rmmod is needed to
+trigger some powersaving? But that is not exactly easy to do:
 
-The only OMAP4 HW I have is a Pandaboard and it's very difficult to
-get the timer outputs...
+pavel@n900:/my/tui/ofone$ sudo insmod /my/modules/omap2430.ko
+pavel@n900:/my/tui/ofone$ sudo insmod /my/modules/phy-twl4030-usb.ko
+pavel@n900:/my/tui/ofone$ sudo rmmod phy-twl4030-usb.ko
+Error: Module phy_twl4030_usb is in use
+pavel@n900:/my/tui/ofone$
 
+Any ideas what jumps to use the modules? Charger code?
 
-Neil
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
