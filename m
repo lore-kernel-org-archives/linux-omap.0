@@ -1,7 +1,7 @@
 From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Subject: [PATCH 4/4] pwm: omap-dmtimer: add dev_dbg() message for effective period and duty cycle
-Date: Fri, 29 Jan 2016 23:26:54 -0500
-Message-ID: <1454128014-22866-5-git-send-email-drivshin.allworx@gmail.com>
+Subject: [PATCH 3/4] pwm: omap-dmtimer: round load and match values rather than truncate
+Date: Fri, 29 Jan 2016 23:26:53 -0500
+Message-ID: <1454128014-22866-4-git-send-email-drivshin.allworx@gmail.com>
 References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
 Return-path: <linux-pwm-owner@vger.kernel.org>
 In-Reply-To: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
@@ -12,46 +12,33 @@ List-Id: linux-omap@vger.kernel.org
 
 From: David Rivshin <drivshin@allworx.com>
 
-After going through the math and constraints checking to compute load and
-match values, it is helpful to know what the resultant period and duty
-cycle are.
+When converting period and duty_cycle from nanoseconds to fclk cycles,
+the error introduced by the integer division can be appreciable, especially
+in the case of slow fclk or short period. Use DIV_ROUND_CLOSEST_ULL() so
+that the error is kept to +/- 0.5 clock cycles.
 
+Fixes: 6604c6556db9 ("pwm: Add PWM driver for OMAP using dual-mode timers")
 Signed-off-by: David Rivshin <drivshin@allworx.com>
 ---
-
-I found this helpful while testing the other changes, so I included it in
-case it may be of use to someone in the future. I would have no issues with
-dropping this if it's not considered worthwhile.
-
- drivers/pwm/pwm-omap-dmtimer.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/pwm/pwm-omap-dmtimer.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
 diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-index 8c9953c..44e3dca 100644
+index 103d729..8c9953c 100644
 --- a/drivers/pwm/pwm-omap-dmtimer.c
 +++ b/drivers/pwm/pwm-omap-dmtimer.c
-@@ -102,7 +102,8 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
- 	unsigned long clk_rate;
- 	bool timer_active;
+@@ -49,11 +49,7 @@ to_pwm_omap_dmtimer_chip(struct pwm_chip *chip)
  
--	dev_dbg(chip->dev, "duty cycle: %d, period %d\n", duty_ns, period_ns);
-+	dev_dbg(chip->dev, "requested duty cycle: %dns, period: %dns\n",
-+		duty_ns, period_ns);
+ static u32 pwm_omap_dmtimer_get_clock_cycles(unsigned long clk_rate, int ns)
+ {
+-	u64 c = (u64)clk_rate * ns;
+-
+-	do_div(c, NSEC_PER_SEC);
+-
+-	return c;
++	return DIV_ROUND_CLOSEST_ULL((u64)clk_rate * ns, NSEC_PER_SEC);
+ }
  
- 	mutex_lock(&omap->mutex);
- 	if (duty_ns == pwm_get_duty_cycle(pwm) &&
-@@ -163,6 +164,12 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
- 		duty_cycles = period_cycles - 1;
- 	}
- 
-+	dev_dbg(chip->dev, "effective duty cycle: %lldns, period: %lldns\n",
-+		DIV_ROUND_CLOSEST_ULL((u64)NSEC_PER_SEC * duty_cycles,
-+				      clk_rate),
-+		DIV_ROUND_CLOSEST_ULL((u64)NSEC_PER_SEC * period_cycles,
-+				      clk_rate));
-+
- 	load_value = (DM_TIMER_MAX - period_cycles) + 1;
- 	match_value = load_value + duty_cycles - 1;
- 
+ static void pwm_omap_dmtimer_start(struct pwm_omap_dmtimer_chip *omap)
 -- 
 2.5.0
