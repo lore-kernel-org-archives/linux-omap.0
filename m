@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 1/5] HSI: nokia-modem: simplify kernel access to gpios
-Date: Sun, 31 Jan 2016 02:19:43 +0100
-Message-ID: <1454203187-688-2-git-send-email-sre@kernel.org>
+Subject: [PATCH 2/5] HSI: nokia-modem: kernel based PM
+Date: Sun, 31 Jan 2016 02:19:44 +0100
+Message-ID: <1454203187-688-3-git-send-email-sre@kernel.org>
 References: <1454203187-688-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1454203187-688-1-git-send-email-sre@kernel.org>
@@ -10,185 +10,303 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-
 Cc: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-For implementing kernel based modem power management, the
-gpios should be accessible via name from the kernel. The
-old code would require walking through the gpio array
-comparing the name of each gpio. This is no longer needed
-by the new code, which does the comparing once at probe
-time. As a side effect the code now checks, that all
-required gpios are provided.
+So far power management had to be done in uerspace using exported GPIOs.
+This patch adds kernel based power management, which will bind the
+modem's power state to the state of the phonet network interface.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/hsi/clients/nokia-modem.c | 115 ++++++++++++++++++++++++++++----------
- 1 file changed, 85 insertions(+), 30 deletions(-)
+ drivers/hsi/clients/nokia-modem.c  | 116 +++++++++++++++++++++++++++++++++++--
+ drivers/hsi/clients/ssi_protocol.c |  21 +++++++
+ include/linux/hsi/ssi_protocol.h   |   9 +++
+ 3 files changed, 141 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/hsi/clients/nokia-modem.c b/drivers/hsi/clients/nokia-modem.c
-index c000780d931f..f20ede611593 100644
+index f20ede611593..6485f4c61092 100644
 --- a/drivers/hsi/clients/nokia-modem.c
 +++ b/drivers/hsi/clients/nokia-modem.c
-@@ -34,19 +34,23 @@ module_param(pm, int, 0400);
+@@ -28,11 +28,12 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_gpio.h>
+ #include <linux/hsi/ssi_protocol.h>
++#include <linux/delay.h>
+ 
+ static unsigned int pm = 1;
+ module_param(pm, int, 0400);
  MODULE_PARM_DESC(pm,
- 	"Enable power management (0=disabled, 1=userland based [default])");
+-	"Enable power management (0=disabled, 1=userland based [default])");
++	"Enable power management (0=disabled, 1=userland based [default], 2=kernel based)");
  
--struct nokia_modem_gpio {
--	struct gpio_desc	*gpio;
--	const char		*name;
-+enum nokia_modem_type {
-+	RAPUYAMA_V1,
-+	RAPUYAMA_V2,
- };
- 
- struct nokia_modem_device {
- 	struct tasklet_struct	nokia_modem_rst_ind_tasklet;
- 	int			nokia_modem_rst_ind_irq;
- 	struct device		*device;
--	struct nokia_modem_gpio	*gpios;
--	int			gpio_amount;
- 	struct hsi_client	*ssi_protocol;
- 	struct hsi_client	*cmt_speech;
-+	enum nokia_modem_type	type;
-+	struct gpio_desc        *gpio_cmt_en;
-+	struct gpio_desc	*gpio_cmt_apeslpx;
-+	struct gpio_desc	*gpio_cmt_rst_rq;
-+	struct gpio_desc	*gpio_cmt_rst;
-+	struct gpio_desc	*gpio_cmt_bsi;
+ enum nokia_modem_type {
+ 	RAPUYAMA_V1,
+@@ -51,6 +52,7 @@ struct nokia_modem_device {
+ 	struct gpio_desc	*gpio_cmt_rst_rq;
+ 	struct gpio_desc	*gpio_cmt_rst;
+ 	struct gpio_desc	*gpio_cmt_bsi;
++	struct notifier_block	nb;
  };
  
  static void do_nokia_modem_rst_ind_tasklet(unsigned long data)
-@@ -74,11 +78,33 @@ static irqreturn_t nokia_modem_rst_ind_isr(int irq, void *data)
+@@ -75,6 +77,93 @@ static irqreturn_t nokia_modem_rst_ind_isr(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
++static void nokia_modem_power_boot(struct nokia_modem_device *modem)
++{
++	/* skip flash mode */
++	gpiod_set_value(modem->gpio_cmt_apeslpx, 0);
++	/* prevent current drain */
++	gpiod_set_value(modem->gpio_cmt_rst_rq, 0);
++
++	if (modem->type == RAPUYAMA_V1) {
++		gpiod_set_value(modem->gpio_cmt_en, 0);
++		/* toggle BSI visible to modem */
++		gpiod_set_value(modem->gpio_cmt_bsi, 0);
++		/* Assert PURX */
++		gpiod_set_value(modem->gpio_cmt_rst, 0);
++		/* Press "power key" */
++		gpiod_set_value(modem->gpio_cmt_en, 1);
++		/* Release CMT to boot */
++		gpiod_set_value(modem->gpio_cmt_rst, 1);
++	} else if(modem->type == RAPUYAMA_V2) {
++		gpiod_set_value(modem->gpio_cmt_en, 0);
++		/* 15 ms needed for ASIC poweroff */
++		usleep_range(15000, 25000);
++		gpiod_set_value(modem->gpio_cmt_en, 1);
++	}
++
++	gpiod_set_value(modem->gpio_cmt_rst_rq, 1);
++}
++
++static void nokia_modem_power_on(struct nokia_modem_device *modem)
++{
++	gpiod_set_value(modem->gpio_cmt_rst_rq, 0);
++
++	if (modem->type == RAPUYAMA_V1) {
++		/* release "power key" */
++		gpiod_set_value(modem->gpio_cmt_en, 0);
++	}
++}
++
++static void nokia_modem_power_off(struct nokia_modem_device *modem)
++{
++	/* skip flash mode */
++	gpiod_set_value(modem->gpio_cmt_apeslpx, 0);
++	/* prevent current drain */
++	gpiod_set_value(modem->gpio_cmt_rst_rq, 0);
++
++	if (modem->type == RAPUYAMA_V1) {
++		/* release "power key" */
++		gpiod_set_value(modem->gpio_cmt_en, 0);
++		/* force modem to reset state */
++		gpiod_set_value(modem->gpio_cmt_rst, 0);
++		/* release modem to be powered off by bootloader */
++		gpiod_set_value(modem->gpio_cmt_rst, 1);
++	} else if(modem->type == RAPUYAMA_V2) {
++		/* power off */
++		gpiod_set_value(modem->gpio_cmt_en, 0);
++	}
++}
++
++static int ssi_protocol_event(struct notifier_block *nb, unsigned long event,
++			      void *data __maybe_unused)
++{
++	struct nokia_modem_device *modem =
++		container_of(nb, struct nokia_modem_device, nb);
++
++	switch(event) {
++		/* called on interface up */
++		case STATE_BOOT:
++			dev_info(modem->device, "modem power state: boot");
++			nokia_modem_power_boot(modem);
++			break;
++		/* called on link up */
++		case STATE_ON:
++			dev_info(modem->device, "modem power state: enabled");
++			nokia_modem_power_on(modem);
++			break;
++		/* called on interface down */
++		case STATE_OFF:
++			dev_info(modem->device, "modem power state: disabled");
++			nokia_modem_power_off(modem);
++			break;
++		default:
++			dev_warn(modem->device, "unknown ssi-protocol event");
++			break;
++	}
++
++	return NOTIFY_DONE;
++}
++
  static void nokia_modem_gpio_unexport(struct device *dev)
  {
  	struct nokia_modem_device *modem = dev_get_drvdata(dev);
--	int i;
- 
--	for (i = 0; i < modem->gpio_amount; i++) {
--		sysfs_remove_link(&dev->kobj, modem->gpios[i].name);
--		gpiod_unexport(modem->gpios[i].gpio);
-+	if (pm != 1)
-+		return;
-+
-+	if (modem->gpio_cmt_en) {
-+		sysfs_remove_link(&dev->kobj, "cmt_en");
-+		gpiod_unexport(modem->gpio_cmt_en);
-+	}
-+
-+	if (modem->gpio_cmt_apeslpx) {
-+		sysfs_remove_link(&dev->kobj, "cmt_apeslpx");
-+		gpiod_unexport(modem->gpio_cmt_apeslpx);
-+	}
-+
-+	if (modem->gpio_cmt_rst_rq) {
-+		sysfs_remove_link(&dev->kobj, "cmt_rst_rq");
-+		gpiod_unexport(modem->gpio_cmt_rst_rq);
-+	}
-+
-+	if (modem->gpio_cmt_rst) {
-+		sysfs_remove_link(&dev->kobj, "cmt_rst");
-+		gpiod_unexport(modem->gpio_cmt_rst);
-+	}
-+
-+	if (modem->gpio_cmt_bsi) {
-+		sysfs_remove_link(&dev->kobj, "cmt_bsi");
-+		gpiod_unexport(modem->gpio_cmt_bsi);
- 	}
- }
- 
-@@ -102,38 +128,61 @@ static int nokia_modem_gpio_probe(struct device *dev)
- 		return -EINVAL;
+@@ -218,6 +307,9 @@ static int nokia_modem_probe(struct device *dev)
+ 		modem->type = RAPUYAMA_V2;
  	}
  
--	modem->gpios = devm_kzalloc(dev, gpio_count *
--				sizeof(struct nokia_modem_gpio), GFP_KERNEL);
--	if (!modem->gpios) {
--		dev_err(dev, "Could not allocate memory for gpios\n");
--		return -ENOMEM;
--	}
--
--	modem->gpio_amount = gpio_count;
--
- 	for (i = 0; i < gpio_count; i++) {
--		modem->gpios[i].gpio = devm_gpiod_get_index(dev, NULL, i,
--							    GPIOD_OUT_LOW);
--		if (IS_ERR(modem->gpios[i].gpio)) {
-+		const char *gpio_name;
-+		struct gpio_desc *gpio_val;
-+
-+		gpio_val = devm_gpiod_get_index(dev, NULL, i, GPIOD_OUT_LOW);
-+		if (IS_ERR(gpio_val)) {
- 			dev_err(dev, "Could not get gpio %d\n", i);
--			return PTR_ERR(modem->gpios[i].gpio);
-+			return PTR_ERR(gpio_val);
- 		}
- 
- 		err = of_property_read_string_index(np, "gpio-names", i,
--						&(modem->gpios[i].name));
-+						    &gpio_name);
- 		if (err) {
- 			dev_err(dev, "Could not get gpio name %d\n", i);
- 			return err;
- 		}
- 
--		err = gpiod_export(modem->gpios[i].gpio, 0);
--		if (err)
--			return err;
-+		if (strcmp(gpio_name, "cmt_en") == 0) {
-+			modem->gpio_cmt_en = gpio_val;
-+		} else if(strcmp(gpio_name, "cmt_apeslpx") == 0) {
-+			modem->gpio_cmt_apeslpx = gpio_val;
-+		} else if(strcmp(gpio_name, "cmt_rst_rq") == 0) {
-+			modem->gpio_cmt_rst_rq = gpio_val;
-+		} else if(strcmp(gpio_name, "cmt_rst") == 0) {
-+			modem->gpio_cmt_rst = gpio_val;
-+		} else if(strcmp(gpio_name, "cmt_bsi") == 0) {
-+			modem->gpio_cmt_bsi = gpio_val;
-+		} else {
-+			dev_err(dev, "Unknown gpio '%s'\n", gpio_name);
-+			return -EINVAL;
-+		}
- 
--		err = gpiod_export_link(dev, modem->gpios[i].name,
--							modem->gpios[i].gpio);
--		if (err)
--			return err;
-+		if (pm == 1) {
-+			err = gpiod_export(gpio_val, 0);
-+			if (err)
-+				return err;
-+
-+			err = gpiod_export_link(dev, gpio_name, gpio_val);
-+			if (err)
-+				return err;
-+		}
-+	}
-+
-+	/* gpios required by both generations */
-+	if (!modem->gpio_cmt_en || !modem->gpio_cmt_apeslpx ||
-+	    !modem->gpio_cmt_rst_rq) {
-+		dev_err(dev, "missing gpio!");
-+		return -ENXIO;
-+	}
-+
-+	/* gpios required by first generations */
-+	if (modem->type == RAPUYAMA_V1 &&
-+	   (!modem->gpio_cmt_rst || !modem->gpio_cmt_bsi)) {
-+		dev_err(dev, "missing gpio!");
-+		return -ENXIO;
- 	}
- 
- 	return 0;
-@@ -163,6 +212,12 @@ static int nokia_modem_probe(struct device *dev)
- 	dev_set_drvdata(dev, modem);
- 	modem->device = dev;
- 
-+	if (of_device_is_compatible(np, "nokia,n900-modem")) {
-+		modem->type = RAPUYAMA_V1;
-+	} else {
-+		modem->type = RAPUYAMA_V2;
-+	}
++	modem->nb.notifier_call = ssi_protocol_event;
++	modem->nb.priority = INT_MAX;
 +
  	irq = irq_of_parse_and_map(np, 0);
  	if (!irq) {
  		dev_err(dev, "Invalid rst_ind interrupt (%d)\n", irq);
+@@ -268,6 +360,14 @@ static int nokia_modem_probe(struct device *dev)
+ 		goto error3;
+ 	}
+ 
++	if (pm == 2) {
++		err = ssip_notifier_register(modem->ssi_protocol, &modem->nb);
++		if (err < 0) {
++			dev_err(dev, "Could not register ssi-protocol notifier!");
++			goto error3;
++		}
++	}
++
+ 	cmtspeech.name = "cmt-speech";
+ 	cmtspeech.tx_cfg = cl->tx_cfg;
+ 	cmtspeech.rx_cfg = cl->rx_cfg;
+@@ -278,25 +378,28 @@ static int nokia_modem_probe(struct device *dev)
+ 	if (!modem->cmt_speech) {
+ 		dev_err(dev, "Could not register cmt-speech device\n");
+ 		err = -ENOMEM;
+-		goto error3;
++		goto error4;
+ 	}
+ 
+ 	err = device_attach(&modem->cmt_speech->device);
+ 	if (err == 0) {
+ 		dev_dbg(dev, "Missing cmt-speech driver\n");
+ 		err = -EPROBE_DEFER;
+-		goto error4;
++		goto error5;
+ 	} else if (err < 0) {
+ 		dev_err(dev, "Could not load cmt-speech driver (%d)\n", err);
+-		goto error4;
++		goto error5;
+ 	}
+ 
+ 	dev_info(dev, "Registered Nokia HSI modem\n");
+ 
+ 	return 0;
+ 
+-error4:
++error5:
+ 	hsi_remove_client(&modem->cmt_speech->device, NULL);
++error4:
++	if (pm == 2)
++		ssip_notifier_unregister(modem->ssi_protocol, &modem->nb);
+ error3:
+ 	hsi_remove_client(&modem->ssi_protocol->device, NULL);
+ error2:
+@@ -320,6 +423,9 @@ static int nokia_modem_remove(struct device *dev)
+ 		modem->cmt_speech = NULL;
+ 	}
+ 
++	if (pm == 2)
++		ssip_notifier_unregister(modem->ssi_protocol, &modem->nb);
++
+ 	if (modem->ssi_protocol) {
+ 		hsi_remove_client(&modem->ssi_protocol->device, NULL);
+ 		modem->ssi_protocol = NULL;
+diff --git a/drivers/hsi/clients/ssi_protocol.c b/drivers/hsi/clients/ssi_protocol.c
+index 6595d2091268..cee33cab889e 100644
+--- a/drivers/hsi/clients/ssi_protocol.c
++++ b/drivers/hsi/clients/ssi_protocol.c
+@@ -153,6 +153,7 @@ struct ssi_protocol {
+ 	atomic_t		tx_usecnt;
+ 	int			channel_id_cmd;
+ 	int			channel_id_data;
++	struct blocking_notifier_head	modem_state_notifier;
+ };
+ 
+ /* List of ssi protocol instances */
+@@ -735,6 +736,7 @@ static void ssip_rx_waketest(struct hsi_client *cl, u32 cmd)
+ 	dev_dbg(&cl->device, "CMT is ONLINE\n");
+ 	netif_wake_queue(ssi->netdev);
+ 	netif_carrier_on(ssi->netdev);
++	blocking_notifier_call_chain(&ssi->modem_state_notifier, STATE_ON, NULL);
+ }
+ 
+ static void ssip_rx_ready(struct hsi_client *cl)
+@@ -924,6 +926,7 @@ static int ssip_pn_open(struct net_device *dev)
+ 			err);
+ 		return err;
+ 	}
++	blocking_notifier_call_chain(&ssi->modem_state_notifier, STATE_BOOT, NULL);
+ 	dev_dbg(&cl->device, "Configuring SSI port\n");
+ 	hsi_setup(cl);
+ 	spin_lock_bh(&ssi->lock);
+@@ -942,11 +945,14 @@ static int ssip_pn_open(struct net_device *dev)
+ static int ssip_pn_stop(struct net_device *dev)
+ {
+ 	struct hsi_client *cl = to_hsi_client(dev->dev.parent);
++	struct ssi_protocol *ssi = hsi_client_drvdata(cl);
+ 
+ 	ssip_reset(cl);
+ 	hsi_unregister_port_event(cl);
+ 	hsi_release_port(cl);
+ 
++	blocking_notifier_call_chain(&ssi->modem_state_notifier, STATE_OFF, NULL);
++
+ 	return 0;
+ }
+ 
+@@ -1037,6 +1043,20 @@ void ssip_reset_event(struct hsi_client *master)
+ }
+ EXPORT_SYMBOL_GPL(ssip_reset_event);
+ 
++int ssip_notifier_register(struct hsi_client *master, struct notifier_block *nb)
++{
++	struct ssi_protocol *ssi = hsi_client_drvdata(master);
++	return blocking_notifier_chain_register(&ssi->modem_state_notifier, nb);
++}
++EXPORT_SYMBOL_GPL(ssip_notifier_register);
++
++int ssip_notifier_unregister(struct hsi_client *master, struct notifier_block *nb)
++{
++	struct ssi_protocol *ssi = hsi_client_drvdata(master);
++	return blocking_notifier_chain_unregister(&ssi->modem_state_notifier, nb);
++}
++EXPORT_SYMBOL_GPL(ssip_notifier_unregister);
++
+ static const struct net_device_ops ssip_pn_ops = {
+ 	.ndo_open	= ssip_pn_open,
+ 	.ndo_stop	= ssip_pn_stop,
+@@ -1085,6 +1105,7 @@ static int ssi_protocol_probe(struct device *dev)
+ 	ssi->keep_alive.function = ssip_keep_alive;
+ 	INIT_LIST_HEAD(&ssi->txqueue);
+ 	INIT_LIST_HEAD(&ssi->cmdqueue);
++	BLOCKING_INIT_NOTIFIER_HEAD(&ssi->modem_state_notifier);
+ 	atomic_set(&ssi->tx_usecnt, 0);
+ 	hsi_client_set_drvdata(cl, ssi);
+ 	ssi->cl = cl;
+diff --git a/include/linux/hsi/ssi_protocol.h b/include/linux/hsi/ssi_protocol.h
+index 1433651be0dc..6b742e9368a7 100644
+--- a/include/linux/hsi/ssi_protocol.h
++++ b/include/linux/hsi/ssi_protocol.h
+@@ -27,6 +27,12 @@
+ 
+ #include <linux/hsi/hsi.h>
+ 
++enum nokia_modem_state {
++	STATE_BOOT,
++	STATE_ON,
++	STATE_OFF,
++};
++
+ static inline void ssip_slave_put_master(struct hsi_client *master)
+ {
+ }
+@@ -36,6 +42,9 @@ int ssip_slave_start_tx(struct hsi_client *master);
+ int ssip_slave_stop_tx(struct hsi_client *master);
+ void ssip_reset_event(struct hsi_client *master);
+ 
++int ssip_notifier_register(struct hsi_client *master, struct notifier_block *nb);
++int ssip_notifier_unregister(struct hsi_client *master, struct notifier_block *nb);
++
+ int ssip_slave_running(struct hsi_client *master);
+ 
+ #endif /* __LINUX_SSIP_SLAVE_H__ */
 -- 
 2.7.0.rc3
