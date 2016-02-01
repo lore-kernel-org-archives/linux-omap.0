@@ -1,130 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
- v4.5-rc1
-Date: Mon, 1 Feb 2016 10:11:35 -0800
-Message-ID: <20160201181135.GL19432@atomide.com>
-References: <20160126224804.GB19432@atomide.com>
- <CAJZ5v0i79X5JjOZiu4cOZ0Esd5BxAvutF8d17asDzq9ECcML-g@mail.gmail.com>
- <20160126232212.GE19432@atomide.com>
- <CAJZ5v0gTRvyWHVmYNb8Q1QZzhVhokXo541+48mFyDRYv7Hi-Uw@mail.gmail.com>
- <20160126235222.GF19432@atomide.com>
- <CAPDyKFqD6Y6HcgVds_oWBZ8L7Kdh2VX_WZCGApf-1a_6GHCQ5g@mail.gmail.com>
- <20160128165810.GA19432@atomide.com>
- <CAPDyKFoQHpqdCa4fzHycP0OT2KsNTxWm7JZSe8Mauh+rxqGtGg@mail.gmail.com>
+Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
+Date: Mon, 1 Feb 2016 10:13:17 -0800
+Message-ID: <20160201181316.GM19432@atomide.com>
+References: <20160123121022.GB12497@amd>
+ <20160125163332.GT19432@atomide.com>
+ <20160126140010.GA29723@amd>
+ <20160126172527.GY3500@atomide.com>
+ <20160130200244.GA30429@amd>
+ <20160130201452.GC30429@amd>
+ <20160130221509.GA28644@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAPDyKFoQHpqdCa4fzHycP0OT2KsNTxWm7JZSe8Mauh+rxqGtGg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20160130221509.GA28644@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [160201 08:45]:
-> On 28 January 2016 at 17:58, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > The MMC hardware will not get idled properly any longer blocking any
-> > deeper idle states.
-> >
-> >> Did the driver not probe successfully the second try? If so, what happened.
-> >
-> > It probes fine after a -EPROBE_DEFER on the vmmc i2c regulator.
-> > But the PM runtime usecounts are wrong.
+* Pavel Machek <pavel@ucw.cz> [160130 14:16]:
+> Hi!
 > 
-> Okay. How did you verify this?
-
-Well that was just based on what I see in the dmesg:
-
-omap_device: omap_device_enable() called from invalid state 1
-
-> I think the easiest way would be to make sure the usage count is
-> *one*, just before the omap_hsmmc calls mmc_add_host() in its
-> ->probe() function.
+> > > > > ffdffe8d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200072
+> > > > > 0000000d 48004a28 (fa004a28) cm_idlest3_core
+> > > > > 
+> > > > > cm_idlest1_core changes periodicall often, to 00218072. The rest seems
+> > > > > constant.
+> > > > 
+> > > > For cm_idlest1_core 42 is the answer.. Here you have bits 4 and 5
+> > > > blocking which is for OTG and it's PHY. That's a known issue with
+> > > > musb and setting pm_runtime_irq_safe() on the MUSB parent.
+> > > > 
+> > > > If you do rmmod omap2430 and phy-twl4030usb chances are the LEDs will
+> > > > start going off assuming the McSPI bit goes low with WLAN idling.
+> > > 
+> > > Ok, so I tried to compile kernel without omap2430/phy-twl4030usb
+> > > . That did not help. So I thought, ok, maybe rmmod is needed to
+> > > trigger some powersaving? But that is not exactly easy to do:
+> > > 
+> > > pavel@n900:/my/tui/ofone$ sudo insmod /my/modules/omap2430.ko
+> > > pavel@n900:/my/tui/ofone$ sudo insmod /my/modules/phy-twl4030-usb.ko
+> > > pavel@n900:/my/tui/ofone$ sudo rmmod phy-twl4030-usb.ko
+> > > Error: Module phy_twl4030_usb is in use
+> > > pavel@n900:/my/tui/ofone$
+> > > 
+> > > Any ideas what jumps to use the modules? Charger code?
+> > 
+> > I tried a kernel without charger code, and no luck, rmmod fails the
+> > same way. dmesg says:
+> > [  111.093078] wlan0: authenticated
+> > [  111.097442] wlan0: associate with 06:27:22:f9:10:6a (try 1/3)
+> > [  111.104553] wlan0: RX AssocResp from 06:27:22:f9:10:6a (capab=0x421
+> > status=0 aid=2)
+> > [  111.104705] wlan0: AP has invalid WMM params (AIFSN=1 for ACI 2),
+> > will use 2
+> > [  111.104736] wlan0: AP has invalid WMM params (AIFSN=1 for ACI 3),
+> > will use 2
+> > [  111.256652] wlan0: associated
+> > [  184.681427] HS USB OTG: no transceiver configured
+> > [  184.681488] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
+> > with status -517
+> > [  184.681976] HS USB OTG: no transceiver configured
+> > [  184.682006] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
+> > with status -517
+> > [  187.690338] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> > Initialized TWL4030 USB module
+> > [  187.698303] musb-hdrc: ConfigData=0xde (UTMI-8, dyn FIFOs, bulk
+> > combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
+> > [  187.698333] musb-hdrc: MHDRC RTL version 1.400
+> > [  187.698333] musb-hdrc: setup fifo_mode 4
+> > [  187.698394] musb-hdrc: 28/31 max ep, 16384/16384 memory
+> > pavel@n900:/my/tui/ofone$
 > 
-> If it's *two*, that confirms this theory.
+> I added following hack to phy-twl4030-usb.c so that I could avoid
+> modules and module unloading problem. But still could not get it to
+> sleep :-(.
 
-Here's with use count dumped for one MMC:
-
-omap_hsmmc 4809c000.mmc: GPIO lookup for consumer cd
-omap_hsmmc 4809c000.mmc: using device tree for GPIO lookup
-omap_hsmmc 4809c000.mmc: Got CD GPIO
-omap_hsmmc 4809c000.mmc: GPIO lookup for consumer wp
-omap_hsmmc 4809c000.mmc: using device tree for GPIO lookup
-omap_hsmmc 4809c000.mmc: using lookup tables for GPIO lookup
-omap_hsmmc 4809c000.mmc: lookup for GPIO wp failed
-omap_hsmmc 4809c000.mmc: GPIO lookup for consumer cd
-omap_hsmmc 4809c000.mmc: using device tree for GPIO lookup
-omap_hsmmc 4809c000.mmc: Got CD GPIO
-omap_hsmmc 4809c000.mmc: GPIO lookup for consumer wp
-omap_hsmmc 4809c000.mmc: using device tree for GPIO lookup
-omap_hsmmc 4809c000.mmc: using lookup tables for GPIO lookup
-omap_hsmmc 4809c000.mmc: lookup for GPIO wp failed
-omap_hsmmc 4809c000.mmc: omap_device: omap_device_enable() called from invalid state 1
-omap_hsmmc 4809c000.mmc: PM runtime use count: 0
-
-So it seems you're right, it's the state not the count.
-
-> > So one of the failing cases seems to be:
-> >
-> > 1. Device driver probe sets pm_runtime_set_autosuspend_delay()
-> 
-> Only when "someone" in-before has set the autosuspend delay to a
-> negative value, this will affect the usage count.
-> 
-> I didn't find any in-kernel user that would set this for the
-> omap_hsmmc device, so it needs to be done from userspace via sysfs. It
-> would be really great if you could help to confirm this.
-
-No nothing is setting that from userspace.
-
-> But more importantly, I fail to understand why commit 5de85b9d57ab
-> ("PM / runtime: Re-init runtime PM states at probe error and driver
-> unbind"), is changing the behaviour in this regards.
-> Potentially we might have a different runtime PM status than we had
-> before when probing the second try, but how could that mess up the
-> usage count...?
-
-Yes I think you're right here, it's the state, not the count.
-
-> Although, I wondering whether it could be that it's the PM domain
-> that's preventing the omap_hsmmc device from becoming runtime
-> suspended.
-> 
-> Perhaps the PM domain returns an error code from its
-> ->runtime_suspend() callback?
-
-We certainly see a warning there.
-
-> Okay, so we definitely seem to have an issue with the changed runtime
-> PM status (suspended) the second probe time.
-> 
-> That's indeed caused by 5de85b9d57ab ("PM / runtime: Re-init runtime
-> PM states at probe error and driver unbind").
-
-Yup.
-
-> For example due to commit 5de85b9d57ab ("PM / runtime: Re-init runtime
-> PM states at probe error and driver unbind"), the ->runtime_resume()
-> callback seems now to be called twice in a row, without in-between
-> having the ->runtime_suspend() callback being invoked. Does really the
-> PM domain cope with that correctly?
-
-That might explain the warning above.
-
-> > BTW, do you have some hardware to test with that has PM runtime
-> > implemnted and actually working with mainline kernel?
-> 
-> Oh, yes. Although I don't have an omap3, I wish I had.
-
-OK good to hear. Anyways, getting an omap3 should be in tens of
-whatever units if you need one to test with.
-
-> Also, I have locally a "runtime PM test driver", which helps me to
-> test various runtime PM sequences.
-
-Now that would be good to have in the mainline kernel. Of course it
-still is a very limited test.
+Are you sure you're using v4.5-rc? I recently patched away some
+issues where rmmod of the musb related modules did not work.
 
 Regards,
 
