@@ -1,74 +1,108 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Mon, 1 Feb 2016 22:17:36 +0100
-Message-ID: <20160201211736.GA11283@amd>
-References: <20160123121022.GB12497@amd>
- <20160125163332.GT19432@atomide.com>
- <20160126140010.GA29723@amd>
- <20160126172527.GY3500@atomide.com>
- <20160130200244.GA30429@amd>
- <20160130201452.GC30429@amd>
- <20160130221509.GA28644@amd>
- <20160201181316.GM19432@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Mon, 1 Feb 2016 14:06:58 -0800
+Message-ID: <20160201220657.GO19432@atomide.com>
+References: <20160126224804.GB19432@atomide.com>
+ <CAJZ5v0i79X5JjOZiu4cOZ0Esd5BxAvutF8d17asDzq9ECcML-g@mail.gmail.com>
+ <20160126232212.GE19432@atomide.com>
+ <CAJZ5v0gTRvyWHVmYNb8Q1QZzhVhokXo541+48mFyDRYv7Hi-Uw@mail.gmail.com>
+ <20160126235222.GF19432@atomide.com>
+ <CAPDyKFqD6Y6HcgVds_oWBZ8L7Kdh2VX_WZCGApf-1a_6GHCQ5g@mail.gmail.com>
+ <20160128165810.GA19432@atomide.com>
+ <CAPDyKFoQHpqdCa4fzHycP0OT2KsNTxWm7JZSe8Mauh+rxqGtGg@mail.gmail.com>
+ <20160201181135.GL19432@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160201181316.GM19432@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+In-Reply-To: <20160201181135.GL19432@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
-
-> > > > Any ideas what jumps to use the modules? Charger code?
-> > > 
-> > > I tried a kernel without charger code, and no luck, rmmod fails the
-> > > same way. dmesg says:
-> > > [  111.093078] wlan0: authenticated
-> > > [  111.097442] wlan0: associate with 06:27:22:f9:10:6a (try 1/3)
-> > > [  111.104553] wlan0: RX AssocResp from 06:27:22:f9:10:6a (capab=0x421
-> > > status=0 aid=2)
-> > > [  111.104705] wlan0: AP has invalid WMM params (AIFSN=1 for ACI 2),
-> > > will use 2
-> > > [  111.104736] wlan0: AP has invalid WMM params (AIFSN=1 for ACI 3),
-> > > will use 2
-> > > [  111.256652] wlan0: associated
-> > > [  184.681427] HS USB OTG: no transceiver configured
-> > > [  184.681488] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
-> > > with status -517
-> > > [  184.681976] HS USB OTG: no transceiver configured
-> > > [  184.682006] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
-> > > with status -517
-> > > [  187.690338] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
-> > > Initialized TWL4030 USB module
-> > > [  187.698303] musb-hdrc: ConfigData=0xde (UTMI-8, dyn FIFOs, bulk
-> > > combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
-> > > [  187.698333] musb-hdrc: MHDRC RTL version 1.400
-> > > [  187.698333] musb-hdrc: setup fifo_mode 4
-> > > [  187.698394] musb-hdrc: 28/31 max ep, 16384/16384 memory
-> > > pavel@n900:/my/tui/ofone$
+* Tony Lindgren <tony@atomide.com> [160201 10:12]:
+> * Ulf Hansson <ulf.hansson@linaro.org> [160201 08:45]:
+> > On 28 January 2016 at 17:58, Tony Lindgren <tony@atomide.com> wrote:
+> > >
+> > > The MMC hardware will not get idled properly any longer blocking any
+> > > deeper idle states.
+> > >
+> > >> Did the driver not probe successfully the second try? If so, what happened.
+> > >
+> > > It probes fine after a -EPROBE_DEFER on the vmmc i2c regulator.
+> > > But the PM runtime usecounts are wrong.
 > > 
-> > I added following hack to phy-twl4030-usb.c so that I could avoid
-> > modules and module unloading problem. But still could not get it to
-> > sleep :-(.
+> > Okay. How did you verify this?
 > 
-> Are you sure you're using v4.5-rc? I recently patched away some
-> issues where rmmod of the musb related modules did not work.
+> Well that was just based on what I see in the dmesg:
+> 
+> omap_device: omap_device_enable() called from invalid state 1
 
-No, sorry, that was with 4.4. As you hit "PM regression with commit
-5de85b9d57ab PM runtime re-init in v4.5-rc1", I thought I'd avoid
-v4.5-rc. 
+So we're now missing the idling of hardare after -EPROBE_DEFER..
+Does the following patch work for you guys?
 
-(I assume I have to insmod and rmmod, right? Because powersave is not
-entered if I simply compile-out usb).
+Regards,
 
-Would you have commit ids for those rmmod fixes? It might be good to
-push them into stable, and I should try again with them applied...
+Tony
 
-Thanks and best regards,
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+8< -----------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 1 Feb 2016 13:40:46 -0800
+Subject: [PATCH] PM / runtime: Fix PM runtime reinit
+
+Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
+error and driver unbind") added calls to reinit the PM runtime. This
+however broke things for idling the hardware at least if the driver
+probing has pm_runtime_set_autosuspend_delay() and -EPROBE_DEFER
+happens.
+
+Fix the problem by adding a check for configured autosuspend if
+RPM_ACTIVE is set. Then reset the autosuspend, and suspend the
+device to make sure the hardware gets idled.
+
+Let's also cut down one level of nestedness and remove a negative
+test by returning early if pm_runtime_enabled(dev) as there is
+currently nothing for us to do in that case.
+
+Fixes: 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at
+probe error and driver unbind")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -1419,17 +1419,25 @@ void pm_runtime_init(struct device *dev)
+  */
+ void pm_runtime_reinit(struct device *dev)
+ {
+-	if (!pm_runtime_enabled(dev)) {
+-		if (dev->power.runtime_status == RPM_ACTIVE)
++	if (pm_runtime_enabled(dev))
++		return;
++
++	if (dev->power.runtime_status == RPM_ACTIVE) {
++		if (dev->power.use_autosuspend) {
++			__pm_runtime_use_autosuspend(dev, false);
++			pm_runtime_suspend(dev);
++		} else {
+ 			pm_runtime_set_suspended(dev);
+-		if (dev->power.irq_safe) {
+-			spin_lock_irq(&dev->power.lock);
+-			dev->power.irq_safe = 0;
+-			spin_unlock_irq(&dev->power.lock);
+-			if (dev->parent)
+-				pm_runtime_put(dev->parent);
+ 		}
+ 	}
++
++	if (dev->power.irq_safe) {
++		spin_lock_irq(&dev->power.lock);
++		dev->power.irq_safe = 0;
++		spin_unlock_irq(&dev->power.lock);
++		if (dev->parent)
++			pm_runtime_put(dev->parent);
++	}
+ }
+ 
+ /**
