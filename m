@@ -1,43 +1,64 @@
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Subject: Re: [PATCH 4/4] pwm: omap-dmtimer: add dev_dbg() message for
- effective period and duty cycle
-Date: Mon, 1 Feb 2016 13:22:28 -0500
-Message-ID: <20160201132228.2634b72e.drivshin.allworx@gmail.com>
-References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
-	<1454128014-22866-5-git-send-email-drivshin.allworx@gmail.com>
-	<CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Neil Armstrong <narmstrong@baylibre.com>, Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH 2/3] pinctrl: single: remove misuse of IRQF_NO_SUSPEND flag
+Date: Mon,  1 Feb 2016 18:28:18 +0000
+Message-ID: <1454351299-27440-3-git-send-email-sudeep.holla@arm.com>
+References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Haojian Zhuang <haojian.zhuang@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 30 Jan 2016 15:51:06 +0100
-Neil Armstrong <narmstrong@baylibre.com> wrote:
+From: Sudeep Holla <Sudeep.Holla@arm.com>
 
-> 2016-01-30 5:26 GMT+01:00 David Rivshin (Allworx)
-> <drivshin.allworx@gmail.com>:
-> > From: David Rivshin <drivshin@allworx.com>
-> >
-> > After going through the math and constraints checking to compute
-> > load and match values, it is helpful to know what the resultant
-> > period and duty cycle are.
-> >
-> > Signed-off-by: David Rivshin <drivshin@allworx.com>
-> > ---
-> >
-> > I found this helpful while testing the other changes, so I included
-> > it in case it may be of use to someone in the future. I would have
-> > no issues with dropping this if it's not considered worthwhile.  
-> 
-> It's useful, but converting it as a sysfs attribute would be great !
+The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+be left enabled so as to allow them to work as expected during the
+suspend-resume cycle, but doesn't guarantee that it will wake the system
+from a suspended state, enable_irq_wake is recommended to be used for
+the wakeup.
 
-Hrm, yes that is an interesting thought. I imagine that many PWM 
-devices have similar constraints, so perhaps that would be best 
-handled generically in the pwm core? Maybe as new optional get_*() 
-ops, a modification to the config() op to add output params, or just 
-updating new fields in the struct pwm directly?
+This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+irq_set_irq_wake instead.
+
+Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-gpio@vger.kernel.org
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/pinctrl/pinctrl-single.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index fb126d56ad40..03977a75a9e2 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1619,12 +1619,14 @@ static void pcs_irq_unmask(struct irq_data *d)
+  */
+ static int pcs_irq_set_wake(struct irq_data *d, unsigned int state)
+ {
++	struct pcs_soc_data *pcs_soc = irq_data_get_irq_chip_data(d);
++
+ 	if (state)
+ 		pcs_irq_unmask(d);
+ 	else
+ 		pcs_irq_mask(d);
+ 
+-	return 0;
++	return irq_set_irq_wake(pcs_soc->irq, state);
+ }
+ 
+ /**
+@@ -1760,8 +1762,7 @@ static int pcs_irq_init_chained_handler(struct pcs_device *pcs,
+ 		int res;
+ 
+ 		res = request_irq(pcs_soc->irq, pcs_irq_handler,
+-				  IRQF_SHARED | IRQF_NO_SUSPEND |
+-				  IRQF_NO_THREAD,
++				  IRQF_SHARED | IRQF_NO_THREAD,
+ 				  name, pcs_soc);
+ 		if (res) {
+ 			pcs_soc->irq = -1;
+-- 
+1.9.1
+
