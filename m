@@ -1,85 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Mon, 1 Feb 2016 10:13:17 -0800
-Message-ID: <20160201181316.GM19432@atomide.com>
-References: <20160123121022.GB12497@amd>
- <20160125163332.GT19432@atomide.com>
- <20160126140010.GA29723@amd>
- <20160126172527.GY3500@atomide.com>
- <20160130200244.GA30429@amd>
- <20160130201452.GC30429@amd>
- <20160130221509.GA28644@amd>
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: Re: [PATCH 4/4] pwm: omap-dmtimer: add dev_dbg() message for
+ effective period and duty cycle
+Date: Mon, 1 Feb 2016 13:22:28 -0500
+Message-ID: <20160201132228.2634b72e.drivshin.allworx@gmail.com>
+References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
+	<1454128014-22866-5-git-send-email-drivshin.allworx@gmail.com>
+	<CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160130221509.GA28644@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>, Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [160130 14:16]:
-> Hi!
+On Sat, 30 Jan 2016 15:51:06 +0100
+Neil Armstrong <narmstrong@baylibre.com> wrote:
+
+> 2016-01-30 5:26 GMT+01:00 David Rivshin (Allworx)
+> <drivshin.allworx@gmail.com>:
+> > From: David Rivshin <drivshin@allworx.com>
+> >
+> > After going through the math and constraints checking to compute
+> > load and match values, it is helpful to know what the resultant
+> > period and duty cycle are.
+> >
+> > Signed-off-by: David Rivshin <drivshin@allworx.com>
+> > ---
+> >
+> > I found this helpful while testing the other changes, so I included
+> > it in case it may be of use to someone in the future. I would have
+> > no issues with dropping this if it's not considered worthwhile.  
 > 
-> > > > > ffdffe8d 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200072
-> > > > > 0000000d 48004a28 (fa004a28) cm_idlest3_core
-> > > > > 
-> > > > > cm_idlest1_core changes periodicall often, to 00218072. The rest seems
-> > > > > constant.
-> > > > 
-> > > > For cm_idlest1_core 42 is the answer.. Here you have bits 4 and 5
-> > > > blocking which is for OTG and it's PHY. That's a known issue with
-> > > > musb and setting pm_runtime_irq_safe() on the MUSB parent.
-> > > > 
-> > > > If you do rmmod omap2430 and phy-twl4030usb chances are the LEDs will
-> > > > start going off assuming the McSPI bit goes low with WLAN idling.
-> > > 
-> > > Ok, so I tried to compile kernel without omap2430/phy-twl4030usb
-> > > . That did not help. So I thought, ok, maybe rmmod is needed to
-> > > trigger some powersaving? But that is not exactly easy to do:
-> > > 
-> > > pavel@n900:/my/tui/ofone$ sudo insmod /my/modules/omap2430.ko
-> > > pavel@n900:/my/tui/ofone$ sudo insmod /my/modules/phy-twl4030-usb.ko
-> > > pavel@n900:/my/tui/ofone$ sudo rmmod phy-twl4030-usb.ko
-> > > Error: Module phy_twl4030_usb is in use
-> > > pavel@n900:/my/tui/ofone$
-> > > 
-> > > Any ideas what jumps to use the modules? Charger code?
-> > 
-> > I tried a kernel without charger code, and no luck, rmmod fails the
-> > same way. dmesg says:
-> > [  111.093078] wlan0: authenticated
-> > [  111.097442] wlan0: associate with 06:27:22:f9:10:6a (try 1/3)
-> > [  111.104553] wlan0: RX AssocResp from 06:27:22:f9:10:6a (capab=0x421
-> > status=0 aid=2)
-> > [  111.104705] wlan0: AP has invalid WMM params (AIFSN=1 for ACI 2),
-> > will use 2
-> > [  111.104736] wlan0: AP has invalid WMM params (AIFSN=1 for ACI 3),
-> > will use 2
-> > [  111.256652] wlan0: associated
-> > [  184.681427] HS USB OTG: no transceiver configured
-> > [  184.681488] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
-> > with status -517
-> > [  184.681976] HS USB OTG: no transceiver configured
-> > [  184.682006] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed
-> > with status -517
-> > [  187.690338] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
-> > Initialized TWL4030 USB module
-> > [  187.698303] musb-hdrc: ConfigData=0xde (UTMI-8, dyn FIFOs, bulk
-> > combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
-> > [  187.698333] musb-hdrc: MHDRC RTL version 1.400
-> > [  187.698333] musb-hdrc: setup fifo_mode 4
-> > [  187.698394] musb-hdrc: 28/31 max ep, 16384/16384 memory
-> > pavel@n900:/my/tui/ofone$
-> 
-> I added following hack to phy-twl4030-usb.c so that I could avoid
-> modules and module unloading problem. But still could not get it to
-> sleep :-(.
+> It's useful, but converting it as a sysfs attribute would be great !
 
-Are you sure you're using v4.5-rc? I recently patched away some
-issues where rmmod of the musb related modules did not work.
-
-Regards,
-
-Tony
+Hrm, yes that is an interesting thought. I imagine that many PWM 
+devices have similar constraints, so perhaps that would be best 
+handled generically in the pwm core? Maybe as new optional get_*() 
+ops, a modification to the config() op to add output params, or just 
+updating new fields in the struct pwm directly?
