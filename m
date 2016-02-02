@@ -1,90 +1,74 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 4/4] pwm: omap-dmtimer: add dev_dbg() message for
- effective period and duty cycle
-Date: Tue, 2 Feb 2016 17:23:30 +0100
-Message-ID: <20160202162330.GA4918@ulmo>
-References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
- <1454128014-22866-5-git-send-email-drivshin.allworx@gmail.com>
- <CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
- <20160201132228.2634b72e.drivshin.allworx@gmail.com>
- <20160201185952.GN19432@atomide.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Tue, 2 Feb 2016 11:23:48 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1602021116510.1653-100000@iolanthe.rowland.org>
+References: <CAPDyKFras1o13WBZzaZ_Snnj5TBQQFWKr=PtCjUvwe+yGPQn9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
-Return-path: <linux-pwm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160201185952.GN19432@atomide.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFras1o13WBZzaZ_Snnj5TBQQFWKr=PtCjUvwe+yGPQn9w@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, 2 Feb 2016, Ulf Hansson wrote:
 
---lrZ03NoBR/3+SXJZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> That's not what we want. So I moved the checks to the actual
+> ->runtime_resume() callback in the PM domain, instead of in the
+> omap_device_enable() function. A version 2 is attached. Please give it
+> at try.
+> 
+> [...]
+> 
+> From: Ulf Hansson <ulf.hansson@linaro.org>
+> Date: Tue, 2 Feb 2016 10:05:39 +0100
+> Subject: [PATCH V2] ARM: OMAP2+: omap-device: Allow devices to be pre-enabled
+> 
+> Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
+> error and driver unbind") may re-initialize the runtime PM status of the
+> device to RPM_SUSPENDED at driver probe failures.
+> 
+> For the omap_hsmmc and likely also other omap drivers, which needs more
+> than one attempt to ->probe() (returning -EPROBE_DEFER), this commit
+> causes a regression at the PM domain level (omap hwmod).
+> 
+> The reason is that the drivers don't put back the device into low power
+> state while bailing out in ->probe to return -EPROBE_DEFER. This leads to
+> that pm_runtime_reinit() in driver core, is re-initializing the runtime PM
+> status from RPM_ACTIVE to RPM_SUSPENDED.
 
-On Mon, Feb 01, 2016 at 10:59:52AM -0800, Tony Lindgren wrote:
-> Hi,
->=20
-> * David Rivshin (Allworx) <drivshin.allworx@gmail.com> [160201 10:23]:
-> > On Sat, 30 Jan 2016 15:51:06 +0100
-> > Neil Armstrong <narmstrong@baylibre.com> wrote:
-> >=20
-> > > 2016-01-30 5:26 GMT+01:00 David Rivshin (Allworx)
-> > > <drivshin.allworx@gmail.com>:
-> > > > From: David Rivshin <drivshin@allworx.com>
-> > > >
-> > > > After going through the math and constraints checking to compute
-> > > > load and match values, it is helpful to know what the resultant
-> > > > period and duty cycle are.
-> > > >
-> > > > Signed-off-by: David Rivshin <drivshin@allworx.com>
-> > > > ---
-> > > >
-> > > > I found this helpful while testing the other changes, so I included
-> > > > it in case it may be of use to someone in the future. I would have
-> > > > no issues with dropping this if it's not considered worthwhile. =20
-> > >=20
-> > > It's useful, but converting it as a sysfs attribute would be great !
-> >=20
-> > Hrm, yes that is an interesting thought. I imagine that many PWM=20
-> > devices have similar constraints, so perhaps that would be best=20
-> > handled generically in the pwm core? Maybe as new optional get_*()=20
-> > ops, a modification to the config() op to add output params, or just=20
-> > updating new fields in the struct pwm directly?
->=20
-> Yeah for /sys entry it should be Linux generic. The other option
-> is to use debugfs for driver specific things.
+But isn't that okay?  When the system starts up, the PM core doesn't 
+know the actual state of any device.  It just marks each device as 
+RPM_SUSPENDED and disabled as it is registered.  It's the job of 
+subsystems and drivers to make sure the stored state agrees with the 
+actual physical state.
 
-Let's go with debugfs for this one. This is used for diagnostic purposes
-and not typically needed when configuring a PWM. While other drivers may
-compute similar hardware-specific values, there's nothing generic to
-them. The period and duty cycle are the generic input values and those
-are already exposed via sysfs.
+So why shouldn't pm_runtime_reinit() leave the structure the same as it 
+would be if the device had just been registered?
 
-Thierry
+> The next ->probe() attempt then triggers the ->runtime_resume() callback
+> to be invoked, which means this happens two times in a row. At the PM
+> domain level (omap hwmod) this is being treated as an error and thus the
+> runtime PM status of the device isn't correctly synchronized with the
+> runtime PM core.
 
---lrZ03NoBR/3+SXJZ
-Content-Type: application/pgp-signature; name="signature.asc"
+Why doesn't the same problem arise the first time the device is probed?  
+Or to put it another, why should a re-probe be any different from the 
+initial probe?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> In the end, ->probe() anyway succeeds (as the driver don't checks the
+> error code from the runtime PM APIs), but results in that the PM domain
+> always stays powered on. This because of the runtime PM core believes the
+> device is RPM_SUSPENDED.
+> 
+> Fix this regression by allowing devices to be pre-enabled when the PM
+> domain's (omap hwmod) ->runtime_resume() callback is requested to enable
+> the device. In such cases, return zero to synchronize the runtime PM
+> status with the runtime PM core.
 
-iQIcBAABCAAGBQJWsNf+AAoJEN0jrNd/PrOhFAAP/1coNlmdgICGW0xChC+uhJEy
-ZrmBYcNBxL/h71L0gkXjEczK72JC4OqH9cM/yv5zC8mAsoeoJZjUsXGo9VNFxODX
-OsYr/qX/uSgSblolN/vvbeltBq8x3Ofna4/ltRw9WgL2CyRbqQ5qySQ8BypaxEUo
-XazoV5eTjMfpmSOdvF/3tqo5P9p/63hkMcvf3b4WCNI/JlW3oEG8Mwnpxwuv1bl9
-YMxmpQa5xR6Zsux1i3xn6E4ZHVmjEKI1FkOJeVmircl155TTVaU2L/VF8ODNcS3U
-puIU3jInkq3Yelv66vrLNzPsL+sKgun/j10JEHI7z5Jy2BQVYpBUwK6qiX28WPhq
-PQqZYx/HTeCighustMj9gFNMPRAHaMLkMmo0mwHUawXMgBo7UKMXC5ATMXWPPuPj
-ElaqVK04/1S/ULb6KE8FeUuEHrh13yotHY5ETlhywStwxAsvBpn5kbSduHlXuKew
-iunBQDuOR673Qaf2q1rkJjgFvZOaFeFI5xbuitYiA1EL7bOMcwkIFODQdBqwCKGg
-QCGDtYO58QqC5Gzi/0baJen8N+FBsMfYETNPqFAxuqjXse8SSgyx/zi9D4qwA7L0
-vrZyM5yd+1MK8y2KzYWifyHfFOw38RRBP5IGShUHeNTYrDbPsZtg08sgOVvOeYTQ
-TjuXxwHLe0bQXg7qXXyu
-=8QlR
------END PGP SIGNATURE-----
+Is this really the right way to fix the problem?
 
---lrZ03NoBR/3+SXJZ--
+Alan Stern
+
