@@ -1,83 +1,58 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH 4/4] ARM: dts: am335x-sl50: Fix audio codec setup.
-Date: Tue, 2 Feb 2016 16:07:01 -0300
-Message-ID: <56B0FE55.3060102@osg.samsung.com>
-References: <1452941473-6349-1-git-send-email-enric.balletbo@collabora.com>
- <1452941473-6349-5-git-send-email-enric.balletbo@collabora.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Tue, 2 Feb 2016 14:16:30 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1602021402250.1653-100000@iolanthe.rowland.org>
+References: <20160202185450.GY19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1452941473-6349-5-git-send-email-enric.balletbo@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo i Serra <enric.balletbo@collabora.com>, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Pau Pajuel <ppajuel@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160202185450.GY19432@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Enric,
+On Tue, 2 Feb 2016, Tony Lindgren wrote:
 
-On 01/16/2016 07:51 AM, Enric Balletbo i Serra wrote:
-> The MCLK is provided by an external clock of 24.576MHz.
->
-> Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-> ---
->   arch/arm/boot/dts/am335x-sl50.dts | 20 ++++++++++++++++++--
->   1 file changed, 18 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
-> index 9e1dac6..a676869 100644
-> --- a/arch/arm/boot/dts/am335x-sl50.dts
-> +++ b/arch/arm/boot/dts/am335x-sl50.dts
-> @@ -67,12 +67,28 @@
->   		default-brightness-level = <6>;
->   	};
->
-> +	clocks {
-> +		compatible = "simple-bus";
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		/* audio external oscillator */
-> +		tlv320aic3x_mclk: oscillator@0 {
-> +			compatible = "fixed-clock";
-> +			#clock-cells = <0>;
-> +			clock-frequency  = <24576000>;	/* 24.576MHz */
-> +		};
-> +	};
-> +
->   	sound {
->   		compatible = "ti,da830-evm-audio";
->   		ti,model = "AM335x-SL50";
->   		ti,audio-codec = <&audio_codec>;
->   		ti,mcasp-controller = <&mcasp0>;
-> -		ti,codec-clock-rate = <12000000>;
-> +
-> +		clocks = <&tlv320aic3x_mclk>;
-> +		clock-names = "mclk";
-> +
->   		ti,audio-routing =
->   			"Headphone Jack",	"HPLOUT",
->   			"Headphone Jack",	"HPROUT",
-> @@ -230,7 +246,7 @@
->   			AM33XX_IOPAD(0x994, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcasp0_fsx.mcasp0_fsx */
->   			AM33XX_IOPAD(0x990, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcasp0_aclkx.mcasp0_aclkx */
->   			AM33XX_IOPAD(0x998, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* mcasp0_axr0.mcasp0_axr0 */
-> -			AM33XX_IOPAD(0x99c, PIN_INPUT_PULLDOWN | MUX_MODE2)	/* mcasp0_ahclkr.mcasp0_axr2*/
-> +			AM33XX_IOPAD(0x99c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)	/* mcasp0_ahclkr.mcasp0_axr2 */
+> > I'm still not clear on what you want to accomplish.  It sounds like you 
+> > want to perform a runtime suspend following the last probe (if the 
+> > probe fails), and in between probes you don't really care (although it 
+> > would be preferable to avoid suspending).
+> 
+> I'd like to have pm_runtime_put_sync() disable the hardware after
+> the initial failed probe. Currently that does not happen unless
+> pm_runtime_dont_use_autosuspend() is called before pm_runtime_put_sync().
 
-Please also mention this change in the commit message.
+pm_runtime_put_sync() doesn't do anything to the hardware if the usage
+count was > 1, because after the decrement it's still nonzero.  Where
+is the particular call of pm_runtime_put_sync() that you're interested
+in, and what is the usage count when it runs?  It's not at all unusual
+for the usage count to be > 1 during a probe.
 
->   		>;
->   	};
->
->
+Also, what is autosuspend_delay set to for your device?  And is 
+runtime_auto set?
 
-after the updated commit message:
+> > Does pm_runtime_use_autosuspend() get called by the probe routine?  If 
+> > it does, then perhaps you can get what you want by having the probe 
+> > routine call pm_runtime_dont_use_autosuspend() whenever it's about to 
+> > return an error -- particularly -EDEFER.
+> 
+> Yes so far that's the only fix that seems to work like I posted
+> earlier. But is that the right fix though?
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+No, not really.  Ideally you would leave autosuspend turned on.  The 
+delay would be long enough to that after -EDEFER, another probe would 
+start before the delay expired.  But shortly after the last probe 
+attempt, the delay would expire and the device would then be put in low 
+power.
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+> If we wanted to have some generic fix, it seems we would have to pass
+> a new flag in pm_runtime_put_sync() to ignore any autosuspend
+> configuration. But I don't know if that's what we want to or should
+> do though?
+
+I don't think so.
+
+Alan Stern
+
