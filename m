@@ -1,80 +1,109 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
 Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
-Date: Tue, 2 Feb 2016 21:24:41 +0100
-Message-ID: <CAPDyKFokWcLSCAh_TX-j-df_M1hN8Qw1gbQt--SyWccGCPiN5Q@mail.gmail.com>
-References: <CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
-	<Pine.LNX.4.44L0.1602021112320.1653-100000@iolanthe.rowland.org>
+Date: Tue, 2 Feb 2016 21:47:20 +0100
+Message-ID: <CAPDyKFosQjkHDVSvy67+hstjjFseXQP5WYXrJE19GgVFYJ099w@mail.gmail.com>
+References: <20160201232833.GR19432@atomide.com>
+	<Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
+	<20160202030533.GT19432@atomide.com>
+	<CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
+	<CAPDyKFras1o13WBZzaZ_Snnj5TBQQFWKr=PtCjUvwe+yGPQn9w@mail.gmail.com>
+	<20160202163536.GU19432@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1602021112320.1653-100000@iolanthe.rowland.org>
+In-Reply-To: <20160202163536.GU19432@atomide.com>
 Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-[...]
-
+On 2 February 2016 at 17:35, Tony Lindgren <tony@atomide.com> wrote:
+> Hi,
+>
+> * Ulf Hansson <ulf.hansson@linaro.org> [160202 02:43]:
 >>
->> Your observations is correct. The hardware will be kept active
->> in-between the probe attempts (and thus also if probing fails).
->> Although, that's not a regression as that's the behaviour you get from
->> runtime PM, when drivers are implemented like omap_hsmmc.
->
-> Perhaps this is what we should do.  If probing gets deferred a few
-> times, doing runtime suspends and resumes in between will be a waste of
-> time.
-
-Then you will have to distinguish between -EPROBE_DEFER and other
-errors, as I think leaving the device fully powered from a permanent
-failed probe isn't very good.
-
-Anyway, for sure it's doable by the driver, but let's try to focus on
-the regression here for now.
-
->
->> Instead of the suggested approaches, I think the regression should be
->> fixed at the PM domain level (omap hwmod). I have attached a patch
->> below, please give it try as it's untested.
+>> For the omap_hsmmc and likely also other omap drivers, which needs more
+>> than one attempt to ->probe() (returning -EPROBE_DEFER), this commit
+>> causes a regression at the PM domain level (omap hwmod).
 >>
->> To solve the other problem (allowing devices to become inactive
->> in-between at probe failures), I see two options (not treated as
->> regressions).
->> 1)
->> Change the behaviour of pm_runtime_put_sync(), to *not* respect the
->> autosuspend mode.
->> I think I prefer this option, as it seems like autosuspend should be
->> respected only via the asynchronous runtime PM APIs.
+>> The reason is that the drivers don't put back the device into low power
+>> state while bailing out in ->probe to return -EPROBE_DEFER. This leads to
+>> that pm_runtime_reinit() in driver core, is re-initializing the runtime PM
+>> status from RPM_ACTIVE to RPM_SUSPENDED.
 >
-> ?  pm_runtime_put_sync() _already_ does not respect the autosuspend
-> mode.  If you want to respect it, you have to call
-> pm_runtime_put_sync_autosuspend() instead.
+> Yup, that's the bug here. It seems that we never call the runtime_suspend
+> callback at the end of a first failed device driver probe if the driver
+> has set pm_runtime_use_autosuspend. Only rpm_idle runtime_idle callback
+> gets called. So the device stays on.
+>
+> This does not happen if pm_runtime_dont_use_autosuspend() is added to
+> the end of the device driver probe before pm_runtime_put_sync().
 
-Then there's a bug in the runtime PM core.
-
->From Tony's regression report and from mine own local runtime PM test
-driver, I can see that the device doesn't get RPM_SUSPENDED (the
-->runtime_suspend() callback isn't called), even when the usage count
-is zero - when pm_runtime_put_sync() is called.
-
-To find the sequence of runtime PM commands, go ahead an have look in
-the omap_hsmmc driver. The problem occurs when the driver bails out in
-probe, when it receives -EPROBE_DEFER when fetching regulators.
-
-I have some more data to share on this problem from my runtime PM test
-driver. I will try my best to share it tomorrow.
+Thanks! It then confirms the second option I proposed.
 
 >
->> 2)
->> Change the failing drivers, to before calling pm_runtime_put_sync()
->> also invoke pm_runtime_dont_use_autosusend(). Or other similar
->> approach.
+>> The next ->probe() attempt then triggers the ->runtime_resume() callback
+>> to be invoked, which means this happens two times in a row. At the PM
+>> domain level (omap hwmod) this is being treated as an error and thus the
+>> runtime PM status of the device isn't correctly synchronized with the
+>> runtime PM core.
 >
-> Given the above, this seems unnecessary.
+> That's a valid error though, let's not remove it. The reason why we
+> call runtime_resume() twice is because runtime_suspend callback never
+> gets called like I explain above.
 
-Okay, so you are saying that the pm_runtime_put_sync() should idle the
-device even if autosuspend is in use. That seems reasonable, I will
-look into this problem.
+This isn't an error, it's just a hickup in the synchronization of the
+runtime PM status.
+
+Very similar what happens at the first probe, when the driver core has
+initialized the runtime PM status to RPM_SUSPENDED at the device
+registration.
+
+To me, it's the responsible of the PM domain to *help* with the
+synchronization, not prevent it as it currently does.
+
+>
+>> In the end, ->probe() anyway succeeds (as the driver don't checks the
+>> error code from the runtime PM APIs), but results in that the PM domain
+>> always stays powered on. This because of the runtime PM core believes the
+>> device is RPM_SUSPENDED.
+>
+> FYI, the following allows runtime_suspend callback to get called at the
+> end of a failed driver probe so the hardware state matches the PM runtime
+> state. Need to debug more.
+>
+> Regards,
+>
+> Tony
+>
+> 8< ------------
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2232,6 +2232,7 @@ err_irq:
+>                 dma_release_channel(host->tx_chan);
+>         if (host->rx_chan)
+>                 dma_release_channel(host->rx_chan);
+> +       pm_runtime_dont_use_autosuspend(host->dev);
+
+It's good know this works, although do you intend to fix this sequence
+for all omap drivers/devices that's part of the hwmod PM domain?
+
+I haven't checked the number of drivers this would affect, but I
+imagine there could be quite many with similar behaviour and thus may
+suffer from the same issue.
+
+Of course the regression is only noticed for those returning
+-EPROBE_DEFER, which might not be that many, but it seems fragile to
+rely on this when going forward. All related drivers then needs to be
+fixed.
+
+>         pm_runtime_put_sync(host->dev);
+>         pm_runtime_disable(host->dev);
+>         if (host->dbclk)
+
+Could you please test my version 2 of the patch I attached earlier. I
+still believe it's the best way to solve the regression, if it works
+of course. :-)
 
 Kind regards
 Uffe
