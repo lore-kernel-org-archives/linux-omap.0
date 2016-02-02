@@ -1,20 +1,23 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
  v4.5-rc1
-Date: Tue, 2 Feb 2016 16:24:55 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1602021614430.1653-100000@iolanthe.rowland.org>
-References: <CAPDyKFokWcLSCAh_TX-j-df_M1hN8Qw1gbQt--SyWccGCPiN5Q@mail.gmail.com>
+Date: Tue, 2 Feb 2016 13:39:17 -0800
+Message-ID: <20160202213916.GA19432@atomide.com>
+References: <CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
+ <Pine.LNX.4.44L0.1602021112320.1653-100000@iolanthe.rowland.org>
+ <CAPDyKFokWcLSCAh_TX-j-df_M1hN8Qw1gbQt--SyWccGCPiN5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <CAPDyKFokWcLSCAh_TX-j-df_M1hN8Qw1gbQt--SyWccGCPiN5Q@mail.gmail.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2 Feb 2016, Ulf Hansson wrote:
-
+* Ulf Hansson <ulf.hansson@linaro.org> [160202 12:25]:
+> >
 > > ?  pm_runtime_put_sync() _already_ does not respect the autosuspend
 > > mode.  If you want to respect it, you have to call
 > > pm_runtime_put_sync_autosuspend() instead.
@@ -25,39 +28,51 @@ On Tue, 2 Feb 2016, Ulf Hansson wrote:
 > driver, I can see that the device doesn't get RPM_SUSPENDED (the
 > ->runtime_suspend() callback isn't called), even when the usage count
 > is zero - when pm_runtime_put_sync() is called.
-
-Ah, yes -- I see what's going on.  pm_runtime_put_sync() calls 
-__pm_runtime_idle(), rather than __pm_runtime_suspend().  And the idle 
-routine always forces RPM_AUTO on.
-
-So what I said was wrong.  pm_runtime_put_sync() respects the driver's 
-settings for autosuspend, whereas pm_runtime_put_sync_suspend() and 
-pm_runtime_put_sync_autosuspend() override the settings.
-
-> To find the sequence of runtime PM commands, go ahead an have look in
-> the omap_hsmmc driver. The problem occurs when the driver bails out in
-> probe, when it receives -EPROBE_DEFER when fetching regulators.
-> 
-> I have some more data to share on this problem from my runtime PM test
-> driver. I will try my best to share it tomorrow.
-
-> >> 2)
-> >> Change the failing drivers, to before calling pm_runtime_put_sync()
-> >> also invoke pm_runtime_dont_use_autosusend(). Or other similar
-> >> approach.
-> >
-> > Given the above, this seems unnecessary.
-> 
+...
 > Okay, so you are saying that the pm_runtime_put_sync() should idle the
 > device even if autosuspend is in use. That seems reasonable, I will
 > look into this problem.
 
-Heh -- you are the person who did it.  :-)  See commit d66e6db28df3 
-("PM / Runtime: Respect autosuspend when idle triggers suspend").
+The patch below fixes pm_runtime_put_sync() to not respect the
+autosuspend mode to match what Alan is saying above. Seems to also
+fixes the $subject issue for me. And seems to behave for PM runtime
+for other devices during runtime too based on light testing here.
 
-I guess the intention was that if the driver wants to specify whether 
-autosuspend should be respected, it should implement an rpm_idle 
-callback routine.
+Regards,
 
-Alan Stern
+Tony
 
+8< ---------------
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -353,7 +353,9 @@ static int rpm_idle(struct device *dev, int rpmflags)
+ 
+  out:
+ 	trace_rpm_return_int(dev, _THIS_IP_, retval);
+-	return retval ? retval : rpm_suspend(dev, rpmflags | RPM_AUTO);
++	if (!(rpmflags & RPM_IGNORE_AUTO))
++		rpmflags |= RPM_AUTO;
++	return retval ? retval : rpm_suspend(dev, rpmflags);
+ }
+ 
+ /**
+--- a/include/linux/pm_runtime.h
++++ b/include/linux/pm_runtime.h
+@@ -23,6 +23,8 @@
+ 					    usage_count */
+ #define RPM_AUTO		0x08	/* Use autosuspend_delay */
+ 
++#define RPM_IGNORE_AUTO		0x10	/* Ignore autosuspend */
++
+ #ifdef CONFIG_PM
+ extern struct workqueue_struct *pm_wq;
+ 
+@@ -241,7 +243,7 @@ static inline int pm_runtime_put_autosuspend(struct device *dev)
+ 
+ static inline int pm_runtime_put_sync(struct device *dev)
+ {
+-	return __pm_runtime_idle(dev, RPM_GET_PUT);
++	return __pm_runtime_idle(dev, RPM_GET_PUT | RPM_IGNORE_AUTO);
+ }
+ 
+ static inline int pm_runtime_put_sync_suspend(struct device *dev)
