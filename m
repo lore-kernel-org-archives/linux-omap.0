@@ -1,105 +1,95 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
-Date: Tue, 2 Feb 2016 11:42:51 +0100
-Message-ID: <CAPDyKFras1o13WBZzaZ_Snnj5TBQQFWKr=PtCjUvwe+yGPQn9w@mail.gmail.com>
-References: <20160201232833.GR19432@atomide.com>
-	<Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
-	<20160202030533.GT19432@atomide.com>
-	<CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 1/2] ARM: OMAP1: DMA: Provide dma_slave_map to omap-dma
+Date: Tue, 2 Feb 2016 16:27:06 +0200
+Message-ID: <1454423227-31830-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1454423227-31830-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454423227-31830-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
->
-> Instead of the suggested approaches, I think the regression should be
-> fixed at the PM domain level (omap hwmod). I have attached a patch
-> below, please give it try as it's untested.
+OMAP1 can not boot in DT mode and to be able to clean up the driver
+regarding to the dmaengine API use (switching to the new API) the
+device/slave -> filter mapping needs to be provided to the omap-dma driver.
 
-Realized that version 1 would actually *only* make the PM domain code
-to deal with pre-enabled devices. It would still invoke the driver's
-->runtime_resume() callbacks (via pm_generic_runtime_resume())  for
-these scenarios.
-
-That's not what we want. So I moved the checks to the actual
-->runtime_resume() callback in the PM domain, instead of in the
-omap_device_enable() function. A version 2 is attached. Please give it
-at try.
-
-[...]
-
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Date: Tue, 2 Feb 2016 10:05:39 +0100
-Subject: [PATCH V2] ARM: OMAP2+: omap-device: Allow devices to be pre-enabled
-
-Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
-error and driver unbind") may re-initialize the runtime PM status of the
-device to RPM_SUSPENDED at driver probe failures.
-
-For the omap_hsmmc and likely also other omap drivers, which needs more
-than one attempt to ->probe() (returning -EPROBE_DEFER), this commit
-causes a regression at the PM domain level (omap hwmod).
-
-The reason is that the drivers don't put back the device into low power
-state while bailing out in ->probe to return -EPROBE_DEFER. This leads to
-that pm_runtime_reinit() in driver core, is re-initializing the runtime PM
-status from RPM_ACTIVE to RPM_SUSPENDED.
-
-The next ->probe() attempt then triggers the ->runtime_resume() callback
-to be invoked, which means this happens two times in a row. At the PM
-domain level (omap hwmod) this is being treated as an error and thus the
-runtime PM status of the device isn't correctly synchronized with the
-runtime PM core.
-
-In the end, ->probe() anyway succeeds (as the driver don't checks the
-error code from the runtime PM APIs), but results in that the PM domain
-always stays powered on. This because of the runtime PM core believes the
-device is RPM_SUSPENDED.
-
-Fix this regression by allowing devices to be pre-enabled when the PM
-domain's (omap hwmod) ->runtime_resume() callback is requested to enable
-the device. In such cases, return zero to synchronize the runtime PM
-status with the runtime PM core.
-
-Fixes: 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
-error and driver unbind")
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
+ arch/arm/mach-omap1/dma.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
-Changes in v2:
-        -Prevent a driver's ->runtime_resume() callbacks from being invoked for
-        a pre-enabled device.
-
----
- arch/arm/mach-omap2/omap_device.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_device.c
-b/arch/arm/mach-omap2/omap_device.c
-index 0437537..1ad390b 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -599,8 +599,17 @@ static int _od_runtime_suspend(struct device *dev)
- static int _od_runtime_resume(struct device *dev)
- {
-        struct platform_device *pdev = to_platform_device(dev);
-+       struct omap_device *od = to_omap_device(pdev);
-        int ret;
-
-+       /*
-+        * From the PM domain perspective the device may already be enabled.
-+        * In such case, let's return zero to synchronize the state with the
-+        * runtime PM core.
-+       */
-+       if (od->_state == OMAP_DEVICE_STATE_ENABLED)
-+               return 0;
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index 7b02ed218a42..f6ba589cd312 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -25,6 +25,7 @@
+ #include <linux/device.h>
+ #include <linux/io.h>
+ #include <linux/dma-mapping.h>
++#include <linux/dmaengine.h>
+ #include <linux/omap-dma.h>
+ #include <mach/tc.h>
+ 
+@@ -265,6 +266,42 @@ static const struct platform_device_info omap_dma_dev_info = {
+ 	.num_res = 1,
+ };
+ 
++/* OMAP730, OMAP850 */
++static const struct dma_slave_map omap7xx_sdma_map[] = {
++	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
++	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
++	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(10) },
++	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(11) },
++	{ "mmci-omap.0", "tx", SDMA_FILTER_PARAM(21) },
++	{ "mmci-omap.0", "rx", SDMA_FILTER_PARAM(22) },
++	{ "omap_udc", "rx0", SDMA_FILTER_PARAM(26) },
++	{ "omap_udc", "rx1", SDMA_FILTER_PARAM(27) },
++	{ "omap_udc", "rx2", SDMA_FILTER_PARAM(28) },
++	{ "omap_udc", "tx0", SDMA_FILTER_PARAM(29) },
++	{ "omap_udc", "tx1", SDMA_FILTER_PARAM(30) },
++	{ "omap_udc", "tx2", SDMA_FILTER_PARAM(31) },
++};
 +
-        ret = omap_device_enable(pdev);
-        if (ret)
-                return ret;
++/* OMAP1510, OMAP1610*/
++static const struct dma_slave_map omap1xxx_sdma_map[] = {
++	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
++	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
++	{ "omap-mcbsp.3", "tx", SDMA_FILTER_PARAM(10) },
++	{ "omap-mcbsp.3", "rx", SDMA_FILTER_PARAM(11) },
++	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(16) },
++	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(17) },
++	{ "mmci-omap.0", "tx", SDMA_FILTER_PARAM(21) },
++	{ "mmci-omap.0", "rx", SDMA_FILTER_PARAM(22) },
++	{ "omap_udc", "rx0", SDMA_FILTER_PARAM(26) },
++	{ "omap_udc", "rx1", SDMA_FILTER_PARAM(27) },
++	{ "omap_udc", "rx2", SDMA_FILTER_PARAM(28) },
++	{ "omap_udc", "tx0", SDMA_FILTER_PARAM(29) },
++	{ "omap_udc", "tx1", SDMA_FILTER_PARAM(30) },
++	{ "omap_udc", "tx2", SDMA_FILTER_PARAM(31) },
++	{ "mmci-omap.1", "tx", SDMA_FILTER_PARAM(54) },
++	{ "mmci-omap.1", "rx", SDMA_FILTER_PARAM(55) },
++};
++
+ static struct omap_system_dma_plat_info dma_plat_info __initdata = {
+ 	.reg_map	= reg_map,
+ 	.channel_stride	= 0x40,
+@@ -342,6 +379,14 @@ static int __init omap1_system_dma_init(void)
+ 	p.dma_attr = d;
+ 	p.errata = configure_dma_errata();
+ 
++	if (cpu_is_omap7xx()) {
++		p.slave_map = omap7xx_sdma_map;
++		p.slavecnt = ARRAY_SIZE(omap7xx_sdma_map);
++	} else {
++		p.slave_map = omap1xxx_sdma_map;
++		p.slavecnt = ARRAY_SIZE(omap1xxx_sdma_map);
++	}
++
+ 	ret = platform_device_add_data(pdev, &p, sizeof(p));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
 -- 
-1.9.1
+2.7.0
