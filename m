@@ -1,96 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
- v4.5-rc1
-Date: Mon, 1 Feb 2016 19:05:34 -0800
-Message-ID: <20160202030533.GT19432@atomide.com>
-References: <20160201232833.GR19432@atomide.com>
- <Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: linux-4.5-rc1 TI pandboard-es wifi wlcore locks and reset
+Date: Tue, 2 Feb 2016 05:34:49 +0100
+Message-ID: <20160202043448.GA9514@earth>
+References: <CANfgCY2nHh+vZ=JOimJdKKKs2JgM-c7m+3ePZtS3XhqyXNkDUQ@mail.gmail.com>
+ <CANfgCY2zVXrLGv=YDpNvqhhoj5U2kgqZ_VV1EBPVK78grra84Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <CANfgCY2zVXrLGv=YDpNvqhhoj5U2kgqZ_VV1EBPVK78grra84Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ross Green <rgkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
+
+
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-* Alan Stern <stern@rowland.harvard.edu> [160201 15:50]:
-> 
-> You get here only if runtime PM is disabled, right?  So the rpm_idle 
-> call won't do anything -- "disabled" means don't make any callbacks.
+On Mon, Feb 01, 2016 at 11:38:38PM +1100, Ross Green wrote:
+> On Mon, Jan 25, 2016 at 11:47 PM, Ross Green <rgkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > Just tried the new kernel release on faithful pandaboard es with the
+> > new 4.5-rc1 release.
+> >
+> > There is a problem with the wifi modules once the modules are loaded.
+> > Looks like the wifi firmware gets loaded put no response after that
+> > causing recovery action.
+> >
+> > the kernel 4.4 works quite happily with this board.
+> >
+> > Here is a dmesg dump in the attachment.
+> >
+> > Anyone have any ideas here?
+>
+> Just updated to the latest linux-4.5-rc2 and same result as rc1.
+>=20
+> The wireless module loads firmware and then stalls causing a reset of
+> the device and then continues to go through a stall and reset cycle.
+>=20
+> please find enclosed a copy of the dmesg output.
+>=20
+> Is there anyone else testing a pandaboard with linux-4.5-rc2?
+>=20
+> Just for completeness also tested the latest linux-4.4.1 kernel and
+> found no problems with the wireless modules.
 
-Hmm sorry yes I'm confused again. Yeah it looks like calling rpm_idle
-just has a side effect that makes a difference here.
+I can see the same problem with Nokia N950 (which uses spi connected
+wl1271). v4.4 + wl12xx spi DT patches from Uri Mashiach worked, v4.5
+ + the same patches does not work. I currently suspect 133b7326e960
+or 3719c17e1816 to be the culprit. I have not yet verified it, though.
 
-> Tony, exactly what are you trying to do here?  Do you want this to 
-> invoke a runtime-PM callback in the subsystem, power domain, or driver?  
-> (Is there even a driver bound to the device when this function runs?)
+Have you tried to bisect the problem?
 
-I guess I need to add more printks to figure out what's going on here.
-But yeah, I'm not seeing the callback happening at the interconnect
-level so hardware and PM runtime states won't match on the following
-probe after -EPROBE_DEFER.
+-- Sebastian
 
-> The function's name suggests that it merely resets the data stored in 
-> dev->power without actually touching the hardware.  Is that what you 
-> really want?
+--XsQoSWH+UP9D9v3l
+Content-Type: application/pgp-signature; name="signature.asc"
 
-I guess you mean pm_runtime_set_suspended() above? I'm seeing a state
-where we now set pm_runtime_set_suspended() between failed device
-probes and the device is still active in hardware.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-The patch below also helps with the problem and leaves out the
-rpm_suspend() call from loop so it might give more hints.
+iQIcBAEBCgAGBQJWsDHkAAoJENju1/PIO/qaU/wQAIOaPHexDr8vqIpZIqmhM6Os
+mfuEmzwa7DakXDRfY28xaUtcQDRBsnbtgYHNixBB+ovdPTRCxOnIyqQIpfHeZxD1
+6OmQd10MeL4q1aLn0wfX1VntnbBELmCW1+sn4YW6O07pckg/vvSJ4tEMTwz0635B
+I1n78kAQFbr0wX9o9J2f3gF7xIlvaP+pAAMjC+ygLjNlbMEKB6I/scDow62Gp1RU
+aBSkZYNeseHu//YSaRx03SrUhgFdZuiOloxTmL+RBAZkFJlKpb9NbI2jj7k4XPcU
+n+TRnVmSPA1IZSxJP6/xxN5IbgcxMJxroNWuFaY2Sjx9a9yV+DXcLzrjXBY6orMq
+ilboFD+uTW/ZdcxsVJLZdlVM8R8yMV6D6Jmiu3sKhf/PZQ0QLfYlxPeK68CABrE7
+uk3DbmlUclqPilYJ9b9nmaiG3Yvb5v2lg2iKoTgzZOhE982ZdGqj4naDOc9Xcr27
+qvi4+Qlh9r3iOVtgaRZyq81HZgnQLehrRc5qsPwwnJzJowjT5r2Q49JuPxT2t+wK
+nsvpZlPhhZH7AyB9aSBbkW/ZaMMUi7HPBHr9tfQYMe5PttnmyxaGMjhYSper4WGV
+lwGYurGjFqBvTG79fsBRcTgZLufFWwfA4eLF3+ffuV6Ak/iuRbydSX1LJlEbnr5k
+Tk+UaxR46x/H8XWxU3jJ
+=c71I
+-----END PGP SIGNATURE-----
 
-The difference here from what Rafael suggested earlier is calling
-__pm_runtime_use_autosuspend() and then not calling
-pm_runtime_set_suspended().
-
-However, it seems the below patch keeps hardware active in the
-autoidle case though, so chances are there is more that needs to
-be done here. Anyways, I'll try to debug it more tomorrow.
-
-Regards,
-
-Tony
-
-8< ------------------
---- a/drivers/base/power/runtime.c
-+++ b/drivers/base/power/runtime.c
-@@ -1425,17 +1425,25 @@ void pm_runtime_init(struct device *dev)
-  */
- void pm_runtime_reinit(struct device *dev)
- {
--	if (!pm_runtime_enabled(dev)) {
--		if (dev->power.runtime_status == RPM_ACTIVE)
-+	if (pm_runtime_enabled(dev))
-+		return;
-+
-+	if (dev->power.runtime_status == RPM_ACTIVE) {
-+		if (dev->power.use_autosuspend) {
-+			pm_runtime_set_autosuspend_delay(dev, 0);
-+			__pm_runtime_use_autosuspend(dev, false);
-+		} else {
- 			pm_runtime_set_suspended(dev);
--		if (dev->power.irq_safe) {
--			spin_lock_irq(&dev->power.lock);
--			dev->power.irq_safe = 0;
--			spin_unlock_irq(&dev->power.lock);
--			if (dev->parent)
--				pm_runtime_put(dev->parent);
- 		}
- 	}
-+
-+	if (dev->power.irq_safe) {
-+		spin_lock_irq(&dev->power.lock);
-+		dev->power.irq_safe = 0;
-+		spin_unlock_irq(&dev->power.lock);
-+		if (dev->parent)
-+			pm_runtime_put(dev->parent);
-+	}
- }
- 
- /**
+--XsQoSWH+UP9D9v3l--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
