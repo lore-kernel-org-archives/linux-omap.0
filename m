@@ -1,81 +1,92 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: wl12xx regression on 4.5 (was: Re: linux-4.5-rc1 TI pandboard-es
- wifi wlcore locks and reset)
-Date: Tue, 2 Feb 2016 17:05:38 +0100
-Message-ID: <20160202160538.GA19990@earth>
-References: <CANfgCY2nHh+vZ=JOimJdKKKs2JgM-c7m+3ePZtS3XhqyXNkDUQ@mail.gmail.com>
- <CANfgCY2zVXrLGv=YDpNvqhhoj5U2kgqZ_VV1EBPVK78grra84Q@mail.gmail.com>
- <20160202043448.GA9514@earth>
- <CANfgCY21zzinD48DOHaZdkGdDWpuAtJN1T8ofmdwM=P4f-7=Yw@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Tue, 2 Feb 2016 11:15:55 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1602021112320.1653-100000@iolanthe.rowland.org>
+References: <CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CANfgCY21zzinD48DOHaZdkGdDWpuAtJN1T8ofmdwM=P4f-7=Yw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ross Green <rgkernel@gmail.com>, Shahar Patury <shaharp@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, Guy Mishol <guym@ti.com>, Kalle Valo <kvalo@codeaurora.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, 2 Feb 2016, Ulf Hansson wrote:
 
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On 2 February 2016 at 04:05, Tony Lindgren <tony@atomide.com> wrote:
+> > Hi,
+> >
+> > * Alan Stern <stern@rowland.harvard.edu> [160201 15:50]:
+> >>
+> >> You get here only if runtime PM is disabled, right?  So the rpm_idle
+> >> call won't do anything -- "disabled" means don't make any callbacks.
+> >
+> > Hmm sorry yes I'm confused again. Yeah it looks like calling rpm_idle
+> > just has a side effect that makes a difference here.
+> >
+> >> Tony, exactly what are you trying to do here?  Do you want this to
+> >> invoke a runtime-PM callback in the subsystem, power domain, or driver?
+> >> (Is there even a driver bound to the device when this function runs?)
+> >
+> > I guess I need to add more printks to figure out what's going on here.
+> > But yeah, I'm not seeing the callback happening at the interconnect
+> > level so hardware and PM runtime states won't match on the following
+> > probe after -EPROBE_DEFER.
+> >
+> >> The function's name suggests that it merely resets the data stored in
+> >> dev->power without actually touching the hardware.  Is that what you
+> >> really want?
+> >
+> > I guess you mean pm_runtime_set_suspended() above? I'm seeing a state
+> > where we now set pm_runtime_set_suspended() between failed device
+> > probes and the device is still active in hardware.
+> >
+> > The patch below also helps with the problem and leaves out the
+> > rpm_suspend() call from loop so it might give more hints.
+> >
+> > The difference here from what Rafael suggested earlier is calling
+> > __pm_runtime_use_autosuspend() and then not calling
+> > pm_runtime_set_suspended().
+> >
+> > However, it seems the below patch keeps hardware active in the
+> > autoidle case though, so chances are there is more that needs to
+> > be done here. Anyways, I'll try to debug it more tomorrow.
+> >
+> 
+> Your observations is correct. The hardware will be kept active
+> in-between the probe attempts (and thus also if probing fails).
+> Although, that's not a regression as that's the behaviour you get from
+> runtime PM, when drivers are implemented like omap_hsmmc.
 
-Hi Ross,
+Perhaps this is what we should do.  If probing gets deferred a few 
+times, doing runtime suspends and resumes in between will be a waste of 
+time.
 
-Please don't top-post on kernel mailinglists. Use either inline
-style or bottom posting.
+> Instead of the suggested approaches, I think the regression should be
+> fixed at the PM domain level (omap hwmod). I have attached a patch
+> below, please give it try as it's untested.
+> 
+> To solve the other problem (allowing devices to become inactive
+> in-between at probe failures), I see two options (not treated as
+> regressions).
+> 1)
+> Change the behaviour of pm_runtime_put_sync(), to *not* respect the
+> autosuspend mode.
+> I think I prefer this option, as it seems like autosuspend should be
+> respected only via the asynchronous runtime PM APIs.
 
-On Tue, Feb 02, 2016 at 04:41:13PM +1100, Ross Green wrote:
-> On Tue, Feb 2, 2016 at 3:34 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> > On Mon, Feb 01, 2016 at 11:38:38PM +1100, Ross Green wrote:
-> >> On Mon, Jan 25, 2016 at 11:47 PM, Ross Green <rgkernel@gmail.com> wrot=
-e:
-> >> > Just tried the new kernel release on faithful pandaboard es with the
-> >> > new 4.5-rc1 release.
-> >> >
-> >> > There is a problem with the wifi modules once the modules are loaded.
-> >> > Looks like the wifi firmware gets loaded put no response after that
-> >> > causing recovery action.
-> >> >
-> >> > the kernel 4.4 works quite happily with this board.
-> >> >
-> >> > Here is a dmesg dump in the attachment.
-> >> >
-> >> > Anyone have any ideas here?
->
-> [...]
->=20
-> If I get time, this evening, I'll see if I can give a bisect a try.
+?  pm_runtime_put_sync() _already_ does not respect the autosuspend 
+mode.  If you want to respect it, you have to call 
+pm_runtime_put_sync_autosuspend() instead.
 
-On N950 [wl1271 via SPI, using extra patches to init from DT] I get wifi
-working again on 4.5-rc1 with 3719c17e1816 ("wlcore/wl18xx: fw logger
-over sdio") reverted.
+> 2)
+> Change the failing drivers, to before calling pm_runtime_put_sync()
+> also invoke pm_runtime_dont_use_autosusend(). Or other similar
+> approach.
 
--- Sebastian
+Given the above, this seems unnecessary.
 
---azLHFNyN32YCQGCU
-Content-Type: application/pgp-signature; name="signature.asc"
+Alan Stern
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWsNPPAAoJENju1/PIO/qaXx4P+QHcn8Nh3stIMDgJOeGWbbmO
-gBPWXnyaibIctKoCe68Or03wCq+0rz1K2wOpyGsxQQhp/7FCIiRMs3/c3Rdm6sjR
-PpXq5Cs4cFCWuPvrxEf3sSPNa3P4H9QZ9W+PEJ3Ng2ZoIcsEgYNj5BBXkP+BGtVu
-LJWDmd+0qKQS0BDvOFg/maLJn0242iJ7cmMMDk8iCLRT2RNVKDNGpHjljTArm/c9
-GEl7l+pkO2M6EmCaM07A89oUsyT1GRbdjJ1TbCobxnd0aGCYezM696RLwZVKxLu2
-Iqurtpp9Mf5MlZVqYEc6qG+50bTc2vUye9QDaKN5gj7R+hTzdr+nf8v91/qyiPz2
-P5QqoQkjhs/SxDm5FWJ6uEkdRCH5dFXnxXLdRsNsDiuIZADeGdV7ei53CANu6Gnb
-4eZJ1Suv4Gub8DJ11y0Vg5ySXoI14ZpB1DMxNLTZtIYddcvtgS/9jB22pWj+ClFP
-fXg6Nw8Gs5oPCXRLdkarMgSL3VIYnzEHKo+wPsF478maPh8Gz/LcjEQXoZDyK7yh
-tpoB7f8FsCFJia1C362hJLbmZCM14MhFmEAVNZw5uwxcdr7mMH6sMeVOgUryiZ5R
-Y5p+KhtAHkPRyhVzpByeQYpQeFMsWx871tbW8VWmugXMp2QnhBIdOgvuxiLNKR1V
-jmGN9cB/x+GSLrtjvrxu
-=ucDv
------END PGP SIGNATURE-----
-
---azLHFNyN32YCQGCU--
