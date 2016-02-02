@@ -1,87 +1,75 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Tue, 2 Feb 2016 15:39:12 -0800
-Message-ID: <20160202233911.GB19432@atomide.com>
-References: <20160106182650.GM12777@atomide.com> <568D5F54.7040900@gmail.com>
- <20160107180700.GN12777@atomide.com> <568EDC8D.7070205@gmail.com>
- <20160108022619.GS12777@atomide.com> <568F4596.8020206@gmail.com>
- <20160108075913.GN11364@pali> <569052FE.1040008@gmail.com>
- <20160121091437.GT7192@pali> <56B077D4.3030902@gmail.com>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Tue, 2 Feb 2016 15:41:45 -0800
+Message-ID: <20160202234145.GC19432@atomide.com>
+References: <20160201232833.GR19432@atomide.com>
+ <Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
+ <20160202030533.GT19432@atomide.com>
+ <CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
+ <CAPDyKFras1o13WBZzaZ_Snnj5TBQQFWKr=PtCjUvwe+yGPQn9w@mail.gmail.com>
+ <20160202163536.GU19432@atomide.com>
+ <CAPDyKFosQjkHDVSvy67+hstjjFseXQP5WYXrJE19GgVFYJ099w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56B077D4.3030902@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <CAPDyKFosQjkHDVSvy67+hstjjFseXQP5WYXrJE19GgVFYJ099w@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBJdmF5bG8gRGltaXRyb3YgPGl2by5nLmRpbWl0cm92Ljc1QGdtYWlsLmNvbT4gWzE2MDIwMiAw
-MTozNF06Cj4gT24gMjEuMDEuMjAxNiAxMToxNCwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gPk9uIFNh
-dHVyZGF5IDA5IEphbnVhcnkgMjAxNiAwMjoyMzoyNiBJdmF5bG8gRGltaXRyb3Ygd3JvdGU6Cj4g
-Pj5UaGUga2V5IHdvcmQgaGVyZSBpcyAic29tZXRpbWVzIi4gaS5lIHNvbWV0aW1lcyBpdCBoYXBl
-bnMgb24gbm9ybWFsIHJlYm9vdCwKPiA+PnNvbWV0aW1lcyBpdCBoYXBwZW5zIG9uIG9vcHMuCj4g
-Pgo+ID5TbyB3aGVyZSBpcyBwcm9ibGVtPyBJbiBvbWFwLWdwbWM/IG10ZD8gb25lbmFuZD8gb3Ig
-dWJpZnM/IE9yIGluCj4gPmRpZmZlcmVudCBjb21wb25lbnQ/IERvIHdlIGtub3cgYXQgbGVhc3Qg
-dGhpcz8KPiA+Cj4gCj4gSSB0aGluayBJIG1hZGUgc29tZSBwcm9ncmVzcyBvbiB0aGUgaXNzdWUs
-IGl0IHNlZW1zIEkgaGF2ZSB0byBoYXZlICpib3RoKgo+IGU3YjExZGM3Yjc3YmZjZTBhMzUxMjMw
-YTVmZWVhZGMxZDBiYmE5OTcKPiAoZTdiMTFkYzdiNzdiZmNlMGEzNTEyMzBhNWZlZWFkYzFkMGJi
-YTk5NykgcmV2ZXJ0ZWQgKmFuZCoKPiBIV01PRF9JTklUX05PX1JFU0VUIHJlc3RvcmVkIGluIG9t
-YXAzeHh4X2dwbWNfaHdtb2QgZmxhZ3MgdG8gaGF2ZSB3b3JraW5nCj4gb25lbmFuZC4KClRoYXQg
-aXMgc3RyYW5nZS4gVGhpcyBpcyB3aGF0IEkgZ2V0IHdpdGggb21hcDJwbHVzX2RlZmNvbmZpZyBh
-bmQKb21hcC1mb3ItdjQuNS9maXhlcy1yYzEgYWZ0ZXIgZmxhc2hpbmcgdGhlIHJvb3RmcyBhbmQg
-Ym9vdGluZyBrZXJuZWwKbGlrZSB5b3Ugc3VnZ2VzdGVkIG9uIGlyYzoKCiMgZG1lc2cgfCBncmVw
-IC1pIC1lIHViaSAtZSBvbmVuYW5kClsgICAgMi41MDI4OTldIG9tYXAyLW9uZW5hbmQgb21hcDIt
-b25lbmFuZDogaW5pdGlhbGl6aW5nIG9uIENTMCwgcGh5cyBiYXNlIDB4MDEwMDAwMDAsIHZpcnR1
-YWwgYmFzZSBkMDk0MDAwMCwgZnJlcSA4MyBNSHoKWyAgICAyLjUxNDM3M10gT25lTkFORCBNYW51
-ZmFjdHVyZXI6IE51bW9ueXggKDB4MjApClsgICAgMi41MTkyODddIE11eGVkIE9uZU5BTkQgMjU2
-TUIgMS44ViAxNi1iaXQgKDB4NDApClsgICAgMi41MjQ0NDRdIE9uZU5BTkQgdmVyc2lvbiA9IDB4
-MDAzMQpbICAgIDIuNjcxOTY2XSA2IG9mcGFydCBwYXJ0aXRpb25zIGZvdW5kIG9uIE1URCBkZXZp
-Y2Ugb21hcDItb25lbmFuZApbICAgIDIuNjc4NDM2XSBDcmVhdGluZyA2IE1URCBwYXJ0aXRpb25z
-IG9uICJvbWFwMi1vbmVuYW5kIjoKWyAgICAzLjQxNDc2NF0gdWJpMDogYXR0YWNoaW5nIG10ZDUK
-WyAgICAzLjY2ODIxMl0gdWJpMDogc2Nhbm5pbmcgaXMgZmluaXNoZWQKWyAgICAzLjcxNjU1Ml0g
-dWJpMDogYXR0YWNoZWQgbXRkNSAobmFtZSAicm9vdGZzIiwgc2l6ZSAyNTEgTWlCKQpbICAgIDMu
-NzIyODM5XSB1YmkwOiBQRUIgc2l6ZTogMTMxMDcyIGJ5dGVzICgxMjggS2lCKSwgTEVCIHNpemU6
-IDEyOTAyNCBieXRlcwpbICAgIDMuNzMwMTk0XSB1YmkwOiBtaW4uL21heC4gSS9PIHVuaXQgc2l6
-ZXM6IDIwNDgvMjA0OCwgc3ViLXBhZ2Ugc2l6ZSA1MTIKWyAgICAzLjczNzMwNF0gdWJpMDogVklE
-IGhlYWRlciBvZmZzZXQ6IDUxMiAoYWxpZ25lZCA1MTIpLCBkYXRhIG9mZnNldDogMjA0OApbICAg
-IDMuNzQ0NTM3XSB1YmkwOiBnb29kIFBFQnM6IDIwMTAsIGJhZCBQRUJzOiAwLCBjb3JydXB0ZWQg
-UEVCczogMApbICAgIDMuNzUxMDM3XSB1YmkwOiB1c2VyIHZvbHVtZTogMSwgaW50ZXJuYWwgdm9s
-dW1lczogMSwgbWF4LiB2b2x1bWVzIGNvdW50OiAxMjgKWyAgICAzLjc1ODY5N10gdWJpMDogbWF4
-L21lYW4gZXJhc2UgY291bnRlcjogMS8wLCBXTCB0aHJlc2hvbGQ6IDQwOTYsIGltYWdlIHNlcXVl
-bmNlIG51bWJlcjogMApbICAgIDMuNzY3NTc4XSB1YmkwOiBhdmFpbGFibGUgUEVCczogMCwgdG90
-YWwgcmVzZXJ2ZWQgUEVCczogMjAxMCwgUEVCcyByZXNlcnZlZCBmb3IgYmFkIFBFQiBoYW5kbGlu
-ZzogNDAKWyAgICAzLjkyMzk4MF0gdWJpMDogYmFja2dyb3VuZCB0aHJlYWQgInViaV9iZ3QwZCIg
-c3RhcnRlZCwgUElEIDg1ClsgICAgMy45ODA1MjldIFVCSUZTICh1YmkwOjApOiBiYWNrZ3JvdW5k
-IHRocmVhZCAidWJpZnNfYmd0MF8wIiBzdGFydGVkLCBQSUQgODcKWyAgICAzLjk5NjMzN10gVUJJ
-RlMgKHViaTA6MCk6IHJlY292ZXJ5IG5lZWRlZApbICAgIDQuMDc5OTI1XSBVQklGUyAodWJpMDow
-KTogcmVjb3ZlcnkgY29tcGxldGVkClsgICAgNC4wODU4NzZdIFVCSUZTICh1YmkwOjApOiBVQklG
-UzogbW91bnRlZCBVQkkgZGV2aWNlIDAsIHZvbHVtZSAwLCBuYW1lICJyb290ZnMiClsgICAgNC4w
-OTM3ODBdIFVCSUZTICh1YmkwOjApOiBMRUIgc2l6ZTogMTI5MDI0IGJ5dGVzICgxMjYgS2lCKSwg
-bWluLi9tYXguIEkvTyB1bml0IHNpemVzOiAyMDQ4IGJ5dGVzLzIwNDggYnl0ZXMKWyAgICA0LjEw
-NDMzOV0gVUJJRlMgKHViaTA6MCk6IEZTIHNpemU6IDI1MjI0MTkyMCBieXRlcyAoMjQwIE1pQiwg
-MTk1NSBMRUJzKSwgam91cm5hbCBzaXplIDkwMzM3MjggYnl0ZXMgKDggTWlCLCA3MSBMRUJzKQpb
-ICAgIDQuMTE1NzIyXSBVQklGUyAodWJpMDowKTogcmVzZXJ2ZWQgZm9yIHJvb3Q6IDQxOTA0MzQg
-Ynl0ZXMgKDQwOTIgS2lCKQpbICAgIDQuMTIyNzcyXSBVQklGUyAodWJpMDowKTogbWVkaWEgZm9y
-bWF0OiB3NC9yMCAobGF0ZXN0IGlzIHc0L3IwKSwgVVVJRCA4RjMwQTg4QS1GNjA1LTQyOTEtOTky
-Ny0wMENGM0EyQUUxMTksIHNtYWxsIExQVCBtb2RlbApbICAgIDQuMTM2MDc3XSBWRlM6IE1vdW50
-ZWQgcm9vdCAodWJpZnMgZmlsZXN5c3RlbSkgb24gZGV2aWNlIDA6MTUuCgpJIGNvcGllZCBvdmVy
-IHRoZSBtb2R1bGVzIHRvIHRoaXMgcm9vdGZzIHRvbyA6KSBCdXQgaW4gZ2VuZXJhbCBvbmVuYW5k
-CnNlZW1zIHRvIGJlaGF2ZSBmb3IgbWUuCgo+IFRvbnksIHNoYWxsIEkgaGFyZGNvZGUgR1BNQ19D
-U19DT05GSUc0IE9FT05USU1FIHRvIGJlIHRoZSBzYW1lIGFzIE5PTE8ncyBvcgo+IGl0IGRvZXMg
-bm90IG1ha2Ugc2Vuc2U/CgpOb3Qgc3VyZSB3aGF0IGlzIHN0aWxsIHdyb25nLiBCdXQgeWVhaCBz
-b21lIGJvcmRlcmxpbmUgR1BNQyB0aW1pbmcKZGlmZmVyZW5jZXMgY291bGQgYWZmZWN0IGl0LgoK
-UmVnYXJkcywKClRvbnkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwK
+* Ulf Hansson <ulf.hansson@linaro.org> [160202 12:48]:
+> On 2 February 2016 at 17:35, Tony Lindgren <tony@atomide.com> wrote:
+> > That's a valid error though, let's not remove it. The reason why we
+> > call runtime_resume() twice is because runtime_suspend callback never
+> > gets called like I explain above.
+> 
+> This isn't an error, it's just a hickup in the synchronization of the
+> runtime PM status.
+
+I'd rather not get the hardware state out of sync with PM runtime..
+
+> Very similar what happens at the first probe, when the driver core has
+> initialized the runtime PM status to RPM_SUSPENDED at the device
+> registration.
+
+Well we actually pretty much have devices in that state to start
+with.
+
+> To me, it's the responsible of the PM domain to *help* with the
+> synchronization, not prevent it as it currently does.
+
+The problem is that the hardware state gets out of sync with
+PM runtime. And that's going to be a pain to debug later on.
+
+> > --- a/drivers/mmc/host/omap_hsmmc.c
+> > +++ b/drivers/mmc/host/omap_hsmmc.c
+> > @@ -2232,6 +2232,7 @@ err_irq:
+> >                 dma_release_channel(host->tx_chan);
+> >         if (host->rx_chan)
+> >                 dma_release_channel(host->rx_chan);
+> > +       pm_runtime_dont_use_autosuspend(host->dev);
+> 
+> It's good know this works, although do you intend to fix this sequence
+> for all omap drivers/devices that's part of the hwmod PM domain?
+> 
+> I haven't checked the number of drivers this would affect, but I
+> imagine there could be quite many with similar behaviour and thus may
+> suffer from the same issue.
+
+Yeah not sure what the right fix is. But I'd rather patch the
+few drivers using autosuspend if we come to the conclusion
+that there is no bug in PM runtime.
+
+> Could you please test my version 2 of the patch I attached earlier. I
+> still believe it's the best way to solve the regression, if it works
+> of course. :-)
+
+And I don't like it because of the reasons above :) But yeah
+gave it a quick try and that too works as expected.
+
+Regards,
+
+Tony
