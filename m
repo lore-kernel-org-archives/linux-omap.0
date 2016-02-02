@@ -1,31 +1,96 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v2] clk: move the common clock's to_clk_*(_hw) macros to
- clk-provider.h
-Date: Mon, 1 Feb 2016 17:09:39 -0800
-Message-ID: <20160202010939.GF4848@codeaurora.org>
-References: <568F9960.9040209@gmail.com>
- <704f6d5aa50acc4723f6756c217a865641d927fe.1452267334.git.geliangtang@163.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Mon, 1 Feb 2016 19:05:34 -0800
+Message-ID: <20160202030533.GT19432@atomide.com>
+References: <20160201232833.GR19432@atomide.com>
+ <Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <704f6d5aa50acc4723f6756c217a865641d927fe.1452267334.git.geliangtang@163.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geliang Tang <geliangtang@163.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Joachim Eastwood <manabian@gmail.com>, Tero Kristo <t-kristo@ti.com>, Matthias Brugger <matthias.bgg@gmail.com>, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org
+In-Reply-To: <Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/08, Geliang Tang wrote:
-> to_clk_*(_hw) macros have been repeatedly defined in many places.
-> This patch moves all the to_clk_*(_hw) definitions in the common
-> clock framework to public header clk-provider.h, and drop the local
-> definitions.
+Hi,
+
+* Alan Stern <stern@rowland.harvard.edu> [160201 15:50]:
 > 
-> Signed-off-by: Geliang Tang <geliangtang@163.com>
-> ---
+> You get here only if runtime PM is disabled, right?  So the rpm_idle 
+> call won't do anything -- "disabled" means don't make any callbacks.
 
-Applied to clk-next
+Hmm sorry yes I'm confused again. Yeah it looks like calling rpm_idle
+just has a side effect that makes a difference here.
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+> Tony, exactly what are you trying to do here?  Do you want this to 
+> invoke a runtime-PM callback in the subsystem, power domain, or driver?  
+> (Is there even a driver bound to the device when this function runs?)
+
+I guess I need to add more printks to figure out what's going on here.
+But yeah, I'm not seeing the callback happening at the interconnect
+level so hardware and PM runtime states won't match on the following
+probe after -EPROBE_DEFER.
+
+> The function's name suggests that it merely resets the data stored in 
+> dev->power without actually touching the hardware.  Is that what you 
+> really want?
+
+I guess you mean pm_runtime_set_suspended() above? I'm seeing a state
+where we now set pm_runtime_set_suspended() between failed device
+probes and the device is still active in hardware.
+
+The patch below also helps with the problem and leaves out the
+rpm_suspend() call from loop so it might give more hints.
+
+The difference here from what Rafael suggested earlier is calling
+__pm_runtime_use_autosuspend() and then not calling
+pm_runtime_set_suspended().
+
+However, it seems the below patch keeps hardware active in the
+autoidle case though, so chances are there is more that needs to
+be done here. Anyways, I'll try to debug it more tomorrow.
+
+Regards,
+
+Tony
+
+8< ------------------
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -1425,17 +1425,25 @@ void pm_runtime_init(struct device *dev)
+  */
+ void pm_runtime_reinit(struct device *dev)
+ {
+-	if (!pm_runtime_enabled(dev)) {
+-		if (dev->power.runtime_status == RPM_ACTIVE)
++	if (pm_runtime_enabled(dev))
++		return;
++
++	if (dev->power.runtime_status == RPM_ACTIVE) {
++		if (dev->power.use_autosuspend) {
++			pm_runtime_set_autosuspend_delay(dev, 0);
++			__pm_runtime_use_autosuspend(dev, false);
++		} else {
+ 			pm_runtime_set_suspended(dev);
+-		if (dev->power.irq_safe) {
+-			spin_lock_irq(&dev->power.lock);
+-			dev->power.irq_safe = 0;
+-			spin_unlock_irq(&dev->power.lock);
+-			if (dev->parent)
+-				pm_runtime_put(dev->parent);
+ 		}
+ 	}
++
++	if (dev->power.irq_safe) {
++		spin_lock_irq(&dev->power.lock);
++		dev->power.irq_safe = 0;
++		spin_unlock_irq(&dev->power.lock);
++		if (dev->parent)
++			pm_runtime_put(dev->parent);
++	}
+ }
+ 
+ /**
