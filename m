@@ -1,111 +1,118 @@
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Subject: Re: [PATCH 4/4] pwm: omap-dmtimer: add dev_dbg() message for
- effective period and duty cycle
-Date: Tue, 2 Feb 2016 18:44:43 -0500
-Message-ID: <20160202184443.1e1b0bf5.drivshin.allworx@gmail.com>
-References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
-	<1454128014-22866-5-git-send-email-drivshin.allworx@gmail.com>
-	<CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
-	<20160201132228.2634b72e.drivshin.allworx@gmail.com>
-	<20160201185952.GN19432@atomide.com>
-	<20160202162330.GA4918@ulmo>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Tue, 2 Feb 2016 15:46:27 -0800
+Message-ID: <20160202234626.GD19432@atomide.com>
+References: <20160202210345.GZ19432@atomide.com>
+ <Pine.LNX.4.44L0.1602021626540.1653-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <20160202162330.GA4918@ulmo>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1602021626540.1653-100000@iolanthe.rowland.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2 Feb 2016 17:23:30 +0100
-Thierry Reding <thierry.reding@gmail.com> wrote:
-
-> On Mon, Feb 01, 2016 at 10:59:52AM -0800, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * David Rivshin (Allworx) <drivshin.allworx@gmail.com> [160201
-> > 10:23]:  
-> > > On Sat, 30 Jan 2016 15:51:06 +0100
-> > > Neil Armstrong <narmstrong@baylibre.com> wrote:
-> > >   
-> > > > 2016-01-30 5:26 GMT+01:00 David Rivshin (Allworx)
-> > > > <drivshin.allworx@gmail.com>:  
-> > > > > From: David Rivshin <drivshin@allworx.com>
-> > > > >
-> > > > > After going through the math and constraints checking to
-> > > > > compute load and match values, it is helpful to know what the
-> > > > > resultant period and duty cycle are.
-> > > > >
-> > > > > Signed-off-by: David Rivshin <drivshin@allworx.com>
-> > > > > ---
-> > > > >
-> > > > > I found this helpful while testing the other changes, so I
-> > > > > included it in case it may be of use to someone in the
-> > > > > future. I would have no issues with dropping this if it's not
-> > > > > considered worthwhile.    
-> > > > 
-> > > > It's useful, but converting it as a sysfs attribute would be
-> > > > great !  
-> > > 
-> > > Hrm, yes that is an interesting thought. I imagine that many PWM 
-> > > devices have similar constraints, so perhaps that would be best 
-> > > handled generically in the pwm core? Maybe as new optional
-> > > get_*() ops, a modification to the config() op to add output
-> > > params, or just updating new fields in the struct pwm directly?  
-> > 
-> > Yeah for /sys entry it should be Linux generic. The other option
-> > is to use debugfs for driver specific things.  
+* Alan Stern <stern@rowland.harvard.edu> [160202 13:46]:
+> On Tue, 2 Feb 2016, Tony Lindgren wrote:
 > 
-> Let's go with debugfs for this one. This is used for diagnostic
+> > > Also, what is autosuspend_delay set to for your device?  And is 
+> > > runtime_auto set?
+> > 
+> > It's 100 at that point, see the commented snippet below from
+> > omap_hsmmc_probe():
+> > 
+> > 	pm_runtime_enable(host->dev);
+> > 	pm_runtime_get_sync(host->dev);
+> > 	pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
+> > 	/* NOTE: pm_runtime_dont_use_autosuspend(host->dev) needed here? */
+> > 	pm_runtime_use_autosuspend(host->dev);
+> > 	...
+> > 	/* gets -EPROBE_DEFER */
+> > err_irq:
+> > 	...
+> > 	pm_runtime_put_sync(host->dev);
+> 
+> You could try changing this to pm_runtime_put_sync_suspend().  But
+> putting pm_runtime_dont_use_autosuspend() before the put_sync seems
+> like a perfectly reasonable thing to do, especially if you feel you
+> should reverse all the changes you made at the start.
 
-I had looked at using the dbg_show() op to add some additional data. 
-One thing that discouraged me from going down that path was that 
-it replaced the call to pwm_dbg_show() for that chip. I wouldn't 
-want to loose the existing output, as it is useful, but also didn't
-like the thought of duplicating the logic/formatting. I think some 
-way to have both the standard output and add extra output somewhere
-(e.g. same line, line after each pwm_device, block after all 
-pwm_devices on the chip) would make that path more attractive.
+They both seem to fix the problem.
 
-Or were you thinking of a separate (per-chip) debugfs file for this 
-type of information? 
+> >         pm_runtime_disable(host->dev);
+> > 	/* NOTE: suspend callback never gets called unless
+> > 	 * pm_runtime_dont_use_autosuspend() is called
+> > 	 * before pm_runtime_put_sync() above.
+> > 	 */
+> > 	 ...
+> > 
+> > > > > Does pm_runtime_use_autosuspend() get called by the probe routine?  If 
+> > > > > it does, then perhaps you can get what you want by having the probe 
+> > > > > routine call pm_runtime_dont_use_autosuspend() whenever it's about to 
+> > > > > return an error -- particularly -EDEFER.
+> > > > 
+> > > > Yes so far that's the only fix that seems to work like I posted
+> > > > earlier. But is that the right fix though?
+> > > 
+> > > No, not really.  Ideally you would leave autosuspend turned on.  The 
+> > > delay would be long enough to that after -EDEFER, another probe would 
+> > > start before the delay expired.  But shortly after the last probe 
+> > > attempt, the delay would expire and the device would then be put in low 
+> > > power.
+> > 
+> > But then what about the new reinit function? To me it seems that
+> > we should not attempt to maintain a state from the earlier failed
+> > probe. Or are you thinking we just skip the reinit if autosuspend
+> > is set?
+> 
+> The reinit function gets called too late to do what you want -- namely, 
+> put the hardware in a low-power state.
 
-> purposes and not typically needed when configuring a PWM. While other
-> drivers may compute similar hardware-specific values, there's nothing
-> generic to them. The period and duty cycle are the generic input
-> values and those are already exposed via sysfs.
+Right, the problem is the lack of suspend on the first probe. But
+for having autosuspend timeout long enough for the next probe
+would mean that we can't reset the PM runtime state in between.
 
-Just to clarify, what I was thinking of as generic was the concept
-that "period/duty I asked for" and "period/duty I got" may be
-different, sometimes to a substantial degree. I could imagine 
-userspace wanting to know the latter, which is what I think Neil 
-was suggesting.
+> That _is_ what you want, isn't it?  The alternative is to leave
+> dev->power.rpm_status set to RPM_ACTIVE, to match the hardware's actual 
+> state.
 
-For the sake of an example, the input clock for a dmtimer is sometimes
-(often?) 32768Hz, which means that the real period and duty_cycle output
-are limited to being a multiple of ~61035.2ns (16384Hz). So an attempt 
-to set a period of 100000ns (10KHz) would result in either 61035.2ns, or 
-122070.4ns (8192Hz), depending on the implementation of the driver (and 
-patch 2 changes behavior from the former to the latter). You can also 
-have cases where you desired a 33% duty cycle, but got a 25% duty cycle 
-instead.
+As far as I can tell things work just fine if the failed probe
+suspend the device at the end of the failed probe.
 
-In a quick look, I see substantially similar calculations (i.e. 
-clk_rate*period_ns/10^9) in most of the other pwm drivers, which makes 
-sense for any that are programmed in terms of some input clock. This 
-type of calculation almost guarantees that requested and actual period/
-duty_cycle are going to be different to some degree. Some drivers look 
-like they have even more complicated behavior, apparently due to other 
-hardware constraints. For instance, fsl-ftm (among others) looks to be 
-using a power-of-2 prescaler to fit the period_cycles into a 16bit field.
+> Given that the reinit function is supposed to restore the initial 
+> settings, it probably ought to call pm_runtime_dont_use_autosuspend().  
+> But that won't be enough to fix your problem.
+> 
+> > > > If we wanted to have some generic fix, it seems we would have to pass
+> > > > a new flag in pm_runtime_put_sync() to ignore any autosuspend
+> > > > configuration. But I don't know if that's what we want to or should
+> > > > do though?
+> > > 
+> > > I don't think so.
+> > 
+> > So should we just establish a policy that pm_runtime_use_autosuspend()
+> > needs to be paired with pm_runtime_dont_use_autosuspend() for
+> > pm_runtime_put_sync() to work?
+> 
+> Your understanding is slightly wrong.  pm_runtime_put_sync() _does_
+> work -- that is, it does what it's supposed to do.  The difficulty is
+> that what it's supposed to do doesn't match what you think.
+> 
+> pm_runtime_put_sync() is supposed to follow the driver's wishes.  It
+> invokes the driver's runtime_idle callback if there is one, and the
+> callback routine can start a suspend or an autosuspend.  If there is no
+> callback, it will use whatever autosuspend setting the driver has set
+> up.  If you want to override the autosuspend setting, use
+> pm_runtime_put_sync_suspend() instead.
 
-Of course if the input clock rate for these types of devices is 
-sufficiently high (enough that the desired period is many input clock 
-cycles), then the difference between "desired" and "actual" is probably 
-small enough that noone cares. I'm not sure how common it is that
-  a) there is a substantial difference, and
-  b) userspace cares about it, and
-  c) userspace didn't carefully select an achievable value already
-If noone has brought it up before, then I'd guess the answer is "not very".
+Yes.. That works too. I guess the thing to consider is if we should
+make pm_runtime_put_sync() always sync along the lines of a patch
+I posted earlier today. That could avoid quite a bit of confusion
+as already seen in this thread :)
+
+Regards,
+
+Tony
