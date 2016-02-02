@@ -1,72 +1,50 @@
-From: Ross Green <rgkernel@gmail.com>
-Subject: Re: linux-4.5-rc1 TI pandboard-es wifi wlcore locks and reset
-Date: Tue, 2 Feb 2016 16:41:13 +1100
-Message-ID: <CANfgCY21zzinD48DOHaZdkGdDWpuAtJN1T8ofmdwM=P4f-7=Yw@mail.gmail.com>
-References: <CANfgCY2nHh+vZ=JOimJdKKKs2JgM-c7m+3ePZtS3XhqyXNkDUQ@mail.gmail.com>
-	<CANfgCY2zVXrLGv=YDpNvqhhoj5U2kgqZ_VV1EBPVK78grra84Q@mail.gmail.com>
-	<20160202043448.GA9514@earth>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Tue, 2 Feb 2016 11:33:08 +0200
+Message-ID: <56B077D4.3030902@gmail.com>
+References: <20160106174713.GL12777@atomide.com> <568D5669.4040801@gmail.com>
+ <20160106182650.GM12777@atomide.com> <568D5F54.7040900@gmail.com>
+ <20160107180700.GN12777@atomide.com> <568EDC8D.7070205@gmail.com>
+ <20160108022619.GS12777@atomide.com> <568F4596.8020206@gmail.com>
+ <20160108075913.GN11364@pali> <569052FE.1040008@gmail.com>
+ <20160121091437.GT7192@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160202043448.GA9514@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160121091437.GT7192@pali>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-I have not tried a bisect yet, but I can confirm 4.4 and 4.4.1 work.
-4.5-rc1 and 4.5-rc2 don't work.
-
-It appears the tx to device times out and then just goes into reset of
-the device to try and recover. A tx to device seems not to work.
-although somehow firmware has been loaded to the device. So some types
-of tx might work. Strange!
-
-There were quite a few omap and omap4 plus patches that have come
-along recently. so the culprit is in there somewhere. These machines
-have been rock solid for quite some time.
-
-If I get time, this evening, I'll see if I can give a bisect a try.
-
-Regards,
-
-Ross Green
-
-On Tue, Feb 2, 2016 at 3:34 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> Hi,
->
-> On Mon, Feb 01, 2016 at 11:38:38PM +1100, Ross Green wrote:
->> On Mon, Jan 25, 2016 at 11:47 PM, Ross Green <rgkernel@gmail.com> wrote:
->> > Just tried the new kernel release on faithful pandaboard es with the
->> > new 4.5-rc1 release.
->> >
->> > There is a problem with the wifi modules once the modules are loaded.
->> > Looks like the wifi firmware gets loaded put no response after that
->> > causing recovery action.
->> >
->> > the kernel 4.4 works quite happily with this board.
->> >
->> > Here is a dmesg dump in the attachment.
->> >
->> > Anyone have any ideas here?
->>
->> Just updated to the latest linux-4.5-rc2 and same result as rc1.
->>
->> The wireless module loads firmware and then stalls causing a reset of
->> the device and then continues to go through a stall and reset cycle.
->>
->> please find enclosed a copy of the dmesg output.
->>
->> Is there anyone else testing a pandaboard with linux-4.5-rc2?
->>
->> Just for completeness also tested the latest linux-4.4.1 kernel and
->> found no problems with the wireless modules.
->
-> I can see the same problem with Nokia N950 (which uses spi connected
-> wl1271). v4.4 + wl12xx spi DT patches from Uri Mashiach worked, v4.5
->  + the same patches does not work. I currently suspect 133b7326e960
-> or 3719c17e1816 to be the culprit. I have not yet verified it, though.
->
-> Have you tried to bisect the problem?
->
-> -- Sebastian
+CkhpLAoKT24gMjEuMDEuMjAxNiAxMToxNCwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gT24gU2F0dXJk
+YXkgMDkgSmFudWFyeSAyMDE2IDAyOjIzOjI2IEl2YXlsbyBEaW1pdHJvdiB3cm90ZToKPj4gSGks
+Cj4+Cj4+IE9uICA4LjAxLjIwMTYgMDk6NTksIFBhbGkgUm9ow6FyIHdyb3RlOgo+Pj4gT24gRnJp
+ZGF5IDA4IEphbnVhcnkgMjAxNiAwNzoxMzo1OCBJdmF5bG8gRGltaXRyb3Ygd3JvdGU6Cj4+Pj4g
+QW5kIGl0IGxvb2tzIGxpa2UgdGhlIHByb2JsZW1zIGhhcHBlbnMgc29tZXRpbWVzIG9uIG9vcHMg
+dG9vLgo+Pj4KPj4+IEluIGxpbnV4LW45MDAgdHJlZSBpcyBlbmFibGVkIG10ZG9vcHMgZHJpdmVy
+IHdoaWNoIHN0b3JlIG9vcHMgdG8KPj4+IHNwZWNpZmllZCBNVEQgZGV2aWNlLiBTbyBtYXliZSB0
+aGlzIGFjY2VzcyBjYXVzZSBpdD8KPj4+Cj4+Cj4+IFRoZSBrZXkgd29yZCBoZXJlIGlzICJzb21l
+dGltZXMiLiBpLmUgc29tZXRpbWVzIGl0IGhhcGVucyBvbiBub3JtYWwgcmVib290LAo+PiBzb21l
+dGltZXMgaXQgaGFwcGVucyBvbiBvb3BzLgo+Cj4gU28gd2hlcmUgaXMgcHJvYmxlbT8gSW4gb21h
+cC1ncG1jPyBtdGQ/IG9uZW5hbmQ/IG9yIHViaWZzPyBPciBpbgo+IGRpZmZlcmVudCBjb21wb25l
+bnQ/IERvIHdlIGtub3cgYXQgbGVhc3QgdGhpcz8KPgoKSSB0aGluayBJIG1hZGUgc29tZSBwcm9n
+cmVzcyBvbiB0aGUgaXNzdWUsIGl0IHNlZW1zIEkgaGF2ZSB0byBoYXZlIAoqYm90aCogZTdiMTFk
+YzdiNzdiZmNlMGEzNTEyMzBhNWZlZWFkYzFkMGJiYTk5NyAKKGU3YjExZGM3Yjc3YmZjZTBhMzUx
+MjMwYTVmZWVhZGMxZDBiYmE5OTcpIHJldmVydGVkICphbmQqIApIV01PRF9JTklUX05PX1JFU0VU
+IHJlc3RvcmVkIGluIG9tYXAzeHh4X2dwbWNfaHdtb2QgZmxhZ3MgdG8gaGF2ZSAKd29ya2luZyBv
+bmVuYW5kLgoKVG9ueSwgc2hhbGwgSSBoYXJkY29kZSBHUE1DX0NTX0NPTkZJRzQgT0VPTlRJTUUg
+dG8gYmUgdGhlIHNhbWUgYXMgTk9MTydzIApvciBpdCBkb2VzIG5vdCBtYWtlIHNlbnNlPwoKUmVn
+YXJkcywKSXZvCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
+ZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1hcm0ta2VybmVsCg==
