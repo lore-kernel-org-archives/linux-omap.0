@@ -1,114 +1,83 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
  v4.5-rc1
-Date: Wed, 3 Feb 2016 17:24:55 +0100
-Message-ID: <CAPDyKFoNY8xP11n6mFVicYwdy49sB4=H0fTm53754HukFX4HBQ@mail.gmail.com>
-References: <CAPDyKFpNRc3Nf9ofXhZrfBa54vXMxWboDScCrYFrZy97m8Y5gg@mail.gmail.com>
- <Pine.LNX.4.44L0.1602031034360.2041-100000@iolanthe.rowland.org>
- <20160203160951.GF19432@atomide.com>
+Date: Wed, 3 Feb 2016 08:27:06 -0800
+Message-ID: <20160203162705.GG19432@atomide.com>
+References: <20160201232833.GR19432@atomide.com>
+ <Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
+ <20160202030533.GT19432@atomide.com>
+ <CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
+ <CAPDyKFras1o13WBZzaZ_Snnj5TBQQFWKr=PtCjUvwe+yGPQn9w@mail.gmail.com>
+ <20160202163536.GU19432@atomide.com>
+ <CAPDyKFosQjkHDVSvy67+hstjjFseXQP5WYXrJE19GgVFYJ099w@mail.gmail.com>
+ <20160202234145.GC19432@atomide.com>
+ <CAPDyKFqLi8xOUeoxUTAmif5QrOjVpV_2CDLv4hjO_C9iOnv+5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160203160951.GF19432@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Kevin Hilman <khilman@baylibre.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPDyKFqLi8xOUeoxUTAmif5QrOjVpV_2CDLv4hjO_C9iOnv+5Q@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 3 February 2016 at 17:09, Tony Lindgren <tony@atomide.com> wrote:
-> * Alan Stern <stern@rowland.harvard.edu> [160203 07:46]:
->> On Wed, 3 Feb 2016, Ulf Hansson wrote:
->>
->> > > Let me summarize my understanding of this thread so far.
->> > >
->> > > It looks like the omap3 code initializes hardware in ->probe() and
->> > > then it may return -EPROBE_DEFER due to some unmet dependencies.  In
->> > > that case the hardware is not reset to the previous state and the
->> > > runtime PM framework is left in the state that corresponds to the
->> > > current hardware state.  Before we had pm_runtime_reinit(), everything
->> > > worked as expected on the second ->probe() call, because things were
->> > > in sync then.
->> >
->> > Correct!
+* Ulf Hansson <ulf.hansson@linaro.org> [160203 02:24]:
+> On 3 February 2016 at 00:41, Tony Lindgren <tony@atomide.com> wrote:
 >
-> Well not quite correct. After failed probe PM runtime is set to reset
-> state while hardware is still enabled.
+> > Well we actually pretty much have devices in that state to start
+> > with.
+> 
+> That's not true, not even for omap.
+> 
+> There are definitely devices which HW state is reflected by RPM_ACTIVE
+> at boot. It's the responsible of the subsystem/driver (including PM
+> domains) to make sure the runtime PM status is updated accordingly, to
+> reflect the real HW state.
+> 
+> For omap hwmod, at device registration in omap_device_build_from_dt()
+> it may actually invoke pm_runtime_set_active() if the device is
+> enabled. To my understanding, that's done to synchronize the real HW
+> state with the runtime PM status, right?
 
-Yes, but that's *after* pm_runtime_reinit() was added.
+Sure we do have cases where the bootloader state needs to be
+preserved for some devices. Like GPIO pin state to power memory on
+some devices! :)
 
-I think Rafael was thinking about how it worked *before*.
+> >> To me, it's the responsible of the PM domain to *help* with the
+> >> synchronization, not prevent it as it currently does.
+> >
+> > The problem is that the hardware state gets out of sync with
+> > PM runtime. And that's going to be a pain to debug later on.
+> 
+> I don't see the problem, but of course you know omap for better than I do.
 
->
->> > Before pm_runtime_reinit(), the failing probe case (-EPROBE_DEFER)
->> > worked fine because the HW state and the runtime PM status was in
->> > sync. The device was powered and the runtime PM status was RPM_ACTIVE.
->> >
->> > >
->> > > The introduction of pm_runtime_reinit() changed the situation and now
->> > > effectively the hardware is required to be reset to the initial state
->> > > if -EPROBE_DEFER is to be returned too.
->> >
->> > Not correct. The hardware doesn't need a reset as it stays powered
->> > after a failed probe.
->
-> It is really best to disable the hardware after a failed probe
-> like we do with pm_runtime_put_sync_(suspend)() and pm_runtime_disable().
->
-> This is because there may never be another probe attempt and we want
-> to have unclaimed devices shut off (or idled) for PM.
+Well there's also the long term maintenance aspect at least I
+need to consider.
 
-I totally agree!
+> So if you are concerned about this, perhaps adding a dev_dbg print
+> when the omap hwmod's ->runtime_suspend() callback returns zero could
+> be a way forward?
 
->
->> > Instead, only the runtime PM status needs to be synchronized with the
->> > HW state the next probe attempt.
->>
->> In other words, the probe routine assumes the actual state is the same
->> as the PM status.  This may have been true before pm_runtime_reinit()
->> came along, but it's not true now.
->>
->> > In other words, when the PM domain's ->runtime_resume() callbacks gets
->> > called due to a pm_runtime_get_sync() in the second probe attempt, it
->> > may find that the HW is already powered and can return zero instead of
->> > resetting it.
->
-> Certainly that should at least produce a warning in the hardware
-> specific implementation. It's a state mismatch between PM runtime
-> and the hardware specific implementation.
->
-> And as discussed, the problem does not exist as long as we understand
-> that we need to use pm_runtime_put_sync_suspend() if the driver has
-> set pm_runtime_use_autoidle(). Or else use the combination of
-> pm_runtime_dont_use_autoidle() and pm_runtime_put_sync().
+If we downgrade it to a debug statement or a warning, we'll soon end
+up with even more driver specific warnings than we already have.
+And I don't want to be chasing people around to fix their drivers
+for eavery new driver that gets submitted.
 
-Okay, so I understand that you decided to not pick up the omap hwmod
-patch I posted.
+Also, without this error I would not even originally have noticed we
+have a problem :) So I suggest the following:
 
-If you want some further help in fixing the omap drivers, please just
-tell me I am at your service. :-)
+1. I'll do a series of patches to fix up the handful of omap
+   specific drivers with pm_runtime_use_autosuspend() that depend
+   on omap_device
 
-Also, we must not forget to also update their runtime PM calls in
-their ->remove() callbacks, as those seems to suffer from the same
-problem as in the -EPROBE_DEFER case.
+2. I'll also do a patch to improve the omap_device error message
+   so new drivers are easy to fix. Something like:
 
->
->> What's wrong with going ahead and resetting the hardware anyway?
->
-> Nothing, unless a state needs to be maintained for things like GPIO
-> pins power memory :)
->
-> Regards,
->
-> Tony
+  "%() called from invalid state %d, use pm_runtime_put_sync_suspend()?"
 
-Kind regards
-Uffe
+Does that sounds OK to you?
+
+Regards,
+
+Tony
