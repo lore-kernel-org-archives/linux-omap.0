@@ -1,96 +1,109 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
-Date: Wed, 3 Feb 2016 11:23:23 +0100
-Message-ID: <CAPDyKFqLi8xOUeoxUTAmif5QrOjVpV_2CDLv4hjO_C9iOnv+5Q@mail.gmail.com>
-References: <20160201232833.GR19432@atomide.com>
-	<Pine.LNX.4.44L0.1602011844540.2869-100000@netrider.rowland.org>
-	<20160202030533.GT19432@atomide.com>
-	<CAPDyKFqQb+jtTpZbq6EvbfAk28yVkgdtiOswngNH_BjCWBDxFg@mail.gmail.com>
-	<CAPDyKFras1o13WBZzaZ_Snnj5TBQQFWKr=PtCjUvwe+yGPQn9w@mail.gmail.com>
-	<20160202163536.GU19432@atomide.com>
-	<CAPDyKFosQjkHDVSvy67+hstjjFseXQP5WYXrJE19GgVFYJ099w@mail.gmail.com>
-	<20160202234145.GC19432@atomide.com>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Subject: Re: [PATCH 1/4] pwm: omap-dmtimer: fix inaccurate period/duty_cycle
+ calculation
+Date: Wed, 3 Feb 2016 11:23:43 +0100
+Message-ID: <56B1D52F.70907@baylibre.com>
+References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
+ <1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160202234145.GC19432@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, linux-pwm@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 3 February 2016 at 00:41, Tony Lindgren <tony@atomide.com> wrote:
-> * Ulf Hansson <ulf.hansson@linaro.org> [160202 12:48]:
->> On 2 February 2016 at 17:35, Tony Lindgren <tony@atomide.com> wrote:
->> > That's a valid error though, let's not remove it. The reason why we
->> > call runtime_resume() twice is because runtime_suspend callback never
->> > gets called like I explain above.
->>
->> This isn't an error, it's just a hickup in the synchronization of the
->> runtime PM status.
->
-> I'd rather not get the hardware state out of sync with PM runtime..
->
->> Very similar what happens at the first probe, when the driver core has
->> initialized the runtime PM status to RPM_SUSPENDED at the device
->> registration.
->
-> Well we actually pretty much have devices in that state to start
-> with.
+On 01/30/2016 05:26 AM, David Rivshin (Allworx) wrote:
+> From: David Rivshin <drivshin@allworx.com>
+> 
+> Fix the calculation of load_value and match_value. Currently they
+> are slightly too low, which produces a noticeably wrong PWM rate with
+> sufficiently short periods (i.e. when 1/period approaches clk_rate/2).
+> 
+> Example:
+>  clk_rate=32768Hz, period=122070ns, duty_cycle=61035ns (8192Hz/50% PWM)
+>  Correct values: load = 0xfffffffc, match = 0xfffffffd
+>  Current values: load = 0xfffffffa, match = 0xfffffffc
+>  effective PWM: period=183105ns, duty_cycle=91553ns (5461Hz/50% PWM)
+> 
+> Fixes: 6604c6556db9 ("pwm: Add PWM driver for OMAP using dual-mode timers")
+> Signed-off-by: David Rivshin <drivshin@allworx.com>
 
-That's not true, not even for omap.
+OK for me.
 
-There are definitely devices which HW state is reflected by RPM_ACTIVE
-at boot. It's the responsible of the subsystem/driver (including PM
-domains) to make sure the runtime PM status is updated accordingly, to
-reflect the real HW state.
+Acked-by: Neil Armstrong <narmstrong@baylibre.com>
 
-For omap hwmod, at device registration in omap_device_build_from_dt()
-it may actually invoke pm_runtime_set_active() if the device is
-enabled. To my understanding, that's done to synchronize the real HW
-state with the runtime PM status, right?
+Thanks !
 
->
->> To me, it's the responsible of the PM domain to *help* with the
->> synchronization, not prevent it as it currently does.
->
-> The problem is that the hardware state gets out of sync with
-> PM runtime. And that's going to be a pain to debug later on.
-
-I don't see the problem, but of course you know omap for better than I do.
-
-So if you are concerned about this, perhaps adding a dev_dbg print
-when the omap hwmod's ->runtime_suspend() callback returns zero could
-be a way forward?
-
->
->> > --- a/drivers/mmc/host/omap_hsmmc.c
->> > +++ b/drivers/mmc/host/omap_hsmmc.c
->> > @@ -2232,6 +2232,7 @@ err_irq:
->> >                 dma_release_channel(host->tx_chan);
->> >         if (host->rx_chan)
->> >                 dma_release_channel(host->rx_chan);
->> > +       pm_runtime_dont_use_autosuspend(host->dev);
->>
->> It's good know this works, although do you intend to fix this sequence
->> for all omap drivers/devices that's part of the hwmod PM domain?
->>
->> I haven't checked the number of drivers this would affect, but I
->> imagine there could be quite many with similar behaviour and thus may
->> suffer from the same issue.
->
-> Yeah not sure what the right fix is. But I'd rather patch the
-> few drivers using autosuspend if we come to the conclusion
-> that there is no bug in PM runtime.
->
->> Could you please test my version 2 of the patch I attached earlier. I
->> still believe it's the best way to solve the regression, if it works
->> of course. :-)
->
-> And I don't like it because of the reasons above :) But yeah
-> gave it a quick try and that too works as expected.
-
-Okay, thanks for testing!
-
-Kind regards
-Uffe
+> ---
+>  drivers/pwm/pwm-omap-dmtimer.c | 27 ++++++++++++++++++++-------
+>  1 file changed, 20 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+> index 826634e..0083e75 100644
+> --- a/drivers/pwm/pwm-omap-dmtimer.c
+> +++ b/drivers/pwm/pwm-omap-dmtimer.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/time.h>
+>  
+>  #define DM_TIMER_LOAD_MIN 0xfffffffe
+> +#define DM_TIMER_MAX      0xffffffff
+>  
+>  struct pwm_omap_dmtimer_chip {
+>  	struct pwm_chip chip;
+> @@ -46,13 +47,13 @@ to_pwm_omap_dmtimer_chip(struct pwm_chip *chip)
+>  	return container_of(chip, struct pwm_omap_dmtimer_chip, chip);
+>  }
+>  
+> -static int pwm_omap_dmtimer_calc_value(unsigned long clk_rate, int ns)
+> +static u32 pwm_omap_dmtimer_get_clock_cycles(unsigned long clk_rate, int ns)
+>  {
+>  	u64 c = (u64)clk_rate * ns;
+>  
+>  	do_div(c, NSEC_PER_SEC);
+>  
+> -	return DM_TIMER_LOAD_MIN - c;
+> +	return c;
+>  }
+>  
+>  static void pwm_omap_dmtimer_start(struct pwm_omap_dmtimer_chip *omap)
+> @@ -99,7 +100,8 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
+>  				   int duty_ns, int period_ns)
+>  {
+>  	struct pwm_omap_dmtimer_chip *omap = to_pwm_omap_dmtimer_chip(chip);
+> -	int load_value, match_value;
+> +	u32 period_cycles, duty_cycles;
+> +	u32 load_value, match_value;
+>  	struct clk *fclk;
+>  	unsigned long clk_rate;
+>  	bool timer_active;
+> @@ -133,11 +135,22 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
+>  	/*
+>  	 * Calculate the appropriate load and match values based on the
+>  	 * specified period and duty cycle. The load value determines the
+> -	 * cycle time and the match value determines the duty cycle.
+> +	 * period time and the match value determines the duty time.
+> +	 *
+> +	 * The period lasts for (DM_TIMER_MAX-load_value+1) clock cycles.
+> +	 * Similarly, the active time lasts (match_value-load_value+1) cycles.
+> +	 * The non-active time is the remainder: (DM_TIMER_MAX-match_value)
+> +	 * clock cycles.
+> +	 *
+> +	 * References:
+> +	 *   OMAP4430/60/70 TRM sections 22.2.4.10 and 22.2.4.11
+> +	 *   AM335x Sitara TRM sections 20.1.3.5 and 20.1.3.6
+>  	 */
+> -	load_value = pwm_omap_dmtimer_calc_value(clk_rate, period_ns);
+> -	match_value = pwm_omap_dmtimer_calc_value(clk_rate,
+> -						  period_ns - duty_ns);
+> +	period_cycles = pwm_omap_dmtimer_get_clock_cycles(clk_rate, period_ns);
+> +	duty_cycles = pwm_omap_dmtimer_get_clock_cycles(clk_rate, duty_ns);
+> +
+> +	load_value = (DM_TIMER_MAX - period_cycles) + 1;
+> +	match_value = load_value + duty_cycles - 1;
+>  
+>  	/*
+>  	 * We MUST stop the associated dual-mode timer before attempting to
+> 
