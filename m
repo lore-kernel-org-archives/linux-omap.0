@@ -1,118 +1,206 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
- v4.5-rc1
-Date: Tue, 2 Feb 2016 15:46:27 -0800
-Message-ID: <20160202234626.GD19432@atomide.com>
-References: <20160202210345.GZ19432@atomide.com>
- <Pine.LNX.4.44L0.1602021626540.1653-100000@iolanthe.rowland.org>
+Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
+Date: Tue, 2 Feb 2016 16:00:45 -0800
+Message-ID: <20160203000045.GE19432@atomide.com>
+References: <568D5F54.7040900@gmail.com> <20160107180700.GN12777@atomide.com>
+ <568EDC8D.7070205@gmail.com> <20160108022619.GS12777@atomide.com>
+ <568F4596.8020206@gmail.com> <20160108075913.GN11364@pali>
+ <569052FE.1040008@gmail.com> <20160121091437.GT7192@pali>
+ <56B077D4.3030902@gmail.com> <20160202233911.GB19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1602021626540.1653-100000@iolanthe.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20160202233911.GB19432@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Alan Stern <stern@rowland.harvard.edu> [160202 13:46]:
-> On Tue, 2 Feb 2016, Tony Lindgren wrote:
-> 
-> > > Also, what is autosuspend_delay set to for your device?  And is 
-> > > runtime_auto set?
-> > 
-> > It's 100 at that point, see the commented snippet below from
-> > omap_hsmmc_probe():
-> > 
-> > 	pm_runtime_enable(host->dev);
-> > 	pm_runtime_get_sync(host->dev);
-> > 	pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
-> > 	/* NOTE: pm_runtime_dont_use_autosuspend(host->dev) needed here? */
-> > 	pm_runtime_use_autosuspend(host->dev);
-> > 	...
-> > 	/* gets -EPROBE_DEFER */
-> > err_irq:
-> > 	...
-> > 	pm_runtime_put_sync(host->dev);
-> 
-> You could try changing this to pm_runtime_put_sync_suspend().  But
-> putting pm_runtime_dont_use_autosuspend() before the put_sync seems
-> like a perfectly reasonable thing to do, especially if you feel you
-> should reverse all the changes you made at the start.
-
-They both seem to fix the problem.
-
-> >         pm_runtime_disable(host->dev);
-> > 	/* NOTE: suspend callback never gets called unless
-> > 	 * pm_runtime_dont_use_autosuspend() is called
-> > 	 * before pm_runtime_put_sync() above.
-> > 	 */
-> > 	 ...
-> > 
-> > > > > Does pm_runtime_use_autosuspend() get called by the probe routine?  If 
-> > > > > it does, then perhaps you can get what you want by having the probe 
-> > > > > routine call pm_runtime_dont_use_autosuspend() whenever it's about to 
-> > > > > return an error -- particularly -EDEFER.
-> > > > 
-> > > > Yes so far that's the only fix that seems to work like I posted
-> > > > earlier. But is that the right fix though?
-> > > 
-> > > No, not really.  Ideally you would leave autosuspend turned on.  The 
-> > > delay would be long enough to that after -EDEFER, another probe would 
-> > > start before the delay expired.  But shortly after the last probe 
-> > > attempt, the delay would expire and the device would then be put in low 
-> > > power.
-> > 
-> > But then what about the new reinit function? To me it seems that
-> > we should not attempt to maintain a state from the earlier failed
-> > probe. Or are you thinking we just skip the reinit if autosuspend
-> > is set?
-> 
-> The reinit function gets called too late to do what you want -- namely, 
-> put the hardware in a low-power state.
-
-Right, the problem is the lack of suspend on the first probe. But
-for having autosuspend timeout long enough for the next probe
-would mean that we can't reset the PM runtime state in between.
-
-> That _is_ what you want, isn't it?  The alternative is to leave
-> dev->power.rpm_status set to RPM_ACTIVE, to match the hardware's actual 
-> state.
-
-As far as I can tell things work just fine if the failed probe
-suspend the device at the end of the failed probe.
-
-> Given that the reinit function is supposed to restore the initial 
-> settings, it probably ought to call pm_runtime_dont_use_autosuspend().  
-> But that won't be enough to fix your problem.
-> 
-> > > > If we wanted to have some generic fix, it seems we would have to pass
-> > > > a new flag in pm_runtime_put_sync() to ignore any autosuspend
-> > > > configuration. But I don't know if that's what we want to or should
-> > > > do though?
-> > > 
-> > > I don't think so.
-> > 
-> > So should we just establish a policy that pm_runtime_use_autosuspend()
-> > needs to be paired with pm_runtime_dont_use_autosuspend() for
-> > pm_runtime_put_sync() to work?
-> 
-> Your understanding is slightly wrong.  pm_runtime_put_sync() _does_
-> work -- that is, it does what it's supposed to do.  The difficulty is
-> that what it's supposed to do doesn't match what you think.
-> 
-> pm_runtime_put_sync() is supposed to follow the driver's wishes.  It
-> invokes the driver's runtime_idle callback if there is one, and the
-> callback routine can start a suspend or an autosuspend.  If there is no
-> callback, it will use whatever autosuspend setting the driver has set
-> up.  If you want to override the autosuspend setting, use
-> pm_runtime_put_sync_suspend() instead.
-
-Yes.. That works too. I guess the thing to consider is if we should
-make pm_runtime_put_sync() always sync along the lines of a patch
-I posted earlier today. That could avoid quite a bit of confusion
-as already seen in this thread :)
-
-Regards,
-
-Tony
+KiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiBbMTYwMjAyIDE1OjQwXToKPiAqIEl2
+YXlsbyBEaW1pdHJvdiA8aXZvLmcuZGltaXRyb3YuNzVAZ21haWwuY29tPiBbMTYwMjAyIDAxOjM0
+XToKPiA+IE9uIDIxLjAxLjIwMTYgMTE6MTQsIFBhbGkgUm9ow6FyIHdyb3RlOgo+ID4gPk9uIFNh
+dHVyZGF5IDA5IEphbnVhcnkgMjAxNiAwMjoyMzoyNiBJdmF5bG8gRGltaXRyb3Ygd3JvdGU6Cj4g
+PiA+PlRoZSBrZXkgd29yZCBoZXJlIGlzICJzb21ldGltZXMiLiBpLmUgc29tZXRpbWVzIGl0IGhh
+cGVucyBvbiBub3JtYWwgcmVib290LAo+ID4gPj5zb21ldGltZXMgaXQgaGFwcGVucyBvbiBvb3Bz
+Lgo+ID4gPgo+ID4gPlNvIHdoZXJlIGlzIHByb2JsZW0/IEluIG9tYXAtZ3BtYz8gbXRkPyBvbmVu
+YW5kPyBvciB1Ymlmcz8gT3IgaW4KPiA+ID5kaWZmZXJlbnQgY29tcG9uZW50PyBEbyB3ZSBrbm93
+IGF0IGxlYXN0IHRoaXM/Cj4gPiA+Cj4gPiAKPiA+IEkgdGhpbmsgSSBtYWRlIHNvbWUgcHJvZ3Jl
+c3Mgb24gdGhlIGlzc3VlLCBpdCBzZWVtcyBJIGhhdmUgdG8gaGF2ZSAqYm90aCoKPiA+IGU3YjEx
+ZGM3Yjc3YmZjZTBhMzUxMjMwYTVmZWVhZGMxZDBiYmE5OTcKPiA+IChlN2IxMWRjN2I3N2JmY2Uw
+YTM1MTIzMGE1ZmVlYWRjMWQwYmJhOTk3KSByZXZlcnRlZCAqYW5kKgo+ID4gSFdNT0RfSU5JVF9O
+T19SRVNFVCByZXN0b3JlZCBpbiBvbWFwM3h4eF9ncG1jX2h3bW9kIGZsYWdzIHRvIGhhdmUgd29y
+a2luZwo+ID4gb25lbmFuZC4KPiAKPiBUaGF0IGlzIHN0cmFuZ2UuIFRoaXMgaXMgd2hhdCBJIGdl
+dCB3aXRoIG9tYXAycGx1c19kZWZjb25maWcgYW5kCj4gb21hcC1mb3ItdjQuNS9maXhlcy1yYzEg
+YWZ0ZXIgZmxhc2hpbmcgdGhlIHJvb3RmcyBhbmQgYm9vdGluZyBrZXJuZWwKPiBsaWtlIHlvdSBz
+dWdnZXN0ZWQgb24gaXJjOgo+IAo+ICMgZG1lc2cgfCBncmVwIC1pIC1lIHViaSAtZSBvbmVuYW5k
+Cj4gWyAgICAyLjUwMjg5OV0gb21hcDItb25lbmFuZCBvbWFwMi1vbmVuYW5kOiBpbml0aWFsaXpp
+bmcgb24gQ1MwLCBwaHlzIGJhc2UgMHgwMTAwMDAwMCwgdmlydHVhbCBiYXNlIGQwOTQwMDAwLCBm
+cmVxIDgzIE1Iego+IFsgICAgMi41MTQzNzNdIE9uZU5BTkQgTWFudWZhY3R1cmVyOiBOdW1vbnl4
+ICgweDIwKQo+IFsgICAgMi41MTkyODddIE11eGVkIE9uZU5BTkQgMjU2TUIgMS44ViAxNi1iaXQg
+KDB4NDApCj4gWyAgICAyLjUyNDQ0NF0gT25lTkFORCB2ZXJzaW9uID0gMHgwMDMxCj4gWyAgICAy
+LjY3MTk2Nl0gNiBvZnBhcnQgcGFydGl0aW9ucyBmb3VuZCBvbiBNVEQgZGV2aWNlIG9tYXAyLW9u
+ZW5hbmQKPiBbICAgIDIuNjc4NDM2XSBDcmVhdGluZyA2IE1URCBwYXJ0aXRpb25zIG9uICJvbWFw
+Mi1vbmVuYW5kIjoKPiBbICAgIDMuNDE0NzY0XSB1YmkwOiBhdHRhY2hpbmcgbXRkNQo+IFsgICAg
+My42NjgyMTJdIHViaTA6IHNjYW5uaW5nIGlzIGZpbmlzaGVkCj4gWyAgICAzLjcxNjU1Ml0gdWJp
+MDogYXR0YWNoZWQgbXRkNSAobmFtZSAicm9vdGZzIiwgc2l6ZSAyNTEgTWlCKQo+IFsgICAgMy43
+MjI4MzldIHViaTA6IFBFQiBzaXplOiAxMzEwNzIgYnl0ZXMgKDEyOCBLaUIpLCBMRUIgc2l6ZTog
+MTI5MDI0IGJ5dGVzCj4gWyAgICAzLjczMDE5NF0gdWJpMDogbWluLi9tYXguIEkvTyB1bml0IHNp
+emVzOiAyMDQ4LzIwNDgsIHN1Yi1wYWdlIHNpemUgNTEyCj4gWyAgICAzLjczNzMwNF0gdWJpMDog
+VklEIGhlYWRlciBvZmZzZXQ6IDUxMiAoYWxpZ25lZCA1MTIpLCBkYXRhIG9mZnNldDogMjA0OAo+
+IFsgICAgMy43NDQ1MzddIHViaTA6IGdvb2QgUEVCczogMjAxMCwgYmFkIFBFQnM6IDAsIGNvcnJ1
+cHRlZCBQRUJzOiAwCj4gWyAgICAzLjc1MTAzN10gdWJpMDogdXNlciB2b2x1bWU6IDEsIGludGVy
+bmFsIHZvbHVtZXM6IDEsIG1heC4gdm9sdW1lcyBjb3VudDogMTI4Cj4gWyAgICAzLjc1ODY5N10g
+dWJpMDogbWF4L21lYW4gZXJhc2UgY291bnRlcjogMS8wLCBXTCB0aHJlc2hvbGQ6IDQwOTYsIGlt
+YWdlIHNlcXVlbmNlIG51bWJlcjogMAo+IFsgICAgMy43Njc1NzhdIHViaTA6IGF2YWlsYWJsZSBQ
+RUJzOiAwLCB0b3RhbCByZXNlcnZlZCBQRUJzOiAyMDEwLCBQRUJzIHJlc2VydmVkIGZvciBiYWQg
+UEVCIGhhbmRsaW5nOiA0MAo+IFsgICAgMy45MjM5ODBdIHViaTA6IGJhY2tncm91bmQgdGhyZWFk
+ICJ1YmlfYmd0MGQiIHN0YXJ0ZWQsIFBJRCA4NQo+IFsgICAgMy45ODA1MjldIFVCSUZTICh1Ymkw
+OjApOiBiYWNrZ3JvdW5kIHRocmVhZCAidWJpZnNfYmd0MF8wIiBzdGFydGVkLCBQSUQgODcKPiBb
+ICAgIDMuOTk2MzM3XSBVQklGUyAodWJpMDowKTogcmVjb3ZlcnkgbmVlZGVkCj4gWyAgICA0LjA3
+OTkyNV0gVUJJRlMgKHViaTA6MCk6IHJlY292ZXJ5IGNvbXBsZXRlZAo+IFsgICAgNC4wODU4NzZd
+IFVCSUZTICh1YmkwOjApOiBVQklGUzogbW91bnRlZCBVQkkgZGV2aWNlIDAsIHZvbHVtZSAwLCBu
+YW1lICJyb290ZnMiCj4gWyAgICA0LjA5Mzc4MF0gVUJJRlMgKHViaTA6MCk6IExFQiBzaXplOiAx
+MjkwMjQgYnl0ZXMgKDEyNiBLaUIpLCBtaW4uL21heC4gSS9PIHVuaXQgc2l6ZXM6IDIwNDggYnl0
+ZXMvMjA0OCBieXRlcwo+IFsgICAgNC4xMDQzMzldIFVCSUZTICh1YmkwOjApOiBGUyBzaXplOiAy
+NTIyNDE5MjAgYnl0ZXMgKDI0MCBNaUIsIDE5NTUgTEVCcyksIGpvdXJuYWwgc2l6ZSA5MDMzNzI4
+IGJ5dGVzICg4IE1pQiwgNzEgTEVCcykKPiBbICAgIDQuMTE1NzIyXSBVQklGUyAodWJpMDowKTog
+cmVzZXJ2ZWQgZm9yIHJvb3Q6IDQxOTA0MzQgYnl0ZXMgKDQwOTIgS2lCKQo+IFsgICAgNC4xMjI3
+NzJdIFVCSUZTICh1YmkwOjApOiBtZWRpYSBmb3JtYXQ6IHc0L3IwIChsYXRlc3QgaXMgdzQvcjAp
+LCBVVUlEIDhGMzBBODhBLUY2MDUtNDI5MS05OTI3LTAwQ0YzQTJBRTExOSwgc21hbGwgTFBUIG1v
+ZGVsCj4gWyAgICA0LjEzNjA3N10gVkZTOiBNb3VudGVkIHJvb3QgKHViaWZzIGZpbGVzeXN0ZW0p
+IG9uIGRldmljZSAwOjE1Lgo+IAo+IEkgY29waWVkIG92ZXIgdGhlIG1vZHVsZXMgdG8gdGhpcyBy
+b290ZnMgdG9vIDopIEJ1dCBpbiBnZW5lcmFsIG9uZW5hbmQKPiBzZWVtcyB0byBiZWhhdmUgZm9y
+IG1lLgoKQW5kIGVyZSBhcmUgbXkgR1BDTSB0aW1pbmdzIHdoZW4gYm9vdGVkIHdpdGggR1BNQ19E
+RUJVRwppbiBjYXNlIHRoZXkgYXJlIGRpZmZlcmVudCBzb21laG93IGZvciB5b3VyIGRldmljZS4K
+ClJlZ2FyZHMsCgpUb255CgpvbWFwLWdwbWMgNmUwMDAwMDAuZ3BtYzogR1BNQyByZXZpc2lvbiA1
+LjAKR1BNQyBDUzA6IGNzX29uICAgICAgICAgICAgOiAgIDAgdGlja3MsICAgMCBucyAod2FzICAg
+MCB0aWNrcykgICAwIG5zCkdQTUMgQ1MwOiBjc19yZF9vZmYgICAgICAgIDogIDE0IHRpY2tzLCAg
+ODQgbnMgKHdhcyAgMTYgdGlja3MpICA4NCBucwpHUE1DIENTMDogY3Nfd3Jfb2ZmICAgICAgICA6
+ICAxOSB0aWNrcywgMTE0IG5zICh3YXMgIDE2IHRpY2tzKSAxMTQgbnMKR1BNQyBDUzA6IGFkdl9v
+biAgICAgICAgICAgOiAgIDAgdGlja3MsICAgMCBucyAod2FzICAgMCB0aWNrcykgICAwIG5zCkdQ
+TUMgQ1MwOiBhZHZfcmRfb2ZmICAgICAgIDogICAzIHRpY2tzLCAgMTggbnMgKHdhcyAgIDIgdGlj
+a3MpICAxOCBucwpHUE1DIENTMDogYWR2X3dyX29mZiAgICAgICA6ICAgMyB0aWNrcywgIDE4IG5z
+ICh3YXMgICAyIHRpY2tzKSAgMTggbnMKR1BNQyBDUzA6IG9lX29uICAgICAgICAgICAgOiAgIDUg
+dGlja3MsICAzMCBucyAod2FzICAgMiB0aWNrcykgIDMwIG5zCkdQTUMgQ1MwOiBvZV9vZmYgICAg
+ICAgICAgIDogIDE0IHRpY2tzLCAgODQgbnMgKHdhcyAgMTYgdGlja3MpICA4NCBucwpHUE1DIENT
+MDogd2Vfb24gICAgICAgICAgICA6ICAgMCB0aWNrcywgICAwIG5zICh3YXMgICAwIHRpY2tzKSAg
+IDAgbnMKR1BNQyBDUzA6IHdlX29mZiAgICAgICAgICAgOiAgMTQgdGlja3MsICA4NCBucyAod2Fz
+ICAxNiB0aWNrcykgIDg0IG5zCkdQTUMgQ1MwOiByZF9jeWNsZSAgICAgICAgIDogIDE4IHRpY2tz
+LCAxMDggbnMgKHdhcyAgMTkgdGlja3MpIDEwOCBucwpHUE1DIENTMDogd3JfY3ljbGUgICAgICAg
+ICA6ICAxNyB0aWNrcywgMTAyIG5zICh3YXMgIDE5IHRpY2tzKSAxMDIgbnMKR1BNQyBDUzA6IGFj
+Y2VzcyAgICAgICAgICAgOiAgMTMgdGlja3MsICA3OCBucyAod2FzICAxNSB0aWNrcykgIDc4IG5z
+CkdQTUMgQ1MwOiBwYWdlX2J1cnN0X2FjY2VzczogICAwIHRpY2tzLCAgIDAgbnMgKHdhcyAgIDIg
+dGlja3MpICAgMCBucwpHUE1DIENTMDogYnVzX3R1cm5hcm91bmQgICA6ICAgMCB0aWNrcywgICAw
+IG5zICh3YXMgICAwIHRpY2tzKSAgIDAgbnMKR1BNQyBDUzA6IGN5Y2xlMmN5Y2xlX2RlbGF5OiAg
+IDAgdGlja3MsICAgMCBucyAod2FzICAgMCB0aWNrcykgICAwIG5zCkdQTUMgQ1MwOiB3cl9kYXRh
+X211eF9idXMgIDogICA1IHRpY2tzLCAgMzAgbnMgKHdhcyAgIDUgdGlja3MpICAzMCBucwpHUE1D
+IENTMDogd3JfYWNjZXNzICAgICAgICA6ICAxMyB0aWNrcywgIDc4IG5zICh3YXMgIDE1IHRpY2tz
+KSAgNzggbnMKR1BNQyBDUzA6IHdhaXRfbW9uaXRvcmluZyAgOiAgIDAgdGlja3MsICAgMCBucyAo
+d2FzICAgMCB0aWNrcykgICAwIG5zCkdQTUMgQ1MwOiBjbGtfYWN0aXZhdGlvbiAgIDogICAwIHRp
+Y2tzLCAgIDAgbnMgKHdhcyAgIDAgdGlja3MpICAgMCBucwpHUE1DIENTMCBDTEsgcGVyaW9kIGlz
+IDYgbnMgKGRpdiAxKQpncG1jIGNzMCBhZnRlciBncG1jX2NzX3NldF90aW1pbmdzOgpjczAgR1BN
+Q19DU19DT05GSUcxOiAweGQ5MDAxMjAwCmNzMCBHUE1DX0NTX0NPTkZJRzI6IDB4MDAxMzBlMDAK
+Y3MwIEdQTUNfQ1NfQ09ORklHMzogMHgwMDAzMDMwMApjczAgR1BNQ19DU19DT05GSUc0OiAweDBl
+MDAwZTA1CmNzMCBHUE1DX0NTX0NPTkZJRzU6IDB4MDAwZDExMTIKY3MwIEdQTUNfQ1NfQ09ORklH
+NjogMHg4ZDA1MDAwMApncG1jIGNzMCBhY2Nlc3MgY29uZmlndXJhdGlvbjoKZ3BtYyxtdXgtYWRk
+LWRhdGEgPSA8Mj4KZ3BtYyxkZXZpY2Utd2lkdGggPSA8MT4KZ3BtYyx3YWl0LXBpbiA9IDwwPgpn
+cG1jLGJ1cnN0LWxlbmd0aCA9IDwxNj4KZ3BtYyxzeW5jLXdyaXRlID0gPDE+CmdwbWMsYnVyc3Qt
+d3JpdGUgPSA8MT4KZ3BtYyxidXJzdC1yZWFkID0gPDE+CmdwbWMsYnVyc3Qtd3JhcCA9IDwxPgpn
+cG1jIGNzMCB0aW1pbmdzIGNvbmZpZ3VyYXRpb246CmdwbWMsY3Mtb24tbnMgPSA8MD4gLyogMCBu
+cyAtIDAgbnM7IDAgdGlja3MgKi8KZ3BtYyxjcy1yZC1vZmYtbnMgPSA8ODQ+IC8qIDc5IG5zIC0g
+ODQgbnM7IDE0IHRpY2tzICovCmdwbWMsY3Mtd3Itb2ZmLW5zID0gPDExND4gLyogMTA5IG5zIC0g
+MTE0IG5zOyAxOSB0aWNrcyAqLwpncG1jLGFkdi1vbi1ucyA9IDwwPiAvKiAwIG5zIC0gMCBuczsg
+MCB0aWNrcyAqLwpncG1jLGFkdi1yZC1vZmYtbnMgPSA8MTg+IC8qIDEzIG5zIC0gMTggbnM7IDMg
+dGlja3MgKi8KZ3BtYyxhZHYtd3Itb2ZmLW5zID0gPDE4PiAvKiAxMyBucyAtIDE4IG5zOyAzIHRp
+Y2tzICovCmdwbWMsb2Utb24tbnMgPSA8MzA+IC8qIDI1IG5zIC0gMzAgbnM7IDUgdGlja3MgKi8K
+Z3BtYyxvZS1vZmYtbnMgPSA8ODQ+IC8qIDc5IG5zIC0gODQgbnM7IDE0IHRpY2tzICovCmdwbWMs
+d2Utb24tbnMgPSA8MD4gLyogMCBucyAtIDAgbnM7IDAgdGlja3MgKi8KZ3BtYyx3ZS1vZmYtbnMg
+PSA8ODQ+IC8qIDc5IG5zIC0gODQgbnM7IDE0IHRpY2tzICovCmdwbWMscmQtY3ljbGUtbnMgPSA8
+MTA4PiAvKiAxMDMgbnMgLSAxMDggbnM7IDE4IHRpY2tzICovCmdwbWMsd3ItY3ljbGUtbnMgPSA8
+MTAyPiAvKiA5NyBucyAtIDEwMiBuczsgMTcgdGlja3MgKi8KZ3BtYyxhY2Nlc3MtbnMgPSA8Nzg+
+IC8qIDczIG5zIC0gNzggbnM7IDEzIHRpY2tzICovCmdwbWMscGFnZS1idXJzdC1hY2Nlc3MtbnMg
+PSA8MD4gLyogMCBucyAtIDAgbnM7IDAgdGlja3MgKi8KZ3BtYyxidXMtdHVybmFyb3VuZC1ucyA9
+IDwwPiAvKiAwIG5zIC0gMCBuczsgMCB0aWNrcyAqLwpncG1jLGN5Y2xlMmN5Y2xlLWRlbGF5LW5z
+ID0gPDA+IC8qIDAgbnMgLSAwIG5zOyAwIHRpY2tzICovCmdwbWMsd2FpdC1tb25pdG9yaW5nLW5z
+ID0gPDA+IC8qIDAgbnMgLSAwIG5zOyAwIHRpY2tzICovCmdwbWMsY2xrLWFjdGl2YXRpb24tbnMg
+PSA8MD4gLyogMCBucyAtIDAgbnM7IDAgdGlja3MgKi8KZ3BtYyx3ci1kYXRhLW11eC1idXMtbnMg
+PSA8MzA+IC8qIDI1IG5zIC0gMzAgbnM7IDUgdGlja3MgKi8KZ3BtYyx3ci1hY2Nlc3MtbnMgPSA8
+Nzg+IC8qIDczIG5zIC0gNzggbnM7IDEzIHRpY2tzICovCkdQTUMgQ1MwOiBjc19vbiAgICAgICAg
+ICAgIDogICAwIHRpY2tzLCAgIDAgbnMgKHdhcyAgIDAgdGlja3MpICAgMCBucwpHUE1DIENTMDog
+Y3NfcmRfb2ZmICAgICAgICA6ICAxNiB0aWNrcywgIDk2IG5zICh3YXMgIDE0IHRpY2tzKSAgOTYg
+bnMKR1BNQyBDUzA6IGNzX3dyX29mZiAgICAgICAgOiAgMTYgdGlja3MsICA5NiBucyAod2FzICAx
+OSB0aWNrcykgIDk2IG5zCkdQTUMgQ1MwOiBhZHZfb24gICAgICAgICAgIDogICAwIHRpY2tzLCAg
+IDAgbnMgKHdhcyAgIDAgdGlja3MpICAgMCBucwpHUE1DIENTMDogYWR2X3JkX29mZiAgICAgICA6
+ICAgMiB0aWNrcywgIDEyIG5zICh3YXMgICAzIHRpY2tzKSAgMTIgbnMKR1BNQyBDUzA6IGFkdl93
+cl9vZmYgICAgICAgOiAgIDIgdGlja3MsICAxMiBucyAod2FzICAgMyB0aWNrcykgIDEyIG5zCkdQ
+TUMgQ1MwOiBvZV9vbiAgICAgICAgICAgIDogICAzIHRpY2tzLCAgMTggbnMgKHdhcyAgIDUgdGlj
+a3MpICAxOCBucwpHUE1DIENTMDogb2Vfb2ZmICAgICAgICAgICA6ICAxNiB0aWNrcywgIDk2IG5z
+ICh3YXMgIDE0IHRpY2tzKSAgOTYgbnMKR1BNQyBDUzA6IHdlX29uICAgICAgICAgICAgOiAgIDAg
+dGlja3MsICAgMCBucyAod2FzICAgMCB0aWNrcykgICAwIG5zCkdQTUMgQ1MwOiB3ZV9vZmYgICAg
+ICAgICAgIDogIDE2IHRpY2tzLCAgOTYgbnMgKHdhcyAgMTQgdGlja3MpICA5NiBucwpHUE1DIENT
+MDogcmRfY3ljbGUgICAgICAgICA6ICAxOSB0aWNrcywgMTE0IG5zICh3YXMgIDE4IHRpY2tzKSAx
+MTQgbnMKR1BNQyBDUzA6IHdyX2N5Y2xlICAgICAgICAgOiAgMTkgdGlja3MsIDExNCBucyAod2Fz
+ICAxNyB0aWNrcykgMTE0IG5zCkdQTUMgQ1MwOiBhY2Nlc3MgICAgICAgICAgIDogIDE1IHRpY2tz
+LCAgOTAgbnMgKHdhcyAgMTMgdGlja3MpICA5MCBucwpHUE1DIENTMDogcGFnZV9idXJzdF9hY2Nl
+c3M6ICAgMiB0aWNrcywgIDEyIG5zICh3YXMgICAwIHRpY2tzKSAgMTIgbnMKR1BNQyBDUzA6IGJ1
+c190dXJuYXJvdW5kICAgOiAgIDAgdGlja3MsICAgMCBucyAod2FzICAgMCB0aWNrcykgICAwIG5z
+CkdQTUMgQ1MwOiBjeWNsZTJjeWNsZV9kZWxheTogICAwIHRpY2tzLCAgIDAgbnMgKHdhcyAgIDAg
+dGlja3MpICAgMCBucwpHUE1DIENTMDogd3JfZGF0YV9tdXhfYnVzICA6ICAgNSB0aWNrcywgIDMw
+IG5zICh3YXMgICA1IHRpY2tzKSAgMzAgbnMKR1BNQyBDUzA6IHdyX2FjY2VzcyAgICAgICAgOiAg
+MTUgdGlja3MsICA5MCBucyAod2FzICAxMyB0aWNrcykgIDkwIG5zCkdQTUMgQ1MwOiB3YWl0X21v
+bml0b3JpbmcgIDogICAwIHRpY2tzLCAgIDAgbnMgKHdhcyAgIDAgdGlja3MpICAgMCBucwpHUE1D
+IENTMDogY2xrX2FjdGl2YXRpb24gICA6ICAgMSB0aWNrcywgICA2IG5zICh3YXMgICAwIHRpY2tz
+KSAgIDYgbnMKR1BNQyBDUzAgQ0xLIHBlcmlvZCBpcyAxMiBucyAoZGl2IDIpCmdwbWMgY3MwIGFm
+dGVyIGdwbWNfY3Nfc2V0X3RpbWluZ3M6CmNzMCBHUE1DX0NTX0NPTkZJRzE6IDB4ZmIwMDEyMDEK
+Y3MwIEdQTUNfQ1NfQ09ORklHMjogMHgwMDEwMTAwMApjczAgR1BNQ19DU19DT05GSUczOiAweDAw
+MDIwMjAwCmNzMCBHUE1DX0NTX0NPTkZJRzQ6IDB4MTAwMDEwMDMKY3MwIEdQTUNfQ1NfQ09ORklH
+NTogMHgwMjBmMTMxMwpjczAgR1BNQ19DU19DT05GSUc2OiAweDhmMDUwMDAwCmdwbWMgY3MwIGFj
+Y2VzcyBjb25maWd1cmF0aW9uOgpncG1jLG11eC1hZGQtZGF0YSA9IDwyPgpncG1jLGRldmljZS13
+aWR0aCA9IDwxPgpncG1jLHdhaXQtcGluID0gPDA+CmdwbWMsYnVyc3QtbGVuZ3RoID0gPDE2Pgpn
+cG1jLHN5bmMtd3JpdGUgPSA8MT4KZ3BtYyxidXJzdC13cml0ZSA9IDwxPgpncG1jLGdwbWMsc3lu
+Yy1yZWFkID0gPDE+CmdwbWMsYnVyc3QtcmVhZCA9IDwxPgpncG1jLGJ1cnN0LXdyYXAgPSA8MT4K
+Z3BtYyBjczAgdGltaW5ncyBjb25maWd1cmF0aW9uOgpncG1jLGNzLW9uLW5zID0gPDA+IC8qIDAg
+bnMgLSAwIG5zOyAwIHRpY2tzICovCmdwbWMsY3MtcmQtb2ZmLW5zID0gPDk2PiAvKiA5MSBucyAt
+IDk2IG5zOyAxNiB0aWNrcyAqLwpncG1jLGNzLXdyLW9mZi1ucyA9IDw5Nj4gLyogOTEgbnMgLSA5
+NiBuczsgMTYgdGlja3MgKi8KZ3BtYyxhZHYtb24tbnMgPSA8MD4gLyogMCBucyAtIDAgbnM7IDAg
+dGlja3MgKi8KZ3BtYyxhZHYtcmQtb2ZmLW5zID0gPDEyPiAvKiA3IG5zIC0gMTIgbnM7IDIgdGlj
+a3MgKi8KZ3BtYyxhZHYtd3Itb2ZmLW5zID0gPDEyPiAvKiA3IG5zIC0gMTIgbnM7IDIgdGlja3Mg
+Ki8KZ3BtYyxvZS1vbi1ucyA9IDwxOD4gLyogMTMgbnMgLSAxOCBuczsgMyB0aWNrcyAqLwpncG1j
+LG9lLW9mZi1ucyA9IDw5Nj4gLyogOTEgbnMgLSA5NiBuczsgMTYgdGlja3MgKi8KZ3BtYyx3ZS1v
+bi1ucyA9IDwwPiAvKiAwIG5zIC0gMCBuczsgMCB0aWNrcyAqLwpncG1jLHdlLW9mZi1ucyA9IDw5
+Nj4gLyogOTEgbnMgLSA5NiBuczsgMTYgdGlja3MgKi8KZ3BtYyxyZC1jeWNsZS1ucyA9IDwxMTQ+
+IC8qIDEwOSBucyAtIDExNCBuczsgMTkgdGlja3MgKi8KZ3BtYyx3ci1jeWNsZS1ucyA9IDwxMTQ+
+IC8qIDEwOSBucyAtIDExNCBuczsgMTkgdGlja3MgKi8KZ3BtYyxhY2Nlc3MtbnMgPSA8OTA+IC8q
+IDg1IG5zIC0gOTAgbnM7IDE1IHRpY2tzICovCmdwbWMscGFnZS1idXJzdC1hY2Nlc3MtbnMgPSA8
+MTI+IC8qIDcgbnMgLSAxMiBuczsgMiB0aWNrcyAqLwpncG1jLGJ1cy10dXJuYXJvdW5kLW5zID0g
+PDA+IC8qIDAgbnMgLSAwIG5zOyAwIHRpY2tzICovCmdwbWMsY3ljbGUyY3ljbGUtZGVsYXktbnMg
+PSA8MD4gLyogMCBucyAtIDAgbnM7IDAgdGlja3MgKi8KZ3BtYyx3YWl0LW1vbml0b3JpbmctbnMg
+PSA8MD4gLyogMCBucyAtIDAgbnM7IDAgdGlja3MgKi8KZ3BtYyxjbGstYWN0aXZhdGlvbi1ucyA9
+IDw2PiAvKiAxIG5zIC0gNiBuczsgMSB0aWNrcyAqLwpncG1jLHdyLWRhdGEtbXV4LWJ1cy1ucyA9
+IDwzMD4gLyogMjUgbnMgLSAzMCBuczsgNSB0aWNrcyAqLwpncG1jLHdyLWFjY2Vzcy1ucyA9IDw5
+MD4gLyogODUgbnMgLSA5MCBuczsgMTUgdGlja3MgKi8Kb21hcDItb25lbmFuZCBvbWFwMi1vbmVu
+YW5kOiBpbml0aWFsaXppbmcgb24gQ1MwLCBwaHlzIGJhc2UgMHgwNDAwMDAwMCwgdmlydHVhbCBi
+YXNlIGQwOTQwMDAwLCBmcmVxIDgzIE1IegpPbmVOQU5EIE1hbnVmYWN0dXJlcjogTnVtb255eCAo
+MHgyMCkKTXV4ZWQgT25lTkFORCAyNTZNQiAxLjhWIDE2LWJpdCAoMHg0MCkKT25lTkFORCB2ZXJz
+aW9uID0gMHgwMDMxCkNoaXAgc3VwcG9ydCBhbGwgYmxvY2sgdW5sb2NrCkNoaXAgaGFzIDIgcGxh
+bmUKU2Nhbm5pbmcgZGV2aWNlIGZvciBiYWQgYmxvY2tzCjYgb2ZwYXJ0IHBhcnRpdGlvbnMgZm91
+bmQgb24gTVREIGRldmljZSBvbWFwMi1vbmVuYW5kCkNyZWF0aW5nIDYgTVREIHBhcnRpdGlvbnMg
+b24gIm9tYXAyLW9uZW5hbmQiOgoweDAwMDAwMDAwMDAwMC0weDAwMDAwMDAyMDAwMCA6ICJib290
+bG9hZGVyIgoweDAwMDAwMDAyMDAwMC0weDAwMDAwMDA4MDAwMCA6ICJjb25maWciCjB4MDAwMDAw
+MDgwMDAwLTB4MDAwMDAwMGMwMDAwIDogImxvZyIKbXRkb29wczogcmVhZHkgNDMsIDYxODggKG5v
+IGVyYXNlKQptdGRvb3BzOiBBdHRhY2hlZCB0byBNVEQgZGV2aWNlIDIKMHgwMDAwMDAwYzAwMDAt
+MHgwMDAwMDAyYzAwMDAgOiAia2VybmVsIgoweDAwMDAwMDJjMDAwMC0weDAwMDAwMDRjMDAwMCA6
+ICJpbml0ZnMiCjB4MDAwMDAwNGMwMDAwLTB4MDAwMDEwMDAwMDAwIDogInJvb3RmcyIKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
+ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
+Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
