@@ -1,61 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Wed, 3 Feb 2016 21:35:18 -0800
-Message-ID: <20160204053518.GP19432@atomide.com>
-References: <20160123121022.GB12497@amd>
- <20160125163332.GT19432@atomide.com>
- <20160126140010.GA29723@amd>
- <20160126172527.GY3500@atomide.com>
- <20160130200244.GA30429@amd>
- <20160130201452.GC30429@amd>
- <20160130221509.GA28644@amd>
- <20160201181316.GM19432@atomide.com>
- <20160201211736.GA11283@amd>
- <20160201221111.GP19432@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH] ARM: DRA7: hwmod: Fix OCP2SCP sysconfig
+Date: Thu, 4 Feb 2016 12:01:31 +0530
+Message-ID: <1454567491-30499-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160201221111.GP19432@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [160201 14:12]:
-> * Pavel Machek <pavel@ucw.cz> [160201 13:18]:
-> > 
-> > No, sorry, that was with 4.4. As you hit "PM regression with commit
-> > 5de85b9d57ab PM runtime re-init in v4.5-rc1", I thought I'd avoid
-> > v4.5-rc. 
-> 
-> OK
-> 
-> > (I assume I have to insmod and rmmod, right? Because powersave is not
-> > entered if I simply compile-out usb).
-> 
-> Depending on what the bootloader does and probably also if
-> USB was used during the booting.. So yeah you may need to modprobe
-> and then rmmod.
-> 
-> > Would you have commit ids for those rmmod fixes? It might be good to
-> > push them into stable, and I should try again with them applied...
-> 
-> 055555fc459 ("usb: musb: core: Fix handling of the phy notifications")
-> 03e43528ab68 ("usb: musb: Fix unbalanced pm_runtime_enable")
+OCP2SCP doesn't support smart idle wakeup according to
+DRA72x_SR1.0_NDA_TRM_vL and DRA75x_DRA74x_SR1.1_NDA_TRM_vW.
+Remove SIDLE_SMART_WKUP from the list of supported SIDLE modes
+in hwmod data.
 
-Oh and looks like these two phy-twl4030-phy fixes never got
-merged from thread "[PATCH 0/2] Two phy-twl4030-usb fixes for
-unloading the module":
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-phy: twl4030-usb: Relase usb phy on unload
-phy: twl4030-usb: Fix unbalanced pm_runtime_enable on module reload
-
-I'll resend those. But without those again deeper idle states
-are blocked.. And it could be that n900 needs similar additional
-patches for it's USB PHY as I've tested things so far only with
-phy-twl4030-usb PHY based systems.
-
-Regards,
-
-Tony
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 848356e..84c2699 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1482,8 +1482,7 @@ static struct omap_hwmod_class_sysconfig dra7xx_ocp2scp_sysc = {
+ 	.syss_offs	= 0x0014,
+ 	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
+ 			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+-- 
+1.7.9.5
