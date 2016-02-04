@@ -1,75 +1,179 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
-Date: Thu, 4 Feb 2016 11:20:03 +0100
-Message-ID: <CAPDyKFr3jqh5bDFOuKLgomhQ2P9+yN5Ps8E0CH8r-oOjvBuswg@mail.gmail.com>
-References: <20160202210345.GZ19432@atomide.com>
-	<Pine.LNX.4.44L0.1602021626540.1653-100000@iolanthe.rowland.org>
-	<20160202234626.GD19432@atomide.com>
-	<CAJZ5v0hdDdFDiieDnsjummg6F+nV7fi=gFa=oFweyP7-ApsHrQ@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
+Date: Thu, 4 Feb 2016 15:14:31 +0200
+Message-ID: <56B34EB7.4080005@ti.com>
+References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
+ <1454351299-27440-4-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hdDdFDiieDnsjummg6F+nV7fi=gFa=oFweyP7-ApsHrQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1454351299-27440-4-git-send-email-sudeep.holla@arm.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 3 February 2016 at 18:18, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Wed, Feb 3, 2016 at 12:46 AM, Tony Lindgren <tony@atomide.com> wrote:
->> * Alan Stern <stern@rowland.harvard.edu> [160202 13:46]:
->>> On Tue, 2 Feb 2016, Tony Lindgren wrote:
->>>
->>> > > Also, what is autosuspend_delay set to for your device?  And is
->>> > > runtime_auto set?
->>> >
->>> > It's 100 at that point, see the commented snippet below from
->>> > omap_hsmmc_probe():
->>> >
->>> >     pm_runtime_enable(host->dev);
->>> >     pm_runtime_get_sync(host->dev);
->>> >     pm_runtime_set_autosuspend_delay(host->dev, MMC_AUTOSUSPEND_DELAY);
->>> >     /* NOTE: pm_runtime_dont_use_autosuspend(host->dev) needed here? */
->>> >     pm_runtime_use_autosuspend(host->dev);
->>> >     ...
->>> >     /* gets -EPROBE_DEFER */
->>> > err_irq:
->>> >     ...
->>> >     pm_runtime_put_sync(host->dev);
->>>
->>> You could try changing this to pm_runtime_put_sync_suspend().  But
->>> putting pm_runtime_dont_use_autosuspend() before the put_sync seems
->>> like a perfectly reasonable thing to do, especially if you feel you
->>> should reverse all the changes you made at the start.
->
-> FWIW, I'd call pm_runtime_dont_use_autosuspend() before put_sync().
->
-> After all, the driver doesn't want to use autosuspend going forward,
-> so stating that explicitly looks like the right thing to do.
+Hi Sudeep,
 
-Just wanted to add yet some new findings while I was looking into this
-regression.
+On 02/01/2016 08:28 PM, Sudeep Holla wrote:
+> The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
+> be left enabled so as to allow them to work as expected during the
+> suspend-resume cycle, but doesn't guarantee that it will wake the system
+> from a suspended state, enable_irq_wake is recommended to be used for
+> the wakeup.
+> 
+> This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
+> enable_irq_wake instead.
 
-So, the reason why pm_runtime_put_sync() doesn't idle the device in
-these cases, is because autosuspend is respected and for some reason
-the autosuspend timer hasn't expired.
-I was wondering *why* the timer isn't considered as expired, because
-the driver don't call pm_runtime_mark_last_busy() in the failing probe
-case...
+And sorry for delayed reply - I've spent some time investigating it, but
+It was during Christmas holidays and finally I lost track of it :)
 
-Then I realized the following commit was merged a few releases ago,
-which makes the runtime PM core to invoke pm_runtime_mark_last_busy()
-for us.
+So, what we have:
+1) bad news: it will not work :(
 
-commit 56f487c78015936097474fd89b2ccb229d500d0f
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Wed May 13 16:36:32 2015 -0700
-PM / Runtime: Update last_busy in rpm_resume
+The PRCM wake up is handled in the following way on OMAP3+
+-- PRCM IRQ omap_prcm_irq_handler()
+   |- (a) "wkup" event -> _prcm_int_handle_wakeup()
+   |- "io" event (shared)
+       |- (b) _prcm_int_handle_io()
+       |- (c) pcs_irq_handler()
+(mux is for legacy platform - can be ignored for now)
 
-So, this commit actually causes the devices to stay active after a
-failed probe attempt.
+All "wkup"/"io" events must be handled in PRCM registers before
+PRCM IRQ status bits can be acked and reset.
 
-I think it's a good idea to revert this change, but what to you think?
+It means that all IRQs (a), (b) (c) have to be enabled at the
+moment when PRCM IRQ is fired. Unfortunately this can't be 
+guaranteed by IR PM core and omap_prcm_irq_handler() 
+will stuck forever on Resume :(.
 
-Kind regards
-Uffe
+Resume example:
+ omap_prcm_irq_handler()
+[1] -> prcm_irq_setup->read_pending_irqs(pending);
+    -> is there pending irqs?
+	-> io event
+	    -> (c) pcs_irq (enabled | wakeup src)
+		-> irq_pm_check_wakeup() 
+		   -> (disabled | suspended| pending)
+			pcs_irq_handler() not run
+   ->  goto [1] ----- OOps dead-loop
+	  
+
+2) Potential good news: It could be fixed the same way as it's done
+omap34xx (and as it was before :
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 58920bc..a0f8265 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -221,8 +221,7 @@ static int omap_pm_enter(suspend_state_t suspend_state)
+ static int omap_pm_begin(suspend_state_t state)
+ {
+        cpu_idle_poll_ctrl(true);
+-       if (cpu_is_omap34xx())
+-               omap_prcm_irq_prepare();
++       omap_prcm_irq_prepare();
+        return 0;
+ }
+ 
+@@ -233,8 +232,7 @@ static void omap_pm_end(void)
+ 
+ static void omap_pm_finish(void)
+ {
+-       if (cpu_is_omap34xx())
+-               omap_prcm_irq_complete();
++       omap_prcm_irq_complete();
+ }
+
+Another option is to convert omap_prcm_irq_handler to the generic handler
+(now chained) and, probably, make it threaded and all cascaded IRQs as
+nested threaded (this is just a theory).
+
+I'll be on business trip next two weeks and will not be able to help more with it
+Sorry.
+
+
+
+> 
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>   arch/arm/mach-omap2/mux.c        | 4 ++--
+>   arch/arm/mach-omap2/pm34xx.c     | 9 ++++-----
+>   arch/arm/mach-omap2/prm_common.c | 1 +
+>   3 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 176eef6ef338..12012bef8e63 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -810,13 +810,13 @@ int __init omap_mux_late_init(void)
+>   		return 0;
+>   
+>   	ret = request_irq(omap_prcm_event_to_irq("io"),
+> -		omap_hwmod_mux_handle_irq, IRQF_SHARED | IRQF_NO_SUSPEND,
+> +		omap_hwmod_mux_handle_irq, IRQF_SHARED,
+>   			"hwmod_io", omap_mux_late_init);
+>   
+>   	if (ret)
+>   		pr_warn("mux: Failed to setup hwmod io irq %d\n", ret);
+>   
+> -	return 0;
+> +	return enable_irq_wake(omap_prcm_event_to_irq("io"));
+>   }
+>   
+>   static void __init omap_mux_package_fixup(struct omap_mux *p,
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 2dbd3785ee6f..49604e0023c4 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -472,23 +472,22 @@ int __init omap3_pm_init(void)
+>   	prcm_setup_regs();
+>   
+>   	ret = request_irq(omap_prcm_event_to_irq("wkup"),
+> -		_prcm_int_handle_wakeup, IRQF_NO_SUSPEND, "pm_wkup", NULL);
+> +		_prcm_int_handle_wakeup, 0, "pm_wkup", NULL);
+>   
+>   	if (ret) {
+>   		pr_err("pm: Failed to request pm_wkup irq\n");
+>   		goto err1;
+>   	}
+> +	enable_irq_wake(omap_prcm_event_to_irq("wkup"));
+>   
+>   	/* IO interrupt is shared with mux code */
+>   	ret = request_irq(omap_prcm_event_to_irq("io"),
+> -		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
+> -		omap3_pm_init);
+> -	enable_irq(omap_prcm_event_to_irq("io"));
+> -
+> +		_prcm_int_handle_io, IRQF_SHARED, "pm_io", omap3_pm_init);
+>   	if (ret) {
+>   		pr_err("pm: Failed to request pm_io irq\n");
+>   		goto err2;
+>   	}
+> +	enable_irq_wake(omap_prcm_event_to_irq("io"));
+>   
+>   	ret = pwrdm_for_each(pwrdms_setup, NULL);
+>   	if (ret) {
+> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+> index 5b2f5138d938..7af688273e0d 100644
+> --- a/arch/arm/mach-omap2/prm_common.c
+> +++ b/arch/arm/mach-omap2/prm_common.c
+> @@ -338,6 +338,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+>   		ct->chip.irq_ack = irq_gc_ack_set_bit;
+>   		ct->chip.irq_mask = irq_gc_mask_clr_bit;
+>   		ct->chip.irq_unmask = irq_gc_mask_set_bit;
+> +		ct->chip.flags = IRQCHIP_SKIP_SET_WAKE;
+>   
+>   		ct->regs.ack = irq_setup->ack + i * 4;
+>   		ct->regs.mask = irq_setup->mask + i * 4;
+> 
+
+
+-- 
+regards,
+-grygorii
