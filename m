@@ -1,89 +1,59 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [RFT PATCH] arm: omap1_defconfig: convert to use libata PATA
- drivers
-Date: Thu, 04 Feb 2016 15:16:10 +0100
-Message-ID: <6359194.rjne3vOG9H@amdc1976>
-References: <1439571876-13758-1-git-send-email-b.zolnierkie@samsung.com>
- <1439571876-13758-16-git-send-email-b.zolnierkie@samsung.com>
- <20150817063454.GF4215@atomide.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Thu, 4 Feb 2016 11:04:50 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1602041059070.1515-100000@iolanthe.rowland.org>
+References: <CAPDyKFr3jqh5bDFOuKLgomhQ2P9+yN5Ps8E0CH8r-oOjvBuswg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-reply-to: <20150817063454.GF4215@atomide.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFr3jqh5bDFOuKLgomhQ2P9+yN5Ps8E0CH8r-oOjvBuswg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tony Lindgren <tony@atomide.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, 4 Feb 2016, Ulf Hansson wrote:
 
-Hi,
-
-On Sunday, August 16, 2015 11:34:55 PM Tony Lindgren wrote:
-> * Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> [150814 10:10]:
-> > IDE subsystem has been deprecated since 2009 and the majority
-> > (if not all) of Linux distributions have switched to use
-> > libata for ATA support exclusively.  However there are still
-> > some users (mostly old or/and embedded non-x86 systems) that
-> > have not converted from using IDE subsystem to libata PATA
-> > drivers.  This doesn't seem to be good thing in the long-term
-> > for Linux as while there is less and less PATA systems left
-> > in use:
-> > 
-> > * testing efforts are divided between two subsystems
-> > 
-> > * having duplicate drivers for same hardware confuses users
-> > 
-> > This patch converts omap1_defconfig to use libata PATA
-> > drivers.
-> > 
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: linux-omap@vger.kernel.org
-> > Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> > ---
-> > Build tested only.
-> > If you have affected hardware please test.  Thank you.
+> Just wanted to add yet some new findings while I was looking into this
+> regression.
 > 
-> All my omap1 devices are in a rack using NFSroot or MMC so
-> I can't test this. Seems like a good idea to me thoug, and does
-> not cause merge conflicts. So if you want to queue this via
-> along with other PATA related patches, please feel free to
-> add:
+> So, the reason why pm_runtime_put_sync() doesn't idle the device in
+> these cases, is because autosuspend is respected and for some reason
+> the autosuspend timer hasn't expired.
+
+No doubt the autosuspend delay is longer than the time it takes for a 
+probe to fail.
+
+> I was wondering *why* the timer isn't considered as expired, because
+> the driver don't call pm_runtime_mark_last_busy() in the failing probe
+> case...
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> Then I realized the following commit was merged a few releases ago,
+> which makes the runtime PM core to invoke pm_runtime_mark_last_busy()
+> for us.
+> 
+> commit 56f487c78015936097474fd89b2ccb229d500d0f
+> Author: Tony Lindgren <tony@atomide.com>
+> Date:   Wed May 13 16:36:32 2015 -0700
+> PM / Runtime: Update last_busy in rpm_resume
+> 
+> So, this commit actually causes the devices to stay active after a
+> failed probe attempt.
+> 
+> I think it's a good idea to revert this change, but what to you think?
 
-Thank you.
+I disagree.  The whole idea of autosuspend is to prevent the device's
+power state from bouncing up and down too rapidly.  This implies that 
+whenever the device gets resumed, we should wait at least the minimum 
+autosuspend delay before allowing the next autosuspend.
 
-Arnd/Olof, could you please merge this patch?
+Perhaps you think that it's silly to behave that way in this case,
+because the device wasn't accessed at all during the time it was at
+full power.  That's a valid objection, but the proper solution is not
+to revert the 56f487c78015 commit.  Rather, change the driver to avoid
+doing a pm_runtime_resume_sync until you _know_ that the device will be
+accessed soon.
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
-
-> >  arch/arm/configs/omap1_defconfig | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
-> > index 0c8a787..6ffc984 100644
-> > --- a/arch/arm/configs/omap1_defconfig
-> > +++ b/arch/arm/configs/omap1_defconfig
-> > @@ -96,14 +96,14 @@ CONFIG_BLK_DEV_LOOP=y
-> >  CONFIG_BLK_DEV_RAM=y
-> >  CONFIG_BLK_DEV_RAM_COUNT=2
-> >  CONFIG_BLK_DEV_RAM_SIZE=8192
-> > -CONFIG_IDE=m
-> > -CONFIG_BLK_DEV_IDECS=m
-> >  CONFIG_SCSI=y
-> >  # CONFIG_SCSI_PROC_FS is not set
-> >  CONFIG_BLK_DEV_SD=y
-> >  CONFIG_CHR_DEV_ST=y
-> >  CONFIG_BLK_DEV_SR=y
-> >  CONFIG_CHR_DEV_SG=y
-> > +CONFIG_ATA=m
-> > +CONFIG_PATA_PCMCIA=m
-> >  CONFIG_NETDEVICES=y
-> >  CONFIG_TUN=y
-> >  CONFIG_PHYLIB=y
+Alan Stern
 
