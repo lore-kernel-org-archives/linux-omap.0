@@ -1,82 +1,244 @@
 From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 2/2] arm: omap: remove deprecated property
-Date: Thu,  4 Feb 2016 14:18:02 +0200
-Message-ID: <1454588282-14383-2-git-send-email-balbi@kernel.org>
-References: <1454588282-14383-1-git-send-email-balbi@kernel.org>
+Subject: [PATCH 1/2] usb: dwc3: drop FIFO resizing logic
+Date: Thu,  4 Feb 2016 14:18:01 +0200
+Message-ID: <1454588282-14383-1-git-send-email-balbi@kernel.org>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454588282-14383-1-git-send-email-balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-DWC3's tx-fifo-resize property has been deprecated
-because of it being unnecessary to any HW other than
-OMAP5 ES1.0.
+That FIFO resizing logic was added to support OMAP5
+ES1.0 which had a bogus default FIFO size. I can't
+remember the exact size of default FIFO, but it was
+less than one bulk superspeed packet (<1024) which
+would prevent USB3 from ever working on OMAP5 ES1.0.
+
+However, OMAP5 ES1.0 support has been dropped by
+commit aa2f4b16f830 ("ARM: OMAP5: id: Remove ES1.0
+support") which renders FIFO resizing unnecessary.
 
 Signed-off-by: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7.dtsi   | 3 ---
- arch/arm/boot/dts/dra74x.dtsi | 1 -
- arch/arm/boot/dts/omap5.dtsi  | 1 -
- 3 files changed, 5 deletions(-)
+ Documentation/devicetree/bindings/usb/dwc3.txt     |  4 +-
+ .../devicetree/bindings/usb/qcom,dwc3.txt          |  1 -
+ drivers/usb/dwc3/core.c                            |  4 -
+ drivers/usb/dwc3/core.h                            |  5 --
+ drivers/usb/dwc3/ep0.c                             |  9 ---
+ drivers/usb/dwc3/gadget.c                          | 86 ----------------------
+ drivers/usb/dwc3/platform_data.h                   |  1 -
+ 7 files changed, 2 insertions(+), 108 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index c4d9175b90dc..d4e5312b032e 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1357,7 +1357,6 @@
- 						  "otg";
- 				phys = <&usb2_phy1>, <&usb3_phy1>;
+diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+index fb2ad0acedbd..15695682a480 100644
+--- a/Documentation/devicetree/bindings/usb/dwc3.txt
++++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+@@ -14,7 +14,6 @@ Optional properties:
+    the second element is expected to be a handle to the USB3/SS PHY
+  - phys: from the *Generic PHY* bindings
+  - phy-names: from the *Generic PHY* bindings
+- - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
+  - snps,usb3_lpm_capable: determines if platform is USB3 LPM capable
+  - snps,disable_scramble_quirk: true when SW should disable data scrambling.
+ 	Only really useful for FPGA builds.
+@@ -47,6 +46,8 @@ Optional properties:
+ 	register for post-silicon frame length adjustment when the
+ 	fladj_30mhz_sdbnd signal is invalid or incorrect.
+ 
++ - <DEPRECATED> tx-fifo-resize: determines if the FIFO *has* to be reallocated.
++
+ This is usually a subnode to DWC3 glue to which it is connected.
+ 
+ dwc3@4a030000 {
+@@ -54,5 +55,4 @@ dwc3@4a030000 {
+ 	reg = <0x4a030000 0xcfff>;
+ 	interrupts = <0 92 4>
+ 	usb-phy = <&usb2_phy>, <&usb3,phy>;
+-	tx-fifo-resize;
+ };
+diff --git a/Documentation/devicetree/bindings/usb/qcom,dwc3.txt b/Documentation/devicetree/bindings/usb/qcom,dwc3.txt
+index ca164e71dd50..39acb084bce9 100644
+--- a/Documentation/devicetree/bindings/usb/qcom,dwc3.txt
++++ b/Documentation/devicetree/bindings/usb/qcom,dwc3.txt
+@@ -59,7 +59,6 @@ Example device nodes:
+ 				interrupts = <0 205 0x4>;
+ 				phys = <&hs_phy>, <&ss_phy>;
  				phy-names = "usb2-phy", "usb3-phy";
 -				tx-fifo-resize;
- 				maximum-speed = "super-speed";
- 				dr_mode = "otg";
- 				snps,dis_u3_susphy_quirk;
-@@ -1385,7 +1384,6 @@
- 						  "otg";
- 				phys = <&usb2_phy2>;
- 				phy-names = "usb2-phy";
--				tx-fifo-resize;
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
- 				snps,dis_u3_susphy_quirk;
-@@ -1413,7 +1411,6 @@
- 				interrupt-names = "peripheral",
- 						  "host",
- 						  "otg";
--				tx-fifo-resize;
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
- 				snps,dis_u3_susphy_quirk;
-diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
-index 8bcc47db1cd1..4220eeffc65a 100644
---- a/arch/arm/boot/dts/dra74x.dtsi
-+++ b/arch/arm/boot/dts/dra74x.dtsi
-@@ -76,7 +76,6 @@
- 				interrupt-names = "peripheral",
- 						  "host",
- 						  "otg";
--				tx-fifo-resize;
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
- 			};
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index ca3c17fde5a0..614a437abd1b 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -885,7 +885,6 @@
- 				phys = <&usb2_phy>, <&usb3_phy>;
- 				phy-names = "usb2-phy", "usb3-phy";
- 				dr_mode = "peripheral";
--				tx-fifo-resize;
+ 				dr_mode = "host";
  			};
  		};
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index de5e01f41bc2..ed03820ebedd 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -894,9 +894,6 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	dwc->usb3_lpm_capable = device_property_read_bool(dev,
+ 				"snps,usb3_lpm_capable");
  
--- 
-2.7.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-	dwc->needs_fifo_resize = device_property_read_bool(dev,
+-				"tx-fifo-resize");
+-
+ 	dwc->disable_scramble_quirk = device_property_read_bool(dev,
+ 				"snps,disable_scramble_quirk");
+ 	dwc->u2exit_lfps_quirk = device_property_read_bool(dev,
+@@ -938,7 +935,6 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		if (pdata->hird_threshold)
+ 			hird_threshold = pdata->hird_threshold;
+ 
+-		dwc->needs_fifo_resize = pdata->tx_fifo_resize;
+ 		dwc->usb3_lpm_capable = pdata->usb3_lpm_capable;
+ 		dwc->dr_mode = pdata->dr_mode;
+ 
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 29130682e547..c6960541c38c 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -706,9 +706,7 @@ struct dwc3_scratchpad_array {
+  * 	0	- utmi_sleep_n
+  * 	1	- utmi_l1_suspend_n
+  * @is_fpga: true when we are using the FPGA board
+- * @needs_fifo_resize: not all users might want fifo resizing, flag it
+  * @pullups_connected: true when Run/Stop bit is set
+- * @resize_fifos: tells us it's ok to reconfigure our TxFIFO sizes.
+  * @setup_packet_pending: true when there's a Setup Packet in FIFO. Workaround
+  * @start_config_issued: true when StartConfig command has been issued
+  * @three_stage_setup: set if we perform a three phase setup
+@@ -852,9 +850,7 @@ struct dwc3 {
+ 	unsigned		has_lpm_erratum:1;
+ 	unsigned		is_utmi_l1_suspend:1;
+ 	unsigned		is_fpga:1;
+-	unsigned		needs_fifo_resize:1;
+ 	unsigned		pullups_connected:1;
+-	unsigned		resize_fifos:1;
+ 	unsigned		setup_packet_pending:1;
+ 	unsigned		start_config_issued:1;
+ 	unsigned		three_stage_setup:1;
+@@ -1023,7 +1019,6 @@ struct dwc3_gadget_ep_cmd_params {
+ 
+ /* prototypes */
+ void dwc3_set_mode(struct dwc3 *dwc, u32 mode);
+-int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc);
+ 
+ #if IS_ENABLED(CONFIG_USB_DWC3_HOST) || IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE)
+ int dwc3_host_init(struct dwc3 *dwc);
+diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+index 3a9354abcb68..2916a7f8f285 100644
+--- a/drivers/usb/dwc3/ep0.c
++++ b/drivers/usb/dwc3/ep0.c
+@@ -584,9 +584,6 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
+ 			reg = dwc3_readl(dwc->regs, DWC3_DCTL);
+ 			reg |= (DWC3_DCTL_ACCEPTU1ENA | DWC3_DCTL_ACCEPTU2ENA);
+ 			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+-
+-			dwc->resize_fifos = true;
+-			dwc3_trace(trace_dwc3_ep0, "resize FIFOs flag SET");
+ 		}
+ 		break;
+ 
+@@ -1029,12 +1026,6 @@ static int dwc3_ep0_start_control_status(struct dwc3_ep *dep)
+ 
+ static void __dwc3_ep0_do_control_status(struct dwc3 *dwc, struct dwc3_ep *dep)
+ {
+-	if (dwc->resize_fifos) {
+-		dwc3_trace(trace_dwc3_ep0, "Resizing FIFOs");
+-		dwc3_gadget_resize_tx_fifos(dwc);
+-		dwc->resize_fifos = 0;
+-	}
+-
+ 	WARN_ON(dwc3_ep0_start_control_status(dep));
+ }
+ 
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 7d1dd82a95ac..a5c783dfbbd6 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -145,92 +145,6 @@ int dwc3_gadget_set_link_state(struct dwc3 *dwc, enum dwc3_link_state state)
+ 	return -ETIMEDOUT;
+ }
+ 
+-/**
+- * dwc3_gadget_resize_tx_fifos - reallocate fifo spaces for current use-case
+- * @dwc: pointer to our context structure
+- *
+- * This function will a best effort FIFO allocation in order
+- * to improve FIFO usage and throughput, while still allowing
+- * us to enable as many endpoints as possible.
+- *
+- * Keep in mind that this operation will be highly dependent
+- * on the configured size for RAM1 - which contains TxFifo -,
+- * the amount of endpoints enabled on coreConsultant tool, and
+- * the width of the Master Bus.
+- *
+- * In the ideal world, we would always be able to satisfy the
+- * following equation:
+- *
+- * ((512 + 2 * MDWIDTH-Bytes) + (Number of IN Endpoints - 1) * \
+- * (3 * (1024 + MDWIDTH-Bytes) + MDWIDTH-Bytes)) / MDWIDTH-Bytes
+- *
+- * Unfortunately, due to many variables that's not always the case.
+- */
+-int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc)
+-{
+-	int		last_fifo_depth = 0;
+-	int		ram1_depth;
+-	int		fifo_size;
+-	int		mdwidth;
+-	int		num;
+-
+-	if (!dwc->needs_fifo_resize)
+-		return 0;
+-
+-	ram1_depth = DWC3_RAM1_DEPTH(dwc->hwparams.hwparams7);
+-	mdwidth = DWC3_MDWIDTH(dwc->hwparams.hwparams0);
+-
+-	/* MDWIDTH is represented in bits, we need it in bytes */
+-	mdwidth >>= 3;
+-
+-	/*
+-	 * FIXME For now we will only allocate 1 wMaxPacketSize space
+-	 * for each enabled endpoint, later patches will come to
+-	 * improve this algorithm so that we better use the internal
+-	 * FIFO space
+-	 */
+-	for (num = 0; num < dwc->num_in_eps; num++) {
+-		/* bit0 indicates direction; 1 means IN ep */
+-		struct dwc3_ep	*dep = dwc->eps[(num << 1) | 1];
+-		int		mult = 1;
+-		int		tmp;
+-
+-		if (!(dep->flags & DWC3_EP_ENABLED))
+-			continue;
+-
+-		if (usb_endpoint_xfer_bulk(dep->endpoint.desc)
+-				|| usb_endpoint_xfer_isoc(dep->endpoint.desc))
+-			mult = 3;
+-
+-		/*
+-		 * REVISIT: the following assumes we will always have enough
+-		 * space available on the FIFO RAM for all possible use cases.
+-		 * Make sure that's true somehow and change FIFO allocation
+-		 * accordingly.
+-		 *
+-		 * If we have Bulk or Isochronous endpoints, we want
+-		 * them to be able to be very, very fast. So we're giving
+-		 * those endpoints a fifo_size which is enough for 3 full
+-		 * packets
+-		 */
+-		tmp = mult * (dep->endpoint.maxpacket + mdwidth);
+-		tmp += mdwidth;
+-
+-		fifo_size = DIV_ROUND_UP(tmp, mdwidth);
+-
+-		fifo_size |= (last_fifo_depth << 16);
+-
+-		dwc3_trace(trace_dwc3_gadget, "%s: Fifo Addr %04x Size %d",
+-				dep->name, last_fifo_depth, fifo_size & 0xffff);
+-
+-		dwc3_writel(dwc->regs, DWC3_GTXFIFOSIZ(num), fifo_size);
+-
+-		last_fifo_depth += (fifo_size & 0xffff);
+-	}
+-
+-	return 0;
+-}
