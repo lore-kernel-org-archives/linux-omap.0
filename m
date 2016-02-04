@@ -1,57 +1,89 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
-Date: Thu, 4 Feb 2016 13:34:28 +0000
-Message-ID: <56B35364.8090104@arm.com>
-References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
- <1454351299-27440-4-git-send-email-sudeep.holla@arm.com>
- <56B34EB7.4080005@ti.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [RFT PATCH] arm: omap1_defconfig: convert to use libata PATA
+ drivers
+Date: Thu, 04 Feb 2016 15:16:10 +0100
+Message-ID: <6359194.rjne3vOG9H@amdc1976>
+References: <1439571876-13758-1-git-send-email-b.zolnierkie@samsung.com>
+ <1439571876-13758-16-git-send-email-b.zolnierkie@samsung.com>
+ <20150817063454.GF4215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <56B34EB7.4080005@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Sudeep Holla <sudeep.holla@arm.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-reply-to: <20150817063454.GF4215@atomide.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+Hi,
 
-On 04/02/16 13:14, Grygorii Strashko wrote:
-> Hi Sudeep,
->
-> On 02/01/2016 08:28 PM, Sudeep Holla wrote:
->> The IRQF_NO_SUSPEND flag is used to identify the interrupts that should
->> be left enabled so as to allow them to work as expected during the
->> suspend-resume cycle, but doesn't guarantee that it will wake the system
->> from a suspended state, enable_irq_wake is recommended to be used for
->> the wakeup.
->>
->> This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
->> enable_irq_wake instead.
->
-> And sorry for delayed reply - I've spent some time investigating it, but
-> It was during Christmas holidays and finally I lost track of it :)
->
+On Sunday, August 16, 2015 11:34:55 PM Tony Lindgren wrote:
+> * Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com> [150814 10:10]:
+> > IDE subsystem has been deprecated since 2009 and the majority
+> > (if not all) of Linux distributions have switched to use
+> > libata for ATA support exclusively.  However there are still
+> > some users (mostly old or/and embedded non-x86 systems) that
+> > have not converted from using IDE subsystem to libata PATA
+> > drivers.  This doesn't seem to be good thing in the long-term
+> > for Linux as while there is less and less PATA systems left
+> > in use:
+> > 
+> > * testing efforts are divided between two subsystems
+> > 
+> > * having duplicate drivers for same hardware confuses users
+> > 
+> > This patch converts omap1_defconfig to use libata PATA
+> > drivers.
+> > 
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: linux-omap@vger.kernel.org
+> > Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> > ---
+> > Build tested only.
+> > If you have affected hardware please test.  Thank you.
+> 
+> All my omap1 devices are in a rack using NFSroot or MMC so
+> I can't test this. Seems like a good idea to me thoug, and does
+> not cause merge conflicts. So if you want to queue this via
+> along with other PATA related patches, please feel free to
+> add:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-That's fine, usually that's the case in general will all of us :)
+Thank you.
 
-[..]
->
-> Another option is to convert omap_prcm_irq_handler to the generic handler
-> (now chained) and, probably, make it threaded and all cascaded IRQs as
-> nested threaded (this is just a theory).
->
+Arnd/Olof, could you please merge this patch?
 
-Since I don't have any knowledge of OMAP, I will completely depend on
-your for anything OMAP specific.
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
-> I'll be on business trip next two weeks and will not be able to help more with it
-> Sorry.
->
+> >  arch/arm/configs/omap1_defconfig | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+> > index 0c8a787..6ffc984 100644
+> > --- a/arch/arm/configs/omap1_defconfig
+> > +++ b/arch/arm/configs/omap1_defconfig
+> > @@ -96,14 +96,14 @@ CONFIG_BLK_DEV_LOOP=y
+> >  CONFIG_BLK_DEV_RAM=y
+> >  CONFIG_BLK_DEV_RAM_COUNT=2
+> >  CONFIG_BLK_DEV_RAM_SIZE=8192
+> > -CONFIG_IDE=m
+> > -CONFIG_BLK_DEV_IDECS=m
+> >  CONFIG_SCSI=y
+> >  # CONFIG_SCSI_PROC_FS is not set
+> >  CONFIG_BLK_DEV_SD=y
+> >  CONFIG_CHR_DEV_ST=y
+> >  CONFIG_BLK_DEV_SR=y
+> >  CONFIG_CHR_DEV_SG=y
+> > +CONFIG_ATA=m
+> > +CONFIG_PATA_PCMCIA=m
+> >  CONFIG_NETDEVICES=y
+> >  CONFIG_TUN=y
+> >  CONFIG_PHYLIB=y
 
-No problem, let me know once you get a chance to try out things at your end.
-
--- 
-Regards,
-Sudeep
