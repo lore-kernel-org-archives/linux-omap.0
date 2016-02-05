@@ -1,32 +1,39 @@
-From: =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>
-Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Thu, 4 Feb 2016 15:39:50 -0800
-Message-ID: <20160204233950.GH4215@xsjsorenbubuntu>
-References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
- <20160204224128.GG4215@xsjsorenbubuntu>
- <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in
+ v4.5-rc1
+Date: Thu, 4 Feb 2016 17:08:11 -0800
+Message-ID: <20160205010810.GR19432@atomide.com>
+References: <CAPDyKFpRnmn+h_VH3jtC3u-BOf7-00nbzD30omaxaaZOOAK8Gg@mail.gmail.com>
+ <Pine.LNX.4.44L0.1602041702550.1515-100000@iolanthe.rowland.org>
+ <CAPDyKFrMZYdeun67FBXdWL16DBOuO16qqOxRsks3QBJhNB8SoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Moritz Fischer <moritz.fischer@ettus.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, kernel@stlinux.com, tony@atomide.com, nsekhar@ti.com, Masahiro Yamada <yamada.masahiro@socionext.com>, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Wei Xu <xuwei5@hisilicon.com>, linux-rockchip@lists.infradead.org, bcm-kernel-feedback-list@broadcom.com, Arnd Bergmann <arnd@arndb.de>, Liviu Dudau <liviu.dudau@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Maxime Coquelin <maxime.coquelin@st.com>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Olof Johansson <olof@lixom.net>, Jun Nie <jun.nie@linaro.org>
+In-Reply-To: <CAPDyKFrMZYdeun67FBXdWL16DBOuO16qqOxRsks3QBJhNB8SoQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2016-02-04 at 15:14:47 -0800, Moritz Fischer wrote:
-> Hi Soeren,
->=20
-> On Thu, Feb 4, 2016 at 2:41 PM, S=C3=B6ren Brinkmann
-> <soren.brinkmann@xilinx.com> wrote:
->=20
-> > But with this change the 'if !CPU_FREQ' becomes obsolete.
-> I'm confused, could you explain that statement? You don't want people
-> accidentally running with GT when CPU_FREQ is on, right?
+* Ulf Hansson <ulf.hansson@linaro.org> [160204 14:35]:
+> On 4 February 2016 at 23:09, Alan Stern <stern@rowland.harvard.edu> wrote:
+> > On Thu, 4 Feb 2016, Ulf Hansson wrote:
+> >
+> >> I am really not questioning the autosuspend feature at all, it's a
+> >> really great feature!
+> >>
+> >> Now, I question the minor benefit we actually gain from having the
+> >> runtime PM core to update the mark in rpm_resume().
+> >
+> > As Tony pointed out, it prevents some devices from going to sleep right
+> > away.
+> 
+> Because their drivers don't care to update the last busy mark!?
 
-Correct. But with this Kconfig rework you can just deselect it in
-Kconfig. The generic HAVE_GT could always be selected.
+Nope. Without that devices may never resume at all so the drivers
+can't do anything about it.
 
-	S=C3=B6ren
+Regards,
+
+Tony
