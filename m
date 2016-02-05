@@ -1,11 +1,13 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH v4 0/3] ARM: OMAP2+: hwmod: RTC: Add lock and unlock hooks
-Date: Fri, 5 Feb 2016 11:12:29 +0530
-Message-ID: <1454650952-20154-1-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH v4 3/3] ARM: AMx3xx: RTC: Add lock and unlock functions
+Date: Fri, 5 Feb 2016 11:12:32 +0530
+Message-ID: <1454650952-20154-4-git-send-email-lokeshvutla@ti.com>
+References: <1454650952-20154-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1454650952-20154-1-git-send-email-lokeshvutla@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,29 +21,26 @@ To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-This series implements lock and unlock functions for RTC and hooks
-the same to DRA7 and AMx3xx hwmod.
+Hook omap_hwmod_rtc_unlock/lock functions into RTC hwmod,
+so that SYSCONFIG register is updated properly.
 
-Tested RTC functionality on:
-DRA74-EVM: http://pastebin.ubuntu.com/14885542/
-BeagleBoard-X15: http://pastebin.ubuntu.com/14885568/
-AM437x-GP EVM: http://pastebin.ubuntu.com/14885589/
-AM335x BeagleBoneBlack: http://pastebin.ubuntu.com/14885600/
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Changes since v3:
-- Rebased on top of latest Mainline.
-Link to v3 series: https://www.mail-archive.com/linux-omap%40vger.kernel.org/msg118342.html
-
-Lokesh Vutla (3):
-  ARM: hwmod: RTC: Add lock and unlock functions
-  ARM: DRA7: RTC: Add lock and unlock functions
-  ARM: AMx3xx: RTC: Add lock and unlock functions
-
- arch/arm/mach-omap2/omap_hwmod.h                   |  2 +
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  2 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +
- arch/arm/mach-omap2/omap_hwmod_reset.c             | 65 ++++++++++++++++++++++
- 4 files changed, 71 insertions(+)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+index 907a452b..aed3362 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+@@ -918,6 +918,8 @@ static struct omap_hwmod_class_sysconfig am33xx_rtc_sysc = {
+ static struct omap_hwmod_class am33xx_rtc_hwmod_class = {
+ 	.name		= "rtc",
+ 	.sysc		= &am33xx_rtc_sysc,
++	.unlock		= &omap_hwmod_rtc_unlock,
++	.lock		= &omap_hwmod_rtc_lock,
+ };
+ 
+ struct omap_hwmod am33xx_rtc_hwmod = {
 -- 
 2.1.4
