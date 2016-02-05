@@ -1,313 +1,168 @@
-From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Subject: Re: [PATCH v2 3/4] ARM: LG Optimus Black (P970) codename sniper
- support, with basic features
-Date: Fri, 05 Feb 2016 20:39:00 +0100
-Message-ID: <1454701140.2623.12.camel@collins>
-References: <1454697741-8687-1-git-send-email-contact@paulk.fr>
-	 <1454697741-8687-4-git-send-email-contact@paulk.fr>
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: Re: [PATCH 4/4] pwm: omap-dmtimer: add dev_dbg() message for
+ effective period and duty cycle
+Date: Fri, 5 Feb 2016 14:51:46 -0500
+Message-ID: <20160205145146.34ec4eb9.drivshin.allworx@gmail.com>
+References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
+	<1454128014-22866-5-git-send-email-drivshin.allworx@gmail.com>
+	<CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
+	<20160201132228.2634b72e.drivshin.allworx@gmail.com>
+	<20160201185952.GN19432@atomide.com>
+	<20160202162330.GA4918@ulmo>
+	<20160202184443.1e1b0bf5.drivshin.allworx@gmail.com>
+	<20160203141454.GC9650@ulmo>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-uKMkmFyrqv4pzcvoyayI"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454697741-8687-4-git-send-email-contact-W9ppeneeCTY@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <20160203141454.GC9650@ulmo>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, 3 Feb 2016 15:14:54 +0100
+Thierry Reding <thierry.reding@gmail.com> wrote:
 
---=-uKMkmFyrqv4pzcvoyayI
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> On Tue, Feb 02, 2016 at 06:44:43PM -0500, David Rivshin (Allworx)
+> wrote:
+> > On Tue, 2 Feb 2016 17:23:30 +0100
+> > Thierry Reding <thierry.reding@gmail.com> wrote:
+> >   
+> > > On Mon, Feb 01, 2016 at 10:59:52AM -0800, Tony Lindgren wrote:  
+> > > > Hi,
+> > > > 
+> > > > * David Rivshin (Allworx) <drivshin.allworx@gmail.com> [160201
+> > > > 10:23]:    
+> > > > > On Sat, 30 Jan 2016 15:51:06 +0100
+> > > > > Neil Armstrong <narmstrong@baylibre.com> wrote:
+> > > > >     
+> > > > > > 2016-01-30 5:26 GMT+01:00 David Rivshin (Allworx)
+> > > > > > <drivshin.allworx@gmail.com>:    
+> > > > > > > From: David Rivshin <drivshin@allworx.com>
+> > > > > > >
+> > > > > > > After going through the math and constraints checking to
+> > > > > > > compute load and match values, it is helpful to know what
+> > > > > > > the resultant period and duty cycle are.
+> > > > > > >
+> > > > > > > Signed-off-by: David Rivshin <drivshin@allworx.com>
+> > > > > > > ---
+> > > > > > >
+> > > > > > > I found this helpful while testing the other changes, so I
+> > > > > > > included it in case it may be of use to someone in the
+> > > > > > > future. I would have no issues with dropping this if it's
+> > > > > > > not considered worthwhile.      
+> > > > > > 
+> > > > > > It's useful, but converting it as a sysfs attribute would be
+> > > > > > great !    
+> > > > > 
+> > > > > Hrm, yes that is an interesting thought. I imagine that many
+> > > > > PWM devices have similar constraints, so perhaps that would
+> > > > > be best handled generically in the pwm core? Maybe as new
+> > > > > optional get_*() ops, a modification to the config() op to
+> > > > > add output params, or just updating new fields in the struct
+> > > > > pwm directly?    
+> > > > 
+> > > > Yeah for /sys entry it should be Linux generic. The other option
+> > > > is to use debugfs for driver specific things.    
+> > > 
+> > > Let's go with debugfs for this one. This is used for diagnostic  
+> > 
+> > I had looked at using the dbg_show() op to add some additional
+> > data. One thing that discouraged me from going down that path was
+> > that it replaced the call to pwm_dbg_show() for that chip. I
+> > wouldn't want to loose the existing output, as it is useful, but
+> > also didn't like the thought of duplicating the logic/formatting. I
+> > think some way to have both the standard output and add extra
+> > output somewhere (e.g. same line, line after each pwm_device, block
+> > after all pwm_devices on the chip) would make that path more
+> > attractive.
+> > 
+> > Or were you thinking of a separate (per-chip) debugfs file for this 
+> > type of information?   
+> 
+> Yes, generally I'd prefer a separate, chip-specific debugfs file for
 
-Hi,
+Makes sense.
 
-Le vendredi 05 f=C3=A9vrier 2016 =C3=A0 19:42 +0100, Paul Kocialkowski a =
-=C3=A9crit :
-> The LG Optimus Black (P970) codename sniper is a smartphone that was desi=
-gned
-> and manufactured by LG Electronics (LGE) and released back in 2011.
-> It is using an OMAP3630 SoC, GP version.
->=20
-> This adds devicetree support for the device, with only a few basic featur=
-es
-> supported, such as debug uart, i2c, internal emmc and external mmc.
->=20
-> Signed-off-by: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-> ---
->  arch/arm/boot/dts/Makefile         |   1 +
->  arch/arm/boot/dts/omap3-sniper.dts | 215 +++++++++++++++++++++++++++++++=
-++++++
->  2 files changed, 216 insertions(+)
->  create mode 100644 arch/arm/boot/dts/omap3-sniper.dts
->=20
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index a4a6d70..7314cf8 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -460,6 +460,7 @@ dtb-$(CONFIG_ARCH_OMAP3) +=3D \
->  	omap3-sbc-t3517.dtb \
->  	omap3-sbc-t3530.dtb \
->  	omap3-sbc-t3730.dtb \
-> +	omap3-sniper.dtb \
->  	omap3-thunder.dtb \
->  	omap3-zoom3.dtb
->  dtb-$(CONFIG_SOC_TI81XX) +=3D \
-> diff --git a/arch/arm/boot/dts/omap3-sniper.dts b/arch/arm/boot/dts/omap3=
--sniper.dts
-> new file mode 100644
-> index 0000000..24bcd82
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-sniper.dts
-> @@ -0,0 +1,215 @@
-> +/*
-> + * Copyright (C) 2015-2016 Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/dts-v1/;
-> +
-> +#include "omap36xx.dtsi"
-> +
-> +/ {
-> +	model =3D "LG Optimus Black (P970)";
-> +	compatible =3D "lge,omap3-sniper", "ti,omap36xx", "ti,omap3";
-> +
-> +	cpus {
-> +		cpu@0 {
-> +			cpu0-supply =3D <&vcc>;
-> +		};
-> +	};
-> +
-> +	memory {
-> +		device_type =3D "memory";
-> +		reg =3D <0x80000000 0x20000000>; /* 512 MB */
-> +	};
-> +};
-> +
-> +&omap3_pmx_core {
-> +	pinctrl-names =3D "default";
-> +
-> +	uart3_pins: pinmux_uart3_pins {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | MUX_MODE0)	/* uart3_rx_irrx */
-> +			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)	/* uart3_tx_irtx */
-> +		>;
-> +	};
-> +
-> +	dp3t_sel_pins: pinmux_dp3t_sel_pins {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x2196, PIN_OUTPUT | MUX_MODE4)	/* gpio_161 */
-> +			OMAP3_CORE1_IOPAD(0x2198, PIN_OUTPUT | MUX_MODE4)	/* gpio_162 */
-> +		>;
-> +	};
-> +
-> +	i2c1_pins: pinmux_i2c1_pins {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x21ba, PIN_INPUT | MUX_MODE0)	/* i2c1_scl */
-> +			OMAP3_CORE1_IOPAD(0x21bc, PIN_INPUT | MUX_MODE0)	/* i2c1_sda */
-> +		>;
-> +	};
-> +
-> +	i2c2_pins: pinmux_i2c2_pins {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x21be, PIN_INPUT | MUX_MODE0)	/* i2c2_scl */
-> +			OMAP3_CORE1_IOPAD(0x21c0, PIN_INPUT | MUX_MODE0)	/* i2c2_sda */
-> +		>;
-> +	};
-> +
-> +	i2c3_pins: pinmux_i2c3_pins {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT | MUX_MODE0)	/* i2c3_scl */
-> +			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda */
-> +		>;
-> +	};
-> +
-> +	lp8720_en_pin: pinmux_lp8720_en_pin {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x2080, PIN_OUTPUT | MUX_MODE4)	/* gpio_37 */
-> +		>;
-> +	};
-> +
-> +	mmc1_pins: pinmux_mmc1_pins {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT | MUX_MODE0)	/* sdmmc1_clk */
-> +			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT | MUX_MODE0)	/* sdmmc1_cmd */
-> +			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat0 */
-> +			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat1 */
-> +			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat2 */
-> +			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat3 */
-> +		>;
-> +	};
-> +
-> +	mmc2_pins: pinmux_mmc2_pins {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT | MUX_MODE0)	/* sdmmc2_clk */
-> +			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT | MUX_MODE0)	/* sdmmc2_cmd */
-> +			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat0 */
-> +			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat1 */
-> +			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat2 */
-> +			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat3 */
-> +			OMAP3_CORE1_IOPAD(0x2164, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat4 */
-> +			OMAP3_CORE1_IOPAD(0x2166, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat5 */
-> +			OMAP3_CORE1_IOPAD(0x2168, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat6 */
-> +			OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat7 */
-> +		>;
-> +	};
-> +};
-> +
-> +&omap3_pmx_wkup {
-> +	pinctrl-names =3D "default";
-> +
-> +	mmc1_cd_pin: pinmux_mmc1_cd_pin {
-> +		pinctrl-single,pins =3D <
-> +			OMAP3_WKUP_IOPAD(0x2a1a, PIN_INPUT | MUX_MODE4)		/* gpio_10 */
-> +		>;
-> +	};
-> +};
-> +
-> +&gpio2 {
-> +	ti,no-reset-on-init;
-> +};
-> +
-> +&gpio5 {
-> +	ti,no-reset-on-init;
-> +};
-> +
-> +&gpio6 {
-> +	ti,no-reset-on-init;
-> +};
-> +
-> +&uart3 {
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&uart3_pins &dp3t_sel_pins>;
-> +
-> +	interrupts-extended =3D <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
-> +};
-> +
-> +&i2c1 {
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&i2c1_pins>;
-> +
-> +	clock-frequency =3D <2600000>;
-> +
-> +	twl: twl@48 {
-> +		reg =3D <0x48>;
-> +		interrupts =3D <7>; /* SYS_NIRQ cascaded to intc */
-> +		interrupt-parent =3D <&intc>;
-> +
-> +		twl_power: power {
-> +			compatible =3D "ti,twl4030-power";
-> +			ti,use_poweroff;
-> +		};
-> +	};
-> +};
-> +
-> +#include "twl4030.dtsi"
-> +#include "twl4030_omap3.dtsi"
-> +
-> +&i2c2 {
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&i2c2_pins>;
-> +
-> +	clock-frequency =3D <400000>;
-> +};
-> +
-> +&i2c3 {
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&i2c3_pins>;
-> +
-> +	clock-frequency =3D <400000>;
-> +
-> +	lp8720@7d {
-> +		pinctrl-names =3D "default";
-> +		pinctrl-0 =3D <&lp8720_en_pin>;
-> +
-> +		compatible =3D "ti,lp8720";
-> +		reg =3D <0x7d>;
-> +
-> +		enable-gpios =3D <&gpio2 5 GPIO_ACTIVE_HIGH>; /* gpio_37 */
-> +
-> +		lp8720_ldo1: ldo1 {
-> +			regulator-min-microvolt =3D <3000000>;
-> +			regulator-max-microvolt =3D <3000000>;
-> +		};
-> +	};
-> +};
-> +
-> +&mmc1 {
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&mmc1_pins &mmc1_cd_pin>;
-> +	vmmc-supply =3D <&lp8720_ldo1>;
-> +	cd-gpios =3D <&gpio1 10 GPIO_ACTIVE_LOW>; /* gpio 10 */
-> +	bus-width =3D <4>;
-> +};
-> +
-> +&mmc2 {
-> +
+> extra information. To be honest I'm not entirely sure of the
+> usefulness of the pwm_dbg_show() or letting drivers override it. But
 
-Please discard this newline in case v2 gets merged.
+I did notice that no (in-tree) drivers were currently using 
+pwm_dbg_show()...
 
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&mmc2_pins>;
-> +	vmmc-supply =3D <&vmmc2>;
-> +	ti,non-removable;
-> +	bus-width =3D <8>;
-> +};
-> +
-> +&mmc3 {
-> +	status =3D "disabled";
-> +};
-> +
-> +/*
-> + * The TWL4030 VAUX2 and VDAC regulators power sensors that are slaves o=
-n I2C3.
-> + * When not powered, these sensors cause the I2C3 clock to stay low at a=
-ll times,
-> + * making it impossible to reach other devices on I2C3.
-> + */
-> +
-> +&vaux2 {
-> +	regulator-min-microvolt =3D <2800000>;
-> +	regulator-max-microvolt =3D <2800000>;
-> +	regulator-always-on;
-> +};
-> +
-> +&vdac {
-> +	regulator-min-microvolt =3D <1800000>;
-> +	regulator-max-microvolt =3D <1800000>;
-> +	regulator-always-on;
-> +};
+> that's slightly off-topic. However...
+> 
+> > > purposes and not typically needed when configuring a PWM. While
+> > > other drivers may compute similar hardware-specific values,
+> > > there's nothing generic to them. The period and duty cycle are
+> > > the generic input values and those are already exposed via
+> > > sysfs.  
+> > 
+> > Just to clarify, what I was thinking of as generic was the concept
+> > that "period/duty I asked for" and "period/duty I got" may be
+> > different, sometimes to a substantial degree. I could imagine 
+> > userspace wanting to know the latter, which is what I think Neil 
+> > was suggesting.
+> > 
+> > For the sake of an example, the input clock for a dmtimer is
+> > sometimes (often?) 32768Hz, which means that the real period and
+> > duty_cycle output are limited to being a multiple of ~61035.2ns
+> > (16384Hz). So an attempt to set a period of 100000ns (10KHz) would
+> > result in either 61035.2ns, or 122070.4ns (8192Hz), depending on
+> > the implementation of the driver (and patch 2 changes behavior from
+> > the former to the latter). You can also have cases where you
+> > desired a 33% duty cycle, but got a 25% duty cycle instead.
+> > 
+> > In a quick look, I see substantially similar calculations (i.e. 
+> > clk_rate*period_ns/10^9) in most of the other pwm drivers, which
+> > makes sense for any that are programmed in terms of some input
+> > clock. This type of calculation almost guarantees that requested
+> > and actual period/ duty_cycle are going to be different to some
+> > degree. Some drivers look like they have even more complicated
+> > behavior, apparently due to other hardware constraints. For
+> > instance, fsl-ftm (among others) looks to be using a power-of-2
+> > prescaler to fit the period_cycles into a 16bit field.
+> > 
+> > Of course if the input clock rate for these types of devices is 
+> > sufficiently high (enough that the desired period is many input
+> > clock cycles), then the difference between "desired" and "actual"
+> > is probably small enough that noone cares. I'm not sure how common
+> > it is that
+> >   a) there is a substantial difference, and
+> >   b) userspace cares about it, and
+> >   c) userspace didn't carefully select an achievable value already
+> > If noone has brought it up before, then I'd guess the answer is
+> > "not very".  
+> 
+> ... I think perhaps a better way yet would be to have drivers update
+> the period and duty cycle to the actual values. That way there won't
+> be a delta between what's really being programmed to hardware and
+> what shows up in sysfs. It would also give users a chance to check if
+> what's been programmed is within an acceptable range or not.
 
+>From a userspace ABI point of view, I was unsure whether it was 
+considered OK for a R/W sysfs attribute of this nature to read back 
+differently than it was set. To follow the previous example:
+	# echo 100000 > period
+	# cat period
+        122070
+I didn't find any obvious precedents for that. Would it potentially 
+confuse userspace? Is the answer different for new drivers vs 
+existing ones? The obvious alternative would be a separate file (e.g. 
+"actual_period", or somesuch name), which avoids those questions, but 
+I can see how that could be considered less clean. I don't have any 
+preference either way.
 
---=-uKMkmFyrqv4pzcvoyayI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+If just updating the existing period/duty_cycle files with the
+actual values is the way to go, then there is a second question:
+should the struct pwm_device track both requested and actual 
+values in separate fields for kernel-internal users? Or should
+the existing period/duty_cycle fields just be modified to hold
+the actual values?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAABAgAGBQJWtPpVAAoJEIT9weqP7pUMP8wP/25d+iVV6xRMVo7DOVJbEZr+
-os1PE6sKJ1tQO8/rFETfGYP7L5ItQK73fAlmEL9lRO8R40VRUD5epSq5bic7o+y8
-zDRKd2h59XD1p2Bn05jENqKyL1VHWJ67/SoNoUyWVQLTc/2bcm55NhLEq5940eA3
-IApKfnAMbffBYCspyXxintduc0GQzw8YMEu1+WFiWCY+JeVHVi8BeQhtOy9BsSL4
-TTorFX5ODA29nBKTg08+rX5wC+qvrJpgTnGo0xAwWxquLC1Rq5vDZwvYG7h4TPe9
-PhQWlcZBrWMuRAjBbDih3f57i3Jz82gESJdUYe8LaufGUDb8wcwm9gXm9GGPR3XC
-ZjRWYqGRDHDETbGRHULlDNA68eqLAck9GKRKprI0P7FHhmosHvfdQwR8eqXiWdlc
-QJocbBig6RxgS90eOMHjythFuHAbxvtQdmh0i0IF7U9jDhzNQeAaqFWFzUeqNn0Y
-ENS2vOAA69a1wa84O9TpiDQ6LKMrJwcKMUBrZx/FzkZBq5JK3SwnMLB5qSROm9Jq
-9OeCWqbiHnulvwaRBTBLnLovHMcKRA1zvuO3hQsObQs5Z+UDv2WL4wnc9T6z7vd8
-ReuSTTbg9CTCvI7eoC47mknltlDV/B3zVF+fVed+bzDLbKeYMKMA0foZvzFlutzS
-SYZj2G9q/Woe3/Ll1m6A
-=6gFZ
------END PGP SIGNATURE-----
-
---=-uKMkmFyrqv4pzcvoyayI--
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Either way, I think any changes along these lines would probably be 
+cleaner ontop of the atomic update work (assuming some form of that 
+gets merged). And since it would also be outside the scope of this 
+patchset, you may still want to consider the simple debug message 
+in this patch as at least an interim state.
