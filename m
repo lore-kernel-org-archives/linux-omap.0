@@ -1,287 +1,203 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: dwc3: drop FIFO resizing logic
-Date: Fri, 5 Feb 2016 21:37:12 +0530
-Message-ID: <56B4C8B0.9070909@ti.com>
-References: <1454588282-14383-1-git-send-email-balbi@kernel.org>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: [PATCH] ARM: drop unused Makefile.boot of Multiplatform SoCs
+Date: Sat,  6 Feb 2016 02:36:48 +0900
+Message-ID: <1454693808-13081-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454588282-14383-1-git-send-email-balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-samsung-soc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Viresh Kumar <vireshk@kernel.org>, Michal Simek <michal.simek@xilinx.com>, Kukjin Kim <kgene@kernel.org>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, spear-devel@list.st.com, Haojian Zhuang <haojian.zhuang@gmail.com>, Krzysztof Halasa <khalasa@piap.pl>, Santosh Shilimkar <ssantosh@kernel.org>, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Barry Song <baohua@kernel.org>, Eric Miao <eric.y.miao@gmail.com>, linux-ker
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+The variable "MACHINE" is empty if CONFIG_ARCH_MULTIPLATFORM=y,
+so these Makefile.boot files are never included.
 
-On Thursday 04 February 2016 05:48 PM, Felipe Balbi wrote:
-> That FIFO resizing logic was added to support OMAP5
-> ES1.0 which had a bogus default FIFO size. I can't
-> remember the exact size of default FIFO, but it was
-> less than one bulk superspeed packet (<1024) which
-> would prevent USB3 from ever working on OMAP5 ES1.0.
-> 
-> However, OMAP5 ES1.0 support has been dropped by
-> commit aa2f4b16f830 ("ARM: OMAP5: id: Remove ES1.0
-> support") which renders FIFO resizing unnecessary.
-> 
-> Signed-off-by: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+---
 
-tested this series on both dra7-evm and dra72-evm using mass storage gadget and
-msc.sh
+ arch/arm/mach-cns3xxx/Makefile.boot    | 3 ---
+ arch/arm/mach-exynos/Makefile.boot     | 2 --
+ arch/arm/mach-integrator/Makefile.boot | 4 ----
+ arch/arm/mach-keystone/Makefile.boot   | 1 -
+ arch/arm/mach-mmp/Makefile.boot        | 1 -
+ arch/arm/mach-mv78xx0/Makefile.boot    | 3 ---
+ arch/arm/mach-nspire/Makefile.boot     | 0
+ arch/arm/mach-omap2/Makefile.boot      | 3 ---
+ arch/arm/mach-orion5x/Makefile.boot    | 3 ---
+ arch/arm/mach-prima2/Makefile.boot     | 3 ---
+ arch/arm/mach-realview/Makefile.boot   | 9 ---------
+ arch/arm/mach-s3c64xx/Makefile.boot    | 2 --
+ arch/arm/mach-spear/Makefile.boot      | 3 ---
+ arch/arm/mach-u300/Makefile.boot       | 4 ----
+ arch/arm/mach-ux500/Makefile.boot      | 3 ---
+ arch/arm/mach-zynq/Makefile.boot       | 3 ---
+ 16 files changed, 47 deletions(-)
+ delete mode 100644 arch/arm/mach-cns3xxx/Makefile.boot
+ delete mode 100644 arch/arm/mach-exynos/Makefile.boot
+ delete mode 100644 arch/arm/mach-integrator/Makefile.boot
+ delete mode 100644 arch/arm/mach-keystone/Makefile.boot
+ delete mode 100644 arch/arm/mach-mmp/Makefile.boot
+ delete mode 100644 arch/arm/mach-mv78xx0/Makefile.boot
+ delete mode 100644 arch/arm/mach-nspire/Makefile.boot
+ delete mode 100644 arch/arm/mach-omap2/Makefile.boot
+ delete mode 100644 arch/arm/mach-orion5x/Makefile.boot
+ delete mode 100644 arch/arm/mach-prima2/Makefile.boot
+ delete mode 100644 arch/arm/mach-realview/Makefile.boot
+ delete mode 100644 arch/arm/mach-s3c64xx/Makefile.boot
+ delete mode 100644 arch/arm/mach-spear/Makefile.boot
+ delete mode 100644 arch/arm/mach-u300/Makefile.boot
+ delete mode 100644 arch/arm/mach-ux500/Makefile.boot
+ delete mode 100644 arch/arm/mach-zynq/Makefile.boot
 
-dra72-evm: http://pastebin.ubuntu.com/14887997/
-dra7-evm: http://pastebin.ubuntu.com/14887975/
-
-Tested-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-
-Let me know if you want me to do any other testing on dra7.
-
-Thanks
-Kishon
-
-> ---
->  Documentation/devicetree/bindings/usb/dwc3.txt     |  4 +-
->  .../devicetree/bindings/usb/qcom,dwc3.txt          |  1 -
->  drivers/usb/dwc3/core.c                            |  4 -
->  drivers/usb/dwc3/core.h                            |  5 --
->  drivers/usb/dwc3/ep0.c                             |  9 ---
->  drivers/usb/dwc3/gadget.c                          | 86 ----------------------
->  drivers/usb/dwc3/platform_data.h                   |  1 -
->  7 files changed, 2 insertions(+), 108 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
-> index fb2ad0acedbd..15695682a480 100644
-> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
-> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
-> @@ -14,7 +14,6 @@ Optional properties:
->     the second element is expected to be a handle to the USB3/SS PHY
->   - phys: from the *Generic PHY* bindings
->   - phy-names: from the *Generic PHY* bindings
-> - - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
->   - snps,usb3_lpm_capable: determines if platform is USB3 LPM capable
->   - snps,disable_scramble_quirk: true when SW should disable data scrambling.
->  	Only really useful for FPGA builds.
-> @@ -47,6 +46,8 @@ Optional properties:
->  	register for post-silicon frame length adjustment when the
->  	fladj_30mhz_sdbnd signal is invalid or incorrect.
->  
-> + - <DEPRECATED> tx-fifo-resize: determines if the FIFO *has* to be reallocated.
-> +
->  This is usually a subnode to DWC3 glue to which it is connected.
->  
->  dwc3@4a030000 {
-> @@ -54,5 +55,4 @@ dwc3@4a030000 {
->  	reg = <0x4a030000 0xcfff>;
->  	interrupts = <0 92 4>
->  	usb-phy = <&usb2_phy>, <&usb3,phy>;
-> -	tx-fifo-resize;
->  };
-> diff --git a/Documentation/devicetree/bindings/usb/qcom,dwc3.txt b/Documentation/devicetree/bindings/usb/qcom,dwc3.txt
-> index ca164e71dd50..39acb084bce9 100644
-> --- a/Documentation/devicetree/bindings/usb/qcom,dwc3.txt
-> +++ b/Documentation/devicetree/bindings/usb/qcom,dwc3.txt
-> @@ -59,7 +59,6 @@ Example device nodes:
->  				interrupts = <0 205 0x4>;
->  				phys = <&hs_phy>, <&ss_phy>;
->  				phy-names = "usb2-phy", "usb3-phy";
-> -				tx-fifo-resize;
->  				dr_mode = "host";
->  			};
->  		};
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index de5e01f41bc2..ed03820ebedd 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -894,9 +894,6 @@ static int dwc3_probe(struct platform_device *pdev)
->  	dwc->usb3_lpm_capable = device_property_read_bool(dev,
->  				"snps,usb3_lpm_capable");
->  
-> -	dwc->needs_fifo_resize = device_property_read_bool(dev,
-> -				"tx-fifo-resize");
-> -
->  	dwc->disable_scramble_quirk = device_property_read_bool(dev,
->  				"snps,disable_scramble_quirk");
->  	dwc->u2exit_lfps_quirk = device_property_read_bool(dev,
-> @@ -938,7 +935,6 @@ static int dwc3_probe(struct platform_device *pdev)
->  		if (pdata->hird_threshold)
->  			hird_threshold = pdata->hird_threshold;
->  
-> -		dwc->needs_fifo_resize = pdata->tx_fifo_resize;
->  		dwc->usb3_lpm_capable = pdata->usb3_lpm_capable;
->  		dwc->dr_mode = pdata->dr_mode;
->  
-> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-> index 29130682e547..c6960541c38c 100644
-> --- a/drivers/usb/dwc3/core.h
-> +++ b/drivers/usb/dwc3/core.h
-> @@ -706,9 +706,7 @@ struct dwc3_scratchpad_array {
->   * 	0	- utmi_sleep_n
->   * 	1	- utmi_l1_suspend_n
->   * @is_fpga: true when we are using the FPGA board
-> - * @needs_fifo_resize: not all users might want fifo resizing, flag it
->   * @pullups_connected: true when Run/Stop bit is set
-> - * @resize_fifos: tells us it's ok to reconfigure our TxFIFO sizes.
->   * @setup_packet_pending: true when there's a Setup Packet in FIFO. Workaround
->   * @start_config_issued: true when StartConfig command has been issued
->   * @three_stage_setup: set if we perform a three phase setup
-> @@ -852,9 +850,7 @@ struct dwc3 {
->  	unsigned		has_lpm_erratum:1;
->  	unsigned		is_utmi_l1_suspend:1;
->  	unsigned		is_fpga:1;
-> -	unsigned		needs_fifo_resize:1;
->  	unsigned		pullups_connected:1;
-> -	unsigned		resize_fifos:1;
->  	unsigned		setup_packet_pending:1;
->  	unsigned		start_config_issued:1;
->  	unsigned		three_stage_setup:1;
-> @@ -1023,7 +1019,6 @@ struct dwc3_gadget_ep_cmd_params {
->  
->  /* prototypes */
->  void dwc3_set_mode(struct dwc3 *dwc, u32 mode);
-> -int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc);
->  
->  #if IS_ENABLED(CONFIG_USB_DWC3_HOST) || IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE)
->  int dwc3_host_init(struct dwc3 *dwc);
-> diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
-> index 3a9354abcb68..2916a7f8f285 100644
-> --- a/drivers/usb/dwc3/ep0.c
-> +++ b/drivers/usb/dwc3/ep0.c
-> @@ -584,9 +584,6 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
->  			reg = dwc3_readl(dwc->regs, DWC3_DCTL);
->  			reg |= (DWC3_DCTL_ACCEPTU1ENA | DWC3_DCTL_ACCEPTU2ENA);
->  			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
-> -
-> -			dwc->resize_fifos = true;
-> -			dwc3_trace(trace_dwc3_ep0, "resize FIFOs flag SET");
->  		}
->  		break;
->  
-> @@ -1029,12 +1026,6 @@ static int dwc3_ep0_start_control_status(struct dwc3_ep *dep)
->  
->  static void __dwc3_ep0_do_control_status(struct dwc3 *dwc, struct dwc3_ep *dep)
->  {
-> -	if (dwc->resize_fifos) {
-> -		dwc3_trace(trace_dwc3_ep0, "Resizing FIFOs");
-> -		dwc3_gadget_resize_tx_fifos(dwc);
-> -		dwc->resize_fifos = 0;
-> -	}
-> -
->  	WARN_ON(dwc3_ep0_start_control_status(dep));
->  }
->  
-> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> index 7d1dd82a95ac..a5c783dfbbd6 100644
-> --- a/drivers/usb/dwc3/gadget.c
-> +++ b/drivers/usb/dwc3/gadget.c
-> @@ -145,92 +145,6 @@ int dwc3_gadget_set_link_state(struct dwc3 *dwc, enum dwc3_link_state state)
->  	return -ETIMEDOUT;
->  }
->  
-> -/**
-> - * dwc3_gadget_resize_tx_fifos - reallocate fifo spaces for current use-case
-> - * @dwc: pointer to our context structure
-> - *
-> - * This function will a best effort FIFO allocation in order
-> - * to improve FIFO usage and throughput, while still allowing
-> - * us to enable as many endpoints as possible.
-> - *
-> - * Keep in mind that this operation will be highly dependent
-> - * on the configured size for RAM1 - which contains TxFifo -,
-> - * the amount of endpoints enabled on coreConsultant tool, and
-> - * the width of the Master Bus.
-> - *
-> - * In the ideal world, we would always be able to satisfy the
-> - * following equation:
-> - *
-> - * ((512 + 2 * MDWIDTH-Bytes) + (Number of IN Endpoints - 1) * \
-> - * (3 * (1024 + MDWIDTH-Bytes) + MDWIDTH-Bytes)) / MDWIDTH-Bytes
-> - *
-> - * Unfortunately, due to many variables that's not always the case.
-> - */
-> -int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc)
-> -{
-> -	int		last_fifo_depth = 0;
-> -	int		ram1_depth;
-> -	int		fifo_size;
-> -	int		mdwidth;
-> -	int		num;
-> -
-> -	if (!dwc->needs_fifo_resize)
-> -		return 0;
-> -
-> -	ram1_depth = DWC3_RAM1_DEPTH(dwc->hwparams.hwparams7);
-> -	mdwidth = DWC3_MDWIDTH(dwc->hwparams.hwparams0);
-> -
-> -	/* MDWIDTH is represented in bits, we need it in bytes */
-> -	mdwidth >>= 3;
-> -
-> -	/*
-> -	 * FIXME For now we will only allocate 1 wMaxPacketSize space
-> -	 * for each enabled endpoint, later patches will come to
-> -	 * improve this algorithm so that we better use the internal
-> -	 * FIFO space
-> -	 */
-> -	for (num = 0; num < dwc->num_in_eps; num++) {
-> -		/* bit0 indicates direction; 1 means IN ep */
-> -		struct dwc3_ep	*dep = dwc->eps[(num << 1) | 1];
-> -		int		mult = 1;
-> -		int		tmp;
-> -
-> -		if (!(dep->flags & DWC3_EP_ENABLED))
-> -			continue;
-> -
-> -		if (usb_endpoint_xfer_bulk(dep->endpoint.desc)
-> -				|| usb_endpoint_xfer_isoc(dep->endpoint.desc))
-> -			mult = 3;
-> -
-> -		/*
-> -		 * REVISIT: the following assumes we will always have enough
-> -		 * space available on the FIFO RAM for all possible use cases.
-> -		 * Make sure that's true somehow and change FIFO allocation
-> -		 * accordingly.
-> -		 *
-> -		 * If we have Bulk or Isochronous endpoints, we want
-> -		 * them to be able to be very, very fast. So we're giving
-> -		 * those endpoints a fifo_size which is enough for 3 full
-> -		 * packets
-> -		 */
-> -		tmp = mult * (dep->endpoint.maxpacket + mdwidth);
-> -		tmp += mdwidth;
-> -
-> -		fifo_size = DIV_ROUND_UP(tmp, mdwidth);
-> -
-> -		fifo_size |= (last_fifo_depth << 16);
-> -
-> -		dwc3_trace(trace_dwc3_gadget, "%s: Fifo Addr %04x Size %d",
-> -				dep->name, last_fifo_depth, fifo_size & 0xffff);
-> -
-> -		dwc3_writel(dwc->regs, DWC3_GTXFIFOSIZ(num), fifo_size);
-> -
-> -		last_fifo_depth += (fifo_size & 0xffff);
-> -	}
-> -
-> -	return 0;
-> -}
-> -
->  void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
->  		int status)
->  {
-> diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
-> index 2bb4d3ad0e6b..aaa6f00df755 100644
-> --- a/drivers/usb/dwc3/platform_data.h
-> +++ b/drivers/usb/dwc3/platform_data.h
-> @@ -23,7 +23,6 @@
->  struct dwc3_platform_data {
->  	enum usb_device_speed maximum_speed;
->  	enum usb_dr_mode dr_mode;
-> -	bool tx_fifo_resize;
->  	bool usb3_lpm_capable;
->  
->  	unsigned is_utmi_l1_suspend:1;
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-cns3xxx/Makefile.boot b/arch/arm/mach-cns3xxx/Makefile.boot
+deleted file mode 100644
+index d079de0..0000000
+--- a/arch/arm/mach-cns3xxx/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-   zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00C00000
+diff --git a/arch/arm/mach-exynos/Makefile.boot b/arch/arm/mach-exynos/Makefile.boot
+deleted file mode 100644
+index b9862e2..0000000
+--- a/arch/arm/mach-exynos/Makefile.boot
++++ /dev/null
+@@ -1,2 +0,0 @@
+-   zreladdr-y	+= 0x40008000
+-params_phys-y	:= 0x40000100
+diff --git a/arch/arm/mach-integrator/Makefile.boot b/arch/arm/mach-integrator/Makefile.boot
+deleted file mode 100644
+index ff0a4b5..0000000
+--- a/arch/arm/mach-integrator/Makefile.boot
++++ /dev/null
+@@ -1,4 +0,0 @@
+-   zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00800000
+-
+diff --git a/arch/arm/mach-keystone/Makefile.boot b/arch/arm/mach-keystone/Makefile.boot
+deleted file mode 100644
+index f3835c4..0000000
+--- a/arch/arm/mach-keystone/Makefile.boot
++++ /dev/null
+@@ -1 +0,0 @@
+-zreladdr-y	:= 0x80008000
+diff --git a/arch/arm/mach-mmp/Makefile.boot b/arch/arm/mach-mmp/Makefile.boot
+deleted file mode 100644
+index 5edf03e..0000000
+--- a/arch/arm/mach-mmp/Makefile.boot
++++ /dev/null
+@@ -1 +0,0 @@
+-   zreladdr-y	+= 0x00008000
+diff --git a/arch/arm/mach-mv78xx0/Makefile.boot b/arch/arm/mach-mv78xx0/Makefile.boot
+deleted file mode 100644
+index 760a0ef..0000000
+--- a/arch/arm/mach-mv78xx0/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-   zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00800000
+diff --git a/arch/arm/mach-nspire/Makefile.boot b/arch/arm/mach-nspire/Makefile.boot
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
+deleted file mode 100644
+index b03e562..0000000
+--- a/arch/arm/mach-omap2/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-  zreladdr-y		+= 0x80008000
+-params_phys-y		:= 0x80000100
+-initrd_phys-y		:= 0x80800000
+diff --git a/arch/arm/mach-orion5x/Makefile.boot b/arch/arm/mach-orion5x/Makefile.boot
+deleted file mode 100644
+index 760a0ef..0000000
+--- a/arch/arm/mach-orion5x/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-   zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00800000
+diff --git a/arch/arm/mach-prima2/Makefile.boot b/arch/arm/mach-prima2/Makefile.boot
+deleted file mode 100644
+index c77a488..0000000
+--- a/arch/arm/mach-prima2/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-zreladdr-y		+= 0x00008000
+-params_phys-y		:= 0x00000100
+-initrd_phys-y		:= 0x00800000
+diff --git a/arch/arm/mach-realview/Makefile.boot b/arch/arm/mach-realview/Makefile.boot
+deleted file mode 100644
+index d2c3d78..0000000
+--- a/arch/arm/mach-realview/Makefile.boot
++++ /dev/null
+@@ -1,9 +0,0 @@
+-ifeq ($(CONFIG_REALVIEW_HIGH_PHYS_OFFSET),y)
+-   zreladdr-y	+= 0x70008000
+-params_phys-y	:= 0x70000100
+-initrd_phys-y	:= 0x70800000
+-else
+-   zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00800000
+-endif
+diff --git a/arch/arm/mach-s3c64xx/Makefile.boot b/arch/arm/mach-s3c64xx/Makefile.boot
+deleted file mode 100644
+index c642333..0000000
+--- a/arch/arm/mach-s3c64xx/Makefile.boot
++++ /dev/null
+@@ -1,2 +0,0 @@
+-   zreladdr-y	+= 0x50008000
+-params_phys-y	:= 0x50000100
+diff --git a/arch/arm/mach-spear/Makefile.boot b/arch/arm/mach-spear/Makefile.boot
+deleted file mode 100644
+index 4674a4c..0000000
+--- a/arch/arm/mach-spear/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00800000
+diff --git a/arch/arm/mach-u300/Makefile.boot b/arch/arm/mach-u300/Makefile.boot
+deleted file mode 100644
+index 87811de..0000000
+--- a/arch/arm/mach-u300/Makefile.boot
++++ /dev/null
+@@ -1,4 +0,0 @@
+-   zreladdr-y	+= 0x48008000
+-params_phys-y	:= 0x48000100
+-# This isn't used.
+-#initrd_phys-y	:= 0x48800000
+diff --git a/arch/arm/mach-ux500/Makefile.boot b/arch/arm/mach-ux500/Makefile.boot
+deleted file mode 100644
+index 760a0ef..0000000
+--- a/arch/arm/mach-ux500/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-   zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00800000
+diff --git a/arch/arm/mach-zynq/Makefile.boot b/arch/arm/mach-zynq/Makefile.boot
+deleted file mode 100644
+index 760a0ef..0000000
+--- a/arch/arm/mach-zynq/Makefile.boot
++++ /dev/null
+@@ -1,3 +0,0 @@
+-   zreladdr-y	+= 0x00008000
+-params_phys-y	:= 0x00000100
+-initrd_phys-y	:= 0x00800000
+-- 
+1.9.1
