@@ -1,64 +1,30 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH] ARM: RX51: Set system_rev from ATAGS
-Date: Fri,  5 Feb 2016 20:15:02 +0200
-Message-ID: <1454696102-2214-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <3663322.UyrB2OmX6o@wuerfel>
+From: Paul Kocialkowski <contact@paulk.fr>
+Subject: [PATCH v2 0/6] LG Optimus Black (P970) codename sniper support and lp872x improvements
+Date: Fri,  5 Feb 2016 19:42:17 +0100
+Message-ID: <1454697741-8687-1-git-send-email-contact@paulk.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3663322.UyrB2OmX6o@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, arnd@arndb.de, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Milo Kim <milo.kim@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- arch/arm/mach-omap2/board-generic.c | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+Changes since v1:
+* Remove lp872x patches that were accepted already from the series
+* Explain why removing the invalid DVS GPIO warning is enough
+* Update copyright notice on omap3-sniper.dts
+* Rename the devicetree property for the enable GPIO to enable-gpios
+* Rename function to enable GPIO to lp872x_hw_enable
+* Add enable delays after requesting the enable GPIO
+* Use IOPAD macros for pinmux description
+* Mux the dp3t uart selection pins to gpio
+* Restrict not-reset gpio controllers to only avoid reset when needed
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 8098272..b91fabe 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -18,6 +18,7 @@
- 
- #include <asm/setup.h>
- #include <asm/mach/arch.h>
-+#include <asm/system_info.h>
- 
- #include "common.h"
- 
-@@ -77,12 +78,31 @@ static const char *const n900_boards_compat[] __initconst = {
- 	NULL,
- };
- 
-+/* Set system_rev from atags */
-+static void __init rx51_system_rev(const struct tag *tags)
-+{
-+	const struct tag *tag;
-+
-+	if (tags->hdr.tag != ATAG_CORE)
-+		return;
-+
-+	for_each_tag(tag, tags) {
-+		if (tag->hdr.tag == ATAG_REVISION) {
-+			system_rev = tag->u.revision.rev;
-+			break;
-+		}
-+	}
-+}
-+
- /* Legacy userspace on Nokia N900 needs ATAGS exported in /proc/atags,
-  * save them while the data is still not overwritten
-  */
- static void __init rx51_reserve(void)
- {
--	save_atags((const struct tag *)(PAGE_OFFSET + 0x100));
-+	const struct tag *tags = (const struct tag *)(PAGE_OFFSET + 0x100);
-+
-+	save_atags(tags);
-+	rx51_system_rev(tags);
- 	omap_reserve();
- }
- 
--- 
-1.9.1
+This series introduces support for the LG Optimus Black, as described in the
+patch adding devicetree support for the device.
+
+In order to power the external mmc (mmc1), the lp872x regulator is used.
+Its code had to be improved a bit to work on the device.
+
+Note that the patch adding devicetree support for the device requires the
+changes applied to the lp872x regulator, so all this is sent in one series
+despite the fact they're different parts of the code.
