@@ -1,72 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] memory: omap-gpmc: Add Kconfig option for debug
-Date: Thu, 4 Feb 2016 22:10:21 -0800
-Message-ID: <20160205061021.GS19432@atomide.com>
-References: <20160108022619.GS12777@atomide.com> <568F4596.8020206@gmail.com>
- <20160108075913.GN11364@pali> <569052FE.1040008@gmail.com>
- <20160121091437.GT7192@pali> <56B077D4.3030902@gmail.com>
- <20160202233911.GB19432@atomide.com>
- <20160203000045.GE19432@atomide.com> <56B1A654.1060905@gmail.com>
- <56B22FC3.3050900@gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: PM regression with commit 5de85b9d57ab PM runtime re-init in v4.5-rc1
+Date: Fri, 5 Feb 2016 07:54:04 +0100
+Message-ID: <CAPDyKFoawbrj3w_+2p5ugjByrwxwmA1S2God1VAvkRbh2rUtjg@mail.gmail.com>
+References: <CAPDyKFpRnmn+h_VH3jtC3u-BOf7-00nbzD30omaxaaZOOAK8Gg@mail.gmail.com>
+	<Pine.LNX.4.44L0.1602041702550.1515-100000@iolanthe.rowland.org>
+	<CAPDyKFrMZYdeun67FBXdWL16DBOuO16qqOxRsks3QBJhNB8SoQ@mail.gmail.com>
+	<20160205010810.GR19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <56B22FC3.3050900@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, pavel@ucw.cz, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160205010810.GR19432@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@baylibre.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160203 08:51]:
-> - flashed maemo rootfs
-> 
-> sudo flasher-3.5 -f -F RX-51_2009SE_20.2010.36-2_PR_COMBINED_MR0_ARM.bin
-> --flash-only=rootfs -R
-> 
-> - booted to maemo and powered the device off
-> 
-> sudo flasher-3.5 -k zImage  -l -b"init=/sbin/preinit ubi.mtd=rootfs
-> root=ubi0:rootfs rootfstype=ubifs rootflags=bulk_read,no_chk_data_crc rw
-> mtdoops.mtddev=log  omapfb_vram=7M omapfb.mode=lcd:848x480-16
-> nokia-modem.pm=0"
+On 5 February 2016 at 02:08, Tony Lindgren <tony@atomide.com> wrote:
+> * Ulf Hansson <ulf.hansson@linaro.org> [160204 14:35]:
+>> On 4 February 2016 at 23:09, Alan Stern <stern@rowland.harvard.edu> wrote:
+>> > On Thu, 4 Feb 2016, Ulf Hansson wrote:
+>> >
+>> >> I am really not questioning the autosuspend feature at all, it's a
+>> >> really great feature!
+>> >>
+>> >> Now, I question the minor benefit we actually gain from having the
+>> >> runtime PM core to update the mark in rpm_resume().
+>> >
+>> > As Tony pointed out, it prevents some devices from going to sleep right
+>> > away.
+>>
+>> Because their drivers don't care to update the last busy mark!?
+>
+> Nope. Without that devices may never resume at all so the drivers
+> can't do anything about it.
 
-This seems to fix things here for legacy booting and booting the
-maemo zImage after dts image. Care to give it a try?
+I don't get it. Why not? Because of another abuse of the runtime PM API?
 
-Basically onenand after reset is in wrong state, have not looked
-up the bits yet. Will post a better patch when I get a chance
-over next few days.
+Or we should probably continue to focus on fixing the regression. :-)
 
-Regards,
-
-Tony
-
-8< -----------
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -104,6 +104,7 @@ static void set_onenand_cfg(void __iomem *onenand_base)
- 	u32 reg;
- 
- 	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
-+	reg = 0x06c0;
- 	reg &= ~((0x7 << ONENAND_SYS_CFG1_BRL_SHIFT) | (0x7 << 9));
- 	reg |=	(latency << ONENAND_SYS_CFG1_BRL_SHIFT) |
- 		ONENAND_SYS_CFG1_BL_16;
-@@ -289,6 +290,7 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
- 		}
- 	}
- 
-+	onenand_async.sync_write = true;
- 	omap2_onenand_calc_async_timings(&t);
- 
- 	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_async);
+Kind regards
+Uffe
