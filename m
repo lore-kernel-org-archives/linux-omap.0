@@ -1,60 +1,81 @@
 From: Paul Kocialkowski <contact@paulk.fr>
 Subject: Re: [PATCH 4/6] regulator: lp872x: Add enable GPIO pin support
-Date: Fri, 05 Feb 2016 19:48:10 +0100
-Message-ID: <1454698090.2623.3.camel@collins>
-References: <5681D7A8.2030101@ti.com> <1451387613.18148.9.camel@collins>
-	 <568323B7.7080101@ti.com> <1451464521.2531.4.camel@collins>
-	 <20151230163307.GW16023@sirena.org.uk> <1451500639.14341.6.camel@collins>
-	 <20151231214007.GC16023@sirena.org.uk> <1451599146.9673.2.camel@collins>
-	 <20151231221407.GF16023@sirena.org.uk> <1452929533.2520.1.camel@collins>
-	 <20160118163248.GI6588@sirena.org.uk>
+Date: Fri, 05 Feb 2016 19:48:53 +0100
+Message-ID: <1454698133.2623.4.camel@collins>
+References: <1450868319-20513-1-git-send-email-contact@paulk.fr>
+	 <1450868319-20513-5-git-send-email-contact@paulk.fr>
+	 <20151229200244.GA27426@rob-hp-laptop> <1451424412.13576.1.camel@collins>
+	 <CAL_JsqLiuNR_MQ+eX_TQVMDtn85hUTweNRL2Q+7Z8Tq-HJhx2g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-sT+mkdpR7fdBZKe2Kkuu"
+	boundary="=-GpDPiNqqG5268MV+irpZ"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160118163248.GI6588@sirena.org.uk>
+In-Reply-To: <CAL_JsqLiuNR_MQ+eX_TQVMDtn85hUTweNRL2Q+7Z8Tq-HJhx2g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Milo Kim <milo.kim@ti.com>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Milo Kim <milo.kim@ti.com>, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---=-sT+mkdpR7fdBZKe2Kkuu
+--=-GpDPiNqqG5268MV+irpZ
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-Le lundi 18 janvier 2016 =C3=A0 16:32 +0000, Mark Brown a =C3=A9crit :
-> On Sat, Jan 16, 2016 at 08:32:13AM +0100, Paul Kocialkowski wrote:
+Le mardi 29 d=C3=A9cembre 2015 =C3=A0 15:55 -0600, Rob Herring a =C3=A9crit=
+ :
+> On Tue, Dec 29, 2015 at 3:26 PM, Paul Kocialkowski <contact@paulk.fr> wro=
+te:
+> > Le mardi 29 d=C3=A9cembre 2015 =C3=A0 14:02 -0600, Rob Herring a =C3=A9=
+crit :
+> >> On Wed, Dec 23, 2015 at 11:58:37AM +0100, Paul Kocialkowski wrote:
+> >> > LP872x regulators are made active via the EN pin, which might be hoo=
+ked to a
+> >> > GPIO. This adds support for driving the GPIO high when the driver is=
+ in use.
+> >> >
+> >> > Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
+> >> > ---
+> >> >  .../devicetree/bindings/regulator/lp872x.txt       |  1 +
+> >> >  drivers/regulator/lp872x.c                         | 33 +++++++++++=
++++++++++--
+> >> >  include/linux/regulator/lp872x.h                   |  2 ++
+> >> >  3 files changed, 33 insertions(+), 3 deletions(-)
+> >> >
+> >> > diff --git a/Documentation/devicetree/bindings/regulator/lp872x.txt =
+b/Documentation/devicetree/bindings/regulator/lp872x.txt
+> >> > index 7818318..0559c25 100644
+> >> > --- a/Documentation/devicetree/bindings/regulator/lp872x.txt
+> >> > +++ b/Documentation/devicetree/bindings/regulator/lp872x.txt
+> >> > @@ -28,6 +28,7 @@ Optional properties:
+> >> >    - ti,dvs-gpio: GPIO specifier for external DVS pin control of LP8=
+72x devices.
+> >> >    - ti,dvs-vsel: DVS selector. 0 =3D SEL_V1, 1 =3D SEL_V2.
+> >> >    - ti,dvs-state: initial DVS pin state. 0 =3D DVS_LOW, 1 =3D DVS_H=
+IGH.
+> >> > +  - ti,enable-gpio: GPIO specifier for EN pin control of LP872x dev=
+ices.
+> >>
+> >> Should be "-gpios" instead of "-gpio".
+
+Thanks for the review Rob, I have just submitted v2 with those
+suggestions integrated.
+
+> > Care to comment why? There is only one GPIO that can be used here, sinc=
+e
+> > there is only one single EN pin. I thought this matched what is done
+> > already with "ti,dvs-gpio".
 >=20
-> > Is there some git tree I can work with that has regulator runtime PM
-> > support at this point? I'll certainly end up handling the GPIO in the
-> > driver otherwise.
+> To be consistent. We use "clocks" and "interrupts" always whether one
+> or more for example.
 >=20
-> No, the last week was much more busy than I was expecting.  I'm hoping
-> for this week (or you could have a go at implementing it, it'd be adding
-> the PM operations in _regulator_enable() or _regulator_do_enable() if a
-> flag was set in the regulator_desc).
+> -gpio is documented as deprecated now.
+>=20
+> Rob
 
-I decided to go with a function simply requesting the GPIO for v2.
-Support for runtime PM can be added later. I'll get back to you on this
-on the thread related to your patches, since it appears to be somewhat
-broken for now.
 
-Thanks!
---=20
-Paul Kocialkowski, Replicant developer
-
-Replicant is a fully free Android distribution running on several
-devices, a free software mobile operating system putting the emphasis on
-freedom and privacy/security.
-
-Website: https://www.replicant.us/
-Blog: https://blog.replicant.us/
-Wiki/tracker/forums: https://redmine.replicant.us/
-
---=-sT+mkdpR7fdBZKe2Kkuu
+--=-GpDPiNqqG5268MV+irpZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -62,19 +83,19 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAABAgAGBQJWtO5rAAoJEIT9weqP7pUMRhAP/19ntaNdwbpLKkbpSu0uQvrw
-jdIBPxvjFT4ydeO7c8yssOwJlNJEuB4YoYZXqaJ4vObvlZ9H7KVCJ2TsX9zzjxRl
-IOuoAPPhh/Xgl6AVmefQBoWvlBKVKwd5fv78H2mboTZGHpTUUJ1x21syW8a5pbfM
-ybc7Qm2+rDKf2x2U4o3jjFfpVZq9mYHmK1Sf4R8hf/dIkIOJ2ElWUXYClQtpjH0Q
-CxSsqLASJRqITZfZHdHV9zJ6uaazLQez9KEdYEhG2/1zXJudSOp/vP6lFyYhX7Hb
-bUoZGjodO2RYiCDMITi8U7aPzbPWo/JImYERLMV9suRY7lHTXj6Ik3EYXWuuLcvj
-/1xjJ9FhdGMr5x6yiN8RWivOq2Ns5/n2wVk+4B5JOQlummquJw9wxpg1i9864y94
-98dj2SaBvQaj2ReFcSGu/TRqH2FBH/X2XgCdS1nmFX8TfGCYzhr9Pyb7IUnUC2SA
-tvfasX+sWO8CQ4eRNze6u/w3qNJT/2KU9JLoGgqWBndwRjIgVaJvgdSWy8N1myKU
-dmOcDpB8cqhTmRKAXwyVa4qB9ODXn9z5ITTrzYNnO6UfTUkf/+Rw6GW+L/WZxe3A
-SQT6/MY4QGoghdWevKDJhCP+WNq8rtFHn1UhZD8JEf+tByUxTuzYhVpvj+dLh8FJ
-MyEXXWRq4ZwQ1OWG9vvv
-=kdgx
+iQIcBAABAgAGBQJWtO6VAAoJEIT9weqP7pUMws4P/0lA85r/osKheboOMXhiPMBc
+IfIsI3w+6dSkZQUjBffFxwLi3GTqIsePhMfuAt1GWQ+7epKNYlBAbTFQoUXr3Z8v
+XhapphmicfEKAvs0NkQrP80+gPJik1ko8riU4Pq24xl0OqJ+iMEjzlJyRgRk+pSR
+WR6wFTWHa/GpZloawLt+TJDrv8MgLngJ/1V+4ac7lo/36LynefCcw9hO8NRV4dUL
+hBXR5bNYMBnjuhBrhxNZEkKhuhTnSZdI5S+9DpH5gH2DN6uHsjdClCZqeexH/U0Z
+w/CXVnqwrNEiHrbMy0gRNPYqO0Z4vxqBJHzZoxE98r6taqLXmiOmhX0tUBpBlDHE
++2Yn1/dVZzF6DDU6FDHy26z2TE/47aY2Xu9RtFiR+MDFdZ6myASfRZc3T5DAw/ZB
+D08gzHbAU75NWs6CmhzveZQDB08E/Opi1CK9erUIzJtJIXs48ot8yZgTLLFijyRh
+hD7Q7jD4wGIGq6l9LaVj9bU88Nd1YGSsjZqyirhNVi4wl85Mo9cN1Od4Gd0RkeaX
+s9ePDcmWXzWnk0oET23/0f6D78FY+wDp34hICknm5rMgDa0z0gVY1x/KElcTr8uv
+vlGRtpZHtpNGudcOZdRhi3j3oJV7ZLfFSe7AYhl5fBRQkk74Kyl9bClICHAdoyKM
+H0Bdb7YOxYx0h3jHkexB
+=Xqzh
 -----END PGP SIGNATURE-----
 
---=-sT+mkdpR7fdBZKe2Kkuu--
+--=-GpDPiNqqG5268MV+irpZ--
