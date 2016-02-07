@@ -1,44 +1,74 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/5] HSI: nokia-modem: kernel based PM
-Date: Sun, 7 Feb 2016 22:39:49 +0100
-Message-ID: <20160207213949.GC6147@amd>
-References: <1454203187-688-1-git-send-email-sre@kernel.org>
- <1454203187-688-3-git-send-email-sre@kernel.org>
- <20160131172948.GC3721@amd>
- <20160131180009.GB18175@earth>
+From: Emil Goode <emil.fsw-k26UujxPaJg@public.gmane.org>
+Subject: Re: wl12xx regression on 4.5 (was: Re: linux-4.5-rc1 TI pandboard-es
+ wifi wlcore locks and reset)
+Date: Sun, 7 Feb 2016 23:05:39 +0100
+Message-ID: <20160207220538.GA4464@lianli>
+References: <CANfgCY2nHh+vZ=JOimJdKKKs2JgM-c7m+3ePZtS3XhqyXNkDUQ@mail.gmail.com>
+ <CANfgCY2zVXrLGv=YDpNvqhhoj5U2kgqZ_VV1EBPVK78grra84Q@mail.gmail.com>
+ <20160202043448.GA9514@earth>
+ <CANfgCY21zzinD48DOHaZdkGdDWpuAtJN1T8ofmdwM=P4f-7=Yw@mail.gmail.com>
+ <20160202160538.GA19990@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160131180009.GB18175@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20160202160538.GA19990@earth>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Ross Green <rgkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun 2016-01-31 19:00:09, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Sun, Jan 31, 2016 at 06:29:48PM +0100, Pavel Machek wrote:
-> > > So far power management had to be done in uerspace using exported
-> > 
-> > "userspace"
-> 
-> Right, thanks.
-> 
-> > > This patch adds kernel based power management, which will bind the
-> > > modem's power state to the state of the phonet network interface.
-> > 
-> > Ok, so I have ofonod that already does power management in
-> > userspace. What happens when power management is done twice?
-> 
-> I have patches for ofono, which add support for the in-kernel
-> power management. Currently ofono will not start with the new
-> method, since it wants the GPIOs for userspace based PM.
+Hello,
 
-Ok, but breaking userspace is a no-no, and stock ofono works well on
-N900. So this should not go in as-is...?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+On Tue, Feb 02, 2016 at 05:05:38PM +0100, Sebastian Reichel wrote:
+> On Tue, Feb 02, 2016 at 04:41:13PM +1100, Ross Green wrote:
+> > On Tue, Feb 2, 2016 at 3:34 PM, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > > On Mon, Feb 01, 2016 at 11:38:38PM +1100, Ross Green wrote:
+> > >> On Mon, Jan 25, 2016 at 11:47 PM, Ross Green <rgkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > >> > Just tried the new kernel release on faithful pandaboard es with the
+> > >> > new 4.5-rc1 release.
+> > >> >
+> > >> > There is a problem with the wifi modules once the modules are loaded.
+> > >> > Looks like the wifi firmware gets loaded put no response after that
+> > >> > causing recovery action.
+> > >> >
+> > >> > the kernel 4.4 works quite happily with this board.
+> > >> >
+> > >> > Here is a dmesg dump in the attachment.
+> > >> >
+> > >> > Anyone have any ideas here?
+> >
+> > [...]
+> > 
+> > If I get time, this evening, I'll see if I can give a bisect a try.
+> 
+> On N950 [wl1271 via SPI, using extra patches to init from DT] I get wifi
+> working again on 4.5-rc1 with 3719c17e1816 ("wlcore/wl18xx: fw logger
+> over sdio") reverted.
+
+Reverting the changes in wlcore_set_partition() as below seem to help.
+
+Best regards,
+
+Emil Goode
+
+8<--------
+
+--- a/drivers/net/wireless/ti/wlcore/io.c
++++ b/drivers/net/wireless/ti/wlcore/io.c
+@@ -175,14 +175,15 @@ int wlcore_set_partition(struct wl1271 *wl,
+ 	if (ret < 0)
+ 		goto out;
+ 
++	/*
++	 * We don't need the size of the last partition, as it is
++	 * automatically calculated based on the total memory size and
++	 * the sizes of the previous partitions.
++	 */
+ 	ret = wlcore_raw_write32(wl, HW_PART3_START_ADDR, p->mem3.start);
+ 	if (ret < 0)
+ 		goto out;
+ 
+-	ret = wlcore_raw_write32(wl, HW_PART3_SIZE_ADDR, p->mem3.size);
+-	if (ret < 0)
+-		goto out;
