@@ -1,57 +1,50 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH RESEND] omap_hdq: fix usecount handling
-Date: Sun, 7 Feb 2016 20:22:03 +0100
-Message-ID: <20160207202203.6ba229d3@kemnade.info>
-References: <1452948530-10639-1-git-send-email-andreas@kemnade.info>
-	<59381453221508@web14g.yandex.ru>
-	<20160119181304.GC10487@kroah.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
+Date: Sun, 7 Feb 2016 22:23:16 +0100
+Message-ID: <20160207212316.GA6147@amd>
+References: <20160123121022.GB12497@amd>
+ <20160125163332.GT19432@atomide.com>
+ <20160126140010.GA29723@amd>
+ <20160126172527.GY3500@atomide.com>
+ <20160130200244.GA30429@amd>
+ <20160130201452.GC30429@amd>
+ <20160130221509.GA28644@amd>
+ <20160201181316.GM19432@atomide.com>
+ <20160201211736.GA11283@amd>
+ <20160201221111.GP19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/ZjPPQ4NVkxjUZ5OlLt_NpvA"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160119181304.GC10487@kroah.com>
+Content-Disposition: inline
+In-Reply-To: <20160201221111.GP19432@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>, "hns@goldelico.com" <hns@goldelico.com>, Fabian Frederick <fabf@skynet.be>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/ZjPPQ4NVkxjUZ5OlLt_NpvA
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi!
 
-ping...
+> > (I assume I have to insmod and rmmod, right? Because powersave is not
+> > entered if I simply compile-out usb).
+> 
+> Depending on what the bootloader does and probably also if
+> USB was used during the booting.. So yeah you may need to modprobe
+> and then rmmod.
+> 
+> > Would you have commit ids for those rmmod fixes? It might be good to
+> > push them into stable, and I should try again with them applied...
+> 
+> 055555fc459 ("usb: musb: core: Fix handling of the phy notifications")
+> 03e43528ab68 ("usb: musb: Fix unbalanced pm_runtime_enable")
 
-On Tue, 19 Jan 2016 10:13:04 -0800
-"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org> wrote:
+Ok, with that, I can insmod and rmmod. But I still get:
 
-> On Tue, Jan 19, 2016 at 07:38:28PM +0300, Evgeniy Polyakov wrote:
-> > Hi Andreas
-> >=20
-> > >From w1 perspective this doesn't break things :)
-> > Greg, please pull it into your tree if no one objects.
-> >=20
-> > Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
->=20
-> Thanks, will do after 4.5-rc1 is out.
->=20
-> greg k-h
->=20
->=20
+00001fff 48005020 (fa005020) cm_idlest_per blocking bits: 0007e000
+ffdffebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200042
+0000000d 48004a28 (fa004a28) cm_idlest3_core
 
---Sig_/ZjPPQ4NVkxjUZ5OlLt_NpvA
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWt5lhAAoJEGGrpYhZ30HuPNIH/1uxWsE+FeZpAfZXGpF7kb8n
-rZcHgJ93m8SL5tUeI382oMqbkfn3TlAJEMeu5EksatA0ncocaRdb33donzdQQxK8
-QQAQVXkKeN25P0YyMdSvTmkeke1O9k+/KrEh6thedi3Yv8IZdn8mtQfQTsT3VqHJ
-A0xIh4zBOwva0KBwmoMcbxNrTQeigUzn1OZ0ZqUZ5FCEmrCvjQgvk9A1hPjIC4hT
-rzoNvqOR0wd4Ce9CEsotktbxMd9Ue8nqdNRQO3jyrGGe/9Ek0kUOu1nVcFTcDbAt
-I6AUQFDS66x7IISsd8DvGSaH4/q6FVPwtocVdjWcM5iZGIfHzqC7zfRgk0IwCaw=
-=MCTm
------END PGP SIGNATURE-----
-
---Sig_/ZjPPQ4NVkxjUZ5OlLt_NpvA--
+Best regards,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
