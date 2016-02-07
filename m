@@ -1,168 +1,86 @@
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Subject: Re: [PATCH 4/4] pwm: omap-dmtimer: add dev_dbg() message for
- effective period and duty cycle
-Date: Fri, 5 Feb 2016 14:51:46 -0500
-Message-ID: <20160205145146.34ec4eb9.drivshin.allworx@gmail.com>
-References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
-	<1454128014-22866-5-git-send-email-drivshin.allworx@gmail.com>
-	<CAA3gFWvSsctXtds6_SEtYY1yUdWJDR1XjznGS6qjdrGW5Dbw=A@mail.gmail.com>
-	<20160201132228.2634b72e.drivshin.allworx@gmail.com>
-	<20160201185952.GN19432@atomide.com>
-	<20160202162330.GA4918@ulmo>
-	<20160202184443.1e1b0bf5.drivshin.allworx@gmail.com>
-	<20160203141454.GC9650@ulmo>
+From: Paul Kocialkowski <contact@paulk.fr>
+Subject: Re: [PATCH v2 3/4] ARM: LG Optimus Black (P970) codename sniper
+ support, with basic features
+Date: Sun, 07 Feb 2016 16:23:51 +0100
+Message-ID: <1454858631.2547.7.camel@aldrin>
+References: <1454697741-8687-1-git-send-email-contact@paulk.fr>
+	 <1454697741-8687-4-git-send-email-contact@paulk.fr>
+	 <1454701140.2623.12.camel@collins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <20160203141454.GC9650@ulmo>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-orC9SjzuTY+QQEEaffKH"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454701140.2623.12.camel@collins>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Milo Kim <milo.kim@ti.com>, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 3 Feb 2016 15:14:54 +0100
-Thierry Reding <thierry.reding@gmail.com> wrote:
 
-> On Tue, Feb 02, 2016 at 06:44:43PM -0500, David Rivshin (Allworx)
-> wrote:
-> > On Tue, 2 Feb 2016 17:23:30 +0100
-> > Thierry Reding <thierry.reding@gmail.com> wrote:
-> >   
-> > > On Mon, Feb 01, 2016 at 10:59:52AM -0800, Tony Lindgren wrote:  
-> > > > Hi,
-> > > > 
-> > > > * David Rivshin (Allworx) <drivshin.allworx@gmail.com> [160201
-> > > > 10:23]:    
-> > > > > On Sat, 30 Jan 2016 15:51:06 +0100
-> > > > > Neil Armstrong <narmstrong@baylibre.com> wrote:
-> > > > >     
-> > > > > > 2016-01-30 5:26 GMT+01:00 David Rivshin (Allworx)
-> > > > > > <drivshin.allworx@gmail.com>:    
-> > > > > > > From: David Rivshin <drivshin@allworx.com>
-> > > > > > >
-> > > > > > > After going through the math and constraints checking to
-> > > > > > > compute load and match values, it is helpful to know what
-> > > > > > > the resultant period and duty cycle are.
-> > > > > > >
-> > > > > > > Signed-off-by: David Rivshin <drivshin@allworx.com>
-> > > > > > > ---
-> > > > > > >
-> > > > > > > I found this helpful while testing the other changes, so I
-> > > > > > > included it in case it may be of use to someone in the
-> > > > > > > future. I would have no issues with dropping this if it's
-> > > > > > > not considered worthwhile.      
-> > > > > > 
-> > > > > > It's useful, but converting it as a sysfs attribute would be
-> > > > > > great !    
-> > > > > 
-> > > > > Hrm, yes that is an interesting thought. I imagine that many
-> > > > > PWM devices have similar constraints, so perhaps that would
-> > > > > be best handled generically in the pwm core? Maybe as new
-> > > > > optional get_*() ops, a modification to the config() op to
-> > > > > add output params, or just updating new fields in the struct
-> > > > > pwm directly?    
-> > > > 
-> > > > Yeah for /sys entry it should be Linux generic. The other option
-> > > > is to use debugfs for driver specific things.    
-> > > 
-> > > Let's go with debugfs for this one. This is used for diagnostic  
-> > 
-> > I had looked at using the dbg_show() op to add some additional
-> > data. One thing that discouraged me from going down that path was
-> > that it replaced the call to pwm_dbg_show() for that chip. I
-> > wouldn't want to loose the existing output, as it is useful, but
-> > also didn't like the thought of duplicating the logic/formatting. I
-> > think some way to have both the standard output and add extra
-> > output somewhere (e.g. same line, line after each pwm_device, block
-> > after all pwm_devices on the chip) would make that path more
-> > attractive.
-> > 
-> > Or were you thinking of a separate (per-chip) debugfs file for this 
-> > type of information?   
-> 
-> Yes, generally I'd prefer a separate, chip-specific debugfs file for
+--=-orC9SjzuTY+QQEEaffKH
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Makes sense.
+Hi,
 
-> extra information. To be honest I'm not entirely sure of the
-> usefulness of the pwm_dbg_show() or letting drivers override it. But
+Le vendredi 05 f=C3=A9vrier 2016 =C3=A0 20:39 +0100, Paul Kocialkowski a =
+=C3=A9crit :
+> Le vendredi 05 f=C3=A9vrier 2016 =C3=A0 19:42 +0100, Paul Kocialkowski a =
+=C3=A9crit :
+> > The LG Optimus Black (P970) codename sniper is a smartphone that was de=
+signed
+> > and manufactured by LG Electronics (LGE) and released back in 2011.
+> > It is using an OMAP3630 SoC, GP version.
+> >=20
+> > This adds devicetree support for the device, with only a few basic feat=
+ures
+> > supported, such as debug uart, i2c, internal emmc and external mmc.
 
-I did notice that no (in-tree) drivers were currently using 
-pwm_dbg_show()...
+[snip}
 
-> that's slightly off-topic. However...
-> 
-> > > purposes and not typically needed when configuring a PWM. While
-> > > other drivers may compute similar hardware-specific values,
-> > > there's nothing generic to them. The period and duty cycle are
-> > > the generic input values and those are already exposed via
-> > > sysfs.  
-> > 
-> > Just to clarify, what I was thinking of as generic was the concept
-> > that "period/duty I asked for" and "period/duty I got" may be
-> > different, sometimes to a substantial degree. I could imagine 
-> > userspace wanting to know the latter, which is what I think Neil 
-> > was suggesting.
-> > 
-> > For the sake of an example, the input clock for a dmtimer is
-> > sometimes (often?) 32768Hz, which means that the real period and
-> > duty_cycle output are limited to being a multiple of ~61035.2ns
-> > (16384Hz). So an attempt to set a period of 100000ns (10KHz) would
-> > result in either 61035.2ns, or 122070.4ns (8192Hz), depending on
-> > the implementation of the driver (and patch 2 changes behavior from
-> > the former to the latter). You can also have cases where you
-> > desired a 33% duty cycle, but got a 25% duty cycle instead.
-> > 
-> > In a quick look, I see substantially similar calculations (i.e. 
-> > clk_rate*period_ns/10^9) in most of the other pwm drivers, which
-> > makes sense for any that are programmed in terms of some input
-> > clock. This type of calculation almost guarantees that requested
-> > and actual period/ duty_cycle are going to be different to some
-> > degree. Some drivers look like they have even more complicated
-> > behavior, apparently due to other hardware constraints. For
-> > instance, fsl-ftm (among others) looks to be using a power-of-2
-> > prescaler to fit the period_cycles into a 16bit field.
-> > 
-> > Of course if the input clock rate for these types of devices is 
-> > sufficiently high (enough that the desired period is many input
-> > clock cycles), then the difference between "desired" and "actual"
-> > is probably small enough that noone cares. I'm not sure how common
-> > it is that
-> >   a) there is a substantial difference, and
-> >   b) userspace cares about it, and
-> >   c) userspace didn't carefully select an achievable value already
-> > If noone has brought it up before, then I'd guess the answer is
-> > "not very".  
-> 
-> ... I think perhaps a better way yet would be to have drivers update
-> the period and duty cycle to the actual values. That way there won't
-> be a delta between what's really being programmed to hardware and
-> what shows up in sysfs. It would also give users a chance to check if
-> what's been programmed is within an acceptable range or not.
+> > +&mmc2 {
+> > +
+>=20
+> Please discard this newline in case v2 gets merged.
 
->From a userspace ABI point of view, I was unsure whether it was 
-considered OK for a R/W sysfs attribute of this nature to read back 
-differently than it was set. To follow the previous example:
-	# echo 100000 > period
-	# cat period
-        122070
-I didn't find any obvious precedents for that. Would it potentially 
-confuse userspace? Is the answer different for new drivers vs 
-existing ones? The obvious alternative would be a separate file (e.g. 
-"actual_period", or somesuch name), which avoids those questions, but 
-I can see how that could be considered less clean. I don't have any 
-preference either way.
+All things considered, I'd rather not have this patch merged as-is, but
+wait for the next version.
 
-If just updating the existing period/duty_cycle files with the
-actual values is the way to go, then there is a second question:
-should the struct pwm_device track both requested and actual 
-values in separate fields for kernel-internal users? Or should
-the existing period/duty_cycle fields just be modified to hold
-the actual values?
+I'll wait for feedback before sending v3.
 
-Either way, I think any changes along these lines would probably be 
-cleaner ontop of the atomic update work (assuming some form of that 
-gets merged). And since it would also be outside the scope of this 
-patchset, you may still want to consider the simple debug message 
-in this patch as at least an interim state.
+--=20
+Paul Kocialkowski, Replicant developer
+
+Replicant is a fully free Android distribution running on several
+devices, a free software mobile operating system putting the emphasis on
+freedom and privacy/security.
+
+Website: https://www.replicant.us/
+Blog: https://blog.replicant.us/
+Wiki/tracker/forums: https://redmine.replicant.us/
+
+
+--=-orC9SjzuTY+QQEEaffKH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAABAgAGBQJWt2GHAAoJEIT9weqP7pUMdWAP/17uFA/yrclKe9LAGFUrGCLm
+C4ddc9/EJI3RG8nVZml787vuv+TjOVv/Rz/sJft3AjMkEuSJkRSOUARm0g93yN/m
+jwiMqcHt0FN9iPl8ZYAqTa3epdrcgdrEL8AOtzqm1h4e/hJ0B2vDzht8AXDCNq0A
+5uG7uqwv0Twp2z7XUOqYIw4gAHzgyNEWQ83W5FO3qVgjmyG8ZkmlLsMTbVA5EkVH
+05y0EGFXxliaS0yBkoP300xqlZZfEujaJYptqdG0u+Xlvb5Bx7Pkod6YgQy0wV5L
+YJXc9pF3FK6dQkRAqJ7ow+xdgPBsbdrhua0K/78PnfYlRzV7QyEHb2HnU2Pql93f
+PztSRa//QiCv9EVz+1TOJL5wcOQvyvKBflglrqwYKla4m8kN+tlnlvKFYCLGke5i
+LmTDJ/VXyO9/SQ5+tO13qkPuPs1cYm0BVXCiZIDuJ9/OaS2rr1t1de1LXOWkQ+6H
+RX6Fl6W8vsYhBKTYphfHniq3fOspBgrlxODsSlg7H8oxiScgpAp5GsTbyn40yTQ0
+FgAyl3scV1Ez/H4luOTWd2vz+QT38+1jWMQsVmGhTHS18b5286rc5lbEN7EMaKAl
+7tCsojrd2QhbPITreW4/XAc5M3faWRB1egy0CUZ3uaR0oKFy/EfjP5t+jkvT0U7o
+AmnuHG7i0qdGSCnA3fMt
+=o1ga
+-----END PGP SIGNATURE-----
+
+--=-orC9SjzuTY+QQEEaffKH--
