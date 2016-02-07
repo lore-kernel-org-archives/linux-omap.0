@@ -1,74 +1,126 @@
-From: Emil Goode <emil.fsw-k26UujxPaJg@public.gmane.org>
-Subject: Re: wl12xx regression on 4.5 (was: Re: linux-4.5-rc1 TI pandboard-es
- wifi wlcore locks and reset)
-Date: Sun, 7 Feb 2016 23:05:39 +0100
-Message-ID: <20160207220538.GA4464@lianli>
-References: <CANfgCY2nHh+vZ=JOimJdKKKs2JgM-c7m+3ePZtS3XhqyXNkDUQ@mail.gmail.com>
- <CANfgCY2zVXrLGv=YDpNvqhhoj5U2kgqZ_VV1EBPVK78grra84Q@mail.gmail.com>
- <20160202043448.GA9514@earth>
- <CANfgCY21zzinD48DOHaZdkGdDWpuAtJN1T8ofmdwM=P4f-7=Yw@mail.gmail.com>
- <20160202160538.GA19990@earth>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4 1/3] ARM: hwmod: RTC: Add lock and unlock functions
+Date: Sun, 7 Feb 2016 22:24:57 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1602072209460.2182@utopia.booyaka.com>
+References: <1454650952-20154-1-git-send-email-lokeshvutla@ti.com>
+ <1454650952-20154-2-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160202160538.GA19990@earth>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Ross Green <rgkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shahar Patury <shaharp-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Mishol <guym-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1454650952-20154-2-git-send-email-lokeshvutla@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Hi Lokesh
 
-On Tue, Feb 02, 2016 at 05:05:38PM +0100, Sebastian Reichel wrote:
-> On Tue, Feb 02, 2016 at 04:41:13PM +1100, Ross Green wrote:
-> > On Tue, Feb 2, 2016 at 3:34 PM, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > > On Mon, Feb 01, 2016 at 11:38:38PM +1100, Ross Green wrote:
-> > >> On Mon, Jan 25, 2016 at 11:47 PM, Ross Green <rgkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > >> > Just tried the new kernel release on faithful pandaboard es with the
-> > >> > new 4.5-rc1 release.
-> > >> >
-> > >> > There is a problem with the wifi modules once the modules are loaded.
-> > >> > Looks like the wifi firmware gets loaded put no response after that
-> > >> > causing recovery action.
-> > >> >
-> > >> > the kernel 4.4 works quite happily with this board.
-> > >> >
-> > >> > Here is a dmesg dump in the attachment.
-> > >> >
-> > >> > Anyone have any ideas here?
-> >
-> > [...]
-> > 
-> > If I get time, this evening, I'll see if I can give a bisect a try.
+I apologize for the delay.
+
+A few comments:
+
+On Fri, 5 Feb 2016, Lokesh Vutla wrote:
+
+> RTC IP have kicker feature which prevents spurious writes to its registers.
+> In order to write into any of the RTC registers, KICK values has to be
+> written to KICK registers.
+> Introduce omap_hwmod_rtc_unlock/lock functions, which  writes into these
+> KICK registers inorder to lock and unlock RTC registers.
 > 
-> On N950 [wl1271 via SPI, using extra patches to init from DT] I get wifi
-> working again on 4.5-rc1 with 3719c17e1816 ("wlcore/wl18xx: fw logger
-> over sdio") reverted.
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
 
-Reverting the changes in wlcore_set_partition() as below seem to help.
+...
 
-Best regards,
+> +/**
+> + * omap_rtc_wait_not_busy - Wait for the RTC BUSY flag
+> + * @oh: struct omap_hwmod *
+> + *
+> + * For updating certain RTC registers, the MPU must wait
+> + * for the BUSY status in OMAP_RTC_STATUS_REG to become zero.
+> + * Once the BUSY status is zero, there is a 15-?s access
 
-Emil Goode
+Probably best just to write out "microseconds" or "us" here to avoid the 
+high-bit character problem.
 
-8<--------
+> + * period in which the MPU can program.
+> + */
+> +static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
+> +{
+> +	int i;
+> +
+> +	/* BUSY may stay active for 1/32768 second (~30 usec) */
+> +	omap_test_timeout(omap_hwmod_read(oh, OMAP_RTC_STATUS_REG)
+> +			  & OMAP_RTC_STATUS_REG, OMAP_RTC_MAX_READY_TIME, i);
 
---- a/drivers/net/wireless/ti/wlcore/io.c
-+++ b/drivers/net/wireless/ti/wlcore/io.c
-@@ -175,14 +175,15 @@ int wlcore_set_partition(struct wl1271 *wl,
- 	if (ret < 0)
- 		goto out;
- 
-+	/*
-+	 * We don't need the size of the last partition, as it is
-+	 * automatically calculated based on the total memory size and
-+	 * the sizes of the previous partitions.
-+	 */
- 	ret = wlcore_raw_write32(wl, HW_PART3_START_ADDR, p->mem3.start);
- 	if (ret < 0)
- 		goto out;
- 
--	ret = wlcore_raw_write32(wl, HW_PART3_SIZE_ADDR, p->mem3.size);
--	if (ret < 0)
--		goto out;
+This test looks bogus.  Shouldn't it AND the register value with 
+OMAP_RTC_STATUS_BUSY?  Right now the code is AND-ing with 0x44, which 
+doesn't include the BUSY bit.  So I guess the tests that you mentioned in 
+the first message of the series don't cover the BUSY case?
+
+> +	/* now we have ~15 usec to read/write various registers */
+> +}
+> +
+> +/**
+> + * omap_hwmod_rtc_unlock - Unlock the Kicker mechanism.
+> + * @oh: struct omap_hwmod *
+> + *
+> + * RTC IP have kicker feature. This prevents spurious writes to its registers.
+> + * In order to write into any of the RTC registers, KICK values has te be
+> + * written in respective KICK registers. This is needed for hwmod to write into
+> + * sysconfig register.
+> + */
+> +void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
+> +{
+> +	local_irq_disable();
+> +	omap_rtc_wait_not_busy(oh);
+> +	omap_hwmod_write(OMAP_RTC_KICK0_VALUE, oh, OMAP_RTC_KICK0_REG);
+> +	omap_hwmod_write(OMAP_RTC_KICK1_VALUE, oh, OMAP_RTC_KICK1_REG);
+> +	local_irq_enable();
+
+Finally, could you ask the IP block maintainer to confirm the 
+interpretation that, for any STATUS_REG read where the BUSY bit is 0, that 
+we are guaranteed to have at least 15 microseconds from that point in time 
+to access the IP block?  It appears to be this way from my reading of the 
+TRM; but to me, the phrasing is not explicit.  Another interpretation 
+could be that the BUSY bit reflects the IP block's current status.  If 
+this latter case is true, then to ensure that the IP block accesses 
+complete inside the access window, we'll either need to test the BUSY bit 
+after the writes to ensure that it is still 0, and otherwise repeat the 
+busy test and writes; or we'll need to wait for a 0->1 BUSY transition 
+before we wait for a 1->0 BUSY transition.
+
+> +}
+> +
+> +/**
+> + * omap_hwmod_rtc_lock - Lock the Kicker mechanism.
+> + * @oh: struct omap_hwmod *
+> + *
+> + * RTC IP have kicker feature. This prevents spurious writes to its registers.
+> + * Once the RTC registers are written, KICK mechanism needs to be locked,
+> + * in order to prevent any spurious writes. This function locks back the RTC
+> + * registers once hwmod completes its write into sysconfig register.
+> + */
+> +void omap_hwmod_rtc_lock(struct omap_hwmod *oh)
+> +{
+> +	local_irq_disable();
+> +	omap_rtc_wait_not_busy(oh);
+> +	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK0_REG);
+> +	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK1_REG);
+> +	local_irq_enable();
+> +}
+> -- 
+> 2.1.4
+> 
+
+
+- Paul
