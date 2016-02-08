@@ -1,59 +1,59 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] arm: dts: AM57XX: Correct the thermal thresholds
-Date: Mon, 8 Feb 2016 15:15:05 +0530
-Message-ID: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 1/3] ARM: omap2+: omap_hwmod: introduce hwmod flag for custom reset handling
+Date: Mon, 8 Feb 2016 16:42:19 +0530
+Message-ID: <1454929941-23949-2-git-send-email-kishon@ti.com>
+References: <1454929941-23949-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454929941-23949-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, bhelgaas@google.com, richardcochran@gmail.com, s-anna@ti.com
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The thermal threholds for am57xx are different from that of dra7.
-Correcting the thresholds for the same.
+From: Paul Walmsley <paul@pwsan.com>
 
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Many of the IP blocks with PRM hardreset lines are processor IP blocks
+and need special reset handling to ensure that WFI/HLT-like
+instructions are executed after reset. Introduce a new hwmod flag
+_HWMOD_CUSTOM_HARDRESET_ to indicate if the IP block requires
+special reset handling.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod.h |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Depends on: https://lkml.org/lkml/2016/2/8/90
-
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
-
-Index: linux/arch/arm/boot/dts/am57xx-beagle-x15.dts
-===================================================================
---- linux.orig/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:05.514959101 +0530
-+++ linux/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:05.510959168 +0530
-@@ -825,3 +825,27 @@
- 		status = "okay";
- 	};
- };
-+
-+&cpu_alert0 {
-+	temperature = <90000>; /* milliCelsius */
-+};
-+
-+&cpu_crit {
-+	temperature = <105000>; /* milliCelsius */
-+};
-+
-+&gpu_crit {
-+	temperature = <105000>; /* milliCelsius */
-+};
-+
-+&core_crit {
-+	temperature = <105000>; /* milliCelsius */
-+};
-+
-+&dspeve_crit {
-+	temperature = <105000>; /* milliCelsius */
-+};
-+
-+&iva_crit {
-+	temperature = <105000>; /* milliCelsius */
-+};
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 76bce11..4198829 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -525,6 +525,17 @@ struct omap_hwmod_omap4_prcm {
+  *     or idled.
+  * HWMOD_OPT_CLKS_NEEDED: The optional clocks are needed for the module to
+  *     operate and they need to be handled at the same time as the main_clk.
++ * HWMOD_CUSTOM_HARDRESET: By default, if a hwmod has PRCM hardreset
++ *     lines associated with it (i.e., a populated .rst_lines field in
++ *     the hwmod), the hwmod code will assert the hardreset lines when
++ *     the IP block is initially reset, deassert the hardreset lines
++ *     in _enable(), and reassert them in _shutdown().  If this flag
++ *     is set, the hwmod code will not deassert the hardreset lines in
++ *     _enable(), leaving this responsibility to the driver code.  This flag may
++ *     be needed for processor IP blocks that must be put into a WFI/HLT
++ *     state after reset is deasserted, lest the processor leave its MSTANDBY
++ *     signal deasserted, thus blocking the chip from entering a system-wide
++ *     low power state.
+  */
+ #define HWMOD_SWSUP_SIDLE			(1 << 0)
+ #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+@@ -541,6 +552,7 @@ struct omap_hwmod_omap4_prcm {
+ #define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
+ #define HWMOD_RECONFIG_IO_CHAIN			(1 << 13)
+ #define HWMOD_OPT_CLKS_NEEDED			(1 << 14)
++#define HWMOD_CUSTOM_HARDRESET			(1 << 15)
+ 
+ /*
+  * omap_hwmod._int_flags definitions
+-- 
+1.7.9.5
