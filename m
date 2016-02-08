@@ -1,35 +1,58 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Mon, 8 Feb 2016 09:51:57 +0100
-Message-ID: <20160208085157.GB30075@pali>
-References: <20160126140010.GA29723@amd>
- <20160126172527.GY3500@atomide.com>
- <20160130200244.GA30429@amd>
- <20160130201452.GC30429@amd>
- <20160130221509.GA28644@amd>
- <20160201181316.GM19432@atomide.com>
- <20160201211736.GA11283@amd>
- <20160201221111.GP19432@atomide.com>
- <20160204053518.GP19432@atomide.com>
- <20160207213720.GB6147@amd>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 2/3] arm: dts: DRA7: Add IVA thermal data
+Date: Mon, 8 Feb 2016 14:46:29 +0530
+Message-ID: <1454922990-7501-3-git-send-email-j-keerthy@ti.com>
+References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160207213720.GB6147@amd>
+In-Reply-To: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com
+To: tony@atomide.com, edubezval@gmail.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sunday 07 February 2016 22:37:20 Pavel Machek wrote:
-> Pali, do you have deeper sleep states working on 4.4 kernel? (Or
-> anything 4.X?)
+This patch changes a dtsi file to contain the thermal data
+for IVA domain. This data will enable a thermal shutdown at 125C.
 
-Do not know, at least I did not play or test this part of power
-management yet.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/dra7-iva-thermal.dtsi | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+diff --git a/arch/arm/boot/dts/dra7-iva-thermal.dtsi b/arch/arm/boot/dts/dra7-iva-thermal.dtsi
+new file mode 100644
+index 0000000..dd74a53
+--- /dev/null
++++ b/arch/arm/boot/dts/dra7-iva-thermal.dtsi
+@@ -0,0 +1,27 @@
++/*
++ * Device Tree Source for DRA7x SoC IVA thermal
++ *
++ * Copyright (C) 2016 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++#include <dt-bindings/thermal/thermal.h>
++
++iva_thermal: iva_thermal {
++	polling-delay-passive = <250>; /* milliseconds */
++	polling-delay = <500>; /* milliseconds */
++
++			/* sensor       ID */
++	thermal-sensors = <&bandgap     4>;
++
++	trips {
++		iva_crit: iva_crit {
++			temperature = <125000>; /* milliCelsius */
++			hysteresis = <2000>; /* milliCelsius */
++			type = "critical";
++		};
++	};
++};
+-- 
+1.9.1
