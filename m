@@ -1,49 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix onenand initialization to avoid
- filesystem corruption
-Date: Mon, 8 Feb 2016 12:26:46 -0800
-Message-ID: <20160208202646.GA19432@atomide.com>
-References: <linux-kernel@vger.kernel.org>
- <1454683028-4193-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160208193644.GU19432@atomide.com>
- <56B8F71A.7090102@gmail.com>
+Subject: Re: [PATCH 0/3] omap: hwmod: add default reset handling support
+Date: Mon, 8 Feb 2016 12:44:46 -0800
+Message-ID: <20160208204446.GC19432@atomide.com>
+References: <1454929941-23949-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56B8F71A.7090102@gmail.com>
+In-Reply-To: <1454929941-23949-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: rogerq@ti.com, khilman@deeprootsystems.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, sre@kernel.org, aaro.koskinen@iki.fi, pavel@ucw.cz, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, bhelgaas@google.com, richardcochran@gmail.com, s-anna@ti.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160208 12:15]:
-> Hi
-> 
-> On  8.02.2016 21:36, Tony Lindgren wrote:
-> >
-> >OK. So probably the INT or RDY polarity made the ECC not work.
-> >
-> 
-> Well, ECC disable bit (ONENAND_SYS_CFG1_NO_ECC) was set as well, so most
-> probably it was the bugger :)
+Hi Kishon,
 
-Oh OK that explains.
-
-> >Aaro, care to dump out also the nolo configured CFG1 value from
-> >n8x0 and n9(50)?
-> >
-> >You can do it by adding something like this to the beginning
-> >of set_onenand_cfg():
-> >
+* Kishon Vijay Abraham I <kishon@ti.com> [160208 03:13]:
+> Add a new hwmod flag to indicate custom reset handling and use it
+> for devices that require custom reset handling (like dsp, ipu, iva).
 > 
-> Also, do not forget to restore HWMOD_INIT_NO_RESET in gpmc_hwmod in question
-> and (maybe) revert e7b11dc7b77bfce0a351230a5feeadc1d0bba997.
+> Tested PCIe on dra7-evm and dra72-evm.
+> I need help in testing DSP, IPU, IVA, PRU, GFX, M3 in other platforms.
+> Or a way to test these cores to see if reset is not broken. Suman?
+> 
+> I'll post this series once again after performing these tests.
 
-Probably just enabling CONFIG_OMAP_GPMC_DEBUG allows dumping
-the GPMC configuration. And it sounds like it's a good idea
-to have this patch enabled.
+Do we also still need to patch something in the pcie driver too
+or can all that be left out now?
 
 Regards,
 
 Tony
+
+
+> Paul Walmsley (3):
+>   ARM: omap2+: omap_hwmod: introduce hwmod flag for custom reset
+>     handling
+>   ARM: OMAP2+: hwmod: use HWMOD_CUSTOM_HARDRESET for custom reset
+>     handling
+>   ARM: OMAP2+: hwmod: Add default reset handling
+> 
+>  arch/arm/mach-omap2/omap_hwmod.c                   |   16 +++++++++++-----
+>  arch/arm/mach-omap2/omap_hwmod.h                   |   12 ++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    2 ++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
+>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |    2 ++
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    3 +++
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ++++++
+>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    2 ++
+>  10 files changed, 41 insertions(+), 5 deletions(-)
+> 
+> -- 
+> 1.7.9.5
+> 
