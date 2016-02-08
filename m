@@ -1,51 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Two phy-twl4030-usb fixes for unloading the module
-Date: Mon, 8 Feb 2016 11:51:49 -0800
-Message-ID: <20160208195149.GV19432@atomide.com>
-References: <1448948394-32078-1-git-send-email-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain
+ data
+Date: Mon, 8 Feb 2016 11:57:04 -0800
+Message-ID: <20160208195704.GW19432@atomide.com>
+References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1448948394-32078-1-git-send-email-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+In-Reply-To: <1454922990-7501-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
-
-* Tony Lindgren <tony@atomide.com> [151130 21:40]:
-> Hi,
+* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [160208 01:19]:
+> OMAP5 has 3 thermal zones cpu, core and multimedia.
+> On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
+> and iva. Currently cpu, core and multimedia are being added via dt
+> and the other 2 are getting added via kernel. Add the missing thermal
+> domains in dt so as give the correct trip numbers, type and temperatures.
 > 
-> Here are two fixes for rmmod and PM. These can be merged separately after
-> the review from the MUSB related changes.
+> Tested on DRA7-EVM.
 
-Looks like these two fixes never got merged. Care to merge
-these for v4.5-rc cycle with Cc stable v4.4?
-
-Without these omap3 PM is blocked as the USB modules can
-never be unloaded.
-
-I can also merge these via the ARM SoC tree if you ack and have
-no other fixes for the -rc cycle.
+Are these critical fixes to have for v4.5-rc cycle or can they
+wait for v4.6 merge window?
 
 Regards,
 
 Tony
 
-> Tony Lindgren (2):
->   phy: twl4030-usb: Relase usb phy on unload
->   phy: twl4030-usb: Fix unbalanced pm_runtime_enable on module reload
+> Keerthy (3):
+>   arm: dts: DRA7: Add DSPEVE thermal data
+>   arm: dts: DRA7: Add IVA thermal data
+>   arm: dts: DRA7: Add missing IVA and DSPEVE thermal domain data
 > 
->  drivers/phy/phy-twl4030-usb.c | 14 +++++++++-----
->  1 file changed, 9 insertions(+), 5 deletions(-)
+>  arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 27 +++++++++++++++++++++++++++
+>  arch/arm/boot/dts/dra7-iva-thermal.dtsi    | 27 +++++++++++++++++++++++++++
+>  arch/arm/boot/dts/dra7.dtsi                |  2 ++
+>  3 files changed, 56 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
+>  create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
 > 
 > -- 
-> 2.6.2
+> 1.9.1
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
