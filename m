@@ -1,34 +1,37 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/2] memory: omap-gpmc: Add support for AAD timings
-Date: Mon, 8 Feb 2016 14:51:24 +0200
-Message-ID: <56B88F4C.2040002@ti.com>
-References: <1451309961-7247-1-git-send-email-narmstrong@baylibre.com>
- <1451309961-7247-2-git-send-email-narmstrong@baylibre.com>
- <20160127185815.GW19432@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 1/3] ARM: omap2plus_defconfig: Enable OMAP IOMMU support
+Date: Mon,  8 Feb 2016 14:53:01 -0300
+Message-ID: <1454953983-8894-2-git-send-email-javier@osg.samsung.com>
+References: <1454953983-8894-1-git-send-email-javier@osg.samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160127185815.GW19432@atomide.com>
+In-Reply-To: <1454953983-8894-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Neil Armstrong <narmstrong@baylibre.com>
-Cc: Robert ABEL <rabel@cit-ec.uni-bielefeld.de>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@osg.samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 27/01/16 20:58, Tony Lindgren wrote:
-> * Neil Armstrong <narmstrong@baylibre.com> [151228 05:39]:
->> In order to support extended timings parameters on hardware supporting the
->> "AAD" mode like the AM335x or DM816x, add these entries into the GPMC driver
->> if the hardware is capable.
->>
->> Tested on DM816x and AM335x.
-> 
-> Both look OK to me, assuming Roger will queue these:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
+OMAP3 media platform drivers (i.e: omap3isp) needs IOMMU support so
+enable it to be able to test the OMAP3 Image Signal Processor (ISP).
 
-Thanks. Queuing both for -next.
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
 
-cheers,
--roger
+ arch/arm/configs/omap2plus_defconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index a7151744b85c..c53d21c30b20 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -412,7 +412,8 @@ CONFIG_RTC_DRV_OMAP=m
+ CONFIG_DMADEVICES=y
+ CONFIG_TI_EDMA=y
+ CONFIG_DMA_OMAP=y
+-# CONFIG_IOMMU_SUPPORT is not set
++CONFIG_IOMMU_SUPPORT=y
++CONFIG_OMAP_IOMMU=y
+ CONFIG_EXTCON=m
+ CONFIG_EXTCON_USB_GPIO=m
+ CONFIG_EXTCON_PALMAS=m
+-- 
+2.5.0
