@@ -1,165 +1,139 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.5-rc3
-Date: Mon, 8 Feb 2016 02:51:06 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1602080248360.2182@utopia.booyaka.com>
+From: Ross Green <rgkernel@gmail.com>
+Subject: Re: wl12xx regression on 4.5 (was: Re: linux-4.5-rc1 TI pandboard-es
+ wifi wlcore locks and reset)
+Date: Mon, 8 Feb 2016 19:26:34 +1100
+Message-ID: <CANfgCY3uxLRwRawA1rDDdrhZW4bFkKU0E-JJTJxfWJ2pjCHfkg@mail.gmail.com>
+References: <CANfgCY2nHh+vZ=JOimJdKKKs2JgM-c7m+3ePZtS3XhqyXNkDUQ@mail.gmail.com>
+	<CANfgCY2zVXrLGv=YDpNvqhhoj5U2kgqZ_VV1EBPVK78grra84Q@mail.gmail.com>
+	<20160202043448.GA9514@earth>
+	<CANfgCY21zzinD48DOHaZdkGdDWpuAtJN1T8ofmdwM=P4f-7=Yw@mail.gmail.com>
+	<20160202160538.GA19990@earth>
+	<20160207220538.GA4464@lianli>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160207220538.GA4464@lianli>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Emil Goode <emil.fsw@goode.io>
+Cc: Sebastian Reichel <sre@kernel.org>, Shahar Patury <shaharp@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, Guy Mishol <guym@ti.com>, Kalle Valo <kvalo@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-Here are some basic OMAP test results for Linux v4.5-rc3.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v4.5-rc3/20160207175949/
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-stk-om44,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    (none)
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL ( 1/17): multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/18): 2430sdp
-    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
-    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
-		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
-		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
-		  cmt3517, 5430es2uevm, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 1/18): cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 7/11): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 2430sdp, 5430es2uevm
-    Pass ( 4/11): 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 9/11): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  2430sdp, 5430es2uevm
-    Pass ( 2/11): 3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
-    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
-    Pass ( 1/ 4): 3730es12beaglexm
-
-Kernel warnings during PM test:
-    (none)
-
-Obsolete Kconfig symbols:
-    FAIL ( 3/20): omap1_defconfig, omap2plus_defconfig,
-		  multi_v7_defconfig
+On Mon, Feb 8, 2016 at 9:05 AM, Emil Goode <emil.fsw@goode.io> wrote:
+> Hello,
+>
+> On Tue, Feb 02, 2016 at 05:05:38PM +0100, Sebastian Reichel wrote:
+>> On Tue, Feb 02, 2016 at 04:41:13PM +1100, Ross Green wrote:
+>> > On Tue, Feb 2, 2016 at 3:34 PM, Sebastian Reichel <sre@kernel.org> wrote:
+>> > > On Mon, Feb 01, 2016 at 11:38:38PM +1100, Ross Green wrote:
+>> > >> On Mon, Jan 25, 2016 at 11:47 PM, Ross Green <rgkernel@gmail.com> wrote:
+>> > >> > Just tried the new kernel release on faithful pandaboard es with the
+>> > >> > new 4.5-rc1 release.
+>> > >> >
+>> > >> > There is a problem with the wifi modules once the modules are loaded.
+>> > >> > Looks like the wifi firmware gets loaded put no response after that
+>> > >> > causing recovery action.
+>> > >> >
+>> > >> > the kernel 4.4 works quite happily with this board.
+>> > >> >
+>> > >> > Here is a dmesg dump in the attachment.
+>> > >> >
+>> > >> > Anyone have any ideas here?
+>> >
+>> > [...]
+>> >
+>> > If I get time, this evening, I'll see if I can give a bisect a try.
+>>
+>> On N950 [wl1271 via SPI, using extra patches to init from DT] I get wifi
+>> working again on 4.5-rc1 with 3719c17e1816 ("wlcore/wl18xx: fw logger
+>> over sdio") reverted.
+>
+> Reverting the changes in wlcore_set_partition() as below seem to help.
+>
+> Best regards,
+>
+> Emil Goode
+>
+> 8<--------
+>
+> --- a/drivers/net/wireless/ti/wlcore/io.c
+> +++ b/drivers/net/wireless/ti/wlcore/io.c
+> @@ -175,14 +175,15 @@ int wlcore_set_partition(struct wl1271 *wl,
+>         if (ret < 0)
+>                 goto out;
+>
+> +       /*
+> +        * We don't need the size of the last partition, as it is
+> +        * automatically calculated based on the total memory size and
+> +        * the sizes of the previous partitions.
+> +        */
+>         ret = wlcore_raw_write32(wl, HW_PART3_START_ADDR, p->mem3.start);
+>         if (ret < 0)
+>                 goto out;
+>
+> -       ret = wlcore_raw_write32(wl, HW_PART3_SIZE_ADDR, p->mem3.size);
+> -       if (ret < 0)
+> -               goto out;
+> -
+>  out:
+>         return ret;
+>  }
+> diff --git a/drivers/net/wireless/ti/wlcore/io.h b/drivers/net/wireless/ti/wlcore/io.h
+> index 6c257b5..10cf374 100644
+> --- a/drivers/net/wireless/ti/wlcore/io.h
+> +++ b/drivers/net/wireless/ti/wlcore/io.h
+> @@ -36,8 +36,8 @@
+>  #define HW_PART1_START_ADDR             (HW_PARTITION_REGISTERS_ADDR + 12)
+>  #define HW_PART2_SIZE_ADDR              (HW_PARTITION_REGISTERS_ADDR + 16)
+>  #define HW_PART2_START_ADDR             (HW_PARTITION_REGISTERS_ADDR + 20)
+> -#define HW_PART3_SIZE_ADDR              (HW_PARTITION_REGISTERS_ADDR + 24)
+> -#define HW_PART3_START_ADDR             (HW_PARTITION_REGISTERS_ADDR + 28)
+> +#define HW_PART3_START_ADDR             (HW_PARTITION_REGISTERS_ADDR + 24)
+> +
+>  #define HW_ACCESS_REGISTER_SIZE         4
+>
+>  #define HW_ACCESS_PRAM_MAX_RANGE       0x3c000
+>
 
 
-vmlinux object size
-(delta in bytes from test_v4.5-rc2 (36f90b0a2ddd60823fe193a85e60ff1906c2a9b3)):
-   text     data      bss    total  kernel
-   +797      +64        0     +861  omap1_defconfig
-   +761      +64        0     +825  omap1_defconfig_1510innovator_only
-   +765      +64        0     +829  omap1_defconfig_5912osk_only
-  +7514     +352      +64    +7930  multi_v7_defconfig
-  +6486     +416        0    +6902  omap2plus_defconfig
-  +6362     +160        0    +6522  omap2plus_defconfig_2430sdp_only
-  +2518     +288        0    +2806  omap2plus_defconfig_am33xx_only
-  +6610     +288        0    +6898  omap2plus_defconfig_am43xx_only
-  +6486     +416        0    +6902  omap2plus_defconfig_cpupm
-  +6674     +288        0    +6962  omap2plus_defconfig_dra7xx_only
-  +1332     +192        0    +1524  omap2plus_defconfig_n800_multi_omap2xxx
-  +1324     +160        0    +1484  omap2plus_defconfig_n800_only_a
-  +6678     +416        0    +7094  omap2plus_defconfig_no_pm
-  +6614     +256        0    +6870  omap2plus_defconfig_omap2_4_only
-  +6546     +384        0    +6930  omap2plus_defconfig_omap3_4_only
-  +6610     +256        0    +6866  omap2plus_defconfig_omap5_only
-   -204     +224     -148     -128  rmk_omap3430_ldp_allnoconfig
-  +4684     +288        0    +4972  rmk_omap3430_ldp_oldconfig
-    +20      +64     -276     -192  rmk_omap4430_sdp_allnoconfig
-   +396     +160        0     +556  rmk_omap4430_sdp_oldconfig
 
-Boot-time memory difference
-(delta in bytes from test_v4.5-rc2 (36f90b0a2ddd60823fe193a85e60ff1906c2a9b3))
-  avail  rsrvd   high  freed  board          kconfig
- -1952k  1952k      .   844k  2420n800       omap2plus_defconfig_n800_only_a
- -1784k  1784k      .      .  2430sdp        omap2plus_defconfig
- -1784k  1784k      .   568k  3530es31beagle omap2plus_defconfig
- -1784k  1784k      .   568k  3530es3beagle  omap2plus_defconfig
- -1784k  1784k      .   568k  3730beaglexm   omap2plus_defconfig
- -1784k  1784k      .   568k  3730es12beaglexmomap2plus_defconfig
- -1784k  1784k      .   568k  37xxevm        omap2plus_defconfig
- -1784k  1784k      .   568k  4430es2panda   omap2plus_defconfig
- -1784k  1784k      .   568k  4460pandaes    omap2plus_defconfig
- -1784k  1784k      .   568k  4460varsomom   omap2plus_defconfig
- -1784k  1784k      .   568k  5430es2uevm    omap2plus_defconfig
- -2096k  2096k      .   636k  am335xbone     omap2plus_defconfig_am33xx_only
- -1784k  1784k      .   568k  am335xbonelt   omap2plus_defconfig
- -1784k  1784k      .   568k  am437xsk       omap2plus_defconfig
+Thanks Emil,
+
+Just tested linux-4.5-rc3 with the above patch and confirm everything
+works as expected. So it would be good if this patch can find its way
+into linux-4.5-rc4.
 
 
-Troubling.  An extra ~2MB of RAM used on all boards in an -rc series 
-release?
+
+here is a portion of the dmesg:
+# dmesg
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 4.5.0-rc3-panda (rfg@red.dwarf) (gcc
+version 5.3.0 (Buildroot 2016.02-git-00183-g1682aee) ) #1 S6
+[    0.000000] CPU: ARMv7 Processor [412fc09a] revision 10 (ARMv7),
+cr=10c5387d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing
+instruction cache
+[    0.000000] Machine model: TI OMAP4 PandaBoard-ES
+[    0.000000] Memory policy: Data cache writealloc
+[    0.000000] OMAP4: Map 0xbfe00000 to fe600000 for dram barrier
+[    0.000000] On node 0 totalpages: 261632
+
+...
+...[   39.164764] wlcore: loaded
+[   52.577209] wlcore: firmware booted (Rev 6.3.10.0.133)
+[   56.101531] wlan0: authenticate with 90:f6:52:81:ee:70
+[   56.138732] wlan0: send auth to 90:f6:52:81:ee:70 (try 1/3)
+[   56.146728] wlan0: authenticated
+[   56.162078] wlan0: associate with 90:f6:52:81:ee:70 (try 1/3)
+[   56.172821] wlan0: RX AssocResp from 90:f6:52:81:ee:70 (capab=0x431
+status=0 aid=1)
+[   56.188201] wlan0: associated
+[   56.244812] wlcore: Association completed.
+
+
+So all is happy with the wlcore code with this patch.
+Now I can continue with the rest of the testing ;-)
+
+Regards,
+
+Ross Green
