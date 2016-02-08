@@ -1,43 +1,59 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain data
-Date: Mon, 8 Feb 2016 14:46:27 +0530
-Message-ID: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] arm: dts: AM57XX: Correct the thermal thresholds
+Date: Mon, 8 Feb 2016 15:15:05 +0530
+Message-ID: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, edubezval@gmail.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, ijc+devicetree@hellion.org.uk, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP5 has 3 thermal zones cpu, core and multimedia.
-On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
-and iva. Currently cpu, core and multimedia are being added via dt
-and the other 2 are getting added via kernel. Add the missing thermal
-domains in dt so as give the correct trip numbers, type and temperatures.
+The thermal threholds for am57xx are different from that of dra7.
+Correcting the thresholds for the same.
 
-Tested on DRA7-EVM.
- 
-Keerthy (3):
-  arm: dts: DRA7: Add DSPEVE thermal data
-  arm: dts: DRA7: Add IVA thermal data
-  arm: dts: DRA7: Add missing IVA and DSPEVE thermal domain data
+Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+---
 
- arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 27 +++++++++++++++++++++++++++
- arch/arm/boot/dts/dra7-iva-thermal.dtsi    | 27 +++++++++++++++++++++++++++
- arch/arm/boot/dts/dra7.dtsi                |  2 ++
- 3 files changed, 56 insertions(+)
- create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
- create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
+Depends on: https://lkml.org/lkml/2016/2/8/90
 
--- 
-1.9.1
+ arch/arm/boot/dts/am57xx-beagle-x15.dts | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+Index: linux/arch/arm/boot/dts/am57xx-beagle-x15.dts
+===================================================================
+--- linux.orig/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:05.514959101 +0530
++++ linux/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:05.510959168 +0530
+@@ -825,3 +825,27 @@
+ 		status = "okay";
+ 	};
+ };
++
++&cpu_alert0 {
++	temperature = <90000>; /* milliCelsius */
++};
++
++&cpu_crit {
++	temperature = <105000>; /* milliCelsius */
++};
++
++&gpu_crit {
++	temperature = <105000>; /* milliCelsius */
++};
++
++&core_crit {
++	temperature = <105000>; /* milliCelsius */
++};
++
++&dspeve_crit {
++	temperature = <105000>; /* milliCelsius */
++};
++
++&iva_crit {
++	temperature = <105000>; /* milliCelsius */
++};
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
