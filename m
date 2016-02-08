@@ -1,184 +1,165 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform
- reset
-Date: Mon, 8 Feb 2016 02:48:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com> <1452780672-14339-4-git-send-email-kishon@ti.com> <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com> <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com> <20160128183156.GH19432@atomide.com>
- <56B087AD.4000505@ti.com>
+Subject: OMAP baseline test results for v4.5-rc3
+Date: Mon, 8 Feb 2016 02:51:06 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1602080248360.2182@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56B087AD.4000505@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
 
-> Paul, what do you think is the best way forward to perform reset?
+Here are some basic OMAP test results for Linux v4.5-rc3.
+Logs and other details at:
 
-Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
-Those often need special reset handling to ensure that WFI/HLT-like 
-instructions are executed after reset.  This special handling ensures that 
-the IP blocks' bus initiator interfaces indicate that they are in standby 
-to the PRCM - thus allowing power management for the rest of the chip to 
-work correctly.
-
-But that doesn't seem to be the case with PCIe - and maybe others - 
-possibly some of the MMUs?  So how about just creating a new hwmod flag to 
-mark all of the initiator IP blocks that require driver-based special 
-handling during _enable() - i.e., most of the processor IP blocks. Then 
-for the rest, like PCIe, implement a default behavior in the hwmod code to 
-automatically release the IP block's hardreset lines in 
-omap_hwmod.c:_enable()?  Something similar to what's enclosed at the 
-bottom of this message.  I've annotated what will be needed in the 
-OMAP44xx file; similar flags will be needed in any other hwmod data file 
-that contains IP blocks with hard reset lines defined.
-
-Either that - or you could write custom reset handlers for all of the 
-processor IP blocks that put them into WFI/HLT.
-
-I leave it to you TI folks to write and test the actual patches, since as 
-you probably know, I don't have any DRA7xx/AM57xx boards in the testbed.  
-
-As far as reasserting hardreset in *remove(), there's already hwmod code 
-to do that in omap_hwmod.c:_shutdown().  I don't recall any more if we 
-currently have code in the stack that calls it.  Ideally the device model 
-code should call that during or after a .remove() call.
+    http://www.pwsan.com/omap/testlogs/test_v4.5-rc3/20160207175949/
 
 
-- Paul
+Test summary
+------------
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
+
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-stk-om44,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
+
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+
+Build warnings from toolchain: uImage:
+    (none)
+
+Build warnings from toolchain: uImage+dtb:
+    (none)
+
+Build warnings from toolchain: zImage:
+    FAIL ( 1/17): multi_v7_defconfig
+
+Boot to userspace:
+    FAIL ( 1/18): 2430sdp
+    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
+    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
+		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
+		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
+		  cmt3517, 5430es2uevm, 2420n800
+
+Kernel warnings during boot to userspace:
+    FAIL ( 1/18): cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 7/11): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 2430sdp, 5430es2uevm
+    Pass ( 4/11): 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
+
+PM: chip retention via dynamic idle:
+    FAIL ( 9/11): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  2430sdp, 5430es2uevm
+    Pass ( 2/11): 3730beaglexm, 3730es12beaglexm
+
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
+    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
+    Pass ( 1/ 4): 3730es12beaglexm
+
+Kernel warnings during PM test:
+    (none)
+
+Obsolete Kconfig symbols:
+    FAIL ( 3/20): omap1_defconfig, omap2plus_defconfig,
+		  multi_v7_defconfig
 
 
----
- arch/arm/mach-omap2/omap_hwmod.c           | 16 +++++++++++-----
- arch/arm/mach-omap2/omap_hwmod.h           | 12 ++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  6 ++++++
- 3 files changed, 29 insertions(+), 5 deletions(-)
+vmlinux object size
+(delta in bytes from test_v4.5-rc2 (36f90b0a2ddd60823fe193a85e60ff1906c2a9b3)):
+   text     data      bss    total  kernel
+   +797      +64        0     +861  omap1_defconfig
+   +761      +64        0     +825  omap1_defconfig_1510innovator_only
+   +765      +64        0     +829  omap1_defconfig_5912osk_only
+  +7514     +352      +64    +7930  multi_v7_defconfig
+  +6486     +416        0    +6902  omap2plus_defconfig
+  +6362     +160        0    +6522  omap2plus_defconfig_2430sdp_only
+  +2518     +288        0    +2806  omap2plus_defconfig_am33xx_only
+  +6610     +288        0    +6898  omap2plus_defconfig_am43xx_only
+  +6486     +416        0    +6902  omap2plus_defconfig_cpupm
+  +6674     +288        0    +6962  omap2plus_defconfig_dra7xx_only
+  +1332     +192        0    +1524  omap2plus_defconfig_n800_multi_omap2xxx
+  +1324     +160        0    +1484  omap2plus_defconfig_n800_only_a
+  +6678     +416        0    +7094  omap2plus_defconfig_no_pm
+  +6614     +256        0    +6870  omap2plus_defconfig_omap2_4_only
+  +6546     +384        0    +6930  omap2plus_defconfig_omap3_4_only
+  +6610     +256        0    +6866  omap2plus_defconfig_omap5_only
+   -204     +224     -148     -128  rmk_omap3430_ldp_allnoconfig
+  +4684     +288        0    +4972  rmk_omap3430_ldp_oldconfig
+    +20      +64     -276     -192  rmk_omap4430_sdp_allnoconfig
+   +396     +160        0     +556  rmk_omap4430_sdp_oldconfig
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e9f65fec55c0..ab66dd988709 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2077,7 +2077,7 @@ static int _enable_preprogram(struct omap_hwmod *oh)
-  */
- static int _enable(struct omap_hwmod *oh)
- {
--	int r;
-+	int r, i;
- 	int hwsup = 0;
- 
- 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
-@@ -2109,17 +2109,23 @@ static int _enable(struct omap_hwmod *oh)
- 	}
- 
- 	/*
--	 * If an IP block contains HW reset lines and all of them are
--	 * asserted, we let integration code associated with that
--	 * block handle the enable.  We've received very little
-+	 * If an IP block contains HW reset lines, all of them are
-+	 * asserted, and the IP block is marked as requiring a custom
-+	 * hardreset handler, we let integration code associated with
-+	 * that block handle the enable.  We've received very little
- 	 * information on what those driver authors need, and until
- 	 * detailed information is provided and the driver code is
- 	 * posted to the public lists, this is probably the best we
- 	 * can do.
- 	 */
--	if (_are_all_hardreset_lines_asserted(oh))
-+	if ((oh->flags & HWMOD_CUSTOM_HARDRESET) &&
-+	    _are_all_hardreset_lines_asserted(oh))
- 		return 0;
- 
-+	/* If the IP block is an initiator, release it from hardreset */
-+	for (i = 0; i < oh->rst_lines_cnt; i++)
-+		_deassert_hardreset(oh, oh->rst_lines[i].name);
-+
- 	/* Mux pins for device runtime if populated */
- 	if (oh->mux && (!oh->mux->enabled ||
- 			((oh->_state == _HWMOD_STATE_IDLE) &&
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 76bce11c85a4..4198829551a4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -525,6 +525,17 @@ struct omap_hwmod_omap4_prcm {
-  *     or idled.
-  * HWMOD_OPT_CLKS_NEEDED: The optional clocks are needed for the module to
-  *     operate and they need to be handled at the same time as the main_clk.
-+ * HWMOD_CUSTOM_HARDRESET: By default, if a hwmod has PRCM hardreset
-+ *     lines associated with it (i.e., a populated .rst_lines field in
-+ *     the hwmod), the hwmod code will assert the hardreset lines when
-+ *     the IP block is initially reset, deassert the hardreset lines
-+ *     in _enable(), and reassert them in _shutdown().  If this flag
-+ *     is set, the hwmod code will not deassert the hardreset lines in
-+ *     _enable(), leaving this responsibility to the driver code.  This flag may
-+ *     be needed for processor IP blocks that must be put into a WFI/HLT
-+ *     state after reset is deasserted, lest the processor leave its MSTANDBY
-+ *     signal deasserted, thus blocking the chip from entering a system-wide
-+ *     low power state.
-  */
- #define HWMOD_SWSUP_SIDLE			(1 << 0)
- #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
-@@ -541,6 +552,7 @@ struct omap_hwmod_omap4_prcm {
- #define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
- #define HWMOD_RECONFIG_IO_CHAIN			(1 << 13)
- #define HWMOD_OPT_CLKS_NEEDED			(1 << 14)
-+#define HWMOD_CUSTOM_HARDRESET			(1 << 15)
- 
- /*
-  * omap_hwmod._int_flags definitions
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index dad871a4cd96..20501f0e3c6c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -553,6 +553,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
-+	.flags		= HWMOD_CUSTOM_HARDRESET,
- };
- 
- /*
-@@ -1433,6 +1434,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
-+	.flags		= HWMOD_CUSTOM_HARDRESET,
- };
- 
- /*
-@@ -1517,6 +1519,7 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
-+	.flags		= HWMOD_CUSTOM_HARDRESET,
- };
- 
- /*
-@@ -2115,6 +2118,7 @@ static struct omap_hwmod omap44xx_mmu_ipu_hwmod = {
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
-+	.flags		= HWMOD_CUSTOM_HARDRESET, /* XXX doublecheck */
- };
- 
- /* mmu dsp */
-@@ -2147,6 +2151,7 @@ static struct omap_hwmod omap44xx_mmu_dsp_hwmod = {
- 			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
-+	.flags		= HWMOD_CUSTOM_HARDRESET, /* XXX doublecheck */
- };
- 
- /*
-@@ -2299,6 +2304,7 @@ static struct omap_hwmod omap44xx_prm_hwmod = {
- 	.class		= &omap44xx_prcm_hwmod_class,
- 	.rst_lines	= omap44xx_prm_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_prm_resets),
-+	.flags		= HWMOD_CUSTOM_HARDRESET,
- };
- 
- /*
--- 
-2.7.0
+Boot-time memory difference
+(delta in bytes from test_v4.5-rc2 (36f90b0a2ddd60823fe193a85e60ff1906c2a9b3))
+  avail  rsrvd   high  freed  board          kconfig
+ -1952k  1952k      .   844k  2420n800       omap2plus_defconfig_n800_only_a
+ -1784k  1784k      .      .  2430sdp        omap2plus_defconfig
+ -1784k  1784k      .   568k  3530es31beagle omap2plus_defconfig
+ -1784k  1784k      .   568k  3530es3beagle  omap2plus_defconfig
+ -1784k  1784k      .   568k  3730beaglexm   omap2plus_defconfig
+ -1784k  1784k      .   568k  3730es12beaglexmomap2plus_defconfig
+ -1784k  1784k      .   568k  37xxevm        omap2plus_defconfig
+ -1784k  1784k      .   568k  4430es2panda   omap2plus_defconfig
+ -1784k  1784k      .   568k  4460pandaes    omap2plus_defconfig
+ -1784k  1784k      .   568k  4460varsomom   omap2plus_defconfig
+ -1784k  1784k      .   568k  5430es2uevm    omap2plus_defconfig
+ -2096k  2096k      .   636k  am335xbone     omap2plus_defconfig_am33xx_only
+ -1784k  1784k      .   568k  am335xbonelt   omap2plus_defconfig
+ -1784k  1784k      .   568k  am437xsk       omap2plus_defconfig
+
+
+Troubling.  An extra ~2MB of RAM used on all boards in an -rc series 
+release?
