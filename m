@@ -1,84 +1,61 @@
-From: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
-Subject: [PATCH] ARM: dts: am335x/am57xx: replace gpio-key,wakeup with wakeup-source property
-Date: Mon,  8 Feb 2016 21:55:53 +0000
-Message-ID: <1454968553-12088-1-git-send-email-sudeep.holla@arm.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH] ARM: drop unused Makefile.boot of Multiplatform SoCs
+Date: Mon, 8 Feb 2016 13:36:21 -0800
+Message-ID: <20160208213621.GD25468@localhost>
+References: <1454693808-13081-1-git-send-email-yamada.masahiro@socionext.com>
+ <56B4E2B0.8060808@xilinx.com> <20160208200324.GY19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20160208200324.GY19432@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-samsung-soc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Viresh Kumar <vireshk@kernel.org>, Michal Simek <michal.simek@xilinx.com>, arm@kernel.org, S??ren Brinkmann <soren.brinkmann@xilinx.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, spear-devel@list.st.com, Haojian Zhuang <haojian.zhuang@gmail.com>, Krzysztof Halasa <khalasa@piap.pl>, Santosh Shilimkar <ssantosh@kernel.org>, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Barry Song <baohua@kernel.org>, Eric Miao <eric.y.miao@gmail.com>, linux-kernel@vger.kernel.org, Kukjin Kim <kgene@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit 3efda00129bd ("ARM: dts: am335x: replace gpio-key,wakeup with
-wakeup-source property") replaces all the legacy "gpio-key,wakeup" with
-the unified  "wakeup-source" property to prevent any further copy-paste
-duplication.
+On Mon, Feb 08, 2016 at 12:03:24PM -0800, Tony Lindgren wrote:
+> * Michal Simek <michal.simek@xilinx.com> [160205 09:59]:
+> > On 5.2.2016 18:36, Masahiro Yamada wrote:
+> > > The variable "MACHINE" is empty if CONFIG_ARCH_MULTIPLATFORM=y,
+> > > so these Makefile.boot files are never included.
+> > > 
+> > > Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> > > ---
+> > > 
+> > >  arch/arm/mach-cns3xxx/Makefile.boot    | 3 ---
+> > >  arch/arm/mach-exynos/Makefile.boot     | 2 --
+> > >  arch/arm/mach-integrator/Makefile.boot | 4 ----
+> > >  arch/arm/mach-keystone/Makefile.boot   | 1 -
+> > >  arch/arm/mach-mmp/Makefile.boot        | 1 -
+> > >  arch/arm/mach-mv78xx0/Makefile.boot    | 3 ---
+> > >  arch/arm/mach-nspire/Makefile.boot     | 0
+> > >  arch/arm/mach-omap2/Makefile.boot      | 3 ---
+> > >  arch/arm/mach-orion5x/Makefile.boot    | 3 ---
+> > >  arch/arm/mach-prima2/Makefile.boot     | 3 ---
+> > >  arch/arm/mach-realview/Makefile.boot   | 9 ---------
+> > >  arch/arm/mach-s3c64xx/Makefile.boot    | 2 --
+> > >  arch/arm/mach-spear/Makefile.boot      | 3 ---
+> > >  arch/arm/mach-u300/Makefile.boot       | 4 ----
+> > >  arch/arm/mach-ux500/Makefile.boot      | 3 ---
+> > >  arch/arm/mach-zynq/Makefile.boot       | 3 ---
+> > 
+> > Acked-by: Michal Simek <michal.simek@xilinx.com> (for Zynq)
+> 
+> I doubt anybody wants to go back to disabling MULTIPLATFORM:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-However couple of use of these legacy property sneaked in during the
-merge window. This patch replaces them too.
+Agreed. I've applied to next/cleanup now.
 
-Cc: "Beno=C3=AEt Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
----
- arch/arm/boot/dts/am335x-shc.dts          | 4 ++--
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
 
-Hi Tony,
-
-I see these files got introduced during v4.5 merge window and we could
-not stop the copy-paste from the earlier versions files from which they
-were copied.
-
-Regards,
-Sudeep
-
-diff --git a/arch/arm/boot/dts/am335x-shc.dts b/arch/arm/boot/dts/am335=
-x-shc.dts
-index 1b5b044fcd91..865de8500f1c 100644
---- a/arch/arm/boot/dts/am335x-shc.dts
-+++ b/arch/arm/boot/dts/am335x-shc.dts
-@@ -46,7 +46,7 @@
- 			gpios =3D <&gpio1 29 GPIO_ACTIVE_HIGH>;
- 			linux,code =3D <KEY_BACK>;
- 			debounce-interval =3D <1000>;
--			gpio-key,wakeup;
-+			wakeup-source;
- 		};
-=20
- 		front_button {
-@@ -54,7 +54,7 @@
- 			gpios =3D <&gpio1 25 GPIO_ACTIVE_HIGH>;
- 			linux,code =3D <KEY_FRONT>;
- 			debounce-interval =3D <1000>;
--			gpio-key,wakeup;
-+			wakeup-source;
- 		};
- 	};
-=20
-diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/=
-dts/am57xx-cl-som-am57x.dts
-index c53882643ae9..497eb07ced19 100644
---- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-@@ -545,7 +545,7 @@
- 		ti,debounce-tol =3D /bits/ 16 <10>;
- 		ti,debounce-rep =3D /bits/ 16 <1>;
-=20
--		linux,wakeup;
-+		wakeup-source;
- 	};
- };
-=20
---=20
-1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Olof
