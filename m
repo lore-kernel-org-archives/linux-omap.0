@@ -1,33 +1,51 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/4] regulator: lp872x: Add enable GPIO pin support
-Date: Mon, 8 Feb 2016 13:50:28 -0600
-Message-ID: <20160208195028.GA13120@rob-hp-laptop>
-References: <1454697741-8687-1-git-send-email-contact@paulk.fr>
- <1454697741-8687-3-git-send-email-contact@paulk.fr>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] Two phy-twl4030-usb fixes for unloading the module
+Date: Mon, 8 Feb 2016 11:51:49 -0800
+Message-ID: <20160208195149.GV19432@atomide.com>
+References: <1448948394-32078-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1454697741-8687-3-git-send-email-contact-W9ppeneeCTY@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1448948394-32078-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 05, 2016 at 07:42:19PM +0100, Paul Kocialkowski wrote:
-> LP872x regulators are made active via the EN pin, which might be hooked to a
-> GPIO. This adds support for driving the GPIO high when the driver is in use.
+Hi Kishon,
+
+* Tony Lindgren <tony@atomide.com> [151130 21:40]:
+> Hi,
 > 
-> Signed-off-by: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-> ---
->  .../devicetree/bindings/regulator/lp872x.txt       |  1 +
+> Here are two fixes for rmmod and PM. These can be merged separately after
+> the review from the MUSB related changes.
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Looks like these two fixes never got merged. Care to merge
+these for v4.5-rc cycle with Cc stable v4.4?
 
->  drivers/regulator/lp872x.c                         | 34 ++++++++++++++++++++++
->  include/linux/regulator/lp872x.h                   |  5 ++++
->  3 files changed, 40 insertions(+)
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Without these omap3 PM is blocked as the USB modules can
+never be unloaded.
+
+I can also merge these via the ARM SoC tree if you ack and have
+no other fixes for the -rc cycle.
+
+Regards,
+
+Tony
+
+> Tony Lindgren (2):
+>   phy: twl4030-usb: Relase usb phy on unload
+>   phy: twl4030-usb: Fix unbalanced pm_runtime_enable on module reload
+> 
+>  drivers/phy/phy-twl4030-usb.c | 14 +++++++++-----
+>  1 file changed, 9 insertions(+), 5 deletions(-)
+> 
+> -- 
+> 2.6.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
