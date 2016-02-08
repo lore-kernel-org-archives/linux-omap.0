@@ -1,57 +1,84 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v12 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Mon, 8 Feb 2016 22:50:39 +0100
-Message-ID: <CAJZ5v0jUipo06fpSQsKi+5Po_32ntgc3Ns29=17SgQr2PSj+kA@mail.gmail.com>
-References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
-	<CAHp75VdWPUZ8F5rsGn3M1e5Pgpcg1CErBej9PE_3+ZPke5CDFA@mail.gmail.com>
-	<CAHp75Vf9TS-AxJALQjiwNjMCT8ct5SBanYzrEsV9aj=DsUw-OA@mail.gmail.com>
-	<1783906.XctYjeUNLr@vostro.rjw.lan>
-	<44858.1454967873@turing-police.cc.vt.edu>
+From: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH] ARM: dts: am335x/am57xx: replace gpio-key,wakeup with wakeup-source property
+Date: Mon,  8 Feb 2016 21:55:53 +0000
+Message-ID: <1454968553-12088-1-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <44858.1454967873@turing-police.cc.vt.edu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Len Brown <lenb@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-arm Mailing List <linux-arm-kernel@lists.infr>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 8, 2016 at 10:44 PM,  <Valdis.Kletnieks@vt.edu> wrote:
-> On Fri, 29 Jan 2016 22:35:18 +0100, "Rafael J. Wysocki" said:
->> > One more test unveils this one
->> >
->> > # modprobe -r sdhci-acpi
->> > [ 1289.909441] ------------[ cut here ]------------
->> > [ 1289.918205] WARNING: CPU: 1 PID: 4374 at
->> > /home/andy/prj/linux-otc/drivers/base/power/common.c:150
->> > dev_pm_domain_set+0x51/0x60()
->> > [ 1289.934681] PM domains can only be changed for unbound devices
->> > [ 1289.944843] Modules linked in: sdhci_acpi(-) sdhci mmc_core
->> > led_class [last unloaded: dw_dmac_core]
->> > [ 1289.958802] CPU: 1 PID: 4374 Comm: modprobe Not tainted 4.5.0-rc1+ #3
->> > [ 1289.969736]  ffffffff81c38330 ffff88007bb53d18 ffffffff8133162f
->> > ffff88007bb53d60
->> > [ 1289.981844]  ffff88007bb53d50 ffffffff8105cd12 ffff88017a007410
->> > 0000000000000000
->> > [ 1289.993996]  0000000000000001 0000000000000080 0000000000000000
->> > ffff88007bb53db0
->> > [ 1290.006123] Call Trace:
->> > [ 1290.012600]  [<ffffffff8133162f>] dump_stack+0x44/0x55
->> > [ 1290.022052]  [<ffffffff8105cd12>] warn_slowpath_common+0x82/0xc0
->> > [ 1290.032462]  [<ffffffff8105cd9c>] warn_slowpath_fmt+0x4c/0x50
->> > [ 1290.042589]  [<ffffffff814867c1>] dev_pm_domain_set+0x51/0x60
->
-> My Dell Latitude laptopi on next-20160201 is throwing a similar error
-> at shutdown, except the traceback continues:
->
-> mei_me_remove+0xbd/0xc0
-> pci_device_shutdown+0x32/0x50
-> device_shutdown+0xe2/0x210
->
-> (sorry, that's all I have, transcribing from one frame of video shot while
-> the system was shutting down....)
+Commit 3efda00129bd ("ARM: dts: am335x: replace gpio-key,wakeup with
+wakeup-source property") replaces all the legacy "gpio-key,wakeup" with
+the unified  "wakeup-source" property to prevent any further copy-paste
+duplication.
 
-This should be fixed in 4.5-rc3, so please retest.
+However couple of use of these legacy property sneaked in during the
+merge window. This patch replaces them too.
 
-Thanks,
-Rafael
+Cc: "Beno=C3=AEt Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-shc.dts          | 4 ++--
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+Hi Tony,
+
+I see these files got introduced during v4.5 merge window and we could
+not stop the copy-paste from the earlier versions files from which they
+were copied.
+
+Regards,
+Sudeep
+
+diff --git a/arch/arm/boot/dts/am335x-shc.dts b/arch/arm/boot/dts/am335=
+x-shc.dts
+index 1b5b044fcd91..865de8500f1c 100644
+--- a/arch/arm/boot/dts/am335x-shc.dts
++++ b/arch/arm/boot/dts/am335x-shc.dts
+@@ -46,7 +46,7 @@
+ 			gpios =3D <&gpio1 29 GPIO_ACTIVE_HIGH>;
+ 			linux,code =3D <KEY_BACK>;
+ 			debounce-interval =3D <1000>;
+-			gpio-key,wakeup;
++			wakeup-source;
+ 		};
+=20
+ 		front_button {
+@@ -54,7 +54,7 @@
+ 			gpios =3D <&gpio1 25 GPIO_ACTIVE_HIGH>;
+ 			linux,code =3D <KEY_FRONT>;
+ 			debounce-interval =3D <1000>;
+-			gpio-key,wakeup;
++			wakeup-source;
+ 		};
+ 	};
+=20
+diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/=
+dts/am57xx-cl-som-am57x.dts
+index c53882643ae9..497eb07ced19 100644
+--- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
++++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+@@ -545,7 +545,7 @@
+ 		ti,debounce-tol =3D /bits/ 16 <10>;
+ 		ti,debounce-rep =3D /bits/ 16 <1>;
+=20
+-		linux,wakeup;
++		wakeup-source;
+ 	};
+ };
+=20
+--=20
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
