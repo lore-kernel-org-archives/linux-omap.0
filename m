@@ -1,51 +1,71 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 0/3] omap: hwmod: add default reset handling support
-Date: Mon, 8 Feb 2016 16:42:18 +0530
-Message-ID: <1454929941-23949-1-git-send-email-kishon@ti.com>
+Subject: [PATCH 3/3] ARM: OMAP2+: hwmod: Add default reset handling
+Date: Mon, 8 Feb 2016 16:42:21 +0530
+Message-ID: <1454929941-23949-4-git-send-email-kishon@ti.com>
+References: <1454929941-23949-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454929941-23949-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, bhelgaas@google.com, richardcochran@gmail.com, s-anna@ti.com
-Cc: Russell King <linux@arm.linux.org.uk>, nsekhar@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add a new hwmod flag to indicate custom reset handling and use it
-for devices that require custom reset handling (like dsp, ipu, iva).
+From: Paul Walmsley <paul@pwsan.com>
 
-Tested PCIe on dra7-evm and dra72-evm.
-I need help in testing DSP, IPU, IVA, PRU, GFX, M3 in other platforms.
-Or a way to test these cores to see if reset is not broken. Suman?
+Certain devices (like PCIe in DRA7xx) require default reset
+handling where the reset line should be asserted and then
+de-asserted. Other devices require special reset handling
+and is indicated using HWMOD_CUSTOM_HARDRESET.
+Add default reset handling here where the reset line is
+asserted in _reset and deasserted in _enable.
 
-I'll post this series once again after performing these tests.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-Paul Walmsley (3):
-  ARM: omap2+: omap_hwmod: introduce hwmod flag for custom reset
-    handling
-  ARM: OMAP2+: hwmod: use HWMOD_CUSTOM_HARDRESET for custom reset
-    handling
-  ARM: OMAP2+: hwmod: Add default reset handling
-
- arch/arm/mach-omap2/omap_hwmod.c                   |   16 +++++++++++-----
- arch/arm/mach-omap2/omap_hwmod.h                   |   12 ++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    2 ++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |    2 ++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    3 +++
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |    1 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ++++++
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    2 ++
- 10 files changed, 41 insertions(+), 5 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e9f65fe..ab66dd9 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2077,7 +2077,7 @@ static int _enable_preprogram(struct omap_hwmod *oh)
+  */
+ static int _enable(struct omap_hwmod *oh)
+ {
+-	int r;
++	int r, i;
+ 	int hwsup = 0;
+ 
+ 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+@@ -2109,17 +2109,23 @@ static int _enable(struct omap_hwmod *oh)
+ 	}
+ 
+ 	/*
+-	 * If an IP block contains HW reset lines and all of them are
+-	 * asserted, we let integration code associated with that
+-	 * block handle the enable.  We've received very little
++	 * If an IP block contains HW reset lines, all of them are
++	 * asserted, and the IP block is marked as requiring a custom
++	 * hardreset handler, we let integration code associated with
++	 * that block handle the enable.  We've received very little
+ 	 * information on what those driver authors need, and until
+ 	 * detailed information is provided and the driver code is
+ 	 * posted to the public lists, this is probably the best we
+ 	 * can do.
+ 	 */
+-	if (_are_all_hardreset_lines_asserted(oh))
++	if ((oh->flags & HWMOD_CUSTOM_HARDRESET) &&
++	    _are_all_hardreset_lines_asserted(oh))
+ 		return 0;
+ 
++	/* If the IP block is an initiator, release it from hardreset */
++	for (i = 0; i < oh->rst_lines_cnt; i++)
++		_deassert_hardreset(oh, oh->rst_lines[i].name);
++
+ 	/* Mux pins for device runtime if populated */
+ 	if (oh->mux && (!oh->mux->enabled ||
+ 			((oh->_state == _HWMOD_STATE_IDLE) &&
 -- 
 1.7.9.5
