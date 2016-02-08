@@ -1,51 +1,46 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain
- data
-Date: Mon, 8 Feb 2016 11:57:04 -0800
-Message-ID: <20160208195704.GW19432@atomide.com>
-References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: drop unused Makefile.boot of Multiplatform SoCs
+Date: Mon, 8 Feb 2016 12:03:24 -0800
+Message-ID: <20160208200324.GY19432@atomide.com>
+References: <1454693808-13081-1-git-send-email-yamada.masahiro@socionext.com>
+ <56B4E2B0.8060808@xilinx.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1454922990-7501-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+In-Reply-To: <56B4E2B0.8060808@xilinx.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Simek <michal.simek@xilinx.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, arm@kernel.org, Gregory Clement <gregory.clement@free-electrons.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Barry Song <baohua@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Krzysztof Halasa <khalasa@piap.pl>, Viresh Kumar <vireshk@kernel.org>, =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Kukjin Kim <kgene@kernel.org>, spear-devel@list.st.com, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Russell King <linux@arm.linux.org.uk>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <ssantosh@ker>
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [160208 01:19]:
-> OMAP5 has 3 thermal zones cpu, core and multimedia.
-> On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
-> and iva. Currently cpu, core and multimedia are being added via dt
-> and the other 2 are getting added via kernel. Add the missing thermal
-> domains in dt so as give the correct trip numbers, type and temperatures.
+* Michal Simek <michal.simek@xilinx.com> [160205 09:59]:
+> On 5.2.2016 18:36, Masahiro Yamada wrote:
+> > The variable "MACHINE" is empty if CONFIG_ARCH_MULTIPLATFORM=y,
+> > so these Makefile.boot files are never included.
+> > 
+> > Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> > ---
+> > 
+> >  arch/arm/mach-cns3xxx/Makefile.boot    | 3 ---
+> >  arch/arm/mach-exynos/Makefile.boot     | 2 --
+> >  arch/arm/mach-integrator/Makefile.boot | 4 ----
+> >  arch/arm/mach-keystone/Makefile.boot   | 1 -
+> >  arch/arm/mach-mmp/Makefile.boot        | 1 -
+> >  arch/arm/mach-mv78xx0/Makefile.boot    | 3 ---
+> >  arch/arm/mach-nspire/Makefile.boot     | 0
+> >  arch/arm/mach-omap2/Makefile.boot      | 3 ---
+> >  arch/arm/mach-orion5x/Makefile.boot    | 3 ---
+> >  arch/arm/mach-prima2/Makefile.boot     | 3 ---
+> >  arch/arm/mach-realview/Makefile.boot   | 9 ---------
+> >  arch/arm/mach-s3c64xx/Makefile.boot    | 2 --
+> >  arch/arm/mach-spear/Makefile.boot      | 3 ---
+> >  arch/arm/mach-u300/Makefile.boot       | 4 ----
+> >  arch/arm/mach-ux500/Makefile.boot      | 3 ---
+> >  arch/arm/mach-zynq/Makefile.boot       | 3 ---
 > 
-> Tested on DRA7-EVM.
+> Acked-by: Michal Simek <michal.simek@xilinx.com> (for Zynq)
 
-Are these critical fixes to have for v4.5-rc cycle or can they
-wait for v4.6 merge window?
+I doubt anybody wants to go back to disabling MULTIPLATFORM:
 
-Regards,
-
-Tony
-
-> Keerthy (3):
->   arm: dts: DRA7: Add DSPEVE thermal data
->   arm: dts: DRA7: Add IVA thermal data
->   arm: dts: DRA7: Add missing IVA and DSPEVE thermal domain data
-> 
->  arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 27 +++++++++++++++++++++++++++
->  arch/arm/boot/dts/dra7-iva-thermal.dtsi    | 27 +++++++++++++++++++++++++++
->  arch/arm/boot/dts/dra7.dtsi                |  2 ++
->  3 files changed, 56 insertions(+)
->  create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
->  create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
-> 
-> -- 
-> 1.9.1
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
