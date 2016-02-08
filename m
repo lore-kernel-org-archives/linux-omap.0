@@ -1,81 +1,212 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: RX51: Set system_rev from ATAGS
-Date: Mon, 8 Feb 2016 12:48:06 -0800
-Message-ID: <20160208204806.GE19432@atomide.com>
-References: <3663322.UyrB2OmX6o@wuerfel>
- <1454696102-2214-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Mon, 8 Feb 2016 14:56:09 -0600
+Message-ID: <56B900E9.9040306@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
+ <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
+ <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1454696102-2214-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, arnd@arndb.de
+To: Paul Walmsley <paul@pwsan.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160205 10:17]:
+Hi Paul,
 
-Can you please add the "why?" part here? Other than that looks
-OK to me.
-
-And unless people have objections, I'd like to get this merged
-in as it fixes yet another legacy boot vs DT boot regression.
-
-Regards,
-
-Tony
-
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> ---
->  arch/arm/mach-omap2/board-generic.c | 22 +++++++++++++++++++++-
->  1 file changed, 21 insertions(+), 1 deletion(-)
+On 02/07/2016 08:48 PM, Paul Walmsley wrote:
+> On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
 > 
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 8098272..b91fabe 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -18,6 +18,7 @@
+>> Paul, what do you think is the best way forward to perform reset?
+> 
+> Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
+> Those often need special reset handling to ensure that WFI/HLT-like 
+> instructions are executed after reset.  This special handling ensures that 
+> the IP blocks' bus initiator interfaces indicate that they are in standby 
+> to the PRCM - thus allowing power management for the rest of the chip to 
+> work correctly.
+> 
+> But that doesn't seem to be the case with PCIe - and maybe others - 
+> possibly some of the MMUs?  
+
+Yeah, the sequencing between clocks and resets would still be the same
+for MMUs, so, adding the custom flags for MMUs is fine.
+
+So how about just creating a new hwmod flag to
+> mark all of the initiator IP blocks that require driver-based special 
+> handling during _enable() - i.e., most of the processor IP blocks. Then 
+> for the rest, like PCIe, implement a default behavior in the hwmod code to 
+> automatically release the IP block's hardreset lines in 
+> omap_hwmod.c:_enable()?  Something similar to what's enclosed at the 
+> bottom of this message.  I've annotated what will be needed in the 
+> OMAP44xx file; similar flags will be needed in any other hwmod data file 
+> that contains IP blocks with hard reset lines defined.
+> 
+> Either that - or you could write custom reset handlers for all of the 
+> processor IP blocks that put them into WFI/HLT.
+> 
+> I leave it to you TI folks to write and test the actual patches, since as 
+> you probably know, I don't have any DRA7xx/AM57xx boards in the testbed.  
+> 
+> As far as reasserting hardreset in *remove(), there's already hwmod code 
+> to do that in omap_hwmod.c:_shutdown().  I don't recall any more if we 
+> currently have code in the stack that calls it.  Ideally the device model 
+> code should call that during or after a .remove() call.
+
+Yeah, don't think there is any code that exercises
+omap_hwmod_shutdown(). We used to have an omap_device_shutdown() but
+that function has been removed in commit c1d1cd597fc7 ("ARM: OMAP2+:
+omap_device: remove obsolete pm_lats and early_device code"). We used to
+exercise this using custom pm_lats replacing idle with shutdown in the
+out-of-tree processor drivers.
+
+> 
+> 
+> - Paul
+> 
+> 
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c           | 16 +++++++++++-----
+>  arch/arm/mach-omap2/omap_hwmod.h           | 12 ++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  6 ++++++
+>  3 files changed, 29 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index e9f65fec55c0..ab66dd988709 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2077,7 +2077,7 @@ static int _enable_preprogram(struct omap_hwmod *oh)
+>   */
+>  static int _enable(struct omap_hwmod *oh)
+>  {
+> -	int r;
+> +	int r, i;
+>  	int hwsup = 0;
 >  
->  #include <asm/setup.h>
->  #include <asm/mach/arch.h>
-> +#include <asm/system_info.h>
+>  	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+> @@ -2109,17 +2109,23 @@ static int _enable(struct omap_hwmod *oh)
+>  	}
 >  
->  #include "common.h"
+>  	/*
+> -	 * If an IP block contains HW reset lines and all of them are
+> -	 * asserted, we let integration code associated with that
+> -	 * block handle the enable.  We've received very little
+> +	 * If an IP block contains HW reset lines, all of them are
+> +	 * asserted, and the IP block is marked as requiring a custom
+> +	 * hardreset handler, we let integration code associated with
+> +	 * that block handle the enable.  We've received very little
+>  	 * information on what those driver authors need, and until
+>  	 * detailed information is provided and the driver code is
+>  	 * posted to the public lists, this is probably the best we
+>  	 * can do.
+>  	 */
+> -	if (_are_all_hardreset_lines_asserted(oh))
+> +	if ((oh->flags & HWMOD_CUSTOM_HARDRESET) &&
+> +	    _are_all_hardreset_lines_asserted(oh))
+>  		return 0;
 >  
-> @@ -77,12 +78,31 @@ static const char *const n900_boards_compat[] __initconst = {
->  	NULL,
+> +	/* If the IP block is an initiator, release it from hardreset */
+> +	for (i = 0; i < oh->rst_lines_cnt; i++)
+> +		_deassert_hardreset(oh, oh->rst_lines[i].name);
+
+I believe this will cause a problem as typically we release the reset
+and then call pm_runtime_get_sync() to enable the clock. We are not
+checking error code, but if were, I do think _deassert_hardreset would
+return a failure.
+
+regards
+Suman
+
+> +
+>  	/* Mux pins for device runtime if populated */
+>  	if (oh->mux && (!oh->mux->enabled ||
+>  			((oh->_state == _HWMOD_STATE_IDLE) &&
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+> index 76bce11c85a4..4198829551a4 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.h
+> +++ b/arch/arm/mach-omap2/omap_hwmod.h
+> @@ -525,6 +525,17 @@ struct omap_hwmod_omap4_prcm {
+>   *     or idled.
+>   * HWMOD_OPT_CLKS_NEEDED: The optional clocks are needed for the module to
+>   *     operate and they need to be handled at the same time as the main_clk.
+> + * HWMOD_CUSTOM_HARDRESET: By default, if a hwmod has PRCM hardreset
+> + *     lines associated with it (i.e., a populated .rst_lines field in
+> + *     the hwmod), the hwmod code will assert the hardreset lines when
+> + *     the IP block is initially reset, deassert the hardreset lines
+> + *     in _enable(), and reassert them in _shutdown().  If this flag
+> + *     is set, the hwmod code will not deassert the hardreset lines in
+> + *     _enable(), leaving this responsibility to the driver code.  This flag may
+> + *     be needed for processor IP blocks that must be put into a WFI/HLT
+> + *     state after reset is deasserted, lest the processor leave its MSTANDBY
+> + *     signal deasserted, thus blocking the chip from entering a system-wide
+> + *     low power state.
+>   */
+>  #define HWMOD_SWSUP_SIDLE			(1 << 0)
+>  #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+> @@ -541,6 +552,7 @@ struct omap_hwmod_omap4_prcm {
+>  #define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
+>  #define HWMOD_RECONFIG_IO_CHAIN			(1 << 13)
+>  #define HWMOD_OPT_CLKS_NEEDED			(1 << 14)
+> +#define HWMOD_CUSTOM_HARDRESET			(1 << 15)
+>  
+>  /*
+>   * omap_hwmod._int_flags definitions
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index dad871a4cd96..20501f0e3c6c 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -553,6 +553,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
+>  			.modulemode   = MODULEMODE_HWCTRL,
+>  		},
+>  	},
+> +	.flags		= HWMOD_CUSTOM_HARDRESET,
 >  };
 >  
-> +/* Set system_rev from atags */
-> +static void __init rx51_system_rev(const struct tag *tags)
-> +{
-> +	const struct tag *tag;
-> +
-> +	if (tags->hdr.tag != ATAG_CORE)
-> +		return;
-> +
-> +	for_each_tag(tag, tags) {
-> +		if (tag->hdr.tag == ATAG_REVISION) {
-> +			system_rev = tag->u.revision.rev;
-> +			break;
-> +		}
-> +	}
-> +}
-> +
->  /* Legacy userspace on Nokia N900 needs ATAGS exported in /proc/atags,
->   * save them while the data is still not overwritten
->   */
->  static void __init rx51_reserve(void)
->  {
-> -	save_atags((const struct tag *)(PAGE_OFFSET + 0x100));
-> +	const struct tag *tags = (const struct tag *)(PAGE_OFFSET + 0x100);
-> +
-> +	save_atags(tags);
-> +	rx51_system_rev(tags);
->  	omap_reserve();
->  }
+>  /*
+> @@ -1433,6 +1434,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
+>  			.modulemode   = MODULEMODE_HWCTRL,
+>  		},
+>  	},
+> +	.flags		= HWMOD_CUSTOM_HARDRESET,
+>  };
 >  
-> -- 
-> 1.9.1
+>  /*
+> @@ -1517,6 +1519,7 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
+>  			.modulemode   = MODULEMODE_HWCTRL,
+>  		},
+>  	},
+> +	.flags		= HWMOD_CUSTOM_HARDRESET,
+>  };
+>  
+>  /*
+> @@ -2115,6 +2118,7 @@ static struct omap_hwmod omap44xx_mmu_ipu_hwmod = {
+>  			.modulemode   = MODULEMODE_HWCTRL,
+>  		},
+>  	},
+> +	.flags		= HWMOD_CUSTOM_HARDRESET, /* XXX doublecheck */
+>  };
+>  
+>  /* mmu dsp */
+> @@ -2147,6 +2151,7 @@ static struct omap_hwmod omap44xx_mmu_dsp_hwmod = {
+>  			.modulemode   = MODULEMODE_HWCTRL,
+>  		},
+>  	},
+> +	.flags		= HWMOD_CUSTOM_HARDRESET, /* XXX doublecheck */
+>  };
+>  
+>  /*
+> @@ -2299,6 +2304,7 @@ static struct omap_hwmod omap44xx_prm_hwmod = {
+>  	.class		= &omap44xx_prcm_hwmod_class,
+>  	.rst_lines	= omap44xx_prm_resets,
+>  	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_prm_resets),
+> +	.flags		= HWMOD_CUSTOM_HARDRESET,
+>  };
+>  
+>  /*
 > 
