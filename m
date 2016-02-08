@@ -1,58 +1,43 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 1/3] arm: dts: DRA7: Add DSPEVE thermal data
-Date: Mon, 8 Feb 2016 14:46:28 +0530
-Message-ID: <1454922990-7501-2-git-send-email-j-keerthy@ti.com>
-References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain data
+Date: Mon, 8 Feb 2016 14:46:27 +0530
+Message-ID: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tony@atomide.com, edubezval@gmail.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, Keerthy <j-keerthy@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, ijc+devicetree@hellion.org.uk, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch changes a dtsi file to contain the thermal data
-for DSPEVE domain. This data will enable a thermal shutdown at 125C.
+OMAP5 has 3 thermal zones cpu, core and multimedia.
+On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
+and iva. Currently cpu, core and multimedia are being added via dt
+and the other 2 are getting added via kernel. Add the missing thermal
+domains in dt so as give the correct trip numbers, type and temperatures.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+Tested on DRA7-EVM.
+ 
+Keerthy (3):
+  arm: dts: DRA7: Add DSPEVE thermal data
+  arm: dts: DRA7: Add IVA thermal data
+  arm: dts: DRA7: Add missing IVA and DSPEVE thermal domain data
+
  arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ arch/arm/boot/dts/dra7-iva-thermal.dtsi    | 27 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi                |  2 ++
+ 3 files changed, 56 insertions(+)
  create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
 
-diff --git a/arch/arm/boot/dts/dra7-dspeve-thermal.dtsi b/arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
-new file mode 100644
-index 0000000..1c39a84
---- /dev/null
-+++ b/arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
-@@ -0,0 +1,27 @@
-+/*
-+ * Device Tree Source for DRA7x SoC DSPEVE thermal
-+ *
-+ * Copyright (C) 2016 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+
-+#include <dt-bindings/thermal/thermal.h>
-+
-+dspeve_thermal: dspeve_thermal {
-+	polling-delay-passive = <250>; /* milliseconds */
-+	polling-delay = <500>; /* milliseconds */
-+
-+			/* sensor       ID */
-+	thermal-sensors = <&bandgap     3>;
-+
-+	trips {
-+		dspeve_crit: dspeve_crit {
-+			temperature = <125000>; /* milliCelsius */
-+			hysteresis = <2000>; /* milliCelsius */
-+			type = "critical";
-+		};
-+	};
-+};
 -- 
 1.9.1
