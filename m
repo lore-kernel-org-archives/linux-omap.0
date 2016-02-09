@@ -1,215 +1,65 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH] fbdev: kill fb_rotate
-Date: Tue,  9 Feb 2016 19:56:11 +0100
-Message-ID: <1455044172-17488-1-git-send-email-linux@rasmusvillemoes.dk>
-References: <87d1swdk90.fsf@rasmusvillemoes.dk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform
+ reset
+Date: Tue, 9 Feb 2016 19:36:40 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com> <1452780672-14339-4-git-send-email-kishon@ti.com> <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com> <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com> <20160128183156.GH19432@atomide.com>
+ <56B087AD.4000505@ti.com> <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com> <56B900E9.9040306@ti.com> <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com> <56BA2495.9020407@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87d1swdk90.fsf@rasmusvillemoes.dk>
+In-Reply-To: <56BA2495.9020407@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The fb_rotate method in struct fb_ops is never actually invoked, and
-it's been that way in the entire history of git (in fact, the last
-occurrence of the string '->fb_rotate' vanished over 10 years ago,
-with b4d8aea6d6, and that merely tested whether the callback
-existed). So remove some dead code and make struct fb_obs a little
-smaller.
+Hi Suman 
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- drivers/video/fbdev/atafb.c            |  3 ---
- drivers/video/fbdev/au1100fb.c         | 22 ----------------------
- drivers/video/fbdev/bf537-lq035.c      | 23 -----------------------
- drivers/video/fbdev/omap/omapfb_main.c | 22 ----------------------
- drivers/video/fbdev/skeletonfb.c       | 17 -----------------
- include/linux/fb.h                     |  3 ---
- 6 files changed, 90 deletions(-)
+On Tue, 9 Feb 2016, Suman Anna wrote:
 
-diff --git a/drivers/video/fbdev/atafb.c b/drivers/video/fbdev/atafb.c
-index d6ce613e12ad..fcd2dd670a65 100644
---- a/drivers/video/fbdev/atafb.c
-+++ b/drivers/video/fbdev/atafb.c
-@@ -313,9 +313,6 @@ extern unsigned char fontdata_8x16[];
-  *	* Draws cursor *
-  *	int (*fb_cursor) (struct fb_info *info, struct fb_cursor *cursor);
-  *
-- *	* Rotates the display *
-- *	void (*fb_rotate)(struct fb_info *info, int angle);
-- *
-  *	* wait for blit idle, optional *
-  *	int (*fb_sync)(struct fb_info *info);
-  *
-diff --git a/drivers/video/fbdev/au1100fb.c b/drivers/video/fbdev/au1100fb.c
-index 59560189b24a..35df2c1a8a63 100644
---- a/drivers/video/fbdev/au1100fb.c
-+++ b/drivers/video/fbdev/au1100fb.c
-@@ -334,27 +334,6 @@ int au1100fb_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fbi)
- 	return 0;
- }
- 
--/* fb_rotate
-- * Rotate the display of this angle. This doesn't seems to be used by the core,
-- * but as our hardware supports it, so why not implementing it...
-- */
--void au1100fb_fb_rotate(struct fb_info *fbi, int angle)
--{
--	struct au1100fb_device *fbdev = to_au1100fb_device(fbi);
--
--	print_dbg("fb_rotate %p %d", fbi, angle);
--
--	if (fbdev && (angle > 0) && !(angle % 90)) {
--
--		fbdev->regs->lcd_control &= ~LCD_CONTROL_GO;
--
--		fbdev->regs->lcd_control &= ~(LCD_CONTROL_SM_MASK);
--		fbdev->regs->lcd_control |= ((angle/90) << LCD_CONTROL_SM_BIT);
--
--		fbdev->regs->lcd_control |= LCD_CONTROL_GO;
--	}
--}
--
- /* fb_mmap
-  * Map video memory in user space. We don't use the generic fb_mmap method mainly
-  * to allow the use of the TLB streaming flag (CCA=6)
-@@ -380,7 +359,6 @@ static struct fb_ops au1100fb_ops =
- 	.fb_fillrect		= cfb_fillrect,
- 	.fb_copyarea		= cfb_copyarea,
- 	.fb_imageblit		= cfb_imageblit,
--	.fb_rotate		= au1100fb_fb_rotate,
- 	.fb_mmap		= au1100fb_fb_mmap,
- };
- 
-diff --git a/drivers/video/fbdev/bf537-lq035.c b/drivers/video/fbdev/bf537-lq035.c
-index 7db3052b471d..ef29fb425122 100644
---- a/drivers/video/fbdev/bf537-lq035.c
-+++ b/drivers/video/fbdev/bf537-lq035.c
-@@ -554,28 +554,6 @@ static int bfin_lq035_fb_check_var(struct fb_var_screeninfo *var,
- 	return 0;
- }
- 
--/* fb_rotate
-- * Rotate the display of this angle. This doesn't seems to be used by the core,
-- * but as our hardware supports it, so why not implementing it...
-- */
--static void bfin_lq035_fb_rotate(struct fb_info *fbi, int angle)
--{
--	pr_debug("%s: %p %d", __func__, fbi, angle);
--#if (defined(UD) && defined(LBR))
--	switch (angle) {
--
--	case 180:
--		gpio_set_value(LBR, 0);
--		gpio_set_value(UD, 1);
--		break;
--	default:
--		gpio_set_value(LBR, 1);
--		gpio_set_value(UD, 0);
--		break;
--	}
--#endif
--}
--
- static int bfin_lq035_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
- {
- 	if (nocursor)
-@@ -623,7 +601,6 @@ static struct fb_ops bfin_lq035_fb_ops = {
- 	.fb_open		= bfin_lq035_fb_open,
- 	.fb_release		= bfin_lq035_fb_release,
- 	.fb_check_var		= bfin_lq035_fb_check_var,
--	.fb_rotate		= bfin_lq035_fb_rotate,
- 	.fb_fillrect		= cfb_fillrect,
- 	.fb_copyarea		= cfb_copyarea,
- 	.fb_imageblit		= cfb_imageblit,
-diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbdev/omap/omapfb_main.c
-index 393ae1bc07e8..6429f33167f5 100644
---- a/drivers/video/fbdev/omap/omapfb_main.c
-+++ b/drivers/video/fbdev/omap/omapfb_main.c
-@@ -594,27 +594,6 @@ static int set_fb_var(struct fb_info *fbi,
- }
- 
- 
--/* Set rotation (0, 90, 180, 270 degree), and switch to the new mode. */
--static void omapfb_rotate(struct fb_info *fbi, int rotate)
--{
--	struct omapfb_plane_struct *plane = fbi->par;
--	struct omapfb_device *fbdev = plane->fbdev;
--
--	omapfb_rqueue_lock(fbdev);
--	if (rotate != fbi->var.rotate) {
--		struct fb_var_screeninfo *new_var = &fbdev->new_var;
--
--		memcpy(new_var, &fbi->var, sizeof(*new_var));
--		new_var->rotate = rotate;
--		if (set_fb_var(fbi, new_var) == 0 &&
--		    memcmp(new_var, &fbi->var, sizeof(*new_var))) {
--			memcpy(&fbi->var, new_var, sizeof(*new_var));
--			ctrl_change_mode(fbi);
--		}
--	}
--	omapfb_rqueue_unlock(fbdev);
--}
--
- /*
-  * Set new x,y offsets in the virtual display for the visible area and switch
-  * to the new mode.
-@@ -1256,7 +1235,6 @@ static struct fb_ops omapfb_ops = {
- 	.fb_ioctl	= omapfb_ioctl,
- 	.fb_check_var	= omapfb_check_var,
- 	.fb_set_par	= omapfb_set_par,
--	.fb_rotate	= omapfb_rotate,
- 	.fb_pan_display = omapfb_pan_display,
- };
- 
-diff --git a/drivers/video/fbdev/skeletonfb.c b/drivers/video/fbdev/skeletonfb.c
-index fefde7c6add7..f948baa16d82 100644
---- a/drivers/video/fbdev/skeletonfb.c
-+++ b/drivers/video/fbdev/skeletonfb.c
-@@ -614,22 +614,6 @@ int xxxfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
- }
- 
- /**
-- *	xxxfb_rotate -  NOT a required function. If your hardware
-- *			supports rotation the whole screen then 
-- *			you would provide a hook for this. 
-- *
-- *      @info: frame buffer structure that represents a single frame buffer
-- *	@angle: The angle we rotate the screen.   
-- *
-- *      This operation is used to set or alter the properities of the
-- *	cursor.
-- */
--void xxxfb_rotate(struct fb_info *info, int angle)
--{
--/* Will be deprecated */
--}
--
--/**
-  *	xxxfb_sync - NOT a required function. Normally the accel engine 
-  *		     for a graphics card take a specific amount of time.
-  *		     Often we have to wait for the accelerator to finish
-@@ -665,7 +649,6 @@ static struct fb_ops xxxfb_ops = {
- 	.fb_copyarea	= xxxfb_copyarea,	/* Needed !!! */
- 	.fb_imageblit	= xxxfb_imageblit,	/* Needed !!! */
- 	.fb_cursor	= xxxfb_cursor,		/* Optional !!! */
--	.fb_rotate	= xxxfb_rotate,
- 	.fb_sync	= xxxfb_sync,
- 	.fb_ioctl	= xxxfb_ioctl,
- 	.fb_mmap	= xxxfb_mmap,
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 55433f86f0a3..dfe88351341f 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -296,9 +296,6 @@ struct fb_ops {
- 	/* Draws cursor */
- 	int (*fb_cursor) (struct fb_info *info, struct fb_cursor *cursor);
- 
--	/* Rotates the display */
--	void (*fb_rotate)(struct fb_info *info, int angle);
--
- 	/* wait for blit idle, optional */
- 	int (*fb_sync)(struct fb_info *info);
- 
--- 
-2.1.4
+> On 02/09/2016 02:49 AM, Paul Walmsley wrote:
+> > On Mon, 8 Feb 2016, Suman Anna wrote:
+> >> On 02/07/2016 08:48 PM, Paul Walmsley wrote:
+> >>> On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
+> >>>
+> >>>> Paul, what do you think is the best way forward to perform reset?
+> >>>
+> >>> Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
+> >>> Those often need special reset handling to ensure that WFI/HLT-like 
+> >>> instructions are executed after reset.  This special handling ensures that 
+> >>> the IP blocks' bus initiator interfaces indicate that they are in standby 
+> >>> to the PRCM - thus allowing power management for the rest of the chip to 
+> >>> work correctly.
+> >>>
+> >>> But that doesn't seem to be the case with PCIe - and maybe others - 
+> >>> possibly some of the MMUs?  
+> >>
+> >> Yeah, the sequencing between clocks and resets would still be the same
+> >> for MMUs, so, adding the custom flags for MMUs is fine.
+> > 
+> > I'm curious as to whether HWMOD_CUSTOM_HARDRESET is needed for the MMUs.  
+> > We've stated that the main point of the custom hardreset code is to handle 
+> > processors that need to be placed into WFI/HLT, but it doesn't seem like 
+> > there would be an equivalent for MMUs.  Thoughts?
+> 
+> The current OMAP IOMMU code already leverages the pdata ops for
+> performing the resets, so not adding the flags would also require
+> additional changes in the driver.
+> 
+> Also, the reset lines controlling the MMUs actually also manage the
+> reset for all the other sub-modules other than the processor cores
+> within the sub-systems. We have currently different issues (see [1] for
+> eg. around the IPU sub-system entering RET in between), so from a PM
+> point of view, we do prefer to place the MMUs also in reset when we are
+> runtime suspended.
+
+Should we reassert hardreset in _idle() for IP blocks that don't have 
+HWMOD_CUSTOM_HARDRESET set on them?  Would that allow us to use this 
+mechanism for the uncore hardreset lines, or are there other quirks?
+
+Also - would that address the potential issue that you mentioned with the 
+PCIe block, or is that a different issue?
+
+
+- Paul
