@@ -1,49 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/3] omap: hwmod: add default reset handling support
-Date: Tue, 9 Feb 2016 21:34:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1602092131280.27214@utopia.booyaka.com>
-References: <1454929941-23949-1-git-send-email-kishon@ti.com> <56B9037C.2050203@ti.com> <56B9767D.7000708@ti.com> <56BA258D.3040002@ti.com> <56BA49D4.8040900@ti.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain
+ data
+Date: Tue, 9 Feb 2016 13:52:12 -0800
+Message-ID: <20160209215210.GB27284@localhost.localdomain>
+References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/NkBOFFp2J2Af1nK"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56BA49D4.8040900@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Suman Anna <s-anna@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, bhelgaas@google.com, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com
+To: Keerthy <j-keerthy@ti.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 9 Feb 2016, Dave Gerlach wrote:
 
-> Sorry got held up by the discussion here [1], that regression affects
-> rmmod/re-insmod of wkup_m3_rproc as well. If I revert the guilty patch
-> 5de85b9d57ab ("PM / runtime: Re-init runtime
-> PM states at probe error and driver unbind") and apply these three patches, on
-> initial probe of the wkup_m3_rproc and wkup_m3_ipc drivers in v4.5-rc3 I see:
-> 
-> [   15.593460] omap_hwmod: wkup_m3: _wait_target_disable failed
-> 
-> Which is triggered by the reset of the wkup_m3 from the wkup_m3_ipc driver
-> when booting the wkup_m3_rproc. Flow is:
-> 
-> 1. wkup_m3_rproc probes and calls pm_runtime_get_sync, which calls hwmod
-> _enable but bails out because _are_all_hardreset_lines_asserted(oh) causes it
-> to return 0.
-> 
-> 2. wkup_m3_ipc probes and calls rproc_boot, which triggers
-> omap_device_deassert_hardreset in order to let the wkup_m3 start.
+--/NkBOFFp2J2Af1nK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The patches that Kishon posted shouldn't change the existing hardreset 
-behavior for any IP block with HWMOD_CUSTOM_HARDRESET marked.  If the
-behavior changes before and after that patch set, something isn't right.
+On Mon, Feb 08, 2016 at 02:46:27PM +0530, Keerthy wrote:
+> OMAP5 has 3 thermal zones cpu, core and multimedia.
+> On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
+> and iva. Currently cpu, core and multimedia are being added via dt
+> and the other 2 are getting added via kernel. Add the missing thermal
+> domains in dt so as give the correct trip numbers, type and temperatures.
+>=20
+> Tested on DRA7-EVM.
 
-> It is inside the omap_device_deassert_hardreset ( and inside that,
-> omap_hwmod_deassert_hardreset) where I end up with the error message, but
-> after that rmmod/insmod of the module over and over again shows no additional
-> error messages (at least with the above mentioned PM patch reverted).
+For the series:
 
-I no longer recall why we had the _are_all_hardreset_lines_asserted(oh) 
-test in place.  But we might be able to drop it now that we have the 
-HWMOD_CUSTOM_HARDRESET flag.
- 
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
 
-- Paul
+> =20
+> Keerthy (3):
+>   arm: dts: DRA7: Add DSPEVE thermal data
+>   arm: dts: DRA7: Add IVA thermal data
+>   arm: dts: DRA7: Add missing IVA and DSPEVE thermal domain data
+>=20
+>  arch/arm/boot/dts/dra7-dspeve-thermal.dtsi | 27 ++++++++++++++++++++++++=
++++
+>  arch/arm/boot/dts/dra7-iva-thermal.dtsi    | 27 ++++++++++++++++++++++++=
++++
+>  arch/arm/boot/dts/dra7.dtsi                |  2 ++
+>  3 files changed, 56 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/dra7-dspeve-thermal.dtsi
+>  create mode 100644 arch/arm/boot/dts/dra7-iva-thermal.dtsi
+>=20
+> --=20
+> 1.9.1
+>=20
+
+--/NkBOFFp2J2Af1nK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBAgAGBQJWul+HAAoJEMLUO4d9pOJWqEoH/RKjzo2L4FnupaQPqS7XeeQu
+BizhvonxWnwpmaR3JOovADdQLFCLNv/NdEkrn55yxAjQUYw5rDNXrAGiZk1krFGv
+tD3qNUTZWTUZhBr8FqlJFGsWYXNu1ws9G47pOM76hsh7dU9Ec3CgCoXxGET5c7aF
+bdGzaWjiHlMu2xXBlbUzIhlYDE6X6OFFHNHQZiLRTiMTlkufu0VMDHzZQoaMDdWq
+779t5I7euI/tmCBq9cnmyxRy21j++eZhFbWttCcZhRR7NwNs/3hJDWxvUI4vxOiL
+zfugj+E/GZ6dw9+ACxYi0hDYFmW9i7EW1+2IfN+AYw0iElOat9n22YMWaZCi61E=
+=uQuX
+-----END PGP SIGNATURE-----
+
+--/NkBOFFp2J2Af1nK--
