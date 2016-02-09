@@ -1,48 +1,52 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Subject: Re: [PATCH 0/3] omap: hwmod: add default reset handling support
-Date: Tue, 9 Feb 2016 10:43:22 +0530
-Message-ID: <56B97572.6080100@ti.com>
+Date: Tue, 9 Feb 2016 10:47:49 +0530
+Message-ID: <56B9767D.7000708@ti.com>
 References: <1454929941-23949-1-git-send-email-kishon@ti.com>
- <20160208204446.GC19432@atomide.com>
+ <56B9037C.2050203@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160208204446.GC19432@atomide.com>
+In-Reply-To: <56B9037C.2050203@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, bhelgaas@google.com, richardcochran@gmail.com, s-anna@ti.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com
+To: Suman Anna <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, bhelgaas@google.com, richardcochran@gmail.com
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi,
 
-On Tuesday 09 February 2016 02:14 AM, Tony Lindgren wrote:
-> Hi Kishon,
-> 
-> * Kishon Vijay Abraham I <kishon@ti.com> [160208 03:13]:
+On Tuesday 09 February 2016 02:37 AM, Suman Anna wrote:
+> On 02/08/2016 05:12 AM, Kishon Vijay Abraham I wrote:
 >> Add a new hwmod flag to indicate custom reset handling and use it
 >> for devices that require custom reset handling (like dsp, ipu, iva).
 >>
 >> Tested PCIe on dra7-evm and dra72-evm.
 >> I need help in testing DSP, IPU, IVA, PRU, GFX, M3 in other platforms.
 >> Or a way to test these cores to see if reset is not broken. Suman?
->>
->> I'll post this series once again after performing these tests.
 > 
-> Do we also still need to patch something in the pcie driver too
-> or can all that be left out now?
+> I won't be able to test this week, and have requested Dave to check on
+> wkup_m3_rproc driver atleast. I see one potential issue (see my commment
+> on the other thread), but can confirm that only after testing.
+> 
+> Have you tested multiple probe/removal sequences? Can you check the
+> return status on the _hardreset_deassert call with your PCIe driver,
+> believe even that one would return an error on multiple probes.
 
-With this series changes in PCIe driver is not required at all.
+hmm.. the PCIe driver is built-in and can't be made as module because of other
+issues in PCIe core. But looks like the first deassert succeeded since I didn't
+observe the boot hang because of PCIe.
 
 Thanks
 Kishon
 
 > 
-> Regards,
+> regards
+> Suman
 > 
-> Tony
-> 
-> 
+>>
+>> I'll post this series once again after performing these tests.
+>>
 >> Paul Walmsley (3):
 >>   ARM: omap2+: omap_hwmod: introduce hwmod flag for custom reset
 >>     handling
@@ -62,6 +66,4 @@ Kishon
 >>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    2 ++
 >>  10 files changed, 41 insertions(+), 5 deletions(-)
 >>
->> -- 
->> 1.7.9.5
->>
+> 
