@@ -1,58 +1,96 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain
- data
-Date: Tue, 9 Feb 2016 13:53:27 -0800
-Message-ID: <20160209215326.GC27284@localhost.localdomain>
-References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
- <20160208195704.GW19432@atomide.com>
- <56B95EF7.9080107@ti.com>
+Subject: Re: [PATCH] arm: dts: AM57XX: Correct the thermal thresholds
+Date: Tue, 9 Feb 2016 14:09:01 -0800
+Message-ID: <20160209220901.GC28102@localhost.localdomain>
+References: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
+	protocol="application/pgp-signature"; boundary="Y5rl02BVI9TCfPar"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56B95EF7.9080107@ti.com>
+In-Reply-To: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com
+To: Keerthy <j-keerthy@ti.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
 
---3siQDZowHQqNOShm
+--Y5rl02BVI9TCfPar
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 09, 2016 at 09:07:27AM +0530, Keerthy wrote:
+On Mon, Feb 08, 2016 at 03:15:05PM +0530, Keerthy wrote:
+> The thermal threholds for am57xx are different from that of dra7.
+> Correcting the thresholds for the same.
 >=20
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
 >=20
-> On Tuesday 09 February 2016 01:27 AM, Tony Lindgren wrote:
-> >* Keerthy <j-keerthy@ti.com> [160208 01:19]:
-> >>OMAP5 has 3 thermal zones cpu, core and multimedia.
-> >>On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
-> >>and iva. Currently cpu, core and multimedia are being added via dt
-> >>and the other 2 are getting added via kernel. Add the missing thermal
-> >>domains in dt so as give the correct trip numbers, type and temperature=
-s.
+> Depends on: https://lkml.org/lkml/2016/2/8/90
+>=20
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts | 24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
+>=20
+> Index: linux/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux.orig/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:0=
+5.514959101 +0530
+> +++ linux/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:05.510=
+959168 +0530
 
-But the driver would add these default domains only if booted /loaded with
-missing DT device entry, right?
+Sorry, did not bother to check, but is this the only user of am57xx?
+
+Apart from the above:
+
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
 
 
---3siQDZowHQqNOShm
+> @@ -825,3 +825,27 @@
+>  		status =3D "okay";
+>  	};
+>  };
+> +
+> +&cpu_alert0 {
+> +	temperature =3D <90000>; /* milliCelsius */
+> +};
+> +
+> +&cpu_crit {
+> +	temperature =3D <105000>; /* milliCelsius */
+> +};
+> +
+> +&gpu_crit {
+> +	temperature =3D <105000>; /* milliCelsius */
+> +};
+> +
+> +&core_crit {
+> +	temperature =3D <105000>; /* milliCelsius */
+> +};
+> +
+> +&dspeve_crit {
+> +	temperature =3D <105000>; /* milliCelsius */
+> +};
+> +
+> +&iva_crit {
+> +	temperature =3D <105000>; /* milliCelsius */
+> +};
+
+--Y5rl02BVI9TCfPar
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQEcBAEBAgAGBQJWul/TAAoJEMLUO4d9pOJWHeoH/1KPkUre5jLcngs/kQabAOgz
-uK3xPLPB0skUm0DByrUVadHbK0KTjP77aPg30o1K7F8igLUMt/uKFv49P60Cm28a
-wSZCM7PrabGFfrj/PMxetBi5NVh/piZqP82rUAKypkamRh65RN9xGV4ea/s9ZtAZ
-N+bZvF7PryF01nYKFmPeCjmUjy1brWDyO1vp1VkG0dqVjAI8XQRWyXjbAtFGW6hW
-7rD1yOy80gyfYS0EMOTm117oEIewoiJnhOnWKzkMWHvFbXXNvgGlRHp8YnbVNNNB
-EexaHqXv0KpC/b95UCs9jNu0acX7mS29qHPKFmwLNKpdKLtg+VDXwQ/snlDNXX8=
-=4oEf
+iQEcBAEBAgAGBQJWumN5AAoJEMLUO4d9pOJWDLYH/1a7sE3jhwtfeZGroJ9hwtf3
+tOnwVdPhx6jnxuEiOAucbHFlwt6aTdIVTT+Eq36jIL9Ssl2Sdqr4yiZWkU5bGeja
+Co15ecHdJtgeMLnnTg0Aa1SZeaLOWA71xxHncAJbce2oJF1wKDudQWXxbOf8NqVi
+sdLbs++Uyf/gsQ7269syYPSEcWzvzp3cl9bl6KVizDIs8YnY9Lt7gH0VSuuMSDVp
+i6xzxIGgpDU7RjnWhRGoqWcMSxbhU7Fb2ro+HNAzSrd+WYC8rq2JAaqDEcRMvDa+
+4wqouDmsBd9Rs3ua2GzYurovJx8PEp1xl350sZ4hycQsrAzfOFQwfTEMtp0DLcY=
+=cdI0
 -----END PGP SIGNATURE-----
 
---3siQDZowHQqNOShm--
+--Y5rl02BVI9TCfPar--
