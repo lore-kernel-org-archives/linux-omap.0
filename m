@@ -1,41 +1,38 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 0/2] Two phy-twl4030-usb fixes for unloading the module
-Date: Tue, 9 Feb 2016 10:41:59 +0530
-Message-ID: <56B9751F.9070100@ti.com>
-References: <1448948394-32078-1-git-send-email-tony@atomide.com>
- <20160208195149.GV19432@atomide.com>
+Subject: Re: [PATCH 0/3] omap: hwmod: add default reset handling support
+Date: Tue, 9 Feb 2016 10:43:22 +0530
+Message-ID: <56B97572.6080100@ti.com>
+References: <1454929941-23949-1-git-send-email-kishon@ti.com>
+ <20160208204446.GC19432@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160208195149.GV19432@atomide.com>
+In-Reply-To: <20160208204446.GC19432@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+Cc: Paul Walmsley <paul@pwsan.com>, bhelgaas@google.com, richardcochran@gmail.com, s-anna@ti.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 Hi Tony,
 
-On Tuesday 09 February 2016 01:21 AM, Tony Lindgren wrote:
+On Tuesday 09 February 2016 02:14 AM, Tony Lindgren wrote:
 > Hi Kishon,
 > 
-> * Tony Lindgren <tony@atomide.com> [151130 21:40]:
->> Hi,
+> * Kishon Vijay Abraham I <kishon@ti.com> [160208 03:13]:
+>> Add a new hwmod flag to indicate custom reset handling and use it
+>> for devices that require custom reset handling (like dsp, ipu, iva).
 >>
->> Here are two fixes for rmmod and PM. These can be merged separately after
->> the review from the MUSB related changes.
+>> Tested PCIe on dra7-evm and dra72-evm.
+>> I need help in testing DSP, IPU, IVA, PRU, GFX, M3 in other platforms.
+>> Or a way to test these cores to see if reset is not broken. Suman?
+>>
+>> I'll post this series once again after performing these tests.
 > 
-> Looks like these two fixes never got merged. Care to merge
-> these for v4.5-rc cycle with Cc stable v4.4?
-> 
-> Without these omap3 PM is blocked as the USB modules can
-> never be unloaded.
-> 
-> I can also merge these via the ARM SoC tree if you ack and have
-> no other fixes for the -rc cycle.
+> Do we also still need to patch something in the pcie driver too
+> or can all that be left out now?
 
-merged this to linux-phy now. I have a couple of other fixes for this -rc
-cycle. Will send this along with the other fixes.
+With this series changes in PCIe driver is not required at all.
 
 Thanks
 Kishon
@@ -45,18 +42,26 @@ Kishon
 > 
 > Tony
 > 
->> Tony Lindgren (2):
->>   phy: twl4030-usb: Relase usb phy on unload
->>   phy: twl4030-usb: Fix unbalanced pm_runtime_enable on module reload
+> 
+>> Paul Walmsley (3):
+>>   ARM: omap2+: omap_hwmod: introduce hwmod flag for custom reset
+>>     handling
+>>   ARM: OMAP2+: hwmod: use HWMOD_CUSTOM_HARDRESET for custom reset
+>>     handling
+>>   ARM: OMAP2+: hwmod: Add default reset handling
 >>
->>  drivers/phy/phy-twl4030-usb.c | 14 +++++++++-----
->>  1 file changed, 9 insertions(+), 5 deletions(-)
+>>  arch/arm/mach-omap2/omap_hwmod.c                   |   16 +++++++++++-----
+>>  arch/arm/mach-omap2/omap_hwmod.h                   |   12 ++++++++++++
+>>  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    2 ++
+>>  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
+>>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |    2 ++
+>>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    1 +
+>>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    3 +++
+>>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |    1 +
+>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ++++++
+>>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    2 ++
+>>  10 files changed, 41 insertions(+), 5 deletions(-)
 >>
 >> -- 
->> 2.6.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 1.7.9.5
 >>
