@@ -1,69 +1,43 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 0/3] omap: hwmod: add default reset handling support
-Date: Tue, 9 Feb 2016 10:47:49 +0530
-Message-ID: <56B9767D.7000708@ti.com>
-References: <1454929941-23949-1-git-send-email-kishon@ti.com>
- <56B9037C.2050203@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform
+ reset
+Date: Tue, 9 Feb 2016 08:49:13 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com> <1452780672-14339-4-git-send-email-kishon@ti.com> <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com> <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com> <20160128183156.GH19432@atomide.com>
+ <56B087AD.4000505@ti.com> <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com> <56B900E9.9040306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56B9037C.2050203@ti.com>
+In-Reply-To: <56B900E9.9040306@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, bhelgaas@google.com, richardcochran@gmail.com
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, Dave Gerlach <d-gerlach@ti.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 8 Feb 2016, Suman Anna wrote:
 
-On Tuesday 09 February 2016 02:37 AM, Suman Anna wrote:
-> On 02/08/2016 05:12 AM, Kishon Vijay Abraham I wrote:
->> Add a new hwmod flag to indicate custom reset handling and use it
->> for devices that require custom reset handling (like dsp, ipu, iva).
->>
->> Tested PCIe on dra7-evm and dra72-evm.
->> I need help in testing DSP, IPU, IVA, PRU, GFX, M3 in other platforms.
->> Or a way to test these cores to see if reset is not broken. Suman?
+> On 02/07/2016 08:48 PM, Paul Walmsley wrote:
+> > On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
+> > 
+> >> Paul, what do you think is the best way forward to perform reset?
+> > 
+> > Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
+> > Those often need special reset handling to ensure that WFI/HLT-like 
+> > instructions are executed after reset.  This special handling ensures that 
+> > the IP blocks' bus initiator interfaces indicate that they are in standby 
+> > to the PRCM - thus allowing power management for the rest of the chip to 
+> > work correctly.
+> > 
+> > But that doesn't seem to be the case with PCIe - and maybe others - 
+> > possibly some of the MMUs?  
 > 
-> I won't be able to test this week, and have requested Dave to check on
-> wkup_m3_rproc driver atleast. I see one potential issue (see my commment
-> on the other thread), but can confirm that only after testing.
-> 
-> Have you tested multiple probe/removal sequences? Can you check the
-> return status on the _hardreset_deassert call with your PCIe driver,
-> believe even that one would return an error on multiple probes.
+> Yeah, the sequencing between clocks and resets would still be the same
+> for MMUs, so, adding the custom flags for MMUs is fine.
 
-hmm.. the PCIe driver is built-in and can't be made as module because of other
-issues in PCIe core. But looks like the first deassert succeeded since I didn't
-observe the boot hang because of PCIe.
+I'm curious as to whether HWMOD_CUSTOM_HARDRESET is needed for the MMUs.  
+We've stated that the main point of the custom hardreset code is to handle 
+processors that need to be placed into WFI/HLT, but it doesn't seem like 
+there would be an equivalent for MMUs.  Thoughts?
 
-Thanks
-Kishon
 
-> 
-> regards
-> Suman
-> 
->>
->> I'll post this series once again after performing these tests.
->>
->> Paul Walmsley (3):
->>   ARM: omap2+: omap_hwmod: introduce hwmod flag for custom reset
->>     handling
->>   ARM: OMAP2+: hwmod: use HWMOD_CUSTOM_HARDRESET for custom reset
->>     handling
->>   ARM: OMAP2+: hwmod: Add default reset handling
->>
->>  arch/arm/mach-omap2/omap_hwmod.c                   |   16 +++++++++++-----
->>  arch/arm/mach-omap2/omap_hwmod.h                   |   12 ++++++++++++
->>  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    2 ++
->>  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
->>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |    2 ++
->>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    1 +
->>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    3 +++
->>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |    1 +
->>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ++++++
->>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    2 ++
->>  10 files changed, 41 insertions(+), 5 deletions(-)
->>
-> 
+- Paul
