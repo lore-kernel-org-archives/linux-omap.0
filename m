@@ -1,43 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform
- reset
-Date: Tue, 9 Feb 2016 08:49:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com> <1452780672-14339-4-git-send-email-kishon@ti.com> <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com> <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com> <20160128183156.GH19432@atomide.com>
- <56B087AD.4000505@ti.com> <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com> <56B900E9.9040306@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2] ARM: DRA7: hwmod: Fix OCP2SCP sysconfig
+Date: Tue, 9 Feb 2016 14:35:43 +0530
+Message-ID: <1455008743-21660-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56B900E9.9040306@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, kishon@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 8 Feb 2016, Suman Anna wrote:
+OCP2SCP doesn't support smart idle wakeup according to
+Table 26-22. OCP2SCP_SYSCONFIG in AM572x TRM [1] and
+Table 26-22. OCP2SCP_SYSCONFIG in AM571x TRM [2].
+Remove SIDLE_SMART_WKUP from the list of supported SIDLE modes
+in hwmod data.
 
-> On 02/07/2016 08:48 PM, Paul Walmsley wrote:
-> > On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
-> > 
-> >> Paul, what do you think is the best way forward to perform reset?
-> > 
-> > Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
-> > Those often need special reset handling to ensure that WFI/HLT-like 
-> > instructions are executed after reset.  This special handling ensures that 
-> > the IP blocks' bus initiator interfaces indicate that they are in standby 
-> > to the PRCM - thus allowing power management for the rest of the chip to 
-> > work correctly.
-> > 
-> > But that doesn't seem to be the case with PCIe - and maybe others - 
-> > possibly some of the MMUs?  
-> 
-> Yeah, the sequencing between clocks and resets would still be the same
-> for MMUs, so, adding the custom flags for MMUs is fine.
+[1] -> http://www.ti.com/lit/ug/spruhz6e/spruhz6e.pdf
+[2] -> http://www.ti.com/lit/ug/spruhz7a/spruhz7a.pdf
 
-I'm curious as to whether HWMOD_CUSTOM_HARDRESET is needed for the MMUs.  
-We've stated that the main point of the custom hardreset code is to handle 
-processors that need to be placed into WFI/HLT, but it doesn't seem like 
-there would be an equivalent for MMUs.  Thoughts?
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+Changes from v1:
+*) Updated commit log to use public TRM links.
 
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-- Paul
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 848356e..84c2699 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1482,8 +1482,7 @@ static struct omap_hwmod_class_sysconfig dra7xx_ocp2scp_sysc = {
+ 	.syss_offs	= 0x0014,
+ 	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
+ 			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
+-	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+-- 
+1.7.9.5
