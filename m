@@ -1,87 +1,103 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCH v12 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Tue, 09 Feb 2016 15:14:35 -0500
-Message-ID: <43751.1455048875@turing-police.cc.vt.edu>
-References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
- <CAHp75VdWPUZ8F5rsGn3M1e5Pgpcg1CErBej9PE_3+ZPke5CDFA@mail.gmail.com>
- <CAHp75Vf9TS-AxJALQjiwNjMCT8ct5SBanYzrEsV9aj=DsUw-OA@mail.gmail.com>
- <1783906.XctYjeUNLr@vostro.rjw.lan>
- <44858.1454967873@turing-police.cc.vt.edu>
- <CAJZ5v0jUipo06fpSQsKi+5Po_32ntgc3Ns29=17SgQr2PSj+kA@mail.gmail.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 0/3] omap: hwmod: add default reset handling support
+Date: Tue, 9 Feb 2016 14:19:32 -0600
+Message-ID: <56BA49D4.8040900@ti.com>
+References: <1454929941-23949-1-git-send-email-kishon@ti.com>
+ <56B9037C.2050203@ti.com> <56B9767D.7000708@ti.com> <56BA258D.3040002@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0252255705=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <CAJZ5v0jUipo06fpSQsKi+5Po_32ntgc3Ns29=17SgQr2PSj+kA@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, dri-devel@lists.freedesktop.org, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, Len Brown <lenb@kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56BA258D.3040002@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, bhelgaas@google.com, richardcochran@gmail.com
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0252255705==
-Content-Type: multipart/signed; boundary="==_Exmh_1455048875_2220P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-
---==_Exmh_1455048875_2220P
-Content-Type: text/plain; charset=us-ascii
-
-On Mon, 08 Feb 2016 22:50:39 +0100, "Rafael J. Wysocki" said:
-> On Mon, Feb 8, 2016 at 10:44 PM,  <Valdis.Kletnieks@vt.edu> wrote:
-
-> > My Dell Latitude laptopi on next-20160201 is throwing a similar error
-> > at shutdown, except the traceback continues:
-> >
-> > mei_me_remove+0xbd/0xc0
-> > pci_device_shutdown+0x32/0x50
-> > device_shutdown+0xe2/0x210
-> >
-> > (sorry, that's all I have, transcribing from one frame of video shot while
-> > the system was shutting down....)
+Hi,
+On 02/09/2016 11:44 AM, Suman Anna wrote:
+> On 02/08/2016 11:17 PM, Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> On Tuesday 09 February 2016 02:37 AM, Suman Anna wrote:
+>>> On 02/08/2016 05:12 AM, Kishon Vijay Abraham I wrote:
+>>>> Add a new hwmod flag to indicate custom reset handling and use it
+>>>> for devices that require custom reset handling (like dsp, ipu, iva).
+>>>>
+>>>> Tested PCIe on dra7-evm and dra72-evm.
+>>>> I need help in testing DSP, IPU, IVA, PRU, GFX, M3 in other platforms.
+>>>> Or a way to test these cores to see if reset is not broken. Suman?
+>>>
+>>> I won't be able to test this week, and have requested Dave to check on
+>>> wkup_m3_rproc driver atleast. I see one potential issue (see my commment
+>>> on the other thread), but can confirm that only after testing.
+>>>
+>>> Have you tested multiple probe/removal sequences? Can you check the
+>>> return status on the _hardreset_deassert call with your PCIe driver,
+>>> believe even that one would return an error on multiple probes.
+>>
+>> hmm.. the PCIe driver is built-in and can't be made as module because of other
+>> issues in PCIe core. But looks like the first deassert succeeded since I didn't
+>> observe the boot hang because of PCIe.
 >
-> This should be fixed in 4.5-rc3, so please retest.
+> You can try unbind and bind through sysfs, it should result in a remove
+> and probe even if your driver is built-in.
 
-Confirming that next-20160201 has the problem, but it is fixed as of next-20160208.
+Sorry got held up by the discussion here [1], that regression affects 
+rmmod/re-insmod of wkup_m3_rproc as well. If I revert the guilty patch 
+5de85b9d57ab ("PM / runtime: Re-init runtime
+PM states at probe error and driver unbind") and apply these three 
+patches, on initial probe of the wkup_m3_rproc and wkup_m3_ipc drivers 
+in v4.5-rc3 I see:
 
---==_Exmh_1455048875_2220P
-Content-Type: application/pgp-signature
+[   15.593460] omap_hwmod: wkup_m3: _wait_target_disable failed
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Exmh version 2.5 07/13/2001
+Which is triggered by the reset of the wkup_m3 from the wkup_m3_ipc 
+driver when booting the wkup_m3_rproc. Flow is:
 
-iQIVAwUBVrpIqwdmEQWDXROgAQIApRAAs86TY9ql0NfW5ebbST9a4zpS2N14eLd9
-gHbI7eVnVSoBEPpA0v4iFIjOhMoYg0HBcLRZiCkvGz4sKFJBi3jfMQVSf+WDUB7t
-t/TyOhz2tSxapeiCKWyV/OGS0w1iTh14Jp0QETvPtW3zQqFJck8rYful9WGpBu8z
-84JRm2t3IHazprR8rELLC/LgJVpjIX+YoQMD8Ncviqgp/PhpAx1T23xoNSWprbOg
-zc2zwJyB8kUFUcFJjnQ/7hv64qM7mYn0NdkhFKLkn0nwpADhV+P1IYZn9NYv+rAX
-KgSfacwtOhe+9O/WP5kjnS5WVbuh4w9mDM9oCAdhG8hK5+1gA+CJ77jW98hiUSBx
-QHSsQSnvYXqr1dFPWPa1yp0qClYLkO2CEUkcM8MdpQSpqA2rBJRjr5LUGl+yo6z9
-yjwYw7nh2e7HbhrjkrpXAlS23e2OxfpgK5ShRmtGLzPKAZwLh/VpmAqGZ1EsgQiP
-FkDxrCcVhki9eirwA4C9tOdyJVZnx46hEpuMefYl83QFMWzJnHoByfX0lcB4f5Os
-rD3jNQsxuky18wWEikf3FfKqnSEiiWzk07IwrYgIMs57gmtIne/CUyrMqcLGrNq3
-nrwOqCKSIu7113MJrYMlOCqzF03n7u5BFCfS4I/Muw+bR5Ki79wr2tgOG0LG3MLe
-BIraoSAmkoM=
-=g8TO
------END PGP SIGNATURE-----
+1. wkup_m3_rproc probes and calls pm_runtime_get_sync, which calls hwmod 
+_enable but bails out because _are_all_hardreset_lines_asserted(oh) 
+causes it to return 0.
 
---==_Exmh_1455048875_2220P--
+2. wkup_m3_ipc probes and calls rproc_boot, which triggers 
+omap_device_deassert_hardreset in order to let the wkup_m3 start.
 
---===============0252255705==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+It is inside the omap_device_deassert_hardreset ( and inside that, 
+omap_hwmod_deassert_hardreset) where I end up with the error message, 
+but after that rmmod/insmod of the module over and over again shows no 
+additional error messages (at least with the above mentioned PM patch 
+reverted).
 
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+Regards,
+Dave
 
---===============0252255705==--
+[1] http://www.spinics.net/lists/arm-kernel/msg477160.html
+
+>
+> regards
+> Suman
+>>>
+>>>>
+>>>> I'll post this series once again after performing these tests.
+>>>>
+>>>> Paul Walmsley (3):
+>>>>    ARM: omap2+: omap_hwmod: introduce hwmod flag for custom reset
+>>>>      handling
+>>>>    ARM: OMAP2+: hwmod: use HWMOD_CUSTOM_HARDRESET for custom reset
+>>>>      handling
+>>>>    ARM: OMAP2+: hwmod: Add default reset handling
+>>>>
+>>>>   arch/arm/mach-omap2/omap_hwmod.c                   |   16 +++++++++++-----
+>>>>   arch/arm/mach-omap2/omap_hwmod.h                   |   12 ++++++++++++
+>>>>   arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    2 ++
+>>>>   arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
+>>>>   .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |    2 ++
+>>>>   arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |    1 +
+>>>>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    3 +++
+>>>>   arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |    1 +
+>>>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ++++++
+>>>>   arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    2 ++
+>>>>   10 files changed, 41 insertions(+), 5 deletions(-)
+>>>>
+>>>
+>
