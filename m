@@ -1,64 +1,67 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix onenand initialization to avoid
- filesystem corruption
-Date: Wed, 10 Feb 2016 23:12:26 +0200
-Message-ID: <20160210211226.GB1640@darkstar.musicnaut.iki.fi>
-References: <linux-kernel@vger.kernel.org>
- <1454683028-4193-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160208193644.GU19432@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP3: Fix imprecise external abort for off mode on 36xx
+Date: Wed, 10 Feb 2016 13:35:07 -0800
+Message-ID: <1455140107-3328-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160208193644.GU19432@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, rogerq@ti.com, khilman@deeprootsystems.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, sre@kernel.org, pavel@ucw.cz, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+With CONFIG_DEBUG_RODATA enabled I started noticing imprecise external
+aborts on a dm3730 when hitting off idle. These don't seem to happen
+on 34xx.
 
-On Mon, Feb 08, 2016 at 11:36:45AM -0800, Tony Lindgren wrote:
-> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160205 06:38]:
-> > Commit <e7b11dc7b77bfce0a351230a5feeadc1d0bba997> ("ARM: OMAP2+: Fix
-> > onenand rate detection to avoid filesystem corruption") partially fixed
-> > onenand configuration when GPMC module is reset. Finish the job by also
-> > providing the correct values in ONENAND_REG_SYS_CFG1 register.
-> 
-> OK. So probably the INT or RDY polarity made the ECC not work.
-> 
-> Aaro, care to dump out also the nolo configured CFG1 value from
-> n8x0 and n9(50)?
-> 
-> You can do it by adding something like this to the beginning
-> of set_onenand_cfg():
-> 
-> pr_info("CFG1: 0x%04x\n", readw(onenand_base + ONENAND_REG_SYS_CFG1));
-> 
-> And presumably the values are the same as on n900. If not, we
-> should do the legacy file system flash test on all of them
-> before committing this fix.
+Pretty much changing anything in the code made these go away, like
+changing .config options. At first I though it might be an alignment
+issue in the 36xx specific assembly code in sleep34xx.S, or something
+related to the recent rodata fixes. But that does not seem to be
+the case. It seems to be a timing issue instead.
 
-I got these (with CONFIG_OMAP_GPMC_DEBUG also enabled):
+Adding few extra nop instructions after the wfi seems to fix the
+issue. When adding 5 nops, the errors showed up less often. With
+add ed 6 nops, I don't seem to get them at all any longer.
 
-N800:
-[    2.803100] CFG1: 0x46c0
-[    3.150115] CFG1: 0x06c0
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
 
-N810:
-[    2.802368] CFG1: 0x46c0
-[    3.148620] CFG1: 0x06c0
+Anybody else seen this issue before?
 
-N900:
-[    4.965576] CFG1: 0x46c0
-[    5.333740] CFG1: 0x06c0
+---
+ arch/arm/mach-omap2/sleep34xx.S | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-N950:
-[    4.217193] CFG1: 0x66c4
-[    4.583221] CFG1: 0x06c0
-
-N9:
-[    4.212677] CFG1: 0x66c4
-[    4.578613] CFG1: 0x06c0
-
-A.
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 1b9f052..0fbaa08 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -264,6 +264,12 @@ ENTRY(omap3_do_wfi)
+ 	nop
+ 	nop
+ 	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
+ 
+ /*
+  * This function implements the erratum ID i581 WA:
+-- 
+2.7.0
