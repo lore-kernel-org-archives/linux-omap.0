@@ -1,85 +1,66 @@
-From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: dwc3: drop FIFO resizing logic
-Date: Wed, 10 Feb 2016 13:26:36 +0200
-Message-ID: <878u2sst5f.fsf@ti.com>
-References: <1454588282-14383-1-git-send-email-balbi@kernel.org> <56B4C8B0.9070909@ti.com> <87h9hgswjw.fsf@ti.com> <56BB0E2D.1030600@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56BB0E2D.1030600-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v1] ARM: RX51: Set system_rev from ATAGS
+Date: Wed, 10 Feb 2016 20:23:02 +0200
+Message-ID: <1455128582-25669-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160209161659.GJ19432@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160209161659.GJ19432@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, arnd@arndb.de, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+This fixed a regression with DT boot compared to legacy boot.
 
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ arch/arm/mach-omap2/board-generic.c | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-Hi,
-
-Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> writes:
->> Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> writes:
->>> Hi Felipe,
->>>
->>> On Thursday 04 February 2016 05:48 PM, Felipe Balbi wrote:
->>>> That FIFO resizing logic was added to support OMAP5
->>>> ES1.0 which had a bogus default FIFO size. I can't
->>>> remember the exact size of default FIFO, but it was
->>>> less than one bulk superspeed packet (<1024) which
->>>> would prevent USB3 from ever working on OMAP5 ES1.0.
->>>>
->>>> However, OMAP5 ES1.0 support has been dropped by
->>>> commit aa2f4b16f830 ("ARM: OMAP5: id: Remove ES1.0
->>>> support") which renders FIFO resizing unnecessary.
->>>>
->>>> Signed-off-by: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>>
->>> tested this series on both dra7-evm and dra72-evm using mass storage ga=
-dget and
->>> msc.sh
->>=20
->> both HS and SS ?
->
-> yes.. but the logs here were for only SS.
-
-cool thanks. Did you notice any speed regression or is it all the same ?
-
->>> Let me know if you want me to do any other testing on dra7.
->>=20
->> yeah, run testusb for a week or so, that usually catches odd bugs.
->
-> Okay. I'll start the test before I go for vacation next week.
-
-great
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWux5sAAoJEIaOsuA1yqRE7BoP/2o1MFqSZxTewo48kEM4eCjR
-1+8FYRisGUxsdNq3xKbeBXRm9BXaj6ARtSs3bUo+9oHA2UC53olXUr9h3678TqJg
-bnlC+IS7DVO6fLmbEsj/m1AzFFWHeiDSHNFmU+c1PdPi/4Tty1/UkYaRRpck6Tha
-+0G4RX2F2pGOcyEfnVimlQ99Ujx9nKqLPRPCNAYM5ko6cift9pSt4FyXYhTXKwJ5
-YseCw7JqF8ugib0evejrIO+3ARGrkIbiCWcuvZ+wHdqctDTq5vItks+U7hbr5+60
-F+jEHMJCSUTV2ip3oZH7sYZBqsTTOjRkJWpIQzQWDHQFg8i/Gs1OCwAKnq2JlFlZ
-V9Mb1qirgI1MVU/ErC7ipI1Diurxm0yAr1rK9manqDCbAcP0ALIIWSYsaLblXeWB
-G0vpgslR4yPlbYws4r20nTaEExNeIlLnBI9jupppJJIIR207P5BrczibdHcQJeOl
-WW/Cwd4FnrSoUMfAKsGeVw0XQ1vbn9JBSol64C3XrqMEiDbYBEAfn85YWct5UahS
-e3XG6DJO+3Mq9wYQ5p2Fw418QF4SAOn5gYWDpllDUWHnlwL1wN0lxrLsP4flG91h
-pYC1IQ4sAuRAN66lyRTPVlDhs2QH+OuKQV10VCf27MjjJRwuuJQIpLxqN/MRnsek
-U89hRz/rnS7g7nP+/aAc
-=S565
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 8098272..bab814d 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -18,6 +18,7 @@
+ 
+ #include <asm/setup.h>
+ #include <asm/mach/arch.h>
++#include <asm/system_info.h>
+ 
+ #include "common.h"
+ 
+@@ -77,12 +78,31 @@ static const char *const n900_boards_compat[] __initconst = {
+ 	NULL,
+ };
+ 
++/* Set system_rev from atags */
++static void __init rx51_set_system_rev(const struct tag *tags)
++{
++	const struct tag *tag;
++
++	if (tags->hdr.tag != ATAG_CORE)
++		return;
++
++	for_each_tag(tag, tags) {
++		if (tag->hdr.tag == ATAG_REVISION) {
++			system_rev = tag->u.revision.rev;
++			break;
++		}
++	}
++}
++
+ /* Legacy userspace on Nokia N900 needs ATAGS exported in /proc/atags,
+  * save them while the data is still not overwritten
+  */
+ static void __init rx51_reserve(void)
+ {
+-	save_atags((const struct tag *)(PAGE_OFFSET + 0x100));
++	const struct tag *tags = (const struct tag *)(PAGE_OFFSET + 0x100);
++
++	save_atags(tags);
++	rx51_set_system_rev(tags);
+ 	omap_reserve();
+ }
+ 
+-- 
+1.9.1
