@@ -1,46 +1,86 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain data
-Date: Wed, 10 Feb 2016 09:07:37 +0530
-Message-ID: <56BAB081.5040005@ti.com>
-References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
- <20160208195704.GW19432@atomide.com> <56B95EF7.9080107@ti.com>
- <20160209215326.GC27284@localhost.localdomain>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Wed, 10 Feb 2016 11:06:46 +0530
+Message-ID: <56BACC6E.3060908@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
+ <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
+ <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
+ <56B900E9.9040306@ti.com>
+ <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
+ <56BA2495.9020407@ti.com>
+ <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160209215326.GC27284@localhost.localdomain>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, ijc+devicetree@hellion.org.uk, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, galak@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Wednesday 10 February 2016 03:23 AM, Eduardo Valentin wrote:
-> On Tue, Feb 09, 2016 at 09:07:27AM +0530, Keerthy wrote:
+On Wednesday 10 February 2016 01:06 AM, Paul Walmsley wrote:
+> Hi Suman 
+> 
+> On Tue, 9 Feb 2016, Suman Anna wrote:
+> 
+>> On 02/09/2016 02:49 AM, Paul Walmsley wrote:
+>>> On Mon, 8 Feb 2016, Suman Anna wrote:
+>>>> On 02/07/2016 08:48 PM, Paul Walmsley wrote:
+>>>>> On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
+>>>>>
+>>>>>> Paul, what do you think is the best way forward to perform reset?
+>>>>>
+>>>>> Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
+>>>>> Those often need special reset handling to ensure that WFI/HLT-like 
+>>>>> instructions are executed after reset.  This special handling ensures that 
+>>>>> the IP blocks' bus initiator interfaces indicate that they are in standby 
+>>>>> to the PRCM - thus allowing power management for the rest of the chip to 
+>>>>> work correctly.
+>>>>>
+>>>>> But that doesn't seem to be the case with PCIe - and maybe others - 
+>>>>> possibly some of the MMUs?  
+>>>>
+>>>> Yeah, the sequencing between clocks and resets would still be the same
+>>>> for MMUs, so, adding the custom flags for MMUs is fine.
+>>>
+>>> I'm curious as to whether HWMOD_CUSTOM_HARDRESET is needed for the MMUs.  
+>>> We've stated that the main point of the custom hardreset code is to handle 
+>>> processors that need to be placed into WFI/HLT, but it doesn't seem like 
+>>> there would be an equivalent for MMUs.  Thoughts?
 >>
+>> The current OMAP IOMMU code already leverages the pdata ops for
+>> performing the resets, so not adding the flags would also require
+>> additional changes in the driver.
 >>
->> On Tuesday 09 February 2016 01:27 AM, Tony Lindgren wrote:
->>> * Keerthy <j-keerthy@ti.com> [160208 01:19]:
->>>> OMAP5 has 3 thermal zones cpu, core and multimedia.
->>>> On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
->>>> and iva. Currently cpu, core and multimedia are being added via dt
->>>> and the other 2 are getting added via kernel. Add the missing thermal
->>>> domains in dt so as give the correct trip numbers, type and temperatures.
->
-> But the driver would add these default domains only if booted /loaded with
-> missing DT device entry, right?
+>> Also, the reset lines controlling the MMUs actually also manage the
+>> reset for all the other sub-modules other than the processor cores
+>> within the sub-systems. We have currently different issues (see [1] for
+>> eg. around the IPU sub-system entering RET in between), so from a PM
+>> point of view, we do prefer to place the MMUs also in reset when we are
+>> runtime suspended.
+> 
+> Should we reassert hardreset in _idle() for IP blocks that don't have 
+> HWMOD_CUSTOM_HARDRESET set on them?  Would that allow us to use this 
+> mechanism for the uncore hardreset lines, or are there other quirks?
 
-Yes Eduardo, but with default trip values not the absolute which is 
-added with this patch series.
+IIUC _idle() will be called on pm_runtime_put. That would mean we perform reset
+on every suspend/resume cycle which is not desired. (suspend/resume support for
+PCIe is not yet in mainline but once we have it runtime_put and runtime_get
+will be invoked during suspend/resume cycle). Let me know if my understanding
+is wrong.
 
->
+Thanks
+Kishon
+> 
+> Also - would that address the potential issue that you mentioned with the 
+> PCIe block, or is that a different issue?
+> 
+> 
+> - Paul
+> 
