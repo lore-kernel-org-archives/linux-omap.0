@@ -1,67 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP3: Fix imprecise external abort for off mode on 36xx
-Date: Wed, 10 Feb 2016 13:35:07 -0800
-Message-ID: <1455140107-3328-1-git-send-email-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Subject: [PATCH 0/7] PM runtime regression fixes for omaps
+Date: Wed, 10 Feb 2016 15:02:43 -0800
+Message-ID: <1455145370-20301-1-git-send-email-tony@atomide.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@baylibre.com>, linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org, linux-serial@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
-With CONFIG_DEBUG_RODATA enabled I started noticing imprecise external
-aborts on a dm3730 when hitting off idle. These don't seem to happen
-on 34xx.
+Hi all,
 
-Pretty much changing anything in the code made these go away, like
-changing .config options. At first I though it might be an alignment
-issue in the 36xx specific assembly code in sleep34xx.S, or something
-related to the recent rodata fixes. But that does not seem to be
-the case. It seems to be a timing issue instead.
+Here are some PM runtime regression fixes for omaps after recent
+pm_runtime_reinit changes.
 
-Adding few extra nop instructions after the wfi seems to fix the
-issue. When adding 5 nops, the errors showed up less often. With
-add ed 6 nops, I don't seem to get them at all any longer.
+We basically have to use pm_runtime_put_sync_suspend() or
+a combination of pm_runtime_dont_use_autosuspend() and
+pm_runtime_put_sync() if the driver has enabled autoidle.
 
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
+If no objections, I'd like to merge this whole series via
+the ARM SoC tree.
 
-Anybody else seen this issue before?
+Regards,
 
----
- arch/arm/mach-omap2/sleep34xx.S | 6 ++++++
- 1 file changed, 6 insertions(+)
+Tony
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 1b9f052..0fbaa08 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -264,6 +264,12 @@ ENTRY(omap3_do_wfi)
- 	nop
- 	nop
- 	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
- 
- /*
-  * This function implements the erratum ID i581 WA:
+
+Tony Lindgren (7):
+  mmc: omap_hsmmc: Fix PM regression with deferred probe for
+    pm_runtime_reinit
+  i2c: omap: Fix PM regression with deferred probe for pm_runtime_reinit
+  spi: omap2-mcspi: Fix PM regression with deferred probe for
+    pm_runtime_reinit
+  serial: 8250_omap: Fix PM regression with deferred probe for
+    pm_runtime_reinit
+  serial: omap: Fix PM regression with deferred probe for
+    pm_runtime_reinit
+  ARM: OMAP2+: Improve omap_device error for driver writers
+  ARM: OMAP2+: Fix omap_device for module reload on PM runtime forbid
+
+ arch/arm/mach-omap2/omap_device.c   | 14 +++++++++++++-
+ drivers/i2c/busses/i2c-omap.c       |  4 +++-
+ drivers/mmc/host/omap_hsmmc.c       |  6 ++++--
+ drivers/spi/spi-omap2-mcspi.c       |  3 +++
+ drivers/tty/serial/8250/8250_omap.c |  4 +++-
+ drivers/tty/serial/omap-serial.c    |  4 +++-
+ 6 files changed, 29 insertions(+), 6 deletions(-)
+
 -- 
 2.7.0
