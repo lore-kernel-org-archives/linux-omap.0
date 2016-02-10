@@ -1,66 +1,64 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v1] ARM: RX51: Set system_rev from ATAGS
-Date: Wed, 10 Feb 2016 20:23:02 +0200
-Message-ID: <1455128582-25669-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160209161659.GJ19432@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix onenand initialization to avoid
+ filesystem corruption
+Date: Wed, 10 Feb 2016 23:12:26 +0200
+Message-ID: <20160210211226.GB1640@darkstar.musicnaut.iki.fi>
+References: <linux-kernel@vger.kernel.org>
+ <1454683028-4193-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160208193644.GU19432@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160209161659.GJ19432@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20160208193644.GU19432@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, arnd@arndb.de, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, rogerq@ti.com, khilman@deeprootsystems.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, sre@kernel.org, pavel@ucw.cz, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This fixed a regression with DT boot compared to legacy boot.
+Hi,
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- arch/arm/mach-omap2/board-generic.c | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+On Mon, Feb 08, 2016 at 11:36:45AM -0800, Tony Lindgren wrote:
+> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160205 06:38]:
+> > Commit <e7b11dc7b77bfce0a351230a5feeadc1d0bba997> ("ARM: OMAP2+: Fix
+> > onenand rate detection to avoid filesystem corruption") partially fixed
+> > onenand configuration when GPMC module is reset. Finish the job by also
+> > providing the correct values in ONENAND_REG_SYS_CFG1 register.
+> 
+> OK. So probably the INT or RDY polarity made the ECC not work.
+> 
+> Aaro, care to dump out also the nolo configured CFG1 value from
+> n8x0 and n9(50)?
+> 
+> You can do it by adding something like this to the beginning
+> of set_onenand_cfg():
+> 
+> pr_info("CFG1: 0x%04x\n", readw(onenand_base + ONENAND_REG_SYS_CFG1));
+> 
+> And presumably the values are the same as on n900. If not, we
+> should do the legacy file system flash test on all of them
+> before committing this fix.
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 8098272..bab814d 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -18,6 +18,7 @@
- 
- #include <asm/setup.h>
- #include <asm/mach/arch.h>
-+#include <asm/system_info.h>
- 
- #include "common.h"
- 
-@@ -77,12 +78,31 @@ static const char *const n900_boards_compat[] __initconst = {
- 	NULL,
- };
- 
-+/* Set system_rev from atags */
-+static void __init rx51_set_system_rev(const struct tag *tags)
-+{
-+	const struct tag *tag;
-+
-+	if (tags->hdr.tag != ATAG_CORE)
-+		return;
-+
-+	for_each_tag(tag, tags) {
-+		if (tag->hdr.tag == ATAG_REVISION) {
-+			system_rev = tag->u.revision.rev;
-+			break;
-+		}
-+	}
-+}
-+
- /* Legacy userspace on Nokia N900 needs ATAGS exported in /proc/atags,
-  * save them while the data is still not overwritten
-  */
- static void __init rx51_reserve(void)
- {
--	save_atags((const struct tag *)(PAGE_OFFSET + 0x100));
-+	const struct tag *tags = (const struct tag *)(PAGE_OFFSET + 0x100);
-+
-+	save_atags(tags);
-+	rx51_set_system_rev(tags);
- 	omap_reserve();
- }
- 
--- 
-1.9.1
+I got these (with CONFIG_OMAP_GPMC_DEBUG also enabled):
+
+N800:
+[    2.803100] CFG1: 0x46c0
+[    3.150115] CFG1: 0x06c0
+
+N810:
+[    2.802368] CFG1: 0x46c0
+[    3.148620] CFG1: 0x06c0
+
+N900:
+[    4.965576] CFG1: 0x46c0
+[    5.333740] CFG1: 0x06c0
+
+N950:
+[    4.217193] CFG1: 0x66c4
+[    4.583221] CFG1: 0x06c0
+
+N9:
+[    4.212677] CFG1: 0x66c4
+[    4.578613] CFG1: 0x06c0
+
+A.
