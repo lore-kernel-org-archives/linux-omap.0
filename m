@@ -1,63 +1,116 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 3/7] spi: omap2-mcspi: Fix PM regression with deferred
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/7] mmc: omap_hsmmc: Fix PM regression with deferred
  probe for pm_runtime_reinit
-Date: Thu, 11 Feb 2016 15:52:55 +0000
-Message-ID: <20160211155255.GA1953@sirena.org.uk>
+Date: Thu, 11 Feb 2016 09:26:32 -0800
+Message-ID: <20160211172632.GT19432@atomide.com>
 References: <1455145370-20301-1-git-send-email-tony@atomide.com>
- <1455145370-20301-4-git-send-email-tony@atomide.com>
- <20160211115128.GF13270@sirena.org.uk>
- <20160211150806.GS19432@atomide.com>
+ <1455145370-20301-2-git-send-email-tony@atomide.com>
+ <CAPDyKFpAcsfLgtu93P45fTEg11MjdGwREcyeGSS7vt6GWbNu_w@mail.gmail.com>
+ <20160211150240.GR19432@atomide.com>
+ <CAPDyKFo4Jyjwyvr3P5VHfDhQ87K9mnR01N-NtKz-yx2ycnfOLg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160211150806.GS19432@atomide.com>
+In-Reply-To: <CAPDyKFo4Jyjwyvr3P5VHfDhQ87K9mnR01N-NtKz-yx2ycnfOLg@mail.gmail.com>
 Sender: linux-i2c-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-spi@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Tero Kristo <t-kristo@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org, linux-serial@vger.kernel.org, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mmc <linux-mmc@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-serial@vger.kernel.org, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
+* Ulf Hansson <ulf.hansson@linaro.org> [160211 07:14]:
+> On 11 February 2016 at 16:02, Tony Lindgren <tony@atomide.com> wrote:
+> > * Ulf Hansson <ulf.hansson@linaro.org> [160211 02:19]:
+> >> On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
+> >> >
+> >> > Ulf, I'd like to merge this along with other related fixes via the
+> >> > ARM SoC tree if no objections, please review and ack if this look OK
+> >> > to you.
+> >>
+> >> I have some other omap_hsmmc patches queued for 4.6, so I prefer to
+> >> send this via my mmc tree.
+> >>
+> >> I guess that's okay as well!?
+> >
+> > Naturally yes, please go ahead thanks!
+> 
+> Okay!
+> 
+> BTW, did you notice my other comments to the patch?
+> 
+> I can fix them before applying, unless you want to send a v2?
 
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Oh sorry, no I missed the rest of your comments again, I really
+need to recalibrate my reading habits obviously if I keep
+missing comments on regular basis..
 
-On Thu, Feb 11, 2016 at 07:08:06AM -0800, Tony Lindgren wrote:
-> * Mark Brown <broonie@kernel.org> [160211 03:52]:
+You comments make sense to me. Below is the patch with only
+minimal changes. Seems to work just fine and hit off mode for
+suspend too.
 
-> > Why, I'm not seeing any dependencies here?  I'd also expect to be seeing
-> > an awful lot more changes like this, this shouldn't be an OMAP thing -
-> > do we need to fix the core API and then roll out the transition in a
-> > different way?
+Regards,
 
-> Please feel free to pick up this one if you have other fixes
-> lined up, nothing stopping that.
+Tony
 
-I'll take it myself unless there is a strong reason to merge it as part
-of another series.
+8< -------------------
+>From eb3c93421f01fb6198f76127262a92b527dd214c Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 9 Feb 2016 09:31:10 -0800
+Subject: [PATCH] mmc: omap_hsmmc: Fix PM regression with deferred probe for
+ pm_runtime_reinit
 
-> There will be likely more fixes like this to make drivers follow
-> the PM runtime API documentation. These were just the initial
-> ones that were obvious.
+Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
+error and driver unbind") introduced pm_runtime_reinit() that is used
+to reinitialize PM runtime after -EPROBE_DEFER. This allows shutting
+down the device after a failed probe.
 
-This does sound like there's been a change in the interface compared to
-what users are actually doing - is this an actual problem or is it just
-a divergence from docs?
+However, for drivers using pm_runtime_use_autosuspend() this can cause
+a state where suspend callback is never called after -EPROBE_DEFER.
+On the following device driver probe, hardware state is different from
+the PM runtime state causing omap_device to produce the following
+error:
 
---k1lZvvs/B4yU6o8G
-Content-Type: application/pgp-signature; name="signature.asc"
+omap_device_enable() called from invalid state 1
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+And with omap_device and omap hardware being picky for PM, this will
+block any deeper idle states in hardware.
 
-iQEcBAEBCAAGBQJWvK5WAAoJECTWi3JdVIfQE7QH/3g03VkdaXgc2bDPCzrmonTA
-y2oDDu1KuPFAZ51kG7Lv6oBOErT0IeqtBa81h/RVV9Mwfq4dhezSoOA0CrB8NN8K
-frG7VzvivMz+qqeu2wj2KIJdtlZIdkn4qr4iKQPQ561NY7l3h7apM6CKeX1j+xiJ
-43DL6DK9YUDwLTqs6Ti91bRoSZZ7kaWOazwv4UbjdgD2wIxBBk5ADLpHUTScd+va
-UPFoxo3ePs6S10LujriLF1Afq8/pV7Xg3v0mib26sp4Ccg4LBrzGZPYgKj7xTiO1
-HloVZPizcXel9tIpfJ9wuF95+pR/1Jr7RlQ8aDBxcBPzYuSIKiwVIaqGcMJ7m+8=
-=7zKN
------END PGP SIGNATURE-----
+The solution is to fix the drivers to follow the PM runtime documentation:
 
---k1lZvvs/B4yU6o8G--
+1. For sections of code that needs the device disabled, use
+   pm_runtime_put_sync_suspend() if pm_runtime_set_autosuspend() has
+   been set.
+
+2. For driver exit code, use pm_runtime_dont_use_autosuspend() before
+   pm_runtime_put_sync() if pm_runtime_use_autosuspend() has been
+   set.
+
+Fixes: 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
+error and driver unbind")
+Cc: linux-mmc@vger.kernel.org
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@baylibre.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2232,6 +2232,7 @@ err_irq:
+ 		dma_release_channel(host->tx_chan);
+ 	if (host->rx_chan)
+ 		dma_release_channel(host->rx_chan);
++	pm_runtime_dont_use_autosuspend(host->dev);
+ 	pm_runtime_put_sync(host->dev);
+ 	pm_runtime_disable(host->dev);
+ 	if (host->dbclk)
+@@ -2253,6 +2254,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+ 	dma_release_channel(host->tx_chan);
+ 	dma_release_channel(host->rx_chan);
+ 
++	pm_runtime_dont_use_autosuspend(host->dev);
+ 	pm_runtime_put_sync(host->dev);
+ 	pm_runtime_disable(host->dev);
+ 	device_init_wakeup(&pdev->dev, false);
