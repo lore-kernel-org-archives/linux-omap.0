@@ -1,58 +1,101 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH v2] dmaengine: edma: Implement device_synchronize callback
-Date: Thu, 11 Feb 2016 13:13:28 +0100
-Message-ID: <56BC7AE8.2070009@metafoo.de>
-References: <1455181722-32099-1-git-send-email-peter.ujfalusi@ti.com>
- <56BC5759.80000@metafoo.de> <56BC6C94.1060409@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: edma: Fetch echan->edesc while holding lock in
+ edma_comletion_handler
+Date: Thu, 11 Feb 2016 15:17:48 +0200
+Message-ID: <1455196668-9327-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56BC6C94.1060409@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, vinod.koul@intel.com
-Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: vinod.koul@intel.com
+Cc: lars@metafoo.de, nsekhar@ti.com, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 02/11/2016 12:12 PM, Peter Ujfalusi wrote:
-> On 02/11/2016 11:41 AM, Lars-Peter Clausen wrote:
->> On 02/11/2016 10:08 AM, Peter Ujfalusi wrote:
->>> We need the callback to support the dmaengine_terminate_sync().
->>>
->>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>
->> Looks good, but I noticed a slight race condition in
->> edma_completion_handler(). You need to fetch echan->desc while holding the
->> vchan.lock. Otherwise this can race against terminate_all() and the callback
->> might get scheduled even though terminate_all() completed and then there is
->> a race where the synchronize() operation could be called before the callback
->> gets scheduled, which means it doesn't do its intended job. Highly unlikely
->> to happen, but theoretically possible.
-> 
-> Right, actually I had (have) another series fixing the very same race in a
-> different way - patching the terminate_all (series attached).
-> We have seen race with RT kernel on uniprocessor setup.
-> 
-> The tasklet_kill after the terminate_all will execute the scheduled task
-> unconditionally, so the vchan_complete() will run after we have terminated the
-> channel, which might be not what we want.
-> I have also seen a race condition as explained in the first patch. The only
-> way I was able to fix that by using the attached patches. Unfortunately I can
-> not test RT with mainline yet, so I'm not 100% sure if by using the
-> dmaengine_terminate_sync() in drivers will fix the issue.
-> 
+In order to avoid possible race condition when client drivers are using
+dmaengine_terminate_sync() call to disable the channel.
 
-Yes, dmaengine_terminate_sync() is supposed to fix the same issue. One of
-the problems when implementing this was that e.g. for audio it might happen
-that we terminate the transfer from within the tasklet callback itself. In
-that case doing tasklet_disable() will deadlock since it will wait until the
-tasklet has finished from within the tasklet.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Suggested-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/dma/edma.c | 54 +++++++++++++++++++++++++++---------------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
-This is why the synchronize API has two primitives. Terminate and
-synchronize, so you can split them if necessary.
-
-The only thing you need to make sure is that the implementation of
-synchronize() is correct. In the EDMA case echan->desc is read without
-holding a lock which still keeps the race condition open.
-
-- Lars
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 290e1a721c5b..13b6a23dc06b 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -1372,36 +1372,36 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ static void edma_completion_handler(struct edma_chan *echan)
+ {
+ 	struct device *dev = echan->vchan.chan.device->dev;
+-	struct edma_desc *edesc = echan->edesc;
+-
+-	if (!edesc)
+-		return;
++	struct edma_desc *edesc;
+ 
+ 	spin_lock(&echan->vchan.lock);
+-	if (edesc->cyclic) {
+-		vchan_cyclic_callback(&edesc->vdesc);
+-		spin_unlock(&echan->vchan.lock);
+-		return;
+-	} else if (edesc->processed == edesc->pset_nr) {
+-		edesc->residue = 0;
+-		edma_stop(echan);
+-		vchan_cookie_complete(&edesc->vdesc);
+-		echan->edesc = NULL;
+-
+-		dev_dbg(dev, "Transfer completed on channel %d\n",
+-			echan->ch_num);
+-	} else {
+-		dev_dbg(dev, "Sub transfer completed on channel %d\n",
+-			echan->ch_num);
+-
+-		edma_pause(echan);
+-
+-		/* Update statistics for tx_status */
+-		edesc->residue -= edesc->sg_len;
+-		edesc->residue_stat = edesc->residue;
+-		edesc->processed_stat = edesc->processed;
++	edesc = echan->edesc;
++	if (edesc) {
++		if (edesc->cyclic) {
++			vchan_cyclic_callback(&edesc->vdesc);
++			spin_unlock(&echan->vchan.lock);
++			return;
++		} else if (edesc->processed == edesc->pset_nr) {
++			edesc->residue = 0;
++			edma_stop(echan);
++			vchan_cookie_complete(&edesc->vdesc);
++			echan->edesc = NULL;
++
++			dev_dbg(dev, "Transfer completed on channel %d\n",
++				echan->ch_num);
++		} else {
++			dev_dbg(dev, "Sub transfer completed on channel %d\n",
++				echan->ch_num);
++
++			edma_pause(echan);
++
++			/* Update statistics for tx_status */
++			edesc->residue -= edesc->sg_len;
++			edesc->residue_stat = edesc->residue;
++			edesc->processed_stat = edesc->processed;
++		}
++		edma_execute(echan);
+ 	}
+-	edma_execute(echan);
+ 
+ 	spin_unlock(&echan->vchan.lock);
+ }
+-- 
+2.7.1
