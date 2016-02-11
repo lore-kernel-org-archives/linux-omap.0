@@ -1,60 +1,55 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
- request
-Date: Thu, 11 Feb 2016 11:03:50 +0530
-Message-ID: <56BC1D3E.5020203@ti.com>
-References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
- <1449807000-6457-4-git-send-email-vigneshr@ti.com>
- <20160209193616.GN13270@sirena.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: edma: Implement device_synchronize callback
+Date: Thu, 11 Feb 2016 10:54:32 +0200
+Message-ID: <1455180872-2620-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160209193616.GN13270-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com
+Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+We need the callback to support the dmaengine_terminate_sync().
 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/edma.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-On 02/10/2016 01:06 AM, Mark Brown wrote:
-> On Fri, Dec 11, 2015 at 09:39:58AM +0530, Vignesh R wrote:
-> 
->> +	if (spi_flash_read_supported(spi)) {
->> +		struct spi_flash_read_message msg;
->> +		int ret;
->> +
->> +		msg.buf = buf;
->> +		msg.from = from;
->> +		msg.len = len;
->> +		msg.read_opcode = nor->read_opcode;
->> +		msg.addr_width = nor->addr_width;
->> +		msg.dummy_bytes = dummy;
->> +		/* TODO: Support other combinations */
->> +		msg.opcode_nbits = SPI_NBITS_SINGLE;
->> +		msg.addr_nbits = SPI_NBITS_SINGLE;
->> +		msg.data_nbits = m25p80_rx_nbits(nor);
->> +
->> +		ret = spi_flash_read(spi, &msg);
->> +		*retlen = msg.retlen;
->> +		return ret;
-> 
-> Looking at this I can't help but think that spi_flash_read() ought to
-> have the stub in rather than the caller.  But given that we're pretty
-> much only ever expecting one user I'm not 100% sure it actually matters.
-
-Well, my initial patch set passed long list of arguments to
-spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
-unnecessary churn when things need changed in the API.
-
-
-[1] https://lkml.org/lkml/2015/11/11/454
-
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 2dac314a2d7a..ea0d919a3318 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -869,6 +869,13 @@ static int edma_terminate_all(struct dma_chan *chan)
+ 	return 0;
+ }
+ 
++static void edma_synchronize(struct dma_chan *c)
++{
++	struct edma_chan *echan = to_edma_chan(chan);
++
++	vchan_synchronize(&echan->vchan);
++}
++
+ static int edma_slave_config(struct dma_chan *chan,
+ 	struct dma_slave_config *cfg)
+ {
+@@ -1808,6 +1815,7 @@ static void edma_dma_init(struct edma_cc *ecc, bool legacy_mode)
+ 	s_ddev->device_pause = edma_dma_pause;
+ 	s_ddev->device_resume = edma_dma_resume;
+ 	s_ddev->device_terminate_all = edma_terminate_all;
++	s_ddev->device_synchronize = edma_synchronize;
+ 
+ 	s_ddev->src_addr_widths = EDMA_DMA_BUSWIDTHS;
+ 	s_ddev->dst_addr_widths = EDMA_DMA_BUSWIDTHS;
+@@ -1833,6 +1841,7 @@ static void edma_dma_init(struct edma_cc *ecc, bool legacy_mode)
+ 		m_ddev->device_pause = edma_dma_pause;
+ 		m_ddev->device_resume = edma_dma_resume;
+ 		m_ddev->device_terminate_all = edma_terminate_all;
++		m_ddev->device_synchronize = edma_synchronize;
+ 
+ 		m_ddev->src_addr_widths = EDMA_DMA_BUSWIDTHS;
+ 		m_ddev->dst_addr_widths = EDMA_DMA_BUSWIDTHS;
 -- 
-Regards
-Vignesh
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.1
