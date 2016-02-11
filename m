@@ -1,91 +1,44 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: Nokia N900: Proper C-states
-Date: Thu, 11 Feb 2016 16:02:21 +0100
-Message-ID: <20160211150221.GA30075@pali>
-References: <201601021526.28687@pali>
- <56884890.9080306@linaro.org>
- <20160209155619.GG19432@atomide.com>
- <56BA1C92.4040202@linaro.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 3/7] spi: omap2-mcspi: Fix PM regression with deferred
+ probe for pm_runtime_reinit
+Date: Thu, 11 Feb 2016 07:08:06 -0800
+Message-ID: <20160211150806.GS19432@atomide.com>
+References: <1455145370-20301-1-git-send-email-tony@atomide.com>
+ <1455145370-20301-4-git-send-email-tony@atomide.com>
+ <20160211115128.GF13270@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56BA1C92.4040202@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Jean Pihet <j-pihet@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+In-Reply-To: <20160211115128.GF13270-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "Rafael J . Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 09 February 2016 18:06:26 Daniel Lezcano wrote:
-> On 02/09/2016 04:56 PM, Tony Lindgren wrote:
-> >* Daniel Lezcano <daniel.lezcano@linaro.org> [160102 14:01]:
-> >>On 01/02/2016 03:26 PM, Pali Roh=C3=A1r wrote:
-> >>>Hello,
-> >>>
-> >>>due to this Daniel Lezcano commit (ARM: OMAP3: cpuidle - remove rx=
-51
-> >>>cpuidle parameters table)
-> >>>
-> >>>https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/co=
-mmit/?id=3D231900afba52d6faddfb480cde4132d4edc089bc
-> >>>
-> >>>we need patch cpuidle34xx.c code to fix commit for Nokia N900. See=
-:
-> >>>
-> >>>https://github.com/pali/linux-n900/commit/e147fd4b678f1f3d7a523528=
-7910960bd41e04dc
-> >>>
-> >>>As Nokia N900 code is converting from legacy board code to DST, I =
-would
-> >>>like to know how to patch correctly omap3_idle_driver in DTS with
-> >>>correct values measured for Nokia N900. Thanks!
-> >
-> >I'm almost certain those values are not n900 specific but should be
-> >used for omap3430 in general.
-> >
+* Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160211 03:52]:
+> On Wed, Feb 10, 2016 at 03:02:46PM -0800, Tony Lindgren wrote:
+> 
+> > Mark, I'd like to merge this along with other related fixes via
+> > the ARM SoC tree if no objections, please review and ack if this
+> > look OK to you.
+> 
+> Why, I'm not seeing any dependencies here?  I'd also expect to be seeing
+> an awful lot more changes like this, this shouldn't be an OMAP thing -
+> do we need to fix the core API and then roll out the transition in a
+> different way?
 
-cpuidle parameters for Nokia N900 were added by this commit:
+Please feel free to pick up this one if you have other fixes
+lined up, nothing stopping that.
 
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/=
-?id=3D5a1b1d3a9efad6bd53d01ff02e86626d1a51d697
+There will be likely more fixes like this to make drivers follow
+the PM runtime API documentation. These were just the initial
+ones that were obvious.
 
-which says:
+Regards,
 
-Numbers based on measurements made in October 2009 for PM optimized
-kernel with CPU freq enabled.
-
-Tony, do you have any other omap3430 device?
-
-> >>the conversion to the DT based arm cpuidle driver could be a bit co=
-mplex
-> >>with one issue (index 0 !=3D cpu_do_idle()) and one performance reg=
-ression
-> >>(cpu_pm_enter/exit will be called in retention mode, even if this i=
-s not
-> >>needed).
-> >>
-> >>It will result in a PM code only on one side and on the other side,=
- the
-> >>generic cpuidle-arm.c driver will be used instead with the DT defin=
-ition. It
-> >>is worth to the conversion because the result will be nice IMO.
-> >>
-> >>Added Lorenzo who is initially author of the arm generic driver. We=
- already
-> >>discussed in the past about those two issues above and I think this=
- is
-> >>something we should improve.
-> >
-> >While this conversion process is going on, we could just add
-> >omap3430_idle_driver and set that based on cpu_is_omap3430()
-> >in omap3_idle_init().
->=20
-> Yes, that could be a temporary alternative.
-
-I would be happy with any solution that allows me to drop my hack patch
-from linux-n900 tree.
-
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
