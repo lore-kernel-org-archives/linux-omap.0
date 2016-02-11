@@ -1,52 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 sleep mode (in 4.5-rc0, if that matters)
-Date: Wed, 10 Feb 2016 17:08:18 -0800
-Message-ID: <20160211010818.GQ19432@atomide.com>
-References: <20160126140010.GA29723@amd> <20160126172527.GY3500@atomide.com>
- <20160130200244.GA30429@amd> <20160130201452.GC30429@amd>
- <20160130221509.GA28644@amd> <20160201181316.GM19432@atomide.com>
- <20160201211736.GA11283@amd> <20160201221111.GP19432@atomide.com>
- <20160207212316.GA6147@amd> <20160209172403.GK19432@atomide.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
+ request
+Date: Thu, 11 Feb 2016 11:03:50 +0530
+Message-ID: <56BC1D3E.5020203@ti.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-4-git-send-email-vigneshr@ti.com>
+ <20160209193616.GN13270@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160209172403.GK19432@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, pali.rohar@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160209193616.GN13270-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [160209 09:26]:
-> * Pavel Machek <pavel@ucw.cz> [160207 13:24]:
+
+
+On 02/10/2016 01:06 AM, Mark Brown wrote:
+> On Fri, Dec 11, 2015 at 09:39:58AM +0530, Vignesh R wrote:
 > 
-> > ffdffebd 48004a20 (fa004a20) cm_idlest1_core blocking bits: 00200042
-> > 0000000d 48004a28 (fa004a28) cm_idlest3_core
+>> +	if (spi_flash_read_supported(spi)) {
+>> +		struct spi_flash_read_message msg;
+>> +		int ret;
+>> +
+>> +		msg.buf = buf;
+>> +		msg.from = from;
+>> +		msg.len = len;
+>> +		msg.read_opcode = nor->read_opcode;
+>> +		msg.addr_width = nor->addr_width;
+>> +		msg.dummy_bytes = dummy;
+>> +		/* TODO: Support other combinations */
+>> +		msg.opcode_nbits = SPI_NBITS_SINGLE;
+>> +		msg.addr_nbits = SPI_NBITS_SINGLE;
+>> +		msg.data_nbits = m25p80_rx_nbits(nor);
+>> +
+>> +		ret = spi_flash_read(spi, &msg);
+>> +		*retlen = msg.retlen;
+>> +		return ret;
 > 
-> Bit 21 in cm_idlest1_core is for MCSPI4 so WLAN. Does that go
-> down if do sleep 5; cat /sys/kernel/debug/pm_debug/count ?
-> 
-> If not, the're PM runtime missing or broken somewhere.
+> Looking at this I can't help but think that spi_flash_read() ought to
+> have the stub in rather than the caller.  But given that we're pretty
+> much only ever expecting one user I'm not 100% sure it actually matters.
 
-Just tested n900 wlan here and it's working for me with Emil's
-patch from the "" thread and the PM runtime regression fix for
-hsmmc I posted earlier today. Looks like n900 is hitting off
-mode just fine with wlan0 configured.
+Well, my initial patch set passed long list of arguments to
+spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
+unnecessary churn when things need changed in the API.
 
-It does not wake up to pings from outside from off mode though
-until the system wakes up.
 
-I'll take a look and send a patch for that separately.
+[1] https://lkml.org/lkml/2015/11/11/454
 
-Regards,
-
-Tony
+-- 
+Regards
+Vignesh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
