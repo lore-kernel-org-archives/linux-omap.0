@@ -1,96 +1,62 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x/am57xx: replace gpio-key,wakeup with
- wakeup-source property
-Date: Wed, 10 Feb 2016 16:22:47 -0800
-Message-ID: <20160211002247.GO19432@atomide.com>
-References: <1454968553-12088-1-git-send-email-sudeep.holla@arm.com>
+Subject: Re: [PATCH] ARM: DTS: am57xx-beagle-x15: Select SYS_CLK2 for audio
+ clocks
+Date: Wed, 10 Feb 2016 16:25:58 -0800
+Message-ID: <20160211002558.GP19432@atomide.com>
+References: <1455018417-2608-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1454968553-12088-1-git-send-email-sudeep.holla-5wv7dgnIgG8@public.gmane.org>
+In-Reply-To: <1455018417-2608-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org> [160208 13:57]:
-> Commit 3efda00129bd ("ARM: dts: am335x: replace gpio-key,wakeup with
-> wakeup-source property") replaces all the legacy "gpio-key,wakeup" wi=
-th
-> the unified  "wakeup-source" property to prevent any further copy-pas=
-te
-> duplication.
->=20
-> However couple of use of these legacy property sneaked in during the
-> merge window. This patch replaces them too.
->=20
-> Cc: "Beno=C3=AEt Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Signed-off-by: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-shc.dts          | 4 ++--
->  arch/arm/boot/dts/am57xx-cl-som-am57x.dts | 2 +-
->  2 files changed, 3 insertions(+), 3 deletions(-)
->=20
-> Hi Tony,
->=20
-> I see these files got introduced during v4.5 merge window and we coul=
-d
-> not stop the copy-paste from the earlier versions files from which th=
-ey
-> were copied.
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [160209 03:48]:
+> The tlv320aic3104 codec's master clock is coming from the SoC's CLKOUT2.
+> Select the SYS_CLK2 (via divider) as parent clock for CLKOUT2 and select
+> the same clock (SYS_CLK2) for McASP3 AHCLKX clock as well.
+> SYS_CLK2 is sourced from an external oscillator running 22.5792MHz and it
+> is coming in to the SoC via the X1_OSC1.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 
-OK thanks for checking, applying this into omap-for-v4.5/fixes.
-
-Regards,
+Applying into omap-for-v4.5/fixes thanks.
 
 Tony
 
-> diff --git a/arch/arm/boot/dts/am335x-shc.dts b/arch/arm/boot/dts/am3=
-35x-shc.dts
-> index 1b5b044fcd91..865de8500f1c 100644
-> --- a/arch/arm/boot/dts/am335x-shc.dts
-> +++ b/arch/arm/boot/dts/am335x-shc.dts
-> @@ -46,7 +46,7 @@
->  			gpios =3D <&gpio1 29 GPIO_ACTIVE_HIGH>;
->  			linux,code =3D <KEY_BACK>;
->  			debounce-interval =3D <1000>;
-> -			gpio-key,wakeup;
-> +			wakeup-source;
->  		};
-> =20
->  		front_button {
-> @@ -54,7 +54,7 @@
->  			gpios =3D <&gpio1 25 GPIO_ACTIVE_HIGH>;
->  			linux,code =3D <KEY_FRONT>;
->  			debounce-interval =3D <1000>;
-> -			gpio-key,wakeup;
-> +			wakeup-source;
+> ---
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> index c37a5193f199..592e65c3a4e0 100644
+> --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> @@ -173,6 +173,8 @@
+>  
+>  		sound0_master: simple-audio-card,codec {
+>  			sound-dai = <&tlv320aic3104>;
+> +			assigned-clocks = <&clkoutmux2_clk_mux>;
+> +			assigned-clock-parents = <&sys_clk2_dclk_div>;
+>  			clocks = <&clkout2_clk>;
 >  		};
 >  	};
-> =20
-> diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boo=
-t/dts/am57xx-cl-som-am57x.dts
-> index c53882643ae9..497eb07ced19 100644
-> --- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> +++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> @@ -545,7 +545,7 @@
->  		ti,debounce-tol =3D /bits/ 16 <10>;
->  		ti,debounce-rep =3D /bits/ 16 <1>;
-> =20
-> -		linux,wakeup;
-> +		wakeup-source;
->  	};
->  };
-> =20
-> --=20
-> 1.9.1
->=20
+> @@ -795,6 +797,8 @@
+>  	pinctrl-names = "default", "sleep";
+>  	pinctrl-0 = <&mcasp3_pins_default>;
+>  	pinctrl-1 = <&mcasp3_pins_sleep>;
+> +	assigned-clocks = <&mcasp3_ahclkx_mux>;
+> +	assigned-clock-parents = <&sys_clkin2>;
+>  	status = "okay";
+>  
+>  	op-mode = <0>;	/* MCASP_IIS_MODE */
+> -- 
+> 2.7.1
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
