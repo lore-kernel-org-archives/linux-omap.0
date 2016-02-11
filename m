@@ -1,61 +1,44 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/7] spi: omap2-mcspi: Fix PM regression with deferred
- probe for pm_runtime_reinit
-Date: Thu, 11 Feb 2016 09:36:20 -0800
-Message-ID: <20160211173620.GU19432@atomide.com>
-References: <1455145370-20301-1-git-send-email-tony@atomide.com>
- <1455145370-20301-4-git-send-email-tony@atomide.com>
- <20160211115128.GF13270@sirena.org.uk>
- <20160211150806.GS19432@atomide.com>
- <20160211155255.GA1953@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Nokia N900: Proper C-states
+Date: Thu, 11 Feb 2016 09:47:50 -0800
+Message-ID: <20160211174750.GV19432@atomide.com>
+References: <201601021526.28687@pali>
+ <56884890.9080306@linaro.org>
+ <20160209155619.GG19432@atomide.com>
+ <56BA1C92.4040202@linaro.org>
+ <20160211150221.GA30075@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160211155255.GA1953-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "Rafael J . Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+In-Reply-To: <20160211150221.GA30075@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Pihet <j-pihet@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160211 07:54]:
-> On Thu, Feb 11, 2016 at 07:08:06AM -0800, Tony Lindgren wrote:
-> > * Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [160211 03:52]:
-> 
-> > > Why, I'm not seeing any dependencies here?  I'd also expect to be seeing
-> > > an awful lot more changes like this, this shouldn't be an OMAP thing -
-> > > do we need to fix the core API and then roll out the transition in a
-> > > different way?
-> 
-> > Please feel free to pick up this one if you have other fixes
-> > lined up, nothing stopping that.
-> 
-> I'll take it myself unless there is a strong reason to merge it as part
-> of another series.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160211 07:03]:
+> > On 02/09/2016 04:56 PM, Tony Lindgren wrote:
+> > >I'm almost certain those values are not n900 specific but should b=
+e
+> > >used for omap3430 in general.
+>=20
+> cpuidle parameters for Nokia N900 were added by this commit:
+>=20
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commi=
+t/?id=3D5a1b1d3a9efad6bd53d01ff02e86626d1a51d697
+>=20
+> which says:
+>=20
+> Numbers based on measurements made in October 2009 for PM optimized
+> kernel with CPU freq enabled.
+>=20
+> Tony, do you have any other omap3430 device?
 
-OK thanks!
-
-> > There will be likely more fixes like this to make drivers follow
-> > the PM runtime API documentation. These were just the initial
-> > ones that were obvious.
-> 
-> This does sound like there's been a change in the interface compared to
-> what users are actually doing - is this an actual problem or is it just
-> a divergence from docs?
-
-It's an actual problem at least on omaps as the omap_device code
-is very picky about the hardware state.
-
-Depending how the PM runtime is implemented, it may be a problem
-for some other cases too.
-
-For non-omap cases, my guess is that it's mostly a divergence from
-the docs and non-critical.
+Yes I can make sure it works for omap3-ldp for a minimal case.
+That's a 3430 ES 3.0 that's a GP SoC.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
