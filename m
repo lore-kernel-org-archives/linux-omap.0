@@ -1,83 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/7] serial: omap: Fix PM regression with deferred probe for pm_runtime_reinit
-Date: Wed, 10 Feb 2016 15:02:48 -0800
-Message-ID: <1455145370-20301-6-git-send-email-tony@atomide.com>
-References: <1455145370-20301-1-git-send-email-tony@atomide.com>
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1455145370-20301-1-git-send-email-tony@atomide.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix onenand initialization to avoid
+ filesystem corruption
+Date: Wed, 10 Feb 2016 16:12:21 -0800
+Message-ID: <20160211001220.GM19432@atomide.com>
+References: <linux-kernel@vger.kernel.org>
+ <1454683028-4193-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160208193644.GU19432@atomide.com>
+ <20160210211226.GB1640@darkstar.musicnaut.iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160210211226.GB1640@darkstar.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, rogerq@ti.com, khilman@deeprootsystems.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, sre@kernel.org, pavel@ucw.cz, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
-error and driver unbind") introduced pm_runtime_reinit() that is used
-to reinitialize PM runtime after -EPROBE_DEFER. This allows shutting
-down the device after a failed probe.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [160210 13:13]:
+> Hi,
+> 
+> On Mon, Feb 08, 2016 at 11:36:45AM -0800, Tony Lindgren wrote:
+> > * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160205 06:38]:
+> > > Commit <e7b11dc7b77bfce0a351230a5feeadc1d0bba997> ("ARM: OMAP2+: Fix
+> > > onenand rate detection to avoid filesystem corruption") partially fixed
+> > > onenand configuration when GPMC module is reset. Finish the job by also
+> > > providing the correct values in ONENAND_REG_SYS_CFG1 register.
+> > 
+> > OK. So probably the INT or RDY polarity made the ECC not work.
+> > 
+> > Aaro, care to dump out also the nolo configured CFG1 value from
+> > n8x0 and n9(50)?
+> > 
+> > You can do it by adding something like this to the beginning
+> > of set_onenand_cfg():
+> > 
+> > pr_info("CFG1: 0x%04x\n", readw(onenand_base + ONENAND_REG_SYS_CFG1));
+> > 
+> > And presumably the values are the same as on n900. If not, we
+> > should do the legacy file system flash test on all of them
+> > before committing this fix.
+> 
+> I got these (with CONFIG_OMAP_GPMC_DEBUG also enabled):
+> 
+> N800:
+> [    2.803100] CFG1: 0x46c0
+> [    3.150115] CFG1: 0x06c0
+> 
+> N810:
+> [    2.802368] CFG1: 0x46c0
+> [    3.148620] CFG1: 0x06c0
+> 
+> N900:
+> [    4.965576] CFG1: 0x46c0
+> [    5.333740] CFG1: 0x06c0
 
-However, for drivers using pm_runtime_use_autosuspend() this can cause
-a state where suspend callback is never called after -EPROBE_DEFER.
-On the following device driver probe, hardware state is different from
-the PM runtime state causing omap_device to produce the following
-error:
+Thanks, so these all should be fine with Ivaylo's patch.
 
-omap_device_enable() called from invalid state 1
+> N950:
+> [    4.217193] CFG1: 0x66c4
+> [    4.583221] CFG1: 0x06c0
+> 
+> N9:
+> [    4.212677] CFG1: 0x66c4
+> [    4.578613] CFG1: 0x06c0
 
-And with omap_device and omap hardware being picky for PM, this will
-block any deeper idle states in hardware.
+Aaro, care to do one more test on n9(50) like Ivaylo posted
+earlier:
 
-The solution is to fix the drivers to follow the PM runtime documentation:
+1. Flash original maemo rootfs
 
-1. For sections of code that needs the device disabled, use
-   pm_runtime_put_sync_suspend() if pm_runtime_set_autosuspend() has
-   been set.
+2. Boot mainline kernel with Ivaylo's patch and mount onenand
 
-2. For driver exit code, use pm_runtime_dont_use_autosuspend() before
-   pm_runtime_put_sync() if pm_runtime_use_autosuspend() has been
-   set.
+3. Boot original maemo kernel and check dmesg there's no
+   file corruption
 
-Fixes: 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
-error and driver unbind")
-Cc: linux-serial@vger.kernel.org
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Kevin Hilman <khilman@baylibre.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
+Also.. There's a chance somebody has created a onenand file system
+with recent mainline kernels that did the reset and disabled ECC.
+So with Ivaylo's patch fixing that, those may not mount properly
+any longer. Most likely people just keep their maemo rootfs there
+though with the MMC being available.
 
-Greg & Peter, I'd like to merge this along with other related fixes
-via the ARM SoC tree if no objections, please review and ack if
-this look OK to you.
+Regards,
 
----
- drivers/tty/serial/omap-serial.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index b645f92..5c43f75 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1708,7 +1708,8 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_add_port:
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_dont_use_autosuspend(&pdev->dev);
-+	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 	pm_qos_remove_request(&up->pm_qos_request);
- 	device_init_wakeup(up->dev, false);
-@@ -1721,6 +1722,7 @@ static int serial_omap_remove(struct platform_device *dev)
- {
- 	struct uart_omap_port *up = platform_get_drvdata(dev);
- 
-+	pm_runtime_dont_use_autosuspend(up->dev);
- 	pm_runtime_put_sync(up->dev);
- 	pm_runtime_disable(up->dev);
- 	uart_remove_one_port(&serial_omap_reg, &up->port);
--- 
-2.7.0
+Tony
