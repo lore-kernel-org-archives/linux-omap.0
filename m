@@ -1,35 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] mmc: omap_hsmmc: Fix PM regression with deferred
- probe for pm_runtime_reinit
-Date: Thu, 11 Feb 2016 07:02:41 -0800
-Message-ID: <20160211150240.GR19432@atomide.com>
-References: <1455145370-20301-1-git-send-email-tony@atomide.com>
- <1455145370-20301-2-git-send-email-tony@atomide.com>
- <CAPDyKFpAcsfLgtu93P45fTEg11MjdGwREcyeGSS7vt6GWbNu_w@mail.gmail.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: Nokia N900: Proper C-states
+Date: Thu, 11 Feb 2016 16:02:21 +0100
+Message-ID: <20160211150221.GA30075@pali>
+References: <201601021526.28687@pali>
+ <56884890.9080306@linaro.org>
+ <20160209155619.GG19432@atomide.com>
+ <56BA1C92.4040202@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAPDyKFpAcsfLgtu93P45fTEg11MjdGwREcyeGSS7vt6GWbNu_w@mail.gmail.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mmc <linux-mmc@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-serial@vger.kernel.org, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
+In-Reply-To: <56BA1C92.4040202@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Jean Pihet <j-pihet@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Ulf Hansson <ulf.hansson@linaro.org> [160211 02:19]:
-> On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
+On Tuesday 09 February 2016 18:06:26 Daniel Lezcano wrote:
+> On 02/09/2016 04:56 PM, Tony Lindgren wrote:
+> >* Daniel Lezcano <daniel.lezcano@linaro.org> [160102 14:01]:
+> >>On 01/02/2016 03:26 PM, Pali Roh=C3=A1r wrote:
+> >>>Hello,
+> >>>
+> >>>due to this Daniel Lezcano commit (ARM: OMAP3: cpuidle - remove rx=
+51
+> >>>cpuidle parameters table)
+> >>>
+> >>>https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/co=
+mmit/?id=3D231900afba52d6faddfb480cde4132d4edc089bc
+> >>>
+> >>>we need patch cpuidle34xx.c code to fix commit for Nokia N900. See=
+:
+> >>>
+> >>>https://github.com/pali/linux-n900/commit/e147fd4b678f1f3d7a523528=
+7910960bd41e04dc
+> >>>
+> >>>As Nokia N900 code is converting from legacy board code to DST, I =
+would
+> >>>like to know how to patch correctly omap3_idle_driver in DTS with
+> >>>correct values measured for Nokia N900. Thanks!
 > >
-> > Ulf, I'd like to merge this along with other related fixes via the
-> > ARM SoC tree if no objections, please review and ack if this look OK
-> > to you.
-> 
-> I have some other omap_hsmmc patches queued for 4.6, so I prefer to
-> send this via my mmc tree.
-> 
-> I guess that's okay as well!?
+> >I'm almost certain those values are not n900 specific but should be
+> >used for omap3430 in general.
+> >
 
-Naturally yes, please go ahead thanks!
+cpuidle parameters for Nokia N900 were added by this commit:
 
-Regards,
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/=
+?id=3D5a1b1d3a9efad6bd53d01ff02e86626d1a51d697
 
-Tony
+which says:
+
+Numbers based on measurements made in October 2009 for PM optimized
+kernel with CPU freq enabled.
+
+Tony, do you have any other omap3430 device?
+
+> >>the conversion to the DT based arm cpuidle driver could be a bit co=
+mplex
+> >>with one issue (index 0 !=3D cpu_do_idle()) and one performance reg=
+ression
+> >>(cpu_pm_enter/exit will be called in retention mode, even if this i=
+s not
+> >>needed).
+> >>
+> >>It will result in a PM code only on one side and on the other side,=
+ the
+> >>generic cpuidle-arm.c driver will be used instead with the DT defin=
+ition. It
+> >>is worth to the conversion because the result will be nice IMO.
+> >>
+> >>Added Lorenzo who is initially author of the arm generic driver. We=
+ already
+> >>discussed in the past about those two issues above and I think this=
+ is
+> >>something we should improve.
+> >
+> >While this conversion process is going on, we could just add
+> >omap3430_idle_driver and set that based on cpu_is_omap3430()
+> >in omap3_idle_init().
+>=20
+> Yes, that could be a temporary alternative.
+
+I would be happy with any solution that allows me to drop my hack patch
+from linux-n900 tree.
+
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
