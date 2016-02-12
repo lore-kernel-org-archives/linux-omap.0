@@ -1,59 +1,76 @@
-From: "Kim, Milo" <milo.kim@ti.com>
-Subject: Re: [PATCH v2 1/4] regulator: lp872x: Remove warning about invalid
- DVS GPIO
-Date: Fri, 12 Feb 2016 09:14:20 +0900
-Message-ID: <56BD23DC.30901@ti.com>
-References: <1454697741-8687-1-git-send-email-contact@paulk.fr>
- <1454697741-8687-2-git-send-email-contact@paulk.fr>
+From: Kevin Hilman <khilman@baylibre.com>
+Subject: Re: [PATCH 6/7] ARM: OMAP2+: Improve omap_device error for driver writers
+Date: Thu, 11 Feb 2016 17:13:23 -0800
+Message-ID: <7hfuwy6898.fsf@baylibre.com>
+References: <1455145370-20301-1-git-send-email-tony@atomide.com>
+	<1455145370-20301-7-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1454697741-8687-2-git-send-email-contact@paulk.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Kocialkowski <contact@paulk.fr>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1455145370-20301-7-git-send-email-tony@atomide.com> (Tony
+	Lindgren's message of "Wed, 10 Feb 2016 15:02:49 -0800")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Stern <stern@rowland.harvard.edu>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Tero Kristo <t-kristo@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org, linux-serial@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 2/6/2016 3:42 AM, Paul Kocialkowski wrote:
-> Some devices don't hook the DVS pin to a GPIO but to ground or VCC.
-> In those cases, it is not a problem to have no DVS GPIO provided, as the current
-> code will already switch to software-only DVS selection:
->
-> When the DVS GPIO is invalid, lp872x_init_dvs jumps to the set_default_dvs_mode
-> label, which instructs the chip not to use the DVS pin at all and do it all in
-> software instead (by clearing the LP8720_EXT_DVS_M bit in the
-> LP872X_GENERAL_CFG register).
->
-> That is reflected later in the code, when setting the bucks (the DVS pin only
-> applies to the bucks) by checking for the LP8720_EXT_DVS_M bit on the
-> LP872X_GENERAL_CFG register (in lp872x_select_buck_vout_addr) to decide whether
-> to use software or hardware DVS selection.
->
-> Thus, there is no need to print a warning when the DVS GPIO is invalid.
->
-> Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
+Tony Lindgren <tony@atomide.com> writes:
 
-Acked-by: Milo Kim <milo.kim@ti.com>
+> Drivers using pm_runtime_use_autosuspend() may not get disabled after
+> -EPROBE_DEFER. On the following device driver probe, hardware state
+> is different from the PM runtime state causing omap_device to produce
+> the following error:
+>
+> omap_device_enable() called from invalid state 1
+>
+> And with omap_device and omap hardware being picky for PM, this will
+> block any deeper idle states in hardware.
+>
+> Let's add a proper error message so driver writers can easily fix
+> their drivers for PM.
+>
+> In general, the solution is to fix the drivers to follow the PM
+> runtime documentation:
+>
+> 1. For sections of code that needs the device disabled, use
+>    pm_runtime_put_sync_suspend() if pm_runtime_set_autosuspend() has
+>    been set.
+>
+> 2. For driver exit code, use pm_runtime_dont_use_autosuspend() before
+>    pm_runtime_put_sync() if pm_runtime_use_autosuspend() has been
+>    set.
+>
+> Let's not return with 0 from _od_runtime_resume() as that will
+> eventually lead into new drivers with broken PM runtime that will
+> block deeper idle states on omaps.
+>
+> Cc: Alan Stern <stern@rowland.harvard.edu>
+> Cc: Kevin Hilman <khilman@baylibre.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Rafael J. Wysocki <rafael@kernel.org>
+> Cc: Ulf Hansson <ulf.hansson@linaro.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Acked-by: Kevin Hilman <khilman@baylibre.com>
 
 > ---
->   drivers/regulator/lp872x.c | 4 +---
->   1 file changed, 1 insertion(+), 3 deletions(-)
+>  arch/arm/mach-omap2/omap_device.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/regulator/lp872x.c b/drivers/regulator/lp872x.c
-> index 19d7584..21c49d8 100644
-> --- a/drivers/regulator/lp872x.c
-> +++ b/drivers/regulator/lp872x.c
-> @@ -738,10 +738,8 @@ static int lp872x_init_dvs(struct lp872x *lp)
->   		goto set_default_dvs_mode;
->
->   	gpio = dvs->gpio;
-> -	if (!gpio_is_valid(gpio)) {
-> -		dev_warn(lp->dev, "invalid gpio: %d\n", gpio);
-> +	if (!gpio_is_valid(gpio))
->   		goto set_default_dvs_mode;
-> -	}
->
->   	pinstate = dvs->init_state;
->   	ret = devm_gpio_request_one(lp->dev, gpio, pinstate, "LP872X DVS");
->
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index 0437537..ebd8369 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -602,8 +602,10 @@ static int _od_runtime_resume(struct device *dev)
+>  	int ret;
+>  
+>  	ret = omap_device_enable(pdev);
+> -	if (ret)
+> +	if (ret) {
+> +		dev_err(dev, "use pm_runtime_put_sync_suspend() in driver?\n");
+>  		return ret;
+> +	}
+>  
+>  	return pm_generic_runtime_resume(dev);
+>  }
