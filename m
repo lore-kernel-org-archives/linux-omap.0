@@ -1,35 +1,50 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] arm: dts: DRA7: Add IVA and DSPEVE thermal domain
- data
-Date: Fri, 12 Feb 2016 14:21:45 -0800
-Message-ID: <20160212222144.GN19432@atomide.com>
-References: <1454922990-7501-1-git-send-email-j-keerthy@ti.com>
- <20160209215210.GB27284@localhost.localdomain>
+Subject: Re: [PATCH] arm: dts: AM57XX: Correct the thermal thresholds
+Date: Fri, 12 Feb 2016 14:23:48 -0800
+Message-ID: <20160212222347.GO19432@atomide.com>
+References: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
+ <20160209220901.GC28102@localhost.localdomain>
+ <56BA6530.4030102@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160209215210.GB27284-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <56BA6530.4030102-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [160209 13:53]:
-> On Mon, Feb 08, 2016 at 02:46:27PM +0530, Keerthy wrote:
-> > OMAP5 has 3 thermal zones cpu, core and multimedia.
-> > On the other hand DRA7 has 5 thermal zones cpu, gpu, core, dspeve
-> > and iva. Currently cpu, core and multimedia are being added via dt
-> > and the other 2 are getting added via kernel. Add the missing thermal
-> > domains in dt so as give the correct trip numbers, type and temperatures.
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160209 14:17]:
+> On 02/09/2016 04:09 PM, Eduardo Valentin wrote:
+> > On Mon, Feb 08, 2016 at 03:15:05PM +0530, Keerthy wrote:
+> >> The thermal threholds for am57xx are different from that of dra7.
+> >> Correcting the thresholds for the same.
+> >>
+> >> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> >> ---
+> >>
+> >> Depends on: https://lkml.org/lkml/2016/2/8/90
+> >>
+> >>  arch/arm/boot/dts/am57xx-beagle-x15.dts | 24 ++++++++++++++++++++++++
+> >>  1 file changed, 24 insertions(+)
+> >>
+> >> Index: linux/arch/arm/boot/dts/am57xx-beagle-x15.dts
+> >> ===================================================================
+> >> --- linux.orig/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:05.514959101 +0530
+> >> +++ linux/arch/arm/boot/dts/am57xx-beagle-x15.dts	2016-02-08 14:57:05.510959168 +0530
 > > 
-> > Tested on DRA7-EVM.
+> > Sorry, did not bother to check, but is this the only user of am57xx?
 > 
-> For the series:
-> 
-> Acked-by: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> we will have AM57xx-IDK as well coming down the line. we already have
+> arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+> arch/arm/boot/dts/am57xx-sbc-am57x.dts - not really sure what grade of
+> silicon are used in cl-SOM and sbc boards.
 
-Applying all into omap-for-v4.6/dt thanks.
+Hmm can this one wait for v4.6 or is it critical for v4.5-rc
+cycle?
+
+Regards,
 
 Tony
 --
