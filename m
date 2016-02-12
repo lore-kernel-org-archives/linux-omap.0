@@ -1,122 +1,175 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 1/7] mmc: omap_hsmmc: Fix PM regression with deferred
- probe for pm_runtime_reinit
-Date: Fri, 12 Feb 2016 13:59:07 +0100
-Message-ID: <CAPDyKFpwGcCW_Vwz07cgh8LxGmxu9=GVch0MVJEpNJ19zoLZ7g@mail.gmail.com>
-References: <1455145370-20301-1-git-send-email-tony@atomide.com>
-	<1455145370-20301-2-git-send-email-tony@atomide.com>
-	<CAPDyKFpAcsfLgtu93P45fTEg11MjdGwREcyeGSS7vt6GWbNu_w@mail.gmail.com>
-	<20160211150240.GR19432@atomide.com>
-	<CAPDyKFo4Jyjwyvr3P5VHfDhQ87K9mnR01N-NtKz-yx2ycnfOLg@mail.gmail.com>
-	<20160211172632.GT19432@atomide.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Fri, 12 Feb 2016 11:20:20 -0600
+Message-ID: <56BE1454.3030002@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
+ <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
+ <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
+ <56B900E9.9040306@ti.com>
+ <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
+ <56BA2495.9020407@ti.com>
+ <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
+ <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
+ <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
+ <56BD8091.4090007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160211172632.GT19432@atomide.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mmc <linux-mmc@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-serial@vger.kernel.org, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56BD8091.4090007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>, d-gerlach@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11 February 2016 at 18:26, Tony Lindgren <tony@atomide.com> wrote:
-> * Ulf Hansson <ulf.hansson@linaro.org> [160211 07:14]:
->> On 11 February 2016 at 16:02, Tony Lindgren <tony@atomide.com> wrote:
->> > * Ulf Hansson <ulf.hansson@linaro.org> [160211 02:19]:
->> >> On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
->> >> >
->> >> > Ulf, I'd like to merge this along with other related fixes via the
->> >> > ARM SoC tree if no objections, please review and ack if this look OK
->> >> > to you.
->> >>
->> >> I have some other omap_hsmmc patches queued for 4.6, so I prefer to
->> >> send this via my mmc tree.
->> >>
->> >> I guess that's okay as well!?
->> >
->> > Naturally yes, please go ahead thanks!
->>
->> Okay!
->>
->> BTW, did you notice my other comments to the patch?
->>
->> I can fix them before applying, unless you want to send a v2?
->
-> Oh sorry, no I missed the rest of your comments again, I really
-> need to recalibrate my reading habits obviously if I keep
-> missing comments on regular basis..
->
-> You comments make sense to me. Below is the patch with only
-> minimal changes. Seems to work just fine and hit off mode for
-> suspend too.
->
-> Regards,
->
-> Tony
->
-> 8< -------------------
-> From eb3c93421f01fb6198f76127262a92b527dd214c Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Tue, 9 Feb 2016 09:31:10 -0800
-> Subject: [PATCH] mmc: omap_hsmmc: Fix PM regression with deferred probe for
->  pm_runtime_reinit
->
-> Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
-> error and driver unbind") introduced pm_runtime_reinit() that is used
-> to reinitialize PM runtime after -EPROBE_DEFER. This allows shutting
-> down the device after a failed probe.
->
-> However, for drivers using pm_runtime_use_autosuspend() this can cause
-> a state where suspend callback is never called after -EPROBE_DEFER.
-> On the following device driver probe, hardware state is different from
-> the PM runtime state causing omap_device to produce the following
-> error:
->
-> omap_device_enable() called from invalid state 1
->
-> And with omap_device and omap hardware being picky for PM, this will
-> block any deeper idle states in hardware.
->
-> The solution is to fix the drivers to follow the PM runtime documentation:
->
-> 1. For sections of code that needs the device disabled, use
->    pm_runtime_put_sync_suspend() if pm_runtime_set_autosuspend() has
->    been set.
->
-> 2. For driver exit code, use pm_runtime_dont_use_autosuspend() before
->    pm_runtime_put_sync() if pm_runtime_use_autosuspend() has been
->    set.
->
-> Fixes: 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
-> error and driver unbind")
-> Cc: linux-mmc@vger.kernel.org
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> Cc: Kevin Hilman <khilman@baylibre.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Rafael J. Wysocki <rafael@kernel.org>
-> Cc: Ulf Hansson <ulf.hansson@linaro.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2232,6 +2232,7 @@ err_irq:
->                 dma_release_channel(host->tx_chan);
->         if (host->rx_chan)
->                 dma_release_channel(host->rx_chan);
-> +       pm_runtime_dont_use_autosuspend(host->dev);
->         pm_runtime_put_sync(host->dev);
->         pm_runtime_disable(host->dev);
->         if (host->dbclk)
-> @@ -2253,6 +2254,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
->         dma_release_channel(host->tx_chan);
->         dma_release_channel(host->rx_chan);
->
-> +       pm_runtime_dont_use_autosuspend(host->dev);
->         pm_runtime_put_sync(host->dev);
->         pm_runtime_disable(host->dev);
->         device_init_wakeup(&pdev->dev, false);
+Kishon,
 
-Thanks, applied for fixes!
+On 02/12/2016 12:49 AM, Kishon Vijay Abraham I wrote:
+> Hi,
+> 
+> On Friday 12 February 2016 12:57 AM, Paul Walmsley wrote:
+>> Hi Kishon, Suman,
+>>
+>> On Wed, 10 Feb 2016, Kishon Vijay Abraham I wrote:
+>>
+>>> On Wednesday 10 February 2016 07:12 AM, Suman Anna wrote:
+>>>> On 02/09/2016 01:36 PM, Paul Walmsley wrote:
+>>>>> On Tue, 9 Feb 2016, Suman Anna wrote:
+>>>>>> On 02/09/2016 02:49 AM, Paul Walmsley wrote:
+>>>>>>> On Mon, 8 Feb 2016, Suman Anna wrote:
+>>>>>>>> On 02/07/2016 08:48 PM, Paul Walmsley wrote:
+>>>>>>>>> On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
+>>>>>>>>>
+>>>>>>>>>> Paul, what do you think is the best way forward to perform reset?
+>>>>>>>>>
+>>>>>>>>> Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
+>>>>>>>>> Those often need special reset handling to ensure that WFI/HLT-like 
+>>>>>>>>> instructions are executed after reset.  This special handling ensures that 
+>>>>>>>>> the IP blocks' bus initiator interfaces indicate that they are in standby 
+>>>>>>>>> to the PRCM - thus allowing power management for the rest of the chip to 
+>>>>>>>>> work correctly.
+>>>>>>>>>
+>>>>>>>>> But that doesn't seem to be the case with PCIe - and maybe others - 
+>>>>>>>>> possibly some of the MMUs?  
+>>>>>>>>
+>>>>>>>> Yeah, the sequencing between clocks and resets would still be the same
+>>>>>>>> for MMUs, so, adding the custom flags for MMUs is fine.
+>>>>>>>
+>>>>>>> I'm curious as to whether HWMOD_CUSTOM_HARDRESET is needed for the MMUs.  
+>>>>>>> We've stated that the main point of the custom hardreset code is to handle 
+>>>>>>> processors that need to be placed into WFI/HLT, but it doesn't seem like 
+>>>>>>> there would be an equivalent for MMUs.  Thoughts?
+>>>>>>
+>>>>>> The current OMAP IOMMU code already leverages the pdata ops for
+>>>>>> performing the resets, so not adding the flags would also require
+>>>>>> additional changes in the driver.
+>>>>>>
+>>>>>> Also, the reset lines controlling the MMUs actually also manage the
+>>>>>> reset for all the other sub-modules other than the processor cores
+>>>>>> within the sub-systems. We have currently different issues (see [1] for
+>>>>>> eg. around the IPU sub-system entering RET in between), so from a PM
+>>>>>> point of view, we do prefer to place the MMUs also in reset when we are
+>>>>>> runtime suspended.
+>>>>>
+>>>>> Should we reassert hardreset in _idle() for IP blocks that don't have 
+>>>>> HWMOD_CUSTOM_HARDRESET set on them?  Would that allow us to use this 
+>>>>> mechanism for the uncore hardreset lines, or are there other quirks?
+>>>>>
+>>>>> Also - would that address the potential issue that you mentioned with the 
+>>>>> PCIe block, or is that a different issue?
+>>>>
+>>>> Yeah, I think that would address the PCIe block issue in terms of reset
+>>>> state balancing between pm_runtime_get_sync() and pm_runtime_put()
+>>>> calls. Right now, they are unbalanced. The PCIe block is using these
+>>>> only in probe and remove, so it should work for that IP.
+>>>
+>>> As I mentioned before this would result in undesired behavior during
+>>> suspend/resume cycle in PCIe. (This should be okay for the current mainline
+>>> code but would break once we add suspend/resume support for PCIe).
+>>
+>> I'd like to understand where we're currently at here.  It looks like we're 
+>> waiting for testing from Suman, and we're waiting for Kishon to try using 
+>> the bind/unbind driver model hook to see if that wedges PCIe?  Does this 
+>> match your collective understanding of the status here?
+> 
+> I got to try this and looks like even without this series there are other PM
+> issues possible introduced by Commit 5de85b9d57ab ("PM / runtime: Re-init
+> runtime PM states at probe error and driver unbind").
+> 
+> Now I get this error if I tried to modprobe after rmmod pci-dra7xx.
+> [   54.352860] dra7-pcie 51000000.pcie: omap_device: omap_device_enable()
+> called from invalid state 1
+> [   54.362318] dra7-pcie 51000000.pcie: pm_runtime_get_sync failed
+> [   54.368624] dra7-pcie: probe of 51000000.pcie failed with error -22
+> 
+> From the thread that fixes this issue [1], looks like drivers that use
+> *_autosuspend() get this issue. However I don't use *_autosuspend() in
+> pci-dra7xx. Maybe pci core has this? This has to be debugged further. But I
+> feel this is not related to the problem that we are trying to solve right now
+> (dra7 hangs if PCI driver is enabled) and given the fact that pci-dra7xx driver
+> is now modeled as built-in driver, this can be deferred.
+> 
+> [1] -> http://www.spinics.net/lists/arm-kernel/msg481845.html
+> 
+>>
+>> Thinking about the question of what to do about hardreset assertion in 
+>> idle, if we need it, we could add a hwmod flag to control that mode.  I 
+>> would consider it a temporary workaround until we have the hwmod code 
+>> moved into a bus driver and the bus driver/hwmod code can hook into the 
+>> LDM .remove operation (and connect it to .shutdown, etc.)  Suman/Kishon: 
+>> is it your understanding that we could remove the existing hardreset 
+>> control in the IOMMU drivers and the PCIe driver if we had these options 
+>> in the hwmod code? 
+> 
+> Yeah, that's my understanding. And since this series solves the PCIe problem,
+> it's proven that hardreset control can be moved to hwmod code.
+> 
+> For PCIe, it's even okay to do deassert in _reset, but I'm not sure if it'll
+> have side effects with other modules.
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index e9f65fe..24cafd9 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -1966,8 +1966,11 @@ static int _reset(struct omap_hwmod *oh)
+>  		r = oh->class->reset(oh);
+>  	} else {
+>  		if (oh->rst_lines_cnt > 0) {
+> -			for (i = 0; i < oh->rst_lines_cnt; i++)
+> +			for (i = 0; i < oh->rst_lines_cnt; i++) {
+>  				_assert_hardreset(oh, oh->rst_lines[i].name);
+> +				if (!(oh->flags & HWMOD_CUSTOM_HARDRESET))
+> +					_deassert_hardreset(oh, oh->rst_lines[i].name);
+> +			}
 
-Kind regards
-Uffe
+Better yet, just add this specific  _deassert_hardreset logic to a DRA7
+PCIe-specific class->reset function. You won't need adding the
+HWMOD_CUSTOM_HARDRESET flags either and will satisfy your suspend/resume
+dilemma, and it won't affect other paths. If that can work for you, that
+would be simplest patch for this -rc cycle.
+
+>  			return 0;
+>  		} else {
+>  			r = _ocp_softreset(oh);
+> 
+> Thanks
+> Kishon
+> 
+> P.S. I'll be on vacation till end of next week with no email access till then.
+> So email response will be delayed. Sorry about that.
+
+Sekhar,
+Will you be following up with above suggestion since Kishon is gonna be out?
+
+regards
+Suman
+
+>>
+>> Dave, any further comments here?
+>>
+>>
+>> - Paul
+>>
