@@ -1,175 +1,212 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Fri, 12 Feb 2016 11:20:20 -0600
-Message-ID: <56BE1454.3030002@ti.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com>
- <1452780672-14339-4-git-send-email-kishon@ti.com>
- <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
- <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
- <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
- <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
- <56B900E9.9040306@ti.com>
- <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
- <56BA2495.9020407@ti.com>
- <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
- <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
- <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
- <56BD8091.4090007@ti.com>
+From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+Subject: Re: [PATCH v2 2/4] regulator: lp872x: Add enable GPIO pin support
+Date: Fri, 12 Feb 2016 19:25:32 +0100
+Message-ID: <1455301532.2760.1.camel@collins>
+References: <1454697741-8687-1-git-send-email-contact@paulk.fr>
+	 <1454697741-8687-3-git-send-email-contact@paulk.fr>
+	 <56BD23ED.8010207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56BD8091.4090007@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>, d-gerlach@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-qIiZQ1wLbQ0vxd7Wo8QE"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56BD23ED.8010207-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Kim, Milo" <milo.kim-l0cyMroinI0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Kishon,
 
-On 02/12/2016 12:49 AM, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Friday 12 February 2016 12:57 AM, Paul Walmsley wrote:
->> Hi Kishon, Suman,
->>
->> On Wed, 10 Feb 2016, Kishon Vijay Abraham I wrote:
->>
->>> On Wednesday 10 February 2016 07:12 AM, Suman Anna wrote:
->>>> On 02/09/2016 01:36 PM, Paul Walmsley wrote:
->>>>> On Tue, 9 Feb 2016, Suman Anna wrote:
->>>>>> On 02/09/2016 02:49 AM, Paul Walmsley wrote:
->>>>>>> On Mon, 8 Feb 2016, Suman Anna wrote:
->>>>>>>> On 02/07/2016 08:48 PM, Paul Walmsley wrote:
->>>>>>>>> On Tue, 2 Feb 2016, Kishon Vijay Abraham I wrote:
->>>>>>>>>
->>>>>>>>>> Paul, what do you think is the best way forward to perform reset?
->>>>>>>>>
->>>>>>>>> Many of the IP blocks with PRM hardreset lines are processor IP blocks. 
->>>>>>>>> Those often need special reset handling to ensure that WFI/HLT-like 
->>>>>>>>> instructions are executed after reset.  This special handling ensures that 
->>>>>>>>> the IP blocks' bus initiator interfaces indicate that they are in standby 
->>>>>>>>> to the PRCM - thus allowing power management for the rest of the chip to 
->>>>>>>>> work correctly.
->>>>>>>>>
->>>>>>>>> But that doesn't seem to be the case with PCIe - and maybe others - 
->>>>>>>>> possibly some of the MMUs?  
->>>>>>>>
->>>>>>>> Yeah, the sequencing between clocks and resets would still be the same
->>>>>>>> for MMUs, so, adding the custom flags for MMUs is fine.
->>>>>>>
->>>>>>> I'm curious as to whether HWMOD_CUSTOM_HARDRESET is needed for the MMUs.  
->>>>>>> We've stated that the main point of the custom hardreset code is to handle 
->>>>>>> processors that need to be placed into WFI/HLT, but it doesn't seem like 
->>>>>>> there would be an equivalent for MMUs.  Thoughts?
->>>>>>
->>>>>> The current OMAP IOMMU code already leverages the pdata ops for
->>>>>> performing the resets, so not adding the flags would also require
->>>>>> additional changes in the driver.
->>>>>>
->>>>>> Also, the reset lines controlling the MMUs actually also manage the
->>>>>> reset for all the other sub-modules other than the processor cores
->>>>>> within the sub-systems. We have currently different issues (see [1] for
->>>>>> eg. around the IPU sub-system entering RET in between), so from a PM
->>>>>> point of view, we do prefer to place the MMUs also in reset when we are
->>>>>> runtime suspended.
->>>>>
->>>>> Should we reassert hardreset in _idle() for IP blocks that don't have 
->>>>> HWMOD_CUSTOM_HARDRESET set on them?  Would that allow us to use this 
->>>>> mechanism for the uncore hardreset lines, or are there other quirks?
->>>>>
->>>>> Also - would that address the potential issue that you mentioned with the 
->>>>> PCIe block, or is that a different issue?
->>>>
->>>> Yeah, I think that would address the PCIe block issue in terms of reset
->>>> state balancing between pm_runtime_get_sync() and pm_runtime_put()
->>>> calls. Right now, they are unbalanced. The PCIe block is using these
->>>> only in probe and remove, so it should work for that IP.
->>>
->>> As I mentioned before this would result in undesired behavior during
->>> suspend/resume cycle in PCIe. (This should be okay for the current mainline
->>> code but would break once we add suspend/resume support for PCIe).
->>
->> I'd like to understand where we're currently at here.  It looks like we're 
->> waiting for testing from Suman, and we're waiting for Kishon to try using 
->> the bind/unbind driver model hook to see if that wedges PCIe?  Does this 
->> match your collective understanding of the status here?
-> 
-> I got to try this and looks like even without this series there are other PM
-> issues possible introduced by Commit 5de85b9d57ab ("PM / runtime: Re-init
-> runtime PM states at probe error and driver unbind").
-> 
-> Now I get this error if I tried to modprobe after rmmod pci-dra7xx.
-> [   54.352860] dra7-pcie 51000000.pcie: omap_device: omap_device_enable()
-> called from invalid state 1
-> [   54.362318] dra7-pcie 51000000.pcie: pm_runtime_get_sync failed
-> [   54.368624] dra7-pcie: probe of 51000000.pcie failed with error -22
-> 
-> From the thread that fixes this issue [1], looks like drivers that use
-> *_autosuspend() get this issue. However I don't use *_autosuspend() in
-> pci-dra7xx. Maybe pci core has this? This has to be debugged further. But I
-> feel this is not related to the problem that we are trying to solve right now
-> (dra7 hangs if PCI driver is enabled) and given the fact that pci-dra7xx driver
-> is now modeled as built-in driver, this can be deferred.
-> 
-> [1] -> http://www.spinics.net/lists/arm-kernel/msg481845.html
-> 
->>
->> Thinking about the question of what to do about hardreset assertion in 
->> idle, if we need it, we could add a hwmod flag to control that mode.  I 
->> would consider it a temporary workaround until we have the hwmod code 
->> moved into a bus driver and the bus driver/hwmod code can hook into the 
->> LDM .remove operation (and connect it to .shutdown, etc.)  Suman/Kishon: 
->> is it your understanding that we could remove the existing hardreset 
->> control in the IOMMU drivers and the PCIe driver if we had these options 
->> in the hwmod code? 
-> 
-> Yeah, that's my understanding. And since this series solves the PCIe problem,
-> it's proven that hardreset control can be moved to hwmod code.
-> 
-> For PCIe, it's even okay to do deassert in _reset, but I'm not sure if it'll
-> have side effects with other modules.
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index e9f65fe..24cafd9 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1966,8 +1966,11 @@ static int _reset(struct omap_hwmod *oh)
->  		r = oh->class->reset(oh);
->  	} else {
->  		if (oh->rst_lines_cnt > 0) {
-> -			for (i = 0; i < oh->rst_lines_cnt; i++)
-> +			for (i = 0; i < oh->rst_lines_cnt; i++) {
->  				_assert_hardreset(oh, oh->rst_lines[i].name);
-> +				if (!(oh->flags & HWMOD_CUSTOM_HARDRESET))
-> +					_deassert_hardreset(oh, oh->rst_lines[i].name);
-> +			}
+--=-qIiZQ1wLbQ0vxd7Wo8QE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Better yet, just add this specific  _deassert_hardreset logic to a DRA7
-PCIe-specific class->reset function. You won't need adding the
-HWMOD_CUSTOM_HARDRESET flags either and will satisfy your suspend/resume
-dilemma, and it won't affect other paths. If that can work for you, that
-would be simplest patch for this -rc cycle.
+Hi,
+Le vendredi 12 f=C3=A9vrier 2016 =C3=A0 09:14 +0900, Kim, Milo a =C3=A9crit=
+ :
+> Thanks for the patch. Please see my comments below.
 
->  			return 0;
->  		} else {
->  			r = _ocp_softreset(oh);
-> 
-> Thanks
-> Kishon
-> 
-> P.S. I'll be on vacation till end of next week with no email access till then.
-> So email response will be delayed. Sorry about that.
+Thanks for the review!
 
-Sekhar,
-Will you be following up with above suggestion since Kishon is gonna be out?
+> On 2/6/2016 3:42 AM, Paul Kocialkowski wrote:
+> > LP872x regulators are made active via the EN pin, which might be hooked=
+ to a
+> > GPIO. This adds support for driving the GPIO high when the driver is in=
+ use.
+> >
+> > Signed-off-by: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+> > ---
+> >   .../devicetree/bindings/regulator/lp872x.txt       |  1 +
+> >   drivers/regulator/lp872x.c                         | 34 +++++++++++++=
++++++++++
+> >   include/linux/regulator/lp872x.h                   |  5 ++++
+> >   3 files changed, 40 insertions(+)
+> >
+> > diff --git a/Documentation/devicetree/bindings/regulator/lp872x.txt b/D=
+ocumentation/devicetree/bindings/regulator/lp872x.txt
+> > index 7818318..ca58a68 100644
+> > --- a/Documentation/devicetree/bindings/regulator/lp872x.txt
+> > +++ b/Documentation/devicetree/bindings/regulator/lp872x.txt
+> > @@ -28,6 +28,7 @@ Optional properties:
+> >     - ti,dvs-gpio: GPIO specifier for external DVS pin control of LP872=
+x devices.
+> >     - ti,dvs-vsel: DVS selector. 0 =3D SEL_V1, 1 =3D SEL_V2.
+> >     - ti,dvs-state: initial DVS pin state. 0 =3D DVS_LOW, 1 =3D DVS_HIG=
+H.
+> > +  - enable-gpios: GPIO specifier for EN pin control of LP872x devices.
+> >
+> >     Sub nodes for regulator_init_data
+> >       LP8720 has maximum 6 nodes. (child name: ldo1 ~ 5 and buck)
+> > diff --git a/drivers/regulator/lp872x.c b/drivers/regulator/lp872x.c
+> > index 21c49d8..3899211 100644
+> > --- a/drivers/regulator/lp872x.c
+> > +++ b/drivers/regulator/lp872x.c
+> > @@ -15,6 +15,7 @@
+> >   #include <linux/regmap.h>
+> >   #include <linux/err.h>
+> >   #include <linux/gpio.h>
+> > +#include <linux/delay.h>
+> >   #include <linux/regulator/lp872x.h>
+> >   #include <linux/regulator/driver.h>
+> >   #include <linux/platform_device.h>
+> > @@ -757,6 +758,33 @@ set_default_dvs_mode:
+> >   				default_dvs_mode[lp->chipid]);
+> >   }
+> >
+> > +static int lp872x_hw_enable(struct lp872x *lp)
+> > +{
+> > +	int ret, gpio;
+> > +
+> > +	if (!lp->pdata)
+> > +		return -EINVAL;
+> > +
+> > +	gpio =3D lp->pdata->enable_gpio;
+> > +	if (!gpio_is_valid(gpio))
+> > +		return 0;
+>=20
+> It seems gpio is always 0 when it starts from DT. 'enable_gpio' is=20
+> updated in lp872x_config() but lp872x_hw_enable() is called first.
 
-regards
-Suman
+Actually, enable_gpio is updated in lp872x_populate_pdata_from_dt.
 
->>
->> Dave, any further comments here?
->>
->>
->> - Paul
->>
+> > +
+> > +	/* Always set enable GPIO high. */
+> > +	ret =3D devm_gpio_request_one(lp->dev, gpio, GPIOF_OUT_INIT_HIGH, "LP=
+872X EN");
+> > +	if (ret) {
+> > +		dev_err(lp->dev, "gpio request err: %d\n", ret);
+> > +		return ret;
+> > +	}
+> > +
+> > +	/* Each chip has a different enable delay. */
+> > +	if (lp->chipid =3D=3D LP8720)
+> > +		usleep_range(LP8720_ENABLE_DELAY, 1.5 * LP8720_ENABLE_DELAY);
+> > +	else
+> > +		usleep_range(LP8725_ENABLE_DELAY, 1.5 * LP8725_ENABLE_DELAY);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >   static int lp872x_config(struct lp872x *lp)
+> >   {
+> >   	struct lp872x_platform_data *pdata =3D lp->pdata;
+> > @@ -875,6 +903,8 @@ static struct lp872x_platform_data
+> >   	of_property_read_u8(np, "ti,dvs-state", &dvs_state);
+> >   	pdata->dvs->init_state =3D dvs_state ? DVS_HIGH : DVS_LOW;
+> >
+> > +	pdata->enable_gpio =3D of_get_named_gpio(np, "enable-gpios", 0);
+>=20
+> Please move this code to lp872x_populate_pdata_from_dt().
+
+This already adds it in lp872x_populate_pdata_from_dt (see the context
+around the insertion).
+
+I don't know why the diff makes it seem like it's added in
+lp872x_config. It's really not.
+
+> lp872x_hw_enable() is called prior to lp872x_config(), so enable_gpio=20
+> should be set on parsing the DT properties.
+
+Of course.
+
+> > +
+> >   	if (of_get_child_count(np) =3D=3D 0)
+> >   		goto out;
+> >
+> > @@ -948,6 +978,10 @@ static int lp872x_probe(struct i2c_client *cl, con=
+st struct i2c_device_id *id)
+> >   	lp->chipid =3D id->driver_data;
+> >   	i2c_set_clientdata(cl, lp);
+> >
+> > +	ret =3D lp872x_hw_enable(lp);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> >   	ret =3D lp872x_config(lp);
+> >   	if (ret)
+> >   		return ret;
+> > diff --git a/include/linux/regulator/lp872x.h b/include/linux/regulator=
+/lp872x.h
+> > index 132e05c..6029279 100644
+> > --- a/include/linux/regulator/lp872x.h
+> > +++ b/include/linux/regulator/lp872x.h
+> > @@ -18,6 +18,9 @@
+> >
+> >   #define LP872X_MAX_REGULATORS		9
+> >
+> > +#define LP8720_ENABLE_DELAY		200
+> > +#define LP8725_ENABLE_DELAY		30000
+> > +
+> >   enum lp872x_regulator_id {
+> >   	LP8720_ID_BASE,
+> >   	LP8720_ID_LDO1 =3D LP8720_ID_BASE,
+> > @@ -79,12 +82,14 @@ struct lp872x_regulator_data {
+> >    * @update_config     : if LP872X_GENERAL_CFG register is updated, se=
+t true
+> >    * @regulator_data    : platform regulator id and init data
+> >    * @dvs               : dvs data for buck voltage control
+> > + * @enable_gpio       : gpio pin number for enable control
+> >    */
+> >   struct lp872x_platform_data {
+> >   	u8 general_config;
+> >   	bool update_config;
+> >   	struct lp872x_regulator_data regulator_data[LP872X_MAX_REGULATORS];
+> >   	struct lp872x_dvs *dvs;
+> > +	int enable_gpio;
+> >   };
+> >
+> >   #endif
+> >
+>=20
+> Best regards,
+> Milo
+
+
+--=-qIiZQ1wLbQ0vxd7Wo8QE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAABAgAGBQJWviOcAAoJEIT9weqP7pUMUNMP/2BqQOwV4Inh45cpgD6aRQe7
+5RkLsjQHZZDUvgjH/BK+hBAR3vOg67rgXGCcbTpTRAsAj75FZKgeq6pYbyGCqPWJ
+YN1jj0JlALxlYvX5tj1TIXcLtwZ8T1Y/+RLv0kSVPyAeiojH59YCdpswl9xoUlRt
+8+1D7yjukUrT39h+r9iUA/q8bhKnTi/o8tTYshdf6TvYCUUfqb0QF6y4DY13Axtn
+GzpghnwSxz4Xgb3n7V+LWOuaHNxnVpoHjqvHbYwgB975nCKTpbptldB12s0TyjTd
+R+EePtgQpKAGJMbVuGvt+LO8CKbhH8cnvzWCdZMeVc9g2wVlNsNpF2MI6UMIdDXd
+wGr2sIl+lWZEi3FPRPa8RjIeZLPOFs/DiGp2+l3dY0IcdPw+gPlsT6CK0eOTTSUq
+GfuHhx4F8VorOGBcCag4LDUX6T8lHDw6f6Datkszje4+lmD3Hh8L/gpUnGulu9vz
+uwI6/VgpDlPPI9nqPK1tNtSkNFvI3eX5sac+LHzIzAwz4OoXQFDtgLMMSUCIdPoN
+j5gguEEhcD6AZ3nsDeT/1itvSriZcuU+1G2coc8hSOBMFLCgQFuMeHMTnWTJxQ7E
+gqHQRCmZCVm9/4/wAD3IxPf4p9aNF+G0DJf8wtHWEGJb4a2czlpoXwRCkeyUuCQq
+N+KZ4tcn1VYQUDTONoed
+=qmiU
+-----END PGP SIGNATURE-----
+
+--=-qIiZQ1wLbQ0vxd7Wo8QE--
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
