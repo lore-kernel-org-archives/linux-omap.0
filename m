@@ -1,17 +1,17 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 4/7] serial: 8250_omap: Fix PM regression with deferred
- probe for pm_runtime_reinit
-Date: Fri, 12 Feb 2016 13:52:09 +0100
-Message-ID: <CAPDyKFoO2pHhMBbZJgF8=wiqtxWe0vJyCnMyqfmH84P4cCBa6A@mail.gmail.com>
+Subject: Re: [PATCH 5/7] serial: omap: Fix PM regression with deferred probe
+ for pm_runtime_reinit
+Date: Fri, 12 Feb 2016 13:52:44 +0100
+Message-ID: <CAPDyKFoTWzoCypdEz5etghO+zt51n0wriXCRkGBgP3mM=8JSPA@mail.gmail.com>
 References: <1455145370-20301-1-git-send-email-tony@atomide.com>
-	<1455145370-20301-5-git-send-email-tony@atomide.com>
+	<1455145370-20301-6-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1455145370-20301-5-git-send-email-tony@atomide.com>
+In-Reply-To: <1455145370-20301-6-git-send-email-tony@atomide.com>
 Sender: linux-mmc-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
 On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
@@ -48,7 +48,6 @@ On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
 > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > Cc: Kevin Hilman <khilman@baylibre.com>
 > Cc: Nishanth Menon <nm@ti.com>
-> Cc: Peter Hurley <peter@hurleysoftware.com>
 > Cc: Rafael J. Wysocki <rafael@kernel.org>
 > Cc: Ulf Hansson <ulf.hansson@linaro.org>
 > Cc: Tero Kristo <t-kristo@ti.com>
@@ -59,38 +58,39 @@ Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 Kind regards
 Uffe
 
+
 > ---
 >
 > Greg & Peter, I'd like to merge this along with other related fixes
-> via the ARM SoC tree if no objections, please review and ack if this
-> look OK to you.
+> via the ARM SoC tree if no objections, please review and ack if
+> this look OK to you.
 >
 > ---
->  drivers/tty/serial/8250/8250_omap.c | 4 +++-
+>  drivers/tty/serial/omap-serial.c | 4 +++-
 >  1 file changed, 3 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-> index a2c0734..81ff337 100644
-> --- a/drivers/tty/serial/8250/8250_omap.c
-> +++ b/drivers/tty/serial/8250/8250_omap.c
-> @@ -1235,7 +1235,8 @@ static int omap8250_probe(struct platform_device *pdev)
->         pm_runtime_put_autosuspend(&pdev->dev);
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index b645f92..5c43f75 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -1708,7 +1708,8 @@ static int serial_omap_probe(struct platform_device *pdev)
 >         return 0;
->  err:
+>
+>  err_add_port:
 > -       pm_runtime_put(&pdev->dev);
 > +       pm_runtime_dont_use_autosuspend(&pdev->dev);
 > +       pm_runtime_put_sync(&pdev->dev);
 >         pm_runtime_disable(&pdev->dev);
->         return ret;
->  }
-> @@ -1244,6 +1245,7 @@ static int omap8250_remove(struct platform_device *pdev)
+>         pm_qos_remove_request(&up->pm_qos_request);
+>         device_init_wakeup(up->dev, false);
+> @@ -1721,6 +1722,7 @@ static int serial_omap_remove(struct platform_device *dev)
 >  {
->         struct omap8250_priv *priv = platform_get_drvdata(pdev);
+>         struct uart_omap_port *up = platform_get_drvdata(dev);
 >
-> +       pm_runtime_dont_use_autosuspend(&pdev->dev);
->         pm_runtime_put_sync(&pdev->dev);
->         pm_runtime_disable(&pdev->dev);
->         serial8250_unregister_port(priv->line);
+> +       pm_runtime_dont_use_autosuspend(up->dev);
+>         pm_runtime_put_sync(up->dev);
+>         pm_runtime_disable(up->dev);
+>         uart_remove_one_port(&serial_omap_reg, &up->port);
 > --
 > 2.7.0
 >
