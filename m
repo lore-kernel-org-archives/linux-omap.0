@@ -1,63 +1,79 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] arm: dts: AM57XX: Correct the thermal thresholds
-Date: Fri, 12 Feb 2016 14:41:29 -0800
-Message-ID: <20160212224129.GP19432@atomide.com>
-References: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
- <20160209220901.GC28102@localhost.localdomain>
- <56BA6530.4030102@ti.com>
- <20160212222347.GO19432@atomide.com>
- <CAGo_u6r8-LJBWWrew0fV50Q+JnCxDj9PD57+9NoDm5TqCWL=jw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes against v4.5-rc3
+Date: Fri, 12 Feb 2016 14:50:18 -0800
+Message-ID: <20160212225018.GA3500@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAGo_u6r8-LJBWWrew0fV50Q+JnCxDj9PD57+9NoDm5TqCWL=jw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Eduardo Valentin <edubezval-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160212 14:32]:
-> On Fri, Feb 12, 2016 at 4:23 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > * Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [160209 14:17]:
-> >> On 02/09/2016 04:09 PM, Eduardo Valentin wrote:
-> >> > On Mon, Feb 08, 2016 at 03:15:05PM +0530, Keerthy wrote:
-> >> >> The thermal threholds for am57xx are different from that of dra7.
-> >> >> Correcting the thresholds for the same.
-> >> >>
-> >> >> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> >> >> ---
-> >> >>
-> >> >> Depends on: https://lkml.org/lkml/2016/2/8/90
-> >> >>
-> >> >>  arch/arm/boot/dts/am57xx-beagle-x15.dts | 24 ++++++++++++++++++++++++
-> >> >>  1 file changed, 24 insertions(+)
-> >> >>
-> >> >> Index: linux/arch/arm/boot/dts/am57xx-beagle-x15.dts
-> >> >> ===================================================================
-> >> >> --- linux.orig/arch/arm/boot/dts/am57xx-beagle-x15.dts     2016-02-08 14:57:05.514959101 +0530
-> >> >> +++ linux/arch/arm/boot/dts/am57xx-beagle-x15.dts  2016-02-08 14:57:05.510959168 +0530
-> >> >
-> >> > Sorry, did not bother to check, but is this the only user of am57xx?
-> >>
-> >> we will have AM57xx-IDK as well coming down the line. we already have
-> >> arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-> >> arch/arm/boot/dts/am57xx-sbc-am57x.dts - not really sure what grade of
-> >> silicon are used in cl-SOM and sbc boards.
-> >
-> > Hmm can this one wait for v4.6 or is it critical for v4.5-rc
-> > cycle?
-> 
-> personally, I'd like to NAK this patch -> lack of reference
-> documentation, and guidance for various AM57xx boards in a generic
-> patch should probably be followed IMHO.
+The following changes since commit 388f7b1d6e8ca06762e2454d28d6c3c55ad0fe95:
 
-OK let's wait for that then.
+  Linux 4.5-rc3 (2016-02-07 15:38:30 -0800)
 
-Regards,
+are available in the git repository at:
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/fixes-rc3-v2
+
+for you to fetch changes up to cf26f1137333251f3515dea31f95775b99df0fd5:
+
+  ARM: OMAP2+: Fix omap_device for module reload on PM runtime forbid (2016-02-12 08:56:52 -0800)
+
+----------------------------------------------------------------
+Few fixes for omaps against v4.5-rc3:
+
+- Improve omap_device error message to tell driver writers what is
+  wrong after commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM
+  states at probe error and driver unbind"). There will be also a
+  handful of driver related fixes also queued separately. But adding
+  this error message makes it easy to fix any omap_device using
+  drivers suffering from this issue so I think it's important to
+  have.
+
+- Also related to commit 5de85b9d57ab discussion, let's fix a bug
+  where disabling PM runtime via sysfs will also cause the hardware
+  state to be different from PM runtime state.
+
+- Fix audio clocks for beagle-x15.
+
+- Use wakeup-source instead of gpio-key,wakeup for the new entries
+  that sneaked in during the merge window.
+
+- Fix a legacy booting vs device tree based booting regression for
+  n900 where the legacy user space expects to have the device
+  revision available in /proc/atags also when booted with device
+  tree.
+
+----------------------------------------------------------------
+Ivaylo Dimitrov (1):
+      ARM: OMAP2+: Set system_rev from ATAGS for n900
+
+Peter Ujfalusi (1):
+      ARM: DTS: am57xx-beagle-x15: Select SYS_CLK2 for audio clocks
+
+Sudeep Holla (1):
+      ARM: dts: am335x/am57xx: replace gpio-key,wakeup with wakeup-source property
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Improve omap_device error for driver writers
+      ARM: OMAP2+: Fix omap_device for module reload on PM runtime forbid
+
+ arch/arm/boot/dts/am335x-shc.dts          |  4 ++--
+ arch/arm/boot/dts/am57xx-beagle-x15.dts   |  4 ++++
+ arch/arm/boot/dts/am57xx-cl-som-am57x.dts |  2 +-
+ arch/arm/mach-omap2/board-generic.c       | 22 +++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_device.c         | 14 +++++++++++++-
+ 5 files changed, 41 insertions(+), 5 deletions(-)
