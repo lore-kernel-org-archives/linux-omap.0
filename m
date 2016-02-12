@@ -1,58 +1,96 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: dwc3: drop FIFO resizing logic
-Date: Fri, 12 Feb 2016 12:45:04 +0530
-Message-ID: <56BD8678.9030507@ti.com>
-References: <1454588282-14383-1-git-send-email-balbi@kernel.org>
- <56B4C8B0.9070909@ti.com> <87h9hgswjw.fsf@ti.com> <56BB0E2D.1030600@ti.com>
- <878u2sst5f.fsf@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 2/7] i2c: omap: Fix PM regression with deferred probe for pm_runtime_reinit
+Date: Fri, 12 Feb 2016 13:50:37 +0100
+Message-ID: <CAPDyKFqGAhWefDtFMPwYAv2m1J8tPPUNOdznRtAPVpTbwnAN1A@mail.gmail.com>
+References: <1455145370-20301-1-git-send-email-tony@atomide.com>
+	<1455145370-20301-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <878u2sst5f.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1455145370-20301-3-git-send-email-tony@atomide.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, Wolfram Sang <wsa@the-dreams.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-serial@vger.kernel.org, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
+> Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
+> error and driver unbind") introduced pm_runtime_reinit() that is used
+> to reinitialize PM runtime after -EPROBE_DEFER. This allows shutting
+> down the device after a failed probe.
+>
+> However, for drivers using pm_runtime_use_autosuspend() this can cause
+> a state where suspend callback is never called after -EPROBE_DEFER.
+> On the following device driver probe, hardware state is different from
+> the PM runtime state causing omap_device to produce the following
+> error:
+>
+> omap_device_enable() called from invalid state 1
+>
+> And with omap_device and omap hardware being picky for PM, this will
+> block any deeper idle states in hardware.
+>
+> The solution is to fix the drivers to follow the PM runtime documentation:
+>
+> 1. For sections of code that needs the device disabled, use
+>    pm_runtime_put_sync_suspend() if pm_runtime_set_autosuspend() has
+>    been set.
+>
+> 2. For driver exit code, use pm_runtime_dont_use_autosuspend() before
+>    pm_runtime_put_sync() if pm_runtime_use_autosuspend() has been
+>    set.
+>
+> Fixes: 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
+> error and driver unbind")
+> Cc: linux-i2c@vger.kernel.org
+> Cc: Alan Stern <stern@rowland.harvard.edu>
+> Cc: Kevin Hilman <khilman@baylibre.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Rafael J. Wysocki <rafael@kernel.org>
+> Cc: Ulf Hansson <ulf.hansson@linaro.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-On Wednesday 10 February 2016 04:56 PM, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> writes:
->>> Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> writes:
->>>> Hi Felipe,
->>>>
->>>> On Thursday 04 February 2016 05:48 PM, Felipe Balbi wrote:
->>>>> That FIFO resizing logic was added to support OMAP5
->>>>> ES1.0 which had a bogus default FIFO size. I can't
->>>>> remember the exact size of default FIFO, but it was
->>>>> less than one bulk superspeed packet (<1024) which
->>>>> would prevent USB3 from ever working on OMAP5 ES1.0.
->>>>>
->>>>> However, OMAP5 ES1.0 support has been dropped by
->>>>> commit aa2f4b16f830 ("ARM: OMAP5: id: Remove ES1.0
->>>>> support") which renders FIFO resizing unnecessary.
->>>>>
->>>>> Signed-off-by: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>>>
->>>> tested this series on both dra7-evm and dra72-evm using mass storage gadget and
->>>> msc.sh
->>>
->>> both HS and SS ?
->>
->> yes.. but the logs here were for only SS.
-> 
-> cool thanks. Did you notice any speed regression or is it all the same ?
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-the throughput was similar with or without this series. I'll run multiple times
-and check that again once I come back from my vacation.
+Kind regards
+Uffe
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>
+> Wolfram, I'd like to merge this along with other related fixes via
+> the ARM SoC tree if no objections, please review and ack if this
+> look OK to you.
+>
+>
+> ---
+>
+>  drivers/i2c/busses/i2c-omap.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 08d26ba..13c4529 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1450,7 +1450,8 @@ omap_i2c_probe(struct platform_device *pdev)
+>
+>  err_unuse_clocks:
+>         omap_i2c_write_reg(omap, OMAP_I2C_CON_REG, 0);
+> -       pm_runtime_put(omap->dev);
+> +       pm_runtime_dont_use_autosuspend(omap->dev);
+> +       pm_runtime_put_sync(omap->dev);
+>         pm_runtime_disable(&pdev->dev);
+>  err_free_mem:
+>
+> @@ -1468,6 +1469,7 @@ static int omap_i2c_remove(struct platform_device *pdev)
+>                 return ret;
+>
+>         omap_i2c_write_reg(omap, OMAP_I2C_CON_REG, 0);
+> +       pm_runtime_dont_use_autosuspend(&pdev->dev);
+>         pm_runtime_put_sync(&pdev->dev);
+>         pm_runtime_disable(&pdev->dev);
+>         return 0;
+> --
+> 2.7.0
+>
