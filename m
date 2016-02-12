@@ -1,17 +1,17 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 3/7] spi: omap2-mcspi: Fix PM regression with deferred
+Subject: Re: [PATCH 4/7] serial: 8250_omap: Fix PM regression with deferred
  probe for pm_runtime_reinit
-Date: Fri, 12 Feb 2016 13:51:18 +0100
-Message-ID: <CAPDyKFpatP1Kq4Dkw=m0eurP=7AJVRH2GjOHx0Cj56gYLOjVDQ@mail.gmail.com>
+Date: Fri, 12 Feb 2016 13:52:09 +0100
+Message-ID: <CAPDyKFoO2pHhMBbZJgF8=wiqtxWe0vJyCnMyqfmH84P4cCBa6A@mail.gmail.com>
 References: <1455145370-20301-1-git-send-email-tony@atomide.com>
-	<1455145370-20301-4-git-send-email-tony@atomide.com>
+	<1455145370-20301-5-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1455145370-20301-4-git-send-email-tony@atomide.com>
+In-Reply-To: <1455145370-20301-5-git-send-email-tony@atomide.com>
 Sender: linux-mmc-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@baylibre.com>, Mark Brown <broonie@kernel.org>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, linux-serial@vger.kernel.org, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, Peter Hurley <peter@hurleysoftware.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
 On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
@@ -43,11 +43,12 @@ On 11 February 2016 at 00:02, Tony Lindgren <tony@atomide.com> wrote:
 >
 > Fixes: 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe
 > error and driver unbind")
-> Cc: linux-spi@vger.kernel.org
+> Cc: linux-serial@vger.kernel.org
 > Cc: Alan Stern <stern@rowland.harvard.edu>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > Cc: Kevin Hilman <khilman@baylibre.com>
-> Cc: Mark Brown <broonie@kernel.org>
 > Cc: Nishanth Menon <nm@ti.com>
+> Cc: Peter Hurley <peter@hurleysoftware.com>
 > Cc: Rafael J. Wysocki <rafael@kernel.org>
 > Cc: Ulf Hansson <ulf.hansson@linaro.org>
 > Cc: Tero Kristo <t-kristo@ti.com>
@@ -60,36 +61,36 @@ Uffe
 
 > ---
 >
-> Mark, I'd like to merge this along with other related fixes via
-> the ARM SoC tree if no objections, please review and ack if this
+> Greg & Peter, I'd like to merge this along with other related fixes
+> via the ARM SoC tree if no objections, please review and ack if this
 > look OK to you.
 >
->
 > ---
->  drivers/spi/spi-omap2-mcspi.c | 3 +++
->  1 file changed, 3 insertions(+)
+>  drivers/tty/serial/8250/8250_omap.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 7273820..0caa3c8 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -1490,6 +1490,8 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
->         return status;
->
->  disable_pm:
+> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> index a2c0734..81ff337 100644
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -1235,7 +1235,8 @@ static int omap8250_probe(struct platform_device *pdev)
+>         pm_runtime_put_autosuspend(&pdev->dev);
+>         return 0;
+>  err:
+> -       pm_runtime_put(&pdev->dev);
 > +       pm_runtime_dont_use_autosuspend(&pdev->dev);
 > +       pm_runtime_put_sync(&pdev->dev);
 >         pm_runtime_disable(&pdev->dev);
->  free_master:
->         spi_master_put(master);
-> @@ -1501,6 +1503,7 @@ static int omap2_mcspi_remove(struct platform_device *pdev)
->         struct spi_master *master = platform_get_drvdata(pdev);
->         struct omap2_mcspi *mcspi = spi_master_get_devdata(master);
+>         return ret;
+>  }
+> @@ -1244,6 +1245,7 @@ static int omap8250_remove(struct platform_device *pdev)
+>  {
+>         struct omap8250_priv *priv = platform_get_drvdata(pdev);
 >
-> +       pm_runtime_dont_use_autosuspend(mcspi->dev);
->         pm_runtime_put_sync(mcspi->dev);
+> +       pm_runtime_dont_use_autosuspend(&pdev->dev);
+>         pm_runtime_put_sync(&pdev->dev);
 >         pm_runtime_disable(&pdev->dev);
->
+>         serial8250_unregister_port(priv->line);
 > --
 > 2.7.0
 >
