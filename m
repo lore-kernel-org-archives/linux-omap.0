@@ -1,12 +1,12 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: GPIO regression in Linux next caused by syscon change
-Date: Fri, 12 Feb 2016 16:26:43 -0800
-Message-ID: <20160213002643.GQ19432@atomide.com>
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: [PATCH] drivers: net: cpsw-phy-sel: add dev_warn() for unsupported
+ PHY mode
+Date: Fri, 12 Feb 2016 19:45:36 -0500
+Message-ID: <1455324336-3884-1-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,56 +16,65 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Philipp Zabel <p.zabel@pengutronix.de>, Arnd Bergmann <arnd@arndb.de>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: netdev@vger.kernel.org
+Cc: Nicolas Chauvet <kwizart@gmail.com>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: David Rivshin <drivshin@allworx.com>
 
-Looks like commit effe02710335 ("mfd: syscon: Set regmap max_register
-in of_syscon_register") somehow breaks smsc911x GPIO interrupt for
-me at least on omap3:
+The cpsw-phy-sel driver supports only MII, RMII, and RGMII PHY modes,
+and silently handled any other values as if MII was specified. In a
+case where the PHY mode was incorrectly specified, or a bug elsewhere,
+there would be no indication of a problem. If MII was the correct mode,
+then this will go unnoticed, otherwise the symptom will be a failure
+to transmit/receive data over the RMII/RGMII link.
 
-irq 241: nobody cared (try booting with the "irqpoll" option)
-CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.5.0-rc3-next-20160212 #864
-Hardware name: Generic OMAP36xx (Flattened Device Tree)
-[<c010fd44>] (unwind_backtrace) from [<c010c094>] (show_stack+0x10/0x14)
-[<c010c094>] (show_stack) from [<c045f24c>] (dump_stack+0xb0/0xe4)
-[<c045f24c>] (dump_stack) from [<c01998e8>] (__report_bad_irq+0x24/0xc0)
-[<c01998e8>] (__report_bad_irq) from [<c0199ce4>] (note_interrupt+0x27c/0x2dc)
-[<c0199ce4>] (note_interrupt) from [<c0197220>] (handle_irq_event_percpu+0x184/0x200)
-[<c0197220>] (handle_irq_event_percpu) from [<c01972d4>] (handle_irq_event+0x38/0x5c)
-[<c01972d4>] (handle_irq_event) from [<c019a3d8>] (handle_level_irq+0xc0/0x154)
-[<c019a3d8>] (handle_level_irq) from [<c0196784>] (generic_handle_irq+0x20/0x34)
-[<c0196784>] (generic_handle_irq) from [<c049b690>] (omap_gpio_irq_handler+0x120/0x160)
-[<c049b690>] (omap_gpio_irq_handler) from [<c01970f0>] (handle_irq_event_percpu+0x54/0x200)
-[<c01970f0>] (handle_irq_event_percpu) from [<c01972d4>] (handle_irq_event+0x38/0x5c)
-[<c01972d4>] (handle_irq_event) from [<c019a3d8>] (handle_level_irq+0xc0/0x154)
-[<c019a3d8>] (handle_level_irq) from [<c0196784>] (generic_handle_irq+0x20/0x34)
-[<c0196784>] (generic_handle_irq) from [<c0196a78>] (__handle_domain_irq+0x64/0xe0)
-[<c0196a78>] (__handle_domain_irq) from [<c076f038>] (__irq_svc+0x58/0x78)
-[<c076f038>] (__irq_svc) from [<c076e93c>] (_raw_spin_unlock_irqrestore+0x34/0x44)
-[<c076e93c>] (_raw_spin_unlock_irqrestore) from [<c019900c>] (__setup_irq+0x40c/0x5e0)
-[<c019900c>] (__setup_irq) from [<c0199330>] (request_threaded_irq+0xc0/0x158)
-[<c0199330>] (request_threaded_irq) from [<c05a4038>] (smsc911x_drv_probe+0x588/0xfec)
-[<c05a4038>] (smsc911x_drv_probe) from [<c04fc1b4>] (platform_drv_probe+0x4c/0xb0)
-[<c04fc1b4>] (platform_drv_probe) from [<c04fa89c>] (driver_probe_device+0x208/0x2c0)
-[<c04fa89c>] (driver_probe_device) from [<c04fa9e8>] (__driver_attach+0x94/0x98)
-[<c04fa9e8>] (__driver_attach) from [<c04f8bc4>] (bus_for_each_dev+0x6c/0xa0)
-[<c04f8bc4>] (bus_for_each_dev) from [<c04f9d28>] (bus_add_driver+0x18c/0x214)
-[<c04f9d28>] (bus_add_driver) from [<c04fb22c>] (driver_register+0x78/0xf8)
-[<c04fb22c>] (driver_register) from [<c010180c>] (do_one_initcall+0x80/0x1dc)
-[<c010180c>] (do_one_initcall) from [<c0b00ef0>] (kernel_init_freeable+0x218/0x2ec)
-[<c0b00ef0>] (kernel_init_freeable) from [<c0768360>] (kernel_init+0x8/0xf4)
-[<c0768360>] (kernel_init) from [<c01078d0>] (ret_from_fork+0x14/0x24)
-handlers:
-[<c05a26d8>] smsc911x_irqhandler
-Disabling IRQ #241
-libphy: smsc911x-mdio: probed
+Add a dev_warn() to make this condition obvious and provide a
+breadcrumb to follow.
 
-I'm not seeing the connection between regmap and  GPIO, so no
-idea what goes wrong here.
+Cc: Mugunthan V N <mugunthanvnm@ti.com>
+Signed-off-by: David Rivshin <drivshin@allworx.com>
+---
 
-Regards,
+Dave,
+ I'm not sure if you'd consider this net or net-next material, but it will
+apply cleanly to either. Indeed, if you want it for -stable, it applies back
+as far as 3.18.
 
-Tony
+ drivers/net/ethernet/ti/cpsw-phy-sel.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
+index e9cc61e..c3e85ac 100644
+--- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
++++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
+@@ -63,8 +63,12 @@ static void cpsw_gmii_sel_am3352(struct cpsw_phy_sel_priv *priv,
+ 		mode = AM33XX_GMII_SEL_MODE_RGMII;
+ 		break;
+ 
+-	case PHY_INTERFACE_MODE_MII:
+ 	default:
++		dev_warn(priv->dev,
++			 "Unsupported PHY mode: \"%s\". Defaulting to MII.\n",
++			phy_modes(phy_mode));
++		/* fallthrough */
++	case PHY_INTERFACE_MODE_MII:
+ 		mode = AM33XX_GMII_SEL_MODE_MII;
+ 		break;
+ 	};
+@@ -106,8 +110,12 @@ static void cpsw_gmii_sel_dra7xx(struct cpsw_phy_sel_priv *priv,
+ 		mode = AM33XX_GMII_SEL_MODE_RGMII;
+ 		break;
+ 
+-	case PHY_INTERFACE_MODE_MII:
+ 	default:
++		dev_warn(priv->dev,
++			 "Unsupported PHY mode: \"%s\". Defaulting to MII.\n",
++			phy_modes(phy_mode));
++		/* fallthrough */
++	case PHY_INTERFACE_MODE_MII:
+ 		mode = AM33XX_GMII_SEL_MODE_MII;
+ 		break;
+ 	};
+-- 
+2.5.0
