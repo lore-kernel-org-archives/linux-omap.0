@@ -1,34 +1,48 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 0/3] OMAP/pinmux: remove misuse of IRQF_NO_SUSPEND flag
-Date: Sat, 13 Feb 2016 15:42:20 +0100
-Message-ID: <CACRpkdYzJ9Hy0sH6gK6RzpLE6juS4WfPjbt7nh43vR9YTuGZWA@mail.gmail.com>
-References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+Subject: [PATCH] MAINTAINERS: Add co-maintainer for remoteproc subsystems
+Date: Sat, 13 Feb 2016 17:35:19 -0800
+Message-ID: <1455413719-22412-1-git-send-email-bjorn.andersson@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 1, 2016 at 7:28 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+Add myself as co-maintainer for the remote processor related subsystems,
+as agreed with Ohad.
 
->   pinctrl: single: Use a separate lockdep class
->   pinctrl: single: remove misuse of IRQF_NO_SUSPEND flag
->   ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
->
->  arch/arm/mach-omap2/mux.c        |  4 ++--
->  arch/arm/mach-omap2/pm34xx.c     |  9 ++++-----
->  arch/arm/mach-omap2/prm_common.c |  1 +
->  drivers/pinctrl/pinctrl-single.c | 15 ++++++++++++---
+Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+---
+ MAINTAINERS | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Are these patches orthogonal so I can merge the pinctrl patch independently
-of the OMAP patches if Tony ACKs this?
-
-If not: should it be merged by me or through ARM SoC/Tony?
-
-Anyways waiting for maintainer feedback, but the above is good to know.
-
-Yours,
-Linus Walleij
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4ebe2e886d36..f51056b02fcd 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4989,6 +4989,7 @@ F:	include/linux/hw_random.h
+ 
+ HARDWARE SPINLOCK CORE
+ M:	Ohad Ben-Cohen <ohad@wizery.com>
++M:	Bjorn Andersson <bjorn.andersson@linaro.org>
+ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
+ F:	Documentation/hwspinlock.txt
+@@ -9170,6 +9171,7 @@ F:	include/linux/regmap.h
+ 
+ REMOTE PROCESSOR (REMOTEPROC) SUBSYSTEM
+ M:	Ohad Ben-Cohen <ohad@wizery.com>
++M:	Bjorn Andersson <bjorn.andersson@linaro.org>
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
+ S:	Maintained
+ F:	drivers/remoteproc/
+@@ -9178,6 +9180,7 @@ F:	include/linux/remoteproc.h
+ 
+ REMOTE PROCESSOR MESSAGING (RPMSG) SUBSYSTEM
+ M:	Ohad Ben-Cohen <ohad@wizery.com>
++M:	Bjorn Andersson <bjorn.andersson@linaro.org>
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
+ S:	Maintained
+ F:	drivers/rpmsg/
+-- 
+2.5.0
