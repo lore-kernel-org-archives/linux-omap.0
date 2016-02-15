@@ -1,59 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] OMAP/pinmux: remove misuse of IRQF_NO_SUSPEND flag
-Date: Mon, 15 Feb 2016 07:27:52 -0800
-Message-ID: <20160215152751.GT19432@atomide.com>
-References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
- <CACRpkdYzJ9Hy0sH6gK6RzpLE6juS4WfPjbt7nh43vR9YTuGZWA@mail.gmail.com>
- <56C1A1FE.3080403@arm.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] arm: dts: AM57XX: Correct the thermal thresholds
+Date: Mon, 15 Feb 2016 09:49:53 -0600
+Message-ID: <56C1F3A1.4080709@ti.com>
+References: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
+ <20160209220901.GC28102@localhost.localdomain> <56BA6530.4030102@ti.com>
+ <20160212222347.GO19432@atomide.com>
+ <CAGo_u6r8-LJBWWrew0fV50Q+JnCxDj9PD57+9NoDm5TqCWL=jw@mail.gmail.com>
+ <20160212224129.GP19432@atomide.com> <56C153A3.3030508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56C1A1FE.3080403@arm.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56C153A3.3030508@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <a0393675@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kumar Gala <galak@codeaurora.org>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Sudeep Holla <sudeep.holla@arm.com> [160215 02:03]:
-> Hi Linus,
+On 02/14/2016 10:27 PM, Keerthy wrote:
 > 
-> On 13/02/16 14:42, Linus Walleij wrote:
-> >On Mon, Feb 1, 2016 at 7:28 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> >
-> >>   pinctrl: single: Use a separate lockdep class
-> >>   pinctrl: single: remove misuse of IRQF_NO_SUSPEND flag
-> >>   ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
-> >>
-> >>  arch/arm/mach-omap2/mux.c        |  4 ++--
-> >>  arch/arm/mach-omap2/pm34xx.c     |  9 ++++-----
-> >>  arch/arm/mach-omap2/prm_common.c |  1 +
-> >>  drivers/pinctrl/pinctrl-single.c | 15 ++++++++++++---
-> >
-> >Are these patches orthogonal so I can merge the pinctrl patch independently
-> >of the OMAP patches if Tony ACKs this?
-> >
 > 
-> Thanks for the follow up.
-> IIUC they are dependent and remember Tony/Grygorii wanted them to be
-> merged together(at-least for bisectibility)
+> On Saturday 13 February 2016 04:11 AM, Tony Lindgren wrote:
+>> * Nishanth Menon <nm@ti.com> [160212 14:32]:
+>>> On Fri, Feb 12, 2016 at 4:23 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>>> * Nishanth Menon <nm@ti.com> [160209 14:17]:
+>>>>> On 02/09/2016 04:09 PM, Eduardo Valentin wrote:
+>>>>>> On Mon, Feb 08, 2016 at 03:15:05PM +0530, Keerthy wrote:
+>>>>>>> The thermal threholds for am57xx are different from that of dra7.
+>>>>>>> Correcting the thresholds for the same.
+>>>>>>>
+>>>>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>>>>>> ---
+>>>>>>>
+>>>>>>> Depends on: https://lkml.org/lkml/2016/2/8/90
+>>>>>>>
+>>>>>>>   arch/arm/boot/dts/am57xx-beagle-x15.dts | 24 ++++++++++++++++++++++++
+>>>>>>>   1 file changed, 24 insertions(+)
+>>>>>>>
+>>>>>>> Index: linux/arch/arm/boot/dts/am57xx-beagle-x15.dts
+>>>>>>> ===================================================================
+>>>>>>> --- linux.orig/arch/arm/boot/dts/am57xx-beagle-x15.dts     2016-02-08 14:57:05.514959101 +0530
+>>>>>>> +++ linux/arch/arm/boot/dts/am57xx-beagle-x15.dts  2016-02-08 14:57:05.510959168 +0530
+>>>>>>
+>>>>>> Sorry, did not bother to check, but is this the only user of am57xx?
+>>>>>
+>>>>> we will have AM57xx-IDK as well coming down the line. we already have
+>>>>> arch/arm/boot/dts/am57xx-cl-som-am57x.dts
+>>>>> arch/arm/boot/dts/am57xx-sbc-am57x.dts - not really sure what grade of
+>>>>> silicon are used in cl-SOM and sbc boards.
+>>>>
+>>>> Hmm can this one wait for v4.6 or is it critical for v4.5-rc
+>>>> cycle?
+>>>
+>>> personally, I'd like to NAK this patch -> lack of reference
+>>> documentation, and guidance for various AM57xx boards in a generic
+>>> patch should probably be followed IMHO.
+>>
+>> OK let's wait for that then.
+> 
+> OK. I will send a v2 with better documentation.
 
-AFAIK this series needs to be kept together to keep things
-working.
 
-> >If not: should it be merged by me or through ARM SoC/Tony?
-> >
-> 
-> I think so.
-> 
-> >Anyways waiting for maintainer feedback, but the above is good to know.
-> >
-> 
-> Grygorii was still not sure if this works and he couldn't give it a
-> test. He was traveling and may need more time to get back on this.
 
-He said it does not work so clearly more work is needed.
+This data is in the AM572x datasheet:
+http://www.ti.com/lit/ds/symlink/am5728.pdf
 
+Table 5-3 in the current version contains the maximum junction
+temperatures.
+
+this indicates that there are "Commercial" and "extended" -> we may
+need to introduce just 2 dtsis -> am57xx-commercial and
+am57xx-extended and reuse those based on the part on the board. just a
+suggestion..
+
+
+-- 
 Regards,
-
-Tony
+Nishanth Menon
