@@ -1,58 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: GPIO regression in Linux next caused by syscon change
-Date: Mon, 15 Feb 2016 08:47:57 -0800
-Message-ID: <20160215164757.GV19432@atomide.com>
-References: <20160213002643.GQ19432@atomide.com>
- <20160213004935.GR19432@atomide.com>
- <CA+gwMccZeYimupmGsMX8YbNH9eEA6=Xi=rupciubBwzktfjvBA@mail.gmail.com>
- <20160215160115.GU19432@atomide.com>
- <1455552961.4899.37.camel@pengutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] arm: dts: AM57XX: Correct the thermal thresholds
+Date: Mon, 15 Feb 2016 11:25:38 -0600
+Message-ID: <56C20A12.8080305@ti.com>
+References: <1454924705-8382-1-git-send-email-j-keerthy@ti.com>
+ <20160209220901.GC28102@localhost.localdomain> <56BA6530.4030102@ti.com>
+ <20160212222347.GO19432@atomide.com>
+ <CAGo_u6r8-LJBWWrew0fV50Q+JnCxDj9PD57+9NoDm5TqCWL=jw@mail.gmail.com>
+ <20160212224129.GP19432@atomide.com> <56C153A3.3030508@ti.com>
+ <56C1F3A1.4080709@ti.com> <56C1F92A.1020803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1455552961.4899.37.camel@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tero Kristo <t-kristo@ti.com>, Philipp Zabel <philipp.zabel@gmail.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56C1F92A.1020803@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <a0393675@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, Dmitry Lifshitz <lifshitz@compulab.co.il>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kumar Gala <galak@codeaurora.org>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Philipp Zabel <p.zabel@pengutronix.de> [160215 08:17]:
-> Am Montag, den 15.02.2016, 08:01 -0800 schrieb Tony Lindgren:
-> > * Philipp Zabel <philipp.zabel@gmail.com> [160214 11:24]:
-> > > I've just replaced the of_iomap() call with an open coded version,
-> > > calling of_address_to_resource() and ioremap() directly. That was
-> > > needed so I can use the struct resource returned by
-> > > of_address_to_resource() to set the syscon_config.max_register. I
-> > > don't see where this could cause resource overlap. Does just setting
-> > > syscon_config.max_register to zero again make the problem disappear?
-> > 
-> > Yes commenting out the syscon_config.max_register line in your patch
-> > makes things work again.
-> > 
-> > So what does that tell us about the problem?
+On 02/15/2016 10:13 AM, Keerthy wrote:
+[...]
+>>
+>> This data is in the AM572x datasheet:
+>> http://www.ti.com/lit/ds/symlink/am5728.pdf
+>>
+>> Table 5-3 in the current version contains the maximum junction
+>> temperatures.
+>>
+>> this indicates that there are "Commercial" and "extended" -> we may
+>> need to introduce just 2 dtsis -> am57xx-commercial and
+>> am57xx-extended and reuse those based on the part on the board. just a
+>> suggestion..
 > 
-> Maybe some out of bounds writes that previously worked are now catched
-> by the max_register check in regmap_writable and regmap_write returns
-> -EIO instead of the write being executed.
+> Or use the minimum of the 2 to be on the safer side if we have to deal 
+> with one dtsi?
 
-Hmm weird that something like that would not produce errors?
+Why would we want to throttle earlier on customer platforms or other
+boards using extended? at the very least -> if all upstream boards
+have only commercial grade, then just introduce
+am57xx-commercial-thermal.dtsi ..
 
-> Is there any omap_ctrl_write?() call with an offset > 0x32c into
-> scm_conf?
 
-Indeed, that's where things go wrong. Adding Tero to Cc, something
-is wrong there.
-
+-- 
 Regards,
-
-Tony
+Nishanth Menon
