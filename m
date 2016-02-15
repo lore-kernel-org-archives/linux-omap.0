@@ -1,138 +1,118 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: GPIO regression in Linux next caused by syscon change
-Date: Mon, 15 Feb 2016 10:06:36 -0800
-Message-ID: <20160215180635.GW19432@atomide.com>
-References: <20160213002643.GQ19432@atomide.com>
- <20160213004935.GR19432@atomide.com>
- <CA+gwMccZeYimupmGsMX8YbNH9eEA6=Xi=rupciubBwzktfjvBA@mail.gmail.com>
- <20160215160115.GU19432@atomide.com>
- <1455552961.4899.37.camel@pengutronix.de>
- <20160215164757.GV19432@atomide.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: [PATCH 1/4] pwm: omap-dmtimer: fix inaccurate period/duty_cycle calculation
+Date: Mon, 15 Feb 2016 14:24:17 -0600
+Message-ID: <CAHCN7xKfn_o_EmQb3zG5-d3P9vxyLp=MX_R7ATT6pzMrS1cJDQ@mail.gmail.com>
+References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
+	<1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
+	<56B1D52F.70907@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160215164757.GV19432@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tero Kristo <t-kristo@ti.com>, Philipp Zabel <philipp.zabel@gmail.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <56B1D52F.70907@baylibre.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Neil Armstrong <narmstrong@baylibre.com>
+Cc: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, linux-pwm@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [160215 08:49]:
-> * Philipp Zabel <p.zabel@pengutronix.de> [160215 08:17]:
-> > Am Montag, den 15.02.2016, 08:01 -0800 schrieb Tony Lindgren:
-> > > * Philipp Zabel <philipp.zabel@gmail.com> [160214 11:24]:
-> > > > I've just replaced the of_iomap() call with an open coded version,
-> > > > calling of_address_to_resource() and ioremap() directly. That was
-> > > > needed so I can use the struct resource returned by
-> > > > of_address_to_resource() to set the syscon_config.max_register. I
-> > > > don't see where this could cause resource overlap. Does just setting
-> > > > syscon_config.max_register to zero again make the problem disappear?
-> > > 
-> > > Yes commenting out the syscon_config.max_register line in your patch
-> > > makes things work again.
-> > > 
-> > > So what does that tell us about the problem?
-> > 
-> > Maybe some out of bounds writes that previously worked are now catched
-> > by the max_register check in regmap_writable and regmap_write returns
-> > -EIO instead of the write being executed.
-> 
-> Hmm weird that something like that would not produce errors?
-> 
-> > Is there any omap_ctrl_write?() call with an offset > 0x32c into
-> > scm_conf?
-> 
-> Indeed, that's where things go wrong. Adding Tero to Cc, something
-> is wrong there.
+I tested this on a DM3730, Timer 10
 
-Something like this might fix it? Needs to be tested to see if it
-happens on other omaps.
+Tested-by: Adam Ford <aford173@gmail.com>
 
-Tero, got any better ideas?
-
-Regards,
-
-Tony
-
-8< -------------------
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -167,15 +167,23 @@ u16 omap_ctrl_readw(u16 offset)
- u32 omap_ctrl_readl(u16 offset)
- {
- 	u32 val;
-+	int err;
- 
- 	offset &= 0xfffc;
--	if (!omap2_ctrl_syscon)
--		val = readl_relaxed(omap2_ctrl_base + offset);
--	else
--		regmap_read(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
--			    &val);
-+	if (omap2_ctrl_syscon) {
-+		err = regmap_read(omap2_ctrl_syscon,
-+				  omap2_ctrl_offset + offset, &val);
-+		if (!err)
-+			return val;
-+	}
-+
-+	if (WARN(!omap2_ctrl_base,
-+		 "syscon out of range for offset 0x%x, no omap2_ctrl_base?\n",
-+		    offset)) {
-+		return 0;
-+	}
- 
--	return val;
-+	return readl_relaxed(omap2_ctrl_base + offset);
- }
- 
- void omap_ctrl_writeb(u8 val, u16 offset)
-@@ -206,12 +214,23 @@ void omap_ctrl_writew(u16 val, u16 offset)
- 
- void omap_ctrl_writel(u32 val, u16 offset)
- {
-+	int err;
-+
- 	offset &= 0xfffc;
--	if (!omap2_ctrl_syscon)
--		writel_relaxed(val, omap2_ctrl_base + offset);
--	else
--		regmap_write(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
--			     val);
-+	if (omap2_ctrl_syscon) {
-+		err = regmap_write(omap2_ctrl_syscon,
-+				   omap2_ctrl_offset + offset, val);
-+		if (!err)
-+			return;
-+	}
-+
-+	if (WARN(!omap2_ctrl_base,
-+		 "syscon out of range for offset 0x%x, no omap2_ctrl_base?\n",
-+		    offset)) {
-+		return;
-+	}
-+
-+	writel_relaxed(val, omap2_ctrl_base + offset);
- }
- 
- #ifdef CONFIG_ARCH_OMAP3
-@@ -724,9 +743,6 @@ int __init omap_control_init(void)
- 				if (ret)
- 					return ret;
- 			}
--
--			iounmap(omap2_ctrl_base);
--			omap2_ctrl_base = NULL;
- 		} else {
- 			/* No scm_conf found, direct access */
- 			ret = omap2_clk_provider_init(np, data->index, NULL,
+On Wed, Feb 3, 2016 at 4:23 AM, Neil Armstrong <narmstrong@baylibre.com> wrote:
+> On 01/30/2016 05:26 AM, David Rivshin (Allworx) wrote:
+>> From: David Rivshin <drivshin@allworx.com>
+>>
+>> Fix the calculation of load_value and match_value. Currently they
+>> are slightly too low, which produces a noticeably wrong PWM rate with
+>> sufficiently short periods (i.e. when 1/period approaches clk_rate/2).
+>>
+>> Example:
+>>  clk_rate=32768Hz, period=122070ns, duty_cycle=61035ns (8192Hz/50% PWM)
+>>  Correct values: load = 0xfffffffc, match = 0xfffffffd
+>>  Current values: load = 0xfffffffa, match = 0xfffffffc
+>>  effective PWM: period=183105ns, duty_cycle=91553ns (5461Hz/50% PWM)
+>>
+>> Fixes: 6604c6556db9 ("pwm: Add PWM driver for OMAP using dual-mode timers")
+>> Signed-off-by: David Rivshin <drivshin@allworx.com>
+>
+> OK for me.
+>
+> Acked-by: Neil Armstrong <narmstrong@baylibre.com>
+>
+> Thanks !
+>
+>> ---
+>>  drivers/pwm/pwm-omap-dmtimer.c | 27 ++++++++++++++++++++-------
+>>  1 file changed, 20 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+>> index 826634e..0083e75 100644
+>> --- a/drivers/pwm/pwm-omap-dmtimer.c
+>> +++ b/drivers/pwm/pwm-omap-dmtimer.c
+>> @@ -31,6 +31,7 @@
+>>  #include <linux/time.h>
+>>
+>>  #define DM_TIMER_LOAD_MIN 0xfffffffe
+>> +#define DM_TIMER_MAX      0xffffffff
+>>
+>>  struct pwm_omap_dmtimer_chip {
+>>       struct pwm_chip chip;
+>> @@ -46,13 +47,13 @@ to_pwm_omap_dmtimer_chip(struct pwm_chip *chip)
+>>       return container_of(chip, struct pwm_omap_dmtimer_chip, chip);
+>>  }
+>>
+>> -static int pwm_omap_dmtimer_calc_value(unsigned long clk_rate, int ns)
+>> +static u32 pwm_omap_dmtimer_get_clock_cycles(unsigned long clk_rate, int ns)
+>>  {
+>>       u64 c = (u64)clk_rate * ns;
+>>
+>>       do_div(c, NSEC_PER_SEC);
+>>
+>> -     return DM_TIMER_LOAD_MIN - c;
+>> +     return c;
+>>  }
+>>
+>>  static void pwm_omap_dmtimer_start(struct pwm_omap_dmtimer_chip *omap)
+>> @@ -99,7 +100,8 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
+>>                                  int duty_ns, int period_ns)
+>>  {
+>>       struct pwm_omap_dmtimer_chip *omap = to_pwm_omap_dmtimer_chip(chip);
+>> -     int load_value, match_value;
+>> +     u32 period_cycles, duty_cycles;
+>> +     u32 load_value, match_value;
+>>       struct clk *fclk;
+>>       unsigned long clk_rate;
+>>       bool timer_active;
+>> @@ -133,11 +135,22 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
+>>       /*
+>>        * Calculate the appropriate load and match values based on the
+>>        * specified period and duty cycle. The load value determines the
+>> -      * cycle time and the match value determines the duty cycle.
+>> +      * period time and the match value determines the duty time.
+>> +      *
+>> +      * The period lasts for (DM_TIMER_MAX-load_value+1) clock cycles.
+>> +      * Similarly, the active time lasts (match_value-load_value+1) cycles.
+>> +      * The non-active time is the remainder: (DM_TIMER_MAX-match_value)
+>> +      * clock cycles.
+>> +      *
+>> +      * References:
+>> +      *   OMAP4430/60/70 TRM sections 22.2.4.10 and 22.2.4.11
+>> +      *   AM335x Sitara TRM sections 20.1.3.5 and 20.1.3.6
+>>        */
+>> -     load_value = pwm_omap_dmtimer_calc_value(clk_rate, period_ns);
+>> -     match_value = pwm_omap_dmtimer_calc_value(clk_rate,
+>> -                                               period_ns - duty_ns);
+>> +     period_cycles = pwm_omap_dmtimer_get_clock_cycles(clk_rate, period_ns);
+>> +     duty_cycles = pwm_omap_dmtimer_get_clock_cycles(clk_rate, duty_ns);
+>> +
+>> +     load_value = (DM_TIMER_MAX - period_cycles) + 1;
+>> +     match_value = load_value + duty_cycles - 1;
+>>
+>>       /*
+>>        * We MUST stop the associated dual-mode timer before attempting to
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
