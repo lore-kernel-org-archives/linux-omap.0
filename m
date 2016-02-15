@@ -1,118 +1,72 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCH 1/4] pwm: omap-dmtimer: fix inaccurate period/duty_cycle calculation
-Date: Mon, 15 Feb 2016 14:24:17 -0600
-Message-ID: <CAHCN7xKfn_o_EmQb3zG5-d3P9vxyLp=MX_R7ATT6pzMrS1cJDQ@mail.gmail.com>
-References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
-	<1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
-	<56B1D52F.70907@baylibre.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] clk: ti: omap3+: dpll: use non-locking version of
+ clk_get_rate
+Date: Mon, 15 Feb 2016 13:31:54 -0800
+Message-ID: <20160215213153.GC19432@atomide.com>
+References: <1453981067-8618-1-git-send-email-t-kristo@ti.com>
+ <56A9FED1.3090903@ti.com>
+ <20160128172215.GD19432@atomide.com>
+ <56AA6261.7030503@ti.com>
+ <20160128190026.GI19432@atomide.com>
+ <56AA6775.5090302@ti.com>
+ <20160128191949.GK19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <56B1D52F.70907@baylibre.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, linux-pwm@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160128191949.GK19432@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, mturquette@baylibre.com, sboyd@codeaurora.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-I tested this on a DM3730, Timer 10
+* Tony Lindgren <tony@atomide.com> [160128 11:20]:
+> * Tero Kristo <t-kristo@ti.com> [160128 11:10]:
+> > On 01/28/2016 09:00 PM, Tony Lindgren wrote:
+> > >* Tero Kristo <t-kristo@ti.com> [160128 10:48]:
+> > >>On 01/28/2016 07:22 PM, Tony Lindgren wrote:
+> > >>>* Tero Kristo <t-kristo@ti.com> [160128 03:44]:
+> > >>>>On 01/28/2016 01:37 PM, Tero Kristo wrote:
+> > >>>>>As the code in this file is being executed within irq context in some
+> > >>>>>cases, we must avoid the clk_get_rate which uses mutex internally.
+> > >>>>>Switch the code to use clk_hw_get_rate instead which is non-locking.
+> > >>>>>
+> > >>>>>Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > >>>>
+> > >>>>Ooops, sorry. Sent wrong version (read: old) of this patch, please ignore
+> > >>>>this one. Will re-send the correct version in a bit.
+> > >>>
+> > >>>I think this is still needed as a fix for -rc cycle with cc: stable
+> > >>>as otherwise we have omap4 and 5 hang if PM runtime is enabled before
+> > >>>a suspend/resume cycle?
+> > >>
+> > >>Look at the other patch I sent, it should accomplish the same thing, and
+> > >>more.
+> > >>
+> > >>https://www.spinics.net/lists/linux-clk/msg06094.html
+> > >
+> > >Right.. But is that suitable for the -rc cycle with cc stable?
+> > 
+> > Hmm yea, thats a good question, we may need to resurrect this patch after
+> > all.
+> 
+> Yes a minimal fix first with cc stable, then the rest of the changes
+> can be done for v4.6?
+> 
+> > >You should also describe the bug it causes in the change log.
+> > >Something like:
+> > >
+> > >This fixes an issue where PM runtime will hang the system if
+> > >enabled with a serial console before a suspend-resume cycle.
+> > 
+> > Yea I can add this to the desc if we want to keep this version of the patch.
+> 
+> Yes please. It seems the fix should be cc stable for several merge
+> windows.
 
-Tested-by: Adam Ford <aford173@gmail.com>
+Tero, what's the status on this one? We have systems hang shortly
+after entering init if PM is enabled without this one.
 
-On Wed, Feb 3, 2016 at 4:23 AM, Neil Armstrong <narmstrong@baylibre.com> wrote:
-> On 01/30/2016 05:26 AM, David Rivshin (Allworx) wrote:
->> From: David Rivshin <drivshin@allworx.com>
->>
->> Fix the calculation of load_value and match_value. Currently they
->> are slightly too low, which produces a noticeably wrong PWM rate with
->> sufficiently short periods (i.e. when 1/period approaches clk_rate/2).
->>
->> Example:
->>  clk_rate=32768Hz, period=122070ns, duty_cycle=61035ns (8192Hz/50% PWM)
->>  Correct values: load = 0xfffffffc, match = 0xfffffffd
->>  Current values: load = 0xfffffffa, match = 0xfffffffc
->>  effective PWM: period=183105ns, duty_cycle=91553ns (5461Hz/50% PWM)
->>
->> Fixes: 6604c6556db9 ("pwm: Add PWM driver for OMAP using dual-mode timers")
->> Signed-off-by: David Rivshin <drivshin@allworx.com>
->
-> OK for me.
->
-> Acked-by: Neil Armstrong <narmstrong@baylibre.com>
->
-> Thanks !
->
->> ---
->>  drivers/pwm/pwm-omap-dmtimer.c | 27 ++++++++++++++++++++-------
->>  1 file changed, 20 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
->> index 826634e..0083e75 100644
->> --- a/drivers/pwm/pwm-omap-dmtimer.c
->> +++ b/drivers/pwm/pwm-omap-dmtimer.c
->> @@ -31,6 +31,7 @@
->>  #include <linux/time.h>
->>
->>  #define DM_TIMER_LOAD_MIN 0xfffffffe
->> +#define DM_TIMER_MAX      0xffffffff
->>
->>  struct pwm_omap_dmtimer_chip {
->>       struct pwm_chip chip;
->> @@ -46,13 +47,13 @@ to_pwm_omap_dmtimer_chip(struct pwm_chip *chip)
->>       return container_of(chip, struct pwm_omap_dmtimer_chip, chip);
->>  }
->>
->> -static int pwm_omap_dmtimer_calc_value(unsigned long clk_rate, int ns)
->> +static u32 pwm_omap_dmtimer_get_clock_cycles(unsigned long clk_rate, int ns)
->>  {
->>       u64 c = (u64)clk_rate * ns;
->>
->>       do_div(c, NSEC_PER_SEC);
->>
->> -     return DM_TIMER_LOAD_MIN - c;
->> +     return c;
->>  }
->>
->>  static void pwm_omap_dmtimer_start(struct pwm_omap_dmtimer_chip *omap)
->> @@ -99,7 +100,8 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
->>                                  int duty_ns, int period_ns)
->>  {
->>       struct pwm_omap_dmtimer_chip *omap = to_pwm_omap_dmtimer_chip(chip);
->> -     int load_value, match_value;
->> +     u32 period_cycles, duty_cycles;
->> +     u32 load_value, match_value;
->>       struct clk *fclk;
->>       unsigned long clk_rate;
->>       bool timer_active;
->> @@ -133,11 +135,22 @@ static int pwm_omap_dmtimer_config(struct pwm_chip *chip,
->>       /*
->>        * Calculate the appropriate load and match values based on the
->>        * specified period and duty cycle. The load value determines the
->> -      * cycle time and the match value determines the duty cycle.
->> +      * period time and the match value determines the duty time.
->> +      *
->> +      * The period lasts for (DM_TIMER_MAX-load_value+1) clock cycles.
->> +      * Similarly, the active time lasts (match_value-load_value+1) cycles.
->> +      * The non-active time is the remainder: (DM_TIMER_MAX-match_value)
->> +      * clock cycles.
->> +      *
->> +      * References:
->> +      *   OMAP4430/60/70 TRM sections 22.2.4.10 and 22.2.4.11
->> +      *   AM335x Sitara TRM sections 20.1.3.5 and 20.1.3.6
->>        */
->> -     load_value = pwm_omap_dmtimer_calc_value(clk_rate, period_ns);
->> -     match_value = pwm_omap_dmtimer_calc_value(clk_rate,
->> -                                               period_ns - duty_ns);
->> +     period_cycles = pwm_omap_dmtimer_get_clock_cycles(clk_rate, period_ns);
->> +     duty_cycles = pwm_omap_dmtimer_get_clock_cycles(clk_rate, duty_ns);
->> +
->> +     load_value = (DM_TIMER_MAX - period_cycles) + 1;
->> +     match_value = load_value + duty_cycles - 1;
->>
->>       /*
->>        * We MUST stop the associated dual-mode timer before attempting to
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
