@@ -1,36 +1,32 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH] drivers: net: cpsw-phy-sel: add dev_warn() for
- unsupported PHY mode
-Date: Mon, 15 Feb 2016 11:45:59 +0530
-Message-ID: <56C16D1F.7060601@ti.com>
-References: <1455324336-3884-1-git-send-email-drivshin.allworx@gmail.com>
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+Subject: Re: [PATCH] ARM: drop unused Makefile.boot of Multiplatform SoCs
+Date: Mon, 15 Feb 2016 08:02:20 +0100
+Message-ID: <m3r3gebgn7.fsf@t19.piap.pl>
+References: <1454693808-13081-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1455324336-3884-1-git-send-email-drivshin.allworx@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>, netdev@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, David Miller <davem@davemloft.net>, Nicolas Chauvet <kwizart@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454693808-13081-1-git-send-email-yamada.masahiro@socionext.com>
+	(Masahiro Yamada's message of "Sat, 6 Feb 2016 02:36:48 +0900")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: arm@kernel.org, Gregory Clement <gregory.clement@free-electrons.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Barry Song <baohua@kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Viresh Kumar <vireshk@kernel.org>, =?utf-8?Q?S=C3=B6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Michal Simek <michal.simek@xilinx.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Kukjin Kim <kgene@kernel.org>, spear-devel@list.st.com, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Andrew Lunn <andrew@lunn.ch>, Russell King <linux@arm.linux.org.uk>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 13 February 2016 06:15 AM, David Rivshin (Allworx) wrote:
-> From: David Rivshin <drivshin@allworx.com>
-> 
-> The cpsw-phy-sel driver supports only MII, RMII, and RGMII PHY modes,
-> and silently handled any other values as if MII was specified. In a
-> case where the PHY mode was incorrectly specified, or a bug elsewhere,
-> there would be no indication of a problem. If MII was the correct mode,
-> then this will go unnoticed, otherwise the symptom will be a failure
-> to transmit/receive data over the RMII/RGMII link.
-> 
-> Add a dev_warn() to make this condition obvious and provide a
-> breadcrumb to follow.
-> 
-> Cc: Mugunthan V N <mugunthanvnm@ti.com>
-> Signed-off-by: David Rivshin <drivshin@allworx.com>
+Masahiro Yamada <yamada.masahiro@socionext.com> writes:
 
-Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
+> The variable "MACHINE" is empty if CONFIG_ARCH_MULTIPLATFORM=3Dy,
+> so these Makefile.boot files are never included.
+>
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> ---
+>
+>  arch/arm/mach-cns3xxx/Makefile.boot    | 3 ---
 
-Regards
-Mugunthan V N
+Acked-by: Krzysztof Ha=C5=82asa <khalasa@piap.pl>
+--=20
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
