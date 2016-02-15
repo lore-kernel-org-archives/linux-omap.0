@@ -1,132 +1,138 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH] omap3: Add cpuidle parameters table for omap3430
-Date: Mon, 15 Feb 2016 19:02:08 +0100
-Message-ID: <1455559328-19783-1-git-send-email-pali.rohar@gmail.com>
-References: <20160215152542.GS19432@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: GPIO regression in Linux next caused by syscon change
+Date: Mon, 15 Feb 2016 10:06:36 -0800
+Message-ID: <20160215180635.GW19432@atomide.com>
+References: <20160213002643.GQ19432@atomide.com>
+ <20160213004935.GR19432@atomide.com>
+ <CA+gwMccZeYimupmGsMX8YbNH9eEA6=Xi=rupciubBwzktfjvBA@mail.gmail.com>
+ <20160215160115.GU19432@atomide.com>
+ <1455552961.4899.37.camel@pengutronix.de>
+ <20160215164757.GV19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160215152542.GS19432@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Nishanth Menon <nm@ti.com>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20160215164757.GV19432@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Tero Kristo <t-kristo@ti.com>, Philipp Zabel <philipp.zabel@gmail.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Based on CPU type choose generic omap3 or omap3430 specific cpuidle
-parameters. Parameters for omap3430 were measured on Nokia N900 device =
-and
-added by commit 5a1b1d3a9efa ("OMAP3: RX-51: Pass cpu idle parameters")
-which were later removed by commit 231900afba52 ("ARM: OMAP3: cpuidle -
-remove rx51 cpuidle parameters table") due to huge code complexity.
+* Tony Lindgren <tony@atomide.com> [160215 08:49]:
+> * Philipp Zabel <p.zabel@pengutronix.de> [160215 08:17]:
+> > Am Montag, den 15.02.2016, 08:01 -0800 schrieb Tony Lindgren:
+> > > * Philipp Zabel <philipp.zabel@gmail.com> [160214 11:24]:
+> > > > I've just replaced the of_iomap() call with an open coded version,
+> > > > calling of_address_to_resource() and ioremap() directly. That was
+> > > > needed so I can use the struct resource returned by
+> > > > of_address_to_resource() to set the syscon_config.max_register. I
+> > > > don't see where this could cause resource overlap. Does just setting
+> > > > syscon_config.max_register to zero again make the problem disappear?
+> > > 
+> > > Yes commenting out the syscon_config.max_register line in your patch
+> > > makes things work again.
+> > > 
+> > > So what does that tell us about the problem?
+> > 
+> > Maybe some out of bounds writes that previously worked are now catched
+> > by the max_register check in regmap_writable and regmap_write returns
+> > -EIO instead of the write being executed.
+> 
+> Hmm weird that something like that would not produce errors?
+> 
+> > Is there any omap_ctrl_write?() call with an offset > 0x32c into
+> > scm_conf?
+> 
+> Indeed, that's where things go wrong. Adding Tero to Cc, something
+> is wrong there.
 
-This patch brings cpuidle parameters for omap3430 devices again, but us=
-es
-simple condition based on CPU type.
+Something like this might fix it? Needs to be tested to see if it
+happens on other omaps.
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-=46ixes: 231900afba52d6faddfb480cde4132d4edc089bc
----
- arch/arm/mach-omap2/cpuidle34xx.c |   69 +++++++++++++++++++++++++++++=
-+++++++-
- 1 file changed, 68 insertions(+), 1 deletion(-)
+Tero, got any better ideas?
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cp=
-uidle34xx.c
-index aa7b379..2a3db0b 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -34,6 +34,7 @@
- #include "pm.h"
- #include "control.h"
- #include "common.h"
-+#include "soc.h"
-=20
- /* Mach specific information to be recorded in the C-state driver_data=
- */
- struct omap3_idle_statedata {
-@@ -315,6 +316,69 @@ static struct cpuidle_driver omap3_idle_driver =3D=
+Regards,
+
+Tony
+
+8< -------------------
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -167,15 +167,23 @@ u16 omap_ctrl_readw(u16 offset)
+ u32 omap_ctrl_readl(u16 offset)
  {
- 	.safe_state_index =3D 0,
- };
-=20
-+/*
-+ * Numbers based on measurements made in October 2009 for PM optimized=
- kernel
-+ * with CPU freq enabled on device Nokia N900. Assumes OPP2 (main idle=
- OPP,
-+ * and worst case latencies).
-+ */
-+static struct cpuidle_driver omap3430_idle_driver =3D {
-+	.name             =3D "omap3430_idle",
-+	.owner            =3D THIS_MODULE,
-+	.states =3D {
-+		{
-+			.enter		  =3D omap3_enter_idle_bm,
-+			.exit_latency	  =3D 110 + 162,
-+			.target_residency =3D 5,
-+			.name		  =3D "C1",
-+			.desc		  =3D "MPU ON + CORE ON",
-+		},
-+		{
-+			.enter		  =3D omap3_enter_idle_bm,
-+			.exit_latency	  =3D 106 + 180,
-+			.target_residency =3D 309,
-+			.name		  =3D "C2",
-+			.desc		  =3D "MPU ON + CORE ON",
-+		},
-+		{
-+			.enter		  =3D omap3_enter_idle_bm,
-+			.exit_latency	  =3D 107 + 410,
-+			.target_residency =3D 46057,
-+			.name		  =3D "C3",
-+			.desc		  =3D "MPU RET + CORE ON",
-+		},
-+		{
-+			.enter		  =3D omap3_enter_idle_bm,
-+			.exit_latency	  =3D 121 + 3374,
-+			.target_residency =3D 46057,
-+			.name		  =3D "C4",
-+			.desc		  =3D "MPU OFF + CORE ON",
-+		},
-+		{
-+			.enter		  =3D omap3_enter_idle_bm,
-+			.exit_latency	  =3D 855 + 1146,
-+			.target_residency =3D 46057,
-+			.name		  =3D "C5",
-+			.desc		  =3D "MPU RET + CORE RET",
-+		},
-+		{
-+			.enter		  =3D omap3_enter_idle_bm,
-+			.exit_latency	  =3D 7580 + 4134,
-+			.target_residency =3D 484329,
-+			.name		  =3D "C6",
-+			.desc		  =3D "MPU OFF + CORE RET",
-+		},
-+		{
-+			.enter		  =3D omap3_enter_idle_bm,
-+			.exit_latency	  =3D 7505 + 15274,
-+			.target_residency =3D 484329,
-+			.name		  =3D "C7",
-+			.desc		  =3D "MPU OFF + CORE OFF",
-+		},
-+	},
-+	.state_count =3D ARRAY_SIZE(omap3_idle_data),
-+	.safe_state_index =3D 0,
-+};
+ 	u32 val;
++	int err;
+ 
+ 	offset &= 0xfffc;
+-	if (!omap2_ctrl_syscon)
+-		val = readl_relaxed(omap2_ctrl_base + offset);
+-	else
+-		regmap_read(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
+-			    &val);
++	if (omap2_ctrl_syscon) {
++		err = regmap_read(omap2_ctrl_syscon,
++				  omap2_ctrl_offset + offset, &val);
++		if (!err)
++			return val;
++	}
 +
- /* Public functions */
-=20
- /**
-@@ -333,5 +397,8 @@ int __init omap3_idle_init(void)
- 	if (!mpu_pd || !core_pd || !per_pd || !cam_pd)
- 		return -ENODEV;
-=20
--	return cpuidle_register(&omap3_idle_driver, NULL);
-+	if (cpu_is_omap3430())
-+		return cpuidle_register(&omap3430_idle_driver, NULL);
-+	else
-+		return cpuidle_register(&omap3_idle_driver, NULL);
++	if (WARN(!omap2_ctrl_base,
++		 "syscon out of range for offset 0x%x, no omap2_ctrl_base?\n",
++		    offset)) {
++		return 0;
++	}
+ 
+-	return val;
++	return readl_relaxed(omap2_ctrl_base + offset);
  }
---=20
-1.7.9.5
+ 
+ void omap_ctrl_writeb(u8 val, u16 offset)
+@@ -206,12 +214,23 @@ void omap_ctrl_writew(u16 val, u16 offset)
+ 
+ void omap_ctrl_writel(u32 val, u16 offset)
+ {
++	int err;
++
+ 	offset &= 0xfffc;
+-	if (!omap2_ctrl_syscon)
+-		writel_relaxed(val, omap2_ctrl_base + offset);
+-	else
+-		regmap_write(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
+-			     val);
++	if (omap2_ctrl_syscon) {
++		err = regmap_write(omap2_ctrl_syscon,
++				   omap2_ctrl_offset + offset, val);
++		if (!err)
++			return;
++	}
++
++	if (WARN(!omap2_ctrl_base,
++		 "syscon out of range for offset 0x%x, no omap2_ctrl_base?\n",
++		    offset)) {
++		return;
++	}
++
++	writel_relaxed(val, omap2_ctrl_base + offset);
+ }
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+@@ -724,9 +743,6 @@ int __init omap_control_init(void)
+ 				if (ret)
+ 					return ret;
+ 			}
+-
+-			iounmap(omap2_ctrl_base);
+-			omap2_ctrl_base = NULL;
+ 		} else {
+ 			/* No scm_conf found, direct access */
+ 			ret = omap2_clk_provider_init(np, data->index, NULL,
