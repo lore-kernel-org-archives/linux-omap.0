@@ -1,71 +1,154 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] devicetree/bindings: add reset-gpios and
- vcc-supply for panel-dpi
-Date: Tue, 16 Feb 2016 15:06:33 +0200
-Message-ID: <56C31ED9.7070405@ti.com>
-References: <1450610002-10531-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1450610002-10531-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <20151229205458.GA31241@rob-hp-laptop>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: omapfb: Add early framebuffer memory allocator
+Date: Tue, 16 Feb 2016 15:51:34 +0200
+Message-ID: <56C32966.9020105@ti.com>
+References: <52A062A0.3070005@ti.com>
+ <1388013159-3036-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <201601011301.27415@pali> <568A5970.2000201@ti.com>
+ <568A6DD1.5050700@gmail.com> <5693F5B7.8040608@ti.com>
+ <56BEDA57.4030300@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151229205458.GA31241@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+	boundary="Kw5o9xVV9Jx0IOUFmFsm5Ars8BiXmuuJE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56BEDA57.4030300@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
 List-Id: linux-omap@vger.kernel.org
 
---OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb
+--Kw5o9xVV9Jx0IOUFmFsm5Ars8BiXmuuJE
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
 
 
-On 29/12/15 22:54, Rob Herring wrote:
-> On Sun, Dec 20, 2015 at 12:13:20PM +0100, Uwe Kleine-K=C3=B6nig wrote:
->> Some displays have a reset input and/or need a regulator to function
->> properly. Allow to specify them for panel-dpi devices.
+On 13/02/16 09:25, Ivaylo Dimitrov wrote:
+> Hi Tomi,
+>=20
+> On 11.01.2016 20:34, Tomi Valkeinen wrote:
 >>
->> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
->> ---
->>  Documentation/devicetree/bindings/display/panel/panel-dpi.txt | 2 ++
->>  1 file changed, 2 insertions(+)
+>> So, I'm not very enthusiastic about adding this feature as an omapfb
+>> specific boot parameter.
 >>
->> diff --git a/Documentation/devicetree/bindings/display/panel/panel-dpi=
-=2Etxt b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
->> index 216c894d4f99..b52ac52757df 100644
->> --- a/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
->> +++ b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
->> @@ -7,6 +7,8 @@ Required properties:
->>  Optional properties:
->>  - label: a symbolic name for the panel
->>  - enable-gpios: panel enable gpio
->> +- reset-gpios: GPIO to control the RESET pin
 >=20
-> The problem with this in a generic binding is what if the panel has=20
-> ordering requirements like enable gpio has to be inactive when reset=20
-> is deasserted?
+> What about something like (not properly formatted, just want your
+> opinion on the idea):
 >=20
->> +- vcc-supply: phandle of regulator that will be used to enable power =
-to the display
+> diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
+> index 1f1ecf8..0d109d8 100644
+> --- a/arch/arm/mach-omap2/fb.c
+> +++ b/arch/arm/mach-omap2/fb.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/io.h>
+>  #include <linux/omapfb.h>
+>  #include <linux/dma-mapping.h>
+> +#include <linux/of_reserved_mem.h>
 >=20
-> What if there are 2 supplies?
+>  #include <asm/mach/map.h>
+>=20
+> @@ -110,6 +111,49 @@ int __init omap_init_fb(void)
+>  {
+>         return platform_device_register(&omap_fb_device);
+>  }
+> +
+> +static int rmem_omapfb_device_init(struct reserved_mem *rmem, struct
+> device *dev)
+> +{
+> +       int dma;
+> +
+> +       if (rmem->priv)
+> +               return 0;
+> +
+> +       dma =3D dma_declare_coherent_memory(&omap_fb_device.dev, rmem->=
+base,
+> +                                         rmem->base, rmem->size,
+> +                                         DMA_MEMORY_MAP |
+> +                                         DMA_MEMORY_EXCLUSIVE);
+> +
+> +       if (!(dma & DMA_MEMORY_MAP)) {
+> +               pr_err("omapfb: dma_declare_coherent_memory failed\n");=
 
-Yes, I think it's an impossible task to create a really generic driver
-wrt. gpios and supplies. There may be a bunch of them, and a particular
-sequence to enable/disable needed, and even particular delays required
-in between.
+> +               return -ENOMEM;
+> +       }
+> +       else
+> +               rmem->priv =3D omap_fb_device.dev.dma_mem;
+> +
+> +       return 0;
+> +}
+> +
+> +static void rmem_omapfb_device_release(struct reserved_mem *rmem,
+> +                                      struct device *dev)
+> +{
+> +       dma_release_declared_memory(&omap_fb_device.dev);
+> +}
+> +
+> +static const struct reserved_mem_ops rmem_omapfb_ops =3D {
+> +       .device_init    =3D rmem_omapfb_device_init,
+> +       .device_release =3D rmem_omapfb_device_release,
+> +};
+> +
+> +static int __init rmem_omapfb_setup(struct reserved_mem *rmem)
+> +{
+> +       rmem->ops =3D &rmem_omapfb_ops;
+> +       pr_info("omapfb: reserved %d bytes at %pa\n", rmem->size,
+> &rmem->base);
+> +
+> +       return 0;
+> +}
+> +
+> +RESERVEDMEM_OF_DECLARE(dss, "ti,omapfb-memsize", rmem_omapfb_setup);
+>  #else
+>  int __init omap_init_fb(void) { return 0; }
+>  #endif
+>=20
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/displa=
+y.c
+> index 6ab13d1..6f0ba03 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/mfd/syscon.h>
+>  #include <linux/regmap.h>
+> +#include <linux/of_reserved_mem.h>
+>=20
+>  #include <video/omapdss.h>
+>  #include "omap_hwmod.h"
+> @@ -640,6 +641,7 @@ int __init omapdss_init_of(void)
+>         omap_display_device.dev.platform_data =3D &board_data;
+>=20
+>         r =3D platform_device_register(&omap_display_device);
+> +
+>         if (r < 0) {
+>                 pr_err("Unable to register omapdss device\n");
+>                 return r;
+> @@ -666,6 +668,9 @@ int __init omapdss_init_of(void)
+>                 return r;
+>         }
+>=20
+> +       /* Init fb reserved memory, there may be none so ignore the
+> result */
+> +       of_reserved_mem_device_init(&pdev->dev);
+> +
 
-So I think the best we can do is to support (hopefully) most of the
-panels by defining one sequence panel-dpi uses. If a particular panel
-falls outside that, a separate driver is needed.
+Does it work for you? I haven't used DT reserved-memory, do you have an
+example .dts change?
+
+Now, having to support DT bindings is not any better than supporting
+cmdline options. But with a quick read of reserved-memory.txt I like the
+idea. However we should have "reserved memory for display", not for
+omapfb, so that the same reserved area could be used by omapdrm too.
+
+Another thing, with v4.5, omapfb has moved into maintenance mode. I
+don't want to merge new features there. Are you planning to move to
+omapdrm, and if not, why? I'd rather see all this done for omapdrm only.
 
  Tomi
 
 
---OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb
+--Kw5o9xVV9Jx0IOUFmFsm5Ars8BiXmuuJE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,23 +156,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJWwx7ZAAoJEPo9qoy8lh71p/kP/2h+X1M1ph11MrlYMJepjbG2
-m2G940at+2EqSOzXm+NgJUCLOb+GYipPpAY8gx0IP17nEFzD8JJkjZ8YH6oT12NF
-AyxVGge2270CdRjqBrRCzSk4FEI0rE/GEgSKqFF+KDRevTvGpvYgGLacjeHAWKT9
-nleeGjiO3dD0CD2nI+jy5mneasz28dgzYMG7d2FgRl6MOmGfpPPu/M0GmXpN+xg6
-LBOSmJ3QTxwwHgrdcj3DmLvCu0frDykl0xH9HDYNeeP2nUglSJkzZksfKqxKVY2K
-GCGEWFQGIkmN/dWLb0vRIy+ZpkDiYRGappn58qEobK3fMvXwZvvVLsVJe2oWhp6+
-ClvoFIbCA84MmeZC8qfwkJoz4ZRu5Nh5cnvtVPpQlk402VJddt9DU5K1ps212gcc
-FhWVfm8Z6qupnvhm+GelASWdngZowl3ZLWfhjWkCj30uPz1Mk/i3e9PNCytCr4WE
-BdMefbhUSe4cGBWb60FIHMmKDP26DeOhRrpB4qpmPvhUG25cxKtWo8hwRgui8lDK
-1OgR005E1/ETfTCZT+8IoHEGk75XuLKYbZcE9W4f89pV5VXftpjFVRf6Ki0FrgnF
-0nAL9gT1lDbyCmIHjuEultLaMqjf74VeVAuStcjPYp8iLVCJygmiTU4qE5PCyyLb
-v/9s8/mVYpRXSv/JgMwQ
-=BP+Y
+iQIcBAEBCAAGBQJWwylmAAoJEPo9qoy8lh715BcP/2YLrQlZt3lFYpF5guRaFp2M
+YWWm+FyKkrYysVbn/taFfYlPdhtm3ORK2Lv8dhQK2s6F758+TJ1nZNdgaup6igo5
+Yx5otmajAtq6imT9GWpc+YuO66oa+FVWajBClqFlK2U9VXxI1jGd25FjxMO1LNP4
+hzgB30xTFGIPd99I8PLe39IuD6NvVwJkzUiKvY7sv3GAXC6FMacHy65W9ukWBSmh
+myw/KFB1tzqJc47b/VJ6amUm+4TMNltlRJcS3NA8t4k7E/DgSvHHBNDgdRdD2Xaa
+0vUeJcfg2md16nzree8fwGA+7I69fOoUZ9CAlnfgBrZg8NthcBThq6rGgzJco7eX
+QnVDI0nbhc2EfEomym6YzqW1oqNfF6pbMzswg++nXbomcH7cAEYvCIx58y/1203G
+mk6XQLbUnJwrhgx4Kjady3c5Xn3qQhMPtOwCl6eaTm5kbfEMOMOxC5SmN3uo+Pr0
+TuRFptYhHneBfYBXNo45lLw/FXUCLx+f+ETIekhr/kUIKRPux8NE+C4G83FYR8JS
+d98AAVpsK92+z3nEk1J4O0s3g1K0iIsrLPtg2qG5exOZtDvzgyupjshFN0zdxX8B
+phxK0opqaSmRA89lIDFy3vGE9ByCisBfTpvAk78PDflpgiZKpFn4FT9qpRfWNRKQ
+Mi4P0rwdoDvN/AgtVLl7
+=fvA3
 -----END PGP SIGNATURE-----
 
---OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Kw5o9xVV9Jx0IOUFmFsm5Ars8BiXmuuJE--
