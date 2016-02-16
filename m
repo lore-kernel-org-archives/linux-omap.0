@@ -1,69 +1,94 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
- request
-Date: Tue, 16 Feb 2016 12:38:54 +0000
-Message-ID: <20160216123854.GJ18327@sirena.org.uk>
-References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
- <1449807000-6457-4-git-send-email-vigneshr@ti.com>
- <20160209193616.GN13270@sirena.org.uk>
- <56BC1D3E.5020203@ti.com>
- <20160212223711.GD18988@sirena.org.uk>
- <56C2D731.6050306@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] devicetree/bindings: add reset-gpios and
+ vcc-supply for panel-dpi
+Date: Tue, 16 Feb 2016 15:06:33 +0200
+Message-ID: <56C31ED9.7070405@ti.com>
+References: <1450610002-10531-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1450610002-10531-2-git-send-email-u.kleine-koenig@pengutronix.de>
+ <20151229205458.GA31241@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="HSQ3hISbU3Um6hch"
+	protocol="application/pgp-signature";
+	boundary="OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb"
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56C2D731.6050306-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20151229205458.GA31241@rob-hp-laptop>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+--OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
---HSQ3hISbU3Um6hch
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Tue, Feb 16, 2016 at 01:30:49PM +0530, Vignesh R wrote:
-> On 02/13/2016 04:07 AM, Mark Brown wrote:
-> > On Thu, Feb 11, 2016 at 11:03:50AM +0530, Vignesh R wrote:
-> >> On 02/10/2016 01:06 AM, Mark Brown wrote:
 
-> >>> Looking at this I can't help but think that spi_flash_read() ought to
-> >>> have the stub in rather than the caller.  But given that we're pretty
-> >>> much only ever expecting one user I'm not 100% sure it actually matters.
+On 29/12/15 22:54, Rob Herring wrote:
+> On Sun, Dec 20, 2015 at 12:13:20PM +0100, Uwe Kleine-K=C3=B6nig wrote:
+>> Some displays have a reset input and/or need a regulator to function
+>> properly. Allow to specify them for panel-dpi devices.
+>>
+>> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+>> ---
+>>  Documentation/devicetree/bindings/display/panel/panel-dpi.txt | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/display/panel/panel-dpi=
+=2Etxt b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
+>> index 216c894d4f99..b52ac52757df 100644
+>> --- a/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
+>> +++ b/Documentation/devicetree/bindings/display/panel/panel-dpi.txt
+>> @@ -7,6 +7,8 @@ Required properties:
+>>  Optional properties:
+>>  - label: a symbolic name for the panel
+>>  - enable-gpios: panel enable gpio
+>> +- reset-gpios: GPIO to control the RESET pin
+>=20
+> The problem with this in a generic binding is what if the panel has=20
+> ordering requirements like enable gpio has to be inactive when reset=20
+> is deasserted?
+>=20
+>> +- vcc-supply: phandle of regulator that will be used to enable power =
+to the display
+>=20
+> What if there are 2 supplies?
 
-> >> Well, my initial patch set passed long list of arguments to
-> >> spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
-> >> unnecessary churn when things need changed in the API.
+Yes, I think it's an impossible task to create a really generic driver
+wrt. gpios and supplies. There may be a bunch of them, and a particular
+sequence to enable/disable needed, and even particular delays required
+in between.
 
-> > I don't see what that has to do with my point?
+So I think the best we can do is to support (hopefully) most of the
+panels by defining one sequence panel-dpi uses. If a particular panel
+falls outside that, a separate driver is needed.
 
-> AFAIU, your previous comment was to move initialization of
-> spi_flash_read_message struct to spi_flash_read(). This would mean
+ Tomi
 
-No, not at all.  I'm talking about how we handle the case where we don't
-have hardware support for this and need to implement it in software -
-currently that's in a separate place to the place where we call the
-driver.
 
---HSQ3hISbU3Um6hch
+--OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBCAAGBQJWwxhUAAoJECTWi3JdVIfQVM0H/j64x3bLpAv0cTZC+2n0VAOm
-5oSygJJOfQqjzFBhmpPdJfd1BvVzJnSb7Lh42eGLlehbABTwyHc5upivQNti/D5H
-FYwmZDhCge7Ewj0YDB9Q2StXsUKw1X0QMFFlRXMZlB06TkBIKYMfp04jorAs9ZdI
-osCAbMdjt/bZ9EqMxEcR+Mief5y1BYEVZS3ridmPtBazefEhNBkQ43yvwXNIPdkw
-yRxBFlDLteJO1E1+bUbumGFj8cb1jC2DvuG6PjuQUJ14g+gZ+f02FHQ5XH+uuAGu
-0RPS4Jqm6YM0Nv00H8rRj8PWYglqqLwUcHT4gNcW6vOtgu/6AX04dcVuak0zY2w=
-=m7oA
+iQIcBAEBCAAGBQJWwx7ZAAoJEPo9qoy8lh71p/kP/2h+X1M1ph11MrlYMJepjbG2
+m2G940at+2EqSOzXm+NgJUCLOb+GYipPpAY8gx0IP17nEFzD8JJkjZ8YH6oT12NF
+AyxVGge2270CdRjqBrRCzSk4FEI0rE/GEgSKqFF+KDRevTvGpvYgGLacjeHAWKT9
+nleeGjiO3dD0CD2nI+jy5mneasz28dgzYMG7d2FgRl6MOmGfpPPu/M0GmXpN+xg6
+LBOSmJ3QTxwwHgrdcj3DmLvCu0frDykl0xH9HDYNeeP2nUglSJkzZksfKqxKVY2K
+GCGEWFQGIkmN/dWLb0vRIy+ZpkDiYRGappn58qEobK3fMvXwZvvVLsVJe2oWhp6+
+ClvoFIbCA84MmeZC8qfwkJoz4ZRu5Nh5cnvtVPpQlk402VJddt9DU5K1ps212gcc
+FhWVfm8Z6qupnvhm+GelASWdngZowl3ZLWfhjWkCj30uPz1Mk/i3e9PNCytCr4WE
+BdMefbhUSe4cGBWb60FIHMmKDP26DeOhRrpB4qpmPvhUG25cxKtWo8hwRgui8lDK
+1OgR005E1/ETfTCZT+8IoHEGk75XuLKYbZcE9W4f89pV5VXftpjFVRf6Ki0FrgnF
+0nAL9gT1lDbyCmIHjuEultLaMqjf74VeVAuStcjPYp8iLVCJygmiTU4qE5PCyyLb
+v/9s8/mVYpRXSv/JgMwQ
+=BP+Y
 -----END PGP SIGNATURE-----
 
---HSQ3hISbU3Um6hch--
+--OoO5RHFw32qrgCIbrW4iaMWw92d7TRTLb--
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
