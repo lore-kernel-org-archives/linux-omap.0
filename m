@@ -1,45 +1,51 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ARM: omapfb: Add early framebuffer memory allocator
-Date: Tue, 16 Feb 2016 15:05:15 +0100
-Message-ID: <20160216140515.GI1476@pali>
-References: <52A062A0.3070005@ti.com>
- <1388013159-3036-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <201601011301.27415@pali>
- <568A5970.2000201@ti.com>
- <568A6DD1.5050700@gmail.com>
- <5693F5B7.8040608@ti.com>
- <56BEDA57.4030300@gmail.com>
- <56C32966.9020105@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap3: Add cpuidle parameters table for omap3430
+Date: Tue, 16 Feb 2016 08:08:59 -0800
+Message-ID: <20160216160859.GE19432@atomide.com>
+References: <20160215152542.GS19432@atomide.com>
+ <1455559328-19783-1-git-send-email-pali.rohar@gmail.com>
+ <56C2F387.3040803@linaro.org>
+ <20160216100752.GF1476@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56C32966.9020105@ti.com>
+In-Reply-To: <20160216100752.GF1476@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, tony@atomide.com, linux@arm.linux.org.uk, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Nishanth Menon <nm@ti.com>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 16 February 2016 15:51:34 Tomi Valkeinen wrote:
-> Another thing, with v4.5, omapfb has moved into maintenance mode. I
-> don't want to merge new features there. Are you planning to move to
-> omapdrm, and if not, why? I'd rather see all this done for omapdrm on=
-ly.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [160216 02:09]:
+> On Tuesday 16 February 2016 11:01:43 Daniel Lezcano wrote:
+> > On 02/15/2016 07:02 PM, Pali Roh=C3=A1r wrote:
+> > >Based on CPU type choose generic omap3 or omap3430 specific cpuidl=
+e
+> > >parameters. Parameters for omap3430 were measured on Nokia N900 de=
+vice and
+> > >added by commit 5a1b1d3a9efa ("OMAP3: RX-51: Pass cpu idle paramet=
+ers")
+> > >which were later removed by commit 231900afba52 ("ARM: OMAP3: cpui=
+dle -
+> > >remove rx51 cpuidle parameters table") due to huge code complexity=
+=2E
+> > >
+> > >This patch brings cpuidle parameters for omap3430 devices again, b=
+ut uses
+> > >simple condition based on CPU type.
+> > >
+> > >Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > >Fixes: 231900afba52d6faddfb480cde4132d4edc089bc
+> > >---
+> >=20
+> > Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>=20
+> Tony, Nishanth (or somebody else...) can you test this patch on more
+> omap3 devices to check if it does not break existing cpuidle code?
 
-Hi! We are using (patched) Maemo and for OpenGL ES support we need SGX
-PVR graphics kernel driver which depends on omapfb :-( Because Maemo
-needs OpenGL ES we needs omapfb driver. Kernel part of SGX PVR driver i=
-s
-open source (GPL) but there is no manpower to port it to omapdrm...
+Seems to work for me on a ldp, which is GP 3430 ES3.0.
 
-So if we want to use (patched) Maemo (which I really want) we need to
-stay on omapfb for now...
+Regards,
 
-And there are no full open source drivers for SGX PVR graphic chip whic=
-h
-would work on TI omap3 Nokia N900 device...
-
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Tony
