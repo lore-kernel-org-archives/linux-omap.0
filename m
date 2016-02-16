@@ -1,140 +1,56 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] thermal: omap-thermal: Add notify function to thermal_zone_device_ops
-Date: Tue, 16 Feb 2016 10:35:45 +0530
-Message-ID: <1455599145-5656-1-git-send-email-j-keerthy@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
+ request
+Date: Tue, 16 Feb 2016 13:30:49 +0530
+Message-ID: <56C2D731.6050306@ti.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-4-git-send-email-vigneshr@ti.com>
+ <20160209193616.GN13270@sirena.org.uk> <56BC1D3E.5020203@ti.com>
+ <20160212223711.GD18988@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: edubezval@gmail.com
-Cc: j-keerthy@ti.com, nm@ti.com, rui.zhang@intel.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160212223711.GD18988-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-notify function is used to notify when some temperature thresholds
-are crossed. In case we get notified for a critical trip point then
-schedule an emergency shutdown function to backup orderly_poweroff
-failures.
 
-orderly_poweroff is triggered when a graceful shutdown
-of system is desired. This may be used in many critical states of the
-kernel such as when subsystems detects conditions such as critical
-temperature conditions. However, in certain conditions in system
-boot up sequences like those in the middle of driver probes being
-initiated, userspace will be unable to power off the system in a clean
-manner and leaves the system in a critical state. In cases like these,
-the /sbin/poweroff will return success (having forked off to attempt
-powering off the system. However, the system overall will fail to
-completely poweroff (since other modules will be probed) and the system
-is still functional with no userspace (since that would have shut itself
-off).
 
-However, there is no clean way of detecting such failure of userspace
-powering off the system. In such scenarios, it is necessary for a backup
-workqueue to be able to force a shutdown of the system when orderly
-shutdown is not successful after a configurable time period.
+On 02/13/2016 04:07 AM, Mark Brown wrote:
+> On Thu, Feb 11, 2016 at 11:03:50AM +0530, Vignesh R wrote:
+>> On 02/10/2016 01:06 AM, Mark Brown wrote:
+>>> On Fri, Dec 11, 2015 at 09:39:58AM +0530, Vignesh R wrote:
+> 
+>>>> +	if (spi_flash_read_supported(spi)) {
+>>>> +		struct spi_flash_read_message msg;
+>>>> +		int ret;
+> 
+>>> Looking at this I can't help but think that spi_flash_read() ought to
+>>> have the stub in rather than the caller.  But given that we're pretty
+>>> much only ever expecting one user I'm not 100% sure it actually matters.
+> 
+>> Well, my initial patch set passed long list of arguments to
+>> spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
+>> unnecessary churn when things need changed in the API.
+> 
+> I don't see what that has to do with my point?
+> 
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+AFAIU, your previous comment was to move initialization of
+spi_flash_read_message struct to spi_flash_read(). This would mean
+sending long list of arguments to spi_flash_read() which needs to be
+updated whenever an argument needs to be added/deleted (in future).
+Instead passing around a struct would be much easier in case of
+adding/removing parameters.
+Please correct me if I misunderstood your comment?
 
-The previous discussion:
-
-https://lkml.org/lkml/2016/1/28/989
-
-Making use of the notify ops to schedule a backup thermal shutdown.
-
- drivers/thermal/ti-soc-thermal/Kconfig             | 13 +++++++
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 43 ++++++++++++++++++++++
- 2 files changed, 56 insertions(+)
-
-diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-index ea8283f..b4b9668 100644
---- a/drivers/thermal/ti-soc-thermal/Kconfig
-+++ b/drivers/thermal/ti-soc-thermal/Kconfig
-@@ -71,3 +71,16 @@ config DRA752_THERMAL
- 
- 	  This includes alert interrupts generation and also the TSHUT
- 	  support.
-+
-+config TI_THERMAL_EMERGENCY_POWEROFF_DELAY_MS
-+	int "Emergency poweroff delay in milli-seconds"
-+	depends on TI_SOC_THERMAL
-+	default 0
-+	help
-+	  The number of milliseconds to delay before emergency
-+	  poweroff kicks in. The delay should be carefully profiled
-+	  so as to give adequate time for orderly_poweroff. In case
-+	  of failure of an orderly_poweroff the emergency poweroff
-+	  kicks in after the delay has elapsed and shuts down the system.
-+
-+	  If set to 0 poweroff will happen immediately.
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index b213a12..d48eb5b1 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -31,6 +31,7 @@
- #include <linux/cpumask.h>
- #include <linux/cpu_cooling.h>
- #include <linux/of.h>
-+#include <linux/reboot.h>
- 
- #include "ti-thermal.h"
- #include "ti-bandgap.h"
-@@ -286,6 +287,47 @@ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
- 	return ti_thermal_get_trip_temp(thermal, OMAP_TRIP_NUMBER - 1, temp);
- }
- 
-+/**
-+ * emergency_poweroff_func - emergency poweroff work after a known delay
-+ * @work: work_struct associated with the emergency poweroff function
-+ *
-+ * This function is called in very critical situations to force
-+ * a kernel poweroff after a configurable timeout value.
-+ */
-+static void emergency_poweroff_func(struct work_struct *work)
-+{
-+	pr_warn("Attempting kernel_power_off\n");
-+	kernel_power_off();
-+
-+	pr_warn("kernel_power_off has failed! Attempting emergency_restart\n");
-+	emergency_restart();
-+}
-+
-+static DECLARE_DELAYED_WORK(emergency_poweroff_work, emergency_poweroff_func);
-+
-+/**
-+ * emergency_poweroff - Trigger an emergency system poweroff
-+ *
-+ * This may be called from any critical situation to trigger a system shutdown
-+ * after a known period of time. By default the delay is 0 millisecond
-+ */
-+void ti_thermal_emergency_poweroff(void)
-+{
-+	schedule_delayed_work(&emergency_poweroff_work,
-+	msecs_to_jiffies(CONFIG_TI_THERMAL_EMERGENCY_POWEROFF_DELAY_MS));
-+}
-+
-+static int ti_thermal_notify(struct thermal_zone_device *thermal, int temp,
-+			     enum thermal_trip_type type)
-+{
-+	if (type == THERMAL_TRIP_CRITICAL) {
-+		pr_warn("critical temperature %d reached", temp);
-+		ti_thermal_emergency_poweroff();
-+	}
-+
-+	return 0;
-+}
-+
- static const struct thermal_zone_of_device_ops ti_of_thermal_ops = {
- 	.get_temp = __ti_thermal_get_temp,
- 	.get_trend = __ti_thermal_get_trend,
-@@ -301,6 +343,7 @@ static struct thermal_zone_device_ops ti_thermal_ops = {
- 	.get_trip_type = ti_thermal_get_trip_type,
- 	.get_trip_temp = ti_thermal_get_trip_temp,
- 	.get_crit_temp = ti_thermal_get_crit_temp,
-+	.notify = ti_thermal_notify,
- };
- 
- static struct ti_thermal_data
 -- 
-1.9.1
-
+Regards
+Vignesh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
