@@ -1,69 +1,70 @@
-From: "Thang Q. Nguyen" <tqnguyen@apm.com>
-Subject: RE: [PATCH v2 1/2] usb:dwc3: Enable support for 64-bit system
-Date: Tue, 16 Feb 2016 17:56:01 +0700
-Message-ID: <8dd0ee5befa7b1200878af7615e3b22d@mail.gmail.com>
-References: <1453731985-13835-1-git-send-email-tqnguyen@apm.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
+ request
+Date: Tue, 16 Feb 2016 12:38:54 +0000
+Message-ID: <20160216123854.GJ18327@sirena.org.uk>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-4-git-send-email-vigneshr@ti.com>
+ <20160209193616.GN13270@sirena.org.uk>
+ <56BC1D3E.5020203@ti.com>
+ <20160212223711.GD18988@sirena.org.uk>
+ <56C2D731.6050306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453731985-13835-1-git-send-email-tqnguyen@apm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org
-Cc: Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="HSQ3hISbU3Um6hch"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56C2D731.6050306-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-Do you have any more feedback on this patch?
 
-Thanks,
-Thang Q. Nguyen -
------Original Message-----
-From: Thang Q. Nguyen [mailto:tqnguyen@apm.com]
-Sent: Monday, January 25, 2016 9:26 PM
-To: Felipe Balbi; Greg Kroah-Hartman; linux-usb@vger.kernel.org;
-linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-linux-arm@lists.infradead.org
-Cc: Thang Nguyen; Phong Vo; Loc Ho; patches@apm.com
-Subject: [PATCH v2 1/2] usb:dwc3: Enable support for 64-bit system
+--HSQ3hISbU3Um6hch
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Add 64-bit DMA operation support to the USB DWC3 driver.
-First attempt to set the coherent DMA mask for 64-bit DMA.
-If that failed, attempt again with 32-bit DMA.
+On Tue, Feb 16, 2016 at 01:30:49PM +0530, Vignesh R wrote:
+> On 02/13/2016 04:07 AM, Mark Brown wrote:
+> > On Thu, Feb 11, 2016 at 11:03:50AM +0530, Vignesh R wrote:
+> >> On 02/10/2016 01:06 AM, Mark Brown wrote:
 
-Signed-off-by: Thang Q. Nguyen <tqnguyen@apm.com>
----
-Changes from v1:
-	- Remove WARN_ON if dma_mask is NULL
+> >>> Looking at this I can't help but think that spi_flash_read() ought to
+> >>> have the stub in rather than the caller.  But given that we're pretty
+> >>> much only ever expecting one user I'm not 100% sure it actually matters.
 
- drivers/usb/dwc3/core.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+> >> Well, my initial patch set passed long list of arguments to
+> >> spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
+> >> unnecessary churn when things need changed in the API.
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c index
-de5e01f..2479c24 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -831,6 +831,21 @@ static int dwc3_probe(struct platform_device *pdev)
- 	dwc->mem = mem;
- 	dwc->dev = dev;
+> > I don't see what that has to do with my point?
 
-+	/* Try to set 64-bit DMA first */
-+	if (!pdev->dev.dma_mask)
-+		/* Platform did not initialize dma_mask */
-+		ret = dma_coerce_mask_and_coherent(&pdev->dev,
-+						   DMA_BIT_MASK(64));
-+	else
-+		ret = dma_set_mask_and_coherent(&pdev->dev,
-DMA_BIT_MASK(64));
-+
-+	/* If seting 64-bit DMA mask fails, fall back to 32-bit DMA mask
-*/
-+	if (ret) {
-+		ret = dma_set_mask_and_coherent(&pdev->dev,
-DMA_BIT_MASK(32));
-+		if (ret)
-+			return ret;
-+	}
-+
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (!res) {
- 		dev_err(dev, "missing IRQ\n");
+> AFAIU, your previous comment was to move initialization of
+> spi_flash_read_message struct to spi_flash_read(). This would mean
+
+No, not at all.  I'm talking about how we handle the case where we don't
+have hardware support for this and need to implement it in software -
+currently that's in a separate place to the place where we call the
+driver.
+
+--HSQ3hISbU3Um6hch
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWwxhUAAoJECTWi3JdVIfQVM0H/j64x3bLpAv0cTZC+2n0VAOm
+5oSygJJOfQqjzFBhmpPdJfd1BvVzJnSb7Lh42eGLlehbABTwyHc5upivQNti/D5H
+FYwmZDhCge7Ewj0YDB9Q2StXsUKw1X0QMFFlRXMZlB06TkBIKYMfp04jorAs9ZdI
+osCAbMdjt/bZ9EqMxEcR+Mief5y1BYEVZS3ridmPtBazefEhNBkQ43yvwXNIPdkw
+yRxBFlDLteJO1E1+bUbumGFj8cb1jC2DvuG6PjuQUJ14g+gZ+f02FHQ5XH+uuAGu
+0RPS4Jqm6YM0Nv00H8rRj8PWYglqqLwUcHT4gNcW6vOtgu/6AX04dcVuak0zY2w=
+=m7oA
+-----END PGP SIGNATURE-----
+
+--HSQ3hISbU3Um6hch--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
