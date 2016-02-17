@@ -1,110 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] clk: ti: Add support for dm814x ADPLL
-Date: Wed, 17 Feb 2016 09:39:49 -0800
-Message-ID: <20160217173949.GB21202@atomide.com>
-References: <1455312009-808-1-git-send-email-tony@atomide.com>
- <1455312009-808-3-git-send-email-tony@atomide.com>
- <20160217011930.2278.38316@quark.deferred.io>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: first set of hwmod fixes and additions for
+ v4.6
+Date: Wed, 17 Feb 2016 18:41:23 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1602171838420.11377@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160217011930.2278.38316@quark.deferred.io>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Michael Turquette <mturquette@baylibre.com> [160216 17:32]:
-> Quoting Tony Lindgren (2016-02-12 13:20:09)
-> > 
-> > - Split the device tree binding into a separate patch as requested
-> >   by Mike for his conditional ack of the binding
-> 
-> Just to make life fun for you, the clk tree is once more merging DT
-> bindings descriptions and headers. You don't need to merge the patches,
-> it doesn't matter to me, but just as a heads up for the future.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-OK :)
+Hi Tony
 
-> > --- /dev/null
-> > +++ b/drivers/clk/ti/Kconfig
-> > @@ -0,0 +1,6 @@
-> > +config COMMON_CLK_TI_ADPLL
-> > +       tristate "Clock driver for dm814x ADPLL"
-> > +       depends on ARCH_OMAP2PLUS
-> > +       default y if SOC_TI81XX
-> 
-> Can we add COMPILE_TEST here?
+The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
 
-Good idea, will add.
+  Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
 
-> > +static int ti_adpll_init_inputs(struct ti_adpll_data *d)
-> > +{
-> > +       const char *error = "need at least %i inputs";
-> > +       struct clk *clock;
-> > +       int nr_inputs;
-> > +
-> > +       nr_inputs = of_clk_get_parent_count(d->np);
-> > +       if (nr_inputs < d->c->nr_max_inputs) {
-> > +               dev_err(d->dev, error, nr_inputs);
-> > +               return -EINVAL;
-> > +       }
-> > +       of_clk_parent_fill(d->np, d->parent_names, nr_inputs);
-> > +
-> > +       clock = devm_clk_get(d->dev, d->parent_names[0]);
-> > +       if (IS_ERR(clock)) {
-> > +               dev_err(d->dev, "could not get clkinp\n");
-> > +               return PTR_ERR(clock);
-> > +       }
-> > +       d->parent_clocks[TI_ADPLL_CLKINP] = clock;
-> > +
-> > +       clock = devm_clk_get(d->dev, d->parent_names[1]);
-> > +       if (IS_ERR(clock)) {
-> > +               dev_err(d->dev, "could not get clkinpulow clock\n");
-> > +               return PTR_ERR(clock);
-> > +       }
-> > +       d->parent_clocks[TI_ADPLL_CLKINPULOW] = clock;
-> 
-> Are the clock parents known at compile-time? Can we just put that data
-> in C instead of whatever is going on here?
+are available in the git repository at:
 
-No they can be board specific depending how the inputs for
-clkin, clkinpulow and clkinphif are wired.
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.6/omap-hwmod-a
 
-> ...
-> > +int __init dm814x_adpll_enable_init_clocks(void)
-> > +{
-> > +       int i, err;
-> > +
-> > +       if (!timer_clocks_initialized)
-> > +               return -ENODEV;
-> > +
-> > +       for (i = 0; i < ARRAY_SIZE(init_clocks); i++) {
-> > +               struct clk *clock;
-> > +
-> > +               clock = clk_get(NULL, init_clocks[i]);
-> > +               if (WARN(IS_ERR(clock), "could not find init clock %s\n",
-> > +                        init_clocks[i]))
-> > +                       continue;
-> > +               err = clk_prepare_enable(clock);
-> > +               if (WARN(err, "could not enable init clock %s\n",
-> > +                        init_clocks[i]))
-> > +                       continue;
-> 
-> We have a shiny new series that provides a standard way to do this:
-> 
-> http://lkml.kernel.org/r/<1455225554-13267-1-git-send-email-mturquette@baylibre.com>
+for you to fetch changes up to 8fe097a3d99e22355fb8e3bcee59542bf3f46b2d:
 
-OK nice, so tagging the MPU and DDR clocks with CLK_IS_CRITICAL or
-"clock-critical" should allow removing this code. I think in this
-case I still need to set CLK_IS_CRITICAL as the clock is output 1
-of the dts defined clock and does not have a separate dts node.
+  ARM: DRA7: hwmod: Add reset data for PCIe (2016-02-09 02:18:52 -0700)
 
-I can update when those patches hit Linux next, or I can do a
-follow-up patch later on if we want to avoid the dependency
-here. Which do you prefer?
+- ----------------------------------------------------------------
+ARM: OMAP2+: first set of hwmod fixes and additions for v4.6
 
-Regards,
+A few fixes for OMAP hwmod data.  SSI hwmod data for the OMAP 3730,
+and some fixes for the DRA7xx hwmod data.  These shouldn't interfere
+or impact anything else.
 
-Tony
+Basic build, boot, and PM test logs are available here:
+
+http://www.pwsan.com/omap/testlogs/omap-hwmod-a-for-v4.6/20160214161224/
+
+- ----------------------------------------------------------------
+Kishon Vijay Abraham I (2):
+      ARM: DRA7: hwmod: Fix OCP2SCP sysconfig
+      ARM: DRA7: hwmod: Add reset data for PCIe
+
+Sebastian Reichel (1):
+      ARM: OMAP2+: hwmod data: Add SSI data for omap36xx
+
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 13 +++++++------
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 18 ++++++++++++++++--
+ arch/arm/mach-omap2/prm7xx.h               |  1 +
+ 3 files changed, 24 insertions(+), 8 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWxL6zAAoJEMePsQ0LvSpL1MkQAKazzSI2wEHMKXyDyk7T3YAt
+ADhkrDJP0ukp2PVonis2/tlPMwiz5ZABnZ3tbnUeugcyX0ndpzAGVq/DEG1WeHQb
+gjo3rw3y6/oh6W9b0GLofLeMiI4hoq1bpsHTanEUgTLu6cPoDWsMET+CuQc5tzO9
+Rwek2O6qNDO/f+U+duArXObLRrPDJFpT8M8Q7YX7EhI9mSoBb5laPQ1atrDCglRE
+UwZBZZUpEdpeaH/gDEVEvnwFvK/SbsknSUQ8kTRNgaEH0fmHoN/LHsWWqIfhNL9C
++mmDkvOTS5QBcH2XTL/yHuuKP6Yz93JIgXtkGe1E5tL5OF4wgk2i9CPqk72vEZwN
+Tax0g2B2Yg1yz6I1WZhTu6lpU3FWJ6NC0jL7/iRGncapxjdm3KipiC1qfA6wjqv6
+14+Jfr2nji/REbEteiQP7jwysb65UJDWLZOibZm8iwH8eaT5Gv4IzQbfOkU2f8tJ
+/EmD0RQ+q67kCAxIzuQTfHJLDVBt1040qf+fr7krzVwnujWkFO4jYSfMQy5Ieb/x
+4L0qcXANAtzqxdRUx+gW/16YBLoiQJ4oZnJa+Hw5RwMIzSszTP1lKNpq1hLt/ZuU
+jebOXaLAJKWdINseXJVzSJ5lh2pD/lYhC0aT/ukQGVaaxbHlFNYbpMXjxtXCGieN
+vzCJhDnE4VH3QLcUmoWf
+=Qyj4
+-----END PGP SIGNATURE-----
