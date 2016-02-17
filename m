@@ -1,89 +1,125 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v5 1/8] ALSA: pcm: add IEC958 channel status helper for
- hw_params
-Date: Wed, 17 Feb 2016 16:49:02 +0200
-Message-ID: <84d5d88d7399892cfaf9ef3c3c150087eb4edf68.1455720381.git.jsarha@ti.com>
-References: <cover.1455720381.git.jsarha@ti.com>
+Subject: [PATCH RFC v5 0/8] Implement generic ASoC HDMI codec
+	and use it in tda998x
+Date: Wed, 17 Feb 2016 16:49:01 +0200
+Message-ID: <cover.1455720381.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1455720381.git.jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, arnaud.pouliquen@st.com, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Cc: peter.ujfalusi@ti.com, moinejf@free.fr, tony@atomide.com, broonie@kernel.org, arnaud.pouliquen@st.com, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-QWRkIElFQzk1OCBjaGFubmVsIHN0YXR1cyBoZWxwZXIgdGhhdCBnZXRzIHRoZSBhdWRpbyBwcm9w
-ZXJ0aWVzIGZyb20Kc25kX3BjbV9od19wYXJhbXMgaW5zdGVhZCBvZiBzbmRfcGNtX3J1bnRpbWUu
-IFRoaXMgaXMgbmVlZGVkIHRvCnByb2R1Y2UgdGhlIGNoYW5uZWwgc3RhdHVzIGJpdHMgYWxyZWFk
-eSBpbiBhdWRpbyBzdHJlYW0gY29uZmlndXJhdGlvbgpwaGFzZS4KClNpZ25lZC1vZmYtYnk6IEp5
-cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQogaW5jbHVkZS9zb3VuZC9wY21faWVjOTU4Lmgg
-fCAgMiArKwogc291bmQvY29yZS9wY21faWVjOTU4LmMgICAgfCA1MiArKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDM3IGluc2Vy
-dGlvbnMoKyksIDE3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvc291bmQvcGNt
-X2llYzk1OC5oIGIvaW5jbHVkZS9zb3VuZC9wY21faWVjOTU4LmgKaW5kZXggMGVlZDM5Ny4uMzZm
-MDIzYSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9zb3VuZC9wY21faWVjOTU4LmgKKysrIGIvaW5jbHVk
-ZS9zb3VuZC9wY21faWVjOTU4LmgKQEAgLTYsNCArNiw2IEBACiBpbnQgc25kX3BjbV9jcmVhdGVf
-aWVjOTU4X2NvbnN1bWVyKHN0cnVjdCBzbmRfcGNtX3J1bnRpbWUgKnJ1bnRpbWUsIHU4ICpjcywK
-IAlzaXplX3QgbGVuKTsKIAoraW50IHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25zdW1lcl9od19w
-YXJhbXMoc3RydWN0IHNuZF9wY21faHdfcGFyYW1zICpwYXJhbXMsCisJCQkJCSAgICAgdTggKmNz
-LCBzaXplX3QgbGVuKTsKICNlbmRpZgpkaWZmIC0tZ2l0IGEvc291bmQvY29yZS9wY21faWVjOTU4
-LmMgYi9zb3VuZC9jb3JlL3BjbV9pZWM5NTguYwppbmRleCAzNmIyZDdhLi5jOWY4YjY2IDEwMDY0
-NAotLS0gYS9zb3VuZC9jb3JlL3BjbV9pZWM5NTguYworKysgYi9zb3VuZC9jb3JlL3BjbV9pZWM5
-NTguYwpAQCAtOSwzMCArOSwxOCBAQAogI2luY2x1ZGUgPGxpbnV4L3R5cGVzLmg+CiAjaW5jbHVk
-ZSA8c291bmQvYXNvdW5kZWYuaD4KICNpbmNsdWRlIDxzb3VuZC9wY20uaD4KKyNpbmNsdWRlIDxz
-b3VuZC9wY21fcGFyYW1zLmg+CiAjaW5jbHVkZSA8c291bmQvcGNtX2llYzk1OC5oPgogCi0vKioK
-LSAqIHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25zdW1lciAtIGNyZWF0ZSBjb25zdW1lciBmb3Jt
-YXQgSUVDOTU4IGNoYW5uZWwgc3RhdHVzCi0gKiBAcnVudGltZTogcGNtIHJ1bnRpbWUgc3RydWN0
-dXJlIHdpdGggLT5yYXRlIGZpbGxlZCBpbgotICogQGNzOiBjaGFubmVsIHN0YXR1cyBidWZmZXIs
-IGF0IGxlYXN0IGZvdXIgYnl0ZXMKLSAqIEBsZW46IGxlbmd0aCBvZiBjaGFubmVsIHN0YXR1cyBi
-dWZmZXIKLSAqCi0gKiBDcmVhdGUgdGhlIGNvbnN1bWVyIGZvcm1hdCBjaGFubmVsIHN0YXR1cyBk
-YXRhIGluIEBjcyBvZiBtYXhpbXVtIHNpemUKLSAqIEBsZW4gY29ycmVzcG9uZGluZyB0byB0aGUg
-cGFyYW1ldGVycyBvZiB0aGUgUENNIHJ1bnRpbWUgQHJ1bnRpbWUuCi0gKgotICogRHJpdmVycyBt
-YXkgd2lzaCB0byB0d2VhayB0aGUgY29udGVudHMgb2YgdGhlIGJ1ZmZlciBhZnRlciBjcmVhdGlv
-bi4KLSAqCi0gKiBSZXR1cm5zOiBsZW5ndGggb2YgYnVmZmVyLCBvciBuZWdhdGl2ZSBlcnJvciBj
-b2RlIGlmIHNvbWV0aGluZyBmYWlsZWQuCi0gKi8KLWludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThf
-Y29uc3VtZXIoc3RydWN0IHNuZF9wY21fcnVudGltZSAqcnVudGltZSwgdTggKmNzLAotCXNpemVf
-dCBsZW4pCitzdGF0aWMgaW50IGNyZWF0ZV9pZWM5NThfY29uc3VtZXIodWludCByYXRlLCB1aW50
-IHNhbXBsZV93aWR0aCwKKwkJCQkgIHU4ICpjcywgc2l6ZV90IGxlbikKIHsKIAl1bnNpZ25lZCBp
-bnQgZnMsIHdzOwogCiAJaWYgKGxlbiA8IDQpCiAJCXJldHVybiAtRUlOVkFMOwogCi0Jc3dpdGNo
-IChydW50aW1lLT5yYXRlKSB7CisJc3dpdGNoIChyYXRlKSB7CiAJY2FzZSAzMjAwMDoKIAkJZnMg
-PSBJRUM5NThfQUVTM19DT05fRlNfMzIwMDA7CiAJCWJyZWFrOwpAQCAtNTksNyArNDcsNyBAQCBp
-bnQgc25kX3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHN0cnVjdCBzbmRfcGNtX3J1bnRpbWUg
-KnJ1bnRpbWUsIHU4ICpjcywKIAl9CiAKIAlpZiAobGVuID4gNCkgewotCQlzd2l0Y2ggKHNuZF9w
-Y21fZm9ybWF0X3dpZHRoKHJ1bnRpbWUtPmZvcm1hdCkpIHsKKwkJc3dpdGNoIChzYW1wbGVfd2lk
-dGgpIHsKIAkJY2FzZSAxNjoKIAkJCXdzID0gSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjBfMTY7
-CiAJCQlicmVhazsKQEAgLTkyLDQgKzgwLDM0IEBAIGludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThf
-Y29uc3VtZXIoc3RydWN0IHNuZF9wY21fcnVudGltZSAqcnVudGltZSwgdTggKmNzLAogCiAJcmV0
-dXJuIGxlbjsKIH0KKworLyoqCisgKiBzbmRfcGNtX2NyZWF0ZV9pZWM5NThfY29uc3VtZXIgLSBj
-cmVhdGUgY29uc3VtZXIgZm9ybWF0IElFQzk1OCBjaGFubmVsIHN0YXR1cworICogQHJ1bnRpbWU6
-IHBjbSBydW50aW1lIHN0cnVjdHVyZSB3aXRoIC0+cmF0ZSBmaWxsZWQgaW4KKyAqIEBjczogY2hh
-bm5lbCBzdGF0dXMgYnVmZmVyLCBhdCBsZWFzdCBmb3VyIGJ5dGVzCisgKiBAbGVuOiBsZW5ndGgg
-b2YgY2hhbm5lbCBzdGF0dXMgYnVmZmVyCisgKgorICogQ3JlYXRlIHRoZSBjb25zdW1lciBmb3Jt
-YXQgY2hhbm5lbCBzdGF0dXMgZGF0YSBpbiBAY3Mgb2YgbWF4aW11bSBzaXplCisgKiBAbGVuIGNv
-cnJlc3BvbmRpbmcgdG8gdGhlIHBhcmFtZXRlcnMgb2YgdGhlIFBDTSBydW50aW1lIEBydW50aW1l
-LgorICoKKyAqIERyaXZlcnMgbWF5IHdpc2ggdG8gdHdlYWsgdGhlIGNvbnRlbnRzIG9mIHRoZSBi
-dWZmZXIgYWZ0ZXIgY3JlYXRpb24uCisgKgorICogUmV0dXJuczogbGVuZ3RoIG9mIGJ1ZmZlciwg
-b3IgbmVnYXRpdmUgZXJyb3IgY29kZSBpZiBzb21ldGhpbmcgZmFpbGVkLgorICovCitpbnQgc25k
-X3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHN0cnVjdCBzbmRfcGNtX3J1bnRpbWUgKnJ1bnRp
-bWUsIHU4ICpjcywKKwlzaXplX3QgbGVuKQoreworCXJldHVybiBjcmVhdGVfaWVjOTU4X2NvbnN1
-bWVyKHJ1bnRpbWUtPnJhdGUsCisJCQkJICAgICAgc25kX3BjbV9mb3JtYXRfd2lkdGgocnVudGlt
-ZS0+Zm9ybWF0KSwKKwkJCQkgICAgICBjcywgbGVuKTsKK30KIEVYUE9SVF9TWU1CT0woc25kX3Bj
-bV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKTsKKworCitpbnQgc25kX3BjbV9jcmVhdGVfaWVjOTU4
-X2NvbnN1bWVyX2h3X3BhcmFtcyhzdHJ1Y3Qgc25kX3BjbV9od19wYXJhbXMgKnBhcmFtcywKKwkJ
-CQkJICAgICB1OCAqY3MsIHNpemVfdCBsZW4pCit7CisJcmV0dXJuIGNyZWF0ZV9pZWM5NThfY29u
-c3VtZXIocGFyYW1zX3JhdGUocGFyYW1zKSwgcGFyYW1zX3dpZHRoKHBhcmFtcyksCisJCQkJICAg
-ICAgY3MsIGxlbik7Cit9CitFWFBPUlRfU1lNQk9MKHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25z
-dW1lcl9od19wYXJhbXMpOwotLSAKMS45LjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
-LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2RyaS1kZXZlbAo=
+There is very little change to this series since the RFC v4, but because
+of the recent interest on the hdmi-codec patch I decided to send
+another version of the series.
+
+Changes since RFC v4,
+- Rebased on top of the latest drm-next branch
+- Split the hdmi-codec abort functionality into a separate patch for
+  better visibility of what it is all about
+  - This does not affect the tda998x patches as the abort
+    functionality is not used
+- Drop S18_3* formats from I2S_FORMATS and add a comment about formats
+  not supported by HDMI
+
+There was also some comments about the DT ports binding for tda998x by
+Jean-Francois Moine. However I did not have time to come up with
+alternative approach. All in all my tda998x patches should be
+considered more as a proof of concept for the hdmi-codec part, rather
+than a serious attempt to get those patches in. However, all comments
+to those patch are more than welcome as they will help me to come up
+with something that could finally get merged.
+
+Changes since RFC v3,
+ASoC side:
+- Add "ALSA: pcm: add IEC958 channel status helper for hw_params"
+- Add "tda998x: Improve tda998x_configure_audio() audio related pdata"
+- use snd_pcm_create_iec958_consumer_hw_params() to construct the stream header
+- Remove set_clk() callback from hdmi-codec. It is not needed for now.
+- Refer to stream header in AIF as specified in HDMI standard
+- Set current_stream to NULL only after video side audio_shutdown() has
+  been called. Avoid potential race if video side attempts to abort audio
+  at the same time.
+- No need to have video side device pointer in the hdmi codec's pdata as
+  it is found from dev->parent.
+- Fix hdmi-codec enum: DAI_ID_I2C > DAI_ID_I2S
+- Improve audio_startup API comment
+- Make improved checkpatch happy 
+  - BUG_ON > WARN_ON
+  - put */ ending the block comment to a separate line
+
+DRM side:
+- Fix tda998x get_eld() locking
+- Change tda998x audio parameters in pdata to more generic, that can
+  be readily used in tda998x_audio_config()
+- Rename and restructure audio port related private data members to
+  be more descriptive
+- Require audio configuration trough ASoC hdmi-codec if HDMI audio is
+  configured trough DT binding. 
+
+DTS:
+- Increase McASP fifo usage form 1 to 32
+
+The binding for tda998x is taken from Jean Francois' patch series[1] on
+the same subject. The implementation of the of-node parsing has some
+minor changes from my self.
+
+Here is what I think at least could or should still be done, but non of
+that stuff does not sounds critical right now.
+ 
+Missing from tda998x driver side
+- hdmi_codec_ops audio_startup() implementation for audio abort support
+- multi channel audio support (I would need specs and preferably some
+  HW to test for this).
+
+Missing from ASoC side generic implementation:
+- channel_allocation handling is completely left for the video side driver,
+  see if ASoC side could help in any way
+- snd_soc_jack functionality to handle hdmi cable plug/unplug events
+
+[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2015-July/095596.html
+
+Best regards,
+Jyri
+
+Jean-Francois Moine (1):
+  drm/i2c: tda998x: Add support of a DT graph of ports
+
+Jyri Sarha (7):
+  ALSA: pcm: add IEC958 channel status helper for hw_params
+  ASoC: hdmi-codec: Add hdmi-codec for external HDMI-encoders
+  ASoC: hdmi-codec: Add audio abort() callback for video side to use
+  drm/i2c: tda998x: Remove include/sound/tda998x.h and fix graph parsing
+  drm/i2c: tda998x: Improve tda998x_configure_audio() audio related
+    pdata
+  drm/i2c: tda998x: Register ASoC HDMI codec for audio functionality
+  ARM: dts: am335x-boneblack: Add HDMI audio support
+
+ .../devicetree/bindings/display/bridge/tda998x.txt |  51 +++
+ arch/arm/boot/dts/am335x-boneblack.dts             |  90 ++++-
+ drivers/gpu/drm/i2c/Kconfig                        |   1 +
+ drivers/gpu/drm/i2c/tda998x_drv.c                  | 300 ++++++++++++---
+ include/drm/i2c/tda998x.h                          |  24 +-
+ include/sound/hdmi-codec.h                         | 104 ++++++
+ include/sound/pcm_iec958.h                         |   2 +
+ sound/core/pcm_iec958.c                            |  52 ++-
+ sound/soc/codecs/Kconfig                           |   6 +
+ sound/soc/codecs/Makefile                          |   2 +
+ sound/soc/codecs/hdmi-codec.c                      | 411 +++++++++++++++++++++
+ 11 files changed, 964 insertions(+), 79 deletions(-)
+ create mode 100644 include/sound/hdmi-codec.h
+ create mode 100644 sound/soc/codecs/hdmi-codec.c
+
+-- 
+1.9.1
