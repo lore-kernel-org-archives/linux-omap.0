@@ -1,79 +1,37 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v5 8/8] ARM: dts: am335x-boneblack: Add HDMI audio support
-Date: Wed, 17 Feb 2016 16:49:09 +0200
-Message-ID: <f7d580388c35a161b086b22fc513a39851fa997b.1455720381.git.jsarha@ti.com>
-References: <cover.1455720381.git.jsarha@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] drivers: net: cpsw-phy-sel: add dev_warn() for
+ unsupported PHY mode
+Date: Wed, 17 Feb 2016 10:51:04 -0500 (EST)
+Message-ID: <20160217.105104.143723229571677119.davem@davemloft.net>
+References: <1455324336-3884-1-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1455720381.git.jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, arnaud.pouliquen@st.com, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1455324336-3884-1-git-send-email-drivshin.allworx@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: drivshin.allworx@gmail.com
+Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, kwizart@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-QWRkIEhETUkgYXVkaW8gc3VwcG9ydC4gQWRkcyBtY2FzcDBfcGlucywgY2xrX21jYXNwMF9maXhl
-ZCwKY2xrX21jYXNwMCwgbWNhc3AwLCBzb3VuZCBub2RlLCBhbmQgdXBkYXRlcyB0aGUgdGRhMTk5
-ODggbm9kZSB0bwpmb2xsb3cgdGhlIG5ldyBiaW5kaW5nLgoKU2lnbmVkLW9mZi1ieTogSnlyaSBT
-YXJoYSA8anNhcmhhQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZWJs
-YWNrLmR0cyB8IDkwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0KIDEgZmlsZSBj
-aGFuZ2VkLCA4NiBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2Fy
-Y2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2suZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMv
-YW0zMzV4LWJvbmVibGFjay5kdHMKaW5kZXggZWFkYmJhMy4uMDUzNDdkYyAxMDA2NDQKLS0tIGEv
-YXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWJvbmVibGFjay5kdHMKKysrIGIvYXJjaC9hcm0vYm9v
-dC9kdHMvYW0zMzV4LWJvbmVibGFjay5kdHMKQEAgLTY0LDYgKzY0LDE2IEBACiAJCQkweDFiMCAw
-eDAzICAgICAgLyogeGRtYV9ldmVudF9pbnRyMCwgT01BUF9NVVhfTU9ERTMgfCBBTTMzWFhfUElO
-X09VVFBVVCAqLwogCQk+OwogCX07CisKKwltY2FzcDBfcGluczogbWNhc3AwX3BpbnMgeworCQlw
-aW5jdHJsLXNpbmdsZSxwaW5zID0gPAorCQkJMHgxYWMgKFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhf
-TU9ERTApCS8qIG1jYXNwMF9haGNsa3gubWNhc3AwX2FoY2xreCAqLworCQkJMHgxOWMgKFBJTl9P
-VVRQVVRfUFVMTERPV04gfCBNVVhfTU9ERTIpIC8qIG1jYXNwMF9haGNsa3IubWNhc3AwX2F4cjIg
-Ki8KKwkJCTB4MTk0IChQSU5fT1VUUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogbWNhc3AwX2Zz
-eC5tY2FzcDBfZnN4ICovCisJCQkweDE5MCAoUElOX09VVFBVVF9QVUxMRE9XTiB8IE1VWF9NT0RF
-MCkJLyogbWNhc3AwX2FjbGt4Lm1jYXNwMF9hY2xreCAqLworCQkJMHgwNmMgKFBJTl9PVVRQVVRf
-UFVMTERPV04gfCBNVVhfTU9ERTcpCS8qIGdwbWNfYTExLkdQSU8xXzI3ICovCisJCT47CisJfTsK
-IH07CiAKICZsY2RjIHsKQEAgLTc2LDE3ICs4Niw4OSBAQAogfTsKIAogJmkyYzAgewotCXRkYTE5
-OTg4IHsKKwl0ZGExOTk4ODogdGRhMTk5ODggewogCQljb21wYXRpYmxlID0gIm54cCx0ZGE5OTh4
-IjsKIAkJcmVnID0gPDB4NzA+OworCisJCSNzb3VuZC1kYWktY2VsbHMgPSA8MD47CisKIAkJcGlu
-Y3RybC1uYW1lcyA9ICJkZWZhdWx0IiwgIm9mZiI7CiAJCXBpbmN0cmwtMCA9IDwmbnhwX2hkbWlf
-Ym9uZWx0X3BpbnM+OwogCQlwaW5jdHJsLTEgPSA8Jm54cF9oZG1pX2JvbmVsdF9vZmZfcGlucz47
-CiAKLQkJcG9ydCB7Ci0JCQloZG1pXzA6IGVuZHBvaW50QDAgewotCQkJCXJlbW90ZS1lbmRwb2lu
-dCA9IDwmbGNkY18wPjsKKwkJcG9ydHMgeworCQkJI2FkZHJlc3MtY2VsbHMgPSA8MT47CisJCQkj
-c2l6ZS1jZWxscyA9IDwwPjsKKwkJCXBvcnRAMCB7CisJCQkJcG9ydC10eXBlID0gInJnYiI7CisJ
-CQkJcmVnID0gPDB4MjMwMTQ1PjsKKwkJCQloZG1pXzA6IGVuZHBvaW50QDAgeworCQkJCQlyZW1v
-dGUtZW5kcG9pbnQgPSA8JmxjZGNfMD47CisJCQkJfTsKIAkJCX07CisJCQlwb3J0QDEgeworCQkJ
-CXBvcnQtdHlwZSA9ICJpMnMiOworCQkJCXJlZyA9IDwweDAzPjsKKwkJCQl0ZGExOTk4OF9pMnM6
-IGVuZHBvaW50IHsKKwkJCQkJcmVtb3RlLWVuZHBvaW50ID0gPCZtY2FzcDBfaTJzPjsKKwkJCQl9
-OworCQkJfTsKKwkJfTsKKwl9OworfTsKKworJnJ0YyB7CisJc3lzdGVtLXBvd2VyLWNvbnRyb2xs
-ZXI7Cit9OworCismbWNhc3AwCXsKKwkjc291bmQtZGFpLWNlbGxzID0gPDA+OworCXBpbmN0cmwt
-bmFtZXMgPSAiZGVmYXVsdCI7CisJcGluY3RybC0wID0gPCZtY2FzcDBfcGlucz47CisJc3RhdHVz
-ID0gIm9rYXkiOworCW9wLW1vZGUgPSA8MD47CS8qIE1DQVNQX0lJU19NT0RFICovCisJdGRtLXNs
-b3RzID0gPDI+OworCXNlcmlhbC1kaXIgPSA8CS8qIDA6IElOQUNUSVZFLCAxOiBUWCwgMjogUlgg
-Ki8KKwkJCTAgMCAxIDAKKwkJPjsKKwl0eC1udW0tZXZ0ID0gPDMyPjsKKwlyeC1udW0tZXZ0ID0g
-PDMyPjsKKworCXBvcnQgeworCQltY2FzcDBfaTJzOiBlbmRwb2ludCB7CisJCQlyZW1vdGUtZW5k
-cG9pbnQgPSA8JnRkYTE5OTg4X2kycz47CisJCX07CisJfTsKK307CisKKy8geworCWNsa19tY2Fz
-cDBfZml4ZWQ6IGNsa19tY2FzcDBfZml4ZWQgeworCQkjY2xvY2stY2VsbHMgPSA8MD47CisJCWNv
-bXBhdGlibGUgPSAiZml4ZWQtY2xvY2siOworCQljbG9jay1mcmVxdWVuY3kgPSA8MjQ1NzYwMDA+
-OworCX07CisKKwljbGtfbWNhc3AwOiBjbGtfbWNhc3AwIHsKKwkJI2Nsb2NrLWNlbGxzID0gPDA+
-OworCQljb21wYXRpYmxlID0gImdwaW8tZ2F0ZS1jbG9jayI7CisJCWNsb2NrcyA9IDwmY2xrX21j
-YXNwMF9maXhlZD47CisJCWVuYWJsZS1ncGlvcyA9IDwmZ3BpbzEgMjcgMD47IC8qIEJlYWdsZUJv
-bmUgQmxhY2sgQ2xrIGVuYWJsZSBvbiBHUElPMV8yNyAqLworCX07CisKKwlzb3VuZCB7CisJCWNv
-bXBhdGlibGUgPSAic2ltcGxlLWF1ZGlvLWNhcmQiOworCQlzaW1wbGUtYXVkaW8tY2FyZCxuYW1l
-ID0gIlRJIEJlYWdsZUJvbmUgQmxhY2siOworCQlzaW1wbGUtYXVkaW8tY2FyZCxmb3JtYXQgPSAi
-aTJzIjsKKwkJc2ltcGxlLWF1ZGlvLWNhcmQsYml0Y2xvY2stbWFzdGVyID0gPCZkYWlsaW5rMF9t
-YXN0ZXI+OworCQlzaW1wbGUtYXVkaW8tY2FyZCxmcmFtZS1tYXN0ZXIgPSA8JmRhaWxpbmswX21h
-c3Rlcj47CisKKwkJZGFpbGluazBfbWFzdGVyOiBzaW1wbGUtYXVkaW8tY2FyZCxjcHUgeworCQkJ
-c291bmQtZGFpID0gPCZtY2FzcDA+OworCQkJY2xvY2tzID0gPCZjbGtfbWNhc3AwPjsKKwkJfTsK
-KworCQlzaW1wbGUtYXVkaW8tY2FyZCxjb2RlYyB7CisJCQlzb3VuZC1kYWkgPSA8JnRkYTE5OTg4
-PjsKIAkJfTsKIAl9OwogfTsKLS0gCjEuOS4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
-cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9kcmktZGV2ZWwK
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Date: Fri, 12 Feb 2016 19:45:36 -0500
+
+> From: David Rivshin <drivshin@allworx.com>
+> 
+> The cpsw-phy-sel driver supports only MII, RMII, and RGMII PHY modes,
+> and silently handled any other values as if MII was specified. In a
+> case where the PHY mode was incorrectly specified, or a bug elsewhere,
+> there would be no indication of a problem. If MII was the correct mode,
+> then this will go unnoticed, otherwise the symptom will be a failure
+> to transmit/receive data over the RMII/RGMII link.
+> 
+> Add a dev_warn() to make this condition obvious and provide a
+> breadcrumb to follow.
+> 
+> Cc: Mugunthan V N <mugunthanvnm@ti.com>
+> Signed-off-by: David Rivshin <drivshin@allworx.com>
+
+Applied to 'net', thanks.  I don't think I'll queue this up for -stable.
+
+Thanks.
