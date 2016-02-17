@@ -1,60 +1,52 @@
-From: "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
- request
-Date: Wed, 17 Feb 2016 21:41:10 +0530
-Message-ID: <56C49B9E.8060506@ti.com>
-References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
- <1449807000-6457-4-git-send-email-vigneshr@ti.com>
- <20160209193616.GN13270@sirena.org.uk> <56BC1D3E.5020203@ti.com>
- <20160212223711.GD18988@sirena.org.uk> <56C2D731.6050306@ti.com>
- <20160216123854.GJ18327@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] dt-bindings: clock: adpll: Add binding documentation
+ for TI adpll
+Date: Wed, 17 Feb 2016 09:28:36 -0800
+Message-ID: <20160217172836.GA21202@atomide.com>
+References: <1455312009-808-1-git-send-email-tony@atomide.com>
+ <1455312009-808-2-git-send-email-tony@atomide.com>
+ <20160217010440.2278.62327@quark.deferred.io>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160216123854.GJ18327-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160217010440.2278.62327@quark.deferred.io>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Michael Turquette <mturquette@baylibre.com> [160216 17:17]:
+> Quoting Tony Lindgren (2016-02-12 13:20:08)
+> > +Required properties:
+> > +- compatible : shall be one of "ti,dm814-adpll-s-clock" or
+> > +  "ti,dm814-adpll-lj-clock" depending on the type of the ADPLL
+> > +- #clock-cells : from common clock binding; shall be set to 0.
+> 
+> Thanks for the patch.
+> 
+> clock-cells = 1 in both of the examples below (which looks right).
 
+Oops thanks, will update to 1.
 
-On 02/16/2016 06:08 PM, Mark Brown wrote:
-> On Tue, Feb 16, 2016 at 01:30:49PM +0530, Vignesh R wrote:
->> On 02/13/2016 04:07 AM, Mark Brown wrote:
->>> On Thu, Feb 11, 2016 at 11:03:50AM +0530, Vignesh R wrote:
->>>> On 02/10/2016 01:06 AM, Mark Brown wrote:
+> > +- clocks : link phandles of parent clocks clkinp and clkinpulow, note
+> > +  that the adpll-s-clock also has an optional clkinphif
+> > +- reg : address and length of the register set for controlling the ADPLL.
+> > +
+> > +Examples:
+> > +       adpll_mpu_ck: adpll@40 {
+> > +               #clock-cells = <1>;
+> > +               compatible = "ti,dm814-adpll-s-clock";
+> > +               reg = <0x40 0x40>;
+> > +               clocks = <&devosc_ck &devosc_ck &devosc_ck>;
+> > +               clock-names = "clkinp", "clkinpulow", "clkinphif";
+> > +               clock-indices = <0>, <1>, <2>, <3>;
 > 
->>>>> Looking at this I can't help but think that spi_flash_read() ought to
->>>>> have the stub in rather than the caller.  But given that we're pretty
->>>>> much only ever expecting one user I'm not 100% sure it actually matters.
-> 
->>>> Well, my initial patch set passed long list of arguments to
->>>> spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
->>>> unnecessary churn when things need changed in the API.
-> 
->>> I don't see what that has to do with my point?
-> 
->> AFAIU, your previous comment was to move initialization of
->> spi_flash_read_message struct to spi_flash_read(). This would mean
-> 
-> No, not at all.  I'm talking about how we handle the case where we don't
-> have hardware support for this and need to implement it in software -
-> currently that's in a separate place to the place where we call the
-> driver.
-> 
+> Why is clock-indices necessary?
 
-Yeah, but AFAIK, hardware accelerated read support is applicable for
-m25p80 flashes only, I doubt whether spi_flash_read() will be used by
-other types. I felt keeping the software implementation in m25p80_read()
-will be consistent with m25p80_write().
+Hmm yeah I don't think it's needed, so will drop.
 
+Regards,
 
--- 
-Regards
-Vignesh
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+
