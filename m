@@ -1,37 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] drivers: net: cpsw-phy-sel: add dev_warn() for
- unsupported PHY mode
-Date: Wed, 17 Feb 2016 10:51:04 -0500 (EST)
-Message-ID: <20160217.105104.143723229571677119.davem@davemloft.net>
-References: <1455324336-3884-1-git-send-email-drivshin.allworx@gmail.com>
+From: "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
+ request
+Date: Wed, 17 Feb 2016 21:41:10 +0530
+Message-ID: <56C49B9E.8060506@ti.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-4-git-send-email-vigneshr@ti.com>
+ <20160209193616.GN13270@sirena.org.uk> <56BC1D3E.5020203@ti.com>
+ <20160212223711.GD18988@sirena.org.uk> <56C2D731.6050306@ti.com>
+ <20160216123854.GJ18327@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1455324336-3884-1-git-send-email-drivshin.allworx@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: drivshin.allworx@gmail.com
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, mugunthanvnm@ti.com, kwizart@gmail.com
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160216123854.GJ18327-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hramrach-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Date: Fri, 12 Feb 2016 19:45:36 -0500
 
-> From: David Rivshin <drivshin@allworx.com>
-> 
-> The cpsw-phy-sel driver supports only MII, RMII, and RGMII PHY modes,
-> and silently handled any other values as if MII was specified. In a
-> case where the PHY mode was incorrectly specified, or a bug elsewhere,
-> there would be no indication of a problem. If MII was the correct mode,
-> then this will go unnoticed, otherwise the symptom will be a failure
-> to transmit/receive data over the RMII/RGMII link.
-> 
-> Add a dev_warn() to make this condition obvious and provide a
-> breadcrumb to follow.
-> 
-> Cc: Mugunthan V N <mugunthanvnm@ti.com>
-> Signed-off-by: David Rivshin <drivshin@allworx.com>
 
-Applied to 'net', thanks.  I don't think I'll queue this up for -stable.
+On 02/16/2016 06:08 PM, Mark Brown wrote:
+> On Tue, Feb 16, 2016 at 01:30:49PM +0530, Vignesh R wrote:
+>> On 02/13/2016 04:07 AM, Mark Brown wrote:
+>>> On Thu, Feb 11, 2016 at 11:03:50AM +0530, Vignesh R wrote:
+>>>> On 02/10/2016 01:06 AM, Mark Brown wrote:
+> 
+>>>>> Looking at this I can't help but think that spi_flash_read() ought to
+>>>>> have the stub in rather than the caller.  But given that we're pretty
+>>>>> much only ever expecting one user I'm not 100% sure it actually matters.
+> 
+>>>> Well, my initial patch set passed long list of arguments to
+>>>> spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
+>>>> unnecessary churn when things need changed in the API.
+> 
+>>> I don't see what that has to do with my point?
+> 
+>> AFAIU, your previous comment was to move initialization of
+>> spi_flash_read_message struct to spi_flash_read(). This would mean
+> 
+> No, not at all.  I'm talking about how we handle the case where we don't
+> have hardware support for this and need to implement it in software -
+> currently that's in a separate place to the place where we call the
+> driver.
+> 
 
-Thanks.
+Yeah, but AFAIK, hardware accelerated read support is applicable for
+m25p80 flashes only, I doubt whether spi_flash_read() will be used by
+other types. I felt keeping the software implementation in m25p80_read()
+will be consistent with m25p80_write().
+
+
+-- 
+Regards
+Vignesh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
