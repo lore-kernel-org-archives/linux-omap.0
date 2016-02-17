@@ -1,75 +1,59 @@
-From: Josh Cartwright <joshc@ni.com>
+From: Michael Welling <mwelling@ieee.org>
 Subject: Re: Bunch of machines are not booting in next again, GPIO regression?
-Date: Wed, 17 Feb 2016 13:55:43 -0600
-Message-ID: <20160217195543.GA871@jcartwri.amer.corp.natinst.com>
+Date: Wed, 17 Feb 2016 14:13:07 -0600
+Message-ID: <20160217201259.GA16028@deathstar>
 References: <20160217192755.GC21202@atomide.com>
+ <20160217195543.GA871@jcartwri.amer.corp.natinst.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160217192755.GC21202@atomide.com>
 Content-Disposition: inline
+In-Reply-To: <20160217195543.GA871@jcartwri.amer.corp.natinst.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Johan Hovold <johan@kernel.org>, Markus Pargmann <mpa@pengutronix.de>, Mark Brown <broonie@kernel.org>, Michael Welling <mwelling@ieee.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Josh Cartwright <joshc@ni.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Johan Hovold <johan@kernel.org>, Markus Pargmann <mpa@pengutronix.de>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Feb 17, 2016 at 01:55:43PM -0600, Josh Cartwright wrote:
+> On Wed, Feb 17, 2016 at 11:27:55AM -0800, Tony Lindgren wrote:
+> > Hi Linus,
+> > 
+> > Looks like ff2b13592299 ("gpio: make the gpiochip a real device")
+> > broke booting on all omaps, and probably other machines too according
+> > to this:
+> > 
+> > https://kernelci.org/boot/all/job/next/kernel/next-20160217/
+> > 
+> > So far we've gone from 1 failed machine with next-20160216 to
+> > 18 failed machines with next-20160217.
+> > 
+> > The error I'm getting on omaps is below with debug_ll enable,
+> > any ideas?
+> 
+> Hey Tony-
+> 
+> Looks like the newly allocated gpio_device object isn't zeroed,
+> confusing dev_set_name.  Can you give this a try?
+> 
+>   Josh
+> 
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index d8511cd..59f0045 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -435,7 +435,7 @@ int gpiochip_add_data(struct gpio_chip *chip, void *data)
+>  	 * First: allocate and populate the internal stat container, and
+>  	 * set up the struct device.
+>  	 */
+> -	gdev = kmalloc(sizeof(*gdev), GFP_KERNEL);
+> +	gdev = kzalloc(sizeof(*gdev), GFP_KERNEL);
+>  	if (!gdev)
+>  		return -ENOMEM;
+>  	gdev->dev.bus = &gpio_bus_type;
 
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+As you can see by my post on the GPIO mailing list, a boot failure
+was occurring on the Dragonboard 410C:
+http://permalink.gmane.org/gmane.linux.kernel.gpio/14360
 
-On Wed, Feb 17, 2016 at 11:27:55AM -0800, Tony Lindgren wrote:
-> Hi Linus,
->=20
-> Looks like ff2b13592299 ("gpio: make the gpiochip a real device")
-> broke booting on all omaps, and probably other machines too according
-> to this:
->=20
-> https://kernelci.org/boot/all/job/next/kernel/next-20160217/
->=20
-> So far we've gone from 1 failed machine with next-20160216 to
-> 18 failed machines with next-20160217.
->=20
-> The error I'm getting on omaps is below with debug_ll enable,
-> any ideas?
+With the above patch the board now boots. Good catch.
 
-Hey Tony-
-
-Looks like the newly allocated gpio_device object isn't zeroed,
-confusing dev_set_name.  Can you give this a try?
-
-  Josh
-
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index d8511cd..59f0045 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -435,7 +435,7 @@ int gpiochip_add_data(struct gpio_chip *chip, void *dat=
-a)
- 	 * First: allocate and populate the internal stat container, and
- 	 * set up the struct device.
- 	 */
--	gdev =3D kmalloc(sizeof(*gdev), GFP_KERNEL);
-+	gdev =3D kzalloc(sizeof(*gdev), GFP_KERNEL);
- 	if (!gdev)
- 		return -ENOMEM;
- 	gdev->dev.bus =3D &gpio_bus_type;
-
---UlVJffcvxoiEqYs2
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAABCAAGBQJWxNA7AAoJEKp7ZBKwQFArFuYH/2omKDUL4Zld0ij6V078IS6N
-7ZIgGu9tyKnfVVGmD11ZKOpfiZkmYwJ2WMhKemaE5eePTA/Xji48gLHPutj0VjrN
-eKjvIg5RxtSZ3d08AscX5UODfSQ85yDuN2oYw1NpBL0xEnxWJ8MP26lL/z5fiZh1
-0jE/slZl1ikZgS/sAG/mVkEX7AxHeWNCTI/hThXdI0/QG9mF9YhTwjvP4XAl4uwe
-YwkkMSMHChy5bdcdDNawWwvmafWAikMp8S3ZhHfgMOwj4T2QGVIybpOoMsD2jRPV
-xVUSXE6aCZzpIDr6JStp6plqaHGtF3bAuNYvGPt/qTVlTmCKFIIAEwmQ0OFRulk=
-=4EWe
------END PGP SIGNATURE-----
-
---UlVJffcvxoiEqYs2--
