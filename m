@@ -1,106 +1,89 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] ARM: OMAP: DRA7: Make use of omap_revision information for
- soc_is* calls
-Date: Wed, 17 Feb 2016 16:18:43 +0530
-Message-ID: <1455706123-26497-1-git-send-email-j-keerthy@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC v5 1/8] ALSA: pcm: add IEC958 channel status helper for
+ hw_params
+Date: Wed, 17 Feb 2016 16:49:02 +0200
+Message-ID: <84d5d88d7399892cfaf9ef3c3c150087eb4edf68.1455720381.git.jsarha@ti.com>
+References: <cover.1455720381.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@arm.linux.org.uk
-Cc: j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1455720381.git.jsarha@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, arnaud.pouliquen@st.com, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Currently of_machine_is_compatible is used to detect the soc which
-employs string comparison operations. We already have all the required
-information in the omap_revision. Hence make use of the same like
-the previous OMAPs and avoid costly string comparisons.
-
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
-
-Couple of checkpatch warnings present but stuck to the code
-convention followed in the file already.
-
-Boot tested on both DRA7-EVM and DRA72-EVM.
-
-Previous discussion:
-
-http://lists.infradead.org/pipermail/linux-arm-kernel/2015-October/378615.html
-
- arch/arm/mach-omap2/soc.h | 23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 79ca3c3..70df8f6 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -181,6 +181,14 @@ static inline int is_ti ##class (void)		\
- 	return (GET_TI_CLASS == (id)) ? 1 : 0;	\
- }
- 
-+#define GET_DRA_CLASS	((omap_rev() >> 24) & 0xff)
-+
-+#define IS_DRA_CLASS(class, id)				\
-+static inline int is_dra ##class (void)			\
-+{							\
-+	return (GET_DRA_CLASS == (id)) ? 1 : 0;		\
-+}
-+
- #define GET_OMAP_SUBCLASS	((omap_rev() >> 20) & 0x0fff)
- 
- #define IS_OMAP_SUBCLASS(subclass, id)			\
-@@ -201,6 +209,12 @@ static inline int is_am ##subclass (void)		\
- 	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
- }
- 
-+#define IS_DRA_SUBCLASS(subclass, id)			\
-+static inline int is_dra ##subclass (void)		\
-+{							\
-+	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-+}
-+
- IS_OMAP_CLASS(24xx, 0x24)
- IS_OMAP_CLASS(34xx, 0x34)
- IS_OMAP_CLASS(44xx, 0x44)
-@@ -210,6 +224,7 @@ IS_AM_CLASS(33xx, 0x33)
- IS_AM_CLASS(43xx, 0x43)
- 
- IS_TI_CLASS(81xx, 0x81)
-+IS_DRA_CLASS(7xx, 0x7)
- 
- IS_OMAP_SUBCLASS(242x, 0x242)
- IS_OMAP_SUBCLASS(243x, 0x243)
-@@ -224,6 +239,8 @@ IS_TI_SUBCLASS(816x, 0x816)
- IS_TI_SUBCLASS(814x, 0x814)
- IS_AM_SUBCLASS(335x, 0x335)
- IS_AM_SUBCLASS(437x, 0x437)
-+IS_DRA_SUBCLASS(75x, 0x75)
-+IS_DRA_SUBCLASS(72x, 0x72)
- 
- #define soc_is_omap24xx()		0
- #define soc_is_omap242x()		0
-@@ -397,9 +414,9 @@ IS_OMAP_TYPE(3430, 0x3430)
- #undef soc_is_dra7xx
- #undef soc_is_dra74x
- #undef soc_is_dra72x
--#define soc_is_dra7xx()	(of_machine_is_compatible("ti,dra7"))
--#define soc_is_dra74x()	(of_machine_is_compatible("ti,dra74"))
--#define soc_is_dra72x()	(of_machine_is_compatible("ti,dra72"))
-+#define soc_is_dra7xx()	is_dra7xx()
-+#define soc_is_dra74x()	is_dra75x()
-+#define soc_is_dra72x()	is_dra72x()
- #endif
- 
- /* Various silicon revisions for omap2 */
--- 
-1.9.1
+QWRkIElFQzk1OCBjaGFubmVsIHN0YXR1cyBoZWxwZXIgdGhhdCBnZXRzIHRoZSBhdWRpbyBwcm9w
+ZXJ0aWVzIGZyb20Kc25kX3BjbV9od19wYXJhbXMgaW5zdGVhZCBvZiBzbmRfcGNtX3J1bnRpbWUu
+IFRoaXMgaXMgbmVlZGVkIHRvCnByb2R1Y2UgdGhlIGNoYW5uZWwgc3RhdHVzIGJpdHMgYWxyZWFk
+eSBpbiBhdWRpbyBzdHJlYW0gY29uZmlndXJhdGlvbgpwaGFzZS4KClNpZ25lZC1vZmYtYnk6IEp5
+cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Ci0tLQogaW5jbHVkZS9zb3VuZC9wY21faWVjOTU4Lmgg
+fCAgMiArKwogc291bmQvY29yZS9wY21faWVjOTU4LmMgICAgfCA1MiArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDM3IGluc2Vy
+dGlvbnMoKyksIDE3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvc291bmQvcGNt
+X2llYzk1OC5oIGIvaW5jbHVkZS9zb3VuZC9wY21faWVjOTU4LmgKaW5kZXggMGVlZDM5Ny4uMzZm
+MDIzYSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9zb3VuZC9wY21faWVjOTU4LmgKKysrIGIvaW5jbHVk
+ZS9zb3VuZC9wY21faWVjOTU4LmgKQEAgLTYsNCArNiw2IEBACiBpbnQgc25kX3BjbV9jcmVhdGVf
+aWVjOTU4X2NvbnN1bWVyKHN0cnVjdCBzbmRfcGNtX3J1bnRpbWUgKnJ1bnRpbWUsIHU4ICpjcywK
+IAlzaXplX3QgbGVuKTsKIAoraW50IHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25zdW1lcl9od19w
+YXJhbXMoc3RydWN0IHNuZF9wY21faHdfcGFyYW1zICpwYXJhbXMsCisJCQkJCSAgICAgdTggKmNz
+LCBzaXplX3QgbGVuKTsKICNlbmRpZgpkaWZmIC0tZ2l0IGEvc291bmQvY29yZS9wY21faWVjOTU4
+LmMgYi9zb3VuZC9jb3JlL3BjbV9pZWM5NTguYwppbmRleCAzNmIyZDdhLi5jOWY4YjY2IDEwMDY0
+NAotLS0gYS9zb3VuZC9jb3JlL3BjbV9pZWM5NTguYworKysgYi9zb3VuZC9jb3JlL3BjbV9pZWM5
+NTguYwpAQCAtOSwzMCArOSwxOCBAQAogI2luY2x1ZGUgPGxpbnV4L3R5cGVzLmg+CiAjaW5jbHVk
+ZSA8c291bmQvYXNvdW5kZWYuaD4KICNpbmNsdWRlIDxzb3VuZC9wY20uaD4KKyNpbmNsdWRlIDxz
+b3VuZC9wY21fcGFyYW1zLmg+CiAjaW5jbHVkZSA8c291bmQvcGNtX2llYzk1OC5oPgogCi0vKioK
+LSAqIHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25zdW1lciAtIGNyZWF0ZSBjb25zdW1lciBmb3Jt
+YXQgSUVDOTU4IGNoYW5uZWwgc3RhdHVzCi0gKiBAcnVudGltZTogcGNtIHJ1bnRpbWUgc3RydWN0
+dXJlIHdpdGggLT5yYXRlIGZpbGxlZCBpbgotICogQGNzOiBjaGFubmVsIHN0YXR1cyBidWZmZXIs
+IGF0IGxlYXN0IGZvdXIgYnl0ZXMKLSAqIEBsZW46IGxlbmd0aCBvZiBjaGFubmVsIHN0YXR1cyBi
+dWZmZXIKLSAqCi0gKiBDcmVhdGUgdGhlIGNvbnN1bWVyIGZvcm1hdCBjaGFubmVsIHN0YXR1cyBk
+YXRhIGluIEBjcyBvZiBtYXhpbXVtIHNpemUKLSAqIEBsZW4gY29ycmVzcG9uZGluZyB0byB0aGUg
+cGFyYW1ldGVycyBvZiB0aGUgUENNIHJ1bnRpbWUgQHJ1bnRpbWUuCi0gKgotICogRHJpdmVycyBt
+YXkgd2lzaCB0byB0d2VhayB0aGUgY29udGVudHMgb2YgdGhlIGJ1ZmZlciBhZnRlciBjcmVhdGlv
+bi4KLSAqCi0gKiBSZXR1cm5zOiBsZW5ndGggb2YgYnVmZmVyLCBvciBuZWdhdGl2ZSBlcnJvciBj
+b2RlIGlmIHNvbWV0aGluZyBmYWlsZWQuCi0gKi8KLWludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThf
+Y29uc3VtZXIoc3RydWN0IHNuZF9wY21fcnVudGltZSAqcnVudGltZSwgdTggKmNzLAotCXNpemVf
+dCBsZW4pCitzdGF0aWMgaW50IGNyZWF0ZV9pZWM5NThfY29uc3VtZXIodWludCByYXRlLCB1aW50
+IHNhbXBsZV93aWR0aCwKKwkJCQkgIHU4ICpjcywgc2l6ZV90IGxlbikKIHsKIAl1bnNpZ25lZCBp
+bnQgZnMsIHdzOwogCiAJaWYgKGxlbiA8IDQpCiAJCXJldHVybiAtRUlOVkFMOwogCi0Jc3dpdGNo
+IChydW50aW1lLT5yYXRlKSB7CisJc3dpdGNoIChyYXRlKSB7CiAJY2FzZSAzMjAwMDoKIAkJZnMg
+PSBJRUM5NThfQUVTM19DT05fRlNfMzIwMDA7CiAJCWJyZWFrOwpAQCAtNTksNyArNDcsNyBAQCBp
+bnQgc25kX3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHN0cnVjdCBzbmRfcGNtX3J1bnRpbWUg
+KnJ1bnRpbWUsIHU4ICpjcywKIAl9CiAKIAlpZiAobGVuID4gNCkgewotCQlzd2l0Y2ggKHNuZF9w
+Y21fZm9ybWF0X3dpZHRoKHJ1bnRpbWUtPmZvcm1hdCkpIHsKKwkJc3dpdGNoIChzYW1wbGVfd2lk
+dGgpIHsKIAkJY2FzZSAxNjoKIAkJCXdzID0gSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjBfMTY7
+CiAJCQlicmVhazsKQEAgLTkyLDQgKzgwLDM0IEBAIGludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThf
+Y29uc3VtZXIoc3RydWN0IHNuZF9wY21fcnVudGltZSAqcnVudGltZSwgdTggKmNzLAogCiAJcmV0
+dXJuIGxlbjsKIH0KKworLyoqCisgKiBzbmRfcGNtX2NyZWF0ZV9pZWM5NThfY29uc3VtZXIgLSBj
+cmVhdGUgY29uc3VtZXIgZm9ybWF0IElFQzk1OCBjaGFubmVsIHN0YXR1cworICogQHJ1bnRpbWU6
+IHBjbSBydW50aW1lIHN0cnVjdHVyZSB3aXRoIC0+cmF0ZSBmaWxsZWQgaW4KKyAqIEBjczogY2hh
+bm5lbCBzdGF0dXMgYnVmZmVyLCBhdCBsZWFzdCBmb3VyIGJ5dGVzCisgKiBAbGVuOiBsZW5ndGgg
+b2YgY2hhbm5lbCBzdGF0dXMgYnVmZmVyCisgKgorICogQ3JlYXRlIHRoZSBjb25zdW1lciBmb3Jt
+YXQgY2hhbm5lbCBzdGF0dXMgZGF0YSBpbiBAY3Mgb2YgbWF4aW11bSBzaXplCisgKiBAbGVuIGNv
+cnJlc3BvbmRpbmcgdG8gdGhlIHBhcmFtZXRlcnMgb2YgdGhlIFBDTSBydW50aW1lIEBydW50aW1l
+LgorICoKKyAqIERyaXZlcnMgbWF5IHdpc2ggdG8gdHdlYWsgdGhlIGNvbnRlbnRzIG9mIHRoZSBi
+dWZmZXIgYWZ0ZXIgY3JlYXRpb24uCisgKgorICogUmV0dXJuczogbGVuZ3RoIG9mIGJ1ZmZlciwg
+b3IgbmVnYXRpdmUgZXJyb3IgY29kZSBpZiBzb21ldGhpbmcgZmFpbGVkLgorICovCitpbnQgc25k
+X3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHN0cnVjdCBzbmRfcGNtX3J1bnRpbWUgKnJ1bnRp
+bWUsIHU4ICpjcywKKwlzaXplX3QgbGVuKQoreworCXJldHVybiBjcmVhdGVfaWVjOTU4X2NvbnN1
+bWVyKHJ1bnRpbWUtPnJhdGUsCisJCQkJICAgICAgc25kX3BjbV9mb3JtYXRfd2lkdGgocnVudGlt
+ZS0+Zm9ybWF0KSwKKwkJCQkgICAgICBjcywgbGVuKTsKK30KIEVYUE9SVF9TWU1CT0woc25kX3Bj
+bV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKTsKKworCitpbnQgc25kX3BjbV9jcmVhdGVfaWVjOTU4
+X2NvbnN1bWVyX2h3X3BhcmFtcyhzdHJ1Y3Qgc25kX3BjbV9od19wYXJhbXMgKnBhcmFtcywKKwkJ
+CQkJICAgICB1OCAqY3MsIHNpemVfdCBsZW4pCit7CisJcmV0dXJuIGNyZWF0ZV9pZWM5NThfY29u
+c3VtZXIocGFyYW1zX3JhdGUocGFyYW1zKSwgcGFyYW1zX3dpZHRoKHBhcmFtcyksCisJCQkJICAg
+ICAgY3MsIGxlbik7Cit9CitFWFBPUlRfU1lNQk9MKHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25z
+dW1lcl9od19wYXJhbXMpOwotLSAKMS45LjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
+LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2RyaS1kZXZlbAo=
