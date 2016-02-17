@@ -1,90 +1,156 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC v5 3/8] ASoC: hdmi-codec: Add audio abort() callback for video side to use
-Date: Wed, 17 Feb 2016 16:49:04 +0200
-Message-ID: <9aed642926bee8c108b82e243ed0ef3e810db50f.1455720381.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH RFC v5 6/8] drm/i2c: tda998x: Improve
+ tda998x_configure_audio() audio related pdata
+Date: Wed, 17 Feb 2016 16:49:07 +0200
+Message-ID: <5306db61088e42709ac0447ed88829bb18e85375.1455720381.git.jsarha@ti.com>
 References: <cover.1455720381.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1455720381.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1455720381.git.jsarha@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
+Cc: peter.ujfalusi@ti.com, tony@atomide.com, broonie@kernel.org, arnaud.pouliquen@st.com, Jyri Sarha <jsarha@ti.com>, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, rmk+kernel@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-Add audio abort() callback, that is provided at audio stream start,
-for video side. This is for video side to use in case there is a
-pressing need to tear down the audio playback for some reason.
-
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
----
- include/sound/hdmi-codec.h    |  8 ++++++--
- sound/soc/codecs/hdmi-codec.c | 20 +++++++++++++++++++-
- 2 files changed, 25 insertions(+), 3 deletions(-)
-
-diff --git a/include/sound/hdmi-codec.h b/include/sound/hdmi-codec.h
-index fc3a481..15fe70f 100644
---- a/include/sound/hdmi-codec.h
-+++ b/include/sound/hdmi-codec.h
-@@ -55,10 +55,14 @@ struct hdmi_codec_params {
- 
- struct hdmi_codec_ops {
- 	/*
--	 * Called when ASoC starts an audio stream setup.
-+	 * Called when ASoC starts an audio stream setup. The call
-+	 * provides an audio abort callback for stoping an ongoing
-+	 * stream from video side driver if the HDMI audio becomes
-+	 * unavailable.
- 	 * Optional
- 	 */
--	int (*audio_startup)(struct device *dev);
-+	int (*audio_startup)(struct device *dev,
-+			     void (*abort_cb)(struct device *dev));
- 
- 	/*
- 	 * Configures HDMI-encoder for audio stream.
-diff --git a/sound/soc/codecs/hdmi-codec.c b/sound/soc/codecs/hdmi-codec.c
-index bc47b9a..cc08097 100644
---- a/sound/soc/codecs/hdmi-codec.c
-+++ b/sound/soc/codecs/hdmi-codec.c
-@@ -47,6 +47,23 @@ enum {
- 	DAI_ID_SPDIF,
- };
- 
-+static void hdmi_codec_abort(struct device *dev)
-+{
-+	struct hdmi_codec_priv *hcp = dev_get_drvdata(dev);
-+
-+	dev_dbg(dev, "%s()\n", __func__);
-+
-+	mutex_lock(&hcp->current_stream_lock);
-+	if (hcp->current_stream && hcp->current_stream->runtime &&
-+	    snd_pcm_running(hcp->current_stream)) {
-+		dev_info(dev, "HDMI audio playback aborted\n");
-+		snd_pcm_stream_lock_irq(hcp->current_stream);
-+		snd_pcm_stop(hcp->current_stream, SNDRV_PCM_STATE_DISCONNECTED);
-+		snd_pcm_stream_unlock_irq(hcp->current_stream);
-+	}
-+	mutex_unlock(&hcp->current_stream_lock);
-+}
-+
- static int hdmi_codec_new_stream(struct snd_pcm_substream *substream,
- 				 struct snd_soc_dai *dai)
- {
-@@ -78,7 +95,8 @@ static int hdmi_codec_startup(struct snd_pcm_substream *substream,
- 		return ret;
- 
- 	if (hcp->hcd.ops->audio_startup) {
--		ret = hcp->hcd.ops->audio_startup(dai->dev->parent);
-+		ret = hcp->hcd.ops->audio_startup(dai->dev->parent,
-+						  hdmi_codec_abort);
- 		if (ret) {
- 			mutex_lock(&hcp->current_stream_lock);
- 			hcp->current_stream = NULL;
--- 
-1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+RGVjbGFyZSBzdHJ1Y3QgdGRhOTk4eF9hdWRpb19wYXJhbXMgaW4gaW5jbHVkZS9kcm0vaTJjL3Rk
+YTk5OHguaCBhbmQKdXNlIGl0IGluIHBkYXRhIGFuZCBmb3IgdGRhOTk4eF9jb25maWd1cmVfYXVk
+aW8oKSBwYXJhbWV0ZXJzLiBBbHNvCnVwZGF0ZXMgdGRhOTk4eF93cml0ZV9haWYoKSB0byB0YWtl
+IHN0cnVjdCBoZG1pX2F1ZGlvX2luZm9mcmFtZSAqCmRpcmVjdGx5IGFzIGEgcGFyYW1ldGVyLgoK
+U2lnbmVkLW9mZi1ieTogSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNvbT4KLS0tCiBkcml2ZXJzL2dw
+dS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMgfCAxMDYgKysrKysrKysrKysrKysrKysrKysrLS0tLS0t
+LS0tLS0tLS0tLS0KIGluY2x1ZGUvZHJtL2kyYy90ZGE5OTh4LmggICAgICAgICB8ICAyMyArKysr
+Ky0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgNzMgaW5zZXJ0aW9ucygrKSwgNTYgZGVsZXRpb25zKC0p
+CgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jIGIvZHJpdmVy
+cy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jCmluZGV4IGI1MzRmOTQuLjQyZDI1NmEgMTAwNjQ0
+Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYworKysgYi9kcml2ZXJzL2dw
+dS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMKQEAgLTQ2LDcgKzQ2LDcgQEAgc3RydWN0IHRkYTk5OHhf
+cHJpdiB7CiAJdTggdmlwX2NudHJsXzA7CiAJdTggdmlwX2NudHJsXzE7CiAJdTggdmlwX2NudHJs
+XzI7Ci0Jc3RydWN0IHRkYTk5OHhfZW5jb2Rlcl9wYXJhbXMgcGFyYW1zOworCXN0cnVjdCB0ZGE5
+OTh4X2F1ZGlvX3BhcmFtcyBhdWRpb19wYXJhbXM7CiAKIAl3YWl0X3F1ZXVlX2hlYWRfdCB3cV9l
+ZGlkOwogCXZvbGF0aWxlIGludCB3cV9lZGlkX3dhaXQ7CkBAIC02NzMsMjYgKzY3MywxNiBAQCB0
+ZGE5OTh4X3dyaXRlX2lmKHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXYsIHU4IGJpdCwgdTE2IGFk
+ZHIsCiAJcmVnX3NldChwcml2LCBSRUdfRElQX0lGX0ZMQUdTLCBiaXQpOwogfQogCi1zdGF0aWMg
+dm9pZAotdGRhOTk4eF93cml0ZV9haWYoc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwgc3RydWN0
+IHRkYTk5OHhfZW5jb2Rlcl9wYXJhbXMgKnApCitzdGF0aWMgaW50IHRkYTk5OHhfd3JpdGVfYWlm
+KHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXYsCisJCQkgICAgIHN0cnVjdCBoZG1pX2F1ZGlvX2lu
+Zm9mcmFtZSAqY2VhKQogewogCXVuaW9uIGhkbWlfaW5mb2ZyYW1lIGZyYW1lOwogCi0JaGRtaV9h
+dWRpb19pbmZvZnJhbWVfaW5pdCgmZnJhbWUuYXVkaW8pOwotCi0JZnJhbWUuYXVkaW8uY2hhbm5l
+bHMgPSBwLT5hdWRpb19mcmFtZVsxXSAmIDB4MDc7Ci0JZnJhbWUuYXVkaW8uY2hhbm5lbF9hbGxv
+Y2F0aW9uID0gcC0+YXVkaW9fZnJhbWVbNF07Ci0JZnJhbWUuYXVkaW8ubGV2ZWxfc2hpZnRfdmFs
+dWUgPSAocC0+YXVkaW9fZnJhbWVbNV0gJiAweDc4KSA+PiAzOwotCWZyYW1lLmF1ZGlvLmRvd25t
+aXhfaW5oaWJpdCA9IChwLT5hdWRpb19mcmFtZVs1XSAmIDB4ODApID4+IDc7Ci0KLQkvKgotCSAq
+IEwtUENNIGFuZCBJRUM2MTkzNyBjb21wcmVzc2VkIGF1ZGlvIHNoYWxsIGFsd2F5cyBzZXQgc2Ft
+cGxlCi0JICogZnJlcXVlbmN5IHRvICJyZWZlciB0byBzdHJlYW0iLiAgRm9yIG90aGVycywgc2Vl
+IHRoZSBIRE1JCi0JICogc3BlY2lmaWNhdGlvbi4KLQkgKi8KLQlmcmFtZS5hdWRpby5zYW1wbGVf
+ZnJlcXVlbmN5ID0gKHAtPmF1ZGlvX2ZyYW1lWzJdICYgMHgxYykgPj4gMjsKKwlmcmFtZS5hdWRp
+byA9ICpjZWE7CiAKIAl0ZGE5OTh4X3dyaXRlX2lmKHByaXYsIERJUF9JRl9GTEFHU19JRjQsIFJF
+R19JRjRfSEIwLCAmZnJhbWUpOworCisJcmV0dXJuIDA7CiB9CiAKIHN0YXRpYyB2b2lkCkBAIC03
+MTcsMTkgKzcwNywyMCBAQCBzdGF0aWMgdm9pZCB0ZGE5OTh4X2F1ZGlvX211dGUoc3RydWN0IHRk
+YTk5OHhfcHJpdiAqcHJpdiwgYm9vbCBvbikKIAl9CiB9CiAKLXN0YXRpYyB2b2lkCitzdGF0aWMg
+aW50CiB0ZGE5OTh4X2NvbmZpZ3VyZV9hdWRpbyhzdHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2LAot
+CQlzdHJ1Y3QgZHJtX2Rpc3BsYXlfbW9kZSAqbW9kZSwgc3RydWN0IHRkYTk5OHhfZW5jb2Rlcl9w
+YXJhbXMgKnApCisJCQlzdHJ1Y3QgdGRhOTk4eF9hdWRpb19wYXJhbXMgKnBhcmFtcywKKwkJCXVu
+c2lnbmVkIG1vZGVfY2xvY2spCiB7CiAJdTggYnVmWzZdLCBjbGtzZWxfYWlwLCBjbGtzZWxfZnMs
+IGN0c19uLCBhZGl2OwogCXUzMiBuOwogCiAJLyogRW5hYmxlIGF1ZGlvIHBvcnRzICovCi0JcmVn
+X3dyaXRlKHByaXYsIFJFR19FTkFfQVAsIHAtPmF1ZGlvX2NmZyk7Ci0JcmVnX3dyaXRlKHByaXYs
+IFJFR19FTkFfQUNMSywgcC0+YXVkaW9fY2xrX2NmZyk7CisJcmVnX3dyaXRlKHByaXYsIFJFR19F
+TkFfQVAsIHBhcmFtcy0+Y29uZmlnKTsKKwlyZWdfd3JpdGUocHJpdiwgUkVHX0VOQV9BQ0xLLCBw
+YXJhbXMtPmZvcm1hdCA9PSBBRk1UX1NQRElGID8gMCA6IDEpOwogCiAJLyogU2V0IGF1ZGlvIGlu
+cHV0IHNvdXJjZSAqLwotCXN3aXRjaCAocC0+YXVkaW9fZm9ybWF0KSB7CisJc3dpdGNoIChwYXJh
+bXMtPmZvcm1hdCkgewogCWNhc2UgQUZNVF9TUERJRjoKIAkJcmVnX3dyaXRlKHByaXYsIFJFR19N
+VVhfQVAsIE1VWF9BUF9TRUxFQ1RfU1BESUYpOwogCQljbGtzZWxfYWlwID0gQUlQX0NMS1NFTF9B
+SVBfU1BESUY7CkBAIC03NDEsMTIgKzczMiwyNSBAQCB0ZGE5OTh4X2NvbmZpZ3VyZV9hdWRpbyhz
+dHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2LAogCQlyZWdfd3JpdGUocHJpdiwgUkVHX01VWF9BUCwg
+TVVYX0FQX1NFTEVDVF9JMlMpOwogCQljbGtzZWxfYWlwID0gQUlQX0NMS1NFTF9BSVBfSTJTOwog
+CQljbGtzZWxfZnMgPSBBSVBfQ0xLU0VMX0ZTX0FDTEs7Ci0JCWN0c19uID0gQ1RTX05fTSgzKSB8
+IENUU19OX0soMyk7CisJCXN3aXRjaCAocGFyYW1zLT5zYW1wbGVfd2lkdGgpIHsKKwkJY2FzZSAx
+NjoKKwkJCWN0c19uID0gQ1RTX05fTSgzKSB8IENUU19OX0soMSk7CisJCQlicmVhazsKKwkJY2Fz
+ZSAxODoKKwkJY2FzZSAyMDoKKwkJY2FzZSAyNDoKKwkJCWN0c19uID0gQ1RTX05fTSgzKSB8IENU
+U19OX0soMik7CisJCQlicmVhazsKKwkJZGVmYXVsdDoKKwkJY2FzZSAzMjoKKwkJCWN0c19uID0g
+Q1RTX05fTSgzKSB8IENUU19OX0soMyk7CisJCQlicmVhazsKKwkJfQogCQlicmVhazsKIAogCWRl
+ZmF1bHQ6CiAJCUJVRygpOwotCQlyZXR1cm47CisJCXJldHVybiAtRUlOVkFMOwogCX0KIAogCXJl
+Z193cml0ZShwcml2LCBSRUdfQUlQX0NMS1NFTCwgY2xrc2VsX2FpcCk7CkBAIC03NjIsMTEgKzc2
+NiwxMSBAQCB0ZGE5OTh4X2NvbmZpZ3VyZV9hdWRpbyhzdHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2
+LAogCSAqIGFzc3VtZSAxMDBNSHogcmVxdWlyZXMgbGFyZ2VyIGRpdmlkZXIuCiAJICovCiAJYWRp
+diA9IEFVRElPX0RJVl9TRVJDTEtfODsKLQlpZiAobW9kZS0+Y2xvY2sgPiAxMDAwMDApCisJaWYg
+KG1vZGVfY2xvY2sgPiAxMDAwMDApCiAJCWFkaXYrKzsJCQkvKiBBVURJT19ESVZfU0VSQ0xLXzE2
+ICovCiAKIAkvKiBTL1BESUYgYXNrcyBmb3IgYSBsYXJnZXIgZGl2aWRlciAqLwotCWlmIChwLT5h
+dWRpb19mb3JtYXQgPT0gQUZNVF9TUERJRikKKwlpZiAocGFyYW1zLT5mb3JtYXQgPT0gQUZNVF9T
+UERJRikKIAkJYWRpdisrOwkJCS8qIEFVRElPX0RJVl9TRVJDTEtfMTYgb3IgXzMyICovCiAKIAly
+ZWdfd3JpdGUocHJpdiwgUkVHX0FVRElPX0RJViwgYWRpdik7CkBAIC03NzUsNyArNzc5LDcgQEAg
+dGRhOTk4eF9jb25maWd1cmVfYXVkaW8oc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJpdiwKIAkgKiBU
+aGlzIGlzIHRoZSBhcHByb3hpbWF0ZSB2YWx1ZSBvZiBOLCB3aGljaCBoYXBwZW5zIHRvIGJlCiAJ
+ICogdGhlIHJlY29tbWVuZGVkIHZhbHVlcyBmb3Igbm9uLWNvaGVyZW50IGNsb2Nrcy4KIAkgKi8K
+LQluID0gMTI4ICogcC0+YXVkaW9fc2FtcGxlX3JhdGUgLyAxMDAwOworCW4gPSAxMjggKiBwYXJh
+bXMtPnNhbXBsZV9yYXRlIC8gMTAwMDsKIAogCS8qIFdyaXRlIHRoZSBDVFMgYW5kIE4gdmFsdWVz
+ICovCiAJYnVmWzBdID0gMHg0NDsKQEAgLTc5NCwxOSArNzk4LDEzIEBAIHRkYTk5OHhfY29uZmln
+dXJlX2F1ZGlvKHN0cnVjdCB0ZGE5OTh4X3ByaXYgKnByaXYsCiAJcmVnX2NsZWFyKHByaXYsIFJF
+R19BSVBfQ05UUkxfMCwgQUlQX0NOVFJMXzBfUlNUX0NUUyk7CiAKIAkvKiBXcml0ZSB0aGUgY2hh
+bm5lbCBzdGF0dXMgKi8KLQlidWZbMF0gPSBJRUM5NThfQUVTMF9DT05fTk9UX0NPUFlSSUdIVDsK
+LQlidWZbMV0gPSAweDAwOwotCWJ1ZlsyXSA9IElFQzk1OF9BRVMzX0NPTl9GU19OT1RJRDsKLQli
+dWZbM10gPSBJRUM5NThfQUVTNF9DT05fT1JJR0ZTX05PVElEIHwKLQkJCUlFQzk1OF9BRVM0X0NP
+Tl9NQVhfV09SRExFTl8yNDsKLQlyZWdfd3JpdGVfcmFuZ2UocHJpdiwgUkVHX0NIX1NUQVRfQigw
+KSwgYnVmLCA0KTsKKwlyZWdfd3JpdGVfcmFuZ2UocHJpdiwgUkVHX0NIX1NUQVRfQigwKSwgcGFy
+YW1zLT5zdGF0dXMsIDQpOwogCiAJdGRhOTk4eF9hdWRpb19tdXRlKHByaXYsIHRydWUpOwogCW1z
+bGVlcCgyMCk7CiAJdGRhOTk4eF9hdWRpb19tdXRlKHByaXYsIGZhbHNlKTsKIAotCS8qIFdyaXRl
+IHRoZSBhdWRpbyBpbmZvcm1hdGlvbiBwYWNrZXQgKi8KLQl0ZGE5OTh4X3dyaXRlX2FpZihwcml2
+LCBwKTsKKwlyZXR1cm4gdGRhOTk4eF93cml0ZV9haWYocHJpdiwgJnBhcmFtcy0+Y2VhKTsKIH0K
+IAogLyogRFJNIGVuY29kZXIgZnVuY3Rpb25zICovCkBAIC04MjcsOSArODI1LDcgQEAgc3RhdGlj
+IHZvaWQgdGRhOTk4eF9lbmNvZGVyX3NldF9jb25maWcoc3RydWN0IHRkYTk5OHhfcHJpdiAqcHJp
+diwKIAkJCSAgICBWSVBfQ05UUkxfMl9TV0FQX0YocC0+c3dhcF9mKSB8CiAJCQkgICAgKHAtPm1p
+cnJfZiA/IFZJUF9DTlRSTF8yX01JUlJfRiA6IDApOwogCi0JcHJpdi0+cGFyYW1zID0gKnA7Ci0J
+cHJpdi0+YXVkaW8ucG9ydF90eXBlc1swXSA9IHAtPmF1ZGlvX2Zvcm1hdDsKLQlwcml2LT5hdWRp
+by5wb3J0c1swXSA9IHAtPmF1ZGlvX2NmZzsKKwlwcml2LT5hdWRpb19wYXJhbXMgPSBwLT5hdWRp
+bzsKIH0KIAogc3RhdGljIHZvaWQgdGRhOTk4eF9lbmNvZGVyX2RwbXMoc3RydWN0IGRybV9lbmNv
+ZGVyICplbmNvZGVyLCBpbnQgbW9kZSkKQEAgLTEwNzQsOSArMTA3MCwxMSBAQCB0ZGE5OTh4X2Vu
+Y29kZXJfbW9kZV9zZXQoc3RydWN0IGRybV9lbmNvZGVyICplbmNvZGVyLAogCiAJCXRkYTk5OHhf
+d3JpdGVfYXZpKHByaXYsIGFkanVzdGVkX21vZGUpOwogCi0JCWlmIChwcml2LT5wYXJhbXMuYXVk
+aW9fY2ZnKQotCQkJdGRhOTk4eF9jb25maWd1cmVfYXVkaW8ocHJpdiwgYWRqdXN0ZWRfbW9kZSwK
+LQkJCQkJCSZwcml2LT5wYXJhbXMpOworCQlpZiAocHJpdi0+YXVkaW9fcGFyYW1zLmNvbmZpZykg
+eworCQkJdGRhOTk4eF9jb25maWd1cmVfYXVkaW8ocHJpdiwKKwkJCQkJCSZwcml2LT5hdWRpb19w
+YXJhbXMsCisJCQkJCQlhZGp1c3RlZF9tb2RlLT5jbG9jayk7CisJCX0KIAl9CiB9CiAKQEAgLTEz
+ODgsMTIgKzEzODYsMjggQEAgc3RhdGljIGludCB0ZGE5OTh4X2NyZWF0ZShzdHJ1Y3QgaTJjX2Ns
+aWVudCAqY2xpZW50LCBzdHJ1Y3QgdGRhOTk4eF9wcml2ICpwcml2KQogCQkJfQogCQl9CiAJCWlm
+IChwcml2LT5hdWRpby5wb3J0c1swXSkgewotCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2NmZyA9IHBy
+aXYtPmF1ZGlvLnBvcnRzWzBdOwotCQkJcHJpdi0+cGFyYW1zLmF1ZGlvX2Zvcm1hdCA9Ci0JCQkJ
+cHJpdi0+YXVkaW8ucG9ydF90eXBlc1swXTsKLQkJCXByaXYtPnBhcmFtcy5hdWRpb19jbGtfY2Zn
+ID0KLQkJCQlwcml2LT5wYXJhbXMuYXVkaW9fZm9ybWF0ID09Ci0JCQkJQUZNVF9TUERJRiA/IDAg
+OiAxOworCQkJc3RydWN0IHRkYTk5OHhfYXVkaW9fcGFyYW1zIHBhcmFtcyA9IHsKKwkJCQkuY29u
+ZmlnID0gcHJpdi0+YXVkaW8ucG9ydHNbMF0sCisJCQkJLmZvcm1hdCA9IHByaXYtPmF1ZGlvLnBv
+cnRfdHlwZXNbMF0sCisJCQkJLnNhbXBsZV93aWR0aCA9IDI0LAorCQkJCS5zYW1wbGVfcmF0ZSA9
+IDQ0MTAwLAorCQkJCS5jZWEgPSB7CisJCQkJCS5jaGFubmVscyA9IDIsCisJCQkJCS5jb2Rpbmdf
+dHlwZSA9IEhETUlfQVVESU9fQ09ESU5HX1RZUEVfU1RSRUFNLAorCQkJCQkuc2FtcGxlX3NpemUg
+PSBIRE1JX0FVRElPX1NBTVBMRV9TSVpFX1NUUkVBTSwKKwkJCQkJLnNhbXBsZV9mcmVxdWVuY3kg
+PSBIRE1JX0FVRElPX1NBTVBMRV9GUkVRVUVOQ1lfU1RSRUFNLAorCQkJCX0sCisJCQkJLnN0YXR1
+cyA9IHsKKwkJCQkJSUVDOTU4X0FFUzBfQ09OX05PVF9DT1BZUklHSFQsCisJCQkJCUlFQzk1OF9B
+RVMxX0NPTl9HRU5FUkFMLAorCQkJCQlJRUM5NThfQUVTMl9DT05fU09VUkNFX1VOU1BFQyB8CisJ
+CQkJCUlFQzk1OF9BRVMyX0NPTl9DSEFOTkVMX1VOU1BFQywKKwkJCQkJSUVDOTU4X0FFUzNfQ09O
+X0NMT0NLXzEwMDBQUE0gfAorCQkJCQlJRUM5NThfQUVTM19DT05fRlNfTk9USUQsCisJCQkJfSwK
+KwkJCX07CisKKwkJCXByaXYtPmF1ZGlvX3BhcmFtcyA9IHBhcmFtczsKIAkJfQogCX0KIApkaWZm
+IC0tZ2l0IGEvaW5jbHVkZS9kcm0vaTJjL3RkYTk5OHguaCBiL2luY2x1ZGUvZHJtL2kyYy90ZGE5
+OTh4LmgKaW5kZXggM2U0MTlkOS4uZGZlNzgyOSAxMDA2NDQKLS0tIGEvaW5jbHVkZS9kcm0vaTJj
+L3RkYTk5OHguaAorKysgYi9pbmNsdWRlL2RybS9pMmMvdGRhOTk4eC5oCkBAIC0xLDYgKzEsMTgg
+QEAKICNpZm5kZWYgX19EUk1fSTJDX1REQTk5OFhfSF9fCiAjZGVmaW5lIF9fRFJNX0kyQ19UREE5
+OThYX0hfXwogCitzdHJ1Y3QgdGRhOTk4eF9hdWRpb19wYXJhbXMgeworCXU4IGNvbmZpZzsKKwll
+bnVtIHsKKwkJQUZNVF9TUERJRiwKKwkJQUZNVF9JMlMKKwl9IGZvcm1hdDsKKwl1bnNpZ25lZCBz
+YW1wbGVfd2lkdGg7CisJdW5zaWduZWQgc2FtcGxlX3JhdGU7CisJc3RydWN0IGhkbWlfYXVkaW9f
+aW5mb2ZyYW1lIGNlYTsKKwl1OCBzdGF0dXNbNF07Cit9OworCiBzdHJ1Y3QgdGRhOTk4eF9lbmNv
+ZGVyX3BhcmFtcyB7CiAJdTggc3dhcF9iOjM7CiAJdTggbWlycl9iOjE7CkBAIC0xNSwxNiArMjcs
+NyBAQCBzdHJ1Y3QgdGRhOTk4eF9lbmNvZGVyX3BhcmFtcyB7CiAJdTggc3dhcF9lOjM7CiAJdTgg
+bWlycl9lOjE7CiAKLQl1OCBhdWRpb19jZmc7Ci0JdTggYXVkaW9fY2xrX2NmZzsKLQl1OCBhdWRp
+b19mcmFtZVs2XTsKLQotCWVudW0gewotCQlBRk1UX1NQRElGLAotCQlBRk1UX0kyUwotCX0gYXVk
+aW9fZm9ybWF0OwotCi0JdW5zaWduZWQgYXVkaW9fc2FtcGxlX3JhdGU7CisJc3RydWN0IHRkYTk5
+OHhfYXVkaW9fcGFyYW1zIGF1ZGlvOwogfTsKIAogI2VuZGlmCi0tIAoxLjkuMQoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcg
+bGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
