@@ -1,97 +1,146 @@
 From: Michael Turquette <mturquette@baylibre.com>
-Subject: Re: [PATCH 1/2] dt-bindings: clock: adpll: Add binding documentation for TI
- adpll
-Date: Tue, 16 Feb 2016 17:04:40 -0800
-Message-ID: <20160217010440.2278.62327@quark.deferred.io>
+Subject: Re: [PATCH 2/2] clk: ti: Add support for dm814x ADPLL
+Date: Tue, 16 Feb 2016 17:19:30 -0800
+Message-ID: <20160217011930.2278.38316@quark.deferred.io>
 References: <1455312009-808-1-git-send-email-tony@atomide.com>
- <1455312009-808-2-git-send-email-tony@atomide.com>
+ <1455312009-808-3-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1455312009-808-2-git-send-email-tony@atomide.com>
+In-Reply-To: <1455312009-808-3-git-send-email-tony@atomide.com>
 Sender: linux-clk-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
 Hi Tony,
 
-Quoting Tony Lindgren (2016-02-12 13:20:08)
-> Let's add binding documentation for the ADPLL found on dm814x
-> and dra62x. The binding uses the standard clock binding.
+Quoting Tony Lindgren (2016-02-12 13:20:09)
+> On dm814x we have 13 ADPLLs with 3 to 4 outputs on each. The
+> ADPLLs have several dividers and muxes controlled by a shared
+> control register for each PLL.
 > 
-> Cc: devicetree@vger.kernel.org
-> Cc: Rob Herring <robh+dt@kernel.org>
+> Note that for the clocks to work as device drivers for booting on
+> dm814x, this patch depends on "ARM: OMAP2+: Change core_initcall
+> levels to postcore_initcall".
+> 
+> Also note that this patch does not implement clk_set_rate for the
+> PLL, that will be posted later on when available.
+> 
+> Cc: Michael Turquette <mturquette@baylibre.com>
 > Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Acked-by: Michael Turquette <mturquette@baylibre.com>
+> Acked-by: Tero Kristo <t-kristo@ti.com>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  .../devicetree/bindings/clock/ti/adpll.txt         | 43 ++++++++++++++++++++++
->  1 file changed, 43 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/clock/ti/adpll.txt
 > 
-> diff --git a/Documentation/devicetree/bindings/clock/ti/adpll.txt b/Documentation/devicetree/bindings/clock/ti/adpll.txt
+> Changes since v4:
+> 
+> - Removed ti_adpll_clkout_set_parent() as requested by Tero for his
+>   conditional ack
+> 
+> - Split the device tree binding into a separate patch as requested
+>   by Mike for his conditional ack of the binding
+
+Just to make life fun for you, the clk tree is once more merging DT
+bindings descriptions and headers. You don't need to merge the patches,
+it doesn't matter to me, but just as a heads up for the future.
+
+> 
+> - Updated dts patch comments about dynamically generated names as
+>   suggested by Tero.
+> 
+> - Fixed a compiler warning for do_div
+> 
+> 
+>  drivers/clk/Kconfig       |   1 +
+>  drivers/clk/ti/Kconfig    |   6 +
+>  drivers/clk/ti/Makefile   |   2 +
+>  drivers/clk/ti/adpll.c    | 983 ++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/clk/ti/clk-814x.c |  53 +++
+>  5 files changed, 1045 insertions(+)
+>  create mode 100644 drivers/clk/ti/Kconfig
+>  create mode 100644 drivers/clk/ti/adpll.c
+> 
+> diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
+> index eca8e01..0b7364a 100644
+> --- a/drivers/clk/Kconfig
+> +++ b/drivers/clk/Kconfig
+> @@ -202,6 +202,7 @@ config COMMON_CLK_CDCE706
+>  
+>  source "drivers/clk/bcm/Kconfig"
+>  source "drivers/clk/hisilicon/Kconfig"
+> +source "drivers/clk/ti/Kconfig"
+>  source "drivers/clk/qcom/Kconfig"
+>  
+>  endmenu
+> diff --git a/drivers/clk/ti/Kconfig b/drivers/clk/ti/Kconfig
 > new file mode 100644
-> index 0000000..8516bf0
+> index 0000000..a9d5474
 > --- /dev/null
-> +++ b/Documentation/devicetree/bindings/clock/ti/adpll.txt
-> @@ -0,0 +1,43 @@
-> +Binding for Texas Instruments ADPLL clock.
-> +
-> +Binding status: Unstable - ABI compatibility may be broken in the future
-> +
-> +This binding uses the common clock binding[1]. It assumes a
-> +register-mapped ADPLL with two to three selectable input clocks
-> +and three to four children.
-> +
-> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-> +
-> +Required properties:
-> +- compatible : shall be one of "ti,dm814-adpll-s-clock" or
-> +  "ti,dm814-adpll-lj-clock" depending on the type of the ADPLL
-> +- #clock-cells : from common clock binding; shall be set to 0.
+> +++ b/drivers/clk/ti/Kconfig
+> @@ -0,0 +1,6 @@
+> +config COMMON_CLK_TI_ADPLL
+> +       tristate "Clock driver for dm814x ADPLL"
+> +       depends on ARCH_OMAP2PLUS
+> +       default y if SOC_TI81XX
 
-Thanks for the patch.
+Can we add COMPILE_TEST here?
 
-clock-cells = 1 in both of the examples below (which looks right).
-
-> +- clocks : link phandles of parent clocks clkinp and clkinpulow, note
-> +  that the adpll-s-clock also has an optional clkinphif
-> +- reg : address and length of the register set for controlling the ADPLL.
+...
+> +static int ti_adpll_init_inputs(struct ti_adpll_data *d)
+> +{
+> +       const char *error = "need at least %i inputs";
+> +       struct clk *clock;
+> +       int nr_inputs;
 > +
-> +Examples:
-> +       adpll_mpu_ck: adpll@40 {
-> +               #clock-cells = <1>;
-> +               compatible = "ti,dm814-adpll-s-clock";
-> +               reg = <0x40 0x40>;
-> +               clocks = <&devosc_ck &devosc_ck &devosc_ck>;
-> +               clock-names = "clkinp", "clkinpulow", "clkinphif";
-> +               clock-indices = <0>, <1>, <2>, <3>;
+> +       nr_inputs = of_clk_get_parent_count(d->np);
+> +       if (nr_inputs < d->c->nr_max_inputs) {
+> +               dev_err(d->dev, error, nr_inputs);
+> +               return -EINVAL;
+> +       }
+> +       of_clk_parent_fill(d->np, d->parent_names, nr_inputs);
+> +
+> +       clock = devm_clk_get(d->dev, d->parent_names[0]);
+> +       if (IS_ERR(clock)) {
+> +               dev_err(d->dev, "could not get clkinp\n");
+> +               return PTR_ERR(clock);
+> +       }
+> +       d->parent_clocks[TI_ADPLL_CLKINP] = clock;
+> +
+> +       clock = devm_clk_get(d->dev, d->parent_names[1]);
+> +       if (IS_ERR(clock)) {
+> +               dev_err(d->dev, "could not get clkinpulow clock\n");
+> +               return PTR_ERR(clock);
+> +       }
+> +       d->parent_clocks[TI_ADPLL_CLKINPULOW] = clock;
 
-Why is clock-indices necessary?
+Are the clock parents known at compile-time? Can we just put that data
+in C instead of whatever is going on here?
 
-Best regards,
+...
+> +int __init dm814x_adpll_enable_init_clocks(void)
+> +{
+> +       int i, err;
+> +
+> +       if (!timer_clocks_initialized)
+> +               return -ENODEV;
+> +
+> +       for (i = 0; i < ARRAY_SIZE(init_clocks); i++) {
+> +               struct clk *clock;
+> +
+> +               clock = clk_get(NULL, init_clocks[i]);
+> +               if (WARN(IS_ERR(clock), "could not find init clock %s\n",
+> +                        init_clocks[i]))
+> +                       continue;
+> +               err = clk_prepare_enable(clock);
+> +               if (WARN(err, "could not enable init clock %s\n",
+> +                        init_clocks[i]))
+> +                       continue;
+
+We have a shiny new series that provides a standard way to do this:
+
+http://lkml.kernel.org/r/<1455225554-13267-1-git-send-email-mturquette@baylibre.com>
+
+Regards,
 Mike
-
-> +               clock-output-names = "481c5040.adpll.dcoclkldo",
-> +                                    "481c5040.adpll.clkout",
-> +                                    "481c5040.adpll.clkoutx2",
-> +                                    "481c5040.adpll.clkouthif";
-> +       };
-> +
-> +       adpll_dsp_ck: adpll@80 {
-> +               #clock-cells = <1>;
-> +               compatible = "ti,dm814-adpll-lj-clock";
-> +               reg = <0x80 0x30>;
-> +               clocks = <&devosc_ck &devosc_ck>;
-> +               clock-names = "clkinp", "clkinpulow";
-> +               clock-indices = <0>, <1>, <2>;
-> +               clock-output-names = "481c5080.adpll.dcoclkldo",
-> +                                    "481c5080.adpll.clkout",
-> +                                    "481c5080.adpll.clkoutldo";
-> +       };
-> -- 
-> 2.7.0
-> 
