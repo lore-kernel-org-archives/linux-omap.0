@@ -1,61 +1,75 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH RFC v5 8/8] ARM: dts: am335x-boneblack: Add HDMI audio
- support
-Date: Wed, 17 Feb 2016 13:36:34 -0600
-Message-ID: <CAOCHtYjHeToKyxtOkiJn53is+uUj4OwCqutTGk=crq8rrge0Rw@mail.gmail.com>
-References: <cover.1455720381.git.jsarha@ti.com>
- <f7d580388c35a161b086b22fc513a39851fa997b.1455720381.git.jsarha@ti.com>
+From: Josh Cartwright <joshc@ni.com>
+Subject: Re: Bunch of machines are not booting in next again, GPIO regression?
+Date: Wed, 17 Feb 2016 13:55:43 -0600
+Message-ID: <20160217195543.GA871@jcartwri.amer.corp.natinst.com>
+References: <20160217192755.GC21202@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <f7d580388c35a161b086b22fc513a39851fa997b.1455720381.git.jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree <devicetree@vger.kernel.org>, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, arnaud.pouliquen@st.com, ML dri-devel <dri-devel@lists.freedesktop.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160217192755.GC21202@atomide.com>
+Content-Disposition: inline
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Johan Hovold <johan@kernel.org>, Markus Pargmann <mpa@pengutronix.de>, Mark Brown <broonie@kernel.org>, Michael Welling <mwelling@ieee.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBGZWIgMTcsIDIwMTYgYXQgODo0OSBBTSwgSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNv
-bT4gd3JvdGU6Cj4gQWRkIEhETUkgYXVkaW8gc3VwcG9ydC4gQWRkcyBtY2FzcDBfcGlucywgY2xr
-X21jYXNwMF9maXhlZCwKPiBjbGtfbWNhc3AwLCBtY2FzcDAsIHNvdW5kIG5vZGUsIGFuZCB1cGRh
-dGVzIHRoZSB0ZGExOTk4OCBub2RlIHRvCj4gZm9sbG93IHRoZSBuZXcgYmluZGluZy4KPgo+IFNp
-Z25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Cj4gLS0tCj4gIGFyY2gvYXJt
-L2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2suZHRzIHwgOTAgKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKystLQo+ICAxIGZpbGUgY2hhbmdlZCwgODYgaW5zZXJ0aW9ucygrKSwgNCBkZWxl
-dGlvbnMoLSkKPgo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZWJs
-YWNrLmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2suZHRzCj4gaW5kZXgg
-ZWFkYmJhMy4uMDUzNDdkYyAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgt
-Ym9uZWJsYWNrLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2su
-ZHRzCj4gQEAgLTY0LDYgKzY0LDE2IEBACj4gICAgICAgICAgICAgICAgICAgICAgICAgMHgxYjAg
-MHgwMyAgICAgIC8qIHhkbWFfZXZlbnRfaW50cjAsIE9NQVBfTVVYX01PREUzIHwgQU0zM1hYX1BJ
-Tl9PVVRQVVQgKi8KPiAgICAgICAgICAgICAgICAgPjsKPiAgICAgICAgIH07Cj4gKwo+ICsgICAg
-ICAgbWNhc3AwX3BpbnM6IG1jYXNwMF9waW5zIHsKPiArICAgICAgICAgICAgICAgcGluY3RybC1z
-aW5nbGUscGlucyA9IDwKPiArICAgICAgICAgICAgICAgICAgICAgICAweDFhYyAoUElOX0lOUFVU
-X1BVTExVUCB8IE1VWF9NT0RFMCkgICAgLyogbWNhc3AwX2FoY2xreC5tY2FzcDBfYWhjbGt4ICov
-Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgMHgxOWMgKFBJTl9PVVRQVVRfUFVMTERPV04gfCBN
-VVhfTU9ERTIpIC8qIG1jYXNwMF9haGNsa3IubWNhc3AwX2F4cjIgKi8KPiArICAgICAgICAgICAg
-ICAgICAgICAgICAweDE5NCAoUElOX09VVFBVVF9QVUxMVVAgfCBNVVhfTU9ERTApICAgLyogbWNh
-c3AwX2ZzeC5tY2FzcDBfZnN4ICovCj4gKyAgICAgICAgICAgICAgICAgICAgICAgMHgxOTAgKFBJ
-Tl9PVVRQVVRfUFVMTERPV04gfCBNVVhfTU9ERTApIC8qIG1jYXNwMF9hY2xreC5tY2FzcDBfYWNs
-a3ggKi8KPiArICAgICAgICAgICAgICAgICAgICAgICAweDA2YyAoUElOX09VVFBVVF9QVUxMRE9X
-TiB8IE1VWF9NT0RFNykgLyogZ3BtY19hMTEuR1BJTzFfMjcgKi8KCkhpIEp5cmksCgpXZSd2ZSBz
-d2l0Y2hlZCB0byBBTTMzWFhfSU9QQUQsICBwbGVhc2Ugc3F1YXNoIHRoaXMgaW4gaGVyZToKCkFN
-MzNYWF9JT1BBRCgweDlhYywgUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkgLyoKbWNhc3Aw
-X2FoY2tseC5tY2FzcDBfYWhjbGt4ICovCkFNMzNYWF9JT1BBRCgweDk5YywgUElOX09VVFBVVF9Q
-VUxMRE9XTiB8IE1VWF9NT0RFMikgLyoKbWNhc3AwX2FoY2xrci5tY2FzcDBfYXhyMiovCkFNMzNY
-WF9JT1BBRCgweDk5NCwgUElOX09VVFBVVF9QVUxMVVAgfCBNVVhfTU9ERTApIC8qIG1jYXNwMF9m
-c3gubWNhc3AwX2ZzeCAqLwpBTTMzWFhfSU9QQUQoMHg5OTAsIFBJTl9PVVRQVVRfUFVMTERPV04g
-fCBNVVhfTU9ERTApIC8qCm1jYXNwMF9hY2xreC5tY2FzcDBfYWNsa3ggKi8KQU0zM1hYX0lPUEFE
-KDB4ODZjLCBQSU5fT1VUUFVUX1BVTExET1dOIHwgTVVYX01PREU3KSAvKiBncG1jX2ExMS5HUElP
-MV8yNyAqLwoKUmVnYXJkcywKCi0tIApSb2JlcnQgTmVsc29uCmh0dHBzOi8vcmNuLWVlLmNvbS8K
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--UlVJffcvxoiEqYs2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Feb 17, 2016 at 11:27:55AM -0800, Tony Lindgren wrote:
+> Hi Linus,
+>=20
+> Looks like ff2b13592299 ("gpio: make the gpiochip a real device")
+> broke booting on all omaps, and probably other machines too according
+> to this:
+>=20
+> https://kernelci.org/boot/all/job/next/kernel/next-20160217/
+>=20
+> So far we've gone from 1 failed machine with next-20160216 to
+> 18 failed machines with next-20160217.
+>=20
+> The error I'm getting on omaps is below with debug_ll enable,
+> any ideas?
+
+Hey Tony-
+
+Looks like the newly allocated gpio_device object isn't zeroed,
+confusing dev_set_name.  Can you give this a try?
+
+  Josh
+
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index d8511cd..59f0045 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -435,7 +435,7 @@ int gpiochip_add_data(struct gpio_chip *chip, void *dat=
+a)
+ 	 * First: allocate and populate the internal stat container, and
+ 	 * set up the struct device.
+ 	 */
+-	gdev =3D kmalloc(sizeof(*gdev), GFP_KERNEL);
++	gdev =3D kzalloc(sizeof(*gdev), GFP_KERNEL);
+ 	if (!gdev)
+ 		return -ENOMEM;
+ 	gdev->dev.bus =3D &gpio_bus_type;
+
+--UlVJffcvxoiEqYs2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAABCAAGBQJWxNA7AAoJEKp7ZBKwQFArFuYH/2omKDUL4Zld0ij6V078IS6N
+7ZIgGu9tyKnfVVGmD11ZKOpfiZkmYwJ2WMhKemaE5eePTA/Xji48gLHPutj0VjrN
+eKjvIg5RxtSZ3d08AscX5UODfSQ85yDuN2oYw1NpBL0xEnxWJ8MP26lL/z5fiZh1
+0jE/slZl1ikZgS/sAG/mVkEX7AxHeWNCTI/hThXdI0/QG9mF9YhTwjvP4XAl4uwe
+YwkkMSMHChy5bdcdDNawWwvmafWAikMp8S3ZhHfgMOwj4T2QGVIybpOoMsD2jRPV
+xVUSXE6aCZzpIDr6JStp6plqaHGtF3bAuNYvGPt/qTVlTmCKFIIAEwmQ0OFRulk=
+=4EWe
+-----END PGP SIGNATURE-----
+
+--UlVJffcvxoiEqYs2--
