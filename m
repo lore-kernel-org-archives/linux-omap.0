@@ -1,89 +1,61 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 2/2] ARM: AM43XX: HWMOD: Add rtc hwmod
-Date: Thu, 18 Feb 2016 13:15:25 +0530
-Message-ID: <56C57695.3010300@ti.com>
-References: <1455773381-11839-1-git-send-email-j-keerthy@ti.com>
- <1455773381-11839-3-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.02.1602180634120.4792@utopia.booyaka.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] MAINTAINERS: Add co-maintainer for remoteproc subsystems
+Date: Thu, 18 Feb 2016 09:48:45 +0200
+Message-ID: <CAK=WgbYCkpGYi6T3OnQTy+CewALFQXTkXKf+sagr7ZVJdAjs=A@mail.gmail.com>
+References: <1455413719-22412-1-git-send-email-bjorn.andersson@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1602180634120.4792@utopia.booyaka.com>
+In-Reply-To: <1455413719-22412-1-git-send-email-bjorn.andersson@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org
+To: Bjorn Andersson <bjorn.andersson@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
-
-On Thursday 18 February 2016 12:12 PM, Paul Walmsley wrote:
-> Hi Keerthy
+On Sun, Feb 14, 2016 at 3:35 AM, Bjorn Andersson
+<bjorn.andersson@linaro.org> wrote:
 >
-> On Thu, 18 Feb 2016, Keerthy wrote:
+> Add myself as co-maintainer for the remote processor related subsystems,
+> as agreed with Ohad.
 >
->> The patch adds rtc hwmod. RTC module The RTC module is physically
->> present on the AM438x SoC used on AM43X-EPOS-EVM, but it is permanently
->> disabled. A secure RTC is used instead on these devices, where needed.
->> . Hence adding it selectively using a seprate list to get RTC Module
->> functional on the other am43x SoCs used on am437x-gp-evm and
->> am437x-sk-evm.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>
->> No Public TRM is available for AM438x SoC as of now.
->>
->>   arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 14 +++++++++++++-
->>   1 file changed, 13 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
->> index e97a894..fcffaf8 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
->> @@ -1020,9 +1020,21 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->>   	NULL,
->>   };
->>
->> +static struct omap_hwmod_ocp_if *am43xx_rtc_hwmod_ocp_ifs[] __initdata = {
->> +	&am33xx_l4_wkup__rtc,
->> +	NULL,
->> +};
->> +
->>   int __init am43xx_hwmod_init(void)
->>   {
->> +	int ret;
->> +
->>   	omap_hwmod_am43xx_reg();
->>   	omap_hwmod_init();
->> -	return omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
->> +	ret = omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
->> +
->> +	if (!(of_machine_is_compatible("ti,am438x")))
->> +		ret = omap_hwmod_register_links(am43xx_rtc_hwmod_ocp_ifs);
->> +
->> +	return ret;
->>   }
+> Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+
+Thank you Bjorn for the help!
+
+Acked-by: Ohad Ben-Cohen <ohad@wizery.com>
+
+> ---
+>  MAINTAINERS | 3 +++
+>  1 file changed, 3 insertions(+)
 >
-> Could you please invert the test of this case such that the RTC hwmod is
-> only registered on AM43xx SoCs where it is specifically known to be
-> enabled?
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 4ebe2e886d36..f51056b02fcd 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -4989,6 +4989,7 @@ F:        include/linux/hw_random.h
 >
-> That way, if another AM43xx SoC comes out that doesn't have the RTC
-> module, it won't inadvertently be registered.  This seems like a safer
-> approach.
-
-I get your point but currently only am438x SoC has RTC disabled forever.
-So i checked negating am438x. I can add a check with am4372 here and 
-register for only those SoCs.
-
-I will resend a v2 in a while.
-
-Thanks for the quick response.
-
-Best Regards,
-Keerthy
-
+>  HARDWARE SPINLOCK CORE
+>  M:     Ohad Ben-Cohen <ohad@wizery.com>
+> +M:     Bjorn Andersson <bjorn.andersson@linaro.org>
+>  S:     Maintained
+>  T:     git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
+>  F:     Documentation/hwspinlock.txt
+> @@ -9170,6 +9171,7 @@ F:        include/linux/regmap.h
 >
-> - Paul
+>  REMOTE PROCESSOR (REMOTEPROC) SUBSYSTEM
+>  M:     Ohad Ben-Cohen <ohad@wizery.com>
+> +M:     Bjorn Andersson <bjorn.andersson@linaro.org>
+>  T:     git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
+>  S:     Maintained
+>  F:     drivers/remoteproc/
+> @@ -9178,6 +9180,7 @@ F:        include/linux/remoteproc.h
+>
+>  REMOTE PROCESSOR MESSAGING (RPMSG) SUBSYSTEM
+>  M:     Ohad Ben-Cohen <ohad@wizery.com>
+> +M:     Bjorn Andersson <bjorn.andersson@linaro.org>
+>  T:     git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
+>  S:     Maintained
+>  F:     drivers/rpmsg/
+> --
+> 2.5.0
 >
