@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/2] ARM: AM43XX: HWMOD: Add rtc hwmod
-Date: Thu, 18 Feb 2016 10:59:41 +0530
-Message-ID: <1455773381-11839-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 1/2] ARM: dts: am43x-epos-evm: Add the am438 compatible string
+Date: Thu, 18 Feb 2016 10:59:40 +0530
+Message-ID: <1455773381-11839-2-git-send-email-j-keerthy@ti.com>
 References: <1455773381-11839-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,40 @@ To: tony@atomide.com
 Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch adds rtc hwmod. RTC module The RTC module is physically
-present on the AM438x SoC used on AM43X-EPOS-EVM, but it is permanently
-disabled. A secure RTC is used instead on these devices, where needed.
-. Hence adding it selectively using a seprate list to get RTC Module
-functional on the other am43x SoCs used on am437x-gp-evm and
-am437x-sk-evm.
+The SoCs on am43x-epos-evm are named am438x.
+Hence add the compatibility string and remove the am4372 string.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
+ Documentation/devicetree/bindings/arm/omap/omap.txt | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts                | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-No Public TRM is available for AM438x SoC as of now.
-
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index e97a894..fcffaf8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -1020,9 +1020,21 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	NULL,
- };
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index a2bd593..739bc48 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -154,7 +154,7 @@ Boards:
+   compatible = "compulab,am437x-sbc-t43", "compulab,am437x-cm-t43", "ti,am4372", "ti,am43"
  
-+static struct omap_hwmod_ocp_if *am43xx_rtc_hwmod_ocp_ifs[] __initdata = {
-+	&am33xx_l4_wkup__rtc,
-+	NULL,
-+};
-+
- int __init am43xx_hwmod_init(void)
- {
-+	int ret;
-+
- 	omap_hwmod_am43xx_reg();
- 	omap_hwmod_init();
--	return omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
-+	ret = omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
-+
-+	if (!(of_machine_is_compatible("ti,am438x")))
-+		ret = omap_hwmod_register_links(am43xx_rtc_hwmod_ocp_ifs);
-+
-+	return ret;
- }
+ - AM43x EPOS EVM
+-  compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
++  compatible = "ti,am43x-epos-evm", "ti,am43", "ti,am438x"
+ 
+ - AM437x GP EVM
+   compatible = "ti,am437x-gp-evm", "ti,am4372", "ti,am43"
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index d580e2b..d2408c4 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -18,7 +18,7 @@
+ 
+ / {
+ 	model = "TI AM43x EPOS EVM";
+-	compatible = "ti,am43x-epos-evm","ti,am4372","ti,am43";
++	compatible = "ti,am43x-epos-evm","ti,am438x","ti,am43";
+ 
+ 	aliases {
+ 		display0 = &lcd0;
 -- 
 1.9.1
