@@ -1,99 +1,214 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph
- of ports
-Date: Thu, 18 Feb 2016 15:32:03 +0000
-Message-ID: <20160218153203.GL5783@n2100.arm.linux.org.uk>
-References: <cover.1455720381.git.jsarha@ti.com>
- <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
- <20160218143530.GB9654@rob-hp-laptop>
- <20160218161823.fc54c61bd0c5cee75ab59578@free.fr>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [PATCH v2 2/5] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
+Date: Thu, 18 Feb 2016 09:33:58 -0600
+Message-ID: <56C5E466.2030002@ti.com>
+References: <1433332284-10766-1-git-send-email-vigneshr@ti.com>
+ <1433332284-10766-3-git-send-email-vigneshr@ti.com>
+ <alpine.DEB.2.02.1507152029460.32764@utopia.booyaka.com>
+ <55A7CE59.6010600@ti.com>
+ <alpine.DEB.2.02.1508121700500.7154@utopia.booyaka.com>
+ <56C4DB37.9090802@ti.com>
+ <alpine.DEB.2.02.1602180652380.4792@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20160218161823.fc54c61bd0c5cee75ab59578@free.fr>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, devicetree@vger.kernel.org, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1602180652380.4792@utopia.booyaka.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "R, Vignesh" <vigneshr@ti.com>, Tero Kristo <t-kristo@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBGZWIgMTgsIDIwMTYgYXQgMDQ6MTg6MjNQTSArMDEwMCwgSmVhbi1GcmFuY29pcyBN
-b2luZSB3cm90ZToKPiBPbiBUaHUsIDE4IEZlYiAyMDE2IDA4OjM1OjMwIC0wNjAwCj4gUm9iIEhl
-cnJpbmcgPHJvYmhAa2VybmVsLm9yZz4gd3JvdGU6Cj4gCj4gPiBPbiBXZWQsIEZlYiAxNywgMjAx
-NiBhdCAwNDo0OTowNVBNICswMjAwLCBKeXJpIFNhcmhhIHdyb3RlOgo+ID4gPiBGcm9tOiBKZWFu
-LUZyYW5jb2lzIE1vaW5lIDxtb2luZWpmQGZyZWUuZnI+Cj4gPiA+IAo+ID4gPiBUd28ga2luZHMg
-b2YgcG9ydHMgbWF5IGJlIGRlY2xhcmVkIGluIGEgRFQgZ3JhcGggb2YgcG9ydHM6IHZpZGVvIGFu
-ZCBhdWRpby4KPiA+ID4gVGhpcyBwYXRjaCBhY2NlcHRzIHRoZSBwb3J0IHZhbHVlIGZyb20gYSB2
-aWRlbyBwb3J0IGFzIGFuIGFsdGVybmF0aXZlCj4gPiA+IHRvIHRoZSB2aWRlby1wb3J0cyBwcm9w
-ZXJ0eS4KPiA+ID4gSXQgYWxzbyBhY2NlcHRzIGF1ZGlvIHBvcnRzIGluIHRoZSBjYXNlIHRoZSB0
-cmFuc21pdHRlciBpcyBub3QgdXNlZCBhcwo+ID4gPiBhIHNsYXZlIGVuY29kZXIuCj4gPiA+IFRo
-ZSBuZXcgZmlsZSBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaCBwcmVwYXJlcyB0byB0aGUgZGVmaW5p
-dGlvbiBvZgo+ID4gPiBhIHRkYTk5OHggQ09ERUMuCj4gPiA+IAo+ID4gPiBTaWduZWQtb2ZmLWJ5
-OiBKZWFuLUZyYW5jb2lzIE1vaW5lIDxtb2luZWpmQGZyZWUuZnI+Cj4gPiA+IFNpZ25lZC1vZmYt
-Ynk6IEp5cmkgU2FyaGEgPGpzYXJoYUB0aS5jb20+Cj4gPiA+IC0tLQo+ID4gPiAgLi4uL2Rldmlj
-ZXRyZWUvYmluZGluZ3MvZGlzcGxheS9icmlkZ2UvdGRhOTk4eC50eHQgfCA1MSArKysrKysrKysr
-KysKPiA+ID4gIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyAgICAgICAgICAgICAg
-ICAgIHwgOTAgKysrKysrKysrKysrKysrKysrKy0tLQo+ID4gPiAgaW5jbHVkZS9zb3VuZC90ZGE5
-OTh4LmggICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgOCArKwo+ID4gPiAgMyBmaWxlcyBj
-aGFuZ2VkLCAxNDAgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkKPiA+ID4gIGNyZWF0ZSBt
-b2RlIDEwMDY0NCBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaAo+ID4gPiAKPiA+ID4gZGlmZiAtLWdp
-dCBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L2JyaWRnZS90ZGE5
-OTh4LnR4dCBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L2JyaWRn
-ZS90ZGE5OTh4LnR4dAo+ID4gPiBpbmRleCBlOWU0YmNlLi4zNWY2YTgwIDEwMDY0NAo+ID4gPiAt
-LS0gYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9icmlkZ2UvdGRh
-OTk4eC50eHQKPiA+ID4gKysrIGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rp
-c3BsYXkvYnJpZGdlL3RkYTk5OHgudHh0Cj4gPiA+IEBAIC0xNiw2ICsxNiwzNSBAQCBPcHRpb25h
-bCBwcm9wZXJ0aWVzOgo+ID4gPiAgCj4gPiA+ICAgIC0gdmlkZW8tcG9ydHM6IDI0IGJpdHMgdmFs
-dWUgd2hpY2ggZGVmaW5lcyBob3cgdGhlIHZpZGVvIGNvbnRyb2xsZXIKPiA+ID4gIAlvdXRwdXQg
-aXMgd2lyZWQgdG8gdGhlIFREQTk5OHggaW5wdXQgLSBkZWZhdWx0OiA8MHgyMzAxNDU+Cj4gPiA+
-ICsJVGhpcyBwcm9wZXJ0eSBpcyBub3QgdXNlZCB3aGVuIHBvcnRzIGFyZSBkZWZpbmVkLgo+ID4g
-PiArCj4gPiA+ICtPcHRpb25hbCBub2RlczoKPiA+ID4gKwo+ID4gPiArICAtIHBvcnQ6IHVwIHRv
-IHRocmVlIHBvcnRzLgo+ID4gPiArCVRoZSBwb3J0cyBhcmUgZGVmaW5lZCBhY2NvcmRpbmcgdG8g
-WzFdLgo+ID4gPiArCj4gPiA+ICsgICAgVmlkZW8gcG9ydC4KPiA+ID4gKwlUaGVyZSBtYXkgYmUg
-b25seSBvbmUgdmlkZW8gcG9ydC4KPiA+ID4gKwlUaGlzIG9uZSBtdXN0IGNvbnRhaW4gdGhlIGZv
-bGxvd2luZyBwcm9wZXJ0eToKPiA+ID4gKwo+ID4gPiArCS0gcG9ydC10eXBlOiBtdXN0IGJlICJy
-Z2IiCj4gPiAKPiA+IFRoaXMgc2hvdWxkIGJlIGltcGxpZWQgZnJvbSB0aGUgcG9ydCB1bml0IGFk
-ZHJlc3MuIEluIG90aGVyIHdvcmRzLCAKPiA+IHBvcnRAMCBpcyBkZWZpbmVkIHRvIGJlIHRoZSBy
-Z2IgcG9ydC4gTm93LCBpZiB0aGlzIGlzIG9uZSBvZiBzZXZlcmFsIAo+ID4gbW9kZXMgZm9yIHRo
-ZSB2aWRlbyBwb3J0LCB0aGVuIHRoYXQgaXMgYSBkaWZmZXJlbnQgc3RvcnkuCj4gPiAKPiA+ID4g
-KwlhbmQgbWF5IGNvbnRhaW4gdGhlIG9wdGlvbmFsIHByb3BlcnR5Ogo+ID4gPiArCj4gPiA+ICsJ
-LSByZWc6IDI0IGJpdHMgdmFsdWUgd2hpY2ggZGVmaW5lcyBob3cgdGhlIHZpZGVvIGNvbnRyb2xs
-ZXIKPiA+ID4gKwkJb3V0cHV0IGlzIHdpcmVkIHRvIHRoZSBUREE5OTh4IGlucHV0ICh2aWRlbyBw
-aW5zKQo+ID4gPiArCQlXaGVuIGFic2VudCwgdGhlIGRlZmF1bHQgdmFsdWUgaXMgPDB4MjMwMTQ1
-Pi4KPiA+IAo+ID4gVGhpcyBpcyBub3QgcmVhbGx5IGhvdyByZWcgaXMgaW50ZW5kZWQgdG8gYmUg
-dXNlZC4gQ2FuIHlvdSBleHBsYWluIGhvdyAKPiA+IHRoaXMgdmFsdWUgaXMgZGV0ZXJtaW5lZD8K
-PiA+IAo+ID4gPiArICAgIEF1ZGlvIHBvcnRzLgo+ID4gPiArCVRoZXJlIG1heSBiZSBvbmUgb3Ig
-dHdvIGF1ZGlvIHBvcnRzLgo+ID4gPiArCVRoZXNlIG9uZXMgbXVzdCBjb250YWluIHRoZSBmb2xs
-b3dpbmcgcHJvcGVydGllczoKPiA+ID4gKwo+ID4gPiArCS0gcG9ydC10eXBlOiBtdXN0IGJlICJp
-MnMiIG9yICJzcGRpZiIKPiA+ID4gKwo+ID4gPiArCS0gcmVnOiA4IGJpdHMgdmFsdWUgd2hpY2gg
-ZGVmaW5lcyBob3cgdGhlIGF1ZGlvIGNvbnRyb2xsZXIKPiA+ID4gKwkJb3V0cHV0IGlzIHdpcmVk
-IHRvIHRoZSBUREE5OTh4IGlucHV0IChhdWRpbyBwaW5zKQo+ID4gCj4gPiBTYW1lIGhlcmUuCj4g
-Cj4gSGkgUm9iLAo+IAo+IFRoZXNlIGF1ZGlvL3ZpZGVvIHBvcnQgZGVmaW5pdGlvbnMgd2VyZSBk
-aXNjdXNzZWQgaW4gdGhlIHRocmVhZAo+IGh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcv
-cGlwZXJtYWlsL2Fsc2EtZGV2ZWwvMjAxNS1BdWd1c3QvMDk1ODM2Lmh0bWwKPiBidXQsIHlvdSBh
-cmUgcmlnaHQsIGFuZCBhcyB5b3UgYWxyZWFkeSBzYWlkIGluIHRoZSB0aHJlYWQgCj4gaHR0cHM6
-Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvYXJjaGl2ZXMvZHJpLWRldmVsLzIwMTUtU2VwdGVtYmVy
-LzA5MDU0NC5odG1sCj4gJ3JlZycgc2hvdWxkIG5vdCBiZSB1c2VkIGhlcmUuCgpIb3dldmVyLCBl
-UEFQUiByZXF1aXJlcyB0aGF0IGEgbm9kZSBuYW1lIHdpdGggQG4gYWxzbyBoYXZlIGEgcmVnIHBy
-b3BlcnR5CndpdGggdGhlIHNhbWUgbiB2YWx1ZS4gIFNlZSBlUEFQUiAyLjIuMS4xLiAgVGhpcyBz
-dGF0ZW1lbnQgaW4gaXQgc2VlbXMKdG8gYmUgcGFydGljdWxhcmx5IGNsZWFyIG9uIHRoaXMgc3Vi
-amVjdDoKCiJUaGUgdW5pdC1hZGRyZXNzIG11c3QgbWF0Y2ggdGhlIGZpcnN0IGFkZHJlc3Mgc3Bl
-Y2lmaWVkIGluIHRoZSByZWcKcHJvcGVydHkgb2YgdGhlIG5vZGUuIElmIHRoZSBub2RlIGhhcyBu
-byByZWcgcHJvcGVydHksIHRoZSBAIGFuZAp1bml0LWFkZHJlc3MgbXVzdCBiZSBvbWl0dGVkIGFu
-ZCB0aGUgbm9kZS1uYW1lIGFsb25lIGRpZmZlcmVudGlhdGVzCnRoZSBub2RlIGZyb20gb3RoZXIg
-bm9kZXMgYXQgdGhlIHNhbWUgbGV2ZWwgaW4gdGhlIHRyZWUuIgoKLS0gClJNSydzIFBhdGNoIHN5
-c3RlbTogaHR0cDovL3d3dy5hcm0ubGludXgub3JnLnVrL2RldmVsb3Blci9wYXRjaGVzLwpGVFRD
-IGJyb2FkYmFuZCBmb3IgMC44bWlsZSBsaW5lOiBjdXJyZW50bHkgYXQgOS42TWJwcyBkb3duIDQw
-MGticHMgdXAKYWNjb3JkaW5nIHRvIHNwZWVkdGVzdC5uZXQuCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
-dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Hi Paul
+
+On 02/18/2016 12:58 AM, Paul Walmsley wrote:
+> Hi Franklin
+>
+> On Wed, 17 Feb 2016, Franklin S Cooper Jr. wrote:
+>
+>> On 08/31/2015 10:51 AM, Paul Walmsley wrote:
+>>> On Thu, 16 Jul 2015, R, Vignesh wrote:
+>>>> On 07/16/2015 03:24 AM, Paul Walmsley wrote:
+>>>>> On Wed, 3 Jun 2015, Vignesh R wrote:
+>>>>>
+>>>>>> Add hwmod entries for the PWMSS on DRA7.
+>>>>>>
+>>>>>> Set l4_root_clk_div as the main_clk of PWMSS. It is fixed-factored clock
+>>>>>> equal to L4PER2_L3_GICLK/2(l3_iclk_div/2).
+>>>>>> As per AM57x TRM SPRUHZ6[1], October 2014, Section 29.1.3 Table 29-4,
+>>>>>> clock source to PWMSS is L4PER2_L3_GICLK. But it is actually
+>>>>>> L4PER2_L3_GICLK/2. The TRM does not show the division by 2.
+>>>>> Is the divide-by-two coming from PWMSS_EPWM.EPWM_TBCTL[HSPCLKDIV]?  Or is 
+>>>>> HSPCLKDIV a separate divider after the divide-by-2 you mention above?
+>>>> No, it not related to HSPCLKDIV. The TRM wrongly states L4PER2_L3_GICLK
+>>>> as clock input for PWMSS. But actually  L4PER2_L4_GICLK(=L3_GICLK/2) is
+>>>> the clock input for PWMSS. This will be updated in TRM soon.
+>>> OK
+>>>
+>>>>>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> @@ -362,6 +362,149 @@ static struct omap_hwmod dra7xx_dcan2_hwmod = {
+>>>>>>  	},
+>>>>>>  };
+>>>>>>  
+>>>>>> +/* pwmss  */
+>>>>>> +static struct omap_hwmod_class_sysconfig dra7xx_epwmss_sysc = {
+>>>>>> +	.rev_offs	= 0x0,
+>>>>>> +	.sysc_offs	= 0x4,
+>>>>>> +	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_RESET_STATUS,
+>>>>> This doesn't match SPRUHZ6 Table 29-13 "PWMSS_SYSCONFIG".  There's no 
+>>>>> RESETSTATUS bit.  There is a SOFTRESET bit. 
+>>>>>
+>>>>> Could you please confirm whether this is intentional?
+>>>> sorry my bad... I will change this in v3.
+>>> OK
+>>>
+>>>>>> +/* ecap0 */
+>>>>>> +struct omap_hwmod dra7xx_ecap0_hwmod = {
+>>>>>> +	.name		= "ecap0",
+>>>>>> +	.class		= &dra7xx_ecap_hwmod_class,
+>>>>>> +	.clkdm_name	= "l4per2_clkdm",
+>>>>>> +	.main_clk	= "l4_root_clk_div",
+>>>>> Looking at SPRUHZ6 Section 29.1.4.2 "PWMSS Modules Local Clock Gating", 
+>>>>> there appears to be a local "mini-PRCM" for the PWMSS which implements 
+>>>>> clock gating and reports back on the status of what I'd guess is the local 
+>>>>> clock gating FSM.
+>>>>>
+>>>>> So from that point of view, you should probably create a clock driver that 
+>>>>> manages both the clock gate request bit and the FSM status bit.  It should 
+>>>>> be something that can be reused for the other PWMSS IP blocks.  Then 
+>>>>> you'd create per-IP block clock nodes and set the main_clk to point to 
+>>>>> that node.
+>>>> Since, this register is within the config space of PWMSS, the individual
+>>>> gating and reporting for the modules within PWMSS
+>>>> (PWMSS_CLKCONFIG) is currently being taken care by pwm-tipwmss.c(almost
+>>>> the sole function this driver is doing). It has been the same since
+>>>> am335x. Adding new clock nodes will result in driver changes and also
+>>>> changes to am335x, am437x (and other platforms) hwmod files. It also
+>>>> involves adding new nodes to clocks.dtsi and it will be difficult to
+>>>> maintain backward compatibility for older platforms. Is it not better to
+>>>> keep this as is, in order to maintain consistency (with am335x, am437x
+>>>> etc) and also that these clock bits are within IP's config space?
+>>> It's certainly possible that we as maintainers didn't look closely enough 
+>>> at the AM33xx data for the PWMSS when we merged it.  But if that's 
+>>> incorrect too, then now is the time to fix this.  Otherwise it will never 
+>>> get fixed, since each new group of people patching this code will keep 
+>>> punting it off to the indeterminate future.
+>>>
+>>> In terms of hwmod data: based on the register maps in sections 29.4.3, 
+>>> 29.3.3, and 29.2.3 of SPRUHZ6, none of these subdevices are hwmod devices.  
+>>> They don't support the Highlander OCP registers, they have no individual 
+>>> PRCM registers or register bitfields, and all of the idle and status 
+>>> reporting is to the PWMSS top-level IP block itself.  So it looks to me 
+>>> like the eCAP, eQEP, and ePWM modules should be registered via DT, rather 
+>>> than via hwmod.  It looks like you can get away with using the 
+>>> "simple-bus" abstraction, but you might ultimately have to define 
+>>> something custom here.  However, the PWMSS top level subsystem, described 
+>>> in section 29.1, does have the OCP registers, sideband signals, etc., and 
+>>> thus should remain a hwmod-registered device (via DT).
+>>>
+>>> In terms of the clock data: based on section 29.1.4, section 29.1.5.2, 
+>>> figure 29-3, and table 29-4, there are several clock gating control bits.  
+>>> These should be modeled as clock nodes in the Linux common clock 
+>>> framework.  Furthermore these registers are located inside the PWMSS 
+>>> subsystem itself, and are only accessible when the PWMSS IP block is 
+>>> functional in a PM runtime point of view: i.e., when the block is mapped 
+>>> into memory space, clocked and out of reset, etc.  So the clock types for 
+>>> the PWMSS_CFG IP block should most likely be implemented in the PWMSS 
+>>> driver.  I think you'll still be able to define the clock node data itself 
+>>> in DT, but this will probably need a closer look.  Ideally, since the 
+>>> clock node register address data is the same for all three subsystem 
+>>> instances, one would be able to simply include a DT include file three 
+>>> times; but the DT binding data format may ultimately make this 
+>>> impractical.
+>>>
+>>> In terms of the transition from the old approach to this approach, it ooks 
+>>> to me like the first thing to do would be to convert
+>>> drivers/pwm/pwm-tipwmss.c to define some clk_ops and register some clock
+>>> nodes with the CCF.  You've got the meat of the clock gating control code
+>>> there already.  Then the next thing to do would be to to get rid of
+>>> pwmss_submodule_state_change() and use
+>>> clk_{prepare,enable,disable,unprepare}*() in the drivers/pwm/pwm-ti*.c
+>>> subdrivers instead.  All of that looks like it should be possible to  
+>>> implement in a backwards-compatible way.  Then you'd convert the eCAP, 
+>>> eQEP, and ePWM code to probe as platform_devices, driven from a simple-bus 
+>>> or pwmss-bus or whatever in the DT data.  Naturally, the AM33xx/43xx data 
+>>> should be fixed also.  
+>> I am working on updating this patchset on behalf of Vignesh
+>> based on your suggestion. During the process of converting
+>> the pwm-tipwmss.c to be a clock provider I discovered that
+>> there is an issue with the PWMSS local clock gates. For
+>> example on AM437x if you run the below commands you will get
+>> a " Custom Error: MASTER M2 (64-bit) TARGET L4_PER_0 (Read):
+>> Data Access in User mode during Functional access" error.
+>>
+>> rmmod pwm_tiecap
+>> rmmod pwm_bl
+>> rmmod pwm_tiecap
+>> modprobe pwm_tiecap
+>> modprobe pwm_bl
+>>
+>> Full Log: http://pastebin.com/sEyy52HV
+>>
+>> On device powerup, the various PWMSS local clock gates are
+>> "unlocked". The remove call in the ecap driver gates the
+>> local PWMSS clock gate for the ecap. The probe of the ecap
+>> driver "unlocks" the clock gate for the ecap. However, once
+>> you try to access any of the ecap registers which is
+>> indirectly accessed by the pwm_bl driver you will get an
+>> error. This is because the ecap clock is still being gated.
+> OK I'm not sure I understand what's going on, particularly the part about 
+> locking and unlocking.  Are you saying that the pwm_bl driver calls into 
+> the pwm_tiecap module to write to the PWMSS_CLKCONFIG registers to ungate 
+> the ECAP clock, and then the hardware silently ignores the write?  If 
+> that's the case, shouldn't we be seeing some warning messages from a 
+> failure to ungate the clock from a subsequent PWMSS_CLKSTATUS poll?  Or am 
+> I misunderstanding what's going on here?
+Pwm-tipwmss.c exports a function
+pwmss_submodule_state_change which interacts with
+PWMSS_CLKCONFIG and PWMSS_CLKSTATUS registers. Both
+pwm-tiehrpwm.c and pwm-tiecap.c calls this exported function
+to unlock the gate at probe time and lock the gate when the
+driver is removed.
+
+So when the gate fails to be unlocked after it previously is
+locked there isn't a way to know this via the
+PWMSS_CLKSTATUS registers. So the driver "believes" that the
+gate is unlocked and when pwm_bl runs it calls the
+set_polarity function. Set_polarity in the case of AM437x gp
+evm maps to the ecap's  ecap_pwm_set_polarity function call.
+This call then attempts to write to the ecap registers which
+results in the external abort since the clock to the ecap is
+still gated.
+
+When the ecap and tihrpwm driver request to unlock the clock
+gate it already checks the XXX_CLK_EN_ACK bitfields within
+CLKSTATUS and it shows that the clocks "should" be unlocked.
+So there is an issue with the IP.
+
+>> This has been verified by hardware folks on our side. Its
+>> been determined these registers are not needed since they
+>> were designed for devices that didn't have a PRCM.
+>> Therefore, the current plan is to update the trms of
+>> AM335x,AM437x,DRA7 and AM57x to make it clear that these
+>> registers shouldn't be touched.
+> OK 
+>
+>> I plan on sending a patch for the pwm-tipwmss.c driver
+>> essentially removing anything that touches the
+>> PWMSS_CLKCONFIG and PWMSS_CLKSTATUS registers. I will also
+>> be sending a v3 version of this patch since I believe the
+>> struct omap_hwmod dra7xx_ecap0_hwmod and similar entries you
+>> had comments about before are ok to leave as is based on the
+>> above findings.
+> Including the comments regarding dra7xx_epwmss_sysc ?  
+
+Yes, I plan on addressing the change Vignesh acknowledged
+regarding changing RESETSTATUS to SOFTRESET. For your other
+comments I believe he already explained why it has to be set
+in that particular way. If there is anything that I missed
+or something that isn't clear please let me know.
+>
+>
+> - Paul
+
