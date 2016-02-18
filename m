@@ -1,141 +1,101 @@
-From: Lokesh Vutla <a0131933@ti.com>
-Subject: Re: [PATCH v4 1/3] ARM: hwmod: RTC: Add lock and unlock functions
-Date: Thu, 18 Feb 2016 14:49:20 +0530
-Message-ID: <56C58C98.2040006@ti.com>
-References: <1454650952-20154-1-git-send-email-lokeshvutla@ti.com>
- <1454650952-20154-2-git-send-email-lokeshvutla@ti.com>
- <alpine.DEB.2.02.1602072209460.2182@utopia.booyaka.com>
- <alpine.DEB.2.02.1602180626420.4792@utopia.booyaka.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Thu, 18 Feb 2016 19:51:43 +0530
+Message-ID: <56C5D377.50901@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
+ <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
+ <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
+ <56B900E9.9040306@ti.com>
+ <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
+ <56BA2495.9020407@ti.com>
+ <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
+ <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
+ <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
+ <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1602180626420.4792@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>, Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56BE1454.3030002@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>, d-gerlach@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
+On Friday 12 February 2016 10:50 PM, Suman Anna wrote:
+> Sekhar,
+> Will you be following up with above suggestion since Kishon is gonna be out?
 
+Alright, noticed this action for me :) Went through the thread, and 
+looks like this is what we want to see?
 
-On 2/18/2016 11:57 AM, Paul Walmsley wrote:
-> Hi Lokesh
->
-> On Sun, 7 Feb 2016, Paul Walmsley wrote:
->
->> A few comments:
->>
->> On Fri, 5 Feb 2016, Lokesh Vutla wrote:
->>
->>> RTC IP have kicker feature which prevents spurious writes to its registers.
->>> In order to write into any of the RTC registers, KICK values has to be
->>> written to KICK registers.
->>> Introduce omap_hwmod_rtc_unlock/lock functions, which  writes into these
->>> KICK registers inorder to lock and unlock RTC registers.
->>>
->>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> ---
->>
->> ...
->>
->>> +/**
->>> + * omap_rtc_wait_not_busy - Wait for the RTC BUSY flag
->>> + * @oh: struct omap_hwmod *
->>> + *
->>> + * For updating certain RTC registers, the MPU must wait
->>> + * for the BUSY status in OMAP_RTC_STATUS_REG to become zero.
->>> + * Once the BUSY status is zero, there is a 15-?s access
->>
->> Probably best just to write out "microseconds" or "us" here to avoid the
->> high-bit character problem.
->>
->>> + * period in which the MPU can program.
->>> + */
->>> +static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
->>> +{
->>> +	int i;
->>> +
->>> +	/* BUSY may stay active for 1/32768 second (~30 usec) */
->>> +	omap_test_timeout(omap_hwmod_read(oh, OMAP_RTC_STATUS_REG)
->>> +			  & OMAP_RTC_STATUS_REG, OMAP_RTC_MAX_READY_TIME, i);
->>
->> This test looks bogus.  Shouldn't it AND the register value with
->> OMAP_RTC_STATUS_BUSY?  Right now the code is AND-ing with 0x44, which
->> doesn't include the BUSY bit.  So I guess the tests that you mentioned in
->> the first message of the series don't cover the BUSY case?
->>
->>> +	/* now we have ~15 usec to read/write various registers */
->>> +}
->>> +
->>> +/**
->>> + * omap_hwmod_rtc_unlock - Unlock the Kicker mechanism.
->>> + * @oh: struct omap_hwmod *
->>> + *
->>> + * RTC IP have kicker feature. This prevents spurious writes to its registers.
->>> + * In order to write into any of the RTC registers, KICK values has te be
->>> + * written in respective KICK registers. This is needed for hwmod to write into
->>> + * sysconfig register.
->>> + */
->>> +void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
->>> +{
->>> +	local_irq_disable();
->>> +	omap_rtc_wait_not_busy(oh);
->>> +	omap_hwmod_write(OMAP_RTC_KICK0_VALUE, oh, OMAP_RTC_KICK0_REG);
->>> +	omap_hwmod_write(OMAP_RTC_KICK1_VALUE, oh, OMAP_RTC_KICK1_REG);
->>> +	local_irq_enable();
->>
->> Finally, could you ask the IP block maintainer to confirm the
->> interpretation that, for any STATUS_REG read where the BUSY bit is 0, that
->> we are guaranteed to have at least 15 microseconds from that point in time
->> to access the IP block?  It appears to be this way from my reading of the
->> TRM; but to me, the phrasing is not explicit.  Another interpretation
->> could be that the BUSY bit reflects the IP block's current status.  If
->> this latter case is true, then to ensure that the IP block accesses
->> complete inside the access window, we'll either need to test the BUSY bit
->> after the writes to ensure that it is still 0, and otherwise repeat the
->> busy test and writes; or we'll need to wait for a 0->1 BUSY transition
->> before we wait for a 1->0 BUSY transition.
->>
->>> +}
->>> +
->>> +/**
->>> + * omap_hwmod_rtc_lock - Lock the Kicker mechanism.
->>> + * @oh: struct omap_hwmod *
->>> + *
->>> + * RTC IP have kicker feature. This prevents spurious writes to its registers.
->>> + * Once the RTC registers are written, KICK mechanism needs to be locked,
->>> + * in order to prevent any spurious writes. This function locks back the RTC
->>> + * registers once hwmod completes its write into sysconfig register.
->>> + */
->>> +void omap_hwmod_rtc_lock(struct omap_hwmod *oh)
->>> +{
->>> +	local_irq_disable();
->>> +	omap_rtc_wait_not_busy(oh);
->>> +	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK0_REG);
->>> +	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK1_REG);
->>> +	local_irq_enable();
->>> +}
->
-> Any update?
+Thanks,
+Sekhar
 
+---8<---
+>From e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19 Mon Sep 17 00:00:00 2001
+Message-Id: <e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19.1455803758.git.nsekhar@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Date: Thu, 18 Feb 2016 16:49:56 +0530
+Subject: [PATCH 1/1] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
 
-Sorry for the delay, I am on a vacation right now. I have already sent
-a mail to the HW guys. Will update you as soon as I receive a reply
-from them.
+Add a custom reset handler for DRA7x PCIeSS. This
+handler is required to deassert PCIe hardreset lines
+after they have been asserted.
 
-Thanks and regards,
-Lokesh
+This enables the PCIe driver to access registers after
+PCIeSS has been runtime enabled without having to
+deassert hardreset lines itself.
 
->
->
-> - Paul
->
+With this patch applied, used lspci to make sure
+connected PCIe device enumerates on DRA74x and DRA72x
+EVMs.
+
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+Applies to tag for-v4.6/omap-hwmod-a of Paul W's tree.
+
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index b61355e2a771..252b74633e31 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+  *
+  */
+ 
++/*
++ * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
++ * functionality of OMAP HWMOD layer does not deassert the hardreset lines
++ * associated with an IP automatically leaving the driver to handle that
++ * by itself. This does not work for PCIeSS which needs the reset lines
++ * deasserted for the driver to start accessing registers.
++ *
++ * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
++ * lines after asserting them.
++ */
++static int dra7xx_pciess_reset(struct omap_hwmod *oh)
++{
++	int i;
++
++	for (i = 0; i < oh->rst_lines_cnt; i++) {
++		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
++		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
++	}
++
++	return 0;
++}
++
+ static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
+ 	.name	= "pcie",
++	.reset	= dra7xx_pciess_reset,
+ };
+ 
+ /* pcie1 */
+-- 
+2.6.3
