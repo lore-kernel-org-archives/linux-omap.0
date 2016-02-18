@@ -1,126 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 1/3] ARM: hwmod: RTC: Add lock and unlock functions
-Date: Thu, 18 Feb 2016 06:27:11 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1602180626420.4792@utopia.booyaka.com>
-References: <1454650952-20154-1-git-send-email-lokeshvutla@ti.com>
- <1454650952-20154-2-git-send-email-lokeshvutla@ti.com>
- <alpine.DEB.2.02.1602072209460.2182@utopia.booyaka.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: AM43XX: HWMOD: Add rtc hwmod
+Date: Thu, 18 Feb 2016 06:42:32 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1602180634120.4792@utopia.booyaka.com>
+References: <1455773381-11839-1-git-send-email-j-keerthy@ti.com> <1455773381-11839-3-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1602072209460.2182@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1455773381-11839-3-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Lokesh
+Hi Keerthy
 
-On Sun, 7 Feb 2016, Paul Walmsley wrote:
+On Thu, 18 Feb 2016, Keerthy wrote:
 
-> A few comments:
+> The patch adds rtc hwmod. RTC module The RTC module is physically
+> present on the AM438x SoC used on AM43X-EPOS-EVM, but it is permanently
+> disabled. A secure RTC is used instead on these devices, where needed.
+> . Hence adding it selectively using a seprate list to get RTC Module
+> functional on the other am43x SoCs used on am437x-gp-evm and
+> am437x-sk-evm.
 > 
-> On Fri, 5 Feb 2016, Lokesh Vutla wrote:
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> ---
 > 
-> > RTC IP have kicker feature which prevents spurious writes to its registers.
-> > In order to write into any of the RTC registers, KICK values has to be
-> > written to KICK registers.
-> > Introduce omap_hwmod_rtc_unlock/lock functions, which  writes into these
-> > KICK registers inorder to lock and unlock RTC registers.
-> > 
-> > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> > ---
+> No Public TRM is available for AM438x SoC as of now.
 > 
-> ...
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 14 +++++++++++++-
+>  1 file changed, 13 insertions(+), 1 deletion(-)
 > 
-> > +/**
-> > + * omap_rtc_wait_not_busy - Wait for the RTC BUSY flag
-> > + * @oh: struct omap_hwmod *
-> > + *
-> > + * For updating certain RTC registers, the MPU must wait
-> > + * for the BUSY status in OMAP_RTC_STATUS_REG to become zero.
-> > + * Once the BUSY status is zero, there is a 15-?s access
-> 
-> Probably best just to write out "microseconds" or "us" here to avoid the 
-> high-bit character problem.
-> 
-> > + * period in which the MPU can program.
-> > + */
-> > +static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
-> > +{
-> > +	int i;
-> > +
-> > +	/* BUSY may stay active for 1/32768 second (~30 usec) */
-> > +	omap_test_timeout(omap_hwmod_read(oh, OMAP_RTC_STATUS_REG)
-> > +			  & OMAP_RTC_STATUS_REG, OMAP_RTC_MAX_READY_TIME, i);
-> 
-> This test looks bogus.  Shouldn't it AND the register value with 
-> OMAP_RTC_STATUS_BUSY?  Right now the code is AND-ing with 0x44, which 
-> doesn't include the BUSY bit.  So I guess the tests that you mentioned in 
-> the first message of the series don't cover the BUSY case?
-> 
-> > +	/* now we have ~15 usec to read/write various registers */
-> > +}
-> > +
-> > +/**
-> > + * omap_hwmod_rtc_unlock - Unlock the Kicker mechanism.
-> > + * @oh: struct omap_hwmod *
-> > + *
-> > + * RTC IP have kicker feature. This prevents spurious writes to its registers.
-> > + * In order to write into any of the RTC registers, KICK values has te be
-> > + * written in respective KICK registers. This is needed for hwmod to write into
-> > + * sysconfig register.
-> > + */
-> > +void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
-> > +{
-> > +	local_irq_disable();
-> > +	omap_rtc_wait_not_busy(oh);
-> > +	omap_hwmod_write(OMAP_RTC_KICK0_VALUE, oh, OMAP_RTC_KICK0_REG);
-> > +	omap_hwmod_write(OMAP_RTC_KICK1_VALUE, oh, OMAP_RTC_KICK1_REG);
-> > +	local_irq_enable();
-> 
-> Finally, could you ask the IP block maintainer to confirm the 
-> interpretation that, for any STATUS_REG read where the BUSY bit is 0, that 
-> we are guaranteed to have at least 15 microseconds from that point in time 
-> to access the IP block?  It appears to be this way from my reading of the 
-> TRM; but to me, the phrasing is not explicit.  Another interpretation 
-> could be that the BUSY bit reflects the IP block's current status.  If 
-> this latter case is true, then to ensure that the IP block accesses 
-> complete inside the access window, we'll either need to test the BUSY bit 
-> after the writes to ensure that it is still 0, and otherwise repeat the 
-> busy test and writes; or we'll need to wait for a 0->1 BUSY transition 
-> before we wait for a 1->0 BUSY transition.
-> 
-> > +}
-> > +
-> > +/**
-> > + * omap_hwmod_rtc_lock - Lock the Kicker mechanism.
-> > + * @oh: struct omap_hwmod *
-> > + *
-> > + * RTC IP have kicker feature. This prevents spurious writes to its registers.
-> > + * Once the RTC registers are written, KICK mechanism needs to be locked,
-> > + * in order to prevent any spurious writes. This function locks back the RTC
-> > + * registers once hwmod completes its write into sysconfig register.
-> > + */
-> > +void omap_hwmod_rtc_lock(struct omap_hwmod *oh)
-> > +{
-> > +	local_irq_disable();
-> > +	omap_rtc_wait_not_busy(oh);
-> > +	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK0_REG);
-> > +	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK1_REG);
-> > +	local_irq_enable();
-> > +}
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> index e97a894..fcffaf8 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> @@ -1020,9 +1020,21 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+>  	NULL,
+>  };
+>  
+> +static struct omap_hwmod_ocp_if *am43xx_rtc_hwmod_ocp_ifs[] __initdata = {
+> +	&am33xx_l4_wkup__rtc,
+> +	NULL,
+> +};
+> +
+>  int __init am43xx_hwmod_init(void)
+>  {
+> +	int ret;
+> +
+>  	omap_hwmod_am43xx_reg();
+>  	omap_hwmod_init();
+> -	return omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
+> +	ret = omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
+> +
+> +	if (!(of_machine_is_compatible("ti,am438x")))
+> +		ret = omap_hwmod_register_links(am43xx_rtc_hwmod_ocp_ifs);
+> +
+> +	return ret;
+>  }
 
-Any update?
+Could you please invert the test of this case such that the RTC hwmod is 
+only registered on AM43xx SoCs where it is specifically known to be 
+enabled?
 
+That way, if another AM43xx SoC comes out that doesn't have the RTC 
+module, it won't inadvertently be registered.  This seems like a safer 
+approach.
 
 - Paul
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
