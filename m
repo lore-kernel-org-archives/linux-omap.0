@@ -1,87 +1,87 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Jean-Francois Moine <moinejf@free.fr>
 Subject: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph
  of ports
-Date: Thu, 18 Feb 2016 08:35:30 -0600
-Message-ID: <20160218143530.GB9654@rob-hp-laptop>
+Date: Thu, 18 Feb 2016 16:18:23 +0100
+Message-ID: <20160218161823.fc54c61bd0c5cee75ab59578@free.fr>
 References: <cover.1455720381.git.jsarha@ti.com>
  <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
+ <20160218143530.GB9654@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, moinejf-GANU6spQydw@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20160218143530.GB9654@rob-hp-laptop>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 17, 2016 at 04:49:05PM +0200, Jyri Sarha wrote:
-> From: Jean-Francois Moine <moinejf-GANU6spQydw@public.gmane.org>
-> 
-> Two kinds of ports may be declared in a DT graph of ports: video and audio.
-> This patch accepts the port value from a video port as an alternative
-> to the video-ports property.
-> It also accepts audio ports in the case the transmitter is not used as
-> a slave encoder.
-> The new file include/sound/tda998x.h prepares to the definition of
-> a tda998x CODEC.
-> 
-> Signed-off-by: Jean-Francois Moine <moinejf-GANU6spQydw@public.gmane.org>
-> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-> ---
->  .../devicetree/bindings/display/bridge/tda998x.txt | 51 ++++++++++++
->  drivers/gpu/drm/i2c/tda998x_drv.c                  | 90 +++++++++++++++++++---
->  include/sound/tda998x.h                            |  8 ++
->  3 files changed, 140 insertions(+), 9 deletions(-)
->  create mode 100644 include/sound/tda998x.h
-> 
-> diff --git a/Documentation/devicetree/bindings/display/bridge/tda998x.txt b/Documentation/devicetree/bindings/display/bridge/tda998x.txt
-> index e9e4bce..35f6a80 100644
-> --- a/Documentation/devicetree/bindings/display/bridge/tda998x.txt
-> +++ b/Documentation/devicetree/bindings/display/bridge/tda998x.txt
-> @@ -16,6 +16,35 @@ Optional properties:
->  
->    - video-ports: 24 bits value which defines how the video controller
->  	output is wired to the TDA998x input - default: <0x230145>
-> +	This property is not used when ports are defined.
-> +
-> +Optional nodes:
-> +
-> +  - port: up to three ports.
-> +	The ports are defined according to [1].
-> +
-> +    Video port.
-> +	There may be only one video port.
-> +	This one must contain the following property:
-> +
-> +	- port-type: must be "rgb"
-
-This should be implied from the port unit address. In other words, 
-port@0 is defined to be the rgb port. Now, if this is one of several 
-modes for the video port, then that is a different story.
-
-> +	and may contain the optional property:
-> +
-> +	- reg: 24 bits value which defines how the video controller
-> +		output is wired to the TDA998x input (video pins)
-> +		When absent, the default value is <0x230145>.
-
-This is not really how reg is intended to be used. Can you explain how 
-this value is determined?
-
-> +    Audio ports.
-> +	There may be one or two audio ports.
-> +	These ones must contain the following properties:
-> +
-> +	- port-type: must be "i2s" or "spdif"
-> +
-> +	- reg: 8 bits value which defines how the audio controller
-> +		output is wired to the TDA998x input (audio pins)
-
-Same here.
-
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCAxOCBGZWIgMjAxNiAwODozNTozMCAtMDYwMApSb2IgSGVycmluZyA8cm9iaEBrZXJu
+ZWwub3JnPiB3cm90ZToKCj4gT24gV2VkLCBGZWIgMTcsIDIwMTYgYXQgMDQ6NDk6MDVQTSArMDIw
+MCwgSnlyaSBTYXJoYSB3cm90ZToKPiA+IEZyb206IEplYW4tRnJhbmNvaXMgTW9pbmUgPG1vaW5l
+amZAZnJlZS5mcj4KPiA+IAo+ID4gVHdvIGtpbmRzIG9mIHBvcnRzIG1heSBiZSBkZWNsYXJlZCBp
+biBhIERUIGdyYXBoIG9mIHBvcnRzOiB2aWRlbyBhbmQgYXVkaW8uCj4gPiBUaGlzIHBhdGNoIGFj
+Y2VwdHMgdGhlIHBvcnQgdmFsdWUgZnJvbSBhIHZpZGVvIHBvcnQgYXMgYW4gYWx0ZXJuYXRpdmUK
+PiA+IHRvIHRoZSB2aWRlby1wb3J0cyBwcm9wZXJ0eS4KPiA+IEl0IGFsc28gYWNjZXB0cyBhdWRp
+byBwb3J0cyBpbiB0aGUgY2FzZSB0aGUgdHJhbnNtaXR0ZXIgaXMgbm90IHVzZWQgYXMKPiA+IGEg
+c2xhdmUgZW5jb2Rlci4KPiA+IFRoZSBuZXcgZmlsZSBpbmNsdWRlL3NvdW5kL3RkYTk5OHguaCBw
+cmVwYXJlcyB0byB0aGUgZGVmaW5pdGlvbiBvZgo+ID4gYSB0ZGE5OTh4IENPREVDLgo+ID4gCj4g
+PiBTaWduZWQtb2ZmLWJ5OiBKZWFuLUZyYW5jb2lzIE1vaW5lIDxtb2luZWpmQGZyZWUuZnI+Cj4g
+PiBTaWduZWQtb2ZmLWJ5OiBKeXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPgo+ID4gLS0tCj4gPiAg
+Li4uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9icmlkZ2UvdGRhOTk4eC50eHQgfCA1MSAr
+KysrKysrKysrKysKPiA+ICBkcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMgICAgICAg
+ICAgICAgICAgICB8IDkwICsrKysrKysrKysrKysrKysrKystLS0KPiA+ICBpbmNsdWRlL3NvdW5k
+L3RkYTk5OHguaCAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICA4ICsrCj4gPiAgMyBmaWxl
+cyBjaGFuZ2VkLCAxNDAgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkKPiA+ICBjcmVhdGUg
+bW9kZSAxMDA2NDQgaW5jbHVkZS9zb3VuZC90ZGE5OTh4LmgKPiA+IAo+ID4gZGlmZiAtLWdpdCBh
+L0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L2JyaWRnZS90ZGE5OTh4
+LnR4dCBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L2JyaWRnZS90
+ZGE5OTh4LnR4dAo+ID4gaW5kZXggZTllNGJjZS4uMzVmNmE4MCAxMDA2NDQKPiA+IC0tLSBhL0Rv
+Y3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9kaXNwbGF5L2JyaWRnZS90ZGE5OTh4LnR4
+dAo+ID4gKysrIGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvYnJp
+ZGdlL3RkYTk5OHgudHh0Cj4gPiBAQCAtMTYsNiArMTYsMzUgQEAgT3B0aW9uYWwgcHJvcGVydGll
+czoKPiA+ICAKPiA+ICAgIC0gdmlkZW8tcG9ydHM6IDI0IGJpdHMgdmFsdWUgd2hpY2ggZGVmaW5l
+cyBob3cgdGhlIHZpZGVvIGNvbnRyb2xsZXIKPiA+ICAJb3V0cHV0IGlzIHdpcmVkIHRvIHRoZSBU
+REE5OTh4IGlucHV0IC0gZGVmYXVsdDogPDB4MjMwMTQ1Pgo+ID4gKwlUaGlzIHByb3BlcnR5IGlz
+IG5vdCB1c2VkIHdoZW4gcG9ydHMgYXJlIGRlZmluZWQuCj4gPiArCj4gPiArT3B0aW9uYWwgbm9k
+ZXM6Cj4gPiArCj4gPiArICAtIHBvcnQ6IHVwIHRvIHRocmVlIHBvcnRzLgo+ID4gKwlUaGUgcG9y
+dHMgYXJlIGRlZmluZWQgYWNjb3JkaW5nIHRvIFsxXS4KPiA+ICsKPiA+ICsgICAgVmlkZW8gcG9y
+dC4KPiA+ICsJVGhlcmUgbWF5IGJlIG9ubHkgb25lIHZpZGVvIHBvcnQuCj4gPiArCVRoaXMgb25l
+IG11c3QgY29udGFpbiB0aGUgZm9sbG93aW5nIHByb3BlcnR5Ogo+ID4gKwo+ID4gKwktIHBvcnQt
+dHlwZTogbXVzdCBiZSAicmdiIgo+IAo+IFRoaXMgc2hvdWxkIGJlIGltcGxpZWQgZnJvbSB0aGUg
+cG9ydCB1bml0IGFkZHJlc3MuIEluIG90aGVyIHdvcmRzLCAKPiBwb3J0QDAgaXMgZGVmaW5lZCB0
+byBiZSB0aGUgcmdiIHBvcnQuIE5vdywgaWYgdGhpcyBpcyBvbmUgb2Ygc2V2ZXJhbCAKPiBtb2Rl
+cyBmb3IgdGhlIHZpZGVvIHBvcnQsIHRoZW4gdGhhdCBpcyBhIGRpZmZlcmVudCBzdG9yeS4KPiAK
+PiA+ICsJYW5kIG1heSBjb250YWluIHRoZSBvcHRpb25hbCBwcm9wZXJ0eToKPiA+ICsKPiA+ICsJ
+LSByZWc6IDI0IGJpdHMgdmFsdWUgd2hpY2ggZGVmaW5lcyBob3cgdGhlIHZpZGVvIGNvbnRyb2xs
+ZXIKPiA+ICsJCW91dHB1dCBpcyB3aXJlZCB0byB0aGUgVERBOTk4eCBpbnB1dCAodmlkZW8gcGlu
+cykKPiA+ICsJCVdoZW4gYWJzZW50LCB0aGUgZGVmYXVsdCB2YWx1ZSBpcyA8MHgyMzAxNDU+Lgo+
+IAo+IFRoaXMgaXMgbm90IHJlYWxseSBob3cgcmVnIGlzIGludGVuZGVkIHRvIGJlIHVzZWQuIENh
+biB5b3UgZXhwbGFpbiBob3cgCj4gdGhpcyB2YWx1ZSBpcyBkZXRlcm1pbmVkPwo+IAo+ID4gKyAg
+ICBBdWRpbyBwb3J0cy4KPiA+ICsJVGhlcmUgbWF5IGJlIG9uZSBvciB0d28gYXVkaW8gcG9ydHMu
+Cj4gPiArCVRoZXNlIG9uZXMgbXVzdCBjb250YWluIHRoZSBmb2xsb3dpbmcgcHJvcGVydGllczoK
+PiA+ICsKPiA+ICsJLSBwb3J0LXR5cGU6IG11c3QgYmUgImkycyIgb3IgInNwZGlmIgo+ID4gKwo+
+ID4gKwktIHJlZzogOCBiaXRzIHZhbHVlIHdoaWNoIGRlZmluZXMgaG93IHRoZSBhdWRpbyBjb250
+cm9sbGVyCj4gPiArCQlvdXRwdXQgaXMgd2lyZWQgdG8gdGhlIFREQTk5OHggaW5wdXQgKGF1ZGlv
+IHBpbnMpCj4gCj4gU2FtZSBoZXJlLgoKSGkgUm9iLAoKVGhlc2UgYXVkaW8vdmlkZW8gcG9ydCBk
+ZWZpbml0aW9ucyB3ZXJlIGRpc2N1c3NlZCBpbiB0aGUgdGhyZWFkCmh0dHA6Ly9tYWlsbWFuLmFs
+c2EtcHJvamVjdC5vcmcvcGlwZXJtYWlsL2Fsc2EtZGV2ZWwvMjAxNS1BdWd1c3QvMDk1ODM2Lmh0
+bWwKYnV0LCB5b3UgYXJlIHJpZ2h0LCBhbmQgYXMgeW91IGFscmVhZHkgc2FpZCBpbiB0aGUgdGhy
+ZWFkIApodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9hcmNoaXZlcy9kcmktZGV2ZWwvMjAx
+NS1TZXB0ZW1iZXIvMDkwNTQ0Lmh0bWwKJ3JlZycgc2hvdWxkIG5vdCBiZSB1c2VkIGhlcmUuCgpJ
+IHdvdWxkIGhhdmUgY2hhbmdlZCB0byAncG9ydC12YWx1ZScsIGJ1dCBhcyBJIHdpbGwgbm90IHVw
+ZGF0ZSB0aGUKa2VybmVsIG9mIG15IERvdmUgQ3Vib3ggYW55bW9yZSwgSSB3aWxsIG5vdCBwcm9w
+b3NlIGEgbmV3IHZlcnNpb24gb2YKdGhpcyBwYXRjaCAoYW5kLCBzb3JyeSBKeXJpLCBJIHdpbGwg
+bm90IHRlc3QgeW91ciBwYXRjaCBzZXJpZXMpLgoKLS0gCktlbiBhciBjJ2hlbnRhw7EJfAkgICAg
+ICAqKiBCcmVpemggaGEgTGludXggYXRhdiEgKioKSmVmCQl8CQlodHRwOi8vbW9pbmVqZi5mcmVl
+LmZyLwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
