@@ -1,67 +1,51 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/2] ARM: AM43XX: HWMOD: Add rtc hwmod
-Date: Fri, 19 Feb 2016 10:08:55 +0530
-Message-ID: <1455856735-11515-3-git-send-email-j-keerthy@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2 1/2] ARM: dts: am43x-epos-evm: Add the am438 compatible string
+Date: Fri, 19 Feb 2016 10:08:54 +0530
+Message-ID: <1455856735-11515-2-git-send-email-j-keerthy@ti.com>
 References: <1455856735-11515-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455856735-11515-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1455856735-11515-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch adds rtc hwmod. RTC module The RTC module is physically
-present on the AM438x SoC used on AM43X-EPOS-EVM, but it is permanently
-disabled. A secure RTC is used instead on these devices, where needed.
-. Hence adding it selectively using a seprate list to get RTC Module
-functional on the other am43x SoCs used on am437x-gp-evm and
-am437x-sk-evm.
+The SoCs on am43x-epos-evm are named am438x.
+Hence add the compatibility string and remove the am4372 string.
 
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
+ Documentation/devicetree/bindings/arm/omap/omap.txt | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts                | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Changes in v2:
-
-Inverted the checking logic to accommodate registering for all
-the SoCs compatible to am4372 and removed the negating am438x logic
-to register rtc hwmods as suggested by Paul.
-
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index e97a894..97fd399 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -1020,9 +1020,21 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	NULL,
- };
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index a2bd593..739bc48 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -154,7 +154,7 @@ Boards:
+   compatible = "compulab,am437x-sbc-t43", "compulab,am437x-cm-t43", "ti,am4372", "ti,am43"
  
-+static struct omap_hwmod_ocp_if *am43xx_rtc_hwmod_ocp_ifs[] __initdata = {
-+	&am33xx_l4_wkup__rtc,
-+	NULL,
-+};
-+
- int __init am43xx_hwmod_init(void)
- {
-+	int ret;
-+
- 	omap_hwmod_am43xx_reg();
- 	omap_hwmod_init();
--	return omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
-+	ret = omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
-+
-+	if (!ret && of_machine_is_compatible("ti,am4372"))
-+		ret = omap_hwmod_register_links(am43xx_rtc_hwmod_ocp_ifs);
-+
-+	return ret;
- }
+ - AM43x EPOS EVM
+-  compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
++  compatible = "ti,am43x-epos-evm", "ti,am43", "ti,am438x"
+ 
+ - AM437x GP EVM
+   compatible = "ti,am437x-gp-evm", "ti,am4372", "ti,am43"
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index d580e2b..d2408c4 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -18,7 +18,7 @@
+ 
+ / {
+ 	model = "TI AM43x EPOS EVM";
+-	compatible = "ti,am43x-epos-evm","ti,am4372","ti,am43";
++	compatible = "ti,am43x-epos-evm","ti,am438x","ti,am43";
+ 
+ 	aliases {
+ 		display0 = &lcd0;
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
