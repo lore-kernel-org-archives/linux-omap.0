@@ -1,50 +1,28 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: first set of hwmod fixes and additions
- for v4.6
-Date: Fri, 19 Feb 2016 10:39:26 -0800
-Message-ID: <20160219183925.GM21202@atomide.com>
-References: <alpine.DEB.2.02.1602171838420.11377@utopia.booyaka.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] ARM: dts: am43x-epos-evm: Add the am438
+ compatible string
+Date: Fri, 19 Feb 2016 10:55:38 -0800
+Message-ID: <20160219185538.GO21202@atomide.com>
+References: <1455856735-11515-1-git-send-email-j-keerthy@ti.com>
+ <1455856735-11515-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1602171838420.11377@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1455856735-11515-2-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [160217 10:41]:
-> Hi Tony
-> 
-> The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
-> 
->   Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.6/omap-hwmod-a
-> 
-> for you to fetch changes up to 8fe097a3d99e22355fb8e3bcee59542bf3f46b2d:
-> 
->   ARM: DRA7: hwmod: Add reset data for PCIe (2016-02-09 02:18:52 -0700)
-> 
-> ----------------------------------------------------------------
-> ARM: OMAP2+: first set of hwmod fixes and additions for v4.6
-> 
-> A few fixes for OMAP hwmod data.  SSI hwmod data for the OMAP 3730,
-> and some fixes for the DRA7xx hwmod data.  These shouldn't interfere
-> or impact anything else.
+* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [160218 20:39]:
+> The SoCs on am43x-epos-evm are named am438x.
+> Hence add the compatibility string and remove the am4372 string.
 
-Thanks pulling into omap-for-v4.6/fixes-not-urgent.
+Applying into omap-for-v4.6/dt thanks.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
