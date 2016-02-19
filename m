@@ -1,259 +1,147 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 15/26] memory: omap-gpmc: Support WAIT pin edge interrupts
-Date: Fri, 19 Feb 2016 23:15:37 +0200
-Message-ID: <1455916548-3441-16-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 17/26] mtd: nand: omap2: Implement NAND ready using gpiolib
+Date: Fri, 19 Feb 2016 23:15:39 +0200
+Message-ID: <1455916548-3441-18-git-send-email-rogerq@ti.com>
 References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1455916548-3441-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, computersforpeace@gmail.com
-Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
+Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAPs can have 2 to 4 WAITPINs that can be used as edge triggered
-interrupts if not used for memory wait state insertion.
-
-Support these interrupts via the gpmc IRQ domain.
-
-The gpmc IRQ domain interrupt map is:
-
-0 - NAND_fifoevent
-1 - NAND_termcount
-2 - GPMC_WAIT0 edge
-3 - GPMC_WAIT1 edge, and so on
+The GPMC WAIT pin status are now available over gpiolib.
+Update the omap_dev_ready() function to use gpio instead of
+directly accessing GPMC register space.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- .../bindings/memory-controllers/omap-gpmc.txt      |   8 ++
- drivers/memory/omap-gpmc.c                         | 106 +++++++++++++++++----
- 2 files changed, 96 insertions(+), 18 deletions(-)
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 ++
+ drivers/mtd/nand/omap2.c                           | 29 ++++++++++++++--------
+ include/linux/platform_data/mtd-nand-omap2.h       |  2 +-
+ 3 files changed, 21 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-index 8113a52..f64b29c 100644
---- a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-+++ b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-@@ -35,6 +35,14 @@ Required properties:
-  - gpio-controller:	The GPMC driver implements a GPIO controller for the
- 			GPMC WAIT pins that can be used as general purpose inputs.
- 			0 maps to GPMC_WAIT0 pin.
-+ - interrupt-controller: The GPMC driver implements and interrupt controller for
-+			the NAND events "fifoevent" and "termcount" plus the
-+			rising/falling edges on the GPMC_WAIT pins.
-+			The interrupt number mapping is as follows
-+			0 - NAND_fifoevent
-+			1 - NAND_termcount
-+			2 - GPMC_WAIT0 pin edge
-+			3 - GPMC_WAIT1 pin edge, and so on.
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index 810b87b..256bb86 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -48,6 +48,7 @@ Optional properties:
+ 		locating ECC errors for BCHx algorithms. SoC devices which have
+ 		ELM hardware engines should specify this device node in .dtsi
+ 		Using ELM for ECC error correction frees some CPU cycles.
++ - rb-gpios:	GPIO specifier for the ready/busy# pin.
  
- Timing properties for child nodes. All are optional and default to 0.
+ For inline partition table parsing (optional):
  
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index af2d57f..d958fb6 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -189,9 +189,7 @@
- #define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
- #define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
+@@ -78,6 +79,7 @@ Example for an AM33xx board:
+ 			ti,nand-xfer-type = "polled";
+ 			interrupt-parent = <&gpmc>;
+ 			interrupts = <0>, <1>;
++			rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
  
--/* XXX: Only NAND irq has been considered,currently these are the only ones used
-- */
--#define	GPMC_NR_IRQ		2
-+#define	GPMC_NR_NAND_IRQS	2 /* number of NAND specific IRQs */
- 
- enum gpmc_clk_domain {
- 	GPMC_CD_FCLK,
-@@ -239,6 +237,7 @@ struct gpmc_device {
- 	int irq;
- 	struct irq_chip irq_chip;
- 	struct gpio_chip gpio_chip;
-+	int nirqs;
+ 			gpmc,sync-clk-ps = <0>;
+ 			gpmc,cs-on-ns = <0>;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 0a637c4..e7939f1 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -12,6 +12,7 @@
+ #include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+ #include <linux/jiffies.h>
+@@ -183,6 +184,8 @@ struct omap_nand_info {
+ 	struct nand_ecclayout		oobinfo;
+ 	/* fields specific for BCHx_HW ECC scheme */
+ 	struct device			*elm_dev;
++	/* NAND ready gpio */
++	struct gpio_desc		*ready_gpiod;
  };
  
- static struct irq_domain *gpmc_irq_domain;
-@@ -1135,7 +1134,8 @@ int gpmc_get_client_irq(unsigned irq_config)
- 		return 0;
- 	}
- 
--	if (irq_config >= GPMC_NR_IRQ)
-+	/* we restrict this to NAND IRQs only */
-+	if (irq_config >= GPMC_NR_NAND_IRQS)
- 		return 0;
- 
- 	return irq_create_mapping(gpmc_irq_domain, irq_config);
-@@ -1145,6 +1145,10 @@ static int gpmc_irq_endis(unsigned long hwirq, bool endis)
- {
- 	u32 regval;
- 
-+	/* bits GPMC_NR_NAND_IRQS to 8 are reserved */
-+	if (hwirq >= GPMC_NR_NAND_IRQS)
-+		hwirq += 8 - GPMC_NR_NAND_IRQS;
-+
- 	regval = gpmc_read_reg(GPMC_IRQENABLE);
- 	if (endis)
- 		regval |= BIT(hwirq);
-@@ -1165,9 +1169,64 @@ static void gpmc_irq_enable(struct irq_data *p)
- 	gpmc_irq_endis(p->hwirq, true);
+ static inline struct omap_nand_info *mtd_to_omap(struct mtd_info *mtd)
+@@ -1024,21 +1027,16 @@ static int omap_wait(struct mtd_info *mtd, struct nand_chip *chip)
  }
  
--static void gpmc_irq_noop(struct irq_data *data) { }
-+static void gpmc_irq_mask(struct irq_data *d)
-+{
-+	gpmc_irq_endis(d->hwirq, false);
-+}
-+
-+static void gpmc_irq_unmask(struct irq_data *d)
-+{
-+	gpmc_irq_endis(d->hwirq, true);
-+}
-+
-+static void gpmc_irq_edge_config(unsigned long hwirq, bool rising_edge)
-+{
-+	u32 regval;
-+
-+	/* NAND IRQs polarity is not configurable */
-+	if (hwirq < GPMC_NR_NAND_IRQS)
-+		return;
-+
-+	/* WAITPIN starts at BIT 8 */
-+	hwirq += 8 - GPMC_NR_NAND_IRQS;
-+
-+	regval = gpmc_read_reg(GPMC_CONFIG);
-+	if (rising_edge)
-+		regval &= ~BIT(hwirq);
-+	else
-+		regval |= BIT(hwirq);
-+
-+	gpmc_write_reg(GPMC_CONFIG, regval);
-+}
-+
-+static void gpmc_irq_ack(struct irq_data *d)
-+{
-+	unsigned hwirq = d->hwirq;
-+
-+	/* skip reserved bits */
-+	if (hwirq >= GPMC_NR_NAND_IRQS)
-+		hwirq += 8 - GPMC_NR_NAND_IRQS;
-+
-+	/* Setting bit to 1 clears (or Acks) the interrupt */
-+	gpmc_write_reg(GPMC_IRQSTATUS, BIT(hwirq));
-+}
-+
-+static int gpmc_irq_set_type(struct irq_data *d, unsigned trigger)
-+{
-+	/* can't set type for NAND IRQs */
-+	if (d->hwirq < GPMC_NR_NAND_IRQS)
-+		return -EINVAL;
-+
-+	/* We can support either rising or falling edge at a time */
-+	if (trigger == IRQ_TYPE_EDGE_FALLING)
-+		gpmc_irq_edge_config(d->hwirq, false);
-+	else if (trigger == IRQ_TYPE_EDGE_RISING)
-+		gpmc_irq_edge_config(d->hwirq, true);
-+	else
-+		return -EINVAL;
+ /**
+- * omap_dev_ready - calls the platform specific dev_ready function
++ * omap_dev_ready - checks the NAND Ready GPIO line
+  * @mtd: MTD device structure
++ *
++ * Returns true if ready and false if busy.
+  */
+ static int omap_dev_ready(struct mtd_info *mtd)
+ {
+-	unsigned int val = 0;
+ 	struct omap_nand_info *info = mtd_to_omap(mtd);
  
--static unsigned int gpmc_irq_noop_ret(struct irq_data *data) { return 0; }
-+	return 0;
-+}
+-	val = readl(info->reg.gpmc_status);
+-
+-	if ((val & 0x100) == 0x100) {
+-		return 1;
+-	} else {
+-		return 0;
+-	}
++	return gpiod_get_value(info->ready_gpiod);
+ }
  
- static int gpmc_irq_map(struct irq_domain *d, unsigned int virq,
- 			irq_hw_number_t hw)
-@@ -1175,8 +1234,14 @@ static int gpmc_irq_map(struct irq_domain *d, unsigned int virq,
- 	struct gpmc_device *gpmc = d->host_data;
+ /**
+@@ -1754,7 +1752,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		info->gpmc_cs = pdata->cs;
+ 		info->reg = pdata->reg;
+ 		info->ecc_opt = pdata->ecc_opt;
+-		info->dev_ready	= pdata->dev_ready;
++		if (pdata->dev_ready)
++			dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
++
+ 		info->xfer_type = pdata->xfer_type;
+ 		info->devsize = pdata->devsize;
+ 		info->elm_of_node = pdata->elm_of_node;
+@@ -1786,6 +1786,13 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	nand_chip->IO_ADDR_W = nand_chip->IO_ADDR_R;
+ 	nand_chip->cmd_ctrl  = omap_hwcontrol;
  
- 	irq_set_chip_data(virq, gpmc);
--	irq_set_chip_and_handler(virq, &gpmc->irq_chip, handle_simple_irq);
--	irq_modify_status(virq, IRQ_NOREQUEST, IRQ_NOAUTOEN);
-+	if (hw < GPMC_NR_NAND_IRQS) {
-+		irq_modify_status(virq, IRQ_NOREQUEST, IRQ_NOAUTOEN);
-+		irq_set_chip_and_handler(virq, &gpmc->irq_chip,
-+					 handle_simple_irq);
-+	} else {
-+		irq_set_chip_and_handler(virq, &gpmc->irq_chip,
-+					 handle_edge_irq);
++	info->ready_gpiod = devm_gpiod_get_optional(&pdev->dev, "rb",
++						    GPIOD_IN);
++	if (IS_ERR(info->ready_gpiod)) {
++		dev_err(dev, "failed to get ready gpio\n");
++		return PTR_ERR(info->ready_gpiod);
 +	}
- 
- 	return 0;
- }
-@@ -1189,16 +1254,21 @@ static const struct irq_domain_ops gpmc_irq_domain_ops = {
- static irqreturn_t gpmc_handle_irq(int irq, void *data)
- {
- 	int hwirq, virq;
--	u32 regval;
-+	u32 regval, regvalx;
- 	struct gpmc_device *gpmc = data;
- 
- 	regval = gpmc_read_reg(GPMC_IRQSTATUS);
-+	regvalx = regval;
- 
- 	if (!regval)
- 		return IRQ_NONE;
- 
--	for (hwirq = 0; hwirq < GPMC_NR_IRQ; hwirq++) {
--		if (regval & BIT(hwirq)) {
-+	for (hwirq = 0; hwirq < gpmc->nirqs; hwirq++) {
-+		/* skip reserved status bits */
-+		if (hwirq == GPMC_NR_NAND_IRQS)
-+			regvalx >>= 8 - GPMC_NR_NAND_IRQS;
 +
-+		if (regvalx & BIT(hwirq)) {
- 			virq = irq_find_mapping(gpmc_irq_domain, hwirq);
- 			if (!virq) {
- 				dev_warn(gpmc->dev,
-@@ -1228,16 +1298,15 @@ static int gpmc_setup_irq(struct gpmc_device *gpmc)
- 	gpmc_write_reg(GPMC_IRQSTATUS, regval);
- 
- 	gpmc->irq_chip.name = "gpmc";
--	gpmc->irq_chip.irq_startup = gpmc_irq_noop_ret;
- 	gpmc->irq_chip.irq_enable = gpmc_irq_enable;
- 	gpmc->irq_chip.irq_disable = gpmc_irq_disable;
--	gpmc->irq_chip.irq_shutdown = gpmc_irq_noop;
--	gpmc->irq_chip.irq_ack = gpmc_irq_noop;
--	gpmc->irq_chip.irq_mask = gpmc_irq_noop;
--	gpmc->irq_chip.irq_unmask = gpmc_irq_noop;
-+	gpmc->irq_chip.irq_ack = gpmc_irq_ack;
-+	gpmc->irq_chip.irq_mask = gpmc_irq_mask;
-+	gpmc->irq_chip.irq_unmask = gpmc_irq_unmask;
-+	gpmc->irq_chip.irq_set_type = gpmc_irq_set_type;
- 
- 	gpmc_irq_domain = irq_domain_add_linear(gpmc->dev->of_node,
--						GPMC_NR_IRQ,
-+						gpmc->nirqs,
- 						&gpmc_irq_domain_ops,
- 						gpmc);
- 	if (!gpmc_irq_domain) {
-@@ -1262,7 +1331,7 @@ static int gpmc_free_irq(struct gpmc_device *gpmc)
- 
- 	free_irq(gpmc->irq, gpmc);
- 
--	for (hwirq = 0; hwirq < GPMC_NR_IRQ; hwirq++)
-+	for (hwirq = 0; hwirq < gpmc->nirqs; hwirq++)
- 		irq_dispose_mapping(irq_find_mapping(gpmc_irq_domain, hwirq));
- 
- 	irq_domain_remove(gpmc_irq_domain);
-@@ -2264,6 +2333,7 @@ static int gpmc_probe(struct platform_device *pdev)
- 	if (rc)
- 		goto gpio_init_failed;
- 
-+	gpmc->nirqs = GPMC_NR_NAND_IRQS + gpmc_nr_waitpins;
- 	rc = gpmc_setup_irq(gpmc);
- 	if (rc) {
- 		dev_err(gpmc->dev, "gpmc_setup_irq failed\n");
+ 	/*
+ 	 * If RDY/BSY line is connected to OMAP then use the omap ready
+ 	 * function and the generic nand_wait function which reads the status
+@@ -1793,7 +1800,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	 * chip delay which is slightly more than tR (AC Timing) of the NAND
+ 	 * device and read status register until you get a failure or success
+ 	 */
+-	if (info->dev_ready) {
++	if (info->ready_gpiod) {
+ 		nand_chip->dev_ready = omap_dev_ready;
+ 		nand_chip->chip_delay = 0;
+ 	} else {
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 7f6de53..17d57a1 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -71,7 +71,6 @@ struct omap_nand_platform_data {
+ 	int			cs;
+ 	struct mtd_partition	*parts;
+ 	int			nr_parts;
+-	bool			dev_ready;
+ 	bool			flash_bbt;
+ 	enum nand_io		xfer_type;
+ 	int			devsize;
+@@ -82,5 +81,6 @@ struct omap_nand_platform_data {
+ 	/* deprecated */
+ 	struct gpmc_nand_regs	reg;
+ 	struct device_node	*of_node;
++	bool			dev_ready;
+ };
+ #endif
 -- 
 2.1.4
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
