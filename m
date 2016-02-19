@@ -1,7 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 01/26] ARM: OMAP2+: gpmc: Add platform data
-Date: Fri, 19 Feb 2016 23:15:23 +0200
-Message-ID: <1455916548-3441-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 04/26] mtd: nand: omap2: Use gpmc_omap_get_nand_ops() to
+ get NAND registers
+Date: Fri, 19 Feb 2016 23:15:26 +0200
+Message-ID: <1455916548-3441-5-git-send-email-rogerq@ti.com>
 References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,67 +22,84 @@ To: tony@atomide.com, computersforpeace@gmail.com
 Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, fcooper@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add a platform data structure for GPMC. It contains all the necessary
-platform information that needs to be passed from platform init code
-to GPMC driver.
+Deprecate nand register passing via platform data and use
+gpmc_omap_get_nand_ops() instead.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- include/linux/omap-gpmc.h               |  3 +--
- include/linux/platform_data/gpmc-omap.h | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+), 2 deletions(-)
- create mode 100644 include/linux/platform_data/gpmc-omap.h
+ arch/arm/mach-omap2/gpmc-nand.c              | 2 --
+ drivers/mtd/nand/omap2.c                     | 9 ++++++++-
+ include/linux/platform_data/mtd-nand-omap2.h | 4 +++-
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
-index 7dee0014..5c79190 100644
---- a/include/linux/omap-gpmc.h
-+++ b/include/linux/omap-gpmc.h
-@@ -7,8 +7,7 @@
-  *  option) any later version.
-  */
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 72918c4..04e6998 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -121,8 +121,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 	if (err < 0)
+ 		goto out_free_cs;
  
--/* Maximum Number of Chip Selects */
--#define GPMC_CS_NUM		8
-+#include <linux/platform_data/gpmc-omap.h>
+-	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+-
+ 	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
+ 		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
+ 		err = -EINVAL;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index c553f78..eb18c04 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -28,6 +28,7 @@
+ #include <linux/mtd/nand_bch.h>
+ #include <linux/platform_data/elm.h>
  
- #define GPMC_CONFIG_WP		0x00000005
++#include <linux/omap-gpmc.h>
+ #include <linux/platform_data/mtd-nand-omap2.h>
  
-diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
-new file mode 100644
-index 0000000..d32d9de
---- /dev/null
-+++ b/include/linux/platform_data/gpmc-omap.h
-@@ -0,0 +1,30 @@
-+/*
-+ * OMAP GPMC Platform data
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc. - http://www.ti.com
-+ *	Roger Quadros <rogerq@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ */
+ #define	DRIVER_NAME	"omap2-nand"
+@@ -168,7 +169,9 @@ struct omap_nand_info {
+ 	} iomode;
+ 	u_char				*buf;
+ 	int					buf_len;
++	/* Interface to GPMC */
+ 	struct gpmc_nand_regs		reg;
++	struct gpmc_nand_ops		*ops;
+ 	/* generated at runtime depending on ECC algorithm and layout selected */
+ 	struct nand_ecclayout		oobinfo;
+ 	/* fields specific for BCHx_HW ECC scheme */
+@@ -1665,9 +1668,13 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, info);
+ 
++	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
++	if (!info->ops) {
++		dev_err(&pdev->dev, "Failed to get GPMC->NAND interface\n");
++		return -ENODEV;
++	}
+ 	info->pdev		= pdev;
+ 	info->gpmc_cs		= pdata->cs;
+-	info->reg		= pdata->reg;
+ 	info->of_node		= pdata->of_node;
+ 	info->ecc_opt		= pdata->ecc_opt;
+ 	nand_chip		= &info->nand;
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 090bbab..a067f58 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -75,10 +75,12 @@ struct omap_nand_platform_data {
+ 	enum nand_io		xfer_type;
+ 	int			devsize;
+ 	enum omap_ecc           ecc_opt;
+-	struct gpmc_nand_regs	reg;
+ 
+ 	/* for passing the partitions */
+ 	struct device_node	*of_node;
+ 	struct device_node	*elm_of_node;
 +
-+#ifndef _GPMC_OMAP_H_
-+#define _GPMC_OMAP_H_
-+
-+/* Maximum Number of Chip Selects */
-+#define GPMC_CS_NUM		8
-+
-+/* Data for each chip select */
-+struct gpmc_omap_cs_data {
-+	bool valid;			/* data is valid */
-+	bool is_nand;			/* device within this CS is NAND */
-+	struct platform_device *pdev;	/* device within this CS region */
-+	unsigned pdata_size;
-+};
-+
-+struct gpmc_omap_platform_data {
-+	struct gpmc_omap_cs_data cs[GPMC_CS_NUM];
-+};
-+
-+#endif /* _GPMC_OMAP_H */
++	/* deprecated */
++	struct gpmc_nand_regs	reg;
+ };
+ #endif
 -- 
 2.1.4
 
