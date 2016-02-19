@@ -1,39 +1,34 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: Bunch of machines are not booting in next again, GPIO regression?
-Date: Thu, 18 Feb 2016 19:55:17 +0100
-Message-ID: <CACRpkdY2=mYVDU2BXzN1rY7=mP_iyG3UEaCNVom4HFJDf61+0Q@mail.gmail.com>
-References: <20160217192755.GC21202@atomide.com>
-	<20160217195543.GA871@jcartwri.amer.corp.natinst.com>
-	<20160217201259.GA16028@deathstar>
-	<20160217202224.GD21202@atomide.com>
-	<20160217224415.GA3866@jcartwri.amer.corp.natinst.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/2] arm: am43xx: Register rtc hwmod
+Date: Fri, 19 Feb 2016 10:08:53 +0530
+Message-ID: <1455856735-11515-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160217224415.GA3866@jcartwri.amer.corp.natinst.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Josh Cartwright <joshc@ni.com>
-Cc: Tony Lindgren <tony@atomide.com>, Michael Welling <mwelling@ieee.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Johan Hovold <johan@kernel.org>, Markus Pargmann <mpa@pengutronix.de>, Mark Brown <broonie@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 17, 2016 at 11:44 PM, Josh Cartwright <joshc@ni.com> wrote:
+The patch adds rtc hwmod. This is present on gp and sk evm and not on
+epos evm. Hence adding it selectively using a seprate list.
 
-> Here's a properly cooked patch.  Otherwise, feel free to squash it in=
- if
-> it's easier for you.
->
-> -- 8< --
-> Subject: [PATCH] gpio: use kzalloc to allocate gpio_device
+Boot tested on AM437X-GP-EVM and AM437X-SK-EVM and checked
+for rtc ticking on AM437X-GP-EVM.
 
-Patch applied, of course.
+Keerthy (2):
+  ARM: dts: am43x-epos-evm: Add the am438 compatible string
+  ARM: AM43XX: HWMOD: Add rtc hwmod
 
-Big hugs and thanks for fixing my stupid mistake!
+ Documentation/devicetree/bindings/arm/omap/omap.txt |  2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts                |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c          | 14 +++++++++++++-
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-N=C3=B3ras,
-Linus Walleij
+-- 
+1.9.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
