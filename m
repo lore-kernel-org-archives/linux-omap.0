@@ -1,103 +1,104 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: AM43XX: HWMOD: Add rtc hwmod
-Date: Fri, 19 Feb 2016 13:29:23 +0530
-Message-ID: <56C6CB5B.20804@ti.com>
-References: <1455856735-11515-1-git-send-email-j-keerthy@ti.com>
- <1455856735-11515-3-git-send-email-j-keerthy@ti.com>
- <alpine.DEB.2.02.1602190720490.27696@utopia.booyaka.com>
+From: Vishal Thanki <vishalthanki@gmail.com>
+Subject: Re: omap_hsmmc: sdio: issue with generic wakeup IRQ handling
+Date: Fri, 19 Feb 2016 15:11:37 +0100
+Message-ID: <20160219141135.GA14354@c50.bag.software>
+References: <20160218182750.GA5948@c50.bag.software>
+ <CALtMJEBdXLef8AJ1-8Txmg2iS413bVV7cpQSb+nL5M7jN_QYzw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1602190720490.27696@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>, Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALtMJEBdXLef8AJ1-8Txmg2iS413bVV7cpQSb+nL5M7jN_QYzw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Andreas,
+
+On Thu, Feb 18, 2016 at 10:31:04PM +0100, Andreas Fenkart wrote:
+> Hi Vishal,
+> 
+> I remember there was a problem with IRQ, but can't remember on top of
+> my head. Meanwhile this might be some pointer:
+> 
+> diff --git a/drivers/net/wireless/mwifiex/sta_ioctl.c
+> b/drivers/net/wireless/mwifiex/sta_ioctl.c
+> index a6c8a4f..67587c2 100644
+> --- a/drivers/net/wireless/mwifiex/sta_ioctl.c
+> +++ b/drivers/net/wireless/mwifiex/sta_ioctl.c
+> @@ -517,6 +517,17 @@ int mwifiex_enable_hs(struct mwifiex_adapter *adapter)
+>         adapter->hs_enabling = true;
+>         mwifiex_cancel_all_pending_cmd(adapter);
+> 
+> +       /* if the MMC host is already in suspend it will not detect SDIO irq
+> +        * and we might run into response timeout. By claiming the MMC host we
+> +        * wake it up, which is sufficient to detect a pending IRQ
+> +        */
+> +       {
+> +               struct sdio_mmc_card *card = adapter->card;
+> +               sdio_claim_host(card->func);
+> +               printk("+++ poll mmc host for IRQ +++\n");
+> +               sdio_release_host(card->func);
+> +       }
+> +
+>         if (mwifiex_set_hs_params(mwifiex_get_priv(adapter,
+>                                                    MWIFIEX_BSS_ROLE_STA),
+>                                   HostCmd_ACT_GEN_SET, MWIFIEX_SYNC_CMD,
+
+I tried this code change but that did not help. I saw that the code
+change is in a function called mwifiex_enable_hs(), which only gets
+invoked by mwifiex_sdio_suspend(); which is why I think it is not having
+any effect. Because when I run the command to scan the channel list
+(i.e. iw dev wlan0 scan), the system is not in suspend state. And I
+noticed (by adding prints in omap_hsmmc.c for suspend and resume
+callbacks) that during the "scan" command, the suspend routine gets invoked
+for HSMMC but it never gets resumed (may be due to the missed wakeup
+IRQ) from mwifiex and the command times out.
+
+Thanks for your help.
+
+Vishal
 
 
-On Friday 19 February 2016 12:51 PM, Paul Walmsley wrote:
-> On Fri, 19 Feb 2016, Keerthy wrote:
->
->> The patch adds rtc hwmod. RTC module The RTC module is physically
->> present on the AM438x SoC used on AM43X-EPOS-EVM, but it is permanently
->> disabled. A secure RTC is used instead on these devices, where needed.
->> . Hence adding it selectively using a seprate list to get RTC Module
->> functional on the other am43x SoCs used on am437x-gp-evm and
->> am437x-sk-evm.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>
->> Changes in v2:
->>
->> Inverted the checking logic to accommodate registering for all
->> the SoCs compatible to am4372 and removed the negating am438x logic
->> to register rtc hwmods as suggested by Paul.
->>
->>   arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 14 +++++++++++++-
->>   1 file changed, 13 insertions(+), 1 deletion(-)
->
-> OK thanks; I've queued the following patch for v4.6 or if I get unlucky,
-> v4.7.
-
-Thanks Paul!
-
->
-> - Paul
->
-> From: Keerthy <j-keerthy@ti.com>
-> Date: Fri, 19 Feb 2016 10:08:55 +0530
-> Subject: [PATCH] ARM: AM43XX: hwmod: Add rtc hwmod
->
-> The patch registers the rtc hwmod on AM437x chips.  The RTC module is
-> physically present on the AM438x SoC used on AM43X-EPOS-EVM, but it is
-> permanently disabled. A secure RTC is used instead on these devices,
-> where needed. Hence adding it selectively using a separate list to get
-> RTC Module functional on the other am43x SoCs used on am437x-gp-evm
-> and am437x-sk-evm.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> [paul@pwsan.com: cleaned up patch description]
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 14 +++++++++++++-
->   1 file changed, 13 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> index e97a894b5f88..97fd399202dc 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> @@ -1020,9 +1020,21 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
->   	NULL,
->   };
->
-> +static struct omap_hwmod_ocp_if *am43xx_rtc_hwmod_ocp_ifs[] __initdata = {
-> +	&am33xx_l4_wkup__rtc,
-> +	NULL,
-> +};
-> +
->   int __init am43xx_hwmod_init(void)
->   {
-> +	int ret;
-> +
->   	omap_hwmod_am43xx_reg();
->   	omap_hwmod_init();
-> -	return omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
-> +	ret = omap_hwmod_register_links(am43xx_hwmod_ocp_ifs);
-> +
-> +	if (!ret && of_machine_is_compatible("ti,am4372"))
-> +		ret = omap_hwmod_register_links(am43xx_rtc_hwmod_ocp_ifs);
-> +
-> +	return ret;
->   }
->
+> 
+> 2016-02-18 19:27 GMT+01:00 Vishal Thanki <vishalthanki@gmail.com>:
+> > Hi,
+> >
+> > On a custom built am335x based board, I am facing an issue mwifiex wifi
+> > module which is connected to host via SDIO interface. I am using kernel
+> > version 4.4.
+> >
+> > The problem is related to the wifi "ext_scan" command getting timed out
+> > over SDIO. This was working with old kernel (v4.0), but does not work on
+> > kernel v4.4. I found the following commit is responsible for this
+> > behavior.
+> >
+> > =================================
+> > 5b83b2234be6733cfe22036c38031b2c890b3db8
+> >
+> > mmc: omap_hsmmc: Change wake-up interrupt to use generic wakeirq
+> >
+> > We can now use generic wakeirq handling and remove the custom handling
+> > for the wake-up interrupts.
+> > =================================
+> >
+> > There is no wifi issue if I revert the above mentioned commit on kernel
+> > v4.4.
+> >
+> > I see that before this commit, the wakeup IRQ handler was registered
+> > within the omap_hsmmc.c itself with additional IRQF_TRIGGER_LOW flag.
+> > But with the introduction to dev_pm_set_dedicated_wake_irq(), the
+> > generic wakeup IRQ handler is registered which does not take the
+> > IRQF_TRIGGER flag. I am not sure if that is the issue, but I added that
+> > IRQF_TRIGGER_LOW flag in dev_pm_set_dedicated_wake_irq() while
+> > registering a threaded IRQ handler, I could see the problem disappears.
+> > However, this change is causing the infinite interrupts because the of
+> > level triggered interrupt is not handled in generic wakeup IRQ handling
+> > code (as it was done specially in omap_hsmmc.c code earlier).
+> >
+> > I am not much familiar with MMC/SDIO driver and I am not sure how to fix
+> > this behavior. So any guidance would be really helpful.
+> >
+> > Thanks,
+> > Vishal
