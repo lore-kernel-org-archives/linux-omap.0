@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 12/26] memory: omap-gpmc: Move device tree binding to correct location
-Date: Fri, 19 Feb 2016 23:15:34 +0200
-Message-ID: <1455916548-3441-13-git-send-email-rogerq@ti.com>
+Subject: [PATCH v5 19/26] ARM: dts: dra7x-evm: Provide NAND ready pin
+Date: Fri, 19 Feb 2016 23:15:41 +0200
+Message-ID: <1455916548-3441-20-git-send-email-rogerq@ti.com>
 References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,288 +12,42 @@ To: tony@atomide.com, computersforpeace@gmail.com
 Cc: dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-omap-gpmc.c is a memory controller so move the binding to the
-right place.
+On these boards NAND ready pin status is avilable over
+GPMC_WAIT0 pin.
+
+Read speed increases from 13768 KiB/ to 17246 KiB/s.
+Write speed was unchanged at 7123 KiB/s.
+Measured using mtd_speedtest.ko.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/bus/ti-gpmc.txt  | 130 ---------------------
- .../bindings/memory-controllers/omap-gpmc.txt      | 130 +++++++++++++++++++++
- 2 files changed, 130 insertions(+), 130 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
- create mode 100644 Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+ arch/arm/boot/dts/dra7-evm.dts  | 1 +
+ arch/arm/boot/dts/dra72-evm.dts | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
-deleted file mode 100644
-index 704be93..0000000
---- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
-+++ /dev/null
-@@ -1,130 +0,0 @@
--Device tree bindings for OMAP general purpose memory controllers (GPMC)
--
--The actual devices are instantiated from the child nodes of a GPMC node.
--
--Required properties:
--
-- - compatible:		Should be set to one of the following:
--
--			ti,omap2420-gpmc (omap2420)
--			ti,omap2430-gpmc (omap2430)
--			ti,omap3430-gpmc (omap3430 & omap3630)
--			ti,omap4430-gpmc (omap4430 & omap4460 & omap543x)
--			ti,am3352-gpmc   (am335x devices)
--
-- - reg:			A resource specifier for the register space
--			(see the example below)
-- - ti,hwmods:		Should be set to "ti,gpmc" until the DT transition is
--			completed.
-- - #address-cells:	Must be set to 2 to allow memory address translation
-- - #size-cells:		Must be set to 1 to allow CS address passing
-- - gpmc,num-cs:		The maximum number of chip-select lines that controller
--			can support.
-- - gpmc,num-waitpins:	The maximum number of wait pins that controller can
--			support.
-- - ranges:		Must be set up to reflect the memory layout with four
--			integer values for each chip-select line in use:
--
--			   <cs-number> 0 <physical address of mapping> <size>
--
--			Currently, calculated values derived from the contents
--			of the per-CS register GPMC_CONFIG7 (as set up by the
--			bootloader) are used for the physical address decoding.
--			As this will change in the future, filling correct
--			values here is a requirement.
--
--Timing properties for child nodes. All are optional and default to 0.
--
-- - gpmc,sync-clk-ps:	Minimum clock period for synchronous mode, in picoseconds
--
-- Chip-select signal timings (in nanoseconds) corresponding to GPMC_CONFIG2:
-- - gpmc,cs-on-ns:	Assertion time
-- - gpmc,cs-rd-off-ns:	Read deassertion time
-- - gpmc,cs-wr-off-ns:	Write deassertion time
--
-- ADV signal timings (in nanoseconds) corresponding to GPMC_CONFIG3:
-- - gpmc,adv-on-ns:	Assertion time
-- - gpmc,adv-rd-off-ns:	Read deassertion time
-- - gpmc,adv-wr-off-ns:	Write deassertion time
--
-- WE signals timings (in nanoseconds) corresponding to GPMC_CONFIG4:
-- - gpmc,we-on-ns	Assertion time
-- - gpmc,we-off-ns:	Deassertion time
--
-- OE signals timings (in nanoseconds) corresponding to GPMC_CONFIG4:
-- - gpmc,oe-on-ns:	Assertion time
-- - gpmc,oe-off-ns:	Deassertion time
--
-- Access time and cycle time timings (in nanoseconds) corresponding to
-- GPMC_CONFIG5:
-- - gpmc,page-burst-access-ns: 	Multiple access word delay
-- - gpmc,access-ns:		Start-cycle to first data valid delay
-- - gpmc,rd-cycle-ns:		Total read cycle time
-- - gpmc,wr-cycle-ns:		Total write cycle time
-- - gpmc,bus-turnaround-ns:	Turn-around time between successive accesses
-- - gpmc,cycle2cycle-delay-ns:	Delay between chip-select pulses
-- - gpmc,clk-activation-ns: 	GPMC clock activation time
-- - gpmc,wait-monitoring-ns:	Start of wait monitoring with regard to valid
--				data
--
--Boolean timing parameters. If property is present parameter enabled and
--disabled if omitted:
-- - gpmc,adv-extra-delay:	ADV signal is delayed by half GPMC clock
-- - gpmc,cs-extra-delay:		CS signal is delayed by half GPMC clock
-- - gpmc,cycle2cycle-diffcsen:	Add "cycle2cycle-delay" between successive
--				accesses to a different CS
-- - gpmc,cycle2cycle-samecsen:	Add "cycle2cycle-delay" between successive
--				accesses to the same CS
-- - gpmc,oe-extra-delay:		OE signal is delayed by half GPMC clock
-- - gpmc,we-extra-delay:		WE signal is delayed by half GPMC clock
-- - gpmc,time-para-granularity:	Multiply all access times by 2
--
--The following are only applicable to OMAP3+ and AM335x:
-- - gpmc,wr-access-ns:		In synchronous write mode, for single or
--				burst accesses, defines the number of
--				GPMC_FCLK cycles from start access time
--				to the GPMC_CLK rising edge used by the
--				memory device for the first data capture.
-- - gpmc,wr-data-mux-bus-ns:	In address-data multiplex mode, specifies
--				the time when the first data is driven on
--				the address-data bus.
--
--GPMC chip-select settings properties for child nodes. All are optional.
--
--- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
--- gpmc,burst-wrap	Enables wrap bursting
--- gpmc,burst-read	Enables read page/burst mode
--- gpmc,burst-write	Enables write page/burst mode
--- gpmc,device-width	Total width of device(s) connected to a GPMC
--			chip-select in bytes. The GPMC supports 8-bit
--			and 16-bit devices and so this property must be
--			1 or 2.
--- gpmc,mux-add-data	Address and data multiplexing configuration.
--			Valid values are 1 for address-address-data
--			multiplexing mode and 2 for address-data
--			multiplexing mode.
--- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
--			is this is not set.
--- gpmc,sync-write	Enables synchronous writes. Defaults to asynchronous
--			is this is not set.
--- gpmc,wait-pin		Wait-pin used by client. Must be less than
--			"gpmc,num-waitpins".
--- gpmc,wait-on-read	Enables wait monitoring on reads.
--- gpmc,wait-on-write	Enables wait monitoring on writes.
--
--Example for an AM33xx board:
--
--	gpmc: gpmc@50000000 {
--		compatible = "ti,am3352-gpmc";
--		ti,hwmods = "gpmc";
--		reg = <0x50000000 0x2000>;
--		interrupts = <100>;
--
--		gpmc,num-cs = <8>;
--		gpmc,num-waitpins = <2>;
--		#address-cells = <2>;
--		#size-cells = <1>;
--		ranges = <0 0 0x08000000 0x10000000>; /* CS0 @addr 0x8000000, size 0x10000000 */
--
--		/* child nodes go here */
--	};
-diff --git a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-new file mode 100644
-index 0000000..704be93
---- /dev/null
-+++ b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-@@ -0,0 +1,130 @@
-+Device tree bindings for OMAP general purpose memory controllers (GPMC)
-+
-+The actual devices are instantiated from the child nodes of a GPMC node.
-+
-+Required properties:
-+
-+ - compatible:		Should be set to one of the following:
-+
-+			ti,omap2420-gpmc (omap2420)
-+			ti,omap2430-gpmc (omap2430)
-+			ti,omap3430-gpmc (omap3430 & omap3630)
-+			ti,omap4430-gpmc (omap4430 & omap4460 & omap543x)
-+			ti,am3352-gpmc   (am335x devices)
-+
-+ - reg:			A resource specifier for the register space
-+			(see the example below)
-+ - ti,hwmods:		Should be set to "ti,gpmc" until the DT transition is
-+			completed.
-+ - #address-cells:	Must be set to 2 to allow memory address translation
-+ - #size-cells:		Must be set to 1 to allow CS address passing
-+ - gpmc,num-cs:		The maximum number of chip-select lines that controller
-+			can support.
-+ - gpmc,num-waitpins:	The maximum number of wait pins that controller can
-+			support.
-+ - ranges:		Must be set up to reflect the memory layout with four
-+			integer values for each chip-select line in use:
-+
-+			   <cs-number> 0 <physical address of mapping> <size>
-+
-+			Currently, calculated values derived from the contents
-+			of the per-CS register GPMC_CONFIG7 (as set up by the
-+			bootloader) are used for the physical address decoding.
-+			As this will change in the future, filling correct
-+			values here is a requirement.
-+
-+Timing properties for child nodes. All are optional and default to 0.
-+
-+ - gpmc,sync-clk-ps:	Minimum clock period for synchronous mode, in picoseconds
-+
-+ Chip-select signal timings (in nanoseconds) corresponding to GPMC_CONFIG2:
-+ - gpmc,cs-on-ns:	Assertion time
-+ - gpmc,cs-rd-off-ns:	Read deassertion time
-+ - gpmc,cs-wr-off-ns:	Write deassertion time
-+
-+ ADV signal timings (in nanoseconds) corresponding to GPMC_CONFIG3:
-+ - gpmc,adv-on-ns:	Assertion time
-+ - gpmc,adv-rd-off-ns:	Read deassertion time
-+ - gpmc,adv-wr-off-ns:	Write deassertion time
-+
-+ WE signals timings (in nanoseconds) corresponding to GPMC_CONFIG4:
-+ - gpmc,we-on-ns	Assertion time
-+ - gpmc,we-off-ns:	Deassertion time
-+
-+ OE signals timings (in nanoseconds) corresponding to GPMC_CONFIG4:
-+ - gpmc,oe-on-ns:	Assertion time
-+ - gpmc,oe-off-ns:	Deassertion time
-+
-+ Access time and cycle time timings (in nanoseconds) corresponding to
-+ GPMC_CONFIG5:
-+ - gpmc,page-burst-access-ns: 	Multiple access word delay
-+ - gpmc,access-ns:		Start-cycle to first data valid delay
-+ - gpmc,rd-cycle-ns:		Total read cycle time
-+ - gpmc,wr-cycle-ns:		Total write cycle time
-+ - gpmc,bus-turnaround-ns:	Turn-around time between successive accesses
-+ - gpmc,cycle2cycle-delay-ns:	Delay between chip-select pulses
-+ - gpmc,clk-activation-ns: 	GPMC clock activation time
-+ - gpmc,wait-monitoring-ns:	Start of wait monitoring with regard to valid
-+				data
-+
-+Boolean timing parameters. If property is present parameter enabled and
-+disabled if omitted:
-+ - gpmc,adv-extra-delay:	ADV signal is delayed by half GPMC clock
-+ - gpmc,cs-extra-delay:		CS signal is delayed by half GPMC clock
-+ - gpmc,cycle2cycle-diffcsen:	Add "cycle2cycle-delay" between successive
-+				accesses to a different CS
-+ - gpmc,cycle2cycle-samecsen:	Add "cycle2cycle-delay" between successive
-+				accesses to the same CS
-+ - gpmc,oe-extra-delay:		OE signal is delayed by half GPMC clock
-+ - gpmc,we-extra-delay:		WE signal is delayed by half GPMC clock
-+ - gpmc,time-para-granularity:	Multiply all access times by 2
-+
-+The following are only applicable to OMAP3+ and AM335x:
-+ - gpmc,wr-access-ns:		In synchronous write mode, for single or
-+				burst accesses, defines the number of
-+				GPMC_FCLK cycles from start access time
-+				to the GPMC_CLK rising edge used by the
-+				memory device for the first data capture.
-+ - gpmc,wr-data-mux-bus-ns:	In address-data multiplex mode, specifies
-+				the time when the first data is driven on
-+				the address-data bus.
-+
-+GPMC chip-select settings properties for child nodes. All are optional.
-+
-+- gpmc,burst-length	Page/burst length. Must be 4, 8 or 16.
-+- gpmc,burst-wrap	Enables wrap bursting
-+- gpmc,burst-read	Enables read page/burst mode
-+- gpmc,burst-write	Enables write page/burst mode
-+- gpmc,device-width	Total width of device(s) connected to a GPMC
-+			chip-select in bytes. The GPMC supports 8-bit
-+			and 16-bit devices and so this property must be
-+			1 or 2.
-+- gpmc,mux-add-data	Address and data multiplexing configuration.
-+			Valid values are 1 for address-address-data
-+			multiplexing mode and 2 for address-data
-+			multiplexing mode.
-+- gpmc,sync-read	Enables synchronous read. Defaults to asynchronous
-+			is this is not set.
-+- gpmc,sync-write	Enables synchronous writes. Defaults to asynchronous
-+			is this is not set.
-+- gpmc,wait-pin		Wait-pin used by client. Must be less than
-+			"gpmc,num-waitpins".
-+- gpmc,wait-on-read	Enables wait monitoring on reads.
-+- gpmc,wait-on-write	Enables wait monitoring on writes.
-+
-+Example for an AM33xx board:
-+
-+	gpmc: gpmc@50000000 {
-+		compatible = "ti,am3352-gpmc";
-+		ti,hwmods = "gpmc";
-+		reg = <0x50000000 0x2000>;
-+		interrupts = <100>;
-+
-+		gpmc,num-cs = <8>;
-+		gpmc,num-waitpins = <2>;
-+		#address-cells = <2>;
-+		#size-cells = <1>;
-+		ranges = <0 0 0x08000000 0x10000000>; /* CS0 @addr 0x8000000, size 0x10000000 */
-+
-+		/* child nodes go here */
-+	};
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 28ae95e..36053ba 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -748,6 +748,7 @@
+ 		interrupt-parent = <&gpmc>;
+ 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
+ 			     <1 IRQ_TYPE_NONE>; /* termcount */
++		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 pin */
+ 		ti,nand-ecc-opt = "bch8";
+ 		ti,elm-id = <&elm>;
+ 		nand-bus-width = <16>;
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 6cf211b..75d4ec5 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -503,6 +503,7 @@
+ 		interrupt-parent = <&gpmc>;
+ 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
+ 			     <1 IRQ_TYPE_NONE>;	/* termcount */
++		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 pin */
+ 		ti,nand-ecc-opt = "bch8";
+ 		ti,elm-id = <&elm>;
+ 		nand-bus-width = <16>;
 -- 
 2.1.4
