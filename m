@@ -1,77 +1,178 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH] hwmon: (gpio-fan) Remove un-necessary speed_index lookup
- for thermal hook
-Date: Fri, 19 Feb 2016 17:15:20 -0800
-Message-ID: <56C7BE28.2060606@roeck-us.net>
-References: <1455926991-15189-1-git-send-email-nm@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: GPIO regression in Linux next caused by syscon change
+Date: Sat, 20 Feb 2016 12:59:38 +0200
+Message-ID: <56C8471A.1040702@ti.com>
+References: <20160213002643.GQ19432@atomide.com>
+ <20160213004935.GR19432@atomide.com>
+ <CA+gwMccZeYimupmGsMX8YbNH9eEA6=Xi=rupciubBwzktfjvBA@mail.gmail.com>
+ <20160215160115.GU19432@atomide.com>
+ <1455552961.4899.37.camel@pengutronix.de>
+ <20160215164757.GV19432@atomide.com> <20160215180635.GW19432@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455926991-15189-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Jean Delvare <jdelvare@suse.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Eduardo Valentin <edubezval@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160215180635.GW19432@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Philipp Zabel <philipp.zabel@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/19/2016 04:09 PM, Nishanth Menon wrote:
-> Thermal hook gpio_fan_get_cur_state is only interested in knowing
-> the current speed index that was setup in the system, this is
-> already available as part of fan_data->speed_index which is always
-> set by set_fan_speed. Using get_fan_speed_index is useful when we
-> have no idea about the fan speed configuration (for example during
-> fan_ctrl_init).
+On 02/15/2016 08:06 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [160215 08:49]:
+>> * Philipp Zabel <p.zabel@pengutronix.de> [160215 08:17]:
+>>> Am Montag, den 15.02.2016, 08:01 -0800 schrieb Tony Lindgren:
+>>>> * Philipp Zabel <philipp.zabel@gmail.com> [160214 11:24]:
+>>>>> I've just replaced the of_iomap() call with an open coded version,
+>>>>> calling of_address_to_resource() and ioremap() directly. That was
+>>>>> needed so I can use the struct resource returned by
+>>>>> of_address_to_resource() to set the syscon_config.max_register. I
+>>>>> don't see where this could cause resource overlap. Does just setting
+>>>>> syscon_config.max_register to zero again make the problem disappear?
+>>>>
+>>>> Yes commenting out the syscon_config.max_register line in your patch
+>>>> makes things work again.
+>>>>
+>>>> So what does that tell us about the problem?
+>>>
+>>> Maybe some out of bounds writes that previously worked are now catched
+>>> by the max_register check in regmap_writable and regmap_write returns
+>>> -EIO instead of the write being executed.
+>>
+>> Hmm weird that something like that would not produce errors?
+>>
+>>> Is there any omap_ctrl_write?() call with an offset > 0x32c into
+>>> scm_conf?
+>>
+>> Indeed, that's where things go wrong. Adding Tero to Cc, something
+>> is wrong there.
 >
-> When thermal framework invokes
-> gpio_fan_get_cur_state=>get_fan_speed_index via gpio_fan_get_cur_state
-> especially in a polled configuration for thermal governor, we
-> basically hog the i2c interface to the extent that other functions
-> fail to get any traffic out :(.
+> Something like this might fix it? Needs to be tested to see if it
+> happens on other omaps.
 >
-> Instead, just provide the last state set in the driver - since the gpio
-> fan driver is responsible for the fan state immaterial of override, the
-> fan_data->speed_index should accurately reflect the state.
->
-> Fixes: b5cf88e46bad ("(gpio-fan): Add thermal control hooks")
->
-> Reported-by: Tony Lindgren <tony@atomide.com>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: Eduardo Valentin <edubezval@gmail.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
+> Tero, got any better ideas?
 
-Applied.
+The underlying problem is the fact that OMAP3 control module register 
+map is split into multiple regions, which in certain cases have 
+overlapping functionality, and need to be accessed over boundaries. And 
+the fact that we decided to split it in such way in the first place, for 
+example to have pinmux regions separate.
 
-Thanks,
-Guenter
+If you are going to bypass the usage of regmap, you could just drop it 
+completely from the omap_ctrl_readl / writel APIs, and use the iomap 
+directly. That simplifies the code and is slightly faster also.
 
-> Test logs from linus master  v4.5-rc4-137-g23300f657594
-> Without fix: http://paste.ubuntu.org.cn/3948618
-> With Fix: http://paste.ubuntu.org.cn/3948617
+Eventually this should probably be fixed in such way that any 
+out-of-bounds accesses on the omap_ctrl region should use the actual 
+driver APIs for that. The padconf accesses I have no clue how to fix (as 
+pinctrl driver doesn't provide direct register read/write API), but for 
+others we should introduce new regions under the DTS files and use a 
+separate syscon mapping or something similar.
+
+It looks like we have following accesses in kernel that should be converted:
+
+under omap3_ctrl_init:
+OMAP2_CONTROL_SYSCONFIG
+OMAP3_PADCONF_SAD2D_MSTANDBY
+OMAP3_PADCONF_SAD2D_IDLEACK
+
+under omap3_core_save_context:
+
+         omap_ctrl_writel(omap_ctrl_readl(OMAP343X_PADCONF_ETK_D14),
+                 OMAP343X_CONTROL_MEM_WKUP + 0x2a0);
+
+
+under omap3_control_save / restore:
+
+OMAP2_CONTROL_SYSCONFIG
+OMAP34XX_CONTROL_WKUP_CTRL
+OMAP343X_CONTROL_PADCONF_SYSNIRQ
+
+-Tero
+
 >
->   drivers/hwmon/gpio-fan.c | 7 +------
->   1 file changed, 1 insertion(+), 6 deletions(-)
+> Regards,
 >
-> diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
-> index 82de3deeb18a..685568b1236d 100644
-> --- a/drivers/hwmon/gpio-fan.c
-> +++ b/drivers/hwmon/gpio-fan.c
-> @@ -406,16 +406,11 @@ static int gpio_fan_get_cur_state(struct thermal_cooling_device *cdev,
->   				  unsigned long *state)
+> Tony
+>
+> 8< -------------------
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -167,15 +167,23 @@ u16 omap_ctrl_readw(u16 offset)
+>   u32 omap_ctrl_readl(u16 offset)
 >   {
->   	struct gpio_fan_data *fan_data = cdev->devdata;
-> -	int r;
+>   	u32 val;
+> +	int err;
 >
->   	if (!fan_data)
->   		return -EINVAL;
+>   	offset &= 0xfffc;
+> -	if (!omap2_ctrl_syscon)
+> -		val = readl_relaxed(omap2_ctrl_base + offset);
+> -	else
+> -		regmap_read(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
+> -			    &val);
+> +	if (omap2_ctrl_syscon) {
+> +		err = regmap_read(omap2_ctrl_syscon,
+> +				  omap2_ctrl_offset + offset, &val);
+> +		if (!err)
+> +			return val;
+> +	}
+> +
+> +	if (WARN(!omap2_ctrl_base,
+> +		 "syscon out of range for offset 0x%x, no omap2_ctrl_base?\n",
+> +		    offset)) {
+> +		return 0;
+> +	}
 >
-> -	r = get_fan_speed_index(fan_data);
-> -	if (r < 0)
-> -		return r;
-> -
-> -	*state = r;
-> +	*state = fan_data->speed_index;
->   	return 0;
+> -	return val;
+> +	return readl_relaxed(omap2_ctrl_base + offset);
 >   }
 >
+>   void omap_ctrl_writeb(u8 val, u16 offset)
+> @@ -206,12 +214,23 @@ void omap_ctrl_writew(u16 val, u16 offset)
+>
+>   void omap_ctrl_writel(u32 val, u16 offset)
+>   {
+> +	int err;
+> +
+>   	offset &= 0xfffc;
+> -	if (!omap2_ctrl_syscon)
+> -		writel_relaxed(val, omap2_ctrl_base + offset);
+> -	else
+> -		regmap_write(omap2_ctrl_syscon, omap2_ctrl_offset + offset,
+> -			     val);
+> +	if (omap2_ctrl_syscon) {
+> +		err = regmap_write(omap2_ctrl_syscon,
+> +				   omap2_ctrl_offset + offset, val);
+> +		if (!err)
+> +			return;
+> +	}
+> +
+> +	if (WARN(!omap2_ctrl_base,
+> +		 "syscon out of range for offset 0x%x, no omap2_ctrl_base?\n",
+> +		    offset)) {
+> +		return;
+> +	}
+> +
+> +	writel_relaxed(val, omap2_ctrl_base + offset);
+>   }
+>
+>   #ifdef CONFIG_ARCH_OMAP3
+> @@ -724,9 +743,6 @@ int __init omap_control_init(void)
+>   				if (ret)
+>   					return ret;
+>   			}
+> -
+> -			iounmap(omap2_ctrl_base);
+> -			omap2_ctrl_base = NULL;
+>   		} else {
+>   			/* No scm_conf found, direct access */
+>   			ret = omap2_clk_provider_init(np, data->index, NULL,
 >
