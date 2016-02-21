@@ -1,45 +1,38 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix onenand initialization to avoid
- filesystem corruption
-Date: Sun, 21 Feb 2016 20:13:55 +0200
-Message-ID: <56C9FE63.3070602@gmail.com>
-References: <linux-kernel@vger.kernel.org>
- <1454683028-4193-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160208193644.GU19432@atomide.com>
- <20160210211226.GB1640@darkstar.musicnaut.iki.fi>
- <20160211001220.GM19432@atomide.com>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH 0/6] Small fixes for Nokia N900 power supply drivers
+Date: Sun, 21 Feb 2016 12:28:17 +0100
+Message-ID: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160211001220.GM19432@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: rogerq@ti.com, khilman@deeprootsystems.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, sre@kernel.org, pavel@ucw.cz, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+This patch series add debug error output for isp1704 driver and fix
+module aliases for power supply drivers uses on Nokia N900.
 
-On 11.02.2016 02:12, Tony Lindgren wrote:
->
-> Also.. There's a chance somebody has created a onenand file system
-> with recent mainline kernels that did the reset and disabled ECC.
-> So with Ivaylo's patch fixing that, those may not mount properly
-> any longer. Most likely people just keep their maemo rootfs there
-> though with the MMC being available.
+Pali Roh=C3=A1r (6):
+  power_supply: isp1704_charger: Error messages when probe fail
+  power_supply: isp1704_charger: Add compatible of match for
+    nxp,isp1707
+  power_supply: bq2415x_charger: Do not add acpi modalias when
+    CONFIG_ACPI is not enabled
+  power_supply: bq2415x_charger: Add of modalias and match table when
+    CONFIG_OF is enabled
+  power_supply: bq27xxx_battery: Add of modalias and match table when
+    CONFIG_OF is enabled
+  ARM: dts: n900: Rename isp1704 to isp1707 to match correct name
 
-I guess this is possible, but what worries me more is that the longer 
-the patch is not pushed, the higher the chance somebody to end-up with 
-broken rootfs. Wouldn't it be better to push it, thus preventing that 
-happening?
+ arch/arm/boot/dts/omap3-n900.dts    |    6 +++---
+ drivers/power/bq2415x_charger.c     |   22 ++++++++++++++++++++++
+ drivers/power/bq27xxx_battery.c     |   12 ++++++++++++
+ drivers/power/bq27xxx_battery_i2c.c |   24 ++++++++++++++++++++++++
+ drivers/power/isp1704_charger.c     |   19 +++++++++++++++----
+ 5 files changed, 76 insertions(+), 7 deletions(-)
 
-BTW the differences for N9/50 come from ONENAND_SYS_CFG1_HF bit and 
-ONENAND_SYS_CFG1_BRL_6 vs ONENAND_SYS_CFG1_BRL_4. Both are changed 
-(later in the code) anyway, so I guess it is safe to reset them to 
-default values.
+--=20
+1.7.9.5
 
-Or, maybe the correct fix is to issue RESET command to onenand 
-controller after GPMC reset? RESET command is supposed to put all the 
-bits to their default values.
-
-Ivo.
