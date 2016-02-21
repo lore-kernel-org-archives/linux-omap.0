@@ -1,15 +1,14 @@
-From: Heiko Schocher <hs@denx.de>
-Subject: Re: [PATCH] Revert "regulator: tps65217: remove tps65217.dtsi file"
-Date: Sun, 21 Feb 2016 10:27:49 +0100
-Message-ID: <56C98315.1000707@denx.de>
-References: <1455891139-6139-1-git-send-email-peter.ujfalusi@ti.com>
- <20160219170404.GH21202@atomide.com>
-Reply-To: hs@denx.de
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+From: LIYONG <sdliyong@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: allow DEBUG_UNCOMPRESS for OMAP2+
+Date: Sun, 21 Feb 2016 20:19:57 +0800
+Message-ID: <BLU402-EAS3654C3D896BB35B714D68BD6A20@phx.gbl>
+References: <1451362159-27910-1-git-send-email-sdliyong@gmail.com>
+ <20160219180237.GI21202@atomide.com>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160219170404.GH21202@atomide.com>
+In-Reply-To: <20160219180237.GI21202@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,61 +19,58 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, broonie@kernel.org, hs@denx.de, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Tony, Peter,
-
-Am 19.02.2016 um 18:04 schrieb Tony Lindgren:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [160219 06:14]:
->> This reverts commit 8e6ebfaa9b384088002baa10f7534efa73a0794e.
->>
->> Without the patch reverted regulators will not work. This prevents
->> MMC to be working for example so the boards can not boot to
->> MMC rootfs.
->>
->> Tested it on beaglebone white and bisect also points to the
->> reverted commit.
->> The issue can be also fixed by adding "regulator-compatible =" to all board
->> dts file for the regulators.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->> Hi,
->>
->> I have noticed that bbw did not find the MMC with linux-next, but it turns out
->> that even 4.5-rc4 is behaving the same way.
->> I have run bisect and with this revert patch I can boot up fine.
->> To be honest I don't know why the tps65217.dtsi has been deleted in the first
->> place.
->
-> I think initially the only real issue was the naming. The
-> tps65217.dtsi file should be just renamed to tps65217-am335x.dtsi
-> to make it clear that this configuration is commonly used for
-> most am335x boards.
->
-> I'll apply this revert into omap-for-v4.5/fixes as it fixes a
-> regression.
-
-Sorry for breaking ... but I have no bbw hw for testing ...
-(This is maybe a reason for having something like an automated
-  testsystem, see an example/proposal here:
-
-https://github.com/hsdenx/tbot
-
-see a demo for automated tests (running on a raspberry pi at my home
-in hungary, boards are in munich/germany)
-http://xeidos.ddns.net/buildbot/tgrid
-)
-
-But I removed this file as Mark Brown suggested it, see:
-
-https://lkml.org/lkml/2015/10/21/581
-
-So please introduce a "tps65217-am335x.dtsi" file ... Mark?
-
-bye,
-Heiko
--- 
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+bm8gcHJvYmxlbSwgbGV0IG1lIHN1Ym1pdCBhbm90aGVyIHBhdGNoDQoNCj4g1NogMjAxNsTqMtTC
+MjDI1aOsMDI6MDKjrFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+INC0tcCjug0KPiAN
+Cj4gSGksDQo+IA0KPiAqIFlvbmcgTGkgPHNkbGl5b25nQGdtYWlsLmNvbT4gWzE1MTIyOCAyMDox
+Ml06DQo+PiBCYXNlZCBvbiB0aGUgYmVsb3cNCj4+IGNvbW1pdCBhZTNjOTlhMjZjNjAgKCJBUk06
+IDc4MDYvMTogYWxsb3cgREVCVUdfVU5DT01QUkVTUyBmb3IgVGVncmEiKSwNCj4+IGNoYW5nZSB0
+aGUgLmRhdGEgc2VjdGlvbiB0byAudGV4dCBzZWN0aW9uLA0KPj4gdG8gZW5hYmxlIERFQlVHX1VO
+Q09NUFJFU1MgZm9yIE9NQVAyKyBwbGF0Zm9ybXMNCj4+IFRlc3RlZCBva2F5IHVzaW5nIEJlYWds
+ZUJvbmUgQmxhY2sNCj4gDQo+IFNvcnJ5IGZvciB0aGUgZGVsYXksIEkganVzdCBub3RpY2VkIHRo
+aXMgb25lIHdoaWxlIGxvb2tpbmcNCj4gdGhyb3VnaCBteSBpbmJveCBmb3IgcGVuZGluZyBwYXRj
+aGVzLg0KPiANCj4gSSB0aGluayB3ZSBzaG91bGQgZmlyc3Qgc2ltcGxpZnkgdGhpbmdzIGJ5IG1v
+dmluZyB0aGluZ3Mgb3Zlcg0KPiB0byB1c2UgdGhlIGdlbmVyaWMgREVCVUdfVUFSVF84MjUwIGNv
+ZGUgd2hlcmUgdGhlIGFkZHJlc3Nlcw0KPiBuZWVkIHRvIGJlIHNwZWNpZmllZCBpbiB0aGUgLmNv
+bmZpZy4gSXQncyBiZWVuIG9uIG15IGxpc3Qgb2YNCj4gdGhpbmdzIHRvIGRvIGZvciBxdWl0ZSBh
+IHdoaWxlIGJ1dCBJIGtlZXAgZ2V0dGluZyBpbnRlcnJ1cHRlZC4NCj4gDQo+IE15IGd1ZXNzIGlz
+IHRoYXQgaWYgd2UgZG8gdGhhdCwgdGhpcyBwYXRjaCBpcyBubyBsb25nZXINCj4gbmVlZGVkIDop
+IFlvbmcsIGNhcmUgdG8gdGFrZSBhIGxvb2sgYXQgdGhhdD8NCj4gDQo+IFJlZ2FyZHMsDQo+IA0K
+PiBUb255DQo+IA0KPj4gU2lnbmVkLW9mZi1ieTogWW9uZyBMaSA8c2RsaXlvbmdAZ21haWwuY29t
+Pg0KPj4gLS0tDQo+PiBhcmNoL2FybS9LY29uZmlnLmRlYnVnICAgICAgICAgICAgIHwgIDIgKy0N
+Cj4+IGFyY2gvYXJtL2luY2x1ZGUvZGVidWcvb21hcDJwbHVzLlMgfCAxMyArKysrKysrKysrLS0t
+DQo+PiAyIGZpbGVzIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pDQo+
+PiANCj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9LY29uZmlnLmRlYnVnIGIvYXJjaC9hcm0vS2Nv
+bmZpZy5kZWJ1Zw0KPj4gaW5kZXggMjU5YzBjYS4uZTVhZTM2YSAxMDA2NDQNCj4+IC0tLSBhL2Fy
+Y2gvYXJtL0tjb25maWcuZGVidWcNCj4+ICsrKyBiL2FyY2gvYXJtL0tjb25maWcuZGVidWcNCj4+
+IEBAIC0xNTk2LDcgKzE1OTYsNyBAQCBjb25maWcgREVCVUdfVUFSVF84MjUwX0ZMT1dfQ09OVFJP
+TA0KPj4gY29uZmlnIERFQlVHX1VOQ09NUFJFU1MNCj4+ICAgIGJvb2wNCj4+ICAgIGRlcGVuZHMg
+b24gQVJDSF9NVUxUSVBMQVRGT1JNIHx8IFBMQVRfU0FNU1VORyB8fCBBUk1fU0lOR0xFX0FSTVY3
+TQ0KPj4gLSAgICBkZWZhdWx0IHkgaWYgREVCVUdfTEwgJiYgIURFQlVHX09NQVAyUExVU19VQVJU
+ICYmIFwNCj4+ICsgICAgZGVmYXVsdCB5IGlmIERFQlVHX0xMICYmICghREVCVUdfT01BUDJQTFVT
+X1VBUlQgfHwgIVpCT09UX1JPTSkgJiYgXA0KPj4gICAgICAgICAgICAgKCFERUJVR19URUdSQV9V
+QVJUIHx8ICFaQk9PVF9ST00pDQo+PiAgICBoZWxwDQo+PiAgICAgIFRoaXMgb3B0aW9uIGluZmx1
+ZW5jZXMgdGhlIG5vcm1hbCBkZWNvbXByZXNzb3Igb3V0cHV0IGZvcg0KPj4gZGlmZiAtLWdpdCBh
+L2FyY2gvYXJtL2luY2x1ZGUvZGVidWcvb21hcDJwbHVzLlMgYi9hcmNoL2FybS9pbmNsdWRlL2Rl
+YnVnL29tYXAycGx1cy5TDQo+PiBpbmRleCA2ZDg2N2FlLi4xMjQyMWY5IDEwMDY0NA0KPj4gLS0t
+IGEvYXJjaC9hcm0vaW5jbHVkZS9kZWJ1Zy9vbWFwMnBsdXMuUw0KPj4gKysrIGIvYXJjaC9hcm0v
+aW5jbHVkZS9kZWJ1Zy9vbWFwMnBsdXMuUw0KPj4gQEAgLTU4LDExICs1OCwxOCBAQA0KPj4gDQo+
+PiAjZGVmaW5lIFVBUlRfT0ZGU0VUKGFkZHIpICAgICgoYWRkcikgJiAweDAwZmZmZmZmKQ0KPj4g
+DQo+PiArI2lmIGRlZmluZWQoWklNQUdFKQ0KPj4gKyAgICBvbWFwX3VhcnRfcGh5czogICAgLndv
+cmQgICAgMA0KPj4gKyAgICBvbWFwX3VhcnRfdmlydDogICAgLndvcmQgICAgMA0KPj4gKyAgICBv
+bWFwX3VhcnRfbHNyOiAgICAud29yZCAgICAwDQo+PiArI2Vsc2UNCj4+ICsNCj4+ICAgICAgICAu
+cHVzaHNlY3Rpb24gLmRhdGENCj4+IC1vbWFwX3VhcnRfcGh5czogICAgLndvcmQgICAgMA0KPj4g
+LW9tYXBfdWFydF92aXJ0OiAgICAud29yZCAgICAwDQo+PiAtb21hcF91YXJ0X2xzcjogICAgLndv
+cmQgICAgMA0KPj4gKyAgICBvbWFwX3VhcnRfcGh5czogICAgLndvcmQgICAgMA0KPj4gKyAgICBv
+bWFwX3VhcnRfdmlydDogICAgLndvcmQgICAgMA0KPj4gKyAgICBvbWFwX3VhcnRfbHNyOiAgICAu
+d29yZCAgICAwDQo+PiAgICAgICAgLnBvcHNlY3Rpb24NCj4+ICsjZW5kaWYNCj4+IA0KPj4gICAg
+ICAgIC5tYWNybyAgICBhZGRydWFydCwgcnAsIHJ2LCB0bXANCj4+IA0KPj4gLS0gDQo+PiAyLjEu
+NA0KPj4gDQo+PiAtLQ0KPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhl
+IGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGluDQo+PiB0aGUgYm9keSBvZiBhIG1lc3Nh
+Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBh
+dCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+PiANCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
+ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
+Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
