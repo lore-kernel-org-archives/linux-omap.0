@@ -1,58 +1,67 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH 4/6] power_supply: bq2415x_charger: Add of modalias and match table when CONFIG_OF is enabled
-Date: Sun, 21 Feb 2016 12:28:21 +0100
-Message-ID: <1456054103-19551-5-git-send-email-pali.rohar@gmail.com>
-References: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3-n900: Allow gpio keys to be disabled
+Date: Sun, 21 Feb 2016 20:18:18 +0100
+Message-ID: <20160221191818.GB15242@earth>
+References: <1452447990-22775-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160212215326.GD19432@atomide.com>
+ <56C9F8AA.9080503@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="qcHopEYAB45HaUaB"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56C9F8AA.9080503-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
----
- drivers/power/bq2415x_charger.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/power/bq2415x_charger.c b/drivers/power/bq2415x_ch=
-arger.c
-index b0863f4..73e2f0b 100644
---- a/drivers/power/bq2415x_charger.c
-+++ b/drivers/power/bq2415x_charger.c
-@@ -1779,9 +1779,29 @@ static const struct acpi_device_id bq2415x_i2c_a=
-cpi_match[] =3D {
- MODULE_DEVICE_TABLE(acpi, bq2415x_i2c_acpi_match);
- #endif
-=20
-+#ifdef CONFIG_OF
-+static const struct of_device_id bq2415x_of_match_table[] =3D {
-+	{ .compatible =3D "ti,bq24150" },
-+	{ .compatible =3D "ti,bq24150a" },
-+	{ .compatible =3D "ti,bq24151" },
-+	{ .compatible =3D "ti,bq24151a" },
-+	{ .compatible =3D "ti,bq24152" },
-+	{ .compatible =3D "ti,bq24153" },
-+	{ .compatible =3D "ti,bq24153a" },
-+	{ .compatible =3D "ti,bq24155" },
-+	{ .compatible =3D "ti,bq24156" },
-+	{ .compatible =3D "ti,bq24156a" },
-+	{ .compatible =3D "ti,bq24157s" },
-+	{ .compatible =3D "ti,bq24158" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, bq2415x_of_match_table);
-+#endif
-+
- static struct i2c_driver bq2415x_driver =3D {
- 	.driver =3D {
- 		.name =3D "bq2415x-charger",
-+		.of_match_table =3D of_match_ptr(bq2415x_of_match_table),
- 		.acpi_match_table =3D ACPI_PTR(bq2415x_i2c_acpi_match),
- 	},
- 	.probe =3D bq2415x_probe,
---=20
-1.7.9.5
+--qcHopEYAB45HaUaB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Ivo,
+
+On Sun, Feb 21, 2016 at 07:49:30PM +0200, Ivaylo Dimitrov wrote:
+> On 12.02.2016 23:53, Tony Lindgren wrote:
+> >Looks like this no longer applies because of linux,can-disable
+> >to wakeup-source changes. Can you please update against v4.5-rc
+> >series and repost?
+>=20
+> Could you elaborate on that? As I don't really understand what needs to be
+> updated and what are "wakeup-source changes".
+
+Due to changes in the kernel source  (each gpio key in omap3-n900.dts
+gained a "wakeup-source" property) the patch can no longer be applied
+using "git am". Just rebase your patch to current 4.5-rc and resend it.
+
+-- Sebastian
+
+--qcHopEYAB45HaUaB
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJWyg16AAoJENju1/PIO/qaqx8P/jni96O9wIEiEwm/NokY8fFs
+GkVfxrISVWbArPT83PfYyOKndO9tMnby7HhOg8BXXx1haF61FA3Gf+LYvd2Uijw5
+egk0+VtSu1LzxF629zMRjFQcj85YNs/GT9cbd48Lcn4YTQ7EvYPD7/ygI2ccBi6L
+k0C+9NrjaRMnnkkDnO6+R8ZJLLSrAsZ6mPTL9+TDZodMR49F8KaN4Zg/fFqLktiA
+PUPQy/6VCFfHWyQI7RvYF6DVa8usNpgXD/5troBpVPOzWGYSND+s6YUYWzF5tDjn
+Y+zjSGfdy6F+jtYPxC9+D03W5IWtu0fHZC0RYXpnNtDbWPdr5auCo3XrXtEANw2T
+Z/vou3HulCo1YboJmij/R4iOXcuJHaY9Ac7GSIwftnidOAMi1XXsMdbKkptlj0hL
+gYkvmgdkRd/tMQL7bA3N2WdtG6bO/ircQPAb221yAWIwGcGaVUfj0Paq7lYiTVVM
+UQxqMGgZYybPNOLbfF2+dbDNvra0gmPHVipStbz6APJi7rrXZyDlIVF6d9vf992s
+a4mEh30nF5DPBSYbCHxTaGFjHKXMqV/2cuaaUyplQ9lI6byksQr0vjpwD907utyi
+XjBqxiJ+oH3z4IeFvcaRLxVvQD2X3gh2A9L0Ygcn/JxaLyzbMVNi4RCX4Sxlf/Qd
+dLRvH5/E9EwnavS5CpJS
+=iSM8
+-----END PGP SIGNATURE-----
+
+--qcHopEYAB45HaUaB--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
