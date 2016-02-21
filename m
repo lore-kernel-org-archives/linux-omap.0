@@ -1,80 +1,58 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix onenand initialization to avoid
- filesystem corruption
-Date: Sun, 21 Feb 2016 20:44:12 +0200
-Message-ID: <20160221184412.GR1640@darkstar.musicnaut.iki.fi>
-References: <linux-kernel@vger.kernel.org>
- <1454683028-4193-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH 4/6] power_supply: bq2415x_charger: Add of modalias and match table when CONFIG_OF is enabled
+Date: Sun, 21 Feb 2016 12:28:21 +0100
+Message-ID: <1456054103-19551-5-git-send-email-pali.rohar@gmail.com>
+References: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1454683028-4193-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: tony@atomide.com, rogerq@ti.com, khilman@deeprootsystems.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, sre@kernel.org, pavel@ucw.cz, nm@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+---
+ drivers/power/bq2415x_charger.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-On Fri, Feb 05, 2016 at 04:37:08PM +0200, Ivaylo Dimitrov wrote:
-> Commit <e7b11dc7b77bfce0a351230a5feeadc1d0bba997> ("ARM: OMAP2+: Fix
-> onenand rate detection to avoid filesystem corruption") partially fixed
-> onenand configuration when GPMC module is reset. Finish the job by also
-> providing the correct values in ONENAND_REG_SYS_CFG1 register.
-> 
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-
-I tested this on N950 by creating ubifs file system with stock kernel,
-then reading & writing to it with mainline kernel, and then again
-verifying the fs is good with the stock kernel. Note that onenand does
-not work properly on N950 at the moment unless ONENAND_HAS_CACHE_PROGRAM
-is disabled by patching, but that's an issue unrelated to this patch.
-
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-
-A.
-
-> ---
->  arch/arm/mach-omap2/gpmc-onenand.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-> index 7b76ce0..8633c70 100644
-> --- a/arch/arm/mach-omap2/gpmc-onenand.c
-> +++ b/arch/arm/mach-omap2/gpmc-onenand.c
-> @@ -101,10 +101,8 @@ static void omap2_onenand_set_async_mode(void __iomem *onenand_base)
->  
->  static void set_onenand_cfg(void __iomem *onenand_base)
->  {
-> -	u32 reg;
-> +	u32 reg = ONENAND_SYS_CFG1_RDY | ONENAND_SYS_CFG1_INT;
->  
-> -	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
-> -	reg &= ~((0x7 << ONENAND_SYS_CFG1_BRL_SHIFT) | (0x7 << 9));
->  	reg |=	(latency << ONENAND_SYS_CFG1_BRL_SHIFT) |
->  		ONENAND_SYS_CFG1_BL_16;
->  	if (onenand_flags & ONENAND_FLAG_SYNCREAD)
-> @@ -123,6 +121,7 @@ static void set_onenand_cfg(void __iomem *onenand_base)
->  		reg |= ONENAND_SYS_CFG1_VHF;
->  	else
->  		reg &= ~ONENAND_SYS_CFG1_VHF;
-> +
->  	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
->  }
->  
-> @@ -289,6 +288,7 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
->  		}
->  	}
->  
-> +	onenand_async.sync_write = true;
->  	omap2_onenand_calc_async_timings(&t);
->  
->  	ret = gpmc_cs_program_settings(gpmc_onenand_data->cs, &onenand_async);
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/power/bq2415x_charger.c b/drivers/power/bq2415x_ch=
+arger.c
+index b0863f4..73e2f0b 100644
+--- a/drivers/power/bq2415x_charger.c
++++ b/drivers/power/bq2415x_charger.c
+@@ -1779,9 +1779,29 @@ static const struct acpi_device_id bq2415x_i2c_a=
+cpi_match[] =3D {
+ MODULE_DEVICE_TABLE(acpi, bq2415x_i2c_acpi_match);
+ #endif
+=20
++#ifdef CONFIG_OF
++static const struct of_device_id bq2415x_of_match_table[] =3D {
++	{ .compatible =3D "ti,bq24150" },
++	{ .compatible =3D "ti,bq24150a" },
++	{ .compatible =3D "ti,bq24151" },
++	{ .compatible =3D "ti,bq24151a" },
++	{ .compatible =3D "ti,bq24152" },
++	{ .compatible =3D "ti,bq24153" },
++	{ .compatible =3D "ti,bq24153a" },
++	{ .compatible =3D "ti,bq24155" },
++	{ .compatible =3D "ti,bq24156" },
++	{ .compatible =3D "ti,bq24156a" },
++	{ .compatible =3D "ti,bq24157s" },
++	{ .compatible =3D "ti,bq24158" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, bq2415x_of_match_table);
++#endif
++
+ static struct i2c_driver bq2415x_driver =3D {
+ 	.driver =3D {
+ 		.name =3D "bq2415x-charger",
++		.of_match_table =3D of_match_ptr(bq2415x_of_match_table),
+ 		.acpi_match_table =3D ACPI_PTR(bq2415x_i2c_acpi_match),
+ 	},
+ 	.probe =3D bq2415x_probe,
+--=20
+1.7.9.5
