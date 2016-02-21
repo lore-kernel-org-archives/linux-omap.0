@@ -1,67 +1,66 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap3-n900: Allow gpio keys to be disabled
-Date: Sun, 21 Feb 2016 20:18:18 +0100
-Message-ID: <20160221191818.GB15242@earth>
-References: <1452447990-22775-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160212215326.GD19432@atomide.com>
- <56C9F8AA.9080503@gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 0/6] Small fixes for Nokia N900 power supply drivers
+Date: Sun, 21 Feb 2016 20:41:20 +0100
+Message-ID: <20160221194120.GC15242@earth>
+References: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="qcHopEYAB45HaUaB"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="i7F3eY7HS/tUJxUd"
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56C9F8AA.9080503-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pavel Machel <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---qcHopEYAB45HaUaB
-Content-Type: text/plain; charset=us-ascii
+--i7F3eY7HS/tUJxUd
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Ivo,
+Hi,
 
-On Sun, Feb 21, 2016 at 07:49:30PM +0200, Ivaylo Dimitrov wrote:
-> On 12.02.2016 23:53, Tony Lindgren wrote:
-> >Looks like this no longer applies because of linux,can-disable
-> >to wakeup-source changes. Can you please update against v4.5-rc
-> >series and repost?
+On Sun, Feb 21, 2016 at 12:28:17PM +0100, Pali Roh=E1r wrote:
+> This patch series add debug error output for isp1704 driver and
+> fix module aliases for power supply drivers uses on Nokia N900.
 >=20
-> Could you elaborate on that? As I don't really understand what needs to be
-> updated and what are "wakeup-source changes".
+> Pali Roh=E1r (6):
+>   power_supply: isp1704_charger: Error messages when probe fail
+>   power_supply: isp1704_charger: Add compatible of match for nxp,isp1707
+>   power_supply: bq2415x_charger: Do not add acpi modalias when CONFIG_ACP=
+I is not enabled
+>   power_supply: bq2415x_charger: Add of modalias and match table when CON=
+FIG_OF is enabled
+>   power_supply: bq27xxx_battery: Add of modalias and match table when CON=
+FIG_OF is enabled
+>   ARM: dts: n900: Rename isp1704 to isp1707 to match correct name
 
-Due to changes in the kernel source  (each gpio key in omap3-n900.dts
-gained a "wakeup-source" property) the patch can no longer be applied
-using "git am". Just rebase your patch to current 4.5-rc and resend it.
+I queued the power-supply patches for 4.6 applying Pavel's commit
+message changes and his Acked-By.
 
 -- Sebastian
 
---qcHopEYAB45HaUaB
+--i7F3eY7HS/tUJxUd
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJWyg16AAoJENju1/PIO/qaqx8P/jni96O9wIEiEwm/NokY8fFs
-GkVfxrISVWbArPT83PfYyOKndO9tMnby7HhOg8BXXx1haF61FA3Gf+LYvd2Uijw5
-egk0+VtSu1LzxF629zMRjFQcj85YNs/GT9cbd48Lcn4YTQ7EvYPD7/ygI2ccBi6L
-k0C+9NrjaRMnnkkDnO6+R8ZJLLSrAsZ6mPTL9+TDZodMR49F8KaN4Zg/fFqLktiA
-PUPQy/6VCFfHWyQI7RvYF6DVa8usNpgXD/5troBpVPOzWGYSND+s6YUYWzF5tDjn
-Y+zjSGfdy6F+jtYPxC9+D03W5IWtu0fHZC0RYXpnNtDbWPdr5auCo3XrXtEANw2T
-Z/vou3HulCo1YboJmij/R4iOXcuJHaY9Ac7GSIwftnidOAMi1XXsMdbKkptlj0hL
-gYkvmgdkRd/tMQL7bA3N2WdtG6bO/ircQPAb221yAWIwGcGaVUfj0Paq7lYiTVVM
-UQxqMGgZYybPNOLbfF2+dbDNvra0gmPHVipStbz6APJi7rrXZyDlIVF6d9vf992s
-a4mEh30nF5DPBSYbCHxTaGFjHKXMqV/2cuaaUyplQ9lI6byksQr0vjpwD907utyi
-XjBqxiJ+oH3z4IeFvcaRLxVvQD2X3gh2A9L0Ygcn/JxaLyzbMVNi4RCX4Sxlf/Qd
-dLRvH5/E9EwnavS5CpJS
-=iSM8
+iQIcBAEBCgAGBQJWyhLdAAoJENju1/PIO/qaBhMP/izWMBi7PhfSiSA7jL7Xae6J
+GsmnLZfM5hSXIIwPjGHjnZ1firheOI5m0l1mASXnC0mCvS5wsoKE/eB8oEL9HTnI
+2nJIA2ZaYLlsCk763ZqPeEZrhn7sTrg+a/+Ug35gT7O4WxB7eLu1hDuLj9VaxUZX
+7g/0Vo3PjPmgJTPGw+XzpnwhcEV9eBbqGV9ZPf4kBGhJZo5yJOyLBYQTOh54YZs5
+7bYdEXFug/7KiTXKk+JminPn/iSWYFqIwHxRdkh6F7Q3o5Z8b/KWFu1FXqnaeLAF
+7/a40y/kKt5u9YhPhJua3ODk42FE0Wy8m/EcOa3emOotJv7BujDvPTgFB9IMMhnK
+lYyjfS5b8eUEuTYhqLjZh1V2boF/morlOoNVPZyAcUUMir+Ek1XuY8H5SrmrxQxp
+BY2xXi5bfNuUhifXiMmXBuPgqIdn86TMb1Wi7gkMzshUp3rw0XFfk4ljy3i0F4Sy
+xYO5EYzmQgVzmml4nb59Fs2/QCHK2OQ7JTlgRbvnRdAWS263VdBw9iMJZpKB+lBx
+eMEqw+1ByKLjCg8Mjn23BSEvYid6gzDTT55APdsDw/WSdUN032WivqhOsO8qioC4
+zhfc5PjKS8crQrhrHwlc8WycijFwVz5lIryk/Me+Wi+5ymxezcZMW2KMIyCJbohr
+QlfFlXnB+y+L27zjG/HZ
+=h0HV
 -----END PGP SIGNATURE-----
 
---qcHopEYAB45HaUaB--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--i7F3eY7HS/tUJxUd--
