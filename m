@@ -1,39 +1,26 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP1: DMA: Provide dma_slave_map to omap-dma
-Date: Mon, 22 Feb 2016 10:02:01 -0800
-Message-ID: <20160222180201.GK13417@atomide.com>
-References: <1454423227-31830-1-git-send-email-peter.ujfalusi@ti.com>
- <1454423227-31830-2-git-send-email-peter.ujfalusi@ti.com>
- <20160219214426.GK1640@darkstar.musicnaut.iki.fi>
- <56CAB676.6080309@ti.com>
+Subject: Re: [PATCH 0/3] ARM: omap2plus_defconfig: Enable OMAP3 ISP and
+ dependencies
+Date: Mon, 22 Feb 2016 10:11:29 -0800
+Message-ID: <20160222181128.GM13417@atomide.com>
+References: <1454953983-8894-1-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56CAB676.6080309@ti.com>
+In-Reply-To: <1454953983-8894-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [160221 23:19]:
-> On 2016-02-19 23:44, Aaro Koskinen wrote:
-> > On Tue, Feb 02, 2016 at 04:27:06PM +0200, Peter Ujfalusi wrote:
-> >> OMAP1 can not boot in DT mode and to be able to clean up the driver
-> >> regarding to the dmaengine API use (switching to the new API) the
-> >> device/slave -> filter mapping needs to be provided to the omap-dma driver.
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > 
-> > Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+* Javier Martinez Canillas <javier@osg.samsung.com> [160208 09:54]:
+> Hello,
 > 
-> Thanks Aaro,
-> 
-> I believe the map covers all drivers using DMA, but in case I missed any we -
-> you ;) will notice it as they will fail to get the DMA channels. This only
-> going to be visible after I send the driver changes for 4.7. In such a case we
-> will need to add the given device to the list.
+> This small series enables all the Kconfig symbols needed to test the
+> OMAP3 ISP on the IGEPv2 board. I've enabled as much as possible as a
+> module and only as built-in the options that are boolean.
 
-Yeah makes sense. Applying both into omap-for-v4.6/soc thanks.
+Looks good to me thanks, applying into omap-for-v4.6/defconfig.
 
 Tony
