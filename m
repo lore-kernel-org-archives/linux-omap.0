@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] ARM: OMAP2+: Add rtc hwmod configuration for ti81xx
-Date: Mon, 22 Feb 2016 15:04:03 -0800
-Message-ID: <1456182245-1843-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 1/4] ARM: OMAP2+: Fix hwmod clock for l4_ls
+Date: Mon, 22 Feb 2016 15:04:02 -0800
+Message-ID: <1456182245-1843-2-git-send-email-tony@atomide.com>
 References: <1456182245-1843-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,77 +21,77 @@ To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, Matthijs van Duin <matthijsvanduin@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This allows RTC to work properly with the related DTS
-changes.
+Looks like we have few cases with wrong clock, and some
+entries with missing clock. It should always be sysclk6
+for the l4_ls instance.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 38 ++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-index f8cc400..39736ad 100644
+index e493ae3..f8cc400 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-@@ -228,6 +228,42 @@ static struct omap_hwmod_ocp_if dm816x_mpu__alwon_l3_med = {
- 	.user	= OCP_USER_MPU,
+@@ -429,6 +429,7 @@ static struct omap_hwmod dm81xx_elm_hwmod = {
+ static struct omap_hwmod_ocp_if dm81xx_l4_ls__elm = {
+ 	.master		= &dm81xx_l4_ls_hwmod,
+ 	.slave		= &dm81xx_elm_hwmod,
++	.clk		= "sysclk6_ck",
+ 	.user		= OCP_USER_MPU,
  };
  
-+/* RTC */
-+static struct omap_hwmod_class_sysconfig ti81xx_rtc_sysc = {
-+	.rev_offs	= 0x74,
-+	.sysc_offs	= 0x78,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-+	.idlemodes	= SIDLE_FORCE | SIDLE_NO |
-+			  SIDLE_SMART | SIDLE_SMART_WKUP,
-+	.sysc_fields	= &omap_hwmod_sysc_type3,
-+};
-+
-+static struct omap_hwmod_class ti81xx_rtc_hwmod_class = {
-+	.name		= "rtc",
-+	.sysc		= &ti81xx_rtc_sysc,
-+};
-+
-+struct omap_hwmod ti81xx_rtc_hwmod = {
-+	.name		= "rtc",
-+	.class		= &ti81xx_rtc_hwmod_class,
-+	.clkdm_name	= "alwon_l3s_clkdm",
-+	.flags		= HWMOD_NO_IDLEST,
-+	.main_clk	= "sysclk18_ck",
-+	.prcm		= {
-+		.omap4	= {
-+			.clkctrl_offs = DM81XX_CM_ALWON_RTC_CLKCTRL,
-+			.modulemode = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if ti81xx_l4_ls__rtc = {
-+	.master		= &dm81xx_l4_ls_hwmod,
-+	.slave		= &ti81xx_rtc_hwmod,
+@@ -478,6 +479,7 @@ static struct omap_hwmod dm81xx_gpio1_hwmod = {
+ static struct omap_hwmod_ocp_if dm81xx_l4_ls__gpio1 = {
+ 	.master		= &dm81xx_l4_ls_hwmod,
+ 	.slave		= &dm81xx_gpio1_hwmod,
 +	.clk		= "sysclk6_ck",
-+	.user		= OCP_USER_MPU,
-+};
-+
- /* UART common */
- static struct omap_hwmod_class_sysconfig uart_sysc = {
- 	.rev_offs	= 0x50,
-@@ -1381,6 +1417,7 @@ static struct omap_hwmod_ocp_if *dm814x_hwmod_ocp_ifs[] __initdata = {
- 	&dm81xx_l4_ls__mcspi1,
- 	&dm814x_l4_ls__mmc1,
- 	&dm814x_l4_ls__mmc2,
-+	&ti81xx_l4_ls__rtc,
- 	&dm81xx_alwon_l3_fast__tpcc,
- 	&dm81xx_alwon_l3_fast__tptc0,
- 	&dm81xx_alwon_l3_fast__tptc1,
-@@ -1420,6 +1457,7 @@ static struct omap_hwmod_ocp_if *dm816x_hwmod_ocp_ifs[] __initdata = {
- 	&dm81xx_l4_ls__gpio1,
- 	&dm81xx_l4_ls__gpio2,
- 	&dm81xx_l4_ls__elm,
-+	&ti81xx_l4_ls__rtc,
- 	&dm816x_l4_ls__mmc1,
- 	&dm816x_l4_ls__timer1,
- 	&dm816x_l4_ls__timer2,
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+@@ -504,6 +506,7 @@ static struct omap_hwmod dm81xx_gpio2_hwmod = {
+ static struct omap_hwmod_ocp_if dm81xx_l4_ls__gpio2 = {
+ 	.master		= &dm81xx_l4_ls_hwmod,
+ 	.slave		= &dm81xx_gpio2_hwmod,
++	.clk		= "sysclk6_ck",
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+@@ -628,7 +631,7 @@ static struct omap_hwmod dm814x_timer1_hwmod = {
+ static struct omap_hwmod_ocp_if dm814x_l4_ls__timer1 = {
+ 	.master		= &dm81xx_l4_ls_hwmod,
+ 	.slave		= &dm814x_timer1_hwmod,
+-	.clk		= "timer1_fck",
++	.clk		= "sysclk6_ck",
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+@@ -665,7 +668,7 @@ static struct omap_hwmod dm814x_timer2_hwmod = {
+ static struct omap_hwmod_ocp_if dm814x_l4_ls__timer2 = {
+ 	.master		= &dm81xx_l4_ls_hwmod,
+ 	.slave		= &dm814x_timer2_hwmod,
+-	.clk		= "timer2_fck",
++	.clk		= "sysclk6_ck",
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+@@ -1123,6 +1126,7 @@ static struct omap_hwmod dm81xx_mailbox_hwmod = {
+ static struct omap_hwmod_ocp_if dm81xx_l4_ls__mailbox = {
+ 	.master		= &dm81xx_l4_ls_hwmod,
+ 	.slave		= &dm81xx_mailbox_hwmod,
++	.clk		= "sysclk6_ck",
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+@@ -1157,6 +1161,7 @@ static struct omap_hwmod dm81xx_spinbox_hwmod = {
+ static struct omap_hwmod_ocp_if dm81xx_l4_ls__spinbox = {
+ 	.master		= &dm81xx_l4_ls_hwmod,
+ 	.slave		= &dm81xx_spinbox_hwmod,
++	.clk		= "sysclk6_ck",
+ 	.user		= OCP_USER_MPU,
+ };
+ 
 -- 
 2.7.0
