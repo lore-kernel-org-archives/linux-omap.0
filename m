@@ -1,30 +1,41 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 1/2] ARM: dts: am43x-epos-evm: Add the am438 compatible
- string
-Date: Sun, 21 Feb 2016 20:54:54 -0600
-Message-ID: <20160222025454.GP15973@rob-hp-laptop>
-References: <1455773381-11839-1-git-send-email-j-keerthy@ti.com>
- <1455773381-11839-2-git-send-email-j-keerthy@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: DRA7: Make use of omap_revision information
+ for soc_is* calls
+Date: Mon, 22 Feb 2016 08:57:30 +0530
+Message-ID: <56CA8022.6010206@ti.com>
+References: <1455706123-26497-1-git-send-email-j-keerthy@ti.com>
+ <20160219181514.GK21202@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1455773381-11839-2-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160219181514.GK21202@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 18, 2016 at 10:59:40AM +0530, Keerthy wrote:
-> The SoCs on am43x-epos-evm are named am438x.
-> Hence add the compatibility string and remove the am4372 string.
 
-Presumably nothing is using these strings ATM for matching.
 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  Documentation/devicetree/bindings/arm/omap/omap.txt | 2 +-
->  arch/arm/boot/dts/am43x-epos-evm.dts                | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+On Friday 19 February 2016 11:45 PM, Tony Lindgren wrote:
+> * Keerthy <j-keerthy@ti.com> [160217 02:49]:
+>> Currently of_machine_is_compatible is used to detect the soc which
+>> employs string comparison operations. We already have all the required
+>> information in the omap_revision. Hence make use of the same like
+>> the previous OMAPs and avoid costly string comparisons.
+>
+> Looks good to me thanks. Applying into omap-for-v4.6/soc.
 
-Acked-by: Rob Herring <robh@kernel.org>
+Thanks Tony.
+
+>
+> Tony
+>
