@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@kernel.org>
 Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Mon, 22 Feb 2016 10:54:04 +0200
-Message-ID: <87povpnn0z.fsf@ti.com>
+Date: Mon, 22 Feb 2016 10:54:21 +0200
+Message-ID: <87oab9nn0i.fsf@ti.com>
 References: <201601091616.04193@pali> <20160126143450.GG25796@pali> <20160126172631.GZ19432@atomide.com> <201602211212.49460@pali> <87ziutnqu1.fsf@ti.com> <20160222083431.GA4606@pali>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
@@ -92,18 +92,18 @@ Content-Type: application/pgp-signature; name="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWysytAAoJEIaOsuA1yqREaWEP/1ggBJrd6LWPqkMa+dCdVh13
-lMQJxVrYwujQ3ZHZzrb4uJbGXBI5jUx3zi5cQIeB51yW7koSjqQ/FH0FRTxqIkbg
-FF6bxMi6UDGTewaW69bw1ezZMn/boZ7lQoLR5rr4OSPprqdwYFGr6vpvloqnsz42
-4y5OY7XwokAnXvXvA0ZGH1a/f4nB/yMUKA7NV58dWN63Ke81lMmGtesJkcfmXjvi
-x1uiK4nF/KH34uoPvM90SOcixSx9cJcJDziYgG/5QyIVuBHR7W9bkIjwrOWuh3hI
-GpDMUtDKkzIx47Wpw6qlA/J44OHrIHMyhpNiAK1c3/opobWDL3kgbH/YsWyQi82M
-/jH43rfAoVPHyClR112ETSM/T7OL6wONFD3ho2NhE0PwLSfokgkGeSy4BblDHK+k
-WrpJH6b6S2eidXsXn8+tINWEbtHyjWOPKl5H6Wy32YRCnGOqtqEC3CVWxqxSxnpy
-NNusBCJ9MBVBXqexdHLvuPOz39JOj07Lo7ICtl9iLnzIrFq6C/PJYU+NFLYO4tSs
-Kia/aj0IE8p6jL7hJBU71i8LKt9drnIFQDdX5Nlc/edVYjyY+op07ginA02OHhE8
-Dt8ktYiufHAKVLohyhcqWK/FS0BTfXtm5KygXtl0RR9MJP6B4hM2C1z9C/dnqzle
-KYTB8n1hVRg0BE7PkLl9
-=dHRz
+iQIcBAEBAgAGBQJWysy9AAoJEIaOsuA1yqRE84UP/1P0Ey9an5VZoSQiK3gCOqWZ
++Sg1JJMup15Em/xuAbNgUIPKlttt1P7PYd6O3x7dOkY1nFGPKlKyS86ZpwzPosU9
+EJPWos7Plsm+X9pc5ZA5MCHnFn4XEysiAn7fcwLvs3QnwxQBwiJLQo73WzRCapcr
+Vovd18Ij8eUkfBRcoaoPYPn6ab9uBepYmPgqhxRjRI3ymQ19zHDRPUKqCcJG3n1Q
+L9OHcZMg03iXw9OQg3HjPsULyfgrxWws+3abaWBRo4JWonVpqxtY+XLlqdD0qEvG
+963dX+MF6A+eKoVsUAmOvJaVAANCvvQtewAzfuFLVXYbdLidTgxboITlzCbAcuJ8
+yjf/L+i2jNZ02OACGd+IjozQg3sM0GKVEbn19CaEYvuzaDDX5IzlonFPl6AGbGnR
+qqz0NR936gSZikTtKsGWqoae8TEK1rwFrNThqNLGfZSigCmgZCe/SGAnPJ8yR1U9
+1W0fooOKpTSAWPTUX6eivmKomY2LvCDhiciSEzhVPYrDQ9F82QS9icXvBfUrusDb
+Cr9ZzL9ZBtRKu+SuCLY7zkzidNDO5Uvwfyech7w6RCfFFu+nEtkWKMrmL4sKGNDc
+IOMiQNWkByqC6/gSSfy3rf2RVsDg4opAwHzyaHzUzTpazpelE5HXAjQ3YqZ6bjiO
+Xu1XxxFGuDEzQZI2AD5f
+=oZZS
 -----END PGP SIGNATURE-----
 --=-=-=--
