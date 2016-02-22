@@ -1,43 +1,74 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 00/26] memory: omap-gpmc: mtd: nand: Support GPMC NAND
- on non-OMAP platforms
-Date: Mon, 22 Feb 2016 12:15:49 +0200
-Message-ID: <56CADFD5.2040205@ti.com>
-References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
- <20160219220442.GR21202@atomide.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] usb: dwc3: drop FIFO resizing logic
+Date: Mon, 22 Feb 2016 16:21:53 +0530
+Message-ID: <56CAE849.5050303@ti.com>
+References: <1454588282-14383-1-git-send-email-balbi@kernel.org>
+ <56B4C8B0.9070909@ti.com> <87h9hgswjw.fsf@ti.com> <56BB0E2D.1030600@ti.com>
+ <56CAC1F1.7010408@ti.com> <87vb5hnnsy.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160219220442.GR21202-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87vb5hnnsy.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nm-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 20/02/16 00:04, Tony Lindgren wrote:
-> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160219 13:27]:
->> Hi,
->>
->> @Tony
->> Patches 15 and 24 are new and will need your review.
->> I've modified patch 22 to include the new am335x boards introduced since v4.4.
->>
->> Patches are based on top of omap-for-v4.6/dt so that the DT changes apply cleanly.
+Hi,
+
+On Monday 22 February 2016 02:07 PM, Felipe Balbi wrote:
 > 
-> Looks OK to me. Can we merge the dts changes separately? Otherwise
-> we will easily end up with tons of conflicts..
+> Hi,
+> 
+> Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> writes:
+>>>>> On Thursday 04 February 2016 05:48 PM, Felipe Balbi wrote:
+>>>>>> That FIFO resizing logic was added to support OMAP5
+>>>>>> ES1.0 which had a bogus default FIFO size. I can't
+>>>>>> remember the exact size of default FIFO, but it was
+>>>>>> less than one bulk superspeed packet (<1024) which
+>>>>>> would prevent USB3 from ever working on OMAP5 ES1.0.
+>>>>>>
+>>>>>> However, OMAP5 ES1.0 support has been dropped by
+>>>>>> commit aa2f4b16f830 ("ARM: OMAP5: id: Remove ES1.0
+>>>>>> support") which renders FIFO resizing unnecessary.
+>>>>>>
+>>>>>> Signed-off-by: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>>>>
+>>>>> tested this series on both dra7-evm and dra72-evm using mass storage gadget and
+>>>>> msc.sh
+>>>>
+>>>> both HS and SS ?
+>>>
+>>> yes.. but the logs here were for only SS.
+>>>>
+>>>>> dra72-evm: http://pastebin.ubuntu.com/14887997/
+>>>>> dra7-evm: http://pastebin.ubuntu.com/14887975/
+>>>>>
+>>>>> Tested-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>>>>
+>>>>> Let me know if you want me to do any other testing on dra7.
+>>>>
+>>>> yeah, run testusb for a week or so, that usually catches odd bugs.
+>>>
+>>> Okay. I'll start the test before I go for vacation next week.
+>>
+>> Looks like the test couldn't complete and I see dumps [1] in my host
+>> PC. Here's the output of testusb [2].
+>>
+>> [1] -> http://pastebin.ubuntu.com/15169114/
+>> [2] -> http://pastebin.ubuntu.com/15169116/
+> 
+> Does this also happen without this patch applied ?
 
-I agree. But we just need to keep in mind that NAND functionality will be
-broken till all the patches in this series are merged. We don't maintain
-backward compatibility with the old DT implementation.
+yeah. I could see that even without the patch.
 
-Do you want me to send you the DT patches separately or you can
-pick up patches 18 to 26?
+I think I should update my host PC kernel and check (maybe it got fixed with
+the latest xhci driver).
 
-cheers,
--roger
+Thanks
+Kishon
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
