@@ -1,35 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] clk: ti: dpll: convert DPLL support code to use clk_hw
- instead of clk ptrs
-Date: Mon, 22 Feb 2016 08:59:59 -0800
-Message-ID: <20160222165959.GG13417@atomide.com>
-References: <1455967466-3812-1-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH 1/7] mmc: omap_hsmmc: Fix PM regression with deferred
+ probe for pm_runtime_reinit
+Date: Mon, 22 Feb 2016 09:54:26 -0800
+Message-ID: <20160222175426.GI13417@atomide.com>
+References: <1455145370-20301-1-git-send-email-tony@atomide.com>
+ <1455145370-20301-2-git-send-email-tony@atomide.com>
+ <CAPDyKFpAcsfLgtu93P45fTEg11MjdGwREcyeGSS7vt6GWbNu_w@mail.gmail.com>
+ <20160211150240.GR19432@atomide.com>
+ <CAPDyKFo4Jyjwyvr3P5VHfDhQ87K9mnR01N-NtKz-yx2ycnfOLg@mail.gmail.com>
+ <20160211172632.GT19432@atomide.com>
+ <CAPDyKFpwGcCW_Vwz07cgh8LxGmxu9=GVch0MVJEpNJ19zoLZ7g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1455967466-3812-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: sboyd@codeaurora.org, mturquette@baylibre.com, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CAPDyKFpwGcCW_Vwz07cgh8LxGmxu9=GVch0MVJEpNJ19zoLZ7g@mail.gmail.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mmc <linux-mmc@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rafael@kernel.org>, Tero Kristo <t-kristo@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, linux-serial@vger.kernel.org, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [160220 03:24]:
-> Convert DPLL support code to use clk_hw pointers for reference and bypass
-> clocks. This allows us to use clk_hw_* APIs for accessing any required
-> parameters for these clocks, avoiding some locking problems at least with
-> DPLL enable code; this used clk_get_rate which uses mutex but isn't
-> good under clk_enable / clk_disable.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-> v2: rebased the patch on top of v2 of 'clk: ti: omap3+: dpll: use non-locking
->     version of clk_get_rate', as that one is required already for -rc. This
->     patch can follow in 4.6 merge window.
+* Ulf Hansson <ulf.hansson@linaro.org> [160212 05:00]:
+> On 11 February 2016 at 18:26, Tony Lindgren <tony@atomide.com> wrote:
+> > Subject: [PATCH] mmc: omap_hsmmc: Fix PM regression with deferred probe for
+> >  pm_runtime_reinit
+>
+> Thanks, applied for fixes!
 
-Yeah seems this one can wait for v4.6 merge window no problem:
+Ulf, any news on getting this into the mainline tree?
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+My PM tests have been now broken for six weeks or something
+because of this!
 
 Regards,
 
