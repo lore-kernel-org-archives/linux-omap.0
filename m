@@ -1,10 +1,10 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v4.5-rc5, fixes more onenand corruption
-Date: Mon, 22 Feb 2016 13:34:28 -0800
-Message-ID: <20160222213427.GU13417@atomide.com>
+Subject: [GIT PULL] omap device tree changes for v4.6 merge window, part 1
+Date: Mon, 22 Feb 2016 13:56:12 -0800
+Message-ID: <20160222215612.GV13417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -20,46 +20,109 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit cf26f1137333251f3515dea31f95775b99df0fd5:
-
-  ARM: OMAP2+: Fix omap_device for module reload on PM runtime forbid (2016-02-12 08:56:52 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/fixes-rc5
-
-for you to fetch changes up to 3f315c5b850fa7aff73f50de8e316b98f611a32b:
-
-  ARM: OMAP2+: Fix onenand initialization to avoid filesystem corruption (2016-02-22 09:24:10 -0800)
-
-----------------------------------------------------------------
-Two omap fixes for omaps against v4.5-rc5:
-
-- Yet another fix for n900 onenand to avoid corruption. This time to
-  fix the issue of mounting onenand back and forth between the original
-  maemo kernel and mainline Linux kernel. And it also seems there will
-  be two more fixes coming via the MTD tree as issues were discovered
-  also in the onenand driver during testing.
-
-- Revert tps65217 regulator clean up as it breaks MMC for am335x
-  variants. The proper way to clean this up is just to rename the
-  tps65217.dtsi file into tps65217-am335x.dtsi as a similar setup
-  is used on many am335x boards.
-
-----------------------------------------------------------------
-Ivaylo Dimitrov (1):
-      ARM: OMAP2+: Fix onenand initialization to avoid filesystem corruption
-
-Peter Ujfalusi (1):
-      Revert "regulator: tps65217: remove tps65217.dtsi file"
-
- .../devicetree/bindings/regulator/tps65217.txt     | 10 ----
- arch/arm/boot/dts/am335x-bone-common.dtsi          | 14 ++----
- arch/arm/boot/dts/am335x-chilisom.dtsi             | 14 +-----
- arch/arm/boot/dts/am335x-nano.dts                  | 14 +-----
- arch/arm/boot/dts/am335x-pepper.dts                | 14 +-----
- arch/arm/boot/dts/am335x-sl50.dts                  | 13 +----
- arch/arm/boot/dts/tps65217.dtsi                    | 56 ++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc-onenand.c                 |  6 +--
- 8 files changed, 70 insertions(+), 71 deletions(-)
- create mode 100644 arch/arm/boot/dts/tps65217.dtsi
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA5MmU5NjNmNTBmYzc0MDQxYjVlOWU3
+NDRjMzMwZGNhNDhlMDRmMDhkOgoKICBMaW51eCA0LjUtcmMxICgyMDE2LTAxLTI0IDEzOjA2OjQ3
+IC0wODAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDov
+L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21h
+cCB0YWdzL29tYXAtZm9yLXY0LjYvZHQtcHQxCgpmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMgdXAg
+dG8gYjlkM2VjMWQ5OGM2NTgyMjY2MDZlNjZlNTVjOTQwNDkxNDQ3ZTYxNzoKCiAgQVJNOiBkdHM6
+IGFtNTd4eC1iZWFnbGUteDE1OiBBZGQgZWVwcm9tIGluZm9ybWF0aW9uICgyMDE2LTAyLTIyIDEx
+OjE4OjQwIC0wODAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpEZXZpY2UgdHJlZSBjaGFuZ2VzIGZvciBvbWFwcyBmb3Ig
+djQuNiBtZXJnZSB3aW5kb3cuIE1vc3RseSBqdXN0CmFkZGluZyBib2FyZCBzcGVjaWZpYyBkZXZp
+Y2VzIGFuZCBmZXcgbmV3IGJvYXJkczoKCi0gTjkwMCBpbXByb3ZtZW50cyBmb3IgYWRwMTY1MyBh
+bmQgZ3BpbyBrZXlzCgotIEFkZCBtaXNzaW5nIGJhbmRnYXAgZGF0YSBmb3Igb21hcDMKCi0gQWRk
+IG1vcmUgZGV2aWNlcyBmb3IgY29tcHVsYWIgY20tdDMzNQoKLSBBZGQgbjk1MCBXTEFOIHN1cHBv
+cnQsIGVuYWJsZSBtb2RlbSwgYWRkIHBpbmN0cmwgZm9yIFNTSQoKLSBDb3JyZWN0IGRtODE0eCBh
+bmQgZHJhNjJ4IGF1eGNsayByYXRlLCBhZGQgc3VwcG9ydCBmb3IgR1BNQyBhbmQgTkFORAoKLSBB
+ZGQgc3lzY29uIG5vZGUgZm9yIFBIWSdzIG9uIGRyYTcKCi0gQWRkIHN1cHBvcnQgbW9yZSBkZXZp
+Y2VzIG9uIGxvZ2ljcGQgdG9ycGVkbwoKLSBBZGQgVVNCIGhvc3Qgc3VwcG9ydCBmb3IgaWdlcCBh
+bmQgc3BlY2lmeSBib290IGNvbnNvbGUKCi0gRml4IGF1ZGlvIGNsb2NrIGZvciBhbTMzNXgtc2w1
+MCBhbmQgc3BlY2lmeSBib290IGNvbnNvbGUKCi0gUmVtb3ZlIGRlcHJlY2F0ZWQgdHgtZmlmby1y
+ZXNpemUgZm9yIGR3YzMgdGhhdCB3YXMgb25seSB1c2VkIG9uCiAgb21hcDUgZXMxLjAKCi0gQWRk
+IGRyYTcgdGhlcm1hbCBkYXRhCgotIFVwZGF0ZSBhbTQzeC1lcG9zLWV2bSBjb21wYXRpYmxlIHN0
+cmluZyB0byBhbTQzOAoKLSBBZGQgc3VwcG9ydCBmb3IgbG9naWNwZCBkbTM3MzAgc29tLWx2Cgot
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCkFkYW0gRm9yZCAoOCk6CiAgICAgIEFSTTogZHRzOiBMb2dpY1BEIFRvcnBlZG86IEFk
+ZCBNVDlQMDMxIFN1cHBvcnQKICAgICAgQVJNOiBkdHM6IExvZ2ljUEQgVG9ycGVkbzogQWRkIEFU
+MjQgRUVQUk9NIFN1cHBvcnQKICAgICAgQVJNOiBkdHM6IExvZ2ljUEQgVG9ycGVkbzogRml4IFBh
+bmVsIFNsZWVwCiAgICAgIEFSTTogZHRzOiBMb2dpY1BEIFRvcnBlZG86IEFkZCBTUEkgRUVQUk9N
+CiAgICAgIEFSTTogZHRzOiBMb2dpY1BEIFRvcnBlZG86IFNldCBIU1VTQjAgUGluIE11eAogICAg
+ICBBUk06IGR0czogb21hcDNsb2dpYzogQWRkIFBXTS1CYWNrbGlnaHQKICAgICAgQVJNOiBEVFM6
+IEFkZCBtaW5pbWFsIFN1cHBvcnQgZm9yIExvZ2ljIFBEIERNMzczMCBTT00tTFYKICAgICAgQVJN
+OiBkdHM6IEFkZCBIU1VTQjIgRUhDSSBTdXBwb3J0IHRvIExvZ2ljIFBEIERNMzd4eCBTT00tTFYK
+CkVucmljIEJhbGxldGJvIGkgU2VycmEgKDMpOgogICAgICBBUk06IGR0czogaWdlcDAweDA6IFNw
+ZWNpZnkgdGhlIGRldmljZSB0byBiZSB1c2VkIGZvciBib290IGNvbnNvbGUgb3V0cHV0LgogICAg
+ICBBUk06IGR0czogYW0zMzV4LXNsNTA6IFNwZWNpZnkgdGhlIGRldmljZSB0byBiZSB1c2VkIGZv
+ciBib290IGNvbnNvbGUgb3V0cHV0LgogICAgICBBUk06IGR0czogYW0zMzV4LXNsNTA6IEZpeCBh
+dWRpbyBjb2RlYyBzZXR1cC4KCkZlbGlwZSBCYWxiaSAoMSk6CiAgICAgIEFSTTogZHRzOiByZW1v
+dmUgZGVwcmVjYXRlZCBwcm9wZXJ0eSBkd2MzCgpJdmF5bG8gRGltaXRyb3YgKDEpOgogICAgICBB
+Uk06IGR0czogb21hcDMtbjkwMDogQWxsb3cgZ3BpbyBrZXlzIHRvIGJlIGRpc2FibGVkCgpLZWVy
+dGh5ICg0KToKICAgICAgQVJNOiBkdHM6IERSQTc6IEFkZCBEU1BFVkUgdGhlcm1hbCBkYXRhCiAg
+ICAgIEFSTTogZHRzOiBEUkE3OiBBZGQgSVZBIHRoZXJtYWwgZGF0YQogICAgICBBUk06IGR0czog
+RFJBNzogQWRkIG1pc3NpbmcgSVZBIGFuZCBEU1BFVkUgdGhlcm1hbCBkb21haW4gZGF0YQogICAg
+ICBBUk06IGR0czogYW00M3gtZXBvcy1ldm06IEFkZCB0aGUgYW00MzggY29tcGF0aWJsZSBzdHJp
+bmcKCktpc2hvbiBWaWpheSBBYnJhaGFtIEkgKDQpOgogICAgICBBUk06IGR0czogZHJhNzogQWRk
+IGR0IG5vZGUgZm9yIHRoZSBzeWNvbiBwY2llCiAgICAgIEFSTTogZHRzOiBkcmE3OiBVc2UgInN5
+c2Nvbi1waHktcG93ZXIiIGFuZCAic3lzY29uLXBjcyIgaW4gUENJZSBQSFkgbm9kZQogICAgICBB
+Uk06IGR0czogZHJhNzogVXNlICJ0aSxkcmE3eC11c2IyLXBoeTIiIGNvbXBhdGlibGUgc3RyaW5n
+IGZvciBVU0IyIFBIWTIKICAgICAgQVJNOiBkdHM6IGFtNDM3Mi9kcmE3L29tYXA1OiBVc2UgInN5
+c2Nvbi1waHktcG93ZXIiIGluc3RlYWQgb2YgImN0cmwtbW9kdWxlIgoKTmlzaGFudGggTWVub24g
+KDEpOgogICAgICBBUk06IGR0czogYW01N3h4LWJlYWdsZS14MTU6IEFkZCBlZXByb20gaW5mb3Jt
+YXRpb24KClBhbGkgUm9ow6FyICgzKToKICAgICAgQVJNOiBkdHM6IG45MDA6IEluY2x1ZGUgYWRw
+MTY1MyBkZXZpY2UKICAgICAgQVJNOiBkdHM6IG9tYXAzOiBJbmNsdWRlIG1pc3NpbmcgYmFuZGdh
+cCBkYXRhIGZvciB0aS1zb2MtdGhlcm1hbCBkcml2ZXIKICAgICAgQVJNOiBkdHM6IG45MDA6IFVz
+ZSBsaW51eCBpbnB1dCBkZWZpbmVzIGluc3RlYWQgaGFyZGNvZGVkIGNvbnN0YW50cwoKUGF1IFBh
+anVlbCAoMSk6CiAgICAgIEFSTTogZHRzOiBvbWFwMy1pZ2VwMDAzMC1jb21tb246IEFkZCBVU0Ig
+SG9zdCBzdXBwb3J0CgpTZWJhc3RpYW4gUmVpY2hlbCAoNCk6CiAgICAgIEFSTTogZHRzOiBOOTUw
+OiBBZGQgd2xhbiBzdXBwb3J0CiAgICAgIEFSTTogZHRzOiBPTUFQMy1OOTUwLU45OiBFbmFibGUg
+U1NJIG1vZHVsZQogICAgICBBUk06IGR0czogT01BUDMtTjk1MC1OOTogRW5hYmxlIG1vZGVtCiAg
+ICAgIEFSTTogZHRzOiBPTUFQMy1OOTUwLU45OiBBZGQgc3NpIGlkbGUgcGluY3RybCBzdGF0ZQoK
+VG9ueSBMaW5kZ3JlbiAoNSk6CiAgICAgIEFSTTogZHRzOiBUaGUgcmF0ZSBmb3IgYXV4Y2xrIGlz
+IDIyLjU5NzkyIGJ5IGRlZmF1bHQKICAgICAgQVJNOiBkdHM6IEFkZCBzdXBwb3J0IGZvciBHUE1D
+IGZvciBkbTgxNHggYW5kIGRyYTYyeAogICAgICBBUk06IGR0czogQWRkIE5BTkQgc3VwcG9ydCBm
+b3IgajUtZWNvIGV2bQogICAgICBBUk06IGR0czogQWRkIE5BTkQgc3VwcG9ydCBmb3IgZG04MTQ4
+LWV2bQogICAgICBNZXJnZSBicmFuY2ggJ245MDAta2V5cycgaW50byBvbWFwLWZvci12NC42L2R0
+CgpVcmkgTWFzaGlhY2ggKDQpOgogICAgICBBUk06IGR0czogY20tdDMzNTogQWRkIHN1cHBvcnQg
+Zm9yIENBTiBidXMKICAgICAgQVJNOiBkdHM6IGNtLXQzMzU6IGFkZCB0b3VjaHNjcmVlbiBzdXBw
+b3J0CiAgICAgIEFSTTogZHRzOiBjbS10MzM1OiBhZGQgYXVkaW8gc3VwcG9ydAogICAgICBBUk06
+IGR0czogYWRkIHNwaSB3aWZpIHN1cHBvcnQgdG8gY20tdDMzNQoKIC4uLi9kZXZpY2V0cmVlL2Jp
+bmRpbmdzL2FybS9vbWFwL29tYXAudHh0ICAgICAgICAgIHwgICAyICstCiBhcmNoL2FybS9ib290
+L2R0cy9hbTMzNXgtY20tdDMzNS5kdHMgICAgICAgICAgICAgICB8IDE3MSArKysrKysrKysrKysr
+CiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtc2w1MC5kdHMgICAgICAgICAgICAgICAgICB8ICAy
+NCArLQogYXJjaC9hcm0vYm9vdC9kdHMvYW00MzcyLmR0c2kgICAgICAgICAgICAgICAgICAgICAg
+fCAgMTYgKy0KIGFyY2gvYXJtL2Jvb3QvZHRzL2FtNDN4LWVwb3MtZXZtLmR0cyAgICAgICAgICAg
+ICAgIHwgICAyICstCiBhcmNoL2FybS9ib290L2R0cy9hbTU3eHgtYmVhZ2xlLXgxNS5kdHMgICAg
+ICAgICAgICB8ICAgNSArCiBhcmNoL2FybS9ib290L2R0cy9kbTgxNDgtZXZtLmR0cyAgICAgICAg
+ICAgICAgICAgICB8ICA1NiArKysrKwogYXJjaC9hcm0vYm9vdC9kdHMvZG04MTR4LWNsb2Nrcy5k
+dHNpICAgICAgICAgICAgICAgfCAgIDQgKy0KIGFyY2gvYXJtL2Jvb3QvZHRzL2RtODE0eC5kdHNp
+ICAgICAgICAgICAgICAgICAgICAgIHwgIDEyICsKIGFyY2gvYXJtL2Jvb3QvZHRzL2RyYTYyeC1q
+NWVjby1ldm0uZHRzICAgICAgICAgICAgIHwgIDU2ICsrKysrCiBhcmNoL2FybS9ib290L2R0cy9k
+cmE3LWRzcGV2ZS10aGVybWFsLmR0c2kgICAgICAgICB8ICAyNyArKysKIGFyY2gvYXJtL2Jvb3Qv
+ZHRzL2RyYTctaXZhLXRoZXJtYWwuZHRzaSAgICAgICAgICAgIHwgIDI3ICsrKwogYXJjaC9hcm0v
+Ym9vdC9kdHMvZHJhNy5kdHNpICAgICAgICAgICAgICAgICAgICAgICAgfCAgODAgKystLS0tCiBh
+cmNoL2FybS9ib290L2R0cy9kcmE3NHguZHRzaSAgICAgICAgICAgICAgICAgICAgICB8ICAgMSAt
+CiBhcmNoL2FybS9ib290L2R0cy9sb2dpY3BkLXNvbS1sdi0zN3h4LWRldmtpdC5kdHMgICB8IDI2
+OCArKysrKysrKysrKysrKysrKysrKysKIGFyY2gvYXJtL2Jvb3QvZHRzL2xvZ2ljcGQtc29tLWx2
+LmR0c2kgICAgICAgICAgICAgIHwgMjY1ICsrKysrKysrKysrKysrKysrKysrCiBhcmNoL2FybS9i
+b290L2R0cy9sb2dpY3BkLXRvcnBlZG8tMzd4eC1kZXZraXQuZHRzICB8IDE2MyArKysrKysrKysr
+LS0tCiBhcmNoL2FybS9ib290L2R0cy9sb2dpY3BkLXRvcnBlZG8tc29tLmR0c2kgICAgICAgICB8
+ICAzNSArKysKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWlnZXAuZHRzaSAgICAgICAgICAgICAg
+ICAgIHwgICA0ICsKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWlnZXAwMDMwLWNvbW1vbi5kdHNp
+ICAgICAgIHwgIDQxICsrKysKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45LmR0cyAgICAgICAg
+ICAgICAgICAgICAgIHwgICA0ICsKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45MDAuZHRzICAg
+ICAgICAgICAgICAgICAgIHwgIDQ0ICsrLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45NTAt
+bjkuZHRzaSAgICAgICAgICAgICAgIHwgIDkzICsrKysrKysKIGFyY2gvYXJtL2Jvb3QvZHRzL29t
+YXAzLW45NTAuZHRzICAgICAgICAgICAgICAgICAgIHwgIDMzICsrKwogYXJjaC9hcm0vYm9vdC9k
+dHMvb21hcDM0eHguZHRzaSAgICAgICAgICAgICAgICAgICAgfCAgIDYgKwogYXJjaC9hcm0vYm9v
+dC9kdHMvb21hcDM2eHguZHRzaSAgICAgICAgICAgICAgICAgICAgfCAgIDYgKwogYXJjaC9hcm0v
+Ym9vdC9kdHMvb21hcDUuZHRzaSAgICAgICAgICAgICAgICAgICAgICAgfCAgMjcgKy0tCiAyNyBm
+aWxlcyBjaGFuZ2VkLCAxMzI0IGluc2VydGlvbnMoKyksIDE0OCBkZWxldGlvbnMoLSkKIGNyZWF0
+ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9kcmE3LWRzcGV2ZS10aGVybWFsLmR0c2kK
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9kcmE3LWl2YS10aGVybWFsLmR0
+c2kKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9sb2dpY3BkLXNvbS1sdi0z
+N3h4LWRldmtpdC5kdHMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9sb2dp
+Y3BkLXNvbS1sdi5kdHNpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxp
+c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1hcm0ta2VybmVsCg==
