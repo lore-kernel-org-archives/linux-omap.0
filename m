@@ -1,109 +1,132 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: Nokia N900: musb is in wrong state after boot
-Date: Mon, 22 Feb 2016 10:54:21 +0200
-Message-ID: <87oab9nn0i.fsf@ti.com>
-References: <201601091616.04193@pali> <20160126143450.GG25796@pali> <20160126172631.GZ19432@atomide.com> <201602211212.49460@pali> <87ziutnqu1.fsf@ti.com> <20160222083431.GA4606@pali>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Mon, 22 Feb 2016 15:25:47 +0530
+Message-ID: <56CADB23.8020202@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
+ <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
+ <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
+ <56B900E9.9040306@ti.com>
+ <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
+ <56BA2495.9020407@ti.com>
+ <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
+ <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
+ <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
+ <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com>
+ <56CAA82D.6000507@ti.com>
+ <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160222083431.GA4606@pali>
+In-Reply-To: <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar@gmail.com>, b-liu@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, joerg Reisenweber <joerg@openmoko.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hi Paul,
 
+On Monday 22 February 2016 12:01 PM, Paul Walmsley wrote:
+> Kishon,
+> 
+> On Mon, 22 Feb 2016, Kishon Vijay Abraham I wrote:
+> 
+>> Sekhar,
+>>
+>> On Thursday 18 February 2016 07:51 PM, Sekhar Nori wrote:
+>>> On Friday 12 February 2016 10:50 PM, Suman Anna wrote:
+>>>> Sekhar,
+>>>> Will you be following up with above suggestion since Kishon is gonna be out?
+>>>
+>>> Alright, noticed this action for me :) Went through the thread, and 
+>>> looks like this is what we want to see?
+>>>
+>>> Thanks,
+>>> Sekhar
+>>>
+>>> ---8<---
+>>> From e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19 Mon Sep 17 00:00:00 2001
+>>> Message-Id: <e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19.1455803758.git.nsekhar@ti.com>
+>>> From: Sekhar Nori <nsekhar@ti.com>
+>>> Date: Thu, 18 Feb 2016 16:49:56 +0530
+>>> Subject: [PATCH 1/1] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
+>>>
+>>> Add a custom reset handler for DRA7x PCIeSS. This
+>>> handler is required to deassert PCIe hardreset lines
+>>> after they have been asserted.
+>>>
+>>> This enables the PCIe driver to access registers after
+>>> PCIeSS has been runtime enabled without having to
+>>> deassert hardreset lines itself.
+>>>
+>>> With this patch applied, used lspci to make sure
+>>> connected PCIe device enumerates on DRA74x and DRA72x
+>>> EVMs.
+>>>
+>>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>>> ---
+>>> Applies to tag for-v4.6/omap-hwmod-a of Paul W's tree.
+>>>
+>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
+>>>  1 file changed, 23 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> index b61355e2a771..252b74633e31 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> @@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+>>>   *
+>>>   */
+>>>  
+>>> +/*
+>>> + * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
+>>> + * functionality of OMAP HWMOD layer does not deassert the hardreset lines
+>>> + * associated with an IP automatically leaving the driver to handle that
+>>> + * by itself. This does not work for PCIeSS which needs the reset lines
+>>> + * deasserted for the driver to start accessing registers.
+>>> + *
+>>> + * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
+>>> + * lines after asserting them.
+>>> + */
+>>> +static int dra7xx_pciess_reset(struct omap_hwmod *oh)
+>>> +{
+>>> +	int i;
+>>> +
+>>> +	for (i = 0; i < oh->rst_lines_cnt; i++) {
+>>> +		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
+>>> +		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>>  static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
+>>>  	.name	= "pcie",
+>>> +	.reset	= dra7xx_pciess_reset,
+>>>  };
+>>
+>> Thanks for the patch.
+> 
+> Could you please test the bind/unbind functionality just to make sure it 
+> works?
 
-Hi,
+The pci-dra7xx driver neither expose the bind/unbind sysfs entry nor can be
+built as module.
 
-Pali Roh=C3=A1r <pali.rohar@gmail.com> writes:
-> On Monday 22 February 2016 09:31:50 Felipe Balbi wrote:
->> Pali Roh=C3=A1r <pali.rohar@gmail.com> writes:
->>=20
->> > On Tuesday 26 January 2016 18:26:32 Tony Lindgren wrote:
->> >> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160126 06:35]:
->> >> > On Thursday 21 January 2016 12:30:13 Tony Lindgren wrote:
->> >> > > * joerg Reisenweber <joerg@openmoko.org> [160121 11:35]:
->> >> > > > On Thu 21 January 2016 11:21:13 Tony Lindgren wrote:
->> >> > > > > Do you have some pointer
->> >> > > > > to the "certain resistor value on ID to GND" spec? Is it
->> >> > > > > maybe part of the carkit related parts of the USB spec?
->> >> > > >=20
->> >> > > > ""Three additional ID pin states are defined[4] at the nominal
->> >> > > > resistance values of 124 k=CE=A9, 68 k=CE=A9, and 36.5 k=CE=A9,=
- with respect
->> >> > > > to the ground pin. These permit the device to work with USB
->> >> > > > Accessory Charger Adapters that allows the OTG device to be
->> >> > > > attached to both a charger and another device simultaneously.
->> >> > > > [6]""
->> >> > > > https://en.wikipedia.org/wiki/USB_On-The-Go#OTG_micro_plugs
->> >> > >=20
->> >> > > OK thanks. So it's the "accessory charger" part of the
->> >> > > battery charging specification 1.1.
->> >> >=20
->> >> > So, Tony, do you have some idea what needs to be changed and how to
->> >> > fix peripheral mode after boot on Nokia N900?
->> >>=20
->> >> No, I'm waiting to hear an educated guess from Felipe on this one.
->>=20
->> about why peripheral mode doesn't work on n900 ? No idea. that's always
->> the default role of MUSB and last I checked, before stopping working on
->> this, BBB was working just fine.
->>=20
->> N900 is odd in that it has two PHYs (1701 handles data lines while
->> twl4030 handles power lines, IIRC), but peripheral should be working.
->>=20
->> The only reason for MUSB to not start would be that it's not detecting
->> VBUS being above session valid threshold, however twl4030 should have an
->> IRQ for that.
->>=20
->> What happens when cable is attached ? Any IRQs anywhere firing ?
->>=20
->
-> Just to note, when I call echo peripheral > mode then detecting usb
-> cable starts working and usb peripheral mode also works fine (also
-> after disconnecting and connecting usb cable again). Read my first
-> post in this thread, there are also some logs:
-> https://lkml.org/lkml/2016/1/9/69
+However I hacked the pci-dra7xx driver to be built as module [and reverted
+Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe error
+and driver unbind")] and I don't see an abort when the PCI registers are
+accessed after rmmod/modprobe cycle (that was the issue that Sekhar's patch
+tried to solve). However PCI as such doesn't work after rmmod/modprobe cycle
+[1], but this is a different issue most likely in PCIe core and has to debugged.
 
-interesting... that softconnect interface looks odd. We _know_ the value
-of softconnect from musb->softconnect. /me reads commit which added
-it... Oh okay, that's only valid for host mode. Argh!
+In summary, there are other issues in PCI across rmmod/modprobe cycle but the
+reset of pci-dra7xx happens fine with this patch.
 
-Okay, the session bit is _NOT_ set when it should be. Note that DevCtl
-reads as 0x98. Bit 0 is Session bit and that's not set. MUSB _is_ in the
-device mode (bit 7 set).
+Thanks
+Kishon
 
-For some reason DevCtl didn't get set. Care to add a print to
-musb_gadget_pullup() to see when/if it's called ?
-
-BTW, Bin will be maintaining MUSB going forward.
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWysy9AAoJEIaOsuA1yqRE84UP/1P0Ey9an5VZoSQiK3gCOqWZ
-+Sg1JJMup15Em/xuAbNgUIPKlttt1P7PYd6O3x7dOkY1nFGPKlKyS86ZpwzPosU9
-EJPWos7Plsm+X9pc5ZA5MCHnFn4XEysiAn7fcwLvs3QnwxQBwiJLQo73WzRCapcr
-Vovd18Ij8eUkfBRcoaoPYPn6ab9uBepYmPgqhxRjRI3ymQ19zHDRPUKqCcJG3n1Q
-L9OHcZMg03iXw9OQg3HjPsULyfgrxWws+3abaWBRo4JWonVpqxtY+XLlqdD0qEvG
-963dX+MF6A+eKoVsUAmOvJaVAANCvvQtewAzfuFLVXYbdLidTgxboITlzCbAcuJ8
-yjf/L+i2jNZ02OACGd+IjozQg3sM0GKVEbn19CaEYvuzaDDX5IzlonFPl6AGbGnR
-qqz0NR936gSZikTtKsGWqoae8TEK1rwFrNThqNLGfZSigCmgZCe/SGAnPJ8yR1U9
-1W0fooOKpTSAWPTUX6eivmKomY2LvCDhiciSEzhVPYrDQ9F82QS9icXvBfUrusDb
-Cr9ZzL9ZBtRKu+SuCLY7zkzidNDO5Uvwfyech7w6RCfFFu+nEtkWKMrmL4sKGNDc
-IOMiQNWkByqC6/gSSfy3rf2RVsDg4opAwHzyaHzUzTpazpelE5HXAjQ3YqZ6bjiO
-Xu1XxxFGuDEzQZI2AD5f
-=oZZS
------END PGP SIGNATURE-----
---=-=-=--
+[1] -> http://pastebin.ubuntu.com/15169387/
