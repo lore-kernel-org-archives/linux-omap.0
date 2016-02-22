@@ -1,129 +1,84 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP1: DMA: Provide dma_slave_map to omap-dma
-Date: Mon, 22 Feb 2016 09:19:18 +0200
-Message-ID: <56CAB676.6080309@ti.com>
-References: <1454423227-31830-1-git-send-email-peter.ujfalusi@ti.com>
- <1454423227-31830-2-git-send-email-peter.ujfalusi@ti.com>
- <20160219214426.GK1640@darkstar.musicnaut.iki.fi>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: Nokia N900: musb is in wrong state after boot
+Date: Mon, 22 Feb 2016 09:31:50 +0200
+Message-ID: <87ziutnqu1.fsf@ti.com>
+References: <201601091616.04193@pali> <20160126143450.GG25796@pali> <20160126172631.GZ19432@atomide.com> <201602211212.49460@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160219214426.GK1640@darkstar.musicnaut.iki.fi>
+In-Reply-To: <201602211212.49460@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de
+To: Pali =?utf-8?Q?Roh=C3=A1r?= <pali.rohar@gmail.com>, Tony Lindgren <tony@atomide.com>, b-liu@ti.com
+Cc: joerg Reisenweber <joerg@openmoko.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 2016-02-19 23:44, Aaro Koskinen wrote:
-> On Tue, Feb 02, 2016 at 04:27:06PM +0200, Peter Ujfalusi wrote:
->> OMAP1 can not boot in DT mode and to be able to clean up the driver
->> regarding to the dmaengine API use (switching to the new API) the
->> device/slave -> filter mapping needs to be provided to the omap-dma =
-driver.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->=20
-> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks Aaro,
+Pali Roh=C3=A1r <pali.rohar@gmail.com> writes:
 
-I believe the map covers all drivers using DMA, but in case I missed an=
-y we -
-you ;) will notice it as they will fail to get the DMA channels. This o=
-nly
-going to be visible after I send the driver changes for 4.7. In such a =
-case we
-will need to add the given device to the list.
+> On Tuesday 26 January 2016 18:26:32 Tony Lindgren wrote:
+>> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [160126 06:35]:
+>> > On Thursday 21 January 2016 12:30:13 Tony Lindgren wrote:
+>> > > * joerg Reisenweber <joerg@openmoko.org> [160121 11:35]:
+>> > > > On Thu 21 January 2016 11:21:13 Tony Lindgren wrote:
+>> > > > > Do you have some pointer
+>> > > > > to the "certain resistor value on ID to GND" spec? Is it
+>> > > > > maybe part of the carkit related parts of the USB spec?
+>> > > >=20
+>> > > > ""Three additional ID pin states are defined[4] at the nominal
+>> > > > resistance values of 124 k=CE=A9, 68 k=CE=A9, and 36.5 k=CE=A9, wi=
+th respect
+>> > > > to the ground pin. These permit the device to work with USB
+>> > > > Accessory Charger Adapters that allows the OTG device to be
+>> > > > attached to both a charger and another device simultaneously.
+>> > > > [6]""
+>> > > > https://en.wikipedia.org/wiki/USB_On-The-Go#OTG_micro_plugs
+>> > >=20
+>> > > OK thanks. So it's the "accessory charger" part of the
+>> > > battery charging specification 1.1.
+>> >=20
+>> > So, Tony, do you have some idea what needs to be changed and how to
+>> > fix peripheral mode after boot on Nokia N900?
+>>=20
+>> No, I'm waiting to hear an educated guess from Felipe on this one.
 
---=20
-P=E9ter
+about why peripheral mode doesn't work on n900 ? No idea. that's always
+the default role of MUSB and last I checked, before stopping working on
+this, BBB was working just fine.
 
->=20
-> A.
->=20
->> ---
->>  arch/arm/mach-omap1/dma.c | 45 ++++++++++++++++++++++++++++++++++++=
-+++++++++
->>  1 file changed, 45 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
->> index 7b02ed218a42..f6ba589cd312 100644
->> --- a/arch/arm/mach-omap1/dma.c
->> +++ b/arch/arm/mach-omap1/dma.c
->> @@ -25,6 +25,7 @@
->>  #include <linux/device.h>
->>  #include <linux/io.h>
->>  #include <linux/dma-mapping.h>
->> +#include <linux/dmaengine.h>
->>  #include <linux/omap-dma.h>
->>  #include <mach/tc.h>
->> =20
->> @@ -265,6 +266,42 @@ static const struct platform_device_info omap_d=
-ma_dev_info =3D {
->>  	.num_res =3D 1,
->>  };
->> =20
->> +/* OMAP730, OMAP850 */
->> +static const struct dma_slave_map omap7xx_sdma_map[] =3D {
->> +	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
->> +	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
->> +	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(10) },
->> +	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(11) },
->> +	{ "mmci-omap.0", "tx", SDMA_FILTER_PARAM(21) },
->> +	{ "mmci-omap.0", "rx", SDMA_FILTER_PARAM(22) },
->> +	{ "omap_udc", "rx0", SDMA_FILTER_PARAM(26) },
->> +	{ "omap_udc", "rx1", SDMA_FILTER_PARAM(27) },
->> +	{ "omap_udc", "rx2", SDMA_FILTER_PARAM(28) },
->> +	{ "omap_udc", "tx0", SDMA_FILTER_PARAM(29) },
->> +	{ "omap_udc", "tx1", SDMA_FILTER_PARAM(30) },
->> +	{ "omap_udc", "tx2", SDMA_FILTER_PARAM(31) },
->> +};
->> +
->> +/* OMAP1510, OMAP1610*/
->> +static const struct dma_slave_map omap1xxx_sdma_map[] =3D {
->> +	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
->> +	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
->> +	{ "omap-mcbsp.3", "tx", SDMA_FILTER_PARAM(10) },
->> +	{ "omap-mcbsp.3", "rx", SDMA_FILTER_PARAM(11) },
->> +	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(16) },
->> +	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(17) },
->> +	{ "mmci-omap.0", "tx", SDMA_FILTER_PARAM(21) },
->> +	{ "mmci-omap.0", "rx", SDMA_FILTER_PARAM(22) },
->> +	{ "omap_udc", "rx0", SDMA_FILTER_PARAM(26) },
->> +	{ "omap_udc", "rx1", SDMA_FILTER_PARAM(27) },
->> +	{ "omap_udc", "rx2", SDMA_FILTER_PARAM(28) },
->> +	{ "omap_udc", "tx0", SDMA_FILTER_PARAM(29) },
->> +	{ "omap_udc", "tx1", SDMA_FILTER_PARAM(30) },
->> +	{ "omap_udc", "tx2", SDMA_FILTER_PARAM(31) },
->> +	{ "mmci-omap.1", "tx", SDMA_FILTER_PARAM(54) },
->> +	{ "mmci-omap.1", "rx", SDMA_FILTER_PARAM(55) },
->> +};
->> +
->>  static struct omap_system_dma_plat_info dma_plat_info __initdata =3D=
- {
->>  	.reg_map	=3D reg_map,
->>  	.channel_stride	=3D 0x40,
->> @@ -342,6 +379,14 @@ static int __init omap1_system_dma_init(void)
->>  	p.dma_attr =3D d;
->>  	p.errata =3D configure_dma_errata();
->> =20
->> +	if (cpu_is_omap7xx()) {
->> +		p.slave_map =3D omap7xx_sdma_map;
->> +		p.slavecnt =3D ARRAY_SIZE(omap7xx_sdma_map);
->> +	} else {
->> +		p.slave_map =3D omap1xxx_sdma_map;
->> +		p.slavecnt =3D ARRAY_SIZE(omap1xxx_sdma_map);
->> +	}
->> +
->>  	ret =3D platform_device_add_data(pdev, &p, sizeof(p));
->>  	if (ret) {
->>  		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
->> --=20
->> 2.7.0
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+N900 is odd in that it has two PHYs (1701 handles data lines while
+twl4030 handles power lines, IIRC), but peripheral should be working.
+
+The only reason for MUSB to not start would be that it's not detecting
+VBUS being above session valid threshold, however twl4030 should have an
+IRQ for that.
+
+What happens when cable is attached ? Any IRQs anywhere firing ?
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWyrlmAAoJEIaOsuA1yqREnzoQAKve7fazuqTYf94MJP0+M3SK
+MB2au0QbPxYlKJz5OIlZ9je1IeEPHX+jb6JWRlqe02NXXgSLIM0zGplUFn1c1ED7
+8wljdf/ZvJo6fghWYyKyY0Y/sJ1lPfdYo+iHnOnIowcR8aKHgw5wHWGx05IasPEX
+xfBJI+mScHfzCYnPOCxxmA+3pgqInTJs/r6hHxNRcv62CtkyXFPm/0O93LE6Sfl6
+uXSVZL5oTSBPp4VZuojLaxUHAmXgGkrNvi6SLTCZpyHP4+MDncxjfSJRq51mDayY
+HwtHEI0m+zcKjfbpB37KzGRPu8zJbq/a/UpLv9ghHxDnY8raR7OtUSM7XsjWuLih
+L2ptOotqqf5imZiXkBcEkpQYpBOg4bi2tnwzddjxRr8dOKP5/QjJmmnn0vwgAcYJ
+JjhMYdAxIzR+d5ceN8AZ2j/gh+BqqEZ4b2/g7dcXQdQxbgHTG4M7II7fdF+mVl21
+jKcb+rI2JL9DPUdMStLAI3FlflqCsK2MuGWGLpzFzxdAYh0HpTNquKlfS8rLrk6q
+vcqQpdSNsKA5grnmzFWsnyWkvYBt3I7+6/n/9PturHD2Zg3CfFaJ5HfKcvgOFnLN
+jJnO0gPGnmf5uVWDYm6+UQIgJImUsrER+ZxLYk2KsNSninDTeq0oSQOJyEypk3di
+t67IX3fYCyOwO6fJlI/V
+=FiIK
+-----END PGP SIGNATURE-----
+--=-=-=--
