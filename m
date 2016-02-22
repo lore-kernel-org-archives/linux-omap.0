@@ -1,103 +1,129 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform
- reset
-Date: Mon, 22 Feb 2016 06:31:56 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com> <1452780672-14339-4-git-send-email-kishon@ti.com> <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com> <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com> <20160128183156.GH19432@atomide.com>
- <56B087AD.4000505@ti.com> <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com> <56B900E9.9040306@ti.com> <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com> <56BA2495.9020407@ti.com> <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
- <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com> <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com> <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com> <56CAA82D.6000507@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP1: DMA: Provide dma_slave_map to omap-dma
+Date: Mon, 22 Feb 2016 09:19:18 +0200
+Message-ID: <56CAB676.6080309@ti.com>
+References: <1454423227-31830-1-git-send-email-peter.ujfalusi@ti.com>
+ <1454423227-31830-2-git-send-email-peter.ujfalusi@ti.com>
+ <20160219214426.GK1640@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56CAA82D.6000507@ti.com>
+In-Reply-To: <20160219214426.GK1640@darkstar.musicnaut.iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-Kishon,
+On 2016-02-19 23:44, Aaro Koskinen wrote:
+> On Tue, Feb 02, 2016 at 04:27:06PM +0200, Peter Ujfalusi wrote:
+>> OMAP1 can not boot in DT mode and to be able to clean up the driver
+>> regarding to the dmaengine API use (switching to the new API) the
+>> device/slave -> filter mapping needs to be provided to the omap-dma =
+driver.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>=20
+> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Mon, 22 Feb 2016, Kishon Vijay Abraham I wrote:
+Thanks Aaro,
 
-> Sekhar,
-> 
-> On Thursday 18 February 2016 07:51 PM, Sekhar Nori wrote:
-> > On Friday 12 February 2016 10:50 PM, Suman Anna wrote:
-> >> Sekhar,
-> >> Will you be following up with above suggestion since Kishon is gonna be out?
-> > 
-> > Alright, noticed this action for me :) Went through the thread, and 
-> > looks like this is what we want to see?
-> > 
-> > Thanks,
-> > Sekhar
-> > 
-> > ---8<---
-> > From e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19 Mon Sep 17 00:00:00 2001
-> > Message-Id: <e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19.1455803758.git.nsekhar@ti.com>
-> > From: Sekhar Nori <nsekhar@ti.com>
-> > Date: Thu, 18 Feb 2016 16:49:56 +0530
-> > Subject: [PATCH 1/1] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
-> > 
-> > Add a custom reset handler for DRA7x PCIeSS. This
-> > handler is required to deassert PCIe hardreset lines
-> > after they have been asserted.
-> > 
-> > This enables the PCIe driver to access registers after
-> > PCIeSS has been runtime enabled without having to
-> > deassert hardreset lines itself.
-> > 
-> > With this patch applied, used lspci to make sure
-> > connected PCIe device enumerates on DRA74x and DRA72x
-> > EVMs.
-> > 
-> > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> > ---
-> > Applies to tag for-v4.6/omap-hwmod-a of Paul W's tree.
-> > 
-> >  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
-> >  1 file changed, 23 insertions(+)
-> > 
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > index b61355e2a771..252b74633e31 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > @@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-> >   *
-> >   */
-> >  
-> > +/*
-> > + * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
-> > + * functionality of OMAP HWMOD layer does not deassert the hardreset lines
-> > + * associated with an IP automatically leaving the driver to handle that
-> > + * by itself. This does not work for PCIeSS which needs the reset lines
-> > + * deasserted for the driver to start accessing registers.
-> > + *
-> > + * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
-> > + * lines after asserting them.
-> > + */
-> > +static int dra7xx_pciess_reset(struct omap_hwmod *oh)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < oh->rst_lines_cnt; i++) {
-> > +		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
-> > +		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
-> >  	.name	= "pcie",
-> > +	.reset	= dra7xx_pciess_reset,
-> >  };
-> 
-> Thanks for the patch.
+I believe the map covers all drivers using DMA, but in case I missed an=
+y we -
+you ;) will notice it as they will fail to get the DMA channels. This o=
+nly
+going to be visible after I send the driver changes for 4.7. In such a =
+case we
+will need to add the given device to the list.
 
-Could you please test the bind/unbind functionality just to make sure it 
-works?
+--=20
+P=E9ter
 
-thanks
-
-- Paul
+>=20
+> A.
+>=20
+>> ---
+>>  arch/arm/mach-omap1/dma.c | 45 ++++++++++++++++++++++++++++++++++++=
++++++++++
+>>  1 file changed, 45 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+>> index 7b02ed218a42..f6ba589cd312 100644
+>> --- a/arch/arm/mach-omap1/dma.c
+>> +++ b/arch/arm/mach-omap1/dma.c
+>> @@ -25,6 +25,7 @@
+>>  #include <linux/device.h>
+>>  #include <linux/io.h>
+>>  #include <linux/dma-mapping.h>
+>> +#include <linux/dmaengine.h>
+>>  #include <linux/omap-dma.h>
+>>  #include <mach/tc.h>
+>> =20
+>> @@ -265,6 +266,42 @@ static const struct platform_device_info omap_d=
+ma_dev_info =3D {
+>>  	.num_res =3D 1,
+>>  };
+>> =20
+>> +/* OMAP730, OMAP850 */
+>> +static const struct dma_slave_map omap7xx_sdma_map[] =3D {
+>> +	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
+>> +	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
+>> +	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(10) },
+>> +	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(11) },
+>> +	{ "mmci-omap.0", "tx", SDMA_FILTER_PARAM(21) },
+>> +	{ "mmci-omap.0", "rx", SDMA_FILTER_PARAM(22) },
+>> +	{ "omap_udc", "rx0", SDMA_FILTER_PARAM(26) },
+>> +	{ "omap_udc", "rx1", SDMA_FILTER_PARAM(27) },
+>> +	{ "omap_udc", "rx2", SDMA_FILTER_PARAM(28) },
+>> +	{ "omap_udc", "tx0", SDMA_FILTER_PARAM(29) },
+>> +	{ "omap_udc", "tx1", SDMA_FILTER_PARAM(30) },
+>> +	{ "omap_udc", "tx2", SDMA_FILTER_PARAM(31) },
+>> +};
+>> +
+>> +/* OMAP1510, OMAP1610*/
+>> +static const struct dma_slave_map omap1xxx_sdma_map[] =3D {
+>> +	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(8) },
+>> +	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(9) },
+>> +	{ "omap-mcbsp.3", "tx", SDMA_FILTER_PARAM(10) },
+>> +	{ "omap-mcbsp.3", "rx", SDMA_FILTER_PARAM(11) },
+>> +	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(16) },
+>> +	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(17) },
+>> +	{ "mmci-omap.0", "tx", SDMA_FILTER_PARAM(21) },
+>> +	{ "mmci-omap.0", "rx", SDMA_FILTER_PARAM(22) },
+>> +	{ "omap_udc", "rx0", SDMA_FILTER_PARAM(26) },
+>> +	{ "omap_udc", "rx1", SDMA_FILTER_PARAM(27) },
+>> +	{ "omap_udc", "rx2", SDMA_FILTER_PARAM(28) },
+>> +	{ "omap_udc", "tx0", SDMA_FILTER_PARAM(29) },
+>> +	{ "omap_udc", "tx1", SDMA_FILTER_PARAM(30) },
+>> +	{ "omap_udc", "tx2", SDMA_FILTER_PARAM(31) },
+>> +	{ "mmci-omap.1", "tx", SDMA_FILTER_PARAM(54) },
+>> +	{ "mmci-omap.1", "rx", SDMA_FILTER_PARAM(55) },
+>> +};
+>> +
+>>  static struct omap_system_dma_plat_info dma_plat_info __initdata =3D=
+ {
+>>  	.reg_map	=3D reg_map,
+>>  	.channel_stride	=3D 0x40,
+>> @@ -342,6 +379,14 @@ static int __init omap1_system_dma_init(void)
+>>  	p.dma_attr =3D d;
+>>  	p.errata =3D configure_dma_errata();
+>> =20
+>> +	if (cpu_is_omap7xx()) {
+>> +		p.slave_map =3D omap7xx_sdma_map;
+>> +		p.slavecnt =3D ARRAY_SIZE(omap7xx_sdma_map);
+>> +	} else {
+>> +		p.slave_map =3D omap1xxx_sdma_map;
+>> +		p.slavecnt =3D ARRAY_SIZE(omap1xxx_sdma_map);
+>> +	}
+>> +
+>>  	ret =3D platform_device_add_data(pdev, &p, sizeof(p));
+>>  	if (ret) {
+>>  		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
+>> --=20
+>> 2.7.0
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
