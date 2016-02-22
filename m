@@ -1,42 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] clk: ti: omap3+: dpll: use non-locking version of
- clk_get_rate
-Date: Mon, 22 Feb 2016 14:10:22 -0800
-Message-ID: <20160222221021.GW13417@atomide.com>
-References: <1455966777-30576-1-git-send-email-t-kristo@ti.com>
- <20160222165252.GF13417@atomide.com>
- <20160222220514.GZ4847@codeaurora.org>
+Subject: [PATCH 3/4] ARM: dts: Add RTC entry for dm814x and dra62x
+Date: Mon, 22 Feb 2016 15:04:04 -0800
+Message-ID: <1456182245-1843-4-git-send-email-tony@atomide.com>
+References: <1456182245-1843-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160222220514.GZ4847@codeaurora.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tero Kristo <t-kristo@ti.com>, mturquette@baylibre.com, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1456182245-1843-1-git-send-email-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>, Nicolas Chauvet <kwizart@gmail.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Delio Brignoli <dbrignoli@audioscience.com>, Brian Hutchinson <b.hutchman@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Stephen Boyd <sboyd@codeaurora.org> [160222 14:05]:
-> On 02/22, Tony Lindgren wrote:
-> > * Tero Kristo <t-kristo@ti.com> [160220 03:12]:
-> > > As the code in this file is being executed within irq context in some
-> > > cases, we must avoid the clk_get_rate which uses mutex internally.
-> > > Switch the code to use clk_hw_get_rate instead which is non-locking.
-> > > 
-> > > This fixes an issue where PM runtime will hang the system if enabled
-> > > with a serial console before a suspend-resume cycle.
-> > 
-> > Can you please add the "Fixes: " line here?
-> > 
-> > And when applying, please tag this one Cc stable.
-> > 
-> > Other than that, please feel free to add:
-> > 
-> > Tested-by: Tony Lindgren <tony@atomide.com>
-> > 
-> 
-> This is what I got. "Fixes" should take care of stable.
+Add RTC entry for dm814x and dra62x.
 
-OK thanks!
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/dm814x.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Tony
+diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
+index 3fe68b1..f752ac1 100644
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -305,6 +305,13 @@
+ 				reg = <0x60000 0x1000>;
+ 			};
+ 
++			rtc: rtc@c0000 {
++				compatible = "ti,am3352-rtc", "ti,da830-rtc";
++				reg = <0xc0000 0x1000>;
++				interrupts = <75 76>;
++				ti,hwmods = "rtc";
++			};
++
+ 			mmc2: mmc@1d8000 {
+ 				compatible = "ti,omap4-hsmmc";
+ 				ti,hwmods = "mmc2";
+-- 
+2.7.0
