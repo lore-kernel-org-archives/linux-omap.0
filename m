@@ -1,36 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: n900: Use linux input defines instead
- hardcoded constants
-Date: Mon, 22 Feb 2016 11:02:39 -0800
-Message-ID: <20160222190239.GQ13417@atomide.com>
-References: <1456052808-14461-1-git-send-email-pali.rohar@gmail.com>
- <20160222105520.GA3215@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6/6] ARM: dts: n900: Rename isp1704 to isp1707 to match
+ correct name
+Date: Mon, 22 Feb 2016 11:06:50 -0800
+Message-ID: <20160222190649.GR13417@atomide.com>
+References: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
+ <1456054103-19551-7-git-send-email-pali.rohar@gmail.com>
+ <20160221140517.GA25072@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160222105520.GA3215@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20160221140517.GA25072@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [160222 02:55]:
-> On Sun 2016-02-21 12:06:48, Pali Roh=C3=A1r wrote:
-> > This makes DTS structure more readable.
-> >=20
-> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+* Pavel Machek <pavel@ucw.cz> [160221 06:05]:
+> On Sun 2016-02-21 12:28:23, Pali Roh=C3=A1r wrote:
+> > This change does not break existing userspace or Maemo software bec=
+ause
+> > isp1704_charger.c always export power supply device under isp1704 n=
+ame.
 >=20
-> Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> ..exports..
+>=20
+> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+>=20
+> 4,5,6: Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Applying into omap-for-v4.6/dt.
+Ack for this one to get merged along with the driver changes:
 
-Thanks,
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
