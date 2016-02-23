@@ -1,72 +1,54 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 6/6] ARM: dts: n900: Rename isp1704 to isp1707 to match
- correct name
-Date: Tue, 23 Feb 2016 03:29:00 +0100
-Message-ID: <20160223022900.GA19629@earth>
-References: <1456054103-19551-1-git-send-email-pali.rohar@gmail.com>
- <1456054103-19551-7-git-send-email-pali.rohar@gmail.com>
- <20160221140517.GA25072@amd>
- <20160222190649.GR13417@atomide.com>
+Subject: Re: [PATCH 2/2] HSI: omap-ssi: add clk change support
+Date: Tue, 23 Feb 2016 03:34:43 +0100
+Message-ID: <20160223023443.GB19629@earth>
+References: <1454201558-31285-1-git-send-email-sre@kernel.org>
+ <1454201558-31285-3-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160222190649.GR13417@atomide.com>
+In-Reply-To: <1454201558-31285-3-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=iso-8859-1
+--Bn2rw/3z4jIqBvZU
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Feb 22, 2016 at 11:06:50AM -0800, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [160221 06:05]:
-> > On Sun 2016-02-21 12:28:23, Pali Roh=E1r wrote:
-> > > This change does not break existing userspace or Maemo software becau=
-se
-> > > isp1704_charger.c always export power supply device under isp1704 nam=
-e.
-> >=20
-> > ..exports..
-> >=20
-> > > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> >=20
-> > 4,5,6: Acked-by: Pavel Machek <pavel@ucw.cz>
->=20
-> Ack for this one to get merged along with the driver changes:
->=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
+On Sun, Jan 31, 2016 at 01:52:38AM +0100, Sebastian Reichel wrote:
+> This adds support for frequency changes of the SSI
+> functional clock, which may occur due to DVFS.
 
-Ok, done.
+I queued this one for 4.6.
 
 -- Sebastian
 
---sm4nu43k4a2Rpi4c
+--Bn2rw/3z4jIqBvZU
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJWy8PpAAoJENju1/PIO/qaNewP/0HO060mDJNPbV/jz5NBJstH
-RQIn+/JpVSZdSmLi/4MOZBQujdoeyiyOv7iI7EG/mvqxmFKRT0hbgqomoq5eJWIm
-DC5a63AOo5qSXgoLv/SjeaAcTiZIy1OK4/AM2t0fQ9epzr4h5Y44GIj+fZVOc2BW
-eS2LuWpRH2T/uqRNklybIv4gJNWx5DSQAXmORXgrjiz9ddl7+UIokmmLdjOJN0zt
-j+1DeK1yFTaytWWr1DYYsLyMMm7XD1G6EW69pFROVPpCBrMW6pbMcdVR3NVCtsXe
-RRTQt+jka8nTHgWmHeeaM01l2KXnqt7fq075oIlMRCsWIWoyVN4UXu0RcHXlVilI
-JVGMeYRm82FFl9Dwo5y0w+tTQFwxpMiNng4/Qvr0Qyhab2BAw5Pm6GEZ65fC47j8
-/s+ZVH/VK6FgckubHAqeed+LrRZTzfp8cxddmx5+eH44u95H8xQl9H5UG1z3vZfg
-ZeSuyG1TXl0uhiJ88xpkpKoN0fI18KHcsJ5XGZPWWSCoxfzKS7NOKXHcxSdMAAXX
-WX4MoSFEQ0daAot/mR6zLdeTJt0ICbUvA0V5n6xvmOrDNlZEQwxzy1vR53o0cYD4
-aC1IexkS3FD1bjny72LFA9wCu8y/mae2D7oZlUALHazG/F0nYmD50INOeRwOeMCb
-kpWIvjDu61VqsELLdi/w
-=vuiw
+iQIcBAEBCgAGBQJWy8VDAAoJENju1/PIO/qajVwQAKkwb1FRr7Uvv5Wd5C4gxUmy
+iFTDm/ktJ0gdS+Hq/DJhfwMYl47ddo2xT9wn5idVuDiKR/4NqtknT7G3hvsM9bf8
+fNlF53VCxZNgxQogTrqQpDOeP83ToNJ/Ga3TjLvuUKKNgwT48U5I3j1Dap+vIoyF
+X9lN6OixpWNsaCiOqcR/uAjHPcdVdeY2GvQoxMGiWQr5xLB+3hNg2fLXxema23V3
+IA8EasM4JGhsr20LeiyZqewmFYXp397CPF5xYdqH59R2G4y9pcaidbgOZCW/9a6A
+f5pxHm93+x0vKLXEXn8/cRWbUz0qcs69nIJAkC3rtlwOXQDcBeVB1gg0izU9gPC2
+gFS2oyAVHmQXodw4lO61LMxoMSxLAvvckkMBN49pmeujYQHCKgG9MLr3xzYXyBr+
+Xf1q9z9j1jFNR6CJRSnuYAaeTxhN82d7J5sJTLTb3rV9bdCqNjg4vBEIXBSCNv+R
+yneGG53zdyTNynTXzaERvtrgT7zvH1h12FuyvzUFN3Cc5lQpt0bMMsxvBeBFdgFx
+ORuf+PY5oc/qAqIbvigS3bJ8qcdEi/WFQfajAqrnF69/SfcdECEc46pJ9YWfwWoW
+oCd9cJ6aKQTuWgIrMS16qH1+KDDn+2vco4Sw/kkDe+clMX41tT1K4G9kncgz9voH
+WjMLJYWavDz9iV1eiGwS
+=XrP8
 -----END PGP SIGNATURE-----
 
---sm4nu43k4a2Rpi4c--
+--Bn2rw/3z4jIqBvZU--
