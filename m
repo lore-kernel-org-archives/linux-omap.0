@@ -1,89 +1,84 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v7 1/9] ARM: dts: dra7: Fix NAND device nodes.
-Date: Tue, 23 Feb 2016 18:37:17 +0200
-Message-ID: <1456245445-31824-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v7 4/9] ARM: dts: am437x: Disable wait pin monitoring for NAND
+Date: Tue, 23 Feb 2016 18:37:20 +0200
+Message-ID: <1456245445-31824-5-git-send-email-rogerq@ti.com>
 References: <1456245445-31824-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456245445-31824-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1456245445-31824-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add compatible id, GPMC register resource and interrupt
-resource to NAND controller nodes.
+The NAND Ready/Busy# line is connected to GPMC_WAIT0 pin and
+can't be used for wait state insertion for NAND I/O read/write.
+So disable read/write wait monitoring as per Reference Manual's
+suggestion [1].
 
-The GPMC node will provide an interrupt controller for the
-NAND IRQs.
+[1] AM437x TRM: SPRUHL7D: 9.1.3.3.12.2 NAND Device-Ready Pin
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts  | 6 +++++-
- arch/arm/boot/dts/dra7.dtsi     | 2 ++
- arch/arm/boot/dts/dra72-evm.dts | 6 +++++-
- 3 files changed, 12 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am437x-cm-t43.dts  | 5 -----
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 2 --
+ arch/arm/boot/dts/am43x-epos-evm.dts | 2 --
+ 3 files changed, 9 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index cfc24e5..28ae95e 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -741,9 +741,13 @@
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&nand_flash_x16>;
--	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
-+	ranges = <0 0 0x08000000 0x01000000>;	/* minimum GPMC partition = 16MB */
- 	nand@0,0 {
-+		compatible = "ti,omap2-nand";
- 		reg = <0 0 4>;		/* device IO registers */
-+		interrupt-parent = <&gpmc>;
-+		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
-+			     <1 IRQ_TYPE_NONE>; /* termcount */
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <16>;
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index c4d9175..51ddc98 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1438,6 +1438,8 @@
- 			gpmc,num-waitpins = <2>;
- 			#address-cells = <2>;
- 			#size-cells = <1>;
-+			interrupt-controller;
-+			#interrupt-cells = <2>;
- 			status = "disabled";
- 		};
+diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
+index 4aa5357..9551c47 100644
+--- a/arch/arm/boot/dts/am437x-cm-t43.dts
++++ b/arch/arm/boot/dts/am437x-cm-t43.dts
+@@ -170,17 +170,12 @@
+ 		gpmc,access-ns = <64>;
+ 		gpmc,rd-cycle-ns = <82>;
+ 		gpmc,wr-cycle-ns = <82>;
+-		gpmc,wait-on-read = "true";
+-		gpmc,wait-on-write = "true";
+ 		gpmc,bus-turnaround-ns = <0>;
+ 		gpmc,cycle2cycle-delay-ns = <0>;
+ 		gpmc,clk-activation-ns = <0>;
+-		gpmc,wait-monitoring-ns = <0>;
+ 		gpmc,wr-access-ns = <40>;
+ 		gpmc,wr-data-mux-bus-ns = <0>;
  
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 00b1200..6cf211b 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -492,13 +492,17 @@
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&nand_default>;
--	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
-+	ranges = <0 0 0x08000000 0x01000000>;	/* minimum GPMC partition = 16MB */
- 	nand@0,0 {
- 		/* To use NAND, DIP switch SW5 must be set like so:
- 		 * SW5.1 (NAND_SELn) = ON (LOW)
- 		 * SW5.9 (GPMC_WPN) = OFF (HIGH)
- 		 */
-+		compatible = "ti,omap2-nand";
- 		reg = <0 0 4>;		/* device IO registers */
-+		interrupt-parent = <&gpmc>;
-+		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
-+			     <1 IRQ_TYPE_NONE>;	/* termcount */
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <16>;
+-		gpmc,wait-pin = <0>;
+-
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		/* MTD partition table */
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 7081b88..b3cfedb 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -837,11 +837,9 @@
+ 		gpmc,access-ns = <30>;
+ 		gpmc,rd-cycle-ns = <40>;
+ 		gpmc,wr-cycle-ns = <40>;
+-		gpmc,wait-pin = <0>;
+ 		gpmc,bus-turnaround-ns = <0>;
+ 		gpmc,cycle2cycle-delay-ns = <0>;
+ 		gpmc,clk-activation-ns = <0>;
+-		gpmc,wait-monitoring-ns = <0>;
+ 		gpmc,wr-access-ns = <40>;
+ 		gpmc,wr-data-mux-bus-ns = <0>;
+ 		/* MTD partition table */
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 12b08cf..b1f2bd6 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -586,11 +586,9 @@
+ 		gpmc,access-ns = <30>; /* tCEA + 4*/
+ 		gpmc,rd-cycle-ns = <40>;
+ 		gpmc,wr-cycle-ns = <40>;
+-		gpmc,wait-pin = <0>;
+ 		gpmc,bus-turnaround-ns = <0>;
+ 		gpmc,cycle2cycle-delay-ns = <0>;
+ 		gpmc,clk-activation-ns = <0>;
+-		gpmc,wait-monitoring-ns = <0>;
+ 		gpmc,wr-access-ns = <40>;
+ 		gpmc,wr-data-mux-bus-ns = <0>;
+ 		/* MTD partition table */
 -- 
 2.5.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
