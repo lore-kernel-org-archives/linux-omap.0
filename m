@@ -1,36 +1,79 @@
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 3/3] ARM: omap1/ams-delta: warn about failed regulator
- enable
-Date: Tue, 23 Feb 2016 16:15:19 +0000
-Message-ID: <20160223161519.32dd296f@lxorguk.ukuu.org.uk>
-References: <1456235876-4088840-1-git-send-email-arnd@arndb.de>
-	<1456235876-4088840-4-git-send-email-arnd@arndb.de>
-	<20160223161034.GZ13417@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v7 0/9] ARM: dts: omap2+: GPMC NAND node fixes
+Date: Tue, 23 Feb 2016 18:37:16 +0200
+Message-ID: <1456245445-31824-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160223161034.GZ13417@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: tony@atomide.com
+Cc: computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-> > It is not easy to propagate that return code to the callers in
-> > uart_configure_port/uart_suspend_port/uart_resume_port, unless
-> > we change all UART drivers, and it is unclear what those would
-> > do with the return code.
-> > 
-> > Instead, this patch uses a runtime warning to replace the
-> > compiletime warning. I have checked that the regulator in question
-> > is hardcoded to a fixed-voltage GPIO regulator, and that should
-> > never fail to get enabled if I understand the code right.  
-> 
-> Looks OK to me:
+Hi Tony,
 
-If it was a concern for a real driver I think I'd perform a hangup on the
-port at that moment. That's what happens if for example you hot unplug a
-serial port which would be approximately the same as finding out you
-can't power it back up.
+These patches are a preparatory step towards the NAND DT cleanup
+done in [1].
 
-Alan
+They mostly deal with adding the missing compatible property and
+interrupt resources and fixing up register resources for the
+NAND nodes.
+
+Patches based on v4.5-rc1.
+
+Tested on dra7-evm, am437x-gp-evm and omap3-beagle.
+
+cheers,
+-roger
+
+[1] - http://article.gmane.org/gmane.linux.kernel/2156857
+
+--
+Roger Quadros (9):
+  ARM: dts: dra7: Fix NAND device nodes.
+  ARM: dts: dra7: Remove redundant nand property
+  ARM: dts: am437x: Fix NAND device nodes
+  ARM: dts: am437x: Disable wait pin monitoring for NAND
+  ARM: dts: am335x: Fix NAND device nodes
+  ARM: dts: am335x: Disable wait pin monitoring for NAND
+  ARM: dts: dm816x: Fix NAND device nodes
+  ARM: dts: dm8168-evm: ARM: dts: Disable wait pin monitoring for NAND
+  ARM: dts: omap3: Fix NAND device nodess
+
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts        |  9 +++++----
+ arch/arm/boot/dts/am335x-chilisom.dtsi            |  8 +++++---
+ arch/arm/boot/dts/am335x-cm-t335.dts              | 10 ++++++----
+ arch/arm/boot/dts/am335x-evm.dts                  |  7 ++++---
+ arch/arm/boot/dts/am335x-igep0033.dtsi            |  8 +++++---
+ arch/arm/boot/dts/am335x-phycore-som.dtsi         |  8 +++++---
+ arch/arm/boot/dts/am33xx.dtsi                     |  2 ++
+ arch/arm/boot/dts/am4372.dtsi                     |  2 ++
+ arch/arm/boot/dts/am437x-cm-t43.dts               | 11 +++++------
+ arch/arm/boot/dts/am437x-gp-evm.dts               |  8 +++++---
+ arch/arm/boot/dts/am43x-epos-evm.dts              |  8 +++++---
+ arch/arm/boot/dts/dm8168-evm.dts                  |  8 +++++---
+ arch/arm/boot/dts/dm816x.dtsi                     |  2 ++
+ arch/arm/boot/dts/dra7-evm.dts                    |  7 +++++--
+ arch/arm/boot/dts/dra7.dtsi                       |  2 ++
+ arch/arm/boot/dts/dra72-evm.dts                   |  7 +++++--
+ arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts |  3 ++-
+ arch/arm/boot/dts/logicpd-torpedo-som.dtsi        |  8 ++++++--
+ arch/arm/boot/dts/omap3-beagle.dts                |  5 ++++-
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi               |  6 +++++-
+ arch/arm/boot/dts/omap3-devkit8000-common.dtsi    |  4 ++++
+ arch/arm/boot/dts/omap3-evm-37xx.dts              |  8 ++++++--
+ arch/arm/boot/dts/omap3-gta04.dtsi                |  4 ++++
+ arch/arm/boot/dts/omap3-igep.dtsi                 |  6 +++++-
+ arch/arm/boot/dts/omap3-igep0020-common.dtsi      |  4 ++--
+ arch/arm/boot/dts/omap3-igep0030-common.dtsi      |  4 ++++
+ arch/arm/boot/dts/omap3-ldp.dts                   | 10 +++++++---
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi           |  6 +++++-
+ arch/arm/boot/dts/omap3-overo-base.dtsi           |  6 +++++-
+ arch/arm/boot/dts/omap3-pandora-common.dtsi       |  4 ++++
+ arch/arm/boot/dts/omap3-tao3530.dtsi              |  6 +++++-
+ arch/arm/boot/dts/omap3.dtsi                      |  2 ++
+ arch/arm/boot/dts/omap3430-sdp.dts                |  6 +++++-
+ 33 files changed, 143 insertions(+), 56 deletions(-)
+
+-- 
+2.5.0
