@@ -1,49 +1,56 @@
-From: Matthijs van Duin <matthijsvanduin@gmail.com>
-Subject: Re: [PATCH 2/2] clk: ti: Add support for dm814x ADPLL
-Date: Tue, 23 Feb 2016 14:47:31 +0100
-Message-ID: <CAALWOA-dA1r5Ac-y7d3yLhDR1fNM5WJvOmQ3YvvNM+6NP84VLw@mail.gmail.com>
-References: <1455312009-808-1-git-send-email-tony@atomide.com>
- <1455312009-808-3-git-send-email-tony@atomide.com> <20160217011930.2278.38316@quark.deferred.io>
- <20160217173949.GB21202@atomide.com> <20160217205257.2278.11639@quark.deferred.io>
- <20160217212045.GE21202@atomide.com> <20160217230253.2278.80903@quark.deferred.io>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20160217230253.2278.80903@quark.deferred.io>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Brian Hutchinson <b.hutchman@gmail.com>, Delio Brignoli <dbrignoli@audioscience.com>, Neil Armstrong <narmstrong@baylibre.com>, Philipp Rosenberger <ilu@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 1/3] ARM: omap2: mark unused functions as __maybe_unused
+Date: Tue, 23 Feb 2016 14:57:51 +0100
+Message-ID: <1456235876-4088840-2-git-send-email-arnd@arndb.de>
+References: <1456235876-4088840-1-git-send-email-arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1456235876-4088840-1-git-send-email-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 17 February 2016 at 22:20, Tony Lindgren <tony@atomide.com> wrote:
->* Michael Turquette <mturquette@baylibre.com> [160217 12:53]:
->> Do you think you will ever have a driver that wants to gate these
->> clocks? Probably not for MPU/DDR, but the HAND_OFF flag is a better fit
->> if you do. It's the same as CRITICAL but transfers the prepare/enable
->> reference counting to the consumer driver after that driver calls
->> clk_get() and clk_prepare_enable() on the HAND_OFF clk.
->
-> OK I'll use CLK_ENABLE_HAND_OFF then. Who knows maybe somebody
-> somewhere has code running on one of the coprocessors in SRAM that
-> actually allows gating these :)
+The omap_generic_init() and omap_hwmod_init_postsetup() functions are
+used in the initialization for all OMAP2+ SoC types, but in the
+extreme case that those are all disabled, we get a warning about
+unused code:
 
-An arrangement somewhat similar to the one the am335x has should
-indeed be doable, but note that it would be the coprocessor that would
-gate and ungate the clocks, not linux. The L3 clock is actually even
-more essential and can never be gated at all.
+arch/arm/mach-omap2/io.c:412:123: error: 'omap_hwmod_init_postsetup' defined but not used [-Werror=unused-function]
+arch/arm/mach-omap2/board-generic.c:30:123: error: 'omap_generic_init' defined but not used [-Werror=unused-function]
 
-In the absence of help from a coprocessor linux could still put the L3
-and MPU PLLs into bypass for power saving, and DDR can be gated if
-it's first put into self-refresh and helper code in on-chip SRAM is
-used to manage the transitions.
+This annotates both as __maybe_unused to shut up that warning.
 
-On 18 February 2016 at 00:02, Michael Turquette <mturquette@baylibre.com> wrote:
-> Low power mp3 decoder executing out of ARM icache with DDR clock cut ;-)
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap2/board-generic.c | 2 +-
+ arch/arm/mach-omap2/io.c            | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-L1 cache is rather tricky since you can't lock it. You can however
-lock 448 KB of the 512 KB L2 cache, which should be plenty of space.
-There's also quite a bit of SRAM on chip usable for buffering data.
-
-The C674x DSP would probably also be a good candidate for such an application.
-
-Matthijs
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index bab814d2f37d..d75ec64ae0b5 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -28,7 +28,7 @@ static const struct of_device_id omap_dt_match_table[] __initconst = {
+ 	{ }
+ };
+ 
+-static void __init omap_generic_init(void)
++static void __init __maybe_unused omap_generic_init(void)
+ {
+ 	omapdss_early_init_of();
+ 
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 3c87e40650cf..f192fc7fd4f7 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -409,7 +409,7 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
+ 	return omap_hwmod_set_postsetup_state(oh, *(u8 *)data);
+ }
+ 
+-static void __init omap_hwmod_init_postsetup(void)
++static void __init __maybe_unused omap_hwmod_init_postsetup(void)
+ {
+ 	u8 postsetup_state;
+ 
+-- 
+2.7.0
