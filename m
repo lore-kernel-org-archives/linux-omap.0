@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 4/9] ARM: dts: am437x: Disable wait pin monitoring for NAND
-Date: Tue, 23 Feb 2016 18:37:20 +0200
-Message-ID: <1456245445-31824-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v7 8/9] ARM: dts: dm8168-evm: ARM: dts: Disable wait pin monitoring for NAND
+Date: Tue, 23 Feb 2016 18:37:24 +0200
+Message-ID: <1456245445-31824-9-git-send-email-rogerq@ti.com>
 References: <1456245445-31824-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,20 +17,18 @@ can't be used for wait state insertion for NAND I/O read/write.
 So disable read/write wait monitoring as per Reference Manual's
 suggestion [1].
 
-[1] AM437x TRM: SPRUHL7D: 9.1.3.3.12.2 NAND Device-Ready Pin
+[1] dm816x TRM: SPRUGX8C: 9.2.4.12.2 NAND Device-Ready Pin
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/am437x-cm-t43.dts  | 5 -----
- arch/arm/boot/dts/am437x-gp-evm.dts  | 2 --
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 --
- 3 files changed, 9 deletions(-)
+ arch/arm/boot/dts/dm8168-evm.dts | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
-index 4aa5357..9551c47 100644
---- a/arch/arm/boot/dts/am437x-cm-t43.dts
-+++ b/arch/arm/boot/dts/am437x-cm-t43.dts
-@@ -170,17 +170,12 @@
+diff --git a/arch/arm/boot/dts/dm8168-evm.dts b/arch/arm/boot/dts/dm8168-evm.dts
+index 0cb1003..f50348b 100644
+--- a/arch/arm/boot/dts/dm8168-evm.dts
++++ b/arch/arm/boot/dts/dm8168-evm.dts
+@@ -111,12 +111,9 @@
  		gpmc,access-ns = <64>;
  		gpmc,rd-cycle-ns = <82>;
  		gpmc,wr-cycle-ns = <82>;
@@ -42,43 +40,6 @@ index 4aa5357..9551c47 100644
 -		gpmc,wait-monitoring-ns = <0>;
  		gpmc,wr-access-ns = <40>;
  		gpmc,wr-data-mux-bus-ns = <0>;
- 
--		gpmc,wait-pin = <0>;
--
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		/* MTD partition table */
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 7081b88..b3cfedb 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -837,11 +837,9 @@
- 		gpmc,access-ns = <30>;
- 		gpmc,rd-cycle-ns = <40>;
- 		gpmc,wr-cycle-ns = <40>;
--		gpmc,wait-pin = <0>;
- 		gpmc,bus-turnaround-ns = <0>;
- 		gpmc,cycle2cycle-delay-ns = <0>;
- 		gpmc,clk-activation-ns = <0>;
--		gpmc,wait-monitoring-ns = <0>;
- 		gpmc,wr-access-ns = <40>;
- 		gpmc,wr-data-mux-bus-ns = <0>;
- 		/* MTD partition table */
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 12b08cf..b1f2bd6 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -586,11 +586,9 @@
- 		gpmc,access-ns = <30>; /* tCEA + 4*/
- 		gpmc,rd-cycle-ns = <40>;
- 		gpmc,wr-cycle-ns = <40>;
--		gpmc,wait-pin = <0>;
- 		gpmc,bus-turnaround-ns = <0>;
- 		gpmc,cycle2cycle-delay-ns = <0>;
- 		gpmc,clk-activation-ns = <0>;
--		gpmc,wait-monitoring-ns = <0>;
- 		gpmc,wr-access-ns = <40>;
- 		gpmc,wr-data-mux-bus-ns = <0>;
- 		/* MTD partition table */
+ 		partition@0 {
 -- 
 2.5.0
