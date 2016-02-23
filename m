@@ -1,35 +1,31 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v5 12/26] memory: omap-gpmc: Move device tree binding to
- correct location
-Date: Tue, 23 Feb 2016 14:50:12 -0600
-Message-ID: <20160223205012.GA24158@rob-hp-laptop>
-References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
- <1455916548-3441-13-git-send-email-rogerq@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 2/3] ARM: omap1: avoid unused variable warning
+Date: Wed, 24 Feb 2016 01:40:14 +0200
+Message-ID: <20160223234013.GV1640@darkstar.musicnaut.iki.fi>
+References: <1456235876-4088840-1-git-send-email-arnd@arndb.de>
+ <1456235876-4088840-3-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1455916548-3441-13-git-send-email-rogerq@ti.com>
+In-Reply-To: <1456235876-4088840-3-git-send-email-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 19, 2016 at 11:15:34PM +0200, Roger Quadros wrote:
-> omap-gpmc.c is a memory controller so move the binding to the
-> right place.
+On Tue, Feb 23, 2016 at 02:57:52PM +0100, Arnd Bergmann wrote:
+> The osk_mistral_init() contains code that is only compiled when
+> CONFIG_PM is set, but it uses a variable that is declared outside
+> of the #ifdef:
 > 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  Documentation/devicetree/bindings/bus/ti-gpmc.txt  | 130 ---------------------
->  .../bindings/memory-controllers/omap-gpmc.txt      | 130 +++++++++++++++++++++
+> arch/arm/mach-omap1/board-osk.c: In function 'osk_mistral_init':
+> arch/arm/mach-omap1/board-osk.c:513:7: warning: unused variable 'ret' [-Wunused-variable]
+> 
+> This puts the variable in the same #ifdef to avoid the warning.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-am335x is not an OMAP, so wasn't ti-gpmc a better name?
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
->  2 files changed, 130 insertions(+), 130 deletions(-)
->  delete mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
->  create mode 100644 Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
-
-Next time, use the git format-patch -M option.
-
-Acked-by: Rob Herring <robh@kernel.org>
+A.
