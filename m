@@ -1,75 +1,127 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 2/2] HSI: omap-ssi: add clk change support
-Date: Wed, 24 Feb 2016 18:05:30 +0100
-Message-ID: <20160224170530.GA343@earth>
-References: <1454201558-31285-1-git-send-email-sre@kernel.org>
- <1454201558-31285-3-git-send-email-sre@kernel.org>
- <20160223023443.GB19629@earth>
- <4852048.rpY1LniVlK@wuerfel>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4 1/3] ARM: hwmod: RTC: Add lock and unlock functions
+Date: Wed, 24 Feb 2016 18:07:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1602241805470.26779@utopia.booyaka.com>
+References: <1454650952-20154-1-git-send-email-lokeshvutla@ti.com>
+ <1454650952-20154-2-git-send-email-lokeshvutla@ti.com>
+ <alpine.DEB.2.02.1602072209460.2182@utopia.booyaka.com>
+ <56CD77FC.8030103@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4852048.rpY1LniVlK@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <56CD77FC.8030103@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <a0131933@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Lokesh,
 
---7JfCtLOvnd9MIVvH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, 24 Feb 2016, Lokesh Vutla wrote:
 
-Hi,
+> On Monday 08 February 2016 03:54 AM, Paul Walmsley wrote:
+> > On Fri, 5 Feb 2016, Lokesh Vutla wrote:
+> > 
+> >> RTC IP have kicker feature which prevents spurious writes to its registers.
+> >> In order to write into any of the RTC registers, KICK values has to be
+> >> written to KICK registers.
+> >> Introduce omap_hwmod_rtc_unlock/lock functions, which  writes into these
+> >> KICK registers inorder to lock and unlock RTC registers.
+> >>
+> >> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> >> ---
+> > 
+> > ...
+> > 
+> >> +/**
+> >> + * omap_rtc_wait_not_busy - Wait for the RTC BUSY flag
+> >> + * @oh: struct omap_hwmod *
+> >> + *
+> >> + * For updating certain RTC registers, the MPU must wait
+> >> + * for the BUSY status in OMAP_RTC_STATUS_REG to become zero.
+> >> + * Once the BUSY status is zero, there is a 15-?s access
+> > 
+> > Probably best just to write out "microseconds" or "us" here to avoid the 
+> > high-bit character problem.
+> > 
+> >> + * period in which the MPU can program.
+> >> + */
+> >> +static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
+> >> +{
+> >> +	int i;
+> >> +
+> >> +	/* BUSY may stay active for 1/32768 second (~30 usec) */
+> >> +	omap_test_timeout(omap_hwmod_read(oh, OMAP_RTC_STATUS_REG)
+> >> +			  & OMAP_RTC_STATUS_REG, OMAP_RTC_MAX_READY_TIME, i);
+> > 
+> > This test looks bogus.  Shouldn't it AND the register value with 
+> > OMAP_RTC_STATUS_BUSY?  Right now the code is AND-ing with 0x44, which 
+> > doesn't include the BUSY bit.  So I guess the tests that you mentioned in 
+> > the first message of the series don't cover the BUSY case?
+> > 
+> >> +	/* now we have ~15 usec to read/write various registers */
+> >> +}
+> >> +
+> >> +/**
+> >> + * omap_hwmod_rtc_unlock - Unlock the Kicker mechanism.
+> >> + * @oh: struct omap_hwmod *
+> >> + *
+> >> + * RTC IP have kicker feature. This prevents spurious writes to its registers.
+> >> + * In order to write into any of the RTC registers, KICK values has te be
+> >> + * written in respective KICK registers. This is needed for hwmod to write into
+> >> + * sysconfig register.
+> >> + */
+> >> +void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
+> >> +{
+> >> +	local_irq_disable();
+> >> +	omap_rtc_wait_not_busy(oh);
+> >> +	omap_hwmod_write(OMAP_RTC_KICK0_VALUE, oh, OMAP_RTC_KICK0_REG);
+> >> +	omap_hwmod_write(OMAP_RTC_KICK1_VALUE, oh, OMAP_RTC_KICK1_REG);
+> >> +	local_irq_enable();
+> > 
+> > Finally, could you ask the IP block maintainer to confirm the 
+> > interpretation that, for any STATUS_REG read where the BUSY bit is 0, that 
+> > we are guaranteed to have at least 15 microseconds from that point in time 
+> > to access the IP block?  It appears to be this way from my reading of the 
+> > TRM; but to me, the phrasing is not explicit.  Another interpretation 
+> > could be that the BUSY bit reflects the IP block's current status.  If 
+> > this latter case is true, then to ensure that the IP block accesses 
+> > complete inside the access window, we'll either need to test the BUSY bit 
+> > after the writes to ensure that it is still 0, and otherwise repeat the 
+> > busy test and writes; or we'll need to wait for a 0->1 BUSY transition 
+> > before we wait for a 1->0 BUSY transition.
+> 
+> As per the HW folks, once SW sees the transistion from 1->0, it is
+> guaranteed that SW has 15.25 us to do all the write transactions for all
+> the TC updates.
 
-On Wed, Feb 24, 2016 at 04:19:09PM +0100, Arnd Bergmann wrote:
-> On Tuesday 23 February 2016 03:34:43 Sebastian Reichel wrote:
-> >=20
-> > On Sun, Jan 31, 2016 at 01:52:38AM +0100, Sebastian Reichel wrote:
-> > > This adds support for frequency changes of the SSI
-> > > functional clock, which may occur due to DVFS.
-> >=20
-> > I queued this one for 4.6.
-> >=20
->=20
-> This causes a regression when SSI is a loadable module:
->=20
-> ERROR: "omap_ssi_port_update_fclk" [drivers/hsi/controllers/omap_ssi.ko] =
-undefined!
+Great
 
-Thanks for the notice.
+> Also as per TRM, in RTC there are three types of registers:
+> -> TC registers and TC alarm registers:
+> -> General registers
+> -> Compensation registers.
+> 
+> MPU must wait for the BUSY bit for accessing the TC registers and  MPU
+> can access the general registers at any point of time. SYSCONFIG, KICK
+> registers comes under general registers. Since hwmod modifies only the
+> sysconfig register, this omap_rtc_wait_not_busy() is not required here.
+> We can directly write into sysconfig and KICK registers. Does this sound
+> fine to you?
+> Shall I resend this patch without omap_rtc_wait_not_busy()?
 
-> I suspect that there is now some form of circular dependency between the
-> various modules, but I couldn't figure it out. Can you have a look,
-> and maybe revert the commit in linux-next for the time being?
+If there's no need for the unlock/lock sequence to ensure that the IP 
+block is completely reset, then there doesn't seem to be much point in 
+including it?  
 
-I dropped the patch from my -next branch until I figured out what's
-going on.
 
--- Sebastian
-
---7JfCtLOvnd9MIVvH
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWzeLXAAoJENju1/PIO/qappwQAIEpDEF2djVwctsJ7Mmcc/GV
-p8D8gG5ifzpeGtREly4CRP/uRMODexrIpwT6lsiEy7Z3JKjK7dvENRihzilGabbL
-ZDWfYNXyqihQXedpQiPOG3dgb8MKcbIz9wgCLZVmCg42+qGw50VL5PuRsGP4prW6
-A6v2ZpM8ds5CFzxvLF+hBDs4NzJT+K2eJCyt7u6z9clvaUuBCKGCCFvbB4wN1JV8
-VH0YvM5o6KlOWj1aEY2848Xu9EKkhvrO6R9QuoyUV3Ll4UM70QvsnBEMHUjLQxHU
-BGH617f0k9fO4IuPK6GASvEf8l7AG4vNuHA1JCBlvv6vm/68F4QVXAKMauR37M0n
-1w1fO/qHSWspDHODv0a2y5AW/th6SLziia1VonhrST13u6wc0cSy2oFfsIDCI62M
-z/dm7gmU3PPNlJKGzqgJwPNYmycaarDRTXdSEbnHBYkNLdMD7sGjm2ULlhbfAuxG
-JTGBBIbhNKLlHlhw8BcHg/MFI4NqwiS8ItWYzIoQfbPHXgH2rkIZDok8Nh9+iWCU
-yiUqmels/Srir/PfvC1n0XlvGMAmxxg4mJqOFJNjenldyzxBAaMk2R8ZtSFUtz4T
-gPL5bzS0rOtGYa+z/4qHoW9sam46o/jPg7YUrZIRm8pOkeb0Y2VHKQWSQwqSY6Me
-j3LpC1i3SoU3uvS0ZqLQ
-=LtHx
------END PGP SIGNATURE-----
-
---7JfCtLOvnd9MIVvH--
+- Paul
