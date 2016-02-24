@@ -1,138 +1,61 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: DRA7: change address-cells and size-cells
-Date: Wed, 24 Feb 2016 15:41:04 +0530
-Message-ID: <1456308664-28308-1-git-send-email-lokeshvutla@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v5 3/5] mtd: devices: m25p80: add support for mmap read
+ request
+Date: Wed, 24 Feb 2016 17:51:08 +0530
+Message-ID: <56CDA034.7050607@ti.com>
+References: <1449807000-6457-1-git-send-email-vigneshr@ti.com>
+ <1449807000-6457-4-git-send-email-vigneshr@ti.com>
+ <20160209193616.GN13270@sirena.org.uk> <56BC1D3E.5020203@ti.com>
+ <20160212223711.GD18988@sirena.org.uk> <56C2D731.6050306@ti.com>
+ <20160216123854.GJ18327@sirena.org.uk> <56C49B9E.8060506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, nm-l0cyMroinI0@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56C49B9E.8060506@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, "hramrach@gmail.com" <hramrach@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-DRA7 SoC has the capability to support DDR memory upto 4GB. In order to
-represent this in memory dt node, the address-cells and size cells
-should be 2. So, changing the address-cells and size-cells to 2 and
-updating the memory nodes accordingly.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am57xx-beagle-x15.dts   |  2 +-
- arch/arm/boot/dts/am57xx-cl-som-am57x.dts |  2 +-
- arch/arm/boot/dts/dra7-evm.dts            |  2 +-
- arch/arm/boot/dts/dra7.dtsi               | 20 ++++++++++----------
- arch/arm/boot/dts/dra72-evm.dts           |  2 +-
- 5 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index 50312f8..9b664c5 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -24,7 +24,7 @@
- 
- 	memory {
- 		device_type = "memory";
--		reg = <0x80000000 0x80000000>;
-+		reg = <0x0 0x80000000 0x0 0x80000000>;
- 	};
- 
- 	vdd_3v3: fixedregulator-vdd_3v3 {
-diff --git a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-index c538826..e6c40db 100644
---- a/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-+++ b/arch/arm/boot/dts/am57xx-cl-som-am57x.dts
-@@ -21,7 +21,7 @@
- 
- 	memory {
- 		device_type = "memory";
--		reg = <0x80000000 0x20000000>; /* 512 MB - minimal configuration */
-+		reg = <0x0 0x80000000 0x0 0x20000000>; /* 512 MB - minimal configuration */
- 	};
- 
- 	leds {
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index cfc24e5..2d1d3dd 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -18,7 +18,7 @@
- 
- 	memory {
- 		device_type = "memory";
--		reg = <0x80000000 0x60000000>; /* 1536 MB */
-+		reg = <0x0 0x80000000 0x0 0x60000000>; /* 1536 MB */
- 	};
- 
- 	evm_3v3_sd: fixedregulator-sd {
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 8ea153a..5460a2a 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -15,8 +15,8 @@
- #define MAX_SOURCES 400
- 
- / {
--	#address-cells = <1>;
--	#size-cells = <1>;
-+	#address-cells = <2>;
-+	#size-cells = <2>;
- 
- 	compatible = "ti,dra7xx";
- 	interrupt-parent = <&crossbar_mpu>;
-@@ -57,10 +57,10 @@
- 		compatible = "arm,cortex-a15-gic";
- 		interrupt-controller;
- 		#interrupt-cells = <3>;
--		reg = <0x48211000 0x1000>,
--		      <0x48212000 0x1000>,
--		      <0x48214000 0x2000>,
--		      <0x48216000 0x2000>;
-+		reg = <0x0 0x48211000 0x0 0x1000>,
-+		      <0x0 0x48212000 0x0 0x1000>,
-+		      <0x0 0x48214000 0x0 0x2000>,
-+		      <0x0 0x48216000 0x0 0x2000>;
- 		interrupts = <GIC_PPI 9 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>;
- 		interrupt-parent = <&gic>;
- 	};
-@@ -69,7 +69,7 @@
- 		compatible = "ti,omap5-wugen-mpu", "ti,omap4-wugen-mpu";
- 		interrupt-controller;
- 		#interrupt-cells = <3>;
--		reg = <0x48281000 0x1000>;
-+		reg = <0x0 0x48281000 0x0 0x1000>;
- 		interrupt-parent = <&gic>;
- 	};
- 
-@@ -96,10 +96,10 @@
- 		compatible = "ti,dra7-l3-noc", "simple-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		ranges;
-+		ranges = <0x0 0x0 0x0 0xc0000000>;
- 		ti,hwmods = "l3_main_1", "l3_main_2";
--		reg = <0x44000000 0x1000000>,
--		      <0x45000000 0x1000>;
-+		reg = <0x0 0x44000000 0x0 0x1000000>,
-+		      <0x0 0x45000000 0x0 0x1000>;
- 		interrupts-extended = <&crossbar_mpu GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>,
- 				      <&wakeupgen GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
- 
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 00b1200..6a5b0c8 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -17,7 +17,7 @@
- 
- 	memory {
- 		device_type = "memory";
--		reg = <0x80000000 0x40000000>; /* 1024 MB */
-+		reg = <0x0 0x80000000 0x0 0x40000000>; /* 1024 MB */
- 	};
- 
- 	aliases {
+On 02/17/2016 09:41 PM, R, Vignesh wrote:
+> 
+> 
+> On 02/16/2016 06:08 PM, Mark Brown wrote:
+>> On Tue, Feb 16, 2016 at 01:30:49PM +0530, Vignesh R wrote:
+>>> On 02/13/2016 04:07 AM, Mark Brown wrote:
+>>>> On Thu, Feb 11, 2016 at 11:03:50AM +0530, Vignesh R wrote:
+>>>>> On 02/10/2016 01:06 AM, Mark Brown wrote:
+>>
+>>>>>> Looking at this I can't help but think that spi_flash_read() ought to
+>>>>>> have the stub in rather than the caller.  But given that we're pretty
+>>>>>> much only ever expecting one user I'm not 100% sure it actually matters.
+>>
+>>>>> Well, my initial patch set passed long list of arguments to
+>>>>> spi_flash_read(), but Brian suggested to use struct[1] in order to avoid
+>>>>> unnecessary churn when things need changed in the API.
+>>
+>>>> I don't see what that has to do with my point?
+>>
+>>> AFAIU, your previous comment was to move initialization of
+>>> spi_flash_read_message struct to spi_flash_read(). This would mean
+>>
+>> No, not at all.  I'm talking about how we handle the case where we don't
+>> have hardware support for this and need to implement it in software -
+>> currently that's in a separate place to the place where we call the
+>> driver.
+>>
+> 
+> Yeah, but AFAIK, hardware accelerated read support is applicable for
+> m25p80 flashes only, I doubt whether spi_flash_read() will be used by
+> other types. I felt keeping the software implementation in m25p80_read()
+> will be consistent with m25p80_write().
+
+Is there any further work required on the patch? If not, what's the plan
+to merge this patch?
+
 -- 
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Vignesh
