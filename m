@@ -1,38 +1,155 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 3/3] ARM: omap1/ams-delta: warn about failed regulator
- enable
-Date: Wed, 24 Feb 2016 01:40:44 +0200
-Message-ID: <20160223234044.GW1640@darkstar.musicnaut.iki.fi>
-References: <1456235876-4088840-1-git-send-email-arnd@arndb.de>
- <1456235876-4088840-4-git-send-email-arnd@arndb.de>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Wed, 24 Feb 2016 11:51:21 +0530
+Message-ID: <56CD4BE1.3010701@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
+ <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
+ <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
+ <56B900E9.9040306@ti.com>
+ <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
+ <56BA2495.9020407@ti.com>
+ <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
+ <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
+ <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
+ <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com>
+ <56CAA82D.6000507@ti.com>
+ <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
+ <56CADB23.8020202@ti.com> <56CC490F.3040301@ti.com>
+ <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1456235876-4088840-4-git-send-email-arnd@arndb.de>
+In-Reply-To: <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 23, 2016 at 02:57:53PM +0100, Arnd Bergmann wrote:
-> The modem pm handler in the ams-delta board uses regulator_enable()
-> but does not check for a successful return code:
-> 
-> board-ams-delta.c:521:3: error: ignoring return value of 'regulator_enable', declared with attribute warn_unused_result [-Werror=unused-result]
-> 
-> It is not easy to propagate that return code to the callers in
-> uart_configure_port/uart_suspend_port/uart_resume_port, unless
-> we change all UART drivers, and it is unclear what those would
-> do with the return code.
-> 
-> Instead, this patch uses a runtime warning to replace the
-> compiletime warning. I have checked that the regulator in question
-> is hardcoded to a fixed-voltage GPIO regulator, and that should
-> never fail to get enabled if I understand the code right.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Hi Paul,
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+On Tuesday 23 February 2016 11:58 PM, Paul Walmsley wrote:
+> Kishon
+> 
+> On Tue, 23 Feb 2016, Kishon Vijay Abraham I wrote:
+> 
+>> On Monday 22 February 2016 03:25 PM, Kishon Vijay Abraham I wrote:
+>>> On Monday 22 February 2016 12:01 PM, Paul Walmsley wrote:
+>>>> On Mon, 22 Feb 2016, Kishon Vijay Abraham I wrote:
+>>>>> On Thursday 18 February 2016 07:51 PM, Sekhar Nori wrote:
+>>>>>> On Friday 12 February 2016 10:50 PM, Suman Anna wrote:
+>>>>>>> Will you be following up with above suggestion since Kishon is gonna be out?
+>>>>>>
+>>>>>> Alright, noticed this action for me :) Went through the thread, and 
+>>>>>> looks like this is what we want to see?
+>>>>>>
+>>>>>> Thanks,
+>>>>>> Sekhar
+>>>>>>
+>>>>>> ---8<---
+>>>>>> From e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19 Mon Sep 17 00:00:00 2001
+>>>>>> Message-Id: <e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19.1455803758.git.nsekhar@ti.com>
+>>>>>> From: Sekhar Nori <nsekhar@ti.com>
+>>>>>> Date: Thu, 18 Feb 2016 16:49:56 +0530
+>>>>>> Subject: [PATCH 1/1] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
+>>>>>>
+>>>>>> Add a custom reset handler for DRA7x PCIeSS. This
+>>>>>> handler is required to deassert PCIe hardreset lines
+>>>>>> after they have been asserted.
+>>>>>>
+>>>>>> This enables the PCIe driver to access registers after
+>>>>>> PCIeSS has been runtime enabled without having to
+>>>>>> deassert hardreset lines itself.
+>>>>>>
+>>>>>> With this patch applied, used lspci to make sure
+>>>>>> connected PCIe device enumerates on DRA74x and DRA72x
+>>>>>> EVMs.
+>>>>>>
+>>>>>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>>>>>> ---
+>>>>>> Applies to tag for-v4.6/omap-hwmod-a of Paul W's tree.
+>>>>>>
+>>>>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
+>>>>>>  1 file changed, 23 insertions(+)
+>>>>>>
+>>>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> index b61355e2a771..252b74633e31 100644
+>>>>>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>>>>> @@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+>>>>>>   *
+>>>>>>   */
+>>>>>>  
+>>>>>> +/*
+>>>>>> + * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
+>>>>>> + * functionality of OMAP HWMOD layer does not deassert the hardreset lines
+>>>>>> + * associated with an IP automatically leaving the driver to handle that
+>>>>>> + * by itself. This does not work for PCIeSS which needs the reset lines
+>>>>>> + * deasserted for the driver to start accessing registers.
+>>>>>> + *
+>>>>>> + * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
+>>>>>> + * lines after asserting them.
+>>>>>> + */
+>>>>>> +static int dra7xx_pciess_reset(struct omap_hwmod *oh)
+>>>>>> +{
+>>>>>> +	int i;
+>>>>>> +
+>>>>>> +	for (i = 0; i < oh->rst_lines_cnt; i++) {
+>>>>>> +		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
+>>>>>> +		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	return 0;
+>>>>>> +}
+>>>>>> +
+>>>>>>  static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
+>>>>>>  	.name	= "pcie",
+>>>>>> +	.reset	= dra7xx_pciess_reset,
+>>>>>>  };
+>>>>>
+>>>>> Thanks for the patch.
+>>>>
+>>>> Could you please test the bind/unbind functionality just to make sure it 
+>>>> works?
+>>>
+>>> The pci-dra7xx driver neither expose the bind/unbind sysfs entry nor can be
+>>> built as module.
+>>>
+>>> However I hacked the pci-dra7xx driver to be built as module [and reverted
+>>> Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe error
+>>> and driver unbind")] and I don't see an abort when the PCI registers are
+>>> accessed after rmmod/modprobe cycle (that was the issue that Sekhar's patch
+>>> tried to solve). However PCI as such doesn't work after rmmod/modprobe cycle
+>>> [1], but this is a different issue most likely in PCIe core and has to debugged.
+>>>
+>>> In summary, there are other issues in PCI across rmmod/modprobe cycle but the
+>>> reset of pci-dra7xx happens fine with this patch.
+>>
+>> Do you expect any other testing from me?
+> 
+> No I think that's sufficient for the time being, thanks - but, two 
+> questions:
+> 
+> 1. Can I add your Tested-by: ?
 
-A.
+sure..
+Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+> 
+> 2. Are you going to follow up with these PCIe core issues with the PCIe 
+> core developers?
+
+yeah, I see efforts have already started to convert the PCI drivers from
+built-in to module [1] and issues arising out of that will be debugged.
+
+Thanks
+Kishon
+
+[1] -> http://lkml.iu.edu/hypermail/linux/kernel/1602.0/06011.html
+> 
+> 
+> - Paul
+> 
