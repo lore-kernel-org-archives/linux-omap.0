@@ -1,155 +1,41 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Wed, 24 Feb 2016 11:51:21 +0530
-Message-ID: <56CD4BE1.3010701@ti.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com>
- <1452780672-14339-4-git-send-email-kishon@ti.com>
- <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
- <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
- <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
- <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
- <56B900E9.9040306@ti.com>
- <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
- <56BA2495.9020407@ti.com>
- <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
- <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
- <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
- <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com>
- <56CAA82D.6000507@ti.com>
- <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
- <56CADB23.8020202@ti.com> <56CC490F.3040301@ti.com>
- <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes against v4.5-rc3
+Date: Wed, 24 Feb 2016 00:05:42 -0800
+Message-ID: <20160224080542.GB30231@localhost>
+References: <20160212225018.GA3500@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20160212225018.GA3500@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
+On Fri, Feb 12, 2016 at 02:50:18PM -0800, Tony Lindgren wrote:
+> The following changes since commit 388f7b1d6e8ca06762e2454d28d6c3c55ad0fe95:
+> 
+>   Linux 4.5-rc3 (2016-02-07 15:38:30 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.5/fixes-rc3-v2
+> 
+> for you to fetch changes up to cf26f1137333251f3515dea31f95775b99df0fd5:
+> 
+>   ARM: OMAP2+: Fix omap_device for module reload on PM runtime forbid (2016-02-12 08:56:52 -0800)
 
-On Tuesday 23 February 2016 11:58 PM, Paul Walmsley wrote:
-> Kishon
-> 
-> On Tue, 23 Feb 2016, Kishon Vijay Abraham I wrote:
-> 
->> On Monday 22 February 2016 03:25 PM, Kishon Vijay Abraham I wrote:
->>> On Monday 22 February 2016 12:01 PM, Paul Walmsley wrote:
->>>> On Mon, 22 Feb 2016, Kishon Vijay Abraham I wrote:
->>>>> On Thursday 18 February 2016 07:51 PM, Sekhar Nori wrote:
->>>>>> On Friday 12 February 2016 10:50 PM, Suman Anna wrote:
->>>>>>> Will you be following up with above suggestion since Kishon is gonna be out?
->>>>>>
->>>>>> Alright, noticed this action for me :) Went through the thread, and 
->>>>>> looks like this is what we want to see?
->>>>>>
->>>>>> Thanks,
->>>>>> Sekhar
->>>>>>
->>>>>> ---8<---
->>>>>> From e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19 Mon Sep 17 00:00:00 2001
->>>>>> Message-Id: <e3ba368f2235e1bf38a22ba8ea4e5c12aaafda19.1455803758.git.nsekhar@ti.com>
->>>>>> From: Sekhar Nori <nsekhar@ti.com>
->>>>>> Date: Thu, 18 Feb 2016 16:49:56 +0530
->>>>>> Subject: [PATCH 1/1] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
->>>>>>
->>>>>> Add a custom reset handler for DRA7x PCIeSS. This
->>>>>> handler is required to deassert PCIe hardreset lines
->>>>>> after they have been asserted.
->>>>>>
->>>>>> This enables the PCIe driver to access registers after
->>>>>> PCIeSS has been runtime enabled without having to
->>>>>> deassert hardreset lines itself.
->>>>>>
->>>>>> With this patch applied, used lspci to make sure
->>>>>> connected PCIe device enumerates on DRA74x and DRA72x
->>>>>> EVMs.
->>>>>>
->>>>>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->>>>>> ---
->>>>>> Applies to tag for-v4.6/omap-hwmod-a of Paul W's tree.
->>>>>>
->>>>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
->>>>>>  1 file changed, 23 insertions(+)
->>>>>>
->>>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>>>>> index b61355e2a771..252b74633e31 100644
->>>>>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>>>>> @@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
->>>>>>   *
->>>>>>   */
->>>>>>  
->>>>>> +/*
->>>>>> + * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
->>>>>> + * functionality of OMAP HWMOD layer does not deassert the hardreset lines
->>>>>> + * associated with an IP automatically leaving the driver to handle that
->>>>>> + * by itself. This does not work for PCIeSS which needs the reset lines
->>>>>> + * deasserted for the driver to start accessing registers.
->>>>>> + *
->>>>>> + * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
->>>>>> + * lines after asserting them.
->>>>>> + */
->>>>>> +static int dra7xx_pciess_reset(struct omap_hwmod *oh)
->>>>>> +{
->>>>>> +	int i;
->>>>>> +
->>>>>> +	for (i = 0; i < oh->rst_lines_cnt; i++) {
->>>>>> +		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
->>>>>> +		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
->>>>>> +	}
->>>>>> +
->>>>>> +	return 0;
->>>>>> +}
->>>>>> +
->>>>>>  static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
->>>>>>  	.name	= "pcie",
->>>>>> +	.reset	= dra7xx_pciess_reset,
->>>>>>  };
->>>>>
->>>>> Thanks for the patch.
->>>>
->>>> Could you please test the bind/unbind functionality just to make sure it 
->>>> works?
->>>
->>> The pci-dra7xx driver neither expose the bind/unbind sysfs entry nor can be
->>> built as module.
->>>
->>> However I hacked the pci-dra7xx driver to be built as module [and reverted
->>> Commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM states at probe error
->>> and driver unbind")] and I don't see an abort when the PCI registers are
->>> accessed after rmmod/modprobe cycle (that was the issue that Sekhar's patch
->>> tried to solve). However PCI as such doesn't work after rmmod/modprobe cycle
->>> [1], but this is a different issue most likely in PCIe core and has to debugged.
->>>
->>> In summary, there are other issues in PCI across rmmod/modprobe cycle but the
->>> reset of pci-dra7xx happens fine with this patch.
->>
->> Do you expect any other testing from me?
-> 
-> No I think that's sufficient for the time being, thanks - but, two 
-> questions:
-> 
-> 1. Can I add your Tested-by: ?
+Merged, thanks.
 
-sure..
-Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-> 
-> 2. Are you going to follow up with these PCIe core issues with the PCIe 
-> core developers?
-
-yeah, I see efforts have already started to convert the PCI drivers from
-built-in to module [1] and issues arising out of that will be debugged.
-
-Thanks
-Kishon
-
-[1] -> http://lkml.iu.edu/hypermail/linux/kernel/1602.0/06011.html
-> 
-> 
-> - Paul
-> 
+-Olof
