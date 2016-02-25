@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 09/11] ARM: clk: dra7xx: Correct mcasp8_ahclkx_mux name
-Date: Thu, 25 Feb 2016 16:50:25 +0200
-Message-ID: <1456411827-23962-10-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 11/11] ARM: DTS: dra7: Add nodes for McASP1/2/4/5/6/7/8
+Date: Thu, 25 Feb 2016 16:50:27 +0200
+Message-ID: <1456411827-23962-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,39 +12,144 @@ To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, robh+dt@kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-rename the mcasp8_ahclk_mux to mcasp8_ahclkx_mux.
+Add nodes to represent all McASP ports in the dra7 family.
+For system consistency use the eDMA for audio operations. sDMA would be
+fine for 4/5/6/7/8 since their DAT port is not through L3 interconnect.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 +-
- drivers/clk/ti/clk-7xx.c             | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi | 112 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 112 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 357bedeebfac..8be2cbe0e7e4 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1856,7 +1856,7 @@
- 		reg = <0x1908>;
- 	};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 258e6712a76b..700382093922 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1464,6 +1464,38 @@
+ 			status = "disabled";
+ 		};
  
--	mcasp8_ahclk_mux: mcasp8_ahclk_mux {
-+	mcasp8_ahclkx_mux: mcasp8_ahclkx_mux {
- 		#clock-cells = <0>;
- 		compatible = "ti,mux-clock";
- 		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index a911d7de3377..6b5a309d9939 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -223,7 +223,7 @@ static struct ti_dt_clk dra7xx_clks[] = {
- 	DT_CLK(NULL, "mcasp6_aux_gfclk_mux", "mcasp6_aux_gfclk_mux"),
- 	DT_CLK(NULL, "mcasp7_ahclkx_mux", "mcasp7_ahclkx_mux"),
- 	DT_CLK(NULL, "mcasp7_aux_gfclk_mux", "mcasp7_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp8_ahclk_mux", "mcasp8_ahclk_mux"),
-+	DT_CLK(NULL, "mcasp8_ahclkx_mux", "mcasp8_ahclkx_mux"),
- 	DT_CLK(NULL, "mcasp8_aux_gfclk_mux", "mcasp8_aux_gfclk_mux"),
- 	DT_CLK(NULL, "mmc1_fclk_mux", "mmc1_fclk_mux"),
- 	DT_CLK(NULL, "mmc1_fclk_div", "mmc1_fclk_div"),
++		mcasp1: mcasp@48460000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp1";
++			reg = <0x48460000 0x2000>,
++			      <0x45800000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 104 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 129 1>, <&edma_xbar 128 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp1_aux_gfclk_mux>, <&mcasp1_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
++
++		mcasp2: mcasp@48464000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp2";
++			reg = <0x48464000 0x2000>,
++			      <0x45c00000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 149 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 148 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 131 1>, <&edma_xbar 130 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp2_aux_gfclk_mux>, <&mcasp2_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
++
+ 		mcasp3: mcasp@48468000 {
+ 			compatible = "ti,dra7-mcasp-audio";
+ 			ti,hwmods = "mcasp3";
+@@ -1480,6 +1512,86 @@
+ 			status = "disabled";
+ 		};
+ 
++		mcasp4: mcasp@4846c000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp4";
++			reg = <0x4846c000 0x2000>,
++			      <0x48436000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 153 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 152 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 135 1>, <&edma_xbar 134 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp4_aux_gfclk_mux>, <&mcasp4_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
++
++		mcasp5: mcasp@48470000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp5";
++			reg = <0x48470000 0x2000>,
++			      <0x4843a000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 155 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 154 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 137 1>, <&edma_xbar 136 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp5_aux_gfclk_mux>, <&mcasp5_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
++
++		mcasp6: mcasp@48474000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp6";
++			reg = <0x48474000 0x2000>,
++			      <0x4844c000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 157 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 156 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 139 1>, <&edma_xbar 138 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp6_aux_gfclk_mux>, <&mcasp6_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
++
++		mcasp7: mcasp@48478000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp7";
++			reg = <0x48478000 0x2000>,
++			      <0x48450000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 159 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 158 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 141 1>, <&edma_xbar 140 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp7_aux_gfclk_mux>, <&mcasp7_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
++
++		mcasp8: mcasp@4847c000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp8";
++			reg = <0x4847c000 0x2000>,
++			      <0x48454000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 161 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 143 1>, <&edma_xbar 142 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp8_aux_gfclk_mux>, <&mcasp8_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
++
+ 		crossbar_mpu: crossbar@4a002a48 {
+ 			compatible = "ti,irq-crossbar";
+ 			reg = <0x4a002a48 0x130>;
 -- 
 2.7.1
