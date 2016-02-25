@@ -1,48 +1,41 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v3 0/5] Add support for PWMSS on DRA7
-Date: Thu, 25 Feb 2016 16:36:31 -0600
-Message-ID: <1456439796-28546-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-pwm-owner@vger.kernel.org>
-Sender: linux-pwm-owner@vger.kernel.org
+Subject: [PATCH v3 4/5] clk: ti: DRA7: Add tbclk data for ehrpwm
+Date: Thu, 25 Feb 2016 16:36:35 -0600
+Message-ID: <1456439796-28546-5-git-send-email-fcooper@ti.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: paul@pwsan.com, t-kristo@ti.com, tony@atomide.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch series adds support for PWMSS on DRA7. The IP is same as that
-present in AM33XX and AM43XX.
+From: Vignesh R <vigneshr@ti.com>
 
-This is an updated version of the patch series originally sent by Vignesh.
-The biggest difference is the removal of local clock gating support from
-various drivers due to silicon issue.
+tbclk is needed by ehrpwm to generate pwm waveforms. Hence, register
+the required clock information.
 
-Links to v2 series:
-https://patchwork.ozlabs.org/patch/479933/ (already in mainline)
-https://patchwork.ozlabs.org/patch/479932/
-https://patchwork.ozlabs.org/patch/479931/
-https://patchwork.ozlabs.org/patch/479930/
-https://patchwork.ozlabs.org/patch/479929/
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Acked-by: Michael Turquette <mturquette@baylibre.com>
+---
+Version 3 changes:
+None
 
-Franklin S Cooper Jr (1):
-  pwms: pwm-ti*: Remove support for local clock gating
+ drivers/clk/ti/clk-7xx.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Vignesh R (4):
-  ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
-  ARM: dts: DRA7: Add TBCLK for PWMSS
-  clk: ti: DRA7: Add tbclk data for ehrpwm
-  ARM: dts: DRA7: Add dt nodes for PWMSS
-
- .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |   8 +
- .../devicetree/bindings/pwm/pwm-tipwmss.txt        |  17 +-
- arch/arm/boot/dts/dra7.dtsi                        |  64 ++++++
- arch/arm/boot/dts/dra7xx-clocks.dtsi               |  24 +++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 239 +++++++++++++++++++++
- drivers/clk/ti/clk-7xx.c                           |   3 +
- drivers/pwm/pwm-tiecap.c                           |  28 ---
- drivers/pwm/pwm-tiehrpwm.c                         |  29 ---
- drivers/pwm/pwm-tipwmss.c                          |  49 -----
- drivers/pwm/pwm-tipwmss.h                          |  39 ----
- 10 files changed, 354 insertions(+), 146 deletions(-)
- delete mode 100644 drivers/pwm/pwm-tipwmss.h
-
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index a911d7d..7fcf818 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -304,6 +304,9 @@ static struct ti_dt_clk dra7xx_clks[] = {
+ 	DT_CLK("4882a000.timer", "timer_sys_ck", "timer_sys_clk_div"),
+ 	DT_CLK("4882c000.timer", "timer_sys_ck", "timer_sys_clk_div"),
+ 	DT_CLK("4882e000.timer", "timer_sys_ck", "timer_sys_clk_div"),
++	DT_CLK("4843e200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
++	DT_CLK("48440200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
++	DT_CLK("48442200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
+ 	DT_CLK(NULL, "sys_clkin", "sys_clkin1"),
+ 	DT_CLK(NULL, "dss_deshdcp_clk", "dss_deshdcp_clk"),
+ 	{ .node_name = NULL },
 -- 
 2.7.0
