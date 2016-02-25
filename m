@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 08/11] ARM: DTS: am57xx-beagle-x15: Enable AFIFO use for McASP3
-Date: Thu, 25 Feb 2016 16:50:24 +0200
-Message-ID: <1456411827-23962-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 05/11] ARM: DTS: dra7-evm: Enable AFIFO use for McASP3
+Date: Thu, 25 Feb 2016 16:50:21 +0200
+Message-ID: <1456411827-23962-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,15 +17,15 @@ This will reduce the chance of McASP level under/overflow.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 2 ++
+ arch/arm/boot/dts/dra7-evm.dts | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index 86351372174f..7e1d11177732 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -813,6 +813,8 @@
- 	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index cfc24e52244e..ebdbfcc96a6f 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -901,6 +901,8 @@
+ 	serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
  		1 2 0 0
  	>;
 +	tx-num-evt = <32>;
