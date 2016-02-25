@@ -1,63 +1,121 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: omap-dma: Do not call omap_dma_callback() from tx_status()
-Date: Thu, 25 Feb 2016 10:28:59 +0200
-Message-ID: <1456388939-15722-1-git-send-email-peter.ujfalusi@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: omap_hsmmc: sdio: issue with generic wakeup IRQ handling
+Date: Thu, 25 Feb 2016 12:46:40 +0200
+Message-ID: <56CEDB90.6040708@ti.com>
+References: <20160218182750.GA5948@c50.bag.software>
+ <CALtMJEBdXLef8AJ1-8Txmg2iS413bVV7cpQSb+nL5M7jN_QYzw@mail.gmail.com>
+ <20160219141135.GA14354@c50.bag.software>
+ <CAC3a_SDH3zspEAUHkGN0qCBKQZBdnhmei2Rqw2Md=7R2iXostA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com
-Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAC3a_SDH3zspEAUHkGN0qCBKQZBdnhmei2Rqw2Md=7R2iXostA@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Vishal Thanki <vishalthanki@gmail.com>, Andreas Fenkart <afenkart@gmail.com>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When based on the CCR_ENABLE bit the channel is stopped we should not call
-omap_dma_callback(), only change the return value to DMA_COMPLETE. Client
-drivers will do the right thing to clean up the channel after the transfer
-has been completed.
-Check the CCR_ENABLE only if the channel is not paused since pause in sDMA
-means that the channel is stopped.
-This will fix one hard to reproduce race condition when the channel is
-terminated during transfer (affecting cyclic operation).
+On 02/24/2016 11:32 PM, Vishal Thanki wrote:
+> Hi,
+>
+> On Fri, Feb 19, 2016 at 7:41 PM, Vishal Thanki <vishalthanki@gmail.com> wrote:
+>> Hi Andreas,
+>>
+>> On Thu, Feb 18, 2016 at 10:31:04PM +0100, Andreas Fenkart wrote:
+>>> Hi Vishal,
+>>>
+>>> I remember there was a problem with IRQ, but can't remember on top of
+>>> my head. Meanwhile this might be some pointer:
+>>>
+>>> diff --git a/drivers/net/wireless/mwifiex/sta_ioctl.c
+>>> b/drivers/net/wireless/mwifiex/sta_ioctl.c
+>>> index a6c8a4f..67587c2 100644
+>>> --- a/drivers/net/wireless/mwifiex/sta_ioctl.c
+>>> +++ b/drivers/net/wireless/mwifiex/sta_ioctl.c
+>>> @@ -517,6 +517,17 @@ int mwifiex_enable_hs(struct mwifiex_adapter *adapter)
+>>>          adapter->hs_enabling = true;
+>>>          mwifiex_cancel_all_pending_cmd(adapter);
+>>>
+>>> +       /* if the MMC host is already in suspend it will not detect SDIO irq
+>>> +        * and we might run into response timeout. By claiming the MMC host we
+>>> +        * wake it up, which is sufficient to detect a pending IRQ
+>>> +        */
+>>> +       {
+>>> +               struct sdio_mmc_card *card = adapter->card;
+>>> +               sdio_claim_host(card->func);
+>>> +               printk("+++ poll mmc host for IRQ +++\n");
+>>> +               sdio_release_host(card->func);
+>>> +       }
+>>> +
+>>>          if (mwifiex_set_hs_params(mwifiex_get_priv(adapter,
+>>>                                                     MWIFIEX_BSS_ROLE_STA),
+>>>                                    HostCmd_ACT_GEN_SET, MWIFIEX_SYNC_CMD,
+>>
+>> I tried this code change but that did not help. I saw that the code
+>> change is in a function called mwifiex_enable_hs(), which only gets
+>> invoked by mwifiex_sdio_suspend(); which is why I think it is not having
+>> any effect. Because when I run the command to scan the channel list
+>> (i.e. iw dev wlan0 scan), the system is not in suspend state. And I
+>> noticed (by adding prints in omap_hsmmc.c for suspend and resume
+>> callbacks) that during the "scan" command, the suspend routine gets invoked
+>> for HSMMC but it never gets resumed (may be due to the missed wakeup
+>> IRQ) from mwifiex and the command times out.
 
-Fixes: 1a7cf7b26f25 ("dmaengine: omap-dma: Handle cases when the channel is polled for completion")
+Suspend or Runtime suspend?
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/omap-dma.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+>>
+>
+> Is there any other suggestion for mwifiex that I should try out? Or
+> is there any way in omap_hsmmc to specify the wakeup interrupt
+> type (IRQF_TRIGGER_LOW) while using generic wakeup IRQ
+> mechanism. I could not find it, but I may be missing something.
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index f6bef0d93998..a6b189fdbbe6 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -671,18 +671,22 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
- 	struct omap_chan *c = to_omap_dma_chan(chan);
- 	struct virt_dma_desc *vd;
- 	enum dma_status ret;
--	uint32_t ccr;
- 	unsigned long flags;
- 
--	ccr = omap_dma_chan_read(c, CCR);
--	/* The channel is no longer active, handle the completion right away */
--	if (!(ccr & CCR_ENABLE))
--		omap_dma_callback(c->dma_ch, 0, c);
--
- 	ret = dma_cookie_status(chan, cookie, txstate);
- 	if (ret == DMA_COMPLETE || !txstate)
- 		return ret;
- 
-+	if (!c->paused) {
-+		uint32_t ccr = omap_dma_chan_read(c, CCR);
-+		/*
-+		 * The channel is no longer active, set the return value
-+		 * accordingly
-+		 */
-+		if (!(ccr & CCR_ENABLE))
-+			ret = DMA_COMPLETE;
-+	}
-+
- 	spin_lock_irqsave(&c->vc.lock, flags);
- 	vd = vchan_find_desc(&c->vc, cookie);
- 	if (vd) {
+How your irqs defined in DT? Could you provide mmc+wifi nodes?
+
+
+>>>
+>>> 2016-02-18 19:27 GMT+01:00 Vishal Thanki <vishalthanki@gmail.com>:
+>>>> Hi,
+>>>>
+>>>> On a custom built am335x based board, I am facing an issue mwifiex wifi
+>>>> module which is connected to host via SDIO interface. I am using kernel
+>>>> version 4.4.
+>>>>
+>>>> The problem is related to the wifi "ext_scan" command getting timed out
+>>>> over SDIO. This was working with old kernel (v4.0), but does not work on
+>>>> kernel v4.4. I found the following commit is responsible for this
+>>>> behavior.
+>>>>
+>>>> =================================
+>>>> 5b83b2234be6733cfe22036c38031b2c890b3db8
+>>>>
+>>>> mmc: omap_hsmmc: Change wake-up interrupt to use generic wakeirq
+>>>>
+>>>> We can now use generic wakeirq handling and remove the custom handling
+>>>> for the wake-up interrupts.
+>>>> =================================
+>>>>
+>>>> There is no wifi issue if I revert the above mentioned commit on kernel
+>>>> v4.4.
+>>>>
+>>>> I see that before this commit, the wakeup IRQ handler was registered
+>>>> within the omap_hsmmc.c itself with additional IRQF_TRIGGER_LOW flag.
+>>>> But with the introduction to dev_pm_set_dedicated_wake_irq(), the
+>>>> generic wakeup IRQ handler is registered which does not take the
+>>>> IRQF_TRIGGER flag. I am not sure if that is the issue, but I added that
+>>>> IRQF_TRIGGER_LOW flag in dev_pm_set_dedicated_wake_irq() while
+>>>> registering a threaded IRQ handler, I could see the problem disappears.
+>>>> However, this change is causing the infinite interrupts because the of
+>>>> level triggered interrupt is not handled in generic wakeup IRQ handling
+>>>> code (as it was done specially in omap_hsmmc.c code earlier).
+>>>>
+>>>> I am not much familiar with MMC/SDIO driver and I am not sure how to fix
+>>>> this behavior. So any guidance would be really helpful.
+>>>>
+
+
+
 -- 
-2.7.1
+regards,
+-grygorii
