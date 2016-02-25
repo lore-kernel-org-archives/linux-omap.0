@@ -1,50 +1,63 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: dra7: Support QSPI MODE-0 operation at 64MHz
-Date: Thu, 25 Feb 2016 10:17:32 +0530
-Message-ID: <1456375652-14071-1-git-send-email-vigneshr@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: omap-dma: Do not call omap_dma_callback() from tx_status()
+Date: Thu, 25 Feb 2016 10:28:59 +0200
+Message-ID: <1456388939-15722-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com
+Cc: linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-According to Data Manual(SPRS915P) of AM57x, TI QSPI controller on
-DRA74(rev 1.1+) can support up to 64MHz in MODE-0, whereas MODE-3 is
-limited to 48MHz. Hence, switch to MODE-0 for better throughput.
+When based on the CCR_ENABLE bit the channel is stopped we should not call
+omap_dma_callback(), only change the return value to DMA_COMPLETE. Client
+drivers will do the right thing to clean up the channel after the transfer
+has been completed.
+Check the CCR_ENABLE only if the channel is not paused since pause in sDMA
+means that the channel is stopped.
+This will fix one hard to reproduce race condition when the channel is
+terminated during transfer (affecting cyclic operation).
 
-Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Fixes: 1a7cf7b26f25 ("dmaengine: omap-dma: Handle cases when the channel is polled for completion")
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/dma/omap-dma.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index cfc24e52244e..15f10bdc8c31 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -653,15 +653,13 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&qspi1_pins>;
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index f6bef0d93998..a6b189fdbbe6 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -671,18 +671,22 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
+ 	struct virt_dma_desc *vd;
+ 	enum dma_status ret;
+-	uint32_t ccr;
+ 	unsigned long flags;
  
--	spi-max-frequency = <48000000>;
-+	spi-max-frequency = <64000000>;
- 	m25p80@0 {
- 		compatible = "s25fl256s1";
--		spi-max-frequency = <48000000>;
-+		spi-max-frequency = <64000000>;
- 		reg = <0>;
- 		spi-tx-bus-width = <1>;
- 		spi-rx-bus-width = <4>;
--		spi-cpol;
--		spi-cpha;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
+-	ccr = omap_dma_chan_read(c, CCR);
+-	/* The channel is no longer active, handle the completion right away */
+-	if (!(ccr & CCR_ENABLE))
+-		omap_dma_callback(c->dma_ch, 0, c);
+-
+ 	ret = dma_cookie_status(chan, cookie, txstate);
+ 	if (ret == DMA_COMPLETE || !txstate)
+ 		return ret;
  
++	if (!c->paused) {
++		uint32_t ccr = omap_dma_chan_read(c, CCR);
++		/*
++		 * The channel is no longer active, set the return value
++		 * accordingly
++		 */
++		if (!(ccr & CCR_ENABLE))
++			ret = DMA_COMPLETE;
++	}
++
+ 	spin_lock_irqsave(&c->vc.lock, flags);
+ 	vd = vchan_find_desc(&c->vc, cookie);
+ 	if (vd) {
 -- 
 2.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
