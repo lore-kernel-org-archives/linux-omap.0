@@ -1,58 +1,58 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 00/11] ARM: DTS/clk: DRA7 family: enable eDMA and audio updates
-Date: Thu, 25 Feb 2016 16:50:16 +0200
-Message-ID: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 04/11] ARM: DTS: dra7: Use eDMA and add DAT port address for McASP3
+Date: Thu, 25 Feb 2016 16:50:20 +0200
+Message-ID: <1456411827-23962-5-git-send-email-peter.ujfalusi@ti.com>
+References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, robh+dt@kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Misael Lopez Cruz <misael.lopez@ti.com>
 
-On dra7 family we have two DMA engine available: sDMA (omap-dma) and eDMA.
-For some peripherals the use of eDMA is better due to L3 interconnect limitation
-when using sDMA. Such peripherals are McASP1/2/3. By switching to eDMA we can
-enable the AFIFO which will help to avoid under or overruns in audio.
+McASP3 does not support constant addressing mode on the DAT
+port, so increment transfers must be used instead.  This
+restriction is also applicable for McASP1 and McASP2.
 
-This set will:
-- add the hwmod data for eDMA TPCC and TPTCs
-- add the needed DT nodes for eDMA and the crossbar
-- we will enable the AFIFO use for audio
-- add hwmod data and DT nodes for all McASP ports
-- Fix the beagle-x15's clkout2 parent setting for the codec
+This DMA addressing constraint poses a major problem for sDMA
+where constant addressing mode is used on the peripheral side.
+Unfortunately, using increment transfers in sDMA comes with
+important side effects.
 
-The patch set has been tested on top of linux-next.
+The addressing mode used in eDMA is INC, so the silicon limitation
+described above has no impact and the McASP3 DAT port can be
+safely added by switching to eDMA instead of sDMA.
 
-Regards,
-Peter
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Misael Lopez Cruz (1):
-  ARM: DTS: dra7: Use eDMA and add DAT port address for McASP3
+ arch/arm/boot/dts/dra7.dtsi | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Peter Ujfalusi (10):
-  ARM: DTS: dra7: Move the sDMA crossbar node under l4_cfg/scm
-  ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0, tptc1
-  ARM: DTS: dra7: Enable eDMA
-  ARM: DTS: dra7-evm: Enable AFIFO use for McASP3
-  ARM: DTS: dra72-evm: Enable AFIFO use for McASP3
-  ARM: DTS: am57xx-beagle-x15: Move clkout2 source selection to codec
-    node
-  ARM: DTS: am57xx-beagle-x15: Enable AFIFO use for McASP3
-  ARM: clk: dra7xx: Correct mcasp8_ahclkx_mux name
-  ARM: DRA7: hwmod: Add data for McASP1/2/4/5/6/7/8
-  ARM: DTS: dra7: Add nodes for McASP1/2/4/5/6/7/8
-
- arch/arm/boot/dts/am57xx-beagle-x15.dts   |   7 +-
- arch/arm/boot/dts/dra7-evm.dts            |   2 +
- arch/arm/boot/dts/dra7.dtsi               | 181 ++++++++++++++++-
- arch/arm/boot/dts/dra72-evm.dts           |   2 +
- arch/arm/boot/dts/dra7xx-clocks.dtsi      |   2 +-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 323 ++++++++++++++++++++++++++++++
- drivers/clk/ti/clk-7xx.c                  |   2 +-
- 7 files changed, 505 insertions(+), 14 deletions(-)
-
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index d2d2568b5695..258e6712a76b 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1467,12 +1467,13 @@
+ 		mcasp3: mcasp@48468000 {
+ 			compatible = "ti,dra7-mcasp-audio";
+ 			ti,hwmods = "mcasp3";
+-			reg = <0x48468000 0x2000>;
+-			reg-names = "mpu";
++			reg = <0x48468000 0x2000>,
++			      <0x46000000 0x1000>;
++			reg-names = "mpu","dat";
+ 			interrupts = <GIC_SPI 151 IRQ_TYPE_LEVEL_HIGH>,
+ 				     <GIC_SPI 150 IRQ_TYPE_LEVEL_HIGH>;
+ 			interrupt-names = "tx", "rx";
+-			dmas = <&sdma_xbar 133>, <&sdma_xbar 132>;
++			dmas = <&edma_xbar 133 1>, <&edma_xbar 132 1>;
+ 			dma-names = "tx", "rx";
+ 			clocks = <&mcasp3_aux_gfclk_mux>, <&mcasp3_ahclkx_mux>;
+ 			clock-names = "fck", "ahclkx";
 -- 
 2.7.1
