@@ -1,120 +1,108 @@
-From: Vishal Thanki <vishalthanki@gmail.com>
-Subject: Re: omap_hsmmc: sdio: issue with generic wakeup IRQ handling
-Date: Thu, 25 Feb 2016 13:18:34 +0100
-Message-ID: <CAC3a_SCuuhgZuLiKgmJZ1bOcjVbA2pyLbhOnU=T3=C+zBEQiOw@mail.gmail.com>
-References: <20160218182750.GA5948@c50.bag.software> <CALtMJEBdXLef8AJ1-8Txmg2iS413bVV7cpQSb+nL5M7jN_QYzw@mail.gmail.com>
- <20160219141135.GA14354@c50.bag.software> <CAC3a_SDH3zspEAUHkGN0qCBKQZBdnhmei2Rqw2Md=7R2iXostA@mail.gmail.com>
- <56CEDB90.6040708@ti.com> <20160225111813.GA19506@c50.bag.software> <56CEE9C1.2050207@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support
+ of a DT graph of ports
+Date: Thu, 25 Feb 2016 15:42:50 +0200
+Message-ID: <56CF04DA.8080905@ti.com>
+References: <cover.1455720381.git.jsarha@ti.com>
+ <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
+ <20160218143530.GB9654@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <56CEE9C1.2050207@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Andreas Fenkart <afenkart@gmail.com>, linux-mmc <linux-mmc@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20160218143530.GB9654@rob-hp-laptop>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, moinejf@free.fr, airlied@linux.ie, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 25, 2016 at 12:47 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> On 02/25/2016 01:18 PM, Vishal Thanki wrote:
+On 02/18/16 16:35, Rob Herring wrote:
+> On Wed, Feb 17, 2016 at 04:49:05PM +0200, Jyri Sarha wrote:
+>> From: Jean-Francois Moine <moinejf@free.fr>
+>>
+>> Two kinds of ports may be declared in a DT graph of ports: video and audio.
+>> This patch accepts the port value from a video port as an alternative
+>> to the video-ports property.
+>> It also accepts audio ports in the case the transmitter is not used as
+>> a slave encoder.
+>> The new file include/sound/tda998x.h prepares to the definition of
+>> a tda998x CODEC.
+>>
+>> Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+>> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+>> ---
+>>   .../devicetree/bindings/display/bridge/tda998x.txt | 51 ++++++++++++
+>>   drivers/gpu/drm/i2c/tda998x_drv.c                  | 90 +++++++++++++++++++---
+>>   include/sound/tda998x.h                            |  8 ++
+>>   3 files changed, 140 insertions(+), 9 deletions(-)
+>>   create mode 100644 include/sound/tda998x.h
+>>
+>> diff --git a/Documentation/devicetree/bindings/display/bridge/tda998x.txt b/Documentation/devicetree/bindings/display/bridge/tda998x.txt
+>> index e9e4bce..35f6a80 100644
+>> --- a/Documentation/devicetree/bindings/display/bridge/tda998x.txt
+>> +++ b/Documentation/devicetree/bindings/display/bridge/tda998x.txt
+>> @@ -16,6 +16,35 @@ Optional properties:
+>>
+>>     - video-ports: 24 bits value which defines how the video controller
+>>   	output is wired to the TDA998x input - default: <0x230145>
+>> +	This property is not used when ports are defined.
+>> +
+>> +Optional nodes:
+>> +
+>> +  - port: up to three ports.
+>> +	The ports are defined according to [1].
+>> +
+>> +    Video port.
+>> +	There may be only one video port.
+>> +	This one must contain the following property:
+>> +
+>> +	- port-type: must be "rgb"
 >
-> [...]
->
->
->>>
->>> Suspend or Runtime suspend?
->>
->>
->> The it is the runtime suspend routine for omap_hsmmc.c
->>
->>         mmc1_pins: pinmux_mmc1_pins {
->>                 pinctrl-single,pins = <
->>                         0x0fc 0x38      /* MMC0_DAT0 */
->>                         0x0f8 0x38      /* MMC0_DAT1 */
->>                         0x0f4 0x38      /* MMC0_DAT2 */
->>                         0x0f0 0x38      /* MMC0_DAT3 */
->>                         0x100 0x38      /* MMC0_CLK */
->>                         0x104 0x38      /* MMC0_CMD */
->>                         0x88  0x07      /* GPMC_CSN3 -> GPIO2_0 */
->>                 >;
->>         };
->>
->>         mmc1_sleep_pins: pinmux_mmc1_sleep_pins {
->>                 pinctrl-single,pins = <
->>                         0x0fc 0x3f      /* MMC0_DAT0 */
->>                         0x0f8 0x3f      /* MMC0_DAT1 */
->>                         0x0f4 0x3f      /* MMC0_DAT2 */
->>                         0x0f0 0x3f      /* MMC0_DAT3 */
->>                         0x100 0x3f      /* MMC0_CLK */
->>                         0x104 0x3f      /* MMC0_CMD */
->>                         0x88  0x17      /* GPMC_CSN3 -> GPIO2_0 PULL UP */
->>                 >;
->>         };
->>
->>         mmc1_cirq_pin: pinmux_cirq_pin {
->>                 pinctrl-single,pins = <
->>                         0x0f8 0x3f      /* MMC0_DAT1 as GPIO2_28 */
->>                 >;
->>         };
->>
->>         wlan0_pwrseq: pwrseq {
->>                 compatible = "mmc-pwrseq-simple";
->>                 reset-gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;
->>                 clocks = <&clk_32768_ck>;
->>                 clock-names = "ext_clock";
->>         };
->>
->> &mmc1 {
->>         status = "okay";
->>         pinctrl-names = "default", "idle", "sleep";
->>         pinctrl-0 = <&mmc1_pins>;
->>         pinctrl-1 = <&mmc1_cirq_pin>;
->>         pinctrl-2 = <&mmc1_sleep_pins>;
->>         interrupts-extended = <&intc 64 &gpio2 28 0>;
->
->
-> ^^ you can define IRQ type here
->
->  &gpio2 28 IRQ_TYPE_LEVEL_LOW
+> This should be implied from the port unit address. In other words,
+> port@0 is defined to be the rgb port. Now, if this is one of several
+> modes for the video port, then that is a different story.
 >
 
-Thank you very much Grygorii for pointing it out.
-With that change, I am not seeing any problem now.
+Do you suggest that also the audio i2s and s/p-dif port-types should be 
+coded in the port unit addresses? Something like: port@0 is always rgb, 
+port@1 is i2s, and port@2 is spdif?
 
-Thanks,
-Vishal
+Having the port-type information explicitly written serves the purpose 
+keeping the dts files human readable. Is saving couple of bytes this 
+important or is there some other reason to not to have the port-type 
+property?
 
-
-
->>         ti,non-removable;
->>         bus-width = <4>;
->>         vmmc-supply = <&ldo2_reg>;
->>         vmmc_aux-supply = <&vmmc>;
->>         keep-power-in-suspend;
->>         enable-sdio-wakeup;
->>         mmc-pwrseq = <&wlan0_pwrseq>;
->> };
->>
->>
->>>
->>>>>
->>>>
->>>> Is there any other suggestion for mwifiex that I should try out? Or
->>>> is there any way in omap_hsmmc to specify the wakeup interrupt
->>>> type (IRQF_TRIGGER_LOW) while using generic wakeup IRQ
->>>> mechanism. I could not find it, but I may be missing something.
->>>
->>>
->>> How your irqs defined in DT? Could you provide mmc+wifi nodes?
->>
->>
->>
->>
->>>
->>>
+>> +	and may contain the optional property:
+>> +
+>> +	- reg: 24 bits value which defines how the video controller
+>> +		output is wired to the TDA998x input (video pins)
+>> +		When absent, the default value is <0x230145>.
 >
-> [..]
+> This is not really how reg is intended to be used. Can you explain how
+> this value is determined?
 >
-> --
-> regards,
-> -grygorii
+
+I never liked this unorthodox usage of reg property either. I'll replace 
+the reg -properties with something more explicit.
+
+>> +    Audio ports.
+>> +	There may be one or two audio ports.
+>> +	These ones must contain the following properties:
+>> +
+>> +	- port-type: must be "i2s" or "spdif"
+>> +
+>> +	- reg: 8 bits value which defines how the audio controller
+>> +		output is wired to the TDA998x input (audio pins)
+>
+> Same here.
+>
+> Rob
+>
