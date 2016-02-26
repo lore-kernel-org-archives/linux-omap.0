@@ -1,57 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] clk: ti: Allow COMPILE_TEST to build selected drivers
-Date: Fri, 26 Feb 2016 09:45:03 -0800
-Message-ID: <1456508703-17390-1-git-send-email-tony@atomide.com>
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v7 0/9] ARM: dts: omap2+: GPMC NAND node fixes
+Date: Fri, 26 Feb 2016 10:44:32 -0800
+Message-ID: <20160226184431.GB13417@atomide.com>
+References: <1456245445-31824-1-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1456245445-31824-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: computersforpeace@gmail.com, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The arch independent drivers can be build testeed with
-COMPILE_TEST. Let's allow that for drivers/clk/ti.
+Hi,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/clk/Makefile    | 2 +-
- drivers/clk/ti/Makefile | 4 ++++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+* Roger Quadros <rogerq@ti.com> [160223 08:37]:
+> Hi Tony,
+> 
+> These patches are a preparatory step towards the NAND DT cleanup
+> done in [1].
 
----
+OK great NAND keeps working for me. I've pushed these into an
+immutable branch against v4.5-r1 named omap-for-v4.6/dt-gpmc.
 
-This allows the appll driver to be built with COMPILE_TEST,
-and this is not currently needed without the adpll driver.
+I have also merged that branch into omap-for-v4.6/dt.
 
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index b038e36..45939a1 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -78,7 +78,7 @@ obj-$(CONFIG_PLAT_SPEAR)		+= spear/
- obj-$(CONFIG_ARCH_STI)			+= st/
- obj-$(CONFIG_ARCH_SUNXI)		+= sunxi/
- obj-$(CONFIG_ARCH_TEGRA)		+= tegra/
--obj-$(CONFIG_ARCH_OMAP2PLUS)		+= ti/
-+obj-y					+= ti/
- obj-$(CONFIG_ARCH_U8500)		+= ux500/
- obj-$(CONFIG_COMMON_CLK_VERSATILE)	+= versatile/
- obj-$(CONFIG_X86)			+= x86/
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index dfe91d7..0deac98 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,3 +1,5 @@
-+ifeq ($(CONFIG_ARCH_OMAP2PLUS), y)
-+
- obj-y					+= clk.o autoidle.o clockdomain.o
- clk-common				= dpll.o composite.o divider.o gate.o \
- 					  fixed-factor.o mux.o apll.o \
-@@ -19,4 +21,6 @@ ifdef CONFIG_ATAGS
- obj-$(CONFIG_ARCH_OMAP3)                += clk-3xxx-legacy.o
- endif
- 
-+endif	# CONFIG_ARCH_OMAP2PLUS
-+
- obj-$(CONFIG_COMMON_CLK_TI_ADPLL)	+= adpll.o
--- 
-2.7.0
+Please feel free to use omap-for-v4.6/dt-gpmc branch as an
+immutable base for the GPMC driver changes.
 
+And please let me know what additional patches I may need to
+apply into omap-for-v4.6/dt for new files that are not in
+omap-for-v4.6/dt-gpmc.
+
+Note that I also fixed two typos below:
+
+> Roger Quadros (9):
+>   ARM: dts: dra7: Fix NAND device nodes.
+
+I removed the trailing period here.
+
+>   ARM: dts: dra7: Remove redundant nand property
+>   ARM: dts: am437x: Fix NAND device nodes
+>   ARM: dts: am437x: Disable wait pin monitoring for NAND
+>   ARM: dts: am335x: Fix NAND device nodes
+>   ARM: dts: am335x: Disable wait pin monitoring for NAND
+>   ARM: dts: dm816x: Fix NAND device nodes
+>   ARM: dts: dm8168-evm: ARM: dts: Disable wait pin monitoring for NAND
+>   ARM: dts: omap3: Fix NAND device nodess
+
+I removed the extra s in nodes here.
+
+Regards,
+
+Tony
