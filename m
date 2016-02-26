@@ -1,117 +1,306 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] dmaengine: omap-dma: Do not call omap_dma_callback() from
- tx_status()
-Date: Fri, 26 Feb 2016 12:23:27 +0200
-Message-ID: <56D0279F.2050703@ti.com>
-References: <1456388939-15722-1-git-send-email-peter.ujfalusi@ti.com>
- <20160226010658.GN5783@n2100.arm.linux.org.uk>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v3 1/5] pwms: pwm-ti*: Remove support for local clock
+ gating
+Date: Fri, 26 Feb 2016 15:57:28 +0530
+Message-ID: <56D02890.8000003@ti.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+ <1456439796-28546-2-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160226010658.GN5783@n2100.arm.linux.org.uk>
+In-Reply-To: <1456439796-28546-2-git-send-email-fcooper@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: vinod.koul@intel.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Franklin S Cooper Jr <fcooper@ti.com>, paul@pwsan.com, t-kristo@ti.com, tony@atomide.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 2016-02-26 03:06, Russell King - ARM Linux wrote:
-> On Thu, Feb 25, 2016 at 10:28:59AM +0200, Peter Ujfalusi wrote:
->> When based on the CCR_ENABLE bit the channel is stopped we should no=
-t call
->> omap_dma_callback(), only change the return value to DMA_COMPLETE. C=
-lient
->> drivers will do the right thing to clean up the channel after the tr=
-ansfer
->> has been completed.
->> Check the CCR_ENABLE only if the channel is not paused since pause i=
-n sDMA
->> means that the channel is stopped.
->> This will fix one hard to reproduce race condition when the channel =
-is
->> terminated during transfer (affecting cyclic operation).
->>
->> Fixes: 1a7cf7b26f25 ("dmaengine: omap-dma: Handle cases when the cha=
-nnel is polled for completion")
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->>  drivers/dma/omap-dma.c | 16 ++++++++++------
->>  1 file changed, 10 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
->> index f6bef0d93998..a6b189fdbbe6 100644
->> --- a/drivers/dma/omap-dma.c
->> +++ b/drivers/dma/omap-dma.c
->> @@ -671,18 +671,22 @@ static enum dma_status omap_dma_tx_status(stru=
-ct dma_chan *chan,
->>  	struct omap_chan *c =3D to_omap_dma_chan(chan);
->>  	struct virt_dma_desc *vd;
->>  	enum dma_status ret;
->> -	uint32_t ccr;
->>  	unsigned long flags;
->> =20
->> -	ccr =3D omap_dma_chan_read(c, CCR);
->> -	/* The channel is no longer active, handle the completion right aw=
-ay */
->> -	if (!(ccr & CCR_ENABLE))
->> -		omap_dma_callback(c->dma_ch, 0, c);
->> -
->>  	ret =3D dma_cookie_status(chan, cookie, txstate);
->>  	if (ret =3D=3D DMA_COMPLETE || !txstate)
->>  		return ret;
->> =20
->> +	if (!c->paused) {
->> +		uint32_t ccr =3D omap_dma_chan_read(c, CCR);
->> +		/*
->> +		 * The channel is no longer active, set the return value
->> +		 * accordingly
->> +		 */
->> +		if (!(ccr & CCR_ENABLE))
->> +			ret =3D DMA_COMPLETE;
->> +	}
->> +
->=20
-> This looks very much like a hack, and surely opens a race condition
-> up: what happens when a request submitted and pending but not yet
-> started?  If the channel is idle, requesting status will report
-> that the request has completed.
->=20
-> It's also wrong for another reason.  If txstate is NULL...
++ Thierry, PWM subsystem maintainer.
 
-True, I have fixed these up.
-
-> Your original commit adding the original hack that you're now removin=
-g
-> above says that this is to support polled operation: I'm not aware of
-> DMA engine supporting such a mode.  DMA_PREP_INTERRUPT is a mechanism
-> where requests can be queued without an interrupt to allow batching.
-
-Also it is used to suppress DMA interrupts during audio playback for ex=
-ample.
-In this case we will run w/o interrupts and the position is polled.
-
-> See the raid5/async_tx code, which queues a set of operations without
-> DMA_PREP_INTERRUPT, with the final operation with DMA_PREP_INTERRUPT
-> set.
-
-We only allow the interrupts to be disabled in cyclic or memcpy mode. W=
-ith
-slave_sg we have interrupts as it is needed to move to the next SG.
-
-> As the driver is reliant on interrupts to move to the next transfer,
-> the patch which causes DMA_PREP_INTERRUPT to influence whether
-> interrupts are sent is actually buggy, and will prevent several
-> queued DMA operations to fail.
-
-Yes, the omap-dma only allows the interrupts to be actually disabled wh=
-en it
-is save to do so. slave_sg can not work w/o interrupts so there we don'=
-t
-disable them.
-
->=20
-
-
---=20
-P=E9ter
+On Friday 26 February 2016 04:06 AM, Franklin S Cooper Jr wrote:
+> The PWMSS local clock gating registers have no real purpose on OMAP ARM
+> devices. These registers were left over registers from DSP IP where the
+> PRCM doesn't exist. There is a silicon bug where gating and ungating clocks
+> don't function properly. TRMs will be update to indicate that these
+> registers shouldn't be touched.
+> 
+> Therefore, all code that accesses the PWMSS_CLKCONFIG or PWMSS_CLKSTATUS
+> will be removed by this patch with zero loss of functionality by the ECAP
+> and EPWM drivers.
+> 
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> ---
+> Version 3 changes:
+> New patch
+> 
+>  drivers/pwm/pwm-tiecap.c   | 28 --------------------------
+>  drivers/pwm/pwm-tiehrpwm.c | 29 ---------------------------
+>  drivers/pwm/pwm-tipwmss.c  | 49 ----------------------------------------------
+>  drivers/pwm/pwm-tipwmss.h  | 39 ------------------------------------
+>  4 files changed, 145 deletions(-)
+>  delete mode 100644 drivers/pwm/pwm-tipwmss.h
+> 
+> diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+> index 616af76..9e0865d7 100644
+> --- a/drivers/pwm/pwm-tiecap.c
+> +++ b/drivers/pwm/pwm-tiecap.c
+> @@ -27,8 +27,6 @@
+>  #include <linux/pwm.h>
+>  #include <linux/of_device.h>
+>  
+> -#include "pwm-tipwmss.h"
+> -
+>  /* ECAP registers and bits definitions */
+>  #define CAP1			0x08
+>  #define CAP2			0x0C
+> @@ -206,7 +204,6 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+>  	struct resource *r;
+>  	struct clk *clk;
+>  	struct ecap_pwm_chip *pc;
+> -	u16 status;
+>  
+>  	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
+>  	if (!pc)
+> @@ -243,40 +240,15 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	pm_runtime_enable(&pdev->dev);
+> -	pm_runtime_get_sync(&pdev->dev);
+> -
+> -	status = pwmss_submodule_state_change(pdev->dev.parent,
+> -			PWMSS_ECAPCLK_EN);
+> -	if (!(status & PWMSS_ECAPCLK_EN_ACK)) {
+> -		dev_err(&pdev->dev, "PWMSS config space clock enable failed\n");
+> -		ret = -EINVAL;
+> -		goto pwmss_clk_failure;
+> -	}
+> -
+> -	pm_runtime_put_sync(&pdev->dev);
+>  
+>  	platform_set_drvdata(pdev, pc);
+>  	return 0;
+> -
+> -pwmss_clk_failure:
+> -	pm_runtime_put_sync(&pdev->dev);
+> -	pm_runtime_disable(&pdev->dev);
+> -	pwmchip_remove(&pc->chip);
+> -	return ret;
+>  }
+>  
+>  static int ecap_pwm_remove(struct platform_device *pdev)
+>  {
+>  	struct ecap_pwm_chip *pc = platform_get_drvdata(pdev);
+>  
+> -	pm_runtime_get_sync(&pdev->dev);
+> -	/*
+> -	 * Due to hardware misbehaviour, acknowledge of the stop_req
+> -	 * is missing. Hence checking of the status bit skipped.
+> -	 */
+> -	pwmss_submodule_state_change(pdev->dev.parent, PWMSS_ECAPCLK_STOP_REQ);
+> -	pm_runtime_put_sync(&pdev->dev);
+> -
+>  	pm_runtime_disable(&pdev->dev);
+>  	return pwmchip_remove(&pc->chip);
+>  }
+> diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
+> index 6a41e66..e09b1f0 100644
+> --- a/drivers/pwm/pwm-tiehrpwm.c
+> +++ b/drivers/pwm/pwm-tiehrpwm.c
+> @@ -27,8 +27,6 @@
+>  #include <linux/pm_runtime.h>
+>  #include <linux/of_device.h>
+>  
+> -#include "pwm-tipwmss.h"
+> -
+>  /* EHRPWM registers and bits definitions */
+>  
+>  /* Time base module registers */
+> @@ -437,7 +435,6 @@ static int ehrpwm_pwm_probe(struct platform_device *pdev)
+>  	struct resource *r;
+>  	struct clk *clk;
+>  	struct ehrpwm_pwm_chip *pc;
+> -	u16 status;
+>  
+>  	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
+>  	if (!pc)
+> @@ -487,27 +484,9 @@ static int ehrpwm_pwm_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	pm_runtime_enable(&pdev->dev);
+> -	pm_runtime_get_sync(&pdev->dev);
+> -
+> -	status = pwmss_submodule_state_change(pdev->dev.parent,
+> -			PWMSS_EPWMCLK_EN);
+> -	if (!(status & PWMSS_EPWMCLK_EN_ACK)) {
+> -		dev_err(&pdev->dev, "PWMSS config space clock enable failed\n");
+> -		ret = -EINVAL;
+> -		goto pwmss_clk_failure;
+> -	}
+> -
+> -	pm_runtime_put_sync(&pdev->dev);
+>  
+>  	platform_set_drvdata(pdev, pc);
+>  	return 0;
+> -
+> -pwmss_clk_failure:
+> -	pm_runtime_put_sync(&pdev->dev);
+> -	pm_runtime_disable(&pdev->dev);
+> -	pwmchip_remove(&pc->chip);
+> -	clk_unprepare(pc->tbclk);
+> -	return ret;
+>  }
+>  
+>  static int ehrpwm_pwm_remove(struct platform_device *pdev)
+> @@ -516,14 +495,6 @@ static int ehrpwm_pwm_remove(struct platform_device *pdev)
+>  
+>  	clk_unprepare(pc->tbclk);
+>  
+> -	pm_runtime_get_sync(&pdev->dev);
+> -	/*
+> -	 * Due to hardware misbehaviour, acknowledge of the stop_req
+> -	 * is missing. Hence checking of the status bit skipped.
+> -	 */
+> -	pwmss_submodule_state_change(pdev->dev.parent, PWMSS_EPWMCLK_STOP_REQ);
+> -	pm_runtime_put_sync(&pdev->dev);
+> -
+>  	pm_runtime_put_sync(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+>  	return pwmchip_remove(&pc->chip);
+> diff --git a/drivers/pwm/pwm-tipwmss.c b/drivers/pwm/pwm-tipwmss.c
+> index 5cf65a1..829f499 100644
+> --- a/drivers/pwm/pwm-tipwmss.c
+> +++ b/drivers/pwm/pwm-tipwmss.c
+> @@ -22,32 +22,6 @@
+>  #include <linux/pm_runtime.h>
+>  #include <linux/of_device.h>
+>  
+> -#include "pwm-tipwmss.h"
+> -
+> -#define PWMSS_CLKCONFIG		0x8	/* Clock gating reg */
+> -#define PWMSS_CLKSTATUS		0xc	/* Clock gating status reg */
+> -
+> -struct pwmss_info {
+> -	void __iomem	*mmio_base;
+> -	struct mutex	pwmss_lock;
+> -	u16		pwmss_clkconfig;
+> -};
+> -
+> -u16 pwmss_submodule_state_change(struct device *dev, int set)
+> -{
+> -	struct pwmss_info *info = dev_get_drvdata(dev);
+> -	u16 val;
+> -
+> -	mutex_lock(&info->pwmss_lock);
+> -	val = readw(info->mmio_base + PWMSS_CLKCONFIG);
+> -	val |= set;
+> -	writew(val , info->mmio_base + PWMSS_CLKCONFIG);
+> -	mutex_unlock(&info->pwmss_lock);
+> -
+> -	return readw(info->mmio_base + PWMSS_CLKSTATUS);
+> -}
+> -EXPORT_SYMBOL(pwmss_submodule_state_change);
+> -
+>  static const struct of_device_id pwmss_of_match[] = {
+>  	{ .compatible	= "ti,am33xx-pwmss" },
+>  	{},
+> @@ -57,24 +31,10 @@ MODULE_DEVICE_TABLE(of, pwmss_of_match);
+>  static int pwmss_probe(struct platform_device *pdev)
+>  {
+>  	int ret;
+> -	struct resource *r;
+> -	struct pwmss_info *info;
+>  	struct device_node *node = pdev->dev.of_node;
+>  
+> -	info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
+> -	if (!info)
+> -		return -ENOMEM;
+> -
+> -	mutex_init(&info->pwmss_lock);
+> -
+> -	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	info->mmio_base = devm_ioremap_resource(&pdev->dev, r);
+> -	if (IS_ERR(info->mmio_base))
+> -		return PTR_ERR(info->mmio_base);
+> -
+>  	pm_runtime_enable(&pdev->dev);
+>  	pm_runtime_get_sync(&pdev->dev);
+> -	platform_set_drvdata(pdev, info);
+>  
+>  	/* Populate all the child nodes here... */
+>  	ret = of_platform_populate(node, NULL, NULL, &pdev->dev);
+> @@ -86,30 +46,21 @@ static int pwmss_probe(struct platform_device *pdev)
+>  
+>  static int pwmss_remove(struct platform_device *pdev)
+>  {
+> -	struct pwmss_info *info = platform_get_drvdata(pdev);
+> -
+>  	pm_runtime_put_sync(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+> -	mutex_destroy(&info->pwmss_lock);
+>  	return 0;
+>  }
+>  
+>  #ifdef CONFIG_PM_SLEEP
+>  static int pwmss_suspend(struct device *dev)
+>  {
+> -	struct pwmss_info *info = dev_get_drvdata(dev);
+> -
+> -	info->pwmss_clkconfig = readw(info->mmio_base + PWMSS_CLKCONFIG);
+>  	pm_runtime_put_sync(dev);
+>  	return 0;
+>  }
+>  
+>  static int pwmss_resume(struct device *dev)
+>  {
+> -	struct pwmss_info *info = dev_get_drvdata(dev);
+> -
+>  	pm_runtime_get_sync(dev);
+> -	writew(info->pwmss_clkconfig, info->mmio_base + PWMSS_CLKCONFIG);
+>  	return 0;
+>  }
+>  #endif
+> diff --git a/drivers/pwm/pwm-tipwmss.h b/drivers/pwm/pwm-tipwmss.h
+> deleted file mode 100644
+> index 10ad804..0000000
+> --- a/drivers/pwm/pwm-tipwmss.h
+> +++ /dev/null
+> @@ -1,39 +0,0 @@
+> -/*
+> - * TI PWM Subsystem driver
+> - *
+> - * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by
+> - * the Free Software Foundation; either version 2 of the License, or
+> - * (at your option) any later version.
+> - *
+> - * This program is distributed in the hope that it will be useful,
+> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> - * GNU General Public License for more details.
+> - *
+> - */
+> -
+> -#ifndef __TIPWMSS_H
+> -#define __TIPWMSS_H
+> -
+> -/* PWM substem clock gating */
+> -#define PWMSS_ECAPCLK_EN	BIT(0)
+> -#define PWMSS_ECAPCLK_STOP_REQ	BIT(1)
+> -#define PWMSS_EPWMCLK_EN	BIT(8)
+> -#define PWMSS_EPWMCLK_STOP_REQ	BIT(9)
+> -
+> -#define PWMSS_ECAPCLK_EN_ACK	BIT(0)
+> -#define PWMSS_EPWMCLK_EN_ACK	BIT(8)
+> -
+> -#ifdef CONFIG_PWM_TIPWMSS
+> -extern u16 pwmss_submodule_state_change(struct device *dev, int set);
+> -#else
+> -static inline u16 pwmss_submodule_state_change(struct device *dev, int set)
+> -{
+> -	/* return success status value */
+> -	return 0xFFFF;
+> -}
+> -#endif
+> -#endif	/* __TIPWMSS_H */
+> 
