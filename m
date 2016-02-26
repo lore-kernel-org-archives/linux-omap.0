@@ -1,44 +1,38 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH 6/7] rtc: as3722: Drop IRQF_EARLY_RESUME flag
-Date: Fri, 26 Feb 2016 17:42:56 +0200
-Message-ID: <1456501377-16871-7-git-send-email-grygorii.strashko@ti.com>
-References: <1456501377-16871-1-git-send-email-grygorii.strashko@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFT PATCH] arm: omap1_defconfig: convert to use libata PATA drivers
+Date: Fri, 26 Feb 2016 17:17 +0100
+Message-ID: <14037681.WEvu3PZVCh@wuerfel>
+References: <1439571876-13758-1-git-send-email-b.zolnierkie@samsung.com> <20150817063454.GF4215@atomide.com> <6359194.rjne3vOG9H@amdc1976>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456501377-16871-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Alessandro Zummo <a.zummo@towertech.it>, MyungJoo Ham <myungjoo.ham@samsung.com>, Lars-Peter Clausen <lars@metafoo.de>
-Cc: rtc-linux@googlegroups.com, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Nishanth Menon <nm@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <6359194.rjne3vOG9H@amdc1976>
+Sender: linux-ide-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-as3722 RTC IRQ is nested threaded and wired to the as3722 inerrupt
-controller. So, this flag is not required for nested irqs anymore,
-since commit 3c646f2c6aa9 ("genirq: Don't suspend nested_thread irqs
-over system suspend") was merged.
+On Thursday 04 February 2016 15:16:10 Bartlomiej Zolnierkiewicz wrote:
+> On Sunday, August 16, 2015 11:34:55 PM Tony Lindgren wrote:
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Laxman Dewangan <ldewangan@nvidia.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/rtc/rtc-as3722.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> > > Build tested only.
+> > > If you have affected hardware please test.  Thank you.
+> > 
+> > All my omap1 devices are in a rack using NFSroot or MMC so
+> > I can't test this. Seems like a good idea to me thoug, and does
+> > not cause merge conflicts. So if you want to queue this via
+> > along with other PATA related patches, please feel free to
+> > add:
+> > 
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> Thank you.
+> 
+> Arnd/Olof, could you please merge this patch?
+> 
 
-diff --git a/drivers/rtc/rtc-as3722.c b/drivers/rtc/rtc-as3722.c
-index 56cc582..6ef0c88 100644
---- a/drivers/rtc/rtc-as3722.c
-+++ b/drivers/rtc/rtc-as3722.c
-@@ -210,7 +210,7 @@ static int as3722_rtc_probe(struct platform_device *pdev)
- 	dev_info(&pdev->dev, "RTC interrupt %d\n", as3722_rtc->alarm_irq);
- 
- 	ret = devm_request_threaded_irq(&pdev->dev, as3722_rtc->alarm_irq, NULL,
--			as3722_alarm_irq, IRQF_ONESHOT | IRQF_EARLY_RESUME,
-+			as3722_alarm_irq, IRQF_ONESHOT,
- 			"rtc-alarm", as3722_rtc);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
--- 
-2.7.2
+Can you send the two patches in question again, and add arm@kernel.org
+to Cc? I have trouble pulling them out of the archive at the moment.
+
+	Arnd
