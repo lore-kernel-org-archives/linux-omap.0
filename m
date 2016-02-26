@@ -1,41 +1,98 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
-Date: Fri, 26 Feb 2016 15:03:19 +0200
-Message-ID: <56D04D17.6030502@ti.com>
-References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
- <20160204224128.GG4215@xsjsorenbubuntu>
- <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
- <20160204233950.GH4215@xsjsorenbubuntu>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] dmaengine: omap-dma: Do not call omap_dma_callback() from
+ tx_status()
+Date: Fri, 26 Feb 2016 15:53:18 +0200
+Message-ID: <56D058CE.5050205@ti.com>
+References: <1456388939-15722-1-git-send-email-peter.ujfalusi@ti.com>
+ <20160226010658.GN5783@n2100.arm.linux.org.uk> <56D0279F.2050703@ti.com>
+ <20160226112524.GP5783@n2100.arm.linux.org.uk> <56D048EA.2000604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20160204233950.GH4215@xsjsorenbubuntu>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
-List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
- <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: =?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>
-Cc: kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Liviu Dudau <liviu.dudau-5wv7dgnIgG8@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Wei Xu <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Jun Nie <jun.nie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56D048EA.2000604@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: vinod.koul@intel.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDIvMDUvMjAxNiAwMTozOSBBTSwgU8O2cmVuIEJyaW5rbWFubiB3cm90ZToKPiBPbiBUaHUs
-IDIwMTYtMDItMDQgYXQgMTU6MTQ6NDcgLTA4MDAsIE1vcml0eiBGaXNjaGVyIHdyb3RlOgo+PiBI
-aSBTb2VyZW4sCj4+Cj4+IE9uIFRodSwgRmViIDQsIDIwMTYgYXQgMjo0MSBQTSwgU8O2cmVuIEJy
-aW5rbWFubgo+PiA8c29yZW4uYnJpbmttYW5uQHhpbGlueC5jb20+IHdyb3RlOgo+Pgo+Pj4gQnV0
-IHdpdGggdGhpcyBjaGFuZ2UgdGhlICdpZiAhQ1BVX0ZSRVEnIGJlY29tZXMgb2Jzb2xldGUuCj4+
-IEknbSBjb25mdXNlZCwgY291bGQgeW91IGV4cGxhaW4gdGhhdCBzdGF0ZW1lbnQ/IFlvdSBkb24n
-dCB3YW50IHBlb3BsZQo+PiBhY2NpZGVudGFsbHkgcnVubmluZyB3aXRoIEdUIHdoZW4gQ1BVX0ZS
-RVEgaXMgb24sIHJpZ2h0Pwo+IAo+IENvcnJlY3QuIEJ1dCB3aXRoIHRoaXMgS2NvbmZpZyByZXdv
-cmsgeW91IGNhbiBqdXN0IGRlc2VsZWN0IGl0IGluCj4gS2NvbmZpZy4gVGhlIGdlbmVyaWMgSEFW
-RV9HVCBjb3VsZCBhbHdheXMgYmUgc2VsZWN0ZWQuCj4gCgoKRG9uJ3Qga25vdyB3aG9tIHNob3Vs
-ZCBpIGFzayAtIGJ1dCB3aGF0IHdpbGwgYmUgdGhlIGZpbmFsIGNvbmNsdXNpb24gaGVyZT8KQ2Fu
-IGl0IGJlIG1lcmdlZD8KCi0tIApyZWdhcmRzLAotZ3J5Z29yaWkKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LXJvY2tjaGlwIG1haWxpbmcgbGlz
-dApMaW51eC1yb2NrY2hpcEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRl
-YWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtcm9ja2NoaXAK
+On 2016-02-26 14:45, Peter Ujfalusi wrote:
+> On 2016-02-26 13:25, Russell King - ARM Linux wrote:
+>>>> Your original commit adding the original hack that you're now remo=
+ving
+>>>> above says that this is to support polled operation: I'm not aware=
+ of
+>>>> DMA engine supporting such a mode.  DMA_PREP_INTERRUPT is a mechan=
+ism
+>>>> where requests can be queued without an interrupt to allow batchin=
+g.
+>>>
+>>> Also it is used to suppress DMA interrupts during audio playback fo=
+r example.
+>>> In this case we will run w/o interrupts and the position is polled.
+>>>
+>>>> See the raid5/async_tx code, which queues a set of operations with=
+out
+>>>> DMA_PREP_INTERRUPT, with the final operation with DMA_PREP_INTERRU=
+PT
+>>>> set.
+>>>
+>>> We only allow the interrupts to be disabled in cyclic or memcpy mod=
+e. With
+>>> slave_sg we have interrupts as it is needed to move to the next SG.
+>>>
+>>>> As the driver is reliant on interrupts to move to the next transfe=
+r,
+>>>> the patch which causes DMA_PREP_INTERRUPT to influence whether
+>>>> interrupts are sent is actually buggy, and will prevent several
+>>>> queued DMA operations to fail.
+>>>
+>>> Yes, the omap-dma only allows the interrupts to be actually disable=
+d when it
+>>> is save to do so. slave_sg can not work w/o interrupts so there we =
+don't
+>>> disable them.
+>>
+>> I get the impression that you haven't taken in what I've said, becau=
+se
+>> each fragment of your reply is just repeating what the previous frag=
+ment
+>> said.
+>=20
+> Sorry about that. I got it.
+>=20
+>> Let me state that I don't believe you need any hacks here, and this =
+patch
+>> is not necessary: the final operation in a set of chained memcpy()s =
+should
+>> have DMA_PREP_INTERRUPT set.
+>=20
+> calling the omap_dma_callback() from the tx_status() was a bad idea, =
+this is
+> why I'm fixing it.
+
+The reason that we need to be able to determine if the channel is done =
+with
+the copy by polling the tx_status is: we need to read and write tiler
+registers with DMA on dra7 as per one ERRATA document. This read/write =
+can be
+executed in interrupt context so we can not rely on DMA callback to be
+notified about the completion of the read/write.
+
+> As for the DMA_PREP_INTERRUPT not enabling interrupt was introduced b=
+y:
+> 4ce98c0a20bef (dmaengine: omap-dma: Add support for memcpy)
+>=20
+> While we do not have users submitting multiple descriptors I agree th=
+at this
+> is a possibility and the driver should not fail in such a case.
+> I can send a followup patch to fix the omap_dma_prep_dma_memcpy()
+
+With the updated patch based on your comments I can fix the polling in =
+the
+tx_status callback and with a separate patch I can address your concern
+regarding to multiple transfers queued with only the last one having
+DMA_PREP_INTERRUPT (and callback provided).
+
+--=20
+P=E9ter
