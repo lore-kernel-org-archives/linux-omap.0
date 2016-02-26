@@ -1,306 +1,101 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3 1/5] pwms: pwm-ti*: Remove support for local clock
- gating
-Date: Fri, 26 Feb 2016 15:57:28 +0530
-Message-ID: <56D02890.8000003@ti.com>
-References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
- <1456439796-28546-2-git-send-email-fcooper@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph
+ of ports
+Date: Fri, 26 Feb 2016 11:21:59 +0000
+Message-ID: <20160226112159.GO5783@n2100.arm.linux.org.uk>
+References: <cover.1455720381.git.jsarha@ti.com>
+ <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
+ <20160218143530.GB9654@rob-hp-laptop> <56CF04DA.8080905@ti.com>
+ <20160226004311.GM5783@n2100.arm.linux.org.uk>
+ <56D02594.4020407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456439796-28546-2-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>, paul@pwsan.com, t-kristo@ti.com, tony@atomide.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <56D02594.4020407@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, devicetree@vger.kernel.org, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-+ Thierry, PWM subsystem maintainer.
-
-On Friday 26 February 2016 04:06 AM, Franklin S Cooper Jr wrote:
-> The PWMSS local clock gating registers have no real purpose on OMAP ARM
-> devices. These registers were left over registers from DSP IP where the
-> PRCM doesn't exist. There is a silicon bug where gating and ungating clocks
-> don't function properly. TRMs will be update to indicate that these
-> registers shouldn't be touched.
-> 
-> Therefore, all code that accesses the PWMSS_CLKCONFIG or PWMSS_CLKSTATUS
-> will be removed by this patch with zero loss of functionality by the ECAP
-> and EPWM drivers.
-> 
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-> ---
-> Version 3 changes:
-> New patch
-> 
->  drivers/pwm/pwm-tiecap.c   | 28 --------------------------
->  drivers/pwm/pwm-tiehrpwm.c | 29 ---------------------------
->  drivers/pwm/pwm-tipwmss.c  | 49 ----------------------------------------------
->  drivers/pwm/pwm-tipwmss.h  | 39 ------------------------------------
->  4 files changed, 145 deletions(-)
->  delete mode 100644 drivers/pwm/pwm-tipwmss.h
-> 
-> diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
-> index 616af76..9e0865d7 100644
-> --- a/drivers/pwm/pwm-tiecap.c
-> +++ b/drivers/pwm/pwm-tiecap.c
-> @@ -27,8 +27,6 @@
->  #include <linux/pwm.h>
->  #include <linux/of_device.h>
->  
-> -#include "pwm-tipwmss.h"
-> -
->  /* ECAP registers and bits definitions */
->  #define CAP1			0x08
->  #define CAP2			0x0C
-> @@ -206,7 +204,6 @@ static int ecap_pwm_probe(struct platform_device *pdev)
->  	struct resource *r;
->  	struct clk *clk;
->  	struct ecap_pwm_chip *pc;
-> -	u16 status;
->  
->  	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
->  	if (!pc)
-> @@ -243,40 +240,15 @@ static int ecap_pwm_probe(struct platform_device *pdev)
->  	}
->  
->  	pm_runtime_enable(&pdev->dev);
-> -	pm_runtime_get_sync(&pdev->dev);
-> -
-> -	status = pwmss_submodule_state_change(pdev->dev.parent,
-> -			PWMSS_ECAPCLK_EN);
-> -	if (!(status & PWMSS_ECAPCLK_EN_ACK)) {
-> -		dev_err(&pdev->dev, "PWMSS config space clock enable failed\n");
-> -		ret = -EINVAL;
-> -		goto pwmss_clk_failure;
-> -	}
-> -
-> -	pm_runtime_put_sync(&pdev->dev);
->  
->  	platform_set_drvdata(pdev, pc);
->  	return 0;
-> -
-> -pwmss_clk_failure:
-> -	pm_runtime_put_sync(&pdev->dev);
-> -	pm_runtime_disable(&pdev->dev);
-> -	pwmchip_remove(&pc->chip);
-> -	return ret;
->  }
->  
->  static int ecap_pwm_remove(struct platform_device *pdev)
->  {
->  	struct ecap_pwm_chip *pc = platform_get_drvdata(pdev);
->  
-> -	pm_runtime_get_sync(&pdev->dev);
-> -	/*
-> -	 * Due to hardware misbehaviour, acknowledge of the stop_req
-> -	 * is missing. Hence checking of the status bit skipped.
-> -	 */
-> -	pwmss_submodule_state_change(pdev->dev.parent, PWMSS_ECAPCLK_STOP_REQ);
-> -	pm_runtime_put_sync(&pdev->dev);
-> -
->  	pm_runtime_disable(&pdev->dev);
->  	return pwmchip_remove(&pc->chip);
->  }
-> diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
-> index 6a41e66..e09b1f0 100644
-> --- a/drivers/pwm/pwm-tiehrpwm.c
-> +++ b/drivers/pwm/pwm-tiehrpwm.c
-> @@ -27,8 +27,6 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/of_device.h>
->  
-> -#include "pwm-tipwmss.h"
-> -
->  /* EHRPWM registers and bits definitions */
->  
->  /* Time base module registers */
-> @@ -437,7 +435,6 @@ static int ehrpwm_pwm_probe(struct platform_device *pdev)
->  	struct resource *r;
->  	struct clk *clk;
->  	struct ehrpwm_pwm_chip *pc;
-> -	u16 status;
->  
->  	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
->  	if (!pc)
-> @@ -487,27 +484,9 @@ static int ehrpwm_pwm_probe(struct platform_device *pdev)
->  	}
->  
->  	pm_runtime_enable(&pdev->dev);
-> -	pm_runtime_get_sync(&pdev->dev);
-> -
-> -	status = pwmss_submodule_state_change(pdev->dev.parent,
-> -			PWMSS_EPWMCLK_EN);
-> -	if (!(status & PWMSS_EPWMCLK_EN_ACK)) {
-> -		dev_err(&pdev->dev, "PWMSS config space clock enable failed\n");
-> -		ret = -EINVAL;
-> -		goto pwmss_clk_failure;
-> -	}
-> -
-> -	pm_runtime_put_sync(&pdev->dev);
->  
->  	platform_set_drvdata(pdev, pc);
->  	return 0;
-> -
-> -pwmss_clk_failure:
-> -	pm_runtime_put_sync(&pdev->dev);
-> -	pm_runtime_disable(&pdev->dev);
-> -	pwmchip_remove(&pc->chip);
-> -	clk_unprepare(pc->tbclk);
-> -	return ret;
->  }
->  
->  static int ehrpwm_pwm_remove(struct platform_device *pdev)
-> @@ -516,14 +495,6 @@ static int ehrpwm_pwm_remove(struct platform_device *pdev)
->  
->  	clk_unprepare(pc->tbclk);
->  
-> -	pm_runtime_get_sync(&pdev->dev);
-> -	/*
-> -	 * Due to hardware misbehaviour, acknowledge of the stop_req
-> -	 * is missing. Hence checking of the status bit skipped.
-> -	 */
-> -	pwmss_submodule_state_change(pdev->dev.parent, PWMSS_EPWMCLK_STOP_REQ);
-> -	pm_runtime_put_sync(&pdev->dev);
-> -
->  	pm_runtime_put_sync(&pdev->dev);
->  	pm_runtime_disable(&pdev->dev);
->  	return pwmchip_remove(&pc->chip);
-> diff --git a/drivers/pwm/pwm-tipwmss.c b/drivers/pwm/pwm-tipwmss.c
-> index 5cf65a1..829f499 100644
-> --- a/drivers/pwm/pwm-tipwmss.c
-> +++ b/drivers/pwm/pwm-tipwmss.c
-> @@ -22,32 +22,6 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/of_device.h>
->  
-> -#include "pwm-tipwmss.h"
-> -
-> -#define PWMSS_CLKCONFIG		0x8	/* Clock gating reg */
-> -#define PWMSS_CLKSTATUS		0xc	/* Clock gating status reg */
-> -
-> -struct pwmss_info {
-> -	void __iomem	*mmio_base;
-> -	struct mutex	pwmss_lock;
-> -	u16		pwmss_clkconfig;
-> -};
-> -
-> -u16 pwmss_submodule_state_change(struct device *dev, int set)
-> -{
-> -	struct pwmss_info *info = dev_get_drvdata(dev);
-> -	u16 val;
-> -
-> -	mutex_lock(&info->pwmss_lock);
-> -	val = readw(info->mmio_base + PWMSS_CLKCONFIG);
-> -	val |= set;
-> -	writew(val , info->mmio_base + PWMSS_CLKCONFIG);
-> -	mutex_unlock(&info->pwmss_lock);
-> -
-> -	return readw(info->mmio_base + PWMSS_CLKSTATUS);
-> -}
-> -EXPORT_SYMBOL(pwmss_submodule_state_change);
-> -
->  static const struct of_device_id pwmss_of_match[] = {
->  	{ .compatible	= "ti,am33xx-pwmss" },
->  	{},
-> @@ -57,24 +31,10 @@ MODULE_DEVICE_TABLE(of, pwmss_of_match);
->  static int pwmss_probe(struct platform_device *pdev)
->  {
->  	int ret;
-> -	struct resource *r;
-> -	struct pwmss_info *info;
->  	struct device_node *node = pdev->dev.of_node;
->  
-> -	info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
-> -	if (!info)
-> -		return -ENOMEM;
-> -
-> -	mutex_init(&info->pwmss_lock);
-> -
-> -	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	info->mmio_base = devm_ioremap_resource(&pdev->dev, r);
-> -	if (IS_ERR(info->mmio_base))
-> -		return PTR_ERR(info->mmio_base);
-> -
->  	pm_runtime_enable(&pdev->dev);
->  	pm_runtime_get_sync(&pdev->dev);
-> -	platform_set_drvdata(pdev, info);
->  
->  	/* Populate all the child nodes here... */
->  	ret = of_platform_populate(node, NULL, NULL, &pdev->dev);
-> @@ -86,30 +46,21 @@ static int pwmss_probe(struct platform_device *pdev)
->  
->  static int pwmss_remove(struct platform_device *pdev)
->  {
-> -	struct pwmss_info *info = platform_get_drvdata(pdev);
-> -
->  	pm_runtime_put_sync(&pdev->dev);
->  	pm_runtime_disable(&pdev->dev);
-> -	mutex_destroy(&info->pwmss_lock);
->  	return 0;
->  }
->  
->  #ifdef CONFIG_PM_SLEEP
->  static int pwmss_suspend(struct device *dev)
->  {
-> -	struct pwmss_info *info = dev_get_drvdata(dev);
-> -
-> -	info->pwmss_clkconfig = readw(info->mmio_base + PWMSS_CLKCONFIG);
->  	pm_runtime_put_sync(dev);
->  	return 0;
->  }
->  
->  static int pwmss_resume(struct device *dev)
->  {
-> -	struct pwmss_info *info = dev_get_drvdata(dev);
-> -
->  	pm_runtime_get_sync(dev);
-> -	writew(info->pwmss_clkconfig, info->mmio_base + PWMSS_CLKCONFIG);
->  	return 0;
->  }
->  #endif
-> diff --git a/drivers/pwm/pwm-tipwmss.h b/drivers/pwm/pwm-tipwmss.h
-> deleted file mode 100644
-> index 10ad804..0000000
-> --- a/drivers/pwm/pwm-tipwmss.h
-> +++ /dev/null
-> @@ -1,39 +0,0 @@
-> -/*
-> - * TI PWM Subsystem driver
-> - *
-> - * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License as published by
-> - * the Free Software Foundation; either version 2 of the License, or
-> - * (at your option) any later version.
-> - *
-> - * This program is distributed in the hope that it will be useful,
-> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> - * GNU General Public License for more details.
-> - *
-> - */
-> -
-> -#ifndef __TIPWMSS_H
-> -#define __TIPWMSS_H
-> -
-> -/* PWM substem clock gating */
-> -#define PWMSS_ECAPCLK_EN	BIT(0)
-> -#define PWMSS_ECAPCLK_STOP_REQ	BIT(1)
-> -#define PWMSS_EPWMCLK_EN	BIT(8)
-> -#define PWMSS_EPWMCLK_STOP_REQ	BIT(9)
-> -
-> -#define PWMSS_ECAPCLK_EN_ACK	BIT(0)
-> -#define PWMSS_EPWMCLK_EN_ACK	BIT(8)
-> -
-> -#ifdef CONFIG_PWM_TIPWMSS
-> -extern u16 pwmss_submodule_state_change(struct device *dev, int set);
-> -#else
-> -static inline u16 pwmss_submodule_state_change(struct device *dev, int set)
-> -{
-> -	/* return success status value */
-> -	return 0xFFFF;
-> -}
-> -#endif
-> -#endif	/* __TIPWMSS_H */
-> 
+T24gRnJpLCBGZWIgMjYsIDIwMTYgYXQgMTI6MTQ6NDRQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90
+ZToKPiBPbiAwMi8yNi8xNiAwMjo0MywgUnVzc2VsbCBLaW5nIC0gQVJNIExpbnV4IHdyb3RlOgo+
+ID5PbiBUaHUsIEZlYiAyNSwgMjAxNiBhdCAwMzo0Mjo1MFBNICswMjAwLCBKeXJpIFNhcmhhIHdy
+b3RlOgo+ID4+T24gMDIvMTgvMTYgMTY6MzUsIFJvYiBIZXJyaW5nIHdyb3RlOgo+ID4+PlRoaXMg
+c2hvdWxkIGJlIGltcGxpZWQgZnJvbSB0aGUgcG9ydCB1bml0IGFkZHJlc3MuIEluIG90aGVyIHdv
+cmRzLAo+ID4+PnBvcnRAMCBpcyBkZWZpbmVkIHRvIGJlIHRoZSByZ2IgcG9ydC4gTm93LCBpZiB0
+aGlzIGlzIG9uZSBvZiBzZXZlcmFsCj4gPj4+bW9kZXMgZm9yIHRoZSB2aWRlbyBwb3J0LCB0aGVu
+IHRoYXQgaXMgYSBkaWZmZXJlbnQgc3RvcnkuCj4gPj4+Cj4gPj4KPiA+PkRvIHlvdSBzdWdnZXN0
+IHRoYXQgYWxzbyB0aGUgYXVkaW8gaTJzIGFuZCBzL3AtZGlmIHBvcnQtdHlwZXMgc2hvdWxkIGJl
+Cj4gPj5jb2RlZCBpbiB0aGUgcG9ydCB1bml0IGFkZHJlc3Nlcz8gU29tZXRoaW5nIGxpa2U6IHBv
+cnRAMCBpcyBhbHdheXMgcmdiLAo+ID4+cG9ydEAxIGlzIGkycywgYW5kIHBvcnRAMiBpcyBzcGRp
+Zj8KPiA+Cj4gPkZvciB0aGUgYXVkaW8gaW5wdXRzLCB0aGUgcG9ydCBhZGRyZXNzIGNvcnJlc3Bv
+bmRzIHRvIHRoZSBpbnB1dCBwaW4uCj4gPlREQTk5OHggZGV2aWNlcyBjYW4gaGF2ZSBtdWx0aXBs
+ZSBzdHJlYW1zIHJvdXRlZCB0byB0aGUgcGlucywgYW5kIGNhbgo+ID5zZWxlY3QgYmV0d2VlbiB0
+aGVtLgo+ID4KPiA+Rm9yIGV4YW1wbGUsIHRoZXJlIG1heSBiZSBmb3VyIEkyUyBkYXRhIHBpbnMg
+YW5kIG9uZSBJMlMgY2xvY2sgcGluLgo+ID5XaGVuIHVzaW5nIHN0ZXJlbywgeW91IGNhbiBzZWxl
+Y3Qgd2hpY2ggb2YgdGhlIGZvdXIgSTJTIGRhdGEgcGlucwo+ID5jYXJyaWVzIHRoZSBhdWRpbyBk
+YXRhLgo+ID4KPiAKPiBTdXJlLCBidXQgSSBkbyBub3QgdGhpbmsgdGhhdCB3b3VsZCBiZSB0aGUg
+dXN1YWwgc2V0dXAuIFRoZSBvbmx5ICJub3JtYWwiCj4gc2l0dWF0aW9uIEkgY2FuIHRoaW5rIGZv
+ciBoYXZpbmcgYSBuZWVkIHRvIGhhdmUgdHdvIGFsdGVybmF0aXZlIGF1ZGlvIHNldHVwcwo+IHdv
+dWxkIG9uZSBmb3IgaTJzIGFuZCBhbm90aGVyIGZvciBzL3AtZGlmLiBCdXQgdGhlbiBhZ2FpbiBp
+dCBpcyBwb3NzaWJsZSB0bwo+IGNvbWUgdXAgd2l0aCBhIGRlc2lnbiB3aXRoIG11bHRpcGxlIGFs
+dGVybmF0aXZlIGF1ZGlvIHdpcmluZ3MgYW5kIGl0Cj4gcmVsYXRpdmVseSBzaW1wbGUgaGFuZGxl
+IHRoYXQgaW4gRFQgYmluZGluZywgc28gd2h5IG5vdC4KClRoZXJlJ3MgYW5vdGhlciByZWFzb246
+IGlmIHlvdSB3YW50IHRvIHN1cHBvcnQgOCBjaGFubmVsIGF1ZGlvIHVzaW5nIEkyUwpyYXRoZXIg
+dGhhbiBTUERJRiwgdGhlbiB5b3UgbmVlZCB0byB1c2UgZm91ciBJMlMgZGF0YSBpbnB1dHMuICBF
+YWNoIEkyUwpkYXRhIGlucHV0IGNhbiBzdXBwb3J0IG9ubHkgdHdvIGNoYW5uZWxzLgoKPiA+V2hl
+biB1c2luZyBTUERJRiwgdGhlcmUgbWF5IGJlIHR3byBTUERJRiBpbnB1dHMsIGFuZCB5b3UgY2Fu
+IHNlbGVjdAo+ID53aGljaCBTUERJRiBpbnB1dCBpcyB1c2VkLgo+ID4KPiA+U28sICJyZWciIG1h
+eSBub3QgYmUgYW4gYWRkcmVzcyBpbiB0ZXJtcyBvZiBhIENQVSB2aXNpYmxlIGFkZHJlc3MsIGJ1
+dAo+ID5pdCdzIGFuIGFkZHJlc3MgYXMgZmFyIGFzIHNlbGVjdGluZyB0aGUgYXBwcm9wcmlhdGUg
+aW5wdXQgLSBhbmQgaXQKPiA+Zml0cyBpbiB3aXRoIHRoZSByZXF1aXJlbWVudHMgb2YgZVBBUFIs
+IHdoaWNoIGFyZSB0aGF0IGlmIHlvdSBoYXZlCj4gPmEgdW5pdC1hZGRyZXNzICh3aGljaCBpcyBy
+ZXF1aXJlZCB0byBkaXN0aW5ndWlzaCBkaWZmZXJlbnQgcG9ydCBub2RlcykKPiA+dGhlbiB5b3Ug
+bXVzdCBoYXZlIGEgbWF0Y2hpbmcgInJlZyIgcHJvcGVydHkuCj4gCj4gU3RpbGwgSSBkbyBub3Qg
+c2VlIHdoeSBpdCBpcyBkZXNpcmFibGUgdG8gcmV1c2UgcmVnIHByb3BlcnR5LCB3aGVuIHdlIGNh
+bgo+IGludHJvZHVjZSBuZXcgcHJvcGVydHkgZm9yIGRlc2NyaWJpbmcgdGhlIGF1ZGlvIHdpcmlu
+Zy4KCkRpZmZlcmVudCBwZW9wbGUgaGF2ZSBkaWZmZXJlbnQgb3BpbmlvbnMuICBZb3VyIG9waW5p
+b24gaXMganVzdCBhbm90aGVyCmV4YW1wbGUgb2Ygc29tZW9uZSBob2xkaW5nIGEgZGlmZmVyZW50
+IHZpZXcuCgpZb3UgX2hhdmVfIHRvIGhhdmUgYSB1bml0IGFkZHJlc3MsIGFuZCB0aGVyZWZvcmUg
+eW91IF9oYXZlXyB0byBoYXZlIGEKcmVnIHByb3BlcnR5LiAgSWYgeW91IHdhbnQgdG8gdXNlIHNv
+bWUgb3RoZXIgcHJvcGVydHkgdG8gZGVzY3JpYmUgdGhlCmF1ZGlvIGlucHV0IHBpbiwgdGhlbiB5
+b3Ugd2lsbCBuZWVkIHRvIG1ha2UgdXAgYSB0b3RhbGx5IGZpY3RpY2lvdXMKdW5pdC1hZGRyZXNz
+IGFuZCByZWcgcHJvcGVydHkgZm9yIGVhY2ggYXVkaW8gaW5wdXQgcGluLgoKVGhhdCdzIGFkZGlu
+ZyBjb21wbGV4aXR5LCBhcmd1YWJseSB1bm5lY2Vzc2FyeSBjb21wbGV4aXR5LCBhbmQgbWFraW5n
+CnRoZSBiaW5kaW5nIHVubmVjZXNzYXJpbHkgbW9yZSBjb21wbGV4IGZvciBubyBnb29kIHJlYXNv
+bi4KCj4gPkkgZG9uJ3QgcGFydGljdWxhcmx5IGxpa2UgdGhlIHZpZGVvIG5vZGUgdXNpbmcgdGhl
+IFJHQiByb3V0aW5nIHJlZ2lzdGVyCj4gPnZhbHVlIGVpdGhlciBmb3IgdGhlIHJlZyBwcm9wZXJ0
+eSwgYnV0IEkndmUga2VwdCBxdWlldCBiZWNhdXNlIEkgaGF2ZQo+ID5ub3RoaW5nIHRvIG9mZmVy
+IHRoZXJlOiBhZ2FpbiwgdGhpcyBjb21lcyBkb3duIHRvIGVQQVBSIHJlcXVpcmVtZW50cwo+ID5h
+bmQgdGhlIG5lZWQgdG8gc3BlY2lmeSBtdWx0aXBsZSAicG9ydCB7IH0iIG5vZGVzLiAgWW91IGNh
+bid0IGhhdmUgdHdvCj4gPiJwb3J0IHsgfSIgbm9kZXMgd2l0aG91dCB1c2luZyBhIHVuaXQtYWRk
+cmVzcywgYW5kIHdlJ2QgbmVlZCB0byBjaG9zZQo+ID5hIHVuaXQtYWRkcmVzcyBmb3IgaXQgd2hp
+Y2ggZG9lc24ndCBjb25mbGljdCB3aXRoIHRoZSBhdWRpbyBwb3J0cy4uLgo+ID5zbyB0aGVyZSdz
+IGEga2luZCBvZiBsb2dpYyB0byB1c2luZyB0aGUgUkdCIHJvdXRpbmcgdmFsdWUsIHdoaWNoIHdp
+bGwKPiA+bmV2ZXIgY29uZmxpY3QuCj4gPgo+IAo+IElmIHdlIGFmdGVyIGFsbCBkZWNpZGUgdG8g
+Z28gd2l0aCB1c2luZyByZWcgcHJvcGVydHkgZm9yIGF1ZGlvIHdpcmluZyAoYW5kCj4gZXNzZW50
+aWFsbHkgd3JpdGluZyB0aGUgdmFsdWUgZGlyZWN0bHkgdG8gQVBfRU5BIHJlZ2lzdGVyKSwgdGhl
+biB3ZSBjb3VsZAo+IGFsc28gYWdyZWUgdGhhdCB2aWRlbyBwb3J0J3MgdW5pdCBhZGRyZXNzIGlz
+IGFsd2F5cyAwIGFzIGl0IGNvcnJlc3BvbmRzIHRvCj4gYXVkaW8gZGlzYWJsZWQgaW4gQVBfRU5B
+IHJlZ2lzdGVyIGFuZCB3b3VsZCBub3QgY29sbGlkZSB3aXRoIGFueSBhdWRpbwo+ICJhZGRyZXNz
+Ii4gVGhlbiB3ZSBjb3VsZCBrZWVwIHRoZSBvbGQgdmlkZW8tcG9ydHMgcHJvcGVydHkgdG8gY29u
+ZmlndXJlIHRoZQo+IHZpZGVvIHdpcmluZy4gSG93IGRvZXMgdGhpcyBzb3VuZD8KClN1Yi1zdGFu
+ZGFyZCA6KQoKVGhpcyBoYXMgYWN0dWFsbHkgYmVlbiBkaXNjdXNzZWQgYmVmb3JlLiAgU2VlIHRo
+ZSB0aHJlYWQ6CgoiW1BBVENIIHY5IDEvNF0gZHJtL2kyYzogdGRhOTk4eDogQWRkIERUIHN1cHBv
+cnQgZm9yIGF1ZGlvIgoKZnJvbSBKYW51YXJ5IDIwMTUuCgotLSAKUk1LJ3MgUGF0Y2ggc3lzdGVt
+OiBodHRwOi8vd3d3LmFybS5saW51eC5vcmcudWsvZGV2ZWxvcGVyL3BhdGNoZXMvCkZUVEMgYnJv
+YWRiYW5kIGZvciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCA5LjZNYnBzIGRvd24gNDAwa2Jw
+cyB1cAphY2NvcmRpbmcgdG8gc3BlZWR0ZXN0Lm5ldC4KX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
+YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
