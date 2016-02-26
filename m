@@ -1,117 +1,83 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] dmaengine: omap-dma: Do not call omap_dma_callback()
- from tx_status()
-Date: Fri, 26 Feb 2016 11:25:25 +0000
-Message-ID: <20160226112524.GP5783@n2100.arm.linux.org.uk>
-References: <1456388939-15722-1-git-send-email-peter.ujfalusi@ti.com>
- <20160226010658.GN5783@n2100.arm.linux.org.uk>
- <56D0279F.2050703@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] fbdev: kill fb_rotate
+Date: Fri, 26 Feb 2016 13:30:54 +0200
+Message-ID: <56D0376E.6070908@ti.com>
+References: <87d1swdk90.fsf@rasmusvillemoes.dk>
+ <1455044172-17488-1-git-send-email-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="e1gXMQ1LL3xrJ0oLvqTwqDvDIW5jAa6cU"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56D0279F.2050703@ti.com>
+In-Reply-To: <1455044172-17488-1-git-send-email-linux@rasmusvillemoes.dk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 26, 2016 at 12:23:27PM +0200, Peter Ujfalusi wrote:
-> On 2016-02-26 03:06, Russell King - ARM Linux wrote:
-> > On Thu, Feb 25, 2016 at 10:28:59AM +0200, Peter Ujfalusi wrote:
-> >> When based on the CCR_ENABLE bit the channel is stopped we should not call
-> >> omap_dma_callback(), only change the return value to DMA_COMPLETE. Client
-> >> drivers will do the right thing to clean up the channel after the transfer
-> >> has been completed.
-> >> Check the CCR_ENABLE only if the channel is not paused since pause in sDMA
-> >> means that the channel is stopped.
-> >> This will fix one hard to reproduce race condition when the channel is
-> >> terminated during transfer (affecting cyclic operation).
-> >>
-> >> Fixes: 1a7cf7b26f25 ("dmaengine: omap-dma: Handle cases when the channel is polled for completion")
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >> ---
-> >>  drivers/dma/omap-dma.c | 16 ++++++++++------
-> >>  1 file changed, 10 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> >> index f6bef0d93998..a6b189fdbbe6 100644
-> >> --- a/drivers/dma/omap-dma.c
-> >> +++ b/drivers/dma/omap-dma.c
-> >> @@ -671,18 +671,22 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
-> >>  	struct omap_chan *c = to_omap_dma_chan(chan);
-> >>  	struct virt_dma_desc *vd;
-> >>  	enum dma_status ret;
-> >> -	uint32_t ccr;
-> >>  	unsigned long flags;
-> >>  
-> >> -	ccr = omap_dma_chan_read(c, CCR);
-> >> -	/* The channel is no longer active, handle the completion right away */
-> >> -	if (!(ccr & CCR_ENABLE))
-> >> -		omap_dma_callback(c->dma_ch, 0, c);
-> >> -
-> >>  	ret = dma_cookie_status(chan, cookie, txstate);
-> >>  	if (ret == DMA_COMPLETE || !txstate)
-> >>  		return ret;
-> >>  
-> >> +	if (!c->paused) {
-> >> +		uint32_t ccr = omap_dma_chan_read(c, CCR);
-> >> +		/*
-> >> +		 * The channel is no longer active, set the return value
-> >> +		 * accordingly
-> >> +		 */
-> >> +		if (!(ccr & CCR_ENABLE))
-> >> +			ret = DMA_COMPLETE;
-> >> +	}
-> >> +
-> > 
-> > This looks very much like a hack, and surely opens a race condition
-> > up: what happens when a request submitted and pending but not yet
-> > started?  If the channel is idle, requesting status will report
-> > that the request has completed.
-> > 
-> > It's also wrong for another reason.  If txstate is NULL...
-> 
-> True, I have fixed these up.
-> 
-> > Your original commit adding the original hack that you're now removing
-> > above says that this is to support polled operation: I'm not aware of
-> > DMA engine supporting such a mode.  DMA_PREP_INTERRUPT is a mechanism
-> > where requests can be queued without an interrupt to allow batching.
-> 
-> Also it is used to suppress DMA interrupts during audio playback for example.
-> In this case we will run w/o interrupts and the position is polled.
-> 
-> > See the raid5/async_tx code, which queues a set of operations without
-> > DMA_PREP_INTERRUPT, with the final operation with DMA_PREP_INTERRUPT
-> > set.
-> 
-> We only allow the interrupts to be disabled in cyclic or memcpy mode. With
-> slave_sg we have interrupts as it is needed to move to the next SG.
-> 
-> > As the driver is reliant on interrupts to move to the next transfer,
-> > the patch which causes DMA_PREP_INTERRUPT to influence whether
-> > interrupts are sent is actually buggy, and will prevent several
-> > queued DMA operations to fail.
-> 
-> Yes, the omap-dma only allows the interrupts to be actually disabled when it
-> is save to do so. slave_sg can not work w/o interrupts so there we don't
-> disable them.
+--e1gXMQ1LL3xrJ0oLvqTwqDvDIW5jAa6cU
+Content-Type: multipart/mixed; boundary="gNB6FiBEu7MO4fXiRhCuWTLoabHaBpCqS"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+ Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org
+Message-ID: <56D0376E.6070908@ti.com>
+Subject: Re: [PATCH] fbdev: kill fb_rotate
+References: <87d1swdk90.fsf@rasmusvillemoes.dk>
+ <1455044172-17488-1-git-send-email-linux@rasmusvillemoes.dk>
+In-Reply-To: <1455044172-17488-1-git-send-email-linux@rasmusvillemoes.dk>
 
-I get the impression that you haven't taken in what I've said, because
-each fragment of your reply is just repeating what the previous fragment
-said.
+--gNB6FiBEu7MO4fXiRhCuWTLoabHaBpCqS
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Let me state that I don't believe you need any hacks here, and this patch
-is not necessary: the final operation in a set of chained memcpy()s should
-have DMA_PREP_INTERRUPT set.
+On 09/02/16 20:56, Rasmus Villemoes wrote:
+> The fb_rotate method in struct fb_ops is never actually invoked, and
+> it's been that way in the entire history of git (in fact, the last
+> occurrence of the string '->fb_rotate' vanished over 10 years ago,
+> with b4d8aea6d6, and that merely tested whether the callback
+> existed). So remove some dead code and make struct fb_obs a little
+> smaller.
+>=20
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> ---
+>  drivers/video/fbdev/atafb.c            |  3 ---
+>  drivers/video/fbdev/au1100fb.c         | 22 ----------------------
+>  drivers/video/fbdev/bf537-lq035.c      | 23 -----------------------
+>  drivers/video/fbdev/omap/omapfb_main.c | 22 ----------------------
+>  drivers/video/fbdev/skeletonfb.c       | 17 -----------------
+>  include/linux/fb.h                     |  3 ---
+>  6 files changed, 90 deletions(-)
 
-For the periodic stuff for audio, it's irrelevant anyway: periodic
-transfers never complete - you can start them, and they continue running
-until terminated.  There's no completion.
+Thanks, queued for 4.6.
 
--- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+ Tomi
+
+
+--gNB6FiBEu7MO4fXiRhCuWTLoabHaBpCqS--
+
+--e1gXMQ1LL3xrJ0oLvqTwqDvDIW5jAa6cU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJW0DduAAoJEPo9qoy8lh71SfgP/3Izpuhl9VtscXOmkl6nSaYP
+la/a1VFNAUFjePiSXmRG4FqaBUQbHB2ogxN9+89s/RWKM8GkjwDvZKdMgNVq93aB
+1nzJLv8Y06bjdvkRmO/Tobejmy68QuwM3lOLEfMhkVEQ3I0ZxZQtkOQ6/Oil/aVS
+vSAwaLzSyyueH6YXt3ss45QBatHB+7mHiPovLsDUJHtZG1S15M9IXf1X9Ok8WvyM
+4+44+O9XERietSF/Lk1Dxnh1jGPWgjQ5zoh5rSv9SWCHAQUL3QfSAzJGM7HMmp36
+XZUxKkRwzxZdoJ7y6nznRq8eu1NFHmLF6uOp73YqkE38MPCD9+/muEPKznFh/1NS
+aeXlraEY/FlyOaRuhqwT8dfVAw6TG1g/efdoltVplDCA6yi3jlH/KZ8rNQJAFdiD
+gk9bGNeBeZ/Zr9AfX0oVOVZeITa2aS6sFKsQevq0+c1NUwXGEy97+ONOROQ4C/O/
+xClVw2mcNCmPKiaQYDwL8QjxZXEX8BcrdViK755S+sd9B7T4Lh4wjmtaogt4vbCy
+CsSP3ZE/JjICOQJxJ7yGIyY4uYE/GC7p1D8u/k+e12EtkiknFdjk58Ii26pwJwOy
+Vrsukibu71EdaS51WtzB1mxgqqnulsXWewNAMMYjfsjN0vz0GkCC796YD7WfOceX
+nWatTL8EqiAF6q5LXddd
+=+Xt6
+-----END PGP SIGNATURE-----
+
+--e1gXMQ1LL3xrJ0oLvqTwqDvDIW5jAa6cU--
