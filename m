@@ -1,101 +1,117 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph
- of ports
-Date: Fri, 26 Feb 2016 11:21:59 +0000
-Message-ID: <20160226112159.GO5783@n2100.arm.linux.org.uk>
-References: <cover.1455720381.git.jsarha@ti.com>
- <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
- <20160218143530.GB9654@rob-hp-laptop> <56CF04DA.8080905@ti.com>
- <20160226004311.GM5783@n2100.arm.linux.org.uk>
- <56D02594.4020407@ti.com>
+Subject: Re: [PATCH] dmaengine: omap-dma: Do not call omap_dma_callback()
+ from tx_status()
+Date: Fri, 26 Feb 2016 11:25:25 +0000
+Message-ID: <20160226112524.GP5783@n2100.arm.linux.org.uk>
+References: <1456388939-15722-1-git-send-email-peter.ujfalusi@ti.com>
+ <20160226010658.GN5783@n2100.arm.linux.org.uk>
+ <56D0279F.2050703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56D02594.4020407@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, devicetree@vger.kernel.org, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+In-Reply-To: <56D0279F.2050703@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBGZWIgMjYsIDIwMTYgYXQgMTI6MTQ6NDRQTSArMDIwMCwgSnlyaSBTYXJoYSB3cm90
-ZToKPiBPbiAwMi8yNi8xNiAwMjo0MywgUnVzc2VsbCBLaW5nIC0gQVJNIExpbnV4IHdyb3RlOgo+
-ID5PbiBUaHUsIEZlYiAyNSwgMjAxNiBhdCAwMzo0Mjo1MFBNICswMjAwLCBKeXJpIFNhcmhhIHdy
-b3RlOgo+ID4+T24gMDIvMTgvMTYgMTY6MzUsIFJvYiBIZXJyaW5nIHdyb3RlOgo+ID4+PlRoaXMg
-c2hvdWxkIGJlIGltcGxpZWQgZnJvbSB0aGUgcG9ydCB1bml0IGFkZHJlc3MuIEluIG90aGVyIHdv
-cmRzLAo+ID4+PnBvcnRAMCBpcyBkZWZpbmVkIHRvIGJlIHRoZSByZ2IgcG9ydC4gTm93LCBpZiB0
-aGlzIGlzIG9uZSBvZiBzZXZlcmFsCj4gPj4+bW9kZXMgZm9yIHRoZSB2aWRlbyBwb3J0LCB0aGVu
-IHRoYXQgaXMgYSBkaWZmZXJlbnQgc3RvcnkuCj4gPj4+Cj4gPj4KPiA+PkRvIHlvdSBzdWdnZXN0
-IHRoYXQgYWxzbyB0aGUgYXVkaW8gaTJzIGFuZCBzL3AtZGlmIHBvcnQtdHlwZXMgc2hvdWxkIGJl
-Cj4gPj5jb2RlZCBpbiB0aGUgcG9ydCB1bml0IGFkZHJlc3Nlcz8gU29tZXRoaW5nIGxpa2U6IHBv
-cnRAMCBpcyBhbHdheXMgcmdiLAo+ID4+cG9ydEAxIGlzIGkycywgYW5kIHBvcnRAMiBpcyBzcGRp
-Zj8KPiA+Cj4gPkZvciB0aGUgYXVkaW8gaW5wdXRzLCB0aGUgcG9ydCBhZGRyZXNzIGNvcnJlc3Bv
-bmRzIHRvIHRoZSBpbnB1dCBwaW4uCj4gPlREQTk5OHggZGV2aWNlcyBjYW4gaGF2ZSBtdWx0aXBs
-ZSBzdHJlYW1zIHJvdXRlZCB0byB0aGUgcGlucywgYW5kIGNhbgo+ID5zZWxlY3QgYmV0d2VlbiB0
-aGVtLgo+ID4KPiA+Rm9yIGV4YW1wbGUsIHRoZXJlIG1heSBiZSBmb3VyIEkyUyBkYXRhIHBpbnMg
-YW5kIG9uZSBJMlMgY2xvY2sgcGluLgo+ID5XaGVuIHVzaW5nIHN0ZXJlbywgeW91IGNhbiBzZWxl
-Y3Qgd2hpY2ggb2YgdGhlIGZvdXIgSTJTIGRhdGEgcGlucwo+ID5jYXJyaWVzIHRoZSBhdWRpbyBk
-YXRhLgo+ID4KPiAKPiBTdXJlLCBidXQgSSBkbyBub3QgdGhpbmsgdGhhdCB3b3VsZCBiZSB0aGUg
-dXN1YWwgc2V0dXAuIFRoZSBvbmx5ICJub3JtYWwiCj4gc2l0dWF0aW9uIEkgY2FuIHRoaW5rIGZv
-ciBoYXZpbmcgYSBuZWVkIHRvIGhhdmUgdHdvIGFsdGVybmF0aXZlIGF1ZGlvIHNldHVwcwo+IHdv
-dWxkIG9uZSBmb3IgaTJzIGFuZCBhbm90aGVyIGZvciBzL3AtZGlmLiBCdXQgdGhlbiBhZ2FpbiBp
-dCBpcyBwb3NzaWJsZSB0bwo+IGNvbWUgdXAgd2l0aCBhIGRlc2lnbiB3aXRoIG11bHRpcGxlIGFs
-dGVybmF0aXZlIGF1ZGlvIHdpcmluZ3MgYW5kIGl0Cj4gcmVsYXRpdmVseSBzaW1wbGUgaGFuZGxl
-IHRoYXQgaW4gRFQgYmluZGluZywgc28gd2h5IG5vdC4KClRoZXJlJ3MgYW5vdGhlciByZWFzb246
-IGlmIHlvdSB3YW50IHRvIHN1cHBvcnQgOCBjaGFubmVsIGF1ZGlvIHVzaW5nIEkyUwpyYXRoZXIg
-dGhhbiBTUERJRiwgdGhlbiB5b3UgbmVlZCB0byB1c2UgZm91ciBJMlMgZGF0YSBpbnB1dHMuICBF
-YWNoIEkyUwpkYXRhIGlucHV0IGNhbiBzdXBwb3J0IG9ubHkgdHdvIGNoYW5uZWxzLgoKPiA+V2hl
-biB1c2luZyBTUERJRiwgdGhlcmUgbWF5IGJlIHR3byBTUERJRiBpbnB1dHMsIGFuZCB5b3UgY2Fu
-IHNlbGVjdAo+ID53aGljaCBTUERJRiBpbnB1dCBpcyB1c2VkLgo+ID4KPiA+U28sICJyZWciIG1h
-eSBub3QgYmUgYW4gYWRkcmVzcyBpbiB0ZXJtcyBvZiBhIENQVSB2aXNpYmxlIGFkZHJlc3MsIGJ1
-dAo+ID5pdCdzIGFuIGFkZHJlc3MgYXMgZmFyIGFzIHNlbGVjdGluZyB0aGUgYXBwcm9wcmlhdGUg
-aW5wdXQgLSBhbmQgaXQKPiA+Zml0cyBpbiB3aXRoIHRoZSByZXF1aXJlbWVudHMgb2YgZVBBUFIs
-IHdoaWNoIGFyZSB0aGF0IGlmIHlvdSBoYXZlCj4gPmEgdW5pdC1hZGRyZXNzICh3aGljaCBpcyBy
-ZXF1aXJlZCB0byBkaXN0aW5ndWlzaCBkaWZmZXJlbnQgcG9ydCBub2RlcykKPiA+dGhlbiB5b3Ug
-bXVzdCBoYXZlIGEgbWF0Y2hpbmcgInJlZyIgcHJvcGVydHkuCj4gCj4gU3RpbGwgSSBkbyBub3Qg
-c2VlIHdoeSBpdCBpcyBkZXNpcmFibGUgdG8gcmV1c2UgcmVnIHByb3BlcnR5LCB3aGVuIHdlIGNh
-bgo+IGludHJvZHVjZSBuZXcgcHJvcGVydHkgZm9yIGRlc2NyaWJpbmcgdGhlIGF1ZGlvIHdpcmlu
-Zy4KCkRpZmZlcmVudCBwZW9wbGUgaGF2ZSBkaWZmZXJlbnQgb3BpbmlvbnMuICBZb3VyIG9waW5p
-b24gaXMganVzdCBhbm90aGVyCmV4YW1wbGUgb2Ygc29tZW9uZSBob2xkaW5nIGEgZGlmZmVyZW50
-IHZpZXcuCgpZb3UgX2hhdmVfIHRvIGhhdmUgYSB1bml0IGFkZHJlc3MsIGFuZCB0aGVyZWZvcmUg
-eW91IF9oYXZlXyB0byBoYXZlIGEKcmVnIHByb3BlcnR5LiAgSWYgeW91IHdhbnQgdG8gdXNlIHNv
-bWUgb3RoZXIgcHJvcGVydHkgdG8gZGVzY3JpYmUgdGhlCmF1ZGlvIGlucHV0IHBpbiwgdGhlbiB5
-b3Ugd2lsbCBuZWVkIHRvIG1ha2UgdXAgYSB0b3RhbGx5IGZpY3RpY2lvdXMKdW5pdC1hZGRyZXNz
-IGFuZCByZWcgcHJvcGVydHkgZm9yIGVhY2ggYXVkaW8gaW5wdXQgcGluLgoKVGhhdCdzIGFkZGlu
-ZyBjb21wbGV4aXR5LCBhcmd1YWJseSB1bm5lY2Vzc2FyeSBjb21wbGV4aXR5LCBhbmQgbWFraW5n
-CnRoZSBiaW5kaW5nIHVubmVjZXNzYXJpbHkgbW9yZSBjb21wbGV4IGZvciBubyBnb29kIHJlYXNv
-bi4KCj4gPkkgZG9uJ3QgcGFydGljdWxhcmx5IGxpa2UgdGhlIHZpZGVvIG5vZGUgdXNpbmcgdGhl
-IFJHQiByb3V0aW5nIHJlZ2lzdGVyCj4gPnZhbHVlIGVpdGhlciBmb3IgdGhlIHJlZyBwcm9wZXJ0
-eSwgYnV0IEkndmUga2VwdCBxdWlldCBiZWNhdXNlIEkgaGF2ZQo+ID5ub3RoaW5nIHRvIG9mZmVy
-IHRoZXJlOiBhZ2FpbiwgdGhpcyBjb21lcyBkb3duIHRvIGVQQVBSIHJlcXVpcmVtZW50cwo+ID5h
-bmQgdGhlIG5lZWQgdG8gc3BlY2lmeSBtdWx0aXBsZSAicG9ydCB7IH0iIG5vZGVzLiAgWW91IGNh
-bid0IGhhdmUgdHdvCj4gPiJwb3J0IHsgfSIgbm9kZXMgd2l0aG91dCB1c2luZyBhIHVuaXQtYWRk
-cmVzcywgYW5kIHdlJ2QgbmVlZCB0byBjaG9zZQo+ID5hIHVuaXQtYWRkcmVzcyBmb3IgaXQgd2hp
-Y2ggZG9lc24ndCBjb25mbGljdCB3aXRoIHRoZSBhdWRpbyBwb3J0cy4uLgo+ID5zbyB0aGVyZSdz
-IGEga2luZCBvZiBsb2dpYyB0byB1c2luZyB0aGUgUkdCIHJvdXRpbmcgdmFsdWUsIHdoaWNoIHdp
-bGwKPiA+bmV2ZXIgY29uZmxpY3QuCj4gPgo+IAo+IElmIHdlIGFmdGVyIGFsbCBkZWNpZGUgdG8g
-Z28gd2l0aCB1c2luZyByZWcgcHJvcGVydHkgZm9yIGF1ZGlvIHdpcmluZyAoYW5kCj4gZXNzZW50
-aWFsbHkgd3JpdGluZyB0aGUgdmFsdWUgZGlyZWN0bHkgdG8gQVBfRU5BIHJlZ2lzdGVyKSwgdGhl
-biB3ZSBjb3VsZAo+IGFsc28gYWdyZWUgdGhhdCB2aWRlbyBwb3J0J3MgdW5pdCBhZGRyZXNzIGlz
-IGFsd2F5cyAwIGFzIGl0IGNvcnJlc3BvbmRzIHRvCj4gYXVkaW8gZGlzYWJsZWQgaW4gQVBfRU5B
-IHJlZ2lzdGVyIGFuZCB3b3VsZCBub3QgY29sbGlkZSB3aXRoIGFueSBhdWRpbwo+ICJhZGRyZXNz
-Ii4gVGhlbiB3ZSBjb3VsZCBrZWVwIHRoZSBvbGQgdmlkZW8tcG9ydHMgcHJvcGVydHkgdG8gY29u
-ZmlndXJlIHRoZQo+IHZpZGVvIHdpcmluZy4gSG93IGRvZXMgdGhpcyBzb3VuZD8KClN1Yi1zdGFu
-ZGFyZCA6KQoKVGhpcyBoYXMgYWN0dWFsbHkgYmVlbiBkaXNjdXNzZWQgYmVmb3JlLiAgU2VlIHRo
-ZSB0aHJlYWQ6CgoiW1BBVENIIHY5IDEvNF0gZHJtL2kyYzogdGRhOTk4eDogQWRkIERUIHN1cHBv
-cnQgZm9yIGF1ZGlvIgoKZnJvbSBKYW51YXJ5IDIwMTUuCgotLSAKUk1LJ3MgUGF0Y2ggc3lzdGVt
-OiBodHRwOi8vd3d3LmFybS5saW51eC5vcmcudWsvZGV2ZWxvcGVyL3BhdGNoZXMvCkZUVEMgYnJv
-YWRiYW5kIGZvciAwLjhtaWxlIGxpbmU6IGN1cnJlbnRseSBhdCA5LjZNYnBzIGRvd24gNDAwa2Jw
-cyB1cAphY2NvcmRpbmcgdG8gc3BlZWR0ZXN0Lm5ldC4KX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
-YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Fri, Feb 26, 2016 at 12:23:27PM +0200, Peter Ujfalusi wrote:
+> On 2016-02-26 03:06, Russell King - ARM Linux wrote:
+> > On Thu, Feb 25, 2016 at 10:28:59AM +0200, Peter Ujfalusi wrote:
+> >> When based on the CCR_ENABLE bit the channel is stopped we should not call
+> >> omap_dma_callback(), only change the return value to DMA_COMPLETE. Client
+> >> drivers will do the right thing to clean up the channel after the transfer
+> >> has been completed.
+> >> Check the CCR_ENABLE only if the channel is not paused since pause in sDMA
+> >> means that the channel is stopped.
+> >> This will fix one hard to reproduce race condition when the channel is
+> >> terminated during transfer (affecting cyclic operation).
+> >>
+> >> Fixes: 1a7cf7b26f25 ("dmaengine: omap-dma: Handle cases when the channel is polled for completion")
+> >>
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >> ---
+> >>  drivers/dma/omap-dma.c | 16 ++++++++++------
+> >>  1 file changed, 10 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> >> index f6bef0d93998..a6b189fdbbe6 100644
+> >> --- a/drivers/dma/omap-dma.c
+> >> +++ b/drivers/dma/omap-dma.c
+> >> @@ -671,18 +671,22 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+> >>  	struct omap_chan *c = to_omap_dma_chan(chan);
+> >>  	struct virt_dma_desc *vd;
+> >>  	enum dma_status ret;
+> >> -	uint32_t ccr;
+> >>  	unsigned long flags;
+> >>  
+> >> -	ccr = omap_dma_chan_read(c, CCR);
+> >> -	/* The channel is no longer active, handle the completion right away */
+> >> -	if (!(ccr & CCR_ENABLE))
+> >> -		omap_dma_callback(c->dma_ch, 0, c);
+> >> -
+> >>  	ret = dma_cookie_status(chan, cookie, txstate);
+> >>  	if (ret == DMA_COMPLETE || !txstate)
+> >>  		return ret;
+> >>  
+> >> +	if (!c->paused) {
+> >> +		uint32_t ccr = omap_dma_chan_read(c, CCR);
+> >> +		/*
+> >> +		 * The channel is no longer active, set the return value
+> >> +		 * accordingly
+> >> +		 */
+> >> +		if (!(ccr & CCR_ENABLE))
+> >> +			ret = DMA_COMPLETE;
+> >> +	}
+> >> +
+> > 
+> > This looks very much like a hack, and surely opens a race condition
+> > up: what happens when a request submitted and pending but not yet
+> > started?  If the channel is idle, requesting status will report
+> > that the request has completed.
+> > 
+> > It's also wrong for another reason.  If txstate is NULL...
+> 
+> True, I have fixed these up.
+> 
+> > Your original commit adding the original hack that you're now removing
+> > above says that this is to support polled operation: I'm not aware of
+> > DMA engine supporting such a mode.  DMA_PREP_INTERRUPT is a mechanism
+> > where requests can be queued without an interrupt to allow batching.
+> 
+> Also it is used to suppress DMA interrupts during audio playback for example.
+> In this case we will run w/o interrupts and the position is polled.
+> 
+> > See the raid5/async_tx code, which queues a set of operations without
+> > DMA_PREP_INTERRUPT, with the final operation with DMA_PREP_INTERRUPT
+> > set.
+> 
+> We only allow the interrupts to be disabled in cyclic or memcpy mode. With
+> slave_sg we have interrupts as it is needed to move to the next SG.
+> 
+> > As the driver is reliant on interrupts to move to the next transfer,
+> > the patch which causes DMA_PREP_INTERRUPT to influence whether
+> > interrupts are sent is actually buggy, and will prevent several
+> > queued DMA operations to fail.
+> 
+> Yes, the omap-dma only allows the interrupts to be actually disabled when it
+> is save to do so. slave_sg can not work w/o interrupts so there we don't
+> disable them.
+
+I get the impression that you haven't taken in what I've said, because
+each fragment of your reply is just repeating what the previous fragment
+said.
+
+Let me state that I don't believe you need any hacks here, and this patch
+is not necessary: the final operation in a set of chained memcpy()s should
+have DMA_PREP_INTERRUPT set.
+
+For the periodic stuff for audio, it's irrelevant anyway: periodic
+transfers never complete - you can start them, and they continue running
+until terminated.  There's no completion.
+
+-- 
+RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
