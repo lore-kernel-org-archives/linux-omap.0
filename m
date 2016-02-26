@@ -1,38 +1,83 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: Re: [PATCH v3 5/5] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Fri, 26 Feb 2016 13:43:14 -0600
-Message-ID: <56D0AAD2.7060003@ti.com>
-References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
- <1456439796-28546-6-git-send-email-fcooper@ti.com>
- <20160226191848.GJ13417@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap device tree changes for v4.6 merge window, part 1
+Date: Fri, 26 Feb 2016 22:35:11 +0100
+Message-ID: <6026634.ihuvqopRan@wuerfel>
+References: <20160222215612.GV13417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <20160226191848.GJ13417@atomide.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: paul@pwsan.com, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160222215612.GV13417@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, arm@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony
+On Monday 22 February 2016 13:56:12 Tony Lindgren wrote:
+> Device tree changes for omaps for v4.6 merge window. Mostly just
+> adding board specific devices and few new boards:
+> 
+> - N900 improvments for adp1653 and gpio keys
+> 
+> - Add missing bandgap data for omap3
+> 
+> - Add more devices for compulab cm-t335
+> 
+> - Add n950 WLAN support, enable modem, add pinctrl for SSI
+> 
+> - Correct dm814x and dra62x auxclk rate, add support for GPMC and NAND
+> 
+> - Add syscon node for PHY's on dra7
+> 
+> - Add support more devices on logicpd torpedo
+> 
+> - Add USB host support for igep and specify boot console
+> 
+> - Fix audio clock for am335x-sl50 and specify boot console
+> 
+> - Remove deprecated tx-fifo-resize for dwc3 that was only used on
+>   omap5 es1.0
+> 
+> - Add dra7 thermal data
+> 
+> - Update am43x-epos-evm compatible string to am438
+> 
+> - Add support for logicpd dm3730 som-lv
+> 
 
-On 02/26/2016 01:18 PM, Tony Lindgren wrote:
-> * Franklin S Cooper Jr <fcooper@ti.com> [160225 14:37]:
->> From: Vignesh R <vigneshr@ti.com>
->>
->> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
->> for dt bindings.
-> 
-> Are the dts changes safe to pick separately? I'm mostly worried
-> about clock related hangs unless the clock changes are merged
-> first.
-> 
-> Regards,
-> 
-> Tony
-> 
+Pulled into next/dt, with a trivial conflict resolution:
 
-I just did a boot test where I only had this patch applied and the dra7 board booted successfully. Of course I assume there will be problems if someone actually tried to enable EPWM or ECAP without the other clock patches.
+--- a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
++++ b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
+@@@ -110,6 -110,19 +110,11 @@@
+  
+  &i2c3 {
+  	clock-frequency = <400000>;
+ -};
+ -
+ -&i2c2 {
+ -	clock-frequency = <400000>;
+ -};
+ -
+ -&i2c3 {
+ -	clock-frequency = <400000>;
++ 	at24@50 {
++ 		compatible = "at24,24c02";
++ 		readonly;
++ 		reg = <0x50>;
++ 	};
+  };
+  
+  /*
 
-Bootlog: http://pastebin.ubuntu.com/15208985/
+Thanks,
+
+	Arnd
