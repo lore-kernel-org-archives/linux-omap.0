@@ -1,69 +1,53 @@
-From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 7/7] iio: adc: palmas: Drop IRQF_EARLY_RESUME flag
-Date: Sat, 27 Feb 2016 17:21:29 +0000
-Message-ID: <56D1DB19.5030504@kernel.org>
-References: <1456501377-16871-1-git-send-email-grygorii.strashko@ti.com>
- <1456501377-16871-8-git-send-email-grygorii.strashko@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456501377-16871-8-git-send-email-grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, MyungJoo Ham <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+Subject: [PATCH v3 3/4] ARM: dts: omap3-sniper: TWL4030 keypad support
+Date: Sun, 28 Feb 2016 11:20:26 +0100
+Message-ID: <1456654827-11349-4-git-send-email-contact@paulk.fr>
+References: <1456654827-11349-1-git-send-email-contact@paulk.fr>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456654827-11349-1-git-send-email-contact-W9ppeneeCTY@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 26/02/16 15:42, Grygorii Strashko wrote:
-> Palmas gpadc IRQs are nested threaded and this flag is not required for nested
-> irqs anymore, since commit 3c646f2c6aa9 ("genirq: Don't suspend nested_thread
-> irqs over system suspend") was merged.
-> 
-> Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>
-> Cc: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
-> Cc: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
-> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Applied to the togreg branch of iio.git - initially pushed out as
-testing for the autobuilders to play with it.
+This adds support for the volume and gesture keys, using TWL4030 keypad.
 
-Thanks,
+Signed-off-by: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3-sniper.dts | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Jonathan
-> ---
->  drivers/iio/adc/palmas_gpadc.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/iio/adc/palmas_gpadc.c b/drivers/iio/adc/palmas_gpadc.c
-> index f42eb8a..2bbf0c5 100644
-> --- a/drivers/iio/adc/palmas_gpadc.c
-> +++ b/drivers/iio/adc/palmas_gpadc.c
-> @@ -534,7 +534,7 @@ static int palmas_gpadc_probe(struct platform_device *pdev)
->  	}
->  	ret = request_threaded_irq(adc->irq, NULL,
->  		palmas_gpadc_irq,
-> -		IRQF_ONESHOT | IRQF_EARLY_RESUME, dev_name(adc->dev),
-> +		IRQF_ONESHOT, dev_name(adc->dev),
->  		adc);
->  	if (ret < 0) {
->  		dev_err(adc->dev,
-> @@ -549,7 +549,7 @@ static int palmas_gpadc_probe(struct platform_device *pdev)
->  		adc->irq_auto_0 =  platform_get_irq(pdev, 1);
->  		ret = request_threaded_irq(adc->irq_auto_0, NULL,
->  				palmas_gpadc_irq_auto,
-> -				IRQF_ONESHOT | IRQF_EARLY_RESUME,
-> +				IRQF_ONESHOT,
->  				"palmas-adc-auto-0", adc);
->  		if (ret < 0) {
->  			dev_err(adc->dev, "request auto0 irq %d failed: %d\n",
-> @@ -565,7 +565,7 @@ static int palmas_gpadc_probe(struct platform_device *pdev)
->  		adc->irq_auto_1 =  platform_get_irq(pdev, 2);
->  		ret = request_threaded_irq(adc->irq_auto_1, NULL,
->  				palmas_gpadc_irq_auto,
-> -				IRQF_ONESHOT | IRQF_EARLY_RESUME,
-> +				IRQF_ONESHOT,
->  				"palmas-adc-auto-1", adc);
->  		if (ret < 0) {
->  			dev_err(adc->dev, "request auto1 irq %d failed: %d\n",
-> 
+diff --git a/arch/arm/boot/dts/omap3-sniper.dts b/arch/arm/boot/dts/omap3-sniper.dts
+index 21d6afa..7f38d58 100644
+--- a/arch/arm/boot/dts/omap3-sniper.dts
++++ b/arch/arm/boot/dts/omap3-sniper.dts
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ 
+ #include "omap36xx.dtsi"
++#include <dt-bindings/input/input.h>
+ 
+ / {
+ 	model = "LG Optimus Black";
+@@ -226,6 +227,14 @@
+ #include "twl4030.dtsi"
+ #include "twl4030_omap3.dtsi"
+ 
++&twl_keypad {
++	linux,keymap = <
++		MATRIX_KEY(0x00, 0x00, KEY_VOLUMEUP)
++		MATRIX_KEY(0x01, 0x00, KEY_VOLUMEDOWN)
++		MATRIX_KEY(0x02, 0x00, KEY_SELECT)
++	>;
++};
++
+ /*
+  * The TWL4030 VAUX2 and VDAC regulators power sensors that are slaves on I2C3.
+  * When not powered, these sensors cause the I2C3 clock to stay low at all times,
+-- 
+2.6.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
