@@ -1,7 +1,7 @@
 From: Paul Kocialkowski <contact@paulk.fr>
-Subject: [PATCH v4 4/5] ARM: omap2plus_defconfig: Enable LP872x regulator support
-Date: Sun, 28 Feb 2016 13:39:44 +0100
-Message-ID: <1456663185-14170-5-git-send-email-contact@paulk.fr>
+Subject: [PATCH v4 5/5] ARM: multi_v7_defconfig: Enable LP872x regulator support
+Date: Sun, 28 Feb 2016 13:39:45 +0100
+Message-ID: <1456663185-14170-6-git-send-email-contact@paulk.fr>
 References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1456663185-14170-1-git-send-email-contact@paulk.fr>
@@ -15,20 +15,20 @@ the external mmc card.
 
 Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
 ---
- arch/arm/configs/omap2plus_defconfig | 1 +
+ arch/arm/configs/multi_v7_defconfig | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index d18d6b4..0c5f728 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -278,6 +278,7 @@ CONFIG_MFD_TPS65218=y
- CONFIG_MFD_TPS65910=y
- CONFIG_MFD_TI_AM335X_TSCADC=m
- CONFIG_TWL6040_CORE=y
+diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+index 8e8b2ac..59d65bd 100644
+--- a/arch/arm/configs/multi_v7_defconfig
++++ b/arch/arm/configs/multi_v7_defconfig
+@@ -468,6 +468,7 @@ CONFIG_REGULATOR_RK808=y
+ CONFIG_REGULATOR_GPIO=y
+ CONFIG_MFD_SYSCON=y
+ CONFIG_POWER_RESET_SYSCON=y
 +CONFIG_REGULATOR_LP872X=y
- CONFIG_REGULATOR_PALMAS=y
- CONFIG_REGULATOR_PBIAS=y
- CONFIG_REGULATOR_TI_ABB=y
+ CONFIG_REGULATOR_MAX14577=m
+ CONFIG_REGULATOR_MAX8907=y
+ CONFIG_REGULATOR_MAX8973=y
 -- 
 2.6.4
