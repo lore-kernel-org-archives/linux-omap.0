@@ -1,47 +1,264 @@
 From: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
-Subject: [PATCH v4 0/5] LG Optimus Black codename sniper support series
-Date: Sun, 28 Feb 2016 13:39:40 +0100
-Message-ID: <1456663185-14170-1-git-send-email-contact@paulk.fr>
+Subject: [PATCH v4 1/5] ARM: dts: LG Optimus Black codename sniper basic support
+Date: Sun, 28 Feb 2016 13:39:41 +0100
+Message-ID: <1456663185-14170-2-git-send-email-contact@paulk.fr>
+References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456663185-14170-1-git-send-email-contact-W9ppeneeCTY@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This series requires lp872x regulator patches from the regulator tree[0] to work
-at run-time but can be applied as-is.
+The LG Optimus Black codename sniper is a smartphone that was designed and
+manufactured by LG Electronics (LGE) and released back in 2011.
+It is using an OMAP3630 SoC, GP version.
 
-Changes since v3:
-* Switch to the already-defined devicetree vendor prefix for LG
-* Enable the lp872x regulator in omap2plus_defconfig
+This adds devicetree support for the device, with only a few basic features
+supported, such as debug uart, i2c, internal emmc and external mmc.
 
-Changes since v2:
-* Add USB OTG support
-* Add TWL4030 keypad support
-* Drop references to P970 since other devices (e.g. KU5900) are supported too
+Signed-off-by: Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
+---
+ arch/arm/boot/dts/Makefile         |   1 +
+ arch/arm/boot/dts/omap3-sniper.dts | 215 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 216 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-sniper.dts
 
-Changes since v1:
-* Remove lp872x patches that were accepted already from the series
-* Explain why removing the invalid DVS GPIO warning is enough
-* Update copyright notice on omap3-sniper.dts
-* Rename the devicetree property for the enable GPIO to enable-gpios
-* Rename function to enable GPIO to lp872x_hw_enable
-* Add enable delays after requesting the enable GPIO
-* Use IOPAD macros for pinmux description
-* Mux the dp3t uart selection pins to gpio
-* Restrict not-reset gpio controllers to only avoid reset when needed
-
-This series introduces support for the LG Optimus Black, as described in the
-patch adding devicetree support for the device.
-
-In order to power the external mmc (mmc1), the lp872x regulator is used.
-Its code had to be improved a bit to work on the device.
-
-Note that the patch adding devicetree support for the device requires the
-changes applied to the lp872x regulator, so all this is sent in one series
-despite the fact they're different parts of the code.
-
-[0]: https://git.kernel.org/cgit/linux/kernel/git/broonie/regulator.git/log/?h=topic/lp872x
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index a4a6d70..7314cf8 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -460,6 +460,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
+ 	omap3-sbc-t3517.dtb \
+ 	omap3-sbc-t3530.dtb \
+ 	omap3-sbc-t3730.dtb \
++	omap3-sniper.dtb \
+ 	omap3-thunder.dtb \
+ 	omap3-zoom3.dtb
+ dtb-$(CONFIG_SOC_TI81XX) += \
+diff --git a/arch/arm/boot/dts/omap3-sniper.dts b/arch/arm/boot/dts/omap3-sniper.dts
+new file mode 100644
+index 0000000..f057e03
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-sniper.dts
+@@ -0,0 +1,215 @@
++/*
++ * Copyright (C) 2015-2016 Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "omap36xx.dtsi"
++
++/ {
++	model = "LG Optimus Black";
++	compatible = "lg,omap3-sniper", "ti,omap36xx", "ti,omap3";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vcc>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++};
++
++&omap3_pmx_core {
++	pinctrl-names = "default";
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | MUX_MODE0)	/* uart3_rx_irrx */
++			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)	/* uart3_tx_irtx */
++		>;
++	};
++
++	dp3t_sel_pins: pinmux_dp3t_sel_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2196, PIN_OUTPUT | MUX_MODE4)	/* gpio_161 */
++			OMAP3_CORE1_IOPAD(0x2198, PIN_OUTPUT | MUX_MODE4)	/* gpio_162 */
++		>;
++	};
++
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21ba, PIN_INPUT | MUX_MODE0)	/* i2c1_scl */
++			OMAP3_CORE1_IOPAD(0x21bc, PIN_INPUT | MUX_MODE0)	/* i2c1_sda */
++		>;
++	};
++
++	i2c2_pins: pinmux_i2c2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21be, PIN_INPUT | MUX_MODE0)	/* i2c2_scl */
++			OMAP3_CORE1_IOPAD(0x21c0, PIN_INPUT | MUX_MODE0)	/* i2c2_sda */
++		>;
++	};
++
++	i2c3_pins: pinmux_i2c3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT | MUX_MODE0)	/* i2c3_scl */
++			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT | MUX_MODE0)	/* i2c3_sda */
++		>;
++	};
++
++	lp8720_en_pin: pinmux_lp8720_en_pin {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2080, PIN_OUTPUT | MUX_MODE4)	/* gpio_37 */
++		>;
++	};
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT | MUX_MODE0)	/* sdmmc1_clk */
++			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT | MUX_MODE0)	/* sdmmc1_cmd */
++			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat0 */
++			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat1 */
++			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat2 */
++			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat3 */
++		>;
++	};
++
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT | MUX_MODE0)	/* sdmmc2_clk */
++			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT | MUX_MODE0)	/* sdmmc2_cmd */
++			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat0 */
++			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat1 */
++			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat2 */
++			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat3 */
++			OMAP3_CORE1_IOPAD(0x2164, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat4 */
++			OMAP3_CORE1_IOPAD(0x2166, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat5 */
++			OMAP3_CORE1_IOPAD(0x2168, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat6 */
++			OMAP3_CORE1_IOPAD(0x216a, PIN_INPUT | MUX_MODE0)	/* sdmmc2_dat7 */
++		>;
++	};
++};
++
++&omap3_pmx_wkup {
++	pinctrl-names = "default";
++
++	mmc1_cd_pin: pinmux_mmc1_cd_pin {
++		pinctrl-single,pins = <
++			OMAP3_WKUP_IOPAD(0x2a1a, PIN_INPUT | MUX_MODE4)		/* gpio_10 */
++		>;
++	};
++};
++
++&gpio2 {
++	ti,no-reset-on-init;
++};
++
++&gpio5 {
++	ti,no-reset-on-init;
++};
++
++&gpio6 {
++	ti,no-reset-on-init;
++};
++
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins &dp3t_sel_pins>;
++
++	interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
++};
++
++&i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++
++		power {
++			compatible = "ti,twl4030-power";
++			ti,use_poweroff;
++		};
++	};
++};
++
++&i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
++	clock-frequency = <400000>;
++};
++
++&i2c3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++
++	clock-frequency = <400000>;
++
++	lp8720@7d {
++		pinctrl-names = "default";
++		pinctrl-0 = <&lp8720_en_pin>;
++
++		compatible = "ti,lp8720";
++		reg = <0x7d>;
++
++		enable-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>; /* gpio_37 */
++
++		lp8720_ldo1: ldo1 {
++			regulator-min-microvolt = <3000000>;
++			regulator-max-microvolt = <3000000>;
++		};
++	};
++};
++
++&mmc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins &mmc1_cd_pin>;
++	vmmc-supply = <&lp8720_ldo1>;
++	cd-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>; /* gpio 10 */
++	bus-width = <4>;
++};
++
++&mmc2 {
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++	vmmc-supply = <&vmmc2>;
++	ti,non-removable;
++	bus-width = <8>;
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++#include "twl4030.dtsi"
++#include "twl4030_omap3.dtsi"
++
++/*
++ * The TWL4030 VAUX2 and VDAC regulators power sensors that are slaves on I2C3.
++ * When not powered, these sensors cause the I2C3 clock to stay low at all times,
++ * making it impossible to reach other devices on I2C3.
++ */
++
++&vaux2 {
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++	regulator-always-on;
++};
++
++&vdac {
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
+-- 
+2.6.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
