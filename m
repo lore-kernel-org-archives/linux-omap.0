@@ -1,35 +1,54 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v7 0/9] ARM: dts: omap2+: GPMC NAND node fixes
-Date: Mon, 29 Feb 2016 09:17:20 -0800
-Message-ID: <20160229171719.GL13417@atomide.com>
-References: <1456245445-31824-1-git-send-email-rogerq@ti.com>
- <20160226184431.GB13417@atomide.com>
- <56D46E3C.5000908@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [GIT PULL] omap gpmc enhancements for v4.6
+Date: Mon, 29 Feb 2016 20:07:44 +0200
+Message-ID: <56D488F0.8070406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56D46E3C.5000908-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [160229 08:14]:
-> On 26/02/16 20:44, Tony Lindgren wrote:
-> > And please let me know what additional patches I may need to
-> > apply into omap-for-v4.6/dt for new files that are not in
-> > omap-for-v4.6/dt-gpmc.
-> 
-> We need to fix the following
-> gpmc node in dm814x.dtsi + nand node in dra62x-j5eco-evm.dts + nand node in dm8148-evm.
+Hi Arnd/Olof,
 
-OK can you send that separately and I'll apply it?
+The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
 
-Regards,
+  Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
 
-Tony
+are available in the git repository at:
+
+  git@github.com:rogerq/linux.git tags/gpmc-omap-for-v4.6
+
+for you to fetch changes up to e116c0545d17be6cc95a559aa5a68c221330501b:
+
+  dt-bindings: bus: ti-gpmc: Add AAD timings properties (2016-02-08 16:22:03 +0200)
+
+----------------------------------------------------------------
+OMAP-GPMC: Add address/data muxed timings
+
+* Add support for the GPMC Advanced AAD (address/data muxed) timings
+on hardware supporting the feature like the AM335x and DM816X.
+
+----------------------------------------------------------------
+Neil Armstrong (2):
+      memory: omap-gpmc: Add support for AAD timings
+      dt-bindings: bus: ti-gpmc: Add AAD timings properties
+
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt |  5 +++++
+ drivers/memory/omap-gpmc.c                        | 30 ++++++++++++++++++++++++++++++
+ include/linux/omap-gpmc.h                         |  5 +++++
+ 3 files changed, 40 insertions(+)
+
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
