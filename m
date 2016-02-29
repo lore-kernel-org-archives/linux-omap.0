@@ -1,43 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 1/5] pwms: pwm-ti*: Remove support for local clock
- gating
-Date: Mon, 29 Feb 2016 14:55:36 -0800
-Message-ID: <20160229225536.GR13417@atomide.com>
-References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
- <1456439796-28546-2-git-send-email-fcooper@ti.com>
- <20160229220444.GQ13417@atomide.com>
- <56D4C69D.1090100@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v4 5/5] ARM: multi_v7_defconfig: Enable LP872x regulator
+ support
+Date: Mon, 29 Feb 2016 14:57:06 -0800
+Message-ID: <20160229225705.GS13417@atomide.com>
+References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
+ <1456663185-14170-6-git-send-email-contact@paulk.fr>
+ <20160229215446.GP13417@atomide.com>
+ <3559918.7gA8u2p4Bl@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56D4C69D.1090100@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: "Franklin S Cooper Jr." <fcooper@ti.com>
-Cc: paul@pwsan.com, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+In-Reply-To: <3559918.7gA8u2p4Bl@wuerfel>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Franklin S Cooper Jr. <fcooper@ti.com> [160229 14:31]:
-> On 02/29/2016 04:04 PM, Tony Lindgren wrote:
-> > Hmm but why are you also removing the pm_runtime calls? Those
-> > actually do take care of gating the clocks via the interconnect
-> > level code that is hwmod in this case.
-> I removed all PM runtime calls that revolved around
-> pwmss_submodule_state_change. Originally the driver would do
-> a pm_runtime_get_sync then call pwmss_submodule_state_change
-> and then immediately call pm_runtime_put_sync. Without
-> pwmss_submodule_state_change those calls would be
-> meaningless.  I also removed pm_runtime calls in error paths
-> that no longer existed.
+* Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [160229 13:59]:
+> On Monday 29 February 2016 13:54:46 Tony Lindgren wrote:
+> > * Paul Kocialkowski <contact-W9ppeneeCTY@public.gmane.org> [160228 04:40]:
+> > > The LP872x regulator is used in the LG Optimus Black codename sniper to supply
+> > > the external mmc card.
+> > 
+> > This patch needs to be sent directly to arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org to avoid
+> > merge conflicts. I've picked the omap2plus_defconfig related change
+> > into omap-for-v4.6/defconfig.
+> 
+> I'd actually prefer it as part of the omap-for-v4.6/defconfig branch.
+> Taking care of merge conflicts is easy.
 
-Typically the interconnect level code can gate the clkctrl bit
-for the module with PM runtime even with no other driver specific
-registers. If you remove the pm_runtime calls, that does not
-happen.
+OK will apply then.
 
-Also, how do you know this change does not affect the other
-SoC variants using the same driver?
-
-Regards,
+Thanks,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
