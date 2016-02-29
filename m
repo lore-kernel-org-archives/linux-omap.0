@@ -1,28 +1,64 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v4 5/5] ARM: multi_v7_defconfig: Enable LP872x regulator support
-Date: Mon, 29 Feb 2016 22:58:32 +0100
-Message-ID: <3559918.7gA8u2p4Bl@wuerfel>
-References: <1456663185-14170-1-git-send-email-contact@paulk.fr> <1456663185-14170-6-git-send-email-contact@paulk.fr> <20160229215446.GP13417@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 1/5] pwms: pwm-ti*: Remove support for local clock
+ gating
+Date: Mon, 29 Feb 2016 14:04:45 -0800
+Message-ID: <20160229220444.GQ13417@atomide.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+ <1456439796-28546-2-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160229215446.GP13417@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Paul Kocialkowski <contact@paulk.fr>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1456439796-28546-2-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 29 February 2016 13:54:46 Tony Lindgren wrote:
-> * Paul Kocialkowski <contact@paulk.fr> [160228 04:40]:
-> > The LP872x regulator is used in the LG Optimus Black codename sniper to supply
-> > the external mmc card.
+* Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org> [160225 14:37]:
+> The PWMSS local clock gating registers have no real purpose on OMAP ARM
+> devices. These registers were left over registers from DSP IP where the
+> PRCM doesn't exist. There is a silicon bug where gating and ungating clocks
+> don't function properly. TRMs will be update to indicate that these
+> registers shouldn't be touched.
 > 
-> This patch needs to be sent directly to arm@kernel.org to avoid
-> merge conflicts. I've picked the omap2plus_defconfig related change
-> into omap-for-v4.6/defconfig.
+> Therefore, all code that accesses the PWMSS_CLKCONFIG or PWMSS_CLKSTATUS
+> will be removed by this patch with zero loss of functionality by the ECAP
+> and EPWM drivers.
+> @@ -243,40 +240,15 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	pm_runtime_enable(&pdev->dev);
+> -	pm_runtime_get_sync(&pdev->dev);
+> -
+> -	status = pwmss_submodule_state_change(pdev->dev.parent,
+> -			PWMSS_ECAPCLK_EN);
+> -	if (!(status & PWMSS_ECAPCLK_EN_ACK)) {
+> -		dev_err(&pdev->dev, "PWMSS config space clock enable failed\n");
+> -		ret = -EINVAL;
+> -		goto pwmss_clk_failure;
+> -	}
+> -
+> -	pm_runtime_put_sync(&pdev->dev);
+>  
+>  	platform_set_drvdata(pdev, pc);
+>  	return 0;
+> -
+> -pwmss_clk_failure:
+> -	pm_runtime_put_sync(&pdev->dev);
+> -	pm_runtime_disable(&pdev->dev);
+> -	pwmchip_remove(&pc->chip);
+> -	return ret;
+>  }
 
-I'd actually prefer it as part of the omap-for-v4.6/defconfig branch.
-Taking care of merge conflicts is easy.
+Hmm but why are you also removing the pm_runtime calls? Those
+actually do take care of gating the clocks via the interconnect
+level code that is hwmod in this case.
 
-	Arnd
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
