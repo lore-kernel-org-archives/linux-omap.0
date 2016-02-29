@@ -1,67 +1,86 @@
-From: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/7] extcon: palmas: Drop IRQF_EARLY_RESUME flag
-Date: Mon, 29 Feb 2016 11:22:08 +0900
-Message-ID: <56D3AB50.2060502@samsung.com>
-References: <1456501377-16871-1-git-send-email-grygorii.strashko@ti.com>
- <1456501377-16871-2-git-send-email-grygorii.strashko@ti.com>
+From: Lokesh Vutla <a0131933-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: DRA7: change address-cells and size-cells
+Date: Mon, 29 Feb 2016 14:14:53 +0530
+Message-ID: <56D40505.8020702@ti.com>
+References: <1456308664-28308-1-git-send-email-lokeshvutla@ti.com>
+ <20160226191127.GE13417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <1456501377-16871-2-git-send-email-grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, MyungJoo Ham <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160226191127.GE13417-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, nm-l0cyMroinI0@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii,
+Hi Tony,
 
-On 2016=EB=85=84 02=EC=9B=94 27=EC=9D=BC 00:42, Grygorii Strashko wrote=
-:
-> Palams extcon IRQs are nested threaded and wired to the Palmas
-> inerrupt controller. So, this flag is not required for nested irqs
-> anymore, since commit 3c646f2c6aa9 ("genirq: Don't suspend
-> nested_thread irqs over system suspend") was merged.
->=20
-> Cc: MyungJoo Ham <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Cc: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/extcon/extcon-palmas.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-p=
-almas.c
-> index 93c30a8..0a861b3 100644
-> --- a/drivers/extcon/extcon-palmas.c
-> +++ b/drivers/extcon/extcon-palmas.c
-> @@ -266,7 +266,7 @@ static int palmas_usb_probe(struct platform_devic=
-e *pdev)
->  				palmas_usb->id_irq,
->  				NULL, palmas_id_irq_handler,
->  				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING |
-> -				IRQF_ONESHOT | IRQF_EARLY_RESUME,
-> +				IRQF_ONESHOT,
->  				"palmas_usb_id", palmas_usb);
->  		if (status < 0) {
->  			dev_err(&pdev->dev, "can't get IRQ %d, err %d\n",
-> @@ -304,7 +304,7 @@ static int palmas_usb_probe(struct platform_devic=
-e *pdev)
->  				palmas_usb->vbus_irq, NULL,
->  				palmas_vbus_irq_handler,
->  				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING |
-> -				IRQF_ONESHOT | IRQF_EARLY_RESUME,
-> +				IRQF_ONESHOT,
->  				"palmas_usb_vbus", palmas_usb);
->  		if (status < 0) {
->  			dev_err(&pdev->dev, "can't get IRQ %d, err %d\n",
->=20
+On Saturday 27 February 2016 12:41 AM, Tony Lindgren wrote:
+> * Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [160224 02:14]:
+>> DRA7 SoC has the capability to support DDR memory upto 4GB. In order to
+>> represent this in memory dt node, the address-cells and size cells
+>> should be 2. So, changing the address-cells and size-cells to 2 and
+>> updating the memory nodes accordingly.
+>> @@ -57,10 +57,10 @@
+>>  		compatible = "arm,cortex-a15-gic";
+>>  		interrupt-controller;
+>>  		#interrupt-cells = <3>;
+>> -		reg = <0x48211000 0x1000>,
+>> -		      <0x48212000 0x1000>,
+>> -		      <0x48214000 0x2000>,
+>> -		      <0x48216000 0x2000>;
+>> +		reg = <0x0 0x48211000 0x0 0x1000>,
+>> +		      <0x0 0x48212000 0x0 0x1000>,
+>> +		      <0x0 0x48214000 0x0 0x2000>,
+>> +		      <0x0 0x48216000 0x0 0x2000>;
+>>  		interrupts = <GIC_PPI 9 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>;
+>>  		interrupt-parent = <&gic>;
+>>  	};
+>> @@ -69,7 +69,7 @@
+>>  		compatible = "ti,omap5-wugen-mpu", "ti,omap4-wugen-mpu";
+>>  		interrupt-controller;
+>>  		#interrupt-cells = <3>;
+>> -		reg = <0x48281000 0x1000>;
+>> +		reg = <0x0 0x48281000 0x0 0x1000>;
+>>  		interrupt-parent = <&gic>;
+>>  	};
+>>  
+>> @@ -96,10 +96,10 @@
+>>  		compatible = "ti,dra7-l3-noc", "simple-bus";
+>>  		#address-cells = <1>;
+>>  		#size-cells = <1>;
+>> -		ranges;
+>> +		ranges = <0x0 0x0 0x0 0xc0000000>;
+>>  		ti,hwmods = "l3_main_1", "l3_main_2";
+>> -		reg = <0x44000000 0x1000000>,
+>> -		      <0x45000000 0x1000>;
+>> +		reg = <0x0 0x44000000 0x0 0x1000000>,
+>> +		      <0x0 0x45000000 0x0 0x1000>;
+>>  		interrupts-extended = <&crossbar_mpu GIC_SPI 4 IRQ_TYPE_LEVEL_HIGH>,
+>>  				      <&wakeupgen GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+>>  
+> 
+> Is size-cells 2 needed for all these devices too? Can't
+> you just set it for the memory nodes?
 
-Applied it on extcon git.
+For updating memory nodes with 64bit, I have to change the address and
+size cells as 2 for the root node. So, reg property in all the children
+to the root node should also be updated with 2 address cells and 2 size
+cells or else the below warning shows up:
 
-Thanks,
-Chanwoo Choi
+Warning (reg_format): "reg" property in /interrupt-controller@48281000
+has invalid length (8 bytes) (#address-cells == 2, #size-cells == 2)
+Warning (ranges_format): /ocp has empty "ranges" property but its
+#address-cells (1) differs from / (2)
+Warning (ranges_format): /ocp has empty "ranges" property but its
+#size-cells (1) differs from / (2)
+
+This is why I am updating all the children to the root node.
+
+Thanks and regards,
+Lokesh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
