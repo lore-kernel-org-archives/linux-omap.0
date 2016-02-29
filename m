@@ -1,71 +1,61 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH] ARM: dts: dra7: Support QSPI MODE-0 operation at 64MHz
-Date: Mon, 29 Feb 2016 17:22:45 +0530
-Message-ID: <56D4310D.5020608@ti.com>
-References: <1456375652-14071-1-git-send-email-vigneshr@ti.com>
- <20160226191342.GF13417@atomide.com>
+From: Sushaanth Srirangapathi <sushaanth.s@ti.com>
+Subject: [PATCH] fbdev: da8xx-fb: fix videomodes of lcd panels
+Date: Mon, 29 Feb 2016 18:42:19 +0530
+Message-ID: <1456751539-19298-1-git-send-email-sushaanth.s@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160226191342.GF13417@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Sushaanth Srirangapathi <sushaanth.s@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Commit 028cd86b794f4a ("video: da8xx-fb: fix the polarities of the
+hsync/vsync pulse") fixes polarities of HSYNC/VSYNC pulse but
+forgot to update known_lcd_panels[] which had sync values
+according to old logic. This breaks LCD at least on DA850 EVM.
 
-On 02/27/2016 12:43 AM, Tony Lindgren wrote:
-> Hi,
-> 
-> * Vignesh R <vigneshr@ti.com> [160224 20:49]:
->> According to Data Manual(SPRS915P) of AM57x, TI QSPI controller on
->> DRA74(rev 1.1+) can support up to 64MHz in MODE-0, whereas MODE-3 is
->> limited to 48MHz. Hence, switch to MODE-0 for better throughput.
->>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->>  arch/arm/boot/dts/dra7-evm.dts | 6 ++----
->>  1 file changed, 2 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->> index cfc24e52244e..15f10bdc8c31 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
->> @@ -653,15 +653,13 @@
->>  	pinctrl-names = "default";
->>  	pinctrl-0 = <&qspi1_pins>;
->>  
->> -	spi-max-frequency = <48000000>;
->> +	spi-max-frequency = <64000000>;
->>  	m25p80@0 {
->>  		compatible = "s25fl256s1";
->> -		spi-max-frequency = <48000000>;
->> +		spi-max-frequency = <64000000>;
->>  		reg = <0>;
->>  		spi-tx-bus-width = <1>;
->>  		spi-rx-bus-width = <4>;
->> -		spi-cpol;
->> -		spi-cpha;
->>  		#address-cells = <1>;
->>  		#size-cells = <1>;
->>  
-> 
-> Do we have any earlier pre DRA74(rev 1.1)versions in use too?
+This patch fixes this issue and I have tested this for panel
+"Sharp_LK043T1DG01" using DA850 EVM board.
 
-Yes, there are pre 1.1 boards (production boards are all rev 1.1+), but
-QSPI is broken on them due to erratas (even w/o this patch).
+Fixes: 028cd86b794f4a ("video: da8xx-fb: fix the polarities of the
+hsync/vsync pulse")
+Signed-off-by: Sushaanth Srirangapathi <sushaanth.s@ti.com>
+---
+ drivers/video/fbdev/da8xx-fb.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-> 
-> What about the spi-cpol and spi-cpha changes? Those should be
-> at least documented?
-> 
-
-Ok, I will add a NOTE in the documentation saying "spi-cpol" and
-"spi-cpha" are not supported by ti-qspi in
-Documentation/devicetree/bindings/spi/ti_qspi.txt.
-
+diff --git a/drivers/video/fbdev/da8xx-fb.c b/drivers/video/fbdev/da8xx-fb.c
+index 6b2a06d..d8d583d 100644
+--- a/drivers/video/fbdev/da8xx-fb.c
++++ b/drivers/video/fbdev/da8xx-fb.c
+@@ -209,8 +209,7 @@ static struct fb_videomode known_lcd_panels[] = {
+ 		.lower_margin   = 2,
+ 		.hsync_len      = 0,
+ 		.vsync_len      = 0,
+-		.sync           = FB_SYNC_CLK_INVERT |
+-			FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
++		.sync           = FB_SYNC_CLK_INVERT,
+ 	},
+ 	/* Sharp LK043T1DG01 */
+ 	[1] = {
+@@ -224,7 +223,7 @@ static struct fb_videomode known_lcd_panels[] = {
+ 		.lower_margin   = 2,
+ 		.hsync_len      = 41,
+ 		.vsync_len      = 10,
+-		.sync           = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
++		.sync           = 0,
+ 		.flag           = 0,
+ 	},
+ 	[2] = {
+@@ -239,7 +238,7 @@ static struct fb_videomode known_lcd_panels[] = {
+ 		.lower_margin   = 10,
+ 		.hsync_len      = 10,
+ 		.vsync_len      = 10,
+-		.sync           = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
++		.sync           = 0,
+ 		.flag           = 0,
+ 	},
+ 	[3] = {
 -- 
-Regards
-Vignesh
+1.7.9.5
