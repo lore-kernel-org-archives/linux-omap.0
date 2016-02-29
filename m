@@ -1,28 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 5/5] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Mon, 29 Feb 2016 15:24:43 -0800
-Message-ID: <20160229232443.GW13417@atomide.com>
-References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
- <1456439796-28546-6-git-send-email-fcooper@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap gpmc enhancements for v4.6
+Date: Tue, 01 Mar 2016 00:34:20 +0100
+Message-ID: <2783707.XvVmdJSmHB@wuerfel>
+References: <56D488F0.8070406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1456439796-28546-6-git-send-email-fcooper@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>
-Cc: paul@pwsan.com, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <56D488F0.8070406@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, Neil Armstrong <narmstrong@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Franklin S Cooper Jr <fcooper@ti.com> [160225 14:37]:
-> From: Vignesh R <vigneshr@ti.com>
+On Monday 29 February 2016 20:07:44 Roger Quadros wrote:
+>   git@github.com:rogerq/linux.git tags/gpmc-omap-for-v4.6
 > 
-> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
-> for dt bindings.
+> 
 
-Seems to be all standard so applying this one into omap-for-v4.6/dt
-thanks.
+This does not look like the right address, I have no permissions
+there, please resend.
 
-Regards,
-
-Tony
+	Arnd
