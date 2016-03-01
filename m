@@ -1,88 +1,74 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 10/11] ARM: DRA7: hwmod: Add data for
- McASP1/2/4/5/6/7/8
-Date: Tue, 1 Mar 2016 17:01:25 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603011657260.14948@utopia.booyaka.com>
-References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com> <1456411827-23962-11-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.02.1603010900590.14948@utopia.booyaka.com> <56D5C6B1.6040005@ti.com>
+Subject: Re: [RFC PATCH] ARM: OMAP2+: Fix updating of sysconfig register
+Date: Tue, 1 Mar 2016 17:03:35 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603011703170.14948@utopia.booyaka.com>
+References: <1456832887-5312-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-543039208-1456851538=:14948"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56D5C6B1.6040005@ti.com>
-Content-ID: <alpine.DEB.2.02.1603011659040.14948@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, robh+dt@kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1456832887-5312-1-git-send-email-lokeshvutla@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, jonathanh@nvidia.com
+Cc: tony@atomide.com, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
++ Jon Hunter
 
---843723315-543039208-1456851538=:14948
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.02.1603011659041.14948@utopia.booyaka.com>
+On Tue, 1 Mar 2016, Lokesh Vutla wrote:
 
-Hi P=E9ter,
-
-On Tue, 1 Mar 2016, Peter Ujfalusi wrote:
-
-> Hi Paul,
->=20
-> On 03/01/2016 11:11 AM, Paul Walmsley wrote:
-> > Hi P=E9ter
-> >=20
-> > A few questions:
-> >=20
-> > On Thu, 25 Feb 2016, Peter Ujfalusi wrote:
-> >=20
-> >> Add missing data for all McASP ports for the dra7 family
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >=20
-> > 1. The patch doesn't set the HWMOD_OPT_CLKS_NEEDED flag for McASP1 and =
-2,=20
-> > but does set it for McASP4-8.  Could you please confirm that this is=20
-> > intentional, and if so, why?
->=20
-> All should have the HWMOD_OPT_CLKS_NEEDED as both fclk and ahclkx is trea=
-ted
-> as functional clock and needs to be available in order to be able to acce=
-ss
-> McASP registers.
-> Sorry, I can only test McASP3 and somehow I overlooked this when copy-pas=
-ting
-> the data.
-
-OK
-
-> > 2. The patch sets HWMOD_SWSUP_SIDLE for McASP1 and 2, but doesn't set i=
-t=20
-> > for McASP4-8.  Could you please confirm that this is intentional, and i=
-f=20
-> > so, why?  The descriptions of the MODULEMODE fields in SPRUHZ6 look=20
-> > identical.
->=20
-> I need to confirm this, but all McASP should have the same set of flags.
-
-OK.  Looking at McASP3 data this morning, they probably shouldn't need=20
-HWMOD_SWSUP_SIDLE, but probably all need=20
-
-                        .modulemode   =3D MODULEMODE_SWCTRL,
-
-> > 3. Can McASP1,2,3 bus-master onto the L3?  If so, then there should be=
-=20
-> > "dra7xx_mcasp1__l3_main_1"-style links to indicate this.
->=20
-> I need to check this, but I don't think McASP1,2,3 can be bus-master onto=
- L3.
-
-OK.  When you get back, maybe doublecheck this - it looks to me from=20
-SPRUHZ6 that McASP1-3 have built-in DMA controllers.
-
-> I can resend the series next week as I'm out of office this week.
-
-That's fine.  It's most likely v4.7 material at this point.
+> commit 127500ccb766f ("ARM: OMAP2+: Only write the sysconfig on idle
+> when necessary") talks about verification of sysconfig cache value before
+> updating it, only during idle path. But the patch is adding the
+> verification in the enable path. So, adding the check in a proper place
+> as per the commit description.
+> 
+> Not keeping this check during enable path as there is a chance of losing
+> context and it is safe to do on idle as the context of the register will
+> never be lost while the device is active.
+> 
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index e9f65fe..71b3747 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -1416,9 +1416,7 @@ static void _enable_sysc(struct omap_hwmod *oh)
+>  	    (sf & SYSC_HAS_CLOCKACTIVITY))
+>  		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+>  
+> -	/* If the cached value is the same as the new value, skip the write */
+> -	if (oh->_sysc_cache != v)
+> -		_write_sysconfig(v, oh);
+> +	_write_sysconfig(v, oh);
+>  
+>  	/*
+>  	 * Set the autoidle bit only after setting the smartidle bit
+> @@ -1481,7 +1479,9 @@ static void _idle_sysc(struct omap_hwmod *oh)
+>  		_set_master_standbymode(oh, idlemode, &v);
+>  	}
+>  
+> -	_write_sysconfig(v, oh);
+> +	/* If the cached value is the same as the new value, skip the write */
+> +	if (oh->_sysc_cache != v)
+> +		_write_sysconfig(v, oh);
+>  }
+>  
+>  /**
+> -- 
+> 2.1.4
+> 
 
 
 - Paul
---843723315-543039208-1456851538=:14948--
