@@ -1,342 +1,83 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 10/11] ARM: DRA7: hwmod: Add data for
- McASP1/2/4/5/6/7/8
-Date: Tue, 1 Mar 2016 09:11:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603010900590.14948@utopia.booyaka.com>
-References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com> <1456411827-23962-11-git-send-email-peter.ujfalusi@ti.com>
+Subject: [GIT PULL] ARM: OMAP2+: second set of hwmod changes for v4.6
+Date: Tue, 1 Mar 2016 09:58:51 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603010958120.14948@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1209212906-1456823491=:14948"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456411827-23962-11-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, robh+dt@kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---843723315-1209212906-1456823491=:14948
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Hi Tony
 
-Hi P=E9ter
+The following changes since commit 8fe097a3d99e22355fb8e3bcee59542bf3f46b2d:
 
-A few questions:
+  ARM: DRA7: hwmod: Add reset data for PCIe (2016-02-09 02:18:52 -0700)
 
-On Thu, 25 Feb 2016, Peter Ujfalusi wrote:
+are available in the git repository at:
 
-> Add missing data for all McASP ports for the dra7 family
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.6/omap-hwmod-b
 
-1. The patch doesn't set the HWMOD_OPT_CLKS_NEEDED flag for McASP1 and 2,=
-=20
-but does set it for McASP4-8.  Could you please confirm that this is=20
-intentional, and if so, why?
+for you to fetch changes up to 34b4182ce5fd284bff38764f8e73e2160b49d8e9:
 
-2. The patch sets HWMOD_SWSUP_SIDLE for McASP1 and 2, but doesn't set it=20
-for McASP4-8.  Could you please confirm that this is intentional, and if=20
-so, why?  The descriptions of the MODULEMODE fields in SPRUHZ6 look=20
-identical.
+  ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0, tptc1 (2016-03-01 01:55:59 -0700)
 
-3. Can McASP1,2,3 bus-master onto the L3?  If so, then there should be=20
-"dra7xx_mcasp1__l3_main_1"-style links to indicate this.
+- ----------------------------------------------------------------
+ARM: OMAP2+: second set of hwmod changes for v4.6
 
+These patches add RTC support for the AM43xx, and add support for
+the DRA7xx eDMA controller's TPCC, TPTC0, and TPTC1 IP blocks.
+Also included is a workaround for PRCM hardreset control of the DRA7xx
+PCIe subsystem.
 
-- Paul
+Note that I do not have a DRA7xx board, and therefore cannot
+test any patches for that SoC family.
 
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 235 ++++++++++++++++++++++++=
-++++++
->  1 file changed, 235 insertions(+)
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-om=
-ap2/omap_hwmod_7xx_data.c
-> index 3953ad031c43..3bd067afa702 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1374,6 +1374,50 @@ static struct omap_hwmod_class dra7xx_mcasp_hwmod_=
-class =3D {
->  =09.sysc=09=3D &dra7xx_mcasp_sysc,
->  };
-> =20
-> +/* mcasp1 */
-> +static struct omap_hwmod_opt_clk mcasp1_opt_clks[] =3D {
-> +=09{ .role =3D "ahclkx", .clk =3D "mcasp1_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp1_hwmod =3D {
-> +=09.name=09=09=3D "mcasp1",
-> +=09.class=09=09=3D &dra7xx_mcasp_hwmod_class,
-> +=09.clkdm_name=09=3D "ipu_clkdm",
-> +=09.main_clk=09=3D "mcasp1_aux_gfclk_mux",
-> +=09.flags=09=09=3D HWMOD_SWSUP_SIDLE,
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D DRA7XX_CM_IPU_MCASP1_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D DRA7XX_RM_IPU_MCASP1_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.opt_clks=09=3D mcasp1_opt_clks,
-> +=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp1_opt_clks),
-> +};
-> +
-> +/* mcasp2 */
-> +static struct omap_hwmod_opt_clk mcasp2_opt_clks[] =3D {
-> +=09{ .role =3D "ahclkx", .clk =3D "mcasp2_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp2_hwmod =3D {
-> +=09.name=09=09=3D "mcasp2",
-> +=09.class=09=09=3D &dra7xx_mcasp_hwmod_class,
-> +=09.clkdm_name=09=3D "l4per2_clkdm",
-> +=09.main_clk=09=3D "mcasp2_aux_gfclk_mux",
-> +=09.flags=09=09=3D HWMOD_SWSUP_SIDLE,
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP2_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D DRA7XX_RM_L4PER2_MCASP2_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.opt_clks=09=3D mcasp2_opt_clks,
-> +=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp2_opt_clks),
-> +};
-> +
->  /* mcasp3 */
->  static struct omap_hwmod_opt_clk mcasp3_opt_clks[] =3D {
->  =09{ .role =3D "ahclkx", .clk =3D "mcasp3_ahclkx_mux" },
-> @@ -1396,6 +1440,116 @@ static struct omap_hwmod dra7xx_mcasp3_hwmod =3D =
-{
->  =09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp3_opt_clks),
->  };
-> =20
-> +/* mcasp4 */
-> +static struct omap_hwmod_opt_clk mcasp4_opt_clks[] =3D {
-> +=09{ .role =3D "ahclkx", .clk =3D "mcasp4_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp4_hwmod =3D {
-> +=09.name=09=09=3D "mcasp4",
-> +=09.class=09=09=3D &dra7xx_mcasp_hwmod_class,
-> +=09.clkdm_name=09=3D "l4per2_clkdm",
-> +=09.main_clk=09=3D "mcasp4_aux_gfclk_mux",
-> +=09.flags=09=09=3D HWMOD_OPT_CLKS_NEEDED,
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP4_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D DRA7XX_RM_L4PER2_MCASP4_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.opt_clks=09=3D mcasp4_opt_clks,
-> +=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp4_opt_clks),
-> +};
-> +
-> +/* mcasp5 */
-> +static struct omap_hwmod_opt_clk mcasp5_opt_clks[] =3D {
-> +=09{ .role =3D "ahclkx", .clk =3D "mcasp5_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp5_hwmod =3D {
-> +=09.name=09=09=3D "mcasp5",
-> +=09.class=09=09=3D &dra7xx_mcasp_hwmod_class,
-> +=09.clkdm_name=09=3D "l4per2_clkdm",
-> +=09.main_clk=09=3D "mcasp5_aux_gfclk_mux",
-> +=09.flags=09=09=3D HWMOD_OPT_CLKS_NEEDED,
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP5_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D DRA7XX_RM_L4PER2_MCASP5_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.opt_clks=09=3D mcasp5_opt_clks,
-> +=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp5_opt_clks),
-> +};
-> +
-> +/* mcasp6 */
-> +static struct omap_hwmod_opt_clk mcasp6_opt_clks[] =3D {
-> +=09{ .role =3D "ahclkx", .clk =3D "mcasp6_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp6_hwmod =3D {
-> +=09.name=09=09=3D "mcasp6",
-> +=09.class=09=09=3D &dra7xx_mcasp_hwmod_class,
-> +=09.clkdm_name=09=3D "l4per2_clkdm",
-> +=09.main_clk=09=3D "mcasp6_aux_gfclk_mux",
-> +=09.flags=09=09=3D HWMOD_OPT_CLKS_NEEDED,
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP6_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D DRA7XX_RM_L4PER2_MCASP6_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.opt_clks=09=3D mcasp6_opt_clks,
-> +=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp6_opt_clks),
-> +};
-> +
-> +/* mcasp7 */
-> +static struct omap_hwmod_opt_clk mcasp7_opt_clks[] =3D {
-> +=09{ .role =3D "ahclkx", .clk =3D "mcasp7_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp7_hwmod =3D {
-> +=09.name=09=09=3D "mcasp7",
-> +=09.class=09=09=3D &dra7xx_mcasp_hwmod_class,
-> +=09.clkdm_name=09=3D "l4per2_clkdm",
-> +=09.main_clk=09=3D "mcasp7_aux_gfclk_mux",
-> +=09.flags=09=09=3D HWMOD_OPT_CLKS_NEEDED,
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP7_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D DRA7XX_RM_L4PER2_MCASP7_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.opt_clks=09=3D mcasp7_opt_clks,
-> +=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp7_opt_clks),
-> +};
-> +
-> +/* mcasp8 */
-> +static struct omap_hwmod_opt_clk mcasp8_opt_clks[] =3D {
-> +=09{ .role =3D "ahclkx", .clk =3D "mcasp8_ahclkx_mux" },
-> +};
-> +
-> +static struct omap_hwmod dra7xx_mcasp8_hwmod =3D {
-> +=09.name=09=09=3D "mcasp8",
-> +=09.class=09=09=3D &dra7xx_mcasp_hwmod_class,
-> +=09.clkdm_name=09=3D "l4per2_clkdm",
-> +=09.main_clk=09=3D "mcasp8_aux_gfclk_mux",
-> +=09.flags=09=09=3D HWMOD_OPT_CLKS_NEEDED,
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D DRA7XX_CM_L4PER2_MCASP8_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D DRA7XX_RM_L4PER2_MCASP8_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.opt_clks=09=3D mcasp8_opt_clks,
-> +=09.opt_clks_cnt=09=3D ARRAY_SIZE(mcasp8_opt_clks),
-> +};
-> +
->  /*
->   * 'mmc' class
->   *
-> @@ -2703,6 +2857,38 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__=
-hdmi =3D {
->  =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
-> +/* l4_per2 -> mcasp1 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp1 =3D {
-> +=09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp1_hwmod,
-> +=09.clk=09=09=3D "l4_root_clk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l3_main_1 -> mcasp1 */
-> +static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp1 =3D {
-> +=09.master=09=09=3D &dra7xx_l3_main_1_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp1_hwmod,
-> +=09.clk=09=09=3D "l3_iclk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l4_per2 -> mcasp2 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp2 =3D {
-> +=09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp2_hwmod,
-> +=09.clk=09=09=3D "l4_root_clk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l3_main_1 -> mcasp2 */
-> +static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp2 =3D {
-> +=09.master=09=09=3D &dra7xx_l3_main_1_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp2_hwmod,
-> +=09.clk=09=09=3D "l3_iclk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* l4_per2 -> mcasp3 */
->  static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 =3D {
->  =09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> @@ -2719,6 +2905,46 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__=
-mcasp3 =3D {
->  =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
-> +/* l4_per2 -> mcasp4 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp4 =3D {
-> +=09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp4_hwmod,
-> +=09.clk=09=09=3D "l4_root_clk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l4_per2 -> mcasp5 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp5 =3D {
-> +=09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp5_hwmod,
-> +=09.clk=09=09=3D "l4_root_clk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l4_per2 -> mcasp6 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp6 =3D {
-> +=09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp6_hwmod,
-> +=09.clk=09=09=3D "l4_root_clk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l4_per2 -> mcasp7 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp7 =3D {
-> +=09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp7_hwmod,
-> +=09.clk=09=09=3D "l4_root_clk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l4_per2 -> mcasp8 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp8 =3D {
-> +=09.master=09=09=3D &dra7xx_l4_per2_hwmod,
-> +=09.slave=09=09=3D &dra7xx_mcasp8_hwmod,
-> +=09.clk=09=09=3D "l4_root_clk_div",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* l4_per1 -> elm */
->  static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm =3D {
->  =09.master=09=09=3D &dra7xx_l4_per1_hwmod,
-> @@ -3461,8 +3687,17 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_=
-ifs[] __initdata =3D {
->  =09&dra7xx_l4_wkup__dcan1,
->  =09&dra7xx_l4_per2__dcan2,
->  =09&dra7xx_l4_per2__cpgmac0,
-> +=09&dra7xx_l4_per2__mcasp1,
-> +=09&dra7xx_l3_main_1__mcasp1,
-> +=09&dra7xx_l4_per2__mcasp2,
-> +=09&dra7xx_l3_main_1__mcasp2,
->  =09&dra7xx_l4_per2__mcasp3,
->  =09&dra7xx_l3_main_1__mcasp3,
-> +=09&dra7xx_l4_per2__mcasp4,
-> +=09&dra7xx_l4_per2__mcasp5,
-> +=09&dra7xx_l4_per2__mcasp6,
-> +=09&dra7xx_l4_per2__mcasp7,
-> +=09&dra7xx_l4_per2__mcasp8,
->  =09&dra7xx_gmac__mdio,
->  =09&dra7xx_l4_cfg__dma_system,
->  =09&dra7xx_l3_main_1__tpcc,
-> --=20
-> 2.7.1
->=20
+Basic build, boot, and PM test logs can be found here:
 
+http://www.pwsan.com/omap/testlogs/omap-hwmod-b-for-v4.6/20160301021258/
 
-- Paul
---843723315-1209212906-1456823491=:14948--
+- ----------------------------------------------------------------
+Keerthy (1):
+      ARM: AM43XX: hwmod: Add rtc hwmod
+
+Peter Ujfalusi (1):
+      ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0, tptc1
+
+Sekhar Nori (1):
+      ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
+
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c |  14 +++-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 111 +++++++++++++++++++++++++++++
+ 2 files changed, 124 insertions(+), 1 deletion(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJW1WeoAAoJEMePsQ0LvSpLF2gP/1Lyz4yF9QQrcsroDq8164M1
+NbYFWQnR5FzFWrpUZL72/zfn3iZTGWP8+t4Muy3qgjMCwWb2ciB3tX6v2+DL1Agw
+xTVeB9EJ6QeMogDELw3A9Fv68ZesIaOn/VnKQqQeAi4FQKi9bfc05+fSF2cQZk5a
+SwIqgQbf7bdZc1n4oDDEboQClHjIthYXwdoTtWk4JcUr+6xxF7MnWrQtpEhD/p2n
+WwFw8TCAdOu56Y+/wqSmLNdFhHFkPBHDfS7LnDbLD2RVN7iS7QubamixcnjlKEWa
+dE8ayf+6PU+l583VjJTGfMm5+fm9g+oyUCkr9eCOVrQGga0/en23/1ag0R9X3fYz
+4XNV3ng0PD0q31nvnh9tToGV5Lodhs0cKwx4yg2tcFh1BTvziSZwYeJPpBlgUcjW
+I/1SWZ5gaSSZf5EcEXV4Kv7SFx48xvpp95gog5mrqzqQPqz++Z3//gGqiJkcZHh9
+Pqk7/s03BUaB2DmXY9+uV1USx3/4biyeOlgTqShtZ5ManmNAlY9+wfwPmpCz6cWW
+BpsuEK8T4UQJiiS2mo73g+gxAIF+0uS0doSHaNsJrinX50xd05IxyWOdCEpZTfx1
+O/p48BiwRBqTkjvXCSxWBlIMKf6zQb1oeWbkYfx9flnqPbElbvPAG9yNzu10lYah
+gbPl8f4LFnKKIXaMVJag
+=bfW4
+-----END PGP SIGNATURE-----
