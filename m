@@ -1,58 +1,85 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL][RESEND] omap gpmc enhancements for v4.6
-Date: Tue, 1 Mar 2016 14:53:13 +0200
-Message-ID: <56D590B9.4050307@ti.com>
-References: <56D488F0.8070406@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v3 3/5] ARM: dts: DRA7: Add TBCLK for PWMSS
+Date: Tue, 1 Mar 2016 14:54:24 +0200
+Message-ID: <56D59100.3060803@ti.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+ <1456439796-28546-4-git-send-email-fcooper@ti.com>
+ <20160229232348.GV13417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <56D488F0.8070406@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, rogerq@ti.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Neil Armstrong <narmstrong@baylibre.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <20160229232348.GV13417@atomide.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Franklin S Cooper Jr <fcooper@ti.com>
+Cc: paul@pwsan.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd/Olof,
+On 03/01/2016 01:23 AM, Tony Lindgren wrote:
+> * Franklin S Cooper Jr <fcooper@ti.com> [160225 14:37]:
+>> From: Vignesh R <vigneshr@ti.com>
+>>
+>> tbclk is used by ehrpwm to generate PWM waveform on DRA7 SoC. Add Linux
+>> clock to control ehrpwm tbclk.
+>> The TRM says, tbclk is derived from SYSCLKOUT. SYSCLKOUT is nothing but
+>> ehrpwm functional clock derived from the gateable interface and
+>> functional clock of PWMSS(l4_root_clk_div).
+>> Refer AM57x TRM SPRUHZ6[1], October 2014, Table 29-4 and Section 29.2.2.1,
+>> Table 29-19 and the NOTE at the end of the table.
+>>
+>> [1] www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+>
+> Applying this into omap-for-v4.6/dt thanks.
+>
+> Note for Tero, let's plan on getting rid of the duplicate
+> reg entries by using the standard clock output offset within
+> the clock register. I think we should easily be able to add
+> a binding for this and then deprecate the overlapping reg
+> entries.
 
-Fixed the pull URL this time.
+Yeah, we have been discussing this offline a bit, but haven't had time 
+to look at this. I believe the hwmod clock conversion is of higher 
+priority still.
 
-The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
+-Tero
 
-  Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
 
-are available in the git repository at:
-
-  https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.6
-
-for you to fetch changes up to e116c0545d17be6cc95a559aa5a68c221330501b:
-
-  dt-bindings: bus: ti-gpmc: Add AAD timings properties (2016-02-08 16:22:03 +0200)
-
-----------------------------------------------------------------
-OMAP-GPMC: Add address/data muxed timings
-
-* Add support for the GPMC Advanced AAD (address/data muxed) timings
-on hardware supporting the feature like the AM335x and DM816X.
-
-----------------------------------------------------------------
-Neil Armstrong (2):
-      memory: omap-gpmc: Add support for AAD timings
-      dt-bindings: bus: ti-gpmc: Add AAD timings properties
-
- Documentation/devicetree/bindings/bus/ti-gpmc.txt |  5 +++++
- drivers/memory/omap-gpmc.c                        | 30 ++++++++++++++++++++++++++++++
- include/linux/omap-gpmc.h                         |  5 +++++
- 3 files changed, 40 insertions(+)
-
---
-cheers,
--roger
+>
+> Regards,
+>
+> Tony
+>
+>> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>> @@ -2146,4 +2146,28 @@
+>>   		ti,bit-shift = <0>;
+>>   		reg = <0x558>;
+>>   	};
+>> +
+>> +       ehrpwm0_tbclk: ehrpwm0_tbclk {
+>> +		#clock-cells = <0>;
+>> +		compatible = "ti,gate-clock";
+>> +		clocks = <&l4_root_clk_div>;
+>> +		ti,bit-shift = <20>;
+>> +		reg = <0x0558>;
+>> +	};
+>> +
+>> +	ehrpwm1_tbclk: ehrpwm1_tbclk {
+>> +		#clock-cells = <0>;
+>> +		compatible = "ti,gate-clock";
+>> +		clocks = <&l4_root_clk_div>;
+>> +		ti,bit-shift = <21>;
+>> +		reg = <0x0558>;
+>> +	};
+>> +
+>> +	ehrpwm2_tbclk: ehrpwm2_tbclk {
+>> +		#clock-cells = <0>;
+>> +		compatible = "ti,gate-clock";
+>> +		clocks = <&l4_root_clk_div>;
+>> +		ti,bit-shift = <22>;
+>> +		reg = <0x0558>;
+>> +	};
+>>   };
+>> --
+>> 2.7.0
+>>
