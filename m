@@ -1,55 +1,88 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Tue, 1 Mar 2016 10:55:54 -0600
-Message-ID: <56D5C99A.1050109@ti.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com>
- <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
- <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
- <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
- <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
- <56B900E9.9040306@ti.com>
- <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
- <56BA2495.9020407@ti.com>
- <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
- <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
- <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
- <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com>
- <56CAA82D.6000507@ti.com>
- <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
- <56CADB23.8020202@ti.com> <56CC490F.3040301@ti.com>
- <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
- <56CD4BE1.3010701@ti.com>
- <alpine.DEB.2.02.1603010825090.14948@utopia.booyaka.com>
- <56D5834C.5030800@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 10/11] ARM: DRA7: hwmod: Add data for
+ McASP1/2/4/5/6/7/8
+Date: Tue, 1 Mar 2016 17:01:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603011657260.14948@utopia.booyaka.com>
+References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com> <1456411827-23962-11-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.02.1603010900590.14948@utopia.booyaka.com> <56D5C6B1.6040005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-543039208-1456851538=:14948"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56D5834C.5030800@ti.com>
+In-Reply-To: <56D5C6B1.6040005@ti.com>
+Content-ID: <alpine.DEB.2.02.1603011659040.14948@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, robh+dt@kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/01/2016 05:55 AM, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Tuesday 01 March 2016 01:55 PM, Paul Walmsley wrote:
->>
->> Folks, the following is what I've queued for this.
-> 
-> Thanks Paul.
-> 
-> Bjorn,
-> 
-> With this patch merged, enabling pci-dra7xx won't result in system freeze
-> anymore. I can send a patch to revert depends on BROKEN.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Kishon,
-Make sure you send only that after both this patch and the pcie reset
-data are in. I see the pcie reset data in Paul's for-4.6 branch.
+--843723315-543039208-1456851538=:14948
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.02.1603011659041.14948@utopia.booyaka.com>
 
-regards
-Suman
+Hi P=E9ter,
 
-[snip]
+On Tue, 1 Mar 2016, Peter Ujfalusi wrote:
+
+> Hi Paul,
+>=20
+> On 03/01/2016 11:11 AM, Paul Walmsley wrote:
+> > Hi P=E9ter
+> >=20
+> > A few questions:
+> >=20
+> > On Thu, 25 Feb 2016, Peter Ujfalusi wrote:
+> >=20
+> >> Add missing data for all McASP ports for the dra7 family
+> >>
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >=20
+> > 1. The patch doesn't set the HWMOD_OPT_CLKS_NEEDED flag for McASP1 and =
+2,=20
+> > but does set it for McASP4-8.  Could you please confirm that this is=20
+> > intentional, and if so, why?
+>=20
+> All should have the HWMOD_OPT_CLKS_NEEDED as both fclk and ahclkx is trea=
+ted
+> as functional clock and needs to be available in order to be able to acce=
+ss
+> McASP registers.
+> Sorry, I can only test McASP3 and somehow I overlooked this when copy-pas=
+ting
+> the data.
+
+OK
+
+> > 2. The patch sets HWMOD_SWSUP_SIDLE for McASP1 and 2, but doesn't set i=
+t=20
+> > for McASP4-8.  Could you please confirm that this is intentional, and i=
+f=20
+> > so, why?  The descriptions of the MODULEMODE fields in SPRUHZ6 look=20
+> > identical.
+>=20
+> I need to confirm this, but all McASP should have the same set of flags.
+
+OK.  Looking at McASP3 data this morning, they probably shouldn't need=20
+HWMOD_SWSUP_SIDLE, but probably all need=20
+
+                        .modulemode   =3D MODULEMODE_SWCTRL,
+
+> > 3. Can McASP1,2,3 bus-master onto the L3?  If so, then there should be=
+=20
+> > "dra7xx_mcasp1__l3_main_1"-style links to indicate this.
+>=20
+> I need to check this, but I don't think McASP1,2,3 can be bus-master onto=
+ L3.
+
+OK.  When you get back, maybe doublecheck this - it looks to me from=20
+SPRUHZ6 that McASP1-3 have built-in DMA controllers.
+
+> I can resend the series next week as I'm out of office this week.
+
+That's fine.  It's most likely v4.7 material at this point.
+
+
+- Paul
+--843723315-543039208-1456851538=:14948--
