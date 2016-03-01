@@ -1,95 +1,71 @@
-From: Paul Kocialkowski <contact@paulk.fr>
-Subject: Re: [PATCH v4 3/5] ARM: dts: omap3-sniper: TWL4030 keypad support
-Date: Tue, 01 Mar 2016 20:19:16 +0100
-Message-ID: <1456859956.1031.39.camel@paulk.fr>
-References: <1456663185-14170-1-git-send-email-contact@paulk.fr>
-	 <1456663185-14170-4-git-send-email-contact@paulk.fr>
+From: Jean-Francois Moine <moinejf-GANU6spQydw@public.gmane.org>
+Subject: Re: Alternative binding proposal for tda998x audio (Was: Re: [PATCH
+ RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph of ports)
+Date: Tue, 1 Mar 2016 20:26:19 +0100
+Message-ID: <20160301202619.011013effd265fdee93d4d8e@free.fr>
+References: <cover.1455720381.git.jsarha@ti.com>
+	<842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
+	<20160218143530.GB9654@rob-hp-laptop>
+	<56CF04DA.8080905@ti.com>
+	<20160226004311.GM5783@n2100.arm.linux.org.uk>
+	<56D02594.4020407@ti.com>
+	<20160226112159.GO5783@n2100.arm.linux.org.uk>
+	<56D41F1A.2030100@ti.com>
+	<56D5A6AA.2030907@ti.com>
+	<20160301163553.3ef298fb2c0bb25ef662a41d@free.fr>
+	<56D5BA6D.8090904@ti.com>
+	<20160301171630.630a47dc00060645f89bb8ab@free.fr>
+	<56D5DF7D.7090608@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-QvR59q0AMK+2KlhqmL0/"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456663185-14170-4-git-send-email-contact@paulk.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Liam Girdwood <lgirdwood@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56D5DF7D.7090608-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, 1 Mar 2016 20:29:17 +0200
+Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> wrote:
 
---=-QvR59q0AMK+2KlhqmL0/
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> I understand the short comings of simple-card and it's binding. Howev=
+er,=20
+> the binding is documented and it is feasible to extract the audio=20
+> connections from a simple-card binding too. In fact it models the I2S=
+=20
+> connections better than straight out of the box graph binding. Actual=
+ly=20
+> a graph is not the best way describe an i2s-bus with multiple DAIs=20
+> (codec or CPU) connected to it.
 
-Hi,
+I still don't understand your problem. You want something like:
 
-Le dimanche 28 f=C3=A9vrier 2016 =C3=A0 13:39 +0100, Paul Kocialkowski a =
-=C3=A9crit=C2=A0:
-> This adds support for the volume and gesture keys, using TWL4030 keypad.
+	audio-ports =3D <	TDA998x_SPDIF	0x04
+			TDA998x_I2S	0x03>;
 
-I noticed this patch hadn't been picked up in:=C2=A0https://git.kernel.org/=
-cgit/linux
-/kernel/git/tmlind/linux-omap.git/log/?h=3Domap-for-v4.6/dt
+and the graph definition would be:
 
-Should I submit it somewhere else instead?
+	port@03 {
+		reg =3D <0x03>;
+		port-type =3D "audio-i2s";
+		...
+	};
 
-> Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
-> ---
-> =C2=A0arch/arm/boot/dts/omap3-sniper.dts | 9 +++++++++
-> =C2=A01 file changed, 9 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/omap3-sniper.dts b/arch/arm/boot/dts/omap3=
--
-> sniper.dts
-> index 6e31daf..78a1184 100644
-> --- a/arch/arm/boot/dts/omap3-sniper.dts
-> +++ b/arch/arm/boot/dts/omap3-sniper.dts
-> @@ -8,6 +8,7 @@
-> =C2=A0/dts-v1/;
-> =C2=A0
-> =C2=A0#include "omap36xx.dtsi"
-> +#include <dt-bindings/input/input.h>
-> =C2=A0
-> =C2=A0/ {
-> =C2=A0	model =3D "LG Optimus Black";
-> @@ -226,6 +227,14 @@
-> =C2=A0#include "twl4030.dtsi"
-> =C2=A0#include "twl4030_omap3.dtsi"
-> =C2=A0
-> +&twl_keypad {
-> +	linux,keymap =3D <
-> +		MATRIX_KEY(0x00, 0x00, KEY_VOLUMEUP)
-> +		MATRIX_KEY(0x01, 0x00, KEY_VOLUMEDOWN)
-> +		MATRIX_KEY(0x02, 0x00, KEY_SELECT)
-> +	>;
-> +};
-> +
-> =C2=A0/*
-> =C2=A0 * The TWL4030 VAUX2 and VDAC regulators power sensors that are sla=
-ves on
-> I2C3.
-> =C2=A0 * When not powered, these sensors cause the I2C3 clock to stay low=
- at all
-> times,
---=-QvR59q0AMK+2KlhqmL0/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+	port@04 {
+		reg =3D <0x04>;
+		port-type =3D "audio-spdif";
+		...
+	};
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Apart the syntax, I don't really see the difference.
 
-iQIcBAABCAAGBQJW1es0AAoJEIT9weqP7pUM1y4P/3fXVuHw8IXrTHKcY8YvYM/e
-V1GAmwM3hGSk/eOHUtWK2loATAwwduyz2ynOgQ7f0ejlD35SFbO+kOmLbddb+uGw
-sn7/xO7O0B7Rll31HOA+B33B+9Um5eaLNuawSBV0G96T+qVfJbEHga7/2MxbBlBV
-yDIxLIdvNk13Gr6596pfsUbJz99QNE+WFD7Fa+wNasMkKTSNgQr8R5ytRWCNOM8G
-Krcn7AOrSbvsJxu21IrLDWxRTZ1YlGH5rtD//vElWPIaigGMbmPLJaBiyOCzYvqJ
-kws+A2aZHLOWx8gCPwfwTXosnR0JVFCX64cPZgM8I6RIqnuW1X8PrmlMpiWhARAM
-MDxyW9h0ftbu3w/z6dapMKvBRAPaX1tY8FUcdaEoojpheZEUlP64V5GBz47mXJ/I
-T/kTHnb/68juMWCHx9H/ipsovL/FYl4hySc5m/IN0086ZmXcCEmBx/CnaiumiKJD
-7PqvmHTfuXMe5uQQcTzErKZJewgB0dvVWQR+hK4hYBcUY4yze9JIC+7HFEm9rXl+
-luWlu7apmbtoHdIU+QytOSTxO5wCjceu+S5itVyvxV5wRu4OrqivSmaGc0ByA0RC
-FRHo+2KyI+32XGqAYxKZpl0M+7wp8fAnfTxl1ab4U9MuNBjPa/9cKaa67+qj2bva
-TI95BRBA743222IcZsaK
-=DlHN
------END PGP SIGNATURE-----
+--=20
+Ken ar c'henta=F1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
---=-QvR59q0AMK+2KlhqmL0/--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
