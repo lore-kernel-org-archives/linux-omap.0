@@ -1,59 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: second set of hwmod changes for v4.6
-Date: Tue, 1 Mar 2016 10:00:47 -0800
-Message-ID: <20160301180046.GY13417@atomide.com>
-References: <alpine.DEB.2.02.1603010958120.14948@utopia.booyaka.com>
+Subject: Re: [PATCH v3 3/5] ARM: dts: DRA7: Add TBCLK for PWMSS
+Date: Tue, 1 Mar 2016 10:05:13 -0800
+Message-ID: <20160301180513.GA13417@atomide.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+ <1456439796-28546-4-git-send-email-fcooper@ti.com>
+ <20160229232348.GV13417@atomide.com>
+ <56D59100.3060803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1603010958120.14948@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <56D59100.3060803@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Franklin S Cooper Jr <fcooper@ti.com>, paul@pwsan.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [160301 01:59]:
-> Hi Tony
+* Tero Kristo <t-kristo@ti.com> [160301 04:54]:
+> On 03/01/2016 01:23 AM, Tony Lindgren wrote:
+> >
+> >Note for Tero, let's plan on getting rid of the duplicate
+> >reg entries by using the standard clock output offset within
+> >the clock register. I think we should easily be able to add
+> >a binding for this and then deprecate the overlapping reg
+> >entries.
 > 
-> The following changes since commit 8fe097a3d99e22355fb8e3bcee59542bf3f46b2d:
-> 
->   ARM: DRA7: hwmod: Add reset data for PCIe (2016-02-09 02:18:52 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.6/omap-hwmod-b
-> 
-> for you to fetch changes up to 34b4182ce5fd284bff38764f8e73e2160b49d8e9:
-> 
->   ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0, tptc1 (2016-03-01 01:55:59 -0700)
-> 
-> ----------------------------------------------------------------
-> ARM: OMAP2+: second set of hwmod changes for v4.6
-> 
-> These patches add RTC support for the AM43xx, and add support for
-> the DRA7xx eDMA controller's TPCC, TPTC0, and TPTC1 IP blocks.
-> Also included is a workaround for PRCM hardreset control of the DRA7xx
-> PCIe subsystem.
-> 
-> Note that I do not have a DRA7xx board, and therefore cannot
-> test any patches for that SoC family.
-> 
-> Basic build, boot, and PM test logs can be found here:
-> 
-> http://www.pwsan.com/omap/testlogs/omap-hwmod-b-for-v4.6/20160301021258/
+> Yeah, we have been discussing this offline a bit, but haven't had time to
+> look at this. I believe the hwmod clock conversion is of higher priority
+> still.
 
-Thanks pulling into omap-for-v4.6/soc.
-
-Regards,
+Yes agreed.
 
 Tony
