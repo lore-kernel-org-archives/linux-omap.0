@@ -1,120 +1,58 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Tue, 1 Mar 2016 17:25:56 +0530
-Message-ID: <56D5834C.5030800@ti.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com>
- <1452780672-14339-4-git-send-email-kishon@ti.com>
- <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
- <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
- <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
- <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
- <56B900E9.9040306@ti.com>
- <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
- <56BA2495.9020407@ti.com>
- <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
- <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
- <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
- <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com>
- <56CAA82D.6000507@ti.com>
- <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
- <56CADB23.8020202@ti.com> <56CC490F.3040301@ti.com>
- <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
- <56CD4BE1.3010701@ti.com>
- <alpine.DEB.2.02.1603010825090.14948@utopia.booyaka.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [GIT PULL][RESEND] omap gpmc enhancements for v4.6
+Date: Tue, 1 Mar 2016 14:53:13 +0200
+Message-ID: <56D590B9.4050307@ti.com>
+References: <56D488F0.8070406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1603010825090.14948@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <56D488F0.8070406@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, rogerq@ti.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Neil Armstrong <narmstrong@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Arnd/Olof,
 
-On Tuesday 01 March 2016 01:55 PM, Paul Walmsley wrote:
-> 
-> Folks, the following is what I've queued for this.
+Fixed the pull URL this time.
 
-Thanks Paul.
+The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
 
-Bjorn,
+  Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
 
-With this patch merged, enabling pci-dra7xx won't result in system freeze
-anymore. I can send a patch to revert depends on BROKEN.
+are available in the git repository at:
 
-Thanks
-Kishon
+  https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.6
 
-> 
-> 
-> - Paul
-> 
-> 
-> From: Sekhar Nori <nsekhar@ti.com>
-> Date: Thu, 18 Feb 2016 16:49:56 +0530
-> Subject: [PATCH] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
-> 
-> Add a custom reset handler for DRA7x PCIeSS. This
-> handler is required to deassert PCIe hardreset lines
-> after they have been asserted.
-> 
-> This enables the PCIe driver to access registers after
-> PCIeSS has been runtime enabled without having to
-> deassert hardreset lines itself.
-> 
-> With this patch applied, used lspci to make sure
-> connected PCIe device enumerates on DRA74x and DRA72x
-> EVMs.
-> 
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> Reported-by: Richard Cochran <richardcochran@gmail.com>
-> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Cc: Suman Anna <s-anna@ti.com>
-> Cc: Dave Gerlach <d-gerlach@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index b61355e2a771..252b74633e31 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
->   *
->   */
->  
-> +/*
-> + * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
-> + * functionality of OMAP HWMOD layer does not deassert the hardreset lines
-> + * associated with an IP automatically leaving the driver to handle that
-> + * by itself. This does not work for PCIeSS which needs the reset lines
-> + * deasserted for the driver to start accessing registers.
-> + *
-> + * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
-> + * lines after asserting them.
-> + */
-> +static int dra7xx_pciess_reset(struct omap_hwmod *oh)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < oh->rst_lines_cnt; i++) {
-> +		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
-> +		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
->  	.name	= "pcie",
-> +	.reset	= dra7xx_pciess_reset,
->  };
->  
->  /* pcie1 */
-> 
+for you to fetch changes up to e116c0545d17be6cc95a559aa5a68c221330501b:
+
+  dt-bindings: bus: ti-gpmc: Add AAD timings properties (2016-02-08 16:22:03 +0200)
+
+----------------------------------------------------------------
+OMAP-GPMC: Add address/data muxed timings
+
+* Add support for the GPMC Advanced AAD (address/data muxed) timings
+on hardware supporting the feature like the AM335x and DM816X.
+
+----------------------------------------------------------------
+Neil Armstrong (2):
+      memory: omap-gpmc: Add support for AAD timings
+      dt-bindings: bus: ti-gpmc: Add AAD timings properties
+
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt |  5 +++++
+ drivers/memory/omap-gpmc.c                        | 30 ++++++++++++++++++++++++++++++
+ include/linux/omap-gpmc.h                         |  5 +++++
+ 3 files changed, 40 insertions(+)
+
+--
+cheers,
+-roger
