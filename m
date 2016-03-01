@@ -1,92 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform
- reset
-Date: Tue, 1 Mar 2016 08:25:58 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603010825090.14948@utopia.booyaka.com>
-References: <1452780672-14339-1-git-send-email-kishon@ti.com> <1452780672-14339-4-git-send-email-kishon@ti.com> <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com> <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com> <20160128183156.GH19432@atomide.com>
- <56B087AD.4000505@ti.com> <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com> <56B900E9.9040306@ti.com> <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com> <56BA2495.9020407@ti.com> <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
- <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com> <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com> <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com> <56CAA82D.6000507@ti.com> <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
- <56CADB23.8020202@ti.com> <56CC490F.3040301@ti.com> <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com> <56CD4BE1.3010701@ti.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 02/11] ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0,
+ tptc1
+Date: Tue, 1 Mar 2016 08:55:39 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603010855210.14948@utopia.booyaka.com>
+References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com> <1456411827-23962-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56CD4BE1.3010701@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456411827-23962-3-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, 25 Feb 2016, Peter Ujfalusi wrote:
 
-Folks, the following is what I've queued for this.
+> Add hwmod data for the eDMA blocks:
+>  - TPCC: Third-party channel controller
+>  - TPTC0: Third-party transfer controller 0
+>  - TPTC1: Third-party transfer controller 1
+> 
+> The TPCC is following it's clock and power domain. This means that
+> the hwmod can not control it's status.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+
+Thanks, queued.
 
 
 - Paul
-
-
-From: Sekhar Nori <nsekhar@ti.com>
-Date: Thu, 18 Feb 2016 16:49:56 +0530
-Subject: [PATCH] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
-
-Add a custom reset handler for DRA7x PCIeSS. This
-handler is required to deassert PCIe hardreset lines
-after they have been asserted.
-
-This enables the PCIe driver to access registers after
-PCIeSS has been runtime enabled without having to
-deassert hardreset lines itself.
-
-With this patch applied, used lspci to make sure
-connected PCIe device enumerates on DRA74x and DRA72x
-EVMs.
-
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Reported-by: Richard Cochran <richardcochran@gmail.com>
-Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Suman Anna <s-anna@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index b61355e2a771..252b74633e31 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-  *
-  */
- 
-+/*
-+ * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
-+ * functionality of OMAP HWMOD layer does not deassert the hardreset lines
-+ * associated with an IP automatically leaving the driver to handle that
-+ * by itself. This does not work for PCIeSS which needs the reset lines
-+ * deasserted for the driver to start accessing registers.
-+ *
-+ * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
-+ * lines after asserting them.
-+ */
-+static int dra7xx_pciess_reset(struct omap_hwmod *oh)
-+{
-+	int i;
-+
-+	for (i = 0; i < oh->rst_lines_cnt; i++) {
-+		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
-+		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
-+	}
-+
-+	return 0;
-+}
-+
- static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
- 	.name	= "pcie",
-+	.reset	= dra7xx_pciess_reset,
- };
- 
- /* pcie1 */
--- 
-2.7.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
