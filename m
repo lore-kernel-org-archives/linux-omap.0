@@ -1,82 +1,36 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: Alternative binding proposal for tda998x audio
- (Was: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph of
- ports)
-Date: Tue, 1 Mar 2016 20:29:17 +0200
-Message-ID: <56D5DF7D.7090608@ti.com>
-References: <cover.1455720381.git.jsarha@ti.com>
- <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
- <20160218143530.GB9654@rob-hp-laptop> <56CF04DA.8080905@ti.com>
- <20160226004311.GM5783@n2100.arm.linux.org.uk> <56D02594.4020407@ti.com>
- <20160226112159.GO5783@n2100.arm.linux.org.uk> <56D41F1A.2030100@ti.com>
- <56D5A6AA.2030907@ti.com> <20160301163553.3ef298fb2c0bb25ef662a41d@free.fr>
- <56D5BA6D.8090904@ti.com> <20160301171630.630a47dc00060645f89bb8ab@free.fr>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 2/5] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
+Date: Tue, 1 Mar 2016 18:59:35 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603011858510.14948@utopia.booyaka.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com> <1456439796-28546-3-git-send-email-fcooper@ti.com> <20160301181109.GB13417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160301171630.630a47dc00060645f89bb8ab@free.fr>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Rob Herring <robh@kernel.org>, alsa-devel@alsa-project.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, peter.ujfalusi@ti.com, devicetree@vger.kernel.org, airlied@linux.ie, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20160301181109.GB13417@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Franklin S Cooper Jr <fcooper@ti.com>, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/01/16 18:16, Jean-Francois Moine wrote:
-> On Tue, 1 Mar 2016 17:51:09 +0200
-> Jyri Sarha <jsarha@ti.com> wrote:
->
->> I know that it works, I have used it myself until now, but it is not
->> needed and there is no driver that parses audio port endpoints. I see no
->> point specifying something in the binding that is not used and there no
->> specific plan to ever use it.
->>
->> AFAIU my proposed binding should work equally well with simple-card,
->> with or without multi-codec support.
->
-> As told many times, the simple card is a pure Linux specific entity.
-> It does not describe any hardware. It should not appear in a DT, or,
-> if it does, its compatible should be "linux, simple-audio-card".
-> Then, how can the other OSs know the links between the audio
-> devices and the audio encoders/connectors?
->
+On Tue, 1 Mar 2016, Tony Lindgren wrote:
 
-I understand the short comings of simple-card and it's binding. However, 
-the binding is documented and it is feasible to extract the audio 
-connections from a simple-card binding too. In fact it models the I2S 
-connections better than straight out of the box graph binding. Actually 
-a graph is not the best way describe an i2s-bus with multiple DAIs 
-(codec or CPU) connected to it.
+> * Franklin S Cooper Jr <fcooper@ti.com> [160225 14:37]:
+> > From: Vignesh R <vigneshr@ti.com>
+> > 
+> > Add hwmod entries for the PWMSS on DRA7.
+> > 
+> > Set l4_root_clk_div as the main_clk of PWMSS. It is fixed-factored clock
+> > equal to L4PER2_L3_GICLK/2(l3_iclk_div/2).
+> > As per AM57x TRM SPRUHZ6[1], October 2014, Section 29.1.3 Table 29-4,
+> > clock source to PWMSS is L4PER2_L3_GICLK. But it is actually
+> > L4PER2_L3_GICLK/2. The TRM does not show the division by 2.
+> > 
+> > [1] www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+> 
+> Looks OK to me, assuming Paul will pick this one or ack it.
 
-> On the other way, the audio graph does not impose any particular
-> software design. It just describes the links between the different
-> hardware components and each OS is free to implement its own layout.
->
+Well I've already sent comments on it, it doesn't look quite ready for me 
+yet.  I would hold off on the whole series because the hwmod comments also 
+impact the DT files.
 
-That is true. In the most narrow sense the i2s protocol details, or even 
-TDM time-slot selections should not be in the dtb. However, is not 
-feasible to write a generic machine driver that would deduce the ideal 
-audio configuration just based on the i2s wiring between the audio 
-components simply because that is not enough information*. So to put it 
-simply the simple-card is not the perfect solution for the problem, but 
-even with its flaws it is better than straight out of the box graph 
-binding, and it is still entirely feasible to extract all needed 
-information for any audio implementation from that binding.
-
-Still even with my proposed binding there is nothing that prevents 
-adding the graph binding on top of that if it is ever needed.
-
-Best regards,
-Jyri
-
-* With a complete set of information of all audio wiring and component 
-capabilities, including the analog only components, it would probably be 
-possible to deduce a generic configuration that would work in the most 
-common - simple cases, but let's not go there now.
+- Paul
