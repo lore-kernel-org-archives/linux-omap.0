@@ -1,71 +1,45 @@
-From: Jean-Francois Moine <moinejf-GANU6spQydw@public.gmane.org>
-Subject: Re: Alternative binding proposal for tda998x audio (Was: Re: [PATCH
- RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph of ports)
-Date: Tue, 1 Mar 2016 20:26:19 +0100
-Message-ID: <20160301202619.011013effd265fdee93d4d8e@free.fr>
-References: <cover.1455720381.git.jsarha@ti.com>
-	<842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
-	<20160218143530.GB9654@rob-hp-laptop>
-	<56CF04DA.8080905@ti.com>
-	<20160226004311.GM5783@n2100.arm.linux.org.uk>
-	<56D02594.4020407@ti.com>
-	<20160226112159.GO5783@n2100.arm.linux.org.uk>
-	<56D41F1A.2030100@ti.com>
-	<56D5A6AA.2030907@ti.com>
-	<20160301163553.3ef298fb2c0bb25ef662a41d@free.fr>
-	<56D5BA6D.8090904@ti.com>
-	<20160301171630.630a47dc00060645f89bb8ab@free.fr>
-	<56D5DF7D.7090608@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/5] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
+Date: Tue, 1 Mar 2016 12:50:44 -0800
+Message-ID: <20160301205043.GA4469@atomide.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+ <1456439796-28546-3-git-send-email-fcooper@ti.com>
+ <20160301181109.GB13417@atomide.com>
+ <alpine.DEB.2.02.1603011858510.14948@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56D5DF7D.7090608-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, arnaud.pouliquen-qxv4g6HH51o@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1603011858510.14948@utopia.booyaka.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Franklin S Cooper Jr <fcooper@ti.com>, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 1 Mar 2016 20:29:17 +0200
-Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> wrote:
+* Paul Walmsley <paul@pwsan.com> [160301 10:59]:
+> On Tue, 1 Mar 2016, Tony Lindgren wrote:
+> 
+> > * Franklin S Cooper Jr <fcooper@ti.com> [160225 14:37]:
+> > > From: Vignesh R <vigneshr@ti.com>
+> > > 
+> > > Add hwmod entries for the PWMSS on DRA7.
+> > > 
+> > > Set l4_root_clk_div as the main_clk of PWMSS. It is fixed-factored clock
+> > > equal to L4PER2_L3_GICLK/2(l3_iclk_div/2).
+> > > As per AM57x TRM SPRUHZ6[1], October 2014, Section 29.1.3 Table 29-4,
+> > > clock source to PWMSS is L4PER2_L3_GICLK. But it is actually
+> > > L4PER2_L3_GICLK/2. The TRM does not show the division by 2.
+> > > 
+> > > [1] www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+> > 
+> > Looks OK to me, assuming Paul will pick this one or ack it.
+> 
+> Well I've already sent comments on it, it doesn't look quite ready for me 
+> yet.  I would hold off on the whole series because the hwmod comments also 
+> impact the DT files.
 
-> I understand the short comings of simple-card and it's binding. Howev=
-er,=20
-> the binding is documented and it is feasible to extract the audio=20
-> connections from a simple-card binding too. In fact it models the I2S=
-=20
-> connections better than straight out of the box graph binding. Actual=
-ly=20
-> a graph is not the best way describe an i2s-bus with multiple DAIs=20
-> (codec or CPU) connected to it.
+OK will drop the dt related patches then.
 
-I still don't understand your problem. You want something like:
+Regards,
 
-	audio-ports =3D <	TDA998x_SPDIF	0x04
-			TDA998x_I2S	0x03>;
-
-and the graph definition would be:
-
-	port@03 {
-		reg =3D <0x03>;
-		port-type =3D "audio-i2s";
-		...
-	};
-
-	port@04 {
-		reg =3D <0x04>;
-		port-type =3D "audio-spdif";
-		...
-	};
-
-Apart the syntax, I don't really see the difference.
-
---=20
-Ken ar c'henta=F1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
