@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/4] omap soc changes for v4.6 merge window
-Date: Tue,  1 Mar 2016 15:01:19 -0800
-Message-ID: <21306.8386809484$1456873353@news.gmane.org>
-References: <pull-1456872971-400983>
+Subject: [GIT PULL 1/4] omap non-urgent fixes for v4.6 merge window
+Date: Tue,  1 Mar 2016 15:01:18 -0800
+Message-ID: <21092.3573737547$1456873363@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1456872971-400983>
-In-Reply-To: <pull-1456872971-400983>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,53 +19,44 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 8fe097a3d99e22355fb8e3bcee59542bf3f46b2d:
-
-  ARM: DRA7: hwmod: Add reset data for PCIe (2016-02-09 02:18:52 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.6/soc-signed
-
-for you to fetch changes up to e80499190db2fd752a60468f0fa462f87f993d49:
-
-  Merge tag 'for-v4.6/omap-hwmod-b' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v4.6/soc (2016-03-01 09:59:38 -0800)
-
-----------------------------------------------------------------
-SoC related changes for omaps for v4.6 merge window:
-
-- Enable runtime revision detection for dra7 to avoid multiple dts
-  files for various variants
-
-- Add dma_slave_map for omap1/2/3 legacy mode booting
-
-- Add RTC interconnect target data for ti81xx and am43x
-
-- Add custom reset handler for PCIeSS
-
-- Add eDMA interconnect target data for dra7
-
-----------------------------------------------------------------
-Keerthy (2):
-      ARM: AM43XX: hwmod: Add rtc hwmod
-      ARM: OMAP: DRA7: Make use of omap_revision information for soc_is* calls
-
-Peter Ujfalusi (3):
-      ARM: OMAP1: DMA: Provide dma_slave_map to omap-dma
-      ARM: OMAP2+: DMA: Provide dma_slave_map to omap-dma for legacy boot
-      ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0, tptc1
-
-Sekhar Nori (1):
-      ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
-
-Tony Lindgren (2):
-      ARM: OMAP2+: Add rtc hwmod configuration for ti81xx
-      Merge tag 'for-v4.6/omap-hwmod-b' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v4.6/soc
-
- arch/arm/mach-omap1/dma.c                  |  45 +++++++++++
- arch/arm/mach-omap2/dma.c                  | 117 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c |  14 +++-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 111 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c |  38 ++++++++++
- arch/arm/mach-omap2/soc.h                  |  23 +++++-
- 6 files changed, 344 insertions(+), 4 deletions(-)
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA5MmU5NjNmNTBmYzc0MDQxYjVlOWU3
+NDRjMzMwZGNhNDhlMDRmMDhkOgoKICBMaW51eCA0LjUtcmMxICgyMDE2LTAxLTI0IDEzOjA2OjQ3
+IC0wODAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6CgogIGdpdDov
+L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21h
+cCB0YWdzL29tYXAtZm9yLXY0LjYvZml4ZXMtbm90LXVyZ2VudC1zaWduZWQKCmZvciB5b3UgdG8g
+ZmV0Y2ggY2hhbmdlcyB1cCB0byA0ZjUzOTVmMGQxYTViN2M4OTIxMzMxZWY4MTA4MWRhMDAzMDJh
+MzdjOgoKICBBUk06IE9NQVAyKzogRml4IGh3bW9kIGNsb2NrIGZvciBsNF9scyAoMjAxNi0wMi0y
+NiAxMTowMzowNyAtMDgwMCkKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRml4ZXMgZm9yIG9tYXBzIGZvciB2NC42IG1lcmdl
+IHdpbmRvdyB0aGF0IGFyZSBub3QgdXJnZW50CmZvciB0aGUgdjQuNS1yYyBjeWNsZToKCi0gQWRk
+IGJhY2sgb3B0aW1pemVkIGNwdWlkbGUgcGFyYW1ldGVycyBmb3IgMzR4eCB0aGF0IHdlcmUKICBp
+bmNvcnJlY2x5IHJlbW92ZWQgZWFybGllciB3aXRoIGNwdWlkbGUgY2xlYW51cAoKLSBGaXggU1NJ
+IGZvciBvbWFwMzZ4eCB0byBnZXQgbW9kZW0gd29ya2luZyBvbiBOOTUwL045CgotIEEgc2VyaWVz
+IG9mIG9tYXAgaHdtb2QgZml4ZXMgdmlhIFBhdWwgV2FsbXNsZXkgPHBhdWxAcHdzYW4uY29tPgog
+IHRvIGZpeCBTU0kgZm9yIG9tYXAzNnh4IGZvciBtb2RlbSBvbiBOOTUwL045LCBmaXggZm9yCiAg
+T0NQMlNDUCBzeXNjb25maWcgaWRsZSBtb2RlLCBhbmQgcmVzZXQgZGF0YSBmb3IgUENJZSBvbgog
+IGRyYTcKCi0gRml4IG91dCBvZiByYW5nZSByZWdpc3RlciBhY2Nlc3MgZm9yIG9tYXAzIGNvbnRy
+b2wgbW9kdWxlCiAgaWYgc3lzY29uIG1heF9yZWdpc3RlciBpcyBpbml0aWFsaXplZCBsaWtlIHY0
+LjYgd2lsbCBiZQogIGRvaW5nCgotIEZpeCBsNF9scyBpbnRlcmNvbm5lY3QgY2xvY2tzIGZvciA4
+MXh4LCBpdCBzaG91bGQgYWx3YXlzCiAgYmUgc3lzY2xrNl9jawoKLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpLaXNob24gVmlq
+YXkgQWJyYWhhbSBJICgyKToKICAgICAgQVJNOiBEUkE3OiBod21vZDogRml4IE9DUDJTQ1Agc3lz
+Y29uZmlnCiAgICAgIEFSTTogRFJBNzogaHdtb2Q6IEFkZCByZXNldCBkYXRhIGZvciBQQ0llCgpQ
+YWxpIFJvaMOhciAoMSk6CiAgICAgIEFSTTogT01BUDM6IEFkZCBjcHVpZGxlIHBhcmFtZXRlcnMg
+dGFibGUgZm9yIG9tYXAzNDMwCgpTZWJhc3RpYW4gUmVpY2hlbCAoMSk6CiAgICAgIEFSTTogT01B
+UDIrOiBod21vZCBkYXRhOiBBZGQgU1NJIGRhdGEgZm9yIG9tYXAzNnh4CgpUb255IExpbmRncmVu
+ICgzKToKICAgICAgTWVyZ2UgdGFnICdmb3ItdjQuNi9vbWFwLWh3bW9kLWEnIG9mIGdpdDovL2dp
+dC5rZXJuZWwub3JnLy4uLi9wancvb21hcC1wZW5kaW5nIGludG8gb21hcC1mb3ItdjQuNi9maXhl
+cy1ub3QtdXJnZW50CiAgICAgIEFSTTogT01BUDIrOiBGaXggb3V0IG9mIHJhbmdlIHJlZ2lzdGVy
+IGFjY2VzcyB3aXRoIHN5c2Nvbl9jb25maWcubWF4X3JlZ2lzdGVyCiAgICAgIEFSTTogT01BUDIr
+OiBGaXggaHdtb2QgY2xvY2sgZm9yIGw0X2xzCgogYXJjaC9hcm0vbWFjaC1vbWFwMi9jb250cm9s
+LmMgICAgICAgICAgICAgIHwgMjEgKy0tLS0tLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2NwdWlk
+bGUzNHh4LmMgICAgICAgICAgfCA2OSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0KIGFy
+Y2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8zeHh4X2RhdGEuYyB8IDEzICsrKy0tLQogYXJj
+aC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzd4eF9kYXRhLmMgIHwgMTggKysrKysrKy0KIGFy
+Y2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF84MXh4X2RhdGEuYyB8ICA5ICsrKy0KIGFyY2gv
+YXJtL21hY2gtb21hcDIvcHJtN3h4LmggICAgICAgICAgICAgICB8ICAxICsKIDYgZmlsZXMgY2hh
+bmdlZCwgMTAxIGluc2VydGlvbnMoKyksIDMwIGRlbGV0aW9ucygtKQoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5n
+IGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
+bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
