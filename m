@@ -1,7 +1,7 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: second set of hwmod changes for v4.6
-Date: Tue, 1 Mar 2016 09:58:51 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603010958120.14948@utopia.booyaka.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [RFC PATCH] ARM: OMAP2+: Fix updating of sysconfig register
+Date: Tue, 1 Mar 2016 17:18:07 +0530
+Message-ID: <1456832887-5312-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,69 +15,50 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Tero Kristo <t-kristo@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+commit 127500ccb766f ("ARM: OMAP2+: Only write the sysconfig on idle
+when necessary") talks about verification of sysconfig cache value before
+updating it, only during idle path. But the patch is adding the
+verification in the enable path. So, adding the check in a proper place
+as per the commit description.
 
-Hi Tony
+Not keeping this check during enable path as there is a chance of losing
+context and it is safe to do on idle as the context of the register will
+never be lost while the device is active.
 
-The following changes since commit 8fe097a3d99e22355fb8e3bcee59542bf3f46b2d:
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-  ARM: DRA7: hwmod: Add reset data for PCIe (2016-02-09 02:18:52 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.6/omap-hwmod-b
-
-for you to fetch changes up to 34b4182ce5fd284bff38764f8e73e2160b49d8e9:
-
-  ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0, tptc1 (2016-03-01 01:55:59 -0700)
-
-- ----------------------------------------------------------------
-ARM: OMAP2+: second set of hwmod changes for v4.6
-
-These patches add RTC support for the AM43xx, and add support for
-the DRA7xx eDMA controller's TPCC, TPTC0, and TPTC1 IP blocks.
-Also included is a workaround for PRCM hardreset control of the DRA7xx
-PCIe subsystem.
-
-Note that I do not have a DRA7xx board, and therefore cannot
-test any patches for that SoC family.
-
-Basic build, boot, and PM test logs can be found here:
-
-http://www.pwsan.com/omap/testlogs/omap-hwmod-b-for-v4.6/20160301021258/
-
-- ----------------------------------------------------------------
-Keerthy (1):
-      ARM: AM43XX: hwmod: Add rtc hwmod
-
-Peter Ujfalusi (1):
-      ARM: DRA7: hwmod: Add data for eDMA tpcc, tptc0, tptc1
-
-Sekhar Nori (1):
-      ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
-
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c |  14 +++-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 111 +++++++++++++++++++++++++++++
- 2 files changed, 124 insertions(+), 1 deletion(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJW1WeoAAoJEMePsQ0LvSpLF2gP/1Lyz4yF9QQrcsroDq8164M1
-NbYFWQnR5FzFWrpUZL72/zfn3iZTGWP8+t4Muy3qgjMCwWb2ciB3tX6v2+DL1Agw
-xTVeB9EJ6QeMogDELw3A9Fv68ZesIaOn/VnKQqQeAi4FQKi9bfc05+fSF2cQZk5a
-SwIqgQbf7bdZc1n4oDDEboQClHjIthYXwdoTtWk4JcUr+6xxF7MnWrQtpEhD/p2n
-WwFw8TCAdOu56Y+/wqSmLNdFhHFkPBHDfS7LnDbLD2RVN7iS7QubamixcnjlKEWa
-dE8ayf+6PU+l583VjJTGfMm5+fm9g+oyUCkr9eCOVrQGga0/en23/1ag0R9X3fYz
-4XNV3ng0PD0q31nvnh9tToGV5Lodhs0cKwx4yg2tcFh1BTvziSZwYeJPpBlgUcjW
-I/1SWZ5gaSSZf5EcEXV4Kv7SFx48xvpp95gog5mrqzqQPqz++Z3//gGqiJkcZHh9
-Pqk7/s03BUaB2DmXY9+uV1USx3/4biyeOlgTqShtZ5ManmNAlY9+wfwPmpCz6cWW
-BpsuEK8T4UQJiiS2mo73g+gxAIF+0uS0doSHaNsJrinX50xd05IxyWOdCEpZTfx1
-O/p48BiwRBqTkjvXCSxWBlIMKf6zQb1oeWbkYfx9flnqPbElbvPAG9yNzu10lYah
-gbPl8f4LFnKKIXaMVJag
-=bfW4
------END PGP SIGNATURE-----
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e9f65fe..71b3747 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1416,9 +1416,7 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	    (sf & SYSC_HAS_CLOCKACTIVITY))
+ 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+ 
+-	/* If the cached value is the same as the new value, skip the write */
+-	if (oh->_sysc_cache != v)
+-		_write_sysconfig(v, oh);
++	_write_sysconfig(v, oh);
+ 
+ 	/*
+ 	 * Set the autoidle bit only after setting the smartidle bit
+@@ -1481,7 +1479,9 @@ static void _idle_sysc(struct omap_hwmod *oh)
+ 		_set_master_standbymode(oh, idlemode, &v);
+ 	}
+ 
+-	_write_sysconfig(v, oh);
++	/* If the cached value is the same as the new value, skip the write */
++	if (oh->_sysc_cache != v)
++		_write_sysconfig(v, oh);
+ }
+ 
+ /**
+-- 
+2.1.4
