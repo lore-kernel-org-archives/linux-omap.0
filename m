@@ -1,106 +1,48 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
-Date: Tue, 1 Mar 2016 08:43:36 -0600
-Message-ID: <20160301144335.GA11916@localhost>
-References: <56BE1454.3030002@ti.com>
- <56C5D377.50901@ti.com>
- <56CAA82D.6000507@ti.com>
- <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
- <56CADB23.8020202@ti.com>
- <56CC490F.3040301@ti.com>
- <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
- <56CD4BE1.3010701@ti.com>
- <alpine.DEB.2.02.1603010825090.14948@utopia.booyaka.com>
- <56D5834C.5030800@ti.com>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: Alternative binding proposal for tda998x audio (Was: Re: [PATCH
+ RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph of ports)
+Date: Tue, 1 Mar 2016 16:35:53 +0100
+Message-ID: <20160301163553.3ef298fb2c0bb25ef662a41d@free.fr>
+References: <cover.1455720381.git.jsarha@ti.com>
+ <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
+ <20160218143530.GB9654@rob-hp-laptop> <56CF04DA.8080905@ti.com>
+ <20160226004311.GM5783@n2100.arm.linux.org.uk>
+ <56D02594.4020407@ti.com>
+ <20160226112159.GO5783@n2100.arm.linux.org.uk>
+ <56D41F1A.2030100@ti.com> <56D5A6AA.2030907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56D5834C.5030800@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <56D5A6AA.2030907@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, peter.ujfalusi@ti.com, devicetree@vger.kernel.org, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 01, 2016 at 05:25:56PM +0530, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Tuesday 01 March 2016 01:55 PM, Paul Walmsley wrote:
-> > 
-> > Folks, the following is what I've queued for this.
-> 
-> Thanks Paul.
-> 
-> Bjorn,
-> 
-> With this patch merged, enabling pci-dra7xx won't result in system freeze
-> anymore. I can send a patch to revert depends on BROKEN.
-
-Great!  Please send me that patch, and I'll merge it for v4.6.
-
-> > From: Sekhar Nori <nsekhar@ti.com>
-> > Date: Thu, 18 Feb 2016 16:49:56 +0530
-> > Subject: [PATCH] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
-> > 
-> > Add a custom reset handler for DRA7x PCIeSS. This
-> > handler is required to deassert PCIe hardreset lines
-> > after they have been asserted.
-> > 
-> > This enables the PCIe driver to access registers after
-> > PCIeSS has been runtime enabled without having to
-> > deassert hardreset lines itself.
-> > 
-> > With this patch applied, used lspci to make sure
-> > connected PCIe device enumerates on DRA74x and DRA72x
-> > EVMs.
-> > 
-> > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> > Reported-by: Richard Cochran <richardcochran@gmail.com>
-> > Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > Cc: Suman Anna <s-anna@ti.com>
-> > Cc: Dave Gerlach <d-gerlach@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Bjorn Helgaas <bhelgaas@google.com>
-> > Cc: Russell King <linux@arm.linux.org.uk>
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
-> >  1 file changed, 23 insertions(+)
-> > 
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > index b61355e2a771..252b74633e31 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > @@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-> >   *
-> >   */
-> >  
-> > +/*
-> > + * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
-> > + * functionality of OMAP HWMOD layer does not deassert the hardreset lines
-> > + * associated with an IP automatically leaving the driver to handle that
-> > + * by itself. This does not work for PCIeSS which needs the reset lines
-> > + * deasserted for the driver to start accessing registers.
-> > + *
-> > + * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
-> > + * lines after asserting them.
-> > + */
-> > +static int dra7xx_pciess_reset(struct omap_hwmod *oh)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < oh->rst_lines_cnt; i++) {
-> > +		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
-> > +		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
-> >  	.name	= "pcie",
-> > +	.reset	= dra7xx_pciess_reset,
-> >  };
-> >  
-> >  /* pcie1 */
-> > 
+T24gVHVlLCAxIE1hciAyMDE2IDE2OjI2OjUwICswMjAwCkp5cmkgU2FyaGEgPGpzYXJoYUB0aS5j
+b20+IHdyb3RlOgoKPiBPaywgaGVyZSBpcyBqdXN0IG9uZSBtb3JlIHNpbXBsZSBhbHRlcm5hdGl2
+ZSBmb3IgdGRhOTk4eCBhdWRpbyBiaW5kaW5nLiAKPiBJIGZlZWwgdGhhdCB0aGUgZ3JhcGggcG9y
+dHMgYmluZGluZyBmb3IgYXVkaW8gZG9lcyBub3QgbWFrZSBzZW5zZSAKPiB3aXRob3V0IGEgZ3Jh
+cGggYmFzZWQgQVNvQyBtYWNoaW5lIGRyaXZlciBpbXBsZW1lbnRhdGlvbi4gVGhlIEFTb0MgCj4g
+c2ltcGxlLWNhcmQgaXMgYWxyZWFkeSBoZXJlIGFuZCBpdCBzbyB3aWRlbHkgdXNlZCB0aGF0IHRo
+ZXJlIGlzIG5vIAo+IGdldHRpbmcgcmlkIG9mIHRoYXQgYW55IHRpbWUgc29vbi4gVGhpcyBwcm9w
+b3NhbCBwcm92aWRlcyB0aGUgc2FtZSAKPiBmdW5jdGlvbmFsaXR5IGFzIHRoZSBwYXRjaCBpbiB0
+aGUgcm9vdCBvZiB0aGlzIHRocmVhZCwgYnV0IGluIGEgc2ltcGxlciAKPiB3YXkgYW5kIGlzIGVx
+dWFsbHkgY29tcGF0aWJsZSB3aXRoIHNpbXBsZS1jYXJkLgoKSGkgSnlyaSwKClRoZSBncmFwaCBw
+b3J0IGJpbmRpbmcgZm9yIHRoZSB0ZGE5OTh4IHdvcmtzIGZpbmUgd2l0aCB0aGUgc2ltcGxlIGNh
+cmQKZHJpdmVyIHdoZW4gbXVsdGktY29kZWMgc3VwcG9ydCBpcyBhZGRlZC4gU2VlCmh0dHA6Ly9t
+YWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvcGlwZXJtYWlsL2Fsc2EtZGV2ZWwvMjAxNS1KYW51YXJ5
+LzA4NTg1NS5odG1sCgotLSAKS2VuIGFyIGMnaGVudGHDsQl8CSAgICAgICoqIEJyZWl6aCBoYSBM
+aW51eCBhdGF2ISAqKgpKZWYJCXwJCWh0dHA6Ly9tb2luZWpmLmZyZWUuZnIvCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
+aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
+a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
