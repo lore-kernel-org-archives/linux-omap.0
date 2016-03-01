@@ -1,64 +1,120 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [RFC PATCH] ARM: OMAP2+: Fix updating of sysconfig register
-Date: Tue, 1 Mar 2016 17:18:07 +0530
-Message-ID: <1456832887-5312-1-git-send-email-lokeshvutla@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 3/3] pci: dra7xx: use pdata callbacks to perform reset
+Date: Tue, 1 Mar 2016 17:25:56 +0530
+Message-ID: <56D5834C.5030800@ti.com>
+References: <1452780672-14339-1-git-send-email-kishon@ti.com>
+ <1452780672-14339-4-git-send-email-kishon@ti.com>
+ <20160127173104.GQ19432@atomide.com> <56A90971.4020409@ti.com>
+ <20160127185649.GV19432@atomide.com> <56A94FB7.6020903@ti.com>
+ <20160128183156.GH19432@atomide.com> <56B087AD.4000505@ti.com>
+ <alpine.DEB.2.02.1602080208070.2182@utopia.booyaka.com>
+ <56B900E9.9040306@ti.com>
+ <alpine.DEB.2.02.1602090846480.2906@utopia.booyaka.com>
+ <56BA2495.9020407@ti.com>
+ <alpine.DEB.2.02.1602091932160.2906@utopia.booyaka.com>
+ <56BA958A.1020503@ti.com> <56BACCDB.2070507@ti.com>
+ <alpine.DEB.2.02.1602111921090.20757@utopia.booyaka.com>
+ <56BD8091.4090007@ti.com> <56BE1454.3030002@ti.com> <56C5D377.50901@ti.com>
+ <56CAA82D.6000507@ti.com>
+ <alpine.DEB.2.02.1602220631300.3418@utopia.booyaka.com>
+ <56CADB23.8020202@ti.com> <56CC490F.3040301@ti.com>
+ <alpine.DEB.2.02.1602231827300.27173@utopia.booyaka.com>
+ <56CD4BE1.3010701@ti.com>
+ <alpine.DEB.2.02.1603010825090.14948@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: paul@pwsan.com, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Tero Kristo <t-kristo@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1603010825090.14948@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Suman Anna <s-anna@ti.com>, d-gerlach@ti.com, Tony Lindgren <tony@atomide.com>, Bjorn Helgaas <bhelgaas@google.com>, richardcochran@gmail.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-commit 127500ccb766f ("ARM: OMAP2+: Only write the sysconfig on idle
-when necessary") talks about verification of sysconfig cache value before
-updating it, only during idle path. But the patch is adding the
-verification in the enable path. So, adding the check in a proper place
-as per the commit description.
+Hi,
 
-Not keeping this check during enable path as there is a chance of losing
-context and it is safe to do on idle as the context of the register will
-never be lost while the device is active.
+On Tuesday 01 March 2016 01:55 PM, Paul Walmsley wrote:
+> 
+> Folks, the following is what I've queued for this.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thanks Paul.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e9f65fe..71b3747 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1416,9 +1416,7 @@ static void _enable_sysc(struct omap_hwmod *oh)
- 	    (sf & SYSC_HAS_CLOCKACTIVITY))
- 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
- 
--	/* If the cached value is the same as the new value, skip the write */
--	if (oh->_sysc_cache != v)
--		_write_sysconfig(v, oh);
-+	_write_sysconfig(v, oh);
- 
- 	/*
- 	 * Set the autoidle bit only after setting the smartidle bit
-@@ -1481,7 +1479,9 @@ static void _idle_sysc(struct omap_hwmod *oh)
- 		_set_master_standbymode(oh, idlemode, &v);
- 	}
- 
--	_write_sysconfig(v, oh);
-+	/* If the cached value is the same as the new value, skip the write */
-+	if (oh->_sysc_cache != v)
-+		_write_sysconfig(v, oh);
- }
- 
- /**
--- 
-2.1.4
+Bjorn,
+
+With this patch merged, enabling pci-dra7xx won't result in system freeze
+anymore. I can send a patch to revert depends on BROKEN.
+
+Thanks
+Kishon
+
+> 
+> 
+> - Paul
+> 
+> 
+> From: Sekhar Nori <nsekhar@ti.com>
+> Date: Thu, 18 Feb 2016 16:49:56 +0530
+> Subject: [PATCH] ARM: DRA7: hwmod: Add custom reset handler for PCIeSS
+> 
+> Add a custom reset handler for DRA7x PCIeSS. This
+> handler is required to deassert PCIe hardreset lines
+> after they have been asserted.
+> 
+> This enables the PCIe driver to access registers after
+> PCIeSS has been runtime enabled without having to
+> deassert hardreset lines itself.
+> 
+> With this patch applied, used lspci to make sure
+> connected PCIe device enumerates on DRA74x and DRA72x
+> EVMs.
+> 
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> Reported-by: Richard Cochran <richardcochran@gmail.com>
+> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: Suman Anna <s-anna@ti.com>
+> Cc: Dave Gerlach <d-gerlach@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> index b61355e2a771..252b74633e31 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -1526,8 +1526,31 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+>   *
+>   */
+>  
+> +/*
+> + * As noted in documentation for _reset() in omap_hwmod.c, the stock reset
+> + * functionality of OMAP HWMOD layer does not deassert the hardreset lines
+> + * associated with an IP automatically leaving the driver to handle that
+> + * by itself. This does not work for PCIeSS which needs the reset lines
+> + * deasserted for the driver to start accessing registers.
+> + *
+> + * We use a PCIeSS HWMOD class specific reset handler to deassert the hardreset
+> + * lines after asserting them.
+> + */
+> +static int dra7xx_pciess_reset(struct omap_hwmod *oh)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < oh->rst_lines_cnt; i++) {
+> +		omap_hwmod_assert_hardreset(oh, oh->rst_lines[i].name);
+> +		omap_hwmod_deassert_hardreset(oh, oh->rst_lines[i].name);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static struct omap_hwmod_class dra7xx_pciess_hwmod_class = {
+>  	.name	= "pcie",
+> +	.reset	= dra7xx_pciess_reset,
+>  };
+>  
+>  /* pcie1 */
+> 
