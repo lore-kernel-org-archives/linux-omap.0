@@ -1,95 +1,43 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH v3 1/5] pwms: pwm-ti*: Remove support for local clock
- gating
-Date: Wed, 2 Mar 2016 13:41:26 -0600
-Message-ID: <56D741E6.3000708@ti.com>
-References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
- <1456439796-28546-2-git-send-email-fcooper@ti.com>
- <20160229220444.GQ13417@atomide.com> <56D4C69D.1090100@ti.com>
- <20160229225536.GR13417@atomide.com> <56D4D032.7040801@ti.com>
- <20160229232011.GU13417@atomide.com>
+From: Vishal Mahaveer <vishalm@ti.com>
+Subject: [PATCH] ARM: DRA722: remove redundant definition of 1.0 device
+Date: Wed, 2 Mar 2016 16:21:15 -0600
+Message-ID: <1456957275-2025-1-git-send-email-vishalm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <20160229232011.GU13417@atomide.com>
-Sender: linux-pwm-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: paul@pwsan.com, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Remove duplicate definition of Rev 1.0 device.
+Fixes: 81032e34e184 ("ARM: DRA752: Add ID detect for ES2.0")
 
+Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
+---
+ arch/arm/mach-omap2/soc.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-On 02/29/2016 05:20 PM, Tony Lindgren wrote:
-> * Franklin S Cooper Jr. <fcooper@ti.com> [160229 15:12]:
->>
->> On 02/29/2016 04:55 PM, Tony Lindgren wrote:
->>> * Franklin S Cooper Jr. <fcooper@ti.com> [160229 14:31]:
->>>> On 02/29/2016 04:04 PM, Tony Lindgren wrote:
->>>>> Hmm but why are you also removing the pm_runtime calls? Those
->>>>> actually do take care of gating the clocks via the interconnect
->>>>> level code that is hwmod in this case.
->>>> I removed all PM runtime calls that revolved around
->>>> pwmss_submodule_state_change. Originally the driver would do
->>>> a pm_runtime_get_sync then call pwmss_submodule_state_change
->>>> and then immediately call pm_runtime_put_sync. Without
->>>> pwmss_submodule_state_change those calls would be
->>>> meaningless.  I also removed pm_runtime calls in error paths
->>>> that no longer existed.
->>> Typically the interconnect level code can gate the clkctrl bit
->>> for the module with PM runtime even with no other driver specific
->>> registers. If you remove the pm_runtime calls, that does not
->>> happen.
->> So the clocks should be unlocked when ever the IP registers are
->> being read/written or if the peripheral is being used for
->> example
->> the pwm signal is being generated. All these cases are already
->> being handled.
->>
->> Using ecap driver as an example.
->>
->> Pm_runtime_get_sync is called within ecap_pwm_enable when
->> the pwm signal is to be generated. Pm_runtime_put_sync is called
->> when the pwm signal is to be stopped.
->>
->> When either the pwm signal polarity is set or pwm
->> configuration is made
->> then a pm_runtime_get_sync and pm_runtime_put_sync are
->> called within
->> the same function surrounding calls to the IP's registers.
->>
->> Probe is calling pm_runtime_enable while remove is calling
->> pm_runtime_disable.
-> OK good to hear you have considered this. The above answers
-> my questions then thanks.
->
->> So the correct pm_runtime calls are being made from what I
->> can see.
->> I'm not sure I understand the concern since removing those
->> calls aren't
->> creating any kind of imbalance.
-> OK thanks for checking.
->
->> If I'm not addressing your concern please give me an example
->> of where
->> you see a possible issue.
-> No that's fine. I thought you're ripping out all of the the
-> pm_runtime based on just looking at the patch :)
->
->>> Also, how do you know this change does not affect the other
->>> SoC variants using the same driver?
->> I've tested these changes on AM335x GP and AM437x GP evms.
->> AM335x
->> and AM437x were the only other users of this driver. Sorry 
->> I should of
->> documented this in my cover-letter.
-> OK good to hear.
->
-> Thanks,
->
-> Tony
-
-I know there are some comments regarding other patches in
-this patchset but this patch is unrelated and can be pulled
-in separately. Any objections to this or should I just
-resubmit this patch by itself?
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 79ca3c3..83d3547 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -471,7 +471,6 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
+ #define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
+ #define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
+-#define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
+ 
+ void omap2xxx_check_revision(void);
+ void omap3xxx_check_revision(void);
+-- 
+1.7.4.1
