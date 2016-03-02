@@ -1,97 +1,81 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC PATCH] ARM: OMAP2+: Fix updating of sysconfig register
-Date: Wed, 2 Mar 2016 09:38:43 +0200
-Message-ID: <56D69883.6070603@ti.com>
-References: <1456832887-5312-1-git-send-email-lokeshvutla@ti.com>
- <alpine.DEB.2.02.1603011703170.14948@utopia.booyaka.com>
- <56D65FD4.4090206@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: Alternative binding proposal for tda998x audio
+ (Was: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph of
+ ports)
+Date: Wed, 2 Mar 2016 10:34:22 +0200
+Message-ID: <56D6A58E.4020606@ti.com>
+References: <cover.1455720381.git.jsarha@ti.com>
+ <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
+ <20160218143530.GB9654@rob-hp-laptop> <56CF04DA.8080905@ti.com>
+ <20160226004311.GM5783@n2100.arm.linux.org.uk> <56D02594.4020407@ti.com>
+ <20160226112159.GO5783@n2100.arm.linux.org.uk> <56D41F1A.2030100@ti.com>
+ <56D5A6AA.2030907@ti.com> <20160301163553.3ef298fb2c0bb25ef662a41d@free.fr>
+ <56D5BA6D.8090904@ti.com> <20160301171630.630a47dc00060645f89bb8ab@free.fr>
+ <56D5DF7D.7090608@ti.com> <20160301202619.011013effd265fdee93d4d8e@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <56D65FD4.4090206@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <a0131933@ti.com>, Paul Walmsley <paul@pwsan.com>, Lokesh Vutla <lokeshvutla@ti.com>, jonathanh@nvidia.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20160301202619.011013effd265fdee93d4d8e@free.fr>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Rob Herring <robh@kernel.org>, alsa-devel@alsa-project.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, peter.ujfalusi@ti.com, devicetree@vger.kernel.org, airlied@linux.ie, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/02/2016 05:36 AM, Lokesh Vutla wrote:
+On 03/01/16 21:26, Jean-Francois Moine wrote:
+> On Tue, 1 Mar 2016 20:29:17 +0200
+> Jyri Sarha <jsarha@ti.com> wrote:
 >
+>> I understand the short comings of simple-card and it's binding. However,
+>> the binding is documented and it is feasible to extract the audio
+>> connections from a simple-card binding too. In fact it models the I2S
+>> connections better than straight out of tehe box graph binding. Actually
+>> a graph is not the best way describe an i2s-bus with multiple DAIs
+>> (codec or CPU) connected to it.
 >
-> On Tuesday 01 March 2016 10:33 PM, Paul Walmsley wrote:
->> + Jon Hunter
->>
->> On Tue, 1 Mar 2016, Lokesh Vutla wrote:
->>
->>> commit 127500ccb766f ("ARM: OMAP2+: Only write the sysconfig on idle
->>> when necessary") talks about verification of sysconfig cache value before
->>> updating it, only during idle path. But the patch is adding the
->>> verification in the enable path. So, adding the check in a proper place
->>> as per the commit description.
->>>
->>> Not keeping this check during enable path as there is a chance of losing
->>> context and it is safe to do on idle as the context of the register will
->>> never be lost while the device is active.
+> I still don't understand your problem. You want something like:
 >
-> When the patch was originally posted[1], this check was in proper place
-> itself. Not sure what happened after that.
 
-Looks like a merge conflict to me.
+The problem is adding redundant unused details into binding without any 
+plan of ever using them.
 
-The patch from Lokesh fixes it, so:
+Fundamentally my problem is finding some consensus on the tda998x ASoC 
+implementation. I've been reusing your binding for couple of review 
+rounds and there has been some well justified critique towards it. I 
+feel stupid in pushing forward something that I do not completely agree 
+myself, so I decided to try something else.
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
+> 	audio-ports = <	TDA998x_SPDIF	0x04
+> 			TDA998x_I2S	0x03>;
+>
+> and the graph definition would be:
+>
+> 	port@03 {
+> 		reg = <0x03>;
+> 		port-type = "audio-i2s";
+> 		...
+> 	};
+>
+> 	port@04 {
+> 		reg = <0x04>;
+> 		port-type = "audio-spdif";
+> 		...
+> 	};
+>
+> Apart the syntax, I don't really see the difference.
+>
 
->
-> [1] https://www.mail-archive.com/linux-omap%40vger.kernel.org/msg78032.html
->
-> Thanks and regards,
-> Lokesh
->
->>>
->>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/omap_hwmod.c | 8 ++++----
->>>   1 file changed, 4 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->>> index e9f65fe..71b3747 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -1416,9 +1416,7 @@ static void _enable_sysc(struct omap_hwmod *oh)
->>>   	    (sf & SYSC_HAS_CLOCKACTIVITY))
->>>   		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
->>>
->>> -	/* If the cached value is the same as the new value, skip the write */
->>> -	if (oh->_sysc_cache != v)
->>> -		_write_sysconfig(v, oh);
->>> +	_write_sysconfig(v, oh);
->>>
->>>   	/*
->>>   	 * Set the autoidle bit only after setting the smartidle bit
->>> @@ -1481,7 +1479,9 @@ static void _idle_sysc(struct omap_hwmod *oh)
->>>   		_set_master_standbymode(oh, idlemode, &v);
->>>   	}
->>>
->>> -	_write_sysconfig(v, oh);
->>> +	/* If the cached value is the same as the new value, skip the write */
->>> +	if (oh->_sysc_cache != v)
->>> +		_write_sysconfig(v, oh);
->>>   }
->>>
->>>   /**
->>> --
->>> 2.1.4
->>>
->>
->>
->> - Paul
->>
+Yes, the necessary information is contained in both bindings. I can live 
+with either one of them, but I would prefer my version. Essentially I 
+would just like to move forward.
+
+Best regards,
+Jyri
