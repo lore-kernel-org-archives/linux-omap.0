@@ -1,52 +1,36 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: DRA722: remove redundant definition of 1.0 device
-Date: Wed, 2 Mar 2016 16:24:20 -0600
-Message-ID: <56D76814.20804@ti.com>
-References: <1456957275-2025-1-git-send-email-vishalm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 1/5] pwms: pwm-ti*: Remove support for local clock
+ gating
+Date: Wed, 2 Mar 2016 14:54:13 -0800
+Message-ID: <20160302225413.GF4469@atomide.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+ <1456439796-28546-2-git-send-email-fcooper@ti.com>
+ <20160229220444.GQ13417@atomide.com>
+ <56D4C69D.1090100@ti.com>
+ <20160229225536.GR13417@atomide.com>
+ <56D4D032.7040801@ti.com>
+ <20160229232011.GU13417@atomide.com>
+ <56D741E6.3000708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1456957275-2025-1-git-send-email-vishalm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vishal Mahaveer <vishalm@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56D741E6.3000708@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: "Franklin S Cooper Jr." <fcooper@ti.com>
+Cc: paul@pwsan.com, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/02/2016 04:21 PM, Vishal Mahaveer wrote:
-> Remove duplicate definition of Rev 1.0 device.
-> Fixes: 81032e34e184 ("ARM: DRA752: Add ID detect for ES2.0")
-> 
-If tony is ok fixing the beautification...
+* Franklin S Cooper Jr. <fcooper@ti.com> [160302 11:41]:
+> I know there are some comments regarding other patches in
+> this patchset but this patch is unrelated and can be pulled
+> in separately. Any objections to this or should I just
+> resubmit this patch by itself?
 
-> Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
-> ---
->  arch/arm/mach-omap2/soc.h |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-> index 79ca3c3..83d3547 100644
-> --- a/arch/arm/mach-omap2/soc.h
-> +++ b/arch/arm/mach-omap2/soc.h
-> @@ -471,7 +471,6 @@ IS_OMAP_TYPE(3430, 0x3430)
->  #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
->  #define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
->  #define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
-> -#define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
->  
->  void omap2xxx_check_revision(void);
->  void omap3xxx_check_revision(void);
-> 
-Acked-by: Nishanth Menon <nm@ti.com>
+No objections from me at least. If something needs to
+change at the driver level, it sounds like a different
+set of patches then.
 
--- 
 Regards,
-Nishanth Menon
+
+Tony
