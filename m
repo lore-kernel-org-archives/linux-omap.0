@@ -1,81 +1,167 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: Alternative binding proposal for tda998x audio
- (Was: Re: [PATCH RFC v5 4/8] drm/i2c: tda998x: Add support of a DT graph of
- ports)
-Date: Wed, 2 Mar 2016 10:34:22 +0200
-Message-ID: <56D6A58E.4020606@ti.com>
-References: <cover.1455720381.git.jsarha@ti.com>
- <842e221030a0b14bc862790eb2f5bc97bb29c012.1455720381.git.jsarha@ti.com>
- <20160218143530.GB9654@rob-hp-laptop> <56CF04DA.8080905@ti.com>
- <20160226004311.GM5783@n2100.arm.linux.org.uk> <56D02594.4020407@ti.com>
- <20160226112159.GO5783@n2100.arm.linux.org.uk> <56D41F1A.2030100@ti.com>
- <56D5A6AA.2030907@ti.com> <20160301163553.3ef298fb2c0bb25ef662a41d@free.fr>
- <56D5BA6D.8090904@ti.com> <20160301171630.630a47dc00060645f89bb8ab@free.fr>
- <56D5DF7D.7090608@ti.com> <20160301202619.011013effd265fdee93d4d8e@free.fr>
+From: John Ogness <john.ogness@linutronix.de>
+Subject: Re: [PATCH 3/3] serial: 8250: omap: restore registers on shutdown
+Date: Wed, 02 Mar 2016 10:54:03 +0100
+Message-ID: <87egbtdx38.fsf@linutronix.de>
+References: <87egjp2r4a.fsf@linutronix.de>
+	<55BAC67E.1010400@hurleysoftware.com>
+	<20150803160937.GA26497@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160301202619.011013effd265fdee93d4d8e@free.fr>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Rob Herring <robh@kernel.org>, alsa-devel@alsa-project.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, peter.ujfalusi@ti.com, devicetree@vger.kernel.org, airlied@linux.ie, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150803160937.GA26497@linutronix.de> (Sebastian Andrzej
+	Siewior's message of "Mon, 3 Aug 2015 18:09:37 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Peter Hurley <peter@hurleysoftware.com>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, nsekhar@ti.com, nm@ti.com, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/01/16 21:26, Jean-Francois Moine wrote:
-> On Tue, 1 Mar 2016 20:29:17 +0200
-> Jyri Sarha <jsarha@ti.com> wrote:
+Hi Sebastian, Peter,
+
+On 2015-08-03, Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+> * Peter Hurley | 2015-07-30 20:51:10 [-0400]:
+>> I was never really a fan of the deferred set_termios();
+>> I think it's more appropriate to wait for tx dma to
+>> complete in omap_8250_set_termios().
 >
->> I understand the short comings of simple-card and it's binding. However,
->> the binding is documented and it is feasible to extract the audio
->> connections from a simple-card binding too. In fact it models the I2S
->> connections better than straight out of tehe box graph binding. Actually
->> a graph is not the best way describe an i2s-bus with multiple DAIs
->> (codec or CPU) connected to it.
->
-> I still don't understand your problem. You want something like:
+> So you want something like this? This was only compile + boot tested
+> (without triggering the corner case) [...] Just checking if this is
+> what you had in mind.
+
+I tested this against next-20160226 using an AM335x (beaglebone
+black). I made sure the corner case was hit. I also ran tests of
+terminating the sender or termios-setter while in the corner
+case. Everything ran without any problems.
+
+> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> index d9a37191a1ae..12249125a218 100644
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -100,9 +100,9 @@ struct omap8250_priv {
+>  	u8 wer;
+>  	u8 xon;
+>  	u8 xoff;
+> -	u8 delayed_restore;
+>  	u16 quot;
+>  
+> +	wait_queue_head_t termios_wait;
+>  	bool is_suspending;
+>  	int wakeirq;
+>  	int wakeups_enabled;
+> @@ -256,18 +256,6 @@ static void omap8250_update_mdr1(struct uart_8250_port *up,
+>  static void omap8250_restore_regs(struct uart_8250_port *up)
+>  {
+>  	struct omap8250_priv *priv = up->port.private_data;
+> -	struct uart_8250_dma	*dma = up->dma;
+> -
+> -	if (dma && dma->tx_running) {
+> -		/*
+> -		 * TCSANOW requests the change to occur immediately however if
+> -		 * we have a TX-DMA operation in progress then it has been
+> -		 * observed that it might stall and never complete. Therefore we
+> -		 * delay DMA completes to prevent this hang from happen.
+> -		 */
+> -		priv->delayed_restore = 1;
+> -		return;
+> -	}
+>  
+>  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+>  	serial_out(up, UART_EFR, UART_EFR_ECB);
+> @@ -309,6 +297,7 @@ static void omap8250_restore_regs(struct uart_8250_port *up)
+>  	up->port.ops->set_mctrl(&up->port, up->port.mctrl);
+>  }
+>  
+> +static void omap_8250_dma_tx_complete(void *param);
+>  /*
+>   * OMAP can use "CLK / (16 or 13) / div" for baud rate. And then we have have
+>   * some differences in how we want to handle flow control.
+> @@ -322,6 +311,7 @@ static void omap_8250_set_termios(struct uart_port *port,
+>  	struct omap8250_priv *priv = up->port.private_data;
+>  	unsigned char cval = 0;
+>  	unsigned int baud;
+> +	unsigned int complete_dma = 0;
+>  
+>  	switch (termios->c_cflag & CSIZE) {
+>  	case CS5:
+> @@ -473,6 +463,25 @@ static void omap_8250_set_termios(struct uart_port *port,
+>  		if (termios->c_iflag & IXANY)
+>  			up->mcr |= UART_MCR_XONANY;
+>  	}
+> +
+> +	if (up->dma && up->dma->tx_running) {
+> +		struct uart_8250_dma	*dma = up->dma;
+> +
+> +		/*
+> +		 * TCSANOW requests the change to occur immediately however if
+> +		 * we have a TX-DMA operation in progress then it has been
+> +		 * observed that it might stall and never complete. Therefore we
+> +		 * wait until DMA completes to prevent this hang from happen.
+> +		 */
+> +
+> +		dma->tx_running = 2;
+> +
+> +		spin_unlock_irq(&up->port.lock);
+> +		wait_event(priv->termios_wait,
+> +			   dma->tx_running == 3);
+
+If I comment out the wait_event() call here, I can reproduce the DMA
+stalls reported by the comments.
+
+> +		spin_lock_irq(&up->port.lock);
+> +		complete_dma = 1;
+> +	}
+>  	omap8250_restore_regs(up);
+>  
+>  	spin_unlock_irq(&up->port.lock);
+> @@ -488,6 +497,8 @@ static void omap_8250_set_termios(struct uart_port *port,
+>  	/* Don't rewrite B0 */
+>  	if (tty_termios_baud_rate(termios))
+>  		tty_termios_encode_baud_rate(termios, baud, baud);
+> +	if (complete_dma)
+> +		omap_8250_dma_tx_complete(up);
+>  }
+>  
+>  /* same as 8250 except that we may have extra flow bits set in EFR */
+> @@ -869,17 +880,18 @@ static void omap_8250_dma_tx_complete(void *param)
+>  
+>  	spin_lock_irqsave(&p->port.lock, flags);
+>  
+> +	if (dma->tx_running == 2) {
+> +		dma->tx_running = 3;
+> +		wake_up(&priv->termios_wait);
+> +		goto out;
+> +	}
+> +
+>  	dma->tx_running = 0;
+>  
+>  	xmit->tail += dma->tx_size;
+>  	xmit->tail &= UART_XMIT_SIZE - 1;
+>  	p->port.icount.tx += dma->tx_size;
+>  
+> -	if (priv->delayed_restore) {
+> -		priv->delayed_restore = 0;
+> -		omap8250_restore_regs(p);
+> -	}
+> -
+>  	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+>  		uart_write_wakeup(&p->port);
+>  
+> @@ -899,7 +911,7 @@ static void omap_8250_dma_tx_complete(void *param)
+>  		p->ier |= UART_IER_THRI;
+>  		serial_port_out(&p->port, UART_IER, p->ier);
+>  	}
+> -
+> +out:
+>  	spin_unlock_irqrestore(&p->port.lock, flags);
+>  }
+>  
+> @@ -1216,6 +1228,7 @@ static int omap8250_probe(struct platform_device *pdev)
+>  			priv->omap8250_dma.rx_size = RX_TRIGGER;
+>  			priv->omap8250_dma.rxconf.src_maxburst = RX_TRIGGER;
+>  			priv->omap8250_dma.txconf.dst_maxburst = TX_TRIGGER;
+> +			init_waitqueue_head(&priv->termios_wait);
+>  
+>  			if (of_machine_is_compatible("ti,am33xx"))
+>  				priv->habit |= OMAP_DMA_TX_KICK;
 >
 
-The problem is adding redundant unused details into binding without any 
-plan of ever using them.
-
-Fundamentally my problem is finding some consensus on the tda998x ASoC 
-implementation. I've been reusing your binding for couple of review 
-rounds and there has been some well justified critique towards it. I 
-feel stupid in pushing forward something that I do not completely agree 
-myself, so I decided to try something else.
-
-> 	audio-ports = <	TDA998x_SPDIF	0x04
-> 			TDA998x_I2S	0x03>;
->
-> and the graph definition would be:
->
-> 	port@03 {
-> 		reg = <0x03>;
-> 		port-type = "audio-i2s";
-> 		...
-> 	};
->
-> 	port@04 {
-> 		reg = <0x04>;
-> 		port-type = "audio-spdif";
-> 		...
-> 	};
->
-> Apart the syntax, I don't really see the difference.
->
-
-Yes, the necessary information is contained in both bindings. I can live 
-with either one of them, but I would prefer my version. Essentially I 
-would just like to move forward.
-
-Best regards,
-Jyri
+John Ogness
