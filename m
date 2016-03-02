@@ -1,34 +1,95 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL][RESEND] omap gpmc enhancements for v4.6
-Date: Wed, 02 Mar 2016 20:05:35 +0100
-Message-ID: <6407706.rWZ3nVIFX1@wuerfel>
-References: <56D488F0.8070406@ti.com> <56D590B9.4050307@ti.com>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [PATCH v3 1/5] pwms: pwm-ti*: Remove support for local clock
+ gating
+Date: Wed, 2 Mar 2016 13:41:26 -0600
+Message-ID: <56D741E6.3000708@ti.com>
+References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
+ <1456439796-28546-2-git-send-email-fcooper@ti.com>
+ <20160229220444.GQ13417@atomide.com> <56D4C69D.1090100@ti.com>
+ <20160229225536.GR13417@atomide.com> <56D4D032.7040801@ti.com>
+ <20160229232011.GU13417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <56D590B9.4050307@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Neil Armstrong <narmstrong@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <20160229232011.GU13417@atomide.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: paul@pwsan.com, t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 01 March 2016 14:53:13 Roger Quadros wrote:
-> OMAP-GPMC: Add address/data muxed timings
-> 
-> * Add support for the GPMC Advanced AAD (address/data muxed) timings
-> on hardware supporting the feature like the AM335x and DM816X.
-> 
-> 
 
-Pulled into next/drivers, thanks!
 
-	Arnd
+On 02/29/2016 05:20 PM, Tony Lindgren wrote:
+> * Franklin S Cooper Jr. <fcooper@ti.com> [160229 15:12]:
+>>
+>> On 02/29/2016 04:55 PM, Tony Lindgren wrote:
+>>> * Franklin S Cooper Jr. <fcooper@ti.com> [160229 14:31]:
+>>>> On 02/29/2016 04:04 PM, Tony Lindgren wrote:
+>>>>> Hmm but why are you also removing the pm_runtime calls? Those
+>>>>> actually do take care of gating the clocks via the interconnect
+>>>>> level code that is hwmod in this case.
+>>>> I removed all PM runtime calls that revolved around
+>>>> pwmss_submodule_state_change. Originally the driver would do
+>>>> a pm_runtime_get_sync then call pwmss_submodule_state_change
+>>>> and then immediately call pm_runtime_put_sync. Without
+>>>> pwmss_submodule_state_change those calls would be
+>>>> meaningless.  I also removed pm_runtime calls in error paths
+>>>> that no longer existed.
+>>> Typically the interconnect level code can gate the clkctrl bit
+>>> for the module with PM runtime even with no other driver specific
+>>> registers. If you remove the pm_runtime calls, that does not
+>>> happen.
+>> So the clocks should be unlocked when ever the IP registers are
+>> being read/written or if the peripheral is being used for
+>> example
+>> the pwm signal is being generated. All these cases are already
+>> being handled.
+>>
+>> Using ecap driver as an example.
+>>
+>> Pm_runtime_get_sync is called within ecap_pwm_enable when
+>> the pwm signal is to be generated. Pm_runtime_put_sync is called
+>> when the pwm signal is to be stopped.
+>>
+>> When either the pwm signal polarity is set or pwm
+>> configuration is made
+>> then a pm_runtime_get_sync and pm_runtime_put_sync are
+>> called within
+>> the same function surrounding calls to the IP's registers.
+>>
+>> Probe is calling pm_runtime_enable while remove is calling
+>> pm_runtime_disable.
+> OK good to hear you have considered this. The above answers
+> my questions then thanks.
+>
+>> So the correct pm_runtime calls are being made from what I
+>> can see.
+>> I'm not sure I understand the concern since removing those
+>> calls aren't
+>> creating any kind of imbalance.
+> OK thanks for checking.
+>
+>> If I'm not addressing your concern please give me an example
+>> of where
+>> you see a possible issue.
+> No that's fine. I thought you're ripping out all of the the
+> pm_runtime based on just looking at the patch :)
+>
+>>> Also, how do you know this change does not affect the other
+>>> SoC variants using the same driver?
+>> I've tested these changes on AM335x GP and AM437x GP evms.
+>> AM335x
+>> and AM437x were the only other users of this driver. Sorry 
+>> I should of
+>> documented this in my cover-letter.
+> OK good to hear.
+>
+> Thanks,
+>
+> Tony
+
+I know there are some comments regarding other patches in
+this patchset but this patch is unrelated and can be pulled
+in separately. Any objections to this or should I just
+resubmit this patch by itself?
