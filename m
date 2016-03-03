@@ -1,78 +1,32 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: DRA7-evm: Add missing regulators
-Date: Thu, 3 Mar 2016 08:49:48 +0530
-Message-ID: <1456975188-9746-1-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH 0/2] ARM: dra7: Enable Errata i877
+Date: Thu, 3 Mar 2016 14:12:03 +0530
+Message-ID: <1456994525-20573-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, nm-l0cyMroinI0@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+This series enables Errata i877 for all DRA7 platforms. The public errata
+documentation can be found here[1].
 
-Few regulators information were missing from DT. Add those
-missing regulators.
+[1] http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
 
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/dra7-evm.dts | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+Lokesh Vutla (1):
+  ARM: OMAP2+: hwmod: Introduce ti,no-idle dt property
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index d9b8723..dc4df55 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -33,6 +33,7 @@
- 	evm_3v3_sw: fixedregulator-evm_3v3_sw {
- 		compatible = "regulator-fixed";
- 		regulator-name = "evm_3v3_sw";
-+		vin-supply = <&sysen1>;
- 		regulator-min-microvolt = <3300000>;
- 		regulator-max-microvolt = <3300000>;
- 	};
-@@ -64,6 +65,7 @@
- 		regulator-always-on;
- 		regulator-boot-on;
- 		enable-active-high;
-+		vin-supply = <&sysen2>;
- 		gpio = <&gpio7 11 GPIO_ACTIVE_HIGH>;
- 	};
- 
-@@ -523,6 +525,31 @@
- 					regulator-max-microvolt = <3300000>;
- 					regulator-boot-on;
- 				};
-+
-+				/* REGEN1 is unused */
-+
-+				regen2: regen2 {
-+					/* Needed for PMIC internal resources */
-+					regulator-name = "regen2";
-+					regulator-boot-on;
-+					regulator-always-on;
-+				};
-+
-+				/* REGEN3 is unused */
-+
-+				sysen1: sysen1 {
-+					/* PMIC_REGEN_3V3 */
-+					regulator-name = "sysen1";
-+					regulator-boot-on;
-+					regulator-always-on;
-+				};
-+
-+				sysen2: sysen2 {
-+					/* PMIC_REGEN_DDR */
-+					regulator-name = "sysen2";
-+					regulator-boot-on;
-+					regulator-always-on;
-+				};
- 			};
- 		};
- 	};
+Mugunthan V N (1):
+  ARM: dts: dra7: do not gate cpsw clock due to errata i877
+
+ Documentation/devicetree/bindings/arm/omap/omap.txt |  1 +
+ arch/arm/boot/dts/dra7.dtsi                         | 10 ++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c                    |  9 ++++++++-
+ arch/arm/mach-omap2/omap_hwmod.h                    |  3 +++
+ 4 files changed, 22 insertions(+), 1 deletion(-)
+
 -- 
 2.1.4
 
