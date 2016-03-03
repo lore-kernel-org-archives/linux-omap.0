@@ -1,103 +1,63 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] ARM: OMAP2+: hwmod: Introduce ti,no-idle dt property
-Date: Thu, 3 Mar 2016 14:12:04 +0530
-Message-ID: <1456994525-20573-2-git-send-email-lokeshvutla@ti.com>
-References: <1456994525-20573-1-git-send-email-lokeshvutla@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 10/11] ARM: DRA7: hwmod: Add data for McASP1/2/4/5/6/7/8
+Date: Thu, 3 Mar 2016 13:13:13 +0200
+Message-ID: <56D81C49.6030706@ti.com>
+References: <1456411827-23962-1-git-send-email-peter.ujfalusi@ti.com>
+ <1456411827-23962-11-git-send-email-peter.ujfalusi@ti.com>
+ <alpine.DEB.2.02.1603010900590.14948@utopia.booyaka.com>
+ <56D5C6B1.6040005@ti.com>
+ <alpine.DEB.2.02.1603011657260.14948@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456994525-20573-1-git-send-email-lokeshvutla-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1603011657260.14948@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, robh+dt@kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Introduce a dt property, ti,no-idle, that prevents an IP to idle at any
-point. This is to handle Errata i877, which tells that GMAC clocks
-cannot be disabled.
+Hi Paul,
 
-Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Tested-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
----
- Documentation/devicetree/bindings/arm/omap/omap.txt | 1 +
- arch/arm/mach-omap2/omap_hwmod.c                    | 9 ++++++++-
- arch/arm/mach-omap2/omap_hwmod.h                    | 3 +++
- 3 files changed, 12 insertions(+), 1 deletion(-)
+On 03/01/2016 07:01 PM, Paul Walmsley wrote:
+>>> 2. The patch sets HWMOD_SWSUP_SIDLE for McASP1 and 2, but doesn't s=
+et it=20
+>>> for McASP4-8.  Could you please confirm that this is intentional, a=
+nd if=20
+>>> so, why?  The descriptions of the MODULEMODE fields in SPRUHZ6 look=
+=20
+>>> identical.
+>>
+>> I need to confirm this, but all McASP should have the same set of fl=
+ags.
+>=20
+> OK.  Looking at McASP3 data this morning, they probably shouldn't nee=
+d=20
+> HWMOD_SWSUP_SIDLE, but probably all need=20
+>=20
+>                         .modulemode   =3D MODULEMODE_SWCTRL,
+>=20
+>>> 3. Can McASP1,2,3 bus-master onto the L3?  If so, then there should=
+ be=20
+>>> "dra7xx_mcasp1__l3_main_1"-style links to indicate this.
+>>
+>> I need to check this, but I don't think McASP1,2,3 can be bus-master=
+ onto L3.
+>=20
+> OK.  When you get back, maybe doublecheck this - it looks to me from=20
+> SPRUHZ6 that McASP1-3 have built-in DMA controllers.
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index 739bc48..21e71a5 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -23,6 +23,7 @@ Optional properties:
-   during suspend.
- - ti,no-reset-on-init: When present, the module should not be reset at init
- - ti,no-idle-on-init: When present, the module should not be idled at init
-+- ti,no-idle: When present, the module is never allowed to idle.
- 
- Example:
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e9f65fe..b6d62e4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2200,6 +2200,11 @@ static int _enable(struct omap_hwmod *oh)
-  */
- static int _idle(struct omap_hwmod *oh)
- {
-+	if (oh->flags & HWMOD_NO_IDLE) {
-+		oh->_int_flags |= _HWMOD_SKIP_ENABLE;
-+		return 0;
-+	}
-+
- 	pr_debug("omap_hwmod: %s: idling\n", oh->name);
- 
- 	if (oh->_state != _HWMOD_STATE_ENABLED) {
-@@ -2504,6 +2509,8 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- 			oh->flags |= HWMOD_INIT_NO_RESET;
- 		if (of_find_property(np, "ti,no-idle-on-init", NULL))
- 			oh->flags |= HWMOD_INIT_NO_IDLE;
-+		if (of_find_property(np, "ti,no-idle", NULL))
-+			oh->flags |= HWMOD_NO_IDLE;
- 	}
- 
- 	oh->_state = _HWMOD_STATE_INITIALIZED;
-@@ -2630,7 +2637,7 @@ static void __init _setup_postsetup(struct omap_hwmod *oh)
- 	 * XXX HWMOD_INIT_NO_IDLE does not belong in hwmod data -
- 	 * it should be set by the core code as a runtime flag during startup
- 	 */
--	if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
-+	if ((oh->flags & (HWMOD_INIT_NO_IDLE | HWMOD_NO_IDLE)) &&
- 	    (postsetup_state == _HWMOD_STATE_IDLE)) {
- 		oh->_int_flags |= _HWMOD_SKIP_ENABLE;
- 		postsetup_state = _HWMOD_STATE_ENABLED;
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 76bce11..7c7a311 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -525,6 +525,8 @@ struct omap_hwmod_omap4_prcm {
-  *     or idled.
-  * HWMOD_OPT_CLKS_NEEDED: The optional clocks are needed for the module to
-  *     operate and they need to be handled at the same time as the main_clk.
-+ * HWMOD_NO_IDLE: Do not idle the hwmod at all. Useful to handle certain
-+ *     IPs like CPSW on DRA7, where clocks to this module cannot be disabled.
-  */
- #define HWMOD_SWSUP_SIDLE			(1 << 0)
- #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
-@@ -541,6 +543,7 @@ struct omap_hwmod_omap4_prcm {
- #define HWMOD_SWSUP_SIDLE_ACT			(1 << 12)
- #define HWMOD_RECONFIG_IO_CHAIN			(1 << 13)
- #define HWMOD_OPT_CLKS_NEEDED			(1 << 14)
-+#define HWMOD_NO_IDLE				(1 << 15)
- 
- /*
-  * omap_hwmod._int_flags definitions
--- 
-2.1.4
+They are only targets on L3. Not sure about the built-in DMA controller
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+>> I can resend the series next week as I'm out of office this week.
+>=20
+> That's fine.  It's most likely v4.7 material at this point.
+>=20
+>=20
+> - Paul
+>=20
+
+
+--=20
+P=C3=A9ter
