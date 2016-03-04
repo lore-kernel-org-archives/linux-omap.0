@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH] Revert "PCI: dra7xx: Mark driver as broken"
-Date: Fri, 4 Mar 2016 15:46:53 +0530
-Message-ID: <1457086613-16443-1-git-send-email-kishon@ti.com>
+Subject: [PATCH RESEND] Revert "PCI: dra7xx: Mark driver as broken"
+Date: Fri, 4 Mar 2016 15:59:19 +0530
+Message-ID: <1457087359-16816-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-pci-owner@vger.kernel.org>
@@ -13,7 +13,7 @@ List-Id: linux-omap@vger.kernel.org
 From: Sekhar Nori <nsekhar@ti.com>
 
 This reverts commit <5c3b99d057525fe2befe6a7db9b1309035d93eee>
-("PCI: dra7xx: Mark driver as broken".
+("PCI: dra7xx: Mark driver as broken").
 
 With support to de-assert PCIe reset present in kernel,
 DRA7x PCIe is not broken anymore.
