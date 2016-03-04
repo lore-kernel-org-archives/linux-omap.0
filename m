@@ -1,73 +1,71 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v3 5/5] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Fri, 4 Mar 2016 08:52:09 -0600
-Message-ID: <CAL_JsqLYLwJ7fWGcG4h-obix8Pn9+rQ_5sD9B=mCeO1+-d+ijw@mail.gmail.com>
-References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
- <1456439796-28546-6-git-send-email-fcooper@ti.com> <20160302182634.GA26055@rob-hp-laptop>
- <56D8E74A.6090601@ti.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH 1/4] pwm: omap-dmtimer: fix inaccurate period/duty_cycle
+ calculation
+Date: Fri, 4 Mar 2016 16:17:48 +0100
+Message-ID: <20160304151748.GD26400@ulmo.nvidia.com>
+References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
+ <1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56D8E74A.6090601@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Franklin S Cooper Jr." <fcooper@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>, Linux PWM List <linux-pwm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-clk <linux-clk@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="d9ADC0YsG2v16Js0"
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Cc: linux-pwm@vger.kernel.org, Neil Armstrong <narmstrong@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 3, 2016 at 7:39 PM, Franklin S Cooper Jr. <fcooper@ti.com> wrote:
-> Hi Rob,
->
-> On 03/02/2016 12:26 PM, Rob Herring wrote:
->> On Thu, Feb 25, 2016 at 04:36:36PM -0600, Franklin S Cooper Jr wrote:
->>> From: Vignesh R <vigneshr@ti.com>
->>>
->>> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
->>> for dt bindings.
->>>
->>> Signed-off-by: Vignesh R <vigneshr@ti.com>
->>> ---
->>> Version 3 changes:
->>> None
->>>
->>>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  8 +++
->>>  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 17 +++++-
->>>  arch/arm/boot/dts/dra7.dtsi                        | 64 ++++++++++++++++++++++
->>>  3 files changed, 88 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>> index 9c100b2..25d91ae 100644
->>> --- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>> @@ -4,6 +4,7 @@ Required properties:
->>>  - compatible: Must be "ti,<soc>-ehrpwm".
->>>    for am33xx - compatible = "ti,am33xx-ehrpwm";
->>>    for da850  - compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
->>> +  for dra7xx - compatible = "ti,dra7xx-ehrpwm", "ti,am33xx-ehrpwm";
->> We're starting to push back on wildcards in compatible strings. I guess
->> this is okay...
->>
->>>  - #pwm-cells: should be 3. See pwm.txt in this directory for a description of
->>>    the cells format. The only third cell flag supported by this binding is
->>>    PWM_POLARITY_INVERTED.
->>> @@ -27,3 +28,10 @@ ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
->>>      #pwm-cells = <3>;
->>>      reg = <0x300000 0x2000>;
->>>  };
->>> +
->>> +ehrpwm0: ehrpwm@0 { /* EHRPWM on dra7xx */
->> Should be pwm@48440200
->
-> So the AM335x, AM437x  and DA850 all use ehrpwm0:
-> ehrpwm@<address>. Also the address of 0 simply follows the
-> pattern used in the other binding examples in that doc. I
-> can replace the 0 address in this patch and make another
-> patch that fixes it for the other examples in that file. But
-> in terms of switching from ehrpwm0:ehrpwm@<address> to
-> ehrpwm0:pwm@<address> that would also require making changes
-> to the various dtsis also. So is it worth making that
-> change? If so I have no problem doing it.
 
-Follow-up patches to fix are fine. Unit-address and reg mismatches are
-going to start warning in dtc soon.
+--d9ADC0YsG2v16Js0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Rob
+On Fri, Jan 29, 2016 at 11:26:51PM -0500, David Rivshin (Allworx) wrote:
+> From: David Rivshin <drivshin@allworx.com>
+>=20
+> Fix the calculation of load_value and match_value. Currently they
+> are slightly too low, which produces a noticeably wrong PWM rate with
+> sufficiently short periods (i.e. when 1/period approaches clk_rate/2).
+>=20
+> Example:
+>  clk_rate=3D32768Hz, period=3D122070ns, duty_cycle=3D61035ns (8192Hz/50% =
+PWM)
+>  Correct values: load =3D 0xfffffffc, match =3D 0xfffffffd
+>  Current values: load =3D 0xfffffffa, match =3D 0xfffffffc
+>  effective PWM: period=3D183105ns, duty_cycle=3D91553ns (5461Hz/50% PWM)
+>=20
+> Fixes: 6604c6556db9 ("pwm: Add PWM driver for OMAP using dual-mode timers=
+")
+> Signed-off-by: David Rivshin <drivshin@allworx.com>
+> ---
+>  drivers/pwm/pwm-omap-dmtimer.c | 27 ++++++++++++++++++++-------
+>  1 file changed, 20 insertions(+), 7 deletions(-)
+
+Applied, thanks.
+
+Thierry
+
+--d9ADC0YsG2v16Js0
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJW2accAAoJEN0jrNd/PrOhLEIP/1mPWKKyRJ7eU6XGcUhlkDJP
+FfQ90nkLZRTEEKBT9xT58nt3va8EY2gTRu67tsP6gyzuvac08lXcAMr6egqQziW3
+wx1EplEw1PkySbgDaToXKejmNQS+VYComeK0jPXbFlZRl1WF0VS61h39CoN75gCX
+BaBap5IzMccaC2nCWfSQk964zUG2OBOmb+rEJrmp0ZLFqyXH3lLN3G1Kd5wd3nRh
+MlvghLrykPm79zW+XDOfa5+/gRhMMt/kVAG40x74vWsTLGQm+zpms7R9PBuNJV1n
+HjTbAoE4klPryroSf6gIUhqVD2QyyM/vsaR+8kExR4HU6YWAYfG0rdtuhTbzPul+
+T6KNo3JJxmkfDWle/rzzE3cKJ/1DDzET97wWftM3q1TrL5dICIhCxuiPHERTi5mM
+32P2o0gT2cFJ9S/A6U+A9RMSEQiDhQl1HCTy1zpLR/EsmBdbIBxqGbY/ArafwGfK
+McC+Hhw9G6OTPH5x5letGdHxBR25FkglGOrPd2oGwPRrEq+VKg/Tk9+c0D65eQu6
+GmKL3Cf/jYp+ibgmteZ+EszsAL/8zplyCVOTwMvgj9VxG5bri6+Cp9OoK3qpZp3x
+anfDlvQLasGJG3bgDjGujL0Nve2NiSnBdR7qCjS8E0wGvF1Bf7H/es0mMEywqXww
+PTI6TGbrgC2+H+Q7DnEL
+=9JMa
+-----END PGP SIGNATURE-----
+
+--d9ADC0YsG2v16Js0--
