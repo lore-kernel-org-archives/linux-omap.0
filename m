@@ -1,74 +1,84 @@
 From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH v3 5/5] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Thu, 3 Mar 2016 19:39:22 -0600
-Message-ID: <56D8E74A.6090601@ti.com>
+Subject: Re: [PATCH v3 2/5] ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
+Date: Thu, 3 Mar 2016 20:07:48 -0600
+Message-ID: <56D8EDF4.9070904@ti.com>
 References: <1456439796-28546-1-git-send-email-fcooper@ti.com>
- <1456439796-28546-6-git-send-email-fcooper@ti.com>
- <20160302182634.GA26055@rob-hp-laptop>
+ <1456439796-28546-3-git-send-email-fcooper@ti.com>
+ <20160301181109.GB13417@atomide.com>
+ <alpine.DEB.2.02.1603011858510.14948@utopia.booyaka.com>
+ <20160301205043.GA4469@atomide.com> <56D71331.5020702@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160302182634.GA26055@rob-hp-laptop>
+In-Reply-To: <56D71331.5020702@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: paul@pwsan.com, t-kristo@ti.com, tony@atomide.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: t-kristo@ti.com, vigneshr@ti.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
+Hi Paul,
 
-On 03/02/2016 12:26 PM, Rob Herring wrote:
-> On Thu, Feb 25, 2016 at 04:36:36PM -0600, Franklin S Cooper Jr wrote:
->> From: Vignesh R <vigneshr@ti.com>
->>
->> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
->> for dt bindings.
->>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
->> ---
->> Version 3 changes:
->> None
->>
->>  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  8 +++
->>  .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 17 +++++-
->>  arch/arm/boot/dts/dra7.dtsi                        | 64 ++++++++++++++++++++++
->>  3 files changed, 88 insertions(+), 1 deletion(-)
->>
->> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->> index 9c100b2..25d91ae 100644
->> --- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->> @@ -4,6 +4,7 @@ Required properties:
->>  - compatible: Must be "ti,<soc>-ehrpwm".
->>    for am33xx - compatible = "ti,am33xx-ehrpwm";
->>    for da850  - compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
->> +  for dra7xx - compatible = "ti,dra7xx-ehrpwm", "ti,am33xx-ehrpwm";
-> We're starting to push back on wildcards in compatible strings. I guess 
-> this is okay...
+On 03/02/2016 10:22 AM, Franklin S Cooper Jr. wrote:
+> Hi Paul
 >
->>  - #pwm-cells: should be 3. See pwm.txt in this directory for a description of
->>    the cells format. The only third cell flag supported by this binding is
->>    PWM_POLARITY_INVERTED.
->> @@ -27,3 +28,10 @@ ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
->>  	#pwm-cells = <3>;
->>  	reg = <0x300000 0x2000>;
->>  };
->> +
->> +ehrpwm0: ehrpwm@0 { /* EHRPWM on dra7xx */
-> Should be pwm@48440200
+> On 03/01/2016 02:50 PM, Tony Lindgren wrote:
+>> * Paul Walmsley <paul@pwsan.com> [160301 10:59]:
+>>> On Tue, 1 Mar 2016, Tony Lindgren wrote:
+>>>
+>>>> * Franklin S Cooper Jr <fcooper@ti.com> [160225 14:37]:
+>>>>> From: Vignesh R <vigneshr@ti.com>
+>>>>>
+>>>>> Add hwmod entries for the PWMSS on DRA7.
+>>>>>
+>>>>> Set l4_root_clk_div as the main_clk of PWMSS. It is fixed-factored clock
+>>>>> equal to L4PER2_L3_GICLK/2(l3_iclk_div/2).
+>>>>> As per AM57x TRM SPRUHZ6[1], October 2014, Section 29.1.3 Table 29-4,
+>>>>> clock source to PWMSS is L4PER2_L3_GICLK. But it is actually
+>>>>> L4PER2_L3_GICLK/2. The TRM does not show the division by 2.
+>>>>>
+>>>>> [1] www.ti.com/lit/ug/spruhz6/spruhz6.pdf
+>>>> Looks OK to me, assuming Paul will pick this one or ack it.
+>>> Well I've already sent comments on it, it doesn't look quite ready for me 
+>>> yet.  I would hold off on the whole series because the hwmod comments also 
+>>> impact the DT files.
+>> OK will drop the dt related patches then.
+> Sorry you previously asked this question about why hwmod is
+> used for eCap, ePWM and eQEP before and it wasn't addressed.
+> I'll take a look at this and I will get back to you.
 
-So the AM335x, AM437x  and DA850 all use ehrpwm0:
-ehrpwm@<address>. Also the address of 0 simply follows the
-pattern used in the other binding examples in that doc. I
-can replace the 0 address in this patch and make another
-patch that fixes it for the other examples in that file. But
-in terms of switching from ehrpwm0:ehrpwm@<address> to
-ehrpwm0:pwm@<address> that would also require making changes
-to the various dtsis also. So is it worth making that
-change? If so I have no problem doing it.
+So I looked into this more and verified that the eCAP and
+ePWM doesn't have their own unique clock. The PWMSS receives
+a clock L4PER2_L3_GICLK/2 which is passed through to its
+sub-devices (ePWM, eCAP and eQEP). The PWMSS is responsible
+for handling its clock internally while the subdevices have
+no role in managing this clock. So this explains why we have
+hwmod entries for PWMSS and why we are planning on removing
+it from the various subdevices.
+
+Since ePWM, eCAP and eQEP are subdevices of PWMSS they
+shouldn't have their own concept of their "own" clock. The
+ePWM , eCAP and eQEP clocks are all shared and managed by
+their parent PWMSS. Once the PWMSS is enabled and has its
+clock running then ePWM, eCAP and eQEP from their main clock
+perspective have everything they need.
+
+So my plan is to strip all references of clocks (including
+hwmod entries) for ePWM, eCAP and eQEP. The devm_clk_get
+calls made in the ePWM and eCAP will simply point to their
+parent's dev (PWMSS). I did a couple of quick test using
+this approach and it works. I have more testing to do but if
+that checks out are you ok with the above approach?
+
+Also I'm not sure how simple-bus fits in this picture. The
+eCAP, eQEP and ePWM are all separate devices. The only thing
+that they share is a single clock from their parent. So it
+doesn't seem like the right approach. I'm basing this on the
+info in this thread
+https://www.mail-archive.com/linuxppc-dev@lists.ozlabs.org/msg27979.html
+that talks about the usage of simple-bus. So if its outdated
+or I"m misinterpreting it incorrectly please let me know.
 >
->> +	compatible = "ti,dra7xx-ehrpwm", "ti,am33xx-ehrpwm";
->> +	#pwm-cells = <3>;
->> +	reg = <0x48440200 0x80>;
->> +	ti,hwmods = "ehrpwm0";
->> +};
+>> Regards,
+>>
+>> Tony
