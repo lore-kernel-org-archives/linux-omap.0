@@ -1,27 +1,89 @@
-From: santosh shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] gpio: omap: drop dev field from gpio_bank structure
-Date: Fri, 4 Mar 2016 08:23:10 -0800
-Message-ID: <56D9B66E.7020807@oracle.com>
-References: <1457105135-28124-1-git-send-email-grygorii.strashko@ti.com>
+From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
+Subject: Re: [PATCH 0/4] pwm: omap-dmtimer: fix period/duty_cycle calculation
+Date: Fri, 4 Mar 2016 11:27:36 -0500
+Message-ID: <20160304112736.660e4223.drivshin.allworx@gmail.com>
+References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
+ <20160226203100.303fe192.drivshin.allworx@gmail.com>
+ <20160304151948.GF26400@ulmo.nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1457105135-28124-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, ssantosh@kernel.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160304151948.GF26400@ulmo.nvidia.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: linux-pwm@vger.kernel.org, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, Joachim Eastwood <manabian@gmail.com>, NeilBrown <neilb@suse.de>, Grant Erickson <marathon96@gmail.com>, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 3/4/2016 7:25 AM, Grygorii Strashko wrote:
-> GPIO chip structure already has "parent" field which is used for the
-> same purpose as "dev" field in gpio_bank structure - store pointer on
-> GPIO device.
->
-> Hence, drop duplicated "dev" field from gpio_bank structure.
->
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
-Looks good.
+On Fri, 4 Mar 2016 16:19:48 +0100
+Thierry Reding <thierry.reding@gmail.com> wrote:
 
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+> On Fri, Feb 26, 2016 at 08:31:00PM -0500, David Rivshin (Allworx) wrote:
+> > On Fri, 29 Jan 2016 23:26:50 -0500
+> > "David Rivshin (Allworx)" <drivshin.allworx@gmail.com> wrote:
+> >   
+> > > From: David Rivshin <drivshin@allworx.com>
+> > > 
+> > > When using a short PWM period (approaching the min of 2/clk_rate),
+> > > pwm-omap-dmtimer does not produce accurate results. In the worst case a
+> > > requested period of 2/clk_rate would result in a real period of 4/clk_rate
+> > > instead. This is a series includes a fix for that problem, as well as
+> > > other related improvements, and is based on the current linux-pwm/for-next
+> > > tip.
+> > > 
+> > > I have tested on a Sitara AM335x platform, using a scope to verify the
+> > > output with a variety of periods and duty cycles. This includes a PWM
+> > > rate up clk_rate/2 with 50% duty cycle (e.g. generating fclk/2) with
+> > > both 32768Hz and 24MHz fclks. I do not have an OMAP4 board to test with,
+> > > although appropriate sections in the the reference manuals appear
+> > > substantially the same, so I believe the changes are equally correct
+> > > there.
+> > > 
+> > > Note that the OMAP4 TRMs do effectively state that the maximum PWM
+> > > rate is clk_rate/4, so at very fast PWM rates the behavior may not be
+> > > as reliable as I observed with Sitara. Although I suspect that it's
+> > > the same module and will also work, at least under some circumstances.
+> > > If anyone with OMAP4 hardware and a scope is so inclined, I would be
+> > > curious to know the results.
+> > > 
+> > > David Rivshin (4):
+> > >   pwm: omap-dmtimer: fix inaccurate period/duty_cycle calculation
+> > >   pwm: omap-dmtimer: add sanity checking for load and match values
+> > >   pwm: omap-dmtimer: round load and match values rather than truncate
+> > >   pwm: omap-dmtimer: add dev_dbg() message for effective period and duty
+> > >     cycle
+> > > 
+> > >  drivers/pwm/pwm-omap-dmtimer.c | 71 ++++++++++++++++++++++++++++++++----------
+> > >  1 file changed, 55 insertions(+), 16 deletions(-)
+> > >   
+> > 
+> > Hi Thierry,
+> > 
+> > Gentle ping. It does not look like you've taken this series, and I 
+> > wanted to make sure you're not waiting on something from me. It would 
+> > be nice to get at least the first patch into 4.5, if possible.  
+> 
+> I've applied patches 1 and 3, and I'm planning on sending out a pull
+> request for inclusion in v4.5-rc7 later on.
+
+Thanks!
+
+> Patches 2 and 4 didn't seem ready/critical, so let's finish those up
+> for v4.6-rc1.
+
+I know there was a lot of discussion on 4, but I'm not sure what the 
+concern is on patch 2. Is there something specific you're thinking of?
+
+FYI, I know that Adam Ford is using this driver as the backend for
+a pwm-backlight control. Without patch 2 this driver will not configure 
+the HW in a legal way at 0 or 100% duty cycle. However, I forget what 
+the practical effect of that is, and Adam seemed to indicate it was OK
+for his purposes.
