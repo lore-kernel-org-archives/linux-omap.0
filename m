@@ -1,71 +1,66 @@
 From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 1/4] pwm: omap-dmtimer: fix inaccurate period/duty_cycle
- calculation
-Date: Fri, 4 Mar 2016 16:17:48 +0100
-Message-ID: <20160304151748.GD26400@ulmo.nvidia.com>
+Subject: Re: [PATCH 3/4] pwm: omap-dmtimer: round load and match values
+ rather than truncate
+Date: Fri, 4 Mar 2016 16:18:04 +0100
+Message-ID: <20160304151804.GE26400@ulmo.nvidia.com>
 References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
- <1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
+ <1454128014-22866-4-git-send-email-drivshin.allworx@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="d9ADC0YsG2v16Js0"
+	protocol="application/pgp-signature"; boundary="MIdTMoZhcV1D07fI"
 Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1454128014-22866-2-git-send-email-drivshin.allworx@gmail.com>
+In-Reply-To: <1454128014-22866-4-git-send-email-drivshin.allworx@gmail.com>
 Sender: linux-pwm-owner@vger.kernel.org
 To: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
 Cc: linux-pwm@vger.kernel.org, Neil Armstrong <narmstrong@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---d9ADC0YsG2v16Js0
+--MIdTMoZhcV1D07fI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 29, 2016 at 11:26:51PM -0500, David Rivshin (Allworx) wrote:
+On Fri, Jan 29, 2016 at 11:26:53PM -0500, David Rivshin (Allworx) wrote:
 > From: David Rivshin <drivshin@allworx.com>
 >=20
-> Fix the calculation of load_value and match_value. Currently they
-> are slightly too low, which produces a noticeably wrong PWM rate with
-> sufficiently short periods (i.e. when 1/period approaches clk_rate/2).
->=20
-> Example:
->  clk_rate=3D32768Hz, period=3D122070ns, duty_cycle=3D61035ns (8192Hz/50% =
-PWM)
->  Correct values: load =3D 0xfffffffc, match =3D 0xfffffffd
->  Current values: load =3D 0xfffffffa, match =3D 0xfffffffc
->  effective PWM: period=3D183105ns, duty_cycle=3D91553ns (5461Hz/50% PWM)
+> When converting period and duty_cycle from nanoseconds to fclk cycles,
+> the error introduced by the integer division can be appreciable, especial=
+ly
+> in the case of slow fclk or short period. Use DIV_ROUND_CLOSEST_ULL() so
+> that the error is kept to +/- 0.5 clock cycles.
 >=20
 > Fixes: 6604c6556db9 ("pwm: Add PWM driver for OMAP using dual-mode timers=
 ")
 > Signed-off-by: David Rivshin <drivshin@allworx.com>
 > ---
->  drivers/pwm/pwm-omap-dmtimer.c | 27 ++++++++++++++++++++-------
->  1 file changed, 20 insertions(+), 7 deletions(-)
+>  drivers/pwm/pwm-omap-dmtimer.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
 
 Applied, thanks.
 
 Thierry
 
---d9ADC0YsG2v16Js0
+--MIdTMoZhcV1D07fI
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJW2accAAoJEN0jrNd/PrOhLEIP/1mPWKKyRJ7eU6XGcUhlkDJP
-FfQ90nkLZRTEEKBT9xT58nt3va8EY2gTRu67tsP6gyzuvac08lXcAMr6egqQziW3
-wx1EplEw1PkySbgDaToXKejmNQS+VYComeK0jPXbFlZRl1WF0VS61h39CoN75gCX
-BaBap5IzMccaC2nCWfSQk964zUG2OBOmb+rEJrmp0ZLFqyXH3lLN3G1Kd5wd3nRh
-MlvghLrykPm79zW+XDOfa5+/gRhMMt/kVAG40x74vWsTLGQm+zpms7R9PBuNJV1n
-HjTbAoE4klPryroSf6gIUhqVD2QyyM/vsaR+8kExR4HU6YWAYfG0rdtuhTbzPul+
-T6KNo3JJxmkfDWle/rzzE3cKJ/1DDzET97wWftM3q1TrL5dICIhCxuiPHERTi5mM
-32P2o0gT2cFJ9S/A6U+A9RMSEQiDhQl1HCTy1zpLR/EsmBdbIBxqGbY/ArafwGfK
-McC+Hhw9G6OTPH5x5letGdHxBR25FkglGOrPd2oGwPRrEq+VKg/Tk9+c0D65eQu6
-GmKL3Cf/jYp+ibgmteZ+EszsAL/8zplyCVOTwMvgj9VxG5bri6+Cp9OoK3qpZp3x
-anfDlvQLasGJG3bgDjGujL0Nve2NiSnBdR7qCjS8E0wGvF1Bf7H/es0mMEywqXww
-PTI6TGbrgC2+H+Q7DnEL
-=9JMa
+iQIcBAABCAAGBQJW2acsAAoJEN0jrNd/PrOhbK8P/RQgnMBY3In60Amg/a06NVbJ
+srQHnMecJ6EZj8sFBfg44cjyLvzdrm0Q2OC6NmtV4A9lsZ6uCGdW4OQSlwUd+ElQ
+n+nhYNQrF63nB18hKZf/KtuuqrngPgAq860M10n2pRpHrTxrP6F23iacy4sH6vdF
+sMOOVoAqTt7d1/61sIXgalnJkM2OjQhNyXcB/kbFMfLiPjPrp4ryTS0/bCmVss33
+U2XBUbe9MvYcwQTbqFiE91cVT0KCA9Ca2tle6pBhOPadC37HIDHU+b6bp9jkHt6h
+ijZ6KPzHDI9yN4q3U1AyPBPx8/Z9Ip/bmc5xp+v7xSFSIncvyU1AH4/i0VbKHxnG
+Yct1O/Pq+Y+ZQ9DWr6OPlgKeGQrw9doEdYfZewKBbCNl9Tx3MrRopYITsWo2aP8s
+/FkdG1RKf0HVYcBfGfFhPVsHsK36m9s2eQqhwFhf7iKCpxvF4cCy3H69oqq63kih
++g+H9KfxMYP24lDXis4rqKl+QfyxRkMeOwSadvNX8yxDfz9apYOpzeJYKyufZ0ID
+Msn2vHYKxcvUt4QtEqyPKs3AP4cKgC8JdqvF/RbfiVAKVrI1zhCZUosN1rzKEFNI
+QXaFH3253nzHOed8EOa3QfNBNMKd5OM/loKDKGoc25igBblLAZcts/wqWBsJcDGd
+8ptiLpo5s824PDMkpsuw
+=VAH1
 -----END PGP SIGNATURE-----
 
---d9ADC0YsG2v16Js0--
+--MIdTMoZhcV1D07fI--
