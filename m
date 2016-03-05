@@ -1,120 +1,137 @@
-From: "David Rivshin (Allworx)" <drivshin.allworx@gmail.com>
-Subject: Re: [PATCH 0/4] pwm: omap-dmtimer: fix period/duty_cycle
- calculation
-Date: Fri, 4 Mar 2016 18:20:13 -0500
-Message-ID: <20160304182013.58261fc7.drivshin.allworx@gmail.com>
-References: <1454128014-22866-1-git-send-email-drivshin.allworx@gmail.com>
-	<20160226203100.303fe192.drivshin.allworx@gmail.com>
-	<20160304151948.GF26400@ulmo.nvidia.com>
-	<20160304112736.660e4223.drivshin.allworx@gmail.com>
-	<20160304211838.GA21731@ulmo>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v5 03/26] memory: omap-gpmc: Introduce GPMC to NAND
+ interface
+Date: Fri, 4 Mar 2016 17:35:34 -0800
+Message-ID: <20160305013534.GJ55664@google.com>
+References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
+ <1455916548-3441-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <20160304211838.GA21731@ulmo>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-pwm@vger.kernel.org, Neil Armstrong <narmstrong@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grant Erickson <marathon96@gmail.com>, NeilBrown <neilb@suse.de>, Joachim Eastwood <manabian@gmail.com>, Adam Ford <aford173@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1455916548-3441-4-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 4 Mar 2016 22:18:38 +0100
-Thierry Reding <thierry.reding@gmail.com> wrote:
+Hi Roger,
 
-> On Fri, Mar 04, 2016 at 11:27:36AM -0500, David Rivshin (Allworx) wrote:
-> > On Fri, 4 Mar 2016 16:19:48 +0100
-> > Thierry Reding <thierry.reding@gmail.com> wrote:
-> >   
-> > > On Fri, Feb 26, 2016 at 08:31:00PM -0500, David Rivshin (Allworx) wrote:  
-> > > > On Fri, 29 Jan 2016 23:26:50 -0500
-> > > > "David Rivshin (Allworx)" <drivshin.allworx@gmail.com> wrote:
-> > > >     
-> > > > > From: David Rivshin <drivshin@allworx.com>
-> > > > > 
-> > > > > When using a short PWM period (approaching the min of 2/clk_rate),
-> > > > > pwm-omap-dmtimer does not produce accurate results. In the worst case a
-> > > > > requested period of 2/clk_rate would result in a real period of 4/clk_rate
-> > > > > instead. This is a series includes a fix for that problem, as well as
-> > > > > other related improvements, and is based on the current linux-pwm/for-next
-> > > > > tip.
-> > > > > 
-> > > > > I have tested on a Sitara AM335x platform, using a scope to verify the
-> > > > > output with a variety of periods and duty cycles. This includes a PWM
-> > > > > rate up clk_rate/2 with 50% duty cycle (e.g. generating fclk/2) with
-> > > > > both 32768Hz and 24MHz fclks. I do not have an OMAP4 board to test with,
-> > > > > although appropriate sections in the the reference manuals appear
-> > > > > substantially the same, so I believe the changes are equally correct
-> > > > > there.
-> > > > > 
-> > > > > Note that the OMAP4 TRMs do effectively state that the maximum PWM
-> > > > > rate is clk_rate/4, so at very fast PWM rates the behavior may not be
-> > > > > as reliable as I observed with Sitara. Although I suspect that it's
-> > > > > the same module and will also work, at least under some circumstances.
-> > > > > If anyone with OMAP4 hardware and a scope is so inclined, I would be
-> > > > > curious to know the results.
-> > > > > 
-> > > > > David Rivshin (4):
-> > > > >   pwm: omap-dmtimer: fix inaccurate period/duty_cycle calculation
-> > > > >   pwm: omap-dmtimer: add sanity checking for load and match values
-> > > > >   pwm: omap-dmtimer: round load and match values rather than truncate
-> > > > >   pwm: omap-dmtimer: add dev_dbg() message for effective period and duty
-> > > > >     cycle
-> > > > > 
-> > > > >  drivers/pwm/pwm-omap-dmtimer.c | 71 ++++++++++++++++++++++++++++++++----------
-> > > > >  1 file changed, 55 insertions(+), 16 deletions(-)
-> > > > >     
-> > > > 
-> > > > Hi Thierry,
-> > > > 
-> > > > Gentle ping. It does not look like you've taken this series, and I 
-> > > > wanted to make sure you're not waiting on something from me. It would 
-> > > > be nice to get at least the first patch into 4.5, if possible.    
-> > > 
-> > > I've applied patches 1 and 3, and I'm planning on sending out a pull
-> > > request for inclusion in v4.5-rc7 later on.  
-> > 
-> > Thanks!
-> >   
-> > > Patches 2 and 4 didn't seem ready/critical, so let's finish those up
-> > > for v4.6-rc1.  
-> > 
-> > I know there was a lot of discussion on 4, but I'm not sure what the 
-> > concern is on patch 2. Is there something specific you're thinking of?  
+On Fri, Feb 19, 2016 at 11:15:25PM +0200, Roger Quadros wrote:
+> The OMAP GPMC module has certain registers dedicated for NAND
+> access and some NAND bits mixed with other GPMC functionality.
 > 
-> Patch 2 sounded like some optional sanity checking which we didn't hit
-> anyway in the current code. Hence I didn't consider it a fix.
-
-Hrm, perhaps there is something I should have added/changed in the
-patch description to clarify? 
-
-For further background, patch 2 protects against things that are legal 
-in the PWM API itself, but not possible for this hardware to actually do. 
-Specifically a very short period, or duty_cycle too close to either 0 or 
-100%. Without the checking, the natural result of the normal math results 
-in setting up the HW in non-sensical ways. 
-
-As long as noone attempts to configure the PWM in those ways, then I'd
-agree it's not critical. What made me think it was more important was 
-when I saw that Adam (and so probably others) used it for a PWM-backlight, 
-which will naturally try to set 0 and 100% duty cycle.
-
-> > FYI, I know that Adam Ford is using this driver as the backend for
-> > a pwm-backlight control. Without patch 2 this driver will not configure 
-> > the HW in a legal way at 0 or 100% duty cycle. However, I forget what 
-> > the practical effect of that is, and Adam seemed to indicate it was OK
-> > for his purposes.  
+> For the NAND dedicated registers we have the struct gpmc_nand_regs.
 > 
-> Okay, I'll hold back a little longer to give you some time to test.
+> The NAND driver needs to access NAND specific bits from the
+> following non-dedicated registers
+> 1) FIFOEVENT and TERMCOUNT from GPMC_IRQENABLE and GPMC_IRQSTATUS
+> 2) EMPTYWRITEBUFFERSTATUS from GPMC_STATUS
+> 
+> For accessing these bits we introduce the struct gpmc_nand_ops.
+> 
+> Rename the gpmc_update_nand_reg() API to gpmc_omap_get_nand_ops()
+> and make it return the gpmc_nand_ops along with updating the
+> gpmc_nand_regs. This API will be called by the OMAP NAND driver
+> to access the necessary bits in GPMC register space.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/memory/omap-gpmc.c | 21 ++++++++++++++++++++
+>  include/linux/omap-gpmc.h  | 49 ++++++++++++++++++++++++++++++++++++++++++++--
+>  2 files changed, 68 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index 6515dfc..c2f7320 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -1098,6 +1098,27 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+>  	}
+>  }
+>  
+> +static struct gpmc_nand_ops nand_ops;
+> +
+> +/**
+> + * gpmc_omap_get_nand_ops - Get the GPMC NAND interface
+> + * @regs: the GPMC NAND register map exclusive for NAND use.
+> + * @cs: GPMC chip select number on which the NAND sits. The
+> + *      register map returned will be specific to this chip select.
+> + *
+> + * Returns NULL on error e.g. invalid cs.
+> + */
+> +struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
+> +{
+> +	if (cs >= gpmc_cs_num)
+> +		return NULL;
+> +
+> +	gpmc_update_nand_reg(reg, cs);
+> +
+> +	return &nand_ops;
+> +}
+> +EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
+> +
+>  int gpmc_get_client_irq(unsigned irq_config)
+>  {
+>  	int i;
+> diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
+> index 2dcef1c..7de9f9b 100644
+> --- a/include/linux/omap-gpmc.h
+> +++ b/include/linux/omap-gpmc.h
+> @@ -14,14 +14,59 @@
+>  #define GPMC_IRQ_FIFOEVENTENABLE	0x01
+>  #define GPMC_IRQ_COUNT_EVENT		0x02
+>  
+> +enum gpmc_nand_irq {
+> +	GPMC_NAND_IRQ_FIFOEVENT = 0,
+> +	GPMC_NAND_IRQ_TERMCOUNT,
+> +};
+> +
+> +/**
+> + * gpmc_nand_ops - Interface between NAND and GPMC
+> + * @nand_irq_enable: enable the requested GPMC NAND interrupt event.
+> + * @nand_irq_disable: disable the requested GPMC NAND interrupt event.
+> + * @nand_irq_clear: clears the GPMC NAND interrupt event status.
+> + * @nand_irq_status: get the NAND interrupt event status.
+> + * @nand_write_buffer_empty: get the NAND write buffer empty status.
+> + */
+> +struct gpmc_nand_ops {
+> +	int (*nand_irq_enable)(enum gpmc_nand_irq irq);
+> +	int (*nand_irq_disable)(enum gpmc_nand_irq irq);
+> +	void (*nand_irq_clear)(enum gpmc_nand_irq irq);
+> +	u32 (*nand_irq_status)(void);
 
-FYI, I just went and retested what the effect is without those checks.
-If the duty_cycle is set too low, the result is that the output is constant 
-high. If the duty_cycle is set too high, the result is that the output is 
-constant low. IOW, the result is the reverse of what the user requested.
+^^ These 4 aren't being used in this revision?
 
-If the period is too low, then you also get one of those two results, 
-depending on what the duty_cycle is (essentially the duty_cycle is always
-too close to 0/100%). 
+> +	bool (*nand_writebuffer_empty)(void);
+> +};
+> +
+> +struct gpmc_nand_regs;
+> +
+> +#if IS_ENABLED(CONFIG_OMAP_GPMC)
+> +struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
+> +					     int cs);
+> +#else
+> +static inline gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
+> +						    int cs)
+> +{
+> +	return NULL;
+> +}
+> +#endif /* CONFIG_OMAP_GPMC */
+> +
+> +/*--------------------------------*/
+> +
+> +/* deprecated APIs */
+> +#if IS_ENABLED(CONFIG_OMAP_GPMC)
+> +void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
+> +#else
+> +static inline void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+> +{
+> +	reg = NULL;
 
-With patch 2, it will clamp the duty_cycle to the lowest/highest possible
-value. So while imperfect, at least isn't the reverse of the requested
-behavior.
+What are you trying to do here? 'reg' is local, so the assignment is
+pointless.
+
+> +}
+> +#endif /* CONFIG_OMAP_GPMC */
+
+Brian
