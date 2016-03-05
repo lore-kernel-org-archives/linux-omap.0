@@ -1,62 +1,46 @@
 From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v5 09/26] mtd: nand: omap: Clean up device tree support
-Date: Fri, 4 Mar 2016 18:28:23 -0800
-Message-ID: <20160305022823.GO55664@google.com>
+Subject: Re: [PATCH v5 00/26] memory: omap-gpmc: mtd: nand: Support GPMC NAND
+ on non-OMAP platforms
+Date: Fri, 4 Mar 2016 18:33:35 -0800
+Message-ID: <20160305023335.GP55664@google.com>
 References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
- <1455916548-3441-10-git-send-email-rogerq@ti.com>
+ <56D470E8.4070106@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1455916548-3441-10-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <56D470E8.4070106-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Sorry, another small thing I noticed.
-
-On Fri, Feb 19, 2016 at 11:15:31PM +0200, Roger Quadros wrote:
-> Move NAND specific device tree parsing to NAND driver.
+On Mon, Feb 29, 2016 at 06:25:12PM +0200, Roger Quadros wrote:
+> On 19/02/16 23:15, Roger Quadros wrote:
+> > Hi,
+> > 
+> > @Tony
+> > Patches 15 and 24 are new and will need your review.
+> > I've modified patch 22 to include the new am335x boards introduced since v4.4.
+> > 
+> > Patches are based on top of omap-for-v4.6/dt so that the DT changes apply cleanly.
+> > 
+> > @Brian
+> > If you can Ack the MTD related changes we can push the series (excluding DT patches)
+> > to an immutable branch and you can then pull it into l2-mtd.git
 > 
-> The NAND controller node must have a compatible id, register space
-> resource and interrupt resource.
-> 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> ---
-[...]
+> Gentle ping on this. Thanks.
 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 9e99199..0a637c4 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -24,6 +24,7 @@
->  #include <linux/slab.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> +#include <linux/of_mtd.h>
->  
->  #include <linux/mtd/nand_bch.h>
->  #include <linux/platform_data/elm.h>
-> @@ -177,10 +178,11 @@ struct omap_nand_info {
->  	struct gpmc_nand_regs		reg;
->  	struct gpmc_nand_ops		*ops;
->  	/* generated at runtime depending on ECC algorithm and layout selected */
+I think this series looks a lot better. I don't think I have any
+fundamental issues with the MTD stuff, aside from the one comment
+about the 'reg' property. If we get a satisfactory answer for that (and
+you fix the small stuff), then:
 
-^^^ I don't think that comment describes the following line. You
-probably meant to delete this one?
+Acked-by: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-> +	bool				flash_bbt;
-> +	/* generated at runtime depending on ECC algorithm and layout */
->  	struct nand_ecclayout		oobinfo;
->  	/* fields specific for BCHx_HW ECC scheme */
->  	struct device			*elm_dev;
-> -	struct device_node		*of_node;
->  };
->  
->  static inline struct omap_nand_info *mtd_to_omap(struct mtd_info *mtd)
-
-[...]
+(That's also presuming the relevant players are all on board with the DT
+"ABI" breakage. But I think your old binding really needed a fixup, so
+the warning might be sufficient.)
 
 Brian
 --
