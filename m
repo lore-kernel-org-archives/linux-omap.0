@@ -1,157 +1,184 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [Patch v4 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Mon,  7 Mar 2016 14:39:47 -0600
-Message-ID: <1457383187-17166-7-git-send-email-fcooper@ti.com>
+Subject: [Patch v4 2/6] ARM: dts: am437x/am33xx: Remove eCAP and ePWM hwmod
+ properties
+Date: Mon,  7 Mar 2016 14:39:43 -0600
+Message-ID: <1457383187-17166-3-git-send-email-fcooper@ti.com>
 References: <1457383187-17166-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-pwm-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1457383187-17166-1-git-send-email-fcooper@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vigneshr@ti.com, thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Vignesh R <vigneshr@ti.com>
+ECAP and ePWM do not have OCP integration registers, have L3/L4 ports, etc.
+Therefore, they shouldn't be using hwmod at all. Remove their hwmod
+properties.
 
-Add PWMSS device tree nodes for DRA7 SoC family and add documentation
-for dt bindings.
+For ePWM add the tbclk to the node rather than depending on hwmod to do so.
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-[fcooper@ti.com: Use updated bindings for PWMSS and ePWM]
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
-Version 4 changes:
-Remove hwmod entries.
-Add clocks/clock-names to pwm nodes.
+ arch/arm/boot/dts/am33xx.dtsi | 12 ++++++------
+ arch/arm/boot/dts/am4372.dtsi | 21 ++++++++++++---------
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
- .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |  9 ++++
- .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 15 +++++-
- arch/arm/boot/dts/dra7.dtsi                        | 60 ++++++++++++++++++++++
- 3 files changed, 83 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-index 345d3f6..5965b9d 100644
---- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
-@@ -4,6 +4,7 @@ Required properties:
- - compatible: Must be "ti,<soc>-ehrpwm".
-   for am33xx - compatible = "ti,am33xx-ehrpwm";
-   for da850  - compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
-+  for dra7xx - compatible = "ti,dra7xx-ehrpwm", "ti,am33xx-ehrpwm";
- - #pwm-cells: should be 3. See pwm.txt in this directory for a description of
-   the cells format. The only third cell flag supported by this binding is
-   PWM_POLARITY_INVERTED.
-@@ -28,3 +29,11 @@ ehrpwm0: pwm@01f00000 { /* EHRPWM on da850 */
- 	#pwm-cells = <3>;
- 	reg = <0x300000 0x2000>;
- };
-+
-+ehrpwm0: pwm@4843e200 { /* EHRPWM on dra7xx */
-+	compatible = "ti,dra7xx-ehrpwm", "ti,am33xx-ehrpwm";
-+	#pwm-cells = <3>;
-+	reg = <0x48440200 0x80>;
-+	clocks = <&ehrpwm0_tbclk>;
-+	clock-names = "tbclk";
-+};
-diff --git a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
-index 672fa71..f137d0b 100644
---- a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
-@@ -1,7 +1,9 @@
- TI SOC based PWM Subsystem
- 
- Required properties:
--- compatible: Must be "ti,am33xx-pwmss";
-+- compatible: Must be "ti,<soc>-pwmss".
-+  for am33xx - compatible = "ti,am33xx-pwmss"
-+  for dra7xx - compatible = "ti,dra7xx-pwmss", "ti,am33xx-pwmss"
- - reg: physical base address and size of the registers map.
- - address-cells: Specify the number of u32 entries needed in child nodes.
- 		  Should set to 1.
-@@ -25,3 +27,14 @@ pwmss0: pwmss@48300000 {
- 
- 	/* child nodes go here */
- };
-+
-+epwmss0: epwmss@4843e000 { /* On DRA7xx */
-+	compatible = "ti,dra7xx-pwmss", "ti,am33xx-pwmss";
-+	reg = <0x4843e000 0x30>;
-+	ti,hwmods = "epwmss0";
-+	#address-cells = <1>;
-+	#size-cells = <1>;
-+	ranges;
-+
-+	/* child nodes go here */
-+};
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index c4d9175..cc161b3 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1597,6 +1597,66 @@
- 				clock-names = "fck", "sys_clk";
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 82c0976..1dd6c78 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -682,7 +682,6 @@
+ 				reg = <0x48300100 0x80>;
+ 				interrupts = <31>;
+ 				interrupt-names = "ecap0";
+-				ti,hwmods = "ecap0";
+ 				status = "disabled";
  			};
- 		};
-+
-+		epwmss0: epwmss@4843e000 {
-+			compatible = "ti,dra7xx-pwmss", "ti,am33xx-pwmss";
-+			reg = <0x4843e000 0x30>;
-+			ti,hwmods = "epwmss0";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			status = "disabled";
-+			ranges;
-+
-+			ehrpwm0: pwm@4843e200 {
-+				compatible = "ti,dra7xx-ehrpwm",
-+					     "ti,am33xx-ehrpwm";
-+				#pwm-cells = <3>;
-+				reg = <0x4843e200 0x80>;
+ 
+@@ -690,7 +689,8 @@
+ 				compatible = "ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48300200 0x80>;
+-				ti,hwmods = "ehrpwm0";
 +				clocks = <&ehrpwm0_tbclk>;
 +				clock-names = "tbclk";
-+				status = "disabled";
-+			};
-+		};
-+
-+		epwmss1: epwmss@48440000 {
-+			compatible = "ti,dra7xx-pwmss", "ti,am33xx-pwmss";
-+			reg = <0x48440000 0x30>;
-+			ti,hwmods = "epwmss1";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			status = "disabled";
-+			ranges;
-+
-+			ehrpwm1: pwm@48440200 {
-+				compatible = "ti,dra7xx-ehrpwm",
-+					     "ti,am33xx-ehrpwm";
-+				#pwm-cells = <3>;
-+				reg = <0x48440200 0x80>;
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -710,7 +710,6 @@
+ 				reg = <0x48302100 0x80>;
+ 				interrupts = <47>;
+ 				interrupt-names = "ecap1";
+-				ti,hwmods = "ecap1";
+ 				status = "disabled";
+ 			};
+ 
+@@ -718,7 +717,8 @@
+ 				compatible = "ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48302200 0x80>;
+-				ti,hwmods = "ehrpwm1";
 +				clocks = <&ehrpwm1_tbclk>;
 +				clock-names = "tbclk";
-+				status = "disabled";
-+			};
-+		};
-+
-+		epwmss2: epwmss@48442000 {
-+			compatible = "ti,dra7xx-pwmss", "ti,am33xx-pwmss";
-+			reg = <0x48442000 0x30>;
-+			ti,hwmods = "epwmss2";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			status = "disabled";
-+			ranges;
-+
-+			ehrpwm2: pwm@48442200 {
-+				compatible = "ti,dra7xx-ehrpwm",
-+					     "ti,am33xx-ehrpwm";
-+				#pwm-cells = <3>;
-+				reg = <0x48442200 0x80>;
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -738,7 +738,6 @@
+ 				reg = <0x48304100 0x80>;
+ 				interrupts = <61>;
+ 				interrupt-names = "ecap2";
+-				ti,hwmods = "ecap2";
+ 				status = "disabled";
+ 			};
+ 
+@@ -746,7 +745,8 @@
+ 				compatible = "ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48304200 0x80>;
+-				ti,hwmods = "ehrpwm2";
 +				clocks = <&ehrpwm2_tbclk>;
 +				clock-names = "tbclk";
-+				status = "disabled";
-+			};
-+		};
- 	};
+ 				status = "disabled";
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 33f417c..685c8db 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -675,7 +675,6 @@
+ 				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48300100 0x80>;
+-				ti,hwmods = "ecap0";
+ 				status = "disabled";
+ 			};
  
- 	thermal_zones: thermal-zones {
+@@ -683,7 +682,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48300200 0x80>;
+-				ti,hwmods = "ehrpwm0";
++				clocks = <&ehrpwm0_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -701,7 +701,6 @@
+ 				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48302100 0x80>;
+-				ti,hwmods = "ecap1";
+ 				status = "disabled";
+ 			};
+ 
+@@ -709,7 +708,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48302200 0x80>;
+-				ti,hwmods = "ehrpwm1";
++				clocks = <&ehrpwm1_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -727,7 +727,6 @@
+ 				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48304100 0x80>;
+-				ti,hwmods = "ecap2";
+ 				status = "disabled";
+ 			};
+ 
+@@ -735,7 +734,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48304200 0x80>;
+-				ti,hwmods = "ehrpwm2";
++				clocks = <&ehrpwm2_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -753,7 +753,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48306200 0x80>;
+-				ti,hwmods = "ehrpwm3";
++				clocks = <&ehrpwm3_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -771,7 +772,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48308200 0x80>;
+-				ti,hwmods = "ehrpwm4";
++				clocks = <&ehrpwm4_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -789,7 +791,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x4830a200 0x80>;
+-				ti,hwmods = "ehrpwm5";
++				clocks = <&ehrpwm5_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
 -- 
 2.7.0
