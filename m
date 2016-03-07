@@ -1,48 +1,48 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v5 13/26] memory: omap-gpmc: Support general purpose
- input for WAITPINs
-Date: Mon, 7 Mar 2016 10:38:55 +0100
-Message-ID: <20160307103855.57720146@bbrezillon>
-References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
-	<1455916548-3441-14-git-send-email-rogerq@ti.com>
-	<20160307103440.4b9d7a55@bbrezillon>
+From: Lokesh Vutla <a0131933-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: dra7: Enable Errata i877
+Date: Mon, 7 Mar 2016 15:10:00 +0530
+Message-ID: <56DD4C70.7070105@ti.com>
+References: <1456994525-20573-1-git-send-email-lokeshvutla@ti.com>
+ <alpine.DEB.2.02.1603070938170.3437@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160307103440.4b9d7a55@bbrezillon>
+In-Reply-To: <alpine.DEB.2.02.1603070938170.3437-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 7 Mar 2016 10:34:40 +0100
-Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> wrote:
 
-> Hi Roger,
-> 
-> On Fri, 19 Feb 2016 23:15:35 +0200
-> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> 
-> > OMAPs can have 2 to 4 WAITPINs that can be used as general purpose
-> > input if not used for memory wait state insertion.
-> > 
-> > The first user will be the OMAP NAND chip to get the NAND
-> > read/busy status using gpiolib.
-> 
-> Just a comment on this approach. Why do you need to exposed native R/B
-> pins as GPIOs? I mean, other NAND controllers are supporting R/B
-> detection using dedicated logic, and they do not exposed those pins a
-> plain GPIOs. Have you considered adding another property (rb-native ?)
 
-Just had a look at the sunxi-nand binding, and we chose "allwinner,rb"
-for this native RB logic. So "ti,rb" would be the equivalent for the
-gpmc driver.
+On Monday 07 March 2016 03:09 PM, Paul Walmsley wrote:
+> On Thu, 3 Mar 2016, Lokesh Vutla wrote:
+> 
+>> This series enables Errata i877 for all DRA7 platforms. The public errata
+>> documentation can be found here[1].
+>>
+>> [1] http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
+>>
+>> Lokesh Vutla (1):
+>>   ARM: OMAP2+: hwmod: Introduce ti,no-idle dt property
+>>
+>> Mugunthan V N (1):
+>>   ARM: dts: dra7: do not gate cpsw clock due to errata i877
+> 
+> I've sent these for merging immediately. 
+> 
+> Have you sent patches for U-boot yet?
+Yes, It is already merged into u-boot.
+http://git.denx.de/?p=u-boot.git;a=commitdiff;h=f986d9720836433ded29f06c8f5aed462bd20924;hp=65e9d56fb9ce9cfd7ffff7afaa6b7de50e400e06
 
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Thanks and regards,
+Lokesh
+
+> 
+> 
+> - Paul
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
