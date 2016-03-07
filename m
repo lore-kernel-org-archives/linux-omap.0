@@ -1,8 +1,8 @@
 From: Keerthy <a0393675@ti.com>
 Subject: Re: [PATCH] thermal: omap-thermal: Add notify function to
  thermal_zone_device_ops
-Date: Mon, 7 Mar 2016 13:01:05 +0530
-Message-ID: <56DD2E39.5040109@ti.com>
+Date: Mon, 7 Mar 2016 13:03:39 +0530
+Message-ID: <56DD2ED3.10609@ti.com>
 References: <1455599145-5656-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
@@ -14,7 +14,7 @@ To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com
 Cc: nm@ti.com, rui.zhang@intel.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
+Eduardo,
 
 On Tuesday 16 February 2016 10:35 AM, Keerthy wrote:
 > notify function is used to notify when some temperature thresholds
@@ -41,12 +41,8 @@ On Tuesday 16 February 2016 10:35 AM, Keerthy wrote:
 > shutdown is not successful after a configurable time period.
 >
 
-Eduardo,
-
 A gentle ping on this.
 
-Regards,
-Keerthy
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
 >
