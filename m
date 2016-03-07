@@ -1,69 +1,64 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 1/5] clk: ti: am335x/am4372: Add tbclk to pwm node
-Date: Mon,  7 Mar 2016 13:51:54 -0600
-Message-ID: <1457380318-15452-2-git-send-email-fcooper@ti.com>
-References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1457380318-15452-1-git-send-email-fcooper@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org
+Subject: [Patch v4 0/6] ARM: am335x/am437x/dra7: Add PWM support for DRA7
+Date: Mon,  7 Mar 2016 14:39:41 -0600
+Message-ID: <1457383187-17166-1-git-send-email-fcooper@ti.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: vigneshr@ti.com, thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, paul@pwsan.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add tblck to the pwm nodes. This insures that the ehrpwm driver has access
-to the time-based clk.
+This patch series adds support for PWM for DRA7. The IP is same as that
+present in AM33XX and AM437XX.
 
-Do not remove similar entries for ehrpwm node. Later patches will switch
-from using ehrpwm node name to pwm. But to maintain ABI compatibility we
-shouldn't remove the old entries.
+However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
+and eQEP.
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
- drivers/clk/ti/clk-33xx.c | 3 +++
- drivers/clk/ti/clk-43xx.c | 6 ++++++
- 2 files changed, 9 insertions(+)
+This series was tested on AM335x GP, AM437x GP and X15 + LCD screen for
+PWM based backlight.
 
-diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
-index ef2ec64..0e47d95 100644
---- a/drivers/clk/ti/clk-33xx.c
-+++ b/drivers/clk/ti/clk-33xx.c
-@@ -108,6 +108,9 @@ static struct ti_dt_clk am33xx_clks[] = {
- 	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
- 	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
- 	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
-+	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
-+	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
-+	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
- 	{ .node_name = NULL },
- };
- 
-diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-index 097fc90..7255aa8 100644
---- a/drivers/clk/ti/clk-43xx.c
-+++ b/drivers/clk/ti/clk-43xx.c
-@@ -115,6 +115,12 @@ static struct ti_dt_clk am43xx_clks[] = {
- 	DT_CLK("48306200.ehrpwm", "tbclk", "ehrpwm3_tbclk"),
- 	DT_CLK("48308200.ehrpwm", "tbclk", "ehrpwm4_tbclk"),
- 	DT_CLK("4830a200.ehrpwm", "tbclk", "ehrpwm5_tbclk"),
-+	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
-+	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
-+	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
-+	DT_CLK("48306200.pwm", "tbclk", "ehrpwm3_tbclk"),
-+	DT_CLK("48308200.pwm", "tbclk", "ehrpwm4_tbclk"),
-+	DT_CLK("4830a200.pwm", "tbclk", "ehrpwm5_tbclk"),
- 	{ .node_name = NULL },
- };
- 
+This series was also verified to be backwards compatible with old dtbs.
+
+This series depends on the below patch series for PWM bindings cleanup:
+https://patchwork.ozlabs.org/patch/593171/
+https://patchwork.ozlabs.org/patch/593168/
+https://patchwork.ozlabs.org/patch/593165/
+https://patchwork.ozlabs.org/patch/593166/
+https://patchwork.ozlabs.org/patch/593169/
+
+V3 series:
+https://patchwork.ozlabs.org/patch/588432/
+https://patchwork.ozlabs.org/patch/588434/
+https://patchwork.ozlabs.org/patch/588433/
+https://patchwork.ozlabs.org/patch/588429/
+https://patchwork.ozlabs.org/patch/588431/
+
+Franklin S Cooper Jr (3):
+  pwms: pwm-ti*: Get the clock from the PWMSS (parent)
+  ARM: dts: am437x/am33xx: Remove eCAP and ePWM hwmod properties
+  ARM: AM335x/AM437x: hwmod: Remove eQEP, ePWM and eCAP hwmod entries
+
+Vignesh R (3):
+  ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
+  ARM: dts: DRA7: Add TBCLK for PWMSS
+  ARM: dts: DRA7: Add dt nodes for PWMSS
+
+ .../devicetree/bindings/pwm/pwm-tiecap.txt         |  1 -
+ .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 16 ++++-
+ .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 15 +++-
+ arch/arm/boot/dts/am33xx.dtsi                      | 12 ++--
+ arch/arm/boot/dts/am4372.dtsi                      | 21 +++---
+ arch/arm/boot/dts/dra7.dtsi                        | 60 ++++++++++++++++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi               | 24 +++++++
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 -----------------
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 ----------------------
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 --------------
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 83 +++++++++++++++++++++
+ drivers/pwm/pwm-tiecap.c                           |  2 +-
+ drivers/pwm/pwm-tiehrpwm.c                         |  2 +-
+ 15 files changed, 214 insertions(+), 251 deletions(-)
+
 -- 
 2.7.0
