@@ -1,88 +1,92 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: critical DRA7xx fix for v4.5-rc
-Date: Mon, 7 Mar 2016 09:38:06 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603070933530.3437@utopia.booyaka.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v5 10/26] mtd: nand: omap: Update DT binding documentation
+Date: Mon, 7 Mar 2016 11:46:24 +0200
+Message-ID: <56DD4DF0.4020500@ti.com>
+References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
+ <1455916548-3441-11-git-send-email-rogerq@ti.com>
+ <20160305020430.GL55664@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160305020430.GL55664@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: tony@atomide.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, fcooper@ti.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On 05/03/16 04:04, Brian Norris wrote:
+> On Fri, Feb 19, 2016 at 11:15:32PM +0200, Roger Quadros wrote:
+>> Add compatible id and interrupts. The NAND interrupts are
+>> provided by the GPMC controller node.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 17 +++++++++++++----
+>>  1 file changed, 13 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> index fb733c4..810b87b 100644
+>> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> @@ -13,7 +13,11 @@ Documentation/devicetree/bindings/mtd/nand.txt
+>>  
+>>  Required properties:
+>>  
+>> - - reg:		The CS line the peripheral is connected to
+>> + - compatible:	"ti,omap2-nand"
+>> + - reg:		range id (CS number), base offset and length of the
+>> +		NAND I/O space
+> 
+> Is it normal to mix types of addressing in a single 'reg' property? Is
+> your code working for anything besides CS==0?
 
-Tony,
+Yes we're using non zero CS on different omap platforms.
+I haven't changed the behaviour of the reg property in this series. Just updated the documentation.
 
-These changes should go upstream immediately.
+I didn't understand what you meant by mixing type of addressing.
 
-The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
+This usage is exactly as mentioned here
+http://devicetree.org/Device_Tree_Usage#Ranges_.28Address_Translation.29
 
-  Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
+cheers,
+-roger
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v4.5-rc/omap-critical-fixes-a
-
-for you to fetch changes up to 0f514e690740e54815441a87708c3326f8aa8709:
-
-  ARM: dts: dra7: do not gate cpsw clock due to errata i877 (2016-03-07 01:41:22 -0700)
-
-- ----------------------------------------------------------------
-ARM: OMAP2+: critical DRA7xx fix for v4.5-rc
-
-Force the DRA7xx Ethernet internal clock source to stay enabled
-per TI erratum i877:
-
-http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
-
-Otherwise, if the Ethernet internal clock source is disabled, the
-chip will age prematurely, and the RGMII I/O timing will soon
-fail to meet the delay time and skew specifications for 1000Mbps
-Ethernet.
-
-This fix should go in as soon as possible.
-
-Basic build, boot, and PM test results are available here:
-
-http://www.pwsan.com/omap/testlogs/omap-critical-fixes-for-v4.5-rc/20160307014209/
-
-- ----------------------------------------------------------------
-Lokesh Vutla (1):
-      ARM: OMAP2+: hwmod: Introduce ti,no-idle dt property
-
-Mugunthan V N (1):
-      ARM: dts: dra7: do not gate cpsw clock due to errata i877
-
- Documentation/devicetree/bindings/arm/omap/omap.txt |  1 +
- arch/arm/boot/dts/dra7.dtsi                         | 10 ++++++++++
- arch/arm/mach-omap2/omap_hwmod.c                    |  9 ++++++++-
- arch/arm/mach-omap2/omap_hwmod.h                    |  3 +++
- 4 files changed, 22 insertions(+), 1 deletion(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJW3UviAAoJEMePsQ0LvSpLo3oP/1nTp6CbW4EHPkzHrsp4jvIR
-971ajUKhWOvitk3iHD30WBLI71XsXKe8D73tMy8saTIH+T8wvhT50yAVLN+uY/6w
-c76xQAoTb8f20YYGfhE1x/cFWwXffnxfUj3/ablCVOrGCx6umhhQ84Q4IgnD5pG+
-bvh+wfMkvewn1ua47x0/YjS9N1e2sojRmKLny4iTEweuMy7CBTwMjS5V8EgbRNFz
-sDbnmh3i/9ynRDE+vqdwmjz5QFl+avOd+DJf3asP5Tqzhj57y1t65Vc3E7g8xkDJ
-qH4eQZz4hZilCNC0mdEn1BQ4PNcOKVRDJuozoLS+m+6TMgFIIJlmJHiyKgZQI/ca
-YgYzfjlbL76nZylQL1+vSAq/e6XM9VimSTQx1oNT7fXwyuzNETj5Ez6KxroYky3o
-+RJIsjCqeW4XF+J289dDPDH41r+D3MhsGw6o4Jhl0BXfM7YN/IvTlhuxmK3IjrHq
-AHoH9R9EK7G5kKQAE5Qpk9cxCSgYCRcPcagmfnIBEfzKsGxH4D8HDYDJC+QkqEkE
-UV5ia/VWuwINmOYpDxqxP1sv++KIctO0S9Is1P8hTfrb9o/gnn+Zivr/Q3g/WQOZ
-wgJ1olcAERjKGg/djTWbcOtcFSeyVb3YIgcWZjze8yCPuaSzrddeLpnsXSf1Xm5P
-kK4C6wqZu8tCDYCEXOel
-=bwpu
------END PGP SIGNATURE-----
+> 
+>> + - interrupt-parent: must point to gpmc node
+>> + - interrupts:	Two interrupt specifiers, one for fifoevent, one for termcount.
+>>  
+>>  Optional properties:
+>>  
+>> @@ -55,20 +59,25 @@ Example for an AM33xx board:
+>>  	gpmc: gpmc@50000000 {
+>>  		compatible = "ti,am3352-gpmc";
+>>  		ti,hwmods = "gpmc";
+>> -		reg = <0x50000000 0x1000000>;
+>> +		reg = <0x50000000 0x36c>;
+>>  		interrupts = <100>;
+>>  		gpmc,num-cs = <8>;
+>>  		gpmc,num-waitpins = <2>;
+>>  		#address-cells = <2>;
+>>  		#size-cells = <1>;
+>> -		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
+>> +		ranges = <0 0 0x08000000 0x1000000>;	/* CS0 space, 16MB */
+>>  		elm_id = <&elm>;
+>>  
+>>  		nand@0,0 {
+>> -			reg = <0 0 0>; /* CS0, offset 0 */
+>> +			compatible = "ti,omap2-nand";
+>> +			reg = <0 0 4>;		/* CS0, offset 0, NAND I/O window 4 */
+>> +			interrupt-parent = <&gpmc>;
+>> +			interrupts = <0 IRQ_TYPE_NONE>, <1 IRQ_TYPE NONE>;
+>>  			nand-bus-width = <16>;
+>>  			ti,nand-ecc-opt = "bch8";
+>>  			ti,nand-xfer-type = "polled";
+>> +			interrupt-parent = <&gpmc>;
+>> +			interrupts = <0>, <1>;
+>>  
+>>  			gpmc,sync-clk-ps = <0>;
+>>  			gpmc,cs-on-ns = <0>;
+>> -- 
+>> 2.1.4
+>>
