@@ -1,42 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 07/10] ARM: DTS: am57xx-beagle-x15: Enable AFIFO use for McASP3
-Date: Mon, 7 Mar 2016 17:17:34 +0200
-Message-ID: <1457363857-20797-8-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 06/10] ARM: DTS: am57xx-beagle-x15: Move clkout2 source
+ selection to codec node
+Date: Mon, 7 Mar 2016 17:17:33 +0200
+Message-ID: <1457363857-20797-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, robh+dt@kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Since we switched to use eDMA we can now safely enable the FIFO in McASP.
-This will reduce the chance of McASP level under/overflow.
+The assigned-clock* needs to be in the root of the device's node. If it is
+in the sub-node the CCF will ignore it.
+Since the clkout2 is used by the codec as MCLK, move the clock parent
+selection to that node.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/am57xx-beagle-x15.dts | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/am57xx-beagle-x15.dts | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-index 2bbc8ae00ada..08fd3c37d628 100644
+index 0a5fc5d02ce2..2bbc8ae00ada 100644
 --- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
 +++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -813,6 +813,8 @@
- 	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
- 		1 2 0 0
- 	>;
-+	tx-num-evt = <32>;
-+	rx-num-evt = <32>;
- };
+@@ -173,8 +173,6 @@
  
- &mailbox5 {
+ 		sound0_master: simple-audio-card,codec {
+ 			sound-dai = <&tlv320aic3104>;
+-			assigned-clocks = <&clkoutmux2_clk_mux>;
+-			assigned-clock-parents = <&sys_clk2_dclk_div>;
+ 			clocks = <&clkout2_clk>;
+ 		};
+ 	};
+@@ -584,6 +582,9 @@
+ 		pinctrl-names = "default", "sleep";
+ 		pinctrl-0 = <&clkout2_pins_default>;
+ 		pinctrl-1 = <&clkout2_pins_sleep>;
++		assigned-clocks = <&clkoutmux2_clk_mux>;
++		assigned-clock-parents = <&sys_clk2_dclk_div>;
++
+ 		status = "okay";
+ 		adc-settle-ms = <40>;
+ 
 -- 
 2.7.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
