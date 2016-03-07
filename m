@@ -1,75 +1,95 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v6 10/26] mtd: nand: omap: Update DT binding documentation
-Date: Mon, 7 Mar 2016 12:32:15 +0200
-Message-ID: <56DD58AF.4090404@ti.com>
-References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
- <1455916548-3441-11-git-send-email-rogerq@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Mon, 7 Mar 2016 12:59:22 +0100
+Message-ID: <20160307115922.GC20264@pali>
+References: <201507251228.27128@pali>
+ <55BFB77C.6000208@bitmer.com>
+ <55C0638F.30000@ti.com>
+ <201601050034.12810@pali>
+ <20160306152339.GA428@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455916548-3441-11-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160306152339.GA428@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-Add compatible id and interrupts. The NAND interrupts are
-provided by the GPMC controller node.
+On Sunday 06 March 2016 16:23:39 Sebastian Reichel wrote:
+> Hi Pali,
+>=20
+> On Tue, Jan 05, 2016 at 12:34:12AM +0100, Pali Roh=C3=A1r wrote:
+> > On Tuesday 04 August 2015 09:02:39 Peter Ujfalusi wrote:
+> > > On 08/03/2015 09:48 PM, Jarkko Nikula wrote:
+> > > > It is well possible that some regression got introduced to
+> > > > TPA6130A2 I2C communication over the years without nobody than =
+you
+> > > > now notices. We used to do QA back in Meego N900 days but that =
+was
+> > > > pre 3.x kernels.
+> > >=20
+> > > No major changes has been done to the tpa driver during the past
+> > > years... I wanted to do some updates, like moving it to regmap, b=
+ut
+> > > as you said, n900 is the only user (and n9) and I do not feel
+> > > comfortable to hack on a device where I do not have serial
+> > > console... And I'm using the n900 time to time also.
+> > >=20
+> > > >> So maybe something similar? Kernel expects that some PM or
+> > > >> regulator parts are initialized, but they are only sometimes?
+> > > >> Just speculation...
+> > > >=20
+> > > > I'm thinking the same. I could figure SCL could be stuck low if=
+ TPA
+> > > > or some other chip connected to the same I2C bus is without pow=
+er
+> > > > and is pulling I2C signals down.
+> > >=20
+> > > What would happen with the SCL stuck on i2c.2 bus if you remove t=
+he
+> > > tpa driver from the kernel? If you remove the other drivers for t=
+he
+> > > devices on i2c.2?
+> >=20
+> > Hi Peter and Jarkko! Do you have some code samples for testing? Or=20
+> > something else which I can test? This problem is still reproducible=
+ on=20
+> > more N900 devices and I would like to see it fixed.
+>=20
+> I have not seen your error with N900, but while working on N950 I
+> noticed similar problems when I added lp5523. I think the lp5523
+> reset routine locks up the omap i2c controller, since the lp5523
+> will stop responding in the middle of an ongoing communication:
+>=20
+> static void lp55xx_reset_device(struct lp55xx_chip *chip)
+> {
+> 	struct lp55xx_device_config *cfg =3D chip->cfg;
+> 	u8 addr =3D cfg->reset.addr;
+> 	u8 val  =3D cfg->reset.val;
+>=20
+> 	/* no error checking here because no ACK from the device after reset=
+ */
+> 	lp55xx_write(chip, addr, val);
+> }
+>=20
+> Since tpa6130a2 is on the same i2c bus, it would be affected by
+> this. You can check this by just commenting out the call to
+> lp55xx_reset_device() in the probe function, since it's not
+> needed on N900 (chip reset is done via enable gpio anyways).
+>=20
+> I'm pretty sure, there were no bus lock problems when I added
+> lp5523 to N900 dts, so this having problems with this is probably
+> a regression in the omap-i2c driver.
+>=20
+> -- Sebastian
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+Hi Sebastian! Thank you for info. That error occurs randomly, not
+always. When I see it next time, I will try to comment that function if
+it happens...
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index fb733c4..ff3215d2 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -13,7 +13,11 @@ Documentation/devicetree/bindings/mtd/nand.txt
- 
- Required properties:
- 
-- - reg:		The CS line the peripheral is connected to
-+ - compatible:	"ti,omap2-nand"
-+ - reg:		range id (CS number), base offset and length of the
-+		NAND I/O space
-+ - interrupt-parent: must point to gpmc node
-+ - interrupts:	Two interrupt specifiers, one for fifoevent, one for termcount.
- 
- Optional properties:
- 
-@@ -55,17 +59,22 @@ Example for an AM33xx board:
- 	gpmc: gpmc@50000000 {
- 		compatible = "ti,am3352-gpmc";
- 		ti,hwmods = "gpmc";
--		reg = <0x50000000 0x1000000>;
-+		reg = <0x50000000 0x36c>;
- 		interrupts = <100>;
- 		gpmc,num-cs = <8>;
- 		gpmc,num-waitpins = <2>;
- 		#address-cells = <2>;
- 		#size-cells = <1>;
--		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
-+		ranges = <0 0 0x08000000 0x1000000>;	/* CS0 space, 16MB */
- 		elm_id = <&elm>;
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
- 
- 		nand@0,0 {
--			reg = <0 0 0>; /* CS0, offset 0 */
-+			compatible = "ti,omap2-nand";
-+			reg = <0 0 4>;		/* CS0, offset 0, NAND I/O window 4 */
-+			interrupt-parent = <&gpmc>;
-+			interrupts = <0 IRQ_TYPE_NONE>, <1 IRQ_TYPE NONE>;
- 			nand-bus-width = <16>;
- 			ti,nand-ecc-opt = "bch8";
- 			ti,nand-xfer-type = "polled";
--- 
-2.5.0
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
