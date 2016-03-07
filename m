@@ -1,73 +1,33 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH] drm/i2c: tda998x: Choose between atomic or non atomic
- dpms helper
-Date: Mon, 7 Mar 2016 23:47:38 +0200
-Message-ID: <56DDF6FA.2040501@ti.com>
-References: <1452975474-17058-1-git-send-email-jsarha@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [Patch v4 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Mon, 7 Mar 2016 23:53:34 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603072352510.27387@utopia.booyaka.com>
+References: <1457383187-17166-1-git-send-email-fcooper@ti.com> <1457383187-17166-7-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1452975474-17058-1-git-send-email-jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org
-Cc: rmk+kernel@arm.linux.org.uk, tomi.valkeinen@ti.com, Liviu.Dudau@arm.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1457383187-17166-7-git-send-email-fcooper@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>
+Cc: vigneshr@ti.com, thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCkJhc2VkIG9uIGRpc2N1c3Npb24gYXJvdW5kIHRoaXMgcGF0Y2g6CgpodHRwczovL2xpc3Rz
-LmZyZWVkZXNrdG9wLm9yZy9hcmNoaXZlcy9kcmktZGV2ZWwvMjAxNi1GZWJydWFyeS8xMDA2ODUu
-aHRtbAoKSSB0aGluayB0aGUgcGF0Y2ggYmVsb3cgc2hvdWxkIGdldCBpbnRvIHF1ZXVlZCBmb3Ig
-djQuNSBmaXhlcyBhcyB0aGUgCkJlYWdsZWJvbmUtQmxhY2sgZGlzcGxheSBpcyBjdXJyZW50bHkg
-YnJva2VuIGluIGxpbnV4LW1hc3RlciBhbmQgCnByb2JhYmx5IEFybWFkYSBpcyBicm9rZW4gdG9v
-LiBXaGF0IHNob3VsZCBJIGRvIHRvIGdldCBpdCB0aGVyZT8KCkJlc3QgcmVnYXJkcywKSnlyaQoK
-T24gMDEvMTYvMTYgMjI6MTcsIEp5cmkgU2FyaGEgd3JvdGU6Cj4gQ2hvb3NlIGJldHdlZW4gYXRv
-bWljIG9yIG5vbiBhdG9taWMgY29ubmVjdG9yIGRwbXMgaGVscGVyLiBJZiB0ZGE5OTh4Cj4gaXMg
-Y29ubmVjdGVkIHRvIGEgZHJtIGRyaXZlciB0aGF0IGRvZXMgbm90IHN1cHBvcnQgYXRvbWljIG1v
-ZGVzZXQKPiBjYWxsaW5nIGRybV9hdG9taWNfaGVscGVyX2Nvbm5lY3Rvcl9kcG1zKCkgY2F1c2Vz
-IGEgY3Jhc2ggd2hlbiB0aGUKPiBjb25uZWN0b3JzIGF0b21pYyBzdGF0ZSBpcyBub3QgaW5pdGlh
-bGl6ZWQuIFRoZSBwYXRjaCBpbXBsZW1lbnRzIGEKPiBkcml2ZXIgc3BlY2lmaWMgY29ubmVjdG9y
-IGRwbXMgaGVscGVyIHRoYXQgY2FsbHMKPiBkcm1fYXRvbWljX2hlbHBlcl9jb25uZWN0b3JfZHBt
-cygpIGlmIGRyaXZlciBzdXBwb3J0cyBEUklWRVJfQVRPTUlDCj4gYW5kIG90aGVyd2lzZSBpdCBj
-YWxscyB0aGUgbGVnYWN5IGRybV9oZWxwZXJfY29ubmVjdG9yX2RwbXMoKS4KPgo+IEZpeGVzIGNv
-bW1pdCA5NzM2ZTk4OGQzMjggKCJkcm0vaTJjOiB0ZGE5OTh4OiBBZGQgc3VwcG9ydCBmb3IgYXRv
-bWljCj4gbW9kZXNldHRpbmciKS4KPgo+IFNpZ25lZC1vZmYtYnk6IEp5cmkgU2FyaGEgPGpzYXJo
-YUB0aS5jb20+Cj4gLS0tCj4KPiBPaywgc28gdGhpcyBpcyB0aGUgc2Vjb25kIGFwcHJvYWNoIHRv
-IHNvbHZlIHRoaXMgaXNzdWUuIFRoZSBmaXJzdAo+IGF0dGVtcHQgY2FuIGJlIGZvdW5kIGhlcmUg
-WzFdIHdpdGggdGhlIGZvbGxvdyBmcm9tIExpdml1IER1ZGF1IHRoYXQKPiBzdWdnZXN0ZWQgdGhp
-cyBhcHByb2FjaC4KPgo+IEl0IGp1c3QgbWFrZXMgbWUgd29uZGVyIGlmIGRybV9hdG9taWNfaGVs
-cGVyX2Nvbm5lY3Rvcl9kcG1zKCkgc2hvdWxkCj4gY2FsbCB0aGUgbGVnYWN5IGNhbGxiYWNrIGF1
-dG9tYXRpY2FsbHkgaWYgRFJJVkVSX0FUT01JQyBpcyBub3Qgc2V0IG9yCj4gYXQgbGVhc3QgYmFp
-bCBvdXQgZ3JhY2VmdWxseSB3aXRoIGFuIGVycm9yIG1lc3NhZ2UuIFRoZW4gYWdhaW4gaXQgbWF5
-Cj4gYmUgb3ZlcmtpbGwgaWYgdGhlIHRkYTk5OHggaXMgdGhlIG9ubHkgZHJpdmVyIHRoYXQgbmVl
-ZCB0byBzdXBwb3J0Cj4gYm90aCBzaXR1YXRpb25zLgo+Cj4gQmVzdCByZWdhcmRzLAo+IEp5cmkK
-Pgo+IFsxXSBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2RyaS1kZXZlbC9tc2c5ODUxNC5o
-dG1sCj4KPiAgIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyB8IDEwICsrKysrKysr
-Ky0KPiAgIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKPgo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMgYi9kcml2ZXJz
-L2dwdS9kcm0vaTJjL3RkYTk5OHhfZHJ2LmMKPiBpbmRleCAwMTJkMzZkLi5iYjdkNTA3IDEwMDY0
-NAo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwo+ICsrKyBiL2RyaXZl
-cnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYwo+IEBAIC0xMzgyLDggKzEzODIsMTYgQEAgc3Rh
-dGljIHZvaWQgdGRhOTk4eF9jb25uZWN0b3JfZGVzdHJveShzdHJ1Y3QgZHJtX2Nvbm5lY3RvciAq
-Y29ubmVjdG9yKQo+ICAgCWRybV9jb25uZWN0b3JfY2xlYW51cChjb25uZWN0b3IpOwo+ICAgfQo+
-Cj4gK3N0YXRpYyBpbnQgdGRhOTk4eF9jb25uZWN0b3JfZHBtcyhzdHJ1Y3QgZHJtX2Nvbm5lY3Rv
-ciAqY29ubmVjdG9yLCBpbnQgbW9kZSkKPiArewo+ICsJaWYgKGRybV9jb3JlX2NoZWNrX2ZlYXR1
-cmUoY29ubmVjdG9yLT5kZXYsIERSSVZFUl9BVE9NSUMpKQo+ICsJCXJldHVybiBkcm1fYXRvbWlj
-X2hlbHBlcl9jb25uZWN0b3JfZHBtcyhjb25uZWN0b3IsIG1vZGUpOwo+ICsJZWxzZQo+ICsJCXJl
-dHVybiBkcm1faGVscGVyX2Nvbm5lY3Rvcl9kcG1zKGNvbm5lY3RvciwgbW9kZSk7Cj4gK30KPiAr
-Cj4gICBzdGF0aWMgY29uc3Qgc3RydWN0IGRybV9jb25uZWN0b3JfZnVuY3MgdGRhOTk4eF9jb25u
-ZWN0b3JfZnVuY3MgPSB7Cj4gLQkuZHBtcyA9IGRybV9hdG9taWNfaGVscGVyX2Nvbm5lY3Rvcl9k
-cG1zLAo+ICsJLmRwbXMgPSB0ZGE5OTh4X2Nvbm5lY3Rvcl9kcG1zLAo+ICAgCS5yZXNldCA9IGRy
-bV9hdG9taWNfaGVscGVyX2Nvbm5lY3Rvcl9yZXNldCwKPiAgIAkuZmlsbF9tb2RlcyA9IGRybV9o
-ZWxwZXJfcHJvYmVfc2luZ2xlX2Nvbm5lY3Rvcl9tb2RlcywKPiAgIAkuZGV0ZWN0ID0gdGRhOTk4
-eF9jb25uZWN0b3JfZGV0ZWN0LAo+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9kcmktZGV2ZWwK
+On Mon, 7 Mar 2016, Franklin S Cooper Jr wrote:
+
+> From: Vignesh R <vigneshr@ti.com>
+> 
+> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
+> for dt bindings.
+> 
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> [fcooper@ti.com: Use updated bindings for PWMSS and ePWM]
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> ---
+> Version 4 changes:
+> Remove hwmod entries.
+> Add clocks/clock-names to pwm nodes.
+
+Hmm, what about moving the eqep, ecap DT nodes under the epwmss nodes?
+
+
+- Paul
