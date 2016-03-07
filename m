@@ -1,148 +1,153 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH] thermal: omap-thermal: Add notify function to
- thermal_zone_device_ops
-Date: Mon, 7 Mar 2016 13:03:39 +0530
-Message-ID: <56DD2ED3.10609@ti.com>
-References: <1455599145-5656-1-git-send-email-j-keerthy@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 03/26] memory: omap-gpmc: Introduce GPMC to NAND
+ interface
+Date: Mon, 7 Mar 2016 10:55:36 +0200
+Message-ID: <56DD4208.8030604@ti.com>
+References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
+ <1455916548-3441-4-git-send-email-rogerq@ti.com>
+ <20160305013534.GJ55664@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1455599145-5656-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com
-Cc: nm@ti.com, rui.zhang@intel.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160305013534.GJ55664-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Eduardo,
+Hi Brian,
 
-On Tuesday 16 February 2016 10:35 AM, Keerthy wrote:
-> notify function is used to notify when some temperature thresholds
-> are crossed. In case we get notified for a critical trip point then
-> schedule an emergency shutdown function to backup orderly_poweroff
-> failures.
->
-> orderly_poweroff is triggered when a graceful shutdown
-> of system is desired. This may be used in many critical states of the
-> kernel such as when subsystems detects conditions such as critical
-> temperature conditions. However, in certain conditions in system
-> boot up sequences like those in the middle of driver probes being
-> initiated, userspace will be unable to power off the system in a clean
-> manner and leaves the system in a critical state. In cases like these,
-> the /sbin/poweroff will return success (having forked off to attempt
-> powering off the system. However, the system overall will fail to
-> completely poweroff (since other modules will be probed) and the system
-> is still functional with no userspace (since that would have shut itself
-> off).
->
-> However, there is no clean way of detecting such failure of userspace
-> powering off the system. In such scenarios, it is necessary for a backup
-> workqueue to be able to force a shutdown of the system when orderly
-> shutdown is not successful after a configurable time period.
->
+On 05/03/16 03:35, Brian Norris wrote:
+> Hi Roger,
+> 
+> On Fri, Feb 19, 2016 at 11:15:25PM +0200, Roger Quadros wrote:
+>> The OMAP GPMC module has certain registers dedicated for NAND
+>> access and some NAND bits mixed with other GPMC functionality.
+>>
+>> For the NAND dedicated registers we have the struct gpmc_nand_regs.
+>>
+>> The NAND driver needs to access NAND specific bits from the
+>> following non-dedicated registers
+>> 1) FIFOEVENT and TERMCOUNT from GPMC_IRQENABLE and GPMC_IRQSTATUS
+>> 2) EMPTYWRITEBUFFERSTATUS from GPMC_STATUS
+>>
+>> For accessing these bits we introduce the struct gpmc_nand_ops.
+>>
+>> Rename the gpmc_update_nand_reg() API to gpmc_omap_get_nand_ops()
+>> and make it return the gpmc_nand_ops along with updating the
+>> gpmc_nand_regs. This API will be called by the OMAP NAND driver
+>> to access the necessary bits in GPMC register space.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/memory/omap-gpmc.c | 21 ++++++++++++++++++++
+>>  include/linux/omap-gpmc.h  | 49 ++++++++++++++++++++++++++++++++++++++++++++--
+>>  2 files changed, 68 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+>> index 6515dfc..c2f7320 100644
+>> --- a/drivers/memory/omap-gpmc.c
+>> +++ b/drivers/memory/omap-gpmc.c
+>> @@ -1098,6 +1098,27 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+>>  	}
+>>  }
+>>  
+>> +static struct gpmc_nand_ops nand_ops;
+>> +
+>> +/**
+>> + * gpmc_omap_get_nand_ops - Get the GPMC NAND interface
+>> + * @regs: the GPMC NAND register map exclusive for NAND use.
+>> + * @cs: GPMC chip select number on which the NAND sits. The
+>> + *      register map returned will be specific to this chip select.
+>> + *
+>> + * Returns NULL on error e.g. invalid cs.
+>> + */
+>> +struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
+>> +{
+>> +	if (cs >= gpmc_cs_num)
+>> +		return NULL;
+>> +
+>> +	gpmc_update_nand_reg(reg, cs);
+>> +
+>> +	return &nand_ops;
+>> +}
+>> +EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
+>> +
+>>  int gpmc_get_client_irq(unsigned irq_config)
+>>  {
+>>  	int i;
+>> diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
+>> index 2dcef1c..7de9f9b 100644
+>> --- a/include/linux/omap-gpmc.h
+>> +++ b/include/linux/omap-gpmc.h
+>> @@ -14,14 +14,59 @@
+>>  #define GPMC_IRQ_FIFOEVENTENABLE	0x01
+>>  #define GPMC_IRQ_COUNT_EVENT		0x02
+>>  
+>> +enum gpmc_nand_irq {
+>> +	GPMC_NAND_IRQ_FIFOEVENT = 0,
+>> +	GPMC_NAND_IRQ_TERMCOUNT,
+>> +};
+>> +
+>> +/**
+>> + * gpmc_nand_ops - Interface between NAND and GPMC
+>> + * @nand_irq_enable: enable the requested GPMC NAND interrupt event.
+>> + * @nand_irq_disable: disable the requested GPMC NAND interrupt event.
+>> + * @nand_irq_clear: clears the GPMC NAND interrupt event status.
+>> + * @nand_irq_status: get the NAND interrupt event status.
+>> + * @nand_write_buffer_empty: get the NAND write buffer empty status.
+>> + */
+>> +struct gpmc_nand_ops {
+>> +	int (*nand_irq_enable)(enum gpmc_nand_irq irq);
+>> +	int (*nand_irq_disable)(enum gpmc_nand_irq irq);
+>> +	void (*nand_irq_clear)(enum gpmc_nand_irq irq);
+>> +	u32 (*nand_irq_status)(void);
+> 
+> ^^ These 4 aren't being used in this revision?
 
-A gentle ping on this.
+Right. I'll remove them.
+> 
+>> +	bool (*nand_writebuffer_empty)(void);
+>> +};
+>> +
+>> +struct gpmc_nand_regs;
+>> +
+>> +#if IS_ENABLED(CONFIG_OMAP_GPMC)
+>> +struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
+>> +					     int cs);
+>> +#else
+>> +static inline gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
+>> +						    int cs)
+>> +{
+>> +	return NULL;
+>> +}
+>> +#endif /* CONFIG_OMAP_GPMC */
+>> +
+>> +/*--------------------------------*/
+>> +
+>> +/* deprecated APIs */
+>> +#if IS_ENABLED(CONFIG_OMAP_GPMC)
+>> +void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
+>> +#else
+>> +static inline void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+>> +{
+>> +	reg = NULL;
+> 
+> What are you trying to do here? 'reg' is local, so the assignment is
+> pointless.
 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->
-> The previous discussion:
->
-> https://lkml.org/lkml/2016/1/28/989
->
-> Making use of the notify ops to schedule a backup thermal shutdown.
->
->   drivers/thermal/ti-soc-thermal/Kconfig             | 13 +++++++
->   drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 43 ++++++++++++++++++++++
->   2 files changed, 56 insertions(+)
->
-> diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-> index ea8283f..b4b9668 100644
-> --- a/drivers/thermal/ti-soc-thermal/Kconfig
-> +++ b/drivers/thermal/ti-soc-thermal/Kconfig
-> @@ -71,3 +71,16 @@ config DRA752_THERMAL
->
->   	  This includes alert interrupts generation and also the TSHUT
->   	  support.
-> +
-> +config TI_THERMAL_EMERGENCY_POWEROFF_DELAY_MS
-> +	int "Emergency poweroff delay in milli-seconds"
-> +	depends on TI_SOC_THERMAL
-> +	default 0
-> +	help
-> +	  The number of milliseconds to delay before emergency
-> +	  poweroff kicks in. The delay should be carefully profiled
-> +	  so as to give adequate time for orderly_poweroff. In case
-> +	  of failure of an orderly_poweroff the emergency poweroff
-> +	  kicks in after the delay has elapsed and shuts down the system.
-> +
-> +	  If set to 0 poweroff will happen immediately.
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> index b213a12..d48eb5b1 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> @@ -31,6 +31,7 @@
->   #include <linux/cpumask.h>
->   #include <linux/cpu_cooling.h>
->   #include <linux/of.h>
-> +#include <linux/reboot.h>
->
->   #include "ti-thermal.h"
->   #include "ti-bandgap.h"
-> @@ -286,6 +287,47 @@ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
->   	return ti_thermal_get_trip_temp(thermal, OMAP_TRIP_NUMBER - 1, temp);
->   }
->
-> +/**
-> + * emergency_poweroff_func - emergency poweroff work after a known delay
-> + * @work: work_struct associated with the emergency poweroff function
-> + *
-> + * This function is called in very critical situations to force
-> + * a kernel poweroff after a configurable timeout value.
-> + */
-> +static void emergency_poweroff_func(struct work_struct *work)
-> +{
-> +	pr_warn("Attempting kernel_power_off\n");
-> +	kernel_power_off();
-> +
-> +	pr_warn("kernel_power_off has failed! Attempting emergency_restart\n");
-> +	emergency_restart();
-> +}
-> +
-> +static DECLARE_DELAYED_WORK(emergency_poweroff_work, emergency_poweroff_func);
-> +
-> +/**
-> + * emergency_poweroff - Trigger an emergency system poweroff
-> + *
-> + * This may be called from any critical situation to trigger a system shutdown
-> + * after a known period of time. By default the delay is 0 millisecond
-> + */
-> +void ti_thermal_emergency_poweroff(void)
-> +{
-> +	schedule_delayed_work(&emergency_poweroff_work,
-> +	msecs_to_jiffies(CONFIG_TI_THERMAL_EMERGENCY_POWEROFF_DELAY_MS));
-> +}
-> +
-> +static int ti_thermal_notify(struct thermal_zone_device *thermal, int temp,
-> +			     enum thermal_trip_type type)
-> +{
-> +	if (type == THERMAL_TRIP_CRITICAL) {
-> +		pr_warn("critical temperature %d reached", temp);
-> +		ti_thermal_emergency_poweroff();
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->   static const struct thermal_zone_of_device_ops ti_of_thermal_ops = {
->   	.get_temp = __ti_thermal_get_temp,
->   	.get_trend = __ti_thermal_get_trend,
-> @@ -301,6 +343,7 @@ static struct thermal_zone_device_ops ti_thermal_ops = {
->   	.get_trip_type = ti_thermal_get_trip_type,
->   	.get_trip_temp = ti_thermal_get_trip_temp,
->   	.get_crit_temp = ti_thermal_get_crit_temp,
-> +	.notify = ti_thermal_notify,
->   };
->
->   static struct ti_thermal_data
->
+Indeed this is pointless. I'll remove this line.
+I'll also add a patch in the end to get rid of this API as there are no more
+users to it.
+> 
+>> +}
+>> +#endif /* CONFIG_OMAP_GPMC */
+> 
+
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
