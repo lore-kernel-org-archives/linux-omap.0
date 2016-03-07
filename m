@@ -1,306 +1,157 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 09/10] ARM: DRA7: hwmod: Add data for McASP1/2/4/5/6/7/8
-Date: Mon, 7 Mar 2016 17:17:36 +0200
-Message-ID: <1457363857-20797-10-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 10/10] ARM: DTS: dra7: Add nodes for McASP1/2/4/5/6/7/8
+Date: Mon, 7 Mar 2016 17:17:37 +0200
+Message-ID: <1457363857-20797-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, robh+dt@kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add missing data for all McASP ports for the dra7 family
+Add nodes to represent all McASP ports in the dra7 family.
+For system consistency use the eDMA for audio operations. sDMA would be
+fine for 4/5/6/7/8 since their DAT port is not through L3 interconnect.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 237 ++++++++++++++++++++++++++++++
- 1 file changed, 237 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 114 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 114 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 9442d89bd229..7610f3ef28b7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1374,6 +1374,52 @@ static struct omap_hwmod_class dra7xx_mcasp_hwmod_class = {
- 	.sysc	= &dra7xx_mcasp_sysc,
- };
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 4c192ea8ae29..bb3c94aecdeb 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1466,6 +1466,40 @@
+ 			status = "disabled";
+ 		};
  
-+/* mcasp1 */
-+static struct omap_hwmod_opt_clk mcasp1_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp1_ahclkx_mux" },
-+	{ .role = "ahclkr", .clk = "mcasp1_ahclkr_mux" },
-+};
++		mcasp1: mcasp@48460000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp1";
++			reg = <0x48460000 0x2000>,
++			      <0x45800000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 104 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 129 1>, <&edma_xbar 128 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp1_aux_gfclk_mux>, <&mcasp1_ahclkx_mux>,
++				 <&mcasp1_ahclkr_mux>;
++			clock-names = "fck", "ahclkx", "ahclkr";
++			status = "disabled";
++		};
 +
-+static struct omap_hwmod dra7xx_mcasp1_hwmod = {
-+	.name		= "mcasp1",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "ipu_clkdm",
-+	.main_clk	= "mcasp1_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_IPU_MCASP1_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_IPU_MCASP1_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp1_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp1_opt_clks),
-+};
++		mcasp2: mcasp@48464000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp2";
++			reg = <0x48464000 0x2000>,
++			      <0x45c00000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 149 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 148 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 131 1>, <&edma_xbar 130 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp2_aux_gfclk_mux>, <&mcasp2_ahclkx_mux>,
++				 <&mcasp2_ahclkr_mux>;
++			clock-names = "fck", "ahclkx", "ahclkr";
++			status = "disabled";
++		};
 +
-+/* mcasp2 */
-+static struct omap_hwmod_opt_clk mcasp2_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp2_ahclkx_mux" },
-+	{ .role = "ahclkr", .clk = "mcasp2_ahclkr_mux" },
-+};
-+
-+static struct omap_hwmod dra7xx_mcasp2_hwmod = {
-+	.name		= "mcasp2",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp2_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP2_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP2_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp2_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp2_opt_clks),
-+};
-+
- /* mcasp3 */
- static struct omap_hwmod_opt_clk mcasp3_opt_clks[] = {
- 	{ .role = "ahclkx", .clk = "mcasp3_ahclkx_mux" },
-@@ -1396,6 +1442,116 @@ static struct omap_hwmod dra7xx_mcasp3_hwmod = {
- 	.opt_clks_cnt	= ARRAY_SIZE(mcasp3_opt_clks),
- };
+ 		mcasp3: mcasp@48468000 {
+ 			compatible = "ti,dra7-mcasp-audio";
+ 			ti,hwmods = "mcasp3";
+@@ -1482,6 +1516,86 @@
+ 			status = "disabled";
+ 		};
  
-+/* mcasp4 */
-+static struct omap_hwmod_opt_clk mcasp4_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp4_ahclkx_mux" },
-+};
++		mcasp4: mcasp@4846c000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp4";
++			reg = <0x4846c000 0x2000>,
++			      <0x48436000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 153 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 152 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 135 1>, <&edma_xbar 134 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp4_aux_gfclk_mux>, <&mcasp4_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
 +
-+static struct omap_hwmod dra7xx_mcasp4_hwmod = {
-+	.name		= "mcasp4",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp4_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP4_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP4_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp4_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp4_opt_clks),
-+};
++		mcasp5: mcasp@48470000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp5";
++			reg = <0x48470000 0x2000>,
++			      <0x4843a000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 155 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 154 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 137 1>, <&edma_xbar 136 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp5_aux_gfclk_mux>, <&mcasp5_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
 +
-+/* mcasp5 */
-+static struct omap_hwmod_opt_clk mcasp5_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp5_ahclkx_mux" },
-+};
++		mcasp6: mcasp@48474000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp6";
++			reg = <0x48474000 0x2000>,
++			      <0x4844c000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 157 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 156 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 139 1>, <&edma_xbar 138 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp6_aux_gfclk_mux>, <&mcasp6_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
 +
-+static struct omap_hwmod dra7xx_mcasp5_hwmod = {
-+	.name		= "mcasp5",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp5_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP5_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP5_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp5_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp5_opt_clks),
-+};
++		mcasp7: mcasp@48478000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp7";
++			reg = <0x48478000 0x2000>,
++			      <0x48450000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 159 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 158 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 141 1>, <&edma_xbar 140 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp7_aux_gfclk_mux>, <&mcasp7_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
 +
-+/* mcasp6 */
-+static struct omap_hwmod_opt_clk mcasp6_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp6_ahclkx_mux" },
-+};
++		mcasp8: mcasp@4847c000 {
++			compatible = "ti,dra7-mcasp-audio";
++			ti,hwmods = "mcasp8";
++			reg = <0x4847c000 0x2000>,
++			      <0x48454000 0x1000>;
++			reg-names = "mpu","dat";
++			interrupts = <GIC_SPI 161 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "tx", "rx";
++			dmas = <&edma_xbar 143 1>, <&edma_xbar 142 1>;
++			dma-names = "tx", "rx";
++			clocks = <&mcasp8_aux_gfclk_mux>, <&mcasp8_ahclkx_mux>;
++			clock-names = "fck", "ahclkx";
++			status = "disabled";
++		};
 +
-+static struct omap_hwmod dra7xx_mcasp6_hwmod = {
-+	.name		= "mcasp6",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp6_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP6_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP6_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp6_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp6_opt_clks),
-+};
-+
-+/* mcasp7 */
-+static struct omap_hwmod_opt_clk mcasp7_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp7_ahclkx_mux" },
-+};
-+
-+static struct omap_hwmod dra7xx_mcasp7_hwmod = {
-+	.name		= "mcasp7",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp7_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP7_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP7_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp7_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp7_opt_clks),
-+};
-+
-+/* mcasp8 */
-+static struct omap_hwmod_opt_clk mcasp8_opt_clks[] = {
-+	{ .role = "ahclkx", .clk = "mcasp8_ahclkx_mux" },
-+};
-+
-+static struct omap_hwmod dra7xx_mcasp8_hwmod = {
-+	.name		= "mcasp8",
-+	.class		= &dra7xx_mcasp_hwmod_class,
-+	.clkdm_name	= "l4per2_clkdm",
-+	.main_clk	= "mcasp8_aux_gfclk_mux",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4PER2_MCASP8_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4PER2_MCASP8_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.opt_clks	= mcasp8_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(mcasp8_opt_clks),
-+};
-+
- /*
-  * 'mmc' class
-  *
-@@ -2726,6 +2882,38 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__hdmi = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per2 -> mcasp1 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp1 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp1_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_1 -> mcasp1 */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp1 = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_mcasp1_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per2 -> mcasp2 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp2 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp2_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_1 -> mcasp2 */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp2 = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_mcasp2_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_per2 -> mcasp3 */
- static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp3 = {
- 	.master		= &dra7xx_l4_per2_hwmod,
-@@ -2742,6 +2930,46 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__mcasp3 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_per2 -> mcasp4 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp4 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp4_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per2 -> mcasp5 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp5 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp5_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per2 -> mcasp6 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp6 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp6_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per2 -> mcasp7 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp7 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp7_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per2 -> mcasp8 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__mcasp8 = {
-+	.master		= &dra7xx_l4_per2_hwmod,
-+	.slave		= &dra7xx_mcasp8_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_per1 -> elm */
- static struct omap_hwmod_ocp_if dra7xx_l4_per1__elm = {
- 	.master		= &dra7xx_l4_per1_hwmod,
-@@ -3484,8 +3712,17 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_wkup__dcan1,
- 	&dra7xx_l4_per2__dcan2,
- 	&dra7xx_l4_per2__cpgmac0,
-+	&dra7xx_l4_per2__mcasp1,
-+	&dra7xx_l3_main_1__mcasp1,
-+	&dra7xx_l4_per2__mcasp2,
-+	&dra7xx_l3_main_1__mcasp2,
- 	&dra7xx_l4_per2__mcasp3,
- 	&dra7xx_l3_main_1__mcasp3,
-+	&dra7xx_l4_per2__mcasp4,
-+	&dra7xx_l4_per2__mcasp5,
-+	&dra7xx_l4_per2__mcasp6,
-+	&dra7xx_l4_per2__mcasp7,
-+	&dra7xx_l4_per2__mcasp8,
- 	&dra7xx_gmac__mdio,
- 	&dra7xx_l4_cfg__dma_system,
- 	&dra7xx_l3_main_1__tpcc,
+ 		crossbar_mpu: crossbar@4a002a48 {
+ 			compatible = "ti,irq-crossbar";
+ 			reg = <0x4a002a48 0x130>;
 -- 
 2.7.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
