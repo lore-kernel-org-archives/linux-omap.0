@@ -1,102 +1,42 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 02/10] ARM: DTS: dra7: Enable eDMA
-Date: Mon, 7 Mar 2016 17:17:29 +0200
-Message-ID: <1457363857-20797-3-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 07/10] ARM: DTS: am57xx-beagle-x15: Enable AFIFO use for McASP3
+Date: Mon, 7 Mar 2016 17:17:34 +0200
+Message-ID: <1457363857-20797-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, robh+dt@kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-DRA7 family has eDMA available along with the sDMA and in some cases it is
-better suited for servicing peripherals.
+Since we switched to use eDMA we can now safely enable the FIFO in McASP.
+This will reduce the chance of McASP level under/overflow.
 
-Add the needed nodes for eDMA to be usable:
-edma-tpcc, edma-tptc0/1 and the edma-xbar.
-
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7.dtsi | 48 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ arch/arm/boot/dts/am57xx-beagle-x15.dts | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index db7fda97a4fa..b99f51288e71 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -170,6 +170,15 @@
- 					ti,dma-safe-map = <0>;
- 					dma-masters = <&sdma>;
- 				};
-+
-+				edma_xbar: dma-router@c78 {
-+					compatible = "ti,dra7-dma-crossbar";
-+					reg = <0xc78 0x7c>;
-+					#dma-cells = <2>;
-+					dma-requests = <204>;
-+					ti,dma-safe-map = <0>;
-+					dma-masters = <&edma>;
-+				};
- 			};
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index 2bbc8ae00ada..08fd3c37d628 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -813,6 +813,8 @@
+ 	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
+ 		1 2 0 0
+ 	>;
++	tx-num-evt = <32>;
++	rx-num-evt = <32>;
+ };
  
- 			cm_core_aon: cm_core_aon@5000 {
-@@ -324,6 +333,45 @@
- 			dma-requests = <127>;
- 		};
- 
-+		edma: edma@43300000 {
-+			compatible = "ti,edma3-tpcc";
-+			ti,hwmods = "tpcc";
-+			reg = <0x43300000 0x100000>;
-+			reg-names = "edma3_cc";
-+			interrupts = <GIC_SPI 361 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 360 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 359 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "edma3_ccint", "emda3_mperr",
-+					  "edma3_ccerrint";
-+			dma-requests = <64>;
-+			#dma-cells = <2>;
-+
-+			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 0>;
-+
-+			/*
-+			 * memcpy is disabled, can be enabled with:
-+			 * ti,edma-memcpy-channels = <20 21>;
-+			 * for example. Note that these channels need to be
-+			 * masked in the xbar as well.
-+			 */
-+		};
-+
-+		edma_tptc0: tptc@43400000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc0";
-+			reg =	<0x43400000 0x100000>;
-+			interrupts = <GIC_SPI 370 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
-+
-+		edma_tptc1: tptc@43500000 {
-+			compatible = "ti,edma3-tptc";
-+			ti,hwmods = "tptc1";
-+			reg =	<0x43500000 0x100000>;
-+			interrupts = <GIC_SPI 371 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "edma3_tcerrint";
-+		};
-+
- 		gpio1: gpio@4ae10000 {
- 			compatible = "ti,omap4-gpio";
- 			reg = <0x4ae10000 0x200>;
+ &mailbox5 {
 -- 
 2.7.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
