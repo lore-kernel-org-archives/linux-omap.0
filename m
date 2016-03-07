@@ -1,157 +1,102 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 10/10] ARM: DTS: dra7: Add nodes for McASP1/2/4/5/6/7/8
-Date: Mon, 7 Mar 2016 17:17:37 +0200
-Message-ID: <1457363857-20797-11-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 02/10] ARM: DTS: dra7: Enable eDMA
+Date: Mon, 7 Mar 2016 17:17:29 +0200
+Message-ID: <1457363857-20797-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, robh+dt@kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add nodes to represent all McASP ports in the dra7 family.
-For system consistency use the eDMA for audio operations. sDMA would be
-fine for 4/5/6/7/8 since their DAT port is not through L3 interconnect.
+DRA7 family has eDMA available along with the sDMA and in some cases it is
+better suited for servicing peripherals.
+
+Add the needed nodes for eDMA to be usable:
+edma-tpcc, edma-tptc0/1 and the edma-xbar.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 114 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 114 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 48 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 4c192ea8ae29..bb3c94aecdeb 100644
+index db7fda97a4fa..b99f51288e71 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1466,6 +1466,40 @@
- 			status = "disabled";
+@@ -170,6 +170,15 @@
+ 					ti,dma-safe-map = <0>;
+ 					dma-masters = <&sdma>;
+ 				};
++
++				edma_xbar: dma-router@c78 {
++					compatible = "ti,dra7-dma-crossbar";
++					reg = <0xc78 0x7c>;
++					#dma-cells = <2>;
++					dma-requests = <204>;
++					ti,dma-safe-map = <0>;
++					dma-masters = <&edma>;
++				};
+ 			};
+ 
+ 			cm_core_aon: cm_core_aon@5000 {
+@@ -324,6 +333,45 @@
+ 			dma-requests = <127>;
  		};
  
-+		mcasp1: mcasp@48460000 {
-+			compatible = "ti,dra7-mcasp-audio";
-+			ti,hwmods = "mcasp1";
-+			reg = <0x48460000 0x2000>,
-+			      <0x45800000 0x1000>;
-+			reg-names = "mpu","dat";
-+			interrupts = <GIC_SPI 104 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "tx", "rx";
-+			dmas = <&edma_xbar 129 1>, <&edma_xbar 128 1>;
-+			dma-names = "tx", "rx";
-+			clocks = <&mcasp1_aux_gfclk_mux>, <&mcasp1_ahclkx_mux>,
-+				 <&mcasp1_ahclkr_mux>;
-+			clock-names = "fck", "ahclkx", "ahclkr";
-+			status = "disabled";
++		edma: edma@43300000 {
++			compatible = "ti,edma3-tpcc";
++			ti,hwmods = "tpcc";
++			reg = <0x43300000 0x100000>;
++			reg-names = "edma3_cc";
++			interrupts = <GIC_SPI 361 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 360 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 359 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "edma3_ccint", "emda3_mperr",
++					  "edma3_ccerrint";
++			dma-requests = <64>;
++			#dma-cells = <2>;
++
++			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 0>;
++
++			/*
++			 * memcpy is disabled, can be enabled with:
++			 * ti,edma-memcpy-channels = <20 21>;
++			 * for example. Note that these channels need to be
++			 * masked in the xbar as well.
++			 */
 +		};
 +
-+		mcasp2: mcasp@48464000 {
-+			compatible = "ti,dra7-mcasp-audio";
-+			ti,hwmods = "mcasp2";
-+			reg = <0x48464000 0x2000>,
-+			      <0x45c00000 0x1000>;
-+			reg-names = "mpu","dat";
-+			interrupts = <GIC_SPI 149 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 148 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "tx", "rx";
-+			dmas = <&edma_xbar 131 1>, <&edma_xbar 130 1>;
-+			dma-names = "tx", "rx";
-+			clocks = <&mcasp2_aux_gfclk_mux>, <&mcasp2_ahclkx_mux>,
-+				 <&mcasp2_ahclkr_mux>;
-+			clock-names = "fck", "ahclkx", "ahclkr";
-+			status = "disabled";
++		edma_tptc0: tptc@43400000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc0";
++			reg =	<0x43400000 0x100000>;
++			interrupts = <GIC_SPI 370 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "edma3_tcerrint";
 +		};
 +
- 		mcasp3: mcasp@48468000 {
- 			compatible = "ti,dra7-mcasp-audio";
- 			ti,hwmods = "mcasp3";
-@@ -1482,6 +1516,86 @@
- 			status = "disabled";
- 		};
- 
-+		mcasp4: mcasp@4846c000 {
-+			compatible = "ti,dra7-mcasp-audio";
-+			ti,hwmods = "mcasp4";
-+			reg = <0x4846c000 0x2000>,
-+			      <0x48436000 0x1000>;
-+			reg-names = "mpu","dat";
-+			interrupts = <GIC_SPI 153 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 152 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "tx", "rx";
-+			dmas = <&edma_xbar 135 1>, <&edma_xbar 134 1>;
-+			dma-names = "tx", "rx";
-+			clocks = <&mcasp4_aux_gfclk_mux>, <&mcasp4_ahclkx_mux>;
-+			clock-names = "fck", "ahclkx";
-+			status = "disabled";
++		edma_tptc1: tptc@43500000 {
++			compatible = "ti,edma3-tptc";
++			ti,hwmods = "tptc1";
++			reg =	<0x43500000 0x100000>;
++			interrupts = <GIC_SPI 371 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "edma3_tcerrint";
 +		};
 +
-+		mcasp5: mcasp@48470000 {
-+			compatible = "ti,dra7-mcasp-audio";
-+			ti,hwmods = "mcasp5";
-+			reg = <0x48470000 0x2000>,
-+			      <0x4843a000 0x1000>;
-+			reg-names = "mpu","dat";
-+			interrupts = <GIC_SPI 155 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 154 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "tx", "rx";
-+			dmas = <&edma_xbar 137 1>, <&edma_xbar 136 1>;
-+			dma-names = "tx", "rx";
-+			clocks = <&mcasp5_aux_gfclk_mux>, <&mcasp5_ahclkx_mux>;
-+			clock-names = "fck", "ahclkx";
-+			status = "disabled";
-+		};
-+
-+		mcasp6: mcasp@48474000 {
-+			compatible = "ti,dra7-mcasp-audio";
-+			ti,hwmods = "mcasp6";
-+			reg = <0x48474000 0x2000>,
-+			      <0x4844c000 0x1000>;
-+			reg-names = "mpu","dat";
-+			interrupts = <GIC_SPI 157 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 156 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "tx", "rx";
-+			dmas = <&edma_xbar 139 1>, <&edma_xbar 138 1>;
-+			dma-names = "tx", "rx";
-+			clocks = <&mcasp6_aux_gfclk_mux>, <&mcasp6_ahclkx_mux>;
-+			clock-names = "fck", "ahclkx";
-+			status = "disabled";
-+		};
-+
-+		mcasp7: mcasp@48478000 {
-+			compatible = "ti,dra7-mcasp-audio";
-+			ti,hwmods = "mcasp7";
-+			reg = <0x48478000 0x2000>,
-+			      <0x48450000 0x1000>;
-+			reg-names = "mpu","dat";
-+			interrupts = <GIC_SPI 159 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 158 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "tx", "rx";
-+			dmas = <&edma_xbar 141 1>, <&edma_xbar 140 1>;
-+			dma-names = "tx", "rx";
-+			clocks = <&mcasp7_aux_gfclk_mux>, <&mcasp7_ahclkx_mux>;
-+			clock-names = "fck", "ahclkx";
-+			status = "disabled";
-+		};
-+
-+		mcasp8: mcasp@4847c000 {
-+			compatible = "ti,dra7-mcasp-audio";
-+			ti,hwmods = "mcasp8";
-+			reg = <0x4847c000 0x2000>,
-+			      <0x48454000 0x1000>;
-+			reg-names = "mpu","dat";
-+			interrupts = <GIC_SPI 161 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "tx", "rx";
-+			dmas = <&edma_xbar 143 1>, <&edma_xbar 142 1>;
-+			dma-names = "tx", "rx";
-+			clocks = <&mcasp8_aux_gfclk_mux>, <&mcasp8_ahclkx_mux>;
-+			clock-names = "fck", "ahclkx";
-+			status = "disabled";
-+		};
-+
- 		crossbar_mpu: crossbar@4a002a48 {
- 			compatible = "ti,irq-crossbar";
- 			reg = <0x4a002a48 0x130>;
+ 		gpio1: gpio@4ae10000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x4ae10000 0x200>;
 -- 
 2.7.2
