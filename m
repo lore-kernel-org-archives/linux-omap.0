@@ -1,157 +1,278 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v5 17/26] mtd: nand: omap2: Implement NAND ready using
- gpiolib
-Date: Mon, 7 Mar 2016 10:22:11 +0100
-Message-ID: <20160307102211.423e6953@bbrezillon>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v5 13/26] memory: omap-gpmc: Support general purpose
+ input for WAITPINs
+Date: Mon, 7 Mar 2016 10:34:40 +0100
+Message-ID: <20160307103440.4b9d7a55@bbrezillon>
 References: <1455916548-3441-1-git-send-email-rogerq@ti.com>
-	<1455916548-3441-18-git-send-email-rogerq@ti.com>
+	<1455916548-3441-14-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455916548-3441-18-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1455916548-3441-14-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, computersforpeace@gmail.com, devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ezequiel@vanguardiasur.com.ar, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, fcooper@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 19 Feb 2016 23:15:39 +0200
-Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+Hi Roger,
 
-> The GPMC WAIT pin status are now available over gpiolib.
-> Update the omap_dev_ready() function to use gpio instead of
-> directly accessing GPMC register space.
+On Fri, 19 Feb 2016 23:15:35 +0200
+Roger Quadros <rogerq@ti.com> wrote:
+
+> OMAPs can have 2 to 4 WAITPINs that can be used as general purpose
+> input if not used for memory wait state insertion.
 > 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> The first user will be the OMAP NAND chip to get the NAND
+> read/busy status using gpiolib.
 
-Acked-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Just a comment on this approach. Why do you need to exposed native R/B
+pins as GPIOs? I mean, other NAND controllers are supporting R/B
+detection using dedicated logic, and they do not exposed those pins a
+plain GPIOs. Have you considered adding another property (rb-native ?)
+to deal with this case instead of emulating a GPIO controller?
+Side note: I added an rb-gpios property in my sunxi-nand DT binding
+because in some cases, the board design forces us to use a plain GPIO.
 
+Anyway, I realize I'm quite late to review this, and I don't want to
+delay even more the inclusion of those patches, so I leave the decision
+to the MTD and TI maintainers.
+
+Best Regards,
+
+Boris
+
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 ++
->  drivers/mtd/nand/omap2.c                           | 29 ++++++++++++++--------
->  include/linux/platform_data/mtd-nand-omap2.h       |  2 +-
->  3 files changed, 21 insertions(+), 12 deletions(-)
+>  .../bindings/memory-controllers/omap-gpmc.txt      |   3 +
+>  drivers/memory/Kconfig                             |   1 +
+>  drivers/memory/omap-gpmc.c                         | 115 ++++++++++++++++++---
+>  3 files changed, 107 insertions(+), 12 deletions(-)
 > 
-> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> index 810b87b..256bb86 100644
-> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> @@ -48,6 +48,7 @@ Optional properties:
->  		locating ECC errors for BCHx algorithms. SoC devices which have
->  		ELM hardware engines should specify this device node in .dtsi
->  		Using ELM for ECC error correction frees some CPU cycles.
-> + - rb-gpios:	GPIO specifier for the ready/busy# pin.
+> diff --git a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+> index 704be93..8113a52 100644
+> --- a/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+> +++ b/Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+> @@ -32,6 +32,9 @@ Required properties:
+>  			bootloader) are used for the physical address decoding.
+>  			As this will change in the future, filling correct
+>  			values here is a requirement.
+> + - gpio-controller:	The GPMC driver implements a GPIO controller for the
+> +			GPMC WAIT pins that can be used as general purpose inputs.
+> +			0 maps to GPMC_WAIT0 pin.
 >  
->  For inline partition table parsing (optional):
+>  Timing properties for child nodes. All are optional and default to 0.
 >  
-> @@ -78,6 +79,7 @@ Example for an AM33xx board:
->  			ti,nand-xfer-type = "polled";
->  			interrupt-parent = <&gpmc>;
->  			interrupts = <0>, <1>;
-> +			rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
+> diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
+> index 6f31546..bca24c6 100644
+> --- a/drivers/memory/Kconfig
+> +++ b/drivers/memory/Kconfig
+> @@ -51,6 +51,7 @@ config TI_EMIF
 >  
->  			gpmc,sync-clk-ps = <0>;
->  			gpmc,cs-on-ns = <0>;
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 0a637c4..e7939f1 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -12,6 +12,7 @@
->  #include <linux/dmaengine.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/delay.h>
-> +#include <linux/gpio/consumer.h>
+>  config OMAP_GPMC
+>  	bool
+> +	select GPIOLIB
+>  	help
+>  	  This driver is for the General Purpose Memory Controller (GPMC)
+>  	  present on Texas Instruments SoCs (e.g. OMAP2+). GPMC allows
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index 6c8d85e..f67e5695 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/io.h>
 >  #include <linux/module.h>
+> +#include <linux/gpio/driver.h>
 >  #include <linux/interrupt.h>
->  #include <linux/jiffies.h>
-> @@ -183,6 +184,8 @@ struct omap_nand_info {
->  	struct nand_ecclayout		oobinfo;
->  	/* fields specific for BCHx_HW ECC scheme */
->  	struct device			*elm_dev;
-> +	/* NAND ready gpio */
-> +	struct gpio_desc		*ready_gpiod;
+>  #include <linux/irqdomain.h>
+>  #include <linux/platform_device.h>
+> @@ -237,6 +238,7 @@ struct gpmc_device {
+>  	struct device *dev;
+>  	int irq;
+>  	struct irq_chip irq_chip;
+> +	struct gpio_chip gpio_chip;
 >  };
 >  
->  static inline struct omap_nand_info *mtd_to_omap(struct mtd_info *mtd)
-> @@ -1024,21 +1027,16 @@ static int omap_wait(struct mtd_info *mtd, struct nand_chip *chip)
+>  static struct irq_domain *gpmc_irq_domain;
+> @@ -2034,10 +2036,69 @@ err:
+>  	return ret;
 >  }
 >  
->  /**
-> - * omap_dev_ready - calls the platform specific dev_ready function
-> + * omap_dev_ready - checks the NAND Ready GPIO line
->   * @mtd: MTD device structure
-> + *
-> + * Returns true if ready and false if busy.
->   */
->  static int omap_dev_ready(struct mtd_info *mtd)
->  {
-> -	unsigned int val = 0;
->  	struct omap_nand_info *info = mtd_to_omap(mtd);
->  
-> -	val = readl(info->reg.gpmc_status);
-> -
-> -	if ((val & 0x100) == 0x100) {
-> -		return 1;
-> -	} else {
-> -		return 0;
-> -	}
-> +	return gpiod_get_value(info->ready_gpiod);
->  }
->  
->  /**
-> @@ -1754,7 +1752,9 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		info->gpmc_cs = pdata->cs;
->  		info->reg = pdata->reg;
->  		info->ecc_opt = pdata->ecc_opt;
-> -		info->dev_ready	= pdata->dev_ready;
-> +		if (pdata->dev_ready)
-> +			dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
+> +static int gpmc_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
+> +{
+> +	return 1;	/* we're input only */
+> +}
 > +
->  		info->xfer_type = pdata->xfer_type;
->  		info->devsize = pdata->devsize;
->  		info->elm_of_node = pdata->elm_of_node;
-> @@ -1786,6 +1786,13 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	nand_chip->IO_ADDR_W = nand_chip->IO_ADDR_R;
->  	nand_chip->cmd_ctrl  = omap_hwcontrol;
->  
-> +	info->ready_gpiod = devm_gpiod_get_optional(&pdev->dev, "rb",
-> +						    GPIOD_IN);
-> +	if (IS_ERR(info->ready_gpiod)) {
-> +		dev_err(dev, "failed to get ready gpio\n");
-> +		return PTR_ERR(info->ready_gpiod);
+> +static int gpmc_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
+> +{
+> +	return 0;	/* we're input only */
+> +}
+> +
+> +static int gpmc_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
+> +				      int value)
+> +{
+> +	return -EINVAL;	/* we're input only */
+> +}
+> +
+> +static void gpmc_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
+> +{
+> +}
+> +
+> +static int gpmc_gpio_get(struct gpio_chip *chip, unsigned offset)
+> +{
+> +	u32 reg;
+> +
+> +	offset += 8;
+> +
+> +	reg = gpmc_read_reg(GPMC_STATUS) & BIT(offset);
+> +
+> +	return !!reg;
+> +}
+> +
+> +static int gpmc_gpio_init(struct gpmc_device *gpmc)
+> +{
+> +	int ret;
+> +
+> +	gpmc->gpio_chip.parent = gpmc->dev;
+> +	gpmc->gpio_chip.owner = THIS_MODULE;
+> +	gpmc->gpio_chip.label = DEVICE_NAME;
+> +	gpmc->gpio_chip.ngpio = gpmc_nr_waitpins;
+> +	gpmc->gpio_chip.get_direction = gpmc_gpio_get_direction;
+> +	gpmc->gpio_chip.direction_input = gpmc_gpio_direction_input;
+> +	gpmc->gpio_chip.direction_output = gpmc_gpio_direction_output;
+> +	gpmc->gpio_chip.set = gpmc_gpio_set;
+> +	gpmc->gpio_chip.get = gpmc_gpio_get;
+> +	gpmc->gpio_chip.base = -1;
+> +
+> +	ret = gpiochip_add(&gpmc->gpio_chip);
+> +	if (ret < 0) {
+> +		dev_err(gpmc->dev, "could not register gpio chip: %d\n", ret);
+> +		return ret;
 > +	}
 > +
->  	/*
->  	 * If RDY/BSY line is connected to OMAP then use the omap ready
->  	 * function and the generic nand_wait function which reads the status
-> @@ -1793,7 +1800,7 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	 * chip delay which is slightly more than tR (AC Timing) of the NAND
->  	 * device and read status register until you get a failure or success
->  	 */
-> -	if (info->dev_ready) {
-> +	if (info->ready_gpiod) {
->  		nand_chip->dev_ready = omap_dev_ready;
->  		nand_chip->chip_delay = 0;
->  	} else {
-> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-> index 7f6de53..17d57a1 100644
-> --- a/include/linux/platform_data/mtd-nand-omap2.h
-> +++ b/include/linux/platform_data/mtd-nand-omap2.h
-> @@ -71,7 +71,6 @@ struct omap_nand_platform_data {
->  	int			cs;
->  	struct mtd_partition	*parts;
->  	int			nr_parts;
-> -	bool			dev_ready;
->  	bool			flash_bbt;
->  	enum nand_io		xfer_type;
->  	int			devsize;
-> @@ -82,5 +81,6 @@ struct omap_nand_platform_data {
->  	/* deprecated */
->  	struct gpmc_nand_regs	reg;
->  	struct device_node	*of_node;
-> +	bool			dev_ready;
->  };
+> +	return 0;
+> +}
+> +
+> +static void gpmc_gpio_exit(struct gpmc_device *gpmc)
+> +{
+> +	gpiochip_remove(&gpmc->gpio_chip);
+> +}
+> +
+>  static int gpmc_probe_dt(struct platform_device *pdev)
+>  {
+>  	int ret;
+> -	struct device_node *child;
+>  	const struct of_device_id *of_id =
+>  		of_match_device(gpmc_dt_ids, &pdev->dev);
+>  
+> @@ -2065,6 +2126,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  		return ret;
+>  	}
+>  
+> +	return 0;
+> +}
+> +
+> +static int gpmc_probe_dt_children(struct platform_device *pdev)
+> +{
+> +	int ret;
+> +	struct device_node *child;
+> +
+>  	for_each_available_child_of_node(pdev->dev.of_node, child) {
+>  
+>  		if (!child->name)
+> @@ -2074,6 +2143,9 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  			ret = gpmc_probe_onenand_child(pdev, child);
+>  		else
+>  			ret = gpmc_probe_generic_child(pdev, child);
+> +
+> +		if (ret)
+> +			return ret;
+>  	}
+>  
+>  	return 0;
+> @@ -2083,6 +2155,11 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+>  {
+>  	return 0;
+>  }
+> +
+> +static int gpmc_probe_dt_children(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
 >  #endif
+>  
+>  static int gpmc_probe(struct platform_device *pdev)
+> @@ -2129,6 +2206,15 @@ static int gpmc_probe(struct platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+>  
+> +	if (pdev->dev.of_node) {
+> +		rc = gpmc_probe_dt(pdev);
+> +		if (rc)
+> +			return rc;
+> +	} else {
+> +		gpmc_cs_num = GPMC_CS_NUM;
+> +		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
+> +	}
+> +
+>  	pm_runtime_enable(&pdev->dev);
+>  	pm_runtime_get_sync(&pdev->dev);
+>  
+> @@ -2154,29 +2240,33 @@ static int gpmc_probe(struct platform_device *pdev)
+>  		 GPMC_REVISION_MINOR(l));
+>  
+>  	gpmc_mem_init();
+> +	rc = gpmc_gpio_init(gpmc);
+> +	if (rc)
+> +		goto gpio_init_failed;
+>  
+>  	rc = gpmc_setup_irq(gpmc);
+>  	if (rc) {
+>  		dev_err(gpmc->dev, "gpmc_setup_irq failed\n");
+> -		goto fail;
+> +		goto setup_irq_failed;
+>  	}
+>  
+> -	if (!pdev->dev.of_node) {
+> -		gpmc_cs_num	 = GPMC_CS_NUM;
+> -		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
+> -	}
+> -
+> -	rc = gpmc_probe_dt(pdev);
+> +	rc = gpmc_probe_dt_children(pdev);
+>  	if (rc < 0) {
+> -		dev_err(gpmc->dev, "failed to probe DT parameters\n");
+> -		gpmc_free_irq(gpmc);
+> -		goto fail;
+> +		dev_err(gpmc->dev, "failed to probe DT children\n");
+> +		goto dt_children_failed;
+>  	}
+>  
+>  	return 0;
+>  
+> -fail:
+> +dt_children_failed:
+> +	gpmc_free_irq(gpmc);
+> +setup_irq_failed:
+> +	gpmc_gpio_exit(gpmc);
+> +gpio_init_failed:
+> +	gpmc_mem_exit();
+>  	pm_runtime_put_sync(&pdev->dev);
+> +	pm_runtime_disable(&pdev->dev);
+> +
+>  	return rc;
+>  }
+>  
+> @@ -2185,6 +2275,7 @@ static int gpmc_remove(struct platform_device *pdev)
+>  	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+>  
+>  	gpmc_free_irq(gpmc);
+> +	gpmc_gpio_exit(gpmc);
+>  	gpmc_mem_exit();
+>  	pm_runtime_put_sync(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
 
 
 
@@ -159,7 +280,3 @@ Acked-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@publ
 Boris Brezillon, Free Electrons
 Embedded Linux and Kernel engineering
 http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
