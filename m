@@ -1,105 +1,152 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Sun, 6 Mar 2016 16:23:39 +0100
-Message-ID: <20160306152339.GA428@earth>
-References: <201507251228.27128@pali>
- <55BFB77C.6000208@bitmer.com>
- <55C0638F.30000@ti.com>
- <201601050034.12810@pali>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH] thermal: omap-thermal: Add notify function to
+ thermal_zone_device_ops
+Date: Mon, 7 Mar 2016 13:01:05 +0530
+Message-ID: <56DD2E39.5040109@ti.com>
+References: <1455599145-5656-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201601050034.12810@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, merlijn@wizzup.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1455599145-5656-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, edubezval@gmail.com
+Cc: nm@ti.com, rui.zhang@intel.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Pali,
+On Tuesday 16 February 2016 10:35 AM, Keerthy wrote:
+> notify function is used to notify when some temperature thresholds
+> are crossed. In case we get notified for a critical trip point then
+> schedule an emergency shutdown function to backup orderly_poweroff
+> failures.
+>
+> orderly_poweroff is triggered when a graceful shutdown
+> of system is desired. This may be used in many critical states of the
+> kernel such as when subsystems detects conditions such as critical
+> temperature conditions. However, in certain conditions in system
+> boot up sequences like those in the middle of driver probes being
+> initiated, userspace will be unable to power off the system in a clean
+> manner and leaves the system in a critical state. In cases like these,
+> the /sbin/poweroff will return success (having forked off to attempt
+> powering off the system. However, the system overall will fail to
+> completely poweroff (since other modules will be probed) and the system
+> is still functional with no userspace (since that would have shut itself
+> off).
+>
+> However, there is no clean way of detecting such failure of userspace
+> powering off the system. In such scenarios, it is necessary for a backup
+> workqueue to be able to force a shutdown of the system when orderly
+> shutdown is not successful after a configurable time period.
+>
 
-On Tue, Jan 05, 2016 at 12:34:12AM +0100, Pali Roh=E1r wrote:
-> On Tuesday 04 August 2015 09:02:39 Peter Ujfalusi wrote:
-> > On 08/03/2015 09:48 PM, Jarkko Nikula wrote:
-> > > It is well possible that some regression got introduced to
-> > > TPA6130A2 I2C communication over the years without nobody than you
-> > > now notices. We used to do QA back in Meego N900 days but that was
-> > > pre 3.x kernels.
-> >=20
-> > No major changes has been done to the tpa driver during the past
-> > years... I wanted to do some updates, like moving it to regmap, but
-> > as you said, n900 is the only user (and n9) and I do not feel
-> > comfortable to hack on a device where I do not have serial
-> > console... And I'm using the n900 time to time also.
-> >=20
-> > >> So maybe something similar? Kernel expects that some PM or
-> > >> regulator parts are initialized, but they are only sometimes?
-> > >> Just speculation...
-> > >=20
-> > > I'm thinking the same. I could figure SCL could be stuck low if TPA
-> > > or some other chip connected to the same I2C bus is without power
-> > > and is pulling I2C signals down.
-> >=20
-> > What would happen with the SCL stuck on i2c.2 bus if you remove the
-> > tpa driver from the kernel? If you remove the other drivers for the
-> > devices on i2c.2?
->=20
-> Hi Peter and Jarkko! Do you have some code samples for testing? Or=20
-> something else which I can test? This problem is still reproducible on=20
-> more N900 devices and I would like to see it fixed.
+Eduardo,
 
-I have not seen your error with N900, but while working on N950 I
-noticed similar problems when I added lp5523. I think the lp5523
-reset routine locks up the omap i2c controller, since the lp5523
-will stop responding in the middle of an ongoing communication:
+A gentle ping on this.
 
-static void lp55xx_reset_device(struct lp55xx_chip *chip)
-{
-	struct lp55xx_device_config *cfg =3D chip->cfg;
-	u8 addr =3D cfg->reset.addr;
-	u8 val  =3D cfg->reset.val;
-
-	/* no error checking here because no ACK from the device after reset */
-	lp55xx_write(chip, addr, val);
-}
-
-Since tpa6130a2 is on the same i2c bus, it would be affected by
-this. You can check this by just commenting out the call to
-lp55xx_reset_device() in the probe function, since it's not
-needed on N900 (chip reset is done via enable gpio anyways).
-
-I'm pretty sure, there were no bus lock problems when I added
-lp5523 to N900 dts, so this having problems with this is probably
-a regression in the omap-i2c driver.
-
--- Sebastian
-
---cWoXeonUoKmBZSoM
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJW3Et5AAoJENju1/PIO/qa82cQAJtMeWwC0OLHHsL9CYmZYKPC
-KQFY8rFAZ76BR578okg+uGTBhM1C7DaYMuq1BQZJeenLOrH1YcKfa9eUrOgiWk94
-fN7QKvbnZskHG/CAwsHXTyW0yi4HvcltN7gw3ar8/2eQBDpM4DXcwkYxj1eBihcI
-QmfNsbI1pJsymLimeLYFjnxyc9BQq9F3AyXxvaoAoyWCCl+3eZzOeuSWvZ0/UM9z
-t2OdtLzc4pEA+l0HSb+CHFvmdxJsOipnQJ4VDdWsQYXRP+491PurtwxoVL8C/PzD
-Veu4O/oGSi7hO8zeMGuUhqckB7JltygCI6mjo9S7b9truH1NuY14wNMVJdn/AfI2
-2W4j6yq/BuoiXm+/UHvOzZmSYRZKoxynaq09UOEcir3iY5o7H0l0YcegHqSKhbHU
-RFJH8NPMZ4aQbG3LXHjZunZn0/VYsDUD4y1zWKwRbL0lqqOrizdhG7ebF83wbjCg
-QTzMnRY0vZQic5NVJW5IMx15zuqZmncOT7gcC8jhoapFYlpLMM2CJvhfbi9Ii6dG
-qSFVQ6sjMjefhzKoCmCT912tmRpVBGQQQ2jC6jQxvzVNNB+tGlw03Nkh/1bIv4Al
-UFvnV8Qvg/P0Bu614IrCBJAZx2qxUUh6E0dDq1nUcNIZsgLuRf33inAE6wNSZRci
-cjWO2OCZk1DP4K9XLejR
-=ZQ4l
------END PGP SIGNATURE-----
-
---cWoXeonUoKmBZSoM--
+Regards,
+Keerthy
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>
+> The previous discussion:
+>
+> https://lkml.org/lkml/2016/1/28/989
+>
+> Making use of the notify ops to schedule a backup thermal shutdown.
+>
+>   drivers/thermal/ti-soc-thermal/Kconfig             | 13 +++++++
+>   drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 43 ++++++++++++++++++++++
+>   2 files changed, 56 insertions(+)
+>
+> diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
+> index ea8283f..b4b9668 100644
+> --- a/drivers/thermal/ti-soc-thermal/Kconfig
+> +++ b/drivers/thermal/ti-soc-thermal/Kconfig
+> @@ -71,3 +71,16 @@ config DRA752_THERMAL
+>
+>   	  This includes alert interrupts generation and also the TSHUT
+>   	  support.
+> +
+> +config TI_THERMAL_EMERGENCY_POWEROFF_DELAY_MS
+> +	int "Emergency poweroff delay in milli-seconds"
+> +	depends on TI_SOC_THERMAL
+> +	default 0
+> +	help
+> +	  The number of milliseconds to delay before emergency
+> +	  poweroff kicks in. The delay should be carefully profiled
+> +	  so as to give adequate time for orderly_poweroff. In case
+> +	  of failure of an orderly_poweroff the emergency poweroff
+> +	  kicks in after the delay has elapsed and shuts down the system.
+> +
+> +	  If set to 0 poweroff will happen immediately.
+> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> index b213a12..d48eb5b1 100644
+> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> @@ -31,6 +31,7 @@
+>   #include <linux/cpumask.h>
+>   #include <linux/cpu_cooling.h>
+>   #include <linux/of.h>
+> +#include <linux/reboot.h>
+>
+>   #include "ti-thermal.h"
+>   #include "ti-bandgap.h"
+> @@ -286,6 +287,47 @@ static int ti_thermal_get_crit_temp(struct thermal_zone_device *thermal,
+>   	return ti_thermal_get_trip_temp(thermal, OMAP_TRIP_NUMBER - 1, temp);
+>   }
+>
+> +/**
+> + * emergency_poweroff_func - emergency poweroff work after a known delay
+> + * @work: work_struct associated with the emergency poweroff function
+> + *
+> + * This function is called in very critical situations to force
+> + * a kernel poweroff after a configurable timeout value.
+> + */
+> +static void emergency_poweroff_func(struct work_struct *work)
+> +{
+> +	pr_warn("Attempting kernel_power_off\n");
+> +	kernel_power_off();
+> +
+> +	pr_warn("kernel_power_off has failed! Attempting emergency_restart\n");
+> +	emergency_restart();
+> +}
+> +
+> +static DECLARE_DELAYED_WORK(emergency_poweroff_work, emergency_poweroff_func);
+> +
+> +/**
+> + * emergency_poweroff - Trigger an emergency system poweroff
+> + *
+> + * This may be called from any critical situation to trigger a system shutdown
+> + * after a known period of time. By default the delay is 0 millisecond
+> + */
+> +void ti_thermal_emergency_poweroff(void)
+> +{
+> +	schedule_delayed_work(&emergency_poweroff_work,
+> +	msecs_to_jiffies(CONFIG_TI_THERMAL_EMERGENCY_POWEROFF_DELAY_MS));
+> +}
+> +
+> +static int ti_thermal_notify(struct thermal_zone_device *thermal, int temp,
+> +			     enum thermal_trip_type type)
+> +{
+> +	if (type == THERMAL_TRIP_CRITICAL) {
+> +		pr_warn("critical temperature %d reached", temp);
+> +		ti_thermal_emergency_poweroff();
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>   static const struct thermal_zone_of_device_ops ti_of_thermal_ops = {
+>   	.get_temp = __ti_thermal_get_temp,
+>   	.get_trend = __ti_thermal_get_trend,
+> @@ -301,6 +343,7 @@ static struct thermal_zone_device_ops ti_thermal_ops = {
+>   	.get_trip_type = ti_thermal_get_trip_type,
+>   	.get_trip_temp = ti_thermal_get_trip_temp,
+>   	.get_crit_temp = ti_thermal_get_crit_temp,
+> +	.notify = ti_thermal_notify,
+>   };
+>
+>   static struct ti_thermal_data
+>
