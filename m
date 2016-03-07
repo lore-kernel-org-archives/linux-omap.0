@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 3/5] ARM: DTS: am33xx: Set pwmss ranges property to an empty value
-Date: Mon,  7 Mar 2016 13:51:56 -0600
-Message-ID: <1457380318-15452-4-git-send-email-fcooper@ti.com>
+Subject: [PATCH 4/5] pwm: pwm-tipwmss: Update documentation to use empty range property
+Date: Mon,  7 Mar 2016 13:51:57 -0600
+Message-ID: <1457380318-15452-5-git-send-email-fcooper@ti.com>
 References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-pwm-owner@vger.kernel.org>
 In-Reply-To: <1457380318-15452-1-git-send-email-fcooper@ti.com>
@@ -10,54 +10,44 @@ To: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutla
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The eCAP and ePWM are in the same address space as the PWMSS. Therefore,
-no address translation is needed which means the ranges property should be
-empty.
-
-This mimics how the PWMSS nodes look in the AM4372.dtsi which is similar
-to AM335x.
+Since the PWMSS and its subdevices (eCAP and ePWM) use the same address
+space then the range property should be empty. Update the documentation
+to show the correct usage.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 4016254..82c0976 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -674,9 +674,7 @@
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			status = "disabled";
--			ranges = <0x48300100 0x48300100 0x80   /* ECAP */
--				  0x48300180 0x48300180 0x80   /* EQEP */
--				  0x48300200 0x48300200 0x80>; /* EHRPWM */
-+			ranges;
+diff --git a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
+index f7eae77..672fa71 100644
+--- a/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
+@@ -7,11 +7,9 @@ Required properties:
+ 		  Should set to 1.
+ - size-cells: specify number of u32 entries needed to specify child nodes size
+ 		in reg property. Should set to 1.
+-- ranges: describes the address mapping of a memory-mapped bus. Should set to
+-	   physical address map of child's base address, physical address within
+-	   parent's address  space and length of the address map. For am33xx,
+-	   3 set of child register maps present, ECAP register space, EQEP
+-	   register space, EHRPWM register space.
++- ranges: describes the address mapping of a memory-mapped bus. Its value
++	  should be empty since no address translation is needed between the
++	  parent and the child.
  
- 			ecap0: ecap@48300100 {
- 				compatible = "ti,am33xx-ecap";
-@@ -704,9 +702,7 @@
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			status = "disabled";
--			ranges = <0x48302100 0x48302100 0x80   /* ECAP */
--				  0x48302180 0x48302180 0x80   /* EQEP */
--				  0x48302200 0x48302200 0x80>; /* EHRPWM */
-+			ranges;
+ Also child nodes should also populated under PWMSS DT node.
  
- 			ecap1: ecap@48302100 {
- 				compatible = "ti,am33xx-ecap";
-@@ -734,9 +730,7 @@
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			status = "disabled";
--			ranges = <0x48304100 0x48304100 0x80   /* ECAP */
--				  0x48304180 0x48304180 0x80   /* EQEP */
--				  0x48304200 0x48304200 0x80>; /* EHRPWM */
-+			ranges;
+@@ -23,9 +21,7 @@ pwmss0: pwmss@48300000 {
+ 	#address-cells = <1>;
+ 	#size-cells = <1>;
+ 	status = "disabled";
+-	ranges = <0x48300100 0x48300100 0x80   /* ECAP */
+-		  0x48300180 0x48300180 0x80   /* EQEP */
+-		  0x48300200 0x48300200 0x80>; /* EHRPWM */
++	ranges;
  
- 			ecap2: ecap@48304100 {
- 				compatible = "ti,am33xx-ecap";
+ 	/* child nodes go here */
+ };
 -- 
 2.7.0
