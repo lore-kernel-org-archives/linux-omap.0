@@ -1,8 +1,11 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 20/23] drm: omapdrm: panel-dsi-cm: add offset support
-Date: Tue,  8 Mar 2016 17:39:52 +0100
-Message-ID: <1457455195-1938-21-git-send-email-sre@kernel.org>
+Subject: [PATCH 02/23] ARM: dts: n950: add display support
+Date: Tue,  8 Mar 2016 17:39:34 +0100
+Message-ID: <1457455195-1938-3-git-send-email-sre@kernel.org>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -10,68 +13,106 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The Nokia N950 contains a panel, that is partially
-covered, so that not the whole display is visible.
-Thus the image must be displayed with an offset.
-
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-By: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/omap3-n950.dts | 71 ++++++++++++++++++++++++++++++++=
+++++++++
+ 1 file changed, 71 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 4c1e76da68cd..c60bc3013ff4 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -45,6 +45,8 @@ struct panel_drv_data {
- 	struct omap_dss_device *in;
- 
- 	struct omap_video_timings timings;
-+	int offset_x;
-+	int offset_y;
- 
- 	struct platform_device *pdev;
- 
-@@ -203,12 +205,17 @@ static int dsicm_set_update_window(struct panel_drv_data *ddata,
- {
- 	struct omap_dss_device *in = ddata->in;
- 	int r;
--	u16 x1 = x;
--	u16 x2 = x + w - 1;
--	u16 y1 = y;
--	u16 y2 = y + h - 1;
--
- 	u8 buf[5];
-+	u16 x1, x2, y1, y2;
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3=
+-n950.dts
+index 0885b34d5d7d..41b8fb585272 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -17,6 +17,26 @@
+ 	compatible =3D "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
+ };
+=20
++&omap3_pmx_core {
++	dsi_pins: pinmux_dsi_pins {
++		pinctrl-single,pins =3D <
++			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE1) /* dsi_dx0 - data=
+0+ */
++			OMAP3_CORE1_IOPAD(0x20de, PIN_OUTPUT | MUX_MODE1) /* dsi_dy0 - data=
+0- */
++			OMAP3_CORE1_IOPAD(0x20e0, PIN_OUTPUT | MUX_MODE1) /* dsi_dx1 - clk+=
+   */
++			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE1) /* dsi_dy1 - clk-=
+   */
++			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE1) /* dsi_dx2 - data=
+1+ */
++			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE1) /* dsi_dy2 - data=
+1- */
++		>;
++	};
 +
-+	x += ddata->offset_x;
-+	y += ddata->offset_y;
++	display_pins: pinmux_display_pins {
++		pinctrl-single,pins =3D <
++			OMAP3_CORE1_IOPAD(0x20ca, PIN_INPUT | MUX_MODE4) /* gpio 62 - displ=
+ay te */
++			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE4) /* gpio 87 - disp=
+lay reset */
++		>;
++	};
++};
 +
-+	x1 = x;
-+	x2 = x + w - 1;
-+	y1 = y;
-+	y2 = y + h - 1;
+ &i2c2 {
+ 	smia_1: camera@10 {
+ 		compatible =3D "nokia,smia";
+@@ -53,3 +73,54 @@
+ 		};
+ 	};
+ };
 +
- 	buf[0] = MIPI_DCS_SET_COLUMN_ADDRESS;
- 	buf[1] = (x1 >> 8) & 0xff;
- 	buf[2] = (x1 >> 0) & 0xff;
-@@ -1244,6 +1251,8 @@ static int dsicm_probe_of(struct platform_device *pdev)
- 
- 	of_property_read_u32(node, "resolution-x", (u32*) &ddata->timings.x_res);
- 	of_property_read_u32(node, "resolution-y", (u32*) &ddata->timings.y_res);
-+	of_property_read_u32(node, "offset-x", &ddata->offset_x);
-+	of_property_read_u32(node, "offset-y", &ddata->offset_y);
- 
- 	ddata->timings.pixelclock = ddata->timings.x_res * ddata->timings.y_res * 60;
- 
-@@ -1273,6 +1282,8 @@ static int dsicm_probe(struct platform_device *pdev)
- 	ddata->timings.x_res = 864;
- 	ddata->timings.y_res = 480;
- 	ddata->timings.pixelclock = 864 * 480 * 60;
-+	ddata->offset_x = 0;
-+	ddata->offset_y = 0;
- 
- 	if (dev_get_platdata(dev)) {
- 		r = dsicm_probe_pdata(pdev);
--- 
++&dss {
++	status =3D "ok";
++
++	vdda_video-supply =3D <&vdac>;
++};
++
++&dsi {
++	status =3D "ok";
++
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&dsi_pins>;
++
++	vdd-supply =3D <&vpll2>;
++
++	port {
++		dsi_out_ep: endpoint {
++			remote-endpoint =3D <&lcd0_in>;
++			lanes =3D <2 3 0 1 4 5>;
++		};
++	};
++
++	lcd0: display {
++		compatible =3D "nokia,himalaya", "panel-dsi-cm";
++		label =3D "lcd0";
++
++		pinctrl-names =3D "default";
++		pinctrl-0 =3D <&display_pins>;
++
++		vpnl-supply =3D <&vmmc2>;
++		vddi-supply =3D <&vio>;
++
++		reset-gpios =3D <&gpio3 23 GPIO_ACTIVE_HIGH>;	/* 87 */
++		te-gpios =3D <&gpio2 30 GPIO_ACTIVE_HIGH>;	/* 62 */
++
++		has-dsi-backlight;
++
++		/* panel is 480x464 with top and bottom 5 lines not visible */
++		/* physical dimensions: 48960=C2=B5m x 88128=C2=B5m */
++		resolution-x =3D <480>;
++		resolution-y =3D <854>;
++		offset-x =3D <0>;
++		offset-y =3D <5>;
++
++		port {
++			lcd0_in: endpoint {
++				remote-endpoint =3D <&dsi_out_ep>;
++			};
++		};
++	};
++};
+--=20
 2.7.0
