@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 04/23] drm: omapdrm: add DSI mapping
-Date: Tue,  8 Mar 2016 17:39:36 +0100
-Message-ID: <1457455195-1938-5-git-send-email-sre@kernel.org>
+Subject: [PATCH 22/23] drm: omapdrm: panel-dsi-cm: ratelimit debug output in update path
+Date: Tue,  8 Mar 2016 17:39:54 +0100
+Message-ID: <1457455195-1938-23-git-send-email-sre@kernel.org>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
@@ -10,25 +10,43 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This sets proper connector type for DSI connected panels.
+Generating debug messages during display update results
+in lot's of messages, if the display shows the console.
 
-Signed-off-By: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/omap_drv.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index dfafdb602ad2..a3ff35f5f6cd 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -215,6 +215,8 @@ static int get_connector_type(struct omap_dss_device *dssdev)
- 		return DRM_MODE_CONNECTOR_HDMIA;
- 	case OMAP_DISPLAY_TYPE_DVI:
- 		return DRM_MODE_CONNECTOR_DVID;
-+	case OMAP_DISPLAY_TYPE_DSI:
-+		return DRM_MODE_CONNECTOR_DSI;
- 	default:
- 		return DRM_MODE_CONNECTOR_Unknown;
- 	}
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index ca7fba59c760..196fe8d18ff4 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -931,7 +931,7 @@ static int dsicm_update(struct omap_dss_device *dssdev,
+ 	struct omap_dss_device *in = ddata->in;
+ 	int r;
+ 
+-	dev_dbg(&ddata->pdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
++	dev_dbg_ratelimited(&ddata->pdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
+ 
+ 	mutex_lock(&ddata->lock);
+ 	in->ops.dsi->bus_lock(in);
+@@ -978,14 +978,14 @@ static int dsicm_sync(struct omap_dss_device *dssdev)
+ 	struct panel_drv_data *ddata = to_panel_data(dssdev);
+ 	struct omap_dss_device *in = ddata->in;
+ 
+-	dev_dbg(&ddata->pdev->dev, "sync\n");
++	dev_dbg_ratelimited(&ddata->pdev->dev, "sync\n");
+ 
+ 	mutex_lock(&ddata->lock);
+ 	in->ops.dsi->bus_lock(in);
+ 	in->ops.dsi->bus_unlock(in);
+ 	mutex_unlock(&ddata->lock);
+ 
+-	dev_dbg(&ddata->pdev->dev, "sync done\n");
++	dev_dbg_ratelimited(&ddata->pdev->dev, "sync done\n");
+ 
+ 	return 0;
+ }
 -- 
 2.7.0
