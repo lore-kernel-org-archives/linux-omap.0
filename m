@@ -1,33 +1,42 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: Nokia N900 - audio TPA6130A2 problems
-Date: Tue, 8 Mar 2016 08:45:32 +0200
-Message-ID: <56DE750C.2010106@gmail.com>
-References: <201507251228.27128@pali> <55BFB77C.6000208@bitmer.com>
- <55C0638F.30000@ti.com> <201601050034.12810@pali>
- <20160306152339.GA428@earth> <20160307115922.GC20264@pali>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v5 0/6] ARM: am335x/am437x/dra7: Add PWM support for
+ DRA7
+Date: Tue, 8 Mar 2016 06:55:37 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603080642400.4974@utopia.booyaka.com>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160307115922.GC20264@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1457400224-24797-1-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Cc: thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Franklin
 
-On  7.03.2016 13:59, Pali Roh=C3=A1r wrote:
->
-> ... That error occurs randomly, not
-> always. When I see it next time, I will try to comment that function =
-if
-> it happens...
->
+On Mon, 7 Mar 2016, Franklin S Cooper Jr wrote:
 
-IIRC it is easier to cause it by booting to stock kernel first and then=
-=20
-rebooting to mainline (without power-down in between)
+> This patch series adds support for PWM for DRA7. The IP is same as that
+> present in AM33XX and AM437XX.
+> 
+> However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
+> and eQEP.
+> 
+> This series is almost identical to v4. Only difference is the addition of
+> eCAP DT nodes in the dra7.dtsi file.
+> 
+> This series was tested on AM335x GP, AM437x GP and X15 + LCD screen for
+> PWM based backlight.
+> 
+> This series was also verified to be backwards compatible with old dtbs.
 
-Ivo
+Looking at these to see what I can pick for v4.7, I'm curious about the 
+dependencies.  Can I take patches 2 and 3 before 1 is merged, or does 1 
+need to be merged first?
+
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
