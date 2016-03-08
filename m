@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 22/23] drm: omapdrm: panel-dsi-cm: ratelimit debug output in update path
-Date: Tue,  8 Mar 2016 17:39:54 +0100
-Message-ID: <1457455195-1938-23-git-send-email-sre@kernel.org>
+Subject: [PATCH 23/23] drm: omapdrm: panel-dsi-cm: provide timings methods for omapdrm
+Date: Tue,  8 Mar 2016 17:39:55 +0100
+Message-ID: <1457455195-1938-24-git-send-email-sre@kernel.org>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
@@ -10,43 +10,70 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Generating debug messages during display update results
-in lot's of messages, if the display shows the console.
+Provide omapdrm with methods to acquire timings
+and check them later, so that it can properly
+initialize the display.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 38 +++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index ca7fba59c760..196fe8d18ff4 100644
+index 196fe8d18ff4..edd1298b3a71 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -931,7 +931,7 @@ static int dsicm_update(struct omap_dss_device *dssdev,
- 	struct omap_dss_device *in = ddata->in;
- 	int r;
- 
--	dev_dbg(&ddata->pdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
-+	dev_dbg_ratelimited(&ddata->pdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
- 
- 	mutex_lock(&ddata->lock);
- 	in->ops.dsi->bus_lock(in);
-@@ -978,14 +978,14 @@ static int dsicm_sync(struct omap_dss_device *dssdev)
- 	struct panel_drv_data *ddata = to_panel_data(dssdev);
- 	struct omap_dss_device *in = ddata->in;
- 
--	dev_dbg(&ddata->pdev->dev, "sync\n");
-+	dev_dbg_ratelimited(&ddata->pdev->dev, "sync\n");
- 
- 	mutex_lock(&ddata->lock);
- 	in->ops.dsi->bus_lock(in);
- 	in->ops.dsi->bus_unlock(in);
+@@ -1163,6 +1163,41 @@ static void dsicm_ulps_work(struct work_struct *work)
  	mutex_unlock(&ddata->lock);
- 
--	dev_dbg(&ddata->pdev->dev, "sync done\n");
-+	dev_dbg_ratelimited(&ddata->pdev->dev, "sync done\n");
- 
- 	return 0;
  }
+ 
++static void dsicm_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++
++	*timings = ddata->timings;
++}
++
++static int dsicm_check_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	int ret = 0;
++
++	if (timings->x_res != ddata->timings.x_res)
++		ret = -EINVAL;
++	else if (timings->y_res != ddata->timings.y_res)
++		ret = -EINVAL;
++
++	/* pixelclock is modified by dsi, so not easily checkable */
++
++	/* vfp, vbp, hfp, hbp are (re-)configured automatically by dsi */
++
++	if (ret) {
++		dev_warn(dssdev->dev, "wrong resolution: %d x %d",
++			timings->x_res, timings->y_res);
++		dev_warn(dssdev->dev, "panel resolution: %d x %d",
++			ddata->timings.x_res, ddata->timings.y_res);
++	} else {
++		dev_dbg(dssdev->dev, "mode check: ok");
++	}
++
++	return ret;
++}
++
+ static struct omap_dss_driver dsicm_ops = {
+ 	.connect	= dsicm_connect,
+ 	.disconnect	= dsicm_disconnect,
+@@ -1180,6 +1215,9 @@ static struct omap_dss_driver dsicm_ops = {
+ 	.get_te		= dsicm_get_te,
+ 
+ 	.memory_read	= dsicm_memory_read,
++
++	.get_timings	= dsicm_get_timings,
++	.check_timings	= dsicm_check_timings,
+ };
+ 
+ static int dsicm_probe_pdata(struct platform_device *pdev)
 -- 
 2.7.0
