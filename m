@@ -1,68 +1,177 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v5 0/6] ARM: am335x/am437x/dra7: Add PWM support for DRA7
-Date: Mon,  7 Mar 2016 19:23:38 -0600
-Message-ID: <1457400224-24797-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vigneshr@ti.com
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+From: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v5 2/6] ARM: dts: am437x/am33xx: Remove eCAP and ePWM hwmod properties
+Date: Mon,  7 Mar 2016 19:23:40 -0600
+Message-ID: <1457400224-24797-3-git-send-email-fcooper@ti.com>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1457400224-24797-1-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, vigneshr-l0cyMroinI0@public.gmane.org
+Cc: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch series adds support for PWM for DRA7. The IP is same as that
-present in AM33XX and AM437XX.
+ECAP and ePWM do not have OCP integration registers, have L3/L4 ports, etc.
+Therefore, they shouldn't be using hwmod at all. Remove their hwmod
+properties.
 
-However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
-and eQEP.
+For ePWM add the tbclk to the node rather than depending on hwmod to do so.
 
-This series is almost identical to v4. Only difference is the addition of
-eCAP DT nodes in the dra7.dtsi file.
+Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 12 ++++++------
+ arch/arm/boot/dts/am4372.dtsi | 21 ++++++++++++---------
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
-This series was tested on AM335x GP, AM437x GP and X15 + LCD screen for
-PWM based backlight.
-
-This series was also verified to be backwards compatible with old dtbs.
-
-This series depends on the below patch series for PWM bindings cleanup:
-https://patchwork.ozlabs.org/patch/593171/
-https://patchwork.ozlabs.org/patch/593168/
-https://patchwork.ozlabs.org/patch/593165/
-https://patchwork.ozlabs.org/patch/593166/
-https://patchwork.ozlabs.org/patch/593169/
-
-V3 series:
-https://patchwork.ozlabs.org/patch/588432/
-https://patchwork.ozlabs.org/patch/588434/
-https://patchwork.ozlabs.org/patch/588433/
-https://patchwork.ozlabs.org/patch/588429/
-https://patchwork.ozlabs.org/patch/588431/
-
-
-Franklin S Cooper Jr (3):
-  pwms: pwm-ti*: Get the clock from the PWMSS (parent)
-  ARM: dts: am437x/am33xx: Remove eCAP and ePWM hwmod properties
-  ARM: AM335x/AM437x: hwmod: Remove eQEP, ePWM and eCAP hwmod entries
-
-Vignesh R (3):
-  ARM: OMAP2+: DRA7: Add hwmod entries for PWMSS
-  ARM: dts: DRA7: Add TBCLK for PWMSS
-  ARM: dts: DRA7: Add dt nodes for PWMSS
-
- .../devicetree/bindings/pwm/pwm-tiecap.txt         | 10 ++-
- .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       | 16 ++++-
- .../devicetree/bindings/pwm/pwm-tipwmss.txt        | 15 +++-
- arch/arm/boot/dts/am33xx.dtsi                      | 12 ++--
- arch/arm/boot/dts/am4372.dtsi                      | 21 +++---
- arch/arm/boot/dts/dra7.dtsi                        | 84 ++++++++++++++++++++++
- arch/arm/boot/dts/dra7xx-clocks.dtsi               | 24 +++++++
- .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  | 18 -----
- .../omap_hwmod_33xx_43xx_interconnect_data.c       | 64 -----------------
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 84 ----------------------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  9 ---
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         | 54 --------------
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 83 +++++++++++++++++++++
- drivers/pwm/pwm-tiecap.c                           |  2 +-
- drivers/pwm/pwm-tiehrpwm.c                         |  2 +-
- 15 files changed, 247 insertions(+), 251 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 82c0976..1dd6c78 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -682,7 +682,6 @@
+ 				reg = <0x48300100 0x80>;
+ 				interrupts = <31>;
+ 				interrupt-names = "ecap0";
+-				ti,hwmods = "ecap0";
+ 				status = "disabled";
+ 			};
+ 
+@@ -690,7 +689,8 @@
+ 				compatible = "ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48300200 0x80>;
+-				ti,hwmods = "ehrpwm0";
++				clocks = <&ehrpwm0_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -710,7 +710,6 @@
+ 				reg = <0x48302100 0x80>;
+ 				interrupts = <47>;
+ 				interrupt-names = "ecap1";
+-				ti,hwmods = "ecap1";
+ 				status = "disabled";
+ 			};
+ 
+@@ -718,7 +717,8 @@
+ 				compatible = "ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48302200 0x80>;
+-				ti,hwmods = "ehrpwm1";
++				clocks = <&ehrpwm1_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -738,7 +738,6 @@
+ 				reg = <0x48304100 0x80>;
+ 				interrupts = <61>;
+ 				interrupt-names = "ecap2";
+-				ti,hwmods = "ecap2";
+ 				status = "disabled";
+ 			};
+ 
+@@ -746,7 +745,8 @@
+ 				compatible = "ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48304200 0x80>;
+-				ti,hwmods = "ehrpwm2";
++				clocks = <&ehrpwm2_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 33f417c..685c8db 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -675,7 +675,6 @@
+ 				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48300100 0x80>;
+-				ti,hwmods = "ecap0";
+ 				status = "disabled";
+ 			};
+ 
+@@ -683,7 +682,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48300200 0x80>;
+-				ti,hwmods = "ehrpwm0";
++				clocks = <&ehrpwm0_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -701,7 +701,6 @@
+ 				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48302100 0x80>;
+-				ti,hwmods = "ecap1";
+ 				status = "disabled";
+ 			};
+ 
+@@ -709,7 +708,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48302200 0x80>;
+-				ti,hwmods = "ehrpwm1";
++				clocks = <&ehrpwm1_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -727,7 +727,6 @@
+ 				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48304100 0x80>;
+-				ti,hwmods = "ecap2";
+ 				status = "disabled";
+ 			};
+ 
+@@ -735,7 +734,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48304200 0x80>;
+-				ti,hwmods = "ehrpwm2";
++				clocks = <&ehrpwm2_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -753,7 +753,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48306200 0x80>;
+-				ti,hwmods = "ehrpwm3";
++				clocks = <&ehrpwm3_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -771,7 +772,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x48308200 0x80>;
+-				ti,hwmods = "ehrpwm4";
++				clocks = <&ehrpwm4_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
+@@ -789,7 +791,8 @@
+ 				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
+ 				#pwm-cells = <3>;
+ 				reg = <0x4830a200 0x80>;
+-				ti,hwmods = "ehrpwm5";
++				clocks = <&ehrpwm5_tbclk>;
++				clock-names = "tbclk";
+ 				status = "disabled";
+ 			};
+ 		};
 -- 
 2.7.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
