@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 23/23] drm: omapdrm: panel-dsi-cm: provide timings methods for omapdrm
-Date: Tue,  8 Mar 2016 17:39:55 +0100
-Message-ID: <1457455195-1938-24-git-send-email-sre@kernel.org>
+Subject: [PATCH 20/23] drm: omapdrm: panel-dsi-cm: add offset support
+Date: Tue,  8 Mar 2016 17:39:52 +0100
+Message-ID: <1457455195-1938-21-git-send-email-sre@kernel.org>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
@@ -10,70 +10,68 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Provide omapdrm with methods to acquire timings
-and check them later, so that it can properly
-initialize the display.
+The Nokia N950 contains a panel, that is partially
+covered, so that not the whole display is visible.
+Thus the image must be displayed with an offset.
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 38 +++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 196fe8d18ff4..edd1298b3a71 100644
+index 4c1e76da68cd..c60bc3013ff4 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -1163,6 +1163,41 @@ static void dsicm_ulps_work(struct work_struct *work)
- 	mutex_unlock(&ddata->lock);
- }
+@@ -45,6 +45,8 @@ struct panel_drv_data {
+ 	struct omap_dss_device *in;
  
-+static void dsicm_get_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+
-+	*timings = ddata->timings;
-+}
-+
-+static int dsicm_check_timings(struct omap_dss_device *dssdev,
-+		struct omap_video_timings *timings)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
-+	int ret = 0;
-+
-+	if (timings->x_res != ddata->timings.x_res)
-+		ret = -EINVAL;
-+	else if (timings->y_res != ddata->timings.y_res)
-+		ret = -EINVAL;
-+
-+	/* pixelclock is modified by dsi, so not easily checkable */
-+
-+	/* vfp, vbp, hfp, hbp are (re-)configured automatically by dsi */
-+
-+	if (ret) {
-+		dev_warn(dssdev->dev, "wrong resolution: %d x %d",
-+			timings->x_res, timings->y_res);
-+		dev_warn(dssdev->dev, "panel resolution: %d x %d",
-+			ddata->timings.x_res, ddata->timings.y_res);
-+	} else {
-+		dev_dbg(dssdev->dev, "mode check: ok");
-+	}
-+
-+	return ret;
-+}
-+
- static struct omap_dss_driver dsicm_ops = {
- 	.connect	= dsicm_connect,
- 	.disconnect	= dsicm_disconnect,
-@@ -1180,6 +1215,9 @@ static struct omap_dss_driver dsicm_ops = {
- 	.get_te		= dsicm_get_te,
+ 	struct omap_video_timings timings;
++	int offset_x;
++	int offset_y;
  
- 	.memory_read	= dsicm_memory_read,
-+
-+	.get_timings	= dsicm_get_timings,
-+	.check_timings	= dsicm_check_timings,
- };
+ 	struct platform_device *pdev;
  
- static int dsicm_probe_pdata(struct platform_device *pdev)
+@@ -203,12 +205,17 @@ static int dsicm_set_update_window(struct panel_drv_data *ddata,
+ {
+ 	struct omap_dss_device *in = ddata->in;
+ 	int r;
+-	u16 x1 = x;
+-	u16 x2 = x + w - 1;
+-	u16 y1 = y;
+-	u16 y2 = y + h - 1;
+-
+ 	u8 buf[5];
++	u16 x1, x2, y1, y2;
++
++	x += ddata->offset_x;
++	y += ddata->offset_y;
++
++	x1 = x;
++	x2 = x + w - 1;
++	y1 = y;
++	y2 = y + h - 1;
++
+ 	buf[0] = MIPI_DCS_SET_COLUMN_ADDRESS;
+ 	buf[1] = (x1 >> 8) & 0xff;
+ 	buf[2] = (x1 >> 0) & 0xff;
+@@ -1244,6 +1251,8 @@ static int dsicm_probe_of(struct platform_device *pdev)
+ 
+ 	of_property_read_u32(node, "resolution-x", (u32*) &ddata->timings.x_res);
+ 	of_property_read_u32(node, "resolution-y", (u32*) &ddata->timings.y_res);
++	of_property_read_u32(node, "offset-x", &ddata->offset_x);
++	of_property_read_u32(node, "offset-y", &ddata->offset_y);
+ 
+ 	ddata->timings.pixelclock = ddata->timings.x_res * ddata->timings.y_res * 60;
+ 
+@@ -1273,6 +1282,8 @@ static int dsicm_probe(struct platform_device *pdev)
+ 	ddata->timings.x_res = 864;
+ 	ddata->timings.y_res = 480;
+ 	ddata->timings.pixelclock = 864 * 480 * 60;
++	ddata->offset_x = 0;
++	ddata->offset_y = 0;
+ 
+ 	if (dev_get_platdata(dev)) {
+ 		r = dsicm_probe_pdata(pdev);
 -- 
 2.7.0
