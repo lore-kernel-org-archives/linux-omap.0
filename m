@@ -1,46 +1,52 @@
-From: Sushaanth Srirangapathi <sushaanth.s@ti.com>
-Subject: [PATCH] mtd: davinci-nand: disable subpage write for davinci-nand
-Date: Tue, 8 Mar 2016 14:38:15 +0530
-Message-ID: <1457428095-2801-1-git-send-email-sushaanth.s@ti.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH] ARM: clocksource: make ARM_GLOBAL_TIMER selectable
+Date: Tue, 8 Mar 2016 17:55:51 +0700
+Message-ID: <56DEAFB7.50105@ti.com>
+References: <1454610017-25499-1-git-send-email-grygorii.strashko@ti.com>
+ <20160204224128.GG4215@xsjsorenbubuntu>
+ <CAAtXAHcV-9gXcZOX8dzUOBZUwj9M=O4MAsMCJNQYAP+os-D7Tg@mail.gmail.com>
+ <20160204233950.GH4215@xsjsorenbubuntu> <56D04D17.6030502@ti.com>
+ <20160226152714.GD3173@xsjsorenbubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, Sushaanth Srirangapathi <sushaanth.s@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20160226152714.GD3173@xsjsorenbubuntu>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: =?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Liviu Dudau <liviu.dudau-5wv7dgnIgG8@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Wei Xu <xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>, Moritz Fischer <moritz.fischer-+aYTwkv1SeIAvxtiuMwx3w@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Jun Nie <jun.nie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit 28c015a9daabe4e ("mtd: davinci-nand: disable subpage write for
-keystone-nand") disables subpage write for Keystone SOCs due to hw
-issues.
-
-But subpage writes doesn't work even for DaVinci SOCs due to hw issues.
-So set NAND_NO_SUBPAGE_WRITE option for all devices compatible to
-this driver.
-
-I tested this patch using DA850 board.
-
-Signed-off-by: Sushaanth Srirangapathi <sushaanth.s@ti.com>
----
- drivers/mtd/nand/davinci_nand.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
-
-diff --git a/drivers/mtd/nand/davinci_nand.c b/drivers/mtd/nand/davinci_nand.c
-index 8cb821b..466439c 100644
---- a/drivers/mtd/nand/davinci_nand.c
-+++ b/drivers/mtd/nand/davinci_nand.c
-@@ -601,11 +601,7 @@ static struct davinci_nand_pdata
- 		    of_property_read_bool(pdev->dev.of_node,
- 			"ti,davinci-nand-use-bbt"))
- 			pdata->bbt_options = NAND_BBT_USE_FLASH;
--
--		if (of_device_is_compatible(pdev->dev.of_node,
--					    "ti,keystone-nand")) {
--			pdata->options |= NAND_NO_SUBPAGE_WRITE;
--		}
-+		pdata->options |= NAND_NO_SUBPAGE_WRITE;
- 	}
- 
- 	return dev_get_platdata(&pdev->dev);
--- 
-1.7.9.5
+T24gMDIvMjYvMjAxNiAxMDoyNyBQTSwgU8O2cmVuIEJyaW5rbWFubiB3cm90ZToKPiBPbiBGcmks
+IDIwMTYtMDItMjYgYXQgMTU6MDM6MTkgKzAyMDAsIEdyeWdvcmlpIFN0cmFzaGtvIHdyb3RlOgo+
+PiBPbiAwMi8wNS8yMDE2IDAxOjM5IEFNLCBTw7ZyZW4gQnJpbmttYW5uIHdyb3RlOgo+Pj4gT24g
+VGh1LCAyMDE2LTAyLTA0IGF0IDE1OjE0OjQ3IC0wODAwLCBNb3JpdHogRmlzY2hlciB3cm90ZToK
+Pj4+PiBIaSBTb2VyZW4sCj4+Pj4KPj4+PiBPbiBUaHUsIEZlYiA0LCAyMDE2IGF0IDI6NDEgUE0s
+IFPDtnJlbiBCcmlua21hbm4KPj4+PiA8c29yZW4uYnJpbmttYW5uQHhpbGlueC5jb20+IHdyb3Rl
+Ogo+Pj4+Cj4+Pj4+IEJ1dCB3aXRoIHRoaXMgY2hhbmdlIHRoZSAnaWYgIUNQVV9GUkVRJyBiZWNv
+bWVzIG9ic29sZXRlLgo+Pj4+IEknbSBjb25mdXNlZCwgY291bGQgeW91IGV4cGxhaW4gdGhhdCBz
+dGF0ZW1lbnQ/IFlvdSBkb24ndCB3YW50IHBlb3BsZQo+Pj4+IGFjY2lkZW50YWxseSBydW5uaW5n
+IHdpdGggR1Qgd2hlbiBDUFVfRlJFUSBpcyBvbiwgcmlnaHQ/Cj4+Pgo+Pj4gQ29ycmVjdC4gQnV0
+IHdpdGggdGhpcyBLY29uZmlnIHJld29yayB5b3UgY2FuIGp1c3QgZGVzZWxlY3QgaXQgaW4KPj4+
+IEtjb25maWcuIFRoZSBnZW5lcmljIEhBVkVfR1QgY291bGQgYWx3YXlzIGJlIHNlbGVjdGVkLgo+
+Pj4KPj4KPj4KPj4gRG9uJ3Qga25vdyB3aG9tIHNob3VsZCBpIGFzayAtIGJ1dCB3aGF0IHdpbGwg
+YmUgdGhlIGZpbmFsIGNvbmNsdXNpb24gaGVyZT8KPj4gQ2FuIGl0IGJlIG1lcmdlZD8KPiAKPiBJ
+IHRoaW5rIHdlIGRvbid0IGJyZWFrIGFueXRoaW5nIGVpdGhlciB3YXkuIFdvdWxkIGp1c3QgYmUg
+c29tZQo+IGFkZGl0aW9uYWwgY2xlYW4gdXAgdG8gZ2V0IHJpZCBvZiB0aGF0IG1lbnRpb25lZCBj
+b25zdHJhaW50ICh3aGljaAo+IGRvZXNuJ3QgcmVhbGx5IHdvcmsgd2VsbCBhbnl3YXkgaW4gdGhl
+IG11bHRpLWFyY2gga2VybmVsKS4gU28sIG5vIHJlYWwKPiBvYmplY3Rpb25zIHRvIG1lcmdpbmcg
+aXQgZnJvbSBteSBzaWRlLgo+IAoKWWVhaC4gVGhhbmtzCgpJJ2xsIHJlLXNlbmQgaXQgYWZ0ZXIg
+NC42LXJjLgpCdXQgV2hhdCBJJ20gbm90IGZ1bGx5IHVuZGVyc3RhbmQgaXMgaG93IHRvIGdldCBp
+dCBtZXJnZWQgdGFraW5nIGludG8gYWNjb3VudCB0aGF0Cml0IHRvdWNoZXMgZmV3IG1hY2hlcyAm
+IGNsb2Nrc291cmNlIDooIAoKLS0gCnJlZ2FyZHMsCi1ncnlnb3JpaQoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtcm9ja2NoaXAgbWFpbGluZyBs
+aXN0CkxpbnV4LXJvY2tjaGlwQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJh
+ZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1yb2NrY2hpcAo=
