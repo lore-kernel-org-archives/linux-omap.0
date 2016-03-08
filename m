@@ -1,43 +1,49 @@
-From: "Franklin S Cooper Jr." <fcooper@ti.com>
-Subject: Re: [PATCH v5 0/6] ARM: am335x/am437x/dra7: Add PWM support for DRA7
-Date: Tue, 8 Mar 2016 11:04:19 -0600
-Message-ID: <56DF0613.90203@ti.com>
-References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
- <alpine.DEB.2.02.1603080642400.4974@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] OMAP/pinmux: remove misuse of IRQF_NO_SUSPEND flag
+Date: Tue, 8 Mar 2016 09:09:09 -0800
+Message-ID: <20160308170909.GC9329@atomide.com>
+References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
+ <CACRpkdYzJ9Hy0sH6gK6RzpLE6juS4WfPjbt7nh43vR9YTuGZWA@mail.gmail.com>
+ <56C1A1FE.3080403@arm.com>
+ <20160215152751.GT19432@atomide.com>
+ <56DEB82F.5050703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1603080642400.4974@utopia.booyaka.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vigneshr@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56DEB82F.5050703@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Grygorii Strashko <grygorii.strashko@ti.com> [160308 03:32]:
+> 
+> Yeah. As I mentioned before patches 2/3 will not work.
+> I've tried to test suspend with diff I posted [1], but I did it only on 
+> dra7 and am43 where suspend i more simple than on omap3. Also, I worry
+> that with such approach some irq can be missed (especially edge ones), 
+> because PRCM irqs will be re-enabled at very late resume stage 
+> (right before thaw).
 
+Yeah any tests not done with PM on omap3 with the mainline kernel
+are clearly incomplete in this case :)
 
-On 03/08/2016 12:55 AM, Paul Walmsley wrote:
-> Hi Franklin
->
-> On Mon, 7 Mar 2016, Franklin S Cooper Jr wrote:
->
->> This patch series adds support for PWM for DRA7. The IP is same as that
->> present in AM33XX and AM437XX.
->>
->> However, before doing so remove unnecessary hwmod entries for eCAP, ePWM
->> and eQEP.
->>
->> This series is almost identical to v4. Only difference is the addition of
->> eCAP DT nodes in the dra7.dtsi file.
->>
->> This series was tested on AM335x GP, AM437x GP and X15 + LCD screen for
->> PWM based backlight.
->>
->> This series was also verified to be backwards compatible with old dtbs.
-> Looking at these to see what I can pick for v4.7, I'm curious about the 
-> dependencies.  Can I take patches 2 and 3 before 1 is merged, or does 1 
-> need to be merged first?
->
-> - Paul
+> Second option, I see, is to rework PRCM to be threaded IRQ, but in this case
+> all children IRQs will need to be threaded/nested threaded
+> (including PCS, legacy OMAP mux, OMAP3 _prcm_int_handle_wakeup/_prcm_int_handle_io).
+> 
+> Are there any objection to convert PCS to threaded IRQ, for example? ;)
 
-1 needs to be merged first.
+For PRCM interrupt, I don't think that can be threaded IRQ as
+that thing is firing all the time. The consumers for the chained
+PRCM interrupt consumers like PCS could probably use threaded IRQ.
+When the PCS interrupts fire, we're already in some sleeper
+idle state so the extra latency thre does not matter.
+
+Regards,
+
+Tony
+
+> [1] https://patchwork.ozlabs.org/patch/578915/
+
