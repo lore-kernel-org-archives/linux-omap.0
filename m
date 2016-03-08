@@ -1,7 +1,7 @@
 From: "Franklin S Cooper Jr." <fcooper@ti.com>
 Subject: Re: [Patch v4 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Mon, 7 Mar 2016 18:20:42 -0600
-Message-ID: <56DE1ADA.5040903@ti.com>
+Date: Mon, 7 Mar 2016 18:20:50 -0600
+Message-ID: <56DE1AE2.5070908@ti.com>
 References: <1457383187-17166-1-git-send-email-fcooper@ti.com>
  <1457383187-17166-7-git-send-email-fcooper@ti.com>
  <alpine.DEB.2.02.1603072352510.27387@utopia.booyaka.com>
