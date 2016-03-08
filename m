@@ -1,77 +1,112 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 0/3] OMAP/pinmux: remove misuse of IRQF_NO_SUSPEND flag
-Date: Tue, 8 Mar 2016 18:31:59 +0700
-Message-ID: <56DEB82F.5050703@ti.com>
-References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
- <CACRpkdYzJ9Hy0sH6gK6RzpLE6juS4WfPjbt7nh43vR9YTuGZWA@mail.gmail.com>
- <56C1A1FE.3080403@arm.com> <20160215152751.GT19432@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160215152751.GT19432@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Sudeep Holla <sudeep.holla@arm.com>, Tero Kristo <t-kristo@ti.com>, Dave Gerlach <d-gerlach@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 01/23] ARM: dts: n9/n950: regulator configuration
+Date: Tue,  8 Mar 2016 17:39:33 +0100
+Message-ID: <1457455195-1938-2-git-send-email-sre@kernel.org>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 02/15/2016 10:27 PM, Tony Lindgren wrote:
-> * Sudeep Holla <sudeep.holla@arm.com> [160215 02:03]:
->> Hi Linus,
->>
->> On 13/02/16 14:42, Linus Walleij wrote:
->>> On Mon, Feb 1, 2016 at 7:28 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->>>
->>>>    pinctrl: single: Use a separate lockdep class
->>>>    pinctrl: single: remove misuse of IRQF_NO_SUSPEND flag
->>>>    ARM: OMAP2+: remove misuse of IRQF_NO_SUSPEND flag
->>>>
->>>>   arch/arm/mach-omap2/mux.c        |  4 ++--
->>>>   arch/arm/mach-omap2/pm34xx.c     |  9 ++++-----
->>>>   arch/arm/mach-omap2/prm_common.c |  1 +
->>>>   drivers/pinctrl/pinctrl-single.c | 15 ++++++++++++---
->>>
->>> Are these patches orthogonal so I can merge the pinctrl patch independently
->>> of the OMAP patches if Tony ACKs this?
->>>
->>
->> Thanks for the follow up.
->> IIUC they are dependent and remember Tony/Grygorii wanted them to be
->> merged together(at-least for bisectibility)
-> 
-> AFAIK this series needs to be kept together to keep things
-> working.
-> 
->>> If not: should it be merged by me or through ARM SoC/Tony?
->>>
->>
->> I think so.
->>
->>> Anyways waiting for maintainer feedback, but the above is good to know.
->>>
->>
->> Grygorii was still not sure if this works and he couldn't give it a
->> test. He was traveling and may need more time to get back on this.
-> 
-> He said it does not work so clearly more work is needed.
-> 
+Add regulator configuration as found in the
+board files of Nokia's kernel.
 
-Yeah. As I mentioned before patches 2/3 will not work.
-I've tried to test suspend with diff I posted [1], but I did it only on 
-dra7 and am43 where suspend i more simple than on omap3. Also, I worry
-that with such approach some irq can be missed (especially edge ones), 
-because PRCM irqs will be re-enabled at very late resume stage 
-(right before thaw).
+Signed-off-By: Sebastian Reichel <sre@kernel.org>
+---
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 72 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
-Second option, I see, is to rework PRCM to be threaded IRQ, but in this case
-all children IRQs will need to be threaded/nested threaded
-(including PCS, legacy OMAP mux, OMAP3 _prcm_int_handle_wakeup/_prcm_int_handle_io).
-
-Are there any objection to convert PCS to threaded IRQ, for example? ;)
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index a2c2b8d8dd2c..3c7f1d2deb2f 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -72,6 +72,30 @@
+ 	ti,pulldowns	= <0x008106>; /* BIT(1) | BIT(2) | BIT(8) | BIT(15) */
+ };
  
-
-[1] https://patchwork.ozlabs.org/patch/578915/
-
++&vdac {
++	regulator-name = "vdac";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
++&vpll1 {
++	regulator-name = "vpll1";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
++&vpll2 {
++	regulator-name = "vpll2";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
++&vaux1 {
++	regulator-name = "vaux1";
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++};
++
+ /* CSI-2 receiver */
+ &vaux2 {
+ 	regulator-name = "vaux2";
+@@ -86,6 +110,54 @@
+ 	regulator-max-microvolt = <2800000>;
+ };
+ 
++&vaux4 {
++	regulator-name = "vaux4";
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++};
++
++&vmmc1 {
++	regulator-name = "vmmc1";
++	regulator-min-microvolt = <1850000>;
++	regulator-max-microvolt = <3150000>;
++};
++
++&vmmc2 {
++	regulator-name = "vmmc2";
++	regulator-min-microvolt = <3000000>;
++	regulator-max-microvolt = <3000000>;
++};
++
++&vintana1 {
++	regulator-name = "vintana1";
++	regulator-min-microvolt = <1500000>;
++	regulator-max-microvolt = <1500000>;
++};
++
++&vintana2 {
++	regulator-name = "vintana2";
++	regulator-min-microvolt = <2750000>;
++	regulator-max-microvolt = <2750000>;
++};
++
++&vintdig {
++	regulator-name = "vintdig";
++	regulator-min-microvolt = <1500000>;
++	regulator-max-microvolt = <1500000>;
++};
++
++&vsim {
++	regulator-name = "vsim";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
++&vio {
++	regulator-name = "vio";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
+ &i2c2 {
+ 	clock-frequency = <400000>;
+ };
 -- 
-regards,
--grygorii
+2.7.0
