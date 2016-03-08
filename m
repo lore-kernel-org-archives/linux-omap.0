@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 19/23] drm: omapdrm: panel-dsi-cm: improve DT support
-Date: Tue,  8 Mar 2016 17:39:51 +0100
-Message-ID: <1457455195-1938-20-git-send-email-sre@kernel.org>
+Subject: [PATCH 06/23] drm: omapdrm: wait for pending operations before updating plane
+Date: Tue,  8 Mar 2016 17:39:38 +0100
+Message-ID: <1457455195-1938-7-git-send-email-sre@kernel.org>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
@@ -10,59 +10,28 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Introduce new DT properties, so that it's possible
-to use different panels with the driver.
+Updating the plane may interrupt ongoing display
+updates, so wait for any pending operations.
 
- * resolution-x (default: 864)
- * resolution-y (default: 480)
- * has-dsi-backlight (default: no backlight)
-
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-By: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_drv.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 8316b6c2d8aa..4c1e76da68cd 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -1240,7 +1240,12 @@ static int dsicm_probe_of(struct platform_device *pdev)
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index a3ff35f5f6cd..e142a4245766 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -95,6 +95,10 @@ static void omap_atomic_complete(struct omap_atomic_state_commit *commit)
+ 	/* Apply the atomic update. */
+ 	dispc_runtime_get();
  
- 	ddata->in = in;
- 
--	/* TODO: ulps, backlight */
-+	ddata->use_dsi_backlight = of_property_read_bool(node, "has-dsi-backlight");
++	dev_dbg(dev->dev, "omap_atomic_complete");
 +
-+	of_property_read_u32(node, "resolution-x", (u32*) &ddata->timings.x_res);
-+	of_property_read_u32(node, "resolution-y", (u32*) &ddata->timings.y_res);
++	omap_atomic_wait_for_completion(dev, old_state);
 +
-+	ddata->timings.pixelclock = ddata->timings.x_res * ddata->timings.y_res * 60;
- 
- 	return 0;
- }
-@@ -1263,6 +1268,12 @@ static int dsicm_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, ddata);
- 	ddata->pdev = pdev;
- 
-+	/* setup defaults */
-+	ddata->ulps_timeout = 500;
-+	ddata->timings.x_res = 864;
-+	ddata->timings.y_res = 480;
-+	ddata->timings.pixelclock = 864 * 480 * 60;
-+
- 	if (dev_get_platdata(dev)) {
- 		r = dsicm_probe_pdata(pdev);
- 		if (r)
-@@ -1275,10 +1286,6 @@ static int dsicm_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	ddata->timings.x_res = 864;
--	ddata->timings.y_res = 480;
--	ddata->timings.pixelclock = 864 * 480 * 60;
--
- 	dssdev = &ddata->dssdev;
- 	dssdev->dev = dev;
- 	dssdev->driver = &dsicm_ops;
+ 	drm_atomic_helper_commit_modeset_disables(dev, old_state);
+ 	drm_atomic_helper_commit_planes(dev, old_state, false);
+ 	drm_atomic_helper_commit_modeset_enables(dev, old_state);
 -- 
 2.7.0
