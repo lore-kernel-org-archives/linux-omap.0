@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 13/23] drm: omapdrm: crtc: update plane fifos on lcd config change
-Date: Tue,  8 Mar 2016 17:39:45 +0100
-Message-ID: <1457455195-1938-14-git-send-email-sre@kernel.org>
+Subject: [PATCH 08/23] drm: omapdrm: crtc: add enabled bit to state
+Date: Tue,  8 Mar 2016 17:39:40 +0100
+Message-ID: <1457455195-1938-9-git-send-email-sre@kernel.org>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
@@ -10,29 +10,32 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Due to a hardware bug, FIFOs thresholds must be
-configured very carefully for manually updated
-displays.
-
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
  drivers/gpu/drm/omapdrm/omap_crtc.c | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index 8967013c1fb5..094e89a2fa94 100644
+index 5ef27664bcfa..78ef9773cca1 100644
 --- a/drivers/gpu/drm/omapdrm/omap_crtc.c
 +++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -253,6 +253,10 @@ static void omap_crtc_dss_set_lcd_config(struct omap_overlay_manager *mgr,
- 	omap_crtc->manually_updated = dss_lcd_mgr_config_get_stallmode(config);
+@@ -207,6 +207,8 @@ static int omap_crtc_dss_enable(struct omap_overlay_manager *mgr)
+ 			&omap_crtc->timings);
+ 	omap_crtc_set_enabled(&omap_crtc->base, true);
  
- 	dispc_mgr_set_lcd_config(omap_crtc->channel, config);
++	set_bit(crtc_enabled, &omap_crtc->state);
 +
-+	drm_for_each_plane(plane, dev) {
-+		omap_plane_update_fifo(plane);
-+	}
+ 	return 0;
  }
  
- static int omap_crtc_dss_register_framedone(
+@@ -214,6 +216,8 @@ static void omap_crtc_dss_disable(struct omap_overlay_manager *mgr)
+ {
+ 	struct omap_crtc *omap_crtc = omap_crtcs[mgr->id];
+ 
++	clear_bit(crtc_enabled, &omap_crtc->state);
++
+ 	omap_crtc_set_enabled(&omap_crtc->base, false);
+ }
+ 
 -- 
 2.7.0
