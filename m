@@ -1,60 +1,27 @@
-From: Lokesh Vutla <a0131933-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/2] ARM: dra7: Enable Errata i877
-Date: Tue, 8 Mar 2016 09:23:03 +0530
-Message-ID: <56DE4C9F.7060603@ti.com>
-References: <1456994525-20573-1-git-send-email-lokeshvutla@ti.com>
- <alpine.DEB.2.02.1603070938170.3437@utopia.booyaka.com>
- <56DD4C70.7070105@ti.com>
- <alpine.DEB.2.02.1603072355030.27387@utopia.booyaka.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 09/10] ARM: DRA7: hwmod: Add data for
+ McASP1/2/4/5/6/7/8
+Date: Tue, 8 Mar 2016 06:37:28 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603080637060.4974@utopia.booyaka.com>
+References: <1457363857-20797-1-git-send-email-peter.ujfalusi@ti.com> <1457363857-20797-10-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.02.1603072355030.27387-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <1457363857-20797-10-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, 7 Mar 2016, Peter Ujfalusi wrote:
 
+> Add missing data for all McASP ports for the dra7 family
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 
-On Tuesday 08 March 2016 05:26 AM, Paul Walmsley wrote:
-> On Mon, 7 Mar 2016, Lokesh Vutla wrote:
-> 
->> On Monday 07 March 2016 03:09 PM, Paul Walmsley wrote:
->>> On Thu, 3 Mar 2016, Lokesh Vutla wrote:
->>>
->>>> This series enables Errata i877 for all DRA7 platforms. The public errata
->>>> documentation can be found here[1].
->>>>
->>>> [1] http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
->>>>
->>>> Lokesh Vutla (1):
->>>>   ARM: OMAP2+: hwmod: Introduce ti,no-idle dt property
->>>>
->>>> Mugunthan V N (1):
->>>>   ARM: dts: dra7: do not gate cpsw clock due to errata i877
->>>
->>> I've sent these for merging immediately. 
->>>
->>> Have you sent patches for U-boot yet?
->> Yes, It is already merged into u-boot.
->> http://git.denx.de/?p=u-boot.git;a=commitdiff;h=f986d9720836433ded29f06c8f5aed462bd20924;hp=65e9d56fb9ce9cfd7ffff7afaa6b7de50e400e06
-> 
-> I may be misreading this patch, but all it seems to do is add clock 
-> control for GMAC.  It doesn't seem to force the clock to stay on.  What am 
-> I missing?
-So, this is an array containing clock controls which are needed very
-early. This array will be passed to clock framework to enable all the
-clocks. Just adding it to the array is sufficient.
+Thanks, queued for v4.7.
 
-Thanks and regards,
-Lokesh
-
-> 
-> 
-> - Paul
-> 
+- Paul
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
