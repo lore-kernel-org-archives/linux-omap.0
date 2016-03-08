@@ -1,46 +1,48 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] ARM: dra7: Enable Errata i877
-Date: Mon, 7 Mar 2016 23:56:05 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603072355030.27387@utopia.booyaka.com>
-References: <1456994525-20573-1-git-send-email-lokeshvutla@ti.com> <alpine.DEB.2.02.1603070938170.3437@utopia.booyaka.com> <56DD4C70.7070105@ti.com>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [Patch v4 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Mon, 7 Mar 2016 18:20:42 -0600
+Message-ID: <56DE1ADA.5040903@ti.com>
+References: <1457383187-17166-1-git-send-email-fcooper@ti.com>
+ <1457383187-17166-7-git-send-email-fcooper@ti.com>
+ <alpine.DEB.2.02.1603072352510.27387@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56DD4C70.7070105-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <a0131933-l0cyMroinI0@public.gmane.org>
-Cc: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1603072352510.27387@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: vigneshr@ti.com, thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 7 Mar 2016, Lokesh Vutla wrote:
-
-> On Monday 07 March 2016 03:09 PM, Paul Walmsley wrote:
-> > On Thu, 3 Mar 2016, Lokesh Vutla wrote:
-> > 
-> >> This series enables Errata i877 for all DRA7 platforms. The public errata
-> >> documentation can be found here[1].
-> >>
-> >> [1] http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
-> >>
-> >> Lokesh Vutla (1):
-> >>   ARM: OMAP2+: hwmod: Introduce ti,no-idle dt property
-> >>
-> >> Mugunthan V N (1):
-> >>   ARM: dts: dra7: do not gate cpsw clock due to errata i877
-> > 
-> > I've sent these for merging immediately. 
-> > 
-> > Have you sent patches for U-boot yet?
-> Yes, It is already merged into u-boot.
-> http://git.denx.de/?p=u-boot.git;a=commitdiff;h=f986d9720836433ded29f06c8f5aed462bd20924;hp=65e9d56fb9ce9cfd7ffff7afaa6b7de50e400e06
-
-I may be misreading this patch, but all it seems to do is add clock 
-control for GMAC.  It doesn't seem to force the clock to stay on.  What am 
-I missing?
 
 
-- Paul
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 03/07/2016 05:53 PM, Paul Walmsley wrote:
+> On Mon, 7 Mar 2016, Franklin S Cooper Jr wrote:
+>
+>> From: Vignesh R <vigneshr@ti.com>
+>>
+>> Add PWMSS device tree nodes for DRA7 SoC family and add documentation
+>> for dt bindings.
+>>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>> [fcooper@ti.com: Use updated bindings for PWMSS and ePWM]
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> ---
+>> Version 4 changes:
+>> Remove hwmod entries.
+>> Add clocks/clock-names to pwm nodes.
+> Hmm, what about moving the eqep, ecap DT nodes under the epwmss nodes?
+>
+>
+> - Paul
+
+We don't have a driver for eQEP which is why there is no DT
+entry for it. For eCAP, the original patch series didn't
+include the eCAP DT nodes and I never verified why this is
+the case. In our TI tree we have eCAP0 only in the DT. The
+TRM doesn't state that eCAP0-2 are unsupported so there
+should be entries for all 3 eCAPs.
+
+For AM335x and AM437x, eCAP nodes are already under the
+ePWMSS nodes.
