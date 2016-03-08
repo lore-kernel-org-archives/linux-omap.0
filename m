@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 01/23] ARM: dts: n9/n950: regulator configuration
-Date: Tue,  8 Mar 2016 17:39:33 +0100
-Message-ID: <1457455195-1938-2-git-send-email-sre@kernel.org>
+Subject: [PATCH 14/23] drm: omapdrm: crtc: save framedone callback from dss
+Date: Tue,  8 Mar 2016 17:39:46 +0100
+Message-ID: <1457455195-1938-15-git-send-email-sre@kernel.org>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
@@ -10,103 +10,62 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add regulator configuration as found in the
-board files of Nokia's kernel.
+Save the framedone callback supplied by dss for later
+usage.
 
-Signed-off-By: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 72 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+ drivers/gpu/drm/omapdrm/omap_crtc.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index a2c2b8d8dd2c..3c7f1d2deb2f 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -72,6 +72,30 @@
- 	ti,pulldowns	= <0x008106>; /* BIT(1) | BIT(2) | BIT(8) | BIT(15) */
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index 094e89a2fa94..3ce7143e5a5f 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -57,6 +57,9 @@ struct omap_crtc {
+ 
+ 	unsigned long state;
+ 	wait_queue_head_t pending_wait;
++
++	void (*framedone_handler)(void *);
++	void *framedone_handler_data;
  };
  
-+&vdac {
-+	regulator-name = "vdac";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
+ /* -----------------------------------------------------------------------------
+@@ -263,6 +266,17 @@ static int omap_crtc_dss_register_framedone(
+ 		struct omap_overlay_manager *mgr,
+ 		void (*handler)(void *), void *data)
+ {
++	struct omap_crtc *omap_crtc = omap_crtcs[mgr->id];
++	struct drm_device *dev = omap_crtc->base.dev;
 +
-+&vpll1 {
-+	regulator-name = "vpll1";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
++	if (omap_crtc->framedone_handler)
++		return -EBUSY;
 +
-+&vpll2 {
-+	regulator-name = "vpll2";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
++	dev_dbg(dev->dev, "register framedone %s", omap_crtc->name);
 +
-+&vaux1 {
-+	regulator-name = "vaux1";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+};
++	omap_crtc->framedone_handler = handler;
++	omap_crtc->framedone_handler_data = data;
 +
- /* CSI-2 receiver */
- &vaux2 {
- 	regulator-name = "vaux2";
-@@ -86,6 +110,54 @@
- 	regulator-max-microvolt = <2800000>;
- };
+ 	return 0;
+ }
  
-+&vaux4 {
-+	regulator-name = "vaux4";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+};
+@@ -270,6 +284,16 @@ static void omap_crtc_dss_unregister_framedone(
+ 		struct omap_overlay_manager *mgr,
+ 		void (*handler)(void *), void *data)
+ {
++	struct omap_crtc *omap_crtc = omap_crtcs[mgr->id];
++	struct drm_device *dev = omap_crtc->base.dev;
 +
-+&vmmc1 {
-+	regulator-name = "vmmc1";
-+	regulator-min-microvolt = <1850000>;
-+	regulator-max-microvolt = <3150000>;
-+};
++	dev_dbg(dev->dev, "unregister framedone %s", omap_crtc->name);
 +
-+&vmmc2 {
-+	regulator-name = "vmmc2";
-+	regulator-min-microvolt = <3000000>;
-+	regulator-max-microvolt = <3000000>;
-+};
++	WARN_ON(omap_crtc->framedone_handler != handler);
++	WARN_ON(omap_crtc->framedone_handler_data != data);
 +
-+&vintana1 {
-+	regulator-name = "vintana1";
-+	regulator-min-microvolt = <1500000>;
-+	regulator-max-microvolt = <1500000>;
-+};
-+
-+&vintana2 {
-+	regulator-name = "vintana2";
-+	regulator-min-microvolt = <2750000>;
-+	regulator-max-microvolt = <2750000>;
-+};
-+
-+&vintdig {
-+	regulator-name = "vintdig";
-+	regulator-min-microvolt = <1500000>;
-+	regulator-max-microvolt = <1500000>;
-+};
-+
-+&vsim {
-+	regulator-name = "vsim";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
-+&vio {
-+	regulator-name = "vio";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
- &i2c2 {
- 	clock-frequency = <400000>;
- };
++	omap_crtc->framedone_handler = NULL;
++	omap_crtc->framedone_handler_data = NULL;
+ }
+ 
+ static const struct dss_mgr_ops mgr_ops = {
 -- 
 2.7.0
