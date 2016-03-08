@@ -1,36 +1,50 @@
-From: Dave Airlie <airlied@gmail.com>
-Subject: Re: [PATCH] drm/i2c: tda998x: Choose between atomic or non atomic
- dpms helper
-Date: Tue, 8 Mar 2016 11:16:54 +1000
-Message-ID: <CAPM=9tzcxHKRbiHa4Hy+4Ksgpiy+tWhoUyhQT0g0UX7xb3xF0Q@mail.gmail.com>
-References: <1452975474-17058-1-git-send-email-jsarha@ti.com>
- <56DDF6FA.2040501@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <56DDF6FA.2040501@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: Liviu Dudau <Liviu.Dudau@arm.com>, dri-devel <dri-devel@lists.freedesktop.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [PATCH v5 1/6] pwms: pwm-ti*: Get the clock from the PWMSS (parent)
+Date: Mon,  7 Mar 2016 19:23:39 -0600
+Message-ID: <1457400224-24797-2-git-send-email-fcooper@ti.com>
+References: <1457400224-24797-1-git-send-email-fcooper@ti.com>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1457400224-24797-1-git-send-email-fcooper@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vigneshr@ti.com
+Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gOCBNYXJjaCAyMDE2IGF0IDA3OjQ3LCBKeXJpIFNhcmhhIDxqc2FyaGFAdGkuY29tPiB3cm90
-ZToKPiBIaSwKPiBCYXNlZCBvbiBkaXNjdXNzaW9uIGFyb3VuZCB0aGlzIHBhdGNoOgo+Cj4gaHR0
-cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvYXJjaGl2ZXMvZHJpLWRldmVsLzIwMTYtRmVicnVh
-cnkvMTAwNjg1Lmh0bWwKPgo+IEkgdGhpbmsgdGhlIHBhdGNoIGJlbG93IHNob3VsZCBnZXQgaW50
-byBxdWV1ZWQgZm9yIHY0LjUgZml4ZXMgYXMgdGhlCj4gQmVhZ2xlYm9uZS1CbGFjayBkaXNwbGF5
-IGlzIGN1cnJlbnRseSBicm9rZW4gaW4gbGludXgtbWFzdGVyIGFuZCBwcm9iYWJseQo+IEFybWFk
-YSBpcyBicm9rZW4gdG9vLiBXaGF0IHNob3VsZCBJIGRvIHRvIGdldCBpdCB0aGVyZT8KCkkndmUg
-cHVzaGVkIHRoaXMgdG8gZHJtLWZpeGVzLgoKRGF2ZS4KX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
-YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+The eCAP and ePWM doesn't have their own separate clocks. They simply
+utilize the clock provided directly by the PWMSS. Therefore, they simply
+need to grab a reference to their parent's clock.
+
+Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+---
+ drivers/pwm/pwm-tiecap.c   | 2 +-
+ drivers/pwm/pwm-tiehrpwm.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
+index 616af76..9418159 100644
+--- a/drivers/pwm/pwm-tiecap.c
++++ b/drivers/pwm/pwm-tiecap.c
+@@ -212,7 +212,7 @@ static int ecap_pwm_probe(struct platform_device *pdev)
+ 	if (!pc)
+ 		return -ENOMEM;
+ 
+-	clk = devm_clk_get(&pdev->dev, "fck");
++	clk = devm_clk_get(pdev->dev.parent, "fck");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		return PTR_ERR(clk);
+diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
+index 6a41e66..09dc1bc 100644
+--- a/drivers/pwm/pwm-tiehrpwm.c
++++ b/drivers/pwm/pwm-tiehrpwm.c
+@@ -443,7 +443,7 @@ static int ehrpwm_pwm_probe(struct platform_device *pdev)
+ 	if (!pc)
+ 		return -ENOMEM;
+ 
+-	clk = devm_clk_get(&pdev->dev, "fck");
++	clk = devm_clk_get(pdev->dev.parent, "fck");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		return PTR_ERR(clk);
+-- 
+2.7.0
