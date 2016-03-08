@@ -1,68 +1,27 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH RESEND] Revert "PCI: dra7xx: Mark driver as broken"
-Date: Tue, 8 Mar 2016 12:05:26 -0600
-Message-ID: <20160308180526.GC21278@localhost>
-References: <1457087359-16816-1-git-send-email-kishon@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 00/23] Nokia N950 display support
+Date: Tue, 8 Mar 2016 20:39:08 +0200
+Message-ID: <20160308183908.GA31741@raspberrypi.musicnaut.iki.fi>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1457087359-16816-1-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Richard Cochran <richardcochran@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-pci@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <1457455195-1938-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 04, 2016 at 03:59:19PM +0530, Kishon Vijay Abraham I wrote:
-> From: Sekhar Nori <nsekhar@ti.com>
-> 
-> This reverts commit <5c3b99d057525fe2befe6a7db9b1309035d93eee>
-> ("PCI: dra7xx: Mark driver as broken").
-> 
-> With support to de-assert PCIe reset present in kernel,
-> DRA7x PCIe is not broken anymore.
-> 
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
-> Bjorn,
-> 
-> This patch should be merged only after [1] hits linus tree.
-> 
-> Thanks
-> Kishon
-> 
-> [1] -> git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git
-> 	for-v4.6/omap-hwmod-b
+Hi,
 
-OK.  Would you mind pinging me about this after [1] is merged to
-Linus' tree?  I don't want to put this in my "next" branch yet,
-because I don't know whether Pauls branch or mine will be merged first
-in the merge window.  But after the merge window closes, I can
-certainly include this in a "PCI fixes" pull request for inclusion in
-v4.6.
+On Tue, Mar 08, 2016 at 05:39:32PM +0100, Sebastian Reichel wrote:
+> This series adds support for the Nokia N950 display.
+> Since the panel is using DSI command mode, it involves
+> adding support for manually updated displays to
+> omapdrm.
 
-Bjorn
+Works OK, but the picture seems to be upside down? Also shouldn't the
+default orientation be landscape?
 
->  drivers/pci/host/Kconfig |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-> index 75a6054..6d181ba 100644
-> --- a/drivers/pci/host/Kconfig
-> +++ b/drivers/pci/host/Kconfig
-> @@ -5,7 +5,6 @@ config PCI_DRA7XX
->  	bool "TI DRA7xx PCIe controller"
->  	select PCIE_DW
->  	depends on OF && HAS_IOMEM && TI_PIPE3
-> -	depends on BROKEN
->  	help
->  	 Enables support for the PCIe controller in the DRA7xx SoC.  There
->  	 are two instances of PCIe controller in DRA7xx.  This controller can
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A.
