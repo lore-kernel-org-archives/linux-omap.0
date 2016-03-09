@@ -1,81 +1,41 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 00/23] Nokia N950 display support
-Date: Wed, 9 Mar 2016 18:09:26 +0100
-Message-ID: <20160309170925.GA3062@earth>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <CACvgo51ys5DQYKLd4qJv6yFj9TKeZM3cfmsY0ECVVvnS+e_-4g@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [Patch v4 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
+Date: Wed, 9 Mar 2016 18:14:05 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1603091806550.30186@utopia.booyaka.com>
+References: <1457383187-17166-1-git-send-email-fcooper@ti.com> <1457383187-17166-7-git-send-email-fcooper@ti.com> <alpine.DEB.2.02.1603072352510.27387@utopia.booyaka.com> <56DE1AE2.5070908@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACvgo51ys5DQYKLd4qJv6yFj9TKeZM3cfmsY0ECVVvnS+e_-4g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Emil Velikov <emil.l.velikov@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, ML dri-devel <dri-devel@lists.freedesktop.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <56DE1AE2.5070908@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: "Franklin S Cooper Jr." <fcooper@ti.com>
+Cc: vigneshr@ti.com, thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, 7 Mar 2016, Franklin S Cooper Jr. wrote:
 
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On 03/07/2016 05:53 PM, Paul Walmsley wrote:
+>
+> > Hmm, what about moving the eqep, ecap DT nodes under the epwmss nodes?
+> 
+> We don't have a driver for eQEP which is why there is no DT
+> entry for it.
 
-Hi Emil,
+I've already queued the patch for merging.  But just for your background 
+knowledge, and the various lists: the basic device integration data, 
+whether in DT or in hwmod, should be decoupled from the existence of 
+drivers.  It should be possible to have a complete set of SoC integration 
+data ready to integrate at the moment that a device is approved for 
+upstreaming.  That way, driver writers can simply write and merge their 
+driver, with the minimum of patches to the integration data.  
 
-On Wed, Mar 09, 2016 at 04:19:48PM +0000, Emil Velikov wrote:
-> Hi Sebastian,
->=20
-> On 8 March 2016 at 16:39, Sebastian Reichel <sre@kernel.org> wrote:
->=20
-> >  arch/arm/boot/dts/omap3-n950-n9.dtsi            |  72 +++++++++
-> >  arch/arm/boot/dts/omap3-n950.dts                |  71 +++++++++
-> Just a friendly reminder that updating these and one will have to keep
-> the driver backwards compatible forever.
+Generally the people who work on device drivers aren't too familiar with 
+SoC integration - they are focused on their specific IP blocks - so it makes 
+sense to decouple these components.
 
-Of course. Basically the new DT properties are:
+So: in the context of the present epwmss discussion, in an ideal world, 
+we'd have DT entries for eQEP, even though there's no driver available 
+yet.
 
- * optional regulators (vpnl & vddi)
- * boolean "has-dsi-backlight"
- * resolution-x/y
- * offset-x/y
 
-So probably not that much of a problem even if other API is
-invented. I just noticed, that I forgot to actually add documentation
-in Documentation/devicetree/bindings/display/panel/panel-dsi-cm.txt
-
-I will fix that in the next patchset revision.
-
-> Tomi, has been in the process of removing all the unneeded cruft,
-> although omapdrm it is still using the custom panel, dsi and other
-> code as opposed to the ones provided by DRM. As he gets to reusing
-> those he might have some fun keeping things compatible.
-
-I could not find "generic" panel binding documentation. Can you
-give me a pointer? I can just stick to the same property names
-to avoid potential future problems.
-
--- Sebastian
-
---bp/iNruPH9dso1Pn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJW4FjDAAoJENju1/PIO/qa0tIP/0/FzgCcBezylQUbtcV45PW7
-G7L193vmqG5rYuWv7d6wZyY7JAgs3VE6XkGXZHIsfCoB0oik5wzkkGnv4bSy3Bjo
-QyXZwBQ6appy+DXNOVhIu/LwLZPGocSoMDRdY+EiNPE73hcWKJXTN01+r2v63kIr
-ACgZUlIHuhBgrkNJJIREigUNG/jLZhZPcse7h9bhBXQxvyHp5Z3rpze6sbpl5NlB
-tUV4JwC7fxZ6+IOW7j3c5pN2B8575bKSZHyIz2k7h1VXQxIUJcAUDNetU8/0N+Sk
-pCGBoQ6FZ3irj+rIfcG+EER2Y93Ux0ojPPT4xkHkin6gu2ZF8sVagTMhYdXiiqxn
-GKV5GbkKPhjLZZnZo8HBME2nDkpxGuXwOzkXes0u8WMHIY8GPa0Pab7dmecppSxM
-f77+W4PhhSV+2rKSVyucGxfpqpAl7cJESyhJk1Md/Pmvq7lTSGl9HduoC6qkmeHZ
-a0hxqlBGUkhyyZGPiM8spsv1PFbIpb0ujFM1c2vEMzeNcxilVC8A7xle9/WmUCmS
-Udy9NpebSmcEqBbjfzirGYtugKPcwfTK2w8ZhDCJdyWYG4CFmSRrJUj0+r1Uz4as
-z1OIpotGfTjvzefexTxjSVupeQuyFWyoBXWfinIBemLowpfe37/beJfcN7nAogXL
-MRf3zNMhmMB9qNuD4pyp
-=BN8t
------END PGP SIGNATURE-----
-
---bp/iNruPH9dso1Pn--
+- Paul
