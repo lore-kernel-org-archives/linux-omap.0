@@ -1,78 +1,117 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 00/23] Nokia N950 display support
-Date: Wed, 9 Mar 2016 15:33:00 +0100
-Message-ID: <20160309143300.GA25784@earth>
-References: <1457455195-1938-1-git-send-email-sre@kernel.org>
- <20160308183908.GA31741@raspberrypi.musicnaut.iki.fi>
- <20160308204510.GA31069@earth>
- <56DFCC64.7010405@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v6 1/6] ALSA: pcm: add IEC958 channel status helper for
+ hw_params
+Date: Wed, 9 Mar 2016 16:38:59 +0200
+Message-ID: <56E03583.3030907@ti.com>
+References: <cover.1457465383.git.jsarha@ti.com>
+ <3d9fbdac702b93742841221e3e8d2468a3d18f12.1457465383.git.jsarha@ti.com>
+ <56DFF636.9090304@st.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56DFCC64.7010405@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <56DFF636.9090304@st.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Arnaud Pouliquen <arnaud.pouliquen@st.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "airlied@linux.ie" <airlied@linux.ie>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Cc: "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "tony@atomide.com" <tony@atomide.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "tomi.valkeinen@ti.com" <tomi.valkeinen@ti.com>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-
---oyUTqETQ0mS9luUI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Wed, Mar 09, 2016 at 09:10:28AM +0200, Tomi Valkeinen wrote:
-> Hmm there's only so called DMA rotation, which shouldn't work. It's only
-> meant for really small displays, when the framebuffer is in SRAM. So I'm
-> a bit baffled as to what rotation you are using and why is it working =3D=
-).
->
-> There is also VRFB rotation on omap3, but that's not supported by omapdrm.
-
-yeah, I was also wondering why it's working. I just did "xrandr -o
-left" and my display was rotated unexpectedly :) I have not yet
-checked what happens in that case.
-
-> > But yeah, we probably want to change the default
-> > rotation. Especially since touchscreen should have
-> > the same default rotation as the screen. (TS is
-> > horizontal, correct orientation for keyboard usage)
->=20
-> I don't know much about touchscreens, but I'm guessing that it's easier
-> to rotate the coordinates from touch than achieve good panel rotation on
-> N950.
-
-Yes, rotating the TS coordinates is simpler than panel rotation,
-since much less information must be rotated. I just mentioned
-TS, since the _default_ orientation should be the same for both.
-In the end both must be rotated at the same time (and thus both
-must support rotation).
-
--- Sebastian
-
---oyUTqETQ0mS9luUI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJW4DQYAAoJENju1/PIO/qa75wQAKIL51Ww79sFd3p7xGX/bbRU
-HQ/lV6mQeHlfATEqIsQug28VZp1l/ew9OvAPJ2Gm8Ad94+3uZB9wIIE7AW8pxq2C
-XwNDEm0fqdyPfJiqP121hdnpAgZdYM/lUerCwL/6MDW0rJNXC7v0GUjAlapx/TuV
-duBAOD8P4MHGm9Pv8znDj+QwtTnKf9B+NzZe+bvlgtff9poHAjrxeKiJfCOOdCOu
-RESBKS+YO/AiJ7wAlzPbgvF9malSwz8QsgFkAa+rsLTgwgd8KhdAf6zh2XQ0XG3b
-L60yfhLRPEs67YnumaAl7ORaxejW/k/IcSOT7OPaua5N5OSQeUrmYwKP7nLDWzA4
-ln1A3g1kXYPG8AyWNOu31kqtazdRSIvhOfWkJ1aLVpKzW9zDzi4jBVm46OJh4JgS
-PfSQ6a+D7JVBY5sWtIh9UuPKZ3jhe5kdEiykuAGam/Fdt2eIZlN8iwJq2bYL2ES6
-XXTSv6pZ/1Scbz5XWwDW/mb5rFAUgieWKMvfHgnwTGXZP95CAPJTuaGgYqZZr4UN
-uW5wpiQezgsV2KN2uW6kjaTSssklKd+bVohHVKanceg49Gt7x8mnL9m6HVFLy9Te
-nzJrqSVxgYsFckWahxOm38DY3qM0gIYBSqJR+n0e91CmmGonOUu27nwJ9YG+P/KW
-DcdXxC/vui1heA5pr9yx
-=STQ6
------END PGP SIGNATURE-----
-
---oyUTqETQ0mS9luUI--
+T24gMDMvMDkvMTYgMTI6MDgsIEFybmF1ZCBQb3VsaXF1ZW4gd3JvdGU6Cj4gSGVsbG8gSnlyaSwK
+Pgo+IEFja2VkLWJ5OiBBcm5hdWQgUG91bGlxdWVuIDxhcm5hdWQucG91bGlxdWVuQHN0LmNvbT4K
+Pgo+IFdpdGggZmV3IG5pdHBpY2tpbmcgcmVtYXJrcyBvbiBmb3JtLgo+Cj4gUmVnYXJkcwo+IEFy
+bmF1ZAo+Cj4gT24gMDMvMDgvMjAxNiAwOToxNCBQTSwgSnlyaSBTYXJoYSB3cm90ZToKPj4gQWRk
+IElFQzk1OCBjaGFubmVsIHN0YXR1cyBoZWxwZXIgdGhhdCBnZXRzIHRoZSBhdWRpbyBwcm9wZXJ0
+aWVzIGZyb20KPj4gc25kX3BjbV9od19wYXJhbXMgaW5zdGVhZCBvZiBzbmRfcGNtX3J1bnRpbWUu
+IFRoaXMgaXMgbmVlZGVkIHRvCj4+IHByb2R1Y2UgdGhlIGNoYW5uZWwgc3RhdHVzIGJpdHMgYWxy
+ZWFkeSBpbiBhdWRpbyBzdHJlYW0gY29uZmlndXJhdGlvbgo+PiBwaGFzZS4KPj4KPj4gU2lnbmVk
+LW9mZi1ieTogSnlyaSBTYXJoYSA8anNhcmhhQHRpLmNvbT4KPj4gLS0tCj4+ICAgaW5jbHVkZS9z
+b3VuZC9wY21faWVjOTU4LmggfCAgMiArKwo+PiAgIHNvdW5kL2NvcmUvcGNtX2llYzk1OC5jICAg
+IHwgNTMgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLQo+PiAg
+IDIgZmlsZXMgY2hhbmdlZCwgMzggaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pCj4+Cj4+
+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3NvdW5kL3BjbV9pZWM5NTguaCBiL2luY2x1ZGUvc291bmQv
+cGNtX2llYzk1OC5oCj4+IGluZGV4IDBlZWQzOTcuLjM2ZjAyM2EgMTAwNjQ0Cj4+IC0tLSBhL2lu
+Y2x1ZGUvc291bmQvcGNtX2llYzk1OC5oCj4+ICsrKyBiL2luY2x1ZGUvc291bmQvcGNtX2llYzk1
+OC5oCj4+IEBAIC02LDQgKzYsNiBAQAo+PiAgIGludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThfY29u
+c3VtZXIoc3RydWN0IHNuZF9wY21fcnVudGltZSAqcnVudGltZSwgdTggKmNzLAo+PiAgIAlzaXpl
+X3QgbGVuKTsKPj4KPj4gK2ludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThfY29uc3VtZXJfaHdfcGFy
+YW1zKHN0cnVjdCBzbmRfcGNtX2h3X3BhcmFtcyAqcGFyYW1zLAo+PiArCQkJCQkgICAgIHU4ICpj
+cywgc2l6ZV90IGxlbik7Cj4+ICAgI2VuZGlmCj4+IGRpZmYgLS1naXQgYS9zb3VuZC9jb3JlL3Bj
+bV9pZWM5NTguYyBiL3NvdW5kL2NvcmUvcGNtX2llYzk1OC5jCj4+IGluZGV4IDM2YjJkN2EuLjI3
+ZTA5ODEgMTAwNjQ0Cj4+IC0tLSBhL3NvdW5kL2NvcmUvcGNtX2llYzk1OC5jCj4+ICsrKyBiL3Nv
+dW5kL2NvcmUvcGNtX2llYzk1OC5jCj4+IEBAIC05LDMwICs5LDE4IEBACj4+ICAgI2luY2x1ZGUg
+PGxpbnV4L3R5cGVzLmg+Cj4+ICAgI2luY2x1ZGUgPHNvdW5kL2Fzb3VuZGVmLmg+Cj4+ICAgI2lu
+Y2x1ZGUgPHNvdW5kL3BjbS5oPgo+PiArI2luY2x1ZGUgPHNvdW5kL3BjbV9wYXJhbXMuaD4KPj4g
+ICAjaW5jbHVkZSA8c291bmQvcGNtX2llYzk1OC5oPgo+Pgo+PiAtLyoqCj4+IC0gKiBzbmRfcGNt
+X2NyZWF0ZV9pZWM5NThfY29uc3VtZXIgLSBjcmVhdGUgY29uc3VtZXIgZm9ybWF0IElFQzk1OCBj
+aGFubmVsIHN0YXR1cwo+PiAtICogQHJ1bnRpbWU6IHBjbSBydW50aW1lIHN0cnVjdHVyZSB3aXRo
+IC0+cmF0ZSBmaWxsZWQgaW4KPj4gLSAqIEBjczogY2hhbm5lbCBzdGF0dXMgYnVmZmVyLCBhdCBs
+ZWFzdCBmb3VyIGJ5dGVzCj4+IC0gKiBAbGVuOiBsZW5ndGggb2YgY2hhbm5lbCBzdGF0dXMgYnVm
+ZmVyCj4+IC0gKgo+PiAtICogQ3JlYXRlIHRoZSBjb25zdW1lciBmb3JtYXQgY2hhbm5lbCBzdGF0
+dXMgZGF0YSBpbiBAY3Mgb2YgbWF4aW11bSBzaXplCj4+IC0gKiBAbGVuIGNvcnJlc3BvbmRpbmcg
+dG8gdGhlIHBhcmFtZXRlcnMgb2YgdGhlIFBDTSBydW50aW1lIEBydW50aW1lLgo+PiAtICoKPj4g
+LSAqIERyaXZlcnMgbWF5IHdpc2ggdG8gdHdlYWsgdGhlIGNvbnRlbnRzIG9mIHRoZSBidWZmZXIg
+YWZ0ZXIgY3JlYXRpb24uCj4+IC0gKgo+PiAtICogUmV0dXJuczogbGVuZ3RoIG9mIGJ1ZmZlciwg
+b3IgbmVnYXRpdmUgZXJyb3IgY29kZSBpZiBzb21ldGhpbmcgZmFpbGVkLgo+PiAtICovCj4+IC1p
+bnQgc25kX3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHN0cnVjdCBzbmRfcGNtX3J1bnRpbWUg
+KnJ1bnRpbWUsIHU4ICpjcywKPj4gLQlzaXplX3QgbGVuKQo+PiArc3RhdGljIGludCBjcmVhdGVf
+aWVjOTU4X2NvbnN1bWVyKHVpbnQgcmF0ZSwgdWludCBzYW1wbGVfd2lkdGgsCj4+ICsJCQkJICB1
+OCAqY3MsIHNpemVfdCBsZW4pCj4+ICAgewo+PiAgIAl1bnNpZ25lZCBpbnQgZnMsIHdzOwo+Pgo+
+PiAgIAlpZiAobGVuIDwgNCkKPj4gICAJCXJldHVybiAtRUlOVkFMOwo+Pgo+PiAtCXN3aXRjaCAo
+cnVudGltZS0+cmF0ZSkgewo+PiArCXN3aXRjaCAocmF0ZSkgewo+PiAgIAljYXNlIDMyMDAwOgo+
+PiAgIAkJZnMgPSBJRUM5NThfQUVTM19DT05fRlNfMzIwMDA7Cj4+ICAgCQlicmVhazsKPj4gQEAg
+LTU5LDcgKzQ3LDcgQEAgaW50IHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25zdW1lcihzdHJ1Y3Qg
+c25kX3BjbV9ydW50aW1lICpydW50aW1lLCB1OCAqY3MsCj4+ICAgCX0KPj4KPj4gICAJaWYgKGxl
+biA+IDQpIHsKPj4gLQkJc3dpdGNoIChzbmRfcGNtX2Zvcm1hdF93aWR0aChydW50aW1lLT5mb3Jt
+YXQpKSB7Cj4+ICsJCXN3aXRjaCAoc2FtcGxlX3dpZHRoKSB7Cj4+ICAgCQljYXNlIDE2Ogo+PiAg
+IAkJCXdzID0gSUVDOTU4X0FFUzRfQ09OX1dPUkRMRU5fMjBfMTY7Cj4+ICAgCQkJYnJlYWs7Cj4+
+IEBAIC03MSw2ICs1OSw3IEBAIGludCBzbmRfcGNtX2NyZWF0ZV9pZWM5NThfY29uc3VtZXIoc3Ry
+dWN0IHNuZF9wY21fcnVudGltZSAqcnVudGltZSwgdTggKmNzLAo+PiAgIAkJCSAgICAgSUVDOTU4
+X0FFUzRfQ09OX01BWF9XT1JETEVOXzI0Owo+PiAgIAkJCWJyZWFrOwo+PiAgIAkJY2FzZSAyNDoK
+Pj4gKwkJY2FzZSAzMjogLyogQXNzdW1lIDI0LWJpdCB3aWR0aCBmb3IgMzItYml0IHNhbXBsZXMu
+ICovCj4+ICAgCQkJd3MgPSBJRUM5NThfQUVTNF9DT05fV09SRExFTl8yNF8yMCB8Cj4+ICAgCQkJ
+ICAgICBJRUM5NThfQUVTNF9DT05fTUFYX1dPUkRMRU5fMjQ7Cj4+ICAgCQkJYnJlYWs7Cj4+IEBA
+IC05Miw0ICs4MSwzNCBAQCBpbnQgc25kX3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHN0cnVj
+dCBzbmRfcGNtX3J1bnRpbWUgKnJ1bnRpbWUsIHU4ICpjcywKPj4KPj4gICAJcmV0dXJuIGxlbjsK
+Pj4gICB9Cj4+ICsKPj4gKy8qKgo+PiArICogc25kX3BjbV9jcmVhdGVfaWVjOTU4X2NvbnN1bWVy
+IC0gY3JlYXRlIGNvbnN1bWVyIGZvcm1hdCBJRUM5NTggY2hhbm5lbCBzdGF0dXMKPj4gKyAqIEBy
+dW50aW1lOiBwY20gcnVudGltZSBzdHJ1Y3R1cmUgd2l0aCAtPnJhdGUgZmlsbGVkIGluCj4+ICsg
+KiBAY3M6IGNoYW5uZWwgc3RhdHVzIGJ1ZmZlciwgYXQgbGVhc3QgZm91ciBieXRlcwo+PiArICog
+QGxlbjogbGVuZ3RoIG9mIGNoYW5uZWwgc3RhdHVzIGJ1ZmZlcgo+PiArICoKPj4gKyAqIENyZWF0
+ZSB0aGUgY29uc3VtZXIgZm9ybWF0IGNoYW5uZWwgc3RhdHVzIGRhdGEgaW4gQGNzIG9mIG1heGlt
+dW0gc2l6ZQo+PiArICogQGxlbiBjb3JyZXNwb25kaW5nIHRvIHRoZSBwYXJhbWV0ZXJzIG9mIHRo
+ZSBQQ00gcnVudGltZSBAcnVudGltZS4KPj4gKyAqCj4+ICsgKiBEcml2ZXJzIG1heSB3aXNoIHRv
+IHR3ZWFrIHRoZSBjb250ZW50cyBvZiB0aGUgYnVmZmVyIGFmdGVyIGNyZWF0aW9uLgo+PiArICoK
+Pj4gKyAqIFJldHVybnM6IGxlbmd0aCBvZiBidWZmZXIsIG9yIG5lZ2F0aXZlIGVycm9yIGNvZGUg
+aWYgc29tZXRoaW5nIGZhaWxlZC4KPj4gKyAqLwo+PiAraW50IHNuZF9wY21fY3JlYXRlX2llYzk1
+OF9jb25zdW1lcihzdHJ1Y3Qgc25kX3BjbV9ydW50aW1lICpydW50aW1lLCB1OCAqY3MsCj4+ICsJ
+c2l6ZV90IGxlbikKPiBzaG91bGQgYmUgYWxpZ25lZCBvbiBwYXJlbnRoZXNpcwo+PiArewo+PiAr
+CXJldHVybiBjcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHJ1bnRpbWUtPnJhdGUsCj4+ICsJCQkJICAg
+ICAgc25kX3BjbV9mb3JtYXRfd2lkdGgocnVudGltZS0+Zm9ybWF0KSwKPj4gKwkJCQkgICAgICBj
+cywgbGVuKTsKPj4gK30KPj4gICBFWFBPUlRfU1lNQk9MKHNuZF9wY21fY3JlYXRlX2llYzk1OF9j
+b25zdW1lcik7Cj4+ICsKPj4gKwo+IE5vIGtlcm5lbC1kb2MgY29tbWVudD8KCk9oIHllcy4gSXQn
+bGwgYmUgbW9zdGx5IHJlZHVuZGFudCB3aXRoIHNuZF9wY21fY3JlYXRlX2llYzk1OF9jb25zdW1l
+cigpIApidXQgc3RpbGwgaXQgc2hvdWxkIGJlIHRoZXJlLgoKPj4gK2ludCBzbmRfcGNtX2NyZWF0
+ZV9pZWM5NThfY29uc3VtZXJfaHdfcGFyYW1zKHN0cnVjdCBzbmRfcGNtX2h3X3BhcmFtcyAqcGFy
+YW1zLAo+IENvdWxkIGJlIHNuZF9wY21faHdfcGFyYW1zX2NyZWF0ZV9pZWM5NThfY29uc3VtZXIg
+dG8gYmUgY29oZXJlbnQgd2l0aAo+IGZ1bmN0aW9ucyBkZWNsYXJlZCBpbiBwY20uaAoKSSBmZWVs
+IHRoYXQgaWVjOTU4IHNob3VsZCBiZSBlYXJsaWVyIGluIHRoZSBuYW1lIGJlY2F1c2UgaXQgaXMg
+dGhlIApjb21tb24gZGVub21pbmF0b3IgaW4gdGhpcyBjLWZpbGUuIFRoZW4gYWdhaW4gSSBoYXZl
+IG5vIHN0cm9uZyBvcGluaW9ucyAKYWJvdXQgdGhpcy4KCj4+ICsJCQkJCSAgICAgdTggKmNzLCBz
+aXplX3QgbGVuKQo+IHNob3VsZCBiZSBhbGlnbmVkIG9uIHBhcmVudGhlc2lzCgpCdXQgaXQgaXMu
+IEl0IGp1c3QgdGhhdCB0aGUgZGlmZiAnKyctc2lnbiBwdXNoZXMgdGhlIGxpbmUgYWJvdmUgb25l
+IGNoYXIgCnJpZ2h0LCBidXQgdGhlIGxpbmUgYmVsbG93IGlzIG5vdCBwdXNoZWQgYmVjYXVzZSBp
+dCBpbmRlbnRlZCB3aXRoIHRhYnMgCihsaWtlIGl0IHNob3VsZCBiZSkuCgo+PiArewo+PiArCXJl
+dHVybiBjcmVhdGVfaWVjOTU4X2NvbnN1bWVyKHBhcmFtc19yYXRlKHBhcmFtcyksIHBhcmFtc193
+aWR0aChwYXJhbXMpLAo+PiArCQkJCSAgICAgIGNzLCBsZW4pOwo+PiArfQo+PiArRVhQT1JUX1NZ
+TUJPTChzbmRfcGNtX2NyZWF0ZV9pZWM5NThfY29uc3VtZXJfaHdfcGFyYW1zKTsKPj4KCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWls
+aW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZy
+ZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
