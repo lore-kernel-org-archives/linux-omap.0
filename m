@@ -1,56 +1,81 @@
-From: Emil Velikov <emil.l.velikov@gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
 Subject: Re: [PATCH 00/23] Nokia N950 display support
-Date: Wed, 9 Mar 2016 16:58:29 +0000
-Message-ID: <CACvgo532djxBuyPPAta1JXee2PvRq+iYvYuA93E9fNhMn7AFnw@mail.gmail.com>
+Date: Wed, 9 Mar 2016 18:09:26 +0100
+Message-ID: <20160309170925.GA3062@earth>
 References: <1457455195-1938-1-git-send-email-sre@kernel.org>
  <CACvgo51ys5DQYKLd4qJv6yFj9TKeZM3cfmsY0ECVVvnS+e_-4g@mail.gmail.com>
- <56E04E2A.5070205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <56E04E2A.5070205@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>, ML dri-devel <dri-devel@lists.freedesktop.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACvgo51ys5DQYKLd4qJv6yFj9TKeZM3cfmsY0ECVVvnS+e_-4g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, ML dri-devel <dri-devel@lists.freedesktop.org>, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gOSBNYXJjaCAyMDE2IGF0IDE2OjI0LCBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5A
-dGkuY29tPiB3cm90ZToKPiBPbiAwOS8wMy8xNiAxODoxOSwgRW1pbCBWZWxpa292IHdyb3RlOgo+
-PiBIaSBTZWJhc3RpYW4sCj4+Cj4+IE9uIDggTWFyY2ggMjAxNiBhdCAxNjozOSwgU2ViYXN0aWFu
-IFJlaWNoZWwgPHNyZUBrZXJuZWwub3JnPiB3cm90ZToKPj4KPj4+ICBhcmNoL2FybS9ib290L2R0
-cy9vbWFwMy1uOTUwLW45LmR0c2kgICAgICAgICAgICB8ICA3MiArKysrKysrKysKPj4+ICBhcmNo
-L2FybS9ib290L2R0cy9vbWFwMy1uOTUwLmR0cyAgICAgICAgICAgICAgICB8ICA3MSArKysrKysr
-KysKPj4gSnVzdCBhIGZyaWVuZGx5IHJlbWluZGVyIHRoYXQgdXBkYXRpbmcgdGhlc2UgYW5kIG9u
-ZSB3aWxsIGhhdmUgdG8ga2VlcAo+PiB0aGUgZHJpdmVyIGJhY2t3YXJkcyBjb21wYXRpYmxlIGZv
-cmV2ZXIuCj4+Cj4+IFRvbWksIGhhcyBiZWVuIGluIHRoZSBwcm9jZXNzIG9mIHJlbW92aW5nIGFs
-bCB0aGUgdW5uZWVkZWQgY3J1ZnQsCj4+IGFsdGhvdWdoIG9tYXBkcm0gaXQgaXMgc3RpbGwgdXNp
-bmcgdGhlIGN1c3RvbSBwYW5lbCwgZHNpIGFuZCBvdGhlcgo+PiBjb2RlIGFzIG9wcG9zZWQgdG8g
-dGhlIG9uZXMgcHJvdmlkZWQgYnkgRFJNLiBBcyBoZSBnZXRzIHRvIHJldXNpbmcKPj4gdGhvc2Ug
-aGUgbWlnaHQgaGF2ZSBzb21lIGZ1biBrZWVwaW5nIHRoaW5ncyBjb21wYXRpYmxlLgo+Pgo+PiBJ
-dCdzIHVwLXRvIFRvbWkgdG8gZGVjaWRlLCBqdXN0IHRob3VnaHQgSSBwb2ludCBpdCBvdXQuCj4K
-PiBJIGhhdmVuJ3QgbG9va2VkIGF0IHRoaXMgc2VyaWVzIHlldCwgYnV0IGFsbCB0aGUgb21hcCBk
-aXNwbGF5IERUCj4gYmluZGluZ3MgaGF2ZSBiZWVuIGRlc2lnbmVkIHRvIGJlIGNvcnJlY3QsIGFu
-ZCB3aGlsZSBvbWFwZHJtIHdpbGwKPiByZWNlaXZlIGxvdHMgb2YgY2hhbmdlcywgSSBkb24ndCBz
-ZWUgYW55IG5lZWQgdG8gdG91Y2ggYW55dGhpbmcgaW4gdGhlCj4gRFQgc2lkZS4KPgo+IE9mIGNv
-dXJzZSwgaWYgd2Ugd2lsbCBiZSB1c2luZyBzb21lIGV4aXN0aW5nIGNvbW1vbiBkcml2ZXIgd2hp
-Y2gKPiBpbXBsZW1lbnRzIGJpbmRpbmdzIGluIHNvbWUgb3RoZXIgd2F5LCBpdCdsbCBjYXVzZSBz
-b21lIGNvbXBsZXhpdGllcy4uLgo+CkknbSBsZWFuaW5nIHRoYXQgeW91IHdhbnQgdG8gdXNlIHRo
-ZSBleGlzdGluZyB0aGUgRFJNX1BBTkVMIGRyaXZlcgooZ3B1L2RybS9kcm1fcGFuZWwuYykuIEl0
-IGhhcyBlbm91Z2ggaW5mcmFzdHJ1Y3R1cmUgdG8gc3VwcG9ydCAyNSsKJ3NpbXBsZScgcGFuZWxz
-IChncHUvZHJtL3BhbmVsL3BhbmVsLXNpbXBsZS5jKSBwbHVzIDUrIG1vcmUgY29tcGxleApvbmVz
-IChncHUvZHJtL3BhbmVsLykuCgpGcm9tIGEgcXVpY2sgbG9vayB0aGUgYmluZGluZywgdGhleSBk
-byBkaWZmZXIgYWx0aG91Z2ggZG8gdGFrZSBhIGxvb2sKZm9yIHlvdXJzZWxmOgpEb2N1bWVudGF0
-aW9uL2RldmljZXRyZWUvYmluZGluZ3MvZGlzcGxheS9wYW5lbC97ZGlzcGxheS10aW1pbmcscGFu
-ZWwtZHBpLHBhbmVsLWRzaS1jbSxzaW1wbGUtcGFuZWx9LnR4dAoKUmVnYXJkcywKRW1pbApfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFp
-bGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Emil,
+
+On Wed, Mar 09, 2016 at 04:19:48PM +0000, Emil Velikov wrote:
+> Hi Sebastian,
+>=20
+> On 8 March 2016 at 16:39, Sebastian Reichel <sre@kernel.org> wrote:
+>=20
+> >  arch/arm/boot/dts/omap3-n950-n9.dtsi            |  72 +++++++++
+> >  arch/arm/boot/dts/omap3-n950.dts                |  71 +++++++++
+> Just a friendly reminder that updating these and one will have to keep
+> the driver backwards compatible forever.
+
+Of course. Basically the new DT properties are:
+
+ * optional regulators (vpnl & vddi)
+ * boolean "has-dsi-backlight"
+ * resolution-x/y
+ * offset-x/y
+
+So probably not that much of a problem even if other API is
+invented. I just noticed, that I forgot to actually add documentation
+in Documentation/devicetree/bindings/display/panel/panel-dsi-cm.txt
+
+I will fix that in the next patchset revision.
+
+> Tomi, has been in the process of removing all the unneeded cruft,
+> although omapdrm it is still using the custom panel, dsi and other
+> code as opposed to the ones provided by DRM. As he gets to reusing
+> those he might have some fun keeping things compatible.
+
+I could not find "generic" panel binding documentation. Can you
+give me a pointer? I can just stick to the same property names
+to avoid potential future problems.
+
+-- Sebastian
+
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJW4FjDAAoJENju1/PIO/qa0tIP/0/FzgCcBezylQUbtcV45PW7
+G7L193vmqG5rYuWv7d6wZyY7JAgs3VE6XkGXZHIsfCoB0oik5wzkkGnv4bSy3Bjo
+QyXZwBQ6appy+DXNOVhIu/LwLZPGocSoMDRdY+EiNPE73hcWKJXTN01+r2v63kIr
+ACgZUlIHuhBgrkNJJIREigUNG/jLZhZPcse7h9bhBXQxvyHp5Z3rpze6sbpl5NlB
+tUV4JwC7fxZ6+IOW7j3c5pN2B8575bKSZHyIz2k7h1VXQxIUJcAUDNetU8/0N+Sk
+pCGBoQ6FZ3irj+rIfcG+EER2Y93Ux0ojPPT4xkHkin6gu2ZF8sVagTMhYdXiiqxn
+GKV5GbkKPhjLZZnZo8HBME2nDkpxGuXwOzkXes0u8WMHIY8GPa0Pab7dmecppSxM
+f77+W4PhhSV+2rKSVyucGxfpqpAl7cJESyhJk1Md/Pmvq7lTSGl9HduoC6qkmeHZ
+a0hxqlBGUkhyyZGPiM8spsv1PFbIpb0ujFM1c2vEMzeNcxilVC8A7xle9/WmUCmS
+Udy9NpebSmcEqBbjfzirGYtugKPcwfTK2w8ZhDCJdyWYG4CFmSRrJUj0+r1Uz4as
+z1OIpotGfTjvzefexTxjSVupeQuyFWyoBXWfinIBemLowpfe37/beJfcN7nAogXL
+MRf3zNMhmMB9qNuD4pyp
+=BN8t
+-----END PGP SIGNATURE-----
+
+--bp/iNruPH9dso1Pn--
