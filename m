@@ -1,41 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [Patch v4 6/6] ARM: dts: DRA7: Add dt nodes for PWMSS
-Date: Wed, 9 Mar 2016 18:14:05 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603091806550.30186@utopia.booyaka.com>
-References: <1457383187-17166-1-git-send-email-fcooper@ti.com> <1457383187-17166-7-git-send-email-fcooper@ti.com> <alpine.DEB.2.02.1603072352510.27387@utopia.booyaka.com> <56DE1AE2.5070908@ti.com>
+From: Vishal Mahaveer <vishalm@ti.com>
+Subject: [PATCH] ARM: DRA722: Add ID detect for Silicon Rev 2.0
+Date: Wed, 9 Mar 2016 14:56:31 -0600
+Message-ID: <1457556991-10729-1-git-send-email-vishalm@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <56DE1AE2.5070908@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: "Franklin S Cooper Jr." <fcooper@ti.com>
-Cc: vigneshr@ti.com, thierry.reding@gmail.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux-pwm@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 7 Mar 2016, Franklin S Cooper Jr. wrote:
+From: Vishal Mahaveer <vishalm@ti.com>
 
-> On 03/07/2016 05:53 PM, Paul Walmsley wrote:
->
-> > Hmm, what about moving the eqep, ecap DT nodes under the epwmss nodes?
-> 
-> We don't have a driver for eQEP which is why there is no DT
-> entry for it.
+Silicon Rev 2.0 is a minor variant of Rev 1.0. Rev 2.0 is an incremental revision
+with various fixes including the following:
+    - Reset logic fixes
+    - Few asymetric aging logic fixes
+    - Ethernet speed fixes
+    - EDMA fixes for McASP
 
-I've already queued the patch for merging.  But just for your background 
-knowledge, and the various lists: the basic device integration data, 
-whether in DT or in hwmod, should be decoupled from the existence of 
-drivers.  It should be possible to have a complete set of SoC integration 
-data ready to integrate at the moment that a device is approved for 
-upstreaming.  That way, driver writers can simply write and merge their 
-driver, with the minimum of patches to the integration data.  
+Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
+---
+ arch/arm/mach-omap2/id.c  |    4 ++--
+ arch/arm/mach-omap2/soc.h |    1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-Generally the people who work on device drivers aren't too familiar with 
-SoC integration - they are focused on their specific IP blocks - so it makes 
-sense to decouple these components.
-
-So: in the context of the present epwmss discussion, in an ideal world, 
-we'd have DT entries for eQEP, even though there's no driver available 
-yet.
-
-
-- Paul
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 8a2ae82..84ee602 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -667,9 +667,9 @@ void __init dra7xxx_check_revision(void)
+ 		case 0:
+ 			omap_revision = DRA722_REV_ES1_0;
+ 			break;
++		case 1:
+ 		default:
+-			/* If we have no new revisions */
+-			omap_revision = DRA722_REV_ES1_0;
++			omap_revision = DRA722_REV_ES2_0;
+ 			break;
+ 		}
+ 		break;
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 83d3547..464e73f 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -471,6 +471,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
+ #define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
+ #define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
++#define DRA722_REV_ES2_0	(DRA7XX_CLASS | (0x22 << 16) | (0x20 << 8))
+ 
+ void omap2xxx_check_revision(void);
+ void omap3xxx_check_revision(void);
+-- 
+1.7.4.1
