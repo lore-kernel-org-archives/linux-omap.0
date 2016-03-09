@@ -1,66 +1,48 @@
-From: Vishal Mahaveer <vishalm@ti.com>
-Subject: [PATCH] ARM: DRA722: Add ID detect for Silicon Rev 2.0
-Date: Wed, 9 Mar 2016 14:56:31 -0600
-Message-ID: <1457556991-10729-1-git-send-email-vishalm@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 00/23] Nokia N950 display support
+Date: Wed, 9 Mar 2016 23:02:01 +0200
+Message-ID: <20160309210201.GA5534@raspberrypi.musicnaut.iki.fi>
+References: <1457455195-1938-1-git-send-email-sre@kernel.org>
+ <20160308183908.GA31741@raspberrypi.musicnaut.iki.fi>
+ <20160308204510.GA31069@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160308204510.GA31069@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Vishal Mahaveer <vishalm@ti.com>
+Hi,
 
-Silicon Rev 2.0 is a minor variant of Rev 1.0. Rev 2.0 is an incremental revision
-with various fixes including the following:
-    - Reset logic fixes
-    - Few asymetric aging logic fixes
-    - Ethernet speed fixes
-    - EDMA fixes for McASP
+On Tue, Mar 08, 2016 at 09:45:11PM +0100, Sebastian Reichel wrote:
+> On Tue, Mar 08, 2016 at 08:39:08PM +0200, Aaro Koskinen wrote:
+> > On Tue, Mar 08, 2016 at 05:39:32PM +0100, Sebastian Reichel wrote:
+> > > This series adds support for the Nokia N950 display.
+> > > Since the panel is using DSI command mode, it involves
+> > > adding support for manually updated displays to
+> > > omapdrm.
+> > 
+> > Works OK, but the picture seems to be upside down?
+> 
+> vertical, upside down is the native panel orientation.
+> 
+> > Also shouldn't the default orientation be landscape?
+> 
+> The N950 vendor kernel contains some code adding DSI
+> rotation support with half-frame update mechnism to
+> avoid tearing. It's quite complex and as far as I
+> understand it also error-prone. Tomi knows more about
+> that.
 
-Signed-off-by: Vishal Mahaveer <vishalm@ti.com>
----
- arch/arm/mach-omap2/id.c  |    4 ++--
- arch/arm/mach-omap2/soc.h |    1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+Ok, my comment was actually about fbcon (which doesn't need driver support
+for rotation). But I guess there is no way to tell it what the default
+should be, instead user needs to pass the correct rotation manually...
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 8a2ae82..84ee602 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -667,9 +667,9 @@ void __init dra7xxx_check_revision(void)
- 		case 0:
- 			omap_revision = DRA722_REV_ES1_0;
- 			break;
-+		case 1:
- 		default:
--			/* If we have no new revisions */
--			omap_revision = DRA722_REV_ES1_0;
-+			omap_revision = DRA722_REV_ES2_0;
- 			break;
- 		}
- 		break;
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 83d3547..464e73f 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -471,6 +471,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
- #define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
- #define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
-+#define DRA722_REV_ES2_0	(DRA7XX_CLASS | (0x22 << 16) | (0x20 << 8))
- 
- void omap2xxx_check_revision(void);
- void omap3xxx_check_revision(void);
--- 
-1.7.4.1
+Anyway, for this series:
+
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+A.
