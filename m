@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v4 5/7] mtd: nand: omap2: Start dma request before enabling prefetch
-Date: Thu, 10 Mar 2016 17:56:41 -0600
-Message-ID: <1457654203-20856-6-git-send-email-fcooper@ti.com>
+Subject: [PATCH v4 7/7] ARM: OMAP2+: Update GPMC and NAND DT binding documentation
+Date: Thu, 10 Mar 2016 17:56:43 -0600
+Message-ID: <1457654203-20856-8-git-send-email-fcooper@ti.com>
 References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457654203-20856-1-git-send-email-fcooper@ti.com>
@@ -10,51 +10,52 @@ To: nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, rogerq@ti.
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The prefetch engine sends a dma request once a FIFO threshold has
-been met. No other requests are received until the previous request
-is handled.
-
-Starting an edma transfer (dma_async_issue_pending) results in any
-previous event for the dma channel to be cleared. Therefore, starting
-the prefetch engine before initiating the dma transfer may result in
-the prefetch triggering a dma request but instead of it being handled
-it can end up being cleared. This will result in a hang since the code
-will continue to wait for the dma request to complete.
-
-By initiating the dma request before enabling the prefetch engine this
-race condition is avoided and no dma request are missed/cleared.
+Add additional details to the GPMC NAND documentation to clarify
+what is needed to enable NAND DMA prefetch.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt   | 7 ++++++-
+ Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 2 +-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 95bc636..0863a83 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -497,6 +497,11 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	tx->callback_param = &info->comp;
- 	dmaengine_submit(tx);
+diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+index 704be93..ae6388a 100644
+--- a/Documentation/devicetree/bindings/bus/ti-gpmc.txt
++++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+@@ -33,6 +33,10 @@ Required properties:
+ 			As this will change in the future, filling correct
+ 			values here is a requirement.
  
-+	init_completion(&info->comp);
++Required properties when using NAND prefetch dma:
++ - dmas			GPMC NAND prefetch dma channel
++ - dma-names		Must be set to "rxtx"
 +
-+	/* setup and start DMA using dma_addr */
-+	dma_async_issue_pending(info->dma);
-+
- 	/*  configure and start prefetch transfer */
- 	ret = omap_prefetch_enable(info->gpmc_cs,
- 		PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write, info);
-@@ -504,10 +509,6 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 		/* PFPW engine is busy, use cpu copy method */
- 		goto out_copy_unmap;
+ Timing properties for child nodes. All are optional and default to 0.
  
--	init_completion(&info->comp);
--	dma_async_issue_pending(info->dma);
+  - gpmc,sync-clk-ps:	Minimum clock period for synchronous mode, in picoseconds
+@@ -119,7 +123,8 @@ Example for an AM33xx board:
+ 		ti,hwmods = "gpmc";
+ 		reg = <0x50000000 0x2000>;
+ 		interrupts = <100>;
 -
--	/* setup and start DMA using dma_addr */
- 	wait_for_completion(&info->comp);
- 	tim = 0;
- 	limit = (loops_per_jiffy * msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
++		dmas = <&edma 52 0>;
++		dma-names = "rxtx";
+ 		gpmc,num-cs = <8>;
+ 		gpmc,num-waitpins = <2>;
+ 		#address-cells = <2>;
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index fb733c4..7cb9dc56 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -35,7 +35,7 @@ Optional properties:
+ 
+ 		"prefetch-polled"	Prefetch polled mode (default)
+ 		"polled"		Polled mode, without prefetch
+-		"prefetch-dma"		Prefetch enabled sDMA mode
++		"prefetch-dma"		Prefetch enabled DMA mode
+ 		"prefetch-irq"		Prefetch enabled irq mode
+ 
+  - elm_id:	<deprecated> use "ti,elm-id" instead
 -- 
 2.7.0
