@@ -1,56 +1,43 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v4 2/7] ARM: dts: am33xx: Fix GPMC dma properties
-Date: Thu, 10 Mar 2016 17:56:38 -0600
-Message-ID: <1457654203-20856-3-git-send-email-fcooper@ti.com>
+Subject: [PATCH v4 4/7] mtd: nand: omap2: Support parsing dma channel information from DT
+Date: Thu, 10 Mar 2016 17:56:40 -0600
+Message-ID: <1457654203-20856-5-git-send-email-fcooper@ti.com>
 References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457654203-20856-1-git-send-email-fcooper@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, rogerq@ti.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch updates the GPMC's DT DMA property to reflect the updated eDMA
-bindings.
+Switch from dma_request_channel to allow passing dma channel
+information from DT rather than hardcoding a value.
 
-Fixes: b5e509066074 ("ARM: DTS: am33xx: Use the new DT bindings for the eDMA3")
+Also provide a handle to the GPMC's dev so it can be used to parse the DMA
+channel information within the GPMC's DT node.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
 Version 4 changes:
-Split in its own commit. Uses correct syntax for Fixes
+Pass parent instead of new variable from the platform data
 
- arch/arm/boot/dts/am33xx.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/nand/omap2.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 1fafaad..97471d6 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -860,7 +860,7 @@
- 			ti,no-idle-on-init;
- 			reg = <0x50000000 0x2000>;
- 			interrupts = <100>;
--			dmas = <&edma 52>;
-+			dmas = <&edma 52 0>;
- 			dma-names = "rxtx";
- 			gpmc,num-cs = <7>;
- 			gpmc,num-waitpins = <2>;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index c553f78..95bc636 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1731,7 +1731,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		dma_cap_zero(mask);
+ 		dma_cap_set(DMA_SLAVE, mask);
+ 		sig = OMAP24XX_DMA_GPMC;
+-		info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
++		info->dma = dma_request_slave_channel_compat(mask,
++			omap_dma_filter_fn, &sig, pdev->dev.parent, "rxtx");
++
+ 		if (!info->dma) {
+ 			dev_err(&pdev->dev, "DMA engine request failed\n");
+ 			err = -ENXIO;
 -- 
 2.7.0
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
