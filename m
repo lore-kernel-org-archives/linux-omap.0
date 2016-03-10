@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v4 3/7] ARM: dts: am437x: Fix GPMC dma properties
-Date: Thu, 10 Mar 2016 17:56:39 -0600
-Message-ID: <1457654203-20856-4-git-send-email-fcooper@ti.com>
+Subject: [PATCH v4 6/7] mtd: nand: omap2: Fix high memory dma prefetch transfer
+Date: Thu, 10 Mar 2016 17:56:42 -0600
+Message-ID: <1457654203-20856-7-git-send-email-fcooper@ti.com>
 References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457654203-20856-1-git-send-email-fcooper@ti.com>
@@ -10,31 +10,50 @@ To: nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, rogerq@ti.
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch updates the GPMC's DT DMA property to reflect the updated eDMA
-bindings.
+Based on DMA documentation and testing using high memory buffer when
+doing dma transfers can lead to various issues including kernel
+panics.
 
-Fixes: cce1ee000187 ("ARM: DTS: am437x: Use the new DT bindings for the eDMA3")
+To workaround this simply use cpu copy. The amount of high memory
+buffers used are very uncommon so no noticeable performance hit should
+be seen.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
-Version 4 changes:
-Split into its own commit. Use proper Fixes syntax.
+ drivers/mtd/nand/omap2.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
- arch/arm/boot/dts/am4372.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 92068fb..2878b04 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -884,7 +884,7 @@
- 		gpmc: gpmc@50000000 {
- 			compatible = "ti,am3352-gpmc";
- 			ti,hwmods = "gpmc";
--			dmas = <&edma 52>;
-+			dmas = <&edma 52 0>;
- 			dma-names = "rxtx";
- 			clocks = <&l3s_gclk>;
- 			clock-names = "fck";
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 0863a83..22b0112 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -467,17 +467,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 	int ret;
+ 	u32 val;
+ 
+-	if (addr >= high_memory) {
+-		struct page *p1;
+-
+-		if (((size_t)addr & PAGE_MASK) !=
+-			((size_t)(addr + len - 1) & PAGE_MASK))
+-			goto out_copy;
+-		p1 = vmalloc_to_page(addr);
+-		if (!p1)
+-			goto out_copy;
+-		addr = page_address(p1) + ((size_t)addr & ~PAGE_MASK);
+-	}
++	if (addr >= high_memory)
++		goto out_copy;
+ 
+ 	sg_init_one(&sg, addr, len);
+ 	n = dma_map_sg(info->dma->device->dev, &sg, 1, dir);
+@@ -534,6 +525,7 @@ out_copy:
+ 	else
+ 		is_write == 0 ? omap_read_buf8(mtd, (u_char *) addr, len)
+ 			: omap_write_buf8(mtd, (u_char *) addr, len);
++
+ 	return 0;
+ }
+ 
 -- 
 2.7.0
