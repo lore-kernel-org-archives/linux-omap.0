@@ -1,50 +1,89 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/2] dmaengine: omap-dma: Do not suppress interrupts for
- memcpy
-Date: Thu, 10 Mar 2016 15:28:47 +0200
-Message-ID: <1457616527-979-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/2] dmaengine: omap-dma: Fix polled channel completion detection and handling
+Date: Thu, 10 Mar 2016 15:28:46 +0200
+Message-ID: <1457616527-979-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1457616527-979-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457616527-979-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: vinod.koul@intel.com, linux@arm.linux.org.uk
 Cc: dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-If the client queues up more transfers the driver will not able to move to
-the next transfer without knowing that the previous descriptor is
-completed.
+When based on the CCR_ENABLE bit the channel is stopped we should not call
+omap_dma_callback(), only change the return value to DMA_COMPLETE. Client
+drivers will do the right thing to clean up the channel after the transfer
+has been completed.
+Check the CCR_ENABLE only if the channel is running and not paused since
+pause in sDMA means that the channel is stopped.
+This will fix one hard to reproduce race condition when the channel is
+terminated during transfer (affecting cyclic operation).
+
+Fixes: 1a7cf7b26f25 ("dmaengine: omap-dma: Handle cases when the channel is polled for completion")
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/dma/omap-dma.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/dma/omap-dma.c | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index a37001f72ebf..f7498681be82 100644
+index f6bef0d93998..a37001f72ebf 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -953,9 +953,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_memcpy(
- 	d->ccr = c->ccr;
- 	d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_POSTINC;
+@@ -48,6 +48,7 @@ struct omap_chan {
+ 	unsigned dma_sig;
+ 	bool cyclic;
+ 	bool paused;
++	bool running;
  
--	d->cicr = CICR_DROP_IE;
--	if (tx_flags & DMA_PREP_INTERRUPT)
--		d->cicr |= CICR_FRAME_IE;
-+	d->cicr = CICR_DROP_IE | CICR_FRAME_IE;
+ 	int dma_ch;
+ 	struct omap_desc *desc;
+@@ -294,6 +295,8 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
  
- 	d->csdp = data_type;
+ 	/* Enable channel */
+ 	omap_dma_chan_write(c, CCR, d->ccr | CCR_ENABLE);
++
++	c->running = true;
+ }
+ 
+ static void omap_dma_stop(struct omap_chan *c)
+@@ -355,6 +358,8 @@ static void omap_dma_stop(struct omap_chan *c)
+ 
+ 		omap_dma_chan_write(c, CLNK_CTRL, val);
+ 	}
++
++	c->running = false;
+ }
+ 
+ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d)
+@@ -671,15 +676,20 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
+ 	struct virt_dma_desc *vd;
+ 	enum dma_status ret;
+-	uint32_t ccr;
+ 	unsigned long flags;
+ 
+-	ccr = omap_dma_chan_read(c, CCR);
+-	/* The channel is no longer active, handle the completion right away */
+-	if (!(ccr & CCR_ENABLE))
+-		omap_dma_callback(c->dma_ch, 0, c);
+-
+ 	ret = dma_cookie_status(chan, cookie, txstate);
++
++	if (!c->paused && c->running) {
++		uint32_t ccr = omap_dma_chan_read(c, CCR);
++		/*
++		 * The channel is no longer active, set the return value
++		 * accordingly
++		 */
++		if (!(ccr & CCR_ENABLE))
++			ret = DMA_COMPLETE;
++	}
++
+ 	if (ret == DMA_COMPLETE || !txstate)
+ 		return ret;
  
 -- 
 2.7.2
