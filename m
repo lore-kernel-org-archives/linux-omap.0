@@ -1,51 +1,71 @@
-From: "Thang Q. Nguyen" <tqnguyen@apm.com>
-Subject: RE: [PATCH v2 2/2] usb:dwc3: pass arch data to xhci-hcd child
-Date: Thu, 10 Mar 2016 11:10:48 +0700
-Message-ID: <f50c53ee6963923ed36daa6795828f5a@mail.gmail.com>
-References: <1453731985-13835-1-git-send-email-tqnguyen@apm.com> <1453731985-13835-2-git-send-email-tqnguyen@apm.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v6 1/6] ALSA: pcm: add IEC958 channel status helper for
+ hw_params
+Date: Thu, 10 Mar 2016 12:24:07 +0700
+Message-ID: <20160310052407.GL3898@sirena.org.uk>
+References: <cover.1457465383.git.jsarha@ti.com>
+ <3d9fbdac702b93742841221e3e8d2468a3d18f12.1457465383.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453731985-13835-2-git-send-email-tqnguyen@apm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Thang Q. Nguyen" <tqnguyen@apm.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org
-Cc: Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>
+Content-Type: multipart/mixed; boundary="===============1410407889=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <3d9fbdac702b93742841221e3e8d2468a3d18f12.1457465383.git.jsarha@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-I would like to ask if I need to update anything else for this change?
 
-Thanks,
-Thang Q. Nguyen -
------Original Message-----
-From: Thang Q. Nguyen [mailto:tqnguyen@apm.com]
-Sent: Monday, January 25, 2016 9:26 PM
-To: Felipe Balbi; Greg Kroah-Hartman; linux-usb@vger.kernel.org;
-linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-linux-arm@lists.infradead.org
-Cc: Thang Nguyen; Phong Vo; Loc Ho; patches@apm.com
-Subject: [PATCH v2 2/2] usb:dwc3: pass arch data to xhci-hcd child
+--===============1410407889==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="oOpJzULQ70+PGW7h"
+Content-Disposition: inline
 
-The xhci-hcd child node needs to inherit archdata attribute to use dma_ops
-functions and attributes. This patch enables the USB DWC3 driver to pass
-archdata attributes to its xhci-hcd child node.
 
-Signed-off-by: Thang Q. Nguyen <tqnguyen@apm.com>
----
-Changes from v1:
-	- None
+--oOpJzULQ70+PGW7h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
- drivers/usb/dwc3/host.c | 1 +
- 1 file changed, 1 insertion(+)
+On Tue, Mar 08, 2016 at 10:14:25PM +0200, Jyri Sarha wrote:
+> Add IEC958 channel status helper that gets the audio properties from
+> snd_pcm_hw_params instead of snd_pcm_runtime. This is needed to
+> produce the channel status bits already in audio stream configuration
+> phase.
 
-diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c index
-c679f63..661fbae 100644
---- a/drivers/usb/dwc3/host.c
-+++ b/drivers/usb/dwc3/host.c
-@@ -37,6 +37,7 @@ int dwc3_host_init(struct dwc3 *dwc)
- 	xhci->dev.parent	= dwc->dev;
- 	xhci->dev.dma_mask	= dwc->dev->dma_mask;
- 	xhci->dev.dma_parms	= dwc->dev->dma_parms;
-+	xhci->dev.archdata      = dwc->dev->archdata;
+Takashi, are you OK with this one?
 
- 	dwc->xhci = xhci;
+--oOpJzULQ70+PGW7h
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJW4QTxAAoJECTWi3JdVIfQLWAH/2FZ08qtvMqhvuRBc2aFaq2v
+K6QQXxBCw4Ipy0ZshaZoADsM9dieZVeMppUyG6jm2/gt4e9zlqcQ8f2mseuB2XwV
+BTaiAgm8SCi/T1W70tIQ5ZyCEZu6lhHoOIB8XAskN/qJxd1tSdf3BqEdYfoaFMX2
+aMp+BigFdRHYRh1M62b8FDR5SUSCZ1J9tN77X2s9dWgFaUNoXRsJcGPr8E8OegTu
+qUgBcO9ZAZh9Rsx3+tp0w9vX++XAbniIW3Zxl7A+BnvowOMsj1kZcCZuLeRNeFPI
+aBuOG71ffyDHcy1y/6FWqTV2me2jl8utjAywldZflshtCNwKW2gIvOtvaUqLiUw=
+=8RvK
+-----END PGP SIGNATURE-----
+
+--oOpJzULQ70+PGW7h--
+
+--===============1410407889==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1410407889==--
