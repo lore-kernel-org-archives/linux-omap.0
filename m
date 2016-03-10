@@ -1,72 +1,72 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 2/6] ARM: dts: am437x/am33xx: Fix GPMC dma properties
-Date: Thu, 10 Mar 2016 14:51:11 +0200
-Message-ID: <56E16DBF.40409@ti.com>
+From: "Franklin S Cooper Jr." <fcooper-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 1/6] memory: omap-gpmc: Store handle to GPMC dev
+Date: Thu, 10 Mar 2016 07:18:52 -0600
+Message-ID: <56E1743C.90805@ti.com>
 References: <1457582861-20619-1-git-send-email-fcooper@ti.com>
- <1457582861-20619-3-git-send-email-fcooper@ti.com>
+ <1457582861-20619-2-git-send-email-fcooper@ti.com> <56E16B20.5070001@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457582861-20619-3-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>, nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56E16B20.5070001-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/03/16 06:07, Franklin S Cooper Jr wrote:
-> Recent patch series that updated the eDMA driver also updated the eDMA
-> bindings.
-> 
-> The following patches forgot to update the DMA bindings for the GPMC node.
-> ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
-> ARM: DTS: am437x: Use the new DT bindings for the eDMA3
 
-Instead of mentioning the patch subject here use the Fixes: tag.
 
-> 
-> This patch corrects this so NAND with DMA prefetch can work.
-> 
-> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+On 03/10/2016 06:40 AM, Roger Quadros wrote:
+> Franklin,
+>
+> On 10/03/16 06:07, Franklin S Cooper Jr wrote:
+>> The dma channel information is located within the GPMC node. The NAND
+>> driver requires a handle to the GPMC's dev to properly parse the DMA
+>> properties. Therefore, store a handle to the dev so it can be referenced
+>> within the NAND driver.
+>>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/memory/omap-gpmc.c                   | 1 +
+>>  include/linux/platform_data/mtd-nand-omap2.h | 2 ++
+>>  2 files changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+>> index 6515dfc..2932d13 100644
+>> --- a/drivers/memory/omap-gpmc.c
+>> +++ b/drivers/memory/omap-gpmc.c
+>> @@ -1796,6 +1796,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+>>  
+>>  	gpmc_nand_data->cs = val;
+>>  	gpmc_nand_data->of_node = child;
+>> +	gpmc_nand_data->gpmc_dev = &pdev->dev;
+>>  
+>>  	/* Detect availability of ELM module */
+>>  	gpmc_nand_data->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
+>> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+>> index 090bbab..534b984 100644
+>> --- a/include/linux/platform_data/mtd-nand-omap2.h
+>> +++ b/include/linux/platform_data/mtd-nand-omap2.h
+>> @@ -80,5 +80,7 @@ struct omap_nand_platform_data {
+>>  	/* for passing the partitions */
+>>  	struct device_node	*of_node;
+>>  	struct device_node	*elm_of_node;
+>> +
+>> +	struct device		*gpmc_dev;
+>>  };
+>>  #endif
+>>
+> Why do you need this? Can't we just use dev->parent in the omap2-nand driver?
 
-Please split this patch in to am33xx.dtsi and am4372.dtsi
+Dev->parent doesn't point to omap-gpmc's dev. Its because
+platform_device_alloc is used to create the platform_device
+so a proper parent isn't defined. It should be possible to
+force omap2-nand dev's parent property to the GPMC's dev but
+that didn't seem right when I thought about doing it.
+>
+> cheers,
+> -roger
 
-> ---
->  arch/arm/boot/dts/am33xx.dtsi | 2 +-
->  arch/arm/boot/dts/am4372.dtsi | 2 +-
-
-what about dm816x.dtsi and dm814x.dtsi?
-
-I suppose sdma based SoCs are not affected like this right?
-
-cheers,
--roger
-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 1fafaad..97471d6 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -860,7 +860,7 @@
->  			ti,no-idle-on-init;
->  			reg = <0x50000000 0x2000>;
->  			interrupts = <100>;
-> -			dmas = <&edma 52>;
-> +			dmas = <&edma 52 0>;
->  			dma-names = "rxtx";
->  			gpmc,num-cs = <7>;
->  			gpmc,num-waitpins = <2>;
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index 92068fb..2878b04 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -884,7 +884,7 @@
->  		gpmc: gpmc@50000000 {
->  			compatible = "ti,am3352-gpmc";
->  			ti,hwmods = "gpmc";
-> -			dmas = <&edma 52>;
-> +			dmas = <&edma 52 0>;
->  			dma-names = "rxtx";
->  			clocks = <&l3s_gclk>;
->  			clock-names = "fck";
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
