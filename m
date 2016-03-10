@@ -1,89 +1,69 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 1/2] dmaengine: omap-dma: Fix polled channel completion detection and handling
-Date: Thu, 10 Mar 2016 15:28:46 +0200
-Message-ID: <1457616527-979-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1457616527-979-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Franklin S Cooper Jr." <fcooper@ti.com>
+Subject: Re: [PATCH v3 1/6] memory: omap-gpmc: Store handle to GPMC dev
+Date: Thu, 10 Mar 2016 07:40:02 -0600
+Message-ID: <56E17932.6090304@ti.com>
+References: <1457582861-20619-1-git-send-email-fcooper@ti.com>
+ <1457582861-20619-2-git-send-email-fcooper@ti.com> <56E16B20.5070001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457616527-979-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <56E16B20.5070001@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, linux@arm.linux.org.uk
-Cc: dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>, nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When based on the CCR_ENABLE bit the channel is stopped we should not call
-omap_dma_callback(), only change the return value to DMA_COMPLETE. Client
-drivers will do the right thing to clean up the channel after the transfer
-has been completed.
-Check the CCR_ENABLE only if the channel is running and not paused since
-pause in sDMA means that the channel is stopped.
-This will fix one hard to reproduce race condition when the channel is
-terminated during transfer (affecting cyclic operation).
 
-Fixes: 1a7cf7b26f25 ("dmaengine: omap-dma: Handle cases when the channel is polled for completion")
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/omap-dma.c | 22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+On 03/10/2016 06:40 AM, Roger Quadros wrote:
+> Franklin,
+>
+> On 10/03/16 06:07, Franklin S Cooper Jr wrote:
+>> The dma channel information is located within the GPMC node. The NAND
+>> driver requires a handle to the GPMC's dev to properly parse the DMA
+>> properties. Therefore, store a handle to the dev so it can be referenced
+>> within the NAND driver.
+>>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> ---
+>>  drivers/memory/omap-gpmc.c                   | 1 +
+>>  include/linux/platform_data/mtd-nand-omap2.h | 2 ++
+>>  2 files changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+>> index 6515dfc..2932d13 100644
+>> --- a/drivers/memory/omap-gpmc.c
+>> +++ b/drivers/memory/omap-gpmc.c
+>> @@ -1796,6 +1796,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+>>  
+>>  	gpmc_nand_data->cs = val;
+>>  	gpmc_nand_data->of_node = child;
+>> +	gpmc_nand_data->gpmc_dev = &pdev->dev;
+>>  
+>>  	/* Detect availability of ELM module */
+>>  	gpmc_nand_data->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
+>> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+>> index 090bbab..534b984 100644
+>> --- a/include/linux/platform_data/mtd-nand-omap2.h
+>> +++ b/include/linux/platform_data/mtd-nand-omap2.h
+>> @@ -80,5 +80,7 @@ struct omap_nand_platform_data {
+>>  	/* for passing the partitions */
+>>  	struct device_node	*of_node;
+>>  	struct device_node	*elm_of_node;
+>> +
+>> +	struct device		*gpmc_dev;
+>>  };
+>>  #endif
+>>
+> Why do you need this? Can't we just use dev->parent in the omap2-nand driver?
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index f6bef0d93998..a37001f72ebf 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -48,6 +48,7 @@ struct omap_chan {
- 	unsigned dma_sig;
- 	bool cyclic;
- 	bool paused;
-+	bool running;
- 
- 	int dma_ch;
- 	struct omap_desc *desc;
-@@ -294,6 +295,8 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
- 
- 	/* Enable channel */
- 	omap_dma_chan_write(c, CCR, d->ccr | CCR_ENABLE);
-+
-+	c->running = true;
- }
- 
- static void omap_dma_stop(struct omap_chan *c)
-@@ -355,6 +358,8 @@ static void omap_dma_stop(struct omap_chan *c)
- 
- 		omap_dma_chan_write(c, CLNK_CTRL, val);
- 	}
-+
-+	c->running = false;
- }
- 
- static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d)
-@@ -671,15 +676,20 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
- 	struct omap_chan *c = to_omap_dma_chan(chan);
- 	struct virt_dma_desc *vd;
- 	enum dma_status ret;
--	uint32_t ccr;
- 	unsigned long flags;
- 
--	ccr = omap_dma_chan_read(c, CCR);
--	/* The channel is no longer active, handle the completion right away */
--	if (!(ccr & CCR_ENABLE))
--		omap_dma_callback(c->dma_ch, 0, c);
--
- 	ret = dma_cookie_status(chan, cookie, txstate);
-+
-+	if (!c->paused && c->running) {
-+		uint32_t ccr = omap_dma_chan_read(c, CCR);
-+		/*
-+		 * The channel is no longer active, set the return value
-+		 * accordingly
-+		 */
-+		if (!(ccr & CCR_ENABLE))
-+			ret = DMA_COMPLETE;
-+	}
-+
- 	if (ret == DMA_COMPLETE || !txstate)
- 		return ret;
- 
--- 
-2.7.2
+The omap2-nand platform_device is created by
+platform_device_alloc. The created platform_device dev
+parent isn't by default set to the GPMC dev. I didn't think
+this was the right approach to manually set the parent
+property. However, taking a look at other usages of
+platform_device_alloc it seems this is actually pretty
+common. If your ok with this then I can go that route.
+>
+> cheers,
+> -roger
