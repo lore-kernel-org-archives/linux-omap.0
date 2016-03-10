@@ -1,14 +1,11 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v4 1/7] ARM: OMAP2+: gpmc-nand: Set omap2-nand's parent dev to
- GPMC dev
-Date: Thu, 10 Mar 2016 17:56:37 -0600
-Message-ID: <1457654203-20856-2-git-send-email-fcooper@ti.com>
-References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
+Subject: [PATCH v4 0/7] mtd: nand: Fix support for NAND DMA prefetch
+Date: Thu, 10 Mar 2016 17:56:36 -0600
+Message-ID: <1457654203-20856-1-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1457654203-20856-1-git-send-email-fcooper@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -22,62 +19,56 @@ To: nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, rogerq@ti.
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The dma channel information is located within the GPMC node which is the
-NAND's parent node. The NAND driver requires a handle to the GPMC's dev
-to properly parse the DMA properties. Therefore, set the NAND's parent dev
-to the GPMC's dev so it can be referenced within the driver.
+NAND DMA prefetch has been broken for awhile and seems to have only
+worked for SDMA based devices
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
-Version 4 changes:
-Instead of storing the GPMC dev in a new property simply grab a reference
-to it and set omap2-nand's dev.parent to it.
+This patchset fixes DMA prefetch to work on both EDMA and SDMA devices
 
- arch/arm/mach-omap2/gpmc-nand.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+Test on:
+am335x gp evm
+am437x gp evm
+am37x gp evm
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 72918c4..77e453c 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -15,6 +15,7 @@
- #include <linux/omap-gpmc.h>
- #include <linux/mtd/nand.h>
- #include <linux/platform_data/mtd-nand-omap2.h>
-+#include <linux/of_platform.h>
- 
- #include <asm/mach/flash.h>
- 
-@@ -77,6 +78,9 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	int err	= 0;
- 	struct gpmc_settings s;
- 	struct platform_device *pdev;
-+	struct platform_device *gpmc_dev;
-+	struct device_node *gpmc_node;
-+
- 	struct resource gpmc_nand_res[] = {
- 		{ .flags = IORESOURCE_MEM, },
- 		{ .flags = IORESOURCE_IRQ, },
-@@ -134,8 +138,18 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	if (pdev) {
- 		err = platform_device_add_resources(pdev, gpmc_nand_res,
- 						    ARRAY_SIZE(gpmc_nand_res));
--		if (!err)
-+		if (!err) {
- 			pdev->dev.platform_data = gpmc_nand_data;
-+
-+			gpmc_node = of_get_parent(gpmc_nand_data->of_node);
-+
-+			if (gpmc_node) {
-+				gpmc_dev = of_find_device_by_node(gpmc_node);
-+
-+				if (gpmc_dev)
-+					pdev->dev.parent = &gpmc_dev->dev;
-+			}
-+		}
- 	} else {
- 		err = -ENOMEM;
- 	}
+This rev is pretty much the same as v2 which was blocked due to
+dependencies to Roger's update GPMC/NAND rework.
+
+This updated rev removes this dependency.
+
+Also it fixes an issue that was introduced when the eDMA driver was
+recently updated.
+
+Links to rev 3 patchset:
+https://patchwork.ozlabs.org/patch/595631/
+https://patchwork.ozlabs.org/patch/595626/
+https://patchwork.ozlabs.org/patch/595628/
+https://patchwork.ozlabs.org/patch/595630/
+https://patchwork.ozlabs.org/patch/595627/
+https://patchwork.ozlabs.org/patch/595629/
+
+Links to rev 2 patchset:
+https://patchwork.kernel.org/patch/7408691/
+https://patchwork.kernel.org/patch/7408681/
+https://patchwork.kernel.org/patch/7408661/
+https://patchwork.kernel.org/patch/7408641/
+https://patchwork.kernel.org/patch/7408621/
+
+Franklin S Cooper Jr (7):
+  ARM: OMAP2+: gpmc-nand: Set omap2-nand's parent dev to GPMC dev
+  ARM: dts: am33xx: Fix GPMC dma properties
+  ARM: dts: am437x: Fix GPMC dma properties
+  mtd: nand: omap2: Support parsing dma channel information from DT
+  mtd: nand: omap2: Start dma request before enabling prefetch
+  mtd: nand: omap2: Fix high memory dma prefetch transfer
+  ARM: OMAP2+: Update GPMC and NAND DT binding documentation
+
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  7 +++++-
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 +-
+ arch/arm/boot/dts/am33xx.dtsi                      |  2 +-
+ arch/arm/boot/dts/am4372.dtsi                      |  2 +-
+ arch/arm/mach-omap2/gpmc-nand.c                    | 16 ++++++++++++-
+ drivers/mtd/nand/omap2.c                           | 27 +++++++++-------------
+ 6 files changed, 35 insertions(+), 21 deletions(-)
+
 -- 
 2.7.0
 
