@@ -1,71 +1,57 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v6 1/6] ALSA: pcm: add IEC958 channel status helper for
- hw_params
-Date: Thu, 10 Mar 2016 12:24:07 +0700
-Message-ID: <20160310052407.GL3898@sirena.org.uk>
-References: <cover.1457465383.git.jsarha@ti.com>
- <3d9fbdac702b93742841221e3e8d2468a3d18f12.1457465383.git.jsarha@ti.com>
+From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: RE: [PATCH v2 1/2] usb:dwc3: Enable support for 64-bit system
+Date: Thu, 10 Mar 2016 10:15:28 +0200
+Message-ID: <87ziu6d9zz.fsf@intel.com>
+References: <1453731985-13835-1-git-send-email-tqnguyen@apm.com> <0167d2d94eb773138609361a34d88f90@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1410407889=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <3d9fbdac702b93742841221e3e8d2468a3d18f12.1457465383.git.jsarha@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, tomi.valkeinen@ti.com, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0167d2d94eb773138609361a34d88f90-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>"Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---===============1410407889==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="oOpJzULQ70+PGW7h"
-Content-Disposition: inline
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 
---oOpJzULQ70+PGW7h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi,
 
-On Tue, Mar 08, 2016 at 10:14:25PM +0200, Jyri Sarha wrote:
-> Add IEC958 channel status helper that gets the audio properties from
-> snd_pcm_hw_params instead of snd_pcm_runtime. This is needed to
-> produce the channel status bits already in audio stream configuration
-> phase.
+"Thang Q. Nguyen" <tqnguyen-qTEPVZfXA3Y@public.gmane.org> writes:
+> [ text/plain ]
+> Hi,
+> I would like to ask if I need to update anything else for this change?
 
-Takashi, are you OK with this one?
+seems like I don't have original patch in my inbox. Please resend.
 
---oOpJzULQ70+PGW7h
+=2D-=20
+balbi
+
+--=-=-=
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQEcBAEBCAAGBQJW4QTxAAoJECTWi3JdVIfQLWAH/2FZ08qtvMqhvuRBc2aFaq2v
-K6QQXxBCw4Ipy0ZshaZoADsM9dieZVeMppUyG6jm2/gt4e9zlqcQ8f2mseuB2XwV
-BTaiAgm8SCi/T1W70tIQ5ZyCEZu6lhHoOIB8XAskN/qJxd1tSdf3BqEdYfoaFMX2
-aMp+BigFdRHYRh1M62b8FDR5SUSCZ1J9tN77X2s9dWgFaUNoXRsJcGPr8E8OegTu
-qUgBcO9ZAZh9Rsx3+tp0w9vX++XAbniIW3Zxl7A+BnvowOMsj1kZcCZuLeRNeFPI
-aBuOG71ffyDHcy1y/6FWqTV2me2jl8utjAywldZflshtCNwKW2gIvOtvaUqLiUw=
-=8RvK
+iQIcBAEBAgAGBQJW4S0gAAoJEIaOsuA1yqREcjQQAJdXJlzGWXTNUkB8FobS7CLA
+tqrKHoxXGduHL0w48ULrrjcoMySkf8bI4jkp3eqP6ZSikRkCi80e7IKIyN1EPg/N
+11ufdNjHfaFp0Z6o3Ns+5Oy64xYDM5/JcNtl/m/rFlMz3OXdgBN8JooApP5Ed8Yr
+e8/lI0LJAgW302ucOl8pJZzxy6iaJBzzJ2WPH/l8u/0l98r9L68H1CQOb8UEAjmU
+FbIWhA8vWlT+3/M0he+uG2JMDzYXV0k/dvx56NWIvvWj4Tj32rEeUYeUgDGku1Uu
+GSwsOQko386htbuno+HuP1YouMOTuwYuEE1Ju6nIn8Yx+TR7OzpsDZsiT4DZLxwh
+ZMqC4lpV1aoATYIEdGoAlXPVgDFFzUYqqUwmOncP9MLOSOsdQI4QPDUKP+fMp/C/
+57bg0jhtJUCvV44GuBiV9VIU+EmwgEnVFs4PgG5RHHfJkSdRGhbJQxXUKeg7/ac5
+hQbCpN5vXaNlIylBx3dMN/j71jkUT8YLnW/GESdvzx3rw5/BVT3doQAAEmId0Ve+
+BCWxHf7ydX1T3jz7mf+ctRwDQf8a/uLNEmKJqzGngi4UVE7PlWbrgi6zYeHsJrCF
+LHgPkEdQoWslL1F0gzomD+397I+ryUhezOG4Qv2E18Nr1PbrpIA/7vOKyP/4+y6k
+Afsof2LmqTaLMsZ/+OjP
+=O6lo
 -----END PGP SIGNATURE-----
-
---oOpJzULQ70+PGW7h--
-
---===============1410407889==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1410407889==--
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
