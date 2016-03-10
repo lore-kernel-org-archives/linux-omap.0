@@ -1,63 +1,67 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 1/6] memory: omap-gpmc: Store handle to GPMC dev
-Date: Thu, 10 Mar 2016 14:40:00 +0200
-Message-ID: <56E16B20.5070001@ti.com>
-References: <1457582861-20619-1-git-send-email-fcooper@ti.com>
- <1457582861-20619-2-git-send-email-fcooper@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v6 5/6] drm/i2c: tda998x: Register ASoC hdmi-codec and add
+ audio DT binding
+Date: Thu, 10 Mar 2016 14:44:20 +0200
+Message-ID: <56E16C24.3070207@ti.com>
+References: <201603092102.WhNJg52h%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457582861-20619-2-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <201603092102.WhNJg52h%fengguang.wu@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: kbuild test robot <lkp@intel.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, kbuild-all@01.org, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Franklin,
-
-On 10/03/16 06:07, Franklin S Cooper Jr wrote:
-> The dma channel information is located within the GPMC node. The NAND
-> driver requires a handle to the GPMC's dev to properly parse the DMA
-> properties. Therefore, store a handle to the dev so it can be referenced
-> within the NAND driver.
-> 
-> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/memory/omap-gpmc.c                   | 1 +
->  include/linux/platform_data/mtd-nand-omap2.h | 2 ++
->  2 files changed, 3 insertions(+)
-> 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index 6515dfc..2932d13 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -1796,6 +1796,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
->  
->  	gpmc_nand_data->cs = val;
->  	gpmc_nand_data->of_node = child;
-> +	gpmc_nand_data->gpmc_dev = &pdev->dev;
->  
->  	/* Detect availability of ELM module */
->  	gpmc_nand_data->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
-> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-> index 090bbab..534b984 100644
-> --- a/include/linux/platform_data/mtd-nand-omap2.h
-> +++ b/include/linux/platform_data/mtd-nand-omap2.h
-> @@ -80,5 +80,7 @@ struct omap_nand_platform_data {
->  	/* for passing the partitions */
->  	struct device_node	*of_node;
->  	struct device_node	*elm_of_node;
-> +
-> +	struct device		*gpmc_dev;
->  };
->  #endif
-> 
-
-Why do you need this? Can't we just use dev->parent in the omap2-nand driver?
-
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMDMvMDkvMTYgMTU6NTIsIGtidWlsZCB0ZXN0IHJvYm90IHdyb3RlOgo+IEhpIEp5cmksCj4K
+PiBbYXV0byBidWlsZCB0ZXN0IFdBUk5JTkcgb24gZHJtL2RybS1uZXh0XQo+IFthbHNvIGJ1aWxk
+IHRlc3QgV0FSTklORyBvbiB2NC41LXJjNyBuZXh0LTIwMTYwMzA5XQo+IFtpZiB5b3VyIHBhdGNo
+IGlzIGFwcGxpZWQgdG8gdGhlIHdyb25nIGdpdCB0cmVlLCBwbGVhc2UgZHJvcCB1cyBhIG5vdGUg
+dG8gaGVscCBpbXByb3ZpbmcgdGhlIHN5c3RlbV0KPgo+IHVybDogICAgaHR0cHM6Ly9naXRodWIu
+Y29tLzBkYXktY2kvbGludXgvY29tbWl0cy9KeXJpLVNhcmhhL0ltcGxlbWVudC1nZW5lcmljLUFT
+b0MtSERNSS1jb2RlYy1hbmQtdXNlLWl0LWluLXRkYTk5OHgvMjAxNjAzMDktMDQxODIxCj4gYmFz
+ZTogICBnaXQ6Ly9wZW9wbGUuZnJlZWRlc2t0b3Aub3JnL35haXJsaWVkL2xpbnV4LmdpdCBkcm0t
+bmV4dAo+IGNvbmZpZzogeDg2XzY0LXJoZWwgKGF0dGFjaGVkIGFzIC5jb25maWcpCj4gcmVwcm9k
+dWNlOgo+ICAgICAgICAgICMgc2F2ZSB0aGUgYXR0YWNoZWQgLmNvbmZpZyB0byBsaW51eCBidWls
+ZCB0cmVlCj4gICAgICAgICAgbWFrZSBBUkNIPXg4Nl82NAo+Cj4gQWxsIHdhcm5pbmdzIChuZXcg
+b25lcyBwcmVmaXhlZCBieSA+Pik6Cj4KPiAgICAgZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4
+X2Rydi5jOiBJbiBmdW5jdGlvbiAndGRhOTk4eF9nZXRfYXVkaW9fcG9ydHMnOgo+Pj4gZHJpdmVy
+cy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jOjEzNDU6Nzogd2FybmluZzogJ3NpemUnIGlzIHVz
+ZWQgdW5pbml0aWFsaXplZCBpbiB0aGlzIGZ1bmN0aW9uIFstV3VuaW5pdGlhbGl6ZWRdCj4gICAg
+ICAgc2l6ZSAvPSBzaXplb2YodTMyKTsKPiAgICAgICAgICAgIF4KPgo+IHZpbSArL3NpemUgKzEz
+NDUgZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jCj4KPiAgICAxMzI5CQlpZiAoSVNf
+RVJSKHByaXYtPmF1ZGlvX3BkZXYpKQo+ICAgIDEzMzAJCQlyZXR1cm4gUFRSX0VSUihwcml2LT5h
+dWRpb19wZGV2KTsKPiAgICAxMzMxCQo+ICAgIDEzMzIJCXJldHVybiAwOwo+ICAgIDEzMzMJfQo+
+ICAgIDEzMzQJCj4gICAgMTMzNQkvKiBJMkMgZHJpdmVyIGZ1bmN0aW9ucyAqLwo+ICAgIDEzMzYJ
+Cj4gICAgMTMzNwlzdGF0aWMgaW50IHRkYTk5OHhfZ2V0X2F1ZGlvX3BvcnRzKHN0cnVjdCB0ZGE5
+OTh4X3ByaXYgKnByaXYsCj4gICAgMTMzOAkJCQkJICAgc3RydWN0IGRldmljZV9ub2RlICpucCkK
+PiAgICAxMzM5CXsKPiAgICAxMzQwCQljb25zdCB1MzIgKnBvcnRfZGF0YTsKPiAgICAxMzQxCQl1
+MzIgc2l6ZTsKPiAgICAxMzQyCQlpbnQgaTsKPiAgICAxMzQzCQo+ICAgIDEzNDQJCXBvcnRfZGF0
+YSA9IG9mX2dldF9wcm9wZXJ0eShucCwgImF1ZGlvLXBvcnRzIiwgJnNpemUpOwogPj4gMTM0NQkJ
+c2l6ZSAvPSBzaXplb2YodTMyKTsKCk9vcHMsIHRoYXQgaXMgYSByZWFsIGJ1Zy4gSSBzaG91bGQg
+dGVzdCBpZiBwb3J0X2RhdGEgaXMgbm90IG51bGwgYmVmb3JlIAphc3N1bWluZyB0aGF0IHRoZSBz
+aXplIGhhcyBiZWVuIHNldCAoL21lIHRoaW5rcyB0aGF0IGhlIGhhZCB0aGF0IGxpbmUgCnRoZXJl
+IGF0IHNvbWUgcG9pbnQgYnV0IHRoZW4gaXQgdmFuaXNoZWQpLiBBY3R1YWxseSBpbml0aWFsaXpp
+bmcgc2l6ZSB0byAKMCB3b3VsZCBiZSBlbm91Z2gsIGJ1dCBJIHRoaW5rIEknbGwgZG8gdGhlIGJv
+dGgganVzdCB0byBiZSBtb3JlIGV4cGxpY2l0LgoKQW5kIEknbGwgc3RhcnQgdXNpbmcgUFRSX0VS
+Ul9PUl9aRVJPKCkgd2hpbGUgSSBhbSBhdCBpdC4KCj4gICAgMTM0NgkKPiAgICAxMzQ3CQlpZiAo
+c2l6ZSA+IDIgKiBBUlJBWV9TSVpFKHByaXYtPmF1ZGlvX3BvcnQpIHx8IHNpemUgJSAyICE9IDAp
+IHsKPiAgICAxMzQ4CQkJZGV2X2VycigmcHJpdi0+aGRtaS0+ZGV2LAo+ICAgIDEzNDkJCQkJIkJh
+ZCBudW1iZXIgb2YgZWxlbWVudHMgaW4gYXVkaW8tcG9ydHMgZHQtcHJvcGVydHlcbiIpOwo+ICAg
+IDEzNTAJCQlyZXR1cm4gLUVJTlZBTDsKPiAgICAxMzUxCQl9Cj4gICAgMTM1MgkKPiAgICAxMzUz
+CQlzaXplIC89IDI7Cj4KPiAtLS0KPiAwLURBWSBrZXJuZWwgdGVzdCBpbmZyYXN0cnVjdHVyZSAg
+ICAgICAgICAgICAgICBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlcgo+IGh0dHBzOi8vbGlz
+dHMuMDEub3JnL3BpcGVybWFpbC9rYnVpbGQtYWxsICAgICAgICAgICAgICAgICAgIEludGVsIENv
+cnBvcmF0aW9uCj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
+bAo=
