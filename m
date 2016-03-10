@@ -1,67 +1,72 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v6 5/6] drm/i2c: tda998x: Register ASoC hdmi-codec and add
- audio DT binding
-Date: Thu, 10 Mar 2016 14:44:20 +0200
-Message-ID: <56E16C24.3070207@ti.com>
-References: <201603092102.WhNJg52h%fengguang.wu@intel.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 2/6] ARM: dts: am437x/am33xx: Fix GPMC dma properties
+Date: Thu, 10 Mar 2016 14:51:11 +0200
+Message-ID: <56E16DBF.40409@ti.com>
+References: <1457582861-20619-1-git-send-email-fcooper@ti.com>
+ <1457582861-20619-3-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <201603092102.WhNJg52h%fengguang.wu@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: kbuild test robot <lkp@intel.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, tomi.valkeinen@ti.com, arnaud.pouliquen@st.com, dri-devel@lists.freedesktop.org, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, kbuild-all@01.org, bcousson@baylibre.com, rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1457582861-20619-3-git-send-email-fcooper@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Franklin S Cooper Jr <fcooper@ti.com>, nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDMvMDkvMTYgMTU6NTIsIGtidWlsZCB0ZXN0IHJvYm90IHdyb3RlOgo+IEhpIEp5cmksCj4K
-PiBbYXV0byBidWlsZCB0ZXN0IFdBUk5JTkcgb24gZHJtL2RybS1uZXh0XQo+IFthbHNvIGJ1aWxk
-IHRlc3QgV0FSTklORyBvbiB2NC41LXJjNyBuZXh0LTIwMTYwMzA5XQo+IFtpZiB5b3VyIHBhdGNo
-IGlzIGFwcGxpZWQgdG8gdGhlIHdyb25nIGdpdCB0cmVlLCBwbGVhc2UgZHJvcCB1cyBhIG5vdGUg
-dG8gaGVscCBpbXByb3ZpbmcgdGhlIHN5c3RlbV0KPgo+IHVybDogICAgaHR0cHM6Ly9naXRodWIu
-Y29tLzBkYXktY2kvbGludXgvY29tbWl0cy9KeXJpLVNhcmhhL0ltcGxlbWVudC1nZW5lcmljLUFT
-b0MtSERNSS1jb2RlYy1hbmQtdXNlLWl0LWluLXRkYTk5OHgvMjAxNjAzMDktMDQxODIxCj4gYmFz
-ZTogICBnaXQ6Ly9wZW9wbGUuZnJlZWRlc2t0b3Aub3JnL35haXJsaWVkL2xpbnV4LmdpdCBkcm0t
-bmV4dAo+IGNvbmZpZzogeDg2XzY0LXJoZWwgKGF0dGFjaGVkIGFzIC5jb25maWcpCj4gcmVwcm9k
-dWNlOgo+ICAgICAgICAgICMgc2F2ZSB0aGUgYXR0YWNoZWQgLmNvbmZpZyB0byBsaW51eCBidWls
-ZCB0cmVlCj4gICAgICAgICAgbWFrZSBBUkNIPXg4Nl82NAo+Cj4gQWxsIHdhcm5pbmdzIChuZXcg
-b25lcyBwcmVmaXhlZCBieSA+Pik6Cj4KPiAgICAgZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4
-X2Rydi5jOiBJbiBmdW5jdGlvbiAndGRhOTk4eF9nZXRfYXVkaW9fcG9ydHMnOgo+Pj4gZHJpdmVy
-cy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jOjEzNDU6Nzogd2FybmluZzogJ3NpemUnIGlzIHVz
-ZWQgdW5pbml0aWFsaXplZCBpbiB0aGlzIGZ1bmN0aW9uIFstV3VuaW5pdGlhbGl6ZWRdCj4gICAg
-ICAgc2l6ZSAvPSBzaXplb2YodTMyKTsKPiAgICAgICAgICAgIF4KPgo+IHZpbSArL3NpemUgKzEz
-NDUgZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jCj4KPiAgICAxMzI5CQlpZiAoSVNf
-RVJSKHByaXYtPmF1ZGlvX3BkZXYpKQo+ICAgIDEzMzAJCQlyZXR1cm4gUFRSX0VSUihwcml2LT5h
-dWRpb19wZGV2KTsKPiAgICAxMzMxCQo+ICAgIDEzMzIJCXJldHVybiAwOwo+ICAgIDEzMzMJfQo+
-ICAgIDEzMzQJCj4gICAgMTMzNQkvKiBJMkMgZHJpdmVyIGZ1bmN0aW9ucyAqLwo+ICAgIDEzMzYJ
-Cj4gICAgMTMzNwlzdGF0aWMgaW50IHRkYTk5OHhfZ2V0X2F1ZGlvX3BvcnRzKHN0cnVjdCB0ZGE5
-OTh4X3ByaXYgKnByaXYsCj4gICAgMTMzOAkJCQkJICAgc3RydWN0IGRldmljZV9ub2RlICpucCkK
-PiAgICAxMzM5CXsKPiAgICAxMzQwCQljb25zdCB1MzIgKnBvcnRfZGF0YTsKPiAgICAxMzQxCQl1
-MzIgc2l6ZTsKPiAgICAxMzQyCQlpbnQgaTsKPiAgICAxMzQzCQo+ICAgIDEzNDQJCXBvcnRfZGF0
-YSA9IG9mX2dldF9wcm9wZXJ0eShucCwgImF1ZGlvLXBvcnRzIiwgJnNpemUpOwogPj4gMTM0NQkJ
-c2l6ZSAvPSBzaXplb2YodTMyKTsKCk9vcHMsIHRoYXQgaXMgYSByZWFsIGJ1Zy4gSSBzaG91bGQg
-dGVzdCBpZiBwb3J0X2RhdGEgaXMgbm90IG51bGwgYmVmb3JlIAphc3N1bWluZyB0aGF0IHRoZSBz
-aXplIGhhcyBiZWVuIHNldCAoL21lIHRoaW5rcyB0aGF0IGhlIGhhZCB0aGF0IGxpbmUgCnRoZXJl
-IGF0IHNvbWUgcG9pbnQgYnV0IHRoZW4gaXQgdmFuaXNoZWQpLiBBY3R1YWxseSBpbml0aWFsaXpp
-bmcgc2l6ZSB0byAKMCB3b3VsZCBiZSBlbm91Z2gsIGJ1dCBJIHRoaW5rIEknbGwgZG8gdGhlIGJv
-dGgganVzdCB0byBiZSBtb3JlIGV4cGxpY2l0LgoKQW5kIEknbGwgc3RhcnQgdXNpbmcgUFRSX0VS
-Ul9PUl9aRVJPKCkgd2hpbGUgSSBhbSBhdCBpdC4KCj4gICAgMTM0NgkKPiAgICAxMzQ3CQlpZiAo
-c2l6ZSA+IDIgKiBBUlJBWV9TSVpFKHByaXYtPmF1ZGlvX3BvcnQpIHx8IHNpemUgJSAyICE9IDAp
-IHsKPiAgICAxMzQ4CQkJZGV2X2VycigmcHJpdi0+aGRtaS0+ZGV2LAo+ICAgIDEzNDkJCQkJIkJh
-ZCBudW1iZXIgb2YgZWxlbWVudHMgaW4gYXVkaW8tcG9ydHMgZHQtcHJvcGVydHlcbiIpOwo+ICAg
-IDEzNTAJCQlyZXR1cm4gLUVJTlZBTDsKPiAgICAxMzUxCQl9Cj4gICAgMTM1MgkKPiAgICAxMzUz
-CQlzaXplIC89IDI7Cj4KPiAtLS0KPiAwLURBWSBrZXJuZWwgdGVzdCBpbmZyYXN0cnVjdHVyZSAg
-ICAgICAgICAgICAgICBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlcgo+IGh0dHBzOi8vbGlz
-dHMuMDEub3JnL3BpcGVybWFpbC9rYnVpbGQtYWxsICAgICAgICAgICAgICAgICAgIEludGVsIENv
-cnBvcmF0aW9uCj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
-bAo=
+On 10/03/16 06:07, Franklin S Cooper Jr wrote:
+> Recent patch series that updated the eDMA driver also updated the eDMA
+> bindings.
+> 
+> The following patches forgot to update the DMA bindings for the GPMC node.
+> ARM: DTS: am33xx: Use the new DT bindings for the eDMA3
+> ARM: DTS: am437x: Use the new DT bindings for the eDMA3
+
+Instead of mentioning the patch subject here use the Fixes: tag.
+
+> 
+> This patch corrects this so NAND with DMA prefetch can work.
+> 
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+
+Please split this patch in to am33xx.dtsi and am4372.dtsi
+
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 2 +-
+>  arch/arm/boot/dts/am4372.dtsi | 2 +-
+
+what about dm816x.dtsi and dm814x.dtsi?
+
+I suppose sdma based SoCs are not affected like this right?
+
+cheers,
+-roger
+
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 1fafaad..97471d6 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -860,7 +860,7 @@
+>  			ti,no-idle-on-init;
+>  			reg = <0x50000000 0x2000>;
+>  			interrupts = <100>;
+> -			dmas = <&edma 52>;
+> +			dmas = <&edma 52 0>;
+>  			dma-names = "rxtx";
+>  			gpmc,num-cs = <7>;
+>  			gpmc,num-waitpins = <2>;
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 92068fb..2878b04 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -884,7 +884,7 @@
+>  		gpmc: gpmc@50000000 {
+>  			compatible = "ti,am3352-gpmc";
+>  			ti,hwmods = "gpmc";
+> -			dmas = <&edma 52>;
+> +			dmas = <&edma 52 0>;
+>  			dma-names = "rxtx";
+>  			clocks = <&l3s_gclk>;
+>  			clock-names = "fck";
+> 
