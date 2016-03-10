@@ -1,49 +1,69 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v3 1/6] memory: omap-gpmc: Store handle to GPMC dev
-Date: Wed,  9 Mar 2016 22:07:36 -0600
-Message-ID: <1457582861-20619-2-git-send-email-fcooper@ti.com>
-References: <1457582861-20619-1-git-send-email-fcooper@ti.com>
+From: "Thang Q. Nguyen" <tqnguyen@apm.com>
+Subject: RE: [PATCH v2 1/2] usb:dwc3: Enable support for 64-bit system
+Date: Thu, 10 Mar 2016 11:09:29 +0700
+Message-ID: <0167d2d94eb773138609361a34d88f90@mail.gmail.com>
+References: <1453731985-13835-1-git-send-email-tqnguyen@apm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457582861-20619-1-git-send-email-fcooper@ti.com>
+In-Reply-To: <1453731985-13835-1-git-send-email-tqnguyen@apm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, rogerq@ti.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+To: "Thang Q. Nguyen" <tqnguyen@apm.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm@lists.infradead.org
+Cc: Phong Vo <pvo@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>
 List-Id: linux-omap@vger.kernel.org
 
-The dma channel information is located within the GPMC node. The NAND
-driver requires a handle to the GPMC's dev to properly parse the DMA
-properties. Therefore, store a handle to the dev so it can be referenced
-within the NAND driver.
+Hi,
+I would like to ask if I need to update anything else for this change?
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+Thanks,
+Thang Q. Nguyen -
+-----Original Message-----
+From: Thang Q. Nguyen [mailto:tqnguyen@apm.com]
+Sent: Monday, January 25, 2016 9:26 PM
+To: Felipe Balbi; Greg Kroah-Hartman; linux-usb@vger.kernel.org;
+linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+linux-arm@lists.infradead.org
+Cc: Thang Nguyen; Phong Vo; Loc Ho; patches@apm.com
+Subject: [PATCH v2 1/2] usb:dwc3: Enable support for 64-bit system
+
+Add 64-bit DMA operation support to the USB DWC3 driver.
+First attempt to set the coherent DMA mask for 64-bit DMA.
+If that failed, attempt again with 32-bit DMA.
+
+Signed-off-by: Thang Q. Nguyen <tqnguyen@apm.com>
 ---
- drivers/memory/omap-gpmc.c                   | 1 +
- include/linux/platform_data/mtd-nand-omap2.h | 2 ++
- 2 files changed, 3 insertions(+)
+Changes from v1:
+	- Remove WARN_ON if dma_mask is NULL
 
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index 6515dfc..2932d13 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -1796,6 +1796,7 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
- 
- 	gpmc_nand_data->cs = val;
- 	gpmc_nand_data->of_node = child;
-+	gpmc_nand_data->gpmc_dev = &pdev->dev;
- 
- 	/* Detect availability of ELM module */
- 	gpmc_nand_data->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index 090bbab..534b984 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -80,5 +80,7 @@ struct omap_nand_platform_data {
- 	/* for passing the partitions */
- 	struct device_node	*of_node;
- 	struct device_node	*elm_of_node;
+ drivers/usb/dwc3/core.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c index
+de5e01f..2479c24 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -831,6 +831,21 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	dwc->mem = mem;
+ 	dwc->dev = dev;
+
++	/* Try to set 64-bit DMA first */
++	if (!pdev->dev.dma_mask)
++		/* Platform did not initialize dma_mask */
++		ret = dma_coerce_mask_and_coherent(&pdev->dev,
++						   DMA_BIT_MASK(64));
++	else
++		ret = dma_set_mask_and_coherent(&pdev->dev,
+DMA_BIT_MASK(64));
 +
-+	struct device		*gpmc_dev;
- };
- #endif
--- 
-2.7.0
++	/* If seting 64-bit DMA mask fails, fall back to 32-bit DMA mask
+*/
++	if (ret) {
++		ret = dma_set_mask_and_coherent(&pdev->dev,
+DMA_BIT_MASK(32));
++		if (ret)
++			return ret;
++	}
++
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (!res) {
+ 		dev_err(dev, "missing IRQ\n");
