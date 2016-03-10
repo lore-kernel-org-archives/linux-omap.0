@@ -1,33 +1,50 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 0/2] dmaengine: omap-dma: Fix polled completion
-Date: Thu, 10 Mar 2016 15:28:45 +0200
-Message-ID: <1457616527-979-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 2/2] dmaengine: omap-dma: Do not suppress interrupts for
+ memcpy
+Date: Thu, 10 Mar 2016 15:28:47 +0200
+Message-ID: <1457616527-979-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1457616527-979-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1457616527-979-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: vinod.koul@intel.com, linux@arm.linux.org.uk
 Cc: dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+If the client queues up more transfers the driver will not able to move to
+the next transfer without knowing that the previous descriptor is
+completed.
 
-Based on the discussion on the first version:
-https://lkml.org/lkml/2016/2/25/167
-
-I have fixed the omap_dma_tx_status() - first patch and added the second patch
-to not disable the interrupts for memcpy so multiple transfers can be queued.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (2):
-  dmaengine: omap-dma: Fix polled channel completion detection and
-    handling
-  dmaengine: omap-dma: Do not suppress interrupts for memcpy
+ drivers/dma/omap-dma.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
- drivers/dma/omap-dma.c | 26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
-
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index a37001f72ebf..f7498681be82 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -953,9 +953,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_memcpy(
+ 	d->ccr = c->ccr;
+ 	d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_POSTINC;
+ 
+-	d->cicr = CICR_DROP_IE;
+-	if (tx_flags & DMA_PREP_INTERRUPT)
+-		d->cicr |= CICR_FRAME_IE;
++	d->cicr = CICR_DROP_IE | CICR_FRAME_IE;
+ 
+ 	d->csdp = data_type;
+ 
 -- 
 2.7.2
