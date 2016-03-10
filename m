@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v4 6/7] mtd: nand: omap2: Fix high memory dma prefetch transfer
-Date: Thu, 10 Mar 2016 17:56:42 -0600
-Message-ID: <1457654203-20856-7-git-send-email-fcooper@ti.com>
+Subject: [PATCH v4 5/7] mtd: nand: omap2: Start dma request before enabling prefetch
+Date: Thu, 10 Mar 2016 17:56:41 -0600
+Message-ID: <1457654203-20856-6-git-send-email-fcooper@ti.com>
 References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457654203-20856-1-git-send-email-fcooper@ti.com>
@@ -10,50 +10,51 @@ To: nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, rogerq@ti.
 Cc: Franklin S Cooper Jr <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Based on DMA documentation and testing using high memory buffer when
-doing dma transfers can lead to various issues including kernel
-panics.
+The prefetch engine sends a dma request once a FIFO threshold has
+been met. No other requests are received until the previous request
+is handled.
 
-To workaround this simply use cpu copy. The amount of high memory
-buffers used are very uncommon so no noticeable performance hit should
-be seen.
+Starting an edma transfer (dma_async_issue_pending) results in any
+previous event for the dma channel to be cleared. Therefore, starting
+the prefetch engine before initiating the dma transfer may result in
+the prefetch triggering a dma request but instead of it being handled
+it can end up being cleared. This will result in a hang since the code
+will continue to wait for the dma request to complete.
+
+By initiating the dma request before enabling the prefetch engine this
+race condition is avoided and no dma request are missed/cleared.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ drivers/mtd/nand/omap2.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 0863a83..22b0112 100644
+index 95bc636..0863a83 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -467,17 +467,8 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
- 	int ret;
- 	u32 val;
+@@ -497,6 +497,11 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 	tx->callback_param = &info->comp;
+ 	dmaengine_submit(tx);
  
--	if (addr >= high_memory) {
--		struct page *p1;
--
--		if (((size_t)addr & PAGE_MASK) !=
--			((size_t)(addr + len - 1) & PAGE_MASK))
--			goto out_copy;
--		p1 = vmalloc_to_page(addr);
--		if (!p1)
--			goto out_copy;
--		addr = page_address(p1) + ((size_t)addr & ~PAGE_MASK);
--	}
-+	if (addr >= high_memory)
-+		goto out_copy;
- 
- 	sg_init_one(&sg, addr, len);
- 	n = dma_map_sg(info->dma->device->dev, &sg, 1, dir);
-@@ -534,6 +525,7 @@ out_copy:
- 	else
- 		is_write == 0 ? omap_read_buf8(mtd, (u_char *) addr, len)
- 			: omap_write_buf8(mtd, (u_char *) addr, len);
++	init_completion(&info->comp);
 +
- 	return 0;
- }
++	/* setup and start DMA using dma_addr */
++	dma_async_issue_pending(info->dma);
++
+ 	/*  configure and start prefetch transfer */
+ 	ret = omap_prefetch_enable(info->gpmc_cs,
+ 		PREFETCH_FIFOTHRESHOLD_MAX, 0x1, len, is_write, info);
+@@ -504,10 +509,6 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 		/* PFPW engine is busy, use cpu copy method */
+ 		goto out_copy_unmap;
  
+-	init_completion(&info->comp);
+-	dma_async_issue_pending(info->dma);
+-
+-	/* setup and start DMA using dma_addr */
+ 	wait_for_completion(&info->comp);
+ 	tim = 0;
+ 	limit = (loops_per_jiffy * msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
 -- 
 2.7.0
