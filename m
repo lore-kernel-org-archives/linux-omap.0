@@ -1,43 +1,34 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH v4 4/7] mtd: nand: omap2: Support parsing dma channel information from DT
-Date: Thu, 10 Mar 2016 17:56:40 -0600
-Message-ID: <1457654203-20856-5-git-send-email-fcooper@ti.com>
-References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457654203-20856-1-git-send-email-fcooper@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, rogerq@ti.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Tons of "no unit name" spam with make dtbs
+Date: Thu, 10 Mar 2016 19:23:23 -0600
+Message-ID: <CAL_JsqJswSBTf+5Vdv2gg05nUg1008vPeh5MYDO_7WHAc=Dndw@mail.gmail.com>
+References: <20160310180745.GD9329@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160310180745.GD9329-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Switch from dma_request_channel to allow passing dma channel
-information from DT rather than hardcoding a value.
+On Thu, Mar 10, 2016 at 12:07 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> Hey Rob,
+>
+> I'm seeing tons of dtc spam with make dtbs (about 23k lines
+> with multi_v7_defconfig!) with commit fa38a82096a1 ("scripts/dtc:
+> Update to upstream version 53bf130b1cdd").
+>
+> Introducing something like this few days with merge window
+> about to open seems to be in the "a bit intrusive" category
+> to me :)
+>
+> Probably some of these changes should be reverted?
 
-Also provide a handle to the GPMC's dev so it can be used to parse the DMA
-channel information within the GPMC's DT node.
+It is in -next, but I'm not planning to send to Linus this cycle.
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
-Version 4 changes:
-Pass parent instead of new variable from the platform data
-
- drivers/mtd/nand/omap2.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index c553f78..95bc636 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1731,7 +1731,9 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		dma_cap_zero(mask);
- 		dma_cap_set(DMA_SLAVE, mask);
- 		sig = OMAP24XX_DMA_GPMC;
--		info->dma = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-+		info->dma = dma_request_slave_channel_compat(mask,
-+			omap_dma_filter_fn, &sig, pdev->dev.parent, "rxtx");
-+
- 		if (!info->dma) {
- 			dev_err(&pdev->dev, "DMA engine request failed\n");
- 			err = -ENXIO;
--- 
-2.7.0
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
