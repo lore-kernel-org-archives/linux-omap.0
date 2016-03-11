@@ -1,62 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 3/7] ARM: dts: am437x: Fix GPMC dma properties
-Date: Fri, 11 Mar 2016 16:03:13 +0200
-Message-ID: <56E2D021.5010805@ti.com>
-References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
- <1457654203-20856-4-git-send-email-fcooper@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] clk: ti: dra7-atl-clock: Fix of_node reference counting
+Date: Fri, 11 Mar 2016 16:13:32 +0200
+Message-ID: <1457705612-7684-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457654203-20856-4-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org
+Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On 03/11/2016 01:56 AM, Franklin S Cooper Jr wrote:
-> This patch updates the GPMC's DT DMA property to reflect the updated =
-eDMA
-> bindings.
->=20
-> Fixes: cce1ee000187 ("ARM: DTS: am437x: Use the new DT bindings for t=
-he eDMA3")
+of_find_node_by_name() will call of_node_put() on the node so we need to
+get it first to avoid warnings.
+The cfg_node needs to be put after we have finished processing the
+properties.
 
-I have also converted all users of the edma back when I sent, I guess t=
-he gpmc
-DMA binding went in parallel...
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/clk/ti/clk-dra7-atl.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+index 2e14dfb588f4..c77333230bdf 100644
+--- a/drivers/clk/ti/clk-dra7-atl.c
++++ b/drivers/clk/ti/clk-dra7-atl.c
+@@ -265,6 +265,7 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
+ 
+ 		/* Get configuration for the ATL instances */
+ 		snprintf(prop, sizeof(prop), "atl%u", i);
++		of_node_get(node);
+ 		cfg_node = of_find_node_by_name(node, prop);
+ 		if (cfg_node) {
+ 			ret = of_property_read_u32(cfg_node, "bws",
+@@ -278,6 +279,7 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
+ 				atl_write(cinfo, DRA7_ATL_AWSMUX_REG(i),
+ 					  cdesc->aws);
+ 			}
++			of_node_put(cfg_node);
+ 		}
+ 
+ 		cdesc->probed = true;
+-- 
+2.7.2
 
->=20
-> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
-> ---
-> Version 4 changes:
-> Split into its own commit. Use proper Fixes syntax.
->=20
->  arch/arm/boot/dts/am4372.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372=
-=2Edtsi
-> index 92068fb..2878b04 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -884,7 +884,7 @@
->  		gpmc: gpmc@50000000 {
->  			compatible =3D "ti,am3352-gpmc";
->  			ti,hwmods =3D "gpmc";
-> -			dmas =3D <&edma 52>;
-> +			dmas =3D <&edma 52 0>;
->  			dma-names =3D "rxtx";
->  			clocks =3D <&l3s_gclk>;
->  			clock-names =3D "fck";
->=20
-
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
