@@ -1,60 +1,86 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: Tons of "no unit name" spam with make dtbs
-Date: Fri, 11 Mar 2016 11:16:44 +0000
-Message-ID: <20160311111644.GQ5783@n2100.arm.linux.org.uk>
-References: <20160310180745.GD9329@atomide.com>
- <CAL_JsqJswSBTf+5Vdv2gg05nUg1008vPeh5MYDO_7WHAc=Dndw@mail.gmail.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 1/7] ARM: OMAP2+: gpmc-nand: Set omap2-nand's parent
+ dev to GPMC dev
+Date: Fri, 11 Mar 2016 15:52:55 +0200
+Message-ID: <56E2CDB7.2080306@ti.com>
+References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
+ <1457654203-20856-2-git-send-email-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqJswSBTf+5Vdv2gg05nUg1008vPeh5MYDO_7WHAc=Dndw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1457654203-20856-2-git-send-email-fcooper-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 07:23:23PM -0600, Rob Herring wrote:
-> On Thu, Mar 10, 2016 at 12:07 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > Hey Rob,
-> >
-> > I'm seeing tons of dtc spam with make dtbs (about 23k lines
-> > with multi_v7_defconfig!) with commit fa38a82096a1 ("scripts/dtc:
-> > Update to upstream version 53bf130b1cdd").
-> >
-> > Introducing something like this few days with merge window
-> > about to open seems to be in the "a bit intrusive" category
-> > to me :)
-> >
-> > Probably some of these changes should be reverted?
+Franklin,
+
+On 11/03/16 01:56, Franklin S Cooper Jr wrote:
+> The dma channel information is located within the GPMC node which is the
+> NAND's parent node. The NAND driver requires a handle to the GPMC's dev
+> to properly parse the DMA properties. Therefore, set the NAND's parent dev
+> to the GPMC's dev so it can be referenced within the driver.
 > 
-> It is in -next, but I'm not planning to send to Linus this cycle.
+> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+> ---
+> Version 4 changes:
+> Instead of storing the GPMC dev in a new property simply grab a reference
+> to it and set omap2-nand's dev.parent to it.
+> 
+>  arch/arm/mach-omap2/gpmc-nand.c | 16 +++++++++++++++-
+>  1 file changed, 15 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index 72918c4..77e453c 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/omap-gpmc.h>
+>  #include <linux/mtd/nand.h>
+>  #include <linux/platform_data/mtd-nand-omap2.h>
+> +#include <linux/of_platform.h>
+>  
+>  #include <asm/mach/flash.h>
+>  
+> @@ -77,6 +78,9 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>  	int err	= 0;
+>  	struct gpmc_settings s;
+>  	struct platform_device *pdev;
+> +	struct platform_device *gpmc_dev;
+> +	struct device_node *gpmc_node;
+> +
+>  	struct resource gpmc_nand_res[] = {
+>  		{ .flags = IORESOURCE_MEM, },
+>  		{ .flags = IORESOURCE_IRQ, },
+> @@ -134,8 +138,18 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>  	if (pdev) {
+>  		err = platform_device_add_resources(pdev, gpmc_nand_res,
+>  						    ARRAY_SIZE(gpmc_nand_res));
+> -		if (!err)
+> +		if (!err) {
+>  			pdev->dev.platform_data = gpmc_nand_data;
+> +
+> +			gpmc_node = of_get_parent(gpmc_nand_data->of_node);
 
-Then it shouldn't be in -next.  -next is a tree for integration testing
-and conflict discovery for the upcoming merge window, and should only
-contain code targetted at that merge window.  Here's a reminder of
-sfr's boilerplate which lays this out:
+I'm afraid that we can't use this method as we want to restrict
+gpmc_nand_init() to non-DT boots.
 
-  Thanks for adding your subsystem tree as a participant of linux-next.  As
-  you may know, this is not a judgment of your code.  The purpose of
-  linux-next is for integration testing and to lower the impact of
-  conflicts between subsystems in the next merge window.
+> +
+> +			if (gpmc_node) {
+> +				gpmc_dev = of_find_device_by_node(gpmc_node);
+> +
+> +				if (gpmc_dev)
+> +					pdev->dev.parent = &gpmc_dev->dev;
+> +			}
+> +		}
+>  	} else {
+>  		err = -ENOMEM;
+>  	}
+> 
 
-  You will need to ensure that the patches/commits in your tree/series have
-  been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-        Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and
-     * destined for the current or next Linux merge window.
-
-It seems it doesn't satisfy the last point there.
-
--- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+cheers,
+-roger
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
