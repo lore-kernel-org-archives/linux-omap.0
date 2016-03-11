@@ -1,34 +1,49 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/3] pinctrl: single: Use a separate lockdep class
-Date: Fri, 11 Mar 2016 23:04:10 +0700
-Message-ID: <CACRpkdbwYx2uA4k1XzW861ig+S0uP0D1K3Mv5G6dcG-rNPn6wQ@mail.gmail.com>
-References: <1454351299-27440-1-git-send-email-sudeep.holla@arm.com>
-	<1454351299-27440-2-git-send-email-sudeep.holla@arm.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: OMAP2: Fix up interconnect barrier initialization for DRA7
+Date: Fri, 11 Mar 2016 10:12:28 -0600
+Message-ID: <1457712748-1408-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1454351299-27440-2-git-send-email-sudeep.holla@arm.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 2, 2016 at 1:28 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+The following commits:
+commit 3fa609755c11 ("ARM: omap2: restore OMAP4 barrier behaviour")
+commit f746929ffdc8 ("Revert "ARM: OMAP4: remove dead kconfig option OMAP4_ERRATA_I688"")
+and
+commit ea827ad5ffbb ("ARM: DRA7: Provide proper IO map table")
+came in around the same time, unfortunately this seem to have missed
+initializing the barrier for DRA7 platforms - omap5_map_io was reused
+for dra7 till it was split out by the last patch. barrier_init
+needs to be hence carried forward as it is valid for DRA7 family of
+processors as they are for OMAP5.
 
-> The single pinmux controller can be cascaded to the other interrupt
-> controllers. Hence when propagating wake-up settings to its parent
-> interrupt controller, there's possiblity of detecting possible recursive
-> locking and getting lockdep warning.
->
-> This patch avoids this false positive by using a separate lockdep class
-> for this single pinctrl interrupts.
->
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: linux-gpio@vger.kernel.org
-> Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Fixes: ea827ad5ffbb7 ("ARM: DRA7: Provide proper IO map table")
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-Patch applied with Grygorii's review tag.
+Original thread of report: http://www.spinics.net/lists/dri-devel/msg101246.html
 
-Yours,
-Linus Walleij
+ arch/arm/mach-omap2/io.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 3c87e40650cf..9821be6dfd5e 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -368,6 +368,7 @@ void __init omap5_map_io(void)
+ void __init dra7xx_map_io(void)
+ {
+ 	iotable_init(dra7xx_io_desc, ARRAY_SIZE(dra7xx_io_desc));
++	omap_barriers_init();
+ }
+ #endif
+ /*
+-- 
+2.7.0
