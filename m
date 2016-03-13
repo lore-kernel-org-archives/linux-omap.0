@@ -1,112 +1,43 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 1/7] ARM: dts: n9/n950: regulator configuration
-Date: Sun, 13 Mar 2016 01:06:14 +0100
-Message-ID: <1457827580-16919-2-git-send-email-sre@kernel.org>
-References: <1457827580-16919-1-git-send-email-sre@kernel.org>
+Subject: [PATCH 0/7] Nokia N9/N950 misc. DT patches
+Date: Sun, 13 Mar 2016 01:06:13 +0100
+Message-ID: <1457827580-16919-1-git-send-email-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457827580-16919-1-git-send-email-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add regulator configuration as found in the
-board files of Nokia's kernel.
+Hi,
 
-Signed-off-By: Sebastian Reichel <sre@kernel.org>
----
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 72 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
+Here are a couple of N950/N9 DT patches. I only tested them
+on the Nokia N950, but Filip tested his patches on N9 and
+the regulator configuration in Nokia's kernel is the same
+for N950 and N9.
 
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index a2c2b8d8dd2c..3c7f1d2deb2f 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -72,6 +72,30 @@
- 	ti,pulldowns	= <0x008106>; /* BIT(1) | BIT(2) | BIT(8) | BIT(15) */
- };
- 
-+&vdac {
-+	regulator-name = "vdac";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
-+&vpll1 {
-+	regulator-name = "vpll1";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
-+&vpll2 {
-+	regulator-name = "vpll2";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
-+&vaux1 {
-+	regulator-name = "vaux1";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+};
-+
- /* CSI-2 receiver */
- &vaux2 {
- 	regulator-name = "vaux2";
-@@ -86,6 +110,54 @@
- 	regulator-max-microvolt = <2800000>;
- };
- 
-+&vaux4 {
-+	regulator-name = "vaux4";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+};
-+
-+&vmmc1 {
-+	regulator-name = "vmmc1";
-+	regulator-min-microvolt = <1850000>;
-+	regulator-max-microvolt = <3150000>;
-+};
-+
-+&vmmc2 {
-+	regulator-name = "vmmc2";
-+	regulator-min-microvolt = <3000000>;
-+	regulator-max-microvolt = <3000000>;
-+};
-+
-+&vintana1 {
-+	regulator-name = "vintana1";
-+	regulator-min-microvolt = <1500000>;
-+	regulator-max-microvolt = <1500000>;
-+};
-+
-+&vintana2 {
-+	regulator-name = "vintana2";
-+	regulator-min-microvolt = <2750000>;
-+	regulator-max-microvolt = <2750000>;
-+};
-+
-+&vintdig {
-+	regulator-name = "vintdig";
-+	regulator-min-microvolt = <1500000>;
-+	regulator-max-microvolt = <1500000>;
-+};
-+
-+&vsim {
-+	regulator-name = "vsim";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
-+&vio {
-+	regulator-name = "vio";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
- &i2c2 {
- 	clock-frequency = <400000>;
- };
--- 
+The patches are based on 4.5-rc7.
+
+-- Sebastian
+
+=46ilip Matijevi=C4=87 (2):
+  ARM: dts: N9/N950: Add support for 1GHz CPU clock
+  ARM: dts: N9/N950: Add support for accelerometer
+
+Sebastian Reichel (5):
+  ARM: dts: n9/n950: regulator configuration
+  ARM: dts: OMAP3-N950: Add Keypad Matrix
+  ARM: dts: OMAP3-N950: Add Vibrator
+  ARM: dts: Enable N950 keyboard sleep leds by default
+  ARM: dts: OMAP3-N950: Add Keypad Slide Switch
+
+ arch/arm/boot/dts/omap3-n9.dts       |  14 ++++
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 151 +++++++++++++++++++++++++++=
+++++++++
+ arch/arm/boot/dts/omap3-n950.dts     |  99 +++++++++++++++++++++++
+ 3 files changed, 264 insertions(+)
+
+--=20
 2.7.0
