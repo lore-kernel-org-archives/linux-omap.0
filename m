@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 2/7] ARM: dts: OMAP3-N950: Add Keypad Matrix
-Date: Sun, 13 Mar 2016 01:06:15 +0100
-Message-ID: <1457827580-16919-3-git-send-email-sre@kernel.org>
+Subject: [PATCH 5/7] ARM: dts: OMAP3-N950: Add Keypad Slide Switch
+Date: Sun, 13 Mar 2016 01:06:18 +0100
+Message-ID: <1457827580-16919-6-git-send-email-sre@kernel.org>
 References: <1457827580-16919-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457827580-16919-1-git-send-email-sre@kernel.org>
@@ -10,84 +10,43 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-
 Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add keypad matrix information based on data from
-Nokia N950 Kernel.
-
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/boot/dts/omap3-n950.dts | 56 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ arch/arm/boot/dts/omap3-n950.dts | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 0885b34d5d7d..80bed4eb6b08 100644
+index 3dbf9d66bcc1..daa17d20ccf5 100644
 --- a/arch/arm/boot/dts/omap3-n950.dts
 +++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -11,6 +11,7 @@
- /dts-v1/;
- 
- #include "omap3-n950-n9.dtsi"
-+#include <dt-bindings/input/input.h>
- 
+@@ -16,6 +16,28 @@
  / {
  	model = "Nokia N950";
-@@ -53,3 +54,58 @@
- 		};
- 	};
- };
+ 	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
 +
-+&twl_keypad {
-+	linux,keymap = < MATRIX_KEY(0x00, 0x00, KEY_BACKSLASH)
-+			 MATRIX_KEY(0x01, 0x00, KEY_LEFTSHIFT)
-+			 MATRIX_KEY(0x02, 0x00, KEY_COMPOSE)
-+			 MATRIX_KEY(0x03, 0x00, KEY_LEFTMETA)
-+			 MATRIX_KEY(0x04, 0x00, KEY_RIGHTCTRL)
-+			 MATRIX_KEY(0x05, 0x00, KEY_BACKSPACE)
-+			 MATRIX_KEY(0x06, 0x00, KEY_VOLUMEDOWN)
-+			 MATRIX_KEY(0x07, 0x00, KEY_VOLUMEUP)
++	keys {
++		compatible = "gpio-keys";
 +
-+			 MATRIX_KEY(0x03, 0x01, KEY_Z)
-+			 MATRIX_KEY(0x04, 0x01, KEY_A)
-+			 MATRIX_KEY(0x05, 0x01, KEY_Q)
-+			 MATRIX_KEY(0x06, 0x01, KEY_W)
-+			 MATRIX_KEY(0x07, 0x01, KEY_E)
-+
-+			 MATRIX_KEY(0x03, 0x02, KEY_X)
-+			 MATRIX_KEY(0x04, 0x02, KEY_S)
-+			 MATRIX_KEY(0x05, 0x02, KEY_D)
-+			 MATRIX_KEY(0x06, 0x02, KEY_C)
-+			 MATRIX_KEY(0x07, 0x02, KEY_V)
-+
-+			 MATRIX_KEY(0x03, 0x03, KEY_O)
-+			 MATRIX_KEY(0x04, 0x03, KEY_I)
-+			 MATRIX_KEY(0x05, 0x03, KEY_U)
-+			 MATRIX_KEY(0x06, 0x03, KEY_L)
-+			 MATRIX_KEY(0x07, 0x03, KEY_APOSTROPHE)
-+
-+			 MATRIX_KEY(0x03, 0x04, KEY_Y)
-+			 MATRIX_KEY(0x04, 0x04, KEY_K)
-+			 MATRIX_KEY(0x05, 0x04, KEY_J)
-+			 MATRIX_KEY(0x06, 0x04, KEY_H)
-+			 MATRIX_KEY(0x07, 0x04, KEY_G)
-+
-+			 MATRIX_KEY(0x03, 0x05, KEY_B)
-+			 MATRIX_KEY(0x04, 0x05, KEY_COMMA)
-+			 MATRIX_KEY(0x05, 0x05, KEY_M)
-+			 MATRIX_KEY(0x06, 0x05, KEY_N)
-+			 MATRIX_KEY(0x07, 0x05, KEY_DOT)
-+
-+			 MATRIX_KEY(0x00, 0x06, KEY_SPACE)
-+			 MATRIX_KEY(0x03, 0x06, KEY_T)
-+			 MATRIX_KEY(0x04, 0x06, KEY_UP)
-+			 MATRIX_KEY(0x05, 0x06, KEY_LEFT)
-+			 MATRIX_KEY(0x06, 0x06, KEY_RIGHT)
-+			 MATRIX_KEY(0x07, 0x06, KEY_DOWN)
-+
-+			 MATRIX_KEY(0x03, 0x07, KEY_P)
-+			 MATRIX_KEY(0x04, 0x07, KEY_ENTER)
-+			 MATRIX_KEY(0x05, 0x07, KEY_SLASH)
-+			 MATRIX_KEY(0x06, 0x07, KEY_F)
-+			 MATRIX_KEY(0x07, 0x07, KEY_R)
-+			 >;
++		keypad_slide {
++			label = "Keypad Slide";
++			gpios = <&gpio4 13 GPIO_ACTIVE_LOW>; /* 109 */
++			linux,input-type = <EV_SW>;
++			linux,code = <SW_KEYPAD_SLIDE>;
++			wakeup-source;
++			pinctrl-names = "default";
++			pinctrl-0 = <&keypad_slide_pins>;
++		};
++	};
 +};
++
++&omap3_pmx_core {
++	keypad_slide_pins: pinmux_debug_led_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x212a, PIN_INPUT | MUX_MODE4)       /* cam_d10.gpio_109 */
++		>;
++	};
+ };
+ 
+ &i2c2 {
 -- 
 2.7.0
