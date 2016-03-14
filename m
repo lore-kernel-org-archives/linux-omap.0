@@ -1,96 +1,104 @@
-From: Rajesh Bhagat <rajesh.bhagat@nxp.com>
-Subject: [PATCH v2 1/2] usb: dwc3: add disable receiver detection in P3 quirk
-Date: Mon, 14 Mar 2016 14:40:50 +0530
-Message-ID: <1457946651-23381-2-git-send-email-rajesh.bhagat@nxp.com>
-References: <1457946651-23381-1-git-send-email-rajesh.bhagat@nxp.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 1/7] ARM: OMAP2+: gpmc-nand: Set omap2-nand's parent
+ dev to GPMC dev
+Date: Mon, 14 Mar 2016 11:15:47 +0200
+Message-ID: <56E68143.9040903@ti.com>
+References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
+ <1457654203-20856-2-git-send-email-fcooper@ti.com> <56E2CDB7.2080306@ti.com>
+ <56E2E6B0.5050507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457946651-23381-1-git-send-email-rajesh.bhagat@nxp.com>
+In-Reply-To: <56E2E6B0.5050507@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sriram.dash@nxp.com, Rajesh Bhagat <rajesh.bhagat@nxp.com>
+To: "Franklin S Cooper Jr." <fcooper@ti.com>, nsekhar@ti.com, dwmw2@infradead.org, computersforpeace@gmail.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Some freescale QorIQ platforms require to disable receiver detection
-in P3 for correct detection of USB devices. If GUSB3PIPECTL(DISRXDETINP3)
-is set, Core will change PHY power state to P2 and then perform receiver
-detection. After receiver detection, Core will change PHY power state to
-P3. Same quirk would be added in dts file in future patches.
+Franklin, Tony,
 
-Signed-off-by: Sriram Dash <sriram.dash@nxp.com>
-Signed-off-by: Rajesh Bhagat <rajesh.bhagat@nxp.com>
----
-Changes for v2 : 
-	- added the property code in alphabetical order.
+On 11/03/16 17:39, Franklin S Cooper Jr. wrote:
+> 
+> 
+> On 03/11/2016 07:52 AM, Roger Quadros wrote:
+>> Franklin,
+>>
+>> On 11/03/16 01:56, Franklin S Cooper Jr wrote:
+>>> The dma channel information is located within the GPMC node which is the
+>>> NAND's parent node. The NAND driver requires a handle to the GPMC's dev
+>>> to properly parse the DMA properties. Therefore, set the NAND's parent dev
+>>> to the GPMC's dev so it can be referenced within the driver.
+>>>
+>>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>>> ---
+>>> Version 4 changes:
+>>> Instead of storing the GPMC dev in a new property simply grab a reference
+>>> to it and set omap2-nand's dev.parent to it.
+>>>
+>>>  arch/arm/mach-omap2/gpmc-nand.c | 16 +++++++++++++++-
+>>>  1 file changed, 15 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+>>> index 72918c4..77e453c 100644
+>>> --- a/arch/arm/mach-omap2/gpmc-nand.c
+>>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+>>> @@ -15,6 +15,7 @@
+>>>  #include <linux/omap-gpmc.h>
+>>>  #include <linux/mtd/nand.h>
+>>>  #include <linux/platform_data/mtd-nand-omap2.h>
+>>> +#include <linux/of_platform.h>
+>>>  
+>>>  #include <asm/mach/flash.h>
+>>>  
+>>> @@ -77,6 +78,9 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>>>  	int err	= 0;
+>>>  	struct gpmc_settings s;
+>>>  	struct platform_device *pdev;
+>>> +	struct platform_device *gpmc_dev;
+>>> +	struct device_node *gpmc_node;
+>>> +
+>>>  	struct resource gpmc_nand_res[] = {
+>>>  		{ .flags = IORESOURCE_MEM, },
+>>>  		{ .flags = IORESOURCE_IRQ, },
+>>> @@ -134,8 +138,18 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>>>  	if (pdev) {
+>>>  		err = platform_device_add_resources(pdev, gpmc_nand_res,
+>>>  						    ARRAY_SIZE(gpmc_nand_res));
+>>> -		if (!err)
+>>> +		if (!err) {
+>>>  			pdev->dev.platform_data = gpmc_nand_data;
+>>> +
+>>> +			gpmc_node = of_get_parent(gpmc_nand_data->of_node);
+>> I'm afraid that we can't use this method as we want to restrict
+>> gpmc_nand_init() to non-DT boots.
+> 
+> The only users of the parent GPMC driver are already using
+> DT. The gpmc_probe_nand_child function in the GPMC driver
+> which calls gpmc_nand_init is already DT only.
+> 
+> The only other caller to gpmc_nand_init is board-flash.c.
+> The driver doesn't utilize xfer_type to even switch to any
+> other modes including DMA prefetch mode.  Looking at it
+> closer there isn't a dev from some kind of parent for me to
+> pass along. Board_nand_init which calls gpmc_nand_init just
+> takes raw NAND values with no relation to its parent.
+> 
+> 
+> With that being said are you ok with leaving it as is?
 
- drivers/usb/dwc3/core.c          | 6 ++++++
- drivers/usb/dwc3/core.h          | 2 ++
- drivers/usb/dwc3/platform_data.h | 1 +
- 3 files changed, 9 insertions(+)
+I think it is OK to assume that NAND DMA won't work with legacy boot.
+Tony any objections? I see that board-ldp.c is the only legacy user
+of NAND. When can we drop support for it?
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index de5e01f..c840df0 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -446,6 +446,9 @@ static int dwc3_phy_setup(struct dwc3 *dwc)
- 	if (dwc->u2ss_inp3_quirk)
- 		reg |= DWC3_GUSB3PIPECTL_U2SSINP3OK;
- 
-+	if (dwc->dis_rxdet_inp3_quirk)
-+		reg |= DWC3_GUSB3PIPECTL_DISRXDETINP3;
-+
- 	if (dwc->req_p1p2p3_quirk)
- 		reg |= DWC3_GUSB3PIPECTL_REQP1P2P3;
- 
-@@ -919,6 +922,8 @@ static int dwc3_probe(struct platform_device *pdev)
- 				"snps,dis_u2_susphy_quirk");
- 	dwc->dis_enblslpm_quirk = device_property_read_bool(dev,
- 				"snps,dis_enblslpm_quirk");
-+	dwc->dis_rxdet_inp3_quirk = device_property_read_bool(dev,
-+				"snps,dis_rxdet_inp3_quirk");
- 
- 	dwc->tx_de_emphasis_quirk = device_property_read_bool(dev,
- 				"snps,tx_de_emphasis_quirk");
-@@ -953,6 +958,7 @@ static int dwc3_probe(struct platform_device *pdev)
- 		dwc->dis_u3_susphy_quirk = pdata->dis_u3_susphy_quirk;
- 		dwc->dis_u2_susphy_quirk = pdata->dis_u2_susphy_quirk;
- 		dwc->dis_enblslpm_quirk = pdata->dis_enblslpm_quirk;
-+		dwc->dis_rxdet_inp3_quirk = pdata->dis_rxdet_inp3_quirk;
- 
- 		dwc->tx_de_emphasis_quirk = pdata->tx_de_emphasis_quirk;
- 		if (pdata->tx_de_emphasis)
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index e4f8b90..494119c 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -193,6 +193,7 @@
- /* Global USB3 PIPE Control Register */
- #define DWC3_GUSB3PIPECTL_PHYSOFTRST	(1 << 31)
- #define DWC3_GUSB3PIPECTL_U2SSINP3OK	(1 << 29)
-+#define DWC3_GUSB3PIPECTL_DISRXDETINP3	(1 << 28)
- #define DWC3_GUSB3PIPECTL_REQP1P2P3	(1 << 24)
- #define DWC3_GUSB3PIPECTL_DEP1P2P3(n)	((n) << 19)
- #define DWC3_GUSB3PIPECTL_DEP1P2P3_MASK	DWC3_GUSB3PIPECTL_DEP1P2P3(7)
-@@ -870,6 +871,7 @@ struct dwc3 {
- 	unsigned		dis_u3_susphy_quirk:1;
- 	unsigned		dis_u2_susphy_quirk:1;
- 	unsigned		dis_enblslpm_quirk:1;
-+	unsigned		dis_rxdet_inp3_quirk:1;
- 
- 	unsigned		tx_de_emphasis_quirk:1;
- 	unsigned		tx_de_emphasis:2;
-diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
-index 2bb4d3a..aaa44db 100644
---- a/drivers/usb/dwc3/platform_data.h
-+++ b/drivers/usb/dwc3/platform_data.h
-@@ -43,6 +43,7 @@ struct dwc3_platform_data {
- 	unsigned dis_u3_susphy_quirk:1;
- 	unsigned dis_u2_susphy_quirk:1;
- 	unsigned dis_enblslpm_quirk:1;
-+	unsigned dis_rxdet_inp3_quirk:1;
- 
- 	unsigned tx_de_emphasis_quirk:1;
- 	unsigned tx_de_emphasis:2;
--- 
-2.6.2.198.g614a2ac
+I want to keep gpmc_nand_init() as it is and don't want to add any
+device tree specific calls here.
+
+So I think it is still best if you rebase your series on top of [1]
+so that you are assured NAND controller's parent is the GPMC device
+in the DT case without requiring the $subject patch.
+
+[1] https://lkml.org/lkml/2016/2/19/599
+The series has been Acked by all maintainers and will go in v4.6
+
+cheers,
+-roger
