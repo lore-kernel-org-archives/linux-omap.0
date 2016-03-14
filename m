@@ -1,79 +1,87 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] ARM: dts: dra7: Correct clock tree for sys_32k_ck
-Date: Mon, 14 Mar 2016 17:33:21 +0530
-Message-ID: <1457957001-720-1-git-send-email-j-keerthy@ti.com>
+From: "Franklin S Cooper Jr." <fcooper-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 0/7] mtd: nand: Fix support for NAND DMA prefetch
+Date: Mon, 14 Mar 2016 09:17:19 -0500
+Message-ID: <56E6C7EF.3030501@ti.com>
+References: <1457654203-20856-1-git-send-email-fcooper@ti.com>
+ <56E2CFF3.3030009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56E2CFF3.3030009-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This is w.r.t J6/J6eco: 32clk is pseudo (erratum i856) - clock source.
-Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
-crystal is not enabled at power up. Instead the CPU falls back to using
-an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
-20MHz on boards so far (which gives an emulated frequency of 32.786KHz)
 
-Modelling the same in device tree.
 
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
----
-Errata Document: http://www.ti.com/lit/er/sprz429h/sprz429h.pdf
-Errata number: i856
+On 03/11/2016 08:02 AM, Roger Quadros wrote:
+> Franklin,
+>
+> On 11/03/16 01:56, Franklin S Cooper Jr wrote:
+>> NAND DMA prefetch has been broken for awhile and seems to have only
+>> worked for SDMA based devices
+>>
+>> This patchset fixes DMA prefetch to work on both EDMA and SDMA devices
+>>
+>> Test on:
+>> am335x gp evm
+>> am437x gp evm
+>> am37x gp evm
+>>
+>> This rev is pretty much the same as v2 which was blocked due to
+>> dependencies to Roger's update GPMC/NAND rework.
+>>
+>> This updated rev removes this dependency.
+>>
+>> Also it fixes an issue that was introduced when the eDMA driver was
+>> recently updated.
+>>
+>> Links to rev 3 patchset:
+>> https://patchwork.ozlabs.org/patch/595631/
+>> https://patchwork.ozlabs.org/patch/595626/
+>> https://patchwork.ozlabs.org/patch/595628/
+>> https://patchwork.ozlabs.org/patch/595630/
+>> https://patchwork.ozlabs.org/patch/595627/
+>> https://patchwork.ozlabs.org/patch/595629/
+>>
+>> Links to rev 2 patchset:
+>> https://patchwork.kernel.org/patch/7408691/
+>> https://patchwork.kernel.org/patch/7408681/
+>> https://patchwork.kernel.org/patch/7408661/
+>> https://patchwork.kernel.org/patch/7408641/
+>> https://patchwork.kernel.org/patch/7408621/
+>>
+>> Franklin S Cooper Jr (7):
+>>   ARM: OMAP2+: gpmc-nand: Set omap2-nand's parent dev to GPMC dev
+>>   ARM: dts: am33xx: Fix GPMC dma properties
+>>   ARM: dts: am437x: Fix GPMC dma properties
+> Can you please fix the gpmc nodes in dm816x.dtsi and dm814x.dtsi as well?
+> You can use linux-next tree or [1] to see the latest changes to these files
+> that will end up in v4.6 and base your changes on that.
+>
+> [1] Tony's omap-for-v4.6/dt
+> https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v4.6/dt
 
-Tested the debugfs clock tree nodes on DRA7-EVM.
-
-Changes in v2:
-
-Added missing Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 357bede..7f1f892 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -98,12 +98,20 @@
- 		clock-frequency = <32768>;
- 	};
- 
--	sys_32k_ck: sys_32k_ck {
-+	sys_clk32_crystal_ck: sys_clk32_crystal_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
- 		clock-frequency = <32768>;
- 	};
- 
-+	sys_clk32_pseudo_ck: sys_clk32_pseudo_ck {
-+		#clock-cells = <0>;
-+		compatible = "fixed-factor-clock";
-+		clocks = <&sys_clkin1>;
-+		clock-mult = <1>;
-+		clock-div = <610>;
-+	};
-+
- 	virt_12000000_ck: virt_12000000_ck {
- 		#clock-cells = <0>;
- 		compatible = "fixed-clock";
-@@ -2146,4 +2154,12 @@
- 		ti,bit-shift = <0>;
- 		reg = <0x558>;
- 	};
-+
-+	sys_32k_ck: sys_32k_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&sys_clk32_crystal_ck>, <&sys_clk32_pseudo_ck>, <&sys_clk32_pseudo_ck>, <&sys_clk32_pseudo_ck>;
-+		ti,bit-shift = <8>;
-+		reg = <0x6c4>;
-+	};
- };
--- 
-1.9.1
+Sorry I didn't bother looking at dm816 and dm814 dtsi files
+since I assumed it didn't use edma since the recent edma
+updates didn't make updates for those devices. My mistake.
+I'll update those dtsi files.
+>>   mtd: nand: omap2: Support parsing dma channel information from DT
+>>   mtd: nand: omap2: Start dma request before enabling prefetch
+>>   mtd: nand: omap2: Fix high memory dma prefetch transfer
+>>   ARM: OMAP2+: Update GPMC and NAND DT binding documentation
+>>
+>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  7 +++++-
+>>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  2 +-
+>>  arch/arm/boot/dts/am33xx.dtsi                      |  2 +-
+>>  arch/arm/boot/dts/am4372.dtsi                      |  2 +-
+>>  arch/arm/mach-omap2/gpmc-nand.c                    | 16 ++++++++++++-
+>>  drivers/mtd/nand/omap2.c                           | 27 +++++++++-------------
+>>  6 files changed, 35 insertions(+), 21 deletions(-)
+>>
+> cheers,
+> -roger
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
