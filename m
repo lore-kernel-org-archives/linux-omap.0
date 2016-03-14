@@ -1,46 +1,31 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: am43xx: fix edma memcpy channel allocation
-Date: Mon, 14 Mar 2016 11:01:50 +0200
-Message-ID: <1457946110-4612-1-git-send-email-t-kristo@ti.com>
+From: Rajesh Bhagat <rajesh.bhagat-3arQi8VN3Tc@public.gmane.org>
+Subject: [PATCH v2 0/2] usb: dwc3: add disable receiver detection in P3 quirk
+Date: Mon, 14 Mar 2016 14:40:49 +0530
+Message-ID: <1457946651-23381-1-git-send-email-rajesh.bhagat@nxp.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sriram.dash-3arQi8VN3Tc@public.gmane.org, Rajesh Bhagat <rajesh.bhagat-3arQi8VN3Tc@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-EDMA was allocating DMA channels 32 and 33 for memcpy usage, out of which
-channel 33 is actually used by DES crypto engine. This bad allocation of
-the channel causes a crash in the DES crypto engine, as the channel
-gets configured for memcpy usage instead of hardware <-> memory DMA.
+Adds disable receiver detection in P3 quirk in DWC3 driver. 
 
-Fixed by allocating DMA channels 58 and 59 for memcpy usage (I2C0 RX/TX),
-which are not used by anybody.
+Rajesh Bhagat (2):
+  usb: dwc3: add disable receiver detection in P3 quirk
+  Documentation: dt: dwc3: Add snps,dis_rxdet_inp3_quirk property
 
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Suggested-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am4372.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/usb/dwc3.txt | 2 ++
+ drivers/usb/dwc3/core.c                        | 6 ++++++
+ drivers/usb/dwc3/core.h                        | 2 ++
+ drivers/usb/dwc3/platform_data.h               | 1 +
+ 4 files changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 92068fb..cdd3d78 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -207,7 +207,7 @@
- 			ti,tptcs = <&edma_tptc0 7>, <&edma_tptc1 5>,
- 				   <&edma_tptc2 0>;
- 
--			ti,edma-memcpy-channels = <32 33>;
-+			ti,edma-memcpy-channels = <58 59>;
- 		};
- 
- 		edma_tptc0: tptc@49800000 {
 -- 
-1.7.9.5
+2.6.2.198.g614a2ac
 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
