@@ -1,11 +1,13 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v4.5
-Date: Mon, 14 Mar 2016 16:45:07 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1603141643520.31109@utopia.booyaka.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: Regression in next caused by 95026658c46e i2c: do not use
+ internal..
+Date: Mon, 14 Mar 2016 17:52:06 +0100
+Message-ID: <20160314165206.GA16371@katana>
+References: <20160314160944.GG9329@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3455084729947483465=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160314160944.GG9329@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,135 +17,79 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
-Here are some basic OMAP test results for Linux v4.5.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v4.5/20160314004355/
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-stk-om44,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (18/18): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_ti81xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Build warnings from toolchain: uImage:
-    (none)
-
-Build warnings from toolchain: uImage+dtb:
-    (none)
-
-Build warnings from toolchain: zImage:
-    FAIL ( 1/18): multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/18): 2430sdp
-    skip ( 3/18): 5912osk, 3517evm, 5430es2sbct54
-    Pass (14/18): am335xbonelt, am437xsk, am335xbone, 4430es2panda,
-		  4460pandaes, 4460varsomom, 37xxevm, 3530es3beagle,
-		  3530es31beagle, 3730beaglexm, 3730es12beaglexm,
-		  cmt3517, 5430es2uevm, 2420n800
-
-Kernel warnings during boot to userspace:
-    FAIL ( 2/18): 4430es2panda, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 6/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  2430sdp, 5430es2uevm
-    Pass ( 5/11): 4460pandaes, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 8/11): am335xbonelt, 4430es2panda, 4460varsomom, 37xxevm,
-		  3530es3beagle, 3530es31beagle, 2430sdp, 5430es2uevm
-    Pass ( 3/11): 4460pandaes, 3730beaglexm, 3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 2/ 4): 37xxevm, 3530es3beagle
-    Pass ( 2/ 4): 3530es31beagle, 3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 4): 37xxevm, 3530es3beagle, 3530es31beagle
-    Pass ( 1/ 4): 3730es12beaglexm
-
-Kernel warnings during PM test:
-    FAIL ( 1/18): 4430es2panda
-
-Obsolete Kconfig symbols:
-    FAIL ( 3/21): omap1_defconfig, omap2plus_defconfig,
-		  multi_v7_defconfig
+--===============3455084729947483465==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
+Content-Disposition: inline
 
 
-vmlinux object size
-(delta in bytes from test_v4.5-rc7 (f6cede5b49e822ebc41a099fe41ab4989f64e2cb)):
-   text     data      bss    total  kernel
-   +680        0        0     +680  omap1_defconfig
-   +680        0        0     +680  omap1_defconfig_1510innovator_only
-   +688        0        0     +688  omap1_defconfig_5912osk_only
-  +1472        0        0    +1472  multi_v7_defconfig
- +40227        0        0   +40227  omap2plus_defconfig
-   +655      +32        0     +687  omap2plus_defconfig_2430sdp_only
- +40035        0        0   +40035  omap2plus_defconfig_am33xx_only
- +40035        0        0   +40035  omap2plus_defconfig_am43xx_only
- +40163        0        0   +40163  omap2plus_defconfig_cpupm
- +40035        0        0   +40035  omap2plus_defconfig_dra7xx_only
-  +1348        0        0    +1348  omap2plus_defconfig_n800_multi_omap2xxx
-  +1380        0        0    +1380  omap2plus_defconfig_n800_only_a
- +37335        0        0   +37335  omap2plus_defconfig_no_pm
- +40163        0        0   +40163  omap2plus_defconfig_omap2_4_only
- +39971        0        0   +39971  omap2plus_defconfig_omap3_4_only
- +44067        0        0   +44067  omap2plus_defconfig_omap5_only
- +39803        0        0   +39803  omap2plus_defconfig_ti81xx_only
-   +544        0      -80     +464  rmk_omap3430_ldp_allnoconfig
-  +1520        0        0    +1520  rmk_omap3430_ldp_oldconfig
-   +592        0      -80     +512  rmk_omap4430_sdp_allnoconfig
-  +1656        0        0    +1656  rmk_omap4430_sdp_oldconfig
+--X1bOJ3K7DJ5YkBrT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Boot-time memory difference
-(delta in bytes from test_v4.5-rc7 (f6cede5b49e822ebc41a099fe41ab4989f64e2cb))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
+Hi,
+
+> Having something like this happen just as the merge window opens is
+> not nice. You guys should already know..
+
+I already applied the fix.
+
+> The patches in next should be sitting there for a few weeks before the
+> merge window so issues like this are found out early.
+
+I understand this was a major hickup and I am sorry for this. I should
+have known better.
+
+I am not taking 100% of the blame, though: The amount of submissions is
+rising faster than the amount of non-maintainer review being done (at
+least in the subsystems I work on). I took a wrong step in trying to
+handle the gap. I am really sorry about the fuzz, yet I can't deny there
+is also something inevitable in that to me. That being said, I'll of
+course try harder to not let this happen again.
+
+Regards,
+
+   Wolfram
+
+
+--X1bOJ3K7DJ5YkBrT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJW5uw2AAoJEBQN5MwUoCm2avcP/2WLqqKDCZ6vJ4JFWtvCtSMA
+zV4dCa0TMek/on+ZZyQq6SpBbNHBY20VvNe7Ez+DyGmeOV1uB95CgItCFKLMu2/n
+rUavH5zfTpkBYJBDnaJoCtnBi0ZamvJxMxZkQ8rTesUqUqUKu+GTRBa6ZCeVUoDC
+Hz81TX78q7cFmSQXn2GtPjE2YceiuQfTnn9YPZbbDjJX/0kYaindLUlq+ls175Up
+ze3FtOYqtNdxtXHDdQcoLFgz62HdM+yUj0HrA7ZusJHYBTIt6jRyFYbXcj6KZWaW
+1UiPbEgKfgzoY6Zi2HO8VR2LVU7TFqDPoa0F/ahZ6fVQw2gtEUfnuVddhXH6YIvo
+orrcdqwiV81pSO4wfzgEs1sDs7+0Awli/6DyO/bSRdoXGmYJxnIoMaNIZcmAuY8j
+ygbRr2oD0GOhYGv2en4Kj5EsFPzyUg8PVdF04n0mZ0r2d/lt3JenjB982tYFtEPC
+Jhc3RK5jWl+QOAwVVt3u/G2z2aZs9mLUT8IavFRPdmcp4WbPcc8n7tQCbkyEGLHD
+8VXwYbvEjifs9sYHKp+nV+amvPDroqYXlF5zc5215DN1HiU9eOBIhhp9786dRdOp
+ppDLIXb5HQpSagwJuVLLV3ndqrK0ncIn2XZRXxJ+jTkTb8/DgImxWvcNWf+rz4uJ
+2mlKm45PPsY64MUFJTwh
+=gkWI
+-----END PGP SIGNATURE-----
+
+--X1bOJ3K7DJ5YkBrT--
+
+
+--===============3455084729947483465==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3455084729947483465==--
