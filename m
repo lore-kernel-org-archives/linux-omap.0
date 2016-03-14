@@ -1,40 +1,91 @@
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: [PATCH] crypto: Improve wording for CRYPTO_DEV_OMAP_DES in Kconfig
-Date: Sun, 13 Mar 2016 16:15:37 +0100
-Message-ID: <1457882137-16265-1-git-send-email-pmeerw@pmeerw.net>
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, Peter Meerwald <pmeerw@pmeerw.net>
+From: Rajesh Bhagat <rajesh.bhagat@nxp.com>
+Subject: [PATCH] usb: dwc3: add disable receiver detection in P3 quirk
+Date: Mon, 14 Mar 2016 09:59:53 +0530
+Message-ID: <1457929793-18910-1-git-send-email-rajesh.bhagat@nxp.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sriram.dash@nxp.com, Rajesh Bhagat <rajesh.bhagat@nxp.com>
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
----
- drivers/crypto/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Some freescale QorIQ platforms require to disable receiver detection
+in P3 for correct detection of USB devices. If GUSB3PIPECTL(DISRXDETINP3)
+is set, Core will change PHY power state to P2 and then perform receiver 
+detection. After receiver detection, Core will change PHY power state to 
+P3. Same quirk would be added in dts file in future patches. 
 
-diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
-index 07d4942..b4da268 100644
---- a/drivers/crypto/Kconfig
-+++ b/drivers/crypto/Kconfig
-@@ -301,15 +301,15 @@ config CRYPTO_DEV_OMAP_AES
- 	  want to use the OMAP module for AES algorithms.
+Signed-off-by: Sriram Dash <sriram.dash@nxp.com>
+Signed-off-by: Rajesh Bhagat <rajesh.bhagat@nxp.com>
+---
+ drivers/usb/dwc3/core.c          |    6 ++++++
+ drivers/usb/dwc3/core.h          |    2 ++
+ drivers/usb/dwc3/platform_data.h |    1 +
+ 3 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index de5e01f..b2f2b08 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -446,6 +446,9 @@ static int dwc3_phy_setup(struct dwc3 *dwc)
+ 	if (dwc->u2ss_inp3_quirk)
+ 		reg |= DWC3_GUSB3PIPECTL_U2SSINP3OK;
  
- config CRYPTO_DEV_OMAP_DES
--	tristate "Support for OMAP DES3DES hw engine"
-+	tristate "Support for OMAP DES/3DES hw engine"
- 	depends on ARCH_OMAP2PLUS
- 	select CRYPTO_DES
- 	select CRYPTO_BLKCIPHER
- 	help
- 	  OMAP processors have DES/3DES module accelerator. Select this if you
- 	  want to use the OMAP module for DES and 3DES algorithms. Currently
--	  the ECB and CBC modes of operation supported by the driver. Also
--	  accesses made on unaligned boundaries are also supported.
-+	  the ECB and CBC modes of operation are supported by the driver. Also
-+	  accesses made on unaligned boundaries are supported.
++	if (dwc->dis_rxdet_inp3_quirk)
++		reg |= DWC3_GUSB3PIPECTL_DISRXDETINP3;
++
+ 	if (dwc->req_p1p2p3_quirk)
+ 		reg |= DWC3_GUSB3PIPECTL_REQP1P2P3;
  
- config CRYPTO_DEV_PICOXCELL
- 	tristate "Support for picoXcell IPSEC and Layer2 crypto engines"
+@@ -903,6 +906,8 @@ static int dwc3_probe(struct platform_device *pdev)
+ 				"snps,u2exit_lfps_quirk");
+ 	dwc->u2ss_inp3_quirk = device_property_read_bool(dev,
+ 				"snps,u2ss_inp3_quirk");
++	dwc->dis_rxdet_inp3_quirk = device_property_read_bool(dev,
++				"snps,dis_rxdet_inp3_quirk");
+ 	dwc->req_p1p2p3_quirk = device_property_read_bool(dev,
+ 				"snps,req_p1p2p3_quirk");
+ 	dwc->del_p1p2p3_quirk = device_property_read_bool(dev,
+@@ -945,6 +950,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		dwc->disable_scramble_quirk = pdata->disable_scramble_quirk;
+ 		dwc->u2exit_lfps_quirk = pdata->u2exit_lfps_quirk;
+ 		dwc->u2ss_inp3_quirk = pdata->u2ss_inp3_quirk;
++		dwc->dis_rxdet_inp3_quirk = pdata->dis_rxdet_inp3_quirk;
+ 		dwc->req_p1p2p3_quirk = pdata->req_p1p2p3_quirk;
+ 		dwc->del_p1p2p3_quirk = pdata->del_p1p2p3_quirk;
+ 		dwc->del_phy_power_chg_quirk = pdata->del_phy_power_chg_quirk;
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index e4f8b90..41cc22c 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -193,6 +193,7 @@
+ /* Global USB3 PIPE Control Register */
+ #define DWC3_GUSB3PIPECTL_PHYSOFTRST	(1 << 31)
+ #define DWC3_GUSB3PIPECTL_U2SSINP3OK	(1 << 29)
++#define DWC3_GUSB3PIPECTL_DISRXDETINP3	(1 << 28)
+ #define DWC3_GUSB3PIPECTL_REQP1P2P3	(1 << 24)
+ #define DWC3_GUSB3PIPECTL_DEP1P2P3(n)	((n) << 19)
+ #define DWC3_GUSB3PIPECTL_DEP1P2P3_MASK	DWC3_GUSB3PIPECTL_DEP1P2P3(7)
+@@ -873,6 +874,7 @@ struct dwc3 {
+ 
+ 	unsigned		tx_de_emphasis_quirk:1;
+ 	unsigned		tx_de_emphasis:2;
++	unsigned		dis_rxdet_inp3_quirk:1;
+ };
+ 
+ /* -------------------------------------------------------------------------- */
+diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
+index 2bb4d3a..9df1dfb 100644
+--- a/drivers/usb/dwc3/platform_data.h
++++ b/drivers/usb/dwc3/platform_data.h
+@@ -46,6 +46,7 @@ struct dwc3_platform_data {
+ 
+ 	unsigned tx_de_emphasis_quirk:1;
+ 	unsigned tx_de_emphasis:2;
++	unsigned dis_rxdet_inp3_quirk:1;
+ 
+ 	u32 fladj_value;
+ 
 -- 
-1.7.10.4
+1.7.7.4
