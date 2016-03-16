@@ -1,32 +1,69 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: am335x: no multicast reception over VLAN
-Date: Wed, 16 Mar 2016 16:05:24 +0100
-Message-ID: <CAGm1_ktOqB4QBMy2G4XeHTkaP+WvG8GOc8maVv3dDoxM+-F+ZA@mail.gmail.com>
+From: Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
+Subject: [PATCH v2] ARM: dts: dra7xx: Fix compatible string for PCF8575 chip
+Date: Wed, 16 Mar 2016 16:52:30 +0000
+Message-ID: <1458147150.20441.2.camel@codethink.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev <netdev@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "N, Mugunthan V" <mugunthanvnm@ti.com>, drivshin@allworx.com, grygorii.strashko@ti.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: CT kernel <linux-kernel-81qHHgoATdFT9dQujB1mzip2UmYkHbXO@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-I have an am335x based board using CPSW in Dual EMAC mode. Without
-VLAN IDs I can receive and send multicast packets [1]. When I create
-VLAN ID:
+The binding definition for the PCF857x GPIO expanders doesn't mention
+a "ti,pcf8575" compatible string.  This is apparently because TI is
+only a second source - there is no functional difference between
+PCF8575 chips manufactured by TI and NXP, and the same board might be
+populated with either depending on availability.
 
-ip link add link eth1 name eth1.100 type vlan id 100
-ip addr add 192.168.100.2/24 brd 192.168.100.255 dev eth1.100
-route add -net 224.0.0.0 netmask 224.0.0.0 eth1.100
+This is not a problem in practice because the I2C core uses
+of_modalias_node() before matching drivers and this strips the
+manufacturer name.
 
-I can successfully send multicast packets, but not receive them. On
-the other side of the Ethernet cable I've used Pandaboard. Pandaboard
-could both receive and send multicast packets via VLAN.
+Signed-off-by: Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
+---
+v2: Correct the claim that this is a practical problem.
 
-This setup was tested with both 3.18.21 and 4.5 kernels.
+ arch/arm/boot/dts/dra7-evm.dts  | 2 +-
+ arch/arm/boot/dts/dra72-evm.dts | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Any idea?
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index cfc24e52244e..3907c9d2c12e 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -539,7 +539,7 @@
+ 	};
+ 
+ 	pcf_gpio_21: gpio@21 {
+-		compatible = "ti,pcf8575";
++		compatible = "nxp,pcf8575";
+ 		reg = <0x21>;
+ 		lines-initial-states = <0x1408>;
+ 		gpio-controller;
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 00b12002c07c..7ec42bda3afb 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -422,7 +422,7 @@
+ 	};
+ 
+ 	pcf_gpio_21: gpio@21 {
+-		compatible = "ti,pcf8575";
++		compatible = "nxp,pcf8575";
+ 		reg = <0x21>;
+ 		lines-initial-states = <0x1408>;
+ 		gpio-controller;
 
-[1] https://pymotw.com/2/socket/multicast.html
 
-Regards,
-Yegor
+
+-- 
+Ben Hutchings
+Software Developer, Codethink Ltd.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
