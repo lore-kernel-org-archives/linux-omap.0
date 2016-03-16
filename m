@@ -1,64 +1,33 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 13/13] thermal: convert ti-thermal to use
- devm_thermal_zone_of_sensor_register
-Date: Tue, 15 Mar 2016 17:56:54 +0530
-Message-ID: <56E7FF8E.8030209@ti.com>
-References: <1457559336-17652-1-git-send-email-edubezval@gmail.com>
- <1457559336-17652-15-git-send-email-edubezval@gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] MAINTAINERS: ti-soc-thermal: add a co-maintainer and update the entry
+Date: Wed, 16 Mar 2016 11:42:58 +0530
+Message-ID: <1458108778-3803-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457559336-17652-15-git-send-email-edubezval@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, Rui Zhang <rui.zhang@intel.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: akpm@linux-foundation.org, gregkh@linuxfoundation.org, davem@davemloft.net, edubezval@gmail.com, rui.zhang@intel.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Eduardo,
+Add myself as a co-maintainer for ti-soc-thermal
 
-On Thursday 10 March 2016 03:05 AM, Eduardo Valentin wrote:
-> This changes the driver to use the devm_ version
-> of thermal_zone_of_sensor_register and cleans
-> up the  local points and unregister calls.
->
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-Boot tested on dra7xx-evm, dra72x-evm, pandaboard-es.
-Also checked the thermal sysfs entries on am57xx-beagle-x15.
-
-Tested-by: Keerthy <j-keerthy@ti.com>
-
-
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> ---
->   drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 5 +----
->   1 file changed, 1 insertion(+), 4 deletions(-)
->
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> index b213a12..15c0a9a 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> @@ -337,7 +337,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
->   		return -EINVAL;
->
->   	/* in case this is specified by DT */
-> -	data->ti_thermal = thermal_zone_of_sensor_register(bgp->dev, id,
-> +	data->ti_thermal = devm_thermal_zone_of_sensor_register(bgp->dev, id,
->   					data, &ti_of_thermal_ops);
->   	if (IS_ERR(data->ti_thermal)) {
->   		/* Create thermal zone */
-> @@ -368,9 +368,6 @@ int ti_thermal_remove_sensor(struct ti_bandgap *bgp, int id)
->   	if (data && data->ti_thermal) {
->   		if (data->our_zone)
->   			thermal_zone_device_unregister(data->ti_thermal);
-> -		else
-> -			thermal_zone_of_sensor_unregister(bgp->dev,
-> -							  data->ti_thermal);
->   	}
->
->   	return 0;
->
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 57adf39..480ed29 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10876,6 +10876,7 @@ F:	drivers/platform/x86/thinkpad_acpi.c
+ 
+ TI BANDGAP AND THERMAL DRIVER
+ M:	Eduardo Valentin <edubezval@gmail.com>
++M:	Keerthy <j-keerthy@ti.com>
+ L:	linux-pm@vger.kernel.org
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+-- 
+1.9.1
