@@ -1,69 +1,97 @@
-From: Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
-Subject: [PATCH v2] ARM: dts: dra7xx: Fix compatible string for PCF8575 chip
-Date: Wed, 16 Mar 2016 16:52:30 +0000
-Message-ID: <1458147150.20441.2.camel@codethink.co.uk>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: Nokia N900 - audio TPA6130A2 problems
+Date: Wed, 16 Mar 2016 20:21:31 +0200
+Message-ID: <56E9A42B.3010209@gmail.com>
+References: <201507251228.27128@pali> <201601050034.12810@pali>
+ <20160306152339.GA428@earth> <201603121342.33099@pali>
+ <56E68B71.2030202@ti.com> <20160316133319.GR8413@pali>
+ <20160316144709.GA3389@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: CT kernel <linux-kernel-81qHHgoATdFT9dQujB1mzip2UmYkHbXO@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160316144709.GA3389@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, merlijn@wizzup.org
 List-Id: linux-omap@vger.kernel.org
 
-The binding definition for the PCF857x GPIO expanders doesn't mention
-a "ti,pcf8575" compatible string.  This is apparently because TI is
-only a second source - there is no functional difference between
-PCF8575 chips manufactured by TI and NXP, and the same board might be
-populated with either depending on availability.
+Hi,
 
-This is not a problem in practice because the I2C core uses
-of_modalias_node() before matching drivers and this strips the
-manufacturer name.
+On 16.03.2016 16:47, Sebastian Reichel wrote:
+> Hi,
+>
+> On Wed, Mar 16, 2016 at 02:33:19PM +0100, Pali Roh=E1r wrote:
+>> Hi! We found out that tpa6130a2 device is being initialized before
+>> i2c_2 bus is initialized. So that is reason why tpa6130a2 fails...
+>
+> What do you mean by initialize? A call to tpa6130a2_probe()? In that
+> case I wonder about client->adapter. Is it NULL?
+>
 
-Signed-off-by: Ben Hutchings <ben.hutchings-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>
----
-v2: Correct the claim that this is a practical problem.
+This is (a part of) the log when tpa6130a2 fails to initialize:
 
- arch/arm/boot/dts/dra7-evm.dts  | 2 +-
- arch/arm/boot/dts/dra72-evm.dts | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Jan  1 08:03:07 Nokia-N900 kernel: [    1.928344] twl 1-0048: PIH (irq =
+23) chaining IRQs 340..348
+Jan  1 08:03:07 Nokia-N900 kernel: [    1.934326] twl 1-0048: power (ir=
+q 345) chaining IRQs 348..355
+Jan  1 08:03:07 Nokia-N900 kernel: [    2.498504] twl4030_gpio twl4030-=
+gpio: gpio (irq 340) chaining IRQs 356..373
+Jan  1 08:03:07 Nokia-N900 kernel: [    2.858215] twl4030_usb 48070000.=
+i2c:twl@48:twl4030-usb: Initialized TWL4030 USB module
+Jan  1 08:03:07 Nokia-N900 kernel: [    2.888702] input: twl4030_pwrbut=
+ton as /devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/4807000=
+0.i2c:twl@48:pwrbutton/input/input0
+Jan  1 08:03:07 Nokia-N900 kernel: [    2.903594] input: TWL4030 Keypad=
+ as /devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/48070000.i=
+2c:twl@48:keypad/input/input1
+Jan  1 08:03:07 Nokia-N900 kernel: [    3.148040] 48070000.i2c:twl@48:m=
+adc supply vusb3v1 not found, using dummy regulator
+Jan  1 08:03:07 Nokia-N900 kernel: [    6.997985] omap_i2c 48070000.i2c=
+: bus 1 rev3.3 at 2200 kHz
+Jan  1 08:03:07 Nokia-N900 kernel: [    7.010528] tpa6130a2 2-0060: Wri=
+te failed
+Jan  1 08:03:07 Nokia-N900 kernel: [    7.015563] omap_i2c 48072000.i2c=
+: bus 2 rev3.3 at 100 kHz
+Jan  1 08:03:07 Nokia-N900 kernel: [    7.023742] omap_i2c 48060000.i2c=
+: bus 3 rev3.3 at 400 kHz
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index cfc24e52244e..3907c9d2c12e 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -539,7 +539,7 @@
- 	};
- 
- 	pcf_gpio_21: gpio@21 {
--		compatible = "ti,pcf8575";
-+		compatible = "nxp,pcf8575";
- 		reg = <0x21>;
- 		lines-initial-states = <0x1408>;
- 		gpio-controller;
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 00b12002c07c..7ec42bda3afb 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -422,7 +422,7 @@
- 	};
- 
- 	pcf_gpio_21: gpio@21 {
--		compatible = "ti,pcf8575";
-+		compatible = "nxp,pcf8575";
- 		reg = <0x21>;
- 		lines-initial-states = <0x1408>;
- 		gpio-controller;
+Now, it is either tpa6130a2 probe() is called before i2c-2 is
+initialized or i2c driver first probes devices on the bus and only then
+logs successful probe ("omap_i2c 48072000.i2c: bus 2 rev3.3 at 100 kHz"=
+)
+in our case.
 
+> ---------------
+>
+> I just had another look at the driver and I think there is a race
+> condition for tpa6130a2_add_controls() and tpa6130a2_stereo_enable().
+>
+> As far as I can see both functions check for "tpa6130a2_client !=3D
+> NULL". tpa6130a2_client is set before the probe function has finished=
+,
+> though. Simplified probe:
+>
+> ...
+> tpa6130a2_client =3D client;
+> set_default_regs();
+> acquire_power_gpio();
+> acquire_regulator();
+> tpa6130a2_power(1); // needs tpa6130a2_client
+> check_device();
+> tpa6130a2_power(0); // needs tpa6130a2_client
+> ...
+>
+> If tpa6130a2_add_controls() or tpa6130a2_stereo_enable() is called
+> after tpa6130a2 probe has started, but before probe has completed,
+> tpa6130a2_client is set, but not yet initialized. The race condition
+> can be fixed easily by moving the tpa6130a2_client assignment directl=
+y
+> after the regulator acquisition.
+>
 
+I'll try that, thanks.
 
--- 
-Ben Hutchings
-Software Developer, Codethink Ltd.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Ivo
