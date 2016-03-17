@@ -1,7 +1,7 @@
 From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 03/15] irqchip/gic: Don't unnecessarily write the IRQ configuration
-Date: Thu, 17 Mar 2016 14:19:07 +0000
-Message-ID: <1458224359-32665-4-git-send-email-jonathanh@nvidia.com>
+Subject: [PATCH 07/15] irqdomain: Don't set type when mapping an IRQ
+Date: Thu, 17 Mar 2016 14:19:11 +0000
+Message-ID: <1458224359-32665-8-git-send-email-jonathanh@nvidia.com>
 References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,98 @@ To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper
 Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-If the interrupt configuration matches the current configuration, then
-don't bother writing the configuration again.
+Some IRQ chips, such as GPIO controllers or secondary level interrupt
+controllers, may require require additional runtime power management
+control to ensure they are accessible. For such IRQ chips, it makes sense
+to enable the IRQ chip when interrupts are requested and disabled them
+again once all interrupts have been freed.
+
+When mapping an IRQ, the IRQ type settings are read and then programmed.
+The mapping of the IRQ happens before the IRQ is requested and so the
+programming of the type settings occurs before the IRQ is requested. This
+is a problem for IRQ chips that require additional power management
+control because they may not be accessible yet. Therefore, when mapping
+the IRQ, don't program the type settings, just save them and then program
+these saved settings when the IRQ is requested (so long as if they are not
+overridden via the call to request the IRQ).
+
+Add a stub function for irq_domain_free_irqs() to avoid any compilation
+errors when CONFIG_IRQ_DOMAIN_HIERARCHY is not selected.
 
 Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/irqchip/irq-gic-common.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/irqdomain.h |  3 +++
+ kernel/irq/irqdomain.c    | 18 ++++++++++++++----
+ kernel/irq/manage.c       |  7 +++++++
+ 3 files changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-common.c b/drivers/irqchip/irq-gic-common.c
-index f174ce0ca361..ffff5a45f1e3 100644
---- a/drivers/irqchip/irq-gic-common.c
-+++ b/drivers/irqchip/irq-gic-common.c
-@@ -50,13 +50,17 @@ int gic_configure_irq(unsigned int irq, unsigned int type,
- 	else if (type & IRQ_TYPE_EDGE_BOTH)
- 		val |= confmask;
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 2aed04396210..fc66876d1965 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -440,6 +440,9 @@ static inline int irq_domain_alloc_irqs(struct irq_domain *domain,
+ 	return -1;
+ }
  
-+	/* If the current configuration is the same, then we are done */
-+	if (val == oldval)
-+		return 0;
++static inline void irq_domain_free_irqs(unsigned int virq,
++					unsigned int nr_irqs) { }
 +
- 	/*
- 	 * Write back the new configuration, and possibly re-enable
--	 * the interrupt. If we tried to write a new configuration and failed,
-+	 * the interrupt. If we fail to write a new configuration,
- 	 * return an error.
- 	 */
- 	writel_relaxed(val, base + GIC_DIST_CONFIG + confoff);
--	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val && val != oldval)
-+	if (readl_relaxed(base + GIC_DIST_CONFIG + confoff) != val)
- 		ret = -EINVAL;
+ static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
+ {
+ 	return false;
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 0ea285baa619..332bee2205e0 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -576,6 +576,7 @@ static void of_phandle_args_to_fwspec(struct of_phandle_args *irq_data,
+ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+ {
+ 	struct irq_domain *domain;
++	struct irq_data *irq_data;
+ 	irq_hw_number_t hwirq;
+ 	unsigned int cur_type = IRQ_TYPE_NONE;
+ 	unsigned int type = IRQ_TYPE_NONE;
+@@ -638,10 +639,19 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+ 		return 0;
+ 	}
  
- 	if (sync_access)
+-	/* Set type if specified and different than the current one */
+-	if (type != IRQ_TYPE_NONE &&
+-	    type != irq_get_trigger_type(virq))
+-		irq_set_irq_type(virq, type);
++	irq_data = irq_get_irq_data(virq);
++	if (!irq_data) {
++		if (irq_domain_is_hierarchy(domain))
++			irq_domain_free_irqs(virq, 1);
++		else
++			irq_dispose_mapping(virq);
++
++		return 0;
++	}
++
++	/* Store trigger type */
++	irqd_set_trigger_type(irq_data, type);
++
+ 	return virq;
+ }
+ EXPORT_SYMBOL_GPL(irq_create_fwspec_mapping);
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index cc1cc641d653..b2a93a37f772 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -1117,6 +1117,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+ 	new->irq = irq;
+ 
+ 	/*
++	 * If the trigger type is not specified by the caller,
++	 * then use the default for this interrupt.
++	 */
++	if (!(new->flags & IRQF_TRIGGER_MASK))
++		new->flags |= irqd_get_trigger_type(&desc->irq_data);
++
++	/*
+ 	 * Check whether the interrupt nests into another interrupt
+ 	 * thread.
+ 	 */
 -- 
 2.1.4
