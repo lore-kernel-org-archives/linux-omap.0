@@ -1,73 +1,127 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 5/5] pwm: pwm-tiehrpwm: Update dt binding document to use
- generic node name
-Date: Thu, 17 Mar 2016 13:00:53 -0500
-Message-ID: <CAL_Jsq+3vRMezgrA53jPgMZUYR+DAA_886K1Q6YfxV1bPinoQQ@mail.gmail.com>
-References: <1457380318-15452-1-git-send-email-fcooper@ti.com>
- <1457380318-15452-6-git-send-email-fcooper@ti.com> <20160317150305.GA27356@rob-hp-laptop>
- <56EAE014.8070606@ti.com>
+From: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 06/15] irqdomain: Ensure type settings match for an
+ existing mapping
+Date: Thu, 17 Mar 2016 18:18:09 +0000
+Message-ID: <56EAF4E1.5020201@nvidia.com>
+References: <1458224359-32665-1-git-send-email-jonathanh@nvidia.com>
+ <1458224359-32665-7-git-send-email-jonathanh@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <56EAE014.8070606@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: "Franklin S Cooper Jr." <fcooper@ti.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux PWM List <linux-pwm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-clk <linux-clk@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1458224359-32665-7-git-send-email-jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 17, 2016 at 11:49 AM, Franklin S Cooper Jr. <fcooper@ti.com> wrote:
->
->
-> On 03/17/2016 10:03 AM, Rob Herring wrote:
->> On Mon, Mar 07, 2016 at 01:51:58PM -0600, Franklin S Cooper Jr wrote:
->>> Now that the node name has been changed from ehrpwm to pwm the document
->>> should show this proper usage. Also change the unit address in the example
->>> from 0 to the proper physical address value that should be used.
->>>
->>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->>> ---
->>>  Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt | 4 ++--
->>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>> index 9c100b2..20211ed 100644
->>> --- a/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
->>> @@ -15,14 +15,14 @@ Optional properties:
->>>
->>>  Example:
->>>
->>> -ehrpwm0: ehrpwm@0 { /* EHRPWM on am33xx */
->>> +ehrpwm0: pwm@48300200 { /* EHRPWM on am33xx */
->>>      compatible = "ti,am33xx-ehrpwm";
->>>      #pwm-cells = <3>;
->>>      reg = <0x48300200 0x100>;
->>>      ti,hwmods = "ehrpwm0";
->>>  };
->>>
->>> -ehrpwm0: ehrpwm@0 { /* EHRPWM on da850 */
->>> +ehrpwm0: pwm@01f00000 { /* EHRPWM on da850 */
->> No leading 0s, but more importantly the address is wrong.
->
-> I will remove the leading 0. However, this value was taken
-> from the .dtsi and I just double checked and I see the same
-> value in the datasheet. I believe DA850,OMAP-L138 and AM18x
-> all have the same memory mapping. I'm looking at
-> http://www.ti.com/lit/ds/symlink/am1808.pdf page 233 and the
-> addresses match up what is seen here and in the .dtsi.
->
-> Can you point me to which document your looking at that
-> shows a different value?
 
-Ummm, ...
+On 17/03/16 14:19, Jon Hunter wrote:
+> When mapping an IRQ, if a mapping already exists, then we simply return
+> the virtual IRQ number. However, we do not check that the type settings
+> for the existing mapping match those for the mapping that is about to be
+> created. It may be unlikely that the type settings would not match, but
+> check for this and don't return a valid IRQ mapping if the type settings
+> do not match.
+> 
+> WARN if the type return by irq_domain_translate() has bits outside the
+> sense mask set and then clear these bits. If these bits are not cleared
+> then this will cause the comparision of the type settings for an
+> existing mapping to fail with that of the new mapping even if the sense
+> bit themselves match. The reason being is that the existing type
+> settings are read by calling irq_get_trigger_type() which will clear
+> any bits outside the sense mask. This will allow us to detect irqchips
+> that are not correctly clearing these bits and fix them.
+> 
+> Signed-off-by: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+> ---
+>  kernel/irq/irqdomain.c | 59 ++++++++++++++++++++++++++++++++++++--------------
+>  1 file changed, 43 insertions(+), 16 deletions(-)
+> 
+> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+> index 3a519a01118b..0ea285baa619 100644
+> --- a/kernel/irq/irqdomain.c
+> +++ b/kernel/irq/irqdomain.c
+> @@ -549,6 +549,13 @@ static int irq_domain_translate(struct irq_domain *d,
+>  				     fwspec->param, fwspec->param_count,
+>  				     hwirq, type);
+>  
+> +	/*
+> +	 * WARN if the irqchip returns a type with bits
+> +	 * outside the sense mask set and clear these bits.
+> +	 */
+> +	if (WARN_ON(*type & ~IRQ_TYPE_SENSE_MASK))
+> +		*type &= IRQ_TYPE_SENSE_MASK;
+> +
+>  	/* If domain has no translation, then we assume interrupt line */
+>  	*hwirq = fwspec->param[0];
+>  	return 0;
+> @@ -570,6 +577,7 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+>  {
+>  	struct irq_domain *domain;
+>  	irq_hw_number_t hwirq;
+> +	unsigned int cur_type = IRQ_TYPE_NONE;
+>  	unsigned int type = IRQ_TYPE_NONE;
+>  	int virq;
+>  
+> @@ -592,23 +600,42 @@ unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+>  	if (irq_domain_translate(domain, fwspec, &hwirq, &type))
+>  		return 0;
+>  
+> -	if (irq_domain_is_hierarchy(domain)) {
+> -		/*
+> -		 * If we've already configured this interrupt,
+> -		 * don't do it again, or hell will break loose.
+> -		 */
+> -		virq = irq_find_mapping(domain, hwirq);
+> -		if (virq)
+> -			return virq;
+> -
+> -		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, fwspec);
+> -		if (virq <= 0)
+> -			return 0;
+> +	/*
+> +	 * If we've already configured this interrupt,
+> +	 * don't do it again, or hell will break loose.
+> +	 */
+> +	virq = irq_find_mapping(domain, hwirq);
+> +	if (!virq) {
+> +		if (irq_domain_is_hierarchy(domain)) {
+> +			virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE,
+> +						     fwspec);
+> +			if (virq <= 0)
+> +				return 0;
+> +		} else {
+> +			/* Create mapping */
+> +			virq = irq_create_mapping(domain, hwirq);
+> +			if (!virq)
+> +				return virq;
+> +		}
+>  	} else {
+> -		/* Create mapping */
+> -		virq = irq_create_mapping(domain, hwirq);
+> -		if (!virq)
+> -			return virq;
+> +		cur_type = irq_get_trigger_type(virq);
+> +	}
+> +
+> +	/*
+> +	 * If the trigger type is not specified or matches the current
+> +	 * trigger type then we are done so return the interrupt number.
+> +	 */
+> +	if (type == IRQ_TYPE_NONE || type == cur_type)
+> +		return virq;
+> +
+> +	/*
+> +	 * If the trigger type is already set and does
+> +	 * not match this interrupt, then return 0.
+> +	 */
+> +	if (cur_type != IRQ_TYPE_NONE) {
+> +		pr_warn("type mismatch, failed to map hwirq-%lu for %s!\n",
+> +			hwirq, of_node_full_name(to_of_node(fwspec->fwnode)));
+> +		return 0;
 
->>>      compatible = "ti,da850-ehrpwm", "ti,am33xx-ehrpwm";
->>>      #pwm-cells = <3>;
->>>      reg = <0x300000 0x2000>;
+If we created a new mapping and return here, then this will leak the
+mapping. I will fix this. Sorry should have caught this before!
 
-right here.
-
->>> --
->>> 2.7.0
->>>
->
+Jon
